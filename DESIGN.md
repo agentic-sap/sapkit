@@ -387,6 +387,11 @@ packs/modules/fi/
 
 ## 13. 로드맵 (완료 기준 포함)
 
+**실행 모드 구분:** Phase 0a/0b는 발견·문서화 작업이라 final-harness의 대화형
+스킬(harness-init/tailor/loop)로만 진행하고, **무인 step 실행(execute.py)은 verify가
+기계 판정 가능해지는 Phase 1부터 투입한다.** 무인 step은 claude 세션을 띄워 API
+예산을 소모하므로 투입 전 지출 한도 여유를 확인한다.
+
 ### Phase 0a: Scaffold (오프라인 — SAP 연결 불필요)
 - **§16 부트스트랩 1·3·4를 먼저 완료** (vsp 빌드, final-harness 플러그인 설치, 파일럿 결정)
 - ~~git init + `hjaewon/sap-agentic-harness` 원격 생성~~ ✅ 완료 (2026-07-09, 첫 커밋 ba42645)
