@@ -185,7 +185,7 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
 
 ## 5. E2E 이후 남은 백로그 (상세 — 새 세션이 이 절만 읽고 착수 가능하게 기록)
 
-**착수 순서 추천: 5-2 → 5-3** (5-1 완료, 5-4~5-6은 낮음). 전 항목 보조 머신에서 가능.
+**남은 항목: 5-2 진행 중** (5-1·5-3 완료, 5-4~5-6은 낮음). 전 항목 보조 머신에서 가능.
 공통 완료 조건: §9의 게이트 4종 통과 유지 + 상태 변경 시 이 문서 갱신.
 
 ### 5-1. tool-catalog 재생성 — ✅ 완료 (2026-07-11, 보조 머신)
@@ -211,17 +211,17 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
   ③ Claude 훅 배선 경로 실재 여부(프로젝트 settings의 hook command 경로).
 - **완료 기준**: 정상 환경 exit 0 / 불일치 시 항목별 보고 + exit 1. README(어댑터 3벌)에 사용법 1줄.
 
-### 5-3. review-request 스키마 확장 — 환경 컨텍스트 동봉 (D-013)
+### 5-3. review-request 스키마 확장 — 환경 컨텍스트 동봉 (D-013) — ✅ 완료 (2026-07-11)
 
-- **근거**: L6 교차 리뷰에서 동일 대상에 Claude PASS vs Codex FAIL(MAJOR 7) — 원인 대부분이
-  환경 컨텍스트 미전달(백엔드 장애를 코드 결함으로 계상, 스펙 승인 편차를 위반으로 계상).
-  docs/DECISIONS.md D-013.
-- **작업**: `interactive/core/procedures/schemas/review-request.schema.json`에 **additive**
-  (하위호환) 필드 추가 — 예: `environment_context` { `known_outages[]`(백엔드 장애),
-  `approved_deviations[]`(스펙 승인 편차 + 승인 근거), `notes` }. create-program 절차
-  문서의 review-request 생성 단계에 기입 지침 반영. review-result 스키마는 무변경.
-- **완료 기준**: 스키마 유효(JSON) + 절차 문서 반영 + check-links·coverage 게이트 통과.
-  실증은 다음 create-program 완주 시 교차 리뷰 1회로.
+- `review-request.schema.json`에 optional `environment_context` additive 추가 —
+  `known_outages[]`(component/affected_step/observed_at) · `approved_deviations[]`
+  (description/approver/approved_at/reason) · `notes`. **required 무변경**(하위호환),
+  review-result 스키마 무변경.
+- 생산측+소비측 짝으로 반영: `create-program.md` Phase 6 스텝 3에 기입 지침(서브불릿 3),
+  `review-checklist.md`에 "Environment context" 소비 규칙 신설(장애로 SKIPPED된 단계는
+  `N/A (environment outage)` 처리, 승인 편차는 재계상 금지, 미기재 편차는 정상 판정 —
+  D-013 "동일 계약으로 소비" 취지 완결). 스키마 유효 + check-links·coverage 통과.
+- 실증은 다음 create-program 완주 시 교차 리뷰 1회로.
 
 ### 5-4. 검증도구 개선 3건 [낮음] (L5 리뷰 보류분 2-3/2-4/2-5)
 

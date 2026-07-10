@@ -423,6 +423,9 @@ Steps:
 1. Verify `verification.json` is complete (all four steps recorded).
 2. Re-compute the SHA-256 of `spec.md` and confirm it still matches `approval.json.spec_sha256`. On mismatch, STOP — the spec changed after approval; return to the Spec Approval Gate.
 3. Write `.sc4sap/program/{PROG}/review-request.json` conforming to [schemas/review-request.schema.json](./schemas/review-request.schema.json) — `spec_sha256`, `sid`, `client`, `transport`, and the `objects[]` list created in Phase 4 (with types: PROG/P, PROG/I, DYNP, CUAD, …).
+   - If any backend service/tool was down during Phase 4/5 (e.g. an ADT endpoint returning 404/500, causing a verification step to be recorded `SKIPPED` in `verification.json`), attach it under `environment_context.known_outages[]` so the reviewer does not miscount the gap as a code defect.
+   - If the user approved a deviation from `spec.md` during this run, attach it under `environment_context.approved_deviations[]` with who/when/why it was approved, so the reviewer does not re-flag it as a violation.
+   - `environment_context` is optional — omit it entirely when there is no outage or approved deviation to report.
 4. Run [review-checklist](./review-checklist.md) **in a fresh context** (new session/subagent per adapter guidance). The reviewer judges read-only; fixes are applied by the worker, then re-reviewed. Pass the reviewer the path to `review-request.json` and the [review-checklist](./review-checklist.md) itself.
 5. The reviewer writes `.sc4sap/program/{PROG}/review-result.json` conforming to [schemas/review-result.schema.json](./schemas/review-result.schema.json).
 6. Handle the verdict (as the worker, back in this context):

@@ -16,7 +16,7 @@ You are the **reviewer**, running in a fresh context, separate from the worker t
 ## Reviewer Contract
 
 - **Read-only.** You judge; you never fix. Do NOT issue any `Create*` / `Update*` / `Delete*` call. Fixes are applied by the worker after reading your result, then re-reviewed in another fresh context.
-- **Input**: `.sc4sap/program/{PROG}/review-request.json` (see [schemas/review-request.schema.json](./schemas/review-request.schema.json)) — spec hash, target system (`sid`/`client`), transport, and the `objects[]` list with types. Also read `spec.md` and `interview.md` (for the paradigm and testing-scope decisions) from the same directory.
+- **Input**: `.sc4sap/program/{PROG}/review-request.json` (see [schemas/review-request.schema.json](./schemas/review-request.schema.json)) — spec hash, target system (`sid`/`client`), transport, and the `objects[]` list with types. Also read `spec.md` and `interview.md` (for the paradigm and testing-scope decisions) from the same directory. If the request carries `environment_context`, apply the rules under "Environment context" below before counting findings.
 - **Output**: `.sc4sap/program/{PROG}/review-result.json` conforming to [schemas/review-result.schema.json](./schemas/review-result.schema.json). Set `reviewed_spec_sha256` to the `spec_sha256` you received in the request (verify it against the actual `spec.md` first — on mismatch, FAIL immediately with a single MAJOR finding "spec changed after approval").
 - **Narrow context kit — do NOT bulk-load all conventions.** Each item below names the only convention file(s) to load while checking that item. Load them one item at a time; unload/ignore the rest. Preloading all 12 kits wastes context and dilutes judgment.
 - Fetch object sources via the read tools only: `GetProgram`, `GetInclude`, `GetClass`, `GetInterface`, `GetScreen`, `GetGuiStatus`, `GetTextElement`, `ReadTextElementsBulk`, `GetFunctionModule`, `SearchObject`, `GetInactiveObjects`.
@@ -31,6 +31,24 @@ You are the **reviewer**, running in a fresh context, separate from the worker t
 
 - `FAIL` — one or more MAJOR findings (list every finding, MINOR and MAJOR).
 - `PASS` — zero MAJOR findings. MINOR findings may still be listed; the worker fixes them before the completion report.
+
+### Environment context (from the request)
+
+`review-request.json` may carry an optional `environment_context` (schema: known
+backend outages + human-approved spec deviations — docs/DECISIONS.md D-013).
+Apply it before counting findings:
+
+- **`known_outages[]`** — a verification step recorded `SKIPPED` because of a
+  listed outage is an environment gap, NOT a code defect. Do not raise a finding
+  for the gap itself; record the affected checklist item as
+  `N/A (environment outage: <component>)` and judge the code on the evidence
+  that IS available.
+- **`approved_deviations[]`** — a deviation listed here (with its who/when/why
+  approval trail) is NOT a violation of `spec.md`'s literal text; do not
+  re-flag it. A deviation you observe in the source that is NOT listed is
+  judged normally.
+- The context adjusts which *gaps* count as findings; it never lowers the bar
+  for the code you can actually see.
 
 ## Index
 
