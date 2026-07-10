@@ -185,23 +185,20 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
 
 ## 5. E2E 이후 남은 백로그 (상세 — 새 세션이 이 절만 읽고 착수 가능하게 기록)
 
-**착수 순서 추천: 5-1 → 5-2 → 5-3** (5-4~5-6은 낮음). 전 항목 보조 머신에서 가능.
+**착수 순서 추천: 5-2 → 5-3** (5-1 완료, 5-4~5-6은 낮음). 전 항목 보조 머신에서 가능.
 공통 완료 조건: §9의 게이트 4종 통과 유지 + 상태 변경 시 이 문서 갱신.
 
-### 5-1. tool-catalog 재생성 — 1순위
+### 5-1. tool-catalog 재생성 — ✅ 완료 (2026-07-11, 보조 머신)
 
-- **현황**: `interactive/server/tool-catalog/`의 4파일(read/write/runtime/전체, read 81/write 76
-  분류)은 원본 이식본이라 live와 어긋남 — 카탈로그에만 27종(프로그램/화면 계열), live에만
-  12종(GrepObjects·GetCallGraph·UpdateSourceByPatch 등). 상세는 같은 폴더 README.md.
-- **작업**: 연결 상태 tools/list(186종)를 실측해 4파일을 재생성하고 read/write/runtime
-  분류 유지, README의 "어긋남 주의" 문구를 재생성 완료로 갱신.
-- **실측 방법**: `scripts/smoke-mcp.mjs`를 본떠 **`server/launch.cjs`를 spawn**(cwd=레포
-  루트 — `.sc4sap/active-profile.txt` 인식) → initialize → tools/list. 각 tool의
-  name+description+[read-only] 접두어까지 수집하면 분류 자동화 가능.
-  IDES-DEV 프로파일로 186종 노출 재확인됨(2026-07-10 보조 머신 실측).
-- **함정**: 번들을 직접 기동하면 inspection-only(155)로 잡힘 — §4.1-(b) gen-permissions와
-  같은 함정. 반드시 launch.cjs 경유 + 프로파일 활성 상태로.
-- **완료 기준**: 카탈로그 도구 수 = 연결 실측 수(186), 카탈로그↔live diff 0, check-links 통과.
+- 연결 상태(IDES-DEV, launch.cjs 경유) tools/list 186종 실측 → 4파일 재생성.
+  **read 90 / write 79 / runtime 15 / prompt-gated 2 = 186, 카탈로그↔live diff 0** 검증.
+  구 카탈로그 170종은 전부 live에 실재(부재 없음 재확인), 신규 16종 편입
+  (Grep 2·GetCallGraph·GetSourceDiff·UpdateSourceByPatch·WriteTextElementsBulk 등).
+- 표기를 `mcp__plugin_sc4sap_sap__` 풀네임 → **bare capability name**으로 전환
+  (vocabulary.md 어댑터 매핑 계약에 정합). ReloadProfile은 runtime의 신설
+  "Server Session Control" 절로 — 자동승인 비권장 주석 포함.
+- 재생성 절차(launch.cjs 함정 포함)는 `tool-catalog/README.md`에 영구 기록.
+  check-links·coverage 게이트 통과.
 
 ### 5-2. doctor.mjs — 3사 어댑터-코어 동기화 점검 도구
 
