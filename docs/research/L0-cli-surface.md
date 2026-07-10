@@ -45,3 +45,13 @@ agy plugin list | import [source] | install <target> | uninstall | enable | disa
 2. Antigravity 어댑터는 "신규 제작"이 아니라 "**Claude 어댑터 import + 보정**" 경로를
    1순위로 검토한다 — DESIGN.md §4-2의 antigravity 절은 L5에서 이 실측으로 갱신 예정.
 3. `compatibility.json` 초기값: codex-cli 0.144.1, agy 1.0.7.
+
+## L4 추가 실측 (2026-07-10)
+
+- `codex plugin marketplace add <lite경로>` + `codex plugin add sc4sap-lite@sc4sap-lite`
+  **설치 성공** (installed, enabled). 캐시에 core/·server/ 포함 833파일 전체 패키징 확인 —
+  "레포 루트=플러그인 루트" 결정 검증됨.
+- `.agents/plugins/marketplace.json` 스키마: plugins[].source={source:"local",path:"./"} 동작.
+- 서버 `--exposition=readonly|high|low|compact` (기본 readonly,high) — Codex 프리셋은
+  readonly 확정 (§5-4 미결 5 해소).
+- `codex mcp add <name> --env K=V -- <command>` 시그니처 확인 — NODE_PATH 주입 가능.
