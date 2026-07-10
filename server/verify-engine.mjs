@@ -20,9 +20,9 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const BUNDLE_PATH = join(ROOT, 'engine', 'server.bundle.cjs');
-const VERSION_PATH = join(ROOT, 'engine', 'VERSION');
-const INTEGRITY_PATH = join(ROOT, 'engine', 'integrity.json');
+const BUNDLE_PATH = join(ROOT, 'server', 'server.bundle.cjs');
+const VERSION_PATH = join(ROOT, 'server', 'VERSION');
+const INTEGRITY_PATH = join(ROOT, 'server', 'integrity.json');
 
 function fail(msg) {
   console.error(`[verify-engine] FAIL: ${msg}`);
