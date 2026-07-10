@@ -16,8 +16,16 @@ codex plugin add sap-agentic-harness@sap-agentic-harness
 ## MCP 서버 등록 (전역 — 프로젝트 config는 trust 게이트가 있어 비권장)
 
 ```
-codex mcp add sap --env NODE_PATH="D:\claude for SAP\sap-agentic-harness\server\runtime-deps\keyring\node_modules" -- node "D:\claude for SAP\sap-agentic-harness\server\server.bundle.cjs" --exposition=readonly
+codex mcp add sap --env NODE_PATH="D:\claude for SAP\sap-agentic-harness\interactive\server\runtime-deps\keyring\node_modules" -- node "D:\claude for SAP\sap-agentic-harness\interactive\server\launch.cjs" --exposition=readonly
 ```
+
+주의 2가지 (2026-07-10 L3 E2E 반영):
+- **경로에 `interactive\` 포함** — 레포 통합 후 서버 위치가 바뀜 (구 경로는 파일 없음).
+- **`launch.cjs`(shim)를 가리킬 것** — `server.bundle.cjs` 직접 호출은 항상 mock 연결
+  (4.13 번들은 activateProfile을 connection 브로커에 안 넘김). shim이
+  `<cwd>/.sc4sap/active-profile.txt` → 프로파일 sap.env를 `MCP_ENV_PATH`로 배선한다.
+  따라서 **연결은 codex를 실행한 폴더 기준** — 그 폴더에 `.sc4sap/active-profile.txt`가
+  없으면 inspection-only(정상 폴백).
 
 **exposition 프리셋 (§5-4 미결 5 해소 — 서버 --help 실측):**
 

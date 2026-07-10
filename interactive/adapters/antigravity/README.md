@@ -18,22 +18,34 @@ agy plugin install  "D:\claude for SAP\sap-agentic-harness"
 ## MCP 서버 등록 (전역 — agy 1.0.7 플러그인 번들 미지원 실측)
 
 `plugin.json`의 mcpServers 포인터/인라인/`mcp.json` 모두 "skipped" — MCP는 Antigravity
-전역 설정(`~/.gemini` 하위 mcp_config)에 수동 등록한다. Agent Manager MCP 설정 UI 또는
-설정 파일에 다음을 등록:
+전역 설정에 수동 등록한다. **파일이 둘이며 용도가 다름 (2026-07-10 L6 실측)**:
+
+| 파일 | 읽는 주체 |
+|---|---|
+| `~/.gemini/config/mcp_config.json` | **agy CLI** (`--print` 포함) — CLI 테스트는 이 파일이 정본 |
+| `~/.gemini/antigravity/mcp_config.json` | Antigravity IDE(Agent Manager) |
+
+둘 다(또는 필요한 쪽에) 다음을 등록:
 
 ```json
 {
   "mcpServers": {
     "sap": {
       "command": "node",
-      "args": ["D:\\claude for SAP\\sap-agentic-harness\\server\\server.bundle.cjs", "--exposition=readonly"],
-      "env": { "NODE_PATH": "D:\\claude for SAP\\sap-agentic-harness\\server\\runtime-deps\\keyring\\node_modules" }
+      "args": ["D:\\claude for SAP\\sap-agentic-harness\\interactive\\server\\launch.cjs", "--exposition=readonly"],
+      "env": { "NODE_PATH": "D:\\claude for SAP\\sap-agentic-harness\\interactive\\server\\runtime-deps\\keyring\\node_modules" }
     }
   }
 }
 ```
 
 (write 세션은 `--exposition=readonly,high` — Codex 어댑터 README의 프리셋 표와 동일)
+
+주의 2가지 (2026-07-10 L3 E2E 반영):
+- **경로에 `interactive\\` 포함** — 레포 통합 후 서버 위치가 바뀜 (구 경로는 파일 없음).
+- **`launch.cjs`(shim)를 가리킬 것** — `server.bundle.cjs` 직접 호출은 항상 mock 연결.
+  shim이 `<cwd>/.sc4sap/active-profile.txt`를 읽어 연결을 배선하므로, 연결은
+  Antigravity가 서버를 띄운 작업 폴더 기준 — 없으면 inspection-only(정상 폴백).
 
 ## Rules (상시 주입 안전 규칙)
 

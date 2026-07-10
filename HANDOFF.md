@@ -105,8 +105,22 @@ D:\claude for SAP\sap-agentic-harness   ← 단일 레포 (원격: hjaewon/sap-a
       **sap-reviewer 새-컨텍스트 리뷰(read-only)** → CheckSyntax→활성화→Unit→ATC.
       대상: 부담 없는 $TMP 또는 전용 Z패키지
 
-**E2E 후 → L6 교차 검증**: 동일 과제(상담+조회 수준)를 Codex(`toggle on` + MCP 등록)와
-Antigravity(가능한 선까지)에서 반복. 리뷰 인계 스키마(review-request/result) 왕복 1회 실증.
+**E2E 후 → L6 교차 검증: ✅ 완료 (2026-07-10)** — 3사 전부 라이브 SAP 연결 실증:
+
+- **Codex** (0.144.1, gpt-5.6): `toggle on` + `codex mcp add sap`(launch.cjs·readonly) →
+  GetSystemInfo 실데이터(DEV/700) → ask-consultant 상담 과제 통과(🧭/🌐 형식·환경 로드·
+  라이브 SKA1 조회·Claude와 정합적 답변).
+- **Antigravity** (agy 1.0.7): `agy --print` 비대화형으로 동일 과제 통과 — "가능한 선"을
+  넘어 CLI 전 플로우 동작. **실측**: agy CLI의 MCP 정본은 `~/.gemini/config/mcp_config.json`
+  (`antigravity/mcp_config.json`은 IDE용) — 어댑터 README에 반영.
+- **리뷰 인계 왕복 실증**: Claude 워커의 review-request.json(ZR_FI_GL_LIST)을 Codex
+  리뷰어가 소비 → 스키마 적합 `review-result-codex.json` 반환(read-only 준수, 원본 무손상).
+  **관찰**: 판정 편차 Claude PASS vs Codex FAIL(MAJOR 7) — 원인은 ① 환경 컨텍스트(백엔드
+  장애·문서화된 편차) 미전달 ② 심각도 캘리브레이션 차이 ③ **실질 신규 발견 1건
+  (AUTHORITY-CHECK 부재 — F_SKA1_* 권한 검사, 후속 개선 후보)**. 교훈: review-request
+  스키마에 환경 컨텍스트 필드 추가 검토(백로그).
+- 종료 상태: Codex toggle off·AG disable (평시 기본). 어댑터 README 2벌에 launch.cjs
+  경유 등록 명령 반영(구 경로·번들 직접 호출은 mock 연결이라 무효).
 
 ### 4.1 L3 E2E — ✅ 완료 (2026-07-10)
 
