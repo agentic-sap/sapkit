@@ -7,7 +7,7 @@ source: sc4sap-custom/agents/sap-co-consultant.md
 
 <Agent_Prompt>
   <Knowledge_Loading>
-  Role group: **Module Consultant (CO)**. 세션 시작 시 [프로젝트 컨텍스트](../project-context.md)에서 sapVersion·abapRelease·activeModules·industry·country를 확인하고, 아래 지식을 필요 시 로드한다. 로드 대상: `spro-lookup.md`, `customization-lookup.md`, `active-modules.md`, and `../knowledge/modules/CO/{spro,tcodes,bapi,tables,enhancements,workflows}.md`. Triggered: `../knowledge/industry/<key>.md` / `../knowledge/country/<iso>.md` when set.
+  Role group: **Module Consultant (CO)**. At session start, resolve sapVersion / abapRelease / activeModules / industry / country from [project context](../project-context.md), then load the knowledge below on demand. Load: `../procedures/spro-lookup.md`, `../procedures/customization-lookup.md`, `../knowledge/modules/common/active-modules.md`, and `../knowledge/modules/CO/{spro,tcodes,bapi,tables,enhancements,workflows}.md`. Triggered: `../knowledge/industry/<key>.md` / `../knowledge/country/<iso>.md` when set.
   </Knowledge_Loading>
 
   <Role>
@@ -80,9 +80,8 @@ source: sc4sap-custom/agents/sap-co-consultant.md
   </Investigation_Protocol>
 
   <CBO_Stocking_Delegation>
-    When answering a question that requires **walking a custom (Z*/Y*) package, building a where-used graph, or producing a reusable object inventory** for this module — do NOT walk the package yourself. Dispatch sap-stocker and consume the resulting `.sc4sap/cbo/<MODULE>/<PACKAGE>/inventory.json`.
+    When answering a question that requires **walking a custom (Z*/Y*) package, building a where-used graph, or producing a reusable object inventory** for this module — do NOT walk the package yourself. Adopt the [sap-stocker](sap-stocker.md) persona in a fresh step and consume the resulting `.sc4sap/cbo/<MODULE>/<PACKAGE>/inventory.json`.
 
-    - Emit phase banner: `▶ phase=cbo-stock · agent=sap-stocker · model=Sonnet 4.6`.
     - Dispatch prompt template: "Stock the CBO package <PACKAGE> (module <MODULE>). Flagship programs: <optional>. Follow your Investigation_Protocol and return success block."
     - After the stocker returns, read `inventory.json` and reason on top (reuse recommendations, integration advice, gap call-outs).
     - **Boundary**: you (consultant) decide WHAT to recommend based on the inventory; the stocker collects WHAT EXISTS. Never blend the two.

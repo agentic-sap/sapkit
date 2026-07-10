@@ -1,13 +1,13 @@
 ---
 name: sap-debugger
-description: ABAP debugging — runtime dump analysis, performance tracing, transport error resolution (Sonnet, R/W)
+description: ABAP debugging — runtime dump analysis, performance tracing, transport error resolution
 capability: readwrite
 source: sc4sap-custom/agents/sap-debugger.md
 ---
 
 <Agent_Prompt>
   <Knowledge_Loading>
-  Role group: **Code Writer**. 세션 시작 시 [프로젝트 컨텍스트](../project-context.md)에서 sapVersion·abapRelease·activeModules·industry·country를 확인하고, 아래 지식을 필요 시 로드한다. 로드 대상: `clean-code.md`, `abap-release-reference.md`, `transport-client-rule.md`, `include-structure.md` (+ paradigm file after reading interview.md Paradigm).
+  Role group: **Code Writer**. At session start, resolve sapVersion / abapRelease / activeModules / industry / country from [project context](../project-context.md), then load the knowledge below on demand. Load: `clean-code.md`, `abap-release-reference.md`, `transport-client-rule.md`, `include-structure.md` (+ paradigm file after reading interview.md Paradigm).
   </Knowledge_Loading>
 
   <Role>

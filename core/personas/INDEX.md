@@ -11,7 +11,7 @@
 | 페르소나 | capability | 설명 |
 |---|---|---|
 | [sap-ariba-consultant](sap-ariba-consultant.md) | readonly | SAP Ariba consultant — procurement, sourcing, supplier management, contract management, Ariba Network |
-| [sap-bc-consultant](sap-bc-consultant.md) | readonly | SAP Basis administration — system monitoring, transport management, performance tuning, dump analysis (Opus, R/O) |
+| [sap-bc-consultant](sap-bc-consultant.md) | readonly | SAP Basis administration — system monitoring, transport management, performance tuning, dump analysis |
 | [sap-bw-consultant](sap-bw-consultant.md) | readonly | SAP Business Warehouse consultant — data modeling, ETL, BEx queries, HANA-optimized InfoProviders, BW/4HANA |
 | [sap-co-consultant](sap-co-consultant.md) | readonly | SAP Controlling consultant — cost center accounting, internal orders, product costing, profitability analysis |
 | [sap-fi-consultant](sap-fi-consultant.md) | readonly | SAP Financial Accounting consultant — general ledger, accounts payable/receivable, asset accounting, bank accounting |
@@ -30,14 +30,14 @@
 
 | 페르소나 | capability | 설명 |
 |---|---|---|
-| [sap-analyst](sap-analyst.md) | readonly | SAP requirements analysis — functional specifications, gap analysis, and acceptance criteria (Opus, R/O) |
-| [sap-architect](sap-architect.md) | readonly | SAP system architecture — technical design, ABAP architecture, and integration patterns (Opus, R/O) |
-| [sap-code-reviewer](sap-code-reviewer.md) | readonly | ABAP code review — Clean ABAP, performance, security, SAP standard compliance (Opus, R/O) |
-| [sap-critic](sap-critic.md) | readonly | SAP quality gate — functional specification review, configuration validation, and implementation plan critique (Opus, R/O) |
-| [sap-debugger](sap-debugger.md) | readwrite | ABAP debugging — runtime dump analysis, performance tracing, transport error resolution (Sonnet, R/W) |
-| [sap-doc-specialist](sap-doc-specialist.md) | readonly | SAP documentation reference — SAP Help Portal, OSS Notes, IMG documentation, ABAP keyword docs (Sonnet, R/O) |
-| [sap-executor](sap-executor.md) | readwrite | ABAP code implementation — programs, function modules, classes, enhancements, CDS views (Sonnet, R/W) |
-| [sap-planner](sap-planner.md) | readwrite | SAP project planning — implementation roadmaps, WRICEF planning, cutover planning (Opus, R/W) |
-| [sap-qa-tester](sap-qa-tester.md) | readwrite | SAP testing — ABAP unit tests, integration test scenarios, test data management (Sonnet, R/W) |
-| [sap-stocker](sap-stocker.md) | readwrite | SAP CBO inventory — walk packages, build where-used graphs, infer object business purpose, persist reusable inventory artifacts (Sonnet, R/O on SAP + R/W on local .sc4sap/) |
-| [sap-writer](sap-writer.md) | readwrite | SAP technical documentation — functional specs, configuration guides, user manuals (Haiku, R/W) |
+| [sap-analyst](sap-analyst.md) | readonly | SAP requirements analysis — functional specifications, gap analysis, and acceptance criteria |
+| [sap-architect](sap-architect.md) | readonly | SAP system architecture — technical design, ABAP architecture, and integration patterns |
+| [sap-code-reviewer](sap-code-reviewer.md) | readonly | ABAP code review — Clean ABAP, performance, security, SAP standard compliance |
+| [sap-critic](sap-critic.md) | readonly | SAP quality gate — functional specification review, configuration validation, and implementation plan critique |
+| [sap-debugger](sap-debugger.md) | readwrite | ABAP debugging — runtime dump analysis, performance tracing, transport error resolution |
+| [sap-doc-specialist](sap-doc-specialist.md) | readonly | SAP documentation reference — SAP Help Portal, OSS Notes, IMG documentation, ABAP keyword docs |
+| [sap-executor](sap-executor.md) | readwrite | ABAP code implementation — programs, function modules, classes, enhancements, CDS views |
+| [sap-planner](sap-planner.md) | readwrite | SAP project planning — implementation roadmaps, WRICEF planning, cutover planning |
+| [sap-qa-tester](sap-qa-tester.md) | readwrite | SAP testing — ABAP unit tests, integration test scenarios, test data management |
+| [sap-stocker](sap-stocker.md) | readwrite | SAP CBO inventory — walk packages, build where-used graphs, infer object business purpose, persist reusable inventory artifacts |
+| [sap-writer](sap-writer.md) | readwrite | SAP technical documentation — functional specs, configuration guides, user manuals |
