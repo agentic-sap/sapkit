@@ -11,10 +11,15 @@
 ```
 D:\claude for SAP\sap-agentic-harness   ← 단일 레포 (원격: hjaewon/sap-agentic-harness, 미푸시 커밋 있음)
 │
-├── [트랙 A] 무인 하네스 트랙 — ★ 구현 미착수
-│     설계: DESIGN.md (v2.1, 2026-07-09 확정)
+├── [트랙 A] 하네스 트랙 (무인 step + 대화형 레인 겸용) — ★ 구현 미착수
+│     설계: DESIGN.md (v2.1, 2026-07-09 확정 + 2026-07-10 엔진 델타 주)
 │     내용: final-harness(D:\claude-practice\claude-fable-final) 엔진 + vsp-custom CLI로
-│           ABAP 개발을 계획→실행→verify→LESSONS/RULES 학습 루프로 관리
+│           ABAP 개발을 계획→실행→verify→LESSONS/RULES 학습 루프로 관리.
+│           설계는 원래부터 대화형 세션(Phase 0a/0b·CONSULT) + 무인 step 겸용 —
+│           "무인"은 실행 모드 하나이지 트랙 전체가 아님.
+│     엔진 현행: v0.16.0 (2026-07-10) — 라우팅 4갈래·request-weight triage·
+│           harness-design 인터뷰 루프 추가(설계에 유리, 구조 변경 불요).
+│           단 DESIGN.md §15-F 불변식은 v0.12.1 실측 → 부트스트랩 시 재검증 (§1 델타 주)
 │     시작점: DESIGN.md §16 부트스트랩 (vsp 빌드 → final-harness 플러그인 설치 → harness-init)
 │
 └── [트랙 B] 대화형 트랙 — ★ L0~L5 구현 완료, E2E 대기  ←←← 현재 작업 지점

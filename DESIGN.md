@@ -27,7 +27,7 @@
 
 | 역할 | Git 레포 | 로컬 경로 (참고) | 버전 | 라이선스 |
 |---|---|---|---|---|
-| **하네스 엔진** | `https://github.com/hjaewon/claude-fable-final.git` | `D:\claude-practice\claude-fable-final` | v0.12.1 (2651854) | 자작 |
+| **하네스 엔진** | `https://github.com/hjaewon/claude-fable-final.git` | `D:\claude-practice\claude-fable-final` | v0.16.0 (4ebbfd9, 2026-07-10) — §15-F는 v0.12.1 실측 | 자작 |
 | **SAP 검증/배포 백엔드** | `https://github.com/hjaewon/vsp-custom.git` | `D:\claude for SAP\vsp\vsp-custom` | aab1275 (2026-07-07) | MIT — 업스트림 `oisee/vibing-steampunk` |
 | 지식 시드 (동결 — 지식 수정 금지, 2026-07-10) | `https://github.com/hjaewon/sc4sap-custom.git` | `D:\claude for SAP\sc4sap-custom` | — | MIT — 업스트림 `babamba2/superclaude-for-sap` |
 | **지식 정본 + 3사 대화형 트랙** | 본 레포 `interactive/` (2026-07-10 subtree 병합, 플러그인명 sap-agentic-harness) | `D:\claude for SAP\sap-agentic-harness\interactive` | L5+리뷰 반영 | MIT 승계 — 설계: `interactive/DESIGN.md` |
@@ -36,6 +36,14 @@
 
 위 레포 모두 hjaewon 소유(자작 또는 포크)다. MIT 업스트림이므로 콘텐츠 이식·개작에
 법적 제약 없음(저작권 고지 유지). 본 문서의 수치·좌표 검증일: 2026-07-09.
+
+> **엔진 델타 주 (2026-07-10, v0.12.1 → v0.16.0, 28커밋)**: 마크다운 계층에
+> **요청 라우팅 4갈래**(바로 답변 / 대화 루프 / 무인 phase / 멈추고 질문) +
+> **request-weight triage** + **harness-design 인터뷰 루프·대안 비교**가 추가됐다 —
+> 본 설계의 "대화형 세션(Phase 0a/0b·CONSULT) + 무인 step" 겸용 구조를 하네스가
+> 스킬 차원에서 공식 지원하게 된 것으로, **설계 구조 변경은 불요**(유리한 변화).
+> 단 엔진 계층도 변경됨(execute.py 대폭 수정 + 테스트 신설, run.lock 레이스 수리 등)
+> → **§15-F1~F7은 v0.12.1 실측이므로 §16 부트스트랩 시 v0.16.0 README로 재검증할 것.**
 
 ## 2. 목표와 역할 분리
 
@@ -471,7 +479,7 @@ packs/modules/fi/
 구현 세션이 전제를 재검증할 때 사용. 경로는 §1의 로컬 경로, 좌표는 §1 표의 버전/커밋
 기준이며 검증일은 2026-07-09다.
 
-**final-harness (v0.12.1, README.md):**
+**final-harness (v0.12.1, README.md — 현행 v0.16.0에서 재검증 필요, §1 엔진 델타 주 참조):**
 - F1. 무인 step 세션은 `--strict-mcp-config`(claude 드라이버, MCP 서버 0개)로 기동,
   codex 드라이버는 서버 열거 후 개별 `enabled=false` — README "v0.12.0 §1 MCP 도구 우회 봉합"
 - F2. 매니페스트 미감지 시 Stop 게이트는 no-op + 기동 시 1회 WARN — README "v0.12.0 §3"
