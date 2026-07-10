@@ -39,7 +39,7 @@
 | `common/spro-lookup.md` | transform | `core/procedures/` (추출 산출물 전제 문구 수정 — 리뷰 3-9) |
 | `common/customization-lookup.md` | transform | `core/procedures/` (동상) |
 | `common/help-portal-fetch.md` | transform | `core/procedures/` |
-| `common/active-modules.md` | transform | `core/project-context.md`에 흡수 |
+| `common/active-modules.md` | transform | `core/knowledge/modules/common/active-modules.md` (크로스모듈 지식) + `core/project-context.md`에서 참조 |
 | `common/model-routing-rule.md` | obsolete | Claude 모델 라우팅 — 폐기 |
 | `common/team-consultation-protocol.md` | obsolete | 팀 프로토콜 — 폐기 |
 | `common/context-loading-protocol.md` | obsolete | Tier 로딩 — 어댑터 로딩 계약으로 대체 |
