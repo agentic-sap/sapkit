@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "verification.schema.json",
+  "title": "Implementation Verification Record",
+  "description": "Written to .sc4sap/program/{PROG}/verification.json during create-program Phase 4 (check_syntax, activate) and Phase 5 (unit_test, atc). Each step records a status plus concrete evidence (tool output summary), so the Phase 6 reviewer and the Phase 8 report can trust the claims without re-running the tools.",
+  "type": "object",
+  "required": ["check_syntax", "activate", "unit_test", "atc"],
+  "additionalProperties": false,
+  "properties": {
+    "check_syntax": {
+      "$ref": "#/definitions/step",
+      "description": "Result of CheckSyntax on the MAIN program (single check, not per include)."
+    },
+    "activate": {
+      "$ref": "#/definitions/step",
+      "description": "Activation result — evidence should cite GetInactiveObjects returning 0 entries for the program's object set."
+    },
+    "unit_test": {
+      "$ref": "#/definitions/step",
+      "description": "RunUnitTest / GetUnitTestResult outcome. SKIPPED when Phase 5 skip conditions matched (Procedural paradigm, or testing scope = none)."
+    },
+    "atc": {
+      "$ref": "#/definitions/step",
+      "description": "GetAtcFindings outcome on the created objects. SKIPPED when the backend does not support ATC checks."
+    },
+    "prog": {
+      "type": "string",
+      "description": "Program name (optional convenience field)."
+    }
+  },
+  "definitions": {
+    "step": {
+      "type": "object",
+      "required": ["status", "evidence"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "SKIPPED"],
+          "description": "Step outcome. SKIPPED requires the reason in evidence."
+        },
+        "evidence": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Concrete proof: tool name + result summary (e.g. 'CheckSyntax(ZMM_STOCK_RPT): 0 errors 0 warnings', 'GetInactiveObjects: 0 entries for ZMM_STOCK_RPT*', 'RunUnitTest: 6/6 methods green'), or the skip reason."
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the step was recorded (optional)."
+        }
+      }
+    }
+  }
+}

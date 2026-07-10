@@ -1,0 +1,11 @@
+{
+  "name": "sc4sap-lite",
+  "version": "0.1.0",
+  "description": "Harness-portable lite edition of SuperClaude for SAP — module knowledge packs (14+BC), industries, countries, ABAP conventions/templates, 26 personas (on-demand via INDEX selector), 11 single-agent procedures with human approval + fresh-context review gates. SAP connectivity via the bundled ABAP ADT MCP server (register separately: see adapters/codex/README.md).",
+  "author": {
+    "name": "hjaewon"
+  },
+  "license": "MIT",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}

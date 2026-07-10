@@ -1,0 +1,20 @@
+{
+  "name": "sc4sap-lite",
+  "version": "0.1.0",
+  "description": "Harness-portable lite edition of SuperClaude for SAP — 14+BC module knowledge packs, 14 industries, 16 countries, ABAP conventions/templates, 26 consultant/role personas (on-demand via INDEX selector), 11 single-agent procedures with human approval + fresh-context review gates, and the ABAP ADT MCP server (155 tools). No multi-agent orchestration: quality model is one worker + one fresh-context reviewer + SAP machine verification (CheckSyntax → Activate → ABAP Unit → ATC).",
+  "author": {
+    "name": "hjaewon"
+  },
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "plugin",
+    "sap",
+    "abap",
+    "s4hana",
+    "erp",
+    "abap-development"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}

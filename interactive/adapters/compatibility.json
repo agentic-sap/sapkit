@@ -1,0 +1,24 @@
+{
+  "_comment": "어댑터별 검증 버전 고정 (DESIGN.md §4-2). 버전이 올라가면 스모크 재실행 후 갱신.",
+  "verified": "2026-07-10",
+  "claude-code": {
+    "manifest": ".claude-plugin/plugin.json (+ marketplace.json)",
+    "install": "/plugin marketplace add <repo> → /plugin install sc4sap-lite@sc4sap-lite",
+    "smoke": "설치 E2E 대기 (adapters/claude/README.md 체크리스트)"
+  },
+  "codex": {
+    "version": "0.144.1",
+    "manifest": ".codex-plugin/plugin.json + .agents/plugins/marketplace.json",
+    "install": "codex plugin marketplace add <repo> → codex plugin add sc4sap-lite@sc4sap-lite",
+    "smoke": "PASS — installed+enabled, 캐시에 core/server 전체 패키징 확인",
+    "mcp": "codex mcp add sap --env NODE_PATH=<keyring> -- node <bundle> --exposition=readonly"
+  },
+  "antigravity": {
+    "agy": "1.0.7",
+    "manifest": "plugin.json (루트, agy 전용)",
+    "install": "agy plugin install <repo>",
+    "smoke": "PASS — skills 11 + agents 1, ~/.gemini/config/plugins/에 전체 복사",
+    "mcp": "플러그인 번들 미지원(1.0.7 실측) — 전역 mcp_config 수동 등록",
+    "note": "문서상 2.0 표면 이행 중 — agy 메이저 업 시 재검증"
+  }
+}

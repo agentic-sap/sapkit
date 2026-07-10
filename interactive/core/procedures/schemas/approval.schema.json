@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "approval.schema.json",
+  "title": "Spec Approval Record",
+  "description": "Written to .sc4sap/program/{PROG}/approval.json at the Spec Approval Gate of create-program. Binds the human approval to the exact spec content (SHA-256 of spec.md) and to the target SAP system, so that a spec edit or a system switch after approval invalidates the approval.",
+  "type": "object",
+  "required": [
+    "spec_sha256",
+    "sid",
+    "client",
+    "tier",
+    "transport",
+    "approval_keyword",
+    "timestamp"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "spec_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 (lowercase hex) of spec.md exactly as approved. Phase 4 and Phase 6 recompute and compare; mismatch requires re-approval."
+    },
+    "sid": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]{2}$",
+      "description": "SAP system ID the approval applies to (from the active connection profile)."
+    },
+    "client": {
+      "type": "string",
+      "pattern": "^[0-9]{3}$",
+      "description": "SAP client the approval applies to."
+    },
+    "tier": {
+      "type": "string",
+      "minLength": 1,
+      "description": "System tier from the connection profile (e.g. sandbox, dev, qa, prd)."
+    },
+    "transport": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Transport request the approved work will be recorded on (from Phase 1B dimension 6)."
+    },
+    "approval_keyword": {
+      "type": "string",
+      "enum": ["승인", "approve", "approved", "ok", "proceed", "go ahead", "confirmed"],
+      "description": "The exact explicit approval keyword the user typed. Only these keywords count as approval."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of the approval."
+    },
+    "prog": {
+      "type": "string",
+      "description": "Program name the spec covers (optional convenience field)."
+    },
+    "approver": {
+      "type": "string",
+      "description": "Identifier of the approving user, when known (optional)."
+    }
+  }
+}

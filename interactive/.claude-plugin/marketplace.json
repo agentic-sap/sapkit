@@ -1,0 +1,22 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "sc4sap-lite",
+  "description": "Lite, harness-portable edition of SuperClaude for SAP. Same knowledge (module SPRO/BAPI/tables/workflows for 14 modules + BC, industries, countries, ABAP clean-code conventions and templates), same MCP server (155 ADT tools), same personas — minus the multi-agent machinery. Procedures run as one agent following gated checklists; review happens in a fresh context; SAP itself verifies (syntax, activation, unit tests, ATC).",
+  "owner": {
+    "name": "hjaewon"
+  },
+  "plugins": [
+    {
+      "name": "sc4sap-lite",
+      "description": "SAP ABAP development and consulting — knowledge core + personas + gated procedures + ADT MCP server, in one lite plugin.",
+      "version": "0.1.0",
+      "author": {
+        "name": "hjaewon"
+      },
+      "source": "./",
+      "category": "development",
+      "tags": ["sap", "abap", "s4hana", "erp", "mcp", "lite"]
+    }
+  ],
+  "version": "0.1.0"
+}

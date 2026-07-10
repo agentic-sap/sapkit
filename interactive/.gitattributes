@@ -1,0 +1,4 @@
+server/runtime-deps/** -text
+server/runtime-deps/**/*.node binary
+server/server.bundle.cjs -text
+assets/spec/*.xlsx binary

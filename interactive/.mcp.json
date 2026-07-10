@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "sap": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/server/server.bundle.cjs"],
+      "env": {
+        "NODE_PATH": "${CLAUDE_PLUGIN_ROOT}/server/runtime-deps/keyring/node_modules"
+      }
+    }
+  }
+}

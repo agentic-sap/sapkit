@@ -1,0 +1,5 @@
+node_modules/
+.env
+.sc4sap/
+*.log
+.DS_Store
