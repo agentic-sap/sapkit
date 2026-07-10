@@ -13,6 +13,8 @@ codex plugin add sap-agentic-harness@sap-agentic-harness
 
 캐시(`~/.codex/plugins/cache/sap-agentic-harness/...`)에 core/·server/ 포함 전체가 패키징됨을 확인.
 
+어댑터-코어 동기화 점검: `node interactive/scripts/doctor.mjs` (3사 동기화 점검)
+
 ## MCP 서버 등록 (전역 — 프로젝트 config는 trust 게이트가 있어 비권장)
 
 ```

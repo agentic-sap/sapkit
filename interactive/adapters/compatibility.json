@@ -1,6 +1,6 @@
 {
-  "_comment": "어댑터별 검증 버전 고정 (DESIGN.md §4-2). 버전이 올라가면 스모크 재실행 후 갱신.",
-  "verified": "2026-07-10",
+  "_comment": "어댑터별 검증 버전 고정 (DESIGN.md §4-2). 버전이 올라가면 스모크 재실행 후 갱신. 동기화 점검: node interactive/scripts/doctor.mjs",
+  "verified": "2026-07-11",
   "claude-code": {
     "manifest": ".claude-plugin/plugin.json (+ marketplace.json)",
     "install": "/plugin marketplace add <repo> → /plugin install sap-agentic-harness@sap-agentic-harness",
@@ -14,10 +14,10 @@
     "mcp": "codex mcp add sap --env NODE_PATH=<keyring> -- node <bundle> --exposition=readonly"
   },
   "antigravity": {
-    "agy": "1.0.7",
+    "agy": "1.0.16",
     "manifest": "plugin.json (루트, agy 전용)",
     "install": "agy plugin install <repo>",
-    "smoke": "PASS — skills 11 + agents 1, ~/.gemini/config/plugins/에 전체 복사",
+    "smoke": "PASS — skills 11 + agents 1 (1.0.7 최초 2026-07-10, 1.0.16 재실측 2026-07-11 — 설치 후 disable로 평시 OFF 복귀)",
     "mcp": "플러그인 번들 미지원(1.0.7 실측) — 전역 mcp_config 수동 등록",
     "note": "문서상 2.0 표면 이행 중 — agy 메이저 업 시 재검증"
   }

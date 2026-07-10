@@ -86,6 +86,9 @@ D:\claude for SAP\sap-agentic-harness   ← 단일 레포 (원격: hjaewon/sap-a
   활성 프로파일 **IDES-DEV**(S4H/100 실연결 확인). KR-DEV(192.168.1.225)는 사내망
   전용이라 이 머신에서 도달 불가 — 사내망 복귀 시 active-profile.txt 한 줄 교체.
 - 구 sc4sap 플러그인 2종(sc4sap@sc4sap·sc4sap@sc4sap-custom)은 disabled 확인.
+- 3사 CLI 전부 존재 실측(2026-07-11 doctor): claude 2.1.206(플러그인 설치+훅 3종 배선) ·
+  codex 0.144.1(플러그인 미설치 = 평시 OFF) · agy 1.0.16(임포트 + **disabled** = 평시 OFF,
+  5-2 스모크 재검증 때 임포트됨).
 - 원본 sc4sap-custom 사본에 npm 산출물(node_modules)이 있어 migration-coverage
   게이트가 깨졌던 것을 스크립트 수리(node_modules 스킵)로 해소. `.omc/**` 규칙
   매칭 0 경고는 이 머신 사본에 세션 기록물이 없어서 나는 정보성 경고(비차단).
@@ -185,7 +188,7 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
 
 ## 5. E2E 이후 남은 백로그 (상세 — 새 세션이 이 절만 읽고 착수 가능하게 기록)
 
-**남은 항목: 5-2 진행 중** (5-1·5-3 완료, 5-4~5-6은 낮음). 전 항목 보조 머신에서 가능.
+**5-1~5-3 완료 (2026-07-11)** — 남은 항목은 5-4~5-6(전부 낮음). 전 항목 보조 머신에서 가능.
 공통 완료 조건: §9의 게이트 4종 통과 유지 + 상태 변경 시 이 문서 갱신.
 
 ### 5-1. tool-catalog 재생성 — ✅ 완료 (2026-07-11, 보조 머신)
@@ -200,16 +203,17 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
 - 재생성 절차(launch.cjs 함정 포함)는 `tool-catalog/README.md`에 영구 기록.
   check-links·coverage 게이트 통과.
 
-### 5-2. doctor.mjs — 3사 어댑터-코어 동기화 점검 도구
+### 5-2. doctor.mjs — 3사 어댑터-코어 동기화 점검 도구 — ✅ 완료 (2026-07-11)
 
-- **근거**: interactive/DESIGN.md 파일 지도의 `scripts/doctor.mjs`("3사 어댑터 버전/코어
-  해시 불일치 감지") + §5-2 L6 게이트 "doctor 동기화 점검" — L6에서 유일하게 미구현.
-- **작업**: `interactive/scripts/doctor.mjs` 신설. 점검 항목:
-  ① 번들 무결성(server/VERSION·integrity.json vs 실해시 — `server/verify-engine.mjs` 로직 재사용)
-  ② `adapters/compatibility.json`의 3사 고정 버전 vs 설치 실측(`claude plugin list` /
-  `codex plugin list` / `agy plugin list` — 미설치 하네스는 skip 처리)
-  ③ Claude 훅 배선 경로 실재 여부(프로젝트 settings의 hook command 경로).
-- **완료 기준**: 정상 환경 exit 0 / 불일치 시 항목별 보고 + exit 1. README(어댑터 3벌)에 사용법 1줄.
+- `interactive/scripts/doctor.mjs` 신설: ① 번들 무결성(verify-engine.mjs spawn 위임)
+  ② compatibility.json 고정 버전 vs CLI 실측 + 플러그인 설치 여부(CLI 부재 = SKIP,
+  버전 불일치 = FAIL, 플러그인 미설치는 정보성 — 평시 OFF도 정상) ③ Claude 훅 배선
+  경로 실재(.claude/settings*.json의 command에서 경로 추출 → existsSync).
+  전 항목 OK/SKIP → exit 0, FAIL ≥1 → exit 1. README 3벌에 사용법 1줄.
+- **가치 즉시 실증**: 첫 실행이 실제 불일치 검출 — agy 설치 1.0.16 ≠ 고정 1.0.7 →
+  정본 절차(compatibility.json _comment)대로 1.0.16 설치 스모크 재실행(skills 11 +
+  agents 1 processed, 설치 후 disable로 평시 OFF 복귀) → 고정값 1.0.16 갱신 →
+  doctor exit 0. FAIL·OK 경로 모두 실환경 실증.
 
 ### 5-3. review-request 스키마 확장 — 환경 컨텍스트 동봉 (D-013) — ✅ 완료 (2026-07-11)
 

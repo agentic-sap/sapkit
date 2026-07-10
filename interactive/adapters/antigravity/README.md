@@ -15,6 +15,8 @@ agy plugin install  "D:\claude for SAP\sap-agentic-harness"
 스킬 래퍼의 PLUGIN_ROOT 상대 해석이 유지된다. 갱신 시 재설치 필요(레포 수정이 자동 반영되지
 않음 — doctor 점검 대상).
 
+어댑터-코어 동기화 점검: `node interactive/scripts/doctor.mjs` (3사 동기화 점검)
+
 ## MCP 서버 등록 (전역 — agy 1.0.7 플러그인 번들 미지원 실측)
 
 `plugin.json`의 mcpServers 포인터/인라인/`mcp.json` 모두 "skipped" — MCP는 Antigravity

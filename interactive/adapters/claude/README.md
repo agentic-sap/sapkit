@@ -42,6 +42,8 @@ lite 경로로 재배선 검증 필요** (아래 체크리스트).
 
 ## E2E 체크리스트 (L3 완료 기준)
 
+어댑터-코어 동기화 전반 점검: `node interactive/scripts/doctor.mjs` (3사 동기화 점검)
+
 - [ ] 플러그인 설치 + MCP 연결 (inspection-only라도 tools 노출 확인)
 - [ ] 네임스페이스 접두어 실측 → 권한 템플릿 재생성 여부 판정
 - [ ] install-hooks 경로 재배선 확인 (플러그인 캐시 경로 기준)
