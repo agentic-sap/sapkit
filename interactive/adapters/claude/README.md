@@ -47,3 +47,10 @@ lite 경로로 재배선 검증 필요** (아래 체크리스트).
 - [ ] install-hooks 경로 재배선 확인 (플러그인 캐시 경로 기준)
 - [ ] FI 상담 1건: `/sap-agentic-harness:ask-consultant` → FI 페르소나 로드 → 프로젝트 컨텍스트 반영 답변
 - [ ] `/sap-agentic-harness:create-program` 1건: 스펙 승인 게이트 → 구현 → **sap-reviewer 새 컨텍스트 리뷰** → 기계 검증 체인
+
+## 활성 스코프 (2026-07-10 실측)
+
+`claude plugin install ... --scope local`로 설치하면 이 프로젝트의
+`.claude/settings.local.json`(git 미추적)에만 enabledPlugins가 기록된다 —
+**나만 + 이 프로젝트만**. 다른 프로젝트 세션에는 로드되지 않는다.
+전 프로젝트 공유가 필요하면 `--scope user`, 팀 공유는 `--scope project`.

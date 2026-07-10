@@ -48,3 +48,15 @@ GetSqlQuery)의 호출 건별 승인은 Claude보다 한 겹 약하다 — reado
 ```
 codex exec --sandbox read-only "PLUGIN_ROOT/core/procedures/review-checklist.md를 읽고 <review-request 경로>를 판정하라"
 ```
+
+## 활성 스코프 (2026-07-10 실측)
+
+Codex 플러그인 활성화는 **전역 전용**이다 — 프로젝트 `.codex/config.toml`의
+`[plugins]` 오버레이와 `-c plugins...enabled=true` 런타임 오버라이드 모두 스킬 로딩에
+반영되지 않음을 실측으로 확인했다. 운용:
+
+```
+node adapters/codex/toggle-plugin.mjs on      # SAP 작업 시작
+node adapters/codex/toggle-plugin.mjs off     # 종료 (다른 프로젝트 오염 방지)
+node adapters/codex/toggle-plugin.mjs status
+```

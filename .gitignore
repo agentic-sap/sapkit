@@ -1,2 +1,3 @@
 .sc4sap/
 .env
+.claude/settings.local.json
