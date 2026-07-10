@@ -78,32 +78,29 @@ D:\claude for SAP\sap-agentic-harness   ← 단일 레포 (원격: hjaewon/sap-a
 - MCP 서버는 Claude만 플러그인에 동봉 등록(.mcp.json). Codex/AG는 수동 등록 필요
   (각 어댑터 README의 명령 — exposition=readonly 기본).
 
-## 4. 다음 작업: L3 E2E (여기서 재개)
+## 4. L3 E2E + L6 교차 검증 — ✅ 전부 완료 (2026-07-10)
 
-**E2E = 실사용 시나리오를 처음부터 끝까지 1회 완주하는 검증.** 부품 검증(스모크·링크체커·훅
-테스트)은 끝났고, 조립 검증이 남았다.
+**E2E = 실사용 시나리오를 처음부터 끝까지 1회 완주하는 검증.** 조립 검증까지 완료 —
+트랙 B는 설계→구현→검증이 닫혔다. 아래 체크리스트·설치 조건은 재현 절차 기록으로 보존.
 
-**선행 조건 (사용자 액션):**
+**설치/연결 조건 (재현 시):**
 
 1. Claude Code 세션 재시작 → `/sap-agentic-harness:troubleshooting` 등 스킬 11개 +
    `sap` MCP 서버 보이는지 확인
 2. SAP DEV 프로파일: `~/.sah/profiles/<별칭>/sap.env` (**SAP_TIER=dev 필수**) +
    본 레포 또는 작업 폴더에 `.sc4sap/active-profile.txt`(별칭 1줄) + `.sc4sap/config.json`
-   (sapVersion·abapRelease·activeModules·industry·country). 기존 sc4sap-custom 프로파일 재사용 가능
+   (sapVersion·abapRelease·activeModules·industry·country)
 
 **E2E 체크리스트** (상세: `interactive/adapters/claude/README.md`):
 
-- [ ] MCP 연결 확인 (프로파일 있으면 connected, 없으면 inspection-only)
-- [ ] **연결 상태 tools/list 실측** → 미노출 27종(CreateProgram·GetProgram 등 프로그램/화면
-      계열)의 실체 판정 → `interactive/server/tool-catalog/README.md`의 보류 해소.
-      **create-program 절차가 참조하는 도구 존재 확인이 E2E 선결**
-- [ ] 실제 도구 네임스페이스 접두어 확인 → 다르면
-      `SC4SAP_LITE_NS=<접두어> node interactive/scripts/gen-permissions.mjs` 재생성
-- [ ] 안전훅 설치: `node interactive/adapters/claude/hooks/install-hooks.mjs --project <경로>` → 재배선 동작 확인
-- [ ] FI 상담 1건: `/sap-agentic-harness:ask-consultant` — 페르소나 로드 + 컨텍스트 반영
-- [ ] create-program 1건 완주: 인터뷰 → 스펙 → **사람 승인 게이트** → 구현 →
-      **sap-reviewer 새-컨텍스트 리뷰(read-only)** → CheckSyntax→활성화→Unit→ATC.
-      대상: 부담 없는 $TMP 또는 전용 Z패키지
+- [x] MCP 연결 확인 — launch.cjs shim 경유 connected (system_id=DEV/700)
+- [x] **연결 상태 tools/list 실측** → 미노출 27종은 프로파일 활성 시 **동적 노출**로 판정
+      (155→186) → tool-catalog README 보류 해소. create-program 참조 도구 전부 실재
+- [x] 도구 네임스페이스 접두어 일치 확인 (`mcp__plugin_sap-agentic-harness_sap__`)
+- [x] 안전훅 설치 + 재배선 확인 (PA0008 차단 실증)
+- [x] FI 상담 1건 — 페르소나 + 라이브 컨텍스트(ACDOCA/SKA1) + KR 로컬라이제이션
+- [x] create-program 1건 완주 — ZR_FI_GL_LIST (승인 게이트 → 구현 → 리뷰 FAIL→수정→PASS
+      → CheckSyntax→활성화→ATC; Unit은 백엔드 404로 SKIPPED). 상세 §4.1
 
 **E2E 후 → L6 교차 검증: ✅ 완료 (2026-07-10)** — 3사 전부 라이브 SAP 연결 실증:
 
@@ -179,7 +176,8 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
 | 항목 | 내용 | 근거 |
 |---|---|---|
 | doctor.mjs | 3사 어댑터-코어 버전/해시 불일치 감지 | interactive/DESIGN.md §3-2 (L6) |
-| tool-catalog 재생성 | 연결 실측 후 4.13 기준으로 갱신 | server/tool-catalog/README.md |
+| tool-catalog 재생성 | 연결 상태(186 tools) 기준으로 갱신 | server/tool-catalog/README.md |
+| review-request 스키마 확장 | 환경 컨텍스트(장애·문서화된 편차) 동봉 — 교차 리뷰 판정 편차 완화 | docs/DECISIONS.md D-013 |
 | deferred 스크립트 6종 | extract-spro/customizations, fetch 2종, profile-cli, option-tui | MIGRATION-MANIFEST의 deferred(L6+) 행 |
 | 검증도구 개선 3건(낮음) | 링크체커 앵커 검증, 커버리지 목적지 존재 검사, 스모크 exposition 인자 | L5-review-response.md 보류 절 |
 | 다국어 README | 재작성 여부 결정 | 매니페스트 archive 행 |
