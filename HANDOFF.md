@@ -80,7 +80,8 @@ D:\claude for SAP\sap-agentic-harness   ← 단일 레포 (원격: hjaewon/sap-a
 
 **보조 머신 (2026-07-10, 레포 위치 `D:\AI PROJECT\sap-agentic-harness`):**
 
-- Claude 플러그인 scope local ON + 안전훅 3종 프로젝트 settings 등록(PA0008 차단 실증).
+- Claude 플러그인 scope local ON + 안전훅 3종 프로젝트 settings 등록(PA0008 차단 실증)
+  + 권한 병합 allow 189(사용자 직접 실행, D-008 패턴 — 실데이터 2종 제외 유지). **셋업 완료.**
 - 프로파일 홈은 기본 `~/.sc4sap`(SC4SAP_HOME_DIR 미설정 — `.sah` 개명은 주 머신만).
   활성 프로파일 **IDES-DEV**(S4H/100 실연결 확인). KR-DEV(192.168.1.225)는 사내망
   전용이라 이 머신에서 도달 불가 — 사내망 복귀 시 active-profile.txt 한 줄 교체.
