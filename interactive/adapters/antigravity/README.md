@@ -7,11 +7,11 @@
 ## 설치 (실측 통과)
 
 ```
-agy plugin validate "D:\claude for SAP\sc4sap-lite"   # skills 11 + agents 1 processed
-agy plugin install  "D:\claude for SAP\sc4sap-lite"
+agy plugin validate "D:\claude for SAP\sap-agentic-harness"   # skills 11 + agents 1 processed
+agy plugin install  "D:\claude for SAP\sap-agentic-harness"
 ```
 
-임포트 위치: `~/.gemini/config/plugins/sc4sap-lite/` — **core/·server/ 포함 전체 복사**라
+임포트 위치: `~/.gemini/config/plugins/sap-agentic-harness/` — **core/·server/ 포함 전체 복사**라
 스킬 래퍼의 PLUGIN_ROOT 상대 해석이 유지된다. 갱신 시 재설치 필요(레포 수정이 자동 반영되지
 않음 — doctor 점검 대상).
 
@@ -26,8 +26,8 @@ agy plugin install  "D:\claude for SAP\sc4sap-lite"
   "mcpServers": {
     "sap": {
       "command": "node",
-      "args": ["D:\\claude for SAP\\sc4sap-lite\\server\\server.bundle.cjs", "--exposition=readonly"],
-      "env": { "NODE_PATH": "D:\\claude for SAP\\sc4sap-lite\\server\\runtime-deps\\keyring\\node_modules" }
+      "args": ["D:\\claude for SAP\\sap-agentic-harness\\server\\server.bundle.cjs", "--exposition=readonly"],
+      "env": { "NODE_PATH": "D:\\claude for SAP\\sap-agentic-harness\\server\\runtime-deps\\keyring\\node_modules" }
     }
   }
 }

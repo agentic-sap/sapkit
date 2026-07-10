@@ -3,8 +3,8 @@
 > **상태: L0~L5 산출물 구현 완료 + Fable 5 구현 코드리뷰 반영 (2026-07-10). 잔여: L3 E2E(사용자 설치·SAP 프로파일 필요) → L6 교차 검증.**
 >
 > 이 문서는 컨텍스트 클리어 후 어떤 세션이든 이 문서만 읽고 구현을 시작할 수 있도록 작성된
-> 단일 소스다. **정본: 본 파일** — 2026-07-10 Phase L0에서
-> `sap-agentic-harness/docs/superpowers/specs/2026-07-10-sc4sap-lite-design.md`로부터 이동했다.
+> 단일 소스다. **정본: 본 파일** (`sap-agentic-harness/interactive/DESIGN.md`) — L0에서 스펙 문서로부터
+> 이동, 이후 별도 레포(sc4sap-lite)를 거쳐 2026-07-10 본 레포에 subtree 병합됐다.
 
 ## 0. 한 문장 요약
 
@@ -60,7 +60,7 @@
 | 역할 | 위치 (2026-07 기준) |
 |---|---|
 | 이식 원천 (동결 예정) | `D:\claude for SAP\sc4sap-custom` — `hjaewon/sc4sap-custom` (MIT, 업스트림 babamba2/superclaude-for-sap) |
-| 본 설계 산출 레포 (신규) | `sc4sap-lite` — Phase L0에서 생성 |
+| 본 설계 산출물 | `sap-agentic-harness/interactive/` — L0에서 sc4sap-lite 레포로 생성 후 2026-07-10 subtree 병합·개명 (플러그인명 `sap-agentic-harness`) |
 | MCP 엔진 업스트림 | `hjaewon/abap-mcp-adt-powerup` (번들 원천, npm `@hjaewon/abap-mcp-adt-powerup`) |
 | 무인 하네스 트랙 (별개) | `D:\claude for SAP\sap-agentic-harness` — DESIGN.md v2.1. packs가 lite core를 지식 원천으로 사용 (§5-3) |
 | 선행 설계 문서 | `sc4sap-custom/private/lightweight-redesign-design.md` (비공개 유지) |

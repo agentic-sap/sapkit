@@ -1,14 +1,14 @@
 {
-  "name": "sc4sap-lite",
+  "name": "sap-agentic-harness",
   "interface": {
-    "displayName": "SC4SAP Lite"
+    "displayName": "SAP Agentic Harness"
   },
   "plugins": [
     {
-      "name": "sc4sap-lite",
+      "name": "sap-agentic-harness",
       "source": {
         "source": "local",
-        "path": "./"
+        "path": "./interactive"
       },
       "policy": {
         "installation": "AVAILABLE"

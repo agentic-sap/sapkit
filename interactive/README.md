@@ -1,7 +1,7 @@
-# sc4sap-lite
+# sap-agentic-harness / interactive (구 sc4sap-lite)
 
 SAP ABAP 개발·컨설팅 지식/페르소나/절차를 **하네스 중립 코어 + 얇은 어댑터 3벌**
-(Claude Code / Codex / Antigravity)로 제공하는 라이트 배포판.
+(Claude Code / Codex / Antigravity)로 제공하는 라이트 배포판 — sap-agentic-harness 레포의 대화형 트랙 (`interactive/` = 플러그인 루트).
 `sc4sap-custom`(Claude 전용 풀버전, 동결)의 전 자산을 이식하되 멀티에이전트
 오케스트레이션을 버리고 "1명 작업 + 1명 새-컨텍스트 리뷰 + SAP 기계 검증" 모델로 단순화했다.
 

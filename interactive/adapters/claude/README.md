@@ -7,11 +7,11 @@
 ## 설치
 
 ```
-/plugin marketplace add D:\claude for SAP\sc4sap-lite
-/plugin install sc4sap-lite@sc4sap-lite
+/plugin marketplace add D:\claude for SAP\sap-agentic-harness
+/plugin install sap-agentic-harness@sap-agentic-harness
 ```
 
-재시작 후 확인: `/sc4sap-lite:troubleshooting` 스킬 존재 + `sap` MCP 서버 연결
+재시작 후 확인: `/sap-agentic-harness:troubleshooting` 스킬 존재 + `sap` MCP 서버 연결
 (프로파일 없으면 inspection-only 모드로 뜸 — 정상).
 
 ## SAP 연결 (connected 프로필)
@@ -37,7 +37,7 @@ lite 경로로 재배선 검증 필요** (아래 체크리스트).
 
 `permissions-template.json`의 allow 목록을 프로젝트 `.claude/settings.local.json`에
 병합하면 SAP 도구 승인 프롬프트가 사라진다. **GetTableContents/GetSqlQuery는 의도적으로
-빠져 있다** — 매 호출 사람 승인 유지. 네임스페이스 접두어(`mcp__plugin_sc4sap-lite_sap__`)는
+빠져 있다** — 매 호출 사람 승인 유지. 네임스페이스 접두어(`mcp__plugin_sap-agentic-harness_sap__`)는
 설치 후 실제 도구명과 대조해 다르면 `SC4SAP_LITE_NS=<실측 접두어> node scripts/gen-permissions.mjs`로 재생성.
 
 ## E2E 체크리스트 (L3 완료 기준)
@@ -45,5 +45,5 @@ lite 경로로 재배선 검증 필요** (아래 체크리스트).
 - [ ] 플러그인 설치 + MCP 연결 (inspection-only라도 tools 노출 확인)
 - [ ] 네임스페이스 접두어 실측 → 권한 템플릿 재생성 여부 판정
 - [ ] install-hooks 경로 재배선 확인 (플러그인 캐시 경로 기준)
-- [ ] FI 상담 1건: `/sc4sap-lite:ask-consultant` → FI 페르소나 로드 → 프로젝트 컨텍스트 반영 답변
-- [ ] `/sc4sap-lite:create-program` 1건: 스펙 승인 게이트 → 구현 → **sap-reviewer 새 컨텍스트 리뷰** → 기계 검증 체인
+- [ ] FI 상담 1건: `/sap-agentic-harness:ask-consultant` → FI 페르소나 로드 → 프로젝트 컨텍스트 반영 답변
+- [ ] `/sap-agentic-harness:create-program` 1건: 스펙 승인 게이트 → 구현 → **sap-reviewer 새 컨텍스트 리뷰** → 기계 검증 체인

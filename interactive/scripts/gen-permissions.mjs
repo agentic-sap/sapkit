@@ -8,7 +8,7 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const NAMESPACE = process.env.SC4SAP_LITE_NS ?? 'mcp__plugin_sc4sap-lite_sap__';
+const NAMESPACE = process.env.SC4SAP_LITE_NS ?? 'mcp__plugin_sap-agentic-harness_sap__';
 const EXCLUDE = new Set(['GetTableContents', 'GetSqlQuery']);
 
 function listLiveTools() {

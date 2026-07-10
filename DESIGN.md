@@ -30,7 +30,7 @@
 | **하네스 엔진** | `https://github.com/hjaewon/claude-fable-final.git` | `D:\claude-practice\claude-fable-final` | v0.12.1 (2651854) | 자작 |
 | **SAP 검증/배포 백엔드** | `https://github.com/hjaewon/vsp-custom.git` | `D:\claude for SAP\vsp\vsp-custom` | aab1275 (2026-07-07) | MIT — 업스트림 `oisee/vibing-steampunk` |
 | 지식 시드 (동결 — 지식 수정 금지, 2026-07-10) | `https://github.com/hjaewon/sc4sap-custom.git` | `D:\claude for SAP\sc4sap-custom` | — | MIT — 업스트림 `babamba2/superclaude-for-sap` |
-| **지식 정본 + 3사 대화형 트랙** | (원격 미생성) `sc4sap-lite` | `D:\claude for SAP\sc4sap-lite` | L0 (6950ba2) | MIT 승계 — 설계: 해당 레포 DESIGN.md |
+| **지식 정본 + 3사 대화형 트랙** | 본 레포 `interactive/` (2026-07-10 subtree 병합, 플러그인명 sap-agentic-harness) | `D:\claude for SAP\sap-agentic-harness\interactive` | L5+리뷰 반영 | MIT 승계 — 설계: `interactive/DESIGN.md` |
 | 비교 검토된 MCP 서버 | `https://github.com/hjaewon/abap-mcp-adt-powerup.git` | `D:\claude for SAP\abap-mcp-adt-powerup` | v4.13.0 | — |
 | **본 레포** | `https://github.com/hjaewon/sap-agentic-harness.git` (main) | `D:\claude for SAP\sap-agentic-harness` | — | — |
 
@@ -55,8 +55,8 @@ final-harness (범용 하네스 엔진 — 수정하지 않고 그대로 사용)
 ★ sap-agentic-harness (본 레포 = 통합 레이어)
       │   vsp 어댑터 문서, verify 패턴, SAP 도메인 규칙, 모듈 팩
       ├── vsp-custom ......... CLI 검증/배포 백엔드 (하네스 트랙의 유일한 SAP 접점)
-      └── sc4sap-lite ........ 대화형 트랙 (MCP 기반 직접 개발/컨설팅, 3사 하네스) — 본 레포와 의존 없음
-                                (sc4sap-custom은 2026-07-10 동결 — lite가 대체)
+      └── interactive/ ........ 대화형 트랙 (MCP 기반 직접 개발/컨설팅, 3사 하네스) — 본 레포 내
+                                서브디렉토리, 하네스 엔진과 코드 의존 없음 (sc4sap-custom은 동결 — 이것이 대체)
 ```
 
 `final-harness`와 `vsp-custom`은 물리적으로 한 코드베이스로 섞지 않는다. 둘 다 독립
@@ -343,8 +343,7 @@ sap-agentic-harness/
 (harness-plan이 참조하는 위치가 `.harness/`이므로 스텁이 필요하다).
 
 domain의 RULES.seed는 처음부터 창작하지 않는다 — vsp embedded standards(이미 hjaewon
-포크에 내장)와 sc4sap-lite의 `core/knowledge/abap/`에서 **선별 이식**한다(MIT, 스냅샷
-커밋 명기).
+포크에 내장)와 본 레포 `interactive/core/knowledge/abap/`에서 **선별 이식**한다(MIT).
 중복 작성 금지: vsp GetStandard로 조회 가능한 내용은 참조만 남긴다.
 
 ## 11. 스킬 방향 — harness-tailor 산출물의 표준화
@@ -382,9 +381,9 @@ packs/modules/fi/
 - **CONSULT 본체**는 무인 step에 주입되지 않는다. 사람 소유 세션의 CONSULT 단계에서만 참조.
 - **RULES 정예**는 LESSONS→RULES 승격 게이트(사람 승인)를 통과한 것만 `.harness/RULES.md`에
   들어간다. RULES.seed.md는 후보 풀이지 자동 주입원이 아니다.
-- 콜드스타트: sc4sap-lite `core/`의 페르소나 26개(FI/CO/MM/SD 등 모듈 컨설턴트 15 +
-  analyst/executor 등 역할 11)와 knowledge에서 선별 이식하고, **가져온 스냅샷의 lite 커밋을
-  provenance로 명기**한다. 이후 실전 LESSONS로 독자 진화 —
+- 콜드스타트: 본 레포 `interactive/core/`의 페르소나 26개(FI/CO/MM/SD 등 모듈 컨설턴트 15 +
+  analyst/executor 등 역할 11)와 knowledge에서 선별 이식한다(같은 레포 — 커밋 이력이 곧
+  provenance). 이후 실전 LESSONS로 독자 진화 —
   이것이 "sc4sap과 같지만 독자적인 것"의 실체다: 기계장치는 final-harness, 차별화는
   이 레포에 축적되는 검증된 규칙.
 - 시작 모듈: 실전 프로젝트가 있는 것부터 (FI/CO 우선 권장 — univat 등 세무 도메인과 인접).
