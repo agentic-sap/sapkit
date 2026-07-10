@@ -37,7 +37,7 @@ for (const r of rules) r.match = toMatcher(r.pattern);
 const files = [];
 (function walk(dir) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (e.name === '.git') continue;
+    if (e.name === '.git' || e.name === 'node_modules') continue;
     const full = path.join(dir, e.name);
     if (e.isDirectory()) walk(full);
     else files.push(path.relative(SRC, full).replaceAll('\\', '/'));
