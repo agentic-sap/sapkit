@@ -12,7 +12,7 @@ knowledge/personas/procedures/policies are static; this is the per-project runti
 ## Machine-level (once per machine)
 
 ```
-~/.sap-agentic-harness/profiles/<alias>/sap.env     ← connection profile (NEVER committed to git)
+~/.sah/profiles/<alias>/sap.env     ← connection profile (NEVER committed to git)
 ```
 
 The machine home is resolved via the `SC4SAP_HOME_DIR` env var (set persistently on this

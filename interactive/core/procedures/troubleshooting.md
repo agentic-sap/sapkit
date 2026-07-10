@@ -160,7 +160,7 @@ Three MCP operation families (Screen, GUI Status, Text Element) dispatch through
 
 The default changed 2026-04-22 from `soap` to `odata`. Existing configurations that pinned `SAP_RFC_BACKEND=soap` keep working unchanged.
 
-Write the choice to the **active profile's** env (`~/.sap-agentic-harness/profiles/<alias>/sap.env`) as `SAP_RFC_BACKEND=odata|soap|native|gateway|zrfc`. Never write it to `<project>/.sc4sap/sap.env` — that file does not exist in multi-profile mode.
+Write the choice to the **active profile's** env (`~/.sah/profiles/<alias>/sap.env`) as `SAP_RFC_BACKEND=odata|soap|native|gateway|zrfc`. Never write it to `<project>/.sc4sap/sap.env` — that file does not exist in multi-profile mode.
 
 ### Bootstrap order (first-time vs re-run)
 
@@ -250,11 +250,11 @@ If check 1 fails → fill the gateway env block. If check 2 fails → verify VPN
 ### Storage layout
 
 ```
-~/.sap-agentic-harness/profiles/<alias>/sap.env        # user-level connection env (shared across repos)
-~/.sap-agentic-harness/profiles/<alias>/config.json    # user-level plugin settings (sapVersion, abapRelease,
+~/.sah/profiles/<alias>/sap.env        # user-level connection env (shared across repos)
+~/.sah/profiles/<alias>/config.json    # user-level plugin settings (sapVersion, abapRelease,
                                           #   industry, activeModules, namingConvention,
                                           #   systemInfo, activeTransport, blocklistProfile)
-~/.sap-agentic-harness/profiles/.trash/<alias>-<ts>/   # soft-deleted profiles (7-day auto-purge)
+~/.sah/profiles/.trash/<alias>-<ts>/   # soft-deleted profiles (7-day auto-purge)
 
 <project>/.sc4sap/active-profile.txt      # project-level pointer (alias only)
 <project>/.sc4sap/work/<alias>/...        # per-profile project artifacts
@@ -281,7 +281,7 @@ Tier read-only enforcement lives in the MCP server itself (a readonly guard appl
 ### Profile checks
 
 - [ ] `<project>/.sc4sap/active-profile.txt` exists and contains a single alias
-- [ ] `~/.sap-agentic-harness/profiles/<alias>/sap.env` and `config.json` exist for that alias
+- [ ] `~/.sah/profiles/<alias>/sap.env` and `config.json` exist for that alias
 - [ ] `GetSession` system/client/user match the profile's `SAP_URL` / `SAP_CLIENT` / `SAP_USERNAME`
 - [ ] Tier enforcement matches `SAP_TIER` (on QA/PRD, a mutation attempt must be refused)
 

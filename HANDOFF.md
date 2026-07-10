@@ -82,7 +82,7 @@ D:\claude for SAP\sap-agentic-harness   ← 단일 레포 (원격: hjaewon/sap-a
 
 1. Claude Code 세션 재시작 → `/sap-agentic-harness:troubleshooting` 등 스킬 11개 +
    `sap` MCP 서버 보이는지 확인
-2. SAP DEV 프로파일: `~/.sap-agentic-harness/profiles/<별칭>/sap.env` (**SAP_TIER=dev 필수**) +
+2. SAP DEV 프로파일: `~/.sah/profiles/<별칭>/sap.env` (**SAP_TIER=dev 필수**) +
    본 레포 또는 작업 폴더에 `.sc4sap/active-profile.txt`(별칭 1줄) + `.sc4sap/config.json`
    (sapVersion·abapRelease·activeModules·industry·country). 기존 sc4sap-custom 프로파일 재사용 가능
 
