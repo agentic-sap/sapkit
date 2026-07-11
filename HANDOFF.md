@@ -89,6 +89,15 @@ D:\claude for SAP\sap-agentic-harness   ← 단일 레포 (원격: hjaewon/sap-a
 - 3사 CLI 전부 존재 실측(2026-07-11 doctor): claude 2.1.206(플러그인 설치+훅 3종 배선) ·
   codex 0.144.1(플러그인 미설치 = 평시 OFF) · agy 1.0.16(임포트 + **disabled** = 평시 OFF,
   5-2 스모크 재검증 때 임포트됨).
+- **트랙 A 소스 2종도 이 머신에 실재 확인(2026-07-11)**: vsp-custom =
+  `D:\Claude for SAP\vsp-custom`(Go 소스 완비), final-harness = `D:\AI PROJECT\claude-final`
+  — README 실측 **v0.16.2 (2026-07-11)**, HANDOFF §1의 v0.16.0 기록보다 최신(스킬 9종:
+  harness-init/-worker/-plan 등). → 트랙 A 부트스트랩 이 머신에서 가능.
+- IDES-DEV 프로파일 참고: sap.env가 `SAP_RFC_BACKEND=odata`인데 URL 미설정 —
+  RFC 디스패치 3계열(Screen·GUI Status·Text Element)은 이 프로파일에서 env 에러.
+  해소하려면 ① soap 전환(추가 env 불요, ICF `/sap/bc/soap/rfc` 활성 확인됨 — 무인증 401)
+  + ② ZMCP_ADT_UTILS/ZMCP_ADT_TEXTPOOL FM 설치(서버측 부재 확인 — 단 CreateFunctionGroup이
+  이 릴리스에서 결함이라 MCP 설치 불가, SAP GUI 수동 생성 필요. §6 엔진 백로그 3).
 - 원본 sc4sap-custom 사본에 npm 산출물(node_modules)이 있어 migration-coverage
   게이트가 깨졌던 것을 스크립트 수리(node_modules 스킵)로 해소. `.omc/**` 규칙
   매칭 0 경고는 이 머신 사본에 세션 기록물이 없어서 나는 정보성 경고(비차단).
@@ -185,6 +194,8 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
 - (c) **DeleteInclude enqueue 누수** — 잠금→삭제 후 미해제, 고아 잠금이 재생성 차단(5회 재현). SM12 수동 정리로만 해소
 - (d) **활성화/갱신 상태 플래그 신뢰 불가** — failed+에러0 모순, `activate=true` 거짓 성공, GUI 비가시 유령 inactive 레이어. 검증은 소스 읽기로만 가능
 - (e) 사용자 DEV 박스 서비스 2종 다운(엔진 무관): ABAP Unit ADT 실행 404 · ZMCP_ADT_SRV Textpool 500 — 복구 후 RunUnitTest/WriteTextElementsBulk 재실행
+  → **2026-07-11 판정 정정(D-015)**: RunUnitTest 404는 표준 S/4HANA 2021 IDES에서도 동일 재현 —
+  박스 장애가 아니라 **엔진 결함 유력**, §6 엔진 백로그 3으로 이관. Textpool 500은 기존 판정 유지(KR-DEV 복구 대기)
 
 ## 5. E2E 이후 남은 백로그 (상세 — 새 세션이 이 절만 읽고 착수 가능하게 기록)
 
@@ -260,8 +271,9 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
 | 작업 | 주 머신 | 보조 머신(D:\AI PROJECT) |
 |---|---|---|
 | 위 5-1~5-6 | ✅ | ✅ (5-1은 IDES-DEV 연결로) |
-| 트랙 A 부트스트랩 (DESIGN.md §16) | ✅ | ❌ vsp-custom·final-harness 소스 없음 |
-| E2E 잔여 2건(RunUnitTest·WriteTextElementsBulk) | KR-DEV 백엔드 복구 후 | ❌ 사내망 전용 |
+| 트랙 A 부트스트랩 (DESIGN.md §16) | ✅ | ✅ **정정(2026-07-11)** — 소스 2종 실재 (§3) |
+| E2E 잔여: RunUnitTest | ~~KR-DEV 복구 후~~ → 엔진 수리 후 (D-015 — 2시스템 404 재현) | 동일 (IDES 실측이 판정 근거) |
+| E2E 잔여: WriteTextElementsBulk | KR-DEV 백엔드 복구 후 | △ IDES에 ZMCP FM 수동 설치(GUI) 시 soap로 가능 (§3) |
 | 엔진 백로그 (§6) | 포크 소스 필요 | 포크 소스 필요 |
 
 ## 6. 별도 레포로 이관된 이슈 (엔진 포크)
@@ -270,6 +282,20 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
 기본되어 write 가드가 열림 (L2 실측). 요구: "SAP_TIER 미설정 + 연결정보 존재 시 기동
 거부(또는 write 미등록)". 수정 후 재번들 절차는 `interactive/server/UPDATE-RUNBOOK.md`.
 현재는 정책층(`interactive/core/policies/credential-handling.md`)이 커버 — E2E 비차단.
+
+**엔진 백로그 3 — 2026-07-11 IDES(S/4HANA 2021) 실측 신규 4건** (전부 하네스 경유 실증,
+재번들 절차는 UPDATE-RUNBOOK):
+
+1. **RunUnitTest 404** (D-015): 실존 표준 테스트 대상 호출이 KR-DEV·IDES 2시스템에서 동일 404 —
+   엔진 abapunit 호출(경로/페이로드) 결함 유력. 번들 경로 실측: `/sap/bc/adt/abapunit/{runs,testruns,results}`.
+2. **CreateFunctionGroup 400**: "Daten sind ungültig und konnten nicht konvertiert werden" —
+   이름·설명·생략 무관 재현 3회. FUGR 생성 페이로드가 이 릴리스와 비호환.
+3. **CreateProgram(program_type=function_group) 거짓 성공**: 타입 무시하고 PROG/P 생성
+   (응답 `"type":"PROG/P"`, URI `programs/programs`) — (d)의 거짓 성공 계열.
+4. **CreateClass 잠금 미해제**: 생성 직후 Update 계열이 "locked by another user"
+   (같은 세션 즉시 호출 포함 4회 재현, ReloadProfile·GetSession(force_new) 무효, 세션 만료로만
+   해제). UpdateClass는 stale 잠금 핸들 재사용("ungültiges Sperr-Handle") + 실패 경로 잠금
+   누수 의심 — (c) DeleteInclude enqueue 누수와 같은 계열.
 
 **엔진 백로그 2 — `.sc4sap/` 프로젝트 폴더명**: 번들에 하드코딩(`path.join(cwd, ".sc4sap", …)`
 실측) — 개명하려면 엔진 소스 configurable화 필요, tier 이슈와 같은 사이클에 처리 권장.
