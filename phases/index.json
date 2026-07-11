@@ -6,7 +6,8 @@
     },
     {
       "dir": "1-workdays-util",
-      "status": "pending"
+      "status": "completed",
+      "completed_at": "2026-07-11T20:48:25+0900"
     }
   ]
 }

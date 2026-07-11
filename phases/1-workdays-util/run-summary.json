@@ -1,0 +1,44 @@
+{
+  "phase": "1-workdays-util",
+  "outcome": "completed",
+  "driver": "bridge",
+  "step_model": null,
+  "advisory_model": null,
+  "max_retries": 3,
+  "engine_started_at": "2026-07-11T20:39:31+0900",
+  "engine_ended_at": "2026-07-11T20:52:42+0900",
+  "steps": [
+    {
+      "step": 0,
+      "name": "test-class-first",
+      "status": "completed",
+      "attempts": 1,
+      "verify_failures": 0,
+      "timeouts": 0,
+      "session_exit_nonzero": 0,
+      "status_not_updated": 0,
+      "attempt_secs": [
+        322
+      ],
+      "verify_surface_changes": 0,
+      "started_at": "2026-07-11T20:39:31+0900",
+      "completed_at": "2026-07-11T20:44:54+0900"
+    },
+    {
+      "step": 1,
+      "name": "implement-calc",
+      "status": "completed",
+      "attempts": 1,
+      "verify_failures": 0,
+      "timeouts": 0,
+      "session_exit_nonzero": 0,
+      "status_not_updated": 0,
+      "attempt_secs": [
+        207
+      ],
+      "verify_surface_changes": 1,
+      "started_at": "2026-07-11T20:44:56+0900",
+      "completed_at": "2026-07-11T20:48:23+0900"
+    }
+  ]
+}
