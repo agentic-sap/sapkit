@@ -3,6 +3,10 @@
     {
       "dir": "0-example",
       "status": "pending"
+    },
+    {
+      "dir": "1-workdays-util",
+      "status": "pending"
     }
   ]
 }

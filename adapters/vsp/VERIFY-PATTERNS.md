@@ -50,6 +50,51 @@
    감사용**으로 쓴다. findings가 있어도(`atc: FINDINGS {...}`) exit code는 0 —
    4번과 같은 이유로 출력 파싱이 필수.
 
+## 객체 유형별 offline 커버리지 (Phase 1 실측, 2026-07-11)
+
+Phase 0b는 `vsp lint --file`/`vsp parse --file`이 완전 오프라인임을 확인했을 뿐, 객체
+유형별로 실제 무엇을 잡고 무엇을 놓치는지는 미실측이었다. 본 절은 4개 유형(ABAP
+리포트/클래스, CDS View, RAP BDEF, AMDP)에 각각 정상 샘플 + 전형적 결함 샘플을 만들어
+lint·parse를 실행한 실측이다. 샘플 전문은 스크래치패드(세션 한정 임시 경로 —
+레포에 커밋되지 않음)에서 작성·실행했다.
+
+### 실측 표
+
+| 유형 | 확장자 | lint가 잡는 것 | lint가 놓치는 것 (치명적 미탐) | 오탐 여부 | parse 거동 | 판정 |
+|---|---|---|---|---|---|---|
+| ABAP 리포트/클래스 | `.prog.abap`/`.clas.abap` | 규칙 7종 그대로: Error 4종(line_length>255·empty_statement·max_one_statement·preferred_compare_operator) + Warning 3종. 실측: `IF lv_count EQ 1.` → `E [preferred_compare_operator] Use "=" instead of "EQ"`, exit 1 / `MOVE lv_a TO lv_b.` → `W [obsolete_statement] MOVE is obsolete, use direct assignment`, exit 0 | **닫히지 않은 IF(ENDIF 누락)** — lint `No issues found` exit 0, parse도 에러 없이 exit 0(단지 `EndIf` 태그가 안 나올 뿐, 조용히 통과) — 스타일 린트일 뿐 syntax 유효성 검사가 아님 | 없음(정상 샘플 clean) | 문장 단위로 정확히 태깅(Report/Data/If/Write/EndIf 등) | **부분 실효** — 4개 Error 규칙 한정 게이트, 구조적 syntax 오류는 무방비 |
+| CDS View | `.ddls.asddls` | 없음(정상·결함 3개 샘플 전부 lint `No issues found`, exit 0) | **빠진 중괄호**·**오타 키워드(`defne view`)** 둘 다 무탐지 — lint·parse 모두 exit 0, 정상 CDS와 구분 불가 | 없음(정상 CDS도 clean이라 과탐은 관측 안 됨 — 다만 탐지 자체가 없으므로 오탐/미탐 구분이 무의미한 수준) | 전 statement가 `Move`(ABAP 기본 폴백 태그)로 뭉뚱그려짐 — `@Annotation.value: 'x'` 시퀀스와 `{ }` 블록을 CDS 문법으로 전혀 인식하지 않고 `.`(period) 등장 시점까지를 그냥 한 ABAP 문장으로 취급 | **무의미** — 구조적 CDS 문법 검증 기능이 전무. §15-V3 가설과 정확히 일치 |
+| RAP BDEF | `.bdef.asbdef` | 없음(정상·결함 3개 샘플 전부 lint `No issues found`, exit 0) | **빠진 중괄호**·**오타 키워드(`defne behavior`)** 둘 다 무탐지 | 없음(정상 BDEF도 clean) | BDEF는 ABAP 문장 종결자(`.`)가 없어 전체가 한 덩어리로 뭉침(정상본은 `Move`, 깨진 두 본은 `Call` 태그 — 태그가 갈리는 원인은 불명이고 오류 신호가 아님, 셋 다 exit 0) | **무의미** — CDS와 동일하게 구조 검증 전무. 태그 구분조차 신뢰 불가한 부산물 |
+| AMDP (`.clas.abap` 내 SQLScript) | `.clas.abap` | 외곽 ABAP 골격(클래스/메서드 시그니처)은 유형 1과 완전히 동일하게 커버됨 — `BY DATABASE PROCEDURE ... LANGUAGE SQLSCRIPT ...` 헤더까지는 정상 ABAP 문장으로 인식·검사 대상 | **SQLScript 본문은 통째로 불투명**: `ev_count = SELCT COUNT(*) FRO t000`(키워드 오타 + 세미콜론 누락)이 lint `No issues found` exit 0, parse도 `NativeSQL` 태그로 원문 그대로 통과 — SQL 키워드 철자·문법 검증 전무 | 없음 | **AMDP 블록 경계는 정확히 인식**한다 — `MethodImplementation`으로 시그니처를 태깅하고 본문 전체를 `NativeSQL` 한 덩어리로 분리(ABAP 문장으로 잘못 쪼개지 않음) — 구조 인식은 정확하나 내용 검증은 없음 | **부분 실효(외곽 ABAP)/무의미(SQLScript 본문)** — 클래스 골격은 유형 1 수준 커버, HANA SQL 본문은 CDS/BDEF와 동일하게 완전 사각지대 |
+
+### §15-V3 가설 검증 결과: 확인됨(confirmed)
+
+lint/parse는 **파일 확장자를 전혀 참조하지 않고 모든 입력에 동일한 ABAP 토크나이저를
+적용**한다 — 실측 근거:
+
+- CDS(`.ddls.asddls`)·BDEF(`.bdef.asbdef`) 모두 동일하게 `No issues found`를 내는
+  lint 거동과, `.`(period) 등장 시점만으로 문장을 끊는 parse 거동을 보였다. CDS 전용
+  중괄호/애노테이션 문법도, BDEF 전용 세미콜론 문장 종결 규약도 별도로 인식하지
+  않는다.
+- 깨진 CDS·깨진 BDEF가 정상본과 **정확히 같은 lint 출력**(`No issues found`, exit 0)을
+  냈다 — 확장자 기반 분기가 있었다면 이 둘의 결과가 갈렸을 것이다.
+- 유일한 예외는 AMDP: `BY DATABASE PROCEDURE ... LANGUAGE SQLSCRIPT` 헤더를 인식해
+  본문을 `NativeSQL`로 분리하는 거동이 있다 — 그러나 이것도 "CDS/BDEF 전용 문법
+  검증"이 아니라 **ABAP 언어 자체에 내장된 AMDP 서브언어 경계 인식**이다. 즉 가설이
+  말한 "확장자 무시"와 모순되지 않는다 — vsp는 여전히 `.clas.abap` 파일을 ABAP으로
+  파싱했을 뿐이고, 그 ABAP 문법 안에 AMDP 서브언어 경계가 이미 정의돼 있었을 뿐이다.
+
+### 결론: offline 게이트의 한계는 connected 검증(Phase 1.5)이 메운다
+
+offline lint/parse는 ABAP 리포트/클래스(및 AMDP의 외곽 골격)에 한해 스타일 수준
+Error 4종만 잡는 좁은 게이트이며, CDS·BDEF·SQLScript 본문에는 구조적 문법 검증
+능력이 전무하다. 이 공백은 오프라인 게이트를 확장해서 메울 수 있는 성격이 아니다
+(vsp CLI에 CDS/BDEF 전용 오프라인 검사기가 없음 — COMMANDS.md §③-11의 "read-only SAP
+syntax check 명령 부재" 판정과 정합). 따라서 DESIGN.md §13이 예약한 **Phase
+1.5(ATC/health 기반 connected validation)**가 CDS/BDEF/AMDP 구조 오류를 잡는 유일한
+실질 방어선이다 — offline 게이트를 "구문 오류 차단"으로 오인하지 말고, "ABAP
+리포트/클래스의 4종 스타일 결함만 조기 차단하는 draft 게이트"로 범위를 좁혀 취급할 것.
+
 ## ③ 마커 규약
 
 `scripts/verify-sap.ps1`이 출력하는 3종 마커. vsp는 모든 오류를 일괄 exit 1로

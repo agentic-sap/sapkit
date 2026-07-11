@@ -1,0 +1,18 @@
+{
+  "project": "sap-agentic-harness",
+  "phase": "1-workdays-util",
+  "steps": [
+    {
+      "step": 0,
+      "name": "test-class-first",
+      "status": "pending",
+      "verify": "powershell -Command \"& 'D:\\Claude for SAP\\vsp-custom\\build\\vsp.exe' lint --file src/zsah1_workdays.prog.abap; exit $LASTEXITCODE\""
+    },
+    {
+      "step": 1,
+      "name": "implement-calc",
+      "status": "pending",
+      "verify": "powershell -Command \"& 'D:\\Claude for SAP\\vsp-custom\\build\\vsp.exe' lint --file src/zsah1_workdays.prog.abap; exit $LASTEXITCODE\""
+    }
+  ]
+}
