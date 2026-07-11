@@ -16,7 +16,8 @@ D:\claude for SAP\sap-agentic-harness   ← 단일 레포 (원격: hjaewon/sap-a
 │     내용: final-harness(D:\claude-practice\claude-fable-final) 엔진 + vsp-custom CLI로
 │           ABAP 개발을 계획→실행→verify→LESSONS/RULES 학습 루프로 관리.
 │           ★ vsp-custom = 트랙 A의 유일한 SAP 접점·검증/배포 백엔드 — 없으면 verify
-│           루프 불성립 (DESIGN.md §3, powerup 엔진은 이 트랙에서 미사용). 소유 전략 = 5-9
+│           루프 불성립 (DESIGN.md §3, powerup 엔진은 이 트랙에서 미사용).
+│           소유 전략 = **D-018 확정: 분리 유지 + 부트스트랩 시 버전 lock** (5-9 종결)
 │           설계는 원래부터 대화형 세션(Phase 0a/0b·CONSULT) + 무인 step 겸용 —
 │           "무인"은 실행 모드 하나이지 트랙 전체가 아님.
 │     엔진 현행: v0.16.0 (2026-07-10) — 라우팅 4갈래·request-weight triage·
@@ -41,8 +42,8 @@ D:\claude for SAP\sap-agentic-harness   ← 단일 레포 (원격: hjaewon/sap-a
 | `D:\claude for SAP\sc4sap-custom` | **동결** (지식 수정 금지) — 이식 원천. Claude 풀버전 플러그인이지만 lite가 대체 |
 | `D:\claude for SAP\sc4sap-lite` | **동결·이관됨** — interactive/로 subtree 병합 완료. README에 이관 표기. 삭제해도 무방(사용자 판단) |
 | `hjaewon/abap-mcp-adt-powerup` | **→ `engine/`으로 편입 (2026-07-11, D-017)** — 엔진 소스 정본은 이제 레포 내 `engine/`(재현 빌드 바이트 일치 검증). GitHub 포크·로컬 클론은 히스토리 아카이브. 엔진 이슈는 §6 — engine/에서 수리 |
-| `D:\claude for SAP\vsp\vsp-custom` (주) / `D:\Claude for SAP\vsp-custom` (보조) | **트랙 A의 유일한 SAP 접점·검증/배포 백엔드** (핵심 의존 — 업스트림 oisee/vibing-steampunk 차용, 소유 전략 5-9). 아직 빌드 안 함 (Go 1.26.4 설치됨) |
-| final-harness: `D:\claude-practice\claude-fable-final` (주) / `D:\AI PROJECT\claude-final` (보조, v0.16.2 실측) | 트랙 A 하네스 엔진 — **자체 제작 독립 제품**(fable-harness 후속, sah 밖 사용처 가능). 소유 전략 5-9의 별도 판단축 |
+| `D:\claude for SAP\vsp\vsp-custom` (주) / `D:\Claude for SAP\vsp-custom` (보조) | **트랙 A의 유일한 SAP 접점·검증/배포 백엔드** (핵심 의존 — 업스트림 oisee/vibing-steampunk 차용). **소유 전략 D-018 확정: 분리 유지 + 부트스트랩 시 버전 lock** (편입 기각 — 소비 계약=CLI 바이너리, 업스트림 활발). 보조 머신에 빌드본 실재(vsp.exe 2026-07-07), 주 머신은 미빌드 (Go 1.26.4 설치됨) |
+| final-harness: `D:\claude-practice\claude-fable-final` (주) / `D:\AI PROJECT\claude-final` (보조) | 트랙 A 하네스 엔진 — **자체 제작 독립 제품**(fable-harness 후속, sah 밖 사용처 가능). **D-018: 분리 유지 확정** — 버전은 여기 박제하지 않음(부패 실증), 부트스트랩 시 현행 실측 후 §15-F 재검증·lock (DESIGN.md §16-3) |
 
 ## 2. 지금까지의 타임라인 (전부 2026-07-10, 커밋은 본 레포 main)
 
@@ -93,9 +94,10 @@ D:\claude for SAP\sap-agentic-harness   ← 단일 레포 (원격: hjaewon/sap-a
   codex 0.144.1(플러그인 미설치 = 평시 OFF) · agy 1.0.16(임포트 + **disabled** = 평시 OFF,
   5-2 스모크 재검증 때 임포트됨).
 - **트랙 A 소스 2종도 이 머신에 실재 확인(2026-07-11)**: vsp-custom =
-  `D:\Claude for SAP\vsp-custom`(Go 소스 완비), final-harness = `D:\AI PROJECT\claude-final`
-  — README 실측 **v0.16.2 (2026-07-11)**, HANDOFF §1의 v0.16.0 기록보다 최신(스킬 9종:
-  harness-init/-worker/-plan 등). → 트랙 A 부트스트랩 이 머신에서 가능.
+  `D:\Claude for SAP\vsp-custom`(Go 286파일 소스 완비 + vsp.exe 빌드본, 업스트림 대비
+  +10커밋/behind 0), final-harness = `D:\AI PROJECT\claude-final`. 버전은 여기 기록하지
+  않는다 — 같은 날 두 번 낡은 것이 실증됨(v0.16.0→v0.16.2→v0.17.0). 부트스트랩 시
+  현행 실측 + lock (D-018). → 트랙 A 부트스트랩 이 머신에서 가능.
 - IDES-DEV 프로파일 참고: sap.env가 `SAP_RFC_BACKEND=odata`인데 URL 미설정 —
   RFC 디스패치 3계열(Screen·GUI Status·Text Element)은 이 프로파일에서 env 에러.
   해소하려면 ① soap 전환(추가 env 불요, ICF `/sap/bc/soap/rfc` 활성 확인됨 — 무인증 401)
@@ -205,10 +207,12 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
 
 ## 5. E2E 이후 남은 백로그 (상세 — 새 세션이 이 절만 읽고 착수 가능하게 기록)
 
-**5-1~5-4·5-6 완료 (2026-07-11)** — 남은 항목: 5-5(deferred L6+ — 실수요 발생 시) ·
-5-7(설치 절차 이식 — 선결이던 엔진 수리가 4.13.1로 해소되어 착수 가능) · 5-8(노출 정책
-후속, 낮음) · **5-9(트랙 A 선결 결정 — 부트스트랩 전 필수)**. 공통 완료 조건: §9의
-게이트 4종 통과 유지 + 상태 변경 시 이 문서 갱신.
+**5-1~5-4·5-6·5-9·5-10 완료 (2026-07-11)** — 남은 항목과 순서 (새-컨텍스트 이중 검토
+2026-07-11이 재배열, 근거: "안전 주장-실체 격차가 열린 채 편의를 쌓지 않는다"):
+**트랙 A 부트스트랩(DESIGN.md §16 — 5-9/5-10 완료로 선결 해소)** → 5-7(설치 절차 이식)
+→ 5-8(잔여 축소 — row-data 승인 실증은 Codex 실사용 전 필수로 상향, compact-readonly
+스파이크는 폐기) → 5-5(축소 — 아래). 공통 완료 조건: §9의 게이트 4종 통과 유지 +
+상태 변경 시 이 문서 갱신.
 
 ### 5-1. tool-catalog 재생성 — ✅ 완료 (2026-07-11, 보조 머신)
 
@@ -259,14 +263,14 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
 - `smoke-mcp.mjs`: `--exposition` 지원(무인자 시 기존 동작 동일). readonly 실측:
   **tools 65 / write 0** (row-data 2종은 readonly에도 노출 — 정책층 커버, 기존 문서와 일치).
 
-### 5-5. deferred 스크립트 6종 (L6+, 원천은 동결 레포 sc4sap-custom/scripts/ — 읽기만)
+### 5-5. deferred 스크립트 (원천은 동결 레포 sc4sap-custom/scripts/ — 읽기만) [2026-07-11 축소]
 
-| 원천 | 목적지 | 현행 수동 대체 |
+| 원천 | 목적지 | 상태 |
 |---|---|---|
-| extract-spro.mjs · extract-customizations.mjs | `tools/extract/` | spro-lookup.md · customization-lookup.md |
-| fetch-abap-keyword-doc.mjs · fetch-sap-help-doc.mjs | `tools/fetch/` | help-portal-fetch.md |
-| sap-profile-cli.mjs | `scripts/` | troubleshooting.md 수동 절차 |
-| sap-option-tui.mjs | 재심사 | config.json 직접 편집으로 대체 중 |
+| extract-spro.mjs · extract-customizations.mjs | `tools/extract/` | deferred 유지 (수동 대체: spro-lookup.md · customization-lookup.md) |
+| fetch-abap-keyword-doc.mjs · fetch-sap-help-doc.mjs | `tools/fetch/` | **우선 검토로 상향** — 코어 페르소나(sap-doc-specialist.md)가 이미 "bundled"로 참조 중이라 deferred가 아니라 깨진 표면. 구현하거나 참조를 제거해야 함 (Codex 교차검토 발견) |
+| sap-profile-cli.mjs | `scripts/` | deferred 유지 (수동 대체: troubleshooting.md) |
+| sap-option-tui.mjs | — | **폐기 확정 (2026-07-11)** — config.json 직접 편집으로 충분함이 장기 실증. 훅 안내도 troubleshooting 절차로 교체 완료(5-10) |
 
 ### 5-7. sap-assets 설치 절차 + FM 부재 시 제외 규칙 [이식 갭 — 2026-07-11 발견]
 
@@ -284,32 +288,66 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
   FUGR 생성·삭제 IDES 라이브 검증 완료, 설치 절차 착수 가능. 단 RFC-enabled 속성은
   ADT로 불가(TFDIR.FMODE)라 SE37 수동 단계가 여전히 필요(원본 스텝 9와 동일).
 
-### 5-8. 노출 정책 실행 항목 [낮음 — D-016 후속]
+### 5-8. 노출 정책 실행 항목 [D-016 후속 — 2026-07-11 이중 검토로 우선순위 재조정]
 
-- **Codex config-level 도구 제어 실증**: 공식 설정의 `enabled_tools`/`disabled_tools`/
-  도구별 `approval_mode`로 row-data 2종을 `prompt` 고정 가능한지 현행 설치 버전에서 1회
-  실증 → 되면 어댑터 README 정본화. Antigravity의 대응 기능도 실측(없으면 launch.cjs 앞
-  이름 보존형 tools/list 필터 검토).
-- **절차별 required_capabilities**: 절차 문서에 필요 capability 선언 + 프리셋 tools/list가
-  이를 전부 포함하는지 자동 검사(스크립트) — `high`를 개발 기본값으로 신뢰하기 위한 근거.
-- **compact-readonly 스파이크** (선택): 합격 기준 = 직렬화 스키마 토큰 실측(도구 수 아님),
-  대표 절차 성공률, 라우터/union 오선택률, tier 행렬, row-data 음성, 감사 식별성.
-- smoke-mcp의 write 판정을 이름 추정 대신 카탈로그 operation class 기반으로.
+- **Codex config-level 도구 제어 실증** [**상향: Codex 실사용 전 필수** — readonly
+  프리셋에도 row-data 2종이 노출되고 Codex엔 L3 훅이 없어 정책 의존]: 공식 설정의
+  `enabled_tools`/`disabled_tools`/도구별 `approval_mode`로 row-data 2종을 `prompt` 고정
+  가능한지 현행 설치 버전에서 1회 실증 → 되면 어댑터 README 정본화. Antigravity의 대응
+  기능도 실측(없으면 launch.cjs 앞 이름 보존형 tools/list 필터 검토).
+- **절차별 required_capabilities** [낮음]: 절차 문서에 필요 capability 선언 + 프리셋
+  tools/list가 이를 전부 포함하는지 자동 검사(스크립트).
+- ~~compact-readonly 스파이크~~ → **폐기 (2026-07-11)** — D-016이 기각한 raw compact의
+  잔영. 실수요 실증 전 착수 금지 (재론 시 합격 기준은 D-016 원문 참조).
+- smoke-mcp의 write 판정을 이름 추정 대신 카탈로그 operation class 기반으로 [낮음 —
+  접두어 분류의 구조 한계는 RuntimeCreateProfilerTraceParameters 미커버(5-10에서 수리)로
+  재확인됨].
 
-### 5-9. 트랙 A 선결 결정 — vsp-custom·final-harness 소유 전략 [결정만, 부트스트랩 전]
+### 5-9. 트랙 A 선결 결정 — ✅ 완료 (2026-07-11, D-018): 분리 유지 + 버전 lock
 
-- **위상 (착각 금지)**: `vsp-custom`은 선택적 도구가 아니라 **트랙 A의 유일한 SAP
-  접점·단일 검증/배포 백엔드**다 (DESIGN.md §3 — verify는 하네스가 vsp CLI 직접 실행,
-  배포는 `vsp deploy`, powerup 엔진은 트랙 A에서 미사용). **vsp 없이는 트랙 A의 verify
-  루프 자체가 성립하지 않는다.** vsp-custom도 차용 커스텀(업스트림 `oisee/vibing-steampunk`
-  MIT, 원본 vsp는 `D:\Claude for SAP\vsp`).
-- **결정할 것**: 핵심 의존의 소유 방식 — DESIGN.md의 기존 결정("final-harness와
-  vsp-custom은 물리적으로 한 코드베이스로 섞지 않는다 — Go/Python+스킬/마크다운 스택
-  상이")을 유지할지, D-017 철학(차용한 핵심 의존은 레포 내 완전 소유 — engine/ 선례,
-  subtree 편입은 스택 혼합이 아니라 배치 문제)으로 갱신할지. `final-harness`
-  (`D:\AI PROJECT\claude-final`, v0.16.2 자체 제작물)는 sah 밖 사용처가 있는 독립
-  제품이라 별도 판단축.
-- 편입으로 결정 시: DESIGN.md §2 구조도·§16 부트스트랩 갱신 + DECISIONS append.
+- **결정**: vsp-custom·final-harness 모두 **편입하지 않는다** — 분리 유지 + 부트스트랩
+  시 버전 lock(커밋 sha·바이너리 해시·명령 계약). 근거·대안·기각 사유·재론 트리거는
+  **D-018 원문**, 설계 반영은 DESIGN.md §2(분리 근거 교체)·§16-1(vsp.lock)·§16-3
+  (final-harness 재기준). Fable 5 + Codex 독립 이중 검토가 동일 결론으로 수렴한 결정.
+- 핵심 논거 요약: 트랙 A가 소비하는 것은 vsp *CLI 바이너리*뿐(engine/과 달리 수리→
+  재번들→동봉 루프 없음) + 업스트림 oisee 활발(별 411, 2026-06 push — engine 업스트림
+  babamba2 별 5·정체와 정량 대조) + 수리 마찰 실증 0건.
+
+### 5-10. 안전·진실성 수리 스프린트 — ✅ 완료 (2026-07-11, 이중 검토 후속)
+
+새-컨텍스트 이중 검토(Fable 5 + Codex 교차, 검토 전문은 세션 기록)가 확정한 공백을
+일괄 수리. 결정 기록: D-018(소유 전략)·D-019(품질 계약 봉인). 수리 내역:
+
+1. **엔진 4.13.2** (커밋: engine/ + interactive/server 반영): ① tier fail-closed —
+   연결정보 존재 + SAP_TIER 미해석/이상값이면 `UNKNOWN` 센티널로 readonly 강제(명시
+   `dev`만 write 개방), env 파일 hydrate에 SAP_TIER 편입(--env-path/MCP_ENV_PATH/cwd
+   .env 경로 전부 커버) ② GetSqlQuery 테이블 추출 강화(주석 제거·콤마 목록·별칭 스킵)
+   + 추출 불능 시 쿼리 거부(fail-closed). jest **512 통과(+30, 실패 0)**, 번들 반영,
+   verify-engine OK, smoke 155 유지(도구 증감 없음).
+2. **L3 훅 fail-closed 전환**: block-forbidden-tables — INDEX_FILE 사망 경로 제거,
+   블록리스트 로드 0건·stdin/JSON 파싱 실패 시 deny, SQL 추출 강화 + 식별 불능 시 ask.
+   tier-readonly-guard — **DEV 기본값 폐기**(tier 미해석 = mutation deny, 명시 dev만
+   통과), RuntimeCreateProfilerTraceParameters 커버(훅 + install-hooks matcher), 죽은
+   `/sc4sap:sap-option` 안내를 프로파일 설정 절차로 교체. install-hooks findGroup의
+   중복 삽입 버그 동반 수리. 격리 테스트 9케이스 통과, **이 머신 재배선 완료**.
+3. **품질 계약 봉인 (D-019)**: verification.schema — check_syntax/activate SKIPPED
+   불허(step-strict 분리). create-program — Phase 6 진입·Phase 8 완료에 행렬 검사
+   (check_syntax=PASS ∧ activate=PASS ∧ unit/atc∈{PASS,SKIPPED}), 리뷰 후 수정은 전
+   체인 재실행. sap-reviewer — disallowedTools 88종(Write/Edit/Bash/NotebookEdit +
+   mutation MCP 84종, 카탈로그 대조 누락 0)으로 기계 격리, 판정은 응답 JSON 반환·기록은
+   워커. UPDATE-RUNBOOK capability diff에 disallowedTools 동기화 스텝.
+4. **표면 동기화**: engine/CLAUDE.md 재작성(**업스트림 Notion DB 기록 지시 제거** —
+   외부 유출 벡터, 88→35줄), plugin.json 2벌(도구 수·구명 정정), compatibility.json
+   (Claude smoke E2E 완료 반영), interactive/DESIGN.md 헤더(상태 정본=HANDOFF 포인터화).
+
+**잔여 (후속 착수 조건 포함):**
+- 엔진: `--mcp` 서비스키 연결의 tier 기본값은 미수리(env 파일이 없어 tier 소스 부재 —
+  보수적 유지). §6 백로그 1 잔여로 이관, 서비스키 운용 시작 전 재검토.
+- sap-reviewer 88종 disallowedTools의 라이브 기동 실증 1회 — 다음 create-program 완주 시.
+- review-result.schema.json 최상위 description이 구 계약("리뷰어가 기록") 서술 잔존 —
+  기능 무영향, 다음 스키마 수정 시 정정.
+- **주 머신 재개 시 `node interactive/adapters/claude/hooks/install-hooks.mjs --project`
+  재실행 필수** (fail-closed 훅 + matcher 갱신 배선).
 
 ### 5-6. 다국어 README — ✅ 결정 완료 (2026-07-11): 재작성 안 함
 
@@ -331,8 +369,11 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
 
 **엔진 백로그 1 — tier 기본값**: 연결정보 존재 + `SAP_TIER` 미설정이면 tier가 DEV로
 기본되어 write 가드가 열림 (L2 실측). 요구: "SAP_TIER 미설정 + 연결정보 존재 시 기동
-거부(또는 write 미등록)". 수정 후 재번들 절차는 `interactive/server/UPDATE-RUNBOOK.md`.
-현재는 정책층(`interactive/core/policies/credential-handling.md`)이 커버 — E2E 비차단.
+거부(또는 write 미등록)".
+→ ✅ **대부분 해소 (4.13.2, 2026-07-11, 5-10)**: env 파일 기반 연결(프로파일·--env-path·
+MCP_ENV_PATH·cwd .env)은 tier 미해석 시 `UNKNOWN`=readonly 강제로 fail-closed. L3 훅도
+동일 방향 전환(DEV 기본 폐기). **잔여**: `--mcp` 서비스키 연결은 tier 소스(env 파일)가
+없어 DEV 기본 유지 — 서비스키 운용을 시작하기 전에 재검토할 것.
 
 **엔진 백로그 3 — 2026-07-11 IDES(S/4HANA 2021) 실측** (재번들 절차는 UPDATE-RUNBOOK):
 
