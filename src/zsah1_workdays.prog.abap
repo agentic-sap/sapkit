@@ -12,7 +12,29 @@ ENDCLASS.
 
 CLASS lcl_workdays IMPLEMENTATION.
   METHOD calc.
-    rv_days = -1.
+    " Weekday parity is derived from a fixed reference date rather than a
+    " function module call: 2024-01-01 is a known Monday (see ltc_workdays
+    " fixtures below). ABAP TYPE D arithmetic (date - date) yields a signed
+    " day-count delta, and ABAP MOD always returns a result in [0, divisor)
+    " for a positive divisor (floor-mod semantics), so (delta MOD 7) stays
+    " a stable weekday index whether iv_from lies before or after the
+    " reference date. Mapping: 0=Mon 1=Tue 2=Wed 3=Thu 4=Fri 5=Sat 6=Sun,
+    " so dow < 5 identifies a weekday.
+    CONSTANTS lc_monday_ref TYPE d VALUE '20240101'.
+    DATA lv_date TYPE d.
+    DATA lv_dow TYPE i.
+    rv_days = 0.
+    IF iv_from > iv_to.
+      RETURN.
+    ENDIF.
+    lv_date = iv_from.
+    WHILE lv_date <= iv_to.
+      lv_dow = ( lv_date - lc_monday_ref ) MOD 7.
+      IF lv_dow < 5 AND NOT line_exists( it_holidays[ table_line = lv_date ] ).
+        rv_days = rv_days + 1.
+      ENDIF.
+      lv_date = lv_date + 1.
+    ENDWHILE.
   ENDMETHOD.
 ENDCLASS.
 
