@@ -1,0 +1,36 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"D:/AI PROJECT/sap-agentic-harness/.claude/hooks/stop-quality-gate.py\"",
+            "timeout": 300
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"D:/AI PROJECT/sap-agentic-harness/.claude/hooks/block-dangerous-bash.py\""
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"D:/AI PROJECT/sap-agentic-harness/.claude/hooks/tdd-guard.py\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

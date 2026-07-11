@@ -49,3 +49,5 @@ node interactive/scripts/doctor.mjs                      # 3사 동기화 OK
 ```
 
 git push는 사용자 판단 — 커밋까지만 하고 push는 요청 시에만.
+
+@AGENTS.md

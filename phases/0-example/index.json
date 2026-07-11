@@ -1,0 +1,18 @@
+{
+  "project": "harness-template",
+  "phase": "0-example",
+  "steps": [
+    {
+      "step": 0,
+      "name": "hello-greet",
+      "status": "pending",
+      "verify": "python -m pytest tests/test_hello.py -q"
+    },
+    {
+      "step": 1,
+      "name": "greet-i18n",
+      "status": "pending",
+      "verify": "python -m pytest tests/test_hello.py -q"
+    }
+  ]
+}
