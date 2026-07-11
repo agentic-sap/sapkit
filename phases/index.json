@@ -11,7 +11,8 @@
     },
     {
       "dir": "2-duedate-reuse",
-      "status": "pending"
+      "status": "completed",
+      "completed_at": "2026-07-12T02:56:56+0900"
     }
   ]
 }

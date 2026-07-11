@@ -1,0 +1,46 @@
+{
+  "phase": "2-duedate-reuse",
+  "outcome": "completed",
+  "driver": "claude",
+  "step_model": null,
+  "advisory_model": null,
+  "max_retries": 3,
+  "engine_started_at": "2026-07-12T02:51:54+0900",
+  "engine_ended_at": "2026-07-12T03:01:10+0900",
+  "steps": [
+    {
+      "step": 0,
+      "name": "contracts-and-tests",
+      "status": "completed",
+      "attempts": 2,
+      "verify_failures": 0,
+      "timeouts": 0,
+      "session_exit_nonzero": 0,
+      "status_not_updated": 1,
+      "attempt_secs": [
+        13,
+        137
+      ],
+      "verify_surface_changes": 2,
+      "started_at": "2026-07-12T02:51:54+0900",
+      "completed_at": "2026-07-12T02:54:31+0900"
+    },
+    {
+      "step": 1,
+      "name": "implement-calc",
+      "status": "completed",
+      "attempts": 2,
+      "verify_failures": 0,
+      "timeouts": 0,
+      "session_exit_nonzero": 0,
+      "status_not_updated": 1,
+      "attempt_secs": [
+        5,
+        130
+      ],
+      "verify_surface_changes": 1,
+      "started_at": "2026-07-12T02:54:33+0900",
+      "completed_at": "2026-07-12T02:56:54+0900"
+    }
+  ]
+}
