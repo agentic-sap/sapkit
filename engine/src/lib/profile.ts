@@ -8,8 +8,12 @@
  * selected system transparently.
  *
  * When no active-profile.txt is present, falls back to the legacy
- * `<cwd>/.sc4sap/sap.env`. In legacy mode, SAP_TIER defaults to 'DEV' so
- * existing single-profile users retain their previous (permissive) behavior.
+ * `<cwd>/.sc4sap/sap.env`. When a connection is loaded (a profile or legacy
+ * sap.env was read) but SAP_TIER is missing or unrecognized, the tier resolves
+ * fail-closed to the 'UNKNOWN' sentinel (read-only): write/mutation tools are
+ * blocked unless SAP_TIER is explicitly 'dev'. Only the connectionless
+ * inspection-only shell keeps the permissive DEV default — harmless, since
+ * every tool call fails at connect time anyway.
  *
  * Keychain references in SAP_PASSWORD (`keychain:<service>/<account>`) are
  * resolved via @napi-rs/keyring at load time. See ./secrets.
@@ -21,7 +25,12 @@ import * as path from 'node:path';
 import * as dotenv from 'dotenv';
 import { resolveSecret } from './secrets';
 
-export type Tier = 'DEV' | 'QA' | 'PRD';
+/**
+ * Connection tier. 'UNKNOWN' is the fail-closed sentinel used when a connection
+ * is present but SAP_TIER could not be resolved (missing/unrecognized) — the
+ * readonly guard treats it as the most restrictive tier (reads only).
+ */
+export type Tier = 'DEV' | 'QA' | 'PRD' | 'UNKNOWN';
 
 export interface LoadedProfile {
   /** Alias as written in active-profile.txt, or `undefined` for legacy single-profile mode. */
@@ -30,9 +39,13 @@ export interface LoadedProfile {
   sourcePath: string;
   /** Parsed env variables (password already resolved if keychain-backed). */
   envVars: Record<string, string>;
-  /** Resolved tier (defaults to DEV if SAP_TIER is missing). */
+  /**
+   * Resolved tier. When a connection is loaded but SAP_TIER is missing or
+   * unrecognized this is the fail-closed 'UNKNOWN' sentinel (read-only); only
+   * the connectionless inspection-only shell keeps DEV.
+   */
   tier: Tier;
-  /** True if the profile is read-only (tier !== DEV). */
+  /** True if the profile is read-only (tier !== DEV — i.e. QA, PRD, UNKNOWN). */
   readonly: boolean;
   /** True when loaded via the legacy single-profile fallback. */
   legacy: boolean;
@@ -99,11 +112,16 @@ function readAlias(cwd: string): string | undefined {
   return raw.length > 0 ? raw : undefined;
 }
 
-function normalizeTier(value: string | undefined): Tier {
+/**
+ * Parse a raw SAP_TIER value. Returns the recognized tier (DEV/QA/PRD), or
+ * `undefined` when the value is missing or unrecognized so the caller can apply
+ * its fail-closed policy (connection present → 'UNKNOWN'; connectionless shell →
+ * 'DEV'). Case- and whitespace-insensitive.
+ */
+function normalizeTier(value: string | undefined): Tier | undefined {
   const v = (value || '').trim().toUpperCase();
   if (v === 'DEV' || v === 'QA' || v === 'PRD') return v;
-  // Legacy compatibility: unknown/missing → DEV (permissive).
-  return 'DEV';
+  return undefined;
 }
 
 /**
@@ -151,7 +169,10 @@ export function loadActiveProfile(cwd: string = process.cwd()): LoadedProfile {
     resolved.SAP_PASSWORD = resolveSecret(pwd);
   }
 
-  const tier = normalizeTier(resolved.SAP_TIER);
+  // Fail-closed: a loaded connection whose SAP_TIER is missing or unrecognized
+  // is treated as read-only ('UNKNOWN'), not DEV. Only an explicit dev/qa/prd
+  // selects the corresponding tier; only 'dev' opens write/mutation tools.
+  const tier: Tier = normalizeTier(resolved.SAP_TIER) ?? 'UNKNOWN';
 
   return {
     alias,
@@ -202,6 +223,20 @@ export function activateProfile(cwd: string = process.cwd()): LoadedProfile {
   const loaded = loadActiveProfile(cwd);
   applyProfile(loaded);
   return loaded;
+}
+
+/**
+ * Reconcile the cached active tier from `process.env.SAP_TIER` for connections
+ * that bypass the .sc4sap profile loader — i.e. `--env-path` / `MCP_ENV_PATH`
+ * env files, whose SAP_TIER the launcher hydrates into process.env. Applies the
+ * same fail-closed policy as a loaded profile: a present connection with a
+ * missing/unrecognized tier becomes read-only ('UNKNOWN'). Returns the tier now
+ * in effect.
+ */
+export function reconcileTierFromEnv(): Tier {
+  const tier: Tier = normalizeTier(process.env.SAP_TIER) ?? 'UNKNOWN';
+  activeTier = tier;
+  return tier;
 }
 
 /** Test-only reset of the cached tier/alias. */

@@ -7,6 +7,7 @@ import {
   evaluateHits,
   extractTablesFromSql,
   isAggregateOnly,
+  sqlHasTableSource,
 } from '../../../lib/policy/tableBlocklist';
 import { ErrorCode, McpError } from '../../../lib/utils';
 import { writeResultToFile } from '../../../lib/writeResultToFile';
@@ -196,7 +197,23 @@ export async function handleGetSqlQuery(context: HandlerContext, args: any) {
     const rowNumber = args.row_number || 100; // Default to 100 rows if not specified
 
     const tables = extractTablesFromSql(sqlQuery);
-    if (tables.length > 0 && !isAggregateOnly(sqlQuery)) {
+    if (tables.length === 0) {
+      // Fail closed: the query names a table source (FROM/JOIN survives comment
+      // stripping) but no table could be parsed, so the blocklist gate cannot be
+      // evaluated. Refuse rather than let a parser blind spot bypass the guard.
+      if (sqlHasTableSource(sqlQuery)) {
+        logger?.warn(
+          'Blocked GetSqlQuery: table extraction failed (fail-closed)',
+        );
+        throw new McpError(
+          ErrorCode.InvalidRequest,
+          'mcp-abap-adt blocklist — could not extract any table name from this query, ' +
+            'so the protected-table gate cannot evaluate it; the query is refused (fail-closed). ' +
+            'Rewrite it with a simple `FROM <table>` reference (one table per FROM/JOIN, no comment ' +
+            'between FROM and the table name) so the server can verify it against the blocklist.',
+        );
+      }
+    } else if (!isAggregateOnly(sqlQuery)) {
       const hits = checkTables(tables);
       const verdict = evaluateHits(
         hits,

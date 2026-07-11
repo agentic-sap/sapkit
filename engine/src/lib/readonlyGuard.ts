@@ -23,6 +23,10 @@
  *   Unit-test execution (UNIT_TEST_EXECUTION_TOOLS)    ✓    ✓    ✗
  *   Other runtime execution (RuntimeRun*, profiling)   ✓    ✗    ✗
  *   Everything else (mutations + unclassified)         ✓    ✗    ✗
+ *
+ * The fail-closed 'UNKNOWN' tier (connection present but SAP_TIER absent or
+ * unrecognized — see profile.ts) is neither DEV nor QA, so it falls through to
+ * the most restrictive column: reads allowed, everything else blocked.
  */
 
 import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';

@@ -78,7 +78,9 @@ describe('profile — load and apply', () => {
     }
   });
 
-  it('loads legacy sap.env with DEV default when no active-profile pointer exists', () => {
+  it('fails closed (UNKNOWN/readonly) for a legacy sap.env with no SAP_TIER', () => {
+    // Was "DEV default": a loaded connection whose tier is unresolved is now
+    // read-only. Only an explicit SAP_TIER=dev opens write tools (next test).
     const cwd = makeTempCwd();
     try {
       writeLegacy(cwd, 'SAP_URL=http://legacy.corp:50000\nSAP_CLIENT=100\n');
@@ -88,6 +90,19 @@ describe('profile — load and apply', () => {
       expect(loaded.legacy).toBe(true);
       expect(loaded.envVars.SAP_URL).toBe('http://legacy.corp:50000');
       expect(loaded.envVars.SAP_CLIENT).toBe('100');
+      expect(loaded.tier).toBe('UNKNOWN');
+      expect(loaded.readonly).toBe(true);
+    } finally {
+      fs.rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+
+  it('opens DEV for a legacy sap.env that explicitly sets SAP_TIER=dev', () => {
+    const cwd = makeTempCwd();
+    try {
+      writeLegacy(cwd, 'SAP_URL=http://legacy.corp:50000\nSAP_TIER=dev\n');
+      const { loadActiveProfile } = require('../../lib/profile');
+      const loaded = loadActiveProfile(cwd);
       expect(loaded.tier).toBe('DEV');
       expect(loaded.readonly).toBe(false);
     } finally {
@@ -160,13 +175,17 @@ describe('profile — load and apply', () => {
     }
   });
 
-  it('defaults unknown SAP_TIER values to DEV for backward compatibility', () => {
+  it('fails closed (UNKNOWN/readonly) for an unrecognized SAP_TIER value', () => {
+    // Was "unknown → DEV for backward compatibility": unknown tiers now fail
+    // closed so a typo (STG, PROD, …) can never silently open write tools.
     const cwd = makeTempCwd();
     try {
       writeProfile(home, 'X', 'SAP_URL=http://x\nSAP_TIER=STG\n');
       writeActivePointer(cwd, 'X');
       const { loadActiveProfile } = require('../../lib/profile');
-      expect(loadActiveProfile(cwd).tier).toBe('DEV');
+      const loaded = loadActiveProfile(cwd);
+      expect(loaded.tier).toBe('UNKNOWN');
+      expect(loaded.readonly).toBe(true);
     } finally {
       fs.rmSync(cwd, { recursive: true, force: true });
     }
@@ -281,5 +300,59 @@ describe('profile — load and apply', () => {
     } finally {
       fs.rmSync(cwd, { recursive: true, force: true });
     }
+  });
+
+  // Tier reconciliation for --env-path / MCP_ENV_PATH connections, whose
+  // SAP_TIER the launcher hydrates into process.env (no .sc4sap profile).
+  describe('reconcileTierFromEnv', () => {
+    it('opens DEV when process.env.SAP_TIER=dev', () => {
+      const {
+        reconcileTierFromEnv,
+        getActiveTier,
+        isReadOnlyTier,
+        __resetProfileState,
+      } = require('../../lib/profile');
+      __resetProfileState();
+      process.env.SAP_TIER = 'dev';
+      expect(reconcileTierFromEnv()).toBe('DEV');
+      expect(getActiveTier()).toBe('DEV');
+      expect(isReadOnlyTier()).toBe(false);
+    });
+
+    it('fails closed to UNKNOWN/readonly when SAP_TIER is absent', () => {
+      const {
+        reconcileTierFromEnv,
+        getActiveTier,
+        isReadOnlyTier,
+        __resetProfileState,
+      } = require('../../lib/profile');
+      __resetProfileState();
+      delete process.env.SAP_TIER;
+      expect(reconcileTierFromEnv()).toBe('UNKNOWN');
+      expect(getActiveTier()).toBe('UNKNOWN');
+      expect(isReadOnlyTier()).toBe(true);
+    });
+
+    it('fails closed to UNKNOWN for an unrecognized SAP_TIER value', () => {
+      const {
+        reconcileTierFromEnv,
+        __resetProfileState,
+      } = require('../../lib/profile');
+      __resetProfileState();
+      process.env.SAP_TIER = 'staging';
+      expect(reconcileTierFromEnv()).toBe('UNKNOWN');
+    });
+
+    it('resolves QA and PRD from process.env.SAP_TIER (case-insensitive)', () => {
+      const {
+        reconcileTierFromEnv,
+        __resetProfileState,
+      } = require('../../lib/profile');
+      __resetProfileState();
+      process.env.SAP_TIER = 'qa';
+      expect(reconcileTierFromEnv()).toBe('QA');
+      process.env.SAP_TIER = 'PRD';
+      expect(reconcileTierFromEnv()).toBe('PRD');
+    });
   });
 });

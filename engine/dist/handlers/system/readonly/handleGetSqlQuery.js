@@ -137,7 +137,19 @@ async function handleGetSqlQuery(context, args) {
         const sqlQuery = args.sql_query;
         const rowNumber = args.row_number || 100; // Default to 100 rows if not specified
         const tables = (0, tableBlocklist_1.extractTablesFromSql)(sqlQuery);
-        if (tables.length > 0 && !(0, tableBlocklist_1.isAggregateOnly)(sqlQuery)) {
+        if (tables.length === 0) {
+            // Fail closed: the query names a table source (FROM/JOIN survives comment
+            // stripping) but no table could be parsed, so the blocklist gate cannot be
+            // evaluated. Refuse rather than let a parser blind spot bypass the guard.
+            if ((0, tableBlocklist_1.sqlHasTableSource)(sqlQuery)) {
+                logger?.warn('Blocked GetSqlQuery: table extraction failed (fail-closed)');
+                throw new utils_1.McpError(utils_1.ErrorCode.InvalidRequest, 'mcp-abap-adt blocklist — could not extract any table name from this query, ' +
+                    'so the protected-table gate cannot evaluate it; the query is refused (fail-closed). ' +
+                    'Rewrite it with a simple `FROM <table>` reference (one table per FROM/JOIN, no comment ' +
+                    'between FROM and the table name) so the server can verify it against the blocklist.');
+            }
+        }
+        else if (!(0, tableBlocklist_1.isAggregateOnly)(sqlQuery)) {
             const hits = (0, tableBlocklist_1.checkTables)(tables);
             const verdict = (0, tableBlocklist_1.evaluateHits)(hits, args.acknowledge_risk === true, (0, tableBlocklist_1.activeProfile)());
             if (verdict.kind === 'deny') {

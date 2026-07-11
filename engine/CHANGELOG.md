@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+## [4.13.2] - 2026-07-11
+
+### Security
+- **Tier guard now fails closed when SAP_TIER is unresolved on a live connection.** Previously a missing or unrecognized `SAP_TIER` resolved to `DEV` (`normalizeTier` "unknown/missing → DEV"), and the readonly guard treats `DEV` as allow-all — so a profile or legacy `sap.env` that simply omitted the tier, or set a typo (`STG`, `PROD`), silently opened every write/mutation tool. A loaded connection whose tier cannot be resolved to `dev`/`qa`/`prd` now resolves to a new fail-closed `UNKNOWN` tier that the guard treats as the most restrictive column (reads allowed; mutations, unit-test execution, and profiling all blocked). Only an explicit `SAP_TIER=dev` (case-insensitive) opens writes. The connectionless inspection-only shell keeps its permissive `DEV` default — harmless, since every tool call fails at connect time anyway — so tool-list exposition is unchanged. `--env-path` / `MCP_ENV_PATH` connections (which carry no `.sc4sap` profile) were the widest hole: their `SAP_TIER` was never read, so QA/PRD env files ran wide-open. `SAP_TIER` is now hydrated from the env file and reconciled into the guard cache after config load, with the same fail-closed default. `.sc4sap` profiles that already set `SAP_TIER=dev` are unaffected.
+- **`GetSqlQuery` table-extraction bypass closed (defense-in-depth blocklist).** `extractTablesFromSql` used `/\b(?:FROM|JOIN)\s+([A-Z0-9_/]+)/` which missed comma-separated tables (`FROM SAFE_TABLE, KNA1` extracted only `SAFE_TABLE`, dropping the protected `KNA1`) and mis-parsed a comment between `FROM` and the table (`FROM /*c*/ KNA1` extracted `/`), letting protected tables slip past the row-extraction gate. Extraction now (1) strips `/* … */` and `--` comments first, (2) parses comma-separated table lists (skipping `AS`/bare aliases), and (3) still scans every `FROM`/`JOIN`, so subquery and JOIN sources are captured. A **fail-closed** guard was added: if a table source survives comment stripping (`FROM`/`JOIN` present) but no table name can be parsed, `GetSqlQuery` is refused with guidance to rewrite as a simple `FROM <table>` — a parser blind spot can no longer bypass the gate.
+
 ## [4.13.1] - 2026-07-11
 
 ### Fixed

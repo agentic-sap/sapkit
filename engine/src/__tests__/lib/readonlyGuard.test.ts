@@ -121,6 +121,32 @@ describe('readonlyGuard — checkToolAllowed (pure matrix)', () => {
       expect(checkToolAllowed(t, 'PRD')).toBeNull();
     }
   });
+
+  // Fail-closed sentinel: connection present but SAP_TIER unresolved. Must be at
+  // least as strict as PRD — reads allowed, everything else blocked.
+  it('UNKNOWN tier blocks mutations', () => {
+    for (const t of mutations) {
+      expect(checkToolAllowed(t, 'UNKNOWN')).toMatch(/mutates/);
+    }
+  });
+
+  it('UNKNOWN tier blocks unit-test execution (no QA allowlist applies)', () => {
+    for (const t of unitTestExec) {
+      expect(checkToolAllowed(t, 'UNKNOWN')).toMatch(/executes ABAP/);
+    }
+  });
+
+  it('UNKNOWN tier blocks runtime execution tools', () => {
+    for (const t of runtimeExec) {
+      expect(checkToolAllowed(t, 'UNKNOWN')).toMatch(/executes ABAP code/);
+    }
+  });
+
+  it('UNKNOWN tier allows reads', () => {
+    for (const t of reads) {
+      expect(checkToolAllowed(t, 'UNKNOWN')).toBeNull();
+    }
+  });
 });
 
 describe('readonlyGuard — guardTool (uses active profile state)', () => {
@@ -177,6 +203,24 @@ describe('readonlyGuard — guardTool (uses active profile state)', () => {
       /ERR_READONLY_TIER/,
     );
     expect(() => guardTool('RunUnitTest')).not.toThrow();
+  });
+
+  it('blocks mutations but allows reads on the fail-closed UNKNOWN tier', () => {
+    const { applyProfile, __resetProfileState } = require('../../lib/profile');
+    __resetProfileState();
+    applyProfile({
+      alias: undefined,
+      sourcePath: '/dev/null',
+      envVars: { SAP_URL: 'http://x' },
+      tier: 'UNKNOWN',
+      readonly: true,
+      legacy: true,
+    });
+    const { guardTool } = require('../../lib/readonlyGuard');
+    expect(() => guardTool('UpdateClass')).toThrow(
+      /ERR_READONLY_TIER.*tier=UNKNOWN/s,
+    );
+    expect(() => guardTool('GetClass')).not.toThrow();
   });
 
   it('always allows ReloadProfile regardless of tier', () => {

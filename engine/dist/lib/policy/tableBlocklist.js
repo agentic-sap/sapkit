@@ -27,6 +27,7 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isAggregateOnly = isAggregateOnly;
+exports.sqlHasTableSource = sqlHasTableSource;
 exports.extractTablesFromSql = extractTablesFromSql;
 exports.checkTables = checkTables;
 exports.formatRefusal = formatRefusal;
@@ -335,14 +336,129 @@ function splitTopLevel(s, sep) {
     return out;
 }
 /**
+ * SQL keywords that can appear where a table token is scanned (immediately
+ * after FROM, or in the alias position of a comma-separated table list) but are
+ * never table names. Used to keep them out of extraction results and to stop
+ * the comma-list walk at clause boundaries (WHERE / ORDER / …).
+ */
+const SQL_NON_TABLE_WORDS = new Set([
+    'SELECT',
+    'FROM',
+    'WHERE',
+    'JOIN',
+    'INNER',
+    'LEFT',
+    'RIGHT',
+    'OUTER',
+    'FULL',
+    'CROSS',
+    'ON',
+    'AS',
+    'GROUP',
+    'ORDER',
+    'BY',
+    'HAVING',
+    'UNION',
+    'ALL',
+    'INTO',
+    'AND',
+    'OR',
+    'NOT',
+    'DISTINCT',
+    'UP',
+    'TO',
+    'ROWS',
+    'CLIENT',
+    'SPECIFIED',
+    'FOR',
+    'WITH',
+    'WHEN',
+    'CASE',
+    'END',
+]);
+/** A single unqualified table/identifier token (namespace `/` allowed). */
+const TABLE_TOKEN = /^[A-Za-z0-9_/]+/;
+/**
+ * Remove SQL comments so they cannot hide table references from extraction.
+ * Strips block comments (`/* … *\/`) and line comments (`-- …`), replacing each
+ * with a space so the tokens it separated do not fuse.
+ */
+function stripSqlComments(sql) {
+    return sql.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/--[^\r\n]*/g, ' ');
+}
+/**
+ * True when the query still references a table source (a FROM or JOIN keyword
+ * survives comment stripping). Callers pair this with extractTablesFromSql to
+ * fail closed: if a table source exists but nothing could be extracted, the
+ * blocklist gate cannot be evaluated and the query must be refused.
+ */
+function sqlHasTableSource(sql) {
+    return /\b(?:FROM|JOIN)\b/i.test(stripSqlComments(sql));
+}
+/**
  * Extract candidate table names from a freestyle SQL string.
- * Matches `FROM table` and `JOIN table` (no schema qualifier).
+ *
+ * Hardened against the extraction bypasses the plain `FROM (\w+)` regex missed:
+ *  - comments between FROM and the table (`FROM /*x*\/ KNA1`) — stripped first;
+ *  - comma-separated table lists (`FROM t1, t2` old-style joins, with optional
+ *    `AS`/bare aliases skipped to reach each comma);
+ *  - explicit JOINs and subquery FROMs — every FROM/JOIN is scanned, so a
+ *    nested FROM inside a subquery is captured too.
+ *
+ * Best-effort by construction; pair with sqlHasTableSource() to fail closed
+ * when a table source exists but nothing here could be parsed.
  */
 function extractTablesFromSql(sql) {
+    const cleaned = stripSqlComments(sql);
     const out = new Set();
-    const re = /\b(?:FROM|JOIN)\s+([A-Z0-9_/]+)/gi;
-    for (const match of sql.matchAll(re)) {
-        out.add(match[1].toUpperCase());
+    for (const m of cleaned.matchAll(/\b(FROM|JOIN)\b/gi)) {
+        const isFrom = m[1].toUpperCase() === 'FROM';
+        let idx = (m.index ?? 0) + m[0].length;
+        for (;;) {
+            while (idx < cleaned.length && /\s/.test(cleaned[idx]))
+                idx++;
+            // Subquery / derived table: its inner FROM is picked up by the outer scan.
+            if (cleaned[idx] === '(')
+                break;
+            const tok = TABLE_TOKEN.exec(cleaned.slice(idx));
+            if (!tok)
+                break;
+            const name = tok[0].toUpperCase();
+            idx += tok[0].length;
+            if (!SQL_NON_TABLE_WORDS.has(name))
+                out.add(name);
+            // JOIN references exactly one table; a FROM may list several.
+            if (!isFrom)
+                break;
+            // Skip an optional alias ("AS x" or a bare "x") to reach the comma.
+            let look = idx;
+            while (look < cleaned.length && /\s/.test(cleaned[look]))
+                look++;
+            const nextTok = TABLE_TOKEN.exec(cleaned.slice(look));
+            if (nextTok) {
+                const nextUpper = nextTok[0].toUpperCase();
+                if (nextUpper === 'AS') {
+                    look += nextTok[0].length;
+                    while (look < cleaned.length && /\s/.test(cleaned[look]))
+                        look++;
+                    const aliasTok = TABLE_TOKEN.exec(cleaned.slice(look));
+                    if (aliasTok)
+                        look += aliasTok[0].length;
+                    idx = look;
+                }
+                else if (!SQL_NON_TABLE_WORDS.has(nextUpper)) {
+                    // Bare alias (not a clause keyword like WHERE/JOIN/ORDER…).
+                    idx = look + nextTok[0].length;
+                }
+            }
+            while (idx < cleaned.length && /\s/.test(cleaned[idx]))
+                idx++;
+            if (cleaned[idx] === ',') {
+                idx++;
+                continue;
+            }
+            break;
+        }
     }
     return [...out];
 }

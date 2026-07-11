@@ -84,6 +84,11 @@ function hydrateSystemContextFromEnvFile(envFilePath) {
             'SAP_SYSTEM_TYPE',
             'SAP_VERSION',
             'ABAP_RELEASE',
+            // Security tier for the readonly guard. .sc4sap profiles resolve tier in
+            // profile.ts; an --env-path / MCP_ENV_PATH connection has no profile, so
+            // its SAP_TIER must be bridged here and then reconciled into the guard
+            // cache (see reconcileTierFromEnv in main()).
+            'SAP_TIER',
         ];
         for (const key of keys) {
             const value = parsed[key];
@@ -218,8 +223,9 @@ async function main() {
     // Activate sc4sap multi-profile BEFORE config/broker loads so
     // process.env.SAP_* reflects the selected profile. Safe no-op when no
     // active-profile.txt / legacy sap.env is present.
+    let loaded;
     try {
-        const loaded = (0, profile_js_1.activateProfile)();
+        loaded = (0, profile_js_1.activateProfile)();
         if (loaded.alias) {
             console.error(`[MCP] Active sc4sap profile: ${loaded.alias} (tier=${loaded.tier}, readonly=${loaded.readonly})`);
         }
@@ -231,6 +237,20 @@ async function main() {
     const configManager = new index_js_2.ServerConfigManager();
     const config = await configManager.getConfig();
     hydrateSystemContextFromEnvFile(config.envFile);
+    // Fail-closed tier for --env-path / MCP_ENV_PATH connections. activateProfile()
+    // only resolves tier from a .sc4sap profile; when the connection instead comes
+    // from an env file, its SAP_TIER (hydrated just above) must drive the readonly
+    // guard — and default to read-only when absent/unrecognized. Skip when a
+    // .sc4sap profile already supplied the connection (it is authoritative) or
+    // when no env file is configured (inspection-only / --mcp keep prior behavior).
+    const profileProvidedConnection = loaded !== undefined &&
+        (loaded.alias !== undefined || Object.keys(loaded.envVars).length > 0);
+    if (!profileProvidedConnection && config.envFile) {
+        const tier = (0, profile_js_1.reconcileTierFromEnv)();
+        if (tier !== 'DEV') {
+            console.error(`[MCP] Env-file connection tier=${tier} (readonly) — set SAP_TIER=dev in the env file to enable write tools.`);
+        }
+    }
     // CLI --connection-type overrides env var
     if (config.connectionType && !process.env.SAP_CONNECTION_TYPE) {
         process.env.SAP_CONNECTION_TYPE = config.connectionType;
