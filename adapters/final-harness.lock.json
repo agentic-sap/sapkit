@@ -1,0 +1,29 @@
+{
+  "_comment": "D-018 검증 버전 lock — final-harness는 분리 유지, 부트스트랩 시 §15-F1~F7 재검증 후 lock (docs/DECISIONS.md D-018, DESIGN.md §16-3). 엔진 갱신 시 F1~F7 재검증 후에만 lock을 올린다.",
+  "locked_at": "2026-07-11",
+  "repo": {
+    "remote": "https://github.com/hjaewon/claude-fable-final.git",
+    "local_path_main": "D:\\claude-practice\\claude-fable-final",
+    "local_path_secondary": "D:\\AI PROJECT\\claude-final"
+  },
+  "verified_commit": "cf42b64a1f54d3b506d1438d89c20234ed25f47d",
+  "version": "v0.17.1",
+  "note": "레포에 git 태그 없음 — lock 앵커는 커밋 sha. 검증은 보조 머신 local_path_secondary에서 수행.",
+  "plugin": {
+    "marketplace": "final-harness-marketplace",
+    "name": "final-harness",
+    "installed": "scope local, D:\\AI PROJECT\\sap-agentic-harness, 2026-07-11 (보조 머신)"
+  },
+  "invariants_f1_f7": {
+    "verified_at": "2026-07-11",
+    "verdict": "F1~F7 전량 유지 — 설계 영향 변경 0건 (v0.12.1 실측 대비)",
+    "F1": "유지 — 무인 step --strict-mcp-config (execute.py:2332-2333), codex는 서버 열거 후 enabled=false + 열거 실패 시 fail-closed 기동 거부 (execute.py:2747-2786)",
+    "F2": "유지 — 매니페스트 미감지 시 Stop 게이트 no-op (stop-quality-gate.py:14-24) + 기동 1회 WARN (execute.py:737-739)",
+    "F3": "유지 — RULES 예산 30/40개·12KB/16KB 수치 불변 (execute.py:1899-1900; v0.16.2가 '40개=WARN, 16KB=기동 거부'로 문구만 정정)",
+    "F4": "유지 — harness-tailor: quality-gate.json 생성 + VERIFY-PATTERNS.md 기록 + rule seed + Stop 훅 300초 예산 경고 (skills/harness-tailor/SKILL.md)",
+    "F5": "유지 — verify 위임 타겟 감사는 리포 내 타겟만, vsp 등 외부 바이너리는 범위 밖 (execute.py:601-695)",
+    "F6": "유지 — tdd-guard LANG_RULES 하드코딩 JS/TS·Python·Go·ipynb, ABAP 미발화 (tdd-guard.py:99-105)",
+    "F7": "유지 — block-dangerous-bash는 고정 파괴 패턴 denylist뿐, vsp 미인지 (block-dangerous-bash.py:37-60)",
+    "skills": "10종 실측 (v0.12.1의 8종 + harness-design v0.14.0 + harness-run v0.17.1 — harness-init·harness-tailor 무변경)"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "_comment": "D-018 버전 lock — vsp 갱신 시 이 lock의 명령 계약을 재검증한 뒤에만 갱신한다. 업스트림 동기 절차: 반기 fetch → 분기 검토 → 리베이스 판단 (docs/DECISIONS.md D-018)",
+  "locked_at": "2026-07-11",
+  "repo": {
+    "local_path": "D:\\Claude for SAP\\vsp-custom",
+    "origin": "https://github.com/hjaewon/vsp-custom.git",
+    "upstream": "https://github.com/oisee/vibing-steampunk.git"
+  },
+  "verified_commit": "aab12759b934c3c9df6143cb0ed05cae561df1e1",
+  "binary": {
+    "path": "D:\\Claude for SAP\\vsp-custom\\build\\vsp.exe",
+    "sha256": "E8C180EF2338446612D02BB47BA74C6B1BFD488140B1258EA7181FD62A2F1DAD",
+    "size_bytes": 18109952,
+    "build_command": "go build -ldflags \"-s -w -X main.Version=v2.38.1-86-gaab1275 -X main.Commit=aab1275 -X main.BuildDate=2026-07-11T05:38:44Z\" -o build/vsp.exe ./cmd/vsp",
+    "built_at": "2026-07-11T05:38:44Z"
+  },
+  "version_output": "vsp version v2.38.1-86-gaab1275 (commit: aab1275, built: 2026-07-11T05:38:44Z)",
+  "command_contract": [
+    {
+      "command": "vsp lint --file <f> | --stdin",
+      "purpose": "오프라인 정적 검사 (Error만 비-0 exit, Warning은 exit 0)",
+      "mode": "offline"
+    },
+    {
+      "command": "vsp parse --file <f> | --stdin",
+      "purpose": "오프라인 구문 파싱 (파일 미존재 외 항상 exit 0)",
+      "mode": "offline"
+    },
+    {
+      "command": "vsp system info",
+      "purpose": "SAP 연결 확인",
+      "mode": "read-only online"
+    },
+    {
+      "command": "vsp atc <type> <name>",
+      "purpose": "ATC 검사",
+      "mode": "read-only online"
+    },
+    {
+      "command": "vsp test",
+      "purpose": "unit test 실행",
+      "mode": "online"
+    },
+    {
+      "command": "vsp health --package <pkg>",
+      "purpose": "패키지 건강 진단 (tests+ATC+boundaries+staleness)",
+      "mode": "read-only online"
+    },
+    {
+      "command": "vsp deploy <file> <package> [--transport]",
+      "purpose": "단일 파일 배포",
+      "mode": "gated write"
+    },
+    {
+      "command": "vsp copy <archive.zip> --to <package>",
+      "purpose": "ZIP 묶음 배포",
+      "mode": "gated write"
+    },
+    {
+      "command": "vsp install abapgit",
+      "purpose": "abapGit 설치",
+      "mode": "gated write"
+    },
+    {
+      "command": "vsp execute",
+      "purpose": "임의 ABAP 실행",
+      "mode": "gated write (위험, 기본 차단)"
+    }
+  ],
+  "not_used": [
+    "MCP server mode (vsp = CLI 전용, DESIGN.md §3)",
+    "--offline MCP flag"
+  ]
+}
