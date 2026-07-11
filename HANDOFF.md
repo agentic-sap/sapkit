@@ -366,6 +366,20 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
 - **주 머신 재개 시 `node interactive/adapters/claude/hooks/install-hooks.mjs --project`
   재실행 필수** (fail-closed 훅 + matcher 갱신 배선).
 
+### 5-11. 트랙 A 무인 gated write 선결 — 새-컨텍스트 리뷰 게이트 편입 [2026-07-11 이중 판단 수렴]
+
+- **근거**: "execute.py가 ABAP에 맞나" 검토에서 메인 + Fable 5 새-컨텍스트 리뷰가 독립
+  수렴한 공백 — 트랙 B E2E가 실증했듯 문법·ATC·활성화 전부 통과한 시맨틱 결함(INNER vs
+  LEFT JOIN)은 기계 verify가 못 잡고 리뷰만 잡는다(§4.1). 무인 엔진의 완료 판정은 기계
+  verify뿐이라 gated write 체인(DESIGN §8.3)에 이 구멍이 열려 있음.
+- **작업**: 무인 gated write(Phase 3) 투입 전에 새-컨텍스트 리뷰 게이트를 무인 체인에
+  편입(방식은 그때 설계 — 엔진 verifier 프롬프트 강화 vs 별도 리뷰 스텝 vs 사람 셰퍼딩
+  유지 중 택1). **그 전까지 무인 write는 켜지 않는다** — 나머지 선결 2건(0b 마커 실측,
+  §14-2 drift 실측)과 함께 Phase 3의 3대 선결.
+- 엔진 유지 판단 자체의 반증 조건 5종(마커 분류 실패·CDS/RAP lint 차단력 0·drift 불성립·
+  BLOCKED 과반 지속·수요 부재)은 로드맵 Phase 완료 기준과 일대일 — 별도 결정 불요,
+  로드맵 완주가 곧 판정 (검토 전문은 세션 기록).
+
 ### 5-6. 다국어 README — ✅ 결정 완료 (2026-07-11): 재작성 안 함
 
 - 개인 도구라 다국어 README 소비자 없음 + 코어(영어)·운영 문서(한국어) 역할 분담으로
