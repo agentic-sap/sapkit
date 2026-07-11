@@ -5,8 +5,12 @@
     {
       "step": 0,
       "name": "contracts-and-tests",
-      "status": "pending",
-      "verify": "powershell -Command \"& 'D:\\Claude for SAP\\vsp-custom\\build\\vsp.exe' lint --file src/zcl_sah2_workdays.clas.abap; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; & 'D:\\Claude for SAP\\vsp-custom\\build\\vsp.exe' lint --file src/zsah2_duedate.prog.abap; exit $LASTEXITCODE\""
+      "status": "completed",
+      "verify": "powershell -Command \"& 'D:\\Claude for SAP\\vsp-custom\\build\\vsp.exe' lint --file src/zcl_sah2_workdays.clas.abap; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; & 'D:\\Claude for SAP\\vsp-custom\\build\\vsp.exe' lint --file src/zsah2_duedate.prog.abap; exit $LASTEXITCODE\"",
+      "started_at": "2026-07-12T02:51:54+0900",
+      "summary": "계약+테스트를 구현보다 먼저 작성. 파일 2개 신규: (1) src/zcl_sah2_workdays.clas.abap — 글로벌 클래스, ZSAH1 lcl_workdays와 동일 계약(CLASS-METHODS calc IMPORTING iv_from/iv_to TYPE d, it_holidays TYPE ty_dates OPTIONAL RETURNING rv_days TYPE i)을 그대로 승격, 본체는 의도적 오답 스텁 rv_days = -1. 유지. ty_dates = SORTED TABLE OF d WITH UNIQUE KEY table_line. (2) src/zsah2_duedate.prog.abap — REPORT zsah2_duedate + PARAMETERS p_from/p_due TYPE d + START-OF-SELECTION에서 zcl_sah2_workdays=>calc 호출 결과 WRITE 출력 + 로컬 테스트 클래스 ltc_duedate(RISK LEVEL HARMLESS DURATION SHORT) 5개 메서드. 테스트는 리포트 출력이 아닌 zcl_sah2_workdays=>calc를 assert_equals로 검증: weekdays_only(2024-01-01~01-05)=5, spans_weekend(01-04~01-09)=4, excludes_holidays(01-01~01-05, holidays=[01-01])=4, same_day(01-03~01-03)=1, inverted_range(01-05~01-01)=0. 스텁이 -1을 반환하므로 5개 전부 실패하는 것이 의도된 red 상태 — step 1 구현이 green으로 전환. 테스트를 클래스가 아닌 리포트에 둔 이유: 클래스 테스트 include 배포는 vsp TODO, REPORT 로컬 테스트는 vsp test 지원 실증(PLANNING §4-2). AC(vsp lint 두 파일) exit 0 확인. CHECKLIST 셀프점검 통과: 클래스명/메서드명/타입명 철자 일치, 블록 짝 맞음, 비교 심볼 = 사용(EQ/NE 없음), 한 줄 한 문장, Z 접두사. ZSAH1 원본 무수정, SAP 미연결(offline).",
+      "contract": "글로벌 클래스 src/zcl_sah2_workdays.clas.abap: CLASS-METHODS calc IMPORTING iv_from/iv_to TYPE d, it_holidays TYPE ty_dates OPTIONAL RETURNING VALUE(rv_days) TYPE i — 현재 본체는 스텁 rv_days = -1(step 1에서 영업일 계산으로 교체, 시그니처·TYPES ty_dates 불변). 테스트 5개는 src/zsah2_duedate.prog.abap의 로컬 테스트 클래스 ltc_duedate에 있고 calc의 정답(5/4/4/1/0)을 강제 — 이 기대값 변경 금지. ZSAH1(src/zsah1_workdays.prog.abap) 동결 유지.",
+      "completed_at": "2026-07-12T02:54:31+0900"
     },
     {
       "step": 1,
@@ -14,5 +18,6 @@
       "status": "pending",
       "verify": "powershell -Command \"& 'D:\\Claude for SAP\\vsp-custom\\build\\vsp.exe' lint --file src/zcl_sah2_workdays.clas.abap; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; & 'D:\\Claude for SAP\\vsp-custom\\build\\vsp.exe' lint --file src/zsah2_duedate.prog.abap; exit $LASTEXITCODE\""
     }
-  ]
+  ],
+  "created_at": "2026-07-12T02:51:54+0900"
 }
