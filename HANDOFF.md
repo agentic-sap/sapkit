@@ -204,7 +204,8 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
 
 **5-1~5-4·5-6 완료 (2026-07-11)** — 남은 항목: 5-5(deferred L6+ — 실수요 발생 시) ·
 5-7(설치 절차 이식 — 선결이던 엔진 수리가 4.13.1로 해소되어 착수 가능) · 5-8(노출 정책
-후속, 낮음). 공통 완료 조건: §9의 게이트 4종 통과 유지 + 상태 변경 시 이 문서 갱신.
+후속, 낮음) · **5-9(트랙 A 선결 결정 — 부트스트랩 전 필수)**. 공통 완료 조건: §9의
+게이트 4종 통과 유지 + 상태 변경 시 이 문서 갱신.
 
 ### 5-1. tool-catalog 재생성 — ✅ 완료 (2026-07-11, 보조 머신)
 
@@ -291,6 +292,15 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
 - **compact-readonly 스파이크** (선택): 합격 기준 = 직렬화 스키마 토큰 실측(도구 수 아님),
   대표 절차 성공률, 라우터/union 오선택률, tier 행렬, row-data 음성, 감사 식별성.
 - smoke-mcp의 write 판정을 이름 추정 대신 카탈로그 operation class 기반으로.
+
+### 5-9. 트랙 A 선결 결정 — vsp-custom·final-harness 편입 여부 [결정만, 부트스트랩 전]
+
+- **질문**: D-017(엔진 engine/ 편입 — 차용 후 완전 소유)의 패턴을 트랙 A 의존 2종에도
+  적용할 것인가. ① `vsp-custom`은 원본 vsp의 차용 커스텀(CUSTOMIZATIONS.md, 원본은
+  `D:\Claude for SAP\vsp`) — 엔진과 같은 패턴이라 편입 후보. ② `final-harness`
+  (`D:\AI PROJECT\claude-final`, v0.16.2)는 자체 제작물(fable-harness 후속)이자 독립
+  제품 — 편입 시 sah 밖 사용처와의 관계 검토 필요. Go 툴체인 유입 부담도 고려.
+- 현행 DESIGN.md §16은 둘을 "설치해서 쓰는 외부 도구"로 전제 — 편입 결정 시 설계 갱신.
 
 ### 5-6. 다국어 README — ✅ 결정 완료 (2026-07-11): 재작성 안 함
 
