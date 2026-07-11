@@ -40,11 +40,20 @@
   클래스는 GUI 수동 주입, 리포트·테스트는 vsp 체인. 잔존 +2(ZCL_SAH2_WORKDAYS·
   ZSAH2_DUEDATE)
 
+- 2026-07-12 | 수리 스프린트(사용자 지시, Phase 2 채점 발견분) — ① vsp 잠금 누수:
+  NoModification 가드에 unlock 추가(vsp-custom 00b4b21, sonnet 위임), 라이브 검증
+  연속 2회 시도 잔존 잠금 0, vsp.lock v2.38.1-87 갱신. ② 엔진 UpdateClass 423 계열:
+  4.13.3 — lock 직후 setSessionType('stateful') 1줄(opus 위임), jest 439+회귀(역검증),
+  번들 반영(런북), **IDES 라이브 red→green**(당일 실패 호출이 updated+activated).
+  잔여: UpdateInterface/UpdateProgram 동일 잠복(HANDOFF §6 백로그 9), vsp
+  RenameObject 누수 후보, CLAS deploy NoModification 근본(3번 — 조사 후 결정 대기)
+
 ## Next
 
-- 백로그 5-7(sap-assets 설치 절차 이식) — HANDOFF §5 순서. Phase 3(Gated Deploy)
-  선결 = 5-11(무인 gated write 전 리뷰 게이트 편입) 포함 3조건 + CLAS 배포 경로
-  부재(§14-4 △) 해소 검토(vsp 수리 or 타입 제한)
+- 수리 3번(vsp CLAS deploy NoModification 근본 + copy 거짓 성공) 조사 후 진행 여부
+  사용자 결정 대기 → 그 다음 백로그 5-7(sap-assets 설치 절차 이식, HANDOFF §5 순서).
+  Phase 3(Gated Deploy) 선결 = 5-11(무인 gated write 전 리뷰 게이트 편입) 포함
+  3조건 + CLAS 배포 경로 부재(§14-4 △) 해소
 
 ## Attempts & dead ends
 

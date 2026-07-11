@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+## [4.13.3] - 2026-07-12
+
+### Fixed
+- **`UpdateClass` (high-level) failed with HTTP 423 "resource … is not locked (invalid lock handle)" on systems that recycle the HTTP connection between requests (e.g. IDES).** The handler orchestrates its own lock → pre-write syntax check → source PUT → unlock chain. `getClass().lock()` acquires the ENQUEUE lock in a stateful request but returns with the connection reset to **stateless**, so the intermediate pre-write `/checkruns` POST (and the subsequent source PUT) went out stateless. On backends that recycle the underlying HTTP connection, SAP routes a stateless request through a fresh work process that has no record of the stateful ADT session, tears the session down, and the lock evaporates — the PUT then fails with an *invalid lock handle* a few seconds after the lock appeared to succeed (each retry re-locks, so the reported handle differs every time). The handler now re-asserts `setSessionType('stateful')` immediately after the lock, so the pre-write check and the PUT ride the same stateful session as the lock; `unlock()` restores stateless afterwards. Same fix class as the `UpdateInclude` path (already stateful) and vsp issue #88. Directly-connected systems that retained the session anyway (e.g. KR-DEV) are unaffected — stateful lock/check/write is the normal Eclipse-ADT protocol. Regression test pins `x-sap-adt-sessiontype: stateful` on both the intermediate check and the PUT.
+
 ## [4.13.2] - 2026-07-11
 
 ### Security

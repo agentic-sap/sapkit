@@ -56,6 +56,19 @@ async function handleUpdateClass(context, params) {
             logger?.debug(`Locking class: ${className}`);
             lockHandle = await client.getClass().lock({ className: className });
             logger?.debug(`Class locked: ${className} (handle=${lockHandle ? `${lockHandle.substring(0, 8)}...` : 'none'})`);
+            // Keep the ENQUEUE lock alive across the rest of the chain.
+            // getClass().lock() returns with the connection reset to stateless,
+            // but the pre-write syntax check below is an intermediate /checkruns
+            // POST that sits BETWEEN the lock and the source PUT. If it (or the
+            // PUT) goes out stateless, SAP routes it through a fresh work process
+            // that has no record of the stateful session, tears the session down,
+            // and the ENQUEUE lock evaporates — the PUT then fails with "resource
+            // not locked (invalid lock handle)" (HTTP 423) seconds after the lock
+            // succeeded. Reproduces 100% on systems that recycle the HTTP
+            // connection between requests (e.g. IDES); harmless where the session
+            // was retained anyway (direct-connect systems). Same fix class as vsp
+            // issue #88. unlock() restores stateless in the finally block below.
+            connection.setSessionType('stateful');
             // Pre-write syntax check on the proposed source. If errors are
             // found we never PUT the broken code; the active class stays in
             // its previous working state. The lock is released by the finally

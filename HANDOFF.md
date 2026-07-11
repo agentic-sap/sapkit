@@ -448,6 +448,13 @@ MCP_ENV_PATH·cwd .env)은 tier 미해석 시 `UNKNOWN`=readonly 강제로 fail-
    결정적 재현(핸들이 매번 갱신됨), KR-DEV(직결)에서 정상인 것과 정합. 수리 방향 =
    vsp 642c03c와 동일(lock~write 체인의 중간 요청 stateful화). 이 실패 유형은 고아
    잠금을 남기지 않음(SM12 확인). 상세: phases/2-duedate-reuse/scoring-raw.md
+   → ✅ **UpdateClass 해소 (4.13.3, 2026-07-12)**: handleUpdateClass lock 직후
+   `setSessionType('stateful')` 1줄(체인 전체 세션 유지, include 핸들러 선례와 동일
+   패턴) + 회귀 테스트(세션타입 헤더 핀, 역-검증 완료). jest 439 통과, 번들 반영,
+   **IDES 라이브 red→green**: 당일 2회 실패했던 동일 호출이 updated+activated 완주.
+   **잔여(신규 백로그 9)**: UpdateInterface·UpdateProgram이 구조 동일(lock→check→
+   PUT, stateful 미설정)한 잠복 버그 — 각 파일 인라인이라 이번 최소 수리에서 제외,
+   동일 1줄 수리 가능. CreateClass 생성 직후 잠금 건은 별개로 잔존.
 5. **DeleteFunctionGroup 조용한 실패** (4.13.1 검증 중 3회 실측): deletion 서비스가 실패를
    HTTP 200 + `del:isDeleted="false"` + E-메시지로 반환하는데 vendored delete가 하드코딩
    `success:true`로 대체 — 잠금 등 삭제 실패가 성공으로 보고됨.
