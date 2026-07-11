@@ -2787,11 +2787,11 @@ class StepExecutor:
         flags = []
         for i, s in enumerate(servers):
             name = s.get("name") if isinstance(s, dict) else None
-            if not name:
+            if not isinstance(name, str) or not name:
                 print(f"\n  ERROR: `codex mcp list --json` 서버 목록 {i}번 항목에 "
-                      f"name이 없습니다(dict 아님 포함) — 이름 없는 서버엔 "
-                      f"enabled=false를 부착할 수 없어 MCP 차단을 확인할 수 없어 "
-                      f"기동을 거부합니다 (fail-closed)")
+                      f"유효한 name 문자열이 없습니다(dict 아님·비문자열 포함) — "
+                      f"이름 없는 서버엔 enabled=false를 부착할 수 없어 MCP 차단을 "
+                      f"확인할 수 없어 기동을 거부합니다 (fail-closed)")
                 sys.exit(1)
             # TOML dotted key: 식별자 외 문자가 있는 이름은 따옴표 세그먼트로 인용
             key = name if re.fullmatch(r"[A-Za-z0-9_-]+", name) else json.dumps(name)
@@ -3033,6 +3033,10 @@ class StepExecutor:
                 sys.exit(1)
             print(f"  ✓ Pushed to origin/{branch}")
 
+        print(f"\n{'='*60}")
+        print(f"  Phase '{self._phase_name}' completed!")
+        print(f"{'='*60}")
+
     def _abort_finalize_storage(self, what: str, r):
         """finalize의 저장(스테이징·커밋) 실패는 상태를 뒤집지 않는다 — step들은
         이미 verify를 통과했고 completed 기록(top index·run-summary)도 사실이다.
@@ -3042,10 +3046,6 @@ class StepExecutor:
         print("  phase는 검증 완료됐지만 완료 마커(phases/)가 커밋되지"
               " 않았습니다. git 설정을 점검하고 phases/ 변경을 수동 커밋하세요.")
         sys.exit(1)
-
-        print(f"\n{'='*60}")
-        print(f"  Phase '{self._phase_name}' completed!")
-        print(f"{'='*60}")
 
 
 def main():

@@ -6,9 +6,9 @@
     "local_path_main": "D:\\claude-practice\\claude-fable-final",
     "local_path_secondary": "D:\\AI PROJECT\\claude-final"
   },
-  "verified_commit": "cf42b64a1f54d3b506d1438d89c20234ed25f47d",
-  "version": "v0.17.1",
-  "note": "레포에 git 태그 없음 — lock 앵커는 커밋 sha. 검증은 보조 머신 local_path_secondary에서 수행.",
+  "verified_commit": "8f7f13bc977bb686e62dd44651ce78c5250e2e8a",
+  "version": "v0.17.3",
+  "note": "레포에 git 태그 없음 — lock 앵커는 커밋 sha. F1~F7 근거 행 번호는 cf42b64 기준 실측이며, cf42b64→8f7f13b 델타는 직접 판독으로 전량 유지 재확인(2026-07-11): execute.py codex MCP 형상 fail-closed 강화(F1 안전 방향)+finalize 배너 위치 수리(F 무관), 그 외 F 표면 무접촉.",
   "plugin": {
     "marketplace": "final-harness-marketplace",
     "name": "final-harness",

@@ -1591,7 +1591,7 @@ class TestFinalize:
         assert "ui" in out
         assert "done" in out
 
-    def test_all_completed_finalizes_normally(self, executor, phase_dir):
+    def test_all_completed_finalizes_normally(self, executor, phase_dir, capsys):
         index = json.loads((phase_dir / "index.json").read_text(encoding="utf-8"))
         for s in index["steps"]:
             s["status"] = "completed"
@@ -1609,6 +1609,11 @@ class TestFinalize:
         assert "completed_at" in idx
         executor._run_review.assert_called_once()
         executor._update_top_index.assert_called_once_with("completed")
+        # 성공 경로는 완료 배너를 실제로 출력해야 한다 — 이 단언이 있어야
+        # 실패 경로 테스트들의 '"completed!" not in out'이 의미를 가진다
+        # (v0.16.2 리팩터가 배너를 abort 메서드의 exit 뒤 죽은 코드로 밀어
+        # 넣어, 배너가 어디서도 안 나와 실패 테스트가 엉뚱한 이유로 통과했다).
+        assert "completed!" in capsys.readouterr().out
 
     def test_finalize_sweeps_foreign_worker_marker(self, executor, phase_dir, tmp_project):
         # 리뷰 세션이 done 이후 마커를 다시 써두는 꼬리 케이스 — finalize가 청소해야
@@ -4998,6 +5003,18 @@ class TestMcpBlocking:
         # name 없는 dict(빈 문자열 포함)가 섞이면 enabled=false를 붙일 수 없어 fail-closed
         inst = _make_executor(tmp_project, phase_dir, {"driver": "codex"})
         payload = json.dumps([{"name": "ok"}, {"enabled": True}, {"name": ""}])
+        monkeypatch.setattr(ex.subprocess, "run",
+                            lambda *a, **k: MagicMock(returncode=0, stdout=payload, stderr=""))
+        with pytest.raises(SystemExit) as exc:
+            inst._codex_mcp_disable_flags()
+        assert exc.value.code == 1
+        assert "fail-closed" in capsys.readouterr().out
+
+    def test_codex_list_non_string_name_refuses(self, tmp_project, phase_dir, monkeypatch, capsys):
+        # truthy 비문자열 name(숫자 등)은 정규식 매칭 TypeError 크래시가 아니라
+        # 다른 형상 위반과 같은 결의 깨끗한 기동 거부여야 한다
+        inst = _make_executor(tmp_project, phase_dir, {"driver": "codex"})
+        payload = json.dumps([{"name": 123}])
         monkeypatch.setattr(ex.subprocess, "run",
                             lambda *a, **k: MagicMock(returncode=0, stdout=payload, stderr=""))
         with pytest.raises(SystemExit) as exc:

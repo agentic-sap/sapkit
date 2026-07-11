@@ -22,14 +22,15 @@ D:\claude for SAP\sap-agentic-harness   ← 단일 레포 (원격: hjaewon/sap-a
 │           소유 전략 = **D-018 확정: 분리 유지 + 부트스트랩 시 버전 lock** (5-9 종결)
 │           설계는 원래부터 대화형 세션(Phase 0a/0b·CONSULT) + 무인 step 겸용 —
 │           "무인"은 실행 모드 하나이지 트랙 전체가 아님.
-│     §15-F 불변식: v0.17.1(cf42b64) 재검증 완료(2026-07-11) — 전량 유지. 두 의존의
-│           검증 lock = adapters/vsp/vsp.lock.json · adapters/final-harness.lock.json (D-018)
+│     §15-F 불변식: v0.17.1(cf42b64) 전면 재검증 + v0.17.3(8f7f13b) 델타 재확인
+│           (2026-07-11) — 전량 유지. 두 의존의 검증 lock = adapters/vsp/vsp.lock.json ·
+│           adapters/final-harness.lock.json (D-018)
 │     현황: **Phase 0a 완료(2026-07-11)** — harness-init(.harness/ 5종+엔진+배선, 안전훅
 │           3종 보존) + harness-tailor(quality-gate 래퍼 등록·RULES R-001~5 시드·
 │           VERIFY-PATTERNS 스텁) + **게이트 차단 실증 0→1→0**. lint 실측: Error 4종/
-│           Warning 3종(§14-8 근거), 상세는 .harness/STATE.md. 설치 엔진 = cf42b64 +
-│           미커밋 안전강화 델타 2건(자칭 0.17.2, F 무영향) — 0.17.2 커밋되면 installer
-│           재실행(멱등)+lock 갱신, 무인 step 첫 투입 전 재검증.
+│           Warning 3종(§14-8 근거), 상세는 .harness/STATE.md. 설치 엔진 = v0.17.3
+│           (8f7f13b) 커밋본과 동기 + lock 갱신(2026-07-11, 델타 직접 판독으로 F 전량
+│           유지 재확인) — 엔진 저자가 당분간 동결 선언(2026-07-11).
 │           다음: Phase 0b — §16-2 vsp SAP 연결(IDES-DEV) → COMMANDS.md·마커 패턴 실측
 │           (파일럿: IDES-DEV(S4H/100) $TMP — 2026-07-11 사용자 결정)
 │
@@ -51,7 +52,7 @@ D:\claude for SAP\sap-agentic-harness   ← 단일 레포 (원격: hjaewon/sap-a
 | `D:\claude for SAP\sc4sap-lite` | **동결·이관됨** — interactive/로 subtree 병합 완료. README에 이관 표기. 삭제해도 무방(사용자 판단) |
 | `hjaewon/abap-mcp-adt-powerup` | **→ `engine/`으로 편입 (2026-07-11, D-017)** — 엔진 소스 정본은 이제 레포 내 `engine/`(재현 빌드 바이트 일치 검증). GitHub 포크·로컬 클론은 히스토리 아카이브. 엔진 이슈는 §6 — engine/에서 수리 |
 | `D:\claude for SAP\vsp\vsp-custom` (주) / `D:\Claude for SAP\vsp-custom` (보조) | **트랙 A의 유일한 SAP 접점·검증/배포 백엔드** (핵심 의존 — 업스트림 oisee/vibing-steampunk 차용). **소유 전략 D-018 확정: 분리 유지 + 부트스트랩 시 버전 lock** (편입 기각 — 소비 계약=CLI 바이너리, 업스트림 활발). 보조 머신에서 검증 lock 생성 완료(2026-07-11, `adapters/vsp/vsp.lock.json` — aab1275, build/vsp.exe sha256 고정), 주 머신은 미빌드 (Go 1.26.4 설치됨) |
-| final-harness: `D:\claude-practice\claude-fable-final` (주) / `D:\AI PROJECT\claude-final` (보조) | 트랙 A 하네스 엔진 — **자체 제작 독립 제품**(fable-harness 후속, sah 밖 사용처 가능). **D-018: 분리 유지 확정** — 버전은 여기 박제하지 않음(부패 실증). §15-F 재검증·lock **완료(2026-07-11)**: v0.17.1 전량 유지, `adapters/final-harness.lock.json` |
+| final-harness: `D:\claude-practice\claude-fable-final` (주) / `D:\AI PROJECT\claude-final` (보조) | 트랙 A 하네스 엔진 — **자체 제작 독립 제품**(fable-harness 후속, sah 밖 사용처 가능). **D-018: 분리 유지 확정** — 버전은 여기 박제하지 않음(부패 실증). §15-F 재검증·lock **완료(2026-07-11)**: v0.17.3(8f7f13b)까지 전량 유지, `adapters/final-harness.lock.json`. 저자 당분간 동결 선언 |
 
 ## 2. 지금까지의 타임라인 (2026-07-10~11, 커밋은 본 레포 main)
 
