@@ -15,8 +15,12 @@
     {
       "step": 1,
       "name": "implement-calc",
-      "status": "pending",
-      "verify": "powershell -Command \"& 'D:\\Claude for SAP\\vsp-custom\\build\\vsp.exe' lint --file src/zsah1_workdays.prog.abap; exit $LASTEXITCODE\""
+      "status": "completed",
+      "verify": "powershell -Command \"& 'D:\\Claude for SAP\\vsp-custom\\build\\vsp.exe' lint --file src/zsah1_workdays.prog.abap; exit $LASTEXITCODE\"",
+      "started_at": "2026-07-11T20:44:56+0900",
+      "summary": "lcl_workdays=>calc의 스텁(`rv_days = -1.`)을 실구현으로 교체. 로직: (1) iv_from > iv_to면 즉시 rv_days = 0 반환(RETURN). (2) 그 외에는 iv_from부터 iv_to까지 하루씩 WHILE 루프를 돌며, 각 날짜의 요일을 함수 모듈 호출 없이 TYPE d 산술로 판정 — 고정 기준일 2024-01-01(월요일, ltc_workdays 픽스처가 명시)과의 델타(`lv_date - lc_monday_ref`)를 7로 MOD 연산. ABAP MOD는 양의 제수에 대해 결과가 항상 [0,7) 범위(floor-mod)이므로 기준일 이전 날짜에도 안정적으로 0=월~6=일 매핑이 성립. dow < 5면 평일. 공휴일 제외는 `line_exists( it_holidays[ table_line = lv_date ] )`로 SORTED TABLE의 UNIQUE KEY(table_line)를 활용한 조회(it_holidays가 OPTIONAL 미전달이면 빈 테이블이라 안전). 근거 주석은 소스에 영어로 기재(METHOD calc 상단 8줄). AC: `vsp lint --file src/zsah1_workdays.prog.abap` -> 'No issues found', exit 0 확인. CHECKLIST.md 셀프체크: Error급 6종 미위반(EQ/NE 미사용 - `>`/`<`/`<=` 심볼만 사용, 라인 255자 이내, 문장당 한 줄, 빈 문장 없음, 하드코딩 자격증명 없음, 루프 내 COMMIT 없음), Z접두사 유지, CLASS/ENDCLASS·METHOD/ENDMETHOD 짝 확인. Desk-check(5케이스, 2024-01-01=월요일 기준): weekdays_only(01-01~01-05, 전부 월~금) dow=0,1,2,3,4 전부<5 -> 5일 = exp 5 일치. spans_weekend(01-04목~01-09화) dow=3,4,5,6,0,1 중 5(토)·6(일) 제외 -> 목·금·월·화 4일 = exp 4 일치. excludes_holidays(01-01~01-05, holiday=01-01) 평일 5일 - holiday 1일 = 4일 = exp 4 일치. same_day(01-03수) dow=2<5 -> 1일 = exp 1 일치. inverted_range(01-05>01-01) -> 즉시 0 = exp 0 일치. 5/5 일치 확인.",
+      "contract": "lcl_workdays=>calc 본체 구현 완료(시그니처 불변). iv_from > iv_to -> 0. 그 외 iv_from~iv_to(양끝 포함) 중 토/일과 it_holidays 제외 날수. SAP 미연결(offline lint만 통과) — ABAP Unit 실측 검증은 connected 단계(Phase 1.5)로 이월.",
+      "completed_at": "2026-07-11T20:48:23+0900"
     }
   ],
   "created_at": "2026-07-11T20:39:31+0900"
