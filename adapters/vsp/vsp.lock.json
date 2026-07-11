@@ -1,20 +1,20 @@
 {
   "_comment": "D-018 버전 lock — vsp 갱신 시 이 lock의 명령 계약을 재검증한 뒤에만 갱신한다. 업스트림 동기 절차: 반기 fetch → 분기 검토 → 리베이스 판단 (docs/DECISIONS.md D-018)",
-  "locked_at": "2026-07-11",
+  "locked_at": "2026-07-12",
   "repo": {
     "local_path": "D:\\Claude for SAP\\vsp-custom",
     "origin": "https://github.com/hjaewon/vsp-custom.git",
     "upstream": "https://github.com/oisee/vibing-steampunk.git"
   },
-  "verified_commit": "aab12759b934c3c9df6143cb0ed05cae561df1e1",
+  "verified_commit": "00b4b212a02f1ee2c36207ccacd0ed84f6e9c324",
   "binary": {
     "path": "D:\\Claude for SAP\\vsp-custom\\build\\vsp.exe",
-    "sha256": "E8C180EF2338446612D02BB47BA74C6B1BFD488140B1258EA7181FD62A2F1DAD",
-    "size_bytes": 18109952,
-    "build_command": "go build -ldflags \"-s -w -X main.Version=v2.38.1-86-gaab1275 -X main.Commit=aab1275 -X main.BuildDate=2026-07-11T05:38:44Z\" -o build/vsp.exe ./cmd/vsp",
-    "built_at": "2026-07-11T05:38:44Z"
+    "sha256": "962418C8BE735D5EEBB63E29D45B9C5BEF57006B37A364A3E8F29ED37DD6FBC8",
+    "size_bytes": 18110464,
+    "build_command": "CGO_ENABLED=0 go build -ldflags \"-s -w -X main.Version=v2.38.1-87-g00b4b21 -X main.Commit=00b4b21 -X main.BuildDate=2026-07-11T19:07:47Z\" -o build/vsp.exe ./cmd/vsp",
+    "built_at": "2026-07-11T19:07:47Z"
   },
-  "version_output": "vsp version v2.38.1-86-gaab1275 (commit: aab1275, built: 2026-07-11T05:38:44Z)",
+  "version_output": "vsp version v2.38.1-87-g00b4b21 (commit: 00b4b21, built: 2026-07-11T19:07:47Z)",
   "command_contract": [
     {
       "command": "vsp lint --file <f> | --stdin",
