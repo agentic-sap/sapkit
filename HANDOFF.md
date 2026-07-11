@@ -1,11 +1,13 @@
 # HANDOFF — 프로젝트 전체 상태와 재개 지침
 
 > **목적: 컨텍스트/세션이 클리어돼도 이 문서 하나로 전부 복원.**
-> 작성 2026-07-10 · 최종 갱신 2026-07-11. 새 세션은 ① 이 문서 → ② 필요 시 해당 트랙
+> 작성 2026-07-10 · 최종 갱신 2026-07-12. 새 세션은 ① 이 문서 → ② 필요 시 해당 트랙
 > DESIGN.md 순으로 읽는다. 상태가 바뀌면 이 문서를 갱신하는 것까지가 작업의 일부다.
-> **다음 착수 = 트랙 A Phase 2** (Online Read-Only Planning — 기존 컨텍스트·where-used를
-> 계획 단계에 편입, DESIGN §13 — **Phase 1.5까지 완료 2026-07-11: 무인 엔진 첫 완주 +
-> red/green 서버 실증 5 FAIL→5 PASS**, 파일럿 = IDES-DEV $TMP).
+> **다음 착수 = 트랙 A Phase 2 무인 실행 기동** — 계획 수립 완료(2026-07-12,
+> `phases/2-duedate-reuse`): read-only 답사가 계획 결정 3건을 변경해 PLANNING.md에
+> 기록(§13 완료 기준의 "계획 문서 기록" 충족). 기동 명령
+> `python scripts/execute.py 2-duedate-reuse` (bridge + sonnet 워커 권장, harness-run
+> 셰퍼딩). 완주 후 connected 채점은 PLANNING.md §5.
 
 ---
 
@@ -39,7 +41,12 @@ D:\claude for SAP\sap-agentic-harness   ← 단일 레포 (원격: hjaewon/sap-a
 │           지원 확인(Phase 3 근거). 엔진 lock = v0.17.3(8f7f13b) 동기, 저자 동결 선언.
 │           상세 = .harness/STATE.md·phases/1-workdays-util/·VERIFY-PATTERNS §1.5절.
 │           $TMP 잔존: ZSAH0B_ 3 + ZSAH1_WORKDAYS + ZSAH15_BROKEN(빈 스켈레톤, 무해).
-│           다음: Phase 2 — Online Read-Only Planning (§13). Phase 3(Gated Deploy)
+│           **Phase 2 계획 수립 완료(2026-07-12)**: IDES-DEV read-only 답사(sonnet 위임)
+│           → 결정 변경 3건(① 대상 객체 PROG 1개→CLAS zcl_sah2_workdays+PROG
+│           zsah2_duedate ② 테스트는 리포트 로컬 배치+deploy 순서 클래스 먼저 ③ 분석
+│           스코프 $TMP 패키지→객체 단위, where-used 정본=graph --direction callers)
+│           = phases/2-duedate-reuse/PLANNING.md 기록. 무인 기동 대기(사용자 결정).
+│           다음: Phase 2 기동→완주→connected 채점. Phase 3(Gated Deploy)
 │           선결 3조건 중 리뷰 게이트 편입은 백로그 5-11
 │
 └── [트랙 B] 대화형 트랙 — ★ L0~L5 구현 완료, E2E 대기  ←←← 현재 작업 지점

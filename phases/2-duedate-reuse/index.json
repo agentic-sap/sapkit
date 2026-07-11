@@ -1,0 +1,18 @@
+{
+  "project": "sap-agentic-harness",
+  "phase": "2-duedate-reuse",
+  "steps": [
+    {
+      "step": 0,
+      "name": "contracts-and-tests",
+      "status": "pending",
+      "verify": "powershell -Command \"& 'D:\\Claude for SAP\\vsp-custom\\build\\vsp.exe' lint --file src/zcl_sah2_workdays.clas.abap; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; & 'D:\\Claude for SAP\\vsp-custom\\build\\vsp.exe' lint --file src/zsah2_duedate.prog.abap; exit $LASTEXITCODE\""
+    },
+    {
+      "step": 1,
+      "name": "implement-calc",
+      "status": "pending",
+      "verify": "powershell -Command \"& 'D:\\Claude for SAP\\vsp-custom\\build\\vsp.exe' lint --file src/zcl_sah2_workdays.clas.abap; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; & 'D:\\Claude for SAP\\vsp-custom\\build\\vsp.exe' lint --file src/zsah2_duedate.prog.abap; exit $LASTEXITCODE\""
+    }
+  ]
+}

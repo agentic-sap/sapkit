@@ -25,11 +25,20 @@
   REPORT 로컬 테스트 클래스 지원 확인(Phase 3 red/green 루프 성립 근거), 문법 오류
   deploy는 깨진 잔존이 아니라 빈 스켈레톤 롤백(0b 서술 정정 — VERIFY-PATTERNS 반영)
 
+- 2026-07-12 | Phase 2 계획 수립 — IDES-DEV read-only 답사(sonnet 위임, 원로그
+  phases/2-duedate-reuse/recon-raw.md) → **답사가 계획 결정 3건 변경**(대상 객체
+  CLAS+PROG 2개로 / 테스트 리포트 배치+deploy 순서 클래스 먼저 / 분석 스코프 객체
+  단위) → PLANNING.md 기록(§13 완료 기준 "계획 문서 기록" 충족). 스텝 2개(계약+
+  테스트 먼저 → calc 이식) 생성, D-4 린트 통과(경로 실재·맥락 표현 0·verify 체인
+  CHAIN_EXIT=0 실증). offline lint가 .clas.abap에도 동작 실측(verify 전제).
+
 ## Next
 
-- Phase 2 (Online Read-Only Planning): 기존 package/object context를 계획에 반영,
-  where-used/boundary 분석을 계획 단계에 편입 (DESIGN §13). Phase 3(Gated Deploy)
-  선결 = 백로그 5-11(무인 gated write 전 리뷰 게이트 편입) 포함 3조건
+- Phase 2 무인 기동(사용자 승인 대기): `python scripts/execute.py 2-duedate-reuse`
+  — bridge + sonnet 워커 권장, harness-run 셰퍼딩. 완주 후 connected 채점
+  (PLANNING.md §5: deploy ZCL→ZSAH2→test 5 PASS→ATC, CTS 무관 $TMP) 후 Phase 2
+  완료 판정. Phase 3(Gated Deploy) 선결 = 백로그 5-11(무인 gated write 전 리뷰
+  게이트 편입) 포함 3조건
 
 ## Attempts & dead ends
 
