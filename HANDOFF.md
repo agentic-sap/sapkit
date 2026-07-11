@@ -242,7 +242,11 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
 | sap-profile-cli.mjs | `scripts/` | troubleshooting.md 수동 절차 |
 | sap-option-tui.mjs | 재심사 | config.json 직접 편집으로 대체 중 |
 
-### 5-6. 다국어 README — 재작성 여부 결정만 (매니페스트 archive 행)
+### 5-6. 다국어 README — ✅ 결정 완료 (2026-07-11): 재작성 안 함
+
+- 개인 도구라 다국어 README 소비자 없음 + 코어(영어)·운영 문서(한국어) 역할 분담으로
+  충분 + 원본 archive 보존이라 수요 발생 시 언제든 재론 가능(가역). 매니페스트
+  `README.*.md` 행에 확정 기록 (분류는 archive 그대로).
 
 ### 머신별 가능 범위 (2026-07-10 기준)
 

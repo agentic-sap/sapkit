@@ -79,7 +79,7 @@
 | `LICENSE` | copy | `LICENSE` (MIT 고지 승계) |
 | `CLAUDE.md` | transform | 새 CLAUDE/AGENTS 인덱스 참고 원천 |
 | `README.md` | transform | 새 README 참고 |
-| `README.*.md` | archive | 다국어 README — 재작성 여부 L6 이후 결정 |
+| `README.*.md` | archive | 다국어 README — **재작성 안 함 확정(2026-07-11)**: 개인 도구라 다국어 소비자 없음, 코어(영어)·운영(한국어) 역할 분담으로 충분. 수요 발생 시 재론 |
 | `.mcp.json` | transform | 어댑터 MCP 등록 원형 (NODE_PATH 배선 포함) |
 | `.gitattributes` | transform | 번들 EOL 보호 라인 승계 |
 | `.gitignore` | transform | 신규 작성 참고 |
