@@ -5,8 +5,12 @@
     {
       "step": 0,
       "name": "test-class-first",
-      "status": "pending",
-      "verify": "powershell -Command \"& 'D:\\Claude for SAP\\vsp-custom\\build\\vsp.exe' lint --file src/zsah1_workdays.prog.abap; exit $LASTEXITCODE\""
+      "status": "completed",
+      "verify": "powershell -Command \"& 'D:\\Claude for SAP\\vsp-custom\\build\\vsp.exe' lint --file src/zsah1_workdays.prog.abap; exit $LASTEXITCODE\"",
+      "started_at": "2026-07-11T20:39:31+0900",
+      "summary": "src/zsah1_workdays.prog.abap 신규 작성 (src/ 디렉토리 신규 생성). REPORT zsah1_workdays -> CLASS lcl_workdays DEFINITION/IMPLEMENTATION(계약 시그니처 그대로, calc 본체는 스텁 한 줄 `rv_days = -1.`만) -> CLASS ltc_workdays DEFINITION FOR TESTING RISK LEVEL HARMLESS DURATION SHORT/IMPLEMENTATION(테스트 메서드 5개: weekdays_only=5, spans_weekend=4, excludes_holidays=4, same_day=1, inverted_range=0 — 전부 cl_abap_unit_assert=>assert_equals로 고정 기대값 검증, 스텁이 -1을 반환하므로 현재는 전부 실패하는 것이 의도된 상태). `vsp lint --file` 실행 결과 'No issues found', exit 0 확인(AC 통과). CHECKLIST.md 셀프체크 수행: Error급 6종 규칙 미위반(EQ/NE 미사용, 라인 255자 이내, 문장당 한 줄, 빈 문장 없음, 하드코딩 자격증명 없음, 루프 내 COMMIT WORK 없음), Z접두사(zsah1_workdays), CLASS/ENDCLASS·METHOD/ENDMETHOD 블록 짝 전부 확인(lint가 못 잡는 구조 오류 없음). SAP 연결 명령 미실행(offline만).",
+      "contract": "src/zsah1_workdays.prog.abap 신설. lcl_workdays=>calc(iv_from TYPE d, iv_to TYPE d, it_holidays TYPE lcl_workdays=>ty_dates OPTIONAL) RETURNING rv_days TYPE i — 시그니처 고정, 현재 본체는 `rv_days = -1.` 스텁뿐(미구현). ltc_workdays에 5개 테스트 메서드가 이미 고정 기대값으로 assert 중이니 step 1은 calc 본체만 구현하고 시그니처·테스트는 건드리지 말 것.",
+      "completed_at": "2026-07-11T20:44:54+0900"
     },
     {
       "step": 1,
@@ -14,5 +18,6 @@
       "status": "pending",
       "verify": "powershell -Command \"& 'D:\\Claude for SAP\\vsp-custom\\build\\vsp.exe' lint --file src/zsah1_workdays.prog.abap; exit $LASTEXITCODE\""
     }
-  ]
+  ],
+  "created_at": "2026-07-11T20:39:31+0900"
 }
