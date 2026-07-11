@@ -23,6 +23,8 @@
 3. **capability diff**: 갱신 전후 `node scripts/smoke-mcp.mjs`의 tools 목록을 비교 —
    추가/삭제/이름 변경을 기록하고, 변경이 있으면 `server/tool-catalog/`와
    어댑터 노출 프리셋·권한 정책을 함께 갱신 (DESIGN.md §6 리뷰 5.4 대응)
+   — write/runtime 도구 증감 시 `interactive/agents/sap-reviewer.md`의
+   disallowedTools 열거를 동기화한다.
 4. 스모크: 무프로파일 기동(inspection-only 확인) + 연결 프로파일로 read 1회 왕복
 5. `.gitattributes`의 `-text` 보호가 유지되는지 확인 (EOL 변환 = 번들 파손)
 

@@ -8,20 +8,20 @@
   "additionalProperties": false,
   "properties": {
     "check_syntax": {
-      "$ref": "#/definitions/step",
-      "description": "Result of CheckSyntax on the MAIN program (single check, not per include)."
+      "$ref": "#/definitions/step-strict",
+      "description": "Result of CheckSyntax on the MAIN program (single check, not per include). PASS/FAIL only — a backend outage on this step blocks the pipeline (Phase 6 records state.json as blocked), it does not SKIP the gate."
     },
     "activate": {
-      "$ref": "#/definitions/step",
-      "description": "Activation result — evidence should cite GetInactiveObjects returning 0 entries for the program's object set."
+      "$ref": "#/definitions/step-strict",
+      "description": "Activation result — evidence should cite GetInactiveObjects returning 0 entries for the program's object set. PASS/FAIL only — a backend outage on this step blocks the pipeline (Phase 6 records state.json as blocked), it does not SKIP the gate."
     },
     "unit_test": {
       "$ref": "#/definitions/step",
-      "description": "RunUnitTest / GetUnitTestResult outcome. SKIPPED when Phase 5 skip conditions matched (Procedural paradigm, or testing scope = none)."
+      "description": "RunUnitTest / GetUnitTestResult outcome. SKIPPED when Phase 5 skip conditions matched (Procedural paradigm, or testing scope = none) — SKIPPED here is a normal, non-blocking outcome."
     },
     "atc": {
       "$ref": "#/definitions/step",
-      "description": "GetAtcFindings outcome on the created objects. SKIPPED when the backend does not support ATC checks."
+      "description": "GetAtcFindings outcome on the created objects. SKIPPED when the backend does not support ATC checks — SKIPPED here is a normal, non-blocking outcome."
     },
     "prog": {
       "type": "string",
@@ -33,16 +33,40 @@
       "type": "object",
       "required": ["status", "evidence"],
       "additionalProperties": false,
+      "description": "Used by unit_test and atc only. These two steps are conditional on backend/project support, so SKIPPED is a legitimate, non-blocking outcome as long as evidence carries the reason.",
       "properties": {
         "status": {
           "type": "string",
           "enum": ["PASS", "FAIL", "SKIPPED"],
-          "description": "Step outcome. SKIPPED requires the reason in evidence."
+          "description": "Step outcome for unit_test/atc. SKIPPED requires the reason in evidence and does not block Phase 6/Phase 8."
         },
         "evidence": {
           "type": "string",
           "minLength": 1,
-          "description": "Concrete proof: tool name + result summary (e.g. 'CheckSyntax(ZMM_STOCK_RPT): 0 errors 0 warnings', 'GetInactiveObjects: 0 entries for ZMM_STOCK_RPT*', 'RunUnitTest: 6/6 methods green'), or the skip reason."
+          "description": "Concrete proof: tool name + result summary (e.g. 'RunUnitTest: 6/6 methods green', 'GetAtcFindings: 0 priority-1/2 findings'), or the skip reason (e.g. 'SKIPPED: Procedural paradigm, no test class expected')."
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the step was recorded (optional)."
+        }
+      }
+    },
+    "step-strict": {
+      "type": "object",
+      "required": ["status", "evidence"],
+      "additionalProperties": false,
+      "description": "Used by check_syntax and activate only. These two are the unconditional machine-verification gates (verification-policy.md chain steps 1-2) that Phase 6 step 1 and the Phase 8 hard gate both require to have actually PASSed — SKIPPED is deliberately excluded from the enum so a backend outage on either step surfaces as FAIL + a blocked pipeline, never as a silent pass-through.",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["PASS", "FAIL"],
+          "description": "Step outcome for check_syntax/activate. No SKIPPED — these steps must actually run and resolve to PASS or FAIL."
+        },
+        "evidence": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Concrete proof: tool name + result summary (e.g. 'CheckSyntax(ZMM_STOCK_RPT): 0 errors 0 warnings', 'GetInactiveObjects: 0 entries for ZMM_STOCK_RPT*')."
         },
         "ts": {
           "type": "string",

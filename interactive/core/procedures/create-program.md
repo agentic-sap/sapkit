@@ -420,18 +420,43 @@ Adopt the [sap-qa-tester](../personas/sap-qa-tester.md) persona for this step.
 A successful activation only proves the code compiles and links — it does NOT prove the code follows the shared conventions. Phase 6 closes this gap.
 
 Steps:
-1. Verify `verification.json` is complete (all four steps recorded).
+1. Verify `verification.json` is complete (all four steps recorded) AND check the gate
+   matrix: `check_syntax = PASS AND activate = PASS`. Per
+   [schemas/verification.schema.json](./schemas/verification.schema.json) these two
+   steps can only be `PASS` or `FAIL` — `SKIPPED` is not a legal value for them. If
+   either is `FAIL`, missing, or otherwise not `PASS`, do NOT proceed with the rest of
+   Phase 6: record `state.json` phase `6_review` as `blocked`, state which step failed,
+   and report to the user. A backend outage that prevents `CheckSyntax`/`ActivateObjects`
+   from completing is a block, not a completion — `environment_context` (step 3 below)
+   exists so the reviewer can judge `unit_test`/`atc` gaps fairly; it never exempts
+   `check_syntax`/`activate`.
 2. Re-compute the SHA-256 of `spec.md` and confirm it still matches `approval.json.spec_sha256`. On mismatch, STOP — the spec changed after approval; return to the Spec Approval Gate.
 3. Write `.sc4sap/program/{PROG}/review-request.json` conforming to [schemas/review-request.schema.json](./schemas/review-request.schema.json) — `spec_sha256`, `sid`, `client`, `transport`, and the `objects[]` list created in Phase 4 (with types: PROG/P, PROG/I, DYNP, CUAD, …).
    - If any backend service/tool was down during Phase 4/5 (e.g. an ADT endpoint returning 404/500, causing a verification step to be recorded `SKIPPED` in `verification.json`), attach it under `environment_context.known_outages[]` so the reviewer does not miscount the gap as a code defect.
    - If the user approved a deviation from `spec.md` during this run, attach it under `environment_context.approved_deviations[]` with who/when/why it was approved, so the reviewer does not re-flag it as a violation.
    - `environment_context` is optional — omit it entirely when there is no outage or approved deviation to report.
 4. Run [review-checklist](./review-checklist.md) **in a fresh context** (new session/subagent per adapter guidance). The reviewer judges read-only; fixes are applied by the worker, then re-reviewed. Pass the reviewer the path to `review-request.json` and the [review-checklist](./review-checklist.md) itself.
-5. The reviewer writes `.sc4sap/program/{PROG}/review-result.json` conforming to [schemas/review-result.schema.json](./schemas/review-result.schema.json).
+5. The reviewer has no write access (its `disallowedTools` blocks Write/Edit/Bash and every
+   SAP mutation call) — it returns its verdict as review-result JSON, conforming to
+   [schemas/review-result.schema.json](./schemas/review-result.schema.json), in its final
+   response. **The worker** (back in this context) validates that JSON against the schema
+   and, on success, writes it to `.sc4sap/program/{PROG}/review-result.json`. On
+   schema-validation failure, treat the run as blocked — do not fabricate a passing result —
+   and re-run the reviewer in a fresh context.
 6. Handle the verdict (as the worker, back in this context):
    - **PASS with no findings** → proceed to Phase 8.
-   - **PASS with MINOR findings** → fix each MINOR finding via `Update*` calls, re-activate, record the fixes; no full re-review required. Proceed to Phase 8.
-   - **FAIL (one or more MAJOR findings)** → fix the findings via `Update*` calls, re-activate, refresh `review-request.json`, and re-run the review in ANOTHER fresh context. Loop until PASS or 3 review iterations are exhausted.
+   - **PASS with MINOR findings** → fix each MINOR finding via `Update*` calls, then re-run
+     the full machine-verification chain from step 1 (`CheckSyntax` → `ActivateObjects` /
+     `GetInactiveObjects` → `RunUnitTest` when in scope → `GetAtcFindings` when available)
+     per [verification-policy.md](../policies/verification-policy.md)'s re-run rule ("a fix
+     is a new change and invalidates earlier evidence"), updating `verification.json`. No
+     full re-review is required for MINOR-only fixes. Proceed to Phase 8 once the refreshed
+     `verification.json` satisfies the Phase 8 gate matrix.
+   - **FAIL (one or more MAJOR findings)** → fix the findings via `Update*` calls, then
+     re-run the full machine-verification chain from step 1 (same order as above) per
+     [verification-policy.md](../policies/verification-policy.md)'s re-run rule, updating
+     `verification.json`. Refresh `review-request.json` and re-run the review in ANOTHER
+     fresh context. Loop until PASS or 3 review iterations are exhausted.
    - After 3 iterations with residual MAJOR findings: STOP, mark `state.json` phase `6_review` as `blocked`, surface the specific violation list to the user. Phase 8 is blocked.
 
 In `manual`/`hybrid` mode: prompt before starting Phase 6; the review run itself is uninterrupted once started.
@@ -446,7 +471,9 @@ Adopt the [sap-debugger](../personas/sap-debugger.md) persona for this step. Tri
 
 Adopt the [sap-writer](../personas/sap-writer.md) persona for this step.
 
-**Pre-condition (HARD GATE)**: `.sc4sap/program/{PROG}/review-result.json` must exist with `verdict: "PASS"` and its `reviewed_spec_sha256` must equal `approval.json.spec_sha256`. If missing, FAIL, or hash-mismatched, return to Phase 6 — do not write the report and do not tell the user the program is done.
+**Pre-condition (HARD GATE)**: ALL of the following must hold. If any is unmet, return to Phase 6 — do not write the report and do not tell the user the program is done:
+- `.sc4sap/program/{PROG}/review-result.json` exists with `verdict: "PASS"` and its `reviewed_spec_sha256` equals `approval.json.spec_sha256`.
+- `.sc4sap/program/{PROG}/verification.json` satisfies the gate matrix: `check_syntax = PASS AND activate = PASS AND unit_test ∈ {PASS, SKIPPED (with a reason recorded in evidence)} AND atc ∈ {PASS, SKIPPED (with a reason recorded in evidence)}`. Per [schemas/verification.schema.json](./schemas/verification.schema.json), `check_syntax`/`activate` cannot legally be `SKIPPED` — anything other than `PASS` on either fails this gate.
 
 Report inputs (from local state, no re-fetching):
 - Objects created + activation status

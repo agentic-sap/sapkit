@@ -15,9 +15,9 @@ You are the **reviewer**, running in a fresh context, separate from the worker t
 
 ## Reviewer Contract
 
-- **Read-only.** You judge; you never fix. Do NOT issue any `Create*` / `Update*` / `Delete*` call. Fixes are applied by the worker after reading your result, then re-reviewed in another fresh context.
+- **Read-only — mechanically enforced.** You judge; you never fix. The [sap-reviewer](../../agents/sap-reviewer.md) agent definition's `disallowedTools` blocks Write, Edit, Bash, NotebookEdit, and every SAP mutation tool (Create*/Update*/Delete*, ActivateObjects, PatchGuiStatus, ReleaseTransport, WriteTextElementsBulk, RunUnitTest, the Runtime profiling/execution tools, ReloadProfile) — the harness refuses the call, this is not a convention you have to remember. Fixes are applied by the worker after reading your result, then re-reviewed in another fresh context.
 - **Input**: `.sc4sap/program/{PROG}/review-request.json` (see [schemas/review-request.schema.json](./schemas/review-request.schema.json)) — spec hash, target system (`sid`/`client`), transport, and the `objects[]` list with types. Also read `spec.md` and `interview.md` (for the paradigm and testing-scope decisions) from the same directory. If the request carries `environment_context`, apply the rules under "Environment context" below before counting findings.
-- **Output**: `.sc4sap/program/{PROG}/review-result.json` conforming to [schemas/review-result.schema.json](./schemas/review-result.schema.json). Set `reviewed_spec_sha256` to the `spec_sha256` you received in the request (verify it against the actual `spec.md` first — on mismatch, FAIL immediately with a single MAJOR finding "spec changed after approval").
+- **Output**: review-result JSON conforming to [schemas/review-result.schema.json](./schemas/review-result.schema.json), returned as your final response — you do not write `.sc4sap/program/{PROG}/review-result.json` yourself (see "Output — review-result.json" below; the worker validates and records it). Set `reviewed_spec_sha256` to the `spec_sha256` you received in the request (verify it against the actual `spec.md` first — on mismatch, FAIL immediately with a single MAJOR finding "spec changed after approval").
 - **Narrow context kit — do NOT bulk-load all conventions.** Each item below names the only convention file(s) to load while checking that item. Load them one item at a time; unload/ignore the rest. Preloading all 12 kits wastes context and dilutes judgment.
 - Fetch object sources via the read tools only: `GetProgram`, `GetInclude`, `GetClass`, `GetInterface`, `GetScreen`, `GetGuiStatus`, `GetTextElement`, `ReadTextElementsBulk`, `GetFunctionModule`, `SearchObject`, `GetInactiveObjects`.
 - Record a verdict per item: `PASS` / `FINDING(S)` / `N/A (reason)`. Absence of evidence is a fail, not a pass — see the false-positive patterns at the end.
@@ -38,11 +38,17 @@ You are the **reviewer**, running in a fresh context, separate from the worker t
 backend outages + human-approved spec deviations — docs/DECISIONS.md D-013).
 Apply it before counting findings:
 
-- **`known_outages[]`** — a verification step recorded `SKIPPED` because of a
-  listed outage is an environment gap, NOT a code defect. Do not raise a finding
-  for the gap itself; record the affected checklist item as
-  `N/A (environment outage: <component>)` and judge the code on the evidence
-  that IS available.
+- **`known_outages[]`** — applies to `unit_test`/`atc` gaps only. A verification
+  step recorded `SKIPPED` because of a listed outage is an environment gap, NOT
+  a code defect. Do not raise a finding for the gap itself; record the affected
+  checklist item as `N/A (environment outage: <component>)` and judge the code
+  on the evidence that IS available. **`check_syntax`/`activate` failure or
+  absence is never exempt this way**: per
+  [schemas/verification.schema.json](./schemas/verification.schema.json) those
+  two steps are `PASS`/`FAIL` only (`SKIPPED` is not a legal value for them), and
+  a non-`PASS` result is a pipeline-blocking condition — [create-program.md](./create-program.md)
+  Phase 6 step 1 keeps such runs from ever reaching review. A `known_outages[]`
+  entry naming `check_syntax` or `activate` does not waive that gate.
 - **`approved_deviations[]`** — a deviation listed here (with its who/when/why
   approval trail) is NOT a violation of `spec.md`'s literal text; do not
   re-flag it. A deviation you observe in the source that is NOT listed is
@@ -220,7 +226,10 @@ These patterns have been observed as "PASS" reports that later turned out to be 
 
 ## Output — review-result.json
 
-Write `.sc4sap/program/{PROG}/review-result.json` per [schemas/review-result.schema.json](./schemas/review-result.schema.json). Example:
+You do not write this file — Write, Edit, and Bash are all blocked (see the Reviewer
+Contract above). Return the review-result JSON, conforming to
+[schemas/review-result.schema.json](./schemas/review-result.schema.json), as your final
+response. Example:
 
 ```json
 {
@@ -243,4 +252,10 @@ Write `.sc4sap/program/{PROG}/review-result.json` per [schemas/review-result.sch
 }
 ```
 
-The worker (not you) applies fixes and, for MAJOR findings, requests a re-review in a new fresh context. Maximum 3 review iterations; after that the pipeline is BLOCKED and the residual findings are surfaced to the user.
+**The worker** (not you) reads this JSON from your response, validates it against
+[schemas/review-result.schema.json](./schemas/review-result.schema.json), and writes it to
+`.sc4sap/program/{PROG}/review-result.json`. On schema-validation failure the worker treats
+the run as blocked rather than fabricating a passing result. The worker also applies fixes
+and, for MAJOR findings, requests a re-review in a new fresh context. Maximum 3 review
+iterations; after that the pipeline is BLOCKED and the residual findings are surfaced to the
+user.
