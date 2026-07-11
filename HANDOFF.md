@@ -3,8 +3,8 @@
 > **목적: 컨텍스트/세션이 클리어돼도 이 문서 하나로 전부 복원.**
 > 작성 2026-07-10 · 최종 갱신 2026-07-11. 새 세션은 ① 이 문서 → ② 필요 시 해당 트랙
 > DESIGN.md 순으로 읽는다. 상태가 바뀌면 이 문서를 갱신하는 것까지가 작업의 일부다.
-> **다음 착수 = harness-tailor → Phase 0a 잔여**(scripts 래퍼 2종·lint 실측, DESIGN §13)
-> (§5 서두 — §16-1·3·4 + harness-init 완료 2026-07-11, 파일럿 = IDES-DEV $TMP).
+> **다음 착수 = 트랙 A Phase 0b** (§16-2 vsp SAP 연결 → COMMANDS.md·마커 패턴 실측,
+> DESIGN §13 — **Phase 0a 완료 2026-07-11**: 완료 기준 3항목 충족, 파일럿 = IDES-DEV $TMP).
 
 ---
 
@@ -13,7 +13,7 @@
 ```
 D:\claude for SAP\sap-agentic-harness   ← 단일 레포 (원격: hjaewon/sap-agentic-harness)
 │
-├── [트랙 A] 하네스 트랙 (무인 step + 대화형 레인 겸용) — ★ harness-init 완료, Phase 0a 진행 중
+├── [트랙 A] 하네스 트랙 (무인 step + 대화형 레인 겸용) — ★ Phase 0a 완료, 0b 진입 전
 │     설계: DESIGN.md (v2.1, 2026-07-09 확정 + 2026-07-10 엔진 델타 주)
 │     내용: final-harness(D:\claude-practice\claude-fable-final) 엔진 + vsp-custom CLI로
 │           ABAP 개발을 계획→실행→verify→LESSONS/RULES 학습 루프로 관리.
@@ -24,12 +24,14 @@ D:\claude for SAP\sap-agentic-harness   ← 단일 레포 (원격: hjaewon/sap-a
 │           "무인"은 실행 모드 하나이지 트랙 전체가 아님.
 │     §15-F 불변식: v0.17.1(cf42b64) 재검증 완료(2026-07-11) — 전량 유지. 두 의존의
 │           검증 lock = adapters/vsp/vsp.lock.json · adapters/final-harness.lock.json (D-018)
-│     현황: harness-init 완료(2026-07-11 — .harness/ 5종+엔진+AGENTS.md/CLAUDE.md 배선,
-│           기존 안전훅 3종 보존 검증, .claude/는 gitignore라 훅은 머신 로컬). 설치 엔진
-│           = cf42b64 + 미커밋 안전강화 델타 2건(자칭 0.17.2, F 불변식 무영향 판정) —
-│           0.17.2 커밋되면 installer 재실행(멱등)+lock 갱신, 무인 step 첫 투입 전 재검증.
-│           다음: harness-tailor → Phase 0a 잔여 (§16-2 연결은 Phase 0b. §16-4 파일럿
-│           확정: IDES-DEV(S4H/100) $TMP — 2026-07-11 사용자 결정)
+│     현황: **Phase 0a 완료(2026-07-11)** — harness-init(.harness/ 5종+엔진+배선, 안전훅
+│           3종 보존) + harness-tailor(quality-gate 래퍼 등록·RULES R-001~5 시드·
+│           VERIFY-PATTERNS 스텁) + **게이트 차단 실증 0→1→0**. lint 실측: Error 4종/
+│           Warning 3종(§14-8 근거), 상세는 .harness/STATE.md. 설치 엔진 = cf42b64 +
+│           미커밋 안전강화 델타 2건(자칭 0.17.2, F 무영향) — 0.17.2 커밋되면 installer
+│           재실행(멱등)+lock 갱신, 무인 step 첫 투입 전 재검증.
+│           다음: Phase 0b — §16-2 vsp SAP 연결(IDES-DEV) → COMMANDS.md·마커 패턴 실측
+│           (파일럿: IDES-DEV(S4H/100) $TMP — 2026-07-11 사용자 결정)
 │
 └── [트랙 B] 대화형 트랙 — ★ L0~L5 구현 완료, E2E 대기  ←←← 현재 작업 지점
       위치: interactive/ (= 3사 공통 플러그인 루트)
@@ -223,8 +225,8 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
 
 **5-1~5-4·5-6·5-9·5-10 완료 (2026-07-11)** — 남은 항목과 순서 (새-컨텍스트 이중 검토
 2026-07-11이 재배열, 근거: "안전 주장-실체 격차가 열린 채 편의를 쌓지 않는다"):
-**트랙 A: harness-tailor→Phase 0a 잔여(harness-init 완료 2026-07-11 보조 머신 —
-.harness/·엔진·배선, 파일럿 = IDES-DEV $TMP, 상세 §1 현황)** → 5-7(설치 절차 이식)
+**트랙 A: Phase 0b — 연결 실측(Phase 0a 완료 2026-07-11 보조 머신: init+tailor+게이트
+차단 실증, 파일럿 = IDES-DEV $TMP, 상세 §1 현황·.harness/STATE.md)** → 5-7(설치 절차 이식)
 → 5-8(잔여 축소 — row-data 승인 실증은 Codex 실사용 전 필수로 상향, compact-readonly
 스파이크는 폐기) → 5-5(축소 — 아래). 공통 완료 조건: §9의 게이트 4종 통과 유지 +
 상태 변경 시 이 문서 갱신.
@@ -374,7 +376,7 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
 
 | 작업 | 주 머신 | 보조 머신(D:\AI PROJECT) |
 |---|---|---|
-| **트랙 A: harness-tailor→Phase 0a (다음 착수)** | vsp 빌드 + 플러그인 설치부터 (§16-1·3, lock 대조) | ✅ harness-init까지 완료 — tailor부터 (§1 현황) |
+| **트랙 A: Phase 0b 연결 실측 (다음 착수)** | vsp 빌드 + 플러그인 설치부터 (§16-1·3, lock 대조) | ✅ Phase 0a 완료 — §16-2 연결 설정부터 (§1 현황) |
 | 5-10 잔여: install-hooks 재배선 | **재개 시 필수** (`--project` 재실행) | ✅ 완료 (2026-07-11) |
 | E2E 잔여: WriteTextElementsBulk | KR-DEV 백엔드 복구 후 | △ IDES에 ZMCP FM 수동 설치(GUI) 시 soap로 가능 (§3) |
 | 엔진 백로그 (§6) | ✅ 레포 내 `engine/` (D-017) | ✅ 동일 — 4.13.1·4.13.2 수리·재번들 실증 |

@@ -1,0 +1,1 @@
+{ "commands": ["powershell -File scripts/quality-gate-sap.ps1"] }

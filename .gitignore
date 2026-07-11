@@ -2,4 +2,6 @@
 .env
 .claude/settings.local.json
 # Claude Code 로컬 설정 — 머신 종속(훅 절대경로·개인 권한). install-hooks/merge-perms로 재생성
-.claude/
+# `.claude/` 디렉토리 패턴이면 내부 네거이션이 무효라 `.claude/*`로 유지 (quality-gate.json만 추적)
+.claude/*
+!.claude/quality-gate.json
