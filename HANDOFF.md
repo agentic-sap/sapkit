@@ -359,6 +359,17 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
   `enabled_tools`/`disabled_tools`/도구별 `approval_mode`로 row-data 2종을 `prompt` 고정
   가능한지 현행 설치 버전에서 1회 실증 → 되면 어댑터 README 정본화. Antigravity의 대응
   기능도 실측(없으면 launch.cjs 앞 이름 보존형 tools/list 필터 검토).
+  → ✅ **완료 (2026-07-12, IDES 라이브 실증)**: 핵심 발견 — codex-cli 0.144.1에서
+  **`approval_mode="prompt"`는 `codex exec`(비대화형)에서 fail-open**: prompt 설정에도
+  GetTableContents가 차단 없이 T000 실데이터를 반환(자동 거부가 아니라 자동 실행).
+  키 인식 ≠ 강제 집행. 반면 **`disabled_tools = [row-data 2종]` 하드 차단은 실효**
+  (tools/list에서 제거 — 호출 시도 자체 불가) + negative control(GetSystemInfo)
+  정상. → 어댑터 README에 **실 SAP 사용 전 필수 설정**으로 정본화(§8-4 충족 —
+  "승인 필수" 대신 "사용 불가"라는 더 강한 형태). AG는 gemini-CLI 층의
+  `excludeTools`/`includeTools`/`trust`(false 유지 필수) 문서 수준 기록 — **agy
+  1.0.16 미실증**, 1회 실측 후 승격. launch.cjs 앞 이름 보존 필터(도구를 남기고
+  승인만 받는 대안)는 백로그 유지(권고만, 미구현). 종료 상태 복원 확인(toggle
+  off·mcp remove·config 청정).
 - **절차별 required_capabilities** [낮음]: 절차 문서에 필요 capability 선언 + 프리셋
   tools/list가 이를 전부 포함하는지 자동 검사(스크립트).
 - ~~compact-readonly 스파이크~~ → **폐기 (2026-07-11)** — D-016이 기각한 raw compact의

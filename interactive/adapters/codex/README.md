@@ -40,6 +40,52 @@ codex mcp add sap --env NODE_PATH="D:\claude for SAP\sap-agentic-harness\interac
 write 작업이 필요한 세션: `codex mcp remove sap` 후 `--exposition=readonly,high`로 재등록
 (또는 별도 이름 `sap-write`로 등록해 두고 평소 disable).
 
+## 실데이터 2종 하드 차단 — 필수 (실 SAP 사용 전, HANDOFF §8-4)
+
+Codex엔 Claude의 L3 사전 차단 훅이 없다. `readonly` 프리셋에도 실 업무데이터를 반환하는
+`GetTableContents`·`GetSqlQuery` 2종이 노출되므로, **Codex config 레벨에서 이 둘을 하드
+차단한다.** codex-cli **0.144.1 실측**이 근거 (2026-07-12, 5-8):
+
+- ✅ **`disabled_tools`(및 `enabled_tools`)는 스키마가 인식·집행**한다 — `disabled_tools`에
+  넣은 도구는 tools/list에서 제거되어 모델이 호출 자체를 못 한다. 실측: 설정 후
+  `codex exec` 세션이 *"GetTableContents is not available … no such SAP tool"* 보고,
+  **같은 세션에서 `GetSystemInfo`는 정상 실행**(다른 read 도구는 유지).
+- ❌ **도구별 `approval_mode = "prompt"`는 `codex exec`(비대화형)에서 집행되지 않는다
+  (fail-open)** — 승인 프롬프트를 못 띄우는 exec 모드에서 도구가 **그냥 실행**됐다.
+  실측: `prompt` 설정에도 `GetTableContents`가 T000 실데이터(5행)를 반환. **승인 모드에
+  의존 금지** — 대화형 TUI 여부와 무관하게 차단은 `disabled_tools`로만 보장한다.
+  (`default_tools_approval_mode`·per-tool `approval_mode` 키 자체는 `--strict-config`가
+  0.144.1 스키마로 인정하나, exec 집행이 열려 있어 차단 수단으로 못 쓴다.)
+
+**등록 후 `~/.codex/config.toml`의 sap 블록에 `disabled_tools`를 추가**한다
+(`codex mcp add`는 이 필드를 안 써주므로 수기 1줄):
+
+```toml
+[mcp_servers.sap]
+command = "node"
+args = ['<repo>\interactive\server\launch.cjs', "--exposition=readonly"]
+disabled_tools = ["GetTableContents", "GetSqlQuery"]
+
+[mcp_servers.sap.env]
+NODE_PATH = '<repo>\interactive\server\runtime-deps\keyring\node_modules'
+```
+
+**검증:**
+
+```
+codex mcp get sap --json     # "disabled_tools": ["GetTableContents","GetSqlQuery"] 확인
+```
+
+행동 검증(선택): repo 루트(=`.sc4sap/active-profile.txt` 존재)에서
+`$null | codex exec --json -s read-only --ephemeral "GetTableContents로 T000 1행 조회 시도"`
+→ 모델이 "도구 없음" 보고. 같은 방식으로 `GetSystemInfo`는 정상 실행돼 다른 read 도구가
+살아 있음을 확인. (codex exec는 stdout 리다이렉트 시 stdin EOF를 기다리므로 `$null |`
+필수.)
+
+> **대안(미구현 · 백로그 5-8 잔여):** 도구를 제거하지 않고 *호출별 승인*을 원한다면,
+> config-level 승인이 exec에서 fail-open이라 `launch.cjs` 앞단에 이름-보존형 tools/list
+> 필터가 필요하다(별도 항목 — 권장만, 미구현). 현재 정본 권장은 위의 하드 차단.
+
 ## SAP 프로젝트 루트 AGENTS.md
 
 `AGENTS-template.md`의 내용을 대상 SAP 프로젝트의 `AGENTS.md`에 병합한다
@@ -49,9 +95,11 @@ write 작업이 필요한 세션: `codex mcp remove sap` 후 `--exposition=reado
 
 Codex에는 도구 호출 사전 차단 훅이 없다. 방어선은
 ① 문서 정책(AGENTS 요약+core/policies) ② 서버 내장 가드(SAP_TIER·blocklist)
-③ exposition 프리셋 ④ Codex 승인 모드/샌드박스. 실데이터 조회 2종(GetTableContents/
-GetSqlQuery)의 호출 건별 승인은 Claude보다 한 겹 약하다 — readonly 프리셋에도 포함되므로
-정책 준수에 의존한다.
+③ exposition 프리셋 ④ **`disabled_tools` 하드 차단**(위 "실데이터 2종 하드 차단" — 필수)
+⑤ Codex 승인 모드/샌드박스. 실데이터 조회 2종(GetTableContents/GetSqlQuery)의 **호출
+건별 승인은 Codex에서 신뢰 불가**(0.144.1 실측: `approval_mode="prompt"`가 `codex exec`
+에서 fail-open) — 그래서 정책 준수가 아니라 **④ 하드 차단으로 무력화**한다. 실 SAP
+사용 전 반드시 `disabled_tools` 적용 + `codex mcp get sap --json`으로 검증할 것.
 
 ## 리뷰 패스
 

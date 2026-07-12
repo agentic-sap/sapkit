@@ -110,6 +110,13 @@
   로그 드리프트(.sc4sap/state/) 실측 → 매니페스트 obsolete 규칙 추가로 게이트
   복구. 나머지 deferred(extract 2종·sap-profile-cli)는 유지
 
+- 2026-07-12 | 5-8 필수분 완료 (opus 위임, IDES 라이브) — **Codex approval_mode
+  fail-open 실증**(prompt 설정에도 T000 실데이터 반환 — 승인 방식 신뢰 불가) →
+  row-data 2종은 `disabled_tools` 하드 차단만 실효, 어댑터 README에 필수 설정
+  정본화. AG excludeTools는 문서 수준 기록(미실증 — 승격 대기). launch.cjs 필터
+  대안은 백로그. 평시 OFF 복원 검증(toggle off·mcp remove·config 청정). 잔여
+  5-8 하위 2건(required_capabilities·smoke write 판정)은 [낮음] 유지
+
 ## Next
 
 - 백로그 5-7(sap-assets 설치 절차 이식, HANDOFF §5 순서). Phase 3(Gated Deploy)

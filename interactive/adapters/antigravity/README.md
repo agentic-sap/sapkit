@@ -58,9 +58,34 @@ summary 섹션만 복사한다 (파일당 12,000자 한도 — 요약만, 상세
 ## 안전 모델 주의
 
 Claude 훅 같은 사전 차단이 없다. 방어선: ① rules 요약+core/policies ② 서버 내장
-가드(SAP_TIER·blocklist) ③ exposition 프리셋 ④ Antigravity 자체 도구 권한 설정
-(`--dangerously-skip-permissions`는 SAP 작업에서 금지). 실데이터 2종 게이트는 정책
-준수 의존 — Claude보다 한 겹 약함.
+가드(SAP_TIER·blocklist) ③ exposition 프리셋 ④ **`excludeTools` 하드 차단(아래 — 권장)**
+⑤ Antigravity 자체 도구 권한 설정(`--dangerously-skip-permissions`는 SAP 작업에서 금지).
+
+### 실데이터 2종 하드 차단 (config-reference — agy 1.0.16 미실증)
+
+gemini-CLI MCP 설정은 서버별 도구 필터를 지원한다(공식 문서 기준):
+`excludeTools`(차단 목록) · `includeTools`(허용 목록) · `trust`(true면 해당 서버 승인
+전면 우회 — **sap엔 절대 금지**). **`excludeTools`가 `includeTools`에 우선**한다. agy는
+`~/.gemini/config/` 레이어를 공유하므로 같은 키가 유효할 가능성이 높으나 **agy 1.0.16
+에서 실측 미완**(AG 평시 disabled 유지 — 5-8, 2026-07-12). 실 SAP 사용 시
+`~/.gemini/config/mcp_config.json`의 sap 블록에 추가 권장:
+
+```json
+{
+  "mcpServers": {
+    "sap": {
+      "command": "node",
+      "args": ["<repo>\\interactive\\server\\launch.cjs", "--exposition=readonly"],
+      "env": { "NODE_PATH": "<repo>\\interactive\\server\\runtime-deps\\keyring\\node_modules" },
+      "excludeTools": ["GetTableContents", "GetSqlQuery"]
+    }
+  }
+}
+```
+
+`trust`는 넣지 말 것(기본 false — 첫 사용 시 승인 유지). 활성화 시 agy에서 excludeTools
+실효 1회 실측 후 이 절을 "실증"으로 승격할 것. 실데이터 2종 게이트가 없는 상태의
+잔여 위험은 Claude보다 한 겹 약함.
 
 ## 리뷰 패스
 
