@@ -2,13 +2,18 @@
 /**
  * GetClassUnitTestStatus Handler - Fetch ABAP Unit run status
  *
- * Uses AdtClient.getClassUnitTestRunStatus from @babamba2/mcp-abap-adt-clients.
- * Low-level handler: single method call.
+ * RunClassUnitTestsLow runs synchronously via the classic Eclipse-ADT endpoint
+ * (see ../../../lib/abapUnitClassic.ts) and caches the result under a generated
+ * run_id — there is no server-side async run to poll (the vendored
+ * getClassUnitTestRunStatus() GET /sap/bc/adt/abapunit/runs/{id} is the
+ * ABAP-Cloud-only collection that 404s on on-prem). This reports "completed"
+ * for any run_id present in that cache — the SAME store the high-level readers
+ * use, so run_ids from RunUnitTest and RunClassUnitTestsLow both resolve here.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TOOL_DEFINITION = void 0;
 exports.handleGetClassUnitTestStatus = handleGetClassUnitTestStatus;
-const clients_1 = require("../../../lib/clients");
+const abapUnitClassic_1 = require("../../../lib/abapUnitClassic");
 const utils_1 = require("../../../lib/utils");
 exports.TOOL_DEFINITION = {
     name: 'GetClassUnitTestStatusLow',
@@ -45,29 +50,27 @@ exports.TOOL_DEFINITION = {
 async function handleGetClassUnitTestStatus(context, args) {
     const { connection, logger } = context;
     try {
-        const { run_id, with_long_polling = true, session_id, session_state, } = args;
+        const { run_id, session_id, session_state } = args;
         if (!run_id) {
             return (0, utils_1.return_error)(new Error('run_id is required'));
         }
-        const client = (0, clients_1.createAdtClient)(connection, logger);
         if (session_id && session_state) {
             await (0, utils_1.restoreSessionInConnection)(connection, session_id, session_state);
         }
-        else {
-        }
         logger?.info(`Fetching ABAP Unit status for run ${run_id}`);
-        try {
-            const unitTest = client.getUnitTest();
-            const statusResponse = await unitTest.getStatus(run_id, with_long_polling);
-            if (!statusResponse) {
-                throw new Error('SAP did not return ABAP Unit status response');
-            }
-            return (0, utils_1.return_response)(statusResponse);
+        const resultXml = (0, abapUnitClassic_1.getUnitTestRun)(connection, run_id);
+        if (resultXml === undefined) {
+            return (0, utils_1.return_error)(new Error(`Unknown run_id "${run_id}" — no cached result (invalid run_id, or the server process restarted since the run was started).`));
         }
-        catch (error) {
-            logger?.error(`Error retrieving ABAP Unit status for run ${run_id}: ${error?.message || error}`);
-            return (0, utils_1.return_error)(new Error(error?.message || String(error)));
-        }
+        // The classic ADT endpoint is synchronous (see abapUnitClassic.ts), so by
+        // the time a run_id exists in the cache, the run has already finished.
+        return (0, utils_1.return_response)({
+            data: JSON.stringify({
+                success: true,
+                run_id,
+                run_status: { status: 'completed' },
+            }, null, 2),
+        });
     }
     catch (error) {
         return (0, utils_1.return_error)(error);

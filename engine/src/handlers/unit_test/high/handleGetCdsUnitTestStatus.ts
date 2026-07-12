@@ -1,10 +1,14 @@
 /**
- * GetCdsUnitTestStatus Handler - Read CDS unit test run status via AdtClient
+ * GetCdsUnitTestStatus Handler - Read CDS unit test run status
  *
- * Uses AdtClient.getCdsUnitTest().getStatus() for status retrieval.
+ * Reads the classic run-result cache keyed by run_id (see
+ * ../../../lib/abapUnitClassic.ts and handleGetCdsUnitTest.ts). The classic
+ * endpoint is synchronous, so any cached run_id has already completed. The
+ * vendored getStatus path (/sap/bc/adt/abapunit/runs/{id}) is the ABAP-Cloud-only
+ * collection that 404s on on-prem.
  */
 
-import { createAdtClient } from '../../../lib/clients';
+import { getUnitTestRun } from '../../../lib/abapUnitClassic';
 import type { HandlerContext } from '../../../lib/handlers/interfaces';
 import {
   type AxiosResponse,
@@ -55,31 +59,28 @@ export async function handleGetCdsUnitTestStatus(
       return return_error(new Error('run_id is required'));
     }
 
-    const client = createAdtClient(connection, logger);
-    const cdsUnitTest = client.getCdsUnitTest();
-
     logger?.info(`Reading CDS unit test status for run_id: ${run_id}`);
 
-    try {
-      const readResult = await cdsUnitTest.read({ runId: run_id });
-
-      return return_response({
-        data: JSON.stringify(
-          {
-            success: true,
-            run_id,
-            run_status: readResult?.runStatus,
-          },
-          null,
-          2,
+    const resultXml = getUnitTestRun(connection, run_id);
+    if (resultXml === undefined) {
+      return return_error(
+        new Error(
+          `Unknown run_id "${run_id}" — no cached CDS unit test result (invalid run_id, or the server process restarted since the run was started via RunUnitTest).`,
         ),
-      } as AxiosResponse);
-    } catch (error: any) {
-      logger?.error(
-        `Error reading CDS unit test status ${run_id}: ${error?.message || error}`,
       );
-      return return_error(new Error(error?.message || String(error)));
     }
+
+    return return_response({
+      data: JSON.stringify(
+        {
+          success: true,
+          run_id,
+          run_status: { status: 'completed' },
+        },
+        null,
+        2,
+      ),
+    } as AxiosResponse);
   } catch (error: any) {
     return return_error(error);
   }

@@ -24,17 +24,19 @@
 
 ## Success criteria
 
-- [ ] **jest 전량 통과(실패 0)** + 수리마다 회귀 테스트 신설, **역-검증**(수리를
-      되돌리면 해당 테스트 FAIL) 실증
-- [ ] **재번들 런북 준수** (interactive/server/UPDATE-RUNBOOK.md): engine/ 수정 →
-      버전 범프+CHANGELOG → bundle → server 반영 → verify-engine OK → capability
-      diff 기록 (write/runtime 증감 시 sap-reviewer disallowedTools 동기화)
-- [ ] **IDES 라이브 red→green**: 라이브 재현 가능 결함은 구 번들 재현 → 신 번들
-      해소 실증. 재현 불가는 사유 기록 + 코드·테스트 수준 검증으로 한계 명기.
-      write는 $TMP 한정, 임시 객체 전량 삭제 + 고아 잠금 0 (R-003)
-- [ ] **새-컨텍스트 read-only 리뷰 PASS** (Wave별 — 자기 리뷰 금지, FAIL 시 수리 후 재리뷰)
-- [ ] **게이트 5종 green 유지**(HANDOFF §9) + Wave별 커밋 + HANDOFF·STATE 갱신
-- [ ] 환경 실패(ENV/LOCK 마커)를 코드 결함으로 기록하지 않음 (R-001)
+- [x] **jest 전량 통과(실패 0)** + 수리마다 회귀 테스트 신설, **역-검증**(수리를
+      되돌리면 해당 테스트 FAIL) 실증 — 538→580 passed/0 failed, Wave별 역-검증 실측
+- [x] **재번들 런북 준수** (interactive/server/UPDATE-RUNBOOK.md): 4.13.7~4.13.11
+      5회 전부 verify-engine OK + capability diff no-op(155 유지 — disallowedTools
+      동기화 불요)
+- [x] **IDES 라이브 red→green**: 누적 12건+ (423 잠금·415 CT·삭제 거짓 성공·가짜
+      PROG·언어 400·스켈레톤 복구 2·already-exists 오분류·불투명 check·low/CDS
+      404). $TMP 전량 실삭제 검증(ZSAH39_FGL 포함 최종 0), 고아 잠금 0
+- [x] **새-컨텍스트 read-only 리뷰 PASS** — Wave별 5/5 PASS (BLOCKER/MAJOR 0,
+      리뷰 발굴 2건은 정정·백로그 등재)
+- [x] **게이트 5종 green 유지** + Wave별 커밋 5건 + HANDOFF·STATE 갱신
+- [x] 환경 실패(ENV/LOCK 마커)를 코드 결함으로 기록하지 않음 — 해당 사례 없음
+      (ZSAH39_FGL 세션 잠금은 테스트 산물로 기록, 코드 결함 아님)
 
 ## Verification method
 

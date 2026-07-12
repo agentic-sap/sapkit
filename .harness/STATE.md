@@ -167,12 +167,30 @@
   PASS(MINOR 2 관찰만). $TMP 5종 실삭제 검증·고아 잠금 0. 잔여 관찰:
   add-if-missing 추가 description GET 비직렬화(백로그 후보, HANDOFF 11-⑧ 기록)
 
+- 2026-07-13 | 엔진 4.13.11 — Wave 5/5 조사·확장 계열 (opus 위임) — ① 11-⑤:
+  원인 확정 = vendored AdtStructure.check의 ddlCode 조용한 드랍(새 DDL 대신
+  저장본 검사 — 빈 에러·PUT 불투명 실패 공통 뿌리, 미구현 아님). 수리 =
+  check-with-source 전달(+저수준 CheckStructure ddl_code 경로 부활) + bare
+  에러 상태 폴백. 라이브 red(불투명 Kein Sichern)→green(진짜 원인 사전
+  표면화+정정 DDL 완주). ② 구 3-6: low 3종+CDS 리더 3종을 4.13.1 클래식
+  헬퍼 재사용으로 전환(계약·스키마 보존), 라이브 red 404→green(실 runResult,
+  --exposition low 실증). jest 580/0(역-검증 양방향), capability no-op(155),
+  게이트 5종 green, 새-컨텍스트 리뷰(opus) PASS — 리뷰가 동류 1건 추가 발굴
+  (AdtTable.check 동일 드랍 → HANDOFF 11-⑪). $TMP 2종 실삭제 검증·고아
+  잠금 0
+
+- 2026-07-13 | **엔진 수리 스프린트 종결** (GOAL.md 전 기준 충족) — 목표
+  11건/5 Wave 전량 해소(4.13.7~4.13.11), Wave별 리뷰 5/5 PASS, 라이브
+  red→green 누적 12건+, jest 538→580(실패 0 유지). Wave 3 잔존물
+  ZSAH39_FGL은 삭제 완료 확인(read-back not found — 정리 루프가 종료 전
+  성공). 신규 백로그 11-⑩·⑪ + 관찰 2건 HANDOFF 등재. HANDOFF 헤더 정리
+  (다음 착수 후보 3안 — 사용자 판단)
+
 ## Next
 
-- 엔진 수리 스프린트 Wave 5 (GOAL.md 마지막): 11-⑤ UpdateStructure 사전 check
-  빈 에러 조사·수리 + 3-6 low/CDS unit test Cloud 경로 404(4.13.1 클래식
-  testruns 확장). 종료 시: ZSAH39_FGL 잠금 해소 확인 + GOAL 대조 최종 점검 +
-  HANDOFF 헤더 정리. Phase 3(Gated Deploy) 선결 = 5-11 포함 3조건
+- 스프린트 완료 — 다음 착수는 사용자 판단 (HANDOFF 헤더 후보 3안): ① 트랙 A
+  Phase 3 선결 3조건(5-11 리뷰 게이트 편입 등) ② 엔진 신규 백로그(11-⑩·⑪)
+  ③ 트랙 A 지식 문서 갱신(harness-docs — 세션 시작 알림 2회째)
 
 ## Attempts & dead ends
 

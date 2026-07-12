@@ -14,15 +14,19 @@
 > (Update·Create 계열 잠금 세션 수리 누적 19 핸들러, IDES red→green —
 > §6 백로그 9·10·11-① 해소, 잔여 후속 = 백로그 11-②~⑨).
 > **5-5 우선분·5-8 필수분 완료 (2026-07-12)** — fetch 스크립트 2종 이식 + Codex
-> row-data 하드 차단 정본화(approval fail-open 실증). **진행 중 = 엔진 잔여 결함
-> 수리 스프린트**(2026-07-12, 11건/5 Wave — `.harness/GOAL.md`): Wave 1~4 완료 =
+> row-data 하드 차단 정본화(approval fail-open 실증). **엔진 잔여 결함 수리
+> 스프린트 완료 (2026-07-12~13, 목표 11건/5 Wave 전량 해소, Wave별 새-컨텍스트
+> 리뷰 5/5 PASS, jest 580/0)**:
 > **4.13.7**(11-② vendored stateless 누수 해소, patch-package 정본화 + 신규 발굴
 > 11-⑩)·**4.13.8**(11-③ FUGR Update CT 협상 + 구 3-7 흡수 해소, 11-④는 CT 아닌
 > 11-⑧ 언어 계열로 판정·이관)·**4.13.9**(구 3-5 삭제 정직화 공통 뿌리 12종 +
 > 구 3-3 CreateProgram 타입 가드 + 11-⑨ 죽은 잠금 쌍 제거)·**4.13.10**(11-⑧
 > 로그온 언어 동적 해석+스켈레톤 복구 — 11-④ CreateView 개통 동반 + 11-⑥
-> already-exists 기계 식별자 우선). Phase 3(Gated Deploy)은 선결 3조건(5-11
-> 리뷰 게이트 편입 등) 후.
+> already-exists 기계 식별자 우선)·**4.13.11**(11-⑤ Structure check-with-source
+> + 구 3-6 low/CDS 클래식 testruns 전환). 엔진 잔여 = 신규 발굴 11-⑩·⑪ +
+> 관찰 2(add-if-missing GET 비직렬화·low 무동작 파라미터). **다음 착수 후보
+> (사용자 판단)**: ① 트랙 A Phase 3 선결 3조건(5-11 리뷰 게이트 편입 등)
+> ② 엔진 신규 백로그(11-⑩·⑪) ③ 트랙 A 지식 문서 갱신(harness-docs 알림).
 
 ---
 
@@ -584,6 +588,13 @@ MCP_ENV_PATH·cwd .env)은 tier 미해석 시 `UNKNOWN`=readonly 강제로 fail-
    (형제 핸들러 전수 판정표는 CHANGELOG — 실증 있는 CreateView만 수리).
 5. UpdateStructure 사전 check가 IDES에서 빈 에러로 결정적 실패(수리 전후 동일 =
    별개 결함) — check 래퍼 응답 해석 조사 필요.
+   → ✅ **11-⑤ 해소 (4.13.11, 2026-07-13)**: 원인 확정 — vendored
+   AdtStructure.check가 `ddlCode`를 **조용히 드랍**해 새 DDL 대신 저장본만
+   검사(빈 에러·PUT 불투명 실패 둘 다 이 뿌리, 미구현 아님 — 정정 DDL은
+   update+활성화 완주 실증). 수리 = check-with-source 전달(저수준
+   CheckStructure의 문서화-but-죽은 ddl_code 경로도 동일 수리로 부활) +
+   bare 에러를 상태 폴백으로 정직화. 라이브 red(불투명 "Kein Sichern…")→
+   green(진짜 원인을 PUT 전 표면화). **동류 발굴 → 11-⑪(UpdateTable).**
 6. isAlreadyExistsError 영어 전용 매칭 — 독어 시스템("ist bereits vorhanden")에서
    UpdateDataElement 사전 검증 오작동.
    → ✅ **11-⑥ 해소 (4.13.10, 2026-07-12)**: 언어 무관 기계 식별자 우선 재설계
@@ -623,6 +634,9 @@ MCP_ENV_PATH·cwd .env)은 tier 미해석 시 `UNKNOWN`=readonly 강제로 fail-
     ("… code is required") → 클라이언트 레벨에서 삭제 도달 불가. 함께:
     testclasses include 없는 구버전 클래스는 Update 경로 성립 불가(include
     생성 ADT POST 미지원) — Create 계열 도구 부재와 묶어 검토.
+11. **AdtTable.check의 ddlCode 드랍 (4.13.11 리뷰 발굴, 11-⑤ 동류)**:
+    runTableCheckRun에 ddlCode를 안 넘겨 UpdateTable 사전 check가 새 DDL이
+    아닌 저장본만 검사 — 11-⑤와 동일한 check-with-source 전달 1수리 가능.
 5. **DeleteFunctionGroup 조용한 실패** (4.13.1 검증 중 3회 실측): deletion 서비스가 실패를
    HTTP 200 + `del:isDeleted="false"` + E-메시지로 반환하는데 vendored delete가 하드코딩
    `success:true`로 대체 — 잠금 등 삭제 실패가 성공으로 보고됨.
@@ -638,6 +652,13 @@ MCP_ENV_PATH·cwd .env)은 tier 미해석 시 `UNKNOWN`=readonly 강제로 fail-
    잔존)→green(SAP 잠금 메시지 정직 실패) + 정상 삭제 무영향 확인.
 6. **low/CDS unit test 경로 동일 결함**: `RunClassUnitTestsLow`·CDS unit test 실행/조회가
    여전히 Cloud 전용 `/abapunit/runs` 사용 — 온프레미스에서 동일 404 예상 (high만 4.13.1로 수리됨).
+   → ✅ **해소 (4.13.11, 2026-07-13)**: low 3종 + CDS 리더 3종을 4.13.1 클래식
+   헬퍼 **재사용**으로 전환(중복 이식 없음, caller 계약·스키마 보존.
+   RunCdsUnitTest 도구는 원래 부재 — 클래식 RunUnitTest의 run_id를 공유
+   스토어로 해석, compact는 위임 상속). 라이브 red 404 → green(실 runResult,
+   `--exposition low` 260 tools로 실증 — 기본 노출 155는 no-op). 부수 관찰:
+   low 스키마가 cloud 전용 무동작 파라미터 4종을 여전히 광고(무해, 후속 정리
+   후보).
 7. **vendored 상수 비대칭**: `ACCEPT_FUNCTION_GROUP`(v2,v1) vs `CT_FUNCTION_GROUP`(v3) — 업스트림 결함.
    → ✅ **해소 판정 (4.13.8, 2026-07-12)**: 11-③ 수리에 흡수 — 비대칭의 발현
    경로(v2-only 시스템 쓰기 실패)는 Create(4.13.1)·Update(4.13.8) 협상으로 전부

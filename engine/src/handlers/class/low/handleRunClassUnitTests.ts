@@ -1,11 +1,25 @@
 /**
  * RunClassUnitTests Handler - Start ABAP Unit run for class-based tests
  *
- * Uses AdtClient.runClassUnitTests from @babamba2/mcp-abap-adt-clients.
- * Low-level handler: single method call.
+ * Runs synchronously via the classic Eclipse-ADT endpoint
+ * (POST /sap/bc/adt/abapunit/testruns — see ../../../lib/abapUnitClassic.ts),
+ * the same bridge the high-level RunUnitTest uses. The vendored
+ * AdtClient.getUnitTest().run() posts to /sap/bc/adt/abapunit/runs, the
+ * ABAP-Cloud-only async collection that returns HTTP 404 on on-prem releases
+ * (S/4HANA 2021, BASIS 7.00) — so this low-level path 404'd there just like
+ * the high-level one did before 4.13.1. The classic endpoint is synchronous;
+ * the result is cached under a generated run_id (connection-scoped, TTL-bounded)
+ * that GetClassUnitTestStatusLow / GetClassUnitTestResultLow read back — the
+ * SAME store the high-level readers use, so run_ids interoperate across both.
+ * The low-level caller contract (tests in → run_id out; optional
+ * session_id/session_state) is preserved; unit-test runs never lock, so there
+ * is no lock_handle contract to keep.
  */
 
-import { createAdtClient } from '../../../lib/clients';
+import {
+  runClassicUnitTest,
+  storeUnitTestRun,
+} from '../../../lib/abapUnitClassic';
 import type { HandlerContext } from '../../../lib/handlers/interfaces';
 import {
   type AxiosResponse,
@@ -142,16 +156,8 @@ export async function handleRunClassUnitTests(
 ) {
   const { connection, logger } = context;
   try {
-    const {
-      tests,
-      title,
-      context,
-      scope,
-      risk_level,
-      duration,
-      session_id,
-      session_state,
-    } = args as RunClassUnitTestsArgs;
+    const { tests, scope, risk_level, duration, session_id, session_state } =
+      args as RunClassUnitTestsArgs;
 
     if (!Array.isArray(tests) || tests.length === 0) {
       return return_error(
@@ -171,11 +177,8 @@ export async function handleRunClassUnitTests(
       };
     });
 
-    const client = createAdtClient(connection, logger);
-
     if (session_id && session_state) {
       await restoreSessionInConnection(connection, session_id, session_state);
-    } else {
     }
 
     const mappedScope: ScopeOptions | undefined = scope
@@ -186,28 +189,21 @@ export async function handleRunClassUnitTests(
         }
       : undefined;
 
-    const options = {
-      title,
-      context,
-      scope: mappedScope,
-      riskLevel: risk_level,
-      duration,
-    };
-
     logger?.info(
       `Starting ABAP Unit run for ${formattedTests.length} definitions`,
     );
 
     try {
-      const unitTest = client.getUnitTest() as any;
-      const runId = await unitTest.run(formattedTests, options);
-      const runResponse = unitTest.getStatusResponse?.();
+      // Run synchronously via the classic ADT endpoint and cache the result
+      // under a generated run_id (see ../../../lib/abapUnitClassic.ts). Same
+      // bridge the high-level RunUnitTest uses.
+      const resultXml = await runClassicUnitTest(connection, formattedTests, {
+        scope: mappedScope,
+        riskLevel: risk_level,
+        duration,
+      });
 
-      if (!runId) {
-        throw new Error(
-          'Failed to obtain ABAP Unit run identifier from SAP response headers',
-        );
-      }
+      const runId = storeUnitTestRun(connection, resultXml);
 
       logger?.info(`✅ RunClassUnitTests started. Run ID: ${runId}`);
 
@@ -216,14 +212,14 @@ export async function handleRunClassUnitTests(
           {
             success: true,
             run_id: runId,
-            status_code: runResponse?.status,
-            location:
-              runResponse?.headers?.location ||
-              runResponse?.headers?.['content-location'] ||
-              null,
+            // The classic endpoint is synchronous — the full result is already
+            // cached under run_id, so there is no async status_code/location to
+            // poll (kept for response-shape compatibility).
+            status_code: 200,
+            location: null,
             session_id: session_id || null,
             session_state: null, // Session state management is now handled by auth-broker,
-            message: `ABAP Unit run started. Use GetClassUnitTestStatusLow and GetClassUnitTestResultLow with run_id ${runId}.`,
+            message: `ABAP Unit run completed. Use GetClassUnitTestStatusLow and GetClassUnitTestResultLow with run_id ${runId}. Note: the classic ADT endpoint runs all local test classes of each container class — per-test_class sub-selection is not supported by the protocol.`,
           },
           null,
           2,

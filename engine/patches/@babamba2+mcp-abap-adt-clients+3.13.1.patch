@@ -451,6 +451,59 @@ index 981064a..55a658c 100644
      return {
          ...response,
          data: {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/AdtStructure.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/AdtStructure.js
+index 4d5334b..da883df 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/AdtStructure.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/AdtStructure.js
+@@ -406,8 +406,19 @@ class AdtStructure {
+         }
+         // Map status to version
+         const version = status === 'active' ? 'active' : 'inactive';
++        // [powerup 4.13.11] Forward config.ddlCode as the source to validate.
++        // Callers that pass ddlCode (the UpdateStructure high-level pre-check
++        // and the CheckStructure low-level tool's documented ddl_code path)
++        // intend to validate the NEW/unsaved code, not whatever version is
++        // already stored on the server. Dropping it silently made the "check
++        // new code" step validate the wrong version: when the stored inactive
++        // version is valid (or absent) the real syntax error in the new DDL was
++        // never surfaced, so the subsequent write PUT failed opaquely ("Kein
++        // Sichern wegen Fehler in Quelle. Details erhalten Sie mit Prüfung." —
++        // error in source, run a check for details). undefined (no ddlCode)
++        // preserves the previous saved-version behavior for the other callers.
+         return {
+-            checkResult: await (0, check_1.checkStructure)(this.connection, config.structureName, version, undefined, this.logger),
++            checkResult: await (0, check_1.checkStructure)(this.connection, config.structureName, version, config.ddlCode, this.logger),
+             errors: [],
+         };
+     }
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/check.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/check.js
+index 8a0661e..8c07f6e 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/check.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/check.js
+@@ -28,8 +28,21 @@ async function checkStructure(connection, structureName, version = 'active', sou
+             }
+             return response; // Return response anyway
+         }
+-        const errorMessages = checkResult.errors.map((err) => err.text).join('; ');
+-        throw new Error(`Structure check failed: ${errorMessages}`);
++        // [powerup 4.13.11] Never throw a bare "Structure check failed:" with
++        // no detail. A check can report has_errors while carrying no message
++        // texts — e.g. status="notProcessed" on an object whose requested
++        // version cannot be validated (an empty/absent inactive version) yields
++        // an empty errors list — which produced a deterministic *empty* error
++        // that told the caller nothing. Keep only non-empty texts, and when
++        // none remain fall back to the check status/statusText so the thrown
++        // message is always actionable.
++        const errorMessages = checkResult.errors
++            .map((err) => err.text)
++            .filter((text) => text && String(text).trim())
++            .join('; ');
++        const detail = errorMessages ||
++            `${checkResult.message || ''} (check status: ${checkResult.status})`.trim();
++        throw new Error(`Structure check failed: ${detail}`);
+     }
+     return response;
+ }
 diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/delete.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/delete.js
 index 6522aab..120c187 100644
 --- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/delete.js

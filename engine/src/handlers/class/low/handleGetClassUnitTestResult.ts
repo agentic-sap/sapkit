@@ -1,14 +1,20 @@
 /**
  * GetClassUnitTestResult Handler - Fetch ABAP Unit run result
  *
- * Uses AdtClient.getUnitTest().getResult from @babamba2/mcp-abap-adt-clients.
- * Low-level handler: single method call.
+ * RunClassUnitTestsLow runs synchronously via the classic Eclipse-ADT endpoint
+ * (see ../../../lib/abapUnitClassic.ts) and caches the raw `<aunit:runResult>`
+ * XML under a generated run_id. This looks it back up. The vendored
+ * getClassUnitTestResult() GET /sap/bc/adt/abapunit/results/{id} is the
+ * ABAP-Cloud-only collection that 404s on on-prem, so it is no longer used.
+ * JUnit-format conversion is not available for the classic endpoint (no
+ * verified live endpoint), so `format: "junit"` is rejected explicitly rather
+ * than silently returning ABAP Unit-format data.
  */
 
-import type { IAdtResponse } from '@babamba2/mcp-abap-adt-interfaces';
-import { createAdtClient } from '../../../lib/clients';
+import { getUnitTestRun } from '../../../lib/abapUnitClassic';
 import type { HandlerContext } from '../../../lib/handlers/interfaces';
 import {
+  type AxiosResponse,
   restoreSessionInConnection,
   return_error,
   return_response,
@@ -74,40 +80,46 @@ export async function handleGetClassUnitTestResult(
 ) {
   const { connection, logger } = context;
   try {
-    const { run_id, with_navigation_uris, format, session_id, session_state } =
-      args as GetResultArgs;
+    const { run_id, format, session_id, session_state } = args as GetResultArgs;
 
     if (!run_id) {
       return return_error(new Error('run_id is required'));
     }
 
-    const client = createAdtClient(connection, logger);
+    if (format === 'junit') {
+      return return_error(
+        new Error(
+          'format "junit" is not available for the classic ADT ABAP Unit endpoint (no verified live endpoint for it). Omit format, or use "abapunit", to get the raw result.',
+        ),
+      );
+    }
 
     if (session_id && session_state) {
       await restoreSessionInConnection(connection, session_id, session_state);
-    } else {
     }
 
     logger?.info(`Fetching ABAP Unit result for run ${run_id}`);
 
-    try {
-      const unitTest = client.getUnitTest() as any;
-      const resultResponse = await unitTest.getResult(run_id, {
-        withNavigationUris: with_navigation_uris,
-        format,
-      });
-
-      if (!resultResponse) {
-        throw new Error('SAP did not return ABAP Unit result response');
-      }
-
-      return return_response(resultResponse as IAdtResponse);
-    } catch (error: any) {
-      logger?.error(
-        `Error retrieving ABAP Unit result for run ${run_id}: ${error?.message || error}`,
+    const resultXml = getUnitTestRun(connection, run_id);
+    if (resultXml === undefined) {
+      return return_error(
+        new Error(
+          `Unknown run_id "${run_id}" — no cached result (invalid run_id, or the server process restarted since the run was started).`,
+        ),
       );
-      return return_error(new Error(error?.message || String(error)));
     }
+
+    return return_response({
+      data: JSON.stringify(
+        {
+          success: true,
+          run_id,
+          run_result: resultXml,
+        },
+        null,
+        2,
+      ),
+    } as AxiosResponse);
   } catch (error: any) {
     return return_error(error);
   }
