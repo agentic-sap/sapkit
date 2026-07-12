@@ -15,11 +15,12 @@
 > §6 백로그 9·10·11-① 해소, 잔여 후속 = 백로그 11-②~⑨).
 > **5-5 우선분·5-8 필수분 완료 (2026-07-12)** — fetch 스크립트 2종 이식 + Codex
 > row-data 하드 차단 정본화(approval fail-open 실증). **진행 중 = 엔진 잔여 결함
-> 수리 스프린트**(2026-07-12, 11건/5 Wave — `.harness/GOAL.md`): Wave 1~2 완료 =
+> 수리 스프린트**(2026-07-12, 11건/5 Wave — `.harness/GOAL.md`): Wave 1~3 완료 =
 > **4.13.7**(11-② vendored stateless 누수 해소, patch-package 정본화 + 신규 발굴
 > 11-⑩)·**4.13.8**(11-③ FUGR Update CT 협상 + 구 3-7 흡수 해소, 11-④는 CT 아닌
-> 11-⑧ 언어 계열로 판정·이관). Phase 3(Gated Deploy)은 선결 3조건(5-11 리뷰
-> 게이트 편입 등) 후.
+> 11-⑧ 언어 계열로 판정·이관)·**4.13.9**(구 3-5 삭제 정직화 공통 뿌리 12종 +
+> 구 3-3 CreateProgram 타입 가드 + 11-⑨ 죽은 잠금 쌍 제거). Phase 3(Gated
+> Deploy)은 선결 3조건(5-11 리뷰 게이트 편입 등) 후.
 
 ---
 
@@ -480,6 +481,12 @@ MCP_ENV_PATH·cwd .env)은 tier 미해석 시 `UNKNOWN`=readonly 강제로 fail-
    캐시, 실패 시 현행 폴백, legacy 분기는 협상 스킵). 생성→활성화→삭제 라이브 검증.
 3. **CreateProgram(program_type=function_group) 거짓 성공**: 타입 무시하고 PROG/P 생성
    (응답 `"type":"PROG/P"`, URI `programs/programs`) — (d)의 거짓 성공 계열.
+   → ✅ **해소 (4.13.9, 2026-07-12)**: 미지원 4타입(include/function_group/
+   class_pool/interface_pool)을 create 호출 전 명시 거부(전용 도구 안내) +
+   inputSchema enum 6→2(executable·module_pool) 정정, 도구 수 불변. 라이브
+   red(가짜 REPORT 생성 재현)→green(거부+미생성 확인). compact 경로는 수리를
+   상속(위임 구조 — 리뷰 검증). **잔여**: 저수준 CreateProgramLow는 동일 뿌리
+   미수정(최소 스코프 — low 계열은 caller 계약이 달라 별도 판단).
 4. **CreateClass 잠금 미해제**: 생성 직후 Update 계열이 "locked by another user"
    (같은 세션 즉시 호출 포함 4회 재현, ReloadProfile·GetSession(force_new) 무효, 세션 만료로만
    해제). UpdateClass는 stale 잠금 핸들 재사용("ungültiges Sperr-Handle") + 실패 경로 잠금
@@ -585,6 +592,9 @@ MCP_ENV_PATH·cwd .env)은 tier 미해석 시 `UNKNOWN`=readonly 강제로 fail-
    + 생성/조회 언어 파라미터 일관화. (1번의 '스켈레톤 복구 불가'와 결부)
 9. CreateStructure의 죽은 lock/unlock 쌍 — 아무 요청도 안 감쌈. 제거 또는
    TODO로 남은 DDL update 구현 중 택1.
+   → ✅ **11-⑨ 해소 (4.13.9, 2026-07-12)**: 제거 택1(DDL update 구현은 신기능
+   이라 스코프 밖) + 잉여 unlock-on-error try/catch 동반 제거. 라이브 동작
+   동일 확인(라운드트립 2회 감소). 빈 쉘 생성 한계는 11-⑤/⑧ 잔존.
 10. **Delete 로컬 계열 4종 항상 실패 (4.13.7 감사 발굴, 선재 결함)**:
     DeleteLocalTestClass/Types/Macros/Definitions — 래퍼 `delete()`가
     `update(code:'')`로 구현됐는데 `update()`가 빈 코드를 lock 전에 거부
@@ -594,6 +604,16 @@ MCP_ENV_PATH·cwd .env)은 tier 미해석 시 `UNKNOWN`=readonly 강제로 fail-
 5. **DeleteFunctionGroup 조용한 실패** (4.13.1 검증 중 3회 실측): deletion 서비스가 실패를
    HTTP 200 + `del:isDeleted="false"` + E-메시지로 반환하는데 vendored delete가 하드코딩
    `success:true`로 대체 — 잠금 등 삭제 실패가 성공으로 보고됨.
+   → ✅ **해소 (4.13.9, 2026-07-12) — 공통 뿌리 수리**: FUGR 단건이 아니라
+   `/deletion/delete` 계열 전수 — vendored 공용 헬퍼 `assertDeletionSucceeded()`
+   신설(patch-package), 도달 가능한 **delete 12종** 일괄 정직화(FUGR·class·
+   program·interface·domain·dataElement·table·structure·view·serviceDefinition·
+   functionModule + behaviorDefinition). 캐스케이드 응답(복수 del:object 노드 —
+   structure 삭제 시 TABL+TABT 배열) 정규화 포함(라이브에서 발굴·수리), 인식
+   불가 body는 HTTP 폴백(진짜 성공을 거짓 실패로 만들지 않음). 미도달 3종
+   (tabletype/accessControl/enhancement)은 죽은 코드 판정, metadataExtension은
+   다른 포맷(REST DELETE)이라 제외. 라이브 red(잠긴 FUGR 삭제 success:true+
+   잔존)→green(SAP 잠금 메시지 정직 실패) + 정상 삭제 무영향 확인.
 6. **low/CDS unit test 경로 동일 결함**: `RunClassUnitTestsLow`·CDS unit test 실행/조회가
    여전히 Cloud 전용 `/abapunit/runs` 사용 — 온프레미스에서 동일 404 예상 (high만 4.13.1로 수리됨).
 7. **vendored 상수 비대칭**: `ACCEPT_FUNCTION_GROUP`(v2,v1) vs `CT_FUNCTION_GROUP`(v3) — 업스트림 결함.

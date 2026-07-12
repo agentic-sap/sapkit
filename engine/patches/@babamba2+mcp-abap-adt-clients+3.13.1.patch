@@ -1,3 +1,30 @@
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/behaviorDefinition/delete.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/behaviorDefinition/delete.js
+index 52dee5f..c38ff15 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/behaviorDefinition/delete.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/behaviorDefinition/delete.js
+@@ -7,6 +7,7 @@ exports.checkDeletion = checkDeletion;
+ exports.deleteBehaviorDefinition = deleteBehaviorDefinition;
+ const contentTypes_1 = require("../../constants/contentTypes");
+ const timeouts_1 = require("../../utils/timeouts");
++const internalUtils_1 = require("../../utils/internalUtils");
+ /**
+  * Check if behavior definition can be deleted
+  *
+@@ -77,11 +78,13 @@ async function deleteBehaviorDefinition(connection, name, transportRequest) {
+         'Content-Type': contentTypes_1.CT_DELETION,
+     };
+     const deletionUrl = `/sap/bc/adt/deletion/delete`;
+-    return await connection.makeAdtRequest({
++    const response = await connection.makeAdtRequest({
+         url: deletionUrl,
+         method: 'POST',
+         timeout: (0, timeouts_1.getTimeout)('default'),
+         data: xmlPayload,
+         headers,
+     });
++    (0, internalUtils_1.assertDeletionSucceeded)(response, 'Behavior definition');
++    return response;
+ }
 diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/behaviorImplementation/AdtBehaviorImplementation.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/behaviorImplementation/AdtBehaviorImplementation.js
 index 01d3c3d..e0cfe11 100644
 --- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/behaviorImplementation/AdtBehaviorImplementation.js
@@ -164,3 +191,224 @@ index b6387fa..77f4100 100644
              // 2. Check local types code
              const codeToCheck = options?.sourceCode || config.localTypesCode;
              const state = {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/delete.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/delete.js
+index 7f00cad..b29a42c 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/delete.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/delete.js
+@@ -71,6 +71,7 @@ async function deleteClass(connection, params) {
+         data: xmlPayload,
+         headers,
+     });
++    (0, internalUtils_1.assertDeletionSucceeded)(response, "Class");
+     return {
+         ...response,
+         data: {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/dataElement/delete.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/dataElement/delete.js
+index 19f115d..6d2833d 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/dataElement/delete.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/dataElement/delete.js
+@@ -71,6 +71,7 @@ async function deleteDataElement(connection, params) {
+         data: xmlPayload,
+         headers,
+     });
++    (0, internalUtils_1.assertDeletionSucceeded)(response, "Data element");
+     return {
+         ...response,
+         data: {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/domain/delete.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/domain/delete.js
+index 8c88ee4..84b74bb 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/domain/delete.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/domain/delete.js
+@@ -71,6 +71,7 @@ async function deleteDomain(connection, params) {
+         data: xmlPayload,
+         headers,
+     });
++    (0, internalUtils_1.assertDeletionSucceeded)(response, "Domain");
+     return {
+         ...response,
+         data: {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/functionGroup/delete.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/functionGroup/delete.js
+index e1a7813..bd7ea59 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/functionGroup/delete.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/functionGroup/delete.js
+@@ -71,6 +71,7 @@ async function deleteFunctionGroup(connection, params) {
+         data: xmlPayload,
+         headers,
+     });
++    (0, internalUtils_1.assertDeletionSucceeded)(response, "Function group");
+     return {
+         ...response,
+         data: {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/functionModule/delete.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/functionModule/delete.js
+index de4fe06..7f8db2c 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/functionModule/delete.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/functionModule/delete.js
+@@ -79,6 +79,7 @@ async function deleteFunctionModule(connection, params) {
+         data: xmlPayload,
+         headers,
+     });
++    (0, internalUtils_1.assertDeletionSucceeded)(response, "Function module");
+     return {
+         ...response,
+         data: {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/interface/delete.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/interface/delete.js
+index 62b1b54..d9acdd1 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/interface/delete.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/interface/delete.js
+@@ -71,6 +71,7 @@ async function deleteInterface(connection, params) {
+         data: xmlPayload,
+         headers,
+     });
++    (0, internalUtils_1.assertDeletionSucceeded)(response, "Interface");
+     return {
+         ...response,
+         data: {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/program/delete.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/program/delete.js
+index 0f94ca0..d681e37 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/program/delete.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/program/delete.js
+@@ -70,6 +70,7 @@ async function deleteProgram(connection, params) {
+         data: xmlPayload,
+         headers,
+     });
++    (0, internalUtils_1.assertDeletionSucceeded)(response, "Program");
+     return {
+         ...response,
+         data: {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/serviceDefinition/delete.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/serviceDefinition/delete.js
+index 981064a..55a658c 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/serviceDefinition/delete.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/serviceDefinition/delete.js
+@@ -71,6 +71,7 @@ async function deleteServiceDefinition(connection, params) {
+         data: xmlPayload,
+         headers,
+     });
++    (0, internalUtils_1.assertDeletionSucceeded)(response, "Service definition");
+     return {
+         ...response,
+         data: {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/delete.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/delete.js
+index 6522aab..120c187 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/delete.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/delete.js
+@@ -72,6 +72,7 @@ async function deleteStructure(connection, params) {
+         data: xmlPayload,
+         headers,
+     });
++    (0, internalUtils_1.assertDeletionSucceeded)(response, "Structure");
+     return {
+         ...response,
+         data: {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/table/delete.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/table/delete.js
+index 36ebd1b..33de3fc 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/table/delete.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/table/delete.js
+@@ -71,6 +71,7 @@ async function deleteTable(connection, params) {
+         data: xmlPayload,
+         headers,
+     });
++    (0, internalUtils_1.assertDeletionSucceeded)(response, "Table");
+     return {
+         ...response,
+         data: {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/view/delete.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/view/delete.js
+index e8f0b89..945f84d 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/view/delete.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/view/delete.js
+@@ -71,6 +71,7 @@ async function deleteView(connection, params) {
+         data: xmlPayload,
+         headers,
+     });
++    (0, internalUtils_1.assertDeletionSucceeded)(response, "View");
+     return {
+         ...response,
+         data: {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/utils/internalUtils.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/utils/internalUtils.js
+index 76c7154..9f388f8 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/utils/internalUtils.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/utils/internalUtils.js
+@@ -9,6 +9,7 @@ exports.limitDescription = limitDescription;
+ exports.headerValueToString = headerValueToString;
+ exports.safeErrorMessage = safeErrorMessage;
+ exports.safeStringify = safeStringify;
++exports.assertDeletionSucceeded = assertDeletionSucceeded;
+ /**
+  * Encodes SAP object names for use in URLs
+  * Handles namespaces with forward slashes that need to be URL encoded
+@@ -102,3 +103,76 @@ function safeStringify(value, maxLength = 500) {
+         return String(value).substring(0, maxLength);
+     }
+ }
++/**
++ * [powerup 4.13.9] Honour the ADT deletion service's del:isDeleted flag.
++ *
++ * The generic `POST /sap/bc/adt/deletion/delete` service returns HTTP 200 even
++ * when it REFUSES the delete (e.g. the object is still locked): the real
++ * outcome is carried only by `del:deletionResult/del:object[@del:isDeleted]`
++ * plus an E-level `del:message`. The vendored low-level `deleteX()` helpers
++ * historically discarded that body and hardcoded `{ success: true }`, so a
++ * failed delete was reported to the caller as a success (HANDOFF §6 backlog
++ * 3-5, live-measured on DeleteFunctionGroup). This asserts the flag and throws
++ * with the SAP message on a POSITIVELY-identified failure. Unknown / absent
++ * deletionResult bodies fall back to the HTTP status only, so an unusual but
++ * successful response shape is never mis-reported as a failure. Mirrors the
++ * parse the vendored `deletePackage()` already performs.
++ *
++ * @param response - the raw axios response from the deletion POST
++ * @param objectLabel - human label for the error message (e.g. 'Function group')
++ */
++function assertDeletionSucceeded(response, objectLabel) {
++    const label = objectLabel || 'Object';
++    const data = response && response.data;
++    if (typeof data === 'string' && data.indexOf('deletionResult') !== -1) {
++        try {
++            const { XMLParser } = require('fast-xml-parser');
++            const parser = new XMLParser({
++                ignoreAttributes: false,
++                attributeNamePrefix: '@_',
++            });
++            const result = parser.parse(data);
++            let deleteObjects = result['del:deletionResult']?.['del:object'] ??
++                result.deletionResult?.object;
++            if (deleteObjects) {
++                // A single delete can cascade into several del:object entries
++                // (e.g. a structure returns both its TABL/DS and TABT/DTT
++                // nodes), and fast-xml-parser yields an ARRAY in that case.
++                // Every node must report isDeleted="true" for the delete to
++                // have succeeded; any node with isDeleted!="true" is a failure.
++                if (!Array.isArray(deleteObjects)) {
++                    deleteObjects = [deleteObjects];
++                }
++                for (const obj of deleteObjects) {
++                    const isDeleted = obj['@_del:isDeleted'] === 'true' ||
++                        obj['@_isDeleted'] === 'true';
++                    if (!isDeleted) {
++                        let text = obj['del:message']?.['del:text'] ??
++                            obj.message?.text;
++                        if (text && typeof text === 'object') {
++                            text = text['#text'] ?? '';
++                        }
++                        const msg = typeof text === 'string' && text.trim()
++                            ? text.trim()
++                            : 'the deletion service reported isDeleted="false"';
++                        throw new Error(`${label} deletion failed: ${msg}`);
++                    }
++                }
++            }
++        }
++        catch (error) {
++            if (error &&
++                typeof error.message === 'string' &&
++                error.message.includes('deletion failed')) {
++                throw error;
++            }
++            // Parse hiccup on a body that mentioned deletionResult but did not
++            // parse cleanly — fall through to the HTTP-status check below.
++        }
++    }
++    if (response &&
++        typeof response.status === 'number' &&
++        response.status >= 400) {
++        throw new Error(`${label} deletion failed: HTTP ${response.status} ${response.statusText || ''}`.trim());
++    }
++}

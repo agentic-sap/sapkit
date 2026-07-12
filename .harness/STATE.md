@@ -139,12 +139,28 @@
   capability no-op, 게이트 5종 green, 새-컨텍스트 리뷰(opus) PASS. $TMP
   실삭제 검증·고아 잠금 0
 
+- 2026-07-12 | 엔진 4.13.9 — Wave 3/5 정직성 계열 (opus 위임) — ① 구 3-5:
+  `/deletion/delete` 계열 **공통 뿌리 수리** — vendored 공용 헬퍼(patch-package)
+  로 delete 12종 일괄 정직화 + 캐스케이드 배열 정규화(라이브 발굴) + 인식 불가
+  body HTTP 폴백. 라이브 red(잠긴 FUGR 삭제 거짓 성공+잔존)→green(SAP 메시지
+  정직 실패)+정상 삭제 무영향. ② 구 3-3: CreateProgram 미지원 4타입 사전 거부
+  +enum 6→2, 라이브 red(가짜 REPORT)→green(거부+미생성). compact 경로는 수리
+  상속(리뷰 검증), CreateProgramLow 잔여. ③ 11-⑨: 죽은 잠금 쌍 제거, 동작
+  동일. jest 556/0(역-검증 전 항목), capability no-op, 게이트 5종 green,
+  새-컨텍스트 리뷰(opus) PASS(MINOR 2 — CHANGELOG 과대 기술 정정 완료).
+  $TMP 정리·실삭제 검증(SearchObject 잔존 1) — **ZSAH39_FGL 세션 잠금 잔존**
+  (red 재현용 SIGKILL 산물, SAP 세션 타임아웃 자동 해소·SM12 정리 가능,
+  기능 영향 0 — 스프린트 종료 시 해소 재확인). 부수: 에이전트 잔존 정리
+  루프 프로세스 종료(메인). 별건: fewer-permission-prompts로 게이트 5종
+  Bash/PowerShell 정확 형태 10건을 .claude/settings.json allow에 추가
+
 ## Next
 
-- 엔진 수리 스프린트 Wave 3~5 (GOAL.md, 사용자 "full로 끝까지"): Wave 3 정직성
-  계열(3-5·3-3·11-⑨) → Wave 4 언어 계열(11-⑧+11-④ 뿌리·11-⑥·CreateView 에러
-  body 개선) → Wave 5 조사·확장(11-⑤·3-6). Phase 3(Gated Deploy) 선결 =
-  5-11(무인 gated write 전 리뷰 게이트 편입) 포함 3조건
+- 엔진 수리 스프린트 Wave 4~5 (GOAL.md, 사용자 "full로 끝까지"): Wave 4 언어
+  계열(11-⑧+11-④ 뿌리 — 언어 무관 식별자 우선 원칙[사용자 지시]·11-⑥·
+  CreateView 에러 body 개선) → Wave 5 조사·확장(11-⑤·3-6). 종료 시:
+  ZSAH39_FGL 잠금 해소 확인 + GOAL 대조 최종 점검 + HANDOFF 헤더 정리.
+  Phase 3(Gated Deploy) 선결 = 5-11 포함 3조건
 
 ## Attempts & dead ends
 

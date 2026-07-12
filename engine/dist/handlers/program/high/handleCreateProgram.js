@@ -37,15 +37,8 @@ exports.TOOL_DEFINITION = {
             },
             program_type: {
                 type: 'string',
-                description: "Program type: 'executable' (Report), 'include', 'module_pool', 'function_group', 'class_pool', 'interface_pool'. Default: 'executable'",
-                enum: [
-                    'executable',
-                    'include',
-                    'module_pool',
-                    'function_group',
-                    'class_pool',
-                    'interface_pool',
-                ],
+                description: "Program type: 'executable' (Report) or 'module_pool'. Both are created in the ADT programs/programs collection (PROG/P). Default: 'executable'. To create an include, function group, class pool, or interface pool use the dedicated tool (CreateInclude / CreateFunctionGroup / CreateClass / CreateInterface) — CreateProgram cannot create those object types.",
+                enum: ['executable', 'module_pool'],
             },
             application: {
                 type: 'string',
@@ -55,12 +48,35 @@ exports.TOOL_DEFINITION = {
         required: ['program_name', 'package_name'],
     },
 };
+// The ADT programs/programs create endpoint only produces PROG/P objects
+// (executable reports and module pools). The other legacy program types map to
+// distinct ADT object types with their own create endpoints and dedicated MCP
+// tools — creating them here silently produced a PROG/P shell mislabelled as
+// the requested type (HANDOFF §6 backlog 3-3).
+const SUPPORTED_PROGRAM_TYPES = ['executable', 'module_pool'];
+const DEDICATED_TOOL_FOR_PROGRAM_TYPE = {
+    include: 'CreateInclude',
+    function_group: 'CreateFunctionGroup',
+    class_pool: 'CreateClass',
+    interface_pool: 'CreateInterface',
+};
 async function handleCreateProgram(context, params) {
     const { connection, logger } = context;
     const args = params;
     // Validate required parameters
     if (!args.program_name || !args.package_name) {
         return (0, utils_1.return_error)(new Error('Missing required parameters: program_name and package_name'));
+    }
+    // Reject program types this tool cannot honestly create. The create endpoint
+    // ignores the type and always produces a PROG/P shell, so an unsupported type
+    // would be silently substituted and reported as a plain program. Point the
+    // caller at the dedicated tool instead of creating the wrong object.
+    if (args.program_type &&
+        !SUPPORTED_PROGRAM_TYPES.includes(args.program_type)) {
+        const dedicated = DEDICATED_TOOL_FOR_PROGRAM_TYPE[args.program_type];
+        return (0, utils_1.return_error)(new Error(dedicated
+            ? `CreateProgram cannot create program_type '${args.program_type}' — the ADT programs endpoint would silently create a plain executable program (PROG/P) instead. Use ${dedicated} to create a ${args.program_type.replace(/_/g, ' ')}.`
+            : `Unsupported program_type '${args.program_type}'. CreateProgram supports: ${SUPPORTED_PROGRAM_TYPES.join(', ')}.`));
     }
     // Check if cloud - programs are not available on cloud systems
     if ((0, utils_1.isCloudConnection)()) {

@@ -167,52 +167,36 @@ async function handleCreateStructure(context, args) {
                 ddlCode: '',
                 transportRequest: createStructureArgs.transport_request,
             });
-            // Lock
-            const lockHandle = await client.getStructure().lock({ structureName });
+            // Note: the ADT structure-create endpoint above produces an empty
+            // structure shell; field/include DDL generation is not yet implemented
+            // (tracked as HANDOFF §6 backlog 11-⑤/11-⑧). A lock/unlock pair used to
+            // sit here around that never-implemented DDL update, so it bracketed no
+            // request at all — removed as dead code (HANDOFF §6 backlog 11-⑨).
+            // Check inactive version
+            logger?.info(`[CreateStructure] Checking inactive version: ${structureName}`);
             try {
-                // Note: StructureBuilder internally generates DDL from fields/includes
-                // For now, skip update as structure creation already includes field definitions
-                // TODO: Implement DDL generation or enhance AdtClient to accept fields directly
-                // Unlock (MANDATORY after lock)
-                await client.getStructure().unlock({ structureName }, lockHandle);
-                logger?.info(`[CreateStructure] Structure unlocked: ${structureName}`);
-                // Check inactive version (after unlock)
-                logger?.info(`[CreateStructure] Checking inactive version: ${structureName}`);
-                try {
-                    await (0, utils_1.safeCheckOperation)(() => client.getStructure().check({ structureName }, 'inactive'), structureName, {
-                        debug: (message) => logger?.debug(`[CreateStructure] ${message}`),
+                await (0, utils_1.safeCheckOperation)(() => client.getStructure().check({ structureName }, 'inactive'), structureName, {
+                    debug: (message) => logger?.debug(`[CreateStructure] ${message}`),
+                });
+                logger?.info(`[CreateStructure] Inactive version check completed: ${structureName}`);
+            }
+            catch (checkError) {
+                // If error was marked as "already checked", continue silently
+                if (checkError.isAlreadyChecked) {
+                    logger?.info(`[CreateStructure] Structure ${structureName} was already checked - this is OK, continuing`);
+                }
+                else {
+                    // Log warning but don't fail - inactive check is informational
+                    logger?.warn(`[CreateStructure] Inactive version check had issues: ${structureName}`, {
+                        error: checkError instanceof Error
+                            ? checkError.message
+                            : String(checkError),
                     });
-                    logger?.info(`[CreateStructure] Inactive version check completed: ${structureName}`);
-                }
-                catch (checkError) {
-                    // If error was marked as "already checked", continue silently
-                    if (checkError.isAlreadyChecked) {
-                        logger?.info(`[CreateStructure] Structure ${structureName} was already checked - this is OK, continuing`);
-                    }
-                    else {
-                        // Log warning but don't fail - inactive check is informational
-                        logger?.warn(`[CreateStructure] Inactive version check had issues: ${structureName}`, {
-                            error: checkError instanceof Error
-                                ? checkError.message
-                                : String(checkError),
-                        });
-                    }
-                }
-                // Activate
-                if (shouldActivate) {
-                    await client.getStructure().activate({ structureName });
                 }
             }
-            catch (error) {
-                // Unlock on error (principle 1: if lock was done, unlock is mandatory)
-                try {
-                    await client.getStructure().unlock({ structureName }, lockHandle);
-                }
-                catch (unlockError) {
-                    logger?.error('Failed to unlock structure after error:', unlockError);
-                }
-                // Principle 2: first error and exit
-                throw error;
+            // Activate
+            if (shouldActivate) {
+                await client.getStructure().activate({ structureName });
             }
             logger?.info(`✅ CreateStructure completed successfully: ${structureName}`);
             return (0, utils_1.return_response)({
