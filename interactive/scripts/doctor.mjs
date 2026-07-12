@@ -90,9 +90,9 @@ function collectCommands(node, out = []) {
 }
 
 function extractScriptPath(cmdStr) {
-  const quoted = cmdStr.match(/"([^"]+?\.(?:mjs|cjs|js))"/i);
+  const quoted = cmdStr.match(/"([^"]+?\.(?:mjs|cjs|js|py))"/i);
   if (quoted) return quoted[1];
-  const token = cmdStr.split(/\s+/).find((t) => /\.(?:mjs|cjs|js)$/i.test(t.replace(/["']/g, '')));
+  const token = cmdStr.split(/\s+/).find((t) => /\.(?:mjs|cjs|js|py)$/i.test(t.replace(/["']/g, '')));
   return token ? token.replace(/["']/g, '') : null;
 }
 
@@ -134,10 +134,11 @@ function checkHookWiring() {
       missing.push(`${file}: 경로 추출 실패(${cmd.slice(0, 50)})`);
       continue;
     }
-    if (seen.has(scriptPath)) continue;
-    seen.add(scriptPath);
+    const resolved = scriptPath.replace(/\$\{?CLAUDE_PROJECT_DIR\}?/g, REPO_ROOT);
+    if (seen.has(resolved)) continue;
+    seen.add(resolved);
     checked++;
-    if (!fs.existsSync(scriptPath)) missing.push(`${file}: ${scriptPath} 없음`);
+    if (!fs.existsSync(resolved)) missing.push(`${file}: ${scriptPath} 없음`);
   }
 
   if (missing.length) {
