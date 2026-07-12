@@ -13,6 +13,7 @@
 |---|---|---|
 | `private/**` | exclude-private | 영구 denylist — 어떤 산출물에도 미포함 |
 | `.omc/**` | obsolete | 세션 상태 기록물 |
+| `.sc4sap/**` | obsolete | MCP 런타임 상태(로그·프로파일 포인터) — 전역 활성 sc4sap 플러그인이 동결 레포에서 기동하며 생성, 자산 아님 (2026-07-12 드리프트 실측) |
 | `.claude/settings.local.json` | obsolete | 로컬 권한 상태 |
 | `.claude-plugin/**` | transform | `adapters/claude/` 매니페스트 원형 (L3) |
 | `.github/**` | archive | CI 신규 작성 시 참고 (rebundle.yml 포함) |
@@ -59,8 +60,8 @@
 | `scripts/spec/**` | copy | `tools/spec/` (xlsx 산출 파이프라인) |
 | `scripts/extract-spro.mjs` | transform | `tools/extract/` — **deferred(L6+)**: 수동 fallback 문서화됨(spro-lookup.md) |
 | `scripts/extract-customizations.mjs` | transform | `tools/extract/` — **deferred(L6+)**: 수동 fallback 문서화됨(customization-lookup.md) |
-| `scripts/fetch-abap-keyword-doc.mjs` | transform | `tools/fetch/` — **deferred(L6+)**: 수동 fallback 문서화됨(help-portal-fetch.md) |
-| `scripts/fetch-sap-help-doc.mjs` | transform | `tools/fetch/` — **deferred(L6+)** |
+| `scripts/fetch-abap-keyword-doc.mjs` | copy | `tools/fetch/` — 무변환 이식(5-5 완료), 실동작 검증(abenwhere_all_entries) |
+| `scripts/fetch-sap-help-doc.mjs` | copy | `tools/fetch/` — 무변환 이식(5-5 완료), 실동작 검증(MM-PUR 릴리스전략 페이지) |
 | `scripts/sap-profile-cli.mjs` | transform | `scripts/` — **deferred(L6+)**: 수동 절차는 troubleshooting.md |
 | `scripts/sap-option-tui.mjs` | transform | **deferred(L6+ 재심사)**: config.json 직접 편집으로 대체 중 |
 | `scripts/bundle-keyring.mjs` | copy | `server/` (keyring 번들 도구) |

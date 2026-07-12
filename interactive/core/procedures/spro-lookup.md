@@ -73,7 +73,7 @@ question about SAP customizing
 
 **Cost gate:** these are public network fetches (lower risk than customer MCP, but not free). For a single targeted lookup, run it directly. For broad/comprehensive retrieval, state the network/token cost first — same courtesy as Step 3.
 
-**Module-consultant scope:** fetch **functional/module/config docs for your own module** only, using `fetch-sap-help-doc.mjs` (ships with the original plugin, not this repo — when absent, use the manual fallback described in [help-portal-fetch](help-portal-fetch.md)). Handle **ABAP keyword/language** lookups and deep cross-topic doc research under the [sap-doc-specialist](../personas/sap-doc-specialist.md) persona — that is not module-consulting territory.
+**Module-consultant scope:** fetch **functional/module/config docs for your own module** only, using `tools/fetch/fetch-sap-help-doc.mjs` (ships with this plugin — when `$CLAUDE_PLUGIN_ROOT` is unavailable, use the manual fallback described in [help-portal-fetch](help-portal-fetch.md)). Handle **ABAP keyword/language** lookups and deep cross-topic doc research under the [sap-doc-specialist](../personas/sap-doc-specialist.md) persona — that is not module-consulting territory.
 
 Workflow: web-search `<topic> help.sap.com` → pick the `/docs/<product>/<deliverable>/<topic>.html` result → run the fetch (script or manual fallback) → **cite the Source URL** and **state the SAP release** it reports. Out of scope: OSS Notes (me.sap.com — auth-walled).
 

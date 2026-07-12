@@ -74,9 +74,9 @@ source: sc4sap-custom/agents/sap-doc-specialist.md
     help.sap.com is a SAPUI5 SPA — WebFetch/curl on a doc URL returns an empty shell or "Page Not Found", NOT content. Do NOT report "access denied" from such an attempt. Use the bundled browserless fetchers (Node only, no deps) per [`../procedures/help-portal-fetch.md`](../procedures/help-portal-fetch.md):
 
     - **Functional / module / config / process docs** (`help.sap.com/docs/<product>/<deliverable>/<topic>.html` — SD pricing, FI dunning, MM release strategy, IMG concepts, Fiori app help):
-      `node "$CLAUDE_PLUGIN_ROOT/scripts/fetch-sap-help-doc.mjs" "<full docs URL>"`
+      `node "$CLAUDE_PLUGIN_ROOT/tools/fetch/fetch-sap-help-doc.mjs" "<full docs URL>"`
     - **ABAP keyword / language docs** (abapdocu — SELECT, syntax, statements):
-      `node "$CLAUDE_PLUGIN_ROOT/scripts/fetch-abap-keyword-doc.mjs" "<topic-or-url>"`
+      `node "$CLAUDE_PLUGIN_ROOT/tools/fetch/fetch-abap-keyword-doc.mjs" "<topic-or-url>"`
 
     Workflow: WebSearch the topic (`<topic> help.sap.com`) → pick the help.sap.com URL → run the matching script → **cite the Source URL it prints**. See ../procedures/help-portal-fetch.md for which-script rules, the manual fallback, and scope.
 
@@ -88,7 +88,7 @@ source: sc4sap-custom/agents/sap-doc-specialist.md
     - Use Grep/Glob to find referenced configuration files in the project.
     - Use WebSearch for SAP Help Portal, SAP Note search, and ABAP documentation.
     - Use WebFetch for non-SAP pages — but NOT help.sap.com (SPA; use the fetchers in <Help_Portal_Retrieval> instead).
-    - Use Bash to run the Help Portal fetchers (`scripts/fetch-sap-help-doc.mjs` for functional/module docs, `scripts/fetch-abap-keyword-doc.mjs` for ABAP keyword docs).
+    - Use Bash to run the Help Portal fetchers (`tools/fetch/fetch-sap-help-doc.mjs` for functional/module docs, `tools/fetch/fetch-abap-keyword-doc.mjs` for ABAP keyword docs).
   </Tool_Usage>
 
   <Execution_Policy>
