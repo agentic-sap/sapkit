@@ -6,15 +6,15 @@
     "origin": "https://github.com/hjaewon/vsp-custom.git",
     "upstream": "https://github.com/oisee/vibing-steampunk.git"
   },
-  "verified_commit": "7a2ef662af4c52623f898a8141d201ed664acf8c",
+  "verified_commit": "0b03ef2914636f9bafc4d1e53c78a3499d80eb6f",
   "binary": {
     "path": "D:\\Claude for SAP\\vsp-custom\\build\\vsp.exe",
-    "sha256": "7992B636B081ADBCD1334508356D00D88AEB35818A07004DFFCF1783FD9E028C",
-    "size_bytes": 18111488,
-    "build_command": "CGO_ENABLED=0 go build -ldflags \"-s -w -X main.Version=v2.38.1-90-g7a2ef66 -X main.Commit=7a2ef66 -X main.BuildDate=2026-07-12T02:19:32Z\" -o build/vsp.exe ./cmd/vsp",
-    "built_at": "2026-07-12T02:19:32Z"
+    "sha256": "028858220AF1F2C2C5645E6B631BC75AD3D5691B756823C5C082E19F95703CB7",
+    "size_bytes": 18112000,
+    "build_command": "CGO_ENABLED=0 go build -ldflags \"-s -w -X main.Version=v2.38.1-91-g0b03ef2 -X main.Commit=0b03ef2 -X main.BuildDate=2026-07-12T03:11:15Z\" -o build/vsp.exe ./cmd/vsp",
+    "built_at": "2026-07-12T03:11:15Z"
   },
-  "version_output": "vsp version v2.38.1-90-g7a2ef66 (commit: 7a2ef66, built: 2026-07-12T02:19:32Z)",
+  "version_output": "vsp version v2.38.1-91-g0b03ef2 (commit: 0b03ef2, built: 2026-07-12T03:11:15Z)",
   "command_contract": [
     {
       "command": "vsp lint --file <f> | --stdin",
