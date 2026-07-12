@@ -130,7 +130,13 @@ D:\claude for SAP\sap-agentic-harness   ← 단일 레포 (원격: hjaewon/sap-a
 - 프로파일 홈은 기본 `~/.sc4sap`(SC4SAP_HOME_DIR 미설정 — `.sah` 개명은 주 머신만).
   활성 프로파일 **IDES-DEV**(S4H/100 실연결 확인). KR-DEV(192.168.1.225)는 사내망
   전용이라 이 머신에서 도달 불가 — 사내망 복귀 시 active-profile.txt 한 줄 교체.
-- 구 sc4sap 플러그인 2종(sc4sap@sc4sap·sc4sap@sc4sap-custom)은 disabled 확인.
+- 구 sc4sap 플러그인: ~~2종 disabled 확인~~ → **2026-07-12 정정: `sc4sap@sc4sap-custom`은
+  전역 활성 유지 (사용자 결정 — 타 프로젝트에서 사용 중)**. 원본(sc4sap@sc4sap)은 비활성.
+  영향: 이 프로젝트 세션에도 구 플러그인의 도구·페르소나가 함께 로드됨(구 엔진 번들 —
+  4.13.1+ 수리 미반영). **이 프로젝트의 SAP 작업은 반드시 `sap-agentic-harness`
+  네임스페이스 도구만 사용할 것.** 부작용 실측: 구 플러그인 MCP 서버가 동결 레포에
+  런타임 로그(`.sc4sap/state/`)를 남겨 커버리지 드리프트 발생 → 매니페스트
+  `.sc4sap/**` obsolete 규칙으로 흡수(2026-07-12).
 - 3사 CLI 전부 존재 실측(2026-07-11 doctor): claude 2.1.206(플러그인 설치+훅 3종 배선) ·
   codex 0.144.1(플러그인 미설치 = 평시 OFF) · agy 1.0.16(임포트 + **disabled** = 평시 OFF,
   5-2 스모크 재검증 때 임포트됨).
