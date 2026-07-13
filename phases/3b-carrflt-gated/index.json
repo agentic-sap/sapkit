@@ -5,8 +5,12 @@
     {
       "step": 0,
       "name": "impl-carrflt-correct",
-      "status": "pending",
-      "verify": "powershell -Command \"& 'D:\\claude for SAP\\vsp\\vsp-custom\\build\\vsp.exe' lint --file src/zsah3_carrflt.prog.abap; exit $LASTEXITCODE\""
+      "status": "completed",
+      "verify": "powershell -Command \"& 'D:\\claude for SAP\\vsp\\vsp-custom\\build\\vsp.exe' lint --file src/zsah3_carrflt.prog.abap; exit $LASTEXITCODE\"",
+      "started_at": "2026-07-13T14:30:47+0900",
+      "summary": "src/zsah3_carrflt.prog.abap 신규 작성 — 스펙 코드 블록을 그대로 전사(SQL/테스트/식별자/주석 무변경). REPORT zsah3_carrflt + 로컬 클래스 lcl_report(collect: SCARR LEFT OUTER JOIN SFLIGHT ON f~carrid=c~carrid, COUNT(f~fldate), GROUP BY carrid/carrname, ORDER BY carrid) + osql 테스트 클래스 ltc_report. AC(vsp lint --file) 실행 → 'No issues found', exit 0. 구조 검증: 94줄, CLASS/ENDCLASS 4/4, METHOD/ENDMETHOD 5/5, EQ/NE 등 obsolete 비교연산자 0건, 모든 문장 종결·블록 짝 맞음, CRLF(레포 zsah1 관례와 동일). offline 스코프 준수 — SAP 연결·vsp-env dot-source 미실행. sha256=0cf65da60c1e8ba4effe9229aa31b8c9555964dc426d41f0132123df5e46383b.",
+      "contract": "src/zsah3_carrflt.prog.abap: lcl_report=>collect( ) RETURNING VALUE(rt_rows) TYPE ty_rows(carrid/carrname/flightcount TYPE i); SELECT scarr LEFT OUTER JOIN sflight, COUNT(f~fldate). ltc_report osql double 픽스처 기대값 AA=2·LH=1·ZZ=0 → 3행(ZZ flightcount=0). 이 소스는 정상 경로 정본 — SQL(LEFT OUTER)·픽스처·기대값 변경 금지, 다음 리뷰 스텝이 있는 그대로 평가.",
+      "completed_at": "2026-07-13T14:33:06+0900"
     },
     {
       "step": 1,
@@ -14,5 +18,6 @@
       "status": "pending",
       "verify": "powershell -NoProfile -Command \"$s='scripts/check-review-verdict.ps1'; if ((Get-FileHash $s -Algorithm SHA256).Hash -ne '7B4F211FC008278F4E9149D1C135A8CA28FC1E3A97FD9F2CE93A00BA75FA0223') { Write-Output 'CHECKER_TAMPERED'; exit 1 }; & $s -Phase 3b-carrflt-gated -Verdict phases/3b-carrflt-gated/review-verdict.json\""
     }
-  ]
+  ],
+  "created_at": "2026-07-13T14:30:47+0900"
 }
