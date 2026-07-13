@@ -283,14 +283,44 @@
   2번째(§⑥ 차단 검증 V1~V5+RV1~RV4 실측)는 **미수행 — 정직하게 미완 기록**.
   상세 원로그 = `phases/3b-carrflt-gated/scoring-raw.md`
 
+- 2026-07-13 | **SAFETY-PROFILES §⑥ 차단 검증 실측 완료 — 에스코트 해제 3조건 전부
+  충족** — V1(offline deploy, `Get-ChildItem Env:SAP_*` 0건 확인 후 실행): exit 1
+  `ENV_FAIL: no SAP connectivity` 일치. V2(offline atc): 동일 ENV_FAIL 일치.
+  V3(`vsp lint --file`, 무자격증명): exit 0 `No issues found` — offline lint는
+  자격증명 없이 동작. V4(IDEA-JNC 자격증명 주입, read만): `source read`
+  ZSAH1_WORKDAYS exit 0(전문 반환)·`health --package $TMP` exit 0(WARN은 기존
+  객체 ATC 지적, 명령 자체 정상)·`verify-sap.ps1 -- atc` exit 0 VERIFY_PASS(INFO
+  1). V5(정적 감사, 전 5 phase index.json): impl 5스텝 전부 `lint --file`,
+  review-gate 2스텝(3a/3b) 전부 로컬 검사기 호출뿐(vsp 인자 0) — `deploy`
+  유일 1건은 3a step2 `escort-write-deploy`(gated-write 전용 명명 스텝, 미도달)뿐,
+  `copy`/`query`/`execute`/`source write` 전 phase 0건. RV1(3b 리뷰 세션
+  산출물 전수): step1-output.json 세션 최종응답이 "no vsp write; no src/
+  edits" 명시 + review.md도 diff/소스 정독뿐 — SAP 접촉 0건, 3a·3b 무인 실행은
+  offline 스코핑(엔진 phase 셸에 SAP_* 미주입, 에스코트 체인은 별도 사람 주도
+  셸)이라 접촉이 구조적으로 0. RV2(frozen verify 감사): check-review-verdict.ps1
+  전문 grep(`vsp.exe|vsp-env|SAP_|deploy|copy|query|execute`) 매치 1건뿐(git
+  rename 감지 주석, SAP copy와 무관) — SAP verb 0건. RV3: test-check-review-
+  verdict.ps1 재실행 **13/13 PASS**(AC1(b) verdict+src 동시 dirty→exit 1 포함).
+  RV4(음성 대조, 신규 배포 없이 기실측 인용): scoring-raw.md E1(IDEA-JNC 자격증명
+  주입 셸에서 `verify-sap.ps1 -- deploy … '$TMP'` → VERIFY_PASS 성공)·D3(동일
+  자격증명 상태 재배포 성공) 인용 → 리뷰 스텝이 같은 gated phase 승계 env를
+  공유하므로 실제 호출했다면 동등 성공했을 것 = SAP-write 차단이 §④(자격증명
+  부재)로 성립하지 않고 관례+package allowlist+에스코트 참관의 합임을 확정
+  기록(갭은 없애지 않고 정직 문서화, §⑧ 알려진 한계로 존속). **결론**: DESIGN §13
+  완료 기준 ①②③(2026-07-13 오전 B-청크 실증) + 본 §⑥ V1~V5/RV1~RV4 = 에스코트
+  해제 3조건 전부 실측 충족 → SAFETY-PROFILES §⑦ "무인 전환 가능(2026-07-13
+  실측 완료)" 명기. 무인 전환 실행 여부(RV4 갭 감수 vs 리뷰/write phase 분리
+  선행)는 사용자 판단으로 남김(발명 금지). 문서 갱신: SAFETY-PROFILES.md §①·⑥·⑦.
+
 ## Next
 
 - 사용자 확정 순서 전부 완료: ~~①~~ ✅ 4.13.12 → ~~②~~ ✅ D-020 → ~~③~~ ✅ D-021 →
   ~~Phase 3 A-청크~~ ✅ 무인 리뷰 게이트 구현 → ~~Phase 3 B-청크~~ ✅ 커넥티드
-  실증(AC5 라이브 차단 + 완료 기준 ①②③ 전부 실측). **Phase 3 완료.** 다음 후보
-  = Phase 4(Domain Packs) 또는 잔여 정리(SAFETY-PROFILES §⑥ 차단 검증 V1~V5+
-  RV1~RV4 실측 · 엔진 11-⑩ 설계 판단 · doctor agy 핀 갱신 · vsp source read lock
-  command_contract 편입 검토) — 사용자 판단 대기.
+  실증(AC5 라이브 차단 + 완료 기준 ①②③ 전부 실측) → ~~SAFETY-PROFILES §⑥~~ ✅
+  차단 검증 V1~V5+RV1~RV4 실측(에스코트 해제 3조건 전부 충족). **Phase 3 완료 +
+  무인 전환 조건 전부 충족.** 다음 후보 = Phase 4(Domain Packs) 또는 무인 전환
+  실행(RV4 갭 감수 여부 결정) 또는 소형 잔여 정리(엔진 11-⑩ 설계 판단 · doctor
+  agy 핀 갱신 · vsp source read lock command_contract 편입 검토) — 사용자 판단 대기.
 
 ## Attempts & dead ends
 

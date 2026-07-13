@@ -7,14 +7,17 @@
 > 오전) + 커넥티드 라이브 실증(B-청크, 오후). D-021 스펙 AC 5건 전부 성립(AC1~4
 > 오프라인 + **AC5 씨앗 결함 라이브 차단**) + DESIGN §13 Phase 3 완료 기준 ①②③
 > 전부 실측(리뷰 PASS 객체가 SAP 전체 write 체인 통과·SE80 drift 검출·씨앗
-> 시맨틱 결함 차단) → **에스코트 해제 조건 성립**(단 SAFETY-PROFILES §⑦ 무인
-> 전환 3조건 중 2번째 "§⑥ 차단 검증 V1~V5+RV1~RV4 실측"은 정직하게 미수행 —
-> 무인 전환은 이 항목까지 충족 후). 부수: 주 머신 vsp 빌드(lock 0b03ef2 재현,
-> `binary_main_machine` 병기) + 엔진 훅 설치로 **이 머신 트랙 A 무인 실행 최초
-> 개통**. 다음 후보 = **Phase 4(Domain Packs)** 또는 잔여 정리(SAFETY-PROFILES
-> §⑥ V1~V5+RV1~RV4 실측 · 엔진 11-⑩ 설계 판단 · doctor agy 핀 갱신 · vsp source
-> read lock command_contract 편입 검토) — 사용자 판단 대기. 상세 =
-> `.harness/STATE.md` · `phases/3b-carrflt-gated/scoring-raw.md`.
+> 시맨틱 결함 차단) → **에스코트 해제 조건 성립**. 같은 날 후속으로
+> **SAFETY-PROFILES §⑥ 차단 검증(V1~V5+RV1~RV4) 실측도 완료** — 무인 전환
+> 3조건 전부 충족, §⑦에 "무인 전환 가능(2026-07-13 실측 완료)" 명기(단 RV4가
+> 확정한 갭 — 리뷰 스텝의 phase-공통 자격증명 하 SAP-write 차단이 비기계적 —
+> 은 알려진 한계로 존속, 전환 실행 여부는 사용자 판단). 부수: 주 머신 vsp
+> 빌드(lock 0b03ef2 재현, `binary_main_machine` 병기) + 엔진 훅 설치로 **이
+> 머신 트랙 A 무인 실행 최초 개통**. 다음 후보 = **Phase 4(Domain Packs)**
+> 또는 무인 전환 실행 또는 잔여 정리(엔진 11-⑩ 설계 판단 · doctor agy 핀 갱신 ·
+> vsp source read lock command_contract 편입 검토) — 사용자 판단 대기. 상세 =
+> `.harness/STATE.md` · `phases/3b-carrflt-gated/scoring-raw.md` ·
+> `adapters/vsp/SAFETY-PROFILES.md` §⑥.
 > **트랙 A Phase 2 완료 (2026-07-12)** — 답사→계획 변경 기록(§13 완료 기준 충족) +
 > 무인 완주(2 steps, verify 실패 0, 리뷰 위반 0) + connected 채점 **5 PASS/0 FAIL**.
 > 채점이 발굴한 CLAS 배포 결함 3건은 **당일 전량 수리·라이브 검증 완료** —

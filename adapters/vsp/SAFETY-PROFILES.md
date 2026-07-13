@@ -2,10 +2,11 @@
 
 ## ① 헤더 · 문서 성격
 
-- **작성일**: 2026-07-13 (트랙 A Phase 3 착수 산출물)
-- **작성 방식**: **오프라인 authoring** — SAP 미연결. 본 문서는 정책·프로파일 계약을
-  확정할 뿐이며, §⑥의 **차단 검증은 문서로 기술만** 하고 실제 실행은 커넥티드 후속
-  작업(에스코트 하)에서 수행한다. 발명 금지: 근거는 전부 `DESIGN.md`(v2.2)·
+- **작성일**: 2026-07-13 (트랙 A Phase 3 착수 산출물) · **§⑥ 차단 검증 실측 완료**
+  (2026-07-13, IDEA-JNC S4H/100 — V1~V5+RV1~RV4 전건, 에스코트 해제 3조건 전부 충족).
+- **작성 방식**: 최초 **오프라인 authoring**(SAP 미연결) — 정책·프로파일 계약을
+  확정했고, §⑥의 차단 검증은 같은 날 커넥티드 후속 세션(에스코트 하)에서 실행해
+  결과를 §⑥에 채웠다. 발명 금지: 근거는 전부 `DESIGN.md`(v2.2)·
   `docs/reference/designs/2026-07-13-unattended-review-gate.md`(이하 "리뷰 게이트 스펙")·
   `adapters/vsp/vsp.lock.json`·`.harness/RULES.md`에서 온다.
 - **기준 vsp 버전**: `vsp.lock.json` `verified_commit=0b03ef2` (v2.38.1-91-g0b03ef2,
@@ -173,34 +174,41 @@ vsp가 자격증명을 얻는 **두 채널**을 모두 통제한다:
 
 ---
 
-## ⑥ 차단 검증 절차 (문서 기술 — 실행은 커넥티드 후속)
+## ⑥ 차단 검증 절차 — **실측 완료 (2026-07-13, IDEA-JNC S4H/100)**
 
-각 모드에서 차단이 실제로 동작하는지 확인하는 명령 시나리오. 실행은 에스코트 하
-커넥티드 세션에서 1회씩 수행하고 결과를 이 절에 실측으로 채운다. 기대 마커는
+각 모드에서 차단이 실제로 동작하는지 확인하는 명령 시나리오. 기대 마커는
 `verify-sap.ps1`(§VERIFY-PATTERNS ③)의 `CODE_FAIL`/`ENV_FAIL`/`LOCK_FAIL`/`VERIFY_PASS`.
+아래 V1~V5·RV1~RV4 전건을 2026-07-13 1회씩 실측했다(실측 셸: 자격증명 부재 확인 후
+V1~V3, `. .\scripts\vsp-env.ps1 -ProfileName IDEA-JNC` 주입 후 V4 — read 계열만).
 
 ### 모드별 시나리오
 
-| # | 모드/전제 | 명령 | 기대 결과 | 무엇을 증명 |
-|---|---|---|---|---|
-| V1 | Offline (무자격증명·CWD `.env` 없음) | `scripts/verify-sap.ps1 deploy src/zsah1_workdays.prog.abap '$TMP'` | **ENV_FAIL** (preflight `vsp system info` 실패) | offline write는 **기계적**으로 불가 |
-| V2 | Offline | `scripts/verify-sap.ps1 atc PROG ZSAH1_WORKDAYS` | **ENV_FAIL** | read online도 자격증명 없이는 불가(완전 결핍 확인) |
-| V3 | Offline | `vsp lint --file src/zsah1_workdays.prog.abap` | exit 0/1(lint 판정) | offline draft 게이트는 자격증명 없이 동작 |
-| V4 | Read-only(자격증명 주입, read 프로파일) | `vsp atc … `, `vsp health --package '$TMP'`, `vsp source read PROG ZSAH1_WORKDAYS` | 정상 exit 0 | read online 허용 성립 |
-| V5 | Read-only | 계획(index.json)의 **frozen verify 명령 문자열 감사** — 모든 verb가 read allowlist에 속하고 `deploy`/`copy`/`query`/`execute`/`source write` 부재 | 위반 0건 | write/실데이터 verb가 스냅샷에 없음(스냅샷 강제) |
+| # | 모드/전제 | 명령 | 기대 결과 | 실측 (2026-07-13) | 판정 |
+|---|---|---|---|---|---|
+| V1 | Offline (무자격증명·CWD `.env` 없음, `Get-ChildItem Env:SAP_*` 0건 확인) | `& .\scripts\verify-sap.ps1 -- deploy src/zsah1_workdays.prog.abap '$TMP'` | **ENV_FAIL** | exit 1, `ENV_FAIL: no SAP connectivity (vsp system info exit 1)` | 일치 — offline write는 **기계적**으로 불가 |
+| V2 | Offline | `& .\scripts\verify-sap.ps1 -- atc PROG ZSAH1_WORKDAYS` | **ENV_FAIL** | exit 1, `ENV_FAIL: no SAP connectivity (vsp system info exit 1)` | 일치 — read online도 자격증명 없이는 불가(완전 결핍 확인) |
+| V3 | Offline | `vsp lint --file src/zsah1_workdays.prog.abap` | exit 0/1(lint 판정) | exit 0, `No issues found in src/zsah1_workdays.prog.abap` | 일치 — offline draft 게이트는 자격증명 없이 동작 |
+| V4 | Read-only(자격증명 주입, IDEA-JNC read 프로파일) | `vsp source read PROG ZSAH1_WORKDAYS`, `vsp health --package '$TMP'`, `& .\scripts\verify-sap.ps1 -- atc PROG ZSAH1_WORKDAYS` | 정상 exit 0 | 3건 전부 exit 0 — source read: `REPORT zsah1_workdays.` 전문 반환. health: `Summary: WARN — ATC findings detected`(package 기존 객체의 ATC 지적, 명령 자체는 정상 완주) + `tests: PASS`/`boundaries: CLEAN`. atc(verify-sap.ps1): `VERIFY_PASS`, 1 INFO(TTZCU 시간대 캐시, phase 2/3b 선례와 동일 환경성 소음, Error 0) | 일치 — read online 허용 성립. read 계열만 실행(write/query/execute 미실행) |
+| V5 | Read-only(정적 감사, 크리덴셜 불요) | 전 5개 phase(`phases/{0-example,1-workdays-util,2-duedate-reuse,3a-carrflt-seed,3b-carrflt-gated}/index.json`)의 verify 명령 문자열 전수 추출(§V5 상세 표 아래) | 위반 0건 | **12개 SAP 관련 step verify 중**: impl 스텝 5개 전부 `vsp lint --file`(offline 허용), review-gate 스텝 2개(3a/3b) 전부 로컬 검사기 호출만(`Get-FileHash` sha256 핀 + `check-review-verdict.ps1 -Phase -Verdict`, vsp 인자 0건) — `deploy`/`copy`/`query`/`execute`/`source write` **0건**. 유일한 `deploy` 문자열은 3a step2 `escort-write-deploy`(gated-write 전용 명명 스텝, §⑦ 에스코트 스코프 — review-gate 3회 FAIL로 미도달)뿐, read-only/offline 스텝에는 등장 0건 | 일치 — write/실데이터 verb가 read/offline 스냅샷에 없음(스냅샷 강제), gated-write 스텝의 존재 자체는 위반이 아님(설계상 그 스텝의 목적) |
+
+**V5 상세 (전수 추출)**: `0-example`(템플릿, SAP 무관 `pytest` 2건) 제외 —
+`1-workdays-util` step0/1: `vsp lint --file …` ×2 · `2-duedate-reuse` step0/1: `vsp lint --file …` 체인
+×2(각 2파일) · `3a-carrflt-seed` step0: `vsp lint --file …`, step1(review-gate): 로컬 검사기,
+step2(`escort-write-deploy`): `verify-sap.ps1 -- deploy … '$TMP'`(미도달, §⑦ 스코프) ·
+`3b-carrflt-gated` step0: `vsp lint --file …`, step1(review-gate): 로컬 검사기.
 
 ### 리뷰 스텝 시나리오 (필수 — 스펙 Assumptions #2 해소)
 
 리뷰 스텝은 gated phase에서 **자격증명이 주입된 채** 실행되므로 §④의 기계 차단이
-적용되지 않는다(§③ 한계). 따라서 검증은 "명령 로그가 read allowlist를 벗어나지 않음"을
+적용되지 않는다(§③ 한계). 검증은 "명령 로그가 read allowlist를 벗어나지 않음"을
 실측하고, 벗어날 수 있음(에스코트 의존)을 정직히 문서화한다.
 
-| # | 절차 | 기대/판정 |
-|---|---|---|
-| RV1 | 리뷰 스텝 실행 후 세션 명령 로그를 수집, SAP 접촉 명령을 전수 열거 | 전부 §③ read allowlist 소속(`source read`/`atc`/`health`/`lint fetch`/`parse`/조회류), write verb(`deploy`/`copy`/`source write`/`execute`/`test`/`query`) **0건** |
-| RV2 | 리뷰 스텝의 **frozen verify 명령**이 verdict 검사(3조항)만 수행하고 SAP write를 포함하지 않음을 감사 | 위반 0건 |
-| RV3 | 조항1(등식형 dirty 검사)이 리뷰어의 **레포 쓰기**를 차단함을 확인(verdict + `src/*.abap` 동시 dirty → verify exit 1) | 차단 성립(리뷰 게이트 스펙 AC #1-b) |
-| RV4 | **음성 대조(정직 표기)**: 리뷰 스텝이 자격증명 present 상태라 `vsp deploy`를 스크래치 객체에 시도하면 **성공할 수 있음**을 1회 확인 → SAP-write 차단이 **기계적이지 않고 관례+에스코트+allowlist 의존**임을 문서화 | "갭 존재" 확정 → 에스코트(§⑦)가 이 갭을 메움을 명시 |
+| # | 절차 | 기대/판정 | 실측 (2026-07-13) |
+|---|---|---|---|
+| RV1 | 3b 리뷰 스텝(`phases/3b-carrflt-gated/step1-output.json`·`review.md`)의 세션 산출물에서 SAP 접촉 명령을 전수 열거 | 전부 §③ read allowlist 소속, write verb **0건** | `step1-output.json`의 세션 최종 응답이 명시: "No other repo writes; no vsp write; no `src/` edits." 리뷰 방법론은 `git diff main -- src/` + 소스 정독(diff/파일 읽기만, vsp 호출 0건). `review.md`도 동일(코드 판정만, SAP 명령 언급 0). **3a·3b 무인 실행은 offline 스코핑**(엔진 phase 실행 셸에 `SAP_*` 미주입 — 에스코트 체인 E1~E4는 `scoring-raw.md` P2에 명시된 대로 별도로 `vsp-env.ps1 -ProfileName IDEA-JNC`를 로드한 **사람 주도 셸**에서 수행, phase 무인 스텝과 분리) → SAP 접촉이 구조적으로 0건 |
+| RV2 | 리뷰 스텝의 **frozen verify 명령**이 verdict 검사(3조항)만 수행하고 SAP write를 포함하지 않음을 감사 | 위반 0건 | 3a/3b 공통 verify 문자열: `Get-FileHash … -Algorithm SHA256` 핀 대조 + `check-review-verdict.ps1 -Phase <p> -Verdict <f>`뿐. `scripts/check-review-verdict.ps1` 전문을 `vsp.exe|vsp-env|SAP_|deploy|copy|query|execute`로 grep → 매치 1건(120행, git rename/copy **표기 감지** 주석 — SAP `copy` 명령과 무관). SAP verb 0건 |
+| RV3 | 조항1(등식형 dirty 검사)이 리뷰어의 **레포 쓰기**를 차단함을 확인(verdict + `src/*.abap` 동시 dirty → verify exit 1) | 차단 성립(리뷰 게이트 스펙 AC #1-b) | `scripts/test-check-review-verdict.ps1` 재실행 — **13/13 케이스 전건 PASS**, `AC1(b) reviewer code edit -> blocked`(verdict+src 동시 dirty → exit 1) 포함 |
+| RV4 | **음성 대조(정직 표기)**: 리뷰 스텝이 자격증명 present 상태라 `vsp deploy`를 시도하면 **성공할 수 있음**을 확인 → SAP-write 차단이 **기계적이지 않고 관례+에스코트+allowlist 의존**임을 문서화 | "갭 존재" 확정 → 에스코트(§⑦)가 이 갭을 메움을 명시 | 신규 배포 재현 없이 **기실측 인용**(동일 세션, `phases/3b-carrflt-gated/scoring-raw.md` E1·D3) — E1: `IDEA-JNC` 자격증명 주입 셸에서 `verify-sap.ps1 -- deploy src/zsah3_carrflt.prog.abap '$TMP'` → `VERIFY_PASS`("Successfully created and activated PROG … ZSAH3_CARRFLT") 성공. D3: 동일 자격증명 상태에서 재배포(SE80 drift 복원)도 성공. 리뷰 스텝과 에스코트 체인이 **같은 gated phase의 승계 env**(§③)를 공유하므로, 리뷰 스텝 세션이 동일 셸에서 `deploy`를 호출했다면 이 2회와 동등하게 성공했을 것 → **갭 확정**: SAP-write 차단은 §④(자격증명 부재)로 성립하지 않고, 이 세션에서 리뷰 스텝이 실제로 `deploy`를 호출하지 않았다는 관례(RV1) + package allowlist + 에스코트(사람 참관)의 합으로만 성립 |
 
 > RV4는 갭을 **없애는** 절차가 아니라 **명시적으로 드러내** 에스코트 의존을 정직하게
 > 기록하는 절차다. 이 갭의 항구적 기계 봉쇄는 리뷰/write phase 분리 또는 엔진 승격
@@ -216,13 +224,23 @@ vsp가 자격증명을 얻는 **두 채널**을 모두 통제한다:
 - **에스코트가 메우는 것**: ① 리뷰어 판단의 확률성(어느 구성에서도 기계 환원 불가,
   스펙 Decisions #6-②) ② 리뷰 스텝의 SAP-직접-write 갭(§③·§⑥-RV4) ③ package allowlist의
   관례 강제 부분.
-- **무인 전환 조건 (전부 충족 시)**:
-  1. 리뷰 게이트가 씨앗 결함을 FAIL로 내어 write 도달을 실제 차단함 **1회 실증**
-     (DESIGN §13 Phase 3 완료 기준, 리뷰 게이트 스펙 AC #5).
-  2. §⑥ 차단 검증 V1~V5 + RV1~RV3 **실측 통과**(로그 실체 기록).
-  3. drift check가 SE80 수동 변경을 실제 검출함 1회 실증(DESIGN §13).
-- 위 3건 실증 후 gated write phase의 write 스텝을 무인 전환한다. 그 전까지 본 문서의
-  allowlist·스코핑은 **에스코트를 전제로** 적용된다.
+- **무인 전환 조건 (전부 충족 시)** — **3건 전부 실측 완료 (2026-07-13) → 무인 전환 가능**:
+  1. ✅ 리뷰 게이트가 씨앗 결함을 FAIL로 내어 write 도달을 실제 차단함 **1회 실증**
+     (DESIGN §13 Phase 3 완료 기준, 리뷰 게이트 스펙 AC #5) — `3a-carrflt-seed`,
+     리뷰 게이트 3회 시도 전부 FAIL(`REVIEW_GATE_FAIL` exit 1 ×3), `escort-write-deploy`
+     미도달. `phases/3b-carrflt-gated/scoring-raw.md` §3.
+  2. ✅ §⑥ 차단 검증 **V1~V5 + RV1~RV4 실측 통과**(로그 실체 기록, 위 §⑥ 표) — RV4는
+     갭을 "없앤" 것이 아니라 **정직하게 확정 기록**한 것(리뷰 스텝 SAP-write 차단은
+     자격증명 부재가 아니라 관례+package allowlist+에스코트 참관의 합으로 성립).
+  3. ✅ drift check가 SE80 수동 변경을 실제 검출함 1회 실증(DESIGN §13) — D1(SE80 주석
+     추가)→D2(`vsp source read` 재대조가 `+* drift test by SE80` 정확 검출) →D3(복원).
+     `phases/3b-carrflt-gated/scoring-raw.md` §2.
+- **상태**: 3건 전부 실측 충족 — **무인 전환 가능(2026-07-13 실측 완료)**. 단 조건 2가
+  드러낸 RV4 갭(리뷰 스텝의 phase-공통 자격증명 하에서 SAP-write 차단이 비기계적)은
+  §③·§⑧에 기록된 **알려진 한계로 존속** — 무인 전환 실행 시 이 갭을 감수하고 진행할지,
+  아니면 리뷰/write phase 분리(리뷰 게이트 스펙 Deferred #2) 선행 후 전환할지는 **사용자
+  판단**(다음 세션 결정 사항, 발명하지 않고 미결로 남김). 전환 전까지 본 문서의
+  allowlist·스코핑은 **에스코트를 전제로** 계속 적용된다.
 
 ---
 
