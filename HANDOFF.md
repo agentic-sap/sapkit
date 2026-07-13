@@ -518,6 +518,15 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
   BLOCKED 과반 지속·수요 부재)은 로드맵 Phase 완료 기준과 일대일 — 별도 결정 불요,
   로드맵 완주가 곧 판정 (검토 전문은 세션 기록).
 
+### 5-12. vsp copy(abapGit ZIP) 다중 객체 배포 경로 실측 (2026-07-13 등록)
+
+- **트리거**: Phase 4(Domain Packs) 또는 실 Z패키지+transport 단계 진입 시 —
+  객체 수가 늘면 단건 `vsp deploy` 대신 묶음 배포가 자연스러움.
+- **내용**: `vsp copy <abapGit ZIP> --to <패키지>` 경로를 실측(DESIGN §3 권고 운용의
+  묶음 배포 축, §15-V6). Phase 3은 단일 PROG라 deploy로 충분했음(scoring-raw.md).
+- **경계**: 순수 abapGit(서버가 GitHub를 직접 pull)은 GUI 수동이라 무인 verify 계약
+  밖 — 하네스 백엔드는 vsp 유지(D-001), 사람 배포 대안으로만 검토.
+
 ### 5-6. 다국어 README — ✅ 결정 완료 (2026-07-11): 재작성 안 함
 
 - 개인 도구라 다국어 README 소비자 없음 + 코어(영어)·운영 문서(한국어) 역할 분담으로
