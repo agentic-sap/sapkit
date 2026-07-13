@@ -21,6 +21,14 @@
     {
       "dir": "3b-carrflt-gated",
       "status": "pending"
+    },
+    {
+      "dir": "4a-glopen-seed",
+      "status": "pending"
+    },
+    {
+      "dir": "4b-glopen-gated",
+      "status": "pending"
     }
   ]
 }
