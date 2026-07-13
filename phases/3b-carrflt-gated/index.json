@@ -15,8 +15,11 @@
     {
       "step": 1,
       "name": "review-gate",
-      "status": "pending",
-      "verify": "powershell -NoProfile -Command \"$s='scripts/check-review-verdict.ps1'; if ((Get-FileHash $s -Algorithm SHA256).Hash -ne '7B4F211FC008278F4E9149D1C135A8CA28FC1E3A97FD9F2CE93A00BA75FA0223') { Write-Output 'CHECKER_TAMPERED'; exit 1 }; & $s -Phase 3b-carrflt-gated -Verdict phases/3b-carrflt-gated/review-verdict.json\""
+      "status": "completed",
+      "verify": "powershell -NoProfile -Command \"$s='scripts/check-review-verdict.ps1'; if ((Get-FileHash $s -Algorithm SHA256).Hash -ne '7B4F211FC008278F4E9149D1C135A8CA28FC1E3A97FD9F2CE93A00BA75FA0223') { Write-Output 'CHECKER_TAMPERED'; exit 1 }; & $s -Phase 3b-carrflt-gated -Verdict phases/3b-carrflt-gated/review-verdict.json\"",
+      "started_at": "2026-07-13T14:33:06+0900",
+      "summary": "리뷰 게이트 PASS (findings 0, MAJOR 0). 자기보고 불신 원칙에 따라 diff+src에서 독립 재도출: git diff main -- src/(신규 zsah3_carrflt.prog.abap 94줄)와 소스 전문을 읽고 collect의 SELECT를 픽스처 정답지(AA=2·LH=1·ZZ=0, 3행)에 손으로 추적. §13 JOIN 카디널리티: SCARR LEFT OUTER JOIN SFLIGHT ON f~carrid=c~carrid — 운항편 0건 ZZ가 결과에 살아남아 스펙(0건 마스터 포함) 충족(INNER면 ZZ 누락). §15 집계: COUNT(f~fldate)가 LEFT 미매칭 NULL을 세지 않아 ZZ=0 정확(COUNT(*)였다면 1로 오류). GROUP BY c~carrid,c~carrname(비집계 선택 컬럼 정합), ORDER BY c~carrid. §14 스펙 정합: 결과 3행·ZZ=0 = 정답지 일치. B1 ALV/텍스트=N/A(WRITE 리스트, 화면/텍스트풀 밖). B2 SELECT *·LOOP내 SELECT 없음, N+1 없음. B3 lcl_report(데이터)/START-OF-SELECTION(WRITE) 분리·양 클래스 FINAL·Z 접두·public collect( ) 호출(LOCAL FRIENDS 미사용)·§6 단일파일 N/A. B4 신 ABAP SQL+cl_osql_test_environment 756/S4 지원(초과 문법 없음)·활성화는 첫 write 전 미도달(정상). ltc_report는 무의미 단언 아님 — lines=3·assert_subrc(ZZ 존재)·flightcount=0으로 실제 결과집합 단언(INNER면 red). offline 스코프 — SAP 연결 미실행, 로컬(diff+src)만으로 판정(R-001). reviewed_head=d1706baa(현재 HEAD)로 바인딩. verdict 파일 외 src/ 무수정.",
+      "completed_at": "2026-07-13T14:35:45+0900"
     }
   ],
   "created_at": "2026-07-13T14:30:47+0900"
