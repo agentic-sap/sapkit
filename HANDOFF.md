@@ -3,19 +3,23 @@
 > **목적: 컨텍스트/세션이 클리어돼도 이 문서 하나로 전부 복원.**
 > 작성 2026-07-10 · 최종 갱신 2026-07-13. 새 세션은 ① 이 문서 → ② 필요 시 해당 트랙
 > DESIGN.md 순으로 읽는다. 상태가 바뀌면 이 문서를 갱신하는 것까지가 작업의 일부다.
-> **현재 재개점 (2026-07-13)**: 트랙 A **Phase 4(Domain Packs) 착수 — 오프라인 1단계
-> (FI 팩 부트스트랩) 완료.** 사용자 확정 3건: thin+pointer 최소 3파일(챕터 분리
-> 트리거를 README·DESIGN §12에 명시 — 사람 기억이 아니라 문서가 기억) · 규칙 승격
-> 경로=씨앗 결함 주입 · 파일럿=GL 미결항목 리포트(ZR_FI_GL_OPEN, $TMP). 산출 =
-> `packs/modules/README.md`(이중 구조 규약)·`fi/CONSULTANT.md`(지식 포인터 7+트랙 A
-> 결정훅 4)·`fi/RULES.seed.md`(FI-001~005, domain S-시리즈 중복 0) + DESIGN
-> v2.3(§12 구현 노트). 핵심 사실: FI 지식 6파일은 interactive/core 기이식분이라
-> **복사 없이 링크만**(정본 단일화, 팩은 실전 지식 축적처로 성장). 새-컨텍스트
-> 리뷰(opus, read-only) **PASS**(MAJOR 0, MINOR 3 — FI-002 문구 정밀화 수리, 인접
-> 2건 관찰). 게이트 green(doctor agy 핀 드리프트는 기존 건·무관). **다음 =
-> 커넥티드 청크**: ① CONSULT 실사용(FI 팩이 계획 결정을 바꾼 기록 → PLANNING.md,
-> §13 완료 기준 ①) ② 씨앗 결함 주입(S/4 BSEG 금액 읽기)→LESSONS→규칙 1건
-> 승격(완료 기준 ②) — SAP 연결 필요, 착수 전 사용자 확인. 상세 = `.harness/STATE.md`.
+> **현재 재개점 (2026-07-13)**: 트랙 A **Phase 4(Domain Packs) 진행 중 — 오프라인
+> 1단계(FI 팩 부트스트랩, c2def6d) + 커넥티드 준비(CONSULT 답사·4a/4b 계획,
+> 6ff695e) 완료. 다음 액션 = 사용자 터미널에서 무인 엔진 기동**:
+> `python scripts/execute.py 4a-glopen-seed` (SAP 자격증명 없는 일반 셸, 모델
+> opus — 3a와 동일 방식). 기대 = impl completed → **리뷰 3회 전부 FAIL**(체크리스트
+> §16: S/4 금액 소스=FI-002) → error 종료·step2 미도달(FI 씨앗 차단 실증). 그 후
+> 순서: LESSONS 기록 → **FI-002를 R-007로 승격**(§13 완료 기준 ②) + 4a 잔존물
+> 정리(replan-proposal, conventions §7) → `4b-glopen-gated` 실행(리뷰 PASS 기대)
+> → 에스코트 배포(deploy→drift→atc→unit, 4b PLANNING §6 런북). **완료 기준 ①
+> 증거는 이미 확보** — `phases/4-glopen-recon/recon-raw.md` §2(팩 전/후 결정
+> 델타 5건: BSEG→ACDOCA 전환 등) + §5(ACDOCA 원시 컬럼 확정·RLDNR 원장 중복
+> 합산 함정 발견). 파일럿 = ZSAH4A_GLOPEN(씨앗)·ZSAH4_GLOPEN(정상), $TMP,
+> IDEA-JNC(S4H/100·ABAP 756 — S/4 실측). 사용자 확정: 배포=에스코트·객체명
+> ZSAH4 계열·규칙 승격=씨앗 주입. 오프라인 1단계 산출 = `packs/modules/`
+> (README 규약·fi/CONSULTANT.md 포인터 허브·fi/RULES.seed.md FI-001~005) +
+> DESIGN v2.3(§12 thin+pointer·챕터 분리 트리거), 새-컨텍스트 리뷰 PASS(MAJOR 0).
+> 상세 = `.harness/STATE.md` · `.harness/GOAL.md`(커넥티드 청크 기준 갱신됨).
 > **트랙 A Phase 3 완료 (2026-07-13)** — 리뷰 게이트 구현(A-청크,
 > 오전) + 커넥티드 라이브 실증(B-청크, 오후). D-021 스펙 AC 5건 전부 성립(AC1~4
 > 오프라인 + **AC5 씨앗 결함 라이브 차단**) + DESIGN §13 Phase 3 완료 기준 ①②③
@@ -146,8 +150,9 @@ D:\claude for SAP\sap-agentic-harness   ← 단일 레포 (원격: hjaewon/sap-a
 │           ①②③ 전부 실측**, 에스코트 해제 조건 성립(§⑥ 차단 검증 실측만 잔여).
 │           주 머신 vsp 빌드 완료(lock 0b03ef2 재현)+엔진 훅 설치로 무인 실행
 │           개통. **Phase 4 착수(2026-07-13)**: 오프라인 1단계(FI 팩 부트스트랩,
-│           packs/modules/ — thin+pointer, 리뷰 PASS) 완료. 다음 = 커넥티드 청크
-│           (CONSULT 실사용 ① + 씨앗 주입→규칙 승격 ②)
+│           packs/modules/ — thin+pointer, 리뷰 PASS) + 커넥티드 준비(CONSULT
+│           답사 ① 증거 확보 + 4a/4b 계획 커밋) 완료. 다음 = 엔진 실행
+│           (4a 씨앗 차단 → FI-002 승격 ② → 4b → 에스코트)
 │
 └── [트랙 B] 대화형 트랙 — ★ L0~L5 구현 완료, E2E 대기  ←←← 현재 작업 지점
       위치: interactive/ (= 3사 공통 플러그인 루트)

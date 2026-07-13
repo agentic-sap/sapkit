@@ -328,16 +328,34 @@
   interactive 588 green)·coverage·verify-engine(4.13.12)·smoke155 green, doctor는
   기존 agy 드리프트 1건뿐(1.0.16→1.1.1, 환경성·이번 작업 무관)
 
+- 2026-07-13 | **Phase 4 커넥티드 준비 완료 (메인=오케스트레이션, 답사 sonnet·계획
+  opus)** — ① 연결 확인: `vsp system info` S4H/100/ABAP 756(IDEA-JNC, read-only).
+  ② CONSULT 답사(sonnet 위임): FI 팩 경유 로드(CONSULTANT.md→지식→페르소나) →
+  read-only 실측(ZSAH4* 충돌 0 · ACDOCA/BSEG/BKPF/T001 실재 · I_JournalEntryItem
+  DDL로 반제 시맨틱 구조 확인, row-data 0건) → **팩 전/후 결정 델타 5건 기록**
+  (`phases/4-glopen-recon/recon-raw.md` §2 — DESIGN §13 완료 기준 ① 증거).
+  ③ 메인이 ACDOCA 원시 컬럼명 확정(I_GLAccountLineItemRawData DDL — rbukrs/gjahr/
+  racct/augbl/hsl/xopvw) + **RLDNR 원장 키 신규 발견**(§5 — 필터 없으면 복수 원장
+  중복 합산, 4b `p_rldnr DEFAULT '0L'` 반영). ④ 4a/4b phase 계획(opus 위임):
+  3a/3b 미러 + 리뷰 체크리스트 **§16 신설**(S/4 금액 소스=FI-002, B2/MAJOR) +
+  계획 린트 전건(검사기 sha256 핀 실측 일치 · 추출 코드 lint exit 0 · 경로 실재 ·
+  기존 phase 무수정). ⑤ 메인 검수가 4a PLANNING(리뷰어 가시 정답지)의 **씨앗 누설
+  3곳 적발·정정**(3a 중립 수위로 — 리뷰어 블라인드 불변식 복구). 커밋 6ff695e.
+  사용자 결정: 배포=에스코트 · 객체명 ZSAH4 계열 · "배포는 완료 기준에 비필수"
+  인지 하 진행
+
 ## Next
 
-- **Phase 4 진행 중** — 오프라인 1단계 완료(리뷰 PASS·커밋). 다음 = 커넥티드 청크
-  (SAP 연결 필요 — 착수 전 사용자 확인): ① CONSULT 실사용 — 파일럿 ZR_FI_GL_OPEN
-  계획 세션이 packs/modules/fi/CONSULTANT.md를 로드해 계획 결정(ACDOCA 채택·함정·
-  스코프)을 실제로 바꾼 기록을 PLANNING.md에 남김(DESIGN §13 Phase 4 완료 기준 ①)
-  ② 씨앗 결함 주입(S/4 대상 BSEG 금액 읽기) → 커넥티드 채점/리뷰 검출 → LESSONS
-  → FI-002 승격(완료 기준 ②, R-001 준수 — CODE_FAIL 마커만). 소형 잔여 후보
-  (엔진 11-⑩ 설계 판단 · doctor agy 핀 갱신 · vsp source read lock
-  command_contract 편입 검토)는 존속.
+- **Phase 4 커넥티드 실행 대기 — 다음 액션(사용자 터미널, 자격증명 없는 셸)**:
+  ① `python scripts/execute.py 4a-glopen-seed` (opus — 3a 방식) — 기대: impl
+  completed → 리뷰 3회 전부 FAIL(§16) → error·step2 미도달(FI 씨앗 차단 실증).
+  ② 결과 확인 후 메인 세션: LESSONS 기록 → **FI-002를 R-007로 승격**(완료 기준
+  ②, R-001 준수) + 4a 잔존물 정리(replan-proposal — conventions §7 관례).
+  ③ `python scripts/execute.py 4b-glopen-gated` — 기대: 리뷰 PASS → completed.
+  ④ 에스코트 런북(4b PLANNING §6, IDEA-JNC 자격증명 셸): deploy → drift(source
+  read 대조) → atc → unit. ⑤ 문서 계약 갱신 + Phase 4 완료 판정(①+② 충족 확인).
+  소형 잔여 후보(엔진 11-⑩ · doctor agy 핀 · vsp source read lock 편입 검토)는
+  존속.
 
 ## Attempts & dead ends
 
