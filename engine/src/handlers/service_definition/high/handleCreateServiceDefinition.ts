@@ -9,6 +9,7 @@
 
 import type { IServiceDefinitionConfig } from '@babamba2/mcp-abap-adt-clients';
 import { XMLParser } from 'fast-xml-parser';
+import { resolveLogonLanguage } from '../../../lib/adtLogonLanguage';
 import { createAdtClient } from '../../../lib/clients';
 import type { HandlerContext } from '../../../lib/handlers/interfaces';
 import {
@@ -121,6 +122,10 @@ export async function handleCreateServiceDefinition(
         description: typedArgs.description || serviceDefinitionName,
       });
 
+      // [11-⑫] resolve the logon language so the description lands in the
+      // right language row on non-EN systems; EN fallback.
+      const masterLanguage = await resolveLogonLanguage(connection, logger);
+
       // Create
       const createConfig: Partial<IServiceDefinitionConfig> &
         Pick<
@@ -131,6 +136,7 @@ export async function handleCreateServiceDefinition(
         description: typedArgs.description || serviceDefinitionName,
         packageName: typedArgs.package_name.toUpperCase(),
         transportRequest: typedArgs.transport_request,
+        masterLanguage,
         ...(typedArgs.source_code && { sourceCode: typedArgs.source_code }),
       };
 

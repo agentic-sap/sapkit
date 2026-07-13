@@ -5,6 +5,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TOOL_DEFINITION = void 0;
 exports.handleCreateMetadataExtension = handleCreateMetadataExtension;
+const adtLogonLanguage_1 = require("../../../lib/adtLogonLanguage");
 const clients_1 = require("../../../lib/clients");
 const preCheckBeforeActivation_1 = require("../../../lib/preCheckBeforeActivation");
 const utils_1 = require("../../../lib/utils");
@@ -57,12 +58,15 @@ async function handleCreateMetadataExtension(context, params) {
     try {
         const client = (0, clients_1.createAdtClient)(connection);
         const shouldActivate = args.activate !== false;
-        // Create
+        // Create — [11-⑫] resolve the logon language so the description lands in
+        // the right language row on non-EN systems; EN fallback.
+        const masterLanguage = await (0, adtLogonLanguage_1.resolveLogonLanguage)(connection, logger);
         await client.getMetadataExtension().create({
             name,
             description: args.description || name,
             packageName: args.package_name,
             transportRequest: args.transport_request || '',
+            masterLanguage,
         });
         // Lock
         const lockHandle = await client.getMetadataExtension().lock({ name: name });

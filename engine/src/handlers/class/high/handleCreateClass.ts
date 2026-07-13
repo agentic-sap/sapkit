@@ -6,6 +6,7 @@
 
 import type { IClassState } from '@babamba2/mcp-abap-adt-clients';
 import { AdtObjectErrorCodes } from '@babamba2/mcp-abap-adt-interfaces';
+import { resolveLogonLanguage } from '../../../lib/adtLogonLanguage';
 import { createAdtClient } from '../../../lib/clients';
 import type { HandlerContext } from '../../../lib/handlers/interfaces';
 import {
@@ -99,6 +100,9 @@ export async function handleCreateClass(
 
     let state: IClassState;
     try {
+      // [11-⑫] resolve the logon language so the description lands in the
+      // right language row on non-EN systems; EN fallback.
+      const masterLanguage = await resolveLogonLanguage(connection, logger);
       state = await adtClass.create(
         {
           className,
@@ -110,6 +114,7 @@ export async function handleCreateClass(
           abstract: args.abstract || false,
           createProtected: args.create_protected || false,
           sourceCode: undefined,
+          masterLanguage,
         },
         {
           activateOnCreate: false,

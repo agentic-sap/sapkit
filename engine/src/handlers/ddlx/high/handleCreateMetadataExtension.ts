@@ -2,6 +2,7 @@
  * CreateMetadataExtension Handler - ABAP Metadata Extension Creation via ADT API
  */
 
+import { resolveLogonLanguage } from '../../../lib/adtLogonLanguage';
 import { createAdtClient } from '../../../lib/clients';
 import type { HandlerContext } from '../../../lib/handlers/interfaces';
 import {
@@ -75,12 +76,15 @@ export async function handleCreateMetadataExtension(
     const client = createAdtClient(connection);
     const shouldActivate = args.activate !== false;
 
-    // Create
+    // Create — [11-⑫] resolve the logon language so the description lands in
+    // the right language row on non-EN systems; EN fallback.
+    const masterLanguage = await resolveLogonLanguage(connection, logger);
     await client.getMetadataExtension().create({
       name,
       description: args.description || name,
       packageName: args.package_name,
       transportRequest: args.transport_request || '',
+      masterLanguage,
     });
 
     // Lock

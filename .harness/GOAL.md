@@ -5,42 +5,60 @@
 
 ## Task
 
-엔진 잔여 결함 수리 스프린트 — HANDOFF §6 백로그 11-②~⑨ 잔여 + 구 백로그 3 잔여 전량
-(사용자 지시 "full로 끝까지", 2026-07-12). 실행은 모델 지정 서브에이전트 위임,
-메인은 오케스트레이션·게이트·커밋.
+엔진 백로그 **11-⑪·11-⑫ 수리 (1 Wave 묶음, 릴리스 4.13.12)** — 사용자 확정 착수 ①
+(HANDOFF 헤더 2026-07-13). 스프린트 패턴: 메인이 워커, 역-검증·라이브 red→green·
+새-컨텍스트 리뷰. 완료 시 UPSTREAM-FIX-HANDOFF §5·§7 갱신 + Known-remaining #2 제거.
 
-### Wave 구성 (11건)
+### 대상
 
-| Wave | 항목 |
-|---|---|
-| 1 | 11-② 래퍼 내부 stateless 누수 — vendored client 패치 (UpdateLocalTestClass/Types/Macros/Definitions·UpdateUnitTest·UpdateClassMethod·UpdateCdsUnitTest 영향) |
-| 2 | 11-③ UpdateFunctionGroup raw PUT CT v3 하드코딩 · 3-7 vendored 상수 비대칭 · 11-④ CreateView 400 조사·수리 |
-| 3 | 3-5 DeleteFunctionGroup 조용한 실패 · 3-3 CreateProgram(function_group) 거짓 성공 · 11-⑨ CreateStructure 죽은 잠금 쌍 |
-| 4 | 11-⑧ Create 로그온 언어 불일치 (patch 헬퍼 add-if-missing + 언어 파라미터 일관화) · 11-⑥ isAlreadyExistsError 영어 전용 매칭 |
-| 5 | 11-⑤ UpdateStructure 사전 check 빈 에러 조사·수리 · 3-6 low/CDS unit test Cloud 경로 404 (4.13.1 수리의 low/CDS 확장) |
+- **11-⑪ — UpdateTable 사전 check가 새 DDL이 아닌 저장본만 검사 (§7 structure 동류).**
+  vendored `table/AdtTable.js` `check()`가 `runTableCheckRun(…, undefined, version)`로
+  `config.ddlCode`를 드랍. **추가 발견(2026-07-13 코드 정독)**: table의
+  `runTableCheckRun`은 structure의 `checkStructure`와 달리 응답을 parse/throw하지
+  않고 raw 응답만 반환 → `AdtTable.check`가 항상 `errors:[]` 반환 → 핸들러
+  `checkNewCodePassed` 항상 true. 즉 ddlCode 전달만으로는 무동작(나쁜 update 여전히
+  통과). **honest 수리 = ① check-with-source 전달 + ② parse+throw (structure 미러,
+  benign-skip·never-bare 포함).** patch-package 2편집 예상.
 
-제외(HANDOFF에 유보 조건 기록됨): 11-⑦(RFC 3계열 — 관찰만), 3-8(보류),
-백로그 1 잔여(서비스키 운용 전 재검토), 백로그 2(.sc4sap 개명 — 동일 유보 사이클).
+- **11-⑫ — 잔여 create 페이로드 EN 하드코딩 (§5 언어 인프라 기계적 확장).**
+  vendored create.js EN 하드코딩 9종: Class·Interface·Program·Package·Table·
+  Structure·SRVD(serviceDefinition)·DDLX(metadataExtension)·DCL(accessControl).
+  비-EN 로그온(KR-DEV=KO)에서 설명이 EN 슬롯에 저장돼 비어 보임(실수요=포크 KO
+  핸드핵 19곳). 수리 = 4.13.10 `resolveLogonLanguage` 인프라를 각 핸들러+빌더+
+  래퍼+types로 확장. FUGR은 11-⑫ 명시 밖(§5 green 실증)·enhancement/tabletype/
+  service는 핸들러 라우팅 없음(죽은 코드) — 제외, 근거 기록.
 
 ## Success criteria
 
-- [x] **jest 전량 통과(실패 0)** + 수리마다 회귀 테스트 신설, **역-검증**(수리를
-      되돌리면 해당 테스트 FAIL) 실증 — 538→580 passed/0 failed, Wave별 역-검증 실측
-- [x] **재번들 런북 준수** (interactive/server/UPDATE-RUNBOOK.md): 4.13.7~4.13.11
-      5회 전부 verify-engine OK + capability diff no-op(155 유지 — disallowedTools
-      동기화 불요)
-- [x] **IDES 라이브 red→green**: 누적 12건+ (423 잠금·415 CT·삭제 거짓 성공·가짜
-      PROG·언어 400·스켈레톤 복구 2·already-exists 오분류·불투명 check·low/CDS
-      404). $TMP 전량 실삭제 검증(ZSAH39_FGL 포함 최종 0), 고아 잠금 0
-- [x] **새-컨텍스트 read-only 리뷰 PASS** — Wave별 5/5 PASS (BLOCKER/MAJOR 0,
-      리뷰 발굴 2건은 정정·백로그 등재)
-- [x] **게이트 5종 green 유지** + Wave별 커밋 5건 + HANDOFF·STATE 갱신
-- [x] 환경 실패(ENV/LOCK 마커)를 코드 결함으로 기록하지 않음 — 해당 사례 없음
-      (ZSAH39_FGL 세션 잠금은 테스트 산물로 기록, 코드 결함 아님)
+- [x] **jest 전량 통과(실패 0)** + 두 수리 각각 회귀 테스트 신설, **역-검증** 실증
+      — jest **599/0**(5 skipped), 11-⑪ 두 편집 각각 원복 시 FAIL·11-⑫ 스레딩 원복
+      시 FAIL 실측
+- [x] **재번들 런북 준수** — dist→interactive 반영, verify-engine OK(4.13.12),
+      capability diff **155 no-op**(스키마/도구 무증감), VERSION/integrity 갱신
+- [x] **KR-DEV(KO) 라이브 red→green** — 11-⑪ = 나쁜 DDL 구 번들 `success:true`
+      (거짓 성공) → 신 번들 정직 에러+write 차단, good DDL 통과(over-block 없음).
+      11-⑫ = KO 페이로드 create-수락 확인(class·table). 설명 landing readback은
+      도구 한계(SearchObject 클래스 short text 미반환)로 불가 — 페이로드 역-검증
+      (unit)+§5 라이브 메커니즘 재사용으로 근거. $TMP 4종 삭제 검증(Z*SAH412* 무결과)
+- [x] **새-컨텍스트 read-only 리뷰 PASS** — general-purpose 프레시 컨텍스트,
+      BLOCKER/MAJOR 0(MINOR = CheckTableLow parity, 의도됨)
+- [x] **게이트 green** — coverage 0·links 0·verify-engine OK·smoke 155; doctor는
+      agy 드리프트 1건(1.0.16→1.1.1, 환경·무관·R-001)
+- [x] **문서 계약** — CHANGELOG 4.13.12 · UPSTREAM §5·§7 갱신 + Known-remaining #2
+      제거 · HANDOFF §6·헤더 · STATE 갱신
+- [x] 환경 실패를 코드 결함으로 기록하지 않음(R-001) — agy 드리프트는 환경으로 분류
+
+## Scope guards (CLAUDE.md 준수)
+
+- 11-⑫는 §5가 "관용 실증"으로 의도적으로 남긴 경로 — 확장 근거는 실수요(KO 핸드핵).
+  명시 9종만, 죽은 코드·명시 밖(FUGR)은 근거와 함께 제외.
+- 각 핸들러의 실제 create 호출 형태를 개별 확인 후 주입(맹목적 일괄 치환 금지).
+- 동결 레포(sc4sap-*)·private/ 미접촉. 실데이터 2종 자동승인 금지. KR-DEV=DEV tier
+  write만(R-003).
 
 ## Verification method
 
 1. jest·게이트 5종 exit code 실측
 2. 역-검증: 수리 원복 시 신설 테스트 FAIL 재현 로그
-3. 라이브 red→green 증거(구/신 번들 각 실행 결과) 또는 재현 불가 사유
-4. 독립 리뷰어(새 컨텍스트, read-only)가 Wave diff를 이 GOAL 기준으로 항목별 판정
+3. 라이브 red→green 증거(구/신 번들 각 실행 결과) 또는 재현 불가 사유(R-001 마커)
+4. 독립 리뷰어(새 컨텍스트, read-only)가 diff를 이 GOAL 기준으로 항목별 판정

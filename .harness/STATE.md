@@ -196,11 +196,30 @@
   실수요 실증, 원복 권장·근본 수리는 11-⑫). 다음 착수 ①을 11-⑪·⑫ 묶음으로
   확대(HANDOFF 헤더 반영)
 
+- 2026-07-13 | **엔진 11-⑪·⑫ 수리 완료 (4.13.12, 1 Wave, 메인 워커)** — 착수 ①.
+  **11-⑪**: 정독이 백로그 "1줄"을 확장 — table `runTableCheckRun`이 parse/throw
+  안 해 AdtTable.check가 항상 errors:[] → 나쁜 update 무차단. 2편집(ddlCode 전달
+  + parse/throw, structure 미러, check()에만 surgical). **11-⑫**: 8종 create
+  언어 확장(Class·Interface·Program·Package·Table·Structure·SRVD·DDLX), DCL은
+  도달불가 죽은코드로 제외. 회귀 테스트 2본 신설 + **역-검증 두 편집/스레딩 각각
+  실측**(원복 시 FAIL). jest **599/0**(+19), build clean, 재번들 4.13.12 +
+  verify-engine OK + capability **155 no-op**. **KR-DEV(KO) 라이브 red→green**:
+  11-⑪ = 나쁜 DDL 구 번들 `success:true`(거짓 성공) → 신 번들 정직 에러+차단,
+  good DDL 통과. 11-⑫ = KO 페이로드 create-수락 확인(class·table). 설명 readback은
+  도구 한계(SearchObject 클래스 short text 미반환, CL_SALV_TABLE 대조 확인)로 불가
+  — 페이로드 언어 역-검증(unit)+§5 라이브 메커니즘 재사용으로 근거. $TMP 4종 전량
+  삭제 검증(Z*SAH412* 무결과)·고아 0. **새-컨텍스트 리뷰 PASS**(BLOCKER/MAJOR 0;
+  MINOR = CheckTableLow 구조화출력 parity, 의도된 4.13.11 선례). 문서: CHANGELOG
+  4.13.12 + UPSTREAM §5·§7 갱신 + Known-remaining #2 제거 + HANDOFF §6·헤더. 게이트:
+  coverage/links/verify-engine/smoke155 green, doctor는 agy 드리프트 1건(1.0.16→
+  1.1.1, 환경·무관·R-001)
+
 ## Next
 
-- 사용자 확정 순서(HANDOFF 헤더): ① 엔진 11-⑪·⑫ 수리(1 Wave 묶음, 완료 시
-  UPSTREAM-FIX-HANDOFF §5·§7 갱신) → ② 트랙 A 지식 문서 갱신(harness-docs)
-  → ③ Phase 3 선결 설계(5-11 리뷰 게이트 편입)
+- 사용자 확정 순서(HANDOFF 헤더): ~~① 엔진 11-⑪·⑫ 수리~~ ✅ 완료(4.13.12) →
+  ② 트랙 A 지식 문서 갱신(harness-docs — 알림 3회째) → ③ Phase 3 선결 설계
+  (5-11 리뷰 게이트 편입). 유보: 엔진 11-⑩(설계 판단) · doctor agy 핀 갱신
+  (1.1.1 설치 스모크 재실행 후 compatibility.json — 별도 유지보수)
 
 ## Attempts & dead ends
 

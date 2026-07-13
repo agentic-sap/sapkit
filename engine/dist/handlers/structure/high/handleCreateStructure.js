@@ -10,6 +10,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TOOL_DEFINITION = void 0;
 exports.handleCreateStructure = handleCreateStructure;
+const adtLogonLanguage_1 = require("../../../lib/adtLogonLanguage");
 const clients_1 = require("../../../lib/clients");
 const utils_1 = require("../../../lib/utils");
 const transportValidation_js_1 = require("../../../utils/transportValidation.js");
@@ -159,13 +160,16 @@ async function handleCreateStructure(context, args) {
                 packageName: createStructureArgs.package_name,
                 description: createStructureArgs.description || structureName,
             });
-            // Create
+            // Create — [11-⑫] resolve the logon language so the description lands
+            // in the right language row on non-EN systems; EN fallback.
+            const masterLanguage = await (0, adtLogonLanguage_1.resolveLogonLanguage)(connection, logger);
             await client.getStructure().create({
                 structureName,
                 description: createStructureArgs.description || structureName,
                 packageName: createStructureArgs.package_name,
                 ddlCode: '',
                 transportRequest: createStructureArgs.transport_request,
+                masterLanguage,
             });
             // Note: the ADT structure-create endpoint above produces an empty
             // structure shell; field/include DDL generation is not yet implemented

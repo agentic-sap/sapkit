@@ -8,6 +8,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TOOL_DEFINITION = void 0;
 exports.handleCreateInterface = handleCreateInterface;
+const adtLogonLanguage_1 = require("../../../lib/adtLogonLanguage");
 const clients_1 = require("../../../lib/clients");
 const preCheckBeforeActivation_1 = require("../../../lib/preCheckBeforeActivation");
 const utils_1 = require("../../../lib/utils");
@@ -64,11 +65,15 @@ async function handleCreateInterface(context, args) {
         try {
             const client = (0, clients_1.createAdtClient)(connection);
             // Create
+            // [11-⑫] resolve the logon language so the description lands in the
+            // right language row on non-EN systems; EN fallback.
+            const masterLanguage = await (0, adtLogonLanguage_1.resolveLogonLanguage)(connection, logger);
             await client.getInterface().create({
                 interfaceName,
                 description,
                 packageName,
                 transportRequest,
+                masterLanguage,
             });
             logger?.info(`Interface created: ${interfaceName}`);
             // Post-create sanity syntax check on the empty interface shell.

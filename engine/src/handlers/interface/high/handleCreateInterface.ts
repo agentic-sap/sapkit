@@ -5,6 +5,7 @@
  * Source code is set via UpdateInterface handler.
  */
 
+import { resolveLogonLanguage } from '../../../lib/adtLogonLanguage';
 import { createAdtClient } from '../../../lib/clients';
 import type { HandlerContext } from '../../../lib/handlers/interfaces';
 import {
@@ -89,11 +90,15 @@ export async function handleCreateInterface(
       const client = createAdtClient(connection);
 
       // Create
+      // [11-⑫] resolve the logon language so the description lands in the
+      // right language row on non-EN systems; EN fallback.
+      const masterLanguage = await resolveLogonLanguage(connection, logger);
       await client.getInterface().create({
         interfaceName,
         description,
         packageName,
         transportRequest,
+        masterLanguage,
       });
 
       logger?.info(`Interface created: ${interfaceName}`);

@@ -8,6 +8,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TOOL_DEFINITION = void 0;
 exports.handleCreateClass = handleCreateClass;
 const mcp_abap_adt_interfaces_1 = require("@babamba2/mcp-abap-adt-interfaces");
+const adtLogonLanguage_1 = require("../../../lib/adtLogonLanguage");
 const clients_1 = require("../../../lib/clients");
 const preCheckBeforeActivation_1 = require("../../../lib/preCheckBeforeActivation");
 const utils_1 = require("../../../lib/utils");
@@ -68,6 +69,9 @@ async function handleCreateClass(context, params) {
         logger?.info(`Creating class with AdtClass: ${className}`);
         let state;
         try {
+            // [11-⑫] resolve the logon language so the description lands in the
+            // right language row on non-EN systems; EN fallback.
+            const masterLanguage = await (0, adtLogonLanguage_1.resolveLogonLanguage)(connection, logger);
             state = await adtClass.create({
                 className,
                 packageName: args.package_name,
@@ -78,6 +82,7 @@ async function handleCreateClass(context, params) {
                 abstract: args.abstract || false,
                 createProtected: args.create_protected || false,
                 sourceCode: undefined,
+                masterLanguage,
             }, {
                 activateOnCreate: false,
             });

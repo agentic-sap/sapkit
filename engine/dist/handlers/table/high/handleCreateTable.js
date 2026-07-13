@@ -8,6 +8,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TOOL_DEFINITION = void 0;
 exports.handleCreateTable = handleCreateTable;
+const adtLogonLanguage_1 = require("../../../lib/adtLogonLanguage");
 const clients_1 = require("../../../lib/clients");
 const utils_1 = require("../../../lib/utils");
 const transportValidation_js_1 = require("../../../utils/transportValidation.js");
@@ -81,13 +82,16 @@ async function handleCreateTable(context, args) {
                 packageName: createTableArgs.package_name,
                 description: createTableArgs.description || tableName,
             });
-            // Create
+            // Create — [11-⑫] resolve the logon language so the description lands
+            // in the right language row on non-EN systems; EN fallback.
+            const masterLanguage = await (0, adtLogonLanguage_1.resolveLogonLanguage)(connection, logger);
             await client.getTable().create({
                 tableName,
                 packageName: createTableArgs.package_name,
                 description: createTableArgs.description || tableName,
                 ddlCode: '',
                 transportRequest: createTableArgs.transport_request,
+                masterLanguage,
             });
             logger?.info(`Table created: ${tableName}`);
             // Replace SAP backend's auto-generated CDS-style skeleton (`key client : abap.clnt`)

@@ -24,14 +24,18 @@
 > 로그온 언어 동적 해석+스켈레톤 복구 — 11-④ CreateView 개통 동반 + 11-⑥
 > already-exists 기계 식별자 우선)·**4.13.11**(11-⑤ Structure check-with-source
 > + 구 3-6 low/CDS 클래식 testruns 전환). 엔진 잔여 = 신규 발굴 11-⑩·⑪ +
-> 관찰 2(add-if-missing GET 비직렬화·low 무동작 파라미터). **다음 착수 확정
-> (사용자 선택 2026-07-13)**: ① 11-⑪·⑫ 수리(스프린트 패턴 1 Wave 묶음 —
-> opus 위임·역-검증·라이브 red→green·새-컨텍스트 리뷰, 완료 시
-> UPSTREAM-FIX-HANDOFF §5·§7 갱신) → ② 트랙 A 지식 문서 갱신(harness-docs —
-> 알림 2회째) → ③ Phase 3 선결 설계(5-11 리뷰 게이트 편입). 11-⑩은 설계
-> 판단 필요라 후순위 유보. **업스트림 핸드오프 작성 완료(2026-07-13)** =
-> `engine/UPSTREAM-FIX-HANDOFF.md`(영어 자립형, 4.13.2~4.13.11 전량) —
-> 포크 클론(D:\Claude for SAP\abap-mcp-adt-powerup, 4.13.1 동결)에 적용용.
+> 관찰 2(add-if-missing GET 비직렬화·low 무동작 파라미터).
+> **① 11-⑪·⑫ 수리 완료 (4.13.12, 2026-07-13)** — 1 Wave 묶음, 스프린트 패턴
+> 완주(메인 워커·역-검증 두 편집 각각·jest 599/0·재번들 155 no-op·**KR-DEV(KO)
+> 라이브 red→green**·새-컨텍스트 리뷰 PASS). 11-⑪은 정독 결과 "1줄"보다 커서
+> parse+throw 동반(라이브 red = 거짓 성공). CHANGELOG 4.13.12 + UPSTREAM-FIX-
+> HANDOFF §5·§7 갱신 + Known-remaining #2 제거 완료. 엔진 잔여 = 11-⑩(설계
+> 판단, 유보) + Known-remaining 6종(RFC 3계열·CreateProgramLow·미도달 래퍼
+> 등). **다음 착수 (사용자 선택 순서)**: ② 트랙 A 지식 문서 갱신(harness-docs —
+> 알림 3회째) → ③ Phase 3 선결 설계(5-11 리뷰 게이트 편입).
+> **업스트림 핸드오프** = `engine/UPSTREAM-FIX-HANDOFF.md`(영어 자립형,
+> 4.13.2~4.13.12 전량) — 포크 클론(D:\Claude for SAP\abap-mcp-adt-powerup,
+> 4.13.1 동결)에 적용용.
 
 ---
 
@@ -642,6 +646,17 @@ MCP_ENV_PATH·cwd .env)은 tier 미해석 시 `UNKNOWN`=readonly 강제로 fail-
 11. **AdtTable.check의 ddlCode 드랍 (4.13.11 리뷰 발굴, 11-⑤ 동류)**:
     runTableCheckRun에 ddlCode를 안 넘겨 UpdateTable 사전 check가 새 DDL이
     아닌 저장본만 검사 — 11-⑤와 동일한 check-with-source 전달 1수리 가능.
+    → ✅ **11-⑪ 해소 (4.13.12, 2026-07-13)**: 정독 결과 "1줄"보다 큼 —
+    table의 `runTableCheckRun`은 structure의 checkStructure와 달리 응답을
+    parse/throw 안 함 → AdtTable.check가 항상 errors:[] → 사전 check가 나쁜
+    update를 **전혀 차단 못 함**. 수리 2편집(`AdtTable.check`에 ddlCode 전달
+    + parseCheckRunResponse parse+throw, structure 미러·benign-skip·never-bare;
+    surgical하게 check()에만). 회귀 테스트 역-검증(두 편집 각각 load-bearing).
+    **KR-DEV(KO) 라이브 red→green: 나쁜 DDL이 구 번들에서 `success:true`
+    (거짓 성공—백로그가 적은 불투명 실패보다 심함) → 신 번들 정직 에러+write
+    차단, good DDL은 통과(over-block 없음).** 부수: CheckTableLow/CheckObjectLow가
+    하드 에러를 throw 문자열로 보고(4.13.11 CheckStructureLow와 동일 parity —
+    CHANGELOG Notes).
 12. **Create 페이로드 EN 하드코딩 잔여 (~16곳, 4.13.10 스코프 밖 — 2026-07-13
     실수요 실증)**: Class·Interface·Program·Package·Table·Structure·SRVD·
     DDLX·DCL 생성부는 여전히 language/masterLanguage EN 하드코딩 — 생성은
@@ -651,6 +666,15 @@ MCP_ENV_PATH·cwd .env)은 tier 미해석 시 `UNKNOWN`=readonly 강제로 fail-
     수리 = 4.13.10 resolveLogonLanguage 인프라를 나머지 create 빌더에 기계적
     확장(UPSTREAM-FIX-HANDOFF §5에 확장 지점 문서화됨). 11-⑪과 같은 Wave로
     묶기 적합.
+    → ✅ **11-⑫ 해소 (4.13.12, 2026-07-13)**: 8종 확장(Class·Interface·
+    Program·Package·Table·Structure·SRVD·DDLX) — 각 핸들러 resolve+주입 +
+    빌더/래퍼/types(patch-package). **DCL(accessControl)은 제외** — create
+    핸들러 라우팅 전무(도달 불가 죽은 코드, §3 선례). FUGR은 명시 밖(§5 green).
+    회귀 테스트(8종×KO stamp+EN fallback, 역-검증). **KR-DEV(KO) 라이브: KO
+    페이로드 create-수락 확인(class·table 거부 없이 생성 — DDLS-view식 거부
+    리스크 해소).** 설명 landing 자체 readback은 도구 한계로 불가(SearchObject가
+    클래스 short text 미반환 — 표준 CL_SALV_TABLE도 빈 설명으로 확인). 페이로드
+    언어는 §5(4.13.10) 라이브 실증 메커니즘 재사용 + unit 역-검증.
 5. **DeleteFunctionGroup 조용한 실패** (4.13.1 검증 중 3회 실측): deletion 서비스가 실패를
    HTTP 200 + `del:isDeleted="false"` + E-메시지로 반환하는데 vendored delete가 하드코딩
    `success:true`로 대체 — 잠금 등 삭제 실패가 성공으로 보고됨.

@@ -46,10 +46,19 @@ index 01d3c3d..e0cfe11 100644
              const codeToCheck = options?.sourceCode || config.implementationCode || config.sourceCode;
              // 3. Check inactive version (without sourceCode - implementations include code is not full class code)
 diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtClass.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtClass.js
-index 1e554d3..36d9fd9 100644
+index 1e554d3..abb1e3e 100644
 --- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtClass.js
 +++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtClass.js
-@@ -605,7 +605,12 @@ class AdtClass {
+@@ -141,6 +141,8 @@ class AdtClass {
+                 master_system: config.masterSystem ?? this.systemContext.masterSystem,
+                 responsible: config.responsible ?? this.systemContext.responsible,
+                 template_xml: config.classTemplate,
++                // [powerup 4.13.12] forward resolved logon language (backlog 11-⑫)
++                master_language: config.masterLanguage,
+             }, this.logger, this.contentTypes);
+             objectCreated = true;
+             this.connection.setSessionType('stateless');
+@@ -605,7 +607,12 @@ class AdtClass {
              this.logger?.info?.('Step 1: Locking parent class');
              this.connection.setSessionType('stateful');
              lockHandle = await (0, lock_1.lockClass)(this.connection, config.className);
@@ -191,6 +200,29 @@ index b6387fa..77f4100 100644
              // 2. Check local types code
              const codeToCheck = options?.sourceCode || config.localTypesCode;
              const state = {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/create.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/create.js
+index c393a46..b2f619e 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/create.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/create.js
+@@ -17,6 +17,9 @@ const debugEnabled = process.env.DEBUG_ADT_LIBS === 'true';
+ async function create(connection, args, logger, contentTypes) {
+     // Description is limited to 60 characters in SAP ADT
+     const description = (0, internalUtils_1.limitDescription)(args.description || args.class_name || '');
++    // [powerup 4.13.12] Emit the caller's logon language (HANDOFF §6 backlog 11-⑫)
++    // so the description lands in the right language row on non-EN systems; EN default.
++    const masterLanguage = (args.master_language || 'EN').toUpperCase();
+     const url = `/sap/bc/adt/oo/classes${args.transport_request ? `?corrNr=${args.transport_request}` : ''}`;
+     const masterSystem = args.master_system || '';
+     const username = args.responsible || '';
+@@ -35,7 +38,7 @@ async function create(connection, args, logger, contentTypes) {
+     const templateSection = args.template_xml
+         ? `\n\n  ${args.template_xml}\n\n`
+         : '\n\n';
+-    const metadataXml = `<?xml version="1.0" encoding="UTF-8"?><class:abapClass xmlns:class="http://www.sap.com/adt/oo/classes" xmlns:adtcore="http://www.sap.com/adt/core"${abapSourceNamespace} adtcore:description="${description}" adtcore:language="EN" adtcore:name="${args.class_name}" adtcore:type="CLAS/OC" adtcore:masterLanguage="EN"${masterSystemAttr}${responsibleAttr} class:final="${finalAttr}" class:visibility="${visibilityAttr}">
++    const metadataXml = `<?xml version="1.0" encoding="UTF-8"?><class:abapClass xmlns:class="http://www.sap.com/adt/oo/classes" xmlns:adtcore="http://www.sap.com/adt/core"${abapSourceNamespace} adtcore:description="${description}" adtcore:language="${masterLanguage}" adtcore:name="${args.class_name}" adtcore:type="CLAS/OC" adtcore:masterLanguage="${masterLanguage}"${masterSystemAttr}${responsibleAttr} class:final="${finalAttr}" class:visibility="${visibilityAttr}">
+ 
+ 
+ 
 diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/delete.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/delete.js
 index 7f00cad..b29a42c 100644
 --- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/delete.js
@@ -203,6 +235,26 @@ index 7f00cad..b29a42c 100644
      return {
          ...response,
          data: {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/types.d.ts b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/types.d.ts
+index 21cf2c4..54cb5ef 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/types.d.ts
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/types.d.ts
+@@ -14,6 +14,7 @@ export interface ICreateClassParams {
+     abstract?: boolean;
+     create_protected?: boolean;
+     template_xml?: string;
++    master_language?: string;
+ }
+ export interface IDeleteClassParams {
+     class_name: string;
+@@ -36,6 +37,7 @@ export interface IClassConfig {
+     createProtected?: boolean;
+     masterSystem?: string;
+     responsible?: string;
++    masterLanguage?: string;
+     classTemplate?: string;
+ }
+ export interface IClassState extends IAdtObjectState {
 diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/dataElement/AdtDataElement.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/dataElement/AdtDataElement.js
 index 2e26c46..ecf8275 100644
 --- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/dataElement/AdtDataElement.js
@@ -415,6 +467,41 @@ index de4fe06..7f8db2c 100644
      return {
          ...response,
          data: {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/interface/AdtInterface.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/interface/AdtInterface.js
+index d68a8a9..6a95844 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/interface/AdtInterface.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/interface/AdtInterface.js
+@@ -82,6 +82,8 @@ class AdtInterface {
+                 description: config.description,
+                 masterSystem: this.systemContext.masterSystem,
+                 responsible: this.systemContext.responsible,
++                // [powerup 4.13.12] forward resolved logon language (backlog 11-⑫)
++                master_language: config.masterLanguage,
+             }, this.logger);
+             state.createResult = createResponse;
+             objectCreated = true;
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/interface/create.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/interface/create.js
+index 2d4cf18..630d054 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/interface/create.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/interface/create.js
+@@ -33,13 +33,16 @@ async function create(connection, params, logger) {
+     const finalResponsible = params.responsible || '';
+     // Description is limited to 60 characters in SAP ADT
+     const limitedDescription = (0, internalUtils_1.limitDescription)(params.description);
++    // [powerup 4.13.12] Emit the caller's logon language (HANDOFF §6 backlog 11-⑫)
++    // so the description lands in the right language row on non-EN systems; EN default.
++    const masterLanguage = (params.master_language || 'EN').toUpperCase();
+     const masterSystemAttr = finalMasterSystem
+         ? ` adtcore:masterSystem="${finalMasterSystem}"`
+         : '';
+     const responsibleAttr = finalResponsible
+         ? ` adtcore:responsible="${finalResponsible}"`
+         : '';
+-    const payload = `<?xml version="1.0" encoding="UTF-8"?><intf:abapInterface xmlns:intf="http://www.sap.com/adt/oo/interfaces" xmlns:adtcore="http://www.sap.com/adt/core" adtcore:description="${limitedDescription}" adtcore:language="EN" adtcore:name="${params.interfaceName}" adtcore:type="INTF/OI" adtcore:masterLanguage="EN"${masterSystemAttr}${responsibleAttr}>
++    const payload = `<?xml version="1.0" encoding="UTF-8"?><intf:abapInterface xmlns:intf="http://www.sap.com/adt/oo/interfaces" xmlns:adtcore="http://www.sap.com/adt/core" adtcore:description="${limitedDescription}" adtcore:language="${masterLanguage}" adtcore:name="${params.interfaceName}" adtcore:type="INTF/OI" adtcore:masterLanguage="${masterLanguage}"${masterSystemAttr}${responsibleAttr}>
+ 
+ 
+ 
 diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/interface/delete.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/interface/delete.js
 index 62b1b54..d9acdd1 100644
 --- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/interface/delete.js
@@ -427,6 +514,123 @@ index 62b1b54..d9acdd1 100644
      return {
          ...response,
          data: {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/interface/types.d.ts b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/interface/types.d.ts
+index 2766c55..dafbfb1 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/interface/types.d.ts
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/interface/types.d.ts
+@@ -9,6 +9,7 @@ export interface ICreateInterfaceParams {
+     transportRequest?: string;
+     masterSystem?: string;
+     responsible?: string;
++    master_language?: string;
+ }
+ export interface IUpdateInterfaceSourceParams {
+     interface_name: string;
+@@ -26,6 +27,7 @@ export interface IInterfaceConfig extends IAdtObjectConfig {
+     description?: string;
+     sourceCode?: string;
+     sessionId?: string;
++    masterLanguage?: string;
+     onLock?: (lockHandle: string) => void;
+ }
+ export interface IInterfaceState extends IAdtObjectState {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/metadataExtension/create.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/metadataExtension/create.js
+index 69b9a34..b228353 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/metadataExtension/create.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/metadataExtension/create.js
+@@ -41,7 +41,7 @@ async function createMetadataExtension(connection, params) {
+     const responsibleAttr = responsible
+         ? ` adtcore:responsible="${responsible}"`
+         : '';
+-    const xmlBody = `<?xml version="1.0" encoding="UTF-8"?><ddlxsources:ddlxSource xmlns:ddlxsources="http://www.sap.com/adt/ddic/ddlxsources" xmlns:adtcore="http://www.sap.com/adt/core" adtcore:description="${description}" adtcore:language="EN" adtcore:name="${params.name}" adtcore:type="DDLX/EX" adtcore:masterLanguage="${masterLanguage}"${masterSystemAttr}${responsibleAttr}>
++    const xmlBody = `<?xml version="1.0" encoding="UTF-8"?><ddlxsources:ddlxSource xmlns:ddlxsources="http://www.sap.com/adt/ddic/ddlxsources" xmlns:adtcore="http://www.sap.com/adt/core" adtcore:description="${description}" adtcore:language="${masterLanguage}" adtcore:name="${params.name}" adtcore:type="DDLX/EX" adtcore:masterLanguage="${masterLanguage}"${masterSystemAttr}${responsibleAttr}>
+     ${params.transportRequest
+         ? `<adtcore:packageRef adtcore:name="${params.packageName}">
+     <adtcore:properties>
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/package/AdtPackage.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/package/AdtPackage.js
+index 2fc66dc..72e21f2 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/package/AdtPackage.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/package/AdtPackage.js
+@@ -117,6 +117,8 @@ class AdtPackage {
+                 responsible: config.responsible ?? this.systemContext.responsible,
+                 master_system: this.systemContext.masterSystem,
+                 record_changes: config.recordChanges ?? false,
++                // [powerup 4.13.12] forward resolved logon language (backlog 11-⑫)
++                master_language: config.masterLanguage,
+             });
+             this.logger?.info?.('Package created');
+             // 2.5. Read with long polling (wait for object to be ready)
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/package/create.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/package/create.js
+index 05fcb99..6d6b49b 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/package/create.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/package/create.js
+@@ -23,6 +23,9 @@ async function createPackage(connection, params) {
+         .replace(/'/g, '&apos;');
+     // Description is limited to 60 characters in SAP ADT
+     const description = escapeXml((0, internalUtils_1.limitDescription)(params.description || params.package_name));
++    // [powerup 4.13.12] Emit the caller's logon language (HANDOFF §6 backlog 11-⑫)
++    // so the description lands in the right language row on non-EN systems; EN default.
++    const masterLanguage = (params.master_language || 'EN').toUpperCase();
+     const packageType = params.package_type || 'development';
+     const masterSystem = params.master_system;
+     const responsibleUser = params.responsible || '';
+@@ -47,7 +50,7 @@ async function createPackage(connection, params) {
+         ? ` adtcore:masterSystem="${escapeXml(masterSystem)}"`
+         : '';
+     const xmlBody = `<?xml version="1.0" encoding="UTF-8"?>
+-<pak:package xmlns:pak="http://www.sap.com/adt/packages" xmlns:adtcore="http://www.sap.com/adt/core" adtcore:description="${description}" adtcore:language="EN" adtcore:name="${params.package_name}" adtcore:type="DEVC/K" adtcore:version="active" adtcore:masterLanguage="EN"${masterSystemAttr}${responsibleAttr}>
++<pak:package xmlns:pak="http://www.sap.com/adt/packages" xmlns:adtcore="http://www.sap.com/adt/core" adtcore:description="${description}" adtcore:language="${masterLanguage}" adtcore:name="${params.package_name}" adtcore:type="DEVC/K" adtcore:version="active" adtcore:masterLanguage="${masterLanguage}"${masterSystemAttr}${responsibleAttr}>
+   <adtcore:packageRef adtcore:name="${params.package_name}"/>
+   <pak:attributes pak:isEncapsulated="false" pak:packageType="${packageType}" pak:recordChanges="${params.record_changes ? 'true' : 'false'}"/>
+   ${superPackageXml}
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/package/types.d.ts b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/package/types.d.ts
+index 32d97f9..70b8c43 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/package/types.d.ts
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/package/types.d.ts
+@@ -16,6 +16,7 @@ export interface IPackageConfig {
+     responsible?: string;
+     masterSystem?: string;
+     recordChanges?: boolean;
++    masterLanguage?: string;
+     onLock?: (lockHandle: string) => void;
+ }
+ export interface IPackageState extends IAdtObjectState {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/program/AdtProgram.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/program/AdtProgram.js
+index 2c9bf96..8da05d4 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/program/AdtProgram.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/program/AdtProgram.js
+@@ -101,6 +101,8 @@ class AdtProgram {
+                 sourceCode: options?.sourceCode || config.sourceCode,
+                 masterSystem: this.systemContext.masterSystem,
+                 responsible: this.systemContext.responsible,
++                // [powerup 4.13.12] forward resolved logon language (backlog 11-⑫)
++                master_language: config.masterLanguage,
+             }, this.contentTypes);
+             state.createResult = createResponse;
+             objectCreated = true;
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/program/create.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/program/create.js
+index be24461..d0abd02 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/program/create.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/program/create.js
+@@ -62,6 +62,9 @@ START-OF-SELECTION.
+ async function create(connection, args, contentTypes) {
+     // Description is limited to 60 characters in SAP ADT
+     const description = (0, internalUtils_1.limitDescription)(args.description || args.programName);
++    // [powerup 4.13.12] Emit the caller's logon language (HANDOFF §6 backlog 11-⑫)
++    // so the description lands in the right language row on non-EN systems; EN default.
++    const masterLanguage = (args.master_language || 'EN').toUpperCase();
+     const programType = convertProgramType(args.programType);
+     const application = args.application || '*';
+     const url = `/sap/bc/adt/programs/programs${args.transportRequest ? `?corrNr=${args.transportRequest}` : ''}`;
+@@ -71,7 +74,7 @@ async function create(connection, args, contentTypes) {
+         ? ` adtcore:masterSystem="${masterSystem}"`
+         : '';
+     const responsibleAttr = username ? ` adtcore:responsible="${username}"` : '';
+-    const metadataXml = `<?xml version="1.0" encoding="UTF-8"?><program:abapProgram xmlns:program="http://www.sap.com/adt/programs/programs" xmlns:adtcore="http://www.sap.com/adt/core" adtcore:description="${description}" adtcore:language="EN" adtcore:name="${args.programName}" adtcore:type="PROG/P" adtcore:masterLanguage="EN"${masterSystemAttr}${responsibleAttr} program:programType="${programType}" program:application="${application}">
++    const metadataXml = `<?xml version="1.0" encoding="UTF-8"?><program:abapProgram xmlns:program="http://www.sap.com/adt/programs/programs" xmlns:adtcore="http://www.sap.com/adt/core" adtcore:description="${description}" adtcore:language="${masterLanguage}" adtcore:name="${args.programName}" adtcore:type="PROG/P" adtcore:masterLanguage="${masterLanguage}"${masterSystemAttr}${responsibleAttr} program:programType="${programType}" program:application="${application}">
+   <adtcore:packageRef adtcore:name="${args.packageName}"/>
+ </program:abapProgram>`;
+     const ct = contentTypes?.programCreate();
 diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/program/delete.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/program/delete.js
 index 0f94ca0..d681e37 100644
 --- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/program/delete.js
@@ -439,6 +643,59 @@ index 0f94ca0..d681e37 100644
      return {
          ...response,
          data: {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/program/types.d.ts b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/program/types.d.ts
+index 4adfcc8..04d19e5 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/program/types.d.ts
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/program/types.d.ts
+@@ -13,6 +13,7 @@ export interface ICreateProgramParams {
+     application?: string;
+     sourceCode?: string;
+     activate?: boolean;
++    master_language?: string;
+ }
+ export interface IUpdateProgramSourceParams {
+     programName: string;
+@@ -32,6 +33,7 @@ export interface IProgramConfig {
+     application?: string;
+     sourceCode?: string;
+     sessionId?: string;
++    masterLanguage?: string;
+     onLock?: (lockHandle: string) => void;
+ }
+ export interface IProgramState extends IAdtObjectState {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/serviceDefinition/AdtServiceDefinition.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/serviceDefinition/AdtServiceDefinition.js
+index c39ee4e..3f3eb5e 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/serviceDefinition/AdtServiceDefinition.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/serviceDefinition/AdtServiceDefinition.js
+@@ -93,6 +93,8 @@ class AdtServiceDefinition {
+                 source_code: options?.sourceCode || config.sourceCode,
+                 masterSystem: this.systemContext.masterSystem,
+                 responsible: this.systemContext.responsible,
++                // [powerup 4.13.12] forward resolved logon language (backlog 11-⑫)
++                master_language: config.masterLanguage,
+             });
+             state.createResult = createResponse;
+             this.logger?.info?.('Service definition created');
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/serviceDefinition/create.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/serviceDefinition/create.js
+index 17931d4..71536cf 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/serviceDefinition/create.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/serviceDefinition/create.js
+@@ -18,11 +18,14 @@ async function create(connection, args) {
+     const masterSystem = args.masterSystem || '';
+     // Description is limited to 60 characters in SAP ADT
+     const description = (0, internalUtils_1.limitDescription)(args.description || args.service_definition_name);
++    // [powerup 4.13.12] Emit the caller's logon language (HANDOFF §6 backlog 11-⑫)
++    // so the description lands in the right language row on non-EN systems; EN default.
++    const masterLanguage = (args.master_language || 'EN').toUpperCase();
+     const serviceDefinitionName = args.service_definition_name.toUpperCase();
+     const masterSystemAttr = masterSystem
+         ? ` adtcore:masterSystem="${masterSystem}"`
+         : '';
+-    const xmlBody = `<?xml version="1.0" encoding="UTF-8"?><srvd:srvdSource xmlns:srvd="http://www.sap.com/adt/ddic/srvdsources" xmlns:adtcore="http://www.sap.com/adt/core" adtcore:description="${description}" adtcore:language="EN" adtcore:name="${serviceDefinitionName}" adtcore:type="SRVD/SRV" adtcore:masterLanguage="EN"${masterSystemAttr} adtcore:responsible="${username}" srvd:srvdSourceType="S">
++    const xmlBody = `<?xml version="1.0" encoding="UTF-8"?><srvd:srvdSource xmlns:srvd="http://www.sap.com/adt/ddic/srvdsources" xmlns:adtcore="http://www.sap.com/adt/core" adtcore:description="${description}" adtcore:language="${masterLanguage}" adtcore:name="${serviceDefinitionName}" adtcore:type="SRVD/SRV" adtcore:masterLanguage="${masterLanguage}"${masterSystemAttr} adtcore:responsible="${username}" srvd:srvdSourceType="S">
+   <adtcore:packageRef adtcore:name="${args.package_name.toUpperCase()}"/>
+ </srvd:srvdSource>`;
+     const headers = {
 diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/serviceDefinition/delete.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/serviceDefinition/delete.js
 index 981064a..55a658c 100644
 --- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/serviceDefinition/delete.js
@@ -451,11 +708,40 @@ index 981064a..55a658c 100644
      return {
          ...response,
          data: {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/serviceDefinition/types.d.ts b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/serviceDefinition/types.d.ts
+index 264bcb4..94e0ccd 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/serviceDefinition/types.d.ts
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/serviceDefinition/types.d.ts
+@@ -10,6 +10,7 @@ export interface ICreateServiceDefinitionParams {
+     source_code?: string;
+     masterSystem?: string;
+     responsible?: string;
++    master_language?: string;
+ }
+ export interface IUpdateServiceDefinitionParams {
+     service_definition_name: string;
+@@ -26,6 +27,7 @@ export interface IServiceDefinitionConfig {
+     transportRequest?: string;
+     description?: string;
+     sourceCode?: string;
++    masterLanguage?: string;
+ }
+ export interface IServiceDefinitionState extends IAdtObjectState {
+     readSourceResult?: IAdtResponse;
 diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/AdtStructure.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/AdtStructure.js
-index 4d5334b..da883df 100644
+index 4d5334b..b5e1f48 100644
 --- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/AdtStructure.js
 +++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/AdtStructure.js
-@@ -406,8 +406,19 @@ class AdtStructure {
+@@ -91,6 +91,8 @@ class AdtStructure {
+                 description: config.description,
+                 masterSystem: this.systemContext.masterSystem,
+                 responsible: this.systemContext.responsible,
++                // [powerup 4.13.12] forward resolved logon language (backlog 11-⑫)
++                master_language: config.masterLanguage,
+             });
+             objectCreated = true;
+             state.createResult = createResponse;
+@@ -406,8 +408,19 @@ class AdtStructure {
          }
          // Map status to version
          const version = status === 'active' ? 'active' : 'inactive';
@@ -504,6 +790,28 @@ index 8a0661e..8c07f6e 100644
      }
      return response;
  }
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/create.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/create.js
+index bf8043c..96eef3b 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/create.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/create.js
+@@ -18,13 +18,16 @@ async function create(connection, params) {
+     const responsible = params.responsible || '';
+     // Description is limited to 60 characters in SAP ADT
+     const limitedDescription = (0, internalUtils_1.limitDescription)(params.description);
++    // [powerup 4.13.12] Emit the caller's logon language (HANDOFF §6 backlog 11-⑫)
++    // so the description lands in the right language row on non-EN systems; EN default.
++    const masterLanguage = (params.master_language || 'EN').toUpperCase();
+     const masterSystemAttr = masterSystem
+         ? ` adtcore:masterSystem="${masterSystem}"`
+         : '';
+     const responsibleAttr = responsible
+         ? ` adtcore:responsible="${responsible}"`
+         : '';
+-    const structureXml = `<?xml version="1.0" encoding="UTF-8"?><blue:blueSource xmlns:blue="http://www.sap.com/wbobj/blue" xmlns:adtcore="http://www.sap.com/adt/core" adtcore:description="${limitedDescription}" adtcore:language="EN" adtcore:name="${params.structureName.toUpperCase()}" adtcore:type="TABL/DS" adtcore:masterLanguage="EN"${masterSystemAttr}${responsibleAttr}>
++    const structureXml = `<?xml version="1.0" encoding="UTF-8"?><blue:blueSource xmlns:blue="http://www.sap.com/wbobj/blue" xmlns:adtcore="http://www.sap.com/adt/core" adtcore:description="${limitedDescription}" adtcore:language="${masterLanguage}" adtcore:name="${params.structureName.toUpperCase()}" adtcore:type="TABL/DS" adtcore:masterLanguage="${masterLanguage}"${masterSystemAttr}${responsibleAttr}>
+   <adtcore:packageRef adtcore:name="${params.packageName.toUpperCase()}"/>
+ </blue:blueSource>`;
+     const headers = {
 diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/delete.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/delete.js
 index 6522aab..120c187 100644
 --- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/delete.js
@@ -516,6 +824,116 @@ index 6522aab..120c187 100644
      return {
          ...response,
          data: {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/types.d.ts b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/types.d.ts
+index 6d9eff6..e345481 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/types.d.ts
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/structure/types.d.ts
+@@ -24,6 +24,7 @@ export interface ICreateStructureParams {
+     transportRequest?: string;
+     masterSystem?: string;
+     responsible?: string;
++    master_language?: string;
+ }
+ export interface IUpdateStructureParams {
+     structureName: string;
+@@ -42,6 +43,7 @@ export interface IStructureConfig {
+     ddlCode?: string;
+     fields?: IStructureField[];
+     includes?: IStructureInclude[];
++    masterLanguage?: string;
+     onLock?: (lockHandle: string) => void;
+ }
+ export interface IStructureState extends IAdtObjectState {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/table/AdtTable.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/table/AdtTable.js
+index f9ca732..8015849 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/table/AdtTable.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/table/AdtTable.js
+@@ -21,6 +21,7 @@
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.AdtTable = void 0;
+ const internalUtils_1 = require("../../utils/internalUtils");
++const checkRun_1 = require("../../utils/checkRun");
+ const activation_1 = require("./activation");
+ const check_1 = require("./check");
+ const create_1 = require("./create");
+@@ -74,6 +75,8 @@ class AdtTable {
+                 ddl_code: options?.sourceCode || config.ddlCode,
+                 masterSystem: this.systemContext.masterSystem,
+                 responsible: this.systemContext.responsible,
++                // [powerup 4.13.12] forward resolved logon language (backlog 11-⑫)
++                master_language: config.masterLanguage,
+             });
+             objectCreated = true;
+             state.createResult = createResponse;
+@@ -382,8 +385,44 @@ class AdtTable {
+         }
+         // Map status to version
+         const version = status === 'active' ? 'active' : 'inactive';
++        // [powerup 4.13.12] Forward config.ddlCode as the source to validate.
++        // Callers that pass ddlCode (the UpdateTable high-level pre-check and
++        // the CheckTable low-level tool's documented ddl_code path) intend to
++        // validate the NEW/unsaved code, not whatever version is already stored
++        // on the server. Dropping it silently (undefined) made the "check new
++        // code" step validate the wrong version, so a real syntax error in the
++        // new DDL was never surfaced and the write PUT failed opaquely ("Kein
++        // Sichern wegen Fehler in Quelle. Details erhalten Sie mit Prüfung.").
++        // undefined (no ddlCode) preserves the saved-version behavior. Same
++        // root as the structure §7 fix (HANDOFF §6 backlog 11-⑪).
++        const response = await (0, check_1.runTableCheckRun)(this.connection, 'abapCheckRun', config.tableName, config.ddlCode, version);
++        // [powerup 4.13.12] Interpret the check result and throw on a real
++        // error. Unlike the structure path (checkStructure parses+throws),
++        // runTableCheckRun returned the raw response UNPARSED, so AdtTable.check
++        // always reported errors:[] and the UpdateTable pre-check could never
++        // block a bad update — the write PUT then failed opaquely. Mirror
++        // checkStructure: parse, skip the DDIC-benign warnings (an absent
++        // inactive version / "importing from database"), and never throw a bare
++        // message with no detail.
++        const checkResult = (0, checkRun_1.parseCheckRunResponse)(response);
++        if (!checkResult.success && checkResult.has_errors) {
++            const errorMessage = (checkResult.message || '').toLowerCase();
++            const benign = (errorMessage.includes('inactive version') &&
++                errorMessage.includes('does not exist')) ||
++                (errorMessage.includes('importing') &&
++                    errorMessage.includes('database'));
++            if (!benign) {
++                const errorMessages = checkResult.errors
++                    .map((err) => err.text)
++                    .filter((text) => text && String(text).trim())
++                    .join('; ');
++                const detail = errorMessages ||
++                    `${checkResult.message || ''} (check status: ${checkResult.status})`.trim();
++                throw new Error(`Table check failed: ${detail}`);
++            }
++        }
+         return {
+-            checkResult: await (0, check_1.runTableCheckRun)(this.connection, 'abapCheckRun', config.tableName, undefined, version),
++            checkResult: response,
+             errors: [],
+         };
+     }
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/table/create.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/table/create.js
+index f4ff8e2..f1fd094 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/table/create.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/table/create.js
+@@ -23,6 +23,9 @@ async function createTable(connection, params) {
+     const responsible = params.responsible || '';
+     // Description is limited to 60 characters in SAP ADT
+     const description = (0, internalUtils_1.limitDescription)(params.table_name);
++    // [powerup 4.13.12] Emit the caller's logon language (HANDOFF §6 backlog 11-⑫)
++    // so the description lands in the right language row on non-EN systems; EN default.
++    const masterLanguage = (params.master_language || 'EN').toUpperCase();
+     const masterSystemAttr = masterSystem
+         ? ` adtcore:masterSystem="${masterSystem}"`
+         : '';
+@@ -31,7 +34,7 @@ async function createTable(connection, params) {
+         : '';
+     // Create empty table with POST
+     const createUrl = `/sap/bc/adt/ddic/tables${params.transport_request ? `?corrNr=${params.transport_request}` : ''}`;
+-    const tableXml = `<?xml version="1.0" encoding="UTF-8"?><blue:blueSource xmlns:blue="http://www.sap.com/wbobj/blue" xmlns:adtcore="http://www.sap.com/adt/core" adtcore:description="${description}" adtcore:language="EN" adtcore:name="${params.table_name.toUpperCase()}" adtcore:type="TABL/DT" adtcore:masterLanguage="EN"${masterSystemAttr}${responsibleAttr}>
++    const tableXml = `<?xml version="1.0" encoding="UTF-8"?><blue:blueSource xmlns:blue="http://www.sap.com/wbobj/blue" xmlns:adtcore="http://www.sap.com/adt/core" adtcore:description="${description}" adtcore:language="${masterLanguage}" adtcore:name="${params.table_name.toUpperCase()}" adtcore:type="TABL/DT" adtcore:masterLanguage="${masterLanguage}"${masterSystemAttr}${responsibleAttr}>
+ 
+   <adtcore:packageRef adtcore:name="${params.package_name.toUpperCase()}"/>
+ 
 diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/table/delete.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/table/delete.js
 index 36ebd1b..33de3fc 100644
 --- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/table/delete.js
@@ -528,6 +946,26 @@ index 36ebd1b..33de3fc 100644
      return {
          ...response,
          data: {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/table/types.d.ts b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/table/types.d.ts
+index eb6aeb6..0592ff6 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/table/types.d.ts
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/table/types.d.ts
+@@ -9,6 +9,7 @@ export interface ICreateTableParams {
+     ddl_code?: string;
+     masterSystem?: string;
+     responsible?: string;
++    master_language?: string;
+ }
+ export interface IUpdateTableParams {
+     table_name: string;
+@@ -26,6 +27,7 @@ export interface ITableConfig {
+     transportRequest?: string;
+     ddlCode?: string;
+     description?: string;
++    masterLanguage?: string;
+ }
+ export interface ITableState extends IAdtObjectState {
+ }
 diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/view/AdtView.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/view/AdtView.js
 index 868d975..b5d5678 100644
 --- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/view/AdtView.js
