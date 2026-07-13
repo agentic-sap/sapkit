@@ -14,6 +14,13 @@
     "build_command": "CGO_ENABLED=0 go build -ldflags \"-s -w -X main.Version=v2.38.1-91-g0b03ef2 -X main.Commit=0b03ef2 -X main.BuildDate=2026-07-12T03:11:15Z\" -o build/vsp.exe ./cmd/vsp",
     "built_at": "2026-07-12T03:11:15Z"
   },
+  "binary_main_machine": {
+    "_comment": "동일 커밋 0b03ef2·동일 build_command 재현, --version 출력 lock과 정확 일치 + 오프라인 명령 계약 스모크 통과, 바이트 차는 Go 빌드 경로 임베딩 아티팩트로 판정 — 2026-07-13",
+    "path": "D:\\claude for SAP\\vsp\\vsp-custom\\build\\vsp.exe",
+    "sha256": "B10405459D5428045DFC55BB9CC4C2184C1C18BEBC3B3C18DC10304F3D960999",
+    "size_bytes": 18115072,
+    "built_at": "2026-07-13T04:12:56Z"
+  },
   "version_output": "vsp version v2.38.1-91-g0b03ef2 (commit: 0b03ef2, built: 2026-07-12T03:11:15Z)",
   "command_contract": [
     {

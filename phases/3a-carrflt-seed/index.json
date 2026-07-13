@@ -1,0 +1,24 @@
+{
+  "project": "sap-agentic-harness",
+  "phase": "3a-carrflt-seed",
+  "steps": [
+    {
+      "step": 0,
+      "name": "impl-carrflt",
+      "status": "pending",
+      "verify": "powershell -Command \"& 'D:\\claude for SAP\\vsp\\vsp-custom\\build\\vsp.exe' lint --file src/zsah3a_carrflt.prog.abap; exit $LASTEXITCODE\""
+    },
+    {
+      "step": 1,
+      "name": "review-gate",
+      "status": "pending",
+      "verify": "powershell -NoProfile -Command \"$s='scripts/check-review-verdict.ps1'; if ((Get-FileHash $s -Algorithm SHA256).Hash -ne '7B4F211FC008278F4E9149D1C135A8CA28FC1E3A97FD9F2CE93A00BA75FA0223') { Write-Output 'CHECKER_TAMPERED'; exit 1 }; & $s -Phase 3a-carrflt-seed -Verdict phases/3a-carrflt-seed/review-verdict.json\""
+    },
+    {
+      "step": 2,
+      "name": "escort-write-deploy",
+      "status": "pending",
+      "verify": "powershell -File scripts/verify-sap.ps1 -- deploy src/zsah3a_carrflt.prog.abap '$TMP'"
+    }
+  ]
+}

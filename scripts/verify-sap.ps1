@@ -23,7 +23,9 @@ param(
 )
 
 # pinned by adapters/vsp/vsp.lock.json - keep in sync
-$VSP = "D:\Claude for SAP\vsp-custom\build\vsp.exe"
+# machine-specific path (this is the main machine - binary_main_machine); the
+# secondary machine's path is lock's "binary" entry.
+$VSP = "D:\claude for SAP\vsp\vsp-custom\build\vsp.exe"
 
 if (-not (Test-Path -LiteralPath $VSP)) {
     Write-Output "ENV_FAIL: vsp binary not found at $VSP"

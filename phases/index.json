@@ -13,6 +13,14 @@
       "dir": "2-duedate-reuse",
       "status": "completed",
       "completed_at": "2026-07-12T02:56:56+0900"
+    },
+    {
+      "dir": "3a-carrflt-seed",
+      "status": "pending"
+    },
+    {
+      "dir": "3b-carrflt-gated",
+      "status": "pending"
     }
   ]
 }
