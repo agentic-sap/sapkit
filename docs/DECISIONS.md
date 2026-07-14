@@ -375,3 +375,59 @@
   기본값·실데이터 게이트 · packs/ 학습 루프 · 트랙 B 무접촉.
 - **영향**: DESIGN.md·lock 파일은 단계 진행 중 갱신(지금 무변경). HANDOFF 재개점
   갱신. 다음 액션 = 단계 1 착수.
+
+## D-024 · 2026-07-14 · D-023 정정 — Codex 교차검토 실측 반영: v0.19.2는 "후보 pin", RV4 미봉합, "Direct 기본" 명칭 (재기준 방향은 유지)
+
+- **정정 배경**: D-023 방향을 Codex(0.144.3, read-only)가 독립 교차검토 →
+  **방향(대화형 중심·무인 강등)은 조건부 동의로 수렴**하되, D-023 기록의 앞서간
+  표현 4건을 코드 실측으로 반박. 반박분을 Fable/메인이 재검증(authority-gate·
+  install_engine 직접 grep)해 확정. D-018·D-019와 같은 Fable+Codex 이중검토 관례.
+- **정정 1 — 명칭**: "Guided(대화형) 중심 기본"은 부정확 → 상류 정확 모델은
+  **"Direct 기본(흔적 0) + Guided 명시적 승격 + Engine 별도"**. 상류가 "Guided
+  always-on"을 명시적으로 기각(architecture-v0.19…md §Rejected). 재기준 문구는
+  "Direct 기본, 필요 시 Guided 승격, Engine attended 특수 모드"로 통일한다.
+- **정정 2 — 재lock 시점**: v0.19.2(929685a)는 **"검증 완료 lock"이 아니라 "후보
+  pin"**. 근거: ① v0.19.0/.1/.2 전부 당일(2026-07-14) 릴리스 + 상류 CI가
+  workflow_dispatch 수동 전용이라 스탬프는 재현성 증거지 안정성(soak) 증거 아님
+  ② 통합검증 전 재lock은 역순. `verified_commit` 선언과 "Phase 5 완료"는 **staging
+  마이그레이션 + 파일럿 2건 + 기술 게이트 통과 후에만**. 그 전까지 lock 파일은
+  후보 pin으로만 취급(929685a를 moving master 아닌 정확 SHA로 고정, 이후 상류
+  추가 커밋 반영 정책 별도 결정).
+- **정정 3 — RV4 미봉합 (안전 관련·확정)**: D-023의 "authority-gate가 RV4 봉합
+  가능성"은 **현 v0.19.2에서 성립하지 않음**. authority-gate.py의 deploy 분류
+  목록(terraform/pulumi/kubectl/vercel/netlify/firebase/flyctl/wrangler/serverless/
+  railway)에 **vsp 부재**(grep 0건 실측) → `permissions.deploy=false`에서도 정확한
+  `vsp deploy`는 deploy로 분류되지 않아 차단 안 됨. 상류 README도 "새 CLI·간접
+  스크립트는 advisory"라 명시. **결론: RV4(자격증명 있는 리뷰 세션이 vsp deploy
+  실행 가능, SAFETY-PROFILES §⑥ RV4)는 열린 채 존속. "닫혔다" 기록 금지, unattended
+  SAP write 계속 금지.** 봉합하려면 vsp 인식 upstream 패치 후 새 SHA 재lock 또는
+  리뷰/write 자격증명 분리 같은 별도 기계 경계 필요.
+- **정정 4 — 트랙 B "무접촉" → "소스 무변경이나 무영향은 검증 전 미성립"**:
+  `.claude/settings.json`을 트랙 B MCP 훅 3개와 Engine 훅이 공유. install_engine.py가
+  그 파일을 재작성(custom hook 보존 의도이나 실제 파일 재작성) → 훅 3개 matcher·
+  command 불변은 **설치 후 검증 대상**이지 자동 보장 아님. 부수: 상류가 Engine
+  bridge worker에 write MCP 연결 금지를 명시(README) — 트랙 B MCP 세션을 worker로
+  쓰지 않는다.
+- **실행 5단계 개정 (D-023 대체)**: 1) **후보 SHA 동결 + 기준선·롤백 확보** —
+  929685a 정확 고정(moving master 금지)·현 settings/manifest/phases/트랙 B 훅 해시
+  보존·rollback commit 확보·상류 전체 테스트 Windows Py3.9/3.12 실행·F-불변식 후보
+  코드 좌표 검증. 2) **주 머신 플러그인 설치 + 격리 smoke**(정확 SHA snapshot,
+  빈 레포에서 Direct=diff 0·Guided=해당 run 파일만). 3) **복제본(disposable clone)
+  마이그레이션 후 실제 Engine 업그레이드** — 합격: skipped_modified=[]·
+  skipped_user_owned=[]·트랙 B MCP 훅 3개 불변·phases/ byte 불변·예상된 retired
+  Engine test(test_execute.py·test_hooks.py) 제거만·Direct/Guided router no-op·
+  interactive/ diff 0. 4) **문서·Policy·legacy 연쇄 갱신** — 모드 문구 통일 +
+  SAP 안전규칙=모드독립 Policy 명시 + 품질모델 적용범위(SAP 코드/write는 새-컨텍스트
+  리뷰, 사소한 문서는 비강제) + GOAL/STATE·run_id 없는 phase는 legacy catalog 봉인
+  (완료·씨앗봉인·예제·재실행금지 명시, 기본 비활성). 문서 범위는 AGENTS.md만이
+  아니라 **CLAUDE.md·docs/PRD·docs/ARCHITECTURE·DESIGN §2/§3/§5/§8/§13/§15/§16**.
+  5) **파일럿 2건(Guided 1 + Engine attended 1) + 기술 합격 게이트 후 최종 lock** —
+  게이트: Direct 무개입·계약/manifest 변조 시 Engine 중단·범위밖 파일 차단·
+  **deploy=false에서 정확한 vsp deploy 음성시험(현 v0.19.2에선 실패 예상 → 실패 시
+  RV4 존속·attended-only 명시 또는 upstream 패치 후 재pin)**·트랙 B MCP 훅 3개 smoke.
+  이 판정+파일럿 후에만 verified_commit·"신판 Phase 5 완료" 선언.
+- **불변(재확인)**: 재기준 방향 자체(대화형 중심·무인 강등)는 D-023 유지 — 본 항목은
+  방향이 아니라 표현·시점·안전기록·범위의 정정. vsp=유일 SAP 접점(D-001·R-002),
+  품질모델(D-019), R-003 DEV-only, 에스코트 기본값, 트랙 B 소스 무변경은 불변.
+- **영향**: HANDOFF 재개점을 "후보 pin·RV4 존속·개정 5단계"로 갱신. lock 파일·
+  DESIGN 무변경(단계 진행 중 갱신). 다음 액션 = 개정 단계 1.
