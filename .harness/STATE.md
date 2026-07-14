@@ -346,25 +346,25 @@
 
 ## Next
 
-- **Phase 4 커넥티드 — ①② 완료(2026-07-14)**: ① 4a 실행 = 기대 결말 그대로
-  (impl 1회 완료 → 리뷰 3회 전부 FAIL·B2/MAJOR file:line 적중 → error·step2
-  미도달). 기계 확정 SEED_BLOCK_OK + src 무변경, 증거 feat-4a-glopen-seed 봉인
-  (646c691, main 미병합). ② L-002 기록 + FI-002→R-007 승격(완료 기준 ②) +
-  잔존물 봉인 완료. ③ **4b 엔진 phase 완료(2026-07-14)** — impl(ACDOCA·SUM(hsl)·
-  rldnr='0L' DEFAULT, 2L 원장 제외 픽스처) 1회 → 리뷰 게이트 **PASS**(reviewed_head
-  b2fa101, findings 0) → completed. 3b 패턴대로 **main 병합**(--no-ff). src 실확인 =
-  ACDOCA 경로 정당(R-007 준수). **다음 액션(사람 수행, connected)**:
-  ④ 에스코트 런북(4b PLANNING §6, PowerShell 터미널에서 IDEA-JNC 자격증명 로드):
-  E1 deploy(+activate) → E2 drift(source read 대조) → E3 atc(INFO만 기대) →
-  E4 unit(1 passed). 결과는 scoring 로그로 기록(3b scoring-raw.md 선례).
-  ⑤ 문서 계약 갱신 + Phase 4 완료 판정(①팩 실사용+②규칙 승격 이미 충족, ③가
-  에스코트로 마무리) → 완주 후 = 대화형(Guided) 재기준 정식 결정(D-022).
-  소형 잔여 후보(엔진 11-⑩ · doctor agy 핀 · vsp source read lock 편입 검토)는
-  존속.
+- **✅ Phase 4(Domain Packs) 완료 (2026-07-14)**: DESIGN §13 완료 기준 ①(팩 CONSULT
+  실사용 = recon 팩 전/후 결정 델타 5건) + ②(LESSONS 유래 규칙 승격 = 4a 씨앗→L-002→
+  R-007) **둘 다 충족**. 에스코트 보강까지 완료 — 4a 씨앗(BSEG 결함) 리뷰 3회 FAIL
+  차단(feat-4a-glopen-seed 봉인 646c691, main 미병합) + 4b 정상(ACDOCA·rldnr='0L')
+  리뷰 PASS→main 병합(55b4ea3)→에스코트 E1~E4 전부 통과(deploy VERIFY_PASS·drift
+  clean[정규화 후 내용 동일]·ATC INFO 2건만·unit 1 passed). 원로그 =
+  phases/4b-glopen-gated/scoring-raw.md.
+- **다음 = 트랙 A 대화형(Guided) 재기준 정식 결정 (D-022 후속)**: 상류 final-harness
+  v0.18~v0.19.1(Direct 기본값·Guided run-계약·무인=격리 필수) 재기준을 정식 결정으로.
+  선결 = 상류 안정화 확인(당일에도 릴리스 중) → §15-F 재검증 → 재lock 여부 →
+  .harness/·AGENTS.md·리뷰 게이트 템플릿·SAFETY-PROFILES·docs 연쇄 갱신(별도 Phase급).
+- 소형 잔여 후보(Phase 4와 무관, 존속): 백로그 5-13(오프라인 게이트 CI, Phase 4
+  완주 후 = 지금 착수 가능) · 엔진 11-⑩ · doctor agy 핀 · vsp source read lock 편입.
 
 ## Attempts & dead ends
 
 <!-- one line per attempt, appended: date | task | what was tried | outcome -->
+- 2026-07-14 | 에스코트 E1 | PS 세션 내에서 `powershell -File scripts/verify-sap.ps1 -- deploy ...`(3b 런북 형태) | 실패 — PositionalParameterNotFound(부모 PS가 `--`/자식 -File 인자 오분해). PS 세션 내에서는 `& .\scripts\verify-sap.ps1 deploy ...`(호출 연산자·자격증명 세션 상속)로 정정
+- 2026-07-14 | 에스코트 E2 drift | `vsp source read ... > file` 후 `git diff --no-index` | git이 "Binary files differ" 오인 — PS `>`가 UTF-16 LE로 기록(첫바이트 255,254). 인코딩·개행 정규화 후 -ceq 대조 → 내용 동일(clean). 대안: `Out-File -Encoding utf8`
 - 2026-07-11 | quality-gate | git status --porcelain(기본)로 미추적 수집 | 실패 — 신규 디렉토리가 "src/" 한 줄로 접혀 내부 .abap 미탐 → -uall로 수리
 - 2026-07-11 | verify 래퍼 | powershell -File + `--file` 대시 인자 전달 | 실패 — PS 5.1 -File 모드 바인딩 오류 → 대시 인자는 -Command "& '...' -- <args>" 형태로 (VERIFY-PATTERNS 주의 기록)
 - 2026-07-11 | lint 실측 | 규칙 7종 스니펫별 exit code | E 4종(line_length>255·empty_statement·max_one_statement·preferred_compare_operator), W 3종(obsolete·colon·naming, len 120~255도 W) — §14-8 --strict 검토 근거

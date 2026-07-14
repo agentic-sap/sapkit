@@ -3,18 +3,24 @@
 > **목적: 컨텍스트/세션이 클리어돼도 이 문서 하나로 전부 복원.**
 > 작성 2026-07-10 · 최종 갱신 2026-07-14. 새 세션은 ① 이 문서 → ② 필요 시 해당 트랙
 > DESIGN.md 순으로 읽는다. 상태가 바뀌면 이 문서를 갱신하는 것까지가 작업의 일부다.
-> **현재 재개점 (2026-07-14)**: 트랙 A **Phase 4(Domain Packs) — 4a 씨앗 차단 실증
-> + FI-002→R-007 승격 + 4b 엔진 phase 완료·main 병합까지 끝. 남은 것 = 에스코트
-> 배포 1건(사람 수행)**. 다음 액션 = 사용자가 **PowerShell 터미널**에서 IDEA-JNC
-> 자격증명을 로드하고 4b PLANNING §6 런북 실행: `. .\scripts\vsp-env.ps1 -ProfileName
-> IDEA-JNC` → E1 deploy(+activate) `powershell -File scripts/verify-sap.ps1 -- deploy
-> src/zsah4_glopen.prog.abap '$TMP'` → E2 drift(source read 대조) → E3 atc(INFO만
-> 기대) → E4 unit(1 passed). 결과를 메인 세션에 붙이면 scoring 기록 + 문서 계약 갱신
-> + Phase 4 완료 판정(①팩 실사용·②규칙 승격 이미 충족, ③가 에스코트로 마무리).
-> **4b 엔진 phase 완료 (2026-07-14)**: impl(ACDOCA·SUM(hsl)·rldnr='0L' DEFAULT,
-> 2L 원장 제외 검증 픽스처) 1회 완료(vsp lint exit 0) → 리뷰 게이트 **PASS**
-> (reviewed_head b2fa101, findings 0) → completed → 3b 패턴대로 main 병합(--no-ff).
-> src 실확인 = ACDOCA 경로 정당(R-007 준수). 나머지 흐름(에스코트) 아래.
+> **현재 재개점 (2026-07-14)**: 트랙 A **Phase 4(Domain Packs) 완료 ✅ — 다음 =
+> 대화형(Guided) 재기준 정식 결정(D-022 후속)**. Phase 4 완료 근거: DESIGN §13
+> 완료 기준 ①(팩 CONSULT 실사용 = recon 결정 델타 5건) + ②(LESSONS 유래 규칙 승격
+> = 4a 씨앗→L-002→R-007) 둘 다 충족 + 에스코트 보강(4a 씨앗 차단 + 4b 정상 배포)
+> 완료. **다음 액션 = D-022 재기준 정식 결정** — 선결: 상류 final-harness 안정화
+> 확인(v0.19.1까지 당일 릴리스 중) → §15-F 재검증 → 재lock 여부 판단 → .harness/·
+> AGENTS.md·리뷰 게이트 템플릿·SAFETY-PROFILES·docs 연쇄 갱신(별도 Phase급 작업).
+> 지금 재lock 금지(이동 표적, D-022). 소형 잔여(Phase 4 무관): 백로그 5-13(오프라인
+> 게이트 CI — 지금 착수 가능) · 엔진 11-⑩ · doctor agy 핀 · vsp source read lock.
+> **Phase 4 완료 상세 (2026-07-14)**: 4a(씨앗) — impl(BSEG 결함) 1회 → 리뷰 3회
+> 전부 FAIL(BSEG→ACDOCA file:line 적중) → error·step2 미도달, SEED_BLOCK_OK,
+> feat-4a-glopen-seed 봉인(646c691, main 미병합). L-002 + FI-002→R-007 승격. 4b
+> (정상) — impl(ACDOCA·SUM(hsl)·rldnr='0L' DEFAULT, 2L 원장 제외 픽스처) → 리뷰
+> 게이트 **PASS**(reviewed_head b2fa101) → main 병합(55b4ea3, --no-ff) → 에스코트
+> E1~E4 전부 통과(deploy+activate VERIFY_PASS·drift clean[`>` UTF-16 아티팩트,
+> 정규화 후 내용 동일]·ATC INFO 2건만·unit 1 passed/0 failed). 원로그 =
+> phases/4b-glopen-gated/scoring-raw.md. 런북 함정 2건(PS 세션 내 `&` 직접 호출·
+> `>` UTF-16 drift 오인)은 scoring §1·STATE attempts 기록.
 > **4a-glopen-seed 완료 (2026-07-14, 기대 결말 그대로 실측)**: impl 1회 완료(vsp
 > lint exit 0·유닛 green) → **리뷰 3회 전부 FAIL**(B2/MAJOR — BSEG→ACDOCA를
 > file:line 적중, 리뷰어는 씨앗 메타 무지) → error 종료·step2 미도달. 기계 확정 =
@@ -164,10 +170,12 @@ D:\claude for SAP\sap-agentic-harness   ← 단일 레포 (원격: hjaewon/sap-a
 │           체인 E1~E4+SE80 drift 검출 D1~D2 전부 통과). **DESIGN §13 완료 기준
 │           ①②③ 전부 실측**, 에스코트 해제 조건 성립(§⑥ 차단 검증 실측만 잔여).
 │           주 머신 vsp 빌드 완료(lock 0b03ef2 재현)+엔진 훅 설치로 무인 실행
-│           개통. **Phase 4 착수(2026-07-13)**: 오프라인 1단계(FI 팩 부트스트랩,
-│           packs/modules/ — thin+pointer, 리뷰 PASS) + 커넥티드 준비(CONSULT
-│           답사 ① 증거 확보 + 4a/4b 계획 커밋) 완료. 다음 = 엔진 실행
-│           (4a 씨앗 차단 → FI-002 승격 ② → 4b → 에스코트)
+│           개통. **Phase 4 완료(2026-07-14)**: 오프라인 1단계(FI 팩 부트스트랩,
+│           packs/modules/ — thin+pointer, 리뷰 PASS) + CONSULT 답사(완료 기준 ①)
+│           + 4a 씨앗 차단(리뷰 3회 FAIL, feat-4a-glopen-seed 봉인)→FI-002→R-007
+│           승격(완료 기준 ②) + 4b 정상 경로(ACDOCA·rldnr='0L') 리뷰 PASS→main
+│           병합→에스코트 E1~E4 전부 통과(scoring-raw.md). **DESIGN §13 완료 기준
+│           ①② 충족 + 에스코트 보강**. 다음 = 대화형(Guided) 재기준 정식 결정(D-022)
 │
 └── [트랙 B] 대화형 트랙 — ★ L0~L5 구현 완료, E2E 대기  ←←← 현재 작업 지점
       위치: interactive/ (= 3사 공통 플러그인 루트)
