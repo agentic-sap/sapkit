@@ -1,7 +1,7 @@
 # HANDOFF — 프로젝트 전체 상태와 재개 지침
 
 > **목적: 컨텍스트/세션이 클리어돼도 이 문서 하나로 전부 복원.**
-> 작성 2026-07-10 · 최종 갱신 2026-07-13. 새 세션은 ① 이 문서 → ② 필요 시 해당 트랙
+> 작성 2026-07-10 · 최종 갱신 2026-07-14. 새 세션은 ① 이 문서 → ② 필요 시 해당 트랙
 > DESIGN.md 순으로 읽는다. 상태가 바뀌면 이 문서를 갱신하는 것까지가 작업의 일부다.
 > **현재 재개점 (2026-07-13)**: 트랙 A **Phase 4(Domain Packs) 진행 중 — 오프라인
 > 1단계(FI 팩 부트스트랩, c2def6d) + 커넥티드 준비(CONSULT 답사·4a/4b 계획,
@@ -11,7 +11,12 @@
 > §16: S/4 금액 소스=FI-002) → error 종료·step2 미도달(FI 씨앗 차단 실증). 그 후
 > 순서: LESSONS 기록 → **FI-002를 R-007로 승격**(§13 완료 기준 ②) + 4a 잔존물
 > 정리(replan-proposal, conventions §7) → `4b-glopen-gated` 실행(리뷰 PASS 기대)
-> → 에스코트 배포(deploy→drift→atc→unit, 4b PLANNING §6 런북). **완료 기준 ①
+> → 에스코트 배포(deploy→drift→atc→unit, 4b PLANNING §6 런북).
+> **Phase 4 이후 방향 확정(D-022, 2026-07-14)**: 상류 final-harness가 lock 이후
+> v0.18.0~v0.19.1(Direct 기본값·Guided run-계약 중간층·무인=container/VM 필수)로
+> 이동 실측 — Phase 4는 현행 lock(v0.17.3)으로 완주하고, 완주 후 **트랙 A 대화형
+> (Guided) 중심 재기준**을 정식 결정으로 다룬다(무인은 배치·특수 모드로 강등 방향,
+> 즉시 전환·보류는 기각 — 근거는 D-022 원문). **완료 기준 ①
 > 증거는 이미 확보** — `phases/4-glopen-recon/recon-raw.md` §2(팩 전/후 결정
 > 델타 5건: BSEG→ACDOCA 전환 등) + §5(ACDOCA 원시 컬럼 확정·RLDNR 원장 중복
 > 합산 함정 발견). 파일럿 = ZSAH4A_GLOPEN(씨앗)·ZSAH4_GLOPEN(정상), $TMP,
@@ -172,7 +177,7 @@ D:\claude for SAP\sap-agentic-harness   ← 단일 레포 (원격: hjaewon/sap-a
 | `D:\claude for SAP\sc4sap-lite` | **동결·이관됨** — interactive/로 subtree 병합 완료. README에 이관 표기. 삭제해도 무방(사용자 판단) |
 | `hjaewon/abap-mcp-adt-powerup` | **→ `engine/`으로 편입 (2026-07-11, D-017)** — 엔진 소스 정본은 이제 레포 내 `engine/`(재현 빌드 바이트 일치 검증). GitHub 포크·로컬 클론은 히스토리 아카이브. 엔진 이슈는 §6 — engine/에서 수리 |
 | `D:\claude for SAP\vsp\vsp-custom` (주) / `D:\Claude for SAP\vsp-custom` (보조) | **트랙 A의 유일한 SAP 접점·검증/배포 백엔드** (핵심 의존 — 업스트림 oisee/vibing-steampunk 차용). **소유 전략 D-018 확정: 분리 유지 + 부트스트랩 시 버전 lock** (편입 기각 — 소비 계약=CLI 바이너리, 업스트림 활발). 보조 머신 검증 lock(2026-07-11, `adapters/vsp/vsp.lock.json` — aab1275, build/vsp.exe sha256 고정). **주 머신 빌드 완료(2026-07-13)** — lock 커밋 0b03ef2 재현(sha256 바이트 불일치 +3,072B는 Go 경로 임베딩 아티팩트 판정, `--version`/오프라인 계약 스모크 기능 완전 일치), lock에 `binary_main_machine` 병기(사용자 결정: 수용). **SAP 프로파일명 사실**: 이 머신 프로파일 홈(`~\.sah`)에는 `IDEA-JNC`·`KR-DEV`만 존재 — `IDEA-JNC` = `IDES-DEV`와 동일 시스템(S4H/100)의 이 머신 프로파일명, `IDES-DEV` 명칭은 이 머신에 없음 |
-| final-harness: `D:\claude-practice\claude-fable-final` (주) / `D:\AI PROJECT\claude-final` (보조) | 트랙 A 하네스 엔진 — **자체 제작 독립 제품**(fable-harness 후속, sah 밖 사용처 가능). **D-018: 분리 유지 확정** — 버전은 여기 박제하지 않음(부패 실증). §15-F 재검증·lock **완료(2026-07-11)**: v0.17.3(8f7f13b)까지 전량 유지, `adapters/final-harness.lock.json`. **프로젝트 최종 완료 선언(사용자, 2026-07-13)** — 주 머신 클론 실측: HEAD=8f7f13b=origin/master(0/0)·클린·plugin.json v0.17.3 → **lock과 완전 일치, 재검증 불요**. 플러그인 설치는 여전히 보조 머신만(주 머신 enabledPlugins엔 sap-agentic-harness뿐 — ② harness-docs 착수 시 이 머신 설치 필요) |
+| final-harness: `D:\claude-practice\claude-fable-final` (주) / `D:\AI PROJECT\claude-final` (보조) | 트랙 A 하네스 엔진 — **자체 제작 독립 제품**(fable-harness 후속, sah 밖 사용처 가능). **D-018: 분리 유지 확정** — 버전은 여기 박제하지 않음(부패 실증). §15-F 재검증·lock **완료(2026-07-11)**: v0.17.3(8f7f13b)까지 전량 유지, `adapters/final-harness.lock.json`. **프로젝트 최종 완료 선언(사용자, 2026-07-13)** — 주 머신 클론 실측: HEAD=8f7f13b=origin/master(0/0)·클린·plugin.json v0.17.3 → **lock과 완전 일치, 재검증 불요**. → **2026-07-14 정정: 상류 개발 재개 실측**(v0.18.0~v0.19.1, HEAD 088bcb6 — Direct/Guided 재설계·무인=격리 필수). lock은 v0.17.3 유지, 재기준은 Phase 4 완주 후 정식 결정(D-022). 플러그인 설치는 여전히 보조 머신만(주 머신 enabledPlugins엔 sap-agentic-harness뿐 — ② harness-docs 착수 시 이 머신 설치 필요) |
 
 ## 2. 지금까지의 타임라인 (2026-07-10~11, 커밋은 본 레포 main)
 
