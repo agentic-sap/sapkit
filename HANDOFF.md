@@ -3,15 +3,17 @@
 > **목적: 컨텍스트/세션이 클리어돼도 이 문서 하나로 전부 복원.**
 > 작성 2026-07-10 · 최종 갱신 2026-07-14. 새 세션은 ① 이 문서 → ② 필요 시 해당 트랙
 > DESIGN.md 순으로 읽는다. 상태가 바뀌면 이 문서를 갱신하는 것까지가 작업의 일부다.
-> **현재 재개점 (2026-07-14)**: 트랙 A **Phase 4(Domain Packs) 완료 ✅ — 다음 =
-> 대화형(Guided) 재기준 정식 결정(D-022 후속)**. Phase 4 완료 근거: DESIGN §13
-> 완료 기준 ①(팩 CONSULT 실사용 = recon 결정 델타 5건) + ②(LESSONS 유래 규칙 승격
-> = 4a 씨앗→L-002→R-007) 둘 다 충족 + 에스코트 보강(4a 씨앗 차단 + 4b 정상 배포)
-> 완료. **다음 액션 = D-022 재기준 정식 결정** — 선결: 상류 final-harness 안정화
-> 확인(v0.19.1까지 당일 릴리스 중) → §15-F 재검증 → 재lock 여부 판단 → .harness/·
-> AGENTS.md·리뷰 게이트 템플릿·SAFETY-PROFILES·docs 연쇄 갱신(별도 Phase급 작업).
-> 지금 재lock 금지(이동 표적, D-022). 소형 잔여(Phase 4 무관): 백로그 5-13(오프라인
-> 게이트 CI — 지금 착수 가능) · 엔진 11-⑩ · doctor agy 핀 · vsp source read lock.
+> **현재 재개점 (2026-07-14)**: 트랙 A **재기준 확정(D-023) — v0.19 3축(Direct/
+> Guided/Engine attended) 채택, 재lock 대상 v0.19.2(929685a). 다음 액션 = 실행
+> 5단계의 단계 1(재lock + F-불변식 재정의)부터**: 1) 재lock+F 재정의 → 2) 주 머신
+> 플러그인 설치 → 3) Engine 업그레이드(트랙 B MCP 훅 3개 보존 검증) → 4) 문서 연쇄
+> 갱신(AGENTS 라우팅·DESIGN §8/§13·SAFETY-PROFILES·D-020 docs 재유도) → 5) 파일럿
+> 2건(Guided 실작업 + Engine 신형 계약 phase) = 완료 기준. 상세·근거·Phase 5 흡수
+> 관계는 **D-023 원문**. 선결이던 상류 안정화는 해소(저자 확인 + v0.19.2 스탬프).
+> **Phase 4(Domain Packs) 완료 ✅ (2026-07-14)**: 완료 기준 ①(팩 CONSULT 실사용 =
+> recon 결정 델타 5건) + ②(LESSONS 유래 규칙 승격 = 4a 씨앗→L-002→R-007) 충족 +
+> 에스코트 보강(4a 씨앗 차단 + 4b 정상 배포). 소형 잔여(재기준과 무관): 엔진 11-⑩ ·
+> doctor 핀 드리프트(codex 0.144.3·agy 1.1.1) · vsp source read lock · 5-5 fetch.
 > **Phase 4 완료 상세 (2026-07-14)**: 4a(씨앗) — impl(BSEG 결함) 1회 → 리뷰 3회
 > 전부 FAIL(BSEG→ACDOCA file:line 적중) → error·step2 미도달, SEED_BLOCK_OK,
 > feat-4a-glopen-seed 봉인(646c691, main 미병합). L-002 + FI-002→R-007 승격. 4b
