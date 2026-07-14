@@ -28,7 +28,8 @@
     },
     {
       "dir": "4b-glopen-gated",
-      "status": "pending"
+      "status": "completed",
+      "completed_at": "2026-07-14T11:33:37+0900"
     }
   ]
 }

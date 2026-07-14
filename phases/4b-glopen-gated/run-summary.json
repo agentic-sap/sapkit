@@ -1,0 +1,44 @@
+{
+  "phase": "4b-glopen-gated",
+  "outcome": "completed",
+  "driver": "claude",
+  "step_model": "opus",
+  "advisory_model": null,
+  "max_retries": 3,
+  "engine_started_at": "2026-07-14T11:28:39+0900",
+  "engine_ended_at": "2026-07-14T11:38:25+0900",
+  "steps": [
+    {
+      "step": 0,
+      "name": "impl-glopen-correct",
+      "status": "completed",
+      "attempts": 1,
+      "verify_failures": 0,
+      "timeouts": 0,
+      "session_exit_nonzero": 0,
+      "status_not_updated": 0,
+      "attempt_secs": [
+        109
+      ],
+      "verify_surface_changes": 1,
+      "started_at": "2026-07-14T11:28:40+0900",
+      "completed_at": "2026-07-14T11:30:31+0900"
+    },
+    {
+      "step": 1,
+      "name": "review-gate",
+      "status": "completed",
+      "attempts": 1,
+      "verify_failures": 0,
+      "timeouts": 0,
+      "session_exit_nonzero": 0,
+      "status_not_updated": 0,
+      "attempt_secs": [
+        181
+      ],
+      "verify_surface_changes": 1,
+      "started_at": "2026-07-14T11:30:32+0900",
+      "completed_at": "2026-07-14T11:33:36+0900"
+    }
+  ]
+}

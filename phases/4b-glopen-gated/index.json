@@ -5,14 +5,23 @@
     {
       "step": 0,
       "name": "impl-glopen-correct",
-      "status": "pending",
-      "verify": "powershell -Command \"& 'D:\\claude for SAP\\vsp\\vsp-custom\\build\\vsp.exe' lint --file src/zsah4_glopen.prog.abap; exit $LASTEXITCODE\""
+      "status": "completed",
+      "verify": "powershell -Command \"& 'D:\\claude for SAP\\vsp\\vsp-custom\\build\\vsp.exe' lint --file src/zsah4_glopen.prog.abap; exit $LASTEXITCODE\"",
+      "started_at": "2026-07-14T11:28:40+0900",
+      "summary": "src/zsah4_glopen.prog.abap 신규 작성 — 스텝 지시의 정본 코드 블록을 바이트 단위 그대로 옮겨 씀(SQL·테스트·식별자·주석·픽스처 값 무변경). REPORT ZSAH4_GLOPEN = ACDOCA 단일 SELECT로 G/L 미결항목 잔액을 계정별 집계하는 정상 경로 정본. 금액 소스 = ACDOCA(hsl), 미결 판정 = augbl=@space, 원장 한정 = rldnr(p_rldnr DEFAULT '0L') — BSEG 미참조(FI-002/R-007 준수). 회사코드·회계연도·원장은 PARAMETERS로 바인딩(하드코딩 없음). 로컬 테스트 클래스 ltc_report는 cl_osql_test_environment로 ACDOCA를 결정론적 double로 주입. AC(vsp lint --file) = 'No issues found', exit 0. CHECKLIST 점검 통과(문장 종결·블록 짝·EQ/NE 미사용(= 사용)·Z 접두). 서버 문법·유닛 red/green은 에스코트 connected 체인(PLANNING §6)에서 판정. SAP 미연결 offline 스텝.",
+      "contract": "src/zsah4_glopen.prog.abap 존재 = 정상 경로 정본(리뷰 정답지, 변경 금지). lcl_report=>collect( iv_bukrs iv_gjahr iv_rldnr )→ty_rows(glaccount racct, amount acdoca-hsl); ACDOCA 단일 SELECT·rldnr·augbl=@space 필터. ltc_report 픽스처 기대: 0L 미결 400000=150·113100=200, 2행(반제 라인·2L 확장원장 제외).",
+      "completed_at": "2026-07-14T11:30:31+0900"
     },
     {
       "step": 1,
       "name": "review-gate",
-      "status": "pending",
-      "verify": "powershell -NoProfile -Command \"$s='scripts/check-review-verdict.ps1'; if ((Get-FileHash $s -Algorithm SHA256).Hash -ne '7B4F211FC008278F4E9149D1C135A8CA28FC1E3A97FD9F2CE93A00BA75FA0223') { Write-Output 'CHECKER_TAMPERED'; exit 1 }; & $s -Phase 4b-glopen-gated -Verdict phases/4b-glopen-gated/review-verdict.json\""
+      "status": "completed",
+      "verify": "powershell -NoProfile -Command \"$s='scripts/check-review-verdict.ps1'; if ((Get-FileHash $s -Algorithm SHA256).Hash -ne '7B4F211FC008278F4E9149D1C135A8CA28FC1E3A97FD9F2CE93A00BA75FA0223') { Write-Output 'CHECKER_TAMPERED'; exit 1 }; & $s -Phase 4b-glopen-gated -Verdict phases/4b-glopen-gated/review-verdict.json\"",
+      "started_at": "2026-07-14T11:30:32+0900",
+      "summary": "새-컨텍스트 리뷰 = PASS (MAJOR 0). impl 자기보고를 배제하고 diff(src/zsah4_glopen.prog.abap 신규 108줄)+소스+PLANNING §1 스펙+ltc_report 고정 기대값에서 독립 재도출. 핵심 §16(FI-002/R-007): 대상 S/4HANA(S4H/756)인데 collect의 FROM은 acdoca 단일, 금액=SUM(hsl) — BSEG/BKPF 참조 0건 → 정상 경로 확정. §14/§15: augbl=@space로 미결만 SUM, GROUP BY racct로 계정 단위, rldnr=@iv_rldnr로 병렬원장 중복 차단. 픽스처 손추적(1000/2024/0L): 400000=100+50=150(반제 999·2L 777 제외), 113100=200 → 2행, ltc_report 단언(lines=2·150.00·200.00)과 정확히 일치. §3/§8: SELECT * 없음(FIELDS racct,SUM(hsl) 명시)·LOOP 내 SELECT 없음·회사코드/연도/원장 전부 PARAMETERS 바인딩(하드코딩 0). §5: lcl_report(데이터)/START-OF-SELECTION(WRITE) 분리, 양 클래스 FINAL, 선택화면 파라미터를 importing 전달(데이터 클래스가 전역 화면필드 미참조). 유닛: cl_osql_test_environment ACDOCA double로 결과집합 실단언. §1/§2 ALV·텍스트풀 N/A(WRITE 리스트·단일 파일). §9/§10 S4/756 초과 문법 없음(ACDOCA는 S/4 대상이라 적법). rclnt 필드 철자는 PLANNING §2가 에스코트 E1 활성화로 명시 이연한 항목이라 코드 결함 아님(R-001) — finding 미기록. verdict 파일 phases/4b-glopen-gated/review-verdict.json (verdict=PASS, reviewed_head=b2fa101c3bc41849cc394631b2a648218c3fb4fa=HEAD, findings=[]). src/ 등 어떤 파일도 미수정 — 등식형 dirty=verdict 파일 1건.",
+      "completed_at": "2026-07-14T11:33:36+0900"
     }
-  ]
+  ],
+  "created_at": "2026-07-14T11:28:40+0900",
+  "completed_at": "2026-07-14T11:33:37+0900"
 }
