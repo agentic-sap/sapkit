@@ -350,12 +350,15 @@
   (impl 1회 완료 → 리뷰 3회 전부 FAIL·B2/MAJOR file:line 적중 → error·step2
   미도달). 기계 확정 SEED_BLOCK_OK + src 무변경, 증거 feat-4a-glopen-seed 봉인
   (646c691, main 미병합). ② L-002 기록 + FI-002→R-007 승격(완료 기준 ②) +
-  잔존물 봉인 완료. **다음 액션**:
-  ③ `python scripts/execute.py 4b-glopen-gated` (main, 자격증명 없는 셸, opus) —
-  기대: impl(ACDOCA·rldnr='0L') → 리뷰 PASS → completed.
-  ④ 에스코트 런북(4b PLANNING §6, IDEA-JNC 자격증명 셸): deploy → drift(source
-  read 대조) → atc → unit. ⑤ 문서 계약 갱신 + Phase 4 완료 판정(①+② 충족 확인)
-  → 완주 후 = 대화형(Guided) 재기준 정식 결정(D-022).
+  잔존물 봉인 완료. ③ **4b 엔진 phase 완료(2026-07-14)** — impl(ACDOCA·SUM(hsl)·
+  rldnr='0L' DEFAULT, 2L 원장 제외 픽스처) 1회 → 리뷰 게이트 **PASS**(reviewed_head
+  b2fa101, findings 0) → completed. 3b 패턴대로 **main 병합**(--no-ff). src 실확인 =
+  ACDOCA 경로 정당(R-007 준수). **다음 액션(사람 수행, connected)**:
+  ④ 에스코트 런북(4b PLANNING §6, PowerShell 터미널에서 IDEA-JNC 자격증명 로드):
+  E1 deploy(+activate) → E2 drift(source read 대조) → E3 atc(INFO만 기대) →
+  E4 unit(1 passed). 결과는 scoring 로그로 기록(3b scoring-raw.md 선례).
+  ⑤ 문서 계약 갱신 + Phase 4 완료 판정(①팩 실사용+②규칙 승격 이미 충족, ③가
+  에스코트로 마무리) → 완주 후 = 대화형(Guided) 재기준 정식 결정(D-022).
   소형 잔여 후보(엔진 11-⑩ · doctor agy 핀 · vsp source read lock 편입 검토)는
   존속.
 
