@@ -431,3 +431,64 @@
   품질모델(D-019), R-003 DEV-only, 에스코트 기본값, 트랙 B 소스 무변경은 불변.
 - **영향**: HANDOFF 재개점을 "후보 pin·RV4 존속·개정 5단계"로 갱신. lock 파일·
   DESIGN 무변경(단계 진행 중 갱신). 다음 액션 = 개정 단계 1.
+
+## D-025 · 2026-07-15 · 트랙 A 재기준 v2 확정 — O1 현행 정직 기록 + P4 transport 실계약 + Guided MCP 파일럿
+
+- **결정**:
+  ① **O1=(가) 현행 정직 기록 채택** — 사용자는 메인 세션의 추천 (나)(배포 불능 reviewer
+     principal + write secret 부재)를 기각하고 비용 0을 우선했다. reviewer mutation
+     경계에 새 기계 장치를 만들지 않으며, 등식형 repo guard + 리뷰 관례 + 사람
+     에스코트로 운용한다. 그 결과 reviewer가 같은 Windows 사용자에서 write credential을
+     얻을 수 있고 **D-019의 SAP reviewer 기계 격리는 약화된 상태**다. 지원 모드는
+     attended-only, unattended는 §7 U-gate 전까지 sealed, 기록값은
+     `historical_rv4_classifier=open` / `reviewer_mutation_boundary=unverified`다.
+     reviewer는 조회를 포함해 어떤 transport 동작도 하지 않는다.
+  ② **O2=P4 transport를 지금 설계** — 종전 “수요가 생길 때까지 P4 BLOCKED” 추천을
+     기각하고, DEV transportable package/request의 create·assign·release·import 책임을
+     설계서 §4.2로 확정한다. Guided 사람은 package/target/request를 소유하고 attended
+     worker는 승인된 DEV pre-release create/assign/read만 bounded 실행할 수 있다. Engine
+     worker는 사전 생성·승인된 package/request에 vsp `deploy --transport`로 할당·검증만
+     한다. release는 exact task/request를 재확인한 사람만, QA/PRD import는 사람/Basis가
+     STMS로만 수행한다. reviewer·unattended release/import는 금지한다.
+  ③ **O3=Guided 파일럿 A의 비-vsp 적용 경로는 트랙 B MCP write** — 사람 소유 대화형
+     write에서 transport-validator·tier-readonly guard·서버 tier gate가 함께 동작하는지
+     관찰하기 위해 채택한다. 적용 성공 응답은 완료 증거가 아니며, 어느 경로로 적용했든
+     완료 도장은 vsp CLI source read·syntax/activation·unit/ATC 증거로만 찍는다.
+  ④ v2 설계서가 `2026-07-14-track-a-v019-rebase.md` 초안을 대체한다. candidate pin은
+     `6de63bac860723ff1bfd50a940a75e46c6e87d99`(커밋 blob v0.19.3)이며, 상류 워킹트리의
+     미커밋 0.19.4(20 modified)는 재현 가능한 SHA가 없어 제외한다. candidate는 staging·
+     파일럿·기술/P4 gate 전까지 verified lock이 아니다.
+- **근거**: ① O1은 기계 격리보다 1인 attended 운용 비용 0을 우선한 사용자의 명시적
+  trade-off다. 위험이 사라졌다는 판단이 아니라 참관 하 수용이며 D-024의 “RV4 닫힘 기록
+  금지”와 정합한다. ② 고정 vsp v2.38.1-91 help/lock 실측상 transport 표면은
+  list/get + `deploy --transport`이고 create/release/import는 없다. 트랙 B tool catalog와
+  소스에는 CreateTransport/ListTransports/GetTransport/ReleaseTransport,
+  CreatePackage·object `transport_request`, QA/PRD fail-closed tier guard가 있다. 단 대상
+  SAP의 ADT release endpoint 지원은 라이브 미확인이고 404/405면 `supported:false`다.
+  abapGit 공식 계약은 transportable package pull/import 때 request를 prompt하지만 이
+  레포에서는 라이브 미실측이므로 사람 DEV 경로로만 한정했다. ③ 기존 파일럿은 전부
+  `$TMP`/LOCAL이고 `--transport` 사용 0건이라, transportable package부터 package layer·
+  change recording·request/task inventory·release/import 증거가 새로 필요하다. ④
+  6de63ba는 `929685a..6de63ba` 허용 델타에서 확인된 최신 불변 커밋이고 보이는 0.19.4는
+  미커밋이라 D-024의 moving-target 금지를 만족하지 못한다.
+- **기각·후속 후보 및 재론 트리거**:
+  O1의 (나)·(다)·(라)는 삭제하지 않고 후속 후보로 보존한다. unattended 재요구,
+  reviewer credential near-miss/실행 1건, 에스코트 병목 연속 3회면 (나)를 재론한다.
+  같은 OS에서 write secret 부재 음성시험이 실패하면 (다), upstream vsp classifier가
+  커밋 SHA/test로 제공되거나 fake-vsp 방어심도가 필요하면 (라)를 재론한다. (라) 단독은
+  unattended 해제 근거가 아니다. O2는 고정 vsp에 create/release/import 표면이 생기거나,
+  대상 SAP live 결과·Basis route가 계약과 다르거나 P4 T-gate가 모순을 찾을 때 재론한다.
+  O3의 abapGit 대안은 MCP가 대상 object write/transport field를 노출하지 않거나 안전훅+
+  tier gate 동시 관찰이 재현 불가할 때만 사용자 새 결정 후 재론한다.
+- **불변(재확인)**: D-018(상류 분리+pin), R-002(vsp CLI 전용), R-003(DEV tier만 vsp
+  write), R-005(비밀 비커밋), D-019의 1 worker+1 fresh reviewer+기계검증 행렬 및
+  syntax/activate SKIPPED 금지는 유지한다. 단 O1에 따라 D-019의 SAP reviewer 기계
+  격리만 약화됐음을 숨기지 않는다. GetTableContents/GetSqlQuery 호출별 사람 승인,
+  트랙 B 소스 무변경, QA/PRD ad-hoc write 금지·DEV CTS→사람/Basis STMS import,
+  D-024의 RV4 닫힘 기록 금지를 유지한다.
+- **영향**: `docs/reference/designs/2026-07-15-track-a-rebase-v2.md`는 사용자 택일 3건이
+  반영된 확정판이며 §14는 “확정된 결정 + 재론 트리거” 정본이다. §4 P4 칸은 BLOCKED에서
+  역할·경로·자동화 한계가 있는 실계약으로 바뀌고 §12 G14·P4 T1~T7·파일럿 A MCP 계약,
+  §15 완료 판정이 이를 소비한다. HANDOFF 헤더는 이 재개점으로 갱신한다. 실제 migration·
+  lock 승격·SAP transport 실행은 아직 시작하지 않았으며 다음 액션은 §11 연쇄 변경과
+  §12 staging/파일럿/gate 집행이다.

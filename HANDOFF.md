@@ -1,28 +1,33 @@
 # HANDOFF — 프로젝트 전체 상태와 재개 지침
 
 > **목적: 컨텍스트/세션이 클리어돼도 이 문서 하나로 전부 복원.**
-> 작성 2026-07-10 · 최종 갱신 2026-07-14. 새 세션은 ① 이 문서 → ② 필요 시 해당 트랙
+> 작성 2026-07-10 · 최종 갱신 2026-07-15. 새 세션은 ① 이 문서 → ② 필요 시 해당 트랙
 > DESIGN.md 순으로 읽는다. 상태가 바뀌면 이 문서를 갱신하는 것까지가 작업의 일부다.
-> **현재 재개점 (2026-07-14)**: 트랙 A **재기준 방향 확정(D-023) + Codex 교차검토
-> 반영 정정(D-024)**. 방향 = 대화형 중심(**Direct 기본, 필요 시 Guided 승격,
-> Engine attended 특수 모드**), 무인 강등. v0.19.2(929685a)는 **"검증 완료 lock"이
-> 아니라 후보 pin** — 최종 lock은 staging 마이그레이션+파일럿+기술 게이트 통과 후.
-> **⚠️ RV4(자격증명 있는 리뷰 세션의 vsp deploy 실행)는 v0.19.2에서도 미봉합**
-> (authority-gate deploy 목록에 vsp 부재 실측) → unattended SAP write 계속 금지.
-> **진행 현황 = 단계 1 분석 완료 + 설계서 초안 나옴(사용자 검토 대기)**. 단계 1의
-> read-only 엔진 분석 = `docs/reference/designs/2026-07-14-v019-engine-analysis.md`
-> (Codex, 929685a blob — F1~F7 재정의·마이그레이션 표면·RV4 확정, 코드 좌표 완비).
-> 그 위에 **모드 매핑 정본 설계서 = `docs/reference/designs/2026-07-14-track-a-v019-
-> rebase.md`**(SAP 활동→3축 매핑·AGENTS 재작성안·RV4 자격증명 스코핑·legacy catalog·
-> 문서 연쇄 변경 목록·후보 pin·파일럿 2건). **⚠️ Codex 분석 재실행 금지 — 이미 완료·
-> 보존됨.** 단계 1 신규 발견: 트랙 B 훅 3개는 node라 마이그레이션 안전(legacy-6 비충돌
-> 실측) · 상류는 그새 v0.19.3으로 이동(0.19.2엔 retired 삭제 로직 없음). **다음 액션 =
-> 설계서 검토(원하면 Codex 이중검토) → 확정 시 단계 1 잔여(정확 SHA 929685a 동결+
-> 기준선·롤백)부터**: 2) 주 머신 설치+격리 smoke → 3) 복제본 마이그레이션 후 실제
-> Engine 업그레이드(트랙 B MCP 훅 3개 불변·retired test 제거만 합격) → 4) 문서·Policy·
-> legacy 연쇄 갱신(AGENTS·CLAUDE·PRD·ARCHITECTURE·DESIGN 다수 §·legacy catalog 봉인)
-> → 5) 파일럿 2건+기술 게이트(vsp deploy 음성시험 포함) 후 최종 lock. 상세=**설계서 +
-> D-024 원문**(정정 4건·개정 단계), 방향 근거=D-023.
+> **현재 재개점 (2026-07-15)**: 트랙 A 재기준 v2 **사용자 택일 3건 확정(D-025)**.
+> 실행 구조는 **Direct 기본 + Guided 명시 승격 + Engine attended 특수**, unattended는
+> sealed다. 단일 정본 설계서 = `docs/reference/designs/2026-07-15-track-a-rebase-v2.md`
+> (07-14 초안 대체); D-023 방향·D-024 정정 위에 D-025가 O1/O2/O3 trade-off를 봉인.
+> candidate pin = **6de63bac860723ff1bfd50a940a75e46c6e87d99**(커밋 blob v0.19.3).
+> 상류 워킹트리의 보이는 0.19.4는 20파일 미커밋이라 제외; verified lock은 여전히
+> 8f7f13b(v0.17.3)이며 staging+파일럿+gate 전에는 candidate를 verified라 부르지 않는다.
+> **O1=(가) 비용 0 현행 정직 기록**: 추천 (나)는 사용자가 기각. 새 reviewer SAP 기계
+> 경계 없음 → **D-019 SAP reviewer 기계 격리 약화**, attended-only,
+> `historical_rv4_classifier=open` / `sap_mutation_boundary=unverified`(reviewer + 모든
+> attended child); reviewer는 조회를 포함한 transport 동작 0. §7 U-gate 전 unattended
+> 봉인, RV4 닫힘 기록 금지.
+> **O2=P4 실계약 확정**: Guided가 DEV package/request create·assign·release 준비를 소유,
+> Engine worker는 사전 승인된 request에 vsp `deploy --transport` 할당·검증만. release는
+> exact 번호를 재확인한 사람 전용, QA/PRD import는 사람/Basis STMS 전용. 고정 vsp의
+> `transport list/get`은 help 존재만 확인됐고 출력 형상 미확인·command contract 미등재;
+> `deploy --transport`만 등재됨. MCP release live 지원·abapGit local 흐름도 미확인이다.
+> 이번 설계 작업에서 SAP write/release/import 0. **O3=파일럿 A 트랙 B MCP write**:
+> DEV allow/pass는 no-op smoke이고 unresolved/QA deny만 tier 차단 증거다. 적용 경로와
+> 무관하게 완료 도장은 vsp CLI source read·syntax/activation·unit/ATC만; abapGit은
+> 명시 트리거가 생길 때 재론. **⚠️ v0.19.2 분석 재실행 금지 — 보존 분석 재사용.**
+> **다음 액션**: 설계서 §11 문서·Policy·legacy 연쇄 갱신 → clean detached 6de63ba
+> staging/주 머신 설치/복제본 migration → §12 G1~G14 + 파일럿 A/B + P4 T1~T5
+> (`READY_FOR_RELEASE`, 실제 release 없음) → 증거 exact SHA 바인딩 후 PROMOTE. 실제 전달
+> run만 사람 T6 release·T7 STMS import를 추가한다. 상세는 v2 설계서 + D-025 원문.
 > **Phase 4(Domain Packs) 완료 ✅ (2026-07-14)**: 완료 기준 ①(팩 CONSULT 실사용 =
 > recon 결정 델타 5건) + ②(LESSONS 유래 규칙 승격 = 4a 씨앗→L-002→R-007) 충족 +
 > 에스코트 보강(4a 씨앗 차단 + 4b 정상 배포). 소형 잔여(재기준과 무관): 엔진 11-⑩ ·
@@ -61,10 +66,11 @@
 > 오프라인 + **AC5 씨앗 결함 라이브 차단**) + DESIGN §13 Phase 3 완료 기준 ①②③
 > 전부 실측(리뷰 PASS 객체가 SAP 전체 write 체인 통과·SE80 drift 검출·씨앗
 > 시맨틱 결함 차단) → **에스코트 해제 조건 성립**. 같은 날 후속으로
-> **SAFETY-PROFILES §⑥ 차단 검증(V1~V5+RV1~RV4) 실측도 완료** — 무인 전환
-> 3조건 전부 충족, §⑦에 "무인 전환 가능(2026-07-13 실측 완료)" 명기(단 RV4가
-> 확정한 갭 — 리뷰 스텝의 phase-공통 자격증명 하 SAP-write 차단이 비기계적 —
-> 은 알려진 한계로 존속, 전환 실행 여부는 사용자 판단). 부수: 주 머신 vsp
+> **SAFETY-PROFILES §⑥ 차단 검증(V1~V5+RV1~RV4) 실측도 완료**. **2026-07-15
+> supersede**: 당시 §⑦의 "무인 전환 가능(2026-07-13 실측 완료)"은 역사적 판정일 뿐
+> 현재 지원 상태가 아니다. RV4가 확정한 phase-공통 자격증명·비기계적 SAP-write 차단
+> 갭 때문에 D-025/O1 이후 `attended-only`, `unattended=sealed`이며 §7 U-gate 전 해제
+> 불가다. 부수: 주 머신 vsp
 > 빌드(lock 0b03ef2 재현, `binary_main_machine` 병기) + 엔진 훅 설치로 **이
 > 머신 트랙 A 무인 실행 최초 개통**. 다음 후보 = **Phase 4(Domain Packs)**
 > 또는 무인 전환 실행 또는 잔여 정리(엔진 11-⑩ 설계 판단 · doctor agy 핀 갱신 ·
@@ -148,8 +154,9 @@ D:\claude for SAP\sap-agentic-harness   ← 단일 레포 (원격: hjaewon/sap-a
 │     설계: DESIGN.md (v2.1, 2026-07-09 확정 + 2026-07-10 엔진 델타 주)
 │     내용: final-harness(D:\claude-practice\claude-fable-final) 엔진 + vsp-custom CLI로
 │           ABAP 개발을 계획→실행→verify→LESSONS/RULES 학습 루프로 관리.
-│           ★ vsp-custom = 트랙 A의 유일한 SAP 접점·검증/배포 백엔드 — 없으면 verify
-│           루프 불성립 (DESIGN.md §3, powerup 엔진은 이 트랙에서 미사용).
+│           ★ vsp-custom = Engine 실행 백엔드이자 적용 경로와 독립인 완료 증거
+│           백엔드 — Direct/Guided 사람 적용은 트랙 B MCP·abapGit도 가능하며, 완료
+│           verify에는 vsp가 필요함 (재기준 v2 §0·§4.1).
 │           소유 전략 = **D-018 확정: 분리 유지 + 부트스트랩 시 버전 lock** (5-9 종결)
 │           설계는 원래부터 대화형 세션(Phase 0a/0b·CONSULT) + 무인 step 겸용 —
 │           "무인"은 실행 모드 하나이지 트랙 전체가 아님.

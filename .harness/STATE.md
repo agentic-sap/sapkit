@@ -5,6 +5,31 @@
 
 ## Done
 
+- 2026-07-15 | **새-컨텍스트 리뷰 지적 수리 완료** — MAJOR 6·MINOR 4 전건을 v2
+  설계서/HANDOFF/GOAL/STATE에 반영하고 O-1도 게이트 증거 해석에 수용. SAP/vsp 호출,
+  v0.19.2 분석 재실행, 커밋/push 0건. 작성자 자체 확인(self-check)과 분리된
+  새-컨텍스트 read-only reviewer 판정은 **overall PASS, BLOCKER/MAJOR/MINOR 잔여 0**.
+  D-025 본문은 append-only 원칙으로 미수정이며 D-026 정정 후보는 사용자 판단 대기.
+- 2026-07-15 | **트랙 A 실행 모델 재기준 v2 작성 + 작성자 자체 확인(self-check,
+  독립 검증 아님)** — 사용자 확정
+  O1=(가)·O2=P4 transport 지금 설계·O3=Guided 파일럿 A 트랙 B MCP write를 같은
+  설계서에 반영. 당시 D-019 SAP reviewer 기계 격리 약화와 `attended-only`/
+  `unattended=sealed`/`historical_rv4_classifier=open`/
+  `reviewer_mutation_boundary=unverified`를 봉인하고, reviewer transport 0·DEV-only
+  생성/할당·사람 전용 release/import 실계약을 추가. D-025는 DECISIONS EOF 순수
+  append, HANDOFF는 당시 헤더만 갱신. 작성자가 GOAL 18개를 모두 체크하고 **18/18
+  PASS로 잘못 보고했으나 이는 자체 확인**이었다. 새-컨텍스트 독립 리뷰의 실제 판정은
+  `PASS with fixes — MAJOR 6 · MINOR 4`; 종전 독립 검증 주장은 철회. 본 수리 설계는
+  `sap_mutation_boundary=unverified`를 reviewer + 모든 attended child로 확장했으며
+  D-025의 기존 필드에는 D-026 정정 판단이 남음. SAP write/release/import 실행 0건,
+  커밋/push 없음.
+- 2026-07-15 | **트랙 A 실행 모델 재기준 v2 설계 완료** — 신규 정본 후보
+  `docs/reference/designs/2026-07-15-track-a-rebase-v2.md` 작성. candidate=6de63ba
+  (commit blob v0.19.3; dirty worktree 0.19.4 제외), 3구조×5프로필·사람 Direct-P3
+  PROVISIONAL_WRITE·reviewer/unattended 좁은 차단·RV4 4안·legacy deny wrapper·F/N·lock
+  PROMOTE/REJECT·문서 연쇄·G1~G14/파일럿 계약 확정. 독립 reviewer 1차 11/14 뒤 모순
+  3건+MINOR 3건 수리, 재검증 **14/14 PASS, BLOCKER/MAJOR/MINOR 0**. 금지 경로 diff 0,
+  커밋/push 없음.
 - 2026-07-11 | harness-tailor 산출물 배치 (사용자 승인분) — quality-gate 래퍼 2종
   (scripts/quality-gate-sap.ps1·verify-sap.ps1) + .claude/quality-gate.json(추적화) +
   VERIFY-PATTERNS 스텁 + RULES R-001~R-005 시드. 게이트 차단 실증 0→1→0 완료
@@ -346,6 +371,11 @@
 
 ## Next
 
+- **다음 = D-025 후속 재기준 집행**: 설계서 §11의 연쇄 문서/Policy/legacy 변경 → clean
+  detached `6de63ba` staging·주 머신 설치·복제본 migration → §12 G1~G14·파일럿 A/B·
+  P4 T1~T5 검증 → lock promote/reject. 현재 O1은 attended-only이며 unattended는
+  sealed, reviewer + 모든 attended child의 `sap_mutation_boundary`는 unverified다.
+  이 작업에서는 구현·migration 미착수.
 - **✅ Phase 4(Domain Packs) 완료 (2026-07-14)**: DESIGN §13 완료 기준 ①(팩 CONSULT
   실사용 = recon 팩 전/후 결정 델타 5건) + ②(LESSONS 유래 규칙 승격 = 4a 씨앗→L-002→
   R-007) **둘 다 충족**. 에스코트 보강까지 완료 — 4a 씨앗(BSEG 결함) 리뷰 3회 FAIL
@@ -353,16 +383,9 @@
   리뷰 PASS→main 병합(55b4ea3)→에스코트 E1~E4 전부 통과(deploy VERIFY_PASS·drift
   clean[정규화 후 내용 동일]·ATC INFO 2건만·unit 1 passed). 원로그 =
   phases/4b-glopen-gated/scoring-raw.md.
-- **✅ 재기준 방향 확정(D-023)+Codex 정정(D-024)+단계 1 분석+설계서 초안 (2026-07-14)**:
-  트랙 A 실행 모델 = **Direct 기본 + Guided 명시 승격 + Engine attended 특수**(무인 강등).
-  v0.19.2(929685a)=후보 pin. **⚠️ RV4 미봉합**(authority-gate에 vsp 부재)→unattended
-  SAP write 금지. 단계 1 산출물 2개 커밋됨:
-  `docs/reference/designs/2026-07-14-v019-engine-analysis.md`(Codex F1~F7 재정의·RV4
-  실측 — **재실행 금지**) + `.../2026-07-14-track-a-v019-rebase.md`(모드 매핑 설계서 초안).
-  트랙 B 훅 3개 마이그레이션 안전 실측. 상류는 v0.19.3으로 이동.
-- **다음 = 설계서 검토**(원하면 Codex 이중검토) → 확정 시 개정 5단계: 1)잔여(정확 SHA
-  929685a 동결+기준선·롤백) 2)주머신 설치+smoke 3)복제본 마이그레이션 후 Engine
-  업그레이드 4)문서 연쇄 갱신 5)파일럿 2건+기술 게이트 후 최종 lock. 정본=설계서+D-024.
+- **✅ 재기준 설계 확정(D-023~D-025, 2026-07-15)**: Direct 기본 + Guided 명시
+  승격 + Engine attended 특수, candidate=`6de63ba`(v0.19.3 blob; dirty 0.19.4 제외).
+  07-14 초안은 v2 확정판이 대체하며 v0.19.2 분석 재실행 금지는 유지.
 - 소형 잔여 후보(재기준과 무관, 존속): **백로그 5-13 CI ✅ 완료**(2-job green, run
   ddd3878) · 엔진 11-⑩ · doctor 핀 드리프트(codex 0.144.3·agy 1.1.1) · vsp source
   read lock 편입 · 5-5 fetch 참조.
@@ -370,6 +393,15 @@
 ## Attempts & dead ends
 
 <!-- one line per attempt, appended: date | task | what was tried | outcome -->
+- 2026-07-15 | 리뷰 수리 별도 새-컨텍스트 검토(read-only) | 작성자와 분리된 reviewer가 GOAL current repair 기준을 설계서/HANDOFF/STATE/diff 및 로컬 근거에 대조 | **overall PASS, BLOCKER/MAJOR/MINOR 잔여 0**; INFO=untracked review 원문은 Git만으로 pre-task byte baseline 재구성 불가, 이번 세션 write 0·반대 증거 없음
+- 2026-07-15 | 리뷰 수리 자체 확인(self-check, 독립 검증 아님) | `git diff --check`, active stale 용어·trailing whitespace 검색, §10 JSON parse, HANDOFF diff/첫 separator, 금지 경로 diff, DECISIONS numstat 점검 | diff-check 오류 0(EOL 경고만), stale/후행공백 0, lock schema JSON OK(`v0.17.3`/`v0.19.3`, safety scope 포함), HANDOFF 첫 separator 146·지정 본문 1곳만 변경, 금지 경로 diff 0, DECISIONS 시작 상태와 같은 +61/-0; SAP/vsp 실행 0
+- 2026-07-15 | 리뷰 MAJOR-A~E·MINOR-1/2/4·O-1 문서 수리 | 설계 §0/4/5/6/10/11/12/14/15, HANDOFF 지정 헤더+본문 1곳을 로컬 근거에 맞춰 편집 | reviewer 전용 경계를 모든 attended child로 확장, lock safety_state+v1 증거 보존, vsp transport 출력 미확인/G14+사람 fallback, LOCAL 삭제, DEV no-op 명시; SAP 호출 0
+- 2026-07-15 | 새-컨텍스트 리뷰 지적 수리 착수 | 리뷰 정본·RULES/PROTOCOL·PRD·ARCHITECTURE와 기존 diff를 대조하고 수리 GOAL 기록 | MAJOR 6·MINOR 4를 모두 수리 대상으로 채택; SAP 무접촉, DECISIONS/금지 경로 무변경 조건으로 문서 편집 시작
+- 2026-07-15 | 새-컨텍스트 독립 리뷰(Claude opus, read-only) | `docs/reference/designs/2026-07-15-fresh-review-of-rebase-v2.md`가 설계서·D-025·HANDOFF·GOAL/STATE를 새 컨텍스트에서 대조 | **PASS with fixes — MAJOR 6 · MINOR 4**; 종전 작성자 자체 확인의 “18/18 PASS”를 반증해 본 수리의 정본이 됨
+- 2026-07-15 | 재기준 v2 확정판 작성자 자체 확인(self-check, 독립 검증 아님) | 작성자가 GOAL 18항을 설계서·D-025·HANDOFF와 diff/표면 증거에 대조 | 당시 **18/18 PASS로 잘못 명명·보고**; 새-컨텍스트 독립 리뷰가 MAJOR 6·MINOR 4를 발견해 판정 무효. GOAL 18번 체크 해제 및 기록 relabel
+- 2026-07-15 | 재기준 v2 확정판 transport 표면 자체 확인(self-check) | v0.19.2 분석 재실행 없이 고정 vsp help·lock/COMMANDS, 트랙 B tool-catalog/handler/tier guard, install-sap-assets Step 0, 공식 abapGit package/transport 문서를 대조 | vsp `transport list/get`은 help 존재만 확인, 실제 출력 형상 미확인·command contract 미등재; `deploy --transport`만 등재. MCP=Create/List/Get/Release+object별 transport field 표면, release endpoint 지원 미확인, abapGit 현장 흐름 미실측; 실제 SAP 호출/write/release/import 0건
+- 2026-07-15 | 재기준 v2 근거·설계 | 필수 정본 전부 정독 + 상류 `929685a..6de63ba` diff·HEAD blob/working-tree 분리 + 현 manifest hash 대조 | candidate=6de63ba 결정(blob v0.19.3; 보이는 v0.19.4는 20파일 미커밋이라 제외), F1~F7/N1~N6 재사용·N7/N8/retired 표면 갱신, 신규 설계서 작성; 독립 검증 14/14 PASS
+- 2026-07-15 | 트랙 A 재기준 v2 설계 착수 | 기본 샌드박스에서 git/PowerShell 읽기 실행 | Windows CreateProcessAsUserW 1312로 2회 실패, 승인된 read-only 셸로 우회; 파일 변경 전 git 상태는 기존 미추적 `2026-07-15-codex-review-of-rebase-draft.md` 1건
 - 2026-07-14 | CI 게이트 검증 | 클린 클론(autocrlf=false)에서 5게이트 exit 0 확인 후 CI에 5종 투입 | 첫 push에서 check-migration-coverage만 FAIL — 이 게이트는 절대 외부경로(SC4SAP_SRC=D:/.../sc4sap-custom)를 읽어 클론 위치와 무관하게 로컬 레포 참조(사각지대). 러너엔 그 경로 부재→크래시. 교훈: 외부 절대경로 읽는 스크립트는 클린-클론으로 CI 적합성 검증 불가 → 실제 러너가 유일한 판정. check-migration-coverage·doctor는 CI 제외(로컬 전용)
 - 2026-07-14 | 에스코트 E1 | PS 세션 내에서 `powershell -File scripts/verify-sap.ps1 -- deploy ...`(3b 런북 형태) | 실패 — PositionalParameterNotFound(부모 PS가 `--`/자식 -File 인자 오분해). PS 세션 내에서는 `& .\scripts\verify-sap.ps1 deploy ...`(호출 연산자·자격증명 세션 상속)로 정정
 - 2026-07-14 | 에스코트 E2 drift | `vsp source read ... > file` 후 `git diff --no-index` | git이 "Binary files differ" 오인 — PS `>`가 UTF-16 LE로 기록(첫바이트 255,254). 인코딩·개행 정규화 후 -ceq 대조 → 내용 동일(clean). 대안: `Out-File -Encoding utf8`
