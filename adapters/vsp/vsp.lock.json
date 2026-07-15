@@ -1,5 +1,5 @@
 {
-  "_comment": "D-018 버전 lock — vsp 갱신 시 이 lock의 명령 계약을 재검증한 뒤에만 갱신한다. 업스트림 동기 절차: 반기 fetch → 분기 검토 → 리베이스 판단 (docs/DECISIONS.md D-018)",
+  "_comment": "D-018 버전 lock — vsp 갱신 시 이 lock의 명령 계약을 재검증한 뒤에만 갱신한다. 업스트림 동기 절차: 반기 fetch → 분기 검토 → 리베이스 판단 (docs/reference/DECISIONS.md D-018)",
   "locked_at": "2026-07-12",
   "repo": {
     "local_path": "D:\\Claude for SAP\\vsp-custom",

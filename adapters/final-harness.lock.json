@@ -1,5 +1,5 @@
 {
-  "_comment": "D-018 검증 버전 lock — final-harness는 분리 유지, 부트스트랩 시 §15-F1~F7 재검증 후 lock (docs/DECISIONS.md D-018, DESIGN.md §16-3). 엔진 갱신 시 F1~F7 재검증 후에만 lock을 올린다.",
+  "_comment": "D-018 검증 버전 lock — final-harness는 분리 유지, 부트스트랩 시 §15-F1~F7 재검증 후 lock (docs/reference/DECISIONS.md D-018, DESIGN.md §16-3). 엔진 갱신 시 F1~F7 재검증 후에만 lock을 올린다.",
   "locked_at": "2026-07-11",
   "repo": {
     "remote": "https://github.com/hjaewon/claude-fable-final.git",

@@ -17,7 +17,7 @@ unattended phase. `unattended=sealed`.
 Before substantive work, read `RULES.md` and treat every matching rule as a
 hard constraint. Also consult the relevant project-root core documents when
 present: `docs/PRD.md` for scope, `docs/ARCHITECTURE.md` for structure and the
-file map, and `docs/DECISIONS.md` for prior decisions. This obligation does not
+file map, and `docs/reference/DECISIONS.md` for prior decisions. This obligation does not
 activate a task loop or permit writes to the frozen singleton files.
 
 ### Direct — default, no task-loop activation

@@ -48,7 +48,7 @@ and metadata can still finish in Direct.
 
 Before substantive work in any structure, read `.harness/RULES.md`; matching
 rules are hard constraints. Consult `docs/PRD.md`, `docs/ARCHITECTURE.md`, and
-`docs/DECISIONS.md` when relevant. Real-data, tier, and escort gates are Policy,
+`docs/reference/DECISIONS.md` when relevant. Real-data, tier, and escort gates are Policy,
 not modes.
 
 Record exactly: `attended-only`, `unattended=sealed`,

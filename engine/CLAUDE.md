@@ -4,7 +4,7 @@
 
 Canonical source for the ABAP ADT MCP server bundled into the `interactive/`
 plugin as `server/server.bundle.cjs` (incorporated 2026-07-11 into this repo —
-see repo-root `docs/DECISIONS.md`, D-017). Fork lineage: mario-andreschak/mcp-abap-adt
+see repo-root `docs/reference/DECISIONS.md`, D-017). Fork lineage: mario-andreschak/mcp-abap-adt
 → fr0ster/mcp-abap-adt → babamba2/abap-mcp-adt-powerup → hjaewon/abap-mcp-adt-powerup.
 
 The GitHub repo `hjaewon/abap-mcp-adt-powerup` is kept only as a history archive —

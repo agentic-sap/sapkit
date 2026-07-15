@@ -2,8 +2,8 @@
 
 > Engine이 docs/*.md를 매 스텝 프롬프트에 주입한다(48KB 경고·64KB 기동 거부). 구조의
 > **지도와 계약**만 얇게 적는다 — 설계 서사는 DESIGN.md·interactive/DESIGN.md, 결정의
-> '왜'는 docs/DECISIONS.md, 살아있는 상태는 HANDOFF.md. 리뷰 체크리스트가 참조하는
-> docs/ADR.md는 존재하지 않는다 — ADR 역할은 docs/DECISIONS.md가 겸한다(D-012·D-020).
+> '왜'는 docs/reference/DECISIONS.md, 살아있는 상태는 HANDOFF.md. 리뷰 체크리스트가 참조하는
+> docs/ADR.md는 존재하지 않는다 — ADR 역할은 docs/reference/DECISIONS.md가 겸한다(D-012·D-020).
 
 ## 스택 · 두 트랙 경계
 
@@ -60,7 +60,7 @@ stale다. 현 phase-only template/checker는 v0.17 legacy; run-scoped 갱신은 
 HANDOFF.md              프로젝트 전체 상태·재개 지침 정본 (상태 바뀔 때마다 갱신)
 DESIGN.md               트랙 A 설계; 현 재기준 권위는 D-025 + 2026-07-15 v2
 CLAUDE.md · AGENTS.md   Direct/Guided/Engine × P0~P4 세션 라우팅
-docs/DECISIONS.md       append-only 결정 로그 D-001~ (ADR 역할, Engine 주입 대상)
+docs/reference/DECISIONS.md       append-only 결정 로그 D-001~ (ADR 역할, Engine 주입 대상)
 docs/PRD.md             스코프·비목표·품질 모델 (Engine 주입, thin+pointer)
 docs/ARCHITECTURE.md    이 문서 — 구조·파일 지도·불변식 (Engine 주입, thin+pointer)
 docs/superpowers/       설계 스냅샷 아카이브 (docs/*.md glob 밖 = Engine 미주입)

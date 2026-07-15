@@ -829,7 +829,7 @@ D-결정에 결박된 safety-state 전이 event가 필요하다.
 | `DESIGN.md` §8 | 구 Offline/Read/Gated 1축을 3×5 매핑 포인터로 교체. 에스코트를 Guided/Engine-P3/P4 안에 배치 |
 | `DESIGN.md` §13 | 재기준 단계를 Phase 5 신판으로 기록. unattended는 완료가 아니라 sealed. 파일럿·gate 완료 기준 연결 |
 | `DESIGN.md` §16 | lock v2 후보→승격, wrapper, clean detached test, staging install 순서로 교체 |
-| `docs/DECISIONS.md` | D-025는 O1=(가)·O2=P4 실계약·O3=MCP 파일럿과 trade-off를 append-only 봉인. D-001/D-023 문구는 삭제하지 않고 “mutation path vs evidence backend” 정정 추가 |
+| `docs/reference/DECISIONS.md` | D-025는 O1=(가)·O2=P4 실계약·O3=MCP 파일럿과 trade-off를 append-only 봉인. D-001/D-023 문구는 삭제하지 않고 “mutation path vs evidence backend” 정정 추가 |
 | `HANDOFF.md` | 헤더 재개점을 본 설계 확정·D-025·6de63ba candidate(v0.19.3 blob)·dirty 0.19.4 제외·O1 attended-only·P4 계약·다음 단계로 갱신. 같은 헤더의 2026-07-13 “무인 전환 가능” 항목은 historical 판정으로 supersede하고 현재 `unattended=sealed`를 병기. 본문 §1의 “vsp-custom=유일한 SAP 접점”은 “Engine 실행 백엔드·적용 경로와 독립인 완료 증거 백엔드”로 교정(적용 완료 2026-07-15). **잔여**: §1 “관련 레포 상태” 표의 vsp-custom 행(`HANDOFF.md:219`)에 같은 “트랙 A의 유일한 SAP 접점” 문구가 남아 있다 — 단계 4에서 동일 문안으로 교정한다(`CLAUDE.md:9`·`DESIGN.md:74`의 같은 문구와 한 묶음) |
 | `.harness/PROTOCOL.md` | singleton task loop를 legacy로 표시. Direct에는 미발화, Guided는 run-scoped goal/state/review, Engine은 contract/manifest를 소비. “여러 step=unattended” 제거 |
 | `.harness/GOAL.md`·`STATE.md` | migration 시 historical singleton으로 동결. 새 작업이 쓰지 않음. 삭제·과거 내용 재작성 금지 |
@@ -860,7 +860,7 @@ D-결정에 결박된 safety-state 전이 event가 필요하다.
 | `phases/**` | **변경 0**. migration 전후 byte hash 동일 |
 | `interactive/**` | **소스 변경 0**. 공유 settings의 hook 보존만 외부에서 검증 |
 
-`docs/ADR.md`는 만들지 않는다(D-020). 결정 기록은 `docs/DECISIONS.md` append-only다.
+`docs/ADR.md`는 만들지 않는다(D-020). 결정 기록은 `docs/reference/DECISIONS.md` append-only다.
 
 ## 12. 파일럿과 기술 게이트
 

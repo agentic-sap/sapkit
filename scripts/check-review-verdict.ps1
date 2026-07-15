@@ -1,7 +1,7 @@
 # check-review-verdict.ps1 - unattended review-gate verdict checker (Track A Phase 3).
 #
 # Spec: docs/reference/designs/2026-07-13-unattended-review-gate.md (Key entities).
-# Decision: docs/DECISIONS.md D-021.
+# Decision: docs/reference/DECISIONS.md D-021.
 #
 # Invoked as the review step's OWN verify command, from the repo root:
 #     & scripts/check-review-verdict.ps1 -Phase <p> -Verdict phases/<p>/review-verdict.json

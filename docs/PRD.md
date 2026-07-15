@@ -3,7 +3,7 @@
 > Engine이 이 파일을 **매 스텝 프롬프트에 주입**한다(scripts/execute.py: docs/*.md
 > 전량, 48KB 경고·64KB 기동 거부). 그러므로 스코프의 **가드레일**만 얇게 적고 상세는
 > 포인터로 돌린다. 상태 정본은 HANDOFF.md, 설계 정본은 DESIGN.md·interactive/DESIGN.md,
-> 결정의 '왜'는 docs/DECISIONS.md. 중괄호 플레이스홀더 금지(엔진이 해당 문서를 스킵).
+> 결정의 '왜'는 docs/reference/DECISIONS.md. 중괄호 플레이스홀더 금지(엔진이 해당 문서를 스킵).
 
 ## 목표
 
@@ -64,7 +64,7 @@ interactive/DESIGN.md.
 - **멀티에이전트 자동 디스패치** · **team 협업** — sc4sap-custom에서 이식하지 않은 유일한
   두 자산(D-002). 품질 모델을 "1명 작업 + 1명 리뷰"로 단순화한 결과다.
 - **엔진 도구 삭제로 MCP 표면 경량화** — 기각(D-016). 경량화는 하네스별 노출 정책으로 한다.
-- **표준 문서 남발** — docs/ADR.md는 만들지 않는다. ADR 역할은 docs/DECISIONS.md가 겸한다
+- **표준 문서 남발** — docs/ADR.md는 만들지 않는다. ADR 역할은 docs/reference/DECISIONS.md가 겸한다
   (D-012·D-020, 이중 체계 금지).
 
 ## 품질·안전 모델

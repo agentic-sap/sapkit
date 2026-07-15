@@ -15,9 +15,9 @@
 새-컨텍스트 독립 리뷰 정본
 `docs/reference/designs/2026-07-15-fresh-review-of-rebase-v2.md`의 MAJOR 6건·MINOR
 4건을 근거 문서와 코드 실측에 맞춰 같은 v2 설계서와 `HANDOFF.md`, 본 GOAL 및
-`STATE.md`에 수리한다. `docs/DECISIONS.md`는 수정하지 않고, D-025가 수리 결과와
+`STATE.md`에 수리한다. `docs/reference/DECISIONS.md`는 수정하지 않고, D-025가 수리 결과와
 어긋나는 지점은 D-026 정정 후보로만 보고한다. SAP 접속과 v0.19.2 분석 재실행,
-커밋·push는 하지 않는다. 작업 시작 시 `docs/DECISIONS.md`는 이미 D-025 추가분
+커밋·push는 하지 않는다. 작업 시작 시 `docs/reference/DECISIONS.md`는 이미 D-025 추가분
 `+61/-0` 상태였으며 이번 작업은 그 diff를 그대로 보존한다.
 
 ## Success criteria — current repair
@@ -49,7 +49,7 @@
 - [ ] OBSERVATION O-1 — DEV allow가 구조상 no-op이므로 파일럿 A 게이트 증거로 세지
       않고 QA/unresolved deny 팔만 차단 증거로 인정한다고 명시한다.
 - [ ] 금지 경로(`phases/`, `interactive/`, 상류 엔진, 07-14 초안, v0.19.2 분석,
-      두 Codex/새-context 리뷰 원문)는 diff 0이며 `docs/DECISIONS.md`도 이번 수리로
+      두 Codex/새-context 리뷰 원문)는 diff 0이며 `docs/reference/DECISIONS.md`도 이번 수리로
       변하지 않는다. R-002/R-003/R-004/R-005를 위반하지 않는다.
 - [ ] 자체 확인(self-check)은 문면·포인터·diff·금지 경로만 검사하며 “독립 검증”이라
       부르지 않는다. 별도 새-컨텍스트 reviewer가 이 GOAL과 diff를 기준별 PASS/FAIL로
@@ -103,8 +103,8 @@
 - [x] D-025가 D-023/D-024의 문체·구조를 따라 O1/O2/O3, O1의 D-019 약화·attended-only·
       unattended 봉인, candidate 6de63ba(v0.19.3 blob)와 미커밋 0.19.4 제외 근거,
       07-14 초안 대체, 기각/후속 후보와 재론 트리거를 숨김없이 기록한다.
-- [x] `docs/DECISIONS.md`는 기존 byte/line을 수정·삭제하지 않고 EOF에 D-025만 추가한다.
-      `git diff docs/DECISIONS.md`가 추가 라인만 보인다.
+- [x] `docs/reference/DECISIONS.md`는 기존 byte/line을 수정·삭제하지 않고 EOF에 D-025만 추가한다.
+      `git diff docs/reference/DECISIONS.md`가 추가 라인만 보인다.
 - [x] `HANDOFF.md`는 기존 헤더 규약·밀도로 설계 확정, D-025, candidate pin, O1 안전 상태,
       P4 실계약, 다음 액션을 반영하며 첫 `---` 이전 헤더 블록 밖 본문은 변경하지 않는다.
 - [x] 설계서·D-025·HANDOFF 헤더가 candidate/안전 상태/transport/O3/다음 액션에 대해 서로

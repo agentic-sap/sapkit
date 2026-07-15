@@ -492,3 +492,63 @@
   §15 완료 판정이 이를 소비한다. HANDOFF 헤더는 이 재개점으로 갱신한다. 실제 migration·
   lock 승격·SAP transport 실행은 아직 시작하지 않았으며 다음 액션은 §11 연쇄 변경과
   §12 staging/파일럿/gate 집행이다.
+
+## D-026 · 2026-07-15 · 이 결정 로그를 `docs/` 밖(`docs/reference/`)으로 이전 — 엔진 주입 예산 회수 (D-020 조건 변화에 따른 후속, 내용·규약 무변경)
+
+- **결정**: 이 파일을 **`docs/DECISIONS.md` → `docs/reference/DECISIONS.md`로 이전**한다.
+  파일 내용은 **한 줄도 바꾸지 않는다**(`git mv` — append-only 규약 무손상). 살아있는
+  포인터 12곳(CLAUDE·AGENTS·HANDOFF·docs/PRD·docs/ARCHITECTURE·.harness/GOAL·
+  .harness/PROTOCOL·engine/CLAUDE·lock 2종·check-review-verdict.ps1·재기준 v2 §11)의
+  경로만 갱신한다. **`docs/ADR.md`는 여전히 만들지 않는다** — D-012·D-020의 "이중 체계
+  금지"는 그대로 유효하다(본 결정은 위치 변경일 뿐 체계 변경이 아니다).
+- **근거 (D-020 이후 바뀐 조건)**:
+  ① **주입 예산 초과 실측** — 엔진은 top-level `docs/*.md` 전량을 매 스텝·매 재시도
+     프롬프트에 전문 주입한다(비재귀 glob, `scripts/execute.py:2321-2323` @6de63ba;
+     WARN 48KB `:2294` · **기동 거부 64KB** `:2289`). 2026-07-15 실측 합계 **57,747
+     bytes = 거부선의 88%**, 그중 이 파일이 **44,676 bytes(77%)**. D-020 시점 합계는
+     ~32.7KB(이 파일 ~23KB)로 예산 내였으나 **이틀 만에 2배**가 됐다(D-021~D-025).
+     append-only라 감소는 구조적으로 불가능하다.
+  ② **주입은 용량이 아니라 품질 문제** — 엔진 저자 주석이 명시한다(`:2290-2294`):
+     "상한 아래라도 주입이 길수록 step 세션의 지시 준수가 떨어진다(context rot —
+     약한 모델일수록 심함)". 즉 예산 잔여는 써도 되는 여유가 아니다.
+  ③ **D-020이 이미 워커 맥락의 담지체를 지정했다** — D-020 원문: "이 두 문서(PRD·
+     ARCHITECTURE)가 무인 세션의 **유일한 상시 컨텍스트**가 되므로". 이 로그의 주입은
+     설계가 아니라 **디렉토리 동거로 인한 부수 효과**였다. D-020은 "하위 디렉토리는
+     glob 밖이라 미주입"도 이미 인지하고 있었다.
+  ④ **상류가 지시한 패턴 그대로** — `harness-docs` SKILL.md(@6de63ba): `:52` "Details
+     go to `docs/reference/` subdirectories — the engine injects only TOP-LEVEL
+     `docs/*.md`, so reference material there costs no prompt tokens" · `:37` "moves to
+     `docs/reference/` (kept but not injected)".
+  ⑤ **소비자별 영향 분리** — 대화형 세션은 이 로그를 자동 주입이 아니라 CLAUDE.md
+     포인터로 **필요할 때 읽는다**(경로 무관, 이번 갱신으로 계속 작동). Engine step
+     워커만 원문을 잃는데, 워커용 결정 요약은 §11 덩어리 2가 `docs/PRD.md`에 이미 넣었다
+     (3구조×5프로필·D-019 완료 matrix·차단 범위·P2 승인·`sap_mutation_boundary`).
+- **대안·기각**: (a) **현행 유지** — 기각: 잔여 7,789 bytes로 결정 2~3개면 기동 거부.
+  근본 해결 아님. (b) **활성+아카이브 분리**(얇은 활성 인덱스만 `docs/`에 잔류) —
+  기각: "활성" 판정 규칙·앵커 변경·append-only 의미를 새로 정해야 하고, 활성분도 결국
+  자란다. 사용자 초기 선호였으나 ⑤(대화형은 경로 무관, 워커 요약은 이미 PRD에 존재)
+  확인 후 철회. (c) **얇은 `docs/ADR.md` 신설 + 전문은 reference** — 기각: D-012·D-020의
+  이중 체계 금지에 정면 저촉, 요약↔원문 드리프트 표면 신설. (d) **엔진 glob 수정**
+  (allowlist·`docs/.inject`) — 기각: D-018 분리 유지 위반이자 `skipped_modified=[]`
+  (D-024 단계 3 합격기준) 파괴. 상류 기여로 별건 처리(§ 아래).
+- **상류 설계 결함 보고 (별건)**: 이 문제의 뿌리는 우리 것이 아니라 **엔진 설계**다 —
+  `harness-docs`가 `docs/ADR.md`에 ① 결정마다 영구 append(`SKILL.md:77-78` "Never
+  rewrite or renumber") ② ~300줄 상한(`:52`)을 **동시에** 요구하는데, 초과 시 처분이
+  **없다**(전문 134줄에 archive/split/prune/supersede 0건). 항목당 5~10줄 기준이면
+  결정 30~60개가 한계다. 상류가 미검출인 이유는 **자기 엔진을 도그푸딩하지 않기 때문**
+  (@6de63ba: `.harness/`·`scripts/execute.py`·`engine-manifest.json` 부재, `docs/`엔
+  `INSTALL.md` 10.8KB뿐). 우리 항목 밀도가 30~60줄로 의도의 6~10배라 벽에 **일찍**
+  도착했을 뿐, 밀도는 "언제"를 바꿀 뿐 "여부"를 바꾸지 않는다. 자립형 보고서 =
+  `adapters/final-harness/UPSTREAM-DOCS-LIFECYCLE-GAP.md`(사용자가 상류에서 확인 예정).
+  상류가 다른 정식 패턴을 채택하면 재정렬한다.
+- **미변경 (의도)**: `phases/**` 3건·`interactive/**` 2건·2026-07-15 리뷰 기록 2건의
+  구 경로 인용은 **갱신하지 않는다** — 재기준 v2 §11이 `phases/**`·`interactive/**`
+  diff 0을 요구하고, 리뷰 기록은 작성 시점 사실의 증거다. 트랙 B의 2건은 설치 대상
+  머신에 이 레포가 없으므로 원래부터 레포-내부 경로 누수였다(별건 관찰).
+- **불변(재확인)**: append-only(수정·삭제 금지, 정정도 새 항목) · D-012·D-020의 ADR
+  이중 체계 금지 · D-018 상류 분리 유지 · 대화형 세션의 "D-번호 인용 전 원문 확인"
+  (CLAUDE.md, 경로만 갱신) · `phases/**`·`interactive/**` diff 0.
+- **영향**: 주입 합계 57,747 → **약 13,071 bytes**(거부선의 20%, WARN선 아래로 복귀).
+  `docs/` 최상위는 PRD·ARCHITECTURE 2종만 남는다. CLAUDE.md 문서 계약 표의 경로 갱신.
+  재기준 v2 §11의 `docs/DECISIONS.md` 행 경로 갱신(내용 계약은 무변경). 이 항목 이후
+  모든 결정은 새 경로에 append한다.
