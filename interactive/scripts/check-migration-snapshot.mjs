@@ -148,9 +148,11 @@ console.log(`rules         : ${rules.length} (미분류 ${unmatched.length} · e
 console.log(`목적지        : 해시 검사 ${checked}건 (deferred 스킵 ${deferredSkipped}건)`);
 for (const n of note) console.log(`  ℹ ${n}`);
 
-if (fail.length) {
-  console.log(`\n❌ 계약 위반 ${fail.length}건:`);
-  for (const f of fail) console.log('  - ' + f);
+// 같은 목적지 토큰을 가리키는 규칙이 여럿이면(예: server/) 동일 메시지가 중복된다 — 접는다.
+const uniqueFail = [...new Set(fail)];
+if (uniqueFail.length) {
+  console.log(`\n❌ 계약 위반 ${uniqueFail.length}건:`);
+  for (const f of uniqueFail) console.log('  - ' + f);
   process.exit(1);
 }
 console.log('\n✅ 이식 provenance 통과 — pinned snapshot 정합 · 목적지 무드리프트 · private 열거 0');

@@ -1,0 +1,89 @@
+{
+  "_": "플러그인 메타데이터 **단일 정본** (S3 · D-027 로드맵 §9.5). 5개 매니페스트는 여기서 생성한다 — 직접 편집하지 말 것.",
+  "_generate": "node interactive/scripts/gen-plugin-manifests.mjs          (5개 매니페스트 재생성)",
+  "_check": "node interactive/scripts/gen-plugin-manifests.mjs --check   (드리프트 검사 — CI)",
+  "_why": "version이 5곳에 복제돼 있어 한 곳만 올리면 조용히 갈라졌다. 자산 수(페르소나/스킬/절차/도구)도 손으로 적어 실제와 어긋났다(예: '11 procedures'인데 절차 파일은 16 — 스킬 수와 절차 수를 혼동). 이제 수는 파일시스템과 mcp-surface.json에서 **계산**해 넣는다.",
+  "name": "sap-agentic-harness",
+  "version": "0.1.0",
+  "displayName": "SAP Agentic Harness",
+  "author": {
+    "name": "hjaewon"
+  },
+  "license": "MIT",
+  "category": {
+    "claude": "development",
+    "agy": "Engineering",
+    "codex": "Engineering"
+  },
+  "recorded": {
+    "_": "기계로 셀 수 없어 **기록**하는 값. 계산값(counts)과 섞지 않는다 — 어느 쪽이 검증되는지 구분하려는 것.",
+    "tools_connected": 186,
+    "tools_connected_note": "프로파일 활성(connected) 시 노출 수 — 2026-07-11 실측. 오프라인 게이트가 재지 못하므로 counts가 아니라 여기 둔다. SAP 접속이 필요하다."
+  },
+  "counts": {
+    "_": "gen 시점에 계산해 채운다. 손으로 고치지 말 것 — --check가 재계산해 대조한다.",
+    "_sources": {
+      "personas": "core/personas/*.md 에서 INDEX.md/README.md 제외",
+      "skills": "skills/ 하위 디렉터리 수",
+      "procedures": "core/procedures/*.md 수 (그중 11개만 스킬로 노출 — 둘은 다른 수다)",
+      "agents": "agents/*.md 수",
+      "modules": "core/knowledge/modules/ 하위 디렉터리에서 common 제외 (common은 크로스모듈 지식이지 모듈 팩이 아님) = 14 + BC",
+      "industries": "core/knowledge/industry/*.md 에서 README.md 제외",
+      "countries": "core/knowledge/country/*.md 에서 README.md 제외",
+      "tools_default": "provenance/mcp-surface.json 의 default exposition 실측치",
+      "tools_connected": "recorded.tools_connected 를 그대로 통과시킴(계산 아님)"
+    },
+    "personas": 26,
+    "skills": 11,
+    "procedures": 16,
+    "agents": 1,
+    "modules": 15,
+    "industries": 14,
+    "countries": 16,
+    "tools_default": 155,
+    "tools_connected": 186
+  },
+  "descriptions": {
+    "_": "{{placeholder}}는 counts에서 치환된다. 수를 문장에 직접 적지 말 것.",
+    "marketplace_long": "Lite, harness-portable edition of SuperClaude for SAP. Same knowledge ({{modules}} module packs = 14 + BC — SPRO/BAPI/tables/workflows, {{industries}} industries, {{countries}} countries, ABAP clean-code conventions and templates), same MCP server ({{tools_default}} ADT tools inspection-only), same {{personas}} personas — minus the multi-agent machinery. Procedures run as one agent following gated checklists; review happens in a fresh context; SAP itself verifies (syntax, activation, unit tests, ATC).",
+    "plugin_short": "SAP ABAP development and consulting — knowledge core + personas + gated procedures + ADT MCP server, in one lite plugin.",
+    "claude_long": "Harness-portable lite edition of SuperClaude for SAP — {{modules}} module knowledge packs (14 + BC), {{industries}} industries, {{countries}} countries, ABAP conventions/templates, {{personas}} consultant/role personas (on-demand via INDEX selector), {{procedures}} single-agent procedures ({{skills}} exposed as skills) with human approval + fresh-context review gates, and the ABAP ADT MCP server ({{tools_default}} tools inspection-only / {{tools_connected}} connected). No multi-agent orchestration: quality model is one worker + one fresh-context reviewer + SAP machine verification (CheckSyntax → Activate → ABAP Unit → ATC).",
+    "codex_long": "Harness-portable lite edition of SuperClaude for SAP — {{modules}} module knowledge packs (14 + BC), {{industries}} industries, {{countries}} countries, ABAP conventions/templates, {{personas}} personas (on-demand via INDEX selector), {{procedures}} single-agent procedures ({{skills}} exposed as skills) with human approval + fresh-context review gates. SAP connectivity via the bundled ABAP ADT MCP server (register separately: see adapters/codex/README.md).",
+    "codex_interface_short": "SAP ABAP development and consulting — knowledge, personas, gated procedures"
+  },
+  "tags": [
+    "sap",
+    "abap",
+    "s4hana",
+    "erp",
+    "mcp",
+    "lite"
+  ],
+  "keywords": {
+    "claude": [
+      "claude-code",
+      "plugin",
+      "sap",
+      "abap",
+      "s4hana",
+      "erp",
+      "abap-development"
+    ],
+    "codex": [
+      "sap",
+      "abap",
+      "s4hana",
+      "erp",
+      "abap-development",
+      "mcp"
+    ]
+  },
+  "targets": {
+    "_": "생성 대상 5종. 경로는 레포 루트 기준.",
+    "claude_marketplace": ".claude-plugin/marketplace.json",
+    "claude_plugin": "interactive/.claude-plugin/plugin.json",
+    "codex_plugin": "interactive/.codex-plugin/plugin.json",
+    "agy_marketplace": ".agents/plugins/marketplace.json",
+    "agy_plugin": "interactive/plugin.json"
+  }
+}
