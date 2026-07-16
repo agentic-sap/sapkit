@@ -10,8 +10,52 @@
 > 않는다**. 새 순서는 **S0 Track B 안전 봉인 → S1 clean final-harness v0.20.x candidate
 > 선정 → S2 Track A Policy/review/wrapper/bridge 구현 → S3 provenance·CI·vsp 검증 보강
 > → S4 독립 리뷰·disposable staging → S5 attended connected gate·파일럿 → S6 기능 확장**이다.
-> **진척: S0~S4 완료(2026-07-16, 커밋 4ad4a30~d608233). 다음 = S5 — SAP를 실제로
-> 건드리는 첫 단계이므로 사람이 반드시 옆에 있어야 한다. push는 미실시(사용자 판단).**
+> **진척: S0~S4 완료 + push됨(2026-07-16, `d193db3..76feb2f` origin/main 반영). CI 3잡
+> 전부 green 실측(결제 블록 해소 후 재실행 — engine-tests 599·node-gates·ps-gate).**
+>
+> ## ⛔ 다음 세션 첫 질문 (S5 진입 전 선결 — 사용자 결정 대기)
+>
+> **vsp를 레포에 편입할 것인가? (D-018 재론)** — 사용자가 이 결정을 다음 세션(집)에서
+> 하겠다고 명시. S5(파일럿)는 이 결정 **뒤에** 진행한다. 새 컨텍스트는 착수 전 이
+> 질문부터 사용자에게 제시할 것.
+>
+> - **배경**: 프로젝트 철학은 "차용 후 완전 소유"(D-017 엔진 편입은 근거 첫 줄이 **사용자
+>   의도** "레포 안에 다 녹인다"). 그런데 **D-018(vsp 분리 유지)은 사용자 선택이 아니라
+>   Fable+Codex 분석 수렴 결론**이라 vsp를 그 철학의 예외로 만들었다. 사용자는 "분리할
+>   생각 없었다 — abap-mcp-powerup처럼 다 녹이려던 것"이라 밝힘. D-018이 건 **재론
+>   트리거**(트랙 A 착수 후)의 시점도 지금(S5)과 맞는다.
+> - **실측한 vsp 역할(편입 논거의 사실 기반)**: vsp는 이 스택의 **유일한 오프라인 ABAP
+>   검증기**(엔진 `CheckSyntax`는 서버측/온라인) + **Engine의 SAP 실행 백엔드**(AGENTS:
+>   worker는 vsp CLI만) + **완료 증거 백엔드(V-PASS)**. 단 `execute.py`의 vsp 언급은
+>   **0건**(S4 실측) — 엔진은 vsp를 import하지 않고 `verify_cmd`로 **위임**한다. 그래서
+>   정확한 논거는 "필수라서"가 아니라 **"자기완결성 + 한 레포 철학"**(레포가 자기 핵심
+>   검증/실행 기능을 자기 안에서 완결).
+> - **정직한 비용**: ① Go 툴체인이 레포/CI에 추가됨(vsp = 103k LOC Go·286파일·CGO 빌드,
+>   지금 Node 하나에 Go가 둘째 툴체인) ② 활발한 업스트림(oisee/vibing-steampunk)과 결별
+>   비용 — 단 엔진처럼 **subtree 편입이면 포크 계보 유지 가능** ③ 자기완결성 이득은
+>   오프라인 한정(V-PASS 대부분이 온라인이라 어차피 SAP 접속 필요).
+> - **S5와의 관계**: 오늘 쓰는 vsp **바이너리는 편입 여부와 무관하게 동일**(lock된 exe,
+>   sha256 검증). 편입은 "미래 소스 정본·재현성" 문제이지 S5-A 실행을 막지 않는다.
+> - **세 갈래**: ① 지금 vsp 편입 착수(S5 잠깐 멈춤) → 편입 후 파일럿은 in-repo 빌드
+>   바이너리로 ② S5 먼저(오늘 lock 바이너리) → 편입은 파일럿 통과 후 ③ 편입 미니
+>   설계서(범위·subtree 방식·CGO 빌드 전략·CI 영향)부터 쓰고 결정.
+> - **편입 택 시 실제 작업**: subtree로 vsp 소스 vendoring → in-repo Go 빌드 → integrity
+>   핀(엔진 `integrity.json` 준용) → `adapters/vsp/vsp.lock.json`을 in-repo 커밋 기준으로
+>   재작성 → CI에 Go 빌드 잡 → **D-030 append**(D-018 supersede + 사유). 이 결정 전엔
+>   D-030을 쓰지 않는다(아직 미결정).
+>
+> ## S5 선행조건 (vsp 결정 후 즉시 착수 가능 — 전부 준비됨)
+>
+> - candidate.state=**staged** ✓ (verified는 v0.17.3 불변, 매 호출 명시 `-Candidate` 없으면 exit 65)
+> - **SAP 대상 = IDES 확정(사용자 결정)**: 앞으로 KR-DEV 대신 **IDES = 프로파일 `IDEA-JNC`**
+>   (S4H/client 100, Phase 4에 쓴 그 프로파일)로 진행. IDES는 샌드박스라 DEV보다 안전.
+>   `IDEA-JNC`의 sap.env는 이미 `SAP_TIER=DEV`라 **tier 게이트 통과에 설정 변경 불요**
+>   (tier-readonly-guard는 문자열 `DEV`만 write 허용 — `IDES`로 라벨하면 fail-closed).
+> - **첫 걸음 = S5-A**(vsp transport list/get 읽기 전용, P1). 자격증명 로드는 **사람이**
+>   `. .\scripts\vsp-env.ps1 -ProfileName IDEA-JNC`로(phases/3b 원칙). 함정 2건: dot-source한
+>   **같은 세션**에서 vsp 호출 · PS `>` 리다이렉트는 UTF-16이라 금지. 내 도구 호출은 셸
+>   상태가 안 남으므로 자격증명 로드+vsp 호출을 **한 호출**에 묶거나 사용자가 실행.
+> - S5 이번 세션에서 **SAP 접속·write 0건**(vsp는 읽기 도움말·lock 검증만).
 > 상시 금지(모든 단계): SAP 연결·write(S5 전까지), 트랙 B 원본
 > `D:\claude for SAP\sc4sap-custom` 수정 및 private 탐색, raw `python scripts/execute.py`.
 > `check-migration-coverage`는 **S3에서 폐기**됐다(대체: `check-migration-snapshot`).
@@ -154,8 +198,9 @@
 > test/staging install/복제본 migration → §12 G1~G14 + 파일럿 A/B + P4 T1~T5
 > (`READY_FOR_RELEASE`, 실제 release 없음) → 증거 exact SHA 바인딩 후 PROMOTE. 실제 전달
 > run만 사람 T6 release·T7 STMS import를 추가한다. 상세는 v2 설계서 + D-025 원문.
-> **사용자 대기 항목 (2026-07-16 S4 시점 현행화)**:
-> ① **push 여부** — 오늘 커밋 **11건이 전부 로컬**(78979d7~d608233). 요청 시에만 push.
+> **사용자 대기 항목 (2026-07-16 현행화)**:
+> ⓪ **[최우선·다음 세션 첫 질문] vsp 편입 여부(D-018 재론)** — 위 ⛔ 블록 참조. S5 선결.
+> ① ~~push 여부~~ **완료** — `d193db3..76feb2f` push됨, CI 3잡 green 실측.
 > ② **symlink 권한** — 탈출 차단 3건이 이 머신에서 계속 skip(WinError 1314 S4 재현).
 > Windows 개발자 모드 또는 관리자 셸이 필요하며 **머신 설정은 사용자 결정**. 해소되면
 > `test_install_engine.py:454/:466` · `test_run_contract.py:223`를 재실행해 lock의
@@ -165,8 +210,9 @@
 > `session-start-context.py`가 여전히 `python scripts/execute.py <phase>`를 안내하고,
 > 우리 교정본은 gitignore 대상이라 머신 로컬). final-harness에 기여할지 사용자 결정.
 > ④ **vsp-custom 수리 착수** — §9.6(`/tmp`→`t.TempDir` · recording ID · CGO0 SQLite ·
-> Windows lane). 별도 repo 작업이라 미착수. 현 lock 계약은 PASS이고 4패키지 FAIL은
-> 계약 밖으로 분리 기록됨(`vsp.lock.json.test_status`).
+> Windows lane). ⓪ 편입 결정에 종속: 편입하면 이건 "별도 repo 작업"이 아니라 **레포 내
+> 작업**이 된다. 현 lock 계약은 PASS이고 4패키지 FAIL은 계약 밖으로 분리 기록됨
+> (`vsp.lock.json.test_status`).
 > ⑤ **`vsp transport list/get` read-only 1회 실측** — 자격증명 셸 필요. 출력 형상
 > 미확인이라 P4 계약이 여기 의존(**S5-A**가 소유, G14 대상).
 > ⑥ **상류 설계 결함 확인** — `adapters/final-harness/UPSTREAM-DOCS-LIFECYCLE-GAP.md`
