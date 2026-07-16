@@ -7,7 +7,6 @@
     "local_path_main": "D:\\claude-practice\\claude-fable-final",
     "local_path_secondary": "D:\\AI PROJECT\\claude-final"
   },
-
   "safety_state": {
     "_comment": "top-level 안전 상태 (D-025). 이 문자열들은 exact 보존한다 — 어떤 단계도 임의로 바꾸지 않으며, 해제는 재기준 v2 §7 U-gate + 별도 사용자 D-결정으로만 한다.",
     "execution": "attended-only",
@@ -17,7 +16,6 @@
     "sap_mutation_boundary_scope": "reviewer + all attended children",
     "rv4_note": "authority-gate.py에 vsp 커버리지가 없어 deploy=false가 vsp deploy를 막지 못한다. candidate d4a0aeb에서도 동일 실측(D-028) — 엔진 업그레이드로 닫히지 않는다."
   },
-
   "verified": {
     "_comment": "실행 권한의 근거. 현재 트랙 A가 '검증했다'고 말할 수 있는 유일한 버전.",
     "commit": "8f7f13bc977bb686e62dd44651ce78c5250e2e8a",
@@ -37,42 +35,73 @@
       "skills": "10종 실측 (v0.12.1의 8종 + harness-design v0.14.0 + harness-run v0.17.1)"
     }
   },
-
   "candidate": {
-    "_comment": "고른 것이지 검증된 것이 아니다. state=selected 동안 run-track-a.ps1은 Engine을 기동하지 않는다(fail-closed). staged 승격은 S4(독립 리뷰 + disposable staging) 통과 후, verified 승격은 S5 파일럿·게이트 후 PROMOTE에서만.",
+    "_comment": "고른 것이지 **검증된 것이 아니다**. state=staged는 S4(독립 리뷰 MAJOR 0 + disposable staging)를 통과했다는 뜻일 뿐, verified가 아니다. 실행 권한의 근거는 여전히 verified(v0.17.3)이며, verified 승격은 S5 파일럿·G1~G14·P4 T1~T5 후 PROMOTE에서만 한다. run-track-a.ps1은 staged candidate를 **명시 -Candidate 없이는 기동하지 않는다**.",
     "commit": "d4a0aeb0bdbcea008dbe2926006ee2e06eac2fc3",
     "version": "v0.20.0",
-    "state": "selected",
+    "state": "staged",
     "selected_at": "2026-07-16",
     "decision": "D-028",
     "plugin_blob": "e2bb26f241eb1a8f12337d06720c9c5953ea28a4",
     "subject": "fix: harden engine git and installer boundaries",
     "ancestry_verified": {
-      "5cd63ec": "v0.20.0 Engine hook lifecycle — merge-base --is-ancestor YES",
-      "1209553": "bounded docs lifecycle — merge-base --is-ancestor YES"
+      "1209553": "bounded docs lifecycle — merge-base --is-ancestor YES",
+      "5cd63ec": "v0.20.0 Engine hook lifecycle — merge-base --is-ancestor YES"
     },
     "release_check": {
       "authoritative": true,
       "success": true,
       "codex_cli": "0.144.4",
-      "python_versions": ["3.9", "3.12"],
+      "python_versions": [
+        "3.9",
+        "3.12"
+      ],
       "result": "9/9 run exit 0 (git-diff-check 포함), 각 파이썬 784 passed / 3 skipped",
       "evidence_sha256": "85cda0a606d6ae7402acc3be8e7c29cd4cc3eb9c8d795548689dd95eb4efbfe8",
       "reproduced_on_clean_detached_clone": true,
       "secret_independent": "secret.env 부재 상태에서도 success=true — 릴리스 게이트가 로컬 secret에 의존하지 않음"
     },
-    "invariants_pending": {
-      "_comment": "lock의 verified 승격 전 선결. F1만 실질 확인했고 전량 재측정은 아직이다.",
-      "F1": "실질 생존 확인 (2026-07-16) — Claude --strict-mcp-config execute.py:3008·3566, Codex mcp_servers.{key}.enabled=false :3526, 열거 실패 fail-closed :760·:784. v0.17.3 좌표(2332-2333)는 무효",
-      "F2_F7_N1_N8": "전량 재측정 미실시 — staged/verified 승격 전 선결 (S2-C 이후 / S4)"
-    },
     "known_unverified": [
-      "symlink 탈출 차단 테스트 3건이 이 머신에서 skip (WinError 1314 심볼릭링크 권한) — test_run_contract.py:223, test_install_engine.py:454/:466. S4 installer 경계 검사에서 재확인",
-      "트랙 B 훅 3종 보존은 계약 수준만 확인 (CHANGELOG v0.20.0 항목 2) — 실증은 S4 disposable staging",
-      "Direct/Guided zero router process는 계약 수준만 확인 (항목 1) — 실증은 S4"
-    ]
+      "**symlink 탈출 차단 3건 여전히 미검증** — S4에서 재확인했으나 이 머신은 심볼릭링크 생성 권한이 없다(WinError 1314 재현). test_run_contract.py:223 · test_install_engine.py:454/:466. 해소하려면 Windows 개발자 모드 또는 관리자 권한이 필요하며 이는 **사용자 머신 결정**이다. release_check는 환경 skip으로 판정해 success=true",
+      "**raw execute 안내는 상류에 잔존** — candidate의 .claude/hooks/session-start-context.py가 여전히 \"python scripts/execute.py <phase>\" 실행을 안내한다(:78·:84·:88). AGENTS.md는 이를 금지하고 유일 진입점을 run-track-a.ps1로 못박는다. 주 머신의 로컬 교정본은 installer가 user-modified로 보고 덮지 않지만, 그 교정은 **gitignore 대상이라 머신 로컬**이다 → 새 클론/설치마다 금지된 안내가 재유입된다. **S1이 지목한 \"installer 재설치\" 경로로는 해결되지 않는다(오히려 재유입)** — durable 해소는 상류 기여뿐이며 사용자 결정 사항이다",
+      "candidate installer는 clean clone에서 **scripts/execute.py를 교체하지 않는다** — .claude/engine-manifest.json이 gitignore 대상이라 부재 → unmodified 증명 불가 → user-owned로 분류해 fail-safe skip. 결과는 **v0.20 훅/도구 + v0.17.3 executor의 혼합 상태**다. 이것은 installer의 문서화된 정책대로이며(수정본 미덮어쓰기), 실제 executor 승격은 PROMOTE(S5) 소관이다",
+      "Guided footprint가 run-id 디렉터리로만 제한되는지(§10.4-5)와 fake-vsp reviewer/child 경계 관찰(§10.4-7)은 **미실행** — Engine이 fail-closed라 실행 자체가 불가했다(닭-달걀). staged 승격이 그 잠금을 여는 것이므로 S5 파일럿이 소유한다",
+      "RV4 여전히 열림 — candidate의 .claude/hooks/authority-gate.py에 **vsp 언급 0건**(재확인). deploy=false여도 vsp deploy를 막지 못한다. v0.20 업그레이드로 닫히지 않는다"
+    ],
+    "invariants_reverified": {
+      "_comment": "lock _comment과 candidate가 요구한 선결(F2~F7·N1~N8 전량 재측정)을 S4에서 이행. 좌표는 **candidate d4a0aeb 기준**이며 v0.17.3 좌표는 무효다. 판정: 전량 유지 — 설계 영향 변경 0건.",
+      "measured_at": "2026-07-16",
+      "measured_against": "d4a0aeb0bdbcea008dbe2926006ee2e06eac2fc3 (clean detached clone)",
+      "verdict": "F1~F7 7/7 · N1~N8 8/8 전량 유지",
+      "F1": "유지 — Claude --strict-mcp-config (execute.py:3008), codex는 서버별 mcp_servers.{key}.enabled=false (:3526) + 이름 없는 서버엔 부착 불가라 fail-closed (:3521). DESIGN §3 \"Engine=vsp CLI만\" 근거 생존",
+      "F2": "유지 — quality-gate.json 부재/파싱실패 시 게이트 건너뜀 = no-op (stop-quality-gate.py:141-146)",
+      "F3": "유지 — 엔진 캡 RULES_CAP=40 · RULES_MAX_BYTES=16*1024 (execute.py:2429-2430) + 선제 감사 트리거 30개/12KB (harness-audit/SKILL.md:55-56). 수치 불변",
+      "F4": "유지 — harness-tailor 존속: quality-gate.json 생성(SKILL.md:29) · VERIFY-PATTERNS 기록(:45) · Stop 300초 예산(:36)",
+      "F5": "유지 — _verify_delegation_targets는 리포 내 타겟만 (execute.py:651). **execute.py의 vsp 언급 0건** = 외부 바이너리 범위 밖",
+      "F6": "유지 — tdd-guard LANG_RULES = JS/TS·Python·Go·Jupyter, ABAP 미발화 (tdd-guard.py 헤더 30-36)",
+      "F7": "유지 — block-dangerous-bash는 고정 파괴 패턴 denylist뿐, **vsp 언급 0건** (미인지)",
+      "N1": "유지 — canonical_contract_bytes로 승인 해시를 정규화(run_contract.py:34-35), sha256_bytes(:30)와 분리 = 승인 해시와 런타임 바이트 동결이 별개",
+      "N2": "유지 — authority envelope가 run_id 축 (run_contract.py:156·182-183). 대응: 우리 wrapper가 legacy/no-run-id를 exit 64로 거부 (test 16/16)",
+      "N3": "유지 — envelope에 network(:167)·deploy(:174) bool + 파싱(:249·:265). credential/network/deploy 범위 최소화 가능",
+      "N4": "유지 — bridge lease 타임아웃(execute.py:203-211) + malformed event container 거부(:1096). Bridge는 attended만",
+      "N5": "유지 — write_paths 튜플(run_contract.py:166) + allow_empty=false 강제 파싱(:246-247)",
+      "N6": "해당 — unattended의 보안 경계는 외부 container/VM이고 우리는 unattended=sealed 유지. 엔진 의존 없음",
+      "N7": "유지 — post_run_review 기본값 **False** (execute.py:151·159·3737) = native post-run review default off · non-gate",
+      "N8": "유지 — --allow-no-verify는 legacy phase 전용(execute.py:147·456). 대응: wrapper가 legacy 자체를 거부하므로 신규 run에 도달 불가"
+    },
+    "staged_at": "2026-07-16",
+    "staged_evidence": {
+      "_": "S4 §10.6이 요구한 6개 조건 전부 PASS. 각 항목은 실측이며 재현 명령을 함께 적는다.",
+      "independent_review": "MAJOR 0 — 새-컨텍스트 리뷰어가 핀(a95eb0f)·인벤토리 487·sourceCommit(0b304de7)·엔진테스트 599를 **독립 재계산**해 전부 확인. MINOR 5(M1 문서 정본 깨짐·M2 드리프트 HEAD 미기록·M3 rename from 미검사·M4 vsp 미착수(선언됨)·M5 doctor CI 제외(타당))·NIT 2 → M1/M2/M3/N1/N2 수리 완료(c4f34fa), M4/M5는 기만 아님으로 판정",
+      "clean_detached_upstream_tests": "S1에서 이행 — authoritative release check success=true, Py3.9+3.12 각 784 passed/3 skipped, clean detached 클론 재현, evidence sha256 85cda0a6…",
+      "disposable_install": "clean clone(주 머신 아님)에 candidate installer 실행 → exit 0. installed 13종 · data_created 2 · skipped_user_owned: scripts/execute.py · settings_file_removed: false",
+      "hook_preservation": "**PASS(실증)** — 트랙 B 훅 3종(block-forbidden-tables·tier-readonly-guard·prefer-sqlquery-explicit-fields)이 matcher+command **바이트 동일** 보존. global_hooks_removed:5는 전부 **installer 소유** 구 always-on 엔진 훅(block-dangerous-bash·tdd-guard·stop-quality-gate×2·session-start-context)이며 이것이 v0.20의 Direct zero-footprint 계약 그 자체다. S1의 \"계약 수준만\" 부채 해소",
+      "direct_zero_footprint": "기제 확인 — installer가 settings 레지스트리를 만들지 않고 always-on 엔진 훅을 0개로 만든다. 설치 후 settings.json엔 트랙 B 훅 3종만 남는다. 발자국은 엔진 소유 파일뿐(scripts/{engine_hooks,run_contract,toml_guard}.py · .harness/runs/example-engine/)이고 **추적 파일 수정 0건**. ⚠️ 라이브 Direct 세션 관찰은 S5 소관 — 기제 수준 판정임",
+      "legacy_deny": "PASS — 설치된 target에서 실측: legacy -Phase → exit 64 · 인자 없음 → exit 64 · 정상 -RunId → exit 65(candidate가 staged가 아니었던 시점의 fail-closed). 3회 호출 모두 run 산출물 0",
+      "phases_interactive_byte_diff": "PASS — installer 전후 phases/ 808cb506…(56파일)·interactive/ ea93aa38…(382파일) **바이트 동일**. S0에서 의도 수정한 interactive baseline을 candidate installer가 바꾸지 않았다",
+      "expected_red_recorded": "RV4 open · symlink 미검증 · raw execute 안내 상류 잔존 — 아래 known_unverified에 정직 기록. RED를 PASS라 부르지 않았다"
+    }
   },
-
   "history": [
     {
       "_comment": "역사 보존 — 손실 금지. 승격되지 않은 채 대체된 candidate.",
@@ -86,7 +115,6 @@
       "note": "당시 검토된 candidate. 상류가 v0.20 계열로 이동해 clean 후보를 재선정(D-027 기각 (a)). staging·파일럿·게이트를 거친 적이 없다."
     }
   ],
-
   "plugin": {
     "marketplace": "final-harness-marketplace",
     "name": "final-harness",
