@@ -1,0 +1,14 @@
+{
+  "_": "상류 sc4sap-custom public 드리프트에 대한 사람의 판단 기록 (S3 · D-027 로드맵 §9.2). report-sc4sap-public-drift.mjs가 이 파일을 읽어 각 변경에 판단을 붙인다.",
+  "_contract": "여기 기록이 없는 변경은 전부 pending으로 보고된다. pending = '아직 검토하지 않음'이지 '이식 불필요'가 아니다. 없는 판단을 지어내지 않기 위해 기본값을 pending으로 둔다.",
+  "_dispositions_allowed": {
+    "adopted": "이 변경을 우리 쪽에 이식했다. note에 이식 커밋/경로를 남긴다.",
+    "intentionally-diverged": "보고 나서 이식하지 않기로 했다. note에 사유 필수.",
+    "obsolete": "우리 설계에서 해당 자산이 폐기·미채택이라 무관하다.",
+    "pending": "아직 검토하지 않았다(기본값). 명시 기록 불필요."
+  },
+  "_how_to_record": "node interactive/scripts/report-sc4sap-public-drift.mjs 로 목록을 뽑고, 판단한 경로만 dispositions에 <원본경로>: { disposition, note, decided } 로 추가한다. 이식을 실제로 했다면 MIGRATION-MANIFEST 갱신 + build-migration-snapshot.mjs 재생성으로 pin을 옮기는 것이 정본 절차다.",
+  "pinned_commit": "a95eb0fe962adfb12fae6840213d85391b7703a8",
+  "_status_2026_07_16": "S3 시점 실측: pin 이후 public 변경 45건 전부 pending. S3 범위는 드리프트 '기계'를 만드는 것이지 45건을 판정하는 것이 아니므로 의도적으로 비워 둔다. 판정은 별도 작업.",
+  "dispositions": {}
+}

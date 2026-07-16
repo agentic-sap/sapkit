@@ -1,0 +1,2015 @@
+{
+  "_": "sc4sap-custom public source pin — S3/D-027 로드맵 §9.2. 이 파일과 migration-map.json이 이식 provenance의 정본이다.",
+  "_private_contract": "private/ 는 어떤 도구로도 읽지 않는다. 아래 allowlist는 명시 열거이며, 게이트는 private 경로 0건을 assert한다.",
+  "source": {
+    "repo": "sc4sap-custom",
+    "local_path_hint": "D:/claude for SAP/sc4sap-custom (동결 · R-004)",
+    "pinned_commit": "a95eb0fe962adfb12fae6840213d85391b7703a8",
+    "pinned_commit_date": "2026-07-07",
+    "pin_rationale": "이식 실행일은 2026-07-10이고, 이 커밋이 그 시점 원본 레포의 HEAD다. 이후 원본 public 영역은 변경됐다(드리프트는 report-sc4sap-public-drift.mjs 소관).",
+    "pin_method": "git rev-list -1 --until=2026-07-10T23:59:59 HEAD"
+  },
+  "public_root_allowlist": [
+    ".claude-plugin",
+    ".github",
+    "hooks",
+    "configs",
+    "industry",
+    "country",
+    "agents",
+    "skills",
+    "common",
+    "abap",
+    "engine",
+    "runtime-deps",
+    "data",
+    "exceptions",
+    "asset",
+    "scripts",
+    "docs",
+    "src",
+    "tests",
+    "LICENSE",
+    "CLAUDE.md",
+    "README.md",
+    "README.de.md",
+    "README.ja.md",
+    "README.ko.md",
+    "CHANGELOG.md",
+    ".mcp.json",
+    ".gitattributes",
+    ".gitignore",
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json",
+    "vitest.config.ts",
+    ".release-exclude",
+    "sc4sap.png",
+    "sc4sap_unleashed.png"
+  ],
+  "private_roots_never_read": [
+    "private/"
+  ],
+  "untracked_obsolete_not_in_inventory": [
+    ".omc/**",
+    ".sc4sap/**",
+    ".claude/settings.local.json"
+  ],
+  "inventory": {
+    "scope": "pinned commit에서 public_root_allowlist에 매칭되는 git-tracked 파일 전량",
+    "count": 487,
+    "hash": "cc01a9c97ce16ce167510164319ef61ee2080220853a0df18354d915a78b074c",
+    "hash_method": "sha256( 정렬된 '<path> <blob>\\n' 라인들의 연결 )",
+    "count_note": "MIGRATION-MANIFEST 머리말의 508(2026-07-10 실측)은 untracked 런타임 상태를 포함한 파일시스템 walk 수치이고, 구 live 게이트의 494는 원본이 이후 변동한 뒤의 walk 수치다. 이 인벤토리의 수는 'pinned commit의 tracked public 파일' 이라는 다른(그리고 재현 가능한) 계약이므로 세 수치는 일치하지 않는 것이 정상이다.",
+    "entries": [
+      {
+        "path": ".claude-plugin/marketplace.json",
+        "blob": "77262285ea43c43e0c6012bdad1ca91e81603528"
+      },
+      {
+        "path": ".claude-plugin/plugin.json",
+        "blob": "88a645bfebfc325d711ce29e0ed3a5abbcd74876"
+      },
+      {
+        "path": ".gitattributes",
+        "blob": "a06656a130480487863d7e653bf02278548946d3"
+      },
+      {
+        "path": ".github/ISSUE_TEMPLATE/--put-symptom---.md",
+        "blob": "8856888a06946bbd3614e48296f539a126837087"
+      },
+      {
+        "path": ".github/ISSUE_TEMPLATE/--증상을-기입하세요--.md",
+        "blob": "7bf836ebcf5969615ed4a769a7812f6608f4dc3a"
+      },
+      {
+        "path": ".github/workflows/ci-diagnose.yml",
+        "blob": "c9334ce4176836e02baa05d8f8b3f25600035f25"
+      },
+      {
+        "path": ".github/workflows/ci.yml",
+        "blob": "42426debed82180ae56c12256d21fa9da1021a5e"
+      },
+      {
+        "path": ".github/workflows/rebundle.yml",
+        "blob": "ed97fd4546362db44f5670f1bdf2bea06fa00cb2"
+      },
+      {
+        "path": ".gitignore",
+        "blob": "7cd40c7bfd8406bc7be0605eef04a205d82582d6"
+      },
+      {
+        "path": ".mcp.json",
+        "blob": "68dac6d2e774182f29909182359233a3d174ead4"
+      },
+      {
+        "path": ".release-exclude",
+        "blob": "ac5e48ed58dbf6b380d93993b563c1662ed2ab4d"
+      },
+      {
+        "path": "CHANGELOG.md",
+        "blob": "c5ffec5ba71ffbc2f641bf9a86124a11b0337717"
+      },
+      {
+        "path": "CLAUDE.md",
+        "blob": "b9503f96d1d31cf405836da2882e7d9e32e057fd"
+      },
+      {
+        "path": "LICENSE",
+        "blob": "aadf5a5788643661f4147bc6961d20b2e030d90f"
+      },
+      {
+        "path": "README.de.md",
+        "blob": "1742f582d0606e5a5f70d88a6f550c2da8f96ec3"
+      },
+      {
+        "path": "README.ja.md",
+        "blob": "9aba5ce0b59b4bcba6d4ab27ba946023f9b5693f"
+      },
+      {
+        "path": "README.ko.md",
+        "blob": "d3597185d7fb162860beb2e5b03459e3cf8eb365"
+      },
+      {
+        "path": "README.md",
+        "blob": "4d9f692cd1f45f574a97eaea1b46ad8895f333bd"
+      },
+      {
+        "path": "abap/README.md",
+        "blob": "dd3c7d52e57d4d484f7fa59d19c495c6285e37e0"
+      },
+      {
+        "path": "abap/alv-oop-handlers/zcl_s4sap_cm_alv.clas.abap",
+        "blob": "daa3329ae46b7778eb893094196be63b956ec83b"
+      },
+      {
+        "path": "abap/alv-oop-handlers/zcl_s4sap_cm_alv.clas.xml",
+        "blob": "0c7b8bcd38f8cf8b9eb60e1b683bfc5c8a75b9b9"
+      },
+      {
+        "path": "abap/alv-oop-handlers/zcl_s4sap_cm_alv_event.clas.abap",
+        "blob": "046013ffcd0b6046ea771c85d12c91aa9eae3924"
+      },
+      {
+        "path": "abap/alv-oop-handlers/zcl_s4sap_cm_alv_event.clas.xml",
+        "blob": "78d7fee3227248a7e96d9b6bafc3d4e636a41f33"
+      },
+      {
+        "path": "abap/alv-oop-handlers/zcl_s4sap_cm_oalv.clas.abap",
+        "blob": "36d5eaeab2e9fd8229c68e44b1232d75ce5ff901"
+      },
+      {
+        "path": "abap/alv-oop-handlers/zcl_s4sap_cm_oalv.clas.xml",
+        "blob": "83c8631086c93aab161854d30740cb7090dda055"
+      },
+      {
+        "path": "abap/alv-oop-handlers/zcl_s4sap_cm_otree.clas.abap",
+        "blob": "7ddb4dd7fc372edc2ad2587a313cd8037e99cc30"
+      },
+      {
+        "path": "abap/alv-oop-handlers/zcl_s4sap_cm_otree.clas.xml",
+        "blob": "34f3f794b28f0496f8aab94f53a8f070de6cb569"
+      },
+      {
+        "path": "abap/alv-oop-handlers/zcl_s4sap_cm_tree_event.clas.abap",
+        "blob": "b6c1237e065c72eaa69f3a4cc5cfb0deed51228a"
+      },
+      {
+        "path": "abap/alv-oop-handlers/zcl_s4sap_cm_tree_event.clas.xml",
+        "blob": "2df0b0f9e46b70337fe4c0d0c5c33d68d1e3ebf7"
+      },
+      {
+        "path": "abap/alv-oop-handlers/zcx_s4sap_excp.clas.abap",
+        "blob": "8ffcd5d7129d7a3d58be775a8fcb924bb30a82c3"
+      },
+      {
+        "path": "abap/alv-oop-handlers/zcx_s4sap_excp.clas.xml",
+        "blob": "6688d2063c5727d0a703e0092770529ec937bb45"
+      },
+      {
+        "path": "abap/alv-oop-handlers/zif_s4sap_cm.intf.abap",
+        "blob": "19af6f778615c134652b13edfb85dbe619fb32bc"
+      },
+      {
+        "path": "abap/alv-oop-handlers/zif_s4sap_cm.intf.xml",
+        "blob": "c7f7decda00053f9540a1992ef8a73f1b9c5ff66"
+      },
+      {
+        "path": "abap/zcl_zmcp_adt_dpc.clas.abap",
+        "blob": "37f97683173fa80dfe0d434c34959597dccd3f3d"
+      },
+      {
+        "path": "abap/zcl_zmcp_adt_mpc.clas.abap",
+        "blob": "4621f8d6ca8ab7c366172389a381b079af710d33"
+      },
+      {
+        "path": "abap/zmcp_adt_ddic_activate_ecc.abap",
+        "blob": "edd9a1c16d31037e1ff5dbb28b41b4a00ff7d784"
+      },
+      {
+        "path": "abap/zmcp_adt_ddic_badi_ecc.abap",
+        "blob": "d6c1b76493da9aff64f01779b9372fbc251496ca"
+      },
+      {
+        "path": "abap/zmcp_adt_ddic_doma_ecc.abap",
+        "blob": "c7067cb698b4883463ca7fd6c351e9938040070a"
+      },
+      {
+        "path": "abap/zmcp_adt_ddic_doma_read_ecc.abap",
+        "blob": "0083b8d63e62f4307bf7bd15134dd1c064819707"
+      },
+      {
+        "path": "abap/zmcp_adt_ddic_dtel_ecc.abap",
+        "blob": "2b7fa10cee3a2071061bf7d31a470585cd0251cf"
+      },
+      {
+        "path": "abap/zmcp_adt_ddic_dtel_read_ecc.abap",
+        "blob": "d9719c492bcb85d1dc9e38c47ab7b78b9c35da45"
+      },
+      {
+        "path": "abap/zmcp_adt_ddic_tabl_ecc.abap",
+        "blob": "7762926d39951743b7f1160a632ad551fcd63001"
+      },
+      {
+        "path": "abap/zmcp_adt_ddic_tabl_read_ecc.abap",
+        "blob": "72f6e366ffa9dc864c3ece70849860fdf9a26dda"
+      },
+      {
+        "path": "abap/zmcp_adt_dispatch.abap",
+        "blob": "fcbfeebfb6133e4b1e518e20e5758c11c2ad2763"
+      },
+      {
+        "path": "abap/zmcp_adt_dispatch_ecc.abap",
+        "blob": "2473c923cd085a5e94de545af7e3fe3154bf2108"
+      },
+      {
+        "path": "abap/zmcp_adt_flush_cache.abap",
+        "blob": "587ef25c1a9a607d78db3a4c354eb84497b79bd7"
+      },
+      {
+        "path": "abap/zmcp_adt_textpool.abap",
+        "blob": "0a19942ff5e08139271f4f3b728d047de20a7770"
+      },
+      {
+        "path": "abap/zmcp_adt_textpool_ecc.abap",
+        "blob": "7f1b1b3a4056ec41de29ea6afbfb4a125623ba3a"
+      },
+      {
+        "path": "agents/agent_details/bc/diagnostic-flows.md",
+        "blob": "c1dbd6c81d09a34ee4fab77a41ac9e2af2875a5e"
+      },
+      {
+        "path": "agents/agent_details/bc/transaction-codes.md",
+        "blob": "bbfbbd3d04c3a3cf3d41afa3b11e55bff4c8b67d"
+      },
+      {
+        "path": "agents/sap-analyst.md",
+        "blob": "75bfbca10d46910d3019bb0e62488e238502d315"
+      },
+      {
+        "path": "agents/sap-architect.md",
+        "blob": "f395fe81d3190c81e903a009c3dac6dfc7278929"
+      },
+      {
+        "path": "agents/sap-ariba-consultant.md",
+        "blob": "41f3b13676cc62f266b0cd76efbe97a7ffa08658"
+      },
+      {
+        "path": "agents/sap-bc-consultant.md",
+        "blob": "4ef32c4cc4ab36980f153a0f2cfb562d9d53ed53"
+      },
+      {
+        "path": "agents/sap-bw-consultant.md",
+        "blob": "98a0d9e5dbb55193e3494ca22c74ff5a8227fc21"
+      },
+      {
+        "path": "agents/sap-co-consultant.md",
+        "blob": "8bf428ff3400ca744635faff0cd8c1b9bdbcf27e"
+      },
+      {
+        "path": "agents/sap-code-reviewer.md",
+        "blob": "fcf29b6b6021433cfa8d9b738921b55138ae03a2"
+      },
+      {
+        "path": "agents/sap-critic.md",
+        "blob": "a8ac8a5618f7487919b0e89a8b1e3f844d7bad9e"
+      },
+      {
+        "path": "agents/sap-debugger.md",
+        "blob": "f8e244cf7b064290d08c11cd346f2aa8c5cc4b9a"
+      },
+      {
+        "path": "agents/sap-doc-specialist.md",
+        "blob": "785d425e300a21157985e4c1f30988b6f3be1fa5"
+      },
+      {
+        "path": "agents/sap-executor.md",
+        "blob": "a77a82498f5ded56d25f56c2f3c00cecdd9db583"
+      },
+      {
+        "path": "agents/sap-fi-consultant.md",
+        "blob": "56eb71b626b0b65667ec9e2ba47b213de8fd7f70"
+      },
+      {
+        "path": "agents/sap-hcm-consultant.md",
+        "blob": "774855624fff09f2705726e36432715dc3d821e3"
+      },
+      {
+        "path": "agents/sap-mm-consultant.md",
+        "blob": "6ab0b2c26d59b7a92918546d0cdb896154a8d195"
+      },
+      {
+        "path": "agents/sap-planner.md",
+        "blob": "cdadb4ec2ecc378ee0d4f5946be732e02af2c2b2"
+      },
+      {
+        "path": "agents/sap-pm-consultant.md",
+        "blob": "adcafbfcdf3d6f62df2c11303d6ef89c2f11f6e7"
+      },
+      {
+        "path": "agents/sap-pp-consultant.md",
+        "blob": "6976496375a90dd36130c99bf2d3d5fc4547ee3f"
+      },
+      {
+        "path": "agents/sap-ps-consultant.md",
+        "blob": "20c24d9e916e930a2aecb39fcef8cc6890d9eeda"
+      },
+      {
+        "path": "agents/sap-qa-tester.md",
+        "blob": "2df8dde76340a8bfb490c425384e5bae1dc0032a"
+      },
+      {
+        "path": "agents/sap-qm-consultant.md",
+        "blob": "b05e738267ca243b3d6a998c76acda08dda098cf"
+      },
+      {
+        "path": "agents/sap-sd-consultant.md",
+        "blob": "72bd089c8ef12deabc6e8458f3bd749ca6f0146c"
+      },
+      {
+        "path": "agents/sap-stocker.md",
+        "blob": "2703d710ecb7094ce263eba581387b708c4b260e"
+      },
+      {
+        "path": "agents/sap-tm-consultant.md",
+        "blob": "c97a21256a4db8190c0e25540341656faa1d4a73"
+      },
+      {
+        "path": "agents/sap-tr-consultant.md",
+        "blob": "dba87f0af796f76b64d2431f09df23439f370963"
+      },
+      {
+        "path": "agents/sap-wm-consultant.md",
+        "blob": "90b484b43c3d2443f9d5efade535a8436527ea25"
+      },
+      {
+        "path": "agents/sap-writer.md",
+        "blob": "a42d77a0d01dc8df59ffc3b3b77c7554a5a1f247"
+      },
+      {
+        "path": "asset/template_base.xlsx",
+        "blob": "92818883a01c043e93601b7aa1b997c77b78aeb6"
+      },
+      {
+        "path": "common/abap-release-examples.md",
+        "blob": "b22f4da274848f879b30f50b367490607a84a726"
+      },
+      {
+        "path": "common/abap-release-reference.md",
+        "blob": "bca664f7fb719e5df53b1c9442d579f2c9c84a21"
+      },
+      {
+        "path": "common/active-modules.md",
+        "blob": "5c3a0d021ec7666204ec0da3b510ebce6220a7c3"
+      },
+      {
+        "path": "common/alv-rules.md",
+        "blob": "7e87f932a62238c3fa50c319b97830527fb78068"
+      },
+      {
+        "path": "common/alv-sample/field-catalog-guide.abap",
+        "blob": "4f76e79aa52e887d7a66518701af3fe2c7ce116e"
+      },
+      {
+        "path": "common/clean-code-oop.md",
+        "blob": "db838a9db175b1329bb87f09e49c563e8c6913d9"
+      },
+      {
+        "path": "common/clean-code-procedural.md",
+        "blob": "9eee7a5e1107119393fc5e042f4e8de22a4fba94"
+      },
+      {
+        "path": "common/clean-code.md",
+        "blob": "3cf32c0f6182ba6bab0749803988a43a2f9400a9"
+      },
+      {
+        "path": "common/cloud-abap-constraints.md",
+        "blob": "f9f4221a459987623e4059df2ac7133132c14ae4"
+      },
+      {
+        "path": "common/constant-rule.md",
+        "blob": "0279f69385311a9ef5d855eb7829aa91537fd3e9"
+      },
+      {
+        "path": "common/context-loading-protocol.md",
+        "blob": "f734f735def04a9af8ce6cbaa5a38708f8bb2156"
+      },
+      {
+        "path": "common/customization-lookup.md",
+        "blob": "3783d2a345186f29697fe0d77c1936fddbf51e9f"
+      },
+      {
+        "path": "common/data-extraction-policy.md",
+        "blob": "2a478a6d8a390569fdf9afa2e8072fe977c219dd"
+      },
+      {
+        "path": "common/ecc-ddic-fallback.md",
+        "blob": "859a11ff605d53c7466df2953b08b7ad4b3b9f64"
+      },
+      {
+        "path": "common/field-typing-rule.md",
+        "blob": "1bc1066a8d4058b4e8afd1a28b041be211307c25"
+      },
+      {
+        "path": "common/function-module-rule.md",
+        "blob": "160f3d1ad81091cde75896d9e507f6992d732222"
+      },
+      {
+        "path": "common/help-portal-fetch.md",
+        "blob": "868615fb0ac8aadb52f01498a65dea1233038564"
+      },
+      {
+        "path": "common/include-structure.md",
+        "blob": "6b5e72b85bfb447f6158a7484a59773c5977c77f"
+      },
+      {
+        "path": "common/model-routing-rule.md",
+        "blob": "3ad0ee066ca8ca6b406e76f65740b712996f32a2"
+      },
+      {
+        "path": "common/multi-profile-artifact-resolution.md",
+        "blob": "18294955554ac29ae07f96e826f2e214af1fc438"
+      },
+      {
+        "path": "common/naming-conventions.md",
+        "blob": "f113406918f822d9118fcb93cd032710cb866199"
+      },
+      {
+        "path": "common/ok-code-pattern.md",
+        "blob": "54804cef1d31a7bd3a25a0b0857688d39d25675e"
+      },
+      {
+        "path": "common/oop-pattern.md",
+        "blob": "fc187bdc7657ffb7f1f50f026dbadb70978525ef"
+      },
+      {
+        "path": "common/oop-sample/zrsc4sap_oop_ex.prog.abap",
+        "blob": "716587105eaae41566707beaee18cc09dd1ee607"
+      },
+      {
+        "path": "common/oop-sample/zrsc4sap_oop_ex.prog.screen_0100.abap",
+        "blob": "873913d60b089469b3524f9d3e5464c9d6b804e4"
+      },
+      {
+        "path": "common/oop-sample/zrsc4sap_oop_ex.prog.screen_0200.abap",
+        "blob": "10e35ef662a20bd762a766abf050f40c1a8ed8eb"
+      },
+      {
+        "path": "common/oop-sample/zrsc4sap_oop_ex.prog.xml",
+        "blob": "311842973ae06512c1af1e2bc8f8d6b55c55a911"
+      },
+      {
+        "path": "common/oop-sample/zrsc4sap_oop_exa.prog.abap",
+        "blob": "3e1934c64107926288bb8a5c2ed799496a3bc7bb"
+      },
+      {
+        "path": "common/oop-sample/zrsc4sap_oop_exa.prog.xml",
+        "blob": "24465a8a3d0b1a8150314f1de42920286f90f619"
+      },
+      {
+        "path": "common/oop-sample/zrsc4sap_oop_exc.prog.abap",
+        "blob": "a78f73ea9b996bbce1e25d4915d461e2aaa96fd4"
+      },
+      {
+        "path": "common/oop-sample/zrsc4sap_oop_exc.prog.xml",
+        "blob": "13083b56870a4d5052d6de7349731b927f756cec"
+      },
+      {
+        "path": "common/oop-sample/zrsc4sap_oop_exe.prog.abap",
+        "blob": "1df57817044b15b704219af97f20680d8f2b7d2f"
+      },
+      {
+        "path": "common/oop-sample/zrsc4sap_oop_exe.prog.xml",
+        "blob": "58676f54635b5b9e4f5cb034242b06d0427866cf"
+      },
+      {
+        "path": "common/oop-sample/zrsc4sap_oop_exf.prog.abap",
+        "blob": "e2a621ba71096fc27a4ab2806e1af66fb58bbe16"
+      },
+      {
+        "path": "common/oop-sample/zrsc4sap_oop_exf.prog.xml",
+        "blob": "ab3936715468f545ca4e2f470f6ba23abe42013c"
+      },
+      {
+        "path": "common/oop-sample/zrsc4sap_oop_exi.prog.abap",
+        "blob": "1ed4b37b142b6e3135786b80c073e1a8465654d3"
+      },
+      {
+        "path": "common/oop-sample/zrsc4sap_oop_exi.prog.xml",
+        "blob": "c1a8713e1144db32f0b0a4af923b904fb676dedd"
+      },
+      {
+        "path": "common/oop-sample/zrsc4sap_oop_exo.prog.abap",
+        "blob": "5373b541985b0c70fee2e4cc291667f3dde0d64b"
+      },
+      {
+        "path": "common/oop-sample/zrsc4sap_oop_exo.prog.xml",
+        "blob": "9974773f4ab7353115a31d644eca97e24003688c"
+      },
+      {
+        "path": "common/oop-sample/zrsc4sap_oop_exs.prog.abap",
+        "blob": "0e0df0fe9e52f83680542b5f172e63d6fbce7ac7"
+      },
+      {
+        "path": "common/oop-sample/zrsc4sap_oop_exs.prog.xml",
+        "blob": "cb1a87a69c7228fc1cad72082cb4861a2ce611a9"
+      },
+      {
+        "path": "common/oop-sample/zrsc4sap_oop_ext.prog.abap",
+        "blob": "b8a9293766398e8be02868fbe2ddd47c78fbd727"
+      },
+      {
+        "path": "common/oop-sample/zrsc4sap_oop_ext.prog.xml",
+        "blob": "be7d7d18c6f96c7885f59ee0115fcf338e0640a5"
+      },
+      {
+        "path": "common/procedural-form-naming.md",
+        "blob": "bcab739dee08374fb34bbf9b42c4338bb6d793f9"
+      },
+      {
+        "path": "common/procedural-sample/main-program.abap",
+        "blob": "b1f8d1d6424f8b4649693ba547b5e6d6bf0a5e9f"
+      },
+      {
+        "path": "common/sap-version-reference.md",
+        "blob": "46a5c7c1f7472b517f507a5efbc8e8e71b025152"
+      },
+      {
+        "path": "common/spro-lookup.md",
+        "blob": "a0939f3223c977e5289d00fefa2718bd33d996b2"
+      },
+      {
+        "path": "common/team-consultation-protocol.md",
+        "blob": "92298c4ed1368c35650581bb4bcef18970e9d282"
+      },
+      {
+        "path": "common/text-element-rule.md",
+        "blob": "f5b4d40a4c28c59c2f0d09c4d82df917e5fe4c8c"
+      },
+      {
+        "path": "common/transport-client-rule.md",
+        "blob": "42aae2a2b1ca655ae03ea7511cccc62f72955797"
+      },
+      {
+        "path": "configs/Ariba/bapi.md",
+        "blob": "6df844af51deb3a9fe82ed9dc2b18e502024628f"
+      },
+      {
+        "path": "configs/Ariba/enhancements.md",
+        "blob": "4cdfd302d355706c87aa62cfbc46ab25782805c6"
+      },
+      {
+        "path": "configs/Ariba/spro.md",
+        "blob": "7d6d5864647c3f7a48ef4c2d060c3c0c91592112"
+      },
+      {
+        "path": "configs/Ariba/tables.md",
+        "blob": "6e94bc67467e1b434ed5436f5dfbf79c7f1ba3c7"
+      },
+      {
+        "path": "configs/Ariba/tcodes.md",
+        "blob": "3a0e44d13905761842f896d82df5de727a2e2f0e"
+      },
+      {
+        "path": "configs/Ariba/workflows.md",
+        "blob": "969df9408df33083e67cf3d9c522672560254ebd"
+      },
+      {
+        "path": "configs/BW/bapi.md",
+        "blob": "cec01fa495e0f7eb18271457e7a0e558f9b8befe"
+      },
+      {
+        "path": "configs/BW/enhancements.md",
+        "blob": "e9f3f8ff1092478647cae9d512534b5794672892"
+      },
+      {
+        "path": "configs/BW/spro.md",
+        "blob": "b91cfbe67c9c3441818e5116c9ce1ebc6152c36f"
+      },
+      {
+        "path": "configs/BW/tables.md",
+        "blob": "f9f6dc03e3328540cdbfb3b6db66107ca6db9151"
+      },
+      {
+        "path": "configs/BW/tcodes.md",
+        "blob": "ec1881bab2f99aaada3a18a950933fa10a8ce9d4"
+      },
+      {
+        "path": "configs/BW/workflows.md",
+        "blob": "f2aca00a5bdf2dec48aa6fc1b7f207bd3c02e14b"
+      },
+      {
+        "path": "configs/CO/bapi.md",
+        "blob": "15f86fca5286cca8e69393fcbd3dd1c4c3ece5e2"
+      },
+      {
+        "path": "configs/CO/enhancements.md",
+        "blob": "44e1ee81a1cd79a909397114d7a68a5769d4180b"
+      },
+      {
+        "path": "configs/CO/spro.md",
+        "blob": "dca8ed04688e6a8f44bba8dcc04d55a083f6942a"
+      },
+      {
+        "path": "configs/CO/tables.md",
+        "blob": "b13c7a54c2d54414822b5a544def058e852be3d8"
+      },
+      {
+        "path": "configs/CO/tcodes.md",
+        "blob": "2d9e9f90f8d8f998e72326f752ef80775b2a9da2"
+      },
+      {
+        "path": "configs/CO/workflows.md",
+        "blob": "0bee406cfa1eba7bf791c60d1d2cb82c9333485b"
+      },
+      {
+        "path": "configs/FI/bapi.md",
+        "blob": "12c887ad5013b043ddeedd8d9a9edf38ed5b2111"
+      },
+      {
+        "path": "configs/FI/enhancements.md",
+        "blob": "379d75739837b3b0f82ea6171a73e1427d285a73"
+      },
+      {
+        "path": "configs/FI/spro.md",
+        "blob": "397a3df5f23e8668d5a053f54620b31985f0a63b"
+      },
+      {
+        "path": "configs/FI/tables.md",
+        "blob": "e56e1ed4bbff783f424d705f0be69613b9216611"
+      },
+      {
+        "path": "configs/FI/tcodes.md",
+        "blob": "7354944f900a68985a39fb93631453723a06e156"
+      },
+      {
+        "path": "configs/FI/workflows.md",
+        "blob": "b1695873c6618a35e6cf862c40411542b00297fd"
+      },
+      {
+        "path": "configs/HCM/bapi.md",
+        "blob": "0379ed33554f2ee6362338a37a2db70bc5bea522"
+      },
+      {
+        "path": "configs/HCM/enhancements.md",
+        "blob": "8ba7a8325d27f31f83305eaf3dc19503c7721e07"
+      },
+      {
+        "path": "configs/HCM/spro.md",
+        "blob": "6169d2fb47c53cbfd7cfcdd6a7569e48594eab14"
+      },
+      {
+        "path": "configs/HCM/tables.md",
+        "blob": "0316890ed53ed8b1943bb19a3cb2cf00966f838b"
+      },
+      {
+        "path": "configs/HCM/tcodes.md",
+        "blob": "8526db89c52c4f482af8312e517d1882beaea65a"
+      },
+      {
+        "path": "configs/HCM/workflows.md",
+        "blob": "2eb22cad83f4f88639dc08151ad16420d7e81cb3"
+      },
+      {
+        "path": "configs/MM/bapi.md",
+        "blob": "23b004dc6e2645332e75bcc88fab2782f0195605"
+      },
+      {
+        "path": "configs/MM/enhancements.md",
+        "blob": "e7eacbfc14ef2f6259539e9331f3488a9fc880a8"
+      },
+      {
+        "path": "configs/MM/spro.md",
+        "blob": "66fb0ff87a041eee187ef5132e2149680060f560"
+      },
+      {
+        "path": "configs/MM/tables.md",
+        "blob": "a41435e1d22d9042c2c923fdcd759698eb45d8fc"
+      },
+      {
+        "path": "configs/MM/tcodes.md",
+        "blob": "0ade6bf55fc937a6804c41d666d24c159ed7453f"
+      },
+      {
+        "path": "configs/MM/workflows.md",
+        "blob": "d12d29ac8e7aa224610f335dc5f1d20c873f60ca"
+      },
+      {
+        "path": "configs/PM/bapi.md",
+        "blob": "87bca9443a87d8b57886bb36d97ec7138c11f64d"
+      },
+      {
+        "path": "configs/PM/enhancements.md",
+        "blob": "44f9c39dd08143387712ff7add10dd37f5fb17f1"
+      },
+      {
+        "path": "configs/PM/spro.md",
+        "blob": "1e1ae5db33d50350cd8099a9fcfe8c840bed4ccd"
+      },
+      {
+        "path": "configs/PM/tables.md",
+        "blob": "5c6715db64bae44226988327400b89aba2c618da"
+      },
+      {
+        "path": "configs/PM/tcodes.md",
+        "blob": "a41f4f3d075cca737cfe302847995c32c6b36fe4"
+      },
+      {
+        "path": "configs/PM/workflows.md",
+        "blob": "605dabe720a8914e1f10fb55bb686c1ff376a083"
+      },
+      {
+        "path": "configs/PP/bapi.md",
+        "blob": "81d0e54c4bf4ebba26f68c7a4b4ffd80a0984319"
+      },
+      {
+        "path": "configs/PP/enhancements.md",
+        "blob": "afe4acf2dafd8e5a5267044684b13d2aa4e7151b"
+      },
+      {
+        "path": "configs/PP/spro.md",
+        "blob": "b3c4e462ae4a58ca9ce3a54f0781e9202ea5d1ff"
+      },
+      {
+        "path": "configs/PP/tables.md",
+        "blob": "aa2cc3554a77702b867839e251b0f7b5e4d600ab"
+      },
+      {
+        "path": "configs/PP/tcodes.md",
+        "blob": "7299bbac24d7321aaeb0925445668445adca9493"
+      },
+      {
+        "path": "configs/PP/workflows.md",
+        "blob": "b35d78e00a4759ae28c90c2a27e1724fef98b2f2"
+      },
+      {
+        "path": "configs/PS/bapi.md",
+        "blob": "54dad534231fa9b678179b32eabd2e13e43b1d60"
+      },
+      {
+        "path": "configs/PS/enhancements.md",
+        "blob": "07beb7f4a6f765ff14f62601eb8354744ea6a269"
+      },
+      {
+        "path": "configs/PS/spro.md",
+        "blob": "ed174ff438d1a9166a212cba70091dbb7a28c4fa"
+      },
+      {
+        "path": "configs/PS/tables.md",
+        "blob": "13d66b27f3d8638ffb04177e0679d5f26bab0efc"
+      },
+      {
+        "path": "configs/PS/tcodes.md",
+        "blob": "2993e4e3e6eceed7e6e195ccf9c457fe910c484b"
+      },
+      {
+        "path": "configs/PS/workflows.md",
+        "blob": "7bf6ab7119154e02b8fa0547e938bfefecd83efa"
+      },
+      {
+        "path": "configs/QM/bapi.md",
+        "blob": "a35571c976a247dd8e66ba3a33c166001d2ab139"
+      },
+      {
+        "path": "configs/QM/enhancements.md",
+        "blob": "383b053aafb9e28ee518b3e672029d1a729ef10f"
+      },
+      {
+        "path": "configs/QM/spro.md",
+        "blob": "5b98715ed38f091b391f751bad494f8bee95dcb9"
+      },
+      {
+        "path": "configs/QM/tables.md",
+        "blob": "6a685dc2badf6aae4191bac78c039b17501fded2"
+      },
+      {
+        "path": "configs/QM/tcodes.md",
+        "blob": "5e3b55564a2408e6681cda7df5ad99e5ff14a885"
+      },
+      {
+        "path": "configs/QM/workflows.md",
+        "blob": "0082617ce61867905dbcd7df311964747c04920c"
+      },
+      {
+        "path": "configs/SD/bapi.md",
+        "blob": "09839189abb5a2c2a7bffbc1dd07683032730b51"
+      },
+      {
+        "path": "configs/SD/enhancements.md",
+        "blob": "f78a3d89e39e490f038ae51b0cb085905885c066"
+      },
+      {
+        "path": "configs/SD/spro.md",
+        "blob": "322c5b9d08645d22e55710002a1a9992170fc2b9"
+      },
+      {
+        "path": "configs/SD/tables.md",
+        "blob": "17abe8fc4ee7a3e5c4866a4c78e791dec874348c"
+      },
+      {
+        "path": "configs/SD/tcodes.md",
+        "blob": "79f925fbd7151e6e1185fa8f2f9d5dbe18fdf434"
+      },
+      {
+        "path": "configs/SD/workflows.md",
+        "blob": "cb77970f608d973129adc0c6f27670a2a4013af5"
+      },
+      {
+        "path": "configs/TM/bapi.md",
+        "blob": "4e1c2a3be6982474cb22bfc26d0dd496470aa530"
+      },
+      {
+        "path": "configs/TM/enhancements.md",
+        "blob": "1a3683560f3f200a87d4dda29fb1bcfdd323b3d1"
+      },
+      {
+        "path": "configs/TM/spro.md",
+        "blob": "0bf882bfc8fe725e52aa186c8681929fc012819d"
+      },
+      {
+        "path": "configs/TM/tables.md",
+        "blob": "e32ebc02c117fc72f83cc93b5d43eeb2348f14f6"
+      },
+      {
+        "path": "configs/TM/tcodes.md",
+        "blob": "eba04dc4545415ae4f25755e0b30d72ddbda4399"
+      },
+      {
+        "path": "configs/TM/workflows.md",
+        "blob": "30b5b83d8e06ad675cb57c2507d019296a29fc3b"
+      },
+      {
+        "path": "configs/TR/bapi.md",
+        "blob": "5532049105a3c39454e8cb802117758159b613b9"
+      },
+      {
+        "path": "configs/TR/enhancements.md",
+        "blob": "a0af6c1e4159207199cd434da5e92c90ac9e0376"
+      },
+      {
+        "path": "configs/TR/spro.md",
+        "blob": "287535ec2d71f231289ef43608587e1daf1840fd"
+      },
+      {
+        "path": "configs/TR/tables.md",
+        "blob": "54ab7f8df64408b4c995823d24dd1e33f46f1fec"
+      },
+      {
+        "path": "configs/TR/tcodes.md",
+        "blob": "965371741ce82d4665b47b85b947fdcbb140aae1"
+      },
+      {
+        "path": "configs/TR/workflows.md",
+        "blob": "c4c6b07fc44cac7a19ce3bc158fe7ab07512caee"
+      },
+      {
+        "path": "configs/WM/bapi.md",
+        "blob": "56327f3ce068a84c31b14a8cb8e24d64ae66a9a1"
+      },
+      {
+        "path": "configs/WM/enhancements.md",
+        "blob": "a799e189c862ac52957b8379d62b697f10c887e5"
+      },
+      {
+        "path": "configs/WM/spro.md",
+        "blob": "f79fc33669c9419b73690ddc32eb4f8b58bd8d61"
+      },
+      {
+        "path": "configs/WM/tables.md",
+        "blob": "07bd0d675079c1bb653b9a55e0cf9feb46b6d6e1"
+      },
+      {
+        "path": "configs/WM/tcodes.md",
+        "blob": "c4e713cc335122f0601d24cdfc5ff5ce1456501f"
+      },
+      {
+        "path": "configs/WM/workflows.md",
+        "blob": "c0bd3582ee9413b3c14f141b8fe7d30ed6822645"
+      },
+      {
+        "path": "configs/common/bapi.md",
+        "blob": "47fd296704766c4693225d9178a528f26b1d86b2"
+      },
+      {
+        "path": "configs/common/enhancements.md",
+        "blob": "68b6514486719363d055b2281f67a3e96725d9b6"
+      },
+      {
+        "path": "configs/common/naming-conventions-objects.md",
+        "blob": "5a5bfb1f7929a96d09e36428881cfaee79f0df3c"
+      },
+      {
+        "path": "configs/common/naming-conventions.md",
+        "blob": "e3da609e8044dba8837f6b4826d1c58d39d3c083"
+      },
+      {
+        "path": "configs/common/spro.md",
+        "blob": "a3b435641624f6fe2b3c1325fc3f14b01551b08b"
+      },
+      {
+        "path": "configs/common/tables.md",
+        "blob": "3e9a8d65e4525bb866ae00aebc21dabfbc1ca3e1"
+      },
+      {
+        "path": "configs/common/tcodes.md",
+        "blob": "04ccc269ebccaad73e5250ba9f1b3a54ee9b4565"
+      },
+      {
+        "path": "country/README.md",
+        "blob": "af076aed8cd661799a82d1d606bae8f460067d33"
+      },
+      {
+        "path": "country/au.md",
+        "blob": "79fcac353a0629125168a3f2ef624df6d6a90e53"
+      },
+      {
+        "path": "country/br.md",
+        "blob": "7dbb1bb82eb4ffbc454f0c05a2f2434d480039f3"
+      },
+      {
+        "path": "country/cn.md",
+        "blob": "e951754f421cd08abbafd0d1b3f053a33f3d6793"
+      },
+      {
+        "path": "country/de.md",
+        "blob": "72a7415452637cbc63bb26febc59bc1461afa535"
+      },
+      {
+        "path": "country/es.md",
+        "blob": "6aeb14830d2c5b0bd156c5da573d938e295e82e4"
+      },
+      {
+        "path": "country/eu-common.md",
+        "blob": "33ffcd65ebf8a33a2dbd99eec048eeb172c0184b"
+      },
+      {
+        "path": "country/fr.md",
+        "blob": "0446cb8ed6202f89e1f97b784c1a1026286dfa8b"
+      },
+      {
+        "path": "country/gb.md",
+        "blob": "1bf89e8705768aec17c738b2754694f2fe1a32a7"
+      },
+      {
+        "path": "country/in.md",
+        "blob": "18f93477dfe0ed40f9835612a8ffb74d375162a6"
+      },
+      {
+        "path": "country/it.md",
+        "blob": "9ce8e492cc65592127fee9b134e6e5f4a9580049"
+      },
+      {
+        "path": "country/jp.md",
+        "blob": "7f2664fc7f16bb04a57579e47f75afd779ea452a"
+      },
+      {
+        "path": "country/kr.md",
+        "blob": "561d376e1cc0b60f9b171810550cbbf23a52f630"
+      },
+      {
+        "path": "country/mx.md",
+        "blob": "14205db0244bc8848e0cb0f3457e128a1a97f3c5"
+      },
+      {
+        "path": "country/nl.md",
+        "blob": "7c4e9f5f3a0679206cc7a00c5b483b6c0c5d12d8"
+      },
+      {
+        "path": "country/sg.md",
+        "blob": "3c57ad69ff1cc9c862b2955f28d1b3c04f76e7a4"
+      },
+      {
+        "path": "country/us.md",
+        "blob": "3195c0c3a87a6bc0f258a6f3087d81bfcf0a4a4d"
+      },
+      {
+        "path": "data/sc4sap-mcp-tools-read.md",
+        "blob": "8dee7a9b61e1c3c2524e37031d1553ebe7190641"
+      },
+      {
+        "path": "data/sc4sap-mcp-tools-runtime.md",
+        "blob": "d65618c6c812201c692992f27c6c09e5724ce678"
+      },
+      {
+        "path": "data/sc4sap-mcp-tools-write.md",
+        "blob": "5ed6af739173186e2338fcb28021ca5e895dbd96"
+      },
+      {
+        "path": "data/sc4sap-mcp-tools.md",
+        "blob": "17a94bc17f4d876f7d3da0a9e24afb9a94b79618"
+      },
+      {
+        "path": "docs/CHANGELOG.de.md",
+        "blob": "483c25d7275974607e428e3da6ee06507e7b7187"
+      },
+      {
+        "path": "docs/CHANGELOG.ja.md",
+        "blob": "bc2b6bfb9ddaef3f5d5492176ccd0eee25cc59d5"
+      },
+      {
+        "path": "docs/CHANGELOG.ko.md",
+        "blob": "ddfb58d7f10067955e18553b93ceafd7f99ddea3"
+      },
+      {
+        "path": "docs/CHANGELOG.md",
+        "blob": "7dfc74664ade2c9c601b6f5d1a65c1023622c74a"
+      },
+      {
+        "path": "docs/FEATURES.de.md",
+        "blob": "5b9ab5b37e1bf0e5ba5447c64f28f63c306bd31b"
+      },
+      {
+        "path": "docs/FEATURES.ja.md",
+        "blob": "e4bc93dc576e1b4b09bc36ef8916fd50b7a68296"
+      },
+      {
+        "path": "docs/FEATURES.ko.md",
+        "blob": "e421d23177c23c413888f26c8dd08624ea1e0a2c"
+      },
+      {
+        "path": "docs/FEATURES.md",
+        "blob": "103c84e4e28879ad4cfa0c69c3b8b063eaaf46d2"
+      },
+      {
+        "path": "docs/INSTALLATION.de.md",
+        "blob": "fc4c015f96ab555d51abfe8993225be3e307783e"
+      },
+      {
+        "path": "docs/INSTALLATION.ja.md",
+        "blob": "72c3c900b74ca1a09c5eafa1defd7edb3c58a678"
+      },
+      {
+        "path": "docs/INSTALLATION.ko.md",
+        "blob": "9319d000bc5c042c267221384dbbce89bedcd709"
+      },
+      {
+        "path": "docs/INSTALLATION.md",
+        "blob": "3f0dfc45e6c3f00c14b4290166918e76ea873007"
+      },
+      {
+        "path": "docs/bundle-integrity.md",
+        "blob": "5aa6502eb118176c8e16e110c933f2b02d957e01"
+      },
+      {
+        "path": "docs/engine-bundle-integrity.md",
+        "blob": "dec649f5f4528614c7feca7a1ef785ee35cc6fec"
+      },
+      {
+        "path": "docs/img-order-study-integration.md",
+        "blob": "4cca49fb07bc7e59c46382d45d5e80a12a9cf68f"
+      },
+      {
+        "path": "docs/multi-profile-design.md",
+        "blob": "f514f7c5f7c99b642c8e71a32eafd99dfddd97d4"
+      },
+      {
+        "path": "docs/multi-profile-implementation-plan.md",
+        "blob": "daa40c237dce3499837555f91c561d28daee3a58"
+      },
+      {
+        "path": "docs/multi-profile-setup-gap.md",
+        "blob": "2a351114bdd3cd0239d277b247007c3aae1ca300"
+      },
+      {
+        "path": "docs/odata-backend.md",
+        "blob": "9c5779b394b32b87072e8fb6a90a3c0a6e329c97"
+      },
+      {
+        "path": "docs/private-public-release-model.md",
+        "blob": "69c5b82909ad5ed59419d4f5f40e4463f3cdad78"
+      },
+      {
+        "path": "docs/skill-model-architecture.md",
+        "blob": "38ab5dc981b95137c2f5a853aaa4c70b0cab6305"
+      },
+      {
+        "path": "docs/team-consultation-architecture.ko.md",
+        "blob": "e69b446e1f676523cdea5f588aec43816d1161d0"
+      },
+      {
+        "path": "docs/team-consultation-architecture.md",
+        "blob": "6057fc8e67f5f074f3bc0725dbc7782a66c169a8"
+      },
+      {
+        "path": "engine/VERSION",
+        "blob": "d064312aa833c94657fb8ae978465b458a01b845"
+      },
+      {
+        "path": "engine/integrity.json",
+        "blob": "1749e98effbf34ed1c9823de5ab0273329baf481"
+      },
+      {
+        "path": "engine/server.bundle.cjs",
+        "blob": "3db5f4cb09e973f0ebc38cfc534a4eee235230df"
+      },
+      {
+        "path": "exceptions/addresses-communication.md",
+        "blob": "fc54fbe649c64b56f26d72d278ce59459981d6d6"
+      },
+      {
+        "path": "exceptions/audit-security-logs.md",
+        "blob": "8313855efad3a8529b91ff028f6535e7fb5c2cc9"
+      },
+      {
+        "path": "exceptions/auth-security.md",
+        "blob": "3cf2f563520a7385f82227480b2c54849113091e"
+      },
+      {
+        "path": "exceptions/banking-payment.md",
+        "blob": "dbbc856295462189e5287e93219c3b0d72e6b19d"
+      },
+      {
+        "path": "exceptions/communication-workflow.md",
+        "blob": "f2163abc8c86a0312f0dc5870056acf02a5e7f4b"
+      },
+      {
+        "path": "exceptions/custom-patterns.md",
+        "blob": "a542db2537d3ebeaafc4c52109ef17c7afea276b"
+      },
+      {
+        "path": "exceptions/hr-payroll.md",
+        "blob": "4da2d1e3b1d828c2e02cd6967548993446997ef3"
+      },
+      {
+        "path": "exceptions/master-data-pii.md",
+        "blob": "2640c5fe9171d1222e4d7583bd95f807dfd39bad"
+      },
+      {
+        "path": "exceptions/pricing-conditions.md",
+        "blob": "a2f6c1af58357dc0d1ad2e95bb4cadbf9d6044f2"
+      },
+      {
+        "path": "exceptions/protected-business-data.md",
+        "blob": "0c9c27a955dcb21f2c2a248e3172f31e874bf0a2"
+      },
+      {
+        "path": "exceptions/table_exception.md",
+        "blob": "07186e9c89fa33207af65379c079d1c780ced493"
+      },
+      {
+        "path": "exceptions/tax-government-ids.md",
+        "blob": "181a3589133d1b65ce04f6399427b7d4fe2771b6"
+      },
+      {
+        "path": "hooks/hooks.json",
+        "blob": "bd8a15c980d0b6727de99a43133382c5d696debe"
+      },
+      {
+        "path": "industry/README.md",
+        "blob": "c70cc3a604fe3823cf401a97a6d85fac6a8655ef"
+      },
+      {
+        "path": "industry/automotive.md",
+        "blob": "9499af23bc0e68cfcc6e96702854f70c59ce4148"
+      },
+      {
+        "path": "industry/banking.md",
+        "blob": "0f17360b67fd7013100fff9c26cbbeb32e4b91b4"
+      },
+      {
+        "path": "industry/chemical.md",
+        "blob": "a7c84a4facaf25f1e562cdff09b042ad253fae91"
+      },
+      {
+        "path": "industry/construction.md",
+        "blob": "ecf96f4a6ce7e57d285d2330ef7f45d91886265b"
+      },
+      {
+        "path": "industry/cosmetics.md",
+        "blob": "b7874523a78146d44adcbb0cf3d9117609af6516"
+      },
+      {
+        "path": "industry/electronics.md",
+        "blob": "f7663958322c146fac6b0467554f365e7bcda70d"
+      },
+      {
+        "path": "industry/fashion.md",
+        "blob": "f88d838dfb6b99187cf7179f92b77311b634164b"
+      },
+      {
+        "path": "industry/food-beverage.md",
+        "blob": "775ccecd5299fb89c52da17660b9a0dacc583e91"
+      },
+      {
+        "path": "industry/pharmaceutical.md",
+        "blob": "e3a07ea84b8c928b98044f825f28a5dc7904ec43"
+      },
+      {
+        "path": "industry/public-sector.md",
+        "blob": "2ff698e03accf54850ce409885842f787b10ca3e"
+      },
+      {
+        "path": "industry/retail.md",
+        "blob": "d56fde585e1855ec6045b1acbd8c0bed12709b8d"
+      },
+      {
+        "path": "industry/steel.md",
+        "blob": "62bc1f5e368eaeb846798814b0587fbe1c5e23fb"
+      },
+      {
+        "path": "industry/tire.md",
+        "blob": "e0a122f6a73be18720c12552df0371774fa5b9d3"
+      },
+      {
+        "path": "industry/utilities.md",
+        "blob": "8c1aa938365075482e3ff0bfb1f21fbe97485487"
+      },
+      {
+        "path": "package-lock.json",
+        "blob": "3221cf8e74ce138f85603ee367bd274c0ed01730"
+      },
+      {
+        "path": "package.json",
+        "blob": "14a274ed47823690fe42e18f66cc196ab06d5b42"
+      },
+      {
+        "path": "runtime-deps/keyring/integrity.json",
+        "blob": "a710a4bbaffb40da340ba7da0acaf57b2911deb2"
+      },
+      {
+        "path": "runtime-deps/keyring/node_modules/@napi-rs/keyring-darwin-arm64/README.md",
+        "blob": "379fd6861eef26a8b138053e3fdcb22fcd40d3f8"
+      },
+      {
+        "path": "runtime-deps/keyring/node_modules/@napi-rs/keyring-darwin-arm64/keyring.darwin-arm64.node",
+        "blob": "0b22aac77c9c9bbd543d54cc01a8874cce38eaf7"
+      },
+      {
+        "path": "runtime-deps/keyring/node_modules/@napi-rs/keyring-darwin-arm64/package.json",
+        "blob": "4b4cb89645a9e0b2e8ec67dd1c8fcd742a923b11"
+      },
+      {
+        "path": "runtime-deps/keyring/node_modules/@napi-rs/keyring-darwin-x64/README.md",
+        "blob": "0f5f9c86aeacff4123b43682763a2a2fbd246715"
+      },
+      {
+        "path": "runtime-deps/keyring/node_modules/@napi-rs/keyring-darwin-x64/keyring.darwin-x64.node",
+        "blob": "802b4b2c8763116b3b6b0ca04d8ce41d8c63c642"
+      },
+      {
+        "path": "runtime-deps/keyring/node_modules/@napi-rs/keyring-darwin-x64/package.json",
+        "blob": "a5c8689f69c17bd88fd0ef39d9054fb851dcc805"
+      },
+      {
+        "path": "runtime-deps/keyring/node_modules/@napi-rs/keyring-linux-x64-gnu/README.md",
+        "blob": "2abde17f829742a327c48bf8c7a4ba1c4fbe7588"
+      },
+      {
+        "path": "runtime-deps/keyring/node_modules/@napi-rs/keyring-linux-x64-gnu/keyring.linux-x64-gnu.node",
+        "blob": "9b2531a321476891dd802e7ff88bc6c8539cf301"
+      },
+      {
+        "path": "runtime-deps/keyring/node_modules/@napi-rs/keyring-linux-x64-gnu/package.json",
+        "blob": "101a98fb679cb9331bbe15666d33e996aeda1caf"
+      },
+      {
+        "path": "runtime-deps/keyring/node_modules/@napi-rs/keyring-win32-x64-msvc/README.md",
+        "blob": "e5bb64acbac3a3ccf87b75e3069e344d6296a22f"
+      },
+      {
+        "path": "runtime-deps/keyring/node_modules/@napi-rs/keyring-win32-x64-msvc/keyring.win32-x64-msvc.node",
+        "blob": "68b39a43b64286c7168d0a592c492d71ef44c57d"
+      },
+      {
+        "path": "runtime-deps/keyring/node_modules/@napi-rs/keyring-win32-x64-msvc/package.json",
+        "blob": "2c727db81253adb5ce4893b2dd7e3e70e6a44e10"
+      },
+      {
+        "path": "runtime-deps/keyring/node_modules/@napi-rs/keyring/LICENSE",
+        "blob": "6c7f56251cd1021ea295023d31221a5677772d55"
+      },
+      {
+        "path": "runtime-deps/keyring/node_modules/@napi-rs/keyring/README.md",
+        "blob": "1c5cd66c2c164575e0ff75e31a97ece2a0362dc3"
+      },
+      {
+        "path": "runtime-deps/keyring/node_modules/@napi-rs/keyring/index.d.ts",
+        "blob": "bf3a6586225a1a60a0f54c1a454bac256acb7581"
+      },
+      {
+        "path": "runtime-deps/keyring/node_modules/@napi-rs/keyring/index.js",
+        "blob": "a57fa17eed8d54871ee5018ef16255bc1644b22b"
+      },
+      {
+        "path": "runtime-deps/keyring/node_modules/@napi-rs/keyring/keytar.d.ts",
+        "blob": "54fea5904ecbf06bf5ddafbcea98cd0c7bcd7e29"
+      },
+      {
+        "path": "runtime-deps/keyring/node_modules/@napi-rs/keyring/keytar.js",
+        "blob": "c273d18dea577757ffed5a744edc77211117132d"
+      },
+      {
+        "path": "runtime-deps/keyring/node_modules/@napi-rs/keyring/package.json",
+        "blob": "d15a60a42e6f71ca8f19970b5e06d40d84b9521a"
+      },
+      {
+        "path": "runtime-deps/keyring/package.json",
+        "blob": "31919429ecd92c6b8065406c7ef14e8ec0ceb064"
+      },
+      {
+        "path": "sc4sap.png",
+        "blob": "dcba7b6249039359f342788390ceed1b44579c47"
+      },
+      {
+        "path": "sc4sap_unleashed.png",
+        "blob": "fdf4efd345cdb8d5c60382c03a9bf843d1601e98"
+      },
+      {
+        "path": "scripts/activation-trigger.mjs",
+        "blob": "3a65bcd2ecbe61390d81379db75272dad254dad2"
+      },
+      {
+        "path": "scripts/bundle-keyring.mjs",
+        "blob": "36aaacd41a9ae8e48579380e9cafa6293c9e551a"
+      },
+      {
+        "path": "scripts/ci/diagnose-failure.mjs",
+        "blob": "c366363ca21504d3f108bd6594643dbaca300ed4"
+      },
+      {
+        "path": "scripts/code-simplifier.mjs",
+        "blob": "1383adc3f1d47e72300b6862d28a90ab10f401de"
+      },
+      {
+        "path": "scripts/context-guard-stop.mjs",
+        "blob": "569d50b446fabe095a6360b3af1f894487f0ff85"
+      },
+      {
+        "path": "scripts/extract-customizations.mjs",
+        "blob": "a24506d9a79d655e4befac9649633562423dd149"
+      },
+      {
+        "path": "scripts/extract-spro.mjs",
+        "blob": "ddba0adcbe6973d2ed4b24125145d5ff976c092d"
+      },
+      {
+        "path": "scripts/fetch-abap-keyword-doc.mjs",
+        "blob": "d5a3dba3647e0e03f6ec640cc100594592908f9b"
+      },
+      {
+        "path": "scripts/fetch-sap-help-doc.mjs",
+        "blob": "3a0df2cd1d7fdf0b17ebe029c1417f35122ce267"
+      },
+      {
+        "path": "scripts/hooks/block-forbidden-tables.mjs",
+        "blob": "ee2b7cfe16306682507b5ec56b229ef3fbb12869"
+      },
+      {
+        "path": "scripts/hooks/prefer-sqlquery-explicit-fields.mjs",
+        "blob": "98b5844e7e5a6477894db7e0cc4521eace8355ff"
+      },
+      {
+        "path": "scripts/hooks/tier-readonly-guard.mjs",
+        "blob": "9a8a9ca105810e9fd3e3f7869d66603ff23728cd"
+      },
+      {
+        "path": "scripts/hud/apply-plan.mjs",
+        "blob": "36b140930b422b4027b6c2d736053ba7ffb2948e"
+      },
+      {
+        "path": "scripts/hud/install-statusline.mjs",
+        "blob": "01edba80be32e2597a70f3c03f49e19e3b20a80b"
+      },
+      {
+        "path": "scripts/hud/lib/cache.mjs",
+        "blob": "6b7809eab55c01b79a47996c7f523ece578304a6"
+      },
+      {
+        "path": "scripts/hud/lib/format.mjs",
+        "blob": "577503c82dd719394b5724d9beec46af57918614"
+      },
+      {
+        "path": "scripts/hud/lib/mcp-probe.mjs",
+        "blob": "a6daff85493b0eccf2c3fa47072c8bd828852c18"
+      },
+      {
+        "path": "scripts/hud/lib/pricing.mjs",
+        "blob": "fd5df18e118aaa98926fb5720625d878ffba3c01"
+      },
+      {
+        "path": "scripts/hud/lib/sc4sap-status.mjs",
+        "blob": "ed900a45ac9d7fabfd0e2f746d08464bb2ae1dd2"
+      },
+      {
+        "path": "scripts/hud/lib/transcript.mjs",
+        "blob": "6111ed7e1a6055ab08dc0795ac01d5078a5fb05a"
+      },
+      {
+        "path": "scripts/hud/lib/usage-api.mjs",
+        "blob": "929cac95f4fff6d128436dce83137d777ad598ac"
+      },
+      {
+        "path": "scripts/hud/plan-presets.json",
+        "blob": "8ee61f96516f256f9e4e83c67f322f8a9e963da9"
+      },
+      {
+        "path": "scripts/hud/statusline.mjs",
+        "blob": "f5528a3dfa4f8e8ecb674c8e030bb4f788a5f189"
+      },
+      {
+        "path": "scripts/install-hooks.mjs",
+        "blob": "879a2c8fc9a6020c37d7eeeac82f96d0fdf42335"
+      },
+      {
+        "path": "scripts/keyword-detector.mjs",
+        "blob": "8053a1bb89bb9c16417bbb813cb07f39455f36b3"
+      },
+      {
+        "path": "scripts/legacy-migration-banner.mjs",
+        "blob": "e2b8a7e3c149f5ebae991fdfcb0836525d8b4831"
+      },
+      {
+        "path": "scripts/lib/atomic-write.mjs",
+        "blob": "45927e992c55aa3c99cf27ba41c60f65c9253097"
+      },
+      {
+        "path": "scripts/lib/profile-resolve.mjs",
+        "blob": "ecd080ee4a6504ad65a354e3f479dcf1c17a5e71"
+      },
+      {
+        "path": "scripts/lib/stdin.mjs",
+        "blob": "e6fb55b988a0ab8c515ed3165e4707a3123d5d5e"
+      },
+      {
+        "path": "scripts/permission-handler.mjs",
+        "blob": "cfe2683ac86b24f4cd598659f8b023053b9a6a02"
+      },
+      {
+        "path": "scripts/persistent-mode.cjs",
+        "blob": "c089f13d151bf7a5ed1e17de1741a781db1eff14"
+      },
+      {
+        "path": "scripts/post-tool-use-failure.mjs",
+        "blob": "a12b883455a382f60e02580fbdd3bfe71e1372b7"
+      },
+      {
+        "path": "scripts/post-tool-verifier.mjs",
+        "blob": "3620a5c92c126d708839564ff20c46d64ab11db8"
+      },
+      {
+        "path": "scripts/pre-compact.mjs",
+        "blob": "33639869979df85b77f5a322cec939d816d0cd55"
+      },
+      {
+        "path": "scripts/pre-tool-enforcer.mjs",
+        "blob": "280d766f3c8e502dceea4bb34667c43afda1fea3"
+      },
+      {
+        "path": "scripts/project-memory-posttool.mjs",
+        "blob": "b861142800156f423c43ba966bd35a74979c8a43"
+      },
+      {
+        "path": "scripts/project-memory-precompact.mjs",
+        "blob": "c909d1d0325fe8a3e476c7f0ec1efa636598b934"
+      },
+      {
+        "path": "scripts/project-memory-session.mjs",
+        "blob": "5ddf7048585b704db2dc2bd8571f76e03eb60ea6"
+      },
+      {
+        "path": "scripts/prune-cache.mjs",
+        "blob": "b0b6dcfc6898b1b0a33c657d4b0a74f9be004fbd"
+      },
+      {
+        "path": "scripts/publish-to-fork.mjs",
+        "blob": "f9152565bc22e56c36003d67ac2686857648d0d8"
+      },
+      {
+        "path": "scripts/run.cjs",
+        "blob": "2b77d961efcfb46a9ca01f45dfa3bc13e6c69626"
+      },
+      {
+        "path": "scripts/sap-option-tui.mjs",
+        "blob": "da9d43e354138a1913e53eda69b7d337f10a46a8"
+      },
+      {
+        "path": "scripts/sap-profile-cli.mjs",
+        "blob": "c0b1d9665e42f1d9dc20dce3a92414991f11bdb1"
+      },
+      {
+        "path": "scripts/session-end.mjs",
+        "blob": "8ac006285f454436d4c3bfea7134ee52a538cfce"
+      },
+      {
+        "path": "scripts/session-start.mjs",
+        "blob": "5e0bed549362d8822c399cc68df02087757ca1f7"
+      },
+      {
+        "path": "scripts/setup-init.mjs",
+        "blob": "b0dadb417d01fa7c13bb442a69ff907c83eba411"
+      },
+      {
+        "path": "scripts/setup-maintenance.mjs",
+        "blob": "99f7901bf277451b917f70da5ab9c7c7534eb940"
+      },
+      {
+        "path": "scripts/skill-injector.mjs",
+        "blob": "2c178eae9e686b2f856c0627024969263adcc4f3"
+      },
+      {
+        "path": "scripts/spec/build-spec.mjs",
+        "blob": "a3ef9dce1fa953fb043dfac720011535f894fb5f"
+      },
+      {
+        "path": "scripts/spec/image-swap.mjs",
+        "blob": "051447934a62b4026923842df6b47d695a6c69da"
+      },
+      {
+        "path": "scripts/spec/screen-image-renderer.mjs",
+        "blob": "f73d38c86e5d2e73c144f72abb71bb865b5ac43e"
+      },
+      {
+        "path": "scripts/spec/template-clone.mjs",
+        "blob": "1f476f78a9920f8622b59147e62ff63605a42f39"
+      },
+      {
+        "path": "scripts/spec/xlsx-zip.mjs",
+        "blob": "519d6afa2d7364047b882839cc68bdc5fcb555ab"
+      },
+      {
+        "path": "scripts/spro-injector.mjs",
+        "blob": "251e2c7bd14c617154dd8dfb0cb1a76b124b9c02"
+      },
+      {
+        "path": "scripts/subagent-tracker.mjs",
+        "blob": "474367826caf604256c20a0af4d5ca677cf4bf58"
+      },
+      {
+        "path": "scripts/syntax-checker.mjs",
+        "blob": "773d438dd26deea15f652721596961e0ddeccbc3"
+      },
+      {
+        "path": "scripts/transport-validator.mjs",
+        "blob": "5d24961f84c2558ebd9cd4c7d5207852c1b8aa7c"
+      },
+      {
+        "path": "scripts/verify-deliverables.mjs",
+        "blob": "99894edb1c1431a908dcd597692d64d6a3e36961"
+      },
+      {
+        "path": "scripts/verify-engine.mjs",
+        "blob": "c37fdce2673c7b38ce7830c48208398dcb353b62"
+      },
+      {
+        "path": "skills/analyze-cbo-obj/SKILL.md",
+        "blob": "fb90f12f25638649f5df39f35ec9279d4ac9ac0b"
+      },
+      {
+        "path": "skills/analyze-cbo-obj/workflow-steps.md",
+        "blob": "5eebf03c51519220163ec6476e5ea6c519ec5414"
+      },
+      {
+        "path": "skills/analyze-code/SKILL.md",
+        "blob": "3c42568d38a4871038be849e83415100918ffff0"
+      },
+      {
+        "path": "skills/analyze-code/analysis-dimensions.md",
+        "blob": "373249005866829f584a1f49da8a6694e17a7488"
+      },
+      {
+        "path": "skills/analyze-code/output-and-tools.md",
+        "blob": "c1fdca0a1e9fec25da21b00de4819373423670b0"
+      },
+      {
+        "path": "skills/analyze-code/team-mode.md",
+        "blob": "2a6fc51050b9d29b23cb134990f2ad408d0a0462"
+      },
+      {
+        "path": "skills/analyze-code/workflow.md",
+        "blob": "d07ca536dc34adc377e9404a27ab1b512b987803"
+      },
+      {
+        "path": "skills/analyze-symptom/SKILL.md",
+        "blob": "13d3dfb0f31a12cd5efc3566a0d28ce1703e5002"
+      },
+      {
+        "path": "skills/analyze-symptom/output-format.md",
+        "blob": "a95031ecd6530786c6969348c090f5d570521475"
+      },
+      {
+        "path": "skills/analyze-symptom/team-mode.md",
+        "blob": "3ea3199b653daa884cfa985a95dde92c9b8166ec"
+      },
+      {
+        "path": "skills/analyze-symptom/workflow-steps.md",
+        "blob": "dd3a5eb14ec1aac2e0d6ff1a11439c273e4b2cc4"
+      },
+      {
+        "path": "skills/ask-consultant/SKILL.md",
+        "blob": "05135759829decfe1f0cc3497e51172a9675460d"
+      },
+      {
+        "path": "skills/ask-consultant/team-mode.md",
+        "blob": "b6c50c21a8c4a22d2c928fcf9704045dd5c9d78d"
+      },
+      {
+        "path": "skills/ask-consultant/team-rounds.md",
+        "blob": "f5f6f2e9a3aa0be6c73c3e065ac5da61846b6cc1"
+      },
+      {
+        "path": "skills/compare-programs/SKILL.md",
+        "blob": "9dd643cb7fceb687c427f59332884e8ee5fbe91a"
+      },
+      {
+        "path": "skills/compare-programs/comparison-scope.md",
+        "blob": "5e393ad1a65535a339869a996f7386fb980b0be4"
+      },
+      {
+        "path": "skills/compare-programs/dispatch-prompts.md",
+        "blob": "ed5127802cd48eabb00ca2120a96a5858eb9470f"
+      },
+      {
+        "path": "skills/compare-programs/report-template.md",
+        "blob": "ff423e77b435a4e026d7fb57a1f780a89b4d5fb2"
+      },
+      {
+        "path": "skills/compare-programs/team-mode.md",
+        "blob": "8d37d09a259b24225b96e834b38b4a2db21037da"
+      },
+      {
+        "path": "skills/compare-programs/workflow.md",
+        "blob": "cada58f6a114688cd7351958e892b650babadb57"
+      },
+      {
+        "path": "skills/create-object/SKILL.md",
+        "blob": "e6ca96ca420ae4227e2741dfa40ffca297e84006"
+      },
+      {
+        "path": "skills/create-object/dispatch-prompts.md",
+        "blob": "f115209f3d3d2b7d516137496872a5ee7ce337b5"
+      },
+      {
+        "path": "skills/create-object/ecc/domain_create_sample.abap",
+        "blob": "d541455bd2e55d67367b5724e152319592ecb8fc"
+      },
+      {
+        "path": "skills/create-object/ecc/element_create_sample.abap",
+        "blob": "16d7dba8b118dd18f31c3eb646d9a664de9bee97"
+      },
+      {
+        "path": "skills/create-object/ecc/table_create_sample.abap",
+        "blob": "ce75eb36b4aa897e98527067258535b3b7bb2edb"
+      },
+      {
+        "path": "skills/create-object/workflow-steps.md",
+        "blob": "0ca162836da3190af29bdd76d5cafaa687e7b103"
+      },
+      {
+        "path": "skills/create-program/SKILL.md",
+        "blob": "d4e06e8a6c6ad1a17054c0ee9d0bbce60c24a76a"
+      },
+      {
+        "path": "skills/create-program/agent-pipeline.md",
+        "blob": "5f777b2fac8173d0febb9e7996a62b061535db9a"
+      },
+      {
+        "path": "skills/create-program/execution-mode.md",
+        "blob": "f0f1c500fdb7203d98292d51d43e7f0d46256545"
+      },
+      {
+        "path": "skills/create-program/interview-gating.md",
+        "blob": "8465992489f70aab0b88d8153715b53153d0d785"
+      },
+      {
+        "path": "skills/create-program/inventory-lookups.md",
+        "blob": "8c3be3e328c56ace21ae189cdc987c07fd57c694"
+      },
+      {
+        "path": "skills/create-program/multi-executor-split.md",
+        "blob": "1caca7bccd16858af05b48d8a3128c4b31920455"
+      },
+      {
+        "path": "skills/create-program/phase4-parallel.md",
+        "blob": "96bc6a1124b6322e16fa0bd4473b4cc392da3a06"
+      },
+      {
+        "path": "skills/create-program/phase6-buckets.md",
+        "blob": "a094117abed4b81840caf7e4bf4abafac1ac7166"
+      },
+      {
+        "path": "skills/create-program/phase6-output-format.md",
+        "blob": "954131f926fcc975794b0a41d7989be74adb8425"
+      },
+      {
+        "path": "skills/create-program/phase6-review.md",
+        "blob": "81222ff73d64fe166faf8333b59df8940ecb024c"
+      },
+      {
+        "path": "skills/create-program/spec-approval-gate.md",
+        "blob": "763556429ebc368dec16d6a4401975e7038eec8f"
+      },
+      {
+        "path": "skills/create-program/team-mode-b.md",
+        "blob": "a663f73b1c3199982f3cb4552eac9972d916a746"
+      },
+      {
+        "path": "skills/create-program/team-mode-d.md",
+        "blob": "cddf263e7e29c8cebc29a6a9d5457f51e7a7912e"
+      },
+      {
+        "path": "skills/create-program/team-mode.md",
+        "blob": "d3d2dd00805f1d6e5e96fc790e94d79a45f0acdf"
+      },
+      {
+        "path": "skills/deep-interview/SKILL.md",
+        "blob": "067e67cfae6d8838d3f5e7c6ab5771dc7e7790cf"
+      },
+      {
+        "path": "skills/mcp-setup/SKILL.md",
+        "blob": "d0033a40eb1cf428e86b80d306f2706b5b739ce8"
+      },
+      {
+        "path": "skills/program-to-spec/SKILL.md",
+        "blob": "1a46dd0b752d7580842ae1a37a52b87e65bb4a5f"
+      },
+      {
+        "path": "skills/program-to-spec/spec-templates.md",
+        "blob": "4652e8068c8c00ee11df901a736c16ba1ff8e4fa"
+      },
+      {
+        "path": "skills/program-to-spec/workflow-steps.md",
+        "blob": "db7cafc1a42f8ea1269668013816eeebcfa0bc81"
+      },
+      {
+        "path": "skills/release/SKILL.md",
+        "blob": "d414c48a8aab42ea8ce957fedff7f1a264929a1f"
+      },
+      {
+        "path": "skills/sap-abap/README.md",
+        "blob": "a5ec52f0479b3c5a191e9d716266e7c6bfed6e79"
+      },
+      {
+        "path": "skills/sap-abap/SKILL.md",
+        "blob": "c7205287e0a3bf21cb82d52656a6c7c14002cc8c"
+      },
+      {
+        "path": "skills/sap-abap/references/abap-dictionary.md",
+        "blob": "6b5d76963982da05deaa21f38fb5a15c7eeb331b"
+      },
+      {
+        "path": "skills/sap-abap/references/abap-sql.md",
+        "blob": "c957bd81a1c9520319ecb239e50df715e7e2c447"
+      },
+      {
+        "path": "skills/sap-abap/references/amdp.md",
+        "blob": "322e16797d9aa484b0d2d52b3f2f880d3d51a24c"
+      },
+      {
+        "path": "skills/sap-abap/references/authorization.md",
+        "blob": "2d0e213c471fec81de941a0fdc0b7eba1a268ca1"
+      },
+      {
+        "path": "skills/sap-abap/references/bits-bytes.md",
+        "blob": "1d349d24be0cf9e7c893dcfb3062625287168384"
+      },
+      {
+        "path": "skills/sap-abap/references/builtin-functions.md",
+        "blob": "9af1d4a227b8de28a74916fc30c5f50812acc432"
+      },
+      {
+        "path": "skills/sap-abap/references/cds-views.md",
+        "blob": "2880042f2a52e70e569f43354ab50a6b7a72e6f7"
+      },
+      {
+        "path": "skills/sap-abap/references/cloud-development.md",
+        "blob": "9a8041ef62c214dc53dd7d6f6007ced0e9a23698"
+      },
+      {
+        "path": "skills/sap-abap/references/constructor-expressions.md",
+        "blob": "823b8b5aaee1c90a4633b58c9f5ea16b73fc675d"
+      },
+      {
+        "path": "skills/sap-abap/references/date-time.md",
+        "blob": "1102b8933d696e476bdde3ddbeebc5b77c72e284"
+      },
+      {
+        "path": "skills/sap-abap/references/design-patterns.md",
+        "blob": "4530fcf921ded1098b447cb1143c07606721da4d"
+      },
+      {
+        "path": "skills/sap-abap/references/dynamic-programming.md",
+        "blob": "63b5a3b5e7aabbe9d2d1089fd72710cada9d4c6f"
+      },
+      {
+        "path": "skills/sap-abap/references/exceptions.md",
+        "blob": "fd749ed3c90719477798dc48a81f8aef188c6ae8"
+      },
+      {
+        "path": "skills/sap-abap/references/generative-ai.md",
+        "blob": "0d9095ee0bf327be6d6b1e526eb4c647cb45b6f5"
+      },
+      {
+        "path": "skills/sap-abap/references/internal-tables.md",
+        "blob": "c2d692edafe7e334453009817b4287e12ed72adf"
+      },
+      {
+        "path": "skills/sap-abap/references/numeric-operations.md",
+        "blob": "e22c0e981058bd9b26161a4d1bf09511cc85d5f0"
+      },
+      {
+        "path": "skills/sap-abap/references/object-orientation.md",
+        "blob": "f61017d028f20676b8bf8a901069101d6a5184e8"
+      },
+      {
+        "path": "skills/sap-abap/references/performance.md",
+        "blob": "d8b22acf47c582caa2c1e09ad5e0fd98651a3931"
+      },
+      {
+        "path": "skills/sap-abap/references/program-flow.md",
+        "blob": "ecb94af93f3086d5a525406419635c03a50143bc"
+      },
+      {
+        "path": "skills/sap-abap/references/rap-eml.md",
+        "blob": "724aff0ac480d9a4811e87d8d9c0aa89234f2a24"
+      },
+      {
+        "path": "skills/sap-abap/references/released-classes.md",
+        "blob": "5c82530a375802505cb316aff530847412698114"
+      },
+      {
+        "path": "skills/sap-abap/references/sap-luw.md",
+        "blob": "2122972d7f88f2f64ed5836c4384a9c92d896cb2"
+      },
+      {
+        "path": "skills/sap-abap/references/skill-reference-guide.md",
+        "blob": "ef430f0563cc2af31340db2d86654f1aaacb2fb2"
+      },
+      {
+        "path": "skills/sap-abap/references/sql-hierarchies.md",
+        "blob": "0eaa5d9785b37165bb8f2d623d48f0e06162e2c2"
+      },
+      {
+        "path": "skills/sap-abap/references/string-processing.md",
+        "blob": "f3ec0baecc5845d9c62566ca4d90211b5cbc8855"
+      },
+      {
+        "path": "skills/sap-abap/references/table-grouping.md",
+        "blob": "7abe62e5bdd02884dd34ba5907d90ab091cd063c"
+      },
+      {
+        "path": "skills/sap-abap/references/unit-testing.md",
+        "blob": "1479feaf7f0b4d1d8d1b1ad191e4185cf0326fee"
+      },
+      {
+        "path": "skills/sap-abap/references/where-conditions.md",
+        "blob": "8922b527cf7c6ec38b698e212d521d07abb0a8cd"
+      },
+      {
+        "path": "skills/sap-abap/references/xml-json.md",
+        "blob": "c6a0638e714754d64949e19c3bb53f140f641432"
+      },
+      {
+        "path": "skills/sap-doctor/SKILL.md",
+        "blob": "9711417c7bbc1ca1c2b747843064ca9db3b77037"
+      },
+      {
+        "path": "skills/sap-doctor/diagnostic-checks-rfc.md",
+        "blob": "6e08f0edb25f0cdc8b77d285368dc9f77200c625"
+      },
+      {
+        "path": "skills/sap-doctor/diagnostic-checks.md",
+        "blob": "82d04c3c8c30f68b2d9cc805e768cef039c2e1af"
+      },
+      {
+        "path": "skills/sap-option/SKILL.md",
+        "blob": "286f8da374e54de63aaf05e42bf7cdfcd0a0d492"
+      },
+      {
+        "path": "skills/sap-option/examples.md",
+        "blob": "cd7a8f76cc1bcb40b28a33098a47f8572e94435d"
+      },
+      {
+        "path": "skills/sap-option/hud-limits.md",
+        "blob": "9c87c1c2f282e5c40c8a9ad4a28fec6fd06fb9fc"
+      },
+      {
+        "path": "skills/sap-option/industry-selection.md",
+        "blob": "a9f5054517ac40e957541897b17d2fbca33bc713"
+      },
+      {
+        "path": "skills/sap-option/migration.md",
+        "blob": "f35f5e8c70656b502ee23d3c15bc8e10b82d4a92"
+      },
+      {
+        "path": "skills/sap-option/profile-management.md",
+        "blob": "733568b25f6356507c9adf41d3a9e6c7af3c7a46"
+      },
+      {
+        "path": "skills/sap-option/rfc-managed-keys.md",
+        "blob": "9e53c84254a1c10112106e94f369e90bc86c50f6"
+      },
+      {
+        "path": "skills/sap-option/standalone-tui.md",
+        "blob": "4a80c4b6f1e311429fc50f32b8d3b28d7a58b0fe"
+      },
+      {
+        "path": "skills/sap-option/workflow.md",
+        "blob": "003c2154fb999bdf817985cba0ff01c851e8ef2d"
+      },
+      {
+        "path": "skills/setup/SKILL.md",
+        "blob": "8260fcc242927ddecb32801449bfabb3a95c67ae"
+      },
+      {
+        "path": "skills/setup/customization-auto-generation.md",
+        "blob": "3e507767e40531ae39ef95e7a00df9955a101482"
+      },
+      {
+        "path": "skills/setup/hud-statusline.md",
+        "blob": "3eff2c931b8200fe7190d6ab30a4ab243b73e158"
+      },
+      {
+        "path": "skills/setup/odata-classes-install.md",
+        "blob": "fe805b8c3304e78f9a203c91ff4dabe069783ecf"
+      },
+      {
+        "path": "skills/setup/rfc-backend-selection.md",
+        "blob": "4f8a43d32b9f3afb99dae971af3a7c1ddcdd97a0"
+      },
+      {
+        "path": "skills/setup/spro-auto-generation.md",
+        "blob": "0e630c00b6a2ac7a09e90b4226f5b4e8d225f1a0"
+      },
+      {
+        "path": "skills/setup/wizard-step-02-system-identification.md",
+        "blob": "76ab98b2d8ed0417f7ad9fa20fe4a398a8051962"
+      },
+      {
+        "path": "skills/setup/wizard-step-04-profile-creation.md",
+        "blob": "9fa342b0286531049cbe51ff9459a31c2b1b2417"
+      },
+      {
+        "path": "skills/setup/wizard-step-09-abap-objects.md",
+        "blob": "f656b4ca5035105915bf0a47a99e9dfe61c93c22"
+      },
+      {
+        "path": "skills/setup/wizard-step-11-optional-extraction.md",
+        "blob": "8c3d85e14222a2b4ac8d81f187f7dfe7da92e7c3"
+      },
+      {
+        "path": "skills/setup/wizard-step-12-blocklist-hook.md",
+        "blob": "a3cabf58ab74bacca1870c9c6691f96cacc66d22"
+      },
+      {
+        "path": "skills/setup/wizard-steps.md",
+        "blob": "9083b0d5e583feabb182f6ed92725919011f578b"
+      },
+      {
+        "path": "skills/team/SKILL.md",
+        "blob": "6c35251f54f017086887ccbbda172e48bb74b54c"
+      },
+      {
+        "path": "skills/trust-session/SKILL.md",
+        "blob": "20e356995a934a760fba7375b53390fa812d2828"
+      },
+      {
+        "path": "src/index.ts",
+        "blob": "16ddac7b7d4e6d46f722ab58366221f1711b04df"
+      },
+      {
+        "path": "tests/validation/agents.test.ts",
+        "blob": "d1fdf6d0c184cf945729fe6981676a5855e1c528"
+      },
+      {
+        "path": "tests/validation/plugin-structure.test.ts",
+        "blob": "2a878a3ad3576366f30e8a9b1efeab698a74bd94"
+      },
+      {
+        "path": "tests/validation/skills.test.ts",
+        "blob": "b6a236cb7cbae84e3fbf4f88d8356e804c7783d6"
+      },
+      {
+        "path": "tests/validation/spro-configs.test.ts",
+        "blob": "af08ee25772d9dc136a6c0d4fcbf307373e6c383"
+      },
+      {
+        "path": "tsconfig.json",
+        "blob": "6ade396c11b3f8484e244cd83b6473ba8ac9a986"
+      },
+      {
+        "path": "vitest.config.ts",
+        "blob": "82ceba9ab4ae2bbbc588ae95596149469b9eedbe"
+      }
+    ]
+  }
+}

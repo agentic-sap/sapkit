@@ -1,0 +1,1131 @@
+{
+  "_": "sc4sap → interactive 이식 맵 — 규칙별 분류/원본 매칭/목적지 해시. 정본 분류는 MIGRATION-MANIFEST.md이며 이 파일은 그것을 pinned inventory에 대해 해석한 결과다.",
+  "pinned_commit": "a95eb0fe962adfb12fae6840213d85391b7703a8",
+  "manifest": "interactive/MIGRATION-MANIFEST.md",
+  "unmatched_source_paths": [],
+  "rules": [
+    {
+      "pattern": "private/**",
+      "class": "exclude-private",
+      "note": "영구 denylist — 어떤 산출물에도 미포함",
+      "source_matches": 0,
+      "expect_zero": true,
+      "expect_zero_reason": "allowlist pathspec이라 git에 질의조차 하지 않음 — 0이 아니면 private 유출"
+    },
+    {
+      "pattern": ".omc/**",
+      "class": "obsolete",
+      "note": "세션 상태 기록물",
+      "source_matches": 0,
+      "expect_zero": true,
+      "expect_zero_reason": "untracked 세션 상태 — git tree에 없음"
+    },
+    {
+      "pattern": ".sc4sap/**",
+      "class": "obsolete",
+      "note": "MCP 런타임 상태(로그·프로파일 포인터) — 전역 활성 sc4sap 플러그인이 동결 레포에서 기동하며 생성, 자산 아님 (2026-07-12 드리프트 실측)",
+      "source_matches": 0,
+      "expect_zero": true,
+      "expect_zero_reason": "untracked MCP 런타임 상태 — git tree에 없음"
+    },
+    {
+      "pattern": ".claude/settings.local.json",
+      "class": "obsolete",
+      "note": "로컬 권한 상태",
+      "source_matches": 0,
+      "expect_zero": true,
+      "expect_zero_reason": "untracked 로컬 권한 상태 — git tree에 없음"
+    },
+    {
+      "pattern": ".claude-plugin/**",
+      "class": "transform",
+      "note": "`adapters/claude/` 매니페스트 원형 (L3)",
+      "source_matches": 2,
+      "sources": [
+        ".claude-plugin/marketplace.json",
+        ".claude-plugin/plugin.json"
+      ],
+      "deferred": false,
+      "targets": [
+        {
+          "token": "adapters/claude/",
+          "kind": "tree",
+          "files": 13,
+          "sha256": "a9cdb2a0a447a669721c898b0d72f3c73498b58f892930c819bc1cf775a660e2"
+        }
+      ]
+    },
+    {
+      "pattern": ".github/**",
+      "class": "archive",
+      "note": "CI 신규 작성 시 참고 (rebundle.yml 포함)",
+      "source_matches": 5
+    },
+    {
+      "pattern": "hooks/hooks.json",
+      "class": "obsolete",
+      "note": "LEAN 훅 배선 — 선행 설계(2026-07-06)에서 무동작 실증",
+      "source_matches": 1
+    },
+    {
+      "pattern": "configs/**",
+      "class": "copy",
+      "note": "`core/knowledge/modules/` — 14모듈+common, 대소문자 보존",
+      "source_matches": 91,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/knowledge/modules/",
+          "kind": "tree",
+          "files": 94,
+          "sha256": "74dc385b3cf8740e75ffb847514fadb6516deb4788c8527ab0b09b6660d0102a"
+        }
+      ]
+    },
+    {
+      "pattern": "industry/**",
+      "class": "copy",
+      "note": "`core/knowledge/industry/`",
+      "source_matches": 15,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/knowledge/industry/",
+          "kind": "tree",
+          "files": 15,
+          "sha256": "8dff40407e825e10793a538210482ab484a7712158bb33df765f86e8b637ae90"
+        }
+      ]
+    },
+    {
+      "pattern": "country/**",
+      "class": "copy",
+      "note": "`core/knowledge/country/`",
+      "source_matches": 17,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/knowledge/country/",
+          "kind": "tree",
+          "files": 17,
+          "sha256": "88524c1f83f5b2142511c87d1eb990fc7f31e856efc1ab10d5d25c8a95ff0857"
+        }
+      ]
+    },
+    {
+      "pattern": "agents/agent_details/bc/**",
+      "class": "transform",
+      "note": "`core/knowledge/modules/BC/` (신규 합성 명시)",
+      "source_matches": 2,
+      "sources": [
+        "agents/agent_details/bc/diagnostic-flows.md",
+        "agents/agent_details/bc/transaction-codes.md"
+      ],
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/knowledge/modules/BC/",
+          "kind": "tree",
+          "files": 2,
+          "sha256": "d741ac582df22217db6b3b949b3ea336b25763d471f8738dddd2926366f47dc7"
+        }
+      ]
+    },
+    {
+      "pattern": "agents/**",
+      "class": "transform",
+      "note": "`core/personas/` — 배선 제거 + capability 태그",
+      "source_matches": 26,
+      "sources": [
+        "agents/sap-analyst.md",
+        "agents/sap-architect.md",
+        "agents/sap-ariba-consultant.md",
+        "agents/sap-bc-consultant.md",
+        "agents/sap-bw-consultant.md",
+        "agents/sap-co-consultant.md",
+        "agents/sap-code-reviewer.md",
+        "agents/sap-critic.md",
+        "agents/sap-debugger.md",
+        "agents/sap-doc-specialist.md",
+        "agents/sap-executor.md",
+        "agents/sap-fi-consultant.md",
+        "agents/sap-hcm-consultant.md",
+        "agents/sap-mm-consultant.md",
+        "agents/sap-planner.md",
+        "agents/sap-pm-consultant.md",
+        "agents/sap-pp-consultant.md",
+        "agents/sap-ps-consultant.md",
+        "agents/sap-qa-tester.md",
+        "agents/sap-qm-consultant.md",
+        "agents/sap-sd-consultant.md",
+        "agents/sap-stocker.md",
+        "agents/sap-tm-consultant.md",
+        "agents/sap-tr-consultant.md",
+        "agents/sap-wm-consultant.md",
+        "agents/sap-writer.md"
+      ],
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/personas/",
+          "kind": "tree",
+          "files": 27,
+          "sha256": "dfba9f75d015c35af4f25ca9aae269c9fa1a63a554034ce73dad13680dfe5bf5"
+        }
+      ]
+    },
+    {
+      "pattern": "skills/sap-abap/**",
+      "class": "copy",
+      "note": "`core/knowledge/abap/reference/`",
+      "source_matches": 31,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/knowledge/abap/reference/",
+          "kind": "tree",
+          "files": 31,
+          "sha256": "0cfde4d491101147d29e29619d22a56407a32f20ee3c1a1ae0d5ef2562a84e8d"
+        }
+      ]
+    },
+    {
+      "pattern": "skills/create-object/ecc/**",
+      "class": "copy",
+      "note": "`core/knowledge/abap/templates/ecc/` (DDIC 헬퍼 3종)",
+      "source_matches": 3,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/knowledge/abap/templates/ecc/",
+          "kind": "tree",
+          "files": 3,
+          "sha256": "6cb8a50ed9c86ffb2aea8d3872571e189f7b032854349e63deb1952367ddfbce"
+        }
+      ]
+    },
+    {
+      "pattern": "skills/team/**",
+      "class": "obsolete",
+      "note": "명시 폐기 — Claude 전용 팀 오케스트레이션",
+      "source_matches": 1
+    },
+    {
+      "pattern": "skills/trust-session/**",
+      "class": "obsolete",
+      "note": "명시 폐기 — 정적 권한 템플릿으로 대체",
+      "source_matches": 1
+    },
+    {
+      "pattern": "skills/setup/**",
+      "class": "transform",
+      "note": "`scripts/install-*` + `core/procedures/troubleshooting.md` 원천 · wizard-step-09 → `core/procedures/install-sap-assets.md`",
+      "source_matches": 12,
+      "sources": [
+        "skills/setup/SKILL.md",
+        "skills/setup/customization-auto-generation.md",
+        "skills/setup/hud-statusline.md",
+        "skills/setup/odata-classes-install.md",
+        "skills/setup/rfc-backend-selection.md",
+        "skills/setup/spro-auto-generation.md",
+        "skills/setup/wizard-step-02-system-identification.md",
+        "skills/setup/wizard-step-04-profile-creation.md",
+        "skills/setup/wizard-step-09-abap-objects.md",
+        "skills/setup/wizard-step-11-optional-extraction.md",
+        "skills/setup/wizard-step-12-blocklist-hook.md",
+        "skills/setup/wizard-steps.md"
+      ],
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/procedures/troubleshooting.md",
+          "kind": "file",
+          "sha256": "ff99c24b7504b633e3357ed6e9ce62f66369a34cd3d93ddc81063d418783a7e4"
+        },
+        {
+          "token": "core/procedures/install-sap-assets.md",
+          "kind": "file",
+          "sha256": "e88a351ad5684f56ab7dfd8dad43c0f43d138127d02d69f4e297814608114ec0"
+        }
+      ]
+    },
+    {
+      "pattern": "skills/mcp-setup/**",
+      "class": "transform",
+      "note": "설치 가이드 원천 (하네스별 3벌)",
+      "source_matches": 1,
+      "sources": [
+        "skills/mcp-setup/SKILL.md"
+      ],
+      "deferred": false,
+      "targets": []
+    },
+    {
+      "pattern": "skills/sap-doctor/**",
+      "class": "transform",
+      "note": "`scripts/doctor.mjs` + troubleshooting.md 원천",
+      "source_matches": 3,
+      "sources": [
+        "skills/sap-doctor/SKILL.md",
+        "skills/sap-doctor/diagnostic-checks-rfc.md",
+        "skills/sap-doctor/diagnostic-checks.md"
+      ],
+      "deferred": false,
+      "targets": [
+        {
+          "token": "scripts/doctor.mjs",
+          "kind": "file",
+          "sha256": "5a8812e19c57ca259095da4f121d4b47704c388e9f8765e93ac0fe67580c386b"
+        }
+      ]
+    },
+    {
+      "pattern": "skills/sap-option/**",
+      "class": "transform",
+      "note": "프로파일 관리 유틸 + `core/project-context.md` 원천",
+      "source_matches": 9,
+      "sources": [
+        "skills/sap-option/SKILL.md",
+        "skills/sap-option/examples.md",
+        "skills/sap-option/hud-limits.md",
+        "skills/sap-option/industry-selection.md",
+        "skills/sap-option/migration.md",
+        "skills/sap-option/profile-management.md",
+        "skills/sap-option/rfc-managed-keys.md",
+        "skills/sap-option/standalone-tui.md",
+        "skills/sap-option/workflow.md"
+      ],
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/project-context.md",
+          "kind": "file",
+          "sha256": "405c04d986fe8a72ca7a02bc298ed6e2592851fd08de1625c555f208755df741"
+        }
+      ]
+    },
+    {
+      "pattern": "skills/**",
+      "class": "transform",
+      "note": "`core/procedures/` — 10개 스킬 → 1인 절차화",
+      "source_matches": 42,
+      "sources": [
+        "skills/analyze-cbo-obj/SKILL.md",
+        "skills/analyze-cbo-obj/workflow-steps.md",
+        "skills/analyze-code/SKILL.md",
+        "skills/analyze-code/analysis-dimensions.md",
+        "skills/analyze-code/output-and-tools.md",
+        "skills/analyze-code/team-mode.md",
+        "skills/analyze-code/workflow.md",
+        "skills/analyze-symptom/SKILL.md",
+        "skills/analyze-symptom/output-format.md",
+        "skills/analyze-symptom/team-mode.md",
+        "skills/analyze-symptom/workflow-steps.md",
+        "skills/ask-consultant/SKILL.md",
+        "skills/ask-consultant/team-mode.md",
+        "skills/ask-consultant/team-rounds.md",
+        "skills/compare-programs/SKILL.md",
+        "skills/compare-programs/comparison-scope.md",
+        "skills/compare-programs/dispatch-prompts.md",
+        "skills/compare-programs/report-template.md",
+        "skills/compare-programs/team-mode.md",
+        "skills/compare-programs/workflow.md",
+        "skills/create-object/SKILL.md",
+        "skills/create-object/dispatch-prompts.md",
+        "skills/create-object/workflow-steps.md",
+        "skills/create-program/SKILL.md",
+        "skills/create-program/agent-pipeline.md",
+        "skills/create-program/execution-mode.md",
+        "skills/create-program/interview-gating.md",
+        "skills/create-program/inventory-lookups.md",
+        "skills/create-program/multi-executor-split.md",
+        "skills/create-program/phase4-parallel.md",
+        "skills/create-program/phase6-buckets.md",
+        "skills/create-program/phase6-output-format.md",
+        "skills/create-program/phase6-review.md",
+        "skills/create-program/spec-approval-gate.md",
+        "skills/create-program/team-mode-b.md",
+        "skills/create-program/team-mode-d.md",
+        "skills/create-program/team-mode.md",
+        "skills/deep-interview/SKILL.md",
+        "skills/program-to-spec/SKILL.md",
+        "skills/program-to-spec/spec-templates.md",
+        "skills/program-to-spec/workflow-steps.md",
+        "skills/release/SKILL.md"
+      ],
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/procedures/",
+          "kind": "tree",
+          "files": 20,
+          "sha256": "dad9121fb5efc492469467babf0eb7f414cff0d9f2e6281be47958c2e856c75f"
+        }
+      ]
+    },
+    {
+      "pattern": "common/alv-sample/**",
+      "class": "copy",
+      "note": "`core/knowledge/abap/templates/alv-sample/`",
+      "source_matches": 1,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/knowledge/abap/templates/alv-sample/",
+          "kind": "tree",
+          "files": 1,
+          "sha256": "2b9fcf0fe3c908b92905ebb68d94631fc986bda570aaf0ab0d5f3ce4293c423b"
+        }
+      ]
+    },
+    {
+      "pattern": "common/oop-sample/**",
+      "class": "copy",
+      "note": "`core/knowledge/abap/templates/oop-sample/`",
+      "source_matches": 20,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/knowledge/abap/templates/oop-sample/",
+          "kind": "tree",
+          "files": 20,
+          "sha256": "449c468bb33dba3af76b01ec5b96376393119c48d32f87ebd74d3d8723c3ca29"
+        }
+      ]
+    },
+    {
+      "pattern": "common/procedural-sample/**",
+      "class": "copy",
+      "note": "`core/knowledge/abap/templates/procedural-sample/`",
+      "source_matches": 1,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/knowledge/abap/templates/procedural-sample/",
+          "kind": "tree",
+          "files": 1,
+          "sha256": "73cb8e56b9759511672c68c6b332836c8170d645e726a715a0192ffe0fb84c7b"
+        }
+      ]
+    },
+    {
+      "pattern": "common/data-extraction-policy.md",
+      "class": "transform",
+      "note": "`core/policies/data-protection/`",
+      "source_matches": 1,
+      "sources": [
+        "common/data-extraction-policy.md"
+      ],
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/policies/data-protection/",
+          "kind": "tree",
+          "files": 13,
+          "sha256": "99c24bf222c270603e2bbd585a55dbc0ef700fc2c8c655b15f4c34e217333163"
+        }
+      ]
+    },
+    {
+      "pattern": "common/transport-client-rule.md",
+      "class": "transform",
+      "note": "`core/policies/`",
+      "source_matches": 1,
+      "sources": [
+        "common/transport-client-rule.md"
+      ],
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/policies/",
+          "kind": "tree",
+          "files": 18,
+          "sha256": "253596d31335be9f2b9f2352a980979ce46ce4bdbe800fe81736d42782b8ca3c"
+        }
+      ]
+    },
+    {
+      "pattern": "common/spro-lookup.md",
+      "class": "transform",
+      "note": "`core/procedures/` (추출 산출물 전제 문구 수정 — 리뷰 3-9)",
+      "source_matches": 1,
+      "sources": [
+        "common/spro-lookup.md"
+      ],
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/procedures/",
+          "kind": "tree",
+          "files": 20,
+          "sha256": "dad9121fb5efc492469467babf0eb7f414cff0d9f2e6281be47958c2e856c75f"
+        }
+      ]
+    },
+    {
+      "pattern": "common/customization-lookup.md",
+      "class": "transform",
+      "note": "`core/procedures/` (동상)",
+      "source_matches": 1,
+      "sources": [
+        "common/customization-lookup.md"
+      ],
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/procedures/",
+          "kind": "tree",
+          "files": 20,
+          "sha256": "dad9121fb5efc492469467babf0eb7f414cff0d9f2e6281be47958c2e856c75f"
+        }
+      ]
+    },
+    {
+      "pattern": "common/help-portal-fetch.md",
+      "class": "transform",
+      "note": "`core/procedures/`",
+      "source_matches": 1,
+      "sources": [
+        "common/help-portal-fetch.md"
+      ],
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/procedures/",
+          "kind": "tree",
+          "files": 20,
+          "sha256": "dad9121fb5efc492469467babf0eb7f414cff0d9f2e6281be47958c2e856c75f"
+        }
+      ]
+    },
+    {
+      "pattern": "common/active-modules.md",
+      "class": "transform",
+      "note": "`core/knowledge/modules/common/active-modules.md` (크로스모듈 지식) + `core/project-context.md`에서 참조",
+      "source_matches": 1,
+      "sources": [
+        "common/active-modules.md"
+      ],
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/knowledge/modules/common/active-modules.md",
+          "kind": "file",
+          "sha256": "8d2abc86a5b395c0a7edf650207f98be973b31b5abae50dd5222b19c80407789"
+        },
+        {
+          "token": "core/project-context.md",
+          "kind": "file",
+          "sha256": "405c04d986fe8a72ca7a02bc298ed6e2592851fd08de1625c555f208755df741"
+        }
+      ]
+    },
+    {
+      "pattern": "common/model-routing-rule.md",
+      "class": "obsolete",
+      "note": "Claude 모델 라우팅 — 폐기",
+      "source_matches": 1
+    },
+    {
+      "pattern": "common/team-consultation-protocol.md",
+      "class": "obsolete",
+      "note": "팀 프로토콜 — 폐기",
+      "source_matches": 1
+    },
+    {
+      "pattern": "common/context-loading-protocol.md",
+      "class": "obsolete",
+      "note": "Tier 로딩 — 어댑터 로딩 계약으로 대체",
+      "source_matches": 1
+    },
+    {
+      "pattern": "common/multi-profile-artifact-resolution.md",
+      "class": "obsolete",
+      "note": "Claude 전용 경로 해석 — 폐기",
+      "source_matches": 1
+    },
+    {
+      "pattern": "common/**",
+      "class": "copy",
+      "note": "`core/knowledge/abap/conventions/` (규약 18종)",
+      "source_matches": 18,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/knowledge/abap/conventions/",
+          "kind": "tree",
+          "files": 18,
+          "sha256": "9d5c7d2105aa8ca7893aee4bff63150a396df0874d30ee98ce4cf1cd97231552"
+        }
+      ]
+    },
+    {
+      "pattern": "abap/**",
+      "class": "copy",
+      "note": "`server/sap-assets/` (설치 manifest는 L2 신규 작성)",
+      "source_matches": 30,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "server/sap-assets/",
+          "kind": "tree",
+          "files": 30,
+          "sha256": "4a7f03e437ebf3d530f04a43fab78a04c2fb9dea4f2a21e0c20109dcc536eb80"
+        }
+      ]
+    },
+    {
+      "pattern": "engine/**",
+      "class": "copy",
+      "note": "`server/` (번들·VERSION·integrity)",
+      "source_matches": 3,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "server/",
+          "kind": "tree",
+          "files": 46,
+          "sha256": "24669d68eeabe7729c9112e79223fbfce59b4a6b323bcc77252734661fb10025"
+        }
+      ]
+    },
+    {
+      "pattern": "runtime-deps/**",
+      "class": "copy",
+      "note": "`server/runtime-deps/` (keyring — NODE_PATH 배선)",
+      "source_matches": 21,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "server/runtime-deps/",
+          "kind": "tree",
+          "files": 2,
+          "sha256": "5265419e8b4ed7876d136f13700e8f72926c95d4fd3ea468a0b0b79f20e82dbe"
+        }
+      ]
+    },
+    {
+      "pattern": "data/**",
+      "class": "copy",
+      "note": "`server/tool-catalog/`",
+      "source_matches": 4,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "server/tool-catalog/",
+          "kind": "tree",
+          "files": 5,
+          "sha256": "5e4bd4b9d0bf19786693a6ff8dd8bd96810e5669b87615599cc92da232f59d8a"
+        }
+      ]
+    },
+    {
+      "pattern": "exceptions/**",
+      "class": "copy",
+      "note": "`core/policies/data-protection/`",
+      "source_matches": 12,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/policies/data-protection/",
+          "kind": "tree",
+          "files": 13,
+          "sha256": "99c24bf222c270603e2bbd585a55dbc0ef700fc2c8c655b15f4c34e217333163"
+        }
+      ]
+    },
+    {
+      "pattern": "asset/**",
+      "class": "copy",
+      "note": "`assets/spec/` (program-to-spec xlsx 템플릿)",
+      "source_matches": 1,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "assets/spec/",
+          "kind": "tree",
+          "files": 1,
+          "sha256": "575715936f43c69448871ff59f06199de851000a73dad9b84f8895dc02bbb2ab"
+        }
+      ]
+    },
+    {
+      "pattern": "scripts/hooks/**",
+      "class": "copy",
+      "note": "`adapters/claude/hooks/` (안전 3종)",
+      "source_matches": 3,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "adapters/claude/hooks/",
+          "kind": "tree",
+          "files": 6,
+          "sha256": "584dcfa5728040bdba854d387bf5aae9caedadea8830fd6523be6ce36b2b72ff"
+        }
+      ]
+    },
+    {
+      "pattern": "scripts/install-hooks.mjs",
+      "class": "copy",
+      "note": "`adapters/claude/hooks/`",
+      "source_matches": 1,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "adapters/claude/hooks/",
+          "kind": "tree",
+          "files": 6,
+          "sha256": "584dcfa5728040bdba854d387bf5aae9caedadea8830fd6523be6ce36b2b72ff"
+        }
+      ]
+    },
+    {
+      "pattern": "scripts/transport-validator.mjs",
+      "class": "transform",
+      "note": "`adapters/claude/hooks/` (유지 훅 — L3 재배선)",
+      "source_matches": 1,
+      "sources": [
+        "scripts/transport-validator.mjs"
+      ],
+      "deferred": false,
+      "targets": [
+        {
+          "token": "adapters/claude/hooks/",
+          "kind": "tree",
+          "files": 6,
+          "sha256": "584dcfa5728040bdba854d387bf5aae9caedadea8830fd6523be6ce36b2b72ff"
+        }
+      ]
+    },
+    {
+      "pattern": "scripts/syntax-checker.mjs",
+      "class": "transform",
+      "note": "`adapters/claude/hooks/` (유지 훅 — L3 재배선)",
+      "source_matches": 1,
+      "sources": [
+        "scripts/syntax-checker.mjs"
+      ],
+      "deferred": false,
+      "targets": [
+        {
+          "token": "adapters/claude/hooks/",
+          "kind": "tree",
+          "files": 6,
+          "sha256": "584dcfa5728040bdba854d387bf5aae9caedadea8830fd6523be6ce36b2b72ff"
+        }
+      ]
+    },
+    {
+      "pattern": "scripts/lib/**",
+      "class": "transform",
+      "note": "유지 훅·도구 공용 lib — 필요분만 (L3)",
+      "source_matches": 3,
+      "sources": [
+        "scripts/lib/atomic-write.mjs",
+        "scripts/lib/profile-resolve.mjs",
+        "scripts/lib/stdin.mjs"
+      ],
+      "deferred": false,
+      "targets": []
+    },
+    {
+      "pattern": "scripts/spec/**",
+      "class": "copy",
+      "note": "`tools/spec/` (xlsx 산출 파이프라인)",
+      "source_matches": 5,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "tools/spec/",
+          "kind": "tree",
+          "files": 5,
+          "sha256": "7f5878c0af5721ab1bf35d16efc987f1124eca17e3470ce451ff56afbdcefd73"
+        }
+      ]
+    },
+    {
+      "pattern": "scripts/extract-spro.mjs",
+      "class": "transform",
+      "note": "`tools/extract/` — **deferred(L6+)**: 수동 fallback 문서화됨(spro-lookup.md)",
+      "source_matches": 1,
+      "sources": [
+        "scripts/extract-spro.mjs"
+      ],
+      "deferred": true,
+      "targets": [
+        {
+          "token": "tools/extract/",
+          "missing": true
+        }
+      ]
+    },
+    {
+      "pattern": "scripts/extract-customizations.mjs",
+      "class": "transform",
+      "note": "`tools/extract/` — **deferred(L6+)**: 수동 fallback 문서화됨(customization-lookup.md)",
+      "source_matches": 1,
+      "sources": [
+        "scripts/extract-customizations.mjs"
+      ],
+      "deferred": true,
+      "targets": [
+        {
+          "token": "tools/extract/",
+          "missing": true
+        }
+      ]
+    },
+    {
+      "pattern": "scripts/fetch-abap-keyword-doc.mjs",
+      "class": "copy",
+      "note": "`tools/fetch/` — 무변환 이식(5-5 완료), 실동작 검증(abenwhere_all_entries)",
+      "source_matches": 1,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "tools/fetch/",
+          "kind": "tree",
+          "files": 2,
+          "sha256": "7dfd88ed0705d3079cb9e79623785736c31ecf54ad2f747db87a17053bbdd56d"
+        }
+      ]
+    },
+    {
+      "pattern": "scripts/fetch-sap-help-doc.mjs",
+      "class": "copy",
+      "note": "`tools/fetch/` — 무변환 이식(5-5 완료), 실동작 검증(MM-PUR 릴리스전략 페이지)",
+      "source_matches": 1,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "tools/fetch/",
+          "kind": "tree",
+          "files": 2,
+          "sha256": "7dfd88ed0705d3079cb9e79623785736c31ecf54ad2f747db87a17053bbdd56d"
+        }
+      ]
+    },
+    {
+      "pattern": "scripts/sap-profile-cli.mjs",
+      "class": "transform",
+      "note": "`scripts/` — **deferred(L6+)**: 수동 절차는 troubleshooting.md",
+      "source_matches": 1,
+      "sources": [
+        "scripts/sap-profile-cli.mjs"
+      ],
+      "deferred": true,
+      "targets": [
+        {
+          "token": "scripts/",
+          "kind": "tree",
+          "files": 7,
+          "sha256": "336474606bb9c6f4b77692dbebefc6425500625100210b4aa3034c85850a62e2"
+        }
+      ]
+    },
+    {
+      "pattern": "scripts/sap-option-tui.mjs",
+      "class": "transform",
+      "note": "**deferred(L6+ 재심사)**: config.json 직접 편집으로 대체 중",
+      "source_matches": 1,
+      "sources": [
+        "scripts/sap-option-tui.mjs"
+      ],
+      "deferred": true,
+      "targets": []
+    },
+    {
+      "pattern": "scripts/bundle-keyring.mjs",
+      "class": "copy",
+      "note": "`server/` (keyring 번들 도구)",
+      "source_matches": 1,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "server/",
+          "kind": "tree",
+          "files": 46,
+          "sha256": "24669d68eeabe7729c9112e79223fbfce59b4a6b323bcc77252734661fb10025"
+        }
+      ]
+    },
+    {
+      "pattern": "scripts/verify-engine.mjs",
+      "class": "copy",
+      "note": "`server/` (번들 무결성 검증 — UPDATE-RUNBOOK 부속)",
+      "source_matches": 1,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "server/",
+          "kind": "tree",
+          "files": 46,
+          "sha256": "24669d68eeabe7729c9112e79223fbfce59b4a6b323bcc77252734661fb10025"
+        }
+      ]
+    },
+    {
+      "pattern": "scripts/ci/**",
+      "class": "archive",
+      "note": "CI 신규 작성 시 참고",
+      "source_matches": 1
+    },
+    {
+      "pattern": "scripts/**",
+      "class": "obsolete",
+      "note": "LEAN/오케스트레이션 훅·HUD·세션 장치 일괄 폐기",
+      "source_matches": 36
+    },
+    {
+      "pattern": "docs/bundle-integrity.md",
+      "class": "transform",
+      "note": "`server/UPDATE-RUNBOOK.md` 원천",
+      "source_matches": 1,
+      "sources": [
+        "docs/bundle-integrity.md"
+      ],
+      "deferred": false,
+      "targets": [
+        {
+          "token": "server/UPDATE-RUNBOOK.md",
+          "kind": "file",
+          "sha256": "63600ad64bec5f879627078a3169b9c25d4bcdcd4f74277fab61ec7e6e16d81d"
+        }
+      ]
+    },
+    {
+      "pattern": "docs/engine-bundle-integrity.md",
+      "class": "transform",
+      "note": "`server/UPDATE-RUNBOOK.md` 원천",
+      "source_matches": 1,
+      "sources": [
+        "docs/engine-bundle-integrity.md"
+      ],
+      "deferred": false,
+      "targets": [
+        {
+          "token": "server/UPDATE-RUNBOOK.md",
+          "kind": "file",
+          "sha256": "63600ad64bec5f879627078a3169b9c25d4bcdcd4f74277fab61ec7e6e16d81d"
+        }
+      ]
+    },
+    {
+      "pattern": "docs/INSTALLATION.md",
+      "class": "transform",
+      "note": "`adapters/` README 3벌(하네스별 설치 가이드)로 재작성 — 구 계획 docs/installation/ 폴더는 미채택(2026-07-11 정정)",
+      "source_matches": 1,
+      "sources": [
+        "docs/INSTALLATION.md"
+      ],
+      "deferred": false,
+      "targets": [
+        {
+          "token": "adapters/",
+          "kind": "tree",
+          "files": 18,
+          "sha256": "4dfa7eb799bb5645a747c18819e9165f0159536f536273f147490af5b4aa19ba"
+        }
+      ]
+    },
+    {
+      "pattern": "docs/INSTALLATION.*.md",
+      "class": "transform",
+      "note": "동상 (다국어)",
+      "source_matches": 3,
+      "sources": [
+        "docs/INSTALLATION.de.md",
+        "docs/INSTALLATION.ja.md",
+        "docs/INSTALLATION.ko.md"
+      ],
+      "deferred": false,
+      "targets": []
+    },
+    {
+      "pattern": "docs/odata-backend.md",
+      "class": "transform",
+      "note": "`server/sap-assets/` 문서 참고",
+      "source_matches": 1,
+      "sources": [
+        "docs/odata-backend.md"
+      ],
+      "deferred": false,
+      "targets": [
+        {
+          "token": "server/sap-assets/",
+          "kind": "tree",
+          "files": 30,
+          "sha256": "4a7f03e437ebf3d530f04a43fab78a04c2fb9dea4f2a21e0c20109dcc536eb80"
+        }
+      ]
+    },
+    {
+      "pattern": "docs/multi-profile-*.md",
+      "class": "transform",
+      "note": "`core/project-context.md` 참고",
+      "source_matches": 3,
+      "sources": [
+        "docs/multi-profile-design.md",
+        "docs/multi-profile-implementation-plan.md",
+        "docs/multi-profile-setup-gap.md"
+      ],
+      "deferred": false,
+      "targets": [
+        {
+          "token": "core/project-context.md",
+          "kind": "file",
+          "sha256": "405c04d986fe8a72ca7a02bc298ed6e2592851fd08de1625c555f208755df741"
+        }
+      ]
+    },
+    {
+      "pattern": "docs/**",
+      "class": "archive",
+      "note": "기록물 (CHANGELOG/FEATURES 다국어, 구조 문서)",
+      "source_matches": 13
+    },
+    {
+      "pattern": "src/**",
+      "class": "obsolete",
+      "note": "구형 npm entry stub",
+      "source_matches": 1
+    },
+    {
+      "pattern": "tests/**",
+      "class": "transform",
+      "note": "`scripts/check-*` 개조 원천 (링크·구조 검증)",
+      "source_matches": 4,
+      "sources": [
+        "tests/validation/agents.test.ts",
+        "tests/validation/plugin-structure.test.ts",
+        "tests/validation/skills.test.ts",
+        "tests/validation/spro-configs.test.ts"
+      ],
+      "deferred": false,
+      "targets": []
+    },
+    {
+      "pattern": "LICENSE",
+      "class": "copy",
+      "note": "`LICENSE` (MIT 고지 승계)",
+      "source_matches": 1,
+      "deferred": false,
+      "targets": [
+        {
+          "token": "LICENSE",
+          "kind": "file",
+          "sha256": "867f7d16ac26e28938c47fec13bb8eeeee3271e3fa0304e269803c5595bc4134"
+        }
+      ]
+    },
+    {
+      "pattern": "CLAUDE.md",
+      "class": "transform",
+      "note": "새 CLAUDE/AGENTS 인덱스 참고 원천",
+      "source_matches": 1,
+      "sources": [
+        "CLAUDE.md"
+      ],
+      "deferred": false,
+      "targets": []
+    },
+    {
+      "pattern": "README.md",
+      "class": "transform",
+      "note": "새 README 참고",
+      "source_matches": 1,
+      "sources": [
+        "README.md"
+      ],
+      "deferred": false,
+      "targets": []
+    },
+    {
+      "pattern": "README.*.md",
+      "class": "archive",
+      "note": "다국어 README — **재작성 안 함 확정(2026-07-11)**: 개인 도구라 다국어 소비자 없음, 코어(영어)·운영(한국어) 역할 분담으로 충분. 수요 발생 시 재론",
+      "source_matches": 3
+    },
+    {
+      "pattern": ".mcp.json",
+      "class": "transform",
+      "note": "어댑터 MCP 등록 원형 (NODE_PATH 배선 포함)",
+      "source_matches": 1,
+      "sources": [
+        ".mcp.json"
+      ],
+      "deferred": false,
+      "targets": []
+    },
+    {
+      "pattern": ".gitattributes",
+      "class": "transform",
+      "note": "번들 EOL 보호 라인 승계",
+      "source_matches": 1,
+      "sources": [
+        ".gitattributes"
+      ],
+      "deferred": false,
+      "targets": []
+    },
+    {
+      "pattern": ".gitignore",
+      "class": "transform",
+      "note": "신규 작성 참고",
+      "source_matches": 1,
+      "sources": [
+        ".gitignore"
+      ],
+      "deferred": false,
+      "targets": []
+    },
+    {
+      "pattern": "CHANGELOG.md",
+      "class": "archive",
+      "note": "기록물",
+      "source_matches": 1
+    },
+    {
+      "pattern": "sc4sap.png",
+      "class": "archive",
+      "note": "브랜딩 자산",
+      "source_matches": 1
+    },
+    {
+      "pattern": "sc4sap_unleashed.png",
+      "class": "archive",
+      "note": "브랜딩 자산",
+      "source_matches": 1
+    },
+    {
+      "pattern": "package.json",
+      "class": "obsolete",
+      "note": "lite 자체 package.json 신규",
+      "source_matches": 1
+    },
+    {
+      "pattern": "package-lock.json",
+      "class": "obsolete",
+      "note": "동상",
+      "source_matches": 1
+    },
+    {
+      "pattern": "tsconfig.json",
+      "class": "obsolete",
+      "note": "TS 미사용",
+      "source_matches": 1
+    },
+    {
+      "pattern": "vitest.config.ts",
+      "class": "obsolete",
+      "note": "테스트 신규 구성",
+      "source_matches": 1
+    },
+    {
+      "pattern": ".release-exclude",
+      "class": "obsolete",
+      "note": "custom 공개 배포 장치",
+      "source_matches": 1
+    }
+  ]
+}

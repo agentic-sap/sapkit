@@ -44,15 +44,16 @@ SAP ABAP 개발을 AI 하네스로 수행하는 **단일 레포 · 두 트랙**.
 ## 게이트 (구조 변경 시 항상 통과 상태 유지)
 
 ```bash
-# ⚠️ D-027: check-migration-coverage는 S3에서 private-safe 스냅샷 게이트로 교체하기
-#    전까지 실행 금지 — 외부 sc4sap-custom 전체를 재귀 순회하며 private 경로 이름을
-#    열거한다(R-004 정신 저촉). 정본 = 2026-07-16 로드맵 §9.2·§13.
-# node interactive/scripts/check-migration-coverage.mjs # (S3 교체 전 실행 금지)
+node interactive/scripts/check-migration-snapshot.mjs    # 이식 provenance (pin·원본 무접촉)
 node interactive/scripts/check-links.mjs interactive     # 깨짐 0
 node interactive/server/verify-engine.mjs                # 번들 무결성 OK
-node interactive/scripts/smoke-mcp.mjs                   # tools 155 (무프로파일)
+node interactive/scripts/smoke-mcp.mjs                   # 도구 표면 불변식 assert
 node interactive/scripts/doctor.mjs                      # 3사 동기화 OK
 ```
+
+`check-migration-coverage`는 **S3에서 폐기**됐다(D-027 §9.2) — 외부 sc4sap-custom을
+재귀 순회하며 private 경로 이름을 열거해 R-004 정신에 저촉했다. 대체 =
+`check-migration-snapshot`(원본 무접촉, CI 포함).
 
 git push는 사용자 판단 — 커밋까지만 하고 push는 요청 시에만.
 

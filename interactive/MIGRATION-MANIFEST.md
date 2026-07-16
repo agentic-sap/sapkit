@@ -1,11 +1,21 @@
 # MIGRATION-MANIFEST — sc4sap-custom → sc4sap-lite 전 파일 분류
 
-> 원본: `D:\claude for SAP\sc4sap-custom` (동결 예정, 508파일 · 2026-07-10 실측).
-> 규칙은 **위에서 아래로 첫 매칭 우선**. `scripts/check-migration-coverage.mjs`가
-> 원본 전 파일이 정확히 분류되는지(미분류 0, 죽은 규칙 0) 검증한다.
+> 원본: `D:\claude for SAP\sc4sap-custom` (동결 · R-004).
+> 규칙은 **위에서 아래로 첫 매칭 우선**. 이 표가 **분류의 정본**이다.
 >
 > 분류: `copy`(무변환 이식) · `transform`(형태 변환 이식) · `archive`(참고 보존, 이식 안 함) ·
 > `exclude-private`(영구 미포함) · `obsolete`(폐기).
+>
+> **검증은 pinned snapshot 방식이다 (S3 · D-027 §9.2).** 구
+> `check-migration-coverage.mjs`(원본 파일시스템 live walk)는 **폐기**했다 — 원본 전체를
+> 재귀 순회하며 `private/` 엔트리 이름을 열거해 R-004 정신에 저촉했고, 원본이 이식 이후
+> 변동하면서 수치도 흔들렸다(508 → 494). 대체물은 원본에 **접근하지 않는다**:
+> `provenance/`의 고정 스냅샷만 읽으므로 CI 러너에서 그대로 돈다.
+>
+> **파일 수가 문서마다 다른 이유** — 셋은 서로 다른 계약이다:
+> - **508** = 2026-07-10 파일시스템 walk(untracked 런타임 상태 `.omc/`·`.sc4sap/` 포함).
+> - **494** = 구 게이트가 원본 변동 이후 walk한 수치.
+> - **487** = **현 계약** — pin `a95eb0f`의 tracked public 파일. 유일하게 재현 가능하다.
 
 ## 규칙 (첫 매칭 우선)
 
@@ -95,9 +105,41 @@
 
 ## 검증
 
-```
-node scripts/check-migration-coverage.mjs
+```bash
+# 게이트 — 원본 무접촉·오프라인. CI 포함.
+node interactive/scripts/check-migration-snapshot.mjs
+node interactive/scripts/test-check-migration-snapshot.mjs   # 게이트 음성시험 17/17
 ```
 
-미분류 파일이 1개라도 있으면 exit 1, 매칭 0건인 죽은 규칙이 있으면 exit 2.
-L1 이식 작업은 이 표의 분류를 그대로 따르며, 분류 변경은 이 파일 수정 + 재검증으로만 한다.
+`provenance/sc4sap-public-source.json`(pin·allowlist·인벤토리)과
+`provenance/migration-map.json`(규칙별 분류·목적지 해시)에 대해:
+
+| 검사 | 위반 시 |
+|---|---|
+| pinned inventory의 모든 원본 경로가 규칙에 배정됨 (구 게이트의 '미분류 0') | exit 1 |
+| `expect_zero` 아닌 규칙의 매칭 0건 (죽은 규칙) | exit 1 |
+| inventory hash·count 재계산 일치 | exit 1 |
+| copy/transform 목적지 실재 + **내용 해시 무드리프트** (구 게이트엔 없던 검사) | exit 1 |
+| provenance 기록에 private 경로 열거 0건 | **exit 3** |
+
+`expect_zero` 4건(`private/**`·`.omc/**`·`.sc4sap/**`·`.claude/settings.local.json`)은
+매칭 0이 **정상**이다 — private은 애초에 질의하지 않고, 나머지 셋은 untracked 런타임
+상태라 git tree에 없다. 구 게이트는 이들을 '죽은 규칙'으로 exit 2 처리했다.
+
+분류 변경은 이 파일 수정으로만 하고, 이후 스냅샷을 재생성한다:
+
+```bash
+# 원본 있는 머신 전용 (CI 아님). allowlist pathspec만 사용 — private/ 미질의.
+node interactive/scripts/build-migration-snapshot.mjs
+node interactive/scripts/build-migration-snapshot.mjs --check   # 재현성 검사
+```
+
+상류 public 영역 변경 확인(리포트일 뿐 게이트가 아니며 아무것도 자동 이식하지 않음):
+
+```bash
+node interactive/scripts/report-sc4sap-public-drift.mjs
+```
+
+판단 기록처는 `provenance/upstream-drift-dispositions.json`이며, 기록 없는 변경은
+전부 `pending`으로 보고된다. **2026-07-16 실측: pin 이후 public 변경 45건 전부 pending**
+(그중 copy/transform 36건이 검토 대상).
