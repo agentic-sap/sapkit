@@ -1,21 +1,54 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "review-verdict.schema.json",
-  "title": "Track A Unattended Review Verdict",
-  "description": "Written by the fresh-context review step to phases/{p}/review-verdict.json (2026-07-13-unattended-review-gate.md, Key entities). The review step judges only; it writes NOTHING except this file. The gate is the review step's OWN verify: scripts/check-review-verdict.ps1 (sha256-pinned in the plan's verify command) checks (1) verdict=='PASS', (2) reviewed_head==current HEAD, (3) the bookkeeping-excluded dirty set equals exactly {review-verdict.json}. Ported from interactive/core/procedures/schemas/review-result.schema.json (track B). Delta vs track B: reviewed_spec_sha256 REMOVED (track B pinned the spec by hash; track A pins the whole committed repo state by HEAD sha instead); reviewed_head ADDED (necessary clause #3 — binds the verdict to the impl feat commit the engine creates AFTER the impl session ends, so it cannot be pre-forged); optional timestamp/iteration DROPPED (the engine owns retry accounting, not the verdict).",
+  "title": "Track A Run-Scoped Review Verdict (v2)",
+  "description": "Written by the fresh-context review step to .harness/runs/{run-id}/review-verdict.json. v2 (2026-07-16, roadmap S2-B) replaces the v1 phase axis with the run axis: the subject is a run-id, not a phases/{p} directory. The review step judges only; it writes NOTHING except this one file (roadmap S2-B: 'reviewer output은 run의 review-verdict 하나'). The gate is the review step's OWN verify: scripts/check-review-verdict.ps1 -RunId <id> -Verdict .harness/runs/<id>/review-verdict.json (sha256-pinned in the plan's verify command) checks (1) verdict=='PASS' and carries no MAJOR, (2) reviewed_head==current HEAD, (3) reviewed_source_sha256 == the recomputed hash of the exact reviewed source subject (a source byte change makes the verdict stale), (4) boundary attests the reviewer stayed inside P0/P1 with zero transport operations, (5) the bookkeeping-excluded dirty set equals exactly {review-verdict.json}. Delta vs v1: run axis replaces phase axis; reviewed_source_sha256 and boundary ADDED; the legacy -Phase entry point is denied.",
   "type": "object",
-  "required": ["verdict", "reviewed_head", "findings"],
+  "required": ["run_id", "verdict", "reviewed_head", "reviewed_source_sha256", "boundary", "findings"],
   "additionalProperties": false,
   "properties": {
+    "run_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+      "description": "The run this verdict belongs to. Must equal the -RunId the checker was invoked with and the directory the verdict lives in (.harness/runs/{run_id}/). Binds the verdict to one run so a verdict cannot be replayed into another run."
+    },
     "verdict": {
       "type": "string",
       "enum": ["PASS", "FAIL"],
-      "description": "FAIL when one or more MAJOR findings exist. PASS when zero MAJOR findings (MINOR findings may still be listed). The checker gates on verdict=='PASS'."
+      "description": "FAIL when one or more MAJOR findings exist. PASS when zero MAJOR findings (MINOR findings may still be listed). The checker gates on verdict=='PASS' and independently rejects a PASS that still carries a MAJOR finding."
     },
     "reviewed_head": {
       "type": "string",
       "pattern": "^[a-f0-9]{40}$",
       "description": "Output of `git rev-parse HEAD` read at review time (40-hex lowercase). The checker compares it against the current HEAD; a mismatch fails the gate. The impl step's feat commit sha is created by the engine AFTER the impl session ends, so an impl session cannot pre-forge this value."
+    },
+    "reviewed_source_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "sha256 (64-hex lowercase) over the exact source subject that was reviewed. Computed as the SHA256 of the UTF-8 bytes of `git ls-tree -r HEAD -- <source-path>` output (one 'mode type blob-sha\\tpath' line per file, git's native ordering, LF-joined, no trailing newline). This pins the exact subject: any committed source byte change alters a blob sha and invalidates the verdict (stale). Uncommitted source edits are caught separately by the equational dirty check, which would see the src file in the dirty set. The checker recomputes this value and fails on mismatch."
+    },
+    "boundary": {
+      "type": "object",
+      "description": "The reviewer's attestation of the Policy boundary it stayed inside. The checker enforces these values; a reviewer that needed to exceed them must not emit a PASS. This field exists because reviewer SAP isolation is NOT machine-enforced (sap_mutation_boundary=unverified, D-025 O1) - the attestation plus fresh-context separation plus credential scoping is what stands in for a boundary the harness cannot prove.",
+      "required": ["policy_profile", "transport_operations", "sap_mutation_boundary"],
+      "additionalProperties": false,
+      "properties": {
+        "policy_profile": {
+          "type": "string",
+          "enum": ["P0", "P1"],
+          "description": "The highest SAP Policy profile the reviewer used. P0 = offline (repo/diff only). P1 = connected-read (metadata/source/ATC/health). A reviewer may never exceed P1: no P2 row-data extraction, no P3 write/execute, no P4 transport operation."
+        },
+        "transport_operations": {
+          "type": "integer",
+          "enum": [0],
+          "description": "Count of transport operations the reviewer performed. MUST be 0 - reads included (AGENTS.md: 'Reviewers may use P0/P1 but perform no transport operation, including reads'). ListTransports / GetTransport / vsp transport list / vsp transport get all count."
+        },
+        "sap_mutation_boundary": {
+          "type": "string",
+          "enum": ["unverified"],
+          "description": "The recorded honest state of the reviewer's SAP-mutation boundary (scope: reviewer + all attended children). Fixed at 'unverified' per D-025 O1: no machine boundary blocks a credentialed reviewer shell from calling vsp deploy, and D-028 confirmed the v0.20.x candidate does not close it (authority-gate.py has no vsp coverage). Recording anything else here is prohibited until a U-gate closes it."
+        }
+      }
     },
     "findings": {
       "type": "array",
@@ -28,7 +61,7 @@
           "bucket": {
             "type": "string",
             "enum": ["B1", "B2", "B3", "B4"],
-            "description": "Checklist bucket: B1 ALV+UI (checklist S1-S2), B2 Logic Hygiene + business-logic correctness (S3, S8, and the semantic items S13-S15), B3 Structure+Naming (S4-S7), B4 Platform+Config (S9-S12). The new semantic items (JOIN cardinality / spec conformance / boundary correctness) tag as B2."
+            "description": "Checklist bucket: B1 ALV+UI (checklist S1-S2), B2 Logic Hygiene + business-logic correctness (S3, S8, and the semantic items S13-S15), B3 Structure+Naming (S4-S7), B4 Platform+Config (S9-S12). The semantic items (JOIN cardinality / spec conformance / boundary correctness) tag as B2."
           },
           "severity": {
             "type": "string",
