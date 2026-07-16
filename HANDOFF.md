@@ -10,10 +10,50 @@
 > 않는다**. 새 순서는 **S0 Track B 안전 봉인 → S1 clean final-harness v0.20.x candidate
 > 선정 → S2 Track A Policy/review/wrapper/bridge 구현 → S3 provenance·CI·vsp 검증 보강
 > → S4 독립 리뷰·disposable staging → S5 attended connected gate·파일럿 → S6 기능 확장**이다.
-> **진척: S0·S1·S2 완료(2026-07-16, 커밋 4ad4a30~558dc27 — 전부 push됨). 다음 = S3.**
-> 상시 금지(모든 단계): SAP 연결·write(S5 전까지), 주 머신 Engine 설치(S4 전까지),
-> 트랙 B 원본 `D:\claude for SAP\sc4sap-custom` 수정, raw `python scripts/execute.py`,
-> `check-migration-coverage` 실행(S3 교체 전).
+> **진척: S0~S4 완료(2026-07-16, 커밋 4ad4a30~d608233). 다음 = S5 — SAP를 실제로
+> 건드리는 첫 단계이므로 사람이 반드시 옆에 있어야 한다. push는 미실시(사용자 판단).**
+> 상시 금지(모든 단계): SAP 연결·write(S5 전까지), 트랙 B 원본
+> `D:\claude for SAP\sc4sap-custom` 수정 및 private 탐색, raw `python scripts/execute.py`.
+> `check-migration-coverage`는 **S3에서 폐기**됐다(대체: `check-migration-snapshot`).
+> 주 머신 Engine 설치 금지는 **S4 통과로 해제**됐으나, staged candidate는 매 호출
+> 명시 `-Candidate` opt-in이 있어야만 기동한다(없으면 exit 65).
+>
+> **S3 완료 (2026-07-16, D-029 · 커밋 78979d7~b71b322)**: 게이트를 관찰에서 **assertion**으로.
+> ⓐ **§9.2** 이식 검증을 live walk → **pinned snapshot**으로 교체. 구
+> `check-migration-coverage`는 동결 원본을 재귀 순회하며 private 경로 이름을 열거했고
+> (R-004 저촉) 러너엔 절대경로가 없어 **CI 실행 자체가 불가**였다(이식 검증 사각지대).
+> 새 게이트는 원본에 **접근하지 않아** 드디어 CI에서 돈다 — pin `a95eb0f`(이식일 시점
+> 원본 HEAD) + public root allowlist 36 + tracked 인벤토리 **487** + 목적지 내용 해시.
+> 원본 접근은 생성기·드리프트 리포터 2종에만 격리(allowlist pathspec만 → `private/`
+> **미질의**). ⓑ **§9.3** `integrity.json.sourceCommit`을 상류 fork 약식 SHA `1964959`에서
+> **실제 엔진 소스 커밋 `0b304de7`**로 바인딩 + VERSION의 "working tree, uncommitted"
+> 제거. **번들 재현 실측: 재현됨**(같은 커밋 재빌드 → sha256·바이트 동일). 엔진 테스트
+> **599** CI 편입. ⓒ **§9.4** smoke-mcp가 출력만 하고 **항상 exit 0**이던 것을 assert로.
+> ⓓ **§9.5** 매니페스트 5종을 단일 정본에서 생성 + compatibility 핀을 **재검증 후** 갱신
+> (codex 0.144.4 · agy 1.1.1 · doctor 5/5). ⓔ **§9.6** vsp는 **읽기만** — 계약 오프라인
+> 명령 2종 lock binary로 직접 실측 PASS, 4패키지 FAIL은 전부 계약 밖으로 분리 기록.
+> **vsp-custom 수리 착수는 사용자 결정**이라 미착수. ⓕ **§9.7** CI 3게이트 → 3잡.
+> 게이트마다 **음성시험 동반**(17/17 · 16/16) — 통과만 하는 게이트는 없느니만 못하다.
+>
+> **S4 완료 (2026-07-16, 커밋 c4f34fa·d608233) — candidate `d4a0aeb` state=`selected`→`staged`.
+> verified는 v0.17.3 불변.** ⓐ **새-컨텍스트 독립 리뷰 MAJOR 0** — 리뷰어가 핀·인벤토리
+> 487·sourceCommit·엔진테스트 599를 **독립 재계산**해 확인. MINOR 5·NIT 2 중 M1(게이트
+> 정본 문서가 삭제된 스크립트를 지목 — 새 컨텍스트가 첫 명령에서 크래시)·M2·M3·N1·N2
+> 수리. ⓑ **disposable staging**(clean clone, 주 머신 아님) — installer exit 0 ·
+> **트랙 B 훅 3종 바이트 동일 보존**(S1의 "계약 수준만" 부채 해소) · `phases`/`interactive`
+> **바이트 동일** · legacy deny 64/64/65. ⓒ **선결 부채 상환: F1~F7 7/7 · N1~N8 8/8 전량
+> 유지 재측정**(좌표 d4a0aeb 기준 갱신 — v0.17.3 좌표 무효). ⓓ staging이 **독립 리뷰가
+> 못 본 버그**를 잡았다 — 스냅샷이 `.sc4sap` 런타임 상태를 해시에 섞어 **클린 클론에서만
+> FAIL**했다(주 머신에선 통과 = 구 게이트를 죽인 것과 같은 병).
+> ⚠️ **S4 정직 기록**: **symlink 탈출 차단 3건 여전히 미검증**(WinError 1314 재현 —
+> 개발자 모드/관리자 권한은 **사용자 머신 결정**) · **raw execute 안내는 상류 문제로 확정**
+> (candidate가 여전히 `python scripts/execute.py <phase>`를 안내 — "installer 재설치"로는
+> **해결 안 되고 오히려 재유입**, durable 해소는 **상류 기여**뿐 = 사용자 결정) ·
+> **installer는 clean clone에서 `execute.py`를 교체하지 않는다**(engine-manifest가
+> gitignore → user-owned fail-safe skip → **v0.20 훅 + v0.17.3 executor 혼합**, 실제
+> executor 승격은 PROMOTE 소관) · §10.4-5(Guided footprint)·§10.4-7(fake-vsp 경계)은
+> Engine fail-closed라 **미실행**(닭-달걀 — staged가 그 잠금을 여니 S5 소관) ·
+> **RV4 여전히 열림**(authority-gate.py의 vsp 언급 0건 재확인).
 > **S0 완료 (2026-07-16)**: 트랙 B mutation 절차(create-program·create-object·release·
 > reviewer + data-extraction P2)를 attended-only Policy에 정렬 — unattended 권장·release
 > 자동 실행·reviewer 기계격리 보편 주장 각 0건, 상태 모델 DRAFT/PROVISIONAL_WRITE/
@@ -114,15 +154,28 @@
 > test/staging install/복제본 migration → §12 G1~G14 + 파일럿 A/B + P4 T1~T5
 > (`READY_FOR_RELEASE`, 실제 release 없음) → 증거 exact SHA 바인딩 후 PROMOTE. 실제 전달
 > run만 사람 T6 release·T7 STMS import를 추가한다. 상세는 v2 설계서 + D-025 원문.
-> **사용자 대기 항목 3건**: ① **상류 설계 결함 확인** — `adapters/final-harness/
-> UPSTREAM-DOCS-LIFECYCLE-GAP.md`(영어 자립형, 상류 세션에 붙여넣기용): `harness-docs`가
-> ADR.md에 영구 append와 ~300줄 상한을 동시 요구하나 초과 시 처분 부재(전문 134줄에
-> archive/split/prune 0건); 상류 미검출 이유 = 자기 엔진 도그푸딩 안 함(@6de63ba에
-> `.harness/`·`scripts/execute.py` 부재, `docs/`는 INSTALL.md뿐). ② **`vsp transport
-> list/get` read-only 1회 실측**(자격증명 셸 필요 — 출력 형상 미확인이라 P4 계약이
-> 여기 의존, G14 대상). ③ **상류 워킹트리 dirty 20파일 처분**(`install_engine.py`·
-> `execute.py` 포함 — 본인 작업분인지 확인 필요, 덩어리 5/staging 전 선결). ④ push
-> 여부(오늘 커밋 5건 전부 로컬).
+> **사용자 대기 항목 (2026-07-16 S4 시점 현행화)**:
+> ① **push 여부** — 오늘 커밋 **11건이 전부 로컬**(78979d7~d608233). 요청 시에만 push.
+> ② **symlink 권한** — 탈출 차단 3건이 이 머신에서 계속 skip(WinError 1314 S4 재현).
+> Windows 개발자 모드 또는 관리자 셸이 필요하며 **머신 설정은 사용자 결정**. 해소되면
+> `test_install_engine.py:454/:466` · `test_run_contract.py:223`를 재실행해 lock의
+> `known_unverified`에서 내린다.
+> ③ **raw execute 안내의 durable 제거 = 상류 기여 필요** — S4가 경로를 확정했다:
+> installer 재설치로는 **해결되지 않고 오히려 재유입**된다(candidate의
+> `session-start-context.py`가 여전히 `python scripts/execute.py <phase>`를 안내하고,
+> 우리 교정본은 gitignore 대상이라 머신 로컬). final-harness에 기여할지 사용자 결정.
+> ④ **vsp-custom 수리 착수** — §9.6(`/tmp`→`t.TempDir` · recording ID · CGO0 SQLite ·
+> Windows lane). 별도 repo 작업이라 미착수. 현 lock 계약은 PASS이고 4패키지 FAIL은
+> 계약 밖으로 분리 기록됨(`vsp.lock.json.test_status`).
+> ⑤ **`vsp transport list/get` read-only 1회 실측** — 자격증명 셸 필요. 출력 형상
+> 미확인이라 P4 계약이 여기 의존(**S5-A**가 소유, G14 대상).
+> ⑥ **상류 설계 결함 확인** — `adapters/final-harness/UPSTREAM-DOCS-LIFECYCLE-GAP.md`
+> (영어 자립형, 상류 세션 붙여넣기용): `harness-docs`가 ADR.md에 영구 append와 ~300줄
+> 상한을 동시 요구하나 초과 시 처분 부재. ③과 함께 상류에 전달할지 판단.
+> ⑦ **상류 워킹트리 dirty** — S1 시점 20파일은 사용자가 커밋해 해소됐고 d4a0aeb가 그
+> 결과다. 현재 `docs/manual.html` 1건이 다시 dirty(읽기만 함 — 손대지 않았다).
+> ⑧ **상류 sc4sap public 드리프트 55건 판정** — 전부 `pending`. 판정처는
+> `interactive/provenance/upstream-drift-dispositions.json`. (핀 게이트는 무영향.)
 > **Phase 4(Domain Packs) 완료 ✅ (2026-07-14)**: 완료 기준 ①(팩 CONSULT 실사용 =
 > recon 결정 델타 5건) + ②(LESSONS 유래 규칙 승격 = 4a 씨앗→L-002→R-007) 충족 +
 > 에스코트 보강(4a 씨앗 차단 + 4b 정상 배포). 소형 잔여(재기준과 무관): 엔진 11-⑩ ·
