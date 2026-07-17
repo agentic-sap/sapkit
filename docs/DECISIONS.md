@@ -240,3 +240,18 @@
 - **영향**: verification.schema.json·create-program.md·review-checklist.md·
   sap-reviewer.md·UPDATE-RUNBOOK(capability diff 시 disallowedTools 동기화 스텝). 기존
   E2E 산출물은 git-ignored 로컬 상태 파일이라 소급 무영향.
+
+## D-020 · 2026-07-17 · 트랙 A 수행 레벨 문서 3종 신설 (D-012 부분 갱신)
+- **결정**: docs/PRD.md·ARCHITECTURE.md·ADR.md를 "하네스로 수행하는 SAP 개발
+  작업"(수행 레벨) 스코프로 신설. DECISIONS.md는 하네스 자체(메타 레벨) 결정
+  로그로 존속.
+- **근거**: D-012(2026-07-10)는 부트스트랩 전 결정 — 메타/수행 레벨 구분이
+  드러나기 전이라 "중복"으로 판단했다. 부트스트랩 후 실측: 스텝 프롬프트에
+  주입되는 최상위 docs가 메타 결정 로그(21KB)뿐이고, 수행 작업장 지도·검증
+  계약·수행 결정(PLANNING.md에 산개)이 스텝에 전달되지 않는 빈틈 확인.
+  두 레벨은 주제가 달라 D-012가 우려한 중복이 아니다 (사용자 판단 2026-07-17).
+- **대안 기각**: ① 현상 유지 — 빈틈 지속. ② 얇은 ARCHITECTURE 1종만 — 수행
+  결정(ADR)의 집이 없어 산개 지속.
+- **영향**: 3종은 수행 레벨만 담고 메타는 포인터로 위임 (각 300줄 이하, 최상위
+  docs 합산 48KB 이하 유지 — 신설 후 합산 약 34KB). D-012의 "DECISIONS.md
+  1종" 조항은 메타 레벨에 한해 유지.

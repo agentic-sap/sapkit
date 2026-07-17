@@ -60,6 +60,15 @@
 > · UPSTREAM-FIX-HANDOFF §5·§10·§11·Known-remaining 갱신. 신규 관찰 = ADT
 > /checkruns 세션 캐시 stale 재반환(Known-remaining #8). **다음 착수 = ② 트랙 A
 > 지식 문서 갱신(harness-docs, 알림 2회째) → ③ Phase 3 선결 설계(5-11 편입)**.
+> **② 트랙 A 지식 문서 완료 (2026-07-17, harness-docs Mode A)**: docs/PRD·
+> ARCHITECTURE·ADR 3종 신설 — 전부 **수행 레벨**(하네스가 수행하는 SAP 작업)
+> 스코프, 메타(하네스 자체)는 DESIGN·HANDOFF·DECISIONS 포인터로 위임. D-012와의
+> 충돌은 **D-020**으로 해소(메타/수행 레벨 구분 — 사용자 판단, D-012는 메타
+> 한정 존속). ADR 초기 3건(Phase 2 수행 결정: 대상 재선정·배포 순서/테스트
+> 배치·GUI 수동 우회). 최상위 docs 합산 28.8KB(<48KB), 플레이스홀더 0, 엔진
+> 문서 알림 해소. 부수 발견(미처리): domain/abap/RULES.seed.md 제목 "Error
+> 4종" vs 본문 6개 불일치 — 차기 수리 후보. **다음 착수 = ③ Phase 3 선결
+> 설계(5-11 리뷰 게이트 편입)**.
 > 방향성 판정: 비전 4축 중 3축(하네스 개발·컨설턴트/환경관리·경량화) 실현, 1축(vsp
 > 오프라인 검증)은 실측 하향이 이미 설계 반영(Phase 1.5 재정의). 직시할 사실 —
 > 실물 ABAP 산출은 연습 객체 4건($TMP)뿐이고 packs(Phase 4, 비전 제2축 '모듈 전문성
