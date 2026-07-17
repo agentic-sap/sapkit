@@ -119,6 +119,17 @@
 > 미검증 — 배포 스텝 배선 전 확인 필수**(vsp가 파일명으로 객체 식별 시사)
 > ⑤ 캡슐이 리뷰어 cwd 쓰기에 비보호(세션 로그가 캡슐 안에 기록됨 — git
 > 미추적·무해, spawn cwd 분리 후보).
+> **▶ 다음 착수 확정 (차기 세션, 2026-07-17 사용자 순서)**: **① §5-4 보완** —
+> vsp-custom(`D:\Claude for SAP\vsp-custom`)에 SAP_READ_ONLY/SAP_TIER를 CLI
+> write 경로에 배선(수리 좌표·근거 = `phases/3-review-gate/step5-output.json`·
+> `spike-evidence.json` — getClient cmd/vsp/cli.go:151-183 Unrestricted 기본,
+> READ_ONLY 바인딩은 MCP 모드 전용) → 빌드 → `adapters/vsp/vsp.lock.json`
+> 재검증·갱신(D-018 절차) + 무인 워커 env 자격증명 미공급 구조(②) + 리뷰
+> 게이트 MINOR 5건 동반 수리(특히 ④ 캡슐 파일명 vsp deploy 호환) → 스파이크
+> Part B 재실증(AC-10) → phases/3-review-gate step 5 해소 → 스펙 §5-4 문구
+> 정합 확인. **② 5-13 층1**(engine/ 대조 감사 — SQL NULL-셀 최우선) →
+> **③ 5-13 층2·3**. 전 기간 유효: 무인 SAP write 금지(5-11) ·
+> final-harness 플러그인 업데이트 금지(5-12).
 > 방향성 판정: 비전 4축 중 3축(하네스 개발·컨설턴트/환경관리·경량화) 실현, 1축(vsp
 > 오프라인 검증)은 실측 하향이 이미 설계 반영(Phase 1.5 재정의). 직시할 사실 —
 > 실물 ABAP 산출은 연습 객체 4건($TMP)뿐이고 packs(Phase 4, 비전 제2축 '모듈 전문성
