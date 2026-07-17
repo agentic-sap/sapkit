@@ -1,0 +1,42 @@
+{
+  "project": "sap-agentic-harness",
+  "phase": "3-review-gate",
+  "steps": [
+    {
+      "step": 0,
+      "name": "capsule",
+      "status": "pending",
+      "verify": "node --test scripts/review-gate/tests/capsule.test.mjs"
+    },
+    {
+      "step": 1,
+      "name": "verdict",
+      "status": "pending",
+      "verify": "node --test scripts/review-gate/tests/verdict.test.mjs"
+    },
+    {
+      "step": 2,
+      "name": "state",
+      "status": "pending",
+      "verify": "node --test scripts/review-gate/tests/state.test.mjs"
+    },
+    {
+      "step": 3,
+      "name": "gate-assembly",
+      "status": "pending",
+      "verify": "node --test scripts/review-gate/tests/gate-e2e.test.mjs"
+    },
+    {
+      "step": 4,
+      "name": "deploy-gate",
+      "status": "pending",
+      "verify": "node --test scripts/review-gate/tests/deploy-gate.test.mjs"
+    },
+    {
+      "step": 5,
+      "name": "live-spike",
+      "status": "pending",
+      "verify": "node scripts/review-gate/tests/spike.mjs --check phases/3-review-gate/spike-evidence.json"
+    }
+  ]
+}
