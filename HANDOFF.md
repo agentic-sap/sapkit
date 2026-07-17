@@ -124,7 +124,11 @@
 > write 경로에 배선(수리 좌표·근거 = `phases/3-review-gate/step5-output.json`·
 > `spike-evidence.json` — getClient cmd/vsp/cli.go:151-183 Unrestricted 기본,
 > READ_ONLY 바인딩은 MCP 모드 전용) → 빌드 → `adapters/vsp/vsp.lock.json`
-> 재검증·갱신(D-018 절차) + 무인 워커 env 자격증명 미공급 구조(②) + 리뷰
+> 재검증·갱신(D-018 절차). **수리 기준 = HEAD 731b871**(2026-07-17 실측:
+> JNC 층1 수리 2커밋 `0cb26cb`+`731b871`이 레포에 실재하나 **현 lock
+> 0b03ef2·바이너리(07-12 빌드)는 그 이전** — 재빌드 필수, 재검증 범위에 JNC
+> 델타(ActivateGroup 신설·활성화 거짓성공 4곳·TotalRows/Truncated·FUGR 그룹
+> 진단·UXX 제외)와 기존 명령 계약 10종 포함) + 무인 워커 env 자격증명 미공급 구조(②) + 리뷰
 > 게이트 MINOR 5건 동반 수리(특히 ④ 캡슐 파일명 vsp deploy 호환) → 스파이크
 > Part B 재실증(AC-10) → phases/3-review-gate step 5 해소 → 스펙 §5-4 문구
 > 정합 확인. **② 5-13 층1**(engine/ 대조 감사 — SQL NULL-셀 최우선) →
