@@ -8,6 +8,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TOOL_DEFINITION = void 0;
 exports.handleCreateClass = handleCreateClass;
 const mcp_abap_adt_interfaces_1 = require("@babamba2/mcp-abap-adt-interfaces");
+const adtLogonLanguage_1 = require("../../../lib/adtLogonLanguage");
 const clients_1 = require("../../../lib/clients");
 const preCheckBeforeActivation_1 = require("../../../lib/preCheckBeforeActivation");
 const utils_1 = require("../../../lib/utils");
@@ -62,6 +63,12 @@ async function handleCreateClass(context, params) {
     try {
         const client = (0, clients_1.createAdtClient)(connection, logger);
         const adtClass = client.getClass();
+        // Resolve the system's logon/master language so the create payload stamps
+        // the description into the right language slot. The vendored create
+        // hardcodes EN, so on a non-EN logon system (e.g. CS/KO) the description
+        // lands in the EN slot and reads back empty (HANDOFF §6 backlog 11-⑫).
+        // Falls back to EN when systeminformation is unavailable.
+        const masterLanguage = await (0, adtLogonLanguage_1.resolveLogonLanguage)(connection, logger);
         // Use AdtClass.create() which handles the full workflow automatically:
         // validate → create → check → lock → check(inactive) → update → unlock → check → activate
         // AdtClass.create() handles cleanup (unlock) in its catch block, so we should let errors propagate
@@ -78,6 +85,7 @@ async function handleCreateClass(context, params) {
                 abstract: args.abstract || false,
                 createProtected: args.create_protected || false,
                 sourceCode: undefined,
+                masterLanguage,
             }, {
                 activateOnCreate: false,
             });

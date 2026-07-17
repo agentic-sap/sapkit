@@ -5,6 +5,7 @@
  * DDL code is set via UpdateTable handler.
  */
 
+import { resolveLogonLanguage } from '../../../lib/adtLogonLanguage';
 import { createAdtClient } from '../../../lib/clients';
 import type { HandlerContext } from '../../../lib/handlers/interfaces';
 import {
@@ -114,6 +115,12 @@ export async function handleCreateTable(
         description: createTableArgs.description || tableName,
       });
 
+      // Resolve the system's logon/master language so the create payload
+      // stamps the description into the right language slot (EN-hardcoded
+      // payloads read back empty on a non-EN logon system — HANDOFF §6
+      // backlog 11-⑫). Falls back to EN when systeminformation is unavailable.
+      const masterLanguage = await resolveLogonLanguage(connection, logger);
+
       // Create
       await client.getTable().create({
         tableName,
@@ -121,6 +128,7 @@ export async function handleCreateTable(
         description: createTableArgs.description || tableName,
         ddlCode: '',
         transportRequest: createTableArgs.transport_request,
+        masterLanguage,
       });
 
       logger?.info(`Table created: ${tableName}`);

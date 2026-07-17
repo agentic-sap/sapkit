@@ -11,6 +11,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TOOL_DEFINITION = void 0;
 exports.handleUpdateTable = handleUpdateTable;
 const fast_xml_parser_1 = require("fast-xml-parser");
+const checkRunParser_1 = require("../../../lib/checkRunParser");
 const clients_1 = require("../../../lib/clients");
 const utils_1 = require("../../../lib/utils");
 exports.TOOL_DEFINITION = {
@@ -104,11 +105,40 @@ async function handleUpdateTable(context, args) {
                 logger?.info(`[UpdateTable] Checking new DDL code before update: ${tableName}`);
                 let checkNewCodePassed = false;
                 try {
-                    await (0, utils_1.safeCheckOperation)(() => client
+                    const checkState = await (0, utils_1.safeCheckOperation)(() => client
                         .getTable()
                         .check({ tableName, ddlCode: ddl_code }, 'inactive'), tableName, {
                         debug: (message) => logger?.debug(`[UpdateTable] ${message}`),
                     });
+                    // The vendored AdtTable.check returns the raw /checkruns response
+                    // without evaluating it (unlike AdtStructure.check, which throws) —
+                    // CheckTableLow relies on that non-throwing contract and parses the
+                    // result itself, so the block-decision for the UpdateTable pre-check
+                    // belongs here. Since 4.13.12 forwards ddlCode, this check now runs
+                    // against the NEW DDL, so parse it and BLOCK the write on a real
+                    // error instead of letting the bad code reach the PUT and fail
+                    // opaquely ("Kein Sichern wegen Fehler in Quelle …"). Mirrors the
+                    // 4.13.11 structure fix's "surface the real error before the PUT".
+                    const parsed = (0, checkRunParser_1.parseCheckRunResponse)(checkState.checkResult);
+                    if (!parsed.success && parsed.has_errors) {
+                        // DDIC objects can report non-critical "inactive version does not
+                        // exist" / "importing from database" — safe to skip (same
+                        // tolerance as the vendored checkStructure).
+                        const msg = (parsed.message || '').toLowerCase();
+                        const tolerable = (msg.includes('inactive version') &&
+                            msg.includes('does not exist')) ||
+                            (msg.includes('importing') && msg.includes('database'));
+                        if (!tolerable) {
+                            // Honest detail: prefer the real E-message texts, fall back to
+                            // the check status so the thrown message is never bare/empty.
+                            const detail = parsed.errors
+                                .map((e) => e.text)
+                                .filter((t) => t && String(t).trim())
+                                .join('; ') ||
+                                `${parsed.message || ''} (check status: ${parsed.status})`.trim();
+                            throw new Error(detail);
+                        }
+                    }
                     checkNewCodePassed = true;
                     logger?.info(`[UpdateTable] New code check passed: ${tableName}`);
                 }

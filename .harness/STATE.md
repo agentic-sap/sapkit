@@ -205,11 +205,23 @@
   knowledge .md 175·procedures .md 16). 게이트 5종 green, 독립 리뷰
   (sonnet, read-only) PASS — 기준 전 항목 충족·스코프 이탈 0
 
+- 2026-07-17 | 엔진 11-⑪·⑫ Wave 완료 (4.13.12, opus 위임 + 세션 재시작 걸쳐
+  2단계 진행) — ① 11-⑪ Table check-with-source **2계층**(vendored ddlCode 전달
+  + 핸들러 PUT 전 차단 — table check는 non-throwing 계약이라 선례 '1줄' 추정
+  부정확 발견) ② 11-⑫ Create 로그온 언어 도달 가능 8종 확장(DCL은 죽은 코드
+  판정·미수정). jest **599/0(+19)**·두 수리 모두 두 계층 역-검증 실측, 라이브
+  red→green(11-⑪ 명확 재현·해소, 11-⑫는 CS 박스 EN 관용으로 델타 관측 불가 —
+  jest+4.13.10 선례가 정본 증거), $TMP 생성 8·삭제 8·고아 잠금 0, 재번들
+  OK@4.13.12·155 유지, CHANGELOG·UPSTREAM-FIX-HANDOFF §5·§10·§11 갱신.
+  **새-컨텍스트 리뷰(opus) PASS — BLOCKER/MAJOR 0**, MINOR 4(전부 문서 등재로
+  수용). 신규 관찰 = ADT /checkruns 세션 캐시 stale 재반환(Known-remaining #8).
+  중간 인계 파일(docs/wave-4.13.12-report.md)은 마감 후 삭제 — 내용은
+  CHANGELOG·UPSTREAM-FIX-HANDOFF·HANDOFF·이 항목으로 흡수
+
 ## Next
 
-- 사용자 확정 순서(HANDOFF 헤더): ① 엔진 11-⑪·⑫ 수리(1 Wave 묶음, 완료 시
-  UPSTREAM-FIX-HANDOFF §5·§7 갱신) → ② 트랙 A 지식 문서 갱신(harness-docs)
-  → ③ Phase 3 선결 설계(5-11 리뷰 게이트 편입)
+- 사용자 확정 순서(HANDOFF 헤더): ② 트랙 A 지식 문서 갱신(harness-docs —
+  알림 2회째) → ③ Phase 3 선결 설계(5-11 리뷰 게이트 편입)
 
 ## Attempts & dead ends
 

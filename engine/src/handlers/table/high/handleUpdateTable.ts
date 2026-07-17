@@ -8,9 +8,11 @@
  */
 
 import { XMLParser } from 'fast-xml-parser';
+import { parseCheckRunResponse } from '../../../lib/checkRunParser';
 import { createAdtClient } from '../../../lib/clients';
 import type { HandlerContext } from '../../../lib/handlers/interfaces';
 import {
+  type AxiosResponse,
   ErrorCode,
   encodeSapObjectName,
   McpError,
@@ -151,7 +153,7 @@ export async function handleUpdateTable(
         );
         let checkNewCodePassed = false;
         try {
-          await safeCheckOperation(
+          const checkState = await safeCheckOperation(
             () =>
               client
                 .getTable()
@@ -162,6 +164,39 @@ export async function handleUpdateTable(
                 logger?.debug(`[UpdateTable] ${message}`),
             },
           );
+          // The vendored AdtTable.check returns the raw /checkruns response
+          // without evaluating it (unlike AdtStructure.check, which throws) —
+          // CheckTableLow relies on that non-throwing contract and parses the
+          // result itself, so the block-decision for the UpdateTable pre-check
+          // belongs here. Since 4.13.12 forwards ddlCode, this check now runs
+          // against the NEW DDL, so parse it and BLOCK the write on a real
+          // error instead of letting the bad code reach the PUT and fail
+          // opaquely ("Kein Sichern wegen Fehler in Quelle …"). Mirrors the
+          // 4.13.11 structure fix's "surface the real error before the PUT".
+          const parsed = parseCheckRunResponse(
+            checkState.checkResult as AxiosResponse,
+          );
+          if (!parsed.success && parsed.has_errors) {
+            // DDIC objects can report non-critical "inactive version does not
+            // exist" / "importing from database" — safe to skip (same
+            // tolerance as the vendored checkStructure).
+            const msg = (parsed.message || '').toLowerCase();
+            const tolerable =
+              (msg.includes('inactive version') &&
+                msg.includes('does not exist')) ||
+              (msg.includes('importing') && msg.includes('database'));
+            if (!tolerable) {
+              // Honest detail: prefer the real E-message texts, fall back to
+              // the check status so the thrown message is never bare/empty.
+              const detail =
+                parsed.errors
+                  .map((e) => e.text)
+                  .filter((t) => t && String(t).trim())
+                  .join('; ') ||
+                `${parsed.message || ''} (check status: ${parsed.status})`.trim();
+              throw new Error(detail);
+            }
+          }
           checkNewCodePassed = true;
           logger?.info(`[UpdateTable] New code check passed: ${tableName}`);
         } catch (checkError: any) {

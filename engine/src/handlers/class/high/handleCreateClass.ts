@@ -6,6 +6,7 @@
 
 import type { IClassState } from '@babamba2/mcp-abap-adt-clients';
 import { AdtObjectErrorCodes } from '@babamba2/mcp-abap-adt-interfaces';
+import { resolveLogonLanguage } from '../../../lib/adtLogonLanguage';
 import { createAdtClient } from '../../../lib/clients';
 import type { HandlerContext } from '../../../lib/handlers/interfaces';
 import {
@@ -92,6 +93,13 @@ export async function handleCreateClass(
     const client = createAdtClient(connection, logger);
     const adtClass = client.getClass();
 
+    // Resolve the system's logon/master language so the create payload stamps
+    // the description into the right language slot. The vendored create
+    // hardcodes EN, so on a non-EN logon system (e.g. CS/KO) the description
+    // lands in the EN slot and reads back empty (HANDOFF §6 backlog 11-⑫).
+    // Falls back to EN when systeminformation is unavailable.
+    const masterLanguage = await resolveLogonLanguage(connection, logger);
+
     // Use AdtClass.create() which handles the full workflow automatically:
     // validate → create → check → lock → check(inactive) → update → unlock → check → activate
     // AdtClass.create() handles cleanup (unlock) in its catch block, so we should let errors propagate
@@ -110,6 +118,7 @@ export async function handleCreateClass(
           abstract: args.abstract || false,
           createProtected: args.create_protected || false,
           sourceCode: undefined,
+          masterLanguage,
         },
         {
           activateOnCreate: false,

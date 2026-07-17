@@ -2,6 +2,7 @@
  * CreateMetadataExtension Handler - ABAP Metadata Extension Creation via ADT API
  */
 
+import { resolveLogonLanguage } from '../../../lib/adtLogonLanguage';
 import { createAdtClient } from '../../../lib/clients';
 import type { HandlerContext } from '../../../lib/handlers/interfaces';
 import {
@@ -75,12 +76,21 @@ export async function handleCreateMetadataExtension(
     const client = createAdtClient(connection);
     const shouldActivate = args.activate !== false;
 
+    // Resolve the system's logon/master language so the create payload stamps
+    // the description into the right language slot. The DDLX builder already
+    // threaded masterLanguage into adtcore:masterLanguage but still hardcoded
+    // adtcore:language="EN", so on a non-EN logon system the description landed
+    // in the EN slot and read back empty (HANDOFF §6 backlog 11-⑫). Falls back
+    // to EN when systeminformation is unavailable.
+    const masterLanguage = await resolveLogonLanguage(connection, logger);
+
     // Create
     await client.getMetadataExtension().create({
       name,
       description: args.description || name,
       packageName: args.package_name,
       transportRequest: args.transport_request || '',
+      masterLanguage,
     });
 
     // Lock

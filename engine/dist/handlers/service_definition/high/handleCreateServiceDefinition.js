@@ -11,6 +11,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TOOL_DEFINITION = void 0;
 exports.handleCreateServiceDefinition = handleCreateServiceDefinition;
 const fast_xml_parser_1 = require("fast-xml-parser");
+const adtLogonLanguage_1 = require("../../../lib/adtLogonLanguage");
 const clients_1 = require("../../../lib/clients");
 const preCheckBeforeActivation_1 = require("../../../lib/preCheckBeforeActivation");
 const utils_1 = require("../../../lib/utils");
@@ -87,12 +88,18 @@ async function handleCreateServiceDefinition(context, args) {
                 serviceDefinitionName,
                 description: typedArgs.description || serviceDefinitionName,
             });
+            // Resolve the system's logon/master language so the create payload
+            // stamps the description into the right language slot (EN-hardcoded
+            // payloads read back empty on a non-EN logon system — HANDOFF §6
+            // backlog 11-⑫). Falls back to EN when systeminformation is unavailable.
+            const masterLanguage = await (0, adtLogonLanguage_1.resolveLogonLanguage)(connection, logger);
             // Create
             const createConfig = {
                 serviceDefinitionName,
                 description: typedArgs.description || serviceDefinitionName,
                 packageName: typedArgs.package_name.toUpperCase(),
                 transportRequest: typedArgs.transport_request,
+                masterLanguage,
                 ...(typedArgs.source_code && { sourceCode: typedArgs.source_code }),
             };
             const createState = await client

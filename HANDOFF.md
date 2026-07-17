@@ -49,6 +49,17 @@
 > 실측) → compatibility.json 0.144.3 갱신 → doctor **5 OK/0 FAIL(exit 0)**.
 > ② CLAUDE.md 헤드라인 지식 217→**175**·절차 15→**16** 정정(실측: knowledge `.md`
 > 175 · procedures `.md` 16). 게이트 5종 green 유지. 다음 착수 = 11-⑪·⑫ Wave.
+> **11-⑪·⑫ Wave 완료 (2026-07-17, 엔진 4.13.12)**: 11-⑪ Table check-with-source
+> **2계층** 수리(vendored ddlCode 전달 + 핸들러 PUT 전 차단 — table check는
+> structure와 달리 non-throwing 계약이라 1줄로 불충분함을 발견) · 11-⑫ Create
+> 로그온 언어 도달 가능 **8종** 확장(Class·Interface·Program·Package·Table·
+> Structure·SRVD·DDLX — DCL은 도달 불가 죽은 코드 판정·미수정). jest 599/0(+19,
+> 역-검증) · 라이브 red→green(11-⑪ 명확 재현·해소, 11-⑫는 CS 박스 EN 관용으로
+> 델타 관측 불가 — jest+4.13.10 비관용 표면 실증이 정본 증거) · $TMP 전량 삭제·
+> 고아 잠금 0 · 재번들 OK·155 유지 · **새-컨텍스트 리뷰 PASS(BLOCKER/MAJOR 0)**
+> · UPSTREAM-FIX-HANDOFF §5·§10·§11·Known-remaining 갱신. 신규 관찰 = ADT
+> /checkruns 세션 캐시 stale 재반환(Known-remaining #8). **다음 착수 = ② 트랙 A
+> 지식 문서 갱신(harness-docs, 알림 2회째) → ③ Phase 3 선결 설계(5-11 편입)**.
 > 방향성 판정: 비전 4축 중 3축(하네스 개발·컨설턴트/환경관리·경량화) 실현, 1축(vsp
 > 오프라인 검증)은 실측 하향이 이미 설계 반영(Phase 1.5 재정의). 직시할 사실 —
 > 실물 ABAP 산출은 연습 객체 4건($TMP)뿐이고 packs(Phase 4, 비전 제2축 '모듈 전문성
@@ -665,6 +676,16 @@ MCP_ENV_PATH·cwd .env)은 tier 미해석 시 `UNKNOWN`=readonly 강제로 fail-
 11. **AdtTable.check의 ddlCode 드랍 (4.13.11 리뷰 발굴, 11-⑤ 동류)**:
     runTableCheckRun에 ddlCode를 안 넘겨 UpdateTable 사전 check가 새 DDL이
     아닌 저장본만 검사 — 11-⑤와 동일한 check-with-source 전달 1수리 가능.
+    → ✅ **11-⑪ 해소 (4.13.12, 2026-07-17)**: '1수리' 추정은 부정확 —
+    table의 check는 structure와 달리 **non-throwing raw 반환 계약**(CheckTableLow
+    직접 파싱)이라 **2계층 수리**: ① vendored ddlCode 전달(check-with-source,
+    CheckTableLow의 문서화-but-죽은 ddl_code 경로 동반 부활) ② handleUpdateTable이
+    사전 check를 parseCheckRunResponse로 평가해 오류 시 **PUT 전 차단**(4.13.11
+    관용/폴백 로직 이설). 역-검증 두 계층 각각 실증, 라이브 red(오류 DDL이
+    success:true·activation_warnings에만 묻힘)→green(PUT 전 표면화 + 정상 DDL
+    update·활성화 완주). **신규 관찰(미수리)**: 차단 후 같은 커넥션 세션에서
+    즉시 재-Update 시 ADT /checkruns 세션 캐시가 stale 오류 재반환 가능(새
+    세션 정상, ADT 선재 동작 — UPSTREAM-FIX-HANDOFF Known-remaining #8).
 12. **Create 페이로드 EN 하드코딩 잔여 (~16곳, 4.13.10 스코프 밖 — 2026-07-13
     실수요 실증)**: Class·Interface·Program·Package·Table·Structure·SRVD·
     DDLX·DCL 생성부는 여전히 language/masterLanguage EN 하드코딩 — 생성은
@@ -674,6 +695,15 @@ MCP_ENV_PATH·cwd .env)은 tier 미해석 시 `UNKNOWN`=readonly 강제로 fail-
     수리 = 4.13.10 resolveLogonLanguage 인프라를 나머지 create 빌더에 기계적
     확장(UPSTREAM-FIX-HANDOFF §5에 확장 지점 문서화됨). 11-⑪과 같은 Wave로
     묶기 적합.
+    → ✅ **11-⑫ 해소 (4.13.12, 2026-07-17)**: 도달 가능 8종(Class·Interface·
+    Program·Package·Table·Structure·SRVD·DDLX) 핸들러에 resolveLogonLanguage
+    주입 + vendored 빌더 8종·래퍼 7종 language/masterLanguage 스탬프(EN 폴백
+    유지, patch-package 누적). DCL·FUGR 등은 핸들러 도달 불가 죽은 코드라
+    미수정(4.13.9 tabletype 선례 판정). jest 패밀리 16케이스(8유형×2) 역-검증.
+    라이브는 CS IDES가 EN을 관용해 red/green 설명-슬롯 델타 관측 불가(리뷰
+    PARTIAL 수용 — 신 번들 생성·read-back 무회귀 확인, 정본 증거는 jest +
+    4.13.10 비관용 표면 DOMA/DTEL 라이브 실증). 포크 클론의 번들 직편집 KO
+    핸드핵은 원복 권장 유지(UPSTREAM-FIX-HANDOFF §11 적용으로 대체).
 5. **DeleteFunctionGroup 조용한 실패** (4.13.1 검증 중 3회 실측): deletion 서비스가 실패를
    HTTP 200 + `del:isDeleted="false"` + E-메시지로 반환하는데 vendored delete가 하드코딩
    `success:true`로 대체 — 잠금 등 삭제 실패가 성공으로 보고됨.

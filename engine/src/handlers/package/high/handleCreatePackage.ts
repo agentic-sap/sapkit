@@ -9,6 +9,7 @@
 
 import type { IPackageConfig } from '@babamba2/mcp-abap-adt-clients';
 import * as z from 'zod';
+import { resolveLogonLanguage } from '../../../lib/adtLogonLanguage';
 import { createAdtClient } from '../../../lib/clients';
 import type { HandlerContext } from '../../../lib/handlers/interfaces';
 import {
@@ -133,6 +134,12 @@ export async function handleCreatePackage(
         applicationComponent: typedArgs.application_component,
       });
 
+      // Resolve the system's logon/master language so the create payload
+      // stamps the description into the right language slot (EN-hardcoded
+      // payloads read back empty on a non-EN logon system — HANDOFF §6
+      // backlog 11-⑫). Falls back to EN when systeminformation is unavailable.
+      const masterLanguage = await resolveLogonLanguage(connection, logger);
+
       // Create - build config object with proper typing
       const createConfig: Partial<IPackageConfig> &
         Pick<
@@ -144,6 +151,7 @@ export async function handleCreatePackage(
         description: typedArgs.description || packageName,
         packageType: typedArgs.package_type,
         softwareComponent: typedArgs.software_component,
+        masterLanguage,
       };
 
       // Only add optional params if explicitly provided

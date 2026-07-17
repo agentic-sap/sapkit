@@ -6,6 +6,7 @@
  */
 
 import type { IAdtResponse } from '@babamba2/mcp-abap-adt-interfaces';
+import { resolveLogonLanguage } from '../../../lib/adtLogonLanguage';
 import { createAdtClient } from '../../../lib/clients';
 import type { HandlerContext } from '../../../lib/handlers/interfaces';
 import {
@@ -162,6 +163,12 @@ export async function handleCreateProgram(
     }
     logger?.debug(`Program validation passed: ${programName}`);
 
+    // Resolve the system's logon/master language so the create payload stamps
+    // the description into the right language slot (EN-hardcoded payloads read
+    // back empty on a non-EN logon system — HANDOFF §6 backlog 11-⑫). Falls
+    // back to EN when systeminformation is unavailable.
+    const masterLanguage = await resolveLogonLanguage(connection, logger);
+
     // Create
     logger?.debug(`Creating program: ${programName}`);
     await client.getProgram().create({
@@ -171,6 +178,7 @@ export async function handleCreateProgram(
       transportRequest: args.transport_request,
       programType: args.program_type,
       application: args.application,
+      masterLanguage,
     });
     logger?.info(`Program created: ${programName}`);
 

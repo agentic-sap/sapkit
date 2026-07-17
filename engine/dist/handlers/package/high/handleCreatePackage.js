@@ -44,6 +44,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TOOL_DEFINITION = void 0;
 exports.handleCreatePackage = handleCreatePackage;
 const z = __importStar(require("zod"));
+const adtLogonLanguage_1 = require("../../../lib/adtLogonLanguage");
 const clients_1 = require("../../../lib/clients");
 const utils_1 = require("../../../lib/utils");
 exports.TOOL_DEFINITION = {
@@ -120,6 +121,11 @@ async function handleCreatePackage(context, args) {
                 transportRequest: typedArgs.transport_request,
                 applicationComponent: typedArgs.application_component,
             });
+            // Resolve the system's logon/master language so the create payload
+            // stamps the description into the right language slot (EN-hardcoded
+            // payloads read back empty on a non-EN logon system — HANDOFF §6
+            // backlog 11-⑫). Falls back to EN when systeminformation is unavailable.
+            const masterLanguage = await (0, adtLogonLanguage_1.resolveLogonLanguage)(connection, logger);
             // Create - build config object with proper typing
             const createConfig = {
                 packageName,
@@ -127,6 +133,7 @@ async function handleCreatePackage(context, args) {
                 description: typedArgs.description || packageName,
                 packageType: typedArgs.package_type,
                 softwareComponent: typedArgs.software_component,
+                masterLanguage,
             };
             // Only add optional params if explicitly provided
             if (typedArgs.transport_layer) {

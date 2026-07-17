@@ -8,6 +8,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TOOL_DEFINITION = void 0;
 exports.handleCreateProgram = handleCreateProgram;
+const adtLogonLanguage_1 = require("../../../lib/adtLogonLanguage");
 const clients_1 = require("../../../lib/clients");
 const preCheckBeforeActivation_1 = require("../../../lib/preCheckBeforeActivation");
 const utils_1 = require("../../../lib/utils");
@@ -109,6 +110,11 @@ async function handleCreateProgram(context, params) {
             throw new Error(`Program name validation failed: ${validationResult?.message || 'Invalid program name'}`);
         }
         logger?.debug(`Program validation passed: ${programName}`);
+        // Resolve the system's logon/master language so the create payload stamps
+        // the description into the right language slot (EN-hardcoded payloads read
+        // back empty on a non-EN logon system — HANDOFF §6 backlog 11-⑫). Falls
+        // back to EN when systeminformation is unavailable.
+        const masterLanguage = await (0, adtLogonLanguage_1.resolveLogonLanguage)(connection, logger);
         // Create
         logger?.debug(`Creating program: ${programName}`);
         await client.getProgram().create({
@@ -118,6 +124,7 @@ async function handleCreateProgram(context, params) {
             transportRequest: args.transport_request,
             programType: args.program_type,
             application: args.application,
+            masterLanguage,
         });
         logger?.info(`Program created: ${programName}`);
         // Post-create sanity syntax check. The shell the ADT create endpoint

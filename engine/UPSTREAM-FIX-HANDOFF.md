@@ -1,4 +1,4 @@
-# Upstream fix hand-off: `abap-mcp-adt-powerup` server + `mcp-abap-adt-clients` client, releases 4.13.2 – 4.13.11
+# Upstream fix hand-off: `abap-mcp-adt-powerup` server + `mcp-abap-adt-clients` client, releases 4.13.2 – 4.13.12
 
 Paste this whole file into the Claude Code (or hand it to the maintainer) on the
 machine that holds the fork/upstream source. It is **self-contained**: for each
@@ -42,6 +42,7 @@ exact diffs from these commits if a hand-application drifts:
 | 4.13.9 | `4247dd89` | Silent-delete honesty (§3) + CreateProgram type guard (§4) |
 | 4.13.10 | `8711b67b` | Logon-language resolution (§5) + already-exists machine id (§6) |
 | 4.13.11 | `5373268e` | Structure check-with-source (§7) + low/CDS classic unit test (§8) |
+| 4.13.12 | `(pending)` | Table check-with-source + handler blocks bad DDL (§10) + create-payload logon-language remainder × 8 (§11) |
 
 > Note: commit `acad614d` is the authoritative 4.13.8 boundary (the CHANGELOG's
 > `## [4.13.8]` header was added retroactively — content is identical).
@@ -413,15 +414,22 @@ appends the HTTP status (`SAP Error: … [HTTP 400]`). See
 
 ### Scope note
 
-Only the three live-proven create paths resolve/inject the language. Other
-vendored create payloads that also hardcode EN (class, interface, program,
-structure, table, FUGR, include, DDLX, BDEF) are left untouched — those creates
-succeed on the CS box (EN→logon-language normalization is tolerated) and the
-description-drop was not observed for them. `resolveLogonLanguage` is the shared
-root to plug into if a fourth surface proves affected. The low-level
-`CreateViewLow` / compact paths call the same patched builder but do not resolve
-the language themselves — without a caller-supplied `master_language` they keep
-the EN default (unchanged semantics).
+At 4.13.10 only the three live-proven create paths (DDLS view, domain, data
+element) resolved/injected the language; the other EN-hardcoded create payloads
+were left untouched because those creates succeed on the CS box (EN→logon-
+language normalization is tolerated) and the description-drop was not observed
+for them. **§11 (4.13.12) extends the same `resolveLogonLanguage` injection to
+the remaining reachable create builders** — class, interface, program, package,
+table, structure, service definition, DDLX — so their descriptions land in the
+system's master-language slot too. Still not resolved (deliberately): the
+`accessControl` (DCL), `functionGroup`, `enhancement`, and `tabletype` create
+builders — `accessControl`/`enhancement`/`tabletype` are unreachable from any
+handler (dead from the engine's side) and FUGR is out of the named 11-⑫ scope
+(its create tolerates the normalization; verified green since 4.13.1). The
+low-level `Create*Low` / compact paths call the same patched builders but do not
+resolve the language themselves — without a caller-supplied
+`master_language`/`masterLanguage` they keep the EN default (unchanged
+semantics).
 
 ### Regression tests
 
@@ -670,6 +678,143 @@ to rewrite as a simple `FROM <table>`. Consumed by
 
 ---
 
+## §10 — Table pre-check must validate the new DDL (check-with-source) + handler blocks bad writes
+
+**The `UpdateTable` sibling of §7, but the deficiency is deeper.** 4.13.12.
+
+### Symptom
+
+`UpdateTable` with a DDL error (live-measured on IDES/CS: a field typed by a
+non-existent data element) returned `success: true` — the bad DDL was written
+and the object went inactive, the real error appearing only buried in
+`activation_warnings` (*"Pole BAD_FIELD: Typ komponenty nebo použitá doména není
+aktivní nebo neexistuje"* / *"Nametab … nelze generovat"*). The pre-check never
+caught it before the write PUT.
+
+### Root cause — two layers
+
+1. Same drop as §7: `handleUpdateTable` calls
+   `client.getTable().check({ tableName, ddlCode }, 'inactive')`, but the vendored
+   `AdtTable.check(config, status)` **silently dropped `config.ddlCode`**
+   (`runTableCheckRun(conn, 'abapCheckRun', name, undefined, version)`), so the
+   pre-check ran the *stored* version, not the new DDL.
+2. Unlike `AdtStructure.check` (which parses the `/checkruns` response and throws
+   on errors), `AdtTable.check` returns the **raw response without evaluating
+   it** — the low-level `CheckTableLow` tool relies on that non-throwing contract
+   and parses the result itself. So even with `ddlCode` forwarded, nothing in the
+   high-level `UpdateTable` path evaluated the result: `handleUpdateTable`
+   discarded the returned `checkResult` and set `checkNewCodePassed = true`
+   unconditionally.
+
+### Fix — client-package + server
+
+- **Client-package** (`patch-package`, marked `[powerup 4.13.12]`):
+  `structure/AdtStructure.js`'s sibling `table/AdtTable.js` `check()` now forwards
+  `config.ddlCode` as the source to validate (`runTableCheckRun(conn,
+  'abapCheckRun', name, config.ddlCode, version)`). This also revives the
+  low-level `CheckTableLow` tool's documented `ddl_code` validation, which the
+  same drop had silently defeated. Callers that pass no `ddlCode` (the post-unlock
+  inactive check) keep the prior saved-version behavior (`undefined`). `check()`
+  stays **non-throwing** — the `CheckTableLow` contract is unchanged.
+- **Server** (`engine/src/handlers/table/high/handleUpdateTable.ts`): the pre-check
+  step now parses the returned `checkResult` with `parseCheckRunResponse` and
+  **throws to block the write** when the new DDL has real errors, surfacing the
+  honest SAP detail *before* the write PUT — with the same DDIC tolerance
+  (`inactive version does not exist` / `importing from database`) and non-empty
+  status fallback as `checkStructure`. Because table's `check()` returns rather
+  than throws, the block-decision lives in the handler (not the client wrapper),
+  which is where it belongs given the `CheckTableLow` contract.
+
+### Regression test
+
+`engine/src/__tests__/unit/updateTableCheckSource.test.ts` — drives the real
+`handleUpdateTable` over a fake connection that answers `/checkruns` differently
+for source vs no-source: valid code → the pre-check carries the new DDL as base64
+source and the update completes; real check error (stored version clean, new DDL
+bad) → the exact SAP detail surfaced and **no** write PUT issued; `notProcessed`
+→ an honest status-carrying error (never bare). Reverse-verified in **both**
+layers: reverting the `ddlCode`-forward fails all three cases; neutralizing the
+handler block-decision fails the real-error and notProcessed cases (the bad write
+reaches the PUT).
+
+### Live verification
+
+On the 4.13.11 bundle `UpdateTable` with the bad DDL returned `success:true`
+(error only in `activation_warnings`); on 4.13.12 it returns an error with *"New
+code check failed: … doména není aktivní nebo neexistuje"* and leaves the table's
+stored version untouched (read back = clean shell), and a corrected DDL
+updates + activates cleanly (fresh session). **Observation (not a regression in
+the fix):** immediately re-running `UpdateTable` on the *same* table in the *same*
+connection after a blocked update returns ADT's per-session cached check result
+(the stale error) until a fresh session; ADT caches `/checkruns` per
+session/object, newly surfaced by the block. Out of scope to change.
+
+---
+
+## §11 — Create-payload logon-language remainder (the reachable non-DDLS builders)
+
+**The mechanical extension of §5 to the other reachable create builders.** 4.13.12.
+
+### Symptom / root cause
+
+Same root as §5: the vendored create payloads hardcode `adtcore:language="EN"` /
+`adtcore:masterLanguage="EN"`. §5 fixed only view/domain/data-element; class,
+interface, program, package, table, structure, service definition and metadata
+extension (DDLX) still hardcoded EN. Those creates *succeed* (SAP tolerates the
+EN→logon-language normalization — confirmed live on the CS box: an EN-payload
+class create reads its description back fine), but on systems that do not
+tolerate it (the real-demand driver was a KO logon system) the description lands
+in the EN text slot and reads back empty.
+
+### Fix — server + client-package
+
+Each reachable create handler resolves the language with `resolveLogonLanguage()`
+(§5's `src/lib/adtLogonLanguage.ts`, EN fallback) and injects it into the create
+call; the vendored builders stamp both `adtcore:language` and
+`adtcore:masterLanguage` from it (`patch-package`, marked `[powerup 4.13.12]`).
+
+- **Handlers** (`engine/src/handlers/<obj>/high/handleCreate*.ts`):
+  `handleCreateClass`, `handleCreateInterface`, `handleCreateProgram`,
+  `handleCreatePackage`, `handleCreateTable`, `handleCreateStructure`,
+  `handleCreateServiceDefinition`, `handleCreateMetadataExtension` (DDLX).
+- **Client-package**: the eight `*/create.js` builders emit both language
+  attributes from a resolved `master_language`/`masterLanguage` (EN fallback);
+  the `AdtClass`/`AdtInterface`/`AdtProgram`/`AdtPackage`/`AdtStructure`/`AdtTable`/
+  `AdtServiceDefinition` wrappers forward `config.masterLanguage` to their builder
+  (DDLX's `AdtMetadataExtension` already forwarded it — only its builder's
+  hardcoded `adtcore:language="EN"` needed the substitution); the create-param and
+  config typings gain `master_language?` / `masterLanguage?`.
+
+### Deliberately not fixed
+
+`accessControl` (DCL), `functionGroup`, `enhancement`, `tabletype` create
+builders still hardcode EN. `accessControl`/`enhancement`/`tabletype` are
+**unreachable from any handler** (no `Create*` tool routes to them — dead from the
+engine's side, same judgment as the §3 dead-delete helpers), so they cannot be
+live-verified; FUGR create is out of the named 11-⑫ scope (tolerates the
+normalization). `resolveLogonLanguage` is the shared root if any is ever exposed.
+
+### Regression test
+
+`engine/src/__tests__/unit/createLogonLanguageFamily.test.ts` — drives all eight
+real handlers over a fake connection whose systeminformation advertises CS and
+pins `adtcore:language="CS"` / `adtcore:masterLanguage="CS"` on each create POST,
+plus EN-fallback cases when systeminformation 404s (reverse-verified: reverting a
+builder's `EN`→`${masterLanguage}` substitution or a handler's injection fails
+that type's CS case while the EN-fallback case still passes).
+
+### Live verification
+
+All eight create handlers succeed on the CS box with the new bundle and their
+descriptions read back via `SearchObject`. Note: because the CS box **tolerates**
+the EN payload (create succeeds, description reads back for both bundles), a
+red→green *description-slot* delta is not observable on this system for these
+types — the reverse-verified family test is the authoritative proof that the
+payload now carries the resolved language. The non-tolerant surfaces (DDLS,
+DOMA/DTEL) were already live-proven in §5.
+
+---
+
 ## Known-remaining defects (still present upstream)
 
 Confirmed against the reference `HANDOFF.md` §6 backlog. These are **not** fixed
@@ -687,18 +832,12 @@ was only reasoned (not live-staged) it is flagged **code-review-verified only**.
    include cannot be updated (the include-create ADT POST is unsupported) — bundle
    with the missing Create-side tool.
 
-2. **`AdtTable.check` drops `ddlCode` (backlog 11-⑪) — same root as §7.**
-   `runTableCheckRun` is not passed `ddlCode`, so `UpdateTable`'s pre-check
-   validates the stored version, not the new DDL. Same one-line check-with-source
-   forwarding as §7 would fix it. *Code-review-verified only* (found in the
-   4.13.11 review; not yet repaired).
-
-3. **`CreateProgramLow` shares the §4 substitution root.** The low-level tool
+2. **`CreateProgramLow` shares the §4 substitution root.** The low-level tool
    calls the same type-ignoring vendored `create()` directly and was left
    untouched to keep the §4 fix minimal to the named high-level tool (low-level
    caller contract differs — separate judgment).
 
-4. **Un-reached full-chain stateless leaks in the client wrappers.** The other
+3. **Un-reached full-chain stateless leaks in the client wrappers.** The other
    object wrappers' full-chain `update()` paths without a `lockHandle`
    (`AdtClass.update()`, view/table/domain/etc.) share the §1 defect but are
    currently unreachable from every handler (all pass a lockHandle since 4.13.5),
@@ -706,20 +845,34 @@ was only reasoned (not live-staged) it is flagged **code-review-verified only**.
    calls those wrappers without a lockHandle would hit the bug. *Code-review-
    verified only.*
 
-5. **RFC-backed write handlers, separate pathology (backlog 11-⑦).**
+4. **RFC-backed write handlers, separate pathology (backlog 11-⑦).**
    `UpdateTextElement` / `UpdateScreen` / `UpdateGuiStatus` and
    `CreateTextElement` do an ADT lock with no stateful pin **plus** an RFC
    textpool/screen write — not a lock-handle-validated ADT PUT, so §1 does not
    apply. Observed only; grouped with the RFC-backend issues. Not fixed.
 
-6. **add-if-missing description not serialized back on GET (observation).**
+5. **add-if-missing description not serialized back on GET (observation).**
    After §5's add-if-missing repair, the injected `adtcore:description` is not
    echoed in the object's GET XML (suspected SAP-side text-row placement). The
    object is functionally complete; a deeper diagnosis needs a `DD01T` real-data
    query and was deferred. Observation only, no defect claimed.
 
-7. **Low unit-test schema still advertises 4 cloud-only no-op parameters**
+6. **Low unit-test schema still advertises 4 cloud-only no-op parameters**
    (harmless leftover after §8) — a follow-up cleanup candidate, not a fault.
+
+7. **`accessControl` (DCL) / `functionGroup` / `enhancement` / `tabletype`
+   create payloads still hardcode EN (after §11).** `accessControl` /
+   `enhancement` / `tabletype` are unreachable from any handler (dead from the
+   engine's side); `functionGroup` create is reachable but out of the named 11-⑫
+   scope (tolerates the normalization, green since 4.13.1). Plug them into
+   `resolveLogonLanguage` (§5/§11) if any is ever exposed or proves affected on a
+   non-tolerant system.
+
+8. **ADT caches `/checkruns` per session/object (observation, surfaced by §10).**
+   After a `UpdateTable` blocked by the §10 pre-check, an immediate same-session
+   retry of the same table returns the cached (stale) check result until a fresh
+   session. Pre-existing ADT behavior, harmless in normal use; not a defect in the
+   fix.
 
 ---
 
@@ -740,16 +893,18 @@ sed -n '1,$p' patches/@babamba2+mcp-abap-adt-clients+3.13.1.patch
 
 The `3.13.1.patch` hunks are grouped by `[powerup 4.13.N]` markers: `4.13.7` =
 §1 wrapper pins, `4.13.9` = §3 deletion honesty, `4.13.10` = §5 language +
-add-if-missing, `4.13.11` = §7 structure check. When porting to the client
-package's own repo, apply the equivalent edit in its TypeScript `src/core/**` /
-`src/utils/**` (the patch targets the compiled `dist/`).
+add-if-missing, `4.13.11` = §7 structure check, `4.13.12` = §10 table
+check-with-source + §11 create-payload language remainder (8 builders + wrappers
++ typings). When porting to the client package's own repo, apply the equivalent
+edit in its TypeScript `src/core/**` / `src/utils/**` (the patch targets the
+compiled `dist/`).
 
 ### Run the regression suites
 
 ```bash
 cd engine
 npm ci            # re-applies patch-package via the prepare hook
-npm test          # jest unit suites — reference passes 572/0 at 4.13.10, green at 4.13.11
+npm test          # jest unit suites — reference passes 572/0 at 4.13.10, 580/0 at 4.13.11, 599/0 at 4.13.12
 ```
 
 Focused run of just the fix suites:
@@ -762,6 +917,7 @@ npx jest updateClassStatefulSession updateInterfaceStatefulSession \
   createProgramTypeGuard createStructureNoDeadLock \
   createLogonLanguageConsistency createViewErrorBody \
   isAlreadyExistsErrorMachineId updateStructureCheckSource \
+  updateTableCheckSource createLogonLanguageFamily \
   unitTestClassicLowCds getSqlQueryGate readonlyGuard
 ```
 
