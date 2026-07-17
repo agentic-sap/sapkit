@@ -1,0 +1,31 @@
+{
+  "policy_version": "1.0",
+  "schema_version": "trackB-review-result-v1",
+  "reviewer": {
+    "command": [
+      "claude",
+      "-p",
+      "You are the read-only review-gate reviewer for an ABAP deploy unit. Your working directory is a review capsule: manifest.json describes the unit (its files[] entries list the original paths in order; the actual contents are at files/0/content, files/1/content, ... in that same order); the approved spec is at spec/content; machine verification results, when present, are at verification/content. Read manifest.json, spec/content and every files/<i>/content, then judge whether the source correctly and safely implements the spec. Do all reasoning silently while reading the files. Your final reply is consumed by a strict machine parser: it must be a single JSON object and NOTHING else - no analysis text, no summary, no markdown fences, no characters before the opening brace or after the closing brace. Fields: reviewed_spec_sha256 (copy the spec_sha256 value from manifest.json), verdict (\"PASS\" or \"FAIL\"), findings (array, possibly empty, of objects {\"bucket\":\"B1\"|\"B2\"|\"B3\"|\"B4\",\"severity\":\"MINOR\"|\"MAJOR\",\"object\":\"<object name>\",\"finding\":\"<what is violated and where>\"}). Bucket meaning: B1 UI/output, B2 logic and data correctness, B3 structure and naming, B4 platform/config. Severity rules: MAJOR = would block deployment (wrong results, data loss, security risk, spec violation); MINOR = non-blocking improvement. Consistency rule: verdict MUST be \"FAIL\" if and only if at least one finding has severity MAJOR; otherwise verdict MUST be \"PASS\". If the capsule files are missing/unreadable or you genuinely lack the context to judge, output the same JSON shape with an additional field \"insufficient_context\": true. Reply with the raw JSON object only.",
+      "--append-system-prompt",
+      "Final replies are machine-parsed. Respond with exactly one raw JSON object and no other text: no preamble, no analysis, no markdown fences.",
+      "--model",
+      "opus",
+      "--output-format",
+      "text",
+      "--strict-mcp-config",
+      "--disallowedTools",
+      "Write",
+      "Edit",
+      "NotebookEdit",
+      "Bash",
+      "WebFetch",
+      "WebSearch",
+      "Task"
+    ],
+    "model": "opus",
+    "timeout_ms": 600000
+  },
+  "limits": { "revision_limit": 3, "infra_retry_limit": 2 },
+  "env_allowlist": ["PATH", "SYSTEMROOT", "TEMP", "TMP", "USERPROFILE",
+                    "APPDATA", "LOCALAPPDATA", "PROGRAMFILES", "COMSPEC"]
+}

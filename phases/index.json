@@ -16,7 +16,8 @@
     },
     {
       "dir": "3-review-gate",
-      "status": "pending"
+      "status": "blocked",
+      "blocked_at": "2026-07-17T22:51:58+0900"
     }
   ]
 }

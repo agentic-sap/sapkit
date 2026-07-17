@@ -1,0 +1,8 @@
+# Mini spec — ZSAH1_WORKDAYS (live-spike review target)
+
+ZSAH1_WORKDAYS is a workday calculation utility report. lcl_workdays=>calc(
+iv_from, iv_to, it_holidays optional ) must return the count of Monday-Friday
+days in [iv_from, iv_to] excluding the given holidays; an inverted range
+(iv_from > iv_to) returns 0. The public signature must stay unchanged.
+A local FOR TESTING class must cover the weekday/weekend/holiday/same-day/
+inverted-range cases. Scope of this review: logic and style sanity only.

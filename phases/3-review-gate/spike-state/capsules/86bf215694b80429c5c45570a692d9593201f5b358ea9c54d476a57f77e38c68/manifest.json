@@ -1,0 +1,17 @@
+{
+  "unit_id": "spike-zsah1-workdays",
+  "files": [
+    {
+      "path": "src/zsah1_workdays.prog.abap",
+      "sha256": "c3209704d2a35da407edfceda42d1aae6e91dabb668dcfab1383a48ff3e0bab8"
+    }
+  ],
+  "spec_path": "C:\\Users\\USER\\AppData\\Local\\Temp\\claude\\D--AI-PROJECT-sap-agentic-harness\\be68d8f8-d655-41c4-b9fa-bb78fb15bfdd\\scratchpad\\spike-spec.md",
+  "spec_sha256": "79f90966ecdeabdf2f9882c0c08772ab31b0490b4a7d9f6b28fc87a794e182f2",
+  "verification_path": null,
+  "verification_sha256": null,
+  "policy_version": "1.0",
+  "schema_version": "trackB-review-result-v1",
+  "reviewer_model": "opus",
+  "target_system": "IDES-DEV S4H/100"
+}

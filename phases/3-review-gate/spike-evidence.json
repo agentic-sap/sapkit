@@ -1,0 +1,25 @@
+{
+  "_comment": "step 5 live-spike evidence. Part A = success (real reviewer headless roundtrip). Part B = refutation: the spec 5-4 premise (profile tier makes vsp refuse writes) does not hold for the pilot write shape - recorded honestly as ok:false, see part_b fields. Emergency procedure did NOT fire: no SAP write was ever performed (refutation was measured without executing one).",
+  "part_a": {
+    "ok": true,
+    "verdict_file": "phases/3-review-gate/spike-reviewer-response.json",
+    "exit_code": 0,
+    "duration_ms": 49262,
+    "model": "opus (config reviewer.model; claude CLI 2.1.212 headless)",
+    "command_recorded": true,
+    "gate_verdict_file": "phases/3-review-gate/spike-state/verdict-86bf215694b80429c5c45570a692d9593201f5b358ea9c54d476a57f77e38c68.json",
+    "capsule_hash": "86bf215694b80429c5c45570a692d9593201f5b358ea9c54d476a57f77e38c68",
+    "state_dir": "phases/3-review-gate/spike-state",
+    "notes": "review-gate.mjs full pipeline exit 0 (PASS), reviewer spawn duration 49262ms recorded in state.json pass_records. Command array confirmed by measurement and recorded in scripts/review-gate/config.json reviewer.command (claude -p <prompt> --append-system-prompt <json-only guard> --model opus --output-format text --strict-mcp-config --disallowedTools Write Edit NotebookEdit Bash WebFetch WebSearch Task). Calibration iteration 1 produced analysis prose before the JSON (would classify MALFORMED); prompt hardened to raw-JSON-only, iteration 2 returned a pure 123-byte JSON verdict (56188ms, saved as verdict_file). Clean allowlist-env spawn verified: reviewer received only the 9 allowlisted vars, no SAP_* connection vars."
+  },
+  "part_b": {
+    "ok": false,
+    "refusal_marker": "create failed: operation 'CreateObject' with transport 'ZSPIKE1' is blocked: editing transportable objects is disabled. Objects in transportable packages require explicit opt-in. Use --allow-transportable-edits or SAP_ALLOW_TRANSPORTABLE_EDITS=true to enable.",
+    "readonly_read_ok": true,
+    "attempted_target": "ZSAH3_SPIKE",
+    "refuted_premise": "spec 2026-07-17-phase3-review-gate.md section 5-4: 'worker vsp profile = read-only tier, vsp tier gate refuses writes'. Measured: the vsp CLI deploy path never consumes SAP_TIER or SAP_READ_ONLY - tier-labelled profile env cannot refuse the pilot write shape (local $TMP deploy without transport).",
+    "evidence_no_write_performed": "Refutation measured WITHOUT executing a SAP write: (1) source at locked commit v2.38.1-91-g0b03ef2 (binary sha256 matches adapters/vsp/vsp.lock.json): CLI subcommands build the ADT client via getClient (cmd/vsp/cli.go:151-183) with UnrestrictedSafetyConfig default (pkg/adt/config.go:194); READ_ONLY env binding lives only in resolveConfig (cmd/vsp/main.go:407-409) which runs for MCP server mode and workflow/lsp/debug/lua commands, never for deploy/copy. (2) offline live probe against an unreachable dummy host with dummy connection values + SAP_READ_ONLY=true + SAP_TIER=QA: deploy proceeded past the client-side safety checkpoint (UpdateFromFile top, pre-network) down to the lock network call (dial tcp refused) - proving the env is ignored; a honored read-only gate would have refused before any connection.",
+    "existing_gate_measured": "The one env-driven gate that DOES exist in the CLI deploy path was live-demonstrated on IDES-DEV with the modified profile copy: a write attempt WITH a transport (vsp deploy zsah3_spike.prog.abap $TMP --transport ZSPIKE1) was refused client-side BEFORE creation by the transportable-edit opt-in gate (marker above; profile copy lacks SAP_ALLOW_TRANSPORTABLE_EDITS). Pre/post checks: vsp source read PROG ZSAH3_SPIKE returned ADT status 404 both before and after the attempt - nothing was created. Read-only query with the same modified-copy env: vsp system info exit 0 - connection normal, so the refusal is the gate, not a connection failure.",
+    "env_copy": "Profile copy at %TEMP%\\vsp-spike-e1bc3c5f\\sap.env (original profile untouched; changed keys: SAP_TIER=QA, added SAP_READ_ONLY=true; copy deleted at step end - path recorded only)."
+  }
+}

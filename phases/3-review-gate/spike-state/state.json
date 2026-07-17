@@ -1,0 +1,21 @@
+{
+  "verdicts": {
+    "86bf215694b80429c5c45570a692d9593201f5b358ea9c54d476a57f77e38c68": {
+      "classification": "PASS",
+      "at": "2026-07-17T13:44:15.546Z"
+    }
+  },
+  "fail_revisions": [],
+  "infra_retries": 0,
+  "blocked": false,
+  "pass_records": {
+    "86bf215694b80429c5c45570a692d9593201f5b358ea9c54d476a57f77e38c68": {
+      "verdict_file": "phases\\3-review-gate\\spike-state\\verdict-86bf215694b80429c5c45570a692d9593201f5b358ea9c54d476a57f77e38c68.json",
+      "model": "opus",
+      "policy_version": "1.0",
+      "schema_version": "trackB-review-result-v1",
+      "duration_ms": 49262,
+      "at": "2026-07-17T13:44:15.550Z"
+    }
+  }
+}

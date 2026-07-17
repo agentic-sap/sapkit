@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "review-result.schema.json",
+  "title": "Phase 6 Review Result",
+  "_comment": "이식본 — 원본은 interactive/core/procedures/schemas/, insufficient_context는 게이트 전용 additive 확장 (scripts/review-gate step 1, phases/3-review-gate/PLANNING.md §3.1/§3.6). 원본 스키마는 무수정.",
+  "description": "Written by the read-only reviewer to .sc4sap/program/{PROG}/review-result.json after running review-checklist.md. The worker applies fixes; the reviewer never writes to the SAP system. Phase 8 requires verdict PASS with reviewed_spec_sha256 matching approval.json.spec_sha256.",
+  "type": "object",
+  "required": ["reviewed_spec_sha256", "verdict", "findings"],
+  "additionalProperties": false,
+  "properties": {
+    "reviewed_spec_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 (lowercase hex) of the spec.md version this review judged against. Must equal review-request.json.spec_sha256."
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["PASS", "FAIL"],
+      "description": "FAIL when one or more MAJOR findings exist. PASS when zero MAJOR findings (MINOR findings may still be listed)."
+    },
+    "findings": {
+      "type": "array",
+      "description": "Every violation found, MINOR and MAJOR. Empty array on a clean PASS.",
+      "items": {
+        "type": "object",
+        "required": ["bucket", "severity", "object", "finding"],
+        "additionalProperties": false,
+        "properties": {
+          "bucket": {
+            "type": "string",
+            "enum": ["B1", "B2", "B3", "B4"],
+            "description": "Checklist bucket: B1 ALV+UI (§1-§2), B2 Logic Hygiene (§3, §8), B3 Structure+Naming (§4-§7), B4 Platform+Config (§9-§12)."
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["MINOR", "MAJOR"],
+            "description": "MINOR = non-blocking, worker fixes without re-review. MAJOR = blocks completion, requires fix + re-review. Note (review-gate port): the review-gate's own decision logic (scripts/review-gate/verdict.mjs) recognizes the wider §3.6 ordering BLOCKER > MAJOR > MINOR > INFO and judges severity legitimacy against that ordering rather than this narrower trackB enum — this field's enum is left as ported (additive-only policy for this file)."
+          },
+          "object": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name of the object the violation was found in."
+          },
+          "finding": {
+            "type": "string",
+            "minLength": 1,
+            "description": "What is violated, citing the convention file/section and the offending code location or excerpt."
+          }
+        }
+      }
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the review completed (optional)."
+    },
+    "iteration": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3,
+      "description": "Which review iteration this result belongs to (optional)."
+    },
+    "insufficient_context": {
+      "type": "boolean",
+      "description": "Review-gate-only additive extension (not present in the original trackB schema). true = the reviewer declares it lacks enough context to judge (spec §4.1-5 step 5, PLANNING §3.1) — the gate classifies this as INSUFFICIENT_CONTEXT before computing a severity-based verdict."
+    }
+  }
+}

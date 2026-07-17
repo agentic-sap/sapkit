@@ -1,0 +1,126 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "review-request.schema.json",
+  "title": "Phase 6 Review Request",
+  "description": "Written by the worker to .sc4sap/program/{PROG}/review-request.json before launching review-checklist.md in a fresh context. Tells the read-only reviewer which spec version, which system, which transport, and which objects to review.",
+  "type": "object",
+  "required": ["spec_sha256", "sid", "client", "transport", "objects"],
+  "additionalProperties": false,
+  "properties": {
+    "spec_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 (lowercase hex) of the approved spec.md. Must equal approval.json.spec_sha256."
+    },
+    "sid": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]{2}$",
+      "description": "SAP system ID the objects were created on."
+    },
+    "client": {
+      "type": "string",
+      "pattern": "^[0-9]{3}$",
+      "description": "SAP client the objects were created on."
+    },
+    "transport": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Transport request the created objects are recorded on."
+    },
+    "objects": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Every object created/updated in Phase 4, with its type, so the reviewer fetches each source.",
+      "items": {
+        "type": "object",
+        "required": ["name", "type"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Object name (e.g. ZMM_STOCK_RPT, ZMM_STOCK_RPTT01)."
+          },
+          "type": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Object type, e.g. PROG/P (program), PROG/I (include), DYNP (screen), CUAD (GUI status), FUGR, CLAS, TABL, DTEL, DOMA."
+          }
+        }
+      }
+    },
+    "prog": {
+      "type": "string",
+      "description": "Main program name (optional convenience field; also derivable from objects[])."
+    },
+    "iteration": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3,
+      "description": "Review iteration number (1-3). A re-review after MAJOR fixes increments this (optional)."
+    },
+    "environment_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional operating context for the reviewer — known backend outages and human-approved spec deviations — so a live infrastructure failure or an already-approved deviation is not miscounted as a code defect (see docs/DECISIONS.md D-013). Omit the whole object when there is nothing to report.",
+      "properties": {
+        "known_outages": {
+          "type": "array",
+          "description": "Backend/tool outages in effect during this run, so the reviewer treats a resulting SKIPPED verification step as an environment gap rather than a finding.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "One outage: what is down and which verification step it affects (fields are optional; fill in what is known).",
+            "properties": {
+              "component": {
+                "type": "string",
+                "description": "What is down, e.g. 'ABAP Unit ADT execution (HTTP 404)' or 'ZMCP_ADT_SRV Textpool service (HTTP 500)'."
+              },
+              "affected_step": {
+                "type": "string",
+                "description": "Which verification.json / checklist step this affects and how, e.g. 'unit_test — RunUnitTest SKIPPED, recorded SKIPPED in verification.json'."
+              },
+              "observed_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When the outage was observed (optional)."
+              }
+            }
+          }
+        },
+        "approved_deviations": {
+          "type": "array",
+          "description": "Spec deviations a human already approved, so the reviewer does not re-flag them as violations against spec.md's literal text.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "One approved deviation, with enough of a paper trail for the reviewer to verify the approval is real (fields are optional; fill in what is known).",
+            "properties": {
+              "description": {
+                "type": "string",
+                "description": "What deviates from spec.md, and where (object/section)."
+              },
+              "approver": {
+                "type": "string",
+                "description": "Who approved the deviation (name/role)."
+              },
+              "approved_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When the deviation was approved (optional)."
+              },
+              "reason": {
+                "type": "string",
+                "description": "Why the deviation was approved (optional)."
+              }
+            }
+          }
+        },
+        "notes": {
+          "type": "string",
+          "description": "Free-text environment context that doesn't fit known_outages / approved_deviations (optional)."
+        }
+      }
+    }
+  }
+}

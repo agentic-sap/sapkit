@@ -1,0 +1,108 @@
+{
+  "phase": "3-review-gate",
+  "outcome": "blocked",
+  "driver": "bridge",
+  "step_model": null,
+  "advisory_model": null,
+  "max_retries": 3,
+  "engine_started_at": "2026-07-17T21:39:08+0900",
+  "engine_ended_at": "2026-07-17T22:51:58+0900",
+  "steps": [
+    {
+      "step": 0,
+      "name": "capsule",
+      "status": "completed",
+      "attempts": 1,
+      "verify_failures": 0,
+      "timeouts": 0,
+      "session_exit_nonzero": 0,
+      "status_not_updated": 0,
+      "attempt_secs": [
+        512
+      ],
+      "verify_surface_changes": 0,
+      "started_at": "2026-07-17T21:39:08+0900",
+      "completed_at": "2026-07-17T21:47:41+0900"
+    },
+    {
+      "step": 1,
+      "name": "verdict",
+      "status": "completed",
+      "attempts": 1,
+      "verify_failures": 0,
+      "timeouts": 0,
+      "session_exit_nonzero": 0,
+      "status_not_updated": 0,
+      "attempt_secs": [
+        517
+      ],
+      "verify_surface_changes": 2,
+      "started_at": "2026-07-17T21:47:42+0900",
+      "completed_at": "2026-07-17T21:56:20+0900"
+    },
+    {
+      "step": 2,
+      "name": "state",
+      "status": "completed",
+      "attempts": 1,
+      "verify_failures": 0,
+      "timeouts": 0,
+      "session_exit_nonzero": 0,
+      "status_not_updated": 0,
+      "attempt_secs": [
+        232
+      ],
+      "verify_surface_changes": 2,
+      "started_at": "2026-07-17T21:56:21+0900",
+      "completed_at": "2026-07-17T22:00:14+0900"
+    },
+    {
+      "step": 3,
+      "name": "gate-assembly",
+      "status": "completed",
+      "attempts": 1,
+      "verify_failures": 0,
+      "timeouts": 0,
+      "session_exit_nonzero": 0,
+      "status_not_updated": 0,
+      "attempt_secs": [
+        777
+      ],
+      "verify_surface_changes": 1,
+      "started_at": "2026-07-17T22:00:16+0900",
+      "completed_at": "2026-07-17T22:13:14+0900"
+    },
+    {
+      "step": 4,
+      "name": "deploy-gate",
+      "status": "completed",
+      "attempts": 1,
+      "verify_failures": 0,
+      "timeouts": 0,
+      "session_exit_nonzero": 0,
+      "status_not_updated": 0,
+      "attempt_secs": [
+        517
+      ],
+      "verify_surface_changes": 2,
+      "started_at": "2026-07-17T22:13:18+0900",
+      "completed_at": "2026-07-17T22:21:55+0900"
+    },
+    {
+      "step": 5,
+      "name": "live-spike",
+      "status": "blocked",
+      "attempts": 1,
+      "verify_failures": 0,
+      "timeouts": 0,
+      "session_exit_nonzero": 0,
+      "status_not_updated": 0,
+      "attempt_secs": [
+        1800
+      ],
+      "verify_surface_changes": 2,
+      "started_at": "2026-07-17T22:21:57+0900",
+      "blocked_at": "2026-07-17T22:51:58+0900"
+    }
+  ]
+}
