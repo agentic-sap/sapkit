@@ -105,6 +105,9 @@
 > env에 SAP 자격증명 미공급 구조 ③ 서버측 권한 분리) **사용자 결정 대기** —
 > 결정·재실증 전까지 무인 write 금지(5-11) 유효. 상세:
 > `phases/3-review-gate/`(run-summary·spike-evidence·step5-output).
+> **후속 결정(2026-07-17, 사용자)**: §5-4 보완 = **①+② 병행**(vsp CLI에
+> SAP_READ_ONLY 배선+수리 후 lock 재검증(D-018 절차) + 무인 워커 env 자격증명
+> 미공급 구조 — 작업은 차기 세션) · 브랜치 = **새-컨텍스트 리뷰 후 병합**.
 > 방향성 판정: 비전 4축 중 3축(하네스 개발·컨설턴트/환경관리·경량화) 실현, 1축(vsp
 > 오프라인 검증)은 실측 하향이 이미 설계 반영(Phase 1.5 재정의). 직시할 사실 —
 > 실물 ABAP 산출은 연습 객체 4건($TMP)뿐이고 packs(Phase 4, 비전 제2축 '모듈 전문성
@@ -552,6 +555,30 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
   신설·harness-loop Guided 강화 반영) + AGENTS.md·`.harness/PROTOCOL.md` 레인 문구
   소폭. 강화된 Guided(계약+evidence) 채택 여부는 그때 선택 — 현행 루프는 무수정
   동작.
+
+### 5-13. JNC 교훈 팩 3층 반영 (원천: `D:\Claude for SAP\JNC-Dashboard\docs\reference\sap-adt-lessons-pack.md`) [2026-07-17 등재]
+
+- **원천**: JNC 대시보드가 라이브 S/4 2021 관통(FM 22·구조체 31)으로 확정한 교훈
+  일반화본(R-001~R-013 계열). sc4sap-custom(엔진 v4.14.0, merge 78df50b)·
+  vsp-custom(0cb26cb+731b871)에는 층1 반영 완료 — **본 레포는 미반영**.
+- **층 1 → `engine/`(4.13.12) 대조 감사 + 선별 이식**: 겹침 추정(lock-window =
+  4.13.3~7 stateful 핀 계열 · 삭제 2xx 정직화 = 4.13.9 · check-with-source =
+  4.13.11) vs 신규 유력(**SQL self-closing NULL 셀 드롭·시프트 — GetSqlQuery/
+  GetTableContents는 실데이터 게이트 도구라 최우선** · version=active 편집 소실
+  경고(check_inactive) · CreateStructure fields→DDL 실생성 · FUGR 활성화
+  레시피+UXX 제외 · enhancement category 방출 · 긴 SQL 400 재시도 ·
+  truncated/total_rows 플래그 · 예외 type 불신-메시지 본문 우선). sc4sap
+  v4.14.0 수정을 참조 구현으로 대조 가능. 수리 시 UPSTREAM-FIX-HANDOFF 갱신 동반.
+- **층 2 → interactive/core 지식 이식**: conventions 확장(field-typing·
+  function-module-rule·clean-code) + 신규 2건(abapgit-roundtrip-rule·
+  source-repair-protocol) + DD03L 실측 정본·DEC 오버플로·null 정규화 등 8건.
+  주의: 원본 sc4sap-custom `common/*.md`가 07-17 JNC측에서 갱신됨(동결 표기와
+  실물 드리프트 — MIGRATION-MANIFEST 대조 필요).
+- **층 3 → 트랙 A 방법론 시드**: domain/abap/RULES.seed.md·VERIFY-PATTERNS·
+  계획 관례(산출물 유형별 게이트 매핑 · 결함 목록=표본 · 세로 관통 · liveness
+  실측 · 오라클 의심). `.harness/RULES.md` 직접 대량 추가는 금지(메모리 루프
+  규약) — 시드/문서 경유. 층3-1(게이트 미검사 산출물)·층3-5(독립 검증+E2E)는
+  리뷰 게이트 설계(D-021)와 정합 — 스펙 §6 보강 재료.
 
 ### 5-6. 다국어 README — ✅ 결정 완료 (2026-07-11): 재작성 안 함
 
