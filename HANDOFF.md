@@ -43,6 +43,12 @@
 > ② **CLAUDE.md 헤드라인 수치 낡음** — "지식 217"은 현 트리에서 재현 불가(knowledge
 > .md 175 / 전체 파일 200; 217은 L1 이식 당시 수치로 추정), "절차 15"는 실측 16
 > (5-7 install-sap-assets 추가분 미반영). 보완 = 현재 실측 기준으로 정정.
+> → ✅ **보완 2건 해소 (2026-07-17)**: ① Codex 0.144.3 설치 스모크 재실측 PASS
+> (installed+enabled + 캐시 core/server 전체 패키징, 스모크 후 marketplace/plugin
+> 완전 제거로 평시 미설치 복원 — 이 머신 평시는 disabled가 아니라 **완전 미설치**임을
+> 실측) → compatibility.json 0.144.3 갱신 → doctor **5 OK/0 FAIL(exit 0)**.
+> ② CLAUDE.md 헤드라인 지식 217→**175**·절차 15→**16** 정정(실측: knowledge `.md`
+> 175 · procedures `.md` 16). 게이트 5종 green 유지. 다음 착수 = 11-⑪·⑫ Wave.
 > 방향성 판정: 비전 4축 중 3축(하네스 개발·컨설턴트/환경관리·경량화) 실현, 1축(vsp
 > 오프라인 검증)은 실측 하향이 이미 설계 반영(Phase 1.5 재정의). 직시할 사실 —
 > 실물 ABAP 산출은 연습 객체 4건($TMP)뿐이고 packs(Phase 4, 비전 제2축 '모듈 전문성

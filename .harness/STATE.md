@@ -196,6 +196,15 @@
   실수요 실증, 원복 권장·근본 수리는 11-⑫). 다음 착수 ①을 11-⑪·⑫ 묶음으로
   확대(HANDOFF 헤더 반영)
 
+- 2026-07-17 | 감사 보완 2건 완료 (워밍업, 2026-07-17 객관 감사 등재분) —
+  ① Codex 0.144.3 재검증 스모크(sonnet 위임): installed+enabled + 캐시
+  core/server 전체 패키징 실측, 스모크 후 marketplace/plugin 완전 제거로
+  평시 복원(이 머신 평시 = disabled가 아니라 **완전 미설치** 실측) →
+  compatibility.json 0.144.3·verified 2026-07-17 갱신 → doctor **5 OK/0
+  FAIL(exit 0)**. ② CLAUDE.md 헤드라인 지식 217→175·절차 15→16(실측 정합:
+  knowledge .md 175·procedures .md 16). 게이트 5종 green, 독립 리뷰
+  (sonnet, read-only) PASS — 기준 전 항목 충족·스코프 이탈 0
+
 ## Next
 
 - 사용자 확정 순서(HANDOFF 헤더): ① 엔진 11-⑪·⑫ 수리(1 Wave 묶음, 완료 시

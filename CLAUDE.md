@@ -10,8 +10,8 @@ SAP ABAP 개발을 AI 하네스로 수행하는 **단일 레포 · 두 트랙**.
   하네스의 verify 루프가 vsp CLI 실행으로 성립하므로 **이것 없이는 트랙 A 자체가
   무의미**하다 (DESIGN.md §3 — powerup 엔진은 트랙 A에서 쓰지 않음). 두 의존의 소유
   전략은 **D-018 확정: 분리 유지 + 부트스트랩 시 버전 lock** (편입 기각).
-- **트랙 B — 대화형 플러그인 (검증 완료)** = `interactive/` — 하네스 중립 코어(지식 217·
-  페르소나 26·절차 15·정책) + MCP 서버 번들 + 어댑터 3사(Claude/Codex/Antigravity).
+- **트랙 B — 대화형 플러그인 (검증 완료)** = `interactive/` — 하네스 중립 코어(지식 175·
+  페르소나 26·절차 16·정책) + MCP 서버 번들 + 어댑터 3사(Claude/Codex/Antigravity).
   번들의 소스 정본은 레포 내 **`engine/`**(D-017 편입) — 엔진 수리→재번들→반영은
   `interactive/server/UPDATE-RUNBOOK.md` 절차로만.
 - 품질 모델: **1명 작업 + 1명 새-컨텍스트 리뷰(read-only) + SAP 기계 검증**.

@@ -1,16 +1,16 @@
 {
   "_comment": "어댑터별 검증 버전 고정 (DESIGN.md §4-2). 버전이 올라가면 스모크 재실행 후 갱신. 동기화 점검: node interactive/scripts/doctor.mjs",
-  "verified": "2026-07-11",
+  "verified": "2026-07-17",
   "claude-code": {
     "manifest": ".claude-plugin/plugin.json (+ marketplace.json)",
     "install": "/plugin marketplace add <repo> → /plugin install sap-agentic-harness@sap-agentic-harness",
     "smoke": "E2E 완료 (2026-07-10, HANDOFF §4 — create-program 완주 + 3사 교차 검증)"
   },
   "codex": {
-    "version": "0.144.1",
+    "version": "0.144.3",
     "manifest": ".codex-plugin/plugin.json + .agents/plugins/marketplace.json",
     "install": "codex plugin marketplace add <repo> → codex plugin add sap-agentic-harness@sap-agentic-harness",
-    "smoke": "PASS — installed+enabled, 캐시에 core/server 전체 패키징 확인",
+    "smoke": "PASS — installed+enabled, 캐시에 core/server 전체 패키징 확인 (0.144.1 최초 2026-07-10, 0.144.3 재실측 2026-07-17 — 스모크 후 off로 평시 복귀)",
     "mcp": "codex mcp add sap --env NODE_PATH=<keyring> -- node <bundle> --exposition=readonly"
   },
   "antigravity": {
