@@ -105,7 +105,11 @@ function main() {
       drifted.push(filePath);
       continue;
     }
-    targets.push(path.join(capsuleDir, 'files', String(idx), 'content'));
+    // Deploy the capsule copy, which keeps the source's original basename
+    // (capsule.mjs) so vsp `deploy <file>` can identify the object type/name
+    // from the abapGit filename. filePath === manifest.files[idx].path here,
+    // so path.basename(filePath) is exactly the stored copy's name.
+    targets.push(path.join(capsuleDir, 'files', String(idx), path.basename(filePath)));
   }
   if (drifted.length > 0) {
     denyBinding('WORKTREE_DRIFT', drifted.join(', '));

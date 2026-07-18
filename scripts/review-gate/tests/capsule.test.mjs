@@ -20,6 +20,7 @@ function makeBaseUnit(dir, overrides = {}) {
     spec_path: specPath,
     verification_path: null,
     policy_version: '1.0',
+    prompt_version: '1.0',
     schema_version: 'trackB-review-result-v1',
     reviewer_model: 'opus',
     target_system: 'DEV',
@@ -60,6 +61,39 @@ test('meta detection: policy_version-only change produces a different capsuleHas
   fs.rmSync(base, { recursive: true, force: true });
 });
 
+test('meta detection: prompt_version-only change produces a different capsuleHash (cache invalidation on prompt change)', () => {
+  const base = tmpBase('capsule-prompt-');
+  const unit = makeBaseUnit(base);
+  const r1 = createCapsule(unit, path.join(base, 'capsule-a'));
+  const r2 = createCapsule({ ...unit, prompt_version: '2.0' }, path.join(base, 'capsule-b'));
+  assert.notStrictEqual(r1.capsuleHash, r2.capsuleHash);
+  // A capsule built from the (legacy) manifest with no prompt_version field at
+  // all must also hash differently — old caches are invalidated by the new
+  // field's presence, not only by a value bump.
+  const legacyUnit = { ...unit };
+  delete legacyUnit.prompt_version;
+  const rLegacy = createCapsule(legacyUnit, path.join(base, 'capsule-legacy'));
+  assert.notStrictEqual(r1.capsuleHash, rLegacy.capsuleHash);
+  fs.rmSync(base, { recursive: true, force: true });
+});
+
+test('layout: source copy keeps its original abapGit basename (not "content") so vsp deploy can identify the object', () => {
+  const base = tmpBase('capsule-basename-');
+  const progPath = writeFile(base, 'zsah1_workdays.prog.abap', 'REPORT zsah1_workdays.\n');
+  const unit = makeBaseUnit(base, { files: [progPath] });
+  const capsuleDir = path.join(base, 'capsule-a');
+  const { manifest } = createCapsule(unit, capsuleDir);
+
+  const preserved = path.join(capsuleDir, 'files', '0', 'zsah1_workdays.prog.abap');
+  assert.ok(fs.existsSync(preserved), 'copy must be stored under its abapGit basename');
+  assert.ok(!fs.existsSync(path.join(capsuleDir, 'files', '0', 'content')), 'legacy "content" name must not be used');
+  assert.strictEqual(manifest.files[0].path, progPath);
+  // verifyCapsule must locate the renamed copy and confirm integrity.
+  const v = verifyCapsule(capsuleDir);
+  assert.strictEqual(v.ok, true, `mismatches: ${v.mismatches.join('; ')}`);
+  fs.rmSync(base, { recursive: true, force: true });
+});
+
 test('AC-12: a missing file in files[] throws CapsuleError(INCOMPLETE)', () => {
   const base = tmpBase('capsule-missing-');
   const unit = makeBaseUnit(base, { files: [path.join(base, 'does-not-exist.abap')] });
@@ -91,7 +125,7 @@ test('tamper detection: editing a capsule copy makes verifyCapsule().ok === fals
   assert.strictEqual(before.ok, true);
   assert.strictEqual(before.capsuleHash, created.capsuleHash);
 
-  const copyPath = path.join(capsuleDir, 'files', '0', 'content');
+  const copyPath = path.join(capsuleDir, 'files', '0', 'src.abap');
   fs.writeFileSync(copyPath, 'TAMPERED\n');
 
   const after = verifyCapsule(capsuleDir);
@@ -109,7 +143,7 @@ test('manifest contains all required fields (spec §3.4), including a non-null v
   const requiredKeys = [
     'unit_id', 'files', 'spec_path', 'spec_sha256',
     'verification_path', 'verification_sha256',
-    'policy_version', 'schema_version', 'reviewer_model', 'target_system',
+    'policy_version', 'prompt_version', 'schema_version', 'reviewer_model', 'target_system',
   ];
   for (const key of requiredKeys) {
     assert.ok(Object.prototype.hasOwnProperty.call(manifest, key), `missing key: ${key}`);

@@ -96,9 +96,11 @@ test('PASS cycle: exit 0, pass_records holds a record with model/versions/durati
   assert.strictEqual(hashes.length, 1);
   const record = state.pass_records[hashes[0]];
   assert.strictEqual(record.model, 'opus');
+  assert.strictEqual(record.prompt_version, '1.0');
   assert.strictEqual(record.policy_version, '1.0');
   assert.strictEqual(record.schema_version, 'trackB-review-result-v1');
   assert.strictEqual(typeof record.duration_ms, 'number');
+  assert.strictEqual(record.tokens, null); // no token accounting from `claude -p --output-format text`
   assert.strictEqual(typeof record.at, 'string');
   assert.ok(fs.existsSync(record.verdict_file));
 
@@ -196,6 +198,29 @@ test('TIMEOUT: reviewer exceeding timeout_ms -> exit 4, revision not incremented
   cleanup(dir);
 });
 
+test('infra budget (§4.3): once infra_retry_limit TIMEOUTs accrue, the gate fail-fasts as INFRA_ERROR (exit 5) without spawning again', () => {
+  const dir = tmpDir('gate-infra-');
+  // Base config infra_retry_limit is 2. Distinct source per call -> distinct
+  // capsule hashes so each spawns fresh and times out (a same-hash re-request
+  // would hit the verdict cache instead of re-spawning).
+  const configPath = writeConfig(dir, { command: ['node', mockPath('reviewer-sleep.mjs')], timeoutMs: 300 });
+
+  const r1 = runGate({ unitPath: writeUnit(dir, { sourceContent: 'infra v1\n' }), stateDir: dir, configPath });
+  assert.strictEqual(r1.status, 4, `stderr: ${r1.stderr}`);
+
+  const r2 = runGate({ unitPath: writeUnit(dir, { sourceContent: 'infra v2\n' }), stateDir: dir, configPath });
+  assert.strictEqual(r2.status, 4, `stderr: ${r2.stderr}`);
+  assert.strictEqual(loadState(dir).infra_retries, 2);
+
+  // Budget exhausted -> fail-fast INFRA_ERROR (exit 5), no spawn, and the
+  // fail-fast path records nothing so infra_retries stays at 2.
+  const r3 = runGate({ unitPath: writeUnit(dir, { sourceContent: 'infra v3\n' }), stateDir: dir, configPath });
+  assert.strictEqual(r3.status, 5, `stderr: ${r3.stderr}`);
+  assert.strictEqual(loadState(dir).infra_retries, 2);
+
+  cleanup(dir);
+});
+
 test('AC-7: reviewer spawn env is allowlist-only — no SAP_* keys, no MCP_ENV_PATH', async () => {
   const config = loadBaseConfig();
   const capsuleDir = tmpDir('gate-env-');
@@ -234,4 +259,24 @@ test('reviewer.mjs: an unresolvable command surfaces as spawn_error, not a throw
   });
   assert.strictEqual(outcome.type, 'spawn_error');
   cleanup(capsuleDir);
+});
+
+test('MINOR ⑤: reviewer spawns from a scratch cwd (not the capsule) and {capsule} resolves to the capsule absolute path', async () => {
+  const capsuleDir = tmpDir('gate-cwd-capsule-');
+  const scratchCwd = tmpDir('gate-cwd-scratch-');
+  const outcome = await runReviewer({
+    capsuleDir,
+    cwd: scratchCwd,
+    config: {
+      reviewer: { command: ['node', mockPath('reviewer-cwddump.mjs'), '{capsule}'], timeout_ms: 5000 },
+      env_allowlist: ['PATH', 'SYSTEMROOT', 'COMSPEC'],
+    },
+  });
+  assert.strictEqual(outcome.type, 'ok', `stderr: ${outcome.stderr}`);
+  const dumped = JSON.parse(outcome.stdout);
+  assert.strictEqual(fs.realpathSync(dumped.cwd), fs.realpathSync(scratchCwd), 'reviewer must run from the scratch cwd');
+  assert.notStrictEqual(fs.realpathSync(dumped.cwd), fs.realpathSync(capsuleDir), 'reviewer cwd must not be the capsule (no session-log pollution)');
+  assert.strictEqual(dumped.argv[0], path.resolve(capsuleDir), '{capsule} must be substituted with the capsule absolute path');
+  cleanup(capsuleDir);
+  cleanup(scratchCwd);
 });

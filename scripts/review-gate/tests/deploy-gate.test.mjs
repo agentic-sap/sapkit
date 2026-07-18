@@ -35,8 +35,10 @@ function readRecords(recordFilePath) {
 // two artifacts, so tests construct them directly instead of spawning a full
 // reviewer round-trip (Forbidden: no real vsp/reviewer here — mock-first,
 // PLANNING §1-3).
-function setupPassedUnit(dir, { sourceContent = 'REPORT z_test.\n' } = {}) {
-  const srcPath = path.join(dir, 'src.abap');
+function setupPassedUnit(dir, { sourceContent = 'REPORT zsah1_workdays.\n' } = {}) {
+  // Realistic abapGit basename — the deploy copy must keep this name so vsp
+  // `deploy <file>` can identify the object type/name from it (spec §4.0).
+  const srcPath = path.join(dir, 'zsah1_workdays.prog.abap');
   fs.writeFileSync(srcPath, sourceContent, 'utf8');
   const specPath = path.join(dir, 'spec.md');
   fs.writeFileSync(specPath, '# spec\n', 'utf8');
@@ -55,6 +57,7 @@ function setupPassedUnit(dir, { sourceContent = 'REPORT z_test.\n' } = {}) {
   const { capsuleHash } = createCapsule({
     ...unit,
     policy_version: '1.0',
+    prompt_version: '1.0',
     schema_version: 'trackB-review-result-v1',
     reviewer_model: 'opus',
   }, capsuleDir);
@@ -101,8 +104,9 @@ test('normal: PASS record + intact capsule + matching worktree -> exit 0, record
 
   const records = readRecords(recordFile);
   assert.strictEqual(records.length, 1);
-  const capsuleFilePath = path.join(capsuleDir, 'files', '0', 'content');
+  const capsuleFilePath = path.join(capsuleDir, 'files', '0', 'zsah1_workdays.prog.abap');
   assert.strictEqual(records[0].fileArg, capsuleFilePath);
+  assert.match(records[0].fileArg, /[\\/]zsah1_workdays\.prog\.abap$/, 'deploy copy must keep its abapGit basename, not "content"');
   assert.notStrictEqual(records[0].fileArg, srcPath, 'must deploy the capsule copy, not the working-tree path');
   assert.strictEqual(records[0].fileSha256, sha256(fs.readFileSync(srcPath)));
 
@@ -157,7 +161,7 @@ test('capsule copy tampered after PASS -> exit 1 CAPSULE_TAMPERED, recorder neve
   const recordFile = path.join(dir, 'record.jsonl');
 
   // Corrupt the capsule's own copy (not the working tree) after the PASS record was issued.
-  fs.writeFileSync(path.join(capsuleDir, 'files', '0', 'content'), 'TAMPERED', 'utf8');
+  fs.writeFileSync(path.join(capsuleDir, 'files', '0', 'zsah1_workdays.prog.abap'), 'TAMPERED', 'utf8');
 
   const result = runDeployGate({ unitPath, stateDir, capsuleDir, deployCmd: deployCmdFor(recordFile) });
   assert.strictEqual(result.status, 1);

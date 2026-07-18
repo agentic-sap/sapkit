@@ -1,7 +1,7 @@
 // Review capsule: creates an immutable snapshot of a review unit (source +
-// spec + verification result + policy/model/schema versions) and computes a
-// deterministic capsule hash that binds PASS records, FAIL cache, and
-// revision counting to that exact input (spec §4.0, PLANNING §3.4).
+// spec + verification result + policy/prompt/model/schema versions) and
+// computes a deterministic capsule hash that binds PASS records, FAIL cache,
+// and revision counting to that exact input (spec §4.0, PLANNING §3.4).
 //
 // Node built-ins only — no dependencies (PLANNING §1-1).
 
@@ -36,12 +36,16 @@ function requireReadableNonEmptyFile(filePath, label) {
   }
 }
 
-// Copies srcPath into slotDir/content, isolating each slot so the original
+// Copies srcPath into slotDir/<destName>, isolating each slot so the original
 // path string never has to be reused/parsed to relocate the copy (avoids
 // unsafe-character issues with absolute paths e.g. Windows drive letters).
-function copyIntoSlot(srcPath, slotDir, label) {
+// destName defaults to 'content' (spec/verification slots); source-file slots
+// pass the original basename so the deploy copy keeps its abapGit filename
+// (see createCapsule — vsp deploy identifies object type/name from the
+// filename, so 'content' would be rejected as an unsupported extension).
+function copyIntoSlot(srcPath, slotDir, label, destName = 'content') {
   fs.mkdirSync(slotDir, { recursive: true });
-  const destPath = path.join(slotDir, 'content');
+  const destPath = path.join(slotDir, destName);
   try {
     fs.copyFileSync(srcPath, destPath);
   } catch (err) {
@@ -70,14 +74,15 @@ function hashManifest(manifest) {
 /**
  * @param {{unit_id:string, files:string[], spec_path:string,
  *   verification_path?: string|null, policy_version:string,
- *   schema_version:string, reviewer_model:string, target_system:string}} unit
+ *   prompt_version:string, schema_version:string, reviewer_model:string,
+ *   target_system:string}} unit
  * @param {string} capsuleDir
  * @returns {{capsuleDir:string, capsuleHash:string, manifest:object}}
  */
 export function createCapsule(unit, capsuleDir) {
   const {
     unit_id, files = [], spec_path, verification_path = null,
-    policy_version, schema_version, reviewer_model, target_system,
+    policy_version, prompt_version, schema_version, reviewer_model, target_system,
   } = unit;
 
   // Validate everything up front — a capsule is never partially created.
@@ -87,8 +92,14 @@ export function createCapsule(unit, capsuleDir) {
 
   fs.mkdirSync(capsuleDir, { recursive: true });
 
+  // Preserve each source file's original basename inside its slot so the
+  // deploy copy keeps its abapGit filename (e.g. zsah1_workdays.prog.abap).
+  // vsp `deploy <file>` -> DeployFromFile -> ParseABAPFile detects the object
+  // type/name from the filename suffix; a name like 'content' (no extension)
+  // is rejected as "unsupported file extension". The <idx> slot still isolates
+  // files that happen to share a basename.
   const fileEntries = files.map((f, i) => {
-    const destPath = copyIntoSlot(f, path.join(capsuleDir, 'files', String(i)), `files[${i}]`);
+    const destPath = copyIntoSlot(f, path.join(capsuleDir, 'files', String(i)), `files[${i}]`, path.basename(f));
     return { path: f, sha256: sha256OfFile(destPath) };
   });
 
@@ -109,6 +120,7 @@ export function createCapsule(unit, capsuleDir) {
     verification_path,
     verification_sha256: verificationSha256,
     policy_version,
+    prompt_version,
     schema_version,
     reviewer_model,
     target_system,
@@ -135,7 +147,10 @@ export function verifyCapsule(capsuleDir) {
   const mismatches = [];
 
   (manifest.files || []).forEach((entry, i) => {
-    const copyPath = path.join(capsuleDir, 'files', String(i), 'content');
+    // Copy lives at files/<i>/<original basename> (see createCapsule) — recompute
+    // the basename from the recorded original path; deterministic and matches
+    // what createCapsule stored.
+    const copyPath = path.join(capsuleDir, 'files', String(i), path.basename(entry.path));
     try {
       const actual = sha256OfFile(copyPath);
       if (actual !== entry.sha256) mismatches.push(`file hash mismatch at index ${i}: ${entry.path}`);

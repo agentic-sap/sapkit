@@ -54,6 +54,10 @@ function buildCapsuleUnit(rawUnit, config) {
     spec_path: rawUnit.spec_path,
     verification_path: rawUnit.verification_path ?? null,
     policy_version: config.policy_version,
+    // spec §4.0: the reviewer prompt template version is part of the capsule
+    // hash, so editing the prompt (and bumping prompt_version) invalidates
+    // stale PASS/FAIL cache entries — same discipline as policy_version.
+    prompt_version: config.prompt_version,
     schema_version: config.schema_version,
     reviewer_model: config.reviewer.model,
     target_system: rawUnit.target_system,
@@ -101,6 +105,19 @@ async function main() {
     return;
   }
 
+  // Step 1b (spec §4.3): once the infra-retry budget is spent, fail-fast
+  // without spawning. This caps the infra portion of the hard budget
+  // (reviewer spawns per unit <= revision_limit + infra_retry_limit) so
+  // repeated TIMEOUT/INFRA_ERROR/INTERNAL_ERROR cannot burn the whole engine
+  // retry allowance. The ULTIMATE stop stays delegated to the engine's
+  // step/run timeout; this is the wrapper-side sub-cap, symmetric with the
+  // revision BLOCKED check above.
+  if (state.infra_retries >= config.limits.infra_retry_limit) {
+    process.stderr.write(`review-gate: INFRA_BUDGET_EXHAUSTED (infra_retries=${state.infra_retries} >= ${config.limits.infra_retry_limit})\n`);
+    process.exit(exitFor('INFRA_ERROR'));
+    return;
+  }
+
   // Step 2 (spec §4.0): build the capsule. CapsuleError(INCOMPLETE) falls
   // through to the top-level catch below -> exit 6.
   const rawUnit = loadJson(unitPath);
@@ -116,9 +133,14 @@ async function main() {
     return;
   }
 
-  // Step 4: spawn the reviewer.
+  // Step 4: spawn the reviewer. Give it a run-scoped scratch cwd OUTSIDE the
+  // capsule so its session logs never pollute the immutable capsule (spec
+  // §4.0); the capsule path reaches the reviewer via the {capsule} token in
+  // config.reviewer.command (reviewer.mjs).
+  const reviewerCwd = path.join(stateDir, 'reviewer-cwd');
+  fs.mkdirSync(reviewerCwd, { recursive: true });
   const startedAt = Date.now();
-  const outcome = await runReviewer({ capsuleDir, config });
+  const outcome = await runReviewer({ capsuleDir, config, cwd: reviewerCwd });
   const durationMs = Date.now() - startedAt;
 
   if (outcome.type === 'timeout') {
@@ -142,9 +164,19 @@ async function main() {
     recordPass(stateDir, state, capsuleHash, {
       verdict_file: verdictFile,
       model: config.reviewer.model,
+      // spec §5-11 reproducibility record: model id, prompt template version,
+      // schema version, duration, tokens (when available).
+      prompt_version: config.prompt_version,
       policy_version: config.policy_version,
       schema_version: config.schema_version,
       duration_ms: durationMs,
+      // The reviewer runs as `claude -p --output-format text`, which returns
+      // only the raw verdict text — no token accounting is available in that
+      // form (switching to a usage-bearing output format would break the
+      // raw-JSON parsing contract of verdict.evaluate). Recorded as null so
+      // the audit record shape stays stable and a future usage-bearing
+      // reviewer form can populate it, per spec §5-11 "토큰(가용 시)".
+      tokens: null,
       at: new Date().toISOString(),
     });
     process.exit(exitFor('PASS'));

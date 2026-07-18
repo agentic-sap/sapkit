@@ -134,8 +134,10 @@ export function markBlocked(stateDir, state) {
  * @param {string} stateDir
  * @param {object} state
  * @param {string} capsuleHash
- * @param {{verdict_file:string, model:string, policy_version:string,
- *   schema_version:string, duration_ms:number, at:string}} record
+ * @param {{verdict_file:string, model:string, prompt_version:string,
+ *   policy_version:string, schema_version:string, duration_ms:number,
+ *   tokens:number|null, at:string}} record — stored as-is (spec §5-11
+ *   reproducibility fields; tokens is null when the reviewer form reports none)
  * @returns {object} the mutated state
  */
 export function recordPass(stateDir, state, capsuleHash, record) {

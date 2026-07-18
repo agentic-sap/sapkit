@@ -6,14 +6,39 @@
 // Node built-ins only — no dependencies (PLANNING §1-1).
 
 import { spawn } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 /**
- * @param {{capsuleDir: string, config: {reviewer: {command: string[], timeout_ms: number}, env_allowlist: string[]}}} args
+ * @param {{capsuleDir: string, config: {reviewer: {command: string[], timeout_ms: number}, env_allowlist: string[]}, cwd?: string}} args
  * @returns {Promise<{type: 'ok'|'timeout'|'spawn_error', stdout: string, stderr: string, exitCode: number|null}>}
  */
-export function runReviewer({ capsuleDir, config }) {
+export function runReviewer({ capsuleDir, config, cwd }) {
   return new Promise((resolve) => {
-    const [command, ...args] = config.reviewer.command;
+    // Spawn cwd MUST be outside the capsule so the reviewer's own session
+    // logs / scratch never land inside the immutable capsule snapshot (spec
+    // §4.0). review-gate.mjs passes a run-scoped scratch dir under stateDir; a
+    // direct caller that omits `cwd` gets an ephemeral temp dir we remove once
+    // the child settles.
+    let spawnCwd = cwd;
+    let ephemeral = false;
+    if (!spawnCwd) {
+      spawnCwd = fs.mkdtempSync(path.join(os.tmpdir(), 'review-gate-cwd-'));
+      ephemeral = true;
+    } else {
+      fs.mkdirSync(spawnCwd, { recursive: true });
+    }
+
+    // Because the reviewer no longer runs from inside the capsule, it cannot
+    // reach it via a relative path. Substitute the literal token {capsule} in
+    // every command token with the capsule's absolute path (spec §5-3 clean-env
+    // spawn leaves no ambient hint of the capsule location, so it is passed in
+    // explicitly through the command).
+    const capsuleAbs = path.resolve(capsuleDir);
+    const [command, ...args] = config.reviewer.command.map(
+      (token) => token.replaceAll('{capsule}', capsuleAbs),
+    );
 
     // env is allowlist-only — everything else (SAP_*, MCP_ENV_PATH, ...) is
     // simply never copied into the child's env (spec §5-3, AC-7).
@@ -27,10 +52,17 @@ export function runReviewer({ capsuleDir, config }) {
     let stderr = '';
     let child;
 
+    const done = (result) => {
+      if (ephemeral) {
+        try { fs.rmSync(spawnCwd, { recursive: true, force: true }); } catch { /* best effort */ }
+      }
+      resolve(result);
+    };
+
     try {
-      child = spawn(command, args, { cwd: capsuleDir, env });
+      child = spawn(command, args, { cwd: spawnCwd, env });
     } catch (err) {
-      resolve({ type: 'spawn_error', stdout: '', stderr: String((err && err.message) || err), exitCode: null });
+      done({ type: 'spawn_error', stdout: '', stderr: String((err && err.message) || err), exitCode: null });
       return;
     }
 
@@ -38,7 +70,7 @@ export function runReviewer({ capsuleDir, config }) {
       if (settled) return;
       settled = true;
       child.kill();
-      resolve({ type: 'timeout', stdout, stderr, exitCode: null });
+      done({ type: 'timeout', stdout, stderr, exitCode: null });
     }, config.reviewer.timeout_ms);
 
     child.stdout.on('data', (chunk) => { stdout += chunk; });
@@ -48,14 +80,14 @@ export function runReviewer({ capsuleDir, config }) {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      resolve({ type: 'spawn_error', stdout, stderr: stderr || String((err && err.message) || err), exitCode: null });
+      done({ type: 'spawn_error', stdout, stderr: stderr || String((err && err.message) || err), exitCode: null });
     });
 
     child.on('close', (code) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      resolve({ type: 'ok', stdout, stderr, exitCode: code });
+      done({ type: 'ok', stdout, stderr, exitCode: code });
     });
   });
 }
