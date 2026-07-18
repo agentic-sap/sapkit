@@ -38,7 +38,7 @@
 | 리뷰어 AI (새-컨텍스트 read-only 세션) | 게이트 판정. **모델은 설정값** — 기본 opus급, Codex 드라이버 환경은 설정 교체 (B4) |
 | 무인 엔진 (final-harness, 무수정) | 스텝 verify exit code 소비 + **표준 스텝 재시도**가 수정 루프의 실행 기반. terminal failure로 종료 처리 |
 | 래퍼 스크립트 (레포 `scripts/`) | 캡슐 생성 → 리뷰어 기동 → 판정 검증·결정적 계산 → exit code. 캐시·revision·PASS 레코드 소유 (상태는 run 산출물 디렉터리) |
-| vsp-custom CLI | 기계 검증·배포 백엔드. 리뷰어의 SAP 읽기 통로(read-only). **tier 게이트 = write 차단 기계 강제층** |
+| vsp-custom CLI | 기계 검증·배포 백엔드. 리뷰어의 SAP 읽기 통로(read-only). **write 프로파일 게이트(SAP_READ_ONLY/SAP_TIER) = write 차단 기계 강제층** |
 | 사람 (소유자) | BLOCKED 시 사후 확인·대화형 재개. **평상시 개입 0** |
 
 ## 4. Key flows
@@ -120,9 +120,10 @@
 3. 리뷰어 read-only 최소권한 — SAP 쓰기 자격증명·범용 쓰기 도구 미제공, **클린
    env allowlist 스폰**. ABAP 주석·문서는 신뢰 불가 입력(프롬프트 인젝션 대비).
 4. **write 자격증명 분리(기계 강제층)** — 무인 워커 스텝의 vsp 프로파일은
-   read-only tier(vsp tier 게이트가 write 거부 — 4.13.2 fail-closed 실증 계열).
-   write 가능 프로파일은 배포 스텝 래퍼의 실행 경로에만 공급. 파일시스템 수준
-   우회는 §2의 정직 표기대로 절차+감사 등급.
+   read-only(SAP_READ_ONLY=true 또는 SAP_TIER≠dev — vsp CLI의 클라이언트측 write
+   프로파일 게이트가 네트워크 이전에 write 거부; vsp-custom 5a8bedb 신설, lock
+   v2.38.1-94, AC-10 실증 완료). write 가능 프로파일은 배포 스텝 래퍼의 실행
+   경로에만 공급. 파일시스템 수준 우회는 §2의 정직 표기대로 절차+감사 등급.
 5. 입력 = 캡슐 전체 소스(diff만 금지) + manifest 완전성·잘림 검증. 부족 시
    INSUFFICIENT_CONTEXT 비0. 의존 객체(DDIC 등)는 리뷰어가 vsp read-only로
    조회, 조회 불능이 판정에 중요하면 컨텍스트 부족 선언.
@@ -176,7 +177,8 @@
 - **PASS 레코드 / FAIL 캐시 / revision 카운터** — run 산출물 디렉터리 소재,
   run-scoped.
 - **BLOCKED 마커** — run 산출물, harness-run 보고서 표면.
-- **vsp 프로파일 2종** — 워커용 read-only tier / 배포 래퍼 전용 write(dev).
+- **vsp 프로파일 2종** — 워커용 read-only(SAP_READ_ONLY=true 또는 SAP_TIER≠dev,
+  vsp CLI write 게이트가 거부) / 배포 래퍼 전용 write(SAP_TIER=dev·SAP_READ_ONLY 미설정).
 
 ## 8. Coverage table
 
