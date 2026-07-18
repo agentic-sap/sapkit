@@ -5,48 +5,44 @@
 
 ## Task
 
-엔진 백로그 **11-⑪·⑫ 수리 — 1 Wave 묶음** (사용자 확정 착수 순서 ①, 2026-07-13.
-스프린트 패턴: opus 위임 · 역-검증 · 라이브 red→green · 새-컨텍스트 리뷰).
-목표 버전 **4.13.12**. — **✅ 완료 (2026-07-17)**
+**§5-4 보완 세션 (2026-07-18, HANDOFF "▶ 다음 착수 확정" ①)** — 스파이크 Part B
+반증("vsp CLI가 read-only 설정을 안 읽는다") 보완 = ①vsp CLI 배선 + ②무인 워커
+자격증명 미공급 병행 + 리뷰 게이트 MINOR 5건 + Part B 재실증(AC-10) → step 5 해소.
 
-- **11-⑪ AdtTable.check의 ddlCode 드랍** (4.13.11 리뷰 발굴, 11-⑤ 동류):
-  runTableCheckRun에 ddlCode를 안 넘겨 UpdateTable 사전 check가 새 DDL이 아닌
-  저장본만 검사. 수리 = 11-⑤(Structure)와 동일한 check-with-source 전달.
-- **11-⑫ Create 페이로드 EN 하드코딩 잔여 ~16곳**: Class·Interface·Program·
-  Package·Table·Structure·SRVD·DDLX·DCL 생성부의 language/masterLanguage EN
-  하드코딩 → 4.13.10 `resolveLogonLanguage()` 인프라를 기계적 확장
-  (확장 지점 문서: engine/UPSTREAM-FIX-HANDOFF.md §5). 비영어 로그온(IDES=CS)
-  에서 설명이 EN 슬롯에 저장돼 비어 보이는 실수요 실증 결함.
+## Success criteria (기계 검증 가능)
 
-## Success criteria
-
-- [x] **jest 전량 통과(실패 0**, 기준선 580 passed/5 skipped) + 수리별 회귀
-      테스트 신설 + **역-검증**(수리 원복 시 신설 테스트 FAIL) 실증 로그
-      — **599/0/5 (+19)**, 11-⑪ 두 계층(vendored 원복 3/3 FAIL·핸들러 무력화
-      2/3 FAIL)·11-⑫ 두 계층(빌더·핸들러) 각각 역-검증 실측
-- [x] **UPDATE-RUNBOOK 준수 재번들** — verify-engine **OK @4.13.12**
-      (sha256 5cb5a69eeff2…), capability diff **155 유지**(disallowedTools
-      동기화 불요)
-- [x] **IDES 라이브 red→green** — 11-⑪ 충족: red(오류 DDL success:true,
-      activation_warnings에만) → green(PUT 전 표면화 + 정상 DDL update·활성화
-      완주). **11-⑫는 문자 기준 PARTIAL(환경 제약, 리뷰 수용)**: CS IDES가 EN
-      페이로드를 관용해 설명-슬롯 델타 관측 불가 — 대체 정본 증거 = 역-검증
-      jest 패밀리 16케이스 + 4.13.10 비관용 표면(DOMA/DTEL) 라이브 실증, 신
-      번들 Class·Program·Table 생성·read-back 무회귀 확인. $TMP 생성 8·삭제 8
-      read-back 확인 + 고아 잠금 0
-- [x] **새-컨텍스트 read-only 리뷰 PASS** — **BLOCKER 0 · MAJOR 0** (MINOR 4:
-      보고서 자기-집계 오기[핸들러 10→실측 9, 보고서 삭제로 소멸]·11-⑫ 라이브
-      PARTIAL·checkruns 캐시 관찰·parse-error fail-open 관찰)
-- [x] **문서 계약** — engine/CHANGELOG.md 4.13.12 + UPSTREAM-FIX-HANDOFF
-      §5·§10·§11·Known-remaining 갱신 + HANDOFF §6 11-⑪·⑫ 마감 + STATE 기록
-- [x] **게이트 5종 green** + 커밋 (fix(engine): 4.13.12)
+- [x] **vsp-custom 수리** (기준 HEAD 731b871, 그 레포에서만 — D-018 편입 금지):
+      CLI write 경로(deploy/copy/execute/install)가 SAP_READ_ONLY=true 및 비-dev
+      SAP_TIER를 **네트워크 이전 클라이언트측 거부**. `go test ./...` green +
+      오프라인 더미 호스트 프로브로 거부 마커 실측(스파이크와 동일 방법,
+      SAP write 0). read 경로 무영향. build/vsp.exe 재빌드.
+- [x] **lock 재검증(D-018)**: 명령 계약 10종 + JNC 델타(ActivateGroup·활성화
+      거짓성공 4곳·TotalRows/Truncated·FUGR 그룹 진단·UXX 제외) 재검증 후
+      `adapters/vsp/vsp.lock.json` 갱신(새 커밋 sha·바이너리 sha256·버전 출력).
+      write 검증은 DEV $TMP만(R-003), 반영 확인은 source read(R-006).
+- [x] **리뷰 게이트 MINOR 5건**: ①infra_retry_limit 소비(or 주석 명시)
+      ②prompt_version 해시 편입 ③PASS 레코드 프롬프트 버전·토큰 ④캡슐 파일명
+      vsp deploy 호환(파일명→객체 식별 실측 후 수리) ⑤리뷰어 spawn cwd 분리.
+      `node --test 'scripts/review-gate/tests/*.test.mjs'` 전체 green.
+- [x] **② 자격증명 미공급 구조**: 무인 워커 스텝 env에 SAP 자격증명 미공급 +
+      write 프로파일은 배포 래퍼 경로에만 — 구조 배선·문서화.
+- [x] **Part B 재실증(AC-10)**: 새 바이너리로 spike-evidence.json part_b.ok=true,
+      `node scripts/review-gate/tests/spike.mjs --check …` exit 0,
+      phases/3-review-gate step 5 completed(정식 절차로 해소).
+- [x] **정합·기록**: 스펙 §5-4 문구 정합, HANDOFF 갱신, 게이트 5종 green,
+      새-컨텍스트 독립 리뷰 PASS(BLOCKER/MAJOR 0).
 
 ## Verification method
 
-1. jest·게이트 5종 exit code 실측 ✓
-2. 역-검증: 수리 원복 시 신설 테스트 FAIL 재현 로그 ✓ (작업자 실측 + 리뷰어
-   정적 결합 판정)
-3. 라이브 red→green 증거(구 4.13.11 번들 vs 신 4.13.12 번들 각 실행 결과) ✓
-   (11-⑫는 관측 불가 사유 명시)
-4. 독립 리뷰어(새 컨텍스트, read-only)가 Wave diff를 이 GOAL 기준으로 항목별
-   판정 ✓ — 총평 PASS
+1. go test·node --test·spike.mjs·게이트 5종 exit code 실측.
+2. 오프라인 프로브: SAP_READ_ONLY=true → 네트워크 이전 거부 마커 / env 부재 →
+   기존 동작(dial 도달) 대조 — write 실수행 0.
+3. lock 재검증 기록(명령별 실측 결과)과 vsp.lock.json 갱신 내용 대조.
+4. 독립 리뷰어(새 컨텍스트, read-only)가 두 레포 diff를 이 GOAL 기준으로
+   항목별 판정.
+
+## 제약 (전 기간 유효)
+
+- 무인 SAP write 금지(5-11) · final-harness 플러그인 업데이트 금지(5-12)
+- Go 수리는 `D:\Claude for SAP\vsp-custom`에서만 · 자격증명 기록 금지(R-005)
+- QA/PRD write 금지(R-003) · vsp MCP 서버 모드 금지(R-002)

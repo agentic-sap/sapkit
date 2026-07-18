@@ -134,6 +134,44 @@
 > 정합 확인. **② 5-13 층1**(engine/ 대조 감사 — SQL NULL-셀 최우선) →
 > **③ 5-13 층2·3**. 전 기간 유효: 무인 SAP write 금지(5-11) ·
 > final-harness 플러그인 업데이트 금지(5-12).
+> **→ ✅ ① §5-4 보완 완료 (2026-07-18, 오케스트레이션 세션 — 실행 전량
+> 서브에이전트 위임)**: ⑴ vsp-custom **5a8bedb** — CLI write 8종(deploy/copy/
+> execute/recover/source write·edit/install 2종)에 진입점 게이트
+> `enforceWriteProfile`+`getWriteClient` 신설(뮤테이션 게이트 재사용 기각 —
+> deploy가 게이트 이전에 존재확인 GET을 dial하는 구조 실측). SAP_READ_ONLY
+> truthy·SAP_TIER≠dev(대소문자 무시) **네트워크 이전 클라이언트측 거부**,
+> read·`vsp test` 무영향, SAP_TIER는 Go 전체에 기존 소비 0이라 최소 설계.
+> go test 신설 16케이스 green. ⑵ **lock v2.38.1-94 재검증(D-018)** — 계약
+> 10종 라이브 전부 통과·회귀 0, JNC 델타 5항목 방법 명시 검증(MCP 전용
+> 표면은 R-002 준수로 유닛테스트·커밋 라이브 근거 판정), vsp.lock.json 갱신
+> (+write_profile_gate·reverification additive). $TMP 정리·고아 잠금 0.
+> ⑶ **리뷰 게이트 MINOR 5건 실코드 수리**(테스트 42→46) — 특히 ④ 캡슐
+> 파일명: vsp `ParseABAPFile`이 확장자로 객체 식별함을 실측(fileparser.go:
+> 82-134), 기존 `files/<idx>/content` 경로는 **배포 실패였을 결함** →
+> basename 보존형으로 수리. ①infra_retry_limit 사전 fail-fast(exit 5)
+> ②prompt_version 캡슐 해시 편입(레거시 캐시 전량 무효화 테스트 보증)
+> ③PASS 레코드 prompt_version+tokens:null(사유 주석) ⑤리뷰어 spawn cwd
+> 분리+`{capsule}` 치환. ⑷ **② 자격증명 미공급 구조** — vsp-env.ps1 기본
+> `SAP_READ_ONLY=true` 주입(기계 강제 read-only 기본)·`-Write` opt-in만
+> 해제+SAP_TIER 전파, verify-sap.ps1 자체 조달(부모 셸 누출 0 실측),
+> VERIFY-PATTERNS §④ 관례 개정(**엔진 기동 셸 SAP_* 부재 = 워커 미공급
+> 성립 조건** — execute.py가 부모 env 전량 상속 실측). execute.py 스크럽은
+> **기각**(엔진 설치본 v0.17.3 lock 드리프트 + 스펙 B1 엔진 무수정 위반) —
+> 엔진 업스트림 개선 후보로만. ⑸ **Part B 재실증(AC-10) → step 5 해소** —
+> READ_ONLY·TIER=QA 각각 deploy가 dial 이전 거부(created=no·dialed=no,
+> 사전/사후 404), 같은 env read exit 0(게이트/연결 분리 입증), spike.mjs
+> exit 0, index.json step 5 completed(반증 이력 보존), 스펙 §3·§5-4·§7
+> 실측 메커니즘으로 정합화. ⑹ **새-컨텍스트 독립 리뷰 PASS(BLOCKER/MAJOR
+> 0, INFO 4)** — 리뷰어가 오프라인 프로브 독립 재현·마커 소스 대조까지 수행.
+> 게이트 5종 green(doctor FAIL은 무관 드리프트 — Codex 0.144.5 재검증
+> 스모크 후 compatibility.json 갱신으로 해소). 부수: `.claude/hooks/
+> tdd-guard.py` 로컬 수리(`<dir>/tests/` 인식 — step 0~5 shim 우회의 근본
+> 수리 + 레포 밖 파일 스코프 제외; **git 무추적이라 이 머신 한정**, 엔진
+> 템플릿 업스트림 반영은 후속 후보). 훅 ask가 bypass 모드를 관통해 배경
+> 에이전트 승인 폭주를 유발했던 원인이기도 했음. **무인 SAP write 금지
+> (5-11)는 계속 유효** — 이번 보완은 §5-4 기계 강제층 성립까지이고, 개방은
+> Phase 3 완주(AC-8 리뷰 게이트 실차단 실증 포함) 후 재론. **다음 착수 =
+> ② 5-13 층1 → ③ 5-13 층2·3** (변동 없음).
 > 방향성 판정: 비전 4축 중 3축(하네스 개발·컨설턴트/환경관리·경량화) 실현, 1축(vsp
 > 오프라인 검증)은 실측 하향이 이미 설계 반영(Phase 1.5 재정의). 직시할 사실 —
 > 실물 ABAP 산출은 연습 객체 4건($TMP)뿐이고 packs(Phase 4, 비전 제2축 '모듈 전문성

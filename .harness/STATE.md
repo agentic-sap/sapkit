@@ -218,10 +218,26 @@
   중간 인계 파일(docs/wave-4.13.12-report.md)은 마감 후 삭제 — 내용은
   CHANGELOG·UPSTREAM-FIX-HANDOFF·HANDOFF·이 항목으로 흡수
 
+- 2026-07-18 | **§5-4 보완 세션 완료** (오케스트레이션 — 실행 전량 서브에이전트
+  위임: Go 수리·lock 재검증·MINOR 5건·자격증명 구조·Part B 재실증 각 opus,
+  Codex 스모크 sonnet, 정찰 Explore) — ① vsp-custom 5a8bedb: CLI write 8종
+  진입점 게이트(SAP_READ_ONLY·SAP_TIER≠dev dial 이전 거부, go test 16케이스,
+  오프라인 프로브 4종) ② lock v2.38.1-94 재검증(계약 10종 라이브 전부 통과·
+  JNC 델타 5항목·$TMP 정리·고아 잠금 0) ③ 리뷰 게이트 MINOR 5건 실코드
+  (42→46 — ④ 캡슐 basename이 실제 배포 결함이었음을 vsp 소스로 실측)
+  ④ 자격증명 미공급 구조(vsp-env read-only 기본+-Write opt-in·verify-sap
+  자체 조달·VERIFY-PATTERNS §④ 관례 — execute.py 스크럽은 엔진 lock·B1
+  충돌로 기각) ⑤ Part B 재실증(AC-10) → step 5 completed(반증 이력 보존) +
+  스펙 §3·§5-4·§7 정합화 ⑥ 새-컨텍스트 리뷰 PASS(BLOCKER/MAJOR 0) + 게이트
+  5종 green(Codex 0.144.5 재검증 동반). 부수: tdd-guard.py 로컬 수리
+  (tests/ 인식+레포 밖 제외 — 훅 ask의 bypass 관통 승인 폭주 해소, 무추적
+  이 머신 한정). 무인 write 금지(5-11) 계속 유효(개방은 Phase 3 완주 후)
+
 ## Next
 
-- 사용자 확정 순서(HANDOFF 헤더): ② 트랙 A 지식 문서 갱신(harness-docs —
-  알림 2회째) → ③ Phase 3 선결 설계(5-11 리뷰 게이트 편입)
+- 사용자 확정 순서(HANDOFF 헤더): **② 5-13 층1**(engine/ 대조 감사 — SQL
+  NULL-셀 최우선) → **③ 5-13 층2·3**. 전 기간: 무인 SAP write 금지(5-11) ·
+  final-harness 플러그인 업데이트 금지(5-12)
 
 ## Attempts & dead ends
 
