@@ -5,46 +5,46 @@
 
 ## Task
 
-**백로그 5-13 층2 (2026-07-18, HANDOFF 다음 착수 ①)** — JNC 교훈 팩 층2
-(8항목)를 `interactive/core` 지식으로 이식. 대상 = conventions 확장 3종
-(field-typing-rule·function-module-rule·clean-code) + 신규 2건
-(abapgit-roundtrip-rule·source-repair-protocol). 원천 = 팩
-(`D:\Claude for SAP\JNC-Dashboard\docs\reference\sap-adt-lessons-pack.md`
-층2 절) + 동결 sc4sap-custom `common/*.md` 신판(07-17 커밋 f7257c0+ffb422b,
-읽기만 — R-004). **선결 판정 필수**: 정본(팩 vs 원본 신판)을
-MIGRATION-MANIFEST 대조로 확정 후 이식.
+**백로그 5-13 층3 (2026-07-18, 층2에 이어 같은 세션)** — JNC 교훈 팩 층3
+(방법론 8항목, `D:\Claude for SAP\JNC-Dashboard\docs\reference\
+sap-adt-lessons-pack.md` 138~160행)을 트랙 A 방법론 시드로 반영. 목적지
+후보(HANDOFF §5-13 층3): `domain/abap/RULES.seed.md`(후보 풀 — S-0NN
+부정형+출처 형식) · `adapters/vsp/VERIFY-PATTERNS.md`(verify 관례 정본) ·
+계획 관례(정본 위치는 감사가 판정) · 층3-1·층3-5는 리뷰 게이트 스펙
+`docs/reference/designs/2026-07-17-phase3-review-gate.md` §6 보강 재료
+(D-021 정합 — 승인된 설계 결정 자체는 변경 금지, 보강만).
 
 ## Success criteria (기계 검증 가능)
 
-- [x] **선결 판정 기록**: 대상 5파일 각각 정본 판정(팩 vs 신판) + 근거,
-      팩 층2 8항목 → 이식 파일:위치 커버리지 표(누락 0 또는 누락 사유 명시).
-      감사 정본 = `docs/reference/audits/2026-07-18-5-13-layer2-audit.md`.
-- [x] **이식 완료**: conventions 3종이 신판 델타를 반영하고 신규 2건이
-      `interactive/core/knowledge/abap/conventions/`에 실재. 하네스 중립
-      적응(sc4sap 고유 참조 제거)은 L1 기존 적응 관례와 일관.
-- [x] **분류·수치 정합**: 신규 2건이 MIGRATION-MANIFEST 분류에 포섭(분류
-      변경 필요 시 매니페스트 수정으로만) + CLAUDE.md 헤드라인 수치(지식
-      175) 실측 재계수 갱신 + conventions 참조 INDEX/앵커 갱신.
-- [x] **게이트 5종 green** (coverage·links·verify-engine·smoke 155·doctor)
-      — 엔진 재번들 불요(지식은 번들 밖), 번들 무변경.
-- [x] **새-컨텍스트 독립 리뷰 PASS(BLOCKER/MAJOR 0)** — 리뷰어가 원천
-      (팩+신판) 대 이식본을 직접 대조.
-- [x] **HANDOFF·STATE 기록 + 커밋**.
+- [ ] **감사표**: 팩 층3 8항목 각각 판정(신규/보강/기반영) + 목적지 + 근거
+      (기반영 판정은 기존 좌표 제시). 감사 정본 =
+      `docs/reference/audits/2026-07-18-5-13-layer3-audit.md`.
+- [ ] **반영 완료**: 신규/보강 판정분이 목적지에 실재. RULES.seed 추가분은
+      기존 S-0NN 부정형+출처 형식·기존 번호 연속. `.harness/RULES.md`·
+      `.harness/LESSONS.md` 무수정(시드/문서 경유 규약). VERIFY-PATTERNS
+      수정은 정본(adapters/vsp)에 — `.harness/` 스텁은 포인터 정합만.
+- [ ] **리뷰 게이트 스펙 §6 보강**: 층3-1·층3-5 재료 반영 + 승인 결정
+      (엄격도·BLOCKED 정책 등 §5 계열) 무변경 — D-021 정합 유지.
+- [ ] **게이트 5종 green 유지** (트랙 A 문서 변경이라 interactive 게이트
+      비영향이 정상 — 실행으로 확인). CLAUDE.md 수치 비영향(지식 아님) 확인.
+- [ ] **새-컨텍스트 독립 리뷰 PASS(BLOCKER/MAJOR 0)** — 리뷰어가 팩 원문 대
+      반영본 대조 + 기반영 판정 좌표 재확인.
+- [ ] **HANDOFF·STATE 기록 + 커밋** (§5-13 층3 완료 표기 = 5-13 전체 종결).
 
 ## Verification method
 
-1. 게이트 5종 exit code 실측.
-2. 리뷰어(새 컨텍스트, read-only)가 팩 8항목 커버리지를 이식본 좌표로 재확인
-   + 신판 델타 누락·왜곡 여부 diff 대조 + 수치(지식 파일 수) 재계수.
-3. 동결 레포 무수정 확인(`git -C sc4sap-custom status` 드리프트 불변 —
-   기존 1파일 ` M docs/skill-model-architecture.md` 외 변화 0).
+1. 게이트 5종 exit code 실측 + `.harness/RULES.md`·LESSONS.md 무변경
+   (`git diff --stat` 확인).
+2. 리뷰어(새 컨텍스트, read-only)가 팩 층3 8항목 커버리지를 반영본 좌표로
+   재확인 + 시드 형식(부정형·출처·번호 연속) 검사 + 스펙 §6 보강이 승인
+   결정을 침해하지 않는지 D-021·스펙 원문 대조.
+3. 동결 레포·JNC-Dashboard 무수정 확인.
 
 ## 제약 (전 기간 유효)
 
-- 동결 레포 sc4sap-custom **읽기만**(R-004, private/는 읽기도 금지) —
-  기존 드리프트 1파일(docs/skill-model-architecture.md)은 손대지 않고 보고만
+- `.harness/RULES.md` 직접 대량 추가 금지(메모리 루프 규약) — 시드/문서 경유
+- 동결 레포 sc4sap-custom **읽기만**(R-004) · JNC-Dashboard 읽기만
 - 무인 SAP write 금지(5-11) · final-harness 플러그인 업데이트 금지(5-12)
-- QA/PRD write 금지(R-003) · vsp MCP 서버 모드 금지(R-002) · 자격증명 기록
-  금지(R-005)
-- `.harness/RULES.md` 직접 대량 추가 금지(층3에서도 시드/문서 경유)
-- 분류 변경은 MIGRATION-MANIFEST 수정으로만
+- DESIGN.md는 설계 변경 시에만 갱신(상태 변화로는 갱신하지 않음)
+- 부수 후보: RULES.seed.md 표제 불일치("Error 4종" vs 본문 6개 — 층1 부수
+  발견, 차기 수리 후보) — 이 파일을 만지는 김에 동반 수리 여부는 감사 판정

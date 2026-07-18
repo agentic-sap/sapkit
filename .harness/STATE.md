@@ -263,12 +263,26 @@
   docs/reference/audits/2026-07-18-5-13-layer2-audit.md. 부수: 첫 리뷰어
   기동이 오작동 빈 응답(도구 0회) → 새 컨텍스트 재기동으로 정상 수행
 
+- 2026-07-18 | **5-13 층3 감사 완료·반영 대기** (같은 세션, 토큰 소진으로
+  실행 전 중단) — 감사(opus 위임) 판정: 신규 3(②결함목록=표본·⑦미검증
+  표시 회수·⑧오라클 의심)·보강 3(①게이트 미검사 산출물·③세로 관통·
+  ④liveness)·기반영 2(⑤독립 검증=D-019 등·⑥메모리 루프=PROTOCOL — 중복
+  주입 안 함). 반영 계획(구체 문안 포함) 정본 =
+  docs/reference/audits/2026-07-18-5-13-layer3-audit.md. 요지: RULES.seed
+  S-026·S-027(+헤더 원천 2→3곳, 표제 4종→6종 동반 수리) / VERIFY-PATTERNS
+  §⑤ 안티패턴 2불릿 / 계획 관례 = docs/ARCHITECTURE.md 신설 절 4건 /
+  리뷰 게이트 스펙 §6 additive AC-14·AC-15(승인 결정 불변). DESIGN.md
+  갱신 불요·interactive 게이트/CLAUDE.md 수치 비영향 판정. GOAL.md는
+  층3 기준 세팅 완료(미체크 상태로 재개)
+
 ## Next
 
-- 사용자 확정 순서(HANDOFF 헤더): **5-13 층3**(트랙 A 방법론 시드 —
-  domain/abap/RULES.seed.md·VERIFY-PATTERNS·계획 관례. `.harness/RULES.md`
-  직접 대량 추가 금지, 시드/문서 경유. 층3-1·층3-5는 리뷰 게이트 스펙 §6
-  보강 재료 — D-021 정합). 전 기간: 무인 SAP write 금지(5-11) ·
+- **5-13 층3 반영 실행부터 재개**: `.harness/GOAL.md`(층3 성공 기준) +
+  감사 정본 `docs/reference/audits/2026-07-18-5-13-layer3-audit.md`의
+  파일별 반영 계획을 그대로 실행(위임 권장) → 게이트 5종 green 확인 →
+  새-컨텍스트 독립 리뷰 PASS → HANDOFF §5-13 층3 완료 표기(=5-13 전체
+  종결) + STATE 기록 + 커밋. 제약: `.harness/RULES.md`·LESSONS.md 무수정
+  (시드/문서 경유) · 동결 레포 읽기만(R-004) · 무인 SAP write 금지(5-11) ·
   final-harness 플러그인 업데이트 금지(5-12)
 
 ## Attempts & dead ends
