@@ -7,12 +7,16 @@
 1. **테스트 클래스를 구현보다 먼저 작성했는가** — 구현 소스보다 테스트 클래스 소스를
    먼저 쓴다(tdd-guard가 ABAP을 인식하지 않으므로 기계 강제가 아니라 관례 강제,
    DESIGN §7). 순서를 건너뛰면 offline에서는 아무도 잡아주지 않는다.
-2. **`vsp lint` Error-severity 규칙 6종을 스스로 피했는가** (실측 — DESIGN.md의 "7종
-   Warning 위주" 서술보다 최신 빌드 기준, 위반 시 lint가 비-0 exit로 게이트를 막는다):
+2. **verify가 Error로 막는 규칙 6종을 스스로 피했는가** — 검사기가 둘로 갈린다(실측;
+   DESIGN.md의 offline "7종 Warning 위주" 서술 대비 최신 빌드 기준). offline `vsp lint`가
+   등록·평가해 비-0 exit로 게이트를 막는 4종:
    - `line_length` — 라인 255자 초과 (120자 초과는 Warning일 뿐 통과함에 주의)
    - `empty_statement` — 빈 `.`만 있는 문장
    - `max_one_statement` — 한 줄에 문장 2개 이상
    - `preferred_compare_operator` — 조건문(`IF`/`ELSEIF`/`WHILE`/`CHECK`)에서 `EQ`/`NE`/`GT`/`LT`/`GE`/`LE`/`><` 사용 (`=`/`!=`/`>`/`<`/`>=`/`<=`로 교체)
+
+   offline `vsp lint`에는 등록되지 않아 offline 게이트는 통과시키고, 연결이 필요한
+   ATC(codeanalysis) 채점에서만 Error로 잡히는 2종 — 초안 단계에서 스스로 피할 것:
    - `hardcoded_credentials` — password/secret/key/token류 변수에 리터럴 대입
    - `commit_in_loop` — LOOP 안에서 `COMMIT WORK`
 3. **Z/Y 접두사가 모든 신규 오브젝트에 붙었는가** (RULES.seed S-001).

@@ -21,6 +21,10 @@
   클래스에 배치.
 - Consequences: vsp test PROG로 5 PASS 채점 가능. 클래스 테스트 include
   지원되면 재배치 재론. 상세: phases/2-duedate-reuse/PLANNING.md §4-2.
+- Addendum (2026-07-19): Phase 3 소품 프로브(A-3)가 vsp v2.38.1-94에서 CLAS 테스트
+  include(.clas.testclasses.abap) 배포 지원을 실측 확인 — 위 Context의 전제("미지원/TODO")
+  역전(phases/4-gated-deploy/state/phase3-evidence.json). 재배치(신규 ADR) 여부는 사용자
+  결정 대기.
 
 ## ADR-003 | 2026-07-12 | CLAS 배포 결함 노출 시 GUI 수동 주입으로 완주
 

@@ -37,8 +37,8 @@
 | 1 Offline Harness | 무인 첫 완주 (1-workdays-util) | 완료 2026-07-11 |
 | 1.5 Online Validation | red/green 서버 실증 (5 FAIL→5 PASS) | 완료 2026-07-11 |
 | 2 Read-Only Planning | 답사가 계획 변경 + 무인 완주 + 채점 5 PASS | 완료 2026-07-12 |
-| 3 Gated Deploy | 무인 write 개방 | 미착수 — 선결 3건 전까지 무인 write 금지 |
-| 4 Domain Packs | 모듈 지식팩 축적 | 미착수 |
+| 3 Gated Deploy | 무인 write 개방 | 완료 2026-07-19 (게이트 실증 완주 — 상시 개방은 사용자 결정 대기) |
+| 4 Domain Packs | 모듈 지식팩 축적 | 완료(FI 첫 팩) 2026-07-19 — 축적 계속 |
 
-Phase 3 선결 3건: ① 새-컨텍스트 리뷰 게이트의 무인 체인 편입(HANDOFF §5-11)
+(충족 — Phase 3 완주 2026-07-19) Phase 3 선결 3건: ① 새-컨텍스트 리뷰 게이트의 무인 체인 편입(HANDOFF §5-11)
 ② 0b 마커 실측(대상 확장분) ③ drift 실측(DESIGN.md §14-2 타입 확장분).

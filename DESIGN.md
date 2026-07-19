@@ -462,6 +462,11 @@ packs/modules/fi/
 - **완료 기준**: 객체 1건이 전체 체인을 통과해 SAP에 존재하고, drift check가 SE80 수동
   변경을 실제로 검출함을 1회 실증 + **리뷰 게이트가 기계 검증을 통과한 실제 결함을
   차단한 실증 1회** (리뷰 게이트 스펙 위임 6)
+- **drift 실증기의 채널**: out-of-band 변경을 모사하는 도구(하네스 밖 변경 실증용)는
+  비-vsp 채널을 정당하게 쓴다 — vsp 단일 접점 원칙(PRD 비목표)은 하네스 **자신**의
+  작업·검증 경로에 한정되며, out-of-band 모사는 정의상 그 경로 밖이어야 실증이
+  성립한다 (실측 채널: MCP `UpdateProgram`+`ActivateObjects` — D-022,
+  phases/4-gated-deploy/state/drift-evidence.json)
 
 ### Phase 4: Domain Packs
 - FI/CO부터 이중 구조(§12)로 시작, sc4sap 지식 선별 이식

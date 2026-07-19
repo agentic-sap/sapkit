@@ -278,3 +278,20 @@
   실증 1회" 추가(반영 완료). 구현은 harness-plan 계획 후 — 구현·실증 전까지
   무인 write 금지(5-11)는 그대로 유효. OS 수준 위조 방지는 스코프 밖(절차+감사
   등급) — 다중 사용자·QA 이상 tier 확장 시 재론.
+
+## D-022 · 2026-07-19 · drift 실증기의 비-vsp MCP 채널 사용 정당화 (vsp 단일 접점 원칙과의 긴장 고정)
+- **결정**: drift 실증기(하네스 밖 서버 변경을 모사하는 도구)는 비-vsp 채널(MCP
+  `UpdateProgram`+`ActivateObjects`)을 정당하게 쓴다. PRD 비목표("MCP 서버 백엔드
+  사용 안 함 — SAP 접점은 vsp CLI 단독", D-001·R-002)와의 긴장은 그 원칙이 **하네스
+  자신의 작업·검증 경로**에 한정된다는 점으로 고정한다 — out-of-band 모사는 정의상
+  그 경로 밖이어야 실증이 성립하므로 자기모순이 아니다.
+- **근거**: Phase 3 완주(merge eca4d717)의 drift 실증(phases/4-gated-deploy step 5)이
+  이 채널로 $TMP 서버 `ZSAH4_GL_LIST`에 마커 변경을 만들고 drift check가 검출·게이트
+  경유로 원복함을 실증(state/drift-evidence.json) + 스프린트 독립 리뷰의 비차단 후속
+  권고(phases/4-gated-deploy/review.md ②) + HANDOFF「잔여 소진 스프린트」블록 W5
+  마감 항목 2 기록(HANDOFF.md:328-332).
+- **대안 기각**: vsp 채널로 실증 — drift 실증은 "하네스 밖" 변경을 모사해야 하는데
+  vsp는 하네스 자신의 경로이므로 그 경로로 만든 변경은 out-of-band가 성립하지 않는다
+  (자기모순).
+- **영향**: DESIGN.md §13 Phase 3 완료 기준에 한 줄 명시(위 결정 취지). PRD.md 비목표
+  문구는 무수정 유지(원칙 자체는 그대로, 적용 범위 해석만 고정).
