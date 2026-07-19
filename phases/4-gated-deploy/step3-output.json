@@ -1,0 +1,7 @@
+{
+  "step": 3,
+  "name": "deploy-gate",
+  "exitCode": 0,
+  "stdout": "Step 3 (deploy-gate) 워커 완료 — 확인만, 배포는 엔진 verify 몫(스텝 설계).\n\n사전 확인(수행): ① pass_records 정확히 1건 = 3f67808198550a31…(862ca3b3…는 FAIL로 verdicts/fail_revisions에만) ② 캡슐 디렉터리 실재(files/·manifest.json·spec/·verification/) ③ files/0/zsah4_gl_list.prog.abap sha256(ea4b21ac…)이 워킹트리 src와 바이트 동일(diff 공백) + manifest.files[0].sha256과 일치 → WORKTREE_DRIFT 없음 ④ 추가로 verifyCapsule 로직 수동 재현 — manifest.spec_sha256·verification_sha256이 캡슐 내 spec/content·verification/content와 일치 → CAPSULE_TAMPERED 없음 ⑤ state.blocked=false. 3중 바인딩 전건 충족 상태.\n\n배포는 의도적으로 미실행 — 스텝 지시(\"확인만 하고 completed\") + Forbidden(-Write deploy 직접 호출 금지) 준수. 실제 3중 확인+캡슐본 deploy-shim 배포는 엔진의 동결된 verify 명령이 수행.\n\n변경: index.json step 3 = completed + summary + contract (이 1건만, JSON 유효 확인, 커밋 없음).\n",
+  "stderr": ""
+}

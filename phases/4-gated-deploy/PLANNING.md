@@ -90,3 +90,30 @@ S0 implement-red(오프라인) → S1 스테이징 기계검증+무맹점 증거
 → S3 deploy-gate 캡슐본 배포 → S4 배포후 채점+소품 프로브 → S5 drift 실증
 → S6 증거 통합(phase3-evidence.json — AC-8·14·15·drift·완주 체인). 상세 =
 각 step*.md.
+
+## 8. 런 중 계획 수정 기록 (2026-07-19, 정지→수정→재개)
+
+- S0~S2는 설계대로 완주(AC-8 red FAIL 862ca3b3…·green PASS 3f678081… 엔진
+  기록). **S3 verify 1차 실패 = 코드가 아니라 verify 명령 자체의 결함**:
+  엔진이 verify를 `shell=True`(cmd.exe)로 실행하는데 S3에만 있던 이중 중첩
+  인용(`\"…\"` 안 node -p)이 cmd 경유에서 PowerShell
+  ParserError(TerminatorExpectedAtEndOfString)로 깨짐 — 동일 조건 재현으로
+  확정(다른 스텝은 1겹 인용이라 통과, S1 실증). 계획 린트가 verify를 PS
+  직실행으로만 검사하고 cmd 경유를 재현하지 않은 공백.
+- 절차: harness-run 규약대로 런 정지 → 계획 수정 — 해시 판독+게이트 호출을
+  `checks/run-deploy-gate.mjs`(신규, 인용 0)로 이전, S3 verify =
+  `node phases/4-gated-deploy/checks/run-deploy-gate.mjs` → 커밋 → 재기동
+  (엔진이 completed 스텝 0~2 상태 기반 스킵, S3부터 재개).
+- 교훈 후보(스프린트 마감 시 처리): verify 명령은 cmd.exe 경유 실행을
+  전제로 작성 — 중첩 인용 금지, 복잡 로직은 스크립트 파일로.
+- **동반 발견 2 — 캡슐 경로는 절대여야**: deploy-gate가 {file}을
+  `<capsuleDir>/files/<i>/<basename>`로 치환해 spawn cwd=scripts/review-gate
+  로 실행하므로, --capsule이 레포 상대면 vsp가 그 cwd 기준으로 파일을 찾다
+  실패(재현·실증). run-deploy-gate.mjs가 --capsule·--unit·--state를
+  path.resolve 절대화하도록 수정 — 수정 후 엔진 동일 조건(cmd 경유) exit 0
+  확인. 진단·검증 과정에서 **엔진 밖 캡슐본 배포 2회 발생**(둘 다 PASS 캡슐
+  green 동일본 — 서버 상태 등가·무해, 정직 기록).
+- **관찰(후속 후보, 런 중 무수정)**: deploy-gate.mjs:127 spawnSync가 자식
+  출력(pipe)을 어디에도 전달하지 않아 배포 실패 사유가 침묵됨 — exit 전파는
+  정상이므로 동작 무결, 관찰성 개선(stdio inherit 또는 실패 시 캡처 출력
+  방출)은 스프린트 마감 후속 후보로만.

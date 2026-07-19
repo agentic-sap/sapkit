@@ -71,7 +71,7 @@
       "step": 3,
       "name": "deploy-gate",
       "status": "pending",
-      "verify": "powershell -Command \"$h = node -p \\\"Object.keys(require('./phases/4-gated-deploy/state/state.json').pass_records)[0] || ''\\\"; if (-not $h) { Write-Host 'NO_PASS_RECORD'; exit 1 }; node scripts/review-gate/deploy-gate.mjs --unit phases/4-gated-deploy/unit.json --state phases/4-gated-deploy/state --capsule phases/4-gated-deploy/state/capsules/$h --deploy-cmd 'node deploy-shim.mjs {file}'; exit $LASTEXITCODE\"",
+      "verify": "node phases/4-gated-deploy/checks/run-deploy-gate.mjs",
       "targets": [
         "phases/4-gated-deploy/**"
       ],
@@ -80,7 +80,8 @@
       ],
       "domains": [
         "sap"
-      ]
+      ],
+      "started_at": "2026-07-19T12:47:44+0900"
     },
     {
       "step": 4,
