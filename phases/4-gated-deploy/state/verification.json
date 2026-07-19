@@ -1,0 +1,66 @@
+{
+  "unit_id": "zsah4-gl-list",
+  "mode": "red",
+  "captured_at": "2026-07-19T03:22:31.985Z",
+  "target": {
+    "system": "IDES-DEV S4H/100 client 100",
+    "package": "$TMP",
+    "object": "PROG ZSAH4_GL_LIST"
+  },
+  "machine_checks": {
+    "offline_lint": {
+      "cmd": "vsp lint --file src/zsah4_gl_list.prog.abap",
+      "exit": 0,
+      "issues_found": 0,
+      "output": "No issues found in src/zsah4_gl_list.prog.abap"
+    },
+    "deploy_activation": {
+      "cmd": "scripts/verify-sap.ps1 -Write -- deploy src/zsah4_gl_list.prog.abap $TMP",
+      "exit": 0,
+      "marker": "VERIFY_PASS",
+      "output": "Created PROG/P ZSAH4_GL_LIST\nURL: /sap/bc/adt/programs/programs/zsah4_gl_list\nSuccessfully created and activated PROG/P ZSAH4_GL_LIST from src/zsah4_gl_list.prog.abap"
+    },
+    "unit_test": {
+      "cmd": "scripts/verify-sap.ps1 -- test PROG ZSAH4_GL_LIST",
+      "exit": 0,
+      "test_class": "LTC_GL_LIST",
+      "passed": 5,
+      "failed": 0,
+      "total": 5,
+      "cases": [
+        "ALL_BALANCE_SHEET",
+        "ALL_PROFIT_AND_LOSS",
+        "EMPTY_INPUT",
+        "IGNORES_TEXT_PRESENCE",
+        "MIXED_ACCOUNTS"
+      ]
+    },
+    "atc": {
+      "cmd": "scripts/verify-sap.ps1 -- atc PROG ZSAH4_GL_LIST",
+      "exit": 0,
+      "total_findings": 10,
+      "error_findings": 0,
+      "warn_findings": 2,
+      "info_findings": 8,
+      "summary": "WARN 2건(SELECT bypasses table buffer for SKA1/SKAT in JOIN, line 47) + INFO 8건(SLIN 시간대 설정·텍스트 요소 미외부화 4건·ORDER BY 부재 경고 3건) — Error급 0"
+    }
+  },
+  "covered_types": [
+    "style_lint_error_rules (offline_lint: line_length/empty_statement/max_one_statement/preferred_compare_operator)",
+    "server_side_syntax_and_activation (deploy_activation: create+activate 성공 = ABAP 문법 유효성)",
+    "pure_helper_unit_logic (unit_test: summarize() 카운트 로직 5케이스, DB 무접근 범위만)",
+    "atc_semantic_style_and_performance_rules (atc: SLIN 확장 프로그램 검사·버퍼 우회·ORDER BY 경고, 전부 INFO/WARN)"
+  ],
+  "uncovered_by_machine": [
+    "JOIN 결합의 데이터 완전성(스펙 요구 3)은 어느 기계층도 검증 안 함 — INNER JOIN이 로그온 언어 텍스트 없는 계정을 결과에서 탈락시켜도 offline lint(스타일만)·deploy 활성화(문법만)·unit test(순수 헬퍼만, JOIN 비대상)·ATC(위 10건 전부 스타일/성능성, 데이터 완전성 규칙 없음) 중 어느 것도 탐지하지 못한다.",
+    "AUTHORITY-CHECK 런타임 실효성은 HARMLESS 단위테스트가 미발동 — ltc_gl_list의 5케이스는 lcl_gl_list=>summarize()만 직접 호출하고 START-OF-SELECTION의 AUTHORITY-CHECK OBJECT 'F_SKA1_KTP' 경로를 전혀 실행하지 않으므로, 권한 객체·필드 값이 잘못되어도 unit_test는 계속 green이다."
+  ],
+  "server_evidence": {
+    "vsp_source_read": {
+      "cmd": "scripts/verify-sap.ps1 -- source read PROG ZSAH4_GL_LIST",
+      "object": "PROG ZSAH4_GL_LIST",
+      "content": "REPORT zsah4_gl_list.\n\nPARAMETERS p_ktopl TYPE ska1-ktopl OBLIGATORY DEFAULT 'INT'.\n\nCLASS lcl_gl_list DEFINITION FINAL.\n  PUBLIC SECTION.\n    TYPES: BEGIN OF ty_account,\n             saknr TYPE ska1-saknr,\n             xbilk TYPE ska1-xbilk,\n             txt50 TYPE skat-txt50,\n           END OF ty_account.\n    TYPES ty_accounts TYPE STANDARD TABLE OF ty_account WITH EMPTY KEY.\n    TYPES: BEGIN OF ty_summary,\n             total_count TYPE i,\n             bs_count    TYPE i,\n             pl_count    TYPE i,\n           END OF ty_summary.\n    CLASS-METHODS summarize\n      IMPORTING it_accounts       TYPE ty_accounts\n      RETURNING VALUE(rs_summary) TYPE ty_summary.\nENDCLASS.\n\nCLASS lcl_gl_list IMPLEMENTATION.\n  METHOD summarize.\n    rs_summary-total_count = lines( it_accounts ).\n    LOOP AT it_accounts INTO DATA(ls_account).\n      IF ls_account-xbilk = abap_true.\n        rs_summary-bs_count = rs_summary-bs_count + 1.\n      ENDIF.\n    ENDLOOP.\n    rs_summary-pl_count = rs_summary-total_count - rs_summary-bs_count.\n  ENDMETHOD.\nENDCLASS.\n\nSTART-OF-SELECTION.\n  AUTHORITY-CHECK OBJECT 'F_SKA1_KTP'\n    ID 'KTOPL' FIELD p_ktopl\n    ID 'ACTVT' FIELD '03'.\n  IF sy-subrc <> 0.\n    WRITE / 'No authorization to display G/L accounts for this chart of accounts.'.\n    RETURN.\n  ENDIF.\n\n  DATA lt_accounts TYPE lcl_gl_list=>ty_accounts.\n  SELECT ska1~saknr, ska1~xbilk, skat~txt50\n    FROM ska1\n    INNER JOIN skat ON skat~ktopl = ska1~ktopl\n                   AND skat~saknr = ska1~saknr\n                   AND skat~spras = @sy-langu\n    WHERE ska1~ktopl = @p_ktopl\n    INTO TABLE @lt_accounts.\n\n  LOOP AT lt_accounts INTO DATA(ls_account).\n    WRITE: / ls_account-saknr, ls_account-xbilk, ls_account-txt50.\n  ENDLOOP.\n\n  DATA(ls_summary) = lcl_gl_list=>summarize( it_accounts = lt_accounts ).\n  WRITE: / 'Total accounts:', ls_summary-total_count.\n  WRITE: / 'Balance sheet accounts:', ls_summary-bs_count.\n  WRITE: / 'P&L accounts:', ls_summary-pl_count.\n\nCLASS ltc_gl_list DEFINITION FINAL FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.\n  PRIVATE SECTION.\n    METHODS mixed_accounts FOR TESTING.\n    METHODS all_balance_sheet FOR TESTING.\n    METHODS all_profit_and_loss FOR TESTING.\n    METHODS empty_input FOR TESTING.\n    METHODS ignores_text_presence FOR TESTING.\nENDCLASS.\n\nCLASS ltc_gl_list IMPLEMENTATION.\n\n  METHOD mixed_accounts.\n    DATA(lt_accounts) = VALUE lcl_gl_list=>ty_accounts(\n      ( saknr = '0000100000' xbilk = abap_true  txt50 = 'Cash' )\n      ( saknr = '0000200000' xbilk = abap_false txt50 = 'Sales Revenue' )\n      ( saknr = '0000300000' xbilk = abap_true  txt50 = 'Accounts Payable' ) ).\n    DATA(ls_summary) = lcl_gl_list=>summarize( it_accounts = lt_accounts ).\n    cl_abap_unit_assert=>assert_equals( act = ls_summary-total_count exp = 3 ).\n    cl_abap_unit_assert=>assert_equals( act = ls_summary-bs_count exp = 2 ).\n    cl_abap_unit_assert=>assert_equals( act = ls_summary-pl_count exp = 1 ).\n  ENDMETHOD.\n\n  METHOD all_balance_sheet.\n    DATA(lt_accounts) = VALUE lcl_gl_list=>ty_accounts(\n      ( saknr = '0000100000' xbilk = abap_true txt50 = 'Cash' )\n      ( saknr = '0000300000' xbilk = abap_true txt50 = 'Accounts Payable' ) ).\n    DATA(ls_summary) = lcl_gl_list=>summarize( it_accounts = lt_accounts ).\n    cl_abap_unit_assert=>assert_equals( act = ls_summary-total_count exp = 2 ).\n    cl_abap_unit_assert=>assert_equals( act = ls_summary-bs_count exp = 2 ).\n    cl_abap_unit_assert=>assert_equals( act = ls_summary-pl_count exp = 0 ).\n  ENDMETHOD.\n\n  METHOD all_profit_and_loss.\n    DATA(lt_accounts) = VALUE lcl_gl_list=>ty_accounts(\n      ( saknr = '0000200000' xbilk = abap_false txt50 = 'Sales Revenue' )\n      ( saknr = '0000400000' xbilk = abap_false txt50 = 'Material Expense' ) ).\n    DATA(ls_summary) = lcl_gl_list=>summarize( it_accounts = lt_accounts ).\n    cl_abap_unit_assert=>assert_equals( act = ls_summary-total_count exp = 2 ).\n    cl_abap_unit_assert=>assert_equals( act = ls_summary-bs_count exp = 0 ).\n    cl_abap_unit_assert=>assert_equals( act = ls_summary-pl_count exp = 2 ).\n  ENDMETHOD.\n\n  METHOD empty_input.\n    DATA(lt_accounts) = VALUE lcl_gl_list=>ty_accounts( ).\n    DATA(ls_summary) = lcl_gl_list=>summarize( it_accounts = lt_accounts ).\n    cl_abap_unit_assert=>assert_equals( act = ls_summary-total_count exp = 0 ).\n    cl_abap_unit_assert=>assert_equals( act = ls_summary-bs_count exp = 0 ).\n    cl_abap_unit_assert=>assert_equals( act = ls_summary-pl_count exp = 0 ).\n  ENDMETHOD.\n\n  METHOD ignores_text_presence.\n    DATA(lt_accounts) = VALUE lcl_gl_list=>ty_accounts(\n      ( saknr = '0000100000' xbilk = abap_true  txt50 = '' )\n      ( saknr = '0000200000' xbilk = abap_false txt50 = '' ) ).\n    DATA(ls_summary) = lcl_gl_list=>summarize( it_accounts = lt_accounts ).\n    cl_abap_unit_assert=>assert_equals( act = ls_summary-total_count exp = 2 ).\n    cl_abap_unit_assert=>assert_equals( act = ls_summary-bs_count exp = 1 ).\n    cl_abap_unit_assert=>assert_equals( act = ls_summary-pl_count exp = 1 ).\n  ENDMETHOD.\n\nENDCLASS.",
+      "sha256_normalized": "5b15e0a6d1809188fb02aa8ebc38108c691af5c431ab18dd090c9d6875309eef"
+    }
+  }
+}
