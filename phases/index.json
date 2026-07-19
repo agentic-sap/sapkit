@@ -21,7 +21,8 @@
     },
     {
       "dir": "4-gated-deploy",
-      "status": "pending"
+      "status": "completed",
+      "completed_at": "2026-07-19T13:58:30+0900"
     }
   ]
 }

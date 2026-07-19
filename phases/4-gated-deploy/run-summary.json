@@ -1,0 +1,118 @@
+{
+  "phase": "4-gated-deploy",
+  "outcome": "completed",
+  "driver": "bridge",
+  "step_model": null,
+  "advisory_model": null,
+  "max_retries": 5,
+  "engine_started_at": "2026-07-19T13:10:36+0900",
+  "engine_ended_at": "2026-07-19T14:12:23+0900",
+  "steps": [
+    {
+      "step": 0,
+      "name": "implement-red",
+      "status": "completed",
+      "attempts": 0,
+      "verify_failures": 0,
+      "timeouts": 0,
+      "session_exit_nonzero": 0,
+      "status_not_updated": 0,
+      "attempt_secs": [],
+      "verify_surface_changes": 0,
+      "started_at": "2026-07-19T12:02:49+0900",
+      "completed_at": "2026-07-19T12:14:02+0900"
+    },
+    {
+      "step": 1,
+      "name": "machine-blindness-evidence",
+      "status": "completed",
+      "attempts": 0,
+      "verify_failures": 0,
+      "timeouts": 0,
+      "session_exit_nonzero": 0,
+      "status_not_updated": 0,
+      "attempt_secs": [],
+      "verify_surface_changes": 0,
+      "started_at": "2026-07-19T12:14:04+0900",
+      "completed_at": "2026-07-19T12:25:47+0900"
+    },
+    {
+      "step": 2,
+      "name": "review-gate",
+      "status": "completed",
+      "attempts": 0,
+      "verify_failures": 0,
+      "timeouts": 0,
+      "session_exit_nonzero": 0,
+      "status_not_updated": 0,
+      "attempt_secs": [],
+      "verify_surface_changes": 0,
+      "started_at": "2026-07-19T12:26:09+0900",
+      "completed_at": "2026-07-19T12:47:04+0900"
+    },
+    {
+      "step": 3,
+      "name": "deploy-gate",
+      "status": "completed",
+      "attempts": 1,
+      "verify_failures": 0,
+      "timeouts": 0,
+      "session_exit_nonzero": 0,
+      "status_not_updated": 0,
+      "attempt_secs": [
+        452
+      ],
+      "verify_surface_changes": 0,
+      "started_at": "2026-07-19T12:47:44+0900",
+      "completed_at": "2026-07-19T13:18:09+0900"
+    },
+    {
+      "step": 4,
+      "name": "post-deploy-scoring",
+      "status": "completed",
+      "attempts": 1,
+      "verify_failures": 0,
+      "timeouts": 0,
+      "session_exit_nonzero": 0,
+      "status_not_updated": 0,
+      "attempt_secs": [
+        1212
+      ],
+      "verify_surface_changes": 1,
+      "started_at": "2026-07-19T13:18:18+0900",
+      "completed_at": "2026-07-19T13:38:31+0900"
+    },
+    {
+      "step": 5,
+      "name": "drift-demonstration",
+      "status": "completed",
+      "attempts": 1,
+      "verify_failures": 0,
+      "timeouts": 0,
+      "session_exit_nonzero": 0,
+      "status_not_updated": 0,
+      "attempt_secs": [
+        512
+      ],
+      "verify_surface_changes": 2,
+      "started_at": "2026-07-19T13:38:42+0900",
+      "completed_at": "2026-07-19T13:47:15+0900"
+    },
+    {
+      "step": 6,
+      "name": "evidence-consolidation",
+      "status": "completed",
+      "attempts": 1,
+      "verify_failures": 0,
+      "timeouts": 0,
+      "session_exit_nonzero": 0,
+      "status_not_updated": 0,
+      "attempt_secs": [
+        672
+      ],
+      "verify_surface_changes": 1,
+      "started_at": "2026-07-19T13:47:16+0900",
+      "completed_at": "2026-07-19T13:58:29+0900"
+    }
+  ]
+}
