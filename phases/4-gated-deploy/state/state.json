@@ -1,0 +1,29 @@
+{
+  "verdicts": {
+    "862ca3b3b29e70df29ccf074bb7acf2a90c0f1a64524df654f209acbb8203bd8": {
+      "classification": "FAIL",
+      "at": "2026-07-19T03:32:16.656Z"
+    },
+    "3f67808198550a31789c3a87125eee99685d3db2393ccc8e7bdd2f9540b2c370": {
+      "classification": "PASS",
+      "at": "2026-07-19T03:47:43.615Z"
+    }
+  },
+  "fail_revisions": [
+    "862ca3b3b29e70df29ccf074bb7acf2a90c0f1a64524df654f209acbb8203bd8"
+  ],
+  "infra_retries": 0,
+  "blocked": false,
+  "pass_records": {
+    "3f67808198550a31789c3a87125eee99685d3db2393ccc8e7bdd2f9540b2c370": {
+      "verdict_file": "phases\\4-gated-deploy\\state\\verdict-3f67808198550a31789c3a87125eee99685d3db2393ccc8e7bdd2f9540b2c370.json",
+      "model": "opus",
+      "prompt_version": "1.1",
+      "policy_version": "1.0",
+      "schema_version": "trackB-review-result-v1",
+      "duration_ms": 38470,
+      "tokens": null,
+      "at": "2026-07-19T03:47:43.619Z"
+    }
+  }
+}

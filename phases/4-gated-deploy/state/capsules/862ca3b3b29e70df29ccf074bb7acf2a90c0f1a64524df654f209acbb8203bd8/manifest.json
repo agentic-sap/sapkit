@@ -1,0 +1,18 @@
+{
+  "unit_id": "zsah4-gl-list",
+  "files": [
+    {
+      "path": "src/zsah4_gl_list.prog.abap",
+      "sha256": "964276213241e8e72c4980579fdbd3244912bd806662201a6ee4013b23e59842"
+    }
+  ],
+  "spec_path": "phases/4-gated-deploy/spec.md",
+  "spec_sha256": "c36604b106f2e5ee3c2bb30ae5463540f99f8786690d56b9f8b8a661f308ce22",
+  "verification_path": "phases/4-gated-deploy/state/verification.json",
+  "verification_sha256": "2626f022b23fa865e657b7637f0b120b1159b7cd0b71c22f5e9b8b1b97cdd9bb",
+  "policy_version": "1.0",
+  "prompt_version": "1.1",
+  "schema_version": "trackB-review-result-v1",
+  "reviewer_model": "opus",
+  "target_system": "IDES-DEV S4H/100 client 100, package $TMP, DEV tier"
+}

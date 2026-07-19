@@ -1,0 +1,14 @@
+{
+  "capsule_hash": "862ca3b3b29e70df29ccf074bb7acf2a90c0f1a64524df654f209acbb8203bd8",
+  "classification": "FAIL",
+  "max_severity": "MAJOR",
+  "findings": [
+    {
+      "bucket": "B2",
+      "severity": "MAJOR",
+      "object": "ZSAH4_GL_LIST",
+      "finding": "요구 3(완전성) 위반: START-OF-SELECTION의 SELECT(45~51행)가 SKA1과 SKAT를 INNER JOIN + skat~spras = @sy-langu 로 결합한다. 로그온 언어의 SKAT 텍스트가 없는 SKA1 계정은 결과에서 탈락하여 목록·요약 카운트에서 조용히 누락된다. 스펙은 텍스트 없는 계정도 반드시 포함하고 텍스트 자리는 공란으로 두라고 요구하므로(판정 앵커에서 MAJOR B2로 명시), LEFT OUTER JOIN이 필요하다. server_evidence의 배포 소스도 동일한 INNER JOIN을 확인."
+    }
+  ],
+  "violations": []
+}

@@ -44,9 +44,9 @@ START-OF-SELECTION.
   DATA lt_accounts TYPE lcl_gl_list=>ty_accounts.
   SELECT ska1~saknr, ska1~xbilk, skat~txt50
     FROM ska1
-    LEFT OUTER JOIN skat ON skat~ktopl = ska1~ktopl
-                        AND skat~saknr = ska1~saknr
-                        AND skat~spras = @sy-langu
+    INNER JOIN skat ON skat~ktopl = ska1~ktopl
+                   AND skat~saknr = ska1~saknr
+                   AND skat~spras = @sy-langu
     WHERE ska1~ktopl = @p_ktopl
     INTO TABLE @lt_accounts.
 
@@ -120,4 +120,3 @@ CLASS ltc_gl_list IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
-VERIFY_PASS
