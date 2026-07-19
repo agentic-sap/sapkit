@@ -1,0 +1,7 @@
+{
+  "step": 5,
+  "name": "drift-demonstration",
+  "exitCode": 0,
+  "stdout": "Step 5 (drift-demonstration) 완료.\n\n마커: DRIFT-DEMO-20260719-4-gated-deploy-7D458D9D. ① out-of-band 변경 — MCP UpdateProgram(주석 1줄, REPORT 직후)+ActivateObjects(0 err/0 warn) = SE80 기계 등가, repo·게이트 밖 채널. ② 검출 — source read(read-only) → state/drifted-server-read.txt, 마커 2행 실재, repo와 git diff --no-index exit 1(유일 의미 추가 라인 = 마커 주석) = drift 검출 성공. ③ 원복 — 게이트 경유만(run-deploy-gate.mjs exit 0, PASS 캡슐 3f678081… 재배포, 직접 -Write deploy 미사용) → source read → state/restored-server-read.txt: 마커 부재·LEFT OUTER JOIN·F_SKA1_KTP(5047B, final-server-read와 동일 크기). ④ 증거 — state/drift-evidence.json {marker, out_of_band_channel:\"MCP UpdateProgram+ActivateObjects\", drift_detected:true, restored:true}.\n\nAC: check-drift.mjs → CHECK_OK drift-demonstration exit 0(재확인 포함). index.json step 5 completed + summary + contract.\n\n제약 준수: src/**·spec 무수정(index+state 3파일만 변경), 원복은 게이트 경유만, $TMP·ZSAH4_GL_LIST 외 무접촉, row-data 0, 커밋 0. 서버는 green/원복 상태로 step 6 준비 완료.\n",
+  "stderr": ""
+}

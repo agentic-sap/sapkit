@@ -108,7 +108,7 @@
     {
       "step": 5,
       "name": "drift-demonstration",
-      "status": "pending",
+      "status": "completed",
       "verify": "powershell -Command \"node phases/4-gated-deploy/checks/check-drift.mjs phases/4-gated-deploy/state/drifted-server-read.txt phases/4-gated-deploy/state/restored-server-read.txt; exit $LASTEXITCODE\"",
       "targets": [
         "phases/4-gated-deploy/**"
@@ -119,7 +119,11 @@
       ],
       "domains": [
         "sap"
-      ]
+      ],
+      "started_at": "2026-07-19T13:38:42+0900",
+      "summary": "S5 drift 실증 완주. 마커=DRIFT-DEMO-20260719-4-gated-deploy-7D458D9D (run_id + 무작위 8자 대문자hex). [out-of-band 변경] 서버 ZSAH4_GL_LIST에 MCP UpdateProgram(activate=false)으로 마커 ABAP 코멘트 라인 1줄(REPORT 문 직후, 선행 이중따옴표 인라인 코멘트)을 주입한 뒤 MCP ActivateObjects(PROG/P)로 활성화 — UpdateProgram steps_completed lock/check_new_code/update/unlock/check_inactive, 활성화 failed_count 0·errors 0·warnings 0. 이 채널은 repo 파일과 게이트 밖(SE80 수동편집의 기계 등가, PLANNING §4가 지정한 attended out-of-band 채널)이다. [검출] scripts/verify-sap.ps1 -- source read PROG ZSAH4_GL_LIST(비-Write, 읽기전용) exit 0 → state/drifted-server-read.txt 저장. 마커가 서버 소스 2행에 원문 대소문자 그대로 존재. repo src/zsah4_gl_list.prog.abap와 git diff --no-index 대조 exit 1(차이 있음=drift 검출), 유의미 추가 1줄은 마커 코멘트 라인 (+ DRIFT-DEMO-...7D458D9D) 뿐 — REPORT 행에 붙은 BOM은 Set-Content -Encoding utf8의 파일 인코딩 산물로 step4 final-server-read.txt와 동일 성격의 비의미 노이즈. [원복=게이트 경로] node phases/4-gated-deploy/checks/run-deploy-gate.mjs exit 0 — state.json의 유일 PASS 캡슐(3f67808198550a31789c3a87125eee99685d3db2393ccc8e7bdd2f9540b2c370, green LEFT OUTER JOIN)을 deploy-gate 3중확인(캡슐 무결성·PASS 레코드·워킹트리 일치) 통과 후 $TMP에 재배포. verify-sap -Write -- deploy 직접호출 미사용(Forbidden 준수). 재배포 후 source read exit 0 → state/restored-server-read.txt 저장: 마커 부재·LEFT OUTER JOIN 존재·AUTHORITY-CHECK F_SKA1_KTP 존재(green 확인, 5047B로 final-server-read.txt와 동일 크기). [증거] state/drift-evidence.json = {marker, out_of_band_channel:'MCP UpdateProgram+ActivateObjects', drift_detected:true, restored:true}. [AC 직접 실행] node phases/4-gated-deploy/checks/check-drift.mjs drifted restored → 'CHECK_OK drift-demonstration' exit 0(마커가 drifted에 존재·restored에 부재·restored가 green LEFT OUTER JOIN+F_SKA1_KTP 충족) 재실행 확인. 서버 ZSAH4_GL_LIST는 green/원복 상태로 종료. Forbidden 준수: repo src/**·spec.md 무수정(git status 확인), 원복은 게이트 경유만, $TMP·ZSAH4_GL_LIST 외 서버객체 무접촉, row-data 도구(GetTableContents/GetSqlQuery) 미호출, 커밋 없음, .harness/ 무수정.",
+      "contract": "drift 실증 완료 — state/drift-evidence.json = {marker:'DRIFT-DEMO-20260719-4-gated-deploy-7D458D9D', out_of_band_channel:'MCP UpdateProgram+ActivateObjects', drift_detected:true, restored:true}, state/drifted-server-read.txt(마커 존재)·state/restored-server-read.txt(green·마커 부재) 신설. 서버 ZSAH4_GL_LIST는 green(LEFT OUTER JOIN, PASS 캡슐 3f67808…)으로 원복됨. Step 6(evidence-consolidation)은 phase3-evidence.json의 drift 블록에 이 마커와 drift_detected:true를 전사한다.",
+      "completed_at": "2026-07-19T13:47:15+0900"
     },
     {
       "step": 6,
