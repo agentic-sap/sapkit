@@ -1,6 +1,7 @@
 /**
- * Regression test for CreateProgram silently substituting the object type
- * (HANDOFF §6 backlog 3-3).
+ * Regression test for CreateProgram / CreateProgramLow silently substituting the
+ * object type (HANDOFF §6 backlog 3-3; the low-level sibling CreateProgramLow is
+ * Known-remaining #2, fixed in 4.13.15 by mirroring the high-level guard).
  *
  * The ADT programs/programs create endpoint only produces PROG/P objects, but
  * `CreateProgram` accepted program_type values (function_group / class_pool /
@@ -24,6 +25,7 @@ delete process.env.SAP_VERSION;
 delete process.env.SAP_SYSTEM_TYPE;
 
 import { handleCreateProgram } from '../../handlers/program/high/handleCreateProgram';
+import { handleCreateProgram as handleCreateProgramLow } from '../../handlers/program/low/handleCreateProgram';
 
 interface Captured {
   url: string;
@@ -96,6 +98,45 @@ describe('CreateProgram program_type guard (regression: silent PROG/P substituti
       program_name: 'ZSAH_PROG_TEST',
       package_name: '$TMP',
       program_type: 'executable',
+    });
+
+    const createPost = connection.captured.find(
+      (r) => r.method === 'POST' && r.url.includes('/programs/programs'),
+    );
+    expect(createPost).toBeDefined();
+  });
+});
+
+describe('CreateProgramLow program_type guard (regression: Known-remaining #2 — low-level sibling)', () => {
+  for (const [type, dedicated] of REJECTED) {
+    it(`refuses program_type '${type}' and creates nothing, pointing at ${dedicated}`, async () => {
+      const connection = new FakeConnection();
+      const context = { connection, logger: undefined } as any;
+
+      const result = await handleCreateProgramLow(context, {
+        program_name: 'ZSAH_PROG_TEST',
+        description: 'ZSAH_PROG_TEST',
+        package_name: '$TMP',
+        program_type: type,
+      });
+
+      expect(result.isError).toBeTruthy();
+      expect(JSON.stringify(result)).toContain(dedicated);
+      // Nothing was created — the guard fired before any SAP round-trip.
+      expect(connection.captured.length).toBe(0);
+    });
+  }
+
+  it("lets a supported program_type ('executable') reach the create POST", async () => {
+    const connection = new FakeConnection();
+    const context = { connection, logger: undefined } as any;
+
+    await handleCreateProgramLow(context, {
+      program_name: 'ZSAH_PROG_TEST',
+      description: 'ZSAH_PROG_TEST',
+      package_name: '$TMP',
+      program_type: 'executable',
+      skip_check: true,
     });
 
     const createPost = connection.captured.find(

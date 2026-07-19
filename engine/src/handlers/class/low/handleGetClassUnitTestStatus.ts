@@ -31,10 +31,6 @@ export const TOOL_DEFINITION = {
         type: 'string',
         description: 'Run identifier returned by RunClassUnitTestsLow.',
       },
-      with_long_polling: {
-        type: 'boolean',
-        description: 'Optional flag to enable SAP long-polling (default true).',
-      },
       session_id: {
         type: 'string',
         description:

@@ -74,14 +74,6 @@ export const TOOL_DEFINITION = {
           required: ['container_class', 'test_class'],
         },
       },
-      title: {
-        type: 'string',
-        description: 'Optional title for the ABAP Unit run.',
-      },
-      context: {
-        type: 'string',
-        description: 'Optional context string shown in SAP tools.',
-      },
       scope: {
         type: 'object',
         properties: {

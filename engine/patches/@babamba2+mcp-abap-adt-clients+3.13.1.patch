@@ -73,7 +73,7 @@ index 1e554d3..dc8b3b7 100644
              // 2. Update test classes (uses parent class lock handle)
              this.logger?.info?.('Step 2: Updating test classes');
 diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalDefinitions.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalDefinitions.js
-index ede11ff..aff9f93 100644
+index ede11ff..7faa6cc 100644
 --- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalDefinitions.js
 +++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalDefinitions.js
 @@ -83,6 +83,13 @@ class AdtLocalDefinitions extends AdtClass_1.AdtClass {
@@ -104,8 +104,57 @@ index ede11ff..aff9f93 100644
              // 2. Check local definitions code
              const codeToCheck = options?.sourceCode || config.definitionsCode;
              if (codeToCheck) {
+@@ -221,11 +235,43 @@ class AdtLocalDefinitions extends AdtClass_1.AdtClass {
+         if (!config.className) {
+             throw new Error('Class name is required');
+         }
+-        // Delete by updating with empty code
+-        return await this.update({
+-            ...config,
+-            definitionsCode: '',
+-        });
++        // [powerup 4.13.15] Delete = clear the include via a dedicated
++        // empty-payload PUT (backlog 11-⑩). The old body delegated to
++        // update({ definitionsCode: '' }), but update()'s "code is required"
++        // guard rejected the empty payload before the lock, so Delete never
++        // reached the wire. Run our own lock -> (4.13.7 stateful pin) -> clear
++        // PUT -> unlock chain.
++        let lockHandle;
++        try {
++            this.logger?.info?.('Step 1: Locking parent class');
++            lockHandle = await super.lock({ className: config.className });
++            this.logger?.info?.('Parent class locked, handle:', lockHandle);
++            // [powerup 4.13.7] Keep the ENQUEUE lock alive through the write.
++            this.connection.setSessionType('stateful');
++            this.logger?.info?.('Step 2: Clearing local definitions include');
++            const updateResponse = await (0, includes_1.clearClassInclude)(this.connection, config.className, 'definitions', lockHandle, config.transportRequest, this.contentTypes?.sourceArtifactContentType());
++            this.logger?.info?.('Step 3: Unlocking parent class');
++            const unlockState = await super.unlock({ className: config.className }, lockHandle);
++            lockHandle = undefined;
++            return {
++                updateResult: updateResponse,
++                unlockResult: unlockState.unlockResult,
++                errors: [],
++            };
++        }
++        catch (error) {
++            if (lockHandle) {
++                try {
++                    this.logger?.warn?.('Unlocking parent class during error cleanup');
++                    await super.unlock({ className: config.className }, lockHandle);
++                }
++                catch (unlockError) {
++                    this.logger?.warn?.('Failed to unlock parent class after error:', (0, internalUtils_1.safeErrorMessage)(unlockError));
++                }
++            }
++            this.logger?.error('Delete LocalDefinitions failed:', (0, internalUtils_1.safeErrorMessage)(error));
++            throw error;
++        }
+     }
+     /**
+      * Activate parent class (local definitions are activated with parent class)
 diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalMacros.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalMacros.js
-index 24f19c0..0018f08 100644
+index 24f19c0..db03391 100644
 --- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalMacros.js
 +++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalMacros.js
 @@ -84,6 +84,13 @@ class AdtLocalMacros extends AdtClass_1.AdtClass {
@@ -136,8 +185,57 @@ index 24f19c0..0018f08 100644
              // 2. Check local macros code
              const codeToCheck = options?.sourceCode || config.macrosCode;
              if (codeToCheck) {
+@@ -222,11 +236,43 @@ class AdtLocalMacros extends AdtClass_1.AdtClass {
+         if (!config.className) {
+             throw new Error('Class name is required');
+         }
+-        // Delete by updating with empty code
+-        return await this.update({
+-            ...config,
+-            macrosCode: '',
+-        });
++        // [powerup 4.13.15] Delete = clear the include via a dedicated
++        // empty-payload PUT (backlog 11-⑩). The old body delegated to
++        // update({ macrosCode: '' }), but update()'s "code is required" guard
++        // rejected the empty payload before the lock, so Delete never reached
++        // the wire. Run our own lock -> (4.13.7 stateful pin) -> clear PUT ->
++        // unlock chain.
++        let lockHandle;
++        try {
++            this.logger?.info?.('Step 1: Locking parent class');
++            lockHandle = await super.lock({ className: config.className });
++            this.logger?.info?.('Parent class locked, handle:', lockHandle);
++            // [powerup 4.13.7] Keep the ENQUEUE lock alive through the write.
++            this.connection.setSessionType('stateful');
++            this.logger?.info?.('Step 2: Clearing local macros include');
++            const updateResponse = await (0, includes_1.clearClassInclude)(this.connection, config.className, 'macros', lockHandle, config.transportRequest, this.contentTypes?.sourceArtifactContentType());
++            this.logger?.info?.('Step 3: Unlocking parent class');
++            const unlockState = await super.unlock({ className: config.className }, lockHandle);
++            lockHandle = undefined;
++            return {
++                updateResult: updateResponse,
++                unlockResult: unlockState.unlockResult,
++                errors: [],
++            };
++        }
++        catch (error) {
++            if (lockHandle) {
++                try {
++                    this.logger?.warn?.('Unlocking parent class during error cleanup');
++                    await super.unlock({ className: config.className }, lockHandle);
++                }
++                catch (unlockError) {
++                    this.logger?.warn?.('Failed to unlock parent class after error:', (0, internalUtils_1.safeErrorMessage)(unlockError));
++                }
++            }
++            this.logger?.error('Delete LocalMacros failed:', (0, internalUtils_1.safeErrorMessage)(error));
++            throw error;
++        }
+     }
+     /**
+      * Activate parent class (local macros are activated with parent class)
 diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalTestClass.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalTestClass.js
-index 80bfe03..cba2215 100644
+index 80bfe03..c3b9c99 100644
 --- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalTestClass.js
 +++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalTestClass.js
 @@ -84,6 +84,13 @@ class AdtLocalTestClass extends AdtClass_1.AdtClass {
@@ -168,8 +266,57 @@ index 80bfe03..cba2215 100644
              // 2. Check test class code
              const codeToCheck = options?.sourceCode || config.testClassCode;
              if (codeToCheck) {
+@@ -244,11 +258,43 @@ class AdtLocalTestClass extends AdtClass_1.AdtClass {
+         if (!config.className) {
+             throw new Error('Class name is required');
+         }
+-        // Delete by updating with empty code
+-        return await this.update({
+-            ...config,
+-            testClassCode: '',
+-        });
++        // [powerup 4.13.15] Delete = clear the testclasses include via a
++        // dedicated empty-payload PUT (backlog 11-⑩). The old body delegated to
++        // update({ testClassCode: '' }), but update()'s "code is required" guard
++        // rejected the empty payload before the lock, so Delete never reached
++        // the wire. Run our own lock -> (4.13.7 stateful pin) -> clear PUT ->
++        // unlock chain.
++        let parentLockHandle;
++        try {
++            this.logger?.info?.('Step 1: Locking parent class');
++            parentLockHandle = await this.lock({ className: config.className });
++            this.logger?.info?.('Parent class locked, handle:', parentLockHandle);
++            // [powerup 4.13.7] Keep the ENQUEUE lock alive through the write.
++            this.connection.setSessionType('stateful');
++            this.logger?.info?.('Step 2: Clearing test classes include');
++            const updateResponse = await (0, testclasses_1.clearClassTestInclude)(this.connection, config.className, parentLockHandle, config.transportRequest, this.contentTypes?.sourceArtifactContentType());
++            this.logger?.info?.('Step 3: Unlocking parent class');
++            const unlockState = await super.unlock({ className: config.className }, parentLockHandle);
++            parentLockHandle = undefined;
++            return {
++                updateResult: updateResponse,
++                unlockResult: unlockState.unlockResult,
++                errors: [],
++            };
++        }
++        catch (error) {
++            if (parentLockHandle) {
++                try {
++                    this.logger?.warn?.('Unlocking parent class during error cleanup');
++                    await super.unlock({ className: config.className }, parentLockHandle);
++                }
++                catch (unlockError) {
++                    this.logger?.warn?.('Failed to unlock parent class after error:', (0, internalUtils_1.safeErrorMessage)(unlockError));
++                }
++            }
++            this.logger?.error('Delete LocalTestClass failed:', (0, internalUtils_1.safeErrorMessage)(error));
++            throw error;
++        }
+     }
+     /**
+      * Check local test class code
 diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalTypes.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalTypes.js
-index b6387fa..77f4100 100644
+index b6387fa..67b26e6 100644
 --- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalTypes.js
 +++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalTypes.js
 @@ -79,6 +79,13 @@ class AdtLocalTypes extends AdtClass_1.AdtClass {
@@ -200,6 +347,55 @@ index b6387fa..77f4100 100644
              // 2. Check local types code
              const codeToCheck = options?.sourceCode || config.localTypesCode;
              const state = {
+@@ -219,11 +233,43 @@ class AdtLocalTypes extends AdtClass_1.AdtClass {
+         if (!config.className) {
+             throw new Error('Class name is required');
+         }
+-        // Delete by updating with empty code
+-        return await this.update({
+-            ...config,
+-            localTypesCode: '',
+-        });
++        // [powerup 4.13.15] Delete = clear the include via a dedicated
++        // empty-payload PUT (backlog 11-⑩). The old body delegated to
++        // update({ localTypesCode: '' }), but update()'s "code is required"
++        // guard rejected the empty payload before the lock, so Delete never
++        // reached the wire. Run our own lock -> (4.13.7 stateful pin) -> clear
++        // PUT -> unlock chain.
++        let lockHandle;
++        try {
++            this.logger?.info?.('Step 1: Locking parent class');
++            lockHandle = await super.lock({ className: config.className });
++            this.logger?.info?.('Parent class locked, handle:', lockHandle);
++            // [powerup 4.13.7] Keep the ENQUEUE lock alive through the write.
++            this.connection.setSessionType('stateful');
++            this.logger?.info?.('Step 2: Clearing local types include');
++            const updateResponse = await (0, includes_1.clearClassInclude)(this.connection, config.className, 'implementations', lockHandle, config.transportRequest, this.contentTypes?.sourceArtifactContentType());
++            this.logger?.info?.('Step 3: Unlocking parent class');
++            const unlockState = await super.unlock({ className: config.className }, lockHandle);
++            lockHandle = undefined;
++            return {
++                updateResult: updateResponse,
++                unlockResult: unlockState.unlockResult,
++                errors: [],
++            };
++        }
++        catch (error) {
++            if (lockHandle) {
++                try {
++                    this.logger?.warn?.('Unlocking parent class during error cleanup');
++                    await super.unlock({ className: config.className }, lockHandle);
++                }
++                catch (unlockError) {
++                    this.logger?.warn?.('Failed to unlock parent class after error:', (0, internalUtils_1.safeErrorMessage)(unlockError));
++                }
++            }
++            this.logger?.error('Delete LocalTypes failed:', (0, internalUtils_1.safeErrorMessage)(error));
++            throw error;
++        }
+     }
+     /**
+      * Activate parent class (local types are activated with parent class)
 diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/create.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/create.js
 index c393a46..0de6aa2 100644
 --- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/create.js
@@ -231,6 +427,117 @@ index 7f00cad..b29a42c 100644
      return {
          ...response,
          data: {
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/includes.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/includes.js
+index f454778..f010472 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/includes.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/includes.js
+@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.updateClassLocalTypes = updateClassLocalTypes;
+ exports.updateClassDefinitions = updateClassDefinitions;
+ exports.updateClassMacros = updateClassMacros;
++exports.clearClassInclude = clearClassInclude;
+ const contentTypes_1 = require("../../constants/contentTypes");
+ const internalUtils_1 = require("../../utils/internalUtils");
+ const timeouts_1 = require("../../utils/timeouts");
+@@ -94,3 +95,43 @@ async function updateClassInclude(connection, className, includeSource, includeT
+         headers,
+     });
+ }
++// [powerup 4.13.15] Effectively-empty include source for the delete/clear path.
++// S/4HANA normalises a single space to an empty include (verified live on
++// /includes/implementations and /includes/testclasses); a literal '' trips the
++// falsy guards that made Delete unreachable.
++const EMPTY_INCLUDE_SOURCE = ' ';
++/**
++ * Clear a class include (delete-only path) — powerup 4.13.15.
++ *
++ * DeleteLocal{Types,Definitions,Macros} used to delegate to
++ * update({ ...code: '' }), but the "code is required" falsy guard on
++ * update()/updateClassInclude rejected the empty payload BEFORE the lock, so
++ * the delete PUT never reached the wire (backlog 11-⑩). This is the dedicated
++ * clear path: it PUTs an effectively-empty source to the include endpoint.
++ *
++ * The common `if (!includeSource)` guard on updateClassInclude is intentionally
++ * left intact so a normal Update with empty code is still rejected (blast-radius
++ * containment). Requires the class to be locked (lock handle) before calling.
++ */
++async function clearClassInclude(connection, className, includeType, lockHandle, transportRequest, sourceContentType) {
++    if (!lockHandle) {
++        throw new Error(`lockHandle is required to clear ${includeType}`);
++    }
++    const encodedName = (0, internalUtils_1.encodeSapObjectName)(className).toLowerCase();
++    let url = `/sap/bc/adt/oo/classes/${encodedName}/includes/${includeType}?lockHandle=${encodeURIComponent(lockHandle)}`;
++    if (transportRequest) {
++        url += `&corrNr=${transportRequest}`;
++    }
++    const contentType = sourceContentType || contentTypes_1.CT_SOURCE;
++    const headers = {
++        'Content-Type': contentType,
++        Accept: contentTypes_1.ACCEPT_SOURCE,
++    };
++    return await connection.makeAdtRequest({
++        url,
++        method: 'PUT',
++        timeout: (0, timeouts_1.getTimeout)('default'),
++        data: EMPTY_INCLUDE_SOURCE,
++        headers,
++    });
++}
+diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/testclasses.js b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/testclasses.js
+index d03cd38..80ad618 100644
+--- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/testclasses.js
++++ b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/testclasses.js
+@@ -4,6 +4,7 @@
+  */
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.updateClassTestInclude = updateClassTestInclude;
++exports.clearClassTestInclude = clearClassTestInclude;
+ exports.lockClassTestClasses = lockClassTestClasses;
+ exports.unlockClassTestClasses = unlockClassTestClasses;
+ exports.activateClassTestClasses = activateClassTestClasses;
+@@ -41,6 +42,42 @@ async function updateClassTestInclude(connection, className, testClassSource, lo
+         headers,
+     });
+ }
++// [powerup 4.13.15] Effectively-empty testclasses source for the delete/clear
++// path — a single space, which S/4HANA normalises to an empty include
++// (verified live). See clearClassInclude in ./includes for the full rationale.
++const EMPTY_TESTCLASS_SOURCE = ' ';
++/**
++ * Clear a class testclasses include (delete-only path) — powerup 4.13.15.
++ *
++ * DeleteLocalTestClass used to delegate to update({ testClassCode: '' }), whose
++ * "code is required" falsy guard rejected the empty payload before the lock, so
++ * the delete PUT never reached the wire (backlog 11-⑩). This dedicated clear
++ * path PUTs an effectively-empty source. The `if (!testClassSource)` guard on
++ * updateClassTestInclude is left intact so a normal Update with empty code is
++ * still rejected. Requires the class to be locked (lock handle) before calling.
++ */
++async function clearClassTestInclude(connection, className, lockHandle, transportRequest, sourceContentType) {
++    if (!lockHandle) {
++        throw new Error('lockHandle is required to clear test classes');
++    }
++    const encodedName = (0, internalUtils_1.encodeSapObjectName)(className).toLowerCase();
++    let url = `/sap/bc/adt/oo/classes/${encodedName}/includes/testclasses?lockHandle=${encodeURIComponent(lockHandle)}`;
++    if (transportRequest) {
++        url += `&corrNr=${transportRequest}`;
++    }
++    const contentType = sourceContentType || contentTypes_1.CT_SOURCE;
++    const headers = {
++        'Content-Type': contentType,
++        Accept: contentTypes_1.ACCEPT_SOURCE,
++    };
++    return await connection.makeAdtRequest({
++        url,
++        method: 'PUT',
++        timeout: (0, timeouts_1.getTimeout)('default'),
++        data: EMPTY_TESTCLASS_SOURCE,
++        headers,
++    });
++}
+ async function lockClassTestClasses(connection, className) {
+     const encodedName = (0, internalUtils_1.encodeSapObjectName)(className).toLowerCase();
+     const url = `/sap/bc/adt/oo/classes/${encodedName}/includes/testclasses?_action=LOCK&accessMode=MODIFY`;
 diff --git a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/types.d.ts b/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/types.d.ts
 index 21cf2c4..91c8176 100644
 --- a/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/types.d.ts

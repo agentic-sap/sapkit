@@ -27,10 +27,6 @@ exports.TOOL_DEFINITION = {
                 type: 'string',
                 description: 'Run identifier returned by RunClassUnitTestsLow.',
             },
-            with_navigation_uris: {
-                type: 'boolean',
-                description: 'Optional flag to request navigation URIs in SAP response (default true).',
-            },
             format: {
                 type: 'string',
                 enum: ['abapunit', 'junit'],

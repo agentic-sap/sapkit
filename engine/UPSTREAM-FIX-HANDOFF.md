@@ -1,4 +1,4 @@
-# Upstream fix hand-off: `abap-mcp-adt-powerup` server + `mcp-abap-adt-clients` client, releases 4.13.2 – 4.13.13
+# Upstream fix hand-off: `abap-mcp-adt-powerup` server + `mcp-abap-adt-clients` client, releases 4.13.2 – 4.13.15
 
 Paste this whole file into the Claude Code (or hand it to the maintainer) on the
 machine that holds the fork/upstream source. It is **self-contained**: for each
@@ -45,6 +45,7 @@ exact diffs from these commits if a hand-application drifts:
 | 4.13.12 | `(pending)` | Table check-with-source + handler blocks bad DDL (§10) + create-payload logon-language remainder × 8 (§11) |
 | 4.13.13 | `(pending)` | Real-data gate honesty: self-closing NULL cell drop/shift + row-count meta + sporadic-400 retry (§12) |
 | 4.13.14 | `(pending)` | DDIC write real-generation: CreateStructure fields→DDL (§13) + FM read inactive-edit-loss warning + description honesty (§14) |
+| 4.13.15 | `(pending)` | Local-include Delete family repaired — dedicated clear path replaces the broken `update('')` delegation (§15, client-package, backlog 11-⑩) + low unit-test schemas drop 4 cloud-only no-op params (§15, server) + `CreateProgramLow` type-substitution guard mirrored from the high-level (§4, Known-remaining #2) |
 
 > Note: commit `acad614d` is the authoritative 4.13.8 boundary (the CHANGELOG's
 > `## [4.13.8]` header was added retroactively — content is identical).
@@ -319,6 +320,24 @@ Schema-only enum edit; tool count unchanged.
 The compact `HandlerCreate` dispatcher delegates `PROGRAM.create` to this patched
 handler and inherits the guard (review-verified — no separate fix).
 
+### Low-level sibling (4.13.15, was Known-remaining #2)
+
+`engine/src/handlers/program/low/handleCreateProgram.ts` (`CreateProgramLow`) had
+the same defect and was left unguarded at 4.13.9 — its `program_type` schema
+advertised all six values with **no enum**, and the handler passed the raw type
+straight to the vendored `create()`. `CreateProgramLow(program_type:'function_group')`
+therefore created a `PROG/P` shell and reported `success:true` (live-reproduced
+on IDES `$TMP` via a `--exposition readonly,high,low` server; `SearchObject`
+confirmed the object was `PROG/P`, not `FUGR`). Fixed by **mirroring** the
+high-level guard into the low handler — the same `SUPPORTED_PROGRAM_TYPES`,
+`DEDICATED_TOOL_FOR_PROGRAM_TYPE` map, and pre-create reject block — and adding
+the same `enum:['executable','module_pool']` to the low `program_type` schema
+(so the MCP input-validation layer rejects an unsupported value before the
+handler too). The low-specific `session_id` / `session_state` / `skip_check`
+contract is untouched. Verified live red→green on IDES `$TMP`: pre-fix created a
+`PROG/P` shell (deleted, read-back 404); post-fix the call is rejected pre-wire
+and nothing is created.
+
 ### Also removed (4.13.9): CreateStructure dead lock/unlock pair
 
 `engine/src/handlers/structure/high/handleCreateStructure.ts` locked the
@@ -334,7 +353,9 @@ Create-family pins.
 
 - `engine/src/__tests__/unit/createProgramTypeGuard.test.ts` — each unsupported
   type refused with **zero** outbound requests; a supported type still reaches
-  the create POST (reverse-verified).
+  the create POST (reverse-verified). Covers **both** `CreateProgram` (high) and
+  `CreateProgramLow` (low, 4.13.15) — the low reverse-verify removes only the low
+  guard and fails exactly the four low reject cases.
 - `engine/src/__tests__/unit/createStructureNoDeadLock.test.ts` — asserts
   create→check→activate issues no structure LOCK/UNLOCK.
 
@@ -1037,27 +1058,132 @@ allowance). items 4/5/6 are description-only.
 
 ---
 
+## §15 — Local-include Delete family + low unit-test schema cleanup (4.13.15)
+
+Two fixes: a client-package repair that makes the four `DeleteLocal*` tools work
+at all (backlog 11-⑩ — was Known-remaining #1), and a server-side schema cleanup
+that drops four no-op params the §8 switch orphaned (was Known-remaining #6).
+
+### Symptom
+
+`DeleteLocalTypes` / `DeleteLocalDefinitions` / `DeleteLocalMacros` /
+`DeleteLocalTestClass` fail on **every** call, before any request reaches the
+wire, with `Failed to delete … : … code is required`. Live-reproduced on IDES
+(S/4HANA 2021, logon CS) on the 4.13.14 bundle against a `$TMP` class with all
+four includes populated: all four tools returned that error.
+
+### Root cause
+
+The four vendored high-level clients implement `delete()` as
+"delete by updating with empty code":
+`return this.update({ ...config, <kind>Code: '' })`. But `update()`'s first
+statement is `if (!config.<kind>Code) throw new Error('… code is required')`, and
+`''` is falsy — the guard throws **before** the lock, so the include-clearing PUT
+is never issued. A second falsy guard, `if (!includeSource)` /
+`if (!testClassSource)` in the low-level `updateClassInclude` /
+`updateClassTestInclude`, backstops the same failure one layer down.
+
+### Fix — client-package (delete family)
+
+Option A: give delete its own path instead of borrowing update's. In
+`patch-package` (`patches/@babamba2+mcp-abap-adt-clients+3.13.1.patch`, marked
+`[powerup 4.13.15]`):
+
+1. `class/includes.js` — new `clearClassInclude(connection, className,
+   includeType, lockHandle, transportRequest, sourceContentType)`: the same PUT
+   as `updateClassInclude` but **without** the `if (!includeSource)` guard,
+   sending an effectively-empty body (`EMPTY_INCLUDE_SOURCE = ' '`, a single
+   space). Handles `implementations` / `definitions` / `macros`.
+2. `class/testclasses.js` — new `clearClassTestInclude(connection, className,
+   lockHandle, transportRequest, sourceContentType)`, the testclasses-endpoint
+   twin (`EMPTY_TESTCLASS_SOURCE = ' '`).
+3. `class/AdtLocalTypes.js` / `AdtLocalDefinitions.js` / `AdtLocalMacros.js` /
+   `AdtLocalTestClass.js` — each `delete()` now runs its own chain: `lock →
+   setSessionType('stateful')` (the §1 4.13.7 pin — IDES recycles the connection
+   between requests, so a stateless PUT after the lock evaporates the ENQUEUE
+   lock) `→ clear PUT → unlock`, with unlock-on-error cleanup, calling the new
+   low-level clear function with the right include type.
+
+The common `if (!code)` guards on `update()` **and** the `if (!includeSource)` /
+`if (!testClassSource)` guards on the update helpers are deliberately left
+intact — a normal `Update*` with empty code must still be rejected. Relaxing the
+shared guard was rejected: it would let an accidental empty-code Update silently
+wipe a populated include (blast radius). The clear path is delete-only.
+
+### Fix — server (low unit-test schema)
+
+§8 (4.13.11) moved `RunClassUnitTestsLow` / `GetClassUnitTestStatusLow` /
+`GetClassUnitTestResultLow` onto the classic `/testruns` bridge, which left four
+`inputSchema` params the handlers' destructuring never reads: `title` +
+`context` on the run tool, `with_long_polling` on the status tool,
+`with_navigation_uris` on the result tool. Removed from the three schemas
+(handler logic untouched). The consumed params stay — `scope` / `risk_level` /
+`duration` feed the `abapUnitClassic` options block, `format` is honoured by the
+result reader.
+
+### Clear-payload probe (live, required before the repair)
+
+The clear payload is not empty string. On IDES `$TMP`, a **single space** PUT to
+`/sap/bc/adt/oo/classes/<c>/includes/{implementations,testclasses}` is accepted
+by S/4HANA and normalised to an **empty** include — the inactive read-back
+returned `""` on both endpoints. A literal `''` re-trips the falsy guards, so the
+clear functions send a single space. Judged by read-back, never by error absence
+(§3 discipline).
+
+### Regression tests
+
+- `src/__tests__/unit/deleteLocalIncludesFamily.test.ts` drives all four real
+  delete handlers over a fake `IAbapConnection` (the §1
+  `vendoredClientLockChainStatefulSession` pattern) and pins, per family member:
+  the chain succeeds, a stateful LOCK precedes the clear PUT to `/includes/<type>`,
+  every request from lock through the write is stateful (the 4.13.7 pin), the
+  write body is the single space, and an UNLOCK follows. **Reverse-verified by
+  reversing the `patch-package` patch**: with `delete()` back on `update('')` all
+  four cases FAIL (guard throws, no PUT); re-applying restores green.
+- `src/__tests__/unit/lowUnitTestSchemaShape.test.ts` asserts the four removed
+  keys are absent from the three `inputSchema.properties` and the consumed params
+  are still present (reverse-verified — re-adding a key fails it).
+
+### Live verification
+
+On the 4.13.14 bundle all four Delete tools failed "…code is required"; on the
+freshly-bundled 4.13.15 (spawned via the plugin launch path, live connection
+confirmed by `GetSystemInfo`) all four returned success and the inactive
+read-back confirmed each populated include (`local types` / `definitions` /
+`macros` / `test class`) emptied to `""`. The `$TMP` probe class was deleted and
+read-back-confirmed gone (404); no orphan lock. Tool count unchanged (155) — the
+schema change removes properties, not tools.
+
+---
+
 ## Known-remaining defects (still present upstream)
 
 Confirmed against the reference `HANDOFF.md` §6 backlog. These are **not** fixed
 in the reference implementation and remain in the original sources. Where a fix
 was only reasoned (not live-staged) it is flagged **code-review-verified only**.
 
-1. **Local Delete family always fails at the client level (backlog 11-⑩).**
+1. **~~Local Delete family always fails at the client level (backlog 11-⑩).~~
+   RESOLVED in 4.13.15 — see §15.**
    `AdtLocalTestClass` / `AdtLocalTypes` / `AdtLocalMacros` /
-   `AdtLocalDefinitions` `.delete()` are implemented as `update(code: '')`, but
+   `AdtLocalDefinitions` `.delete()` were implemented as `update(code: '')`, but
    every `update()` rejects empty code with "… code is required" **before**
    locking — so `DeleteLocalTestClass` / `DeleteLocalTypes` / `DeleteLocalMacros`
-   / `DeleteLocalDefinitions` can never succeed. Separate defect class from §1
-   (not a lock-session leak). *Code-review-verified only* (found during the
-   4.13.7 audit; no live repro staged). Related: a class with no testclasses
-   include cannot be updated (the include-create ADT POST is unsupported) — bundle
-   with the missing Create-side tool.
+   / `DeleteLocalDefinitions` could never succeed. Separate defect class from §1
+   (not a lock-session leak). Fixed by the §15 dedicated clear path (live
+   red→green). Still open (Create-side gap): a class has no `CreateLocalTestClass`
+   / `CreateLocalTypes` / … tool — an include is first populated through the
+   corresponding `Update*` tool; adding dedicated create tools is a feature
+   extension, recorded as a candidate only.
 
-2. **`CreateProgramLow` shares the §4 substitution root.** The low-level tool
-   calls the same type-ignoring vendored `create()` directly and was left
-   untouched to keep the §4 fix minimal to the named high-level tool (low-level
-   caller contract differs — separate judgment).
+2. **~~`CreateProgramLow` shares the §4 substitution root.~~ RESOLVED in
+   4.13.15 — see §4.** The low-level tool called the same type-ignoring vendored
+   `create()` directly with no guard and no schema enum, so
+   `CreateProgramLow(program_type:'function_group')` created a `PROG/P` shell and
+   reported success (live-reproduced on IDES `$TMP`). Fixed by mirroring the §4
+   high-level guard into the low handler (`SUPPORTED_PROGRAM_TYPES` +
+   `DEDICATED_TOOL_FOR_PROGRAM_TYPE` + pre-create reject) and adding the same
+   `enum:['executable','module_pool']` to the low `program_type` schema; the
+   low-specific `session_id`/`session_state`/`skip_check` contract is unchanged.
 
 3. **Un-reached full-chain stateless leaks in the client wrappers.** The other
    object wrappers' full-chain `update()` paths without a `lockHandle`
@@ -1079,8 +1205,10 @@ was only reasoned (not live-staged) it is flagged **code-review-verified only**.
    object is functionally complete; a deeper diagnosis needs a `DD01T` real-data
    query and was deferred. Observation only, no defect claimed.
 
-6. **Low unit-test schema still advertises 4 cloud-only no-op parameters**
-   (harmless leftover after §8) — a follow-up cleanup candidate, not a fault.
+6. **~~Low unit-test schema still advertises 4 cloud-only no-op parameters~~
+   RESOLVED in 4.13.15 — see §15.** The harmless leftover after §8 (`title` /
+   `context` / `with_long_polling` / `with_navigation_uris`) is removed from the
+   three low-tool schemas; the consumed params are kept.
 
 7. **`accessControl` (DCL) / `functionGroup` / `enhancement` / `tabletype`
    create payloads still hardcode EN (after §11).** `accessControl` /
@@ -1142,7 +1270,7 @@ compiled `dist/`).
 ```bash
 cd engine
 npm ci            # re-applies patch-package via the prepare hook
-npm test          # jest unit suites — reference passes 572/0 at 4.13.10, 580/0 at 4.13.11, 599/0 at 4.13.12, 611/5skip at 4.13.13, 643/5skip at 4.13.14
+npm test          # jest unit suites — reference passes 572/0 at 4.13.10, 580/0 at 4.13.11, 599/0 at 4.13.12, 611/5skip at 4.13.13, 643/5skip at 4.13.14, 655/5skip at 4.13.15
 ```
 
 Focused run of just the fix suites:
@@ -1157,7 +1285,8 @@ npx jest updateClassStatefulSession updateInterfaceStatefulSession \
   isAlreadyExistsErrorMachineId updateStructureCheckSource \
   updateTableCheckSource createLogonLanguageFamily \
   handleGetFunctionModule handleReadFunctionModule \
-  unitTestClassicLowCds getSqlQueryGate readonlyGuard
+  unitTestClassicLowCds getSqlQueryGate readonlyGuard \
+  deleteLocalIncludesFamily lowUnitTestSchemaShape
 ```
 
 Every suite is reverse-verified in the reference (revert the fix → the pinned
