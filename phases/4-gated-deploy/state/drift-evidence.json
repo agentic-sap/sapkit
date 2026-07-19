@@ -1,0 +1,6 @@
+{
+  "marker": "DRIFT-DEMO-20260719-4-gated-deploy-7D458D9D",
+  "out_of_band_channel": "MCP UpdateProgram+ActivateObjects",
+  "drift_detected": true,
+  "restored": true
+}
