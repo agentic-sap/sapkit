@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vsp-custom 사용 매뉴얼</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1a1f27;
+    --muted: #5b6472;
+    --line: #e3e7ee;
+    --accent: #0d63c4;
+    --accent-soft: #eaf2fc;
+    --code-bg: #f4f6f9;
+    --code-fg: #223047;
+    --card: #fafbfd;
+    --new: #0a7d4f;
+    --new-bg: #e6f5ee;
+    --fix: #9a5b00;
+    --fix-bg: #fcf1de;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14181f;
+      --fg: #e4e8ee;
+      --muted: #99a3b1;
+      --line: #2b323d;
+      --accent: #6cb0f5;
+      --accent-soft: #1b2a3e;
+      --code-bg: #1d232d;
+      --code-fg: #d4dbe6;
+      --card: #191f28;
+      --new: #55c391;
+      --new-bg: #16302a;
+      --fix: #e2ac55;
+      --fix-bg: #322a17;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+    line-height: 1.65;
+    font-size: 15.5px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 40px 24px 80px; }
+  header { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 28px; }
+  h1 { font-size: 1.9em; margin: 0 0 8px; letter-spacing: -0.5px; }
+  .sub { color: var(--muted); margin: 0; }
+  .sub code { font-size: 0.92em; }
+  h2 {
+    font-size: 1.35em; margin: 44px 0 14px; padding-top: 20px;
+    border-top: 1px solid var(--line); letter-spacing: -0.3px;
+  }
+  h2 .no { color: var(--accent); margin-right: 6px; }
+  h3 { font-size: 1.08em; margin: 26px 0 10px; }
+  p { margin: 10px 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    font-family: Consolas, "Cascadia Mono", Menlo, monospace;
+    background: var(--code-bg); color: var(--code-fg);
+    padding: 1px 5px; border-radius: 4px; font-size: 0.88em;
+  }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
+    padding: 14px 16px; overflow-x: auto; line-height: 1.55; margin: 12px 0;
+  }
+  pre code { background: none; padding: 0; font-size: 0.86em; display: block; }
+  .cmt { color: var(--muted); }
+  table {
+    width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.94em;
+    display: block; overflow-x: auto;
+  }
+  th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; vertical-align: top; }
+  th { background: var(--card); font-weight: 600; white-space: nowrap; }
+  td code { white-space: nowrap; }
+  .badge {
+    display: inline-block; font-size: 0.76em; font-weight: 700; padding: 1px 8px;
+    border-radius: 10px; vertical-align: 1px; white-space: nowrap;
+  }
+  .badge.new { color: var(--new); background: var(--new-bg); }
+  .badge.fix { color: var(--fix); background: var(--fix-bg); }
+  .note {
+    background: var(--accent-soft); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 10px 16px; margin: 14px 0;
+  }
+  .warn {
+    background: var(--fix-bg); border-left: 3px solid var(--fix);
+    border-radius: 0 8px 8px 0; padding: 10px 16px; margin: 14px 0;
+  }
+  nav.toc {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 20px; margin: 20px 0;
+  }
+  nav.toc ol { margin: 6px 0 2px; padding-left: 22px; }
+  nav.toc li { margin: 3px 0; }
+  .steps { counter-reset: step; padding-left: 0; list-style: none; }
+  .steps > li {
+    counter-increment: step; position: relative; padding-left: 40px; margin: 14px 0;
+  }
+  .steps > li::before {
+    content: counter(step); position: absolute; left: 0; top: 1px;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent);
+    font-weight: 700; font-size: 0.85em;
+    display: flex; align-items: center; justify-content: center;
+  }
+  dl.faq dt { font-weight: 700; margin-top: 16px; }
+  dl.faq dd { margin: 4px 0 0 0; color: var(--fg); }
+  footer { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--line);
+    color: var(--muted); font-size: 0.88em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>vsp-custom 사용 매뉴얼</h1>
+  <p class="sub">
+    <a href="https://github.com/oisee/vibing-steampunk">oisee/vibing-steampunk</a> (MIT) 커스텀 포크 —
+    ABAP 개발 표준 내장 · ALV 핸들러 설치 · 오프라인 모드.
+    변경 이력은 <code>CUSTOMIZATIONS.md</code>, 원본 기능 전반은 <code>README.md</code> 참고.
+  </p>
+</header>
+
+<nav class="toc">
+  <strong>목차</strong>
+  <ol>
+    <li><a href="#changes">원본 vsp와 달라진 점 (한눈에)</a></li>
+    <li><a href="#install">설치</a></li>
+    <li><a href="#online">온라인 개발 — 표준 기반 워크플로우</a></li>
+    <li><a href="#offline">오프라인 개발 — 폐쇄망에서 abapGit 프로젝트 작업</a></li>
+    <li><a href="#upstream">원본(upstream) 업데이트 받기</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ol>
+</nav>
+
+<h2 id="changes"><span class="no">1.</span>원본 vsp와 달라진 점 (한눈에)</h2>
+
+<table>
+  <thead><tr><th>기능</th><th>구분</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>ABAP 개발 표준 38종 내장</strong></td>
+      <td><span class="badge new">신규</span></td>
+      <td>네이밍 규칙, Clean ABAP, 필드 타이핑, 프로그램 골격 템플릿, 리뷰 체크리스트가
+          바이너리에 포함 — AI가 표준을 조회하고 따르며 개발</td>
+    </tr>
+    <tr>
+      <td><strong>표준 조회 도구</strong></td>
+      <td><span class="badge new">신규</span></td>
+      <td><code>ListStandards</code> / <code>GetStandard</code> (focused·expert),
+          <code>SAP(action="standards")</code> (기본 모드), <code>vsp://standards/*</code> 리소스</td>
+    </tr>
+    <tr>
+      <td><strong>InstallALVHandlers</strong></td>
+      <td><span class="badge new">신규</span></td>
+      <td>재사용 ALV/Tree OOP 핸들러 클래스 7종(<code>ZCL_S4SAP_CM_*</code>)을 SAP에 원클릭 설치</td>
+    </tr>
+    <tr>
+      <td><strong>--offline 모드</strong></td>
+      <td><span class="badge new">신규</span></td>
+      <td>SAP 연결 없이 MCP 서버 기동 — 폐쇄망에서 로컬 ABAP 프로젝트 개발</td>
+    </tr>
+    <tr>
+      <td><strong>HTTP 423 픽스</strong></td>
+      <td><span class="badge fix">수정</span></td>
+      <td>소스 쓰기 시 <code>InvalidLockHandle</code> 오류 해결 (issue #88)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>원본의 모든 기능(ADT CRUD, 디버깅, ATC, 트랜스포트 등)은 그대로 유지된다.</p>
+
+<h2 id="install"><span class="no">2.</span>설치</h2>
+
+<pre><code><span class="cmt"># 빌드 (Go 1.25+, C 컴파일러 불필요)</span>
+cd vibing-steampunk
+CGO_ENABLED=0 go build ./cmd/vsp        <span class="cmt"># → vsp.exe 생성</span></code></pre>
+
+<p>SAP 개발 프로젝트의 <code>.mcp.json</code>이 이 <code>vsp.exe</code>를 가리키게 한다.</p>
+
+<h3>온라인 (SAP 연결)</h3>
+<pre><code>{
+  "mcpServers": {
+    "abap": {
+      "command": "D:/Claude for SAP/vsp/vibing-steampunk/vsp.exe",
+      "env": {
+        "SAP_URL": "https://your-sap-host:44300",
+        "SAP_USER": "username",
+        "SAP_PASSWORD": "password"
+      }
+    }
+  }
+}</code></pre>
+
+<h3>오프라인 (폐쇄망)</h3>
+<pre><code>{
+  "mcpServers": {
+    "abap-offline": {
+      "command": "D:/Claude for SAP/vsp/vibing-steampunk/vsp.exe",
+      "args": ["--offline"]
+    }
+  }
+}</code></pre>
+
+<h2 id="online"><span class="no">3.</span>온라인 개발 — 표준 기반 워크플로우</h2>
+
+<p>기본 모드(hyperfocused)에서는 <code>SAP</code> 도구 하나로 모든 작업을 한다.
+AI 에이전트에게 권장되는 개발 순서:</p>
+
+<ol class="steps">
+  <li><strong>개발 전 — 적용할 표준 확인</strong>
+<pre><code>SAP(action="standards")                                          <span class="cmt">→ 표준 목록</span>
+SAP(action="standards", target="rules/naming-conventions.md")    <span class="cmt">→ 네이밍 규칙</span>
+SAP(action="standards", target="templates/procedural/main-program.abap")  <span class="cmt">→ 골격</span></code></pre></li>
+  <li><strong>(ALV 프로그램인 경우) 재사용 핸들러 설치 — 시스템당 1회</strong>
+<pre><code>SAP(action="system", params={"type": "install_alv_handlers", "check_only": true})  <span class="cmt">→ 사전 점검</span>
+SAP(action="system", params={"type": "install_alv_handlers"})                      <span class="cmt">→ 설치</span></code></pre></li>
+  <li><strong>템플릿을 미러링하여 코드 생성·활성화</strong> (기존 vsp 도구 그대로)
+<pre><code>SAP(action="create", ...) / SAP(action="edit", ...)</code></pre></li>
+  <li><strong>개발 후 — 체크리스트로 검증</strong>
+<pre><code>SAP(action="standards", target="quality/phase6-review.md")</code></pre></li>
+</ol>
+
+<p>도움말: <code>SAP(action="help", target="standards")</code> ·
+focused/expert 모드에서는 독립 도구 사용:
+<code>ListStandards</code>, <code>GetStandard(path)</code>,
+<code>InstallALVHandlers(package, check_only)</code></p>
+
+<h3>주요 표준 문서 목록</h3>
+<table>
+  <thead><tr><th>경로</th><th>내용</th></tr></thead>
+  <tbody>
+    <tr><td><code>rules/naming-conventions.md</code>, <code>rules/naming-conventions-objects.md</code></td><td>프로그램/오브젝트 네이밍 규칙</td></tr>
+    <tr><td><code>rules/clean-code.md</code> (+<code>-oop</code>, <code>-procedural</code>)</td><td>Clean ABAP 표준</td></tr>
+    <tr><td><code>rules/field-typing-rule.md</code></td><td>데이터엘리먼트 우선 필드 타이핑</td></tr>
+    <tr><td><code>rules/include-structure.md</code>, <code>rules/ok-code-pattern.md</code></td><td>인클루드 구조, 화면 OK_CODE 패턴</td></tr>
+    <tr><td><code>rules/abap-release-reference.md</code> (+<code>-examples</code>)</td><td>릴리스별 허용 문법 (740~758)</td></tr>
+    <tr><td><code>rules/data-extraction-policy.md</code></td><td>PII/민감 테이블 추출 차단 정책</td></tr>
+    <tr><td><code>templates/oop/</code>, <code>templates/procedural/</code>, <code>templates/alv/</code>, <code>templates/ecc/</code></td><td>프로그램 골격 정본</td></tr>
+    <tr><td><code>quality/phase6-review.md</code>, <code>quality/analysis-dimensions.md</code></td><td>12섹션 리뷰 체크리스트, 14차원 루브릭</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <strong>InstallALVHandlers 참고</strong> — 기본 로컬 패키지 <code>$ZS4SAP_CM</code>에
+  인터페이스 1 + 예외클래스 1 + 핸들러 5를 의존성 순서로 배포한다. 메시지클래스
+  <code>S_UNIFIED_CON</code>이 시스템에 없어도 <strong>활성화는 성공</strong>하며,
+  없으면 런타임 예외 텍스트만 비므로 필요 시 SE91로 생성하면 된다.
+</div>
+
+<h2 id="offline"><span class="no">4.</span>오프라인 개발 — 폐쇄망에서 abapGit 프로젝트 작업</h2>
+
+<p>보안 정책상 SAP에 MCP를 연결할 수 없는 환경에서, abapGit으로 내려받은
+로컬 소스를 개발하는 시나리오.</p>
+
+<h3><code>--offline</code>은 언제 쓰나</h3>
+<table>
+  <thead><tr><th>상황</th><th>설정</th></tr></thead>
+  <tbody>
+    <tr><td>SAP에 연결 가능한 개발 환경</td><td>온라인(기본) — <code>--offline</code> 없이 <code>SAP_URL</code>/인증 설정</td></tr>
+    <tr><td>폐쇄망 등 SAP 접근 불가, 로컬 소스만 개발</td><td><code>--offline</code></td></tr>
+    <tr><td>SAP 계정 없이 표준 조회·린트만 필요</td><td><code>--offline</code></td></tr>
+  </tbody>
+</table>
+
+<h3>켜고 끄는 방법 — 실행 중 전환이 아니라 "서버 시작 옵션"</h3>
+<div class="note">
+  <code>--offline</code>은 MCP 서버가 <strong>시작될 때</strong> 결정되는 모드다.
+  MCP 서버는 Claude Code가 세션을 시작할 때 <code>.mcp.json</code>에 적힌 대로 자동
+  실행되므로, <strong>켜고 끄기 = <code>.mcp.json</code>을 바꾸고 Claude Code를
+  재시작(또는 <code>/mcp</code>에서 재연결)</strong>하는 것이다. 실행 중인 서버를
+  토글하는 스위치는 없다.
+</div>
+
+<ol class="steps">
+  <li><strong>환경(프로젝트)별로 분리 — 권장.</strong> 폐쇄망 PC의 프로젝트에는 오프라인
+      설정만, SAP 연결 가능한 환경의 프로젝트에는 온라인 설정만 둔다. 전환할 일 자체가
+      없어진다.</li>
+  <li><strong>한 항목에서 전환.</strong> 같은 <code>.mcp.json</code>에서
+      <code>"args": ["--offline"]</code>을 추가/삭제하고 Claude Code를 재시작한다.
+      (<code>args</code> 대신 <code>"env": {"SAP_OFFLINE": "true"}</code>도 동일)</li>
+  <li><strong>둘 다 등록.</strong> <code>abap</code>(온라인)과 <code>abap-offline</code>
+      두 항목을 함께 두면 도구가 서버별 이름으로 둘 다 노출된다. 단, SAP에 닿지 않는
+      환경에서는 온라인 항목이 시작 실패로 표시되므로, 폐쇄망에서는 오프라인 항목만
+      남기는 게 깔끔하다.</li>
+</ol>
+
+<p>터미널에서 동작을 바로 확인하려면: <code>vsp.exe --offline</code> — SAP 환경변수
+없이 서버가 뜨면 정상이다 (온라인 모드라면 <code>SAP URL is required</code> 오류가 난다).</p>
+
+<p><strong>구성 요소는 3가지다.</strong></p>
+
+<h3>① 오프라인 MCP (<code>vsp --offline</code>)</h3>
+<p>SAP 접속정보 없이 기동. 도구 4개만 등록된다:</p>
+<table>
+  <thead><tr><th>도구</th><th>용도</th></tr></thead>
+  <tbody>
+    <tr><td><code>ListStandards</code> / <code>GetStandard</code></td><td>내장 표준 38종 조회 (완전 오프라인)</td></tr>
+    <tr><td><code>AnalyzeABAPCode</code> (<code>source</code> 전달)</td><td>로컬 파서 기반 린트 — 13개 규칙</td></tr>
+    <tr><td><code>CheckBoundaries</code> (<code>source</code> 전달)</td><td>패키지 경계 위반 분석</td></tr>
+  </tbody>
+</table>
+<p>에이전트는 Claude Code 자체 파일 도구로 <code>.abap</code> 파일을 읽고 쓰면서,
+표준 조회와 코드 검증만 MCP로 수행한다.</p>
+
+<h3>② 오프라인 CLI (원본부터 지원)</h3>
+<pre><code>vsp lint --file zcl_my_class.clas.abap    <span class="cmt"># 오프라인 린터</span>
+vsp parse --file ...                       <span class="cmt"># 구문 파싱</span></code></pre>
+
+<h3>③ LSP — 편집 시 자동 진단</h3>
+<p><code>.claude/settings.json</code>에 등록하면 <code>.abap</code> 편집 시 자동 진단.
+SAP_URL이 없으면 자동으로 오프라인 모드(로컬 진단만)로 동작한다:</p>
+<pre><code>{ "lsp": { "abap": { "command": "path/to/vsp.exe", "args": ["lsp", "--stdio"] } } }</code></pre>
+
+<div class="warn">
+  <strong>오프라인 제한사항</strong> — 활성화, 서버 측 구문검사(SyntaxCheck), 유닛테스트,
+  ATC 등 SAP 시스템이 필요한 작업은 불가. 로컬 린트/파싱으로 1차 검증하고, 망 연결
+  환경으로 소스를 가져가 최종 활성화·테스트한다.
+</div>
+
+<h2 id="upstream"><span class="no">5.</span>원본(upstream) 업데이트 받기</h2>
+
+<p>이 포크는 원본과 연결이 유지되어 있다:</p>
+<pre><code>git fetch upstream
+git merge upstream/main    <span class="cmt"># 충돌 시 CUSTOMIZATIONS.md의 변경 파일 목록 참고</span>
+CGO_ENABLED=0 go build ./cmd/vsp &amp;&amp; go test ./embedded/... ./internal/...</code></pre>
+
+<h2 id="faq"><span class="no">6.</span>FAQ</h2>
+
+<dl class="faq">
+  <dt>Q. 기본 모드가 뭐지?</dt>
+  <dd><code>--mode</code> 기본값은 hyperfocused(단일 <code>SAP</code> 도구)다.
+      개별 도구를 쓰려면 <code>--mode focused</code> 또는 <code>expert</code>.</dd>
+
+  <dt>Q. 표준 문서를 우리 팀 규칙으로 바꾸고 싶다.</dt>
+  <dd><code>embedded/standards/rules/</code>의 마크다운을 수정하거나 새 <code>.md</code>를
+      추가하고 재빌드하면 자동으로 목록·리소스에 반영된다 (별도 등록 코드 불필요).</dd>
+
+  <dt>Q. ALV 핸들러 클래스를 추가/교체하고 싶다.</dt>
+  <dd><code>embedded/alvhandlers/</code>에 <code>.abap</code> 추가 후 <code>embed.go</code>의
+      <code>GetObjects()</code>에 배포 순서를 지켜 등록하고 재빌드.</dd>
+
+  <dt>Q. 오프라인 모드인데 온라인 도구를 부르면?</dt>
+  <dd>아예 등록되지 않으므로 도구 목록에 나타나지 않는다 (오류가 아니라 미노출).</dd>
+
+  <dt>Q. <code>SAP URL is required</code> 오류가 난다.</dt>
+  <dd>온라인 모드에는 <code>SAP_URL</code>(+인증)이 필수다. SAP 없이 쓰려면
+      <code>--offline</code>을 붙인다.</dd>
+</dl>
+
+<footer>
+  vsp-custom — customized fork of oisee/vibing-steampunk (MIT) ·
+  마크다운 버전: <code>MANUAL.ko.md</code> · 변경 이력: <code>CUSTOMIZATIONS.md</code>
+</footer>
+
+</div>
+</body>
+</html>
