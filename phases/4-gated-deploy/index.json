@@ -26,7 +26,7 @@
     {
       "step": 1,
       "name": "machine-blindness-evidence",
-      "status": "pending",
+      "status": "completed",
       "verify": "powershell -Command \"& 'scripts\\verify-sap.ps1' -Write -- deploy src/zsah4_gl_list.prog.abap '$TMP'; if ($LASTEXITCODE -ne 0) { exit 1 }; $t = & 'scripts\\verify-sap.ps1' -- test PROG ZSAH4_GL_LIST | Out-String; Write-Host $t; if ($LASTEXITCODE -ne 0) { exit 1 }; if ($t -match '(?i)fail(ed|ures)?[:\\s]+[1-9]') { exit 1 }; $a = & 'scripts\\verify-sap.ps1' -- atc PROG ZSAH4_GL_LIST | Out-String; Write-Host $a; if ($LASTEXITCODE -ne 0) { exit 1 }; node phases/4-gated-deploy/checks/check-verification.mjs red; exit $LASTEXITCODE\"",
       "targets": [
         "phases/4-gated-deploy/**",
@@ -39,7 +39,11 @@
       "domains": [
         "abap",
         "sap"
-      ]
+      ],
+      "started_at": "2026-07-19T12:14:04+0900",
+      "summary": "phases/4-gated-deploy/state/verification.json 신규 작성 — red 소스(src/zsah4_gl_list.prog.abap)가 기계 검증 4층을 전부 green으로 통과함을 실측하고 서버 증거를 동봉. 사전: `scripts/verify-sap.ps1 -- search ZSAH4` 서버 잔존물 0건 확인(exit 0, 'Found 0 objects'). ①offline_lint: `vsp.exe lint --file src/zsah4_gl_list.prog.abap`(직접 호출, 오프라인) → 'No issues found', exit 0. ②deploy_activation: `verify-sap.ps1 -Write -- deploy src/zsah4_gl_list.prog.abap '$TMP'` → 'Created PROG/P ZSAH4_GL_LIST' + 'Successfully created and activated', VERIFY_PASS, exit 0. ③unit_test: `verify-sap.ps1 -- test PROG ZSAH4_GL_LIST` → LTC_GL_LIST 5케이스(ALL_BALANCE_SHEET/ALL_PROFIT_AND_LOSS/EMPTY_INPUT/IGNORES_TEXT_PRESENCE/MIXED_ACCOUNTS) 전부 PASS, 'Total: 5 passed, 0 failed', exit 0 — red 결함(INNER JOIN)이 summarize() 순수 로직과 무관해 테스트는 이미 green임을 실증. ④atc: `verify-sap.ps1 -- atc PROG ZSAH4_GL_LIST` → 'Total: 10 finding(s)'(WARN 2건: SELECT bypass table buffer SKA1/SKAT in JOIN line 47 · INFO 8건: SLIN 시간대 설정 1 + 텍스트요소 미외부화 4 + ORDER BY 부재 경고 3), Error급 0건, exit 0. server_evidence: `verify-sap.ps1 -- source read PROG ZSAH4_GL_LIST`로 서버 원문 캡처(2회 실행 동일, phases/4-gated-deploy/state/raw-source-read.txt에 원시 보관) — 로컬 red 소스와 바이트 수준 일치(INNER JOIN skat 유지, LEFT OUTER JOIN 부재, AUTHORITY-CHECK F_SKA1_KTP 존재), sha256_normalized=5b15e0a6d1809188fb02aa8ebc38108c691af5c431ab18dd090c9d6875309eef, content 5012자(>=200 충족). uncovered_by_machine 2건 기록: (1)JOIN 결합의 데이터 완전성(스펙 요구 3)은 offline lint(스타일 4종)·deploy 활성화(문법)·unit test(순수 헬퍼만)·ATC(위 10건 전부 스타일/성능성) 중 어느 것도 탐지 못함, (2)AUTHORITY-CHECK 런타임 실효성은 HARMLESS 단위테스트가 summarize()만 직접 호출해 START-OF-SELECTION 경로를 미실행이라 미검증. **핵심 전제 문장(AC-8)**: 기계 검증 4층이 전부 green(offline_lint/deploy_activation/unit_test/atc 각 exit 0, unit_test.failed=0, atc error_findings=0)인데도 스펙 요구 3(데이터 완전성) 위반이 서버에 실재한다 — 기계맹점이 실증됨. `node phases/4-gated-deploy/checks/check-verification.mjs red` → 'CHECK_OK verification(red)', exit 0. index.json 명시 AC 체인 전체(deploy→test→atc→check red)를 재실행해 exit 0 재확인(2차 deploy는 idempotent 'Updated'로 성공, 나머지 동일 green). Forbidden 준수: src/zsah4_gl_list.prog.abap·spec.md 미수정, $TMP 외 write 없음, row-data 도구(GetTableContents/GetSqlQuery) 미호출, 모든 수치는 실행 원문에서만 전사(조작 없음). SAP MCP 도구는 전혀 사용하지 않음(D-001/R-002 — 트랙 A는 vsp CLI 전용, scripts/verify-sap.ps1 경유).",
+      "contract": "phases/4-gated-deploy/state/verification.json 신설(mode=red) — machine_checks.{offline_lint,deploy_activation,unit_test,atc} 전부 exit 0·unit_test.failed=0·atc.error_findings=0, uncovered_by_machine 2건(JOIN 데이터완전성·AUTHORITY-CHECK 런타임 미검증), server_evidence.vsp_source_read.content = 서버 실제 소스(INNER JOIN 유지, F_SKA1_KTP 포함) + sha256_normalized. PROG ZSAH4_GL_LIST는 현재 $TMP에 배포·활성화된 상태(red 그대로) — S2 리뷰 게이트가 이 verification.json + src + spec을 캡슐 재료로 그대로 소비 가능. src/zsah4_gl_list.prog.abap·spec.md는 무변경.",
+      "completed_at": "2026-07-19T12:25:47+0900"
     },
     {
       "step": 2,

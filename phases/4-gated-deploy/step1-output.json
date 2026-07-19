@@ -1,0 +1,7 @@
+{
+  "step": 1,
+  "name": "machine-blindness-evidence",
+  "exitCode": 0,
+  "stdout": "Step 1 (machine-blindness-evidence) 완료.\n\n실행 체인(전부 scripts/verify-sap.ps1 경유, MCP 미사용): ① search ZSAH4 → 0건(잔존물 없음) ② offline lint → No issues, exit 0 ③ 스테이징 배포(-Write deploy '$TMP') → \"Successfully created and activated PROG/P ZSAH4_GL_LIST\" VERIFY_PASS ④ unit test → LTC_GL_LIST 5/5 PASS(순수 헬퍼만 검증하므로 red에서도 green) ⑤ ATC → Total 10 findings(2 WARN·8 INFO·Error 0), exit 0 ⑥ source read → 서버 소스가 로컬 red와 일치(INNER JOIN 존재·F_SKA1_KTP 존재·LEFT 없음), 원문 state/raw-source-read.txt 캡처 + sha 해시.\n\n산출물: phases/4-gated-deploy/state/verification.json — machine_checks 4종 전부 exit 0·unit failed 0, uncovered_by_machine 2건(JOIN 데이터 완전성은 어느 기계층도 미검증 / AUTHORITY-CHECK 런타임 경로는 HARMLESS 테스트가 미발동), server_evidence.vsp_source_read(원문+해시). check-verification.mjs red → CHECK_OK exit 0. index.json step 1 AC 체인을 통째로 2회차 독립 재실행 → 전 구간 exit 0(엔진 재검증 통과 예상).\n\n핵심 실증(AC-8 전제): 기계 4층 동시 green 상태에서 스펙 요구 3 위반(INNER JOIN이 로그온 언어 텍스트 없는 계정을 조용히 탈락)이 서버에 라이브 — 기계 무맹점 증명.\n\nindex.json step 1 = completed + summary + contract. 변경 파일: index.json(수정)·state/verification.json(신규)·state/raw-source-read.txt(신규)뿐. red 소스·spec 무수정(재시도 워커 몫 보존). $TMP 외 write 0·row-data 0·커밋 0. PROG ZSAH4_GL_LIST는 red 상태로 서버 잔존(S2/S3가 대체 예정).\n",
+  "stderr": ""
+}
