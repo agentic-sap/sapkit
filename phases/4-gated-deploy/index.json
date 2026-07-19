@@ -70,7 +70,7 @@
     {
       "step": 3,
       "name": "deploy-gate",
-      "status": "pending",
+      "status": "completed",
       "verify": "node phases/4-gated-deploy/checks/run-deploy-gate.mjs",
       "targets": [
         "phases/4-gated-deploy/**"
@@ -81,7 +81,10 @@
       "domains": [
         "sap"
       ],
-      "started_at": "2026-07-19T12:47:44+0900"
+      "started_at": "2026-07-19T12:47:44+0900",
+      "summary": "state.json.pass_records 확인: 캡슐 해시 정확히 1개(3f67808198550a31789c3a87125eee99685d3db2393ccc8e7bdd2f9540b2c370). 캡슐 디렉터리 state/capsules/<hash>/ 실재 확인, manifest.json이 src/zsah4_gl_list.prog.abap의 sha256을 ea4b21ac11def2a0bbd2411a237600704a84f3684734503bd894f99bbbe9e8e7로 선언. sha256sum+cmp로 워킹트리 src/zsah4_gl_list.prog.abap와 캡슐 사본 files/0/zsah4_gl_list.prog.abap을 직접 대조 — 해시 동일·cmp 무차이(바이트 동일), manifest 선언값과도 일치(3중 확인 선행 통과, drift 없음). 이후 이 step의 verify 명령(node phases/4-gated-deploy/checks/run-deploy-gate.mjs)을 직접 실행 — exit 0. run-deploy-gate.mjs가 state.json에서 유일 PASS 해시를 판독해 deploy-gate.mjs를 절대경로 인자(--unit/--state/--capsule)로 호출, deploy-gate.mjs 내부 3중 확인(캡슐 무결성 verifyCapsule·PASS 레코드 존재·워킹트리 해시 일치) 통과 후 deploy-shim.mjs 경유로 캡슐 사본을 $TMP에 배포(exit 0 = 배포 수행, deploy-gate.mjs 헤더 주석의 exit code 계약대로). 단, deploy-gate.mjs:127 spawnSync가 stdio:'inherit' 미설정이라 자식(vsp) 출력이 미사용 버퍼로 소실됨(PLANNING.md §8에 이미 기록된 관찰성 공백 — 게이트 스크립트라 이번 step에서 수정 금지, Forbidden 준수) — 그 결과 원문 stdout은 인용 불가. 대신 R-006 취지(write 성공 보고를 믿지 말고 source read로 확인)대로 읽기전용 확인 1회 추가 실행: `scripts\\verify-sap.ps1 -- source read PROG ZSAH4_GL_LIST`(비-Write, 게이트 우회 아님) → exit 0·VERIFY_PASS, 반환 소스에 'LEFT OUTER JOIN skat ON skat~ktopl = ska1~ktopl AND skat~saknr = ska1~saknr AND skat~spras = @sy-langu' 존재·INNER JOIN 부재·AUTHORITY-CHECK 'F_SKA1_KTP' 존재 — 서버 PROG ZSAH4_GL_LIST가 리뷰 PASS를 받은 green 캡슐 내용과 일치함을 배포 후 직접 확인(원문 stdout 부재를 대체하는 성공 증거). Forbidden 준수: verify-sap.ps1 -Write -- deploy 직접 미호출(게이트 경유만), src/**·spec.md·게이트 스크립트(deploy-gate.mjs/deploy-shim.mjs/run-deploy-gate.mjs) 무수정, $TMP 외 write 없음, 커밋 없음, .harness/ 무수정, 검증자 서브에이전트 미기동.",
+      "contract": "PROG ZSAH4_GL_LIST가 게이트 경로(3중 확인: 캡슐 무결성·PASS 레코드·워킹트리 일치)로 $TMP에 배포·활성화됨 — 서버 소스가 green(LEFT OUTER JOIN, PASS 캡슐과 바이트 동일) 상태임을 source read로 확인. 사용 캡슐 해시: 3f67808198550a31789c3a87125eee99685d3db2393ccc8e7bdd2f9540b2c370. Step 4(post-deploy-scoring)는 이 배포 상태 기준으로 자체 source read+check-verification(green)+test 체인을 진행 가능.",
+      "completed_at": "2026-07-19T13:18:09+0900"
     },
     {
       "step": 4,
