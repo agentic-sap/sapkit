@@ -96,7 +96,7 @@ test('PASS cycle: exit 0, pass_records holds a record with model/versions/durati
   assert.strictEqual(hashes.length, 1);
   const record = state.pass_records[hashes[0]];
   assert.strictEqual(record.model, 'opus');
-  assert.strictEqual(record.prompt_version, '1.0');
+  assert.strictEqual(record.prompt_version, '1.1');
   assert.strictEqual(record.policy_version, '1.0');
   assert.strictEqual(record.schema_version, 'trackB-review-result-v1');
   assert.strictEqual(typeof record.duration_ms, 'number');

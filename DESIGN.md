@@ -484,11 +484,11 @@ packs/modules/fi/
 | 1 | tdd-guard 대응: 엔진의 ABAP 확장(업스트림 기여) vs 관례 강제 유지 (§7) | ✅ 관례 강제 유지 확정 (§7): tdd-guard가 ABAP 미발화·설정 확장 불가 → RULES.seed/CHECKLIST + harness-plan 관례 강제. 엔진 ABAP 확장(업스트림 기여)은 본 레포 스코프 밖(스윕 제외) |
 | 2 | drift check: 객체 타입별 정규화 규칙 + export/비교 명령 (§6) | ✅ 0b 실측(2026-07-11): `vsp source read` 객체 단위 왕복 확인. export는 WebSocket 403 결함으로 보류 (COMMANDS.md §7). 타입별 정규화 규칙은 Phase 1에서 대상 타입 확장 시 |
 | 3 | verify 실패 유형별 출력 패턴 실측 → verify-sap.ps1 마커 완성 (exit code는 일괄 1로 확인 — §15-V10) | ✅ 0b 완료(2026-07-11): ENV 4계열·CODE 2계열·LOCK 실재현 → verify-sap.ps1 반영, 4마커 재현 검증 (VERIFY-PATTERNS.md) |
-| 4 | deploy/copy의 객체 타입별 지원 범위(class include는 TODO — §15-V6)와 src/→SAP 배포 매체(파일별 deploy vs zip copy) | 부분 판정 갱신(2026-07-12 수리 3 완료): **PROG·CLAS 모두 deploy/copy 동작** — Phase 2 채점에서 발견된 CLAS 결함 3건(deploy NoModification 오탐 가드+잠금 누수, copy 거짓 성공)을 당일 수리·라이브 검증 (vsp v2.38.1-89, COMMANDS.md ⑤-6/7). class include(테스트클래스) 배포는 여전히 미실측 — 테스트는 리포트 로컬 배치로 우회 중. 나머지 타입은 Phase 3에서 계속 |
+| 4 | deploy/copy의 객체 타입별 지원 범위(class include는 TODO — §15-V6)와 src/→SAP 배포 매체(파일별 deploy vs zip copy) | 부분 판정 갱신(2026-07-12 수리 3 완료): **PROG·CLAS 모두 deploy/copy 동작** — Phase 2 채점에서 발견된 CLAS 결함 3건(deploy NoModification 오탐 가드+잠금 누수, copy 거짓 성공)을 당일 수리·라이브 검증 (vsp v2.38.1-89, COMMANDS.md ⑤-6/7). ✅ 2026-07-19 실측: class include(테스트클래스) 배포도 v2.38.1-94에서 지원 확인(ADR-002 Addendum) — 테스트 재배치는 사용자 결정 대기. 나머지 타입은 Phase 3에서 계속 |
 | 5 | offline lint의 CDS/RAP/AMDP 실효 커버리지 | ✅ Phase 1 실측(2026-07-11): VERIFY-PATTERNS.md "객체 유형별 offline 커버리지" 표 — ABAP 리포트/클래스만 Error 4종, CDS/BDEF/AMDP 구조 검증 전무 (§15-V3 확인) |
 | 6 | sap-harness-* 전용 스킬 신설 필요 여부 | ✅ 신설 보류 유지 (§11): 기존 final-harness 스킬 재사용, Phase 1까지 부족 실증 없음(E2E create-program 완주) → sap-harness-* 신설 불요 |
 | 7 | 첫 파일럿 객체/패키지 선정 | ✅ 선정 완료: 파일럿 ZSAH1_WORKDAYS (PROG, $TMP) — VERIFY-PATTERNS Phase 1.5 red/green 실증, phases/1-workdays-util/ (E2E는 ZR_FI_GL_LIST) |
-| 8 | lint `--strict`(Warning도 실패) 옵션의 vsp 포크 추가 여부 (§8.1) | Phase 1 착수 시 |
+| 8 | lint `--strict`(Warning도 실패) 옵션의 vsp 포크 추가 여부 (§8.1) | ✅ 외부 vsp-custom 포크 결정이라 유보(스프린트 제외 규칙: 외부 레포 업스트림 기여 제외) |
 | 9 | read-only SAP syntax check 명령의 실재 여부 (없으면 Phase 1.5 재정의) | ✅ 0b 판정(2026-07-11): 부재 — Phase 1.5를 ATC/health 기반으로 재정의 (§13) |
 
 ## 15. 설계 중 실측으로 확인된 사실 (근거 좌표)

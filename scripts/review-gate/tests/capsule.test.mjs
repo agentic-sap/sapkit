@@ -20,7 +20,7 @@ function makeBaseUnit(dir, overrides = {}) {
     spec_path: specPath,
     verification_path: null,
     policy_version: '1.0',
-    prompt_version: '1.0',
+    prompt_version: '1.1',
     schema_version: 'trackB-review-result-v1',
     reviewer_model: 'opus',
     target_system: 'DEV',

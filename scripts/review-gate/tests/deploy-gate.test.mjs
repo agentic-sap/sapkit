@@ -57,7 +57,7 @@ function setupPassedUnit(dir, { sourceContent = 'REPORT zsah1_workdays.\n' } = {
   const { capsuleHash } = createCapsule({
     ...unit,
     policy_version: '1.0',
-    prompt_version: '1.0',
+    prompt_version: '1.1',
     schema_version: 'trackB-review-result-v1',
     reviewer_model: 'opus',
   }, capsuleDir);
