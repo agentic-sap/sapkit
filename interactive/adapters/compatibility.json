@@ -10,10 +10,10 @@
     "not_measured": "2.1.211에서 create-program E2E 재완주는 하지 않음 — 2026-07-10 증거 재사용"
   },
   "codex": {
-    "version": "0.144.5",
+    "version": "0.144.6",
     "manifest": ".codex-plugin/plugin.json + .agents/plugins/marketplace.json",
     "install": "codex plugin marketplace add <repo> → codex plugin add sap-agentic-harness@sap-agentic-harness",
-    "smoke": "PASS — installed+enabled, 캐시에 core/server 전체 패키징 확인 (0.144.1 최초 2026-07-10, 0.144.3 재실측 2026-07-17, 0.144.5 재실측 2026-07-18 — 스모크 후 marketplace/plugin 완전 제거로 평시 미설치 복원)",
+    "smoke": "PASS — installed+enabled, 캐시에 core/server 전체 패키징 확인 (0.144.1 최초 2026-07-10, 0.144.3 재실측 2026-07-17, 0.144.5 재실측 2026-07-18, 0.144.6 재실측 2026-07-19 — 스모크 후 marketplace/plugin 완전 제거로 평시 미설치 복원)",
     "not_measured": "0.144.5에서 세션을 띄워 스킬을 실제 소비하는 E2E는 재실행하지 않음 — 2026-07-11 증거 재사용",
     "mcp": "codex mcp add sap --env NODE_PATH=<keyring> -- node <bundle> --exposition=readonly",
     "p2": "unsupported — row-data 2종은 config.toml의 disabled_tools 하드 차단이 정본(승인 모드 의존 금지, adapters/codex/README.md 실측). human approval broker 전까지 P2 미지원"
