@@ -1,7 +1,7 @@
 {
   "name": "@hjaewon/abap-mcp-adt-powerup",
   "version": "4.13.16",
-  "sourceCommit": "0000000000000000000000000000000000000000",
+  "sourceCommit": "7a37ee90df6fd3020bffd3fd6764d56dc0dfee25",
   "file": "engine/server.bundle.cjs",
   "sha256": "fa5698d351c74425aa190f4f6e6e9fb8b274fef0840d9870e2e96a3db172e3bf",
   "bytes": 8297952

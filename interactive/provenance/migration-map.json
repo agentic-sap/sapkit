@@ -170,7 +170,7 @@
           "token": "core/personas/",
           "kind": "tree",
           "files": 27,
-          "sha256": "f7896029ca99cc847a0f812e3b102fbceee2e4b77485c1ec7cd4b9b4859ce314"
+          "sha256": "92272204e23e6012cc9ba159582409252aafea0c001fdf48637366f890523883"
         }
       ]
     },
@@ -359,7 +359,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 20,
-          "sha256": "30152818261638e7006e83453bd4a9529ca5011cd8768fe07cf0412e1b508a72"
+          "sha256": "4a05c91a30665b73a85f1d884a317302578147c6a76e0a8fee3027a21e67ac4a"
         }
       ]
     },
@@ -458,7 +458,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 20,
-          "sha256": "30152818261638e7006e83453bd4a9529ca5011cd8768fe07cf0412e1b508a72"
+          "sha256": "4a05c91a30665b73a85f1d884a317302578147c6a76e0a8fee3027a21e67ac4a"
         }
       ]
     },
@@ -476,7 +476,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 20,
-          "sha256": "30152818261638e7006e83453bd4a9529ca5011cd8768fe07cf0412e1b508a72"
+          "sha256": "4a05c91a30665b73a85f1d884a317302578147c6a76e0a8fee3027a21e67ac4a"
         }
       ]
     },
@@ -494,7 +494,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 20,
-          "sha256": "30152818261638e7006e83453bd4a9529ca5011cd8768fe07cf0412e1b508a72"
+          "sha256": "4a05c91a30665b73a85f1d884a317302578147c6a76e0a8fee3027a21e67ac4a"
         }
       ]
     },
@@ -547,15 +547,15 @@
     {
       "pattern": "common/**",
       "class": "copy",
-      "note": "`core/knowledge/abap/conventions/` (규약 18종)",
+      "note": "`core/knowledge/abap/conventions/` (규약 20종)",
       "source_matches": 18,
       "deferred": false,
       "targets": [
         {
           "token": "core/knowledge/abap/conventions/",
           "kind": "tree",
-          "files": 18,
-          "sha256": "c3d4e4408e6a40f01277608f948a55960cbe6cf50daf9f6ef4a8821d67e2f24f"
+          "files": 20,
+          "sha256": "111e7ebe3ad1b59d1eee079e1bf171c2351d69f9db73b8a2719136ea320d427c"
         }
       ]
     },
@@ -585,7 +585,7 @@
           "token": "server/",
           "kind": "tree",
           "files": 46,
-          "sha256": "949152792f70ba76585e361029dff0479614eb0f8130d7dc0278af40603f5b8a"
+          "sha256": "c4881ca970382fb2925931500200115b07b613f7f15e8b946bf072e7587c88f8"
         }
       ]
     },
@@ -843,7 +843,7 @@
           "token": "server/",
           "kind": "tree",
           "files": 46,
-          "sha256": "949152792f70ba76585e361029dff0479614eb0f8130d7dc0278af40603f5b8a"
+          "sha256": "c4881ca970382fb2925931500200115b07b613f7f15e8b946bf072e7587c88f8"
         }
       ]
     },
@@ -858,7 +858,7 @@
           "token": "server/",
           "kind": "tree",
           "files": 46,
-          "sha256": "949152792f70ba76585e361029dff0479614eb0f8130d7dc0278af40603f5b8a"
+          "sha256": "c4881ca970382fb2925931500200115b07b613f7f15e8b946bf072e7587c88f8"
         }
       ]
     },
@@ -922,7 +922,7 @@
           "token": "adapters/",
           "kind": "tree",
           "files": 16,
-          "sha256": "57a2a1fa3baf8666ac75138c401ff9ffcdb85a02b5f2ee2af80903dcb5050b77"
+          "sha256": "1eef5c3e06645149015c46e7e8d04bc90205bb74e27be3ba70ee03ee4b0c21f6"
         }
       ]
     },
