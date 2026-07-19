@@ -44,7 +44,13 @@
 > 잔여 실행 설계(방식 subtree 등·경로·in-repo 빌드·CI Go 잡·lock 재정합)는 편입
 > 세션에서 — 설계 제약 1: **바이너리(vsp.exe)·빌드 캐시는 비커밋**(소스만 편입,
 > 빌드는 머신/CI 몫 — 2026-07-19 실측: 레포 실무게 git pack 22.3MiB로 건강, 위장
-> 비대의 정체는 gitignore된 engine/node_modules 750MB 로컬 캐시였음·정리 완료). 잔여 사용자 확인 1건: 주/보조 SAP 프로파일 명(IDEA-JNC vs IDES-DEV —
+> 비대의 정체는 gitignore된 engine/node_modules 750MB 로컬 캐시였음·정리 완료).
+> 편입 원천 = 이 머신(보조) `D:\Claude for SAP\vsp-custom`, 기준 커밋 = lock
+> verified_commit **v2.38.1-94-g5a8bedb**(`adapters/vsp/vsp.lock.json`) — 편입 세션
+> 첫 단계에서 원천 HEAD가 더 나갔는지 대조 후 기준 확정(더 나갔으면 델타 검토).
+> 주 머신 사본(`D:\claude for SAP\vsp\vsp-custom`)은 -91 계열로 뒤짐 — 편입 후
+> 경로 문제 자체가 소멸(quality-gate-sap.ps1 폴백 2경로도 in-repo 빌드 경로로
+> 갱신 대상). 잔여 사용자 확인 1건: 주/보조 SAP 프로파일 명(IDEA-JNC vs IDES-DEV —
 > 같은 시스템의 머신별 프로파일로 추정, SAFETY-PROFILES §⑦에 정직 병기됨).
 >
 > **확정된 통합 결정 5건 (평가 문서 §5):**
