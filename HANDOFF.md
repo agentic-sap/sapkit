@@ -80,7 +80,16 @@
 > 동일+3 CRLF 정렬 무해)·비공개 0건·CI·문서 정합을 독립 재구성; MAJOR 1 = lock
 > 재현성 주장이 buildvcs 각인으로 부정확 → `-buildvcs=false` 정정·재실측 당일 수리
 > (`34e37e30`), MINOR 1 = 이 HANDOFF 갱신으로 해소, INFO 3 무해. 커밋: `faf8bcf1`
-> (스냅샷 567)·`542e7619`(배선+D-037)·`34e37e30`(MAJOR 수리)·`0c5dcf5f`(codex 핀).
+> (스냅샷 567)·`542e7619`(배선+D-037)·`34e37e30`(MAJOR 수리)·`0c5dcf5f`(codex 핀)·
+> `13d1960f`(HANDOFF 1차 갱신)·`7664faf5`(스냅샷 재생성).
+> **push 후 CI 첫 실행**: node-gates 1잡 FAIL — check-migration-snapshot이
+> `adapters/vsp` 3파일 정당 수정을 목적지 드리프트로 검출(로컬 게이트는 커밋 전
+> 실행이라 미검출·잔여 3잡[신설 vsp-build 포함] green). 원본 보유 머신 규약대로
+> build-migration-snapshot 재생성(`adapters/` 해시 1줄만·16→16파일, pin a95eb0f·
+> roots 36·inventory 487 불변·private 열거 0 — 선례 `cf110c36`) = 위 `7664faf5`.
+> 재실행 CI **4잡 전부 green 실측 @`7664faf5`**(node-gates·engine-tests·ps-gate·
+> vsp-build). 정직 기록: snapshot 음성시험 러너는 이 머신 spawn 수거 블록이 이번에도
+> 재현(14/17 지점 중단)이라 기계 완주 정본은 CI ubuntu 유지(통합 세션 판정과 동일).
 > **주 머신 후속 1회**: pull 후 in-repo 빌드 필요(quality-gate가 in-repo 경로만 봄;
 > 명령 = lock `binary.build_command`) — 구 사본 `D:\claude for SAP\vsp\vsp-custom`은
 > 더 이상 미참조. 원천 레포 = 무수정 보존, 처분(동결·보관)·origin 미푸시 1커밋
