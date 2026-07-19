@@ -1,0 +1,28 @@
+{
+  "ac8": {
+    "red_capsule_hash": "862ca3b3b29e70df29ccf074bb7acf2a90c0f1a64524df654f209acbb8203bd8",
+    "green_capsule_hash": "3f67808198550a31789c3a87125eee99685d3db2393ccc8e7bdd2f9540b2c370",
+    "red_findings_summary": "MAJOR/B2 — SELECT(45~51행)가 SKA1-SKAT를 INNER JOIN(skat~spras=@sy-langu)으로 결합해 로그온 언어 텍스트 없는 SKA1 계정이 목록·요약 카운트에서 조용히 탈락 (스펙 요구 3 완전성 위반); 기계 검증 4층(offline_lint/deploy_activation/unit_test/atc) 전부 green인 상태에서 리뷰 게이트만 이 결함을 검출."
+  },
+  "ac14": {
+    "uncovered_count": 2,
+    "capsule_embedded": true
+  },
+  "ac15": {
+    "server_evidence_embedded": true,
+    "mechanism": "wrapper vsp source read → capsule verification block (prompt v1.1)"
+  },
+  "drift": {
+    "drift_detected": true,
+    "marker": "DRIFT-DEMO-20260719-4-gated-deploy-7D458D9D"
+  },
+  "probes": {
+    "transport_readonly": "vsp transport list/get는 기본 비활성(에러 'transports not enabled')이며 SAP_ENABLE_TRANSPORTS=true로만 read-only 조회 가능 — 'transport list' 6건, 'transport get S4HK903951' 상세(Owner/Type/Status/Tasks/Objects) 각 exit 0, write 미시도.",
+    "atc_error_exit": "ZSAH4_ATCPROBE(하드코딩 패스워드+동적 WHERE SQL injection 패턴) 배포 후 atc 실행 — IDES 기본 변형은 Error급 미탐지(INFO 2건뿐), exit 0. ATC Error급이 vsp exit>0을 유발하는지는 이 시스템 기본 변형에서 미확인으로 남음(COMMANDS §4/VERIFY-PATTERNS §2-4 기존 미결 항목과 정합). 프로브 객체는 삭제 후 source-read read-back 404로 정리 확인.",
+    "clas_include_deploy": "vsp v2.38.1-94에서 CLAS 테스트 include(.clas.testclasses.abap) 배포 지원 확인 — ADR-002('미지원/TODO')를 갱신하는 실측. base CLAS deploy+testclasses deploy 각 exit 0(활성화 성공), 'vsp test CLAS'로 LTC_PROBE.ADDS_TWO_NUMBERS PASS(거짓성공 아님 실증). 프로브 객체는 삭제 후 source-read read-back 404로 정리 확인."
+  },
+  "chain": {
+    "full_chain_green": true,
+    "chain": "deploy(capsule)→activate→drift-clean→ATC→unit"
+  }
+}

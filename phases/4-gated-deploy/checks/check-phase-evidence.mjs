@@ -17,12 +17,16 @@ const verdictFiles = readdirSync(STATE).filter((f) => /^verdict-.*\.json$/.test(
 let failVerdicts = 0, passVerdicts = 0, majorB2 = 0;
 for (const f of verdictFiles) {
   const v = JSON.parse(readFileSync(STATE + '/' + f, 'utf8'));
-  if (v.verdict === 'FAIL') {
+  // verdict files use `classification` (review-gate.mjs writeVerdictFile),
+  // not `verdict` — fixed mid-run 2026-07-19 after the step-6 worker isolated
+  // the field-name mismatch (PLANNING §8); schema pinned by
+  // tests/check-phase-evidence.test.mjs.
+  if (v.classification === 'FAIL') {
     failVerdicts++;
     for (const fd of v.findings || [])
       if (fd.severity === 'MAJOR' && fd.bucket === 'B2') majorB2++;
   }
-  if (v.verdict === 'PASS') passVerdicts++;
+  if (v.classification === 'PASS') passVerdicts++;
 }
 if (failVerdicts < 1) fail('no FAIL verdict recorded (AC-8 red half missing)');
 if (majorB2 < 1) fail('no MAJOR/B2 finding in FAIL verdicts (defect class mismatch)');

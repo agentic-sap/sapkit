@@ -117,3 +117,10 @@ S0 implement-red(오프라인) → S1 스테이징 기계검증+무맹점 증거
   출력(pipe)을 어디에도 전달하지 않아 배포 실패 사유가 침묵됨 — exit 전파는
   정상이므로 동작 무결, 관찰성 개선(stdio inherit 또는 실패 시 캡처 출력
   방출)은 스프린트 마감 후속 후보로만.
+- **동반 발견 3 — S6 체커 필드명 오기(계획 산출물 결함)**: verdict 파일
+  실물 스키마는 `classification`(review-gate.mjs writeVerdictFile)인데
+  check-phase-evidence.mjs가 존재하지 않는 `verdict` 필드를 읽어 무조건
+  "no FAIL verdict" 실패 — S6 워커가 정직 blocked 보고 + 스크래치 패치로
+  원인 격리 실증(2줄 교체 시 CHECK_OK). 계획 소유자가 체커 수정(checks/는
+  계약 write 범위, 게이트 스크립트 아님) 후 같은 워커 재개로 마무리.
+  교훈 후보: 계획이 산출물 스키마를 소비할 땐 소스에서 필드명을 실측 전사.
