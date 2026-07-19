@@ -315,17 +315,28 @@
   사유 = Fable 5→Opus 자동 전환(사용자 지시 일시 정지)** — 원인·재발방지는
   HANDOFF 헤더 §모델-전환. 상세 = HANDOFF 「▶▶ 잔여 소진 스프린트」 블록
 
+- 2026-07-19 | **잔여 소진 스프린트 W5 마감 = 스프린트 종결** (오케스트레이션 —
+  문서 동기화 sonnet·A-21 opus·A-14 sonnet·수리 sonnet·종합 리뷰 opus 위임) —
+  ① 종합 독립 리뷰(211fabef..HEAD): 1차 FAIL(MAJOR 1 = gate-e2e prompt_version
+  스테일 red 46/45/1 실측·MINOR 3) → 수리(ac5b8f31: 테스트 1.1 정렬 46/46
+  green·agy 1.1.4 재-핀 doctor 5 OK·DESIGN §14 item4/8 정합) → **재판정
+  PASS(0/0/0)**. ② 문서 동기화(6a4102be): PRD Phase 3·4 완료 표기(상시 개방
+  결정 대기 명시)·ADR-002 Addendum·DESIGN §13 drift 채널+D-022 append.
+  ③ A-21 소스 재검증 확증 → RULES.seed·CHECKLIST 4/2 재프레이밍(VERIFY-
+  PATTERNS §②-1 무수정). ④ A-14 excludeTools 미작동 실측(3중 근거) → AG
+  README 권장 철회·재실측 트리거·compatibility 1.1.4 재-핀. ⑤ A-7 = KR#5
+  문서화 유보 판정. 게이트 5종 최종 green. A 목록 24항 전량 소진(실행 12·
+  부분 정직 1[A-20]·유보/이관 11). Phase 5 착수 가능 판정 기록. GOAL 전 기준
+  충족. 부수: opus 위임 빈 응답 오작동 2회 — 재기동·재개로 해소(층2 선례 동형)
+
 ## Next
 
-- **▶ W5 마감부터 재개**(멈춤 없이 끝까지): HANDOFF 헤더 「▶▶ 잔여 소진
-  스프린트 (2026-07-19)」 블록 "차기 세션 착수 = W5 마감" 5항목 =
-  ① 스프린트 전체 새-컨텍스트 종합 리뷰(main 대비 이번 커밋 전량) ② 문서
-  동기화(PRD Phase 3·ADR-002·DESIGN/DECISIONS drift 채널) ③ A-21 반전 정정
-  판단(offline lint 4종 — 이번 세션 층3 표제 변경이 실측과 상충) ④ 게이트
-  5종+HANDOFF/STATE 최종+종결 커밋 ⑤ 사용자 결정 목록 제시. GOAL.md =
-  스프린트 성공 기준. 전 기간: 5-12 제외·무인 상시 개방은 사용자·QA/PRD
-  금지·row-data 2종 게이트·동결 읽기만. **세션 모델 Fable 유지 시 §모델-전환
-  주의(보안 오해 소재·어휘 회피).**
+- **다음 착수 = 사용자 결정 대기** (잔여 소진 스프린트 종결 2026-07-19).
+  결정 목록 = HANDOFF 「▶▶ 잔여 소진 스프린트」 블록 §사용자-결정 ①~⑦
+  (제시 완료). 착수 후보: Phase 5 Hardening(착수 가능 판정 완료 — write mode
+  안전성 리뷰는 결정 ①과 연동) · 결정 후속 작업(②~⑦) · C 트리거-대기 목록.
+  전 기간 유효: 무인 SAP write 금지(5-11, 결정 ① 전까지) · final-harness
+  플러그인 업데이트 금지(5-12) · 동결 드리프트 1파일 정리는 사용자 판단.
 
 ## Attempts & dead ends
 
