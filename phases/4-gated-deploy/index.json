@@ -1,0 +1,71 @@
+{
+  "project": "sap-agentic-harness",
+  "phase": "4-gated-deploy",
+  "run_id": "20260719-4-gated-deploy",
+  "steps": [
+    {
+      "step": 0,
+      "name": "implement-red",
+      "status": "pending",
+      "verify": "powershell -Command \"& 'D:\\Claude for SAP\\vsp-custom\\build\\vsp.exe' lint --file src/zsah4_gl_list.prog.abap; exit $LASTEXITCODE\"",
+      "targets": ["src/**", "phases/4-gated-deploy/**"],
+      "actions": ["code"],
+      "domains": ["abap"]
+    },
+    {
+      "step": 1,
+      "name": "machine-blindness-evidence",
+      "status": "pending",
+      "verify": "powershell -Command \"& 'scripts\\verify-sap.ps1' -Write -- deploy src/zsah4_gl_list.prog.abap '$TMP'; if ($LASTEXITCODE -ne 0) { exit 1 }; $t = & 'scripts\\verify-sap.ps1' -- test PROG ZSAH4_GL_LIST | Out-String; Write-Host $t; if ($LASTEXITCODE -ne 0) { exit 1 }; if ($t -match '(?i)fail(ed|ures)?[:\\s]+[1-9]') { exit 1 }; $a = & 'scripts\\verify-sap.ps1' -- atc PROG ZSAH4_GL_LIST | Out-String; Write-Host $a; if ($LASTEXITCODE -ne 0) { exit 1 }; node phases/4-gated-deploy/checks/check-verification.mjs red; exit $LASTEXITCODE\"",
+      "targets": ["phases/4-gated-deploy/**", "src/**"],
+      "actions": ["code", "deploy"],
+      "domains": ["abap", "sap"]
+    },
+    {
+      "step": 2,
+      "name": "review-gate",
+      "status": "pending",
+      "verify": "powershell -Command \"node scripts/review-gate/review-gate.mjs --unit phases/4-gated-deploy/unit.json --state phases/4-gated-deploy/state --config scripts/review-gate/config.json; exit $LASTEXITCODE\"",
+      "targets": ["src/**", "phases/4-gated-deploy/**"],
+      "actions": ["code", "review-gate"],
+      "domains": ["abap", "sap"]
+    },
+    {
+      "step": 3,
+      "name": "deploy-gate",
+      "status": "pending",
+      "verify": "powershell -Command \"$h = node -p \\\"Object.keys(require('./phases/4-gated-deploy/state/state.json').pass_records)[0] || ''\\\"; if (-not $h) { Write-Host 'NO_PASS_RECORD'; exit 1 }; node scripts/review-gate/deploy-gate.mjs --unit phases/4-gated-deploy/unit.json --state phases/4-gated-deploy/state --capsule phases/4-gated-deploy/state/capsules/$h --deploy-cmd 'node deploy-shim.mjs {file}'; exit $LASTEXITCODE\"",
+      "targets": ["phases/4-gated-deploy/**"],
+      "actions": ["deploy"],
+      "domains": ["sap"]
+    },
+    {
+      "step": 4,
+      "name": "post-deploy-scoring",
+      "status": "pending",
+      "verify": "powershell -Command \"$s = & 'scripts\\verify-sap.ps1' -- source read PROG ZSAH4_GL_LIST | Out-String; if ($LASTEXITCODE -ne 0) { exit 1 }; Set-Content -Encoding utf8 phases/4-gated-deploy/state/final-server-read.txt $s; node phases/4-gated-deploy/checks/check-verification.mjs green; if ($LASTEXITCODE -ne 0) { exit 1 }; $t = & 'scripts\\verify-sap.ps1' -- test PROG ZSAH4_GL_LIST | Out-String; Write-Host $t; if ($LASTEXITCODE -ne 0) { exit 1 }; if ($t -match '(?i)fail(ed|ures)?[:\\s]+[1-9]') { exit 1 }; exit 0\"",
+      "targets": ["phases/4-gated-deploy/**"],
+      "actions": ["verify"],
+      "domains": ["sap"]
+    },
+    {
+      "step": 5,
+      "name": "drift-demonstration",
+      "status": "pending",
+      "verify": "powershell -Command \"node phases/4-gated-deploy/checks/check-drift.mjs phases/4-gated-deploy/state/drifted-server-read.txt phases/4-gated-deploy/state/restored-server-read.txt; exit $LASTEXITCODE\"",
+      "targets": ["phases/4-gated-deploy/**"],
+      "actions": ["deploy", "verify"],
+      "domains": ["sap"]
+    },
+    {
+      "step": 6,
+      "name": "evidence-consolidation",
+      "status": "pending",
+      "verify": "powershell -Command \"node phases/4-gated-deploy/checks/check-phase-evidence.mjs; exit $LASTEXITCODE\"",
+      "targets": ["phases/4-gated-deploy/**"],
+      "actions": ["docs"],
+      "domains": ["sap"]
+    }
+  ],
+  "created_at": "2026-07-19T00:00:00+0900"
+}

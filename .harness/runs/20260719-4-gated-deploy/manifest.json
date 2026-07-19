@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "run_id": "20260719-4-gated-deploy",
+  "mode": "engine",
+  "phase": "4-gated-deploy",
+  "contract_sha256": "b611a5a5e5fa294282a163d880f2b1491e087d898d6a21350d0de6077e161152",
+  "supervision": "attended",
+  "sandbox": { "kind": "host" },
+  "permissions": {
+    "write_paths": ["src/**", "phases/4-gated-deploy/**"],
+    "network": true,
+    "package_install": false,
+    "secrets": [],
+    "git": { "commit": true, "push": false, "pr": false },
+    "external_writes": [],
+    "deploy": true,
+    "migrate": false
+  },
+  "scope": { "actions": ["code", "deploy", "review-gate", "verify", "docs"], "domains": ["abap", "sap"] },
+  "notes": "SAP write는 HTTP prefix 게이트가 아닌 vsp CLI 경유라 external_writes 기계 게이트 밖 — 기계 강제층은 vsp write 게이트(SAP_READ_ONLY/SAP_TIER, lock v2.38.1-94)와 deploy-gate 3중 바인딩. 대상 시스템 IDES S4H/100 $TMP 한정(contract Approved side effects)."
+}

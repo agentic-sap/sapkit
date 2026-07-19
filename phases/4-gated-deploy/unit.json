@@ -1,0 +1,7 @@
+{
+  "unit_id": "zsah4-gl-list",
+  "files": ["src/zsah4_gl_list.prog.abap"],
+  "spec_path": "phases/4-gated-deploy/spec.md",
+  "verification_path": "phases/4-gated-deploy/state/verification.json",
+  "target_system": "IDES-DEV S4H/100 client 100, package $TMP, DEV tier"
+}
