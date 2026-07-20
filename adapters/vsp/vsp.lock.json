@@ -199,8 +199,21 @@
       ]
     },
     "unrelated_known_failures": {
-      "verdict": "FAIL (계약 밖)",
-      "_": "4개 패키지가 실패하지만 전부 캐시/레코딩/jseval 영역이라 lock의 command_contract가 다루는 명령과 무관하다. 로드맵 §3.5가 예고한 3원인과 정확히 일치한다.",
+      "verdict": "RESOLVED (2026-07-20 레포 내 수리)",
+      "_": "4개 패키지가 실패했으나 전부 캐시/레코딩/jseval 영역이라 lock의 command_contract가 다루는 명령과 무관했다(로드맵 §3.5가 예고한 3원인과 정확히 일치). D-030 편입으로 '별도 repo 작업'이 '레포 내 작업'이 된 첫 수리 — 2026-07-20 로드맵 §9.6 방향 그대로 해소. 아래 items는 수리 전 기록의 보존이며 수리 내용은 resolution 참조.",
+      "resolution": {
+        "date": "2026-07-20",
+        "measured": "CGO_ENABLED=0 · windows/amd64 · go1.26.4 · `go test -count=1 ./...` 전체 green(FAIL 0) · `go vet ./...` 0 · `go build ./cmd/vsp` 성공 — 작업자 실측 + 새-컨텍스트 리뷰어 독립 재실측 이중",
+        "changes": [
+          "pkg/jseval/oracle_test.go — 하드코딩 /tmp → t.TempDir()",
+          "pkg/adt/recorder.go — generateRecordingID에 atomic 시퀀스 접미사 추가(timestamp 유지 · 변경은 ID 생성부 국한 · 소비처 무손상: 정렬은 StartTime 기준·파일명 Windows-safe·역파싱 없음)",
+          "cmd/vsp/audit_cache_test.go + cgo_sqlite_{cgo,nocgo}_test.go(신규 2) — audit 캐시 6건을 CGO0에서 명시 skip(빌드 태그 const cgoSQLiteAvailable), TestAuditCache_NilSafe는 CGO0에서도 계속 실행·PASS",
+          "pkg/cache/example_test.go → example_sqlite_cgo_test.go(신규) — Example_withSQLite를 //go:build cgo 파일로 본문 원형 이설(Example은 t.Skip 불가, CGO1 Output 검증 유지)"
+        ],
+        "flaky_note": "pkg/adt 수리 전 재실측의 실패 부분집합이 아래 items 기록 4건과 달랐다(GetRecordingStats·CompareRecordingsDifferentStepCount FAIL, ListRecordingsWithFilter·RebuildIndex PASS) — 동일 단일 원인(coarse-clock timestamp ID 충돌, Compare 계열은 충돌 시 id1==id2로 자기비교)의 타이밍 의존 flaky로 확증. 근본원인 수리 + 20회 stress 0실패.",
+        "cgo1_no_regression": "go list 태그별 파일 선택으로 CGO1에선 6건 실제 실행 + SQLite Example Output 검증 유지 실증. 이 머신 gcc 부재로 CGO1 실행 자체는 불가(CGO0가 production lane인 이유) — 필요 시 CGO1 cache lane은 별도.",
+        "review": "새-컨텍스트 독립 리뷰 PASS(BLOCKER/MAJOR/MINOR 0) — 변경 7파일 전수 대조·테스트 -count=1 재실측·CGO1 와이어링·ID 소비처 안전성 독립 확인. write 게이트·CLI 계약 표면·vsp/ 밖 무접촉, 바이너리 비커밋 확인."
+      },
       "items": [
         {
           "package": "cmd/vsp",
@@ -244,6 +257,6 @@
         }
       ]
     },
-    "pending_user_decision": "vsp-custom 별도 repo 수리 착수(§9.6: /tmp→t.TempDir · recording ID · CGO0 SQLite 처리 · CGO0 Windows production lane · 필요 시 CGO1 cache lane)는 사용자 결정 사항이라 S3에서 착수하지 않았다."
+    "pending_user_decision": "해소 (2026-07-20) — §9.6 수리를 사용자 결정으로 착수·완료(위 unrelated_known_failures.resolution). CGO0 Windows production lane = 현행 기본. 잔여는 '필요 시 CGO1 cache lane'뿐(이 머신 gcc 부재로 미실행, 필요해질 때 별도)."
   }
 }

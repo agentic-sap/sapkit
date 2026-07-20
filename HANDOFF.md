@@ -104,6 +104,15 @@
 > read-only 실측(**엔진 버전 무관** — P4 계약이 출력 형상에 의존, 자격증명 셸 필요).
 > 잔여 사용자 확인 1건 유지: 주/보조 SAP 프로파일 명(IDEA-JNC vs IDES-DEV —
 > SAFETY-PROFILES §⑦ 병기 상태).
+> **→ ✅ ③ 완료 (2026-07-20, 오케스트레이션 세션 — 수리·리뷰 모델 지정 위임)**: 4패키지
+> 12테스트 전부 해소 — jseval `/tmp`→`t.TempDir` · adt 레코딩 ID atomic 시퀀스 접미사
+> (timestamp 유지·소비처 무손상) · cmd/vsp audit 6건+cache Example CGO0 명시 skip
+> (빌드 태그, CGO1 커버리지 유지·의존성 추가 0). CGO0 `go test -count=1 ./...` 전체
+> green(FAIL 0)·vet 0·빌드 성공 — 작업자+리뷰어 이중 실측. 새-컨텍스트 독립 리뷰
+> **PASS(B/M/m 0)**. 발견: adt 실패 부분집합이 lock 기록과 달랐음 = 동일 원인(coarse-clock
+> ID 충돌)의 타이밍 의존 flaky 확증(Compare 계열은 충돌 시 id1==id2 자기비교) — 근본원인
+> 수리 + 20회 stress 0실패. lock `test_status` RESOLVED 갱신. 잔여 = 필요 시 CGO1 cache
+> lane(이 머신 gcc 부재)뿐. 남은 후보 = ①·②·④ + 0(엔진 실행 배선 선결, §5-14).
 >
 > **확정된 통합 결정 5건 (평가 문서 §5):**
 > - **⑴ 방향 = 절충**: 대화형(attended) 중심 틀(원격 재기준 3축 Direct/Guided/Engine)을
@@ -355,10 +364,10 @@
 > installer 재설치로는 **해결되지 않고 오히려 재유입**된다(candidate의
 > `session-start-context.py`가 여전히 `python scripts/execute.py <phase>`를 안내하고,
 > 우리 교정본은 gitignore 대상이라 머신 로컬). final-harness에 기여할지 사용자 결정.
-> ④ **vsp-custom 수리 착수** — §9.6(`/tmp`→`t.TempDir` · recording ID · CGO0 SQLite ·
-> Windows lane). ⓪ 편입 결정에 종속: 편입하면 이건 "별도 repo 작업"이 아니라 **레포 내
-> 작업**이 된다. 현 lock 계약은 PASS이고 4패키지 FAIL은 계약 밖으로 분리 기록됨
-> (`vsp.lock.json.test_status`).
+> ④ ~~vsp-custom 수리 착수~~ **완료 (2026-07-20)** — §9.6(`/tmp`→`t.TempDir` · recording
+> ID · CGO0 SQLite · Windows lane). D-030 편입으로 레포 내 작업이 됐고 4패키지 12테스트
+> 전부 해소·독립 리뷰 PASS. 상세 = 헤더 "③ 완료" 블록 + `vsp.lock.json.test_status`
+> (RESOLVED). 잔여 = 필요 시 CGO1 cache lane뿐.
 > ⑤ **`vsp transport list/get` read-only 1회 실측** — 자격증명 셸 필요. 출력 형상
 > 미확인이라 P4 계약이 여기 의존(**S5-A**가 소유, G14 대상).
 > ⑥ **상류 설계 결함 확인** — `adapters/final-harness/UPSTREAM-DOCS-LIFECYCLE-GAP.md`
