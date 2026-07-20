@@ -256,10 +256,10 @@ gated write 이후 `vsp source read <TYPE> <NAME>`로 반영을 대조한다(CLA
 | 객체 프리픽스 | **`ZSAH*`** — 실측: `ZSAH0B_*`, `ZSAH1_WORKDAYS`, `ZCL_SAH2_WORKDAYS`, `ZSAH2_DUEDATE`, `ZSAH3_CARRFLT`, `ZSAH4_GLOPEN` | 관례(Z 접두사, RULES/CHECKLIST) |
 | tier | **DEV 만** (R-003) | 자격증명 프로파일이 DEV로 한정 |
 
-> **정직 표기 (2026-07-19)**: `COMMANDS.md` §①·부록의 표기는 **IDES-DEV**(dev tier) —
-> 위 표의 `IDEA-JNC`(2026-07-13 표기)와 프로파일 명이 다르다. 동일 SID/client
-> (S4H/100, dev tier)를 가리키는 것으로 보이나, 프로파일 이름 자체가 같은 대상인지는
-> 이번 통합 작업에서 확인하지 못했다 — 두 원문 표기를 각각 그대로 보존한다.
+> **표기 확정 (2026-07-20, 사용자 확정 · D-039①)**: `COMMANDS.md` §①·부록의
+> **IDES-DEV**와 위 표의 **IDEA-JNC**(2026-07-13 표기)는 **같은 서버의 머신별 프로파일
+> 명**이다(S4H/100, dev tier). 2026-07-19 시점엔 추정이었고 이제 확정이다 — 두 원문
+> 표기는 역사 보존을 위해 각각 그대로 두되, **같은 대상으로 읽는다**.
 
 > vsp에 package allowlist 내장 강제 플래그가 없으므로(§①), allowlist는 **verify 명령
 > 문자열(엔진 스냅샷 고정) + 리뷰/에스코트**로 강제된다. 대상 패키지·프리픽스는 계획

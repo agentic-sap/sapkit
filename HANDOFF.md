@@ -92,8 +92,11 @@
 > 재현(14/17 지점 중단)이라 기계 완주 정본은 CI ubuntu 유지(통합 세션 판정과 동일).
 > **주 머신 후속 1회**: pull 후 in-repo 빌드 필요(quality-gate가 in-repo 경로만 봄;
 > 명령 = lock `binary.build_command`) — 구 사본 `D:\claude for SAP\vsp\vsp-custom`은
-> 더 이상 미참조. 원천 레포 = 무수정 보존, 처분(동결·보관)·origin 미푸시 1커밋
-> (5a8bedb 자체)·git 이력 비공개 기록 정리는 사용자 몫.
+> 더 이상 미참조. 원천 레포 = 무수정 보존. **처분 = 하지 않음으로 확정 (2026-07-20
+> 사용자)** — 현 위치에 그대로 둔다(동결·삭제·이력 정리 전부 안 함). origin 미푸시
+> 1커밋(5a8bedb 자체)·git 이력의 비공개 접속 기록도 그대로 남는다. ⚠️ 정직 기록:
+> 편입 트리(`vsp/`)는 비공개 정보 0건 실측이나 **원천 레포 쪽에는 잔존**한다 —
+> 그 레포를 외부 공유·푸시할 경우 노출되므로 그때 재검토할 것.
 >
 > **▶▶ 다음 착수 후보 (사용자 판단)**: **[D-038, 2026-07-20]** final-harness =
 > **verified v0.17.3 동결** — candidate `d4a0aeb`(v0.20.0, staged)는 "검증됨·미승격"
@@ -102,8 +105,9 @@
 > 개방 선결) ② 검토 게이트 캡슐 배선(통합 결정 ⑵·D-032 — 후속 소규모 설계) ③ vsp
 > 테스트 수리(§9.6 4건 — 편입으로 이제 "레포 내 작업") ④ vsp transport list/get
 > read-only 실측(**엔진 버전 무관** — P4 계약이 출력 형상에 의존, 자격증명 셸 필요).
-> 잔여 사용자 확인 1건 유지: 주/보조 SAP 프로파일 명(IDEA-JNC vs IDES-DEV —
-> SAFETY-PROFILES §⑦ 병기 상태).
+> ~~잔여 사용자 확인 1건~~ **해소 (2026-07-20 사용자 확정)**: 주/보조 SAP 프로파일 명
+> `IDEA-JNC`·`IDES-DEV`는 **같은 서버의 머신별 프로파일 명**이다(추정이었던 것을 사용자가
+> 확정). SAFETY-PROFILES §⑦ 병기는 그대로 두되 "같은 서버 확정"으로 읽는다.
 > **→ ✅ ③ 완료 (2026-07-20, 오케스트레이션 세션 — 수리·리뷰 모델 지정 위임)**: 4패키지
 > 12테스트 전부 해소 — jseval `/tmp`→`t.TempDir` · adt 레코딩 ID atomic 시퀀스 접미사
 > (timestamp 유지·소비처 무손상) · cmd/vsp audit 6건+cache Example CGO0 명시 skip
@@ -356,27 +360,42 @@
 > **사용자 대기 항목 (2026-07-16 현행화)**:
 > ⓪ **[최우선·다음 세션 첫 질문] vsp 편입 여부(D-018 재론)** — 위 ⛔ 블록 참조. S5 선결.
 > ① ~~push 여부~~ **완료** — `d193db3..76feb2f` push됨, CI 3잡 green 실측.
-> ② **symlink 권한** — 탈출 차단 3건이 이 머신에서 계속 skip(WinError 1314 S4 재현).
-> Windows 개발자 모드 또는 관리자 셸이 필요하며 **머신 설정은 사용자 결정**. 해소되면
-> `test_install_engine.py:454/:466` · `test_run_contract.py:223`를 재실행해 lock의
-> `known_unverified`에서 내린다.
-> ③ **raw execute 안내의 durable 제거 = 상류 기여 필요** — S4가 경로를 확정했다:
-> installer 재설치로는 **해결되지 않고 오히려 재유입**된다(candidate의
-> `session-start-context.py`가 여전히 `python scripts/execute.py <phase>`를 안내하고,
-> 우리 교정본은 gitignore 대상이라 머신 로컬). final-harness에 기여할지 사용자 결정.
+> ② ~~symlink 권한~~ **불추진 확정 (2026-07-20 사용자)** — 탈출 차단 3건은 이 머신에서
+> 계속 skip(WinError 1314 S4 재현)이고 개발자 모드/관리자 셸이 필요하나 **하지 않기로
+> 결정**. 근거: 대상이 D-038로 봉인된 candidate(v0.20) 계열이라 실효 가치가 낮다.
+> `known_unverified`는 **열린 채 정직 유지**(검증됐다고 적지 않는다). 재론 시 재료 =
+> `test_install_engine.py:454/:466` · `test_run_contract.py:223`.
+> ③ ~~raw execute 안내의 durable 제거~~ **불추진 확정 (2026-07-20 사용자)** — S4가 경로를
+> 확정했으나(installer 재설치로는 **해결되지 않고 오히려 재유입**: candidate의
+> `session-start-context.py`가 여전히 `python scripts/execute.py <phase>`를 안내, 우리
+> 교정본은 gitignore 대상이라 머신 로컬) **상류 기여를 하지 않기로 결정**. D-038의
+> 공급선 휴면과 정합. 대응 = 현행대로 AGENTS.md 금지 + 래퍼 exit 64 deny로 차단 유지
+> (SessionStart 알림의 legacy 안내는 **무시**하는 운영을 계속한다).
 > ④ ~~vsp-custom 수리 착수~~ **완료 (2026-07-20)** — §9.6(`/tmp`→`t.TempDir` · recording
 > ID · CGO0 SQLite · Windows lane). D-030 편입으로 레포 내 작업이 됐고 4패키지 12테스트
 > 전부 해소·독립 리뷰 PASS. 상세 = 헤더 "③ 완료" 블록 + `vsp.lock.json.test_status`
 > (RESOLVED). 잔여 = 필요 시 CGO1 cache lane뿐.
 > ⑤ **`vsp transport list/get` read-only 1회 실측** — 자격증명 셸 필요. 출력 형상
 > 미확인이라 P4 계약이 여기 의존(**S5-A**가 소유, G14 대상).
-> ⑥ **상류 설계 결함 확인** — `adapters/final-harness/UPSTREAM-DOCS-LIFECYCLE-GAP.md`
-> (영어 자립형, 상류 세션 붙여넣기용): `harness-docs`가 ADR.md에 영구 append와 ~300줄
-> 상한을 동시 요구하나 초과 시 처분 부재. ③과 함께 상류에 전달할지 판단.
+> ⑥ ~~상류 설계 결함 확인~~ **불추진 확정 (2026-07-20 사용자, ③과 동시)** —
+> `adapters/final-harness/UPSTREAM-DOCS-LIFECYCLE-GAP.md`(영어 자립형, 상류 세션
+> 붙여넣기용)는 **문서로 보존만** 한다. 내용 = `harness-docs`가 ADR.md에 영구 append와
+> ~300줄 상한을 동시 요구하나 초과 시 처분 부재. 상류 전달 안 함.
 > ⑦ **상류 워킹트리 dirty** — S1 시점 20파일은 사용자가 커밋해 해소됐고 d4a0aeb가 그
 > 결과다. 현재 `docs/manual.html` 1건이 다시 dirty(읽기만 함 — 손대지 않았다).
-> ⑧ **상류 sc4sap public 드리프트 55건 판정** — 전부 `pending`. 판정처는
-> `interactive/provenance/upstream-drift-dispositions.json`. (핀 게이트는 무영향.)
+> ⑧ **상류 sc4sap public 드리프트 판정 — 유일 잔여 사용자 판단**. 전부 `pending`(기록 0건).
+> 판정처는 `interactive/provenance/upstream-drift-dispositions.json`. (핀 게이트는 무영향.)
+> **재측정 2026-07-20 = 58건**(public HEAD `5e087eda`) — 07-16의 55건(HEAD `9781ff3e`)에서
+> 또 늘었다. 수는 **상류 HEAD의 함수**라 볼 때마다 바뀐다(45→55→58). 성격 분해(재현:
+> `node interactive/scripts/report-sc4sap-public-drift.mjs`): **transform 36**(페르소나·
+> CLAUDE.md·README·플러그인 설정 — 실질 검토 대상은 여기뿐) · obsolete 8(HUD·publish·
+> src/index.ts 등 미채택) · archive 8(다국어 README·CHANGELOG — §5-6 "재작성 안 함"으로
+> 이미 무관) · copy 6. **copy 6건 중 engine/ 4건은 실질 무의미**(D-017 편입 후 자체 수리
+> 4.13.16까지 진행돼 상류와 완전 분기 — 되가져오면 우리 수리가 소실). 나머지 2건 =
+> `scripts/fetch-abap-keyword-doc.mjs`·`fetch-sap-help-doc.mjs`로 **§5-5의 "깨진 표면"과
+> 동일 대상**이다(코어 페르소나가 bundled로 참조 중인데 미이식). 즉 5-5를 구현 방향으로
+> 풀면 이 2건이 조달처가 된다. 방침 선택지: ⓐ 현상 유지(목록은 언제든 재생성) ⓑ transform
+> 36건만 대조해 개선분 선별 이식 ⓒ "상류 미추종" 명시 후 리포트 접기.
 > **Phase 4(Domain Packs) 완료 ✅ (2026-07-14)**: 완료 기준 ①(팩 CONSULT 실사용 =
 > recon 결정 델타 5건) + ②(LESSONS 유래 규칙 승격 = 4a 씨앗→L-002→R-007) 충족 +
 > 에스코트 보강(4a 씨앗 차단 + 4b 정상 배포). 소형 잔여(재기준과 무관): 엔진 11-⑩ ·
