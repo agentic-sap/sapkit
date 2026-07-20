@@ -31,6 +31,11 @@
 > → **ZUNIWHT/ZUNIVAT_MODI 도그푸딩 착수**(Direct/Guided + 트랙 B MCP, ENGINE 불사용,
 > 마찰 로그 남기기) · **보조 머신** = 경량화 실측(하네스별 고정/증분 토큰·cold install/
 > bootstrap 실단계 — baseline·합격선 산출이 목표).
+> **선행 후보 (07-20 밤 설계 등재 — `interactive/DESIGN.md` §8)**: ① 제품명 개편
+> Phase 1 = `sapkit`(플러그인·마켓플레이스·레포, 집행 시 D-041 기록 — `.sc4sap` 계열
+> 개명은 Phase 2 보류: 서버 번들이 그 경로를 읽음, §7 R3) ② knowledgeRoots 배선
+> (지식 3층 L1/L2/L3 — 위키 포인터 참조, 복사·경로 커밋 금지). 도그푸딩이 첫
+> 소비자이고 rename은 재설치를 부르므로 **실측·도그푸딩 전 집행 권장**.
 >
 > **불변 확인**: unattended=sealed(제품 원칙 = attended-only) · RV4 열림 · final-harness
 > verified v0.17.3 동결·candidate 봉인(D-038) — 단 v0.17.3은 "실행 경로"가 아니라
