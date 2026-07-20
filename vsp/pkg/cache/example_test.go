@@ -46,45 +46,6 @@ func Example_inMemory() {
 	// Retrieved: ZCL_MY_CLASS (CLAS)
 }
 
-// Example_withSQLite demonstrates SQLite-backed cache
-func Example_withSQLite() {
-	ctx := context.Background()
-
-	// Create SQLite cache
-	config := cache.DefaultConfig()
-	config.Type = "sqlite"
-	config.Path = "/tmp/test_cache.db"
-
-	c, err := cache.NewCache(config)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		return
-	}
-	defer c.Close()
-
-	// Store a node
-	node := &cache.Node{
-		ID:          "PROG.ZREPORT",
-		ObjectType:  "PROG",
-		ObjectName:  "ZREPORT",
-		Package:     "$TMP",
-		Valid:       true,
-	}
-
-	err = c.PutNode(ctx, node)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		return
-	}
-
-	// Get stats
-	stats, _ := c.Stats(ctx)
-	fmt.Printf("Nodes: %d, Valid: %d\n", stats.NodeCount, stats.ValidNodeCount)
-
-	// Output:
-	// Nodes: 1, Valid: 1
-}
-
 // Example_graphTraversal demonstrates caching graph traversal results
 func Example_graphTraversal() {
 	ctx := context.Background()

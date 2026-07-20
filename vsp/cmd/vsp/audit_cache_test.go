@@ -35,6 +35,9 @@ func newTempCache(t *testing.T) *auditCache {
 // you put in is exactly what you get out (via the JSON helpers) and a
 // miss returns false.
 func TestAuditCache_PutGetRoundtrip(t *testing.T) {
+	if !cgoSQLiteAvailable {
+		t.Skip("audit cache uses go-sqlite3 which needs cgo; built with CGO_ENABLED=0")
+	}
 	c := newTempCache(t)
 
 	// Miss on empty cache.
@@ -65,6 +68,9 @@ func TestAuditCache_PutGetRoundtrip(t *testing.T) {
 // handle close+reopen. This guards against "we cached to memory only"
 // regressions and makes sure consecutive vsp invocations warm-hit.
 func TestAuditCache_Persistence(t *testing.T) {
+	if !cgoSQLiteAvailable {
+		t.Skip("audit cache uses go-sqlite3 which needs cgo; built with CGO_ENABLED=0")
+	}
 	path := filepath.Join(t.TempDir(), "persist.db")
 
 	c1, err := openAuditCache("sys", path)
@@ -95,6 +101,9 @@ func TestAuditCache_Persistence(t *testing.T) {
 // cached DD02L snapshots outlive their freshness window but before the
 // file is manually cleared.
 func TestAuditCache_TTLExpiry(t *testing.T) {
+	if !cgoSQLiteAvailable {
+		t.Skip("audit cache uses go-sqlite3 which needs cgo; built with CGO_ENABLED=0")
+	}
 	c := newTempCache(t)
 	c.putJSON("k", "value")
 
@@ -148,6 +157,9 @@ func TestAuditCache_NilSafe(t *testing.T) {
 // This is the test the user explicitly asked for: prove the cache
 // does not change observable behaviour, only timing.
 func TestQueryCodeRefsCached_EquivalenceAndMemoization(t *testing.T) {
+	if !cgoSQLiteAvailable {
+		t.Skip("audit cache uses go-sqlite3 which needs cgo; built with CGO_ENABLED=0")
+	}
 	// Restore the real fetcher after the test so later tests aren't
 	// affected by our swap.
 	orig := queryCodeRefsFunc
@@ -211,6 +223,9 @@ func TestQueryCodeRefsCached_EquivalenceAndMemoization(t *testing.T) {
 // the empty-result case. Without this, objects that genuinely have no
 // CROSS/WBCROSSGT hits would re-query on every call.
 func TestQueryCodeRefsCached_EmptyResultCached(t *testing.T) {
+	if !cgoSQLiteAvailable {
+		t.Skip("audit cache uses go-sqlite3 which needs cgo; built with CGO_ENABLED=0")
+	}
 	orig := queryCodeRefsFunc
 	t.Cleanup(func() { queryCodeRefsFunc = orig })
 
@@ -267,6 +282,9 @@ func refsEqual(a, b []graph.TableCodeRef) bool {
 // /tmp default. Regression guard: an earlier refactor once made the
 // override silently fall back to /tmp.
 func TestAuditCache_FilesystemIsolation(t *testing.T) {
+	if !cgoSQLiteAvailable {
+		t.Skip("audit cache uses go-sqlite3 which needs cgo; built with CGO_ENABLED=0")
+	}
 	dir := t.TempDir()
 	explicit := filepath.Join(dir, "isolation.db")
 	c, err := openAuditCache("whatever", explicit)
