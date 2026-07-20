@@ -2,16 +2,20 @@
 
 Assign each action one **execution structure** and one orthogonal **SAP Policy
 profile**; split mixed actions. Source:
-`docs/reference/designs/2026-07-15-track-a-rebase-v2.md` §§3-8 and D-025.
+`docs/reference/designs/2026-07-15-track-a-rebase-v2.md` §§3-8 and D-025, as
+amended by D-040 (ENGINE template-only).
 
 ### Execution structure
 
 Apply this order. File, step, and verification counts never affect routing.
 
-- **Engine attended** — only for an approved new-style contract/manifest that
-  covers bounded steps, retries, a seed, or a batch. The sole entry is
-  `scripts/run-track-a.ps1`; raw `scripts/execute.py` invocation is prohibited.
-  Missing wrapper or contract means Engine is unavailable, with no bypass.
+- **Engine attended** — **template-only per D-040 (2026-07-20): not a currently
+  supported execution structure.** The wrapper `scripts/run-track-a.ps1`
+  fail-closes (exit 65) by design and has no support owner; contract,
+  checklist, and review-schema assets are preserved as templates. Raw
+  `scripts/execute.py` invocation remains prohibited. Reopening requires a real
+  demand trigger (repeated batches, bounded-retry loops) plus a new D-decision.
+  Route all current work to Guided or Direct.
 - **Guided** — only for explicit elevation or durable evidence: SAP-code
   completion, closing Direct-P3, pause/resume, or explicit fresh review.
   Goal/state/review stay under `.harness/runs/<run-id>/` only.

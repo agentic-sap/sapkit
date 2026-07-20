@@ -2,21 +2,25 @@
 
 ## 프로젝트 정체성 (30초 맥락 — 이걸 모르면 판단하지 말 것)
 
-SAP ABAP 개발을 AI 하네스로 수행하는 **단일 레포 · 두 트랙**. 철학: **차용 후 완전
-소유**(sc4sap 지식 이식, 엔진 편입 D-017) · 가볍지만 강력하게 · 3사 하네스 중립.
+SAP ABAP 개발을 AI 하네스로 수행하는 **단일 레포 · 두 트랙**. **제품은 `interactive/`
+플러그인 단독**이고 나머지(`engine/`·`vsp/`·`scripts/`·`phases/`)는 공방(개발 도구·소스
+정본·증거)이다 — 모노레포 유지(D-040). 철학: **차용 후 완전 소유**(sc4sap 지식 이식,
+엔진 편입 D-017) · 가볍지만 강력하게(무게의 척도 = 세션 토큰·설치 부담, 레포 바이트
+아님 — D-040) · 3사 하네스 중립.
 
-- **트랙 A — 하네스 트랙** = Direct(기본) + Guided(명시 승격) + final-harness
-  **Engine attended**(자체 제작, 별도 레포)와 **vsp-custom CLI**. unattended는 단순
-  미착수가 아니라 D-025·재기준 v2 §7 해제 전 **`sealed`**다. **무인은 이 대화형 중심
-  틀 안의 관문(§7 U-gate) 통과로 사용 가능하다(통합 결정 ⑴ — 로컬 Phase 3 실증 + 무인
-  조건부 개방 D-034[구 로컬 D-023]가 관문 재료; 재기술 전 실사용 보류).** 사람 소유
+- **트랙 A — 하네스 트랙** = Direct(기본) + Guided(명시 승격). **ENGINE(final-harness
+  루프)은 D-040으로 template-only** — 계약·체크리스트·리뷰 스키마 자산은 보존하되
+  실행은 지원하지 않는다(래퍼 exit 65 = 의도된 상태, 지원 소유자 없음; 재개 = 실수요
+  트리거 + 새 D-결정). **제품 원칙 = attended-only**, unattended는 비약속 휴면 옵션
+  (U-gate 안전조건은 D-034에 보존, 배선 우선순위는 D-040이 supersede). 사람 소유
   Direct/Guided의 SAP 적용은 트랙 B MCP·사람 vsp CLI·사용자 abapGit 모두 허용된다.
-  vsp-custom은 **Engine의 SAP 실행 백엔드이자 적용 경로와 독립인 트랙 A 완료 증거
-  백엔드**이며, 사람 작업의 유일한 SAP 접점은 아니다(DESIGN.md §3 — powerup 엔진은
-  트랙 A에서 쓰지 않음). 소유 전략: **final-harness는 D-018 분리 유지 + 버전 lock**,
+  vsp-custom은 **오프라인 검증·트랙 A 완료 증거(V-PASS) 백엔드**이며(ENGINE 휴면과
+  무관하게 유효), 사람 작업의 유일한 SAP 접점은 아니다(DESIGN.md §3 — powerup 엔진은
+  트랙 A에서 쓰지 않음). 소유 전략: **final-harness는 D-018 분리 유지 + verified
+  v0.17.3 동결·공급선 휴면(D-038 — v0.17.3은 "실행 경로"가 아니라 재개 시 기준 버전)**,
   **vsp-custom은 D-030으로 레포 내 `vsp/`에 편입 완료(D-037 — 히스토리 비이식 스냅샷·
   바이너리 비커밋; D-018 vsp 조항 supersede)**.
-- **트랙 B — 대화형 플러그인 (검증 완료)** = `interactive/` — 하네스 중립 코어(지식 177·
+- **트랙 B — 대화형 플러그인 (제품, 검증 완료)** = `interactive/` — 하네스 중립 코어(지식 177·
   페르소나 26·절차 16·정책) + MCP 서버 번들 + 어댑터 3사(Claude/Codex/Antigravity).
   번들의 소스 정본은 레포 내 **`engine/`**(D-017 편입) — 엔진 수리→재번들→반영은
   `interactive/server/UPDATE-RUNBOOK.md` 절차로만.
