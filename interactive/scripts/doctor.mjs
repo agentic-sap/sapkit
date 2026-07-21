@@ -48,7 +48,12 @@ function pluginInstalledNote(cmd) {
   const r = spawnSync(cmd, ['plugin', 'list'], { shell: true, timeout: 30000, encoding: 'utf8' });
   if (r.error) return '플러그인 목록 조회 실패';
   const out = `${r.stdout ?? ''}${r.stderr ?? ''}`;
-  return out.includes('sapkit') ? '플러그인 설치됨' : '플러그인 미설치';
+  // 단순 substring이면 오탐한다 — `codex plugin list`는 등록된 마켓의 플러그인을 **미설치까지
+  // 전부** 열거하므로 이름만 보면 항상 "설치됨"이 된다(2026-07-21 실측: `sapkit@agentic-sap
+  // not installed`인데 OK로 보고). 이름이 나온 줄에서 미설치 표기를 함께 본다.
+  const line = out.split('\n').find((l) => l.includes('sapkit'));
+  if (!line) return '플러그인 미설치';
+  return /not installed/i.test(line) ? '플러그인 미설치' : '플러그인 설치됨';
 }
 
 // pinnedVersion === null → 버전 고정 없음(Claude): CLI 존재 + 플러그인 여부만 확인

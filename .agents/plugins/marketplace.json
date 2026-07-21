@@ -2,7 +2,7 @@
   "_generated": "⚠️ 생성물 — 직접 편집하지 말 것. 정본은 interactive/plugin-metadata.json (gen-plugin-manifests.mjs)",
   "name": "agentic-sap",
   "interface": {
-    "displayName": "SAP Agentic Harness"
+    "displayName": "SAPKit"
   },
   "plugins": [
     {

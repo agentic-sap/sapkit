@@ -27,18 +27,41 @@
 > 이식 스냅샷 재생성(diff **22/22 전부 목적지 sha256**, pin·roots 36·inventory 487 불변).
 > `doctor`만 FAIL 1 = **agy 1.1.1 ≠ 핀 1.1.4** — 개명 무관 선행 환경 드리프트다.
 >
-> **▶▶ 다음 착수 (주 머신)**: ① **재설치·실측** — 로컬 마켓을 `agentic-sap`으로 **수동
-> 재등록**(마켓 이름 개명은 `renames` 대상이 아니라 자동 이관 경로가 없다) 후
-> `/sapkit:*`·도구 접두어 실노출 확인. **이때 확정되는 미해결 1건**: MCP 도구 접두어가
-> 플러그인 이름에서 오는지 마켓 이름에서 오는지 공식 문서에 없고, 개명 전엔 두 값이
-> 같아 관측 불가였다 — 지금은 갈렸으니 실측으로 판정된다(`mcp__plugin_sapkit_sap__*`는
-> **아직 예상값**). ② **새-컨텍스트 독립 리뷰**(프로젝트 품질 모델). ③ 그 뒤
-> **ZUNIWHT 도그푸딩 착수** — vsp in-repo 빌드는 **이미 완료 상태**(`vsp\build\vsp.exe`
-> = `v2.38.1-94-g5a8bedb`, lock 일치 실측)라 07-20이 지시한 "빌드 1회"는 불요다.
+> **① 재설치 = ✅ 완료 (2026-07-21, 사용자 지시로 실행)**. 마켓 이름 개명은 `renames`
+> 대상이 아니라 **수동 재등록이 필요했고**(실증됨 — 문서가 말한 "이관 경로 없음"이
+> 실물로 확인), 반대로 **플러그인 이름은 `renames`가 자동 이관했다**(매니페스트 재생성
+> 직후 Claude Code가 `enabledPlugins` 키를 스스로 `sapkit@...`으로 고쳐 씀 — 실측).
+> 현 상태: 마켓 `agentic-sap`(Directory) · 플러그인 `sapkit@agentic-sap` v0.1.0
+> **enabled, scope=local**(원래 스코프로 복원 — 기본값 user로 들어간 것을 되돌림) ·
+> 구 키 잔재 0. Claude 캐시 경로 `cache/agentic-sap/sapkit/0.1.0` = **`<마켓>/<플러그인>/
+> <버전>` 구조 실측**.
+>
+> **▶▶ 다음 착수 (주 머신)**: ① **세션 재시작 후 도구 접두어 실측** — 미해결 1건이
+> 여기서 닫힌다: MCP 도구 접두어가 플러그인 이름에서 오는지 마켓 이름에서 오는지
+> 공식 문서에 없고, 개명 전엔 두 값이 같아 관측 불가였다. 지금 갈렸으므로 재시작 한 번이
+> 판정한다(`mcp__plugin_sapkit_sap__*`는 **아직 예상값**). ② **권한 병합 갱신** —
+> 프로젝트 `.claude/settings.local.json`의 allow 목록이 **구 네임스페이스라 이제 매칭
+> 안 됨**; 접두어 확정 후 새 템플릿(**189건**)을 병합할 것. ③ **ZUNIWHT 도그푸딩 착수**
+> — vsp in-repo 빌드는 **이미 완료 상태**(`vsp\build\vsp.exe` = `v2.38.1-94-g5a8bedb`,
+> lock 일치 실측)라 07-20이 지시한 "빌드 1회"는 불요다.
 > **보조 머신** = 경량화 실측(변동 없음) — 단 **재설치 후 측정할 것**(도구 접두어가
 > 13자 짧아져 tool-schema 토큰 baseline이 바뀐다).
 >
-> **미이행으로 남은 것**: Codex·Antigravity **재설치·재실측 안 함** — 두 README의
+> **▶ 독립 리뷰 결과 (2026-07-21, 새-컨텍스트 read-only) = NEEDS-FIX → 전건 수리 (D-042)**:
+> BLOCKER 0 · MAJOR 4 · MINOR 5. 리뷰어가 **작업자가 못 본 회귀**를 잡았다 —
+> 권한 템플릿을 `gen-permissions.mjs`로 재생성한 것이 inspection-only 기동이라
+> **189→158, 프로그램 계열 write 31종 소실**(과거 수리 `9727dc7` 되돌림, 경고 주석까지
+> 삭제). 오프라인 치환으로 189 복원 + **축소 거부 가드** 신설. 그 밖에 부정 단언
+> 교차검사·리뷰어 차단 게이트(유일한 fail-open 표면)·displayName·doctor Codex 오탐을
+> 수리했고 음성시험을 동반했다. 상세·잔여는 D-042.
+>
+> **미이행으로 남은 것**: **`gen-permissions.mjs`는 여전히 inspection-only 기동**(구
+> 결함 (b) 미해소 — 축소 가드는 사고만 막을 뿐이다). 진짜 수리 = **프로파일 활성 상태에서
+> 재생성**이며 SAP 접속(P1)이 필요하므로 SAP 붙는 작업 때 함께 처리한다. Codex 로컬
+> 설정(`~/.codex/config.toml`)에 개명 전 `[marketplaces.sap-agentic-harness]`·
+> `[plugins."sap-agentic-harness@sap-agentic-harness"]`가 **고아로 잔존**(enabled=false라
+> 무해) — Codex엔 `renames` 등가물이 없어 구조적이며, **Codex 재설치 시 함께 정리**한다
+> (2026-07-21 사용자 판단: 지금 건드리지 않음). Codex·Antigravity **재설치·재실측 안 함** — 두 README의
 > 캐시/임포트 경로(`cache/agentic-sap/sapkit/`, `~/.gemini/config/plugins/sapkit/`)는
 > 개명에서 파생한 **예상 경로**이지 실측 문구가 아니다. Phase 2(`.sc4sap/`·`~/.sah/`·
 > `SC4SAP_*`)는 §8-5대로 **보류 유지**. 로컬 폴더명(`D:\claude for SAP\sap-agentic-harness`)·

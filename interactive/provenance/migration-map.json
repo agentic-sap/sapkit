@@ -51,7 +51,7 @@
           "token": "adapters/claude/",
           "kind": "tree",
           "files": 11,
-          "sha256": "fff643c90d8a662796c35cce92e2ced8d3fa74cc0e233e1ec8adb6ec8ce344bc"
+          "sha256": "cae349c63544969fa50a62d3286208dd8abe871d84972a19d0b5dfa27d6dffd9"
         }
       ]
     },
@@ -275,7 +275,7 @@
         {
           "token": "scripts/doctor.mjs",
           "kind": "file",
-          "sha256": "8efc96773ff73acba4320ba6c6db14a171884a7a19ebd22554b614c24e18a488"
+          "sha256": "021a4ba9f420c358089dcf81368c43c5a08ed5918cd2075731aef1a94834c0ae"
         }
       ]
     },
@@ -922,7 +922,7 @@
           "token": "adapters/",
           "kind": "tree",
           "files": 16,
-          "sha256": "40c377277a3eb3b370f325f0d6ffd593fa80b8f55e2c92433cc961dbbb27b833"
+          "sha256": "fdcd684e85e2c7c37d5ea5a6cb8c5ec6ea83f2d50a3ec528563f82a9398e1e22"
         }
       ]
     },

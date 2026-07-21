@@ -243,6 +243,47 @@ if (UPDATE) {
     fail.push('클래스 정의 불일치: classes.mutation_prefix_re가 코드 정본과 다름');
 }
 
+// ⓪' 같은 이유로 **금지 문구의 네임스페이스도 코드 정본(NS)과 대조**한다. 스냅샷의
+//     must_not_mention이 낡은 접두어를 담고 있으면 "그 문자열이 파일에 없다"는 검사가
+//     항상 참이 되어 **부정 단언이 조용히 공허해진다** — 실데이터 2종 차단이 그 대상이라
+//     실패해도 초록으로 보인다. D-041 개명에서 실제로 발생할 뻔했다(리뷰 M-3).
+{
+  const stale = Object.entries(pinned.adapter_deny ?? {})
+    .filter(([a]) => !a.startsWith('_'))
+    .flatMap(([a, spec]) =>
+      (spec.must_not_mention ?? [])
+        .filter((s) => s.startsWith('mcp__plugin_') && !s.startsWith(NS))
+        .map((s) => `${a} → "${s}"`)
+    );
+  if (stale.length)
+    fail.push(
+      `금지 문구가 현 네임스페이스(${NS})와 불일치 — 부정 단언이 공허해짐: ${stale.join(' · ')} (--update로 재생성할 것)`
+    );
+}
+
+// ⓪'' 리뷰어 차단 계약. agents/sap-reviewer.md의 disallowedTools는 손으로 유지되는데
+//     **실패 방향이 fail-open**이다: 접두어가 낡으면 84개 차단이 전부 죽은 문자열이 되어
+//     리뷰어가 Create/Update/Delete/Activate/ReleaseTransport를 되찾는다(AGENTS "reviewers
+//     perform no transport operation" 저촉). 권한 템플릿이 틀리면 프롬프트가 늘 뿐이지만
+//     이건 조용히 열린다 — 그래서 이름 규약과 계약 생존을 함께 assert한다(리뷰 M-2).
+{
+  const f = path.join(ROOT, 'agents', 'sap-reviewer.md');
+  if (!fs.existsSync(f)) fail.push('리뷰어 차단 계약: agents/sap-reviewer.md 부재');
+  else {
+    const text = fs.readFileSync(f, 'utf8');
+    const tools = [...text.matchAll(/mcp__plugin_[A-Za-z0-9_-]+_sap__(\w+)/g)];
+    const wrongNs = [...new Set(tools.filter((m) => !m[0].startsWith(NS)).map((m) => m[0]))];
+    if (wrongNs.length)
+      fail.push(
+        `리뷰어 차단 계약이 낡은 네임스페이스 사용 — 차단이 무효(fail-open): ${wrongNs.slice(0, 3).join(' · ')}${wrongNs.length > 3 ? ` 외 ${wrongNs.length - 3}건` : ''}`
+      );
+    const denied = new Set(tools.map((m) => m[1]));
+    const MUST_DENY = ['ReleaseTransport', 'CreateTransport', 'ActivateObjects', 'UpdateClass', 'DeleteClass'];
+    const missing = MUST_DENY.filter((t) => !denied.has(t));
+    if (missing.length) fail.push(`리뷰어 차단 계약 소실: ${missing.join(' · ')} 가 disallowedTools에 없음`);
+  }
+}
+
 for (const [e, names] of Object.entries(measured)) {
   const pin = pinned.expositions?.[e];
   if (!pin) {

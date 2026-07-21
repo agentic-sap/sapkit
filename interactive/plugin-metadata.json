@@ -18,7 +18,8 @@
     }
   },
   "version": "0.1.0",
-  "displayName": "SAP Agentic Harness",
+  "displayName": "SAPKit",
+  "_displayName": "Codex·Antigravity UI에 뜨는 **사람이 읽는 이름**. D-041 개명 시 누락됐다가 리뷰 m-1로 정정 — 구 값 'SAP Agentic Harness'는 폐기된 정체성(하네스)이었다.",
   "author": {
     "name": "hjaewon"
   },

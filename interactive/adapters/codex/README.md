@@ -11,8 +11,9 @@ codex plugin marketplace add "D:\claude for SAP\sap-agentic-harness"
 codex plugin add sapkit@agentic-sap
 ```
 
-캐시(`~/.codex/plugins/cache/agentic-sap/sapkit/...` — `<마켓>/<플러그인>` 구조)에 core/·server/
-포함 전체가 패키징됨을 확인.
+캐시에 core/·server/ 포함 전체가 패키징됨을 확인.
+⚠️ 경로 `~/.codex/plugins/cache/agentic-sap/sapkit/...`는 **D-041 개명에서 파생한 예상값**이다 —
+Claude 쪽에서 `cache/<마켓>/<플러그인>/<버전>` 구조를 실측했으나 Codex 재설치는 아직 안 했다.
 
 어댑터-코어 동기화 점검: `node interactive/scripts/doctor.mjs` (3사 동기화 점검)
 

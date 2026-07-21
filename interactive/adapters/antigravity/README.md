@@ -11,7 +11,8 @@ agy plugin validate "D:\claude for SAP\sap-agentic-harness"   # skills 11 + agen
 agy plugin install  "D:\claude for SAP\sap-agentic-harness"
 ```
 
-임포트 위치: `~/.gemini/config/plugins/sapkit/` — **core/·server/ 포함 전체 복사**라
+임포트 위치: `~/.gemini/config/plugins/sapkit/`(**D-041 개명에서 파생한 예상값** — agy 재설치
+미수행) — **core/·server/ 포함 전체 복사**라
 스킬 래퍼의 PLUGIN_ROOT 상대 해석이 유지된다. 갱신 시 재설치 필요(레포 수정이 자동 반영되지
 않음 — doctor 점검 대상).
 
