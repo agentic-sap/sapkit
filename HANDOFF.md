@@ -49,12 +49,23 @@
 > 프로젝트 `.claude/settings.local.json`의 allow 목록이 **구 네임스페이스라 이제 매칭
 > 안 됨**(실측: allow 187건 중 **184건이 구 접두어**, 신 접두어 0건). 새 템플릿
 > **189건**을 병합할 것 — 도구 184는 이름만 바뀐 동일 집합이고 파일op가 3→5로 는다
-> (`Write`·`Glob` 추가). 실데이터 2종은 템플릿에서 계속 제외(호출별 승인 불변).
+> (`Write`·`Glob` 추가). 실데이터 2종은 템플릿에서 계속 제외(배포 기본값) — 단 **소유자
+> 머신은 D-043 서버 바닥선 모델**: 작업 프로젝트(ZUNIWTH 등)에서 사용자가 2종을 직접
+> 허용해도 되며, 이를 결함으로 되돌리지 말 것.
 > ③ **ZUNIWHT 도그푸딩 착수**
 > — vsp in-repo 빌드는 **이미 완료 상태**(`vsp\build\vsp.exe` = `v2.38.1-94-g5a8bedb`,
 > lock 일치 실측)라 07-20이 지시한 "빌드 1회"는 불요다.
 > **보조 머신** = 경량화 실측(변동 없음) — 단 **재설치 후 측정할 것**(도구 접두어가
 > 13자 짧아져 tool-schema 토큰 baseline이 바뀐다).
+>
+> **▶ 실데이터 접근 모델 전환 (2026-07-21 · D-043)**: 소유자 머신 = **서버 바닥선 모델**
+> — 호출별 승인 층을 걷어내고 서버 blocklist(deny: 계좌·마스터PII·급여·인증 / ask:
+> 전표류)가 유일한 잠금. Codex `disabled_tools`는 이 머신에 **원래 부재였음을 실측
+> 추인**(`codex mcp get sap --json` → null — 되돌리지 말 것). 남은 사용자 실행 2건:
+> ⑴ ZUNIWTH 첫 호출 때 Claude "항상 허용"(또는 설정에 2종 추가) ⑵ ZUNIWHT 프로파일
+> sap.env에 `MCP_ALLOW_TABLE=LFA1,LFB1,BSEG,BKPF` 한 줄(원천세 작업 테이블이 blocklist의
+> deny/ask층에 걸려 있어 예외 필요 — WITH_ITEM·T059*는 원래 자유 통과). 배포 기본값은
+> 잠금 불변("프로파일 개방 선언" 정식 기능화는 백로그).
 >
 > **▶ 독립 리뷰 결과 (2026-07-21, 새-컨텍스트 read-only) = NEEDS-FIX → 전건 수리 (D-042)**:
 > BLOCKER 0 · MAJOR 4 · MINOR 5. 리뷰어가 **작업자가 못 본 회귀**를 잡았다 —
@@ -121,7 +132,8 @@
 >
 > **불변 확인**: unattended=sealed(제품 원칙 = attended-only) · RV4 열림 · final-harness
 > verified v0.17.3 동결·candidate 봉인(D-038) — 단 v0.17.3은 "실행 경로"가 아니라
-> **재개 시 기준 버전**(D-040) · symlink 3건 미검증 유지 · 실데이터 2종 호출별 승인.
+> **재개 시 기준 버전**(D-040) · symlink 3건 미검증 유지 · 실데이터 2종 = 배포 기본
+> 잠금 · **소유자 머신은 서버 바닥선 모델(D-043)**.
 > 레포: 이 갱신 커밋까지 로컬 — push는 사용자 판단.
 >
 > ═══════════════════════════════════════════════════════════════════
@@ -1991,7 +2003,11 @@ docs/superpowers/specs/…lite-design.md  ← 설계 스냅샷 (정본은 intera
 2. **sc4sap-custom의 `private/`는 영구 denylist** — 읽지도, 어떤 산출물에도 포함하지도 않는다.
 3. `interactive/server/server.bundle.cjs`는 `.gitattributes` `-text` 보호 유지 (EOL 변환 = 파손).
    갱신은 UPDATE-RUNBOOK 절차로만, 갱신 시 capability diff + gen-permissions 재생성 필수.
-4. 실데이터 조회 2종(GetTableContents/GetSqlQuery)은 어떤 하네스에서도 자동 승인 금지.
+4. 실데이터 조회 2종(GetTableContents/GetSqlQuery): **배포 기본값은 어떤 하네스에서도
+   자동 승인 금지**(템플릿 2종 제외·Codex 하드차단 권장·훅 유지). **소유자 머신은 D-043으로
+   서버 바닥선 모델** — 묻는 층 없이 서버 blocklist(engine tableBlocklist, 기본 standard)가
+   보호 테이블만 거부하며, 작업 테이블 예외는 프로파일 sap.env `MCP_ALLOW_TABLE`로 등록한다.
+   이 머신에서 Codex `disabled_tools` 부재·Claude 2종 허용을 "결함"으로 보고 되돌리지 말 것.
 5. 매니페스트·게이트 우선: 구조 변경 시 `node interactive/scripts/check-links.mjs interactive`와
    `node interactive/scripts/check-migration-snapshot.mjs`가 항상 통과 상태여야 한다
    (구 `check-migration-coverage`는 S3에서 폐기 — D-029).

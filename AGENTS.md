@@ -35,7 +35,10 @@ Choose the highest effect: **P4 > P3 > P2 > P1 > P0**.
 - **P1 connected-read** — metadata/source/ATC/health; no row data or mutation.
 - **P2 real-data extraction** — before each `GetTableContents`, `GetSqlQuery`,
   or vsp `query`, show scope, fields, and row cap; get human approval. No
-  batch, subagent, or auto-approval.
+  batch, subagent, or auto-approval. **Owner-machine exception (D-043)**: on
+  the owner's machines the per-call approval step is replaced by the server-side
+  table-blocklist floor (`MCP_ALLOW_TABLE` opt-ins per profile); distribution
+  defaults stay locked, and subagent/batch prohibitions still apply.
 - **P3 write/execute** — SAP state/code change or execution; DEV-only gates.
 - **P4 transport** — package/request create, assignment, release, or import.
   Direct-P4 has no supported entry; follow v2 §4.2 ownership.
