@@ -1,5 +1,5 @@
 @hjaewon/abap-mcp-adt-powerup 4.13.16
-source commit 7a37ee90df6fd3020bffd3fd6764d56dc0dfee25 (sap-agentic-harness engine/ — 번들을 만드는 소스를 마지막으로 바꾼 커밋. verify-engine이 이 줄에서 sourceCommit을 읽는다. 4.13.16 = 분기 통합 병합 커밋이 곧 엔진 소스 최종 변경 — 재바인딩 2026-07-19)
+source commit 040cdd1f0222696aca3a5a498ecece9df1b28134 (sap-agentic-harness engine/ — 번들을 만드는 소스를 마지막으로 바꾼 커밋. verify-engine이 이 줄에서 sourceCommit을 읽는다. 040cdd1 = package-lock 버전 필드 4.13.15→4.13.16 동기화(코드 무변경) — 재번들 실측 번들 바이트 불변 fa5698d351c7…, 재핀 2026-07-22. 직전 핀 7a37ee90 = 분기 통합 병합, 재바인딩 2026-07-19)
 upstream fork 1964959 (hjaewon/abap-mcp-adt-powerup — D-017로 편입한 시점의 상류 지점. 이후 수리는 전부 in-repo)
 built: cd engine && npm run build:bundle (tools/bundle.mjs — esbuild, externals: node-rfc @napi-rs/keyring pino pino-pretty)
 reproducible: 2026-07-19 통합 세션 실측 — npm ci 클린 설치 후 build+bundle 재현, 번들 md5 일치·jest 655 passed/5 skipped. check-engine-provenance --rebuild 기계 판정은 이 머신(Windows+Node24)에서 spawnSync npm.cmd 제약으로 실행 불가(원격 줄기 검증에서 동일 제약 실측, 번들 바이트 일치는 별도 확인) — 기계 재현 판정의 정본은 CI(Linux) 잡
