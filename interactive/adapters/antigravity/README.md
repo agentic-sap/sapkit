@@ -18,6 +18,11 @@ agy plugin install  "D:\claude for SAP\sap-agentic-harness"
 
 어댑터-코어 동기화 점검: `node interactive/scripts/doctor.mjs` (3사 동기화 점검)
 
+빠른 시작: 설치 후 `setup` 스킬을 실행하면 SAP 연결 파일(프로파일·`.sc4sap/` 2개)
+생성과 자가 점검을 대화형으로 대신한다 — 단 권한·훅 자동 단계는 Claude Code 전용이라,
+Antigravity에서는 마법사가 이 README의 해당 절(MCP 수동 등록)로 안내한다.
+정본 절차 = `core/procedures/setup.md`.
+
 ## MCP 서버 등록 (전역 — agy 1.0.7 플러그인 번들 미지원 실측)
 
 `plugin.json`의 mcpServers 포인터/인라인/`mcp.json` 모두 "skipped" — MCP는 Antigravity

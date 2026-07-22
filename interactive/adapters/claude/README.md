@@ -16,6 +16,13 @@
 재시작 후 확인: `/sapkit:troubleshooting` 스킬 존재 + `sap` MCP 서버 연결
 (프로파일 없으면 inspection-only 모드로 뜸 — 정상).
 
+## 빠른 시작 — `/sapkit:setup` (권장)
+
+설치·재시작 후 `/sapkit:setup`을 실행하면 아래 수동 단계 전부(SAP 연결 프로파일·
+`.sc4sap/` 파일 2개·권한 템플릿 병합·안전훅 등록·선택적 vsp 설치)를 대화형 마법사가
+대신하고 층별 자가 점검으로 끝난다. 아래 절들은 수동 경로 정본이자 마법사 폴백이다.
+정본 절차 = `core/procedures/setup.md`.
+
 ## SAP 연결 (connected 프로필)
 
 1. `~/.sah/profiles/<alias>/sap.env` 작성 — 키 목록은
