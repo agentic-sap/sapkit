@@ -1744,6 +1744,23 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
   ("워커 절차 문서 신규 작성")은 상류 계약과 **반대 절차**(메인 세션이 `prompt.md` 직접 수행)를
   가르칠 뻔했고, 정본이 이미 상류에 존재함을 놓쳤다.
 
+### 5-15. 대화형 setup 절차 복원 검토 (2026-07-22 등록 — 도그푸딩 마찰 1호)
+
+- **근거(실수요 신호)**: 원본 sc4sap 사용자(소유자)가 설치 경험을 직접 비교 실감 —
+  "원본은 `/setup`·`/sap-doctor` 스킬로 설치했는데 sapkit엔 없나". 원본 대비 온보딩
+  경험 퇴행이 사용자 발화로 확인된 첫 사례.
+- **현황(실측)**: 원본 setup 계열은 이식 때 의도적 transform(MIGRATION-MANIFEST
+  40~42행) — `/sapkit:troubleshooting`(원본 setup·sap-doctor·sap-option·mcp-setup
+  12문서 흡수)·어댑터 README 3벌·install-hooks.mjs·install-sap-assets.md·doctor.mjs로
+  분해. 내용은 보존됐으나 **"한 명령이 순서대로 물어보며 세팅해주는" 대화형 경험은
+  소실**. 현행 절차 16종에 setup 부재. SAP 연결 2단계(sap.env·`.sc4sap/` 2파일)는
+  README 수동 따라하기.
+- **방향(설계는 착수 시)**: 하네스 중립 제약(3사) 때문에 원본 Claude 전용 마법사의
+  단순 복원은 불가 — 후보 = `core/procedures/setup.md` 신설(하네스 중립 절차, 어댑터
+  README를 단계 소스로 참조) + 어댑터별 스킬 래퍼. 자격증명 입력은 사람 몫 유지(R-005).
+- **트리거**: ZUNIWHT 도그푸딩에서 설정 마찰 추가 관찰 후 묶어서 설계. 지금 구현하지
+  않는다(실수요 트리거 원칙 — 마찰 로그가 범위를 정한다).
+
 ### 5-6. 다국어 README — ✅ 결정 완료 (2026-07-11): 재작성 안 함
 
 - 개인 도구라 다국어 README 소비자 없음 + 코어(영어)·운영 문서(한국어) 역할 분담으로
