@@ -10,7 +10,7 @@
     {
       "name": "sapkit",
       "description": "SAP ABAP development and consulting — knowledge core + personas + gated procedures + ADT MCP server, in one lite plugin.",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "author": {
         "name": "hjaewon"
       },
@@ -29,5 +29,5 @@
   "renames": {
     "sap-agentic-harness": "sapkit"
   },
-  "version": "0.2.0"
+  "version": "0.2.1"
 }

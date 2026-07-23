@@ -40,7 +40,7 @@ Do NOT use when:
 
 ## Step 0 — Tier Gate (MANDATORY — runs before anything else)
 
-Read `SAP_TIER` from the active profile's env (`~/.sah/profiles/<alias>/sap.env` — see [troubleshooting §4](troubleshooting.md#4-profiles--tiers)). Branch:
+Read `SAP_TIER` from the active profile's env (`~/.sc4sap/profiles/<alias>/sap.env` — see [troubleshooting §4](troubleshooting.md#4-profiles--tiers)). Branch:
 
 | Tier | Behaviour |
 |---|---|
@@ -70,7 +70,7 @@ Read `SAP_TIER` from the active profile's env (`~/.sah/profiles/<alias>/sap.env`
 > of a one-time bootstrap transport. Talk to your Basis team for the package
 > assignment (common choice: `Z_SC4SAP_UTILS`, delivery class `S` or `C`).
 
-Record the skip in `~/.sah/profiles/<alias>/.abap-utils-installed`:
+Record the skip in `~/.sc4sap/profiles/<alias>/.abap-utils-installed`:
 
 ```json
 { "installedAt": null, "dedupKey": "<SAP_URL>#<SAP_CLIENT>", "skippedReason": "tier=<QA|PRD>", "objects": [] }
@@ -80,7 +80,7 @@ Then apply the mandatory SKIPPED handling below ("If installation is skipped").
 
 ## Step 0b — System Dedup Check (DEV only)
 
-Compute `dedupKey = SAP_URL + '#' + SAP_CLIENT`. Iterate sibling profiles under `~/.sah/profiles/*/.abap-utils-installed`; if any sentinel has the same `dedupKey` AND `installedAt != null`, the same SAP system was already provisioned via another profile — skip the actual install and record:
+Compute `dedupKey = SAP_URL + '#' + SAP_CLIENT`. Iterate sibling profiles under `~/.sc4sap/profiles/*/.abap-utils-installed`; if any sentinel has the same `dedupKey` AND `installedAt != null`, the same SAP system was already provisioned via another profile — skip the actual install and record:
 
 ```json
 { "installedAt": "<now>", "dedupKey": "<same>", "skippedReason": "already-installed-on-sibling", "via": "<siblingAlias>", "objects": [] }
@@ -223,7 +223,7 @@ Only when `SAP_RFC_BACKEND=zrfc`. The zrfc backend is powered by a single ICF ha
 
 1. Re-run the required-objects checks in [troubleshooting §1 Layer 4](troubleshooting.md#layer-4--required-server-side-abap-objects-gated) — every installed object found via `SearchObject`, and `GetInactiveObjects` returns 0 entries for them.
 2. Remind the user of any pending **manual** steps: SE37 RFC-enabled flags (Steps 1–2), OData service registration (Step 4).
-3. On successful activation of the final bundle, write the sentinel to `~/.sah/profiles/<alias>/.abap-utils-installed`:
+3. On successful activation of the final bundle, write the sentinel to `~/.sc4sap/profiles/<alias>/.abap-utils-installed`:
 
 ```json
 { "installedAt": "<ISO 8601>", "dedupKey": "<SAP_URL>#<SAP_CLIENT>", "skippedReason": null, "objects": ["ZMCP_ADT_UTILS", "ZMCP_ADT_DISPATCH", "ZMCP_ADT_TEXTPOOL", "..."] }

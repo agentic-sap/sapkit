@@ -148,6 +148,8 @@ Persist the answers as `SAP_VERSION` (`S4` | `ECC`) and `ABAP_RELEASE` (3-digit 
 
 Three MCP operation families (Screen, GUI Status, Text Element) dispatch through RFC-enabled function modules (`ZMCP_ADT_DISPATCH`, `ZMCP_ADT_TEXTPOOL`); everything else uses the ADT HTTPS channel. `SAP_RFC_BACKEND` selects the transport for those RFC-dispatched operations.
 
+> **Agent context (R-005)**: under an agent/wizard context bound by R-005 (never read, handle, or print passwords), skip the `curl` probes below and verify the backend instead with an equivalent MCP tool call over the same RFC path — e.g. for `odata`, a lightweight read like `GetTextElement` on any known program; an error surfaced this way (e.g. an HTTP 500) is the same evidence the curl probe would give. The curl commands remain the human-operator path.
+
 ### Selection criteria
 
 | Backend | Transport | Choose when |
@@ -160,7 +162,7 @@ Three MCP operation families (Screen, GUI Status, Text Element) dispatch through
 
 The default changed 2026-04-22 from `soap` to `odata`. Existing configurations that pinned `SAP_RFC_BACKEND=soap` keep working unchanged.
 
-Write the choice to the **active profile's** env (`~/.sah/profiles/<alias>/sap.env`) as `SAP_RFC_BACKEND=odata|soap|native|gateway|zrfc`. Never write it to `<project>/.sc4sap/sap.env` — that file does not exist in multi-profile mode.
+Write the choice to the **active profile's** env (`~/.sc4sap/profiles/<alias>/sap.env`) as `SAP_RFC_BACKEND=odata|soap|native|gateway|zrfc`. Never write it to `<project>/.sc4sap/sap.env` — that file does not exist in multi-profile mode.
 
 ### Bootstrap order (first-time vs re-run)
 
@@ -249,12 +251,15 @@ If check 1 fails → fill the gateway env block. If check 2 fails → verify VPN
 
 ### Storage layout
 
+(Profile home defaults to `~/.sc4sap`; if `$SC4SAP_HOME_DIR` is set, it
+overrides this location.)
+
 ```
-~/.sah/profiles/<alias>/sap.env        # user-level connection env (shared across repos)
-~/.sah/profiles/<alias>/config.json    # user-level plugin settings (sapVersion, abapRelease,
+~/.sc4sap/profiles/<alias>/sap.env        # user-level connection env (shared across repos)
+~/.sc4sap/profiles/<alias>/config.json    # user-level plugin settings (sapVersion, abapRelease,
                                           #   industry, activeModules, namingConvention,
                                           #   systemInfo, activeTransport, blocklistProfile)
-~/.sah/profiles/.trash/<alias>-<ts>/   # soft-deleted profiles (7-day auto-purge)
+~/.sc4sap/profiles/.trash/<alias>-<ts>/   # soft-deleted profiles (7-day auto-purge)
 
 <project>/.sc4sap/active-profile.txt      # project-level pointer (alias only)
 <project>/.sc4sap/work/<alias>/...        # per-profile project artifacts
@@ -281,7 +286,7 @@ Tier read-only enforcement lives in the MCP server itself (a readonly guard appl
 ### Profile checks
 
 - [ ] `<project>/.sc4sap/active-profile.txt` exists and contains a single alias
-- [ ] `~/.sah/profiles/<alias>/sap.env` and `config.json` exist for that alias
+- [ ] `~/.sc4sap/profiles/<alias>/sap.env` and `config.json` exist for that alias
 - [ ] `GetSession` system/client/user match the profile's `SAP_URL` / `SAP_CLIENT` / `SAP_USERNAME`
 - [ ] Tier enforcement matches `SAP_TIER` (on QA/PRD, a mutation attempt must be refused)
 

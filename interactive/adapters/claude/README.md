@@ -25,7 +25,7 @@
 
 ## SAP 연결 (connected 프로필)
 
-1. `~/.sah/profiles/<alias>/sap.env` 작성 — 키 목록은
+1. `~/.sc4sap/profiles/<alias>/sap.env` 작성(`$SC4SAP_HOME_DIR` 설정 시 그 하위) — 키 목록은
    [core/project-context.md](../../core/project-context.md) · **SAP_TIER 필수**
 2. 프로젝트에 `.sc4sap/active-profile.txt`(별칭 1줄) + `.sc4sap/config.json`
    (sapVersion·abapRelease·activeModules·industry·country)

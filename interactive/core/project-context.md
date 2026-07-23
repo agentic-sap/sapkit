@@ -12,18 +12,18 @@ knowledge/personas/procedures/policies are static; this is the per-project runti
 ## Machine-level (once per machine)
 
 ```
-~/.sah/profiles/<alias>/sap.env     ← connection profile (NEVER committed to git)
+~/.sc4sap/profiles/<alias>/sap.env     ← connection profile (NEVER committed to git)
 ```
 
-The machine home is resolved via the `SC4SAP_HOME_DIR` env var (set persistently on this
-machine); without it the engine defaults to `~/.sc4sap`. The **project-level** state
+The machine home is resolved via the `SC4SAP_HOME_DIR` env var (if set on the machine);
+without it the engine defaults to `~/.sc4sap`. The **project-level** state
 directory name `.sc4sap/` below is hardcoded in the server bundle and stays as-is
 (historical internal name — rename tracked as an engine-fork backlog item).
 
 Keys (exact list verified against the server bundle in Phase L2 — see
 [credential-handling](policies/credential-handling.md)):
 
-- `SAP_URL`, `SAP_CLIENT`, `SAP_USER` — connection coordinates
+- `SAP_URL`, `SAP_CLIENT`, `SAP_USERNAME` — connection coordinates
 - `SAP_PASSWORD` or OS-keyring storage (preferred — see credential-handling)
 - `SAP_TIER=dev|qas|prd` — **required.** The MCP server's built-in readonly guard
   reads this; on `qas`/`prd` write tools are blocked server-side. If unset, do not

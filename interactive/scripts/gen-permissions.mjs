@@ -61,10 +61,11 @@ const template = {
   permissions: {
     allow: [
       ...names.map((n) => NAMESPACE + n),
+      // 경로 규칙의 도구 이름은 Read/Edit 두 개뿐이다 — Read가 Glob 등 읽기 계열 전부를,
+      // Edit이 Write 등 편집 계열 전부를 커버한다. Write(경로)·Glob(경로)로 쓰면 매칭되지
+      // 않아 죽은 줄이 되고 설치자가 매 세션 경고를 본다 (2026-07-23 사용자 신고로 발견).
       'Read(.sc4sap/**)',
-      'Write(.sc4sap/**)',
       'Edit(.sc4sap/**)',
-      'Glob(.sc4sap/**)',
       'Grep(.sc4sap/**)',
     ],
   },

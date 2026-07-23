@@ -11,6 +11,12 @@ writing a file or running a script, summarize what this step is about to do and
 get user confirmation first. Never batch multiple steps' writes into one
 unconfirmed action.
 
+On a re-run over an existing project, Step 0 must first detect which
+artifacts already exist (profile dir, `.sc4sap/active-profile.txt`,
+`.sc4sap/config.json`, permission entries, registered hooks). Each subsequent
+step then branches per artifact: verify-and-report if it exists, create only
+what is missing or broken — never rewrite a healthy existing artifact.
+
 **Hard rule (R-005)**: this wizard never asks for, generates, nor prints a
 password or any other secret. Wherever a secret would go, write an empty
 placeholder and tell the user to fill it in by hand afterward.
@@ -29,20 +35,21 @@ placeholder and tell the user to fill it in by hand afterward.
 
 ## Step 1 — Connection Profile
 
-1. Scan `~/.sah/profiles/` for existing profile aliases (or
-   `$SC4SAP_HOME_DIR/profiles/` if that env var is set on this machine —
-   it takes priority). If any exist, list them and ask the user to pick one
+1. Scan `$SC4SAP_HOME_DIR/profiles/` for existing profile aliases if that env
+   var is set on this machine, otherwise `~/.sc4sap/profiles/` (the engine's
+   built-in default). If any exist, list them and ask the user to pick one
    for this project, or create a new one.
 2. If creating a new profile, ask for an alias (`{COMPANY}-{TIER}` convention,
    e.g. `KR-DEV` — never `default`) and walk through the connection keys by
-   **name only**: `SAP_URL`, `SAP_CLIENT`, `SAP_USER`, `SAP_PASSWORD`,
+   **name only**: `SAP_URL`, `SAP_CLIENT`, `SAP_USERNAME`, `SAP_PASSWORD`,
    `SAP_TIER`, `SAP_ACTIVE_MODULES`, `MCP_BLOCKLIST_PROFILE`. Meaning, allowed
    values, and defaults are not repeated here — [project-context](../project-context.md)
    is the reference; point the user there for details.
-3. Write `~/.sah/profiles/<alias>/sap.env` with every field the user gave you
-   **except** `SAP_PASSWORD` — leave that line blank (`SAP_PASSWORD=`) and tell
-   the user: "Open this file yourself and fill in the password — this wizard
-   will not ask for it or display it." Mention the OS-keyring alternative
+3. Write `<alias>/sap.env` under the resolved profile home (see item 1) with
+   every field the user gave you **except** `SAP_PASSWORD` — leave that line
+   blank (`SAP_PASSWORD=`) and tell the user: "Open this file yourself and
+   fill in the password — this wizard will not ask for it or display it."
+   Mention the OS-keyring alternative
    ([credential-handling](../policies/credential-handling.md)) as a safer option
    than plaintext.
 4. Confirm the written file's non-secret fields with the user before moving on.
@@ -81,7 +88,10 @@ plainly rather than failing silently:
 4. Count entries after the merge and report both numbers. **If the resulting
    count is lower than the starting count, stop immediately and revert** —
    this must never happen; treat it as a bug in this step, not a valid outcome.
-5. Note for the user: `GetTableContents` and `GetSqlQuery` are intentionally
+5. Also count `permissions.allow` entries whose `mcp__...` prefix does not
+   match the live tool namespace observed this session, and report that count
+   as dead entries — do not delete them in this step.
+6. Note for the user: `GetTableContents` and `GetSqlQuery` are intentionally
    absent from the template — per-call human approval on those two stays in
    force regardless of this merge.
 
@@ -100,7 +110,11 @@ node "PLUGIN_ROOT/adapters/claude/hooks/install-hooks.mjs" --project .
 ```
 
 Report the hooks it registered (block-forbidden-tables, tier-readonly-guard,
-prefer-sqlquery-explicit-fields, transport-validator, syntax-checker).
+prefer-sqlquery-explicit-fields). `transport-validator.mjs` and
+`syntax-checker.mjs` ship in the same hooks directory but are NOT
+auto-registered by the installer (syntax-checker is a PostToolUseFailure hook
+the installer does not manage) — report them as present-but-unregistered,
+not installed.
 
 ## Step 5 — Optional: vsp Offline Verifier
 
@@ -121,6 +135,11 @@ hash match.
 Run the layered checklist in
 [troubleshooting §1](troubleshooting.md#1-mcp-server-connection--diagnostic-checklist)
 and report PASS/FAIL/WARN/SKIP per layer, same format as that document.
+Additionally verify that every hook registered in `.claude/settings.json`
+points at a script path that actually exists on disk — a dead path means the
+hook is silently inactive (report as FAIL for that hook); a 2026-07-23
+dogfood found 2 hooks pointing at a vanished `marketplaces/sc4sap/` path and
+337 dead-namespace permission entries, all silent.
 
 Because Step 1 left `SAP_PASSWORD` blank, expect the SAP-connection layer to
 come back FAIL/WARN at this point — that is expected, not a wizard bug. Tell

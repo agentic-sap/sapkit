@@ -55,7 +55,7 @@ const RUNTIME_EXEC = new Set([
 const QA_ALLOW = new Set(['RunUnitTest']);
 
 const PROFILE_SETUP_HINT =
-  'Set up (or switch to) a DEV profile: create ~/.sah/profiles/<alias>/sap.env ' +
+  'Set up (or switch to) a DEV profile: create ~/.sc4sap/profiles/<alias>/sap.env ' +
   '(or $SC4SAP_HOME_DIR override) with SAP_TIER=dev, and point this project at it with a single ' +
   'alias line in .sc4sap/active-profile.txt. Details: core/procedures/troubleshooting.md.';
 

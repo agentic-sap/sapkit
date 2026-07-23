@@ -34,7 +34,7 @@ client = resolve_transport_client()
 CreateTransport(
     transport_type="K",    # customizing 'S' or workbench 'K'
     description="...",
-    owner=env("SAP_USER"),
+    owner=env("SAP_USERNAME"),
     client=client,         # <-- REQUIRED
     target_system=...,
 )
