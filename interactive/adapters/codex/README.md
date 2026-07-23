@@ -2,7 +2,7 @@
 
 Codex 플러그인은 Claude와 동형이다 — 같은 레포 루트가 플러그인 루트이고,
 `.codex-plugin/plugin.json` + `.agents/plugins/marketplace.json`이 매니페스트다.
-같은 `skills/` 래퍼 12개가 그대로 쓰인다 (SKILL.md 형식이 양사 공통 — L0/L4 실측).
+같은 `skills/` 래퍼 14개가 그대로 쓰인다 (SKILL.md 형식이 양사 공통 — L0/L4 실측).
 
 빠른 시작: 설치 후 `setup` 스킬을 실행하면 SAP 연결 파일(프로파일·`.sc4sap/` 2개)
 생성과 자가 점검을 대화형으로 대신한다 — 단 권한·훅 자동 단계는 Claude Code 전용이라,

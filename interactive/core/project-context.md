@@ -62,6 +62,8 @@ Keys (exact list verified against the server bundle in Phase L2 — see
 .sc4sap/cbo/<MODULE>/<PACKAGE>/  ← CBO inventory artifacts (analyze-cbo-obj)
 .sc4sap/spro-config.json · .sc4sap/customizations*  ← optional extraction artifacts (may be absent —
                                procedures must fall back to knowledge/modules/<MOD>/)
+.sc4sap/RULES.md              ← lesson procedure artifact: distilled rules
+.sc4sap/LESSONS.md            ← lesson procedure artifact: failure log
 ```
 
 ## Rules
@@ -71,3 +73,6 @@ Keys (exact list verified against the server bundle in Phase L2 — see
    establish it before version-dependent work.
 3. Switching systems = switching the profile alias in `active-profile.txt`, never
    editing credentials inline in a project.
+4. `.sc4sap/RULES.md` and `.sc4sap/LESSONS.md` are local-only — never shared
+   across machines — and a `setup` re-run does not overwrite them. See
+   [lesson](procedures/lesson.md).

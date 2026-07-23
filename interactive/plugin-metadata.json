@@ -17,7 +17,7 @@
       "sap-agentic-harness": "sapkit"
     }
   },
-  "version": "0.2.1",
+  "version": "0.3.0",
   "displayName": "SAPKit",
   "_displayName": "Codex·Antigravity UI에 뜨는 **사람이 읽는 이름**. D-041 개명 시 누락됐다가 리뷰 m-1로 정정 — 구 값 'SAP Agentic Harness'는 폐기된 정체성(하네스)이었다.",
   "author": {
@@ -48,8 +48,8 @@
       "tools_connected": "recorded.tools_connected 를 그대로 통과시킴(계산 아님)"
     },
     "personas": 26,
-    "skills": 12,
-    "procedures": 17,
+    "skills": 14,
+    "procedures": 19,
     "agents": 1,
     "modules": 15,
     "industries": 14,
@@ -61,8 +61,8 @@
     "_": "{{placeholder}}는 counts에서 치환된다. 수를 문장에 직접 적지 말 것.",
     "marketplace_long": "Lite, harness-portable edition of SuperClaude for SAP. Same knowledge ({{modules}} module packs = 14 + BC — SPRO/BAPI/tables/workflows, {{industries}} industries, {{countries}} countries, ABAP clean-code conventions and templates), same MCP server ({{tools_default}} ADT tools inspection-only), same {{personas}} personas — minus the multi-agent machinery. Procedures run as one agent following gated checklists; review happens in a fresh context; SAP itself verifies (syntax, activation, unit tests, ATC).",
     "plugin_short": "SAP ABAP development and consulting — knowledge core + personas + gated procedures + ADT MCP server, in one lite plugin.",
-    "claude_long": "Harness-portable lite edition of SuperClaude for SAP — {{modules}} module knowledge packs (14 + BC), {{industries}} industries, {{countries}} countries, ABAP conventions/templates, {{personas}} consultant/role personas (on-demand via INDEX selector), {{procedures}} single-agent procedures ({{skills}} exposed as skills) with human approval + fresh-context review gates, and the ABAP ADT MCP server ({{tools_default}} tools inspection-only / {{tools_connected}} connected). No multi-agent orchestration: quality model is one worker + one fresh-context reviewer + SAP machine verification (CheckSyntax → Activate → ABAP Unit → ATC).",
-    "codex_long": "Harness-portable lite edition of SuperClaude for SAP — {{modules}} module knowledge packs (14 + BC), {{industries}} industries, {{countries}} countries, ABAP conventions/templates, {{personas}} personas (on-demand via INDEX selector), {{procedures}} single-agent procedures ({{skills}} exposed as skills) with human approval + fresh-context review gates. SAP connectivity via the bundled ABAP ADT MCP server (register separately: see adapters/codex/README.md).",
+    "claude_long": "Harness-portable lite edition of SuperClaude for SAP — {{modules}} module knowledge packs (14 + BC), {{industries}} industries, {{countries}} countries, ABAP conventions/templates, {{personas}} consultant/role personas (on-demand via INDEX selector), {{procedures}} procedures ({{skills}} exposed as skills) with human approval + fresh-context review gates, and the ABAP ADT MCP server ({{tools_default}} tools inspection-only / {{tools_connected}} connected). Quality model is one worker + one fresh-context reviewer + SAP machine verification (CheckSyntax → Activate → ABAP Unit → ATC); implementation may be delegated to a single fresh worker under the development-loop policy, but review always stays independent.",
+    "codex_long": "Harness-portable lite edition of SuperClaude for SAP — {{modules}} module knowledge packs (14 + BC), {{industries}} industries, {{countries}} countries, ABAP conventions/templates, {{personas}} personas (on-demand via INDEX selector), {{procedures}} procedures ({{skills}} exposed as skills) with human approval + fresh-context review gates. SAP connectivity via the bundled ABAP ADT MCP server (register separately: see adapters/codex/README.md).",
     "codex_interface_short": "SAP ABAP development and consulting — knowledge, personas, gated procedures"
   },
   "tags": [

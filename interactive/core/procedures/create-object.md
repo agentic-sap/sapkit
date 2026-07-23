@@ -43,7 +43,7 @@ roadmap §6). Apply the Policy, not a one-shot auto-run:
 
 ## Do Not Use When
 
-- Modifying an existing object — use direct MCP `Update*` tools (`UpdateClass`, `UpdateProgram`, `UpdateInclude`, etc.)
+- Minor modification of an existing object — use the [modify-object](./modify-object.md) procedure (Minimal intensity)
 - Creating multiple interdependent objects or a full program with includes — use the `create-program` procedure
 - User just wants to understand what type to use — answer from the matching module consultant persona (see [personas INDEX](../personas/INDEX.md))
 
@@ -72,6 +72,7 @@ roadmap §6). Apply the Policy, not a one-shot auto-run:
 - **Field typing**: Read [field-typing-rule](../knowledge/abap/conventions/field-typing-rule.md) for every Table / Structure / Table Type field-type decision (standard MCP flow **and** ECC helper-program fallback). Priority: **Standard DE (1)** → **existing CBO DE (2)** → **new CBO DE (3)** → **Data Type + Length (4, last resort)**. Raw primitives like `LIFNR CHAR 10` / `MATNR CHAR 40` / `BUKRS CHAR 4` are forbidden when an authoritative SAP data element exists. Before each field, run `SearchObject` against `DTEL` and check `.sc4sap/cbo/<MODULE>/<PACKAGE>/inventory.json`.
 - **Function module signature**: Read [function-module-rule](../knowledge/abap/conventions/function-module-rule.md) for every `UpdateFunctionModule` source emission. FM signature is stored inline in the `FUNCTION` statement source (SAP parses it on write and updates TFDIR/FUPARAREF automatically). There is no separate "parameters" endpoint. Every FM source MUST declare `IMPORTING / EXPORTING / CHANGING / TABLES / EXCEPTIONS` clauses directly between `FUNCTION {name}` and the first `.`. Never emit the placeholder `" You can use the template 'functionModuleParameter' ...` line, never use `*"*"Local Interface:` blocks as a substitute, never declare shadow locals like `lv_iv_xxx TYPE ...` to stand in for missing parameters. Remote-Enabled (RFC) flag is a separate concern — stored in TFDIR.FMODE, not in source; it currently requires manual SE37 Properties update — flag this in the completion report.
 - **Naming conventions**: Read [naming-conventions](../knowledge/modules/common/naming-conventions.md) (module-aware reference) and [naming-conventions (conventions)](../knowledge/abap/conventions/naming-conventions.md) before creating any object. Coverage: general rules (prefix, case, character set, length limits); module codes (SD/MM/FI/CO/...) for the `Z{MODULE}_...` pattern; object-specific patterns — Classes (ZCL_/ZIF_/ZCX_), Programs (ZR_), Function Groups/Modules, Data Dictionary (ZT_/ZDE_/ZDO_), UI (Dynpro/GUI Status), OData/RAP (Z_I_/Z_C_/Z_BP_/Z_SB_), Enhancements, IDoc/ALE; code-level naming (variables LV_/LS_/LT_/IV_/EV_/MV_; constants GC_/LC_; types TY_; methods); validation rules.
+- **Project rules**: Read `.sc4sap/RULES.md` if present — apply the rules relevant to this task; matching rules are hard constraints. If absent, continue silently.
 
 **Quick naming validation checklist (applied before every create):**
 
@@ -123,6 +124,7 @@ auto-run):
 
 - Call `SearchObject(<name>, <type>)` to verify the name does NOT already exist.
 - If it exists: *"Object {name} already exists. Modify via direct MCP `Update*` calls (`UpdateClass`, `UpdateProgram`, `UpdateInclude`, etc.)."* Stop.
+- If the object already exists because an earlier run of this procedure was interrupted, skip Create and resume with `Update*`/`ActivateObjects` instead of stopping.
 
 ### Step 3.5 — Version Branch Decision
 
@@ -133,6 +135,8 @@ auto-run):
 ### Step 4 — Create + Implement + Activate (standard flow)
 
 Adopt the [sap-executor](../personas/sap-executor.md) persona for this step. Standard flow (S/4HANA, or non-DDIC on ECC): one continuous pass covers object creation, initial implementation code, and activation.
+
+Implementation within this step may be delegated per [development-loop.md](../policies/development-loop.md)'s `execution_owner` convention; reviewer independence and main-only control artifacts still apply.
 
 Inputs carried from Steps 2–3: name, type, description, package, transport (`TRKORR` or `$TMP`), `extra_fields` (confirmed per-module integration fields — Tables/Structures only), `fm_signature` (IMPORTING/EXPORTING/CHANGING/TABLES/EXCEPTIONS — FunctionModule only).
 

@@ -7,7 +7,7 @@
 ## 설치 (실측 통과)
 
 ```
-agy plugin validate "D:\claude for SAP\sap-agentic-harness"   # skills 11 + agents 1 processed
+agy plugin validate "D:\claude for SAP\sap-agentic-harness"   # skills 14 + agents 1 processed
 agy plugin install  "D:\claude for SAP\sap-agentic-harness"
 ```
 

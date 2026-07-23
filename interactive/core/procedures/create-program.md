@@ -14,7 +14,7 @@ source:
 
 Core ABAP program creation procedure. Generates a Main Program wrapped with conditional Includes following the sc4sap template convention. Supports both OOP (two-class split: Data + Screen/ALV) and Procedural (PERFORM) paradigms.
 
-**A single agent executes every phase below in order.** Where a step says "adopt the X persona", switch working persona for that step; do not skip, reorder, or merge phases. Every phase is MANDATORY unless explicitly marked conditional.
+**The main conversation owns every phase below and runs them in order.** Phase 4 implementation may be delegated per the `execution_owner` convention in [development-loop.md](../policies/development-loop.md). Where a step says "adopt the X persona", switch working persona for that step; do not skip, reorder, or merge phases. Every phase is MANDATORY unless explicitly marked conditional.
 
 Pipeline overview:
 
@@ -63,7 +63,7 @@ Use when:
 
 Do NOT use when:
 - Creating a single class/interface/table — use the `create-object` procedure
-- Modifying an existing program — use direct `UpdateProgram` / `UpdateInclude` calls
+- Modifying an existing program — use the [modify-object](./modify-object.md) procedure (Minimal intensity)
 - Creating a RAP business object / OData service — use `create-object` (with service binding + behavior definition)
 - The user wants only scaffolding without coding — use `create-object` with type=program
 
@@ -238,6 +238,8 @@ Two back-to-back inventory passes feed every downstream phase.
 
 Adopt the [sap-planner](../personas/sap-planner.md) persona for this step.
 
+If `.sc4sap/RULES.md` (written by the [lesson](./lesson.md) procedure) exists, read the rules relevant to this program before planning; matching rules are hard constraints. If absent, continue silently.
+
 - **Inputs (mandatory read before planning)**: `module-interview.md` (business context, standard-SAP rejections, reference assets) AND `interview.md` (technical decisions). Reconcile both — if a Phase 1B technical choice contradicts a Phase 1A business rule (e.g., chose custom Z-table when the consultant proposed standard CDS), raise the conflict back to the user before producing `plan.md`.
 - **CBO reuse gate (mandatory when `cbo-context.md` exists)**: before designing any new Z-object (table / structure / class / FM / data element), scan `cbo-context.md` for a reuse candidate. Default to reuse when role + FK pattern + purpose overlap. Every new-object proposal in the plan must include a one-line justification of why no CBO candidate fits.
 - **Customization reuse gate (mandatory when `customization-context.md` exists)**: before proposing a new BAdI implementation, CMOD component, form-based user-exit FORM, or append structure, scan `customization-context.md` for an existing customer asset covering the same `standardName` / base table. Default to extending the existing asset. Every new-enhancement/extension proposal in the plan must include a written justification of why no customization candidate fits (follow [customization-lookup.md](./customization-lookup.md)). Creating a second parallel impl when one already exists is a MAJOR finding in Phase 6.
@@ -405,6 +407,8 @@ Proceed to Phase {N}?
 
 Adopt the [sap-executor](../personas/sap-executor.md) persona for this step.
 
+Implementation may run under `execution_owner` (`auto` | `main` | `delegated`) per [development-loop.md](../policies/development-loop.md). A delegated worker receives the approved spec, its task slice, and the relevant rules and paths — never secrets. Control artifacts (`approval.json`, `state.json`, `verification.json`, `review-request.json`, `review-result.json`) remain main-only, and the worker never serves as its own reviewer. P2 data reads stay main-only, and P4 transport actions are never delegated.
+
 Flow (source-first, single syntax check on the main program, batch activation):
 1. Generate ALL include sources locally first, from the approved spec + the mandatory main-program template — [zrsc4sap_oop_ex.prog.abap](../knowledge/abap/templates/oop-sample/zrsc4sap_oop_ex.prog.abap) (OOP) or [main-program.abap](../knowledge/abap/templates/procedural-sample/main-program.abap) (Procedural) — as the starting skeleton. When OOP with testing scope, the `{PROG}_tst` test-class include is part of this initial batch. If `vsp` is installed, run `vsp lint` / `vsp parse` on these sources before step 2 — an optional local check ([troubleshooting §7](troubleshooting.md#7-vsp-local-verification-optional)).
 2. Create the includes via `CreateInclude` + `UpdateInclude`, then the main program via `CreateProgram` + `UpdateProgram`.
@@ -496,9 +500,13 @@ Adopt the [sap-debugger](../personas/sap-debugger.md) persona for this step. Tri
 - Activation failures persisting after the Phase 4 retry loop
 - Runtime dumps during test execution
 
+A verified root cause likely to recur may be proposed for capture via the [lesson](./lesson.md) procedure — user approval required; never auto-promote.
+
 ## Phase 8 — Completion Report
 
 Adopt the [sap-writer](../personas/sap-writer.md) persona for this step.
+
+After completion, a verified root cause likely to recur may be proposed for capture via the [lesson](./lesson.md) procedure — user approval required; never auto-promote.
 
 **Pre-condition (HARD GATE)**: ALL of the following must hold. If any is unmet, return to Phase 6 — do not write the report and do not tell the user the program is done:
 - `.sc4sap/program/{PROG}/review-result.json` exists with `verdict: "PASS"` and its `reviewed_spec_sha256` equals `approval.json.spec_sha256`.

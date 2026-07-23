@@ -1,8 +1,8 @@
 {
   "_generated": "⚠️ 생성물 — 직접 편집하지 말 것. 정본은 interactive/plugin-metadata.json (gen-plugin-manifests.mjs)",
   "name": "sapkit",
-  "version": "0.2.1",
-  "description": "Harness-portable lite edition of SuperClaude for SAP — 15 module knowledge packs (14 + BC), 14 industries, 16 countries, ABAP conventions/templates, 26 consultant/role personas (on-demand via INDEX selector), 17 single-agent procedures (12 exposed as skills) with human approval + fresh-context review gates, and the ABAP ADT MCP server (155 tools inspection-only / 186 connected). No multi-agent orchestration: quality model is one worker + one fresh-context reviewer + SAP machine verification (CheckSyntax → Activate → ABAP Unit → ATC).",
+  "version": "0.3.0",
+  "description": "Harness-portable lite edition of SuperClaude for SAP — 15 module knowledge packs (14 + BC), 14 industries, 16 countries, ABAP conventions/templates, 26 consultant/role personas (on-demand via INDEX selector), 19 procedures (14 exposed as skills) with human approval + fresh-context review gates, and the ABAP ADT MCP server (155 tools inspection-only / 186 connected). Quality model is one worker + one fresh-context reviewer + SAP machine verification (CheckSyntax → Activate → ABAP Unit → ATC); implementation may be delegated to a single fresh worker under the development-loop policy, but review always stays independent.",
   "author": {
     "name": "hjaewon"
   },

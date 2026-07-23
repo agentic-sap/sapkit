@@ -119,12 +119,16 @@ sc4sap-lite/
       analyze-code.md  program-to-spec.md  compare-programs.md
       analyze-cbo-obj.md  deep-interview.md  ask-consultant.md  troubleshooting.md
       review-checklist.md              ← 인덱스 + 조건부 참조 구조 (거대 단일문서 금지)
+      modify-object.md                 ← Minimal 강도 절차, 흔적 0 (D-047 · aegis direct 각색)
+      lesson.md                        ← LESSONS→RULES 5단계 (D-047 · aegis lesson 각색)
       schemas/                         ← approval·review-request·review-result·verification 스키마
                                           (승인 = spec 해시 + SID/client + transport에 결합)
     policies/
       sap-standards.md                 ← Z/Y 접두어, transport 필수, 활성화 의무, 버전 가드
       verification-policy.md           ← CheckSyntax→활성화→ABAP Unit→ATC 체인, 차단 severity
       approval-gates.md                ← 관문=문서 규약임을 명시 (기계 강제는 Claude 훅 옵션 한정)
+      development-loop.md              ← 강도 축(Minimal/Standard/Full)·execution_owner·
+                                          보증 등급 매트릭스 (D-047)
       data-protection/                 ← exceptions/ 12파일 이식 + 실데이터 조회 승인 정책
       credential-handling.md
     vocabulary.md                      ← 표준 동작 어휘집 (중립 capability명 ↔ 어댑터 도구명 계약)
@@ -166,6 +170,9 @@ sc4sap-lite/
    (OS/arch 감지 → 핀 URL 다운로드 → sha256 일치 시에만 `~/.sc4sap/bin/`). 선택 사항이라
    미설치에서도 하네스는 정상 동작하며, 릴리스 자산 방식이라 완전 오프라인이 아니라
    다운로드 1회가 필요하다. 근거·집행 = D-044.
+6. **방법론 강도 축**: `development-loop.md`(정책)가 강도 축(Minimal/Standard/Full)·
+   execution_owner·보증 등급 매트릭스를 소유한다. 강도 축은 **Track A 실행 구조
+   (Direct/Guided) 라우팅과 직교**한다 — 어느 쪽도 서로를 바꾸지 않는다(D-047).
 
 ## 4. 어댑터 3벌 (§2 확정안)
 

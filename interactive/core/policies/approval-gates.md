@@ -10,7 +10,10 @@ source:
 # Approval Gates
 
 Two points in every workflow require an explicit human decision. An agent never
-crosses either gate on its own initiative, regardless of execution mode.
+crosses either gate on its own initiative, regardless of execution mode. These
+gates hold across every procedure intensity in
+[development-loop](./development-loop.md) — Minimal/Standard/Full does not
+change when either gate fires.
 
 ## Gate A — Spec approval (before any implementation)
 
@@ -45,11 +48,21 @@ again. The same applies if the target system/client or transport changes.
 
 ## Gate B — Row-level data reads (per call)
 
-`GetTableContents` and `GetSqlQuery` are **never** auto-approved. Every single
-call requires human approval for that call — approval does not carry over
-between calls, tables, or sessions. Blocklist categories, deny/warn actions,
-and the refusal template are defined in
-[data-extraction-policy](./data-protection/data-extraction-policy.md).
+**(a) Distribution default.** `GetTableContents` and `GetSqlQuery` are
+**never** auto-approved. Every single call requires human approval for that
+call — approval does not carry over between calls, tables, or sessions.
+Blocklist categories, deny/warn actions, and the refusal template are defined
+in [data-extraction-policy](./data-protection/data-extraction-policy.md).
+
+**(b) Owner-machine exception (D-043).** On machines where the owner has made
+an explicit decision to adopt the server-side table-blocklist floor
+(`MCP_ALLOW_TABLE` opt-ins per profile), the per-call approval layer in (a) is
+replaced by that server-side guard. Distribution defaults elsewhere stay
+locked.
+
+**(c) Invariant under both (a) and (b).** Subagent, batch, and auto-approval
+are prohibited regardless of which layer is active — no exception path
+removes this.
 
 Schema/DDIC reads (`GetTable`, `GetStructure`, `GetView`, `GetDataElement`,
 `GetDomain`) are metadata, not row data, and are not gated by this rule.

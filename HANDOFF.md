@@ -156,7 +156,24 @@
 > PASS(BLOCKER/MAJOR/MINOR 0 · INFO 2, INFO-2가 P5로 승격 수리)**. 미수리 관찰:
 > doctor FAIL 1 = agy 1.1.1 ≠ 핀 1.1.4(선행 머신 드리프트, 이번 변경 무관).
 >
-> **▶▶ 다음 착수 변경 (2026-07-23 · D-047) — aegis v0.20 방법론 흡수를 ZUNIWHT에
+> **▶▶ 방법론 흡수 집행 완료 (2026-07-23 저녁 · D-048) — v0.3.0 · 스킬 14 · 절차 19**:
+> D-047 집행 완주. 설계 v2(`047e9f1`, Codex 리뷰 MAJOR 9 전건 반영 — 원천 = **aegis
+> v0.21.0 @ `33f61df`**) → 편집 에이전트 3기(opus 1·sonnet 2) + 메인 오케스트레이션 →
+> 게이트 6종 green · 음성시험 16/16·17/17 · behavioral smoke 5/5 · **최종 diff 독립
+> 리뷰 PASS**(MINOR 1 당일 수리·INFO 3). 신설 = `development-loop.md`(강도 축 —
+> Track A와 직교·execution_owner·보증 매트릭스) · `modify-object`(Minimal 절차+스킬) ·
+> `lesson`(LESSONS→RULES+스킬, `.sc4sap/RULES.md`/`LESSONS.md` opt-in). approval-gates
+> **Gate B 분리**(배포 기본 vs D-043 소유자 예외 — 문서 불정합 해소). 교훈: **재핀은
+> 언제나 마지막 편집 뒤**(위반 시 음성시험 기준선 깨짐 실측) · 음성시험 러너는 bash
+> spawn 블록 재현 — **PowerShell 경유로 완주**. 상세 = D-048.
+> **▶▶ 다음 착수**: ① 이 머신 `claude plugin update sapkit --scope local`(스코프
+> 함정 주의) + 재시작 → **토큰 전후 실측**(스킬 스키마·세션 고정분 — D-040 합격선
+> 전 "달성" 선언 금지) ② **ZUNIWHT 도그푸딩**(D-043 선행 2건 유효 — 새 방법론이
+> 시험 대상: modify-object 발견율·RULES CONSULT 실사용·execution_owner 마찰 관찰).
+> 후속 정합 후보(비차단): create-object SearchObject 충돌 메시지의 raw `Update*`
+> 안내 잔존(D-048 ⓒ).
+>
+> **▶ 직전 재개점 (2026-07-23 · D-047) — aegis 방법론 흡수를 ZUNIWHT에
 > 선행**: 사용자 목적 확인 — 원목표는 "sc4sap 개발방법론 대신 최신화된 방법론"이었고,
 > ENGINE을 버린 만큼(D-040) 엔진 외 조각은 흡수됐어야 했다. 원천 =
 > `D:\claude-practice\claude-fable-final`(aegis v0.20 "한 루프 세 강도" — Direct=
