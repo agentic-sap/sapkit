@@ -175,16 +175,24 @@ export async function runSyntaxCheck(
           // vendored inactive check throw the "REPORT/PROGRAM statement is
           // missing, or the program type is INCLUDE" noise — a false positive
           // (nothing inactive to compile) that leaked out as a -32603 MCP tool
-          // error. Fall back to the noise-aware program-tree check, which
-          // validates the real (active) source and returns a NORMAL result
-          // (also fixing the contract-breaking error-channel leak). Non-noise
-          // errors still propagate. (ZUNIWTH dogfooding #12; the source-bearing
-          // path was already honest — layer1 #7.)
+          // error. Read the REAL active source and check IT via the
+          // source-bearing inline path (already honest — layer1 #7), so a valid
+          // program returns clean and a genuinely broken one returns real errors
+          // with line numbers. Returns a NORMAL result (also fixing the
+          // contract-breaking error-channel leak). Non-noise errors still
+          // propagate. (ZUNIWTH dogfooding #12 residual: the prior program-tree
+          // fallback re-checked the still-absent INACTIVE version and re-hit the
+          // same noise, so the "active source" claim was never actually met.)
           if (isReportMissingNoiseText(checkErr?.message ?? String(checkErr))) {
             logger?.debug?.(
-              `program '${name}': no inactive version (REPORT-missing noise) → active program-tree fallback`,
+              `program '${name}': no inactive version (REPORT-missing noise) → active source check`,
             );
-            return await runProgramTreeCheck(connection, name, logger);
+            return await runActiveProgramSourceCheck(
+              connection,
+              client,
+              name,
+              logger,
+            );
           }
           throw checkErr;
         }
@@ -663,6 +671,56 @@ async function runProgramTreeCheck(
 }
 
 /**
+ * No-inactive-version fallback for a no-source program CheckSyntax.
+ *
+ * When the vendored inactive check throws the "REPORT missing / program type
+ * is INCLUDE" noise, there is no inactive version staged — so validate the
+ * REAL active source instead: read it and run the (already-honest, layer1 #7)
+ * inline-artifact check with version="active". A valid active program returns
+ * clean; a genuinely broken one returns real errors with line numbers. A
+ * residual noise-only result is downgraded as a safety net. If the active
+ * source can't be read, return a clean result — the only signal we had was the
+ * known-false noise. (ZUNIWTH dogfooding #12.)
+ */
+async function runActiveProgramSourceCheck(
+  connection: IAbapConnection,
+  client: ReturnType<typeof createAdtClient>,
+  name: string,
+  logger?: PreCheckLogger,
+): Promise<ParsedCheckRunResult> {
+  const programUri = `/sap/bc/adt/programs/programs/${encodeSapObjectName(name).toLowerCase()}`;
+
+  let activeSource = '';
+  try {
+    const readState: any = await client
+      .getProgram()
+      .read({ programName: name }, 'active');
+    const data = readState?.readResult?.data;
+    if (typeof data === 'string') activeSource = data;
+  } catch (readErr: any) {
+    logger?.warn?.(
+      `runActiveProgramSourceCheck: could not read active source for '${name}': ${readErr?.message || readErr}`,
+    );
+  }
+
+  if (!activeSource.trim()) {
+    logger?.debug?.(
+      `program '${name}': no inactive version and active source unavailable → treating REPORT-missing noise as clean`,
+    );
+    return { ...EMPTY_RESULT };
+  }
+
+  const result = await runInlineArtifactCheck(
+    connection,
+    programUri,
+    `${programUri}/source/main`,
+    activeSource,
+    logger,
+  );
+  return downgradeReportMissingNoise(result);
+}
+
+/**
  * Fallback when the main program's own check returns the "REPORT missing"
  * noise error: enumerate every user-level include belonging to the main
  * program and run a raw /checkruns on each one individually, then merge
@@ -756,6 +814,30 @@ export function isReportMissingNoiseText(text: string): boolean {
     /REPORT\/?\s*PROGRAM statement is missing/i.test(text) ||
     /program type is INCLUDE/i.test(text)
   );
+}
+
+/**
+ * Safety net for the no-inactive active fallback: if a check result's ONLY
+ * errors are the "REPORT missing / program type is INCLUDE" noise, drop them
+ * and recompute the result. Real (non-noise) errors and all warnings/info are
+ * preserved untouched; a result that carries no noise is returned by reference,
+ * unchanged. success/has_errors are recomputed with the SAME status-aware rule
+ * as parseCheckRunResponse (success = status 'processed' && no errors;
+ * has_errors also set by a 'notProcessed' status), so a non-'processed' status
+ * is never silently reported as a clean pass.
+ */
+export function downgradeReportMissingNoise(
+  result: ParsedCheckRunResult,
+): ParsedCheckRunResult {
+  const errors = result.errors.filter((e) => !isReportMissingNoiseText(e.text));
+  if (errors.length === result.errors.length) return result;
+  return {
+    ...result,
+    errors,
+    total_messages: errors.length + result.warnings.length + result.info.length,
+    has_errors: errors.length > 0 || result.status === 'notProcessed',
+    success: result.status === 'processed' && errors.length === 0,
+  };
 }
 
 export function assertNoCheckErrors(

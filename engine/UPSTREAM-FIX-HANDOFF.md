@@ -49,6 +49,7 @@ exact diffs from these commits if a hand-application drifts:
 | 4.13.16 | `(pending)` | Branch-integration renumber — no code change (see engine/CHANGELOG.md [4.13.16]) |
 | 4.13.17 | `(pending)` | `ActivateObjects` false-failure: a clean run (`generationExecuted="true"`, no `activationExecuted`, 0 errors) reported every object failed — per-object status + run success now gate on `activated \|\| generated` (§16, server) |
 | 4.13.18 | `(pending)` | `ActivateObjects` server-state oracle re-query (§17-A, #11 — completes #6/#11) + `CheckSyntax` no-source fallback for fully-active programs (§17-B, #12 — noise-throw → active program-tree check, fixes `-32603` leak) |
+| 4.13.19 | `(pending)` | `CheckSyntax` no-source fallback now actually reads the **active** source (§18, #12 residual — §17-B's `runProgramTreeCheck` re-checked the absent `inactive` version and re-hit the noise; live-observed on `ZUNIWR2030`) |
 
 > Note: commit `acad614d` is the authoritative 4.13.8 boundary (the CHANGELOG's
 > `## [4.13.8]` header was added retroactively — content is identical).
@@ -1308,6 +1309,39 @@ errors propagate. This fixes both the false positive on a fully-active program
 with no inactive version *and* the contract-breaking `-32603` tool-error leak.
 The try only intercepts the throw, so the happy path is unchanged.
 `isReportMissingNoiseText` is exported and pinned against the exact live message.
+**Live-replayed on DEV/700 (`ZUNIWR2030`): the `-32603`→normal-result conversion
+is green, but it exposed a residual content false-positive (see §18).**
+
+### §18 — CheckSyntax active-source fallback actually reads the active source (4.13.19, #12 residual)
+
+§17-B's fallback (`runProgramTreeCheck`) issues its `/checkruns` with
+`chkrun:version="inactive"` — correct for its `programTree`/`screen` post-write
+callers, but for a fully-active program with **no inactive version** it re-checks
+the absent inactive version and re-hits the same REPORT-missing noise. Live on
+DEV/700 the `-32603` leak was gone (§17-B green) yet `ZUNIWR2030`'s result still
+carried the false `"REPORT/PROGRAM statement is missing"` E with `success:false`,
+so §17-B's "validates the real active source" was never actually met (the unit
+test's empty fake-`/checkruns` body masked it). `runSyntaxCheck`'s program/
+no-source noise branch now calls `runActiveProgramSourceCheck`: read the active
+source (`getProgram().read({...},'active')`) and validate it via the
+source-bearing `runInlineArtifactCheck` (`version="active"`, real source embedded
+— honest per layer1 #7); `downgradeReportMissingNoise` strips any residual noise
+(mirrors `assertNoCheckErrors`, real errors preserved); an unreadable active
+source returns a clean `EMPTY_RESULT`. `runProgramTreeCheck` is untouched (its
+`inactive` callers unchanged); the pre-existing, never-wired `perIncludeSweep`
+stays dead code (flagged, not removed). The rewritten
+`checkSyntaxNoInactiveFallback.test.ts` (13 cases) reproduces the live scenario
+by setting the fake `/checkruns` body per test. A fresh-context review returned
+SHIP-WITH-NITS: the MINOR nit (`downgradeReportMissingNoise` recomputing
+`success` from `errors.length` alone, dropping the parser's status gate) was
+fixed before commit — the recompute is now status-aware and pinned by a test.
+**Disclosed follow-up:** when the active source cannot be read, the fallback
+returns a bare `success:true` (`EMPTY_RESULT`) that a caller cannot distinguish
+from a verified-clean program — a transient read failure is thus reported as a
+passing check. Narrow (the inactive check just responded, so the connection is
+live) and logged (`logger.warn`), but a future pass should surface an
+"inconclusive / active source unread" note through `handleCheckSyntax` (the
+handler currently only echoes `success`/`errors`/`warnings`/`note`).
 **Live replay against `ZUNIWR2030` still open — #12.**
 
 ---
@@ -1405,23 +1439,36 @@ was only reasoned (not live-staged) it is flagged **code-review-verified only**.
     activation. The pre-fix bundle false-failed the same family. Live-verified.
 
 11. **~~`ActivateObjects` still trusts a response flag rather than server
-    state.~~ RESOLVED in 4.13.18 — see §17-A** (code + jest done; live replay
-    pending). `activateObjectsLocal` now best-effort re-queries the inactive
-    worklist after the run and overrides the flag verdict with server state
-    (match by name + base type; failing probe swallowed). Only the live
-    red→green replay of a genuinely-still-inactive object remains — *unit-verified
-    with the live-confirmed `{type,name}` worklist shape; live replay open.*
+    state.~~ RESOLVED in 4.13.18 — see §17-A. CLOSED live (ZUNIWTH dogfooding,
+    2026-07-24, DEV/700).** `activateObjectsLocal` best-effort re-queries the
+    inactive worklist after the run and overrides the flag verdict with server
+    state (match by name + base type; failing probe swallowed). Live-verified
+    both paths: **(A)** re-activating the `ZUNIWR2030` family (main + 6 includes)
+    → `success:true` / all `activated` / oracle 0 inactive — no false downgrade;
+    **(B)** injecting a `period missing` error into the smallest sibling include
+    `ZUNIWI2030S` → activation `success:false` / `failed_count:7`, the real error
+    attributed to `ZUNIWI2030S`, and `GetInactiveObjects` shows exactly that one
+    object inactive — the oracle's server-state downgrade fired correctly. The
+    injection was fully reverted (original 8-line include re-uploaded + activated
+    → worklist back to the 6-object baseline, `ZUNIWI2030S` gone).
 
-12. **~~`CheckSyntax` no-source false-fails a fully-active program.~~ RESOLVED in
-    4.13.18 — see §17-B** (code + jest done; live replay pending). The
-    program/no-source branch now catches the `isReportMissingNoiseText` throw
-    from the vendored inactive check and falls back to the noise-aware
-    `runProgramTreeCheck` (normal result, not a `-32603` tool error). Live
-    reproduced on DEV/700 (`ZUNIWR2030`) before the fix; the fallback trigger is
-    unit-pinned. Only the live red→green replay on the fixed bundle remains.
-    (`class`/`interface` no-source use `getX().check(...,'inactive')` too but do
-    not carry the REPORT/INCLUDE noise; left unchanged unless a live case shows
-    otherwise.)
+12. **`CheckSyntax` no-source false-fails a fully-active program — tool-error
+    leak CLOSED live (4.13.18/§17-B), content false-positive RESOLVED in
+    4.13.19/§18 (live replay pending).** 4.13.18 stopped the `-32603` tool-error
+    leak (the program/no-source branch catches the `isReportMissingNoiseText`
+    throw and returns a normal result) — **live-confirmed green on DEV/700
+    (`ZUNIWR2030`)**. But that live replay exposed a residual: the fallback it
+    chose (`runProgramTreeCheck`, `version="inactive"`) re-checked the still-absent
+    inactive version and re-hit the same noise, so the result still carried a
+    false `"REPORT/PROGRAM statement is missing"` E with `success:false` on a
+    program that starts with a valid `REPORT`. 4.13.19 (§18) replaces that with
+    `runActiveProgramSourceCheck` — read the **active** source and validate it via
+    the honest inline path (`version="active"`), plus a `downgradeReportMissingNoise`
+    safety net. Unit-pinned (12 cases); **only the live red→green replay of the
+    4.13.19 fallback remains** (`ZUNIWR2030` → clean; a deliberately-broken active
+    program → real errors with line numbers). (`class`/`interface` no-source use
+    `getX().check(...,'inactive')` too but do not carry the REPORT/INCLUDE noise;
+    left unchanged unless a live case shows otherwise.)
 
 ---
 
