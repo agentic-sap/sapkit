@@ -224,13 +224,23 @@
 > missing" 오탐 → 활성-폴백). 셋 다 SAP 응답 실측이 있어야 책임 있게 고칠 수 있어
 > 블라인드 번들 투입 안 함. 부수 관측: 과거 "화면 프로그램 활성 hang"은 현 엔진서
 > **미재현(해소)** · 이 레포엔 "화면=GUI만" 규칙 부재(그 규칙은 ZUNIWTH 로컬이었음).
-> **검증 준비 = ✅ 플러그인 v0.3.0→v0.3.1 범프 + 매니페스트 5종 재생성 완료**
-> (엔진 4.13.17을 install에 배포하기 위함 — "버전 미범프 = update no-op" 교훈 적용).
-> `claude plugin update sapkit --scope local` + **Claude Code 재시작**하면 실행 중
-> MCP 서버가 4.13.17로 교체된다. 그 뒤 SAP 연결 세션(이 레포든 ZUNIWTH든 — 같은
-> 플러그인 공유)에서 **#12(가장 간단) → #11(오라클 형태 실측 후 내장) → #10(라이브
-> 재연)** 순으로 검증·완결. 검증엔 ZUNIWTH 완주가 조건이 아니라 "연결된 세션 + 새
-> 번들 로드"만 필요.
+> **▶ 도그푸딩 라운드 2 완료 — #10 라이브 종결 · #11/#12 코드 해결 (2026-07-24 ·
+> engine 4.13.18 · UPSTREAM §17-A/B · 플러그인 v0.3.2)**: v0.3.1 배포→ZUNIWTH
+> 연결(DEV/700) 왕복으로 세 후속을 처리. **#10 = 라이브 종결**(ZUNIWR2030 7객체
+> 재활성 → `success:true`·전 activated·오라클 0건, pre-fix는 거짓-실패 — red→green
+> 실측). **#11 = 코드 해결**: `activateObjectsLocal`이 활성 run 직후
+> `getInactiveObjects` 재조회로 아직 비활성인 객체를 `failed`+`success:false`로
+> 오라클이 플래그를 덮어씀(name+base type 대조·타입없음 name-only 폴백·best-effort
+> +로그). **#12 = 코드 해결**: `CheckSyntax` program no-source의 REPORT-missing
+> throw(-32603 누수)를 `runProgramTreeCheck` 활성 폴백으로 정상 result화. 증거원 =
+> ZUNIWTH 실측(오라클 형태 `{type,name}`·오탐 원문). 전체 jest **670 green**(신규
+> 12) · 새-컨텍스트 리뷰 **SHIP-WITH-NITS → 지적 4건 전건 반영**(MEDIUM fail-open
+> 포함). 커밋 A `eb41ae0`(engine 4.13.18) → VERSION 재핀 → 번들 반영 → 스냅샷 재핀
+> → 플러그인 v0.3.1→v0.3.2. **잔여 = #11/#12 라이브 red→green 재연만**(코드·단위
+> 검증 완료, UPSTREAM Known-remaining #11/#12). **다음**: `claude plugin update
+> sapkit --scope local` + reload → ZUNIWTH에서 #12(완전 활성 프로그램 무소스
+> CheckSyntax = 정상 result)·#11(일부러 깨진 형제로 활성 실패 유도 → 오라클이
+> failed 판정) 라이브 확인.
 >
 > **▶ 직전 재개점 (2026-07-23 · D-047) — aegis 방법론 흡수를 ZUNIWHT에
 > 선행**: 사용자 목적 확인 — 원목표는 "sc4sap 개발방법론 대신 최신화된 방법론"이었고,
