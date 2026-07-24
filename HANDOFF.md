@@ -216,9 +216,14 @@
 > green**(신규 3·역-검증 완료) · 새-컨텍스트 독립 리뷰 **SHIP-WITH-NITS**(Nit #2
 > run-level success 미검증 → 당 커밋서 fake-connection 2건으로 고정). 커밋 A
 > `1d973d4`(engine 소스+dist+§16) → VERSION 재핀(sourceCommit `1d973d4`) → 번들
-> 4.13.17 반영. **미완(UPSTREAM Known-remaining #10/#11)**: 라이브 red→green 재연 ·
-> 오라클 재조회 핸들러 내장(#6/#11 완전판, 잔여 silent-failure 구멍 폐색)= 다음 연결
-> 세션. 부수 관측: 과거 "화면 프로그램 활성 hang"은 현 엔진서 **미재현(해소)**.
+> 4.13.17 반영 → 이식 스냅샷 재핀(`18b1a92`). 4커밋 전부 push(`…757fee9`).
+> **도그푸딩 후속 3건 = 다음 연결 세션(라이브 SAP)에서 실행 (UPSTREAM Known-remaining
+> #10/#11/#12)**: #10 ActivateObjects 라이브 red→green 재연(원시 `/results` XML 캡처) ·
+> #11 오라클(`GetInactiveObjects`) 재조회 핸들러 내장(#6/#11 완전판·잔여 silent-failure
+> 폐색) · #12 CheckSyntax 무소스 오탐(완전 활성 객체의 빈 inactive 검사 → "REPORT
+> missing" 오탐 → 활성-폴백). 셋 다 SAP 응답 실측이 있어야 책임 있게 고칠 수 있어
+> 블라인드 번들 투입 안 함. 부수 관측: 과거 "화면 프로그램 활성 hang"은 현 엔진서
+> **미재현(해소)** · 이 레포엔 "화면=GUI만" 규칙 부재(그 규칙은 ZUNIWTH 로컬이었음).
 >
 > **▶ 직전 재개점 (2026-07-23 · D-047) — aegis 방법론 흡수를 ZUNIWHT에
 > 선행**: 사용자 목적 확인 — 원목표는 "sc4sap 개발방법론 대신 최신화된 방법론"이었고,
