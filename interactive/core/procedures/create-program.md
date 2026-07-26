@@ -531,9 +531,11 @@ After completion, a verified root cause likely to recur may be proposed for capt
   the two required stamps. Run the chain with the shipped runner
   [tools/vpass/vpass.mjs](../../tools/vpass/vpass.mjs) —
   `node "$CLAUDE_PLUGIN_ROOT/tools/vpass/vpass.mjs" --source-dir <dir> PROG {PROG}`
-  (`--dry-run` first) — which writes the verdict record to `.sc4sap/vpass/`. Read
-  that record's `limits[]` before quoting the stamp: its syntax/activation evidence
-  is indirect and does not replace the `verification.json` activation record.
+  (`--dry-run` first) — which writes the verdict record to `.sc4sap/vpass/`. Run it
+  via the [`vpass` skill](../../skills/vpass/SKILL.md) (`/sapkit:vpass`) instead of
+  typing the raw command. Read that record's `limits[]` before quoting the stamp:
+  its syntax/activation evidence is indirect and does not replace the
+  `verification.json` activation record.
 
 An MCP success response, an ACTIVE flag, or a single `CheckSyntax` result alone
 never upgrades the state past PROVISIONAL_WRITE.

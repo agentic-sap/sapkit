@@ -35,8 +35,9 @@ roadmap §6). Apply the Policy, not a one-shot auto-run:
   review `R-PASS` and a vsp-backed `V-PASS` (source read-back · syntax · activate ·
   unit · ATC). That chain is run with [tools/vpass/vpass.mjs](../../tools/vpass/vpass.mjs)
   (`node "$CLAUDE_PLUGIN_ROOT/tools/vpass/vpass.mjs" --source-dir <dir> <TYPE> <NAME>`),
-  which writes the verdict record to `.sc4sap/vpass/`. The Step 7 report labels the
-  state accordingly.
+  which writes the verdict record to `.sc4sap/vpass/`. Run it via the
+  [`vpass` skill](../../skills/vpass/SKILL.md) (`/sapkit:vpass`) instead of typing
+  the raw command. The Step 7 report labels the state accordingly.
 
 ## Use When
 

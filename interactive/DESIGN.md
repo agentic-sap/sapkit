@@ -198,9 +198,9 @@ Antigravity(agy CLI 1.0.7 `plugin install/validate`). 어댑터는 동일한 6�
 
 ```text
 .claude-plugin/plugin.json
-skills/          ← 절차 14개의 얇은 래퍼 ("core/procedures/X.md를 읽고 수행" 수준)
+skills/          ← 절차 15개의 얇은 래퍼 ("core/procedures/X.md를 읽고 수행" 수준)
 agents/          ← 최소 1개: sap-reviewer (read-only) — 리뷰 패스용
-hooks/           ← 안전훅 3종 승계 (기존 install-hooks 방식 그대로)
+hooks/           ← 훅 6종 (안전 4 + 품질 조언 2 — install-hooks 방식 그대로, v0.3.7 확장)
 permissions/     ← 정적 allowlist 템플릿 (trust-session 대체.
                     GetTableContents/GetSqlQuery 제외 유지 — 매번 승인 프롬프트)
 ```

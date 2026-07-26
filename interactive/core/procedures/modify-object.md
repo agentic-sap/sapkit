@@ -45,8 +45,9 @@ a one-shot auto-run:
   review `R-PASS` and a vsp-backed `V-PASS` — the latter produced by
   [tools/vpass/vpass.mjs](../../tools/vpass/vpass.mjs)
   (`node "$CLAUDE_PLUGIN_ROOT/tools/vpass/vpass.mjs" --source-dir <dir> <TYPE> <NAME>`,
-  record in `.sc4sap/vpass/`). Absent both, the state is `PROVISIONAL_WRITE`,
-  never "done".
+  record in `.sc4sap/vpass/`). Run it via the [`vpass` skill](../../skills/vpass/SKILL.md)
+  (`/sapkit:vpass`) instead of typing the raw command. Absent both, the state
+  is `PROVISIONAL_WRITE`, never "done".
 
 ## Procedure
 
