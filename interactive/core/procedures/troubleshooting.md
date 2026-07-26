@@ -349,7 +349,28 @@ Before any risky operation ("which system am I connected to?"), render a compact
 
 - **Install**: `node interactive/scripts/get-vsp.mjs` — detects OS/arch, downloads the matching GitHub release asset, and installs only on a sha256 match.
 - **Location**: `~/.sc4sap/bin/vsp` (`vsp.exe` on Windows).
-- **Usage**: `vsp lint <file>` and `vsp parse <file>` — run against a local `.abap` file before reflecting it to SAP.
-- **Coverage note**: the parser covers 91 syntax constructs and the linter 8 rules, as shipped; real-world hit rate against production ABAP has not been measured.
+
+vsp ships **two different offline checkers** — do not confuse them (D-049 measurements):
+
+- **`vsp lint --file <f>` (CLI)** — 6 style rules only (line length, obsolete
+  statements, one-statement-per-line, compare operators, naming, empty
+  statement). Measured: a file containing hardcoded credentials, `SELECT *`,
+  and `COMMIT WORK` in a loop passes with "No issues found". Style filter,
+  not defect detection.
+- **`AnalyzeABAPCode` via `vsp --offline` (MCP stdio, local-only)** — 13 rules
+  including security (hardcoded_credentials), performance (commit_in_loop,
+  select_star), and robustness (catch_cx_root, dynamic_call_no_try). Measured:
+  same probe file yields 10 findings (3 high). This is the checker worth
+  running on abapGit-dropped local sources. `--offline` starts no SAP
+  connection and touches no ADT — it is outside the online-MCP prohibition
+  (R-002 as narrowed by D-049).
+- **Claude adapter**: the `offline-code-analysis.mjs` PostToolUse hook runs the
+  13-rule analyzer automatically after `.abap` file writes and MCP
+  `source_code` uploads (warn-only; silent no-op when vsp is absent). Other
+  harnesses: invoke it manually.
+- **Coverage honesty**: neither checker verifies syntax — `vsp parse` is
+  tokenizer-grade (measured: non-ABAP garbage classified as statements, exit
+  0). Syntax and activation authority is always the server-side `CheckSyntax`
+  + `ActivateObjects` chain.
 
 Not installed → skip this section; the plugin works the same without it.

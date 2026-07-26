@@ -1,7 +1,7 @@
 # HANDOFF — 프로젝트 전체 상태와 재개 지침
 
 > **목적: 컨텍스트/세션이 클리어돼도 이 문서 하나로 전부 복원.**
-> 작성 2026-07-10 · 최종 갱신 2026-07-24. 새 세션은 ① 이 문서 → ② 필요 시 해당 트랙
+> 작성 2026-07-10 · 최종 갱신 2026-07-26. 새 세션은 ① 이 문서 → ② 필요 시 해당 트랙
 > DESIGN.md 순으로 읽는다. 상태가 바뀌면 이 문서를 갱신하는 것까지가 작업의 일부다.
 >
 > ═══════════════════════════════════════════════════════════════════
@@ -271,6 +271,28 @@
 > ZUNIWR2030 무소스 CheckSyntax = **정상 result·success:true·errors 0**(거짓 "REPORT
 > missing" 소멸) ⑵ 일부러 깨진 활성 프로그램 무소스 CheckSyntax = **실오류(라인번호)** 반환.
 > 확인되면 UPSTREAM Known-remaining #12를 CLOSED로 이동. RV4 열림·unattended sealed 불변.
+>
+> **▶ vsp 실사 → R-002 축소 + `--offline` 13종 분석기 훅 자동 배선 → v0.3.5 (2026-07-26 ·
+> D-049)**: 사용자 요청 "vsp 정확한 기능 딥 실사"의 결과. **실측**: 절차가 지시하던
+> `vsp lint --file`(CLI)은 6종 스타일뿐 — 자격증명 하드코딩·루프 내 COMMIT·`SELECT *`
+> 든 probe를 "No issues found" exit 0 통과. `parse`는 토크나이저 수준(비ABAP 쓰레기도
+> exit 0). 반면 MCP 모드 `AnalyzeABAPCode`는 **13종**(security·performance·robustness)
+> 으로 같은 probe에서 10건(high 3) 검출하며, `--offline` 플래그(main.go:96 — "for
+> abapGit-based offline ABAP development")로 **SAP 무접속·ADT 무접촉** 기동 가능.
+> R-002의 원 근거(ADT 이중 MCP)가 `--offline`엔 성립 안 함 → **R-002를 "온라인 MCP
+> 금지"로 축소**(RULES.md·DESIGN §3·SAFETY-PROFILES §⑭ 3곳 정합). **자동 배선** = Claude
+> 어댑터 PostToolUse 훅 `offline-code-analysis.mjs` 신설(경고 전용·차단 없음, vsp 부재
+> 시 침묵 통과) — `.abap` Edit/Write + MCP `source_code` 쓰기 후 자동 실행, 5케이스
+> 실측 통과(결함검출·침묵·무관도구·vsp부재·MCP경로). install-hooks.mjs 4번째 훅
+> (PostToolUse 지원 확장, 멱등/언인스톨 실측) · 이 머신 `.claude/settings.json` 배선 ·
+> troubleshooting §7 재작성(두 검사기 구분 명문) · create-program/create-object 사전검사
+> 지시 교체. v0.3.4→**v0.3.5** · 매니페스트 5종 재생성 · 스냅샷 재핀 · 게이트 7종 전부
+> green(doctor 훅 경로 8개 실재 포함). **정직 유보**: 오프라인 문법 검증은 여전히 부재
+> (서버 CheckSyntax가 유일 권위) · 훅은 Claude 어댑터 한정 · 13종 실전 적중률 미측정 ·
+> syntax-checker.mjs는 깨진 import의 미배선 잔재로 확인(스코프 밖, 정리 후보). 부수:
+> 세션 시작 경고 2줄(`Write/Glob(.sc4sap/**)` 죽은 규칙)의 이 머신 잔존분을
+> `.claude/settings.local.json`에서 제거(07-23 v0.2.1 수리가 로컬 파일이라 이 머신에
+> 미전파였던 것 — 상류 원조는 sc4sap trust-session SKILL.md로 확증, 비활성이라 재발 없음).
 >
 > **▶ 배포 표면 정합 수리 4건 → v0.3.4 (2026-07-26)**: marketplace 설명 오표기
 > ("inspection-only" — 기본 노출이 이미 mutation 62종을 포함하는데 read-only인 양

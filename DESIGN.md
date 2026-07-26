@@ -150,8 +150,12 @@ P4에서 vsp worker 할당은 `vsp deploy <file> <package> --transport <req>`만
 생성 폭, 런타임 진단)은 트랙 B MCP를 켠 **대화형 세션**에서 보완한다 —
 대화형 세션은 사람 소유라 MCP 사용이 하네스 보증과 충돌하지 않는다.
 
-주의: vsp의 MCP 모드는 본 프로젝트에서 사용하지 않는다. 같은 ADT를 두고 MCP 서버가
-2개(powerup + vsp) 공존하면 도구 중복과 권한 정책 이원화가 생긴다. vsp = CLI 전용.
+주의: vsp의 **온라인(SAP 접속) MCP 모드**는 본 프로젝트에서 사용하지 않는다. 같은
+ADT를 두고 MCP 서버가 2개(powerup + vsp) 공존하면 도구 중복과 권한 정책 이원화가
+생긴다. SAP 접점으로서 vsp = CLI 전용. 단 **`--offline` 로컬 전용 모드**(SAP 무접속·
+ADT 무접촉 — AnalyzeABAPCode 13종 결함 분석 등 로컬 도구 4종)는 이 근거가 성립하지
+않아 금지 밖이다(D-049) — 트랙 B가 abapGit 로컬 소스 흐름의 사전 검사로 훅 배선해
+사용한다(경고 전용, 서버 CheckSyntax·V-PASS 권위 불변).
 
 ## 4. 아키텍처 계층
 

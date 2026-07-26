@@ -1,14 +1,18 @@
 #!/usr/bin/env node
 /**
- * sc4sap install-hooks — register sc4sap PreToolUse hooks in Claude Code
- * `settings.json`. Installs three hooks:
+ * sc4sap install-hooks — register sc4sap hooks in Claude Code
+ * `settings.json`. Installs four hooks:
  *
  *   1. block-forbidden-tables   — row-extraction safety for
- *      `GetTableContents` / `GetSqlQuery`.
+ *      `GetTableContents` / `GetSqlQuery`. (PreToolUse)
  *   2. tier-readonly-guard      — tier-based readonly enforcement (QA/PRD)
- *      for mutation + runtime-execution MCP tools.
+ *      for mutation + runtime-execution MCP tools. (PreToolUse)
  *   3. prefer-sqlquery-explicit-fields — credit-saving `ask` guard for
  *      full-column reads (`GetTableContents`) / `SELECT *` in `GetSqlQuery`.
+ *      (PreToolUse)
+ *   4. offline-code-analysis    — warn-only vsp `--offline` 13-rule analysis
+ *      of written ABAP source (local .abap files + MCP source_code writes);
+ *      silent no-op when vsp is not installed. (PostToolUse, D-049)
  *
  * Usage:
  *   node scripts/install-hooks.mjs              # install into user settings (~/.claude/settings.json)
@@ -73,7 +77,19 @@ const HOOKS = [
     testHint:
       'Test it with a GetSqlQuery using SELECT * — the call should prompt for confirmation (aggregates like COUNT(*) pass through).',
   },
+  {
+    marker: 'offline-code-analysis.mjs',
+    event: 'PostToolUse',
+    matcher: 'Edit|Write|MultiEdit|mcp__.*__(Create|Update)',
+    testHint:
+      "Test it by writing a .abap file assigning a literal to lv_password — the model should receive offline analysis findings (requires vsp at ~/.sc4sap/bin; silent no-op otherwise).",
+  },
 ];
+
+// Each spec may set `event` (default: 'PreToolUse').
+function eventOf(spec) {
+  return spec.event || 'PreToolUse';
+}
 
 const argv = process.argv.slice(2);
 const args = new Set(argv);
@@ -104,14 +120,19 @@ function saveSettings(obj) {
   writeFileSync(settingsPath, `${JSON.stringify(obj, null, 2)}\n`, 'utf8');
 }
 
-function findGroup(settings, { marker }) {
-  return settings.hooks.PreToolUse.find(
-    (g) =>
-      g &&
-      Array.isArray(g.hooks) &&
-      g.hooks.some(
-        (h) => typeof h?.command === 'string' && h.command.includes(marker),
-      ),
+function groupHasMarker(group, marker) {
+  return (
+    group &&
+    Array.isArray(group.hooks) &&
+    group.hooks.some(
+      (h) => typeof h?.command === 'string' && h.command.includes(marker),
+    )
+  );
+}
+
+function findGroup(settings, spec) {
+  return (settings.hooks[eventOf(spec)] || []).find((g) =>
+    groupHasMarker(g, spec.marker),
   );
 }
 
@@ -119,6 +140,7 @@ function installOne(settings, spec) {
   const scriptPath = resolveHookScript(spec.marker);
   const command = `node "${scriptPath.replace(/\\/g, '/')}"`;
 
+  settings.hooks[eventOf(spec)] ||= [];
   const existing = findGroup(settings, spec);
   if (existing) {
     existing.matcher = spec.matcher;
@@ -130,7 +152,7 @@ function installOne(settings, spec) {
     return { action: 'updated', command };
   }
 
-  settings.hooks.PreToolUse.push({
+  settings.hooks[eventOf(spec)].push({
     matcher: spec.matcher,
     hooks: [{ type: 'command', command }],
   });
@@ -138,11 +160,13 @@ function installOne(settings, spec) {
 }
 
 function uninstallOne(settings, spec) {
-  const before = settings.hooks.PreToolUse.length;
-  settings.hooks.PreToolUse = settings.hooks.PreToolUse.filter(
-    (g) => !findGroup({ hooks: { PreToolUse: [g] } }, spec),
+  const ev = eventOf(spec);
+  if (!Array.isArray(settings.hooks[ev])) return false;
+  const before = settings.hooks[ev].length;
+  settings.hooks[ev] = settings.hooks[ev].filter(
+    (g) => !groupHasMarker(g, spec.marker),
   );
-  return before !== settings.hooks.PreToolUse.length;
+  return before !== settings.hooks[ev].length;
 }
 
 const settings = loadSettings();

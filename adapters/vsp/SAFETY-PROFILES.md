@@ -493,8 +493,10 @@ step1(review-gate): 로컬 검사기, step2(`escort-write-deploy`): `verify-sap.
 
 ## ⑭ 규칙 정합 (RULES.md)
 
-- **R-002** — vsp는 CLI 전용(MCP 서버 모드 금지). 본 문서의 3 프로파일 전부 CLI 경로;
-  리뷰어의 SAP 읽기도 vsp CLI read-only로만(스펙 §5-10).
+- **R-002** — vsp는 온라인(SAP 접속) MCP 서버 모드 금지 — SAP 접점은 CLI 전용. 본
+  문서의 3 프로파일 전부 CLI 경로; 리뷰어의 SAP 읽기도 vsp CLI read-only로만(스펙
+  §5-10). 로컬 전용 `--offline` 모드(SAP 무접속·ADT 무접촉)는 이 금지 밖(D-049) —
+  본 문서의 프로파일·게이트는 SAP 접속 경로에만 관여하므로 무영향.
 - **R-003** — write는 dev tier 한정. gated write 프로파일 `SAP_TIER=dev`; §⑩ 프로브 2가
   QA 거부를 재현.
 - **R-005** — SAP 접속 정보·`.env` 레포 커밋 금지. §⑥ + `.gitignore` 확인.

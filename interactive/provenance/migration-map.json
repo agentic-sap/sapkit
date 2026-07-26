@@ -50,8 +50,8 @@
         {
           "token": "adapters/claude/",
           "kind": "tree",
-          "files": 11,
-          "sha256": "4da7b9de41db684713f6a193bac08e4c4fe0a3d8d933970a392c01ab54901147"
+          "files": 12,
+          "sha256": "57b0d8da9790499352d6f2a0f6605924f9fea6ff97f781cffaf75e9d8766cab6"
         }
       ]
     },
@@ -240,7 +240,7 @@
         {
           "token": "core/procedures/troubleshooting.md",
           "kind": "file",
-          "sha256": "ac2ce806f283fa820f077ee186c06b62a4b250352a748d85b940a0a92cd105fe"
+          "sha256": "53a2d36090c70862922ab684d9583a008121e4ed1de88c4ee25c2ba2ac441554"
         },
         {
           "token": "core/procedures/install-sap-assets.md",
@@ -359,7 +359,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 23,
-          "sha256": "63772957e503848bf22c584d3c55a1a475313243de76e1fa1e7d082d4255dddd"
+          "sha256": "fb76b37e69df5c0446dc67eb3b5354bc3ffacb37d397493892dd2c99fce682cf"
         }
       ]
     },
@@ -458,7 +458,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 23,
-          "sha256": "63772957e503848bf22c584d3c55a1a475313243de76e1fa1e7d082d4255dddd"
+          "sha256": "fb76b37e69df5c0446dc67eb3b5354bc3ffacb37d397493892dd2c99fce682cf"
         }
       ]
     },
@@ -476,7 +476,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 23,
-          "sha256": "63772957e503848bf22c584d3c55a1a475313243de76e1fa1e7d082d4255dddd"
+          "sha256": "fb76b37e69df5c0446dc67eb3b5354bc3ffacb37d397493892dd2c99fce682cf"
         }
       ]
     },
@@ -494,7 +494,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 23,
-          "sha256": "63772957e503848bf22c584d3c55a1a475313243de76e1fa1e7d082d4255dddd"
+          "sha256": "fb76b37e69df5c0446dc67eb3b5354bc3ffacb37d397493892dd2c99fce682cf"
         }
       ]
     },
@@ -659,8 +659,8 @@
         {
           "token": "adapters/claude/hooks/",
           "kind": "tree",
-          "files": 6,
-          "sha256": "d9a3a795a7d1c1c10ede8ad8097ddd26bb5140cdaae0a4aea83b28c7f3b1def9"
+          "files": 7,
+          "sha256": "d16d613aa2474a85e941ee1571efa630d79db39b1b4e80046f31dfb9224aa4ed"
         }
       ]
     },
@@ -674,8 +674,8 @@
         {
           "token": "adapters/claude/hooks/",
           "kind": "tree",
-          "files": 6,
-          "sha256": "d9a3a795a7d1c1c10ede8ad8097ddd26bb5140cdaae0a4aea83b28c7f3b1def9"
+          "files": 7,
+          "sha256": "d16d613aa2474a85e941ee1571efa630d79db39b1b4e80046f31dfb9224aa4ed"
         }
       ]
     },
@@ -692,8 +692,8 @@
         {
           "token": "adapters/claude/hooks/",
           "kind": "tree",
-          "files": 6,
-          "sha256": "d9a3a795a7d1c1c10ede8ad8097ddd26bb5140cdaae0a4aea83b28c7f3b1def9"
+          "files": 7,
+          "sha256": "d16d613aa2474a85e941ee1571efa630d79db39b1b4e80046f31dfb9224aa4ed"
         }
       ]
     },
@@ -710,8 +710,8 @@
         {
           "token": "adapters/claude/hooks/",
           "kind": "tree",
-          "files": 6,
-          "sha256": "d9a3a795a7d1c1c10ede8ad8097ddd26bb5140cdaae0a4aea83b28c7f3b1def9"
+          "files": 7,
+          "sha256": "d16d613aa2474a85e941ee1571efa630d79db39b1b4e80046f31dfb9224aa4ed"
         }
       ]
     },
@@ -921,8 +921,8 @@
         {
           "token": "adapters/",
           "kind": "tree",
-          "files": 16,
-          "sha256": "2de3eca51ccdf798d2af1d95b5c501ca206c4ffe89df8a56ffa3e939aa68cf48"
+          "files": 17,
+          "sha256": "74993d99291ed34bad3620984e0be4f30ab12e1a61d07a1f52bf5a85fed61217"
         }
       ]
     },

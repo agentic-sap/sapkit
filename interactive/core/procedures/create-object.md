@@ -143,7 +143,7 @@ Inputs carried from Steps 2–3: name, type, description, package, transport (`T
 Execute in order:
 
 1. **CREATE** — call the matching MCP tool (`CreateClass` / `CreateProgram` / `CreateFunctionGroup` + `CreateFunctionModule` / `CreateTable` / ...). For FM: ensure the parent Function Group exists first. For Service Binding: the Service Definition must exist first. For Screen / GUI Status: the parent program must exist.
-2. **IMPLEMENT** — write initial implementation via the matching `Update*` MCP tool; if `vsp` is installed, lint/parse the source locally first — optional, not a gate ([troubleshooting §7](troubleshooting.md#7-vsp-local-verification-optional)):
+2. **IMPLEMENT** — write initial implementation via the matching `Update*` MCP tool; if `vsp` is installed, run the 13-rule offline analysis (`AnalyzeABAPCode` via `vsp --offline`) on the source first — optional, not a gate; on the Claude adapter the `offline-code-analysis` hook runs it automatically after each source write ([troubleshooting §7](troubleshooting.md#7-vsp-local-verification-optional)):
    - Class: constructor + method signatures + exception handling per [clean-code-oop](../knowledge/abap/conventions/clean-code-oop.md)
    - Program: REPORT statement + basic structure + include scaffold when applicable ([include-structure](../knowledge/abap/conventions/include-structure.md))
    - Function Module: inline IMPORTING/EXPORTING/CHANGING/TABLES/EXCEPTIONS in the FUNCTION statement per [function-module-rule](../knowledge/abap/conventions/function-module-rule.md) — never `*"*"Local Interface:` blocks, never shadow-local placeholders
