@@ -42,10 +42,10 @@ node interactive/scripts/get-vsp.mjs   # ~/.sc4sap/bin/vsp(.exe) 설치
 설치 후 `vsp lint <파일>` / `vsp parse <파일>`로 사용. 자세한 내용:
 [core/procedures/troubleshooting.md §7](../../core/procedures/troubleshooting.md#7-vsp-local-verification-optional).
 
-## 안전훅 3종 + 유지 훅 (프로젝트 단위, 선택 권장)
+## 안전훅 6종 (프로젝트 단위, 선택 권장)
 
-`hooks/`의 block-forbidden-tables·tier-readonly-guard·prefer-sqlquery-explicit-fields
-(+ 유지 훅 transport-validator·syntax-checker)를 프로젝트 settings에 등록:
+`hooks/`의 block-forbidden-tables·tier-readonly-guard·prefer-sqlquery-explicit-fields·
+offline-code-analysis·syntax-checker·transport-validator를 프로젝트 settings에 등록:
 
 ```
 node adapters/claude/hooks/install-hooks.mjs --project <프로젝트 경로>

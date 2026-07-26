@@ -2,7 +2,7 @@
 
 **MANDATORY for all sc4sap consultant personas, [sap-critic](../personas/sap-critic.md), and any procedure that analyses, critiques, or extends an existing SAP installation.**
 
-The customer's live Z*/Y* customizations — BAdI implementations, CMOD projects, customized form-based user-exit includes, Append Structures, and custom fields — are inventoried into per-module JSON files by a customization extraction utility (`extract-customizations.mjs`, bundled with the original plugin — not included in this repo). **Consulting this inventory before recommending, critiquing, or designing is not optional**: proposing a new BAdI when a working Z implementation already exists wastes effort, splits logic, and is the single most common cause of rework in brownfield SAP projects. If the inventory has never been generated, follow Steps 2–3 below (static knowledge reference, or a targeted live query) instead.
+The customer's live Z*/Y* customizations — BAdI implementations, CMOD projects, customized form-based user-exit includes, Append Structures, and custom fields — are inventoried into per-module JSON files by the extraction utility this plugin ships at `tools/extract/extract-customizations.mjs` (see [Generating the inventory](#generating-the-inventory) below). **Consulting this inventory before recommending, critiquing, or designing is not optional**: proposing a new BAdI when a working Z implementation already exists wastes effort, splits logic, and is the single most common cause of rework in brownfield SAP projects. If the inventory has never been generated, follow Steps 2–3 below (static knowledge reference, or a targeted live query) instead.
 
 ## Files You MUST Check
 
@@ -34,7 +34,7 @@ For every module involved in the question:
 If the cache file is missing, the static doc still tells you the *names* of the standard exits/BAdIs to recommend. It does **not** tell you which the customer has already implemented. In this case:
 
 - Recommend the standard name
-- **Add a callout** telling the user their choice: "No customization inventory is present. Before I create a new implementation, either generate the inventory (via the extraction utility, if your environment provides it) or let me run a targeted live query (Step 3) to check whether this BAdI already has a Z implementation."
+- **Add a callout** telling the user their choice: "No customization inventory is present. Before I create a new implementation, either generate the inventory yourself (`node tools/extract/extract-customizations.mjs {MODULE}` — see below) or let me run a targeted live query (Step 3) to check whether this BAdI already has a Z implementation."
 - Do NOT block the current task on the extraction — proceed, but make the assumption ("no prior Z impl") explicit so it can be corrected.
 
 ### 3. Live MCP Fallback (last resort)
@@ -50,7 +50,7 @@ If the task is high-stakes (e.g., sap-critic about to REJECT a plan, sap-planner
 Every live call must:
 1. Name the target (BAdI name / SMOD name / table name)
 2. Declare why the cache miss prevents answering otherwise
-3. Warn about token cost and offer the alternative of generating the customization inventory (extraction utility, if available)
+3. Warn about token cost and offer the alternative of the user generating the customization inventory (see below)
 
 ### Decision flow summary
 
@@ -97,10 +97,40 @@ When FI-AP cache shows `bteImplementations: [{ kind: "P/S", event: "00001025", a
 - ✅ Recommend: "Add the logic inside FM `Z_BTE_1025_PAYMENT_BLOCK` (already registered as subscriber for event 1025 / FI-AP)."
 - ❌ Do NOT recommend: "Implement `BAdI_PAYMENT_PROPOSAL`" — when the customer is already using BTE for this event, adding a BAdI splits control flow and makes reconciliation between the two paths fragile.
 
+## Generating the inventory
+
+The extractor ships with this plugin at `tools/extract/extract-customizations.mjs`
+(pure Node, no npm install). It is run **by the user, from the project root** —
+the directory holding `.sc4sap/` — against the active profile:
+
+```bash
+node "$CLAUDE_PLUGIN_ROOT/tools/extract/extract-customizations.mjs" --dry-run SD MM
+node "$CLAUDE_PLUGIN_ROOT/tools/extract/extract-customizations.mjs" SD MM
+node "$CLAUDE_PLUGIN_ROOT/tools/extract/extract-customizations.mjs" all
+```
+
+`--dry-run` prints the scope offline (modules, what was parsed from each
+`enhancements.md`, the exact SQL scans, output paths) and connects to nothing.
+
+**Approval gate — this is a P2 action.** Two of the scans read rows
+(`MODACT`/`MODATTR`, `GB03`, `TBE24`/`TPS34` — enhancement registration
+metadata), so Gate B of [approval-gates](../policies/approval-gates.md) applies:
+
+- **You do not run this for the user.** Recommend it, show the command, and let
+  the user execute it. Never run it yourself, never delegate it to a subagent,
+  and never use it as a route around the per-call approval you would otherwise
+  owe (Gate B(c) — subagent and batch use are prohibited under every layer).
+- The `--dry-run` output is the scope disclosure; the user running the command
+  without `--dry-run` is the approval act for exactly that scope.
+- The extractor never sets `acknowledge_risk`, so the server-side blocklist
+  floor still decides. A refused table yields no findings and nothing is cached
+  from a refusal. [data-extraction-policy](../policies/data-protection/data-extraction-policy.md)
+  stays authoritative for every other table.
+
 ## Extraction Awareness
 
-- The cache is produced by an optional customization extraction utility from the original plugin's setup; this repo does not bundle the extractor. Its absence is normal — Steps 2–3 cover the lookup without it.
-- If missing, you MAY recommend running the extraction (if the user's environment provides it) after the current task — but do not block on it
+- The inventory is optional. Its absence is normal — Steps 2–3 cover the lookup without it.
+- If missing, you MAY recommend that the user run the extraction after the current task — but do not block on it
 - Treat a stale cache (> 30 days) as prompting a refresh suggestion, but still prefer it over live query
 
 ## Persona Integration Checklist

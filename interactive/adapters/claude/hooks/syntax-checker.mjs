@@ -15,17 +15,17 @@
  * Does NOT auto-execute the analysis — provides guidance to the model.
  */
 
-import { readStdin } from './lib/stdin.mjs';
+import { readStdin } from '../lib/stdin.mjs';
 
 // MCP ABAP tools that should trigger syntax check suggestion on failure.
 // Matched by base tool name (last __ segment) so the check works regardless
-// of the MCP namespace prefix (e.g. mcp__plugin_sc4sap_sap__UpdateClass).
+// of the MCP namespace prefix (e.g. mcp__plugin_sapkit_sap__UpdateClass).
 const MODIFY_ACTIONS = ['Create', 'Update'];
 
 function isAbapModifyTool(toolName) {
   const sep = toolName.lastIndexOf('__');
   if (!toolName.startsWith('mcp__') || sep <= 5) return false;
-  if (!/sc4sap|abap/i.test(toolName.slice(5, sep))) return false;
+  if (!/sap|abap/i.test(toolName.slice(5, sep))) return false;
   const action = toolName.slice(sep + 2);
   return MODIFY_ACTIONS.some(a => action.startsWith(a));
 }

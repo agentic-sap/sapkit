@@ -77,10 +77,45 @@ question about SAP customizing
 
 Workflow: web-search `<topic> help.sap.com` → pick the `/docs/<product>/<deliverable>/<topic>.html` result → run the fetch (script or manual fallback) → **cite the Source URL** and **state the SAP release** it reports. Out of scope: OSS Notes (me.sap.com — auth-walled).
 
+## Generating the cache
+
+The extractor ships with this plugin at `tools/extract/extract-spro.mjs` (pure
+Node, no npm install). It is run **by the user, from the project root** — the
+directory holding `.sc4sap/` — against the active profile:
+
+```bash
+node "$CLAUDE_PLUGIN_ROOT/tools/extract/extract-spro.mjs" --dry-run SD MM
+node "$CLAUDE_PLUGIN_ROOT/tools/extract/extract-spro.mjs" SD MM
+node "$CLAUDE_PLUGIN_ROOT/tools/extract/extract-spro.mjs" all
+```
+
+One module writes `.sc4sap/spro-config-{MODULE}.json`; two or more (or `all`)
+write the merged `.sc4sap/spro-config.json`. `--dry-run` lists every table that
+would be read, the row cap, and the output path, and connects to nothing.
+
+**Approval gate — this is a P2 action.** Each table is a `GetSqlQuery` row read,
+so Gate B of [approval-gates](../policies/approval-gates.md) applies:
+
+- **You do not run this for the user.** Recommend it, show the command, and let
+  the user execute it. Never run it yourself, never delegate it to a subagent,
+  and never use it as a route around the per-call approval you would otherwise
+  owe (Gate B(c) — subagent and batch use are prohibited under every layer).
+- The `--dry-run` output is the scope disclosure; the user running the command
+  without `--dry-run` is the approval act for exactly that scope.
+- Allowed scope is the IMG/Customizing tables named in the shipped
+  `../knowledge/modules/{MODULE}/spro.md` files. The extractor never sets
+  `acknowledge_risk`, so the server-side blocklist floor still decides: a
+  `deny`/`ask`-tier table is refused, recorded in the output `errors[]`, and
+  never written into the cache. (Measured 2026-07-26: of the 481 tables the
+  15 shipped `spro.md` files resolve to, exactly one — `T012K`, house-bank
+  account customizing — is on the blocklist.)
+  [data-extraction-policy](../policies/data-protection/data-extraction-policy.md)
+  stays authoritative for everything else.
+
 ## Extraction Awareness
 
-- The cache is produced by an optional SPRO extraction utility from the original plugin's setup; this repo does not bundle the extractor. Its absence is normal — Steps 2+3 fully cover the lookup without it.
-- If the cache is missing, you MAY recommend the user run the SPRO extraction (if their environment provides it) after the current task — but do not block the current task on it
+- The cache is optional. Its absence is normal — Steps 2+3 fully cover the lookup without it.
+- If the cache is missing, you MAY recommend that the user run the SPRO extraction after the current task — but do not block the current task on it
 - Treat a stale cache (> 90 days, or user-indicated customizing change) as a prompt to suggest refresh, but still prefer it over live query unless the user explicitly opts out
 
 ## Persona Integration Checklist

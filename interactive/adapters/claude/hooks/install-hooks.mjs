@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * sc4sap install-hooks — register sc4sap hooks in Claude Code
- * `settings.json`. Installs four hooks:
+ * `settings.json`. Installs six hooks:
  *
  *   1. block-forbidden-tables   — row-extraction safety for
  *      `GetTableContents` / `GetSqlQuery`. (PreToolUse)
@@ -13,6 +13,12 @@
  *   4. offline-code-analysis    — warn-only vsp `--offline` 13-rule analysis
  *      of written ABAP source (local .abap files + MCP source_code writes);
  *      silent no-op when vsp is not installed. (PostToolUse, D-049)
+ *   5. syntax-checker           — advisory suggestion to run `CheckSyntax`
+ *      after an MCP ABAP Create/Update tool call fails.
+ *      (PostToolUseFailure)
+ *   6. transport-validator      — advisory reminder to attach a transport
+ *      request when an MCP ABAP Create/Update tool call targets a
+ *      non-local package. (PreToolUse)
  *
  * Usage:
  *   node scripts/install-hooks.mjs              # install into user settings (~/.claude/settings.json)
@@ -83,6 +89,19 @@ const HOOKS = [
     matcher: 'Edit|Write|MultiEdit|mcp__.*__(Create|Update)',
     testHint:
       "Test it by writing a .abap file assigning a literal to lv_password — the model should receive offline analysis findings (requires vsp at ~/.sc4sap/bin; silent no-op otherwise).",
+  },
+  {
+    marker: 'syntax-checker.mjs',
+    event: 'PostToolUseFailure',
+    matcher: 'mcp__.*__(Create|Update)',
+    testHint:
+      'Test it by making an MCP ABAP Create*/Update* call fail (e.g. invalid syntax) — the model should receive a CheckSyntax advisory (PostToolUseFailure).',
+  },
+  {
+    marker: 'transport-validator.mjs',
+    matcher: 'mcp__.*__(Create|Update)',
+    testHint:
+      'Test it with an MCP ABAP CreateClass/UpdateClass call targeting a non-$TMP package and no transport_request — the model should receive a transport reminder (advisory, non-blocking).',
   },
 ];
 

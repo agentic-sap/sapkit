@@ -281,6 +281,27 @@
 > **슬롯만 배포, 볼트 내용은 어떤 산출물에도 미포함**(연결 프로필과 동일 원칙).
 > 게이트 전종 green. 상세·대안 기각 = D-050.
 >
+> **▶ 백로그 ②④ 집행 → v0.3.7 (2026-07-26 · 오케스트레이션 세션)**: 메인=조율만,
+> 실행=모델 지정 서브에이전트 2기(sonnet=④·opus=②) 위임, 후속 재개 2회 포함.
+> **④ 훅 6개 체제 완성(sonnet)**: syntax-checker 수리+배선(PostToolUseFailure —
+> 공식 문서로 이벤트 실재 확증 · 깨진 import + 개명 전 네임스페이스 정규식 2버그) ·
+> transport-validator 수리+배선(동일 2버그 + **실스키마 대조로 3번째 발견**:
+> `package_name` 미검사로 `$TMP` 예외 상시 실패 → 로컬 객체 오탐 조언) · install-hooks
+> 5·6번째 등록 + setup.md/어댑터 README 계수 동기화. 시뮬레이션 3+5케이스 · 드라이런
+> 6훅 전부 실측. 보고만(후보): 조언 객체명 "unknown" 표시 결함 ·
+> TRANSPORT_REQUIRED_TOOLS에 UpdateClassMethod/UpdateSourceByPatch 누락.
+> **② 추출기 2종 이식 완료(opus, L6 집행)**: `tools/extract/` 신설 3파일(추출기 2 +
+> 자체 stdio lib — MCP SDK 의존 제거) · 정책 정합 해소(blocklist 바닥선이 판정,
+> 481테이블 대조 충돌 1건 `T012K`=deny로 자동 차단 · "사람이 실행, 에이전트 대행
+> 금지" 명문화 · ask-consultant IMG 거부 문구를 표적조회/캐시생성 구분으로 정밀
+> 교체) · 원본 잠재결함 3건 수리(ESM require · 도구 인자 스키마 불일치 · **BAdI
+> 복수형 헤더 미검출 — 수리 후 BAdI 후보 91→191(+100), 타 버킷 변화 0으로 국지성
+> 기계 증명, "계약 미달 결함 수리·범위 확장 아님"으로 헤더 명시**) · 절차 문서 5곳
+> 갱신. **정직 유보**: 라이브 SAP 실행 전 구간 미검증(P2·subagent 금지 준수 —
+> 첫 실사용이 검증 자리) · `###` SMOD 검출기 공백(Ariba, 치명도 낮음·별건 후보) ·
+> spro.md 내 비테이블 항목은 errors[]로 무해 격리 · 프로젝트 루트 실행 전제.
+> 게이트 7종 green · v0.3.7.
+>
 > **▶▶ 활성 백로그 (2026-07-26 승격 · 당일 정정)**: 기록-실물 불일치의 두 모드가
 > 같은 날 실증됐다. **모드 (a) 유보 영구화** — 재심사 트리거 없는 "deferred 유지"는
 > 아무 세션도 다시 안 꺼낸다(extract 2종, 07-11부터). **모드 (b) 완료 기록 누락** —
@@ -293,14 +314,14 @@
 >   키워드·functional 모두 live fetch 성공). 부수 발견: 동결 레포 쪽 원본이
 >   07-17에 개선됨(exit→exitCode 스타일) — 상류 드리프트 채널(report-sc4sap-
 >   public-drift) 소관, 자동 이식 0 원칙 유지.
-> ② **extract-spro·extract-customizations 이식(L6)** — 컨설턴트 캐시 슬롯 2종의
->   생성기. 트리거: 실프로젝트에서 ask-consultant를 반복 사용하기 시작할 때
->   (일회성 질문은 라이브 폴백으로 충분, 상주 자문이면 추출이 정답).
+> ② ~~extract-spro·extract-customizations 이식(L6)~~ — **✅ 완료(07-26, 위
+>   v0.3.7 항목)**. 라이브 첫 실행이 잔여 검증 자리(연결 경로 전 구간 미실측).
 > ③ **V-PASS 실행 스크립트 배선** — 완료 계약이 문서로만 존재(source read →
 >   syntax → activate → unit → ATC 체인 + 출력 파싱). 트리거: 트랙 A SAP 코드
 >   완료 도장이 실제로 필요해질 때(ZUNIWTH 도그푸딩).
-> ④ **syntax-checker.mjs 정리** — 깨진 import(`hooks/lib/stdin.mjs` 부재)의
->   미배선 잔재. 수리해 배선하거나 제거(소형).
+> ④ ~~syntax-checker.mjs 정리~~ — **✅ 완료(07-26, 위 v0.3.7 항목 — transport-
+>   validator까지 확장, 훅 6개 체제)**. 소형 후보 잔존: 조언 객체명 라벨 ·
+>   TRANSPORT_REQUIRED_TOOLS 커버리지 · `###` SMOD 검출기(Ariba).
 >
 > **▶ vsp 실사 → R-002 축소 + `--offline` 13종 분석기 훅 자동 배선 → v0.3.5 (2026-07-26 ·
 > D-049)**: 사용자 요청 "vsp 정확한 기능 딥 실사"의 결과. **실측**: 절차가 지시하던
@@ -1774,7 +1795,7 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
 
 | 원천 | 목적지 | 상태 |
 |---|---|---|
-| extract-spro.mjs · extract-customizations.mjs | `tools/extract/` | deferred 유지 (수동 대체: spro-lookup.md · customization-lookup.md) |
+| extract-spro.mjs · extract-customizations.mjs | `tools/extract/` | ✅ **이식 완료 (2026-07-26 · v0.3.7)** — transform(SDK 의존 제거·경로 정합·결함 3건 수리), 오프라인 검증만(라이브 미실측). 재개점 백로그 ② 참조 |
 | fetch-abap-keyword-doc.mjs · fetch-sap-help-doc.mjs | `tools/fetch/` | ✅ **이식 완료 (2026-07-12 `c3f54349`)** — 07-26 실동작 재확증(양쪽 live fetch 성공). ~~우선 검토로 상향~~ 상태 행 미갱신으로 07-26 세션이 재이식을 오진한 이력 — 재개점 백로그 ① 참조 |
 | sap-profile-cli.mjs | `scripts/` | deferred 유지 (수동 대체: troubleshooting.md) |
 | sap-option-tui.mjs | — | **폐기 확정 (2026-07-11)** — config.json 직접 편집으로 충분함이 장기 실증. 훅 안내도 troubleshooting 절차로 교체 완료(5-10) |

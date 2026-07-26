@@ -113,12 +113,10 @@ resolved plugin root — the working directory is the user's project):
 node "PLUGIN_ROOT/adapters/claude/hooks/install-hooks.mjs" --project .
 ```
 
-Report the hooks it registered (block-forbidden-tables, tier-readonly-guard,
-prefer-sqlquery-explicit-fields). `transport-validator.mjs` and
-`syntax-checker.mjs` ship in the same hooks directory but are NOT
-auto-registered by the installer (syntax-checker is a PostToolUseFailure hook
-the installer does not manage) — report them as present-but-unregistered,
-not installed.
+Report the hooks it registered — six total, all auto-registered by the
+installer: block-forbidden-tables, tier-readonly-guard,
+prefer-sqlquery-explicit-fields, offline-code-analysis, syntax-checker
+(PostToolUseFailure), transport-validator.
 
 ## Step 5 — Optional: vsp Offline Verifier
 

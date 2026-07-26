@@ -25,7 +25,7 @@ This is the "ask a human consultant" button. Users hit it when they need SPRO gu
 - User wants to create code / objects — use `create-program` or `create-object`.
 - User wants to analyze a runtime error — use `analyze-symptom`.
 - User wants to review existing code quality — use `analyze-code`.
-- User wants IMG customizing table data extraction — refuse per [data-extraction-policy](../policies/data-protection/data-extraction-policy.md).
+- User wants a **bulk dump of IMG customizing tables** — not this procedure, and never something you run yourself. A targeted customizing read goes through [spro-lookup](spro-lookup.md) Step 3 (name the tables, get per-call approval); a full cache is generated **by the user** with `tools/extract/extract-spro.mjs` (spro-lookup → "Generating the cache"). Under either route the [data-extraction-policy](../policies/data-protection/data-extraction-policy.md) blocklist floor still applies, and anything beyond customizing metadata is refused per that policy.
 
 ## Environment Context
 

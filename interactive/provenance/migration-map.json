@@ -51,7 +51,7 @@
           "token": "adapters/claude/",
           "kind": "tree",
           "files": 12,
-          "sha256": "57b0d8da9790499352d6f2a0f6605924f9fea6ff97f781cffaf75e9d8766cab6"
+          "sha256": "be5180329ee104f6f0bf6e0ebf72c40a4067bd13cadab2f33f75e54a36c23280"
         }
       ]
     },
@@ -300,7 +300,7 @@
         {
           "token": "core/project-context.md",
           "kind": "file",
-          "sha256": "1f0331ca9cd76565d536e0d94a264f77671d3aa6d54153e5ba26a864ecd580a6"
+          "sha256": "a7081650c53c0a109d470cd254d13177ccd6c49641579ad1e79e685b7045517d"
         }
       ]
     },
@@ -359,7 +359,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 23,
-          "sha256": "e84c9ce75584da89bb363547ee7099cc96b0908158ca14a21f44abd942453488"
+          "sha256": "f03293ad7d7a3f65fbd70a3cbbe2fe6018512a67c740ee45f6bb3cd73926bcf0"
         }
       ]
     },
@@ -458,7 +458,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 23,
-          "sha256": "e84c9ce75584da89bb363547ee7099cc96b0908158ca14a21f44abd942453488"
+          "sha256": "f03293ad7d7a3f65fbd70a3cbbe2fe6018512a67c740ee45f6bb3cd73926bcf0"
         }
       ]
     },
@@ -476,7 +476,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 23,
-          "sha256": "e84c9ce75584da89bb363547ee7099cc96b0908158ca14a21f44abd942453488"
+          "sha256": "f03293ad7d7a3f65fbd70a3cbbe2fe6018512a67c740ee45f6bb3cd73926bcf0"
         }
       ]
     },
@@ -494,7 +494,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 23,
-          "sha256": "e84c9ce75584da89bb363547ee7099cc96b0908158ca14a21f44abd942453488"
+          "sha256": "f03293ad7d7a3f65fbd70a3cbbe2fe6018512a67c740ee45f6bb3cd73926bcf0"
         }
       ]
     },
@@ -516,7 +516,7 @@
         {
           "token": "core/project-context.md",
           "kind": "file",
-          "sha256": "1f0331ca9cd76565d536e0d94a264f77671d3aa6d54153e5ba26a864ecd580a6"
+          "sha256": "a7081650c53c0a109d470cd254d13177ccd6c49641579ad1e79e685b7045517d"
         }
       ]
     },
@@ -660,7 +660,7 @@
           "token": "adapters/claude/hooks/",
           "kind": "tree",
           "files": 7,
-          "sha256": "d16d613aa2474a85e941ee1571efa630d79db39b1b4e80046f31dfb9224aa4ed"
+          "sha256": "61098655d700baaa49c52b666093bb4f2933fb9b8e68e5b8c44a7a8cbac2a19c"
         }
       ]
     },
@@ -675,7 +675,7 @@
           "token": "adapters/claude/hooks/",
           "kind": "tree",
           "files": 7,
-          "sha256": "d16d613aa2474a85e941ee1571efa630d79db39b1b4e80046f31dfb9224aa4ed"
+          "sha256": "61098655d700baaa49c52b666093bb4f2933fb9b8e68e5b8c44a7a8cbac2a19c"
         }
       ]
     },
@@ -693,7 +693,7 @@
           "token": "adapters/claude/hooks/",
           "kind": "tree",
           "files": 7,
-          "sha256": "d16d613aa2474a85e941ee1571efa630d79db39b1b4e80046f31dfb9224aa4ed"
+          "sha256": "61098655d700baaa49c52b666093bb4f2933fb9b8e68e5b8c44a7a8cbac2a19c"
         }
       ]
     },
@@ -711,7 +711,7 @@
           "token": "adapters/claude/hooks/",
           "kind": "tree",
           "files": 7,
-          "sha256": "d16d613aa2474a85e941ee1571efa630d79db39b1b4e80046f31dfb9224aa4ed"
+          "sha256": "61098655d700baaa49c52b666093bb4f2933fb9b8e68e5b8c44a7a8cbac2a19c"
         }
       ]
     },
@@ -746,32 +746,36 @@
     {
       "pattern": "scripts/extract-spro.mjs",
       "class": "transform",
-      "note": "`tools/extract/` — **deferred(L6+)**: 수동 fallback 문서화됨(spro-lookup.md)",
+      "note": "`tools/extract/` — **이식 완료(2026-07-26)**: MCP 전송을 SDK→레포 내 stdio 클라이언트(lib/mcp-stdio.mjs)로 교체, 경로·버전 해석 sapkit 관례, 승인 게이트 dry-run 신설. 검증 = 오프라인 한정(node --check · 무인자 usage exit 2 · 15모듈 dry-run 481테이블), 라이브 추출 미검증",
       "source_matches": 1,
       "sources": [
         "scripts/extract-spro.mjs"
       ],
-      "deferred": true,
+      "deferred": false,
       "targets": [
         {
           "token": "tools/extract/",
-          "deferred": true
+          "kind": "tree",
+          "files": 3,
+          "sha256": "930135a03005b6efe9e3db395f852a8bf654706b5ac7894d076656ce35f8d946"
         }
       ]
     },
     {
       "pattern": "scripts/extract-customizations.mjs",
       "class": "transform",
-      "note": "`tools/extract/` — **deferred(L6+)**: 수동 fallback 문서화됨(customization-lookup.md)",
+      "note": "`tools/extract/` — **이식 완료(2026-07-26)**: 동상 + 도구 인자를 현행 번들 스키마로 정합(enhancement_spot · object_name/maxResults). 검증 = 오프라인 한정(node --check · usage · 15모듈 dry-run), 라이브 추출 미검증",
       "source_matches": 1,
       "sources": [
         "scripts/extract-customizations.mjs"
       ],
-      "deferred": true,
+      "deferred": false,
       "targets": [
         {
           "token": "tools/extract/",
-          "deferred": true
+          "kind": "tree",
+          "files": 3,
+          "sha256": "930135a03005b6efe9e3db395f852a8bf654706b5ac7894d076656ce35f8d946"
         }
       ]
     },
@@ -922,7 +926,7 @@
           "token": "adapters/",
           "kind": "tree",
           "files": 17,
-          "sha256": "74993d99291ed34bad3620984e0be4f30ab12e1a61d07a1f52bf5a85fed61217"
+          "sha256": "c762aa359d90bef90e7ab4e55a61a40a8b1bbcd6003fed3fd8ef511e5e28787a"
         }
       ]
     },
@@ -972,7 +976,7 @@
         {
           "token": "core/project-context.md",
           "kind": "file",
-          "sha256": "1f0331ca9cd76565d536e0d94a264f77671d3aa6d54153e5ba26a864ecd580a6"
+          "sha256": "a7081650c53c0a109d470cd254d13177ccd6c49641579ad1e79e685b7045517d"
         }
       ]
     },

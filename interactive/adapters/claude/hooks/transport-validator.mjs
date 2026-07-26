@@ -17,11 +17,11 @@
  * don't require transports.
  */
 
-import { readStdin } from './lib/stdin.mjs';
+import { readStdin } from '../lib/stdin.mjs';
 
 // MCP ABAP tools that require a transport for non-local objects.
 // Matched by base tool name (last __ segment) so the check works regardless
-// of the MCP namespace prefix (e.g. mcp__plugin_sc4sap_sap__CreateClass).
+// of the MCP namespace prefix (e.g. mcp__plugin_sapkit_sap__CreateClass).
 const TRANSPORT_REQUIRED_TOOLS = new Set([
   // Create operations
   'CreateClass',
@@ -78,7 +78,7 @@ const TRANSPORT_REQUIRED_TOOLS = new Set([
 const LOCAL_PACKAGES = new Set(['$TMP', '$tmp', 'LOCAL', 'local']);
 
 function isLocalPackage(toolInput) {
-  const pkg = toolInput?.package || toolInput?.devclass || toolInput?.packageName || '';
+  const pkg = toolInput?.package_name || toolInput?.package || toolInput?.devclass || toolInput?.packageName || '';
   return LOCAL_PACKAGES.has(pkg.toUpperCase() === '$TMP' ? '$TMP' : pkg);
 }
 
@@ -97,10 +97,10 @@ async function main() {
     const toolInput = data.tool_input || data.toolInput || {};
 
     // Only check Create/Update tools from the SAP MCP server — the namespace
-    // segment must look like an sc4sap/abap server so same-named tools on
+    // segment must look like a sap/abap server so same-named tools on
     // unrelated MCP servers don't receive SAP transport advisories.
     const sep = toolName.lastIndexOf('__');
-    const fromSapServer = toolName.startsWith('mcp__') && sep > 5 && /sc4sap|abap/i.test(toolName.slice(5, sep));
+    const fromSapServer = toolName.startsWith('mcp__') && sep > 5 && /sap|abap/i.test(toolName.slice(5, sep));
     const baseTool = fromSapServer ? toolName.slice(sep + 2) : '';
     if (!TRANSPORT_REQUIRED_TOOLS.has(baseTool)) {
       console.log(JSON.stringify({ continue: true, suppressOutput: true }));
