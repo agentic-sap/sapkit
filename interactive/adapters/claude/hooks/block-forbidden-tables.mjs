@@ -3,7 +3,7 @@
  * sc4sap PreToolUse hook — Block Forbidden Tables (profile-aware)
  *
  * Intercepts MCP tool calls that would read row data from SAP and checks the
- * target table(s) against `exceptions/table_exception.md`, filtered by the
+ * target table(s) against `core/policies/data-protection/table_exception.md`, filtered by the
  * active profile in `.sc4sap/config.json` (`blocklistProfile`).
  *
  * Profiles (accumulative):

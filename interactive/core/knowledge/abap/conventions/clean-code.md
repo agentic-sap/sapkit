@@ -119,7 +119,7 @@ Never read an absent value as `0` in verification / reconciliation logic — a f
   - reject row-level extraction and switch to aggregated output (SUM / GROUP BY)
   
   Record the count and the chosen tuning measure in `spec.md` / `plan.md` when Phase 2 detects the risk, and in the Phase 6 review notes when confirmed.
-- **Blocked tables**: before any `GetTableContents` / `GetSqlQuery`, consult [`data-extraction-policy.md`](../../../policies/data-protection/data-extraction-policy.md) and `exceptions/table_exception.md`.
+- **Blocked tables**: before any `GetTableContents` / `GetSqlQuery`, consult [`data-extraction-policy.md`](../../../policies/data-protection/data-extraction-policy.md) and [`table_exception.md`](../../../policies/data-protection/table_exception.md).
 
 ## Modularization (paradigm-neutral part)
 

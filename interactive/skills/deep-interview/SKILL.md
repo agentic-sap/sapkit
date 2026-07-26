@@ -1,6 +1,6 @@
 ---
 name: deep-interview
-description: Socratic deep interview to crystallize SAP requirements before autonomous execution
+description: Socratic deep interview to crystallize ambiguous SAP requirements before build work. Use when scope, business rules, or data sources are still unsettled ahead of create-program or other build/spec procedures — staged questions narrow options and produce an approved requirements brief that the downstream run consumes.
 ---
 
 # deep-interview (wrapper)

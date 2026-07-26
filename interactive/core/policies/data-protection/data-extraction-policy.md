@@ -14,7 +14,7 @@ Before calling any of the following MCP tools:
 You MUST:
 
 1. **Identify every table referenced** in the request (direct table name, tables inside a JOIN, underlying tables of a CDS view / SQL query).
-2. **Check `exceptions/table_exception.md`** at the sc4sap plugin root.
+2. **Check [`table_exception.md`](table_exception.md)** (same folder).
 3. If **any** referenced table matches the blocklist (exact name, family pattern like `PA*`, or customer-specific Z-pattern): **refuse the extraction**.
 
 ## Actions: `deny` vs `warn`

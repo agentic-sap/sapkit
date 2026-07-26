@@ -2,7 +2,7 @@
   "mcpServers": {
     "sap": {
       "command": "node",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/server/launch.cjs"],
+      "args": ["${CLAUDE_PLUGIN_ROOT}/server/launch.cjs", "--exposition=readonly,high"],
       "env": {
         "NODE_PATH": "${CLAUDE_PLUGIN_ROOT}/server/runtime-deps/keyring/node_modules"
       }

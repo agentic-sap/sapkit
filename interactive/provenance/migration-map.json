@@ -51,7 +51,7 @@
           "token": "adapters/claude/",
           "kind": "tree",
           "files": 11,
-          "sha256": "36c33fc9b2ef873ec0af484a194edc6448af5e3a9699d826d0eccd0a151d828e"
+          "sha256": "4da7b9de41db684713f6a193bac08e4c4fe0a3d8d933970a392c01ab54901147"
         }
       ]
     },
@@ -359,7 +359,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 23,
-          "sha256": "981dd72e727f05d4fa379b468c60778a6d546405a91c35203f02a994b86e247a"
+          "sha256": "63772957e503848bf22c584d3c55a1a475313243de76e1fa1e7d082d4255dddd"
         }
       ]
     },
@@ -422,7 +422,7 @@
           "token": "core/policies/data-protection/",
           "kind": "tree",
           "files": 13,
-          "sha256": "7ca0d167da8ec7ad5ca03c5a2d9992ed87c56a5c15ac0e35d212a7d76736ccf7"
+          "sha256": "e40b242c64b159edf5bf686cc933872cb438c2fd4a23398547f2f649cd0c20ed"
         }
       ]
     },
@@ -440,7 +440,7 @@
           "token": "core/policies/",
           "kind": "tree",
           "files": 19,
-          "sha256": "272ae779627acefc7a8c52158326e0ce48ee28e9b2aacaeea43e4c184b4a3692"
+          "sha256": "b3aae7ce4b5b211208195b789c400096ee78aaca330ffd17d29450b6040a0900"
         }
       ]
     },
@@ -458,7 +458,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 23,
-          "sha256": "981dd72e727f05d4fa379b468c60778a6d546405a91c35203f02a994b86e247a"
+          "sha256": "63772957e503848bf22c584d3c55a1a475313243de76e1fa1e7d082d4255dddd"
         }
       ]
     },
@@ -476,7 +476,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 23,
-          "sha256": "981dd72e727f05d4fa379b468c60778a6d546405a91c35203f02a994b86e247a"
+          "sha256": "63772957e503848bf22c584d3c55a1a475313243de76e1fa1e7d082d4255dddd"
         }
       ]
     },
@@ -494,7 +494,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 23,
-          "sha256": "981dd72e727f05d4fa379b468c60778a6d546405a91c35203f02a994b86e247a"
+          "sha256": "63772957e503848bf22c584d3c55a1a475313243de76e1fa1e7d082d4255dddd"
         }
       ]
     },
@@ -555,7 +555,7 @@
           "token": "core/knowledge/abap/conventions/",
           "kind": "tree",
           "files": 20,
-          "sha256": "111e7ebe3ad1b59d1eee079e1bf171c2351d69f9db73b8a2719136ea320d427c"
+          "sha256": "a5b6adaf2979c8563995ebe36393c785a98e91f90e9eda6009dbc2730d65f165"
         }
       ]
     },
@@ -630,7 +630,7 @@
           "token": "core/policies/data-protection/",
           "kind": "tree",
           "files": 13,
-          "sha256": "7ca0d167da8ec7ad5ca03c5a2d9992ed87c56a5c15ac0e35d212a7d76736ccf7"
+          "sha256": "e40b242c64b159edf5bf686cc933872cb438c2fd4a23398547f2f649cd0c20ed"
         }
       ]
     },
@@ -660,7 +660,7 @@
           "token": "adapters/claude/hooks/",
           "kind": "tree",
           "files": 6,
-          "sha256": "e9f9f5a7108f064d90f229b7c2f02953275f00fbdbe34c571b909dedc0c839cc"
+          "sha256": "d9a3a795a7d1c1c10ede8ad8097ddd26bb5140cdaae0a4aea83b28c7f3b1def9"
         }
       ]
     },
@@ -675,7 +675,7 @@
           "token": "adapters/claude/hooks/",
           "kind": "tree",
           "files": 6,
-          "sha256": "e9f9f5a7108f064d90f229b7c2f02953275f00fbdbe34c571b909dedc0c839cc"
+          "sha256": "d9a3a795a7d1c1c10ede8ad8097ddd26bb5140cdaae0a4aea83b28c7f3b1def9"
         }
       ]
     },
@@ -693,7 +693,7 @@
           "token": "adapters/claude/hooks/",
           "kind": "tree",
           "files": 6,
-          "sha256": "e9f9f5a7108f064d90f229b7c2f02953275f00fbdbe34c571b909dedc0c839cc"
+          "sha256": "d9a3a795a7d1c1c10ede8ad8097ddd26bb5140cdaae0a4aea83b28c7f3b1def9"
         }
       ]
     },
@@ -711,7 +711,7 @@
           "token": "adapters/claude/hooks/",
           "kind": "tree",
           "files": 6,
-          "sha256": "e9f9f5a7108f064d90f229b7c2f02953275f00fbdbe34c571b909dedc0c839cc"
+          "sha256": "d9a3a795a7d1c1c10ede8ad8097ddd26bb5140cdaae0a4aea83b28c7f3b1def9"
         }
       ]
     },
@@ -922,7 +922,7 @@
           "token": "adapters/",
           "kind": "tree",
           "files": 16,
-          "sha256": "8dc018587a9ee11f22746dc3b5c992e25581538053bc4c0e0489daa5624615f9"
+          "sha256": "2de3eca51ccdf798d2af1d95b5c501ca206c4ffe89df8a56ffa3e939aa68cf48"
         }
       ]
     },

@@ -2,7 +2,7 @@
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "_generated": "⚠️ 생성물 — 직접 편집하지 말 것. 정본은 interactive/plugin-metadata.json (gen-plugin-manifests.mjs)",
   "name": "agentic-sap",
-  "description": "Lite, harness-portable edition of SuperClaude for SAP. Same knowledge (15 module packs = 14 + BC — SPRO/BAPI/tables/workflows, 14 industries, 16 countries, ABAP clean-code conventions and templates), same MCP server (155 ADT tools inspection-only), same 26 personas — minus team/fan-out orchestration. Procedures are owned by one main context following gated checklists (implementation may be delegated to a single fresh worker under the development-loop policy); review happens in a fresh context; SAP itself verifies (syntax, activation, unit tests, ATC).",
+  "description": "Lite, harness-portable edition of SuperClaude for SAP. Same knowledge (15 module packs = 14 + BC — SPRO/BAPI/tables/workflows, 14 industries, 16 countries, ABAP clean-code conventions and templates), same MCP server (ADT tools: reads + DEV-tier-gated writes), same 26 personas — minus team/fan-out orchestration. Procedures are owned by one main context following gated checklists (implementation may be delegated to a single fresh worker under the development-loop policy); review happens in a fresh context; SAP itself verifies (syntax, activation, unit tests, ATC).",
   "owner": {
     "name": "AgenticSAP"
   },
@@ -10,7 +10,7 @@
     {
       "name": "sapkit",
       "description": "SAP ABAP development and consulting — knowledge core + personas + gated procedures + ADT MCP server, in one lite plugin.",
-      "version": "0.3.3",
+      "version": "0.3.4",
       "author": {
         "name": "hjaewon"
       },
@@ -29,5 +29,5 @@
   "renames": {
     "sap-agentic-harness": "sapkit"
   },
-  "version": "0.3.3"
+  "version": "0.3.4"
 }

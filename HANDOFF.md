@@ -272,6 +272,16 @@
 > missing" 소멸) ⑵ 일부러 깨진 활성 프로그램 무소스 CheckSyntax = **실오류(라인번호)** 반환.
 > 확인되면 UPSTREAM Known-remaining #12를 CLOSED로 이동. RV4 열림·unattended sealed 불변.
 >
+> **▶ 배포 표면 정합 수리 4건 → v0.3.4 (2026-07-26)**: marketplace 설명 오표기
+> ("inspection-only" — 기본 노출이 이미 mutation 62종을 포함하는데 read-only인 양
+> 표기됐던 문제) 정정 · 죽은 경로 3건(구 `exceptions/table_exception.md` 표기 —
+> clean-code.md·data-extraction-policy.md·block-forbidden-tables.mjs 주석) 수리 ·
+> deep-interview 스킬 description 트리거 단서 보강(SKILL.md + 미러
+> core/procedures/deep-interview.md 동기화) · `.mcp.json`에 `--exposition=readonly,high`
+> 명시(서버 자체 기본값과 동일 확인 — 무동작변화, 의도 문서화). 단일 정본
+> (plugin-metadata.json)+매니페스트 5종 재생성, 이식 스냅샷 목적지 재핀(편집 트리
+> 7개 — 원본은 핀 커밋 그대로라 무접촉, 목적지만 재계산). 게이트 6종 + doctor 전부 green.
+>
 > **▶ 직전 재개점 (2026-07-23 · D-047) — aegis 방법론 흡수를 ZUNIWHT에
 > 선행**: 사용자 목적 확인 — 원목표는 "sc4sap 개발방법론 대신 최신화된 방법론"이었고,
 > ENGINE을 버린 만큼(D-040) 엔진 외 조각은 흡수됐어야 했다. 원천 =
@@ -2213,6 +2223,12 @@ fail-closed allowlist라 실위험은 없었음). install-hooks matcher + 이 �
 (IDEA-JNC, KR-DEV) 마이그레이션 완료. 구 `~/.sc4sap`은 백업 보존 — 동결된 sc4sap-custom을
 다시 켜면 그쪽을 읽어 갈라질 수 있으니 **정본은 새 경로**. env는 새 프로세스부터 유효
 (실행 중 세션은 재시작 필요).
+
+**엔진 백로그 12 — 로우데이터 2종 등록 단계 제외 서버 옵션 (2026-07-26, 미착수)**:
+GetTableContents/GetSqlQuery를 등록 단계에서 제외하는 서버 옵션 검토 — exposition은
+이 둘을 못 거른다(`provenance/mcp-surface.json` findings 기록), Antigravity
+`excludeTools` 미작동의 스키마 수준 보완책. 엔진 수정 + UPDATE-RUNBOOK 재번들 필요,
+D-결정 대기.
 
 ## 7. 핵심 파일 지도
 
