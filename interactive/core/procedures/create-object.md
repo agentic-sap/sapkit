@@ -33,7 +33,10 @@ roadmap §6). Apply the Policy, not a one-shot auto-run:
   `GetInactiveObjects` proves the object links — it is not a completion stamp.
 - **COMPLETE is reached by handoff to a Guided run** that records an exact-subject
   review `R-PASS` and a vsp-backed `V-PASS` (source read-back · syntax · activate ·
-  unit · ATC). The Step 7 report labels the state accordingly.
+  unit · ATC). That chain is run with [tools/vpass/vpass.mjs](../../tools/vpass/vpass.mjs)
+  (`node "$CLAUDE_PLUGIN_ROOT/tools/vpass/vpass.mjs" --source-dir <dir> <TYPE> <NAME>`),
+  which writes the verdict record to `.sc4sap/vpass/`. The Step 7 report labels the
+  state accordingly.
 
 ## Use When
 

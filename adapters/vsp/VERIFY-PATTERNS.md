@@ -200,6 +200,18 @@ CODE_FAIL**(폴백)이다.
 없어 환경 실패가 코드 결함으로 둔갑해 LESSONS를 오염시킨다(DESIGN.md §9, §⑤ 안티패턴
 참조).
 
+**V-PASS 체인 러너 (2026-07-26 신설)**: 완료 증거 체인(read-back → active-state 정합 →
+unit → atc)을 한 번에 돌리고 판정 기록을 `.sc4sap/vpass/<ts>-<대상>.json`에 남기는
+러너가 `interactive/tools/vpass/vpass.mjs`에 있다 — 이 문서의 실측(§②-4 atc exit 0 ·
+§②-5 `No test classes found.` · §③ 마커 3종·LOCK→ENV 순서 · §⑤ 안티패턴)을 그대로 판정
+로직에 이식했고, 그 실측 출력 문자열을 픽스처로 삼는 자가시험을 내장한다
+(`--self-test`, 40/40). 위 규약과의 관계: 러너는 `verify-sap.ps1`을 경유하지 않고
+(제품 플러그인에 그 스크립트가 없다) **동일한 마커 분류를 Node로 자체 구현**하며,
+SAP 쓰기 명령은 일절 호출하지 않고 모든 자식 프로세스에 `SAP_READ_ONLY=true`를 준다.
+"서버측 문법 검사"는 §14-9 부재 판정 때문에 **직접 검사가 아니라 read-back 정합
+추론**이며 그 한계(active/inactive 미구분 · 시점 증거 · n=1 근거)를 기록의 `limits[]`에
+매번 남긴다. 라이브 SAP 미검증.
+
 ## ④ 호출 규약
 
 ### role별 credential 분리 (SAFETY-PROFILES §④의 운용판 — 2026-07-16, S2-A)

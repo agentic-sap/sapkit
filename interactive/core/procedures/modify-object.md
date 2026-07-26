@@ -42,8 +42,11 @@ a one-shot auto-run:
 - **MCP success is `PROVISIONAL_WRITE`, not done.** An empty `GetInactiveObjects`
   result proves the object links; it is not a completion stamp.
 - **COMPLETE requires a handoff to a Guided run** recording an exact-subject
-  review `R-PASS` and a vsp-backed `V-PASS`. Absent both, the state is
-  `PROVISIONAL_WRITE`, never "done".
+  review `R-PASS` and a vsp-backed `V-PASS` — the latter produced by
+  [tools/vpass/vpass.mjs](../../tools/vpass/vpass.mjs)
+  (`node "$CLAUDE_PLUGIN_ROOT/tools/vpass/vpass.mjs" --source-dir <dir> <TYPE> <NAME>`,
+  record in `.sc4sap/vpass/`). Absent both, the state is `PROVISIONAL_WRITE`,
+  never "done".
 
 ## Procedure
 

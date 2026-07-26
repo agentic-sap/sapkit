@@ -316,9 +316,17 @@
 >   public-drift) 소관, 자동 이식 0 원칙 유지.
 > ② ~~extract-spro·extract-customizations 이식(L6)~~ — **✅ 완료(07-26, 위
 >   v0.3.7 항목)**. 라이브 첫 실행이 잔여 검증 자리(연결 경로 전 구간 미실측).
-> ③ **V-PASS 실행 스크립트 배선** — 완료 계약이 문서로만 존재(source read →
->   syntax → activate → unit → ATC 체인 + 출력 파싱). 트리거: 트랙 A SAP 코드
->   완료 도장이 실제로 필요해질 때(ZUNIWTH 도그푸딩).
+> ③ ~~V-PASS 실행 스크립트 배선~~ — **✅ 완료(07-26 · v0.3.8, opus 위임)**.
+>   `interactive/tools/vpass/vpass.mjs`(1055줄 순수 stdlib): read-back(로컬 대조
+>   필수 — 없으면 INCOMPLETE 캡) → 활성상태 → unit(DEV tier만, 리뷰어는
+>   --skip-unit) → ATC(P1/2=0 기준) 체인, verdict = V-PASS/V-FAIL/INCOMPLETE/
+>   ENV_BLOCKED, 파싱 실패는 UNKNOWN fail-closed. 자가시험 **40/40**(픽스처 =
+>   VERIFY-PATTERNS 실측 문자열) + 더미호스트 전 파이프라인 완주(ENV_BLOCKED
+>   정상). 쓰기 0 · SAP_READ_ONLY 주입 · R-001 마커 체계 이식. **syntax 증거 =
+>   read-back 정합 추론**(read-only 서버 문법검사 부재 — n=1 롤백 관측 근거,
+>   한계 8건을 레코드 limits[]에 매번 동봉). 절차 3종+project-context+
+>   VERIFY-PATTERNS 배선. 잔여 검증 = 라이브 첫 실행(특히 ATC ERROR급 파서
+>   미대조) · CLAS 부속 include/FUGR/FUNC 대조는 SKIP 처리(사유 기록).
 > ④ ~~syntax-checker.mjs 정리~~ — **✅ 완료(07-26, 위 v0.3.7 항목 — transport-
 >   validator까지 확장, 훅 6개 체제)**. 소형 후보 잔존: 조언 객체명 라벨 ·
 >   TRANSPORT_REQUIRED_TOOLS 커버리지 · `###` SMOD 검출기(Ariba).
