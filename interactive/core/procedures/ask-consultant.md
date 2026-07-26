@@ -43,6 +43,22 @@ Baseline references to consult while answering:
 - `../knowledge/modules/{MODULE}/` — per-module reference docs (`spro.md`, `tcodes.md`, `tables.md`, `bapi.md`, `enhancements.md`, `workflows.md`)
 - `../knowledge/industry/<industry>.md` and `../knowledge/country/<iso>.md` — when `industry` / `country` are set, load the matching file and reflect it in the answer
 
+## Reference Libraries (optional, D-050)
+
+If `config.json` has a `referenceLibraries` array (see
+[project-context](../project-context.md)), consult it **before** answering from
+bundled generic knowledge — these are the user's own distilled best practices
+from real implementations, and they outrank generic advice on "how it is
+actually done":
+
+1. For each registered library, match the question's keywords against filenames
+   (glob), then grep contents for the strongest terms.
+2. Read **at most 2–3 matching docs per library** — never bulk-load a vault.
+3. Cite provenance in the answer when used: `참조: {name}/{file}`.
+4. Field absent, path unreadable, or no match → skip silently; the answer is
+   composed exactly as before. Never copy vault content into any committed or
+   distributed artifact.
+
 ## Module → Persona Routing
 
 Map the user's question to the target module(s). Priority:

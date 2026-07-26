@@ -52,6 +52,26 @@ Keys (exact list verified against the server bundle in Phase L2 — see
 | `industry` | key into [knowledge/industry/](knowledge/industry/) | triggered industry knowledge |
 | `country` | ISO key into [knowledge/country/](knowledge/country/) | triggered localization knowledge |
 | `blocklistProfile` | `minimal` \| `standard` \| `strict` (default) | table blocklist scope read by the data-protection hook/server guard |
+| `referenceLibraries` | array of `{name, path, note}` (optional) | local best-practice knowledge vaults consulted by [ask-consultant](procedures/ask-consultant.md) — see below |
+
+### `referenceLibraries` (optional, D-050)
+
+Registers personal/company knowledge vaults (directories of `.md` files — e.g. an
+Obsidian wiki distilled from another live server) so consultant personas can
+consult them before falling back to the bundled generic knowledge:
+
+```json
+"referenceLibraries": [
+  { "name": "jnc-e2e", "path": "D:/Claude for SAP/JNC/e2e-ontology/20. Wiki",
+    "note": "manufacturing E2E best practices from a live implementation" }
+]
+```
+
+Rules: the plugin ships only this **slot** — vault content is never bundled,
+committed, or copied into any artifact (same principle as connection profiles:
+slot distributed, values local). Absent field or unreadable path → silent
+fallback, nothing else changes. Consumers read **at most 2–3 matching docs per
+vault per question** (keyword match on filenames + grep), never bulk-load.
 
 ## Work-in-progress state (created by procedures)
 

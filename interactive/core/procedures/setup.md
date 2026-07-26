@@ -61,7 +61,11 @@ placeholder and tell the user to fill it in by hand afterward.
    `abapRelease`, `activeModules`, `industry`, `country`, `blocklistProfile`.
    Value lists and what each field drives are not repeated here — the table in
    [project-context](../project-context.md) is the reference.
-3. Show the two files' final content and get confirmation before writing.
+3. Optional: if the user has local best-practice knowledge vaults (directories
+   of `.md` notes from real implementations), offer to register them as
+   `referenceLibraries` — consultant answers will consult them first
+   ([project-context](../project-context.md), D-050). Skipping changes nothing.
+4. Show the two files' final content and get confirmation before writing.
 
 ## Step 3 — Permission Template (Claude Code only)
 

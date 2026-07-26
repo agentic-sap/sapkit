@@ -272,6 +272,30 @@
 > missing" 소멸) ⑵ 일부러 깨진 활성 프로그램 무소스 CheckSyntax = **실오류(라인번호)** 반환.
 > 확인되면 UPSTREAM Known-remaining #12를 CLOSED로 이동. RV4 열림·unattended sealed 불변.
 >
+> **▶ referenceLibraries — 개인 노하우 볼트 참조 슬롯 → v0.3.6 (2026-07-26 · D-050)**:
+> 사용자 구상("개인이 가진 실서버 best-practice 자료를 컨설턴트가 참조하면 답이
+> 좋아진다") 집행. `.sc4sap/config.json`에 옵션 필드 `referenceLibraries`
+> `[{name,path,note}]` 신설 — 기존 옵션 캐시 패턴(spro-config·customizations의
+> "있으면 우선·없으면 침묵 폴백")의 세 번째 슬롯. ask-consultant에 참조 단계
+> (파일명+grep 매칭 · 볼트당 최대 2~3문서 · 출처 표기), setup Step 2에 선택 등록.
+> **슬롯만 배포, 볼트 내용은 어떤 산출물에도 미포함**(연결 프로필과 동일 원칙).
+> 게이트 전종 green. 상세·대안 기각 = D-050.
+>
+> **▶▶ 활성 백로그 (2026-07-26 승격 — "deferred 영구화" 방지)**: 이번 세션에서
+> "기록은 됐는데 아무도 다시 안 꺼내는" 패턴이 실증됐다(§5-5의 fetch 2종은 07-11에
+> "깨진 표면 — 우선 검토 상향"이라 적히고도 2주 방치). 유보에는 재심사 트리거가
+> 없으면 영구 보류가 된다. 잔여 작업을 여기(재개점 동선)로 승격한다:
+> ① **fetch-abap-keyword-doc·fetch-sap-help-doc 이식 또는 참조 제거** — 깨진 표면
+>   (sap-doc-specialist 페르소나가 "bundled"로 참조 중인데 실물 부재), **최우선**.
+> ② **extract-spro·extract-customizations 이식(L6)** — 컨설턴트 캐시 슬롯 2종의
+>   생성기. 트리거: 실프로젝트에서 ask-consultant를 반복 사용하기 시작할 때
+>   (일회성 질문은 라이브 폴백으로 충분, 상주 자문이면 추출이 정답).
+> ③ **V-PASS 실행 스크립트 배선** — 완료 계약이 문서로만 존재(source read →
+>   syntax → activate → unit → ATC 체인 + 출력 파싱). 트리거: 트랙 A SAP 코드
+>   완료 도장이 실제로 필요해질 때(ZUNIWTH 도그푸딩).
+> ④ **syntax-checker.mjs 정리** — 깨진 import(`hooks/lib/stdin.mjs` 부재)의
+>   미배선 잔재. 수리해 배선하거나 제거(소형).
+>
 > **▶ vsp 실사 → R-002 축소 + `--offline` 13종 분석기 훅 자동 배선 → v0.3.5 (2026-07-26 ·
 > D-049)**: 사용자 요청 "vsp 정확한 기능 딥 실사"의 결과. **실측**: 절차가 지시하던
 > `vsp lint --file`(CLI)은 6종 스타일뿐 — 자격증명 하드코딩·루프 내 COMMIT·`SELECT *`
@@ -1736,7 +1760,11 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
 - `smoke-mcp.mjs`: `--exposition` 지원(무인자 시 기존 동작 동일). readonly 실측:
   **tools 65 / write 0** (row-data 2종은 readonly에도 노출 — 정책층 커버, 기존 문서와 일치).
 
-### 5-5. deferred 스크립트 (원천은 동결 레포 sc4sap-custom/scripts/ — 읽기만) [2026-07-11 축소]
+### 5-5. deferred 스크립트 (원천은 동결 레포 sc4sap-custom/scripts/ — 읽기만) [2026-07-11 축소 · 2026-07-26 재개점 백로그로 승격]
+
+> **2026-07-26**: 이 표의 미결분(extract 2종·fetch 2종)은 상단 재개점의 "활성
+> 백로그"로 승격됐다 — 유보에 재심사 트리거가 없어 2주간 아무 세션도 안 꺼낸
+> 실증 때문. 이 표는 분류 기록으로만 유지한다.
 
 | 원천 | 목적지 | 상태 |
 |---|---|---|
