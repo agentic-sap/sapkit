@@ -281,12 +281,18 @@
 > **슬롯만 배포, 볼트 내용은 어떤 산출물에도 미포함**(연결 프로필과 동일 원칙).
 > 게이트 전종 green. 상세·대안 기각 = D-050.
 >
-> **▶▶ 활성 백로그 (2026-07-26 승격 — "deferred 영구화" 방지)**: 이번 세션에서
-> "기록은 됐는데 아무도 다시 안 꺼내는" 패턴이 실증됐다(§5-5의 fetch 2종은 07-11에
-> "깨진 표면 — 우선 검토 상향"이라 적히고도 2주 방치). 유보에는 재심사 트리거가
-> 없으면 영구 보류가 된다. 잔여 작업을 여기(재개점 동선)로 승격한다:
-> ① **fetch-abap-keyword-doc·fetch-sap-help-doc 이식 또는 참조 제거** — 깨진 표면
->   (sap-doc-specialist 페르소나가 "bundled"로 참조 중인데 실물 부재), **최우선**.
+> **▶▶ 활성 백로그 (2026-07-26 승격 · 당일 정정)**: 기록-실물 불일치의 두 모드가
+> 같은 날 실증됐다. **모드 (a) 유보 영구화** — 재심사 트리거 없는 "deferred 유지"는
+> 아무 세션도 다시 안 꺼낸다(extract 2종, 07-11부터). **모드 (b) 완료 기록 누락** —
+> 완료된 작업의 상태 행이 갱신 안 되면 완료된 일이 백로그로 부활한다: fetch 2종은
+> 07-12 `c3f54349`가 이미 이식 완료했는데 §5-5 상태 행이 "우선 검토 상향"인 채
+> 남아, 이 세션이 "2주 방치된 깨진 표면"으로 오진하고 재이식까지 시도했다(cp가
+> 이식본을 원본 구판으로 되돌릴 뻔 — git diff로 적발, HEAD 복원, 실동작 재검증
+> 완료). **"갱신까지가 작업의 일부"는 백로그 상태 행에도 적용된다.** 잔여:
+> ① ~~fetch 2종~~ — **이미 완료(07-12 `c3f54349`)**, 07-26 실동작 재확증(ABAP
+>   키워드·functional 모두 live fetch 성공). 부수 발견: 동결 레포 쪽 원본이
+>   07-17에 개선됨(exit→exitCode 스타일) — 상류 드리프트 채널(report-sc4sap-
+>   public-drift) 소관, 자동 이식 0 원칙 유지.
 > ② **extract-spro·extract-customizations 이식(L6)** — 컨설턴트 캐시 슬롯 2종의
 >   생성기. 트리거: 실프로젝트에서 ask-consultant를 반복 사용하기 시작할 때
 >   (일회성 질문은 라이브 폴백으로 충분, 상주 자문이면 추출이 정답).
@@ -1769,7 +1775,7 @@ Opus sap-reviewer 새-컨텍스트 리뷰 FAIL→수정→**PASS** → CheckSynt
 | 원천 | 목적지 | 상태 |
 |---|---|---|
 | extract-spro.mjs · extract-customizations.mjs | `tools/extract/` | deferred 유지 (수동 대체: spro-lookup.md · customization-lookup.md) |
-| fetch-abap-keyword-doc.mjs · fetch-sap-help-doc.mjs | `tools/fetch/` | **우선 검토로 상향** — 코어 페르소나(sap-doc-specialist.md)가 이미 "bundled"로 참조 중이라 deferred가 아니라 깨진 표면. 구현하거나 참조를 제거해야 함 (Codex 교차검토 발견) |
+| fetch-abap-keyword-doc.mjs · fetch-sap-help-doc.mjs | `tools/fetch/` | ✅ **이식 완료 (2026-07-12 `c3f54349`)** — 07-26 실동작 재확증(양쪽 live fetch 성공). ~~우선 검토로 상향~~ 상태 행 미갱신으로 07-26 세션이 재이식을 오진한 이력 — 재개점 백로그 ① 참조 |
 | sap-profile-cli.mjs | `scripts/` | deferred 유지 (수동 대체: troubleshooting.md) |
 | sap-option-tui.mjs | — | **폐기 확정 (2026-07-11)** — config.json 직접 편집으로 충분함이 장기 실증. 훅 안내도 troubleshooting 절차로 교체 완료(5-10) |
 
