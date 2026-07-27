@@ -61,6 +61,28 @@ lite 경로로 재배선 검증 필요** (아래 체크리스트).
 빠져 있다** — 매 호출 사람 승인 유지. 네임스페이스 접두어(`mcp__plugin_sapkit_sap__`)는
 설치 후 실제 도구명과 대조해 다르면 `SC4SAP_LITE_NS=<실측 접두어> node scripts/gen-permissions.mjs`로 재생성.
 
+## 구현 위임 (execution_owner = delegated)
+
+Phase 4 구현을 새 컨텍스트에 맡길 때 쓰는 워커가 동봉돼 있다 — 서브에이전트
+`sapkit:sap-worker`. 메인 대화는 조율·리뷰 배정·검증 관찰을 유지하고, 워커는 배정된
+슬라이스만 구현한 뒤 압축 결과(변경 객체·판단·실행한 검증·블로커)를 돌려준다.
+계약 정본은 `agents/sap-worker.md`, 경계 정본은 `core/policies/development-loop.md`.
+
+- **기계 차단**(`disallowedTools`): `GetTableContents`·`GetSqlQuery`(P2 실데이터) ·
+  `CreateTransport`·`ReleaseTransport`(P4 이송). 정책이 위임 불가로 못 박은 두 축이고,
+  이 4줄이 죽으면 `smoke-mcp.mjs`가 실패한다(음성시험 4건).
+- **가진 채 위임되는 것**: 나머지 write 도구 — P3 구현이 워커의 일이다. 리뷰어와 달리
+  워커는 Create/Update/Activate를 쓴다.
+- **절차 차단**(기계 아님): 컨트롤 아티팩트(`state.json`·`approval.json`·
+  `verification.json`·`review-*.json`) 쓰기 · 자기 리뷰 · 중첩 워커 스폰.
+- 리뷰는 언제나 `sapkit:sap-reviewer`가 별도 컨텍스트에서 한다 — 워커가 자기 변경을
+  리뷰하는 경로는 구조적으로 없다.
+
+**미실측 유보**: 위임된 P3 write가 권한 프롬프트를 메인 UI로 올려 attended 요건
+(D-025)을 유지하는지는 라이브 미확인이다. 훅·권한 층은 호출자와 무관하게 부모
+프로세스에서 돌므로 유지될 것으로 보이지만, 실측 전에는 단정하지 않는다 — 그래서
+Phase 3.5 소유권 프롬프트의 기본값은 `main`이다.
+
 ## E2E 체크리스트 (L3 완료 기준)
 
 어댑터-코어 동기화 전반 점검: `node interactive/scripts/doctor.mjs` (3사 동기화 점검)
@@ -70,6 +92,7 @@ lite 경로로 재배선 검증 필요** (아래 체크리스트).
 - [ ] install-hooks 경로 재배선 확인 (플러그인 캐시 경로 기준)
 - [ ] FI 상담 1건: `/sapkit:ask-consultant` → FI 페르소나 로드 → 프로젝트 컨텍스트 반영 답변
 - [ ] `/sapkit:create-program` 1건: 스펙 승인 게이트 → 구현 → **sap-reviewer 새 컨텍스트 리뷰** → 기계 검증 체인
+- [ ] 위임 경로 1건: Phase 3.5에서 `delegated` 선택 → `sap-worker`가 P3 write 시 **권한 프롬프트가 메인 UI에 뜨는지** 실측 (attended 유보 종결 조건)
 
 ## 활성 스코프 (2026-07-10 실측)
 

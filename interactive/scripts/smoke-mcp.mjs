@@ -261,28 +261,44 @@ if (UPDATE) {
     );
 }
 
-// ⓪'' 리뷰어 차단 계약. agents/sap-reviewer.md의 disallowedTools는 손으로 유지되는데
-//     **실패 방향이 fail-open**이다: 접두어가 낡으면 84개 차단이 전부 죽은 문자열이 되어
+// ⓪'' 에이전트 차단 계약. agents/*.md의 disallowedTools는 손으로 유지되는데
+//     **실패 방향이 fail-open**이다: 접두어가 낡으면 차단 목록이 전부 죽은 문자열이 되어
 //     리뷰어가 Create/Update/Delete/Activate/ReleaseTransport를 되찾는다(AGENTS "reviewers
 //     perform no transport operation" 저촉). 권한 템플릿이 틀리면 프롬프트가 늘 뿐이지만
 //     이건 조용히 열린다 — 그래서 이름 규약과 계약 생존을 함께 assert한다(리뷰 M-2).
-{
-  const f = path.join(ROOT, 'agents', 'sap-reviewer.md');
-  if (!fs.existsSync(f)) fail.push('리뷰어 차단 계약: agents/sap-reviewer.md 부재');
-  else {
-    const text = fs.readFileSync(f, 'utf8');
-    const tools = [...text.matchAll(/mcp__plugin_[A-Za-z0-9_-]+_sap__(\w+)/g)];
-    const wrongNs = [...new Set(tools.filter((m) => !m[0].startsWith(NS)).map((m) => m[0]))];
-    if (wrongNs.length)
-      fail.push(
-        `리뷰어 차단 계약이 낡은 네임스페이스 사용 — 차단이 무효(fail-open): ${wrongNs.slice(0, 3).join(' · ')}${wrongNs.length > 3 ? ` 외 ${wrongNs.length - 3}건` : ''}`
-      );
-    const denied = new Set(tools.map((m) => m[1]));
-    const MUST_DENY = ['ReleaseTransport', 'CreateTransport', 'ActivateObjects', 'UpdateClass', 'DeleteClass'];
-    const missing = MUST_DENY.filter((t) => !denied.has(t));
-    if (missing.length) fail.push(`리뷰어 차단 계약 소실: ${missing.join(' · ')} 가 disallowedTools에 없음`);
-  }
+//     워커도 같은 자리다: P2(row-data)·P4(transport)는 development-loop 정책상 위임 불가인데
+//     그 집행이 이 파일의 4줄뿐이라, 죽으면 위임 워커가 실데이터·이송을 되찾는다.
+const AGENTS_DIR = process.env.SC4SAP_AGENTS_DIR ?? path.join(ROOT, 'agents');
+function checkAgentDeny(file, label, mustDeny) {
+  const f = path.join(AGENTS_DIR, file);
+  if (!fs.existsSync(f)) return fail.push(`${label} 차단 계약: agents/${file} 부재`);
+  const text = fs.readFileSync(f, 'utf8');
+  const tools = [...text.matchAll(/mcp__plugin_[A-Za-z0-9_-]+_sap__(\w+)/g)];
+  const wrongNs = [...new Set(tools.filter((m) => !m[0].startsWith(NS)).map((m) => m[0]))];
+  if (wrongNs.length)
+    fail.push(
+      `${label} 차단 계약이 낡은 네임스페이스 사용 — 차단이 무효(fail-open): ${wrongNs.slice(0, 3).join(' · ')}${wrongNs.length > 3 ? ` 외 ${wrongNs.length - 3}건` : ''}`
+    );
+  const denied = new Set(tools.map((m) => m[1]));
+  const missing = mustDeny.filter((t) => !denied.has(t));
+  if (missing.length) fail.push(`${label} 차단 계약 소실: ${missing.join(' · ')} 가 disallowedTools에 없음`);
 }
+checkAgentDeny('sap-reviewer.md', '리뷰어', [
+  'ReleaseTransport',
+  'CreateTransport',
+  'ActivateObjects',
+  'UpdateClass',
+  'DeleteClass',
+]);
+// 워커는 리뷰어와 달리 write 도구를 **가진 채** 위임된다(P3 구현이 일). 따라서 차단 대상은
+// 정책이 위임 금지로 못 박은 두 축뿐이다 — 이 목록을 넓히면 워커가 일을 못하고, 좁히면
+// development-loop의 P2/P4 조항이 문서에만 남는다.
+checkAgentDeny('sap-worker.md', '워커', [
+  'GetTableContents',
+  'GetSqlQuery',
+  'CreateTransport',
+  'ReleaseTransport',
+]);
 
 for (const [e, names] of Object.entries(measured)) {
   const pin = pinned.expositions?.[e];

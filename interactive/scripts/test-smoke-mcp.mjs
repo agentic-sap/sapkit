@@ -18,7 +18,7 @@ const REAL = path.join(ROOT, 'provenance', 'mcp-surface.json');
 let pass = 0;
 let fail = 0;
 
-function runGate(mutate, { exposition = 'readonly' } = {}) {
+function runGate(mutate, { exposition = 'readonly', env } = {}) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mcpsurf-'));
   const f = path.join(tmp, 'mcp-surface.json');
   try {
@@ -27,13 +27,28 @@ function runGate(mutate, { exposition = 'readonly' } = {}) {
     fs.writeFileSync(f, JSON.stringify(doc, null, 2) + '\n');
     const args = [GATE, '--surface', f];
     if (exposition) args.push(`--exposition=${exposition}`);
+    const opts = { encoding: 'utf8', env: { ...process.env, ...(env ?? {}) } };
     try {
-      return { code: 0, out: execFileSync('node', args, { encoding: 'utf8' }) };
+      return { code: 0, out: execFileSync('node', args, opts) };
     } catch (e) {
       return { code: e.status, out: (e.stdout ?? '') + (e.stderr ?? '') };
     }
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
+  }
+}
+
+// 에이전트 차단 계약(agents/*.md)은 스냅샷 JSON이 아니라 파일에 산다 — 실물 파일을 tmp로
+// 복사해 변조하고 SC4SAP_AGENTS_DIR로 게이트를 그쪽으로 겨눈다. 원본은 건드리지 않는다.
+function tAgents(name, mutateFiles, expectText) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mcpagents-'));
+  try {
+    for (const f of fs.readdirSync(path.join(ROOT, 'agents')))
+      fs.copyFileSync(path.join(ROOT, 'agents', f), path.join(dir, f));
+    mutateFiles(dir);
+    t(name, () => {}, 1, expectText, { env: { SC4SAP_AGENTS_DIR: dir } });
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
   }
 }
 
@@ -160,6 +175,50 @@ t(
   (d) => (d.adapter_deny.claude.must_not_mention = ['permissions']),
   1,
   '금지 문구 등장'
+);
+
+console.log('\n에이전트 차단 계약 (fail-open 방향 — 조용히 열리는 자리)');
+tAgents(
+  '워커 파일이 사라지면 → 검출',
+  (d) => fs.rmSync(path.join(d, 'sap-worker.md')),
+  '워커 차단 계약: agents/sap-worker.md 부재'
+);
+tAgents(
+  '워커에서 실데이터 2종(P2) 차단이 빠지면 → 검출',
+  (d) => {
+    const f = path.join(d, 'sap-worker.md');
+    fs.writeFileSync(
+      f,
+      fs
+        .readFileSync(f, 'utf8')
+        .replace(/^\s*- mcp__plugin_\w+_sap__(GetTableContents|GetSqlQuery)\n/gm, '')
+    );
+  },
+  '워커 차단 계약 소실'
+);
+tAgents(
+  '워커에서 이송 2종(P4) 차단이 빠지면 → 검출',
+  (d) => {
+    const f = path.join(d, 'sap-worker.md');
+    fs.writeFileSync(
+      f,
+      fs
+        .readFileSync(f, 'utf8')
+        .replace(/^\s*- mcp__plugin_\w+_sap__(CreateTransport|ReleaseTransport)\n/gm, '')
+    );
+  },
+  '워커 차단 계약 소실'
+);
+tAgents(
+  '워커 차단 목록이 낡은 네임스페이스면 → 죽은 문자열로 검출',
+  (d) => {
+    const f = path.join(d, 'sap-worker.md');
+    fs.writeFileSync(
+      f,
+      fs.readFileSync(f, 'utf8').replace(/mcp__plugin_\w+_sap__/g, 'mcp__plugin_sap-agentic-harness_sap__')
+    );
+  },
+  '워커 차단 계약이 낡은 네임스페이스 사용'
 );
 
 console.log('\n스냅샷 부재');

@@ -121,6 +121,20 @@ subagent. Where it does not, `auto` safely falls back to `main`. An explicit
 `delegated` request is never silently ignored — explain the limitation and ask
 for direction.
 
+The mechanism is adapter-specific, and so is how much of the boundary above is
+actually enforced rather than merely stated:
+
+- **Claude** — the bundled `sap-worker` agent ([agents/sap-worker.md](../../agents/sap-worker.md)).
+  Its P2 (`GetTableContents` / `GetSqlQuery`) and P4 (`CreateTransport` /
+  `ReleaseTransport`) blocks are `disallowedTools` entries: mechanically enforced.
+  Everything else in this section stays procedural.
+- **Codex / Antigravity** — a fresh session pointed at the same worker contract.
+  Only Codex's `disabled_tools` P2 block is mechanical; on Antigravity even that
+  is unproven (measured non-functional, 2026-07-19). Keep delegated slices
+  smaller there.
+
+Each adapter README's "구현 위임" section carries the exact invocation.
+
 ## Assurance grades
 
 Assurance is graded per capability, never claimed in bulk:
@@ -135,7 +149,8 @@ Assurance is graded per capability, never claimed in bulk:
 |---|---|
 | Strength selection · RULES consult · the whole Minimal loop | **Procedural** |
 | Full's state / approval / verification / review files · LESSONS / RULES files | **Auditable** |
-| Claude-adapter reviewer tool-block · PreToolUse hooks · server blocklist | **Mechanically enforced — that adapter / server only** |
+| Claude-adapter reviewer tool-block · worker P2/P4 tool-block · PreToolUse hooks · server blocklist | **Mechanically enforced — that adapter / server only** |
+| Every other `execution_owner` boundary above (control artifacts, no self-review, no nested workers, compact result) | **Procedural** |
 
 Absorbing this methodology does not raise assurance: most of it is
 **procedural**. Auditability exists only for the capabilities that leave a file,

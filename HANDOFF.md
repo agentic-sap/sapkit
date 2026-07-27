@@ -272,6 +272,23 @@
 > missing" 소멸) ⑵ 일부러 깨진 활성 프로그램 무소스 CheckSyntax = **실오류(라인번호)** 반환.
 > 확인되면 UPSTREAM Known-remaining #12를 CLOSED로 이동. RV4 열림·unattended sealed 불변.
 >
+> **▶ execution_owner 실행체 배선 → v0.4.0 (2026-07-27 · D-051)**: 사용자 관찰
+> "개발이 계속 메인 세션에서만 돈다"의 실사 결과 — **정책만 있고 실행체·선택 UX가
+> 없었다**. D-047/048이 흡수한 `execution_owner`(auto|main|delegated)는 경계까지
+> 완비돼 있는데 ⑴ `agents/`에 워커 부재(리뷰어 1기뿐) ⑵ 소유권을 묻는 자리 부재
+> (`execution_mode`엔 Phase 3.5 메뉴가 있는데 owner는 "기록하라"만) ⑶ 어댑터 3사
+> 디스패치 안내 0건 ⑷ config 슬롯 없음 → 폴백 조항(auto→main)이 **상시** 발동했다.
+> **집행**: 워커 1기 `agents/sap-worker.md` 신설(P2 2종·P4 2종 `disallowedTools`
+> 기계 차단 — 나머지 write는 **가진 채** 위임, 리뷰어와 정반대 설계) · create-program
+> **Phase 3.5 Step 1b** 소유권 프롬프트(기본 `main`) · create-object 1회 질문 ·
+> modify-object는 무질문 main 유지 · smoke-mcp 리뷰어 검사를 `checkAgentDeny()`로
+> 일반화해 워커 적용 + `SC4SAP_AGENTS_DIR` 오버라이드 · 어댑터 3사 "구현 위임" 절
+> (집행 강도 격차 정직 병기 — Claude 기계 / Codex P2만 / AG P2조차 미작동).
+> **게이트**: 코어 6종 green · smoke-mcp 음성시험 **20/20**(16→20, 신설 4건) ·
+> 스냅샷 재핀(목적지 해시 7줄, pin·roots 36·inventory 487 불변) · 매니페스트
+> 재생성(에이전트 1→**2**). **유보 = 위임 P3의 attended 라이브 미확인**(아래 백로그 ⑤).
+> 상세·대안 기각 = D-051.
+>
 > **▶ referenceLibraries — 개인 노하우 볼트 참조 슬롯 → v0.3.6 (2026-07-26 · D-050)**:
 > 사용자 구상("개인이 가진 실서버 best-practice 자료를 컨설턴트가 참조하면 답이
 > 좋아진다") 집행. `.sc4sap/config.json`에 옵션 필드 `referenceLibraries`
@@ -340,6 +357,12 @@
 > ④ ~~syntax-checker.mjs 정리~~ — **✅ 완료(07-26, 위 v0.3.7 항목 — transport-
 >   validator까지 확장, 훅 6개 체제)**. 소형 후보 잔존: 조언 객체명 라벨 ·
 >   TRANSPORT_REQUIRED_TOOLS 커버리지 · `###` SMOD 검출기(Ariba).
+> ⑤ **위임 P3의 attended 실측 (07-27 신설 · D-051 ⓐ)** — `sap-worker`가 SAP write를
+>   호출할 때 **권한 프롬프트가 메인 UI로 올라오는지** 라이브 미확인. 유지될 것으로
+>   보이나(훅·권한 층은 부모 프로세스) 단정 금지 상태라 Phase 3.5 기본값이 `main`이다.
+>   **재심사 트리거 = ZUNIWTH 도그푸딩에서 `delegated` 첫 선택 시**(별도 세션 불요 —
+>   그 자리에서 관측). 결과에 따라 기본값 유지/전환 판단. 종결 조건은 Claude README
+>   E2E 체크리스트 마지막 줄에 등재.
 >
 > **▶ vsp 실사 → R-002 축소 + `--offline` 13종 분석기 훅 자동 배선 → v0.3.5 (2026-07-26 ·
 > D-049)**: 사용자 요청 "vsp 정확한 기능 딥 실사"의 결과. **실측**: 절차가 지시하던

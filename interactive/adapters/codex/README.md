@@ -126,6 +126,22 @@ Codex에는 도구 호출 사전 차단 훅이 없다. 방어선은
 codex exec --sandbox read-only "PLUGIN_ROOT/core/procedures/review-checklist.md를 읽고 <review-request 경로>를 판정하라"
 ```
 
+## 구현 위임 (execution_owner = delegated)
+
+Codex에는 플러그인이 정의하는 서브에이전트가 없다 — 위임 = **새 codex 세션**이다.
+
+```
+codex exec "PLUGIN_ROOT/agents/sap-worker.md의 계약을 그대로 따라 <슬라이스>를 구현하라. 스펙: <경로> · 이송: <TRKORR> · 범위 밖 객체 금지"
+```
+
+경계의 집행 강도가 Claude와 다르다 — 정직하게 적는다:
+
+- **P2(실데이터)**: 위 §실데이터 2종 하드 차단의 `disabled_tools`가 그대로 담당한다.
+  위임 세션에도 같은 설정이 걸려 있어야 한다(전역 설정이면 자동 승계).
+- **P4(이송)·컨트롤 아티팩트·자기 리뷰 금지**: 기계 차단 없음 — 워커 계약 문서에만
+  존재하는 절차 규범이다. 그래서 Codex에서는 슬라이스를 더 작게 끊고, 이송은 메인
+  세션이 직접 잡는 편이 안전하다.
+
 ## 활성 스코프 (2026-07-10 실측)
 
 Codex 플러그인 활성화는 **전역 전용**이다 — 프로젝트 `.codex/config.toml`의

@@ -173,6 +173,14 @@ sc4sap-lite/
 6. **방법론 강도 축**: `development-loop.md`(정책)가 강도 축(Minimal/Standard/Full)·
    execution_owner·보증 등급 매트릭스를 소유한다. 강도 축은 **Track A 실행 구조
    (Direct/Guided) 라우팅과 직교**한다 — 어느 쪽도 서로를 바꾸지 않는다(D-047).
+7. **구현 위임의 실행체**: D-047이 들여온 `execution_owner`는 정책만 있고 실행체·선택
+   UX가 없어 `auto`가 항상 `main`으로 폴백했다 — §2가 "파이프라인 폐기로 진짜 잃는 것"
+   으로 적어둔 셋 중 **대형 작업의 컨텍스트 분리**가 그대로 방치된 상태였다. 최소
+   복원으로 워커 **1기**(`agents/sap-worker.md`)를 세우고 create-program Phase 3.5에
+   소유권 선택 프롬프트를 둔다. **8역할 자동 교대 파이프라인은 여전히 폐기 상태** —
+   되돌리는 것은 "메인이 배정하는 워커 1기"뿐이고, 품질 모델(1작업 + 1리뷰 + 기계검증)은
+   불변이다. 위임 불가 두 축(P2 실데이터·P4 이송)은 Claude 어댑터에서 `disallowedTools`
+   4줄로 **기계 차단**하고 게이트가 그 생존을 assert한다(D-051).
 
 ## 4. 어댑터 3벌 (§2 확정안)
 
@@ -199,7 +207,8 @@ Antigravity(agy CLI 1.0.7 `plugin install/validate`). 어댑터는 동일한 6�
 ```text
 .claude-plugin/plugin.json
 skills/          ← 절차 15개의 얇은 래퍼 ("core/procedures/X.md를 읽고 수행" 수준)
-agents/          ← 최소 1개: sap-reviewer (read-only) — 리뷰 패스용
+agents/          ← 2개: sap-reviewer (read-only) — 리뷰 패스용
+                   sap-worker (P2/P4 차단) — execution_owner=delegated 실행체 (D-051)
 hooks/           ← 훅 6종 (안전 4 + 품질 조언 2 — install-hooks 방식 그대로, v0.3.7 확장)
 permissions/     ← 정적 allowlist 템플릿 (trust-session 대체.
                     GetTableContents/GetSqlQuery 제외 유지 — 매번 승인 프롬프트)

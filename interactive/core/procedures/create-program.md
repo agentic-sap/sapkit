@@ -368,6 +368,35 @@ Display this to the user:
 Choice: 1 / 2 / 3  (default: 2)
 ```
 
+### Step 1b — Ownership Selection Prompt
+
+`execution_mode` (above) sets how often the run pauses. `execution_owner` is the separate
+question of **who implements Phase 4** ([development-loop.md](../policies/development-loop.md)).
+If the user already stated an owner for this run, or a session-level preference exists,
+honor it without asking and record `selection_source: explicit`. Otherwise display:
+
+```
+Who implements Phase 4?
+
+  [1] main      — this conversation implements. One context throughout: simplest to
+                  follow, but generating include sources and reading existing objects
+                  consumes it.
+  [2] delegated — a fresh worker context implements the assigned slice and returns a
+                  compact result; this conversation keeps coordinating, allocates the
+                  Phase 6 reviewer, and observes verification. Real-data reads (P2)
+                  and transport actions (P4) stay here either way.
+
+Choice: 1 / 2  (default: 1)
+```
+
+An answered prompt is `selection_source: explicit`; a value you resolved yourself without
+asking is `auto`. If the harness provides no worker mechanism, say so and continue as
+`main` — never drop an explicit `delegated` silently ([development-loop.md](../policies/development-loop.md)
+"Harness-neutral fallback"). How a worker is launched is adapter-specific: see the
+"구현 위임" section of [adapters/claude/README.md](../../adapters/claude/README.md),
+[adapters/codex/README.md](../../adapters/codex/README.md), or
+[adapters/antigravity/README.md](../../adapters/antigravity/README.md).
+
 ### Step 2 — Persist Selection
 
 Write the selection to `.sc4sap/program/{PROG}/state.json` under `execution_mode`. Also record the resolved `execution_owner` and `selection_source` (`explicit` | `auto`) from [development-loop.md](../policies/development-loop.md) alongside it. Also log phase timestamps here (see the state.json schema below).
@@ -579,7 +608,7 @@ In `manual`/`hybrid` mode: prompt the user before writing the report.
 {
   "prog": "ZFI_...",
   "execution_mode": "auto | manual | hybrid",
-  "execution_owner": "auto | main | delegated (optional)",
+  "execution_owner": "main | delegated (resolved at Phase 3.5 Step 1b — 'auto' is a request, never a persisted value)",
   "selection_source": "explicit | auto (optional)",
   "phases": {
     "0_preflight":   { "status": "completed", "ts": "2026-04-18T10:00:00Z" },

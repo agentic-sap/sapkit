@@ -127,6 +127,20 @@ Agent Manager에서 별도 에이전트를 띄워 review-checklist를 수행시�
 agy --print --sandbox "…/core/procedures/review-checklist.md를 읽고 <review-request 경로>를 판정하라"
 ```
 
+## 구현 위임 (execution_owner = delegated)
+
+AG에도 플러그인이 정의하는 서브에이전트는 없다 — Agent Manager에서 별도 에이전트를
+띄우거나 새 세션을 쓴다.
+
+```
+agy --print "…/agents/sap-worker.md의 계약을 그대로 따라 <슬라이스>를 구현하라. 스펙: <경로> · 이송: <TRKORR> · 범위 밖 객체 금지"
+```
+
+**경고 — 여기가 3사 중 가장 약한 자리다**: 위 §실데이터 2종 하드 차단 시도가 이
+하네스에서 **미작동으로 실측**됐으므로(2026-07-19), 위임 워커의 P2 차단도 기계적으로는
+없다. P4·컨트롤 아티팩트·자기 리뷰 금지도 마찬가지로 절차 규범뿐이다. AG에서 위임을
+쓸 거면 실데이터가 필요 없는 슬라이스로 한정하고, 나머지는 `main`으로 두는 편이 맞다.
+
 ## 활성 스코프 (2026-07-10 실측)
 
 agy 1.0.7의 enable/disable은 전역 스위치뿐 — 프로젝트 스코프 없음. 운용:

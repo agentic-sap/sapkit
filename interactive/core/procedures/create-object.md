@@ -140,7 +140,7 @@ auto-run):
 
 Adopt the [sap-executor](../personas/sap-executor.md) persona for this step. Standard flow (S/4HANA, or non-DDIC on ECC): one continuous pass covers object creation, initial implementation code, and activation.
 
-Implementation within this step may be delegated per [development-loop.md](../policies/development-loop.md)'s `execution_owner` convention; reviewer independence and main-only control artifacts still apply.
+Implementation within this step may be delegated per [development-loop.md](../policies/development-loop.md)'s `execution_owner` convention; reviewer independence and main-only control artifacts still apply. If the owner has not been stated and this object is large enough that delegation would materially help, ask once — `[1] main` / `[2] delegated`, default `main` — and otherwise stay in `main` without asking. Launching a worker is adapter-specific ("구현 위임" in [adapters/claude/README.md](../../adapters/claude/README.md), [codex](../../adapters/codex/README.md), [antigravity](../../adapters/antigravity/README.md)); where no worker mechanism exists, say so and continue as `main`.
 
 Inputs carried from Steps 2–3: name, type, description, package, transport (`TRKORR` or `$TMP`), `extra_fields` (confirmed per-module integration fields — Tables/Structures only), `fm_signature` (IMPORTING/EXPORTING/CHANGING/TABLES/EXCEPTIONS — FunctionModule only).
 
