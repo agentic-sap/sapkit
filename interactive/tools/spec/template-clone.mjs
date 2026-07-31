@@ -76,9 +76,13 @@ function translateSharedStrings(xml, tr, { warnUntranslated = true } = {}) {
 // Public API
 // =============================================================
 export function cloneTemplate({ outPath, tr, templatePath, verbose = true }) {
-  // Default: <repo-root>/asset/template_base.xlsx (two levels up from scripts/spec/).
+  // Default: <plugin-root>/assets/spec/template_base.xlsx (two levels up from
+  // tools/spec/). The upstream layout is `asset/` at the repo root; the sapkit
+  // migration filed the same workbook under `assets/spec/`, so the inherited
+  // default resolved to a path that does not exist here and every CLI run of
+  // build-spec.mjs died with "template not found" (2026-07-31 실측).
   const tplPath = templatePath
-    || resolve(__dirname, '..', '..', 'asset', 'template_base.xlsx');
+    || resolve(__dirname, '..', '..', 'assets', 'spec', 'template_base.xlsx');
   if (!existsSync(tplPath)) {
     throw new Error(`template-clone: template not found at ${tplPath}`);
   }

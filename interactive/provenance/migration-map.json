@@ -731,15 +731,15 @@
     {
       "pattern": "scripts/spec/**",
       "class": "copy",
-      "note": "`tools/spec/` (xlsx 산출 파이프라인)",
+      "note": "`tools/spec/` (xlsx 산출 파이프라인) — **제2출처 발생(2026-07-31 · D-053)**: 4파일(screen-image-renderer / build-spec / render-process-images / render-md-images)은 이제 핀 커밋의 바이트 사본이 **아니고** 상류 babamba2/superclaude-for-sap PR #46(78b5c2f)에서 이식됐다. template-clone은 핀 사본 + **로컬 1줄 수리**(기본 템플릿 경로 asset/ → assets/spec/ — 이식 때 폴더가 개명됐는데 상속된 기본값이 안 따라와 build-spec CLI가 전건 실패하고 있었다, 2026-07-31 실측). image-swap / xlsx-zip 2파일만 핀 사본 그대로",
       "source_matches": 5,
       "deferred": false,
       "targets": [
         {
           "token": "tools/spec/",
           "kind": "tree",
-          "files": 5,
-          "sha256": "784ea20a7f555392de00baf42ada0c76271538e1133027920d492b2d0e2e36a4"
+          "files": 7,
+          "sha256": "07400822a1f3f68dc894671e799ab1077a73247ebb5267979fcb94d67daaebe3"
         }
       ]
     },

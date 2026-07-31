@@ -67,7 +67,7 @@
 | `scripts/transport-validator.mjs` | transform | `adapters/claude/hooks/` (유지 훅 — L3 재배선) |
 | `scripts/syntax-checker.mjs` | transform | `adapters/claude/hooks/` (유지 훅 — L3 재배선) |
 | `scripts/lib/**` | transform | 유지 훅·도구 공용 lib — 필요분만 (L3) |
-| `scripts/spec/**` | copy | `tools/spec/` (xlsx 산출 파이프라인) |
+| `scripts/spec/**` | copy | `tools/spec/` (xlsx 산출 파이프라인) — **제2출처 발생(2026-07-31 · D-053)**: 4파일(screen-image-renderer / build-spec / render-process-images / render-md-images)은 이제 핀 커밋의 바이트 사본이 **아니고** 상류 babamba2/superclaude-for-sap PR #46(78b5c2f)에서 이식됐다. template-clone은 핀 사본 + **로컬 1줄 수리**(기본 템플릿 경로 asset/ → assets/spec/ — 이식 때 폴더가 개명됐는데 상속된 기본값이 안 따라와 build-spec CLI가 전건 실패하고 있었다, 2026-07-31 실측). image-swap / xlsx-zip 2파일만 핀 사본 그대로 |
 | `scripts/extract-spro.mjs` | transform | `tools/extract/` — **이식 완료(2026-07-26)**: MCP 전송을 SDK→레포 내 stdio 클라이언트(lib/mcp-stdio.mjs)로 교체, 경로·버전 해석 sapkit 관례, 승인 게이트 dry-run 신설. 검증 = 오프라인 한정(node --check · 무인자 usage exit 2 · 15모듈 dry-run 481테이블), 라이브 추출 미검증 |
 | `scripts/extract-customizations.mjs` | transform | `tools/extract/` — **이식 완료(2026-07-26)**: 동상 + 도구 인자를 현행 번들 스키마로 정합(enhancement_spot · object_name/maxResults). 검증 = 오프라인 한정(node --check · usage · 15모듈 dry-run), 라이브 추출 미검증 |
 | `scripts/fetch-abap-keyword-doc.mjs` | copy | `tools/fetch/` — 무변환 이식(5-5 완료), 실동작 검증(abenwhere_all_entries) |
