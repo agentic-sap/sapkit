@@ -5,10 +5,19 @@
 > DESIGN.md 순으로 읽는다. 상태가 바뀌면 이 문서를 갱신하는 것까지가 작업의 일부다.
 >
 > ═══════════════════════════════════════════════════════════════════
-> **▶▶ 재개점 (2026-07-21 · D-041) — 여기부터 읽는다 (최상단 정본)**
+> **▶▶ 재개점 — 여기부터 읽는다 (최상단 정본)**
 > ═══════════════════════════════════════════════════════════════════
 >
-> **제품명 개편 Phase 1 집행 완료 (D-041).** 07-20 밤 "선행 후보 ①"이 사용자 지시로
+> **▶ 현재 착수점 (2026-07-31 기준) = 활성 백로그 ⑥** — 상류
+> `babamba2/superclaude-for-sap` **PR #46**(`package-to-process`, 07-20 머지)의 이식 범위
+> 산정. **다음 세션은 스킬 8파일 전문을 먼저 정독한 뒤 범위를 확정하고 D-결정을 쓴다.**
+> 이번 세션은 예비 판정(4덩어리 · 못 가져오는 이유 3)까지만 했고 3파일은 미독이다.
+> 같이 걸린 것 = 백로그 ⑦(드리프트 감시선이 상류를 못 본다 — PR #46이 리포트에 안 떴다).
+> 최신 집행분은 **v0.4.1 `knowledge` 절차**(D-052, 아래 첫 ▶ 블록).
+>
+> 아래 D-041 항목은 **이름 3층 구조의 정본**이라 남겨둔다(개명 이후 모든 세션이 참조).
+>
+> **제품명 개편 Phase 1 집행 완료 (2026-07-21 · D-041).** 07-20 밤 "선행 후보 ①"이 사용자 지시로
 > 실행됐다. **이름이 세 층으로 갈렸다 — 이걸 혼동하지 말 것**:
 >
 > | 층 | 값 | 어디에 등장 |
@@ -392,6 +401,38 @@
 >   **재심사 트리거 = ZUNIWTH 도그푸딩에서 `delegated` 첫 선택 시**(별도 세션 불요 —
 >   그 자리에서 관측). 결과에 따라 기본값 유지/전환 판단. 종결 조건은 Claude README
 >   E2E 체크리스트 마지막 줄에 등재.
+> ⑥ **상류 `package-to-process` 이식 범위 산정 (07-31 신설 · ★다음 세션 착수점)** —
+>   `babamba2/superclaude-for-sap` **PR #46**(0.6.16 · 07-20 머지 · +2706/-48 · 24파일)이
+>   **프로세스 계층 산출물**을 신설했다. CBO 패키지 1개 → E2E 업무 흐름 Markdown
+>   (프로그램/FM을 `PR→PO→GR→IR` 류 문서 흐름으로 분류 + Mermaid flowchart·
+>   sequenceDiagram·단계표, 독자 = 기능 컨설턴트), 인벤토리 부재 시 `sap-stocker` 자동 연쇄.
+>   **sapkit은 전제를 전부 갖췄고**(analyze-cbo-obj · `.sc4sap/cbo/` · sap-stocker ·
+>   program-to-spec · tools/spec 5본 · compare-programs) **프로세스 계층만 비어 있다**
+>   (객체·재고·비교 단위는 있는데 여러 프로그램을 관통하는 흐름 문서가 없다).
+>   **예비 판정 4덩어리**: ⓐ 렌더러 2종 증분(`renderSequenceDiagramSVG`·
+>   `renderProcessMapSVG` — screen-image-renderer **1180→1732줄**) = 의존성 0 · 기존 자산
+>   개선 · **가장 먼저** ⓑ 도메인 지식 3본(grouping-heuristics·document-template·
+>   bpml-render ≈420줄) = 값 큼 · 하네스 중립 ⓒ 실행 골격(SKILL·workflow·dispatch 3종
+>   ≈440줄) = **재작성 필요** ⓓ `build-bpml.mjs` 827줄 = 의존성 깨끗(`node:*` + 이미 가진
+>   `xlsx-zip`·`screen-image-renderer`뿐)이나 sapkit에 BPML 산출 규약 부재 — 별건.
+>   **그대로 못 가져오는 이유 3**: ⑴ dispatch 3종이 `Agent({subagent_type, mode:"dontAsk"})` =
+>   DESIGN §2가 이식 때 폐기한 **8역할 파이프라인**(D-051이 되살린 건 워커 1기뿐,
+>   L1 계약이 `Agent(...)` 문법 제거) ⑵ **`trust-session` 의존이 최대 장벽** — "MCP·파일
+>   권한을 미리 부여해 **호출별 프롬프트를 없앤다**"가 Step 0 MANDATORY이고 모든 디스패치가
+>   `mode:"dontAsk"`. **attended-only(D-025)·3층 방어·P2 호출별 승인과 정면 충돌 →
+>   `trust-session`은 만들지 말 것**(이식 디테일이 아니라 설계 충돌) ⑶ 모델 라우팅 배너
+>   (`Opus 4.7|Sonnet 4.6|Haiku 4.5` 하드코딩 · `[Model: … · Dispatched: …]` 접두) = 3사 중립 위반.
+>   **다음 세션 = 8파일 전문 정독 → 범위 확정 → D-결정.** 미독 고백: `workflow.md`·
+>   `grouping-heuristics.md`·`document-template.md`는 **줄 수와 파일명으로만 추정**했다
+>   (읽은 것 = SKILL.md 앞 70줄 + dispatch-stocker.md 전문).
+> ⑦ **상류 드리프트 감시선이 한 단계 짧다 (07-31 신설)** —
+>   `report-sc4sap-public-drift.mjs`가 보는 원본은 로컬 `sc4sap-custom`인데 거기엔
+>   `package-to-process`가 **없다**(실측). remote 실측: `origin=hjaewon/sc4sap-custom` ·
+>   `release=hjaewon/superclaude-for-sap`(포크) — **진짜 상류는 `babamba2/superclaude-for-sap`**.
+>   포크가 상류보다 뒤처져 **PR #46이 드리프트 리포트에 뜨지도 않았다**(사용자가 직접 발견).
+>   도구는 정상 동작 중이고 **감시 대상이 짧은 것**이다. 판단 필요: 포크를 상류에 맞춰
+>   올릴 것인가, 감시 대상을 `babamba2`까지 늘릴 것인가. 미결로 두면 상류 변경을 계속
+>   놓친다. `upstream-drift-dispositions.json`은 PR #46에 대해 무기록 = `pending`.
 >
 > **▶ vsp 실사 → R-002 축소 + `--offline` 13종 분석기 훅 자동 배선 → v0.3.5 (2026-07-26 ·
 > D-049)**: 사용자 요청 "vsp 정확한 기능 딥 실사"의 결과. **실측**: 절차가 지시하던
