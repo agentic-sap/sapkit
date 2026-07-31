@@ -356,4 +356,5 @@ Spec generation only reads **source code + DDIC metadata + where-used** — neve
 
 - [compare-programs](compare-programs.md) — business-angle comparison across 2–5 programs
 - [analyze-cbo-obj](analyze-cbo-obj.md) — CBO package inventory (feeds Step 1.5 annotations)
+- [package-to-process](package-to-process.md) — process-level view of the whole package; use it to see which flow this program sits in
 - [deep-interview](deep-interview.md) — requirement clarification for new builds

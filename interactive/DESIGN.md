@@ -125,6 +125,10 @@ sc4sap-lite/
                                           (D-052). .sc4sap/knowledge/{domain,system}.md ·
                                           KD-/KS- 인용 ID(제품 D-0xx 결정번호와 분리) ·
                                           정정은 삭제 아님 · 읽기는 인터뷰 계열 2곳
+      package-to-process.md            ← 패키지 1개 → E2E 업무 흐름 문서(D-056). 객체 단위
+                                          (analyze-cbo-obj)·프로그램 단위(program-to-spec) 위의
+                                          **프로세스 계층**. 메인이 7단계 전부 소유(디스패치 0,
+                                          페르소나 채택) · P0/P1 · 산출물에 PNG 다이어그램 2종
       schemas/                         ← approval·review-request·review-result·verification 스키마
                                           (승인 = spec 해시 + SID/client + transport에 결합)
     policies/

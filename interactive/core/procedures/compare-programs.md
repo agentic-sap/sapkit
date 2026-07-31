@@ -375,4 +375,5 @@ Legend: ✅ Same · 🔷 Variant · ⚠️ Divergent · ❓ Unclear
 
 - [program-to-spec](program-to-spec.md) — single-program reverse-engineering (vertical depth)
 - [analyze-cbo-obj](analyze-cbo-obj.md) — CBO package inventory (complementary context for dimension 8)
+- [package-to-process](package-to-process.md) — when the two programs turn out to be neighbours in one business-document flow rather than variants of each other
 - [deep-interview](deep-interview.md) — use before comparison if user is unsure which programs to include

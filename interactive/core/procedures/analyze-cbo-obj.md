@@ -173,3 +173,4 @@ This procedure only reads DDIC metadata and where-used relations. It MUST NOT ca
 - `create-program` — reads `.sc4sap/cbo/<MODULE>/<PACKAGE>/inventory.json` during spec drafting to prefer existing CBO elements
 - [program-to-spec](program-to-spec.md) — same, for reverse-engineering
 - `create-object` — same, to suggest reuse before creation
+- [package-to-process](package-to-process.md) — consumes the same `inventory.json` one level up: how the package's programs cooperate as a business-document flow

@@ -77,8 +77,8 @@
         {
           "token": "core/knowledge/modules/",
           "kind": "tree",
-          "files": 94,
-          "sha256": "052b5e64e1568130cb942327069788ba157de6438b47e29115b72438a48ee708"
+          "files": 95,
+          "sha256": "34e488fc36a2cc1b8d0a91749abbabc1b844d9ec546c1526fe02ffc0f79c490d"
         }
       ]
     },
@@ -358,8 +358,8 @@
         {
           "token": "core/procedures/",
           "kind": "tree",
-          "files": 25,
-          "sha256": "6397e116c516fc2e7c4897ed7f01f297e6c833bd9ec0551c5ee4762fb897693a"
+          "files": 26,
+          "sha256": "dbb1b2968061e282c58d925f9954d976b1ea90cdf2499a26d3756d6723b833a2"
         }
       ]
     },
@@ -457,8 +457,8 @@
         {
           "token": "core/procedures/",
           "kind": "tree",
-          "files": 25,
-          "sha256": "6397e116c516fc2e7c4897ed7f01f297e6c833bd9ec0551c5ee4762fb897693a"
+          "files": 26,
+          "sha256": "dbb1b2968061e282c58d925f9954d976b1ea90cdf2499a26d3756d6723b833a2"
         }
       ]
     },
@@ -475,8 +475,8 @@
         {
           "token": "core/procedures/",
           "kind": "tree",
-          "files": 25,
-          "sha256": "6397e116c516fc2e7c4897ed7f01f297e6c833bd9ec0551c5ee4762fb897693a"
+          "files": 26,
+          "sha256": "dbb1b2968061e282c58d925f9954d976b1ea90cdf2499a26d3756d6723b833a2"
         }
       ]
     },
@@ -493,8 +493,8 @@
         {
           "token": "core/procedures/",
           "kind": "tree",
-          "files": 25,
-          "sha256": "6397e116c516fc2e7c4897ed7f01f297e6c833bd9ec0551c5ee4762fb897693a"
+          "files": 26,
+          "sha256": "dbb1b2968061e282c58d925f9954d976b1ea90cdf2499a26d3756d6723b833a2"
         }
       ]
     },
