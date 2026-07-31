@@ -121,6 +121,10 @@ sc4sap-lite/
       review-checklist.md              ← 인덱스 + 조건부 참조 구조 (거대 단일문서 금지)
       modify-object.md                 ← Minimal 강도 절차, 흔적 0 (D-047 · aegis direct 각색)
       lesson.md                        ← LESSONS→RULES 5단계 (D-047 · aegis lesson 각색)
+      knowledge.md                     ← lesson의 대칭짝: **실패가 아니라 몰랐던 사실**을 누적
+                                          (D-052). .sc4sap/knowledge/{domain,system}.md ·
+                                          KD-/KS- 인용 ID(제품 D-0xx 결정번호와 분리) ·
+                                          정정은 삭제 아님 · 읽기는 인터뷰 계열 2곳
       schemas/                         ← approval·review-request·review-result·verification 스키마
                                           (승인 = spec 해시 + SID/client + transport에 결합)
     policies/
@@ -133,7 +137,8 @@ sc4sap-lite/
       credential-handling.md
     vocabulary.md                      ← 표준 동작 어휘집 (중립 capability명 ↔ 어댑터 도구명 계약)
     project-context.md                 ← 다섯 번째 요소: .sc4sap/{config.json, active-profile,
-                                          sap.env} 프로젝트 런타임 상태 규약
+                                          sap.env} 프로젝트 런타임 상태 규약 + 누적 산출물
+                                          (RULES/LESSONS/knowledge) — 전부 로컬 전용
   server/
     server.bundle.cjs  VERSION  integrity.json
     runtime-deps/keyring/              ← NODE_PATH 배선 포함 (keychain 비밀번호 저장)

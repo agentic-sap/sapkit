@@ -10,6 +10,15 @@ source:
 Turn a failure into a guardrail. Five steps, in order. Never skip VERIFY — an
 unverified guess must not become a rule.
 
+**Failure records only — split by record, not by incident.** A fact that was merely
+*unknown* (a customer's business rule, a legacy table's real grain, what a status
+code means in this system) has no FAIL and no CAUSE, so the five steps below do not
+apply to it; it belongs to [knowledge](./knowledge.md). One incident often yields
+both — *"status `C` here means Credit Review, and the batch dropped orders by
+assuming Closed"* is a knowledge atom **and** a lesson. Record both; neither
+replaces the other. What this procedure never takes is a bare fact with no failure
+attached.
+
 Do not start this loop merely because a test or an activation failed during
 ordinary work. Most failures are local execution feedback. Persist only a
 user-selected failure whose **verified** cause is **likely to recur**. This is the

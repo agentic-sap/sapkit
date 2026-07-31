@@ -300,7 +300,7 @@
         {
           "token": "core/project-context.md",
           "kind": "file",
-          "sha256": "988c98c8eced8455aa8e551ef09d1ebc8c1f525e43353dad6c7e2e246f1c0deb"
+          "sha256": "9099bb9f6909b255d2293fc0e8a3de063ce16e3c3ed798270fe817c39821c592"
         }
       ]
     },
@@ -358,8 +358,8 @@
         {
           "token": "core/procedures/",
           "kind": "tree",
-          "files": 24,
-          "sha256": "fd00ee79caa2d088c985716bc921b6293f624e3647d6370b22c70b172f18a965"
+          "files": 25,
+          "sha256": "6397e116c516fc2e7c4897ed7f01f297e6c833bd9ec0551c5ee4762fb897693a"
         }
       ]
     },
@@ -457,8 +457,8 @@
         {
           "token": "core/procedures/",
           "kind": "tree",
-          "files": 24,
-          "sha256": "fd00ee79caa2d088c985716bc921b6293f624e3647d6370b22c70b172f18a965"
+          "files": 25,
+          "sha256": "6397e116c516fc2e7c4897ed7f01f297e6c833bd9ec0551c5ee4762fb897693a"
         }
       ]
     },
@@ -475,8 +475,8 @@
         {
           "token": "core/procedures/",
           "kind": "tree",
-          "files": 24,
-          "sha256": "fd00ee79caa2d088c985716bc921b6293f624e3647d6370b22c70b172f18a965"
+          "files": 25,
+          "sha256": "6397e116c516fc2e7c4897ed7f01f297e6c833bd9ec0551c5ee4762fb897693a"
         }
       ]
     },
@@ -493,8 +493,8 @@
         {
           "token": "core/procedures/",
           "kind": "tree",
-          "files": 24,
-          "sha256": "fd00ee79caa2d088c985716bc921b6293f624e3647d6370b22c70b172f18a965"
+          "files": 25,
+          "sha256": "6397e116c516fc2e7c4897ed7f01f297e6c833bd9ec0551c5ee4762fb897693a"
         }
       ]
     },
@@ -516,7 +516,7 @@
         {
           "token": "core/project-context.md",
           "kind": "file",
-          "sha256": "988c98c8eced8455aa8e551ef09d1ebc8c1f525e43353dad6c7e2e246f1c0deb"
+          "sha256": "9099bb9f6909b255d2293fc0e8a3de063ce16e3c3ed798270fe817c39821c592"
         }
       ]
     },
@@ -976,7 +976,7 @@
         {
           "token": "core/project-context.md",
           "kind": "file",
-          "sha256": "988c98c8eced8455aa8e551ef09d1ebc8c1f525e43353dad6c7e2e246f1c0deb"
+          "sha256": "9099bb9f6909b255d2293fc0e8a3de063ce16e3c3ed798270fe817c39821c592"
         }
       ]
     },

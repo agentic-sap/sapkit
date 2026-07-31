@@ -186,6 +186,13 @@ After hypothesis confirmation, hand off to the correct follow-up:
 - **Dump reproduction** → `RuntimeRunClassWithProfiling` / `RuntimeRunProgramWithProfiling`
 - **Runtime investigation needing cross-user auth check** → user does SU53 externally
 
+Once a hypothesis is **confirmed**, route what it taught by record — offer, never assume, one line each. One incident can warrant **both**; neither replaces the other:
+
+- **The verified failure cause and the rule preventing recurrence** → [lesson](lesson.md) (VERIFY + approval gates apply)
+- **The independent business or this-system fact the failure exposed** — a legacy table's real grain, a status code's non-obvious meaning here, a customer-specific process rule → [knowledge](knowledge.md)
+
+Before offering the knowledge half, grep `.sc4sap/knowledge/domain.md` and `system.md` for the candidate's key terms (a bounded grep, not a full read) — a fact already recorded is not re-offered. An unconfirmed hypothesis routes to neither. Nothing newly established → no prompt.
+
 ## Question Strategy
 
 **Rule**: max 3 questions per response. Never re-ask what MCP already answered.

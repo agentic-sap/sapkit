@@ -91,6 +91,14 @@ vault per question** (keyword match on filenames + grep), never bulk-load.
                                See procedures/create-program.md "Completion state"
 .sc4sap/RULES.md              ← lesson procedure artifact: distilled rules
 .sc4sap/LESSONS.md            ← lesson procedure artifact: failure log
+.sc4sap/knowledge/domain.md · system.md  ← knowledge procedure artifacts: what this project
+                               had to find out. `domain.md` (**KD-ids**) holds business facts
+                               that outlive the program; `system.md` (**KS-ids**, each carrying
+                               the profile/SID it was established against) holds facts true only
+                               of a named system. Prefixes avoid the bare-letter space because
+                               sapkit's own `D-0xx` decision ids appear in the shipped core.
+                               Read before asking by procedures/knowledge.md "Read points";
+                               absent directory → continue silently.
 ```
 
 ## Rules
@@ -100,6 +108,9 @@ vault per question** (keyword match on filenames + grep), never bulk-load.
    establish it before version-dependent work.
 3. Switching systems = switching the profile alias in `active-profile.txt`, never
    editing credentials inline in a project.
-4. `.sc4sap/RULES.md` and `.sc4sap/LESSONS.md` are local-only — never shared
-   across machines — and a `setup` re-run does not overwrite them. See
-   [lesson](procedures/lesson.md).
+4. `.sc4sap/RULES.md`, `.sc4sap/LESSONS.md`, and `.sc4sap/knowledge/**` are
+   local-only — never shared across machines — and a `setup` re-run does not
+   overwrite them. See [lesson](procedures/lesson.md) ·
+   [knowledge](procedures/knowledge.md). Moving accumulated knowledge somewhere
+   shared (a committed path, a team wiki) is the product user's call; the plugin
+   ships no path override and copies nothing out.

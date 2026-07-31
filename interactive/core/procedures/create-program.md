@@ -160,6 +160,13 @@ Recovery clause: if you already bulk-proposed (protocol violation), apologize, r
 - Offer to persist the answer: *"Save to `.sc4sap/config.json` so future runs skip this question? (yes/no)"*. On `yes`, write the value; on `no`, keep it for this run only.
 - Record resolved values in the `module-interview.md` header (`industry:`, `country:`, `source: config.json | sap.env | user-this-run`).
 
+**Project knowledge preflight (MANDATORY — runs with the above, before dimension 1)**:
+- Read `.sc4sap/knowledge/domain.md` and `.sc4sap/knowledge/system.md` if present — the business and this-system facts earlier runs had to find out. Absent directory → continue silently.
+- A **`KD-` atom** is established context and is **not re-asked** — state it back citing the id (*"KD-007 already records that closing is reversible here — confirming rather than re-asking"*) and spend the dimension on what it does not cover. This is what makes a second program on the same system cheaper than the first.
+- A **`KS-` atom** counts as established only when its `scope:` matches this run's profile/SID/client; a non-matching one is a hint to confirm, not a fact.
+- Anything under **`## Pending`** carries no evidence — ask it as a normal dimension question.
+- If the user **contradicts** an atom: a `KD-` business rule is theirs to overrule (take the correction); a `KS-` system fact opens a correction candidate to check against DDIC/MCP before rewriting. Both route to [knowledge](./knowledge.md) `Correct` — never a silent overwrite.
+
 **Question dimensions** (one per turn):
 1. **Module identification** — single or multi (SD/MM/FI/CO/PP/PS/QM/PM/WM/HCM/TM/TR/Ariba/BW/BC)
 2. **Business purpose** — what business outcome does this program produce (handed off to which role / used for which decision)
@@ -233,6 +240,20 @@ Two back-to-back inventory passes feed every downstream phase.
 **Reuse gating rule** (applied in Phases 2 and 3):
 - If an inventory entry matches the spec's semantic need (same role + matching FK pattern + purpose overlap), **default to reuse**. Only propose a new Z-object when the consultant or user explicitly rejects the candidate, with the rejection reason logged in `plan.md`.
 - If the request is to add a BAdI implementation / CMOD component / append field and the cache already lists a `Z*`/`Y*` asset for the same `standardName` or base table, **default to extending the existing asset**. Creating a second parallel Z impl, a second CMOD project for the same SMOD, or a second append on the same standard table is a MAJOR finding in Phase 6 review and will block the spec. Rejection requires a written justification in `plan.md` (e.g., "existing ZCL_SD_ORDER_IMPL is used by another business flow and merging would break it").
+
+### Phase 1B close — project knowledge offer
+
+The interview is where facts get established, so the offer belongs here rather than
+at completion: a run that stalls in implementation would otherwise lose them, and
+Phase 8's hard gate can still send the run back to Phase 6.
+
+If Phase 1A/1B established a business or system fact — a company-specific rule the
+user explained, a legacy table's real grain, a non-obvious status meaning — grep the
+two knowledge files for its key terms, and only if it is not already recorded offer
+one line: *"Record `<fact>` to project knowledge? (yes/no)"*, following
+[knowledge](./knowledge.md) on `yes`. Failures go to [lesson](./lesson.md), facts go
+to `knowledge`; a single incident can warrant both. Nothing newly established, or
+already recorded → no prompt.
 
 ## Phase 2 — Planning
 

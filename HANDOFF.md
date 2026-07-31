@@ -1,7 +1,7 @@
 # HANDOFF — 프로젝트 전체 상태와 재개 지침
 
 > **목적: 컨텍스트/세션이 클리어돼도 이 문서 하나로 전부 복원.**
-> 작성 2026-07-10 · 최종 갱신 2026-07-26. 새 세션은 ① 이 문서 → ② 필요 시 해당 트랙
+> 작성 2026-07-10 · 최종 갱신 2026-07-31. 새 세션은 ① 이 문서 → ② 필요 시 해당 트랙
 > DESIGN.md 순으로 읽는다. 상태가 바뀌면 이 문서를 갱신하는 것까지가 작업의 일부다.
 >
 > ═══════════════════════════════════════════════════════════════════
@@ -271,6 +271,35 @@
 > ZUNIWR2030 무소스 CheckSyntax = **정상 result·success:true·errors 0**(거짓 "REPORT
 > missing" 소멸) ⑵ 일부러 깨진 활성 프로그램 무소스 CheckSyntax = **실오류(라인번호)** 반환.
 > 확인되면 UPSTREAM Known-remaining #12를 CLOSED로 이동. RV4 열림·unattended sealed 불변.
+>
+> **▶ knowledge 절차 — lesson의 대칭짝 → v0.4.1 (2026-07-31 · D-052)**: 사용자 요구
+> "프로젝트가 **몰라서 채운** 도메인(업무 + 이 솔루션 자체)을 프로젝트 자체에 누적하고
+> 싶다. 이미 아는 건 대상 아니고, 딴 데서 재활용하는 건 제품 사용자 몫." 실사 3건:
+> ⑴ **`lesson`을 참조하는 절차는 `create-program` 한 본뿐**(RULES 읽기 1 + 쓰기 제안 2).
+> 나머지 **19본 0건** — 사실이 실제로 확정되는 `deep-interview`·`ask-consultant`·
+> `analyze-symptom`이 전부 0이다 ⑵ `deep-interview`에 기록·누적 언급 **0건**이고
+> `.sc4sap/deep-interviews/`는 그 절차의 **출력**이나 **자동으로 읽는 소비자가 0건** —
+> `create-program` Phase 1A 차원 4(회사 고유 업무 규칙)가 정확히 "몰라서 채우는"
+> 자리인데 채운 결과가 안 남아 **두 번째 인터뷰가 첫 번째와 같은 비용** ⑶ 반면 본보기는
+> 레포 안에 있다 — `analyze-cbo-obj` → `.sc4sap/cbo/` → create-program이 읽는 왕복이
+> **CBO 재고에만** 있다. **집행**: 절차 `core/procedures/knowledge.md` + 스킬
+> `skills/knowledge/` 신설 → `.sc4sap/knowledge/{domain,system}.md`(**KD-id/KS-id** —
+> 제품이 `D-0xx`를 결정 ID로 쓰고 배포 코어 16파일에 노출되므로 그 공간을 피한다) ·
+> 불변식 4(근거 없으면 원자 아님 → id 없는 `## Pending`으로 격리 · **정정은 삭제 아님** ·
+> 주장 ≤ 증거 · **실데이터 원값 저장 금지** — 범주는 data-protection 전부, 조회 승인 ≠
+> 저장 승인) · **읽기는 인터뷰 계열 2곳만 자동**(deep-interview 첫 질문 전 ·
+> create-program Phase 1A; `KS-`는 `scope:` 일치할 때만 확정 · `Pending`은 질문 대상) ·
+> 쓰기는 4곳에서 **제안만**(deep-interview 종료 · **create-program Phase 1B 종료** ·
+> ask-consultant · analyze-symptom — 제안 전 bounded grep으로 중복 확인) ·
+> `lesson.md`에 **기록 단위** 경계 1문단(한 사건이 두 기록을 낳을 수 있다).
+> **게이트**: 코어 6종 green(doctor FAIL 2 = 기지 CLI 핀 드리프트, 무관) · 음성시험
+> 17/17·20/20 · 스냅샷 재핀 · 매니페스트 재생성(절차 20→**21** · 스킬 15→**16**).
+> **리뷰**: Codex(`gpt-5.6-sol`·max) 교차검토 1회 — blocking 4(접두 `D-` 충돌 · `KS-`
+> 시스템 미식별 · `[unverified]` 확정 취급 · **"lesson 0건" 오기**)·should-fix 6·nit 1
+> **전량 반영**. **유보 = 쓰기 제안 발동률 미검증**(같은 양식의 lesson 제안 2건이 이미
+> 있으나 발동 증거가 없다 — 검증된 양식의 복제가 아니라 미검증 양식의 추가다) ·
+> 자동 읽기 비용은 누적량 비례 증가(cap 없음) · **반영본 재리뷰 미수행**.
+> 상세·대안 기각 = D-052.
 >
 > **▶ execution_owner 실행체 배선 → v0.4.0 (2026-07-27 · D-051)**: 사용자 관찰
 > "개발이 계속 메인 세션에서만 돈다"의 실사 결과 — **정책만 있고 실행체·선택 UX가

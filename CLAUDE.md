@@ -21,7 +21,7 @@ SAP ABAP 개발을 AI 하네스로 수행하는 **단일 레포 · 두 트랙**.
   **vsp-custom은 D-030으로 레포 내 `vsp/`에 편입 완료(D-037 — 히스토리 비이식 스냅샷·
   바이너리 비커밋; D-018 vsp 조항 supersede)**.
 - **트랙 B — 대화형 플러그인 (제품, 검증 완료)** = `interactive/` — 하네스 중립 코어(지식 177·
-  페르소나 26·절차 20·스킬 15·정책) + MCP 서버 번들 + 어댑터 3사(Claude/Codex/Antigravity).
+  페르소나 26·절차 21·스킬 16·정책) + MCP 서버 번들 + 어댑터 3사(Claude/Codex/Antigravity).
   번들의 소스 정본은 레포 내 **`engine/`**(D-017 편입) — 엔진 수리→재번들→반영은
   `interactive/server/UPDATE-RUNBOOK.md` 절차로만.
 - 품질 모델: **1명 작업 + 1명 새-컨텍스트 리뷰(read-only) + SAP 기계 검증**.
@@ -61,7 +61,7 @@ node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (�
 ```
 
 게이트 자체의 음성시험(게이트가 정말 거부하는지): `test-check-migration-snapshot.mjs`
-17/17 · `test-smoke-mcp.mjs` 16/16. 위 게이트는 doctor를 뺀 전부가 CI에서도 돈다.
+17/17 · `test-smoke-mcp.mjs` 20/20. 위 게이트는 doctor를 뺀 전부가 CI에서도 돈다.
 
 `check-migration-coverage`는 **S3에서 폐기**됐다(D-027 §9.2) — 외부 sc4sap-custom을
 재귀 순회하며 private 경로 이름을 열거해 R-004 정신에 저촉했고, 러너엔 그 절대경로가

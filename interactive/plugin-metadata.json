@@ -17,7 +17,7 @@
       "sap-agentic-harness": "sapkit"
     }
   },
-  "version": "0.4.0",
+  "version": "0.4.1",
   "displayName": "SAPKit",
   "_displayName": "Codex·Antigravity UI에 뜨는 **사람이 읽는 이름**. D-041 개명 시 누락됐다가 리뷰 m-1로 정정 — 구 값 'SAP Agentic Harness'는 폐기된 정체성(하네스)이었다.",
   "author": {
@@ -48,8 +48,8 @@
       "tools_connected": "recorded.tools_connected 를 그대로 통과시킴(계산 아님)"
     },
     "personas": 26,
-    "skills": 15,
-    "procedures": 20,
+    "skills": 16,
+    "procedures": 21,
     "agents": 2,
     "modules": 15,
     "industries": 14,
