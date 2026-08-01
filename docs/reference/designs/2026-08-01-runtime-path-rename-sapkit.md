@@ -223,6 +223,7 @@ setup은 **감지·안내까지만**.
 ~/.sc4sap/     profiles/{IDES-DEV, KR-DEV}/ ← 자격증명 · bin/(vsp) · state · logs · work · hud-cache
 <project>/.sc4sap/  active-profile.txt · config.json · logs · state · RULES.md · LESSONS.md
                     program/ · cbo/ · vpass/ · spro-config.json · customizations*
+                    knowledge/{domain,system}.md (D-052) · processes/ (D-056)  ← 07-27~31 신설
 머신 설정      SC4SAP_HOME_DIR(설정된 머신) · .claude/settings.json(훅 6개)
                .claude/settings.local.json(권한) · vsp 설치 위치
 ```
@@ -279,13 +280,20 @@ v2의 이 항목은 3차 리뷰가 "구호"라고 지적했다. 실행 가능한
 ### 5-4. 포함·제외 manifest
 
 **포함** — `active-profile.txt` · `config.json` · `sap.env` · `RULES.md` · `LESSONS.md` ·
-`program/` · `cbo/` · `vpass/` · `work/` · `spro-config*.json` · `customizations*` ·
-`profiles/`(홈)
+**`knowledge/`(D-052)** · **`processes/`(D-056)** · `program/` · `cbo/` · `vpass/` ·
+`work/` · `spro-config*.json` · `customizations*` · `profiles/`(홈)
 
 **제외** — `logs/` · `state/` · `hud-cache/` · `bin/`(vsp 재설치) · `.staging-*` ·
 `.migration-journal.json`
 
 **미분류** — 어디에도 없는 항목은 **이행하지 않고 열거만**(추측 이행 금지).
+
+> **이 목록은 썩는다.** `knowledge/`·`processes/`는 이 설계를 쓰던 나흘 사이에 다른
+> 머신이 추가한 슬롯이고, 초판 목록엔 빠져 있었다(사용자 지적으로 발견). 누적 산출물이
+> 이사에서 빠지면 사용자에겐 **지식이 사라진 것처럼 보인다.**
+> **집행 시 반드시 재수집할 것**: `rg -oE '\.sapkit/[A-Za-z0-9._/-]+' interactive/core interactive/skills interactive/agents interactive/tools | sort -u`
+> — 그리고 **새 절차가 슬롯을 추가하면 이 목록도 갱신**하는 것을 마이그레이터 유지
+> 규약으로 삼는다(§7-2 게이트가 미등재 슬롯을 검출하도록 확장하는 것이 이상적).
 
 ### 5-5. 이행 성공 후의 정상 상태
 
