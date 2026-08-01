@@ -487,6 +487,48 @@
 >   도구는 정상 동작 중이고 **감시 대상이 짧은 것**이다. 판단 필요: 포크를 상류에 맞춰
 >   올릴 것인가, 감시 대상을 `babamba2`까지 늘릴 것인가. 미결로 두면 상류 변경을 계속
 >   놓친다. `upstream-drift-dispositions.json`은 PR #46에 대해 무기록 = `pending`.
+> ⑧ **런타임 경로 개명 `.sc4sap`→`.sapkit`(D-041 Phase 2)** — **설계 완료·집행
+>   대기 (2026-08-01)**. 사용자 요구 발단. 설계 정본 =
+>   `docs/reference/designs/2026-08-01-runtime-path-rename-sapkit.md`.
+>   초안(범위 파악)에 **Codex 교차 리뷰 = DEFER**(BLOCKER 2·MAJOR 5), 메인이 원문
+>   대조로 **BLOCKER 2건 확증** → 초안 결론 4문장 전부 철회. 실물 근거 2:
+>   ⑴ 프로필 탐색기가 **셋이고 정책이 다르다**(engine=exact cwd / profile-resolve=
+>   64단계 state-aware / tier-guard=8단계 단순존재) — 부분 이행 시 연결과 tier 가드가
+>   다른 디렉터리를 골라 **쓰기 전면 차단**(D-046 P0과 같은 형태) ⑵ `target-hash.mjs:45`
+>   `NOT_ASSET_DIRS`에 `.sapkit` 미추가 시 clean clone과 로컬이 갈려 스냅샷 게이트가
+>   깨진다(주석에 과거 사고 기록). **설계 v4 = Codex 이종 교차 리뷰 4회 반영본**
+>   (DEFER → NEEDS-FIX ×3 · BLOCKER 8건 전건 원문 확증). **네 번 모두 같은
+>   실패 유형이었다 — "정합을 위해 통일하려는 시도"가 안전 경계를 건드렸다**:
+>   v1은 tier 가드를 state-aware로 표준화하려다 **deny→allow 회귀**(하위 artifact-only
+>   + 상위 DEV), v2는 `config.json`을 state에서 빼려다 **실데이터 차단 약화**
+>   (`block-forbidden-tables.mjs:31`이 `resolveConfigJsonPath`로 그 파일의
+>   `blocklistProfile`을 읽는다 — 하위 strict를 상위 minimal이 덮을 수 있고 **노출된
+>   행 데이터는 회수 불가**). **v3의 답 = R-PRESERVE**: 개명은 각 소비자의 현행 탐색
+>   의미(깊이·채택 기준·경계·state 정의)를 **하나도 바꾸지 않고**, `.sc4sap`을 보던
+>   자리에서 `.sapkit`을 먼저 보게 할 뿐이다 → 예외 목록 관리 대신 **실패 유형 자체를
+>   구조적으로 봉쇄**. 규칙 3개만 남음: R-TIE(한 조상 tie-break — **반드시 소비자
+>   채택 기준을 먼저 적용한 뒤** 양쪽 채택 가능할 때만 개입. **v3 초판은 순서를
+>   뒤집어 대원칙을 스스로 위반했고 4차 리뷰가 잡았다** — 하위 strict가 상위 minimal로
+>   약화되는 같은 회귀가 재발) · R-NEW(새로 만들 땐 `.sapkit` = 신규 프로젝트 요구
+>   충족. 단 **프로젝트당 단일 정본 디렉터리는 비보장** — vpass·extract가 각자 cwd
+>   기준이라 하위에 별도 생성 가능, 현행 `.sc4sap`도 동일) · R-ENV(잘못된
+>   `SAPKIT_HOME_DIR`은 조용한 폴백 없이 오류·홈은 alias 실재로 선택).
+>   **§7-3 안전 회귀 케이스 9종**이 세 실패를 기계적으로 red화한다(원칙 서술만으로는
+>   재발을 못 막는다는 것이 4회 리뷰의 결론). **R-E**(선택된
+>   경로가 읽기·쓰기 모두 수신) → **기존 프로젝트는 사용자가 마이그레이터를 돌리기
+>   전까지 폴더명 유지 — 2026-08-01 사용자 확정(수동 이사, 자동 이사 2안 기각,
+>   setup은 감지·안내까지만, 재론 금지)**. 마이그레이터는 **journal을 staging 안에
+>   seal한 뒤 atomic rename**(v2의 rename→marker 순서는 crash 시 "marker 없는 완전한
+>   목적지"를 만들어 오류였다). **범위 밖 승격 = `MCP_ENV_PATH`/`--env-path` tier
+>   불일치**(`launcher.ts:251-254` — 개명 이전부터의 실재 안전 결함, 별건 백로그).
+>   **집행 선행조건 = CheckSyntax #12 라이브 종결 + 도그푸딩 checkpoint + 사용자
+>   착수 지시**(설계 §9). D-040 KPI baseline은 착수 BLOCKER 아니나 **canary에서
+>   bootstrap 수동 단계 수 측정 의무**(v1의 "KPI 무관" 근거는 틀렸다 — D-040 ②
+>   2순위가 정확히 그것). 기능 이득 0의 외형 작업임은 불변. DECISIONS는 **집행 시
+>   D-057** append(설계 §12 초안 — 설계 작성 시점엔 D-051이었으나 07-27~31에 다른
+>   머신이 D-051~056을 사용해 재배번) · `interactive/DESIGN.md` §8-5도 집행 시 갱신.
+>   **버전 기준선 정정**: 설계 §6-17의 "v0.4.0 범프"는 작성 시점 기준이며 원격이
+>   이미 **v0.4.3**이므로 집행 시 그 다음 번호로 올린다.
 >
 > **▶ vsp 실사 → R-002 축소 + `--offline` 13종 분석기 훅 자동 배선 → v0.3.5 (2026-07-26 ·
 > D-049)**: 사용자 요청 "vsp 정확한 기능 딥 실사"의 결과. **실측**: 절차가 지시하던
