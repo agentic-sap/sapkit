@@ -15,9 +15,15 @@
 > 엔진 소스는 2026-07-11부터 **레포 내 `engine/`** (D-017 편입 — GitHub 포크는 히스토리
 > 아카이브). 수리→번들→반영이 한 레포에서 끝난다.
 
-1. `engine/`에서 소스 수정 → `npm run bundle` → `engine/dist/server.bundle.cjs`
+1. `engine/`에서 소스 수정 → **`npm run build:bundle`** → `engine/dist/server.bundle.cjs`
    (의존성이 없으면 `cd engine && npm install` 선행. 버전 범프는 `npm version <semver>
    --no-git-tag-version` + CHANGELOG 항목 — engine/CLAUDE.md 컨벤션 준수)
+
+   > ⚠ **`npm run bundle` 단독은 소스 변경을 반영하지 않는다.** 번들 엔트리는
+   > `dist/server/launcher.js` = **tsc 산출물**이라 `npm run build`가 선행돼야 한다
+   > (`build:bundle` = build && bundle). 2026-08-02 4.14.2가 이 함정에 빠져 수리가
+   > 빠진 번들을 만들었고 jest는 소스를 보므로 green이었다 — **번들 반영 검증은
+   > `grep -c <신규 식별자> dist/server.bundle.cjs`가 가장 싸다**(0이면 미반영).
 2. lite로 복사: `server/server.bundle.cjs` + `VERSION`(commit은 sah 커밋 sha) +
    `integrity.json` 갱신(`node interactive/server/verify-engine.mjs --refresh`)
 3. **capability diff**: 갱신 전후 `node scripts/smoke-mcp.mjs`의 tools 목록을 비교 —
