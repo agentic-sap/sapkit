@@ -166,6 +166,7 @@ Recovery clause: if you already bulk-proposed (protocol violation), apologize, r
 - A **`KS-` atom** counts as established only when its `scope:` matches this run's profile/SID/client; a non-matching one is a hint to confirm, not a fact.
 - Anything under **`## Pending`** carries no evidence — ask it as a normal dimension question.
 - If the user **contradicts** an atom: a `KD-` business rule is theirs to overrule (take the correction); a `KS-` system fact opens a correction candidate to check against DDIC/MCP before rewriting. Both route to [knowledge](./knowledge.md) `Correct` — never a silent overwrite.
+- If `config.json` registers `referenceLibraries` vaults, keyword-match the program's topic against them (2–3 docs per vault max — mechanics in [ask-consultant](./ask-consultant.md) § Reference Libraries): the user's own distilled practices inform dimensions 2–4 (business purpose, pain points, company-specific rules) better than the bundled generic knowledge. Cite `참조: {name}/{file}` where a vault doc shapes a question or a spec decision. Ladder: [knowledge-sourcing](../policies/knowledge-sourcing.md).
 
 **Question dimensions** (one per turn):
 1. **Module identification** — single or multi (SD/MM/FI/CO/PP/PS/QM/PM/WM/HCM/TM/TR/Ariba/BW/BC)

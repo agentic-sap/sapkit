@@ -40,6 +40,14 @@ CreateTransport(
 )
 ```
 
+## Two Traps on the Same Call Path
+
+Both were measured 2026-07-28 → 08-02; details in [troubleshooting](../procedures/troubleshooting.md) § 8.
+
+**Write the description in English.** A `description` containing non-ASCII text (Korean, and by extension any non-Latin script) is stored with those characters replaced by `#`. The transport is created and fully usable — only the display text is lost, and this tool cannot repair it afterwards.
+
+**Do not open a transport just to satisfy a local-package refusal.** When `UpdateFunctionModule` (or a sibling `Update*` / `Create*`) refuses an object in a `$`-prefixed local package with *"The object may be assigned to a transport request. Pass transport_request explicitly."*, the object is local and needs no transport — the tool's local-package detection simply recognises the literal `$TMP` only. Retry with the literal string `transport_request: "local"` first; `CreateFunctionModule` returns exactly that value in its own response. Escalate to `CreateTransport` only if `"local"` is also refused (observed with objects that arrived via abapGit import and may carry transport history). Opening an unnecessary transport is not harmless: it enters the CTS queue and someone has to dispose of it.
+
 ## Enforcement
 
 - **`sap-executor`** MUST apply this rule before every `CreateTransport` call. When the rule fails, stop and report; do not silently skip.

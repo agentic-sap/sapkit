@@ -24,7 +24,11 @@ ordinary work. Most failures are local execution feedback. Persist only a
 user-selected failure whose **verified** cause is **likely to recur**. This is the
 LESSONS→RULES piece of the project's methodology goal (a standing goal in the
 project DESIGN.md §2); it is opt-in and adds zero install cost — procedures that
-CONSULT rules simply continue silently when the files are absent.
+CONSULT rules simply continue silently when the files are absent. The consult
+side is contracted plugin-wide in
+[knowledge-sourcing](../policies/knowledge-sourcing.md): a scope-matched rule is
+a hard constraint at every entry point (writes, diagnosis, advice), not only in
+the procedures that name `RULES.md` explicitly.
 
 ## Files
 

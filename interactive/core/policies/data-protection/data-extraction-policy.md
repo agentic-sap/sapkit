@@ -64,6 +64,18 @@ Do **not** silently comply. Do **not** argue policy — surface the block, offer
 - **Existence checks**: `SearchObject` — always OK.
 - **Field catalog extraction** via `cl_salv_table=>factory` on a **locally typed** internal table (no SELECT at all) — always OK.
 
+## Reading the Response — the aggregate alternative always reports `truncated: true`
+
+This policy's own safe alternative (`COUNT` / `SUM` instead of row extraction) lands squarely on a `GetSqlQuery` response trap, so read it here rather than discovering it mid-analysis:
+
+- A **row-collapsing** query — `SUM` / `COUNT` / `AVG` without `GROUP BY`, and equally `DISTINCT` — comes back with `truncated: true` **even when the result is complete**. The server's total counts the rows `WHERE` matched, not the rows returned, and `truncated` is derived as `server_total_rows > returned_row_count`. Any population above one row therefore trips it permanently, no matter how high `row_number` is set.
+- Judge completeness by `returned_row_count` against what the query can produce (an aggregate is one row by construction). Reading the flag as "the total was cut off" converts a correct figure into a false discrepancy — and a figure obtained under this policy is usually the one a decision rests on.
+- `total_rows` is still meaningful on such a query: it is the **population size**, which is often what you wanted to know anyway.
+
+A related shape: `GetSqlQuery` fails with HTTP 400 once an `OR` chain grows past roughly 6–7 terms. HTTP 400 from this tool is generic — a missing table, a missing field, and an unsupported aggregate all look the same — so never read one 400 as "the table is blocked" or "the object does not exist". Split into prefix `LIKE` scans instead.
+
+Full details and the other tool-response traps: [troubleshooting](../../procedures/troubleshooting.md) § 8.
+
 ## ⚠️ The `acknowledge_risk` Parameter — HARD RULE
 
 `GetTableContents` and `GetSqlQuery` accept an `acknowledge_risk: true` parameter that bypasses the MCP server's L4 "ask"-tier confirmation gate. **This flag is an audit boundary, not a convenience flag.** Its value is logged to stderr and represents an attestation that the user has granted per-request authorization.

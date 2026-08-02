@@ -78,7 +78,7 @@
           "token": "core/knowledge/modules/",
           "kind": "tree",
           "files": 95,
-          "sha256": "95817ed72b028fe21540805aa899ec8c87685f8413223ae0fcb0b6dacbda8bda"
+          "sha256": "bdce6d6d6c1e24cdc58edce8fdaee2acd7cf587c2af6b548330c0dff42f4f4e6"
         }
       ]
     },
@@ -170,7 +170,7 @@
           "token": "core/personas/",
           "kind": "tree",
           "files": 27,
-          "sha256": "6bce4b51f38ca6d9a72aad32dc894b2563714653d5e29d0bd7cdc8b469e39fec"
+          "sha256": "9aac1c8d0bd3f04d9413cb384e30b95940c83d80e1db283cc5da6949d37b7597"
         }
       ]
     },
@@ -240,7 +240,7 @@
         {
           "token": "core/procedures/troubleshooting.md",
           "kind": "file",
-          "sha256": "eaa5a6a7320ccd8a02d42d6fcadf9237bd23f5f379dbb80f2a0230b57ade6dbe"
+          "sha256": "80eadc3d78de9c06e2ee599281d24904b3ed7bb8295e4be84419b48d852d8495"
         },
         {
           "token": "core/procedures/install-sap-assets.md",
@@ -300,7 +300,7 @@
         {
           "token": "core/project-context.md",
           "kind": "file",
-          "sha256": "6b5c1a5c4aa49e96a66426db572041cb9ade59d2e72c3134aaca609721f73104"
+          "sha256": "c22eb962c762f49c43d1757b9d30f914fb0d3a1c166246768645de5497f6c782"
         }
       ]
     },
@@ -359,7 +359,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 26,
-          "sha256": "129908431c97a707b0779690ec37ad766ad892fcbfa54ca1a54f2756e2298146"
+          "sha256": "8355a7fae19901e60a2e54c6fe4049c2d69c4c969a3bdd79b2cbee27cef1ab1a"
         }
       ]
     },
@@ -422,7 +422,7 @@
           "token": "core/policies/data-protection/",
           "kind": "tree",
           "files": 13,
-          "sha256": "1c5f284be02c2d8a630b11b85d2fc848575441743036e4e0462f3c869d964a86"
+          "sha256": "2141137cde575df21e39e24ba30bdf736585753d9518e0a51c07a8c5dfec8088"
         }
       ]
     },
@@ -439,8 +439,8 @@
         {
           "token": "core/policies/",
           "kind": "tree",
-          "files": 19,
-          "sha256": "c183fddde3af2bdc29de788469a82693044eff6e7de674b13e9708aaaf80b621"
+          "files": 20,
+          "sha256": "22d72ddc5323061323f85c3ba68d01a149abf1de21330db03ca8d6d711be190d"
         }
       ]
     },
@@ -458,7 +458,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 26,
-          "sha256": "129908431c97a707b0779690ec37ad766ad892fcbfa54ca1a54f2756e2298146"
+          "sha256": "8355a7fae19901e60a2e54c6fe4049c2d69c4c969a3bdd79b2cbee27cef1ab1a"
         }
       ]
     },
@@ -476,7 +476,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 26,
-          "sha256": "129908431c97a707b0779690ec37ad766ad892fcbfa54ca1a54f2756e2298146"
+          "sha256": "8355a7fae19901e60a2e54c6fe4049c2d69c4c969a3bdd79b2cbee27cef1ab1a"
         }
       ]
     },
@@ -494,7 +494,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 26,
-          "sha256": "129908431c97a707b0779690ec37ad766ad892fcbfa54ca1a54f2756e2298146"
+          "sha256": "8355a7fae19901e60a2e54c6fe4049c2d69c4c969a3bdd79b2cbee27cef1ab1a"
         }
       ]
     },
@@ -516,7 +516,7 @@
         {
           "token": "core/project-context.md",
           "kind": "file",
-          "sha256": "6b5c1a5c4aa49e96a66426db572041cb9ade59d2e72c3134aaca609721f73104"
+          "sha256": "c22eb962c762f49c43d1757b9d30f914fb0d3a1c166246768645de5497f6c782"
         }
       ]
     },
@@ -630,7 +630,7 @@
           "token": "core/policies/data-protection/",
           "kind": "tree",
           "files": 13,
-          "sha256": "1c5f284be02c2d8a630b11b85d2fc848575441743036e4e0462f3c869d964a86"
+          "sha256": "2141137cde575df21e39e24ba30bdf736585753d9518e0a51c07a8c5dfec8088"
         }
       ]
     },
@@ -976,7 +976,7 @@
         {
           "token": "core/project-context.md",
           "kind": "file",
-          "sha256": "6b5c1a5c4aa49e96a66426db572041cb9ade59d2e72c3134aaca609721f73104"
+          "sha256": "c22eb962c762f49c43d1757b9d30f914fb0d3a1c166246768645de5497f6c782"
         }
       ]
     },

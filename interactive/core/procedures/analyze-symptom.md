@@ -86,6 +86,7 @@ Evidence collection strategy — prefer MCP auto-query, fall back to manual TCod
 
 ### Step 1 — Initial Triage
 
+- **Recorded failure modes first**: if `.sapkit/RULES.md`, `.sapkit/LESSONS.md`, or `.sapkit/knowledge/system.md` exist, grep them for the symptom's key terms (error text fragment, tool name, TCode — a bounded grep, not a full read). A matching entry short-circuits the hypothesis space: this system has failed this way before and the verified cause is already written down (e.g., a profile-resolution rule explains an authentication error better than any fresh investigation). Cite the matched `R-`/`L-`/`KS-` id in the diagnosis. Absent files → skip silently. Contract: [knowledge-sourcing](../policies/knowledge-sourcing.md).
 - Extract user-supplied clues: error text, message class/number, TCode, program/class name, affected user, timing, dump indicators.
 - Call `GetSession` to capture system info (SID, client, release, SP, current user).
 - Package the structured clue set + system info and proceed to Step 2.

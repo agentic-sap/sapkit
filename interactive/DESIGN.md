@@ -132,6 +132,8 @@ sc4sap-lite/
       schemas/                         ← approval·review-request·review-result·verification 스키마
                                           (승인 = spec 해시 + SID/client + transport에 결합)
     policies/
+      knowledge-sourcing.md            ← 성숙층 사다리(D-059): RULES→지식원자→스냅샷→볼트→번들
+                                          우선순위·읽기 의무·write-back — 전 페르소나·절차 우산
       sap-standards.md                 ← Z/Y 접두어, transport 필수, 활성화 의무, 버전 가드
       verification-policy.md           ← CheckSyntax→활성화→ABAP Unit→ATC 체인, 차단 severity
       approval-gates.md                ← 관문=문서 규약임을 명시 (기계 강제는 Claude 훅 옵션 한정)

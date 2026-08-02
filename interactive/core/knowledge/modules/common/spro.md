@@ -51,6 +51,21 @@ SPRO customizing shared across all SAP modules.
 | Maintain Number Range Objects | ECC/S4 | TNRO | Number Range Object Def / 번호 범위 객체 | SNRO |
 | Number Range Intervals | ECC/S4 | NRIV | Intervals (per object) / 번호 범위 구간 | - |
 
+**Group ≠ interval / 그룹과 인터벌은 별개 체계.** On grouped number-range objects
+(CO orders via KONK, CO documents via KANK, …) the *group* numbering is independent of
+the `NRIV` interval numbering, and SAP delivers standard groups out of the box — for
+`AUFTRAG`, groups 03–20 exist on a fresh system. Reading "interval 20 is free" as "group
+20 does not exist yet" produces instructions that contradict the actual Group Selection
+popup, and a group created by mistake is not straightforward to remove.
+번호범위 **그룹** 번호와 `NRIV` **인터벌** 번호를 같은 체계로 읽지 말 것 — 표준 배송
+그룹이 이미 존재한다.
+
+No DDIC table for the group texts / element assignment has been located (`TNRO*`,
+`NRGR*`, `CUS_STRUC*` all came up empty). Determine group state from the maintenance
+screen, or infer occupancy backwards from the consuming customizing table — e.g.
+`T003O-NUMKR` for CO order types, where an empty result means the group exists but no
+order type uses it.
+
 ## Fiscal Year / 회계 연도
 
 | Config | System | Table | Description / 설명 | TCode |
@@ -95,3 +110,33 @@ SPRO customizing shared across all SAP modules.
 | Client Settings (SCC4) | ECC/S4 | T000 | Role, changes allowed / 역할 및 변경 허용 | SCC4 |
 | Default Client for Logon | ECC/S4 | - | Profile parameter login/system_client / 기본 클라이언트 | - |
 | Copy Client (SCC1) | ECC/S4 | - | Client copy / 클라이언트 복사 | SCC1 |
+
+## IMG Activity Verification / IMG 액티비티 검증
+
+Use these before quoting any IMG (SPRO) path — the procedure is in
+[spro-lookup](../../../procedures/spro-lookup.md) § 2a.
+
+| Config | System | Table | Description / 설명 | TCode |
+|--------|--------|-------|--------------------|-------|
+| IMG Activity Header | ECC/S4 | CUS_IMGACH | Does the activity exist? / 액티비티 존재 여부 | SPRO |
+| IMG Activity Text | ECC/S4 | CUS_IMGACT | Display text, filter `SPRAS = 'E'` / 표시 텍스트 | SPRO |
+
+Activity IDs follow `SIMG_CFMENU<menu-area><TCODE>`. Menu-area codes seen in CO/PS:
+
+| Code | Area |
+|------|------|
+| ORKS | Cost Center Accounting |
+| ORK1 | Profit Center Accounting |
+| ORKA | Internal Orders |
+| ORKE | Profitability Analysis (CO-PA) |
+| ORKK | Product Cost Controlling |
+| OLPR | Project System |
+
+Two limits worth stating up front:
+
+- **The full IMG tree path is not readable from DDIC.** The tree lives in SIMG objects;
+  `CUS_STRUC*` / `*IMGSTR*` do not exist. These two tables answer "does this node exist
+  and what is it called", not "where does it sit". / IMG 트리 풀패스는 DDIC로 조회 불가.
+- Scanning many activity IDs at once runs into the `GetSqlQuery` `OR`-width limit — use
+  prefix `LIKE 'SIMG_CFMENUORKS%'` instead of a long `OR` chain. See
+  [troubleshooting](../../../procedures/troubleshooting.md) § 8.

@@ -1,6 +1,13 @@
 # CO - Controlling SPRO Configuration
 # CO - 관리 회계 SPRO 설정
 
+> **This table carries no IMG tree paths** — it maps configuration activities to the
+> tables/views behind them. Before quoting an SPRO path, confirm the activity exists and
+> reads as you expect: a transaction code appearing inside an activity ID does not make that
+> node the one you mean, and many application transactions have no IMG node at all. See
+> [spro-lookup](../../../procedures/spro-lookup.md) § 2a and
+> [common SPRO](../common/spro.md) → *IMG Activity Verification*.
+
 ## Enterprise Structure
 | Config Name | Table/View | Description |
 |------------|-----------|-------------|

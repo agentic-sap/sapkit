@@ -43,6 +43,13 @@ Absent directory → continue silently. See [knowledge](knowledge.md).
   [knowledge](knowledge.md) `Correct` — never silently overwrite, and never let
   the contradiction pass unrecorded.
 
+If `config.json` registers `referenceLibraries` vaults, keyword-match the topic
+against them too (2–3 docs per vault max — mechanics in
+[ask-consultant](ask-consultant.md) § Reference Libraries): the user's own
+distilled practices shape which options you offer and which defaults you
+propose. Cite `참조: {name}/{file}` when a vault doc shapes a question or a
+proposed answer.
+
 This is the point of accumulating: a second interview on the same system should be
 shorter than the first.
 

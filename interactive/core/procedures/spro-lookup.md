@@ -33,6 +33,19 @@ This repo ships generic reference docs per module under `../knowledge/modules/{M
 
 Use this step to produce a short-list of candidate tables/views — for example, "material type customizing → `T134` (header) + `T134T` (texts)". If the static doc alone fully answers the question (purely conceptual / naming / BAPI signature), stop here and cite the file.
 
+> **An IMG path is not one of those answers.** See the next sub-step before you quote one.
+
+#### 2a. IMG node existence and wording — verify, never infer
+
+Writing an IMG (SPRO) path from general SAP knowledge fails in two ways that look identical to a correct answer, both measured 2026-08-02 while annotating a build manual:
+
+1. **The node may not exist at all.** Application transactions have no IMG activity behind them — `KS01`, `KP26`, `KO88`, `KSV5`, `KB21N`, `KB31N`, `KSB1`, `KOB1`, `KE5Z`, and `FB50` were each absent from `CUS_IMGACH`. Quoting a plausible path for one of these sends the user hunting through SPRO for a node that was never there.
+2. **A node carrying the transaction code may be a different activity.** Activity IDs follow `SIMG_CFMENU<menu-area><TCODE>`, so a search on the transaction "finds" something — but `SIMG_CFMENUORKSKO01` reads *"Create **Accrual** Orders"*, which has nothing to do with creating an internal order. `KS01` (→ "Create Accrual Cost Centers") and `KA01` (→ "Create Accrual Cost Elements") carry the same trap.
+
+So: a transaction code appearing inside an activity ID is **not** evidence that the node is the one you mean. Confirm both existence and wording against the live system before quoting a path — `CUS_IMGACH` for the activity, `CUS_IMGACT` with `SPRAS = 'E'` for its display text (see [modules/common/spro.md](../knowledge/modules/common/spro.md) → *IMG Activity Verification*). When the system is unreachable, state the path as unverified rather than presenting it as fact, and say which transactions may have no node.
+
+Note the boundary: the **full IMG tree path** cannot be read from DDIC at all — the structure lives in SIMG objects, and `CUS_STRUC*` / `*IMGSTR*` do not exist. The tables above verify that an activity exists and what it is called; the breadcrumb above it still comes from the shipped module docs or from the user's own SPRO screen.
+
 ### 3. Live MCP Query — read the customer's actual customizing
 
 If the answer depends on the customer's real customizing values (not just table names), chain from Step 2 into MCP:
@@ -57,7 +70,10 @@ question about SAP customizing
         ▼
   Step 2: read ../knowledge/modules/{MODULE}/*.md
         │
-        ├── question is "what is the name / signature / IMG path?" ──► answer from static doc, done
+        ├── question is "what is the name / signature?" ──► answer from static doc, done
+        │
+        ├── question is "what is the IMG path?" ──► Step 2a: confirm the activity exists
+        │                                           and reads as you expect, then answer
         │
         └── question is "what is the customer's configured value?"
                  │

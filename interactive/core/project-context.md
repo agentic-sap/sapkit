@@ -61,7 +61,7 @@ Keys (exact list verified against the server bundle in Phase L2 — see
 | `industry` | key into [knowledge/industry/](knowledge/industry/) | triggered industry knowledge |
 | `country` | ISO key into [knowledge/country/](knowledge/country/) | triggered localization knowledge |
 | `blocklistProfile` | `minimal` \| `standard` \| `strict` (default) | table blocklist scope read by the data-protection hook/server guard |
-| `referenceLibraries` | array of `{name, path, note}` (optional) | local best-practice knowledge vaults consulted by [ask-consultant](procedures/ask-consultant.md) — see below |
+| `referenceLibraries` | array of `{name, path, note}` (optional) | local best-practice knowledge vaults — consulted by **any persona or procedure answering a business-practice question**, not only [ask-consultant](procedures/ask-consultant.md) — see below |
 
 ### `referenceLibraries` (optional, D-050)
 
@@ -81,6 +81,12 @@ committed, or copied into any artifact (same principle as connection profiles:
 slot distributed, values local). Absent field or unreadable path → silent
 fallback, nothing else changes. Consumers read **at most 2–3 matching docs per
 vault per question** (keyword match on filenames + grep), never bulk-load.
+
+A registered library is a **standing instruction for every entry point**, not a
+feature of one skill — it is rung L3 of the consumption contract below. Matching
+and budget mechanics live in [ask-consultant](procedures/ask-consultant.md)
+§ Reference Libraries; ranking and obligations in
+[knowledge-sourcing](policies/knowledge-sourcing.md).
 
 ## Work-in-progress state (created by procedures)
 
@@ -109,6 +115,28 @@ vault per question** (keyword match on filenames + grep), never bulk-load.
                                Read before asking by procedures/knowledge.md "Read points";
                                absent directory → continue silently.
 ```
+
+## Consumption contract — the layers that mature
+
+The state above is not an archive; it is the project getting smarter. Every
+persona and procedure honors this ladder — full contract (precedence, conflict,
+budgets, citation, write-back): [knowledge-sourcing](policies/knowledge-sourcing.md).
+
+| Read | Layer | Mandatory when |
+|---|---|---|
+| L0 | `.sapkit/RULES.md` — a scope-matched rule is a **hard constraint** | any SAP-facing action (write, diagnosis, advice) |
+| L1 | `.sapkit/knowledge/` KD/KS atoms (KS only when `scope:` matches the profile) | stating a fact about this business / this system |
+| L2 | `spro-config*` · `customizations/` · `cbo/` snapshots (via their protocols) | customizing / enhancement / reuse questions |
+| L3 | `referenceLibraries` vaults (§ above) | practice questions — "how is this actually done" |
+| L4 | bundled `core/knowledge/` | generic names, tables, syntax |
+| L5 | model general knowledge — **flag as unverified** | last resort |
+
+Live MCP readings (within tier / P2 gates) outrank every stored layer for
+current-state facts; policies bind above everything. Higher layer wins
+conflicts; a vault never overrides this system's facts or any policy. Absent
+layer → skip silently. When work verifies a new fact or failure, **offer** the
+[knowledge](procedures/knowledge.md) / [lesson](procedures/lesson.md) write-back
+— that offer is what makes the next session cheaper than this one.
 
 ## Rules
 

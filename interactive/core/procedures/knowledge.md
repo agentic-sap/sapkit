@@ -136,8 +136,14 @@ directory is absent:
 
 - [deep-interview](./deep-interview.md) — before the first question
 - [create-program](./create-program.md) — Phase 1A preflight, next to industry/country
+- [analyze-symptom](./analyze-symptom.md) — Step 1 triage (bounded grep for the
+  symptom's terms; a matching `KS-` atom or rule short-circuits the hypothesis space)
+- [ask-consultant](./ask-consultant.md) — Step 4, before answering (atoms are
+  established context the consultant cites instead of re-deriving)
+- the module-consultant personas list the files in `<Reference_Data>` (priority 0),
+  so any procedure that adopts one inherits the read
 
-Consumption rules, both places:
+Consumption rules, every reader:
 
 - An atom with an id is **established context** — state it back citing the id
   instead of re-asking.
@@ -145,8 +151,12 @@ Consumption rules, both places:
   current profile/SID/client. A non-matching one is a hint to verify, not a fact.
 - Everything under `## Pending` is an **open question** — ask it.
 
-Other procedures read on request. Keeping the automatic reads to the interview
-family is deliberate: that is where re-asking actually costs the user. Note that
+Other procedures read on request. The automatic reads sit where not-reading has
+a measured cost: the interview family (re-asking costs the user) and the
+diagnosis/consulting family (re-deriving a recorded failure mode costs more —
+a 2026-08 field case re-diagnosed an authentication error whose verified cause
+was already written as a rule). The full ranking across all layers is
+[knowledge-sourcing](../policies/knowledge-sourcing.md). Note that
 this cost is not fixed — it grows with the file. If a project's knowledge files
 outgrow a comfortable read, add a header index and read selectively rather than
 loading everything; no cap is imposed today because no project has hit one.

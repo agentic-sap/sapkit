@@ -30,6 +30,8 @@ Use this document when:
 
 Run the checks in order and report **PASS / FAIL / WARN / SKIP** per layer — later layers depend on earlier ones.
 
+> **Before walking the checklist**: if `.sapkit/RULES.md` / `LESSONS.md` / `knowledge/system.md` exist, grep them for the failing symptom first — this project's recorded failure modes (a profile-missing rule, a tool-response trap) resolve many diagnostics in one step, and the verified cause is already written down. Absent → proceed normally. Contract: [knowledge-sourcing](../policies/knowledge-sourcing.md).
+
 ## 1. MCP Server Connection — Diagnostic Checklist
 
 ### Layer 1 — MCP server
@@ -91,6 +93,7 @@ Resolve `SAP_RFC_BACKEND` from the active profile's `sap.env`, then run the matc
 | **ADT service not found** | Activate `/sap/bc/adt` in transaction SICF and ensure ICF is running |
 | **SSL certificate errors** | Add the SAP system certificate to the Node.js trust store (recommended), or temporarily set `TLS_REJECT_UNAUTHORIZED=0` in `sap.env` (dev only — never in prod) |
 | **Server registered but every tool call fails** | `server/server.bundle.cjs` missing or truncated — restore the server bundle |
+| **`Basic authentication requires SAP_CLIENT to be provided` on every tool** | Do NOT read this as "MCP is down" — the tools are attached and answering. The alias in `active-profile.txt` has no profile directory on *this* machine, so no connection parameters resolve. See §4 → *Profile missing on this machine* |
 | **Config changes have no effect** | `sap.env` changes are NOT hot-reloaded — reconnect/restart the MCP server per your harness's procedure |
 | **Refusal when reading a legitimate table** | Blocklist guard — see §5 |
 | **Authorization errors on specific operations** | Required authorization objects: `S_DEVELOP` (development), `S_TRANSPRT` (transports); RFC-dispatched ops additionally need `S_RFC` |
@@ -303,6 +306,18 @@ Tier read-only enforcement lives in the MCP server itself (a readonly guard appl
 
 After **switching** profiles (rewriting `active-profile.txt`) or **mutating the active profile's files**, call `ReloadProfile` so the MCP server picks up the change in-session. Expect a response like `{ ok: true, alias, tier, readonly, host, client }` — confirm `alias`/`tier` match what you switched to.
 
+### Profile missing on this machine
+
+`active-profile.txt` stores an **alias only**; the profile body lives in the user home and is git-ignored. Clone a project onto a second machine and the pointer still resolves to a name that has no directory behind it — the repo carries no trace of the mismatch. Every tool then fails with `Basic authentication requires SAP_CLIENT to be provided` (profile lookup fails → env fallback → no client), which reads like an outage but is not one: the tool schemas loaded and the server answered.
+
+Confirm before diagnosing anything else:
+
+- [ ] Compare the alias in `active-profile.txt` against the actual contents of the profile home resolved above (`~/.sapkit/profiles/`, or its legacy equivalent when that is the active home)
+- [ ] Read `~/.sapkit/state/mcp-stderr.log` — `[MCP] Starting in inspection-only mode (no connection parameters).` is the server reporting the missing middle link itself
+- [ ] A stale `<project>/.sapkit/state/mcp-stderr.log` may point at a home directory that does not exist on this machine at all (e.g. another user's `C:\Users\<other>\…`) — that is the fingerprint of a profile created elsewhere
+
+Fix by re-creating the profile through [setup](setup.md) on this machine, or by pointing `active-profile.txt` at an alias that exists here. Never invent the missing profile on the user's behalf — connection settings and credentials are theirs to supply. (Live-observed 2026-08-02; the reverse direction — that creating the profile clears it — was not re-measured.)
+
 ### Secrets
 
 - Passwords are ideally stored in the OS keychain (service `sc4sap`, account `<alias>/<username>`) and referenced as `SAP_PASSWORD=keychain:sc4sap/<alias>/<username>` in `sap.env`. Plaintext fallback (headless/Docker) deserves an explicit warning.
@@ -385,3 +400,37 @@ vsp ships **two different offline checkers** — do not confuse them (D-049 meas
   + `ActivateObjects` chain.
 
 Not installed → skip this section; the plugin works the same without it.
+
+## 8. Tool Response Pitfalls
+
+Responses that look like a failure, a block, or a truncation but are none of those. Each one below was actually mis-read in project work (measured 2026-07-28 → 2026-08-02 across two S/4 systems), and the wrong reading was the expensive part — not the tool.
+
+### `GetSqlQuery` — `truncated: true` on row-collapsing queries
+
+A query whose result collapses rows (`SUM` / `COUNT` / `AVG` without `GROUP BY`, and equally `DISTINCT`) reports `truncated: true` even when the result is complete. The server's total is the number of **base rows matched by `WHERE`**, not the number of result rows, and the tool derives `truncated` as `server_total_rows > returned_row_count` — so any population larger than one row trips it permanently. Raising `row_number` does not change it.
+
+```
+SELECT SUM( vbrp~netwr ) …  →  returned_row_count: 1 · total_rows: 6 · truncated: true   ← result IS complete
+SELECT COUNT(*)         …  →  N: "6"                                                     ← 6 was the population
+```
+
+Judge completeness by `returned_row_count` against what the query can produce (an aggregate is one row by construction), or by whether `row_number` exceeds the base count — never by the `truncated` flag alone. Reading it as "the total was cut off" turns a correct figure into a false discrepancy; `total_rows` is still useful here, just as the population size.
+
+### `GetSqlQuery` — HTTP 400 on a wide `OR` chain
+
+Roughly 6–7 `OR` terms is the practical ceiling; beyond that the call fails with HTTP 400 and no hint that length was the cause. Split into prefix `LIKE` scans or several narrower calls. HTTP 400 from this tool is generic — a non-existent table, a non-existent field, and an unsupported aggregate all surface identically, so never read a single 400 as "the object does not exist".
+
+### `GrepObjects` — a FUGR search does not reach function-module bodies
+
+Searching a function group returns 0 matches for patterns that demonstrably exist in its function modules; the search does not descend into the FM includes. The tool description ("Individual function modules (FUNC) are not supported; use FUGR with the group name to search the whole group") reads as if the group covers them — it does not. To search FM source, read each module with `GetFunctionModule`. Never conclude "not present" from a FUGR grep alone.
+
+### `Update*` on a `$`-prefixed local package — try `transport_request: "local"` first
+
+Local-package detection recognises the literal `$TMP` only. An object in any other local package (`$ZJNCFLOW`, …) is refused with *"The object may be assigned to a transport request. Pass transport_request explicitly."* despite being local. Escalating straight to `CreateTransport` is usually unnecessary:
+
+1. Retry with the literal string `transport_request: "local"` — `CreateFunctionModule` returns exactly that value in its own response, so this is the value the server already handed you.
+2. Only if that is also refused (observed with objects that arrived via abapGit import and may carry transport history) issue a workbench transport with `CreateTransport` and pass its number.
+
+### `CreateTransport` — non-ASCII descriptions come back corrupted
+
+A description containing non-ASCII text (e.g. Korean) is stored with those characters replaced by `#`; ASCII segments survive intact. The transport itself is created and fully usable — only the display text is damaged, and it cannot be repaired through this tool. Write transport descriptions in English. Whether the loss happens client-side or in the backend codepage was not established.

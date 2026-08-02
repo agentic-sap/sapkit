@@ -8,6 +8,74 @@
 > **▶▶ 재개점 — 여기부터 읽는다 (최상단 정본)**
 > ═══════════════════════════════════════════════════════════════════
 >
+> **▶▶ 성숙층 소비 아키텍처 확립 (2026-08-02 · D-059 · v0.4.4 유지 · D-058과 미커밋 동반)**
+>
+> D-058의 점 배선을 일반화 — 사용자 지시 *"학습되서 성숙해지는 부분들이 플러그인 전반에서
+> 잘 이용되게 제대로 설계"*. **소비자 전수 실측**: RULES는 쓰기 3절차만 읽고 진단 계열이
+> 안 읽었으며(JNC L-011 = R-009가 있는데 재오진), 지식 원자는 인터뷰 계열만("한정이 의도"
+> 조문 존재), 볼트는 절차 앵커 0, 스냅샷 계열만 모범 배선.
+>
+> **설계 = 사다리 + 3겹 그물**: 신설 `core/policies/knowledge-sourcing.md`(정본) —
+> **L0** RULES(구속=정책급) → **L1** KD/KS 원자 → **L2** 스냅샷 → **L3** 볼트 → **L4** 번들
+> → **L5** 모델(unverified 플래그 의무). 라이브 판독은 현재상태 사실에서 저장층 전부를
+> 이김 · 정책은 볼트 포함 어느 층도 못 넘음 · 충돌=상위 승, divergence 표면화 ·
+> write-back 표(lesson/knowledge 제안 + 신선도 90d/30d). 그물: ⓐ `project-context.md`
+> 컴팩트 사다리(래퍼 17/17 always-on — D-058 볼트 문단 2개 흡수·순감) ⓑ 페르소나 14종
+> priority-0 라인 ⓒ 현장 앵커 6곳(analyze-symptom Step1 · troubleshooting §1 ·
+> ask-consultant Step4 · deep-interview · create-program · package-to-process Step1-5).
+> `knowledge.md` §Read points 개정(신규 독자 등재) · `lesson.md` 우산 역참조 ·
+> DESIGN.md 정책 트리 1항목.
+>
+> **게이트 전종 exit 0**(md 287 · 링크 807/0 · 계수 178/22/17 불변 — 정책 비계수 ·
+> 스냅샷 재핀). **유보**: 전부 문서 계약(훅 강제 0 — 기각 사유는 D-059 (d)) · 앵커 없는
+> 절차 6본과 RD 없는 페르소나 12종은 always-on 그물만 · 볼트 실효 미측정 · **배포 반영
+> 0(커밋→push→재설치 필요)**.
+>
+> **▶▶ 실사용 프로젝트 교훈 → 제품 지식 승격 1차 (2026-08-02 · D-058 · v0.4.4 유지)**
+>
+> 사용자 프로젝트 2곳(`D:\Claude for SAP\JNC` · `JNC-Dashboard`)의 `.sc4sap/` 교훈층
+> (LESSONS 14 · RULES 12 · KS 6)을 제품 지식과 대조 — **이미 있음 2 · 공백 7 · 이식
+> 부적합 4**. 승격 기준 3개 확립(일반 참만 · 도구 표면 안만 · 기존 항목은 보강 분리).
+>
+> **로딩 경로 실측이 배치를 바꿨다**: `troubleshooting.md` 참조자는 전부 "프로필 설정"
+> 맥락이라 §8은 `/sapkit:troubleshooting` 호출 시에만 읽힌다 — 오독은 그 전에 일어난다.
+> 그래서 요지를 **호출 직전 정책 2본**에 심었다: `data-extraction-policy.md`(P2 호출 전
+> 필독 — 이 정책이 권하는 `COUNT`/`SUM` 우회로가 정확히 truncated 함정 발화형) ·
+> `transport-client-rule.md`(executor가 `CreateTransport` 전 필독). **`GrepObjects` 함정만
+> 배치처 없음** — core 전수 grep에서 이 도구 호출을 지시하는 절차 0건.
+>
+> **묶음 2의 구멍도 메웠다**: 페르소나 `<Reference_Data>`는 `spro-lookup.md`와
+> `common/spro.md`(컨설턴트 14종에 명시)를 걸지만, 같은 블록의 `SPRO Configuration
+> (fallback) → modules/{MOD}/spro.md`는 spro-lookup을 건너뛴다. 그 14본은 전부 IMG 경로
+> 열이 **없어** 재료 없이 지어내게 되는 자리 = JNC L-001의 발생 형태. → **14본 머리에
+> 경고 블록** 삽입(§2a·common 역참조 포함).
+>
+> **연결해둔 참조 볼트가 휴면 슬롯이었다 (D-058 ⑥)**: `referenceLibraries`(D-050) 소비자
+> 실측 = `ask-consultant.md` **1건**, 페르소나 26·나머지 절차 21본 **0건**. 등록해도 그
+> 스킬로 물을 때만 반영됐다. → ⓐ 컨설턴트 페르소나 **14종** `<Reference_Data>` 최우선
+> 항목 삽입 ⓑ **`project-context.md`에 소비 계약 명문화** — 스킬 래퍼 **17/17**이 1단계에서
+> 읽는(실측) 유일한 always-on 지점이라 전 절차에 걸린다. 경계도 못박음: 볼트는 관행
+> 질문에서 번들 지식을 이기되 **SAP 표준 동작·라이브 판독·정책은 못 넘는다**. 매칭·예산
+> 규칙은 `ask-consultant` § Reference Libraries 한 곳만 두고 참조.
+>
+> **⚠ 배포 반영은 아직 0** — 이 머신 캐시(`…/sapkit/0.4.4/core/procedures/troubleshooting.md`)는
+> 08-02 09:43 스냅샷 29,730 B, 레포본 35,275 B, 캐시 grep 0건. **커밋 → push →
+> `claude plugin update sapkit` 재설치**까지 가야 세션이 읽는다.
+>
+> **반영 34파일**(신설 0 · 계수 178/22/17 불변): ⑴ `troubleshooting.md` §8 신설 —
+> `GetSqlQuery` truncated 오독(집계·DISTINCT는 결과가 완전해도 항상 true) · `OR` 6~7
+> 초과 400 · `GrepObjects` FUGR 0매치 · `transport_request: "local"` 우선 · description
+> 비-ASCII 손상. §1 표+§4 소절에 `SAP_CLIENT` 오진(= 프로필이 이 머신에 없음) 추가.
+> ⑵ `spro-lookup.md` §2a 신설 — **IMG 경로를 정적 문서에서 종결시키던 분기를 교정**
+> (없는 노드 지어내기 · `SIMG_CFMENU…KO01`="Create **Accrual** Orders" 동명이인 함정).
+> ⑶ `modules/common/spro.md` — `CUS_IMGACH`/`CUS_IMGACT` 검증절 + 번호범위 그룹≠인터벌.
+>
+> **게이트 8종 exit 0**(links 746/0 · 적합성 183 · 스냅샷 재핀 후 무드리프트 · 매니페스트).
+> **rename 게이트가 이번 편집을 실제로 잡았다** — 새 문장의 구 이름 1건으로 캡 초과(10>9),
+> 캡을 올리지 않고 문장에서 제거해 40/40 복귀. **미반영(다음 후보)** = 묶음 3: abapGit
+> 미러↔ADT **FM 시그니처 비대칭**(`abapgit-roundtrip-rule.md`에 없음) · RFC 플래그 확인
+> 쿼리(`TFDIR.FMODE='R'`). **엔진 수리는 안 했다** — 묶음 1의 절반은 문서로 덮은 도구 결함.
+>
 > **▶▶ 런타임 경로 개명 집행 완료 (2026-08-02 · D-057 · v0.4.4 · engine 4.14.0)**
 >
 > D-041 Phase 2 개봉 · D-004 선행조건 이행. 설계 v4(교차 리뷰 4회 · BLOCKER 8건 봉쇄)를

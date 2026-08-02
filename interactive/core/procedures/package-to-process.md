@@ -112,6 +112,14 @@ Ask one question at a time; do not batch them.
    [project-context](../project-context.md). If industry or country is unset, ask
    once — do not silently proceed on defaults, because Step 5's business phrasing
    and the cross-module checks depend on them.
+5. **Learned layers** — per [knowledge-sourcing](../policies/knowledge-sourcing.md):
+   read `.sapkit/knowledge/domain.md` / `system.md` if present (KD atoms are
+   established process facts — cite ids in the narrative; KS atoms only when
+   `scope:` matches). If `config.json` registers `referenceLibraries` vaults,
+   keyword-match the package's business domain against them (2–3 docs per vault
+   max) — a user vault distilled from a real E2E implementation is the strongest
+   available guide for Step 5's document-flow recovery and business phrasing.
+   Cite `참조: {name}/{file}`. Absent → skip silently.
 
 State after Step 1: `{package, module, sapVersion, abapRelease, industry, country,
 activeModules, language}`.
