@@ -25,7 +25,18 @@
 // 모든 자식은 가짜 HOME/USERPROFILE을 받는다. 실사용자 상태(`~/.sc4sap` 실물)는
 // 읽지도 쓰지도 않는다.
 //
-// 사용: node interactive/scripts/conformance-runtime-dir.mjs [--case <id>] [--verbose]
+// ─────────────────── 이 러너가 게이트에 대해 지는 책임 (§7-2 ↔ §7-3) ────────
+// `check-runtime-path-rename.mjs` 구역 C는 파일에 신·구 **토큰이 있는지**만 본다 —
+// 상수·주석만 남기고 legacy 실행 분기를 지워도 그 게이트는 통과한다(3차 리뷰 #5).
+// 그 구멍을 메우는 것은 게이트가 아니라 **이 러너**다: legacy-only 입력을 소비자별
+// 실물로 구동해 결과를 대조하므로, 분기가 사라지면 여기서 red가 난다. 그래서 이
+// 러너는 CI 필수다 — 게이트만 돌리는 것은 반쪽이다.
+//   `--consumer-root <dir>`: 소비자 실물 경로를 <dir>/<같은 상대경로>로 바꿔치기한다
+//   (없는 파일은 실물로 폴백). 위 주장 자체의 음성시험이
+//   `test-check-runtime-path-rename.mjs`에서 이 플래그를 쓴다.
+//
+// 사용: node interactive/scripts/conformance-runtime-dir.mjs
+//         [--case <id>] [--verbose] [--observe] [--consumer-root <dir>]
 // exit 0 통과 / 1 불일치 · 안전 케이스 실패
 
 import fs from 'node:fs';
@@ -48,6 +59,10 @@ const VERBOSE = argv.includes('--verbose');
 const OBSERVE = argv.includes('--observe');
 const onlyIdx = argv.indexOf('--case');
 const ONLY = onlyIdx >= 0 ? argv[onlyIdx + 1] : null;
+// --consumer-root <dir>: 소비자 실물을 복제·변조한 트리로 갈아끼운다. 없는 파일은
+// 실물로 폴백하므로 한 파일만 넣어도 된다(번들 수 MB를 복사하지 않는다).
+const consumerRootIdx = argv.indexOf('--consumer-root');
+const CONSUMER_ROOT = consumerRootIdx >= 0 ? path.resolve(argv[consumerRootIdx + 1]) : null;
 
 if (!fs.existsSync(FIXTURE)) {
   console.error(`❌ fixture 부재: ${FIXTURE}`);
@@ -56,16 +71,30 @@ if (!fs.existsSync(FIXTURE)) {
 const fixture = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
 
 // ── 대상 실물 경로 ──────────────────────────────────────────────────────────
+// --consumer-root가 있으면 같은 상대경로의 파일을 우선 쓴다(없으면 실물).
+function consumerPath(...rel) {
+  if (CONSUMER_ROOT) {
+    const over = path.join(CONSUMER_ROOT, ...rel);
+    if (fs.existsSync(over)) return over;
+  }
+  return path.join(INTERACTIVE, ...rel);
+}
 const PATHS = {
-  profileResolve: path.join(INTERACTIVE, 'adapters', 'claude', 'lib', 'profile-resolve.mjs'),
-  tierGuard: path.join(INTERACTIVE, 'adapters', 'claude', 'hooks', 'tier-readonly-guard.mjs'),
-  blocklist: path.join(INTERACTIVE, 'adapters', 'claude', 'hooks', 'block-forbidden-tables.mjs'),
-  launch: path.join(INTERACTIVE, 'server', 'launch.cjs'),
-  bundle: path.join(INTERACTIVE, 'server', 'server.bundle.cjs'),
-  vpass: path.join(INTERACTIVE, 'tools', 'vpass', 'vpass.mjs'),
-  extractSpro: path.join(INTERACTIVE, 'tools', 'extract', 'extract-spro.mjs'),
-  extractCust: path.join(INTERACTIVE, 'tools', 'extract', 'extract-customizations.mjs'),
+  profileResolve: consumerPath('adapters', 'claude', 'lib', 'profile-resolve.mjs'),
+  tierGuard: consumerPath('adapters', 'claude', 'hooks', 'tier-readonly-guard.mjs'),
+  blocklist: consumerPath('adapters', 'claude', 'hooks', 'block-forbidden-tables.mjs'),
+  launch: consumerPath('server', 'launch.cjs'),
+  bundle: consumerPath('server', 'server.bundle.cjs'),
+  vpass: consumerPath('tools', 'vpass', 'vpass.mjs'),
+  extractSpro: consumerPath('tools', 'extract', 'extract-spro.mjs'),
+  extractCust: consumerPath('tools', 'extract', 'extract-customizations.mjs'),
 };
+if (CONSUMER_ROOT) {
+  const swapped = Object.entries(PATHS)
+    .filter(([, p]) => p.startsWith(CONSUMER_ROOT))
+    .map(([k]) => k);
+  console.log(`⚠ --consumer-root ${CONSUMER_ROOT} — 바꿔치기된 소비자: ${swapped.join(', ') || '(없음)'}`);
+}
 for (const [k, p] of Object.entries(PATHS)) {
   if (!fs.existsSync(p)) {
     console.error(`❌ 소비자 실물 부재: ${k} → ${p}`);
@@ -475,7 +504,11 @@ try {
       row.note = (row.note ? row.note + ' · ' : '') + 'tier-guard.runtimeDir은 훅 출력에 없어 decision/tier로 간접 고정';
     }
 
-    // cwd-상대 기록기 3종 — fixture에 기대가 없으므로 R-PRESERVE 불변식을 assert한다.
+    // cwd-상대 기록기 3종. fixture에 **도구별** 기대(`consumers['cwd-tools']`)가 있으면
+    // 각각 대조하고, 없으면 R-PRESERVE 불변식만 assert한다. 불변식만으로는 셋이 **같은
+    // 오답**을 내면 통과해 버린다(3차 리뷰 #6) — 그래서 도구별 기대가 본선이고
+    // 불변식은 그물이다. 둘 다 돌린다.
+    const cwdExpected = kase.consumers?.['cwd-tools']?.expected ?? null;
     const [vp, es, ec] = await Promise.all([
       driveResolveOnly(PATHS.vpass, cwd, env),
       driveResolveOnly(PATHS.extractSpro, cwd, env),
@@ -503,23 +536,31 @@ try {
         'R-ENV 하드 오류로 멈춘 도구가 있다(기대 동작). extract-customizations는 --resolve-only에서 홈을 해석하지 않아 멈추지 않는다 — 출력 범위 차이';
     } else if (trioDirs.length === 3) {
       asserted++;
+      const cwdDiffs = [];
       const [a, b, c3] = trioDirs;
       const legacyAt = fs.existsSync(path.join(cwd, '.sc4sap'));
       const newAt = fs.existsSync(path.join(cwd, '.sapkit'));
       if (!(a[1] === b[1] && b[1] === c3[1])) {
-        row.diffs.push(`cwd-상대 3종 불일치: ${trioDirs.map(([n, d]) => `${n}=${d}`).join(' | ')}`);
-        failures++;
-        row.cells['cwd-tools'] = 'FAIL';
+        cwdDiffs.push(`cwd-상대 3종 불일치: ${trioDirs.map(([n, d]) => `${n}=${d}`).join(' | ')}`);
       } else if (legacyAt && !newAt && a[1] !== norm(path.join(cwd, '.sc4sap'))) {
-        row.diffs.push(`R-PRESERVE 위반: cwd에 .sc4sap만 있는데 ${a[1]} 를 골랐다`);
-        failures++;
-        row.cells['cwd-tools'] = 'FAIL';
+        cwdDiffs.push(`R-PRESERVE 위반: cwd에 .sc4sap만 있는데 ${a[1]} 를 골랐다`);
       } else if (!legacyAt && !newAt && a[1] !== norm(path.join(cwd, '.sapkit'))) {
-        row.diffs.push(`R-NEW 위반: cwd에 아무 세대도 없는데 ${a[1]} 를 골랐다`);
+        cwdDiffs.push(`R-NEW 위반: cwd에 아무 세대도 없는데 ${a[1]} 를 골랐다`);
+      }
+      // 도구별 기대값 — "셋이 같으면 통과"의 구멍을 막는 본선 대조.
+      if (cwdExpected) {
+        for (const [name, got] of trioDirs) {
+          if (!Object.prototype.hasOwnProperty.call(cwdExpected, name)) continue;
+          const want = norm(expandPath(cwdExpected[name], ctx));
+          if (want !== got) cwdDiffs.push(`${name}.runtime_dir: 기대 ${want} · 실제 ${got}`);
+        }
+      }
+      if (cwdDiffs.length) {
+        row.diffs.push(...cwdDiffs.map((d) => `cwd-tools: ${d}`));
         failures++;
         row.cells['cwd-tools'] = 'FAIL';
       } else {
-        row.cells['cwd-tools'] = 'ok';
+        row.cells['cwd-tools'] = cwdExpected ? 'ok(pinned)' : 'ok';
       }
     }
 
@@ -529,9 +570,14 @@ try {
   // ── launch.cjs 실기동 스모크 (무접속 안전 확인) ───────────────────────────
   // 스텁이 아니라 **진짜 번들**을 띄운다. 런타임 디렉터리가 없는 임시 cwd라
   // MCP_ENV_PATH가 서지 않고, 서버는 inspection-only로 뜬다 = SAP 무접속.
+  //
+  // 전건 실행일 때만 돈다. 이것은 케이스 단언이 아니라 **전역** 단언이라, 케이스를
+  // 하나만 고른 실행(--case)이나 소비자를 바꿔치기한 실행(--consumer-root, 번들이
+  // 옆에 없다)에서 돌리면 의미도 없고 결과만 흐려진다.
+  const GLOBAL_ASSERTS = !ONLY && !CONSUMER_ROOT;
   let bootOk = false;
-  let bootNote = '';
-  {
+  let bootNote = GLOBAL_ASSERTS ? '' : '(부분 실행 — 전역 스모크 생략)';
+  if (GLOBAL_ASSERTS) {
     const bootCwd = path.join(tmpRoot, 'boot-smoke');
     fs.mkdirSync(bootCwd, { recursive: true });
     const env = { ...process.env };
@@ -592,12 +638,13 @@ try {
     if (!ok) safetyFail++;
     console.log(`  #${g}  ${ok ? 'PASS' : 'FAIL'}  ${rows.map((r) => r.id).join(', ')}`);
   }
-  if (safetyGroups.size !== 9) {
+  // 9종 완비 검사도 전역 단언이다 — 부분 실행에서는 세지 않는다.
+  if (GLOBAL_ASSERTS && safetyGroups.size !== 9) {
     console.log(`  ⚠ 안전 그룹 ${safetyGroups.size}개 — 9종이어야 한다`);
     safetyFail++;
   }
 
-  console.log(`\nlaunch 실기동 스모크: ${bootOk ? 'PASS' : 'FAIL'} — ${bootNote}`);
+  console.log(`\nlaunch 실기동 스모크: ${GLOBAL_ASSERTS ? (bootOk ? 'PASS' : 'FAIL') : 'SKIP'} — ${bootNote}`);
   console.log(
     `\nassert ${asserted}건 · skip(fixture 기대 미확정) ${skipped}건 · ` +
       `unobservable(출하 인터페이스로 관측 불가 — tier-guard.runtimeDir) ${unobserved}건 · 실패 ${failures}건`,

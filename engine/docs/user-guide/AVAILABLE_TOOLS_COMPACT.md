@@ -163,7 +163,7 @@ Preferred dedicated compact tools and minimal payloads:
 **Parameters:**
 - `object_adt_type` (string, optional) - ADT object type code (e.g. CLAS/OC, PROG/P). Required for single-object activation form.
 - `object_name` (string, optional) - Object name for single-object activation form.
-- `object_type` (any, optional) - 
+- `object_type` (any, optional) -
 - `objects` (array, optional) - Explicit objects list for batch activation.
 - `preaudit` (boolean, optional) - Run pre-audit checks before activation.
 
@@ -256,7 +256,7 @@ Preferred dedicated compact tools and minimal payloads:
 - `function_module_name` (string, optional) - ABAP function module name.
 - `length` (number, optional) - Length for typed artifacts.
 - `lowercase` (boolean, optional) - Allow lowercase values (domain setting).
-- `object_type` (any, required) - 
+- `object_type` (any, required) -
 - `package_name` (string, optional) - ABAP package name.
 - `program_name` (string, optional) - ABAP program name.
 - `program_type` (string, optional) - ABAP program type.
@@ -277,7 +277,7 @@ Preferred dedicated compact tools and minimal payloads:
 - `domain_name` (string, optional) - ABAP domain name.
 - `function_group_name` (string, optional) - ABAP function group name.
 - `function_module_name` (string, optional) - ABAP function module name.
-- `object_type` (any, required) - 
+- `object_type` (any, required) -
 - `program_name` (string, optional) - ABAP program name.
 - `transport_request` (string, optional) - Transport request id (if required by system).
 
@@ -326,7 +326,7 @@ Preferred dedicated compact tools and minimal payloads:
 - `function_module_name` (string, optional) - Function module name.
 - `interface_name` (string, optional) - Interface name.
 - `metadata_extension_name` (string, optional) - Metadata extension name.
-- `object_type` (any, required) - 
+- `object_type` (any, required) -
 - `package_name` (string, optional) - Package name.
 - `program_name` (string, optional) - Program name.
 - `response_format` (string, optional) - Response format for SERVICE_BINDING reads.
@@ -335,7 +335,7 @@ Preferred dedicated compact tools and minimal payloads:
 - `service_definition_name` (string, optional) - Service definition name.
 - `structure_name` (string, optional) - Structure name.
 - `table_name` (string, optional) - Table name.
-- `version` (any, optional) - 
+- `version` (any, optional) -
 - `view_name` (string, optional) - View name.
 
 ---
@@ -520,7 +520,7 @@ Preferred dedicated compact tools and minimal payloads:
 - `function_module_name` (string, optional) - ABAP function module name.
 - `length` (number, optional) - Length for typed artifacts.
 - `lowercase` (boolean, optional) - Allow lowercase values (domain setting).
-- `object_type` (any, required) - 
+- `object_type` (any, required) -
 - `package_name` (string, optional) - ABAP package name.
 - `program_name` (string, optional) - ABAP program name.
 - `sign_exists` (boolean, optional) - Allow signed values (domain setting).

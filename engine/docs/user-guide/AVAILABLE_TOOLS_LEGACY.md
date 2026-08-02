@@ -239,7 +239,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 **Parameters:**
 - `class_name` (string, required) - Class name (e.g., ZCL_MY_CLASS).
-- `method_name` (string, required) - Method name to extract (e.g. 
+- `method_name` (string, required) - Method name to extract (e.g.
 
 ---
 
@@ -253,7 +253,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 **Parameters:**
 - `class_name` (string, required) - Class name (e.g., ZCL_MY_CLASS).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -270,10 +270,10 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 **Parameters:**
 - `context_lines` (number, optional (default: 3)) - Number of unchanged context lines around each change.
-- `object_name_a` (string, required) - Object name of the first (left / 
-- `object_name_b` (string, required) - Object name of the second (right / 
-- `object_type_a` (string, required) - Object type of the first (left / 
-- `object_type_b` (string, required) - Object type of the second (right / 
+- `object_name_a` (string, required) - Object name of the first (left /
+- `object_name_b` (string, required) - Object name of the second (right /
+- `object_type_a` (string, required) - Object type of the first (left /
+- `object_type_b` (string, required) - Object type of the second (right /
 
 ---
 
@@ -282,7 +282,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 <a id="getbadiimplementations-read-only-enhancement"></a>
 #### GetBadiImplementations (Read-Only / Enhancement)
-**Description:** [read-only] Find implementations of a (classic) BAdI definition. Use during symptom analysis when a standard SAP BAdI is implicated — answers 
+**Description:** [read-only] Find implementations of a (classic) BAdI definition. Use during symptom analysis when a standard SAP BAdI is implicated — answers
 
 **Source:** `src/handlers/enhancement/readonly/handleGetBadiImplementations.ts`
 
@@ -309,7 +309,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 **Parameters:**
 - `function_group_name` (string, required) - Function group name (e.g., Z_MY_FG).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -325,10 +325,10 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 **Available in:** `onprem`, `cloud`, `legacy`
 
 **Parameters:**
-- `check_inactive` (boolean, optional (default: false)) - Opt-in (default false). When reading the active version, also read the inactive version and, if an unactivated version exists and its source differs, attach a 
+- `check_inactive` (boolean, optional (default: false)) - Opt-in (default false). When reading the active version, also read the inactive version and, if an unactivated version exists and its source differs, attach a
 - `function_group_name` (string, required) - Function group name containing the function module (e.g., Z_MY_FG).
 - `function_module_name` (string, required) - Function module name (e.g., Z_MY_FM).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -406,7 +406,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 **Parameters:**
 - `interface_name` (string, required) - Interface name (e.g., ZIF_MY_INTERFACE).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -436,7 +436,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 **Parameters:**
 - `package_name` (string, required) - Package name (e.g., Z_MY_PACKAGE).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -452,8 +452,8 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 **Available in:** `onprem`, `legacy`
 
 **Parameters:**
-- `name` (string, required) - [read-only] Technical name of the program or function group (e.g., 
-- `type` (string, required) - [read-only] 
+- `name` (string, required) - [read-only] Technical name of the program or function group (e.g.,
+- `type` (string, required) - [read-only]
 
 ---
 
@@ -467,7 +467,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 **Parameters:**
 - `program_name` (string, required) - Program name (e.g., Z_MY_PROGRAM).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -517,7 +517,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 - `context_lines` (number, optional (default: 0)) - Number of lines of context before/after each match (0-5). Default: 0.
 - `max_results` (number, optional (default: 100)) - Maximum total matches to return across all objects. Default: 100.
 - `objects` (array, required) - Objects to search (1-50 entries).
-- `pattern` (string, required) - JavaScript regular expression source to search for (e.g. 
+- `pattern` (string, required) - JavaScript regular expression source to search for (e.g.
 
 ---
 
@@ -536,7 +536,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 - `max_results` (number, optional (default: 200)) - Maximum total matches to return across all objects. Once reached, remaining objects are not fetched. Default: 200.
 - `object_types` (array, optional) - Optional filter to only scan these object types (e.g. [
 - `packages` (array, required) - Package names to search (1-10 entries).
-- `pattern` (string, required) - JavaScript regular expression source to search for (e.g. 
+- `pattern` (string, required) - JavaScript regular expression source to search for (e.g.
 
 ---
 
@@ -545,17 +545,17 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 <a id="checksyntax-read-only-system"></a>
 #### CheckSyntax (Read-Only / System)
-**Description:** [read-only] Run a standalone ABAP syntax check WITHOUT writing anything to SAP. Supports 
+**Description:** [read-only] Run a standalone ABAP syntax check WITHOUT writing anything to SAP. Supports
 
 **Source:** `src/handlers/system/readonly/handleCheckSyntax.ts`
 
 **Available in:** `onprem`, `cloud`, `legacy`
 
 **Parameters:**
-- `function_group_name` (string, optional) - [read-only] Function group name. Required when object_type is 
+- `function_group_name` (string, optional) - [read-only] Function group name. Required when object_type is
 - `object_name` (string, required) - [read-only] Name of the object to check (e.g., ZCL_MY_CLASS).
-- `object_type` (string, required) - [read-only] ABAP object kind to check: 
-- `source_code` (string, optional) - [read-only] Optional proposed ABAP source code to check in place. Only honored for object_type 
+- `object_type` (string, required) - [read-only] ABAP object kind to check:
+- `source_code` (string, optional) - [read-only] Optional proposed ABAP source code to check in place. Only honored for object_type
 
 ---
 
@@ -570,7 +570,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 **Parameters:**
 - `custom_only` (boolean, optional (default: true)) - When true (default), only Z*/Y*//NAMESPACE/ custom objects are expanded further during traversal — standard SAP objects still appear as leaf nodes but are not traversed past. The root is always expanded regardless of this flag.
 - `depth` (number, optional (default: DEFAULT_DEPTH)) - Max BFS depth from the root (1-4). Default 2.
-- `direction` (string, optional (default: callers)) - 
+- `direction` (string, optional (default: callers)) -
 - `function_group` (string, optional) - Function group name — required only when object_type is FUNC (function modules are addressed as GROUP|NAME).
 - `max_nodes` (number, optional (default: DEFAULT_MAX_NODES)) - Global cap on total nodes in the returned graph (max 300). Default 100.
 - `object_name` (string, required) - Root ABAP object name.
@@ -593,7 +593,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 <a id="getsysteminfo-read-only-system"></a>
 #### GetSystemInfo (Read-Only / System)
-**Description:** [read-only] Retrieve SAP system identity: system ID (SID), client, logon language, connected user, and an ADT-stack 
+**Description:** [read-only] Retrieve SAP system identity: system ID (SID), client, logon language, connected user, and an ADT-stack
 
 **Source:** `src/handlers/system/readonly/handleGetSystemInfo.ts`
 
@@ -629,7 +629,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 **Available in:** `onprem`, `cloud`, `legacy`
 
 **Parameters:**
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 - `view_name` (string, required) - View name (e.g., Z_MY_VIEW).
 
 ---
@@ -745,8 +745,8 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 **Parameters:**
 - `class_name` (string, required) - Class name (e.g., ZCL_MY_CLASS).
 - `context_max_deps` (number, optional (default: 10)) - Max number of dependencies to resolve when with_context is true (1-15). Default 10.
-- `version` (string, optional (default: active)) - Version to read: 
-- `with_context` (boolean, optional (default: false)) - If true, append a 
+- `version` (string, optional (default: active)) - Version to read:
+- `with_context` (boolean, optional (default: false)) - If true, append a
 
 ---
 
@@ -760,7 +760,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 **Parameters:**
 - `class_name` (string, required) - Parent class name (e.g., ZCL_MY_CLASS).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -774,7 +774,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 **Parameters:**
 - `class_name` (string, required) - Parent class name (e.g., ZCL_MY_CLASS).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -788,7 +788,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 **Parameters:**
 - `class_name` (string, required) - Parent class name (e.g., ZCL_MY_CLASS).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -802,7 +802,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 **Parameters:**
 - `class_name` (string, required) - Parent class name (e.g., ZCL_MY_CLASS).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -833,8 +833,8 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 **Parameters:**
 - `activate` (boolean, optional) - Activate after update. Default: false.
 - `class_name` (string, required) - Class name (e.g., ZCL_MY_CLASS).
-- `method_name` (string, required) - Method name to replace (e.g. 
-- `source` (string, required) - Full replacement method block. Must start with 
+- `method_name` (string, required) - Method name to replace (e.g.
+- `source` (string, required) - Full replacement method block. Must start with
 - `transport_request` (string, optional) - Transport request number (e.g., E19K905635). Required for transportable packages.
 
 ---
@@ -908,7 +908,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 <a id="activateobjects-high-level-common"></a>
 #### ActivateObjects (High-Level / Common)
-**Description:** [high-level] Activate a set of ABAP objects in a single call. Uses the ADT mass-activation endpoint (/sap/bc/adt/activation/runs) so cyclic references between siblings (e.g. main program + multiple cross-referencing includes) resolve in one compilation scope. Returns per-object status, errors, warnings. Falls back to /sap/bc/adt/activation on legacy systems. FUGR recipe: activating function modules alone fails with 
+**Description:** [high-level] Activate a set of ABAP objects in a single call. Uses the ADT mass-activation endpoint (/sap/bc/adt/activation/runs) so cyclic references between siblings (e.g. main program + multiple cross-referencing includes) resolve in one compilation scope. Returns per-object status, errors, warnings. Falls back to /sap/bc/adt/activation on legacy systems. FUGR recipe: activating function modules alone fails with
 
 **Source:** `src/handlers/common/high/handleActivateObjects.ts`
 
@@ -923,7 +923,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 <a id="updatesourcebypatch-high-level-common"></a>
 #### UpdateSourceByPatch (High-Level / Common)
-**Description:** Modify existing ABAP source code on SAP via a surgical string replacement (find old_string, replace with new_string) instead of resending the full source. 
+**Description:** Modify existing ABAP source code on SAP via a surgical string replacement (find old_string, replace with new_string) instead of resending the full source.
 
 **Source:** `src/handlers/common/high/handleUpdateSourceByPatch.ts`
 
@@ -931,7 +931,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 **Parameters:**
 - `activate` (boolean, optional) - Activate the object after the patched source is written. Default: false.
-- `function_group` (string, optional) - Function group name. Required when object_type is 
+- `function_group` (string, optional) - Function group name. Required when object_type is
 - `new_string` (string, required) - Replacement text.
 - `object_name` (string, required) - Name of the object to patch (e.g., ZCL_MY_CLASS).
 - `object_type` (string, required) - ABAP object kind to patch: CLAS (class), PROG (program), INTF (interface), INCL (include), FUNC (function module).
@@ -1005,7 +1005,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 - `function_group_name` (string, required) - Function group name containing the function module (e.g., ZOK_FG_MCP01).
 - `function_module_name` (string, required) - Function module name (e.g., Z_TEST_FM_MCP01). Function module must already exist.
 - `source_code` (string, required) - Complete ABAP function module source code. Must include FUNCTION statement with parameters and ENDFUNCTION. Example:\n\nFUNCTION Z_TEST_FM\n  IMPORTING\n    VALUE(iv_input) TYPE string\n  EXPORTING\n    VALUE(ev_output) TYPE string.\n  \n  ev_output = iv_input.\nENDFUNCTION.
-- `transport_request` (string, optional) - Transport request number (e.g., E19K905635). Required for transportable function modules. For local objects ($TMP package) this can be omitted — the handler defaults to 
+- `transport_request` (string, optional) - Transport request number (e.g., E19K905635). Required for transportable function modules. For local objects ($TMP package) this can be omitted — the handler defaults to
 
 ---
 
@@ -1036,7 +1036,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 **Parameters:**
 - `function_group_name` (string, required) - FunctionGroup name (e.g., Z_MY_FUNCTIONGROUP).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -1067,10 +1067,10 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 **Available in:** `onprem`, `cloud`, `legacy`
 
 **Parameters:**
-- `check_inactive` (boolean, optional (default: true)) - When reading the active version, also read the inactive version (one extra ADT call) and, if an unactivated version exists and its source differs, attach a 
+- `check_inactive` (boolean, optional (default: true)) - When reading the active version, also read the inactive version (one extra ADT call) and, if an unactivated version exists and its source differs, attach a
 - `function_group_name` (string, required) - FunctionGroup name containing the function module (e.g., Z_MY_FUNCTIONGROUP).
 - `function_module_name` (string, required) - FunctionModule name (e.g., Z_MY_FUNCTIONMODULE).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -1090,7 +1090,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 - `description` (string, optional) - GUI Status description.
 - `program_name` (string, required) - Parent program name (e.g., Z_MY_PROGRAM).
 - `status_name` (string, required) - GUI Status name to create (e.g., MAIN_STATUS).
-- `status_type` (string, optional) - Status type: 
+- `status_type` (string, optional) - Status type:
 - `transport_request` (string, optional) - Transport request number.
 
 ---
@@ -1259,8 +1259,8 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 **Parameters:**
 - `context_max_deps` (number, optional (default: 10)) - Max number of dependencies to resolve when with_context is true (1-15). Default 10.
 - `interface_name` (string, required) - Interface name (e.g., Z_MY_INTERFACE).
-- `version` (string, optional (default: active)) - Version to read: 
-- `with_context` (boolean, optional (default: false)) - If true, append a 
+- `version` (string, optional (default: active)) - Version to read:
+- `with_context` (boolean, optional (default: false)) - If true, append a
 
 ---
 
@@ -1293,7 +1293,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 **Parameters:**
 - `package_name` (string, required) - Package name (e.g., Z_MY_PACKAGE).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -1309,11 +1309,11 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 **Available in:** `onprem`, `legacy`
 
 **Parameters:**
-- `application` (string, optional) - Application area (e.g., 
+- `application` (string, optional) - Application area (e.g.,
 - `description` (string, optional) - Program description. If not provided, program_name will be used.
 - `package_name` (string, required) - Package name (e.g., ZOK_LAB, $TMP for local objects)
 - `program_name` (string, required) - Program name (e.g., Z_TEST_PROGRAM_001). Must follow SAP naming conventions (start with Z or Y).
-- `program_type` (string, optional) - Program type: 
+- `program_type` (string, optional) - Program type:
 - `transport_request` (string, optional) - Transport request number (e.g., E19K905635). Required for transportable packages.
 
 ---
@@ -1343,8 +1343,8 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 **Parameters:**
 - `context_max_deps` (number, optional (default: 10)) - Max number of dependencies to resolve when with_context is true (1-15). Default 10.
 - `program_name` (string, required) - Program name (e.g., Z_MY_PROGRAM).
-- `version` (string, optional (default: active)) - Version to read: 
-- `with_context` (boolean, optional (default: false)) - If true, append a 
+- `version` (string, optional (default: active)) - Version to read:
+- `with_context` (boolean, optional (default: false)) - If true, append a
 
 ---
 
@@ -1444,11 +1444,11 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 **Parameters:**
 - `activate` (boolean, optional) - Activate the parent program after write. Default: false.
-- `key` (string, optional) - Row key. For 
+- `key` (string, optional) - Row key. For
 - `language` (string, optional) - Language key (1-char). Defaults to SAP logon language.
 - `program_name` (string, required) - Parent program name (e.g., Z_MY_PROGRAM).
-- `text` (string, required) - 
-- `text_type` (string, required) - 
+- `text` (string, required) -
+- `text_type` (string, required) -
 - `transport_request` (string, optional) - Transport request number.
 
 ---
@@ -1463,10 +1463,10 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 **Parameters:**
 - `activate` (boolean, optional) - Activate the parent program after write. Default: false.
-- `key` (string, optional) - Row key, or 
+- `key` (string, optional) - Row key, or
 - `language` (string, optional) - Language key. Defaults to SAP logon language.
 - `program_name` (string, required) - Parent program name.
-- `text_type` (string, required) - 
+- `text_type` (string, required) -
 - `transport_request` (string, optional) - Transport request number.
 
 ---
@@ -1480,10 +1480,10 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 **Available in:** `onprem`, `legacy`
 
 **Parameters:**
-- `key` (string, optional) - Optional: filter by row key (e.g., 
-- `language` (string, optional) - Language key (1-char, e.g., 
+- `key` (string, optional) - Optional: filter by row key (e.g.,
+- `language` (string, optional) - Language key (1-char, e.g.,
 - `program_name` (string, required) - Program name (e.g., Z_MY_PROGRAM).
-- `text_type` (string, optional) - Filter by ID: 
+- `text_type` (string, optional) - Filter by ID:
 
 ---
 
@@ -1511,11 +1511,11 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 **Parameters:**
 - `activate` (boolean, optional) - Activate the parent program after write. Default: false.
-- `key` (string, optional) - Row key. Required except for 
+- `key` (string, optional) - Row key. Required except for
 - `language` (string, optional) - Language key. Defaults to SAP logon language.
 - `program_name` (string, required) - Parent program name.
-- `text` (string, required) - 
-- `text_type` (string, required) - 
+- `text` (string, required) -
+- `text_type` (string, required) -
 - `transport_request` (string, optional) - Transport request number.
 
 ---
@@ -1530,10 +1530,10 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 **Parameters:**
 - `activate` (boolean, optional) - false (default) — stage as INACTIVE (program activation promotes). true — write ACTIVE immediately.
-- `language` (string, optional) - 1-char language key (e.g. 
+- `language` (string, optional) - 1-char language key (e.g.
 - `program_name` (string, required) - Parent program name.
 - `replace_existing` (boolean, optional) - If true (default), the TPOOL is replaced with the provided entries only. If false, existing rows are preserved and provided rows merge by (type, key).
-- `text_elements` (array, required) - Array of entries. Each: { type: 
+- `text_elements` (array, required) - Array of entries. Each: { type:
 - `transport_request` (string, optional) - Transport request number (informational).
 
 ---
@@ -1568,9 +1568,9 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 **Parameters:**
 - `context` (string, optional) - Optional context string shown in SAP tools.
-- `duration` (object, optional) - 
-- `risk_level` (object, optional) - 
-- `scope` (object, optional) - 
+- `duration` (object, optional) -
+- `risk_level` (object, optional) -
+- `scope` (object, optional) -
 - `tests` (array, required) - List of container/test class pairs to execute.
 - `title` (string, optional) - Optional title for the ABAP Unit run.
 
@@ -1697,9 +1697,9 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 **Parameters:**
 - `context` (string, optional) - Optional context string shown in SAP tools.
-- `duration` (object, optional) - 
-- `risk_level` (object, optional) - 
-- `scope` (object, optional) - 
+- `duration` (object, optional) -
+- `risk_level` (object, optional) -
+- `scope` (object, optional) -
 - `tests` (array, required) - List of container/test class pairs to execute.
 - `title` (string, optional) - Optional title for the ABAP Unit run.
 
@@ -1775,7 +1775,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 **Available in:** `onprem`, `cloud`, `legacy`
 
 **Parameters:**
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 - `view_name` (string, required) - View name (e.g., Z_MY_VIEW).
 
 ---
@@ -1846,7 +1846,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 - `session_id` (string, optional) - Session ID from GetSession. If not provided, a new session will be created.
 - `session_state` (object, optional) - Session state from GetSession (cookies, csrf_token, cookie_store). Required if session_id is provided.
 - `source_code` (string, optional) - Optional: source code to validate. If provided, validates hypothetical code without creating object. Must include complete CLASS DEFINITION and IMPLEMENTATION sections.
-- `version` (string, optional) - Version to check: 
+- `version` (string, optional) - Version to check:
 
 ---
 
@@ -1896,7 +1896,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 **Available in:** `onprem`, `cloud`, `legacy`
 
 **Parameters:**
-- `format` (string, optional) - Preferred response format. Defaults to 
+- `format` (string, optional) - Preferred response format. Defaults to
 - `run_id` (string, required) - Run identifier returned by RunClassUnitTestsLow.
 - `session_id` (string, optional) - Session ID from GetSession. If not provided, a new session will be created.
 - `session_state` (object, optional) - Session state from GetSession (cookies, csrf_token, cookie_store). Required if session_id is provided.
@@ -1955,9 +1955,9 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 **Available in:** `onprem`, `cloud`, `legacy`
 
 **Parameters:**
-- `duration` (object, optional) - 
-- `risk_level` (object, optional) - 
-- `scope` (object, optional) - 
+- `duration` (object, optional) -
+- `risk_level` (object, optional) -
+- `scope` (object, optional) -
 - `session_id` (string, optional) - Session ID from GetSession. If not provided, a new session will be created.
 - `session_state` (object, optional) - Session state from GetSession (cookies, csrf_token, cookie_store). Required if session_id is provided.
 - `tests` (array, required) - List of container/test class pairs to execute.
@@ -2058,7 +2058,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 **Available in:** `onprem`, `cloud`, `legacy`
 
 **Parameters:**
-- `objects` (array, required) - Array of objects to activate. Each object must have 
+- `objects` (array, required) - Array of objects to activate. Each object must have
 - `preaudit` (boolean, optional) - Request pre-audit before activation. Default: true
 
 ---
@@ -2125,7 +2125,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 - `function_module_name` (string, required) - Function module name (e.g., Z_TEST_FM)
 - `session_id` (string, optional) - Session ID from GetSession. If not provided, a new session will be created.
 - `session_state` (object, optional) - Session state from GetSession (cookies, csrf_token, cookie_store). Required if session_id is provided.
-- `version` (string, optional) - Version to check: 
+- `version` (string, optional) - Version to check:
 
 ---
 
@@ -2345,7 +2345,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 - `session_id` (string, optional) - Session ID from GetSession.
 - `session_state` (object, optional) - Session state from GetSession.
 - `status_name` (string, required) - GUI Status name to create (e.g., MAIN_STATUS).
-- `status_type` (string, optional) - Status type: 
+- `status_type` (string, optional) - Status type:
 - `transport_request` (string, optional) - Transport request number.
 
 ---
@@ -2363,7 +2363,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 - `program_name` (string, required) - Parent program name.
 - `session_id` (string, optional) - Session ID from GetSession.
 - `session_state` (object, optional) - Session state from GetSession.
-- `status_name` (string, required) - GUI Status name to delete. Use 
+- `status_name` (string, required) - GUI Status name to delete. Use
 - `transport_request` (string, optional) - Transport request number.
 
 ---
@@ -2676,11 +2676,11 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 **Available in:** `onprem`, `legacy`
 
 **Parameters:**
-- `application` (string, optional (default: *').)) - Application area (optional, default: 
+- `application` (string, optional (default: *').)) - Application area (optional, default:
 - `description` (string, required) - Program description.
 - `package_name` (string, required) - Package name (e.g., ZOK_LOCAL, $TMP for local objects).
 - `program_name` (string, required) - Program name (e.g., Z_TEST_PROGRAM). Must follow SAP naming conventions.
-- `program_type` (string, optional) - Program type: 
+- `program_type` (string, optional) - Program type:
 - `session_id` (string, optional) - Session ID from GetSession. If not provided, a new session will be created.
 - `session_state` (object, optional) - Session state from GetSession (cookies, csrf_token, cookie_store). Required if session_id is provided.
 - `skip_check` (boolean, optional) - Skip the post-create syntax check on the newly created program shell. Default: false. Set to true when chaining multiple low-level calls where the caller will run CheckProgramLow explicitly later.
@@ -2903,7 +2903,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 - `ddl_source` (string, optional) - Optional DDL source code to validate (for checking new/unsaved code). If provided, code will be base64 encoded and sent in check request body.
 - `session_id` (string, optional) - Session ID from GetSession. If not provided, a new session will be created.
 - `session_state` (object, optional) - Session state from GetSession (cookies, csrf_token, cookie_store). Required if session_id is provided.
-- `version` (string, optional) - Version to check: 
+- `version` (string, optional) - Version to check:
 - `view_name` (string, required) - View name (e.g., Z_MY_PROGRAM).
 
 ---
@@ -2917,7 +2917,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 **Available in:** `onprem`, `cloud`, `legacy`
 
 **Parameters:**
-- `application` (string, optional (default: *').)) - Application area (optional, default: 
+- `application` (string, optional (default: *').)) - Application area (optional, default:
 - `description` (string, required) - View description.
 - `package_name` (string, required) - Package name (e.g., ZOK_LOCAL, $TMP for local objects).
 - `session_id` (string, optional) - Session ID from GetSession. If not provided, a new session will be created.
@@ -2925,7 +2925,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 - `skip_check` (boolean, optional) - Skip post-create syntax check. Default: false. When false, runs a syntax check on the freshly created view shell and surfaces any errors with line numbers.
 - `transport_request` (string, optional) - Transport request number (e.g., E19K905635). Required for transportable packages.
 - `view_name` (string, required) - View name (e.g., Z_TEST_PROGRAM). Must follow SAP naming conventions.
-- `view_type` (string, optional) - View type: 
+- `view_type` (string, optional) - View type:
 
 ---
 
@@ -2983,7 +2983,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 **Available in:** `onprem`, `cloud`, `legacy`
 
 **Parameters:**
-- `ddl_source` (string, required) - Complete DDL source code. CDS: include @AbapCatalog.sqlViewName and other annotations. Classic: plain 
+- `ddl_source` (string, required) - Complete DDL source code. CDS: include @AbapCatalog.sqlViewName and other annotations. Classic: plain
 - `lock_handle` (string, required) - Lock handle from LockObject. Required for update operation.
 - `session_id` (string, optional) - Session ID from GetSession. If not provided, a new session will be created.
 - `session_state` (object, optional) - Session state from GetSession (cookies, csrf_token, cookie_store). Required if session_id is provided.

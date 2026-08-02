@@ -23,6 +23,20 @@
 //                조용히 끊긴다 — 그래서 "없음"이 곧 FAIL이다.
 //   앵커         개명 금지 호환성 문자열(§3-3). 정확 문자열이 **사라지면 FAIL**.
 //
+// ─────────────── 구역 C가 보장하지 **않는** 것 (3차 리뷰 #5) ────────────────
+// 구역 C는 파일 안에 legacy **토큰이 있는지**만 센다. 상수 선언과 주석만 남기고
+// 실행 분기를 지워도 통과한다 — 즉 "폴백이 살아 있다"가 아니라 "폴백을 말하는
+// 문자열이 남아 있다"까지가 이 게이트의 주장이다. 소비자마다 동작 앵커를 박는
+// 방식(정규식으로 분기 형태를 고정)은 리팩터링마다 깨져 유지비가 보장을 넘는다.
+//
+// **실행 보증의 소유자는 `interactive/scripts/conformance-runtime-dir.mjs`다.**
+// 그 러너가 legacy-only 입력(tie-legacy-only · env-legacy-only ·
+// compat-legacy-artifact-schema 등)을 소비자별 실물로 구동해 결과를 대조하므로,
+// 분기가 사라지면 토큰이 남아 있어도 거기서 red가 난다. 두 시험은 짝이다 —
+// 게이트만 CI에 걸고 러너를 빼면 이 구멍이 그대로 열린다.
+// 이 주장 자체의 음성시험: `test-check-runtime-path-rename.mjs` 마지막 절
+// (러너 `--consumer-root`로 legacy 분기를 지운 리졸버를 먹여 red를 실측).
+//
 // exit 0 통과 / 1 위반
 import fs from 'node:fs';
 import path from 'node:path';

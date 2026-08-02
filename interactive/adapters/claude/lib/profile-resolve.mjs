@@ -41,11 +41,27 @@ function warnOnce(code, message) {
   }
 }
 
-// R-ENV. `SAPKIT_HOME_DIR` set but missing is ENV_INVALID: the path is returned
-// as-is so every lookup under it misses and each caller's own fail-closed branch
-// engages — it is never a reason to fall back to the legacy variable silently.
-// With no env var the home is chosen by where `alias` actually lives, so a
-// half-migrated machine still finds its profiles.
+// R-ENV. `SAPKIT_HOME_DIR` set but missing is ENV_INVALID and it is TERMINAL for
+// the connection source: the operator pinned a home, the pin is broken, and
+// nothing may stand in for it — not SC4SAP_HOME_DIR, and not the project-local
+// `<runtime dir>/sap.env` either. `resolveSapEnvPath` enforces that below.
+//
+// Scope is deliberately narrow. ENV_INVALID must NOT reach into the row-data
+// policy source: `block-forbidden-tables` reads `blocklistProfile` out of the
+// config.json this module resolves, and that config.json is project-local —
+// it has nothing to do with the home. Cutting it off would silently swap the
+// project's own `strict` for the hook's DEFAULT_PROFILE, i.e. let a broken env
+// var move the row-data posture. So `resolveConfigJsonPath`, the runtime-dir
+// walk, and the alias pointer all keep working unchanged.
+export function envHomeInvalid() {
+  const explicit = process.env.SAPKIT_HOME_DIR;
+  return Boolean(explicit) && !existsSync(explicit);
+}
+
+// The path is returned as-is so every lookup under it misses and each caller's
+// own fail-closed branch engages — it is never a reason to fall back to the
+// legacy variable silently. With no env var the home is chosen by where `alias`
+// actually lives, so a half-migrated machine still finds its profiles.
 export function sapkitHome(alias = null) {
   const explicit = process.env.SAPKIT_HOME_DIR;
   if (explicit) {
@@ -186,6 +202,17 @@ export function readActiveAlias(startDir) {
 
 // Returns { path, source: 'profile' | 'legacy' } or null.
 export function resolveSapEnvPath(startDir) {
+  // ENV_INVALID is terminal HERE and only here: no connection source at all.
+  // Without this the alias lookup misses under the broken home and the function
+  // falls through to `<runtime dir>/sap.env`, handing the caller a connection
+  // the operator never selected (3rd-review MAJOR #2).
+  if (envHomeInvalid()) {
+    warnOnce(
+      'ENV_INVALID',
+      `SAPKIT_HOME_DIR points at a path that does not exist (${process.env.SAPKIT_HOME_DIR}) — refusing to resolve any connection source, including a project-local sap.env.`,
+    );
+    return null;
+  }
   const alias = readActiveAlias(startDir);
   if (alias) {
     const p = join(profilesDir(alias), alias, 'sap.env');

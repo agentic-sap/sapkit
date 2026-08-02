@@ -36,9 +36,22 @@ function warnOnce(code, message) {
   console.error(`[launch] ${code}: ${message}`);
 }
 
-// R-ENV. A SAPKIT_HOME_DIR that is set but missing is an error, never a reason
-// to fall back to the legacy variable: returning null makes this shim skip
-// profile resolution, so the bundle starts connectionless (fail-closed).
+// R-ENV. A SAPKIT_HOME_DIR that is set but missing is ENV_INVALID and that is
+// TERMINAL for connection resolution: the operator pinned a home, the pin is
+// broken, and no other source may stand in for it — not SC4SAP_HOME_DIR, and
+// not a project-local sap.env either. The sentinel below is what makes the
+// difference visible; a plain `null` was indistinguishable from "this
+// generation has no profile", which let the caller fall through to
+// `<runtime dir>/sap.env` and connect to a system the operator never selected.
+const ENV_INVALID = Symbol("ENV_INVALID");
+
+// True only for the terminal case. PROFILE_NOT_FOUND, a valid home with no
+// sap.env, and a missing pointer are all unaffected (R-PRESERVE).
+function envHomeInvalid() {
+  const explicit = process.env.SAPKIT_HOME_DIR;
+  return Boolean(explicit) && !fs.existsSync(explicit);
+}
+
 // Otherwise the home is chosen by where the alias actually lives.
 function resolveHome(alias) {
   const explicit = process.env.SAPKIT_HOME_DIR;
@@ -46,9 +59,9 @@ function resolveHome(alias) {
     if (!fs.existsSync(explicit)) {
       warnOnce(
         "ENV_INVALID",
-        `SAPKIT_HOME_DIR points at a path that does not exist (${explicit}) — refusing to fall back to SC4SAP_HOME_DIR; no profile will be activated.`,
+        `SAPKIT_HOME_DIR points at a path that does not exist (${explicit}) — refusing to fall back to SC4SAP_HOME_DIR or to a project-local sap.env; the server starts with no connection.`,
       );
-      return null;
+      return ENV_INVALID;
     }
     return explicit;
   }
@@ -80,12 +93,15 @@ function resolveHome(alias) {
 
 // This shim's existing adoption criterion, applied to ONE runtime directory:
 // pointer -> profile sap.env, else the directory's own legacy sap.env.
+// Returns ENV_INVALID (not null) when the home pin is broken, so the caller
+// aborts instead of continuing to the next candidate.
 function candidateFrom(runtimeDir) {
   const ptr = path.join(runtimeDir, "active-profile.txt");
   if (fs.existsSync(ptr)) {
     const alias = fs.readFileSync(ptr, "utf8").trim();
     if (alias) {
       const home = resolveHome(alias);
+      if (home === ENV_INVALID) return ENV_INVALID;
       if (home) {
         const p = path.join(home, "profiles", alias, "sap.env");
         if (fs.existsSync(p)) return p;
@@ -99,10 +115,28 @@ function candidateFrom(runtimeDir) {
 
 try {
   const cwd = process.cwd();
-  // R-TIE: the criterion above decides per generation FIRST. Both resolving
-  // means both carry connection completeness, so the tie goes to `.sapkit`;
-  // `.sc4sap` resolving alone still wins outright (R-PRESERVE).
-  const candidate = candidateFrom(path.join(cwd, NEW_DIR)) || candidateFrom(path.join(cwd, LEGACY_DIR));
+  let candidate = null;
+  if (envHomeInvalid()) {
+    // Terminal: stop before any generation is examined. Checking here (and not
+    // only inside candidateFrom) also covers the pointer-less shape, where a
+    // project-local sap.env would otherwise be adopted while the operator's
+    // own home pin is broken.
+    warnOnce(
+      "ENV_INVALID",
+      `SAPKIT_HOME_DIR points at a path that does not exist (${process.env.SAPKIT_HOME_DIR}) — refusing to fall back to SC4SAP_HOME_DIR or to a project-local sap.env; the server starts with no connection.`,
+    );
+  } else {
+    // R-TIE: the criterion above decides per generation FIRST. Both resolving
+    // means both carry connection completeness, so the tie goes to `.sapkit`;
+    // `.sc4sap` resolving alone still wins outright (R-PRESERVE).
+    // The sentinel is truthy, so it short-circuits the `||` just like a real
+    // hit would; the last line is what keeps it from ever reaching
+    // MCP_ENV_PATH. Belt and braces with the guard above, which already
+    // covers every reachable path — deliberately, because a future caller of
+    // candidateFrom must not be able to reintroduce the fall-through.
+    const picked = candidateFrom(path.join(cwd, NEW_DIR)) || candidateFrom(path.join(cwd, LEGACY_DIR));
+    candidate = picked === ENV_INVALID ? null : picked;
+  }
 
   const hasConnArg = process.argv.includes("--env-path") || process.argv.includes("--mcp");
   if (candidate && !hasConnArg && !process.env.MCP_ENV_PATH) {

@@ -11,6 +11,11 @@
 //   ⑷ 무변조 복제 트리                          → PASS
 // 보강 2종: 캡 초과 → FAIL · ALLOWLIST 파일이 신 이름을 잃으면 → FAIL
 //
+// ⑸ 구역 C의 **한계**와 그 보완자 (3차 리뷰 #5). 구역 C는 토큰 존재만 세므로
+//    상수·주석만 남기고 실행 분기를 지우면 통과한다. 그 구멍을 메우는 것은
+//    게이트가 아니라 적합성 러너다 — 마지막 절이 그 분업을 **실측으로** 고정한다:
+//    legacy 분기를 지운 리졸버는 게이트를 통과하지만 러너에서 red가 난다.
+//
 // exit 0 전부 통과 / 1 실패
 import fs from 'node:fs';
 import os from 'node:os';
@@ -233,6 +238,91 @@ t(
   1,
   '파일 부재',
 );
+
+// ── ⑸ 구역 C의 한계 ↔ 적합성 러너의 보완 (3차 리뷰 #5) ─────────────────────
+// 구역 C는 "legacy 토큰이 있는가"만 센다. 상수 선언과 주석을 남긴 채 **실행 분기만**
+// 지우면 게이트는 통과한다 — 이 절이 그 사실과, 그래서 왜 러너가 CI 필수인지를
+// 한꺼번에 실측한다. 변조 대상은 profile-resolve.mjs 하나이므로 러너의
+// `--consumer-root`(없는 파일은 실물 폴백)로 번들 복사 없이 갈아끼운다.
+console.log('\n⑸ 구역 C 한계 ↔ 러너 보완');
+{
+  const REL = 'interactive/adapters/claude/lib/profile-resolve.mjs';
+  // `--consumer-root`는 **interactive/ 기준** 상대경로로 겹쳐 쓴다.
+  const INT_REL = 'adapters/claude/lib/profile-resolve.mjs';
+  const RUNNER = path.join(HERE, 'conformance-runtime-dir.mjs');
+  const LEGACY_CASE = 'tie-legacy-only';
+  const runRunner = (extra) => {
+    try {
+      return { code: 0, out: execFileSync('node', [RUNNER, '--case', LEGACY_CASE, ...extra], { encoding: 'utf8' }) };
+    } catch (e) {
+      return { code: e.status, out: (e.stdout ?? '') + (e.stderr ?? '') };
+    }
+  };
+
+  // 대조군: 무변조 실물로 같은 케이스를 돌리면 통과한다.
+  const control = runRunner([]);
+  if (control.code === 0) {
+    console.log('  ✅ 대조군: 무변조 실물 + legacy-only 케이스 → 러너 PASS');
+    pass++;
+  } else {
+    console.log(`  ❌ 대조군: 무변조인데 러너가 실패했다 (exit ${control.code})`);
+    console.log(control.out.split('\n').slice(-15).map((l) => '       ' + l).join('\n'));
+    fail++;
+  }
+
+  // 변조군: 실행 분기에서만 legacy 세대를 지우고 **토큰은 주석으로 남긴다.**
+  const overlay = fs.mkdtempSync(path.join(os.tmpdir(), 'rt-noexec-'));
+  try {
+    const dst = path.join(overlay, ...INT_REL.split('/'));
+    fs.mkdirSync(path.dirname(dst), { recursive: true });
+    const src = fs.readFileSync(path.join(REPO, REL), 'utf8');
+    // 상수 값만 신 세대로 바꿔 legacy 후보를 실질적으로 제거한다. 파일 전체의
+    // `.sc4sap`/`SC4SAP_HOME_DIR` 주석·문서 문자열은 그대로 남는다.
+    const mutated = src
+      .replace("const LEGACY_DIR = '.sc4sap';", "const LEGACY_DIR = '.sapkit'; // .sc4sap / SC4SAP_HOME_DIR (토큰만 남긴 변조)")
+      .replace(
+        "  const legacyEnv = process.env.SC4SAP_HOME_DIR;",
+        "  const legacyEnv = null; // process.env.SC4SAP_HOME_DIR (토큰만 남긴 변조)",
+      );
+    if (mutated === src) throw new Error('변조 앵커를 찾지 못했다 — 리졸버 구조가 바뀌었다');
+    fs.writeFileSync(dst, mutated);
+
+    // ⓐ 게이트는 그래도 통과한다 = 구역 C의 한계 (토큰이 남아 있으므로).
+    let gateRoot;
+    try {
+      gateRoot = buildTree();
+      fs.copyFileSync(dst, path.join(gateRoot, ...REL.split('/')));
+      const g = runGate(gateRoot);
+      if (g.code === 0) {
+        console.log('  ✅ 한계 실측: 실행 분기를 지워도 게이트(구역 C)는 통과한다');
+        pass++;
+      } else {
+        console.log(`  ❌ 한계 실측: 게이트가 exit ${g.code} — 전제가 바뀌었다면 이 문서를 갱신할 것`);
+        console.log(g.out.split('\n').map((l) => '       ' + l).join('\n'));
+        fail++;
+      }
+    } finally {
+      if (gateRoot) fs.rmSync(gateRoot, { recursive: true, force: true });
+    }
+
+    // ⓑ 러너는 잡는다 = 실행 보증의 소유자가 러너라는 주장의 증명.
+    const red = runRunner(['--consumer-root', overlay]);
+    const caught = red.code === 1 && red.out.includes('profile-resolve');
+    if (caught) {
+      console.log('  ✅ 보완 실측: 같은 변조를 적합성 러너는 legacy-only 케이스에서 잡는다 (red)');
+      pass++;
+    } else {
+      console.log(`  ❌ 보완 실측: 러너가 잡지 못했다 (exit ${red.code})`);
+      console.log(red.out.split('\n').slice(-20).map((l) => '       ' + l).join('\n'));
+      fail++;
+    }
+  } catch (err) {
+    console.log(`  ❌ ⑸ 절 자체 실패: ${err.message}`);
+    fail++;
+  } finally {
+    fs.rmSync(overlay, { recursive: true, force: true });
+  }
+}
 
 console.log(`\n${pass + fail}건 중 ${pass} PASS / ${fail} FAIL`);
 process.exit(fail ? 1 : 0);

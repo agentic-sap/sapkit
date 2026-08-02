@@ -188,7 +188,7 @@ Generated from code in `src/handlers/**` (not from docs).
 **Parameters:**
 - `activate` (boolean, optional) - Activate after creation. Default: true
 - `description` (string, optional) - Description
-- `implementation_type` (string, required) - Implementation type: 
+- `implementation_type` (string, required) - Implementation type:
 - `name` (string, required) - Behavior Definition name (usually same as Root Entity name)
 - `package_name` (string, required) - Package name
 - `root_entity` (string, required) - Root Entity name (CDS View name)
@@ -216,7 +216,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `behavior_definition_name` (string, required) - BehaviorDefinition name (e.g., Z_MY_BEHAVIORDEFINITION).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -273,7 +273,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `behavior_implementation_name` (string, required) - BehaviorImplementation name (e.g., Z_MY_BEHAVIORIMPLEMENTATION).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -386,8 +386,8 @@ Generated from code in `src/handlers/**` (not from docs).
 **Parameters:**
 - `class_name` (string, required) - Class name (e.g., ZCL_MY_CLASS).
 - `context_max_deps` (number, optional (default: 10)) - Max number of dependencies to resolve when with_context is true (1-15). Default 10.
-- `version` (string, optional (default: active)) - Version to read: 
-- `with_context` (boolean, optional (default: false)) - If true, append a 
+- `version` (string, optional (default: active)) - Version to read:
+- `with_context` (boolean, optional (default: false)) - If true, append a
 
 ---
 
@@ -399,7 +399,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `class_name` (string, required) - Parent class name (e.g., ZCL_MY_CLASS).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -411,7 +411,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `class_name` (string, required) - Parent class name (e.g., ZCL_MY_CLASS).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -423,7 +423,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `class_name` (string, required) - Parent class name (e.g., ZCL_MY_CLASS).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -435,7 +435,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `class_name` (string, required) - Parent class name (e.g., ZCL_MY_CLASS).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -462,8 +462,8 @@ Generated from code in `src/handlers/**` (not from docs).
 **Parameters:**
 - `activate` (boolean, optional) - Activate after update. Default: false.
 - `class_name` (string, required) - Class name (e.g., ZCL_MY_CLASS).
-- `method_name` (string, required) - Method name to replace (e.g. 
-- `source` (string, required) - Full replacement method block. Must start with 
+- `method_name` (string, required) - Method name to replace (e.g.
+- `source` (string, required) - Full replacement method block. Must start with
 - `transport_request` (string, optional) - Transport request number (e.g., E19K905635). Required for transportable packages.
 
 ---
@@ -529,7 +529,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 <a id="activateobjects-high-level-common"></a>
 #### ActivateObjects (High-Level / Common)
-**Description:** [high-level] Activate a set of ABAP objects in a single call. Uses the ADT mass-activation endpoint (/sap/bc/adt/activation/runs) so cyclic references between siblings (e.g. main program + multiple cross-referencing includes) resolve in one compilation scope. Returns per-object status, errors, warnings. Falls back to /sap/bc/adt/activation on legacy systems. FUGR recipe: activating function modules alone fails with 
+**Description:** [high-level] Activate a set of ABAP objects in a single call. Uses the ADT mass-activation endpoint (/sap/bc/adt/activation/runs) so cyclic references between siblings (e.g. main program + multiple cross-referencing includes) resolve in one compilation scope. Returns per-object status, errors, warnings. Falls back to /sap/bc/adt/activation on legacy systems. FUGR recipe: activating function modules alone fails with
 
 **Source:** `src/handlers/common/high/handleActivateObjects.ts`
 
@@ -542,13 +542,13 @@ Generated from code in `src/handlers/**` (not from docs).
 
 <a id="updatesourcebypatch-high-level-common"></a>
 #### UpdateSourceByPatch (High-Level / Common)
-**Description:** Modify existing ABAP source code on SAP via a surgical string replacement (find old_string, replace with new_string) instead of resending the full source. 
+**Description:** Modify existing ABAP source code on SAP via a surgical string replacement (find old_string, replace with new_string) instead of resending the full source.
 
 **Source:** `src/handlers/common/high/handleUpdateSourceByPatch.ts`
 
 **Parameters:**
 - `activate` (boolean, optional) - Activate the object after the patched source is written. Default: false.
-- `function_group` (string, optional) - Function group name. Required when object_type is 
+- `function_group` (string, optional) - Function group name. Required when object_type is
 - `new_string` (string, required) - Replacement text.
 - `object_name` (string, required) - Name of the object to patch (e.g., ZCL_MY_CLASS).
 - `object_type` (string, required) - ABAP object kind to patch: CLAS (class), PROG (program), INTF (interface), INCL (include), FUNC (function module).
@@ -570,7 +570,7 @@ Generated from code in `src/handlers/**` (not from docs).
 **Parameters:**
 - `object_adt_type` (string, optional) - ADT object type code (e.g. CLAS/OC, PROG/P). Required for single-object activation form.
 - `object_name` (string, optional) - Object name for single-object activation form.
-- `object_type` (any, optional) - 
+- `object_type` (any, optional) -
 - `objects` (array, optional) - Explicit objects list for batch activation.
 - `preaudit` (boolean, optional) - Run pre-audit checks before activation.
 
@@ -663,7 +663,7 @@ Generated from code in `src/handlers/**` (not from docs).
 - `function_module_name` (string, optional) - ABAP function module name.
 - `length` (number, optional) - Length for typed artifacts.
 - `lowercase` (boolean, optional) - Allow lowercase values (domain setting).
-- `object_type` (any, required) - 
+- `object_type` (any, required) -
 - `package_name` (string, optional) - ABAP package name.
 - `program_name` (string, optional) - ABAP program name.
 - `program_type` (string, optional) - ABAP program type.
@@ -684,7 +684,7 @@ Generated from code in `src/handlers/**` (not from docs).
 - `domain_name` (string, optional) - ABAP domain name.
 - `function_group_name` (string, optional) - ABAP function group name.
 - `function_module_name` (string, optional) - ABAP function module name.
-- `object_type` (any, required) - 
+- `object_type` (any, required) -
 - `program_name` (string, optional) - ABAP program name.
 - `transport_request` (string, optional) - Transport request id (if required by system).
 
@@ -733,7 +733,7 @@ Generated from code in `src/handlers/**` (not from docs).
 - `function_module_name` (string, optional) - Function module name.
 - `interface_name` (string, optional) - Interface name.
 - `metadata_extension_name` (string, optional) - Metadata extension name.
-- `object_type` (any, required) - 
+- `object_type` (any, required) -
 - `package_name` (string, optional) - Package name.
 - `program_name` (string, optional) - Program name.
 - `response_format` (string, optional) - Response format for SERVICE_BINDING reads.
@@ -742,7 +742,7 @@ Generated from code in `src/handlers/**` (not from docs).
 - `service_definition_name` (string, optional) - Service definition name.
 - `structure_name` (string, optional) - Structure name.
 - `table_name` (string, optional) - Table name.
-- `version` (any, optional) - 
+- `version` (any, optional) -
 - `view_name` (string, optional) - View name.
 
 ---
@@ -927,7 +927,7 @@ Generated from code in `src/handlers/**` (not from docs).
 - `function_module_name` (string, optional) - ABAP function module name.
 - `length` (number, optional) - Length for typed artifacts.
 - `lowercase` (boolean, optional) - Allow lowercase values (domain setting).
-- `object_type` (any, required) - 
+- `object_type` (any, required) -
 - `package_name` (string, optional) - ABAP package name.
 - `program_name` (string, optional) - ABAP program name.
 - `sign_exists` (boolean, optional) - Allow signed values (domain setting).
@@ -969,7 +969,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `data_element_name` (string, required) - Data element name (e.g., ZZ_E_TEST_001). Must follow SAP naming conventions.
-- `data_type` (string, optional (default: CHAR)) - Data type (e.g., CHAR, NUMC) or domain name when type_kind is 
+- `data_type` (string, optional (default: CHAR)) - Data type (e.g., CHAR, NUMC) or domain name when type_kind is
 - `decimals` (number, optional (default: 0)) - Decimal places. Usually inherited from domain.
 - `description` (string, optional) - Data element description. If not provided, data_element_name will be used.
 - `heading_label` (string, optional) - Heading field label (max 55 chars). Applied during update step after creation.
@@ -982,8 +982,8 @@ Generated from code in `src/handlers/**` (not from docs).
 - `set_get_parameter` (string, optional) - Set/Get parameter ID. Applied during update step after creation.
 - `short_label` (string, optional) - Short field label (max 10 chars). Applied during update step after creation.
 - `transport_request` (string, optional) - Transport request number (e.g., E19K905635). Required for transportable packages.
-- `type_kind` (string, optional (default: domain)) - Type kind: 
-- `type_name` (string, optional) - Type name: domain name (when type_kind is 
+- `type_kind` (string, optional (default: domain)) - Type kind:
+- `type_name` (string, optional) - Type name: domain name (when type_kind is
 
 ---
 
@@ -1007,7 +1007,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `data_element_name` (string, required) - Data element name (e.g., Z_MY_DATA_ELEMENT).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -1117,7 +1117,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `domain_name` (string, required) - Domain name (e.g., Z_MY_DOMAIN).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -1200,7 +1200,7 @@ Generated from code in `src/handlers/**` (not from docs).
 - `function_group_name` (string, required) - Function group name containing the function module (e.g., ZOK_FG_MCP01).
 - `function_module_name` (string, required) - Function module name (e.g., Z_TEST_FM_MCP01). Function module must already exist.
 - `source_code` (string, required) - Complete ABAP function module source code. Must include FUNCTION statement with parameters and ENDFUNCTION. Example:\n\nFUNCTION Z_TEST_FM\n  IMPORTING\n    VALUE(iv_input) TYPE string\n  EXPORTING\n    VALUE(ev_output) TYPE string.\n  \n  ev_output = iv_input.\nENDFUNCTION.
-- `transport_request` (string, optional) - Transport request number (e.g., E19K905635). Required for transportable function modules. For local objects ($TMP package) this can be omitted — the handler defaults to 
+- `transport_request` (string, optional) - Transport request number (e.g., E19K905635). Required for transportable function modules. For local objects ($TMP package) this can be omitted — the handler defaults to
 
 ---
 
@@ -1227,7 +1227,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `function_group_name` (string, required) - FunctionGroup name (e.g., Z_MY_FUNCTIONGROUP).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -1254,10 +1254,10 @@ Generated from code in `src/handlers/**` (not from docs).
 **Source:** `src/handlers/function_module/high/handleGetFunctionModule.ts`
 
 **Parameters:**
-- `check_inactive` (boolean, optional (default: true)) - When reading the active version, also read the inactive version (one extra ADT call) and, if an unactivated version exists and its source differs, attach a 
+- `check_inactive` (boolean, optional (default: true)) - When reading the active version, also read the inactive version (one extra ADT call) and, if an unactivated version exists and its source differs, attach a
 - `function_group_name` (string, required) - FunctionGroup name containing the function module (e.g., Z_MY_FUNCTIONGROUP).
 - `function_module_name` (string, required) - FunctionModule name (e.g., Z_MY_FUNCTIONMODULE).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -1275,7 +1275,7 @@ Generated from code in `src/handlers/**` (not from docs).
 - `description` (string, optional) - GUI Status description.
 - `program_name` (string, required) - Parent program name (e.g., Z_MY_PROGRAM).
 - `status_name` (string, required) - GUI Status name to create (e.g., MAIN_STATUS).
-- `status_type` (string, optional) - Status type: 
+- `status_type` (string, optional) - Status type:
 - `transport_request` (string, optional) - Transport request number.
 
 ---
@@ -1424,8 +1424,8 @@ Generated from code in `src/handlers/**` (not from docs).
 **Parameters:**
 - `context_max_deps` (number, optional (default: 10)) - Max number of dependencies to resolve when with_context is true (1-15). Default 10.
 - `interface_name` (string, required) - Interface name (e.g., Z_MY_INTERFACE).
-- `version` (string, optional (default: active)) - Version to read: 
-- `with_context` (boolean, optional (default: false)) - If true, append a 
+- `version` (string, optional (default: active)) - Version to read:
+- `with_context` (boolean, optional (default: false)) - If true, append a
 
 ---
 
@@ -1466,7 +1466,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `metadata_extension_name` (string, required) - MetadataExtension name (e.g., Z_MY_METADATAEXTENSION).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -1492,7 +1492,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `package_name` (string, required) - Package name (e.g., Z_MY_PACKAGE).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -1506,11 +1506,11 @@ Generated from code in `src/handlers/**` (not from docs).
 **Source:** `src/handlers/program/high/handleCreateProgram.ts`
 
 **Parameters:**
-- `application` (string, optional) - Application area (e.g., 
+- `application` (string, optional) - Application area (e.g.,
 - `description` (string, optional) - Program description. If not provided, program_name will be used.
 - `package_name` (string, required) - Package name (e.g., ZOK_LAB, $TMP for local objects)
 - `program_name` (string, required) - Program name (e.g., Z_TEST_PROGRAM_001). Must follow SAP naming conventions (start with Z or Y).
-- `program_type` (string, optional) - Program type: 
+- `program_type` (string, optional) - Program type:
 - `transport_request` (string, optional) - Transport request number (e.g., E19K905635). Required for transportable packages.
 
 ---
@@ -1536,8 +1536,8 @@ Generated from code in `src/handlers/**` (not from docs).
 **Parameters:**
 - `context_max_deps` (number, optional (default: 10)) - Max number of dependencies to resolve when with_context is true (1-15). Default 10.
 - `program_name` (string, required) - Program name (e.g., Z_MY_PROGRAM).
-- `version` (string, optional (default: active)) - Version to read: 
-- `with_context` (boolean, optional (default: false)) - If true, append a 
+- `version` (string, optional (default: active)) - Version to read:
+- `with_context` (boolean, optional (default: false)) - If true, append a
 
 ---
 
@@ -1628,7 +1628,7 @@ Generated from code in `src/handlers/**` (not from docs).
 - `binding_type` (string, optional (default: ODataV4)) - OData binding type.
 - `description` (string, optional) - Optional description. Defaults to service_binding_name when omitted.
 - `package_name` (string, required) - ABAP package name.
-- `response_format` (string, optional (default: xml)) - 
+- `response_format` (string, optional (default: xml)) -
 - `service_binding_name` (string, required) - Service binding name.
 - `service_binding_version` (string, optional) - Service binding ADT version. Default inferred from type.
 - `service_definition_name` (string, required) - Referenced service definition name.
@@ -1645,7 +1645,7 @@ Generated from code in `src/handlers/**` (not from docs).
 **Source:** `src/handlers/service_binding/high/handleDeleteServiceBinding.ts`
 
 **Parameters:**
-- `response_format` (string, optional (default: xml)) - 
+- `response_format` (string, optional (default: xml)) -
 - `service_binding_name` (string, required) - Service binding name to delete.
 - `transport_request` (string, optional) - Optional transport request for deletion transport flow.
 
@@ -1658,7 +1658,7 @@ Generated from code in `src/handlers/**` (not from docs).
 **Source:** `src/handlers/service_binding/high/handleGetServiceBinding.ts`
 
 **Parameters:**
-- `response_format` (string, optional (default: xml)) - Preferred response format. 
+- `response_format` (string, optional (default: xml)) - Preferred response format.
 - `service_binding_name` (string, required) - Service binding name (for example: ZUI_MY_BINDING). Case-insensitive.
 
 ---
@@ -1670,7 +1670,7 @@ Generated from code in `src/handlers/**` (not from docs).
 **Source:** `src/handlers/service_binding/high/handleListServiceBindingTypes.ts`
 
 **Parameters:**
-- `response_format` (string, optional (default: xml)) - 
+- `response_format` (string, optional (default: xml)) -
 
 ---
 
@@ -1682,7 +1682,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `desired_publication_state` (string, required) - Target publication state.
-- `response_format` (string, optional (default: xml)) - 
+- `response_format` (string, optional (default: xml)) -
 - `service_binding_name` (string, required) - Service binding name to update.
 - `service_name` (string, required) - Published service name.
 - `service_type` (string, required (default: ODataV4)) - OData service type for publish/unpublish action routing.
@@ -1744,7 +1744,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `service_definition_name` (string, required) - ServiceDefinition name (e.g., Z_MY_SERVICEDEFINITION).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -1767,7 +1767,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 <a id="createstructure-high-level-structure"></a>
 #### CreateStructure (High-Level / Structure)
-**Description:** Create a new ABAP structure in SAP system with fields and type references. Includes create, activate, and verify steps. The fields/includes input is generated into DDIC 
+**Description:** Create a new ABAP structure in SAP system with fields and type references. Includes create, activate, and verify steps. The fields/includes input is generated into DDIC
 
 **Source:** `src/handlers/structure/high/handleCreateStructure.ts`
 
@@ -1802,7 +1802,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `structure_name` (string, required) - Structure name (e.g., Z_MY_STRUCTURE).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -1814,7 +1814,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `activate` (boolean, optional) - Activate structure after source update. Default: true.
-- `ddl_code` (string, required) - Complete DDL source code for structure. Example: 
+- `ddl_code` (string, required) - Complete DDL source code for structure. Example:
 - `structure_name` (string, required) - Structure name (e.g., ZZ_S_TEST_001). Structure must already exist.
 - `transport_request` (string, optional) - Transport request number (e.g., E19K905635). Optional if object is local or already in transport.
 
@@ -1834,7 +1834,7 @@ Generated from code in `src/handlers/**` (not from docs).
 - `include_descriptions` (boolean, optional (default: true)) - Include object descriptions in response. Default: true
 - `include_subpackages` (boolean, optional (default: true)) - Include subpackages recursively in the tree. If false, subpackages are shown as first-level objects but not recursively expanded. Default: true
 - `max_depth` (integer, optional (default: 5)) - Maximum depth for recursive package traversal. Default: 5
-- `package_name` (string, required) - Package name (e.g., 
+- `package_name` (string, required) - Package name (e.g.,
 
 ---
 
@@ -1875,7 +1875,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `table_name` (string, required) - Table name (e.g., Z_MY_TABLE).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -1904,11 +1904,11 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `activate` (boolean, optional) - Activate the parent program after write. Default: false.
-- `key` (string, optional) - Row key. For 
+- `key` (string, optional) - Row key. For
 - `language` (string, optional) - Language key (1-char). Defaults to SAP logon language.
 - `program_name` (string, required) - Parent program name (e.g., Z_MY_PROGRAM).
-- `text` (string, required) - 
-- `text_type` (string, required) - 
+- `text` (string, required) -
+- `text_type` (string, required) -
 - `transport_request` (string, optional) - Transport request number.
 
 ---
@@ -1921,10 +1921,10 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `activate` (boolean, optional) - Activate the parent program after write. Default: false.
-- `key` (string, optional) - Row key, or 
+- `key` (string, optional) - Row key, or
 - `language` (string, optional) - Language key. Defaults to SAP logon language.
 - `program_name` (string, required) - Parent program name.
-- `text_type` (string, required) - 
+- `text_type` (string, required) -
 - `transport_request` (string, optional) - Transport request number.
 
 ---
@@ -1936,10 +1936,10 @@ Generated from code in `src/handlers/**` (not from docs).
 **Source:** `src/handlers/text_element/high/handleGetTextElement.ts`
 
 **Parameters:**
-- `key` (string, optional) - Optional: filter by row key (e.g., 
-- `language` (string, optional) - Language key (1-char, e.g., 
+- `key` (string, optional) - Optional: filter by row key (e.g.,
+- `language` (string, optional) - Language key (1-char, e.g.,
 - `program_name` (string, required) - Program name (e.g., Z_MY_PROGRAM).
-- `text_type` (string, optional) - Filter by ID: 
+- `text_type` (string, optional) - Filter by ID:
 
 ---
 
@@ -1963,11 +1963,11 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `activate` (boolean, optional) - Activate the parent program after write. Default: false.
-- `key` (string, optional) - Row key. Required except for 
+- `key` (string, optional) - Row key. Required except for
 - `language` (string, optional) - Language key. Defaults to SAP logon language.
 - `program_name` (string, required) - Parent program name.
-- `text` (string, required) - 
-- `text_type` (string, required) - 
+- `text` (string, required) -
+- `text_type` (string, required) -
 - `transport_request` (string, optional) - Transport request number.
 
 ---
@@ -1980,10 +1980,10 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `activate` (boolean, optional) - false (default) — stage as INACTIVE (program activation promotes). true — write ACTIVE immediately.
-- `language` (string, optional) - 1-char language key (e.g. 
+- `language` (string, optional) - 1-char language key (e.g.
 - `program_name` (string, required) - Parent program name.
 - `replace_existing` (boolean, optional) - If true (default), the TPOOL is replaced with the provided entries only. If false, existing rows are preserved and provided rows merge by (type, key).
-- `text_elements` (array, required) - Array of entries. Each: { type: 
+- `text_elements` (array, required) - Array of entries. Each: { type:
 - `transport_request` (string, optional) - Transport request number (informational).
 
 ---
@@ -2000,14 +2000,14 @@ Generated from code in `src/handlers/**` (not from docs).
 **Parameters:**
 - `description` (string, required) - Transport request description (mandatory)
 - `owner` (string, optional) - Transport owner (optional, defaults to current user)
-- `target_system` (string, optional) - Target system for transport (optional, e.g., 
-- `transport_type` (string, optional (default: workbench)) - Transport type: 
+- `target_system` (string, optional) - Target system for transport (optional, e.g.,
+- `transport_type` (string, optional (default: workbench)) - Transport type:
 
 ---
 
 <a id="releasetransport-high-level-transport"></a>
 #### ReleaseTransport (High-Level / Transport)
-**Description:** Release an ABAP transport request or task via the ADT CTS release action. 
+**Description:** Release an ABAP transport request or task via the ADT CTS release action.
 
 **Source:** `src/handlers/transport/high/handleReleaseTransport.ts`
 
@@ -2042,9 +2042,9 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `context` (string, optional) - Optional context string shown in SAP tools.
-- `duration` (object, optional) - 
-- `risk_level` (object, optional) - 
-- `scope` (object, optional) - 
+- `duration` (object, optional) -
+- `risk_level` (object, optional) -
+- `scope` (object, optional) -
 - `tests` (array, required) - List of container/test class pairs to execute.
 - `title` (string, optional) - Optional title for the ABAP Unit run.
 
@@ -2153,9 +2153,9 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `context` (string, optional) - Optional context string shown in SAP tools.
-- `duration` (object, optional) - 
-- `risk_level` (object, optional) - 
-- `scope` (object, optional) - 
+- `duration` (object, optional) -
+- `risk_level` (object, optional) -
+- `scope` (object, optional) -
 - `tests` (array, required) - List of container/test class pairs to execute.
 - `title` (string, optional) - Optional title for the ABAP Unit run.
 
@@ -2221,7 +2221,7 @@ Generated from code in `src/handlers/**` (not from docs).
 **Source:** `src/handlers/view/high/handleGetView.ts`
 
 **Parameters:**
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 - `view_name` (string, required) - View name (e.g., Z_MY_VIEW).
 
 ---

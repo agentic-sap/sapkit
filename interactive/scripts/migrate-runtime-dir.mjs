@@ -10,9 +10,10 @@
 //                쓰기 주체 정지 확인(§5-3) · manifest 밖 항목은 열거만
 //   ② snapshot   소스 사전 manifest: 경로·크기·mtime·sha256 (+ 자격증명은 mode/DACL)
 //   ③ staging    같은 파일시스템(= 같은 부모)의 `<parent>/.sapkit.staging-<ts>/`에 복사
-//   ④ verify     소스 사후 manifest = 사전과 동일 · staging sha256 일치 · mode 보존
+//   ④ verify     소스 사후 manifest = 사전과 동일 · staging sha256 일치 ·
+//                자격증명 보호 보존(POSIX=mode · win32=icacls DACL)
 //   ⑤ seal       journal을 **staging 안에** `.migration-journal.json`으로 기록
-//   ⑥ commit     atomic rename: staging → 목적지 (journal이 함께 들어간다)
+//   ⑥ commit     no-replace: 목적지 이름을 mkdir로 원자 예약한 뒤 rename
 //
 // ⑥ 이전에 죽으면 목적지는 **존재하지 않고** `.sapkit.staging-<ts>`만 남는다. 이 이름은
 // 어떤 소비자의 후보(`.sapkit`/`.sc4sap`)와도 일치하지 않으므로 활성화되지 않는다.
@@ -47,6 +48,7 @@ import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import readline from 'node:readline';
+import { execFileSync } from 'node:child_process';
 
 const NEW_DIR = '.sapkit';
 const LEGACY_DIR = '.sc4sap';
@@ -153,6 +155,21 @@ function isReparse(p) {
   return st.isSymbolicLink();
 }
 
+/**
+ * no-follow 존재 검사. `existsSync`는 링크를 **따라가므로** 목적지가 끊어진
+ * symlink(dangling)면 "없다"고 답한다 — 그 상태로 진행하면 rename이 링크 이름을
+ * 차지하거나 링크가 가리키던 자리로 자격증명이 새어 나갈 수 있다. lstat은 링크
+ * 자신을 보므로 "이름이 이미 쓰이고 있다"를 정확히 답한다(3차 리뷰 #3).
+ */
+function lexists(p) {
+  try {
+    fs.lstatSync(p);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** 소스 하위를 훑어 { files, excluded, unclassified, links } 를 만든다. */
 function scanSource(root) {
   const files = [];
@@ -197,6 +214,35 @@ function walkInto(dir, rel, files, links) {
   }
 }
 
+// ── Windows DACL 캡처 (§5 "sap.env·profiles/ DACL 상속 결과 검증") ─────────
+// POSIX에서는 mode 비트가 보호의 전부지만 win32에는 그 개념이 없다 —
+// `fs.stat().mode`가 항상 0o666/0o444라 mode 대조가 무의미하고, 그래서 지금까지
+// 자격증명 보호 검증이 win32에서 **한 번도 실행되지 않았다**(3차 리뷰 #4).
+// 대신 `icacls` 출력을 소스↔스테이징으로 대조한다. staging을 목적지와 같은 부모
+// 밑에 만드는 이유가 바로 이 상속 결과를 같게 만들기 위해서다(③ 주석).
+// 불일치 = 소스에는 명시 ACE가 있었는데 사본은 부모 기본값만 물려받았다는 뜻이므로,
+// 자격증명을 덜 보호된 파일로 복제하지 않고 멈춘다(fail-close).
+//
+// 로케일 비의존: ACE 줄만 남긴다(`IDENTITY:(I)(F)` — `:(` 를 포함). 경로가 박힌
+// 첫 줄의 경로 부분과 "Successfully processed …"류 요약 줄은 제거된다.
+function winAcl(abs) {
+  let out;
+  try {
+    out = execFileSync('icacls', [abs], { encoding: 'utf8', windowsHide: true });
+  } catch {
+    return null; // 읽지 못하면 "확인 불가" — 아래 검증에서 거부 사유가 된다
+  }
+  const aces = [];
+  for (const raw of out.split(/\r?\n/)) {
+    const line = raw.replace(/^﻿/, '').trim();
+    if (!line || !line.includes(':(')) continue;
+    aces.push(line.startsWith(abs) ? line.slice(abs.length).trim() : line);
+  }
+  return aces.length ? aces.join('\n') : null;
+}
+
+const WIN = process.platform === 'win32';
+
 function statFile(abs, rel) {
   const st = fs.statSync(abs);
   return {
@@ -204,7 +250,9 @@ function statFile(abs, rel) {
     size: st.size,
     mtimeMs: Math.round(st.mtimeMs),
     sha256: sha256File(abs),
-    mode: process.platform === 'win32' ? null : st.mode & 0o777,
+    mode: WIN ? null : st.mode & 0o777,
+    // win32에서만·자격증명 파일에서만 캡처한다(프로세스 spawn 비용).
+    acl: WIN && isSecretBearing(rel) ? winAcl(abs) : undefined,
   };
 }
 
@@ -422,9 +470,24 @@ function revertOne(t) {
     return false;
   }
 
-  const discard = now.excluded.filter((n) => n !== JOURNAL).concat(now.unclassified);
+  // apply 시점의 목적지는 **스테이징 그대로**다 — 스테이징에는 manifest 항목과
+  // journal만 들어간다(⑤·⑥). 따라서 지금 목적지에 있는 제외·미분류 항목은 전부
+  // **이행 후에 생긴 산출물**이다. journal의 items에 없으니 위의 sha 대조에는
+  // 걸리지 않지만, 그대로 rmSync 하면 사용자가 만든 적 없는 삭제가 된다.
+  // 그래서 "함께 사라진다"고 통보하지 않고 divergence로 **거부**한다(3차 리뷰 #1).
+  const strays = now.excluded.filter((n) => n !== JOURNAL).concat(now.unclassified);
+  if (strays.length) {
+    console.error(`  거부 — 이행 뒤 목적지에 비이행 항목이 생겼다 (지우지 않는다):`);
+    for (const s of strays.slice(0, 20)) console.error(`    ? ${s}`);
+    if (strays.length > 20) console.error(`    … 외 ${strays.length - 20}건`);
+    console.error(
+      `  이 항목들은 이행 시점의 목적지에 없던 사후 산출물이다(로그·캐시·미분류 파일).\n` +
+        `  수동 처리: 필요한 것을 ${journalSource} 로 직접 옮기거나 목적지에서 지운 뒤 다시 실행할 것.\n` +
+        '            이 도구는 어느 쪽이 정본인지 판단하지 않는다.',
+    );
+    return false;
+  }
   console.log(`  journal 대조: 무변경 (${now.files.length}건 일치)`);
-  if (discard.length) console.log(`  함께 사라지는 비이행 항목: ${discard.join(', ')}`);
   if (!APPLY) {
     console.log(`  [dry-run] --apply 를 붙이면 ${dest} 를 지운다. 소스 ${journalSource} 는 그대로다.`);
     return true;
@@ -441,9 +504,11 @@ function preflight(t) {
     return { skip: `소스 ${t.source} 가 없다 — 이행할 것이 없다.` };
   }
   if (isReparse(t.source)) problems.push(`소스 ${t.source} 자체가 symlink/junction이다`);
-  if (fs.existsSync(t.destination)) {
+  // no-follow: 끊어진 symlink도 "이미 존재한다"로 센다.
+  if (lexists(t.destination)) {
+    const kind = fs.existsSync(t.destination) ? '이미 존재한다' : '끊어진 symlink/junction로 존재한다';
     problems.push(
-      `목적지 ${t.destination} 가 이미 존재한다 — 병합·덮어쓰기를 하지 않는다. ` +
+      `목적지 ${t.destination} 가 ${kind} — 병합·덮어쓰기를 하지 않는다. ` +
         `기존 내용을 확인하고 옮기거나 지운 뒤 다시 실행할 것.`,
     );
   }
@@ -458,6 +523,7 @@ function preflight(t) {
 
 function migrateOne(t, scan) {
   const staging = path.join(t.parent, `${STAGING_PREFIX}${Date.now()}`);
+  let reserved = false;
   try {
     // ③ staging — 목적지와 같은 부모라 같은 파일시스템이고, Windows의 DACL 상속 부모도
     //    동일하다(= rename 후 상속 결과가 목적지에서 직접 만든 것과 같다).
@@ -472,9 +538,30 @@ function migrateOne(t, scan) {
     for (const f of scan.files) {
       const to = path.join(staging, ...f.path.split('/'));
       if (sha256File(to) !== f.sha256) throw new Error(`staging 사본 해시 불일치: ${f.path}`);
-      if (f.mode !== null && isSecretBearing(f.path)) {
+      if (!isSecretBearing(f.path)) continue;
+      if (f.mode !== null) {
         const got = fs.statSync(to).mode & 0o777;
         if (got !== f.mode) throw new Error(`자격증명 mode 미보존: ${f.path} ${f.mode.toString(8)} → ${got.toString(8)}`);
+      }
+      if (WIN) {
+        if (f.acl === null) {
+          throw new Error(
+            `자격증명 DACL을 읽지 못했다 (icacls 실패): ${f.path} — 보호 상태를 확인할 수 없으므로 이행하지 않는다.`,
+          );
+        }
+        const gotAcl = winAcl(to);
+        if (gotAcl === null) {
+          throw new Error(`staging 사본의 DACL을 읽지 못했다 (icacls 실패): ${f.path}`);
+        }
+        if (gotAcl !== f.acl) {
+          throw new Error(
+            `자격증명 DACL 미보존: ${f.path}\n` +
+              `    소스     : ${f.acl.split('\n').join(' | ')}\n` +
+              `    스테이징 : ${gotAcl.split('\n').join(' | ')}\n` +
+              '    소스에 명시 ACE가 걸려 있으면 사본은 부모 상속만 받아 더 느슨해진다. ' +
+              '목적지 부모의 상속을 소스와 맞추거나 사람이 직접 옮길 것.',
+          );
+        }
       }
     }
 
@@ -501,12 +588,38 @@ function migrateOne(t, scan) {
     };
     fs.writeFileSync(path.join(staging, JOURNAL), JSON.stringify(journal, null, 2) + '\n');
 
-    // ⑥ commit — atomic rename. 목적지가 그 사이 생겼다면 rename이 실패한다(의도된 방어).
-    if (fs.existsSync(t.destination)) throw new Error(`commit 직전에 목적지가 생겼다: ${t.destination}`);
+    // ⑥ commit — **no-replace**. `existsSync` 후 rename은 그 사이가 열려 있고
+    //    (TOCTOU) rename 자체도 이름을 덮어쓸 수 있다. 대신 `mkdirSync`(recursive
+    //    없음)로 목적지 이름을 **원자적으로 예약**한다 — 이미 무엇이든(디렉터리·파일·
+    //    끊어진 symlink) 있으면 EEXIST로 즉시 실패한다.
+    fs.mkdirSync(t.destination);
+    reserved = true;
+    if (process.platform === 'win32') {
+      // win32의 rename은 빈 디렉터리라도 덮어쓰지 못한다(EPERM). 예약을 지우고
+      // 곧바로 rename한다. rmdir↔rename 사이에 **잔여 창**이 남는다 — 그 찰나에
+      // 제3자가 같은 이름을 만들면 rename이 EPERM/EEXIST로 실패하고 아래 catch가
+      // staging을 정리한다(목적지·소스 모두 무변경). 창을 완전히 없애려면 win32
+      // 전용 API가 필요한데, 이 도구의 실행자는 "쓰기 주체를 모두 멈춘 사람"이라
+      // (§5-2·§5-3) 그 비용을 지불하지 않는다.
+      fs.rmdirSync(t.destination);
+    }
+    // POSIX의 rename은 목적지가 **빈 디렉터리**일 때만 교체한다 — 위에서 방금 만든
+    // 그 빈 디렉터리다. 내용이 있으면 ENOTEMPTY로 실패한다(덮어쓰기 없음).
     fs.renameSync(staging, t.destination);
+    reserved = false;
     return { ok: true, journal };
   } catch (err) {
     fs.rmSync(staging, { recursive: true, force: true });
+    // 예약만 해두고 실패했다면 그 빈 디렉터리를 남기지 않는다 — 남으면 다음 실행이
+    // "목적지가 이미 존재한다"로 거부된다. rmdir은 비어 있을 때만 성공하므로
+    // 남의 내용을 지울 위험이 없다.
+    if (reserved) {
+      try {
+        fs.rmdirSync(t.destination);
+      } catch {
+        /* 이미 없거나 비어 있지 않으면 사람이 확인해야 한다 */
+      }
+    }
     return { ok: false, error: err.message };
   }
 }

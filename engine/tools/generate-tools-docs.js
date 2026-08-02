@@ -52,6 +52,21 @@ Output hierarchy:
   process.exit(0);
 }
 
+/**
+ * Strip trailing whitespace from every line of generated markdown.
+ *
+ * Tool descriptions legitimately contain newlines, so a description ending a
+ * line with a space (e.g. "... and attach a \n<warning>") lands in the output
+ * as a line with trailing blanks. That is invisible here but shows up as a
+ * `git diff --check` warning on every regeneration and, in markdown, two
+ * trailing spaces silently mean a hard line break. Normalizing here (the
+ * generator lives outside `src/`, so this is not an engine-source change) keeps
+ * the products clean without touching a single handler description.
+ */
+function trimTrailingWhitespace(markdown) {
+  return markdown.replace(/[ \t]+$/gm, '');
+}
+
 function titleCaseFolder(folder) {
   return folder
     .split('_')
@@ -859,29 +874,15 @@ function main() {
   }
 
   console.log(`✅ Found ${tools.length} tools`);
-  const markdownAll = generateMarkdown(tools);
-  fs.writeFileSync(OUTPUT_PATHS.all, markdownAll, 'utf8');
-  fs.writeFileSync(
-    OUTPUT_PATHS.readonly,
-    generateLevelMarkdown(tools, 'readonly'),
-    'utf8',
-  );
-  fs.writeFileSync(
-    OUTPUT_PATHS.high,
-    generateLevelMarkdown(tools, 'high'),
-    'utf8',
-  );
-  fs.writeFileSync(
-    OUTPUT_PATHS.low,
-    generateLevelMarkdown(tools, 'low'),
-    'utf8',
-  );
-  fs.writeFileSync(
-    OUTPUT_PATHS.compact,
-    generateCompactMarkdown(tools),
-    'utf8',
-  );
-  fs.writeFileSync(
+  const writeDoc = (target, markdown) =>
+    fs.writeFileSync(target, trimTrailingWhitespace(markdown), 'utf8');
+
+  writeDoc(OUTPUT_PATHS.all, generateMarkdown(tools));
+  writeDoc(OUTPUT_PATHS.readonly, generateLevelMarkdown(tools, 'readonly'));
+  writeDoc(OUTPUT_PATHS.high, generateLevelMarkdown(tools, 'high'));
+  writeDoc(OUTPUT_PATHS.low, generateLevelMarkdown(tools, 'low'));
+  writeDoc(OUTPUT_PATHS.compact, generateCompactMarkdown(tools));
+  writeDoc(
     OUTPUT_PATHS.legacy,
     generateEnvironmentMarkdown(
       tools,
@@ -889,7 +890,6 @@ function main() {
       'Legacy System',
       'Tools available on legacy SAP systems (BASIS < 7.50) connected via RFC.\nLegacy systems support a subset of tools — primarily Class, Interface, View, Program, Function Group/Module, Package (read/update/delete), Include, Unit Test, and common utilities.',
     ),
-    'utf8',
   );
   console.log(`✅ Documentation generated: ${OUTPUT_PATHS.all}`);
   console.log(`✅ Documentation generated: ${OUTPUT_PATHS.readonly}`);

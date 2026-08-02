@@ -9,7 +9,10 @@
 //   ⑷ symlink/junction이 있으면 거부
 //   ⑸ 미분류 항목은 열거만 하고 이행하지 않는다
 //   ⑹ --revert 는 무변경일 때만 자동, divergence면 병합 없이 거부
+//      (이행 뒤 생긴 **비이행** 산출물 — 제외·미분류 — 도 divergence다: 3차 리뷰 #1)
 //   ⑺ 제외 목록(logs/ · state/ · bin/)은 복사되지 않는다
+//   ⑻ 목적지 검사는 no-follow — 끊어진 symlink 목적지도 거부한다 (3차 리뷰 #3)
+//   ⑼ win32 자격증명 DACL 대조 — 소스에 명시 ACE가 있으면 거부 (3차 리뷰 #4)
 //   보강: --scope home이 SAPKIT_HOME_DIR 고정 시 거부 · SC4SAP_HOME_DIR 홈 이행 ·
 //         --status 가 COEXIST_OK를 보고 · --yes 없는 비대화형 실행은 거부
 //
@@ -262,6 +265,112 @@ console.log('\n⑹ revert divergence');
   const r = migrate(root, ['--revert', '--scope', 'project', '--apply']);
   check('journal 없는 목적지는 자동으로 지우지 않는다', r.code === 1 && fs.existsSync(path.join(root, '.sapkit')), r.out.slice(0, 300));
   fs.rmSync(root, { recursive: true, force: true });
+}
+// 이행 **후에 생긴 비이행 산출물**도 divergence다. journal.items에 없으니 sha 대조에는
+// 걸리지 않지만, 스테이징에는 manifest 항목+journal만 담기므로 지금 목적지에 있는
+// 제외·미분류 항목은 전부 사후 산출물이다 — 되돌리기가 그것을 삭제하면 안 된다.
+{
+  const root = tmp('revexcl');
+  seedProject(root);
+  const dest = path.join(root, '.sapkit');
+  migrate(root, ['--scope', 'project', '--apply', '--yes']);
+  fs.mkdirSync(path.join(dest, 'logs'), { recursive: true });
+  fs.writeFileSync(path.join(dest, 'logs', 'x.log'), '이행 뒤에 쌓인 로그');
+  const r = migrate(root, ['--revert', '--scope', 'project', '--apply']);
+  check('제외 항목(logs/)이 생겼으면 revert를 거부한다', r.code === 1, `exit ${r.code}`);
+  check('사후 산출물을 지목한다', r.out.includes('logs'), r.out.slice(0, 500));
+  check('수동 처리를 안내한다', r.out.includes('수동 처리'), r.out.slice(0, 500));
+  check('목적지를 지우지 않았다', fs.existsSync(path.join(dest, 'logs', 'x.log')));
+  fs.rmSync(root, { recursive: true, force: true });
+}
+{
+  const root = tmp('revuncl');
+  seedProject(root);
+  const dest = path.join(root, '.sapkit');
+  migrate(root, ['--scope', 'project', '--apply', '--yes']);
+  fs.writeFileSync(path.join(dest, 'handover.md'), '이행 뒤에 생긴 미분류 파일');
+  const r = migrate(root, ['--revert', '--scope', 'project', '--apply']);
+  check('미분류 항목이 생겼으면 revert를 거부한다', r.code === 1, `exit ${r.code}`);
+  check('미분류 파일을 지목한다', r.out.includes('handover.md'), r.out.slice(0, 500));
+  check('목적지를 지우지 않았다', fs.existsSync(path.join(dest, 'handover.md')));
+  fs.rmSync(root, { recursive: true, force: true });
+}
+
+// ── 목적지 no-follow·no-replace (3차 리뷰 #3) ──────────────────────────────
+console.log('\n목적지 no-follow (끊어진 symlink)');
+{
+  const root = tmp('dangling');
+  seedProject(root);
+  const dest = path.join(root, '.sapkit');
+  let made = false;
+  for (const type of ['dir', 'junction', 'file']) {
+    try {
+      fs.symlinkSync(path.join(root, 'nowhere-at-all'), dest, type);
+      made = true;
+      break;
+    } catch {
+      /* 권한 없으면 다음 형태로 */
+    }
+  }
+  if (!made) {
+    console.log('  ⚠ 끊어진 symlink를 만들 수 없는 환경 — 이 검사만 건너뛴다');
+  } else {
+    // existsSync는 링크를 따라가 "없다"고 답한다 — 그 답을 믿으면 rename이
+    // 링크 이름을 차지한다. lstat 기반 검사라야 거부한다.
+    check('전제: existsSync로는 보이지 않는다 (follow)', !fs.existsSync(dest));
+    const r = migrate(root, ['--scope', 'project', '--apply', '--yes']);
+    check('끊어진 symlink 목적지는 거부한다', r.code === 1, `exit ${r.code}`);
+    check('사유에 symlink를 명시한다', r.out.includes('symlink'), r.out.slice(0, 500));
+    check('링크를 그대로 둔다', fs.lstatSync(dest).isSymbolicLink());
+  }
+  fs.rmSync(root, { recursive: true, force: true });
+}
+
+// ── win32 자격증명 DACL 검증 (3차 리뷰 #4) ────────────────────────────────
+// POSIX에는 mode 대조가 이미 있다. win32에는 mode 개념이 없어 지금까지 자격증명
+// 보호 검증이 아예 실행되지 않았다 — icacls 대조가 그 자리를 메운다.
+if (process.platform === 'win32') {
+  console.log('\nwin32 자격증명 DACL (§5)');
+  {
+    // 상속만 받은 평범한 sap.env → 소스·사본의 DACL이 같아 통과해야 한다.
+    const root = tmp('dacl-ok');
+    const src = path.join(root, '.sc4sap');
+    fs.mkdirSync(path.join(src, 'profiles', 'KR-DEV'), { recursive: true });
+    fs.writeFileSync(path.join(src, 'profiles', 'KR-DEV', 'sap.env'), 'SAP_URL=http://x\nSAP_TIER=dev\n');
+    fs.writeFileSync(path.join(src, 'sap.env'), 'SAP_URL=http://x\n');
+    const r = migrate(root, ['--scope', 'project', '--apply', '--yes']);
+    check('상속 그대로면 DACL 검증을 통과한다', r.code === 0, r.out.slice(-500));
+    check('자격증명이 따라갔다', fs.existsSync(path.join(root, '.sapkit', 'profiles', 'KR-DEV', 'sap.env')));
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+  {
+    // 소스 sap.env의 상속을 끊고 소유자에게만 준다 → 사본은 부모 상속만 받으므로
+    // 더 느슨해진다. 그 상태로 자격증명을 복제하면 안 된다.
+    const root = tmp('dacl-strict');
+    const src = path.join(root, '.sc4sap');
+    fs.mkdirSync(src, { recursive: true });
+    const secret = path.join(src, 'sap.env');
+    fs.writeFileSync(secret, 'SAP_URL=http://x\nSAP_PASSWORD=zzz\n');
+    let hardened = false;
+    try {
+      execFileSync('icacls', [secret, '/inheritance:r', '/grant:r', `${process.env.USERNAME}:F`], {
+        encoding: 'utf8',
+        windowsHide: true,
+      });
+      hardened = true;
+    } catch {
+      /* 권한이 없으면 이 검사만 건너뛴다 */
+    }
+    if (!hardened) {
+      console.log('  ⚠ icacls로 상속을 끊을 수 없는 환경 — 이 검사만 건너뛴다');
+    } else {
+      const r = migrate(root, ['--scope', 'project', '--apply', '--yes']);
+      check('소스 DACL이 사본과 다르면 거부한다', r.code === 1, `exit ${r.code}`);
+      check('사유에 DACL을 명시한다', r.out.includes('DACL'), r.out.slice(-600));
+      check('목적지를 만들지 않았다', !fs.existsSync(path.join(root, '.sapkit')));
+    }
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 }
 
 // ── 홈 스코프 ───────────────────────────────────────────────────────────────

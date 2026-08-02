@@ -138,7 +138,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `behavior_definition_name` (string, required) - Behavior definition name (e.g., Z_MY_BDEF).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -153,7 +153,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `behavior_implementation_name` (string, required) - Behavior implementation name (e.g., ZBP_MY_CLASS).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -168,7 +168,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `class_name` (string, required) - Class name (e.g., ZCL_MY_CLASS).
-- `method_name` (string, required) - Method name to extract (e.g. 
+- `method_name` (string, required) - Method name to extract (e.g.
 
 ---
 
@@ -180,7 +180,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `class_name` (string, required) - Class name (e.g., ZCL_MY_CLASS).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -195,10 +195,10 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `context_lines` (number, optional (default: 3)) - Number of unchanged context lines around each change.
-- `object_name_a` (string, required) - Object name of the first (left / 
-- `object_name_b` (string, required) - Object name of the second (right / 
-- `object_type_a` (string, required) - Object type of the first (left / 
-- `object_type_b` (string, required) - Object type of the second (right / 
+- `object_name_a` (string, required) - Object name of the first (left /
+- `object_name_b` (string, required) - Object name of the second (right /
+- `object_type_a` (string, required) - Object type of the first (left /
+- `object_type_b` (string, required) - Object type of the second (right /
 
 ---
 
@@ -213,7 +213,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `data_element_name` (string, required) - Data element name (e.g., Z_MY_DATA_ELEMENT).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -228,7 +228,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `domain_name` (string, required) - Domain name (e.g., Z_MY_DOMAIN).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -237,7 +237,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 <a id="getbadiimplementations-read-only-enhancement"></a>
 #### GetBadiImplementations (Read-Only / Enhancement)
-**Description:** [read-only] Find implementations of a (classic) BAdI definition. Use during symptom analysis when a standard SAP BAdI is implicated — answers 
+**Description:** [read-only] Find implementations of a (classic) BAdI definition. Use during symptom analysis when a standard SAP BAdI is implicated — answers
 
 **Source:** `src/handlers/enhancement/readonly/handleGetBadiImplementations.ts`
 
@@ -295,7 +295,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `function_group_name` (string, required) - Function group name (e.g., Z_MY_FG).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -309,10 +309,10 @@ Generated from code in `src/handlers/**` (not from docs).
 **Source:** `src/handlers/function_module/readonly/handleReadFunctionModule.ts`
 
 **Parameters:**
-- `check_inactive` (boolean, optional (default: false)) - Opt-in (default false). When reading the active version, also read the inactive version and, if an unactivated version exists and its source differs, attach a 
+- `check_inactive` (boolean, optional (default: false)) - Opt-in (default false). When reading the active version, also read the inactive version and, if an unactivated version exists and its source differs, attach a
 - `function_group_name` (string, required) - Function group name containing the function module (e.g., Z_MY_FG).
 - `function_module_name` (string, required) - Function module name (e.g., Z_MY_FM).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -380,7 +380,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `interface_name` (string, required) - Interface name (e.g., ZIF_MY_INTERFACE).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -395,7 +395,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `metadata_extension_name` (string, required) - Metadata extension name (e.g., Z_MY_DDLX).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -421,7 +421,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `package_name` (string, required) - Package name (e.g., Z_MY_PACKAGE).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -435,8 +435,8 @@ Generated from code in `src/handlers/**` (not from docs).
 **Source:** `src/handlers/program/readonly/handleGetProgFullCode.ts`
 
 **Parameters:**
-- `name` (string, required) - [read-only] Technical name of the program or function group (e.g., 
-- `type` (string, required) - [read-only] 
+- `name` (string, required) - [read-only] Technical name of the program or function group (e.g.,
+- `type` (string, required) - [read-only]
 
 ---
 
@@ -448,7 +448,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `program_name` (string, required) - Program name (e.g., Z_MY_PROGRAM).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -488,7 +488,7 @@ Generated from code in `src/handlers/**` (not from docs).
 **Source:** `src/handlers/search/readonly/handleGetObjectsByType.ts`
 
 **Parameters:**
-- `format` (string, optional) - [read-only] Output format: 
+- `format` (string, optional) - [read-only] Output format:
 - `node_id` (string, required) - [read-only] Node ID
 - `parent_name` (string, required) - [read-only] Parent object name
 - `parent_tech_name` (string, required) - [read-only] Parent technical name
@@ -522,7 +522,7 @@ Generated from code in `src/handlers/**` (not from docs).
 - `context_lines` (number, optional (default: 0)) - Number of lines of context before/after each match (0-5). Default: 0.
 - `max_results` (number, optional (default: 100)) - Maximum total matches to return across all objects. Default: 100.
 - `objects` (array, required) - Objects to search (1-50 entries).
-- `pattern` (string, required) - JavaScript regular expression source to search for (e.g. 
+- `pattern` (string, required) - JavaScript regular expression source to search for (e.g.
 
 ---
 
@@ -539,20 +539,20 @@ Generated from code in `src/handlers/**` (not from docs).
 - `max_results` (number, optional (default: 200)) - Maximum total matches to return across all objects. Once reached, remaining objects are not fetched. Default: 200.
 - `object_types` (array, optional) - Optional filter to only scan these object types (e.g. [
 - `packages` (array, required) - Package names to search (1-10 entries).
-- `pattern` (string, required) - JavaScript regular expression source to search for (e.g. 
+- `pattern` (string, required) - JavaScript regular expression source to search for (e.g.
 
 ---
 
 <a id="searchobject-read-only-search"></a>
 #### SearchObject (Read-Only / Search)
-**Description:** [read-only] Find, search, locate, or check if an ABAP repository object exists by name or wildcard pattern (e.g. 
+**Description:** [read-only] Find, search, locate, or check if an ABAP repository object exists by name or wildcard pattern (e.g.
 
 **Source:** `src/handlers/search/readonly/handleSearchObject.ts`
 
 **Parameters:**
 - `maxResults` (number, optional (default: 100)) - [read-only] Maximum number of results to return
-- `object_name` (string, required) - [read-only] Object name or mask (e.g. 
-- `object_type` (string, optional) - [read-only] Optional ABAP object type (e.g. 
+- `object_name` (string, required) - [read-only] Object name or mask (e.g.
+- `object_type` (string, optional) - [read-only] Optional ABAP object type (e.g.
 
 ---
 
@@ -581,7 +581,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `service_definition_name` (string, required) - Service definition name (e.g., Z_MY_SRVD).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -596,7 +596,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `structure_name` (string, required) - Structure name (e.g., Z_MY_STRUCTURE).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -605,15 +605,15 @@ Generated from code in `src/handlers/**` (not from docs).
 
 <a id="checksyntax-read-only-system"></a>
 #### CheckSyntax (Read-Only / System)
-**Description:** [read-only] Run a standalone ABAP syntax check WITHOUT writing anything to SAP. Supports 
+**Description:** [read-only] Run a standalone ABAP syntax check WITHOUT writing anything to SAP. Supports
 
 **Source:** `src/handlers/system/readonly/handleCheckSyntax.ts`
 
 **Parameters:**
-- `function_group_name` (string, optional) - [read-only] Function group name. Required when object_type is 
+- `function_group_name` (string, optional) - [read-only] Function group name. Required when object_type is
 - `object_name` (string, required) - [read-only] Name of the object to check (e.g., ZCL_MY_CLASS).
-- `object_type` (string, required) - [read-only] ABAP object kind to check: 
-- `source_code` (string, optional) - [read-only] Optional proposed ABAP source code to check in place. Only honored for object_type 
+- `object_type` (string, required) - [read-only] ABAP object kind to check:
+- `source_code` (string, optional) - [read-only] Optional proposed ABAP source code to check in place. Only honored for object_type
 
 ---
 
@@ -684,7 +684,7 @@ Generated from code in `src/handlers/**` (not from docs).
 **Parameters:**
 - `custom_only` (boolean, optional (default: true)) - When true (default), only Z*/Y*//NAMESPACE/ custom objects are expanded further during traversal — standard SAP objects still appear as leaf nodes but are not traversed past. The root is always expanded regardless of this flag.
 - `depth` (number, optional (default: DEFAULT_DEPTH)) - Max BFS depth from the root (1-4). Default 2.
-- `direction` (string, optional (default: callers)) - 
+- `direction` (string, optional (default: callers)) -
 - `function_group` (string, optional) - Function group name — required only when object_type is FUNC (function modules are addressed as GROUP|NAME).
 - `max_nodes` (number, optional (default: DEFAULT_MAX_NODES)) - Global cap on total nodes in the returned graph (max 300). Default 100.
 - `object_name` (string, required) - Root ABAP object name.
@@ -771,7 +771,7 @@ Generated from code in `src/handlers/**` (not from docs).
 **Source:** `src/handlers/system/readonly/handleGetSqlQuery.ts`
 
 **Parameters:**
-- `acknowledge_risk` (boolean, optional (default: false)) - Set to true ONLY after the user has explicitly authorized row extraction from an 
+- `acknowledge_risk` (boolean, optional (default: false)) - Set to true ONLY after the user has explicitly authorized row extraction from an
 - `row_number` (number, optional (default: 100)) - [read-only] Maximum number of rows to return
 - `sql_query` (string, required) - SQL query to execute
 
@@ -779,7 +779,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 <a id="getsysteminfo-read-only-system"></a>
 #### GetSystemInfo (Read-Only / System)
-**Description:** [read-only] Retrieve SAP system identity: system ID (SID), client, logon language, connected user, and an ADT-stack 
+**Description:** [read-only] Retrieve SAP system identity: system ID (SID), client, logon language, connected user, and an ADT-stack
 
 **Source:** `src/handlers/system/readonly/handleGetSystemInfo.ts`
 
@@ -818,7 +818,7 @@ Generated from code in `src/handlers/**` (not from docs).
 **Source:** `src/handlers/system/readonly/handleGetWhereUsed.ts`
 
 **Parameters:**
-- `enable_all_types` (boolean, optional (default: false)) - If true, searches in all available object types (Eclipse 
+- `enable_all_types` (boolean, optional (default: false)) - If true, searches in all available object types (Eclipse
 - `object_name` (string, required) - Name of the ABAP object
 - `object_type` (string, required) - Type of the ABAP object (class, interface, program, table, etc.)
 
@@ -857,7 +857,7 @@ Generated from code in `src/handlers/**` (not from docs).
 **Parameters:**
 - `top` (number, optional) - Number of top rows for summary. Default: 10.
 - `trace_id_or_uri` (string, required) - Profiler trace ID or full trace URI.
-- `view` (string, optional (default: hitlist)) - 
+- `view` (string, optional (default: hitlist)) -
 - `with_system_events` (boolean, optional) - Include system events.
 
 ---
@@ -869,20 +869,20 @@ Generated from code in `src/handlers/**` (not from docs).
 **Source:** `src/handlers/system/readonly/handleRuntimeCreateProfilerTraceParameters.ts`
 
 **Parameters:**
-- `aggregate` (boolean, optional) - 
-- `all_db_events` (boolean, optional) - 
-- `all_dynpro_events` (boolean, optional) - 
-- `all_internal_table_events` (boolean, optional) - 
-- `all_misc_abap_statements` (boolean, optional) - 
-- `all_procedural_units` (boolean, optional) - 
-- `all_system_kernel_events` (boolean, optional) - 
-- `amdp_trace` (boolean, optional) - 
+- `aggregate` (boolean, optional) -
+- `all_db_events` (boolean, optional) -
+- `all_dynpro_events` (boolean, optional) -
+- `all_internal_table_events` (boolean, optional) -
+- `all_misc_abap_statements` (boolean, optional) -
+- `all_procedural_units` (boolean, optional) -
+- `all_system_kernel_events` (boolean, optional) -
+- `amdp_trace` (boolean, optional) -
 - `description` (string, required) - Human-readable trace description.
-- `explicit_on_off` (boolean, optional) - 
-- `max_size_for_trace_file` (number, optional) - 
-- `max_time_for_tracing` (number, optional) - 
-- `sql_trace` (boolean, optional) - 
-- `with_rfc_tracing` (boolean, optional) - 
+- `explicit_on_off` (boolean, optional) -
+- `max_size_for_trace_file` (number, optional) -
+- `max_time_for_tracing` (number, optional) -
+- `sql_trace` (boolean, optional) -
+- `with_rfc_tracing` (boolean, optional) -
 
 ---
 
@@ -894,7 +894,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `dump_id` (string, required) - Runtime dump ID (for example: 694AB694097211F1929806D06D234D38).
-- `response_mode` (string, optional (default: payload)) - Controls what is returned: 
+- `response_mode` (string, optional (default: payload)) - Controls what is returned:
 - `view` (string, optional (default: default)) - Dump view mode: default payload, summary section, or formatted long text.
 
 ---
@@ -952,7 +952,7 @@ Generated from code in `src/handlers/**` (not from docs).
 **Source:** `src/handlers/system/readonly/handleRuntimeListFeeds.ts`
 
 **Parameters:**
-- `feed_type` (string, optional (default: descriptors)) - Feed to read. 
+- `feed_type` (string, optional (default: descriptors)) - Feed to read.
 - `from` (string, optional) - Start of time range in YYYYMMDDHHMMSS format.
 - `max_results` (number, optional) - Maximum number of entries to return.
 - `to` (string, optional) - End of time range in YYYYMMDDHHMMSS format.
@@ -992,21 +992,21 @@ Generated from code in `src/handlers/**` (not from docs).
 **Source:** `src/handlers/system/readonly/handleRuntimeRunClassWithProfiling.ts`
 
 **Parameters:**
-- `aggregate` (boolean, optional) - 
-- `all_db_events` (boolean, optional) - 
-- `all_dynpro_events` (boolean, optional) - 
-- `all_internal_table_events` (boolean, optional) - 
-- `all_misc_abap_statements` (boolean, optional) - 
-- `all_procedural_units` (boolean, optional) - 
-- `all_system_kernel_events` (boolean, optional) - 
-- `amdp_trace` (boolean, optional) - 
+- `aggregate` (boolean, optional) -
+- `all_db_events` (boolean, optional) -
+- `all_dynpro_events` (boolean, optional) -
+- `all_internal_table_events` (boolean, optional) -
+- `all_misc_abap_statements` (boolean, optional) -
+- `all_procedural_units` (boolean, optional) -
+- `all_system_kernel_events` (boolean, optional) -
+- `amdp_trace` (boolean, optional) -
 - `class_name` (string, required) - ABAP class name to execute.
 - `description` (string, optional) - Profiler trace description.
-- `explicit_on_off` (boolean, optional) - 
-- `max_size_for_trace_file` (number, optional) - 
-- `max_time_for_tracing` (number, optional) - 
-- `sql_trace` (boolean, optional) - 
-- `with_rfc_tracing` (boolean, optional) - 
+- `explicit_on_off` (boolean, optional) -
+- `max_size_for_trace_file` (number, optional) -
+- `max_time_for_tracing` (number, optional) -
+- `sql_trace` (boolean, optional) -
+- `with_rfc_tracing` (boolean, optional) -
 
 ---
 
@@ -1017,21 +1017,21 @@ Generated from code in `src/handlers/**` (not from docs).
 **Source:** `src/handlers/system/readonly/handleRuntimeRunProgramWithProfiling.ts`
 
 **Parameters:**
-- `aggregate` (boolean, optional) - 
-- `all_db_events` (boolean, optional) - 
-- `all_dynpro_events` (boolean, optional) - 
-- `all_internal_table_events` (boolean, optional) - 
-- `all_misc_abap_statements` (boolean, optional) - 
-- `all_procedural_units` (boolean, optional) - 
-- `all_system_kernel_events` (boolean, optional) - 
-- `amdp_trace` (boolean, optional) - 
+- `aggregate` (boolean, optional) -
+- `all_db_events` (boolean, optional) -
+- `all_dynpro_events` (boolean, optional) -
+- `all_internal_table_events` (boolean, optional) -
+- `all_misc_abap_statements` (boolean, optional) -
+- `all_procedural_units` (boolean, optional) -
+- `all_system_kernel_events` (boolean, optional) -
+- `amdp_trace` (boolean, optional) -
 - `description` (string, optional) - Profiler trace description.
-- `explicit_on_off` (boolean, optional) - 
-- `max_size_for_trace_file` (number, optional) - 
-- `max_time_for_tracing` (number, optional) - 
+- `explicit_on_off` (boolean, optional) -
+- `max_size_for_trace_file` (number, optional) -
+- `max_time_for_tracing` (number, optional) -
 - `program_name` (string, required) - ABAP program name to execute.
-- `sql_trace` (boolean, optional) - 
-- `with_rfc_tracing` (boolean, optional) - 
+- `sql_trace` (boolean, optional) -
+- `with_rfc_tracing` (boolean, optional) -
 
 ---
 
@@ -1057,7 +1057,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 **Parameters:**
 - `table_name` (string, required) - Table name (e.g., Z_MY_TABLE).
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 
 ---
 
@@ -1100,7 +1100,7 @@ Generated from code in `src/handlers/**` (not from docs).
 **Source:** `src/handlers/view/readonly/handleReadView.ts`
 
 **Parameters:**
-- `version` (string, optional (default: active)) - Version to read: 
+- `version` (string, optional (default: active)) - Version to read:
 - `view_name` (string, required) - View name (e.g., Z_MY_VIEW).
 
 ---

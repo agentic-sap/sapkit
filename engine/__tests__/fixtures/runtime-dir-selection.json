@@ -28,7 +28,8 @@
       "launch": "{ envPath: <path|null> } — the sap.env launch.cjs exports as MCP_ENV_PATH, or null when it resolves nothing",
       "profile-resolve": "{ runtimeDir, workspaceRoot, sapEnvPath: {path, source}|null, configJsonPath: {path, source}|null }",
       "tier-guard": "{ runtimeDir, tier: DEV|QA|PRD|null, decision: allow|deny } for a mutation tool call",
-      "blocklist": "{ blocklistProfile: minimal|standard|strict|custom, extendFrom: <path|null> }"
+      "blocklist": "{ blocklistProfile: minimal|standard|strict|custom, extendFrom: <path|null> }",
+      "cwd-tools": "{ vpass, 'extract-spro', 'extract-customizations' } -> each tool's own expected `runtime_dir` from `--resolve-only`. OPTIONAL and read only by the interactive runner (the jest well-formedness check does not require it). Values are PER TOOL on purpose: the runner's older cross-check only asserted that the three AGREE, which passes when all three are wrong in the same way. Pin them wherever the answer is interesting; leave the key out and the runner falls back to the agreement + R-PRESERVE/R-NEW invariants alone. Not pinned by this key: whether the directory is actually CREATED — `--resolve-only` is pure computation and creates nothing, so creation and duplication stay unpinned (design §4-3 R-NEW is explicitly about disclosing that, not fixing it)."
     },
     "axes": "R-TIE (generation combinations x connection completeness) · walk depth 0/7/8/63/64 · env 4 · home-alias 4 · the nine safety regressions of §7-3 · migration round-trip · R-NEW creation site"
   },
@@ -83,6 +84,10 @@
         },
         "blocklist": {
           "expected": { "blocklistProfile": "strict", "extendFrom": null }
+        },
+        "cwd-tools": {
+          "expected": { "vpass": "$PROJECT/.sc4sap", "extract-spro": "$PROJECT/.sc4sap", "extract-customizations": "$PROJECT/.sc4sap" },
+          "note": "R-PRESERVE core for the cwd-relative writers too: their criterion is bare existence at the cwd (depth 0, no walk-up), so a .sc4sap-only project keeps writing into .sc4sap exactly as before the rename."
         }
       }
     },
@@ -125,7 +130,11 @@
           }
         },
         "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": "DEV", "decision": "allow" } },
-        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null } }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null } },
+        "cwd-tools": {
+          "expected": { "vpass": "$PROJECT/.sapkit", "extract-spro": "$PROJECT/.sapkit", "extract-customizations": "$PROJECT/.sapkit" },
+          "note": "New generation alone at the cwd is adopted."
+        }
       }
     },
 
@@ -167,6 +176,10 @@
         "blocklist": {
           "expected": { "blocklistProfile": "strict", "extendFrom": null },
           "note": "No config.json in either generation — the hook falls back to its DEFAULT_PROFILE, and `strict` is pinned here so the fail-closed default cannot regress. Which generation gets read is pinned by safety-3/4 instead, where a real config.json distinguishes them."
+        },
+        "cwd-tools": {
+          "expected": { "vpass": "$PROJECT/.sapkit", "extract-spro": "$PROJECT/.sapkit", "extract-customizations": "$PROJECT/.sapkit" },
+          "note": "Both exist and both carry connection completeness, so the R-TIE tie-break elects .sapkit — the same answer the walk-up consumers reach here."
         }
       }
     },
@@ -208,7 +221,11 @@
           "expected": { "runtimeDir": "$PROJECT/.sc4sap", "tier": "DEV", "decision": "allow" },
           "note": "This guard's criterion is bare existence, so BOTH generations pass; the tie-break then prefers the one with connection completeness, which is .sc4sap."
         },
-        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → DEFAULT_PROFILE. The generation-choice claim of this shape is carried by safety-3, where a real config.json distinguishes the two." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → DEFAULT_PROFILE. The generation-choice claim of this shape is carried by safety-3, where a real config.json distinguishes the two." },
+        "cwd-tools": {
+          "expected": { "vpass": "$PROJECT/.sc4sap", "extract-spro": "$PROJECT/.sc4sap", "extract-customizations": "$PROJECT/.sc4sap" },
+          "note": "R-TIE ORDER for these writers: both generations pass their existence criterion, so the tie-break runs and connection completeness decides — the empty .sapkit shell must not capture the writes of a .sc4sap that carries the connection."
+        }
       }
     },
 
@@ -243,7 +260,11 @@
           "note": "CORRECTED 2026-08-02 against the shipped resolver (interactive/scripts/conformance-runtime-dir.mjs): the earlier `$PROJECT/.sapkit` guess was wrong. This resolver's state criterion counts a bare active-profile.txt (existence, not content), so BOTH generations pass it; the tie-break then compares connection completeness, and the empty pointer loses (D-057 §11-5) — so `.sc4sap` wins, which is also what R-PRESERVE requires."
         },
         "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sc4sap", "tier": "DEV", "decision": "allow" } },
-        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." },
+        "cwd-tools": {
+          "expected": { "vpass": "$PROJECT/.sc4sap", "extract-spro": "$PROJECT/.sc4sap", "extract-customizations": "$PROJECT/.sc4sap" },
+          "note": "An empty active-profile.txt is not completeness (§11-5), so the legacy generation wins here as well."
+        }
       }
     },
 
@@ -277,7 +298,11 @@
           "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": null, "decision": "deny" },
           "note": "Unresolved tier is deny — unchanged by the rename."
         },
-        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No project directory at all; the hook's own 8-level probe finds nothing and falls back to DEFAULT_PROFILE. `strict` is the point — 'nothing configured' must be the most restrictive posture, never the least." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No project directory at all; the hook's own 8-level probe finds nothing and falls back to DEFAULT_PROFILE. `strict` is the point — 'nothing configured' must be the most restrictive posture, never the least." },
+        "cwd-tools": {
+          "expected": { "vpass": "$PROJECT/.sapkit", "extract-spro": "$PROJECT/.sapkit", "extract-customizations": "$PROJECT/.sapkit" },
+          "note": "R-NEW creation site. NOTE: --resolve-only only COMPUTES this path; nothing is created, so actual creation (and whether a second directory appears alongside an existing one) stays unpinned by design — §4-3 R-NEW exists to disclose that property, not to remove it."
+        }
       }
     },
 
@@ -380,7 +405,11 @@
         "launch": { "expected": { "envPath": null } },
         "profile-resolve": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "workspaceRoot": "$PROJECT" } },
         "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": "DEV", "decision": "allow" } },
-        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." },
+        "cwd-tools": {
+          "expected": { "vpass": "$CWD/.sapkit", "extract-spro": "$CWD/.sapkit", "extract-customizations": "$CWD/.sapkit" },
+          "note": "These three do NOT walk up (depth 0). The runtime dir sits 7 levels above the cwd and is invisible to them, so they name the R-NEW site at the cwd — a real divergence from profile-resolve ($PROJECT/.sapkit) in the same case, and exactly the divergence that predates the rename."
+        }
       }
     },
 
@@ -575,6 +604,50 @@
     },
 
     {
+      "id": "env-new-invalid-local-connection-present",
+      "axis": "env",
+      "title": "ENV_INVALID is TERMINAL — with a project-local sap.env within reach, the broken home pin must still yield NO connection, while the project-local row-data policy keeps applying",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/active-profile.txt": "KR-DEV",
+          "$PROJECT/.sapkit/sap.env": "SAP_URL=http://project-local\nSAP_TIER=dev\n",
+          "$PROJECT/.sapkit/config.json": "{\"blocklistProfile\":\"strict\"}",
+          "$PROJECT/.sapkit/blocklist-extend.txt": "ZLOCALONLY\n",
+          "$HOME/custom-old/profiles/KR-DEV/sap.env": "SAP_URL=http://custom-old-prd\nSAP_TIER=prd\n"
+        },
+        "cwd": ".",
+        "env": { "SAPKIT_HOME_DIR": "$HOME/does-not-exist", "SC4SAP_HOME_DIR": "$HOME/custom-old" }
+      },
+      "consumers": {
+        "engine": {
+          "expected": { "throws": "ENV_INVALID" },
+          "note": "Unchanged from env-new-invalid: profile.ts throws ProfilePathError('ENV_INVALID') before any generation is examined, so a project-local sap.env cannot stand in for the broken pin. This case exists to hold the shim and the library to the SAME meaning."
+        },
+        "launch": {
+          "expected": { "envPath": null },
+          "note": "THE POINT (3rd-review MAJOR #2). Before the fix the shim treated ENV_INVALID as 'this generation has no profile' and fell through to `<runtime dir>/sap.env`, exporting MCP_ENV_PATH=$PROJECT/.sapkit/sap.env — a live connection the operator never selected while their own home pin was broken. R-ENV says ENV_INVALID is never silently stepped over, so the answer is null: the bundle starts connectionless."
+        },
+        "profile-resolve": {
+          "expected": {
+            "runtimeDir": "$PROJECT/.sapkit",
+            "workspaceRoot": "$PROJECT",
+            "sapEnvPath": null,
+            "configJsonPath": { "path": "$PROJECT/.sapkit/config.json", "source": "legacy" }
+          },
+          "note": "The split is the whole point. sapEnvPath null = the CONNECTION source is cut off (it would otherwise fall through to the project-local sap.env, exactly as launch.cjs did). configJsonPath non-null = the row-data POLICY source is NOT cut off: `block-forbidden-tables` reads blocklistProfile from this file, it is project-local, and it has nothing to do with the home — letting a broken env var replace the project's own setting with the hook's default would make ENV_INVALID a lever on the row-data posture. Runtime-dir walk and alias pointer likewise stay untouched (R-PRESERVE)."
+        },
+        "tier-guard": {
+          "expected": { "tier": null, "decision": "deny" },
+          "note": "Already fail-closed before this fix and pinned here as a regression guard: the pointer names an alias, the alias's home is unresolvable, so the tier is unresolved and the guard denies. Verified unchanged, not modified."
+        },
+        "blocklist": {
+          "expected": { "blocklistProfile": "strict", "extendFrom": "$PROJECT/.sapkit/blocklist-extend.txt" },
+          "note": "`strict` is also the hook's DEFAULT_PROFILE, so the profile label alone could not tell 'read the project config.json' from 'fell back'. extendFrom does: ZLOCALONLY is in no built-in list at any tier, so it can only be denied if the extend file of the SELECTED generation was actually read. Together they assert that ENV_INVALID neither relaxes strict nor severs the policy source."
+        }
+      }
+    },
+
+    {
       "id": "home-alias-new-only",
       "axis": "home",
       "title": "No env vars — the home is picked by where the alias actually is (new)",
@@ -760,7 +833,11 @@
           "note": "THE POINT: the adoption criterion (state incl. config.json) is applied to EACH generation first. .sapkit fails it, .sc4sap passes, so the tie-break never runs. Running the tie-break first would pick the empty .sapkit, continue up to the parent, and silently downgrade strict to minimal."
         },
         "tier-guard": { "expected": { "runtimeDir": "$PROJECT/sub/.sapkit", "tier": null, "decision": "deny" }, "note": "Bare existence: both generations pass, neither has connection completeness, tie → .sapkit. Tier unresolved → deny either way." },
-        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null } }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null } },
+        "cwd-tools": {
+          "expected": { "vpass": "$CWD/.sapkit", "extract-spro": "$CWD/.sapkit", "extract-customizations": "$CWD/.sapkit" },
+          "note": "Their criterion is bare existence, NOT profile-resolve state: both sub/.sapkit and sub/.sc4sap exist, neither carries connection completeness, so the tie goes to .sapkit. profile-resolve answers $PROJECT/sub/.sc4sap for the same input because config.json counts for it. Pinning both proves the fixture reads each consumer separately instead of assuming one shared answer."
+        }
       }
     },
 
@@ -797,7 +874,11 @@
           "note": "Both generations pass this resolver's state criterion (config.json counts), so the tie-break runs — and .sc4sap has connection completeness while .sapkit does not, so the legacy generation wins and strict survives."
         },
         "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sc4sap", "tier": "DEV", "decision": "allow" } },
-        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null } }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null } },
+        "cwd-tools": {
+          "expected": { "vpass": "$PROJECT/.sc4sap", "extract-spro": "$PROJECT/.sc4sap", "extract-customizations": "$PROJECT/.sc4sap" },
+          "note": "config.json alone is not completeness for these writers, so the connected legacy generation wins."
+        }
       }
     },
 
@@ -1035,7 +1116,11 @@
         "launch": { "expected": { "envPath": null } },
         "profile-resolve": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "workspaceRoot": "$PROJECT" } },
         "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": null, "decision": "deny" } },
-        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." },
+        "cwd-tools": {
+          "expected": { "vpass": "$PROJECT/.sapkit", "extract-spro": "$PROJECT/.sapkit", "extract-customizations": "$PROJECT/.sapkit" },
+          "note": "R-NEW site from the workspace root. Creation itself is not pinned — --resolve-only computes and exits without touching the filesystem."
+        }
       }
     },
 
@@ -1060,7 +1145,11 @@
           "note": "Walk-up consumers DO unify here; the cwd-relative writers (vpass.mjs, extract-spro.mjs) are the ones that do not."
         },
         "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": "DEV", "decision": "allow" } },
-        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." },
+        "cwd-tools": {
+          "expected": { "vpass": "$CWD/.sapkit", "extract-spro": "$CWD/.sapkit", "extract-customizations": "$CWD/.sapkit" },
+          "note": "THE POINT of §7-3 #9: run from a subdirectory of a project that already has a root .sapkit and these writers still name the SUBDIRECTORY site, so a second runtime directory is what a real write would produce. Recorded, not endorsed — the pre-rename .sc4sap behaved identically. Whether the directory is actually created (and thus duplicated) is left unpinned: the offline seam does not create it, and no no-connection path does."
+        }
       }
     },
 
