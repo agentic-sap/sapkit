@@ -122,7 +122,7 @@ sc4sap-lite/
       modify-object.md                 ← Minimal 강도 절차, 흔적 0 (D-047 · aegis direct 각색)
       lesson.md                        ← LESSONS→RULES 5단계 (D-047 · aegis lesson 각색)
       knowledge.md                     ← lesson의 대칭짝: **실패가 아니라 몰랐던 사실**을 누적
-                                          (D-052). .sc4sap/knowledge/{domain,system}.md ·
+                                          (D-052). .sapkit/knowledge/{domain,system}.md ·
                                           KD-/KS- 인용 ID(제품 D-0xx 결정번호와 분리) ·
                                           정정은 삭제 아님 · 읽기는 인터뷰 계열 2곳
       package-to-process.md            ← 패키지 1개 → E2E 업무 흐름 문서(D-056). 객체 단위
@@ -140,7 +140,7 @@ sc4sap-lite/
       data-protection/                 ← exceptions/ 12파일 이식 + 실데이터 조회 승인 정책
       credential-handling.md
     vocabulary.md                      ← 표준 동작 어휘집 (중립 capability명 ↔ 어댑터 도구명 계약)
-    project-context.md                 ← 다섯 번째 요소: .sc4sap/{config.json, active-profile,
+    project-context.md                 ← 다섯 번째 요소: .sapkit/{config.json, active-profile,
                                           sap.env} 프로젝트 런타임 상태 규약 + 누적 산출물
                                           (RULES/LESSONS/knowledge) — 전부 로컬 전용
   server/
@@ -163,10 +163,11 @@ sc4sap-lite/
 
 1. **단일 원천 규칙**: 페르소나=역할·관점, 절차=순서·관문, 정책=불변조건만 소유.
    절차가 페르소나 본문을 복사하지 않는다 — 참조만. (이중 보관 드리프트 방지)
-2. **프로젝트 컨텍스트**: `.sc4sap/` 규약(sapVersion·abapRelease·activeModules·industry·
-   country·active-profile)은 선행 설계의 멀티 프로파일 체계를 유지한다. **"루트 .env
-   하나로 통일" 발상은 기각** (서버 tier 가드가 `.sc4sap`을 읽으므로 우회 위험 +
-   DEV/QAS/PRD 전환 현실과 충돌 — 이중 리뷰 합의 지적).
+2. **프로젝트 컨텍스트**: `.sapkit/` 규약(sapVersion·abapRelease·activeModules·industry·
+   country·active-profile, legacy `.sc4sap/` 폴백 병행)은 선행 설계의 멀티 프로파일
+   체계를 유지한다. **"루트 .env 하나로 통일" 발상은 기각** (서버 tier 가드가
+   `.sapkit`/`.sc4sap`을 읽으므로 우회 위험 + DEV/QAS/PRD 전환 현실과 충돌 — 이중
+   리뷰 합의 지적).
 3. **설치 프로필 2종**: `knowledge-only`(지식+페르소나, 서버 미설치 — SAP 연결 없는
    컨설팅용)와 `connected`(서버+SAP 연결). 서버 8.25MB+런타임 4.5MB는 후자에서만.
 4. **지식 정본 선언**: 이식 완료 시점부터 지식 정본 = sc4sap-lite. 동결된 sc4sap-custom은
@@ -176,7 +177,8 @@ sc4sap-lite/
    아니라(번들 도구와 표면 중복) CLI 검증기로, SAP 반영 전 오프라인 lint/parse를 붙인다.
    배포는 D-037 비커밋 원칙과 정합하게 **GitHub 릴리스 자산**으로 하고, 플랫폼별 sha256
    정본은 핀 파일 `provenance/vsp-release.lock.json`이 소유한다. 설치 = `scripts/get-vsp.mjs`
-   (OS/arch 감지 → 핀 URL 다운로드 → sha256 일치 시에만 `~/.sc4sap/bin/`). 선택 사항이라
+   (OS/arch 감지 → 핀 URL 다운로드 → sha256 일치 시에만 `~/.sapkit/bin/`, legacy
+   `~/.sc4sap/bin/` 폴백 병행). 선택 사항이라
    미설치에서도 하네스는 정상 동작하며, 릴리스 자산 방식이라 완전 오프라인이 아니라
    다운로드 1회가 필요하다. 근거·집행 = D-044.
 6. **방법론 강도 축**: `development-loop.md`(정책)가 강도 축(Minimal/Standard/Full)·
@@ -258,7 +260,7 @@ exposition 프리셋 ← tool-catalog 기반 도구 노출 축소 — Codex는 �
 | 층 | 실체 | Claude | Codex | Antigravity |
 |---|---|---|---|---|
 | L1 문서 정책 | core/policies | ✅ 동일 | ✅ 동일 | ✅ 동일 |
-| **L2 서버 내장 가드** | 번들의 blocklist + SAP_TIER readonly 가드 (`.sc4sap` 프로파일 해석) — **3사 공통 기계 방어선** | ✅ | ✅ | ✅ |
+| **L2 서버 내장 가드** | 번들의 blocklist + SAP_TIER readonly 가드 (`.sapkit`/`.sc4sap` 프로파일 해석) — **3사 공통 기계 방어선** | ✅ | ✅ | ✅ |
 | L3 하네스 기계 장치 | 각사 고유 | 안전훅 3종 + allowlist | approval 모드 + 샌드박스 | 자체 권한 설정 |
 
 - 실데이터 조회 2종(GetTableContents/GetSqlQuery): Claude는 allowlist 제외로 매번 승인.
@@ -394,12 +396,12 @@ v1 → v2(본문 §3·§4) 반영의 결정적 지적:
 
 **불변 경계 — 본 레포는 공개다.** L2·L3는 복사·커밋 금지, 포인터 참조만 한다.
 실제 경로 문자열(고객명이 포함될 수 있음)도 레포에 커밋하지 않는다: 포인터는 각
-사용 프로젝트의 `.sc4sap/`(git 미추적 런타임 상태)에만 존재하고, 본 레포에는 이
-필드의 스키마 설명만 둔다.
+사용 프로젝트의 `.sapkit/`(legacy `.sc4sap/` 폴백 병행, git 미추적 런타임 상태)에만
+존재하고, 본 레포에는 이 필드의 스키마 설명만 둔다.
 
 ### 8-3. knowledgeRoots 규약 (L2·L3 참조 배선)
 
-`.sc4sap/config.json`의 선택 필드:
+`.sapkit/config.json`의 선택 필드:
 
 ```json
 "knowledgeRoots": [
@@ -423,7 +425,7 @@ v1 → v2(본문 §3·§4) 반영의 결정적 지적:
 출처·적용 버전 frontmatter 필수, 도그푸딩 성공만으로 정본 승격 금지. 상세 분류
 규약은 선규정하지 않고 도그푸딩 실전에서 정련한다(D-040 정신).
 
-### 8-5. 제품명 개편 (Phase 1 확정안 · Phase 2 보류)
+### 8-5. 제품명 개편 (Phase 1 완료 · Phase 2 집행 착수)
 
 배경: D-040으로 하네스(ENGINE)는 제품 정체성에서 빠졌다 — `sap-agentic-harness`는
 옛 정체성 이름이며, 설치 명령의 중복(`이름@이름`)과 길이도 실사용 지적이다.
@@ -447,9 +449,13 @@ v1 → v2(본문 §3·§4) 반영의 결정적 지적:
   이름 아님) — 공식 문서에 없어 개명 전엔 두 값이 같아 관측 불가였고, 2026-07-21
   재시작 실측으로 확정했다. 스킬 접두어·에이전트 접두어도 동일 규칙이다. 따라서
   **플러그인 이름만 짧게 유지하면 세션 고정 토큰이 줄고, 마켓·조직명 길이는 무관하다.**
-- **Phase 2 (보류)**: `.sc4sap/` 디렉토리명·`~/.sah/` 프로파일 홈·`SC4SAP_*` 환경
-  변수는 원조 유래 legacy 명칭이나, **서버 번들 자체가 `.sc4sap`을 읽고**(§7 R3 —
-  tier 가드) 훅·절차 등 30+ 파일에 배선돼 있어 개명은 엔진 소스 수정 + 재번들
-  (UPDATE-RUNBOOK) + 이식 스냅샷 재생성이 걸리는 중수술이다. 기능 이득 0의 외형
-  작업이므로 도그푸딩 뒤 재론하고, 집행 시엔 폴백 병행(신명칭 우선 탐색 + `.sc4sap`
-  폴백)으로 기존 프로젝트 호환을 유지한다.
+- **Phase 2 — 집행 착수(2026-08-02)**: `.sc4sap/` 디렉토리명·`~/.sah/` 프로파일 홈·
+  `SC4SAP_*` 환경 변수 개명. 설계 정본 =
+  `docs/reference/designs/2026-08-01-runtime-path-rename-sapkit.md`(v4, Codex 이종
+  교차 리뷰 4회 — BLOCKER 8건 원문 확증). 대원칙 **R-PRESERVE**: 개명은 legacy-only
+  입력의 결과와 각 소비자의 채택 기준(깊이·경계·state 정의)을 그대로 보존하며,
+  `.sc4sap`을 보던 모든 자리에 `.sapkit`을 후보로 추가할 뿐이다(탐색기 통일·state
+  재검토는 범위 밖 — 별도 D-결정 필요). git 밖 상태는 copy-not-move crash-safe
+  마이그레이터로만 이행하고, 기존 프로젝트는 사용자가 그것을 실행하기 전까지 폴더명이
+  그대로다(2026-08-01 사용자 확정: 수동 이사, setup 자동 실행·플러그인 자동 이사는
+  기각). 집행 완료 후 **D-057**을 append한다.
