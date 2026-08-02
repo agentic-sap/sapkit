@@ -365,6 +365,11 @@ async function main() {
                 getToken: async () => undefined,
             };
             brokerKey = 'mock';
+            // ReloadProfile cannot rebuild this: StdioServer below captures the broker
+            // for the process lifetime and nothing swaps it afterwards. Mark the mode
+            // so ReloadProfile reports the required restart instead of a hollow
+            // success — the tool's name reads like it would reconnect, and it doesn't.
+            global.__mcpAbapAdtInspectionOnly = true;
             console.error('[MCP] Starting in inspection-only mode (no connection parameters).');
             console.error('[MCP] To connect to SAP system, use --mcp=<destination> or --env-path=<path>');
         }

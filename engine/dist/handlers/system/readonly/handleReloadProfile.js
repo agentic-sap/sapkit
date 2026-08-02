@@ -20,7 +20,7 @@ const utils_1 = require("../../../lib/utils");
 exports.TOOL_DEFINITION = {
     name: 'ReloadProfile',
     available_in: ['onprem', 'cloud', 'legacy'],
-    description: '[system] Reload the active SAP profile from .sapkit/active-profile.txt (legacy: .sc4sap/active-profile.txt) and reset the cached connection. Called by the sapkit plugin after switching profiles. Returns the newly active alias, host, tier, and readonly status.',
+    description: '[system] Reload the active SAP profile from .sapkit/active-profile.txt (legacy: .sc4sap/active-profile.txt) and reset the cached connection. Called by the sapkit plugin after switching profiles. Returns the newly active alias, host, tier, and readonly status. If the server was started without connection parameters (inspection-only), this CANNOT restore the connection: it returns restartRequired=true and the MCP server must be restarted.',
     inputSchema: {
         type: 'object',
         properties: {},
@@ -30,6 +30,10 @@ exports.TOOL_DEFINITION = {
 async function handleReloadProfile(context, _args) {
     const { logger } = context;
     try {
+        // Set by the launcher when it fell back to the mock broker. That broker is
+        // captured by the server at startup, so reloading the profile refreshes the
+        // environment but can never revive the connection in this process.
+        const inspectionOnly = Boolean(global.__mcpAbapAdtInspectionOnly);
         const loaded = (0, profile_1.activateProfile)();
         (0, utils_1.invalidateConnectionCache)();
         const host = loaded.envVars.SAP_URL ?? '';
@@ -47,6 +51,13 @@ async function handleReloadProfile(context, _args) {
                 client,
                 description,
                 sourcePath: loaded.sourcePath,
+                restartRequired: inspectionOnly,
+                note: inspectionOnly
+                    ? 'The server started in inspection-only mode (no connection parameters), so its SAP ' +
+                        'connection broker is a mock that ReloadProfile cannot replace. The profile was ' +
+                        'reloaded into the environment, but every SAP call keeps failing until the MCP ' +
+                        'server itself is restarted (reconnect the MCP server, or restart the client).'
+                    : undefined,
             }, null, 2),
         });
     }

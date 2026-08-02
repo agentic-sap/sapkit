@@ -365,10 +365,24 @@ export abstract class BaseMcpServer extends McpServer {
             // tools through *this* wrapper, so the guard must live here too.
             guardTool(entry.toolDefinition.name);
 
+            // ReloadProfile is the escape hatch out of a broken connection
+            // state: it only reads profile files and drops the cached
+            // connection, and it never touches `context.connection`. Opening a
+            // connection first is exactly what fails when the profile is the
+            // thing that is wrong — the call died with "Basic authentication
+            // requires SAP_CLIENT to be provided" before the handler ran, so
+            // the one tool that exists to repair that state was unreachable
+            // from inside it. `readonlyGuard` already exempts it for the same
+            // reason.
+            const opensConnection =
+              entry.toolDefinition.name !== 'ReloadProfile';
+
             // Get connection from context (this.connectionContext)
             // Token will be automatically refreshed via AuthBroker if needed
             const context: HandlerContext = {
-              connection: await this.getConnection(),
+              connection: opensConnection
+                ? await this.getConnection()
+                : (undefined as unknown as HandlerContext['connection']),
               logger: this.logger,
             };
 

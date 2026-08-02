@@ -4,6 +4,17 @@
 
 ## [Unreleased]
 
+## [4.14.3] - 2026-08-02
+
+### Fixed
+- **`ReloadProfile` could not run in the very state it exists to repair — 4.14.2 alone had no effect.** `BaseMcpServer.registerHandlers()`'s wrapper builds the handler context with `connection: await this.getConnection()` for **every** tool before dispatching. When the active profile is the thing that is wrong, that call is precisely what throws `Basic authentication requires SAP_CLIENT to be provided` — so the tool whose job is to load a repaired profile died with that error before its handler ever ran. This is the actual root of the reported symptom ("ReloadProfile returns the same auth error"), and it means 4.14.2's `restartRequired` was unreachable: an end-to-end probe against a real stdio boot (boot with a pointer to a missing profile → fix the pointer while the server runs → call `ReloadProfile`) returned the auth error, not the new field. `ReloadProfile` never reads `context.connection` — it only reads profile files and invalidates the cache — so the wrapper now skips `getConnection()` for it. `readonlyGuard` already exempts the same tool for the same reason; this closes the other half.
+
+### Notes
+- **Found by end-to-end probing, not by unit tests.** 4.14.2's suite passed (the handler does return `restartRequired` when called) and was still useless in production, because nothing exercised the wrapper that stands in front of the handler. Recorded as a method lesson: a repair whose whole point is "works when the connection is broken" must be verified with the connection actually broken.
+- Two new cases in `src/__tests__/server/baseMcpServerReadonlyGate.test.ts` (11 total in that suite): `ReloadProfile` executes with `connectionOpens === 0`, and every other tool still opens exactly one connection. The existing "DEV passes every tool through" case moves from `TOOL_NAMES.length` to `TOOL_NAMES.length - 1` connections — that assertion pinned the old contract and caught this change, as intended.
+- Full jest: **733 passed / 11 skipped / 0 failed** (731 after 4.14.2 — +2).
+- Behaviour for connected servers is unchanged: `ReloadProfile` never used the connection it was handed, so skipping it removes a needless session open rather than changing any result.
+
 ## [4.14.2] - 2026-08-02
 
 ### Fixed

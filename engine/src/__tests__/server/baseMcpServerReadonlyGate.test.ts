@@ -198,13 +198,34 @@ describe('BaseMcpServer registration path — tier readonly gate', () => {
     expect(executed).toEqual(['ReloadProfile']);
   });
 
+  it('ReloadProfile runs without opening a connection', async () => {
+    const { server } = bootServer(DEV);
+    await expect(
+      server.toolHandler('ReloadProfile')({}),
+    ).resolves.toBeDefined();
+    expect(executed).toEqual(['ReloadProfile']);
+    // The escape hatch has to work from the state it exists to repair. A wrong
+    // profile makes getConnection() throw "Basic authentication requires
+    // SAP_CLIENT to be provided", so opening a connection first made the one
+    // tool that fixes profiles unreachable whenever the profile was broken.
+    expect(server.connectionOpens).toBe(0);
+  });
+
+  it('every other tool still opens a connection', async () => {
+    const { server } = bootServer(DEV);
+    await server.toolHandler('CreateProgram')({});
+    expect(server.connectionOpens).toBe(1);
+  });
+
   it('DEV passes every tool through (the gate must not break the product)', async () => {
     const { server } = bootServer(DEV);
     for (const tool of TOOL_NAMES) {
       await expect(server.toolHandler(tool)({})).resolves.toBeDefined();
     }
     expect(executed).toEqual([...TOOL_NAMES]);
-    expect(server.connectionOpens).toBe(TOOL_NAMES.length);
+    // Every tool but one opens a connection: ReloadProfile repairs the profile
+    // the connection itself depends on, so it must not require a working one.
+    expect(server.connectionOpens).toBe(TOOL_NAMES.length - 1);
   });
 
   it('inspection-only (no profile applied) keeps the permissive DEV default', async () => {
