@@ -106,6 +106,10 @@ if (role === 'codex') {
   if (joined === '--version') { out(env.DOCTOR_STUB_CODEX_VERSION ?? 'codex-cli 0.146.0'); process.exit(0); }
   if (joined.startsWith('plugin list')) { out(env.DOCTOR_STUB_CODEX_PLUGIN_LIST ?? '{"installed":[],"available":[]}'); process.exit(0); }
   if (joined.startsWith('mcp list')) { out(env.DOCTOR_STUB_CODEX_MCP_LIST ?? '[]'); process.exit(0); }
+  if (joined.startsWith('mcp get')) {
+    if (env.DOCTOR_STUB_CODEX_MCP_GET) { out(env.DOCTOR_STUB_CODEX_MCP_GET); process.exit(0); }
+    process.exit(1);
+  }
   process.exit(1);
 }
 if (role === 'agy') {
@@ -301,12 +305,16 @@ function codexPluginListFor(installPath) {
   });
 }
 {
-  // 7a. 토큰 잔존 = 미배선
+  // 7a. 토큰 잔존 = 미배선 — 픽스처를 수기로 쓰지 않고 **레포 실생성물을 그대로 복사**
+  // 한다(토큰형이 곧 배포 상태). 생성물 shape이 바뀌면 이 케이스가 실물과 함께
+  // 어긋나도록 하는 재발 방지다(v0.5.0 독립 리뷰 M-1 — 수기 픽스처가 doctor의 구형
+  // shape 버그를 그대로 베껴 43건이 공허하게 초록이던 결함의 수리).
   const install = tmpDir('t7a-install');
   writeJson(path.join(install, '.codex-plugin', 'plugin.json'), { mcpServers: './adapters/codex/.mcp.json' });
-  writeJson(path.join(install, 'adapters', 'codex', '.mcp.json'), {
-    mcpServers: { sap: { command: 'node', args: ['{{SAPKIT_PLUGIN_ROOT}}/server/launch.cjs'] } },
-  });
+  const realWrapper = path.join(INTERACTIVE, 'adapters', 'codex', '.mcp.json');
+  const dst7a = path.join(install, 'adapters', 'codex', '.mcp.json');
+  fs.mkdirSync(path.dirname(dst7a), { recursive: true });
+  fs.copyFileSync(realWrapper, dst7a);
   const r = runDoctor({ cwd: tmpDir('t7a-project'), home: tmpDir('t7a-home'), extraEnv: { DOCTOR_STUB_CODEX_PLUGIN_LIST: codexPluginListFor(install) } });
   const chk = findCheck(r.json, 'MCP_DECL_CODEX');
   ok('7a 토큰 잔존 → WARN(미배선)', chk?.status === 'WARN' && chk.evidence.includes('미배선'), JSON.stringify(chk));
@@ -316,8 +324,9 @@ function codexPluginListFor(installPath) {
   const install = tmpDir('t7b-install');
   const decoy = tmpDir('t7b-decoy-old-install');
   writeJson(path.join(install, '.codex-plugin', 'plugin.json'), { mcpServers: './adapters/codex/.mcp.json' });
+  // 서버 맵 직접형 — 실제 생성물과 같은 shape (구형 mcpServers 래핑 아님)
   writeJson(path.join(install, 'adapters', 'codex', '.mcp.json'), {
-    mcpServers: { sap: { command: 'node', args: [path.join(decoy, 'server', 'launch.cjs')] } },
+    sap: { command: 'node', args: [path.join(decoy, 'server', 'launch.cjs')] },
   });
   const r = runDoctor({ cwd: tmpDir('t7b-project'), home: tmpDir('t7b-home'), extraEnv: { DOCTOR_STUB_CODEX_PLUGIN_LIST: codexPluginListFor(install) } });
   const chk = findCheck(r.json, 'MCP_DECL_CODEX');
@@ -327,8 +336,9 @@ function codexPluginListFor(installPath) {
   // 7c. 절대경로가 현재 설치 루트와 일치 = 정상
   const install = tmpDir('t7c-install');
   writeJson(path.join(install, '.codex-plugin', 'plugin.json'), { mcpServers: './adapters/codex/.mcp.json' });
+  // 서버 맵 직접형 — 실제 생성물과 같은 shape
   writeJson(path.join(install, 'adapters', 'codex', '.mcp.json'), {
-    mcpServers: { sap: { command: 'node', args: [path.join(install, 'server', 'launch.cjs')] } },
+    sap: { command: 'node', args: [path.join(install, 'server', 'launch.cjs')] },
   });
   const r = runDoctor({ cwd: tmpDir('t7c-project'), home: tmpDir('t7c-home'), extraEnv: { DOCTOR_STUB_CODEX_PLUGIN_LIST: codexPluginListFor(install) } });
   const chk = findCheck(r.json, 'MCP_DECL_CODEX');
@@ -372,6 +382,36 @@ console.log('\nT8. Codex legacy 전역 sap 등록 감지');
   });
   const chk = findCheck(r.json, 'CODEX_LEGACY_SAP');
   ok('legacy sap 없음 → OK', chk?.status === 'OK', JSON.stringify(chk));
+}
+{
+  // 8c. command 없는 오버라이드 전용 항목(disabled_tools 하드차단 레시피) → INFO,
+  // "제거" 권고 아님 (v0.5.0 독립 리뷰 M-2 — README 하드차단을 따른 사용자에게
+  // doctor가 제거를 안내해 차단이 사라지는 운용 모순의 수리)
+  const r = runDoctor({
+    cwd: tmpDir('t8c-project'),
+    home: tmpDir('t8c-home'),
+    extraEnv: {
+      DOCTOR_STUB_CODEX_MCP_LIST: JSON.stringify([{ name: 'sap', enabled: true }]),
+      DOCTOR_STUB_CODEX_MCP_GET: JSON.stringify({ name: 'sap', enabled: true, disabled_tools: ['GetTableContents', 'GetSqlQuery'] }),
+    },
+  });
+  const chk = findCheck(r.json, 'CODEX_LEGACY_SAP');
+  ok('8c 오버라이드 전용(disabled_tools·command 없음) → INFO(제거 대상 아님)', chk?.status === 'INFO' && chk.evidence.includes('오버라이드 전용'), JSON.stringify(chk));
+  ok('8c evidence가 제거 대상이 아님을 명시', (chk?.evidence ?? '').includes('제거 대상이 아님'), chk?.evidence);
+}
+{
+  // 8d. command를 가진 진짜 전역 서버 → 기존 WARN(그림자) 유지 + 대체 차단 경고 동봉
+  const r = runDoctor({
+    cwd: tmpDir('t8d-project'),
+    home: tmpDir('t8d-home'),
+    extraEnv: {
+      DOCTOR_STUB_CODEX_MCP_LIST: JSON.stringify([{ name: 'sap', enabled: true }]),
+      DOCTOR_STUB_CODEX_MCP_GET: JSON.stringify({ name: 'sap', enabled: true, command: 'node', args: ['C:/old/launch.cjs'], disabled_tools: ['GetTableContents', 'GetSqlQuery'] }),
+    },
+  });
+  const chk = findCheck(r.json, 'CODEX_LEGACY_SAP');
+  ok('8d command 보유 전역 서버 → WARN(그림자)', chk?.status === 'WARN' && chk.evidence.includes('진짜 전역 서버'), JSON.stringify(chk));
+  ok('8d remediation이 대체 차단 선행을 요구', (chk?.remediation ?? '').includes('대체 차단'), chk?.remediation);
 }
 
 // ── T9. 훅 배선 — 사용자/프로젝트 스코프, marker 활성·죽은 경로·미배선 ─────────────────

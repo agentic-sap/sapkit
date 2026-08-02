@@ -369,7 +369,12 @@ function checkCodexMcpWiring(normalizedCodex) {
     // 원문 문자열을 개별 정규화한 뒤 합친다 — JSON.stringify로 먼저 뭉치면 Windows
     // 경로의 백슬래시가 `\\`로 이스케이프되고, 그 뒤 normSlash가 그 두 글자를 각각
     // `/`로 바꿔 `//`가 돼 버려 원래 경로(단일 `/`)와 영영 일치하지 않는 결함이 있었다.
-    const rawArgs = Array.isArray(wrapper?.mcpServers?.sap?.args) ? wrapper.mcpServers.sap.args : [];
+    // 생성물 wrapper는 **서버 맵 직접형** `{ "sap": {...} }`이다(gen-plugin-manifests —
+    // 주석 키조차 가짜 서버가 되므로 없음). 구형 `{ "mcpServers": { "sap": ... } }`도
+    // 방어적으로 수용한다(v0.5.0 독립 리뷰 M-1 — 직접형을 못 읽어 정상 배선을 스테일로
+    // 오진하던 결함의 수리).
+    const sapDef = wrapper?.sap ?? wrapper?.mcpServers?.sap;
+    const rawArgs = Array.isArray(sapDef?.args) ? sapDef.args : [];
     const argsStr = rawArgs.filter((a) => typeof a === 'string').map(normSlash).join(' | ');
     if (argsStr.includes('{{SAPKIT_PLUGIN_ROOT}}')) {
       report('WARN', code, label, `${wrapperPath} → 토큰 미치환({{SAPKIT_PLUGIN_ROOT}} 잔존) = 미배선`, applyHint);
@@ -526,12 +531,40 @@ function checkCodexLegacyShadow(codexProbe) {
     report('OK', code, label, '전역 [mcp_servers.sap] 등록 없음 — plugin-bundled sap과 충돌 없음');
     return;
   }
+  // 전역 항목에는 두 부류가 있다(v0.5.0 독립 리뷰 M-2): ⓐ command를 가진 진짜 전역
+  // 서버(bundled를 그림자로 가림 — 제거 후보) ⓑ command 없이 disabled_tools 등만 둔
+  // 오버라이드 전용 항목(실데이터 하드차단 레시피 — adapters/codex/README.md). ⓑ에
+  // "제거하라"고 안내하면 하드차단이 사라지므로 두 부류를 구분해 보고한다.
+  // command 유무는 `codex mcp get sap --json`에서 읽고, 실패하면 판정 불가로 보수 처리.
+  let hasCommand = null; // true | false | null(판정 불가)
+  let hasHardBlock = false;
+  const g = spawnSync('codex', ['mcp', 'get', 'sap', '--json'], { shell: true, timeout: 30000, encoding: 'utf8' });
+  if (!g.error && g.status === 0) {
+    try {
+      const detail = JSON.parse(g.stdout || '{}');
+      const flat = JSON.stringify(detail);
+      hasCommand = /"command"\s*:\s*"[^"]+"/.test(flat);
+      hasHardBlock = flat.includes('GetTableContents') && flat.includes('GetSqlQuery') && flat.includes('disabled_tools');
+    } catch {
+      /* 판정 불가 — null 유지 */
+    }
+  }
+  if (hasCommand === false && hasHardBlock) {
+    report(
+      'INFO',
+      code,
+      label,
+      '전역 [mcp_servers.sap] 항목이 있으나 command 없는 오버라이드 전용(disabled_tools 실데이터 하드차단)으로 보임 — 제거 대상이 아님',
+      '이 오버라이드가 bundled 서버에 병합 적용되는지는 미실측(README "실데이터 2종 하드 차단" 절) — `codex mcp get sap --json`으로 적용 여부를 확인하고, 제거하려면 대체 차단을 먼저 마련하십시오.',
+    );
+    return;
+  }
   report(
     'WARN',
     code,
     label,
-    `전역 [mcp_servers.sap] 등록이 존재(enabled=${legacy.enabled}) — plugin-bundled sap을 조용히 가릴 수 있음(동시 기동 아님, 그림자)`,
-    '제거는 `codex mcp remove sap` — 사용자 확인 후에만 실행하십시오(자동 제거 금지).',
+    `전역 [mcp_servers.sap] 등록이 존재(enabled=${legacy.enabled}${hasCommand === null ? ' · command 유무 판정 불가' : hasCommand ? ' · command 보유 = 진짜 전역 서버' : ''}) — plugin-bundled sap을 조용히 가릴 수 있음(동시 기동 아님, 그림자)`,
+    '제거는 `codex mcp remove sap` — 사용자 확인 후에만. 그 항목에 disabled_tools 실데이터 하드차단이 있다면 제거 전에 대체 차단을 먼저 마련하십시오(자동 제거 금지).',
   );
 }
 

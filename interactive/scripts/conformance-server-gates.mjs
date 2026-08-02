@@ -621,7 +621,9 @@ console.log(`총 ${rows.length}건 · PASS ${passN} · 기록된 격차 ${gapN} 
 if (gaps.length) {
   console.log('\n⚠ 기록된 격차 (설계 §7-2 요구 ↔ 번들 실체) — 수리는 별건 결정:');
   for (const g of gaps) console.log(`  · ${g}`);
-  console.log('  → 설계 §14-3 "출시 불가 조건"에 해당한다. 이 러너는 실체를 고정할 뿐 수리하지 않는다.');
+  console.log('  → 각 격차의 §14-3 해당 여부는 성격에 따라 다르다 — GAP-2(env 노브가 sap.env 전용)는');
+  console.log('    무시된 노브가 기본 standard를 유지하는 "더 조이는" 방향이라 §14-3 6번 우회가 아니다');
+  console.log('    (D-062 ⑥). 이 러너는 실체를 고정할 뿐 수리하지 않는다.');
 }
 if (promotions.length) {
   console.log('\nℹ 격차 해소 감지 — 기대값을 승격할 것:');

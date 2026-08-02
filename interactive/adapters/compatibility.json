@@ -1,7 +1,7 @@
 {
   "_comment": "어댑터별 검증 버전 고정 (DESIGN.md §4-2). claude-code/antigravity는 exact-version 핀 — 버전이 올라가면 스모크 재실행 후 갱신. codex는 2026-08-02부터 capability 기반(docs/reference/designs/2026-08-02-claude-onboarding-codex-parity-no-engine.md §9-1) — exact `version` 핀 대신 minimumSupported/probeCandidates/lastVerified/requiredCapabilities. 동기화 점검: node interactive/scripts/doctor.mjs",
   "_evidence_rule": "claude-code/antigravity의 version 핀은 **재검증한 뒤에만** 올린다 (D-027 로드맵 §9.5) — 설치된 버전을 확인한 것만으로 핀을 따라 올리면 근거 없이 동작을 주장하게 된다. codex는 exact 버전 비교 대신 requiredCapabilities probe로 판정하며, minimumSupported/lastVerified는 최초 clean-home bundled-MCP conformance(P0 probe) 통과 뒤에만 채운다 — 그 전까지는 어떤 설치 버전도 PASS로 부르지 않는다(설계 §9-1). 각 항목의 smoke에는 무엇을 실제로 쟀는지를, not_measured에는 재지 않은 것을 적는다.",
-  "verified": "2026-07-19",
+  "verified": "2026-08-02",
   "claude-code": {
     "version": "2.1.211",
     "manifest": ".claude-plugin/plugin.json (+ marketplace.json)",

@@ -28,6 +28,15 @@
 >   전용 · `claude plugin validate` PASS · marketplace version 중복 **유지** 판정(§11-1).
 > - 신설 시험 CI 등재: server-gates 22 · hook-switch 13 · setup-state 121 · toolsurface 53 ·
 >   codex-wire 51 · doctor 43(win 잡). test-smoke-mcp CRLF 오탐 2건 수리 → 20/20(D-057 ⑹ 종결).
+> - **새-컨텍스트 독립 리뷰(3커밋 diff 대상) = NEEDS-FIX → 전건 반영**: 안전 회귀 0 ·
+>   §14-3 8항 전부 미발화 판정. MAJOR 2건 당일 수리 — M-1 doctor ④가 wrapper를 구형
+>   shape으로 읽어 정상 배선을 스테일로 오진(+시험 픽스처가 버그를 베껴 공허) → 직접형
+>   수용+실생성물 픽스처·신규 케이스 4건(47/47). M-2 disabled_tools 오버라이드 항목을
+>   doctor ⑦이 그림자로 오인해 제거 안내(따르면 하드차단 소실) → command 유무 분기
+>   (INFO/WARN)+README 상호참조. MINOR: conformance 배너 §14-3 과잉 문구 축소 ·
+>   compatibility verified 날짜 · D-062 ①에 §14-3 1번 독해 확정. 미수리 기록 = 커밋 A
+>   단독 게이트 비green(bisect 위생 — B가 보완, 다음부터 한 커밋) · probeCandidates는
+>   문서 전용 데이터.
 > - **다음**: ① push 후 CI green 확인(D-060 교훈 — 로컬 green≠CI green) ② 이 머신 재설치
 >   `claude plugin update sapkit --scope local` → 0.5.0 → 재시작. **⚠ toolSurface 미설정
 >   프로젝트는 write 도구가 155→65로 축소된다(의도) — 이 레포에서 write 재개하려면
