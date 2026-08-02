@@ -134,6 +134,21 @@ jobs:
         shell: cmd
         run: powershell -NoProfile -File .\scripts\test-promote-track-b-run.ps1
 
+  win-migrate-gate:
+    # test-migrate-runtime-dir.mjs의 win32 전용 DACL 검증 블록(§5 ⑼)은
+    # `process.platform === 'win32'`일 때만 돈다 — node-gates(ubuntu-latest)에서는
+    # 항상 스킵된다. 그 경로를 CI에서 실제로 통과시키는 잡.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 마이그레이터 음성시험 (win32 DACL 검증 포함)
+        run: node interactive/scripts/test-migrate-runtime-dir.mjs
+
   vsp-build:
     # vsp-custom 편입(D-030/D-037) — 레포 내 vsp/ 서브트리에서 in-repo 재현 빌드 +
     # 오프라인 계약 스모크. 바이너리는 비커밋(lock binary.build_command로 재현)이라
