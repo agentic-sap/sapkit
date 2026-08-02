@@ -57,6 +57,22 @@ jobs:
       - name: 표면 게이트 음성시험
         run: node interactive/scripts/test-smoke-mcp.mjs
 
+      # ── 런타임 경로 개명 `.sc4sap` → `.sapkit` (D-057 · 설계 §7-2·§7-3) ──────
+      # 셋 다 오프라인이고 러너에 있는 상태만 읽는다. 적합성 러너는 임시 트리에서
+      # 실물 소비자(리졸버·훅 2종·launch shim·vpass·extract)를 구동하며,
+      # launch 실기동 스모크는 프로필이 없는 cwd라 SAP에 접속하지 않는다.
+      - name: 런타임 경로 개명 게이트 (활성 구역 무누출 · 폴백 의무 · 안전 앵커)
+        run: node interactive/scripts/check-runtime-path-rename.mjs
+
+      - name: 개명 게이트 음성시험 (토큰 주입·앵커 제거·폴백 파괴를 실제로 거부하는지)
+        run: node interactive/scripts/test-check-runtime-path-rename.mjs
+
+      - name: 마이그레이터 음성시험 (목적지 존재·symlink·divergence 거부 · journal 계약)
+        run: node interactive/scripts/test-migrate-runtime-dir.mjs
+
+      - name: 런타임 경로 적합성 (소비자별 현행 의미 보존 · 안전 회귀 9종)
+        run: node interactive/scripts/conformance-runtime-dir.mjs
+
       - name: 플러그인 매니페스트 5종 ↔ 단일 정본
         run: node interactive/scripts/gen-plugin-manifests.mjs --check
 

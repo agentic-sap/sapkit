@@ -165,8 +165,8 @@
         },
         "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": "DEV", "decision": "allow" } },
         "blocklist": {
-          "expected": null,
-          "note": "No config.json in either generation — the hook falls back to its DEFAULT_PROFILE. Pinned by case safety-3 instead, where the profile source is the point."
+          "expected": { "blocklistProfile": "strict", "extendFrom": null },
+          "note": "No config.json in either generation — the hook falls back to its DEFAULT_PROFILE, and `strict` is pinned here so the fail-closed default cannot regress. Which generation gets read is pinned by safety-3/4 instead, where a real config.json distinguishes them."
         }
       }
     },
@@ -208,7 +208,7 @@
           "expected": { "runtimeDir": "$PROJECT/.sc4sap", "tier": "DEV", "decision": "allow" },
           "note": "This guard's criterion is bare existence, so BOTH generations pass; the tie-break then prefers the one with connection completeness, which is .sc4sap."
         },
-        "blocklist": { "expected": null, "note": "No config.json — see safety-3." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → DEFAULT_PROFILE. The generation-choice claim of this shape is carried by safety-3, where a real config.json distinguishes the two." }
       }
     },
 
@@ -239,11 +239,11 @@
         },
         "launch": { "expected": { "envPath": "$PROJECT/.sc4sap/sap.env" } },
         "profile-resolve": {
-          "expected": { "runtimeDir": "$PROJECT/.sapkit" },
-          "note": "profile-resolve's own state criterion counts a bare active-profile.txt (existence, not content), so BOTH generations pass its criterion; the tie-break then compares connection completeness, where the empty pointer loses — expected value to be confirmed by the Node runner against the shipped resolver."
+          "expected": { "runtimeDir": "$PROJECT/.sc4sap", "sapEnvPath": { "path": "$PROJECT/.sc4sap/sap.env", "source": "legacy" } },
+          "note": "CORRECTED 2026-08-02 against the shipped resolver (interactive/scripts/conformance-runtime-dir.mjs): the earlier `$PROJECT/.sapkit` guess was wrong. This resolver's state criterion counts a bare active-profile.txt (existence, not content), so BOTH generations pass it; the tie-break then compares connection completeness, and the empty pointer loses (D-057 §11-5) — so `.sc4sap` wins, which is also what R-PRESERVE requires."
         },
         "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sc4sap", "tier": "DEV", "decision": "allow" } },
-        "blocklist": { "expected": null, "note": "No config.json." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
       }
     },
 
@@ -277,7 +277,7 @@
           "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": null, "decision": "deny" },
           "note": "Unresolved tier is deny — unchanged by the rename."
         },
-        "blocklist": { "expected": null, "note": "No project directory at all; the hook's own 8-level probe finds nothing." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No project directory at all; the hook's own 8-level probe finds nothing and falls back to DEFAULT_PROFILE. `strict` is the point — 'nothing configured' must be the most restrictive posture, never the least." }
       }
     },
 
@@ -307,7 +307,7 @@
         "launch": { "expected": { "envPath": null } },
         "profile-resolve": { "expected": { "runtimeDir": "$PROJECT/.sc4sap", "sapEnvPath": null } },
         "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sc4sap", "tier": null, "decision": "deny" } },
-        "blocklist": { "expected": null, "note": "No config.json." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
       }
     },
 
@@ -335,10 +335,10 @@
           },
           "note": "Journal key contract: an object with `source` (or `from`) naming the migrated-from directory. An unreadable or non-matching journal is treated as absent."
         },
-        "launch": { "expected": null, "note": "launch.cjs has no journal awareness — it picks .sapkit here for the ordinary tie-break reason. Left unpinned until the migrator's journal shape is final." },
+        "launch": { "expected": { "envPath": "$PROJECT/.sapkit/sap.env" }, "note": "Pinned 2026-08-02, now that the migrator's journal shape is final (interactive/scripts/migrate-runtime-dir.mjs §5-2 ⑤). launch.cjs has no journal awareness and needs none — it picks .sapkit here for the ordinary tie-break reason, which is the same answer the journal-aware engine reaches. Agreement matters: a shim and a bundle that disagreed on the generation would connect to one system while the guard cached the other's tier." },
         "profile-resolve": { "expected": { "runtimeDir": "$PROJECT/.sapkit" } },
         "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": "DEV", "decision": "allow" } },
-        "blocklist": { "expected": null, "note": "No config.json." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
       }
     },
 
@@ -358,7 +358,7 @@
         "launch": { "expected": { "envPath": "$PROJECT/.sapkit/sap.env" } },
         "profile-resolve": { "expected": { "runtimeDir": "$PROJECT/.sapkit" } },
         "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": "DEV", "decision": "allow" } },
-        "blocklist": { "expected": null, "note": "No config.json." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
       }
     },
 
@@ -380,7 +380,7 @@
         "launch": { "expected": { "envPath": null } },
         "profile-resolve": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "workspaceRoot": "$PROJECT" } },
         "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": "DEV", "decision": "allow" } },
-        "blocklist": { "expected": null, "note": "No config.json." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
       }
     },
 
@@ -404,7 +404,7 @@
           "expected": { "tier": null, "decision": "deny" },
           "note": "8 iterations cover the cwd plus 7 ancestors; the runtime dir sits one level further, so the tier stays unresolved and the guard denies. Fail-closed, unchanged by the rename."
         },
-        "blocklist": { "expected": null, "note": "No config.json." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
       }
     },
 
@@ -425,7 +425,7 @@
         "launch": { "expected": { "envPath": null } },
         "profile-resolve": { "expected": { "runtimeDir": "$PROJECT/.sapkit" } },
         "tier-guard": { "expected": { "tier": null, "decision": "deny" } },
-        "blocklist": { "expected": null, "note": "No config.json." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
       }
     },
 
@@ -445,11 +445,11 @@
         },
         "launch": { "expected": { "envPath": null } },
         "profile-resolve": {
-          "expected": null,
-          "note": "Boundary case: 64 iterations cover the cwd plus 63 ancestors, so the runtime dir is one level out of reach and the resolver falls back to $CWD/.sapkit. Left for the Node runner to pin against the shipped code rather than guessed here."
+          "expected": { "runtimeDir": "$CWD/.sapkit", "workspaceRoot": "$CWD", "sapEnvPath": null, "configJsonPath": null },
+          "note": "Boundary case: 64 iterations cover the cwd plus 63 ancestors, so the runtime dir is one level out of reach and the resolver falls back to the R-NEW creation site $CWD/.sapkit. Pinned 2026-08-02 by running the shipped resolver, not guessed — depth-63 (a hit) and depth-64 (a miss) together fix where the budget ends."
         },
         "tier-guard": { "expected": { "tier": null, "decision": "deny" } },
-        "blocklist": { "expected": null, "note": "No config.json." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
       }
     },
 
@@ -480,7 +480,7 @@
         "launch": { "expected": { "envPath": "$HOME/custom-new/profiles/KR-DEV/sap.env" } },
         "profile-resolve": { "expected": { "sapEnvPath": { "path": "$HOME/custom-new/profiles/KR-DEV/sap.env", "source": "profile" } } },
         "tier-guard": { "expected": { "tier": "DEV", "decision": "allow" } },
-        "blocklist": { "expected": null, "note": "No config.json." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
       }
     },
 
@@ -512,7 +512,7 @@
         "launch": { "expected": { "envPath": "$HOME/custom-old/profiles/KR-DEV/sap.env" } },
         "profile-resolve": { "expected": { "sapEnvPath": { "path": "$HOME/custom-old/profiles/KR-DEV/sap.env", "source": "profile" } } },
         "tier-guard": { "expected": { "tier": "DEV", "decision": "allow" } },
-        "blocklist": { "expected": null, "note": "No config.json." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
       }
     },
 
@@ -543,7 +543,7 @@
         "launch": { "expected": { "envPath": "$HOME/custom-new/profiles/KR-DEV/sap.env" } },
         "profile-resolve": { "expected": { "sapEnvPath": { "path": "$HOME/custom-new/profiles/KR-DEV/sap.env", "source": "profile" } } },
         "tier-guard": { "expected": { "tier": "DEV", "decision": "allow" } },
-        "blocklist": { "expected": null, "note": "No config.json." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
       }
     },
 
@@ -566,11 +566,11 @@
         },
         "launch": { "expected": { "envPath": null }, "note": "The shim skips profile resolution, so the bundle starts connectionless — fail-closed." },
         "profile-resolve": {
-          "expected": null,
-          "note": "The library returns the invalid path as-is (every lookup under it misses) and warns ENV_INVALID; the concrete return value is for the Node runner to pin."
+          "expected": { "runtimeDir": "$PROJECT/.sapkit", "workspaceRoot": "$PROJECT", "sapEnvPath": null, "configJsonPath": null },
+          "note": "Pinned 2026-08-02 against the shipped library: it returns the invalid home path as-is and warns ENV_INVALID, so every lookup under it misses and BOTH sapEnvPath and configJsonPath come back null — the caller's own fail-closed branch engages. What must never happen is a silent fall-through to SC4SAP_HOME_DIR ($HOME/custom-old, a PRD system); a non-null sapEnvPath here would be exactly that regression. The cwd-relative tools (vpass, extract-spro) go further and exit non-zero on this input."
         },
         "tier-guard": { "expected": { "tier": null, "decision": "deny" } },
-        "blocklist": { "expected": null, "note": "No config.json reachable; the hook's own fail-closed branch applies." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json reachable; the hook's own fail-closed branch applies. An invalid SAPKIT_HOME_DIR must not be able to relax the row-data profile." }
       }
     },
 
@@ -593,7 +593,7 @@
         "launch": { "expected": { "envPath": "$HOME/.sapkit/profiles/KR-DEV/sap.env" } },
         "profile-resolve": { "expected": { "sapEnvPath": { "path": "$HOME/.sapkit/profiles/KR-DEV/sap.env", "source": "profile" } } },
         "tier-guard": { "expected": { "tier": "DEV", "decision": "allow" } },
-        "blocklist": { "expected": null, "note": "No config.json." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
       }
     },
 
@@ -625,7 +625,7 @@
         "launch": { "expected": { "envPath": "$HOME/.sc4sap/profiles/KR-DEV/sap.env" } },
         "profile-resolve": { "expected": { "sapEnvPath": { "path": "$HOME/.sc4sap/profiles/KR-DEV/sap.env", "source": "profile" } } },
         "tier-guard": { "expected": { "tier": "DEV", "decision": "allow" } },
-        "blocklist": { "expected": null, "note": "No config.json." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
       }
     },
 
@@ -656,7 +656,7 @@
         "launch": { "expected": { "envPath": "$HOME/.sapkit/profiles/KR-DEV/sap.env" } },
         "profile-resolve": { "expected": { "sapEnvPath": { "path": "$HOME/.sapkit/profiles/KR-DEV/sap.env", "source": "profile" } } },
         "tier-guard": { "expected": { "tier": "DEV", "decision": "allow" } },
-        "blocklist": { "expected": null, "note": "No config.json." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
       }
     },
 
@@ -677,7 +677,7 @@
         "launch": { "expected": { "envPath": null } },
         "profile-resolve": { "expected": { "sapEnvPath": null } },
         "tier-guard": { "expected": { "tier": null, "decision": "deny" } },
-        "blocklist": { "expected": null, "note": "No config.json." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
       }
     },
 
@@ -705,7 +705,7 @@
           "expected": { "runtimeDir": "$PROJECT/sub/.sapkit", "tier": null, "decision": "deny" },
           "note": "THE POINT: this guard's criterion is bare existence, so the walk STOPS at the artifact-only child. The tier is unresolved there, hence deny. Making the guard state-aware would turn this into allow — the v1 R-B regression."
         },
-        "blocklist": { "expected": null, "note": "No config.json." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
       }
     },
 
@@ -889,7 +889,7 @@
         "launch": { "expected": { "envPath": "$HOME/.sc4sap/profiles/KR-DEV/sap.env" } },
         "profile-resolve": { "expected": { "sapEnvPath": { "path": "$HOME/.sc4sap/profiles/KR-DEV/sap.env", "source": "profile" } } },
         "tier-guard": { "expected": { "tier": "DEV", "decision": "allow" } },
-        "blocklist": { "expected": null, "note": "No config.json." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
       }
     },
 
@@ -913,7 +913,7 @@
         "launch": { "expected": { "envPath": "$HOME/.sapkit/profiles/KR-DEV/sap.env" } },
         "profile-resolve": { "expected": { "sapEnvPath": { "path": "$HOME/.sapkit/profiles/KR-DEV/sap.env", "source": "profile" } } },
         "tier-guard": { "expected": { "tier": "DEV", "decision": "allow" } },
-        "blocklist": { "expected": null, "note": "No config.json." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
       }
     },
 
@@ -941,7 +941,7 @@
           "expected": { "tier": "DEV", "decision": "allow" },
           "note": "Must agree with the engine's pick — a guard reading PRD while the connection is DEV (or vice versa) is the real hazard here."
         },
-        "blocklist": { "expected": null, "note": "No config.json." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
       }
     },
 
@@ -1015,9 +1015,9 @@
           "note": "Stale env after a revert is the most likely real-world ENV_INVALID. Failing loudly is the whole point: a silent fall-back would reconnect to a home the operator believed was retired."
         },
         "launch": { "expected": { "envPath": null } },
-        "profile-resolve": { "expected": null, "note": "Node runner pins the concrete return; the ENV_INVALID diagnostic is required." },
+        "profile-resolve": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "workspaceRoot": "$PROJECT", "sapEnvPath": null, "configJsonPath": null }, "note": "Pinned 2026-08-02 against the shipped library. A stale SAPKIT_HOME_DIR after a revert must NOT quietly resolve through $HOME/.sc4sap — sapEnvPath null is the assertion that it does not." },
         "tier-guard": { "expected": { "tier": null, "decision": "deny" } },
-        "blocklist": { "expected": null, "note": "No config.json reachable." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json reachable after the revert left a stale env var; the fail-closed DEFAULT_PROFILE applies." }
       }
     },
 
@@ -1035,7 +1035,7 @@
         "launch": { "expected": { "envPath": null } },
         "profile-resolve": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "workspaceRoot": "$PROJECT" } },
         "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": null, "decision": "deny" } },
-        "blocklist": { "expected": null, "note": "No config.json." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
       }
     },
 
@@ -1060,7 +1060,7 @@
           "note": "Walk-up consumers DO unify here; the cwd-relative writers (vpass.mjs, extract-spro.mjs) are the ones that do not."
         },
         "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": "DEV", "decision": "allow" } },
-        "blocklist": { "expected": null, "note": "No config.json." }
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null }, "note": "No config.json in reach → the hook's DEFAULT_PROFILE. Pinned so the fail-closed default stays `strict`; a regression to `minimal` would silently widen row-data extraction." }
       }
     },
 
