@@ -2,8 +2,9 @@
 /**
  * ReloadProfile Handler — reload the active profile and reset the SAP connection.
  *
- * Reads `<cwd>/.sc4sap/active-profile.txt`, loads the referenced profile env
- * from `~/.sc4sap/profiles/<alias>/sap.env`, overwrites `process.env.SAP_*`,
+ * Reads `<cwd>/.sapkit/active-profile.txt` (legacy: `.sc4sap`), loads the
+ * referenced profile env from `~/.sapkit/profiles/<alias>/sap.env`
+ * (legacy: `~/.sc4sap/…`), overwrites `process.env.SAP_*`,
  * invalidates the cached connection, and returns metadata about the newly
  * active profile. The next tool call rebuilds the ABAP connection from the
  * fresh env automatically via the existing `notifyConnectionResetListeners`
@@ -19,7 +20,7 @@ const utils_1 = require("../../../lib/utils");
 exports.TOOL_DEFINITION = {
     name: 'ReloadProfile',
     available_in: ['onprem', 'cloud', 'legacy'],
-    description: '[system] Reload the active SAP profile from .sc4sap/active-profile.txt and reset the cached connection. Called by the sc4sap plugin after switching profiles. Returns the newly active alias, host, tier, and readonly status.',
+    description: '[system] Reload the active SAP profile from .sapkit/active-profile.txt (legacy: .sc4sap/active-profile.txt) and reset the cached connection. Called by the sapkit plugin after switching profiles. Returns the newly active alias, host, tier, and readonly status.',
     inputSchema: {
         type: 'object',
         properties: {},

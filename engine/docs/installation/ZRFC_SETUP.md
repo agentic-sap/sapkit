@@ -47,7 +47,7 @@ inactive parent in the chain).
 
 ### 3. SAP user authorization
 
-The user configured in `.sc4sap/sap.env` (`SAP_USERNAME` / `SAP_PASSWORD`)
+The user configured in `.sapkit/sap.env` (`SAP_USERNAME` / `SAP_PASSWORD`)
 needs:
 
 - **`S_ICF`** for service `ZMCP_RFC` (or the standard "anyone can call
@@ -57,7 +57,7 @@ needs:
 - **`S_DEVELOP`** only if the user will invoke operations that write
   source (e.g., `INSERT TEXTPOOL` through `ZMCP_ADT_TEXTPOOL WRITE`)
 
-## Configuration (`.sc4sap/sap.env`)
+## Configuration (`.sapkit/sap.env`)
 
 ```env
 SAP_URL=https://sap.company.com:44300

@@ -1,0 +1,1126 @@
+{
+  "_schema": {
+    "purpose": "Single conformance fixture for the .sc4sap -> .sapkit runtime-path rename (D-057; design docs/reference/designs/2026-08-01-runtime-path-rename-sapkit.md §7-3). One set of common inputs, one expected result PER CONSUMER. Consumers legitimately disagree — R-PRESERVE keeps each consumer's own depth / adoption criterion / state definition, so the test asks 'does each consumer behave exactly as it did before the rename?', never 'do they all agree?'.",
+    "readers": [
+      "engine/src/__tests__/lib/profile.test.ts (jest) — fills and asserts consumers.engine",
+      "interactive conformance runner (Node) — asserts consumers.launch / profile-resolve / tier-guard / blocklist"
+    ],
+    "placeholders": {
+      "$PROJECT": "absolute path of the temp project root created for the case",
+      "$HOME": "absolute path of the fake home directory (os.homedir() is stubbed to it)",
+      "$CWD": "absolute path of input.cwd resolved against $PROJECT"
+    },
+    "input": {
+      "dirs": "array of directory paths to create recursively (empty directories matter: the tier guard's criterion is bare existence)",
+      "files": "object of path -> file content; parent directories are created recursively",
+      "cwd": "path relative to $PROJECT that the consumer is invoked from; '.' means $PROJECT itself",
+      "env": "object of environment variable -> value (placeholders expanded) or null to unset. Unlisted variables keep the ambient value; SAPKIT_HOME_DIR and SC4SAP_HOME_DIR are always cleared before a case runs."
+    },
+    "consumers": {
+      "shape": "{ \"expected\": <object|null>, \"note\": <string, optional> }",
+      "expected_null": "means 'not yet pinned by this fixture' — the runner SKIPS it and must not treat it as a pass. The note says why.",
+      "partial": "expected objects are partial: a runner asserts only the keys present, so a case can pin one field without restating the whole result.",
+      "engine": {
+        "throws": "null, or one of ENV_INVALID | PROFILE_NOT_FOUND | MISSING_ENV_FILE (the last is the pre-existing 'points to a missing env file' error, which has no reason code)",
+        "fields": "runtimeDir, runtimeDirGeneration, reason, alias, legacy, tier, readonly, sourcePath, homeDir, homeGeneration",
+        "envSubset": "object of SAP_* keys that must be present with these values in loaded.envVars"
+      },
+      "launch": "{ envPath: <path|null> } — the sap.env launch.cjs exports as MCP_ENV_PATH, or null when it resolves nothing",
+      "profile-resolve": "{ runtimeDir, workspaceRoot, sapEnvPath: {path, source}|null, configJsonPath: {path, source}|null }",
+      "tier-guard": "{ runtimeDir, tier: DEV|QA|PRD|null, decision: allow|deny } for a mutation tool call",
+      "blocklist": "{ blocklistProfile: minimal|standard|strict|custom, extendFrom: <path|null> }"
+    },
+    "axes": "R-TIE (generation combinations x connection completeness) · walk depth 0/7/8/63/64 · env 4 · home-alias 4 · the nine safety regressions of §7-3 · migration round-trip · R-NEW creation site"
+  },
+
+  "version": 1,
+  "design": "docs/reference/designs/2026-08-01-runtime-path-rename-sapkit.md (v4)",
+  "decision": "D-057",
+
+  "cases": [
+    {
+      "id": "tie-legacy-only",
+      "axis": "R-TIE",
+      "title": "R-PRESERVE core — a .sc4sap-only project resolves exactly as before the rename",
+      "input": {
+        "files": {
+          "$PROJECT/.sc4sap/active-profile.txt": "KR-DEV",
+          "$HOME/.sc4sap/profiles/KR-DEV/sap.env": "SAP_URL=http://dev.kr\nSAP_TIER=dev\n",
+          "$HOME/.sc4sap/profiles/KR-DEV/config.json": "{\"blocklistProfile\":\"strict\"}"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": {
+            "throws": null,
+            "runtimeDir": "$PROJECT/.sc4sap",
+            "runtimeDirGeneration": "sc4sap",
+            "reason": "OK_LEGACY_DEPRECATED",
+            "alias": "KR-DEV",
+            "legacy": false,
+            "tier": "DEV",
+            "readonly": false,
+            "sourcePath": "$HOME/.sc4sap/profiles/KR-DEV/sap.env",
+            "homeDir": "$HOME/.sc4sap",
+            "homeGeneration": "sc4sap"
+          }
+        },
+        "launch": {
+          "expected": { "envPath": "$HOME/.sc4sap/profiles/KR-DEV/sap.env" }
+        },
+        "profile-resolve": {
+          "expected": {
+            "runtimeDir": "$PROJECT/.sc4sap",
+            "workspaceRoot": "$PROJECT",
+            "sapEnvPath": { "path": "$HOME/.sc4sap/profiles/KR-DEV/sap.env", "source": "profile" },
+            "configJsonPath": { "path": "$HOME/.sc4sap/profiles/KR-DEV/config.json", "source": "profile" }
+          }
+        },
+        "tier-guard": {
+          "expected": { "runtimeDir": "$PROJECT/.sc4sap", "tier": "DEV", "decision": "allow" }
+        },
+        "blocklist": {
+          "expected": { "blocklistProfile": "strict", "extendFrom": null }
+        }
+      }
+    },
+
+    {
+      "id": "tie-new-only",
+      "axis": "R-TIE",
+      "title": "New generation alone is adopted",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/active-profile.txt": "KR-DEV",
+          "$HOME/.sapkit/profiles/KR-DEV/sap.env": "SAP_URL=http://dev.kr\nSAP_TIER=dev\n",
+          "$HOME/.sapkit/profiles/KR-DEV/config.json": "{\"blocklistProfile\":\"strict\"}"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": {
+            "throws": null,
+            "runtimeDir": "$PROJECT/.sapkit",
+            "runtimeDirGeneration": "sapkit",
+            "reason": "OK_NEW",
+            "alias": "KR-DEV",
+            "legacy": false,
+            "tier": "DEV",
+            "sourcePath": "$HOME/.sapkit/profiles/KR-DEV/sap.env",
+            "homeDir": "$HOME/.sapkit",
+            "homeGeneration": "sapkit"
+          }
+        },
+        "launch": { "expected": { "envPath": "$HOME/.sapkit/profiles/KR-DEV/sap.env" } },
+        "profile-resolve": {
+          "expected": {
+            "runtimeDir": "$PROJECT/.sapkit",
+            "workspaceRoot": "$PROJECT",
+            "sapEnvPath": { "path": "$HOME/.sapkit/profiles/KR-DEV/sap.env", "source": "profile" },
+            "configJsonPath": { "path": "$HOME/.sapkit/profiles/KR-DEV/config.json", "source": "profile" }
+          }
+        },
+        "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": "DEV", "decision": "allow" } },
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null } }
+      }
+    },
+
+    {
+      "id": "tie-both-complete",
+      "axis": "R-TIE",
+      "title": "Both generations complete, no journal — tie goes to .sapkit (and the coexistence is warned about)",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/sap.env": "SAP_URL=http://new\nSAP_TIER=dev\n",
+          "$PROJECT/.sc4sap/sap.env": "SAP_URL=http://old\nSAP_TIER=qa\n"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": {
+            "throws": null,
+            "runtimeDir": "$PROJECT/.sapkit",
+            "runtimeDirGeneration": "sapkit",
+            "reason": "OK_NEW",
+            "alias": null,
+            "legacy": true,
+            "tier": "DEV",
+            "readonly": false,
+            "sourcePath": "$PROJECT/.sapkit/sap.env",
+            "envSubset": { "SAP_URL": "http://new" }
+          }
+        },
+        "launch": { "expected": { "envPath": "$PROJECT/.sapkit/sap.env" } },
+        "profile-resolve": {
+          "expected": {
+            "runtimeDir": "$PROJECT/.sapkit",
+            "sapEnvPath": { "path": "$PROJECT/.sapkit/sap.env", "source": "legacy" }
+          }
+        },
+        "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": "DEV", "decision": "allow" } },
+        "blocklist": {
+          "expected": null,
+          "note": "No config.json in either generation — the hook falls back to its DEFAULT_PROFILE. Pinned by case safety-3 instead, where the profile source is the point."
+        }
+      }
+    },
+
+    {
+      "id": "tie-new-shell-legacy-complete",
+      "axis": "R-TIE",
+      "title": "R-TIE ORDER — an empty .sapkit shell must not shadow a .sc4sap that actually carries connection state",
+      "input": {
+        "dirs": ["$PROJECT/.sapkit"],
+        "files": {
+          "$PROJECT/.sc4sap/sap.env": "SAP_URL=http://old\nSAP_TIER=dev\n"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": {
+            "throws": null,
+            "runtimeDir": "$PROJECT/.sc4sap",
+            "runtimeDirGeneration": "sc4sap",
+            "reason": "OK_LEGACY_DEPRECATED",
+            "alias": null,
+            "legacy": true,
+            "tier": "DEV",
+            "sourcePath": "$PROJECT/.sc4sap/sap.env",
+            "envSubset": { "SAP_URL": "http://old" }
+          }
+        },
+        "launch": { "expected": { "envPath": "$PROJECT/.sc4sap/sap.env" } },
+        "profile-resolve": {
+          "expected": {
+            "runtimeDir": "$PROJECT/.sc4sap",
+            "sapEnvPath": { "path": "$PROJECT/.sc4sap/sap.env", "source": "legacy" }
+          }
+        },
+        "tier-guard": {
+          "expected": { "runtimeDir": "$PROJECT/.sc4sap", "tier": "DEV", "decision": "allow" },
+          "note": "This guard's criterion is bare existence, so BOTH generations pass; the tie-break then prefers the one with connection completeness, which is .sc4sap."
+        },
+        "blocklist": { "expected": null, "note": "No config.json — see safety-3." }
+      }
+    },
+
+    {
+      "id": "tie-new-empty-pointer",
+      "axis": "R-TIE",
+      "title": "An empty active-profile.txt is not connection completeness (§11-5)",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/active-profile.txt": "   \n",
+          "$PROJECT/.sc4sap/sap.env": "SAP_URL=http://old\nSAP_TIER=dev\n"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": {
+            "throws": null,
+            "runtimeDir": "$PROJECT/.sc4sap",
+            "runtimeDirGeneration": "sc4sap",
+            "reason": "OK_LEGACY_DEPRECATED",
+            "alias": null,
+            "legacy": true,
+            "tier": "DEV",
+            "sourcePath": "$PROJECT/.sc4sap/sap.env"
+          }
+        },
+        "launch": { "expected": { "envPath": "$PROJECT/.sc4sap/sap.env" } },
+        "profile-resolve": {
+          "expected": { "runtimeDir": "$PROJECT/.sapkit" },
+          "note": "profile-resolve's own state criterion counts a bare active-profile.txt (existence, not content), so BOTH generations pass its criterion; the tie-break then compares connection completeness, where the empty pointer loses — expected value to be confirmed by the Node runner against the shipped resolver."
+        },
+        "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sc4sap", "tier": "DEV", "decision": "allow" } },
+        "blocklist": { "expected": null, "note": "No config.json." }
+      }
+    },
+
+    {
+      "id": "tie-neither",
+      "axis": "R-NEW",
+      "title": "No runtime directory at all — the reported path is the R-NEW creation site",
+      "input": { "cwd": ".", "env": {} },
+      "consumers": {
+        "engine": {
+          "expected": {
+            "throws": null,
+            "runtimeDir": "$PROJECT/.sapkit",
+            "runtimeDirGeneration": "sapkit",
+            "reason": "OK_NEW",
+            "alias": null,
+            "legacy": true,
+            "tier": "DEV",
+            "readonly": false,
+            "sourcePath": "$PROJECT/.sapkit/sap.env",
+            "homeDir": null,
+            "homeGeneration": null
+          },
+          "note": "Empty inspection-only shell. Nothing is created — profile.ts only reads; the path is what a fresh setup would use."
+        },
+        "launch": { "expected": { "envPath": null } },
+        "profile-resolve": {
+          "expected": { "runtimeDir": "$PROJECT/.sapkit", "workspaceRoot": "$PROJECT", "sapEnvPath": null, "configJsonPath": null }
+        },
+        "tier-guard": {
+          "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": null, "decision": "deny" },
+          "note": "Unresolved tier is deny — unchanged by the rename."
+        },
+        "blocklist": { "expected": null, "note": "No project directory at all; the hook's own 8-level probe finds nothing." }
+      }
+    },
+
+    {
+      "id": "tie-neither-legacy-dir-present",
+      "axis": "R-PRESERVE",
+      "title": "A legacy directory holding only artifacts still reports the legacy path (byte-identical to pre-rename)",
+      "input": {
+        "files": { "$PROJECT/.sc4sap/RULES.md": "# rules\n" },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": {
+            "throws": null,
+            "runtimeDir": "$PROJECT/.sc4sap",
+            "runtimeDirGeneration": "sc4sap",
+            "reason": "OK_LEGACY_DEPRECATED",
+            "alias": null,
+            "legacy": true,
+            "tier": "DEV",
+            "sourcePath": "$PROJECT/.sc4sap/sap.env"
+          },
+          "note": "Neither generation yields a connection, so the result is the same empty shell as before; the reported sourcePath stays on the legacy generation so a legacy-only project's output is unchanged."
+        },
+        "launch": { "expected": { "envPath": null } },
+        "profile-resolve": { "expected": { "runtimeDir": "$PROJECT/.sc4sap", "sapEnvPath": null } },
+        "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sc4sap", "tier": null, "decision": "deny" } },
+        "blocklist": { "expected": null, "note": "No config.json." }
+      }
+    },
+
+    {
+      "id": "tie-coexist-journal",
+      "axis": "R-TIE",
+      "title": "COEXIST_OK — a sealed migration journal makes both-valid the normal state, not a warning",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/sap.env": "SAP_URL=http://new\nSAP_TIER=dev\n",
+          "$PROJECT/.sapkit/.migration-journal.json": "{\"source\":\"$PROJECT/.sc4sap\",\"scope\":\"project\"}",
+          "$PROJECT/.sc4sap/sap.env": "SAP_URL=http://old\nSAP_TIER=dev\n"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": {
+            "throws": null,
+            "runtimeDir": "$PROJECT/.sapkit",
+            "runtimeDirGeneration": "sapkit",
+            "reason": "COEXIST_OK",
+            "sourcePath": "$PROJECT/.sapkit/sap.env"
+          },
+          "note": "Journal key contract: an object with `source` (or `from`) naming the migrated-from directory. An unreadable or non-matching journal is treated as absent."
+        },
+        "launch": { "expected": null, "note": "launch.cjs has no journal awareness — it picks .sapkit here for the ordinary tie-break reason. Left unpinned until the migrator's journal shape is final." },
+        "profile-resolve": { "expected": { "runtimeDir": "$PROJECT/.sapkit" } },
+        "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": "DEV", "decision": "allow" } },
+        "blocklist": { "expected": null, "note": "No config.json." }
+      }
+    },
+
+    {
+      "id": "depth-0",
+      "axis": "depth",
+      "title": "Depth 0 — every consumer agrees when the runtime dir is at the cwd",
+      "input": {
+        "files": { "$PROJECT/.sapkit/sap.env": "SAP_URL=http://d0\nSAP_TIER=dev\n" },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": { "throws": null, "runtimeDir": "$PROJECT/.sapkit", "runtimeDirGeneration": "sapkit", "tier": "DEV", "sourcePath": "$PROJECT/.sapkit/sap.env" }
+        },
+        "launch": { "expected": { "envPath": "$PROJECT/.sapkit/sap.env" } },
+        "profile-resolve": { "expected": { "runtimeDir": "$PROJECT/.sapkit" } },
+        "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": "DEV", "decision": "allow" } },
+        "blocklist": { "expected": null, "note": "No config.json." }
+      }
+    },
+
+    {
+      "id": "depth-7",
+      "axis": "depth",
+      "title": "Depth 7 — engine/launch (depth 0) see nothing; tier-guard (8) and profile-resolve (64) find it",
+      "input": {
+        "files": { "$PROJECT/.sapkit/sap.env": "SAP_URL=http://d7\nSAP_TIER=dev\n" },
+        "dirs": ["$PROJECT/a/a/a/a/a/a/a"],
+        "cwd": "a/a/a/a/a/a/a",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": { "throws": null, "runtimeDir": "$CWD/.sapkit", "runtimeDirGeneration": "sapkit", "alias": null, "legacy": true, "tier": "DEV", "readonly": false, "sourcePath": "$CWD/.sapkit/sap.env" },
+          "note": "Depth stays 0 (R-PRESERVE §11-2): the engine does not walk up, so it returns the empty inspection-only shell. This divergence predates the rename."
+        },
+        "launch": { "expected": { "envPath": null } },
+        "profile-resolve": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "workspaceRoot": "$PROJECT" } },
+        "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": "DEV", "decision": "allow" } },
+        "blocklist": { "expected": null, "note": "No config.json." }
+      }
+    },
+
+    {
+      "id": "depth-8",
+      "axis": "depth",
+      "title": "Depth 8 — the tier guard's 8-level budget is exhausted before the hit",
+      "input": {
+        "files": { "$PROJECT/.sapkit/sap.env": "SAP_URL=http://d8\nSAP_TIER=dev\n" },
+        "dirs": ["$PROJECT/a/a/a/a/a/a/a/a"],
+        "cwd": "a/a/a/a/a/a/a/a",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": { "throws": null, "runtimeDir": "$CWD/.sapkit", "alias": null, "legacy": true, "tier": "DEV", "sourcePath": "$CWD/.sapkit/sap.env" }
+        },
+        "launch": { "expected": { "envPath": null } },
+        "profile-resolve": { "expected": { "runtimeDir": "$PROJECT/.sapkit" } },
+        "tier-guard": {
+          "expected": { "tier": null, "decision": "deny" },
+          "note": "8 iterations cover the cwd plus 7 ancestors; the runtime dir sits one level further, so the tier stays unresolved and the guard denies. Fail-closed, unchanged by the rename."
+        },
+        "blocklist": { "expected": null, "note": "No config.json." }
+      }
+    },
+
+    {
+      "id": "depth-63",
+      "axis": "depth",
+      "title": "Depth 63 — inside profile-resolve's 64-level budget",
+      "input": {
+        "files": { "$PROJECT/.sapkit/sap.env": "SAP_URL=http://d63\nSAP_TIER=dev\n" },
+        "dirs": ["$PROJECT/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a"],
+        "cwd": "a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": { "throws": null, "runtimeDir": "$CWD/.sapkit", "alias": null, "legacy": true, "tier": "DEV" }
+        },
+        "launch": { "expected": { "envPath": null } },
+        "profile-resolve": { "expected": { "runtimeDir": "$PROJECT/.sapkit" } },
+        "tier-guard": { "expected": { "tier": null, "decision": "deny" } },
+        "blocklist": { "expected": null, "note": "No config.json." }
+      }
+    },
+
+    {
+      "id": "depth-64",
+      "axis": "depth",
+      "title": "Depth 64 — one past profile-resolve's budget",
+      "input": {
+        "files": { "$PROJECT/.sapkit/sap.env": "SAP_URL=http://d64\nSAP_TIER=dev\n" },
+        "dirs": ["$PROJECT/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a"],
+        "cwd": "a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": { "throws": null, "runtimeDir": "$CWD/.sapkit", "alias": null, "legacy": true, "tier": "DEV" }
+        },
+        "launch": { "expected": { "envPath": null } },
+        "profile-resolve": {
+          "expected": null,
+          "note": "Boundary case: 64 iterations cover the cwd plus 63 ancestors, so the runtime dir is one level out of reach and the resolver falls back to $CWD/.sapkit. Left for the Node runner to pin against the shipped code rather than guessed here."
+        },
+        "tier-guard": { "expected": { "tier": null, "decision": "deny" } },
+        "blocklist": { "expected": null, "note": "No config.json." }
+      }
+    },
+
+    {
+      "id": "env-new-only",
+      "axis": "env",
+      "title": "SAPKIT_HOME_DIR alone selects the home",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/active-profile.txt": "KR-DEV",
+          "$HOME/custom-new/profiles/KR-DEV/sap.env": "SAP_URL=http://custom-new\nSAP_TIER=dev\n"
+        },
+        "cwd": ".",
+        "env": { "SAPKIT_HOME_DIR": "$HOME/custom-new" }
+      },
+      "consumers": {
+        "engine": {
+          "expected": {
+            "throws": null,
+            "alias": "KR-DEV",
+            "homeDir": "$HOME/custom-new",
+            "homeGeneration": "sapkit",
+            "reason": "OK_NEW",
+            "sourcePath": "$HOME/custom-new/profiles/KR-DEV/sap.env",
+            "tier": "DEV"
+          }
+        },
+        "launch": { "expected": { "envPath": "$HOME/custom-new/profiles/KR-DEV/sap.env" } },
+        "profile-resolve": { "expected": { "sapEnvPath": { "path": "$HOME/custom-new/profiles/KR-DEV/sap.env", "source": "profile" } } },
+        "tier-guard": { "expected": { "tier": "DEV", "decision": "allow" } },
+        "blocklist": { "expected": null, "note": "No config.json." }
+      }
+    },
+
+    {
+      "id": "env-legacy-only",
+      "axis": "env",
+      "title": "SC4SAP_HOME_DIR alone still works, with a deprecation warning",
+      "input": {
+        "files": {
+          "$PROJECT/.sc4sap/active-profile.txt": "KR-DEV",
+          "$HOME/custom-old/profiles/KR-DEV/sap.env": "SAP_URL=http://custom-old\nSAP_TIER=dev\n"
+        },
+        "cwd": ".",
+        "env": { "SC4SAP_HOME_DIR": "$HOME/custom-old" }
+      },
+      "consumers": {
+        "engine": {
+          "expected": {
+            "throws": null,
+            "alias": "KR-DEV",
+            "homeDir": "$HOME/custom-old",
+            "homeGeneration": "sc4sap",
+            "reason": "OK_LEGACY_DEPRECATED",
+            "sourcePath": "$HOME/custom-old/profiles/KR-DEV/sap.env",
+            "tier": "DEV"
+          },
+          "note": "R-PRESERVE: identical to the pre-rename result. The deprecation notice is a once-per-process stderr line and changes no value."
+        },
+        "launch": { "expected": { "envPath": "$HOME/custom-old/profiles/KR-DEV/sap.env" } },
+        "profile-resolve": { "expected": { "sapEnvPath": { "path": "$HOME/custom-old/profiles/KR-DEV/sap.env", "source": "profile" } } },
+        "tier-guard": { "expected": { "tier": "DEV", "decision": "allow" } },
+        "blocklist": { "expected": null, "note": "No config.json." }
+      }
+    },
+
+    {
+      "id": "env-both",
+      "axis": "env",
+      "title": "Both env vars set — the new one wins, the legacy one is not consulted",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/active-profile.txt": "KR-DEV",
+          "$HOME/custom-new/profiles/KR-DEV/sap.env": "SAP_URL=http://custom-new\nSAP_TIER=dev\n",
+          "$HOME/custom-old/profiles/KR-DEV/sap.env": "SAP_URL=http://custom-old\nSAP_TIER=prd\n"
+        },
+        "cwd": ".",
+        "env": { "SAPKIT_HOME_DIR": "$HOME/custom-new", "SC4SAP_HOME_DIR": "$HOME/custom-old" }
+      },
+      "consumers": {
+        "engine": {
+          "expected": {
+            "throws": null,
+            "homeDir": "$HOME/custom-new",
+            "homeGeneration": "sapkit",
+            "reason": "OK_NEW",
+            "tier": "DEV",
+            "envSubset": { "SAP_URL": "http://custom-new" }
+          }
+        },
+        "launch": { "expected": { "envPath": "$HOME/custom-new/profiles/KR-DEV/sap.env" } },
+        "profile-resolve": { "expected": { "sapEnvPath": { "path": "$HOME/custom-new/profiles/KR-DEV/sap.env", "source": "profile" } } },
+        "tier-guard": { "expected": { "tier": "DEV", "decision": "allow" } },
+        "blocklist": { "expected": null, "note": "No config.json." }
+      }
+    },
+
+    {
+      "id": "env-new-invalid",
+      "axis": "env",
+      "title": "ENV_INVALID — a SAPKIT_HOME_DIR that does not exist is an error, never a silent fall-back to the legacy variable",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/active-profile.txt": "KR-DEV",
+          "$HOME/custom-old/profiles/KR-DEV/sap.env": "SAP_URL=http://custom-old\nSAP_TIER=prd\n"
+        },
+        "cwd": ".",
+        "env": { "SAPKIT_HOME_DIR": "$HOME/does-not-exist", "SC4SAP_HOME_DIR": "$HOME/custom-old" }
+      },
+      "consumers": {
+        "engine": {
+          "expected": { "throws": "ENV_INVALID" },
+          "note": "A silent fall-back would connect to $HOME/custom-old, which is a PRD system the operator did not select."
+        },
+        "launch": { "expected": { "envPath": null }, "note": "The shim skips profile resolution, so the bundle starts connectionless — fail-closed." },
+        "profile-resolve": {
+          "expected": null,
+          "note": "The library returns the invalid path as-is (every lookup under it misses) and warns ENV_INVALID; the concrete return value is for the Node runner to pin."
+        },
+        "tier-guard": { "expected": { "tier": null, "decision": "deny" } },
+        "blocklist": { "expected": null, "note": "No config.json reachable; the hook's own fail-closed branch applies." }
+      }
+    },
+
+    {
+      "id": "home-alias-new-only",
+      "axis": "home",
+      "title": "No env vars — the home is picked by where the alias actually is (new)",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/active-profile.txt": "KR-DEV",
+          "$HOME/.sapkit/profiles/KR-DEV/sap.env": "SAP_URL=http://home-new\nSAP_TIER=dev\n"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": { "throws": null, "homeDir": "$HOME/.sapkit", "homeGeneration": "sapkit", "reason": "OK_NEW", "tier": "DEV" }
+        },
+        "launch": { "expected": { "envPath": "$HOME/.sapkit/profiles/KR-DEV/sap.env" } },
+        "profile-resolve": { "expected": { "sapEnvPath": { "path": "$HOME/.sapkit/profiles/KR-DEV/sap.env", "source": "profile" } } },
+        "tier-guard": { "expected": { "tier": "DEV", "decision": "allow" } },
+        "blocklist": { "expected": null, "note": "No config.json." }
+      }
+    },
+
+    {
+      "id": "home-alias-legacy-only",
+      "axis": "home",
+      "title": "A new-generation project pointer still finds an alias that only exists in the legacy home",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/active-profile.txt": "KR-DEV",
+          "$HOME/.sc4sap/profiles/KR-DEV/sap.env": "SAP_URL=http://home-old\nSAP_TIER=dev\n"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": {
+            "throws": null,
+            "runtimeDirGeneration": "sapkit",
+            "homeDir": "$HOME/.sc4sap",
+            "homeGeneration": "sc4sap",
+            "reason": "OK_LEGACY_DEPRECATED",
+            "sourcePath": "$HOME/.sc4sap/profiles/KR-DEV/sap.env",
+            "tier": "DEV"
+          },
+          "note": "Mixed generations are long-lived because reads and writes both follow the selected path (R-E), so 'which home has the alias' must beat 'which home directory exists'."
+        },
+        "launch": { "expected": { "envPath": "$HOME/.sc4sap/profiles/KR-DEV/sap.env" } },
+        "profile-resolve": { "expected": { "sapEnvPath": { "path": "$HOME/.sc4sap/profiles/KR-DEV/sap.env", "source": "profile" } } },
+        "tier-guard": { "expected": { "tier": "DEV", "decision": "allow" } },
+        "blocklist": { "expected": null, "note": "No config.json." }
+      }
+    },
+
+    {
+      "id": "home-alias-both",
+      "axis": "home",
+      "title": "Alias in both homes — the new home wins and the shadowing is warned about",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/active-profile.txt": "KR-DEV",
+          "$HOME/.sapkit/profiles/KR-DEV/sap.env": "SAP_URL=http://home-new\nSAP_TIER=dev\n",
+          "$HOME/.sc4sap/profiles/KR-DEV/sap.env": "SAP_URL=http://home-old\nSAP_TIER=prd\n"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": {
+            "throws": null,
+            "homeDir": "$HOME/.sapkit",
+            "homeGeneration": "sapkit",
+            "reason": "OK_NEW",
+            "tier": "DEV",
+            "envSubset": { "SAP_URL": "http://home-new" }
+          }
+        },
+        "launch": { "expected": { "envPath": "$HOME/.sapkit/profiles/KR-DEV/sap.env" } },
+        "profile-resolve": { "expected": { "sapEnvPath": { "path": "$HOME/.sapkit/profiles/KR-DEV/sap.env", "source": "profile" } } },
+        "tier-guard": { "expected": { "tier": "DEV", "decision": "allow" } },
+        "blocklist": { "expected": null, "note": "No config.json." }
+      }
+    },
+
+    {
+      "id": "home-alias-neither",
+      "axis": "home",
+      "title": "PROFILE_NOT_FOUND — the alias exists in neither home",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/active-profile.txt": "GHOST",
+          "$HOME/.sapkit/profiles/KR-DEV/sap.env": "SAP_URL=http://home-new\nSAP_TIER=dev\n"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": { "expected": { "throws": "PROFILE_NOT_FOUND" } },
+        "launch": { "expected": { "envPath": null } },
+        "profile-resolve": { "expected": { "sapEnvPath": null } },
+        "tier-guard": { "expected": { "tier": null, "decision": "deny" } },
+        "blocklist": { "expected": null, "note": "No config.json." }
+      }
+    },
+
+    {
+      "id": "safety-1-artifact-child-dev-parent",
+      "axis": "safety",
+      "title": "§7-3 #1 — a child runtime dir holding only artifacts, with a DEV profile above: the tier guard must still DENY (v1 R-B regression)",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/active-profile.txt": "KR-DEV",
+          "$HOME/.sapkit/profiles/KR-DEV/sap.env": "SAP_URL=http://parent\nSAP_TIER=dev\n",
+          "$PROJECT/sub/.sapkit/vpass/.keep": ""
+        },
+        "cwd": "sub",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": { "throws": null, "runtimeDir": "$CWD/.sapkit", "alias": null, "legacy": true, "tier": "DEV", "readonly": false },
+          "note": "Depth 0: the engine sees only the artifact-only child and returns the connectionless shell, whose permissive DEV is harmless because every tool call fails at connect time. The safety claim of this case belongs to the tier guard."
+        },
+        "launch": { "expected": { "envPath": null } },
+        "profile-resolve": { "expected": { "runtimeDir": "$PROJECT/.sapkit" }, "note": "The child dir has no profile state, so the walk continues to the ancestor that does." },
+        "tier-guard": {
+          "expected": { "runtimeDir": "$PROJECT/sub/.sapkit", "tier": null, "decision": "deny" },
+          "note": "THE POINT: this guard's criterion is bare existence, so the walk STOPS at the artifact-only child. The tier is unresolved there, hence deny. Making the guard state-aware would turn this into allow — the v1 R-B regression."
+        },
+        "blocklist": { "expected": null, "note": "No config.json." }
+      }
+    },
+
+    {
+      "id": "safety-2-child-strict-parent-minimal",
+      "axis": "safety",
+      "title": "§7-3 #2 — a child config.json=strict under a parent config.json=minimal must stay strict (v2 regression)",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/config.json": "{\"blocklistProfile\":\"minimal\"}",
+          "$PROJECT/sub/.sapkit/config.json": "{\"blocklistProfile\":\"strict\"}"
+        },
+        "cwd": "sub",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": { "throws": null, "runtimeDir": "$CWD/.sapkit", "alias": null, "legacy": true, "tier": "DEV" },
+          "note": "The engine never reads config.json; this case pins profile-resolve and the blocklist hook."
+        },
+        "launch": { "expected": { "envPath": null } },
+        "profile-resolve": {
+          "expected": { "runtimeDir": "$PROJECT/sub/.sapkit", "configJsonPath": { "path": "$PROJECT/sub/.sapkit/config.json", "source": "legacy" } },
+          "note": "config.json IS part of this resolver's state definition — removing it would let the child's strict be replaced by the parent's minimal, and row-data exposure is unrecoverable."
+        },
+        "tier-guard": { "expected": { "runtimeDir": "$PROJECT/sub/.sapkit", "tier": null, "decision": "deny" } },
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null } }
+      }
+    },
+
+    {
+      "id": "safety-3-tie-order-strict",
+      "axis": "safety",
+      "title": "§7-3 #3 — SAME ancestor: .sapkit artifact-only + .sc4sap config.json=strict, parent minimal → the legacy strict must survive (v3 tie-break-order BLOCKER)",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/config.json": "{\"blocklistProfile\":\"minimal\"}",
+          "$PROJECT/sub/.sapkit/vpass/.keep": "",
+          "$PROJECT/sub/.sc4sap/config.json": "{\"blocklistProfile\":\"strict\"}"
+        },
+        "cwd": "sub",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": { "throws": null, "runtimeDir": "$CWD/.sapkit", "runtimeDirGeneration": "sapkit", "alias": null, "legacy": true, "tier": "DEV" },
+          "note": "Neither generation yields a connection for the engine (no pointer, no sap.env), so the fallback report prefers .sapkit. The engine does not read config.json, so this case's safety claim is carried by profile-resolve and the blocklist hook."
+        },
+        "launch": { "expected": { "envPath": null } },
+        "profile-resolve": {
+          "expected": { "runtimeDir": "$PROJECT/sub/.sc4sap", "configJsonPath": { "path": "$PROJECT/sub/.sc4sap/config.json", "source": "legacy" } },
+          "note": "THE POINT: the adoption criterion (state incl. config.json) is applied to EACH generation first. .sapkit fails it, .sc4sap passes, so the tie-break never runs. Running the tie-break first would pick the empty .sapkit, continue up to the parent, and silently downgrade strict to minimal."
+        },
+        "tier-guard": { "expected": { "runtimeDir": "$PROJECT/sub/.sapkit", "tier": null, "decision": "deny" }, "note": "Bare existence: both generations pass, neither has connection completeness, tie → .sapkit. Tier unresolved → deny either way." },
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null } }
+      }
+    },
+
+    {
+      "id": "safety-4-new-config-only-legacy-connected",
+      "axis": "safety",
+      "title": "§7-3 #4 — .sapkit holds only config.json=minimal while .sc4sap holds sap.env(DEV)+config.json=strict → every relevant consumer picks the legacy generation",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/config.json": "{\"blocklistProfile\":\"minimal\"}",
+          "$PROJECT/.sc4sap/sap.env": "SAP_URL=http://old\nSAP_TIER=dev\n",
+          "$PROJECT/.sc4sap/config.json": "{\"blocklistProfile\":\"strict\"}"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": {
+            "throws": null,
+            "runtimeDir": "$PROJECT/.sc4sap",
+            "runtimeDirGeneration": "sc4sap",
+            "reason": "OK_LEGACY_DEPRECATED",
+            "legacy": true,
+            "tier": "DEV",
+            "sourcePath": "$PROJECT/.sc4sap/sap.env",
+            "envSubset": { "SAP_URL": "http://old" }
+          },
+          "note": "The engine's criterion is pointer-or-sap.env: .sapkit fails it (config.json alone is not a connection for THIS consumer), .sc4sap passes."
+        },
+        "launch": { "expected": { "envPath": "$PROJECT/.sc4sap/sap.env" } },
+        "profile-resolve": {
+          "expected": { "runtimeDir": "$PROJECT/.sc4sap", "configJsonPath": { "path": "$PROJECT/.sc4sap/config.json", "source": "legacy" } },
+          "note": "Both generations pass this resolver's state criterion (config.json counts), so the tie-break runs — and .sc4sap has connection completeness while .sapkit does not, so the legacy generation wins and strict survives."
+        },
+        "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sc4sap", "tier": "DEV", "decision": "allow" } },
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null } }
+      }
+    },
+
+    {
+      "id": "safety-5-both-complete-distinguishable",
+      "axis": "safety",
+      "title": "§7-3 #5 — both generations connection-complete (new DEV, legacy PRD) with distinguishable policy values → connection, tier and blocklist all follow the NEW generation",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/sap.env": "SAP_URL=http://new-dev\nSAP_TIER=dev\n",
+          "$PROJECT/.sapkit/config.json": "{\"blocklistProfile\":\"minimal\"}",
+          "$PROJECT/.sc4sap/sap.env": "SAP_URL=http://old-prd\nSAP_TIER=prd\n",
+          "$PROJECT/.sc4sap/config.json": "{\"blocklistProfile\":\"strict\"}"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": {
+            "throws": null,
+            "runtimeDir": "$PROJECT/.sapkit",
+            "runtimeDirGeneration": "sapkit",
+            "reason": "OK_NEW",
+            "tier": "DEV",
+            "readonly": false,
+            "sourcePath": "$PROJECT/.sapkit/sap.env",
+            "envSubset": { "SAP_URL": "http://new-dev" }
+          },
+          "note": "The distinguishable SAP_URL / SAP_TIER prove WHICH generation was read — a same-value fixture could not tell a correct pick from a lucky one."
+        },
+        "launch": { "expected": { "envPath": "$PROJECT/.sapkit/sap.env" } },
+        "profile-resolve": {
+          "expected": { "runtimeDir": "$PROJECT/.sapkit", "configJsonPath": { "path": "$PROJECT/.sapkit/config.json", "source": "legacy" } }
+        },
+        "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": "DEV", "decision": "allow" } },
+        "blocklist": {
+          "expected": { "blocklistProfile": "minimal", "extendFrom": null },
+          "note": "Correct and intended: R-TIE legitimately elects the new generation here, so its policy applies. The danger the fixture guards against is the REVERSE (a legacy strict being displaced), which cases 3 and 4 pin."
+        }
+      }
+    },
+
+    {
+      "id": "safety-6-extend-same-generation",
+      "axis": "safety",
+      "title": "§7-3 #6 — the user list files must be read from the SAME generation whose config.json was chosen",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/blocklist-extend.txt": "ZNEW_ONLY\n",
+          "$PROJECT/.sc4sap/sap.env": "SAP_URL=http://old\nSAP_TIER=dev\n",
+          "$PROJECT/.sc4sap/config.json": "{\"blocklistProfile\":\"standard\"}",
+          "$PROJECT/.sc4sap/blocklist-extend.txt": "ZOLD_ONLY\n"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": { "throws": null, "runtimeDir": "$PROJECT/.sc4sap", "runtimeDirGeneration": "sc4sap", "tier": "DEV" },
+          "note": "The engine has no user-list concept; it is pinned here only to show it agrees on the generation."
+        },
+        "launch": { "expected": { "envPath": "$PROJECT/.sc4sap/sap.env" } },
+        "profile-resolve": { "expected": { "runtimeDir": "$PROJECT/.sc4sap", "configJsonPath": { "path": "$PROJECT/.sc4sap/config.json", "source": "legacy" } } },
+        "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sc4sap", "tier": "DEV", "decision": "allow" } },
+        "blocklist": {
+          "expected": { "blocklistProfile": "standard", "extendFrom": "$PROJECT/.sc4sap/blocklist-extend.txt" },
+          "note": "ZOLD_ONLY must be in the effective list and ZNEW_ONLY must not: reading the extend file from the other generation is a split-brain policy."
+        }
+      }
+    },
+
+    {
+      "id": "safety-7a-new-pointer-legacy-home",
+      "axis": "safety",
+      "title": "§7-3 #7a — mixed generations: new project pointer, alias only in the legacy home",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/active-profile.txt": "KR-DEV",
+          "$HOME/.sc4sap/profiles/KR-DEV/sap.env": "SAP_URL=http://mixed-a\nSAP_TIER=dev\n"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": { "throws": null, "runtimeDirGeneration": "sapkit", "homeGeneration": "sc4sap", "reason": "OK_LEGACY_DEPRECATED", "tier": "DEV", "sourcePath": "$HOME/.sc4sap/profiles/KR-DEV/sap.env" }
+        },
+        "launch": { "expected": { "envPath": "$HOME/.sc4sap/profiles/KR-DEV/sap.env" } },
+        "profile-resolve": { "expected": { "sapEnvPath": { "path": "$HOME/.sc4sap/profiles/KR-DEV/sap.env", "source": "profile" } } },
+        "tier-guard": { "expected": { "tier": "DEV", "decision": "allow" } },
+        "blocklist": { "expected": null, "note": "No config.json." }
+      }
+    },
+
+    {
+      "id": "safety-7b-legacy-pointer-new-home",
+      "axis": "safety",
+      "title": "§7-3 #7b — mixed generations: legacy project pointer, alias only in the new home",
+      "input": {
+        "files": {
+          "$PROJECT/.sc4sap/active-profile.txt": "KR-DEV",
+          "$HOME/.sapkit/profiles/KR-DEV/sap.env": "SAP_URL=http://mixed-b\nSAP_TIER=dev\n"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": { "throws": null, "runtimeDirGeneration": "sc4sap", "homeGeneration": "sapkit", "reason": "OK_LEGACY_DEPRECATED", "tier": "DEV", "sourcePath": "$HOME/.sapkit/profiles/KR-DEV/sap.env" },
+          "note": "The combined reason is the more conservative of the two halves — a legacy component anywhere reports OK_LEGACY_DEPRECATED."
+        },
+        "launch": { "expected": { "envPath": "$HOME/.sapkit/profiles/KR-DEV/sap.env" } },
+        "profile-resolve": { "expected": { "sapEnvPath": { "path": "$HOME/.sapkit/profiles/KR-DEV/sap.env", "source": "profile" } } },
+        "tier-guard": { "expected": { "tier": "DEV", "decision": "allow" } },
+        "blocklist": { "expected": null, "note": "No config.json." }
+      }
+    },
+
+    {
+      "id": "safety-7c-same-alias-both-homes-different-tier",
+      "axis": "safety",
+      "title": "§7-3 #7c — the same alias in both homes with DIFFERENT tiers: one generation must be chosen for both the connection and the tier",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/active-profile.txt": "KR-DEV",
+          "$HOME/.sapkit/profiles/KR-DEV/sap.env": "SAP_URL=http://home-new-dev\nSAP_TIER=dev\n",
+          "$HOME/.sc4sap/profiles/KR-DEV/sap.env": "SAP_URL=http://home-old-prd\nSAP_TIER=prd\n"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": { "throws": null, "homeGeneration": "sapkit", "tier": "DEV", "readonly": false, "envSubset": { "SAP_URL": "http://home-new-dev" } },
+          "note": "A split pick (connection from one home, tier from the other) would be the worst outcome: the connection and the guard must never come from different generations."
+        },
+        "launch": { "expected": { "envPath": "$HOME/.sapkit/profiles/KR-DEV/sap.env" } },
+        "profile-resolve": { "expected": { "sapEnvPath": { "path": "$HOME/.sapkit/profiles/KR-DEV/sap.env", "source": "profile" } } },
+        "tier-guard": {
+          "expected": { "tier": "DEV", "decision": "allow" },
+          "note": "Must agree with the engine's pick — a guard reading PRD while the connection is DEV (or vice versa) is the real hazard here."
+        },
+        "blocklist": { "expected": null, "note": "No config.json." }
+      }
+    },
+
+    {
+      "id": "safety-8a-migration-after-apply",
+      "axis": "migration",
+      "title": "§7-3 #8 — after `migrate-runtime-dir --apply`: the new generation is selected and the coexistence is COEXIST_OK (no warning)",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/active-profile.txt": "KR-DEV",
+          "$PROJECT/.sapkit/config.json": "{\"blocklistProfile\":\"strict\"}",
+          "$PROJECT/.sapkit/.migration-journal.json": "{\"source\":\"$PROJECT/.sc4sap\",\"scope\":\"project\"}",
+          "$PROJECT/.sc4sap/active-profile.txt": "KR-DEV",
+          "$PROJECT/.sc4sap/config.json": "{\"blocklistProfile\":\"strict\"}",
+          "$HOME/.sapkit/profiles/KR-DEV/sap.env": "SAP_URL=http://migrated\nSAP_TIER=dev\n"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": { "throws": null, "runtimeDir": "$PROJECT/.sapkit", "runtimeDirGeneration": "sapkit", "reason": "COEXIST_OK", "alias": "KR-DEV", "tier": "DEV" },
+          "note": "Copy-not-move means a SUCCESSFUL migration leaves both generations valid — warning about it would nag every migrated user forever (§5-5)."
+        },
+        "launch": { "expected": { "envPath": "$HOME/.sapkit/profiles/KR-DEV/sap.env" } },
+        "profile-resolve": { "expected": { "runtimeDir": "$PROJECT/.sapkit" } },
+        "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": "DEV", "decision": "allow" } },
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null } }
+      }
+    },
+
+    {
+      "id": "safety-8b-migration-after-revert",
+      "axis": "migration",
+      "title": "§7-3 #8 — after `--revert`: the new generation is gone and the legacy one is selected again",
+      "input": {
+        "files": {
+          "$PROJECT/.sc4sap/active-profile.txt": "KR-DEV",
+          "$PROJECT/.sc4sap/config.json": "{\"blocklistProfile\":\"strict\"}",
+          "$HOME/.sc4sap/profiles/KR-DEV/sap.env": "SAP_URL=http://reverted\nSAP_TIER=dev\n"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": { "throws": null, "runtimeDir": "$PROJECT/.sc4sap", "runtimeDirGeneration": "sc4sap", "reason": "OK_LEGACY_DEPRECATED", "alias": "KR-DEV", "tier": "DEV", "homeGeneration": "sc4sap" }
+        },
+        "launch": { "expected": { "envPath": "$HOME/.sc4sap/profiles/KR-DEV/sap.env" } },
+        "profile-resolve": { "expected": { "runtimeDir": "$PROJECT/.sc4sap" } },
+        "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sc4sap", "tier": "DEV", "decision": "allow" } },
+        "blocklist": { "expected": { "blocklistProfile": "strict", "extendFrom": null } }
+      }
+    },
+
+    {
+      "id": "safety-8c-env-points-at-removed-home",
+      "axis": "migration",
+      "title": "§7-3 #8 — SAPKIT_HOME_DIR left pointing at a home that the revert removed = ENV_INVALID",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/active-profile.txt": "KR-DEV",
+          "$HOME/.sc4sap/profiles/KR-DEV/sap.env": "SAP_URL=http://reverted\nSAP_TIER=dev\n"
+        },
+        "cwd": ".",
+        "env": { "SAPKIT_HOME_DIR": "$HOME/.sapkit" }
+      },
+      "consumers": {
+        "engine": {
+          "expected": { "throws": "ENV_INVALID" },
+          "note": "Stale env after a revert is the most likely real-world ENV_INVALID. Failing loudly is the whole point: a silent fall-back would reconnect to a home the operator believed was retired."
+        },
+        "launch": { "expected": { "envPath": null } },
+        "profile-resolve": { "expected": null, "note": "Node runner pins the concrete return; the ENV_INVALID diagnostic is required." },
+        "tier-guard": { "expected": { "tier": null, "decision": "deny" } },
+        "blocklist": { "expected": null, "note": "No config.json reachable." }
+      }
+    },
+
+    {
+      "id": "safety-9a-r-new-site-at-root",
+      "axis": "R-NEW",
+      "title": "§7-3 #9 — R-NEW creation site from the workspace root",
+      "input": {
+        "dirs": ["$PROJECT/sub"],
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": { "expected": { "throws": null, "runtimeDir": "$PROJECT/.sapkit", "runtimeDirGeneration": "sapkit" } },
+        "launch": { "expected": { "envPath": null } },
+        "profile-resolve": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "workspaceRoot": "$PROJECT" } },
+        "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": null, "decision": "deny" } },
+        "blocklist": { "expected": null, "note": "No config.json." }
+      }
+    },
+
+    {
+      "id": "safety-9b-r-new-site-in-subdir",
+      "axis": "R-NEW",
+      "title": "§7-3 #9 — R-NEW does NOT guarantee one canonical directory per project: a run from a subdirectory of a project that already has a root .sapkit still names the subdirectory site for cwd-relative writers",
+      "input": {
+        "files": { "$PROJECT/.sapkit/sap.env": "SAP_URL=http://root\nSAP_TIER=dev\n" },
+        "dirs": ["$PROJECT/sub"],
+        "cwd": "sub",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": { "throws": null, "runtimeDir": "$CWD/.sapkit", "runtimeDirGeneration": "sapkit", "alias": null, "legacy": true, "tier": "DEV" },
+          "note": "Recorded, not endorsed: the pre-rename `.sc4sap` had exactly the same property (§4-3 'what R-NEW does not guarantee'). 'Renaming tidies the folders into one' is not a claim this work makes."
+        },
+        "launch": { "expected": { "envPath": null } },
+        "profile-resolve": {
+          "expected": { "runtimeDir": "$PROJECT/.sapkit", "workspaceRoot": "$PROJECT" },
+          "note": "Walk-up consumers DO unify here; the cwd-relative writers (vpass.mjs, extract-spro.mjs) are the ones that do not."
+        },
+        "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sapkit", "tier": "DEV", "decision": "allow" } },
+        "blocklist": { "expected": null, "note": "No config.json." }
+      }
+    },
+
+    {
+      "id": "compat-legacy-artifact-schema",
+      "axis": "back-compat",
+      "title": "§5-6 — a legacy directory written by the pre-rename release still loads unchanged (rollback safety)",
+      "input": {
+        "files": {
+          "$PROJECT/.sc4sap/active-profile.txt": "KR-DEV\n",
+          "$PROJECT/.sc4sap/config.json": "{\"blocklistProfile\":\"standard\"}",
+          "$PROJECT/.sc4sap/RULES.md": "# rules\n",
+          "$PROJECT/.sc4sap/LESSONS.md": "# lessons\n",
+          "$HOME/.sc4sap/profiles/KR-DEV/sap.env": "SAP_URL=http://legacy\nSAP_CLIENT=100\nSAP_TIER=dev\n"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": {
+          "expected": {
+            "throws": null,
+            "runtimeDir": "$PROJECT/.sc4sap",
+            "runtimeDirGeneration": "sc4sap",
+            "homeGeneration": "sc4sap",
+            "reason": "OK_LEGACY_DEPRECATED",
+            "alias": "KR-DEV",
+            "legacy": false,
+            "tier": "DEV",
+            "readonly": false,
+            "sourcePath": "$HOME/.sc4sap/profiles/KR-DEV/sap.env",
+            "envSubset": { "SAP_URL": "http://legacy", "SAP_CLIENT": "100" }
+          },
+          "note": "A trailing newline in active-profile.txt is trimmed, as before. No artifact written by the pre-rename release changes shape."
+        },
+        "launch": { "expected": { "envPath": "$HOME/.sc4sap/profiles/KR-DEV/sap.env" } },
+        "profile-resolve": {
+          "expected": { "runtimeDir": "$PROJECT/.sc4sap", "sapEnvPath": { "path": "$HOME/.sc4sap/profiles/KR-DEV/sap.env", "source": "profile" } },
+          "note": "The alias-scoped config.json does not exist, so the project-local legacy config.json is used — the pre-rename behaviour."
+        },
+        "tier-guard": { "expected": { "runtimeDir": "$PROJECT/.sc4sap", "tier": "DEV", "decision": "allow" } },
+        "blocklist": { "expected": { "blocklistProfile": "standard", "extendFrom": null } }
+      }
+    },
+
+    {
+      "id": "compat-legacy-still-ignored",
+      "axis": "back-compat",
+      "title": "The legacy directory name must stay in every .gitignore and in the permissions template for the whole fallback period",
+      "input": { "cwd": ".", "env": {} },
+      "consumers": {
+        "engine": {
+          "expected": null,
+          "note": "Static repo assertion, not a resolution case: engine/.gitignore lists BOTH .sapkit/ and .sc4sap/. Enforced by check-runtime-path-rename.mjs (§7-2), not by this fixture's runners."
+        },
+        "launch": { "expected": null, "note": "See above." },
+        "profile-resolve": { "expected": null, "note": "See above." },
+        "tier-guard": { "expected": null, "note": "See above." },
+        "blocklist": { "expected": null, "note": "See above." }
+      }
+    }
+  ]
+}

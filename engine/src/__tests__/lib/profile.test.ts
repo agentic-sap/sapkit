@@ -2,7 +2,12 @@
  * Unit tests for src/lib/profile.ts
  *
  * Uses temp dirs for the project cwd and a stubbed HOME (via os.homedir mock)
- * so the tests never touch the real ~/.sc4sap.
+ * so the tests never touch the real ~/.sapkit or ~/.sc4sap.
+ *
+ * The first describe block deliberately keeps the LEGACY layout (`.sc4sap`,
+ * `SC4SAP_HOME_DIR`): it is the R-PRESERVE evidence that a legacy-only input
+ * still produces the pre-rename result. The rename-conformance block below is
+ * driven by the shared fixture.
  */
 
 import * as fs from 'node:fs';
@@ -354,5 +359,272 @@ describe('profile — load and apply', () => {
       process.env.SAP_TIER = 'PRD';
       expect(reconcileTierFromEnv()).toBe('PRD');
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Runtime-path rename conformance (D-057 / design §7-3).
+//
+// Driven by the shared fixture engine/__tests__/fixtures/runtime-dir-selection.json,
+// which the interactive-layer Node runner reads too. Expected results differ per
+// consumer on purpose: R-PRESERVE keeps each consumer's own depth / adoption
+// criterion / state definition, so the question is "does each consumer behave
+// exactly as it did before the rename?", never "do they all agree?".
+// ---------------------------------------------------------------------------
+
+const FIXTURE_PATH = path.resolve(
+  __dirname,
+  '../../../__tests__/fixtures/runtime-dir-selection.json',
+);
+
+interface EngineExpectation {
+  throws?: string | null;
+  envSubset?: Record<string, string>;
+  [key: string]: unknown;
+}
+
+interface FixtureCase {
+  id: string;
+  axis: string;
+  title: string;
+  input: {
+    dirs?: string[];
+    files?: Record<string, string>;
+    cwd?: string;
+    env?: Record<string, string | null>;
+  };
+  consumers: Record<
+    string,
+    { expected: EngineExpectation | null; note?: string }
+  >;
+}
+
+/** Keys whose expected value is a filesystem path and needs native separators. */
+const PATH_KEYS = new Set(['runtimeDir', 'sourcePath', 'homeDir']);
+
+describe('profile — runtime-path rename conformance (fixture)', () => {
+  const fixture = JSON.parse(fs.readFileSync(FIXTURE_PATH, 'utf8'));
+  const cases: FixtureCase[] = fixture.cases;
+  const ORIGINAL_ENV = { ...process.env };
+
+  afterAll(() => {
+    process.env = ORIGINAL_ENV;
+  });
+
+  it('fixture is well-formed', () => {
+    expect(Array.isArray(cases)).toBe(true);
+    expect(cases.length).toBeGreaterThan(0);
+    const ids = cases.map((c) => c.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const c of cases) {
+      // Every consumer named in the schema must have an entry, so a missing
+      // expectation is always a deliberate `null` + note, never an omission.
+      for (const consumer of [
+        'engine',
+        'launch',
+        'profile-resolve',
+        'tier-guard',
+        'blocklist',
+      ]) {
+        expect(c.consumers[consumer]).toBeDefined();
+        if (c.consumers[consumer].expected === null) {
+          expect(typeof c.consumers[consumer].note).toBe('string');
+        }
+      }
+    }
+  });
+
+  for (const testCase of cases) {
+    const expected = testCase.consumers.engine?.expected ?? null;
+    const runner = expected === null ? it.skip : it;
+
+    runner(`${testCase.id} — ${testCase.title}`, () => {
+      const projectRoot = fs.mkdtempSync(
+        path.join(os.tmpdir(), 'sapkit-fx-proj-'),
+      );
+      const fakeHome = fs.mkdtempSync(
+        path.join(os.tmpdir(), 'sapkit-fx-home-'),
+      );
+      const cwd = path.resolve(projectRoot, testCase.input.cwd ?? '.');
+
+      // Placeholders inside file CONTENT stay in forward-slash form: a Windows
+      // path pasted raw into JSON would produce invalid escape sequences, and
+      // path.resolve() normalizes forward slashes anyway.
+      const expandContent = (s: string) =>
+        s
+          .replace(/\$PROJECT/g, projectRoot.replace(/\\/g, '/'))
+          .replace(/\$HOME/g, fakeHome.replace(/\\/g, '/'))
+          .replace(/\$CWD/g, cwd.replace(/\\/g, '/'));
+      const expandPath = (s: string) =>
+        path.normalize(
+          s
+            .replace(/\$PROJECT/g, projectRoot)
+            .replace(/\$HOME/g, fakeHome)
+            .replace(/\$CWD/g, cwd),
+        );
+
+      try {
+        for (const dir of testCase.input.dirs ?? []) {
+          fs.mkdirSync(expandPath(dir), { recursive: true });
+        }
+        for (const [p, content] of Object.entries(testCase.input.files ?? {})) {
+          const target = expandPath(p);
+          fs.mkdirSync(path.dirname(target), { recursive: true });
+          fs.writeFileSync(target, expandContent(content));
+        }
+        fs.mkdirSync(cwd, { recursive: true });
+
+        process.env = { ...ORIGINAL_ENV };
+        for (const k of Object.keys(process.env)) {
+          if (k.startsWith('SAP_')) delete process.env[k];
+        }
+        delete process.env.SAPKIT_HOME_DIR;
+        delete process.env.SC4SAP_HOME_DIR;
+        for (const [k, v] of Object.entries(testCase.input.env ?? {})) {
+          if (v === null) delete process.env[k];
+          else process.env[k] = expandPath(v);
+        }
+
+        jest.resetModules();
+        const realOs = jest.requireActual('node:os');
+        jest.doMock('node:os', () => ({
+          ...realOs,
+          homedir: () => fakeHome,
+        }));
+        const profile = require('../../lib/profile');
+
+        if (expected.throws) {
+          let caught: any;
+          try {
+            profile.loadActiveProfile(cwd);
+          } catch (err) {
+            caught = err;
+          }
+          expect(caught).toBeDefined();
+          if (expected.throws === 'MISSING_ENV_FILE') {
+            expect(String(caught.message)).toMatch(/missing env file/);
+          } else {
+            expect(caught.reason).toBe(expected.throws);
+          }
+          return;
+        }
+
+        const loaded = profile.loadActiveProfile(cwd);
+
+        for (const [key, want] of Object.entries(expected)) {
+          if (key === 'throws' || key === 'envSubset') continue;
+          const got = (loaded as any)[key] ?? null;
+          if (PATH_KEYS.has(key) && typeof want === 'string') {
+            expect(got).toBe(expandPath(want));
+          } else {
+            expect({ [key]: got }).toEqual({ [key]: want });
+          }
+        }
+        for (const [k, v] of Object.entries(expected.envSubset ?? {})) {
+          expect(loaded.envVars[k]).toBe(v);
+        }
+      } finally {
+        jest.dontMock('node:os');
+        fs.rmSync(projectRoot, { recursive: true, force: true });
+        fs.rmSync(fakeHome, { recursive: true, force: true });
+      }
+    });
+  }
+});
+
+describe('profile — path-resolution helpers', () => {
+  const ORIGINAL_ENV = { ...process.env };
+
+  beforeEach(() => {
+    jest.resetModules();
+    process.env = { ...ORIGINAL_ENV };
+    delete process.env.SAPKIT_HOME_DIR;
+    delete process.env.SC4SAP_HOME_DIR;
+  });
+
+  afterAll(() => {
+    process.env = ORIGINAL_ENV;
+  });
+
+  it('R-TIE applies the adoption criterion before the tie-break', () => {
+    const cwd = makeTempCwd();
+    try {
+      // .sapkit exists but yields no connection; .sc4sap does. Breaking the tie
+      // first would elect the empty .sapkit — the v3 BLOCKER.
+      fs.mkdirSync(path.join(cwd, '.sapkit', 'vpass'), { recursive: true });
+      writeLegacy(cwd, 'SAP_URL=http://old\nSAP_TIER=dev\n');
+      const { resolveProjectRuntimeDir } = require('../../lib/profile');
+      const picked = resolveProjectRuntimeDir(cwd);
+      expect(picked.generation).toBe('sc4sap');
+      expect(picked.reason).toBe('OK_LEGACY_DEPRECATED');
+    } finally {
+      fs.rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+
+  it('R-NEW: with no runtime directory the creation site is .sapkit', () => {
+    const cwd = makeTempCwd();
+    try {
+      const { resolveProjectRuntimeDir } = require('../../lib/profile');
+      const picked = resolveProjectRuntimeDir(cwd);
+      expect(picked.dir).toBe(path.join(cwd, '.sapkit'));
+      expect(picked.generation).toBe('sapkit');
+    } finally {
+      fs.rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+
+  it('R-ENV: an unset SAPKIT_HOME_DIR falls through to SC4SAP_HOME_DIR', () => {
+    const home = makeTempHome();
+    try {
+      process.env.SC4SAP_HOME_DIR = home;
+      const { resolveHomeDir } = require('../../lib/profile');
+      const picked = resolveHomeDir('ANY');
+      expect(picked.dir).toBe(home);
+      expect(picked.generation).toBe('sc4sap');
+      expect(picked.reason).toBe('OK_LEGACY_DEPRECATED');
+    } finally {
+      fs.rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  it('R-ENV: a SAPKIT_HOME_DIR pointing nowhere throws ENV_INVALID even when SC4SAP_HOME_DIR is valid', () => {
+    const home = makeTempHome();
+    try {
+      process.env.SAPKIT_HOME_DIR = path.join(home, 'nope');
+      process.env.SC4SAP_HOME_DIR = home;
+      const { resolveHomeDir, ProfilePathError } = require('../../lib/profile');
+      expect(() => resolveHomeDir('ANY')).toThrow(ProfilePathError);
+      try {
+        resolveHomeDir('ANY');
+      } catch (err: any) {
+        expect(err.reason).toBe('ENV_INVALID');
+      }
+    } finally {
+      fs.rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  it('deprecation warnings are emitted at most once per process, on stderr only', () => {
+    const home = makeTempHome();
+    const stderr = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const stdout = jest.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      process.env.SC4SAP_HOME_DIR = home;
+      const {
+        resolveHomeDir,
+        __resetProfileState,
+      } = require('../../lib/profile');
+      __resetProfileState();
+      resolveHomeDir('A');
+      resolveHomeDir('B');
+      resolveHomeDir('C');
+      expect(stderr).toHaveBeenCalledTimes(1);
+      expect(stdout).not.toHaveBeenCalled();
+    } finally {
+      stderr.mockRestore();
+      stdout.mockRestore();
+      fs.rmSync(home, { recursive: true, force: true });
+    }
   });
 });

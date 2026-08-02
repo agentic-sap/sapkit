@@ -12,7 +12,7 @@
  * DispatchResult / TextpoolResult shapes. Handlers only import from
  * ./rfcBackend, never directly from here.
  *
- * Environment variables (populated from .sc4sap/sap.env):
+ * Environment variables (populated from .sapkit/sap.env, legacy .sc4sap/sap.env):
  *   SAP_RFC_GATEWAY_URL       — e.g. https://rfc-gw.company.com:8443  (required)
  *   SAP_RFC_GATEWAY_TOKEN     — Bearer token for gateway ACL          (optional but recommended)
  *   SAP_RFC_GATEWAY_TLS_VERIFY — "0" to allow self-signed certs        (optional, default "1")

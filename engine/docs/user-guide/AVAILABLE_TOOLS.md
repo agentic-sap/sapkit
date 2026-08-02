@@ -634,11 +634,12 @@ Generated from code in `src/handlers/**` (not from docs).
 
 <a id="readfunctionmodule-read-only-function-module"></a>
 #### ReadFunctionModule (Read-Only / Function Module)
-**Description:** [read-only] Read ABAP function module source code and metadata (package, responsible, description, etc.).
+**Description:** [read-only] Read ABAP function module source code and metadata (package, responsible, description, etc.). CAUTION: default version=
 
 **Source:** `src/handlers/function_module/readonly/handleReadFunctionModule.ts`
 
 **Parameters:**
+- `check_inactive` (boolean, optional (default: false)) - Opt-in (default false). When reading the active version, also read the inactive version and, if an unactivated version exists and its source differs, attach a 
 - `function_group_name` (string, required) - Function group name containing the function module (e.g., Z_MY_FG).
 - `function_module_name` (string, required) - Function module name (e.g., Z_MY_FM).
 - `version` (string, optional (default: active)) - Version to read: 
@@ -1095,7 +1096,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 <a id="getsqlquery-read-only-system"></a>
 #### GetSqlQuery (Read-Only / System)
-**Description:** [read-only] Execute ABAP SQL SELECT queries on database tables and CDS views via SAP ADT Data Preview API. Use for ad-hoc data retrieval, row counts, and filtered queries.
+**Description:** [read-only] Execute ABAP SQL SELECT queries on database tables and CDS views via SAP ADT Data Preview API. Use for ad-hoc data retrieval, row counts, and filtered queries. Empty cells (including self-closing XML cells) are preserved as null in row order. Complex statements (e.g. 4-way joins, long IN lists) can fail with HTTP 400 — shorten table aliases or replace a long IN list with a BETWEEN range; a sporadic 400 (e.g. under concurrent calls) is retried once automatically. The response also reports returned_row_count (rows actually parsed), truncated (true when the row_number cap was hit or the server total exceeds it), and server_total_rows (server-reported total when the XML provides it).
 
 **Source:** `src/handlers/system/readonly/handleGetSqlQuery.ts`
 
@@ -1155,7 +1156,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 <a id="reloadprofile-read-only-system"></a>
 #### ReloadProfile (Read-Only / System)
-**Description:** [system] Reload the active SAP profile from .sc4sap/active-profile.txt and reset the cached connection. Called by the sc4sap plugin after switching profiles. Returns the newly active alias, host, tier, and readonly status.
+**Description:** [system] Reload the active SAP profile from .sapkit/active-profile.txt (legacy: .sc4sap/active-profile.txt) and reset the cached connection. Called by the sapkit plugin after switching profiles. Returns the newly active alias, host, tier, and readonly status.
 
 **Source:** `src/handlers/system/readonly/handleReloadProfile.ts`
 
@@ -1790,7 +1791,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 <a id="activateobjects-high-level-common"></a>
 #### ActivateObjects (High-Level / Common)
-**Description:** [high-level] Activate a set of ABAP objects in a single call. Uses the ADT mass-activation endpoint (/sap/bc/adt/activation/runs) so cyclic references between siblings (e.g. main program + multiple cross-referencing includes) resolve in one compilation scope. Returns per-object status, errors, warnings. Falls back to /sap/bc/adt/activation on legacy systems.
+**Description:** [high-level] Activate a set of ABAP objects in a single call. Uses the ADT mass-activation endpoint (/sap/bc/adt/activation/runs) so cyclic references between siblings (e.g. main program + multiple cross-referencing includes) resolve in one compilation scope. Returns per-object status, errors, warnings. Falls back to /sap/bc/adt/activation on legacy systems. FUGR recipe: activating function modules alone fails with 
 
 **Source:** `src/handlers/common/high/handleActivateObjects.ts`
 
@@ -2452,7 +2453,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 <a id="updatefunctionmodule-high-level-function"></a>
 #### UpdateFunctionModule (High-Level / Function)
-**Description:** Update source code of an existing ABAP function module. Locks the function module, uploads new source code, and unlocks. Optionally activates after update. Use this to modify existing function modules without re-creating metadata.
+**Description:** Update source code of an existing ABAP function module. Locks the function module, uploads new source code, and unlocks. Optionally activates after update. Use this to modify existing function modules without re-creating metadata. NOTE: the write persists (as the inactive version) even when the post-write syntax check fails, and those check errors can originate from pre-existing defects in sibling FMs of the same function group — re-read the FM before assuming your write was lost. For repairs spanning many FMs prefer the abapGit path.
 
 **Source:** `src/handlers/function/high/handleUpdateFunctionModule.ts`
 
@@ -2510,11 +2511,12 @@ Generated from code in `src/handlers/**` (not from docs).
 
 <a id="getfunctionmodule-high-level-function-module"></a>
 #### GetFunctionModule (High-Level / Function Module)
-**Description:** Retrieve ABAP function module definition. Supports reading active or inactive version.
+**Description:** Retrieve ABAP function module definition. Supports reading active or inactive version. CAUTION: the default version=
 
 **Source:** `src/handlers/function_module/high/handleGetFunctionModule.ts`
 
 **Parameters:**
+- `check_inactive` (boolean, optional (default: true)) - When reading the active version, also read the inactive version (one extra ADT call) and, if an unactivated version exists and its source differs, attach a 
 - `function_group_name` (string, required) - FunctionGroup name containing the function module (e.g., Z_MY_FUNCTIONGROUP).
 - `function_module_name` (string, required) - FunctionModule name (e.g., Z_MY_FUNCTIONMODULE).
 - `version` (string, optional (default: active)) - Version to read: 
@@ -3027,7 +3029,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 <a id="createstructure-high-level-structure"></a>
 #### CreateStructure (High-Level / Structure)
-**Description:** Create a new ABAP structure in SAP system with fields and type references. Includes create, activate, and verify steps.
+**Description:** Create a new ABAP structure in SAP system with fields and type references. Includes create, activate, and verify steps. The fields/includes input is generated into DDIC 
 
 **Source:** `src/handlers/structure/high/handleCreateStructure.ts`
 
@@ -3762,7 +3764,6 @@ Generated from code in `src/handlers/**` (not from docs).
 - `run_id` (string, required) - Run identifier returned by RunClassUnitTestsLow.
 - `session_id` (string, optional) - Session ID from GetSession. If not provided, a new session will be created.
 - `session_state` (object, optional) - Session state from GetSession (cookies, csrf_token, cookie_store). Required if session_id is provided.
-- `with_navigation_uris` (boolean, optional) - Optional flag to request navigation URIs in SAP response (default true).
 
 ---
 
@@ -3776,7 +3777,6 @@ Generated from code in `src/handlers/**` (not from docs).
 - `run_id` (string, required) - Run identifier returned by RunClassUnitTestsLow.
 - `session_id` (string, optional) - Session ID from GetSession. If not provided, a new session will be created.
 - `session_state` (object, optional) - Session state from GetSession (cookies, csrf_token, cookie_store). Required if session_id is provided.
-- `with_long_polling` (boolean, optional) - Optional flag to enable SAP long-polling (default true).
 
 ---
 
@@ -3811,14 +3811,12 @@ Generated from code in `src/handlers/**` (not from docs).
 **Source:** `src/handlers/class/low/handleRunClassUnitTests.ts`
 
 **Parameters:**
-- `context` (string, optional) - Optional context string shown in SAP tools.
 - `duration` (object, optional) - 
 - `risk_level` (object, optional) - 
 - `scope` (object, optional) - 
 - `session_id` (string, optional) - Session ID from GetSession. If not provided, a new session will be created.
 - `session_state` (object, optional) - Session state from GetSession (cookies, csrf_token, cookie_store). Required if session_id is provided.
 - `tests` (array, required) - List of container/test class pairs to execute.
-- `title` (string, optional) - Optional title for the ABAP Unit run.
 
 ---
 
@@ -5504,4 +5502,4 @@ Generated from code in `src/handlers/**` (not from docs).
 
 ---
 
-*Last updated: 2026-07-07*
+*Last updated: 2026-08-02*

@@ -111,7 +111,7 @@ environment:
 #   • SAP NW RFC SDK 7.50+ installed on this host
 #   • SAPNWRFC_HOME env var pointing to the extracted SDK
 #   • `npm rebuild node-rfc` succeeds
-#   • The SAP_RFC_* block below populated (mirrors .sc4sap/sap.env)
+#   • The SAP_RFC_* block below populated (mirrors .sapkit/sap.env)
 #
 # If a backend is listed but its preconditions fail, the parity test
 # logs and skips that backend — it does NOT fail the suite.

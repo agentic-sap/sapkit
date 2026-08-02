@@ -57,7 +57,7 @@ Read, create, update, and delete ABAP objects directly from Claude Code, Cline, 
 - **Embeddable**: Use as a standalone server or embed handlers into existing MCP servers
 - **Auto-configurator**: `@mcp-abap-adt/configurator` for automated client setup
 - **Health endpoint**: `GET /mcp/health` for HTTP/SSE transports
-- **Optional data-fetch prevention**: opt-in server-side blocklist (`SC4SAP_POLICY=on`) that blocks row extraction from sensitive tables (PII, credentials, payroll, banking) regardless of caller — see [Optional: Data Fetch Prevention](#optional-data-fetch-prevention)
+- **Data-fetch prevention**: server-side blocklist (`MCP_BLOCKLIST_PROFILE`, default `standard`) that blocks row extraction from sensitive tables (PII, credentials, payroll, banking) regardless of caller — see [Optional: Data Fetch Prevention](#optional-data-fetch-prevention)
 
 ---
 
@@ -725,25 +725,24 @@ Yes, for legacy systems where ADT HTTP APIs are unavailable. Set `connection_typ
 
 Row-returning tools (`GetTableContents`, `GetSqlQuery`) can expose sensitive business data — PII, credentials, payroll, banking, transactional finance. This server ships with an **opt-in server-side blocklist** that stops such calls before they ever reach SAP, regardless of the caller (Claude, other LLMs, direct JSON-RPC, external scripts).
 
-The feature is **disabled by default** — nothing is blocked unless you explicitly turn it on.
+The feature is **on by default at the `standard` profile** — set `MCP_BLOCKLIST_PROFILE=off` to disable it.
 
-### Enable
+### Configure
 
 ```bash
-export SC4SAP_POLICY=on                    # or: strict | standard | minimal | custom
-export SC4SAP_POLICY_PROFILE=strict        # optional, default when SC4SAP_POLICY=on
-export SC4SAP_BLOCKLIST_PATH=/path/to/table_exception.md   # optional extra list
-export SC4SAP_ALLOW_TABLE=TAB1,TAB2        # session-scoped emergency exemption (logged)
+export MCP_BLOCKLIST_PROFILE=strict        # minimal | standard (default) | strict | off
+export MCP_BLOCKLIST_EXTEND=ZPAY*,ZTAB1    # optional extra names/patterns (always denied)
+export MCP_ALLOW_TABLE=TAB1,TAB2           # session-scoped emergency exemption (audited on stderr)
 ```
 
 ### Profiles
 
 | Profile | Blocks |
 |---------|--------|
-| `strict` (default when `SC4SAP_POLICY=on`) | PII + credentials + HR + transactional finance + audit logs + workflow |
-| `standard` | PII + credentials + HR + transactional finance |
-| `minimal` | PII + credentials + HR + Tax (business tables allowed) |
-| `custom` | User-supplied list only (`blocklist-custom.txt`) |
+| `minimal` | PII + credentials + addresses + banking + HR/payroll + tax IDs |
+| `standard` (default) | `minimal` + protected business data (VBAK/BKPF/ACDOCA …) |
+| `strict` | `standard` + audit/security logs + communication & workflow |
+| `off` | nothing — guard disabled (not recommended) |
 
 ### Behavior
 

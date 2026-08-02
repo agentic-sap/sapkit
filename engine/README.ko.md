@@ -57,7 +57,7 @@ Claude Code, Cline, Cursor, Windsurf 등 MCP 호환 클라이언트에서 ABAP �
 - **임베딩 지원**: 독립 서버로 실행하거나 기존 MCP 서버에 핸들러를 내장
 - **자동 설정**: `@mcp-abap-adt/configurator`로 클라이언트 자동 구성
 - **헬스 엔드포인트**: HTTP/SSE 전송에서 `GET /mcp/health`
-- **선택적 데이터 조회 차단**: 민감 테이블(개인정보, 인증, 급여, 은행) 행 데이터 조회를 서버 단에서 차단하는 opt-in 블로킹(`SC4SAP_POLICY=on`) — 호출 주체에 관계없이 적용됨 — [선택 기능: 데이터 조회 차단](#선택-기능-데이터-조회-차단) 참조
+- **데이터 조회 차단**: 민감 테이블(개인정보, 인증, 급여, 은행) 행 데이터 조회를 서버 단에서 차단(`MCP_BLOCKLIST_PROFILE`, 기본값 `standard`) — 호출 주체에 관계없이 적용됨 — [선택 기능: 데이터 조회 차단](#선택-기능-데이터-조회-차단) 참조
 
 ---
 
@@ -575,25 +575,24 @@ ADT HTTP API가 없는 Legacy 시스템용으로 지원됩니다. 테스트 설�
 
 행(row) 데이터를 반환하는 툴(`GetTableContents`, `GetSqlQuery`)은 민감한 업무 데이터 — 개인정보, 인증, 급여, 은행, 거래 재무 — 를 노출할 수 있습니다. 본 서버는 이런 호출이 SAP에 도달하기 전에 서버 단에서 차단하는 **opt-in 블로킹 기능**을 내장하고 있으며, 호출 주체(Claude, 다른 LLM, 직접 JSON-RPC, 외부 스크립트)와 무관하게 동작합니다.
 
-이 기능은 **기본 비활성** 입니다 — 명시적으로 켜지 않는 한 아무것도 차단되지 않습니다.
+이 기능은 **기본 활성(`standard` 프로파일)** 입니다 — 끄려면 `MCP_BLOCKLIST_PROFILE=off`를 설정하십시오.
 
-### 활성화
+### 설정
 
 ```bash
-export SC4SAP_POLICY=on                    # 또는 strict | standard | minimal | custom
-export SC4SAP_POLICY_PROFILE=strict        # 선택 (SC4SAP_POLICY=on일 때 기본값)
-export SC4SAP_BLOCKLIST_PATH=/path/to/table_exception.md   # 선택 (추가 목록)
-export SC4SAP_ALLOW_TABLE=TAB1,TAB2        # 세션 한정 긴급 예외 (로그 기록)
+export MCP_BLOCKLIST_PROFILE=strict        # minimal | standard (기본값) | strict | off
+export MCP_BLOCKLIST_EXTEND=ZPAY*,ZTAB1    # 선택 (추가 이름·패턴 — 항상 차단)
+export MCP_ALLOW_TABLE=TAB1,TAB2           # 세션 한정 긴급 예외 (stderr 감사 로그)
 ```
 
 ### 프로파일
 
 | 프로파일 | 차단 범위 |
 |----------|-----------|
-| `strict` (`SC4SAP_POLICY=on` 기본값) | PII + 인증 + HR + 거래 재무 + 감사 로그 + 워크플로우 |
-| `standard` | PII + 인증 + HR + 거래 재무 |
-| `minimal` | PII + 인증 + HR + Tax (일반 비즈니스 테이블 허용) |
-| `custom` | 내장 목록 무시, `blocklist-custom.txt` 만 사용 |
+| `minimal` | PII + 인증 + 주소 + 은행 + HR/급여 + 세금 ID |
+| `standard` (기본값) | `minimal` + 보호 대상 거래 데이터(VBAK/BKPF/ACDOCA …) |
+| `strict` | `standard` + 감사/보안 로그 + 통신·워크플로우 |
+| `off` | 차단 없음 — 가드 비활성 (권장하지 않음) |
 
 ### 동작
 

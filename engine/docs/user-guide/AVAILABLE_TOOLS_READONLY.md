@@ -304,11 +304,12 @@ Generated from code in `src/handlers/**` (not from docs).
 
 <a id="readfunctionmodule-read-only-function-module"></a>
 #### ReadFunctionModule (Read-Only / Function Module)
-**Description:** [read-only] Read ABAP function module source code and metadata (package, responsible, description, etc.).
+**Description:** [read-only] Read ABAP function module source code and metadata (package, responsible, description, etc.). CAUTION: default version=
 
 **Source:** `src/handlers/function_module/readonly/handleReadFunctionModule.ts`
 
 **Parameters:**
+- `check_inactive` (boolean, optional (default: false)) - Opt-in (default false). When reading the active version, also read the inactive version and, if an unactivated version exists and its source differs, attach a 
 - `function_group_name` (string, required) - Function group name containing the function module (e.g., Z_MY_FG).
 - `function_module_name` (string, required) - Function module name (e.g., Z_MY_FM).
 - `version` (string, optional (default: active)) - Version to read: 
@@ -765,7 +766,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 <a id="getsqlquery-read-only-system"></a>
 #### GetSqlQuery (Read-Only / System)
-**Description:** [read-only] Execute ABAP SQL SELECT queries on database tables and CDS views via SAP ADT Data Preview API. Use for ad-hoc data retrieval, row counts, and filtered queries.
+**Description:** [read-only] Execute ABAP SQL SELECT queries on database tables and CDS views via SAP ADT Data Preview API. Use for ad-hoc data retrieval, row counts, and filtered queries. Empty cells (including self-closing XML cells) are preserved as null in row order. Complex statements (e.g. 4-way joins, long IN lists) can fail with HTTP 400 — shorten table aliases or replace a long IN list with a BETWEEN range; a sporadic 400 (e.g. under concurrent calls) is retried once automatically. The response also reports returned_row_count (rows actually parsed), truncated (true when the row_number cap was hit or the server total exceeds it), and server_total_rows (server-reported total when the XML provides it).
 
 **Source:** `src/handlers/system/readonly/handleGetSqlQuery.ts`
 
@@ -825,7 +826,7 @@ Generated from code in `src/handlers/**` (not from docs).
 
 <a id="reloadprofile-read-only-system"></a>
 #### ReloadProfile (Read-Only / System)
-**Description:** [system] Reload the active SAP profile from .sc4sap/active-profile.txt and reset the cached connection. Called by the sc4sap plugin after switching profiles. Returns the newly active alias, host, tier, and readonly status.
+**Description:** [system] Reload the active SAP profile from .sapkit/active-profile.txt (legacy: .sc4sap/active-profile.txt) and reset the cached connection. Called by the sapkit plugin after switching profiles. Returns the newly active alias, host, tier, and readonly status.
 
 **Source:** `src/handlers/system/readonly/handleReloadProfile.ts`
 
@@ -1104,4 +1105,4 @@ Generated from code in `src/handlers/**` (not from docs).
 
 ---
 
-*Last updated: 2026-07-07*
+*Last updated: 2026-08-02*

@@ -425,7 +425,6 @@ Generated from code in `src/handlers/**` (not from docs).
 - `run_id` (string, required) - Run identifier returned by RunClassUnitTestsLow.
 - `session_id` (string, optional) - Session ID from GetSession. If not provided, a new session will be created.
 - `session_state` (object, optional) - Session state from GetSession (cookies, csrf_token, cookie_store). Required if session_id is provided.
-- `with_navigation_uris` (boolean, optional) - Optional flag to request navigation URIs in SAP response (default true).
 
 ---
 
@@ -439,7 +438,6 @@ Generated from code in `src/handlers/**` (not from docs).
 - `run_id` (string, required) - Run identifier returned by RunClassUnitTestsLow.
 - `session_id` (string, optional) - Session ID from GetSession. If not provided, a new session will be created.
 - `session_state` (object, optional) - Session state from GetSession (cookies, csrf_token, cookie_store). Required if session_id is provided.
-- `with_long_polling` (boolean, optional) - Optional flag to enable SAP long-polling (default true).
 
 ---
 
@@ -474,14 +472,12 @@ Generated from code in `src/handlers/**` (not from docs).
 **Source:** `src/handlers/class/low/handleRunClassUnitTests.ts`
 
 **Parameters:**
-- `context` (string, optional) - Optional context string shown in SAP tools.
 - `duration` (object, optional) - 
 - `risk_level` (object, optional) - 
 - `scope` (object, optional) - 
 - `session_id` (string, optional) - Session ID from GetSession. If not provided, a new session will be created.
 - `session_state` (object, optional) - Session state from GetSession (cookies, csrf_token, cookie_store). Required if session_id is provided.
 - `tests` (array, required) - List of container/test class pairs to execute.
-- `title` (string, optional) - Optional title for the ABAP Unit run.
 
 ---
 
@@ -2167,4 +2163,4 @@ Generated from code in `src/handlers/**` (not from docs).
 
 ---
 
-*Last updated: 2026-07-07*
+*Last updated: 2026-08-02*

@@ -12,7 +12,7 @@
  * same DispatchResult / TextpoolResult shapes. Handlers only import
  * from ./rfcBackend, never directly from here.
  *
- * Environment variables (populated from .sc4sap/sap.env):
+ * Environment variables (populated from .sapkit/sap.env, legacy .sc4sap/sap.env):
  *   SAP_RFC_ODATA_SERVICE_URL  — e.g. https://sap.company.com:44300/sap/opu/odata/sap/ZMCP_ADT_SRV
  *   SAP_RFC_ODATA_CSRF_TTL_SEC — CSRF token cache TTL, default 600s
  *   SAP_USERNAME / SAP_PASSWORD / SAP_CLIENT — reused for Basic auth

@@ -83,7 +83,7 @@ export async function handleGetBadiImplementations(
     if (process.env.SAP_VERSION?.toUpperCase() !== 'ECC') {
       return return_error(
         new Error(
-          'GetBadiImplementations currently routes through the ECC bridge (ZMCP_ADT_DDIC_BADI via OData FunctionImport DdicBadi). Set SAP_VERSION=ECC in .sc4sap/sap.env, or wait for the S/4HANA native ADT path (planned).',
+          'GetBadiImplementations currently routes through the ECC bridge (ZMCP_ADT_DDIC_BADI via OData FunctionImport DdicBadi). Set SAP_VERSION=ECC in .sapkit/sap.env, or wait for the S/4HANA native ADT path (planned).',
         ),
       );
     }

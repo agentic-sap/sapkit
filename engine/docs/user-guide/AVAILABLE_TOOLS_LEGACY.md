@@ -318,13 +318,14 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 <a id="readfunctionmodule-read-only-function-module"></a>
 #### ReadFunctionModule (Read-Only / Function Module)
-**Description:** [read-only] Read ABAP function module source code and metadata (package, responsible, description, etc.).
+**Description:** [read-only] Read ABAP function module source code and metadata (package, responsible, description, etc.). CAUTION: default version=
 
 **Source:** `src/handlers/function_module/readonly/handleReadFunctionModule.ts`
 
 **Available in:** `onprem`, `cloud`, `legacy`
 
 **Parameters:**
+- `check_inactive` (boolean, optional (default: false)) - Opt-in (default false). When reading the active version, also read the inactive version and, if an unactivated version exists and its source differs, attach a 
 - `function_group_name` (string, required) - Function group name containing the function module (e.g., Z_MY_FG).
 - `function_module_name` (string, required) - Function module name (e.g., Z_MY_FM).
 - `version` (string, optional (default: active)) - Version to read: 
@@ -605,7 +606,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 <a id="reloadprofile-read-only-system"></a>
 #### ReloadProfile (Read-Only / System)
-**Description:** [system] Reload the active SAP profile from .sc4sap/active-profile.txt and reset the cached connection. Called by the sc4sap plugin after switching profiles. Returns the newly active alias, host, tier, and readonly status.
+**Description:** [system] Reload the active SAP profile from .sapkit/active-profile.txt (legacy: .sc4sap/active-profile.txt) and reset the cached connection. Called by the sapkit plugin after switching profiles. Returns the newly active alias, host, tier, and readonly status.
 
 **Source:** `src/handlers/system/readonly/handleReloadProfile.ts`
 
@@ -907,7 +908,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 <a id="activateobjects-high-level-common"></a>
 #### ActivateObjects (High-Level / Common)
-**Description:** [high-level] Activate a set of ABAP objects in a single call. Uses the ADT mass-activation endpoint (/sap/bc/adt/activation/runs) so cyclic references between siblings (e.g. main program + multiple cross-referencing includes) resolve in one compilation scope. Returns per-object status, errors, warnings. Falls back to /sap/bc/adt/activation on legacy systems.
+**Description:** [high-level] Activate a set of ABAP objects in a single call. Uses the ADT mass-activation endpoint (/sap/bc/adt/activation/runs) so cyclic references between siblings (e.g. main program + multiple cross-referencing includes) resolve in one compilation scope. Returns per-object status, errors, warnings. Falls back to /sap/bc/adt/activation on legacy systems. FUGR recipe: activating function modules alone fails with 
 
 **Source:** `src/handlers/common/high/handleActivateObjects.ts`
 
@@ -993,7 +994,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 <a id="updatefunctionmodule-high-level-function"></a>
 #### UpdateFunctionModule (High-Level / Function)
-**Description:** Update source code of an existing ABAP function module. Locks the function module, uploads new source code, and unlocks. Optionally activates after update. Use this to modify existing function modules without re-creating metadata.
+**Description:** Update source code of an existing ABAP function module. Locks the function module, uploads new source code, and unlocks. Optionally activates after update. Use this to modify existing function modules without re-creating metadata. NOTE: the write persists (as the inactive version) even when the post-write syntax check fails, and those check errors can originate from pre-existing defects in sibling FMs of the same function group — re-read the FM before assuming your write was lost. For repairs spanning many FMs prefer the abapGit path.
 
 **Source:** `src/handlers/function/high/handleUpdateFunctionModule.ts`
 
@@ -1059,13 +1060,14 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 <a id="getfunctionmodule-high-level-function-module"></a>
 #### GetFunctionModule (High-Level / Function Module)
-**Description:** Retrieve ABAP function module definition. Supports reading active or inactive version.
+**Description:** Retrieve ABAP function module definition. Supports reading active or inactive version. CAUTION: the default version=
 
 **Source:** `src/handlers/function_module/high/handleGetFunctionModule.ts`
 
 **Available in:** `onprem`, `cloud`, `legacy`
 
 **Parameters:**
+- `check_inactive` (boolean, optional (default: true)) - When reading the active version, also read the inactive version (one extra ADT call) and, if an unactivated version exists and its source differs, attach a 
 - `function_group_name` (string, required) - FunctionGroup name containing the function module (e.g., Z_MY_FUNCTIONGROUP).
 - `function_module_name` (string, required) - FunctionModule name (e.g., Z_MY_FUNCTIONMODULE).
 - `version` (string, optional (default: active)) - Version to read: 
@@ -1898,7 +1900,6 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 - `run_id` (string, required) - Run identifier returned by RunClassUnitTestsLow.
 - `session_id` (string, optional) - Session ID from GetSession. If not provided, a new session will be created.
 - `session_state` (object, optional) - Session state from GetSession (cookies, csrf_token, cookie_store). Required if session_id is provided.
-- `with_navigation_uris` (boolean, optional) - Optional flag to request navigation URIs in SAP response (default true).
 
 ---
 
@@ -1914,7 +1915,6 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 - `run_id` (string, required) - Run identifier returned by RunClassUnitTestsLow.
 - `session_id` (string, optional) - Session ID from GetSession. If not provided, a new session will be created.
 - `session_state` (object, optional) - Session state from GetSession (cookies, csrf_token, cookie_store). Required if session_id is provided.
-- `with_long_polling` (boolean, optional) - Optional flag to enable SAP long-polling (default true).
 
 ---
 
@@ -1955,14 +1955,12 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 **Available in:** `onprem`, `cloud`, `legacy`
 
 **Parameters:**
-- `context` (string, optional) - Optional context string shown in SAP tools.
 - `duration` (object, optional) - 
 - `risk_level` (object, optional) - 
 - `scope` (object, optional) - 
 - `session_id` (string, optional) - Session ID from GetSession. If not provided, a new session will be created.
 - `session_state` (object, optional) - Session state from GetSession (cookies, csrf_token, cookie_store). Required if session_id is provided.
 - `tests` (array, required) - List of container/test class pairs to execute.
-- `title` (string, optional) - Optional title for the ABAP Unit run.
 
 ---
 
@@ -3011,4 +3009,4 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 ---
 
-*Last updated: 2026-07-07*
+*Last updated: 2026-08-02*

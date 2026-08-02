@@ -64,7 +64,7 @@ async function handleGetBadiImplementations(context, args) {
             return (0, utils_1.return_error)(new Error('badi_definition is required'));
         }
         if (process.env.SAP_VERSION?.toUpperCase() !== 'ECC') {
-            return (0, utils_1.return_error)(new Error('GetBadiImplementations currently routes through the ECC bridge (ZMCP_ADT_DDIC_BADI via OData FunctionImport DdicBadi). Set SAP_VERSION=ECC in .sc4sap/sap.env, or wait for the S/4HANA native ADT path (planned).'));
+            return (0, utils_1.return_error)(new Error('GetBadiImplementations currently routes through the ECC bridge (ZMCP_ADT_DDIC_BADI via OData FunctionImport DdicBadi). Set SAP_VERSION=ECC in .sapkit/sap.env, or wait for the S/4HANA native ADT path (planned).'));
         }
         const badi_definition = String(args.badi_definition).toUpperCase();
         const customer_only = args.customer_only !== false;

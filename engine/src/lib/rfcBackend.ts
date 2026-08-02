@@ -41,7 +41,7 @@ function resolveBackend(): RfcBackend {
   if (v === 'soap') return 'soap';
   throw new Error(
     `SAP_RFC_BACKEND must be 'soap' | 'native' | 'gateway' | 'odata' (got '${v}'). ` +
-      `Default is 'odata'. Set in .sc4sap/sap.env.`,
+      `Default is 'odata'. Set in .sapkit/sap.env.`,
   );
 }
 
@@ -95,7 +95,7 @@ function unsupportedDdic(name: string): never {
   throw new Error(
     `${name} requires SAP_RFC_BACKEND=odata (current='${backend}'). ` +
       `The ECC DDIC fallback is only implemented against the OData ZMCP_ADT_SRV ` +
-      `service. Set SAP_RFC_BACKEND=odata in .sc4sap/sap.env or use S/4HANA (native ADT).`,
+      `service. Set SAP_RFC_BACKEND=odata in .sapkit/sap.env or use S/4HANA (native ADT).`,
   );
 }
 
