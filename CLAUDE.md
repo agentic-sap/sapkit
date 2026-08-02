@@ -57,11 +57,14 @@ node interactive/server/verify-engine.mjs                # 번들 무결성 OK
 node interactive/scripts/check-engine-provenance.mjs     # 엔진 소스 커밋 ↔ 번들
 node interactive/scripts/smoke-mcp.mjs                   # 도구 표면 계약 assert
 node interactive/scripts/gen-plugin-manifests.mjs --check # 매니페스트 5종 ↔ 단일 정본
+node interactive/scripts/check-runtime-path-rename.mjs    # 개명 3구역·앵커·폴백 의무
+node interactive/scripts/conformance-runtime-dir.mjs      # 경로 선택 적합성 37케이스
 node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (로컬 전용)
 ```
 
 게이트 자체의 음성시험(게이트가 정말 거부하는지): `test-check-migration-snapshot.mjs`
-17/17 · `test-smoke-mcp.mjs` 20/20. 위 게이트는 doctor를 뺀 전부가 CI에서도 돈다.
+17/17 · `test-smoke-mcp.mjs` 20/20 · `test-check-runtime-path-rename.mjs` 13/13 ·
+`test-migrate-runtime-dir.mjs` 46/46. 위 게이트는 doctor를 뺀 전부가 CI에서도 돈다.
 
 `check-migration-coverage`는 **S3에서 폐기**됐다(D-027 §9.2) — 외부 sc4sap-custom을
 재귀 순회하며 private 경로 이름을 열거해 R-004 정신에 저촉했고, 러너엔 그 절대경로가
