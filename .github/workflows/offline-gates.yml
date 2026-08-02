@@ -67,6 +67,18 @@ jobs:
       - name: 개명 게이트 음성시험 (토큰 주입·앵커 제거·폴백 파괴를 실제로 거부하는지)
         run: node interactive/scripts/test-check-runtime-path-rename.mjs
 
+      # test-migrate-runtime-dir는 journal 계약을 엔진 리더(engine/dist/lib/profile.js)로
+      # 직접 확증한다(설계 의도: dist 부재 시 skip이 아니라 fail). dist의 외부 require는
+      # dotenv 하나뿐인데 engine dependencies가 아니라 devDep 트리로만 존재해(번들은
+      # esbuild 내장) 무설치 러너에서 MODULE_NOT_FOUND가 났다(run #62·#63 — D-060).
+      # 전체 npm ci 대신 lockfile 핀 버전만 스크래치에 깔고 NODE_PATH(CJS require의
+      # 최종 폴백)로 공급한다 — 엔진 트리 재해석 0, 시험 약화 0.
+      - name: 엔진 리더 probe 의존성 (dotenv — dist 유일 외부 require)
+        run: |
+          DV=$(node -p "require('./engine/package-lock.json').packages['node_modules/dotenv'].version")
+          npm install --prefix "$RUNNER_TEMP/probe-deps" --no-save --no-package-lock --no-audit --no-fund --ignore-scripts "dotenv@$DV"
+          echo "NODE_PATH=$RUNNER_TEMP/probe-deps/node_modules" >> "$GITHUB_ENV"
+
       - name: 마이그레이터 음성시험 (목적지 존재·symlink·divergence 거부 · journal 계약)
         run: node interactive/scripts/test-migrate-runtime-dir.mjs
 
@@ -145,6 +157,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      # node-gates의 동일 스텝 참조 (D-060) — 엔진 리더 probe가 요구하는 dotenv를
+      # lockfile 핀 버전으로 스크래치 공급. windows 러너 기본 셸(pwsh) 문법.
+      - name: 엔진 리더 probe 의존성 (dotenv — dist 유일 외부 require)
+        run: |
+          $dv = node -p "require('./engine/package-lock.json').packages['node_modules/dotenv'].version"
+          $dir = Join-Path $env:RUNNER_TEMP 'probe-deps'
+          npm install --prefix $dir --no-save --no-package-lock --no-audit --no-fund --ignore-scripts "dotenv@$dv"
+          "NODE_PATH=$dir\node_modules" >> $env:GITHUB_ENV
 
       - name: 마이그레이터 음성시험 (win32 DACL 검증 포함)
         run: node interactive/scripts/test-migrate-runtime-dir.mjs
