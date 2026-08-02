@@ -188490,8 +188490,8 @@ function hydrateSystemContextFromEnvFile(envFilePath) {
   }
 }
 function showVersion() {
-  if ("4.14.1") {
-    console.log("4.14.1");
+  if ("4.14.2") {
+    console.log("4.14.2");
     process.exit(0);
   }
   let dir = __dirname;

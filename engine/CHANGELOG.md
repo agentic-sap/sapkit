@@ -4,6 +4,16 @@
 
 ## [Unreleased]
 
+## [4.14.2] - 2026-08-02
+
+### Fixed
+- **`ReloadProfile` reported a hollow success on a server that could never reconnect.** A user who repaired a broken profile pointer and called the tool kept getting the same `Basic authentication requires SAP_CLIENT to be provided` error, and only recovered by restarting the client — the tool is named `ReloadProfile`, so "call this and it takes effect" is exactly how it reads. It cannot: when no connection parameters resolve, `launcher.ts` installs a mock broker and hands it to `new StdioServer(handlersRegistry, broker)`, which holds it for the process lifetime with no swap path. `handleReloadProfile` only calls `activateProfile()` (refreshes `process.env.SAP_*`) and `invalidateConnectionCache()` (drops the cached connection); neither reaches the broker, so every rebuilt connection is the mock again. Reviving it in-process would mean replacing the server's broker — an architecture change, out of scope here. Instead the launcher marks the mode (`global.__mcpAbapAdtInspectionOnly`) and `ReloadProfile` now returns **`restartRequired: true`** with a `note` stating the MCP server must be restarted. `ok` stays `true` because the profile really was reloaded into the environment; `restartRequired` is the actionable signal. The tool description states the limit as well.
+
+### Notes
+- **Connected servers are unchanged in output**: `restartRequired: false` and `note: undefined`, which `JSON.stringify` drops — no new field appears on the normal path.
+- New suite `src/__tests__/handlers/system/handleReloadProfile.test.ts` (2 cases) pins both directions and deletes the global flag in `afterEach`; it is process-global and would otherwise make sibling suites report a restart that never happened. Full jest: **731 passed / 11 skipped / 0 failed** (729 before — +2).
+- Reported by a downstream sapkit user (2026-08-02, issue 3 of 3). Issue 1 of the same report — "write tools are missing because `--exposition` lacks `low`" — was measured and **rejected**: on the shipped 0.4.4 bundle `readonly,high` exposes 186 tools including 79 write handlers, write handlers live in the `high` group, and `low` only adds the low-level `*Low` variants (311 total). No engine change was warranted.
+
 ## [4.14.1] - 2026-08-02
 
 ### Fixed
