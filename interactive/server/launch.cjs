@@ -69,6 +69,28 @@ function envHomeInvalid() {
   return Boolean(explicit) && !fs.existsSync(explicit);
 }
 
+// The alias pointer travels with the project directory but the profile itself
+// lives outside it, so a project copied between machines routinely points at a
+// profile that is not here. Naming the aliases that DO exist turns a misleading
+// auth error into a one-line fix. Never throws — a diagnostic must not break
+// resolution.
+function listAvailableProfiles(...homes) {
+  const seen = new Set();
+  for (const home of homes) {
+    let entries;
+    try {
+      entries = fs.readdirSync(path.join(home, "profiles"), { withFileTypes: true });
+    } catch {
+      continue; // this home has no profiles directory — not an error here
+    }
+    for (const entry of entries) if (entry.isDirectory()) seen.add(entry.name);
+  }
+  const names = [...seen].sort();
+  return names.length
+    ? ` (available: ${names.join(", ")})`
+    : " (no profiles found under either home)";
+}
+
 // Otherwise the home is chosen by where the alias actually lives.
 function resolveHome(alias) {
   const explicit = process.env.SAPKIT_HOME_DIR;
@@ -101,7 +123,15 @@ function resolveHome(alias) {
       warnOnce("OK_LEGACY_DEPRECATED", `profile "${alias}" resolved under the legacy home ${legacyHome}.`);
       return legacyHome;
     }
-    warnOnce("PROFILE_NOT_FOUND", `profile "${alias}" was not found under ${newHome} or ${legacyHome}.`);
+    warnOnce(
+      "PROFILE_NOT_FOUND",
+      `profile "${alias}" was not found under ${newHome} or ${legacyHome}` +
+        `${listAvailableProfiles(newHome, legacyHome)}. ` +
+        `Fix the alias in <project>/${NEW_DIR}/active-profile.txt, or create the profile. ` +
+        `Until then the server starts with NO connection and every SAP call fails with ` +
+        `"Basic authentication requires SAP_CLIENT to be provided" — that message names the ` +
+        `wrong cause; SAP_CLIENT is not the problem.`,
+    );
   }
   if (fs.existsSync(newHome)) return newHome;
   if (fs.existsSync(legacyHome)) return legacyHome;
