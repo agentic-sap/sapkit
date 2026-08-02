@@ -6,6 +6,7 @@ const mcp_abap_connection_1 = require("@babamba2/mcp-abap-connection");
 const mcp_js_1 = require("@modelcontextprotocol/sdk/server/mcp.js");
 const CompositeHandlersRegistry_js_1 = require("../lib/handlers/registry/CompositeHandlersRegistry.js");
 const schemaUtils_js_1 = require("../lib/handlers/utils/schemaUtils.js");
+const readonlyGuard_js_1 = require("../lib/readonlyGuard.js");
 const systemContext_js_1 = require("../lib/systemContext.js");
 const utils_js_1 = require("../lib/utils.js");
 /**
@@ -271,6 +272,12 @@ class BaseMcpServer extends mcp_js_1.McpServer {
                 const handlers = group.getHandlers();
                 for (const entry of handlers) {
                     const wrappedHandler = async (args) => {
+                        // Server-side readonly enforcement for non-DEV SAP profiles.
+                        // Fires BEFORE the connection is opened so mutations never reach
+                        // SAP. This is the same chokepoint BaseHandlerGroup applies to its
+                        // own registration path; every transport (stdio/SSE/HTTP) reaches
+                        // tools through *this* wrapper, so the guard must live here too.
+                        (0, readonlyGuard_js_1.guardTool)(entry.toolDefinition.name);
                         // Get connection from context (this.connectionContext)
                         // Token will be automatically refreshed via AuthBroker if needed
                         const context = {

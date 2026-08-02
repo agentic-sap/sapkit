@@ -186161,6 +186161,7 @@ var require_BaseMcpServer = __commonJS({
     var mcp_js_1 = require_mcp();
     var CompositeHandlersRegistry_js_12 = require_CompositeHandlersRegistry();
     var schemaUtils_js_1 = require_schemaUtils();
+    var readonlyGuard_js_1 = require_readonlyGuard();
     var systemContext_js_1 = require_systemContext();
     var utils_js_12 = require_utils4();
     var BaseMcpServer = class extends mcp_js_1.McpServer {
@@ -186378,6 +186379,7 @@ var require_BaseMcpServer = __commonJS({
             const handlers = group.getHandlers();
             for (const entry of handlers) {
               const wrappedHandler = async (args) => {
+                (0, readonlyGuard_js_1.guardTool)(entry.toolDefinition.name);
                 const context = {
                   connection: await this.getConnection(),
                   logger: this.logger
@@ -188488,8 +188490,8 @@ function hydrateSystemContextFromEnvFile(envFilePath) {
   }
 }
 function showVersion() {
-  if ("4.14.0") {
-    console.log("4.14.0");
+  if ("4.14.1") {
+    console.log("4.14.1");
     process.exit(0);
   }
   let dir = __dirname;

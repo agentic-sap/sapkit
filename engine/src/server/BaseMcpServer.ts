@@ -13,6 +13,7 @@ import type {
 } from '../lib/handlers/interfaces.js';
 import { CompositeHandlersRegistry } from '../lib/handlers/registry/CompositeHandlersRegistry.js';
 import { jsonSchemaToZod } from '../lib/handlers/utils/schemaUtils.js';
+import { guardTool } from '../lib/readonlyGuard.js';
 import {
   resetSystemContextCache,
   resolveSystemContext,
@@ -357,6 +358,13 @@ export abstract class BaseMcpServer extends McpServer {
           type HandlerFnArgsOnly = (args: unknown) => Promise<unknown>;
 
           const wrappedHandler = async (args: unknown) => {
+            // Server-side readonly enforcement for non-DEV SAP profiles.
+            // Fires BEFORE the connection is opened so mutations never reach
+            // SAP. This is the same chokepoint BaseHandlerGroup applies to its
+            // own registration path; every transport (stdio/SSE/HTTP) reaches
+            // tools through *this* wrapper, so the guard must live here too.
+            guardTool(entry.toolDefinition.name);
+
             // Get connection from context (this.connectionContext)
             // Token will be automatically refreshed via AuthBroker if needed
             const context: HandlerContext = {

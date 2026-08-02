@@ -50,6 +50,7 @@ exact diffs from these commits if a hand-application drifts:
 | 4.13.17 | `(pending)` | `ActivateObjects` false-failure: a clean run (`generationExecuted="true"`, no `activationExecuted`, 0 errors) reported every object failed — per-object status + run success now gate on `activated \|\| generated` (§16, server) |
 | 4.13.18 | `(pending)` | `ActivateObjects` server-state oracle re-query (§17-A, #11 — completes #6/#11) + `CheckSyntax` no-source fallback for fully-active programs (§17-B, #12 — noise-throw → active program-tree check, fixes `-32603` leak) |
 | 4.13.19 | `(pending)` | `CheckSyntax` no-source fallback now actually reads the **active** source (§18, #12 residual — §17-B's `runProgramTreeCheck` re-checked the absent `inactive` version and re-hit the noise; live-observed on `ZUNIWR2030`) |
+| 4.14.1 | `(pending)` | Tier readonly guard was wired to a registration path no transport uses — QA/PRD write and runtime execution reached SAP ungated on stdio/SSE/HTTP (§19, server, release blocker) |
 
 > Note: commit `acad614d` is the authoritative 4.13.8 boundary (the CHANGELOG's
 > `## [4.13.8]` header was added retroactively — content is identical).
@@ -1343,6 +1344,110 @@ live) and logged (`logger.warn`), but a future pass should surface an
 "inconclusive / active source unread" note through `handleCheckSyntax` (the
 handler currently only echoes `success`/`errors`/`warnings`/`note`).
 **Live replay against `ZUNIWR2030` still open — #12.**
+
+---
+
+## §19 — Tier readonly guard wired to a registration path no transport uses (4.14.1)
+
+Server-only, one file, one call. The §9 (4.13.2) tier guard was correct and its
+verdict was correct; it simply had **no consumer** on any transport the server
+ships. Same shape as the §16 lesson in a different layer: a control that exists,
+reports itself as active, and is never actually consulted.
+
+### Symptom
+
+Measured 2026-08-02 on a stdio boot against a **dead loopback SAP**
+(`http://127.0.0.1:1` — nothing listens, so "the call was dispatched" and "the
+call was refused" are distinguishable without a real system). With profiles
+`SAP_TIER=QA`, `SAP_TIER=PRD`, and a `sap.env` carrying **no** `SAP_TIER` at all
+(the fail-closed `UNKNOWN` sentinel), all four probes —
+`CreateProgram`, `UpdateClass`, `RuntimeRunClassWithProfiling`,
+`RuntimeCreateProfilerTraceParameters` — reached the network and ended in
+`ECONNREFUSED`. None was refused with `ERR_READONLY_TIER`.
+
+The profile layer was *not* the defect: the same runs printed
+`[MCP] Active sc4sap profile: … (tier=QA, readonly=true)` and
+`(tier=UNKNOWN, readonly=true)` on stderr. The tier was resolved correctly and
+then discarded.
+
+### Root cause
+
+`guardTool()` was called from exactly one place —
+`BaseHandlerGroup.registerToolOnServer()` (`src/lib/handlers/base/BaseHandlerGroup.ts:81`).
+No server reaches tools through that method:
+
+- `StdioServer.start()` → `this.registerHandlers(registry)` →
+  **`BaseMcpServer.registerHandlers()`** (`src/server/BaseMcpServer.ts`), which
+  builds its own `wrappedHandler` (connection injection + result normalization)
+  and registers it directly via `this.registerTool(...)`.
+- `SseServer` and `StreamableHttpServer` call the same
+  `BaseMcpServer.registerHandlers()`.
+- `BaseHandlerGroup.registerHandlers()` is reached only through
+  `CompositeHandlersRegistry.registerAllTools()`, which `BaseMcpServer` uses
+  solely in its "should not happen in normal flow" fallback branch (registry is
+  not a `CompositeHandlersRegistry`), plus `lib/handlers/examples/usage-example.ts`.
+
+So the guard sat on a path that production never takes. Because this product
+distributes MCP over **stdio only**, and the current deployment policy installs
+no client-side PreToolUse hook by default, this was the *sole* defense layer for
+"no writes to QA/PRD" — and it was absent. Design
+`docs/reference/designs/2026-08-02-claude-onboarding-codex-parity-no-engine.md`
+§7-2 ①② names server-side enforcement of exactly these two conditions a
+pre-release gate; §14-3 classifies the bypass as a release blocker.
+
+### Fix — server (one chokepoint added, no new policy)
+
+`BaseMcpServer.registerHandlers()`'s `wrappedHandler` now opens with
+`guardTool(entry.toolDefinition.name)`, placed **before `await this.getConnection()`**
+so a blocked call opens no session and emits no request — the same ordering
+guarantee `BaseHandlerGroup` already gave ("fires BEFORE the handler runs so
+mutations never reach SAP"). Nothing else changed: the read/write classification,
+the DEV/QA/PRD/UNKNOWN block matrix, the `ERR_READONLY_TIER` wording and the
+`ReloadProfile` escape hatch are all the existing `readonlyGuard` module's. The
+two registration paths now enforce identically, so which one a future refactor
+picks stops mattering.
+
+`BaseHandlerGroup`'s call is deliberately left in place — removing it would
+re-create the same class of defect for any consumer that does use
+`registerAllTools`.
+
+### Regression test
+
+New suite `src/__tests__/server/baseMcpServerReadonlyGate.test.ts` (9 cases),
+built on the `applyProfile` state fixture that `lib/readonlyGuard.test.ts`
+already uses, plus a `TestServer extends BaseMcpServer` whose fake
+`getConnection()` **counts how often it is opened**. That counter is what makes
+"blocked" checkable as *never executed and never connected* rather than merely
+"threw something": every blocking case asserts `connectionOpens === 0` and an
+empty execution log.
+
+Cases: QA blocks `CreateProgram`/`UpdateClass`; PRD blocks
+`RuntimeRunClassWithProfiling`/`RuntimeCreateProfilerTraceParameters`/`RunUnitTest`;
+QA blocks runtime execution but still allows `RunUnitTest`; `UNKNOWN` blocks
+writes while reads pass; `ReloadProfile` reachable on a blocked tier; **DEV
+passes all seven tools** (a gate that blocks DEV would kill the product);
+inspection-only (no profile applied → default DEV) passes all seven; the tool
+surface stays registered on a blocked tier (the gate rejects at call time, it
+does not hide tools from `tools/list`); and a structural pin that this path does
+**not** delegate to `BaseHandlerGroup` — the fact that caused the defect, now
+asserted rather than assumed.
+
+**Reverse-verified** by removing the `guardTool` call: the 4 blocking cases fail
+with "Received promise resolved instead of rejected" while the 5 non-blocking
+cases stay green (correctly insensitive to the guard); restoring makes all 9
+green. Full jest suite: **729 passed / 11 skipped / 0 failed** (720 before).
+
+### Verification boundary
+
+Unit-pinned on the registration wrapper and end-to-end-pinned by the repo's
+`interactive/scripts/conformance-server-gates.mjs` runner, which boots the real
+bundle over stdio against the dead loopback and now asserts `TIER_BLOCKED` where
+it previously recorded `REACHED_SAP` (A1 QA-write, A2 PRD-write, A4a QA-execution,
+A4b PRD-execution promoted from recorded GAP to hard assertions; A5 DEV-passes
+unchanged). Not replayed against a live QA/PRD system — deliberately: the point
+of the fix is that no request is emitted, and the dead-loopback rig proves
+emission/non-emission directly. The SSE/HTTP transports get the same guard by
+construction (same wrapper) but were exercised only through the shared unit path.
 
 ---
 
