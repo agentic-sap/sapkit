@@ -201,7 +201,7 @@ CODE_FAIL**(폴백)이다.
 참조).
 
 **V-PASS 체인 러너 (2026-07-26 신설)**: 완료 증거 체인(read-back → active-state 정합 →
-unit → atc)을 한 번에 돌리고 판정 기록을 `.sc4sap/vpass/<ts>-<대상>.json`에 남기는
+unit → atc)을 한 번에 돌리고 판정 기록을 `.sapkit/vpass/<ts>-<대상>.json`에 남기는
 러너가 `interactive/tools/vpass/vpass.mjs`에 있다 — 이 문서의 실측(§②-4 atc exit 0 ·
 §②-5 `No test classes found.` · §③ 마커 3종·LOCK→ENV 순서 · §⑤ 안티패턴)을 그대로 판정
 로직에 이식했고, 그 실측 출력 문자열을 픽스처로 삼는 자가시험을 내장한다

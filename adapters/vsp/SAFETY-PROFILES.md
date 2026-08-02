@@ -196,7 +196,8 @@ vsp가 자격증명을 얻는 **두 채널**을 모두 통제한다:
 
 1. **`SAP_*` 환경변수** — `scripts/vsp-env.ps1`을 **dot-source**하면 프로세스 환경에
    `SAP_URL`/`SAP_CLIENT`/`SAP_USER`/`SAP_PASSWORD`가 주입된다. 출처는
-   `<sc4sap home>\profiles\<ProfileName>\sap.env`이고, 비밀번호가 `keychain:<target>`
+   `<프로파일 홈>\profiles\<ProfileName>\sap.env`(신 `.sapkit`/구 `.sc4sap` 중 활성
+   홈 — D-057)이고, 비밀번호가 `keychain:<target>`
    이면 Windows Credential Manager에서 해석한다. 스크립트는 시크릿을 출력/기록하지 않고
    프로세스 환경에만 넣는다.
 2. **CWD `.env` 자동 로드** — vsp는 작업 디렉토리 `.env`를 자동 로드한다(V9). 레포 CWD에
@@ -216,17 +217,20 @@ vsp가 자격증명을 얻는 **두 채널**을 모두 통제한다:
   2026-07-11) — **QA/PRD 프로파일에 재사용 금지**(vsp-env.ps1 129~134행). QA/PRD tier
   시스템에 vsp write(deploy/copy/execute)를 실행하지 않는다(R-003).
 
-### `.gitignore` 실측 (2026-07-13, 유효 · R-005)
+### `.gitignore` 실측 (2026-07-13, 유효 · R-005; D-057로 신 경로 병기)
 
-레포 루트 `.gitignore`에 자격증명 관련 항목 **이미 등록됨**:
+레포 루트 `.gitignore`에 자격증명 관련 항목 **이미 등록됨**(런타임 경로 개명 후
+신·구 폴백 기간 동안 두 이름 모두 무시 대상):
 
 ```
-.sc4sap/        (line 1)   — 프로파일 홈(sap.env 등)의 레포 내 잔재 차단
-.env            (line 2)   — vsp 자동 로드 대상 자격증명 파일 차단
+.sapkit/        — 프로파일 홈(sap.env 등)의 레포 내 잔재 차단 (신)
+.sc4sap/        — 동일, 레거시(미이행 프로젝트) 경로 (구)
+.env            — vsp 자동 로드 대상 자격증명 파일 차단
 ```
 
-프로파일 실체 `sap.env`는 `SC4SAP_HOME_DIR`(기본 `$HOME\.sc4sap`) 하위 — **레포 밖**이라
-커밋 표면이 아니다. R-005(접속정보 커밋 금지)는 위 2줄 + 이 배치로 성립.
+프로파일 실체 `sap.env`는 `SAPKIT_HOME_DIR`(기본 `$HOME\.sapkit`, 미설정 시 구
+`SC4SAP_HOME_DIR`/`$HOME\.sc4sap` 폴백) 하위 — **레포 밖**이라
+커밋 표면이 아니다. R-005(접속정보 커밋 금지)는 위 항목들 + 이 배치로 성립.
 
 ### write 후 확인 (R-006)
 

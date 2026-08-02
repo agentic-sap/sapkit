@@ -2,7 +2,7 @@
 <!-- tier: minimal -->
 <!-- action: warn -->
 
-Customer (`Z*`/`Y*`) extension tables typically holding PII or sensitive business data. Must be evaluated per project; add concrete Z-table names to `.sc4sap/blocklist-extend.txt` or to this file.
+Customer (`Z*`/`Y*`) extension tables typically holding PII or sensitive business data. Must be evaluated per project; add concrete Z-table names to `.sapkit/blocklist-extend.txt` or to this file.
 
 | Pattern | Description | Why |
 |---------|-------------|-----|

@@ -29,6 +29,8 @@ names (no harness prefix) per [core/vocabulary.md](../../core/vocabulary.md).
 
 - `ReloadProfile`
 
-`ReloadProfile` re-reads `.sc4sap/active-profile.txt` and resets the cached
+`ReloadProfile` re-reads `.sapkit/active-profile.txt` (or the legacy
+`.sc4sap/active-profile.txt` if that is the resolved path — see
+[project-context](../../core/project-context.md)) and resets the cached
 connection — it changes which SAP system subsequent calls hit. Treat profile
 switches as a deliberate user action, not a routine auto-approved step.

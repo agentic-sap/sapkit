@@ -55,7 +55,7 @@ of trusting the applying side's own report. It never writes to SAP.
   run purely P1 (matches the runner's own reviewer-profile exclusion).
 - **Zero writes to SAP.** The runner exports `SAP_READ_ONLY=true` into every
   child process it spawns; the only thing this procedure writes locally is the
-  verdict record under `.sc4sap/vpass/`.
+  verdict record under `.sapkit/vpass/`.
 - **Trust the runner's own policy header and verdict logic** — do not
   re-interpret or override its tier/classification decisions.
 
@@ -64,11 +64,11 @@ of trusting the applying side's own report. It never writes to SAP.
 ① **Determine the target — never guess.** If the invocation names an object
    (TYPE + NAME, or a name the type can be inferred from), use it. Otherwise
    look for candidates, in order: the object just created/modified earlier in
-   this conversation; `.sc4sap/program/{PROG}/state.json` and
+   this conversation; `.sapkit/program/{PROG}/state.json` and
    `review-request.json` (`objects[]` — map SAP ADT notation to vpass TYPE
    codes: `PROG/P`→`PROG`, `PROG/I`→`INCL`, `CLAS`→`CLAS`, `INTF`→`INTF`,
    `FUGR`→`FUGR`; `DYNP`/`CUAD`/text elements have no vpass coverage — say so,
-   do not silently drop them); an existing `.sc4sap/vpass/` record's target,
+   do not silently drop them); an existing `.sapkit/vpass/` record's target,
    for a "verify again" request. **Present the candidate(s) and get an
    explicit confirmation before running** — even with exactly one candidate —
    because this run makes a live SAP connection and takes real time.
@@ -102,7 +102,7 @@ of trusting the applying side's own report. It never writes to SAP.
 
 ④ **Report the result in plain language, localized to the user's
    conversation language.** Read the newest file the run just wrote under
-   `.sc4sap/vpass/`. For each object:
+   `.sapkit/vpass/`. For each object:
    - Headline verdict — `V-PASS` / `V-FAIL` / `INCOMPLETE` / `ENV_BLOCKED` —
      stated plainly (e.g. "검증 통과", "검증 실패", "증거 불완전", "SAP 접속
      문제로 확인 못 함").

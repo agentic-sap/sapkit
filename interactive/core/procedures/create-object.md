@@ -35,7 +35,7 @@ roadmap §6). Apply the Policy, not a one-shot auto-run:
   review `R-PASS` and a vsp-backed `V-PASS` (source read-back · syntax · activate ·
   unit · ATC). That chain is run with [tools/vpass/vpass.mjs](../../tools/vpass/vpass.mjs)
   (`node "$CLAUDE_PLUGIN_ROOT/tools/vpass/vpass.mjs" --source-dir <dir> <TYPE> <NAME>`),
-  which writes the verdict record to `.sc4sap/vpass/`. Run it via the
+  which writes the verdict record to `.sapkit/vpass/`. Run it via the
   [`vpass` skill](../../skills/vpass/SKILL.md) (`/sapkit:vpass`) instead of typing
   the raw command. The Step 7 report labels the state accordingly.
 
@@ -73,10 +73,10 @@ roadmap §6). Apply the Policy, not a one-shot auto-run:
 ## Mandatory Rule Reads
 
 - **ECC DDIC fallback**: Read [ecc-ddic-fallback](../knowledge/abap/conventions/ecc-ddic-fallback.md) before creating any Table / Data Element / Domain. It defines when the ECC branch triggers, the helper-program naming rules, the strict template format (mirroring the [ecc templates](../knowledge/abap/templates/ecc/)), and the hard constraints (`$TMP` only, no activate, no CTS).
-- **Field typing**: Read [field-typing-rule](../knowledge/abap/conventions/field-typing-rule.md) for every Table / Structure / Table Type field-type decision (standard MCP flow **and** ECC helper-program fallback). Priority: **Standard DE (1)** → **existing CBO DE (2)** → **new CBO DE (3)** → **Data Type + Length (4, last resort)**. Raw primitives like `LIFNR CHAR 10` / `MATNR CHAR 40` / `BUKRS CHAR 4` are forbidden when an authoritative SAP data element exists. Before each field, run `SearchObject` against `DTEL` and check `.sc4sap/cbo/<MODULE>/<PACKAGE>/inventory.json`.
+- **Field typing**: Read [field-typing-rule](../knowledge/abap/conventions/field-typing-rule.md) for every Table / Structure / Table Type field-type decision (standard MCP flow **and** ECC helper-program fallback). Priority: **Standard DE (1)** → **existing CBO DE (2)** → **new CBO DE (3)** → **Data Type + Length (4, last resort)**. Raw primitives like `LIFNR CHAR 10` / `MATNR CHAR 40` / `BUKRS CHAR 4` are forbidden when an authoritative SAP data element exists. Before each field, run `SearchObject` against `DTEL` and check `.sapkit/cbo/<MODULE>/<PACKAGE>/inventory.json`.
 - **Function module signature**: Read [function-module-rule](../knowledge/abap/conventions/function-module-rule.md) for every `UpdateFunctionModule` source emission. FM signature is stored inline in the `FUNCTION` statement source (SAP parses it on write and updates TFDIR/FUPARAREF automatically). There is no separate "parameters" endpoint. Every FM source MUST declare `IMPORTING / EXPORTING / CHANGING / TABLES / EXCEPTIONS` clauses directly between `FUNCTION {name}` and the first `.`. Never emit the placeholder `" You can use the template 'functionModuleParameter' ...` line, never use `*"*"Local Interface:` blocks as a substitute, never declare shadow locals like `lv_iv_xxx TYPE ...` to stand in for missing parameters. Remote-Enabled (RFC) flag is a separate concern — stored in TFDIR.FMODE, not in source; it currently requires manual SE37 Properties update — flag this in the completion report.
 - **Naming conventions**: Read [naming-conventions](../knowledge/modules/common/naming-conventions.md) (module-aware reference) and [naming-conventions (conventions)](../knowledge/abap/conventions/naming-conventions.md) before creating any object. Coverage: general rules (prefix, case, character set, length limits); module codes (SD/MM/FI/CO/...) for the `Z{MODULE}_...` pattern; object-specific patterns — Classes (ZCL_/ZIF_/ZCX_), Programs (ZR_), Function Groups/Modules, Data Dictionary (ZT_/ZDE_/ZDO_), UI (Dynpro/GUI Status), OData/RAP (Z_I_/Z_C_/Z_BP_/Z_SB_), Enhancements, IDoc/ALE; code-level naming (variables LV_/LS_/LT_/IV_/EV_/MV_; constants GC_/LC_; types TY_; methods); validation rules.
-- **Project rules**: Read `.sc4sap/RULES.md` if present — apply the rules relevant to this task; matching rules are hard constraints. If absent, continue silently.
+- **Project rules**: Read `.sapkit/RULES.md` if present — apply the rules relevant to this task; matching rules are hard constraints. If absent, continue silently.
 
 **Quick naming validation checklist (applied before every create):**
 
@@ -132,7 +132,7 @@ auto-run):
 
 ### Step 3.5 — Version Branch Decision
 
-- Read `SAP_VERSION` from `.sc4sap/config.json` (or `sap.env`).
+- Read `SAP_VERSION` from `.sapkit/config.json` (or `sap.env`).
 - If `SAP_VERSION = ECC` **and** object type ∈ {Table, Data Element, Domain} → go to Step 4-ECC.
 - Otherwise → go to Step 4 (standard flow).
 
@@ -176,7 +176,7 @@ Record the outcome for Step 7 (JSON-like):
 Rules:
 
 - Screen / GUI Status / Text Element availability: these three tool families dispatch through the server-side `ZMCP_ADT_DISPATCH` / `ZMCP_ADT_TEXTPOOL` FMs. When those FMs are absent on the target system OR the RFC backend is not configured, treat the affected object as **SKIPPED** (an environment gap, not a failure): report it as SKIPPED in Step 7 with the reason, do not retry, and point the user to the [install-sap-assets](install-sap-assets.md) procedure for remediation. When the work feeds a review request (e.g. inside `create-program`), the skip must additionally be recorded under `environment_context.known_outages` per that procedure's Phase 6.
-- Field typing: always follow [field-typing-rule](../knowledge/abap/conventions/field-typing-rule.md) — run `SearchObject(DTEL)` + check `.sc4sap/cbo/<MODULE>/<PACKAGE>/inventory.json` before falling back to primitives.
+- Field typing: always follow [field-typing-rule](../knowledge/abap/conventions/field-typing-rule.md) — run `SearchObject(DTEL)` + check `.sapkit/cbo/<MODULE>/<PACKAGE>/inventory.json` before falling back to primitives.
 - FM signature: always inline in the FUNCTION statement per [function-module-rule](../knowledge/abap/conventions/function-module-rule.md).
 - Naming: already validated in Step 2, but run a second-pass check and refuse on violation.
 - On FAILED activation: surface the error verbatim via the Step 7 report (flow = failed); do not silently retry beyond the single retry above.

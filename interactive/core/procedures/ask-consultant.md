@@ -31,8 +31,8 @@ This is the "ask a human consultant" button. Users hit it when they need SPRO gu
 
 **MANDATORY — the consultant answers against the project's configured SAP environment, not generic best-practice.** Before answering, load (see [project-context](../project-context.md)):
 
-- `.sc4sap/config.json` → `sapVersion` (ECC / S4 On-Prem / S4 Cloud Public / S4 Cloud Private), `abapRelease`, `industry`, `country`, `activeModules`
-- `.sc4sap/sap.env` (via the active profile) → `SAP_URL`, `SAP_CLIENT`, `SAP_LANGUAGE`, `SAP_INDUSTRY`, `SAP_COUNTRY`, `SAP_ACTIVE_MODULES` (as fallback)
+- `.sapkit/config.json` → `sapVersion` (ECC / S4 On-Prem / S4 Cloud Public / S4 Cloud Private), `abapRelease`, `industry`, `country`, `activeModules`
+- `.sapkit/sap.env` (via the active profile) → `SAP_URL`, `SAP_CLIENT`, `SAP_LANGUAGE`, `SAP_INDUSTRY`, `SAP_COUNTRY`, `SAP_ACTIVE_MODULES` (as fallback)
 
 Keep these values in view while answering so the answer reflects the actual landscape. If any key is missing, ask the user before answering — do NOT invent assumptions.
 
@@ -90,13 +90,13 @@ Pick the persona from [INDEX](../personas/INDEX.md) and load only the selected f
 
 ## Workflow Steps
 
-1. **Environment load** — read `.sc4sap/config.json` + `sap.env`; surface resolved values on the FIRST turn only (one line: `SAP: <version> · <industry> · <country> · active: <modules>`). If keys needed for the answer are missing, ask.
+1. **Environment load** — read `.sapkit/config.json` + `sap.env`; surface resolved values on the FIRST turn only (one line: `SAP: <version> · <industry> · <country> · active: <modules>`). If keys needed for the answer are missing, ask.
 2. **Module routing** — apply § Module → Persona Routing. If ambiguous, ask one question and stop.
 3. **Persona load** — open [INDEX](../personas/INDEX.md), select the matching consultant persona file, read it, and adopt it. Consultant personas are `readonly` — judge and advise only, never modify.
 4. **Answer** — as the adopted consultant, answer the question against the loaded environment context (sapVersion / abapRelease / industry / country / activeModules). Consult `../knowledge/modules/{MODULE}/` docs and [spro-lookup](spro-lookup.md) / [customization-lookup](customization-lookup.md) as needed; use read-only MCP calls (`SearchObject`, `GetTable`, `GetPackage`, `GetWhereUsed`, …) to check the actual system where the answer depends on it.
    - **Multi-module questions**: answer from each module's perspective **sequentially** — adopt consultant persona A, write its answer; then adopt consultant persona B, write its answer; and so on.
 5. **Synthesis (only when ≥ 2 module perspectives were produced)** — compose a cross-module summary from the per-module answers: identify shared points, flag disagreements (with a one-line "WHY they differ" note). Do NOT re-answer the question — only compose from the perspectives already written. Single-module case: skip this step entirely and present the consultant's answer directly.
-6. **Return & follow-up** — present the final answer (single module: verbatim; multi-module: synthesis as the body + one subsection per module perspective). Offer follow-up paths: `create-program` (if the answer leads to a new build), [program-to-spec](program-to-spec.md) (if user wants the existing asset documented), `analyze-code` (if quality review needed). If answering required establishing a business or this-system fact that the shipped module knowledge did **not** already cover — typically something the user or the live system told you — grep `.sc4sap/knowledge/domain.md` and `system.md` for its key terms (a bounded grep, not a full read), and only if it is not already recorded offer one line: *"Record `<fact>` to project knowledge? (yes/no)"*, following [knowledge](knowledge.md) on `yes`. An answer composed purely from shipped knowledge accumulates nothing, and a fact already recorded is not re-offered; either way, no prompt.
+6. **Return & follow-up** — present the final answer (single module: verbatim; multi-module: synthesis as the body + one subsection per module perspective). Offer follow-up paths: `create-program` (if the answer leads to a new build), [program-to-spec](program-to-spec.md) (if user wants the existing asset documented), `analyze-code` (if quality review needed). If answering required establishing a business or this-system fact that the shipped module knowledge did **not** already cover — typically something the user or the live system told you — grep `.sapkit/knowledge/domain.md` and `system.md` for its key terms (a bounded grep, not a full read), and only if it is not already recorded offer one line: *"Record `<fact>` to project knowledge? (yes/no)"*, following [knowledge](knowledge.md) on `yes`. An answer composed purely from shipped knowledge accumulates nothing, and a fact already recorded is not re-offered; either way, no prompt.
 
 **No writes**: this procedure never calls `Create*` / `Update*` / `Delete*` / `Activate*` / `CreateTransport`. If the answer suggests a change, the user must run a separate creation / modification procedure.
 

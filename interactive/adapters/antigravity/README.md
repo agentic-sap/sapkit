@@ -18,7 +18,7 @@ agy plugin install  "D:\claude for SAP\sap-agentic-harness"
 
 어댑터-코어 동기화 점검: `node interactive/scripts/doctor.mjs` (3사 동기화 점검)
 
-빠른 시작: 설치 후 `setup` 스킬을 실행하면 SAP 연결 파일(프로파일·`.sc4sap/` 2개)
+빠른 시작: 설치 후 `setup` 스킬을 실행하면 SAP 연결 파일(프로파일·`.sapkit/` 2개)
 생성과 자가 점검을 대화형으로 대신한다 — 단 권한·훅 자동 단계는 Claude Code 전용이라,
 Antigravity에서는 마법사가 이 README의 해당 절(MCP 수동 등록)로 안내한다.
 정본 절차 = `core/procedures/setup.md`.
@@ -52,7 +52,7 @@ Antigravity에서는 마법사가 이 README의 해당 절(MCP 수동 등록)로
 주의 2가지 (2026-07-10 L3 E2E 반영):
 - **경로에 `interactive\\` 포함** — 레포 통합 후 서버 위치가 바뀜 (구 경로는 파일 없음).
 - **`launch.cjs`(shim)를 가리킬 것** — `server.bundle.cjs` 직접 호출은 항상 mock 연결.
-  shim이 `<cwd>/.sc4sap/active-profile.txt`를 읽어 연결을 배선하므로, 연결은
+  shim이 `<cwd>/.sapkit/active-profile.txt`를 읽어 연결을 배선하므로, 연결은
   Antigravity가 서버를 띄운 작업 폴더 기준 — 없으면 inspection-only(정상 폴백).
 
 ## Rules (상시 주입 안전 규칙)
@@ -67,7 +67,7 @@ SAP 반영 전 `.abap` 파일을 로컬에서 미리 점검하고 싶으면 `vsp
 검증기)를 설치한다 — 없어도 플러그인 동작에는 지장 없다.
 
 ```
-node interactive/scripts/get-vsp.mjs   # ~/.sc4sap/bin/vsp(.exe) 설치
+node interactive/scripts/get-vsp.mjs   # ~/.sapkit/bin/vsp(.exe) 설치
 ```
 
 설치 후 `vsp lint <파일>` / `vsp parse <파일>`로 사용. 자세한 내용:

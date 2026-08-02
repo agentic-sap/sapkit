@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "verification.schema.json",
   "title": "Implementation Verification Record",
-  "description": "Written to .sc4sap/program/{PROG}/verification.json during create-program Phase 4 (check_syntax, activate) and Phase 5 (unit_test, atc). Each step records a status plus concrete evidence (tool output summary), so the Phase 6 reviewer and the Phase 8 report can trust the claims without re-running the tools.",
+  "description": "Written to .sapkit/program/{PROG}/verification.json during create-program Phase 4 (check_syntax, activate) and Phase 5 (unit_test, atc). Each step records a status plus concrete evidence (tool output summary), so the Phase 6 reviewer and the Phase 8 report can trust the claims without re-running the tools.",
   "type": "object",
   "required": ["check_syntax", "activate", "unit_test", "atc"],
   "additionalProperties": false,

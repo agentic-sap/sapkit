@@ -28,7 +28,7 @@ SAP_ACTIVE_MODULES=FI,CO,MM,SD,PP,QM,HCM
 ```
 
 Keep `sap.env` and `config.json` in sync (both updated by `the profile setup (core/procedures/troubleshooting.md)` and
-`the profile settings (edit .sc4sap/config.json — see core/procedures/troubleshooting.md)`). If one is missing or empty, fall back to the other.
+`the profile settings (edit .sapkit/config.json — see core/procedures/troubleshooting.md)`). If one is missing or empty, fall back to the other.
 
 ## Canonical module codes
 

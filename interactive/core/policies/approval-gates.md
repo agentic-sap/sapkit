@@ -40,7 +40,7 @@ response is a change request, revise `spec.md`, re-display it, and wait again â€
 never silently merge comments and continue.
 
 **Approval record.** On approval, write a record conforming to
-`../procedures/schemas/approval.schema.json` into `.sc4sap/program/{PROG}/`
+`../procedures/schemas/approval.schema.json` into `.sapkit/program/{PROG}/`
 (field summary below; the schema is authoritative):
 
 - the **spec hash** (content hash of `spec.md` at the moment of approval)

@@ -2,7 +2,7 @@
 
 This file lists the Clean ABAP rules that apply regardless of paradigm. Follow every rule unless a project-specific override is documented.
 
-> **Gate rule**: every rule below is subordinate to `common/abap-release-reference.md` — never use syntax newer than the configured `ABAP_RELEASE` in `.sc4sap/config.json`.
+> **Gate rule**: every rule below is subordinate to `common/abap-release-reference.md` — never use syntax newer than the configured `ABAP_RELEASE` in `.sapkit/config.json`.
 
 > **Paradigm-specific rules live in companion files — load the right one based on the interview's Paradigm dimension (Phase 1B #2)**:
 > - **OOP** (`paradigm = OOP`) → load **[`clean-code-oop.md`](clean-code-oop.md)** (classes, objects, constructors, method signatures, class-based exceptions, ABAP Unit with test doubles).

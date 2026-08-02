@@ -4,7 +4,7 @@ Codex 플러그인은 Claude와 동형이다 — 같은 레포 루트가 플러�
 `.codex-plugin/plugin.json` + `.agents/plugins/marketplace.json`이 매니페스트다.
 같은 `skills/` 래퍼 14개가 그대로 쓰인다 (SKILL.md 형식이 양사 공통 — L0/L4 실측).
 
-빠른 시작: 설치 후 `setup` 스킬을 실행하면 SAP 연결 파일(프로파일·`.sc4sap/` 2개)
+빠른 시작: 설치 후 `setup` 스킬을 실행하면 SAP 연결 파일(프로파일·`.sapkit/` 2개)
 생성과 자가 점검을 대화형으로 대신한다 — 단 권한·훅 자동 단계는 Claude Code 전용이라,
 Codex에서는 마법사가 이 README의 해당 절(MCP 등록·실데이터 차단)로 안내한다.
 정본 절차 = `core/procedures/setup.md`.
@@ -32,8 +32,8 @@ codex mcp add sap --env NODE_PATH="D:\claude for SAP\sap-agentic-harness\interac
 - **경로에 `interactive\` 포함** — 레포 통합 후 서버 위치가 바뀜 (구 경로는 파일 없음).
 - **`launch.cjs`(shim)를 가리킬 것** — `server.bundle.cjs` 직접 호출은 항상 mock 연결
   (4.13 번들은 activateProfile을 connection 브로커에 안 넘김). shim이
-  `<cwd>/.sc4sap/active-profile.txt` → 프로파일 sap.env를 `MCP_ENV_PATH`로 배선한다.
-  따라서 **연결은 codex를 실행한 폴더 기준** — 그 폴더에 `.sc4sap/active-profile.txt`가
+  `<cwd>/.sapkit/active-profile.txt` → 프로파일 sap.env를 `MCP_ENV_PATH`로 배선한다.
+  따라서 **연결은 codex를 실행한 폴더 기준** — 그 폴더에 `.sapkit/active-profile.txt`가
   없으면 inspection-only(정상 폴백).
 
 **exposition 프리셋 (§5-4 미결 5 해소 — 서버 --help 실측):**
@@ -83,7 +83,7 @@ NODE_PATH = '<repo>\interactive\server\runtime-deps\keyring\node_modules'
 codex mcp get sap --json     # "disabled_tools": ["GetTableContents","GetSqlQuery"] 확인
 ```
 
-행동 검증(선택): repo 루트(=`.sc4sap/active-profile.txt` 존재)에서
+행동 검증(선택): repo 루트(=`.sapkit/active-profile.txt` 존재)에서
 `$null | codex exec --json -s read-only --ephemeral "GetTableContents로 T000 1행 조회 시도"`
 → 모델이 "도구 없음" 보고. 같은 방식으로 `GetSystemInfo`는 정상 실행돼 다른 read 도구가
 살아 있음을 확인. (codex exec는 stdout 리다이렉트 시 stdin EOF를 기다리므로 `$null |`
@@ -99,7 +99,7 @@ SAP 반영 전 `.abap` 파일을 로컬에서 미리 점검하고 싶으면 `vsp
 검증기)를 설치한다 — 없어도 플러그인 동작에는 지장 없다.
 
 ```
-node interactive/scripts/get-vsp.mjs   # ~/.sc4sap/bin/vsp(.exe) 설치
+node interactive/scripts/get-vsp.mjs   # ~/.sapkit/bin/vsp(.exe) 설치
 ```
 
 설치 후 `vsp lint <파일>` / `vsp parse <파일>`로 사용. 자세한 내용:

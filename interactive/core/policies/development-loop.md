@@ -37,7 +37,7 @@ down:
   automatic (see [lesson](../procedures/lesson.md)). Lesson capture is an opt-in,
   user-approval-gated procedure of its own, so it does not conflict with Minimal's
   zero-footprint constraint — only an approved lesson is ever written to
-  `.sc4sap/LESSONS.md` / `.sc4sap/RULES.md`, and nothing is recorded without that
+  `.sapkit/LESSONS.md` / `.sapkit/RULES.md`, and nothing is recorded without that
   approval.
 
 ## Strengths — procedure intensity
@@ -46,7 +46,7 @@ down:
 |---|---|---|---|
 | **Minimal** | [modify-object](../procedures/modify-object.md) — a small edit to an existing object, a clear single change | none (zero project footprint) | aegis direct |
 | **Standard** | [create-object](../procedures/create-object.md) | Step outputs (not durable state) | — (existing) |
-| **Full** | [create-program](../procedures/create-program.md) | `.sc4sap/program/{PROG}/` artifact set | — (existing) |
+| **Full** | [create-program](../procedures/create-program.md) | `.sapkit/program/{PROG}/` artifact set | — (existing) |
 
 **Selection rule — the lightest strength that covers the material risk.** The
 task label ("bug", "new report") does not choose the strength. Judge by
@@ -61,7 +61,7 @@ never escalate silently, never escalate on weight alone.
 The strengths are a **procedure-intensity** axis only. They do **not** assign or
 change the Track A execution structure (Direct / Guided) or the SAP Policy
 profile (P0–P4); every action is routed by `AGENTS.md` independently, and file,
-step, and verification counts never affect that routing. `.sc4sap/**` outputs are
+step, and verification counts never affect that routing. `.sapkit/**` outputs are
 working material, **not** Track A completion evidence: they do not substitute for
 a Guided run's `.harness/runs/` records, an exact-subject review `R-PASS`, or a
 vsp-backed `V-PASS`.
@@ -96,7 +96,7 @@ only when the choice is materially ambiguous and consequential.
   the final verification.
 - **Control artifacts are main-only:** `approval.json`, `state.json`,
   `verification.json`, `review-request.json`, `review-result.json`, the spec
-  approval record, and `.sc4sap/RULES.md` / `.sc4sap/LESSONS.md`. A worker touches
+  approval record, and `.sapkit/RULES.md` / `.sapkit/LESSONS.md`. A worker touches
   only the implementation paths the contract assigns.
 
 ### SAP Policy boundary

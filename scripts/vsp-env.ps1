@@ -16,8 +16,11 @@
 #   . scripts\vsp-env.ps1 -ProfileName KR-DEV   # read-only
 #   . scripts\vsp-env.ps1 -Write                # write mode (deploy-step wrapper only)
 #
-# Source of values: <sc4sap home>\profiles\<ProfileName>\sap.env
-#   sc4sap home = $env:SC4SAP_HOME_DIR if set, else $HOME\.sc4sap
+# Source of values: <sapkit home>\profiles\<ProfileName>\sap.env
+#   sapkit home = $env:SAPKIT_HOME_DIR if set (a set-but-missing path is an
+#   error, never a silent fall back), else $env:SC4SAP_HOME_DIR (deprecated),
+#   else whichever of $HOME\.sapkit / $HOME\.sc4sap actually holds the profile
+#   (D-057 R-ENV; the legacy generation keeps working until the user migrates).
 # Mapping: the profile stores SAP_USERNAME, but vsp expects SAP_USER
 #   (README.md flag table) - this script maps the value across.
 # Password: if SAP_PASSWORD is a "keychain:<target>" reference, the secret
@@ -33,8 +36,32 @@ param(
     [switch]$Write
 )
 
-$sc4sapHome = if ($env:SC4SAP_HOME_DIR) { $env:SC4SAP_HOME_DIR } else { Join-Path $HOME ".sc4sap" }
-$sapEnvPath = Join-Path $sc4sapHome ("profiles\" + $ProfileName + "\sap.env")
+$profileRel = "profiles\" + $ProfileName + "\sap.env"
+if ($env:SAPKIT_HOME_DIR) {
+    if (-not (Test-Path -LiteralPath $env:SAPKIT_HOME_DIR)) {
+        throw "vsp-env: ENV_INVALID - SAPKIT_HOME_DIR points at a missing path ($env:SAPKIT_HOME_DIR); not falling back to SC4SAP_HOME_DIR"
+    }
+    $sapkitHome = $env:SAPKIT_HOME_DIR
+} elseif ($env:SC4SAP_HOME_DIR) {
+    Write-Output "vsp-env: OK_LEGACY_DEPRECATED - SC4SAP_HOME_DIR is deprecated, rename it to SAPKIT_HOME_DIR"
+    $sapkitHome = $env:SC4SAP_HOME_DIR
+} else {
+    # Pick the home that actually holds this profile - new generation first.
+    $newHome = Join-Path $HOME ".sapkit"
+    $legacyHome = Join-Path $HOME ".sc4sap"
+    if (Test-Path -LiteralPath (Join-Path $newHome $profileRel)) {
+        $sapkitHome = $newHome
+    } elseif (Test-Path -LiteralPath (Join-Path $legacyHome $profileRel)) {
+        $sapkitHome = $legacyHome
+    } elseif (Test-Path -LiteralPath $newHome) {
+        $sapkitHome = $newHome
+    } elseif (Test-Path -LiteralPath $legacyHome) {
+        $sapkitHome = $legacyHome
+    } else {
+        $sapkitHome = $newHome
+    }
+}
+$sapEnvPath = Join-Path $sapkitHome $profileRel
 
 if (-not (Test-Path -LiteralPath $sapEnvPath)) {
     throw "vsp-env: profile file not found: $sapEnvPath"

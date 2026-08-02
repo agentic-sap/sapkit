@@ -14,7 +14,7 @@ prompt-gated 2). 카탈로그↔live diff 0 확인. 구 이식본(read 81/write 
 
 ## 재생성 방법 (연결 상태 실측)
 
-1. 프로파일 활성 상태 확인: 레포 루트 `.sc4sap/active-profile.txt` + 해당
+1. 프로파일 활성 상태 확인: 레포 루트 `.sapkit/active-profile.txt` + 해당
    프로파일 `sap.env` (DEV tier).
 2. **`server/launch.cjs`를 spawn** (cwd=레포 루트) → `initialize` →
    `tools/list` — 각 tool의 name(+description의 `[read-only]`/`[runtime]` 마커)

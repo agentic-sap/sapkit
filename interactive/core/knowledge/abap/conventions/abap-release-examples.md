@@ -2,7 +2,7 @@
 
 Concrete before/after ABAP syntax examples per release feature. Companion to [abap-release-reference.md](abap-release-reference.md) — consult the reference for the feature matrix, decision rules, and the emission checklist.
 
-Agents MUST NOT emit features newer than the configured `ABAP_RELEASE` in `.sc4sap/config.json` (or `sap.env`) — doing so causes activation failures on the target system.
+Agents MUST NOT emit features newer than the configured `ABAP_RELEASE` in `.sapkit/config.json` (or `sap.env`) — doing so causes activation failures on the target system.
 
 ---
 

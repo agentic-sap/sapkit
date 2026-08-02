@@ -112,4 +112,4 @@ and requests re-review.
    `${CLAUDE_PLUGIN_ROOT}/core/procedures/schemas/review-result.schema.json` and return
    it as your final response (the JSON object itself, not a paraphrase). The worker reads
    that response, validates it against the schema, and writes
-   `.sc4sap/program/{PROG}/review-result.json` — you never touch that file.
+   `.sapkit/program/{PROG}/review-result.json` — you never touch that file.

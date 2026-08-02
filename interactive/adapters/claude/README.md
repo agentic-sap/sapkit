@@ -19,15 +19,15 @@
 ## 빠른 시작 — `/sapkit:setup` (권장)
 
 설치·재시작 후 `/sapkit:setup`을 실행하면 아래 수동 단계 전부(SAP 연결 프로파일·
-`.sc4sap/` 파일 2개·권한 템플릿 병합·안전훅 등록·선택적 vsp 설치)를 대화형 마법사가
+`.sapkit/` 파일 2개·권한 템플릿 병합·안전훅 등록·선택적 vsp 설치)를 대화형 마법사가
 대신하고 층별 자가 점검으로 끝난다. 아래 절들은 수동 경로 정본이자 마법사 폴백이다.
 정본 절차 = `core/procedures/setup.md`.
 
 ## SAP 연결 (connected 프로필)
 
-1. `~/.sc4sap/profiles/<alias>/sap.env` 작성(`$SC4SAP_HOME_DIR` 설정 시 그 하위) — 키 목록은
+1. `~/.sapkit/profiles/<alias>/sap.env` 작성(`$SAPKIT_HOME_DIR` 설정 시 그 하위) — 키 목록은
    [core/project-context.md](../../core/project-context.md) · **SAP_TIER 필수**
-2. 프로젝트에 `.sc4sap/active-profile.txt`(별칭 1줄) + `.sc4sap/config.json`
+2. 프로젝트에 `.sapkit/active-profile.txt`(별칭 1줄) + `.sapkit/config.json`
    (sapVersion·abapRelease·activeModules·industry·country)
 
 ## 로컬 오프라인 검증 (vsp, 선택)
@@ -36,7 +36,7 @@ SAP 반영 전 `.abap` 파일을 로컬에서 미리 점검하고 싶으면 `vsp
 검증기)를 설치한다 — 없어도 플러그인 동작에는 지장 없다.
 
 ```
-node interactive/scripts/get-vsp.mjs   # ~/.sc4sap/bin/vsp(.exe) 설치
+node interactive/scripts/get-vsp.mjs   # ~/.sapkit/bin/vsp(.exe) 설치
 ```
 
 설치 후 `vsp lint <파일>` / `vsp parse <파일>`로 사용. 자세한 내용:

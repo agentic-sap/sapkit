@@ -45,7 +45,7 @@ Allowed alternatives:
 - Released CDS view with PII masking (I_*)
 - Anonymized test data from QAS/SANDBOX
 - Count/aggregate only (COUNT, SUM)
-- Explicit one-off approval: write `.sc4sap/data-access-approval-{YYYYMMDD}.md`
+- Explicit one-off approval: write `.sapkit/data-access-approval-{YYYYMMDD}.md`
   with business justification and have the user confirm.
 ```
 
@@ -86,7 +86,7 @@ The `acknowledge_risk` flag exists because some protected data has legitimate us
 
 A blocked extraction may be authorized per-task when the business need is real and documented. To authorize:
 
-1. Create `.sc4sap/data-access-approval-{YYYYMMDD-HHMM}.md` with:
+1. Create `.sapkit/data-access-approval-{YYYYMMDD-HHMM}.md` with:
    - Tables to be accessed
    - Business justification
    - Data retention / disposal plan

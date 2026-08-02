@@ -53,7 +53,7 @@ Record the outcome of every chain run under the program's state directory
 (see [project-context](../project-context.md)):
 
 ```
-.sc4sap/program/{PROG}/verification.json
+.sapkit/program/{PROG}/verification.json
 ```
 
 The record conforms to `../procedures/schemas/verification.schema.json` (authoritative):

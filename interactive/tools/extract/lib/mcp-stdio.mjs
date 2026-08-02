@@ -10,7 +10,7 @@
 // bundle, so the wire format is not a guess.
 //
 // The server is started through `server/launch.cjs` — the plugin's own
-// launcher, which resolves `<cwd>/.sc4sap/active-profile.txt` to the active
+// launcher, which resolves `<cwd>/.sapkit/active-profile.txt` to the active
 // profile's `sap.env` and wires it into the connection broker. Callers must
 // therefore pass the **project root** as `cwd`. With no profile resolvable the
 // bundle starts in inspection-only mode and every SAP call fails; that is the
@@ -31,7 +31,7 @@ const REQUEST_TIMEOUT_MS = 180_000;
  * Start the bundled MCP server and complete the MCP handshake.
  *
  * @param {object}  opts
- * @param {string}  opts.cwd         project root (must hold `.sc4sap/`)
+ * @param {string}  opts.cwd         project root (must hold `.sapkit/`)
  * @param {string}  opts.exposition  tool exposition passed to the bundle
  * @param {string}  opts.label       client name reported in `initialize`
  * @returns {Promise<{callTool: (req: {name: string, arguments: object}) => Promise<any>, close: () => Promise<void>}>}

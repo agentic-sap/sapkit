@@ -15,14 +15,14 @@ Connection profiles are **machine-level**, written once per machine, outside
 every repository:
 
 ```
-~/.sc4sap/profiles/<alias>/sap.env     ← host, client, user, tier, blocklist profile
+~/.sapkit/profiles/<alias>/sap.env     ← host, client, user, tier, blocklist profile
 ```
 
-A project selects its profile via one line in `.sc4sap/active-profile.txt`
+A project selects its profile via one line in `.sapkit/active-profile.txt`
 (see [project-context](../project-context.md)). Profile aliases carry the
 system meaning (`KR-DEV`, `KR-PRD`, …) — never a bare `default`.
 
-**Never commit credentials.** `sap.env` and everything under `.sc4sap/` are
+**Never commit credentials.** `sap.env` and everything under `.sapkit/` are
 git-ignored; a repository's `.gitignore` MUST cover them. Switching systems
 means switching the profile alias — never pasting connection values into a
 project file.

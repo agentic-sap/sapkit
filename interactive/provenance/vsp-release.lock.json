@@ -9,7 +9,7 @@
     "tag": "vsp-v2.38.1-94-g5a8bedb",
     "asset_url_pattern": "https://github.com/agentic-sap/sapkit/releases/download/{tag}/{asset}"
   },
-  "install_dir": "~/.sc4sap/bin",
+  "install_dir": "~/.sapkit/bin",
   "assets": [
     { "platform": "windows-amd64", "file": "vsp-windows-amd64.exe", "sha256": "a0249d3761ef10bc392bd8f2c80495fd58526d7c43e904b0a1625ba0695c1392" },
     { "platform": "windows-arm64", "file": "vsp-windows-arm64.exe", "sha256": "ba6143ac81380d23c50387458b01cb3f5cb1d5855543de7e341e68e4c7121e31" },

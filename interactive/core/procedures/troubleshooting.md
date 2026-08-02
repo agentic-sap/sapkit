@@ -142,7 +142,7 @@ This is **critical** — it determines:
 - Which tables/views to query (ECC: `MKPF`+`MSEG` vs S4: `MATDOC`; ECC: `KNA1`+`LFA1` vs S4: `BUT000`)
 - Which ABAP syntax features generated code may use — see [abap-release-reference](../knowledge/abap/conventions/abap-release-reference.md) and [sap-version-reference](../knowledge/abap/conventions/sap-version-reference.md)
 
-Persist the answers as `SAP_VERSION` (`S4` | `ECC`) and `ABAP_RELEASE` (3-digit numeric) in the profile's `sap.env` and in `.sc4sap/config.json`. `SAP_INDUSTRY` (industry key) belongs in the same pair of files and drives which industry knowledge applies.
+Persist the answers as `SAP_VERSION` (`S4` | `ECC`) and `ABAP_RELEASE` (3-digit numeric) in the profile's `sap.env` and in `.sapkit/config.json`. `SAP_INDUSTRY` (industry key) belongs in the same pair of files and drives which industry knowledge applies.
 
 ## 3. RFC Backend Selection
 
@@ -162,7 +162,7 @@ Three MCP operation families (Screen, GUI Status, Text Element) dispatch through
 
 The default changed 2026-04-22 from `soap` to `odata`. Existing configurations that pinned `SAP_RFC_BACKEND=soap` keep working unchanged.
 
-Write the choice to the **active profile's** env (`~/.sc4sap/profiles/<alias>/sap.env`) as `SAP_RFC_BACKEND=odata|soap|native|gateway|zrfc`. Never write it to `<project>/.sc4sap/sap.env` — that file does not exist in multi-profile mode.
+Write the choice to the **active profile's** env (`~/.sapkit/profiles/<alias>/sap.env`) as `SAP_RFC_BACKEND=odata|soap|native|gateway|zrfc`. Never write it to `<project>/.sapkit/sap.env` — that file does not exist in multi-profile mode.
 
 ### Bootstrap order (first-time vs re-run)
 
@@ -251,19 +251,30 @@ If check 1 fails → fill the gateway env block. If check 2 fails → verify VPN
 
 ### Storage layout
 
-(Profile home defaults to `~/.sc4sap`; if `$SC4SAP_HOME_DIR` is set, it
-overrides this location.)
+Profile home resolution order: `$SAPKIT_HOME_DIR` if set, else the deprecated
+`$SC4SAP_HOME_DIR` if that is set instead (still works; report it as
+`(legacy env var)`), else `~/.sapkit`, else `~/.sc4sap` (the engine's oldest
+fallback).
 
 ```
-~/.sc4sap/profiles/<alias>/sap.env        # user-level connection env (shared across repos)
-~/.sc4sap/profiles/<alias>/config.json    # user-level plugin settings (sapVersion, abapRelease,
+~/.sapkit/profiles/<alias>/sap.env        # user-level connection env (shared across repos)
+~/.sapkit/profiles/<alias>/config.json    # user-level plugin settings (sapVersion, abapRelease,
                                           #   industry, activeModules, namingConvention,
                                           #   systemInfo, activeTransport, blocklistProfile)
-~/.sc4sap/profiles/.trash/<alias>-<ts>/   # soft-deleted profiles (7-day auto-purge)
+~/.sapkit/profiles/.trash/<alias>-<ts>/   # soft-deleted profiles (7-day auto-purge)
 
-<project>/.sc4sap/active-profile.txt      # project-level pointer (alias only)
-<project>/.sc4sap/work/<alias>/...        # per-profile project artifacts
+<project>/.sapkit/active-profile.txt      # project-level pointer (alias only)
+<project>/.sapkit/work/<alias>/...        # per-profile project artifacts
 ```
+
+**Legacy `.sc4sap/` projects**: a project created before the 2026-08 rename
+keeps its profile home and project state under `.sc4sap/` instead of
+`.sapkit/` — reads and writes both go to whichever directory is actually
+active (`.sapkit/` for a new or already-migrated project, `.sc4sap/`
+otherwise); nothing renames it automatically. Report it as `(legacy
+.sc4sap/)` when found. Moving it is a separate, human-run step —
+`node interactive/scripts/migrate-runtime-dir.mjs` (dry-run by default,
+`--apply` to execute) — never run this on the user's behalf.
 
 A **legacy single-profile** layout (`<project>/.sc4sap/sap.env`, no `active-profile.txt`) may still exist on older installations — report it as `(legacy)` when encountered.
 
@@ -285,8 +296,8 @@ Tier read-only enforcement lives in the MCP server itself (a readonly guard appl
 
 ### Profile checks
 
-- [ ] `<project>/.sc4sap/active-profile.txt` exists and contains a single alias
-- [ ] `~/.sc4sap/profiles/<alias>/sap.env` and `config.json` exist for that alias
+- [ ] `<project>/.sapkit/active-profile.txt` exists and contains a single alias
+- [ ] `~/.sapkit/profiles/<alias>/sap.env` and `config.json` exist for that alias
 - [ ] `GetSession` system/client/user match the profile's `SAP_URL` / `SAP_CLIENT` / `SAP_USERNAME`
 - [ ] Tier enforcement matches `SAP_TIER` (on QA/PRD, a mutation attempt must be refused)
 
@@ -296,7 +307,7 @@ After **switching** profiles (rewriting `active-profile.txt`) or **mutating the 
 
 - Passwords are ideally stored in the OS keychain (service `sc4sap`, account `<alias>/<username>`) and referenced as `SAP_PASSWORD=keychain:sc4sap/<alias>/<username>` in `sap.env`. Plaintext fallback (headless/Docker) deserves an explicit warning.
 - Never display `SAP_PASSWORD`, `SAP_RFC_PASSWD`, `SAP_RFC_GATEWAY_TOKEN`, or `XSUAA_CLIENT_SECRET` in any form — logs, prompts, diffs, or error messages. Mask as `*** (n chars)`.
-- Never copy `sap.env` outside `.sc4sap/` locations, and never commit it to version control.
+- Never copy `sap.env` outside `.sapkit/` (or legacy `.sc4sap/`) locations, and never commit it to version control.
 
 ### Editing sap.env safely
 
@@ -348,7 +359,7 @@ Before any risky operation ("which system am I connected to?"), render a compact
 `vsp` is an optional offline ABAP verifier that runs entirely on the local machine — no SAP connection needed, and nothing else in this document depends on it.
 
 - **Install**: `node interactive/scripts/get-vsp.mjs` — detects OS/arch, downloads the matching GitHub release asset, and installs only on a sha256 match.
-- **Location**: `~/.sc4sap/bin/vsp` (`vsp.exe` on Windows).
+- **Location**: `~/.sapkit/bin/vsp` (or the legacy `~/.sc4sap/bin/vsp` if that is the active home — `vsp.exe` on Windows).
 
 vsp ships **two different offline checkers** — do not confuse them (D-049 measurements):
 

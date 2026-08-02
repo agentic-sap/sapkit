@@ -75,7 +75,7 @@ const HOOKS = [
     matcher:
       'mcp__.*__(Create|Update|Delete|Activate|Patch|Release|Write|RunUnitTest|RuntimeRunProgramWithProfiling|RuntimeRunClassWithProfiling|RuntimeCreateProfilerTraceParameters)',
     testHint:
-      'Test it by switching the active profile to a QA/PRD alias (edit .sc4sap/active-profile.txt), then calling an Update* tool — the call should be denied.',
+      'Test it by switching the active profile to a QA/PRD alias (edit .sapkit/active-profile.txt), then calling an Update* tool — the call should be denied.',
   },
   {
     marker: 'prefer-sqlquery-explicit-fields.mjs',
@@ -88,7 +88,7 @@ const HOOKS = [
     event: 'PostToolUse',
     matcher: 'Edit|Write|MultiEdit|mcp__.*__(Create|Update)',
     testHint:
-      "Test it by writing a .abap file assigning a literal to lv_password — the model should receive offline analysis findings (requires vsp at ~/.sc4sap/bin; silent no-op otherwise).",
+      "Test it by writing a .abap file assigning a literal to lv_password — the model should receive offline analysis findings (requires vsp at ~/.sapkit/bin; silent no-op otherwise).",
   },
   {
     marker: 'syntax-checker.mjs',

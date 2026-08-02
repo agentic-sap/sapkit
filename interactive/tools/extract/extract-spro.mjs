@@ -6,8 +6,8 @@
  * queries each table through the bundled MCP server, and writes the cache that
  * [spro-lookup](../../core/procedures/spro-lookup.md) Step 1 consumes:
  *
- *   <project>/.sc4sap/spro-config.json           ← two or more modules, or `all`
- *   <project>/.sc4sap/spro-config-{MODULE}.json  ← exactly one module
+ *   <project>/.sapkit/spro-config.json           ← two or more modules, or `all`
+ *   <project>/.sapkit/spro-config-{MODULE}.json  ← exactly one module
  *
  * ─────────────────────── APPROVAL GATE — read before running ───────────────
  * Every table read here is a **P2 row-data extraction** (AGENTS.md), so Gate B
@@ -31,10 +31,16 @@
  *     stays authoritative. Customizing extraction being permitted here is not a
  *     licence for transactional or PII row data by any other route.
  *
- * Usage (run from the project root — the directory holding `.sc4sap/`):
+ * Usage (run from the project root — the directory holding `.sapkit/`):
  *   node tools/extract/extract-spro.mjs --dry-run SD MM
  *   node tools/extract/extract-spro.mjs SD MM FI CO
  *   node tools/extract/extract-spro.mjs all
+ *
+ * ─────────────────────── Runtime directory (D-057) ──────────────────────────
+ * `.sapkit` is a candidate everywhere `.sc4sap` was one; nothing else changes
+ * (R-PRESERVE). The cache still lands beside the cwd's runtime dir — the legacy
+ * generation when that is what the project has (R-E), `.sapkit` when it has
+ * neither (R-NEW). `--resolve-only` prints the selection offline.
  *
  * ───────────── Transform note (sc4sap-custom `scripts/extract-spro.mjs`) ────
  * Parsing, filtering, batching, and output shape are unchanged. What differs:
@@ -44,10 +50,10 @@
  *   • server: `engine/server.bundle.cjs --env-path=…` → `server/launch.cjs`,
  *     which resolves the active profile from the cwd the same way the MCP
  *     server does in that project; exposition pinned to `readonly`
- *   • output base: `resolveArtifactBase()` (`.sc4sap/work/<alias>/`) →
- *     `<cwd>/.sc4sap/`. Multi-profile artifact resolution is classified
+ *   • output base: `resolveArtifactBase()` (`.sapkit/work/<alias>/`) →
+ *     `<cwd>/.sapkit/`. Multi-profile artifact resolution is classified
  *     `obsolete` in MIGRATION-MANIFEST, and the consumer contract in
- *     spro-lookup.md / project-context.md is the plain `.sc4sap/` path
+ *     spro-lookup.md / project-context.md is the plain `.sapkit/` path
  *   • SAP version: `sap.env` only → `SAP_VERSION` env, then the active
  *     profile's / project's `config.json` `sapVersion`, then `sap.env`
  *     (sapkit keeps the version in `config.json`)
@@ -69,7 +75,50 @@ import { connectMcp } from './lib/mcp-stdio.mjs';
 const PLUGIN_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const KNOWLEDGE_DIR = resolve(PLUGIN_ROOT, 'core', 'knowledge', 'modules');
 const PROJECT_DIR = process.cwd();
-const OUTPUT_DIR = resolve(PROJECT_DIR, '.sc4sap');
+
+// ── runtime directory (D-057) ───────────────────────────────────────────────
+const NEW_DIR = '.sapkit';
+const LEGACY_DIR = '.sc4sap';
+
+const REASONS = [];
+const RESOLVE_ONLY = process.argv.slice(2).includes('--resolve-only');
+function note(code, message) {
+  if (REASONS.some((r) => r.code === code)) return;
+  REASONS.push({ code, message });
+  if (!RESOLVE_ONLY) console.error(`[spro] ${code}: ${message}`);
+}
+
+// Connection completeness — the R-TIE tie-break input (empty pointer ≠ complete).
+function hasConnectionState(runtimeDir) {
+  try {
+    const pointer = join(runtimeDir, 'active-profile.txt');
+    if (existsSync(pointer) && readFileSync(pointer, 'utf8').trim().length > 0) return true;
+  } catch {
+    /* unreadable pointer is not completeness */
+  }
+  return existsSync(join(runtimeDir, 'sap.env'));
+}
+
+// R-TIE inside ONE directory: existence is this tool's criterion, applied per
+// generation before the tie-break.
+function pickGeneration(dir) {
+  const newer = join(dir, NEW_DIR);
+  const older = join(dir, LEGACY_DIR);
+  const newOk = existsSync(newer);
+  const oldOk = existsSync(older);
+  if (newOk && oldOk) {
+    if (hasConnectionState(older) && !hasConnectionState(newer)) return older;
+    return newer; // tie → .sapkit
+  }
+  if (newOk) return newer;
+  if (oldOk) return older;
+  return null;
+}
+
+// R-E + R-NEW: write where this project already keeps runtime state; `.sapkit`
+// when it keeps none.
+const RUNTIME_DIR = pickGeneration(PROJECT_DIR) ?? join(PROJECT_DIR, NEW_DIR);
+const OUTPUT_DIR = RUNTIME_DIR;
 const ROW_CAP = 9999;
 const BATCH_SIZE = 5;
 
@@ -78,10 +127,13 @@ const USAGE = `Usage: node tools/extract/extract-spro.mjs [--dry-run] <MODULE...
   --dry-run   list the modules, tables, row cap and output path, then stop
               (no MCP server, no SAP connection) — the scope disclosure the
               row-data approval gate requires
+  --resolve-only  print the resolved runtime paths as JSON and exit. No MCP
+              server, no SAP connection, no module list needed — the offline
+              seam the runtime-path conformance suite calls.
   MODULE...   module codes with a shipped spro.md (SD MM FI CO …)
   all         every module directory under core/knowledge/modules/
 
-Run from the project root (the directory holding .sc4sap/).
+Run from the project root (the directory holding .sapkit/).
 Reading rows from SAP is a P2 action: you are the approver, and an agent must
 not run this on your behalf. See core/policies/approval-gates.md (Gate B).`;
 
@@ -92,6 +144,33 @@ if (argv.includes('--help') || argv.includes('-h')) {
   process.exit(0);
 }
 const DRY_RUN = argv.includes('--dry-run');
+
+// ── offline path-resolution seam (D-057 §7-3) ───────────────────────────────
+// Pure path computation: no module list, no MCP server, no SAP connection.
+if (RESOLVE_ONLY) {
+  const alias = readActiveAlias();
+  console.log(
+    JSON.stringify(
+      {
+        tool: 'extract-spro',
+        cwd: PROJECT_DIR,
+        runtime_dir: RUNTIME_DIR,
+        runtime_generation: RUNTIME_DIR.endsWith(NEW_DIR) ? 'sapkit' : 'sc4sap',
+        runtime_dir_exists: existsSync(RUNTIME_DIR),
+        output_dir: OUTPUT_DIR,
+        output_file_merged: resolve(OUTPUT_DIR, 'spro-config.json'),
+        alias,
+        profile_dir: alias ? profileDir(alias) : null,
+        sap_version: resolveSapVersion(),
+        reasons: REASONS,
+      },
+      null,
+      2,
+    ),
+  );
+  process.exit(0);
+}
+
 const positional = argv.filter((a) => !a.startsWith('-'));
 if (positional.length === 0) {
   console.error(USAGE);
@@ -131,15 +210,53 @@ function isValidTableName(name) {
 // so ECC-only rows are skipped on S/4 and vice versa.
 function readActiveAlias() {
   try {
-    const alias = readFileSync(join(PROJECT_DIR, '.sc4sap', 'active-profile.txt'), 'utf8').trim();
+    const alias = readFileSync(join(RUNTIME_DIR, 'active-profile.txt'), 'utf8').trim();
     return alias || null;
   } catch {
     return null;
   }
 }
 
+// R-ENV. A SAPKIT_HOME_DIR that is set but missing is a hard error — never a
+// silent fall-through to the legacy variable. Without an env var the home is
+// picked by where the alias actually lives, new generation before legacy.
+function sapkitHome(alias = null) {
+  const explicit = process.env.SAPKIT_HOME_DIR;
+  if (explicit) {
+    if (!existsSync(explicit)) {
+      console.error(
+        `[spro] ENV_INVALID: SAPKIT_HOME_DIR points at a path that does not exist (${explicit}). ` +
+          'Refusing to fall back to SC4SAP_HOME_DIR — fix or unset it.'
+      );
+      process.exit(2);
+    }
+    return explicit;
+  }
+  const legacyEnv = process.env.SC4SAP_HOME_DIR;
+  if (legacyEnv) {
+    note('OK_LEGACY_DEPRECATED', 'SC4SAP_HOME_DIR is deprecated — rename it to SAPKIT_HOME_DIR.');
+    return legacyEnv;
+  }
+  const newHome = join(homedir(), NEW_DIR);
+  const legacyHome = join(homedir(), LEGACY_DIR);
+  if (alias) {
+    const inNew = existsSync(join(newHome, 'profiles', alias));
+    const inLegacy = existsSync(join(legacyHome, 'profiles', alias));
+    if (inNew && inLegacy) {
+      note('COEXIST_OK', `profile "${alias}" exists under both homes — using ${newHome}.`);
+      return newHome;
+    }
+    if (inNew) return newHome;
+    if (inLegacy) return legacyHome;
+    note('PROFILE_NOT_FOUND', `profile "${alias}" was not found under ${newHome} or ${legacyHome}.`);
+  }
+  if (existsSync(newHome)) return newHome;
+  if (existsSync(legacyHome)) return legacyHome;
+  return newHome;
+}
+
 function profileDir(alias) {
-  return join(process.env.SC4SAP_HOME_DIR || join(homedir(), '.sc4sap'), 'profiles', alias);
+  return join(sapkitHome(alias), 'profiles', alias);
 }
 
 function jsonField(path, field) {
@@ -176,9 +293,9 @@ function resolveSapVersion() {
   if (alias) {
     candidates.push({ path: join(profileDir(alias), 'config.json'), field: 'sapVersion', source: `profile config.json (${alias})` });
   }
-  candidates.push({ path: join(PROJECT_DIR, '.sc4sap', 'config.json'), field: 'sapVersion', source: 'project config.json' });
+  candidates.push({ path: join(RUNTIME_DIR, 'config.json'), field: 'sapVersion', source: 'project config.json' });
   if (alias) candidates.push({ path: join(profileDir(alias), 'sap.env'), key: 'SAP_VERSION', source: `profile sap.env (${alias})` });
-  candidates.push({ path: join(PROJECT_DIR, '.sc4sap', 'sap.env'), key: 'SAP_VERSION', source: 'project sap.env (legacy)' });
+  candidates.push({ path: join(RUNTIME_DIR, 'sap.env'), key: 'SAP_VERSION', source: 'project sap.env (legacy)' });
 
   for (const c of candidates) {
     const raw = c.value ?? (c.field ? jsonField(c.path, c.field) : dotenvField(c.path, c.key));

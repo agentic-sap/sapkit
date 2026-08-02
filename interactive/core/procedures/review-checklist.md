@@ -42,8 +42,8 @@ You are the **reviewer**, running in a fresh context, separate from the worker t
 | Claude | Mechanical — `agents/sap-reviewer.md` `disallowedTools` blocks Write/Edit/Bash + all SAP mutation tools |
 | Codex | Role + adapter config (exposition / disabled tools); no core-level mutation block is asserted here |
 | Antigravity | Role + adapter config; `excludeTools` enforcement unverified on the current version |
-- **Input**: `.sc4sap/program/{PROG}/review-request.json` (see [schemas/review-request.schema.json](./schemas/review-request.schema.json)) — spec hash, target system (`sid`/`client`), transport, and the `objects[]` list with types. Also read `spec.md` and `interview.md` (for the paradigm and testing-scope decisions) from the same directory. If the request carries `environment_context`, apply the rules under "Environment context" below before counting findings.
-- **Output**: review-result JSON conforming to [schemas/review-result.schema.json](./schemas/review-result.schema.json), returned as your final response — you do not write `.sc4sap/program/{PROG}/review-result.json` yourself (see "Output — review-result.json" below; the worker validates and records it). Set `reviewed_spec_sha256` to the `spec_sha256` you received in the request (verify it against the actual `spec.md` first — on mismatch, FAIL immediately with a single MAJOR finding "spec changed after approval").
+- **Input**: `.sapkit/program/{PROG}/review-request.json` (see [schemas/review-request.schema.json](./schemas/review-request.schema.json)) — spec hash, target system (`sid`/`client`), transport, and the `objects[]` list with types. Also read `spec.md` and `interview.md` (for the paradigm and testing-scope decisions) from the same directory. If the request carries `environment_context`, apply the rules under "Environment context" below before counting findings.
+- **Output**: review-result JSON conforming to [schemas/review-result.schema.json](./schemas/review-result.schema.json), returned as your final response — you do not write `.sapkit/program/{PROG}/review-result.json` yourself (see "Output — review-result.json" below; the worker validates and records it). Set `reviewed_spec_sha256` to the `spec_sha256` you received in the request (verify it against the actual `spec.md` first — on mismatch, FAIL immediately with a single MAJOR finding "spec changed after approval").
 - **Narrow context kit — do NOT bulk-load all conventions.** Each item below names the only convention file(s) to load while checking that item. Load them one item at a time; unload/ignore the rest. Preloading all 12 kits wastes context and dilutes judgment.
 - Fetch object sources via the read tools only: `GetProgram`, `GetInclude`, `GetClass`, `GetInterface`, `GetScreen`, `GetGuiStatus`, `GetTextElement`, `ReadTextElementsBulk`, `GetFunctionModule`, `SearchObject`, `GetInactiveObjects`.
 - Record a verdict per item: `PASS` / `FINDING(S)` / `N/A (reason)`. Absence of evidence is a fail, not a pass — see the false-positive patterns at the end.
@@ -233,7 +233,7 @@ Context kit: [sap-version-reference.md](../knowledge/abap/conventions/sap-versio
 
 Context kit: [spro-lookup.md](./spro-lookup.md). Applies to: programs that depend on SPRO/IMG configuration. Verdict `N/A` otherwise.
 
-- [ ] Customizing tables referenced in code match what the module consultant recommended in `.sc4sap/program/{PROG}/consult-{module}.md`
+- [ ] Customizing tables referenced in code match what the module consultant recommended in `.sapkit/program/{PROG}/consult-{module}.md`
 - [ ] No hardcoded org-unit values that should come from customizing
 
 ## §12 — Activation State
@@ -285,7 +285,7 @@ response. Example:
 
 **The worker** (not you) reads this JSON from your response, validates it against
 [schemas/review-result.schema.json](./schemas/review-result.schema.json), and writes it to
-`.sc4sap/program/{PROG}/review-result.json`. On schema-validation failure the worker treats
+`.sapkit/program/{PROG}/review-result.json`. On schema-validation failure the worker treats
 the run as blocked rather than fabricating a passing result. The worker also applies fixes
 and, for MAJOR findings, requests a re-review in a new fresh context. Maximum 3 review
 iterations; after that the pipeline is BLOCKED and the residual findings are surfaced to the

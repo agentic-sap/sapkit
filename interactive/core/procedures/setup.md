@@ -12,10 +12,18 @@ get user confirmation first. Never batch multiple steps' writes into one
 unconfirmed action.
 
 On a re-run over an existing project, Step 0 must first detect which
-artifacts already exist (profile dir, `.sc4sap/active-profile.txt`,
-`.sc4sap/config.json`, permission entries, registered hooks). Each subsequent
-step then branches per artifact: verify-and-report if it exists, create only
-what is missing or broken — never rewrite a healthy existing artifact.
+artifacts already exist — check `.sapkit/active-profile.txt` and
+`.sapkit/config.json` first; if absent, check the legacy
+`.sc4sap/active-profile.txt` and `.sc4sap/config.json` (plus profile dir,
+permission entries, registered hooks). A legacy-only project is **not**
+migrated by this wizard — report it as `(legacy .sc4sap/)` and tell the user
+that moving to `.sapkit/` is a separate, human-run step
+(`node interactive/scripts/migrate-runtime-dir.mjs`, dry-run by default,
+`--apply` to execute); this wizard never runs it on the user's behalf. Each
+subsequent step then branches per artifact (new or legacy): verify-and-report
+if it exists, create only what is missing or broken — never rewrite a healthy
+existing artifact, and never create a parallel `.sapkit/` in a project whose
+active state is still `.sc4sap/`.
 
 **Hard rule (R-005)**: this wizard never asks for, generates, nor prints a
 password or any other secret. Wherever a secret would go, write an empty
@@ -35,10 +43,13 @@ placeholder and tell the user to fill it in by hand afterward.
 
 ## Step 1 — Connection Profile
 
-1. Scan `$SC4SAP_HOME_DIR/profiles/` for existing profile aliases if that env
-   var is set on this machine, otherwise `~/.sc4sap/profiles/` (the engine's
-   built-in default). If any exist, list them and ask the user to pick one
-   for this project, or create a new one.
+1. Resolve the profile home: `$SAPKIT_HOME_DIR` if set on this machine, else
+   the deprecated `$SC4SAP_HOME_DIR` if that is set instead (tell the user it
+   still works but `SAPKIT_HOME_DIR` is now preferred), else `~/.sapkit`, else
+   the legacy `~/.sc4sap` (the engine's built-in fallback). Scan
+   `<resolved home>/profiles/` for existing profile aliases. If any exist,
+   list them and ask the user to pick one for this project, or create a new
+   one.
 2. If creating a new profile, ask for an alias (`{COMPANY}-{TIER}` convention,
    e.g. `KR-DEV` — never `default`) and walk through the connection keys by
    **name only**: `SAP_URL`, `SAP_CLIENT`, `SAP_USERNAME`, `SAP_PASSWORD`,
@@ -56,8 +67,10 @@ placeholder and tell the user to fill it in by hand afterward.
 
 ## Step 2 — Project Context Files
 
-1. Write `.sc4sap/active-profile.txt` — one line, the chosen alias.
-2. Walk through `.sc4sap/config.json` fields by name: `sapVersion`,
+1. Write `active-profile.txt` — one line, the chosen alias — into the
+   directory Step 0 resolved (`.sapkit/` for a new project; the existing
+   `.sc4sap/` if Step 0 found a legacy, un-migrated project).
+2. Same directory: walk through `config.json` fields by name: `sapVersion`,
    `abapRelease`, `activeModules`, `industry`, `country`, `blocklistProfile`.
    Value lists and what each field drives are not repeated here — the table in
    [project-context](../project-context.md) is the reference.
@@ -129,8 +142,9 @@ node "PLUGIN_ROOT/scripts/get-vsp.mjs"
 ```
 
 This detects OS/arch, downloads the matching release asset, verifies its
-sha256, and installs to `~/.sc4sap/bin/vsp` (`vsp.exe` on Windows) only on a
-hash match.
+sha256, and installs to the resolved profile home's `bin/vsp`
+(`~/.sapkit/bin/vsp`, or the legacy `~/.sc4sap/bin/vsp` if that is the active
+home — `vsp.exe` on Windows) only on a hash match.
 
 ## Step 6 — Self-Check
 

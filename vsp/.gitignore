@@ -103,5 +103,7 @@ cookie-*
 quickjs/
 quickjs.zip
 
-# SC4SAP plugin local state (MCP logs, profiles) - never commit
+# sapkit plugin local state (MCP logs, profiles) - never commit
+# both generations: .sapkit is the current name, .sc4sap the legacy one (D-057)
+.sapkit/
 .sc4sap/

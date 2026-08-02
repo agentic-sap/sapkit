@@ -1,6 +1,6 @@
 ---
 name: lesson
-description: Turn a verified, likely-to-recur SAP failure into a consulted guardrail — a five-step LESSONS→RULES loop (plus a Demote mode) writing .sc4sap/LESSONS.md and .sc4sap/RULES.md, never auto-promoting an ordinary failure
+description: Turn a verified, likely-to-recur SAP failure into a consulted guardrail — a five-step LESSONS→RULES loop (plus a Demote mode) writing .sapkit/LESSONS.md and .sapkit/RULES.md, never auto-promoting an ordinary failure
 source:
   - skills/lesson/SKILL.md (aegis v0.21.0 @ 33f61df, D-047)
 ---
@@ -28,19 +28,19 @@ CONSULT rules simply continue silently when the files are absent.
 
 ## Files
 
-- `.sc4sap/LESSONS.md` — the entry-preserving failure log (L-ids): new lessons
+- `.sapkit/LESSONS.md` — the entry-preserving failure log (L-ids): new lessons
   are appended with the next L-id, and an existing entry's CAUSE/RULE lines are
   updated in place as the procedure directs, but entries are never deleted.
-- `.sc4sap/RULES.md` — the distilled prohibitions (R-ids), capped at 40.
+- `.sapkit/RULES.md` — the distilled prohibitions (R-ids), capped at 40.
 
 Both are **local-only working state**: not shared across machines, and `setup`
-does not overwrite them. They live under `.sc4sap/**`, already covered by the
+does not overwrite them. They live under `.sapkit/**`, already covered by the
 standard Read / Edit permission template — no new permission is needed. See
 [project-context](../project-context.md).
 
 ## 1. FAIL — record it
 
-Append to `.sc4sap/LESSONS.md` with the next sequential L-id. The third header
+Append to `.sapkit/LESSONS.md` with the next sequential L-id. The third header
 field is a short SAP area tag (`abap`, `cds`, `transport`, `mcp`, `atc`,
 `module-FI`, …):
 
@@ -73,7 +73,7 @@ Ask: would this bite again in a different task? **Propose the rule to the user a
 get explicit approval before writing it.** A rule is read by the CONSULT step of
 every later related task, so a bad rule silently misguides future work, not just
 the current one — that approval is the gate that keeps a wrong rule out. If
-approved, add ONE line to `.sc4sap/RULES.md` with the next sequential R-id:
+approved, add ONE line to `.sapkit/RULES.md` with the next sequential R-id:
 
     - R-009 [transport] <short imperative rule> (from L-014)
 
@@ -94,7 +94,7 @@ Prohibitions steer sessions; aspirational wording does not, and it dilutes the
 list. **Style, persona, and tone are never RULES material** — route them to the
 project knowledge docs; RULES holds verified prohibitions and invariants only.
 
-**Before proposing, read the FULL `.sc4sap/RULES.md`** for semantic conflicts and
+**Before proposing, read the FULL `.sapkit/RULES.md`** for semantic conflicts and
 near-duplicates. Nothing mechanical detects a semantic contradiction. If the new
 rule contradicts an existing one, present the conflict to the user with a merge or
 revision proposal instead of adding a second rule. If an existing rule overlaps,
@@ -107,7 +107,7 @@ Then finish the lesson entry with `RULE: -> R-009`, or
 
 ## 5. CONSULT — close the loop
 
-Nothing to write now: the next task's CONSULT step reads `.sc4sap/RULES.md`, which
+Nothing to write now: the next task's CONSULT step reads `.sapkit/RULES.md`, which
 is how this failure becomes a guardrail. The CONSULT points are the start of
 [create-program](./create-program.md) (Phase 2), the Mandatory Rule Reads of
 [create-object](./create-object.md), and step ① of
@@ -128,7 +128,7 @@ Trigger this mode when:
 - a rule blocks correct work in two unrelated tasks, or
 - an audit surfaces stale-rule candidates, or the 40-rule cap is reached.
 
-1. **EVIDENCE** — record the contradiction in `.sc4sap/LESSONS.md` as a normal
+1. **EVIDENCE** — record the contradiction in `.sapkit/LESSONS.md` as a normal
    entry (next L-id) citing the rule id: what the rule prescribed, what actually
    happened, and why the rule is wrong or no longer applies.
 2. **VERIFY** — confirm it the same way causes are verified: reproduce a case

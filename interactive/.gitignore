@@ -2,6 +2,7 @@ node_modules/
 # Bundled keyring native binaries ship via git clone — must stay tracked
 !/server/runtime-deps/keyring/node_modules/
 .env
+.sapkit/
 .sc4sap/
 *.log
 .DS_Store

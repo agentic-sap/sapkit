@@ -17,9 +17,9 @@ control artifact.
    objects and paths in scope, the transport id to use, the relevant rules, and the
    verification expectations. If any of those is missing, stop and name what is missing —
    never infer scope, never widen it.
-2. Resolve project context: the project's `.sc4sap/config.json` (`sapVersion`,
+2. Resolve project context: the project's `.sapkit/config.json` (`sapVersion`,
    `abapRelease`, `activeModules`, `industry`, `country`) and
-   `${CLAUDE_PLUGIN_ROOT}/core/project-context.md`. Read `.sc4sap/RULES.md` when it exists —
+   `${CLAUDE_PLUGIN_ROOT}/core/project-context.md`. Read `.sapkit/RULES.md` when it exists —
    matching rules are hard constraints.
 3. Adopt the implementer perspective in
    `${CLAUDE_PLUGIN_ROOT}/core/personas/sap-executor.md`, then carry out the procedure step
@@ -35,7 +35,7 @@ control artifact.
 5. Three boundaries are **procedural** — no mechanical block exists, so honor them yourself:
    - Never write control artifacts: `approval.json`, `state.json`, `verification.json`,
      `review-request.json`, `review-result.json`, the spec approval record,
-     `.sc4sap/RULES.md`, `.sc4sap/LESSONS.md`. The main context owns all of them.
+     `.sapkit/RULES.md`, `.sapkit/LESSONS.md`. The main context owns all of them.
    - Never allocate your own reviewer and never spawn nested workers. Review is allocated by
      the main context precisely so that no one reviews their own change.
    - Never edit the approved spec to match what you built. Report the mismatch instead.

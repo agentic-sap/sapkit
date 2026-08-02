@@ -7,12 +7,19 @@
  * Layer 2).
  *
  * Resolution:
- *   1. Walk up from cwd to find `.sc4sap/active-profile.txt`.
- *   2. If found, read `$SC4SAP_HOME_DIR/profiles/<alias>/sap.env` (falls back
- *      to `~/.sc4sap/profiles/<alias>/sap.env`) and extract `SAP_TIER`.
- *   3. If no pointer is found, fall back to `<projectDir>/.sc4sap/sap.env`
+ *   1. Walk up from cwd to find `.sapkit/active-profile.txt`.
+ *   2. If found, read `$SAPKIT_HOME_DIR/profiles/<alias>/sap.env` (falls back
+ *      to `~/.sapkit/profiles/<alias>/sap.env`) and extract `SAP_TIER`.
+ *   3. If no pointer is found, fall back to `<runtimeDir>/sap.env`
  *      (legacy single-profile mode) and extract `SAP_TIER` (unresolved →
  *      null; see Failure mode).
+ *
+ * Runtime path rename (D-057, `.sc4sap` -> `.sapkit`): `.sapkit` is a candidate
+ * everywhere `.sc4sap` was one; nothing else changes (R-PRESERVE). The walk
+ * depth stays 8 and this guard's criterion stays "existence IS the boundary" —
+ * applied to EACH generation before any tie-break (R-TIE), so a `.sc4sap`-only
+ * ancestor still stops the walk exactly where it did before. An unresolved tier
+ * still denies.
  *
  * Block matrix (Strict) — mirrors MCP server readonlyGuard (the server side is
  * an allowlist / fail-closed guard and remains the last line of defense; this
@@ -54,28 +61,104 @@ const RUNTIME_EXEC = new Set([
 ]);
 const QA_ALLOW = new Set(['RunUnitTest']);
 
-const PROFILE_SETUP_HINT =
-  'Set up (or switch to) a DEV profile: create ~/.sc4sap/profiles/<alias>/sap.env ' +
-  '(or $SC4SAP_HOME_DIR override) with SAP_TIER=dev, and point this project at it with a single ' +
-  'alias line in .sc4sap/active-profile.txt. Details: core/procedures/troubleshooting.md.';
+const NEW_DIR = '.sapkit';
+const LEGACY_DIR = '.sc4sap';
 
-function sc4sapHome() {
-  return process.env.SC4SAP_HOME_DIR || join(homedir(), '.sc4sap');
+const PROFILE_SETUP_HINT =
+  'Set up (or switch to) a DEV profile: create ~/.sapkit/profiles/<alias>/sap.env ' +
+  '(or $SAPKIT_HOME_DIR override) with SAP_TIER=dev, and point this project at it with a single ' +
+  'alias line in .sapkit/active-profile.txt (a legacy .sc4sap layout is still read). ' +
+  'Details: core/procedures/troubleshooting.md.';
+
+// Reason codes collected during resolution and appended to the deny message —
+// this hook's warning channel is its JSON response (D-057 §4-5).
+const reasons = [];
+function note(code, message) {
+  if (reasons.some((r) => r.startsWith(`${code}:`))) return;
+  reasons.push(`${code}: ${message}`);
 }
 
-function walkUpForProject(start) {
+// R-ENV. A SAPKIT_HOME_DIR that is set but missing is ENV_INVALID: it never
+// silently falls back to the legacy variable. Returning null leaves the tier
+// unresolved, which this guard already treats as deny.
+function sapkitHome(alias) {
+  const explicit = process.env.SAPKIT_HOME_DIR;
+  if (explicit) {
+    if (!existsSync(explicit)) {
+      note('ENV_INVALID', `SAPKIT_HOME_DIR points at a path that does not exist (${explicit})`);
+      return null;
+    }
+    return explicit;
+  }
+  const legacyEnv = process.env.SC4SAP_HOME_DIR;
+  if (legacyEnv) {
+    note('OK_LEGACY_DEPRECATED', 'SC4SAP_HOME_DIR is deprecated — rename it to SAPKIT_HOME_DIR');
+    return legacyEnv;
+  }
+  const newHome = join(homedir(), NEW_DIR);
+  const legacyHome = join(homedir(), LEGACY_DIR);
+  if (alias) {
+    const inNew = existsSync(join(newHome, 'profiles', alias));
+    const inLegacy = existsSync(join(legacyHome, 'profiles', alias));
+    if (inNew && inLegacy) {
+      note('COEXIST_OK', `profile "${alias}" exists under both homes — using ${newHome}`);
+      return newHome;
+    }
+    if (inNew) return newHome;
+    if (inLegacy) return legacyHome;
+    note('PROFILE_NOT_FOUND', `profile "${alias}" was not found under ${newHome} or ${legacyHome}`);
+  }
+  if (existsSync(newHome)) return newHome;
+  if (existsSync(legacyHome)) return legacyHome;
+  return newHome;
+}
+
+// Connection completeness — the R-TIE tie-break input. An empty
+// active-profile.txt does not count.
+function hasConnectionState(runtimeDir) {
+  try {
+    const pointer = join(runtimeDir, 'active-profile.txt');
+    if (existsSync(pointer) && readFileSync(pointer, 'utf8').trim().length > 0) return true;
+  } catch {
+    /* unreadable pointer is not completeness */
+  }
+  return existsSync(join(runtimeDir, 'sap.env'));
+}
+
+// R-TIE inside ONE ancestor. This guard's criterion is plain existence, applied
+// to each generation before the tie-break.
+function pickGeneration(dir) {
+  const newer = join(dir, NEW_DIR);
+  const older = join(dir, LEGACY_DIR);
+  const newOk = existsSync(newer);
+  const oldOk = existsSync(older);
+  if (newOk && oldOk) {
+    const newComplete = hasConnectionState(newer);
+    const oldComplete = hasConnectionState(older);
+    if (oldComplete && !newComplete) return older;
+    return newer; // tie → .sapkit
+  }
+  if (newOk) return newer;
+  if (oldOk) return older;
+  return null;
+}
+
+// Returns the selected runtime directory. With nothing found within 8 levels
+// the returned path does not exist, so the tier stays unresolved → deny.
+function walkUpForRuntimeDir(start) {
   let dir = start;
   for (let i = 0; i < 8; i++) {
-    if (existsSync(join(dir, '.sc4sap'))) return dir;
+    const hit = pickGeneration(dir);
+    if (hit) return hit;
     const parent = dirname(dir);
     if (parent === dir) break;
     dir = parent;
   }
-  return start;
+  return join(start, NEW_DIR);
 }
 
-function readActiveAlias(projectDir) {
-  const p = join(projectDir, '.sc4sap', 'active-profile.txt');
+function readActiveAlias(runtimeDir) {
+  const p = join(runtimeDir, 'active-profile.txt');
   if (!existsSync(p)) return null;
   try {
     const a = readFileSync(p, 'utf8').trim();
@@ -107,14 +190,16 @@ function parseDotenvTier(envFilePath) {
   return null;
 }
 
-function resolveTier(projectDir) {
-  const alias = readActiveAlias(projectDir);
+function resolveTier(runtimeDir) {
+  const alias = readActiveAlias(runtimeDir);
   if (alias) {
-    const envPath = join(sc4sapHome(), 'profiles', alias, 'sap.env');
+    const home = sapkitHome(alias);
+    if (!home) return { alias, tier: null, source: '(profile home unresolved)', legacy: false };
+    const envPath = join(home, 'profiles', alias, 'sap.env');
     const tier = parseDotenvTier(envPath);
     return { alias, tier, source: envPath, legacy: false };
   }
-  const legacy = join(projectDir, '.sc4sap', 'sap.env');
+  const legacy = join(runtimeDir, 'sap.env');
   const tier = parseDotenvTier(legacy);
   return { alias: null, tier, source: legacy, legacy: true };
 }
@@ -209,10 +294,10 @@ async function main() {
     process.exit(0);
   }
 
-  const projectDir = walkUpForProject(process.cwd());
+  const runtimeDir = walkUpForRuntimeDir(process.cwd());
   let ctx;
   try {
-    ctx = resolveTier(projectDir);
+    ctx = resolveTier(runtimeDir);
   } catch (err) {
     emitDeny(
       `sc4sap tier-readonly-guard — DENIED: could not resolve the SAP tier (${err.message}). ` +
@@ -229,12 +314,16 @@ async function main() {
   // in `reason` — only append it here for the resolved-tier (QA/PRD) case to
   // avoid repeating the same sentence twice in one message.
   const hintLine = ctx.tier === null ? '' : `${PROFILE_SETUP_HINT}\n`;
+  // Path-resolution reason codes ride the JSON response, the channel this hook
+  // owns (D-057 §4-5).
+  const reasonCodes = reasons.length > 0 ? `  paths:   ${reasons.join(' | ')}\n` : '';
   const message =
     `sc4sap tier-readonly-guard — DENIED\n` +
     `  tool:    ${tool}\n` +
     `  profile: ${aliasLabel}\n` +
     `  tier:    ${ctx.tier ?? '(unresolved)'}\n` +
-    `  reason:  ${reason}\n\n` +
+    `  reason:  ${reason}\n` +
+    `${reasonCodes}\n` +
     `${hintLine}` +
     `(This check is backed by the MCP server-side guard — bypassing this hook does not bypass enforcement.)`;
 

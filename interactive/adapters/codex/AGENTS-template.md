@@ -12,7 +12,7 @@ Always-on rules — non-negotiable:
 1. Custom objects use `Z`/`Y` prefix. No exceptions.
 2. Every change is assigned to a transport request before completion.
 3. Objects are activated after create/modify; inactive objects are unfinished work.
-4. Check `.sc4sap/config.json` (sapVersion, abapRelease) BEFORE any recommendation or
+4. Check `.sapkit/config.json` (sapVersion, abapRelease) BEFORE any recommendation or
    code — syntax and table world differ by version (details:
    `<LITE>/core/knowledge/abap/conventions/sap-version-reference.md`).
 5. Row-level data reads (`GetTableContents`, `GetSqlQuery`) require explicit human

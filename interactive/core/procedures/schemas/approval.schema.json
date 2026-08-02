@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "approval.schema.json",
   "title": "Spec Approval Record",
-  "description": "Written to .sc4sap/program/{PROG}/approval.json at the Spec Approval Gate of create-program. Binds the human approval to the exact spec content (SHA-256 of spec.md) and to the target SAP system, so that a spec edit or a system switch after approval invalidates the approval.",
+  "description": "Written to .sapkit/program/{PROG}/approval.json at the Spec Approval Gate of create-program. Binds the human approval to the exact spec content (SHA-256 of spec.md) and to the target SAP system, so that a spec edit or a system switch after approval invalidates the approval.",
   "type": "object",
   "required": [
     "spec_sha256",

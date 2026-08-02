@@ -2,7 +2,7 @@
 
 Comprehensive reference of the differences between **ECC 6.0** and **S/4HANA** that change agent behavior — tables, TCodes, BAPIs, Fiori apps, and development patterns.
 
-Agents MUST check `SAP_VERSION` from `.sc4sap/config.json` (or `sap.env`) **before** recommending any TCode, table, BAPI, or pattern. Agents MUST also check `ABAP_RELEASE` before generating ABAP code — see `common/abap-release-reference.md` for release-by-release syntax.
+Agents MUST check `SAP_VERSION` from `.sapkit/config.json` (or `sap.env`) **before** recommending any TCode, table, BAPI, or pattern. Agents MUST also check `ABAP_RELEASE` before generating ABAP code — see `common/abap-release-reference.md` for release-by-release syntax.
 
 If `SAP_VERSION` is unset, fail safe: ask the user to run the profile setup (core/procedures/troubleshooting.md) before proceeding.
 

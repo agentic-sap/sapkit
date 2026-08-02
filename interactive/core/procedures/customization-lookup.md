@@ -8,8 +8,8 @@ The customer's live Z*/Y* customizations — BAdI implementations, CMOD projects
 
 | File | Holds |
 |---|---|
-| `.sc4sap/customizations/{MODULE}/enhancements.json` | `smodExits[]` (standard SMOD → Z-namespace CMOD projects), `badiImplementations[]` (standard BAdI → Z*/Y* impl classes), `formBasedExits[]` (customized include programs with line counts), `ggbRules[]` (customer GGB0 substitutions / GGB1 validations / rules from table `GB03`, filtered by `APPLAREA`), `bteImplementations[]` (customer BTE Publish/Subscribe and Process FMs from `TBE24` / `TPS34`, filtered by `APPL`) |
-| `.sc4sap/customizations/{MODULE}/extensions.json` | `appendStructures[]` — for each base table, the `CI_*` / `Z*` appends and `ZZ*` / `YY*` custom fields actually on the table |
+| `.sapkit/customizations/{MODULE}/enhancements.json` | `smodExits[]` (standard SMOD → Z-namespace CMOD projects), `badiImplementations[]` (standard BAdI → Z*/Y* impl classes), `formBasedExits[]` (customized include programs with line counts), `ggbRules[]` (customer GGB0 substitutions / GGB1 validations / rules from table `GB03`, filtered by `APPLAREA`), `bteImplementations[]` (customer BTE Publish/Subscribe and Process FMs from `TBE24` / `TPS34`, filtered by `APPL`) |
+| `.sapkit/customizations/{MODULE}/extensions.json` | `appendStructures[]` — for each base table, the `CI_*` / `Z*` appends and `ZZ*` / `YY*` custom fields actually on the table |
 
 **Modules with GGB/BTE coverage**: `FI`, `CO`, `PS`, `TR`, `AA`, `PM`, `SD`, `HCM`. For other modules these arrays are always empty and should not be relied on.
 
@@ -21,11 +21,11 @@ The JSON is **positive-only**: a standard exit or base table is listed only when
 
 For every module involved in the question:
 
-- If `.sc4sap/customizations/{MODULE}/enhancements.json` exists:
+- If `.sapkit/customizations/{MODULE}/enhancements.json` exists:
   - Load it; surface the `timestamp` in your reasoning ("customization snapshot: 2026-04-17T…")
   - Cross-reference every standard SMOD / BAdI / include you are about to recommend against the cache. If the customer already has a Z implementation, **prefer extending the existing Z object** over creating a new one.
   - Note the reuse candidate explicitly in your output (e.g., "`BADI_SD_SALES` already has impl `ZCL_IM_SD_SALES_HEADER` — extend this instead of creating a new impl").
-- If `.sc4sap/customizations/{MODULE}/extensions.json` exists:
+- If `.sapkit/customizations/{MODULE}/extensions.json` exists:
   - Cross-reference the base tables you are about to extend. If a `CI_*` or `ZA*` append already exists, **add the new field to the existing append** rather than creating a second one. Duplicated appends on the same table are legal but widely considered anti-pattern.
 - If the file for a required module is missing, fall through to Step 2 for that module only.
 
@@ -58,7 +58,7 @@ Every live call must:
 about to recommend / critique / extend a standard SAP object
         │
         ▼
-  .sc4sap/customizations/{MODULE}/*.json present?
+  .sapkit/customizations/{MODULE}/*.json present?
     yes ──► cross-reference; prefer reuse; cite timestamp
      no
         │
@@ -101,7 +101,7 @@ When FI-AP cache shows `bteImplementations: [{ kind: "P/S", event: "00001025", a
 
 The extractor ships with this plugin at `tools/extract/extract-customizations.mjs`
 (pure Node, no npm install). It is run **by the user, from the project root** —
-the directory holding `.sc4sap/` — against the active profile:
+the directory holding `.sapkit/` — against the active profile:
 
 ```bash
 node "$CLAUDE_PLUGIN_ROOT/tools/extract/extract-customizations.mjs" --dry-run SD MM
@@ -137,7 +137,7 @@ metadata), so Gate B of [approval-gates](../policies/approval-gates.md) applies:
 
 Every consultant persona's `<Reference_Data>` section MUST list:
 
-1. Local Customization Cache (`.sc4sap/customizations/{MODULE}/{enhancements,extensions}.json`) — **priority 1 for any extension/enhancement recommendation**
+1. Local Customization Cache (`.sapkit/customizations/{MODULE}/{enhancements,extensions}.json`) — **priority 1 for any extension/enhancement recommendation**
 2. Static fallback (`../knowledge/modules/{MODULE}/enhancements.md`) — name-only reference
 3. Pointer to this protocol: `customization-lookup.md`
 

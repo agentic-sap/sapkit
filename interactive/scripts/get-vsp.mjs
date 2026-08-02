@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // get-vsp.mjs — sapkit 제품의 vsp(오프라인 ABAP 검증기) 바이너리를 GitHub 릴리스
-// 자산에서 내려받아 핀 파일이 지정한 설치 위치(~/.sc4sap/bin)에 설치한다.
+// 자산에서 내려받아 핀 파일이 지정한 설치 위치(~/.sapkit/bin)에 설치한다.
 // 외부 의존성 0 — node 내장 모듈만 쓴다.
 //
 // 계약:
@@ -50,10 +50,47 @@ function detectPlatform() {
   return `${osKey}-${archKey}`;
 }
 
-// 설치 위치 결정 — VSP_INSTALL_DIR override 우선, 없으면 핀 파일 install_dir(~ 확장).
+// 런타임 홈 결정 (D-057 R-ENV) — 설치기와 소비자(vpass·offline-code-analysis 훅)가
+// **같은 홈**을 고르게 하는 것이 목적이다.
+//   SAPKIT_HOME_DIR(설정됐는데 경로가 없으면 오류 — 구 env로 조용히 넘어가지 않는다)
+//   → SC4SAP_HOME_DIR(deprecation) → 바이너리가 실재하는 세대 → 홈 디렉터리가 실재하는
+//   세대 → 신 세대(~/.sapkit).
+function resolveRuntimeHome() {
+  const explicit = process.env.SAPKIT_HOME_DIR;
+  if (explicit) {
+    if (!fs.existsSync(explicit)) {
+      console.error(`❌ ENV_INVALID: SAPKIT_HOME_DIR 경로가 없음 (${explicit}) — SC4SAP_HOME_DIR로 폴백하지 않는다`);
+      return null;
+    }
+    return explicit;
+  }
+  const legacyEnv = process.env.SC4SAP_HOME_DIR;
+  if (legacyEnv) {
+    console.error('⚠️  OK_LEGACY_DEPRECATED: SC4SAP_HOME_DIR는 폐기 예정 — SAPKIT_HOME_DIR로 바꿀 것');
+    return legacyEnv;
+  }
+  const newHome = path.join(os.homedir(), '.sapkit');
+  const legacyHome = path.join(os.homedir(), '.sc4sap');
+  for (const home of [newHome, legacyHome]) {
+    if (fs.existsSync(path.join(home, 'bin', BIN_NAME))) return home;
+  }
+  if (fs.existsSync(newHome)) return newHome;
+  if (fs.existsSync(legacyHome)) return legacyHome;
+  return newHome;
+}
+
+// 설치 위치 결정 — VSP_INSTALL_DIR override 우선. 핀 파일의 install_dir이 홈 상대
+// 기본값(`~/.sapkit/bin` 또는 `~/.sc4sap/bin`)이면 R-ENV로 고른 홈의 bin/에 설치한다
+// (그래야 소비자와 같은 홈을 본다). 그 밖의 명시값은 그대로 존중한다.
+const HOME_RELATIVE_BIN = /^~[/\\]\.(sapkit|sc4sap)[/\\]bin$/;
 function resolveInstallDir(pin) {
   if (process.env.VSP_INSTALL_DIR) return path.resolve(process.env.VSP_INSTALL_DIR);
-  let dir = pin.install_dir || '~/.sc4sap/bin';
+  const configured = pin.install_dir || '~/.sapkit/bin';
+  if (HOME_RELATIVE_BIN.test(configured)) {
+    const home = resolveRuntimeHome();
+    return home === null ? null : path.resolve(path.join(home, 'bin'));
+  }
+  let dir = configured;
   if (dir === '~' || dir.startsWith('~/') || dir.startsWith('~\\')) {
     dir = path.join(os.homedir(), dir.slice(1).replace(/^[/\\]+/, ''));
   }
@@ -131,6 +168,7 @@ async function main() {
   }
 
   const installDir = resolveInstallDir(pin);
+  if (installDir === null) return 1; // ENV_INVALID — 메시지는 resolveRuntimeHome이 출력
   const installPath = path.join(installDir, BIN_NAME);
 
   // ── ⑤ idempotent — 이미 설치됐고 sha256이 핀과 일치하면 no-op ────────────────

@@ -1,6 +1,6 @@
 # ABAP Release Reference
 
-Syntax feature inventory by ABAP release. Agents MUST NOT emit features newer than the configured `ABAP_RELEASE` in `.sc4sap/config.json` (or `sap.env`) — doing so causes activation failures on the target system.
+Syntax feature inventory by ABAP release. Agents MUST NOT emit features newer than the configured `ABAP_RELEASE` in `.sapkit/config.json` (or `sap.env`) — doing so causes activation failures on the target system.
 
 If `ABAP_RELEASE` is unset, fail safe: ask the user to run the profile setup (core/procedures/troubleshooting.md) before generating code.
 

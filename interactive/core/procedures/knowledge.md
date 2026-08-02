@@ -1,6 +1,6 @@
 ---
 name: knowledge
-description: Accumulate what this project had to find out — business-domain facts and this-system facts — as evidence-backed, citable atoms under .sc4sap/knowledge/, so later interviews stop re-asking what is already known
+description: Accumulate what this project had to find out — business-domain facts and this-system facts — as evidence-backed, citable atoms under .sapkit/knowledge/, so later interviews stop re-asking what is already known
 ---
 
 # Knowledge — what this project had to find out
@@ -16,8 +16,8 @@ not the goal; the next interview not re-asking is.
 
 ## Files
 
-    .sc4sap/knowledge/domain.md   KD-ids — business facts (survive this program)
-    .sc4sap/knowledge/system.md   KS-ids — facts true only of a named system
+    .sapkit/knowledge/domain.md   KD-ids — business facts (survive this program)
+    .sapkit/knowledge/system.md   KS-ids — facts true only of a named system
 
 One prefix per file, fixed, and **`KD`/`KS` deliberately avoid the bare-letter
 space**: sapkit's own decision log uses `D-0xx` ids that appear throughout the
@@ -30,7 +30,7 @@ Prefix separation does not prevent a duplicate number **inside** one file
 (concurrent issue, hand editing). Before issuing an id, read the file's existing
 ids rather than assuming the last one is the highest.
 
-Both files are **local-only working state** under `.sc4sap/**` — already covered by
+Both files are **local-only working state** under `.sapkit/**` — already covered by
 the standard Read / Edit permission template, not shared across machines, and
 `setup` does not overwrite them. See [project-context](../project-context.md).
 
@@ -45,7 +45,7 @@ failure and its guardrail go to [lesson](./lesson.md). Neither swallows the othe
 |---|---|
 | a business fact true beyond this program | `domain.md` (KD-id) |
 | a fact true only of a named system/landscape | `system.md` (KS-id) |
-| a **verified failure** and the rule that prevents its recurrence | [lesson](./lesson.md) → `.sc4sap/RULES.md` |
+| a **verified failure** and the rule that prevents its recurrence | [lesson](./lesson.md) → `.sapkit/RULES.md` |
 
 `lesson` owns failure records — it has the VERIFY gate and the user-approval gate
 that promotion requires. This procedure never records a failure; it records the
@@ -81,7 +81,7 @@ Note it as a candidate for the shipped `core/knowledge/` docs and move on.
    numbers, customer-specific pricing and discounts, payroll and HR values — and
    that list is examples, not a limit. Approval to *read* a row is not approval to
    *persist* it: row-level identifiers and sensitive values must not be stored
-   here in original form regardless of how they were obtained, and `.sc4sap/`
+   here in original form regardless of how they were obtained, and `.sapkit/`
    being git-ignored does not change this (the file gets read aloud, pasted, and
    copied out).
 6. **Issue the id.** Next unused number for that file's prefix. Header carries the
@@ -131,7 +131,7 @@ evidence — is a false one, and it is false in the direction that gets trusted.
 ## Read points
 
 Accumulating without reading is just a folder. These procedures read
-`.sc4sap/knowledge/` **before** they start asking, and continue silently when the
+`.sapkit/knowledge/` **before** they start asking, and continue silently when the
 directory is absent:
 
 - [deep-interview](./deep-interview.md) — before the first question

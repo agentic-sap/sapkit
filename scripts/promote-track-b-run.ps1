@@ -1,16 +1,16 @@
-# promote-track-b-run.ps1 - one-way bridge: Track B (.sc4sap draft) -> Guided run
+# promote-track-b-run.ps1 - one-way bridge: Track B (.sapkit draft) -> Guided run
 # (.harness/runs/<run-id>/).
 #
 # Spec: docs/reference/designs/2026-07-16-integration-hardening-roadmap.md S2-D, §4.3.
 # Decisions: D-025 (role x P0-P4), D-027 (one-way only; two-way sync rejected).
 #
-# WHY ONE-WAY: Track B (.sc4sap) and Track A (.harness) each carry their own
+# WHY ONE-WAY: Track B (.sapkit) and Track A (.harness) each carry their own
 # state/approval/review. Syncing both directions gives one piece of work two
 # completion verdicts and two resume points (D-027 기각 (c)). So:
-#   - .sc4sap is READ-ONLY here. This script never writes into it.
+#   - .sapkit is READ-ONLY here. This script never writes into it.
 #   - the ONLY output is one new .harness/runs/<run-id>/ directory.
 #   - after promotion the frozen hashes in the run dir are authoritative; the
-#     .sc4sap files go back to being working material (roadmap §4.2).
+#     .sapkit files go back to being working material (roadmap §4.2).
 #
 # NOT auto-invoked. Direct never calls this (roadmap S2-D: "Direct에서는 자동
 # 호출하지 않음") - promotion is an explicit human act, because it is the moment
@@ -25,7 +25,7 @@
 #
 # Usage:
 #   & scripts/promote-track-b-run.ps1 -RunId <id> `
-#       -Source .sc4sap/program/ZR_FI_GL_LIST -ApplyPath mcp
+#       -Source .sapkit/program/ZR_FI_GL_LIST -ApplyPath mcp
 #
 # PowerShell 5.1 compatible. ASCII only.
 
@@ -58,7 +58,7 @@ $runId = $RunId.Trim()
 if ($runId -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$') {
     Deny 64 "BAD_ARGS" "run id has an unsupported format (got '$runId')"
 }
-if ([string]::IsNullOrWhiteSpace($Source)) { Deny 64 "BAD_ARGS" "missing -Source (a .sc4sap/program/<OBJECT> directory)" }
+if ([string]::IsNullOrWhiteSpace($Source)) { Deny 64 "BAD_ARGS" "missing -Source (a .sapkit/program/<OBJECT> directory; a legacy .sc4sap path still works)" }
 
 $validApply = @("mcp", "vsp", "abapgit")
 if ([string]::IsNullOrWhiteSpace($ApplyPath)) {
@@ -162,7 +162,7 @@ $contract = @"
 
 > Frozen by ``scripts/promote-track-b-run.ps1`` from a Track B draft.
 > **This file and ``manifest.json`` are the authority for this run.** The source
-> ``.sc4sap`` files are working material from here on - do not sync back
+> ``.sapkit`` files are working material from here on - do not sync back
 > (one-way only, D-027).
 
 | Field | Value |
@@ -201,5 +201,5 @@ revision of this run. Do not edit the frozen hashes.
 "@
 Set-Content -LiteralPath (Join-Path $runDir "contract.md") -Value $contract -Encoding UTF8
 
-Write-Output "PROMOTE_OK: run=$runId created at $runDir (spec=$actual, apply=$apply, tier=$tier). Source .sc4sap untouched."
+Write-Output "PROMOTE_OK: run=$runId created at $runDir (spec=$actual, apply=$apply, tier=$tier). Source draft untouched."
 exit 0

@@ -24,7 +24,7 @@
 - 단계 **순서**와 **관문**: SAP version preflight → interview → plan → spec → **사람 승인 게이트**
   → implement → self-QA → **리뷰 게이트** → report
 - 인터뷰 질문 차원, 체크리스트 항목, ECC DDIC fallback 게이트, Cloud Public 거부 규칙
-- 상태 파일 경로 (`.sc4sap/program/{PROG}/…`) — [project-context](../../core/project-context.md) 규약
+- 상태 파일 경로 (`.sapkit/program/{PROG}/…`) — [project-context](../../core/project-context.md) 규약
 - 스펙 승인 키워드 규약 (`승인`/`approve`/`proceed` 등 명시 키워드만 인정)
 
 ## 역할 문구 치환
@@ -50,7 +50,14 @@
 | `asset/template_base.xlsx` | `../../assets/spec/template_base.xlsx` |
 | `scripts/spec/*.mjs` | `../../tools/spec/*.mjs` |
 | `agents/sap-X.md` | `../personas/sap-X.md` |
-| `.sc4sap/…` | 그대로 유지 |
+| `.sc4sap/…` | 그대로 유지 *(L1 이식 당시 계약 — 아래 갱신 이력 참고)* |
 
 링크는 **실재하는 파일만** 걸 것. 대상 부재 시 backtick 텍스트로만 표기.
 완료 후 최종 메시지는 "생성 파일 목록 + 한 줄 요약"만.
+
+## 경로 표기 갱신 이력
+
+L1 이식 당시(2026-07)에는 `.sc4sap/…` 그대로 유지가 계약이었다(위 표). 2026-08-02
+D-057 결정으로 런타임 경로는 `.sapkit/` 우선·`.sc4sap` 폴백으로 개명됐다 — 이 표는
+그 시점의 이식 계약을 역사적으로 기록한 것이며, 이후 산출되는 절차 문서는
+`.sapkit/`을 쓴다(위 "반드시 유지" 절의 상태 파일 경로 예시도 갱신됨).

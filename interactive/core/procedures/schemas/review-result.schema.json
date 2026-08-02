@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "review-result.schema.json",
   "title": "Phase 6 Review Result",
-  "description": "Returned by the read-only reviewer as a verdict JSON after running review-checklist.md; the worker validates it against this schema and records it to .sc4sap/program/{PROG}/review-result.json. The worker applies fixes; the reviewer never writes to the SAP system or to disk. Phase 8 requires verdict PASS with reviewed_spec_sha256 matching approval.json.spec_sha256.",
+  "description": "Returned by the read-only reviewer as a verdict JSON after running review-checklist.md; the worker validates it against this schema and records it to .sapkit/program/{PROG}/review-result.json. The worker applies fixes; the reviewer never writes to the SAP system or to disk. Phase 8 requires verdict PASS with reviewed_spec_sha256 matching approval.json.spec_sha256.",
   "type": "object",
   "required": ["reviewed_spec_sha256", "verdict", "findings"],
   "additionalProperties": false,

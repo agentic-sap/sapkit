@@ -74,7 +74,7 @@ Ask ONE narrowing question per turn until ambiguity ≤3:
 - The rendered `Where-Used` section MUST repeat this scope in its header so reviewers know what was (and wasn't) searched.
 
 **Round 5 — Output location**
-- Default: `.sc4sap/specs/{object_name}-{YYYYMMDD}-{lang}.{md|xlsx}`
+- Default: `.sapkit/specs/{object_name}-{YYYYMMDD}-{lang}.{md|xlsx}`
 - Language: ko / en / ja (infer from user's current language; confirm once).
 
 **Stop condition**: every dimension above has a concrete answer OR user explicitly says "skip remaining, use defaults".
@@ -90,11 +90,11 @@ Never skip entirely unless the user supplies `object=... depth=L2 format=md lang
 
 **Step 1.5 — CBO inventory lookup** (auto)
 - Resolve `<PACKAGE>` from `GetObjectInfo` above.
-- Ask the user one question: "Which module does package `<PACKAGE>` belong to? (SD / MM / PP / PM / QM / WM / TM / TR / FI / CO / HCM / BW / PS / Ariba)" — only if the module cannot be derived from `.sc4sap/config.json` or the package's existing CBO folder (see [project-context](../project-context.md)).
-- Check `.sc4sap/cbo/<MODULE>/<PACKAGE>/inventory.json`.
+- Ask the user one question: "Which module does package `<PACKAGE>` belong to? (SD / MM / PP / PM / QM / WM / TM / TR / FI / CO / HCM / BW / PS / Ariba)" — only if the module cannot be derived from `.sapkit/config.json` or the package's existing CBO folder (see [project-context](../project-context.md)).
+- Check `.sapkit/cbo/<MODULE>/<PACKAGE>/inventory.json`.
   - **Exists** → Load it. When describing data sources, tables, or helper calls in Step 3, annotate each one that matches an inventory entry with its CBO role + one-line business purpose (e.g., "writes to `ZSD_ORDER_LOG` — append-only sales-order processing log"). This turns opaque Z-references in the spec into named reusable assets.
-  - **Missing** → Print one line: "No CBO inventory at `.sc4sap/cbo/<MODULE>/<PACKAGE>/`. Run the [analyze-cbo-obj](analyze-cbo-obj.md) procedure first for richer spec annotations, or type `skip` to proceed."
-- Persist the loaded entries to `.sc4sap/specs/<OBJECT>/cbo-context.md` for use in Steps 3–4.
+  - **Missing** → Print one line: "No CBO inventory at `.sapkit/cbo/<MODULE>/<PACKAGE>/`. Run the [analyze-cbo-obj](analyze-cbo-obj.md) procedure first for richer spec annotations, or type `skip` to proceed."
+- Persist the loaded entries to `.sapkit/specs/<OBJECT>/cbo-context.md` for use in Steps 3–4.
 - Source reads:
   - Report/Program: `GetProgFullCode` + `GetIncludesList` → iterate `GetInclude`
   - Class: `ReadClass` (all sections) + `GetLocalDefinitions` / `GetLocalMacros` / `GetLocalTestClass` / `GetLocalTypes`
@@ -142,13 +142,13 @@ Adopt the [sap-writer](../personas/sap-writer.md) persona for this step. Render 
   Pipeline for each Excel-output spec:
 
   1. **Produce TWO JSON files**:
-     - `.sc4sap/specs/_tr/{OBJECT}-{YYYYMMDD}.tr.json` — flat `{ "English key": "한국어 값" }` map. Schema + slot semantics in § Excel TR Map below.
-     - `.sc4sap/specs/_img/{OBJECT}-{YYYYMMDD}.image-spec.json` — `renderScreenImages()` argument: `{ selection: {fields:[…]}, alv: {columns:[…], sampleRows:[…]}, processFlow: [string,…], lang }`. Exact key names in § image-spec.json Schema below. Schema mistakes (e.g. `field` instead of `name`, array sampleRows instead of objects) silently render empty PNGs — verify by inspecting the resulting ALV byte size (~12 KB normal, ~1 KB = empty grid).
+     - `.sapkit/specs/_tr/{OBJECT}-{YYYYMMDD}.tr.json` — flat `{ "English key": "한국어 값" }` map. Schema + slot semantics in § Excel TR Map below.
+     - `.sapkit/specs/_img/{OBJECT}-{YYYYMMDD}.image-spec.json` — `renderScreenImages()` argument: `{ selection: {fields:[…]}, alv: {columns:[…], sampleRows:[…]}, processFlow: [string,…], lang }`. Exact key names in § image-spec.json Schema below. Schema mistakes (e.g. `field` instead of `name`, array sampleRows instead of objects) silently render empty PNGs — verify by inspecting the resulting ALV byte size (~12 KB normal, ~1 KB = empty grid).
   2. **Run the single entry point** — [build-spec.mjs](../../tools/spec/build-spec.mjs):
      ```bash
      node tools/spec/build-spec.mjs <tr.json> <image-spec.json> <out.xlsx>
      ```
-     (path relative to the harness repo root). Internally: `cloneTemplate(tr)` → `renderScreenImages(imageSpec)` → `swapImages(xlsxPath, …pngBuffers)`. Default output path is `.sc4sap/specs/{OBJECT}-{YYYYMMDD}-{lang}.xlsx`. Pass `-` for the image-spec argument to skip image rendering and ship the text-only spec with the template's generic mockups (rare — only when no per-program imagery makes sense).
+     (path relative to the harness repo root). Internally: `cloneTemplate(tr)` → `renderScreenImages(imageSpec)` → `swapImages(xlsxPath, …pngBuffers)`. Default output path is `.sapkit/specs/{OBJECT}-{YYYYMMDD}-{lang}.xlsx`. Pass `-` for the image-spec argument to skip image rendering and ship the text-only spec with the template's generic mockups (rare — only when no per-program imagery makes sense).
   3. **Verify the artifact** — output size ≈ 95–110 KB depending on PNG sizes. `unzip -l` lists `xl/sharedStrings.xml` + `xl/media/image1.png` + `image2.png` + `image3.png` + `xl/drawings/drawing3.xml` + `drawing4.xml`. Open in Excel and scan every sheet — geometry MUST match [template_base.xlsx](../../assets/spec/template_base.xlsx), Sheet 3 shows the program-specific Selection + ALV, Sheet 4 shows the horizontal Process Flow under the heading.
   4. **Cleanup** — leave both JSON files in `_tr/` and `_img/` for traceability. Remove only ephemeral files (probes, smoke tests).
 
@@ -220,7 +220,7 @@ The Excel output is produced by cloning [template_base.xlsx](../../assets/spec/t
 }
 ```
 
-Flat object · key = English source string from the template's sharedStrings.xml · value = target-language replacement for THIS program. Persist to `.sc4sap/specs/_tr/{OBJECT}-{YYYYMMDD}.tr.json` (UTF-8, pretty-printed).
+Flat object · key = English source string from the template's sharedStrings.xml · value = target-language replacement for THIS program. Persist to `.sapkit/specs/_tr/{OBJECT}-{YYYYMMDD}.tr.json` (UTF-8, pretty-printed).
 
 ### Slot semantics
 
@@ -323,7 +323,7 @@ PNG signature is verified before any write; non-PNG input is rejected without to
 Spec generated: ZSDR_OPEN_ORDER_ALV
 Depth: L2 Standard · Format: markdown · Lang: ko
 Sections: 9 · Tables referenced: 6 · Screens: 1 · GUI status: 1
-File: .sc4sap/specs/ZSDR_OPEN_ORDER_ALV-20260414-ko.md
+File: .sapkit/specs/ZSDR_OPEN_ORDER_ALV-20260414-ko.md
 
 Top-level summary:
   Report that lists open sales orders by Sales Organization and date range and displays them via ALV.

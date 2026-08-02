@@ -35,7 +35,7 @@ Both print the official body text (description, restrictions, examples / config 
 ## Rules
 
 - **Cite the Source URL** of the fetched page. Never present help.sap.com content from memory when it can be fetched.
-- **Specify the SAP release.** The functional fetcher prints the resolved version; if it resolved from `LATEST` that is a FALLBACK, not authoritative — for release-specific guidance pass `?version=<rel>` in the URL and confirm it matches the project's `.sc4sap/config.json` release (ECC vs S/4HANA).
+- **Specify the SAP release.** The functional fetcher prints the resolved version; if it resolved from `LATEST` that is a FALLBACK, not authoritative — for release-specific guidance pass `?version=<rel>` in the URL and confirm it matches the project's `.sapkit/config.json` release (ECC vs S/4HANA).
 - **Role split.** Module consultant personas fetch their OWN module's functional/config docs only; ABAP keyword/language lookups and deep cross-topic doc research belong to the [sap-doc-specialist](../personas/sap-doc-specialist.md) persona.
 - **Manual fallback.** `fetch-abap-keyword-doc.mjs` / `fetch-sap-help-doc.mjs` ship with this plugin at `tools/fetch/`. If `$CLAUDE_PLUGIN_ROOT` is unavailable in your environment, do it manually (same mechanism — see "Why these work"): for ABAP keyword docs, `curl` the `.html` page (not the `.htm` SPA route) and read the `par*/ul*/code*` strings from the embedded JSONModel literal; for functional docs, call `http.svc/deliverableMetadata` (→ `data.deliverable.id`) then `http.svc/pagecontent` (→ `data.body`).
 

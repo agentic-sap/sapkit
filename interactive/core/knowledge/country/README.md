@@ -18,8 +18,8 @@ This folder holds per-country localization and regulatory characteristics that S
 ## How to Identify Country
 
 Resolution order:
-1. `.sc4sap/config.json` → `country` field (canonical plugin-side source, ISO-3166 alpha-2 like `KR`, `US`, `DE`)
-2. `.sc4sap/sap.env` → `SAP_COUNTRY` (MCP-server mirror)
+1. `.sapkit/config.json` → `country` field (canonical plugin-side source, ISO-3166 alpha-2 like `KR`, `US`, `DE`)
+2. `.sapkit/sap.env` → `SAP_COUNTRY` (MCP-server mirror)
 3. Inferred from company-code country (`T001.LAND1`) when analyzing a specific CoCode
 4. Ask the user if unset
 
@@ -69,4 +69,4 @@ Each country file contains:
 1. Copy an existing file as a template (e.g., `kr.md` for APAC, `de.md` for EU).
 2. Fill in the sections above.
 3. Add a row to the table in this README.
-4. If agents will actively need it, update `.sc4sap/config.json` → `country` and `sap.env` → `SAP_COUNTRY` via `the profile settings (edit .sc4sap/config.json — see core/procedures/troubleshooting.md)`.
+4. If agents will actively need it, update `.sapkit/config.json` → `country` and `sap.env` → `SAP_COUNTRY` via `the profile settings (edit .sapkit/config.json — see core/procedures/troubleshooting.md)`.

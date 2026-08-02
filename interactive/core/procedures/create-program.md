@@ -47,7 +47,7 @@ self-completing unit — map its phases to that Policy:
   `unattended` (`unattended` is sealed — D-025 §7). Reaching a SAP-write or
   completion request elevates the run to **Guided** — a present operator explicitly
   proceeds; it does not auto-run on its own.
-- **`.sc4sap/**` files are working material, not completion proof.** A successful
+- **`.sapkit/**` files are working material, not completion proof.** A successful
   MCP create / activation makes an object **PROVISIONAL_WRITE**, not done.
 - **COMPLETE requires both** an exact-subject fresh-context review **R-PASS** and a
   vsp-backed **V-PASS** (source read-back · syntax · activate · unit · ATC). Absent
@@ -97,8 +97,8 @@ When the Phase 2 object list includes a new Table, Data Element, or Domain AND `
 The entire development approach (tables, BAPIs, CDS availability, ABAP syntax, RAP eligibility) depends on the SAP platform and release.
 
 Steps:
-1. Read `.sc4sap/config.json` for `sapVersion`, `abapRelease`, and `activeModules`
-   - Also read `.sc4sap/sap.env` → `SAP_ACTIVE_MODULES` as fallback
+1. Read `.sapkit/config.json` for `sapVersion`, `abapRelease`, and `activeModules`
+   - Also read `.sapkit/sap.env` → `SAP_ACTIVE_MODULES` as fallback
    - Load `../knowledge/modules/common/active-modules.md` (if present) and precompute the cross-module concern list for the program's primary module. Every downstream phase (planning, spec, implementation) receives this list and must factor in integration fields (e.g., MM primary + PS active → add `PS_POSID`).
 2. If missing or stale, ask the user to confirm:
    - **ECC** (ECC 6.0) — classical DDIC, LFA1/KNA1/BKPF/BSEG/MKPF/MSEG world, SAPGUI only
@@ -114,7 +114,7 @@ Branching consequences:
 - **S/4HANA Cloud Private**: classical Dynpro technically possible but discouraged; warn the user and confirm intent before proceeding.
 
 Outputs:
-- `.sc4sap/program/{PROG}/platform.md` — resolved platform, release, and constraints
+- `.sapkit/program/{PROG}/platform.md` — resolved platform, release, and constraints
 - Interview dimensions pre-filtered by platform (e.g., ALV-Full hidden on Cloud Public)
 
 ## Phase 1 — Two-Stage Socratic Interview (MANDATORY — never skip, never shortcut, never merge)
@@ -151,17 +151,17 @@ Recovery clause: if you already bulk-proposed (protocol violation), apologize, r
 **Trigger**: as soon as Phase 0 closes. If the target module is unclear from the initial request, the FIRST question is "which module?" — the consultant persona cannot be adopted until resolved. Multi-module: work through each module's consultant perspective and reconcile the question streams.
 
 **Industry / Country context preflight (MANDATORY — runs before the first business question)**:
-- Read `.sc4sap/config.json` (`industry`, `country`) and `.sc4sap/sap.env` (`SAP_INDUSTRY`, `SAP_COUNTRY`). Precedence: `config.json` > `sap.env`.
+- Read `.sapkit/config.json` (`industry`, `country`) and `.sapkit/sap.env` (`SAP_INDUSTRY`, `SAP_COUNTRY`). Precedence: `config.json` > `sap.env`.
 - If `industry` is set → load `../knowledge/industry/<key>.md` and use it as the consultant's business-context backdrop (do NOT re-ask the user).
 - If `country` is set → load `../knowledge/country/<iso>.md` (ISO alpha-2 lowercase, e.g. `kr`, `us`, `de`, or `eu-common` for EU-wide); multi-country: load each file and flag intercompany / intra-EU / transfer-pricing touchpoints. Do NOT re-ask the user.
 - If either value is missing → asking is MANDATORY before dimension 1. Do not infer from the project name, package, or prior interviews. Blocking questions:
   - Industry missing: *"Which industry does this program belong to? (see [industry/README.md](../knowledge/industry/README.md) for the supported keys — e.g. `automotive`, `retail`, `pharmaceutical`, …)"*
   - Country missing: *"Which country / localization applies? (ISO alpha-2 lowercase, e.g. `kr`, `us`, `de`, or `eu-common` for EU-wide; multiple allowed)"*
-- Offer to persist the answer: *"Save to `.sc4sap/config.json` so future runs skip this question? (yes/no)"*. On `yes`, write the value; on `no`, keep it for this run only.
+- Offer to persist the answer: *"Save to `.sapkit/config.json` so future runs skip this question? (yes/no)"*. On `yes`, write the value; on `no`, keep it for this run only.
 - Record resolved values in the `module-interview.md` header (`industry:`, `country:`, `source: config.json | sap.env | user-this-run`).
 
 **Project knowledge preflight (MANDATORY — runs with the above, before dimension 1)**:
-- Read `.sc4sap/knowledge/domain.md` and `.sc4sap/knowledge/system.md` if present — the business and this-system facts earlier runs had to find out. Absent directory → continue silently.
+- Read `.sapkit/knowledge/domain.md` and `.sapkit/knowledge/system.md` if present — the business and this-system facts earlier runs had to find out. Absent directory → continue silently.
 - A **`KD-` atom** is established context and is **not re-asked** — state it back citing the id (*"KD-007 already records that closing is reversible here — confirming rather than re-asking"*) and spend the dimension on what it does not cover. This is what makes a second program on the same system cheaper than the first.
 - A **`KS-` atom** counts as established only when its `scope:` matches this run's profile/SID/client; a non-matching one is a hint to confirm, not a fact.
 - Anything under **`## Pending`** carries no evidence — ask it as a normal dimension question.
@@ -180,7 +180,7 @@ Recovery clause: if you already bulk-proposed (protocol violation), apologize, r
 
 **Gate**: business ambiguity ≤ 5%.
 
-**Output**: `.sc4sap/program/{PROG}/module-interview.md`
+**Output**: `.sapkit/program/{PROG}/module-interview.md`
 
 **Enforcement**: Phase 1B refuses to start if this file is missing or its ambiguity score > 5%.
 
@@ -205,7 +205,7 @@ For each dimension, you may propose a recommended default (derived from Phase 1A
 
 **Gate**: technical ambiguity ≤ 5%. Do NOT proceed to Phase 2 until ≤ 5%.
 
-**Output**: `.sc4sap/program/{PROG}/interview.md` — one Q&A block per resolved dimension and a final ambiguity score ≤ 5%.
+**Output**: `.sapkit/program/{PROG}/interview.md` — one Q&A block per resolved dimension and a final ambiguity score ≤ 5%.
 
 **Enforcement**: the Phase 2 planning step MUST refuse to run if either `module-interview.md` or `interview.md` is missing or incomplete. Both files are passed forward to Phase 2 so planning does not re-interview.
 
@@ -213,23 +213,23 @@ For each dimension, you may propose a recommended default (derived from Phase 1A
 
 Two back-to-back inventory passes feed every downstream phase.
 
-**CBO Inventory Lookup** — output `.sc4sap/program/{PROG}/cbo-context.md`:
+**CBO Inventory Lookup** — output `.sapkit/program/{PROG}/cbo-context.md`:
 1. Resolve `<MODULE>` (Phase 1A) and `<PACKAGE>` (Phase 1B dimension 6).
-2. Check whether `.sc4sap/cbo/<MODULE>/<PACKAGE>/inventory.json` exists.
+2. Check whether `.sapkit/cbo/<MODULE>/<PACKAGE>/inventory.json` exists.
    - **Exists** → read it. Extract the `objects[]` array. Treat every entry as a reuse candidate and surface it in Phase 2 / Phase 3 so planning and spec writing prefer the existing asset over creating a new one.
    - **Does not exist** → offer the user three options in one question:
-     > "No CBO inventory at `.sc4sap/cbo/<MODULE>/<PACKAGE>/`. Pick one: **(A) stock now** — I will stock the package inline (~2-5 min, recommended) · **(B) skip** — continue without reuse analysis · **(C) cancel** — run the `analyze-cbo-obj` procedure separately first."
+     > "No CBO inventory at `.sapkit/cbo/<MODULE>/<PACKAGE>/`. Pick one: **(A) stock now** — I will stock the package inline (~2-5 min, recommended) · **(B) skip** — continue without reuse analysis · **(C) cancel** — run the `analyze-cbo-obj` procedure separately first."
      - **(A) stock now** → Adopt the [sap-stocker](../personas/sap-stocker.md) persona for this step and stock the CBO package `<PACKAGE>` (module `<MODULE>`) per that persona's investigation protocol. On success, re-read the freshly written `inventory.json` and continue to step 3. If stocking is blocked, surface the reason, fall back to option (B), and log `cbo_inventory: "stock_failed: <reason>"`.
-     - **(B) skip** → record `cbo_inventory: "skipped"` in `.sc4sap/program/{PROG}/platform.md` and continue.
+     - **(B) skip** → record `cbo_inventory: "skipped"` in `.sapkit/program/{PROG}/platform.md` and continue.
      - **(C) cancel** → stop the procedure and let the user run `analyze-cbo-obj` manually.
-3. Persist the loaded inventory to `.sc4sap/program/{PROG}/cbo-context.md` — one bullet per reusable object: name · type · role · one-line purpose · `reuse_hint`. Phases 2–4 all read this file.
+3. Persist the loaded inventory to `.sapkit/program/{PROG}/cbo-context.md` — one bullet per reusable object: name · type · role · one-line purpose · `reuse_hint`. Phases 2–4 all read this file.
 
-**Customization Inventory Lookup** — runs immediately after the CBO lookup, same resolved `<MODULE>`; output `.sc4sap/program/{PROG}/customization-context.md`:
-1. Check whether `.sc4sap/customizations/<MODULE>/enhancements.json` and/or `.sc4sap/customizations/<MODULE>/extensions.json` exist.
+**Customization Inventory Lookup** — runs immediately after the CBO lookup, same resolved `<MODULE>`; output `.sapkit/program/{PROG}/customization-context.md`:
+1. Check whether `.sapkit/customizations/<MODULE>/enhancements.json` and/or `.sapkit/customizations/<MODULE>/extensions.json` exist.
    - **Exists** → read both. Treat every `badiImplementations[]`, `cmodProjects[]`, `formBasedExits[]`, and `appendStructures[]` entry as a reuse candidate.
    - **Does not exist** → print one line to the user:
-     > "No customization inventory at `.sc4sap/customizations/<MODULE>/`. Run the `setup customizations` procedure to scan this module's Z*/Y* enhancements first, or type `skip` to proceed without customization reuse analysis."
-     If the user skips, record `customization_inventory: "skipped"` in `.sc4sap/program/{PROG}/platform.md` and continue.
+     > "No customization inventory at `.sapkit/customizations/<MODULE>/`. Run the `setup customizations` procedure to scan this module's Z*/Y* enhancements first, or type `skip` to proceed without customization reuse analysis."
+     If the user skips, record `customization_inventory: "skipped"` in `.sapkit/program/{PROG}/platform.md` and continue.
 2. Persist the loaded inventory to `customization-context.md`. One bullet per entry:
    - BAdI impl: `• BAdI {standardName} → existing impl {Z*_CLASS} (impl name: {impl_name}) — reuse target for any new hook into this BAdI`
    - CMOD project: `• SMOD {standardName} → existing CMOD project {Z_PROJECT} — add new components here instead of creating a second project`
@@ -259,7 +259,7 @@ already recorded → no prompt.
 
 Adopt the [sap-planner](../personas/sap-planner.md) persona for this step.
 
-If `.sc4sap/RULES.md` (written by the [lesson](./lesson.md) procedure) exists, read the rules relevant to this program before planning; matching rules are hard constraints. If absent, continue silently.
+If `.sapkit/RULES.md` (written by the [lesson](./lesson.md) procedure) exists, read the rules relevant to this program before planning; matching rules are hard constraints. If absent, continue silently.
 
 - **Inputs (mandatory read before planning)**: `module-interview.md` (business context, standard-SAP rejections, reference assets) AND `interview.md` (technical decisions). Reconcile both — if a Phase 1B technical choice contradicts a Phase 1A business rule (e.g., chose custom Z-table when the consultant proposed standard CDS), raise the conflict back to the user before producing `plan.md`.
 - **CBO reuse gate (mandatory when `cbo-context.md` exists)**: before designing any new Z-object (table / structure / class / FM / data element), scan `cbo-context.md` for a reuse candidate. Default to reuse when role + FK pattern + purpose overlap. Every new-object proposal in the plan must include a one-line justification of why no CBO candidate fits.
@@ -268,15 +268,15 @@ If `.sc4sap/RULES.md` (written by the [lesson](./lesson.md) procedure) exists, r
 - **Consultant consultation (mandatory when requirements touch SAP business configuration)**:
   - Identify the affected SAP module(s) from the interview output (SD / MM / FI / CO / PP / PS / QM / PM / WM / HCM / TM / TR / Ariba / BW / BC)
   - Adopt the corresponding `sap-{module}-consultant` persona for this sub-step (see the [persona index](../personas/INDEX.md))
-  - Check for a local SPRO cache at `.sc4sap/spro-config.json` before querying live
+  - Check for a local SPRO cache at `.sapkit/spro-config.json` before querying live
   - Resolve SPRO data per [spro-lookup.md](./spro-lookup.md) (priority: local cache → static module docs under `../knowledge/modules/{MODULE}/` → live query with user confirmation)
   - Consultant output: business-aligned recommendations — relevant IMG customizing tables/views, master data dependencies, standard BAPIs/FMs to leverage, authorization objects, integration touchpoints with neighboring modules
-  - File: `.sc4sap/program/{PROG}/consult-{module}.md` (one per consulted module)
+  - File: `.sapkit/program/{PROG}/consult-{module}.md` (one per consulted module)
   - For multi-module scenarios, consult each module in turn and reconcile as planner
 - Integrate consultant inputs into the final plan
 - Output: include list, screen numbers, class names, transport plan, test coverage, referenced SPRO views / standard APIs / authorization objects
 - **ECC DDIC sequencing**: if the object list includes new DDIC objects on ECC, sequence the DDIC fallback helpers first (see the ECC DDIC Fallback Gate above)
-- File: `.sc4sap/program/{PROG}/plan.md`
+- File: `.sapkit/program/{PROG}/plan.md`
 
 **Skip consultant when**: pure technical utility with no business logic (e.g., a generic string helper class, a pure file converter) — plan alone.
 
@@ -288,7 +288,7 @@ Adopt the [sap-writer](../personas/sap-writer.md) persona for this step. The spe
 - **CBO reuse (mandatory when `cbo-context.md` exists)**: every spec section that references an existing CBO asset must name it explicitly (e.g., "writes to existing table `ZSD_ORDER_LOG`") and include a one-line reason for reuse.
 - **Customization reuse (mandatory when `customization-context.md` exists)**: when the spec extends a BAdI / SMOD / form-based exit / append, it MUST reference the existing `Z*`/`Y*` implementation class, CMOD project, include, or append structure by name (e.g., "add new method to existing BAdI impl `ZCL_SD_ORDER_IMPL`"; "extend existing append `CI_VBAK_ZZ` with field `ZZ_DELIVERY_PRIORITY`"). Never silently introduce a parallel Z-object when a reuse target exists in `customization-context.md`.
 - **MANDATORY before writing**: open and read every shared convention file applicable to the program type — [alv-rules.md](../knowledge/abap/conventions/alv-rules.md), [text-element-rule.md](../knowledge/abap/conventions/text-element-rule.md), [constant-rule.md](../knowledge/abap/conventions/constant-rule.md), [oop-pattern.md](../knowledge/abap/conventions/oop-pattern.md) if OOP, [procedural-form-naming.md](../knowledge/abap/conventions/procedural-form-naming.md) if Procedural, [naming-conventions.md](../knowledge/abap/conventions/naming-conventions.md), [include-structure.md](../knowledge/abap/conventions/include-structure.md). The spec must NOT contain instructions that contradict these conventions (e.g., "build LVC_T_FCAT manually" contradicts the SALV-factory rule in alv-rules.md). When the spec describes a technique, paraphrase the convention's prescribed approach — never invent a shortcut.
-- File: `.sc4sap/program/{PROG}/spec.md`
+- File: `.sapkit/program/{PROG}/spec.md`
 
 ### Spec template (minimum sections)
 
@@ -347,12 +347,12 @@ Required steps:
 3. If the user responds with change requests (e.g., "rename the class", "skip the Dynpro", "add one more field"), loop: revise `spec.md` → re-display → wait again. Do not silently merge comments and proceed.
 4. Only after explicit approval:
    - Append the `## Approval` section to `spec.md` (approver / timestamp / keyword).
-   - Compute the SHA-256 of the approved `spec.md` and write `.sc4sap/program/{PROG}/approval.json` conforming to [schemas/approval.schema.json](./schemas/approval.schema.json) — this binds the approval to the exact spec content (`spec_sha256`) AND the target system (`sid` / `client` / `tier` from the active connection profile in `.sc4sap/sap.env` / `.sc4sap/config.json`, plus the `transport` from Phase 1B dimension 6).
+   - Compute the SHA-256 of the approved `spec.md` and write `.sapkit/program/{PROG}/approval.json` conforming to [schemas/approval.schema.json](./schemas/approval.schema.json) — this binds the approval to the exact spec content (`spec_sha256`) AND the target system (`sid` / `client` / `tier` from the active connection profile in `.sapkit/sap.env` / `.sapkit/config.json`, plus the `transport` from Phase 1B dimension 6).
    - Then move to Phase 3.5.
 
 User-facing message (verbatim template):
 
-> 📋 **Spec ready for review** — `.sc4sap/program/{PROG}/spec.md`
+> 📋 **Spec ready for review** — `.sapkit/program/{PROG}/spec.md`
 >
 > Please read the spec end-to-end. When you are satisfied, reply with **one** of these approval keywords to unlock Phase 4 (implementation):
 >
@@ -361,7 +361,7 @@ User-facing message (verbatim template):
 > Any other response (including "yes", "alright", "그냥 해", "빨리", "try it") is treated as **change request** — please describe what to revise.
 
 **Enforcement contract** — Phase 4 MUST refuse to run if any of the following is true:
-- `.sc4sap/program/{PROG}/spec.md` does not exist
+- `.sapkit/program/{PROG}/spec.md` does not exist
 - `spec.md` lacks a `## Approval` footer section with at least one approval keyword
 - `approval.json` is missing, does not validate against [schemas/approval.schema.json](./schemas/approval.schema.json), or its `spec_sha256` no longer matches the current `spec.md` (meaning a change arrived post-approval — needs re-approval)
 - `approval.json`'s `sid` / `client` do not match the currently connected system
@@ -420,7 +420,7 @@ asking is `auto`. If the harness provides no worker mechanism, say so and contin
 
 ### Step 2 — Persist Selection
 
-Write the selection to `.sc4sap/program/{PROG}/state.json` under `execution_mode`. Also record the resolved `execution_owner` and `selection_source` (`explicit` | `auto`) from [development-loop.md](../policies/development-loop.md) alongside it. Also log phase timestamps here (see the state.json schema below).
+Write the selection to `.sapkit/program/{PROG}/state.json` under `execution_mode`. Also record the resolved `execution_owner` and `selection_source` (`explicit` | `auto`) from [development-loop.md](../policies/development-loop.md) alongside it. Also log phase timestamps here (see the state.json schema below).
 
 ### Step 3 — Mode Semantics
 
@@ -471,7 +471,7 @@ Flow (source-first, single syntax check on the main program, batch activation):
 
 Apply shared conventions throughout: [oop-pattern.md](../knowledge/abap/conventions/oop-pattern.md) (OOP), [alv-rules.md](../knowledge/abap/conventions/alv-rules.md), [text-element-rule.md](../knowledge/abap/conventions/text-element-rule.md), [constant-rule.md](../knowledge/abap/conventions/constant-rule.md), [procedural-form-naming.md](../knowledge/abap/conventions/procedural-form-naming.md) (Procedural), [naming-conventions.md](../knowledge/abap/conventions/naming-conventions.md), [clean-code.md](../knowledge/abap/conventions/clean-code.md) + the paradigm-specific clean-code file.
 
-On completion, record the `check_syntax` and `activate` step results (status + evidence) into `.sc4sap/program/{PROG}/verification.json` per [schemas/verification.schema.json](./schemas/verification.schema.json).
+On completion, record the `check_syntax` and `activate` step results (status + evidence) into `.sapkit/program/{PROG}/verification.json` per [schemas/verification.schema.json](./schemas/verification.schema.json).
 
 In `manual`/`hybrid` mode: prompt the user before starting Phase 4; do NOT prompt mid-flow once started.
 
@@ -489,7 +489,7 @@ Adopt the [sap-qa-tester](../personas/sap-qa-tester.md) persona for this step.
 - On FAIL: fix production code (not tests) → re-activate → re-run (loop until green or 3 attempts)
 - In `manual`/`hybrid` mode: prompt before starting Phase 5 (unless a skip condition matched, then auto-skip with a message)
 
-**Verification record** — update `.sc4sap/program/{PROG}/verification.json` per [schemas/verification.schema.json](./schemas/verification.schema.json):
+**Verification record** — update `.sapkit/program/{PROG}/verification.json` per [schemas/verification.schema.json](./schemas/verification.schema.json):
 - `unit_test`: PASS/FAIL with the test result summary as evidence; `SKIPPED` when Phase 5 was skipped
 - `atc`: run `GetAtcFindings` on the created objects if the backend supports it and record the outcome; otherwise record `SKIPPED` with the reason
 
@@ -511,7 +511,7 @@ Steps:
    exists so the reviewer can judge `unit_test`/`atc` gaps fairly; it never exempts
    `check_syntax`/`activate`.
 2. Re-compute the SHA-256 of `spec.md` and confirm it still matches `approval.json.spec_sha256`. On mismatch, STOP — the spec changed after approval; return to the Spec Approval Gate.
-3. Write `.sc4sap/program/{PROG}/review-request.json` conforming to [schemas/review-request.schema.json](./schemas/review-request.schema.json) — `spec_sha256`, `sid`, `client`, `transport`, and the `objects[]` list created in Phase 4 (with types: PROG/P, PROG/I, DYNP, CUAD, …).
+3. Write `.sapkit/program/{PROG}/review-request.json` conforming to [schemas/review-request.schema.json](./schemas/review-request.schema.json) — `spec_sha256`, `sid`, `client`, `transport`, and the `objects[]` list created in Phase 4 (with types: PROG/P, PROG/I, DYNP, CUAD, …).
    - If any backend service/tool was down during Phase 4/5 (e.g. an ADT endpoint returning 404/500, causing a verification step to be recorded `SKIPPED` in `verification.json`), attach it under `environment_context.known_outages[]` so the reviewer does not miscount the gap as a code defect.
    - The same applies when Screen / GUI Status / Text Element steps were SKIPPED in Phase 4 because the `ZMCP_ADT_DISPATCH`/`ZMCP_ADT_TEXTPOOL` FMs are absent or the RFC backend is not configured: record one `known_outages[]` entry with `component` (e.g. `"ZMCP_ADT_DISPATCH/TEXTPOOL FMs not installed — RFC dispatch unavailable"`), `affected_step` (which Phase 4 step was skipped and how), and `observed_at`. Remediation: [install-sap-assets](install-sap-assets.md).
    - If the user approved a deviation from `spec.md` during this run, attach it under `environment_context.approved_deviations[]` with who/when/why it was approved, so the reviewer does not re-flag it as a violation.
@@ -523,7 +523,7 @@ Steps:
    note). It returns its verdict as review-result JSON, conforming to
    [schemas/review-result.schema.json](./schemas/review-result.schema.json), in its final
    response. **The main context** (back in this context) validates that JSON against the schema
-   and, on success, writes it to `.sc4sap/program/{PROG}/review-result.json`. On
+   and, on success, writes it to `.sapkit/program/{PROG}/review-result.json`. On
    schema-validation failure, treat the run as blocked — do not fabricate a passing result —
    and re-run the reviewer in a fresh context.
 6. Handle the verdict (as the main context, back in this context):
@@ -561,8 +561,8 @@ Adopt the [sap-writer](../personas/sap-writer.md) persona for this step.
 After completion, a verified root cause likely to recur may be proposed for capture via the [lesson](./lesson.md) procedure — user approval required; never auto-promote.
 
 **Pre-condition (HARD GATE)**: ALL of the following must hold. If any is unmet, return to Phase 6 — do not write the report and do not tell the user the program is done:
-- `.sc4sap/program/{PROG}/review-result.json` exists with `verdict: "PASS"` and its `reviewed_spec_sha256` equals `approval.json.spec_sha256`.
-- `.sc4sap/program/{PROG}/verification.json` satisfies the gate matrix: `check_syntax = PASS AND activate = PASS AND unit_test ∈ {PASS, SKIPPED (with a reason recorded in evidence)} AND atc ∈ {PASS, SKIPPED (with a reason recorded in evidence)}`. Per [schemas/verification.schema.json](./schemas/verification.schema.json), `check_syntax`/`activate` cannot legally be `SKIPPED` — anything other than `PASS` on either fails this gate.
+- `.sapkit/program/{PROG}/review-result.json` exists with `verdict: "PASS"` and its `reviewed_spec_sha256` equals `approval.json.spec_sha256`.
+- `.sapkit/program/{PROG}/verification.json` satisfies the gate matrix: `check_syntax = PASS AND activate = PASS AND unit_test ∈ {PASS, SKIPPED (with a reason recorded in evidence)} AND atc ∈ {PASS, SKIPPED (with a reason recorded in evidence)}`. Per [schemas/verification.schema.json](./schemas/verification.schema.json), `check_syntax`/`activate` cannot legally be `SKIPPED` — anything other than `PASS` on either fails this gate.
 
 **Completion state (report exactly one, per the Track A state model — see the
 "Track A Policy Alignment" section above):**
@@ -581,7 +581,7 @@ After completion, a verified root cause likely to recur may be proposed for capt
   the two required stamps. Run the chain with the shipped runner
   [tools/vpass/vpass.mjs](../../tools/vpass/vpass.mjs) —
   `node "$CLAUDE_PLUGIN_ROOT/tools/vpass/vpass.mjs" --source-dir <dir> PROG {PROG}`
-  (`--dry-run` first) — which writes the verdict record to `.sc4sap/vpass/`. Run it
+  (`--dry-run` first) — which writes the verdict record to `.sapkit/vpass/`. Run it
   via the [`vpass` skill](../../skills/vpass/SKILL.md) (`/sapkit:vpass`) instead of
   typing the raw command. Read that record's `limits[]` before quoting the stamp:
   its syntax/activation evidence is indirect and does not replace the
@@ -598,7 +598,7 @@ Report inputs (from local state, no re-fetching):
 - Timing summary — per-phase `ts` fields from `state.json` so the report can render a total-duration table
 - User conversation language (so the report localizes — Korean / English / Japanese / etc.)
 
-Output: `.sc4sap/program/{PROG}/report.md`
+Output: `.sapkit/program/{PROG}/report.md`
 
 In `manual`/`hybrid` mode: prompt the user before writing the report.
 
@@ -608,20 +608,20 @@ In `manual`/`hybrid` mode: prompt the user before writing the report.
 
 ## State Files
 
-- `.sc4sap/program/{PROG}/platform.md` — Phase 0 preflight output
-- `.sc4sap/program/{PROG}/module-interview.md` — Phase 1A business interview (purpose / reason / company-specific rules / reference assets / standard-SAP alternatives)
-- `.sc4sap/program/{PROG}/interview.md` — Phase 1B technical interview (7-dimension Q&A log)
-- `.sc4sap/program/{PROG}/cbo-context.md` — CBO reuse candidates
-- `.sc4sap/program/{PROG}/customization-context.md` — Z*/Y* BAdI impl / CMOD / form-exit / append reuse candidates
-- `.sc4sap/program/{PROG}/consult-{module}.md` — Phase 2 consultant outputs (one per module)
-- `.sc4sap/program/{PROG}/plan.md` — Phase 2 output
-- `.sc4sap/program/{PROG}/spec.md` — Phase 3 output (requires human approval)
-- `.sc4sap/program/{PROG}/approval.json` — approval record bound to spec hash + system ([schema](./schemas/approval.schema.json))
-- `.sc4sap/program/{PROG}/state.json` — execution_mode + per-phase status/timing (schema below, drives resume support)
-- `.sc4sap/program/{PROG}/verification.json` — check_syntax / activate / unit_test / atc step results ([schema](./schemas/verification.schema.json))
-- `.sc4sap/program/{PROG}/review-request.json` — Phase 6 reviewer input ([schema](./schemas/review-request.schema.json))
-- `.sc4sap/program/{PROG}/review-result.json` — Phase 6 reviewer verdict ([schema](./schemas/review-result.schema.json))
-- `.sc4sap/program/{PROG}/report.md` — final completion report
+- `.sapkit/program/{PROG}/platform.md` — Phase 0 preflight output
+- `.sapkit/program/{PROG}/module-interview.md` — Phase 1A business interview (purpose / reason / company-specific rules / reference assets / standard-SAP alternatives)
+- `.sapkit/program/{PROG}/interview.md` — Phase 1B technical interview (7-dimension Q&A log)
+- `.sapkit/program/{PROG}/cbo-context.md` — CBO reuse candidates
+- `.sapkit/program/{PROG}/customization-context.md` — Z*/Y* BAdI impl / CMOD / form-exit / append reuse candidates
+- `.sapkit/program/{PROG}/consult-{module}.md` — Phase 2 consultant outputs (one per module)
+- `.sapkit/program/{PROG}/plan.md` — Phase 2 output
+- `.sapkit/program/{PROG}/spec.md` — Phase 3 output (requires human approval)
+- `.sapkit/program/{PROG}/approval.json` — approval record bound to spec hash + system ([schema](./schemas/approval.schema.json))
+- `.sapkit/program/{PROG}/state.json` — execution_mode + per-phase status/timing (schema below, drives resume support)
+- `.sapkit/program/{PROG}/verification.json` — check_syntax / activate / unit_test / atc step results ([schema](./schemas/verification.schema.json))
+- `.sapkit/program/{PROG}/review-request.json` — Phase 6 reviewer input ([schema](./schemas/review-request.schema.json))
+- `.sapkit/program/{PROG}/review-result.json` — Phase 6 reviewer verdict ([schema](./schemas/review-result.schema.json))
+- `.sapkit/program/{PROG}/report.md` — final completion report
 
 ### state.json schema (resume support)
 

@@ -199,11 +199,11 @@ Adopt the [sap-writer](../personas/sap-writer.md) persona for this step. Render 
 - `module_consultant_outputs` (optional)
 - user language
 
-Write the Markdown file to `.sc4sap/comparisons/<filename>.md` (path rule in § Output Location). Then emit a concise completion block to the user (in the user's current conversation language — English skeleton below):
+Write the Markdown file to `.sapkit/comparisons/<filename>.md` (path rule in § Output Location). Then emit a concise completion block to the user (in the user's current conversation language — English skeleton below):
 
 ```
 Comparison report generated.
-File: .sc4sap/comparisons/ZMMR_GR_LIST__vs__ZCOR_GR_LIST-20260423.md
+File: .sapkit/comparisons/ZMMR_GR_LIST__vs__ZCOR_GR_LIST-20260423.md
 Dimensions: 7 · Divergent: 3 · Variant: 2 · Same: 2
 Key divergence: ZMMR = quantity-centric (MSEG, M_MSEG_WWA) / ZCOR = cost-value-centric (ACDOCA, F_BKPF_*)
 ```
@@ -232,10 +232,10 @@ Wait for user instruction — do not loop automatically.
 
 ## Output Location
 
-`.sc4sap/comparisons/{prog1}__vs__{prog2}[__vs__{prog3}…]-{YYYYMMDD}.md`
+`.sapkit/comparisons/{prog1}__vs__{prog2}[__vs__{prog3}…]-{YYYYMMDD}.md`
 
 - Program names are uppercase, underscore-safe (slashes → `_`).
-- If the filename exceeds 120 chars (5-program case), use `.sc4sap/comparisons/compare-{YYYYMMDD}-{hash6}.md` and list the programs inside the front-matter.
+- If the filename exceeds 120 chars (5-program case), use `.sapkit/comparisons/compare-{YYYYMMDD}-{hash6}.md` and list the programs inside the front-matter.
 
 ## Report Template
 
@@ -367,7 +367,7 @@ Legend: ✅ Same · 🔷 Variant · ⚠️ Divergent · ❓ Unclear
 ## Safety Rails
 
 - Blocklist: `GetTableContents` / `GetSqlQuery` are **forbidden** in this procedure. If the user asks for sample row data to illustrate a difference, refuse per [data-extraction-policy](../policies/data-protection/data-extraction-policy.md) and document the request in the report's `Risk & Open Questions` section instead.
-- Country/Industry context: if dimension 9 is active, load `../knowledge/country/<iso>.md` based on `.sc4sap/config.json` → `country` (or `sap.env` → `SAP_COUNTRY`). If unset, ask the user once for the relevant country list.
+- Country/Industry context: if dimension 9 is active, load `../knowledge/country/<iso>.md` based on `.sapkit/config.json` → `country` (or `sap.env` → `SAP_COUNTRY`). If unset, ask the user once for the relevant country list.
 - Module activation: respect [active-modules](../knowledge/modules/common/active-modules.md) — if a module is not active in the project, flag with "(module not active in this landscape — observation only)".
 - Per-call transports: this procedure is **read-only** — never creates or modifies transports.
 

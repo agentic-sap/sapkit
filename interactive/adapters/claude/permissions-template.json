@@ -193,6 +193,9 @@
       "mcp__plugin_sapkit_sap__UpdateView",
       "mcp__plugin_sapkit_sap__ValidateServiceBinding",
       "mcp__plugin_sapkit_sap__WriteTextElementsBulk",
+      "Read(.sapkit/**)",
+      "Edit(.sapkit/**)",
+      "Grep(.sapkit/**)",
       "Read(.sc4sap/**)",
       "Edit(.sc4sap/**)",
       "Grep(.sc4sap/**)"

@@ -85,9 +85,17 @@
  * failure), `ENV_BLOCKED` (environment/lock), or `INCOMPLETE` (skips, unknowns,
  * or no local source to compare against).
  *
- * Output: `.sc4sap/vpass/<timestamp>-<target>.json` (+ a one-screen console
+ * Output: `.sapkit/vpass/<timestamp>-<target>.json` (+ a one-screen console
  * summary). The record stores hashes, counts and short excerpts — never the
  * object source text.
+ *
+ * ─────────────────────── Runtime directory (D-057) ──────────────────────────
+ * `.sapkit` is a candidate everywhere `.sc4sap` was one, and nothing else
+ * changes (R-PRESERVE): the tier walk stays 8 deep with existence as the
+ * boundary, and the record is still written under the cwd. A project that only
+ * has `.sc4sap` keeps reading and writing there (R-E); a project with neither
+ * gets `.sapkit` (R-NEW). `--resolve-only` prints exactly what was selected,
+ * without a binary, a connection, or an object list.
  *
  * ──────────────────────────────── Honesty note ──────────────────────────────
  * Not verified against a live SAP system. The chain, the parsers and the failure
@@ -137,7 +145,7 @@ const USAGE = `Usage:
 
 Runs the V-PASS completion-evidence chain against SAP with the vsp CLI —
 read-back, active-state concordance, unit, ATC — and writes
-.sc4sap/vpass/<timestamp>-<target>.json plus a console summary.
+.sapkit/vpass/<timestamp>-<target>.json plus a console summary.
 Nothing is ever written to SAP.
 
 Options:
@@ -155,6 +163,10 @@ Options:
                       call is "--version".
   --self-test         run the output-parser fixtures (measured vsp strings) and
                       exit. No binary, no connection needed.
+  --resolve-only      print the resolved runtime paths (runtime dir, output dir,
+                      profile home, vsp binary, tier source) as JSON and exit.
+                      No binary, no connection, no object list needed — this is
+                      the offline seam the runtime-path conformance suite calls.
   --help, -h          this text.
 
 Exit: 0 = V-PASS · 1 = not V-PASS (see verdict/classification in the record)
@@ -178,6 +190,9 @@ if (argv.length === 0) {
 // Dispatched at the bottom of the file: the parsers it drives close over
 // constants declared further down.
 const SELF_TEST = argv.includes('--self-test');
+// Offline path-resolution seam (D-057 §7-3): no binary, no connection, no
+// object list. Dispatched right after the path constants are computed.
+const RESOLVE_ONLY = argv.includes('--resolve-only');
 
 const OPTS = { sourceDir: null, manifest: null, skipUnit: false, dryRun: false };
 const positional = [];
@@ -186,6 +201,7 @@ for (let i = 0; i < argv.length; i++) {
   if (a === '--skip-unit') OPTS.skipUnit = true;
   else if (a === '--dry-run') OPTS.dryRun = true;
   else if (a === '--self-test') continue;
+  else if (a === '--resolve-only') continue;
   else if (a === '--source-dir') OPTS.sourceDir = argv[++i];
   else if (a === '--manifest') OPTS.manifest = argv[++i];
   else if (a.startsWith('-')) fail(`unknown option: ${a}`);
@@ -247,33 +263,121 @@ function collectObjects() {
   });
 }
 
-const OBJECTS = SELF_TEST ? [] : collectObjects();
+const OBJECTS = SELF_TEST || RESOLVE_ONLY ? [] : collectObjects();
 const PROJECT_DIR = process.cwd();
-const OUTPUT_DIR = resolve(PROJECT_DIR, '.sc4sap', 'vpass');
 
-// ── vsp binary · tier ───────────────────────────────────────────────────────
-function sc4sapHome() {
-  return process.env.SC4SAP_HOME_DIR || join(homedir(), '.sc4sap');
+// ── runtime directory (D-057) ───────────────────────────────────────────────
+const NEW_DIR = '.sapkit';
+const LEGACY_DIR = '.sc4sap';
+
+// Reason codes surfaced on stderr (CLI channel, D-057 §4-5) and in
+// --resolve-only output. One entry per code, per process.
+const REASONS = [];
+function note(code, message) {
+  if (REASONS.some((r) => r.code === code)) return;
+  REASONS.push({ code, message });
+  if (!RESOLVE_ONLY) console.error(`[vpass] ${code}: ${message}`);
 }
 
-// $VSP_BIN → <sc4sap home>/bin/vsp(.exe) → bare "vsp" from PATH.
+// Connection completeness — the R-TIE tie-break input. An empty
+// active-profile.txt does not count.
+function hasConnectionState(runtimeDir) {
+  try {
+    const pointer = join(runtimeDir, 'active-profile.txt');
+    if (existsSync(pointer) && readFileSync(pointer, 'utf8').trim().length > 0) return true;
+  } catch {
+    /* unreadable pointer is not completeness */
+  }
+  return existsSync(join(runtimeDir, 'sap.env'));
+}
+
+// R-TIE inside ONE directory. This tool's criterion is plain existence, applied
+// to each generation before the tie-break. Returns null when neither exists.
+function pickGeneration(dir) {
+  const newer = join(dir, NEW_DIR);
+  const older = join(dir, LEGACY_DIR);
+  const newOk = existsSync(newer);
+  const oldOk = existsSync(older);
+  if (newOk && oldOk) {
+    const newComplete = hasConnectionState(newer);
+    const oldComplete = hasConnectionState(older);
+    if (oldComplete && !newComplete) return older;
+    return newer; // tie → .sapkit
+  }
+  if (newOk) return newer;
+  if (oldOk) return older;
+  return null;
+}
+
+// R-E + R-NEW: the record lands in whichever generation this cwd already has;
+// with neither present it lands in `.sapkit`. (Unchanged from before: the
+// output base is the cwd, not the walked-up project root — running from a
+// subdirectory can still create a second runtime dir there, D-057 §4-3.)
+const RUNTIME_DIR = pickGeneration(PROJECT_DIR) ?? join(PROJECT_DIR, NEW_DIR);
+const OUTPUT_DIR = resolve(RUNTIME_DIR, 'vpass');
+
+// ── vsp binary · tier ───────────────────────────────────────────────────────
+// R-ENV. `SAPKIT_HOME_DIR` set but missing is a hard error — never a silent
+// fall-through to the legacy variable. Without an env var the home is picked by
+// where `probe` actually exists (`profiles/<alias>` for a profile, `bin/vsp`
+// for the binary), new generation before legacy.
+function sapkitHome(probe = null) {
+  const explicit = process.env.SAPKIT_HOME_DIR;
+  if (explicit) {
+    if (!existsSync(explicit)) {
+      console.error(
+        `[vpass] ENV_INVALID: SAPKIT_HOME_DIR points at a path that does not exist (${explicit}). ` +
+          'Refusing to fall back to SC4SAP_HOME_DIR — fix or unset it.',
+      );
+      process.exit(2);
+    }
+    return explicit;
+  }
+  const legacyEnv = process.env.SC4SAP_HOME_DIR;
+  if (legacyEnv) {
+    note('OK_LEGACY_DEPRECATED', 'SC4SAP_HOME_DIR is deprecated — rename it to SAPKIT_HOME_DIR.');
+    return legacyEnv;
+  }
+  const newHome = join(homedir(), NEW_DIR);
+  const legacyHome = join(homedir(), LEGACY_DIR);
+  if (probe) {
+    const inNew = existsSync(join(newHome, probe));
+    const inLegacy = existsSync(join(legacyHome, probe));
+    if (inNew && inLegacy) {
+      note('COEXIST_OK', `${probe} exists under both ${newHome} and ${legacyHome} — using ${newHome}.`);
+      return newHome;
+    }
+    if (inNew) return newHome;
+    if (inLegacy) {
+      note('OK_LEGACY_DEPRECATED', `${probe} resolved under the legacy home ${legacyHome}.`);
+      return legacyHome;
+    }
+  }
+  if (existsSync(newHome)) return newHome;
+  if (existsSync(legacyHome)) return legacyHome;
+  return newHome;
+}
+
+// $VSP_BIN → <sapkit home>/bin/vsp(.exe) → bare "vsp" from PATH.
 function resolveVspBinary() {
   const name = process.platform === 'win32' ? 'vsp.exe' : 'vsp';
   if (process.env.VSP_BIN) return { path: process.env.VSP_BIN, source: 'VSP_BIN' };
-  const installed = join(sc4sapHome(), 'bin', name);
-  if (existsSync(installed)) return { path: installed, source: 'sc4sap home' };
+  const installed = join(sapkitHome(join('bin', name)), 'bin', name);
+  if (existsSync(installed)) return { path: installed, source: 'sapkit home' };
   return { path: name, source: 'PATH' };
 }
 
-function walkUpForProject(start) {
+// Walk up for the effective runtime directory (depth 8, existence = boundary).
+function walkUpForRuntimeDir(start) {
   let dir = start;
   for (let i = 0; i < 8; i++) {
-    if (existsSync(join(dir, '.sc4sap'))) return dir;
+    const hit = pickGeneration(dir);
+    if (hit) return hit;
     const parent = dirname(dir);
     if (parent === dir) break;
     dir = parent;
   }
-  return start;
+  return join(start, NEW_DIR);
 }
 
 function parseDotenvKey(file, key) {
@@ -303,8 +407,8 @@ function resolveTier() {
   if (process.env.SAP_TIER) {
     return { value: normalize(process.env.SAP_TIER), alias: null, source: 'SAP_TIER env' };
   }
-  const projectDir = walkUpForProject(PROJECT_DIR);
-  const pointer = join(projectDir, '.sc4sap', 'active-profile.txt');
+  const runtimeDir = walkUpForRuntimeDir(PROJECT_DIR);
+  const pointer = join(runtimeDir, 'active-profile.txt');
   if (existsSync(pointer)) {
     let alias = null;
     try {
@@ -313,16 +417,42 @@ function resolveTier() {
       alias = null;
     }
     if (alias) {
-      const envPath = join(sc4sapHome(), 'profiles', alias, 'sap.env');
+      const envPath = join(sapkitHome(join('profiles', alias)), 'profiles', alias, 'sap.env');
       return { value: normalize(parseDotenvKey(envPath, 'SAP_TIER')), alias, source: envPath };
     }
   }
-  const legacy = join(projectDir, '.sc4sap', 'sap.env');
+  const legacy = join(runtimeDir, 'sap.env');
   return { value: normalize(parseDotenvKey(legacy, 'SAP_TIER')), alias: null, source: legacy };
 }
 
 const VSP = resolveVspBinary();
 const TIER = resolveTier();
+
+// ── offline path-resolution seam (D-057 §7-3) ───────────────────────────────
+// Everything above is pure path computation; nothing has spawned or connected
+// yet. The conformance runner calls this to assert the selection rules.
+if (RESOLVE_ONLY) {
+  const generationOf = (p) => (p.endsWith(NEW_DIR) ? 'sapkit' : p.endsWith(LEGACY_DIR) ? 'sc4sap' : 'other');
+  console.log(
+    JSON.stringify(
+      {
+        tool: 'vpass',
+        cwd: PROJECT_DIR,
+        runtime_dir: RUNTIME_DIR,
+        runtime_generation: generationOf(RUNTIME_DIR),
+        runtime_dir_exists: existsSync(RUNTIME_DIR),
+        output_dir: OUTPUT_DIR,
+        tier_runtime_dir: walkUpForRuntimeDir(PROJECT_DIR),
+        tier: TIER,
+        vsp: VSP,
+        reasons: REASONS,
+      },
+      null,
+      2,
+    ),
+  );
+  process.exit(0);
+}
 
 // ── vsp invocation ──────────────────────────────────────────────────────────
 // SAP_READ_ONLY=true makes vsp's write-profile gate reject any write subcommand

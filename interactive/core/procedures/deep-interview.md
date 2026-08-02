@@ -28,7 +28,7 @@ Ask targeted questions to resolve ambiguity in SAP requirements. Gate on a mathe
 
 ## Knowledge Preflight (runs before the first question)
 
-Read `.sc4sap/knowledge/domain.md` and `.sc4sap/knowledge/system.md` if they exist.
+Read `.sapkit/knowledge/domain.md` and `.sapkit/knowledge/system.md` if they exist.
 Absent directory → continue silently. See [knowledge](knowledge.md).
 
 - A **`KD-` atom** is established context — restate it citing the id instead of
@@ -74,7 +74,7 @@ Do not proceed to spec generation until score is below 5.
 ## Output
 
 When the ambiguity threshold is met:
-1. Write the validated spec to `.sc4sap/deep-interviews/sap-{timestamp}.md`
+1. Write the validated spec to `.sapkit/deep-interviews/sap-{timestamp}.md`
 2. Spec includes: object list, package, transport strategy, technical pattern, integration points, test requirements
 3. Offer: "Spec ready. Proceed with `create-program` (full program) or `create-object` (single object)?"
 4. If the interview established a business or system fact — a company-specific rule, a non-obvious status meaning, a legacy table's real grain — grep the two knowledge files for its key terms first, and only if it is **not** already recorded offer one line: *"Record `<fact>` to project knowledge? (yes/no)"*. On `yes`, follow [knowledge](knowledge.md). Nothing newly established, or already recorded → no prompt.

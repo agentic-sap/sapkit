@@ -42,7 +42,9 @@ export function hashContent(buf) {
 // 스냅샷이 "이 머신에서만 통과하는" 기록이 된다 — 실제로 clean clone에서 adapters/가
 // 18 vs 16 파일로 갈려 게이트가 깨졌다. MIGRATION-MANIFEST도 `.sc4sap/**`를
 // "MCP 런타임 상태 … 자산 아님"으로 이미 분류하고 있다.
-const NOT_ASSET_DIRS = new Set(['node_modules', '.git', '.sc4sap']);
+// `.sapkit`은 같은 것의 신세대 이름이다 (D-057) — **둘 다** 제외해야 개명 뒤에도,
+// 그리고 두 세대가 공존하는 머신에서도 같은 결함이 재발하지 않는다.
+const NOT_ASSET_DIRS = new Set(['node_modules', '.git', '.sapkit', '.sc4sap']);
 
 // 목적지 토큰(파일 또는 디렉터리) → { kind, sha256, files? }
 // 디렉터리는 정렬된 '<relpath> <contenthash>\n' 라인들의 해시(tree hash).

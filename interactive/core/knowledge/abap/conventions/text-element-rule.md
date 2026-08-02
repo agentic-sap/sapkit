@@ -29,7 +29,7 @@ SAP text pools are language-dependent. The runtime loads texts in the user's log
 
 **Rule (two passes, both MANDATORY):**
 
-1. **Primary pass — system logon language.** Create every text element in the resolved primary language (from `.sc4sap/config.json` → `systemInfo.language`, fallback to `sap.env` → `SAP_LANGUAGE`). Example: on a Korean-speaking team, primary = `'K'` with Korean source text. This is what the day-to-day users will see.
+1. **Primary pass — system logon language.** Create every text element in the resolved primary language (from `.sapkit/config.json` → `systemInfo.language`, fallback to `sap.env` → `SAP_LANGUAGE`). Example: on a Korean-speaking team, primary = `'K'` with Korean source text. This is what the day-to-day users will see.
 
 2. **Safety-net pass — `'E'` (EN), ALWAYS added.** Immediately after the primary pass, create the **same text ids again** in language `'E'` with English translations (or romanization as a stopgap if no English copy exists). Reason: any user with logon language `'E'` — admin, consultant, auditor, or a future migration user — must see populated text, not blanks. `'E'` is also SAP's conventional base language and avoids translation-fallback surprises.
 

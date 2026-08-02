@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "review-request.schema.json",
   "title": "Phase 6 Review Request",
-  "description": "Written by the worker to .sc4sap/program/{PROG}/review-request.json before launching review-checklist.md in a fresh context. Tells the read-only reviewer which spec version, which system, which transport, and which objects to review.",
+  "description": "Written by the worker to .sapkit/program/{PROG}/review-request.json before launching review-checklist.md in a fresh context. Tells the read-only reviewer which spec version, which system, which transport, and which objects to review.",
   "type": "object",
   "required": ["spec_sha256", "sid", "client", "transport", "objects"],
   "additionalProperties": false,

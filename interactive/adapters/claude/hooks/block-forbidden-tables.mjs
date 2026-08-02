@@ -4,16 +4,23 @@
  *
  * Intercepts MCP tool calls that would read row data from SAP and checks the
  * target table(s) against `core/policies/data-protection/table_exception.md`, filtered by the
- * active profile in `.sc4sap/config.json` (`blocklistProfile`).
+ * active profile in `.sapkit/config.json` (`blocklistProfile`).
  *
  * Profiles (accumulative):
  *   - minimal  — PII + credentials only
  *   - standard — minimal + Protected Business Data
  *   - strict   — everything (default)
- *   - custom   — ignore built-in; use `.sc4sap/blocklist-custom.txt` only
+ *   - custom   — ignore built-in; use `.sapkit/blocklist-custom.txt` only
  *
- * Any profile additionally honors `.sc4sap/blocklist-extend.txt` (one
+ * Any profile additionally honors `.sapkit/blocklist-extend.txt` (one
  * table name / pattern per line) if present.
+ *
+ * Runtime path rename (D-057, `.sc4sap` -> `.sapkit`): the policy source is
+ * unchanged — the config.json still comes from `resolveConfigJsonPath`, whose
+ * state definition (including config.json) is untouched. Only the directory
+ * name is doubled: `.sapkit` is a candidate wherever `.sc4sap` was one, and the
+ * user-list files are read from the SAME generation the resolver picked, so a
+ * legacy `strict` can never be replaced by a newer `minimal`.
  *
  * Failure mode: fails CLOSED (denies) on stdin/parse errors, on a blocklist
  * load exception, and when the built-in blocklist resolves to 0 entries for
@@ -28,7 +35,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { resolveConfigJsonPath } from '../lib/profile-resolve.mjs';
+import { resolveConfigJsonPath, resolveRuntimeDir } from '../lib/profile-resolve.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const EXCEPTIONS_DIR = resolve(__dirname, '..', '..', '..', 'core', 'policies', 'data-protection');
@@ -40,23 +47,32 @@ const EXCLUDED_FILES = new Set(['table_exception.md', 'data-extraction-policy.md
 const TIER_ORDER = { minimal: 1, standard: 2, strict: 3 };
 const DEFAULT_PROFILE = 'strict';
 
-// Walk up from cwd to find a project directory (one that contains .sc4sap/),
-// then resolve the active-profile.txt pointer through the shared resolver so
-// the active profile's config.json is preferred over any legacy project-local
-// config.json that may have been left behind.
+// Walk up from cwd to find a project directory (one that contains a runtime
+// dir), then resolve the active-profile.txt pointer through the shared resolver
+// so the active profile's config.json is preferred over any legacy
+// project-local config.json that may have been left behind.
+// `runtimeDir` is the generation the shared resolver selected — the user-list
+// files below must come from that same generation.
 function resolveProjectConfig() {
   let dir = process.cwd();
   for (let i = 0; i < 8; i++) {
-    if (existsSync(join(dir, '.sc4sap'))) {
+    if (existsSync(join(dir, '.sapkit')) || existsSync(join(dir, '.sc4sap'))) {
+      const runtimeDir = resolveRuntimeDir(dir);
       const hit = resolveConfigJsonPath(dir);
-      if (hit) return { configPath: hit.path, projectDir: dir, source: hit.source, alias: hit.alias };
-      return { configPath: null, projectDir: dir, source: null, alias: null };
+      if (hit) return { configPath: hit.path, projectDir: dir, runtimeDir, source: hit.source, alias: hit.alias };
+      return { configPath: null, projectDir: dir, runtimeDir, source: null, alias: null };
     }
     const parent = dirname(dir);
     if (parent === dir) break;
     dir = parent;
   }
-  return { configPath: null, projectDir: process.cwd(), source: null, alias: null };
+  return {
+    configPath: null,
+    projectDir: process.cwd(),
+    runtimeDir: resolveRuntimeDir(process.cwd()),
+    source: null,
+    alias: null,
+  };
 }
 
 function loadProfile(configPath) {
@@ -324,7 +340,7 @@ async function main() {
   const toolInput = payload.tool_input || payload.toolInput || payload.arguments || {};
   if (!/GetTableContents|GetSqlQuery/i.test(toolName)) process.exit(0);
 
-  const { configPath, projectDir } = resolveProjectConfig();
+  const { configPath, runtimeDir } = resolveProjectConfig();
   const profile = loadProfile(configPath);
 
   let builtin;
@@ -345,14 +361,15 @@ async function main() {
       `sc4sap blocklist (profile: ${profile}) — the built-in blocklist loaded 0 entries. This looks like a ` +
         'missing or broken core/policies/data-protection/ install — check that directory contains the section ' +
         '*.md files. Denying row-data extraction by default until it can be loaded (set blocklistProfile to ' +
-        '"custom" in .sc4sap/config.json if an empty built-in list is intentional).',
+        '"custom" in .sapkit/config.json if an empty built-in list is intentional).',
     );
     return;
   }
 
   const filtered = filterByProfile(builtin, profile);
-  const extendPath = resolve(projectDir, '.sc4sap', 'blocklist-extend.txt');
-  const customPath = resolve(projectDir, '.sc4sap', 'blocklist-custom.txt');
+  // Same generation as the config.json the resolver picked (D-057 §7-3 case 6).
+  const extendPath = resolve(runtimeDir, 'blocklist-extend.txt');
+  const customPath = resolve(runtimeDir, 'blocklist-custom.txt');
   const extend = loadTextList(extendPath, { category: 'User Extended', tier: 'minimal' });
   const custom = profile === 'custom' ? loadTextList(customPath, { category: 'User Custom', tier: 'minimal' }) : { exact: new Map(), patterns: [] };
 
@@ -387,7 +404,7 @@ async function main() {
       `sc4sap blocklist (profile: ${profile}) — row extraction denied:\n${lines}\n\n` +
         `See core/policies/data-protection/ (table_exception.md index, data-extraction-policy.md) for allowed alternatives ` +
         `(released CDS views, anonymized test data, COUNT/SUM aggregates, or documented one-off approval).\n` +
-        `To change scope, edit blocklistProfile in .sc4sap/config.json (see core/procedures/troubleshooting.md).`,
+        `To change scope, edit blocklistProfile in .sapkit/config.json (see core/procedures/troubleshooting.md).`,
     );
     return;
   }

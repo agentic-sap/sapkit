@@ -8,14 +8,14 @@ When you need SAP Customizing information for a module, resolve the lookup in th
 
 ### 1. Local SPRO Cache (preferred — short-circuits everything below)
 
-Check for `.sc4sap/spro-config.json` at the project root.
+Check for `.sapkit/spro-config.json` at the project root.
 
 - If present:
   - Load the file and use `modules.{MODULE}` for the target module
   - Surface the cache timestamp in your reasoning/output (e.g., "config snapshot: 2026-04-13T…")
   - **Do NOT call MCP** to re-fetch tables that already exist in the cache
   - If the user question targets a module that is missing from the cached `modules` map, fall through to Steps 2+3 for that module only
-- Module-specific cache files `.sc4sap/spro-config-{MODULE}.json` are also acceptable if the merged file is absent
+- Module-specific cache files `.sapkit/spro-config-{MODULE}.json` are also acceptable if the merged file is absent
 - If no extraction artifact exists at all (fresh checkout, extraction never run), go directly to Steps 2+3 — the static module knowledge plus a live system query covers everything the cache would
 
 Per-module populated keys typically include: customizing tables, view contents, timestamp, extraction source.
@@ -81,7 +81,7 @@ Workflow: web-search `<topic> help.sap.com` → pick the `/docs/<product>/<deliv
 
 The extractor ships with this plugin at `tools/extract/extract-spro.mjs` (pure
 Node, no npm install). It is run **by the user, from the project root** — the
-directory holding `.sc4sap/` — against the active profile:
+directory holding `.sapkit/` — against the active profile:
 
 ```bash
 node "$CLAUDE_PLUGIN_ROOT/tools/extract/extract-spro.mjs" --dry-run SD MM
@@ -89,8 +89,8 @@ node "$CLAUDE_PLUGIN_ROOT/tools/extract/extract-spro.mjs" SD MM
 node "$CLAUDE_PLUGIN_ROOT/tools/extract/extract-spro.mjs" all
 ```
 
-One module writes `.sc4sap/spro-config-{MODULE}.json`; two or more (or `all`)
-write the merged `.sc4sap/spro-config.json`. `--dry-run` lists every table that
+One module writes `.sapkit/spro-config-{MODULE}.json`; two or more (or `all`)
+write the merged `.sapkit/spro-config.json`. `--dry-run` lists every table that
 would be read, the row cap, and the output path, and connects to nothing.
 
 **Approval gate — this is a P2 action.** Each table is a `GetSqlQuery` row read,
@@ -122,7 +122,7 @@ so Gate B of [approval-gates](../policies/approval-gates.md) applies:
 
 Every consultant persona's `<Reference_Data>` section MUST list:
 
-1. Local SPRO Cache (`.sc4sap/spro-config.json` → `modules.{MODULE}`) — **priority 1**
+1. Local SPRO Cache (`.sapkit/spro-config.json` → `modules.{MODULE}`) — **priority 1**
 2. Static reference (`../knowledge/modules/{MODULE}/spro.md` etc.) — to identify table/view candidates
 3. Live MCP (`GetTableContents` / `GetView`) — to read customer values, chained from Step 2
 4. Pointer to this protocol: `spro-lookup.md`

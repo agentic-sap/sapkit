@@ -1,7 +1,7 @@
 # L2 실측: 서버 이관 검증 (2026-07-10)
 
 `scripts/smoke-mcp.mjs`로 무프로파일 기동 스모크 수행. 환경: Windows 11, Node,
-SAP_*/MCP_* env 제거 상태, `.sc4sap/` 부재.
+SAP_*/MCP_* env 제거 상태, `.sapkit/` 부재.
 
 ## 결과
 

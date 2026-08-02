@@ -69,9 +69,9 @@ that once per package and leaves a reviewable artifact behind.
 **Output location**
 
 ```
-.sc4sap/processes/<MODULE>/<PACKAGE>/process-<YYYYMMDD>-<lang>.md
-.sc4sap/processes/<MODULE>/<PACKAGE>/_assets/process-<YYYYMMDD>-<lang>/{macro.png,seq-<N>.png}
-.sc4sap/processes/<MODULE>/<PACKAGE>/_img/process-images.json
+.sapkit/processes/<MODULE>/<PACKAGE>/process-<YYYYMMDD>-<lang>.md
+.sapkit/processes/<MODULE>/<PACKAGE>/_assets/process-<YYYYMMDD>-<lang>/{macro.png,seq-<N>.png}
+.sapkit/processes/<MODULE>/<PACKAGE>/_img/process-images.json
 ```
 
 `<MODULE>` uppercase module key · `<PACKAGE>` uppercase package name ·
@@ -107,8 +107,8 @@ Ask one question at a time; do not batch them.
 
    Section titles and body text follow this choice. Frontmatter keys stay English;
    diagram syntax is language-neutral, only node labels translate.
-4. **Project context** — read `.sc4sap/config.json` (`sapVersion`, `abapRelease`,
-   `industry`, `country`) and `.sc4sap/sap.env` (`SAP_ACTIVE_MODULES`) per
+4. **Project context** — read `.sapkit/config.json` (`sapVersion`, `abapRelease`,
+   `industry`, `country`) and `.sapkit/sap.env` (`SAP_ACTIVE_MODULES`) per
    [project-context](../project-context.md). If industry or country is unset, ask
    once — do not silently proceed on defaults, because Step 5's business phrasing
    and the cross-module checks depend on them.
@@ -118,7 +118,7 @@ activeModules, language}`.
 
 **Step 2 — Ensure the CBO inventory exists**
 
-1. Look for `.sc4sap/cbo/<MODULE>/<PACKAGE>/inventory.json`.
+1. Look for `.sapkit/cbo/<MODULE>/<PACKAGE>/inventory.json`.
 2. **Present** → load it into state, print `(skipped — inventory found at <path>)`.
 3. **Missing** → run the inventory walk yourself now, adopting the
    [sap-stocker](../personas/sap-stocker.md) persona and following
@@ -223,7 +223,7 @@ Adopt the [sap-writer](../personas/sap-writer.md) persona. Render from the state
 collected so far — this step reads no further SAP data.
 
 1. **Assemble the diagram spec** from Step 5 and save it to
-   `.sc4sap/processes/<MODULE>/<PACKAGE>/_img/process-images.json`:
+   `.sapkit/processes/<MODULE>/<PACKAGE>/_img/process-images.json`:
 
 ```json
 { "lang": "<lang>",
@@ -249,8 +249,8 @@ collected so far — this step reads no further SAP data.
 
 ```bash
 node tools/spec/render-process-images.mjs \
-  .sc4sap/processes/<MODULE>/<PACKAGE>/_img/process-images.json \
-  .sc4sap/processes/<MODULE>/<PACKAGE>/_assets/process-<YYYYMMDD>-<lang>/
+  .sapkit/processes/<MODULE>/<PACKAGE>/_img/process-images.json \
+  .sapkit/processes/<MODULE>/<PACKAGE>/_assets/process-<YYYYMMDD>-<lang>/
 ```
 
    It writes `macro.png` plus `seq-<slug>.png` per process and prints a manifest.
@@ -258,7 +258,7 @@ node tools/spec/render-process-images.mjs \
    the fallback text block only, which is a degraded document, not a failed run.
 
 3. **Write the Markdown** per § Document skeleton, honoring § Renderer constraints,
-   to `.sc4sap/processes/<MODULE>/<PACKAGE>/process-<YYYYMMDD>-<lang>.md`. Create
+   to `.sapkit/processes/<MODULE>/<PACKAGE>/process-<YYYYMMDD>-<lang>.md`. Create
    parent directories as needed.
 
 > **Not in scope: the BPML deliverable.** Upstream also renders a BPML workbook

@@ -45,13 +45,13 @@ a one-shot auto-run:
   review `R-PASS` and a vsp-backed `V-PASS` — the latter produced by
   [tools/vpass/vpass.mjs](../../tools/vpass/vpass.mjs)
   (`node "$CLAUDE_PLUGIN_ROOT/tools/vpass/vpass.mjs" --source-dir <dir> <TYPE> <NAME>`,
-  record in `.sc4sap/vpass/`). Run it via the [`vpass` skill](../../skills/vpass/SKILL.md)
+  record in `.sapkit/vpass/`). Run it via the [`vpass` skill](../../skills/vpass/SKILL.md)
   (`/sapkit:vpass`) instead of typing the raw command. Absent both, the state
   is `PROVISIONAL_WRITE`, never "done".
 
 ## Procedure
 
-① **Read the relevant rules.** If `.sc4sap/RULES.md` exists, read only the rules
+① **Read the relevant rules.** If `.sapkit/RULES.md` exists, read only the rules
    relevant to this change (if absent, continue silently). Also read the target
    object type's existing Mandatory Rule Reads — the field-typing, naming, and
    function-module rules that [create-object](./create-object.md) lists for that

@@ -165,7 +165,7 @@ After the report (canned or briefing), offer:
 1. **"Fix findings"** — explain options: manual `UpdateClass` / `UpdateProgram` / `UpdateInclude`, full rewrite via the `create-program` procedure, or apply the fixes now as the [sap-executor](../personas/sap-executor.md) persona. Fixes are applied by the worker, then re-reviewed.
 2. **"Show where-used callers"** — display from the Step 2 where-used data (already collected).
 3. **"Explain finding #N in more detail"** — re-read the specific finding entry and expand it.
-4. **"Save report to `.sc4sap/analysis/<object>-<timestamp>.md`"** — write the report to file.
+4. **"Save report to `.sapkit/analysis/<object>-<timestamp>.md`"** — write the report to file.
 
 Stop on user selection or silence.
 

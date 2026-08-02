@@ -16,12 +16,12 @@ Every `sap-*-consultant` agent must load the project's industry file before resp
 ## How to Identify Industry
 
 Resolution order:
-1. `.sc4sap/config.json` → `industry` field (canonical plugin-side source)
-2. `.sc4sap/sap.env` → `SAP_INDUSTRY` (MCP-server mirror, must match config.json)
-3. If both are missing, ask the user and direct them to persist via `the profile settings (edit .sc4sap/config.json — see core/procedures/troubleshooting.md)`
+1. `.sapkit/config.json` → `industry` field (canonical plugin-side source)
+2. `.sapkit/sap.env` → `SAP_INDUSTRY` (MCP-server mirror, must match config.json)
+3. If both are missing, ask the user and direct them to persist via `the profile settings (edit .sapkit/config.json — see core/procedures/troubleshooting.md)`
 4. If the value is `other`, skip the industry reference and fall back to standard, industry-agnostic recommendations
 
-**Change industry**: `the profile settings (edit .sc4sap/config.json — see core/procedures/troubleshooting.md)` → type `industry` (updates both files atomically).
+**Change industry**: `the profile settings (edit .sapkit/config.json — see core/procedures/troubleshooting.md)` → type `industry` (updates both files atomically).
 **Initial selection**: `the profile setup (core/procedures/troubleshooting.md)` wizard, step 2.
 
 ## Industry Files

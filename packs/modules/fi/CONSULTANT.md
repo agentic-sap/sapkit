@@ -172,7 +172,7 @@ FBMP에서 Z-form 배정 → F150 테스트.
 S/4 대상이면 전표 라인아이템 금액을 BSEG가 아니라 ACDOCA에서 읽는다 — S/4에서
 ACDOCA가 주도 테이블이다(tables.md·
 enhancements.md §7 "In S/4HANA, BSEG remains as a compatibility view but ACDOCA
-is the leading table"). `.sc4sap/config.json`의 `sapVersion`으로 ECC/S4를
+is the leading table"). `.sapkit/config.json`의 `sapVersion`으로 ECC/S4를
 분기한다. 이 오용은 lint·활성화를 전부 통과하고 커넥티드 실행/리뷰에서만 드러난다.
 
 **전기 방식 (→ FI-006)**

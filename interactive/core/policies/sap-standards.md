@@ -20,7 +20,7 @@ source:
 3. `CreateTransport` always receives an explicit `client` resolved from the active profile — never an implicit default.
 4. After every create/update: `CheckSyntax` → activate → confirm `GetInactiveObjects` returns zero leftovers.
 5. Never release a transport containing syntax errors or inactive objects.
-6. Respect the configured `sapVersion` and `abapRelease` from `.sc4sap/config.json` — ECC, S/4, Cloud Public, and Cloud Private each forbid different tables, patterns, and syntax.
+6. Respect the configured `sapVersion` and `abapRelease` from `.sapkit/config.json` — ECC, S/4, Cloud Public, and Cloud Private each forbid different tables, patterns, and syntax.
 7. If `sapVersion` / `abapRelease` are unset, fail safe: stop and ask the user to establish [project context](../project-context.md) first.
 
 ## 1. Naming — Z/Y prefix is mandatory
@@ -46,7 +46,7 @@ source:
 
 ## 4. Version guard
 
-Check `sapVersion` and `abapRelease` in `.sc4sap/config.json` **before** recommending any table, TCode, BAPI, pattern, or syntax ([project-context](../project-context.md)). Summary of what each version forbids:
+Check `sapVersion` and `abapRelease` in `.sapkit/config.json` **before** recommending any table, TCode, BAPI, pattern, or syntax ([project-context](../project-context.md)). Summary of what each version forbids:
 
 | Version | Forbidden / constrained | Reference |
 |---|---|---|

@@ -9,8 +9,8 @@
 // inventory that [customization-lookup](../../core/procedures/customization-lookup.md)
 // Step 1 consumes:
 //
-//   <project>/.sc4sap/customizations/{MODULE}/enhancements.json  (BAdI impls, SMOD→CMOD, form exits, GGB, BTE)
-//   <project>/.sc4sap/customizations/{MODULE}/extensions.json    (append structures + custom fields)
+//   <project>/.sapkit/customizations/{MODULE}/enhancements.json  (BAdI impls, SMOD→CMOD, form exits, GGB, BTE)
+//   <project>/.sapkit/customizations/{MODULE}/extensions.json    (append structures + custom fields)
 //
 // Persistence rules (unchanged from the original):
 //   - BAdI  -> record only when at least one Z/Y implementation exists
@@ -44,10 +44,16 @@
 //   • [data-extraction-policy](../../core/policies/data-protection/data-extraction-policy.md)
 //     stays authoritative for everything else.
 //
-// Usage (run from the project root — the directory holding `.sc4sap/`):
+// Usage (run from the project root — the directory holding `.sapkit/`):
 //   node tools/extract/extract-customizations.mjs --dry-run SD MM
 //   node tools/extract/extract-customizations.mjs SD MM FI CO
 //   node tools/extract/extract-customizations.mjs all
+//
+// ─────────────────────── Runtime directory (D-057) ──────────────────────────
+// `.sapkit` is a candidate everywhere `.sc4sap` was one; nothing else changes
+// (R-PRESERVE). The inventory still lands beside the cwd's runtime dir — the
+// legacy generation when that is what the project has (R-E), `.sapkit` when it
+// has neither (R-NEW). `--resolve-only` prints the selection offline.
 //
 // ──────── Transform note (sc4sap-custom `scripts/extract-customizations.mjs`) ────────
 // Parsers, heuristics, filters and output shape are unchanged. What differs:
@@ -60,10 +66,10 @@
 //     resolves the active profile from the cwd. Exposition `readonly,high`:
 //     `GetTable` is not in the `readonly` set, everything else this script
 //     calls is; the script itself only ever issues the read calls listed above
-//   • output base: `resolveArtifactBase()` (`.sc4sap/work/<alias>/`) →
-//     `<cwd>/.sc4sap/customizations/`. Multi-profile artifact resolution is
+//   • output base: `resolveArtifactBase()` (`.sapkit/work/<alias>/`) →
+//     `<cwd>/.sapkit/customizations/`. Multi-profile artifact resolution is
 //     classified `obsolete` in MIGRATION-MANIFEST, and the consumer contract in
-//     customization-lookup.md / project-context.md is the plain `.sc4sap/` path
+//     customization-lookup.md / project-context.md is the plain `.sapkit/` path
 //   • tool arguments realigned with the bundled engine's current schemas —
 //     `GetEnhancementSpot` takes `enhancement_spot` (not `enhancement_spot_name`)
 //     and `SearchObject` takes `object_name` / `object_type` / `maxResults`
@@ -91,7 +97,42 @@ import { connectMcp } from './lib/mcp-stdio.mjs';
 const PLUGIN_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const KNOWLEDGE_DIR = resolve(PLUGIN_ROOT, 'core', 'knowledge', 'modules');
 const PROJECT_DIR = process.cwd();
-const OUTPUT_DIR = join(PROJECT_DIR, '.sc4sap', 'customizations');
+
+// ── runtime directory (D-057) ───────────────────────────────────────────────
+const NEW_DIR = '.sapkit';
+const LEGACY_DIR = '.sc4sap';
+
+// Connection completeness — the R-TIE tie-break input (empty pointer ≠ complete).
+function hasConnectionState(runtimeDir) {
+  try {
+    const pointer = join(runtimeDir, 'active-profile.txt');
+    if (existsSync(pointer) && readFileSync(pointer, 'utf8').trim().length > 0) return true;
+  } catch {
+    /* unreadable pointer is not completeness */
+  }
+  return existsSync(join(runtimeDir, 'sap.env'));
+}
+
+// R-TIE inside ONE directory: existence is this tool's criterion, applied per
+// generation before the tie-break.
+function pickGeneration(dir) {
+  const newer = join(dir, NEW_DIR);
+  const older = join(dir, LEGACY_DIR);
+  const newOk = existsSync(newer);
+  const oldOk = existsSync(older);
+  if (newOk && oldOk) {
+    if (hasConnectionState(older) && !hasConnectionState(newer)) return older;
+    return newer; // tie → .sapkit
+  }
+  if (newOk) return newer;
+  if (oldOk) return older;
+  return null;
+}
+
+// R-E + R-NEW: write where this project already keeps runtime state; `.sapkit`
+// when it keeps none.
+const RUNTIME_DIR = pickGeneration(PROJECT_DIR) ?? join(PROJECT_DIR, NEW_DIR);
+const OUTPUT_DIR = join(RUNTIME_DIR, 'customizations');
 
 const Z_PATTERN = /^[ZY]/i;
 
@@ -100,10 +141,13 @@ const USAGE = `Usage: node tools/extract/extract-customizations.mjs [--dry-run] 
   --dry-run   list the modules, what was parsed from each enhancements.md, the
               SQL scans and the output paths, then stop (no MCP server, no SAP
               connection) — the scope disclosure the row-data gate requires
+  --resolve-only  print the resolved runtime paths as JSON and exit. No MCP
+              server, no SAP connection, no module list needed — the offline
+              seam the runtime-path conformance suite calls.
   MODULE...   module codes with a shipped enhancements.md (SD MM FI CO …)
   all         every module directory under core/knowledge/modules/ except common
 
-Run from the project root (the directory holding .sc4sap/).
+Run from the project root (the directory holding .sapkit/).
 Reading rows from SAP is a P2 action: you are the approver, and an agent must
 not run this on your behalf. See core/policies/approval-gates.md (Gate B).`;
 
@@ -113,6 +157,35 @@ if (argv.includes('--help') || argv.includes('-h')) {
   process.exit(0);
 }
 const DRY_RUN = argv.includes('--dry-run');
+
+// ── offline path-resolution seam (D-057 §7-3) ───────────────────────────────
+// Pure path computation: no module list, no MCP server, no SAP connection.
+if (argv.includes('--resolve-only')) {
+  let alias = null;
+  try {
+    alias = readFileSync(join(RUNTIME_DIR, 'active-profile.txt'), 'utf8').trim() || null;
+  } catch {
+    alias = null;
+  }
+  console.log(
+    JSON.stringify(
+      {
+        tool: 'extract-customizations',
+        cwd: PROJECT_DIR,
+        runtime_dir: RUNTIME_DIR,
+        runtime_generation: RUNTIME_DIR.endsWith(NEW_DIR) ? 'sapkit' : 'sc4sap',
+        runtime_dir_exists: existsSync(RUNTIME_DIR),
+        output_dir: OUTPUT_DIR,
+        alias,
+        reasons: [],
+      },
+      null,
+      2,
+    ),
+  );
+  process.exit(0);
+}
+
 const positional = argv.filter((a) => !a.startsWith('-'));
 if (positional.length === 0) {
   console.error(USAGE);

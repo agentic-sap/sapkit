@@ -23,7 +23,7 @@
 //   The agent produces TWO JSON files alongside the xlsx target:
 //     · {OBJECT}-{YYYYMMDD}.tr.json          translation map (English → KO)
 //     · {OBJECT}-{YYYYMMDD}.image-spec.json  renderScreenImages() argument
-//   Persist them under .sc4sap/specs/_tr/ and _img/ for traceability.
+//   Persist them under .sapkit/specs/_tr/ and _img/ for traceability.
 //
 // CLI
 //   node build-spec.mjs <tr.json> <image-spec.json|-> <out.xlsx>

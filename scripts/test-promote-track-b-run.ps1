@@ -5,7 +5,7 @@
 # Pass criteria (§8.5): "bridge 정상/중복/hash mismatch/malformed tests PASS".
 #
 # Beyond those four, this suite pins the one-way claim itself: after a promotion
-# the source .sc4sap tree must be byte-identical (the bridge reads, never writes).
+# the source .sapkit tree must be byte-identical (the bridge reads, never writes).
 #
 # Exit codes under test:
 #   0 OK | 64 BAD_ARGS | 66 SOURCE_INVALID | 69 RUN_EXISTS | 70 TIER_DENY
@@ -50,9 +50,9 @@ function Get-Sha256([string]$path) {
 
 $script:Obj = "ZR_FI_GL_LIST"
 
-# Builds .sc4sap/program/<obj>/{spec.md,approval.json}. Returns the source rel path.
+# Builds .sapkit/program/<obj>/{spec.md,approval.json}. Returns the source rel path.
 function Write-Source($dir, $tier, $hashOverride, $approvalRaw) {
-    $rel = ".sc4sap/program/$script:Obj"
+    $rel = ".sapkit/program/$script:Obj"
     Write-Fixt $dir "$rel/spec.md" "# Program Spec: $script:Obj`n## 1. Purpose`nList GL open items."
     $specFull = Join-Path $dir ("$rel/spec.md" -replace '/', '\')
     $h = if ($hashOverride) { $hashOverride } else { Get-Sha256 $specFull }
@@ -133,7 +133,7 @@ try {
     {
         $dir = New-Fixture
         $src = Write-Source $dir "dev" $null $null
-        $before = Snapshot-Tree $dir ".sc4sap"
+        $before = Snapshot-Tree $dir ".sapkit"
         $r = Invoke-Bridge $dir @('-RunId', $run, '-Source', $src, '-ApplyPath', 'mcp')
 
         $runDir = Join-Path $dir ".harness\runs\$run"
@@ -141,8 +141,8 @@ try {
                 (Test-Path -LiteralPath (Join-Path $runDir "contract.md"))
         Check "NORMAL promotion -> 0 (+run dir created)" 0 $r $made
 
-        $after = Snapshot-Tree $dir ".sc4sap"
-        Check "ONE-WAY: .sc4sap byte-identical after promotion" 0 $r (Compare-Snapshot $before $after)
+        $after = Snapshot-Tree $dir ".sapkit"
+        Check "ONE-WAY: .sapkit byte-identical after promotion" 0 $r (Compare-Snapshot $before $after)
 
         # the manifest must freeze the contract fields
         $m = Get-Content -LiteralPath (Join-Path $runDir "manifest.json") -Raw | ConvertFrom-Json
@@ -176,7 +176,7 @@ try {
     {
         $dir = New-Fixture
         $src = Write-Source $dir "dev" $null $null
-        Add-Content -LiteralPath (Join-Path $dir ".sc4sap\program\$script:Obj\spec.md") -Value "`n## sneaked change"
+        Add-Content -LiteralPath (Join-Path $dir ".sapkit\program\$script:Obj\spec.md") -Value "`n## sneaked change"
         $r = Invoke-Bridge $dir @('-RunId', $run, '-Source', $src, '-ApplyPath', 'mcp')
         Check "SPEC edited after approval -> 66" 66 $r ($r.Out -match "changed after approval")
     }.Invoke()
@@ -201,21 +201,21 @@ try {
 
     {
         $dir = New-Fixture
-        New-Item -ItemType Directory -Path (Join-Path $dir ".sc4sap\program\$script:Obj") -Force | Out-Null
-        $r = Invoke-Bridge $dir @('-RunId', $run, '-Source', ".sc4sap/program/$script:Obj", '-ApplyPath', 'mcp')
+        New-Item -ItemType Directory -Path (Join-Path $dir ".sapkit\program\$script:Obj") -Force | Out-Null
+        $r = Invoke-Bridge $dir @('-RunId', $run, '-Source', ".sapkit/program/$script:Obj", '-ApplyPath', 'mcp')
         Check "NO spec.md -> 66" 66 $r ($r.Out -match "spec.md")
     }.Invoke()
 
     {
         $dir = New-Fixture
-        Write-Fixt $dir ".sc4sap/program/$script:Obj/spec.md" "# spec"
-        $r = Invoke-Bridge $dir @('-RunId', $run, '-Source', ".sc4sap/program/$script:Obj", '-ApplyPath', 'mcp')
+        Write-Fixt $dir ".sapkit/program/$script:Obj/spec.md" "# spec"
+        $r = Invoke-Bridge $dir @('-RunId', $run, '-Source', ".sapkit/program/$script:Obj", '-ApplyPath', 'mcp')
         Check "NO approval.json -> 66" 66 $r ($r.Out -match "approval.json")
     }.Invoke()
 
     {
         $dir = New-Fixture
-        $r = Invoke-Bridge $dir @('-RunId', $run, '-Source', ".sc4sap/program/NOPE", '-ApplyPath', 'mcp')
+        $r = Invoke-Bridge $dir @('-RunId', $run, '-Source', ".sapkit/program/NOPE", '-ApplyPath', 'mcp')
         Check "SOURCE dir missing -> 66" 66 $r
     }.Invoke()
 
