@@ -8,6 +8,46 @@
 > **▶▶ 재개점 — 여기부터 읽는다 (최상단 정본)**
 > ═══════════════════════════════════════════════════════════════════
 >
+> **▶▶ 배포 온보딩·Codex 동등 설계 v2 확정 — 구현 대기 (2026-08-02 · 미집행 · D-항목은 집행 착수 커밋에)**
+>
+> `docs/reference/designs/2026-08-02-claude-onboarding-codex-parity-no-engine.md`가 v1 초안
+> → **실물 대조 리뷰**(BLOCKER 2 · MAJOR 4 · MINOR 6 · 전건 반영 — 설계 §16) → 사용자 결정
+> 3건으로 **v2 확정**됐다: ① 범위 = Codex 온보딩 동등화(MCP 플러그인 동봉·수동 등록 제거)
+> + 잔소리 제거 ② 훅 6종 = 삭제가 아니라 **기본 미설치 + 스위치 보존**(R-SWITCH —
+> 파일·install-hooks.mjs 기한 없이 존치, 켜면 strict·config/파일·ask 복원) ③ **`engine/`
+> 소스는 삭제하지 않음**(설계 §10 — D-040⑦ 충돌·이득 0·수리 실수요 실증. 재론 트리거 =
+> 수리 수요 장기 0 수렴 + 새 D-결정 + 원천 보존 선행). 리뷰 실측 핵심: 서버 blocklist
+> 기본 `standard`·`custom` 없음·env만 읽음(훅은 strict·config.json+파일) → 설계 §7-2 ⑤
+> "훅↔서버 동등성 diff"가 릴리스 게이트 / readonly에도 실행 2종·row-data 2종 노출(§7-1
+> 정직 고지) / Codex 공식 규격(manifest `mcpServers`·per-tool `approval_mode`·hooks ask
+> 미지원) 문서 3건 fetch 검증 완료 / `codex plugin`에 update 없음·`marketplace upgrade`
+> 실재(0.146.0 실측).
+>
+> **다음 착수 = 설계 §13 P0부터** (§13의 P0~P4는 구현 단계 번호 — SAP Policy 프로파일과
+> 무관하며, 이 작업 전체가 SAP 무접촉 레포 공학이다). **실행 방식 = 메인 오케스트레이션
+> 전용 + 모델 지정 서브에이전트 위임(파일 비중첩 분할)**:
+> - **P0 probe — 판정은 메인**: 임시 CODEX_HOME/HOME에서 local marketplace 설치 →
+>   bundled MCP wrapper shape·plugin-local 경로·**프로젝트 cwd 보존** 실측 · 전역 `sap`
+>   id 충돌 · per-tool prompt의 TUI/`codex exec` 동작 · plugin enable/disable 공식 명령.
+>   로그 수집은 sonnet 1기 가능하나 **§6-2 방식 채택 판정은 메인이 한다**.
+> - **P1 패키징 — opus 2기(비중첩)**: ⓐ gen-plugin-manifests 확장(codex `mcpServers` +
+>   `adapters/codex/.mcp.json` 생성물) ⓑ `launch.cjs` toolSurface(인자 우선순위·fail-closed
+>   표 §7-1) + launcher tier 판정을 적합성 진리표 소비자로 등재.
+> - **P2 setup/doctor — opus 1·sonnet 1**: ⓒ `setup-state.mjs` 신설(§8-2 — Node 전용 I/O·
+>   UTF-8 무BOM·byte-noop 계약) ⓓ doctor 개편(§9 — pre-conformance 분기·훅 스캔을 사용자
+>   `~/.claude/settings.json`+프로젝트 양쪽·D-043 소유자 예외).
+> - **P3 훅 이행 — sonnet 1(문서)·opus 1(시험)**: ⓔ setup Step 4 자동 설치 제거 + 선택
+>   기능 문서(켜기/끄기/검증) ⓕ 서버 게이트 conformance 신규 단언(§14-1 — tier
+>   fail-closed·blocklist standard·env 노브·스위치 왕복 멱등).
+> - **P4 업데이트·릴리스 — 메인 주도**: vN→vN+1 임시 HOME 시험 · marketplace version 중복
+>   실측 판정(§11-1) · README 3벌 · **v0.5.0** 범프(설치본 변경 = 범프, D-060 ④).
+> - **메인 전용(위임 금지)**: DECISIONS append — 집행 착수 커밋에 **§7-5 supersede 4건**
+>   (아래 §8-4 "훅 유지" 문구 개정 · D-043③ 훅 배선 부분 · D-049 기본 배선 · D-046②
+>   이연 종결)을 담은 신규 D-항목 · HANDOFF/§8-4 개정 · 이식 스냅샷 재핀(**마지막 편집
+>   뒤** — D-048 교훈 ⑴) · 게이트 실행·판정 · 커밋.
+> - **완료 계약**: 게이트 전종 green + 새-컨텍스트 독립 리뷰 + 버전 범프. 각 단계 종료
+>   조건은 설계 §13 표.
+>
 > **▶▶ CI 적색 2차 수리 — DACL 음성 케이스 전제 실측 분기 (2026-08-02 · D-061)**
 >
 > D-060 push 후: dotenv 공급 작동(ubuntu green · 엔진 리더 ✅), 남은 적색 = win 잡
