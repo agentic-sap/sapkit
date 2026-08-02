@@ -98,7 +98,7 @@ stale다. 현 phase-only template/checker는 v0.17 legacy; run-scoped 갱신은 
 루트:
 ```
 HANDOFF.md              프로젝트 전체 상태·재개 지침 정본 (상태 바뀔 때마다 갱신)
-DESIGN.md               트랙 A 설계; 현 재기준 권위는 D-025 + 2026-07-15 v2
+docs/DESIGN.md          트랙 A 설계(휴면 — ENGINE은 D-040 template-only); 재기준 권위는 D-025 + 2026-07-15 v2. 2026-08-03 루트→docs/ 이동
 CLAUDE.md · AGENTS.md   Direct/Guided/Engine × P0~P4 세션 라우팅
 docs/reference/DECISIONS.md       append-only 결정 로그 D-001~ (활성 ADR 역할, Engine 미주입)
 docs/reference/ADR.md             보조 줄기 수행-레벨 ADR 이력 보존 (ADR-001~003, 비활성 — D-035)

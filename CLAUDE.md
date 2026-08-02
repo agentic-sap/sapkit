@@ -1,4 +1,4 @@
-# CLAUDE.md — sapkit (구 sap-agentic-harness)
+# CLAUDE.md — sapkit
 
 ## 프로젝트 정체성 (30초 맥락 — 이걸 모르면 판단하지 말 것)
 
@@ -15,7 +15,7 @@ SAP ABAP 개발을 AI 하네스로 수행하는 **단일 레포 · 두 트랙**.
   (U-gate 안전조건은 D-034에 보존, 배선 우선순위는 D-040이 supersede). 사람 소유
   Direct/Guided의 SAP 적용은 트랙 B MCP·사람 vsp CLI·사용자 abapGit 모두 허용된다.
   vsp-custom은 **오프라인 검증·트랙 A 완료 증거(V-PASS) 백엔드**이며(ENGINE 휴면과
-  무관하게 유효), 사람 작업의 유일한 SAP 접점은 아니다(DESIGN.md §3 — powerup 엔진은
+  무관하게 유효), 사람 작업의 유일한 SAP 접점은 아니다(docs/DESIGN.md §3 — powerup 엔진은
   트랙 A에서 쓰지 않음). 소유 전략: **final-harness는 D-018 분리 유지 + verified
   v0.17.3 동결·공급선 휴면(D-038 — v0.17.3은 "실행 경로"가 아니라 재개 시 기준 버전)**,
   **vsp-custom은 D-030으로 레포 내 `vsp/`에 편입 완료(D-037 — 히스토리 비이식 스냅샷·
@@ -31,7 +31,7 @@ SAP ABAP 개발을 AI 하네스로 수행하는 **단일 레포 · 두 트랙**.
 ## 세션 시작 (필수)
 
 1. **`HANDOFF.md`를 먼저 읽는다** — 프로젝트 전체 상태·재개 지침·백로그의 정본.
-2. **트랙 A를 판단·언급하는 작업이면 착수 전에 `DESIGN.md` §2(구조)·§3(백엔드 결정)을
+2. **트랙 A를 판단·언급하는 작업이면 착수 전에 `docs/DESIGN.md` §2(구조)·§3(백엔드 결정)을
    읽는다** — HANDOFF §1 요약만으로 트랙 A를 판단하지 말 것 (실패 사례: vsp-custom을
    "선택적 도구"로 오판). 트랙 B 설계 정본은 `interactive/DESIGN.md`.
 3. 과거 결정의 '왜'는 `docs/reference/DECISIONS.md` (append-only 결정 로그, D-001~). **D-번호를
@@ -43,7 +43,7 @@ SAP ABAP 개발을 AI 하네스로 수행하는 **단일 레포 · 두 트랙**.
 |---|---|
 | `HANDOFF.md` | **상태가 바뀔 때마다** (설치·검증·백로그 증감·머신 환경) |
 | `docs/reference/DECISIONS.md` | 대안을 기각한 굵직한 결정 발생 시 **append** (수정·삭제 금지, 정정도 새 항목) |
-| `DESIGN.md` · `interactive/DESIGN.md` | 해당 트랙의 **설계가 변경될 때만** (상태 변화로는 갱신하지 않음) |
+| `docs/DESIGN.md` · `interactive/DESIGN.md` | 해당 트랙의 **설계가 변경될 때만** (상태 변화로는 갱신하지 않음) |
 | `interactive/MIGRATION-MANIFEST.md` | 원본 파일 분류 변경 시 — 분류 변경은 이 파일 수정으로만 |
 
 불변 규칙 전체(동결 레포·private denylist·번들 보호·실데이터 승인 등)는 **HANDOFF §8**.
