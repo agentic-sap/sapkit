@@ -329,6 +329,24 @@ console.log('\n목적지 no-follow (끊어진 symlink)');
 // ── win32 자격증명 DACL 검증 (3차 리뷰 #4) ────────────────────────────────
 // POSIX에는 mode 대조가 이미 있다. win32에는 mode 개념이 없어 지금까지 자격증명
 // 보호 검증이 아예 실행되지 않았다 — icacls 대조가 그 자리를 메운다.
+//
+// migrator의 winAcl과 같은 정규화(ACE 줄만 · 경로 접두 제거). 시험이 도구의
+// 파서를 import하지 않는 것은 의도다 — 독립 구현이라야 파서 결함을 함께 잡는다.
+function aclOf(abs) {
+  let out;
+  try {
+    out = execFileSync('icacls', [abs], { encoding: 'utf8', windowsHide: true });
+  } catch {
+    return null;
+  }
+  const aces = [];
+  for (const raw of out.split(/\r?\n/)) {
+    const line = raw.replace(/^﻿/, '').trim();
+    if (!line || !line.includes(':(')) continue;
+    aces.push(line.startsWith(abs) ? line.slice(abs.length).trim() : line);
+  }
+  return aces.length ? aces.join('\n') : null;
+}
 if (process.platform === 'win32') {
   console.log('\nwin32 자격증명 DACL (§5)');
   {
@@ -364,10 +382,33 @@ if (process.platform === 'win32') {
     if (!hardened) {
       console.log('  ⚠ icacls로 상속을 끊을 수 없는 환경 — 이 검사만 건너뛴다');
     } else {
+      // 전제 실측(D-061): "복사본은 부모 상속만 받아 소스보다 느슨해진다"는 이
+      // 케이스의 전제가 환경 의존이다 — GitHub windows 러너의 copyFileSync는 보호
+      // DACL(상속 차단 + 명시 ACE)을 그대로 보존해 미보존 거부가 관측 불가였다
+      // (2026-08-02 run #62~ 실측: 로컬은 거부, 러너는 소스·사본 DACL 동일로 이행).
+      // 같은 API로 전제를 먼저 재고, 성립하는 환경에서만 거부를 요구한다. 전제가
+      // 성립하지 않는 환경에서는 안전 속성 자체(자격증명 보호가 약화된 채 복제되지
+      // 않는다)를 성공 경로에서 확증한다 — 어느 분기든 시험이 침묵하지 않는다.
+      const srcAcl = aclOf(secret);
+      const probe = path.join(root, 'copy-probe.env');
+      fs.copyFileSync(secret, probe);
+      const copyLosesProtection = srcAcl !== null && aclOf(probe) !== srcAcl;
       const r = migrate(root, ['--scope', 'project', '--apply', '--yes']);
-      check('소스 DACL이 사본과 다르면 거부한다', r.code === 1, `exit ${r.code}`);
-      check('사유에 DACL을 명시한다', r.out.includes('DACL'), r.out.slice(-600));
-      check('목적지를 만들지 않았다', !fs.existsSync(path.join(root, '.sapkit')));
+      if (copyLosesProtection) {
+        check('소스 DACL이 사본과 다르면 거부한다', r.code === 1, `exit ${r.code}`);
+        check('사유에 DACL을 명시한다', r.out.includes('DACL'), r.out.slice(-600));
+        check('목적지를 만들지 않았다', !fs.existsSync(path.join(root, '.sapkit')));
+      } else {
+        console.log('  ⚠ 이 환경의 copyFileSync는 보호 DACL을 보존한다 — 거부 대신 보존을 확증한다 (전제 실측)');
+        check('(copy가 DACL을 보존하는 환경) 이행이 성공한다', r.code === 0, r.out.slice(-500));
+        const copied = path.join(root, '.sapkit', 'sap.env');
+        check(
+          '사본 자격증명 DACL이 소스 보호 그대로다',
+          fs.existsSync(copied) && aclOf(copied) === srcAcl,
+          fs.existsSync(copied) ? String(aclOf(copied)) : '(사본 없음)',
+        );
+        check('journal이 목적지에 있다', fs.existsSync(path.join(root, '.sapkit', '.migration-journal.json')));
+      }
     }
     fs.rmSync(root, { recursive: true, force: true });
   }
