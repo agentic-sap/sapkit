@@ -9,6 +9,31 @@ SAP ABAP 개발·컨설팅 지식/페르소나/절차를 **하네스 중립 코�
 - **이식 규칙**: [MIGRATION-MANIFEST.md](MIGRATION-MANIFEST.md) — 원본 전 파일 5분류, `node scripts/check-migration-snapshot.mjs`로 검증 (pinned snapshot · 원본 무접촉)
 - **상태**: L0~L5 구현 완료 + 코드리뷰 반영 — L3 E2E(플러그인 설치 + SAP 프로파일) 대기. Codex·Antigravity 설치 스모크 통과
 
+## 빠른 시작
+
+**Claude Code**
+
+```
+claude plugin marketplace add agentic-sap/sapkit
+claude plugin install sapkit@agentic-sap
+# 새 세션 또는 /reload-plugins
+/sapkit:setup
+```
+
+**Codex**
+
+```
+codex plugin marketplace add agentic-sap/sapkit
+codex plugin add sapkit@agentic-sap
+# 새 세션
+$sapkit:setup
+```
+
+MCP는 두 클라이언트 모두 플러그인에 동봉되어 자동 연결된다 — 수동 `codex mcp add`나
+캐시 절대경로 입력은 필요 없다. 안전훅 6종은 기본 미설치이며 필요할 때만 켜는 선택
+기능이다([adapters/claude/hooks/README.md](adapters/claude/hooks/README.md)). 상세 설계:
+[DESIGN.md](DESIGN.md), `docs/reference/designs/2026-08-02-claude-onboarding-codex-parity-no-engine.md`.
+
 ## 구조 (목표)
 
 ```

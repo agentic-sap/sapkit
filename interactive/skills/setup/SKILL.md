@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Interactive onboarding wizard — SAP connection profile, project context files, permission template merge, safety hooks, optional vsp install, and a final layered self-check.
+description: Interactive onboarding wizard — SAP connection profile, project context files with tool-surface selection, and a layered self-check, plus optional permission-template, vsp, and safety-hook switches.
 ---
 
 # setup (wrapper)

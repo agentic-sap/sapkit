@@ -1,6 +1,6 @@
 {
-  "_comment": "어댑터별 검증 버전 고정 (DESIGN.md §4-2). 버전이 올라가면 스모크 재실행 후 갱신. 동기화 점검: node interactive/scripts/doctor.mjs",
-  "_evidence_rule": "version 핀은 **재검증한 뒤에만** 올린다 (D-027 로드맵 §9.5). 설치된 버전을 확인한 것만으로 핀을 따라 올리면, 그 버전에서 동작한다는 근거 없이 동작한다고 주장하게 된다. 각 항목의 smoke에는 무엇을 실제로 쟀는지를, not_measured에는 재지 않은 것을 적는다.",
+  "_comment": "어댑터별 검증 버전 고정 (DESIGN.md §4-2). claude-code/antigravity는 exact-version 핀 — 버전이 올라가면 스모크 재실행 후 갱신. codex는 2026-08-02부터 capability 기반(docs/reference/designs/2026-08-02-claude-onboarding-codex-parity-no-engine.md §9-1) — exact `version` 핀 대신 minimumSupported/probeCandidates/lastVerified/requiredCapabilities. 동기화 점검: node interactive/scripts/doctor.mjs",
+  "_evidence_rule": "claude-code/antigravity의 version 핀은 **재검증한 뒤에만** 올린다 (D-027 로드맵 §9.5) — 설치된 버전을 확인한 것만으로 핀을 따라 올리면 근거 없이 동작을 주장하게 된다. codex는 exact 버전 비교 대신 requiredCapabilities probe로 판정하며, minimumSupported/lastVerified는 최초 clean-home bundled-MCP conformance(P0 probe) 통과 뒤에만 채운다 — 그 전까지는 어떤 설치 버전도 PASS로 부르지 않는다(설계 §9-1). 각 항목의 smoke에는 무엇을 실제로 쟀는지를, not_measured에는 재지 않은 것을 적는다.",
   "verified": "2026-07-19",
   "claude-code": {
     "version": "2.1.211",
@@ -10,13 +10,23 @@
     "not_measured": "2.1.211에서 create-program E2E 재완주는 하지 않음 — 2026-07-10 증거 재사용"
   },
   "codex": {
-    "version": "0.144.6",
+    "minimumSupported": null,
+    "_minimumSupported": "null = pre-conformance. P0 clean-home probe는 2026-08-02 완료(0.146.0 — wrapper 실증·cwd 보존·E2E tools/list 65)됐으나, 채움은 P4의 vN→vN+1 업데이트 시험 + RC 시나리오(설계 §14-2) 통과 뒤로 이연한다 — 그 전까지 doctor는 어떤 설치 버전도 PASS로 부르지 않고 WARN(미검증)으로 보고한다(설계 §9-1).",
+    "probeCandidates": ["0.146.0"],
+    "_probeCandidates": "P0 probe를 실측한 버전(2026-08-02 clean-home 완료). conformance의 공식 통과(lastVerified 등재)와는 별개다.",
+    "lastVerified": [],
+    "_lastVerified": "clean-home bundled-MCP conformance + P4 업데이트 시험을 실제로 통과한 버전만 append.",
+    "requiredCapabilities": [
+      "plugin-bundled-stdio-mcp",
+      "plugin-local-path-with-project-cwd"
+    ],
+    "_requiredCapabilities": "P0 실측(2026-08-02)으로 재정의: plugin-scoped-tool-policy는 탈락 — per-tool approval_mode가 사용자 config 전용(플러그인 선언 불가)이라 배포 요구사항이 될 수 없고, 실데이터 차단은 disabled_tools가 담당한다(p2 참조). plugin-local-path는 Codex 자체 치환이 아니라 scripts/codex-wire-mcp.mjs 재작성으로 성립(방식 ④).",
     "manifest": ".codex-plugin/plugin.json + .agents/plugins/marketplace.json",
     "install": "codex plugin marketplace add <repo> → codex plugin add sapkit@agentic-sap",
-    "smoke": "PASS — installed+enabled, 캐시에 core/server 전체 패키징 확인 (0.144.1 최초 2026-07-10, 0.144.3 재실측 2026-07-17, 0.144.5 재실측 2026-07-18, 0.144.6 재실측 2026-07-19 — 스모크 후 marketplace/plugin 완전 제거로 평시 미설치 복원)",
-    "not_measured": "0.144.5에서 세션을 띄워 스킬을 실제 소비하는 E2E는 재실행하지 않음 — 2026-07-11 증거 재사용",
-    "mcp": "codex mcp add sap --env NODE_PATH=<keyring> -- node <bundle> --exposition=readonly",
-    "p2": "unsupported — row-data 2종은 config.toml의 disabled_tools 하드 차단이 정본(승인 모드 의존 금지, adapters/codex/README.md 실측). human approval broker 전까지 P2 미지원"
+    "smoke": "설치 패키징 PASS(0.144.1~0.144.6 반복 재실측, 2026-07-10~19) + **bundled MCP E2E PASS(0.146.0, 2026-08-02 임시 CODEX_HOME)**: marketplace add(로컬) → plugin add(캐시 plugins/cache/agentic-sap/sapkit/<ver>) → codex-wire-mcp apply(토큰→절대경로) → codex mcp list에 sap enabled 등재 → 서버 기동 initialize+tools/list 65(readonly) · cwd=프로젝트 보존.",
+    "not_measured": "TUI approval 흐름 · Codex IDE/app · vN→vN+1 재add 교체 여부(P4 대상) · 스킬 소비 E2E는 2026-07-11 증거 재사용. codex exec 1턴의 도구 가시성 레이스 실측 있음(2턴부터 안정) — RC 시험은 2턴 확인으로 설계할 것",
+    "mcp": "정본 = plugin-bundled MCP (2026-08-02, 방식 ④): 플러그인 동봉 wrapper(adapters/codex/.mcp.json, {{SAPKIT_PLUGIN_ROOT}} 토큰형)를 설치 후 scripts/codex-wire-mcp.mjs apply(또는 $sapkit:setup)가 캐시 절대경로로 재작성한다 — Codex는 wrapper 내부 값을 치환·재기준화하지 않는다(실측). 구 수동 등록(codex mcp add)은 deprecated — 전역 [mcp_servers.sap]는 bundled를 조용히 가린다(doctor ⑦ 탐지, 제거는 사용자 확인 후)",
+    "p2": "unsupported — row-data 2종은 config.toml의 disabled_tools 하드 차단이 정본이다. per-tool approval_mode는 사용자 config에서만 걸 수 있고 플러그인 매니페스트가 선언할 수 없다(0.146.0 스키마 실측)라 배포 기본이 될 수 없다. 0.146.0 plugin-scoped 경로의 codex exec는 기본·prompt 모두 fail-closed(자동 취소) 실측 — 다만 구판(0.144.1) 전역 등록 경로의 fail-open 이력 + TUI 미실측 때문에 하드 차단 기본을 유지한다. human approval broker 전까지 P2 미지원"
   },
   "antigravity": {
     "agy": "1.1.4",

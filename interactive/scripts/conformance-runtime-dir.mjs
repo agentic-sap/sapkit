@@ -17,8 +17,8 @@
 //                    named import에 전파되지 않는 것을 실측 확인했다.)
 //   tier-guard       임시 cwd/env + JSON stdin 자식 프로세스
 //   blocklist        임시 cwd/env + JSON stdin 자식 프로세스 (실제 차단 판정으로 관측)
-//   launch.cjs       실 shim + 스텁 번들로 실기동 (MCP_ENV_PATH 관측) + 진짜 번들
-//                    부팅 스모크 1회(무접속 안전 확인)
+//   launch.cjs       실 shim + 스텁 번들로 실기동 (MCP_ENV_PATH·exposition 관측)
+//                    + 진짜 번들 부팅 스모크 1회(무접속 안전 확인)
 //   vpass · extract  `--resolve-only` (무접속 · exit 0 · JSON stdout)
 //   engine           **이 러너의 범위 밖** — fixture `_schema.readers`대로 Jest가 소유한다
 //
@@ -212,11 +212,28 @@ function launchProbe(tmpRoot) {
   const dir = path.join(tmpRoot, 'launch-probe');
   fs.mkdirSync(dir, { recursive: true });
   fs.copyFileSync(PATHS.launch, path.join(dir, 'launch.cjs'));
-  // 실 shim을 그대로 돌리되 번들만 스텁으로 바꾼다 — shim이 계산한 MCP_ENV_PATH를
-  // 관측하기 위한 것이고, 네트워크·MCP 세션은 전혀 열리지 않는다.
+  // 실 shim을 그대로 돌리되 번들만 스텁으로 바꾼다 — shim이 계산한 MCP_ENV_PATH와
+  // **도구면 인자**를 관측하기 위한 것이고, 네트워크·MCP 세션은 전혀 열리지 않는다.
+  //
+  // exposition은 진짜 번들의 파서(ArgumentsParser.getArgument)와 **같은 규칙**으로
+  // 읽는다: `--exposition=v` 또는 `--exposition v`를 좌→우로 훑어 **첫 번째**를
+  // 채택한다. 그래서 shim이 인자를 하나만 남기지 않으면(예: 빈 `--exposition=`을
+  // 지우지 않고 뒤에 덧붙이면) 여기서 값이 어긋나거나 count가 2가 되어 잡힌다.
   fs.writeFileSync(
     path.join(dir, 'server.bundle.cjs'),
-    'process.stdout.write(JSON.stringify({ envPath: process.env.MCP_ENV_PATH ?? null }));\n',
+    `const a = process.argv.slice(2);
+let first = null;
+let count = 0;
+for (let i = 0; i < a.length; i++) {
+  if (a[i].startsWith('--exposition=')) { count++; if (first === null) first = a[i].slice('--exposition='.length); }
+  else if (a[i] === '--exposition') { count++; if (first === null) first = i + 1 < a.length ? a[++i] : ''; else i++; }
+}
+process.stdout.write(JSON.stringify({
+  envPath: process.env.MCP_ENV_PATH ?? null,
+  exposition: first,
+  expositionArgCount: count,
+}));
+`,
   );
   LAUNCH_PROBE = path.join(dir, 'launch.cjs');
   return LAUNCH_PROBE;
@@ -372,6 +389,13 @@ const CONSUMERS = ['profile-resolve', 'launch', 'tier-guard', 'blocklist'];
 // (safety-1: 상위가 DEV인데 하위 artifact-only에서 멈춰 deny · safety-4: 세대별
 // SAP_TIER가 달라 어느 쪽을 읽었는지 tier로 판별된다).
 const UNOBSERVABLE = { 'tier-guard': new Set(['runtimeDir']) };
+// R-DEFAULT 바닥선 (설계 2026-08-02 §7-1). launch.cjs는 이제 도구면도 고른다 —
+// 그 결정이 **경로 선택에 딸린 결과**이므로 이 진리표의 소비자다. fixture가
+// `launch.expected.exposition`을 명시하지 않은 케이스는 전부 "write 도구면이 열리지
+// 않는다"를 단언한다: 진리표 입력 중 `toolSurface`를 담은 것만 예외이고, 그 예외는
+// fixture에 적혀 있어야 한다. 이 바닥선이 없으면 런처가 어떤 입력에서 조용히
+// readonly,high를 열어도 러너는 초록이다.
+const DEFAULT_SURFACE = 'readonly';
 const results = [];
 let failures = 0;
 let skipped = 0;
@@ -495,6 +519,31 @@ try {
         failures++;
       } else {
         row.cells[c] = 'ok';
+      }
+    }
+
+    // ── launch.cjs 도구면 (설계 2026-08-02 §7-1) ────────────────────────────
+    // ⓐ 번들에 가는 --exposition은 **정확히 하나**여야 한다. 번들 파서는 첫 인자를
+    //    채택하므로 둘이 남으면 뒤엣것이 조용히 무시된다(빈 `--exposition=`이 남으면
+    //    번들은 "미지정"으로 읽어 자기 기본값 readonly,high를 연다).
+    // ⓑ fixture가 값을 고정하지 않은 케이스는 R-DEFAULT 바닥선을 단언한다.
+    //    값을 고정한 케이스는 위 compare()가 이미 대조했다.
+    if (!lh.error) {
+      const pinnedLaunch = kase.consumers?.launch?.expected ?? null;
+      if (lh.value.expositionArgCount !== 1) {
+        row.diffs.push(`launch: --exposition 인자 ${lh.value.expositionArgCount}개 — 정확히 1개여야 한다`);
+        row.cells.launch = 'FAIL';
+        failures++;
+      } else if (!pinnedLaunch || !Object.prototype.hasOwnProperty.call(pinnedLaunch, 'exposition')) {
+        asserted++;
+        if (lh.value.exposition !== DEFAULT_SURFACE) {
+          row.diffs.push(
+            `launch: exposition 바닥선 위반 — fixture 미고정 케이스는 ${DEFAULT_SURFACE}여야 하는데 ` +
+              `${JSON.stringify(lh.value.exposition)} (write 도구면이 열렸다면 fixture에 근거와 함께 고정할 것)`,
+          );
+          row.cells.launch = 'FAIL';
+          failures++;
+        }
       }
     }
 

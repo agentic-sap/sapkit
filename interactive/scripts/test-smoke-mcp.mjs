@@ -191,7 +191,7 @@ tAgents(
       f,
       fs
         .readFileSync(f, 'utf8')
-        .replace(/^\s*- mcp__plugin_\w+_sap__(GetTableContents|GetSqlQuery)\n/gm, '')
+        .replace(/^\s*- mcp__plugin_\w+_sap__(GetTableContents|GetSqlQuery)\r?\n/gm, '')
     );
   },
   '워커 차단 계약 소실'
@@ -204,7 +204,7 @@ tAgents(
       f,
       fs
         .readFileSync(f, 'utf8')
-        .replace(/^\s*- mcp__plugin_\w+_sap__(CreateTransport|ReleaseTransport)\n/gm, '')
+        .replace(/^\s*- mcp__plugin_\w+_sap__(CreateTransport|ReleaseTransport)\r?\n/gm, '')
     );
   },
   '워커 차단 계약 소실'

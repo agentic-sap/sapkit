@@ -24,7 +24,7 @@ The **project-level** state directory is `.sapkit/` for a new project.
 An existing project's `.sc4sap/` is **not** renamed automatically — reads and
 writes both stay on whichever directory is already active until a human runs
 `node interactive/scripts/migrate-runtime-dir.mjs` (dry-run by default,
-`--apply` to execute; see [setup](procedures/setup.md) Step 0 and
+`--apply` to execute; see [setup](procedures/setup.md) Step 1 and
 [troubleshooting §4](procedures/troubleshooting.md#4-profiles--tiers)). The
 rest of this document writes `.sapkit/` — on an un-migrated project, read
 every occurrence as `.sc4sap/` instead.

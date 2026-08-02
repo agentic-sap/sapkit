@@ -6,7 +6,7 @@
 // 절차 수로 적은 것). 해결: 정본은 plugin-metadata.json 하나, 수는 파일시스템에서 계산.
 //
 // 사용:
-//   node interactive/scripts/gen-plugin-manifests.mjs           # 5종 생성
+//   node interactive/scripts/gen-plugin-manifests.mjs           # 7종 생성
 //   node interactive/scripts/gen-plugin-manifests.mjs --check   # 드리프트 검사 (CI)
 import fs from 'node:fs';
 import path from 'node:path';
@@ -86,7 +86,28 @@ const D = Object.fromEntries(
   Object.entries(meta.descriptions).filter(([k]) => !k.startsWith('_')).map(([k, v]) => [k, fill(v)])
 );
 
-// ── 5종 매니페스트 ─────────────────────────────────────────────────────────
+// ── MCP wrapper의 논리 정본 (설계 §6-1) ────────────────────────────────────
+// 두 wrapper가 가리키는 **대상**은 하나다. 다른 것은 경로를 쓰는 방식뿐이므로 여기서 한 번만
+// 정의하고 아래 두 생성물이 그것을 소비한다.
+//
+//   Claude — 호스트가 `${CLAUDE_PLUGIN_ROOT}`를 치환한다.
+//   Codex  — 호스트가 wrapper 내부 값에 **어떤 치환·재기준화도 하지 않는다**(2026-08-02
+//            clean-home 실측, CLI 0.146.0). 상대경로는 세션 cwd 기준으로 풀려 기동에
+//            실패하고 `${...}` 류 변수도 없다. 그래서 커밋 생성물에는 상징 토큰을 두고,
+//            설치 후 `scripts/codex-wire-mcp.mjs`가 설치된 캐시의 절대경로로 재작성한다.
+//            토큰 상태에서는 MCP가 뜨지 않지만 `required:false`라 스킬·세션은 산다.
+//
+// `--exposition` 인자는 **넣지 않는다** — 도구면은 프로젝트 `.sapkit/config.json`의
+// `toolSurface`를 launch.cjs가 해석해 정한다(설계 §7-1). 여기에 인자를 박으면 그 결정을
+// 덮어써 프로젝트 설정이 조용히 무력화된다.
+const MCP_SERVER_ID = 'sap';
+const MCP_LAUNCHER = 'server/launch.cjs';
+const MCP_NODE_PATH = 'server/runtime-deps/keyring/node_modules';
+// codex-wire-mcp.mjs가 찾아 치환하는 토큰. 두 곳의 값이 갈라지면 배선이 조용히 실패하므로
+// test-codex-wire-mcp.mjs가 이 생성물과 그 스크립트의 상수를 대조한다.
+const CODEX_ROOT_TOKEN = '{{SAPKIT_PLUGIN_ROOT}}';
+
+// ── 생성물 7종 (매니페스트 5 + MCP wrapper 2) ──────────────────────────────
 const GEN_NOTE = '⚠️ 생성물 — 직접 편집하지 말 것. 정본은 interactive/plugin-metadata.json (gen-plugin-manifests.mjs)';
 
 const manifests = {
@@ -123,6 +144,22 @@ const manifests = {
     mcpServers: './.mcp.json',
   },
 
+  // Claude wrapper — 호스트가 변수를 치환하므로 커밋 값 그대로 동작한다.
+  // 최상위 `_generated`는 Claude MCP 파서가 무시함을 실측 확인(2026-08-02: 이 키가 있는
+  // .mcp.json의 서버가 `claude mcp list`에 정상 등재).
+  [meta.targets.claude_mcp]: {
+    _generated: GEN_NOTE,
+    mcpServers: {
+      [MCP_SERVER_ID]: {
+        command: 'node',
+        args: [`\${CLAUDE_PLUGIN_ROOT}/${MCP_LAUNCHER}`],
+        env: {
+          NODE_PATH: `\${CLAUDE_PLUGIN_ROOT}/${MCP_NODE_PATH}`,
+        },
+      },
+    },
+  },
+
   [meta.targets.codex_plugin]: {
     _generated: GEN_NOTE,
     name: meta.name,
@@ -132,11 +169,26 @@ const manifests = {
     license: meta.license,
     keywords: meta.keywords.codex,
     skills: './skills/',
+    mcpServers: './adapters/codex/.mcp.json',
     interface: {
       displayName: meta.displayName,
       shortDescription: D.codex_interface_short,
       category: meta.category.codex,
       capabilities: ['Read', 'Write'],
+    },
+  },
+
+  // Codex wrapper — **서버 맵 직접형**(최상위 키 하나하나가 서버 정의).
+  // 그래서 `_generated` 같은 주석 키를 넣으면 안 된다 — 파서가 이름 없는 서버로 오인한다.
+  // 경로는 설치 후 `node scripts/codex-wire-mcp.mjs apply`가 실경로로 재작성한다.
+  [meta.targets.codex_mcp]: {
+    [MCP_SERVER_ID]: {
+      command: 'node',
+      args: [`${CODEX_ROOT_TOKEN}/${MCP_LAUNCHER}`],
+      env: {
+        NODE_PATH: `${CODEX_ROOT_TOKEN}/${MCP_NODE_PATH}`,
+      },
+      required: false,
     },
   },
 
@@ -202,7 +254,7 @@ console.log(
   `자산    : 페르소나 ${counts.personas} · 스킬 ${counts.skills} · 절차 ${counts.procedures} · 에이전트 ${counts.agents} · ` +
     `모듈 ${counts.modules} · 산업 ${counts.industries} · 국가 ${counts.countries} · 도구 ${counts.tools_default}`
 );
-console.log(`매니페스트: ${Object.keys(manifests).length}종`);
+console.log(`생성물  : ${Object.keys(manifests).length}종 (매니페스트 5 + MCP wrapper 2)`);
 
 if (CHECK) {
   if (drift.length) {
@@ -211,7 +263,7 @@ if (CHECK) {
     console.log('\n  재생성: node interactive/scripts/gen-plugin-manifests.mjs');
     process.exit(1);
   }
-  console.log('\n✅ 5종 매니페스트가 단일 정본과 일치 · 자산 수 실제와 일치');
+  console.log('\n✅ 7종 생성물이 단일 정본과 일치 · 자산 수 실제와 일치');
 } else {
   for (const rel of Object.keys(manifests)) console.log(`  ✏ ${rel}`);
   console.log('\n✅ 생성 완료');

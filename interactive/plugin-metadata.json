@@ -1,6 +1,6 @@
 {
-  "_": "플러그인 메타데이터 **단일 정본** (S3 · D-027 로드맵 §9.5). 5개 매니페스트는 여기서 생성한다 — 직접 편집하지 말 것.",
-  "_generate": "node interactive/scripts/gen-plugin-manifests.mjs          (5개 매니페스트 재생성)",
+  "_": "플러그인 메타데이터 **단일 정본** (S3 · D-027 로드맵 §9.5). 생성물 7종(매니페스트 5 + MCP wrapper 2)은 여기서 생성한다 — 직접 편집하지 말 것.",
+  "_generate": "node interactive/scripts/gen-plugin-manifests.mjs          (생성물 7종 재생성)",
   "_check": "node interactive/scripts/gen-plugin-manifests.mjs --check   (드리프트 검사 — CI)",
   "_why": "version이 5곳에 복제돼 있어 한 곳만 올리면 조용히 갈라졌다. 자산 수(페르소나/스킬/절차/도구)도 손으로 적어 실제와 어긋났다(예: '11 procedures'인데 절차 파일은 16 — 스킬 수와 절차 수를 혼동). 이제 수는 파일시스템과 mcp-surface.json에서 **계산**해 넣는다.",
   "name": "sapkit",
@@ -17,7 +17,7 @@
       "sap-agentic-harness": "sapkit"
     }
   },
-  "version": "0.4.5",
+  "version": "0.5.0",
   "displayName": "SAPKit",
   "_displayName": "Codex·Antigravity UI에 뜨는 **사람이 읽는 이름**. D-041 개명 시 누락됐다가 리뷰 m-1로 정정 — 구 값 'SAP Agentic Harness'는 폐기된 정체성(하네스)이었다.",
   "author": {
@@ -62,7 +62,7 @@
     "marketplace_long": "Lite, harness-portable edition of SuperClaude for SAP. Same knowledge ({{modules}} module packs = 14 + BC — SPRO/BAPI/tables/workflows, {{industries}} industries, {{countries}} countries, ABAP clean-code conventions and templates), same MCP server (ADT tools: reads + DEV-tier-gated writes), same {{personas}} personas — minus team/fan-out orchestration. Procedures are owned by one main context following gated checklists (implementation may be delegated to a single fresh worker under the development-loop policy); review happens in a fresh context; SAP itself verifies (syntax, activation, unit tests, ATC).",
     "plugin_short": "SAP ABAP development and consulting — knowledge core + personas + gated procedures + ADT MCP server, in one lite plugin.",
     "claude_long": "Harness-portable lite edition of SuperClaude for SAP — {{modules}} module knowledge packs (14 + BC), {{industries}} industries, {{countries}} countries, ABAP conventions/templates, {{personas}} consultant/role personas (on-demand via INDEX selector), {{procedures}} procedures ({{skills}} exposed as skills) with human approval + fresh-context review gates, and the ABAP ADT MCP server ({{tools_default}} tools inspection-only / {{tools_connected}} connected). Quality model is one worker + one fresh-context reviewer + SAP machine verification (CheckSyntax → Activate → ABAP Unit → ATC); implementation may be delegated to a single fresh worker under the development-loop policy, but review always stays independent.",
-    "codex_long": "Harness-portable lite edition of SuperClaude for SAP — {{modules}} module knowledge packs (14 + BC), {{industries}} industries, {{countries}} countries, ABAP conventions/templates, {{personas}} personas (on-demand via INDEX selector), {{procedures}} procedures ({{skills}} exposed as skills) with human approval + fresh-context review gates. SAP connectivity via the bundled ABAP ADT MCP server (register separately: see adapters/codex/README.md).",
+    "codex_long": "Harness-portable lite edition of SuperClaude for SAP — {{modules}} module knowledge packs (14 + BC), {{industries}} industries, {{countries}} countries, ABAP conventions/templates, {{personas}} personas (on-demand via INDEX selector), {{procedures}} procedures ({{skills}} exposed as skills) with human approval + fresh-context review gates. SAP connectivity via the bundled ABAP ADT MCP server — no separate registration; on Codex, run $sapkit:setup once to wire the plugin-local path (see adapters/codex/README.md).",
     "codex_interface_short": "SAP ABAP development and consulting — knowledge, personas, gated procedures"
   },
   "tags": [
@@ -93,10 +93,13 @@
     ]
   },
   "targets": {
-    "_": "생성 대상 5종. 경로는 레포 루트 기준.",
+    "_": "생성 대상 7종 = 매니페스트 5 + MCP wrapper 2. 경로는 레포 루트 기준.",
+    "_mcp": "wrapper 2종은 같은 런처를 가리키되 경로 표기가 다르다 — Claude는 호스트가 ${CLAUDE_PLUGIN_ROOT}를 치환하고, Codex는 아무 치환도 하지 않아(2026-08-02 실측) 상징 토큰 {{SAPKIT_PLUGIN_ROOT}}를 두고 설치 후 scripts/codex-wire-mcp.mjs가 절대경로로 재작성한다.",
     "claude_marketplace": ".claude-plugin/marketplace.json",
     "claude_plugin": "interactive/.claude-plugin/plugin.json",
+    "claude_mcp": "interactive/.mcp.json",
     "codex_plugin": "interactive/.codex-plugin/plugin.json",
+    "codex_mcp": "interactive/adapters/codex/.mcp.json",
     "agy_marketplace": ".agents/plugins/marketplace.json",
     "agy_plugin": "interactive/plugin.json"
   }

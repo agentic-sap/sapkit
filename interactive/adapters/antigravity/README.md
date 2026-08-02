@@ -47,7 +47,9 @@ Antigravity에서는 마법사가 이 README의 해당 절(MCP 수동 등록)로
 }
 ```
 
-(write 세션은 `--exposition=readonly,high` — Codex 어댑터 README의 프리셋 표와 동일)
+(write 세션은 프로젝트 `.sapkit/config.json`의 `"toolSurface": "development"` 권장 — 활성
+프로파일이 `SAP_TIER=DEV`일 때만 열린다. 명시 `--exposition=readonly,high` 인자도 계속
+동작하며 config보다 우선한다 — Codex 어댑터 README의 도구면 절과 동일)
 
 주의 2가지 (2026-07-10 L3 E2E 반영):
 - **경로에 `interactive\\` 포함** — 레포 통합 후 서버 위치가 바뀜 (구 경로는 파일 없음).

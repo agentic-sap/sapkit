@@ -1,8 +1,11 @@
 {
+  "_generated": "⚠️ 생성물 — 직접 편집하지 말 것. 정본은 interactive/plugin-metadata.json (gen-plugin-manifests.mjs)",
   "mcpServers": {
     "sap": {
       "command": "node",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/server/launch.cjs", "--exposition=readonly,high"],
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/server/launch.cjs"
+      ],
       "env": {
         "NODE_PATH": "${CLAUDE_PLUGIN_ROOT}/server/runtime-deps/keyring/node_modules"
       }

@@ -32,7 +32,10 @@
    **멀티에이전트 자동 디스패치와 team 협업 두 가지뿐** — 나머지는 형태 변환.
 3. **품질 모델**: 1명 작업 + 1명 새-컨텍스트 리뷰 + SAP 기계 검증(CheckSyntax→활성화→
    ABAP Unit→ATC). 리뷰어는 read-only 판정만, 수정은 작업자가(독립성 보존).
-4. **안전훅 유지**: 사전 차단 훅(안전 3종)은 Claude 어댑터에 옵션으로 유지.
+4. **안전훅 유지**: 사전 차단 훅(안전 3종)은 Claude 어댑터에 옵션으로 유지. (2026-08-02
+   설계 v2로 현행화 — 훅 6종은 기본 미설치·스위치 보존으로 강등되고 안전의 정본은 서버
+   번들 자체 게이트다. 상세: `docs/reference/designs/2026-08-02-claude-onboarding-codex-parity-no-engine.md`
+   §7, `adapters/claude/hooks/README.md`.)
 5. **접근 방식 A 채택**: 신규 레포 sc4sap-lite (B: 인플레이스 개조, C: sap-agentic-harness
    흡수는 기각 — B는 동작 중 플러그인 수술+동결 결정과 충돌, C는 DESIGN.md §2 역할 분리 위반).
 
@@ -77,7 +80,7 @@
 | 스킬 중 setup·mcp-setup·sap-doctor·sap-option | 설치 스크립트 + doctor + troubleshooting 문서로 변환 |
 | **스킬 중 team·trust-session** | **명시 폐기** (team=Claude 전용 개념, trust-session=정적 권한 템플릿으로 대체) |
 | hooks.json의 편의성 훅 15종 | 폐기 (선행 설계에서 무동작 실증) |
-| 안전 훅 3종 | 유지 — Claude 어댑터에 승계 |
+| 안전 훅 3종 | 유지 — Claude 어댑터에 승계 (2026-08-02 v2: 기본 미설치·선택 스위치로 강등, 정본은 서버 게이트 — §4-3·`adapters/claude/hooks/README.md`) |
 | 멀티에이전트 파이프라인(8역할 자동 교대) | 폐기 — "1+1+기계검증" 모델로 대체 |
 
 파이프라인 폐기로 진짜 잃는 것: 역할별 모델 라우팅(비용 최적화), 병렬 속도, 대형 작업의
@@ -136,7 +139,9 @@ sc4sap-lite/
                                           우선순위·읽기 의무·write-back — 전 페르소나·절차 우산
       sap-standards.md                 ← Z/Y 접두어, transport 필수, 활성화 의무, 버전 가드
       verification-policy.md           ← CheckSyntax→활성화→ABAP Unit→ATC 체인, 차단 severity
-      approval-gates.md                ← 관문=문서 규약임을 명시 (기계 강제는 Claude 훅 옵션 한정)
+      approval-gates.md                ← 관문=문서 규약임을 명시 (기계 강제의 정본은 서버
+                                          tier 게이트 — Claude 훅은 2026-08-02 v2부터 선택
+                                          이중화)
       development-loop.md              ← 강도 축(Minimal/Standard/Full)·execution_owner·
                                           보증 등급 매트릭스 (D-047)
       data-protection/                 ← exceptions/ 12파일 이식 + 실데이터 조회 승인 정책
@@ -157,6 +162,10 @@ sc4sap-lite/
     build-adapters.mjs                 ← manifest 생성 + 링크 체커 + 이식 커버리지 검증
     install-{claude,codex,antigravity} ← Node 단일 (크로스플랫폼, Windows 우선 실측)
     doctor.mjs                         ← 3사 어댑터 버전/코어 해시 불일치 감지
+    setup-state.mjs                    ← 결정론 상태 mutator: status/plan/apply/verify
+                                          (2026-08-02 v2 §8-2 — secret 필드 불허)
+    codex-wire-mcp.mjs                 ← Codex bundled MCP 토큰→절대경로 재작성, 멱등
+                                          (status/apply, 2026-08-02 v2 §6-1)
   MIGRATION-MANIFEST.md                ← 원본 전 경로 5분류 (§5-1)
   LICENSE  THIRD_PARTY_NOTICES.md
 ```
@@ -222,7 +231,8 @@ Antigravity(agy CLI 1.0.7 `plugin install/validate`). 어댑터는 동일한 6�
 skills/          ← 절차 15개의 얇은 래퍼 ("core/procedures/X.md를 읽고 수행" 수준)
 agents/          ← 2개: sap-reviewer (read-only) — 리뷰 패스용
                    sap-worker (P2/P4 차단) — execution_owner=delegated 실행체 (D-051)
-hooks/           ← 훅 6종 (안전 4 + 품질 조언 2 — install-hooks 방식 그대로, v0.3.7 확장)
+hooks/           ← 훅 6종(안전 4 + 품질 조언 2), 2026-08-02 v2부터 기본 미설치·선택
+                   스위치 — 설치는 install-hooks.mjs 명시 실행, 문서는 hooks/README.md
 permissions/     ← 정적 allowlist 템플릿 (trust-session 대체.
                     GetTableContents/GetSqlQuery 제외 유지 — 매번 승인 프롬프트)
 ```
@@ -232,8 +242,10 @@ permissions/     ← 정적 allowlist 템플릿 (trust-session 대체.
 ```text
 .codex-plugin/ 매니페스트 + skills/ 래퍼 + MCP 등록 (플러그인 동봉 .mcp.json)
 AGENTS.md        ← 인덱스만 (합산 32KiB 한도 준수): 표준 요약 + core 경로 + 셀렉터 안내
-exposition 프리셋 ← tool-catalog 기반 도구 노출 축소 — Codex는 지연 로딩이 없어
-                    등록된 도구 전부가 컨텍스트에 올라가므로 read 중심 프리셋 필수
+toolSurface 결정  ← .sapkit/config.json의 toolSurface(readonly 기본/development는
+                    SAP_TIER=DEV+명시 선택)를 launch.cjs가 exposition으로 변환(2026-08-02
+                    v2 §7-1, 고정 --exposition 인자는 제거) — Codex는 지연 로딩이 없어
+                    도구 전부가 컨텍스트에 올라가므로 read 중심 기본이 특히 중요
 ```
 
 - 설치는 **전역** (프로젝트 config는 trusted 게이트로 신뢰 불가 — installer가 처리)
@@ -250,7 +262,11 @@ exposition 프리셋 ← tool-catalog 기반 도구 노출 축소 — Codex는 �
 - 페르소나는 rules가 아니라 **workflows**로 (rules는 상시 주입이라 컨텍스트 비용)
 - 리뷰 패스: Agent Manager에서 리뷰 에이전트 별도 실행
 - 주의: Antigravity 문서가 2.0 표면으로 이행 중 — compatibility.json에 검증 버전
-  (agy 1.0.7) 고정, L5 착수 시 재검증
+  (agy 1.0.7) 고정, L5 착수 시 재검증. (claude-code도 동일하게 exact 버전 핀 유지 — codex만
+  2026-08-02부터 capability 기반(minimumSupported/probeCandidates/lastVerified/
+  requiredCapabilities)으로 전환. 상세:
+  `docs/reference/designs/2026-08-02-claude-onboarding-codex-parity-no-engine.md` §9-1,
+  `adapters/compatibility.json`.)
 - **L5 실측 갱신 (2026-07-10)**: 예상(rules/workflows 신규 제작)보다 단순하게 해결 —
   루트 `plugin.json` 매니페스트 하나 추가로 `agy plugin install <repo>` 직설치가 동작
   (skills 11 + agents 1 임포트, core/server 포함 전체 복사). MCP 번들은 agy 1.0.7
@@ -263,7 +279,7 @@ exposition 프리셋 ← tool-catalog 기반 도구 노출 축소 — Codex는 �
 |---|---|---|---|---|
 | L1 문서 정책 | core/policies | ✅ 동일 | ✅ 동일 | ✅ 동일 |
 | **L2 서버 내장 가드** | 번들의 blocklist + SAP_TIER readonly 가드 (`.sapkit`/`.sc4sap` 프로파일 해석) — **3사 공통 기계 방어선** | ✅ | ✅ | ✅ |
-| L3 하네스 기계 장치 | 각사 고유 | 안전훅 3종 + allowlist | approval 모드 + 샌드박스 | 자체 권한 설정 |
+| L3 하네스 기계 장치 | 각사 고유 | allowlist(permissions 템플릿) + 안전훅 3종(2026-08-02 v2부터 기본 미설치·선택 스위치) | approval 모드 + 샌드박스 | 자체 권한 설정 |
 
 - 실데이터 조회 2종(GetTableContents/GetSqlQuery): Claude는 allowlist 제외로 매번 승인.
   Codex/Antigravity는 L2+L1뿐 — **Claude보다 한 겹 약함을 어댑터 README에 정직하게 명시.**
@@ -334,7 +350,7 @@ L3까지가 "지금과 동등"의 회복점, L4~L6이 본 프로젝트의 신규
 | 2 | Antigravity 2.0 표면 이행 여부 재검증 | L0, L5 착수 시 재확인 |
 | 3 | 페르소나 INDEX 셀렉터 형식 (표 vs frontmatter 집계) | L1 |
 | 4 | review-request/result 스키마 필드 상세 | L3 |
-| 5 | Codex exposition 프리셋의 read/write 경계 (tool-catalog 기준) | L4 |
+| 5 | Codex exposition 프리셋의 read/write 경계 (tool-catalog 기준) — **✅ 2026-08-02 toolSurface로 종결(D-062 ⑦)**: 경계는 클라이언트 프리셋이 아니라 런처의 `toolSurface` 판정이 담당 | L4 |
 
 ## 6. 검토 이력 (이중 리뷰, 2026-07-10)
 

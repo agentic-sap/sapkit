@@ -50,8 +50,8 @@
         {
           "token": "adapters/claude/",
           "kind": "tree",
-          "files": 12,
-          "sha256": "7478580d000db5046f72b8560ff56ff011074dcf972cf95509fc42a7c103a6b6"
+          "files": 13,
+          "sha256": "03fd902d0db86697973b7cd37344e8b8112dd07397602b8e1be4ff6072e407da"
         }
       ]
     },
@@ -275,7 +275,7 @@
         {
           "token": "scripts/doctor.mjs",
           "kind": "file",
-          "sha256": "021a4ba9f420c358089dcf81368c43c5a08ed5918cd2075731aef1a94834c0ae"
+          "sha256": "82d861b418285f8f53250c3b3e070e0aa3826082d0b8fc062f2b166b807827d0"
         }
       ]
     },
@@ -300,7 +300,7 @@
         {
           "token": "core/project-context.md",
           "kind": "file",
-          "sha256": "c22eb962c762f49c43d1757b9d30f914fb0d3a1c166246768645de5497f6c782"
+          "sha256": "dcaf1a8b154cacc5abd17c8f28f5e6d5ca53b720cf614abafaeb4bb28f7e2633"
         }
       ]
     },
@@ -359,7 +359,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 26,
-          "sha256": "8355a7fae19901e60a2e54c6fe4049c2d69c4c969a3bdd79b2cbee27cef1ab1a"
+          "sha256": "87dcb6cf2ec649eab4200e126c4c0476f1c125cce25982c1f7f783fca99b742f"
         }
       ]
     },
@@ -458,7 +458,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 26,
-          "sha256": "8355a7fae19901e60a2e54c6fe4049c2d69c4c969a3bdd79b2cbee27cef1ab1a"
+          "sha256": "87dcb6cf2ec649eab4200e126c4c0476f1c125cce25982c1f7f783fca99b742f"
         }
       ]
     },
@@ -476,7 +476,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 26,
-          "sha256": "8355a7fae19901e60a2e54c6fe4049c2d69c4c969a3bdd79b2cbee27cef1ab1a"
+          "sha256": "87dcb6cf2ec649eab4200e126c4c0476f1c125cce25982c1f7f783fca99b742f"
         }
       ]
     },
@@ -494,7 +494,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 26,
-          "sha256": "8355a7fae19901e60a2e54c6fe4049c2d69c4c969a3bdd79b2cbee27cef1ab1a"
+          "sha256": "87dcb6cf2ec649eab4200e126c4c0476f1c125cce25982c1f7f783fca99b742f"
         }
       ]
     },
@@ -516,7 +516,7 @@
         {
           "token": "core/project-context.md",
           "kind": "file",
-          "sha256": "c22eb962c762f49c43d1757b9d30f914fb0d3a1c166246768645de5497f6c782"
+          "sha256": "dcaf1a8b154cacc5abd17c8f28f5e6d5ca53b720cf614abafaeb4bb28f7e2633"
         }
       ]
     },
@@ -585,7 +585,7 @@
           "token": "server/",
           "kind": "tree",
           "files": 46,
-          "sha256": "38bed1d3333fc7faf23be4e2ab996b5b80b4cf0b8380e315e3ba306f99af3bf0"
+          "sha256": "0ecd710a84cfd466f7df69db564c9717548fee15125dacc297ab83aef81e020e"
         }
       ]
     },
@@ -659,8 +659,8 @@
         {
           "token": "adapters/claude/hooks/",
           "kind": "tree",
-          "files": 7,
-          "sha256": "b3a0daf532fd2f4f9971cc91ecdca5327410717371a021e963212790753c1a10"
+          "files": 8,
+          "sha256": "c34f4a4df361280610ce2b7fa7734d35e67326695df883b2921bf740cd6fec80"
         }
       ]
     },
@@ -674,8 +674,8 @@
         {
           "token": "adapters/claude/hooks/",
           "kind": "tree",
-          "files": 7,
-          "sha256": "b3a0daf532fd2f4f9971cc91ecdca5327410717371a021e963212790753c1a10"
+          "files": 8,
+          "sha256": "c34f4a4df361280610ce2b7fa7734d35e67326695df883b2921bf740cd6fec80"
         }
       ]
     },
@@ -692,8 +692,8 @@
         {
           "token": "adapters/claude/hooks/",
           "kind": "tree",
-          "files": 7,
-          "sha256": "b3a0daf532fd2f4f9971cc91ecdca5327410717371a021e963212790753c1a10"
+          "files": 8,
+          "sha256": "c34f4a4df361280610ce2b7fa7734d35e67326695df883b2921bf740cd6fec80"
         }
       ]
     },
@@ -710,8 +710,8 @@
         {
           "token": "adapters/claude/hooks/",
           "kind": "tree",
-          "files": 7,
-          "sha256": "b3a0daf532fd2f4f9971cc91ecdca5327410717371a021e963212790753c1a10"
+          "files": 8,
+          "sha256": "c34f4a4df361280610ce2b7fa7734d35e67326695df883b2921bf740cd6fec80"
         }
       ]
     },
@@ -847,7 +847,7 @@
           "token": "server/",
           "kind": "tree",
           "files": 46,
-          "sha256": "38bed1d3333fc7faf23be4e2ab996b5b80b4cf0b8380e315e3ba306f99af3bf0"
+          "sha256": "0ecd710a84cfd466f7df69db564c9717548fee15125dacc297ab83aef81e020e"
         }
       ]
     },
@@ -862,7 +862,7 @@
           "token": "server/",
           "kind": "tree",
           "files": 46,
-          "sha256": "38bed1d3333fc7faf23be4e2ab996b5b80b4cf0b8380e315e3ba306f99af3bf0"
+          "sha256": "0ecd710a84cfd466f7df69db564c9717548fee15125dacc297ab83aef81e020e"
         }
       ]
     },
@@ -925,8 +925,8 @@
         {
           "token": "adapters/",
           "kind": "tree",
-          "files": 17,
-          "sha256": "b63256ce713fe7ff9ec3efa0c521ebad81eabfbe7baf6a5195d91a9c175bdf21"
+          "files": 19,
+          "sha256": "29b0a6beb78b02bd4ea097f28972e9d2dec25688ced82224ab40b1ff8c06407d"
         }
       ]
     },
@@ -976,7 +976,7 @@
         {
           "token": "core/project-context.md",
           "kind": "file",
-          "sha256": "c22eb962c762f49c43d1757b9d30f914fb0d3a1c166246768645de5497f6c782"
+          "sha256": "dcaf1a8b154cacc5abd17c8f28f5e6d5ca53b720cf614abafaeb4bb28f7e2633"
         }
       ]
     },
@@ -1051,7 +1051,7 @@
     {
       "pattern": ".mcp.json",
       "class": "transform",
-      "note": "어댑터 MCP 등록 원형 (NODE_PATH 배선 포함)",
+      "note": "어댑터 MCP 등록 원형 (NODE_PATH 배선 포함). 2026-08-02부터 그 목적지 파일은 gen-plugin-manifests 생성물이다(정본 = plugin-metadata.json) — 원본 분류(transform)는 역사 사실로 불변",
       "source_matches": 1,
       "sources": [
         ".mcp.json"

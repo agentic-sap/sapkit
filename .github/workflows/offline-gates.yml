@@ -57,6 +57,37 @@ jobs:
       - name: 표면 게이트 음성시험
         run: node interactive/scripts/test-smoke-mcp.mjs
 
+      # ── 서버 자체 안전 게이트 (설계 2026-08-02-claude-onboarding… §7-2 · §14-1) ──
+      # 훅이 기본 0개가 되면 안전의 정본은 서버 번들뿐이다(R-RUNTIME). smoke-mcp가
+      # "무엇이 보이는가"(tools/list 이름 집합)를 고정한다면, 아래 둘은 "보이는 것을
+      # **호출하면** 서버가 막는가"를 고정한다.
+      #
+      # 러너에서 안전한 이유: 임시 HOME/USERPROFILE + 임시 프로파일 fixture만 쓰고,
+      # 상속 env의 SAP_*/MCP_*/SAPKIT_*/SC4SAP_*를 지운 뒤 번들을 띄운다. 대상 SAP은
+      # `http://127.0.0.1:1`(아무도 listen하지 않는 루프백)이라 게이트를 통과한 호출은
+      # 즉시 ECONNREFUSED로 끝난다 — 그 차이가 "막혔다 vs SAP로 나갔다"의 증거다.
+      # 자격증명·네트워크 없이 도는 오프라인 게이트이므로 OS 의존이 없다.
+      - name: 서버 안전 게이트 적합성 (tier · blocklist · inspection-only 정직 실패)
+        run: node interactive/scripts/conformance-server-gates.mjs
+
+      # 훅은 기본 미설치지만 **되돌릴 스위치**가 곧 안전 기능이다(R-SWITCH).
+      # 스위치가 손상된 채 출시되는 것은 설계 §14-3의 출시 불가 조건이다.
+      - name: 훅 스위치 왕복 (install-hooks 설치·제거 멱등 · 타 설정 보존 · 밖 무접촉)
+        run: node interactive/scripts/test-hook-switch.mjs
+
+      # ── setup·패키징 결정론 (설계 §8-2 · §6 방식 ④ — 2026-08-02) ─────────────
+      # 셋 다 임시 디렉터리 fixture만 쓰는 오프라인 시험이다. setup-state는 홈을
+      # SAPKIT_HOME_DIR 스텁으로 격리하고, codex-wire는 가짜 캐시 트리로 재작성을
+      # 검증하며, launch-toolsurface는 자식 env에서 실사용자 홈 변수를 지운다.
+      - name: setup 상태 mutator 음성시험 (byte-noop · 비밀 거부 · 부분 실패 롤백)
+        run: node interactive/scripts/test-setup-state.mjs
+
+      - name: launcher toolSurface 음성시험 (fail-closed 표 · 인자 우선순위)
+        run: node interactive/scripts/test-launch-toolsurface.mjs
+
+      - name: Codex wrapper 배선 도구 음성시험 (토큰 치환 · 멱등 · 스테일 수리)
+        run: node interactive/scripts/test-codex-wire-mcp.mjs
+
       # ── 런타임 경로 개명 `.sc4sap` → `.sapkit` (D-057 · 설계 §7-2·§7-3) ──────
       # 셋 다 오프라인이고 러너에 있는 상태만 읽는다. 적합성 러너는 임시 트리에서
       # 실물 소비자(리졸버·훅 2종·launch shim·vpass·extract)를 구동하며,
@@ -85,7 +116,7 @@ jobs:
       - name: 런타임 경로 적합성 (소비자별 현행 의미 보존 · 안전 회귀 9종)
         run: node interactive/scripts/conformance-runtime-dir.mjs
 
-      - name: 플러그인 매니페스트 5종 ↔ 단일 정본
+      - name: 플러그인 매니페스트·MCP 생성물 7종 ↔ 단일 정본
         run: node interactive/scripts/gen-plugin-manifests.mjs --check
 
       - name: git diff --check (공백/충돌 마커)
@@ -169,6 +200,11 @@ jobs:
 
       - name: 마이그레이터 음성시험 (win32 DACL 검증 포함)
         run: node interactive/scripts/test-migrate-runtime-dir.mjs
+
+      # doctor 음성시험은 가짜 CLI를 Windows PATHEXT(.cmd 래퍼)로 주입한다 — win 전용.
+      # doctor 본체는 여전히 CI 제외(러너에 실설치 상태가 없음) — 이 시험은 스텁만 쓴다.
+      - name: doctor 음성시험 (판정 규칙 · 비밀 무출력 · 배선 3분류)
+        run: node interactive/scripts/test-doctor.mjs
 
   vsp-build:
     # vsp-custom 편입(D-030/D-037) — 레포 내 vsp/ 서브트리에서 in-repo 재현 빌드 +

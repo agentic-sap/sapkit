@@ -18,10 +18,11 @@
 
 ## 빠른 시작 — `/sapkit:setup` (권장)
 
-설치·재시작 후 `/sapkit:setup`을 실행하면 아래 수동 단계 전부(SAP 연결 프로파일·
-`.sapkit/` 파일 2개·권한 템플릿 병합·안전훅 등록·선택적 vsp 설치)를 대화형 마법사가
-대신하고 층별 자가 점검으로 끝난다. 아래 절들은 수동 경로 정본이자 마법사 폴백이다.
-정본 절차 = `core/procedures/setup.md`.
+설치·재시작 후 `/sapkit:setup`을 실행하면 아래 수동 단계 대부분(SAP 연결 프로파일·
+`.sapkit/` 파일 2개·권한 템플릿 병합·안전훅 스위치 안내·선택적 vsp 설치)을 대화형
+마법사가 대신하고 층별 자가 점검으로 끝난다. 훅 설치는 기본 단계가 아니라 마법사가
+안내만 하고 명시 요청 시에만 실행한다(아래 "안전훅 6종" 참고). 아래 절들은 수동 경로
+정본이자 마법사 폴백이다. 정본 절차 = `core/procedures/setup.md`.
 
 ## SAP 연결 (connected 프로필)
 
@@ -42,17 +43,18 @@ node interactive/scripts/get-vsp.mjs   # ~/.sapkit/bin/vsp(.exe) 설치
 설치 후 `vsp lint <파일>` / `vsp parse <파일>`로 사용. 자세한 내용:
 [core/procedures/troubleshooting.md §7](../../core/procedures/troubleshooting.md#7-vsp-local-verification-optional).
 
-## 안전훅 6종 (프로젝트 단위, 선택 권장)
+## 안전훅 6종 (기본 미설치, 선택 스위치)
 
-`hooks/`의 block-forbidden-tables·tier-readonly-guard·prefer-sqlquery-explicit-fields·
-offline-code-analysis·syntax-checker·transport-validator를 프로젝트 settings에 등록:
+2026-08-02 설계 v2부터 `/sapkit:setup`은 훅을 자동 설치하지 않는다 — 안전의 정본은
+서버 번들 자체 게이트(QA/PRD write·실행 차단, 테이블 blocklist)이고, 훅은 그 위에
+얹는 선택 이중화다. 6종(block-forbidden-tables·tier-readonly-guard·
+prefer-sqlquery-explicit-fields·offline-code-analysis·syntax-checker·
+transport-validator)의 본질·설치/제거/검증·기존 사용자 마이그레이션은
+[hooks/README.md](hooks/README.md)가 정본이다. 최소 설치 명령:
 
 ```
 node adapters/claude/hooks/install-hooks.mjs --project <프로젝트 경로>
 ```
-
-주의: install-hooks.mjs는 원본(sc4sap-custom) 경로 후보를 탐색하므로 **L3 E2E에서
-lite 경로로 재배선 검증 필요** (아래 체크리스트).
 
 ## 권한 템플릿 (구 trust-session 대체)
 

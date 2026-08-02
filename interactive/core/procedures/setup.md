@@ -1,33 +1,32 @@
 ---
 name: setup
-description: Interactive onboarding wizard — SAP connection profile, project context files, permission template merge, safety hooks, optional vsp install, and a final layered self-check.
+description: Interactive onboarding wizard — SAP connection profile, project context files with tool-surface selection, and a layered self-check, plus optional permission-template, vsp, and safety-hook switches.
 ---
 
 # Setup Wizard
 
-Run this once per project (or re-run any single step after a change). Six steps,
-in order — each depends on the one before it. **Attended throughout**: before
-writing a file or running a script, summarize what this step is about to do and
-get user confirmation first. Never batch multiple steps' writes into one
-unconfirmed action.
-
-On a re-run over an existing project, Step 0 must first detect which
-artifacts already exist — check `.sapkit/active-profile.txt` and
-`.sapkit/config.json` first; if absent, check the legacy
-`.sc4sap/active-profile.txt` and `.sc4sap/config.json` (plus profile dir,
-permission entries, registered hooks). A legacy-only project is **not**
-migrated by this wizard — report it as `(legacy .sc4sap/)` and tell the user
-that moving to `.sapkit/` is a separate, human-run step
-(`node interactive/scripts/migrate-runtime-dir.mjs`, dry-run by default,
-`--apply` to execute); this wizard never runs it on the user's behalf. Each
-subsequent step then branches per artifact (new or legacy): verify-and-report
-if it exists, create only what is missing or broken — never rewrite a healthy
-existing artifact, and never create a parallel `.sapkit/` in a project whose
-active state is still `.sc4sap/`.
+Run this once per project (or re-run any single step after a change). Step 0
+through Step 6, in order — each depends on the one before it. **Attended
+throughout**: before writing a file or running a script, summarize what this
+step is about to do and get user confirmation first. Never batch multiple
+steps' writes into one unconfirmed action — concretely, that means every
+`setup-state.mjs plan` is shown to the user and confirmed before the matching
+`apply` runs.
 
 **Hard rule (R-005)**: this wizard never asks for, generates, nor prints a
 password or any other secret. Wherever a secret would go, write an empty
 placeholder and tell the user to fill it in by hand afterward.
+`scripts/setup-state.mjs` enforces this at the tool level too — its input
+schema rejects any field whose name looks like a secret (`password`, `token`,
+`secret`, ...) before writing anything, and it never writes a non-blank
+`SAP_PASSWORD` regardless of what input it is given.
+
+On a re-run over an existing project, Step 1 pulls a full status snapshot
+before anything else — see below. Every step from Step 1 onward branches off
+that snapshot: verify-and-report what already exists, create only what is
+missing or broken, never rewrite a healthy existing artifact, and never create
+a parallel `.sapkit/` in a project whose active state is still legacy
+`.sc4sap/`.
 
 ## Step 0 — Detect & Verify
 
@@ -39,61 +38,167 @@ placeholder and tell the user to fill it in by hand afterward.
    all.
 3. If no connection profile exists yet, `GetSession` will report an
    **inspection-only** session (no live SAP connection) — this is the expected
-   state before Step 1, not an error. Tell the user this plainly, then continue.
+   state before Step 2, not an error. Tell the user this plainly, then continue.
+4. **Codex only** — the bundled MCP wrapper may still carry an unresolved
+   `{{SAPKIT_PLUGIN_ROOT}}` path token right after a fresh install: skills load
+   fine, but the `sap` server itself doesn't start yet (harmless — its
+   manifest entry is `required:false`, so the session stays usable). Check
+   (implemented and E2E-tested as of 2026-08-02):
+   ```
+   node "<installed plugin cache>/scripts/codex-wire-mcp.mjs" status --json
+   ```
+   Read the JSON's `overall` (the worst state across every installation found)
+   and per-installation `installations[].state`:
 
-## Step 1 — Connection Profile
+   | state | meaning | action |
+   |---|---|---|
+   | `WIRED_OK` | already resolved to an absolute path | nothing to do |
+   | `TOKEN_PENDING` | fresh install, token not yet resolved | run `apply` below, then carry this into Step 5 |
+   | `STALE_PATH` | previously wired, path no longer valid (e.g. after an update) | run `apply` below, then carry this into Step 5 |
+   | `NOT_FOUND` | no installation found | treat as Codex not installed — skip the rest of this item |
+   | `PARSE_ERROR` | manifest/config could not be parsed | stop and report it — do not auto-proceed; this needs a human look |
 
-1. Resolve the profile home: `$SAPKIT_HOME_DIR` if set on this machine, else
-   the deprecated `$SC4SAP_HOME_DIR` if that is set instead (tell the user it
-   still works but `SAPKIT_HOME_DIR` is now preferred), else `~/.sapkit`, else
-   the legacy `~/.sc4sap` (the engine's built-in fallback). Scan
-   `<resolved home>/profiles/` for existing profile aliases. If any exist,
-   list them and ask the user to pick one for this project, or create a new
-   one.
+   On `TOKEN_PENDING` or `STALE_PATH`, tell the user, then run:
+   ```
+   node "<installed plugin cache>/scripts/codex-wire-mcp.mjs" apply --json
+   ```
+   This auto-locates the installed plugin cache and rewrites the token to an
+   absolute path (idempotent — a no-op if already wired). Tell the user to
+   start a **new Codex session** afterward so the MCP server picks up the
+   change. The same command repairs a stale path after a plugin update (see
+   [adapters/codex/README.md](../../adapters/codex/README.md)). If a very old
+   installed cache predates this script entirely, skip this item and downgrade
+   to guidance — same fallback pattern as Step 4's intro below.
+
+## Step 1 — Existing State Summary
+
+1. Run:
+   ```
+   node "PLUGIN_ROOT/scripts/setup-state.mjs" status --project <project path> --json
+   ```
+   (`PLUGIN_ROOT` = the plugin root Step 0 resolved.) This is read-only — it
+   never writes anything. It reports: which runtime generation is active for
+   this project (`.sapkit/`, or the legacy `.sc4sap/` if that's what's already
+   there); the active profile alias and how complete its `sap.env` is (which
+   canonical keys are present/empty, and whether a password value exists —
+   never the values themselves); `config.json`'s known/unknown keys and
+   current `toolSurface`; which of Claude/Codex/Antigravity are on `PATH`; and
+   a few out-of-scope items (permission-template file, hooks installer, vsp
+   installer presence) that Step 4 owns.
+2. Summarize this in plain language for the user before doing anything else.
+   A project already on the legacy `.sc4sap/` layout
+   (`runtimeGeneration: "sc4sap"`) is reported **as-is** — this wizard never
+   migrates it. Report it plainly as `(legacy .sc4sap/)` and point the user at
+   `node interactive/scripts/migrate-runtime-dir.mjs` (dry-run by default,
+   `--apply` to execute) as its own, separate, human-run step; this wizard
+   never runs it on the user's behalf.
+
+## Step 2 — Connection Profile
+
+1. Resolve the profile home conversationally: `$SAPKIT_HOME_DIR` if set on this
+   machine, else the deprecated `$SC4SAP_HOME_DIR` if that is set instead
+   (tell the user it still works but `SAPKIT_HOME_DIR` is now preferred), else
+   `~/.sapkit`, else the legacy `~/.sc4sap`. Step 1's status output already
+   shows which homes exist and which profile aliases live under each
+   (`homes[]`) — use that instead of re-scanning the filesystem yourself. If
+   any aliases exist, list them and ask the user to pick one for this project,
+   or create a new one.
 2. If creating a new profile, ask for an alias (`{COMPANY}-{TIER}` convention,
    e.g. `KR-DEV` — never `default`) and walk through the connection keys by
    **name only**: `SAP_URL`, `SAP_CLIENT`, `SAP_USERNAME`, `SAP_PASSWORD`,
    `SAP_TIER`, `SAP_ACTIVE_MODULES`, `MCP_BLOCKLIST_PROFILE`. Meaning, allowed
    values, and defaults are not repeated here — [project-context](../project-context.md)
    is the reference; point the user there for details.
-3. Write `<alias>/sap.env` under the resolved profile home (see item 1) with
-   every field the user gave you **except** `SAP_PASSWORD` — leave that line
-   blank (`SAP_PASSWORD=`) and tell the user: "Open this file yourself and
-   fill in the password — this wizard will not ask for it or display it."
-   Mention the OS-keyring alternative
-   ([credential-handling](../policies/credential-handling.md)) as a safer option
-   than plaintext.
-4. Confirm the written file's non-secret fields with the user before moving on.
+3. Build the plan input as JSON —
+   `{"profile": {"alias": "<alias>", "env": {...the fields the user gave you,
+   excluding SAP_PASSWORD...}}}` — and write it to a temp file (any scratch
+   location outside `.sapkit/` — this input file is not part of the project's
+   runtime state) **using your own file-write tool (Write/Edit) or a plain
+   Node one-liner — never a PowerShell redirect** (`>`, `Out-File` without
+   `-Encoding utf8`): a PowerShell redirect has produced a BOM/UTF-16 file
+   this tool cannot parse before (see `setup-state.mjs`'s own header comment
+   on the incident). Then run:
+   ```
+   node "PLUGIN_ROOT/scripts/setup-state.mjs" plan --project <project path> --input <input.json> --out <plan.json> --json
+   ```
+4. Show the plan to the user — target path, which fields will be written,
+   anything preserved or in conflict — and get confirmation. Nothing has been
+   written to disk yet.
+5. On confirmation, run:
+   ```
+   node "PLUGIN_ROOT/scripts/setup-state.mjs" apply --project <project path> --plan <plan.json> --json
+   ```
+   `SAP_PASSWORD` is always left as a blank line (`SAP_PASSWORD=`) no matter
+   what — this tool never writes a password. Tell the user: "Open this file
+   yourself and fill in the password — this wizard will not ask for it or
+   display it." Mention the OS-keyring alternative
+   ([credential-handling](../policies/credential-handling.md)) as a safer
+   option than plaintext.
+6. If disk state changed between `plan` and `apply` (e.g. the user hand-edited
+   the file in between), `apply` reports `BLOCKED` and writes nothing —
+   rebuild the plan and reconfirm rather than retrying blindly.
+7. Confirm the applied result (or the fact that it was already correct — a
+   byte-noop) with the user before moving on.
 
-## Step 2 — Project Context Files
+## Step 3 — Project Context & Tool Surface
 
-1. Write `active-profile.txt` — one line, the chosen alias — into the
-   directory Step 0 resolved (`.sapkit/` for a new project; the existing
-   `.sc4sap/` if Step 0 found a legacy, un-migrated project).
-2. Same directory: walk through `config.json` fields by name: `sapVersion`,
-   `abapRelease`, `activeModules`, `industry`, `country`, `blocklistProfile`.
-   Value lists and what each field drives are not repeated here — the table in
-   [project-context](../project-context.md) is the reference.
+1. Decide the target `toolSurface`: `readonly` (default, recommended) or
+   `development`. `development` only takes effect when the chosen profile's
+   `SAP_TIER=DEV` **and** the user explicitly asks for it here — otherwise the
+   launcher falls back to `readonly` (fail-closed by design, not a bug). Tell
+   the user this plainly before asking. A `toolSurface` change needs an MCP
+   restart to take effect (Step 5).
+2. Walk through the rest of `config.json`'s fields by **name only**:
+   `sapVersion`, `abapRelease`, `activeModules`, `industry`, `country`,
+   `blocklistProfile`, and `toolSurface` (decided above). Value lists and what
+   each field drives are not repeated here — the table in
+   [project-context](../project-context.md) is the reference (`toolSurface` is
+   not in that table yet — see design v2 §7-1 in the meantime). Also confirm
+   `active-profile.txt` should point at the alias chosen/created in Step 2.
+
+   `blocklistProfile` here is what the `block-forbidden-tables` **hook** reads
+   when the user later turns hooks on (Step 4c) — accepted values there are
+   `minimal`\|`standard`\|`strict`\|`custom`. This is a **different** setting
+   from the server-side `MCP_BLOCKLIST_PROFILE` env key from Step 2 (part of
+   `sap.env`), which is what actually gates row-data access in the
+   hooks-off default state. Tell the user plainly: the server only accepts
+   `minimal`\|`standard`(default)\|`strict`\|`off` for that key — anything
+   else silently falls back to `standard` — and it **only** reads
+   `MCP_BLOCKLIST_PROFILE`/`MCP_BLOCKLIST_EXTEND`/`MCP_ALLOW_TABLE` from the
+   **active profile's `sap.env` file itself**; a shell export or an MCP
+   registration's `env` block is silently discarded, because the server
+   clears and re-fills those three keys from `sap.env` on every profile
+   activation. If the user wants to change server-side blocklist behavior
+   without hooks, they edit `sap.env` (Step 2), not `config.json`.
 3. Optional: if the user has local best-practice knowledge vaults (directories
    of `.md` notes from real implementations), offer to register them as
    `referenceLibraries` — consultant answers will consult them first
    ([project-context](../project-context.md), D-050). Skipping changes nothing.
-4. Show the two files' final content and get confirmation before writing.
+4. Build the plan input — `{"project": {"activeProfile": "<alias>", "config":
+   {...the fields above...}}}` — with the same file-write caution as Step 2.
+   Run `plan`, show it to the user, get confirmation, then `apply` — the same
+   plan/confirm/apply round-trip as Step 2, kept as its own confirmed action
+   rather than folded into Step 2's.
 
-## Step 3 — Permission Template (Claude Code only)
+## Step 4 — Optional: Permission Template, vsp, and Safety Hooks
 
-Skip this step entirely on Codex or Antigravity — neither harness has an
-equivalent allow-list file to merge. Instead point the user at the matching
-section of their adapter README: [adapters/codex/README.md](../../adapters/codex/README.md)
-or [adapters/antigravity/README.md](../../adapters/antigravity/README.md).
+All three of the following are optional and independent — skip whichever the
+user doesn't want.
 
 On Claude Code (`PLUGIN_ROOT` below = the plugin root the skill wrapper resolved —
 the directory containing `core/` and `adapters/`; the shell's working directory
 is the user's project, so bare relative paths will NOT find these files). If your
 installed plugin cache turns out not to contain `adapters/` or `scripts/`,
-downgrade the affected step (3, 4, or 5) to guidance — point the user at the
+downgrade the affected item (4a, 4b, or 4c) to guidance — point the user at the
 matching adapter README section instead of running the command, and say so
-plainly rather than failing silently:
+plainly rather than failing silently.
+
+### 4a. Permission Template (Claude Code only)
+
+Skip this item entirely on Codex or Antigravity — neither harness has an
+equivalent allow-list file to merge. Instead point the user at the matching
+section of their adapter README: [adapters/codex/README.md](../../adapters/codex/README.md)
+or [adapters/antigravity/README.md](../../adapters/antigravity/README.md).
 
 1. Read `PLUGIN_ROOT/adapters/claude/permissions-template.json` and the project's
    `.claude/settings.local.json` (create the latter with an empty
@@ -112,26 +217,7 @@ plainly rather than failing silently:
    absent from the template — per-call human approval on those two stays in
    force regardless of this merge.
 
-## Step 4 — Safety Hooks (Claude Code only)
-
-Skip this step on Codex or Antigravity and point the user at their adapter
-README's own defense-layer section instead
-([adapters/codex/README.md](../../adapters/codex/README.md) §"실데이터 2종 하드 차단",
-[adapters/antigravity/README.md](../../adapters/antigravity/README.md) §"안전 모델 주의").
-
-On Claude Code, after user confirmation, run (substitute `PLUGIN_ROOT` with the
-resolved plugin root — the working directory is the user's project):
-
-```
-node "PLUGIN_ROOT/adapters/claude/hooks/install-hooks.mjs" --project .
-```
-
-Report the hooks it registered — six total, all auto-registered by the
-installer: block-forbidden-tables, tier-readonly-guard,
-prefer-sqlquery-explicit-fields, offline-code-analysis, syntax-checker
-(PostToolUseFailure), transport-validator.
-
-## Step 5 — Optional: vsp Offline Verifier
+### 4b. vsp Offline Verifier (optional, any harness)
 
 Ask whether the user wants `vsp` — an optional offline ABAP lint/parse tool
 that runs with no SAP connection. Skipping it does not limit anything else in
@@ -146,18 +232,97 @@ sha256, and installs to the resolved profile home's `bin/vsp`
 (`~/.sapkit/bin/vsp`, or the legacy `~/.sc4sap/bin/vsp` if that is the active
 home — `vsp.exe` on Windows) only on a hash match.
 
+### 4c. Safety Hooks (optional, Claude Code only)
+
+Skip this item on Codex or Antigravity and point the user at their adapter
+README's own defense-layer section instead
+([adapters/codex/README.md](../../adapters/codex/README.md) §"실데이터 2종 하드 차단",
+[adapters/antigravity/README.md](../../adapters/antigravity/README.md) §"안전 모델 주의") —
+Claude is the only harness with a pre-call hook mechanism at all.
+
+Hooks are **not** part of the default path (design v2 §7-4) — the safety floor
+now lives in the MCP server itself (tier gate, table blocklist) plus the
+Claude permission prompt. Hooks remain a fully supported optional switch for
+anyone who wants the extra confirmation dialogs and defense-in-depth; full
+detail (what each hook restores, what's already protected without it) is in
+[adapters/claude/hooks/README.md](../../adapters/claude/hooks/README.md).
+
+1. Check whether SAPKit hooks are already wired — read `~/.claude/settings.json`
+   and (if present) the project's `.claude/settings.json` / `settings.local.json`
+   for the six marker basenames (`block-forbidden-tables.mjs`,
+   `tier-readonly-guard.mjs`, `prefer-sqlquery-explicit-fields.mjs`,
+   `offline-code-analysis.mjs`, `syntax-checker.mjs`, `transport-validator.mjs`).
+2. **Nothing wired (the common case for a new install)**: tell the user hooks
+   are optional and, if they want them, point at the one-line install:
+   ```
+   node "PLUGIN_ROOT/adapters/claude/hooks/install-hooks.mjs" --project .
+   ```
+   (omit `--project .` to install into the user-level `~/.claude/settings.json`
+   instead — see the hooks README for the difference). Only run this after the
+   user asks for it — never automatically.
+3. **Already wired (a re-run, or a pre-existing user)**: report what's wired
+   and where (user settings, project settings, or both) and ask **once**
+   whether to remove it. Keeping it is a normal, supported outcome — this is a
+   switch, not a deprecated leftover. On approval, run
+   `install-hooks.mjs --uninstall` (add `--project .` to target the project
+   scope that was found instead of the user scope).
+
+## Step 5 — Restart Guidance
+
+Tell the user if the MCP server needs to pick up new state before Step 6 can
+give a clean result, and how to do that on their harness. Reasons that trigger
+this, and where they were surfaced:
+
+- Step 2 wrote or changed a profile's `sap.env` — `apply`'s JSON response
+  carries `restartRequired`/`restartReasons`; surface those verbatim rather
+  than re-deriving them.
+- Step 2 or Step 3 changed the active-profile pointer.
+- Step 3 changed `toolSurface` — the tool surface is decided when the MCP
+  server starts, not per call.
+- Step 0 ran `codex-wire-mcp.mjs apply` (`TOKEN_PENDING` or `STALE_PATH` state).
+
+How to restart: Claude Code — reload the plugin or start a new session; Codex —
+start a new session; Antigravity — no live-reload, reinstall per its README if
+the change must take effect immediately. If none of the above happened this
+run (e.g. a pure status re-run that changed nothing), say so and go straight
+to Step 6.
+
 ## Step 6 — Self-Check
 
-Run the layered checklist in
-[troubleshooting §1](troubleshooting.md#1-mcp-server-connection--diagnostic-checklist)
-and report PASS/FAIL/WARN/SKIP per layer, same format as that document.
-Additionally verify that every hook registered in `.claude/settings.json`
-points at a script path that actually exists on disk — a dead path means the
-hook is silently inactive (report as FAIL for that hook); a 2026-07-23
-dogfood found 2 hooks pointing at a vanished `marketplaces/sc4sap/` path and
-337 dead-namespace permission entries, all silent.
+1. Run:
+   ```
+   node "PLUGIN_ROOT/scripts/setup-state.mjs" verify --project <project path> --json
+   ```
+   and report its `state` against this table (design v2 §8-3):
 
-Because Step 1 left `SAP_PASSWORD` blank, expect the SAP-connection layer to
-come back FAIL/WARN at this point — that is expected, not a wizard bug. Tell
-the user to open the profile's `sap.env`, fill in the password, then re-run
-**only this step** to confirm the connection.
+   | state | meaning |
+   |---|---|
+   | `READY_INSPECTION` | plugin + MCP OK, profile/password not yet complete |
+   | `READY_READONLY` | SAP connected + readonly tool surface OK |
+   | `READY_DEVELOPMENT` | DEV connected + user chose development + write surface OK |
+   | `RESTART_REQUIRED` | config is correct but MCP/plugin needs a reload |
+   | `DEGRADED_SKILLS_ONLY` | skills loaded but the bundled MCP failed to start |
+   | `BLOCKED` | bad path, parse error, or an unmet safety condition |
+
+   `verify` checks files and structure only — it never probes the live SAP
+   connection (that's the MCP session's job, covered by the checklist below).
+   A blank `SAP_PASSWORD` alone is expected to land on `READY_INSPECTION`, not
+   a failure.
+2. Run the layered checklist in
+   [troubleshooting §1](troubleshooting.md#1-mcp-server-connection--diagnostic-checklist)
+   and report PASS/FAIL/WARN/SKIP per layer, same format as that document.
+3. Additionally verify that every hook registered in `.claude/settings.json`
+   (and, if Step 4c found one, `~/.claude/settings.json`) points at a script
+   path that actually exists on disk — a dead path means the hook is silently
+   inactive (report as FAIL for that hook); a 2026-07-23 dogfood found 2 hooks
+   pointing at a vanished `marketplaces/sc4sap/` path and 337 dead-namespace
+   permission entries, all silent.
+4. Also run `node "PLUGIN_ROOT/scripts/doctor.mjs"` for its 3-client sync
+   checks (bundle integrity, adapter/compatibility drift, hook-wiring
+   script-path check) and fold any FAILs into the report.
+
+Because Step 2 leaves `SAP_PASSWORD` blank, expect `READY_INSPECTION` (and the
+SAP-connection layer of the checklist above coming back FAIL/WARN) at this
+point — that is expected, not a wizard bug. Tell the user to open the
+profile's `sap.env`, fill in the password, then re-run **only this step** to
+confirm the connection.

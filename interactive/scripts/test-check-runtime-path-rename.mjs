@@ -45,6 +45,7 @@ const NEEDED = [
   'interactive/tools/extract/extract-spro.mjs',
   'interactive/tools/extract/extract-customizations.mjs',
   'interactive/scripts/get-vsp.mjs',
+  'interactive/scripts/setup-state.mjs',
   'interactive/scripts/lib/target-hash.mjs',
   'scripts/vsp-env.ps1',
   '.gitignore',
@@ -69,6 +70,7 @@ const NEEDED = [
   'engine/docs/user-guide/AVAILABLE_TOOLS_LEGACY.md',
   'engine/docs/user-guide/AVAILABLE_TOOLS_READONLY.md',
   'scripts/promote-track-b-run.ps1',
+  'interactive/scripts/doctor.mjs',
   // 앵커 (위와 겹치지 않는 것)
   'interactive/core/procedures/create-program.md',
   'interactive/core/procedures/review-checklist.md',

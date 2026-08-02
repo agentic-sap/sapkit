@@ -25,13 +25,13 @@
         "fields": "runtimeDir, runtimeDirGeneration, reason, alias, legacy, tier, readonly, sourcePath, homeDir, homeGeneration",
         "envSubset": "object of SAP_* keys that must be present with these values in loaded.envVars"
       },
-      "launch": "{ envPath: <path|null> } — the sap.env launch.cjs exports as MCP_ENV_PATH, or null when it resolves nothing",
+      "launch": "{ envPath: <path|null>, exposition: <string, optional> }. envPath = the sap.env launch.cjs exports as MCP_ENV_PATH, or null when it resolves nothing. exposition = the single `--exposition` value the shim hands the bundle (design 2026-08-02 §7-1): the shim reads `toolSurface` from the config.json of the SAME generation it took the connection from, and `development` needs SAP_TIER=DEV. OPTIONAL and read only by the interactive runner — LEAVE IT OUT and the runner asserts the R-DEFAULT floor instead (`readonly`), so a case only needs to state it when the input deliberately opens the write surface. The runner also asserts, on every case, that exactly ONE --exposition argument reaches the bundle (its parser takes the first match, so a second one is silently dead).",
       "profile-resolve": "{ runtimeDir, workspaceRoot, sapEnvPath: {path, source}|null, configJsonPath: {path, source}|null }",
       "tier-guard": "{ runtimeDir, tier: DEV|QA|PRD|null, decision: allow|deny } for a mutation tool call",
       "blocklist": "{ blocklistProfile: minimal|standard|strict|custom, extendFrom: <path|null> }",
       "cwd-tools": "{ vpass, 'extract-spro', 'extract-customizations' } -> each tool's own expected `runtime_dir` from `--resolve-only`. OPTIONAL and read only by the interactive runner (the jest well-formedness check does not require it). Values are PER TOOL on purpose: the runner's older cross-check only asserted that the three AGREE, which passes when all three are wrong in the same way. Pin them wherever the answer is interesting; leave the key out and the runner falls back to the agreement + R-PRESERVE/R-NEW invariants alone. Not pinned by this key: whether the directory is actually CREATED — `--resolve-only` is pure computation and creates nothing, so creation and duplication stay unpinned (design §4-3 R-NEW is explicitly about disclosing that, not fixing it)."
     },
-    "axes": "R-TIE (generation combinations x connection completeness) · walk depth 0/7/8/63/64 · env 4 · home-alias 4 · the nine safety regressions of §7-3 · migration round-trip · R-NEW creation site"
+    "axes": "R-TIE (generation combinations x connection completeness) · walk depth 0/7/8/63/64 · env 4 · home-alias 4 · the nine safety regressions of §7-3 · migration round-trip · R-NEW creation site · tool-surface (the launcher's per-project exposition, which rides on the SAME generation choice)"
   },
 
   "version": 1,
@@ -1150,6 +1150,130 @@
           "expected": { "vpass": "$CWD/.sapkit", "extract-spro": "$CWD/.sapkit", "extract-customizations": "$CWD/.sapkit" },
           "note": "THE POINT of §7-3 #9: run from a subdirectory of a project that already has a root .sapkit and these writers still name the SUBDIRECTORY site, so a second runtime directory is what a real write would produce. Recorded, not endorsed — the pre-rename .sc4sap behaved identically. Whether the directory is actually created (and thus duplicated) is left unpinned: the offline seam does not create it, and no no-connection path does."
         }
+      }
+    },
+
+    {
+      "id": "surface-dev-new-generation",
+      "axis": "tool-surface",
+      "title": "§7-1 — both generations ask for `development`, only .sapkit is DEV: the write surface follows the generation the CONNECTION came from",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/sap.env": "SAP_URL=http://new-dev\nSAP_TIER=dev\n",
+          "$PROJECT/.sapkit/config.json": "{\"toolSurface\":\"development\"}",
+          "$PROJECT/.sc4sap/sap.env": "SAP_URL=http://old-prd\nSAP_TIER=prd\n",
+          "$PROJECT/.sc4sap/config.json": "{\"toolSurface\":\"development\"}"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": { "expected": null, "note": "This case pins the launcher's tool-surface decision. The generation choice it rides on is already pinned for the engine by safety-5 (same shape, distinguishable SAP_URL/SAP_TIER)." },
+        "launch": {
+          "expected": { "envPath": "$PROJECT/.sapkit/sap.env", "exposition": "readonly,high" },
+          "note": "THE POINT: the tier that gates `development` is read from the sap.env the shim actually hands the bundle. Both generations request development, so a wrong generation pick is invisible in the config but visible here — reading .sc4sap would find SAP_TIER=prd and fail closed to `readonly`, which is exactly the red we want."
+        },
+        "profile-resolve": { "expected": null, "note": "Pinned by safety-5 for this shape; repeating it here would duplicate the claim without adding one." },
+        "tier-guard": { "expected": null, "note": "See above — safety-5 pins the guard for the both-complete shape." },
+        "blocklist": { "expected": null, "note": "No blocklistProfile in either config.json; this case is about toolSurface only." }
+      }
+    },
+
+    {
+      "id": "surface-legacy-only-dev",
+      "axis": "tool-surface",
+      "title": "§7-1 × R-TIE ORDER — an empty .sapkit shell must not capture the tool-surface read of a .sc4sap that carries the connection AND the config",
+      "input": {
+        "dirs": ["$PROJECT/.sapkit"],
+        "files": {
+          "$PROJECT/.sc4sap/sap.env": "SAP_URL=http://old-dev\nSAP_TIER=dev\n",
+          "$PROJECT/.sc4sap/config.json": "{\"toolSurface\":\"development\"}"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": { "expected": null, "note": "The generation choice for this shape is pinned by tie-new-shell-legacy-complete; only the tool surface is new here." },
+        "launch": {
+          "expected": { "envPath": "$PROJECT/.sc4sap/sap.env", "exposition": "readonly,high" },
+          "note": "R-PRESERVE for a legacy-only project's tool surface: the empty .sapkit directory fails the adoption criterion, so config.json is read from .sc4sap and `development` is granted on its DEV tier. If the shell captured the lookup the config would look ABSENT and the project would silently lose its write tools."
+        },
+        "profile-resolve": { "expected": null, "note": "Pinned by tie-new-shell-legacy-complete." },
+        "tier-guard": { "expected": null, "note": "Pinned by tie-new-shell-legacy-complete." },
+        "blocklist": { "expected": null, "note": "No blocklistProfile here; this case is about toolSurface only." }
+      }
+    },
+
+    {
+      "id": "surface-config-in-other-generation",
+      "axis": "tool-surface",
+      "title": "§7-1 — split-brain guard: `development` sitting in the generation that did NOT supply the connection must not open the write surface",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/sap.env": "SAP_URL=http://new-dev\nSAP_TIER=dev\n",
+          "$PROJECT/.sc4sap/config.json": "{\"toolSurface\":\"development\"}"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": { "expected": null, "note": "Tool-surface case; the engine has no toolSurface concept." },
+        "launch": {
+          "expected": { "envPath": "$PROJECT/.sapkit/sap.env", "exposition": "readonly" },
+          "note": "THE POINT: the connection comes from .sapkit, which has no config.json, so the surface is the R-DEFAULT `readonly` — even though a `development` config exists one directory over. Mixing a config.json from one generation with a sap.env from another is the split-brain safety-6 pins for the blocklist hook; the tier here is DEV, so a fall-through would actually GRANT write, which is why the conservative answer has to be pinned."
+        },
+        "profile-resolve": { "expected": null, "note": "Its own config.json state criterion differs by design (config.json counts as state for it) and is already pinned by safety-3/4; restating it here would confuse two separate claims." },
+        "tier-guard": { "expected": null, "note": "Not this case's claim." },
+        "blocklist": { "expected": null, "note": "Not this case's claim — safety-6 owns the generation-split policy read for the hook." }
+      }
+    },
+
+    {
+      "id": "surface-no-walk-up",
+      "axis": "tool-surface",
+      "title": "§7-1 × depth — the tool surface keeps launch.cjs's depth 0: a `development` config one level above the cwd is not reached",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/sap.env": "SAP_URL=http://root-dev\nSAP_TIER=dev\n",
+          "$PROJECT/.sapkit/config.json": "{\"toolSurface\":\"development\"}"
+        },
+        "dirs": ["$PROJECT/sub"],
+        "cwd": "sub",
+        "env": {}
+      },
+      "consumers": {
+        "engine": { "expected": null, "note": "Tool-surface case; depth 0 for the engine is pinned by depth-7 and safety-9b." },
+        "launch": {
+          "expected": { "envPath": null, "exposition": "readonly" },
+          "note": "The shim does not walk up (R-PRESERVE §11-2), and the tool surface must not quietly acquire a walk the connection does not have — otherwise a subdirectory session would get write tools while the connection resolves to nothing. Both halves are pinned together: envPath null AND readonly."
+        },
+        "profile-resolve": { "expected": null, "note": "It DOES walk up; that divergence is pinned by depth-7 and safety-9b." },
+        "tier-guard": { "expected": null, "note": "Not this case's claim." },
+        "blocklist": { "expected": null, "note": "Not this case's claim." }
+      }
+    },
+
+    {
+      "id": "surface-development-on-qa",
+      "axis": "tool-surface",
+      "title": "§7-1 R-DEV — `development` on a QA system fails closed to readonly",
+      "input": {
+        "files": {
+          "$PROJECT/.sapkit/sap.env": "SAP_URL=http://qa\nSAP_TIER=qa\n",
+          "$PROJECT/.sapkit/config.json": "{\"toolSurface\":\"development\"}"
+        },
+        "cwd": ".",
+        "env": {}
+      },
+      "consumers": {
+        "engine": { "expected": null, "note": "Tool-surface case." },
+        "launch": {
+          "expected": { "envPath": "$PROJECT/.sapkit/sap.env", "exposition": "readonly" },
+          "note": "The connection is still made (envPath non-null) — fail-closed here means the tool SURFACE narrows, not that the project loses its QA connection. Only SAP_TIER=DEV opens `readonly,high`; the server tier gate (§7-2) remains the floor underneath."
+        },
+        "profile-resolve": { "expected": null, "note": "Not this case's claim." },
+        "tier-guard": { "expected": null, "note": "Not this case's claim — the hook's QA deny is its own axis." },
+        "blocklist": { "expected": null, "note": "Not this case's claim." }
       }
     },
 

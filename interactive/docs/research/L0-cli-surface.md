@@ -44,7 +44,8 @@ agy plugin list | import [source] | install <target> | uninstall | enable | disa
 1. 어댑터 3벌의 "동형 플러그인" 전제가 실측으로 확정됨 (Claude ↔ Codex 매니페스트 필드 매핑).
 2. Antigravity 어댑터는 "신규 제작"이 아니라 "**Claude 어댑터 import + 보정**" 경로를
    1순위로 검토한다 — DESIGN.md §4-2의 antigravity 절은 L5에서 이 실측으로 갱신 예정.
-3. `compatibility.json` 초기값: codex-cli 0.144.1, agy 1.0.7.
+3. `compatibility.json` 초기값: codex-cli 0.144.1, agy 1.0.7. (2026-08-02부터 codex는
+   capability 기반 — `adapters/compatibility.json` 참조)
 
 ## L4 추가 실측 (2026-07-10)
 

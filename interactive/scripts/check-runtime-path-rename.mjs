@@ -87,6 +87,15 @@ const ZONE_B = [
   'interactive/scripts/conformance-runtime-dir.mjs',
   // 기존 게이트 음성시험(구 경로 픽스처를 그대로 쓴다)
   'interactive/scripts/test-get-vsp.mjs',
+  // 런처 도구면 음성시험 — legacy 세대 프로젝트의 toolSurface가 그대로 읽히는지를
+  // `.sc4sap` 픽스처로 **일부러** 재현하고, 자식 프로세스 env에서 구 홈 변수를 지워
+  // 실사용자 상태와 격리한다. 위 세 시험과 같은 부류다.
+  'interactive/scripts/test-launch-toolsurface.mjs',
+  // setup mutator 음성시험 — legacy-활성 프로젝트의 현상 보존 쓰기·구 홈 감지를
+  // `.sc4sap` 픽스처로 일부러 재현한다. 같은 부류.
+  'interactive/scripts/test-setup-state.mjs',
+  // doctor 음성시험 — 시험 격리를 위해 자식 env에서 구 홈 변수를 지운다. 같은 부류.
+  'interactive/scripts/test-doctor.mjs',
 ];
 
 // ── 구역 C — 폴백 의무: 신·구 둘 다 존재해야 PASS ──────────────────────────
@@ -102,6 +111,9 @@ const ZONE_C = [
   'interactive/tools/extract/extract-spro.mjs',
   'interactive/tools/extract/extract-customizations.mjs',
   'interactive/scripts/get-vsp.mjs',
+  // setup mutator — 엔진 리졸버와 같은 세대 판정(legacy-활성이면 그 자리에 쓰기)을
+  // 구현하므로 신·구 토큰이 둘 다 있어야 미이행 사용자의 setup이 안 끊긴다.
+  'interactive/scripts/setup-state.mjs',
   // R-ENV 홈 선택을 직접 수행하는 나머지 두 소비자 — 설계 §6-6·§6-10.
   // (브리핑의 열거를 넘어선 추가분. 근거: 위 리졸버들과 기능적으로 동일한
   //  `SC4SAP_HOME_DIR` + `~/.sc4sap` 폴백 분기를 직접 구현한다.)
@@ -145,6 +157,8 @@ const ALLOWLIST = [
   { file: 'engine/docs/user-guide/AVAILABLE_TOOLS_READONLY.md', cap: 1, requireNew: true },
   // 공방 스크립트의 usage 문자열 — "구 경로도 받는다"는 한 줄
   { file: 'scripts/promote-track-b-run.ps1', cap: 1, requireNew: true },
+  // doctor 진단 문구 — 미이행 사용자에게 두 세대를 병기해 보여주는 안내 (검사 ⑤)
+  { file: 'interactive/scripts/doctor.mjs', cap: 2, requireNew: true },
 ];
 
 // ── 안전 앵커 — 개명 금지 호환성 문자열(§3-3). 사라지면 FAIL ───────────────

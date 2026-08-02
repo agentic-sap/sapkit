@@ -8,7 +8,35 @@
 > **▶▶ 재개점 — 여기부터 읽는다 (최상단 정본)**
 > ═══════════════════════════════════════════════════════════════════
 >
-> **▶▶ 배포 온보딩·Codex 동등 설계 v2 확정 — 구현 대기 (2026-08-02 · 미집행 · D-항목은 집행 착수 커밋에)**
+> **▶▶ 설계 v2 집행 완료 — v0.5.0 · engine 4.14.1 · D-062 (2026-08-02 · 커밋 체인·독립 리뷰 이 세션에서 진행)**
+>
+> §13 P0~P4 당일 완주(메인 오케스트레이션 + 모델 지정 위임 8기 · 파일 비중첩). 핵심:
+> - **Codex bundled MCP = 방식 ④**: Codex는 wrapper 내부 값을 치환·재기준화하지 않음(실측 —
+>   §6-2 세 방식 전부 기각) → 커밋 생성물은 `{{SAPKIT_PLUGIN_ROOT}}` 토큰, 설치 후
+>   `scripts/codex-wire-mcp.mjs apply`(멱등)가 캐시 절대경로 재작성. 임시 CODEX_HOME E2E =
+>   marketplace add→plugin add→wire→`codex mcp list` 등재→tools/list 65·cwd 보존.
+> - **훅 6종 기본 미설치 + 스위치 보존** 집행(§7-5 supersede 4건 = D-062 ④) · setup은
+>   신설 `setup-state.mjs`(status/plan/apply/verify·byte-noop) 소비 · doctor는 capability
+>   9검사 개편 · 선택 기능 문서 `adapters/claude/hooks/README.md` 신설.
+> - **toolSurface 도입**: `.mcp.json` 고정 인자 제거 — 런처가 `.sapkit/config.json`으로 결정
+>   (readonly 기본 · development는 SAP_TIER=DEV+명시 선택만 · CLI 인자는 호환 우선).
+> - **BLOCKER 수리**: 서버 tier 게이트가 **전 transport에서 미배선**이던 결함을 신설
+>   conformance가 발견 → engine **4.14.1**(BaseMcpServer wrappedHandler에 guardTool 배선 ·
+>   jest 729/0 · conformance 22단언 PASS 21/GAP 1). blocklist env 노브는 **프로파일 sap.env
+>   전용** 실측(프로세스 env 무시 — B2p GAP 박제·문서 정직화·엔진 수리는 백로그).
+> - 실측 종결: Codex 재`add` = **완전 교체**(구캐시 제거) · `marketplace upgrade`는 Git 마켓
+>   전용 · `claude plugin validate` PASS · marketplace version 중복 **유지** 판정(§11-1).
+> - 신설 시험 CI 등재: server-gates 22 · hook-switch 13 · setup-state 121 · toolsurface 53 ·
+>   codex-wire 51 · doctor 43(win 잡). test-smoke-mcp CRLF 오탐 2건 수리 → 20/20(D-057 ⑹ 종결).
+> - **다음**: ① push 후 CI green 확인(D-060 교훈 — 로컬 green≠CI green) ② 이 머신 재설치
+>   `claude plugin update sapkit --scope local` → 0.5.0 → 재시작. **⚠ toolSurface 미설정
+>   프로젝트는 write 도구가 155→65로 축소된다(의도) — 이 레포에서 write 재개하려면
+>   `.sapkit/config.json`에 `"toolSurface": "development"`** ③ 소유자 머신 blocklist 노브가
+>   sap.env 밖에 있으면 현재 무효일 수 있음 — 프로파일 확인(D-062 ⑥) ④ RC 잔여 = Codex
+>   TUI/IDE·GitHub 마켓 경로·`codex exec` 2턴 확인 설계(§14-2 · compatibility lastVerified는
+>   그 후 채움) ⑤ ZUNIWTH 도그푸딩(종전 재개점 그대로).
+>
+> **▶▶ 배포 온보딩·Codex 동등 설계 v2 확정 → ✅ 집행 완료 (2026-08-02 · 위 블록 · D-062)**
 >
 > `docs/reference/designs/2026-08-02-claude-onboarding-codex-parity-no-engine.md`가 v1 초안
 > → **실물 대조 리뷰**(BLOCKER 2 · MAJOR 4 · MINOR 6 · 전건 반영 — 설계 §16) → 사용자 결정
@@ -2734,10 +2762,13 @@ docs/superpowers/specs/…lite-design.md  ← 설계 스냅샷 (정본은 intera
 3. `interactive/server/server.bundle.cjs`는 `.gitattributes` `-text` 보호 유지 (EOL 변환 = 파손).
    갱신은 UPDATE-RUNBOOK 절차로만, 갱신 시 capability diff + gen-permissions 재생성 필수.
 4. 실데이터 조회 2종(GetTableContents/GetSqlQuery): **배포 기본값은 어떤 하네스에서도
-   자동 승인 금지**(템플릿 2종 제외·Codex 하드차단 권장·훅 유지). **소유자 머신은 D-043으로
-   서버 바닥선 모델** — 묻는 층 없이 서버 blocklist(engine tableBlocklist, 기본 standard)가
-   보호 테이블만 거부하며, 작업 테이블 예외는 프로파일 sap.env `MCP_ALLOW_TABLE`로 등록한다.
-   이 머신에서 Codex `disabled_tools` 부재·Claude 2종 허용을 "결함"으로 보고 되돌리지 말 것.
+   자동 승인 금지**(템플릿 2종 제외·Codex 하드차단 — **훅은 D-062부터 선택 기능: 기본
+   미설치·스위치 보존**, 안전 정본은 서버 자체 게이트 + conformance-server-gates CI 박제).
+   **소유자 머신은 D-043으로 서버 바닥선 모델** — 묻는 층 없이 서버 blocklist(engine
+   tableBlocklist, 기본 standard)가 보호 테이블만 거부하며, 작업 테이블 예외는 프로파일
+   sap.env `MCP_ALLOW_TABLE`로 등록한다(노브 3종은 **sap.env 안에서만 유효** — D-062 ⑥).
+   이 머신에서 Codex `disabled_tools` 부재·Claude 2종 허용·훅 미배선을 "결함"으로 보고
+   되돌리지 말 것.
 5. 매니페스트·게이트 우선: 구조 변경 시 `node interactive/scripts/check-links.mjs interactive`와
    `node interactive/scripts/check-migration-snapshot.mjs`가 항상 통과 상태여야 한다
    (구 `check-migration-coverage`는 S3에서 폐기 — D-029).
@@ -2755,8 +2786,10 @@ node interactive/scripts/check-links.mjs interactive     # 깨짐 0 이어야 �
 node interactive/server/verify-engine.mjs                # 번들 무결성 OK
 node interactive/scripts/check-engine-provenance.mjs     # 엔진 소스 커밋 ↔ 번들
 node interactive/scripts/smoke-mcp.mjs                   # 도구 표면 계약 assert
-node interactive/scripts/gen-plugin-manifests.mjs --check # 매니페스트 5종 ↔ 단일 정본
-node interactive/scripts/doctor.mjs                      # 3사 동기화 (로컬 전용)
+node interactive/scripts/conformance-server-gates.mjs    # 서버 안전 게이트 (tier·blocklist·ask)
+node interactive/scripts/test-hook-switch.mjs            # 훅 스위치 왕복 멱등
+node interactive/scripts/gen-plugin-manifests.mjs --check # 생성물 7종(매니페스트 5+MCP 2) ↔ 단일 정본
+node interactive/scripts/doctor.mjs                      # 3사 동기화 · capability 진단 (로컬 전용)
 node interactive/adapters/codex/toggle-plugin.mjs status # Codex 활성 상태
 codex plugin list | grep sap-agentic                     # Codex 설치 상태
 agy plugin list                                          # AG 임포트 상태

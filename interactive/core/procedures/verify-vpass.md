@@ -87,8 +87,8 @@ of trusting the applying side's own report. It never writes to SAP.
    does not ship `tools/`, fall back to the in-repo path
    `interactive/tools/vpass/vpass.mjs`; if neither exists, downgrade to
    guidance — tell the user plainly and give them the command to run by hand
-   (same downgrade pattern as [setup](setup.md#step-3--permission-template-claude-code-only)
-   Step 3). Then run:
+   (same downgrade pattern as [setup](setup.md#4a-permission-template-claude-code-only)
+   Step 4a). Then run:
 
    ```
    node "<resolved-path>" --source-dir <dir> <TYPE> <NAME> [<TYPE> <NAME> ...]
