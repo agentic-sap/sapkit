@@ -211,6 +211,32 @@ console.log('⑴ 결정 로직 (in-process · 순수 함수)');
 }
 
 {
+  // ⑩''' 기본값 안내문은 이 런처가 **실제로 읽는** config.json을 가리켜야 한다 —
+  //      legacy 세대 프로젝트에 `.sapkit/config.json`을 지시하면 따라 해도 아무
+  //      효과가 없다(죽은 지시 · 실사용 제보 ZUNIVAT_RAP 2026-08-03 ②).
+  const root = project({ '.sc4sap/sap.env': DEV_ENV });
+  const d = decide(root);
+  expect("⑩''' legacy 세대 · config 부재 → 코드", codes(d), 'TOOLSURFACE_DEFAULT');
+  const msg = d.notices[0]?.message ?? '';
+  if (msg.includes(path.join(root, '.sc4sap', 'config.json'))) ok("⑩'''  ·· 안내가 .sc4sap/config.json을 가리킨다");
+  else bad("⑩'''  ·· 안내가 .sc4sap/config.json을 가리킨다", msg);
+  if (!msg.includes(`${path.sep}.sapkit${path.sep}config.json`)) ok("⑩'''  ·· .sapkit 경로를 지시하지 않는다");
+  else bad("⑩'''  ·· .sapkit 경로를 지시하지 않는다", msg);
+
+  // 키만 없는 기존 config.json이 있으면 그 파일 자체를 지시한다.
+  const root2 = project({ '.sapkit/config.json': '{"blocklistProfile":"strict"}', '.sapkit/sap.env': DEV_ENV });
+  const m2 = decide(root2).notices[0]?.message ?? '';
+  const cfg2 = path.join(root2, '.sapkit', 'config.json');
+  if (m2.lastIndexOf(cfg2) > m2.indexOf(cfg2)) ok("⑩'''  ·· 기존 config.json이 지시 대상으로 반복된다");
+  else bad("⑩'''  ·· 기존 config.json이 지시 대상으로 반복된다", m2);
+
+  // 세대 미해석(연결 없음) 프로젝트는 양쪽 후보를 함께 안내한다.
+  const m0 = decide(project({})).notices[0]?.message ?? '';
+  if (m0.includes('.sapkit/config.json') && m0.includes('.sc4sap/config.json')) ok("⑩'''  ·· 세대 미해석이면 양쪽 후보를 안내한다");
+  else bad("⑩'''  ·· 세대 미해석이면 양쪽 후보를 안내한다", m0);
+}
+
+{
   // ⑪ 인자 정리. 번들 파서는 **첫** --exposition을 채택하므로, 빈 인자를 남긴 채
   //    뒤에 덧붙이면 번들은 "미지정"으로 읽고 자기 기본값 readonly,high를 연다.
   const d = decide(project({ '.sapkit/config.json': '{"toolSurface":"readonly"}' }), [

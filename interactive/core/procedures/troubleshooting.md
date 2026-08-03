@@ -94,6 +94,7 @@ Resolve `SAP_RFC_BACKEND` from the active profile's `sap.env`, then run the matc
 | **SSL certificate errors** | Add the SAP system certificate to the Node.js trust store (recommended), or temporarily set `TLS_REJECT_UNAUTHORIZED=0` in `sap.env` (dev only — never in prod) |
 | **Server registered but every tool call fails** | `server/server.bundle.cjs` missing or truncated — restore the server bundle |
 | **`Basic authentication requires SAP_CLIENT to be provided` on every tool** | Do NOT read this as "MCP is down" — the tools are attached and answering. The alias in `active-profile.txt` has no profile directory on *this* machine, so no connection parameters resolve. See §4 → *Profile missing on this machine* |
+| **Write tools missing from the tool list** (`Update*` / `Create*` / `ActivateObjects` absent; ~65 tools inspection-only / ~74 connected instead of ~155/186) | Not an outage and not the tier guard — the launcher started with the `readonly` tool surface because the project's runtime `config.json` has no `toolSurface`. See §4 → *Tool surface* |
 | **Config changes have no effect** | `sap.env` changes are NOT hot-reloaded — reconnect/restart the MCP server per your harness's procedure |
 | **Refusal when reading a legitimate table** | Blocklist guard — see §5 |
 | **Authorization errors on specific operations** | Required authorization objects: `S_DEVELOP` (development), `S_TRANSPRT` (transports); RFC-dispatched ops additionally need `S_RFC` |
@@ -297,6 +298,24 @@ Tier read-only enforcement lives in the MCP server itself (a readonly guard appl
 
 **Tier is immutable on an existing profile** — changing it requires remove + re-add. This prevents accidentally downgrading a PRD profile to DEV.
 
+### Tool surface — write tools missing from the list
+
+Symptom: reads work normally but `Create*` / `Update*` / `Delete*` / `ActivateObjects` / `ReleaseTransport` are **absent from the tool list** — roughly 65 tools (inspection-only) or 74 (connected) instead of ~155/186. Since v0.5.0 the launcher decides the tool surface from `toolSurface` in the project's runtime `config.json`; when the key is absent or misspelled it starts `readonly` **by design** (fail-closed), and the only notice goes to stderr — which an agent session cannot see, so from inside the session this is indistinguishable from a broken install or a permission problem. It is neither.
+
+Tell it apart from the tier guard first:
+
+- Write tool **listed but refused when called** (`ERR_READONLY_TIER`) → tier guard — see *Tier semantics* above.
+- Write tool **not in the list at all** → tool surface (this subsection). Permissions, blocklist, and tier are not the cause.
+
+Checks:
+
+- [ ] Locate the project's ACTIVE runtime directory — the one holding `active-profile.txt` (or a legacy `sap.env`): `.sapkit/` for a new or migrated project, the legacy-generation directory otherwise (see *Storage layout* above). A `config.json` placed in the *other* generation is **not read**.
+- [ ] Read `toolSurface` in `<that dir>/config.json` — absent or a typo means the surface is `readonly` by design, not a defect.
+
+Fix: set `"toolSurface": "development"` in that `config.json` and **restart the MCP server** — the surface is decided once at launch; `ReloadProfile` does not re-list tools. `development` only takes effect when the active profile's `SAP_TIER=DEV`; on QA/PRD (or an unresolved tier) the launcher stays `readonly` fail-closed, which is correct behavior, not a bug.
+
+Upgrade trap: projects created before v0.5.0 have no `toolSurface` key, so their write tools disappear silently on the first post-upgrade session — they never saw the [setup](setup.md) Step 3 question that normally decides this (field-reported 2026-08-03).
+
 ### Profile checks
 
 - [ ] `<project>/.sapkit/active-profile.txt` exists and contains a single alias
@@ -434,3 +453,7 @@ Local-package detection recognises the literal `$TMP` only. An object in any oth
 ### `CreateTransport` — non-ASCII descriptions come back corrupted
 
 A description containing non-ASCII text (e.g. Korean) is stored with those characters replaced by `#`; ASCII segments survive intact. The transport itself is created and fully usable — only the display text is damaged, and it cannot be repaired through this tool. Write transport descriptions in English. Whether the loss happens client-side or in the backend codepage was not established.
+
+### Class implementations include — the reader is `GetLocalTypes`, not the obvious names
+
+The working code of a class pool — RAP behavior-implementation (BIL) handlers, `lcl_*` locals — lives in the **implementations include** (CCIMP; the Eclipse "Local Types" tab), and none of the intuitively-named readers show it: `ReadBehaviorImplementation` / `GetBehaviorImplementation` / `ReadClass` return only the 4-line global shell, `GetInclude("…CCIMP")` fails with HTTP 500, `GetIncludesList(CLAS/OC)` finds nothing, and `GrepObjects` on a class searches `source/main` only. Nothing in those responses points at the right tool, so "there is no reader" is the natural — and wrong — conclusion (field-reported 2026-08-03: a BIL was reconstructed by hand from old copies because of it). The reader exists: **`GetLocalTypes`** reads the implementations include (active or inactive version), alongside `GetLocalDefinitions` (CCDEF), `GetLocalMacros` (CCMAC), and `GetLocalTestClass` (CCAU). Write side: `UpdateLocalTypes` targets the same include; for a BIL prefer `UpdateBehaviorImplementation`, which rewrites shell and implementations together.

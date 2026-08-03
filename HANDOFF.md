@@ -8,6 +8,31 @@
 > **▶▶ 재개점 — 여기부터 읽는다 (최상단 정본)**
 > ═══════════════════════════════════════════════════════════════════
 >
+> **▶▶ 실사용 v0.5.1 제보 3건 판정 — ②수리 ①문서+백로그 ③기각·재분류 · v0.5.2 유지 · D-065 (2026-08-03)**
+>
+> `ZUNIVAT_RAP` 제보(세션 1회 전손) 실물 대조 판정. D-063 원칙(진단을 그대로 믿지
+> 않는다)이 또 한 건을 뒤집었다:
+> - **① toolSurface 조용한 잠금**: 증상 사실 — 업그레이드 후 기존 프로젝트 전부가
+>   74도구(연결된 readonly)로 축소, **이 판정 세션 자체도 74도구**. readonly 기본은
+>   D-062 의도 설계(예견 명문)이나 공백 3건 실재: 이관 부재·stderr 불가시·문서 부재.
+>   문서는 반영(troubleshooting §1 표 + §4 *Tool surface* 절 — tier 감별법 포함),
+>   이관·가시화는 **플러그인 백로그**(§6 말미, D-결정 대기). 즉효 해법 = 활성 런타임
+>   디렉터리 config.json에 `"toolSurface": "development"` + 재시작(DEV만 열림).
+> - **② 안내문 오지시**: 사실·수리 — 레거시 `.sc4sap` 프로젝트에 `.sapkit/config.json`을
+>   지시하던 하드코딩을 실제 탐색 대상(surface.file > selectedDir > 양쪽 병기)으로.
+>   시험 +5단언 **58/58**. "세대 뒤집힘 위험" 주장은 과잉 우려 판정(config.json은
+>   세대 판정에 무관여).
+> - **③ BIL read-back 부재**: **기각** — `GetLocalTypes`가 정확히 그 include(CCIMP)를
+>   읽는다(편입 후 무수정·번들 포함·기본 표면 등재 3중 확인). 실체는 직관 이름 6종이
+>   정답을 안내하지 않는 **이정표 부재** → §8 항목 반영 + 엔진 백로그 **13-8**(설명문
+>   역참조·500 정직화 — 재번들 별건). 회신 시 GetLocalTypes 실측 요청할 것.
+> - 부산물: ENGINE 잔재 훅 `tdd-guard.py`(.claude/settings.json)가 코드 Edit마다 ask —
+>   제거는 분류기 차단으로 **사용자 손에 넘김**(stop-quality-gate 300s도 동세대 잔재,
+>   MCP 안전훅 3종은 유지 대상).
+> - **다음**: ① push → CI green ② 제보 회신(GetLocalTypes + 열쇠 절차) ③ 소유자
+>   프로젝트들 toolSurface 열쇠 + 필요 시 사람 실행 `migrate-runtime-dir.mjs`(.sapkit
+>   통일 — 도구는 이행만, 열쇠는 별도) ④ 이하 D-064 블록.
+>
 > **▶▶ 실사용 4프로젝트 교훈 대조 — 승격 2차(엔진 백로그 13 등재 + RAP 함정 지식 신설) · v0.5.2 · D-064 (2026-08-03)**
 >
 > 사용자 요청으로 실사용 4곳(`JNC-DashBoard`·`ZUNIVAT_RAP`·`ZUNIVAT-MODI`·`ZUNIWTH`)의
@@ -2843,6 +2868,33 @@ D-결정 대기.
    includes/`)는 **403 "This syntax cannot be used for an object name"**으로 전부
    실패한다. 읽기(`GetInclude`)와 CheckSyntax는 정상 — 쓰기 경로만 오배선.
    `GetInactiveObjects`가 FUGR/I의 올바른 URI를 이미 보고하므로 라우팅 근거는 있다.
+8. **CLAS 구현부(CCIMP) 판독의 발견가능성 0** (ZUNIVAT_RAP v0.5.1 제보 ③ ·
+   **D-065에서 "도구 부재" 주장은 기각, "이정표 부재"로 재분류**): 판독 도구는
+   **실재한다** — `GetLocalTypes`가 implementations include를 읽는다(엔진 편입 시점부터
+   존재·무수정·기본 155 표면 포함 — 이 세션 소스·번들·표면 3중 확인). 그러나 직관적
+   이름의 6종(`ReadBehaviorImplementation`·`GetBehaviorImplementation`·`ReadClass`·
+   `GetInclude(CCIMP)`→HTTP 500·`GetIncludesList(CLAS/OC)`·`GrepObjects(CLAS)`)이
+   전부 빈 껍데기/500/무결과를 돌려주면서 **어느 것도 정답 도구를 안내하지 않아**,
+   제보자는 "접근 경로 0"으로 결론내고 BIL을 손으로 재구성했다. 엔진 측 후보(재번들
+   동반): ⓐ 위 6종 도구 설명문에 GetLocalTypes 역참조 1줄씩 ⓑ `GetInclude`의 CCIMP
+   HTTP 500을 "미지원 경로, GetLocalTypes를 쓰라"는 명시 오류로 ⓒ `GrepObjects`
+   설명문에 CLAS는 `source/main`만 검색함을 명시(§8 FUGR 함정과 동계열). 문서 측은
+   troubleshooting §8에 이정표 항목으로 **반영 완료**(D-065).
+
+**플러그인 백로그 — toolSurface 잔여 2건 (2026-08-03 · D-065, 설계 대기)**:
+ZUNIVAT_RAP v0.5.1 제보 ①에서 확인된 공백. readonly 기본값 자체는 D-062 의도
+설계("조용한 write 유지보다 안전한 축소")이고 QA/PRD fail-closed도 옳다 — 문제는
+안내가 도달하지 않는 자리(릴리스 노트·stderr)에만 있었다는 것. 실증: 이 제보 +
+소유자 머신 전 프로젝트가 업그레이드 직후 일제히 74도구(연결된 readonly)로 잠겼고,
+제보자는 원인 도달까지 가설 3회 실패·세션 1회 전손. ⓐ **기존 프로젝트 이관** —
+업그레이드 시 `active-profile.txt`가 있는 기존 런타임 디렉터리에 `toolSurface`
+부재 + 프로파일 `SAP_TIER=DEV`면 development 부여(또는 setup repair가 먼저 묻기).
+자동 부여는 D-062 "안전한 축소" 원칙과 긴장 관계라 **D-결정 필요**. ⓑ **경고의
+에이전트 가시화** — stderr는 에이전트에게 불가시. 제보 제안 = 노출되는 도구
+응답(`GetSystemInfo`/`GetSession`)에 `toolSurface`/`exposition` 필드 탑재(엔진 수정·
+재번들 동반) 또는 readonly 표면일 때만 노출되는 안내 도구 1종. 당장의 완화 =
+troubleshooting §1 실패표 + §4 Tool surface 절 신설(D-065 반영 완료) + launch.cjs
+안내문이 실제 탐색 경로를 가리키도록 수리(제보 ② — D-065 수리 완료, 시험 58/58).
 
 ## 7. 핵심 파일 지도
 

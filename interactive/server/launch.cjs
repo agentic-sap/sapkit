@@ -324,11 +324,23 @@ function decideExposition({ args, cwd, selectedDir = null, envPath = null }) {
     return { exposition: SURFACE_READONLY, source: "fallback", rest, notices, surface };
   }
   if (surface.state === "absent") {
+    // The instruction must name the config.json this launcher actually READS,
+    // or following it does nothing: readToolSurface consults ONLY selectedDir
+    // when one was picked (a legacy `.sc4sap` project reads `.sc4sap/config.json`
+    // — pointing such a user at `.sapkit/config.json` is a dead letter; field
+    // report ZUNIVAT_RAP 2026-08-03 ②). Precedence: an existing config.json
+    // that merely lacks the key (surface.file) > the selected generation's
+    // config.json > the generic both-generations hint (no generation resolved).
+    const target = surface.file
+      ? surface.file
+      : selectedDir
+        ? path.join(selectedDir, "config.json")
+        : `<project>/${NEW_DIR}/config.json (or <project>/${LEGACY_DIR}/config.json in a legacy-generation project)`;
     notices.push({
       code: "TOOLSURFACE_DEFAULT",
       message:
         `no toolSurface configured${surface.file ? ` in ${surface.file}` : ""} — starting with ${SURFACE_READONLY}. ` +
-        `For write tools on a DEV system set "toolSurface": "development" in <project>/${NEW_DIR}/config.json and restart the MCP server.`,
+        `For write tools on a DEV system set "toolSurface": "development" in ${target} and restart the MCP server.`,
     });
     return { exposition: SURFACE_READONLY, source: "default", rest, notices, surface };
   }
