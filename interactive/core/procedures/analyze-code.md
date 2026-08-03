@@ -66,6 +66,7 @@ If the review cannot proceed (e.g., source unreadable), surface the reason verba
 | [include-structure](../knowledge/abap/conventions/include-structure.md) | Include organization (_TOP, _F01, _SEL, _CLS separations) |
 | [text-element-rule](../knowledge/abap/conventions/text-element-rule.md) | Text symbols/messages handling (hardcoded strings forbidden) |
 | [alv-rules](../knowledge/abap/conventions/alv-rules.md) | ALV grid / list display patterns and field catalog conventions |
+| [rap-odata-rules](../knowledge/abap/conventions/rap-odata-rules.md) | RAP/OData silent failure modes (BDEF masters & projection `use etag`, DDLX facet scope, conversion exits, Edm.Boolean mapping, metadata-cache judgment) — consult when the reviewed object is RAP/CDS/OData |
 | [spro-lookup](spro-lookup.md) | SPRO config lookup patterns (avoid hardcoded values) |
 | [data-extraction-policy](../policies/data-protection/data-extraction-policy.md) | Sensitive table extraction policy (PII, credentials, HR, financial) |
 

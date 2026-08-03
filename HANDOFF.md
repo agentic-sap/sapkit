@@ -1,12 +1,46 @@
 # HANDOFF — 프로젝트 전체 상태와 재개 지침
 
 > **목적: 컨텍스트/세션이 클리어돼도 이 문서 하나로 전부 복원.**
-> 작성 2026-07-10 · 최종 갱신 2026-08-02. 새 세션은 ① 이 문서 → ② 필요 시 해당 트랙
+> 작성 2026-07-10 · 최종 갱신 2026-08-03. 새 세션은 ① 이 문서 → ② 필요 시 해당 트랙
 > DESIGN.md 순으로 읽는다. 상태가 바뀌면 이 문서를 갱신하는 것까지가 작업의 일부다.
 >
 > ═══════════════════════════════════════════════════════════════════
 > **▶▶ 재개점 — 여기부터 읽는다 (최상단 정본)**
 > ═══════════════════════════════════════════════════════════════════
+>
+> **▶▶ 실사용 4프로젝트 교훈 대조 — 승격 2차(엔진 백로그 13 등재 + RAP 함정 지식 신설) · v0.5.2 · D-064 (2026-08-03)**
+>
+> 사용자 요청으로 실사용 4곳(`JNC-DashBoard`·`ZUNIVAT_RAP`·`ZUNIVAT-MODI`·`ZUNIWTH`)의
+> `.sc4sap/` 교훈층을 제품과 대조. D-058은 JNC 2곳만 소비했고 승격 표시를 원본에 안
+> 남겨(유보 ⓕ) 재대조가 필요했다. 결과: JNC-D는 대부분 반영 완료(잔여 = 묶음 3),
+> **나머지 3곳(L 36·R 36)은 첫 대조**였다. 사용자 지정 범위 = 버그 등재 + RAP만.
+> - **엔진 백로그 13 신설(§6)** — 엔진층 결함 후보 **7건 등재만**(전건 판정 대기 ·
+>   이 세션 재현 0건 · 판정→기각/수리는 UPDATE-RUNBOOK 별건, D-063 선례):
+>   ① RuntimeRunClassWithProfiling **스테일 로드 침묵 실행**(활성화 후에도 구버전 실행,
+>   승인 우회 효과 — 판정 최우선) ② RunUnitTest 침묵 무결과(**2시스템 교차** — V-PASS
+>   사슬 직결) ③ UpdateSourceByPatch 3종(activate:false 연속 시 앞 패치 소실·CRLF
+>   다중행 불일치·CLAS 메인만) ④ Create*(MDE·SRVD·BDEF) precheck 실패 시 객체 잔존
+>   ⑤ CreateServiceBinding 계약 선택 불가(항상 Web API) ⑥ UpdateServiceBinding
+>   allowedAction UNKNOWN 과잉 거부 ⑦ FG include 쓰기 URI 오배선(403).
+> - **RAP 함정 지식 신설** — `core/knowledge/abap/conventions/rap-odata-rules.md`
+>   (지식 자산 178→**179** · v0.5.2): 제품이 RAP 도구를 배포하면서 **RAP 함정 지식이
+>   0이던 공백**(rap-eml.md는 문법서 — use etag·facet·Edm.Boolean·IWBEP 전부 grep 0건).
+>   ZUNIVAT_RAP R 17건에서 **일반 참만** 추출(D-058 기준 ⓐ — 클라이언트 'C'·특정 테이블
+>   데이터 등 시스템층 제외, ⓑ — 도구 표면 함정은 지식이 아니라 백로그로). 배선 =
+>   create-object `Mandatory Rule Reads`(modify-object가 이 목록을 승계) + analyze-code
+>   규칙 표.
+> - **검증**: 게이트 9종 exit 0 — 이식 스냅샷 재핀(conventions tree 20→**21** · pin
+>   불변) · links 821/0 · rename · 적합성 · smoke **155/65 불변** · server-gates ·
+>   verify-engine **4.14.3 불변** · provenance · manifests 7종. doctor FAIL 1 =
+>   Antigravity 1.1.1≠1.1.4(기존 로컬 상태 — 이 변경과 무관), WARN ③ = 캐시 0.5.1 vs
+>   레포 0.5.2(재설치 전 정상).
+> - **미승격 잔여(다음 승격 후보)**: ZUNIWTH ABAP 작법층(**CURR 100배 함정**·EXCEPTIONS
+>   없는 FM에 OTHERS=1 트랩·openpyxl→xlsxwriter·CUA/ALV — 단 R-013 ①은 wave24 검증
+>   대기라 보류) · 묶음 3(JNC-D 잔여 — FM 시그니처 비대칭·TFDIR 확인 쿼리) ·
+>   ZUNIVAT-MODI 소소분(RAWSTRING NOT NULL·CheckSyntax source_code 사전검증 패턴·
+>   abapGit zip 전체 상태 원칙) · troubleshooting §8 도구 함정 확장(패치·RunUnitTest).
+> - **다음**: ① push → CI green 확인 ② 재설치 시 0.5.2 ③ 종전 재개점(도그푸딩
+>   ZUNIWTH) 그대로 유효.
 >
 > **▶▶ 실사용자 제보 3건 판정·수리 — v0.5.1 · engine 4.14.3 · D-063 (2026-08-02 밤)**
 >
@@ -2759,6 +2793,56 @@ GetTableContents/GetSqlQuery를 등록 단계에서 제외하는 서버 옵션 �
 이 둘을 못 거른다(`provenance/mcp-surface.json` findings 기록), Antigravity
 `excludeTools` 미작동의 스키마 수준 보완책. 엔진 수정 + UPDATE-RUNBOOK 재번들 필요,
 D-결정 대기.
+
+**엔진 백로그 13 — 실사용 4프로젝트 제보 7건 (2026-08-03 등재, 전건 판정 대기 · D-064)**:
+사용자 실사용 프로젝트 4곳(`ZUNIVAT_RAP`·`ZUNIVAT-MODI`·`ZUNIWTH`·`JNC-DashBoard`)의
+`.sc4sap/LESSONS.md` 교차 대조에서 나온 엔진층 결함 후보. **이 항목은 등재만이다** —
+원 기록의 verified 문구를 신뢰해 옮겼을 뿐 이 세션에서 재현한 것은 0건이고,
+판정(재현 → 기각/수리)은 UPDATE-RUNBOOK 경로의 별건이다(D-058 유보 ⓓ, D-063 선례:
+제보 3건 중 ① 기각 ②③ 수리). 근거 L-id는 각 프로젝트 `.sc4sap/LESSONS.md`.
+
+1. **RuntimeRunClassWithProfiling 스테일 로드 침묵 실행 — 위험도 최상**
+   (ZUNIVAT_RAP L-014): 소스 변경+활성화 후 실행하면 상주 세션 롤 영역의 **구버전
+   프로그램 로드가 그대로 실행**된다(4회 재현, `GetSession(force_new)`·`ReloadProfile`
+   무효, 3단 소거로 코어·SAP 정상 확인 — MCP 실행 컨텍스트만 스테일). 잘못된
+   파라미터의 쓰기 실행이 **승인 절차를 사실상 우회**하는 효과 — P3 안전 모델과
+   직결되므로 7건 중 판정 최우선.
+2. **RunUnitTest 침묵 무결과** (ZUNIWTH R-006 + ZUNIVAT_RAP L-013 — **2시스템 교차
+   재현**): status=completed인데 결과가 빈 `<aunit:runResult/>` — 실행된 테스트 0건과
+   미실행이 구분 불가(RAP 쪽은 테스트 없는 클래스 대상 음성 대조로 확정, 동일 클래스는
+   사용자 ADT에서 9/9 green). verification-policy 3단계가 이 도구에 의존하므로 V-PASS
+   사슬 신뢰성 문제. 주의: 4.13.1/4.13.11의 클래식 testruns 전환은 IDES 라이브
+   green이었다 — 이 제보는 그 이후 757 계통에서의 무결과라 시스템 조건 분리가 판정
+   쟁점.
+3. **UpdateSourceByPatch 3종 함정** (ZUNIVAT_RAP L-018+R-014 보강 · ZUNIWTH L-004
+   교차 관측): ⓐ **`activate:false` 연속 호출 시 앞 패치 소실** — 매 호출 활성본을
+   다시 읽어 얹으므로 마지막 패치만 남는다(오류·경고 0. RAP 실증: p2 응답
+   diff_preview 컨텍스트에 p1 변경이 부재. ZUNIWTH: CLAS 3연속 후 활성본에 1건만
+   잔존) ⓑ **다중 행 old_string CRLF 불일치** — SAP 소스는 CRLF인데 LF 패턴이라
+   `old_string not found`(단일 라인은 정상) ⓒ **CLAS는 메인 소스만 대상** — test
+   include(CCAU)·local types는 패치 불가. 최소 수리 = 도구 설명 정직화(연속 패치
+   금지·단일 라인 권고), 본수리 = 비활성본 기준 패치 또는 연속 호출 거부.
+4. **Create*(MDE·SRVD·BDEF) precheck 실패 시 객체 잔존** (ZUNIVAT_RAP L-004):
+   핸들러가 생성→구문검사→throw 순서라 **에러 응답인데 객체는 이미 SAP에 생성**돼
+   있다 — 재생성 시도를 유도하고 빈 템플릿이 잔류한다(MDE·SRVD·BDEF 3종 실증,
+   대응 = 재생성 말고 Update*로 채우기). 수리 방향 = check-first 또는 에러 응답에
+   "객체는 생성됨, Update로 채울 것" 명시.
+5. **CreateServiceBinding 계약(category) 선택 불가** (ZUNIVAT_RAP L-022):
+   `binding_type`(ODataV2/V4)만 받고 계약 인자가 없어 **항상 Web API(category 1,
+   contract C2)로 생성**된다 — UI 계약(category 0)이 필요한 Fiori Elements 서비스를
+   MCP로 만들 수 없다(우회 = ADT 수동 생성). UI/Web API는 서비스 표면이 실제로
+   다름을 실측(Update_mc·코드리스트·PDF/xlsx·값도움말이 UI 계약에만 출현).
+6. **UpdateServiceBinding publish 판정 fail-closed 과잉** (ZUNIVAT_RAP L-003):
+   SRVB XML의 `srvb:allowedAction` 속성을 읽어 전이 가능 여부를 판정하는데, 이
+   속성을 반환하지 않는 시스템에서는 **항상 `allowedAction=UNKNOWN`으로 거부**한다
+   — 같은 바인딩을 ADT 수동 publish하면 성공(발행 상태 무관 재현). 후보 = 속성
+   부재 시 실시도 후 서버 판정에 위임.
+7. **함수그룹 include 쓰기 URI 오배선** (ZUNIVAT-MODI L-004): `UpdateInclude`·
+   `UpdateSourceByPatch(INCL)`가 독립 include 경로(`/sap/bc/adt/programs/includes/`)로
+   lock을 걸어 FG include(`LZ*F01` 등, 실제 URI `/sap/bc/adt/functions/groups/<fg>/
+   includes/`)는 **403 "This syntax cannot be used for an object name"**으로 전부
+   실패한다. 읽기(`GetInclude`)와 CheckSyntax는 정상 — 쓰기 경로만 오배선.
+   `GetInactiveObjects`가 FUGR/I의 올바른 URI를 이미 보고하므로 라우팅 근거는 있다.
 
 ## 7. 핵심 파일 지도
 

@@ -359,7 +359,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 26,
-          "sha256": "87dcb6cf2ec649eab4200e126c4c0476f1c125cce25982c1f7f783fca99b742f"
+          "sha256": "e7521020254b371090518140db3d79d4fa8c999a29d5c650d7b7a056d2c2ad5c"
         }
       ]
     },
@@ -458,7 +458,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 26,
-          "sha256": "87dcb6cf2ec649eab4200e126c4c0476f1c125cce25982c1f7f783fca99b742f"
+          "sha256": "e7521020254b371090518140db3d79d4fa8c999a29d5c650d7b7a056d2c2ad5c"
         }
       ]
     },
@@ -476,7 +476,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 26,
-          "sha256": "87dcb6cf2ec649eab4200e126c4c0476f1c125cce25982c1f7f783fca99b742f"
+          "sha256": "e7521020254b371090518140db3d79d4fa8c999a29d5c650d7b7a056d2c2ad5c"
         }
       ]
     },
@@ -494,7 +494,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 26,
-          "sha256": "87dcb6cf2ec649eab4200e126c4c0476f1c125cce25982c1f7f783fca99b742f"
+          "sha256": "e7521020254b371090518140db3d79d4fa8c999a29d5c650d7b7a056d2c2ad5c"
         }
       ]
     },
@@ -554,8 +554,8 @@
         {
           "token": "core/knowledge/abap/conventions/",
           "kind": "tree",
-          "files": 20,
-          "sha256": "22cebf7afa907ce9dad382f5dac59a4da2f0ade359ff02ccf380dd06ae779fd6"
+          "files": 21,
+          "sha256": "ff2eccb142527e46cf3491e0b221d69a6c41af796e72e4f148d2efa984420eb9"
         }
       ]
     },
