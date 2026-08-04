@@ -65,10 +65,12 @@ node adapters/claude/hooks/install-hooks.mjs --project <프로젝트 경로>
 
 ## 구현 위임 (execution_owner = delegated)
 
-Phase 4 구현을 새 컨텍스트에 맡길 때 쓰는 워커가 동봉돼 있다 — 서브에이전트
-`sapkit:sap-worker`. 메인 대화는 조율·리뷰 배정·검증 관찰을 유지하고, 워커는 배정된
-슬라이스만 구현한 뒤 압축 결과(변경 객체·판단·실행한 검증·블로커)를 돌려준다.
-계약 정본은 `agents/sap-worker.md`, 경계 정본은 `core/policies/development-loop.md`.
+이 어댑터는 워커(`sapkit:sap-worker` 서브에이전트)를 사용자 개입 없이 호출할 수 있으므로
+**create-program(Full)의 기본 소유자는 `delegated`다** — Phase 3.5 프롬프트에 해석 결과가
+1줄로 표시되고, 같은 응답에서 "main"이라 답하면 이 대화가 직접 구현한다(explicit로 기록).
+메인 대화는 조율·리뷰 배정·검증 관찰을 유지하고, 워커는 배정된 슬라이스만 구현한 뒤 압축
+결과(변경 객체·판단·실행한 검증·블로커)를 돌려준다. 계약 정본은 `agents/sap-worker.md`,
+경계 정본은 `core/policies/development-loop.md`.
 
 - **기계 차단**(`disallowedTools`): `GetTableContents`·`GetSqlQuery`(P2 실데이터) ·
   `CreateTransport`·`ReleaseTransport`(P4 이송). 정책이 위임 불가로 못 박은 두 축이고,
@@ -82,8 +84,8 @@ Phase 4 구현을 새 컨텍스트에 맡길 때 쓰는 워커가 동봉돼 있�
 
 **미실측 유보**: 위임된 P3 write가 권한 프롬프트를 메인 UI로 올려 attended 요건
 (D-025)을 유지하는지는 라이브 미확인이다. 훅·권한 층은 호출자와 무관하게 부모
-프로세스에서 돌므로 유지될 것으로 보이지만, 실측 전에는 단정하지 않는다 — 그래서
-Phase 3.5 소유권 프롬프트의 기본값은 `main`이다.
+프로세스에서 돌므로 유지될 것으로 보이지만, 실측 전에는 단정하지 않는다 — 종결
+조건은 아래 E2E 체크리스트의 "위임 ③" 항목이다.
 
 ## E2E 체크리스트 (L3 완료 기준)
 
@@ -94,7 +96,11 @@ Phase 3.5 소유권 프롬프트의 기본값은 `main`이다.
 - [ ] install-hooks 경로 재배선 확인 (플러그인 캐시 경로 기준)
 - [ ] FI 상담 1건: `/sapkit:ask-consultant` → FI 페르소나 로드 → 프로젝트 컨텍스트 반영 답변
 - [ ] `/sapkit:create-program` 1건: 스펙 승인 게이트 → 구현 → **sap-reviewer 새 컨텍스트 리뷰** → 기계 검증 체인
-- [ ] 위임 경로 1건: Phase 3.5에서 `delegated` 선택 → `sap-worker`가 P3 write 시 **권한 프롬프트가 메인 UI에 뜨는지** 실측 (attended 유보 종결 조건)
+- [ ] 위임 ① owner 해석: Phase 3.5 프롬프트에 execution_owner 줄이 표시되는가 (기본 delegated · selection_source 병기)
+- [ ] 위임 ② worker spawn: Phase 4에서 sapkit:sap-worker가 실제로 기동되는가 (메인 대리 구현 0)
+- [ ] 위임 ③ P3 권한 라우팅: 워커의 비허용 도구 호출 시 권한 프롬프트가 메인 UI에 뜨는가 (D-051 ⓐ — allowlist 병합 환경에선 비허용 호출이 실제 발생한 런에서만 종결 판정)
+- [ ] 위임 ④ reviewer spawn: Phase 6에서 sapkit:sap-reviewer가 새 컨텍스트로 기동되는가 (메인 셀프 체크리스트 0 — 별도 결함으로 판정)
+- [ ] 위임 ⑤ resume 호환: owner 없는 구버전 state.json 재개 시 1회 해석·기록되는가
 
 ## 활성 스코프 (2026-07-10 실측)
 

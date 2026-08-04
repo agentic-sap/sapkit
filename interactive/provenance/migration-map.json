@@ -51,7 +51,7 @@
           "token": "adapters/claude/",
           "kind": "tree",
           "files": 13,
-          "sha256": "03fd902d0db86697973b7cd37344e8b8112dd07397602b8e1be4ff6072e407da"
+          "sha256": "15f89e1647830452e79e452724d2725672d0d88e0aabd68d5146cd18a8cd572a"
         }
       ]
     },
@@ -359,7 +359,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 26,
-          "sha256": "3d601a4ee38d6712d86bad49838f25f49dd242c81fa5f18497eb8bf3f3bd3e34"
+          "sha256": "a1e3e76f47cd76f872deadfc6ed7aa866a490e53b3ff7dbc42e4263bccecb4b1"
         }
       ]
     },
@@ -440,7 +440,7 @@
           "token": "core/policies/",
           "kind": "tree",
           "files": 20,
-          "sha256": "22d72ddc5323061323f85c3ba68d01a149abf1de21330db03ca8d6d711be190d"
+          "sha256": "fc6854a88888d747083d099d295d7992ac2a52bd3bd647b5cc96f974aae0eb2b"
         }
       ]
     },
@@ -458,7 +458,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 26,
-          "sha256": "3d601a4ee38d6712d86bad49838f25f49dd242c81fa5f18497eb8bf3f3bd3e34"
+          "sha256": "a1e3e76f47cd76f872deadfc6ed7aa866a490e53b3ff7dbc42e4263bccecb4b1"
         }
       ]
     },
@@ -476,7 +476,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 26,
-          "sha256": "3d601a4ee38d6712d86bad49838f25f49dd242c81fa5f18497eb8bf3f3bd3e34"
+          "sha256": "a1e3e76f47cd76f872deadfc6ed7aa866a490e53b3ff7dbc42e4263bccecb4b1"
         }
       ]
     },
@@ -494,7 +494,7 @@
           "token": "core/procedures/",
           "kind": "tree",
           "files": 26,
-          "sha256": "3d601a4ee38d6712d86bad49838f25f49dd242c81fa5f18497eb8bf3f3bd3e34"
+          "sha256": "a1e3e76f47cd76f872deadfc6ed7aa866a490e53b3ff7dbc42e4263bccecb4b1"
         }
       ]
     },
@@ -926,7 +926,7 @@
           "token": "adapters/",
           "kind": "tree",
           "files": 19,
-          "sha256": "9fb8da166e72b06516a1cc7407f5d21561fc475077f1c045300566817ed7d775"
+          "sha256": "b059cb89ea01054590300daea9d158da50d7b488687cb06a12eeeb3f80c310db"
         }
       ]
     },

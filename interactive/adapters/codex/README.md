@@ -190,7 +190,10 @@ codex exec --sandbox read-only "PLUGIN_ROOT/core/procedures/review-checklist.md�
 
 ## 구현 위임 (execution_owner = delegated)
 
-Codex에는 플러그인이 정의하는 서브에이전트가 없다 — 위임 = **새 codex 세션**이다.
+Codex에는 플러그인이 정의하는 서브에이전트가 없다 — 위임 = **새 codex 세션**이다. 워커
+기동이 이렇게 수동이므로 **create-program(Full)의 기본 소유자는 `main`으로 유지된다** —
+위임은 사용자가 명시적으로 요청할 때만이며, 그 명시 요청은 침묵 폴백되지 않는다(기동
+불가면 중단·설명).
 
 ```
 codex exec "PLUGIN_ROOT/agents/sap-worker.md의 계약을 그대로 따라 <슬라이스>를 구현하라. 스펙: <경로> · 이송: <TRKORR> · 범위 밖 객체 금지"
