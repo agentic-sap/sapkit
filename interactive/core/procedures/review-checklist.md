@@ -1,6 +1,6 @@
 ---
 name: review-checklist
-description: Phase 6 read-only convention review for create-program — 12 checklist items (§1 ALV … §12 Activation) with per-item verdict criteria and narrow per-item context kits. The reviewer judges only; fixes are applied by the worker. Verdict is emitted as review-result.json.
+description: Phase 6 read-only convention review for create-program — 12 checklist items (§1 ALV … §12 Activation) with per-item verdict criteria and narrow per-item context kits. The reviewer judges only; fixes are applied by the implementation owner. Verdict is emitted as review-result.json.
 source:
   - sc4sap-custom/skills/create-program/phase6-review.md
   - sc4sap-custom/skills/create-program/phase6-buckets.md
@@ -9,7 +9,7 @@ source:
 
 # Review Checklist — create-program Phase 6
 
-You are the **reviewer**, running in a fresh context, separate from the worker that built the program. A successful activation only proves the code **compiles and links** — it does NOT prove the code follows the shared conventions. Your job is to fetch every created object's source and verify, line by line, against each applicable convention.
+You are the **reviewer**, running in a fresh context, separate from whoever built the program (the main context or its delegated worker). A successful activation only proves the code **compiles and links** — it does NOT prove the code follows the shared conventions. Your job is to fetch every created object's source and verify, line by line, against each applicable convention.
 
 > **Past incident** — a spec said "build LVC_T_FCAT manually" → the executor faithfully wrote `APPEND ls_fc TO pt_fcat` repeated per column → activation succeeded → the user found the alv-rules violation only after manual review. This review would have caught it before the user ever saw the program.
 
@@ -24,7 +24,7 @@ You are the **reviewer**, running in a fresh context, separate from the worker t
   guarantee, not a universal one — the harness-neutral core does not by itself
   mechanically block a reviewer on every host (see the adapter-defense note below),
   so hold the read-only discipline regardless of host. Fixes are applied by the
-  worker after reading your result, then re-reviewed in another fresh context.
+  implementation owner after reading your result, then re-reviewed in another fresh context.
 - **Reviewer Policy profile: P0/P1 only.** You may read metadata / source / ATC /
   health (P0 offline, P1 connected-read). You perform **no P2 row-data extraction,
   no P3 write/execute, and no P4 transport operation — including transport reads**
@@ -43,20 +43,20 @@ You are the **reviewer**, running in a fresh context, separate from the worker t
 | Codex | Role + adapter config (exposition / disabled tools); no core-level mutation block is asserted here |
 | Antigravity | Role + adapter config; `excludeTools` enforcement unverified on the current version |
 - **Input**: `.sapkit/program/{PROG}/review-request.json` (see [schemas/review-request.schema.json](./schemas/review-request.schema.json)) — spec hash, target system (`sid`/`client`), transport, and the `objects[]` list with types. Also read `spec.md` and `interview.md` (for the paradigm and testing-scope decisions) from the same directory. If the request carries `environment_context`, apply the rules under "Environment context" below before counting findings.
-- **Output**: review-result JSON conforming to [schemas/review-result.schema.json](./schemas/review-result.schema.json), returned as your final response — you do not write `.sapkit/program/{PROG}/review-result.json` yourself (see "Output — review-result.json" below; the worker validates and records it). Set `reviewed_spec_sha256` to the `spec_sha256` you received in the request (verify it against the actual `spec.md` first — on mismatch, FAIL immediately with a single MAJOR finding "spec changed after approval").
+- **Output**: review-result JSON conforming to [schemas/review-result.schema.json](./schemas/review-result.schema.json), returned as your final response — you do not write `.sapkit/program/{PROG}/review-result.json` yourself (see "Output — review-result.json" below; the main context validates and records it). Set `reviewed_spec_sha256` to the `spec_sha256` you received in the request (verify it against the actual `spec.md` first — on mismatch, FAIL immediately with a single MAJOR finding "spec changed after approval").
 - **Narrow context kit — do NOT bulk-load all conventions.** Each item below names the only convention file(s) to load while checking that item. Load them one item at a time; unload/ignore the rest. Preloading all 12 kits wastes context and dilutes judgment.
 - Fetch object sources via the read tools only: `GetProgram`, `GetInclude`, `GetClass`, `GetInterface`, `GetScreen`, `GetGuiStatus`, `GetTextElement`, `ReadTextElementsBulk`, `GetFunctionModule`, `SearchObject`, `GetInactiveObjects`.
 - Record a verdict per item: `PASS` / `FINDING(S)` / `N/A (reason)`. Absence of evidence is a fail, not a pass — see the false-positive patterns at the end.
 
 ### Finding severity
 
-- **MINOR** — violation exists but is non-blocking (e.g., a TEXT-Txx missing an optional tooltip). The worker fixes it after the review; no re-review required for MINOR-only fixes.
-- **MAJOR** — violation that blocks completion (e.g., manual LVC_T_FCAT build, Docking replaced by Custom Control, ECC-deprecated pattern on S/4, parallel Z-impl created when a reuse target existed). The worker must fix and the program must be re-reviewed.
+- **MINOR** — violation exists but is non-blocking (e.g., a TEXT-Txx missing an optional tooltip). The implementation owner fixes it after the review; no re-review required for MINOR-only fixes.
+- **MAJOR** — violation that blocks completion (e.g., manual LVC_T_FCAT build, Docking replaced by Custom Control, ECC-deprecated pattern on S/4, parallel Z-impl created when a reuse target existed). The implementation owner must fix and the program must be re-reviewed.
 
 ### Verdict rule
 
 - `FAIL` — one or more MAJOR findings (list every finding, MINOR and MAJOR).
-- `PASS` — zero MAJOR findings. MINOR findings may still be listed; the worker fixes them before the completion report.
+- `PASS` — zero MAJOR findings. MINOR findings may still be listed; the implementation owner fixes them before the completion report.
 
 ### Environment context (from the request)
 
@@ -283,10 +283,10 @@ response. Example:
 }
 ```
 
-**The worker** (not you) reads this JSON from your response, validates it against
+**The main context** (not you) reads this JSON from your response, validates it against
 [schemas/review-result.schema.json](./schemas/review-result.schema.json), and writes it to
-`.sapkit/program/{PROG}/review-result.json`. On schema-validation failure the worker treats
-the run as blocked rather than fabricating a passing result. The worker also applies fixes
+`.sapkit/program/{PROG}/review-result.json`. On schema-validation failure the main context treats
+the run as blocked rather than fabricating a passing result. The implementation owner also applies fixes
 and, for MAJOR findings, requests a re-review in a new fresh context. Maximum 3 review
 iterations; after that the pipeline is BLOCKED and the residual findings are surfaced to the
 user.
