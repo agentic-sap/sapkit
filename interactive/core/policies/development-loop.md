@@ -68,18 +68,33 @@ vsp-backed `V-PASS`.
 
 ## execution_owner
 
-Strength and implementation ownership are separate choices. Any strength may set
-`execution_owner = auto | main | delegated`:
+Strength and implementation ownership are separate choices. `execution_owner` is
+`main` or `delegated`; how it is resolved depends on strength (`auto` survives only
+as a Standard / Minimal request value — see Resolution below):
 
 - **`main`** — the current conversation implements.
 - **`delegated`** — a fresh worker context implements while the main conversation
   coordinates, allocates review, and performs or observes verification.
-- **`auto`** (default) — keep small, localized, low-output work in `main`;
-  delegate when repository discovery, many relevant files, or verbose output
-  would materially consume the main context.
 
-Honor an explicit owner without asking again. Ask one bounded ownership question
-only when the choice is materially ambiguous and consequential.
+Resolution: an owner the user stated is honored without asking
+(`selection_source: explicit`). Otherwise the default depends on strength
+(`selection_source: default`):
+
+- **Full ([create-program](../procedures/create-program.md))** resolves
+  deterministically — `delegated` when the current adapter can invoke a named worker
+  without user action (Claude: the bundled `sap-worker` agent), else `main` (Codex /
+  Antigravity: launching a worker is a manual fresh session). `auto` does not exist
+  in Full: nothing is self-resolved silently, and the resolved value is surfaced on
+  the Phase 3.5 prompt so the user can override it in the same reply.
+- **Standard / Minimal** keep **`auto`** as a *request* value with its prior meaning —
+  keep small, localized, low-output work in `main`; delegate when repository
+  discovery, many relevant files, or verbose output would materially consume the
+  main context. [create-object](../procedures/create-object.md) asks once only when
+  delegation would materially help; [modify-object](../procedures/modify-object.md)
+  stays `main` without asking.
+
+Ask one bounded ownership question only when the choice is materially ambiguous and
+consequential — never as a routine step.
 
 ### Ownership boundaries
 
@@ -108,18 +123,25 @@ limits have no aegis analogue:
   classification are settled**. Delegation never changes a policy classification.
 - **P2 (real-data extraction) is always main-only.** The subagent/batch
   prohibition holds even under the D-043 owner-machine exception (`AGENTS.md` P2).
+  This includes `vsp query` from a worker's shell — the worker's mechanical block
+  covers only the two MCP row-data tools, so the vsp path is a boundary the worker
+  honors procedurally.
 - **P4 (transport) is never delegable** — the existing human-only ownership gate
   stands. When delegating a Phase 4 implementation, split off mixed transport
-  create / assign / release actions and keep them main-owned.
+  create / assign / release actions and keep them main-owned. Registering assigned
+  objects into the contract's transport via the write tools' `transport` argument
+  is P3 implementation and stays with the worker; the lifecycle operations above
+  never do.
 - A **delegated P3** inherits the attended requirement, the DEV-tier gate, and the
   `PROVISIONAL_WRITE` cap unchanged.
 
 ### Harness-neutral fallback
 
 Delegation is conditioned on the environment supporting a fresh worker or
-subagent. Where it does not, `auto` safely falls back to `main`. An explicit
-`delegated` request is never silently ignored — explain the limitation and ask
-for direction.
+subagent. Where it does not, a `default` resolution falls back to `main` —
+announced, and recorded as `effective_owner` next to the resolved value. An
+explicit `delegated` request is never silently ignored — explain the limitation
+and ask for direction.
 
 The mechanism is adapter-specific, and so is how much of the boundary above is
 actually enforced rather than merely stated:

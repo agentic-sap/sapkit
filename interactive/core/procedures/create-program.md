@@ -387,41 +387,43 @@ Display this to the user:
   [2] manual  — prompts "proceed to Phase N?" at every phase transition
   [3] hybrid  — Phase 4 pre-authorized; Phase 5–8 prompt per phase
 
+Implementation owner (Phase 4): {execution_owner} ({selection_source} — resolved
+per Step 1b below). Include "main" or "delegated" in this reply to override;
+an override is recorded as explicit.
+
 Choice: 1 / 2 / 3  (default: 2)
 ```
 
-### Step 1b — Ownership Selection Prompt
+### Step 1b — Ownership Resolution (deterministic — no separate prompt)
 
 `execution_mode` (above) sets how often the run pauses. `execution_owner` is the separate
 question of **who implements Phase 4** ([development-loop.md](../policies/development-loop.md)).
-If the user already stated an owner for this run, or a session-level preference exists,
-honor it without asking and record `selection_source: explicit`. Otherwise display:
+Resolve it deterministically before displaying the Step 1 prompt — there is no standalone
+ownership question:
 
-```
-Who implements Phase 4?
+1. An owner the user stated for this run (or a standing session instruction) →
+   `selection_source: explicit`.
+2. Otherwise the default: **`delegated` when the current adapter can invoke a named
+   worker without user action** (Claude adapter: the bundled `sapkit:sap-worker`
+   subagent); **`main` when launching a worker needs manual user action** (Codex /
+   Antigravity: a fresh session) or no worker mechanism exists →
+   `selection_source: default`. The test is capability — can this session actually
+   call a worker right now — not whether a worker file exists on disk.
 
-  [1] main      — this conversation implements. One context throughout: simplest to
-                  follow, but generating include sources and reading existing objects
-                  consumes it.
-  [2] delegated — a fresh worker context implements the assigned slice and returns a
-                  compact result; this conversation keeps coordinating, allocates the
-                  Phase 6 reviewer, and observes verification. Real-data reads (P2)
-                  and transport actions (P4) stay here either way.
-
-Choice: 1 / 2  (default: 1)
-```
-
-An answered prompt is `selection_source: explicit`; a value you resolved yourself without
-asking is `auto`. If the harness provides no worker mechanism, say so and continue as
-`main` — never drop an explicit `delegated` silently ([development-loop.md](../policies/development-loop.md)
-"Harness-neutral fallback"). How a worker is launched is adapter-specific: see the
+The resolved value is surfaced as one line inside the Step 1 prompt (above), so the
+user can override it in the same reply; an override is recorded as `explicit`.
+**The Step 1 prompt is the gate: never dispatch a worker or start Phase 4 before the
+user answers it.** Never drop an explicit `delegated` silently — if the environment
+cannot launch a worker, say so and wait for direction ([development-loop.md](../policies/development-loop.md)
+"Harness-neutral fallback"). How a worker is launched is adapter-specific: the
 "구현 위임" section of [adapters/claude/README.md](../../adapters/claude/README.md),
 [adapters/codex/README.md](../../adapters/codex/README.md), or
-[adapters/antigravity/README.md](../../adapters/antigravity/README.md).
+[adapters/antigravity/README.md](../../adapters/antigravity/README.md) owns the exact
+invocation.
 
 ### Step 2 — Persist Selection
 
-Write the selection to `.sapkit/program/{PROG}/state.json` under `execution_mode`. Also record the resolved `execution_owner` and `selection_source` (`explicit` | `auto`) from [development-loop.md](../policies/development-loop.md) alongside it. Also log phase timestamps here (see the state.json schema below).
+Write the selection to `.sapkit/program/{PROG}/state.json` under `execution_mode`. Also record the resolved `execution_owner` and its `selection_source` (`explicit` | `default`) alongside it; when a launch fallback later diverges from the resolved value, record `effective_owner` too. Also log phase timestamps here (see the state.json schema below).
 
 ### Step 3 — Mode Semantics
 
@@ -458,7 +460,7 @@ Proceed to Phase {N}?
 
 Adopt the [sap-executor](../personas/sap-executor.md) persona for this step.
 
-Implementation may run under `execution_owner` (`auto` | `main` | `delegated`) per [development-loop.md](../policies/development-loop.md). A delegated worker receives the approved spec, its task slice, and the relevant rules and paths — never secrets. Control artifacts (`approval.json`, `state.json`, `verification.json`, `review-request.json`, `review-result.json`) remain main-only, and the worker never serves as its own reviewer. P2 data reads stay main-only, and P4 transport actions are never delegated.
+Implementation runs under the `execution_owner` resolved at Phase 3.5 (`main` | `delegated` — [development-loop.md](../policies/development-loop.md)). **When the resolved owner is `delegated`, dispatching the worker is mandatory — the coordinating conversation must not implement the slice itself.** Launch is adapter-specific: on the Claude adapter delegate to the bundled `sapkit:sap-worker` subagent; on Codex / Antigravity hand the worker contract to a fresh session (the adapter README's "구현 위임" section owns the exact invocation). If the launch fails or no worker mechanism exists: with `selection_source: default`, continue as `main`, say so, and record `effective_owner: "main"` in `state.json`; with `selection_source: explicit`, never fall back silently — stop, explain the limitation, and wait for direction. After a worker has started, an owner change is not a rollback: stop the worker, preserve and report what was actually applied (including `PROVISIONAL_WRITE` state), and continue only on the user's direction. A delegated worker receives the approved spec, its task slice, and the relevant rules and paths — never secrets. Control artifacts (`approval.json`, `state.json`, `verification.json`, `review-request.json`, `review-result.json`) remain main-only, and the worker never serves as its own reviewer. P2 data reads stay main-only (including `vsp query` from a worker shell), and P4 transport lifecycle actions are never delegated — the worker only references the transport id its contract names.
 
 Flow (source-first, single syntax check on the main program, batch activation):
 1. Generate ALL include sources locally first, from the approved spec + the mandatory main-program template — [zrsc4sap_oop_ex.prog.abap](../knowledge/abap/templates/oop-sample/zrsc4sap_oop_ex.prog.abap) (OOP) or [main-program.abap](../knowledge/abap/templates/procedural-sample/main-program.abap) (Procedural) — as the starting skeleton. When OOP with testing scope, the `{PROG}_tst` test-class include is part of this initial batch. If `vsp` is installed, run the 13-rule offline analysis (`AnalyzeABAPCode` via `vsp --offline`) on these sources before step 2 — an optional local check; on the Claude adapter the `offline-code-analysis` hook runs it automatically after each source write ([troubleshooting §7](troubleshooting.md#7-vsp-local-verification-optional)).
@@ -630,8 +632,9 @@ In `manual`/`hybrid` mode: prompt the user before writing the report.
 {
   "prog": "ZFI_...",
   "execution_mode": "auto | manual | hybrid",
-  "execution_owner": "main | delegated (resolved at Phase 3.5 Step 1b — 'auto' is a request, never a persisted value)",
-  "selection_source": "explicit | auto (optional)",
+  "execution_owner": "main | delegated (resolved deterministically at Phase 3.5 Step 1b — 'auto' does not exist in this procedure)",
+  "selection_source": "explicit | default",
+  "effective_owner": "main | delegated (optional — recorded only when a launch fallback diverges from execution_owner)",
   "phases": {
     "0_preflight":   { "status": "completed", "ts": "2026-04-18T10:00:00Z" },
     "1a_interview":  { "status": "completed", "ts": "..." },
@@ -654,7 +657,8 @@ In `manual`/`hybrid` mode: prompt the user before writing the report.
 
 On a subsequent invocation for the same `{PROG}`:
 1. If `state.json` exists and has `execution_mode` set, skip Phase 0–3.5 re-prompting.
-2. Find the first phase with `status != "completed" && status != "skipped"` — resume from there.
-3. In `auto` mode, resumption happens silently; in `manual`/`hybrid`, show the user the resume point and ask to confirm.
+2. If that `state.json` lacks `execution_owner` (a pre-0.5.3 run), resolve it once per Phase 3.5 Step 1b, announce the result in one line, and record it with its `selection_source` before continuing. A persisted owner is honored as-is — never re-derived on resume.
+3. Find the first phase with `status != "completed" && status != "skipped"` — resume from there.
+4. In `auto` mode, resumption happens silently; in `manual`/`hybrid`, show the user the resume point and ask to confirm.
 
 Phase restart (rerun a completed phase) requires the user to delete the corresponding `state.json` entry explicitly — the pipeline does not re-run completed phases automatically.

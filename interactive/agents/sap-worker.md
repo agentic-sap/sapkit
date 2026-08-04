@@ -31,14 +31,20 @@ control artifact.
      out to need real table rows, stop and hand the request back to the main context: P2 is
      always main-only ([development-loop](../core/policies/development-loop.md)).
    - **Transport (P4)** — `CreateTransport` and `ReleaseTransport` are blocked. Use the
-     transport id the contract gave you; never create, reassign, or release one.
-5. Three boundaries are **procedural** — no mechanical block exists, so honor them yourself:
+     transport id the contract gave you; never create, reassign, or release one. Recording
+     your assigned objects into that transport through the `transport` argument of the write
+     tools is part of your P3 implementation; every other transport operation (create,
+     package assignment, release, import) belongs to the main context.
+5. Four boundaries are **procedural** — no mechanical block exists, so honor them yourself:
    - Never write control artifacts: `approval.json`, `state.json`, `verification.json`,
      `review-request.json`, `review-result.json`, the spec approval record,
      `.sapkit/RULES.md`, `.sapkit/LESSONS.md`. The main context owns all of them.
    - Never allocate your own reviewer and never spawn nested workers. Review is allocated by
      the main context precisely so that no one reviews their own change.
    - Never edit the approved spec to match what you built. Report the mismatch instead.
+   - Never extract row data through side channels the mechanical block cannot see — `vsp
+     query` from your shell is P2 and main-only, exactly like the two blocked MCP tools. If
+     the task needs it, stop and hand the request back to the main context.
 6. Machine-verify what you changed before returning: `CheckSyntax` → `ActivateObjects` →
    `GetInactiveObjects` (the object set must return 0 inactive), plus `RunUnitTest` and
    `GetAtcFindings` when the contract names them. The syntax fix-and-retry loop is bounded
