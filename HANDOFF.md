@@ -8,6 +8,25 @@
 > **▶▶ 재개점 — 여기부터 읽는다 (최상단 정본)**
 > ═══════════════════════════════════════════════════════════════════
 >
+> **▶▶ 루트 라이선스 정본화 + GPL-3.0 31파일 미규명 등재 · v0.5.3 유지 · D-067 (2026-08-04)**
+>
+> 사용자 질문("README가 MIT라는데 요청한 기억 없다") 실사 → **MIT는 고른 게 아니라
+> 상류 3종이 전부 MIT여서 따라온 것**이고 루트에 `LICENSE` 파일 자체가 없었다(주장-실물
+> 불일치). 처분 = 루트 `LICENSE` 신설(MIT · `Hong Jaewon` + `## Upstream notices`
+> 절로 `interactive/`·`engine/`·`vsp/` 상류 고지 3종을 "대체하지 않음" 명문) ·
+> `README.md:42` 링크화. **하위 LICENSE 3종·THIRD_PARTY_NOTICES 무접촉**(MIT의 유일한
+> 의무 = 고지 유지). 버전·코드·번들·스냅샷 전부 무접촉.
+> **▶ 미결(백로그 신설 — 배포 중 사안)**: `core/knowledge/abap/reference/` **31파일이
+> GPL-3.0을 선언**한다(`SKILL.md:10` frontmatter `license: GPL-3.0` +
+> `README.md:214`, 출처 기재는 `SAP-samples/abap-cheat-sheets`)는데
+> `interactive/THIRD_PARTY_NOTICES.md`는 GPL을 **0건 언급**하고 지식 원천 전체를 MIT
+> 승계로 서술 = MIT 배포 중인 v0.5.3 안의 고지 공백·충돌 소지. **착수 순서는 규명
+> 먼저**(상류 오기인지 실제 GPL 저작물인지 — `abap-cheat-sheets` 자체는 Apache-2.0
+> 계열이라 상류 오기 가능성이 있으나 미확인) → 그 결과에 따라 고지 교정 또는 분리.
+> 규명 전 어떤 판정도 잘못된 고지를 정본에 박는다. 부수 미결: `engine/LICENSE`(백승현
+> 단독) ↔ `engine/README.md:774`(백승현 & Oleksii Kyslytsia) 저작권자 불일치 ·
+> 루트 저작권 개인 명의(`Hong Jaewon`)의 고용 저작물 귀속 여부 미확인.
+>
 > **▶▶ execution_owner 발동 구조 수리 — 결정론 기본 위임(Claude)·디스패치 의무화 · v0.5.3 · D-066 (2026-08-04)**
 >
 > 실사용 제보 "개발착수 때 서브에이전트 0" 실사 → 설치본(0.5.2 단일 캐시)에 D-051

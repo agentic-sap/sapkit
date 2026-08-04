@@ -39,4 +39,4 @@ codex plugin marketplace upgrade agentic-sap   # Codex — 이후 codex plugin a
 [Codex](interactive/adapters/codex/README.md) ·
 [Antigravity](interactive/adapters/antigravity/README.md)
 
-라이선스 MIT.
+라이선스 [MIT](LICENSE) — 상류 고지 승계.
