@@ -8,6 +8,31 @@
 > **▶▶ 재개점 — 여기부터 읽는다 (최상단 정본)**
 > ═══════════════════════════════════════════════════════════════════
 >
+> **▶▶ GPL-3.0 31파일 규명 — 오기 아님(실제 GPL 저작물) · 고지 정직화 집행 · v0.5.3 유지 · D-068 (2026-08-04)**
+>
+> D-067이 백로그로 넘긴 건을 즉시 규명 → **D-067의 전제가 뒤집혔다**(그 항목 ⑷·ⓐ의
+> "상류 오기 가능성"은 **틀렸다**). 원자료가 Apache-2.0인 건 사실이나 그것이 GPL
+> 표기를 오기로 만들지 않았다 — **실질 원천 = `secondsky/sap-skills`(GPL-3.0)**.
+> 확정 지문: 우리 `SKILL.md:20-24` Related Skills 5개가 전부 secondsky 40플러그인
+> 목록과 일치 + frontmatter `name: sap-abap`·`license: GPL-3.0`·`mcpmarket-version`
+> + `migration-map.json` **`class: copy`**(개작 없는 바이트 사본·31). 계보 =
+> `abap-cheat-sheets`(Apache-2.0 원자료) → secondsky 재구성(**GPL-3.0**) → babamba2
+> (MIT 선언 레포) → sc4sap-custom → sapkit. 사용자 확인 "sc4sap-custom은 babamba2
+> 그대로 + 약간 손봄" = 31파일에 개작 없음. **성격 = 우리 결함이 아니라 상류 고지
+> 오류의 승계 — 다만 배포 주체는 sapkit이므로 면책 아님.**
+> **집행 = 고지 정직화만**(`THIRD_PARTY_NOTICES.md` 표 2행 + `## GPL` 절 — 계보·근거·
+> 해소 경로, "은닉하지 않기 위한 기록이며 해소가 아니다" 명문). `SKILL.md`의 GPL
+> frontmatter는 **유지**(사실이므로 그것이 정확한 고지 · 제거 = 은닉). 31파일 전량 무접촉.
+> **▶ 미해소(백로그 — 배포 중 사안)**: MIT 선언과 GPL 저작물의 병존은 그대로다.
+> **해소 경로는 확인됐다** — GPL은 secondsky의 편집·구성 **표현**에만 미치고 ABAP 문법
+> 사실에는 미치지 않으므로, Apache-2.0 원자료(각 파일 3행 Source 링크)에서 재구성하면
+> Apache-2.0 파생 = MIT와 무충돌. **함정**: 선별·순서·구성을 그대로 두고 문장만 고치면
+> 재작성이 아니다(파생물 존속 = 작업 다 하고 문제 잔존). 규모 = 31파일 · 지식 코어
+> 178의 17% · 원본 34문서 대조 = **별도 세션**. 실패 시 대안 = 31파일 제거(D-068 (a)).
+> 부수: `engine/LICENSE`(백승현 단독) ↔ `engine/README.md:774`(백승현 & Oleksii
+> Kyslytsia) 불일치 미규명 · `THIRD_PARTY_NOTICES.md:3` 구 이름 `sc4sap-lite`(D-066 ③
+> 개명 누락) · babamba2 수령 경로(secondsky 직접 vs `mcpmarket`) 추적 중단(처분 무영향).
+>
 > **▶▶ 루트 라이선스 정본화 + GPL-3.0 31파일 미규명 등재 · v0.5.3 유지 · D-067 (2026-08-04)**
 >
 > 사용자 질문("README가 MIT라는데 요청한 기억 없다") 실사 → **MIT는 고른 게 아니라
@@ -16,16 +41,11 @@
 > 절로 `interactive/`·`engine/`·`vsp/` 상류 고지 3종을 "대체하지 않음" 명문) ·
 > `README.md:42` 링크화. **하위 LICENSE 3종·THIRD_PARTY_NOTICES 무접촉**(MIT의 유일한
 > 의무 = 고지 유지). 버전·코드·번들·스냅샷 전부 무접촉.
-> **▶ 미결(백로그 신설 — 배포 중 사안)**: `core/knowledge/abap/reference/` **31파일이
-> GPL-3.0을 선언**한다(`SKILL.md:10` frontmatter `license: GPL-3.0` +
-> `README.md:214`, 출처 기재는 `SAP-samples/abap-cheat-sheets`)는데
-> `interactive/THIRD_PARTY_NOTICES.md`는 GPL을 **0건 언급**하고 지식 원천 전체를 MIT
-> 승계로 서술 = MIT 배포 중인 v0.5.3 안의 고지 공백·충돌 소지. **착수 순서는 규명
-> 먼저**(상류 오기인지 실제 GPL 저작물인지 — `abap-cheat-sheets` 자체는 Apache-2.0
-> 계열이라 상류 오기 가능성이 있으나 미확인) → 그 결과에 따라 고지 교정 또는 분리.
-> 규명 전 어떤 판정도 잘못된 고지를 정본에 박는다. 부수 미결: `engine/LICENSE`(백승현
-> 단독) ↔ `engine/README.md:774`(백승현 & Oleksii Kyslytsia) 저작권자 불일치 ·
-> 루트 저작권 개인 명의(`Hong Jaewon`)의 고용 저작물 귀속 여부 미확인.
+> **▶ 갱신(2026-08-04 당일)**: 이 블록이 백로그로 넘긴 GPL 건은 **같은 날 규명됐다 —
+> 위 D-068 블록이 정본**이다. 이 블록의 "상류 오기 가능성" 서술은 **폐기**(오기가 아니라
+> 실제 GPL-3.0 저작물). D-067 원문은 append-only 원칙상 그대로 두되, GPL 판단은 D-068을
+> 따른다. 유보 ⓑ(루트 저작권 개인 명의의 고용 저작물 귀속) = **사용자 확인으로 종결 —
+> 회사 건 아님·개인 저작물 확정**. 잔여 부수 미결은 D-068 블록에 이관.
 >
 > **▶▶ execution_owner 발동 구조 수리 — 결정론 기본 위임(Claude)·디스패치 의무화 · v0.5.3 · D-066 (2026-08-04)**
 >
