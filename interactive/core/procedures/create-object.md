@@ -95,6 +95,13 @@ If the user-provided name violates any rule, suggest a compliant alternative bef
 **Freeze** (interactive — human confirmation gate before any create; a present
 operator, DEV tier only):
 
+If `.sapkit/deep-interviews/` holds a brief whose object scope matches this
+request, read it first as the freeze input — confirm the match with the user in
+one line, then close the items the brief already answers (object type, package,
+transport strategy, …) by confirmation restatement instead of re-asking. Same
+consumption pattern as create-program's
+[Intake Resolution](./create-program.md#intake-resolution--spec-entry-forms).
+
 - Object name (enforce Z/Y prefix, max 30 chars, uppercase)
 - Package assignment (search with `GetPackage` if unsure)
 - Transport intent (list open transports via `ListTransports`, or create new) —
