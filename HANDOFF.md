@@ -1,12 +1,42 @@
 # HANDOFF — 프로젝트 전체 상태와 재개 지침
 
 > **목적: 컨텍스트/세션이 클리어돼도 이 문서 하나로 전부 복원.**
-> 작성 2026-07-10 · 최종 갱신 2026-08-04. 새 세션은 ① 이 문서 → ② 필요 시 해당 트랙
+> 작성 2026-07-10 · 최종 갱신 2026-08-06. 새 세션은 ① 이 문서 → ② 필요 시 해당 트랙
 > DESIGN.md 순으로 읽는다. 상태가 바뀌면 이 문서를 갱신하는 것까지가 작업의 일부다.
 >
 > ═══════════════════════════════════════════════════════════════════
 > **▶▶ 재개점 — 여기부터 읽는다 (최상단 정본)**
 > ═══════════════════════════════════════════════════════════════════
+>
+> **▶▶ 실사용 교훈 승격 3차 — 엔진 백로그 7건 등재·5건 보강 + ABAP 작법 이관(신설 0) · v0.5.3 유지 · D-069 (2026-08-06)**
+>
+> D-064 미승격 잔여 + 이후 축적분(ZUNIVAT_RAP L-026~034 · ZUNIWTH L-011 · **JNC 첫
+> 대조** L-001~004 — S4H/100 = 두 번째 시스템)의 승격 집행. **등재/이관만 — 이 세션
+> 재현 0건**, 판정·수리는 UPDATE-RUNBOOK 별건, 원본 5프로젝트 읽기 전용(승격 표시
+> 없음) 유지.
+> - **엔진 백로그 13(§6)**: 13-9~15 등재 — ⑨ GetSqlQuery wide-SELECT WHERE 통째 무시
+>   (**그럴듯한 오답 — 13-1과 동급 판정 최우선**, 징후 3종 수록) ⑩ UBI 실패 스테이징
+>   교착 ⑪ UpdateLocalTypes 거짓 성공 ⑫ BDEF 백틱 ×4 증식 ⑬ GetIncludesList IF
+>   FOUND 비실재 반환 ⑭ 전문 재전송 한계(40k 토큰) ⑮ CLAS transport 누락 = CTS 잠금
+>   오도. 보강 5건 — 13-2(해소 증거: 4.13.11 브리지 17/17·R-011 폐기, 판정 시 해소
+>   확인부터) · 13-3 ⓐ(매 건 activate:true+GrepObjects면 연속 패치 안전) ·
+>   13-4·5·6(JNC 두 번째 시스템 교차 재현).
+> - **지식 이관(전부 기존 파일 보강·신설 0 → 계수·버전 불변, D-058 ④ 선례)**:
+>   CURR 이중단위→clean-code · FM 호출 시그니처 확인+OTHERS=1 트랩·TFDIR 'R' 확인·
+>   시그니처 양방향 비대칭(묶음 3 소비)→function-module-rule · RAWSTRING NOT NULL→
+>   field-typing-rule · zip 전체 상태→abapgit-roundtrip · CheckSyntax source_code
+>   앵커→create-object Step 4 · troubleshooting §8 확장 3항(패치 3종·wide-SELECT
+>   감별·RunUnitTest 해소 이력).
+> - **보류 2(건드리지 않음)**: CUA/ALV R-013 ①(wave24 검증 대기) · openpyxl→
+>   xlsxwriter(ABAP 지식 트리에 배치처 부재).
+> - 게이트 전종 exit 0(스냅샷 재핀 — pin·roots·inventory 불변 · links 826/0 ·
+>   smoke 155/65 불변 · doctor FAIL 1 = 기존 Antigravity 로컬 상태). **⚠ 설치 캐시가
+>   이미 0.5.3(doctor 실측)** — 이 커밋분의 전달에는 push 시점 **패치 범프 필요**
+>   (D-060: 설치본 내용이 바뀌는 커밋은 범프가 배포의 일부). 이 세션은 지시 범위
+>   (신설 0 = 비범프)대로 집행, 범프 판단은 push 세션 몫.
+> - **▶▶ 다음 착수**: 기존 경로 그대로 — ① push(위 범프 판단 포함) → CI green
+>   ② 재설치 ③ canary(아래 D-066 블록의 "delegated" 명시 1회 — D-051 ⓐ 조건부
+>   종결+토큰 측정) ④ 도그푸딩(ZUNIWTH). 이하 D-066 블록 계속 유효.
 >
 > **▶▶ GPL-3.0 31파일 규명 — 오기 아님(실제 GPL 저작물) · 고지 정직화 집행 · v0.5.3 유지 · D-068 (2026-08-04)**
 >
@@ -118,11 +148,10 @@
 >   verify-engine **4.14.3 불변** · provenance · manifests 7종. doctor FAIL 1 =
 >   Antigravity 1.1.1≠1.1.4(기존 로컬 상태 — 이 변경과 무관), WARN ③ = 캐시 0.5.1 vs
 >   레포 0.5.2(재설치 전 정상).
-> - **미승격 잔여(다음 승격 후보)**: ZUNIWTH ABAP 작법층(**CURR 100배 함정**·EXCEPTIONS
->   없는 FM에 OTHERS=1 트랩·openpyxl→xlsxwriter·CUA/ALV — 단 R-013 ①은 wave24 검증
->   대기라 보류) · 묶음 3(JNC-D 잔여 — FM 시그니처 비대칭·TFDIR 확인 쿼리) ·
->   ZUNIVAT-MODI 소소분(RAWSTRING NOT NULL·CheckSyntax source_code 사전검증 패턴·
->   abapGit zip 전체 상태 원칙) · troubleshooting §8 도구 함정 확장(패치·RunUnitTest).
+> - **미승격 잔여(다음 승격 후보)**: → **D-069(2026-08-06)이 소비 완료** — CURR 100배·
+>   EXCEPTIONS OTHERS=1·묶음 3·ZUNIVAT-MODI 소소분·§8 확장 전부 반영. 보류 잔여
+>   2건(CUA/ALV R-013 ① wave24 검증 대기 · openpyxl→xlsxwriter 배치처 부재)은 D-069
+>   블록 참조.
 > - **다음**: ① push → CI green 확인 ② 재설치 시 0.5.2 ③ 종전 재개점(도그푸딩
 >   ZUNIWTH) 그대로 유효.
 >
@@ -2878,12 +2907,14 @@ GetTableContents/GetSqlQuery를 등록 단계에서 제외하는 서버 옵션 �
 `excludeTools` 미작동의 스키마 수준 보완책. 엔진 수정 + UPDATE-RUNBOOK 재번들 필요,
 D-결정 대기.
 
-**엔진 백로그 13 — 실사용 4프로젝트 제보 7건 (2026-08-03 등재, 전건 판정 대기 · D-064)**:
-사용자 실사용 프로젝트 4곳(`ZUNIVAT_RAP`·`ZUNIVAT-MODI`·`ZUNIWTH`·`JNC-DashBoard`)의
-`.sc4sap/LESSONS.md` 교차 대조에서 나온 엔진층 결함 후보. **이 항목은 등재만이다** —
-원 기록의 verified 문구를 신뢰해 옮겼을 뿐 이 세션에서 재현한 것은 0건이고,
-판정(재현 → 기각/수리)은 UPDATE-RUNBOOK 경로의 별건이다(D-058 유보 ⓓ, D-063 선례:
-제보 3건 중 ① 기각 ②③ 수리). 근거 L-id는 각 프로젝트 `.sc4sap/LESSONS.md`.
+**엔진 백로그 13 — 실사용 프로젝트 제보 (2026-08-03 7건 등재 · D-064 / 13-8 추가 ·
+D-065 / 2026-08-06 13-9~15 등재 + 13-2·3·4·5·6 교차 보강 · D-069, 전건 판정 대기)**:
+사용자 실사용 프로젝트 5곳(`ZUNIVAT_RAP`·`ZUNIVAT-MODI`·`ZUNIWTH`·`JNC-DashBoard`·
+`JNC`)의 `.sc4sap/LESSONS.md` 교차 대조에서 나온 엔진층 결함 후보. **이 항목은
+등재만이다** — 원 기록의 verified 문구를 신뢰해 옮겼을 뿐 등재 세션(D-064·D-069
+모두)에서 재현한 것은 0건이고, 판정(재현 → 기각/수리)은 UPDATE-RUNBOOK 경로의
+별건이다(D-058 유보 ⓓ, D-063 선례: 제보 3건 중 ① 기각 ②③ 수리). 근거 L-id는 각
+프로젝트 `.sc4sap/LESSONS.md`.
 
 1. **RuntimeRunClassWithProfiling 스테일 로드 침묵 실행 — 위험도 최상**
    (ZUNIVAT_RAP L-014): 소스 변경+활성화 후 실행하면 상주 세션 롤 영역의 **구버전
@@ -2898,6 +2929,10 @@ D-결정 대기.
    사슬 신뢰성 문제. 주의: 4.13.1/4.13.11의 클래식 testruns 전환은 IDES 라이브
    green이었다 — 이 제보는 그 이후 757 계통에서의 무결과라 시스템 조건 분리가 판정
    쟁점.
+   **해소 방향 증거(D-069 보강)**: 2026-08-03 v0.5.1(engine 4.13.11 — `/abapunit/runs`
+   → 클래식 `/testruns` bridge)에서 **KR-DEV(757) 정상 실측** — ZUNIVAT_RAP 로컬
+   테스트 17/17이 사용자 ADT 실행 결과와 완전 일치했고, 같은 날 ZUNIVAT_RAP R-011이
+   취소선 폐기됐다(구 관측 = v0.3.9 구 엔진 종속). 판정 시 해소 확인부터 할 것.
 3. **UpdateSourceByPatch 3종 함정** (ZUNIVAT_RAP L-018+R-014 보강 · ZUNIWTH L-004
    교차 관측): ⓐ **`activate:false` 연속 호출 시 앞 패치 소실** — 매 호출 활성본을
    다시 읽어 얹으므로 마지막 패치만 남는다(오류·경고 0. RAP 실증: p2 응답
@@ -2906,21 +2941,39 @@ D-결정 대기.
    `old_string not found`(단일 라인은 정상) ⓒ **CLAS는 메인 소스만 대상** — test
    include(CCAU)·local types는 패치 불가. 최소 수리 = 도구 설명 정직화(연속 패치
    금지·단일 라인 권고), 본수리 = 비활성본 기준 패치 또는 연속 호출 거부.
+   **ⓐ항 보강(D-069)**: ZUNIWTH L-011 후속 실측(2026-08-05) — **매 건 `activate:true`
+   + `GrepObjects` 확인이면 CLAS 연속 패치도 안전**(6건 연속 성공 — ZUNIWTH R-012의
+   "2곳 이상이면 전체교체" 처방을 완화). 메커니즘 확정: 패치는 비활성본에 기록되는데
+   다음 패치가 **활성본을 fetch**해 얹으므로, 비활성 연속이면 앞 패치가 통째로 덮인다.
 4. **Create*(MDE·SRVD·BDEF) precheck 실패 시 객체 잔존** (ZUNIVAT_RAP L-004):
    핸들러가 생성→구문검사→throw 순서라 **에러 응답인데 객체는 이미 SAP에 생성**돼
    있다 — 재생성 시도를 유도하고 빈 템플릿이 잔류한다(MDE·SRVD·BDEF 3종 실증,
    대응 = 재생성 말고 Update*로 채우기). 수리 방향 = check-first 또는 에러 응답에
    "객체는 생성됨, Update로 채울 것" 명시.
+   **교차 재현(D-069)**: JNC L-004로 **두 번째 시스템(S4H/client 100)** 재현 — 실패
+   응답 후 재생성 시도가 "bereits vorhanden"으로 거부되고, 셸은 `source_code: null`
+   + 메타데이터 `source_type` 부재로 판별된다(CDS 뷰 셸 3본 동반 실증). 신규 세부
+   (JNC L-003): `CreateServiceDefinition`의 preCheck는 **정상 DDL도** "nicht
+   wohlgeformt"로 거부하며 **동일 바이트**가 `UpdateServiceDefinition`으로는 즉시
+   성공·활성 — 처방 = 셸 생성 후 Update 경로로 소스 주입.
 5. **CreateServiceBinding 계약(category) 선택 불가** (ZUNIVAT_RAP L-022):
    `binding_type`(ODataV2/V4)만 받고 계약 인자가 없어 **항상 Web API(category 1,
    contract C2)로 생성**된다 — UI 계약(category 0)이 필요한 Fiori Elements 서비스를
    MCP로 만들 수 없다(우회 = ADT 수동 생성). UI/Web API는 서비스 표면이 실제로
    다름을 실측(Update_mc·코드리스트·PDF/xlsx·값도움말이 UI 계약에만 출현).
+   **교차 재현(D-069)**: JNC L-001로 두 번째 시스템·**V4에서도** category 1 고정 재현
+   — 생성 응답 payload에 `srvb:category="1"` 그대로, ADT **Preview 버튼 부재**로
+   Fiori Elements 프리뷰 불가. `ListServiceBindingTypes`는 같은 프로토콜에 category
+   0/1 양쪽을 반환한다(서버엔 둘 다 존재 — 도구만 한쪽 고정).
 6. **UpdateServiceBinding publish 판정 fail-closed 과잉** (ZUNIVAT_RAP L-003):
    SRVB XML의 `srvb:allowedAction` 속성을 읽어 전이 가능 여부를 판정하는데, 이
    속성을 반환하지 않는 시스템에서는 **항상 `allowedAction=UNKNOWN`으로 거부**한다
    — 같은 바인딩을 ADT 수동 publish하면 성공(발행 상태 무관 재현). 후보 = 속성
    부재 시 실시도 후 서버 판정에 위임.
+   **교차 재현(D-069)**: JNC L-002로 두 번째 시스템(S4H/100) 재현 — 같은 바인딩을
+   ADT 수동 publish하면 **즉시 성공**(`/IWFND/C_V4_MSGR`에 행 생성·재조회 시
+   `srvb:published="true"`). "서버는 허용, 도구 자체 가드만 거부" 판정이 2시스템에서
+   일치한다.
 7. **함수그룹 include 쓰기 URI 오배선** (ZUNIVAT-MODI L-004): `UpdateInclude`·
    `UpdateSourceByPatch(INCL)`가 독립 include 경로(`/sap/bc/adt/programs/includes/`)로
    lock을 걸어 FG include(`LZ*F01` 등, 실제 URI `/sap/bc/adt/functions/groups/<fg>/
@@ -2939,6 +2992,55 @@ D-결정 대기.
    HTTP 500을 "미지원 경로, GetLocalTypes를 쓰라"는 명시 오류로 ⓒ `GrepObjects`
    설명문에 CLAS는 `source/main`만 검색함을 명시(§8 FUGR 함정과 동계열). 문서 측은
    troubleshooting §8에 이정표 항목으로 **반영 완료**(D-065).
+9. **GetSqlQuery wide-SELECT의 WHERE 통째 무시 — 조용한 오답, 13-1과 동급 판정
+   최우선 후보** (ZUNIVAT_RAP L-034/R-030): SELECT 목록이 길면(실측 경계 **18~28컬럼
+   사이**, 이분탐색 미실시) **WHERE 절이 통째로 무시**되고 테이블 앞 N행이 success
+   응답(컬럼 메타 정상)으로 반환된다 — `IN` 3건이든 단일 `belnr =`이든 동일한 무관
+   10행, 18·12컬럼은 정상. **징후 3종**(전부 응답 안에 있다) = ⓐ 반환행이 술어를
+   만족하지 않음(유일하게 믿을 수 있는 신호) ⓑ `truncated:true`인데 반환행이 정확히
+   `row_number`개 ⓒ `execution_time` 0.8초로 붕괴(정상 20~26초). 침묵 실패가 아니라
+   **그럴듯한 틀린 데이터**라 P2 판단·쓰기 게이트 승인 문서로 유입될 수 있다 —
+   13-1(승인 우회 효과)과 동급으로 판정 최우선 후보. §8에 감별법 수록(D-069).
+10. **UpdateBehaviorImplementation 실패 스테이징본 교착** (ZUNIVAT_RAP L-026/R-021):
+   구문오류 있는 1차 전송본이 비활성으로 스테이징된 채 남으면, 이후 모든 호출이 새
+   소스를 쓰지 않고 **그 스테이징본을 검사**해 같은 에러를 반복한다(4회 재현 —
+   에러가 가리킨 식별자가 2차 이후 전송본에는 부재). `CheckSyntax`도 스테이징본을
+   보므로 판별 불가 — **같은 도구로는 덮어쓸 수 없는 교착**. 탈출로 =
+   `UpdateLocalTypes`(같은 include, 그 관문을 안 탐) → **BDEF 먼저 활성**
+   (`UpdateBehaviorDefinition(activate:true)`) → `ActivateObjects(CLAS)` — 순서를
+   뒤집으면 `does not have an action` 실패(클래스는 활성 BDEF 기준 컴파일).
+11. **UpdateLocalTypes(activate_on_update:true) 거짓 성공** (ZUNIVAT_RAP L-028/R-024):
+   `success:true, activated:true`를 반환하며 실제는 **비활성 스테이징만** — 활성본은
+   옛 소스 그대로(2026-08-03 실측). 13-1·13-2와 같은 거짓 성공 계열. 판정법 =
+   `GetInactiveObjects` 잔류 0 + 활성본 read-back(BIL 로컬 타입은 `GetLocalTypes`
+   전문 읽기가 유일 수단 — `GrepObjects(CLAS)` 매치 0·INCL CCIMP 직접 지정 HTTP 500,
+   13-8 참조). 미활성이면 `ActivateObjects(CLAS/OC)` 별도 호출.
+12. **UpdateBehaviorDefinition 왕복마다 주석 내 백틱 ×4 증식** (ZUNIVAT_RAP
+   L-030/R-026): 읽어온 그대로 되붙여도 4→16→64로 는다 — BDEF는 전문 재전송이
+   강제라 read-back 왕복마다 증식. `UpdateView`는 정상(1쌍→1쌍) — **BDEF 쓰기 경로
+   고유 이스케이프 결함**. 전역 sapkit 피드백 07-31 ③(백틱 4→8 배증 제보)과 동일
+   뿌리로 추정. 완화 = BDEF 소스에 백틱 금지, 오염분은 제거(개수 맞추기 금지 —
+   다음 왕복에서 또 는다).
+13. **GetIncludesList가 조건부 인클루드의 비실재 객체명을 반환** (ZUNIVAT_RAP
+   L-032/R-028): `INCLUDE <name> IF FOUND.`(고객 확장 슬롯 관용구)를 못 걸러
+   **존재하지 않는 객체명이 목록에 실린다**(실측: `ZUNIVR5120` 목록의 `ZUNIVI_H011`
+   — `SearchObject` 0건). 이후 그 이름의 404/"Source not available"이 도구 결함으로
+   오독되고 불필요한 사람 확인 요청까지 유발했다(404가 실은 정확한 응답). 수리 방향
+   = `IF FOUND` 필터링 또는 목록에 conditional 표시.
+14. **UpdateLocalTypes 전문 재전송 한계 — 대상이 크면 조용히 사용 불가** (ZUNIVAT_RAP
+   L-033/R-029): BIL 로컬 타입(CCIMP)의 유일한 쓰기 경로가 include **전문만** 받는데,
+   대상이 커지면(실측 1490줄/67KB/약 40k 토큰) 에이전트 단일 응답 한도를 넘어 쓰기
+   자체가 불가 — 한도는 오류가 아니라 "이 작업은 못 합니다"로 나타난다. 패치형 우회
+   부재(`UpdateSourceByPatch`는 메인 소스만·`UpdateBehaviorImplementation`도
+   전문+13-10 교착·2회 분할은 13-3 ⓐ가 금지). 당장의 우회 = 삽입분을 파일로 떨궈
+   사용자 ADT 붙여넣기. 수리 방향 = 로컬 타입 패치 경로 신설.
+15. **CLAS 쓰기 transport_request 누락 시 CTS 잠금 메시지로 오도** (ZUNIWTH
+   L-011/R-020, 2026-08-05): 트랜스포트 대상 CLAS에 `transport_request`를 안 넘기면
+   **"오브젝트 LIMU CLSD …이(가) …요청 …에서 이미 잠겨 있습니다"**(CTS 잠금 문구)로
+   실패한다 — 락으로 오독을 유발(실증: 3회 재시도 실패 후 사용자 SM12 확인까지
+   유발, 락 없음 — `transport_request` 추가만으로 즉시 성공·활성). PROG는 같은
+   누락이 `Parameter corrNr could not be found`(400) **명시 실패**라 객체 유형별
+   비대칭이 오독을 키운다. 수리 방향 = CLAS 경로도 corrNr 부재를 명시 오류로.
 
 **플러그인 백로그 — toolSurface 잔여 2건 (2026-08-03 · D-065, 설계 대기)**:
 ZUNIVAT_RAP v0.5.1 제보 ①에서 확인된 공백. readonly 기본값 자체는 D-062 의도

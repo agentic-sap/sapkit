@@ -422,7 +422,7 @@ Not installed → skip this section; the plugin works the same without it.
 
 ## 8. Tool Response Pitfalls
 
-Responses that look like a failure, a block, or a truncation but are none of those. Each one below was actually mis-read in project work (measured 2026-07-28 → 2026-08-02 across two S/4 systems), and the wrong reading was the expensive part — not the tool.
+Responses that look like a failure, a block, or a truncation but are none of those — plus a few that look like success and are not. Each one below was actually mis-read in project work (measured 2026-07-28 → 2026-08-05 across two S/4 systems), and the wrong reading was the expensive part — not the tool.
 
 ### `GetSqlQuery` — `truncated: true` on row-collapsing queries
 
@@ -438,6 +438,10 @@ Judge completeness by `returned_row_count` against what the query can produce (a
 ### `GetSqlQuery` — HTTP 400 on a wide `OR` chain
 
 Roughly 6–7 `OR` terms is the practical ceiling; beyond that the call fails with HTTP 400 and no hint that length was the cause. Split into prefix `LIKE` scans or several narrower calls. HTTP 400 from this tool is generic — a non-existent table, a non-existent field, and an unsupported aggregate all surface identically, so never read a single 400 as "the object does not exist".
+
+### `GetSqlQuery` — a wide SELECT list silently drops the WHERE clause
+
+Past a certain column count (observed boundary between 18 and 28 columns) the WHERE clause is ignored entirely and the table's first N rows come back — as a normal `success` response with intact column metadata. Field-verified 2026-08-04: a 28-column SELECT returned the same 10 unrelated rows whether the predicate was `belnr IN (three values)` or a single `belnr =`; 18- and 12-column versions of the same query filtered correctly. This is not a failure but a **plausible wrong answer** — the worst case in this section, because the result can flow into P2 judgments and write-gate approvals looking legitimate. Three tells, all inside the response: ⓐ returned rows do not satisfy your own predicate — the only reliable signal, so check it every time; ⓑ `truncated: true` with exactly `row_number` rows returned; ⓒ `execution_time` collapsed to sub-second where comparable queries take tens of seconds. Practical guard: keep the SELECT list at ~15 columns or fewer and split wider needs into key-joined queries. By comparison, an HTTP 400/500 on a complex query is the *safe* failure — it never hands you wrong data.
 
 ### `GrepObjects` — a FUGR search does not reach function-module bodies
 
@@ -457,3 +461,11 @@ A description containing non-ASCII text (e.g. Korean) is stored with those chara
 ### Class implementations include — the reader is `GetLocalTypes`, not the obvious names
 
 The working code of a class pool — RAP behavior-implementation (BIL) handlers, `lcl_*` locals — lives in the **implementations include** (CCIMP; the Eclipse "Local Types" tab), and none of the intuitively-named readers show it: `ReadBehaviorImplementation` / `GetBehaviorImplementation` / `ReadClass` return only the 4-line global shell, `GetInclude("…CCIMP")` fails with HTTP 500, `GetIncludesList(CLAS/OC)` finds nothing, and `GrepObjects` on a class searches `source/main` only. Nothing in those responses points at the right tool, so "there is no reader" is the natural — and wrong — conclusion (field-reported 2026-08-03: a BIL was reconstructed by hand from old copies because of it). The reader exists: **`GetLocalTypes`** reads the implementations include (active or inactive version), alongside `GetLocalDefinitions` (CCDEF), `GetLocalMacros` (CCMAC), and `GetLocalTestClass` (CCAU). Write side: `UpdateLocalTypes` targets the same include; for a BIL prefer `UpdateBehaviorImplementation`, which rewrites shell and implementations together.
+
+### `UpdateSourceByPatch` — three write-side traps (serial loss · CRLF · main source only)
+
+Three independent behaviors, each returning success while doing less than the response implies. ⓐ **Serial patches with `activate: false` lose the earlier ones** — the patch is written to the *inactive* version, but each next call fetches the *active* source to apply onto, so with activation deferred only the last patch survives (responses stay `success` + `occurrences_replaced: 1` + a plausible diff; field-verified on two systems, CLAS 3-in-a-row → 1 survivor). Tell: the `diff_preview` context of patch N does not show patch N−1's change. Safe pattern: `activate: true` on **every** patch plus a `GrepObjects` read-back of the changed token — with that, even serial CLAS patching is safe (6-in-a-row verified 2026-08-05). ⓑ **Multi-line `old_string` never matches** — server source is CRLF, an LF-joined pattern fails with `old_string not found` even though the text is visibly present. Use single-line anchors only. ⓒ **CLAS patches reach the main source only** — test includes (CCAU) and local types are out of range; use `UpdateLocalTestClass` / `UpdateLocalTypes` (full-text) for those, and see the CCIMP entry above for reading them.
+
+### `RunUnitTest` — empty `runResult` on older engine versions (resolved; verify before blaming the tool)
+
+Engines before the classic `/testruns` bridge (server 4.13.11, shipped with plugin v0.5.1) could return `status: completed` with a completely empty `<aunit:runResult/>` — indistinguishable from "no tests exist". Re-measured 2026-08-03 on v0.5.1 against the same system: full results, matching a user-side ADT run exactly (17/17). If the empty-result symptom appears, check the engine version (`server/VERSION`, or `GetSystemInfo`) before concluding the tool is broken. Residual quirks of the classic endpoint: `format: "junit"` is refused (omit the format), and a run covers **all** local test classes of the container class — a narrower `test_class` selection can return more than requested; that is normal, not a mis-scope.

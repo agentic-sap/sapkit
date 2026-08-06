@@ -91,6 +91,14 @@ This file lists the Clean ABAP rules that apply regardless of paradigm. Follow e
 
 Never read an absent value as `0` in verification / reconciliation logic — a failed or empty lookup then masquerades as "difference = 0, match ✓" (two empty totals compare `0 = 0` and the check passes on nothing). If the underlying rows are empty, do not emit totals at all — block the zero assertion rather than let it read as a match. RFC `TABLES` parameters cannot carry null (an uncomputed value arrives as `0.00` — see [`function-module-rule.md`](function-module-rule.md)), so design a caller-side normalization hook that maps "no rows / not computed" to null before any comparison.
 
+## Currency Amounts — CURR Internal Unit ≠ Display Unit (TCURX)
+
+For currencies registered in `TCURX` with `CURRDEC = 0` (KRW, JPY, …) the **database value of a CURR field is the display value ÷ `10 ** (2 − CURRDEC)`** — for KRW, 1/100. SAP applies the conversion automatically between screen and DB, so nothing ever errors; three failure modes follow, all invisible on screen because the UI converts back on render:
+
+- **Never compare a CURR value against a threshold / master-data parameter registered in display units** (tax minimums, bracket boundaries, truncation units) — convert the *parameter* with the factor; do not scale the amount up and back (rounding loss). Standard FI pattern: `CURRENCY_CONVERTING_FACTOR` over `TCURX-CURRDEC`, unlisted currencies → factor 1.
+- **Never assign an externally-sourced amount (Excel / CSV / interface string) into a CURR field without the conversion** — it stores 100× inflated with no dump and no error. Screen ALV paths with a fcat `cfieldname` convert automatically; file-parsing paths have no such protection.
+- Eyeball checks cannot catch either case — verify at DB level (raw value), not on screen. (Field-verified in real project work, 2026-07: a threshold misjudged to 0 tax and a 100× stored upload, both caught only by direct DB reads.)
+
 ## Open SQL
 
 - **No `SELECT *`**. Always list the fields you need. Exception: `GetTable` schema probe (never for business reads).

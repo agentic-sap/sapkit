@@ -101,6 +101,10 @@ Never infer a field's business meaning from its name or its domain name alone �
 
 Confirm meaning via the data element's semantics (`GetDataElement` → label + documentation), never the field name or the domain name. For shared-vs-org-specific data-model decisions (one shared table vs an org-partitioned one), do not decide from the key structure — **measure the actual data**: values that cross org units → the entity is SHARED; values dedicated to a single org unit → PARTITIONED.
 
+## DDIC Activation Constraint — No NOT NULL on Fields Longer Than 255 Bytes
+
+Never set the NOT NULL / initial-values flag on a `RAWSTRING`, `STRING`, or any field exceeding 255 bytes — DDIC refuses activation with `'not null' flag ... too long (>255)`, and SAP standard has zero exceptions (a full `DD03L` sweep of active `RSTR` fields found all 25 with the flag blank). Habitually flagging every field NOT NULL is the trap; leave LOB-class fields unflagged. (Field-verified in real project work, 2026-07.)
+
 ## Integration Points
 
 - `skills/create-object/workflow-steps.md` → Step 5 (standard flow) and Step 4-ECC (helper-program generation) both route field-type decisions through this rule.

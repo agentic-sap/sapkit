@@ -11,9 +11,13 @@ Fix — both halves are required:
 - Pin `* text eol=lf` in `.gitattributes` so the working tree stays LF.
 - After building the ZIP, verify the archive contains **zero CRLF bytes** in every `.abap` entry — the `.gitattributes` pin alone does not prove the bytes that actually landed in the ZIP are clean.
 
+## Offline ZIP Is the Entire Remote State
+
+abapGit offline treats the imported ZIP as the **complete remote repository state** — every package object missing from the ZIP shows up in the pull list as a delete candidate. A "changes-only" ZIP therefore floods the pull list with deletions that are really just omissions, and dodging them by hand each time (or by unticking "Remove obsolete objects") leaves the accident one click away. Always pack the **whole package** plus the changes — with a complete ZIP the delete list is structurally empty and the mistake becomes impossible. (Field-verified in real project work, 2026-07: full-package ZIP → delete candidates dropped from a long list to 0 with no SAP-side change.)
+
 ## FUGR Pull Is Delete-and-Recreate
 
-Pulling a function group is delete-and-recreate, not merge — **mirror completeness is critical**. Pulling a partial ZIP silently deletes the objects missing from it. Never pull a partial function-group mirror; always pull a complete FUGR mirror containing every member.
+Pulling a function group is delete-and-recreate, not merge — **mirror completeness is critical**. Pulling a partial ZIP silently deletes the objects missing from it. Never pull a partial function-group mirror; always pull a complete FUGR mirror containing every member. This is the sharpest instance of the whole-state principle above.
 
 ## Overwrite-All on Pull Is Normal (after direct ADT edits)
 
@@ -22,6 +26,10 @@ After the server has been edited directly through ADT tools, expect the Pull con
 ## Skip SUSH Delete Proposals
 
 Skip any SUSH (start-authorization) delete proposal on Pull. SUSH entries are auto-generated start-authorization defaults for RFC-enabled FMs, managed outside the repo — accepting the delete removes system-managed data the mirror never owned.
+
+## FM Signature Serialization Differs From ADT
+
+abapGit serializes FM signatures in the classic form (`*"` interface comment block + `TABLES ... STRUCTURE`), while the ADT write path accepts modern inline signatures only — a verbatim transfer breaks in **either** direction. See [`function-module-rule.md`](function-module-rule.md) § FM Signature Representation Is Direction-Specific.
 
 ## Structure Serialization Fields
 
