@@ -86,6 +86,8 @@ When the ambiguity threshold is met:
 3. Offer: "Spec ready. Proceed with `create-program` (full program) or `create-object` (single object)?"
 4. If the interview established a business or system fact — a company-specific rule, a non-obvious status meaning, a legacy table's real grain — grep the two knowledge files for its key terms first, and only if it is **not** already recorded offer one line: *"Record `<fact>` to project knowledge? (yes/no)"*. On `yes`, follow [knowledge](knowledge.md). Nothing newly established, or already recorded → no prompt.
 
+The brief is standing input, not a one-shot handoff: a later `create-program` run reads `.sapkit/deep-interviews/` at its [Intake Resolution](create-program.md#intake-resolution--spec-entry-forms) step (right after Phase 0) and closes every dimension this brief already answers by confirmation restatement instead of re-asking — only the deficit dimensions get interviewed. A follow-on `create-object` run consumes the brief the same way, as the input to its freeze step.
+
 ## Related Procedures
 
 - [ask-consultant](ask-consultant.md) — for operational Q&A rather than build-requirement clarification

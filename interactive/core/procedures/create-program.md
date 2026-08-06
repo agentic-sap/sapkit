@@ -20,6 +20,7 @@ Pipeline overview:
 
 ```
 Phase 0 (Version Preflight)
+  → Intake Resolution (spec entry form: user spec / deep-interview brief / standard interview)
   → Phase 1A (Module Interview — business)
   → Phase 1B (Program Interview — technical, incl. inventory lookups)
   → Phase 2 (Planning + reuse gates)
@@ -117,15 +118,33 @@ Outputs:
 - `.sapkit/program/{PROG}/platform.md` — resolved platform, release, and constraints
 - Interview dimensions pre-filtered by platform (e.g., ALV-Full hidden on Cloud Public)
 
+## Intake Resolution — Spec Entry Forms
+
+Runs once, as soon as Phase 0 closes. The spec input can arrive three ways; the entry forms differ ONLY in how the spec input was produced — everything behind the interview (planning → spec writing → human approval with hash freeze → implementation → machine verification → fresh-context review) is identical for all three. No entry form skips Phase 0, shrinks the artifact contract, or bypasses any downstream gate.
+
+Check three signals in order — the first match sets the interview scope:
+
+1. **spec-provided** — the user pointed at or attached a design/spec document for this request. That document is the primary input to Phase 1.
+2. **deep-interview brief** — no user document, but `.sapkit/deep-interviews/` holds a [deep-interview](./deep-interview.md) brief matching this request (on an un-migrated project the same directory lives under the legacy runtime dir — see [project-context](../project-context.md)). Confirm the match with the user in one line, then treat the brief as the primary input.
+3. **neither** — run the standard two-stage interview below exactly as written (the unchanged default).
+
+### Document-input rules (forms 1 and 2)
+
+- **Phase 0 never shrinks.** The platform preflight runs in full on every entry form — a brought document can embed platform-wrong assumptions (e.g. an ECC-only transaction such as `XK02` where the S/4HANA reality is Business Partner), and Phase 0 is the step that catches them before they harden into the spec.
+- **Build a coverage map; interview only the gaps.** Read the document and map it against the 13 interview dimensions (Phase 1A dimensions 1–6 + Phase 1B dimensions 1–7). A dimension the document answers is closed by **confirmation restatement** citing the exact document location (*"§2.1 of your spec fixes the paradigm to Procedural — confirming rather than re-asking"*) — the same consumption pattern as `KD-` atoms in the Project knowledge preflight below. A dimension without a citable answer is a **deficit dimension**. Present the coverage map (covered dimensions + citations) for one user confirmation, then ask the deficit dimensions one per turn — the One-Question-Per-Turn rule, its bulk-proposal prohibitions, and its Recovery clause all apply to deficit dimensions unchanged.
+- **Phase 1A dimension 6 (standard SAP solution screen) is never exempted.** If the document already records a standard-alternative review (which standard options were weighed, why rejected), restate it for confirmation; if it does not, the consultant still proposes at least one standard alternative before agreeing to the custom build.
+- **The artifact contract is unchanged.** `module-interview.md` and `interview.md` are still produced in full, and every resolved dimension records its source: `source: user-spec §x` / `source: deep-interview <file>` / `source: interview`. The Phase 2 enforcement (refuse to plan when either file is missing) operates exactly as before.
+- **Phase 3 and the approval gate are unchanged.** The spec is written with the brought document as its primary input, but that document never substitutes for `spec.md` — approval and the SHA-256 hash freeze bind to `spec.md` exactly as specified.
+
 ## Phase 1 — Two-Stage Socratic Interview (MANDATORY — never skip, never shortcut, never merge)
 
-Phase 1 runs as two sequential sub-phases (1A then 1B) on every invocation. Skipping a dimension, accepting "just build it" to bypass questioning, inferring answers from context, or bulk-proposing multiple dimensions in a single message is a protocol violation. If the user pushes to skip, answer: *"The interview is mandatory — I will run Module Interview first, then Program Interview, one question at a time."*
+Phase 1 runs as two sequential sub-phases (1A then 1B) on every invocation. What "never skip" protects is that **all 13 dimensions close with user-confirmed answers** — not the act of questioning itself. When Intake Resolution (above) resolved a document input, dimensions the document answers close by confirmation restatement with a source citation — a brought document is the user answering in advance, not a bypass; claiming document coverage with no document on the table, or beyond what the document actually answers, remains a protocol violation. Skipping a deficit dimension, accepting "just build it" to bypass questioning, inferring answers from context instead of from a confirmed source, or bulk-proposing multiple dimensions in a single message is a protocol violation. If the user pushes to skip without a document, answer: *"The interview is mandatory — I will run Module Interview first, then Program Interview, one question at a time."*
 
 **Two-stage rule**: Phase 1B (technical) NEVER starts before Phase 1A (business) closes. The technical conversation has no meaning without business context.
 
 ### One-Question-Per-Turn Rule (applies to BOTH 1A and 1B)
 
-This rule is the single most important enforcement in the entire interview — it protects first-time users who need to understand each decision. Both sub-phases run as Socratic dialogue, one dimension per message, regardless of user impatience.
+This rule is the single most important enforcement in the entire interview — it protects first-time users who need to understand each decision. Both sub-phases run as Socratic dialogue, one dimension per message, regardless of user impatience. On a document-input run (Intake Resolution forms 1–2), this cadence governs the **deficit dimensions**; document-covered dimensions close by confirmation restatement as specified there — restating an answer the user already gave in a document is not a bulk proposal.
 
 Hard prohibitions:
 - Do NOT dump all remaining dimensions into a single table/proposal block for "batch approval" — even if the user says *"알아서 해줘"*, *"figure it out"*, *"just decide"*, *"ok everything"*, *"batch them"*.
