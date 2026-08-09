@@ -182,7 +182,7 @@ const ANCHORS = [
 ];
 
 // ── 스캔 ────────────────────────────────────────────────────────────────────
-const SKIP_DIRS = new Set(['.git', 'node_modules', '.sapkit', '.sc4sap']);
+const SKIP_DIRS = new Set(['.git', 'node_modules', '.sapkit', '.sc4sap', '.dryforge']);
 const TEXT_EXT = new Set([
   '.md', '.mjs', '.cjs', '.js', '.ts', '.json', '.ps1', '.sh', '.yml', '.yaml',
   '.txt', '.abap', '.xml', '.gitignore', '',
