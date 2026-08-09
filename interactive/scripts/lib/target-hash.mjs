@@ -1,5 +1,6 @@
-// 이식 목적지 자산의 내용 해시 — build-migration-snapshot과 check-migration-snapshot의
-// **공유 계약**. 두 곳에 복제하면 조용히 갈라져 게이트가 무력해지므로 여기 한 곳에만 둔다.
+// 체크아웃 EOL과 무관한 내용 해시 — 여러 게이트의 **공유 계약**. 두 곳에 복제하면
+// 조용히 갈라져 게이트가 무력해지므로 여기 한 곳에만 둔다.
+// 현 소비자: check-engine-provenance · smoke-mcp · gen-plugin-manifests.
 //
 // EOL 정규화가 필수인 이유 (2026-07-16 실측):
 //   이 레포엔 .gitattributes가 없고 core.autocrlf=true라, 같은 커밋이라도
@@ -48,6 +49,11 @@ const NOT_ASSET_DIRS = new Set(['node_modules', '.git', '.sapkit', '.sc4sap']);
 
 // 목적지 토큰(파일 또는 디렉터리) → { kind, sha256, files? }
 // 디렉터리는 정렬된 '<relpath> <contenthash>\n' 라인들의 해시(tree hash).
+//
+// ⚠️ 현재 호출자 없음 — 유일한 소비자였던 이식 장부(check/build-migration-snapshot)가
+// 은퇴했다. 그래도 지우지 않는다: 위 `NOT_ASSET_DIRS`가 개명 게이트의 폴백 의무 앵커라
+// (`check-runtime-path-rename.mjs` 구역 C · 그 음성시험이 실제로 이 상수를 건드려 red를
+// 확인한다) 이 함수를 지우면 상수만 뜬 채 남거나 게이트가 깨진다.
 export function hashTarget(root, token) {
   const abs = path.join(root, token);
   if (!fs.existsSync(abs)) return null;
