@@ -15,10 +15,10 @@
  * connectionless inspection-only shell keeps the permissive DEV default —
  * harmless, since every tool call fails at connect time anyway.
  *
- * Runtime directory: `.sapkit` is the only generation. The pre-0.6 `.sc4sap`
- * directory and the `SC4SAP_HOME_DIR` variable were a migration-period fallback
- * (D-057) and have been removed — a leftover `.sc4sap` directory is now simply
- * invisible, and `SAPKIT_HOME_DIR` is the only home override.
+ * Runtime directory: `.sapkit` is the only one, and `SAPKIT_HOME_DIR` the only
+ * home override. The pre-0.6 runtime directory and its home variable were a
+ * migration-period fallback and were removed once the migration completed
+ * (D-057); a leftover directory of that name is simply invisible.
  *
  * Keychain references in SAP_PASSWORD (`keychain:<service>/<account>`) are
  * resolved via @napi-rs/keyring at load time. See ./secrets.

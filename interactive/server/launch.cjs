@@ -14,11 +14,9 @@
 // (stdio + argv/env intact). If nothing resolves, it does nothing and the
 // bundle starts in inspection-only mode exactly as before.
 //
-// Runtime path rename (D-057, `.sc4sap` -> `.sapkit`): `.sapkit` is now a
-// candidate everywhere `.sc4sap` was one — nothing else changes. The search
-// depth stays 0 (exact cwd) and the adoption criterion ("this runtime dir
-// yields a usable sap.env") is applied to EACH generation separately before any
-// tie-break (R-TIE), so a `.sc4sap`-only project resolves exactly as before.
+// `.sapkit` is the only runtime directory. The pre-0.6 directory and its home
+// variable were a migration-period fallback and were removed once the migration
+// completed (D-057). The search depth stays 0 (exact cwd).
 //
 // Per-project tool surface (design 2026-08-02 §7-1): the client manifest no
 // longer pins `--exposition`. This shim decides it from the project's
@@ -35,7 +33,6 @@ const os = require("os");
 const fs = require("fs");
 
 const NEW_DIR = ".sapkit";
-const LEGACY_DIR = ".sc4sap";
 
 // The two tool surfaces this shim can hand the bundle. The bundle's own
 // default when no --exposition reaches it is `readonly,high`, so "decide
@@ -55,11 +52,11 @@ function warnOnce(code, message) {
 
 // R-ENV. A SAPKIT_HOME_DIR that is set but missing is ENV_INVALID and that is
 // TERMINAL for connection resolution: the operator pinned a home, the pin is
-// broken, and no other source may stand in for it — not SC4SAP_HOME_DIR, and
-// not a project-local sap.env either. The sentinel below is what makes the
-// difference visible; a plain `null` was indistinguishable from "this
-// generation has no profile", which let the caller fall through to
-// `<runtime dir>/sap.env` and connect to a system the operator never selected.
+// broken, and no other source may stand in for it — not `~/.sapkit`, and not a
+// project-local sap.env either. The sentinel below is what makes the difference
+// visible; a plain `null` was indistinguishable from "there is no profile
+// here", which let the caller fall through to `<runtime dir>/sap.env` and
+// connect to a system the operator never selected.
 const ENV_INVALID = Symbol("ENV_INVALID");
 
 // True only for the terminal case. PROFILE_NOT_FOUND, a valid home with no
@@ -74,67 +71,41 @@ function envHomeInvalid() {
 // profile that is not here. Naming the aliases that DO exist turns a misleading
 // auth error into a one-line fix. Never throws — a diagnostic must not break
 // resolution.
-function listAvailableProfiles(...homes) {
-  const seen = new Set();
-  for (const home of homes) {
-    let entries;
-    try {
-      entries = fs.readdirSync(path.join(home, "profiles"), { withFileTypes: true });
-    } catch {
-      continue; // this home has no profiles directory — not an error here
-    }
-    for (const entry of entries) if (entry.isDirectory()) seen.add(entry.name);
+function listAvailableProfiles(home) {
+  let entries;
+  try {
+    entries = fs.readdirSync(path.join(home, "profiles"), { withFileTypes: true });
+  } catch {
+    return " (no profiles directory under the home)";
   }
-  const names = [...seen].sort();
-  return names.length
-    ? ` (available: ${names.join(", ")})`
-    : " (no profiles found under either home)";
+  const names = entries.filter((e) => e.isDirectory()).map((e) => e.name).sort();
+  return names.length ? ` (available: ${names.join(", ")})` : " (no profiles found under the home)";
 }
 
-// Otherwise the home is chosen by where the alias actually lives.
 function resolveHome(alias) {
   const explicit = process.env.SAPKIT_HOME_DIR;
   if (explicit) {
     if (!fs.existsSync(explicit)) {
       warnOnce(
         "ENV_INVALID",
-        `SAPKIT_HOME_DIR points at a path that does not exist (${explicit}) — refusing to fall back to SC4SAP_HOME_DIR or to a project-local sap.env; the server starts with no connection.`,
+        `SAPKIT_HOME_DIR points at a path that does not exist (${explicit}) — refusing to fall back to ~/${NEW_DIR} or to a project-local sap.env; the server starts with no connection.`,
       );
       return ENV_INVALID;
     }
     return explicit;
   }
-  const legacyEnv = process.env.SC4SAP_HOME_DIR;
-  if (legacyEnv) {
-    warnOnce("OK_LEGACY_DEPRECATED", "SC4SAP_HOME_DIR is deprecated — rename it to SAPKIT_HOME_DIR.");
-    return legacyEnv;
-  }
   const newHome = path.join(os.homedir(), NEW_DIR);
-  const legacyHome = path.join(os.homedir(), LEGACY_DIR);
-  if (alias) {
-    const inNew = fs.existsSync(path.join(newHome, "profiles", alias));
-    const inLegacy = fs.existsSync(path.join(legacyHome, "profiles", alias));
-    if (inNew && inLegacy) {
-      warnOnce("COEXIST_OK", `profile "${alias}" exists under both ${newHome} and ${legacyHome} — using ${newHome}.`);
-      return newHome;
-    }
-    if (inNew) return newHome;
-    if (inLegacy) {
-      warnOnce("OK_LEGACY_DEPRECATED", `profile "${alias}" resolved under the legacy home ${legacyHome}.`);
-      return legacyHome;
-    }
+  if (alias && !fs.existsSync(path.join(newHome, "profiles", alias))) {
     warnOnce(
       "PROFILE_NOT_FOUND",
-      `profile "${alias}" was not found under ${newHome} or ${legacyHome}` +
-        `${listAvailableProfiles(newHome, legacyHome)}. ` +
+      `profile "${alias}" was not found under ${newHome}` +
+        `${listAvailableProfiles(newHome)}. ` +
         `Fix the alias in <project>/${NEW_DIR}/active-profile.txt, or create the profile. ` +
         `Until then the server starts with NO connection and every SAP call fails with ` +
         `"Basic authentication requires SAP_CLIENT to be provided" — that message names the ` +
         `wrong cause; SAP_CLIENT is not the problem.`,
     );
   }
-  if (fs.existsSync(newHome)) return newHome;
-  if (fs.existsSync(legacyHome)) return legacyHome;
   return newHome;
 }
 
@@ -160,25 +131,17 @@ function candidateFrom(runtimeDir) {
   return null;
 }
 
-// ONE generation selection per process, and both the connection and the tool
-// surface read from it. This is the pre-existing
-// `candidateFrom(.sapkit) || candidateFrom(.sc4sap)` expression, unchanged in
-// outcome — it only also reports WHICH generation answered, because the tool
-// surface must not be read from the other one (a config.json and a sap.env
-// taken from different generations is the split-brain the conformance fixture
-// pins against for the blocklist hook, safety-6).
-// R-TIE: the criterion above decides per generation FIRST. Both resolving
-// means both carry connection completeness, so the tie goes to `.sapkit`;
-// `.sc4sap` resolving alone still wins outright (R-PRESERVE).
-function selectGeneration(cwd) {
-  for (const generation of [NEW_DIR, LEGACY_DIR]) {
-    const runtimeDir = path.join(cwd, generation);
-    const found = candidateFrom(runtimeDir);
-    // The sentinel is truthy, so it short-circuits just like a real hit would;
-    // returning it here is what keeps it from ever reaching MCP_ENV_PATH.
-    if (found === ENV_INVALID) return { runtimeDir: null, envPath: ENV_INVALID };
-    if (found) return { runtimeDir, envPath: found };
-  }
+// ONE runtime-directory selection per process, and both the connection and the
+// tool surface read from it — a config.json and a sap.env taken from different
+// directories is the split-brain the conformance fixture pins against for the
+// blocklist hook (safety-6).
+function selectRuntimeDir(cwd) {
+  const runtimeDir = path.join(cwd, NEW_DIR);
+  const found = candidateFrom(runtimeDir);
+  // The sentinel is truthy, so it short-circuits just like a real hit would;
+  // returning it here is what keeps it from ever reaching MCP_ENV_PATH.
+  if (found === ENV_INVALID) return { runtimeDir: null, envPath: ENV_INVALID };
+  if (found) return { runtimeDir, envPath: found };
   return { runtimeDir: null, envPath: null };
 }
 
@@ -211,16 +174,15 @@ function readEnvValue(file, key) {
 }
 
 // The project's tool-surface choice lives beside its connection state, so it is
-// read from the SAME generation the connection came from. Only when NO
-// generation yielded a connection do we fall back to this shim's own candidate
-// order (`.sapkit` first, R-TIE) just to find a config at all — and in that
-// state the tier is unresolved anyway, so the surface is `readonly` either way
-// and only the diagnostic text differs.
+// read from the SAME runtime directory the connection came from. When no
+// connection resolved we still look in `<cwd>/.sapkit` just to find a config at
+// all — and in that state the tier is unresolved anyway, so the surface is
+// `readonly` either way and only the diagnostic text differs.
 //
 // Never throws: an unreadable or malformed config.json must degrade to
 // `readonly`, never stop the server from starting.
 function readToolSurface(cwd, selectedDir) {
-  const dirs = selectedDir ? [selectedDir] : [path.join(cwd, NEW_DIR), path.join(cwd, LEGACY_DIR)];
+  const dirs = [selectedDir || path.join(cwd, NEW_DIR)];
   for (const dir of dirs) {
     const file = path.join(dir, "config.json");
     if (!fs.existsSync(file)) continue;
@@ -325,17 +287,15 @@ function decideExposition({ args, cwd, selectedDir = null, envPath = null }) {
   }
   if (surface.state === "absent") {
     // The instruction must name the config.json this launcher actually READS,
-    // or following it does nothing: readToolSurface consults ONLY selectedDir
-    // when one was picked (a legacy `.sc4sap` project reads `.sc4sap/config.json`
-    // — pointing such a user at `.sapkit/config.json` is a dead letter; field
-    // report ZUNIVAT_RAP 2026-08-03 ②). Precedence: an existing config.json
-    // that merely lacks the key (surface.file) > the selected generation's
-    // config.json > the generic both-generations hint (no generation resolved).
+    // or following it does nothing (field report ZUNIVAT_RAP 2026-08-03 ②).
+    // Precedence: an existing config.json that merely lacks the key
+    // (surface.file) > the selected runtime dir's config.json > the generic
+    // hint (nothing resolved).
     const target = surface.file
       ? surface.file
       : selectedDir
         ? path.join(selectedDir, "config.json")
-        : `<project>/${NEW_DIR}/config.json (or <project>/${LEGACY_DIR}/config.json in a legacy-generation project)`;
+        : `<project>/${NEW_DIR}/config.json`;
     notices.push({
       code: "TOOLSURFACE_DEFAULT",
       message:
@@ -365,19 +325,19 @@ function main() {
   try {
     const cwd = process.cwd();
     if (envHomeInvalid()) {
-      // Terminal: stop before any generation is examined. Checking here (and not
-      // only inside candidateFrom) also covers the pointer-less shape, where a
-      // project-local sap.env would otherwise be adopted while the operator's
+      // Terminal: stop before the runtime dir is examined. Checking here (and
+      // not only inside candidateFrom) also covers the pointer-less shape, where
+      // a project-local sap.env would otherwise be adopted while the operator's
       // own home pin is broken.
       warnOnce(
         "ENV_INVALID",
-        `SAPKIT_HOME_DIR points at a path that does not exist (${process.env.SAPKIT_HOME_DIR}) — refusing to fall back to SC4SAP_HOME_DIR or to a project-local sap.env; the server starts with no connection.`,
+        `SAPKIT_HOME_DIR points at a path that does not exist (${process.env.SAPKIT_HOME_DIR}) — refusing to fall back to ~/${NEW_DIR} or to a project-local sap.env; the server starts with no connection.`,
       );
     } else {
-      const picked = selectGeneration(cwd);
+      const picked = selectRuntimeDir(cwd);
       // Belt and braces with the guard above, which already covers every
       // reachable path — deliberately, because a future caller of
-      // selectGeneration must not be able to reintroduce the fall-through.
+      // selectRuntimeDir must not be able to reintroduce the fall-through.
       if (picked.envPath !== ENV_INVALID) selected = picked;
     }
 
@@ -425,7 +385,7 @@ if (require.main === module) {
 module.exports = {
   SURFACE_READONLY,
   SURFACE_DEVELOPMENT,
-  selectGeneration,
+  selectRuntimeDir,
   readEnvValue,
   readToolSurface,
   splitExpositionArgs,

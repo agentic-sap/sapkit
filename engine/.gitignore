@@ -94,9 +94,7 @@ desktop.ini
 .omc/
 
 # sapkit HUD telemetry (if this repo is opened in a Claude Code session)
-# Both generations while the .sc4sap → .sapkit fallback is in place (D-057).
 .sapkit/
-.sc4sap/
 scripts/adhoc/raw-out/
 
 # local dev tool state (never commit)

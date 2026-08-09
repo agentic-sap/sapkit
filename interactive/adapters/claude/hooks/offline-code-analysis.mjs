@@ -14,8 +14,8 @@
  * - MCP ABAP Create/Update calls carrying a tool_input.source_code string
  *
  * vsp resolution: $SAPKIT_HOME_DIR/bin/vsp(.exe), falling back to
- * ~/.sapkit/bin/vsp(.exe) — same home resolution as tier-readonly-guard,
- * including the legacy $SC4SAP_HOME_DIR / ~/.sc4sap generation (D-057 R-ENV).
+ * ~/.sapkit/bin/vsp(.exe) — same home resolution as tier-readonly-guard
+ * (D-057 R-ENV).
  *
  * Failure mode: fails OPEN (silent pass). vsp is an optional dependency;
  * a missing binary, spawn error, timeout, or parse failure must never break
@@ -36,21 +36,13 @@ function silentPass() {
   console.log(JSON.stringify({ continue: true, suppressOutput: true }));
 }
 
-// R-ENV: an explicit home wins (SAPKIT_HOME_DIR first, then the deprecated
-// SC4SAP_HOME_DIR); otherwise the generation that actually holds the binary is
-// used, new before legacy. This hook fails open, so an unresolvable binary is
-// simply a silent no-op as before.
+// R-ENV: an explicit SAPKIT_HOME_DIR wins; otherwise ~/.sapkit. This hook fails
+// open, so an unresolvable binary is simply a silent no-op.
 function vspBinary() {
   const name = process.platform === 'win32' ? 'vsp.exe' : 'vsp';
-  const homes = [];
-  if (process.env.SAPKIT_HOME_DIR) homes.push(process.env.SAPKIT_HOME_DIR);
-  else if (process.env.SC4SAP_HOME_DIR) homes.push(process.env.SC4SAP_HOME_DIR);
-  else homes.push(join(homedir(), '.sapkit'), join(homedir(), '.sc4sap'));
-  for (const home of homes) {
-    const p = join(home, 'bin', name);
-    if (existsSync(p)) return p;
-  }
-  return null;
+  const home = process.env.SAPKIT_HOME_DIR || join(homedir(), '.sapkit');
+  const p = join(home, 'bin', name);
+  return existsSync(p) ? p : null;
 }
 
 // Best-effort ADT object type for the analyzer (rules are source-based; the

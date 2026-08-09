@@ -37,23 +37,20 @@ export function hashContent(buf) {
 }
 
 // tree hash에서 제외하는 디렉터리 — **자산이 아닌 것**만.
-// `.sc4sap`이 여기 있는 이유 (2026-07-16 S4 staging 실측): 전역 활성 sc4sap 플러그인이
-// 레포 안에서 기동하며 `.sc4sap/state/last-tool-error.json` 같은 런타임 상태를 남긴다.
+// `.sapkit`이 여기 있는 이유 (2026-07-16 S4 staging 실측): 전역 활성 플러그인이 레포
+// 안에서 기동하며 `.sapkit/state/last-tool-error.json` 같은 런타임 상태를 남긴다.
 // 이것들은 git 미추적이라 **개발 머신에만 있고 클린 클론·CI에는 없다**. 해시에 섞으면
 // 스냅샷이 "이 머신에서만 통과하는" 기록이 된다 — 실제로 clean clone에서 adapters/가
-// 18 vs 16 파일로 갈려 게이트가 깨졌다. MIGRATION-MANIFEST도 `.sc4sap/**`를
-// "MCP 런타임 상태 … 자산 아님"으로 이미 분류하고 있다.
-// `.sapkit`은 같은 것의 신세대 이름이다 (D-057) — **둘 다** 제외해야 개명 뒤에도,
-// 그리고 두 세대가 공존하는 머신에서도 같은 결함이 재발하지 않는다.
-const NOT_ASSET_DIRS = new Set(['node_modules', '.git', '.sapkit', '.sc4sap']);
+// 18 vs 16 파일로 갈려 게이트가 깨졌다.
+const NOT_ASSET_DIRS = new Set(['node_modules', '.git', '.sapkit']);
 
 // 목적지 토큰(파일 또는 디렉터리) → { kind, sha256, files? }
 // 디렉터리는 정렬된 '<relpath> <contenthash>\n' 라인들의 해시(tree hash).
 //
 // ⚠️ 현재 호출자 없음 — 유일한 소비자였던 이식 장부(check/build-migration-snapshot)가
-// 은퇴했다. 그래도 지우지 않는다: 위 `NOT_ASSET_DIRS`가 개명 게이트의 폴백 의무 앵커라
-// (`check-runtime-path-rename.mjs` 구역 C · 그 음성시험이 실제로 이 상수를 건드려 red를
-// 확인한다) 이 함수를 지우면 상수만 뜬 채 남거나 게이트가 깨진다.
+// 은퇴했고, 이 함수를 붙잡아 두던 개명 게이트의 폴백 의무 앵커도 R5에서 사라졌다.
+// 같은 파일의 `sha256`·`hashContent`는 provenance·매니페스트 게이트가 계속 쓴다.
+// 이 함수 자체의 존치 여부는 별도 판단 대상이다.
 export function hashTarget(root, token) {
   const abs = path.join(root, token);
   if (!fs.existsSync(abs)) return null;

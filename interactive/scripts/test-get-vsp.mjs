@@ -3,7 +3,7 @@
 // 아님을 증명한다. 음성시험(불일치 거부·미기입/부재 거부)을 포함한다.
 //
 // 오프라인 완결: 로컬 http 서버(node:http)를 fixture 릴리스 저장소로 세워 실제 다운로드
-// 경로(302 리다이렉트 → 본문)를 통째로 돌린다. 실제 ~/.sc4sap과 실제 핀 파일은 건드리지
+// 경로(302 리다이렉트 → 본문)를 통째로 돌린다. 실제 ~/.sapkit과 실제 핀 파일은 건드리지
 // 않는다 — 임시 설치 위치·임시 핀 fixture만 쓴다(VSP_INSTALL_DIR·VSP_PIN_FILE override).
 //
 // 자식 프로세스가 부모의 http 서버로 요청을 보내므로, 부모 이벤트 루프를 막는
@@ -99,7 +99,7 @@ function writePin(file, assets) {
       tag: 'vsp-v0.0.0-test',
       asset_url_pattern: 'https://github.com/agentic-sap/sapkit/releases/download/{tag}/{asset}',
     },
-    install_dir: '~/.sc4sap/bin',
+    install_dir: '~/.sapkit/bin',
     assets,
   };
   fs.writeFileSync(file, JSON.stringify(pin, null, 2) + '\n');

@@ -42,13 +42,10 @@ const PLUGIN_ROOT = path.resolve(HERE, '..'); // interactive/
 
 const PLAN_VERSION = 1;
 
-// ── 런타임 경로 두 세대 (D-057) ─────────────────────────────────────────────
-// 쓰기는 신 세대(.sapkit)로만 한다. 구 세대(.sc4sap)는 **이미 활성인 프로젝트에서만**
-// 그 자리를 그대로 쓰고(자동 이행 금지 — R-LEGACY), 홈은 감지·보고만 한다.
+// ── 런타임 경로 (D-057) ─────────────────────────────────────────────────────
+// `.sapkit` 하나뿐이다. 이행 기간의 구 세대 폴백은 R5에서 제거됐다.
 const NEW_DIR = '.sapkit';
-const LEGACY_DIR = '.sc4sap';
 const ENV_HOME = 'SAPKIT_HOME_DIR';
-const LEGACY_ENV_HOME = 'SC4SAP_HOME_DIR';
 
 // setup.md Step 1이 이름으로 훑는 연결 키 — 파일 안 순서의 정본이기도 하다.
 const ENV_KEYS = [
@@ -155,65 +152,27 @@ function detectClients() {
 
 // ── 홈 해석 ─────────────────────────────────────────────────────────────────
 /**
- * **쓰기용** 홈: `SAPKIT_HOME_DIR` > `~/.sapkit`. 구 세대는 만들지 않는다(R-LEGACY).
- *
- * `SC4SAP_HOME_DIR`만 설정된 머신은 엔진(`engine/src/lib/profile.ts` resolveHomeDir)이
- * **그 경로**를 읽는다. 그런 머신에서 `~/.sapkit`에 프로파일을 만들면 서버 눈에
- * 보이지 않는 "성공"이 되므로, 프로파일 쓰기를 요구하는 계획은 BLOCKED로 거절하고
- * 사람이 env를 정리하게 한다(추측해서 구 홈에 쓰지 않는다).
+ * **쓰기용** 홈: `SAPKIT_HOME_DIR` > `~/.sapkit`. 서버(`engine/src/lib/profile.ts`
+ * resolveHomeDir)가 읽는 순서와 같으므로 "보이지 않는 성공"이 생기지 않는다.
  */
 function resolveWriteHome() {
   const pinned = process.env[ENV_HOME];
   if (pinned) {
     return { home: path.resolve(pinned), source: 'env', block: null };
   }
-  const legacyPinned = process.env[LEGACY_ENV_HOME];
-  const home = path.join(os.homedir(), NEW_DIR);
-  if (legacyPinned) {
-    return {
-      home,
-      source: 'default',
-      block:
-        `${LEGACY_ENV_HOME}=${legacyPinned} 이(가) 설정돼 있다. 서버는 이 경로를 홈으로 읽으므로 ` +
-        `${home} 에 프로파일을 만들면 서버 눈에 보이지 않는다. ${ENV_HOME}(같은 의미·같은 값)로 ` +
-        `다시 등록하거나 구 변수를 해제한 뒤 다시 실행할 것.`,
-    };
-  }
-  return { home, source: 'default', block: null };
+  return { home: path.join(os.homedir(), NEW_DIR), source: 'default', block: null };
 }
 
 /**
  * **읽기용** 프로파일 디렉터리: 엔진의 R-ENV 순서를 그대로 흉내낸다 —
- * `SAPKIT_HOME_DIR` > `SC4SAP_HOME_DIR`(deprecated) > 별칭이 실재하는 홈 > `~/.sapkit`.
- * verify가 "서버가 무엇을 볼지"를 판정하려면 쓰기 규칙이 아니라 이 규칙이어야 한다.
+ * `SAPKIT_HOME_DIR` > `~/.sapkit`. verify가 "서버가 무엇을 볼지"를 판정하려면
+ * 쓰기 규칙이 아니라 이 규칙이어야 한다(지금은 둘이 같다).
  */
 function resolveReadProfileDir(alias) {
   const pinned = process.env[ENV_HOME];
-  if (pinned) return { dir: path.join(path.resolve(pinned), 'profiles', alias), home: path.resolve(pinned), generation: 'sapkit' };
-  const legacyPinned = process.env[LEGACY_ENV_HOME];
-  if (legacyPinned) {
-    return {
-      dir: path.join(path.resolve(legacyPinned), 'profiles', alias),
-      home: path.resolve(legacyPinned),
-      generation: 'legacy-env',
-    };
-  }
+  if (pinned) return { dir: path.join(path.resolve(pinned), 'profiles', alias), home: path.resolve(pinned) };
   const newHome = path.join(os.homedir(), NEW_DIR);
-  const legacyHome = path.join(os.homedir(), LEGACY_DIR);
-  if (isDir(path.join(newHome, 'profiles', alias))) return { dir: path.join(newHome, 'profiles', alias), home: newHome, generation: 'sapkit' };
-  if (isDir(path.join(legacyHome, 'profiles', alias))) return { dir: path.join(legacyHome, 'profiles', alias), home: legacyHome, generation: 'legacy-home' };
-  return { dir: path.join(newHome, 'profiles', alias), home: newHome, generation: 'sapkit' };
-}
-
-// 홈에 있는 legacy 흔적 — 감지·보고만(R-LEGACY).
-function legacyHomeInfo() {
-  const legacyEnv = process.env[LEGACY_ENV_HOME] ? path.resolve(process.env[LEGACY_ENV_HOME]) : null;
-  const legacyHome = path.join(os.homedir(), LEGACY_DIR);
-  return {
-    envVarSet: Boolean(legacyEnv),
-    envVarPath: legacyEnv,
-    homeDir: isDir(legacyHome) ? legacyHome : null,
-  };
+  return { dir: path.join(newHome, 'profiles', alias), home: newHome };
 }
 
 // ── 프로젝트 런타임 디렉터리 ────────────────────────────────────────────────
@@ -232,14 +191,7 @@ function yieldsConnection(dir) {
   return exists(path.join(dir, 'sap.env'));
 }
 function resolveRuntimeDir(project) {
-  const newDir = path.join(project, NEW_DIR);
-  const legacyDir = path.join(project, LEGACY_DIR);
-  const newOk = yieldsConnection(newDir);
-  const legacyOk = yieldsConnection(legacyDir);
-  if (newOk) return { dir: newDir, generation: 'sapkit' };
-  if (legacyOk) return { dir: legacyDir, generation: 'sc4sap' };
-  if (!isDir(newDir) && isDir(legacyDir)) return { dir: legacyDir, generation: 'sc4sap' };
-  return { dir: newDir, generation: 'sapkit' };
+  return { dir: path.join(project, NEW_DIR) };
 }
 
 // ── dotenv (sap.env) ────────────────────────────────────────────────────────
@@ -456,18 +408,6 @@ function computeActions(ctx, input) {
         secretPolicy: 'SAP_PASSWORD 는 빈 줄만 만든다 · 기존 값은 읽지도 바꾸지도 않는다',
         _content: op === 'noop' ? null : content,
       });
-      // 그림자 프로파일 경고: 기본 홈을 쓰는 머신에서 **같은 별칭**이 구 세대 홈에 이미
-      // 있으면, 새 홈에 만든 순간 엔진의 R-ENV가 새 쪽(비밀번호 빈 뼈대)을 고른다 —
-      // 멀쩡하던 연결이 조용히 가려진다. 막지는 않고(사람의 선택) 계획에 띄운다.
-      if (op === 'create' && ctx.writeHome.source === 'default') {
-        const legacyTwin = path.join(os.homedir(), LEGACY_DIR, 'profiles', alias, 'sap.env');
-        if (exists(legacyTwin)) {
-          warnings.push(
-            `같은 별칭이 구 세대 홈에 이미 있다: ${legacyTwin} — 새 홈에 만들면 서버가 새 쪽(비밀번호 빈 뼈대)을 ` +
-              `고르므로 지금 되는 연결이 가려진다. 별칭을 달리 하거나 migrate-runtime-dir.mjs 로 홈을 먼저 이행할 것.`,
-          );
-        }
-      }
       if (op !== 'noop') restartReasons.push('프로파일 sap.env 변경 — MCP 서버는 시작 시 프로파일을 읽는다');
       if (conflicts.length) {
         warnings.push(
@@ -620,15 +560,6 @@ function buildStatus(ctx) {
   return {
     project: ctx.project,
     runtimeDir,
-    runtimeGeneration: ctx.runtime.generation,
-    legacy: {
-      projectDir: isDir(path.join(ctx.project, LEGACY_DIR)) ? path.join(ctx.project, LEGACY_DIR) : null,
-      projectIsLegacyOnly: ctx.runtime.generation === 'sc4sap',
-      home: ctx.legacyHome,
-      note:
-        '구 세대는 감지·보고만 한다(R-LEGACY). 이행은 사람이 ' +
-        'node interactive/scripts/migrate-runtime-dir.mjs (기본 dry-run, --apply 로 실행)로 별도 수행한다.',
-    },
     writeHome: { path: ctx.writeHome.home, source: ctx.writeHome.source, exists: isDir(ctx.writeHome.home), blocked: ctx.writeHome.block },
     homes,
     activeProfile: alias
@@ -637,7 +568,6 @@ function buildStatus(ctx) {
           pointer: pointerPath,
           profileDir: activeProfile.dir,
           profileDirExists: isDir(activeProfile.dir),
-          homeGeneration: activeProfile.generation,
           sapEnv: describeSapEnv(path.join(activeProfile.dir, 'sap.env')),
         }
       : { alias: null, pointer: pointerPath, pointerExists: pointerRaw !== null },
@@ -793,7 +723,6 @@ const ctx = {
   project,
   runtime: resolveRuntimeDir(project),
   writeHome: resolveWriteHome(),
-  legacyHome: legacyHomeInfo(),
 };
 
 // ── status ──────────────────────────────────────────────────────────────────
@@ -802,11 +731,9 @@ if (command === 'status') {
   const payload = { ok: true, command: 'status', planVersion: PLAN_VERSION, status: 'OK', ...status };
   const lines = [
     `프로젝트     : ${status.project}`,
-    `런타임 디렉터리: ${status.runtimeDir} (${status.runtimeGeneration}${status.legacy.projectIsLegacyOnly ? ' · legacy — 이행은 사람 몫' : ''})`,
+    `런타임 디렉터리: ${status.runtimeDir}`,
     `쓰기 홈      : ${status.writeHome.path} (${status.writeHome.source}${status.writeHome.exists ? '' : ' · 아직 없음'})`,
     status.writeHome.blocked ? `  ⚠ ${status.writeHome.blocked}` : null,
-    status.legacy.home.homeDir ? `구 홈 감지   : ${status.legacy.home.homeDir} (보고만)` : null,
-    status.legacy.home.envVarSet ? `구 홈 env    : ${LEGACY_ENV_HOME}=${status.legacy.home.envVarPath} (보고만)` : null,
     `활성 프로파일 : ${status.activeProfile.alias ?? '(없음)'}${status.activeProfile.alias ? ` → ${status.activeProfile.profileDir}${status.activeProfile.profileDirExists ? '' : ' (없음)'}` : ''}`,
     status.activeProfile.sapEnv
       ? `  sap.env    : ${status.activeProfile.sapEnv.exists ? `있음 · 빈 키 ${(status.activeProfile.sapEnv.emptyCanonicalKeys || []).join(',') || '없음'} · 비밀번호 ${status.activeProfile.sapEnv.hasPasswordValue ? '기입됨' : '비어 있음'}` : '없음'}`
@@ -880,7 +807,6 @@ function buildPlan(inputRaw) {
     status: blocked ? 'BLOCKED' : 'OK',
     project: ctx.project,
     runtimeDir: ctx.runtime.dir,
-    runtimeGeneration: ctx.runtime.generation,
     writeHome: ctx.writeHome.home,
     input, // 비밀이 없음이 검증된 입력 — apply 가 현재 디스크와 다시 대조해 재계산한다
     actions: blocked ? [] : publicActions(actions),

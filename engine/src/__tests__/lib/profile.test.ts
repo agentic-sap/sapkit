@@ -402,7 +402,7 @@ interface FixtureCase {
 /** Keys whose expected value is a filesystem path and needs native separators. */
 const PATH_KEYS = new Set(['runtimeDir', 'sourcePath', 'homeDir']);
 
-describe('profile — runtime-path rename conformance (fixture)', () => {
+describe('profile — runtime-path resolution conformance (fixture)', () => {
   const fixture = JSON.parse(fs.readFileSync(FIXTURE_PATH, 'utf8'));
   const cases: FixtureCase[] = fixture.cases;
   const ORIGINAL_ENV = { ...process.env };

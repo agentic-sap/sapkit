@@ -52,37 +52,23 @@ function detectPlatform() {
 
 // 런타임 홈 결정 (D-057 R-ENV) — 설치기와 소비자(offline-code-analysis 훅)가
 // **같은 홈**을 고르게 하는 것이 목적이다.
-//   SAPKIT_HOME_DIR(설정됐는데 경로가 없으면 오류 — 구 env로 조용히 넘어가지 않는다)
-//   → SC4SAP_HOME_DIR(deprecation) → 바이너리가 실재하는 세대 → 홈 디렉터리가 실재하는
-//   세대 → 신 세대(~/.sapkit).
+//   SAPKIT_HOME_DIR(설정됐는데 경로가 없으면 오류 — 조용히 넘어가지 않는다) → ~/.sapkit.
 function resolveRuntimeHome() {
   const explicit = process.env.SAPKIT_HOME_DIR;
   if (explicit) {
     if (!fs.existsSync(explicit)) {
-      console.error(`❌ ENV_INVALID: SAPKIT_HOME_DIR 경로가 없음 (${explicit}) — SC4SAP_HOME_DIR로 폴백하지 않는다`);
+      console.error(`❌ ENV_INVALID: SAPKIT_HOME_DIR 경로가 없음 (${explicit}) — ~/.sapkit으로 폴백하지 않는다`);
       return null;
     }
     return explicit;
   }
-  const legacyEnv = process.env.SC4SAP_HOME_DIR;
-  if (legacyEnv) {
-    console.error('⚠️  OK_LEGACY_DEPRECATED: SC4SAP_HOME_DIR는 폐기 예정 — SAPKIT_HOME_DIR로 바꿀 것');
-    return legacyEnv;
-  }
-  const newHome = path.join(os.homedir(), '.sapkit');
-  const legacyHome = path.join(os.homedir(), '.sc4sap');
-  for (const home of [newHome, legacyHome]) {
-    if (fs.existsSync(path.join(home, 'bin', BIN_NAME))) return home;
-  }
-  if (fs.existsSync(newHome)) return newHome;
-  if (fs.existsSync(legacyHome)) return legacyHome;
-  return newHome;
+  return path.join(os.homedir(), '.sapkit');
 }
 
 // 설치 위치 결정 — VSP_INSTALL_DIR override 우선. 핀 파일의 install_dir이 홈 상대
-// 기본값(`~/.sapkit/bin` 또는 `~/.sc4sap/bin`)이면 R-ENV로 고른 홈의 bin/에 설치한다
+// 기본값(`~/.sapkit/bin`)이면 R-ENV로 고른 홈의 bin/에 설치한다
 // (그래야 소비자와 같은 홈을 본다). 그 밖의 명시값은 그대로 존중한다.
-const HOME_RELATIVE_BIN = /^~[/\\]\.(sapkit|sc4sap)[/\\]bin$/;
+const HOME_RELATIVE_BIN = /^~[/\\]\.sapkit[/\\]bin$/;
 function resolveInstallDir(pin) {
   if (process.env.VSP_INSTALL_DIR) return path.resolve(process.env.VSP_INSTALL_DIR);
   const configured = pin.install_dir || '~/.sapkit/bin';

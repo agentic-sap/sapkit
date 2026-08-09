@@ -140,7 +140,6 @@ function runDoctor({ cwd, home = tmpDir('unused-home'), stubbed = true, extraEnv
   env.HOME = home;
   env.USERPROFILE = home;
   delete env.SAPKIT_HOME_DIR;
-  delete env.SC4SAP_HOME_DIR;
   delete env.MCP_ENV_PATH;
   if (extraEnv.SAPKIT_HOME_DIR) env.SAPKIT_HOME_DIR = extraEnv.SAPKIT_HOME_DIR;
   const r = spawnSync(process.execPath, [DOCTOR, '--json'], { cwd, env, encoding: 'utf8', timeout: 60000 });
