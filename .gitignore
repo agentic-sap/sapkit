@@ -3,9 +3,10 @@
 .env
 .claude/settings.local.json
 # Claude Code 로컬 설정 — 머신 종속(훅 절대경로·개인 권한). install-hooks/merge-perms로 재생성
-# `.claude/` 디렉토리 패턴이면 내부 네거이션이 무효라 `.claude/*`로 유지 (quality-gate.json만 추적)
+# `.claude/` 디렉토리 패턴이면 내부 네거이션이 무효라 `.claude/*`로 유지
+# (R1에서 quality-gate.json이 삭제돼 현재 추적 대상은 0건 — 추적할 파일이 생기면
+#  여기에 네거이션을 추가한다)
 .claude/*
-!.claude/quality-gate.json
 
 # dryforge 작업 산출물(3-doc·워크트리) — 비추적
 .dryforge/

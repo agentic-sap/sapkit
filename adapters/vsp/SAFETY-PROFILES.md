@@ -20,7 +20,7 @@
   (`docs/reference/designs/2026-07-15-track-a-rebase-v2.md`)·로드맵
   (`docs/reference/designs/2026-07-16-integration-hardening-roadmap.md`)·
   `docs/reference/DECISIONS.md`(D-025·D-027·D-028)·`adapters/vsp/vsp.lock.json`·
-  `.harness/RULES.md`에서만 온다.
+  `CLAUDE.md`의 안전 절(구 `.harness/RULES.md` 승계본)에서만 온다.
 - **기준 vsp 버전 (2026-07-19 갱신)**: `vsp.lock.json` `verified_commit=5a8bedb`
   (v2.38.1-94-g5a8bedb, 바이너리 sha256 고정) — `--version` 출력 일치를 §⑩ 프로브
   실행 전 재확인했다. 명령 실명은 lock `command_contract` 10건 + `COMMANDS.md` §②
@@ -85,7 +85,7 @@ sap_mutation_boundary=unverified     (scope: reviewer + all attended children)
 |---|---|---|
 | **Human operator** | 사람이 소유한 Direct/Guided 세션의 셸 | 사람 셸의 vsp CLI (적용 경로 선택지 중 하나) |
 | **Reviewer** | 새-컨텍스트 read-only 판정자 | **P0/P1 한정, transport 동작 0(조회 포함)** |
-| **Engine attended worker** | `run-track-a.ps1` 경유 attended run의 headless child | vsp CLI **전용**(MCP 차단) |
+| **Engine attended worker** | **R1에서 폐지** — 엔진 실행 설비 삭제로 이 role은 더 이상 존재하지 않는다 | 해당 없음 |
 
 **SAP Policy** — 효과가 가장 큰 것 하나를 고른다(**P4 > P3 > P2 > P1 > P0**).
 
@@ -106,7 +106,7 @@ sap_mutation_boundary=unverified     (scope: reviewer + all attended children)
 **P3**로 분류하며 **리뷰어 프로파일에서 제외**한다(§⑤).
 
 **P0가 가장 강한 이유**: 자격증명이 없으면 atc/health/deploy/copy/execute/test가 전부
-`vsp system info` preflight에서 **ENV_FAIL**로 떨어진다(`verify-sap.ps1` 40~43행). 즉
+`vsp system info` preflight에서 **ENV_FAIL**로 떨어진다. 즉
 P0의 write 차단은 정책이 아니라 **기계적**이다. lint/parse만 `--file`로 자격증명 없이
 동작한다(V2/V4).
 
@@ -137,17 +137,19 @@ write_profile_gate._comment + spike-evidence part_b gate_mechanism.
 | # | 프로파일 | env 설정 | 자격증명 소재 | 허용 명령 | 차단 명령 | 사용 경로 |
 |---|---|---|---|---|---|---|
 | ① | **offline** | SAP_* 부재 | 없음 | `lint --file` · `parse --file` (완전 오프라인) | 그 외 전부 — 연결 필요 명령은 **자격증명 부재로 SAP 미도달**(ENV_FAIL) | 무인 워커 authoring 스텝 · 리뷰어 세션(클린 allowlist env, SAP_* 미전달) |
-| ② | **read-only online** | `SAP_READ_ONLY=true` | 프로세스 스코프 주입 | read 계열 전부: `system info`·`lint`·`parse`·`atc`·`test`·`health`·`source read`·`source context`·`search`·`grep`·`boundaries` | write 계열 전부(`deploy`·`copy`·`execute`·`install`·`source write`·`source edit`·`recover-failed-create`) = 게이트 pre-network 거부 · `query`(정책 차단) | `scripts/verify-sap.ps1` 기본 실행 · read-only 계획/분석 세션(DESIGN §8.2) |
-| ③ | **gated write** | `SAP_TIER=dev` · `SAP_READ_ONLY` 미설정 | 배포 래퍼 프로세스 스코프만 | read 계열 + write 계열(게이트 통과) — 단 대상 package는 allowlist(§⑦) 한정 | dev 외 tier의 write(R-003, §⑩ 프로브 2) · allowlist 밖 package로의 write · `transport release`(대화형만, §⑦) | 배포 스텝 래퍼 실행 경로 **전용**: `scripts/verify-sap.ps1 -Write` 또는 `. scripts\vsp-env.ps1 -Write` |
+| ② | **read-only online** | `SAP_READ_ONLY=true` | 프로세스 스코프 주입 | read 계열 전부: `system info`·`lint`·`parse`·`atc`·`test`·`health`·`source read`·`source context`·`search`·`grep`·`boundaries` | write 계열 전부(`deploy`·`copy`·`execute`·`install`·`source write`·`source edit`·`recover-failed-create`) = 게이트 pre-network 거부 · `query`(정책 차단) | 사람이 `SAP_READ_ONLY=true`를 그 셸에만 주입한 verify 실행 · read-only 계획/분석 세션(DESIGN §8.2) |
+| ③ | **gated write** | `SAP_TIER=dev` · `SAP_READ_ONLY` 미설정 | 배포 래퍼 프로세스 스코프만 | read 계열 + write 계열(게이트 통과) — 단 대상 package는 allowlist(§⑦) 한정 | dev 외 tier의 write(R-003, §⑩ 프로브 2) · allowlist 밖 package로의 write · `transport release`(대화형만, §⑦) | 배포 실행 경로 **전용**: 사람이 `SAP_TIER=dev`를 그 셸에만 주입한다(래퍼는 아래 주석대로 R1에서 삭제 — 주입 책임이 사람에게 있다) |
 
-**정밀 주석 (오해 방지 — DESIGN §8.4·VERIFY-PATTERNS §④):** 무인 워커의 authoring
-서브프로세스 **자신**은 SAP_* 를 갖지 않는다(§8.4 "offline/read-only phase 무인 세션
-환경에서는 자격증명 제거"). 즉 워커 스텝의 실제 바닥은 **① offline**(credential-absence
-floor)이다. **② read-only online**은 자격증명이 read-only로 조달되는 경로 — 즉
-`verify-sap.ps1`가 자기 프로세스 안에서 self-provision하는 verify 스텝과 대화형
-read-only 세션 — 의 프로파일이며, 워커 세션 env에 직접 주입되지 않는다. `execute.py`가
-`{**os.environ}`로 자식에 부모 env를 전량 상속시키므로, 엔진 기동 셸에 SAP_*가 없어야만
-이 분리가 성립한다(§⑥).
+**정밀 주석 (오해 방지 — DESIGN §8.4·VERIFY-PATTERNS §④):** 이 절의 무인 워커·래퍼
+서술은 **R1 이전 구조의 기록**이다 — 엔진 실행 설비와 그 verify/env 래퍼는
+R1에서 삭제됐고, 지금 프로파일 ②·③의 env 주입 책임은 **사람**에게
+있다. 당시 워커의 authoring 서브프로세스 **자신**은 SAP_* 를 갖지 않았다(§8.4
+"offline/read-only phase 무인 세션 환경에서는 자격증명 제거") — 즉 워커 스텝의 실제
+바닥은 **① offline**(credential-absence floor)이었다. **② read-only online**은
+자격증명이 read-only로 조달되는 경로(당시엔 verify 래퍼의 self-provision, 지금은
+사람이 여는 read-only 세션)의 프로파일이다. 엔진 러너가 자식에 부모 env를 전량
+상속시켰으므로 기동 셸에 SAP_*가 없어야만 이 분리가 성립했다(§⑥). **원리는 지금도
+같다 — SAP_*를 가진 셸에서 리뷰·분석 세션을 열지 않는다.**
 
 ---
 
@@ -174,7 +176,7 @@ read-only 세션 — 의 프로파일이며, 워커 세션 env에 직접 주입�
 - 리뷰 스텝은 **일반 step이라 `--disallowedTools` 미부착**(advisory 세션 전용). 레포
   쓰기는 조항1(등식형 dirty 검사)이 기계 차단하지만, **SAP 직접 write는 등식 검사가
   못 본다**(git dirty만 보므로).
-- **세션 env는 phase 공통**(execute.py `os.environ` 승계) — step별 자격증명 분리가 엔진
+- **세션 env는 phase 공통**(엔진 러너의 `os.environ` 승계) — step별 자격증명 분리가 엔진
   밖에서 불가하다. 리뷰 스텝이 write 스텝과 **같은 phase**에 있으면 **자격증명이 이미
   주입된 상태**로 실행된다. 즉 리뷰 스텝의 SAP-write 차단은 **§⑥의 자격증명 부재로
   성립하지 않는다**.
@@ -194,12 +196,13 @@ read-only 세션 — 의 프로파일이며, 워커 세션 env에 직접 주입�
 
 vsp가 자격증명을 얻는 **두 채널**을 모두 통제한다:
 
-1. **`SAP_*` 환경변수** — `scripts/vsp-env.ps1`을 **dot-source**하면 프로세스 환경에
-   `SAP_URL`/`SAP_CLIENT`/`SAP_USER`/`SAP_PASSWORD`가 주입된다. 출처는
+1. **`SAP_*` 환경변수** — 작업 셸에 `SAP_URL`/`SAP_CLIENT`/`SAP_USER`/`SAP_PASSWORD`가
+   있으면 vsp가 그대로 읽는다. 값의 출처는
    `<프로파일 홈>\profiles\<ProfileName>\sap.env`(신 `.sapkit`/구 `.sc4sap` 중 활성
    홈 — D-057)이고, 비밀번호가 `keychain:<target>`
-   이면 Windows Credential Manager에서 해석한다. 스크립트는 시크릿을 출력/기록하지 않고
-   프로세스 환경에만 넣는다.
+   이면 Windows Credential Manager에서 해석한다. **주입을 대행하던 env 래퍼 스크립트는
+   R1에서 삭제됐다** — 지금은 사람이 직접 주입하고, 시크릿을 출력·기록·커밋으로
+   흘리지 않을 책임도 사람에게 있다(R-005).
 2. **CWD `.env` 자동 로드** — vsp는 작업 디렉토리 `.env`를 자동 로드한다(V9). 레포 CWD에
    `.env`가 상주하면 dot-source 없이도 자격증명이 닿는다.
 
@@ -208,13 +211,13 @@ vsp가 자격증명을 얻는 **두 채널**을 모두 통제한다:
 | role | 자격증명 | 운용 |
 |---|---|---|
 | **Reviewer** | **주입하지 않는다(기본)** | 리뷰는 diff·`src/` 정독으로 수행한다. P1 라이브 재도출이 꼭 필요하면 **read 전용 프로파일을 리뷰어 셸에만** 주입하고, 그 셸에서는 write 계열을 실행하지 않는다. **reviewer 셸과 worker 셸을 같은 프로세스 환경으로 공유하지 않는다** — 공유하는 순간 §⑤의 갭이 열린다. 실측: `phases/3-review-gate/spike-evidence.json` part_a — "reviewer received only the 9 allowlisted vars, no SAP_* connection vars"(2026-07-19) |
-| **Engine attended worker** | phase 계약이 요구할 때만 | 엔진 기동 셸의 `os.environ`을 phase 공통 승계하므로, 스코핑은 **엔진 기동 시점의 셸 환경**에서 한다(VERIFY-PATTERNS §④ "엔진 기동 셸 관례"). P0/P1 의도 run은 ⓐ `vsp-env.ps1` dot-source 없이 기동 ⓑ 레포 CWD에 `.env` 부재 보장 → 두 채널이 비면 child가 Bash로 vsp를 호출해도 SAP에 닿지 못한다. gated write phase에서 자격증명이 필요할 때는 **배포 스텝 래퍼의 자기 프로세스에만** 스코프된다(`verify-sap.ps1 -Write`/`vsp-env.ps1 -Write`, `powershell -File` 자식 프로세스 실행이라 부모 셸·다른 워커 스텝에 전파되지 않음 — VERIFY-PATTERNS §④ "배포 스텝 래퍼 관례") |
-| **Human operator** | 해당 작업 셸에서만 | P3 수행 세션에서만 `vsp-env.ps1`을 dot-source해 **DEV tier** 프로파일을 로드한다 |
+| **Engine attended worker** | **해당 없음 — R1에서 폐지** | 엔진 실행 설비가 삭제돼 이 role은 더 이상 존재하지 않는다. 당시 규율(기동 셸 `os.environ` 승계 → 스코핑은 기동 시점 셸에서, 배포 자격증명은 래퍼 자기 프로세스에만)의 **원리**는 아래 Human operator 행이 승계한다 |
+| **Human operator** | 해당 작업 셸에서만 | P3 수행 세션에서만 그 셸에 **DEV tier** 프로파일의 `SAP_*`를 주입한다. 리뷰·분석 세션과 셸을 공유하지 않으며, 레포 CWD에 `.env`를 두지 않는다(두 채널이 비면 SAP에 닿지 못한다) |
 
 - **DEV tier 한정 (R-003)**: write는 DEV tier에서만. 이 머신 프로파일 홈(`~\.sah`)에는
   `IDEA-JNC`·`KR-DEV`만 존재하며 `IDEA-JNC`(SID S4H/client 100, dev tier)가 유일 실증
   프로파일이다. `IDEA-JNC`에만 `SAP_INSECURE=true`가 붙는다(자체서명 인증서, 사용자 승인
-  2026-07-11) — **QA/PRD 프로파일에 재사용 금지**(vsp-env.ps1 129~134행). QA/PRD tier
+  2026-07-11) — **QA/PRD 프로파일에 재사용 금지**. QA/PRD tier
   시스템에 vsp write(deploy/copy/execute)를 실행하지 않는다(R-003).
 
 ### `.gitignore` 실측 (2026-07-13, 유효 · R-005; D-057로 신 경로 병기)
@@ -404,10 +407,14 @@ env SAP_READ_ONLY=true "${DUMMY[@]}" "$VSP" system info
 > 그러나 **당시의 "무인 전환 가능" 판정은 현재 지원 상태가 아니다** — D-025 이후
 > `unattended=sealed`이고 RV4가 확정한 갭 때문에 `historical_rv4_classifier=open` ·
 > `sap_mutation_boundary=unverified`가 현재 기록이다. 역사 판정을 현재 권한으로 읽지 말 것.
+>
+> **재현 불가 (R1)**: 이 절이 인용하는 verify/env 래퍼·phase 아티팩트·`src/` 표본은
+> R1에서 레포에서 걷어냈다. 아래 명령 문자열은 **당시 실행된 것의 기록**이지 지금
+> 실행할 절차가 아니다 — 그대로 실행하려 하지 말 것.
 
-기대 마커는 `verify-sap.ps1`(VERIFY-PATTERNS ③)의
-`CODE_FAIL`/`ENV_FAIL`/`LOCK_FAIL`/`VERIFY_PASS`. 실측 셸: 자격증명 부재 확인 후 V1~V3,
-`. .\scripts\vsp-env.ps1 -ProfileName IDEA-JNC` 주입 후 V4(read 계열만).
+당시 기대 마커는 verify 래퍼(VERIFY-PATTERNS ③)의
+`CODE_FAIL`/`ENV_FAIL`/`LOCK_FAIL`/`VERIFY_PASS`였다. 실측 셸: 자격증명 부재 확인 후
+V1~V3, `IDEA-JNC` 프로파일 주입 후 V4(read 계열만).
 
 | # | 전제 | 명령 | 기대 | 실측 (2026-07-13) | 판정 |
 |---|---|---|---|---|---|

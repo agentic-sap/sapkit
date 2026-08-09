@@ -57,7 +57,6 @@ const ZONE_B = [
   'HANDOFF.md',
   'docs/reference/',
   'docs/superpowers/',
-  '.harness/',
   '.claude/',
   '.github/',
   // 원천(sc4sap-custom) 참조 — §3-2 무접촉
@@ -73,8 +72,7 @@ const ZONE_B = [
   'interactive/server/VERSION',
   'interactive/server/server.bundle.cjs',
   'engine/dist/',
-  // 공방 증거 아카이브 (Track A phase 기록)
-  'phases/',
+  // (구 `phases/`·`.harness/` 제외 항목은 R1에서 그 디렉터리를 걷어내며 함께 뺐다.)
   // 시험 자산: 구 세대 동작을 **일부러** 재현한다
   'engine/__tests__/',
   'engine/src/__tests__/',
@@ -114,11 +112,11 @@ const ZONE_C = [
   // setup mutator — 엔진 리졸버와 같은 세대 판정(legacy-활성이면 그 자리에 쓰기)을
   // 구현하므로 신·구 토큰이 둘 다 있어야 미이행 사용자의 setup이 안 끊긴다.
   'interactive/scripts/setup-state.mjs',
-  // R-ENV 홈 선택을 직접 수행하는 나머지 두 소비자 — 설계 §6-6·§6-10.
+  // R-ENV 홈 선택을 직접 수행하는 나머지 소비자 — 설계 §6-6·§6-10.
   // (브리핑의 열거를 넘어선 추가분. 근거: 위 리졸버들과 기능적으로 동일한
   //  `SC4SAP_HOME_DIR` + `~/.sc4sap` 폴백 분기를 직접 구현한다.)
+  // 짝이던 `scripts/vsp-env.ps1`은 R1에서 루트 `scripts/`와 함께 삭제됐다.
   'interactive/adapters/claude/hooks/offline-code-analysis.mjs',
-  'scripts/vsp-env.ps1',
   // 게이트 자신의 제외 목록 (§6-8) — 신·구 둘 다 제외해야 개명 뒤에도 안 깨진다
   'interactive/scripts/lib/target-hash.mjs',
   // ignore 4종 — 폴백 기간 동안 두 세대 모두 커밋 대상에서 빠져야 한다
@@ -155,22 +153,17 @@ const ALLOWLIST = [
   { file: 'engine/docs/user-guide/AVAILABLE_TOOLS.md', cap: 1, requireNew: true },
   { file: 'engine/docs/user-guide/AVAILABLE_TOOLS_LEGACY.md', cap: 1, requireNew: true },
   { file: 'engine/docs/user-guide/AVAILABLE_TOOLS_READONLY.md', cap: 1, requireNew: true },
-  // 공방 스크립트의 usage 문자열 — "구 경로도 받는다"는 한 줄
-  { file: 'scripts/promote-track-b-run.ps1', cap: 1, requireNew: true },
+  // (구 `scripts/promote-track-b-run.ps1`의 usage 문자열 항목은 R1에서 루트
+  //  `scripts/`를 걷어내며 함께 뺐다.)
   // doctor 진단 문구 — 미이행 사용자에게 두 세대를 병기해 보여주는 안내 (검사 ⑤)
   { file: 'interactive/scripts/doctor.mjs', cap: 2, requireNew: true },
 ];
 
 // ── 안전 앵커 — 개명 금지 호환성 문자열(§3-3). 사라지면 FAIL ───────────────
 const ANCHORS = [
-  {
-    file: 'scripts/vsp-env.ps1',
-    label: 'Windows credential target (`<profile>/<user>.sc4sap`) — cmdkey에 저장된 실제 이름',
-    strings: [
-      "if ($credTarget -match '^sc4sap/(.+)$') {",
-      "$credTargetCandidates += ($Matches[1] + '.sc4sap')",
-    ],
-  },
+  // (구 `scripts/vsp-env.ps1`의 Windows credential target 앵커는 R1에서 루트
+  //  `scripts/`를 걷어내며 함께 뺐다 — cmdkey 해석 로직이 그 파일에만 있었다.
+  //  keychain 서비스명 앵커는 아래대로 그대로 살아 있다.)
   { file: 'interactive/core/procedures/troubleshooting.md', label: 'keychain 서비스명', strings: ['keychain:sc4sap/'] },
   // ABAP 오브젝트명·텍스트 심볼은 SAP 안에 실재하는 이름이다 — 개명하면 예제가 깨진다.
   { file: 'interactive/core/procedures/create-program.md', label: 'ABAP 앵커', strings: ['zrsc4sap_oop_ex'] },

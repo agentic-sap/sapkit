@@ -47,7 +47,6 @@ const NEEDED = [
   'interactive/scripts/get-vsp.mjs',
   'interactive/scripts/setup-state.mjs',
   'interactive/scripts/lib/target-hash.mjs',
-  'scripts/vsp-env.ps1',
   '.gitignore',
   'interactive/.gitignore',
   'engine/.gitignore',
@@ -69,7 +68,6 @@ const NEEDED = [
   'engine/docs/user-guide/AVAILABLE_TOOLS.md',
   'engine/docs/user-guide/AVAILABLE_TOOLS_LEGACY.md',
   'engine/docs/user-guide/AVAILABLE_TOOLS_READONLY.md',
-  'scripts/promote-track-b-run.ps1',
   'interactive/scripts/doctor.mjs',
   // 앵커 (위와 겹치지 않는 것)
   'interactive/core/procedures/create-program.md',
@@ -169,15 +167,9 @@ t(
 );
 
 console.log('\n⑵ 안전 앵커 제거');
-t(
-  'Windows credential target 문자열 제거 → FAIL',
-  (root) => {
-    const rel = 'scripts/vsp-env.ps1';
-    W(root, rel, R(root, rel).replace("$credTargetCandidates += ($Matches[1] + '.sc4sap')", '# removed'));
-  },
-  1,
-  'Windows credential target',
-);
+// (구 'Windows credential target 문자열 제거' 케이스는 R1에서 그 앵커의 주체인
+//  `scripts/vsp-env.ps1`이 삭제되며 함께 뺐다 — 앵커 자체가 없으므로 시험할 대상이
+//  없다. 앵커 소실 → FAIL 경로는 아래 두 케이스가 계속 실측한다.)
 t(
   'keychain 서비스명 제거 → FAIL',
   (root) => {

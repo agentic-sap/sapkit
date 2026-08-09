@@ -1,5 +1,0 @@
-{
-  "driver": "bridge",
-  "step_model": "opus",
-  "max_retries": 5
-}

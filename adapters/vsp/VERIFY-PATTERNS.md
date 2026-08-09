@@ -7,10 +7,15 @@
 - **시스템**: IDES-DEV, SID S4H, client 100
 - **참조**: 명령 시그니처·실행 로그 전문은 `adapters/vsp/COMMANDS.md`, 버전/바이너리
   고정은 `adapters/vsp/vsp.lock.json`. 본 문서는 DESIGN.md §10이 예약한 verify 패턴
-  정본이며, `.harness/VERIFY-PATTERNS.md`는 이 문서를 가리키는 포인터 스텁이다
-  (harness-plan이 참조하는 위치가 `.harness/`이므로 스텁을 유지한다).
+  정본이다 (R1 이전에 있던 하네스측 포인터 스텁은 그 디렉터리와 함께 삭제됐고,
+  이 파일이 유일한 정본이다).
 - 이 문서는 DESIGN.md §9(verify 사다리·실패 분류 설계)의 실측 완성판이다. §9의 설계
   의도와 이 문서의 실측이 충돌하면 실측이 우선한다.
+- **R1 주의 — 날짜 붙은 실측 절의 인용은 기록이다**: 아래 실측 절이 인용하는 PowerShell
+  verify/env 래퍼·`src/` ABAP 표본·phase 아티팩트는 R1에서 레포에서 걷어냈다. 그 절의
+  명령 문자열은 **당시 실행된 것의 기록**이며 지금 그대로 실행할 절차가 아니다.
+  반면 **§③ 마커 규약은 지금도 유효한 계약**이다 — 연결 verify를 감싸는 어떤 래퍼든
+  그 분류 순서를 구현해야 한다.
 
 ## ② verify 사다리 (DESIGN §9 6층 — 실측 주석 포함)
 
@@ -30,7 +35,7 @@
    주의: 이 "4종"은 offline lint 한정 계수다 — connected 채점
    (`vsp/pkg/adt/codeanalysis.go`, 13종 등록)에는 Error 2종
    (hardcoded_credentials·commit_in_loop)이 더 있어 두 검사기 합집합은 Error 6종.
-   `domain/abap/CHECKLIST.md` 항목 2의 "6종"은 이 합집합을 가리키므로 본 절의
+   다른 문서에서 말하는 "Error 6종"은 이 합집합을 가리키므로 본 절의
    "4종"과 모순이 아니다. 그 2종은 offline 게이트를 통과하므로(위 실측 —
    `lv_password = '리터럴'`·루프 내 `COMMIT WORK` 모두 exit 0) 초안 단계에서
    스스로 피해야 한다. (07-19 A-21 소스 재검증 판정 "§②-1 4종은 정확·무수정"과
@@ -39,7 +44,7 @@
 2. **`vsp lint <TYPE> <NAME>`** — 연결, SAP에서 소스를 fetch해 같은 린트를 돌린다.
    drift check 겸용 후보(§14-2 결론 — 실제로는 `vsp source read`가 더 적합, 아래 참조).
    연결 실패 시 CODE_FAIL이 아니라 ENV_FAIL/LOCK_FAIL로 갈릴 수 있으므로 반드시
-   `scripts/verify-sap.ps1` 경유(§③).
+   **마커 규약을 구현한 verify 래퍼 경유**(§③).
 
 3. **`vsp deploy <file> $TMP`** — 문법 검사를 겸하는 쓰기 경로(read-only syntax check가
    부재하므로 §14-9, 사실상 이 층이 "서버측 문법 검사"의 대체재). **주의**: 문법
@@ -166,9 +171,10 @@ offline lint(exit 0) → connected deploy(CODE_FAIL, exit 1)로 갈리는 사례
 
 ## ③ 마커 규약
 
-`scripts/verify-sap.ps1`이 출력하는 3종 마커. vsp는 모든 오류를 일괄 exit 1로
+연결 verify 래퍼가 출력해야 하는 3종 마커. vsp는 모든 오류를 일괄 exit 1로
 반환하므로(§15-V10) **exit code로는 유형을 구분할 수 없고 출력 패턴 파싱이 유일한
-길**이다.
+길**이다. (이 규약을 구현하던 PowerShell 래퍼는 R1에서 삭제됐다 — 규약 자체는
+계약으로 남으며, 연결 verify를 감싸는 후속 래퍼가 이를 그대로 구현해야 한다.)
 
 - **CODE_FAIL** — 코드 결함. rule 승격 후보.
 - **ENV_FAIL** — 연결/인증/시스템 실패. rule 승격 후보에서 항상 제외.
@@ -193,12 +199,12 @@ offline lint(exit 0) → connected deploy(CODE_FAIL, exit 1)로 갈리는 사례
 403을 ENV_FAIL의 키워드 폴백에 두면 실제로는 일시적 락인 실패가 "연결/인증
 실패"로 오분류되어 rule 승격 후보에서 영구 제외되거나(원래도 제외 대상이라 결과는
 같지만) 재시도하면 풀릴 실패를 환경 실패로 오인해 재시도 전략을 그르친다.
-`scripts/verify-sap.ps1`의 분류 순서는 이 근거에 따라 **LOCK_FAIL → ENV_FAIL →
+마커 규약의 분류 순서는 이 근거에 따라 **LOCK_FAIL → ENV_FAIL →
 CODE_FAIL**(폴백)이다.
 
-**연결 verify는 반드시 `scripts/verify-sap.ps1` 경유** — vsp를 직접 호출하면 마커가
-없어 환경 실패가 코드 결함으로 둔갑해 LESSONS를 오염시킨다(DESIGN.md §9, §⑤ 안티패턴
-참조).
+**연결 verify는 반드시 마커 규약을 구현한 래퍼 경유** — vsp를 직접 호출하면 마커가
+없어 환경 실패가 코드 결함으로 둔갑해 실패 기록을 오염시킨다(DESIGN.md §9, §⑤
+안티패턴 참조).
 
 **V-PASS 체인 러너 (2026-07-26 신설)**: 완료 증거 체인(read-back → active-state 정합 →
 unit → atc)을 한 번에 돌리고 판정 기록을 `.sapkit/vpass/<ts>-<대상>.json`에 남기는
@@ -221,10 +227,10 @@ SAP 쓰기 명령은 일절 호출하지 않고 모든 자식 프로세스에 `S
 
 | role | dot-source | 규율 |
 |---|---|---|
-| **Reviewer** | **하지 않는다 (기본)** | 리뷰는 `git diff` + `src/` 정독으로 수행한다. 자격증명이 없으면 리뷰 세션의 SAP write는 §②·V1/V2대로 **ENV_FAIL로 기계 차단**된다 — 이것이 리뷰어 SAP-격리의 **유일한 기계적 수단**이다 |
+| **Reviewer** | **하지 않는다 (기본)** | 리뷰는 `git diff` + 소스 정독으로 수행한다. 자격증명이 없으면 리뷰 세션의 SAP write는 §②·V1/V2대로 **ENV_FAIL로 기계 차단**된다 — 이것이 리뷰어 SAP-격리의 **유일한 기계적 수단**이다 |
 | Reviewer가 P1 라이브 재도출이 꼭 필요할 때 | **read 전용 프로파일을 리뷰어 셸에만** | 그 셸에서 `deploy`/`copy`/`source write`/`test`/`query`/`transport`(조회 포함)를 실행하지 않는다. **worker 셸과 같은 프로세스 환경을 공유하지 않는다** |
-| **Engine attended worker** | phase 계약이 요구할 때만, **엔진 기동 셸**에서 | 엔진은 기동 셸의 `os.environ`을 **phase 공통으로 승계**한다 — step별 분리가 엔진 밖에서 불가하므로 스코핑은 반드시 **기동 시점**에 한다. P0/P1 의도 run은 dot-source 없이 기동하고 레포 CWD에 `.env` 부재를 보장한다 |
-| **Human operator (P3)** | 해당 작업 셸에서만, **DEV tier 한정** | R-003. QA/PRD tier에 write 금지 |
+| **Engine attended worker** | **해당 없음 — R1에서 폐지** | 엔진 실행 설비가 삭제돼 이 role은 없다. 당시 규율(기동 셸 env가 phase 공통 승계 → 스코핑은 기동 시점에)의 **원리**는 아래 Human operator 행이 승계한다 |
+| **Human operator (P3)** | 해당 작업 셸에서만, **DEV tier 한정** | R-003. QA/PRD tier에 write 금지. 그 셸을 리뷰·분석 세션과 공유하지 않고, 레포 CWD에 `.env` 부재를 보장한다 |
 
 > **왜 셸 분리가 1차 방어인가**: 리뷰 스텝과 write 스텝이 같은 phase의 승계 env를
 > 공유하면 리뷰어도 `vsp deploy`를 성공시킬 수 있다(SAFETY-PROFILES §⑥-RV4 실측 —
@@ -234,61 +240,47 @@ SAP 쓰기 명령은 일절 호출하지 않고 모든 자식 프로세스에 `S
 > 기계적 차단이며, 나머지는 관례·allowlist·에스코트다
 > (`sap_mutation_boundary=unverified`).
 
-> **2026-07-19 갱신 — 위 표와 아래 공통 규약의 관계**: 아래 "자격증명 자체 조달"은
-> `verify-sap.ps1` 자신의 동작 변경이다. 위 표는 `verify-sap.ps1`을 경유하지 않는 vsp
-> CLI 직접 호출(리뷰어의 P1 라이브 재도출 등)에서의 role별 dot-source 규율로 그대로
-> 유효하다 — `verify-sap.ps1` 경유 호출에 한해 사전 dot-source가 불필요해지고 오히려
-> 하지 않아야 한다(아래).
+> **R1 갱신 — 래퍼 폐지**: 아래 규약은 원래 PowerShell verify/env 래퍼가 대행하던
+> 것이다. 그 래퍼들은 R1에서 삭제됐고 **주입 책임이 사람에게 넘어왔다**. 아래는
+> 사람이 직접 지켜야 하는 형태로 옮긴 것이며, 위 표의 셸 분리 원칙이 1차 방어라는
+> 사실은 그대로다.
 
 ### 공통 규약
 
-- **자격증명 자체 조달(사전 dot-source 폐지)**: `verify-sap.ps1`은 자기 프로세스
-  안에서 `scripts/vsp-env.ps1`을 dot-source해 SAP_*를 스스로 조달한다 — 호출 셸에
-  미리 `. vsp-env.ps1`을 실행할 필요가 없고, 해서도 안 된다(아래 엔진 기동 셸 관례).
-  기본은 **read-only**(`SAP_READ_ONLY=true` 주입)이므로 read성 verify(lint connected·
-  atc·test·source read)는 그대로 동작한다. 프로파일 지정은 `-ProfileName <name>`
-  passthrough. 자식 프로세스로 실행되므로(`powershell -File …`) 자격증명은 그
-  프로세스에만 스코프되고 부모 셸에는 SAP_*가 남지 않는다. 스크립트 자신은 시크릿을
-  출력/기록하지 않고 프로세스 환경에만 주입한다.
-- **write성 verify 체인은 `-Write` opt-in 필수**: 사다리 3층 `vsp deploy`처럼 write성
-  명령을 verify로 쓰는 경로는 `verify-sap.ps1 -Write -- deploy <file> $TMP` 형태로
-  호출한다. `-Write`는 vsp-env.ps1의 read-only를 해제하고 `SAP_TIER`(dev)를 전파해
-  게이트를 통과시킨다. `-Write` 없이 write 명령을 넣으면 게이트가 `SAP_READ_ONLY`로
-  거부(네트워크 이전)하고, 그 거부는 현행 분류상 CODE_FAIL로 뭉뚱그려지므로 write
-  체인에는 반드시 `-Write`를 명시할 것. (아래 §②-3의 Phase 1.5 deploy 실측은 이 게이트
-  신설 이전 캡처라 `-Write` 없이 CODE_FAIL을 얻은 기록 — 현행에서는 `-Write` 필수.)
-- **엔진 기동 셸 관례(무인 워커 자격증명 미공급의 성립 조건)**: 무인 엔진
-  (`python scripts/execute.py`)을 켜는 셸에는 SAP_*가 없어야 한다 — 사전 dot-source
-  금지. execute.py는 워커/advisory/verify 서브프로세스에 부모 env를 **전량 상속**
-  (`{**os.environ}`)시키므로, 기동 셸에 SAP_*가 없어야만 워커 스텝 env에 자격증명이
-  실리지 않는다. verify 스텝은 위 자체 조달로 자기 프로세스 안에서만 자격증명을 얻고,
-  그 밖의 워커 명령은 SAP에 접속할 수단이 없다.
-- **배포 스텝 래퍼 관례**: write 자격증명은 배포 스텝 명령 래퍼에서만
-  `. scripts\vsp-env.ps1 -Write`(또는 `verify-sap.ps1 -Write`)로 로딩한다 — 그 프로세스
-  트리에만 스코프되고 기동 셸·다른 워커 스텝에는 전파되지 않는다.
+- **read-only가 기본, write는 명시적 승격**: 연결 세션은 `SAP_READ_ONLY=true`로 연다 —
+  read성 verify(lint connected·atc·test·source read)는 그대로 동작한다. write성
+  명령(사다리 3층 `vsp deploy` 등)이 필요할 때만 그 셸에서 read-only를 풀고
+  `SAP_TIER=dev`를 준다. 승격 없이 write 명령을 넣으면 게이트가 네트워크 이전에
+  거부하며, 그 거부는 현행 분류상 CODE_FAIL로 뭉뚱그려진다 — 그래서 write 체인은
+  **의도적으로** 승격해야 한다. (§②-3의 Phase 1.5 deploy 실측은 이 게이트 신설 이전
+  캡처라 승격 없이 CODE_FAIL을 얻은 기록이다.)
+- **자격증명은 그 프로세스에만**: SAP_*는 write를 수행할 그 셸에만 주입하고, 부모 셸·
+  리뷰 셸·분석 셸로 전파하지 않는다. 시크릿을 출력·로그·커밋으로 흘리지 않는다
+  (R-005). 프로파일 실체(`sap.env`)는 레포 밖 프로파일 홈에 둔다.
+- **자격증명 없는 세션이 기본값**: P0/P1 의도의 세션은 SAP_*를 주입하지 않고, 레포
+  CWD에 `.env` 부재를 보장한다 — 두 채널이 비면 SAP에 **기계적으로** 닿지 못한다
+  (§②·V1/V2의 ENV_FAIL). 이것이 리뷰어 격리의 유일한 기계적 수단이다.
 - **vsp 게이트 의미론(v2.38.1-94, `adapters/vsp/vsp.lock.json` write_profile_gate 참조)**:
   `SAP_READ_ONLY` truthy → 모든 write성 서브커맨드를 네트워크 이전 클라이언트측 거부
   (마커 `blocked: SAP_READ_ONLY=true …`). `SAP_TIER`가 비어있지 않고 `dev`(대소문자
   무관)가 아니면 동일 거부(마커 `blocked: SAP_TIER=<tier> …`). 둘 다 미설정 = 무제약.
   read성 명령과 `vsp test`는 두 env에 무영향.
-- **`-File`에 대시 인자 전달 불가(실측 함정)**: `vsp lint --file ...`처럼 vsp 인자에
-  `--file` 등 대시로 시작하는 플래그가 있으면 `powershell -File scripts\verify-sap.ps1 --
-  <args>` 형태는 PowerShell 5.1의 `-File` 바인딩 오류로 실패한다. 이 경우
-  `powershell -Command "& 'scripts\verify-sap.ps1' -- <vsp args>"` 형태로 호출한다.
+- **PowerShell로 vsp를 감쌀 때 대시 인자 주의(실측 함정)**: `vsp lint --file ...`처럼
+  vsp 인자에 대시로 시작하는 플래그가 있으면 PowerShell 5.1의 `-File` 바인딩 오류로
+  실패한다 — 래퍼를 다시 만든다면 `-Command "& '<script>' -- <vsp args>"` 형태를 쓸 것.
 - **첫 `Error:` 라인만 파싱**: vsp의 모든 오류 출력은 `Error:` 라인이 **2회** 나타나고
   그 사이에 cobra의 전체 `Usage` 도움말 블록이 끼어든다(§⑤-주의 거동 ①). 두 번째
   `Error:` 줄이나 Usage 블록 내부 텍스트를 근거로 분류하면 노이즈에 오염되므로,
-  파싱은 반드시 **첫 매치**만 신뢰한다. `verify-sap.ps1`은 전체 출력에 대해
-  substring 매칭을 하므로 이 문제에 노출되지 않지만, 정확한 오류 개수를 뽑아내는
-  후속 파서를 만들 경우 이 규칙을 지켜야 한다.
+  파싱은 반드시 **첫 매치**만 신뢰한다. 전체 출력 substring 매칭은 이 문제에 노출되지
+  않지만, 정확한 오류 개수를 뽑아내는 파서를 만들 경우 이 규칙을 지켜야 한다.
 
 ## ⑤ 안티패턴
 
 - **존재 확인은 verify가 아니다**: `Test-Path`/`test -f` 류의 파일·객체 존재감시는
   내용 검증이 없으므로 통과해도 아무것도 보증하지 않는다.
-- **vsp 직접 호출로 연결 verify 금지**(§9): 마커 없는 실패는 환경 실패가 코드 결함으로
-  둔갑해 LESSONS를 오염시킨다. 연결이 필요한 모든 verify는 `scripts/verify-sap.ps1`을
-  경유한다.
+- **마커 없는 연결 verify 금지**(§9): 마커 없는 실패는 환경 실패가 코드 결함으로
+  둔갑해 실패 기록을 오염시킨다. 연결이 필요한 verify는 §③ 마커 규약을 구현한 래퍼나
+  러너를 경유하고, 맨손 vsp 호출 결과를 그대로 판정 근거로 삼지 않는다.
 - **exit code만 믿지 말 것 (atc/health)**: `vsp atc`·`vsp health`는 findings가 있어도
   exit code 0을 반환한다(§②-4, §②-6). exit code는 "명령 실행 자체의 성공/실패"만
   보증하고 "품질 판정 결과"는 보증하지 않는다 — 출력의 finding 카운트/요약 라인을
@@ -313,8 +305,8 @@ SAP 쓰기 명령은 일절 호출하지 않고 모든 자식 프로세스에 `S
 
 - **ENV_FAIL의 비-락 403 미실측**: 이번 세션에서 재현된 유일한 403 사례는 LOCK_FAIL
   (ENQUEUE 락)이었다. 권한 부족 등 락이 아닌 403 케이스는 아직 실측하지 못했으며,
-  `scripts/verify-sap.ps1`의 `$envFallback` 키워드(`403` 포함)는 미검증 폴백으로만
-  유지한다. Phase 1 이후 재현 시 §③ 표에 추가한다.
+  마커 분류의 ENV 폴백 키워드 목록(`403` 포함)은 미검증 폴백으로만
+  취급한다. 재현되면 §③ 표에 추가한다.
 - **`vsp export` 결함(WebSocket 403)**: `vsp export <packages...> -o <file>`은
   `WebSocket connection failed (HTTP 403): websocket: bad handshake`로 항상 실패한다
   (2회 재현, COMMANDS.md §③-7-b). 같은 세션의 `vsp copy`는 동일 WebSocket 경로로

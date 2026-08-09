@@ -150,28 +150,8 @@ jobs:
         # devDeps(esbuild/tsc)가 깔린 이 잡에서만 가능하다.
         run: node interactive/scripts/check-engine-provenance.mjs --rebuild
 
-  ps-gate:
-    # Track A 검사기들은 ENGINE이 실제로 부르는 방식(Windows powershell.exe, 역슬래시 경로)
-    # 그대로 돌려야 의미가 있어 windows-latest다.
-    #
-    # ⚠️ 반드시 `-File`로 띄운다. `powershell -Command`는 자식 종료코드를 0/1로 뭉개는데
-    # (2026-07-16 실측 · 로드맵 §13), 이 스위트들은 64/65/66/67을 구분해야 한다.
-    # GitHub의 `shell: powershell`은 -Command라서 쓰지 않고 cmd에서 -File로 호출한다.
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: review-verdict 검사기 테스트 (run-scoped 계약)
-        shell: cmd
-        run: powershell -NoProfile -File .\scripts\test-check-review-verdict.ps1
-
-      - name: run-track-a wrapper 음성시험 (legacy deny · fail-closed)
-        shell: cmd
-        run: powershell -NoProfile -File .\scripts\test-run-track-a.ps1
-
-      - name: Track B -> Guided bridge 테스트
-        shell: cmd
-        run: powershell -NoProfile -File .\scripts\test-promote-track-b-run.ps1
+  # (Track A PowerShell 검사기 스위트를 돌리던 windows 잡은 R1에서 제거됐다 —
+  #  그 스위트가 루트 스크립트 디렉터리와 함께 삭제됐기 때문이다.)
 
   win-migrate-gate:
     # test-migrate-runtime-dir.mjs의 win32 전용 DACL 검증 블록(§5 ⑼)은
