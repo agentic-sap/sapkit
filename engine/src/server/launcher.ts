@@ -78,7 +78,7 @@ function hydrateSystemContextFromEnvFile(envFilePath?: string): void {
       'SAP_VERSION',
       'ABAP_RELEASE',
       // Security tier for the readonly guard. Runtime-directory profiles
-      // (.sapkit, legacy .sc4sap) resolve tier in
+      // (.sapkit) resolve tier in
       // profile.ts; an --env-path / MCP_ENV_PATH connection has no profile, so
       // its SAP_TIER must be bridged here and then reconciled into the guard
       // cache (see reconcileTierFromEnv in main()).
@@ -244,8 +244,8 @@ async function main() {
   hydrateSystemContextFromEnvFile(config.envFile);
 
   // Fail-closed tier for --env-path / MCP_ENV_PATH connections. activateProfile()
-  // only resolves tier from a runtime-directory profile (.sapkit, legacy
-  // .sc4sap); when the connection instead comes
+  // only resolves tier from a runtime-directory profile (.sapkit);
+  // when the connection instead comes
   // from an env file, its SAP_TIER (hydrated just above) must drive the readonly
   // guard — and default to read-only when absent/unrecognized. Skip when a
   // runtime-directory profile already supplied the connection (it is authoritative) or
