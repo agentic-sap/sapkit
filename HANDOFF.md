@@ -8,6 +8,48 @@
 > **▶▶ 재개점 — 여기부터 읽는다 (최상단 정본)**
 > ═══════════════════════════════════════════════════════════════════
 >
+> **▶▶ SAPKIT renew 1차 판(기반 공사) 완료 — 걷어내기·GPL 해소·V-PASS 폐지·호환층 제거·겉면 정리·청사진 신설 · v0.5.4→v0.6.0 · 엔진 4.14.3→5.0.0 · D-071~D-077 (2026-08-10)**
+>
+> 사용자 동기("짜깁기가 아니라 내걸로")에서 출발한 **다판 재구성의 1차 판**. 큰 부품
+> 교체(엔진 슬림 자작·검사기 재작성·지식 재저작)는 청사진 등재만 하고 실행하지 않았다.
+> - **걷어내기(D-073)** — `phases/` `src/` 루트 `scripts/` `.harness/` `packs/` `domain/`
+>   `adapters/final-harness*` `.claude/quality-gate.json` 삭제(194파일 · −23,927줄).
+>   `.harness/RULES.md` 안전 규칙 6건 + P2 실데이터 승인을 **`CLAUDE.md` 안전 절로 이관 후**
+>   삭제. `AGENTS.md`는 최소 승계본(P0~P4 유지 — 제품 코어 9파일이 인용). CI `ps-gate` 제거.
+> - **이식 장부 은퇴(D-072)** — `check-migration-snapshot`·음성시험·공급 도구 2종 삭제.
+>   provenance·`MIGRATION-MANIFEST.md`는 "이식 완료 기록" 헤더로 보존.
+> - **GPL 해소(D-074)** — `core/knowledge/abap/reference/` 31파일 전량 삭제, 고유 문구
+>   grep 0. 고지는 "제거로 해소(2026-08-09)" 기록으로 전환. **지식 179 → 148**.
+> - **V-PASS 폐지 + 기계 확인 유지(D-075)** — `skills/vpass/`·`tools/vpass/` 삭제, 전용
+>   절차를 **`core/procedures/verify-applied.md`("반영 확인")**로 개명·재저작(MCP 기반:
+>   소스 되읽기 대조 + 문법·활성 확인). 완료 조건 = **기계 확인 + 독립 새-컨텍스트 리뷰**.
+>   진입점 스킬은 **사용자 결정으로 복원**(`skills/verify-applied/`) → **스킬 17 유지**
+>   (사양 초안의 17→16을 사용자가 정정).
+> - **호환층 제거(D-076)** — 사람 선행 게이트 통과(사용자가 직접 이행: 홈·프로젝트 두
+>   스코프 COEXIST_OK · profiles 3 · `~/.sapkit/bin/vsp.exe` · `SC4SAP_*` env 0). `.sc4sap`
+>   폴백·`SC4SAP_HOME_DIR`·마이그레이터 삭제, 개명 게이트는 "구 토큰 재등장 금지"로 재작성
+>   (안전 앵커 유지), 경로 적합성 43→26케이스. **엔진 5.0.0 재번들·재핀**(sourceCommit
+>   `ace43db6`) — 번들 `SC4SAP_HOME_DIR` 0건 · capability diff 0 · jest 717/9/0.
+> - **겉면 정리 + 표기 통일(D-077)** — 상류 제품 서술 제거, 검사기 호칭 "SAPKIT 검사기
+>   (현재 명령어 `vsp`)", 브랜드 표기 **SAPKIT** 통일(`displayName` 포함), **v0.6.0** 범프.
+> - **청사진 신설(D-071)** — `docs/BLUEPRINT.md`: 끝그림 포크 0 · 교체 사다리 ⑴~⑷ ·
+>   무중단 교체 규칙 · **엔진 도구 실사 표**(표면 186 / 실질 참조 109 / 훅 전용 16 / 미참조 61).
+>
+> **실측 계수(커밋 시점)**: 지식 **148** · 절차 **22** · 페르소나 **26** · 스킬 **17** ·
+> 도구 표면 **155/65 불변** · 플러그인 **v0.6.0** · 엔진 **5.0.0**.
+>
+> **▶▶ 남은 것 / 다음 착수**
+> - **push 미실행** — 사용자 판단(커밋까지만). push 후 CI green 확인이 재현 빌드
+>   (`check-engine-provenance --rebuild`)의 유일한 기계 판정 자리다(이 머신에서 실행 불가).
+> - **재설치 필요** — 설치본이 v0.6.0을 읽으려면 push·재설치 후 새 세션부터.
+> - **사용자 몫 정리(에이전트 무접촉)**: `C:\Users\USER\.sc4sap` · 레포 루트 `.sc4sap/` ·
+>   `phases/` 잔여 1파일 — 전부 이제 아무도 읽지 않는다. `.gitignore`에서 `.sc4sap/`가
+>   빠져 레포 루트 잔여는 `git status`에 미추적으로 뜬다.
+> - **백로그 +2**: ⑴ `.harness/RULES.md` 미승계 2건(R-007 마스터데이터 텍스트 테이블
+>   INNER JOIN 행 누락 · R-009 S/4 금액 원천 ACDOCA — `rldnr`/`'0L'` 지식 grep 0) 지식층
+>   이관 ⑵ 청사진 사다리 ⑴ **SAPKIT Engine 슬림 자작** = **다음 판의 착수점**.
+> - 이하 D-070 블록 계속 유효(canary·도그푸딩).
+>
 > **▶▶ 설계 입구 3형태 집행 — create-program Intake Resolution(spec-provided·deep-interview 소비) · v0.5.4 유지 · D-070 (2026-08-06)**
 >
 > `a0c0fdd` 등재 백로그의 집행. 입구 셋(ⓐ 사용자 설계서 ⓑ deep-interview brief
@@ -3146,23 +3188,34 @@ docs/superpowers/specs/…lite-design.md  ← 설계 스냅샷 (정본은 intera
 ## 9. 검증 명령 모음 (재개 시 상태 점검용)
 
 ```bash
-cd "D:/claude for SAP/sap-agentic-harness"
-# 오프라인 게이트 (S3 기준 — doctor를 뺀 전부가 CI에서도 돈다)
-node interactive/scripts/check-migration-snapshot.mjs    # 이식 provenance (원본 무접촉)
+cd "D:/AI PROJECT/sap-agentic-harness"
+# 오프라인 게이트 (renew 1차 판 기준 — doctor를 뺀 전부가 CI에서도 돈다)
 node interactive/scripts/check-links.mjs interactive     # 깨짐 0 이어야 함
 node interactive/server/verify-engine.mjs                # 번들 무결성 OK
 node interactive/scripts/check-engine-provenance.mjs     # 엔진 소스 커밋 ↔ 번들
 node interactive/scripts/smoke-mcp.mjs                   # 도구 표면 계약 assert
 node interactive/scripts/conformance-server-gates.mjs    # 서버 안전 게이트 (tier·blocklist·ask)
-node interactive/scripts/test-hook-switch.mjs            # 훅 스위치 왕복 멱등
 node interactive/scripts/gen-plugin-manifests.mjs --check # 생성물 7종(매니페스트 5+MCP 2) ↔ 단일 정본
+node interactive/scripts/check-runtime-path-rename.mjs   # 구 세대 토큰 재등장 금지 + 안전 앵커
+node interactive/scripts/conformance-runtime-dir.mjs     # 런타임 경로 적합성
 node interactive/scripts/doctor.mjs                      # 3사 동기화 · capability 진단 (로컬 전용)
+# 음성시험 (게이트가 정말 거부하는지 — PowerShell로 실행할 것)
+node interactive/scripts/test-smoke-mcp.mjs
+node interactive/scripts/test-check-runtime-path-rename.mjs
+node interactive/scripts/test-hook-switch.mjs
+node interactive/scripts/test-setup-state.mjs
+node interactive/scripts/test-launch-toolsurface.mjs
+node interactive/scripts/test-codex-wire-mcp.mjs
+node interactive/scripts/test-doctor.mjs
+node interactive/scripts/test-get-vsp.mjs
+# 은퇴 (renew 1차 판) — check-migration-snapshot · build-migration-snapshot ·
+#   report-sc4sap-public-drift · migrate-runtime-dir + 각 음성시험 (D-072 · D-076)
 node interactive/adapters/codex/toggle-plugin.mjs status # Codex 활성 상태
-codex plugin list | grep sap-agentic                     # Codex 설치 상태
+codex plugin list | grep sapkit                          # Codex 설치 상태
 agy plugin list                                          # AG 임포트 상태
-git log --oneline | head                                 # 최근: 트랙 A 부트스트랩 lock 2종(§16-1·3) ← 726f5ebe(D-018/019·5-10 문서)
+git log --oneline | head                                 # 최근: renew 1차 판 (D-071~D-077)
 ```
 
-push는 사용자 판단 — 커밋까지만 하고 push는 요청 시에만 (원격: hjaewon/sap-agentic-harness).
+push는 사용자 판단 — 커밋까지만 하고 push는 요청 시에만 (원격: `agentic-sap/sapkit`).
 아카이브용 엔진 포크 hjaewon/abap-mcp-adt-powerup은 **4.13.1에서 동결** — 4.13.2부터의
 수리는 레포 내 `engine/`에만 존재한다 (D-017: 포크는 히스토리 아카이브).
