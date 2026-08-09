@@ -45,9 +45,15 @@
 > - **사용자 몫 정리(에이전트 무접촉)**: `C:\Users\USER\.sc4sap` · 레포 루트 `.sc4sap/` ·
 >   `phases/` 잔여 1파일 — 전부 이제 아무도 읽지 않는다. `.gitignore`에서 `.sc4sap/`가
 >   빠져 레포 루트 잔여는 `git status`에 미추적으로 뜬다.
-> - **백로그 +2**: ⑴ `.harness/RULES.md` 미승계 2건(R-007 마스터데이터 텍스트 테이블
+> - **백로그 +3**: ⑴ `.harness/RULES.md` 미승계 2건(R-007 마스터데이터 텍스트 테이블
 >   INNER JOIN 행 누락 · R-009 S/4 금액 원천 ACDOCA — `rldnr`/`'0L'` 지식 grep 0) 지식층
->   이관 ⑵ 청사진 사다리 ⑴ **SAPKIT Engine 슬림 자작** = **다음 판의 착수점**.
+>   이관 ⑵ **엔진의 사용자 노출 문구 3곳에 옛 제품명 `sc4sap`이 남아 있다** —
+>   `engine/src/server/launcher.ts:232`(기동 배너 "Active sc4sap profile")·`:237`(경고) ·
+>   `engine/src/lib/nativeRfc.ts:55`("re-run the sc4sap setup wizard"). 점 없는 제품명
+>   토큰이라 개명 게이트 범위 밖(D-041 영역)이고 renew 1차의 R6(상류 제품 서술 제거)
+>   범위도 아니어서 **의도적으로 건드리지 않았다**. 고치려면 엔진 패치 범프 + 재번들
+>   (UPDATE-RUNBOOK)이 필요하다 — 브랜드 통일(D-077)의 남은 꼬리. ⑶ 청사진 사다리 ⑴
+>   **SAPKIT Engine 슬림 자작** = **다음 판의 착수점**.
 > - 이하 D-070 블록 계속 유효(canary·도그푸딩).
 >
 > **▶▶ 설계 입구 3형태 집행 — create-program Intake Resolution(spec-provided·deep-interview 소비) · v0.5.4 유지 · D-070 (2026-08-06)**
