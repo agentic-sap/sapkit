@@ -7,11 +7,11 @@
  * end users receive a working keychain integration via plain `git clone`
  * (Claude Code's plugin installer does not run `npm install`).
  *
- * Usage:
- *   node scripts/bundle-keyring.mjs                     # refresh from current node_modules
- *   node scripts/bundle-keyring.mjs --check             # verify bundle completeness, exit 0/1
- *   node scripts/bundle-keyring.mjs --refresh-integrity # regenerate integrity.json from package-lock + bundle
- *   node scripts/bundle-keyring.mjs --verify            # offline tamper check against integrity.json
+ * Usage (paths are repo-root relative — this script lives in interactive/server/):
+ *   node interactive/server/bundle-keyring.mjs                     # refresh from current node_modules
+ *   node interactive/server/bundle-keyring.mjs --check             # verify bundle completeness, exit 0/1
+ *   node interactive/server/bundle-keyring.mjs --refresh-integrity # regenerate integrity.json from package-lock + bundle
+ *   node interactive/server/bundle-keyring.mjs --verify            # offline tamper check against integrity.json
  *
  * Platforms the bundle should cover (full list):
  *   - @napi-rs/keyring-win32-x64-msvc

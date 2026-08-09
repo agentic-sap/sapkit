@@ -77,7 +77,7 @@
 7. For ECC, build ABAP report using AD-HOC JOIN on COEP + COSP summarized by PSPNR
 
 ### Required MCP Tools
-- `CreateCdsView` — create CDS view
+- `CreateView` — create CDS view
 - `GetTable` — ACDOCA, ACDOCP, BPGE, RPSCO, PRPS, PROJ
 - CDS (DDLS) syntax is validated server-side when the view is activated via `UpdateView` — no standalone pre-check tool (`CheckSyntax` does not support DDLS)
 
