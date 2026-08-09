@@ -379,7 +379,7 @@ Before any risky operation ("which system am I connected to?"), render a compact
 - **Blocklist**: profile + extend/allow entry counts
 - **sap.env path**: absolute path in effect
 
-## 7. vsp Local Verification (Optional)
+## 7. SAPKIT 검사기 로컬 검증 (선택)
 
 The **SAPKIT verifier** — the command it installs today is `vsp`, which is also what this section calls it — is an optional offline ABAP verifier that runs entirely on the local machine: no SAP connection needed, and nothing else in this document depends on it.
 

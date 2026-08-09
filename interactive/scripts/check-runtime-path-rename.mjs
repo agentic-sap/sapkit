@@ -50,6 +50,10 @@ const HISTORY = [
   // 이식 완료 기록 · 상류 참조
   'interactive/MIGRATION-MANIFEST.md',
   'interactive/provenance/',
+  // ⚠ `interactive/DESIGN.md`는 append-only 로그가 아니라 **살아 있는 트랙 B 설계
+  //   정본**이다. 이식·개명 대응표가 구 이름을 열거해야 해서 통째로 제외하지만,
+  //   그 대가로 **새 구 이름 안내가 이 파일로 들어와도 게이트가 잡지 못한다.**
+  //   의식적으로 감수한 구멍이다 — 이 파일을 고칠 때는 사람이 직접 확인할 것.
   'interactive/DESIGN.md',
   'interactive/docs/research/',
   'engine/CHANGELOG.md',

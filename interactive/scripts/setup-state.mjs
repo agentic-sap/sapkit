@@ -180,16 +180,9 @@ function resolveReadProfileDir(alias) {
  * 깊이 0(엔진 `resolveProjectRuntimeDir`과 같은 판정) — `--project`가 명시된 도구가
  * 조상까지 거슬러 올라가면 남의 프로젝트 상태를 쓰게 된다.
  *
- * 채택 기준은 엔진과 동일: 비어 있지 않은 active-profile.txt 또는 sap.env가 있으면
- * "연결을 낳는" 디렉터리다. 둘 다 낳으면 `.sapkit`, 둘 다 아니면 구 세대만 실재할 때만
- * 구 세대(= setup.md "legacy 프로젝트에 평행 `.sapkit/`를 만들지 않는다").
+ * 후보는 `<project>/.sapkit` 단일이다 — 구 세대 후보와 그 타이브레이크는 R5에서
+ * 제거됐다(D-076). "연결을 낳는가"로 세대를 고르던 판정도 함께 소멸했다.
  */
-function yieldsConnection(dir) {
-  const pointer = path.join(dir, 'active-profile.txt');
-  const raw = readTextOrNull(pointer);
-  if (raw !== null && raw.trim().length > 0) return true;
-  return exists(path.join(dir, 'sap.env'));
-}
 function resolveRuntimeDir(project) {
   return { dir: path.join(project, NEW_DIR) };
 }

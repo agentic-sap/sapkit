@@ -42,7 +42,7 @@ node interactive/scripts/get-vsp.mjs   # ~/.sapkit/bin/vsp(.exe) 설치
 ```
 
 설치 후 `vsp lint <파일>` / `vsp parse <파일>`로 사용. 자세한 내용:
-[core/procedures/troubleshooting.md §7](../../core/procedures/troubleshooting.md#7-vsp-local-verification-optional).
+[core/procedures/troubleshooting.md §7](../../core/procedures/troubleshooting.md#7-sapkit-검사기-로컬-검증-선택).
 
 ## 안전훅 6종 (기본 미설치, 선택 스위치)
 

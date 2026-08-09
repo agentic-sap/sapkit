@@ -33,7 +33,9 @@
 > - **겉면 정리 + 표기 통일(D-077)** — 상류 제품 서술 제거, 검사기 호칭 "SAPKIT 검사기
 >   (현재 명령어 `vsp`)", 브랜드 표기 **SAPKIT** 통일(`displayName` 포함), **v0.6.0** 범프.
 > - **청사진 신설(D-071)** — `docs/BLUEPRINT.md`: 끝그림 포크 0 · 교체 사다리 ⑴~⑷ ·
->   무중단 교체 규칙 · **엔진 도구 실사 표**(표면 186 / 실질 참조 109 / 훅 전용 16 / 미참조 61).
+>   무중단 교체 규칙 · **엔진 도구 실사 표**(표면 186 / 실질 참조 **110** / 참조 없음 **76**
+>   — 그중 훅 열거 전용 16 · 권한 allowlist 전용 60). 이 수치는 R8에서 V-PASS 재저작 이후
+>   상태로 **재대조한 값**이 정본이다(`docs/BLUEPRINT.md` §4).
 >
 > **실측 계수(커밋 시점)**: 지식 **148** · 절차 **22** · 페르소나 **26** · 스킬 **17** ·
 > 도구 표면 **155/65 불변** · 플러그인 **v0.6.0** · 엔진 **5.0.0**.
@@ -43,7 +45,8 @@
 >   (`check-engine-provenance --rebuild`)의 유일한 기계 판정 자리다(이 머신에서 실행 불가).
 > - **재설치 필요** — 설치본이 v0.6.0을 읽으려면 push·재설치 후 새 세션부터.
 > - **사용자 몫 정리(에이전트 무접촉)**: `C:\Users\USER\.sc4sap` · 레포 루트 `.sc4sap/` ·
->   `phases/` 잔여 1파일 — 전부 이제 아무도 읽지 않는다. `.gitignore`에서 `.sc4sap/`가
+>   `phases/` 잔여 1파일 · `.harness/worker/.gitignore` 1파일 — 전부 이제 아무도 읽지
+>   않는다(git 밖 잔여라 삭제가 영구여서 손대지 않았다). `.gitignore`에서 `.sc4sap/`가
 >   빠져 레포 루트 잔여는 `git status`에 미추적으로 뜬다.
 > - **백로그 +3**: ⑴ `.harness/RULES.md` 미승계 2건(R-007 마스터데이터 텍스트 테이블
 >   INNER JOIN 행 누락 · R-009 S/4 금액 원천 ACDOCA — `rldnr`/`'0L'` 지식 grep 0) 지식층
@@ -3152,18 +3155,20 @@ engine/                         ← MCP 엔진 소스 정본 (D-017 편입 — T
                                    수리→bundle→interactive/server 반영은 UPDATE-RUNBOOK)
 interactive/
   DESIGN.md                     ← 트랙 B 설계 정본 (이중 리뷰·L5 실측 갱신 반영)
-  MIGRATION-MANIFEST.md         ← 원본 508파일 5분류 (분류 변경은 이 파일 수정으로만)
-  core/                         ← 하네스 중립: knowledge(모듈14+BC·업종·국가·ABAP) ·
-                                   personas(26+INDEX) · procedures(15+schemas) · policies ·
+  MIGRATION-MANIFEST.md         ← 원본 508파일 5분류 — **은퇴한 역사**(갱신 의무 없음 · D-072)
+  core/                         ← 하네스 중립: knowledge(모듈14+BC·업종·국가·ABAP — `.md` 148) ·
+                                   personas(26+INDEX) · procedures(22+schemas) · policies ·
                                    vocabulary.md · project-context.md
-  server/                       ← MCP 번들 4.13.0 + keyring + tool-catalog + sap-assets + UPDATE-RUNBOOK
+  server/                       ← MCP 번들 5.0.0 + keyring + tool-catalog + sap-assets + UPDATE-RUNBOOK
   adapters/{claude,codex,antigravity}/  ← 어댑터별 README = 설치·스코프·안전모델 가이드
   adapters/compatibility.json   ← 3사 검증 버전 고정
   skills/ agents/ plugin.json .codex-plugin/ .claude-plugin/(plugin.json)  ← 플러그인 표면
-  scripts/                      ← check-links · check-migration-snapshot · check-engine-provenance ·
-                                   smoke-mcp · gen-plugin-manifests · gen-permissions ·
-                                   transform-personas · doctor + 음성시험/생성기 (구
-                                   check-migration-coverage는 S3 폐기 — D-029)
+  scripts/                      ← check-links · check-engine-provenance · smoke-mcp ·
+                                   conformance-server-gates · gen-plugin-manifests ·
+                                   gen-permissions · check-runtime-path-rename ·
+                                   conformance-runtime-dir · transform-personas · doctor
+                                   + 음성시험/생성기 (이식 장부 계열·마이그레이터는
+                                   renew 1차 은퇴 — D-072·D-076)
   docs/research/                ← 실측 기록 (L0-cli-surface, L2-server-verification,
                                    L1-transform-contract, L5-review-response)
 .claude-plugin/ .agents/        ← 레포 루트 마켓플레이스 (source: ./interactive)
@@ -3184,9 +3189,11 @@ docs/superpowers/specs/…lite-design.md  ← 설계 스냅샷 (정본은 intera
    sap.env `MCP_ALLOW_TABLE`로 등록한다(노브 3종은 **sap.env 안에서만 유효** — D-062 ⑥).
    이 머신에서 Codex `disabled_tools` 부재·Claude 2종 허용·훅 미배선을 "결함"으로 보고
    되돌리지 말 것.
-5. 매니페스트·게이트 우선: 구조 변경 시 `node interactive/scripts/check-links.mjs interactive`와
-   `node interactive/scripts/check-migration-snapshot.mjs`가 항상 통과 상태여야 한다
-   (구 `check-migration-coverage`는 S3에서 폐기 — D-029).
+5. 매니페스트·게이트 우선: 구조 변경 시 **존속 게이트 전부**가 통과 상태여야 한다 —
+   명령 목록의 정본은 `CLAUDE.md`의 「게이트」 절이다(여기 중복 게재하지 않는다).
+   이식 장부 계열(`check-migration-coverage` S3 폐기 D-029 → 그 대체였던
+   `check-migration-snapshot` renew 1차 은퇴 D-072)은 **더 이상 존재하지 않으므로
+   실행하려 하지 말 것.**
 6. superpowers 플러그인은 사용자가 의도적으로 비활성화함 — 재활성화 제안 불필요.
 7. **굵직한 결정(대안을 기각한 선택)은 `docs/reference/DECISIONS.md`에 append** — 수정·삭제 금지,
    정정도 새 항목으로. 이 문서(HANDOFF)를 재작성할 때 결정의 '왜'가 소실되지 않게 하는 장치다.
