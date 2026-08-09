@@ -14,12 +14,10 @@
  *      (legacy single-profile mode) and extract `SAP_TIER` (unresolved →
  *      null; see Failure mode).
  *
- * Runtime path rename (D-057, `.sc4sap` -> `.sapkit`): `.sapkit` is a candidate
- * everywhere `.sc4sap` was one; nothing else changes (R-PRESERVE). The walk
- * depth stays 8 and this guard's criterion stays "existence IS the boundary" —
- * applied to EACH generation before any tie-break (R-TIE), so a `.sc4sap`-only
- * ancestor still stops the walk exactly where it did before. An unresolved tier
- * still denies.
+ * `.sapkit` is the only runtime directory (D-057; the migration-period fallback
+ * to the pre-0.6 name was removed once the migration completed). The walk depth
+ * stays 8 and this guard's criterion stays "existence IS the boundary". An
+ * unresolved tier still denies.
  *
  * Block matrix (Strict) — mirrors MCP server readonlyGuard (the server side is
  * an allowlist / fail-closed guard and remains the last line of defense; this
@@ -62,12 +60,11 @@ const RUNTIME_EXEC = new Set([
 const QA_ALLOW = new Set(['RunUnitTest']);
 
 const NEW_DIR = '.sapkit';
-const LEGACY_DIR = '.sc4sap';
 
 const PROFILE_SETUP_HINT =
   'Set up (or switch to) a DEV profile: create ~/.sapkit/profiles/<alias>/sap.env ' +
   '(or $SAPKIT_HOME_DIR override) with SAP_TIER=dev, and point this project at it with a single ' +
-  'alias line in .sapkit/active-profile.txt (a legacy .sc4sap layout is still read). ' +
+  'alias line in .sapkit/active-profile.txt. ' +
   'Details: core/procedures/troubleshooting.md.';
 
 // Reason codes collected during resolution and appended to the deny message —
@@ -90,57 +87,11 @@ function sapkitHome(alias) {
     }
     return explicit;
   }
-  const legacyEnv = process.env.SC4SAP_HOME_DIR;
-  if (legacyEnv) {
-    note('OK_LEGACY_DEPRECATED', 'SC4SAP_HOME_DIR is deprecated — rename it to SAPKIT_HOME_DIR');
-    return legacyEnv;
-  }
   const newHome = join(homedir(), NEW_DIR);
-  const legacyHome = join(homedir(), LEGACY_DIR);
-  if (alias) {
-    const inNew = existsSync(join(newHome, 'profiles', alias));
-    const inLegacy = existsSync(join(legacyHome, 'profiles', alias));
-    if (inNew && inLegacy) {
-      note('COEXIST_OK', `profile "${alias}" exists under both homes — using ${newHome}`);
-      return newHome;
-    }
-    if (inNew) return newHome;
-    if (inLegacy) return legacyHome;
-    note('PROFILE_NOT_FOUND', `profile "${alias}" was not found under ${newHome} or ${legacyHome}`);
+  if (alias && !existsSync(join(newHome, 'profiles', alias))) {
+    note('PROFILE_NOT_FOUND', `profile "${alias}" was not found under ${newHome}`);
   }
-  if (existsSync(newHome)) return newHome;
-  if (existsSync(legacyHome)) return legacyHome;
   return newHome;
-}
-
-// Connection completeness — the R-TIE tie-break input. An empty
-// active-profile.txt does not count.
-function hasConnectionState(runtimeDir) {
-  try {
-    const pointer = join(runtimeDir, 'active-profile.txt');
-    if (existsSync(pointer) && readFileSync(pointer, 'utf8').trim().length > 0) return true;
-  } catch {
-    /* unreadable pointer is not completeness */
-  }
-  return existsSync(join(runtimeDir, 'sap.env'));
-}
-
-// R-TIE inside ONE ancestor. This guard's criterion is plain existence, applied
-// to each generation before the tie-break.
-function pickGeneration(dir) {
-  const newer = join(dir, NEW_DIR);
-  const older = join(dir, LEGACY_DIR);
-  const newOk = existsSync(newer);
-  const oldOk = existsSync(older);
-  if (newOk && oldOk) {
-    const newComplete = hasConnectionState(newer);
-    const oldComplete = hasConnectionState(older);
-    if (oldComplete && !newComplete) return older;
-    return newer; // tie → .sapkit
-  }
-  if (newOk) return newer;
-  if (oldOk) return older;
-  return null;
 }
 
 // Returns the selected runtime directory. With nothing found within 8 levels
@@ -148,8 +99,8 @@ function pickGeneration(dir) {
 function walkUpForRuntimeDir(start) {
   let dir = start;
   for (let i = 0; i < 8; i++) {
-    const hit = pickGeneration(dir);
-    if (hit) return hit;
+    const candidate = join(dir, NEW_DIR);
+    if (existsSync(candidate)) return candidate;
     const parent = dirname(dir);
     if (parent === dir) break;
     dir = parent;

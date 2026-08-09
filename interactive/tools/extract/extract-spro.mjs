@@ -37,10 +37,9 @@
  *   node tools/extract/extract-spro.mjs all
  *
  * ─────────────────────── Runtime directory (D-057) ──────────────────────────
- * `.sapkit` is a candidate everywhere `.sc4sap` was one; nothing else changes
- * (R-PRESERVE). The cache still lands beside the cwd's runtime dir — the legacy
- * generation when that is what the project has (R-E), `.sapkit` when it has
- * neither (R-NEW). `--resolve-only` prints the selection offline.
+ * The cache lands beside the cwd's runtime dir, or names the `.sapkit`
+ * creation site when the project has none (R-NEW). `--resolve-only` prints the
+ * selection offline.
  *
  * ───────────── Transform note (sc4sap-custom `scripts/extract-spro.mjs`) ────
  * Parsing, filtering, batching, and output shape are unchanged. What differs:
@@ -78,7 +77,6 @@ const PROJECT_DIR = process.cwd();
 
 // ── runtime directory (D-057) ───────────────────────────────────────────────
 const NEW_DIR = '.sapkit';
-const LEGACY_DIR = '.sc4sap';
 
 const REASONS = [];
 const RESOLVE_ONLY = process.argv.slice(2).includes('--resolve-only');
@@ -88,36 +86,15 @@ function note(code, message) {
   if (!RESOLVE_ONLY) console.error(`[spro] ${code}: ${message}`);
 }
 
-// Connection completeness — the R-TIE tie-break input (empty pointer ≠ complete).
-function hasConnectionState(runtimeDir) {
-  try {
-    const pointer = join(runtimeDir, 'active-profile.txt');
-    if (existsSync(pointer) && readFileSync(pointer, 'utf8').trim().length > 0) return true;
-  } catch {
-    /* unreadable pointer is not completeness */
-  }
-  return existsSync(join(runtimeDir, 'sap.env'));
-}
-
-// R-TIE inside ONE directory: existence is this tool's criterion, applied per
-// generation before the tie-break.
-function pickGeneration(dir) {
-  const newer = join(dir, NEW_DIR);
-  const older = join(dir, LEGACY_DIR);
-  const newOk = existsSync(newer);
-  const oldOk = existsSync(older);
-  if (newOk && oldOk) {
-    if (hasConnectionState(older) && !hasConnectionState(newer)) return older;
-    return newer; // tie → .sapkit
-  }
-  if (newOk) return newer;
-  if (oldOk) return older;
-  return null;
+// Existence is this tool's criterion — depth 0, no walk-up.
+function pickRuntimeDir(dir) {
+  const candidate = join(dir, NEW_DIR);
+  return existsSync(candidate) ? candidate : null;
 }
 
 // R-E + R-NEW: write where this project already keeps runtime state; `.sapkit`
 // when it keeps none.
-const RUNTIME_DIR = pickGeneration(PROJECT_DIR) ?? join(PROJECT_DIR, NEW_DIR);
+const RUNTIME_DIR = pickRuntimeDir(PROJECT_DIR) ?? join(PROJECT_DIR, NEW_DIR);
 const OUTPUT_DIR = RUNTIME_DIR;
 const ROW_CAP = 9999;
 const BATCH_SIZE = 5;
@@ -218,40 +195,23 @@ function readActiveAlias() {
 }
 
 // R-ENV. A SAPKIT_HOME_DIR that is set but missing is a hard error — never a
-// silent fall-through to the legacy variable. Without an env var the home is
-// picked by where the alias actually lives, new generation before legacy.
+// silent fall-through to `~/.sapkit`.
 function sapkitHome(alias = null) {
   const explicit = process.env.SAPKIT_HOME_DIR;
   if (explicit) {
     if (!existsSync(explicit)) {
       console.error(
         `[spro] ENV_INVALID: SAPKIT_HOME_DIR points at a path that does not exist (${explicit}). ` +
-          'Refusing to fall back to SC4SAP_HOME_DIR — fix or unset it.'
+          'Refusing to fall back to ~/.sapkit — fix or unset it.'
       );
       process.exit(2);
     }
     return explicit;
   }
-  const legacyEnv = process.env.SC4SAP_HOME_DIR;
-  if (legacyEnv) {
-    note('OK_LEGACY_DEPRECATED', 'SC4SAP_HOME_DIR is deprecated — rename it to SAPKIT_HOME_DIR.');
-    return legacyEnv;
-  }
   const newHome = join(homedir(), NEW_DIR);
-  const legacyHome = join(homedir(), LEGACY_DIR);
-  if (alias) {
-    const inNew = existsSync(join(newHome, 'profiles', alias));
-    const inLegacy = existsSync(join(legacyHome, 'profiles', alias));
-    if (inNew && inLegacy) {
-      note('COEXIST_OK', `profile "${alias}" exists under both homes — using ${newHome}.`);
-      return newHome;
-    }
-    if (inNew) return newHome;
-    if (inLegacy) return legacyHome;
-    note('PROFILE_NOT_FOUND', `profile "${alias}" was not found under ${newHome} or ${legacyHome}.`);
+  if (alias && !existsSync(join(newHome, 'profiles', alias))) {
+    note('PROFILE_NOT_FOUND', `profile "${alias}" was not found under ${newHome}.`);
   }
-  if (existsSync(newHome)) return newHome;
-  if (existsSync(legacyHome)) return legacyHome;
   return newHome;
 }
 

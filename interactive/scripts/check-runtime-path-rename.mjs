@@ -1,41 +1,30 @@
 #!/usr/bin/env node
-// check-runtime-path-rename.mjs — 런타임 경로 개명(`.sc4sap` → `.sapkit`) 3구역 게이트.
-// 설계 `docs/reference/designs/2026-08-01-runtime-path-rename-sapkit.md` §7-2 · D-057.
+// check-runtime-path-rename.mjs — 런타임 경로 개명(`.sc4sap` → `.sapkit`) 완료 게이트.
+// 설계 `docs/reference/designs/2026-08-01-runtime-path-rename-sapkit.md` · D-057.
 //
-// ─────────────────────────────── 박제 (§3 · §7-2) ───────────────────────────
-// 기준 커밋 : 34a207a4  (집행 착수 시점)
-// 계수      : `\.sc4sap|SC4SAP_HOME_DIR` = **704 matching lines / 172 files**
-//             (설계 문서 자신 제외 · v4 계수와 동일)
-// 재현 명령 :
-//   rg -n --hidden --glob '!.git/**' --glob '!node_modules/**' '\.sc4sap|SC4SAP_HOME_DIR' .
-// 이 수는 다른 머신 작업으로 계속 움직인다. 게이트는 총량을 세지 않고 **구역별 규칙**을
-// assert한다 — v2의 "occurrence ledger 688건 영구 관리"가 과잉이라는 3차 리뷰 판정.
+// ─────────────────────────── 이 게이트의 현재 주장 ──────────────────────────
+// 개명은 **끝났다.** 사람 선행 게이트(이행 완료·두 스코프 COEXIST_OK·구 env 부재)가
+// 통과한 뒤 renew R5에서 호환층을 걷어냈다 — `SC4SAP_HOME_DIR` 폴백 · `.sc4sap`
+// 런타임 디렉터리 폴백 · 마이그레이터(`migrate-runtime-dir`)와 그 시험.
 //
-// ──────────────────────────────── 스캔 범위 ─────────────────────────────────
-// 정규식 = `\.sc4sap|SC4SAP_HOME_DIR`. **점 없는 제품명 토큰 `sc4sap`은 범위 밖**이다
-// (파일명 `sc4sap-mcp-tools-runtime.md` · provenance `sc4sap-public-source.json` ·
-// 이식 변수 `SC4SAP_SRC`/`SC4SAP_DST` — D-041이 다룬 영역).
+// 그래서 이 게이트는 더 이상 "신·구 병존 의무"를 세지 않는다(구 구역 C 폐지).
+// 남은 주장은 **하나**다:
 //
-// ─────────────────────────────── 3구역 + 앵커 ───────────────────────────────
-//   A 활성       legacy 토큰 **전면 금지**. 예외는 아래 ALLOWLIST(파일 단위 + 등장 수 캡)뿐.
-//   B 역사       경로 단위 스캔 제외 (§3-2 원천 참조 · 결정/설계 로그 · 시험 자산 · 빌드 산출물)
-//   C 폴백 의무  신·구 **둘 다** 있어야 PASS. 구 토큰이 사라지면 legacy-only 프로젝트가
-//                조용히 끊긴다 — 그래서 "없음"이 곧 FAIL이다.
-//   앵커         개명 금지 호환성 문자열(§3-3). 정확 문자열이 **사라지면 FAIL**.
+//   구 세대 토큰(`\.sc4sap` · `SC4SAP_HOME_DIR`)이 활성 코드·활성 제품 문서에
+//   **다시 나타나지 않는다.**
 //
-// ─────────────── 구역 C가 보장하지 **않는** 것 (3차 리뷰 #5) ────────────────
-// 구역 C는 파일 안에 legacy **토큰이 있는지**만 센다. 상수 선언과 주석만 남기고
-// 실행 분기를 지워도 통과한다 — 즉 "폴백이 살아 있다"가 아니라 "폴백을 말하는
-// 문자열이 남아 있다"까지가 이 게이트의 주장이다. 소비자마다 동작 앵커를 박는
-// 방식(정규식으로 분기 형태를 고정)은 리팩터링마다 깨져 유지비가 보장을 넘는다.
+// 이전 판의 3구역·ALLOWLIST·캡·폴백 의무는 전부 사라졌다. 폴백이 없으니 "구 이름을
+// 함께 안내해야 한다"는 요구가 성립하지 않고, 캡으로 관리할 승인된 등장도 없다.
 //
-// **실행 보증의 소유자는 `interactive/scripts/conformance-runtime-dir.mjs`다.**
-// 그 러너가 legacy-only 입력(tie-legacy-only · env-legacy-only ·
-// compat-legacy-artifact-schema 등)을 소비자별 실물로 구동해 결과를 대조하므로,
-// 분기가 사라지면 토큰이 남아 있어도 거기서 red가 난다. 두 시험은 짝이다 —
-// 게이트만 CI에 걸고 러너를 빼면 이 구멍이 그대로 열린다.
-// 이 주장 자체의 음성시험: `test-check-runtime-path-rename.mjs` 마지막 절
-// (러너 `--consumer-root`로 legacy 분기를 지운 리졸버를 먹여 red를 실측).
+// ─────────────────────────────── 두 가지 예외 ───────────────────────────────
+//   역사(HISTORY)  결정·설계 로그, provenance, CHANGELOG, 빌드 산출물, 시험 자산.
+//                  여기서 구 이름은 **기록**이거나 "무시되는지"를 시험하는 입력이다.
+//   인계(PENDING)  이 작업 소유가 아닌 파일. 아직 구 이름을 말하지만 고칠 권한이
+//                  다른 작업에 있다. **경고만 하고 실패시키지 않는다** — 대신 새
+//                  파일이 구 이름을 들이면 그건 그대로 실패다.
+//
+// 안전 앵커(ANCHORS)는 그대로 남는다. 이것들은 런타임 경로가 아니라 **SAP 안에
+// 실재하는 이름**(ABAP 오브젝트명·keychain 서비스명)이라 개명하면 예제가 깨진다.
 //
 // exit 0 통과 / 1 위반
 import fs from 'node:fs';
@@ -47,124 +36,51 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const rootIdx = process.argv.indexOf('--root');
 const ROOT = rootIdx >= 0 ? path.resolve(process.argv[rootIdx + 1]) : path.resolve(HERE, '..', '..');
 
+// 점 없는 제품명 토큰 `sc4sap`은 범위 밖이다 (파일명 `sc4sap-mcp-tools-runtime.md` ·
+// provenance `sc4sap-public-source.json` — D-041이 다룬 영역).
 const LEGACY_RE = /\.sc4sap|SC4SAP_HOME_DIR/g;
-const NEW_RE = /\.sapkit|SAPKIT_HOME_DIR/g;
 
-// ── 구역 B — 경로 단위 스캔 제외 ────────────────────────────────────────────
-// 역사·provenance·시험 자산·빌드 산출물. 여기서 legacy 토큰은 **기록**이지 결함이 아니다.
-const ZONE_B = [
+// ── 역사 — 경로 단위 스캔 제외 ──────────────────────────────────────────────
+const HISTORY = [
   // 상태·결정·설계 로그 (append-only 역사)
   'HANDOFF.md',
-  'docs/reference/',
-  'docs/superpowers/',
+  'docs/',
   '.claude/',
-  '.github/',
-  // 원천(sc4sap-custom) 참조 — §3-2 무접촉
+  // 이식 완료 기록 · 상류 참조
   'interactive/MIGRATION-MANIFEST.md',
   'interactive/provenance/',
   'interactive/DESIGN.md',
   'interactive/docs/research/',
-  // (구 `scripts/build-migration-snapshot.mjs`·`report-sc4sap-public-drift.mjs`는
-  //  이식 장부 은퇴로 삭제됐다 — 제외 항목도 함께 뺀다.)
   'engine/CHANGELOG.md',
   'engine/UPSTREAM-FIX-HANDOFF.md',
-  // 번들·핀 이력 (append-only 서술) 과 빌드 산출물 — 소스가 정본이다
+  // 빌드 산출물 — 소스가 정본이다
   'interactive/server/VERSION',
   'interactive/server/server.bundle.cjs',
   'engine/dist/',
-  // (구 `phases/`·`.harness/` 제외 항목은 R1에서 그 디렉터리를 걷어내며 함께 뺐다.)
-  // 시험 자산: 구 세대 동작을 **일부러** 재현한다
+  // 시험 자산: 구 세대가 **무시되는지**를 시험하려면 그 이름을 적어야 한다
   'engine/__tests__/',
   'engine/src/__tests__/',
   'engine/tests/',
-  // 이 개명 작업 자신 (게이트·마이그레이터·각 시험)
+  'interactive/scripts/test-launch-toolsurface.mjs',
+  'interactive/scripts/test-setup-state.mjs',
+  // 이 게이트 자신과 그 음성시험 (토큰을 정의·주입한다)
   'interactive/scripts/check-runtime-path-rename.mjs',
   'interactive/scripts/test-check-runtime-path-rename.mjs',
-  'interactive/scripts/migrate-runtime-dir.mjs',
-  'interactive/scripts/test-migrate-runtime-dir.mjs',
-  'interactive/scripts/conformance-runtime-dir.mjs',
-  // 기존 게이트 음성시험(구 경로 픽스처를 그대로 쓴다)
-  'interactive/scripts/test-get-vsp.mjs',
-  // 런처 도구면 음성시험 — legacy 세대 프로젝트의 toolSurface가 그대로 읽히는지를
-  // `.sc4sap` 픽스처로 **일부러** 재현하고, 자식 프로세스 env에서 구 홈 변수를 지워
-  // 실사용자 상태와 격리한다. 위 세 시험과 같은 부류다.
-  'interactive/scripts/test-launch-toolsurface.mjs',
-  // setup mutator 음성시험 — legacy-활성 프로젝트의 현상 보존 쓰기·구 홈 감지를
-  // `.sc4sap` 픽스처로 일부러 재현한다. 같은 부류.
-  'interactive/scripts/test-setup-state.mjs',
-  // doctor 음성시험 — 시험 격리를 위해 자식 env에서 구 홈 변수를 지운다. 같은 부류.
-  'interactive/scripts/test-doctor.mjs',
 ];
 
-// ── 구역 C — 폴백 의무: 신·구 둘 다 존재해야 PASS ──────────────────────────
-// 이 파일들이 구 토큰을 잃으면 마이그레이션하지 않은 사용자의 경로 해석이 끊긴다.
-const ZONE_C = [
-  // 경로 해석 정본
-  'engine/src/lib/profile.ts',
-  'interactive/server/launch.cjs',
-  'interactive/adapters/claude/lib/profile-resolve.mjs',
-  'interactive/adapters/claude/hooks/tier-readonly-guard.mjs',
-  'interactive/adapters/claude/hooks/block-forbidden-tables.mjs',
-  'interactive/tools/extract/extract-spro.mjs',
-  'interactive/tools/extract/extract-customizations.mjs',
-  'interactive/scripts/get-vsp.mjs',
-  // setup mutator — 엔진 리졸버와 같은 세대 판정(legacy-활성이면 그 자리에 쓰기)을
-  // 구현하므로 신·구 토큰이 둘 다 있어야 미이행 사용자의 setup이 안 끊긴다.
-  'interactive/scripts/setup-state.mjs',
-  // R-ENV 홈 선택을 직접 수행하는 나머지 소비자 — 설계 §6-6·§6-10.
-  // (브리핑의 열거를 넘어선 추가분. 근거: 위 리졸버들과 기능적으로 동일한
-  //  `SC4SAP_HOME_DIR` + `~/.sc4sap` 폴백 분기를 직접 구현한다.)
-  // 짝이던 `scripts/vsp-env.ps1`은 R1에서 루트 `scripts/`와 함께 삭제됐다.
-  'interactive/adapters/claude/hooks/offline-code-analysis.mjs',
-  // 게이트 자신의 제외 목록 (§6-8) — 신·구 둘 다 제외해야 개명 뒤에도 안 깨진다
-  'interactive/scripts/lib/target-hash.mjs',
-  // ignore 4종 — 폴백 기간 동안 두 세대 모두 커밋 대상에서 빠져야 한다
-  '.gitignore',
-  'interactive/.gitignore',
-  'engine/.gitignore',
-  'vsp/.gitignore',
-  // 권한 — 경로 규칙 6줄 = 신 3 · 구 3
-  'interactive/adapters/claude/permissions-template.json',
-  'interactive/scripts/gen-permissions.mjs',
-];
-
-// ── 구역 A 예외 — 승인된 legacy-폴백 안내 (파일 + 등장 수 캡) ──────────────
-// 캡은 2026-08-02 기준 커밋 34a207a4 이후 트리의 **실측 등장 수**를 박제한 것이다.
-// 늘어나면 FAIL — 새 문서가 구 이름을 퍼뜨리는 것을 막는다. 폴백 제거(설계 §11-3,
-// v1.0 이전 금지) 시 이 목록 전체가 0으로 내려가야 한다.
-// `requireNew`: 같은 파일이 신 이름도 반드시 함께 말해야 한다(구 이름만 남은 안내 방지).
-const ALLOWLIST = [
-  // 제품 문서 — 마이그레이션 안 한 사용자에게 구 경로를 안내해야 한다
-  { file: 'interactive/core/procedures/setup.md', cap: 8, requireNew: true },
-  { file: 'interactive/core/procedures/troubleshooting.md', cap: 9, requireNew: true },
-  { file: 'interactive/core/project-context.md', cap: 5, requireNew: true },
-  { file: 'adapters/vsp/SAFETY-PROFILES.md', cap: 4, requireNew: true },
-  // ReloadProfile의 현재 동작 계약 행 (§3-1 — 같은 파일의 파일명·링크는 범위 밖)
-  { file: 'interactive/server/tool-catalog/sc4sap-mcp-tools-runtime.md', cap: 1, requireNew: true },
-  // 엔진 소스의 **모델·사용자 노출 텍스트** — 폴백 기간에는 두 이름을 다 말해야 정확하다
-  { file: 'engine/src/handlers/system/readonly/handleReloadProfile.ts', cap: 3, requireNew: true },
-  { file: 'engine/src/lib/gatewayRfc.ts', cap: 1, requireNew: true },
-  { file: 'engine/src/lib/nativeRfc.ts', cap: 1, requireNew: true },
-  { file: 'engine/src/lib/odataRfc.ts', cap: 1, requireNew: true },
-  { file: 'engine/src/lib/zrfcProxy.ts', cap: 1, requireNew: true },
-  { file: 'engine/src/server/launcher.ts', cap: 2, requireNew: true },
-  // 위 description에서 **생성된** 도구 목록 문서 (engine/docs)
-  { file: 'engine/docs/user-guide/AVAILABLE_TOOLS.md', cap: 1, requireNew: true },
-  { file: 'engine/docs/user-guide/AVAILABLE_TOOLS_LEGACY.md', cap: 1, requireNew: true },
-  { file: 'engine/docs/user-guide/AVAILABLE_TOOLS_READONLY.md', cap: 1, requireNew: true },
-  // (구 `scripts/promote-track-b-run.ps1`의 usage 문자열 항목은 R1에서 루트
-  //  `scripts/`를 걷어내며 함께 뺐다.)
-  // doctor 진단 문구 — 미이행 사용자에게 두 세대를 병기해 보여주는 안내 (검사 ⑤)
-  { file: 'interactive/scripts/doctor.mjs', cap: 2, requireNew: true },
+// ── 인계 — 다른 작업 소유. 경고만 한다 ──────────────────────────────────────
+// 여기 있는 파일은 "고쳐야 하지만 이 작업의 쓰기 경계 밖"이라는 뜻이다.
+// 고쳐지면 목록에서 빼야 하고(그때 이 게이트가 알려준다), 목록이 비면 상수째 지운다.
+const PENDING = [
+  // 트랙 A 안전 프로파일 문서 — 프로파일 홈 해석을 서술하는 문단이 폴백 제거로
+  // 낡았다. 트랙 A 문서 소유자가 고친다.
+  'adapters/vsp/SAFETY-PROFILES.md',
 ];
 
 // ── 안전 앵커 — 개명 금지 호환성 문자열(§3-3). 사라지면 FAIL ───────────────
+// 런타임 경로가 아니라 SAP 안에 실재하는 이름이다.
 const ANCHORS = [
-  // (구 `scripts/vsp-env.ps1`의 Windows credential target 앵커는 R1에서 루트
-  //  `scripts/`를 걷어내며 함께 뺐다 — cmdkey 해석 로직이 그 파일에만 있었다.
-  //  keychain 서비스명 앵커는 아래대로 그대로 살아 있다.)
   { file: 'interactive/core/procedures/troubleshooting.md', label: 'keychain 서비스명', strings: ['keychain:sc4sap/'] },
-  // ABAP 오브젝트명·텍스트 심볼은 SAP 안에 실재하는 이름이다 — 개명하면 예제가 깨진다.
   { file: 'interactive/core/procedures/create-program.md', label: 'ABAP 앵커', strings: ['zrsc4sap_oop_ex'] },
   { file: 'interactive/core/procedures/review-checklist.md', label: 'ABAP 앵커', strings: ['zrsc4sap_oop_ex'] },
   { file: 'interactive/core/personas/sap-executor.md', label: 'ABAP 앵커', strings: ['zrsc4sap_oop_ex'] },
@@ -183,8 +99,8 @@ const TEXT_EXT = new Set([
 function rel(p) {
   return path.relative(ROOT, p).split(path.sep).join('/');
 }
-function inZoneB(r) {
-  return ZONE_B.some((z) => (z.endsWith('/') ? r.startsWith(z) : r === z));
+function matchesList(r, list) {
+  return list.some((z) => (z.endsWith('/') ? r.startsWith(z) : r === z));
 }
 function countMatches(text, re) {
   re.lastIndex = 0;
@@ -204,7 +120,7 @@ function readIfText(p) {
   }
 }
 
-const scanned = [];
+const hits = [];
 (function walk(dir) {
   let ents;
   try {
@@ -221,61 +137,33 @@ const scanned = [];
       continue;
     }
     const r = rel(abs);
-    if (inZoneB(r)) continue;
+    if (matchesList(r, HISTORY)) continue;
     const text = readIfText(abs);
     if (text === null) continue;
     const legacy = countMatches(text, LEGACY_RE);
-    if (legacy > 0) scanned.push({ rel: r, legacy, hasNew: countMatches(text, NEW_RE) > 0 });
+    if (legacy > 0) hits.push({ rel: r, legacy });
   }
 })(ROOT);
 
 const fail = [];
-const info = [];
+const warn = [];
 
-// ── 구역 A ──────────────────────────────────────────────────────────────────
-const allowByFile = new Map(ALLOWLIST.map((a) => [a.file, a]));
-const zoneCSet = new Set(ZONE_C);
-for (const hit of scanned) {
-  if (zoneCSet.has(hit.rel)) continue;
-  const allow = allowByFile.get(hit.rel);
-  if (!allow) {
-    fail.push(
-      `[구역 A] ${hit.rel} — legacy 토큰 ${hit.legacy}건. 활성 소스·제품 문서에는 구 이름을 남기지 않는다. ` +
-        `의도된 폴백 안내라면 이 게이트의 ALLOWLIST에 캡과 함께 등재할 것.`,
-    );
+// ── 잔존 금지 ───────────────────────────────────────────────────────────────
+for (const hit of hits) {
+  if (matchesList(hit.rel, PENDING)) {
+    warn.push(`${hit.rel} — 구 세대 토큰 ${hit.legacy}건 (인계 목록: 다른 작업이 소유)`);
     continue;
   }
-  if (hit.legacy > allow.cap) {
-    fail.push(
-      `[구역 A · 캡 초과] ${hit.rel} — legacy 토큰 ${hit.legacy}건 > 캡 ${allow.cap}건. ` +
-        `구 이름이 새로 퍼졌다. 새 문장에서 구 이름을 빼거나, 정당하면 캡을 올리며 그 이유를 적을 것.`,
-    );
-  }
-  if (allow.requireNew && !hit.hasNew) {
-    fail.push(`[구역 A · 신 이름 부재] ${hit.rel} — 구 이름만 안내하고 있다. 신 이름(.sapkit)을 함께 말해야 한다.`);
-  }
-}
-for (const a of ALLOWLIST) {
-  const hit = scanned.find((s) => s.rel === a.file);
-  if (!hit) info.push(`ALLOWLIST 항목이 이제 legacy 토큰 0건: ${a.file} — 캡을 0으로 내리거나 목록에서 뺄 것`);
+  fail.push(
+    `${hit.rel} — 구 세대 토큰 ${hit.legacy}건. 호환층은 R5에서 제거됐다. ` +
+      `\`.sapkit\` / \`SAPKIT_HOME_DIR\`만 쓸 것 (구 경로를 일부러 시험하는 자산이면 HISTORY에 등재).`,
+  );
 }
 
-// ── 구역 C — 폴백 의무 ──────────────────────────────────────────────────────
-for (const f of ZONE_C) {
-  const abs = path.join(ROOT, f);
-  if (!fs.existsSync(abs)) {
-    fail.push(`[구역 C] 파일 부재: ${f} — 폴백 의무 대상이 사라졌다`);
-    continue;
-  }
-  const text = fs.readFileSync(abs, 'utf8');
-  const legacy = countMatches(text, LEGACY_RE);
-  const newer = countMatches(text, NEW_RE);
-  if (newer === 0) fail.push(`[구역 C] ${f} — 신 세대 토큰(.sapkit / SAPKIT_HOME_DIR)이 없다`);
-  if (legacy === 0) {
-    fail.push(
-      `[구역 C] ${f} — 구 세대 토큰(.sc4sap / SC4SAP_HOME_DIR)이 없다. 폴백이 제거되면 ` +
-        `마이그레이션하지 않은 프로젝트가 조용히 끊긴다(설계 §11-3: v1.0 이전 제거 금지).`,
-    );
+// 인계 목록이 이미 깨끗해졌으면 알려준다 — 목록이 조용히 썩는 것을 막는다.
+for (const p of PENDING) {
+  if (!hits.some((h) => matchesList(h.rel, [p]))) {
+    warn.push(`인계 목록 항목이 이제 0건: ${p} — PENDING에서 뺄 것`);
   }
 }
 
@@ -295,19 +183,16 @@ for (const a of ANCHORS) {
 }
 
 // ── 보고 ────────────────────────────────────────────────────────────────────
-const zoneA = scanned.filter((s) => !zoneCSet.has(s.rel));
-const totalLegacy = zoneA.reduce((n, s) => n + s.legacy, 0);
-console.log(`기준 커밋   : 34a207a4 (박제 계수 704 lines / 172 files — 총량은 assert하지 않는다)`);
 console.log(`스캔 루트   : ${ROOT}`);
-console.log(`구역 B      : 경로 ${ZONE_B.length}개 제외 (역사·provenance·시험 자산·빌드 산출물)`);
-console.log(`구역 C      : 폴백 의무 ${ZONE_C.length}개 파일 — 신·구 둘 다 요구`);
-console.log(`구역 A      : legacy 보유 ${zoneA.length}개 파일 · 토큰 ${totalLegacy}건 (ALLOWLIST ${ALLOWLIST.length}개, 캡 합 ${ALLOWLIST.reduce((n, a) => n + a.cap, 0)})`);
+console.log(`역사 제외   : 경로 ${HISTORY.length}개 (결정·설계 로그 · provenance · 빌드 산출물 · 시험 자산)`);
+console.log(`인계        : ${PENDING.length}개 (경고만 — 다른 작업 소유)`);
+console.log(`활성 잔존   : ${hits.length - hits.filter((h) => matchesList(h.rel, PENDING)).length}개 파일`);
 console.log(`안전 앵커   : ${ANCHORS.reduce((n, a) => n + a.strings.length, 0)}개 정확 문자열`);
-for (const i of info) console.log(`  ℹ ${i}`);
+for (const w of warn) console.log(`  ⚠ ${w}`);
 
 if (fail.length) {
   console.log(`\n❌ 위반 ${fail.length}건:`);
   for (const f of fail) console.log('  - ' + f);
   process.exit(1);
 }
-console.log('\n✅ 런타임 경로 개명 게이트 통과 — 활성 구역 무누출 · 폴백 의무 유지 · 안전 앵커 온전');
+console.log('\n✅ 개명 완료 게이트 통과 — 활성 구역에 구 세대 토큰 없음 · 안전 앵커 온전');

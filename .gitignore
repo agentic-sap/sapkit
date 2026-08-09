@@ -1,5 +1,4 @@
 .sapkit/
-.sc4sap/
 .env
 .claude/settings.local.json
 # Claude Code 로컬 설정 — 머신 종속(훅 절대경로·개인 권한). install-hooks/merge-perms로 재생성

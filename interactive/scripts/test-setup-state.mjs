@@ -40,7 +40,6 @@ function check(name, cond, detail) {
 function run(args, env = {}) {
   const base = { ...process.env };
   delete base.SAPKIT_HOME_DIR;
-  delete base.SC4SAP_HOME_DIR;
   const r = spawnSync(process.execPath, [SCRIPT, ...args], {
     encoding: 'utf8',
     env: { ...base, HOME: HOME_STUB, USERPROFILE: HOME_STUB, ...env },
@@ -138,7 +137,6 @@ console.log('setup-state 계약 시험 (status/plan/apply/verify)');
   check('exit 0', r.code === 0, `실제 exit ${r.code} / ${r.stderr.trim()}`);
   check('JSON 파싱 가능', r.json !== null, r.stdout.slice(0, 120));
   check('runtimeDir = <project>/.sapkit', r.json?.runtimeDir === path.join(c.project, '.sapkit'), r.json?.runtimeDir);
-  check('runtimeGeneration = sapkit', r.json?.runtimeGeneration === 'sapkit');
   check('활성 프로파일 없음', r.json?.activeProfile?.alias === null);
   check('config 없음', r.json?.config?.exists === false);
   check('클라이언트 3종 boolean 보고', ['claude', 'codex', 'antigravity'].every((k) => typeof r.json?.clients?.[k] === 'boolean'), JSON.stringify(r.json?.clients));
@@ -344,30 +342,28 @@ const firstRun = (() => {
   planApply(c, 'home-isolated', BASE_INPUT);
   check('프로파일은 SAPKIT_HOME_DIR 밑에만 생긴다', fs.existsSync(path.join(c.home, 'profiles', 'KR-DEV', 'sap.env')));
   check('~/.sapkit 을 만들지 않는다', !fs.existsSync(realHome));
-  check('구 세대 홈 무접촉', sameSnapshot(beforeStub, snapshot(HOME_STUB)) === null);
-
-  const st = run(['status', '--project', c.project, '--json'], c.env);
-  check('status 가 구 세대 홈 존재를 보고만 한다', st.json?.legacy?.home?.homeDir === legacyHome, JSON.stringify(st.json?.legacy?.home));
-  check('구 세대 이행은 사람 몫임을 안내', (st.json?.legacy?.note ?? '').includes('migrate-runtime-dir.mjs'));
+  check('은퇴한 세대의 홈 무접촉', sameSnapshot(beforeStub, snapshot(HOME_STUB)) === null);
   fs.rmSync(legacyHome, { recursive: true, force: true });
 }
 
-// ── ⑪ legacy 프로젝트: 그 자리를 쓰고 평행 .sapkit 을 만들지 않는다 ─────────
+// ── ⑪ 은퇴한 세대의 프로젝트 디렉터리는 무시된다 (호환층 제거, R5) ──────────
 {
-  const c = newCase('legacy 프로젝트 → 기존 디렉터리에 쓰고 평행 신 디렉터리 미생성 (R-LEGACY)');
+  const c = newCase('은퇴한 프로젝트 디렉터리가 남아 있어도 .sapkit 으로 해석·기록한다');
   const legacyDir = path.join(c.project, '.sc4sap');
   fs.mkdirSync(legacyDir, { recursive: true });
   fs.writeFileSync(path.join(legacyDir, 'active-profile.txt'), 'KR-DEV\n', 'utf8');
+  const beforeLegacy = snapshot(legacyDir);
 
   const st = run(['status', '--project', c.project, '--json'], c.env);
-  check('runtimeGeneration = sc4sap', st.json?.runtimeGeneration === 'sc4sap', st.json?.runtimeGeneration);
-  check('legacy 프로젝트로 보고', st.json?.legacy?.projectIsLegacyOnly === true);
+  check('runtimeDir = <project>/.sapkit (구 디렉터리를 집지 않는다)', st.json?.runtimeDir === path.join(c.project, '.sapkit'), st.json?.runtimeDir);
+  check('구 디렉터리의 별칭을 활성으로 읽지 않는다', st.json?.activeProfile?.alias === null, JSON.stringify(st.json?.activeProfile));
+  check('구 디렉터리 무접촉', sameSnapshot(beforeLegacy, snapshot(legacyDir)) === null);
 
   const { plan, apply } = planApply(c, 'legacy-project', { project: { config: { toolSurface: 'readonly' } } });
-  check('대상 경로가 기존 디렉터리', plan.json?.actions?.[0]?.target === path.join(legacyDir, 'config.json'), plan.json?.actions?.[0]?.target);
+  check('대상 경로가 .sapkit', plan.json?.actions?.[0]?.target === path.join(c.project, '.sapkit', 'config.json'), plan.json?.actions?.[0]?.target);
   check('apply exit 0', apply.code === 0, apply.stderr.trim());
-  check('평행 신 디렉터리를 만들지 않는다', !fs.existsSync(path.join(c.project, '.sapkit')));
-  check('기존 디렉터리에 config.json 생성', fs.existsSync(path.join(legacyDir, 'config.json')));
+  check('.sapkit 에 config.json 생성', fs.existsSync(path.join(c.project, '.sapkit', 'config.json')));
+  check('구 디렉터리는 끝까지 무접촉', sameSnapshot(beforeLegacy, snapshot(legacyDir)) === null);
 }
 
 // ── ⑫ EOL 보존 ─────────────────────────────────────────────────────────────
@@ -419,23 +415,23 @@ const firstRun = (() => {
   check('다른 프로젝트의 계획 거부 (exit 2)', wrong.code === 2, `exit ${wrong.code}`);
 }
 
-// ── ⑭ 구 세대 홈 env 만 설정된 머신 → 프로파일 쓰기 거부 ────────────────────
+// ── ⑭ 은퇴한 홈 env 는 무시된다 (호환층 제거, R5) ───────────────────────────
 {
-  const c = newCase('SC4SAP_HOME_DIR 만 설정 → 프로파일 쓰기 BLOCKED (보이지 않는 성공 방지)');
+  const c = newCase('SC4SAP_HOME_DIR 만 설정 → 그 변수를 읽지 않고 기본 홈에 쓴다');
   const legacyEnvHome = path.join(c.home, 'legacy-home');
   fs.mkdirSync(legacyEnvHome, { recursive: true });
+  const beforeLegacy = snapshot(legacyEnvHome);
+  // HOME_STUB 을 기본 홈으로 쓰는 격리 환경. SAPKIT_HOME_DIR 은 없다.
   const env = { SC4SAP_HOME_DIR: legacyEnvHome };
-  const before = snapshot(c.project, c.home, HOME_STUB);
   const inputFile = writeInput('legacy-env', BASE_INPUT);
   const r = run(['plan', '--project', c.project, '--input', inputFile, '--json'], env);
-  check('exit 1 · BLOCKED', r.code === 1 && r.json?.status === 'BLOCKED', `exit ${r.code} / ${r.json?.status}`);
-  check('이유에 구 env 이름과 처방', (r.json?.errors ?? []).some((e) => e.includes('SC4SAP_HOME_DIR') && e.includes('SAPKIT_HOME_DIR')), JSON.stringify(r.json?.errors));
-  check('무변화', sameSnapshot(before, snapshot(c.project, c.home, HOME_STUB)) === null);
-
-  // 프로파일을 요구하지 않는 계획은 통과해야 한다(홈 무관)
-  const projOnly = writeInput('legacy-env-projonly', { project: { config: { toolSurface: 'readonly' } } });
-  const r2 = run(['plan', '--project', c.project, '--input', projOnly, '--json'], env);
-  check('프로젝트 전용 계획은 홈과 무관하게 통과', r2.code === 0 && r2.json?.actions?.length === 1, `exit ${r2.code} / ${JSON.stringify(r2.json?.errors)}`);
+  check('exit 0 · 더는 BLOCKED 가 아니다', r.code === 0 && r.json?.status === 'OK', `exit ${r.code} / ${r.json?.status}`);
+  check(
+    '대상은 기본 홈(~/.sapkit) — 은퇴한 env 경로가 아니다',
+    r.json?.actions?.[0]?.target === path.join(HOME_STUB, '.sapkit', 'profiles', 'KR-DEV', 'sap.env'),
+    r.json?.actions?.[0]?.target,
+  );
+  check('은퇴한 env 가 가리키는 홈 무접촉', sameSnapshot(beforeLegacy, snapshot(legacyEnvHome)) === null);
 }
 
 // ── ⑮ 입력 스키마 음성시험 ──────────────────────────────────────────────────
@@ -476,9 +472,9 @@ const firstRun = (() => {
   check('핵심 사실을 사람 말로 담는다', r.stdout.includes('런타임 디렉터리') && r.stdout.includes('클라이언트'), r.stdout.slice(0, 200));
 }
 
-// ── ⑰ 그림자 프로파일 경고 ─────────────────────────────────────────────────
+// ── ⑰ 은퇴한 홈의 같은 별칭은 그림자가 되지 않는다 (호환층 제거, R5) ────────
 {
-  const c = newCase('구 세대 홈에 같은 별칭이 있으면 계획이 경고한다 (그림자 프로파일)');
+  const c = newCase('은퇴한 홈에 같은 별칭이 있어도 무시하고 무접촉으로 둔다');
   const stub = path.join(ROOT, `case-${caseNo}-home`);
   const legacyTwin = path.join(stub, '.sc4sap', 'profiles', 'KR-DEV');
   fs.mkdirSync(legacyTwin, { recursive: true });
@@ -487,11 +483,11 @@ const firstRun = (() => {
   const before = snapshot(stub, c.project);
   const inputFile = writeInput('shadow', BASE_INPUT);
   const r = run(['plan', '--project', c.project, '--input', inputFile, '--json'], env);
-  check('plan exit 0 (막지는 않는다)', r.code === 0, r.stderr.trim());
-  check('대상은 신 세대 홈', r.json?.actions?.[0]?.target === path.join(stub, '.sapkit', 'profiles', 'KR-DEV', 'sap.env'), r.json?.actions?.[0]?.target);
-  check('구 세대 쌍둥이를 경고', (r.json?.warnings ?? []).some((w) => w.includes(path.join(stub, '.sc4sap'))), JSON.stringify(r.json?.warnings));
-  check('경고 단계에서도 쓰기 0', sameSnapshot(before, snapshot(stub, c.project)) === null);
-  check('구 세대 프로파일 무접촉', read(path.join(legacyTwin, 'sap.env')).includes('SAP_PASSWORD=live'));
+  check('plan exit 0', r.code === 0, r.stderr.trim());
+  check('대상은 ~/.sapkit', r.json?.actions?.[0]?.target === path.join(stub, '.sapkit', 'profiles', 'KR-DEV', 'sap.env'), r.json?.actions?.[0]?.target);
+  check('그림자 경고는 더는 나오지 않는다', !(r.json?.warnings ?? []).some((w) => w.includes('.sc4sap')), JSON.stringify(r.json?.warnings));
+  check('계획 단계에서 쓰기 0', sameSnapshot(before, snapshot(stub, c.project)) === null);
+  check('은퇴한 프로파일 무접촉', read(path.join(legacyTwin, 'sap.env')).includes('SAP_PASSWORD=live'));
 }
 
 // ── 정리 ────────────────────────────────────────────────────────────────────

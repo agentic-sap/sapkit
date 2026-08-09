@@ -24,9 +24,7 @@ schema rejects any field whose name looks like a secret (`password`, `token`,
 On a re-run over an existing project, Step 1 pulls a full status snapshot
 before anything else — see below. Every step from Step 1 onward branches off
 that snapshot: verify-and-report what already exists, create only what is
-missing or broken, never rewrite a healthy existing artifact, and never create
-a parallel `.sapkit/` in a project whose active state is still legacy
-`.sc4sap/`.
+missing or broken, and never rewrite a healthy existing artifact.
 
 ## Step 0 — Detect & Verify
 
@@ -77,28 +75,19 @@ a parallel `.sapkit/` in a project whose active state is still legacy
    node "PLUGIN_ROOT/scripts/setup-state.mjs" status --project <project path> --json
    ```
    (`PLUGIN_ROOT` = the plugin root Step 0 resolved.) This is read-only — it
-   never writes anything. It reports: which runtime generation is active for
-   this project (`.sapkit/`, or the legacy `.sc4sap/` if that's what's already
-   there); the active profile alias and how complete its `sap.env` is (which
+   never writes anything. It reports: this project's runtime directory
+   (`.sapkit/`); the active profile alias and how complete its `sap.env` is (which
    canonical keys are present/empty, and whether a password value exists —
    never the values themselves); `config.json`'s known/unknown keys and
    current `toolSurface`; which of Claude/Codex/Antigravity are on `PATH`; and
    a few out-of-scope items (permission-template file, hooks installer,
    SAPKit-verifier presence) that Step 4 owns.
 2. Summarize this in plain language for the user before doing anything else.
-   A project already on the legacy `.sc4sap/` layout
-   (`runtimeGeneration: "sc4sap"`) is reported **as-is** — this wizard never
-   migrates it. Report it plainly as `(legacy .sc4sap/)` and point the user at
-   `node interactive/scripts/migrate-runtime-dir.mjs` (dry-run by default,
-   `--apply` to execute) as its own, separate, human-run step; this wizard
-   never runs it on the user's behalf.
 
 ## Step 2 — Connection Profile
 
 1. Resolve the profile home conversationally: `$SAPKIT_HOME_DIR` if set on this
-   machine, else the deprecated `$SC4SAP_HOME_DIR` if that is set instead
-   (tell the user it still works but `SAPKIT_HOME_DIR` is now preferred), else
-   `~/.sapkit`, else the legacy `~/.sc4sap`. Step 1's status output already
+   machine, else `~/.sapkit`. Step 1's status output already
    shows which homes exist and which profile aliases live under each
    (`homes[]`) — use that instead of re-scanning the filesystem yourself. If
    any aliases exist, list them and ask the user to pick one for this project,
@@ -231,8 +220,7 @@ node "PLUGIN_ROOT/scripts/get-vsp.mjs"
 
 This detects OS/arch, downloads the matching release asset, verifies its
 sha256, and installs to the resolved profile home's `bin/vsp`
-(`~/.sapkit/bin/vsp`, or the legacy `~/.sc4sap/bin/vsp` if that is the active
-home — `vsp.exe` on Windows) only on a hash match.
+(`~/.sapkit/bin/vsp` — `vsp.exe` on Windows) only on a hash match.
 
 ### 4c. Safety Hooks (optional, Claude Code only)
 

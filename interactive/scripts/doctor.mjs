@@ -13,7 +13,7 @@
 //   ③ 설치된 플러그인 루트·manifest version(레포 버전과 병기, 불일치는 FAIL이 아니라 WARN)
 //   ④ Claude/Codex bundled MCP 선언 실재 + Codex wrapper 배선 상태 3분류
 //      (토큰 잔존=미배선 · 캐시와 다른 절대경로=스테일 · 일치=정상)
-//   ⑤ 프로젝트 cwd의 runtime dir(.sapkit/.sc4sap)·active-profile.txt 해석 결과
+//   ⑤ 프로젝트 cwd의 runtime dir(.sapkit)·active-profile.txt 해석 결과
 //   ⑥ 기대 toolSurface와 그 의미(launch.cjs의 실제 결정 로직을 require해 재사용 — 중복 구현 금지)
 //   ⑦ Codex legacy 전역 `sap` MCP 중복(그림자) 감지 — 자동 제거 금지, 경고만
 //   ⑧ SAPKit 훅 배선 상태 — 사용자 `~/.claude/settings.json` + 프로젝트
@@ -404,9 +404,9 @@ function loadLaunchModule() {
   }
 }
 
-// launch.cjs의 selectGeneration()은 내부적으로 resolveHome()/candidateFrom()을 거치며
-// warnOnce()로 console.error에 진단을 직접 쓴다 — 그중 OK_LEGACY_DEPRECATED·COEXIST_OK·
-// PROFILE_NOT_FOUND 변형은 프로파일 **별칭을 메시지에 그대로 삽입**한다(launch.cjs는
+// launch.cjs의 selectRuntimeDir()은 내부적으로 resolveHome()/candidateFrom()을 거치며
+// warnOnce()로 console.error에 진단을 직접 쓴다 — 그중 PROFILE_NOT_FOUND 변형은
+// 프로파일 **별칭을 메시지에 그대로 삽입**한다(launch.cjs는
 // 수정 금지 대상). doctor는 별칭을 어떤 경로로도 출력하지 않는다는 원칙(⑤의 "경로·별칭은
 // 비밀 취급")을 지키려면, 이 한 호출 동안만 stderr를 무음 처리하고 반환값(별칭이 섞이지
 // 않은 구조체)만 쓴다. decideExposition()은 자체 console.error가 없어(순수 함수) 별도
@@ -423,7 +423,7 @@ function withSilencedStderr(fn) {
 
 function resolvePicked(launchMod) {
   if (!launchMod) return { runtimeDir: null, envPath: null, invalid: false, loadFailed: true };
-  const raw = withSilencedStderr(() => launchMod.selectGeneration(PROJECT_DIR));
+  const raw = withSilencedStderr(() => launchMod.selectRuntimeDir(PROJECT_DIR));
   const invalid = typeof raw.envPath === 'symbol'; // ENV_INVALID sentinel (not exported — 구조로 판별)
   return {
     runtimeDir: invalid ? null : raw.runtimeDir,
@@ -456,7 +456,7 @@ function checkRuntimeDir(picked) {
       'INFO',
       code,
       label,
-      `${PROJECT_DIR} 아래 .sapkit/.sc4sap 중 연결 가능한 runtime dir 없음 — inspection-only(정상 기본값)`,
+      `${PROJECT_DIR} 아래 연결 가능한 .sapkit runtime dir 없음 — inspection-only(정상 기본값)`,
     );
     return;
   }

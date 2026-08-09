@@ -15,12 +15,10 @@
  * Any profile additionally honors `.sapkit/blocklist-extend.txt` (one
  * table name / pattern per line) if present.
  *
- * Runtime path rename (D-057, `.sc4sap` -> `.sapkit`): the policy source is
- * unchanged — the config.json still comes from `resolveConfigJsonPath`, whose
- * state definition (including config.json) is untouched. Only the directory
- * name is doubled: `.sapkit` is a candidate wherever `.sc4sap` was one, and the
- * user-list files are read from the SAME generation the resolver picked, so a
- * legacy `strict` can never be replaced by a newer `minimal`.
+ * Runtime directory (D-057): the policy source is the config.json that
+ * `resolveConfigJsonPath` selects, and the user-list files are read from the
+ * SAME runtime directory the resolver picked — reading them from a different
+ * one is a split-brain policy.
  *
  * Failure mode: fails CLOSED (denies) on stdin/parse errors, on a blocklist
  * load exception, and when the built-in blocklist resolves to 0 entries for
@@ -51,12 +49,12 @@ const DEFAULT_PROFILE = 'strict';
 // dir), then resolve the active-profile.txt pointer through the shared resolver
 // so the active profile's config.json is preferred over any legacy
 // project-local config.json that may have been left behind.
-// `runtimeDir` is the generation the shared resolver selected — the user-list
-// files below must come from that same generation.
+// `runtimeDir` is the directory the shared resolver selected — the user-list
+// files below must come from that same directory.
 function resolveProjectConfig() {
   let dir = process.cwd();
   for (let i = 0; i < 8; i++) {
-    if (existsSync(join(dir, '.sapkit')) || existsSync(join(dir, '.sc4sap'))) {
+    if (existsSync(join(dir, '.sapkit'))) {
       const runtimeDir = resolveRuntimeDir(dir);
       const hit = resolveConfigJsonPath(dir);
       if (hit) return { configPath: hit.path, projectDir: dir, runtimeDir, source: hit.source, alias: hit.alias };

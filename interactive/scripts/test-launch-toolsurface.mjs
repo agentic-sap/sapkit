@@ -67,7 +67,7 @@ function project(files = {}, dirs = []) {
 
 /** main()이 하는 것과 같은 순서로 결정한다 — 세대 선택 한 번, 그 세대의 config. */
 function decide(root, args = []) {
-  const picked = launch.selectGeneration(root);
+  const picked = launch.selectRuntimeDir(root);
   const envPath = typeof picked.envPath === 'string' ? picked.envPath : null;
   return launch.decideExposition({ args, cwd: root, selectedDir: picked.runtimeDir, envPath });
 }
@@ -191,49 +191,41 @@ console.log('⑴ 결정 로직 (in-process · 순수 함수)');
 }
 
 {
-  // ⑩ 세대. legacy-only 프로젝트의 config도 그대로 읽힌다 (R-PRESERVE).
+  // ⑩ 은퇴한 세대(호환층 제거 · R5). 구 디렉터리에 연결·설정이 다 있어도 읽지
+  //   않는다 — 연결이 없으므로 도구면은 R-DEFAULT readonly.
   const d = decide(project({ '.sc4sap/config.json': '{"toolSurface":"development"}', '.sc4sap/sap.env': DEV_ENV }));
-  expect('⑩ .sc4sap 세대의 config도 읽는다', d.exposition, 'readonly,high');
+  expect('⑩ 은퇴한 세대의 config·sap.env를 읽지 않는다', d.exposition, 'readonly');
 }
 
 {
-  // ⑩' 연결을 준 세대와 다른 세대의 config는 읽지 않는다 — split-brain 방지.
+  // ⑩' 연결을 준 곳과 다른 디렉터리의 config는 읽지 않는다 — split-brain 방지.
+  //    은퇴한 세대에 development가 있어도 write 도구면이 열리면 안 된다.
   const d = decide(project({ '.sapkit/sap.env': DEV_ENV, '.sc4sap/config.json': '{"toolSurface":"development"}' }));
-  expect("⑩' 다른 세대의 development는 무시된다", d.exposition, 'readonly');
+  expect("⑩' 은퇴한 세대의 development는 무시된다", d.exposition, 'readonly');
 }
 
 {
-  // ⑩'' 빈 .sapkit 껍데기가 연결·설정을 가진 .sc4sap을 가리면 안 된다 (R-TIE 순서).
-  const d = decide(
-    project({ '.sc4sap/config.json': '{"toolSurface":"development"}', '.sc4sap/sap.env': DEV_ENV }, ['.sapkit']),
-  );
-  expect("⑩'' 빈 .sapkit 껍데기는 legacy 설정을 가리지 않는다", d.exposition, 'readonly,high');
-}
-
-{
-  // ⑩''' 기본값 안내문은 이 런처가 **실제로 읽는** config.json을 가리켜야 한다 —
-  //      legacy 세대 프로젝트에 `.sapkit/config.json`을 지시하면 따라 해도 아무
-  //      효과가 없다(죽은 지시 · 실사용 제보 ZUNIVAT_RAP 2026-08-03 ②).
-  const root = project({ '.sc4sap/sap.env': DEV_ENV });
+  // ⑩'' 기본값 안내문은 이 런처가 **실제로 읽는** config.json을 가리켜야 한다
+  //     (죽은 지시 방지 · 실사용 제보 ZUNIVAT_RAP 2026-08-03 ②).
+  //     이제 그것은 언제나 `.sapkit/config.json`이다.
+  const root = project({ '.sapkit/sap.env': DEV_ENV });
   const d = decide(root);
-  expect("⑩''' legacy 세대 · config 부재 → 코드", codes(d), 'TOOLSURFACE_DEFAULT');
+  expect("⑩'' config 부재 → 코드", codes(d), 'TOOLSURFACE_DEFAULT');
   const msg = d.notices[0]?.message ?? '';
-  if (msg.includes(path.join(root, '.sc4sap', 'config.json'))) ok("⑩'''  ·· 안내가 .sc4sap/config.json을 가리킨다");
-  else bad("⑩'''  ·· 안내가 .sc4sap/config.json을 가리킨다", msg);
-  if (!msg.includes(`${path.sep}.sapkit${path.sep}config.json`)) ok("⑩'''  ·· .sapkit 경로를 지시하지 않는다");
-  else bad("⑩'''  ·· .sapkit 경로를 지시하지 않는다", msg);
+  if (msg.includes(path.join(root, '.sapkit', 'config.json'))) ok("⑩''  ·· 안내가 .sapkit/config.json을 가리킨다");
+  else bad("⑩''  ·· 안내가 .sapkit/config.json을 가리킨다", msg);
 
   // 키만 없는 기존 config.json이 있으면 그 파일 자체를 지시한다.
   const root2 = project({ '.sapkit/config.json': '{"blocklistProfile":"strict"}', '.sapkit/sap.env': DEV_ENV });
   const m2 = decide(root2).notices[0]?.message ?? '';
   const cfg2 = path.join(root2, '.sapkit', 'config.json');
-  if (m2.lastIndexOf(cfg2) > m2.indexOf(cfg2)) ok("⑩'''  ·· 기존 config.json이 지시 대상으로 반복된다");
-  else bad("⑩'''  ·· 기존 config.json이 지시 대상으로 반복된다", m2);
+  if (m2.lastIndexOf(cfg2) > m2.indexOf(cfg2)) ok("⑩''  ·· 기존 config.json이 지시 대상으로 반복된다");
+  else bad("⑩''  ·· 기존 config.json이 지시 대상으로 반복된다", m2);
 
-  // 세대 미해석(연결 없음) 프로젝트는 양쪽 후보를 함께 안내한다.
+  // 연결이 없는 프로젝트도 `.sapkit/config.json` 하나만 지시한다.
   const m0 = decide(project({})).notices[0]?.message ?? '';
-  if (m0.includes('.sapkit/config.json') && m0.includes('.sc4sap/config.json')) ok("⑩'''  ·· 세대 미해석이면 양쪽 후보를 안내한다");
-  else bad("⑩'''  ·· 세대 미해석이면 양쪽 후보를 안내한다", m0);
+  if (m0.includes('.sapkit/config.json') && !m0.includes('.sc4sap')) ok("⑩''  ·· 연결 없어도 .sapkit 하나만 안내한다");
+  else bad("⑩''  ·· 연결 없어도 .sapkit 하나만 안내한다", m0);
 }
 
 {
@@ -275,7 +267,6 @@ process.stdout.write(JSON.stringify({
 function boot(cwd, args = []) {
   const env = { ...process.env };
   delete env.SAPKIT_HOME_DIR;
-  delete env.SC4SAP_HOME_DIR;
   delete env.MCP_ENV_PATH;
   // 실사용자 홈 무접촉 — 이 시험은 프로젝트 로컬 sap.env만 쓴다.
   env.HOME = cwd;
@@ -331,7 +322,7 @@ function boot(cwd, args = []) {
   // 계약 보존: 모듈로 require해도 번들은 뜨지 않는다. 이 파일 맨 위의 require가
   // 이미 그것을 증명했다(번들이 떴다면 stdio를 잡고 멈췄을 것) — 여기서는 노출된
   // 표면이 실제로 있는지를 확인한다.
-  const missing = ['decideExposition', 'selectGeneration', 'readToolSurface', 'splitExpositionArgs', 'main'].filter(
+  const missing = ['decideExposition', 'selectRuntimeDir', 'readToolSurface', 'splitExpositionArgs', 'main'].filter(
     (k) => typeof launch[k] !== 'function',
   );
   if (missing.length === 0) ok('⑰ require()는 번들을 띄우지 않고 순수 함수만 노출한다');
@@ -388,10 +379,13 @@ nonVacuous('R-DEV tier 게이트', 'surface-development-on-qa', [
   ['  const raw = readEnvValue(envPath, "SAP_TIER");', '  const raw = "DEV"; // 변조: tier를 읽지 않는다'],
 ]);
 
-nonVacuous('세대 split-brain 방지', 'surface-config-in-other-generation', [
+// 호환층을 되살리는 변조 — 은퇴한 디렉터리의 config.json을 다시 읽게 만들면
+// `surface-config-in-legacy-dir`는 readonly 대신 readonly,high 를 내야 하고,
+// 러너가 그것을 red로 잡아야 한다.
+nonVacuous('은퇴한 세대 config 차단', 'surface-config-in-legacy-dir', [
   [
-    '  const dirs = selectedDir ? [selectedDir] : [path.join(cwd, NEW_DIR), path.join(cwd, LEGACY_DIR)];',
-    '  const dirs = [path.join(cwd, NEW_DIR), path.join(cwd, LEGACY_DIR)]; // 변조: 선택된 세대를 무시',
+    '  const dirs = [selectedDir || path.join(cwd, NEW_DIR)];',
+    '  const dirs = [selectedDir || path.join(cwd, NEW_DIR), path.join(cwd, ".sc4sap")]; // 변조: 은퇴한 세대를 다시 읽는다',
   ],
 ]);
 

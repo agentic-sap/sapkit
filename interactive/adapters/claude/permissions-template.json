@@ -195,10 +195,7 @@
       "mcp__plugin_sapkit_sap__WriteTextElementsBulk",
       "Read(.sapkit/**)",
       "Edit(.sapkit/**)",
-      "Grep(.sapkit/**)",
-      "Read(.sc4sap/**)",
-      "Edit(.sc4sap/**)",
-      "Grep(.sc4sap/**)"
+      "Grep(.sapkit/**)"
     ]
   }
 }

@@ -1,32 +1,30 @@
 // sapkit multi-profile resolver — shared helper for HUD, hooks, scripts.
 //
 // Resolves the active SAP profile's env file, config JSON, and work-artifact
-// base directory. Legacy fallback (pre-0.6.0 single-profile) is preserved so
-// users who haven't migrated yet still see the same behaviour as before.
+// base directory. The single-profile mode (pre-0.6.0 layout, no alias pointer)
+// is still read so a project that never adopted profiles keeps working.
 //
 // Resolution order for config.json and sap.env:
 //   1. <workspace>/.sapkit/active-profile.txt → <alias>
 //      → $SAPKIT_HOME_DIR/profiles/<alias>/{sap.env, config.json}
 //      (fallback: ~/.sapkit/profiles/<alias>/...)
-//   2. Legacy: <workspace>/.sapkit/{sap.env, config.json}
+//   2. Single-profile: <workspace>/.sapkit/{sap.env, config.json}
 //
-// Runtime path rename (D-057, `.sc4sap` -> `.sapkit`): `.sapkit` is a candidate
-// everywhere `.sc4sap` was one, and nothing else changes (R-PRESERVE). The walk
+// `.sapkit` is the only runtime directory. The pre-0.6 directory and its home
+// variable were a migration-period fallback and were removed once the migration
+// completed (D-057); a leftover one of that name is invisible. The walk
 // depth stays 64 and the state definition below — active-profile.txt ‖ sap.env ‖
 // config.json — is untouched, because `block-forbidden-tables` reads the chosen
-// config.json's `blocklistProfile` as its row-data policy source. Within one
-// ancestor the state criterion is applied to EACH generation before any
-// tie-break (R-TIE), so a `.sc4sap`-only ancestor still wins outright.
+// config.json's `blocklistProfile` as its row-data policy source.
 //
 // Callers pass the workspace directory (usually `process.cwd()`). Returning
-// `null` means neither multi-profile nor legacy state exists.
+// `null` means no profile state exists.
 
 import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 const NEW_DIR = '.sapkit';
-const LEGACY_DIR = '.sc4sap';
 
 const warned = new Set();
 // Library-level diagnostics go to stderr only (hooks answer on stdout as JSON,
@@ -43,7 +41,7 @@ function warnOnce(code, message) {
 
 // R-ENV. `SAPKIT_HOME_DIR` set but missing is ENV_INVALID and it is TERMINAL for
 // the connection source: the operator pinned a home, the pin is broken, and
-// nothing may stand in for it — not SC4SAP_HOME_DIR, and not the project-local
+// nothing may stand in for it — not `~/.sapkit`, and not the project-local
 // `<runtime dir>/sap.env` either. `resolveSapEnvPath` enforces that below.
 //
 // Scope is deliberately narrow. ENV_INVALID must NOT reach into the row-data
@@ -59,46 +57,21 @@ export function envHomeInvalid() {
 }
 
 // The path is returned as-is so every lookup under it misses and each caller's
-// own fail-closed branch engages — it is never a reason to fall back to the
-// legacy variable silently. With no env var the home is chosen by where `alias`
-// actually lives, so a half-migrated machine still finds its profiles.
-export function sapkitHome(alias = null) {
+// own fail-closed branch engages — a broken pin is never silently stepped over.
+// The `alias` parameter is accepted (and ignored) so callers keep reading as
+// "the home that should hold this alias"; there is only one home to return.
+export function sapkitHome(_alias = null) {
   const explicit = process.env.SAPKIT_HOME_DIR;
   if (explicit) {
     if (!existsSync(explicit)) {
       warnOnce(
         'ENV_INVALID',
-        `SAPKIT_HOME_DIR points at a path that does not exist (${explicit}) — not falling back to SC4SAP_HOME_DIR.`,
+        `SAPKIT_HOME_DIR points at a path that does not exist (${explicit}) — no other home stands in for it.`,
       );
     }
     return explicit;
   }
-  const legacyEnv = process.env.SC4SAP_HOME_DIR;
-  if (legacyEnv) {
-    warnOnce('OK_LEGACY_DEPRECATED', 'SC4SAP_HOME_DIR is deprecated — rename it to SAPKIT_HOME_DIR.');
-    return legacyEnv;
-  }
-  const newHome = join(homedir(), NEW_DIR);
-  const legacyHome = join(homedir(), LEGACY_DIR);
-  if (alias) {
-    const inNew = existsSync(join(newHome, 'profiles', alias));
-    const inLegacy = existsSync(join(legacyHome, 'profiles', alias));
-    if (inNew && inLegacy) {
-      warnOnce('COEXIST_OK', `profile "${alias}" exists under both ${newHome} and ${legacyHome} — using ${newHome}.`);
-      return newHome;
-    }
-    if (inNew) return newHome;
-    if (inLegacy) return legacyHome;
-  }
-  if (existsSync(newHome)) return newHome;
-  if (existsSync(legacyHome)) return legacyHome;
-  return newHome;
-}
-
-// Deprecated alias kept for out-of-repo callers (HUD/scripts) that imported the
-// old name. Same behaviour; new code should call `sapkitHome`.
-export function sc4sapHome() {
-  return sapkitHome();
+  return join(homedir(), NEW_DIR);
 }
 
 export function profilesDir(alias = null) {
@@ -127,43 +100,13 @@ function hasProfileState(runtimeDir) {
   );
 }
 
-// Connection completeness — the R-TIE tie-break input. An empty
-// active-profile.txt does NOT count (D-057 §11-5).
-function hasConnectionState(runtimeDir) {
-  try {
-    const pointer = join(runtimeDir, 'active-profile.txt');
-    if (existsSync(pointer) && readFileSync(pointer, 'utf8').trim().length > 0) return true;
-  } catch {
-    /* unreadable pointer is not completeness */
-  }
-  return existsSync(join(runtimeDir, 'sap.env'));
-}
-
-// R-TIE inside ONE ancestor: apply `accepts` (this resolver's own criterion) to
-// each generation first; only when both pass does the tie-break run.
-function pickGeneration(dir, accepts) {
-  const newer = join(dir, NEW_DIR);
-  const older = join(dir, LEGACY_DIR);
-  const newOk = accepts(newer);
-  const oldOk = accepts(older);
-  if (newOk && oldOk) {
-    const newComplete = hasConnectionState(newer);
-    const oldComplete = hasConnectionState(older);
-    if (oldComplete && !newComplete) return older;
-    return newer; // tie → .sapkit
-  }
-  if (newOk) return newer;
-  if (oldOk) return older;
-  return null;
-}
-
 function findRuntimeDir(startDir) {
   let cur = startDir;
   let firstHit = null;
   for (let i = 0; i < 64; i++) {
-    const stateHit = pickGeneration(cur, (d) => existsSync(d) && hasProfileState(d));
-    if (stateHit) return stateHit;
-    if (!firstHit) firstHit = pickGeneration(cur, existsSync);
+    const candidate = join(cur, NEW_DIR);
+    if (existsSync(candidate) && hasProfileState(candidate)) return candidate;
+    if (!firstHit && existsSync(candidate)) firstHit = candidate;
     const parent = dirname(cur);
     if (!parent || parent === cur) break;
     cur = parent;
@@ -171,9 +114,8 @@ function findRuntimeDir(startDir) {
   return firstHit;
 }
 
-// The runtime directory itself (`<root>/.sapkit` or `<root>/.sc4sap`). When no
-// generation exists anywhere on the chain it names the R-NEW creation site —
-// `<startDir>/.sapkit`, the same spot the old code implied with `.sc4sap`.
+// The runtime directory itself (`<root>/.sapkit`). When none exists anywhere on
+// the chain it names the R-NEW creation site — `<startDir>/.sapkit`.
 export function resolveRuntimeDir(startDir) {
   return findRuntimeDir(startDir) ?? join(startDir, NEW_DIR);
 }

@@ -1,15 +1,15 @@
 #!/usr/bin/env node
-// conformance-runtime-dir.mjs — 런타임 경로 개명 적합성 러너 (D-057 §7-3).
+// conformance-runtime-dir.mjs — 런타임 경로 해석 적합성 러너 (D-057 §7-3).
 //
 // `engine/__tests__/fixtures/runtime-dir-selection.json`(공통 입력 + **소비자별** 기대)을
 // 읽어 **실물 코드를 구동**해 대조한다. 엔진 Jest와 같은 파일을 읽되 구현 모듈은 공유
 // 하지 않는다(3차 리뷰 수용).
 //
 // ─────────────────────────── 이 시험이 묻는 것 ──────────────────────────────
-// "모두 같은 답을 내는가"가 **아니다.** R-PRESERVE상 소비자마다 깊이(0/8/64)·채택
-// 기준·state 정의가 다르고 그 차이가 각자의 안전 의미를 담고 있다. 묻는 것은
-// **"각 소비자가 개명 전과 동일하게 동작하는가"**다. 그래서 기대값이 소비자별로
-// 갈리는 것이 정상이며, 여기에 "일치 검사"를 넣으면 안 된다.
+// "모두 같은 답을 내는가"가 **아니다.** 소비자마다 깊이(0/8/64)·채택 기준·state
+// 정의가 다르고 그 차이가 각자의 안전 의미를 담고 있다. 묻는 것은 **"각 소비자가
+// 자기 규칙대로 정확히 해석하는가"**다. 그래서 기대값이 소비자별로 갈리는 것이
+// 정상이며, 여기에 "일치 검사"를 넣으면 안 된다.
 //
 // ─────────────────────────────── 구동 방식 (seam) ───────────────────────────
 //   profile-resolve  export 함수 직접 호출 (자식 프로세스 안에서 import — 홈 스텁은
@@ -22,15 +22,15 @@
 //   extract          `--resolve-only` (무접속 · exit 0 · JSON stdout)
 //   engine           **이 러너의 범위 밖** — fixture `_schema.readers`대로 Jest가 소유한다
 //
-// 모든 자식은 가짜 HOME/USERPROFILE을 받는다. 실사용자 상태(`~/.sc4sap` 실물)는
+// 모든 자식은 가짜 HOME/USERPROFILE을 받는다. 실사용자 상태(`~/.sapkit` 실물)는
 // 읽지도 쓰지도 않는다.
 //
 // ─────────────────── 이 러너가 게이트에 대해 지는 책임 (§7-2 ↔ §7-3) ────────
-// `check-runtime-path-rename.mjs` 구역 C는 파일에 신·구 **토큰이 있는지**만 본다 —
-// 상수·주석만 남기고 legacy 실행 분기를 지워도 그 게이트는 통과한다(3차 리뷰 #5).
-// 그 구멍을 메우는 것은 게이트가 아니라 **이 러너**다: legacy-only 입력을 소비자별
-// 실물로 구동해 결과를 대조하므로, 분기가 사라지면 여기서 red가 난다. 그래서 이
-// 러너는 CI 필수다 — 게이트만 돌리는 것은 반쪽이다.
+// `check-runtime-path-rename.mjs`는 **문자열**만 본다 — 구 세대 토큰이 활성 코드에
+// 다시 나타나지 않는가. 그것으로는 "해석이 실제로 맞는가"를 말할 수 없다. 그 절반을
+// 메우는 것이 이 러너다: 소비자별 실물을 임시 트리에서 구동해 결과를 대조하고,
+// 은퇴한 세대를 실제로 무시하는지도 fixture 입력으로 확인한다. 그래서 이 러너는
+// CI 필수다 — 게이트만 돌리는 것은 반쪽이다.
 //   `--consumer-root <dir>`: 소비자 실물 경로를 <dir>/<같은 상대경로>로 바꿔치기한다
 //   (없는 파일은 실물로 폴백). 위 주장 자체의 음성시험이
 //   `test-check-runtime-path-rename.mjs`에서 이 플래그를 쓴다.
@@ -170,7 +170,6 @@ function materialize(kase, root) {
 
   const env = { ...process.env };
   delete env.SAPKIT_HOME_DIR;
-  delete env.SC4SAP_HOME_DIR;
   delete env.MCP_ENV_PATH;
   env.HOME = home;
   env.USERPROFILE = home;
@@ -300,19 +299,18 @@ async function driveBlocklist(cwd, env, expected, ctx) {
   const out = { blocklistProfile };
   let note = null;
 
-  // extendFrom은 훅이 출력하지 않는다 — **효과**로 관측한다: 기대된 세대의
-  // blocklist-extend.txt 토큰은 deny(사용자 확장은 deny), 다른 세대의 토큰은 deny가
-  // 아니어야 한다. 세대가 갈린 정책을 섞어 읽으면 즉시 red가 된다(§7-3 케이스 6).
+  // extendFrom은 훅이 출력하지 않는다 — **효과**로 관측한다: 기대된 파일의
+  // blocklist-extend.txt 토큰은 deny(사용자 확장은 deny)여야 한다. fixture가
+  // `extendDecoy`를 주면 그 파일의 토큰은 **deny가 아니어야** 한다 — 다른 런타임
+  // 디렉터리의 확장 목록을 섞어 읽으면 즉시 red가 된다(§7-3 케이스 6).
   if (expected && Object.prototype.hasOwnProperty.call(expected, 'extendFrom')) {
     if (expected.extendFrom === null) {
       out.extendFrom = null;
     } else {
       const wantedFile = expandPath(expected.extendFrom, ctx);
-      const otherFile = wantedFile.includes('.sapkit')
-        ? wantedFile.replace('.sapkit', '.sc4sap')
-        : wantedFile.replace('.sc4sap', '.sapkit');
+      const decoyFile = expected.extendDecoy ? expandPath(expected.extendDecoy, ctx) : null;
       const wanted = firstToken(wantedFile);
-      const unwanted = firstToken(otherFile);
+      const unwanted = decoyFile ? firstToken(decoyFile) : null;
       const wantedHit = wanted ? await probeTable(cwd, env, wanted) : null;
       const unwantedHit = unwanted ? await probeTable(cwd, env, unwanted) : null;
       const wantedDenied = wantedHit?.decision === 'deny';
@@ -322,8 +320,8 @@ async function driveBlocklist(cwd, env, expected, ctx) {
       } else {
         out.extendFrom = null;
         note =
-          `blocklist: 확장 목록 세대 판별 실패 — ${wanted ?? '(토큰 없음)'}=${wantedHit?.decision ?? 'n/a'} ` +
-          `(deny여야 함) / ${unwanted ?? '(토큰 없음)'}=${unwantedHit?.decision ?? 'n/a'} (deny면 안 됨)`;
+          `blocklist: 확장 목록 판별 실패 — ${wanted ?? '(토큰 없음)'}=${wantedHit?.decision ?? 'n/a'} ` +
+          `(deny여야 함) / decoy ${unwanted ?? '(없음)'}=${unwantedHit?.decision ?? 'n/a'} (deny면 안 됨)`;
       }
     }
   }
@@ -355,9 +353,12 @@ async function driveResolveOnly(file, cwd, env) {
 
 // ── 비교 ────────────────────────────────────────────────────────────────────
 const PATH_KEYS = new Set(['runtimeDir', 'workspaceRoot', 'envPath', 'path', 'extendFrom']);
+// `extendDecoy`는 대조 대상이 아니라 위 관측의 **입력**이다.
+const OBSERVATION_INPUT_KEYS = new Set(['extendDecoy']);
 function compare(expected, actual, ctx, prefix = '') {
   const diffs = [];
   for (const [k, want] of Object.entries(expected)) {
+    if (OBSERVATION_INPUT_KEYS.has(k)) continue;
     const got = actual?.[k];
     const label = prefix ? `${prefix}.${k}` : k;
     if (want !== null && typeof want === 'object' && !Array.isArray(want)) {
@@ -402,12 +403,12 @@ let asserted = 0;
 let unobserved = 0;
 
 // profile-resolve는 64단계를 **올라간다.** 임시 트리를 사용자 홈 밑(Windows의
-// `%TEMP%`가 그렇다)에 만들면 워크가 픽스처 밖으로 새어 나가 실사용자의 `~/.sc4sap`을
+// `%TEMP%`가 그렇다)에 만들면 워크가 픽스처 밖으로 새어 나가 실사용자의 `~/.sapkit`을
 // 집는다 — 실측으로 확인했다. 그래서 조상 사슬에 런타임 디렉터리가 없는 루트를 고른다.
 function ancestorsClean(dir) {
   let cur = path.resolve(dir);
   for (let i = 0; i < 80; i++) {
-    if (fs.existsSync(path.join(cur, '.sapkit')) || fs.existsSync(path.join(cur, '.sc4sap'))) return cur;
+    if (fs.existsSync(path.join(cur, '.sapkit'))) return cur;
     const parent = path.dirname(cur);
     if (parent === cur) break;
     cur = parent;
@@ -556,8 +557,7 @@ try {
     // 각각 대조하고, 없으면 R-PRESERVE 불변식만 assert한다. 불변식만으로는 둘이 **같은
     // 오답**을 내면 통과해 버린다(3차 리뷰 #6) — 그래서 도구별 기대가 본선이고
     // 불변식은 그물이다. 둘 다 돌린다.
-    // (fixture의 `expected`에 남은 `vpass` 키는 아래 hasOwnProperty 가드가 건너뛴다 —
-    //  fixture는 engine 소유라 이 러너 쪽에서 손대지 않는다.)
+    // (fixture가 도구를 더 열거하면 아래 hasOwnProperty 가드가 모르는 키를 건너뛴다.)
     const cwdExpected = kase.consumers?.['cwd-tools']?.expected ?? null;
     const [es, ec] = await Promise.all([
       driveResolveOnly(PATHS.extractSpro, cwd, env),
@@ -587,14 +587,11 @@ try {
       asserted++;
       const cwdDiffs = [];
       const [a, b] = cwdToolDirs;
-      const legacyAt = fs.existsSync(path.join(cwd, '.sc4sap'));
-      const newAt = fs.existsSync(path.join(cwd, '.sapkit'));
       if (a[1] !== b[1]) {
         cwdDiffs.push(`cwd-상대 2종 불일치: ${cwdToolDirs.map(([n, d]) => `${n}=${d}`).join(' | ')}`);
-      } else if (legacyAt && !newAt && a[1] !== norm(path.join(cwd, '.sc4sap'))) {
-        cwdDiffs.push(`R-PRESERVE 위반: cwd에 .sc4sap만 있는데 ${a[1]} 를 골랐다`);
-      } else if (!legacyAt && !newAt && a[1] !== norm(path.join(cwd, '.sapkit'))) {
-        cwdDiffs.push(`R-NEW 위반: cwd에 아무 세대도 없는데 ${a[1]} 를 골랐다`);
+      } else if (a[1] !== norm(path.join(cwd, '.sapkit'))) {
+        // 이 도구들은 cwd의 `.sapkit`만 본다(깊이 0). 존재하든 아니든 답은 그 경로다.
+        cwdDiffs.push(`cwd-상대 경로 위반: ${norm(path.join(cwd, '.sapkit'))} 여야 하는데 ${a[1]} 를 골랐다`);
       }
       // 도구별 기대값 — "둘이 같으면 통과"의 구멍을 막는 본선 대조.
       if (cwdExpected) {
@@ -631,7 +628,6 @@ try {
     fs.mkdirSync(bootCwd, { recursive: true });
     const env = { ...process.env };
     delete env.SAPKIT_HOME_DIR;
-    delete env.SC4SAP_HOME_DIR;
     delete env.MCP_ENV_PATH;
     env.HOME = bootCwd;
     env.USERPROFILE = bootCwd;
@@ -678,7 +674,7 @@ try {
     if (!safetyGroups.has(g)) safetyGroups.set(g, []);
     safetyGroups.get(g).push(r);
   }
-  console.log('\n안전 회귀 (§7-3):');
+  console.log('\n안전 회귀 (§7-3 · 잔존 5종):');
   let safetyFail = 0;
   for (const g of [...safetyGroups.keys()].sort()) {
     const rows = safetyGroups.get(g);
@@ -688,8 +684,10 @@ try {
     console.log(`  #${g}  ${ok ? 'PASS' : 'FAIL'}  ${rows.map((r) => r.id).join(', ')}`);
   }
   // 9종 완비 검사도 전역 단언이다 — 부분 실행에서는 세지 않는다.
-  if (GLOBAL_ASSERTS && safetyGroups.size !== 9) {
-    console.log(`  ⚠ 안전 그룹 ${safetyGroups.size}개 — 9종이어야 한다`);
+  // 호환층 제거(R5)로 세대 tie-break·마이그레이션 왕복을 다루던 3·4·5·7 그룹이
+  // 주장할 것을 잃고 사라졌다. 남은 5종 = 1·2·6·8·9.
+  if (GLOBAL_ASSERTS && safetyGroups.size !== 5) {
+    console.log(`  ⚠ 안전 그룹 ${safetyGroups.size}개 — 5종이어야 한다`);
     safetyFail++;
   }
 
@@ -703,7 +701,7 @@ try {
     console.log('\n❌ 적합성 시험 실패');
     exitCode = 1;
   } else {
-    console.log('\n✅ 적합성 시험 통과 — 소비자별 현행 의미 보존(R-PRESERVE) · 안전 회귀 9종 PASS');
+    console.log('\n✅ 적합성 시험 통과 — 소비자별 해석 규칙 보존 · 안전 회귀 5종 PASS');
   }
 } finally {
   // process.exit()은 finally를 건너뛴다 — 임시 트리를 지운 뒤에 종료해야 한다.
