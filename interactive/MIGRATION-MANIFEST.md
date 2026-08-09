@@ -1,5 +1,28 @@
 # MIGRATION-MANIFEST — sc4sap-custom → sc4sap-lite 전 파일 분류
 
+> ## ⛔ 은퇴 — 이식 완료 기록 (이후 갱신 의무 없음)
+>
+> **이 문서는 역사다.** 2026-07-10에 끝난 이식이 무엇을 어떻게 옮겼는지를 남기는
+> 기록이며, 앞으로 벌어지는 콘텐츠 변경을 따라 갱신하지 않는다.
+>
+> **왜 은퇴했나** — **이식 시대가 끝났다.** 이 레포의 콘텐츠는 이제 원본에서
+> **의도적으로 갈라진다**(차용 후 완전 소유). "목적지가 원본과 여전히 대응하는가"를
+> 묻는 검증은 그래서 존재 이유를 잃었다 — 정당한 편집이 전부 위반으로 잡히기 때문이다.
+> 콘텐츠 무결성의 소유자는 이제 **git 이력**이다.
+>
+> **함께 은퇴한 것**(실행 경로에서 제거 · 복원은 git 이력에서):
+> `interactive/scripts/check-migration-snapshot.mjs`(게이트, 로컬·CI) ·
+> `test-check-migration-snapshot.mjs`(그 음성시험) ·
+> `build-migration-snapshot.mjs`(스냅샷 재생성) ·
+> `report-sc4sap-public-drift.mjs`(상류 드리프트 리포트).
+>
+> **보존하는 것**: 이 문서와 `interactive/provenance/`의 이식 스냅샷
+> (`sc4sap-public-source.json` · `migration-map.json` · `upstream-drift-dispositions.json`).
+> 삭제하지 않는다 — 저작권 고지의 계보 근거이기도 하다
+> (`interactive/THIRD_PARTY_NOTICES.md`가 `migration-map.json`의 `class: copy`를 인용한다).
+>
+> 아래 본문은 **은퇴 시점의 상태 그대로**다. 현행 사실이 아니라 2026-07-10 이식의 기록으로 읽을 것.
+
 > 원본: `D:\claude for SAP\sc4sap-custom` (동결 · R-004).
 > 규칙은 **위에서 아래로 첫 매칭 우선**. 이 표가 **분류의 정본**이다.
 >
@@ -103,16 +126,14 @@
 | `vitest.config.ts` | obsolete | 테스트 신규 구성 |
 | `.release-exclude` | obsolete | custom 공개 배포 장치 |
 
-## 검증
+## 검증 — 은퇴함 (실행 경로 없음)
 
-```bash
-# 게이트 — 원본 무접촉·오프라인. CI 포함.
-node interactive/scripts/check-migration-snapshot.mjs
-node interactive/scripts/test-check-migration-snapshot.mjs   # 게이트 음성시험 17/17
-```
+**이 절의 도구는 전부 은퇴했다.** 아래는 은퇴 시점까지 무엇이 검증되고 있었는지를
+남기는 기록이며, 실행 가능한 명령이 아니다(스크립트 4종은 삭제됐고 git 이력에만 있다).
 
+은퇴한 게이트 `check-migration-snapshot.mjs`가
 `provenance/sc4sap-public-source.json`(pin·allowlist·인벤토리)과
-`provenance/migration-map.json`(규칙별 분류·목적지 해시)에 대해:
+`provenance/migration-map.json`(규칙별 분류·목적지 해시)에 대해 assert하던 것:
 
 | 검사 | 위반 시 |
 |---|---|
@@ -122,24 +143,20 @@ node interactive/scripts/test-check-migration-snapshot.mjs   # 게이트 음성�
 | copy/transform 목적지 실재 + **내용 해시 무드리프트** (구 게이트엔 없던 검사) | exit 1 |
 | provenance 기록에 private 경로 열거 0건 | **exit 3** |
 
+마지막 줄의 **private 열거 0건**은 게이트가 사라져도 유효한 불변 규칙이다 — 스냅샷
+파일 자체가 private 경로를 담지 않는다는 사실은 파일에 박제돼 있고, `private/**`는
+영구 denylist(R-004)로 남는다.
+
 `expect_zero` 4건(`private/**`·`.omc/**`·`.sc4sap/**`·`.claude/settings.local.json`)은
-매칭 0이 **정상**이다 — private은 애초에 질의하지 않고, 나머지 셋은 untracked 런타임
-상태라 git tree에 없다. 구 게이트는 이들을 '죽은 규칙'으로 exit 2 처리했다.
+매칭 0이 **정상**이었다 — private은 애초에 질의하지 않고, 나머지 셋은 untracked 런타임
+상태라 git tree에 없다.
 
-분류 변경은 이 파일 수정으로만 하고, 이후 스냅샷을 재생성한다:
+**목적지 해시 재핀은 더 이상 하지 않는다.** 이식 이후의 콘텐츠 변경은 원본 대응을
+깨는 것이 정상이며(의도된 분기), 그 이력은 git이 갖는다. 스냅샷의 해시는 **2026-07-10
+이식 시점의 값**으로 동결이고, 현재 트리와 일치할 의무가 없다.
 
-```bash
-# 원본 있는 머신 전용 (CI 아님). allowlist pathspec만 사용 — private/ 미질의.
-node interactive/scripts/build-migration-snapshot.mjs
-node interactive/scripts/build-migration-snapshot.mjs --check   # 재현성 검사
-```
-
-상류 public 영역 변경 확인(리포트일 뿐 게이트가 아니며 아무것도 자동 이식하지 않음):
-
-```bash
-node interactive/scripts/report-sc4sap-public-drift.mjs
-```
-
-판단 기록처는 `provenance/upstream-drift-dispositions.json`이며, 기록 없는 변경은
-전부 `pending`으로 보고된다. **2026-07-16 실측: pin 이후 public 변경 45건 전부 pending**
-(그중 copy/transform 36건이 검토 대상).
+상류(`sc4sap-custom`) public 드리프트 감시도 함께 은퇴했다
+(`report-sc4sap-public-drift.mjs`). 마지막 기록: **2026-07-16 실측 pin 이후 public
+변경 45건 전부 pending**(그중 copy/transform 36건이 검토 대상이었다). 그 판단 기록처
+`provenance/upstream-drift-dispositions.json`도 갱신 의무 없는 역사로 동결한다 —
+상류 미추종 자세는 D-039 ⑧에서 이미 정해졌고, 이제 감시선 자체가 없다.

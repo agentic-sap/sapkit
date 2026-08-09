@@ -1,4 +1,5 @@
 {
+  "_retired": "이식 완료 기록 — 이후 갱신 의무 없음. 이식 시대가 끝났고 이 레포의 콘텐츠는 원본에서 의도적으로 갈라지므로, 상류 드리프트를 판정할 이유 자체가 사라졌다. 이 파일을 읽던 리포터(report-sc4sap-public-drift.mjs)는 삭제됐다(git 이력에 보존) — 즉 아래 _how_to_record 절차는 더 이상 실행할 수 없다. 남은 dispositions는 은퇴 시점까지의 판단 기록이며, 새 pending을 채울 의무가 없다.",
   "_": "상류 sc4sap-custom public 드리프트에 대한 사람의 판단 기록 (S3 · D-027 로드맵 §9.2). report-sc4sap-public-drift.mjs가 이 파일을 읽어 각 변경에 판단을 붙인다.",
   "_contract": "여기 기록이 없는 변경은 전부 pending으로 보고된다. pending = '아직 검토하지 않음'이지 '이식 불필요'가 아니다. 없는 판단을 지어내지 않기 위해 기본값을 pending으로 둔다.",
   "_dispositions_allowed": {

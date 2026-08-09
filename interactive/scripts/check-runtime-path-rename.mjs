@@ -65,8 +65,8 @@ const ZONE_B = [
   'interactive/provenance/',
   'interactive/DESIGN.md',
   'interactive/docs/research/',
-  'interactive/scripts/build-migration-snapshot.mjs',
-  'interactive/scripts/report-sc4sap-public-drift.mjs',
+  // (구 `scripts/build-migration-snapshot.mjs`·`report-sc4sap-public-drift.mjs`는
+  //  이식 장부 은퇴로 삭제됐다 — 제외 항목도 함께 뺀다.)
   'engine/CHANGELOG.md',
   'engine/UPSTREAM-FIX-HANDOFF.md',
   // 번들·핀 이력 (append-only 서술) 과 빌드 산출물 — 소스가 정본이다

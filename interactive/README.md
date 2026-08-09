@@ -6,7 +6,7 @@ SAP ABAP 개발·컨설팅 지식/페르소나/절차를 **하네스 중립 코�
 오케스트레이션을 버리고 "1명 작업 + 1명 새-컨텍스트 리뷰 + SAP 기계 검증" 모델로 단순화했다.
 
 - **설계 정본**: [DESIGN.md](DESIGN.md) (2026-07-10 확정, Fable 5 + Codex 이중 리뷰 반영)
-- **이식 규칙**: [MIGRATION-MANIFEST.md](MIGRATION-MANIFEST.md) — 원본 전 파일 5분류, `node scripts/check-migration-snapshot.mjs`로 검증 (pinned snapshot · 원본 무접촉)
+- **이식 기록**: [MIGRATION-MANIFEST.md](MIGRATION-MANIFEST.md) — 원본 전 파일 5분류. **은퇴한 역사 문서**(이식 완료 기록 · 이후 갱신 의무 없음) — 검증 게이트는 제거됐고 콘텐츠 무결성은 git 이력이 담당한다
 - **상태**: L0~L5 구현 완료 + 코드리뷰 반영 — L3 E2E(플러그인 설치 + SAP 프로파일) 대기. Codex·Antigravity 설치 스모크 통과
 
 ## 빠른 시작

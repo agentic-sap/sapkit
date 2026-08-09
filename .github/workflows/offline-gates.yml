@@ -4,15 +4,17 @@
 # 안전 표면이 회귀해도 초록이라 없느니만 못하다(로드맵 §15).
 #
 # S3에서 달라진 것:
-#   - check-migration-coverage(외부 sc4sap-custom 절대경로를 재귀 순회 → 러너에 없어 크래시,
-#     그래서 CI 제외였다)를 **폐기**하고 check-migration-snapshot으로 교체했다. 새 게이트는
-#     고정 스냅샷만 읽어 원본 없이 돌므로 **드디어 CI에서 실행된다**.
 #   - smoke-mcp가 관찰에서 assertion으로 바뀌었다.
 #   - 엔진 소스 테스트 599개와 provenance 검사를 편입했다.
 #
+# 은퇴 (이식 장부): sc4sap 이식 provenance 게이트(check-migration-snapshot)와 그 음성시험을
+# 이 워크플로에서 제거했다. **이식 시대가 끝났고** 이후 콘텐츠는 원본에서 의도적으로
+# 갈라지므로 "원본 대응이 유지되는가"라는 질문 자체가 존재 이유를 잃었다. 콘텐츠 무결성은
+# git 이력이 담당한다. 이식 완료 기록(`interactive/provenance/` 스냅샷 ·
+# `interactive/MIGRATION-MANIFEST.md`)은 갱신 의무 없는 역사로 보존한다.
+#
 # 여전히 CI에 없는 것 (러너에 존재하지 않는 상태를 읽음 — 로컬 전용):
 #   - doctor.mjs → 설치된 CLI 버전·플러그인 설치·훅 배선을 본다. 러너엔 무의미.
-#   - build-migration-snapshot / report-sc4sap-public-drift → 동결 원본이 필요하다.
 #   - Track A의 실제 verify(살아있는 SAP 대상 vsp) → 자격증명·네트워크 부재. 로컬/에스코트 전용.
 name: offline-gates
 
@@ -35,12 +37,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-
-      - name: 이식 provenance (pinned snapshot · 원본 무접촉 · private 열거 0)
-        run: node interactive/scripts/check-migration-snapshot.mjs
-
-      - name: 이식 게이트 음성시험 (게이트가 실제로 거부하는지)
-        run: node interactive/scripts/test-check-migration-snapshot.mjs
 
       - name: check-links
         run: node interactive/scripts/check-links.mjs interactive
