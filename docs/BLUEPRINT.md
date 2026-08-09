@@ -89,10 +89,10 @@ SAP 오브젝트는 개명이 불가하므로 옛 이름이 그대로 남는다.
 handler 348파일)가 제공하는 SAP ADT MCP 도구 표면.
 
 **시작 후보군**: **§4 도구 실사 결과가 결정한다.** 실측 표면 186종 중 제품 자산이 실제로
-지시하는 것은 **109종**이고, 나머지 77종은 생성된 권한 allowlist와 훅 분류 열거에만 등장한다
-(§4.4). 그 109종이 자작 엔진의 **시작 후보군**이다.
+지시하는 것은 **110종**이고, 나머지 76종은 생성된 권한 allowlist와 훅 분류 열거에만 등장한다
+(§4.4). 그 110종이 자작 엔진의 **시작 후보군**이다.
 
-> **도구 수 목표치를 사전에 못박지 않는다.** 109는 "현 자산이 지시하는 도구"의 실측치이지
+> **도구 수 목표치를 사전에 못박지 않는다.** 110은 "현 자산이 지시하는 도구"의 실측치이지
 > 자작 엔진의 목표 규모가 아니다. 최종 수는 착수 시점의 재실사와 통합·분해 판단이 정한다
 > (예: 같은 오브젝트의 `Get*`/`Read*` 쌍은 하나로 합쳐질 수 있고, 반대로 절차가 요구하는
 > 조합이 새 도구를 부를 수도 있다).
@@ -149,7 +149,9 @@ handler 348파일)가 제공하는 SAP ADT MCP 도구 표면.
 #### ⑶-a GPL 주제 자체 집필
 
 `interactive/core/knowledge/abap/reference/`(31파일)는 GPL-3.0 편집 저작물의 바이트 사본이었다.
-**이 판의 별도 작업이 제거로 해소한다** — 청사진이 다루는 것은 그 **빈자리를 무엇으로 채우는가**다.
+**2026-08-09 전량 삭제로 해소됐고**(고지는 `THIRD_PARTY_NOTICES.md`에서 「제거로 해소」
+기록으로 전환), 지식 `.md` 총수는 179 → 148이 됐다. 청사진이 다루는 것은 그 **빈자리를
+무엇으로 채우는가**다.
 
 - 원자료는 `SAP-samples/abap-cheat-sheets`(Apache-2.0)로 공개돼 있다.
 - **선별·순서·구성부터 새로 한다.** 항목 배열을 그대로 두고 문장만 바꾸는 것은 재작성이 아니라
@@ -168,8 +170,16 @@ handler 348파일)가 제공하는 SAP ADT MCP 도구 표면.
 - 한 번에 다 바꾸지 않는다 — 파일 단위로 치환하고, 치환된 파일은 분류를 갱신한다
   (분류 변경은 `MIGRATION-MANIFEST.md` 수정으로만).
 
-**검증 기준**: 파일 단위로 `check-migration-snapshot` 통과 유지 · 치환 후 해당 지식을
-소비하는 절차가 여전히 동작 · `copy` 잔량이 단조 감소.
+**검증 기준**: 치환 후 해당 지식을 소비하는 절차가 여전히 동작 · `check-links` 0 ·
+`copy` 잔량이 단조 감소.
+
+> **분류 장부는 은퇴한 역사다.** `MIGRATION-MANIFEST.md`와 `interactive/provenance/`는
+> 2026-07-10 이식의 완료 기록이며 갱신 의무가 없다. 그것을 검사하던 게이트
+> (`check-migration-snapshot`과 그 음성시험, `build-migration-snapshot`,
+> `report-sc4sap-public-drift`)도 renew 1차에서 제거됐다 — 이후 콘텐츠는 원본에서
+> 의도적으로 갈라지므로 "원본 대응이 유지되는가"라는 질문이 성립하지 않는다. 그래서 이
+> 갈래의 진척은 게이트가 아니라 **git 이력과 사람의 판단**이 센다. `copy` 잔량을 계속
+> 쓰려면 그 계수 방식을 이 단계 착수 시점에 새로 정해야 한다.
 
 #### ⑶-c ZRSC4SAP_* 템플릿 재생성
 
@@ -193,8 +203,8 @@ handler 348파일)가 제공하는 SAP ADT MCP 도구 표면.
 해당 항목 삭제. 번들 런타임 의존(외부 npm 패키지) 귀속은 **남는다** — 그것은 정식 의존성이고
 끝그림 ②가 허용하는 형태다.
 
-**검증 기준**: `MIGRATION-MANIFEST.md`에 `class: copy` 잔량 0 · 스냅샷 게이트 통과 ·
-루트 LICENSE 표와 실제 서브트리 상태가 일치.
+**검증 기준**: `class: copy`로 분류됐던 파일이 전부 자체 집필로 치환됐음을 git 이력으로
+확인(스냅샷 게이트는 은퇴 — ⑶-b 주석 참조) · 루트 LICENSE 표와 실제 서브트리 상태가 일치.
 
 ---
 
@@ -237,18 +247,25 @@ handler 348파일)가 제공하는 SAP ADT MCP 도구 표면.
 |---|---|---|---|
 | ⑴ 엔진 | tool-catalog diff 0 · `smoke-mcp` · `conformance-server-gates` · 실데이터 게이트 음성시험 | 대표 절차 1건 구·신 동일 결과 | `engine/` 소스 + 고지 |
 | ⑵ 검사기 | 코퍼스 판정 diff 0 · exit code 계약 CI assert | 훅 배선 후 경고 전용 성격 확인 | `vsp/` 소스 + 고지 |
-| ⑶ 지식 | `check-links` 0 · `check-migration-snapshot` 통과 · `copy` 잔량 단조 감소 | 구성 독립성 설명 가능 · 소비 절차 동작 | 차용 지식 파일 |
+| ⑶ 지식 | `check-links` 0 · `copy` 잔량 단조 감소(계수 방식은 착수 시 결정) | 구성 독립성 설명 가능 · 소비 절차 동작 | 차용 지식 파일 |
 | ⑶-c 템플릿 | 개명 게이트 통과 · 새 템플릿 생성→활성→기계 확인 | — | 옛 이름 템플릿 (SAP 오브젝트는 무접촉) |
-| ⑷ 고지 | `copy` 잔량 0 · 스냅샷 게이트 | LICENSE 표 ↔ 실제 서브트리 일치 | `interactive/LICENSE` |
+| ⑷ 고지 | `copy` 잔량 0(git 이력 대조) | LICENSE 표 ↔ 실제 서브트리 일치 | `interactive/LICENSE` |
 
 ---
 
-## 4. 도구 실사 (2026-08-09 실행)
+## 4. 도구 실사 (2026-08-09 실행 · 2026-08-10 재대조)
+
+> **재대조 기록 (2026-08-10)**: 최초 실사는 renew 1차의 두 갈래 — V-PASS 의식 제거와
+> 호환층 제거 — **이전** 상태를 잰 것이었다. 같은 방법(§4.6)으로 다시 돌린 결과 두 곳이
+> 움직였다: ⓐ 새 절차 `proc/verify-applied.md`가 되읽기·구문·활성 확인 도구를 직접
+> 부르면서 read 13종의 참조가 늘고 `GetSourceDiff`가 **참조 없음 → 실질 참조**로
+> 넘어왔다(109 → 110). ⓑ §4.5의 유령 참조 1건이 **고쳐져 0건**이 됐다. 조사 대상
+> 파일 수는 GPL 31파일 삭제로 315 → 284다. 아래 수치는 전부 재대조본이다.
 
 ### 4.1 방법
 
 **조사 대상**(제품 자산 전수, 읽기 전용): `interactive/core/`(지식·페르소나·절차·정책) ·
-`interactive/skills/` · `interactive/adapters/`(훅 포함) — **315파일**.
+`interactive/skills/` · `interactive/adapters/`(훅 포함) — **284파일**.
 
 **추출 방법**: MCP 엔진 도구명은 PascalCase 식별자이며 문서 안에서 여러 표기로 등장한다
 (`mcp__plugin_sapkit_sap__X` 풀네임 · 백틱 인용 · 목록 항목 · 코드 내 문자열). 동사 접두어
@@ -271,9 +288,9 @@ handler 348파일)가 제공하는 SAP ADT MCP 도구 표면.
 | 항목 | 수 |
 |---|---:|
 | 실측 도구 표면 (연결 상태) | **186** |
-| 제품 자산이 **실질 참조**하는 도구 | **109** |
-| 실질 참조 없음 (생성 allowlist·훅 분류 열거에만 등장) | **77** |
-| **유령 참조** (참조되지만 표면에 없는 이름) | **1** ⚠ |
+| 제품 자산이 **실질 참조**하는 도구 | **110** |
+| 실질 참조 없음 (생성 allowlist·훅 분류 열거에만 등장) | **76** |
+| **유령 참조** (참조되지만 표면에 없는 이름) | **0** ✅ |
 | 표면에 있으나 어디서도 참조되지 않음 | **0** |
 
 > **"실질 참조"의 정의**: 표면 186종은 전부 어딘가에 이름이 나온다 — 그러나
@@ -288,28 +305,28 @@ handler 348파일)가 제공하는 SAP ADT MCP 도구 표면.
 
 | 클래스 | 표면 | 실질 참조 | 참조 없음 |
 |---|---:|---:|---:|
-| read | 90 | 59 | 31 |
+| read | 90 | 60 | 30 |
 | write | 79 | 37 | 42 |
 | runtime | 15 | 11 | 4 |
 | row-data (상시 게이트) | 2 | 2 | 0 |
-| **계** | **186** | **109** | **77** |
+| **계** | **186** | **110** | **76** |
 
 읽어야 할 신호: **write 79종 중 절반 이상(42종)이 어떤 절차도 부르지 않는다.** 그 42종은
 대부분 `Delete*` 25종과 세분화된 `Update*` 계열이다 — 사다리 ⑴에서 "무엇을 안 만들 것인가"의
 1순위 재료다.
 
-### 4.3 사용 도구 집합 — 실질 참조 109종
+### 4.3 사용 도구 집합 — 실질 참조 110종
 
 참조처 경로 약칭: `proc/` = `interactive/core/procedures/` · `pol/` = `interactive/core/policies/` ·
 `persona/` = `interactive/core/personas/` · `know/` = `interactive/core/knowledge/` ·
 `skill/` = `interactive/skills/` · `adapter/` = `interactive/adapters/`.
 "참조" 열은 `총 등장 횟수 / 파일 수`(열거원 제외).
 
-#### 4.3.1 read — 59종
+#### 4.3.1 read — 60종
 
 | 도구 | 용도 | 대표 참조처 | 참조 |
 |---|---|---|---:|
-| `CheckSyntax` | SAP에 쓰지 않고 구문만 검사 (class/program/include) | proc/create-program.md ; pol/verification-policy.md | 26 / 15 |
+| `CheckSyntax` | SAP에 쓰지 않고 구문만 검사 (class/program/include) | proc/create-program.md ; pol/verification-policy.md | 29 / 16 |
 | `DescribeByList` | 오브젝트 목록 일괄 설명 조회 | proc/analyze-symptom.md | 1 / 1 |
 | `GetAbapAST` | ABAP 소스를 AST(JSON)로 파싱 | proc/analyze-code.md ; proc/analyze-symptom.md | 9 / 4 |
 | `GetAbapSemanticAnalysis` | 심볼·타입·스코프·의존 의미 분석 | proc/analyze-code.md ; proc/analyze-symptom.md | 9 / 5 |
@@ -325,8 +342,8 @@ handler 348파일)가 제공하는 SAP ADT MCP 도구 표면.
 | `GetFunctionModule` | 펑션 모듈 정의·소스 조회 | know/abap/conventions/function-module-rule.md ; know/modules/Ariba/workflows.md | 38 / 19 |
 | `GetGuiStatus` | GUI 상태(CUA) 정의 조회 | proc/review-checklist.md | 2 / 1 |
 | `GetGuiStatusList` | 프로그램의 GUI 상태 목록 | proc/program-to-spec.md ; proc/compare-programs.md | 3 / 2 |
-| `GetInactiveObjects` | 미활성(활성화 대기) 오브젝트 목록 | proc/create-object.md ; proc/troubleshooting.md | 35 / 15 |
-| `GetInclude` | 인클루드 소스 조회 | proc/program-to-spec.md ; know/modules/Ariba/workflows.md | 10 / 9 |
+| `GetInactiveObjects` | 미활성(활성화 대기) 오브젝트 목록 | proc/create-object.md ; proc/troubleshooting.md | 37 / 15 |
+| `GetInclude` | 인클루드 소스 조회 | proc/program-to-spec.md ; know/modules/Ariba/workflows.md | 12 / 10 |
 | `GetIncludesList` | 프로그램의 인클루드 재귀 목록 | proc/program-to-spec.md ; proc/troubleshooting.md | 3 / 2 |
 | `GetInterface` | 인터페이스 정의 조회 | proc/analyze-code.md ; proc/analyze-cbo-obj.md | 4 / 3 |
 | `GetLocalDefinitions` | 클래스 로컬 정의부 소스 조회 | proc/program-to-spec.md ; proc/troubleshooting.md | 3 / 2 |
@@ -334,16 +351,17 @@ handler 348파일)가 제공하는 SAP ADT MCP 도구 표면.
 | `GetLocalTestClass` | 클래스 로컬 테스트 클래스 소스 조회 | proc/program-to-spec.md ; proc/troubleshooting.md | 3 / 2 |
 | `GetLocalTypes` | 클래스 로컬 타입 소스 조회 | proc/program-to-spec.md ; proc/troubleshooting.md | 4 / 2 |
 | `GetMetadataExtension` | 메타데이터 익스텐션 정의 조회 | proc/program-to-spec.md ; proc/compare-programs.md | 3 / 2 |
-| `GetObjectInfo` | 오브젝트 트리 구조 (DEVC/CLAS/PROG/FUGR) | proc/analyze-symptom.md ; proc/program-to-spec.md | 16 / 10 |
+| `GetObjectInfo` | 오브젝트 트리 구조 (DEVC/CLAS/PROG/FUGR) | proc/analyze-symptom.md ; proc/program-to-spec.md | 17 / 11 |
 | `GetObjectsByType` | 타입별 오브젝트 일괄 조회 | know/abap/conventions/naming-conventions.md ; proc/analyze-cbo-obj.md | 2 / 2 |
 | `GetPackage` | 패키지 메타데이터 조회 | proc/create-object.md ; proc/analyze-cbo-obj.md | 10 / 6 |
 | `GetPackageContents` | 패키지 내 오브젝트 평면 목록 | proc/analyze-cbo-obj.md ; persona/sap-stocker.md | 4 / 3 |
 | `GetPackageTree` | 하위 패키지 포함 트리 구조 | proc/analyze-cbo-obj.md ; persona/sap-stocker.md | 3 / 2 |
-| `GetProgFullCode` | 인클루드 포함 프로그램 전체 코드 | proc/analyze-code.md ; proc/program-to-spec.md | 7 / 5 |
+| `GetProgFullCode` | 인클루드 포함 프로그램 전체 코드 | proc/analyze-code.md ; proc/program-to-spec.md | 9 / 6 |
 | `GetProgram` | 프로그램 정의·소스 조회 | proc/analyze-code.md ; proc/review-checklist.md | 10 / 8 |
 | `GetScreen` | 화면(Dynpro) 정의·플로우 로직 조회 | proc/compare-programs.md ; proc/review-checklist.md | 6 / 3 |
 | `GetScreensList` | 프로그램의 화면 목록 | proc/program-to-spec.md ; proc/compare-programs.md | 3 / 2 |
 | `GetSession` | ADT 세션 ID·상태 획득 (재사용용) | proc/troubleshooting.md ; proc/analyze-symptom.md | 13 / 3 |
+| `GetSourceDiff` | 기준 버전 대비 서버측 소스 비교 | proc/verify-applied.md | 2 / 1 |
 | `GetStructure` | 구조 정의 조회 | proc/analyze-symptom.md ; proc/ask-consultant.md | 9 / 7 |
 | `GetSystemInfo` | 시스템 SID·클라이언트·접속 사용자 식별 | proc/troubleshooting.md ; adapter/codex/README.md | 2 / 2 |
 | `GetTable` | 테이블 DDIC 정의 조회 | know/modules/PS/workflows.md ; know/modules/Ariba/workflows.md | 61 / 28 |
@@ -357,23 +375,23 @@ handler 348파일)가 제공하는 SAP ADT MCP 도구 표면.
 | `ListTransports` | 사용자 트랜스포트 요청 목록 | proc/analyze-symptom.md ; proc/create-object.md | 13 / 6 |
 | `ReadBehaviorDefinition` | BDEF 소스·메타 읽기 | proc/program-to-spec.md | 2 / 1 |
 | `ReadBehaviorImplementation` | 비헤이비어 구현 소스·메타 읽기 | proc/program-to-spec.md ; proc/troubleshooting.md | 3 / 2 |
-| `ReadClass` | 클래스 소스·메타 읽기 | proc/analyze-symptom.md ; proc/program-to-spec.md | 8 / 5 |
-| `ReadFunctionGroup` | 펑션 그룹 소스·메타 읽기 | proc/compare-programs.md | 1 / 1 |
-| `ReadFunctionModule` | 펑션 모듈 소스·메타 읽기 | proc/analyze-symptom.md ; proc/program-to-spec.md | 5 / 3 |
-| `ReadInterface` | 인터페이스 소스·메타 읽기 | proc/analyze-symptom.md ; proc/program-to-spec.md | 2 / 2 |
+| `ReadClass` | 클래스 소스·메타 읽기 | proc/analyze-symptom.md ; proc/program-to-spec.md | 10 / 6 |
+| `ReadFunctionGroup` | 펑션 그룹 소스·메타 읽기 | proc/compare-programs.md | 3 / 2 |
+| `ReadFunctionModule` | 펑션 모듈 소스·메타 읽기 | proc/analyze-symptom.md ; proc/program-to-spec.md | 7 / 4 |
+| `ReadInterface` | 인터페이스 소스·메타 읽기 | proc/analyze-symptom.md ; proc/program-to-spec.md | 4 / 3 |
 | `ReadProgram` | 프로그램 소스·메타 읽기 | proc/analyze-symptom.md ; proc/analyze-code.md | 4 / 2 |
 | `ReadScreen` | 화면 플로우 로직·필드 읽기 | proc/program-to-spec.md | 1 / 1 |
 | `ReadServiceBinding` | 서비스 바인딩 소스·메타 읽기 | proc/program-to-spec.md | 2 / 1 |
 | `ReadServiceDefinition` | 서비스 정의 소스·메타 읽기 | proc/program-to-spec.md | 2 / 1 |
 | `ReadTextElementsBulk` | 텍스트 요소 전량 1회 읽기 (TPOOL RFC) | proc/review-checklist.md ; know/abap/conventions/text-element-rule.md | 3 / 2 |
-| `ReadView` | 뷰(CDS) 소스·메타 읽기 | proc/program-to-spec.md ; proc/compare-programs.md | 3 / 2 |
+| `ReadView` | 뷰(CDS) 소스·메타 읽기 | proc/program-to-spec.md ; proc/compare-programs.md | 5 / 3 |
 | `SearchObject` | 이름·와일드카드로 오브젝트 존재·위치 검색 | proc/troubleshooting.md ; proc/install-sap-assets.md | 52 / 18 |
 
 #### 4.3.2 write — 37종
 
 | 도구 | 용도 | 대표 참조처 | 참조 |
 |---|---|---|---:|
-| `ActivateObjects` | 다건 오브젝트 일괄 활성화 | proc/create-object.md ; pol/verification-policy.md | 22 / 13 |
+| `ActivateObjects` | 다건 오브젝트 일괄 활성화 | proc/create-object.md ; pol/verification-policy.md | 24 / 14 |
 | `CreateBehaviorDefinition` | RAP 비헤이비어 정의(BDEF) 생성 | proc/create-object.md | 2 / 1 |
 | `CreateClass` | 클래스 생성 (초기 상태) | proc/create-object.md ; proc/install-sap-assets.md | 17 / 11 |
 | `CreateDataElement` | 데이터 엘리먼트 생성·활성 | proc/create-object.md ; know/abap/conventions/field-typing-rule.md | 11 / 5 |
@@ -391,7 +409,7 @@ handler 348파일)가 제공하는 SAP ADT MCP 도구 표면.
 | `CreateTable` | 테이블 생성 | proc/create-object.md ; know/abap/conventions/field-typing-rule.md | 14 / 6 |
 | `CreateTextElement` | 텍스트 요소 추가 | know/abap/conventions/text-element-rule.md ; proc/create-program.md | 8 / 3 |
 | `CreateTransport` | 트랜스포트 요청 생성 (P4) | pol/transport-client-rule.md ; proc/troubleshooting.md | 23 / 11 |
-| `CreateView` | CDS 뷰 / 클래식 뷰 생성 | proc/create-object.md | 2 / 1 |
+| `CreateView` | CDS 뷰 / 클래식 뷰 생성 | proc/create-object.md | 3 / 2 |
 | `PatchGuiStatus` | GUI 상태 행 단위 병합 | proc/review-checklist.md | 1 / 1 |
 | `ReleaseTransport` | 트랜스포트 요청·태스크 릴리스 (P4) | proc/release.md ; proc/review-checklist.md | 9 / 5 |
 | `UpdateBehaviorImplementation` | 비헤이비어 구현 소스 갱신 | proc/troubleshooting.md | 1 / 1 |
@@ -431,19 +449,21 @@ handler 348파일)가 제공하는 SAP ADT MCP 도구 표면.
 
 | 도구 | 용도 | 대표 참조처 | 참조 |
 |---|---|---|---:|
-| `GetSqlQuery` | ADT Data Preview 경유 SELECT 실행 | pol/data-protection/data-extraction-policy.md ; proc/troubleshooting.md | 52 / 26 |
-| `GetTableContents` | 테이블·CDS 뷰 행 데이터 미리보기 | adapter/codex/README.md ; persona/sap-stocker.md | 51 / 23 |
+| `GetSqlQuery` | ADT Data Preview 경유 SELECT 실행 | pol/data-protection/data-extraction-policy.md ; proc/troubleshooting.md | 53 / 27 |
+| `GetTableContents` | 테이블·CDS 뷰 행 데이터 미리보기 | adapter/codex/README.md ; persona/sap-stocker.md | 52 / 24 |
 
 이 2종의 참조 다수는 **호출 지시가 아니라 금지·승인 절차 서술**이다. 자작 엔진에서도
 표면에는 남기되 게이트를 승계한다 (§2 ⑴ 검증 기준 3).
 
-### 4.4 실질 참조 없음 — 77종 (사다리 ⑴ 판단 재료)
+### 4.4 실질 참조 없음 — 76종 (사다리 ⑴ 판단 재료)
 
 **아래 목록은 "제거 결정"이 아니라 "검토 대상"이다.** 참조가 없다는 것은 현 자산이 지시하지
-않는다는 뜻일 뿐, 필요 없다는 증명이 아니다 (예: `GetSourceDiff`는 기계 확인에 유용하지만
-아직 어떤 절차도 부르지 않는다 — 자작 시 **넣을** 후보일 수 있다).
+않는다는 뜻일 뿐, 필요 없다는 증명이 아니다. 최초 실사가 이 목록에 두었던 `GetSourceDiff`가
+그 실례다 — "기계 확인에 유용하지만 아직 아무도 안 부른다"고 적어 뒀는데, 그 뒤 신설된
+`proc/verify-applied.md`가 실제로 부르면서 §4.3.1로 넘어갔다. **자산이 바뀌면 이 목록도
+바뀐다.**
 
-**A. 생성된 권한 allowlist에만 등장 — 61종**
+**A. 생성된 권한 allowlist에만 등장 — 60종**
 
 `Delete*` 25종: `DeleteBehaviorDefinition` `DeleteBehaviorImplementation` `DeleteCdsUnitTest`
 `DeleteClass` `DeleteDataElement` `DeleteDomain` `DeleteFunctionGroup` `DeleteFunctionModule`
@@ -452,10 +472,10 @@ handler 348파일)가 제공하는 SAP ADT MCP 도구 표면.
 `DeleteServiceBinding` `DeleteServiceDefinition` `DeleteStructure` `DeleteTable` `DeleteTextElement`
 `DeleteUnitTest` `DeleteView`
 
-read 계열 31종: `GetAbapSystemSymbols` `GetAdtTypes` `GetBadiImplementations` `GetBehaviorDefinition`
+read 계열 30종: `GetAbapSystemSymbols` `GetAdtTypes` `GetBadiImplementations` `GetBehaviorDefinition`
 `GetCallGraph` `GetCdsUnitTest` `GetCdsUnitTestResult` `GetCdsUnitTestStatus` `GetClassMethod`
 `GetInstalledComponents` `GetNodeStructureLow` `GetObjectNodeFromCache` `GetObjectStructure`
-`GetObjectStructureLow` `GetObjectsList` `GetServiceBinding` `GetServiceDefinition` `GetSourceDiff`
+`GetObjectStructureLow` `GetObjectsList` `GetServiceBinding` `GetServiceDefinition`
 `GetTransaction` `GetTypeInfo` `GetUnitTest` `GetVirtualFoldersLow` `GrepPackages`
 `ListServiceBindingTypes` `ReadDataElement` `ReadDomain` `ReadGuiStatus` `ReadMetadataExtension`
 `ReadPackage` `ReadStructure` `ReadTable`
@@ -465,7 +485,7 @@ write 1종: `UpdateClassMethod`
 runtime 4종: `RuntimeGetGatewayErrorLog` `RuntimeListFeeds` `RuntimeListSystemMessages`
 `ValidateServiceBinding`
 
-(25 + 31 + 1 + 4 = 61)
+(25 + 30 + 1 + 4 = 60)
 
 **B. allowlist + 훅 클래스 열거에만 등장 — 16종**
 
@@ -482,16 +502,15 @@ runtime 4종: `RuntimeGetGatewayErrorLog` `RuntimeListFeeds` `RuntimeListSystemM
 같은 오브젝트의 `GetDataElement`/`GetDomain`/`GetPackage`/`GetStructure`/`GetTable`은 참조가 많다.
 `Get*`/`Read*` 이중 표면이 상류에서 온 중복일 가능성이 높다 — 자작 엔진에서 **합칠 1순위 후보**다.
 
-### 4.5 유령 참조 — 1건 ⚠
+### 4.5 유령 참조 — 0건 ✅ (해소)
 
-| 참조된 이름 | 위치 | 실제 표면 | 성격 |
+최초 실사가 잡은 1건은 고쳐졌다.
+
+| 참조된 이름 | 위치 | 실제 표면 | 처리 |
 |---|---|---|---|
-| `CreateCdsView` | `interactive/core/knowledge/modules/PS/workflows.md:80` | 없음 (표면은 `CreateView`) | 오탈 |
+| `CreateCdsView` | `interactive/core/knowledge/modules/PS/workflows.md:80` | 없음 (표면은 `CreateView`) | **2026-08-10 `CreateView`로 정정** — 같은 파일 82행이 이미 `UpdateView`를 정확히 쓰고 있었고 80행만 어긋나 있었다 |
 
-같은 파일 82행은 `UpdateView`를 정확히 쓰고 있어 80행만 어긋난다. **이 문서는 실사 기록이므로
-고치지 않고 등재만 한다** — 수정은 문서를 소유한 작업의 몫이다.
-
-이 1건을 제외하면 유령 참조 0건이며, `mcp__*__` 풀네임 표기 중 표면에 없는 이름은 **0건**이다.
+재대조 결과 유령 참조는 **0건**이며, `mcp__*__` 풀네임 표기 중 표면에 없는 이름도 **0건**이다.
 
 ### 4.6 실사 재현 방법
 
@@ -504,9 +523,10 @@ runtime 4종: `RuntimeGetGatewayErrorLog` `RuntimeListFeeds` `RuntimeListSystemM
 4. 1에 없는 토큰 = 유령 참조 후보(문맥 확인 필요 — ABAP 컬럼명·글롭 표기가 섞인다).
    1에 있으나 열거원 밖 참조가 0인 이름 = §4.4 목록.
 
-**이번 실사의 오탐 3건**(수동 배제): `ReleaseState`(ABAP DDIC 컬럼명) ·
-`RuntimeRun`(`RuntimeRun*` 글롭·`RuntimeRun{Program,Class}WithProfiling` 축약 표기) ·
-`CreateCdsView`(이것만 진짜 유령 — §4.5).
+**오탐 2건**(수동 배제): `ReleaseState`(ABAP DDIC 컬럼명) ·
+`RuntimeRun`(`RuntimeRun*` 글롭·`RuntimeRun{Program,Class}WithProfiling` 축약 표기).
+최초 실사에는 세 번째로 `CreateCdsView`가 걸렸고 그것만 진짜 유령이었다 — 지금은 정정돼
+후보 자체가 사라졌다(§4.5).
 
 ---
 
@@ -518,6 +538,6 @@ runtime 4종: `RuntimeGetGatewayErrorLog` `RuntimeListFeeds` `RuntimeListSystemM
 | 검사기 재작성 | 등재만 |
 | 지식 재저작 · 템플릿 재생성 | 등재만 |
 | 릴리스 자산 재발행 | 등재만 |
-| `CreateCdsView` 오탈 수정 (§4.5) | 이 문서 소유 아님 — 문서 현행화 작업의 몫 |
-| GPL 31파일 제거 | 이 판의 **별도 작업**이 수행 |
+| `CreateCdsView` 오탈 수정 (§4.5) | ✅ 완료 — 문서 현행화 작업이 2026-08-10 정정 |
+| GPL 31파일 제거 | ✅ 완료 — 이 판의 별도 작업이 2026-08-09 수행 |
 | ENGINE(final-harness 루프) 재개 | D-040 template-only 유지 — 이 청사진과 무관 |

@@ -42,9 +42,13 @@ Tools are paths, not axes. Human Direct/Guided P3 may use Track B MCP, human vsp
 CLI, or user-operated abapGit. Reviewers may use P0/P1 but perform no transport
 operation, including reads.
 
-Direct SAP code is `DRAFT`; Direct-P3 is `PROVISIONAL_WRITE`. Completion needs
-a Guided-P3 exact-subject `R-PASS` plus vsp-backed `V-PASS`. Non-SAP documents
-and metadata can still finish in Direct.
+Direct SAP code is `DRAFT`; Direct-P3 is `PROVISIONAL_WRITE`. `COMPLETE` needs
+both halves: the **machine confirmation** of
+`interactive/core/procedures/verify-applied.md` (read the source back out of SAP
+and compare it against what was sent, then confirm syntax and active state) plus
+an **independent fresh-context review** — a Guided-P3 exact-subject `R-PASS`. A
+tool's success response is neither half. Non-SAP documents and metadata can
+still finish in Direct.
 
 ### Mode-independent constraints
 
