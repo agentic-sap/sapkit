@@ -1,7 +1,0 @@
-{
-  "step": 2,
-  "name": "review-gate",
-  "exitCode": 0,
-  "stdout": "Step 2 (review-gate) 재시도(수정 워커) 완료 — 스펙 §4.2 경로.\n\n분기 판정: verdict-862ca3b3…json 실재(FAIL·MAJOR·B2) → 재시도 분기. 직전 verify exit 1은 실패가 아니라 설계된 1차 결과(1차 워커 무수정 확인 → 게이트가 red 캡슐 FAIL 기록 = AC-8 red 절반) — 이번 시도는 무수정이 아니라 수정 적용으로 행동이 다름.\n\n단일 수정: src/zsah4_gl_list.prog.abap 47행 `INNER JOIN skat` → `LEFT OUTER JOIN skat` (ON 3조건 불변 — 로그온 언어 텍스트 없는 계정이 txt50 공란으로 잔존). findings 밖 무수정.\n\n기계 체인 재실행 전부 green(verify-sap 래퍼 경유·MCP 0·row-data 0): lint No issues / deploy \"Updated + Successfully updated and activated\" VERIFY_PASS / test 5 passed 0 failed / atc 10 findings(2 WARN·8 INFO·Error 0) / source read — 서버 소스 LEFT OUTER JOIN·INNER 없음·F_SKA1_KTP 유지, 로컬과 정규화 동일(sha eb37e56e…).\n\n산출물: verification.json → mode green 재작성(fresh server_evidence+해시), raw-source-read.txt 갱신, check-verification.mjs green → CHECK_OK exit 0. index.json step 2 completed + summary + contract.\n\n메커니즘 주기: green verdict·pass_records는 이 워커가 아니라 엔진 verify(review-gate.mjs)가 새 캡슐(해시 ≠ red)로 리뷰어를 재기동해 기록한다 — 워커는 게이트를 직접 실행하지 않음. 가드 상태 blocked=false·fail_revisions 1<3·infra 0<2 → 재리뷰 진행 조건 충족. 요구 3 수정 + 요구 2 기존 충족이라 PASS 기대.\n\n제약 준수: spec·scripts/review-gate/**·unit.json·.harness/ 무수정, $TMP 한정, 커밋 없음. 변경 = src 1·verification.json·raw-source-read.txt·index.json.\n",
-  "stderr": ""
-}

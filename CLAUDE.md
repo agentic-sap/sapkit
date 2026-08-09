@@ -3,23 +3,22 @@
 ## 프로젝트 정체성 (30초 맥락 — 이걸 모르면 판단하지 말 것)
 
 SAP ABAP 개발을 AI 하네스로 수행하는 **단일 레포 · 두 트랙**. **제품은 `interactive/`
-플러그인 단독**이고 나머지(`engine/`·`vsp/`·`scripts/`·`phases/`)는 공방(개발 도구·소스
+플러그인 단독**이고 나머지(`engine/`·`vsp/`)는 공방(개발 도구·소스
 정본·증거)이다 — 모노레포 유지(D-040). 철학: **차용 후 완전 소유**(sc4sap 지식 이식,
 엔진 편입 D-017) · 가볍지만 강력하게(무게의 척도 = 세션 토큰·설치 부담, 레포 바이트
 아님 — D-040) · 3사 하네스 중립.
 
 - **트랙 A — 하네스 트랙** = Direct(기본) + Guided(명시 승격). **ENGINE(final-harness
-  루프)은 D-040으로 template-only** — 계약·체크리스트·리뷰 스키마 자산은 보존하되
-  실행은 지원하지 않는다(래퍼 exit 65 = 의도된 상태, 지원 소유자 없음; 재개 = 실수요
-  트리거 + 새 D-결정). **제품 원칙 = attended-only**, unattended는 비약속 휴면 옵션
-  (U-gate 안전조건은 D-034에 보존, 배선 우선순위는 D-040이 supersede). 사람 소유
-  Direct/Guided의 SAP 적용은 트랙 B MCP·사람 vsp CLI·사용자 abapGit 모두 허용된다.
-  vsp-custom은 **오프라인 검증·트랙 A 완료 증거(V-PASS) 백엔드**이며(ENGINE 휴면과
-  무관하게 유효), 사람 작업의 유일한 SAP 접점은 아니다(docs/DESIGN.md §3 — powerup 엔진은
-  트랙 A에서 쓰지 않음). 소유 전략: **final-harness는 D-018 분리 유지 + verified
-  v0.17.3 동결·공급선 휴면(D-038 — v0.17.3은 "실행 경로"가 아니라 재개 시 기준 버전)**,
-  **vsp-custom은 D-030으로 레포 내 `vsp/`에 편입 완료(D-037 — 히스토리 비이식 스냅샷·
-  바이너리 비커밋; D-018 vsp 조항 supersede)**.
+  루프)은 D-040으로 template-only였고, renew 1차(R1)에서 그 실험 설비를 레포에서
+  걷어냈다** — `phases/`·`src/`·루트 `scripts/`·`.harness/`·`packs/`·`domain/`·
+  `adapters/final-harness*` 삭제. 재개하려면 실수요 트리거 + 새 D-결정이 필요하다.
+  **제품 원칙 = attended-only**, unattended는 비약속 휴면 옵션(U-gate 안전조건은
+  D-034에 보존, 배선 우선순위는 D-040이 supersede). 사람 소유 Direct/Guided의 SAP
+  적용은 트랙 B MCP·사람 vsp CLI·사용자 abapGit 모두 허용된다. vsp-custom은
+  **오프라인 검증·완료 증거(V-PASS) 백엔드**이며 사람 작업의 유일한 SAP 접점은
+  아니다(docs/DESIGN.md §3 — powerup 엔진은 트랙 A에서 쓰지 않음).
+  **vsp-custom은 D-030으로 레포 내 `vsp/`에 편입 완료(D-037 — 히스토리 비이식
+  스냅샷·바이너리 비커밋; D-018 vsp 조항 supersede)**.
 - **트랙 B — 대화형 플러그인 (제품, 검증 완료)** = `interactive/` — 하네스 중립 코어(지식 178·
   페르소나 26·절차 22·스킬 17·정책) + MCP 서버 번들 + 어댑터 3사(Claude/Codex/Antigravity).
   번들의 소스 정본은 레포 내 **`engine/`**(D-017 편입) — 엔진 수리→재번들→반영은
@@ -47,6 +46,33 @@ SAP ABAP 개발을 AI 하네스로 수행하는 **단일 레포 · 두 트랙**.
 | `interactive/MIGRATION-MANIFEST.md` | 원본 파일 분류 변경 시 — 분류 변경은 이 파일 수정으로만 |
 
 불변 규칙 전체(동결 레포·private denylist·번들 보호·실데이터 승인 등)는 **HANDOFF §8**.
+
+## 안전 규칙 (작업 전 필독 — 위반이면 중단하고 보고)
+
+옛 `.harness/RULES.md`에서 승계한 현행 안전 규칙이다(R1에서 그 파일은 삭제됐고, 여기가
+정본이다). 엔진·트랙 A 실행 구조에 묶여 있던 조항은 함께 폐기했고, 부품 중립적인
+것만 남겼다. SAP 정책 등급(P0~P4)의 정의는 `AGENTS.md`.
+
+- **SAP write는 DEV tier에서만** — QA/PRD tier 시스템에 write(`Create*`·`Update*`·
+  `Delete*`·활성화·실행, vsp `deploy`/`copy`/`execute`)를 실행하지 않는다. (구 R-003)
+- **실데이터 추출은 건별 사람 승인** — `GetTableContents`·`GetSqlQuery`·vsp `query`
+  실행 **전에** 범위·필드·행 상한을 제시하고 승인을 받는다. 배치·서브에이전트·자동승인
+  금지. 소유자 머신 예외(D-043)는 이 건별 승인을 서버측 table blocklist 하한으로
+  대체할 뿐이며, 배치·서브에이전트 금지는 그대로다. 배포 기본값은 잠긴 채 둔다.
+- **write 성공 보고를 그대로 믿지 않는다** — SAP write 뒤에는 소스를 되읽어 실제
+  반영을 확인한다. write 성공만으로는 `PROVISIONAL_WRITE`이고 완료가 아니다(완료는
+  기계 검증 V-PASS + 새-컨텍스트 리뷰 R-PASS). CLAS 거짓 성공 실증 이력이 근거다.
+  (구 R-006)
+- **동결 원본 무접촉 · private 금독** — 동결 레포(sc4sap-custom·sc4sap-lite)를
+  수정하지 않으며, sc4sap-custom의 `private/` 하위는 **읽지도 않는다**. (구 R-004)
+- **비밀정보 커밋 금지** — SAP 접속 정보(호스트·자격증명·`.env` 내용)를 레포에
+  커밋하지 않는다. (구 R-005)
+- **vsp는 오프라인·CLI로만** — vsp를 온라인(SAP 접속) MCP 서버 모드로 기동하지
+  않는다. powerup MCP와 도구가 겹치고 권한이 이원화된다. 로컬 전용 `--offline`
+  모드(SAP 무접속)는 이 금지 밖. (구 R-002, D-049로 축소)
+- **재개 전 원격 대조** — 재개 세션은 `git fetch` + `main..origin/main` 확인 뒤에
+  시작한다. 로컬 문서만 믿으면 다른 머신의 병렬 줄기를 놓친다(두 머신 6일 분기
+  실증). 분기를 발견하면 작업 전에 사용자에게 보고한다. (구 R-008)
 
 ## 게이트 (구조 변경 시 항상 통과 상태 유지)
 

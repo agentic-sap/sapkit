@@ -82,7 +82,8 @@ preferred_compare_operator, colon_missing_space, naming(LocalVariableNames) —
 Error만 비-0 exit, Warning은 exit 0 (DESIGN.md §15-V2 근거 좌표와 일치).
 
 **2-a. 오프라인 (`--file`)** — Phase 0a에서 7종 규칙 스니펫별 exit code를 전수
-실측한 표가 이미 있음(`.harness/STATE.md` "lint 실측" 항목: E 4종
+실측한 표가 이미 있음(당시 하네스 상태 문서의 "lint 실측" 항목 — R1에서 삭제,
+내용은 아래에 옮겨 적는다: E 4종
 line_length>255·empty_statement·max_one_statement·preferred_compare_operator, W 3종
 obsolete·colon·naming — line 120~255 사이 길이도 W). 본 세션은 재확인 1회만 수행:
 
