@@ -1,7 +1,0 @@
-{
-  "step": 0,
-  "name": "implement-red",
-  "exitCode": 0,
-  "stdout": "Step 0 (implement-red) 완료.\n\n작성 파일: src/zsah4_gl_list.prog.abap (신규) — REPORT zsah4_gl_list(PARAMETERS p_ktopl) + 로컬 클래스 lcl_gl_list(순수 헬퍼 summarize: DB 무접근, 내부테이블 → total_count/bs_count/pl_count 반환) + 로컬 테스트 클래스 ltc_gl_list(RISK LEVEL HARMLESS DURATION SHORT, 5케이스: mixed_accounts/all_balance_sheet/all_profit_and_loss/empty_input/ignores_text_presence).\n\n의도 결함(요구 3만 위반): START-OF-SELECTION SELECT의 `INNER JOIN skat ON skat~ktopl = ska1~ktopl AND skat~saknr = ska1~saknr AND skat~spras = @sy-langu` — 로그온 언어 텍스트 없는 계정이 조용히 탈락. AUTHORITY-CHECK OBJECT 'F_SKA1_KTP'는 SELECT 이전 배치(sy-subrc<>0 시 안내 후 RETURN) — 요구 2는 red에도 충족.\n\nAC 실행: vsp lint → \"No issues found\", EXITCODE=0.\n스펙 요구 1~9 조목 대조: 1·2·4·5·6·7·8·9 충족, 요구 3만 단독 위반(혼입 없음 — AC-8 인과 청정).\nCHECKLIST.md 셀프점검 클린.\nindex.json step 0: status=completed + summary + contract 기록(JSON 유효성 확인).\nForbidden 준수: spec.md 미수정 · SAP 미연결(offline) · 지정 2파일 외 무변경 · 커밋 없음.\ngit status: M phases/4-gated-deploy/index.json · ?? src/zsah4_gl_list.prog.abap (+ 기존 .harness/profile.json은 무접촉).\n",
-  "stderr": ""
-}

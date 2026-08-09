@@ -3,6 +3,5 @@ node_modules/
 !/server/runtime-deps/keyring/node_modules/
 .env
 .sapkit/
-.sc4sap/
 *.log
 .DS_Store

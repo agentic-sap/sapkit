@@ -51,8 +51,10 @@ self-completing unit — map its phases to that Policy:
 - **`.sapkit/**` files are working material, not completion proof.** A successful
   MCP create / activation makes an object **PROVISIONAL_WRITE**, not done.
 - **COMPLETE requires both** an exact-subject fresh-context review **R-PASS** and a
-  vsp-backed **V-PASS** (source read-back · syntax · activate · unit · ATC). Absent
-  either, Phase 8 records **DRAFT** or **PROVISIONAL_WRITE** — never "완료 / done".
+  **machine check of what SAP actually holds** — source read-back compared against
+  the intended source, plus syntax and active-state confirmation
+  ([verify-applied](verify-applied.md)). Absent either, Phase 8 records **DRAFT**
+  or **PROVISIONAL_WRITE** — never "완료 / done".
 
 ## Use When / Do Not Use When
 
@@ -482,7 +484,7 @@ Adopt the [sap-executor](../personas/sap-executor.md) persona for this step.
 Implementation runs under the `execution_owner` resolved at Phase 3.5 (`main` | `delegated` — [development-loop.md](../policies/development-loop.md)). **When the resolved owner is `delegated`, dispatching the worker is mandatory — the coordinating conversation must not implement the slice itself.** Launch is adapter-specific: on the Claude adapter delegate to the bundled `sapkit:sap-worker` subagent; on Codex / Antigravity hand the worker contract to a fresh session (the adapter README's "구현 위임" section owns the exact invocation). If the launch fails or no worker mechanism exists: with `selection_source: default`, continue as `main`, say so, and record `effective_owner: "main"` in `state.json`; with `selection_source: explicit`, never fall back silently — stop, explain the limitation, and wait for direction. After a worker has started, an owner change is not a rollback: stop the worker, preserve and report what was actually applied (including `PROVISIONAL_WRITE` state), and continue only on the user's direction. A delegated worker receives the approved spec, its task slice, and the relevant rules and paths — never secrets. Control artifacts (`approval.json`, `state.json`, `verification.json`, `review-request.json`, `review-result.json`) remain main-only, and the worker never serves as its own reviewer. P2 data reads stay main-only (including `vsp query` from a worker shell), and P4 transport lifecycle actions are never delegated — the worker only references the transport id its contract names.
 
 Flow (source-first, single syntax check on the main program, batch activation):
-1. Generate ALL include sources locally first, from the approved spec + the mandatory main-program template — [zrsc4sap_oop_ex.prog.abap](../knowledge/abap/templates/oop-sample/zrsc4sap_oop_ex.prog.abap) (OOP) or [main-program.abap](../knowledge/abap/templates/procedural-sample/main-program.abap) (Procedural) — as the starting skeleton. When OOP with testing scope, the `{PROG}_tst` test-class include is part of this initial batch. If `vsp` is installed, run the 13-rule offline analysis (`AnalyzeABAPCode` via `vsp --offline`) on these sources before step 2 — an optional local check; on the Claude adapter the `offline-code-analysis` hook runs it automatically after each source write ([troubleshooting §7](troubleshooting.md#7-vsp-local-verification-optional)).
+1. Generate ALL include sources locally first, from the approved spec + the mandatory main-program template — [zrsc4sap_oop_ex.prog.abap](../knowledge/abap/templates/oop-sample/zrsc4sap_oop_ex.prog.abap) (OOP) or [main-program.abap](../knowledge/abap/templates/procedural-sample/main-program.abap) (Procedural) — as the starting skeleton. When OOP with testing scope, the `{PROG}_tst` test-class include is part of this initial batch. If `vsp` is installed, run the 13-rule offline analysis (`AnalyzeABAPCode` via `vsp --offline`) on these sources before step 2 — an optional local check; on the Claude adapter the `offline-code-analysis` hook runs it automatically after each source write ([troubleshooting §7](troubleshooting.md#7-sapkit-verifier--local-verification-optional)).
 2. Create the includes via `CreateInclude` + `UpdateInclude`, then the main program via `CreateProgram` + `UpdateProgram`.
 3. Run a single `CheckSyntax` on the MAIN program (not per include). Syntax failures → fix-and-retry loop, max 3 iterations on the main program.
 4. Activate, then verify via `GetInactiveObjects` — the program's object set must return 0 inactive entries.
@@ -593,21 +595,19 @@ After completion, a verified root cause likely to recur may be proposed for capt
   aborted before Phase 4). The report says a draft/spec exists — not that a program
   was built.
 - **PROVISIONAL_WRITE** — objects were created/activated on DEV and the HARD GATE
-  above holds, but no vsp-backed **V-PASS** has been recorded yet. This is the
-  strongest state a Track B MCP-only session can reach. The report must NOT say
-  "완료 / done"; it states the objects are provisional pending vsp verification.
-- **COMPLETE** — the HARD GATE holds AND a vsp **V-PASS** (source read-back ·
-  syntax · activate · unit · ATC on the same objects) has been recorded. Only then
-  may the report state the program is complete. The exact-subject review `R-PASS`
-  (verdict `PASS` bound to `approval.json.spec_sha256`) plus the vsp `V-PASS` are
-  the two required stamps. Run the chain with the shipped runner
-  [tools/vpass/vpass.mjs](../../tools/vpass/vpass.mjs) —
-  `node "$CLAUDE_PLUGIN_ROOT/tools/vpass/vpass.mjs" --source-dir <dir> PROG {PROG}`
-  (`--dry-run` first) — which writes the verdict record to `.sapkit/vpass/`. Run it
-  via the [`vpass` skill](../../skills/vpass/SKILL.md) (`/sapkit:vpass`) instead of
-  typing the raw command. Read that record's `limits[]` before quoting the stamp:
-  its syntax/activation evidence is indirect and does not replace the
-  `verification.json` activation record.
+  above holds, but what SAP actually holds has not been read back and confirmed.
+  This is the strongest state a Track B MCP-only session can reach. The report
+  must NOT say "완료 / done"; it states the objects are provisional pending that
+  confirmation.
+- **COMPLETE** — the HARD GATE holds AND the machine check in
+  [verify-applied](verify-applied.md) came back clean on the same objects: the
+  source read back out of SAP matches what was intended, it compiles, and nothing
+  is left inactive. Only then may the report state the program is complete, and
+  only together with the exact-subject review `R-PASS` (verdict `PASS` bound to
+  `approval.json.spec_sha256`). When quoting that check, carry its limits with it:
+  it establishes that the intended source is present, compiles, and is active —
+  not that the logic is correct, and it does not replace the `verification.json`
+  activation record.
 
 An MCP success response, an ACTIVE flag, or a single `CheckSyntax` result alone
 never upgrades the state past PROVISIONAL_WRITE.

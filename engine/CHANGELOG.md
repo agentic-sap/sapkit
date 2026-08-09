@@ -4,6 +4,24 @@
 
 ## [Unreleased]
 
+## [5.0.0] - 2026-08-10
+
+### Removed
+- **BREAKING — the `.sc4sap` runtime-directory compatibility layer is gone.** 4.14.0 added `.sapkit` *alongside* `.sc4sap` (R-TIE/R-NEW/R-ENV/R-PRESERVE) as a migration-period doubling, explicitly to be removed once migration completed. The human pre-gate has now passed on the owner's machines (both scopes report `COEXIST_OK`, no `SC4SAP_*` variable is set in any scope), so `profile.ts` drops the second generation entirely:
+  - `SC4SAP_HOME_DIR` is no longer read. `SAPKIT_HOME_DIR` is the only home override; set-but-missing stays a hard `ENV_INVALID` (never a silent fall-through to `~/.sapkit`).
+  - `<cwd>/.sc4sap` is no longer a candidate runtime directory. `resolveProjectRuntimeDir` is now simply `<cwd>/.sapkit` — a leftover directory of the old name is invisible, and no connection, tier, `config.json`, or `blocklist-extend.txt` is ever read out of it.
+  - The R-TIE tie-break, the migration-journal `COEXIST_OK` detection, and the once-per-process deprecation warnings are removed with the branches they served.
+- **BREAKING — `LoadedProfile` shape.** `runtimeDirGeneration` and `homeGeneration` are removed (no consumer in this tree read them), and `RuntimeDirSelection.generation` with them. `PathReason` loses `OK_LEGACY_DEPRECATED` and `COEXIST_OK`, leaving `OK_NEW | ENV_INVALID | PROFILE_NOT_FOUND`. The exported `RUNTIME_DIR_LEGACY` and the `RuntimeGeneration` type are gone.
+
+### Changed
+- Model- and user-facing text no longer names the retired path: the `ReloadProfile` tool description, and the env-var docblocks in `gatewayRfc` / `nativeRfc` / `odataRfc` / `zrfcProxy` / `launcher`. `docs/user-guide/AVAILABLE_TOOLS*.md` regenerated from those descriptions.
+
+### Notes
+- **Capability surface unchanged**: 65 tools at `--exposition readonly`, 155 at `readonly,high`, measured on the bundle before and after this change. This release removes a path-resolution fallback, not a tool.
+- The shared conformance fixture `__tests__/fixtures/runtime-dir-selection.json` drops from 43 cases to 26. The cases that only existed to prove the two generations coexisted (tie-break ordering, migration round-trip, mixed homes) lost their subject; five were **retargeted** to assert the opposite — that a leftover `.sc4sap` directory, a `SC4SAP_HOME_DIR` variable, and a `~/.sc4sap` home are now ignored. Safety regressions §7-3 go from nine groups to five (1, 2, 6, 8, 9); 3/4/5/7 concerned generation tie-breaks that no longer exist.
+- `src/__tests__/lib/profile.test.ts` moves its fixtures from the legacy layout (which it used deliberately as R-PRESERVE evidence) to `.sapkit`, and replaces the R-TIE-order / env-fallback / deprecation-warning tests with "the retired generation is ignored" tests.
+- Full jest: **717 passed / 9 skipped / 0 failed** (733 / 11 before). The −18 is entirely the removed subject, not lost coverage: −17 come from the fixture (43 → 26 cases, of which 2 were already engine-skips) and −1 from the helper block, where the R-TIE-order, env-fallback and once-per-process-deprecation tests were replaced by a single "the retired generation is ignored" test. Every remaining assertion is unchanged or strengthened; 0 failed throughout.
+
 ## [4.14.3] - 2026-08-02
 
 ### Fixed

@@ -1,5 +1,11 @@
 # SAP Agentic Harness — 설계서 v2.5
 
+> ⚠ **현행성**: renew 1차 판(2026-08-10 · D-071~D-077) **이전** 문서다. 트랙 A 실행
+> 설비(Engine attended 축의 구현물)는 그 판에서 레포에서 제거됐다 — **구조·백엔드
+> 결정의 근거**로 읽고, 실행 설비의 존재를 전제한 서술은 현행으로 취급하지 말 것.
+> 현행 게이트·완료 의미론은 `CLAUDE.md`, 상태는 `HANDOFF.md`, 재구성 계획은
+> `docs/BLUEPRINT.md`.
+
 > **상태: 주/보조 머신 분기 통합 완료(2026-07-19) — 이 v2.4 3축(Direct/Guided/Engine
 > attended) 틀이 트랙 A 설계 정본(통합 결정 ⑴, 아래 v2.5 주). 초기 설계는
 > Codex(0.143.0)·Fable 5 독립 이중 리뷰를 반영했고, 통합 기반 실행순서는 v2.4 운용
@@ -155,7 +161,7 @@ ADT를 두고 MCP 서버가 2개(powerup + vsp) 공존하면 도구 중복과 �
 생긴다. SAP 접점으로서 vsp = CLI 전용. 단 **`--offline` 로컬 전용 모드**(SAP 무접속·
 ADT 무접촉 — AnalyzeABAPCode 13종 결함 분석 등 로컬 도구 4종)는 이 근거가 성립하지
 않아 금지 밖이다(D-049) — 트랙 B가 abapGit 로컬 소스 흐름의 사전 검사로 훅 배선해
-사용한다(경고 전용, 서버 CheckSyntax·V-PASS 권위 불변).
+사용한다(경고 전용, 서버 CheckSyntax와 반영 확인 절차의 권위 불변).
 
 ## 4. 아키텍처 계층
 
@@ -274,7 +280,8 @@ RULES.md 항목과 harness-plan 체크리스트로 강제하고, 이 한계를 S
 
 Direct/Guided-P3의 사람 적용 경로는 MCP·vsp CLI·abapGit 모두 정당하다.
 Direct SAP code는 `DRAFT`, Direct-P3는 `PROVISIONAL_WRITE`이며, 완료는
-Guided-P3 exact-subject `R-PASS + V-PASS`가 필요하다. Engine-P3/P4 worker는
+**기계 확인**(`interactive/core/procedures/verify-applied.md`) **+ Guided-P3
+exact-subject `R-PASS`** 둘 다가 필요하다(도장 의식 폐지 — D-075). Engine-P3/P4 worker는
 vsp CLI만 쓰고, Engine-P2는 pause 후 Guided-P2 사람 호출로 넘긴다. Direct-P4는
 지원 진입점이 없으며 재기준 v2 §4.2의 Guided/Engine 소유권을 따른다.
 

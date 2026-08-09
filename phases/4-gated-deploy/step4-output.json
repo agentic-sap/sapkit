@@ -1,7 +1,0 @@
-{
-  "step": 4,
-  "name": "post-deploy-scoring",
-  "exitCode": 0,
-  "stdout": "Step 4 (post-deploy-scoring + 프로브 3건) 완료.\n\n채점(R-006 이행): drift — source read vs repo `git diff --no-index` exit 0(CRLF/LF 정규화 후 바이트 동일, LF sha ea4b21ac… = 캡슐 manifest 해시) · 서버는 green(LEFT OUTER JOIN·F_SKA1_KTP) · test 5 passed/0 failed · ATC 10 findings(2 WARN·8 INFO) Error급 0. AC 체인(source read→check green→test) 직접 실행 exit 0.\n\n프로브: ① A-19 transport read-only — 기본은 transports not enabled 게이트, SAP_ENABLE_TRANSPORTS=true로 list 6건(컬럼 확인)+get S4HK903951(헤더·Tasks 2·Objects 1) 각 exit 0, write 없음. ② A-20 ATC Error exit — 의도 결함 ZSAH4_ATCPROBE(하드코딩 패스워드+동적 WHERE) 배포에도 IDES 기본 변형은 INFO 2건뿐, Error급 미발생 — 억지 없이 정직 기록(Error급의 exit 상승 여부는 이 시스템 기본 변형에서 미검증 잔존). ③ A-3 CLAS 테스트 include 배포 — **현 vsp v2.38.1-94에서 지원 실측**: .clas.testclasses.abap가 CLAS/OC.testclasses로 배포·활성화 exit 0 + vsp test CLAS가 LTC_PROBE 실행 PASS(거짓 성공 아님) — ADR-002 \"미지원/TODO\" 전제 갱신 재료.\n\n정리: 프로브 객체 2종 삭제(MCP Delete 경유 — vsp CLI delete 부재로 계획 §4의 승인된 out-of-band 채널 사용, $TMP 한정) + read-back 404 + SearchObject 공백 + 로컬 임시 파일 3개 삭제. state/probes-evidence.json(스텝6 체커 소비 형태)·state/final-server-read.txt 기록. green 소스 동결·$TMP 밖 write 0·row-data 0·커밋 0. index.json step 4 completed.\n",
-  "stderr": ""
-}

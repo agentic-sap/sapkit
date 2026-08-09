@@ -50,10 +50,9 @@
 //   node tools/extract/extract-customizations.mjs all
 //
 // ─────────────────────── Runtime directory (D-057) ──────────────────────────
-// `.sapkit` is a candidate everywhere `.sc4sap` was one; nothing else changes
-// (R-PRESERVE). The inventory still lands beside the cwd's runtime dir — the
-// legacy generation when that is what the project has (R-E), `.sapkit` when it
-// has neither (R-NEW). `--resolve-only` prints the selection offline.
+// The inventory lands beside the cwd's runtime dir, or names the `.sapkit`
+// creation site when the project has none (R-NEW). `--resolve-only` prints the
+// selection offline.
 //
 // ──────── Transform note (sc4sap-custom `scripts/extract-customizations.mjs`) ────────
 // Parsers, heuristics, filters and output shape are unchanged. What differs:
@@ -100,38 +99,16 @@ const PROJECT_DIR = process.cwd();
 
 // ── runtime directory (D-057) ───────────────────────────────────────────────
 const NEW_DIR = '.sapkit';
-const LEGACY_DIR = '.sc4sap';
 
-// Connection completeness — the R-TIE tie-break input (empty pointer ≠ complete).
-function hasConnectionState(runtimeDir) {
-  try {
-    const pointer = join(runtimeDir, 'active-profile.txt');
-    if (existsSync(pointer) && readFileSync(pointer, 'utf8').trim().length > 0) return true;
-  } catch {
-    /* unreadable pointer is not completeness */
-  }
-  return existsSync(join(runtimeDir, 'sap.env'));
-}
-
-// R-TIE inside ONE directory: existence is this tool's criterion, applied per
-// generation before the tie-break.
-function pickGeneration(dir) {
-  const newer = join(dir, NEW_DIR);
-  const older = join(dir, LEGACY_DIR);
-  const newOk = existsSync(newer);
-  const oldOk = existsSync(older);
-  if (newOk && oldOk) {
-    if (hasConnectionState(older) && !hasConnectionState(newer)) return older;
-    return newer; // tie → .sapkit
-  }
-  if (newOk) return newer;
-  if (oldOk) return older;
-  return null;
+// Existence is this tool's criterion — depth 0, no walk-up.
+function pickRuntimeDir(dir) {
+  const candidate = join(dir, NEW_DIR);
+  return existsSync(candidate) ? candidate : null;
 }
 
 // R-E + R-NEW: write where this project already keeps runtime state; `.sapkit`
 // when it keeps none.
-const RUNTIME_DIR = pickGeneration(PROJECT_DIR) ?? join(PROJECT_DIR, NEW_DIR);
+const RUNTIME_DIR = pickRuntimeDir(PROJECT_DIR) ?? join(PROJECT_DIR, NEW_DIR);
 const OUTPUT_DIR = join(RUNTIME_DIR, 'customizations');
 
 const Z_PATTERN = /^[ZY]/i;

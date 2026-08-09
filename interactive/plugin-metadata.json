@@ -17,8 +17,8 @@
       "sap-agentic-harness": "sapkit"
     }
   },
-  "version": "0.5.4",
-  "displayName": "SAPKit",
+  "version": "0.6.0",
+  "displayName": "SAPKIT",
   "_displayName": "Codex·Antigravity UI에 뜨는 **사람이 읽는 이름**. D-041 개명 시 누락됐다가 리뷰 m-1로 정정 — 구 값 'SAP Agentic Harness'는 폐기된 정체성(하네스)이었다.",
   "author": {
     "name": "hjaewon"
@@ -59,10 +59,10 @@
   },
   "descriptions": {
     "_": "{{placeholder}}는 counts에서 치환된다. 수를 문장에 직접 적지 말 것.",
-    "marketplace_long": "Lite, harness-portable edition of SuperClaude for SAP. Same knowledge ({{modules}} module packs = 14 + BC — SPRO/BAPI/tables/workflows, {{industries}} industries, {{countries}} countries, ABAP clean-code conventions and templates), same MCP server (ADT tools: reads + DEV-tier-gated writes), same {{personas}} personas — minus team/fan-out orchestration. Procedures are owned by one main context following gated checklists (implementation may be delegated to a single fresh worker under the development-loop policy); review happens in a fresh context; SAP itself verifies (syntax, activation, unit tests, ATC).",
-    "plugin_short": "SAP ABAP development and consulting — knowledge core + personas + gated procedures + ADT MCP server, in one lite plugin.",
-    "claude_long": "Harness-portable lite edition of SuperClaude for SAP — {{modules}} module knowledge packs (14 + BC), {{industries}} industries, {{countries}} countries, ABAP conventions/templates, {{personas}} consultant/role personas (on-demand via INDEX selector), {{procedures}} procedures ({{skills}} exposed as skills) with human approval + fresh-context review gates, and the ABAP ADT MCP server ({{tools_default}} tools inspection-only / {{tools_connected}} connected). Quality model is one worker + one fresh-context reviewer + SAP machine verification (CheckSyntax → Activate → ABAP Unit → ATC); implementation may be delegated to a single fresh worker under the development-loop policy, but review always stays independent.",
-    "codex_long": "Harness-portable lite edition of SuperClaude for SAP — {{modules}} module knowledge packs (14 + BC), {{industries}} industries, {{countries}} countries, ABAP conventions/templates, {{personas}} personas (on-demand via INDEX selector), {{procedures}} procedures ({{skills}} exposed as skills) with human approval + fresh-context review gates. SAP connectivity via the bundled ABAP ADT MCP server — no separate registration; on Codex, run $sapkit:setup once to wire the plugin-local path (see adapters/codex/README.md).",
+    "marketplace_long": "SAPKIT — an AI plugin for SAP ABAP development and consulting, harness-neutral across Claude Code, Codex, and Antigravity. Knowledge core ({{modules}} module packs = 14 + BC — SPRO/BAPI/tables/workflows, {{industries}} industries, {{countries}} countries, ABAP clean-code conventions and templates), {{personas}} consultant/role personas loaded on demand, and a bundled ABAP ADT MCP server (reads + DEV-tier-gated writes). Light but strong — weight is measured in session tokens and install burden, so knowledge and personas load only when a task calls for them. Procedures are owned by one main context following gated checklists (implementation may be delegated to a single fresh worker under the development-loop policy); review happens in a fresh context; SAP itself verifies (syntax, activation, unit tests, ATC).",
+    "plugin_short": "SAP ABAP development and consulting — knowledge core + personas + gated procedures + ADT MCP server, in one lightweight plugin.",
+    "claude_long": "SAPKIT — SAP ABAP development and consulting in one plugin: {{modules}} module knowledge packs (14 + BC), {{industries}} industries, {{countries}} countries, ABAP conventions/templates, {{personas}} consultant/role personas (on-demand via INDEX selector), {{procedures}} procedures ({{skills}} exposed as skills) with human approval + fresh-context review gates, and the bundled ABAP ADT MCP server ({{tools_default}} tools inspection-only / {{tools_connected}} connected). Harness-neutral core plus a thin adapter per harness. Quality model is one worker + one fresh-context reviewer + SAP machine verification (CheckSyntax → Activate → ABAP Unit → ATC); implementation may be delegated to a single fresh worker under the development-loop policy, but review always stays independent.",
+    "codex_long": "SAPKIT — SAP ABAP development and consulting in one plugin: {{modules}} module knowledge packs (14 + BC), {{industries}} industries, {{countries}} countries, ABAP conventions/templates, {{personas}} personas (on-demand via INDEX selector), {{procedures}} procedures ({{skills}} exposed as skills) with human approval + fresh-context review gates. Harness-neutral core plus a thin adapter per harness. SAP connectivity via the bundled ABAP ADT MCP server — no separate registration; on Codex, run $sapkit:setup once to wire the plugin-local path (see adapters/codex/README.md).",
     "codex_interface_short": "SAP ABAP development and consulting — knowledge, personas, gated procedures"
   },
   "tags": [

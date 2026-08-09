@@ -2,15 +2,15 @@
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "_generated": "⚠️ 생성물 — 직접 편집하지 말 것. 정본은 interactive/plugin-metadata.json (gen-plugin-manifests.mjs)",
   "name": "agentic-sap",
-  "description": "Lite, harness-portable edition of SuperClaude for SAP. Same knowledge (15 module packs = 14 + BC — SPRO/BAPI/tables/workflows, 14 industries, 16 countries, ABAP clean-code conventions and templates), same MCP server (ADT tools: reads + DEV-tier-gated writes), same 26 personas — minus team/fan-out orchestration. Procedures are owned by one main context following gated checklists (implementation may be delegated to a single fresh worker under the development-loop policy); review happens in a fresh context; SAP itself verifies (syntax, activation, unit tests, ATC).",
+  "description": "SAPKIT — an AI plugin for SAP ABAP development and consulting, harness-neutral across Claude Code, Codex, and Antigravity. Knowledge core (15 module packs = 14 + BC — SPRO/BAPI/tables/workflows, 14 industries, 16 countries, ABAP clean-code conventions and templates), 26 consultant/role personas loaded on demand, and a bundled ABAP ADT MCP server (reads + DEV-tier-gated writes). Light but strong — weight is measured in session tokens and install burden, so knowledge and personas load only when a task calls for them. Procedures are owned by one main context following gated checklists (implementation may be delegated to a single fresh worker under the development-loop policy); review happens in a fresh context; SAP itself verifies (syntax, activation, unit tests, ATC).",
   "owner": {
     "name": "AgenticSAP"
   },
   "plugins": [
     {
       "name": "sapkit",
-      "description": "SAP ABAP development and consulting — knowledge core + personas + gated procedures + ADT MCP server, in one lite plugin.",
-      "version": "0.5.4",
+      "description": "SAP ABAP development and consulting — knowledge core + personas + gated procedures + ADT MCP server, in one lightweight plugin.",
+      "version": "0.6.0",
       "author": {
         "name": "hjaewon"
       },
@@ -29,5 +29,5 @@
   "renames": {
     "sap-agentic-harness": "sapkit"
   },
-  "version": "0.5.4"
+  "version": "0.6.0"
 }

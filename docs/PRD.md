@@ -1,5 +1,9 @@
 # PRD — sapkit (구 sap-agentic-harness)
 
+> ⚠ **현행성**: renew 1차 판(2026-08-10 · D-071~D-077) **이전** 문서다. 트랙 A 실행
+> 설비는 그 판에서 제거됐으므로 엔진 주입·`scripts/execute.py` 같은 서술은 현행이
+> 아니다. 스코프 가드레일로만 읽을 것 — 현행 정본은 `CLAUDE.md`·`HANDOFF.md`.
+
 > Engine이 이 파일을 **매 스텝 프롬프트에 주입**한다(scripts/execute.py: docs/*.md
 > 전량, 48KB 경고·64KB 기동 거부). 그러므로 스코프의 **가드레일**만 얇게 적고 상세는
 > 포인터로 돌린다. 상태 정본은 HANDOFF.md, 설계 정본은 DESIGN.md·interactive/DESIGN.md,
@@ -46,9 +50,10 @@ SAP write의 운영 개방은 그 배선에 종속된다(그 전까지 `unattend
 Engine-P3/P4와 공통 완료 증거 backend는 vsp CLI다.
 
 D-019 완료 matrix는 변하지 않는다. Direct SAP code는 `DRAFT`, Direct-P3는
-`PROVISIONAL_WRITE`다. 완료는 Guided-P3 exact-subject `R-PASS` + vsp `V-PASS`이며,
-`source_read_match=PASS`, `check_syntax=PASS`, `activate=PASS`,
-`unit_test/atc=PASS|SKIPPED(reason)`를 모두 만족해야 한다. D-025/O1에 따라
+`PROVISIONAL_WRITE`다. 완료는 **기계 확인 + 독립 새-컨텍스트 리뷰** 둘 다이며 —
+기계 확인은 `interactive/core/procedures/verify-applied.md`(반영 소스 되읽기 대조 +
+구문·활성 확인), 리뷰는 Guided-P3 exact-subject `R-PASS`다. 도장 의식과 그 판정 기록
+파일은 renew 1차에서 폐지됐다(D-075). D-025/O1에 따라
 SAP reviewer 기계 격리는 약화됐고 `sap_mutation_boundary=unverified`(reviewer +
 all attended child)를 숨기지 않는다.
 

@@ -4,15 +4,17 @@
 # 안전 표면이 회귀해도 초록이라 없느니만 못하다(로드맵 §15).
 #
 # S3에서 달라진 것:
-#   - check-migration-coverage(외부 sc4sap-custom 절대경로를 재귀 순회 → 러너에 없어 크래시,
-#     그래서 CI 제외였다)를 **폐기**하고 check-migration-snapshot으로 교체했다. 새 게이트는
-#     고정 스냅샷만 읽어 원본 없이 돌므로 **드디어 CI에서 실행된다**.
 #   - smoke-mcp가 관찰에서 assertion으로 바뀌었다.
-#   - 엔진 소스 테스트 599개와 provenance 검사를 편입했다.
+#   - 엔진 소스 테스트와 provenance 검사를 편입했다(현재 실측 717 passed / 9 skipped — 5.0.0).
+#
+# 은퇴 (이식 장부): sc4sap 이식 provenance 게이트(check-migration-snapshot)와 그 음성시험을
+# 이 워크플로에서 제거했다. **이식 시대가 끝났고** 이후 콘텐츠는 원본에서 의도적으로
+# 갈라지므로 "원본 대응이 유지되는가"라는 질문 자체가 존재 이유를 잃었다. 콘텐츠 무결성은
+# git 이력이 담당한다. 이식 완료 기록(`interactive/provenance/` 스냅샷 ·
+# `interactive/MIGRATION-MANIFEST.md`)은 갱신 의무 없는 역사로 보존한다.
 #
 # 여전히 CI에 없는 것 (러너에 존재하지 않는 상태를 읽음 — 로컬 전용):
 #   - doctor.mjs → 설치된 CLI 버전·플러그인 설치·훅 배선을 본다. 러너엔 무의미.
-#   - build-migration-snapshot / report-sc4sap-public-drift → 동결 원본이 필요하다.
 #   - Track A의 실제 verify(살아있는 SAP 대상 vsp) → 자격증명·네트워크 부재. 로컬/에스코트 전용.
 name: offline-gates
 
@@ -36,12 +38,6 @@ jobs:
         with:
           node-version: '20'
 
-      - name: 이식 provenance (pinned snapshot · 원본 무접촉 · private 열거 0)
-        run: node interactive/scripts/check-migration-snapshot.mjs
-
-      - name: 이식 게이트 음성시험 (게이트가 실제로 거부하는지)
-        run: node interactive/scripts/test-check-migration-snapshot.mjs
-
       - name: check-links
         run: node interactive/scripts/check-links.mjs interactive
 
@@ -63,7 +59,7 @@ jobs:
       # **호출하면** 서버가 막는가"를 고정한다.
       #
       # 러너에서 안전한 이유: 임시 HOME/USERPROFILE + 임시 프로파일 fixture만 쓰고,
-      # 상속 env의 SAP_*/MCP_*/SAPKIT_*/SC4SAP_*를 지운 뒤 번들을 띄운다. 대상 SAP은
+      # 상속 env의 SAP_*/MCP_*/SAPKIT_*를 지운 뒤 번들을 띄운다. 대상 SAP은
       # `http://127.0.0.1:1`(아무도 listen하지 않는 루프백)이라 게이트를 통과한 호출은
       # 즉시 ECONNREFUSED로 끝난다 — 그 차이가 "막혔다 vs SAP로 나갔다"의 증거다.
       # 자격증명·네트워크 없이 도는 오프라인 게이트이므로 OS 의존이 없다.
@@ -88,32 +84,20 @@ jobs:
       - name: Codex wrapper 배선 도구 음성시험 (토큰 치환 · 멱등 · 스테일 수리)
         run: node interactive/scripts/test-codex-wire-mcp.mjs
 
-      # ── 런타임 경로 개명 `.sc4sap` → `.sapkit` (D-057 · 설계 §7-2·§7-3) ──────
-      # 셋 다 오프라인이고 러너에 있는 상태만 읽는다. 적합성 러너는 임시 트리에서
-      # 실물 소비자(리졸버·훅 2종·launch shim·vpass·extract)를 구동하며,
-      # launch 실기동 스모크는 프로필이 없는 cwd라 SAP에 접속하지 않는다.
-      - name: 런타임 경로 개명 게이트 (활성 구역 무누출 · 폴백 의무 · 안전 앵커)
+      # ── 런타임 경로 (D-057 · 설계 §7-2·§7-3) ─────────────────────────────────
+      # 둘 다 오프라인이고 러너에 있는 상태만 읽는다. 적합성 러너는 임시 트리에서
+      # 실물 소비자(리졸버·훅 2종·launch shim·extract)를 구동하며, launch 실기동
+      # 스모크는 프로필이 없는 cwd라 SAP에 접속하지 않는다.
+      #
+      # 이행기 호환층은 R5에서 제거됐다 — 마이그레이터와 그 음성시험, 그리고
+      # 그 시험만 요구하던 dotenv probe 스텝이 함께 은퇴했다.
+      - name: 개명 완료 게이트 (활성 구역에 구 세대 토큰 없음 · 안전 앵커)
         run: node interactive/scripts/check-runtime-path-rename.mjs
 
-      - name: 개명 게이트 음성시험 (토큰 주입·앵커 제거·폴백 파괴를 실제로 거부하는지)
+      - name: 개명 게이트 음성시험 (토큰 주입·앵커 제거를 실제로 거부하는지)
         run: node interactive/scripts/test-check-runtime-path-rename.mjs
 
-      # test-migrate-runtime-dir는 journal 계약을 엔진 리더(engine/dist/lib/profile.js)로
-      # 직접 확증한다(설계 의도: dist 부재 시 skip이 아니라 fail). dist의 외부 require는
-      # dotenv 하나뿐인데 engine dependencies가 아니라 devDep 트리로만 존재해(번들은
-      # esbuild 내장) 무설치 러너에서 MODULE_NOT_FOUND가 났다(run #62·#63 — D-060).
-      # 전체 npm ci 대신 lockfile 핀 버전만 스크래치에 깔고 NODE_PATH(CJS require의
-      # 최종 폴백)로 공급한다 — 엔진 트리 재해석 0, 시험 약화 0.
-      - name: 엔진 리더 probe 의존성 (dotenv — dist 유일 외부 require)
-        run: |
-          DV=$(node -p "require('./engine/package-lock.json').packages['node_modules/dotenv'].version")
-          npm install --prefix "$RUNNER_TEMP/probe-deps" --no-save --no-package-lock --no-audit --no-fund --ignore-scripts "dotenv@$DV"
-          echo "NODE_PATH=$RUNNER_TEMP/probe-deps/node_modules" >> "$GITHUB_ENV"
-
-      - name: 마이그레이터 음성시험 (목적지 존재·symlink·divergence 거부 · journal 계약)
-        run: node interactive/scripts/test-migrate-runtime-dir.mjs
-
-      - name: 런타임 경로 적합성 (소비자별 현행 의미 보존 · 안전 회귀 9종)
+      - name: 런타임 경로 적합성 (소비자별 해석 규칙 · 안전 회귀 5종)
         run: node interactive/scripts/conformance-runtime-dir.mjs
 
       - name: 플러그인 매니페스트·MCP 생성물 7종 ↔ 단일 정본
@@ -123,7 +107,7 @@ jobs:
         run: git diff --check HEAD
 
   engine-tests:
-    # 엔진 소스 테스트 599개 (§9.3). 번들 바이트만 검사하면 소스 회귀를 못 본다.
+    # 엔진 소스 테스트 (§9.3 · 실측 717 passed / 9 skipped — engine 5.0.0). 번들 바이트만 검사하면 소스 회귀를 못 본다.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -147,40 +131,19 @@ jobs:
       - name: unit/offline tests
         working-directory: engine
         # SAP 자격증명이 없으므로 integration 스위트는 스스로 skip한다
-        # (tests/test-config.yaml은 gitignore 대상 — 로컬에서도 부재 상태로 599 passed 실측).
+        # (tests/test-config.yaml은 gitignore 대상 — 로컬에서도 부재 상태로 717 passed 실측).
         run: npm test -- --runInBand
 
       - name: 번들 재현 빌드 (같은 커밋 → 같은 바이트)
         # devDeps(esbuild/tsc)가 깔린 이 잡에서만 가능하다.
         run: node interactive/scripts/check-engine-provenance.mjs --rebuild
 
-  ps-gate:
-    # Track A 검사기들은 ENGINE이 실제로 부르는 방식(Windows powershell.exe, 역슬래시 경로)
-    # 그대로 돌려야 의미가 있어 windows-latest다.
-    #
-    # ⚠️ 반드시 `-File`로 띄운다. `powershell -Command`는 자식 종료코드를 0/1로 뭉개는데
-    # (2026-07-16 실측 · 로드맵 §13), 이 스위트들은 64/65/66/67을 구분해야 한다.
-    # GitHub의 `shell: powershell`은 -Command라서 쓰지 않고 cmd에서 -File로 호출한다.
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
+  # (Track A PowerShell 검사기 스위트를 돌리던 windows 잡은 R1에서 제거됐다 —
+  #  그 스위트가 루트 스크립트 디렉터리와 함께 삭제됐기 때문이다.)
 
-      - name: review-verdict 검사기 테스트 (run-scoped 계약)
-        shell: cmd
-        run: powershell -NoProfile -File .\scripts\test-check-review-verdict.ps1
-
-      - name: run-track-a wrapper 음성시험 (legacy deny · fail-closed)
-        shell: cmd
-        run: powershell -NoProfile -File .\scripts\test-run-track-a.ps1
-
-      - name: Track B -> Guided bridge 테스트
-        shell: cmd
-        run: powershell -NoProfile -File .\scripts\test-promote-track-b-run.ps1
-
-  win-migrate-gate:
-    # test-migrate-runtime-dir.mjs의 win32 전용 DACL 검증 블록(§5 ⑼)은
-    # `process.platform === 'win32'`일 때만 돈다 — node-gates(ubuntu-latest)에서는
-    # 항상 스킵된다. 그 경로를 CI에서 실제로 통과시키는 잡.
+  win-gates:
+    # windows 전용 경로를 CI에서 실제로 통과시키는 잡. (구 `win-migrate-gate` —
+    # 마이그레이터 음성시험이 R5에서 은퇴하며 doctor 음성시험만 남아 개명했다.)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -188,18 +151,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-
-      # node-gates의 동일 스텝 참조 (D-060) — 엔진 리더 probe가 요구하는 dotenv를
-      # lockfile 핀 버전으로 스크래치 공급. windows 러너 기본 셸(pwsh) 문법.
-      - name: 엔진 리더 probe 의존성 (dotenv — dist 유일 외부 require)
-        run: |
-          $dv = node -p "require('./engine/package-lock.json').packages['node_modules/dotenv'].version"
-          $dir = Join-Path $env:RUNNER_TEMP 'probe-deps'
-          npm install --prefix $dir --no-save --no-package-lock --no-audit --no-fund --ignore-scripts "dotenv@$dv"
-          "NODE_PATH=$dir\node_modules" >> $env:GITHUB_ENV
-
-      - name: 마이그레이터 음성시험 (win32 DACL 검증 포함)
-        run: node interactive/scripts/test-migrate-runtime-dir.mjs
 
       # doctor 음성시험은 가짜 CLI를 Windows PATHEXT(.cmd 래퍼)로 주입한다 — win 전용.
       # doctor 본체는 여전히 CI 제외(러너에 실설치 상태가 없음) — 이 시험은 스텁만 쓴다.

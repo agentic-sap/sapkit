@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Interactive onboarding wizard — SAP connection profile, project context files with tool-surface selection, and a layered self-check, plus optional permission-template, vsp, and safety-hook switches.
+description: Interactive onboarding wizard — SAP connection profile, project context files with tool-surface selection, and a layered self-check, plus optional permission-template, SAPKIT-verifier, and safety-hook switches.
 ---
 
 # Setup Wizard
@@ -24,9 +24,7 @@ schema rejects any field whose name looks like a secret (`password`, `token`,
 On a re-run over an existing project, Step 1 pulls a full status snapshot
 before anything else — see below. Every step from Step 1 onward branches off
 that snapshot: verify-and-report what already exists, create only what is
-missing or broken, never rewrite a healthy existing artifact, and never create
-a parallel `.sapkit/` in a project whose active state is still legacy
-`.sc4sap/`.
+missing or broken, and never rewrite a healthy existing artifact.
 
 ## Step 0 — Detect & Verify
 
@@ -77,28 +75,19 @@ a parallel `.sapkit/` in a project whose active state is still legacy
    node "PLUGIN_ROOT/scripts/setup-state.mjs" status --project <project path> --json
    ```
    (`PLUGIN_ROOT` = the plugin root Step 0 resolved.) This is read-only — it
-   never writes anything. It reports: which runtime generation is active for
-   this project (`.sapkit/`, or the legacy `.sc4sap/` if that's what's already
-   there); the active profile alias and how complete its `sap.env` is (which
+   never writes anything. It reports: this project's runtime directory
+   (`.sapkit/`); the active profile alias and how complete its `sap.env` is (which
    canonical keys are present/empty, and whether a password value exists —
    never the values themselves); `config.json`'s known/unknown keys and
    current `toolSurface`; which of Claude/Codex/Antigravity are on `PATH`; and
-   a few out-of-scope items (permission-template file, hooks installer, vsp
-   installer presence) that Step 4 owns.
+   a few out-of-scope items (permission-template file, hooks installer,
+   SAPKIT-verifier presence) that Step 4 owns.
 2. Summarize this in plain language for the user before doing anything else.
-   A project already on the legacy `.sc4sap/` layout
-   (`runtimeGeneration: "sc4sap"`) is reported **as-is** — this wizard never
-   migrates it. Report it plainly as `(legacy .sc4sap/)` and point the user at
-   `node interactive/scripts/migrate-runtime-dir.mjs` (dry-run by default,
-   `--apply` to execute) as its own, separate, human-run step; this wizard
-   never runs it on the user's behalf.
 
 ## Step 2 — Connection Profile
 
 1. Resolve the profile home conversationally: `$SAPKIT_HOME_DIR` if set on this
-   machine, else the deprecated `$SC4SAP_HOME_DIR` if that is set instead
-   (tell the user it still works but `SAPKIT_HOME_DIR` is now preferred), else
-   `~/.sapkit`, else the legacy `~/.sc4sap`. Step 1's status output already
+   machine, else `~/.sapkit`. Step 1's status output already
    shows which homes exist and which profile aliases live under each
    (`homes[]`) — use that instead of re-scanning the filesystem yourself. If
    any aliases exist, list them and ask the user to pick one for this project,
@@ -180,7 +169,7 @@ a parallel `.sapkit/` in a project whose active state is still legacy
    plan/confirm/apply round-trip as Step 2, kept as its own confirmed action
    rather than folded into Step 2's.
 
-## Step 4 — Optional: Permission Template, vsp, and Safety Hooks
+## Step 4 — Optional: Permission Template, SAPKIT Verifier, and Safety Hooks
 
 All three of the following are optional and independent — skip whichever the
 user doesn't want.
@@ -217,11 +206,13 @@ or [adapters/antigravity/README.md](../../adapters/antigravity/README.md).
    absent from the template — per-call human approval on those two stays in
    force regardless of this merge.
 
-### 4b. vsp Offline Verifier (optional, any harness)
+### 4b. SAPKIT Verifier — offline (optional, any harness)
 
-Ask whether the user wants `vsp` — an optional offline ABAP lint/parse tool
-that runs with no SAP connection. Skipping it does not limit anything else in
-this plugin. If yes, after confirmation run (same `PLUGIN_ROOT` substitution):
+Ask whether the user wants the **SAPKIT verifier** — an optional offline ABAP
+lint/parse tool that runs with no SAP connection. The command it installs today
+is `vsp`; call it that when you show the user a command line. Skipping it does
+not limit anything else in this plugin. If yes, after confirmation run (same
+`PLUGIN_ROOT` substitution):
 
 ```
 node "PLUGIN_ROOT/scripts/get-vsp.mjs"
@@ -229,8 +220,7 @@ node "PLUGIN_ROOT/scripts/get-vsp.mjs"
 
 This detects OS/arch, downloads the matching release asset, verifies its
 sha256, and installs to the resolved profile home's `bin/vsp`
-(`~/.sapkit/bin/vsp`, or the legacy `~/.sc4sap/bin/vsp` if that is the active
-home — `vsp.exe` on Windows) only on a hash match.
+(`~/.sapkit/bin/vsp` — `vsp.exe` on Windows) only on a hash match.
 
 ### 4c. Safety Hooks (optional, Claude Code only)
 
@@ -247,7 +237,7 @@ anyone who wants the extra confirmation dialogs and defense-in-depth; full
 detail (what each hook restores, what's already protected without it) is in
 [adapters/claude/hooks/README.md](../../adapters/claude/hooks/README.md).
 
-1. Check whether SAPKit hooks are already wired — read `~/.claude/settings.json`
+1. Check whether SAPKIT hooks are already wired — read `~/.claude/settings.json`
    and (if present) the project's `.claude/settings.json` / `settings.local.json`
    for the six marker basenames (`block-forbidden-tables.mjs`,
    `tier-readonly-guard.mjs`, `prefer-sqlquery-explicit-fields.mjs`,

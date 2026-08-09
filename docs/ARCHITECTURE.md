@@ -1,5 +1,12 @@
 # ARCHITECTURE — sapkit (구 sap-agentic-harness)
 
+> ⚠ **현행성**: 이 문서는 renew 1차 판(2026-08-10 · D-071~D-077) **이전**에 쓰였다.
+> 트랙 A 실행 설비(`phases/`·`src/`·루트 `scripts/`·`.harness/`·`packs/`·`domain/`·
+> `adapters/final-harness*`)는 그 판에서 레포에서 제거됐으므로, 그 설비의 **존재를
+> 전제한 서술은 현행이 아니다**(run 산출물·엔진 주입·phase 템플릿 등). 구조의 지도와
+> 계약으로만 읽고, 현행 게이트·완료 의미론의 정본은 `CLAUDE.md`, 상태 정본은
+> `HANDOFF.md`, 재구성 계획은 `docs/BLUEPRINT.md`다.
+
 > Engine이 docs/*.md를 매 스텝 프롬프트에 주입한다(48KB 경고·64KB 기동 거부). 구조의
 > **지도와 계약**만 얇게 적는다 — 설계 서사는 DESIGN.md·interactive/DESIGN.md, 결정의
 > '왜'는 docs/reference/DECISIONS.md, 살아있는 상태는 HANDOFF.md, 스코프·품질 모델은
@@ -134,8 +141,8 @@ interactive/core/                  하네스 중립 지식·페르소나 26·절
 interactive/server/                MCP 번들 + keyring + tool-catalog + sap-assets + UPDATE-RUNBOOK
 interactive/adapters/ (claude·codex·antigravity)  어댑터별 설치·안전모델 가이드 + compatibility.json
 interactive/skills/ agents/ plugin.json           플러그인 표면
-interactive/scripts/               게이트 스크립트 (check-links·check-migration-snapshot·
-                                   smoke-mcp·gen-permissions·doctor)
+interactive/scripts/               게이트 스크립트 (check-links·smoke-mcp·
+                                   gen-permissions·doctor — 목록 정본은 CLAUDE.md 게이트 절)
 .claude-plugin/ .agents/ (루트)    마켓플레이스 (source: ./interactive)
 ```
 
@@ -153,6 +160,7 @@ interactive/scripts/               게이트 스크립트 (check-links·check-mi
 
 ## 검증 게이트 (구조 변경 시 항상 통과 유지)
 
-구조 변경 시 게이트(migration-snapshot·links·verify-engine·engine-provenance·smoke-mcp·
-plugin-manifests·doctor)를 통과 상태로 유지한다 — 명령 목록 정본은 **CLAUDE.md 게이트 절**
-(여기 중복 게재 안 함). `coverage`는 S3에서 폐기됐다(D-029 — `check-migration-snapshot`으로 대체).
+구조 변경 시 게이트(links·verify-engine·engine-provenance·smoke-mcp·server-gates·
+plugin-manifests·runtime-path·runtime-dir·doctor)를 통과 상태로 유지한다 — 명령 목록 정본은
+**CLAUDE.md 게이트 절**(여기 중복 게재 안 함). 이식 장부 계열(`coverage` → S3 폐기 D-029,
+그 대체였던 `migration-snapshot` → renew 1차 은퇴 D-072)은 **더 이상 존재하지 않는다.**

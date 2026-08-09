@@ -2,12 +2,11 @@
  * Unit tests for src/lib/profile.ts
  *
  * Uses temp dirs for the project cwd and a stubbed HOME (via os.homedir mock)
- * so the tests never touch the real ~/.sapkit or ~/.sc4sap.
+ * so the tests never touch the real ~/.sapkit.
  *
- * The first describe block deliberately keeps the LEGACY layout (`.sc4sap`,
- * `SC4SAP_HOME_DIR`): it is the R-PRESERVE evidence that a legacy-only input
- * still produces the pre-rename result. The rename-conformance block below is
- * driven by the shared fixture.
+ * `.sapkit` is the only runtime generation: the pre-0.6 `.sc4sap` directory and
+ * the `SC4SAP_HOME_DIR` variable were a migration-period fallback and have been
+ * removed. The conformance block below is driven by the shared fixture.
  */
 
 import * as fs from 'node:fs';
@@ -15,12 +14,12 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 
 function makeTempHome(): string {
-  // SC4SAP_HOME_DIR points directly at the `.sc4sap` directory, so we don't
+  // SAPKIT_HOME_DIR points directly at the `.sapkit` directory, so we don't
   // need to nest one more level inside the temp dir.
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'sc4sap-home-'));
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'sapkit-home-'));
 }
 function makeTempCwd(): string {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'sc4sap-proj-'));
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'sapkit-proj-'));
 }
 
 function writeFile(p: string, content: string) {
@@ -35,13 +34,14 @@ function writeProfile(home: string, alias: string, envContent: string): string {
 }
 
 function writeActivePointer(cwd: string, alias: string): string {
-  const p = path.join(cwd, '.sc4sap', 'active-profile.txt');
+  const p = path.join(cwd, '.sapkit', 'active-profile.txt');
   writeFile(p, alias);
   return p;
 }
 
+/** The single-profile `<runtime dir>/sap.env` mode (no alias pointer). */
 function writeLegacy(cwd: string, envContent: string): string {
-  const p = path.join(cwd, '.sc4sap', 'sap.env');
+  const p = path.join(cwd, '.sapkit', 'sap.env');
   writeFile(p, envContent);
   return p;
 }
@@ -57,7 +57,7 @@ describe('profile — load and apply', () => {
       if (k.startsWith('SAP_')) delete process.env[k];
     }
     home = makeTempHome();
-    process.env.SC4SAP_HOME_DIR = home;
+    process.env.SAPKIT_HOME_DIR = home;
   });
 
   afterEach(() => {
@@ -308,7 +308,7 @@ describe('profile — load and apply', () => {
   });
 
   // Tier reconciliation for --env-path / MCP_ENV_PATH connections, whose
-  // SAP_TIER the launcher hydrates into process.env (no .sc4sap profile).
+  // SAP_TIER the launcher hydrates into process.env (no .sapkit profile).
   describe('reconcileTierFromEnv', () => {
     it('opens DEV when process.env.SAP_TIER=dev', () => {
       const {
@@ -363,13 +363,13 @@ describe('profile — load and apply', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Runtime-path rename conformance (D-057 / design §7-3).
+// Runtime-path resolution conformance (D-057 / design §7-3).
 //
 // Driven by the shared fixture engine/__tests__/fixtures/runtime-dir-selection.json,
 // which the interactive-layer Node runner reads too. Expected results differ per
-// consumer on purpose: R-PRESERVE keeps each consumer's own depth / adoption
-// criterion / state definition, so the question is "does each consumer behave
-// exactly as it did before the rename?", never "do they all agree?".
+// consumer on purpose: each consumer keeps its own depth / adoption criterion /
+// state definition, so the question is "does each consumer resolve its own way
+// correctly?", never "do they all agree?".
 // ---------------------------------------------------------------------------
 
 const FIXTURE_PATH = path.resolve(
@@ -402,7 +402,7 @@ interface FixtureCase {
 /** Keys whose expected value is a filesystem path and needs native separators. */
 const PATH_KEYS = new Set(['runtimeDir', 'sourcePath', 'homeDir']);
 
-describe('profile — runtime-path rename conformance (fixture)', () => {
+describe('profile — runtime-path resolution conformance (fixture)', () => {
   const fixture = JSON.parse(fs.readFileSync(FIXTURE_PATH, 'utf8'));
   const cases: FixtureCase[] = fixture.cases;
   const ORIGINAL_ENV = { ...process.env };
@@ -479,7 +479,6 @@ describe('profile — runtime-path rename conformance (fixture)', () => {
           if (k.startsWith('SAP_')) delete process.env[k];
         }
         delete process.env.SAPKIT_HOME_DIR;
-        delete process.env.SC4SAP_HOME_DIR;
         for (const [k, v] of Object.entries(testCase.input.env ?? {})) {
           if (v === null) delete process.env[k];
           else process.env[k] = expandPath(v);
@@ -539,24 +538,32 @@ describe('profile — path-resolution helpers', () => {
     jest.resetModules();
     process.env = { ...ORIGINAL_ENV };
     delete process.env.SAPKIT_HOME_DIR;
-    delete process.env.SC4SAP_HOME_DIR;
   });
 
   afterAll(() => {
     process.env = ORIGINAL_ENV;
   });
 
-  it('R-TIE applies the adoption criterion before the tie-break', () => {
+  it('the project runtime dir is <cwd>/.sapkit — a leftover .sc4sap is invisible', () => {
     const cwd = makeTempCwd();
     try {
-      // .sapkit exists but yields no connection; .sc4sap does. Breaking the tie
-      // first would elect the empty .sapkit — the v3 BLOCKER.
-      fs.mkdirSync(path.join(cwd, '.sapkit', 'vpass'), { recursive: true });
-      writeLegacy(cwd, 'SAP_URL=http://old\nSAP_TIER=dev\n');
-      const { resolveProjectRuntimeDir } = require('../../lib/profile');
+      // The pre-0.6 directory carries a full connection. After the compat layer
+      // was removed it must not be adopted, shadowed, or reported.
+      writeFile(
+        path.join(cwd, '.sc4sap', 'sap.env'),
+        'SAP_URL=http://old\nSAP_TIER=dev\n',
+      );
+      const {
+        resolveProjectRuntimeDir,
+        loadActiveProfile,
+      } = require('../../lib/profile');
       const picked = resolveProjectRuntimeDir(cwd);
-      expect(picked.generation).toBe('sc4sap');
-      expect(picked.reason).toBe('OK_LEGACY_DEPRECATED');
+      expect(picked.dir).toBe(path.join(cwd, '.sapkit'));
+      expect(picked.reason).toBe('OK_NEW');
+      // …and no connection is loaded from it: the empty inspection-only shell.
+      const loaded = loadActiveProfile(cwd);
+      expect(loaded.envVars).toEqual({});
+      expect(loaded.runtimeDir).toBe(path.join(cwd, '.sapkit'));
     } finally {
       fs.rmSync(cwd, { recursive: true, force: true });
     }
@@ -568,31 +575,34 @@ describe('profile — path-resolution helpers', () => {
       const { resolveProjectRuntimeDir } = require('../../lib/profile');
       const picked = resolveProjectRuntimeDir(cwd);
       expect(picked.dir).toBe(path.join(cwd, '.sapkit'));
-      expect(picked.generation).toBe('sapkit');
     } finally {
       fs.rmSync(cwd, { recursive: true, force: true });
     }
   });
 
-  it('R-ENV: an unset SAPKIT_HOME_DIR falls through to SC4SAP_HOME_DIR', () => {
+  it('R-ENV: SC4SAP_HOME_DIR is no longer consulted', () => {
     const home = makeTempHome();
     try {
+      // The alias exists only under the retired variable's home. With the
+      // fallback removed the lookup must fail loudly rather than connect.
+      fs.mkdirSync(path.join(home, 'profiles', 'ANY'), { recursive: true });
       process.env.SC4SAP_HOME_DIR = home;
       const { resolveHomeDir } = require('../../lib/profile');
-      const picked = resolveHomeDir('ANY');
-      expect(picked.dir).toBe(home);
-      expect(picked.generation).toBe('sc4sap');
-      expect(picked.reason).toBe('OK_LEGACY_DEPRECATED');
+      expect(() => resolveHomeDir('ANY')).toThrow(/not found/);
+      try {
+        resolveHomeDir('ANY');
+      } catch (err: any) {
+        expect(err.reason).toBe('PROFILE_NOT_FOUND');
+      }
     } finally {
       fs.rmSync(home, { recursive: true, force: true });
     }
   });
 
-  it('R-ENV: a SAPKIT_HOME_DIR pointing nowhere throws ENV_INVALID even when SC4SAP_HOME_DIR is valid', () => {
+  it('R-ENV: a SAPKIT_HOME_DIR pointing nowhere throws ENV_INVALID', () => {
     const home = makeTempHome();
     try {
       process.env.SAPKIT_HOME_DIR = path.join(home, 'nope');
-      process.env.SC4SAP_HOME_DIR = home;
       const { resolveHomeDir, ProfilePathError } = require('../../lib/profile');
       expect(() => resolveHomeDir('ANY')).toThrow(ProfilePathError);
       try {
@@ -601,29 +611,6 @@ describe('profile — path-resolution helpers', () => {
         expect(err.reason).toBe('ENV_INVALID');
       }
     } finally {
-      fs.rmSync(home, { recursive: true, force: true });
-    }
-  });
-
-  it('deprecation warnings are emitted at most once per process, on stderr only', () => {
-    const home = makeTempHome();
-    const stderr = jest.spyOn(console, 'error').mockImplementation(() => {});
-    const stdout = jest.spyOn(console, 'log').mockImplementation(() => {});
-    try {
-      process.env.SC4SAP_HOME_DIR = home;
-      const {
-        resolveHomeDir,
-        __resetProfileState,
-      } = require('../../lib/profile');
-      __resetProfileState();
-      resolveHomeDir('A');
-      resolveHomeDir('B');
-      resolveHomeDir('C');
-      expect(stderr).toHaveBeenCalledTimes(1);
-      expect(stdout).not.toHaveBeenCalled();
-    } finally {
-      stderr.mockRestore();
-      stdout.mockRestore();
       fs.rmSync(home, { recursive: true, force: true });
     }
   });

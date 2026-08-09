@@ -1,7 +1,0 @@
-{
-  "step": 6,
-  "name": "evidence-consolidation",
-  "exitCode": 0,
-  "stdout": "Step 6 (evidence-consolidation) 완료 — blocked→수정→재검증 경위 포함.\n\n경위: 1차 수행에서 체커(check-phase-evidence.mjs)가 verdict 파일 실물 스키마(classification)와 다른 필드명(verdict)을 읽는 계획 산출물 오기를 발견 — 정직하게 blocked 보고 + 스크래치 사본 패치로 원인 격리 실증. 계획 소유자가 체커 2곳 수정 + 스키마 계약 pin 테스트 신설(2/2 통과) + PLANNING §8 기록 후 재개 지시.\n\n마무리: ① 체커 재실행 → CHECK_OK phase3-evidence, exit 0. ② index.json step 6 = completed(blocked_reason 제거 — 경위는 summary·PLANNING §8 보존), summary = phase3-evidence.json 전사(AC-8 red/green 캡슐 해시쌍 + MAJOR/B2 발견 요지 · AC-14 미검증 목록 2건 캡슐 동봉 · AC-15 래퍼 서버 실측 동봉 메커니즘+prompt v1.1 · drift 마커 · 프로브 3건 · 체인 green) + 경위 1줄, contract = 항목별 1줄 형식. ③ 이번 턴 워커 변경은 index.json 1건뿐(체커·테스트·PLANNING은 계획 소유자 커밋 예정분), 커밋 없음.\n\nphase3-evidence.json 핵심: ac8.red_capsule_hash=862ca3b3… ≠ ac8.green_capsule_hash=3f678081…(pass_records 일치) · ac14.uncovered_count=2 · ac15.server_evidence_embedded=true · drift.drift_detected=true(marker DRIFT-DEMO-20260719-4-gated-deploy-7D458D9D) · probes 3건 전부 실측 문자열 · chain.full_chain_green=true.\n",
-  "stderr": ""
-}

@@ -1,4 +1,5 @@
 {
+  "_retired": "이식 완료 기록 — 이후 갱신 의무 없음. 이식 시대가 끝났고 이 레포의 콘텐츠는 원본에서 의도적으로 갈라진다. 원본 대응 검증은 존재 이유를 잃었고(정당한 편집이 전부 위반으로 잡힌다), 콘텐츠 무결성은 git 이력이 담당한다. 이 pin을 소비하던 게이트·도구(check-migration-snapshot.mjs · build-migration-snapshot.mjs · report-sc4sap-public-drift.mjs)는 실행 경로에서 제거됐다(git 이력에 보존). 아래 pin·allowlist·인벤토리는 2026-07-10 이식의 역사 기록으로 동결한다.",
   "_": "sc4sap-custom public source pin — S3/D-027 로드맵 §9.2. 이 파일과 migration-map.json이 이식 provenance의 정본이다.",
   "_private_contract": "private/ 는 어떤 도구로도 읽지 않는다. 아래 allowlist는 명시 열거이며, 게이트는 private 경로 0건을 assert한다.",
   "source": {

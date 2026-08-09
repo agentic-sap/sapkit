@@ -17,7 +17,7 @@
 // ───────────────────────── 무접촉·무유출 보장 ───────────────────────────────
 // · 임시 HOME/USERPROFILE + 임시 프로젝트 fixture만 쓴다. 사용자 실물 홈의 런타임
 //   디렉터리(신·구 두 세대 모두)와 실 프로파일은 읽지도 쓰지도 않는다.
-// · 상속 env의 `SAP_*` `MCP_*` `SAPKIT_*` `SC4SAP_*`를 **전부 제거**하고 자식을 띄운다.
+// · 상속 env의 `SAP_*` `MCP_*` `SAPKIT_*`를 **전부 제거**하고 자식을 띄운다.
 //   소유자 머신의 실 노브(D-043 · 실데이터 차단 2층 노브)가 결과를 오염시키면 이
 //   시험은 그 머신에서만 초록인 장식이 된다.
 // · fixture의 `SAP_URL`은 `http://127.0.0.1:1`이다. 아무도 listen하지 않는 루프백
@@ -122,7 +122,7 @@ function childEnv(extra = {}) {
   const env = {};
   for (const [k, v] of Object.entries(process.env)) {
     // 실사용자 프로파일·노브 차단. 이걸 빼면 소유자 머신 전용 초록이 된다.
-    if (/^(SAP_|MCP_|SAPKIT_|SC4SAP_)/.test(k)) continue;
+    if (/^(SAP_|MCP_|SAPKIT_)/.test(k)) continue;
     env[k] = v;
   }
   env.NODE_PATH = KEYRING;

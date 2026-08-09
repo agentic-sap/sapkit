@@ -1,4 +1,5 @@
 {
+  "_retired": "이식 완료 기록 — 이후 갱신 의무 없음. 이식 시대가 끝났고 이 레포의 콘텐츠는 원본에서 의도적으로 갈라진다(차용 후 완전 소유). 따라서 아래 목적지 해시는 2026-07-10 이식 시점의 동결값이며 현재 트리와 일치할 의무가 없다 — 콘텐츠 무결성의 소유자는 git 이력이다. 이 파일을 읽던 게이트(check-migration-snapshot.mjs)와 생성기(build-migration-snapshot.mjs)는 삭제됐다(git 이력에 보존). 파일 자체는 계보 근거로 보존한다 — THIRD_PARTY_NOTICES.md가 아래 class: copy 분류를 인용한다.",
   "_": "sc4sap → interactive 이식 맵 — 규칙별 분류/원본 매칭/목적지 해시. 정본 분류는 MIGRATION-MANIFEST.md이며 이 파일은 그것을 pinned inventory에 대해 해석한 결과다.",
   "pinned_commit": "a95eb0fe962adfb12fae6840213d85391b7703a8",
   "manifest": "interactive/MIGRATION-MANIFEST.md",

@@ -11,7 +11,7 @@
 //
 // 커버: ① CLI 전부 부재 → 관련 검사 SKIP(크래시 없음) ② 파일시스템 전용 검사(⑤⑥⑧⑨)
 // 실측 — runtime dir 세대·toolSurface fail-closed·훅 marker 활성/죽은 경로/미배선 ③ 별칭
-// 미출력 회귀 시험(doctor가 launch.cjs의 selectGeneration()을 부를 때 warnOnce가
+// 미출력 회귀 시험(doctor가 launch.cjs의 selectRuntimeDir()을 부를 때 warnOnce가
 // stderr에 별칭을 흘리던 결함의 재발 방지) ④ Codex 설치본 버전 불일치 WARN ⑤ Codex
 // bundled MCP wrapper 3분류(미배선/스테일/정상) + 결손 2종 FAIL ⑥ Codex legacy 전역
 // sap 그림자 WARN ⑦ exit code 계약(FAIL 있으면 1, WARN/INFO/SKIP만이면 0) ⑧ --json 계약
@@ -140,7 +140,6 @@ function runDoctor({ cwd, home = tmpDir('unused-home'), stubbed = true, extraEnv
   env.HOME = home;
   env.USERPROFILE = home;
   delete env.SAPKIT_HOME_DIR;
-  delete env.SC4SAP_HOME_DIR;
   delete env.MCP_ENV_PATH;
   if (extraEnv.SAPKIT_HOME_DIR) env.SAPKIT_HOME_DIR = extraEnv.SAPKIT_HOME_DIR;
   const r = spawnSync(process.execPath, [DOCTOR, '--json'], { cwd, env, encoding: 'utf8', timeout: 60000 });
@@ -231,7 +230,7 @@ console.log('\nT4. toolSurface=development + SAP_TIER=dev → OK(경고 없음)'
 }
 
 // ── T5. 별칭 미출력 회귀 시험 — active-profile.txt 포인터 경로에서 별칭이 새면 안 된다 ──
-// (doctor 개발 중 실제로 발견한 결함: launch.cjs.selectGeneration()의 내부 warnOnce가
+// (doctor 개발 중 실제로 발견한 결함: launch.cjs.selectRuntimeDir()의 내부 warnOnce가
 // stderr에 "profile \"<별칭>\" resolved under..."를 직접 썼다. doctor는 이를
 // console.error 임시 무음 처리로 막는다 — 이 시험은 그 처치가 유지되는지를 잰다.)
 console.log('\nT5. active-profile.txt 별칭이 stdout/stderr 어디에도 새지 않는다(회귀)');
@@ -415,7 +414,7 @@ console.log('\nT8. Codex legacy 전역 sap 등록 감지');
 }
 
 // ── T9. 훅 배선 — 사용자/프로젝트 스코프, marker 활성·죽은 경로·미배선 ─────────────────
-console.log('\nT9. SAPKit 훅 배선 상태(사용자+프로젝트) — marker 활성/죽은 경로/미배선');
+console.log('\nT9. SAPKIT 훅 배선 상태(사용자+프로젝트) — marker 활성/죽은 경로/미배선');
 {
   const proj = tmpDir('t9-project');
   const home = tmpDir('t9-home');
