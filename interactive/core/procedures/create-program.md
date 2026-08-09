@@ -51,8 +51,10 @@ self-completing unit — map its phases to that Policy:
 - **`.sapkit/**` files are working material, not completion proof.** A successful
   MCP create / activation makes an object **PROVISIONAL_WRITE**, not done.
 - **COMPLETE requires both** an exact-subject fresh-context review **R-PASS** and a
-  vsp-backed **V-PASS** (source read-back · syntax · activate · unit · ATC). Absent
-  either, Phase 8 records **DRAFT** or **PROVISIONAL_WRITE** — never "완료 / done".
+  **machine check of what SAP actually holds** — source read-back compared against
+  the intended source, plus syntax and active-state confirmation
+  ([verify-applied](verify-applied.md)). Absent either, Phase 8 records **DRAFT**
+  or **PROVISIONAL_WRITE** — never "완료 / done".
 
 ## Use When / Do Not Use When
 
@@ -593,21 +595,19 @@ After completion, a verified root cause likely to recur may be proposed for capt
   aborted before Phase 4). The report says a draft/spec exists — not that a program
   was built.
 - **PROVISIONAL_WRITE** — objects were created/activated on DEV and the HARD GATE
-  above holds, but no vsp-backed **V-PASS** has been recorded yet. This is the
-  strongest state a Track B MCP-only session can reach. The report must NOT say
-  "완료 / done"; it states the objects are provisional pending vsp verification.
-- **COMPLETE** — the HARD GATE holds AND a vsp **V-PASS** (source read-back ·
-  syntax · activate · unit · ATC on the same objects) has been recorded. Only then
-  may the report state the program is complete. The exact-subject review `R-PASS`
-  (verdict `PASS` bound to `approval.json.spec_sha256`) plus the vsp `V-PASS` are
-  the two required stamps. Run the chain with the shipped runner
-  [tools/vpass/vpass.mjs](../../tools/vpass/vpass.mjs) —
-  `node "$CLAUDE_PLUGIN_ROOT/tools/vpass/vpass.mjs" --source-dir <dir> PROG {PROG}`
-  (`--dry-run` first) — which writes the verdict record to `.sapkit/vpass/`. Run it
-  via the [`vpass` skill](../../skills/vpass/SKILL.md) (`/sapkit:vpass`) instead of
-  typing the raw command. Read that record's `limits[]` before quoting the stamp:
-  its syntax/activation evidence is indirect and does not replace the
-  `verification.json` activation record.
+  above holds, but what SAP actually holds has not been read back and confirmed.
+  This is the strongest state a Track B MCP-only session can reach. The report
+  must NOT say "완료 / done"; it states the objects are provisional pending that
+  confirmation.
+- **COMPLETE** — the HARD GATE holds AND the machine check in
+  [verify-applied](verify-applied.md) came back clean on the same objects: the
+  source read back out of SAP matches what was intended, it compiles, and nothing
+  is left inactive. Only then may the report state the program is complete, and
+  only together with the exact-subject review `R-PASS` (verdict `PASS` bound to
+  `approval.json.spec_sha256`). When quoting that check, carry its limits with it:
+  it establishes that the intended source is present, compiles, and is active —
+  not that the logic is correct, and it does not replace the `verification.json`
+  activation record.
 
 An MCP success response, an ACTIVE flag, or a single `CheckSyntax` result alone
 never upgrades the state past PROVISIONAL_WRITE.

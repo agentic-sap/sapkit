@@ -41,7 +41,6 @@ const NEEDED = [
   'interactive/adapters/claude/hooks/tier-readonly-guard.mjs',
   'interactive/adapters/claude/hooks/block-forbidden-tables.mjs',
   'interactive/adapters/claude/hooks/offline-code-analysis.mjs',
-  'interactive/tools/vpass/vpass.mjs',
   'interactive/tools/extract/extract-spro.mjs',
   'interactive/tools/extract/extract-customizations.mjs',
   'interactive/scripts/get-vsp.mjs',

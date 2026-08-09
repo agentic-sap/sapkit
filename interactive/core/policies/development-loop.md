@@ -64,7 +64,8 @@ profile (P0–P4); every action is routed by `AGENTS.md` independently, and file
 step, and verification counts never affect that routing. `.sapkit/**` outputs are
 working material, **not** Track A completion evidence: they do not substitute for
 a Guided run's `.harness/runs/` records, an exact-subject review `R-PASS`, or a
-vsp-backed `V-PASS`.
+machine check of what SAP actually holds
+(`procedures/verify-applied.md`).
 
 ## execution_owner
 

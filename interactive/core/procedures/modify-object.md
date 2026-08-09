@@ -42,12 +42,10 @@ a one-shot auto-run:
 - **MCP success is `PROVISIONAL_WRITE`, not done.** An empty `GetInactiveObjects`
   result proves the object links; it is not a completion stamp.
 - **COMPLETE requires a handoff to a Guided run** recording an exact-subject
-  review `R-PASS` and a vsp-backed `V-PASS` — the latter produced by
-  [tools/vpass/vpass.mjs](../../tools/vpass/vpass.mjs)
-  (`node "$CLAUDE_PLUGIN_ROOT/tools/vpass/vpass.mjs" --source-dir <dir> <TYPE> <NAME>`,
-  record in `.sapkit/vpass/`). Run it via the [`vpass` skill](../../skills/vpass/SKILL.md)
-  (`/sapkit:vpass`) instead of typing the raw command. Absent both, the state
-  is `PROVISIONAL_WRITE`, never "done".
+  review `R-PASS`, together with a machine check of what SAP actually holds —
+  source read-back compared against the intended source, plus syntax and
+  active-state confirmation ([verify-applied](verify-applied.md)). Absent both,
+  the state is `PROVISIONAL_WRITE`, never "done".
 
 ## Procedure
 
@@ -73,8 +71,9 @@ a one-shot auto-run:
    "done".
 
 ⑤ **State cap is `PROVISIONAL_WRITE`.** Per the Track A model, an MCP success is
-   not completion; do not report "done" without a `V-PASS` (see the alignment note
-   above).
+   not completion; do not report "done" until what SAP actually holds has been
+   read back and confirmed ([verify-applied](verify-applied.md)) and the review
+   `R-PASS` is in hand (see the alignment note above).
 
 ⑥ **Bounded repair.** Repair → re-verify in **≤ 2 rounds**; if a third round
    would be needed, stop and report the unresolved problem. **Note:** this bound

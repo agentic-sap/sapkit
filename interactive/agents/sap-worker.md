@@ -53,7 +53,8 @@ control artifact.
    sources before writing them to SAP.
 7. A successful MCP write is `PROVISIONAL_WRITE`, never completion (D-025). Do not describe
    the work as complete, reviewed, or verified-as-correct — completion needs an independent
-   `R-PASS` plus a `V-PASS`, and neither is yours to issue.
+   `R-PASS` plus a machine check reading back what SAP actually holds, and neither is yours
+   to issue.
 8. Return a **compact result only**: the objects and paths you changed, the decisions you
    made and why, the tools/commands you ran with their verdicts, and any blocker. Never
    return your transcript, raw tool output, or logs. You are not given credentials or
