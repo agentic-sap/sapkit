@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Interactive onboarding wizard — SAP connection profile, project context files with tool-surface selection, and a layered self-check, plus optional permission-template, SAPKit-verifier, and safety-hook switches.
+description: Interactive onboarding wizard — SAP connection profile, project context files with tool-surface selection, and a layered self-check, plus optional permission-template, SAPKIT-verifier, and safety-hook switches.
 ---
 
 # Setup Wizard
@@ -81,7 +81,7 @@ missing or broken, and never rewrite a healthy existing artifact.
    never the values themselves); `config.json`'s known/unknown keys and
    current `toolSurface`; which of Claude/Codex/Antigravity are on `PATH`; and
    a few out-of-scope items (permission-template file, hooks installer,
-   SAPKit-verifier presence) that Step 4 owns.
+   SAPKIT-verifier presence) that Step 4 owns.
 2. Summarize this in plain language for the user before doing anything else.
 
 ## Step 2 — Connection Profile
@@ -169,7 +169,7 @@ missing or broken, and never rewrite a healthy existing artifact.
    plan/confirm/apply round-trip as Step 2, kept as its own confirmed action
    rather than folded into Step 2's.
 
-## Step 4 — Optional: Permission Template, SAPKit Verifier, and Safety Hooks
+## Step 4 — Optional: Permission Template, SAPKIT Verifier, and Safety Hooks
 
 All three of the following are optional and independent — skip whichever the
 user doesn't want.
@@ -206,9 +206,9 @@ or [adapters/antigravity/README.md](../../adapters/antigravity/README.md).
    absent from the template — per-call human approval on those two stays in
    force regardless of this merge.
 
-### 4b. SAPKit Verifier — offline (optional, any harness)
+### 4b. SAPKIT Verifier — offline (optional, any harness)
 
-Ask whether the user wants the **SAPKit verifier** — an optional offline ABAP
+Ask whether the user wants the **SAPKIT verifier** — an optional offline ABAP
 lint/parse tool that runs with no SAP connection. The command it installs today
 is `vsp`; call it that when you show the user a command line. Skipping it does
 not limit anything else in this plugin. If yes, after confirmation run (same
@@ -237,7 +237,7 @@ anyone who wants the extra confirmation dialogs and defense-in-depth; full
 detail (what each hook restores, what's already protected without it) is in
 [adapters/claude/hooks/README.md](../../adapters/claude/hooks/README.md).
 
-1. Check whether SAPKit hooks are already wired — read `~/.claude/settings.json`
+1. Check whether SAPKIT hooks are already wired — read `~/.claude/settings.json`
    and (if present) the project's `.claude/settings.json` / `settings.local.json`
    for the six marker basenames (`block-forbidden-tables.mjs`,
    `tier-readonly-guard.mjs`, `prefer-sqlquery-explicit-fields.mjs`,

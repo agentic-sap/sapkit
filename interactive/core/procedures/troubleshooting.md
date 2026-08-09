@@ -381,7 +381,7 @@ Before any risky operation ("which system am I connected to?"), render a compact
 
 ## 7. vsp Local Verification (Optional)
 
-The **SAPKit verifier** — the command it installs today is `vsp`, which is also what this section calls it — is an optional offline ABAP verifier that runs entirely on the local machine: no SAP connection needed, and nothing else in this document depends on it.
+The **SAPKIT verifier** — the command it installs today is `vsp`, which is also what this section calls it — is an optional offline ABAP verifier that runs entirely on the local machine: no SAP connection needed, and nothing else in this document depends on it.
 
 - **Install**: `node interactive/scripts/get-vsp.mjs` — detects OS/arch, downloads the matching GitHub release asset, and installs only on a sha256 match.
 - **Location**: `~/.sapkit/bin/vsp` (`vsp.exe` on Windows).

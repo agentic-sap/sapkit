@@ -1,4 +1,4 @@
-# SAPKit — `interactive/` 플러그인
+# SAPKIT — `interactive/` 플러그인
 
 SAP ABAP 개발·컨설팅을 돕는 AI 플러그인. 지식·페르소나·절차·스킬·정책을 담은
 **하네스 중립 코어 + 얇은 어댑터 3벌**(Claude Code / Codex / Antigravity)에 SAP ADT
@@ -29,6 +29,10 @@ codex plugin add sapkit@agentic-sap
 # 새 세션
 $sapkit:setup
 ```
+
+**이미 설치돼 있다면 (새 버전 받기)** — Claude Code에서
+`claude plugin marketplace update agentic-sap && claude plugin update sapkit@agentic-sap`
+실행 후 재시작한다(`--scope`는 설치 스코프에 맞춰 지정, 기본 `user`).
 
 MCP는 두 클라이언트 모두 플러그인에 동봉되어 자동 연결된다 — 수동 `codex mcp add`나
 캐시 절대경로 입력은 필요 없다. 안전훅 6종은 기본 미설치이며 필요할 때만 켜는 선택

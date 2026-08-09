@@ -171,7 +171,7 @@ console.log('\nD1. 설치 → marker 탐지 → --uninstall 원상복구 (2회 �
 
   // 제거가 실제로 markers를 없앴는지(빈 파일 비교로만 통과하는 것을 막는다)
   const finalText = fs.readFileSync(settings, 'utf8');
-  ok('제거 후 SAPKit marker 0건', markersPresent(finalText).length === 0,
+  ok('제거 후 SAPKIT marker 0건', markersPresent(finalText).length === 0,
     `잔여 marker: ${markersPresent(finalText).join(', ') || '없음'}`);
 
   // 아무것도 설치되지 않은 상태에서의 --uninstall은 파일을 건드리지 않는다
@@ -206,7 +206,7 @@ console.log('\nD2. 설치가 기존 다른 훅·설정 키를 보존한다');
       JSON.stringify({ s: before.$schema, p: before.permissions, e: before.env }),
     `permissions=${JSON.stringify(installed.permissions)} env=${JSON.stringify(installed.env)}`);
 
-  ok('설치가 SAPKit 훅을 실제로 추가했다 (보존 단언이 공허하지 않음)',
+  ok('설치가 SAPKIT 훅을 실제로 추가했다 (보존 단언이 공허하지 않음)',
     markersPresent(JSON.stringify(installed)).length === MARKERS.length,
     `추가된 marker ${markersPresent(JSON.stringify(installed)).length}/${MARKERS.length}`);
 
