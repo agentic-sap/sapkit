@@ -20,7 +20,7 @@
 - **Capability surface unchanged**: 65 tools at `--exposition readonly`, 155 at `readonly,high`, measured on the bundle before and after this change. This release removes a path-resolution fallback, not a tool.
 - The shared conformance fixture `__tests__/fixtures/runtime-dir-selection.json` drops from 43 cases to 26. The cases that only existed to prove the two generations coexisted (tie-break ordering, migration round-trip, mixed homes) lost their subject; five were **retargeted** to assert the opposite — that a leftover `.sc4sap` directory, a `SC4SAP_HOME_DIR` variable, and a `~/.sc4sap` home are now ignored. Safety regressions §7-3 go from nine groups to five (1, 2, 6, 8, 9); 3/4/5/7 concerned generation tie-breaks that no longer exist.
 - `src/__tests__/lib/profile.test.ts` moves its fixtures from the legacy layout (which it used deliberately as R-PRESERVE evidence) to `.sapkit`, and replaces the R-TIE-order / env-fallback / deprecation-warning tests with "the retired generation is ignored" tests.
-- Full jest: **733 passed / 11 skipped / 0 failed** — unchanged count.
+- Full jest: **717 passed / 9 skipped / 0 failed** (733 / 11 before). The −18 is entirely the removed subject, not lost coverage: −17 come from the fixture (43 → 26 cases, of which 2 were already engine-skips) and −1 from the helper block, where the R-TIE-order, env-fallback and once-per-process-deprecation tests were replaced by a single "the retired generation is ignored" test. Every remaining assertion is unchanged or strengthened; 0 failed throughout.
 
 ## [4.14.3] - 2026-08-02
 
