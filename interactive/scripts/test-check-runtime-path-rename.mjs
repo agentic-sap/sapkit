@@ -11,11 +11,13 @@
 //   ⑴ 활성 파일에 구 토큰 주입              → FAIL (두 표기 모두)
 //   ⑵ 안전 앵커 제거                        → FAIL (개명 금지 문자열은 지켜진다)
 //   ⑶ 역사(HISTORY) 경로의 구 토큰          → PASS (기록은 결함이 아니다)
-//   ⑷ 인계(PENDING) 경로의 구 토큰          → PASS + 경고 (다른 작업 소유)
-//   ⑸ 인계 목록 항목이 깨끗해지면            → PASS + "목록에서 뺄 것" 경고
-//   ⑹ 무변조 복제 트리                      → PASS
+//   ⑷ 무변조 복제 트리                      → PASS
 //
-// ⑺ 이 게이트의 **한계**와 그 보완자. 게이트는 문자열만 본다 — 구 토큰을 지우면서
+// 한때 있던 인계(PENDING) 경고 경로의 시험 2건은 T8에서 함께 은퇴했다 — 마지막
+// 인계 파일(`adapters/vsp/SAFETY-PROFILES.md`)이 정리되며 게이트에서 그 예외 자체가
+// 사라졌기 때문이다. 지금은 역사 밖 구 토큰이 예외 없이 FAIL이고, 그 사실은 ⑴이 고정한다.
+//
+// ⑸ 이 게이트의 **한계**와 그 보완자. 게이트는 문자열만 본다 — 구 토큰을 지우면서
 //    해석 자체를 망가뜨려도 통과한다. 그 절반을 메우는 것은
 //    `conformance-runtime-dir.mjs`이고, 그 분업의 실측은 저쪽 음성시험
 //    (`test-launch-toolsurface.mjs`의 '은퇴한 세대 config 차단' 변조)이 담당한다.
@@ -35,9 +37,9 @@ const GATE = path.join(HERE, 'check-runtime-path-rename.mjs');
 let pass = 0;
 let fail = 0;
 
-// 게이트가 보는 것 = 안전 앵커 · 인계 목록 · "그 밖의 활성 파일". 복제 트리에는
-// 그 실물만 넣는다. 전체 레포를 복사하면 케이스당 수천 파일이라 시험이 느려지고,
-// 무엇을 검사했는지도 흐려진다.
+// 게이트가 보는 것 = 안전 앵커 · "그 밖의 활성 파일". 복제 트리에는 그 실물만 넣는다.
+// 전체 레포를 복사하면 케이스당 수천 파일이라 시험이 느려지고, 무엇을 검사했는지도
+// 흐려진다.
 const NEEDED = [
   // 안전 앵커 7종 — 하나라도 없으면 게이트가 스스로 FAIL 하므로 전부 필요하다
   'interactive/core/procedures/troubleshooting.md',
@@ -47,8 +49,6 @@ const NEEDED = [
   'interactive/core/knowledge/abap/conventions/clean-code-oop.md',
   'interactive/core/knowledge/abap/conventions/include-structure.md',
   'interactive/core/knowledge/abap/conventions/oop-pattern.md',
-  // 인계 목록 (PENDING) — 경고 경로의 실물
-  'adapters/vsp/SAFETY-PROFILES.md',
   // 정리가 끝난 활성 파일들 — 주입 대상이자 "무변조면 PASS"의 근거
   'interactive/adapters/claude/lib/profile-resolve.mjs',
   'interactive/server/launch.cjs',
@@ -58,10 +58,9 @@ const NEEDED = [
   'interactive/.gitignore',
 ];
 
-function buildTree(opts = {}) {
+function buildTree() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rt-gate-'));
   for (const rel of NEEDED) {
-    if (opts.skip && opts.skip.includes(rel)) continue;
     const src = path.join(REPO, rel);
     if (!fs.existsSync(src)) throw new Error(`시험 전제 파일 부재: ${rel}`);
     const dst = path.join(root, ...rel.split('/'));
@@ -79,10 +78,10 @@ function runGate(root) {
   }
 }
 
-function t(name, mutate, expectCode, expectText, buildOpts) {
+function t(name, mutate, expectCode, expectText) {
   let root;
   try {
-    root = buildTree(buildOpts);
+    root = buildTree();
     if (mutate) mutate(root);
     const { code, out } = runGate(root);
     const codeOk = code === expectCode;
@@ -214,16 +213,6 @@ t(
   (root) => W(root, 'engine/dist/lib/profile.js', 'const LEGACY = ".sc4sap";\n'),
   0,
   '개명 완료 게이트 통과',
-);
-
-console.log('\n⑷ 인계(PENDING)는 경고만 한다');
-t('인계 목록 파일의 구 토큰 → PASS + 경고', null, 0, '인계 목록: 다른 작업이 소유');
-t(
-  '인계 목록 파일이 깨끗해지면 "목록에서 뺄 것" 경고',
-  null,
-  0,
-  '인계 목록 항목이 이제 0건',
-  { skip: ['adapters/vsp/SAFETY-PROFILES.md'] },
 );
 
 console.log(`\n${pass + fail}건 중 ${pass} PASS / ${fail} FAIL`);
