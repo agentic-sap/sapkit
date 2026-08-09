@@ -122162,7 +122162,7 @@ var require_profile = __commonJS({
       };
     })();
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.ProfilePathError = exports2.RUNTIME_DIR_LEGACY = exports2.RUNTIME_DIR_NEW = void 0;
+    exports2.ProfilePathError = exports2.RUNTIME_DIR_NEW = void 0;
     exports2.resolveProjectRuntimeDir = resolveProjectRuntimeDir;
     exports2.resolveHomeDir = resolveHomeDir;
     exports2.loadActiveProfile = loadActiveProfile;
@@ -122179,8 +122179,6 @@ var require_profile = __commonJS({
     var dotenv2 = __importStar2(require_main());
     var secrets_1 = require_secrets();
     exports2.RUNTIME_DIR_NEW = ".sapkit";
-    exports2.RUNTIME_DIR_LEGACY = ".sc4sap";
-    var MIGRATION_JOURNAL_FILE = ".migration-journal.json";
     var ProfilePathError = class extends Error {
       reason;
       constructor(reason, message) {
@@ -122219,13 +122217,6 @@ var require_profile = __commonJS({
       "MCP_BLOCKLIST_EXTEND",
       "MCP_ALLOW_TABLE"
     ];
-    var warnedKeys = /* @__PURE__ */ new Set();
-    function warnOnce(key, message) {
-      if (warnedKeys.has(key))
-        return;
-      warnedKeys.add(key);
-      console.error(`[MCP] ${message}`);
-    }
     function readPointer(runtimeDir) {
       const pointer = path3.join(runtimeDir, "active-profile.txt");
       if (!fs7.existsSync(pointer))
@@ -122233,106 +122224,22 @@ var require_profile = __commonJS({
       const raw = fs7.readFileSync(pointer, "utf8").trim();
       return raw.length > 0 ? raw : void 0;
     }
-    function yieldsConnection(runtimeDir) {
-      return readPointer(runtimeDir) !== void 0 || fs7.existsSync(path3.join(runtimeDir, "sap.env"));
-    }
-    function samePath(a, b) {
-      const ra = path3.resolve(a);
-      const rb = path3.resolve(b);
-      return process.platform === "win32" ? ra.toLowerCase() === rb.toLowerCase() : ra === rb;
-    }
-    function hasMigrationJournalFrom(newDir, legacyDir) {
-      const journal = path3.join(newDir, MIGRATION_JOURNAL_FILE);
-      if (!fs7.existsSync(journal))
-        return false;
-      try {
-        const parsed = JSON.parse(fs7.readFileSync(journal, "utf8"));
-        const source = parsed?.source ?? parsed?.from;
-        return typeof source === "string" && samePath(source, legacyDir);
-      } catch {
-        return false;
-      }
-    }
     function resolveProjectRuntimeDir(cwd = process.cwd()) {
-      const newDir = path3.join(cwd, exports2.RUNTIME_DIR_NEW);
-      const legacyDir = path3.join(cwd, exports2.RUNTIME_DIR_LEGACY);
-      const newOk = yieldsConnection(newDir);
-      const legacyOk = yieldsConnection(legacyDir);
-      if (newOk && legacyOk) {
-        if (hasMigrationJournalFrom(newDir, legacyDir)) {
-          return { dir: newDir, generation: "sapkit", reason: "COEXIST_OK" };
-        }
-        warnOnce(`coexist-project:${path3.resolve(cwd)}`, `Both ${exports2.RUNTIME_DIR_NEW}/ and ${exports2.RUNTIME_DIR_LEGACY}/ carry connection state in ${cwd} \u2014 using ${exports2.RUNTIME_DIR_NEW}/. If a migration was interrupted, finish or revert it (migrate-runtime-dir --status).`);
-        return { dir: newDir, generation: "sapkit", reason: "OK_NEW" };
-      }
-      if (newOk) {
-        return { dir: newDir, generation: "sapkit", reason: "OK_NEW" };
-      }
-      if (legacyOk) {
-        warnOnce(`legacy-project:${path3.resolve(cwd)}`, `Using the legacy runtime directory ${exports2.RUNTIME_DIR_LEGACY}/ in ${cwd}. It stays supported; migrate-runtime-dir moves it to ${exports2.RUNTIME_DIR_NEW}/.`);
-        return {
-          dir: legacyDir,
-          generation: "sc4sap",
-          reason: "OK_LEGACY_DEPRECATED"
-        };
-      }
-      if (!fs7.existsSync(newDir) && fs7.existsSync(legacyDir)) {
-        return {
-          dir: legacyDir,
-          generation: "sc4sap",
-          reason: "OK_LEGACY_DEPRECATED"
-        };
-      }
-      return { dir: newDir, generation: "sapkit", reason: "OK_NEW" };
+      return { dir: path3.join(cwd, exports2.RUNTIME_DIR_NEW), reason: "OK_NEW" };
     }
     function resolveHomeDir(alias) {
       const override = process.env.SAPKIT_HOME_DIR;
       if (override) {
         if (!fs7.existsSync(override)) {
-          throw new ProfilePathError("ENV_INVALID", `SAPKIT_HOME_DIR points to a path that does not exist: ${override}. Fix or unset it \u2014 the legacy home is not used as a silent fallback.`);
+          throw new ProfilePathError("ENV_INVALID", `SAPKIT_HOME_DIR points to a path that does not exist: ${override}. Fix or unset it \u2014 no other home is used as a silent fallback.`);
         }
-        return { dir: override, generation: "sapkit", reason: "OK_NEW" };
+        return { dir: override, reason: "OK_NEW" };
       }
-      const legacyOverride = process.env.SC4SAP_HOME_DIR;
-      if (legacyOverride) {
-        warnOnce("env:SC4SAP_HOME_DIR", "SC4SAP_HOME_DIR is deprecated \u2014 rename it to SAPKIT_HOME_DIR (same meaning, same value).");
-        return {
-          dir: legacyOverride,
-          generation: "sc4sap",
-          reason: "OK_LEGACY_DEPRECATED"
-        };
+      const home = path3.join(os2.homedir(), exports2.RUNTIME_DIR_NEW);
+      if (fs7.existsSync(path3.join(home, "profiles", alias))) {
+        return { dir: home, reason: "OK_NEW" };
       }
-      const newHome = path3.join(os2.homedir(), exports2.RUNTIME_DIR_NEW);
-      const legacyHome = path3.join(os2.homedir(), exports2.RUNTIME_DIR_LEGACY);
-      const inNew = fs7.existsSync(path3.join(newHome, "profiles", alias));
-      const inLegacy = fs7.existsSync(path3.join(legacyHome, "profiles", alias));
-      if (inNew && inLegacy) {
-        if (hasMigrationJournalFrom(newHome, legacyHome)) {
-          return { dir: newHome, generation: "sapkit", reason: "COEXIST_OK" };
-        }
-        warnOnce(`coexist-home:${alias}`, `Profile "${alias}" exists in both ${newHome} and ${legacyHome} \u2014 using ${newHome}. Remove the stale copy to avoid connecting to the wrong system.`);
-        return { dir: newHome, generation: "sapkit", reason: "OK_NEW" };
-      }
-      if (inNew) {
-        return { dir: newHome, generation: "sapkit", reason: "OK_NEW" };
-      }
-      if (inLegacy) {
-        warnOnce("legacy-home", `Using the legacy profile home ${legacyHome}. It stays supported; migrate-runtime-dir --scope home moves it to ${newHome}.`);
-        return {
-          dir: legacyHome,
-          generation: "sc4sap",
-          reason: "OK_LEGACY_DEPRECATED"
-        };
-      }
-      throw new ProfilePathError("PROFILE_NOT_FOUND", `Active profile "${alias}" was not found in ${path3.join(newHome, "profiles")} or ${path3.join(legacyHome, "profiles")}.`);
-    }
-    function combineReason(a, b) {
-      if (a === "OK_LEGACY_DEPRECATED" || b === "OK_LEGACY_DEPRECATED") {
-        return "OK_LEGACY_DEPRECATED";
-      }
-      if (a === "COEXIST_OK" || b === "COEXIST_OK")
-        return "COEXIST_OK";
-      return "OK_NEW";
+      throw new ProfilePathError("PROFILE_NOT_FOUND", `Active profile "${alias}" was not found in ${path3.join(home, "profiles")}.`);
     }
     function normalizeTier(value) {
       const v = (value || "").trim().toUpperCase();
@@ -122346,13 +122253,10 @@ var require_profile = __commonJS({
       let sourcePath;
       let legacy;
       let homeDir;
-      let homeGeneration;
-      let reason = project.reason;
+      const reason = project.reason;
       if (alias) {
         const home = resolveHomeDir(alias);
         homeDir = home.dir;
-        homeGeneration = home.generation;
-        reason = combineReason(project.reason, home.reason);
         sourcePath = path3.join(home.dir, "profiles", alias, "sap.env");
         legacy = false;
         if (!fs7.existsSync(sourcePath)) {
@@ -122370,9 +122274,7 @@ var require_profile = __commonJS({
             readonly: false,
             legacy: true,
             runtimeDir: project.dir,
-            runtimeDirGeneration: project.generation,
             homeDir: void 0,
-            homeGeneration: void 0,
             reason: project.reason
           };
         }
@@ -122393,9 +122295,7 @@ var require_profile = __commonJS({
         readonly: tier !== "DEV",
         legacy,
         runtimeDir: project.dir,
-        runtimeDirGeneration: project.generation,
         homeDir,
-        homeGeneration,
         reason
       };
     }
@@ -122431,7 +122331,6 @@ var require_profile = __commonJS({
     function __resetProfileState() {
       activeTier = "DEV";
       activeAlias = void 0;
-      warnedKeys.clear();
     }
   }
 });
@@ -153331,7 +153230,7 @@ var require_handleReloadProfile = __commonJS({
     exports2.TOOL_DEFINITION = {
       name: "ReloadProfile",
       available_in: ["onprem", "cloud", "legacy"],
-      description: "[system] Reload the active SAP profile from .sapkit/active-profile.txt (legacy: .sc4sap/active-profile.txt) and reset the cached connection. Called by the sapkit plugin after switching profiles. Returns the newly active alias, host, tier, and readonly status. If the server was started without connection parameters (inspection-only), this CANNOT restore the connection: it returns restartRequired=true and the MCP server must be restarted.",
+      description: "[system] Reload the active SAP profile from .sapkit/active-profile.txt and reset the cached connection. Called by the sapkit plugin after switching profiles. Returns the newly active alias, host, tier, and readonly status. If the server was started without connection parameters (inspection-only), this CANNOT restore the connection: it returns restartRequired=true and the MCP server must be restarted.",
       inputSchema: {
         type: "object",
         properties: {},
@@ -188473,7 +188372,7 @@ function hydrateSystemContextFromEnvFile(envFilePath) {
       "SAP_VERSION",
       "ABAP_RELEASE",
       // Security tier for the readonly guard. Runtime-directory profiles
-      // (.sapkit, legacy .sc4sap) resolve tier in
+      // (.sapkit) resolve tier in
       // profile.ts; an --env-path / MCP_ENV_PATH connection has no profile, so
       // its SAP_TIER must be bridged here and then reconciled into the guard
       // cache (see reconcileTierFromEnv in main()).
@@ -188494,8 +188393,8 @@ function hydrateSystemContextFromEnvFile(envFilePath) {
   }
 }
 function showVersion() {
-  if ("4.14.3") {
-    console.log("4.14.3");
+  if ("5.0.0") {
+    console.log("5.0.0");
     process.exit(0);
   }
   let dir = __dirname;
