@@ -8,7 +8,7 @@ SAP ABAP 개발·컨설팅을 돕는 AI 플러그인. 지식·페르소나·절�
 
 - **설계 정본**: [DESIGN.md](DESIGN.md) (2026-07-10 확정, Fable 5 + Codex 이중 리뷰 반영)
 - **이식 기록**: [MIGRATION-MANIFEST.md](MIGRATION-MANIFEST.md) — 원본 전 파일 5분류. **은퇴한 역사 문서**(이식 완료 기록 · 이후 갱신 의무 없음) — 검증 게이트는 제거됐고 콘텐츠 무결성은 git 이력이 담당한다
-- **상태**: L0~L5 구현 완료 + 코드리뷰 반영 — L3 E2E(플러그인 설치 + SAP 프로파일) 대기. Codex·Antigravity 설치 스모크 통과
+- **상태**: 3사(Claude Code·Codex·Antigravity) 설치·E2E 검증 완료. 상태 정본은 레포 루트 [HANDOFF.md](../HANDOFF.md)
 
 ## 빠른 시작
 
