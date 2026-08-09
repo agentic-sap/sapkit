@@ -62,6 +62,7 @@ const HISTORY = [
   'engine/src/__tests__/',
   'engine/tests/',
   'interactive/scripts/test-launch-toolsurface.mjs',
+  'interactive/scripts/test-setup-state.mjs',
   // 이 게이트 자신과 그 음성시험 (토큰을 정의·주입한다)
   'interactive/scripts/check-runtime-path-rename.mjs',
   'interactive/scripts/test-check-runtime-path-rename.mjs',

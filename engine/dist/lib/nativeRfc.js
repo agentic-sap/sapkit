@@ -7,7 +7,7 @@
  * importing from ./rfcBackend instead of ./soapRfc.
  *
  * Connection parameters come from process.env (populated from the active
- * profile's sap.env — `.sapkit/sap.env`, legacy `.sc4sap/sap.env`):
+ * profile's sap.env — `.sapkit/sap.env`):
  *   SAP_RFC_ASHOST, SAP_RFC_SYSNR, SAP_RFC_CLIENT,
  *   SAP_RFC_USER,   SAP_RFC_PASSWD, SAP_RFC_LANG,
  *   SAP_RFC_MSHOST, SAP_RFC_SYSID,  SAP_RFC_GROUP,

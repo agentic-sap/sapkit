@@ -606,7 +606,7 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 <a id="reloadprofile-read-only-system"></a>
 #### ReloadProfile (Read-Only / System)
-**Description:** [system] Reload the active SAP profile from .sapkit/active-profile.txt (legacy: .sc4sap/active-profile.txt) and reset the cached connection. Called by the sapkit plugin after switching profiles. Returns the newly active alias, host, tier, and readonly status.
+**Description:** [system] Reload the active SAP profile from .sapkit/active-profile.txt and reset the cached connection. Called by the sapkit plugin after switching profiles. Returns the newly active alias, host, tier, and readonly status. If the server was started without connection parameters (inspection-only), this CANNOT restore the connection: it returns restartRequired=true and the MCP server must be restarted.
 
 **Source:** `src/handlers/system/readonly/handleReloadProfile.ts`
 
@@ -3009,4 +3009,4 @@ Legacy systems support a subset of tools — primarily Class, Interface, View, P
 
 ---
 
-*Last updated: 2026-08-02*
+*Last updated: 2026-08-09*

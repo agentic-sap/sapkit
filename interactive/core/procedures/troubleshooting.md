@@ -255,10 +255,9 @@ If check 1 fails → fill the gateway env block. If check 2 fails → verify VPN
 
 ### Storage layout
 
-Profile home resolution order: `$SAPKIT_HOME_DIR` if set, else the deprecated
-`$SC4SAP_HOME_DIR` if that is set instead (still works; report it as
-`(legacy env var)`), else `~/.sapkit`, else `~/.sc4sap` (the engine's oldest
-fallback).
+Profile home resolution order: `$SAPKIT_HOME_DIR` if set, else `~/.sapkit`. A
+`SAPKIT_HOME_DIR` that is set but points nowhere is a hard error (`ENV_INVALID`),
+never a silent fall-through to `~/.sapkit` — fix or unset it.
 
 ```
 ~/.sapkit/profiles/<alias>/sap.env        # user-level connection env (shared across repos)
@@ -271,16 +270,8 @@ fallback).
 <project>/.sapkit/work/<alias>/...        # per-profile project artifacts
 ```
 
-**Legacy `.sc4sap/` projects**: a project created before the 2026-08 rename
-keeps its profile home and project state under `.sc4sap/` instead of
-`.sapkit/` — reads and writes both go to whichever directory is actually
-active (`.sapkit/` for a new or already-migrated project, `.sc4sap/`
-otherwise); nothing renames it automatically. Report it as `(legacy
-.sc4sap/)` when found. Moving it is a separate, human-run step —
-`node interactive/scripts/migrate-runtime-dir.mjs` (dry-run by default,
-`--apply` to execute) — never run this on the user's behalf.
-
-A **legacy single-profile** layout (`<project>/.sc4sap/sap.env`, no `active-profile.txt`) may still exist on older installations — report it as `(legacy)` when encountered.
+A **single-profile** layout (`<project>/.sapkit/sap.env`, no `active-profile.txt`)
+is still read — report it as `(single-profile)` when encountered.
 
 Alias convention: `{COMPANY}-{TIER}` (e.g. `KR-DEV`, `US-PRD`), matching `^[A-Z0-9_-]+$`. Never auto-name a profile `default`.
 
@@ -341,7 +332,7 @@ Fix by re-creating the profile through [setup](setup.md) on this machine, or by 
 
 - Passwords are ideally stored in the OS keychain (service `sc4sap`, account `<alias>/<username>`) and referenced as `SAP_PASSWORD=keychain:sc4sap/<alias>/<username>` in `sap.env`. Plaintext fallback (headless/Docker) deserves an explicit warning.
 - Never display `SAP_PASSWORD`, `SAP_RFC_PASSWD`, `SAP_RFC_GATEWAY_TOKEN`, or `XSUAA_CLIENT_SECRET` in any form — logs, prompts, diffs, or error messages. Mask as `*** (n chars)`.
-- Never copy `sap.env` outside `.sapkit/` (or legacy `.sc4sap/`) locations, and never commit it to version control.
+- Never copy `sap.env` outside `.sapkit/` locations, and never commit it to version control.
 
 ### Editing sap.env safely
 
@@ -393,7 +384,7 @@ Before any risky operation ("which system am I connected to?"), render a compact
 The **SAPKit verifier** — the command it installs today is `vsp`, which is also what this section calls it — is an optional offline ABAP verifier that runs entirely on the local machine: no SAP connection needed, and nothing else in this document depends on it.
 
 - **Install**: `node interactive/scripts/get-vsp.mjs` — detects OS/arch, downloads the matching GitHub release asset, and installs only on a sha256 match.
-- **Location**: `~/.sapkit/bin/vsp` (or the legacy `~/.sc4sap/bin/vsp` if that is the active home — `vsp.exe` on Windows).
+- **Location**: `~/.sapkit/bin/vsp` (`vsp.exe` on Windows).
 
 vsp ships **two different offline checkers** — do not confuse them (D-049 measurements):
 
