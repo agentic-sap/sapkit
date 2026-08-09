@@ -19,7 +19,7 @@
 //   blocklist        임시 cwd/env + JSON stdin 자식 프로세스 (실제 차단 판정으로 관측)
 //   launch.cjs       실 shim + 스텁 번들로 실기동 (MCP_ENV_PATH·exposition 관측)
 //                    + 진짜 번들 부팅 스모크 1회(무접속 안전 확인)
-//   vpass · extract  `--resolve-only` (무접속 · exit 0 · JSON stdout)
+//   extract          `--resolve-only` (무접속 · exit 0 · JSON stdout)
 //   engine           **이 러너의 범위 밖** — fixture `_schema.readers`대로 Jest가 소유한다
 //
 // 모든 자식은 가짜 HOME/USERPROFILE을 받는다. 실사용자 상태(`~/.sc4sap` 실물)는
@@ -85,7 +85,6 @@ const PATHS = {
   blocklist: consumerPath('adapters', 'claude', 'hooks', 'block-forbidden-tables.mjs'),
   launch: consumerPath('server', 'launch.cjs'),
   bundle: consumerPath('server', 'server.bundle.cjs'),
-  vpass: consumerPath('tools', 'vpass', 'vpass.mjs'),
   extractSpro: consumerPath('tools', 'extract', 'extract-spro.mjs'),
   extractCust: consumerPath('tools', 'extract', 'extract-customizations.mjs'),
 };
@@ -553,20 +552,21 @@ try {
       row.note = (row.note ? row.note + ' · ' : '') + 'tier-guard.runtimeDir은 훅 출력에 없어 decision/tier로 간접 고정';
     }
 
-    // cwd-상대 기록기 3종. fixture에 **도구별** 기대(`consumers['cwd-tools']`)가 있으면
-    // 각각 대조하고, 없으면 R-PRESERVE 불변식만 assert한다. 불변식만으로는 셋이 **같은
+    // cwd-상대 기록기 2종. fixture에 **도구별** 기대(`consumers['cwd-tools']`)가 있으면
+    // 각각 대조하고, 없으면 R-PRESERVE 불변식만 assert한다. 불변식만으로는 둘이 **같은
     // 오답**을 내면 통과해 버린다(3차 리뷰 #6) — 그래서 도구별 기대가 본선이고
     // 불변식은 그물이다. 둘 다 돌린다.
+    // (fixture의 `expected`에 남은 `vpass` 키는 아래 hasOwnProperty 가드가 건너뛴다 —
+    //  fixture는 engine 소유라 이 러너 쪽에서 손대지 않는다.)
     const cwdExpected = kase.consumers?.['cwd-tools']?.expected ?? null;
-    const [vp, es, ec] = await Promise.all([
-      driveResolveOnly(PATHS.vpass, cwd, env),
+    const [es, ec] = await Promise.all([
       driveResolveOnly(PATHS.extractSpro, cwd, env),
       driveResolveOnly(PATHS.extractCust, cwd, env),
     ]);
-    const trio = { vpass: vp, 'extract-spro': es, 'extract-customizations': ec };
-    const trioDirs = [];
+    const cwdTools = { 'extract-spro': es, 'extract-customizations': ec };
+    const cwdToolDirs = [];
     let envInvalidCount = 0;
-    for (const [name, res] of Object.entries(trio)) {
+    for (const [name, res] of Object.entries(cwdTools)) {
       if (res.envInvalid) {
         envInvalidCount++;
         continue;
@@ -576,29 +576,29 @@ try {
         failures++;
         continue;
       }
-      trioDirs.push([name, norm(res.value.runtime_dir)]);
+      cwdToolDirs.push([name, norm(res.value.runtime_dir)]);
     }
     if (envInvalidCount > 0) {
-      row.cells['cwd-tools'] = `env-invalid ${envInvalidCount}/3`;
+      row.cells['cwd-tools'] = `env-invalid ${envInvalidCount}/2`;
       row.note =
         (row.note ? row.note + ' · ' : '') +
         'R-ENV 하드 오류로 멈춘 도구가 있다(기대 동작). extract-customizations는 --resolve-only에서 홈을 해석하지 않아 멈추지 않는다 — 출력 범위 차이';
-    } else if (trioDirs.length === 3) {
+    } else if (cwdToolDirs.length === 2) {
       asserted++;
       const cwdDiffs = [];
-      const [a, b, c3] = trioDirs;
+      const [a, b] = cwdToolDirs;
       const legacyAt = fs.existsSync(path.join(cwd, '.sc4sap'));
       const newAt = fs.existsSync(path.join(cwd, '.sapkit'));
-      if (!(a[1] === b[1] && b[1] === c3[1])) {
-        cwdDiffs.push(`cwd-상대 3종 불일치: ${trioDirs.map(([n, d]) => `${n}=${d}`).join(' | ')}`);
+      if (a[1] !== b[1]) {
+        cwdDiffs.push(`cwd-상대 2종 불일치: ${cwdToolDirs.map(([n, d]) => `${n}=${d}`).join(' | ')}`);
       } else if (legacyAt && !newAt && a[1] !== norm(path.join(cwd, '.sc4sap'))) {
         cwdDiffs.push(`R-PRESERVE 위반: cwd에 .sc4sap만 있는데 ${a[1]} 를 골랐다`);
       } else if (!legacyAt && !newAt && a[1] !== norm(path.join(cwd, '.sapkit'))) {
         cwdDiffs.push(`R-NEW 위반: cwd에 아무 세대도 없는데 ${a[1]} 를 골랐다`);
       }
-      // 도구별 기대값 — "셋이 같으면 통과"의 구멍을 막는 본선 대조.
+      // 도구별 기대값 — "둘이 같으면 통과"의 구멍을 막는 본선 대조.
       if (cwdExpected) {
-        for (const [name, got] of trioDirs) {
+        for (const [name, got] of cwdToolDirs) {
           if (!Object.prototype.hasOwnProperty.call(cwdExpected, name)) continue;
           const want = norm(expandPath(cwdExpected[name], ctx));
           if (want !== got) cwdDiffs.push(`${name}.runtime_dir: 기대 ${want} · 실제 ${got}`);

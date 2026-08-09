@@ -32,12 +32,10 @@ roadmap §6). Apply the Policy, not a one-shot auto-run:
 - **MCP success is PROVISIONAL_WRITE, not done.** An ACTIVE result from
   `GetInactiveObjects` proves the object links — it is not a completion stamp.
 - **COMPLETE is reached by handoff to a Guided run** that records an exact-subject
-  review `R-PASS` and a vsp-backed `V-PASS` (source read-back · syntax · activate ·
-  unit · ATC). That chain is run with [tools/vpass/vpass.mjs](../../tools/vpass/vpass.mjs)
-  (`node "$CLAUDE_PLUGIN_ROOT/tools/vpass/vpass.mjs" --source-dir <dir> <TYPE> <NAME>`),
-  which writes the verdict record to `.sapkit/vpass/`. Run it via the
-  [`vpass` skill](../../skills/vpass/SKILL.md) (`/sapkit:vpass`) instead of typing
-  the raw command. The Step 7 report labels the state accordingly.
+  review `R-PASS`, together with a machine check of what SAP actually holds —
+  source read-back compared against the intended source, plus syntax and
+  active-state confirmation — per [verify-applied](verify-applied.md). The
+  Step 7 report labels the state accordingly.
 
 ## Use When
 
@@ -228,7 +226,7 @@ Adopt the [sap-writer](../personas/sap-writer.md) persona for this step. Pure fo
 
 Render rules:
 
-- flow = "standard" AND activation_status = "ACTIVE": 5–7 line block — object name · type · package · transport · **state = PROVISIONAL_WRITE** (created + active on DEV; not yet COMPLETE) + 1-line next-step hint. Do NOT report the object as "완료 / done" from MCP success alone — COMPLETE requires a Guided run's exact-subject review `R-PASS` plus a vsp `V-PASS`. Next-step examples: "Add methods with direct `UpdateClass` MCP calls", "Hand off to a Guided run for R-PASS + vsp V-PASS to complete", or "Release with the [release](release.md) procedure".
+- flow = "standard" AND activation_status = "ACTIVE": 5–7 line block — object name · type · package · transport · **state = PROVISIONAL_WRITE** (created + active on DEV; not yet COMPLETE) + 1-line next-step hint. Do NOT report the object as "완료 / done" from MCP success alone — COMPLETE requires a Guided run's exact-subject review `R-PASS` plus a machine check of what SAP actually holds ([verify-applied](verify-applied.md)). Next-step examples: "Add methods with direct `UpdateClass` MCP calls", "Confirm what SAP holds with [verify-applied](verify-applied.md), then hand off to a Guided run for R-PASS", or "Release with the [release](release.md) procedure".
 - flow = "standard" AND activation_status = "FAILED": error message + suggested fix + retry hint.
 - flow = "ecc-helper" AND activation_status = "ECC_DEFERRED": **use the MANDATORY format VERBATIM** (do NOT rephrase):
 

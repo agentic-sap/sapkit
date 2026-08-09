@@ -50,7 +50,7 @@ function detectPlatform() {
   return `${osKey}-${archKey}`;
 }
 
-// 런타임 홈 결정 (D-057 R-ENV) — 설치기와 소비자(vpass·offline-code-analysis 훅)가
+// 런타임 홈 결정 (D-057 R-ENV) — 설치기와 소비자(offline-code-analysis 훅)가
 // **같은 홈**을 고르게 하는 것이 목적이다.
 //   SAPKIT_HOME_DIR(설정됐는데 경로가 없으면 오류 — 구 env로 조용히 넘어가지 않는다)
 //   → SC4SAP_HOME_DIR(deprecation) → 바이너리가 실재하는 세대 → 홈 디렉터리가 실재하는
