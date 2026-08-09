@@ -153,10 +153,11 @@ codex mcp get sap --json     # "disabled_tools": ["GetTableContents","GetSqlQuer
 > 배포할 수 있는 설정이 아니므로, `launch.cjs` 앞단에 이름-보존형 tools/list 필터가
 > 필요하다(별도 항목 — 권장만, 미구현). 현재 정본 권장은 위의 하드 차단.
 
-## 로컬 오프라인 검증 (vsp, 선택)
+## 로컬 오프라인 검증 — SAPKit 검사기 (선택)
 
-SAP 반영 전 `.abap` 파일을 로컬에서 미리 점검하고 싶으면 `vsp`(오프라인 ABAP
-검증기)를 설치한다 — 없어도 플러그인 동작에는 지장 없다.
+SAP 반영 전 `.abap` 파일을 로컬에서 미리 점검하고 싶으면 **SAPKit 검사기**(오프라인
+ABAP 검증기 — 현재 설치되는 명령어는 `vsp`)를 설치한다 — 없어도 플러그인 동작에는
+지장 없다.
 
 ```
 node interactive/scripts/get-vsp.mjs   # ~/.sapkit/bin/vsp(.exe) 설치

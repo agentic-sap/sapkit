@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Interactive onboarding wizard — SAP connection profile, project context files with tool-surface selection, and a layered self-check, plus optional permission-template, vsp, and safety-hook switches.
+description: Interactive onboarding wizard — SAP connection profile, project context files with tool-surface selection, and a layered self-check, plus optional permission-template, SAPKit-verifier, and safety-hook switches.
 ---
 
 # Setup Wizard
@@ -83,8 +83,8 @@ a parallel `.sapkit/` in a project whose active state is still legacy
    canonical keys are present/empty, and whether a password value exists —
    never the values themselves); `config.json`'s known/unknown keys and
    current `toolSurface`; which of Claude/Codex/Antigravity are on `PATH`; and
-   a few out-of-scope items (permission-template file, hooks installer, vsp
-   installer presence) that Step 4 owns.
+   a few out-of-scope items (permission-template file, hooks installer,
+   SAPKit-verifier presence) that Step 4 owns.
 2. Summarize this in plain language for the user before doing anything else.
    A project already on the legacy `.sc4sap/` layout
    (`runtimeGeneration: "sc4sap"`) is reported **as-is** — this wizard never
@@ -180,7 +180,7 @@ a parallel `.sapkit/` in a project whose active state is still legacy
    plan/confirm/apply round-trip as Step 2, kept as its own confirmed action
    rather than folded into Step 2's.
 
-## Step 4 — Optional: Permission Template, vsp, and Safety Hooks
+## Step 4 — Optional: Permission Template, SAPKit Verifier, and Safety Hooks
 
 All three of the following are optional and independent — skip whichever the
 user doesn't want.
@@ -217,11 +217,13 @@ or [adapters/antigravity/README.md](../../adapters/antigravity/README.md).
    absent from the template — per-call human approval on those two stays in
    force regardless of this merge.
 
-### 4b. vsp Offline Verifier (optional, any harness)
+### 4b. SAPKit Verifier — offline (optional, any harness)
 
-Ask whether the user wants `vsp` — an optional offline ABAP lint/parse tool
-that runs with no SAP connection. Skipping it does not limit anything else in
-this plugin. If yes, after confirmation run (same `PLUGIN_ROOT` substitution):
+Ask whether the user wants the **SAPKit verifier** — an optional offline ABAP
+lint/parse tool that runs with no SAP connection. The command it installs today
+is `vsp`; call it that when you show the user a command line. Skipping it does
+not limit anything else in this plugin. If yes, after confirmation run (same
+`PLUGIN_ROOT` substitution):
 
 ```
 node "PLUGIN_ROOT/scripts/get-vsp.mjs"

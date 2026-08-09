@@ -3,15 +3,17 @@
  * Engine bundle integrity guard.
  *
  * The MCP engine ships inside the plugin as a single pre-built file
- * (engine/server.bundle.cjs) copied from the sibling repo
- * hjaewon/abap-mcp-adt-powerup. engine/VERSION records provenance as free
- * text; engine/integrity.json pins the exact bytes. This script keeps the
- * three in agreement — the same model scripts/bundle-keyring.mjs applies to
- * the keyring bundle (see docs/engine-bundle-integrity.md).
+ * (interactive/server/server.bundle.cjs) built in-repo from `engine/` — the
+ * engine source was absorbed into this repo on 2026-07-11 (D-017), so repair,
+ * bundling, and delivery all happen here. interactive/server/VERSION records
+ * provenance as free text; interactive/server/integrity.json pins the exact
+ * bytes. This script keeps the three in agreement — the same model
+ * interactive/server/bundle-keyring.mjs applies to the keyring bundle
+ * (procedure: interactive/server/UPDATE-RUNBOOK.md).
  *
  * Usage:
- *   node scripts/verify-engine.mjs            # verify (CI gate), exit 0/1
- *   node scripts/verify-engine.mjs --refresh  # re-pin after an engine bump
+ *   node interactive/server/verify-engine.mjs            # verify (CI gate), exit 0/1
+ *   node interactive/server/verify-engine.mjs --refresh  # re-pin after an engine bump
  */
 
 import { createHash } from 'node:crypto';
