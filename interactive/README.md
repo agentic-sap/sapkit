@@ -1,9 +1,10 @@
-# sapkit / interactive (구 sc4sap-lite)
+# SAPKit — `interactive/` 플러그인
 
-SAP ABAP 개발·컨설팅 지식/페르소나/절차를 **하네스 중립 코어 + 얇은 어댑터 3벌**
-(Claude Code / Codex / Antigravity)로 제공하는 라이트 배포판 — sapkit 레포의 대화형 트랙 (`interactive/` = 플러그인 루트).
-`sc4sap-custom`(Claude 전용 풀버전, 동결)의 전 자산을 이식하되 멀티에이전트
-오케스트레이션을 버리고 "1명 작업 + 1명 새-컨텍스트 리뷰 + SAP 기계 검증" 모델로 단순화했다.
+SAP ABAP 개발·컨설팅을 돕는 AI 플러그인. 지식·페르소나·절차·스킬·정책을 담은
+**하네스 중립 코어 + 얇은 어댑터 3벌**(Claude Code / Codex / Antigravity)에 SAP ADT
+접속 MCP 서버를 동봉해 배포한다 — sapkit 레포의 대화형 트랙 (`interactive/` = 플러그인 루트).
+품질 모델은 **1명 작업 + 1명 새-컨텍스트 리뷰 + SAP 기계 검증**이고, 무게의 척도는
+레포 바이트가 아니라 **세션 토큰·설치 부담**이다 — 가볍지만 강력하게.
 
 - **설계 정본**: [DESIGN.md](DESIGN.md) (2026-07-10 확정, Fable 5 + Codex 이중 리뷰 반영)
 - **이식 기록**: [MIGRATION-MANIFEST.md](MIGRATION-MANIFEST.md) — 원본 전 파일 5분류. **은퇴한 역사 문서**(이식 완료 기록 · 이후 갱신 의무 없음) — 검증 게이트는 제거됐고 콘텐츠 무결성은 git 이력이 담당한다
