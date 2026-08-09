@@ -6,3 +6,6 @@
 # `.claude/` 디렉토리 패턴이면 내부 네거이션이 무효라 `.claude/*`로 유지 (quality-gate.json만 추적)
 .claude/*
 !.claude/quality-gate.json
+
+# dryforge 작업 산출물(3-doc·워크트리) — 비추적
+.dryforge/
