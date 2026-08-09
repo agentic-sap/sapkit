@@ -50,7 +50,7 @@ node "<PLUGIN_ROOT>/adapters/claude/hooks/install-hooks.mjs" --project .  # 프�
   `prefer-sqlquery-explicit-fields`·`offline-code-analysis`·`syntax-checker`
   (PostToolUseFailure)·`transport-validator`.
 - **멱등**: marker(스크립트 파일명) 기준으로 upsert — 재실행해도 같은 내용이면 파일
-  diff가 0이다. 이미 설치된 다른 훅(SAPKit 소유가 아닌 것)이나 `hooks` 밖의 키
+  diff가 0이다. 이미 설치된 다른 훅(SAPKIT 소유가 아닌 것)이나 `hooks` 밖의 키
   (`permissions`·`env` 등)는 절대 건드리지 않는다.
 - 각 훅의 command는 버전 무관 marketplace 고정 경로
   (`~/.claude/plugins/marketplaces/agentic-sap/interactive/adapters/claude/hooks/<script>`)를
@@ -66,7 +66,7 @@ node "<PLUGIN_ROOT>/adapters/claude/hooks/install-hooks.mjs" --uninstall        
 node "<PLUGIN_ROOT>/adapters/claude/hooks/install-hooks.mjs" --project . --uninstall # 프로젝트 설정에서 제거
 ```
 
-marker 기준으로 SAPKit 훅만 제거하고 다른 훅·설정 키는 그대로 둔다. 아무것도 설치돼
+marker 기준으로 SAPKIT 훅만 제거하고 다른 훅·설정 키는 그대로 둔다. 아무것도 설치돼
 있지 않으면 "nothing to remove"로 무변화 no-op이다.
 
 ## 검증
@@ -80,7 +80,7 @@ marker 기준으로 SAPKit 훅만 제거하고 다른 훅·설정 키는 그대�
    사용자 `~/.claude/settings.json`)을 직접 읽어, 등록된 각 훅의 command가 가리키는
    스크립트 경로가 실제로 존재하는지 확인한다 — 플러그인 캐시 이동·마켓명 변경 등으로
    끊긴 죽은 경로를 FAIL로 보고한다.
-3. **`node interactive/scripts/doctor.mjs`**의 "⑧ SAPKit 훅 배선" 검사 — 사용자
+3. **`node interactive/scripts/doctor.mjs`**의 "⑧ SAPKIT 훅 배선" 검사 — 사용자
    `~/.claude/settings.json`과 프로젝트 `.claude/settings.json`·`settings.local.json`
    **세 곳 모두**를 스캔한다(설계 v2 §9-2 항목 8). `PROJECT_DIR = process.cwd()` 기준이라
    사용자의 실제 SAP 프로젝트 디렉터리에서 실행하면 그 프로젝트가 대상이 된다 — 이 문서

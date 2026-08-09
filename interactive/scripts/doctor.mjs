@@ -16,7 +16,7 @@
 //   ⑤ 프로젝트 cwd의 runtime dir(.sapkit)·active-profile.txt 해석 결과
 //   ⑥ 기대 toolSurface와 그 의미(launch.cjs의 실제 결정 로직을 require해 재사용 — 중복 구현 금지)
 //   ⑦ Codex legacy 전역 `sap` MCP 중복(그림자) 감지 — 자동 제거 금지, 경고만
-//   ⑧ SAPKit 훅 배선 상태 — 사용자 `~/.claude/settings.json` + 프로젝트
+//   ⑧ SAPKIT 훅 배선 상태 — 사용자 `~/.claude/settings.json` + 프로젝트
 //      `.claude/settings.json`·`settings.local.json` 양쪽. v2부터 미배선이 기본값이므로
 //      미배선=INFO(정상), 죽은 경로만 WARN.
 //   ⑨ `sap.env` 존재 여부만(내용·값은 어떤 경로로도 출력하지 않는다)
@@ -568,7 +568,7 @@ function checkCodexLegacyShadow(codexProbe) {
   );
 }
 
-// ── ⑧ SAPKit 훅 배선 상태 — 사용자 + 프로젝트(양쪽) ────────────────────────────────────
+// ── ⑧ SAPKIT 훅 배선 상태 — 사용자 + 프로젝트(양쪽) ────────────────────────────────────
 function collectCommands(node, out = []) {
   if (Array.isArray(node)) {
     for (const item of node) collectCommands(item, out);
@@ -618,7 +618,7 @@ function scanSettingsFile(filePath, markers) {
 
 function checkHookWiring() {
   const code = 'HOOK_WIRING';
-  const label = '⑧ SAPKit 훅 배선';
+  const label = '⑧ SAPKIT 훅 배선';
   const markers = sapkitHookMarkers();
   if (!markers.length) {
     report('SKIP', code, label, 'install-hooks.mjs를 찾지 못해 marker 목록을 확정할 수 없음');

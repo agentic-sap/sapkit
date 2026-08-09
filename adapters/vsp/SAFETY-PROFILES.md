@@ -198,8 +198,9 @@ vsp가 자격증명을 얻는 **두 채널**을 모두 통제한다:
 
 1. **`SAP_*` 환경변수** — 작업 셸에 `SAP_URL`/`SAP_CLIENT`/`SAP_USER`/`SAP_PASSWORD`가
    있으면 vsp가 그대로 읽는다. 값의 출처는
-   `<프로파일 홈>\profiles\<ProfileName>\sap.env`(신 `.sapkit`/구 `.sc4sap` 중 활성
-   홈 — D-057)이고, 비밀번호가 `keychain:<target>`
+   `<프로파일 홈>\profiles\<ProfileName>\sap.env`(`SAPKIT_HOME_DIR`, 기본
+   `$HOME\.sapkit` — 단일 세대. 구 세대 폴백은 renew R5에서 제거됐다)이고,
+   비밀번호가 `keychain:<target>`
    이면 Windows Credential Manager에서 해석한다. **주입을 대행하던 env 래퍼 스크립트는
    R1에서 삭제됐다** — 지금은 사람이 직접 주입하고, 시크릿을 출력·기록·커밋으로
    흘리지 않을 책임도 사람에게 있다(R-005).
@@ -214,25 +215,23 @@ vsp가 자격증명을 얻는 **두 채널**을 모두 통제한다:
 | **Engine attended worker** | **해당 없음 — R1에서 폐지** | 엔진 실행 설비가 삭제돼 이 role은 더 이상 존재하지 않는다. 당시 규율(기동 셸 `os.environ` 승계 → 스코핑은 기동 시점 셸에서, 배포 자격증명은 래퍼 자기 프로세스에만)의 **원리**는 아래 Human operator 행이 승계한다 |
 | **Human operator** | 해당 작업 셸에서만 | P3 수행 세션에서만 그 셸에 **DEV tier** 프로파일의 `SAP_*`를 주입한다. 리뷰·분석 세션과 셸을 공유하지 않으며, 레포 CWD에 `.env`를 두지 않는다(두 채널이 비면 SAP에 닿지 못한다) |
 
-- **DEV tier 한정 (R-003)**: write는 DEV tier에서만. 이 머신 프로파일 홈(`~\.sah`)에는
+- **DEV tier 한정 (R-003)**: write는 DEV tier에서만. 이 머신 프로파일 홈
+  (`SAPKIT_HOME_DIR`, 기본 `~\.sapkit`)에는
   `IDEA-JNC`·`KR-DEV`만 존재하며 `IDEA-JNC`(SID S4H/client 100, dev tier)가 유일 실증
   프로파일이다. `IDEA-JNC`에만 `SAP_INSECURE=true`가 붙는다(자체서명 인증서, 사용자 승인
   2026-07-11) — **QA/PRD 프로파일에 재사용 금지**. QA/PRD tier
   시스템에 vsp write(deploy/copy/execute)를 실행하지 않는다(R-003).
 
-### `.gitignore` 실측 (2026-07-13, 유효 · R-005; D-057로 신 경로 병기)
+### `.gitignore` 실측 (2026-07-13 최초 · 2026-08-09 재확인 · R-005)
 
-레포 루트 `.gitignore`에 자격증명 관련 항목 **이미 등록됨**(런타임 경로 개명 후
-신·구 폴백 기간 동안 두 이름 모두 무시 대상):
+레포 루트 `.gitignore`에 자격증명 관련 항목 **이미 등록됨**(호환층 제거 후 단일 세대):
 
 ```
-.sapkit/        — 프로파일 홈(sap.env 등)의 레포 내 잔재 차단 (신)
-.sc4sap/        — 동일, 레거시(미이행 프로젝트) 경로 (구)
+.sapkit/        — 프로파일 홈(sap.env 등)의 레포 내 잔재 차단
 .env            — vsp 자동 로드 대상 자격증명 파일 차단
 ```
 
-프로파일 실체 `sap.env`는 `SAPKIT_HOME_DIR`(기본 `$HOME\.sapkit`, 미설정 시 구
-`SC4SAP_HOME_DIR`/`$HOME\.sc4sap` 폴백) 하위 — **레포 밖**이라
+프로파일 실체 `sap.env`는 `SAPKIT_HOME_DIR`(기본 `$HOME\.sapkit`) 하위 — **레포 밖**이라
 커밋 표면이 아니다. R-005(접속정보 커밋 금지)는 위 항목들 + 이 배치로 성립.
 
 ### write 후 확인 (R-006)

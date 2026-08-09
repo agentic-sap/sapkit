@@ -76,7 +76,7 @@
 | MCP 서버(SAP 실행 능력 ~150 도구) | 100% 유지 — server/로 이관, 3사 공통 등록 |
 | 페르소나 26개 | 유지 — 서브에이전트에서 "호출 가능한 중립 문서"로 형태 변환 |
 | 스킬 17개 중 10개 | 절차 문서로 변환 (관문·순서 유지, 자동 교대만 제거) |
-| 스킬 중 sap-abap | 원래 순수 지식 — `knowledge/abap/reference/`로 편입 |
+| 스킬 중 sap-abap | 원래 순수 지식 — `knowledge/abap/reference/`로 편입. **2026-08-09 전량 삭제**(GPL-3.0 편집 저작물 사본 — 고지는 「제거로 해소」로 전환) |
 | 스킬 중 setup·mcp-setup·sap-doctor·sap-option | 설치 스크립트 + doctor + troubleshooting 문서로 변환 |
 | **스킬 중 team·trust-session** | **명시 폐기** (team=Claude 전용 개념, trust-session=정적 권한 템플릿으로 대체) |
 | hooks.json의 편의성 훅 15종 | 폐기 (선행 설계에서 무동작 실증) |
@@ -109,7 +109,10 @@ sc4sap-lite/
       modules/BC/                      ← agent_details/bc 2파일 기반 특수 모듈 (신규 합성임을 명시)
       industry/  country/              ← 14업종 + 16개국
       abap/
-        reference/                     ← skills/sap-abap 레퍼런스 + references/
+        (reference/ 는 없다)            ← 이식 당시 `skills/sap-abap` 레퍼런스 31파일이 있었으나
+                                          GPL-3.0 편집 저작물의 사본이라 2026-08-09 전량 삭제 —
+                                          고지는 「제거로 해소」 기록으로 전환(THIRD_PARTY_NOTICES).
+                                          빈자리를 자체 집필로 채우는 계획은 docs/BLUEPRINT.md ⑶-a
         conventions/                   ← common/ 규약 (include-structure, oop-pattern, alv-rules,
                                           clean-code 3종, naming, text-element, constant 등)
         templates/                     ← oop/procedural/alv 샘플 + ecc/ (DDIC 헬퍼 템플릿 3종)
@@ -132,8 +135,21 @@ sc4sap-lite/
                                           (analyze-cbo-obj)·프로그램 단위(program-to-spec) 위의
                                           **프로세스 계층**. 메인이 7단계 전부 소유(디스패치 0,
                                           페르소나 채택) · P0/P1 · 산출물에 PNG 다이어그램 2종
+      verify-applied.md                ← 「반영 확인(기계 확인)」. SAP에 이미 반영한 오브젝트를
+                                          되읽어 보낸 것과 대조하고 구문·활성 상태를 확인한다.
+                                          완료의 기계 절반이며 나머지 절반은 독립 새-컨텍스트
+                                          리뷰다. 도구 성공 응답은 어느 절반도 아니다.
+                                          (renew 1차에서 옛 이름의 전용 절차·스킬·러너를
+                                          개명·삭제하고 재저작 — 도장 의식과 별도 산출물
+                                          파일은 폐지. 경위는 결정 로그)
+      setup.md  troubleshooting.md     ← 온보딩 마법사 · 하네스 중립 진단/운용
+      install-sap-assets.md            ← SAP측 헬퍼 오브젝트 설치
+      spro-lookup.md  customization-lookup.md  help-portal-fetch.md
+                                       ← 조회 보조 절차 (SPRO 경로 · Customizing 값 · 공식 문서)
       schemas/                         ← approval·review-request·review-result·verification 스키마
                                           (승인 = spec 해시 + SID/client + transport에 결합)
+
+      계 22개 (`.md` 실측). 이 중 17개가 스킬 진입점으로도 노출된다 — 절차 수 ≠ 스킬 수.
     policies/
       knowledge-sourcing.md            ← 성숙층 사다리(D-059): RULES→지식원자→스냅샷→볼트→번들
                                           우선순위·읽기 의무·write-back — 전 페르소나·절차 우산
@@ -175,10 +191,10 @@ sc4sap-lite/
 1. **단일 원천 규칙**: 페르소나=역할·관점, 절차=순서·관문, 정책=불변조건만 소유.
    절차가 페르소나 본문을 복사하지 않는다 — 참조만. (이중 보관 드리프트 방지)
 2. **프로젝트 컨텍스트**: `.sapkit/` 규약(sapVersion·abapRelease·activeModules·industry·
-   country·active-profile, legacy `.sc4sap/` 폴백 병행)은 선행 설계의 멀티 프로파일
-   체계를 유지한다. **"루트 .env 하나로 통일" 발상은 기각** (서버 tier 가드가
-   `.sapkit`/`.sc4sap`을 읽으므로 우회 위험 + DEV/QAS/PRD 전환 현실과 충돌 — 이중
-   리뷰 합의 지적).
+   country·active-profile)은 선행 설계의 멀티 프로파일 체계를 유지한다. 구 세대
+   디렉터리 폴백은 **renew R5에서 제거**돼 지금은 단일 세대다(D-057 이행 완료 후).
+   **"루트 .env 하나로 통일" 발상은 기각** (서버 tier 가드가 `.sapkit`을 읽으므로
+   우회 위험 + DEV/QAS/PRD 전환 현실과 충돌 — 이중 리뷰 합의 지적).
 3. **설치 프로필 2종**: `knowledge-only`(지식+페르소나, 서버 미설치 — SAP 연결 없는
    컨설팅용)와 `connected`(서버+SAP 연결). 서버 8.25MB+런타임 4.5MB는 후자에서만.
 4. **지식 정본 선언**: 이식 완료 시점부터 지식 정본 = sc4sap-lite. 동결된 sc4sap-custom은
@@ -188,8 +204,8 @@ sc4sap-lite/
    아니라(번들 도구와 표면 중복) CLI 검증기로, SAP 반영 전 오프라인 lint/parse를 붙인다.
    배포는 D-037 비커밋 원칙과 정합하게 **GitHub 릴리스 자산**으로 하고, 플랫폼별 sha256
    정본은 핀 파일 `provenance/vsp-release.lock.json`이 소유한다. 설치 = `scripts/get-vsp.mjs`
-   (OS/arch 감지 → 핀 URL 다운로드 → sha256 일치 시에만 `~/.sapkit/bin/`, legacy
-   `~/.sc4sap/bin/` 폴백 병행). 선택 사항이라
+   (OS/arch 감지 → 핀 URL 다운로드 → sha256 일치 시에만 `~/.sapkit/bin/` — 구 세대
+   폴백은 R5에서 제거). 선택 사항이라
    미설치에서도 하네스는 정상 동작하며, 릴리스 자산 방식이라 완전 오프라인이 아니라
    다운로드 1회가 필요하다. 근거·집행 = D-044.
 6. **방법론 강도 축**: `development-loop.md`(정책)가 강도 축(Minimal/Standard/Full)·
@@ -232,15 +248,20 @@ Antigravity(agy CLI 1.0.7 `plugin install/validate`). 어댑터는 동일한 6�
 **adapters/claude/ (기준 구현 — 기존 자산 최대 재사용):**
 
 ```text
-.claude-plugin/plugin.json
-skills/          ← 절차 15개의 얇은 래퍼 ("core/procedures/X.md를 읽고 수행" 수준)
-agents/          ← 2개: sap-reviewer (read-only) — 리뷰 패스용
-                   sap-worker (P2/P4 차단) — execution_owner=delegated 실행체 (D-051)
-hooks/           ← 훅 6종(안전 4 + 품질 조언 2), 2026-08-02 v2부터 기본 미설치·선택
-                   스위치 — 설치는 install-hooks.mjs 명시 실행, 문서는 hooks/README.md
-permissions/     ← 정적 allowlist 템플릿 (trust-session 대체.
-                    GetTableContents/GetSqlQuery 제외 유지 — 매번 승인 프롬프트)
+.claude-plugin/plugin.json               ← 생성물 (정본 = plugin-metadata.json)
+adapters/claude/hooks/                   ← 훅 6종(안전 4 + 품질 조언 2), 2026-08-02 v2부터
+                                            기본 미설치·선택 스위치 — 설치는 install-hooks.mjs
+                                            명시 실행, 문서는 hooks/README.md
+adapters/claude/permissions-template.json ← 정적 allowlist 템플릿 (trust-session 대체.
+                                            GetTableContents/GetSqlQuery 제외 유지 — 매번 승인)
+adapters/claude/lib/                     ← 프로파일 해석 등 훅 공용 모듈
 ```
+
+**스킬·에이전트는 어댑터가 아니라 플러그인 루트가 소유한다** — 실측: `skills/` 17개
+(절차 22개 중 진입점으로 노출되는 것들의 얇은 래퍼, "core/procedures/X.md를 읽고 수행"
+수준) · `agents/` 2개(`sap-reviewer` read-only 리뷰 패스용 · `sap-worker` P2/P4 차단,
+execution_owner=delegated 실행체 — D-051). 3사가 같은 실물을 공유하므로 어댑터별 복제는
+없다(§4-1 계약 3).
 
 **adapters/codex/:**
 
@@ -283,7 +304,7 @@ toolSurface 결정  ← .sapkit/config.json의 toolSurface(readonly 기본/devel
 | 층 | 실체 | Claude | Codex | Antigravity |
 |---|---|---|---|---|
 | L1 문서 정책 | core/policies | ✅ 동일 | ✅ 동일 | ✅ 동일 |
-| **L2 서버 내장 가드** | 번들의 blocklist + SAP_TIER readonly 가드 (`.sapkit`/`.sc4sap` 프로파일 해석) — **3사 공통 기계 방어선** | ✅ | ✅ | ✅ |
+| **L2 서버 내장 가드** | 번들의 blocklist + SAP_TIER readonly 가드 (`.sapkit` 프로파일 해석) — **3사 공통 기계 방어선** | ✅ | ✅ | ✅ |
 | L3 하네스 기계 장치 | 각사 고유 | allowlist(permissions 템플릿) + 안전훅 3종(2026-08-02 v2부터 기본 미설치·선택 스위치) | approval 모드 + 샌드박스 | 자체 권한 설정 |
 
 - 실데이터 조회 2종(GetTableContents/GetSqlQuery): Claude는 allowlist 제외로 매번 승인.
@@ -419,8 +440,8 @@ v1 → v2(본문 §3·§4) 반영의 결정적 지적:
 
 **불변 경계 — 본 레포는 공개다.** L2·L3는 복사·커밋 금지, 포인터 참조만 한다.
 실제 경로 문자열(고객명이 포함될 수 있음)도 레포에 커밋하지 않는다: 포인터는 각
-사용 프로젝트의 `.sapkit/`(legacy `.sc4sap/` 폴백 병행, git 미추적 런타임 상태)에만
-존재하고, 본 레포에는 이 필드의 스키마 설명만 둔다.
+사용 프로젝트의 `.sapkit/`(git 미추적 런타임 상태)에만 존재하고, 본 레포에는 이 필드의
+스키마 설명만 둔다.
 
 ### 8-3. knowledgeRoots 규약 (L2·L3 참조 배선)
 
@@ -472,7 +493,13 @@ v1 → v2(본문 §3·§4) 반영의 결정적 지적:
   이름 아님) — 공식 문서에 없어 개명 전엔 두 값이 같아 관측 불가였고, 2026-07-21
   재시작 실측으로 확정했다. 스킬 접두어·에이전트 접두어도 동일 규칙이다. 따라서
   **플러그인 이름만 짧게 유지하면 세션 고정 토큰이 줄고, 마켓·조직명 길이는 무관하다.**
-- **Phase 2 — 집행 착수(2026-08-02)**: `.sc4sap/` 디렉토리명·`~/.sah/` 프로파일 홈·
+- **Phase 2 — ✅ 완결 (착수 2026-08-02 · 호환층 제거 2026-08-09)**: 아래는 착수 시점의
+  설계 기록이다. **지금은 단일 세대다** — 사람 선행 게이트(이행 완료·두 스코프
+  COEXIST_OK·구 env 부재)를 통과한 뒤 renew R5가 `SC4SAP_HOME_DIR` 폴백·구 런타임
+  디렉터리 폴백·마이그레이터와 그 시험을 걷어냈고, 개명 게이트
+  (`check-runtime-path-rename.mjs`)는 "구 세대 토큰 재등장 금지"만 지키는 단순
+  게이트로 재작성됐다. 그 판에서 엔진은 5.0.0으로 major 범프·재번들됐다.
+  아래 원문(착수 시점): `.sc4sap/` 디렉토리명·`~/.sah/` 프로파일 홈·
   `SC4SAP_*` 환경 변수 개명. 설계 정본 =
   `docs/reference/designs/2026-08-01-runtime-path-rename-sapkit.md`(v4, Codex 이종
   교차 리뷰 4회 — BLOCKER 8건 원문 확증). 대원칙 **R-PRESERVE**: 개명은 legacy-only

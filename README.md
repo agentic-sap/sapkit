@@ -1,4 +1,4 @@
-# SAPKit
+# SAPKIT
 
 SAP ABAP 개발·컨설팅 플러그인 — 지식 코어 + 페르소나 + 절차 + ADT MCP 서버.
 

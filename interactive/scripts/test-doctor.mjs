@@ -414,7 +414,7 @@ console.log('\nT8. Codex legacy 전역 sap 등록 감지');
 }
 
 // ── T9. 훅 배선 — 사용자/프로젝트 스코프, marker 활성·죽은 경로·미배선 ─────────────────
-console.log('\nT9. SAPKit 훅 배선 상태(사용자+프로젝트) — marker 활성/죽은 경로/미배선');
+console.log('\nT9. SAPKIT 훅 배선 상태(사용자+프로젝트) — marker 활성/죽은 경로/미배선');
 {
   const proj = tmpDir('t9-project');
   const home = tmpDir('t9-home');

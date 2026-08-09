@@ -16,12 +16,13 @@
 // 이전 판의 3구역·ALLOWLIST·캡·폴백 의무는 전부 사라졌다. 폴백이 없으니 "구 이름을
 // 함께 안내해야 한다"는 요구가 성립하지 않고, 캡으로 관리할 승인된 등장도 없다.
 //
-// ─────────────────────────────── 두 가지 예외 ───────────────────────────────
+// ──────────────────────────────── 하나의 예외 ────────────────────────────────
 //   역사(HISTORY)  결정·설계 로그, provenance, CHANGELOG, 빌드 산출물, 시험 자산.
 //                  여기서 구 이름은 **기록**이거나 "무시되는지"를 시험하는 입력이다.
-//   인계(PENDING)  이 작업 소유가 아닌 파일. 아직 구 이름을 말하지만 고칠 권한이
-//                  다른 작업에 있다. **경고만 하고 실패시키지 않는다** — 대신 새
-//                  파일이 구 이름을 들이면 그건 그대로 실패다.
+//
+// 한때 있던 인계(PENDING) 예외 — "다른 작업이 소유한 파일이라 경고만 한다" — 는
+// 그 마지막 항목(`adapters/vsp/SAFETY-PROFILES.md`)이 정리되면서 T8에서 사라졌다.
+// 지금은 역사 밖의 모든 구 토큰이 곧바로 실패다.
 //
 // 안전 앵커(ANCHORS)는 그대로 남는다. 이것들은 런타임 경로가 아니라 **SAP 안에
 // 실재하는 이름**(ABAP 오브젝트명·keychain 서비스명)이라 개명하면 예제가 깨진다.
@@ -66,15 +67,6 @@ const HISTORY = [
   // 이 게이트 자신과 그 음성시험 (토큰을 정의·주입한다)
   'interactive/scripts/check-runtime-path-rename.mjs',
   'interactive/scripts/test-check-runtime-path-rename.mjs',
-];
-
-// ── 인계 — 다른 작업 소유. 경고만 한다 ──────────────────────────────────────
-// 여기 있는 파일은 "고쳐야 하지만 이 작업의 쓰기 경계 밖"이라는 뜻이다.
-// 고쳐지면 목록에서 빼야 하고(그때 이 게이트가 알려준다), 목록이 비면 상수째 지운다.
-const PENDING = [
-  // 트랙 A 안전 프로파일 문서 — 프로파일 홈 해석을 서술하는 문단이 폴백 제거로
-  // 낡았다. 트랙 A 문서 소유자가 고친다.
-  'adapters/vsp/SAFETY-PROFILES.md',
 ];
 
 // ── 안전 앵커 — 개명 금지 호환성 문자열(§3-3). 사라지면 FAIL ───────────────
@@ -146,25 +138,13 @@ const hits = [];
 })(ROOT);
 
 const fail = [];
-const warn = [];
 
 // ── 잔존 금지 ───────────────────────────────────────────────────────────────
 for (const hit of hits) {
-  if (matchesList(hit.rel, PENDING)) {
-    warn.push(`${hit.rel} — 구 세대 토큰 ${hit.legacy}건 (인계 목록: 다른 작업이 소유)`);
-    continue;
-  }
   fail.push(
     `${hit.rel} — 구 세대 토큰 ${hit.legacy}건. 호환층은 R5에서 제거됐다. ` +
       `\`.sapkit\` / \`SAPKIT_HOME_DIR\`만 쓸 것 (구 경로를 일부러 시험하는 자산이면 HISTORY에 등재).`,
   );
-}
-
-// 인계 목록이 이미 깨끗해졌으면 알려준다 — 목록이 조용히 썩는 것을 막는다.
-for (const p of PENDING) {
-  if (!hits.some((h) => matchesList(h.rel, [p]))) {
-    warn.push(`인계 목록 항목이 이제 0건: ${p} — PENDING에서 뺄 것`);
-  }
 }
 
 // ── 안전 앵커 ───────────────────────────────────────────────────────────────
@@ -185,10 +165,8 @@ for (const a of ANCHORS) {
 // ── 보고 ────────────────────────────────────────────────────────────────────
 console.log(`스캔 루트   : ${ROOT}`);
 console.log(`역사 제외   : 경로 ${HISTORY.length}개 (결정·설계 로그 · provenance · 빌드 산출물 · 시험 자산)`);
-console.log(`인계        : ${PENDING.length}개 (경고만 — 다른 작업 소유)`);
-console.log(`활성 잔존   : ${hits.length - hits.filter((h) => matchesList(h.rel, PENDING)).length}개 파일`);
+console.log(`활성 잔존   : ${hits.length}개 파일`);
 console.log(`안전 앵커   : ${ANCHORS.reduce((n, a) => n + a.strings.length, 0)}개 정확 문자열`);
-for (const w of warn) console.log(`  ⚠ ${w}`);
 
 if (fail.length) {
   console.log(`\n❌ 위반 ${fail.length}건:`);

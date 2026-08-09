@@ -206,17 +206,16 @@ CODE_FAIL**(폴백)이다.
 없어 환경 실패가 코드 결함으로 둔갑해 실패 기록을 오염시킨다(DESIGN.md §9, §⑤
 안티패턴 참조).
 
-**V-PASS 체인 러너 (2026-07-26 신설)**: 완료 증거 체인(read-back → active-state 정합 →
-unit → atc)을 한 번에 돌리고 판정 기록을 `.sapkit/vpass/<ts>-<대상>.json`에 남기는
-러너가 `interactive/tools/vpass/vpass.mjs`에 있다 — 이 문서의 실측(§②-4 atc exit 0 ·
-§②-5 `No test classes found.` · §③ 마커 3종·LOCK→ENV 순서 · §⑤ 안티패턴)을 그대로 판정
-로직에 이식했고, 그 실측 출력 문자열을 픽스처로 삼는 자가시험을 내장한다
-(`--self-test`, 40/40). 위 규약과의 관계: 러너는 `verify-sap.ps1`을 경유하지 않고
-(제품 플러그인에 그 스크립트가 없다) **동일한 마커 분류를 Node로 자체 구현**하며,
-SAP 쓰기 명령은 일절 호출하지 않고 모든 자식 프로세스에 `SAP_READ_ONLY=true`를 준다.
-"서버측 문법 검사"는 §14-9 부재 판정 때문에 **직접 검사가 아니라 read-back 정합
-추론**이며 그 한계(active/inactive 미구분 · 시점 증거 · n=1 근거)를 기록의 `limits[]`에
-매번 남긴다. 라이브 SAP 미검증.
+**반영 확인은 이제 MCP 기반 절차다 (2026-08-09 현행)**: 한때 이 자리에 있던 V-PASS 체인
+러너(`interactive/tools/vpass/vpass.mjs` · 판정 기록 `.sapkit/vpass/<ts>-<대상>.json`)는
+**삭제됐다** — 도장을 찍는 의식이 아니라 사람이 읽는 확인 절차가 맞다는 판단이었다.
+현행 정본은 `interactive/core/procedures/verify-applied.md`(「반영 확인(기계 확인)」)이며,
+번들 MCP 도구(`Read*`/`Get*` 되읽기 · `GetSourceDiff` · `CheckSyntax` ·
+`GetInactiveObjects`)를 직접 불러 확인하고 **별도 산출물 파일을 남기지 않는다**.
+vsp 쪽 마커 규약(위 §③)과의 관계: 절차는 vsp를 경유하지 않으므로 마커 분류를 쓰지 않는다 —
+이 문서의 마커 규약은 **vsp CLI 호출자**에게만 적용된다. 두 경로 모두 "도구가 success를
+반환했다"를 완료 증거로 인정하지 않는다는 점은 같고(R-006), 완료는 그 기계 확인에
+**독립 새-컨텍스트 리뷰**가 더해질 때 성립한다.
 
 ## ④ 호출 규약
 
