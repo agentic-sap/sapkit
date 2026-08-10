@@ -177,6 +177,70 @@ describe('argv 접속 통로 — 셰임이 MCP_ENV_PATH를 세팅하지 않는 �
     expect(startup.diagnostics.join('\n')).toContain('TRIAL');
   });
 
+  it('--mcp=<destination>이 있으면 cwd에 .env가 있어도 접속을 만들지 않는다', () => {
+    const cwd = tempDir();
+    writeEnvFile(path.join(cwd, '.env'), { SAP_TIER: 'PRD' });
+    const startup = resolveStartup({
+      argv: argvOf('--mcp=TRIAL'),
+      env: {},
+      cwd,
+      homedir: tempDir(),
+    });
+    expect(startup.profile.connection).toBeNull();
+    expect(startup.profile.envPath).toBeNull();
+    expect(startup.profile.tier).toBe('UNKNOWN');
+    expect(startup.diagnostics.join('\n')).toContain('MCP_DESTINATION_UNSUPPORTED');
+  });
+
+  it('--env=<name>도 M1이 짓지 않은 통로다 — 진단만 남기고 무접속으로 간다', () => {
+    const startup = resolveStartup({
+      argv: argvOf('--env=TRIAL'),
+      env: {},
+      cwd: tempDir(),
+      homedir: tempDir(),
+    });
+    expect(startup.profile.connection).toBeNull();
+    expect(startup.diagnostics.join('\n')).toContain('ENV_DESTINATION_UNSUPPORTED');
+    expect(startup.diagnostics.join('\n')).toContain('TRIAL');
+  });
+
+  it('--env=<name>이 있으면 cwd에 .env가 있어도 접속을 만들지 않는다', () => {
+    const cwd = tempDir();
+    writeEnvFile(path.join(cwd, '.env'), { SAP_TIER: 'PRD' });
+    const startup = resolveStartup({
+      argv: argvOf('--env=TRIAL'),
+      env: {},
+      cwd,
+      homedir: tempDir(),
+    });
+    expect(startup.profile.connection).toBeNull();
+    expect(startup.profile.envPath).toBeNull();
+    expect(startup.profile.tier).toBe('UNKNOWN');
+    expect(startup.diagnostics.join('\n')).toContain('ENV_DESTINATION_UNSUPPORTED');
+  });
+
+  it('--env-path는 --env로 잘못 잡히지 않는다 (접두사 오탐 · 두 형태 모두)', () => {
+    const dir = tempDir();
+    const envPath = writeEnvFile(path.join(dir, 'explicit.env'), { SAP_TIER: 'QA' });
+    const joined = resolveStartup({
+      argv: argvOf(`--env-path=${envPath}`),
+      env: {},
+      cwd: tempDir(),
+      homedir: tempDir(),
+    });
+    const split = resolveStartup({
+      argv: argvOf('--env-path', envPath),
+      env: {},
+      cwd: tempDir(),
+      homedir: tempDir(),
+    });
+    for (const startup of [joined, split]) {
+      expect(startup.profile.envPath).toBe(envPath);
+      expect(startup.profile.tier).toBe('QA');
+      expect(startup.diagnostics.join('\n')).not.toContain('ENV_DESTINATION_UNSUPPORTED');
+    }
+  });
+
   it('cwd의 .env는 아무것도 해석되지 않았을 때만 쓰인다 (구 brokerFactory Variant 3)', () => {
     const cwd = tempDir();
     writeEnvFile(path.join(cwd, '.env'), { SAP_TIER: 'DEV' });

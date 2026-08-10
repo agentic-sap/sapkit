@@ -103,10 +103,23 @@ export function resolveStartup(input: StartupInput = {}): Startup {
 
   // ② 접속 — argv 통로가 먼저다.
   const explicitEnvPath = argValue(args, '--env-path');
-  const mcpDestination = argValue(args, '--mcp');
-  if (mcpDestination !== undefined && mcpDestination.trim() !== '') {
+
+  // `--mcp=<destination>`과 `--env=<name>`은 **destination 인자**다 — 운영자가
+  // 어느 시스템에 붙을지 이름으로 고른 것이고, M1은 그 두 통로를 짓지 않았다.
+  // (`--env`는 플랫폼 세션 디렉터리 조회, `--mcp`는 service key 브로커.)
+  // 인식해서 이름 있는 진단을 남기되, cwd의 `.env` 폴백에서는 **제외한다**
+  // — 고르지 않은 시스템에 조용히 붙는 것이 진단 문구와 정면으로 어긋난다.
+  // `argValue`의 접두사는 `--env=`이므로 `--env-path`는 여기 걸리지 않는다.
+  const mcpDestination = (argValue(args, '--mcp') ?? '').trim();
+  const envDestination = (argValue(args, '--env') ?? '').trim();
+  if (mcpDestination !== '') {
     diagnostics.push(
-      `MCP_DESTINATION_UNSUPPORTED: --mcp=${mcpDestination.trim()} names an auth-broker destination (service keys), which M1 does not implement — M1 authenticates with Basic credentials from an env file only. The server starts with no connection; use --env-path=<file> or an active profile instead.`,
+      `MCP_DESTINATION_UNSUPPORTED: --mcp=${mcpDestination} names an auth-broker destination (service keys), which M1 does not implement — M1 authenticates with Basic credentials from an env file only. The server starts with no connection; use --env-path=<file> or an active profile instead.`,
+    );
+  }
+  if (envDestination !== '') {
+    diagnostics.push(
+      `ENV_DESTINATION_UNSUPPORTED: --env=${envDestination} names a session stored in the platform session directory, which M1 does not implement — M1 reads an env file by path only. The server starts with no connection; use --env-path=<file> or an active profile instead.`,
     );
   }
   const envPathOption =
@@ -123,11 +136,16 @@ export function resolveStartup(input: StartupInput = {}): Startup {
 
   // ③ cwd의 `.env` — 구 브로커의 마지막 폴백(`brokerFactory.ts:184-200`,
   //    Variant 3: stdio + cwd에 `.env`가 있고 `--auth-broker`가 아닐 때).
-  //    아무것도 해석되지 않았을 때에만 본다.
+  //    아무것도 해석되지 않았을 때에만 본다. destination 인자(`--mcp`·`--env`)가
+  //    있으면 보지 않는다 — 구 파서도 `--mcp`가 있으면 이 폴백을 잠갔고
+  //    (`ArgumentsParser.ts:170`, `else if (!result.mcp)`), `--env`는 세션
+  //    디렉터리 경로를 만들어 폴백 자체가 닿지 않았다(같은 파일 158-176행).
   if (
     resolution.profile.connection === null &&
     nothingResolved(resolution.profile) &&
     envPathOption === undefined &&
+    mcpDestination === '' &&
+    envDestination === '' &&
     !(env.MCP_ENV_PATH ?? '').trim() &&
     !args.includes('--auth-broker')
   ) {
