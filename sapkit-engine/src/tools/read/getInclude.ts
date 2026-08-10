@@ -8,7 +8,7 @@
 
 import * as z from 'zod';
 
-import { defineTool } from '../../server';
+import { defineTool } from '../../server/toolDefinition';
 import { includeSourcePath } from './internal/adt';
 import { failure, messageOf, ok } from './internal/results';
 

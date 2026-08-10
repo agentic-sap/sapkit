@@ -8,7 +8,7 @@
 
 import { XMLParser } from 'fast-xml-parser';
 
-import { defineTool } from '../../server';
+import { defineTool } from '../../server/toolDefinition';
 import { failure, messageOf, ok } from './internal/results';
 
 const parser = new XMLParser({

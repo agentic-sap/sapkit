@@ -16,8 +16,8 @@
 import * as z from 'zod';
 
 import type { AdtClient } from '../../adt';
-import { defineTool } from '../../server';
-import type { SapTool, ToolContext, ToolResult } from '../../server';
+import { defineTool } from '../../server/toolDefinition';
+import type { SapTool, ToolContext, ToolResult } from '../../server/toolDefinition';
 import { describeFailure, encodeObjectName, errorResult, getSource, okResult } from './shared';
 import { updateClass } from './updateClass';
 import { updateInclude } from './updateInclude';

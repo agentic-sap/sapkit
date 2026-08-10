@@ -52,6 +52,7 @@ export function fakeAdt(respond: Responder): FakeAdt {
     },
     tier: 'DEV',
     systemType: 'onprem',
+    sapVersion: null,
     envPath: null,
     alias: null,
     diagnostics: [],

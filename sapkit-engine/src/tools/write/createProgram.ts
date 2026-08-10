@@ -19,8 +19,8 @@ import * as z from 'zod';
 import { XMLParser } from 'fast-xml-parser';
 
 import type { AdtClient } from '../../adt';
-import { defineTool } from '../../server';
-import type { ToolContext } from '../../server';
+import { defineTool } from '../../server/toolDefinition';
+import type { ToolContext } from '../../server/toolDefinition';
 import {
   ACCEPT_VALIDATION,
   CT_PROGRAM,

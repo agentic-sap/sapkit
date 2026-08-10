@@ -9,7 +9,7 @@
 import * as z from 'zod';
 
 import type { AdtClient } from '../../adt';
-import { defineTool } from '../../server';
+import { defineTool } from '../../server/toolDefinition';
 import {
   functionGroupPath,
   includeSourcePath,

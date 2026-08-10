@@ -8,7 +8,7 @@
  * 만들었으므로, 여기서는 통일하지 않고 도구가 골라 쓴다.
  */
 
-import type { ToolResult } from '../../../server';
+import type { ToolResult } from '../../../server/toolDefinition';
 
 export function ok(text: string): ToolResult {
   return { isError: false, content: [{ type: 'text', text }] };

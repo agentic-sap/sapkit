@@ -8,7 +8,7 @@
 
 import * as z from 'zod';
 
-import { defineTool } from '../../server';
+import { defineTool } from '../../server/toolDefinition';
 import { adtStatusOf, objectSourcePath, readSourceText, statusTextFor } from './internal/adt';
 import { buildContextPrologue } from './internal/context';
 import { messageOf, ok, returnError } from './internal/results';

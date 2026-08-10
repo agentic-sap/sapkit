@@ -19,7 +19,7 @@ import { XMLParser } from 'fast-xml-parser';
 
 import { AdtError } from '../../adt';
 import type { AdtClient } from '../../adt';
-import type { ToolResult } from '../../server';
+import type { ToolResult } from '../../server/toolDefinition';
 
 // ── ADT 콘텐츠 타입 (구 `@babamba2/mcp-abap-adt-clients`의 실측값) ──────────
 

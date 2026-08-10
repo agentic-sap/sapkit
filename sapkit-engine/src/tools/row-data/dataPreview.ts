@@ -20,7 +20,7 @@
  * 값은 XML 원문 그대로 싣는다. 엔티티를 풀지 않는 것도 구 동작이다.
  */
 
-import type { ToolLogger } from '../../server';
+import type { ToolLogger } from '../../server/toolDefinition';
 
 export interface DataPreviewColumn {
   name: string;

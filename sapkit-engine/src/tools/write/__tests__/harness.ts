@@ -39,6 +39,7 @@ const FAKE_PROFILE: ResolvedProfile = {
   connection: null,
   tier: 'DEV',
   systemType: 'onprem',
+  sapVersion: null,
   envPath: null,
   alias: null,
   diagnostics: [],

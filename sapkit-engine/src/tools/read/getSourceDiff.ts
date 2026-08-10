@@ -9,7 +9,7 @@
 import * as z from 'zod';
 
 import type { AdtClient } from '../../adt';
-import { defineTool } from '../../server';
+import { defineTool } from '../../server/toolDefinition';
 import { includeSourcePath, objectSourcePath, readSourceText } from './internal/adt';
 import { computeUnifiedDiff } from './internal/diff';
 import { ok, returnError } from './internal/results';

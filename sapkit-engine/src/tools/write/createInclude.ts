@@ -20,8 +20,8 @@ import * as z from 'zod';
 
 import { AdtError } from '../../adt';
 import type { AdtClient } from '../../adt';
-import { defineTool } from '../../server';
-import type { ToolContext, ToolLogger } from '../../server';
+import { defineTool } from '../../server/toolDefinition';
+import type { ToolContext, ToolLogger } from '../../server/toolDefinition';
 import {
   ACCEPT_INCLUDE,
   CT_ACTIVATION_REQUEST,

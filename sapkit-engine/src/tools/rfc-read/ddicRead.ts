@@ -31,7 +31,7 @@ import { AdtError } from '../../adt';
 import type { ConnectionConfig } from '../../contracts';
 import { createDdicReadChannel, mergeRfcEnv } from '../../rfc';
 import type { DdicReadChannel } from '../../rfc';
-import type { ToolContext, ToolResult } from '../../server';
+import type { ToolContext, ToolResult } from '../../server/toolDefinition';
 
 /** 두 도구가 갈리는 낱말 전부. */
 export interface DdicObjectKind {

@@ -26,7 +26,7 @@ import * as z from 'zod';
 
 import { AdtError } from '../../adt';
 import type { AdtResponse } from '../../adt';
-import { defineTool } from '../../server';
+import { defineTool } from '../../server/toolDefinition';
 import { type SqlQueryResponse, parseDataPreviewXml } from './dataPreview';
 import { type WhereVerification, verifyWherePredicate } from './wherePredicate';
 

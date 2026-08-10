@@ -19,8 +19,8 @@
 
 import * as z from 'zod';
 
-import { defineTool } from '../../server';
-import type { ToolContext } from '../../server';
+import { defineTool } from '../../server/toolDefinition';
+import type { ToolContext } from '../../server/toolDefinition';
 import {
   CT_ACTIVATION_REQUEST,
   type CheckMessage,

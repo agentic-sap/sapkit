@@ -37,8 +37,19 @@ describe('셰임 계약', () => {
     try {
       expect(started.core.startup.sets).toEqual(['readonly']);
       expect(started.core.startup.profile.tier).toBe('DEV');
-      // 레지스트리는 M1 물결 2에서 비어 있다 — 목록이 비어도 응답 자체는 정상이다.
-      await expect(client.listTools()).resolves.toMatchObject({ tools: [] });
+      // 셰임이 넘기는 `readonly` 한 값이 표면을 실제로 가른다.
+      // 배포 축은 프로파일에 SAP_SYSTEM_TYPE이 없으므로 기본 `cloud`이고,
+      // M1 19종 중 readonly 집합에 든 7종만 남는다.
+      const listed = await client.listTools();
+      expect(listed.tools.map((t) => t.name).sort()).toEqual([
+        'CheckSyntax',
+        'GetInactiveObjects',
+        'GetInclude',
+        'GetSourceDiff',
+        'GetSqlQuery',
+        'GrepObjects',
+        'SearchObject',
+      ]);
     } finally {
       await client.close();
       await started.core.server.close();

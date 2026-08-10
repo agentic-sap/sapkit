@@ -11,7 +11,7 @@
 
 import * as z from 'zod';
 
-import { defineTool } from '../../server';
+import { defineTool } from '../../server/toolDefinition';
 import {
   adtStatusOf,
   functionModuleSourcePath,

@@ -22,8 +22,8 @@ import { XMLParser } from 'fast-xml-parser';
 
 import { AdtError } from '../../adt';
 import type { AdtClient } from '../../adt';
-import { defineTool } from '../../server';
-import type { ToolContext } from '../../server';
+import { defineTool } from '../../server/toolDefinition';
+import type { ToolContext } from '../../server/toolDefinition';
 import {
   ACCEPT_INACTIVE_OBJECTS,
   CT_ACTIVATION_REQUEST,

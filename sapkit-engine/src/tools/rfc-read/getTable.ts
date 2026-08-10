@@ -10,7 +10,7 @@
 
 import * as z from 'zod';
 
-import { defineTool } from '../../server';
+import { defineTool } from '../../server/toolDefinition';
 import { type DdicObjectKind, readDdicObject } from './ddicRead';
 
 const TABLE: DdicObjectKind = {
