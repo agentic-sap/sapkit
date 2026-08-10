@@ -7,6 +7,10 @@
  *
  * 경로 자체는 인코딩하지 않는다 — 오브젝트 이름 인코딩은 호출하는 도구 계층의
  * 몫이고, 여기서 두 번 인코딩하면 망가진다.
+ *
+ * 클라이언트 번호와 로그온 언어는 **여기서 붙지 않는다**. 클라이언트는 질의
+ * 인자가 아니라 `X-SAP-Client` 헤더 + `sap-usercontext` 쿠키로 나가고(접속 계층
+ * 소관), 언어는 ADT 요청에 아예 싣지 않는다 — 구 접속 계층 실측.
  */
 
 import type { ConnectionConfig } from '../contracts';
@@ -25,7 +29,7 @@ export function buildAdtUrl(
   const rawQuery = questionMark === -1 ? '' : path.slice(questionMark + 1);
   const normalizedPath = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
 
-  // 삽입 순서 유지: path에 이미 있던 질의 → 호출자 params → 설정된 client/language
+  // 삽입 순서 유지: path에 이미 있던 질의 → 호출자 params
   const query = new Map<string, string>();
   for (const [name, value] of new URLSearchParams(rawQuery)) {
     query.set(name, value);
@@ -35,12 +39,6 @@ export function buildAdtUrl(
       if (value === undefined) continue;
       query.set(name, String(value));
     }
-  }
-  if (config.client && !query.has('sap-client')) {
-    query.set('sap-client', config.client);
-  }
-  if (config.language && !query.has('sap-language')) {
-    query.set('sap-language', config.language);
   }
 
   if (query.size === 0) return `${origin}${normalizedPath}`;

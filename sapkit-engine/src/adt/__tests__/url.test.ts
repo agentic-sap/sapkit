@@ -2,14 +2,23 @@ import { buildAdtUrl } from '../url';
 import { offlineConfig } from './testServer';
 
 describe('buildAdtUrl', () => {
-  it('설정된 sap-client·sap-language를 질의 인자로 붙인다', () => {
+  it('설정된 client는 질의 인자로 붙지 않는다 (헤더+쿠키로 나간다)', () => {
     const url = buildAdtUrl(offlineConfig(), '/sap/bc/adt/oo/classes/zcl_x');
-    expect(url).toBe(
-      'https://sap.example.test:44300/sap/bc/adt/oo/classes/zcl_x?sap-client=100&sap-language=EN',
-    );
+    expect(url).toBe('https://sap.example.test:44300/sap/bc/adt/oo/classes/zcl_x');
+    expect(url).not.toContain('sap-client');
   });
 
-  it('client·language가 없으면 붙이지 않는다', () => {
+  it('설정된 language를 ADT 요청 URL에 싣지 않는다', () => {
+    const url = buildAdtUrl(offlineConfig({ language: 'DE' }), '/sap/bc/adt/oo/classes/zcl_x', {
+      version: 'active',
+    });
+    expect(url).toBe(
+      'https://sap.example.test:44300/sap/bc/adt/oo/classes/zcl_x?version=active',
+    );
+    expect(url).not.toContain('sap-language');
+  });
+
+  it('client·language가 없어도 결과가 같다', () => {
     const url = buildAdtUrl(
       offlineConfig({ client: undefined, language: undefined }),
       '/sap/bc/adt/core/discovery',
@@ -62,8 +71,8 @@ describe('buildAdtUrl', () => {
     expect(url).toBe('https://sap.example.test:44300/x?version=active&lockHandle=H1');
   });
 
-  it('호출자가 명시한 sap-client가 설정값을 이긴다 (중복 없음)', () => {
-    const url = buildAdtUrl(offlineConfig({ language: undefined }), '/x', { 'sap-client': '200' });
+  it('호출자가 sap-client를 직접 주면 그것만 나간다 (중복 없음)', () => {
+    const url = buildAdtUrl(offlineConfig(), '/x', { 'sap-client': '200' });
     expect(url).toBe('https://sap.example.test:44300/x?sap-client=200');
   });
 

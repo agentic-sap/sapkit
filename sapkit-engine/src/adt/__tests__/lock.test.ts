@@ -99,7 +99,7 @@ describe('AdtClient — 잠금 취득', () => {
     expect(client.activeLocks()).toHaveLength(1);
   });
 
-  it('잠금 흐름의 CSRF 취득도 같은 stateful 세션에서 나간다', async () => {
+  it('잠금 흐름의 CSRF 취득에는 세션 타입 헤더를 싣지 않는다', async () => {
     const server = await serveLockScenario();
     const client = new AdtClient(testConfig(server.baseUrl));
 
@@ -107,7 +107,26 @@ describe('AdtClient — 잠금 취득', () => {
 
     const discovery = server.nth(0);
     expect(discovery.path).toBe(CSRF_DISCOVERY_PATH);
-    expect(discovery.headers['x-sap-adt-sessiontype']).toBe('stateful');
+    expect(discovery.headers['x-sap-adt-sessiontype']).toBeUndefined();
+    expect(discovery.headers['sap-adt-request-id']).toBeUndefined();
+    expect(discovery.headers['x-sap-adt-profiling']).toBeUndefined();
+    // 본 요청은 그대로 stateful이다.
+    expect(server.nth(1).headers['x-sap-adt-sessiontype']).toBe('stateful');
+  });
+
+  it('잠금을 든 채 재취득해도 그 요청에는 세션 타입 헤더가 없다', async () => {
+    const server = await serveLockScenario();
+    const client = new AdtClient(testConfig(server.baseUrl));
+
+    await client.lock(OBJECT_PATH);
+    await client.ensureCsrfToken(true);
+
+    const refetch = server.nth(2);
+    expect(refetch.path).toBe(CSRF_DISCOVERY_PATH);
+    expect(refetch.headers['x-sap-adt-sessiontype']).toBeUndefined();
+    // 세션 모드 자체는 잠금을 든 동안 stateful로 남는다.
+    expect(client.sessionType).toBe('stateful');
+    expect(client.activeLocks()).toHaveLength(1);
   });
 
   it('다른 사용자가 잠갔으면 lock-conflict로 정규화하고 세션을 되돌린다', async () => {
