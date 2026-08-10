@@ -23,11 +23,7 @@ import {
 import { getStructure } from '../getStructure';
 import { getTable } from '../getTable';
 
-interface CapturedTool {
-  readonly name: string;
-  readonly description: string;
-  readonly inputSchema: Record<string, unknown>;
-}
+type CapturedTool = Record<string, unknown>;
 
 const CAPTURE_PATH = path.resolve(__dirname, '../../../../harness/old-surface/m1-tools.json');
 
@@ -72,8 +68,9 @@ describe('발행 계약', () => {
     const expected = captured(name);
 
     expect(published).toBeDefined();
-    expect(published?.description).toBe(expected.description);
-    expect(published?.inputSchema).toEqual(expected.inputSchema);
+    // 통째로 대조한다 — `$schema` 방언과 `execution.taskSupport`까지 채록본과
+    // 같다(실측 확인). 부분 대조로 느슨하게 두면 그 두 축이 조용히 갈린다.
+    expect(published).toEqual(expected);
   });
 
   it('두 도구는 high 표면에만 오른다 (readonly만이면 목록에 없다)', async () => {
