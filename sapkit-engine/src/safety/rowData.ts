@@ -76,7 +76,22 @@ export type RowDataDecision =
       /** Lines the caller must write to its audit channel. */
       readonly audit: string[];
     }
-  | { readonly kind: 'deny'; readonly code: RowDataDenyCode; readonly message: string };
+  | {
+      readonly kind: 'deny';
+      readonly code: RowDataDenyCode;
+      readonly message: string;
+      /**
+       * Lines the caller must write to its audit channel **even though the
+       * call was refused**. A refusal does not undo what the request asked
+       * for: an `MCP_ALLOW_TABLE` bypass is recorded as each table is checked,
+       * before any verdict exists, and the measured guard writes it out at
+       * that moment (`engine/src/lib/policy/tableBlocklist.ts:515-519`).
+       * Dropping it here would let a bypass be hidden from the audit trail by
+       * pairing it with a table that is refused outright. Empty on the
+       * refusals that never reached the blocklist.
+       */
+      readonly audit: string[];
+    };
 
 export function evaluateRowDataRequest(
   request: RowDataRequest,
@@ -89,6 +104,7 @@ export function evaluateRowDataRequest(
       kind: 'deny',
       code: 'ERR_READONLY_TIER',
       message: `ERR_READONLY_TIER: ${tier.reason} Active profile tier=${context.tier}.`,
+      audit: [],
     };
   }
 
@@ -104,9 +120,9 @@ export function evaluateRowDataRequest(
 
   switch (verdict.kind) {
     case 'deny':
-      return { kind: 'deny', code: 'ERR_ROWDATA_BLOCKED', message: verdict.message };
+      return { kind: 'deny', code: 'ERR_ROWDATA_BLOCKED', message: verdict.message, audit };
     case 'ask':
-      return { kind: 'deny', code: 'ERR_ROWDATA_CONFIRM', message: verdict.message };
+      return { kind: 'deny', code: 'ERR_ROWDATA_CONFIRM', message: verdict.message, audit };
     case 'approved':
       return {
         kind: 'allow',
@@ -143,6 +159,7 @@ function collectTables(request: RowDataRequest): Candidates {
           code: 'ERR_ROWDATA_ARGS',
           message:
             'GetTableContents was called without a table name, so the protected-table gate cannot evaluate it; the call is refused (fail-closed).',
+          audit: [],
         },
       };
     }
@@ -158,6 +175,7 @@ function collectTables(request: RowDataRequest): Candidates {
         code: 'ERR_ROWDATA_ARGS',
         message:
           'GetSqlQuery was called without a statement, so the protected-table gate cannot evaluate it; the call is refused (fail-closed).',
+        audit: [],
       },
     };
   }
@@ -172,6 +190,7 @@ function collectTables(request: RowDataRequest): Candidates {
           code: 'ERR_ROWDATA_UNPARSEABLE',
           message:
             'sapkit blocklist — no table name could be extracted from this query, so the protected-table gate cannot evaluate it; the query is refused (fail-closed). Rewrite it with a plain `FROM <table>` reference — one table per FROM/JOIN, no comment between FROM and the name.',
+          audit: [],
         },
       };
     }

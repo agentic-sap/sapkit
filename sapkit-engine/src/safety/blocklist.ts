@@ -22,14 +22,24 @@
  * unrecognised level name falls back to `standard` rather than opening the
  * guard, so a typo can only tighten, never loosen.
  *
- * Two deliberate departures from the engine this contract was measured from:
+ * Two deliberate departures from the engine this contract was measured from —
+ * departures, not oversights, and recorded as such:
  *
  *  - **The knobs are read from a caller-supplied environment**, not from
  *    `process.env` behind the caller's back. The old loader wiped these three
  *    keys out of `process.env` on startup, which left the active profile's
  *    `sap.env` as their only working channel and silently ignored a value set
  *    in an MCP server definition. Here the caller composes the environment —
- *    see {@link resolveSafetyEnv} — and both channels work.
+ *    see {@link resolveSafetyEnv} — and both channels work, with the profile
+ *    winning on a conflict.
+ *
+ *    This one is not a new judgement: the repo's own gate already treats it as
+ *    the wanted behaviour. `interactive/scripts/conformance-server-gates.mjs`
+ *    records it as **GAP-2** — "the blocklist env knobs are not carried into
+ *    the server process env" — which is the gap this closes. It does widen who
+ *    can loosen the guard, since `off` and `MCP_ALLOW_TABLE` are loosening
+ *    knobs: what keeps that honest is that the default stays locked with no
+ *    knob set, and every bypass is written to the audit channel by name.
  *  - **Nothing is written to stderr from inside this module.** Audit lines are
  *    returned to the caller, which owns the process's output streams.
  */

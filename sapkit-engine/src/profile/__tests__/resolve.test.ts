@@ -179,6 +179,79 @@ describe('resolveProfile — MCP_ENV_PATH injection', () => {
   });
 });
 
+// ── explicit env-file option ────────────────────────────────────────────────
+// The shipped shim deliberately does NOT translate `--env-path` / `--mcp` into
+// MCP_ENV_PATH, so those channels reach this layer only as an explicit option.
+describe('resolveProfile — explicit envPath option', () => {
+  it('beats MCP_ENV_PATH', () => {
+    const home = mkdtemp('home');
+    const injected = writeProfile(home, 'injected', [...BASE_ENV, 'SAP_TIER=QA']);
+    const explicit = writeProfile(home, 'explicit', [...BASE_ENV, 'SAP_TIER=DEV']);
+    const project = writeProject('dev1');
+
+    const p = resolveProfile({
+      cwd: project,
+      env: { SAPKIT_HOME_DIR: home, MCP_ENV_PATH: injected },
+      envPath: explicit,
+    });
+
+    expect(p.envPath).toBe(explicit);
+    expect(p.tier).toBe('DEV');
+  });
+
+  it('beats the pointer when MCP_ENV_PATH is absent', () => {
+    const home = mkdtemp('home');
+    writeProfile(home, 'dev1', [...BASE_ENV, 'SAP_TIER=DEV', 'SAP_CLIENT=100']);
+    const explicit = writeProfile(home, 'explicit', [...BASE_ENV, 'SAP_TIER=QA', 'SAP_CLIENT=200']);
+    const project = writeProject('dev1');
+
+    const p = resolveProfile({ cwd: project, env: { SAPKIT_HOME_DIR: home }, envPath: explicit });
+
+    expect(p.envPath).toBe(explicit);
+    expect(p.connection?.client).toBe('200');
+    expect(p.alias).toBeNull();
+  });
+
+  it('leaves MCP_ENV_PATH in charge when no envPath is given', () => {
+    const home = mkdtemp('home');
+    const injected = writeProfile(home, 'injected', [...BASE_ENV, 'SAP_TIER=QA']);
+    const project = writeProject('dev1');
+
+    const p = resolveProfile({ cwd: project, env: { SAPKIT_HOME_DIR: home, MCP_ENV_PATH: injected } });
+
+    expect(p.envPath).toBe(injected);
+    expect(p.tier).toBe('QA');
+  });
+
+  it('ignores a blank envPath and keeps the ordinary resolution', () => {
+    const home = mkdtemp('home');
+    const envPath = writeProfile(home, 'dev1', [...BASE_ENV, 'SAP_TIER=DEV']);
+    const project = writeProject('dev1');
+
+    const p = resolveProfile({ cwd: project, env: { SAPKIT_HOME_DIR: home }, envPath: '  ' });
+
+    expect(p.envPath).toBe(envPath);
+    expect(p.alias).toBe('dev1');
+  });
+
+  // NEGATIVE — an explicit path that is not there does not fall back either.
+  it('starts with no connection when the explicit envPath is missing', () => {
+    const home = mkdtemp('home');
+    writeProfile(home, 'dev1', [...BASE_ENV, 'SAP_TIER=DEV']);
+    const project = writeProject('dev1');
+
+    const p = resolveProfile({
+      cwd: project,
+      env: { SAPKIT_HOME_DIR: home },
+      envPath: path.join(home, 'nope.env'),
+    });
+
+    expect(p.connection).toBeNull();
+    expect(p.tier).toBe('UNKNOWN');
+    expect(p.diagnostics.join('\n')).toContain('ENV_PATH_MISSING');
+  });
+});
+
 // ── tier ────────────────────────────────────────────────────────────────────
 describe('resolveProfile — tier', () => {
   function tierOf(value: string | null): string {
@@ -285,10 +358,17 @@ describe('resolveProfile — deployment axis', () => {
     expect(typeOf([...BASE_ENV, 'SAP_SYSTEM_TYPE=OnPrem']).systemType).toBe('onprem');
   });
 
-  it('reports the unsupported `legacy` axis instead of silently pretending it is onprem', () => {
-    const p = typeOf([...BASE_ENV, 'SAP_SYSTEM_TYPE=legacy']);
-    expect(p.systemType).toBe('cloud');
-    expect(p.diagnostics.join('\n')).toContain('SYSTEM_TYPE_LEGACY');
+  // `legacy` is a third axis value in its own right, not a synonym for cloud:
+  // folding it in would expose the wrong tool set (the measured engine computes
+  // legacy|onprem|cloud and its handlers declare `available_in: legacy`).
+  it('honours legacy as its own axis rather than folding it into cloud', () => {
+    const p = typeOf([...BASE_ENV, 'SAP_SYSTEM_TYPE=Legacy']);
+    expect(p.systemType).toBe('legacy');
+    expect(p.diagnostics.join('\n')).not.toContain('SYSTEM_TYPE_LEGACY');
+  });
+
+  it('still defaults an unrecognised axis value to cloud', () => {
+    expect(typeOf([...BASE_ENV, 'SAP_SYSTEM_TYPE=hana-cloud-ish']).systemType).toBe('cloud');
   });
 
   it('defaults to cloud with no profile at all', () => {

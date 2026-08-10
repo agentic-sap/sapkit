@@ -9,7 +9,9 @@
  *  2. **Deployment axis** — a tool that declares `availableIn` appears only on
  *     a matching `SAP_SYSTEM_TYPE` (unset means `cloud`).
  *
- * Two properties are inherited deliberately and must not be "improved" away:
+ * ## Inherited
+ *
+ * Measured from `engine/src/lib/config/ServerConfigManager.ts` and kept:
  *
  *  - **Exposure is not a safety gate.** The two row-returning tools sit in the
  *    read-only surface, so `--exposition=readonly` does not hide them; the
@@ -17,9 +19,33 @@
  *    execution-free.
  *  - **An empty `--exposition` means "unset".** `--exposition=` therefore falls
  *    back to the default `readonly,high`, which is why a launcher that means
- *    "read-only" has to say so explicitly. A value that is present but names
- *    nothing recognisable does NOT fall back — it yields a near-empty surface,
- *    so a typo cannot quietly open the write tools.
+ *    "read-only" has to say so explicitly.
+ *  - **The FIRST occurrence on the command line wins** (see
+ *    {@link expositionFromArgv}).
+ *
+ * ## Deliberately different
+ *
+ * These are departures, not inheritance, and are recorded as such:
+ *
+ *  - **A value that names only unknown sets does not fall back.** The old
+ *    parser (`ServerConfigManager.ts:166-177`) filtered the tokens down to
+ *    `readonly|high|low|compact`, and its caller (`:113`) then replaced an
+ *    empty result with `['readonly','high']` — so `--exposition=bogus` opened
+ *    the write surface. That is fail-open, and a single typo must not be able
+ *    to open write tools, so here the filtered result stands: an unrecognised
+ *    value yields a near-empty surface instead. The safety floor may not be
+ *    lowered to match a measured behaviour.
+ *  - **Unknown tokens are reported, not swallowed.** The narrow surface is only
+ *    defensible if the operator can find out why, so
+ *    {@link parseExpositionDetailed} returns diagnostics naming what it
+ *    dropped. Nothing here writes to stderr — diagnostics go back to the
+ *    caller, which owns the process's output streams, the same rule the
+ *    blocklist follows.
+ *  - **`system` and `search` are accepted as requested tokens.** The old filter
+ *    rejected both even though the server registered those groups internally.
+ *  - **Whitespace separates as well as a comma.** The old parser split on `,`
+ *    only. This can only widen recognition of names already on the known list;
+ *    it cannot admit an unknown one.
  */
 
 import type { DeploymentType, HandlerSet, ToolExposure, ToolPolicyKind } from '../contracts';
@@ -48,23 +74,65 @@ export interface ExposureQuery {
   readonly systemType: DeploymentType;
 }
 
+/** A parsed `--exposition` value together with anything it could not use. */
+export interface ExpositionResolution {
+  readonly sets: HandlerSet[];
+  /** Human-readable lines the caller should surface. Empty when all is well. */
+  readonly diagnostics: string[];
+}
+
 /**
  * Parse an `--exposition` value. An absent or blank value means "unset" and
  * yields the default; a value that names only unknown sets yields an empty
  * list rather than the default.
  */
 export function parseExposition(raw: string | null | undefined): HandlerSet[] {
-  const text = (raw ?? '').trim();
-  if (!text) return [...DEFAULT_EXPOSITION];
+  return parseExpositionDetailed(raw).sets;
+}
 
-  const out: HandlerSet[] = [];
+/**
+ * {@link parseExposition} plus the reason the result is what it is.
+ *
+ * Because an unrecognised value does not fall back (see the module header), a
+ * mistyped flag produces a server with almost no tools on it. Saying so is the
+ * difference between a defensible narrow surface and one that just looks
+ * broken.
+ */
+export function parseExpositionDetailed(raw: string | null | undefined): ExpositionResolution {
+  const text = (raw ?? '').trim();
+  if (!text) return { sets: [...DEFAULT_EXPOSITION], diagnostics: [] };
+
+  const sets: HandlerSet[] = [];
+  const dropped: string[] = [];
   for (const token of text.split(/[,\s]+/)) {
     const value = token.trim().toLowerCase();
     if (!value) continue;
     const known = KNOWN_SETS.find((set) => set === value);
-    if (known && !out.includes(known)) out.push(known);
+    if (!known) {
+      dropped.push(token.trim());
+      continue;
+    }
+    if (!sets.includes(known)) sets.push(known);
   }
-  return out;
+
+  const diagnostics: string[] = [];
+  if (dropped.length > 0) {
+    diagnostics.push(
+      `EXPOSITION_UNKNOWN: --exposition named ${dropped
+        .map((token) => `"${token}"`)
+        .join(', ')}, which no handler set is called. Known sets: ${KNOWN_SETS.join(
+        ', ',
+      )}. Unrecognised names are dropped and do NOT fall back to the default (${DEFAULT_EXPOSITION.join(
+        ',',
+      )}), so a typo narrows the surface rather than opening the write tools.`,
+    );
+  }
+  if (sets.length === 0) {
+    diagnostics.push(
+      'EXPOSITION_EMPTY: no handler set in this value was recognised, so only the always-on search group is exposed and the server will look nearly empty. Pass --exposition=readonly for the read-only surface or --exposition=readonly,high for the full one.',
+    );
+  }
+  return { sets, diagnostics };
 }
 
 /**
@@ -74,12 +142,19 @@ export function parseExposition(raw: string | null | undefined): HandlerSet[] {
  * own.
  */
 export function expositionFromArgv(argv: readonly string[]): HandlerSet[] {
+  return expositionFromArgvDetailed(argv).sets;
+}
+
+/** {@link expositionFromArgv} plus the diagnostics of the occurrence it used. */
+export function expositionFromArgvDetailed(argv: readonly string[]): ExpositionResolution {
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i] ?? '';
-    if (arg.startsWith('--exposition=')) return parseExposition(arg.slice('--exposition='.length));
-    if (arg === '--exposition') return parseExposition(argv[i + 1] ?? '');
+    if (arg.startsWith('--exposition=')) {
+      return parseExpositionDetailed(arg.slice('--exposition='.length));
+    }
+    if (arg === '--exposition') return parseExpositionDetailed(argv[i + 1] ?? '');
   }
-  return [...DEFAULT_EXPOSITION];
+  return { sets: [...DEFAULT_EXPOSITION], diagnostics: [] };
 }
 
 /**

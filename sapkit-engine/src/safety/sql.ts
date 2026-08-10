@@ -116,9 +116,18 @@ export function extractTablesFromSql(sql: string): string[] {
  * The exemption is narrow on purpose. GROUP BY and HAVING surface the grouping
  * keys, UNION can graft a second projection on, and a subquery in the
  * projection returns real values; each disqualifies the statement.
+ *
+ * It is also judged on the **raw** statement, comments and all — the one place
+ * in this module where comments are not stripped first. That is the measured
+ * behaviour (`engine/src/lib/policy/tableBlocklist.ts:319-321` normalises
+ * whitespace and nothing else), and it is the safe direction: stripping first
+ * would grant the exemption to a bare COUNT(*) whose projection carries a
+ * block comment, and would hand it back to a statement whose UNION or GROUP BY
+ * hides inside one.
+ * Losing the exemption only ever means the blocklist gets to judge the query.
  */
 export function isAggregateOnly(sql: string): boolean {
-  const text = `${stripSqlComments(sql).replace(/\s+/g, ' ').trim()} `;
+  const text = `${sql.replace(/\s+/g, ' ').trim()} `;
   if (/\b(UNION|GROUP\s+BY|HAVING)\b/i.test(text)) return false;
 
   const match = /^SELECT\s+(.+?)\s+FROM\s/i.exec(text);

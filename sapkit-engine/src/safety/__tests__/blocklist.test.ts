@@ -167,7 +167,29 @@ describe('evaluateTables', () => {
   });
 });
 
+// DELIBERATE DIFFERENCE from the measured engine, and one the repo's own gate
+// already records as its `want` value: `interactive/scripts/
+// conformance-server-gates.mjs` GAP-2 documents that the old loader deleted
+// MCP_BLOCKLIST_PROFILE / MCP_BLOCKLIST_EXTEND / MCP_ALLOW_TABLE out of
+// process.env at startup, leaving the active profile's sap.env as their only
+// working channel — a value set in an MCP server definition was silently
+// ignored. Here both channels work and the profile wins. These tests pin that.
 describe('resolveSafetyEnv', () => {
+  it('honours all three knobs when only the process environment sets them (GAP-2)', () => {
+    const merged = resolveSafetyEnv(
+      {
+        MCP_BLOCKLIST_PROFILE: 'strict',
+        MCP_BLOCKLIST_EXTEND: 'ZSECRET',
+        MCP_ALLOW_TABLE: 'BNKA',
+      },
+      {},
+    );
+    const config = readBlocklistConfig(merged);
+    expect(config.profile).toBe('strict');
+    expect(config.allow.has('BNKA')).toBe(true);
+    expect(checkTables(['ZSECRET'], config).hits.map((h) => h.table)).toEqual(['ZSECRET']);
+  });
+
   it('lets the profile sap.env win over the process environment', () => {
     const merged = resolveSafetyEnv(
       { MCP_BLOCKLIST_PROFILE: 'off', PATH: '/bin' },

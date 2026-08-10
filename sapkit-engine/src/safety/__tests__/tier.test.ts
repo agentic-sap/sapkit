@@ -1,5 +1,10 @@
 import type { SapTier } from '../../contracts';
-import { TierBlockedError, assertTierAllowed, checkTierAllowed } from '../tier';
+import {
+  SERVER_CONTROL_TOOLS,
+  TierBlockedError,
+  assertTierAllowed,
+  checkTierAllowed,
+} from '../tier';
 
 const NON_DEV: SapTier[] = ['QA', 'PRD', 'UNKNOWN'];
 
@@ -91,6 +96,31 @@ describe('checkTierAllowed — server control', () => {
   it('always allows ReloadProfile — it is the escape hatch out of a bad profile', () => {
     for (const tier of [...NON_DEV, 'DEV' as SapTier]) {
       expect(checkTierAllowed(serverControl('ReloadProfile'), tier).allowed).toBe(true);
+    }
+  });
+
+  it('exempts exactly the names the measured contract exempts', () => {
+    expect([...SERVER_CONTROL_TOOLS]).toEqual(['ReloadProfile']);
+  });
+
+  // NEGATIVE — the exemption is a known-name list, not a class. A registry line
+  // that merely declares `server-control` must not be able to smuggle a write
+  // onto a production system.
+  it('refuses a mutating NAME that declares itself server-control', () => {
+    for (const name of ['DeleteClass', 'CreateProgram', 'ActivateObjects', 'UpdateClass']) {
+      const d = checkTierAllowed({ name, kind: 'server-control' }, 'PRD');
+      expect(d.allowed).toBe(false);
+      expect(d.allowed === false && d.reason).toContain('declared');
+    }
+  });
+
+  // NEGATIVE — an innocuous-looking but unknown server-control name is still
+  // outside the exemption, so it falls through to the fail-closed branch.
+  it('refuses a server-control name the exemption does not cover', () => {
+    for (const tier of NON_DEV) {
+      const d = checkTierAllowed({ name: 'RestartEverything', kind: 'server-control' }, tier);
+      expect(d.allowed).toBe(false);
+      expect(d.allowed === false && d.reason).toContain('ReloadProfile');
     }
   });
 });

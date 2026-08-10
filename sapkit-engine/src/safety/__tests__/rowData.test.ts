@@ -130,9 +130,63 @@ describe('evaluateRowDataRequest — GetSqlQuery', () => {
     expect(d.kind).toBe('deny');
   });
 
+  // NEGATIVE — the aggregate exemption is judged on the raw statement, so a
+  // comment tucked into the projection does not buy a way past the blocklist.
+  it('does not exempt an aggregate whose projection carries a comment', () => {
+    const d = evaluateRowDataRequest(
+      { tool: 'GetSqlQuery', sql: 'SELECT COUNT(*) /*x*/ FROM KNA1' },
+      ctx(),
+    );
+    expect(d.kind).toBe('deny');
+    expect(d.kind === 'deny' && d.code).toBe('ERR_ROWDATA_BLOCKED');
+  });
+
   it('refuses a call with no sql', () => {
     const d = evaluateRowDataRequest({ tool: 'GetSqlQuery', sql: '' }, ctx());
     expect(d.kind === 'deny' && d.code).toBe('ERR_ROWDATA_ARGS');
+  });
+});
+
+// The bypass line is written as each table is checked, before any verdict
+// exists, so a refusal on some OTHER table must not erase it — otherwise an
+// allowed-table bypass could be hidden from the audit channel by pairing it
+// with a table that is refused outright.
+describe('evaluateRowDataRequest — the audit trail survives a refusal', () => {
+  const allowBnka = () => ctx({ MCP_ALLOW_TABLE: 'BNKA' });
+
+  it('keeps the MCP_ALLOW_TABLE bypass line on a hard refusal', () => {
+    const d = evaluateRowDataRequest(
+      { tool: 'GetSqlQuery', sql: 'SELECT * FROM BNKA JOIN KNA1 ON BNKA~X = KNA1~X' },
+      allowBnka(),
+    );
+    expect(d.kind).toBe('deny');
+    expect(d.kind === 'deny' && d.code).toBe('ERR_ROWDATA_BLOCKED');
+    expect(d.kind === 'deny' && d.audit.join('\n')).toContain(
+      'AUDIT: MCP_ALLOW_TABLE bypass for BNKA',
+    );
+  });
+
+  it('keeps the bypass line on an ask-tier refusal too', () => {
+    const d = evaluateRowDataRequest(
+      { tool: 'GetSqlQuery', sql: 'SELECT * FROM BNKA JOIN VBRK ON BNKA~X = VBRK~X' },
+      allowBnka(),
+    );
+    expect(d.kind).toBe('deny');
+    expect(d.kind === 'deny' && d.code).toBe('ERR_ROWDATA_CONFIRM');
+    expect(d.kind === 'deny' && d.audit.join('\n')).toContain(
+      'AUDIT: MCP_ALLOW_TABLE bypass for BNKA',
+    );
+  });
+
+  it('carries an empty audit list on the refusals that never reached the blocklist', () => {
+    const noArgs = evaluateRowDataRequest({ tool: 'GetTableContents', tableName: ' ' }, ctx());
+    expect(noArgs.kind === 'deny' && noArgs.audit).toEqual([]);
+
+    const tierDenied = evaluateRowDataRequest(
+      { tool: 'GetTableContents', tableName: 'ZSAPKIT_FREE' },
+      { ...ctx({}, 'PRD'), toolKind: 'mutation' },
+    );
+    expect(tierDenied.kind === 'deny' && tierDenied.audit).toEqual([]);
   });
 });
 

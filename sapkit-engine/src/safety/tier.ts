@@ -9,7 +9,7 @@
  *
  *   class                                        DEV   QA   PRD   UNKNOWN
  *   read / row-data                               ok    ok   ok    ok
- *   server-control (ReloadProfile)                ok    ok   ok    ok
+ *   server-control, named (ReloadProfile)         ok    ok   ok    ok
  *   unit-test execution                           ok    ok   no    no
  *   other execution (profiling runs)              ok    no   no    no
  *   mutation, and anything unclassified           ok    no   no    no
@@ -23,7 +23,19 @@
  * the decision is driven by the class the registry declares. The name check
  * that remains is a **cross-check, not the rule**: a tool whose name is plainly
  * mutating but whose declared class says otherwise is refused, so one wrong
- * line in a registry cannot smuggle a write onto a production system.
+ * line in a registry cannot smuggle a write onto a production system. That
+ * cross-check runs on **every** class, `server-control` included — a class that
+ * bypasses the tier outright is the one a wrong line would be most valuable to
+ * claim, so it gets no shortcut past the check.
+ *
+ * The QA row for unit tests is **inherited, not invented**: the measured guard
+ * (`engine/src/lib/readonlyGuard.ts:80-84, 109-112`) lets its three unit-test
+ * runners through on QA and refuses them on PRD. It reads as a departure from
+ * the project-level summary "no write or execution on QA/PRD" (CLAUDE.md), and
+ * it is the narrower rule underneath that summary: running tests is what a QA
+ * system is for. It is also not the only layer — the adapter permission
+ * allowlist and the PreToolUse hook sit above this gate and can refuse a call
+ * this table allows.
  */
 
 import type { SapTier, ToolPolicyKind } from '../contracts';
@@ -49,6 +61,20 @@ export const UNIT_TEST_EXECUTION_TOOLS: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * Server-control tools that stay reachable on every tier.
+ *
+ * The measured contract exempts exactly one **name**: the old guard
+ * (`engine/src/lib/readonlyGuard.ts:130-133`) short-circuits on
+ * `toolName === 'ReloadProfile'` and on nothing else. ReloadProfile is how an
+ * operator escapes a bad profile — it reads profile files, touches no SAP
+ * object, and must stay reachable from inside the very state it exists to
+ * repair. The exemption is therefore this list of names, never the declared
+ * class on its own: a registry line that merely says `server-control` cannot
+ * mint a new bypass.
+ */
+export const SERVER_CONTROL_TOOLS: ReadonlySet<string> = new Set(['ReloadProfile']);
+
+/**
  * Names that change or run something, whatever the registry claims. Used only
  * to catch a mis-declared entry — never as the primary classification.
  */
@@ -57,23 +83,31 @@ const DANGEROUS_NAME_RE =
 
 const ALLOWED: TierDecision = { allowed: true };
 
-export function checkTierAllowed(tool: TierGatedTool, tier: SapTier): TierDecision {
-  // ReloadProfile is how an operator escapes a bad profile: it reads profile
-  // files, touches no SAP object, and must stay reachable from inside the very
-  // state it exists to repair.
-  if (tool.kind === 'server-control') return ALLOWED;
+/** The cross-check refusal: declared class and name disagree, so refuse. */
+function misdeclared(tool: TierGatedTool, tier: SapTier): TierDecision {
+  return {
+    allowed: false,
+    reason: `${tool.name} is declared "${tool.kind}" but its name is that of a mutating or executing tool; refusing on a ${tier} profile (fail-closed).`,
+  };
+}
 
+export function checkTierAllowed(tool: TierGatedTool, tier: SapTier): TierDecision {
   if (tier === 'DEV') return ALLOWED;
 
   switch (tool.kind) {
+    case 'server-control':
+      if (DANGEROUS_NAME_RE.test(tool.name)) return misdeclared(tool, tier);
+      if (SERVER_CONTROL_TOOLS.has(tool.name)) return ALLOWED;
+      return {
+        allowed: false,
+        reason: `${tool.name} is declared "server-control", but that exemption covers only ${[
+          ...SERVER_CONTROL_TOOLS,
+        ].join(', ')}; refusing on a ${tier} profile (fail-closed).`,
+      };
+
     case 'read':
     case 'row-data':
-      if (DANGEROUS_NAME_RE.test(tool.name)) {
-        return {
-          allowed: false,
-          reason: `${tool.name} is declared "${tool.kind}" but its name is that of a mutating or executing tool; refusing on a ${tier} profile (fail-closed).`,
-        };
-      }
+      if (DANGEROUS_NAME_RE.test(tool.name)) return misdeclared(tool, tier);
       return ALLOWED;
 
     case 'execution':

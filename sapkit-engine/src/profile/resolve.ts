@@ -43,6 +43,19 @@ export interface ProfileResolveOptions {
   readonly env?: Readonly<Record<string, string | undefined>>;
   /** User home directory. Defaults to `os.homedir()`. Injected by tests. */
   readonly homedir?: string;
+  /**
+   * An env-file path the caller chose directly. **Wins over `MCP_ENV_PATH`**,
+   * because it is the more explicit of the two.
+   *
+   * This exists because `MCP_ENV_PATH` is not the only injection channel. The
+   * shipped shim deliberately leaves the variable unset when it sees
+   * `--env-path` or `--mcp` on the command line
+   * (`interactive/server/launch.cjs:344-347`), on the understanding that the
+   * bundle reads those arguments itself — so without this option those two
+   * channels, and a cwd-local `.env`, could never reach this layer at all.
+   * Parsing argv is the server core's job, not this module's.
+   */
+  readonly envPath?: string;
 }
 
 /**
@@ -80,7 +93,10 @@ export function resolveProfileDetailed(
   const cwd = options.cwd ?? process.cwd();
   const diagnostics: string[] = [];
 
-  const candidate = locateEnvFile({ cwd, env, homedir: options.homedir }, diagnostics);
+  const candidate = locateEnvFile(
+    { cwd, env, homedir: options.homedir, envPath: options.envPath },
+    diagnostics,
+  );
   if (candidate.envPath === null) {
     return { profile: disconnected(diagnostics, candidate.alias), envVars: {} };
   }
@@ -94,7 +110,7 @@ export function resolveProfileDetailed(
   }
 
   const connection = buildConnection(envVars, candidate.envPath, diagnostics);
-  const systemType = readSystemType(envVars, diagnostics);
+  const systemType = readSystemType(envVars);
 
   if (!connection) {
     return {
@@ -139,17 +155,22 @@ function locateEnvFile(
     cwd: string;
     env: Readonly<Record<string, string | undefined>>;
     homedir: string | undefined;
+    envPath: string | undefined;
   },
   diagnostics: string[],
 ): Candidate {
   // ① Injection wins. The shim sets MCP_ENV_PATH from its own resolution only
   //    when the variable is empty, so a value here is always a deliberate,
-  //    direct choice about which system to talk to.
-  const injected = (ctx.env.MCP_ENV_PATH ?? '').trim();
+  //    direct choice about which system to talk to. An explicit `envPath`
+  //    option is the same choice made more directly, and outranks it.
+  const explicit = (ctx.envPath ?? '').trim();
+  const injected = explicit || (ctx.env.MCP_ENV_PATH ?? '').trim();
   if (injected) {
     if (fs.existsSync(injected)) return { envPath: injected, alias: null };
     diagnostics.push(
-      `ENV_PATH_MISSING: MCP_ENV_PATH points at a file that does not exist (${injected}) — refusing to fall back to the profile home or a project-local sap.env; the server starts with no connection.`,
+      `ENV_PATH_MISSING: ${
+        explicit ? 'the explicit env-file path' : 'MCP_ENV_PATH'
+      } points at a file that does not exist (${injected}) — refusing to fall back to the profile home or a project-local sap.env; the server starts with no connection.`,
     );
     return { envPath: null, alias: null };
   }
@@ -260,22 +281,19 @@ function readTier(raw: string | undefined): SapTier {
 }
 
 /**
- * `SAP_SYSTEM_TYPE` is a deployment axis: `onprem` or `cloud`, defaulting to
- * `cloud`. Older profiles may still carry `legacy`, which conflated deployment
- * with system generation; the shared contract has no such value, so it is
- * reported rather than silently mapped onto onprem.
+ * `SAP_SYSTEM_TYPE` is the deployment axis: `onprem`, `cloud` or `legacy`,
+ * defaulting to `cloud`.
+ *
+ * `legacy` is a value in its own right, not a synonym for either of the other
+ * two: the measured engine computes the current axis as legacy|onprem|cloud
+ * (`engine/src/server/BaseMcpServer.ts:481-494`) and its handlers declare
+ * `available_in: legacy`, so folding it into cloud would expose the wrong set
+ * of tools. Anything else — including an absent value — is `cloud`.
  */
-function readSystemType(
-  envVars: Readonly<Record<string, string>>,
-  diagnostics: string[],
-): DeploymentType {
+function readSystemType(envVars: Readonly<Record<string, string>>): DeploymentType {
   const value = (envVars.SAP_SYSTEM_TYPE ?? '').trim().toLowerCase();
   if (value === 'onprem') return 'onprem';
-  if (value === 'legacy') {
-    diagnostics.push(
-      'SYSTEM_TYPE_LEGACY: SAP_SYSTEM_TYPE=legacy is not a deployment axis and is not supported here; the deployment axis falls back to cloud. Set onprem or cloud.',
-    );
-  }
+  if (value === 'legacy') return 'legacy';
   return 'cloud';
 }
 

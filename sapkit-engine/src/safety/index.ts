@@ -24,9 +24,12 @@ export {
 export {
   DEFAULT_EXPOSITION,
   type ExposableTool,
+  type ExpositionResolution,
   type ExposureQuery,
   expositionFromArgv,
+  expositionFromArgvDetailed,
   parseExposition,
+  parseExpositionDetailed,
   resolveActiveSets,
   selectExposedTools,
 } from './exposition';
@@ -47,6 +50,7 @@ export {
   stripSqlComments,
 } from './sql';
 export {
+  SERVER_CONTROL_TOOLS,
   TierBlockedError,
   type TierDecision,
   type TierGatedTool,

@@ -113,4 +113,18 @@ describe('isAggregateOnly', () => {
   it('rejects a statement that is not a SELECT ... FROM', () => {
     expect(isAggregateOnly('COUNT(*)')).toBe(false);
   });
+
+  // The exemption is judged on the RAW statement — comments included — exactly
+  // as the engine this contract was measured from does. Stripping them first
+  // would turn each of these into an exemption, i.e. a way past the blocklist.
+  it('loses the exemption when a comment sits in the projection', () => {
+    expect(isAggregateOnly('SELECT COUNT(*) /*x*/ FROM KNA1')).toBe(false);
+    expect(isAggregateOnly('SELECT /*x*/ COUNT(*) FROM KNA1')).toBe(false);
+  });
+
+  // NEGATIVE — a disqualifying keyword counts even inside a comment.
+  it('loses the exemption when UNION or GROUP BY appears only inside a comment', () => {
+    expect(isAggregateOnly('SELECT COUNT(*) FROM KNA1 /* UNION */')).toBe(false);
+    expect(isAggregateOnly('SELECT COUNT(*) FROM KNA1 -- GROUP BY LAND1')).toBe(false);
+  });
 });
