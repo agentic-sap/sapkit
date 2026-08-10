@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.test.json",
     "build": "tsc -p tsconfig.json",
     "test": "jest --passWithNoTests",
-    "gates": "node gates/run-all.mjs"
+    "gates": "node gates/run-all.mjs",
+    "verify": "npm run build && npm run typecheck && npm test"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
