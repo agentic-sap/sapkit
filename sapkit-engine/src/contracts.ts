@@ -13,8 +13,14 @@
  *   더 받는다 — 이것이 "연결 시에만 보이는" 도구들의 정체다.
  */
 
-/** SAP 배포 축. `SAP_SYSTEM_TYPE` 미설정 시 기본값은 `cloud`. */
-export type DeploymentType = 'onprem' | 'cloud';
+/**
+ * SAP 배포 축. `SAP_SYSTEM_TYPE` 미설정 시 기본값은 `cloud`.
+ *
+ * `legacy`는 세 번째 실축값이다 — 구 엔진의 핸들러 332개가
+ * `available_in: ['onprem','cloud','legacy']`로 선언하고, 서버가 현재 축을
+ * `legacy`로 계산해 필터한다. `cloud`로 접어 넣으면 노출 이름 집합이 어긋난다.
+ */
+export type DeploymentType = 'onprem' | 'cloud' | 'legacy';
 
 /** 노출 제어 핸들러 집합 — `--exposition` 값의 원소(쉼표 구분). */
 export type HandlerSet = 'readonly' | 'high' | 'compact' | 'low' | 'system' | 'search';
@@ -39,9 +45,19 @@ export interface ConnectionConfig {
   readonly baseUrl: string;
   readonly username: string;
   readonly password: string;
-  /** `sap-client` 질의 인자. 없으면 시스템 기본 클라이언트. */
+  /**
+   * SAP 클라이언트 번호. **ADT에는 질의 인자가 아니라 헤더로 나간다** —
+   * 구 접속 계층 실측: `X-SAP-Client` 헤더를 싣고, 그 위에 응답이 돌려준
+   * `sap-usercontext` 쿠키를 `sap-client=<client>`로 **덮어쓴다**. 이 쿠키
+   * 고정이 없으면 SAP이 시스템 기본 클라이언트로 라우팅해 write가 403으로
+   * 막힌다(구 계층 주석에 그대로 적혀 있다). 없으면 시스템 기본 클라이언트.
+   */
   readonly client?: string;
-  /** `sap-language` 질의 인자. 없으면 서버 기본. */
+  /**
+   * 로그온 언어. **ADT 요청에는 싣지 않는다** — 구 접속 계층은 `sap-language`를
+   * ADT로 보내지 않고, 로그온 언어를 시스템 정보 조회로 알아내 생성 페이로드에
+   * 넣는다. 여기서는 그 값을 실어 나르기만 한다.
+   */
   readonly language?: string;
   /** 자기서명 인증서 허용 여부. `TLS_REJECT_UNAUTHORIZED=0`이면 false. */
   readonly rejectUnauthorized: boolean;
