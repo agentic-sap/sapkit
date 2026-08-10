@@ -4,6 +4,10 @@
 않는다. 그 셋은 SAP에 **기설치된 RFC 대리자 함수모듈** `ZMCP_ADT_DISPATCH` /
 `ZMCP_ADT_TEXTPOOL`을 부르고, "그 함수모듈에 **어떻게** 닿느냐"가 곧 통로(backend)다.
 
+여기에 **ECC 전용 우회로**가 하나 더 얹힌다(§6.1). 평소 ADT로 닿는 도구라도 ECC
+커널에 해당 엔드포인트가 없으면 이 층을 탄다 — M1에서는 `GetTable`·`GetStructure`
+둘이 그렇다.
+
 이 문서는 **구 엔진의 통로 선택 계약을 실측해 옮겨 적은 것**이다. M1이 짓는
 코드보다 이 실측이 먼저였다. 인용은 전부 `engine/`(구 소스, 읽기 전용 참고서)과
 제품 문서의 파일·줄이다.
@@ -104,14 +108,20 @@ const v = (process.env.SAP_RFC_BACKEND ?? '').trim().toLowerCase() || 'odata';
 ## 5. 신 엔진이 구현한 것
 
 ```
-selectRfcBackend(env)        → 통로 이름 (§1·§2의 계약 그대로)
+selectRfcBackend(env)         → 통로 이름 (§1·§2의 계약 그대로)
 mergeRfcEnv(profile, process) → SAP_RFC_* 키 합류 (§2의 우선순위)
-createRfcChannel({...})      → RfcChannel  |  던진다
+createRfcChannel({...})       → RfcChannel        |  던진다
+createDdicReadChannel({...})  → DdicReadChannel   |  던진다  (§6.1 — odata 전용)
 ```
 
 `RfcChannel`은 통로 하나가 하는 일 전부다 — `callDispatch(action, params)`와
 `callTextpool(action, params)`. 나머지 네 경로는 **같은 인터페이스의 다른
 구현**으로 후속 마일스톤에 붙는다. 도구 계층은 어느 통로인지 몰라야 한다.
+
+`DdicReadChannel`(= `callDdicTablRead`)은 **일부러 `RfcChannel` 밖에** 뒀다. 그
+능력은 마일스톤이 아니라 SAP 측 설계로 갈린다(§6.1) — 통로 인터페이스에 얹으면
+나머지 네 구현이 전부 "던지기만 하는 메서드"를 달아야 하고, 그것은 표면이
+거짓말을 하는 것이다. `odata` 통로는 두 인터페이스를 모두 구현한다.
 
 **미구현 통로를 고르면 조용히 대체하지 않고 `backend-unsupported`로 던진다.**
 다른 통로로 넘어가면 사용자는 자기가 고른 경로가 동작한다고 믿게 되고, 그것이
@@ -141,10 +151,10 @@ createRfcChannel({...})      → RfcChannel  |  던진다
 
 ## 6. SAP 측 무접촉
 
-새 오브젝트 0. 신 엔진도 기설치된 `ZMCP_ADT_DISPATCH` / `ZMCP_ADT_TEXTPOOL`을
-**같은 이름·같은 인자**로 부른다(결정 D-079 ⑥). 자산 원본은
-`interactive/server/sap-assets/`(`zmcp_adt_dispatch.abap`,
-`zmcp_adt_textpool.abap`).
+새 오브젝트 0. 신 엔진도 기설치된 `ZMCP_ADT_DISPATCH` / `ZMCP_ADT_TEXTPOOL` /
+`ZMCP_ADT_DDIC_TABL_READ`를 **같은 이름·같은 인자**로 부른다(결정 D-079 ⑥).
+자산 원본은 `interactive/server/sap-assets/`(`zmcp_adt_dispatch.abap`,
+`zmcp_adt_textpool.abap`, `zmcp_adt_ddic_tabl_read_ecc.abap`).
 
 인자 계약(변경 금지):
 
@@ -152,6 +162,31 @@ createRfcChannel({...})      → RfcChannel  |  던진다
   `EV_MESSAGE`, `EV_RESULT`(JSON 문자열)
 - `Textpool` — `IV_ACTION`(`READ`|`WRITE`|`WRITE_INACTIVE`), `IV_PROGRAM`,
   `IV_LANGUAGE`, `IV_TEXTPOOL_JSON` → 같은 세 출력
+- `DdicTablRead` — `IV_NAME`, `IV_VERSION`(`A`|`I`, 기본 `A`) → 같은 세 출력
 
-다음 물결의 RFC 경유 읽기 도구 2종이 쓰는 `action` 값:
-`CUA_FETCH`(`handleReadGuiStatus.ts:54`) · `DYNPRO_READ`(`handleReadScreen.ts:58`).
+### 6.1 ECC DDIC 우회로 — `DdicTablRead`
+
+**M1 도구 19종에는 `ZMCP_ADT_DISPATCH`를 타는 도구가 없다**
+(`harness/old-surface/m1-tools.json`의 `m1` 목록 — Screen·GUI Status·Text
+Element 계열은 그 안에 없다). M1에서 이 층을 실제로 쓰는 곳은 `GetTable`·
+`GetStructure`의 **ECC 우회로** 하나뿐이고, 그것은 `Dispatch`가 아니라 별도
+FunctionImport `DdicTablRead`(→ `ZMCP_ADT_DDIC_TABL_READ`)다. 표와 구조가 **같은
+FM 하나**를 쓰며 TABCLASS로 갈린다.
+
+- **기본은 ADT 직통이다.** 우회는 `SAP_VERSION`이 `ECC`일 때만 일어난다
+  (`engine/src/handlers/table/high/handleGetTable.ts:69` ·
+  `.../structure/high/handleGetStructure.ts:60` — ECC 커널(BASIS < 7.50)에는
+  `/sap/bc/adt/ddic/tables` 엔드포인트가 없다).
+- **`odata` 통로 전용이다.** 브리지 FM은 OData 서비스 `ZMCP_ADT_SRV`의
+  FunctionImport로만 노출돼 있어 나머지 네 통로에는 닿을 길이 없다. 구 엔진도
+  같은 자리에서 "`SAP_RFC_BACKEND=odata`가 필요하다"고 던진다
+  (`engine/src/lib/rfcBackend.ts:94-132`) — 이미 정직한 실패다.
+- **문턱이 다르다.** 대리자 두 종은 `subrc != 0`이면 곧 오류지만, DDIC 브리지는
+  **`subrc >= 8`일 때만** 던진다(`engine/src/lib/odataRfc.ts:580`). `4`는 "찾지
+  못했다" 계열이라 메시지와 함께 정상 반환되고, 그것을 어떻게 표현할지는 도구가
+  정한다. 통로가 4를 던지면 도구의 문구가 영영 나오지 않는다.
+- 구 엔진의 DDIC 보조는 8종이지만(`rfcBackend.ts:146-153`) M1이 옮긴 것은 이
+  하나다. 나머지는 그 도구를 짓는 마일스톤이 가져간다.
+
+`CUA_FETCH`(`handleReadGuiStatus.ts:54`) · `DYNPRO_READ`(`handleReadScreen.ts:58`)를
+쓰는 `ReadGuiStatus`·`ReadScreen`은 **M1 도구 집합 밖**이며 후속 마일스톤이다.
