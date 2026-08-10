@@ -111,6 +111,7 @@ export function resolveProfileDetailed(
 
   const connection = buildConnection(envVars, candidate.envPath, diagnostics);
   const systemType = readSystemType(envVars);
+  const sapVersion = readSapVersion(envVars);
 
   if (!connection) {
     return {
@@ -118,6 +119,7 @@ export function resolveProfileDetailed(
         connection: null,
         tier: 'UNKNOWN',
         systemType,
+        sapVersion,
         envPath: candidate.envPath,
         alias: candidate.alias,
         diagnostics,
@@ -140,6 +142,7 @@ export function resolveProfileDetailed(
       connection,
       tier,
       systemType,
+      sapVersion,
       envPath: candidate.envPath,
       alias: candidate.alias,
       diagnostics,
@@ -297,12 +300,24 @@ function readSystemType(envVars: Readonly<Record<string, string>>): DeploymentTy
   return 'cloud';
 }
 
+/**
+ * `SAP_VERSION`은 배포 축과 별개의 세 번째 축이다 — 구 엔진의 핸들러 16곳이
+ * `SAP_VERSION?.toUpperCase() === 'ECC'`로 갈라져 ECC 전용 우회 경로를 탄다.
+ * 엔진이 보는 것은 ECC인가 아닌가뿐이라 열거형으로 좁히지 않고 원문을 실어
+ * 나른다. `SAP_SYSTEM_TYPE`과 마찬가지로 프로파일 파일에서만 읽는다.
+ */
+function readSapVersion(envVars: Readonly<Record<string, string>>): string | null {
+  const value = (envVars.SAP_VERSION ?? '').trim();
+  return value === '' ? null : value;
+}
+
 /** The inspection-only shell: no connection, no tier, and a reason on record. */
 function disconnected(diagnostics: readonly string[], alias: string | null): ResolvedProfile {
   return {
     connection: null,
     tier: 'UNKNOWN',
     systemType: 'cloud',
+    sapVersion: null,
     envPath: null,
     alias,
     diagnostics: [...diagnostics],

@@ -79,6 +79,22 @@ export interface ResolvedProfile {
   readonly connection: ConnectionConfig | null;
   readonly tier: SapTier;
   readonly systemType: DeploymentType;
+  /**
+   * `SAP_VERSION` 원문(대문자 정규화 없이 읽은 그대로, 없으면 null).
+   *
+   * **배포 축(`systemType`)과는 다른 세 번째 축**이다. 구 엔진의 핸들러 16곳이
+   * `process.env.SAP_VERSION?.toUpperCase() === 'ECC'`로 갈라져 ECC 전용
+   * 우회 경로를 탄다(예: `engine/src/handlers/table/high/handleGetTable.ts:69` —
+   * ECC 커널에는 `/sap/bc/adt/ddic/tables` 엔드포인트가 없어 OData 브리지로
+   * 돌아간다). 값의 어휘는 제품 지식 문서가 정본이며(`ECC`·`S4`·
+   * `S4_CLOUD_PUBLIC` 등), 엔진이 실제로 보는 것은 **`ECC`인가 아닌가**뿐이라
+   * 열거형으로 좁히지 않고 원문을 실어 나른다.
+   *
+   * `SAP_SYSTEM_TYPE`과 마찬가지로 **프로파일의 `sap.env`에서만** 읽는다 —
+   * 구 엔진이 기동 시 이 키를 `process.env`에서 지우기 때문이다
+   * (`engine/src/lib/profile.ts:109`).
+   */
+  readonly sapVersion: string | null;
   /** 실제로 읽은 env 파일 경로. 해석 실패 시 null. */
   readonly envPath: string | null;
   /** active-profile.txt가 가리킨 별칭. 없으면 null. */
