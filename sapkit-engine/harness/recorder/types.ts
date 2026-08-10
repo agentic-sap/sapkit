@@ -114,13 +114,30 @@ export interface SequenceFixture {
   readonly description: string;
   readonly engine: EngineIdentity;
   /**
-   * 채록 시각 — **정규화 대상**이므로 저장된 값은 자리표시자다.
-   * 실제 시각의 정본은 git 커밋 이력이다. 여기에 실제 시각을 남기면
-   * 같은 시퀀스를 다시 채록할 때마다 파일이 흔들려 대조가 흐려진다.
+   * 채록 시각 — **실제 ISO 시각을 그대로 보존한다**. 증거 계층과 커버리지 표가
+   * "무엇이 언제 어느 엔진에서 딴 증거인가"를 묻기 때문에 이 출처는 남아야 한다.
+   *
+   * 재채록마다 파일이 흔들리는 문제는 값을 지워서가 아니라 **대조에서 빼서**
+   * 푼다 — `REPLAY_METADATA_POINTERS` 참조. 응답 **안**의 타임스탬프는 여전히
+   * 비결정 토큰이므로 정규화 대상이다.
    */
   readonly recordedAt: string;
   readonly steps: readonly SequenceStep[];
   readonly placeholders: readonly PlaceholderBinding[];
+}
+
+/**
+ * 재생 대조가 **비교하지 않는** 필드 (JSON 포인터).
+ *
+ * 채록의 출처를 남기는 메타데이터이지 엔진이 낸 응답이 아니다. 여기 값이 다르다고
+ * 대조가 실패하면, 같은 시퀀스를 다시 딴 것만으로 동등성이 깨진 것처럼 보인다.
+ */
+export const REPLAY_METADATA_POINTERS: readonly string[] = ['/recordedAt'];
+
+/** 대조용 투영 — `REPLAY_METADATA_POINTERS`의 필드를 뺀 픽스처. */
+export function comparableFixture(fixture: SequenceFixture): Omit<SequenceFixture, 'recordedAt'> {
+  const { recordedAt: _recordedAt, ...rest } = fixture;
+  return rest;
 }
 
 /** `sequenceId`가 파일 이름으로 안전한가. */

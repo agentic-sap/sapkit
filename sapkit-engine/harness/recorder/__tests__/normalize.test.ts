@@ -88,10 +88,23 @@ describe('정규화 — 비결정 토큰이 자리표시자로 바뀐다', () =>
     expect(findPlaceholders(responseText(f, 0))).toHaveLength(0);
   });
 
-  it('채록 시각도 정규화 대상이다', () => {
+  it('채록 시각은 정규화하지 않고 보존한다 — 증거의 출처다', () => {
     const f = normalizeFixture(fixture([step({ index: 0 })], { recordedAt: '2026-08-10T09:00:00Z' }));
-    expect(isPlaceholder(f.recordedAt)).toBe(true);
-    expect(f.recordedAt).not.toContain('2026');
+    expect(isPlaceholder(f.recordedAt)).toBe(false);
+    expect(f.recordedAt).toBe('2026-08-10T09:00:00Z');
+  });
+
+  it('채록 시각 보존이 자리표시자 번호를 흔들지 않는다', () => {
+    const f = normalizeFixture(
+      fixture([step({ index: 0, response: { content: [{ type: 'text', text: 'changedAt="2026-08-10T09:15:22Z"' }] } })], {
+        recordedAt: '2026-08-11T01:02:03Z',
+      }),
+    );
+    // 응답 **안**의 타임스탬프는 여전히 비결정 토큰이다.
+    expect(responseText(f, 0)).toContain('<<TIMESTAMP_1>>');
+    // 그리고 recordedAt은 번호를 하나도 소비하지 않는다.
+    expect(f.placeholders.map((b) => b.placeholder)).toEqual(['<<TIMESTAMP_1>>']);
+    expect(f.recordedAt).toBe('2026-08-11T01:02:03Z');
   });
 });
 

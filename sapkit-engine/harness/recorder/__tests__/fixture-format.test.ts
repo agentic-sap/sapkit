@@ -5,7 +5,7 @@
  * 쓰기 흐름(잠금 → 수정 → 활성화)의 의미가 사라진다.
  */
 import { FixtureFormatError, parseFixture, serializeFixture } from '../record';
-import { FIXTURE_FORMAT_VERSION } from '../types';
+import { FIXTURE_FORMAT_VERSION, REPLAY_METADATA_POINTERS, comparableFixture } from '../types';
 import { fixture, step } from './helpers';
 
 const threeSteps = fixture([
@@ -44,6 +44,23 @@ describe('픽스처 왕복', () => {
       protocolVersion: '2024-11-05',
       exposition: 'readonly',
     });
+  });
+});
+
+describe('채록 시각 — 출처는 남기되 대조는 하지 않는다', () => {
+  it('recordedAt은 실제 ISO 시각 그대로 왕복한다', () => {
+    const back = parseFixture(serializeFixture(threeSteps));
+    expect(back.recordedAt).toBe('2026-08-10T09:00:00Z');
+  });
+
+  it('recordedAt은 재생 대조가 보지 않는 메타데이터로 표시돼 있다', () => {
+    expect(REPLAY_METADATA_POINTERS).toContain('/recordedAt');
+  });
+
+  it('recordedAt만 다른 두 픽스처는 대조 대상이 같다', () => {
+    const later = { ...threeSteps, recordedAt: '2026-09-01T23:59:59Z' };
+    expect(comparableFixture(later)).toEqual(comparableFixture(threeSteps));
+    expect(JSON.stringify(later)).not.toBe(JSON.stringify(threeSteps));
   });
 });
 

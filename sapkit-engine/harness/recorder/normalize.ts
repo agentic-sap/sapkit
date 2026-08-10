@@ -195,9 +195,12 @@ export class Normalizer {
 /**
  * 픽스처 전체를 정규화한다.
  *
- * 순회 순서가 곧 자리표시자 번호 순서다: **단계를 먼저**(인자 → 응답, 0번부터)
- * 훑고 마지막에 `recordedAt`을 훑는다. 메타데이터가 `<<TIMESTAMP_1>>`을 먼저
- * 가져가면 단계 안의 번호가 메타데이터에 딸려 흔들리기 때문이다.
+ * 순회 순서가 곧 자리표시자 번호 순서다: **단계만** 훑는다(인자 → 응답, 0번부터).
+ * `recordedAt`은 정규화하지 않는다 — 채록의 출처를 남기는 메타데이터이고, 재생
+ * 대조는 이 필드를 보지 않는다(`REPLAY_METADATA_POINTERS`). 정규화에서 빠지므로
+ * 자리표시자 번호를 하나도 소비하지 않고, 단계 안의 번호는 메타데이터에 딸려
+ * 흔들리지 않는다. 응답 **안**의 타임스탬프는 여전히 비결정 토큰이라 그대로
+ * 정규화된다.
  *
  * `steps[i].index`는 배열 위치로 다시 매긴다 — 형식 불변식을 여기서 세운다.
  */
@@ -211,13 +214,12 @@ export function normalizeFixture(fixture: SequenceFixture): SequenceFixture {
     isError: step.isError,
     note: step.note ?? null,
   }));
-  const recordedAt = n.normalizeString(fixture.recordedAt);
   return {
     formatVersion: fixture.formatVersion,
     sequenceId: fixture.sequenceId,
     description: fixture.description,
     engine: fixture.engine,
-    recordedAt,
+    recordedAt: fixture.recordedAt,
     steps,
     placeholders: n.bindings(),
   };
