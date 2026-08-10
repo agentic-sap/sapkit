@@ -145,10 +145,13 @@ export async function run() {
       tool: 'GetSqlQuery',
       args: { sql_query: 'SELECT a~banks FROM BNKA AS a INNER JOIN KNA1 AS b ON a~banks = b~land1' },
     });
+    // `isError`만 보면 헛돈다 — 게이트를 통째로 들어내도 접속 공장이 던져서
+    // isError가 참이 된다(리뷰가 사보타주로 실증). 거부 문구와 **접속 시도 0회**
+    // 까지 함께 봐야 이 체크가 혼자서도 진짜 음성이 된다.
     report.check(
       '허용 목록 우회가 다른 차단 테이블을 열지 못한다',
-      bypass.isError,
-      bypass.text.slice(0, 90),
+      bypass.isError && /refused/i.test(bypass.text) && bypass.connections === 0,
+      `${bypass.text.slice(0, 70)} · 접속 시도 ${bypass.connections}회`,
     );
     report.check(
       '거부 판정에서도 감사 줄이 남는다',
