@@ -1,0 +1,59 @@
+{
+  "name": "sapkit-engine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SAPKIT 자체 저작 ABAP MCP 엔진 — 청사진 사다리 ⑴ M1. 배포 정체성(npm/레지스트리)은 교체 판까지 미결이므로 private.",
+  "license": "MIT",
+  "author": "hjaewon",
+  "type": "commonjs",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.test.json",
+    "build": "tsc -p tsconfig.json",
+    "test": "jest --passWithNoTests",
+    "gates": "node gates/run-all.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "fast-xml-parser": "^5.4.2",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.3.5",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.2.0",
+    "typescript": "^5.9.2"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/src",
+      "<rootDir>/harness"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.test.ts"
+    ],
+    "transform": {
+      "^.+\\.ts$": [
+        "ts-jest",
+        {
+          "tsconfig": "tsconfig.test.json"
+        }
+      ]
+    },
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json"
+    ],
+    "maxWorkers": 1,
+    "testTimeout": 30000,
+    "clearMocks": true
+  }
+}
