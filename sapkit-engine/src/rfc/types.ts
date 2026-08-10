@@ -39,6 +39,15 @@ export interface RfcCallResult {
 
 export type DispatchResult = RfcCallResult;
 export type TextpoolResult = RfcCallResult;
+export type DdicReadResult = RfcCallResult;
+
+/** `ZMCP_ADT_DDIC_TABL_READ`가 받는 두 인자. */
+export interface DdicTablReadParams {
+  /** DDIC 오브젝트 이름. 대문자 정규화는 호출자 몫이다. */
+  readonly name: string;
+  /** `A`(활성) | `I`(비활성). 기본 `A`. */
+  readonly version?: 'A' | 'I';
+}
 
 /** 한 통로. 상위 도구 계층은 이 표면만 본다. */
 export interface RfcChannel {
@@ -48,4 +57,22 @@ export interface RfcChannel {
   callDispatch(action: string, params?: Readonly<Record<string, unknown>>): Promise<DispatchResult>;
   /** `ZMCP_ADT_TEXTPOOL` 호출. */
   callTextpool(action: TextpoolAction, params: TextpoolParams): Promise<TextpoolResult>;
+}
+
+/**
+ * ECC DDIC 읽기 능력 — **`odata` 통로만 갖는다.**
+ *
+ * `RfcChannel`에 넣지 않은 것은 의도다. 이 능력은 마일스톤이 아니라 SAP 측
+ * 설계로 갈린다: 브리지 함수모듈 `ZMCP_ADT_DDIC_TABL_READ`는 OData 서비스
+ * `ZMCP_ADT_SRV`의 FunctionImport로만 노출돼 있어, 나머지 네 통로는 그것을
+ * 부를 수단이 아예 없다(구 엔진도 `odata`가 아니면 던진다 —
+ * `engine/src/lib/rfcBackend.ts:94-132`). 통로 인터페이스에 얹으면 나머지 네
+ * 구현이 전부 "던지는 메서드"를 달아야 하고, 그건 표면이 거짓말을 하는 것이다.
+ */
+export interface DdicReadChannel {
+  /**
+   * `ZMCP_ADT_DDIC_TABL_READ` 호출 — 투명 테이블과 구조를 **같은 FM 하나**가
+   * TABCLASS로 갈라 처리한다.
+   */
+  callDdicTablRead(params: DdicTablReadParams): Promise<DdicReadResult>;
 }

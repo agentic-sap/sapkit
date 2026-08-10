@@ -9,7 +9,7 @@
 import { RfcError } from './errors';
 import { createODataChannel } from './odata';
 import { IMPLEMENTED_RFC_BACKENDS, selectRfcBackend } from './select';
-import type { RfcBackendName, RfcChannel } from './types';
+import type { DdicReadChannel, RfcBackendName, RfcChannel } from './types';
 
 export { RfcError, rfcKindFromStatus } from './errors';
 export type { RfcErrorInit, RfcErrorKind } from './errors';
@@ -27,6 +27,9 @@ export {
 } from './select';
 
 export type {
+  DdicReadChannel,
+  DdicReadResult,
+  DdicTablReadParams,
   DispatchResult,
   RfcBackendName,
   RfcCallResult,
@@ -59,6 +62,40 @@ export function createRfcChannel(options: RfcChannelOptions): RfcChannel {
   const backend = selectRfcBackend(options.env);
   if (!IMPLEMENTED_RFC_BACKENDS.includes(backend)) {
     throw unsupported(backend);
+  }
+  return createODataChannel({
+    connection: options.connection,
+    env: options.env,
+    ...(options.transport ? { transport: options.transport } : {}),
+    ...(options.now ? { now: options.now } : {}),
+  });
+}
+
+/**
+ * ECC DDIC 읽기 통로를 만들어 준다.
+ *
+ * `createRfcChannel`과 갈리는 지점 하나: **`odata`만 이 능력을 가진다.**
+ * 마일스톤 문제가 아니라 SAP 측 설계다 — 브리지 함수모듈은 OData 서비스의
+ * FunctionImport로만 노출돼 있어 나머지 통로에는 닿을 길이 없다. 구 엔진도
+ * 같은 자리에서 "SAP_RFC_BACKEND=odata가 필요하다"고 던진다
+ * (`engine/src/lib/rfcBackend.ts:94-132` — 이미 정직한 실패다).
+ *
+ * 그래서 미구현 판정(`backend-unsupported`)보다 이 판정이 **먼저**다.
+ * `gateway`를 고른 사람에게 "후속 마일스톤에 온다"고 답하면, 오지 않을 것을
+ * 기다리게 된다.
+ */
+export function createDdicReadChannel(options: RfcChannelOptions): DdicReadChannel {
+  const backend = selectRfcBackend(options.env);
+  if (backend !== 'odata') {
+    throw new RfcError({
+      kind: 'config',
+      backend,
+      message:
+        `The ECC DDIC bridge requires SAP_RFC_BACKEND=odata (current='${backend}'). ` +
+        `ZMCP_ADT_DDIC_TABL_READ is only exposed through the OData ZMCP_ADT_SRV service, ` +
+        `so no other backend can reach it. Set SAP_RFC_BACKEND=odata in the active profile's ` +
+        `sap.env, or read this object through the standard ADT endpoints on a non-ECC system.`,
+    });
   }
   return createODataChannel({
     connection: options.connection,

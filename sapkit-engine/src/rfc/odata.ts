@@ -33,6 +33,9 @@ import type { HttpResponse, HttpTransport } from '../adt/http';
 import type { ConnectionConfig } from '../contracts';
 import { RfcError, rfcKindFromStatus, truncateBody } from './errors';
 import type {
+  DdicReadChannel,
+  DdicReadResult,
+  DdicTablReadParams,
   DispatchResult,
   RfcChannel,
   TextpoolAction,
@@ -45,6 +48,10 @@ const DEFAULT_CSRF_TTL_SEC = 600;
 const MIN_CSRF_TTL_SEC = 60;
 const DISPATCH_FM = 'ZMCP_ADT_DISPATCH';
 const TEXTPOOL_FM = 'ZMCP_ADT_TEXTPOOL';
+const DDIC_TABL_READ_FM = 'ZMCP_ADT_DDIC_TABL_READ';
+
+/** 이 통로가 부르는 FunctionImport 이름들. 봉투 이름 탐지에도 쓴다. */
+type FunctionImportName = 'Dispatch' | 'Textpool' | 'DdicTablRead';
 
 export interface ODataChannelOptions {
   readonly connection: ConnectionConfig;
@@ -99,11 +106,18 @@ function isSuccess(status: number): boolean {
   return status >= 200 && status < 300;
 }
 
-export function createODataChannel(options: ODataChannelOptions): RfcChannel {
+/**
+ * odata 통로 하나를 만든다.
+ *
+ * 반환 타입이 `RfcChannel`보다 넓은 것은 이 통로만 ECC DDIC 브리지에 닿기
+ * 때문이다(`DdicReadChannel` 주석 참조). 통로 이름만 보는 호출자는 그대로
+ * `RfcChannel`로 받으면 된다.
+ */
+export function createODataChannel(options: ODataChannelOptions): RfcChannel & DdicReadChannel {
   return new ODataChannel(options);
 }
 
-class ODataChannel implements RfcChannel {
+class ODataChannel implements RfcChannel, DdicReadChannel {
   readonly backend = BACKEND;
 
   private readonly connection: ConnectionConfig;
@@ -148,6 +162,18 @@ class ODataChannel implements RfcChannel {
       IV_TEXTPOOL_JSON: params.textpoolJson ?? '',
     });
     return this.unwrap(raw, { functionModule: TEXTPOOL_FM, action, emptyResult: [] });
+  }
+
+  /**
+   * ECC DDIC 브리지. 구 엔진의 `callDdicTablRead`와 같은 이름·같은 두 인자다
+   * (`engine/src/lib/odataRfc.ts:564-586`).
+   */
+  async callDdicTablRead(params: DdicTablReadParams): Promise<DdicReadResult> {
+    const raw = await this.postFunctionImport('DdicTablRead', {
+      IV_NAME: params.name,
+      IV_VERSION: params.version ?? 'A',
+    });
+    return this.unwrapDdic(raw, params.name);
   }
 
   // ------------------------------------------------------------ 내부 구현
@@ -281,7 +307,7 @@ class ODataChannel implements RfcChannel {
    * (구 엔진은 같은 자리에서 자기 자신을 재귀 호출해 상한이 없다.)
    */
   private async postFunctionImport(
-    actionName: 'Dispatch' | 'Textpool',
+    actionName: FunctionImportName,
     params: Readonly<Record<string, string>>,
     retried = false,
   ): Promise<unknown> {
@@ -378,6 +404,36 @@ class ODataChannel implements RfcChannel {
         action: context.action,
         functionModule: context.functionModule,
         message: `${context.functionModule} error (action=${context.action}, subrc=${subrc}): ${message}`,
+      });
+    }
+    return { result, subrc, message };
+  }
+
+  /**
+   * DDIC 브리지의 세 출력을 정규화한다.
+   *
+   * **문턱이 다르다.** 대리자 두 종은 `subrc != 0`이면 곧 실패지만, DDIC
+   * 브리지는 `subrc >= 8`일 때만 던진다(`engine/src/lib/odataRfc.ts:580`).
+   * 4는 "찾지 못했다" 계열이라 메시지와 함께 정상 반환되고, 그것을 어떻게
+   * 표현할지는 도구가 정한다 — 구 핸들러가 `subrc !== 0`을 자기 문구로 다시
+   * 판정하는 이유다. 여기서 4를 던지면 그 문구가 영영 나오지 않는다.
+   *
+   * 던질 때의 문구는 구 엔진 글자 그대로다 — 도구 응답으로 나가는 계약성
+   * 문자열이다(장부 D13의 경계).
+   */
+  private unwrapDdic(raw: unknown, name: string): DdicReadResult {
+    const subrc = Number(field(raw, 'EV_SUBRC') ?? 0);
+    const message = String(field(raw, 'EV_MESSAGE') ?? '');
+    const result = tryParseJson(String(field(raw, 'EV_RESULT') ?? ''), {});
+
+    if (subrc >= 8) {
+      throw new RfcError({
+        kind: 'sap',
+        backend: BACKEND,
+        subrc,
+        sapMessage: message,
+        functionModule: DDIC_TABL_READ_FM,
+        message: `${DDIC_TABL_READ_FM} error (name=${name}, subrc=${subrc}): ${message}`,
       });
     }
     return { result, subrc, message };
