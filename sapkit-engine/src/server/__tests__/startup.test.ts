@@ -266,6 +266,36 @@ describe('argv 접속 통로 — 셰임이 MCP_ENV_PATH를 세팅하지 않는 �
     expect(startup.profile.connection).toBeNull();
   });
 
+  // 브로커 선택은 인자와 환경변수 두 통로다 — 구 파서가 둘을 합치고
+  // (`ArgumentsParser.ts:182-183`) Variant 3이 그 합에 대해 잠근다
+  // (`brokerFactory.ts:185`). 인자만 보면 환경변수로 켠 기동이 운영자가
+  // 고르지 않은 cwd `.env`에 붙는다.
+  it('MCP_USE_AUTH_BROKER=true도 cwd의 .env를 잠근다 (인자 아닌 통로)', () => {
+    const cwd = tempDir();
+    writeEnvFile(path.join(cwd, '.env'));
+    const startup = resolveStartup({
+      argv: argvOf(),
+      env: { MCP_USE_AUTH_BROKER: 'true' },
+      cwd,
+      homedir: tempDir(),
+    });
+    expect(startup.profile.connection).toBeNull();
+    expect(startup.profile.envPath).toBeNull();
+    expect(startup.profile.tier).toBe('UNKNOWN');
+  });
+
+  it('MCP_USE_AUTH_BROKER가 true가 아니면 폴백은 그대로 산다', () => {
+    const cwd = tempDir();
+    writeEnvFile(path.join(cwd, '.env'));
+    const startup = resolveStartup({
+      argv: argvOf(),
+      env: { MCP_USE_AUTH_BROKER: 'false' },
+      cwd,
+      homedir: tempDir(),
+    });
+    expect(startup.profile.envPath).toBe(path.join(cwd, '.env'));
+  });
+
   it('SAPKIT_HOME_DIR 고정이 깨졌으면 cwd의 .env로 흘러내리지 않는다', () => {
     const cwd = tempDir();
     writeEnvFile(path.join(cwd, '.env'));

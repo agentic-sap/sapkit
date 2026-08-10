@@ -140,6 +140,14 @@ export function resolveStartup(input: StartupInput = {}): Startup {
   //    있으면 보지 않는다 — 구 파서도 `--mcp`가 있으면 이 폴백을 잠갔고
   //    (`ArgumentsParser.ts:170`, `else if (!result.mcp)`), `--env`는 세션
   //    디렉터리 경로를 만들어 폴백 자체가 닿지 않았다(같은 파일 158-176행).
+  //
+  //    브로커 선택은 **인자와 환경변수 두 통로**를 갖는다 — 구 파서가
+  //    `hasFlag('--auth-broker') || process.env.MCP_USE_AUTH_BROKER === 'true'`로
+  //    합치고(`ArgumentsParser.ts:182-183`) Variant 3이 그 합에 대해 `!useAuthBroker`를
+  //    요구한다(`brokerFactory.ts:185`). 인자만 보면 환경변수로 브로커를 켠 기동이
+  //    운영자가 고르지 않은 cwd `.env`에 붙는다.
+  const useAuthBroker =
+    args.includes('--auth-broker') || (env.MCP_USE_AUTH_BROKER ?? '').trim() === 'true';
   if (
     resolution.profile.connection === null &&
     nothingResolved(resolution.profile) &&
@@ -147,7 +155,7 @@ export function resolveStartup(input: StartupInput = {}): Startup {
     mcpDestination === '' &&
     envDestination === '' &&
     !(env.MCP_ENV_PATH ?? '').trim() &&
-    !args.includes('--auth-broker')
+    !useAuthBroker
   ) {
     const cwdEnv = path.resolve(cwd, '.env');
     if (fs.existsSync(cwdEnv)) {
