@@ -30,6 +30,7 @@ import type {
 } from '../contracts';
 import { readEnvFile } from './envFile';
 import { RUNTIME_DIR_NAME, listProfileAliases, resolveHomeDir } from './home';
+import { SecretResolutionError, resolveSecret } from './secrets';
 
 /** Timeout defaults, in milliseconds. */
 const TIMEOUT_DEFAULT = 45000;
@@ -230,7 +231,7 @@ function buildConnection(
 ): ConnectionConfig | null {
   const baseUrl = (envVars.SAP_URL ?? '').trim();
   const username = (envVars.SAP_USERNAME ?? '').trim();
-  const password = envVars.SAP_PASSWORD ?? '';
+  const storedPassword = envVars.SAP_PASSWORD ?? '';
 
   // M1 handles Basic auth only. A partially-filled profile is not turned into
   // a half-built connection that fails later with a message naming the wrong
@@ -238,10 +239,26 @@ function buildConnection(
   const missing: string[] = [];
   if (!baseUrl) missing.push('SAP_URL');
   if (!username) missing.push('SAP_USERNAME');
-  if (!password) missing.push('SAP_PASSWORD');
+  if (!storedPassword) missing.push('SAP_PASSWORD');
   if (missing.length) {
     diagnostics.push(
       `INCOMPLETE_CONNECTION: ${envPath} is missing ${missing.join(', ')} — the server starts with no connection (M1 supports Basic authentication only).`,
+    );
+    return null;
+  }
+
+  // `SAP_PASSWORD` may be a `keychain:<service>/<account>` reference rather than
+  // the password itself. Resolving it can fail; when it does we build NO
+  // connection. Falling through with the reference string in the password slot
+  // is what put failed logons on the wire and locked a real account.
+  let password: string;
+  try {
+    password = resolveSecret(storedPassword);
+  } catch (err) {
+    const code = err instanceof SecretResolutionError ? err.code : 'KEYCHAIN_UNAVAILABLE';
+    const detail = err instanceof Error ? err.message : String(err);
+    diagnostics.push(
+      `${code}: ${envPath} — ${detail} 접속을 만들지 않는다(해석하지 못한 참조를 비밀번호로 보내면 실패 로그온이 쌓여 계정이 잠긴다).`,
     );
     return null;
   }

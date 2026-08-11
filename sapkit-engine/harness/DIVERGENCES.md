@@ -237,6 +237,38 @@
   하지 않으면 신 엔진의 정상 거부가 `OTHER`로 떨어져 게이트 판정이 어긋난다.
   (지금은 러너가 구 번들만 검사하므로 영향 없다.)
 
+### D19 — 키체인에 저장된 **빈 문자열**을 "없음"으로 다룬다
+- **분류**: 강화
+- **구 동작(실측)**: `engine/src/lib/secrets.ts:121` — `getPassword()`가 `null`일
+  때만 `KeychainEntryNotFoundError`를 던진다. **빈 문자열은 비밀번호로 그대로
+  돌려준다.**
+- **신 동작**: `src/profile/secrets.ts` — `null`과 `''`를 똑같이 "쓸 수 없는
+  항목"으로 보고 `KEYCHAIN_ENTRY_NOT_FOUND`를 던진다.
+- **근거**: 빈 비밀번호로 Basic 로그온을 시도하는 것은 **실패 로그온을 한 건
+  쌓는 것 말고 아무 일도 하지 않는다.** 계정 잠금 사고(2026-08-11, D-080)가
+  실패 로그온 누적으로 일어났으므로, 성공 가능성이 0인 시도를 보내지 않는 것이
+  안전 바닥선이다(spec §2.3).
+- **대체 기대 시험**: 프로파일 계층 — 저장값이 `null`/`''` 각각에서
+  `KEYCHAIN_ENTRY_NOT_FOUND`가 나오고 접속이 만들어지지 않는지
+  (`src/profile/__tests__/secrets.test.ts`).
+
+### D20 — 자격증명 해석 실패가 **기동을 죽이지 않고** inspection-only로 강등한다
+- **분류**: 강화
+- **구 동작(실측)**: `engine/src/lib/profile.ts:243-246` — `resolveSecret`을
+  `try` 없이 부른다. 해석이 실패하면 예외가 프로파일 활성화 경로 밖으로 나간다.
+- **신 동작**: `src/profile/resolve.ts` — 잡아서 이름 있는 진단
+  (`KEYCHAIN_REF_INVALID`·`KEYCHAIN_UNAVAILABLE`·`KEYCHAIN_ENTRY_NOT_FOUND`)을
+  남기고 `connection: null` · `tier: 'UNKNOWN'`으로 기동한다.
+- **근거**: 이 레포의 프로파일 계층이 이미 그 규약으로 서 있다 — 홈 고정이
+  깨졌을 때도, 활성 프로파일이 허상일 때도, `sap.env`가 불완전할 때도 전부
+  "접속 없이 뜨고 이유를 말한다"이다(`resolve.ts` 헤더). 자격증명 해석만
+  예외로 두면 같은 종류의 실패가 두 가지 결말을 갖는다.
+- **대체 기대 시험**: 프로파일 계층 — 어긋난 참조·해석 불가 참조 각각에서
+  `connection`이 `null`이고 참조 문자열이 비밀번호 자리에 없는지
+  (`src/profile/__tests__/resolve.test.ts`).
+- **비고**: D16·D17과 같은 결의 기동 계층 차이라 도구 응답 시퀀스에 나타나지
+  않는다 — `replay/divergences.ts`로 옮기지 않는다.
+
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 
 리뷰에서 차이로 잡혔지만 **유지할 이유가 없어** 구 동작으로 되돌린 것들.

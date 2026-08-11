@@ -339,6 +339,51 @@ describe('resolveProfile — connection payload', () => {
     expect(p.connection).toBeNull();
     expect(p.diagnostics.join('\n')).toContain('INCOMPLETE_CONNECTION');
   });
+
+  // NEGATIVE — a `keychain:` reference that cannot be resolved must not become
+  // the password. Sending the reference produced repeated failed logons against
+  // a real system and locked the account (2026-08-11).
+  describe('keychain reference (fail-closed)', () => {
+    const withRef = (ref: string) => [
+      'SAP_URL=http://127.0.0.1:1',
+      'SAP_CLIENT=100',
+      'SAP_USERNAME=fixture-user',
+      `SAP_PASSWORD=${ref}`,
+      'SAP_TIER=DEV',
+    ];
+
+    it('builds no connection when the reference is malformed', () => {
+      const p = build(withRef('keychain:no-slash'));
+      expect(p.connection).toBeNull();
+      expect(p.tier).toBe('UNKNOWN');
+      expect(p.diagnostics.join('\n')).toContain('KEYCHAIN_REF_INVALID');
+    });
+
+    // The property that matters, stated directly: whatever goes wrong, the
+    // reference string is never what we would authenticate with.
+    //
+    // Which failure code appears depends on the machine — a host with a working
+    // keychain reports ENTRY_NOT_FOUND, a headless CI box reports UNAVAILABLE.
+    // So this case asserts only what is true on every machine, and the
+    // code-level branches are pinned deterministically in `secrets.test.ts`
+    // through the injected reader. Asserting a loose alternation here would
+    // pass without ever entering the branch it claims to cover.
+    it.each([
+      ['malformed', 'keychain:no-slash'],
+      ['well-formed but unresolvable', 'keychain:sapkit-absent/no-such-account'],
+    ])('never puts the reference in the password slot — %s', (_label, ref) => {
+      const p = build(withRef(ref));
+      expect(p.connection).toBeNull();
+      expect(p.connection?.password).toBeUndefined();
+      expect(p.tier).toBe('UNKNOWN');
+      expect(p.diagnostics.join('\n')).toContain('KEYCHAIN_');
+    });
+
+    it('leaves a plaintext password untouched', () => {
+      const p = build([...BASE_ENV, 'SAP_TIER=DEV']);
+      expect(p.connection?.password).toBe('not-a-secret');
+    });
+  });
 });
 
 // ── deployment axis ─────────────────────────────────────────────────────────

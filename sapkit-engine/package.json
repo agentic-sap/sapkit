@@ -56,5 +56,8 @@
     "maxWorkers": 1,
     "testTimeout": 30000,
     "clearMocks": true
+  },
+  "optionalDependencies": {
+    "@napi-rs/keyring": "^1.3.0"
   }
 }
