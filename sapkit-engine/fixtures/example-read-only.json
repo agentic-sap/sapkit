@@ -1,0 +1,51 @@
+{
+  "formatVersion": 1,
+  "sequenceId": "example-read-only",
+  "description": "표준 클래스 검색 → 문법검사 (배관 확인용 · SAP 무변경 · 소스 미채록)",
+  "engine": {
+    "name": "mcp-abap-adt",
+    "version": "1.0.0",
+    "protocolVersion": "2024-11-05",
+    "exposition": "readonly,high"
+  },
+  "recordedAt": "2026-08-11T09:05:20.145Z",
+  "steps": [
+    {
+      "index": 0,
+      "tool": "SearchObject",
+      "args": {
+        "object_name": "CL_ABAP_TYPEDESCR",
+        "maxResults": 5
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"results\":[{\"name\":\"CL_ABAP_TYPEDESCR\",\"type\":\"CLAS/OC\",\"description\":\"Runtime Type Services\",\"packageName\":\"SABP_RTTI\"}],\"rawXML\":\"<?xml version=\\\"1.0\\\" encoding=\\\"utf-8\\\"?><adtcore:objectReferences xmlns:adtcore=\\\"http://www.sap.com/adt/core\\\"><adtcore:objectReference adtcore:uri=\\\"/sap/bc/adt/oo/classes/cl_abap_typedescr\\\" adtcore:type=\\\"CLAS/OC\\\" adtcore:name=\\\"CL_ABAP_TYPEDESCR\\\" adtcore:packageName=\\\"SABP_RTTI\\\" adtcore:description=\\\"Runtime Type Services\\\"/></adtcore:objectReferences>\"}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "검색이 도는지 — 객체 이름·URI 목록만 돌아온다(소스 아님). 표준 객체 이름이라 결과가 흔들리지 않는다"
+    },
+    {
+      "index": 1,
+      "tool": "CheckSyntax",
+      "args": {
+        "object_type": "class",
+        "object_name": "CL_ABAP_TYPEDESCR"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"object_type\": \"class\",\n  \"object_name\": \"CL_ABAP_TYPEDESCR\",\n  \"errors\": [],\n  \"warnings\": []\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "문법검사가 도는지 — 판정만 돌아온다. 구 엔진의 CheckSyntax는 문법 오류를 결과가 아니라 오류로 던진다(HANDOFF 백로그 12)"
+    }
+  ],
+  "placeholders": []
+}
