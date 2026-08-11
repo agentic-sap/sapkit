@@ -103,10 +103,17 @@
 >   ⓔ `UpdateSourceByPatch.function_group` 미검사(실질 노출 없음 · 대칭성 보완).
 >
 > **▶▶ 머신 함정 (2026-08-11 실측)**
-> - 이 머신에는 **`~/.sapkit`가 없고 `~/.sc4sap`만 있다**(profiles: `KR-DEV`
->   `IDEA-JNC`). D-076이 `.sc4sap` 폴백을 지웠으므로 **플러그인 정상 경로로는 접속이
->   안 잡힌다**. attended 스크립트는 `--env-path`로 파일을 직접 받으므로 영향 없다.
->   `~/.sapkit` 정리는 별건으로 남아 있다.
+> - **이 머신의 설치본은 아직 v0.5.4(renew 이전)다** — main은 0.6.0이고 원격에도
+>   올라가 있지만 **플러그인 업데이트를 안 했다**(실측: `~/.claude/plugins/cache/
+>   agentic-sap/sapkit/`의 최신이 0.5.4 · 지식 179개 · `launch.cjs`에 `sc4sap` 7건).
+> - **그래서 지금은 SAP 접속이 된다** — 이 머신에는 `~/.sapkit`가 없고 `~/.sc4sap`만
+>   있는데(profiles: `KR-DEV` `IDEA-JNC`), 설치본 0.5.4에 구 홈 폴백이 살아 있기
+>   때문이다. **0.6.0으로 올리는 순간 끊긴다** — D-076이 그 폴백을 지웠다.
+>   **업데이트 전에 `~/.sc4sap` → `~/.sapkit` 정리가 선행돼야 한다.** D-076의 사람
+>   선행 게이트는 이행 기록이 있으나 이 머신엔 흔적이 없다(다른 머신으로 보인다).
+>   *(2026-08-11 최초 기재는 "플러그인 정상 경로로 접속이 안 잡힌다"였는데 설치본을
+>   확인하지 않은 서술이었다 — 같은 날 실측으로 정정했다.)*
+> - attended 스크립트는 `--env-path`로 sap.env를 직접 받으므로 이 문제와 무관하다.
 > - 프로파일의 비밀번호는 **OS 키체인에 있다**(`sap.env`에는 참조만). 구 번들을
 >   띄울 때는 `NODE_PATH`로 `interactive/server/runtime-deps/keyring/node_modules`를
 >   물려야 한다 — `record-attended.mjs`가 기본으로 문다.
