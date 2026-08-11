@@ -88,8 +88,14 @@
 > - **교체 판 전 필수 해소 2건** — ⓐ **D15**: `--mcp`/`--env` destination 인증 미구현
 >   (그 방식으로 등록된 곳은 교체 시 접속을 잃는다) ⓑ **D18**: 무접속 거부 어휘가
 >   달라 `conformance-server-gates.mjs`의 분류 grep을 **교체 시 함께 갱신**해야 한다.
-> - **push 미실행** — 사용자 판단. CI의 신 엔진 잡(`sapkit-engine`)은 아직 한 번도
->   돌지 않았다.
+> - **▶ 다음 세션 첫 작업: PR 생성 → CI green 확인 → 머지** (2026-08-11 합의).
+>   가지 `dryforge/sapkit-engine-m1`은 **push 완료**(2026-08-11). CI 트리거는
+>   `push: branches:[main]` + `pull_request`이므로 **브랜치 push만으로는 CI가 돌지
+>   않는다** — 신 엔진 잡(`sapkit-engine`)은 **아직 한 번도 실행된 적이 없다**.
+>   바로 머지하면 그 잡이 main에서 처음 돌아 실패 시 main이 빨개지므로 **PR을 거친다**.
+>   주목할 위험: `@napi-rs/keyring`은 네이티브 모듈이자 optionalDependency라
+>   ubuntu 러너의 `npm ci`에서 로컬과 다르게 굴 수 있다(시험은 `reader` 주입으로
+>   돌므로 모듈이 없어도 통과해야 하는 설계다 — 그 설계가 맞는지 CI가 판정한다).
 > - **리뷰가 후속으로 넘긴 것 5건**(R-PASS · 커밋 비차단 · 전부 fail-closed 방향):
 >   ⓐ `ActivateObjects`의 `uri` 인자가 이름 검사를 우회한다(스키마상 `uri`가
 >   이름 해석을 덮는다 — 모순된 값을 적는 것은 의도적 행위라 비차단).
