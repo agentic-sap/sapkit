@@ -102,12 +102,27 @@
 >   통째로 일어나지 않는다.** 규칙 문구 4곳을 맞췄고 첫 write 시나리오 2종을 썼다
 >   (dry-run 통과 · **녹화는 아직**). 러너가 `package_name`을 검사하지 않는다는
 >   사실(리뷰 후속 ⓓ)은 이제 문서에 명시돼 있다 — 강제되는 것은 Z·Y 네임스페이스뿐.
-> - **▶ 다음 세션 첫 작업: C1 녹화 실행** — `zsapkit-m1-program-create` →
->   `zsapkit-m1-program-update-activate` 순. attended 구간이라 **소유자 세션에서만**
->   돌린다. 이 머신은 설치본이 0.5.4라 `~/.sc4sap`로 접속이 되지만, 녹화는
->   `--env-path`로 sap.env를 직접 받으므로 그 문제와 무관하다(아래 「머신 함정」).
->   되면 증거 있는 도구가 2/19 → 6/19가 된다(`CreateProgram` `UpdateProgram`
->   `CheckSyntax` `ActivateObjects` `GetProgram` 추가).
+> - **✅ C1 첫 write 녹화 + C2 재생 pass (2026-08-12 · KR-DEV)** — 증거 있는 도구
+>   **2/19 → 5/19**(`SearchObject` `CheckSyntax` `UpdateProgram` `ActivateObjects`
+>   `GetProgram`). `$TMP`가 실물로 확인됐다 — `CreateProgram`이
+>   `transport_request: null`로 성공했고 되읽기가 존재를 확인했다. 이송 미발생.
+>   재생은 4단계 결함 0 · 이연 0이고, 되읽은 소스가 보낸 것과 일치 · 문법 오류 0 ·
+>   활성화 `failed_count: 0`이라 기계 확인도 닫혔다.
+> - **⚠ `Create*`는 재생으로 증거를 못 얻는다 — `attended` 급으로 닫는다.**
+>   create 픽스처를 기본 재생에 뒀더니 그 실패가 **`GetProgram`의 증거까지
+>   앗아갔다**(다른 시퀀스에서 통과한 도구인데 "증거 없음"으로 떨어졌다). 재생 불가
+>   픽스처 한 건이 커버리지 표 전체의 판독을 망친다. 그래서
+>   `fixtures/attended-only/`로 분리했다 — 러너가 `readdirSync` 비재귀라 하위
+>   폴더를 안 줍는다(코드 변경 없음). M1에 `Delete*`가 없는 한 구조적 한계다.
+> - **▶ 다음 세션 첫 작업: 남은 14종 C1 시나리오 확장** — 읽기 계열
+>   (`GetClass` `GetInclude` `GetFunctionModule` `GetTable` `GetStructure`
+>   `GrepObjects` `GetSourceDiff`)이 먼저다. 대상 Z 객체만 있으면 되고 write가
+>   없어 되돌릴 것도 없다. `UpdateClass`는 M1에 `CreateClass`가 없으므로 **사람이
+>   $TMP에 Z 클래스를 하나 만들어 둬야** 시나리오를 쓸 수 있다.
+>   실행 방법은 이번에 쓴 그대로:
+>   `node harness/record-attended.mjs --scenario=<id> --env-path=<...>/KR-DEV/sap.env`
+>   (기본 `--exposition=readonly,high`가 이미 186종 전체 표면이라 write가 열린다 —
+>   이름과 달리 readonly가 아니다).
 > - **⚠ 재생 가능성 축이 새로 섰다 (함정 ⑶)** — C2 재생은 신 엔진이 같은 질문을
 >   SAP에 **다시 던지는** 일이라, 시나리오가 바꾼 상태가 다음 재생의 입력이 된다.
 >   `CreateProgram`을 담은 시퀀스는 두 번째 실행에서 "이미 있다"로 실패한다 —
