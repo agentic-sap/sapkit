@@ -114,11 +114,26 @@
 >   픽스처 한 건이 커버리지 표 전체의 판독을 망친다. 그래서
 >   `fixtures/attended-only/`로 분리했다 — 러너가 `readdirSync` 비재귀라 하위
 >   폴더를 안 줍는다(코드 변경 없음). M1에 `Delete*`가 없는 한 구조적 한계다.
-> - **▶ 다음 세션 첫 작업: 남은 14종 C1 시나리오 확장** — 읽기 계열
->   (`GetClass` `GetInclude` `GetFunctionModule` `GetTable` `GetStructure`
->   `GrepObjects` `GetSourceDiff`)이 먼저다. 대상 Z 객체만 있으면 되고 write가
->   없어 되돌릴 것도 없다. `UpdateClass`는 M1에 `CreateClass`가 없으므로 **사람이
->   $TMP에 Z 클래스를 하나 만들어 둬야** 시나리오를 쓸 수 있다.
+> - **✅ 클래스 왕복도 닫혔다 — 증거 7/19** (`SearchObject` `CheckSyntax`
+>   `UpdateProgram` `UpdateClass` `ActivateObjects` `GetProgram` `GetClass`).
+>   연습 클래스 `ZCL_SAPKIT_M1_DEMO`를 `$TMP`에 새로 만들어 썼다 — 사용자가
+>   제안한 기존 `YCL_FI_BKPF_ZZ_TO_ACDOCA`는 **쓰지 않았다**: `UpdateClass`가
+>   소스를 통째로 덮어쓰고, 픽스처는 **PUBLIC 레포**에 커밋되며, 마스킹 검사기는
+>   고객 소스코드를 보지 않는다(Y라 네임스페이스 검사도 통과). 실무 FI 로직이
+>   공개될 뻔했다. **이 판단 기준을 기억할 것 — 연습 대상은 반드시 새로 만든다.**
+> - **⚠ 함정 ⑶의 진짜 기준은 "write가 있느냐"가 아니라 "시퀀스가 자기 응답을
+>   바꾸는 상태를 남기느냐"다** (2026-08-12 실측). 클래스 재생이 처음에 fail했는데
+>   원인이 신 엔진이 아니었다 — 1회차 `activated=true`, 2회차 `activated=false`.
+>   같은 소스를 다시 쓰면 바뀐 게 없어 활성화 대상이 없다. **구 엔진을 같은
+>   상태에서 재녹화하니 구 엔진도 `false`**였다. 판별 절차(`--out` 레포 밖 +
+>   `--force`로 구 엔진 재녹화)와 처방("안정 상태에서 녹화 · 연속 2회 같은 판정
+>   확인 전엔 픽스처를 믿지 마라")은 `scenarios/README.md`에 있다. 프로그램은
+>   1·2회차가 같아 이 문제가 없었다 — **객체 종류마다 다르다.**
+> - **▶ 다음 세션 첫 작업: 남은 12종 C1 시나리오 확장** — 읽기 계열
+>   (`GetInclude` `GetFunctionModule` `GetTable` `GetStructure` `GrepObjects`
+>   `GetSourceDiff`)이 먼저다. 대상 Z 객체만 있으면 되고 write가 없어 되돌릴
+>   것도 없다. `UpdateInclude`·`CreateInclude`는 `ZSAPKIT_M1_DEMO`에 붙이면 되고,
+>   `GetSqlQuery`는 P2라 데모 테이블 한정 + 건별 승인이다.
 >   실행 방법은 이번에 쓴 그대로:
 >   `node harness/record-attended.mjs --scenario=<id> --env-path=<...>/KR-DEV/sap.env`
 >   (기본 `--exposition=readonly,high`가 이미 186종 전체 표면이라 write가 열린다 —
