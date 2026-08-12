@@ -8,6 +8,29 @@
 > **▶▶ 재개점 — 여기부터 읽는다 (최상단 정본)**
 > ═══════════════════════════════════════════════════════════════════
 >
+> ## 🔻 내일 첫 작업 (2026-08-12 세션 종료 시점)
+>
+> **남은 12종 C1 시나리오 확장 — 읽기 계열 6종부터.**
+> `GetInclude` `GetFunctionModule` `GetTable` `GetStructure` `GrepObjects`
+> `GetSourceDiff`. write가 없어 되돌릴 게 없고, 대상은 이미 `$TMP`에 있는
+> `ZSAPKIT_M1_DEMO`(PROG)·`ZCL_SAPKIT_M1_DEMO`(CLAS)를 쓰면 된다.
+>
+> ```powershell
+> cd sapkit-engine
+> node harness/record-attended.mjs --scenario=<id> --dry-run          # SAP 불필요
+> node harness/record-attended.mjs --scenario=<id> --env-path="$env:USERPROFILE\.sc4sap\profiles\KR-DEV\sap.env"
+> node harness/replay-attended.mjs --env-path="$env:USERPROFILE\.sc4sap\profiles\KR-DEV\sap.env"
+> ```
+>
+> - **가지**: `dryforge/tmp-practice-scenarios` (push 완료) · **PR #2 열림 · 미머지**
+>   → 먼저 CI 결과를 확인하고 머지 여부를 정한다.
+> - **읽기 전에 볼 것 하나**: `sapkit-engine/harness/scenarios/README.md` 함정 ⑶
+>   (「안정 상태에서 녹화하라」 절). 모르고 녹화하면 재생이 신 엔진 잘못처럼 실패한다.
+> - **P2는 별도**: `GetSqlQuery`는 데모 테이블 한정 + 건별 사람 승인 + 배치 금지.
+> - `UpdateInclude`·`CreateInclude`는 `ZSAPKIT_M1_DEMO`에 붙이면 된다.
+>
+> ---
+>
 > **▶▶ 사다리 ⑴ 착수 — `sapkit-engine` M1 오프라인 구간 완료 · attended 3단계 미수행 · D-079 (2026-08-10)**
 >
 > 청사진 사다리 ⑴(엔진 자작)의 **1차 마일스톤 M1**. 새 최상위 경로
