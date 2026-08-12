@@ -1,0 +1,43 @@
+{
+  "sequenceId": "zsapkit-m1-program-update-activate",
+  "description": "[재실행 자유 · P3] $TMP의 ZSAPKIT_M1_DEMO에 소스를 써 넣고 → 문법검사 → 활성화 → 되읽기까지의 write 왕복 한 벌. 전제: zsapkit-m1-program-create가 먼저 돌아 그 프로그램이 존재해야 한다. 같은 소스를 다시 써도 결과가 같으므로 C2 재생을 몇 번이든 돌릴 수 있다 — 이것이 create를 이 시퀀스에서 뗀 이유다. $TMP를 쓰므로 transport_request가 없다.",
+  "steps": [
+    {
+      "tool": "UpdateProgram",
+      "args": {
+        "program_name": "ZSAPKIT_M1_DEMO",
+        "source_code": "REPORT zsapkit_m1_demo.\n\nDATA lv_message TYPE string.\n\nSTART-OF-SELECTION.\n  lv_message = 'sapkit engine M1 equivalence probe'.\n  WRITE: / lv_message.\n",
+        "activate": false
+      },
+      "note": "activate=false로 둔다. 갱신과 활성화를 한 호출로 합치면 ActivateObjects가 이 시퀀스에서 증거를 얻지 못한다. 소스에 ENDFORM/ENDCLASS 계열을 넣지 않았다 — 이 도구는 네임스페이스 검사 목록 안이라 백스톱 대상이 아니지만, 픽스처가 사람 눈으로 읽히는 물건이라 단순하게 뒀다."
+    },
+    {
+      "tool": "CheckSyntax",
+      "args": {
+        "object_type": "program",
+        "object_name": "ZSAPKIT_M1_DEMO"
+      },
+      "note": "source_code 인자를 일부러 주지 않는다. CheckSyntax는 네임스페이스 검사 목록 밖이라 인자에 ABAP 원본이 실리면 사후 백스톱(detectUnguardedSource)에 걸린다 — 대상이 Z여도 걸린다(리뷰 후속 ⓑ). 이름만 주면 그 맞교환을 건드리지 않고 지나간다."
+    },
+    {
+      "tool": "ActivateObjects",
+      "args": {
+        "objects": [
+          {
+            "name": "ZSAPKIT_M1_DEMO",
+            "type": "PROG/P"
+          }
+        ]
+      },
+      "note": "uri 대신 name+type으로 준다. uri는 스키마상 이름 해석을 덮으므로 러너의 네임스페이스 검사를 우회한다(리뷰 후속 ⓐ). 백로그 1번(활성화 실패를 HTTP 200 + 본문 chkl:msg type=E로 알리는데 구 엔진이 본문을 안 읽는다)이 걸린 자리다."
+    },
+    {
+      "tool": "GetProgram",
+      "args": {
+        "program_name": "ZSAPKIT_M1_DEMO",
+        "version": "active"
+      },
+      "note": "활성 판을 되읽어 방금 보낸 소스와 대조할 수 있게 한다 — 기계 확인의 절반(verify-applied.md). version을 명시하는 이유는 기본값 의존을 픽스처에 남기지 않기 위해서다."
+    }
+  ]
+}
