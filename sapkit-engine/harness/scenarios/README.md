@@ -133,8 +133,10 @@ update 쪽은 몇 번이든 자유롭게 재생할 수 있다.
 | 시나리오 | 정책 | 재실행 | 쓰임 |
 |---|---|---|---|
 | `example-read-only` | P1 | 자유 | 배관 확인 — 접속·기동·정규화·마스킹이 실제로 도는지. SAP 무변경 · 소스 미채록 · 가변 상태 미채록 |
-| `zsapkit-m1-program-create` | P3 | **1회성** | `$TMP`에 `ZSAPKIT_M1_DEMO` 생성 → 되읽기. 재실행 전 수동 삭제 |
+| `zsapkit-m1-program-create` | P3 | **1회성** | `$TMP`에 `ZSAPKIT_M1_DEMO` 생성 → 되읽기. 픽스처는 `fixtures/attended-only/`에 있고 기본 재생에서 빠진다 |
 | `zsapkit-m1-program-update-activate` | P3 | 자유 | 같은 프로그램에 소스 갱신 → 문법검사 → 활성화 → 되읽기. **위 시나리오가 먼저 돌아야 한다** |
 
-두 P3 시나리오는 아직 **녹화되지 않았다** — dry-run 형식 검사만 통과한 상태다.
-나머지 도구는 C1에서 채운다.
+셋 다 **C1 녹화 완료**(2026-08-12 · KR-DEV). C2 재생은 `example-read-only`와
+`zsapkit-m1-program-update-activate` 2건이 pass — 증거 있는 도구 5/19.
+`Create*`는 재생으로 증거를 얻을 수 없어 **`attended` 급으로 닫힌다**(이유는
+`fixtures/README.md`). 나머지 14종은 후속 C1에서 채운다.
