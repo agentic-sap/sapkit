@@ -1,0 +1,17 @@
+{
+  "_": "배관 확인용. SAP 상태를 바꾸지 않고(P1), 원본 소스를 통째로 받는 도구도 쓰지 않으며, 시스템의 가변 상태를 기대값으로 굳히지도 않는다. C1에서 write 시나리오를 태우기 전에 이걸로 접속·기동·정규화·마스킹이 실제로 도는지 먼저 확인한다.",
+  "sequenceId": "example-read-only",
+  "description": "표준 클래스 검색 → 문법검사 (배관 확인용 · SAP 무변경 · 소스 미채록)",
+  "steps": [
+    {
+      "tool": "SearchObject",
+      "args": { "object_name": "CL_ABAP_TYPEDESCR", "maxResults": 5 },
+      "note": "검색이 도는지 — 객체 이름·URI 목록만 돌아온다(소스 아님). 표준 객체 이름이라 결과가 흔들리지 않는다"
+    },
+    {
+      "tool": "CheckSyntax",
+      "args": { "object_type": "class", "object_name": "CL_ABAP_TYPEDESCR" },
+      "note": "문법검사가 도는지 — 판정만 돌아온다. 구 엔진의 CheckSyntax는 문법 오류를 결과가 아니라 오류로 던진다(HANDOFF 백로그 12)"
+    }
+  ]
+}

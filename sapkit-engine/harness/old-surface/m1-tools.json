@@ -1,0 +1,767 @@
+{
+  "_": "구 번들이 tools/list로 발행하는 선언 그대로. 손으로 고치지 말 것 — capture.mjs를 다시 돌린다.",
+  "counts": {
+    "connected_default": 186,
+    "noProfile_default": 155,
+    "connected_readonly": 74,
+    "noProfile_readonly": 65
+  },
+  "connectedOnly": [
+    "CreateGuiStatus",
+    "CreateInclude",
+    "CreateProgram",
+    "CreateScreen",
+    "CreateTextElement",
+    "DeleteGuiStatus",
+    "DeleteInclude",
+    "DeleteProgram",
+    "DeleteScreen",
+    "DeleteTextElement",
+    "GetBadiImplementations",
+    "GetGuiStatus",
+    "GetGuiStatusList",
+    "GetProgFullCode",
+    "GetProgram",
+    "GetScreen",
+    "GetScreensList",
+    "GetTextElement",
+    "PatchGuiStatus",
+    "ReadGuiStatus",
+    "ReadProgram",
+    "ReadScreen",
+    "ReadTextElementsBulk",
+    "RuntimeGetGatewayErrorLog",
+    "RuntimeRunProgramWithProfiling",
+    "UpdateGuiStatus",
+    "UpdateInclude",
+    "UpdateProgram",
+    "UpdateScreen",
+    "UpdateTextElement",
+    "WriteTextElementsBulk"
+  ],
+  "m1Missing": [],
+  "m1": {
+    "SearchObject": {
+      "name": "SearchObject",
+      "description": "[read-only] Find, search, locate, or check if an ABAP repository object exists by name or wildcard pattern (e.g. 'ZOK*'). Use this tool to answer questions like 'is there a program named...', 'find all objects starting with...', 'does this class exist?', 'list objects matching...'. Supports all repository object types — optionally filter by type (PROG, CLAS, INTF, DEVC, TABL, DDLS, DTEL, FUGR, SRVD, SRVB, BDEF, DDLX, etc.).",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "object_name": {
+            "type": "string",
+            "description": "[read-only] Object name or mask (e.g. 'MARA*')"
+          },
+          "object_type": {
+            "description": "[read-only] Optional ABAP object type (e.g. 'TABL', 'CLAS/OC')",
+            "type": "string"
+          },
+          "maxResults": {
+            "description": "[read-only] Maximum number of results to return",
+            "default": 100,
+            "type": "number"
+          }
+        },
+        "required": [
+          "object_name"
+        ]
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    "GetInclude": {
+      "name": "GetInclude",
+      "description": "[read-only] Retrieve source code of a specific ABAP include file.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "include_name": {
+            "type": "string",
+            "description": "Name of the ABAP Include"
+          }
+        },
+        "required": [
+          "include_name"
+        ]
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    "GetClass": {
+      "name": "GetClass",
+      "description": "Retrieve ABAP class source code. Supports reading active or inactive version. Optionally append a compressed dependency context (public signatures of referenced classes/interfaces) via with_context.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "class_name": {
+            "type": "string",
+            "description": "Class name (e.g., ZCL_MY_CLASS)."
+          },
+          "version": {
+            "description": "Version to read: \"active\" (default) for deployed version, \"inactive\" for modified but not activated version.",
+            "default": "active",
+            "type": "string",
+            "enum": [
+              "active",
+              "inactive"
+            ]
+          },
+          "with_context": {
+            "description": "If true, append a \"dependency_context\" field with compressed public contracts (signatures) of every class/interface referenced by this class, so callers get surrounding context in one call. Function modules referenced via CALL FUNCTION are noted but not resolved. Default false.",
+            "type": "boolean"
+          },
+          "context_max_deps": {
+            "description": "Max number of dependencies to resolve when with_context is true (1-15). Default 10.",
+            "default": 10,
+            "type": "number"
+          }
+        },
+        "required": [
+          "class_name"
+        ]
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    "GetProgram": {
+      "name": "GetProgram",
+      "description": "Retrieve ABAP program definition. Supports reading active or inactive version. Optionally append a compressed dependency context (public signatures of referenced classes/interfaces) via with_context.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "program_name": {
+            "type": "string",
+            "description": "Program name (e.g., Z_MY_PROGRAM)."
+          },
+          "version": {
+            "description": "Version to read: \"active\" (default) for deployed version, \"inactive\" for modified but not activated version.",
+            "default": "active",
+            "type": "string",
+            "enum": [
+              "active",
+              "inactive"
+            ]
+          },
+          "with_context": {
+            "description": "If true, append a \"dependency_context\" field with compressed public contracts (signatures) of every class/interface referenced by this program, so callers get surrounding context in one call. Function modules referenced via CALL FUNCTION are noted but not resolved. Default false.",
+            "type": "boolean"
+          },
+          "context_max_deps": {
+            "description": "Max number of dependencies to resolve when with_context is true (1-15). Default 10.",
+            "default": 10,
+            "type": "number"
+          }
+        },
+        "required": [
+          "program_name"
+        ]
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    "GetFunctionModule": {
+      "name": "GetFunctionModule",
+      "description": "Retrieve ABAP function module definition. Supports reading active or inactive version. CAUTION: the default version='active' returns the pre-edit source when an unactivated edit exists — writing on top of it silently destroys the previous edit and no gate catches it. When re-editing, read version='inactive' first (or check GetInactiveObjects), and re-read after every write. A returned 'active' source is NOT proof the FM was ever successfully activated (never-activated FMs also return it).",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "function_module_name": {
+            "type": "string",
+            "description": "FunctionModule name (e.g., Z_MY_FUNCTIONMODULE)."
+          },
+          "function_group_name": {
+            "type": "string",
+            "description": "FunctionGroup name containing the function module (e.g., Z_MY_FUNCTIONGROUP)."
+          },
+          "version": {
+            "description": "Version to read: \"active\" (default) for deployed version, \"inactive\" for modified but not activated version.",
+            "default": "active",
+            "type": "string",
+            "enum": [
+              "active",
+              "inactive"
+            ]
+          },
+          "check_inactive": {
+            "description": "When reading the active version, also read the inactive version (one extra ADT call) and, if an unactivated version exists and its source differs, attach a 'warning' to the response. Default true. The extra read never fails or slows the main read. Set false to skip it.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "function_module_name",
+          "function_group_name"
+        ]
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    "GetInactiveObjects": {
+      "name": "GetInactiveObjects",
+      "description": "[read-only] Get a list of inactive ABAP objects — modified but not yet activated, pending activation. Shows classes, tables, CDS views, and other objects awaiting activation.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {}
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    "GrepObjects": {
+      "name": "GrepObjects",
+      "description": "[read-only] Search ABAP source code for a regex pattern across multiple named objects in a single call — finds matching lines (with optional context) instead of reading each object one by one. Supports CLAS, PROG, INTF, INCL, and FUGR (function group). Individual function modules (FUNC) are not supported; use FUGR with the group name to search the whole group.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "objects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "object_type": {
+                  "type": "string",
+                  "description": "ABAP object type: CLAS, PROG, INTF, INCL, or FUGR."
+                },
+                "object_name": {
+                  "type": "string",
+                  "description": "Object name (e.g. ZCL_MY_CLASS)."
+                }
+              },
+              "required": [
+                "object_type",
+                "object_name"
+              ]
+            },
+            "description": "Objects to search (1-50 entries)."
+          },
+          "pattern": {
+            "type": "string",
+            "description": "JavaScript regular expression source to search for (e.g. \"SELECT\\\\s+\\\\*\")."
+          },
+          "case_insensitive": {
+            "description": "Case-insensitive match. Default: false.",
+            "type": "boolean"
+          },
+          "context_lines": {
+            "description": "Number of lines of context before/after each match (0-5). Default: 0.",
+            "default": 0,
+            "type": "number"
+          },
+          "max_results": {
+            "description": "Maximum total matches to return across all objects. Default: 100.",
+            "default": 100,
+            "type": "number"
+          }
+        },
+        "required": [
+          "objects",
+          "pattern"
+        ]
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    "CheckSyntax": {
+      "name": "CheckSyntax",
+      "description": "[read-only] Run a standalone ABAP syntax check WITHOUT writing anything to SAP. Supports 'class', 'program', 'interface', 'include', and 'function_module'. If source_code is provided (class/program/interface only), the proposed source is compiled in place and checked without touching the server. If source_code is omitted, checks whatever is currently staged as the inactive version on the server (mirroring the post-write check Update* handlers run). Syntax errors are returned as normal results, not as tool errors — only connection/infra failures are reported as errors.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "object_type": {
+            "type": "string",
+            "enum": [
+              "class",
+              "program",
+              "interface",
+              "include",
+              "function_module"
+            ],
+            "description": "[read-only] ABAP object kind to check: 'class' (CLAS), 'program' (PROG), 'interface' (INTF), 'include' (PROG/I), or 'function_module' (FUGR/FF)."
+          },
+          "object_name": {
+            "type": "string",
+            "description": "[read-only] Name of the object to check (e.g., ZCL_MY_CLASS)."
+          },
+          "function_group_name": {
+            "description": "[read-only] Function group name. Required when object_type is 'function_module'.",
+            "type": "string"
+          },
+          "source_code": {
+            "description": "[read-only] Optional proposed ABAP source code to check in place. Only honored for object_type 'class', 'program', or 'interface' — ignored for 'include' and 'function_module' (see description).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "object_type",
+          "object_name"
+        ]
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    "GetSourceDiff": {
+      "name": "GetSourceDiff",
+      "description": "[read-only] Compute a unified diff between the source code of two ABAP objects (e.g. compare ZCL_A vs ZCL_B, or a program vs a copy of itself). Supports CLAS, PROG, INTF, INCL. If the two sources differ too extensively to safely diff (after trimming common leading/trailing lines), returns { identical: false, too_large: true, reason, stats: { old_lines, new_lines } } instead of a diff.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "object_type_a": {
+            "type": "string",
+            "enum": [
+              "CLAS",
+              "PROG",
+              "INTF",
+              "INCL"
+            ],
+            "description": "Object type of the first (left / \"old\") object."
+          },
+          "object_name_a": {
+            "type": "string",
+            "description": "Object name of the first (left / \"old\") object."
+          },
+          "object_type_b": {
+            "type": "string",
+            "enum": [
+              "CLAS",
+              "PROG",
+              "INTF",
+              "INCL"
+            ],
+            "description": "Object type of the second (right / \"new\") object."
+          },
+          "object_name_b": {
+            "type": "string",
+            "description": "Object name of the second (right / \"new\") object."
+          },
+          "context_lines": {
+            "description": "Number of unchanged context lines around each change.",
+            "default": 3,
+            "type": "number"
+          }
+        },
+        "required": [
+          "object_type_a",
+          "object_name_a",
+          "object_type_b",
+          "object_name_b"
+        ]
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    "CreateProgram": {
+      "name": "CreateProgram",
+      "description": "Create a new ABAP program (report) in SAP system. Creates the program object in initial state. Use UpdateProgram to set source code afterwards.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "program_name": {
+            "type": "string",
+            "description": "Program name (e.g., Z_TEST_PROGRAM_001). Must follow SAP naming conventions (start with Z or Y)."
+          },
+          "description": {
+            "description": "Program description. If not provided, program_name will be used.",
+            "type": "string"
+          },
+          "package_name": {
+            "type": "string",
+            "description": "Package name (e.g., ZOK_LAB, $TMP for local objects)"
+          },
+          "transport_request": {
+            "description": "Transport request number (e.g., E19K905635). Required for transportable packages.",
+            "type": "string"
+          },
+          "program_type": {
+            "description": "Program type: 'executable' (Report) or 'module_pool'. Both are created in the ADT programs/programs collection (PROG/P). Default: 'executable'. To create an include, function group, class pool, or interface pool use the dedicated tool (CreateInclude / CreateFunctionGroup / CreateClass / CreateInterface) — CreateProgram cannot create those object types.",
+            "type": "string",
+            "enum": [
+              "executable",
+              "module_pool"
+            ]
+          },
+          "application": {
+            "description": "Application area (e.g., 'S' for System, 'M' for Materials Management). Default: '*'",
+            "type": "string"
+          }
+        },
+        "required": [
+          "program_name",
+          "package_name"
+        ]
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    "CreateInclude": {
+      "name": "CreateInclude",
+      "description": "Create a new ABAP Include program (Type I, PROG/I) in SAP system. Creates the include object and registers it under the main program in D010INC. By default also auto-inserts an `INCLUDE <name>.` statement into the main program source so the include is actually used. Use UpdateInclude to set source code afterwards. Unlike CreateProgram with program_type=include (which creates PROG/P), this creates a proper PROG/I include. For mass-activation scenarios (many cross-referencing includes) pass source_code inline, set activate_main_program=false and skip_program_tree_check=true, then call ActivateObjects once with the full set.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "include_name": {
+            "type": "string",
+            "description": "Include program name (e.g., ZPAEK_TEST_INC01). Must follow SAP naming conventions (start with Z or Y)."
+          },
+          "main_program": {
+            "type": "string",
+            "description": "Name of the main/master program that will contain this include (e.g., ZPAEK_TEST003). Required for proper include registration and activation."
+          },
+          "description": {
+            "description": "Include description (max 60 chars). If not provided, include_name will be used.",
+            "type": "string"
+          },
+          "package_name": {
+            "type": "string",
+            "description": "Package name (e.g., ZOK_LAB, $TMP for local objects)."
+          },
+          "transport_request": {
+            "description": "Transport request number (e.g., S4HK904224). Required for transportable packages. Optional for local ($TMP) objects.",
+            "type": "string"
+          },
+          "insert_into_main": {
+            "description": "Auto-insert `INCLUDE <name>.` statement into the main program source. Default: true. Set false to skip main-program modification.",
+            "type": "boolean"
+          },
+          "source_code": {
+            "description": "Optional include body. When provided, the handler also locks, writes the source, and unlocks the new include in a single call. Never activates — caller must run a separate activation (ActivateObjects for batch scenarios).",
+            "type": "string"
+          },
+          "activate_main_program": {
+            "description": "When inserting INCLUDE statement into the main program, also activate the main program afterwards. Default: true (existing behavior). Set false when batching many includes so that activation is deferred to a single ActivateObjects call.",
+            "type": "boolean"
+          },
+          "skip_program_tree_check": {
+            "description": "Skip the post-create program-tree syntax check. Default: false (existing behavior). Set true when batching many cross-referencing includes — an intermediate include in a cycle will necessarily fail the tree check while its siblings are still missing.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "include_name",
+          "main_program",
+          "package_name"
+        ]
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    "UpdateProgram": {
+      "name": "UpdateProgram",
+      "description": "Update source code of an existing ABAP program. Locks the program, checks new code, uploads new source code, and unlocks. Optionally activates after update. Use this to modify existing programs without re-creating metadata.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "program_name": {
+            "type": "string",
+            "description": "Program name (e.g., Z_TEST_PROGRAM_001). Program must already exist."
+          },
+          "source_code": {
+            "type": "string",
+            "description": "Complete ABAP program source code."
+          },
+          "transport_request": {
+            "description": "Transport request number (e.g., E19K905635). Required for transportable packages.",
+            "type": "string"
+          },
+          "activate": {
+            "description": "Activate program after source update. Default: false. Set to true to activate immediately, or use ActivateObject for batch activation.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "program_name",
+          "source_code"
+        ]
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    "UpdateInclude": {
+      "name": "UpdateInclude",
+      "description": "Update source code of an existing ABAP Include program (Type I). Locks the include, uploads new source code, and unlocks. Optionally activates after update. Use this instead of UpdateProgram for Type I include programs.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "include_name": {
+            "type": "string",
+            "description": "Include program name. Must already exist as Type I include in SAP."
+          },
+          "source_code": {
+            "type": "string",
+            "description": "Complete ABAP include source code. Do NOT include a REPORT statement — include programs start directly with code or comments."
+          },
+          "main_program": {
+            "description": "Name of the parent/master program that contains this include. When provided, a program-wide syntax check is run after the source is uploaded to catch ABAP errors in the new include code. Highly recommended.",
+            "type": "string"
+          },
+          "transport_request": {
+            "description": "Transport request number. Required for transportable packages.",
+            "type": "string"
+          },
+          "activate": {
+            "description": "Activate include after source update. Default: false. Set to true to activate immediately.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "include_name",
+          "source_code"
+        ]
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    "UpdateClass": {
+      "name": "UpdateClass",
+      "description": "Update source code of an existing ABAP class. Locks, checks, updates, unlocks, and optionally activates.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "class_name": {
+            "type": "string",
+            "description": "Class name (e.g., ZCL_TEST_CLASS_001)."
+          },
+          "source_code": {
+            "type": "string",
+            "description": "Complete ABAP class source code."
+          },
+          "transport_request": {
+            "description": "Transport request number (e.g., E19K905635). Required for transportable packages.",
+            "type": "string"
+          },
+          "activate": {
+            "description": "Activate after update. Default: false.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "class_name",
+          "source_code"
+        ]
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    "UpdateSourceByPatch": {
+      "name": "UpdateSourceByPatch",
+      "description": "Modify existing ABAP source code on SAP via a surgical string replacement (find old_string, replace with new_string) instead of resending the full source. Fetches the current source, applies the patch, then delegates the write to the same lock -> syntax-check -> update -> unlock -> (activate) flow used by UpdateClass/UpdateProgram/UpdateInterface/UpdateInclude/UpdateFunctionModule. Supported object_type values: CLAS (class), PROG (program, on-premise/legacy only), INTF (interface), INCL (include, on-premise/legacy only), FUNC (function module, requires function_group). old_string must match the current source exactly, including whitespace, and must be unique unless replace_all is true.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "object_type": {
+            "type": "string",
+            "enum": [
+              "CLAS",
+              "PROG",
+              "INTF",
+              "INCL",
+              "FUNC"
+            ],
+            "description": "ABAP object kind to patch: CLAS (class), PROG (program), INTF (interface), INCL (include), FUNC (function module)."
+          },
+          "object_name": {
+            "type": "string",
+            "description": "Name of the object to patch (e.g., ZCL_MY_CLASS)."
+          },
+          "function_group": {
+            "description": "Function group name. Required when object_type is 'FUNC'.",
+            "type": "string"
+          },
+          "old_string": {
+            "type": "string",
+            "description": "Exact text to find in the current source (whitespace-sensitive). Must match exactly once unless replace_all is true."
+          },
+          "new_string": {
+            "type": "string",
+            "description": "Replacement text."
+          },
+          "replace_all": {
+            "description": "Replace every occurrence of old_string instead of requiring a unique match. Default: false.",
+            "type": "boolean"
+          },
+          "transport_request": {
+            "description": "Transport request number, passed through to the delegated update handler.",
+            "type": "string"
+          },
+          "activate": {
+            "description": "Activate the object after the patched source is written. Default: false.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "object_type",
+          "object_name",
+          "old_string",
+          "new_string"
+        ]
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    "ActivateObjects": {
+      "name": "ActivateObjects",
+      "description": "[high-level] Activate a set of ABAP objects in a single call. Uses the ADT mass-activation endpoint (/sap/bc/adt/activation/runs) so cyclic references between siblings (e.g. main program + multiple cross-referencing includes) resolve in one compilation scope. Returns per-object status, errors, warnings. Falls back to /sap/bc/adt/activation on legacy systems. FUGR recipe: activating function modules alone fails with 'FUNCTION ... cannot be used outside a FUNCTION-POOL' — pass the whole family in ONE run: the function group (type FUGR), its TOP include (FUGR/I with parent_name), every function module (FUGR/FF with parent_name), and the SAPL<group> main program (PROG/P) when present. Do NOT include the system include L<group>UXX. Never mix unrelated objects into the same activation run — activate only the object family being worked. The returned success/activated flags mirror the activation-run response and are NOT proof of activation on their own — confirm by re-querying GetInactiveObjects (your objects absent from the list = actually activated).",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "objects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Object name (will be uppercased)."
+                },
+                "type": {
+                  "description": "ADT object type code, e.g. 'PROG/P' (program), 'PROG/I' (include), 'CLAS/OC' (class), 'FUGR/FF' (function module).",
+                  "type": "string"
+                },
+                "uri": {
+                  "description": "Explicit ADT URI. When provided, overrides name-based URI resolution.",
+                  "type": "string"
+                },
+                "parent_name": {
+                  "description": "Parent name — required for FUGR/FF (function group) and FUGR/I (function-group include).",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            },
+            "description": "Objects to activate in one batch. Supply either explicit uri, or name+type (and parent_name for FUGR/FF, FUGR/I)."
+          },
+          "preaudit": {
+            "description": "Request pre-audit before activation. Default true.",
+            "type": "boolean"
+          },
+          "run_timeout_ms": {
+            "description": "Max time to wait for the activation run to finish (runs endpoint only). Default 120000.",
+            "type": "number"
+          }
+        },
+        "required": [
+          "objects"
+        ]
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    "GetTable": {
+      "name": "GetTable",
+      "description": "Retrieve ABAP table definition. Supports reading active or inactive version.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "table_name": {
+            "type": "string",
+            "description": "Table name (e.g., Z_MY_TABLE)."
+          },
+          "version": {
+            "description": "Version to read: \"active\" (default) for deployed version, \"inactive\" for modified but not activated version.",
+            "default": "active",
+            "type": "string",
+            "enum": [
+              "active",
+              "inactive"
+            ]
+          }
+        },
+        "required": [
+          "table_name"
+        ]
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    "GetStructure": {
+      "name": "GetStructure",
+      "description": "Retrieve ABAP structure definition. Supports reading active or inactive version.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "structure_name": {
+            "type": "string",
+            "description": "Structure name (e.g., Z_MY_STRUCTURE)."
+          },
+          "version": {
+            "description": "Version to read: \"active\" (default) for deployed version, \"inactive\" for modified but not activated version.",
+            "default": "active",
+            "type": "string",
+            "enum": [
+              "active",
+              "inactive"
+            ]
+          }
+        },
+        "required": [
+          "structure_name"
+        ]
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    "GetSqlQuery": {
+      "name": "GetSqlQuery",
+      "description": "[read-only] Execute ABAP SQL SELECT queries on database tables and CDS views via SAP ADT Data Preview API. Use for ad-hoc data retrieval, row counts, and filtered queries. Empty cells (including self-closing XML cells) are preserved as null in row order. Complex statements (e.g. 4-way joins, long IN lists) can fail with HTTP 400 — shorten table aliases or replace a long IN list with a BETWEEN range; a sporadic 400 (e.g. under concurrent calls) is retried once automatically. The response also reports returned_row_count (rows actually parsed), truncated (true when the row_number cap was hit or the server total exceeds it), and server_total_rows (server-reported total when the XML provides it).",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "sql_query": {
+            "type": "string",
+            "description": "SQL query to execute"
+          },
+          "row_number": {
+            "description": "[read-only] Maximum number of rows to return",
+            "default": 100,
+            "type": "number"
+          },
+          "acknowledge_risk": {
+            "description": "Set to true ONLY after the user has explicitly authorized row extraction from an 'ask'-tier protected table. The approval is logged to stderr for audit. Has no effect on 'deny'-tier tables.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "sql_query"
+        ]
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    }
+  }
+}
