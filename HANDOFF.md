@@ -51,12 +51,22 @@
 >
 > M1은 오프라인 구간만 끝났다. 남은 게 둘이고, **이 둘이 닫혀야 M2에 착수한다.**
 >
-> **ⓐ 미증거 도구 12종의 C1 녹화 → C2 재생 대조.** 재생 증거는 지금 19종 중
-> **7종**뿐이다. **목표는 12종 전부**이며, 그중 **읽기 계열 6종을 먼저** 하는 것이
-> 편하다 — `GetInclude` `GetFunctionModule` `GetTable` `GetStructure`
-> `GrepObjects` `GetSourceDiff`. write가 없어 되돌릴 게 없고, 대상은 이미
-> `$TMP`에 있는 `ZSAPKIT_M1_DEMO`(PROG)·`ZCL_SAPKIT_M1_DEMO`(CLAS)를 쓰면 된다.
-> **6종에서 멈추면 M1은 안 닫힌다.**
+> **ⓐ 증거 없는 도구 12종.** 지금 증거가 있는 건 19종 중 **7종**이다(`SearchObject`
+> `CheckSyntax` `GetClass` `GetProgram` `UpdateClass` `UpdateProgram`
+> `ActivateObjects`). 남은 12종은 **증거 급이 둘로 갈린다** — 급 구분의 정본은
+> `sapkit-engine/fixtures/README.md`다.
+>
+> - **재생 대상 10종** (C1 녹화 → C2 재생 대조) — 읽기 계열 6종 `GetInclude`
+>   `GetFunctionModule` `GetTable` `GetStructure` `GrepObjects` `GetSourceDiff`를
+>   **먼저** 하는 게 편하다(write가 없어 되돌릴 게 없다). 그다음 `UpdateInclude`
+>   `UpdateSourceByPatch` `GetInactiveObjects` `GetSqlQuery`.
+> - **실기 기록 2종** — `CreateProgram`·`CreateInclude`. **이 둘은 재생하지 않는다.**
+>   생성 시퀀스는 두 번째 실행에서 "이미 있다"로 실패하기 때문이다(신 엔진이 옳아도
+>   실패한다). `CreateProgram`은 이미 기록이 있다(`fixtures/attended-only/`) —
+>   **실제로 남은 건 `CreateInclude` 하나다.**
+>
+> 대상은 이미 `$TMP`에 있는 `ZSAPKIT_M1_DEMO`(PROG)·`ZCL_SAPKIT_M1_DEMO`(CLAS)를
+> 쓰면 된다. **읽기 6종에서 멈추면 M1은 안 닫힌다.**
 >
 > **ⓑ C3 실기 1건 — 아직 한 번도 수행하지 않았다.** 대표 절차(프로그램 생성 →
 > 활성 → 반영 확인)를 구·신 엔진에서 돌려 **같은 결과**가 나오는지 확인한다.
