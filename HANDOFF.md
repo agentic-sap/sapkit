@@ -17,7 +17,7 @@
 > | 축 | 현재 | 목표 |
 > |---|---|---|
 > | **도구** | **19** | **186** |
-> | 재생 증거 | 7 | (전량) |
+> | 재생 증거 | 7 | 17 (`Create*` 2종은 재생 아닌 **실기** 급) |
 > | 전송 | stdio 1 | stdio·HTTP·SSE 3 |
 > | RFC 백엔드 | odata 1 | 5경로(soap·native·gateway·zrfc 남음) |
 > | 인증 | Basic만 | destination·broker 포함 (D15) |
@@ -51,7 +51,7 @@
 >
 > M1은 오프라인 구간만 끝났다. 남은 게 둘이고, **이 둘이 닫혀야 M2에 착수한다.**
 >
-> **ⓐ 증거 없는 도구 12종.** 지금 증거가 있는 건 19종 중 **7종**이다(`SearchObject`
+> **ⓐ 증거 급이 미완인 12종.** 지금 증거가 있는 건 19종 중 **7종**이다(`SearchObject`
 > `CheckSyntax` `GetClass` `GetProgram` `UpdateClass` `UpdateProgram`
 > `ActivateObjects`). 남은 12종은 **증거 급이 둘로 갈린다** — 급 구분의 정본은
 > `sapkit-engine/fixtures/README.md`다.
@@ -67,6 +67,18 @@
 >
 > 대상은 이미 `$TMP`에 있는 `ZSAPKIT_M1_DEMO`(PROG)·`ZCL_SAPKIT_M1_DEMO`(CLAS)를
 > 쓰면 된다. **읽기 6종에서 멈추면 M1은 안 닫힌다.**
+>
+> **순서 하나만 주의**: `UpdateInclude`는 대상 인클루드가 **미리 있어야** 녹화가
+> 안정된다(함정 ⑶). `CreateInclude` 실기를 **먼저** 하고 그 결과물을 `UpdateInclude`
+> 녹화 대상으로 쓰면 순서가 맞는다.
+>
+> **ⓐ에 딸린 기계 쪽 잔여 하나** — 실기 기록을 남겨도 **커버리지 표가 그걸 못 받는다.**
+> `harness/replay/coverage.ts`의 `buildCoverage`는 `attended`·`contractTests` 입력을
+> 이미 받게 돼 있는데 `harness/replay-attended.mjs`가 `tools`·`replays`만 넘긴다
+> (215행). 그래서 `CreateProgram`·`CreateInclude`는 실기 기록이 있어도 표의
+> "증거 없음"에 영원히 남는다. **전 M 공통 완료 요건 5(「증거 급이 커버리지 표에
+> 기록된다」)가 이 배선 없이는 충족되지 않는다** — 몇 줄짜리 배선이고, M1을 닫으려면
+> 이것도 해야 한다. (이번 문서 사이클은 코드 무접촉이라 손대지 않았다.)
 >
 > **ⓑ C3 실기 1건 — 아직 한 번도 수행하지 않았다.** 대표 절차(프로그램 생성 →
 > 활성 → 반영 확인)를 구·신 엔진에서 돌려 **같은 결과**가 나오는지 확인한다.
@@ -94,7 +106,7 @@
 >
 > ---
 >
-> **▶▶ 사다리 ⑴ 착수 — `sapkit-engine` M1 오프라인 구간 완료 · attended 3단계 미수행 · D-079 (2026-08-10)**
+> **▶▶ 사다리 ⑴ 착수 — `sapkit-engine` M1 오프라인 구간 완료 · attended는 C1·C2 부분 수행(증거 7/19)·C3 미수행 · D-079 (2026-08-10 착수, 현황은 위 재개점)**
 >
 > 청사진 사다리 ⑴(엔진 자작)의 **1차 마일스톤 M1**. 새 최상위 경로
 > **`sapkit-engine/`**(0.1.0 · private)에 자체 저작 엔진을 병행 제작했다. **구 부품
