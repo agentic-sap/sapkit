@@ -44,8 +44,10 @@ node harness/replay-attended.mjs --env-path=<sap.env>
   (`GetClass` `GetProgram` `GetInclude` `GetFunctionModule` `GetTable`
   `GetStructure` `GrepObjects` `GetSourceDiff` — 마스킹 검사기는 제3자
   소스코드를 보지 않으므로 표준 소스가 공개 레포에 박히는 것을 여기서 막는다)
-  와 SAP을 바꾸는 7종(`Create*` `Update*` `ActivateObjects` — P3는 연습 패키지
-  안에서만이고, 사후에 걸러 봐야 write는 이미 일어난 뒤다).
+  와 SAP을 바꾸는 7종(`Create*` `Update*` `ActivateObjects` — P3는 DEV 연습
+  자리(전용 패키지 또는 `$TMP`) 안에서만이고, 사후에 걸러 봐야 write는 이미
+  일어난 뒤다). **연습 자리 축은 러너가 검사하지 않는다** — 강제되는 것은
+  Z·Y 네임스페이스뿐이고, 패키지는 시나리오 작성자의 책임이다.
   목록 밖 도구는 인자·응답의 ABAP 원본 표지로 **사후** 차단한다.
   (`--allow-standard-source`로 풀 수 있으나 그 픽스처는 커밋하지 말 것.)
 - **인증 실패 중단** — 오류 응답도 대조 대상이라 러너는 다음 단계를 계속

@@ -8,6 +8,77 @@
 > **▶▶ 재개점 — 여기부터 읽는다 (최상단 정본)**
 > ═══════════════════════════════════════════════════════════════════
 >
+> ## 📊 사다리 ⑴ 진척 — **이 표를 보고할 때 함께 말한다**
+>
+> 세션 요약이 "다음 한 걸음"만 말하면 **다 끝난 것처럼 읽힌다.** 2026-08-12에
+> 실제로 그 오해가 났다("난 된 줄 알았지"). 진척을 보고할 때는 아래 비율을
+> 반드시 함께 낸다.
+>
+> | 축 | 현재 | 목표 |
+> |---|---|---|
+> | **도구** | **19** | **186** |
+> | 재생 증거 | 7 | (전량) |
+> | 전송 | stdio 1 | stdio·HTTP·SSE 3 |
+> | RFC 백엔드 | odata 1 | 5경로(soap·native·gateway·zrfc 남음) |
+> | 인증 | Basic만 | destination·broker 포함 (D15) |
+>
+> **다만 이 비율은 계약 진도이지 노동 진도가 아니다.** M1의 19종은 뼈대를 전부
+> 포함한다(ADT 접속·프로파일/안전·MCP 코어·RFC 분배·하네스). 남은 167종은
+> 대부분 그 위의 핸들러 저작이고 위험도가 낮다. 진짜 남은 뼈대는 위 표의
+> 전송 2종·RFC 4경로·인증 확장 셋뿐이다. **"어려운 건 끝났고 양이 남았다"**가
+> 정확한 표현이다.
+>
+> ## 🔻 내일 첫 작업 (2026-08-12 세션 종료 시점)
+>
+> ### ① 먼저 — **M2 이후 마일스톤 설계 (새 D-항목 필요)**
+>
+> **지금 M-번호는 `M1`(병행 제작)만 정의돼 있다.** 그런데 이미 두 곳이 없는
+> 번호를 참조 중이라 일정이 허공에 걸려 있다:
+> - `DIVERGENCES.md` **D8** — "해소 마일스톤 = M2 이후, 늦어도 교체 판 이전"
+> - `DIVERGENCES.md` **D15** — "해소 마일스톤 = 인증 확장(Basic 외) 마일스톤"
+>
+> 정할 것 넷:
+> 1. **M2~Mn 경계** — 무엇을 묶어 한 판으로 볼 것인가(도구 묶음 / 뼈대 축 /
+>    실사용 순위 중 무엇을 축으로)
+> 2. **각 M의 완료 판정** — M1처럼 "무엇이 초록이면 끝인가"
+> 3. **D8·D15의 참조를 실제 번호에 건다**
+> 4. **꼬리 49종 재평가 체크포인트**를 어느 M에 둘 것인가
+>    (`BLUEPRINT.md` ⑴이 "최종 교체 직전 1회"로만 예약해 뒀다)
+>
+> 근거 문서: `docs/BLUEPRINT.md` §1.3(고지 원장)·사다리 ⑴(검증 기준 5개)·
+> §3.2(금지 — **사다리 착수를 청사진만 근거로 진행하지 말 것**) · D-079.
+>
+> ### ② 그다음 — 남은 12종 C1 시나리오 확장 (읽기 계열 6종부터)
+>
+> `GetInclude` `GetFunctionModule` `GetTable` `GetStructure` `GrepObjects`
+> `GetSourceDiff`. write가 없어 되돌릴 게 없고, 대상은 이미 `$TMP`에 있는
+> `ZSAPKIT_M1_DEMO`(PROG)·`ZCL_SAPKIT_M1_DEMO`(CLAS)를 쓰면 된다.
+> **이 작업은 ①의 결론과 무관하게 어차피 해야 하므로 낭비가 없다** — ①이
+> 길어지면 여기부터 해도 된다.
+>
+> ```powershell
+> cd sapkit-engine
+> node harness/record-attended.mjs --scenario=<id> --dry-run          # SAP 불필요
+> node harness/record-attended.mjs --scenario=<id> --env-path="$env:USERPROFILE\.sc4sap\profiles\KR-DEV\sap.env"
+> node harness/replay-attended.mjs --env-path="$env:USERPROFILE\.sc4sap\profiles\KR-DEV\sap.env"
+> ```
+>
+> - **가지**: `dryforge/tmp-practice-scenarios` (push 완료) · **PR #2 열림 ·
+>   미머지 · CI 5/5 green 확인됨** → 머지 여부만 정하면 된다.
+> - **읽기 전에 볼 것 하나**: `sapkit-engine/harness/scenarios/README.md` 함정 ⑶
+>   (「안정 상태에서 녹화하라」 절). 모르고 녹화하면 재생이 신 엔진 잘못처럼 실패한다.
+> - **P2는 별도**: `GetSqlQuery`는 데모 테이블 한정 + 건별 사람 승인 + 배치 금지.
+> - `UpdateInclude`·`CreateInclude`는 `ZSAPKIT_M1_DEMO`에 붙이면 된다.
+>
+> ### 고지 은퇴는 훨씬 멀다 (혼동 방지)
+>
+> `engine/LICENSE` 은퇴 = 사다리 ⑴의 **마지막 칸**(①병행제작 → ②검증통과 →
+> ③교체 → ④구부품·고지 은퇴). 고지 3건 전부 0건이 되려면 ⑵(vsp)·⑶(지식
+> 재저작 — 청사진이 **"가장 김"**이라 적었다)·⑷까지 가야 한다.
+> **검증 없는 고지 은퇴는 §3.2가 금지한다.**
+>
+> ---
+>
 > **▶▶ 사다리 ⑴ 착수 — `sapkit-engine` M1 오프라인 구간 완료 · attended 3단계 미수행 · D-079 (2026-08-10)**
 >
 > 청사진 사다리 ⑴(엔진 자작)의 **1차 마일스톤 M1**. 새 최상위 경로
@@ -96,9 +167,54 @@
 >   `npm ci --omit=optional` 계열 잡이 따로 필요하다 — **교체(swap) 전에 판정할 것.**
 >
 > **▶▶ 남은 것 / 다음 착수 (M1은 아직 닫히지 않았다)**
-> - **▶ 다음 세션 첫 작업: 전용 DEV 연습 패키지를 정한다** — C1 본편이 여기서 막혀
->   있다. 패키지가 정해져야 write 계열 15종 시나리오를 쓸 수 있고, 아래 ⓓ(러너의
->   `package_name` 미검사)도 그때 함께 넣는다. **사용자 결정이 필요한 항목이다.**
+> - **✅ 연습 자리가 풀렸다 — `$TMP` 채택 (2026-08-12)**. 전용 DEV 패키지를 기다리지
+>   않는다. 구 번들 선언 자신이 명시한 길이고(`CreateProgram.package_name` = "`$TMP`
+>   for local objects"), `transport_request` 없이 P3 write 표면이 열려 **이송(P4)이
+>   통째로 일어나지 않는다.** 규칙 문구 4곳을 맞췄고 첫 write 시나리오 2종을 썼다
+>   (dry-run 통과 · **녹화는 아직**). 러너가 `package_name`을 검사하지 않는다는
+>   사실(리뷰 후속 ⓓ)은 이제 문서에 명시돼 있다 — 강제되는 것은 Z·Y 네임스페이스뿐.
+> - **✅ C1 첫 write 녹화 + C2 재생 pass (2026-08-12 · KR-DEV)** — 증거 있는 도구
+>   **2/19 → 5/19**(`SearchObject` `CheckSyntax` `UpdateProgram` `ActivateObjects`
+>   `GetProgram`). `$TMP`가 실물로 확인됐다 — `CreateProgram`이
+>   `transport_request: null`로 성공했고 되읽기가 존재를 확인했다. 이송 미발생.
+>   재생은 4단계 결함 0 · 이연 0이고, 되읽은 소스가 보낸 것과 일치 · 문법 오류 0 ·
+>   활성화 `failed_count: 0`이라 기계 확인도 닫혔다.
+> - **⚠ `Create*`는 재생으로 증거를 못 얻는다 — `attended` 급으로 닫는다.**
+>   create 픽스처를 기본 재생에 뒀더니 그 실패가 **`GetProgram`의 증거까지
+>   앗아갔다**(다른 시퀀스에서 통과한 도구인데 "증거 없음"으로 떨어졌다). 재생 불가
+>   픽스처 한 건이 커버리지 표 전체의 판독을 망친다. 그래서
+>   `fixtures/attended-only/`로 분리했다 — 러너가 `readdirSync` 비재귀라 하위
+>   폴더를 안 줍는다(코드 변경 없음). M1에 `Delete*`가 없는 한 구조적 한계다.
+> - **✅ 클래스 왕복도 닫혔다 — 증거 7/19** (`SearchObject` `CheckSyntax`
+>   `UpdateProgram` `UpdateClass` `ActivateObjects` `GetProgram` `GetClass`).
+>   연습 클래스 `ZCL_SAPKIT_M1_DEMO`를 `$TMP`에 새로 만들어 썼다 — 사용자가
+>   제안한 기존 `YCL_FI_BKPF_ZZ_TO_ACDOCA`는 **쓰지 않았다**: `UpdateClass`가
+>   소스를 통째로 덮어쓰고, 픽스처는 **PUBLIC 레포**에 커밋되며, 마스킹 검사기는
+>   고객 소스코드를 보지 않는다(Y라 네임스페이스 검사도 통과). 실무 FI 로직이
+>   공개될 뻔했다. **이 판단 기준을 기억할 것 — 연습 대상은 반드시 새로 만든다.**
+> - **⚠ 함정 ⑶의 진짜 기준은 "write가 있느냐"가 아니라 "시퀀스가 자기 응답을
+>   바꾸는 상태를 남기느냐"다** (2026-08-12 실측). 클래스 재생이 처음에 fail했는데
+>   원인이 신 엔진이 아니었다 — 1회차 `activated=true`, 2회차 `activated=false`.
+>   같은 소스를 다시 쓰면 바뀐 게 없어 활성화 대상이 없다. **구 엔진을 같은
+>   상태에서 재녹화하니 구 엔진도 `false`**였다. 판별 절차(`--out` 레포 밖 +
+>   `--force`로 구 엔진 재녹화)와 처방("안정 상태에서 녹화 · 연속 2회 같은 판정
+>   확인 전엔 픽스처를 믿지 마라")은 `scenarios/README.md`에 있다. 프로그램은
+>   1·2회차가 같아 이 문제가 없었다 — **객체 종류마다 다르다.**
+> - **▶ 다음 세션 첫 작업: 남은 12종 C1 시나리오 확장** — 읽기 계열
+>   (`GetInclude` `GetFunctionModule` `GetTable` `GetStructure` `GrepObjects`
+>   `GetSourceDiff`)이 먼저다. 대상 Z 객체만 있으면 되고 write가 없어 되돌릴
+>   것도 없다. `UpdateInclude`·`CreateInclude`는 `ZSAPKIT_M1_DEMO`에 붙이면 되고,
+>   `GetSqlQuery`는 P2라 데모 테이블 한정 + 건별 승인이다.
+>   실행 방법은 이번에 쓴 그대로:
+>   `node harness/record-attended.mjs --scenario=<id> --env-path=<...>/KR-DEV/sap.env`
+>   (기본 `--exposition=readonly,high`가 이미 186종 전체 표면이라 write가 열린다 —
+>   이름과 달리 readonly가 아니다).
+> - **⚠ 재생 가능성 축이 새로 섰다 (함정 ⑶)** — C2 재생은 신 엔진이 같은 질문을
+>   SAP에 **다시 던지는** 일이라, 시나리오가 바꾼 상태가 다음 재생의 입력이 된다.
+>   `CreateProgram`을 담은 시퀀스는 두 번째 실행에서 "이미 있다"로 실패한다 —
+>   **신 엔진이 옳아도 실패한다.** 그래서 create와 update를 갈라 뒀다.
+>   create 쪽은 재생 전에 **사람이 SE38·ADT로 지워야 한다**(M1 19종에 `Delete*`가
+>   없다). 정본은 `harness/scenarios/README.md` 함정 ⑶.
 > - **C1 본편 미수행** — 배관은 뚫렸고 읽기 2종만 증거가 있다. **증거 없는 도구 17종**
 >   이 남았고, 대상이 고객 객체여야 하는 15종(소스를 돌려주는 8 + SAP을 바꾸는 7)은 **Z·Y만** 가리킬 수 있으므로 write 계열과 함께
 >   **전용 DEV 연습 패키지**가 정해져야 시나리오를 쓸 수 있다. 실데이터 2종은 데모

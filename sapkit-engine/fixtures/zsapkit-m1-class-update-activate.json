@@ -1,0 +1,97 @@
+{
+  "formatVersion": 1,
+  "sequenceId": "zsapkit-m1-class-update-activate",
+  "description": "[재실행 자유 · P3] $TMP의 ZCL_SAPKIT_M1_DEMO에 클래스 전문을 써 넣고 → 문법검사 → 활성화 → 되읽기. 전제: 그 클래스가 존재해야 한다(M1 19종에 CreateClass가 없어 셋업은 구 번들의 CreateClass로 따로 했고, 그 픽스처는 증거가 아니므로 레포에 두지 않았다). 같은 소스를 다시 써도 결과가 같아 재생을 몇 번이든 돌릴 수 있다. $TMP를 쓰므로 transport_request가 없다.",
+  "engine": {
+    "name": "mcp-abap-adt",
+    "version": "1.0.0",
+    "protocolVersion": "2024-11-05",
+    "exposition": "readonly,high"
+  },
+  "recordedAt": "2026-08-12T08:45:18.017Z",
+  "steps": [
+    {
+      "index": 0,
+      "tool": "UpdateClass",
+      "args": {
+        "class_name": "ZCL_SAPKIT_M1_DEMO",
+        "source_code": "CLASS zcl_sapkit_m1_demo DEFINITION\n  PUBLIC\n  FINAL\n  CREATE PUBLIC.\n\n  PUBLIC SECTION.\n    METHODS probe\n      RETURNING VALUE(rv_text) TYPE string.\nPROTECTED SECTION.\n  PRIVATE SECTION.\nENDCLASS.\n\n\nCLASS zcl_sapkit_m1_demo IMPLEMENTATION.\n  METHOD probe.\n    rv_text = 'sapkit engine M1 equivalence probe'.\n  ENDMETHOD.\nENDCLASS.\n",
+        "activate": false
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"class_name\": \"ZCL_SAPKIT_M1_DEMO\",\n  \"activated\": false,\n  \"message\": \"Class ZCL_SAPKIT_M1_DEMO updated successfully\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "activate=false로 둔다 — 활성화를 합치면 ActivateObjects가 이 시퀀스에서 증거를 얻지 못한다. 백로그 1번(UpdateClass가 활성화 실패를 HTTP 200 + 본문 chkl:msg type=E로 받고도 성공으로 보고)이 걸린 도구라, 활성화를 분리해 두면 그 자리가 ActivateObjects 쪽 응답으로 드러난다."
+    },
+    {
+      "index": 1,
+      "tool": "CheckSyntax",
+      "args": {
+        "object_type": "class",
+        "object_name": "ZCL_SAPKIT_M1_DEMO"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"object_type\": \"class\",\n  \"object_name\": \"ZCL_SAPKIT_M1_DEMO\",\n  \"errors\": [],\n  \"warnings\": []\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "source_code 인자를 주지 않는다 — CheckSyntax는 네임스페이스 검사 목록 밖이라 인자에 ABAP 원본이 실리면 대상이 Z여도 사후 백스톱에 걸린다(리뷰 후속 ⓑ)."
+    },
+    {
+      "index": 2,
+      "tool": "ActivateObjects",
+      "args": {
+        "objects": [
+          {
+            "name": "ZCL_SAPKIT_M1_DEMO",
+            "type": "CLAS/OC"
+          }
+        ]
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"endpoint\": \"runs\",\n  \"run_id\": \"<<SERVER_ID_1>>\",\n  \"activated\": false,\n  \"checked\": false,\n  \"generated\": true,\n  \"objects_count\": 1,\n  \"failed_count\": 0,\n  \"objects\": [\n    {\n      \"name\": \"ZCL_SAPKIT_M1_DEMO\",\n      \"type\": \"CLAS/OC\",\n      \"uri\": \"/sap/bc/adt/oo/classes/zcl_sapkit_m1_demo\",\n      \"status\": \"activated\",\n      \"errors\": [],\n      \"warnings\": []\n    }\n  ],\n  \"errors\": [],\n  \"warnings\": [],\n  \"message\": \"Activated 1 object(s) via runs endpoint\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "uri 대신 name+type. uri는 스키마상 이름 해석을 덮어 러너의 네임스페이스 검사를 우회한다(리뷰 후속 ⓐ)."
+    },
+    {
+      "index": 3,
+      "tool": "GetClass",
+      "args": {
+        "class_name": "ZCL_SAPKIT_M1_DEMO"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"class_name\": \"ZCL_SAPKIT_M1_DEMO\",\n  \"version\": \"active\",\n  \"source_code\": \"CLASS zcl_sapkit_m1_demo DEFINITION\\r\\n  PUBLIC\\r\\n  FINAL\\r\\n  CREATE PUBLIC.\\r\\n\\r\\n  PUBLIC SECTION.\\r\\n    METHODS probe\\r\\n      RETURNING VALUE(rv_text) TYPE string.\\r\\nPROTECTED SECTION.\\r\\n  PRIVATE SECTION.\\r\\nENDCLASS.\\r\\n\\r\\n\\r\\nCLASS zcl_sapkit_m1_demo IMPLEMENTATION.\\r\\n  METHOD probe.\\r\\n    rv_text = 'sapkit engine M1 equivalence probe'.\\r\\n  ENDMETHOD.\\r\\nENDCLASS.\\r\\n\",\n  \"status\": 200,\n  \"status_text\": \"OK\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "활성 판을 되읽어 보낸 소스와 대조할 수 있게 한다 — 기계 확인의 절반(verify-applied.md). 대상이 이 작업이 만든 연습 클래스라 공개 레포에 실려도 되는 소스다."
+    }
+  ],
+  "placeholders": [
+    {
+      "placeholder": "<<SERVER_ID_1>>",
+      "kind": "server-id",
+      "occurrences": 1
+    }
+  ]
+}
