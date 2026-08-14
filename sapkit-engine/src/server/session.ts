@@ -67,6 +67,19 @@ export interface ProfileReload {
   /** 버릴 접속이 실제로 있었는가. */
   readonly connectionDropped: boolean;
   /**
+   * 재적재된 상태가 **이미 발행된 도구 목록과 어긋나는가** — 배포 축이 기동
+   * 시점과 달라졌다는 뜻이다.
+   *
+   * 이 프로세스로는 고칠 수 없다. 등록은 서버가 전송에 붙기 전에 끝나므로
+   * `tools/list`는 기동 시점의 축으로 지어진 목록 그대로다. tier·blocklist·접속은
+   * 이미 새 값으로 발효돼 있으므로, 여기가 참이라고 해서 안전 상태가 어긋나
+   * 있는 것은 아니다 — 어긋나 있는 것은 **목록**뿐이다. `ReloadProfile`이 이
+   * 값을 `restartRequired`로 실어 보고한다.
+   */
+  readonly exposureStale: boolean;
+  /** `tools/list`가 지어진 배포 축. {@link exposureStale}의 짝. */
+  readonly bootSystemType: DeploymentType;
+  /**
    * 해석 자체가 예외로 끝나 inspection-only로 **봉인**됐다면 그 사유. 정상
    * 경로에서는 null이다. 프로파일을 못 찾은 것(진단으로 끝나는 정상 경로)과
    * 해석기가 던진 것(비정상)을 구분하려고 따로 둔다.
@@ -178,11 +191,14 @@ export class ProfileSession {
       this.state = sealedStartup(this.state, sealed);
     }
 
+    const after = snapshot(this.state);
     return {
       startup: this.state,
       before,
-      after: snapshot(this.state),
+      after,
       connectionDropped,
+      exposureStale: after.systemType !== this.bootSystemType,
+      bootSystemType: this.bootSystemType,
       sealed,
     };
   }

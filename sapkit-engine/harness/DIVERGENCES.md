@@ -725,6 +725,85 @@
   되살리고 이 항목을 닫는다. 그때 위의 "폴백이 언제나 나간다"는 실측도 함께
   옮겨 적어야 한다 — 되살린다고 해서 설명·패키지가 채워지지는 않는다.
 
+### D38 — `ReloadProfile`이 실패해도 **옛 프로파일로 되돌아가지 않는다**
+
+- **분류**: 강화
+- **구 동작(실측)**: `activateProfile()`은 `loadActiveProfile()` → `applyProfile()`
+  순서이고, **던지는 자리가 `applyProfile` 앞**이다
+  (`engine/src/lib/profile.ts:301-305`). 포인터가 없는 프로파일을 가리키면
+  `loadActiveProfile`이 `Active profile "x" points to a missing env file: …`로
+  던지고(`:213-217`), `resolveHomeDir`는 `PROFILE_NOT_FOUND`/`ENV_INVALID`
+  `ProfilePathError`로 던진다(`:160-181`). 그 예외는 핸들러의 `catch`가
+  `return_error`로 접고(`handleReloadProfile.ts:78-81`), **모듈 캐시 `activeTier`도
+  `process.env.SAP_*`도 접속 캐시도 그대로 남는다** — 즉 재적재에 실패한 서버는
+  옛 프로파일의 권한과 옛 접속을 계속 쓴다.
+- **신 동작**: 실패는 상태다. `ProfileSession.reload()`가 **접속을 먼저 버리고**
+  다시 해석하며, 프로파일 계층이 못 찾으면 그 결과가 곧 새 상태가 된다 —
+  무접속 · `tier=UNKNOWN` · `sourcePath=null`, 이유는 `diagnostics`로. 해석기가
+  예외로 끝나면 `sealedStartup`이 거기에 **잠긴 blocklist**(`readBlocklistConfig({})`)
+  까지 얹어 봉인하고, 도구는 그 사실을 오류로 알린다.
+- **근거**: 이 도구는 기동 뒤 tier를 바꿀 수 있는 유일한 통로다. 운영자가
+  프로파일을 바꾸려다 실패했을 때 **옛 권한이 조용히 유지되는 쪽**과 **아무것도
+  못 하는 쪽** 중 안전 바닥선은 후자다. 앞쪽은 "PRD로 옮겼다고 믿는 사람이
+  DEV에 쓰는" 자리이자 D16·D17이 막아 둔 사고(운영자가 고르지 않은 시스템에
+  붙는 것)의 되돌이다.
+- **대체 기대 시험**: `src/server/__tests__/session.test.ts`의
+  「재적재 실패는 옛 상태로 조용히 되돌아가지 않는다」 2건 ·
+  `src/tools/runtime/__tests__/reloadProfile.test.ts`의
+  「가리킨 프로파일이 없으면 무접속·UNKNOWN을 **이유와 함께** 보고한다」.
+- **⚠️ 재생 대조에 주는 경고**: 실패 갈래의 응답 모양이 구와 다르다(구는 오류,
+  신은 `ok:true` + `tier:UNKNOWN`). 기계용 장부(`harness/replay/divergences.ts`)에
+  옮기는 일은 **그 파일을 소유한 작업의 몫**이다 — 이 판의 T32b 작업은 그 파일을
+  건드리지 않았다(D34가 같은 이유로 남긴 선례).
+
+### D39 — `restartRequired`가 가리키는 제약이 바뀌었다 (구: 접속을 못 되살림 → 신: 도구 목록이 낡음)
+
+- **분류**: 수리
+- **구 동작(실측)**: 무접속 기동에서 런처가 mock 브로커를 만들고 `global`에
+  `__mcpAbapAdtInspectionOnly = true`를 찍는다
+  (`engine/src/server/launcher.ts:380-403`). 그 브로커를 `StdioServer`가 프로세스
+  수명 내내 붙잡으므로 **`ReloadProfile`은 접속을 되살릴 수 없고**, 그래서
+  `restartRequired: true` + 재시동 안내를 낸다
+  (`handleReloadProfile.ts:42,66-72`). 구 시험이 그 정직함을 못박고 있다
+  (`engine/src/__tests__/handlers/system/handleReloadProfile.test.ts`).
+- **신 동작**: 그 제약이 없다. 접속은 `ProfileSession.getConnection()`이 게으르게
+  만들고 재적재가 캐시를 버리므로, 무접속으로 뜬 서버도 재적재 한 번으로 접속을
+  얻는다. 대신 이 프로세스가 **정말로 못 고치는 것 하나**를 그 자리에 보고한다 —
+  `tools/list`는 기동 시점의 배포 축(`SAP_SYSTEM_TYPE`)으로 지어져 전송에 붙기
+  전에 확정되므로, 재적재가 다른 축의 프로파일을 물어 오면 목록이 낡는다.
+  그때 `restartRequired: true` + `note`가 나간다. tier·blocklist·접속은 이미
+  새 값으로 발효돼 있고, 낡은 것은 목록뿐이라는 것도 `note`가 밝힌다.
+- **근거**: 구의 조건을 글자대로 옮기면 **없는 제약을 보고**해 불필요한 재시동을
+  시킨다. 반대로 이 필드를 항상 `false`로 두면 진짜 재시동이 필요한 유일한
+  경우가 침묵한다. 발행 `description`은 채록본 글자 그대로 두었으므로(하드 게이트 3)
+  그 문장의 조건절과 실제 발동 조건이 어긋난다 — 그것이 이 항목을 등재하는
+  이유다.
+- **대체 기대 시험**: `src/tools/runtime/__tests__/reloadProfile.test.ts`의
+  「배포 축이 바뀌면 restartRequired=true와 그 이유를 싣는다」 ·
+  `src/server/__tests__/session.test.ts`의
+  「배포 축이 바뀌어도 `tools/list`는 기동 시점 그대로다」.
+- **해소 자리**: 발행 `description`을 손댈 수 있는 판(= 채록본 자체를 다시 뜨는
+  판). 그전에는 문장이 정본이고 이 항목이 그 각주다.
+
+### D40 — `ReloadProfile` 응답에 `diagnostics`를 싣는다
+
+- **분류**: 강화
+- **구 동작(실측)**: 구는 "왜 이 상태인가"를 **예외로만** 알렸다 —
+  `loadActiveProfile`이 던진 문구가 `return_error`로 접혀 나가고, 성공 응답에는
+  이유를 담을 자리가 없다(`handleReloadProfile.ts:54-77`의 키 목록).
+- **신 동작**: 성공 응답에 `diagnostics: string[]`(= `profile.diagnostics`)을
+  더한다. 나머지 키는 구 그대로다.
+- **근거**: 신 엔진의 프로파일 계층은 **던지지 않는다** — 못 찾음·읽기 실패·
+  자격증명 부족·tier 미해석이 전부 `connection: null` + 진단 문구로 끝난다
+  (`src/profile/resolve.ts` 머리주석). 그 문구를 싣지 않으면 재적재가 조용히
+  아무것도 아닌 상태로 끝나는 것처럼 보이고, D38이 일부러 만든 "실패는
+  상태다"라는 계약이 응답에서 사라진다.
+- **대체 기대 시험**: `src/tools/runtime/__tests__/reloadProfile.test.ts`의
+  「구가 싣던 키를 그대로 싣는다」(정상 경로에서 빈 배열) ·
+  「가리킨 프로파일이 없으면 무접속·UNKNOWN을 **이유와 함께** 보고한다」.
+- **비고**: 키가 하나 **느는** 방향이므로 구의 키를 읽던 소비자는 그대로 돈다.
+  기계용 장부로 옮기는 일은 D38과 같은 이유로 그 파일을 소유한 작업의 몫이다.
+
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 
 리뷰에서 차이로 잡혔지만 **유지할 이유가 없어** 구 동작으로 되돌린 것들.
