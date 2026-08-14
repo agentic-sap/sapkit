@@ -5,8 +5,8 @@
  * `./entry`이고, 여기는 그 자리가 부르는 순수한 절차다. 전송을 주입할 수 있게
  * 열어 둔 것은 시험이 자식 프로세스를 띄우지 않기 위해서다.
  *
- * 전송은 둘이다. **기본은 stdio**이고, 네트워크 표면(HTTP)은
- * `--transport=http`(또는 `MCP_TRANSPORT=http`)로 **명시할 때만** 열린다 —
+ * 전송은 셋이다. **기본은 stdio**이고, 네트워크 표면(HTTP·SSE)은
+ * `--transport=http|sse`(또는 `MCP_TRANSPORT`)로 **명시할 때만** 열린다 —
  * 판정은 전부 `./transport/config`에 있다.
  *
  * 전송이 무엇이든 **노출 제어와 안전 게이트는 코어 안에 그대로 있다.** 이 파일은
@@ -22,7 +22,7 @@ import { type ServerCore, createServerCore } from './core';
 import { resolveStartup } from './startup';
 import type { Startup } from './startup';
 import type { SapTool, ToolLogger } from './toolDefinition';
-import { openHttpTransport, resolveTransport } from './transport';
+import { openHttpTransport, openSseTransport, resolveTransport } from './transport';
 
 export interface BootstrapOptions {
   readonly argv?: readonly string[];
@@ -42,7 +42,10 @@ export interface BootstrapOptions {
 
 export interface StartedServer {
   readonly core: ServerCore;
-  /** stdio·주입 전송일 때의 그 전송. HTTP는 요청마다 새로 만들므로 없다. */
+  /**
+   * stdio·주입 전송일 때의 그 전송. HTTP는 요청마다, SSE는 스트림마다 새로
+   * 만들므로 없다.
+   */
   readonly transport?: Transport;
   /** 네트워크 전송이 실제로 붙은 주소. stdio면 없다. */
   readonly endpoint?: string;
@@ -142,6 +145,24 @@ export async function startFromProcess(
 
   if (resolution.config.kind === 'http') {
     const binding = await openHttpTransport({
+      config: resolution.config,
+      createCore: () => makeCore(true),
+      stderr,
+    });
+    return {
+      core,
+      endpoint: binding.endpoint,
+      async close(): Promise<void> {
+        await binding.close();
+        await core.server.close();
+      },
+    };
+  }
+
+  if (resolution.config.kind === 'sse') {
+    // HTTP와 같은 모양이다. 다른 것은 코어를 뽑는 단위뿐 — 저쪽은 요청마다,
+    // 이쪽은 스트림(세션)마다다.
+    const binding = await openSseTransport({
       config: resolution.config,
       createCore: () => makeCore(true),
       stderr,

@@ -507,6 +507,53 @@
 - **대체 기대 시험**: 없음(축소). 접속 없는 HTTP 기동이 inspection-only로 정상
   동작하는지는 기동 스모크(`gates/http-smoke.mjs`)가 본다.
 
+### D31 — SSE 전송의 바인딩 잠금이 **HTTP와 같은 자리**에서 판정된다 (구: SSE 짝 노브가 죽어 있었다)
+- **분류**: 수리 + 강화
+- **구 동작(실측)**: 구는 SSE 짝 노브를 **파싱만 한다.**
+  `--sse-port`(문서상 기본 3001)·`--sse-host`·`--sse-allowed-hosts`·
+  `--sse-allowed-origins`·`--sse-enable-dns-protection`이
+  `ArgumentsParser.ts:240-257`에서 값까지 담기지만, 설정을 조립하는 자리는
+  `--host`/`--port`와 **HTTP 짝**만 읽고(`ServerConfigManager.ts:115-116`),
+  런처가 `SseServer`에 넘기는 것은 `host`·`port`·`ssePath`·`postPath`·
+  `defaultDestination`·`logger`뿐이다(`launcher.ts:420-433`). 그래서
+  ⓐ SSE는 실제로 `--port`/`--http-port`/`MCP_HTTP_PORT`(기본 3000)에 붙었고
+  문서가 말한 3001은 한 번도 쓰이지 않았으며, ⓑ SSE의 DNS 리바인딩 보호·허용
+  목록은 **항상 꺼진 채**였다(D26이 HTTP에서 잡은 것과 같은 결함이 SSE에도 있다).
+  살아 있던 SSE 전용 노브는 경로 둘(`--sse-path` 기본 `/sse` · `--post-path`
+  기본 `/messages`)뿐이다.
+- **신 동작**: 바인딩 잠금 셋(비루프백 명시 옵트인 D27 · DNS 리바인딩 보호 기본
+  켬 D26 · 포트 값 검증)을 **HTTP와 같은 코드 자리**에서 판정한다
+  (`src/server/transport/config.ts`). 죽어 있던 SSE 짝 이름은 되살리되
+  **HTTP 이름 앞에 두는 별칭**으로 둔다 — 안 주면 구의 실효값(호스트 127.0.0.1 ·
+  포트 3000)이 그대로 나오고, 주면 그때만 이긴다. 경로 둘은 구 이름·구 기본값
+  그대로다. 기동 진단은 HTTP와 같은 어휘로 `client-auth=none`을 적는다.
+- **근거**: 전송마다 잠금이 갈라지면 **한쪽이 다른 쪽의 뒷문**이 된다 — HTTP에서
+  비루프백 바인딩을 막아 놓고 `--transport=sse`로 같은 표면을 무조건 열 수 있으면
+  D27은 아무것도 막지 못한다. 자작이 안전 바닥선을 낮추는 근거가 되지 않는다
+  (spec §2.3). 문서화된 노브가 아무 일도 하지 않는 것은 거짓 성공 계열이므로
+  D26·D28과 같은 분류로 고친다.
+- **대체 기대 시험**: 서버 전송 계층(`src/server/__tests__/transport.test.ts`) —
+  `--transport=sse`의 기본값이 구 실효값과 같은지 / 비루프백이 옵트인 없이
+  거부되는지(인자·환경변수 양쪽) / DNS 보호 기본값이 켬인지 / 쓸 수 없는 포트가
+  거부되는지 / SSE 이름이 HTTP 이름보다 앞서되 없으면 HTTP 이름이 그대로 사는지.
+  기동 스모크는 `gates/sse-smoke.mjs`.
+- **함께 등재하는 부수 차이 3건**:
+  ① **DNS 리바인딩 보호를 모든 경로에 건다.** SDK의 검사는 `handlePostMessage`
+    안에서만 돌고 스트림을 여는 `start()`는 검사하지 않는다
+    (`@modelcontextprotocol/sdk/server/sse.js`). 그대로 두면 보호가 걸리지 않은
+    창이 둘(스트림 GET · health) 남으므로 전송 모듈이 같은 판정을 한 번 더 한다.
+    Origin은 SDK와 같은 규칙(헤더가 있을 때만)으로 본다.
+  ② **`GET /mcp/health`에 판 번호도 세션 수도 싣지 않는다.** 구는 `version`과
+    `activeSessions`를 실었다(`SseServer.ts:108-116`). 무인증으로 열린 창이므로
+    알리는 것을 최소로 둔다 — D26의 부수 차이와 같은 자리이고, 남는 필드
+    (`status`·`uptime`·`transport`)는 구와 같다.
+  ③ **요청 헤더로 SAP 접속을 고르는 통로가 SSE에도 없다.** 구는 SSE GET에서
+    `x-mcp-destination`/`x-sap-*`/기본 destination 순으로 접속 맥락을 고르고 없으면
+    **400으로 거절**했다(`SseServer.ts:190-224`). 신은 stdio·HTTP와 같이 프로파일
+    에서만 접속을 얻으므로 그 400 갈래가 없다 — **D30과 같은 판단이고 해소
+    마일스톤도 같다**(인증 확장). 접속이 없으면 도구를 부를 때
+    `ERR_NO_CONNECTION`으로 실패한다.
+
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 
 리뷰에서 차이로 잡혔지만 **유지할 이유가 없어** 구 동작으로 되돌린 것들.
