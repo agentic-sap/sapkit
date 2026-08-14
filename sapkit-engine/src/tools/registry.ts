@@ -264,6 +264,7 @@ import { deleteBehaviorImplementation } from './write/deleteBehaviorImplementati
 import { deleteCdsUnitTest } from './write/deleteCdsUnitTest';
 import { deleteClass } from './write/deleteClass';
 import { deleteGuiStatus } from './write/deleteGuiStatus';
+import { deleteInclude } from './write/deleteInclude';
 import { deleteInterface } from './write/deleteInterface';
 import { deleteLocalDefinitions } from './write/deleteLocalDefinitions';
 import { deleteLocalMacros } from './write/deleteLocalMacros';
@@ -529,6 +530,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   deleteGuiStatus,
   deleteScreen,
   deleteTextElement,
+  deleteInclude,
 
   // 묶음: tail-test — 꼬리 — 단위시험·CDS 단위시험·Update 계열 12종 (순서 29)
 

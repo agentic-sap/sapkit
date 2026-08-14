@@ -155,6 +155,11 @@
     "detail": "src/tools/write/__tests__/deleteGuiStatus.test.ts"
   },
   {
+    "tool": "DeleteInclude",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteInclude.test.ts"
+  },
+  {
     "tool": "DeleteInterface",
     "passed": true,
     "detail": "src/tools/write/__tests__/deleteInterface.test.ts"
