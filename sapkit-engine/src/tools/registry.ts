@@ -92,6 +92,7 @@ import {
 // 묶음: common
 
 // 묶음: runtime
+import { runtimeListDumps } from './runtime/runtimeListDumps';
 
 /** 스캐폴드 앵커. 배선 단계가 이 파일을 찾는 표식이다. */
 export const TOOL_REGISTRY_MARKER = 'sapkit-engine/tools/registry' as const;
@@ -142,4 +143,5 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: common — 공통 편집·활성 (순서 3)
 
   // 묶음: runtime — 덤프·프로파일러·시스템 메시지 (순서 4)
+  runtimeListDumps,
 ];

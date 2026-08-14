@@ -75,6 +75,11 @@
     "detail": "src/tools/read/__tests__/grepObjects.test.ts"
   },
   {
+    "tool": "RuntimeListDumps",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeListDumps.test.ts"
+  },
+  {
     "tool": "SearchObject",
     "passed": true,
     "detail": "src/tools/read/__tests__/searchObject.test.ts"
