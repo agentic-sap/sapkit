@@ -85,6 +85,11 @@
     "detail": "src/tools/read/__tests__/getAbapSystemSymbols.test.ts"
   },
   {
+    "tool": "GetAtcFindings",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getAtcFindings.test.ts"
+  },
+  {
     "tool": "GetClass",
     "passed": true,
     "detail": "src/tools/read/__tests__/getClass.test.ts"
@@ -250,6 +255,21 @@
     "detail": "src/tools/read/__tests__/getTypeInfo.test.ts"
   },
   {
+    "tool": "GetUnitTest",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/getUnitTest.test.ts"
+  },
+  {
+    "tool": "GetUnitTestResult",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/getUnitTestResult.test.ts"
+  },
+  {
+    "tool": "GetUnitTestStatus",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/getUnitTestStatus.test.ts"
+  },
+  {
     "tool": "GetView",
     "passed": true,
     "detail": "src/tools/read/__tests__/getView.test.ts"
@@ -323,6 +343,11 @@
     "tool": "ReloadProfile",
     "passed": true,
     "detail": "src/tools/runtime/__tests__/reloadProfile.test.ts"
+  },
+  {
+    "tool": "RunUnitTest",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runUnitTest.test.ts"
   },
   {
     "tool": "RuntimeAnalyzeDump",
