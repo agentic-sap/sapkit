@@ -804,6 +804,43 @@
 - **비고**: 키가 하나 **느는** 방향이므로 구의 키를 읽던 소비자는 그대로 돈다.
   기계용 장부로 옮기는 일은 D38과 같은 이유로 그 파일을 소유한 작업의 몫이다.
 
+### D56 — 표·구조체 쓰기 4종은 **활성화 실패를 성공으로 답하지 않는다**
+
+- **대상**: `CreateTable` · `UpdateTable` · `CreateStructure` · `UpdateStructure`
+- **분류**: 수리
+- **구 동작(실측)**: 활성화 응답 본문의 `<chkl:msg>`를 훑되 **종류를 가리지
+  않고** 문구로 접어 `activation_warnings`에 담고, 그대로
+  `success: true` · `activated: true`로 답한다
+  (`engine/src/handlers/table/high/handleUpdateTable.ts:296-345` ·
+  `engine/src/handlers/structure/high/handleUpdateStructure.ts:262-313`).
+  `type="E"`도 그 배열에 들어갈 뿐이라, **활성화되지 않은 오브젝트가
+  "활성화됨"으로 보고된다.** `CreateStructure`는 한 걸음 더 나아가 활성화 응답을
+  아예 읽지 않는다(`handleCreateStructure.ts:384-386`).
+- **신 동작**: `E`·`A`·`X` 메시지가 하나라도 있으면 실패로 되돌리고, 소스는
+  인액티브 버전으로 SAP에 남아 있으며 활성 버전은 그대로라는 사실을 문구에
+  함께 싣는다. 경고만 있으면 구와 같이 성공이고 경고는 실려 나간다.
+- **근거**: SAP의 활성화는 **오류를 담은 채 HTTP 200으로 답한다**. 상태 코드만
+  믿으면 깨진 오브젝트가 활성화 성공으로 보고되며, 이 레포에는 그 CLAS 거짓
+  성공 실증 이력이 있다(`CLAUDE.md` 안전 규칙 — "write 성공 보고를 그대로 믿지
+  않는다"). 판정 자리는 `src/tools/write/shared.ts`의
+  `parseActivationMessages` · `activationErrors`이며, **M1의 쓰기 도구
+  (`UpdateProgram` · `UpdateClass` · `UpdateInclude` · `CreateInclude`)가 이미
+  같은 판단을 하고 있다** — 이 넷만 예외로 두면 같은 엔진 안에서 활성화 계약이
+  둘로 갈린다.
+- **대체 기대 시험**:
+  `src/tools/write/__tests__/updateTable.test.ts`의 「활성화 응답의 E 메시지는
+  실패다」·「경고만 있으면 성공이고 경고는 실려 나간다」 ·
+  `src/tools/write/__tests__/updateStructure.test.ts`의 같은 두 건 ·
+  `src/tools/write/__tests__/createStructure.test.ts`의 「활성화 실패를 성공으로
+  답하지 않는다」.
+- **비고 — 기계 장부 미반영**: 이 판의 표·구조체 과제는 `harness/replay/**`가
+  무접촉이라 `harness/replay/divergences.ts`에 옮기지 못했다. 도구 **응답**이
+  달라지는 차이이므로 기계 장부에도 와야 한다(부록 A의 갈림 기준). 묶음 병합 뒤
+  한 번에 옮길 것.
+- **선행 항목이 없다는 관찰**: 위에 적은 M1 쓰기 4종의 같은 동작은 이 장부에
+  등재돼 있지 않다. 그쪽도 등재 대상으로 보이며, 판단은 그 파일을 소유한
+  작업의 몫이다.
+
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 
 리뷰에서 차이로 잡혔지만 **유지할 이유가 없어** 구 동작으로 되돌린 것들.

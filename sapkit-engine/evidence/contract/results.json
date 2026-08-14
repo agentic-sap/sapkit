@@ -238,5 +238,10 @@
     "tool": "UpdateSourceByPatch",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateSourceByPatch.test.ts"
+  },
+  {
+    "tool": "UpdateTable",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateTable.test.ts"
   }
 ]
