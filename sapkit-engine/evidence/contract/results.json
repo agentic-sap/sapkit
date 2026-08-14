@@ -305,6 +305,11 @@
     "detail": "src/tools/read/__tests__/readProgram.test.ts"
   },
   {
+    "tool": "ReadServiceDefinition",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readServiceDefinition.test.ts"
+  },
+  {
     "tool": "ReadStructure",
     "passed": true,
     "detail": "src/tools/read/__tests__/readStructure.test.ts"
