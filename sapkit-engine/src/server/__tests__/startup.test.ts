@@ -651,6 +651,229 @@ describe('destination 통로 — --mcp=<destination> (service key)', () => {
 });
 
 /**
+ * 브로커 통로 — `--auth-broker` · `MCP_USE_AUTH_BROKER=true`.
+ *
+ * 구에서 이 스위치의 효과는 **딱 두 가지**다(실측):
+ *   ⓐ 인자와 환경변수를 하나로 합쳐(`engine/src/lib/config/ArgumentsParser.ts:182-183`)
+ *      Variant 3(cwd `.env`)을 잠근다(`engine/src/lib/auth/brokerFactory.ts:185`).
+ *   ⓑ **기본 브로커를 만들지 않는다** — Variant 1(`--mcp`)·2(`--env`)가 아니면
+ *      어떤 갈래에도 걸리지 않아 `DEFAULT_BROKER_NOT_CREATED`로 끝나고
+ *      (`brokerFactory.ts:283-293`), 접속 맥락은 destination이 **지목될 때**
+ *      저장소에서 그때그때 만들어진다(`brokerFactory.ts:336-372`).
+ *
+ * 그러므로 이 스위치는 **이름을 고르지 않는다.** 신이 조립할 수 있는 재료는
+ * 저장소 위치와 그 안의 이름들까지이고, 그 이상은 destination이 지목되는
+ * 통로(`--mcp`, 또는 아직 없는 HTTP 헤더 통로 — 장부 D30)의 몫이다.
+ */
+describe('브로커 통로 — --auth-broker / MCP_USE_AUTH_BROKER', () => {
+  it('인자로 켜면 통로를 인식하고 저장소 재료를 조립한다', () => {
+    const root = storeRoot();
+    writeServiceKey(root, 'DEST1');
+    const startup = resolveStartup({
+      argv: argvOf('--auth-broker', '--exposition=readonly,high'),
+      env: { AUTH_BROKER_PATH: root },
+      cwd: tempDir(),
+      homedir: tempDir(),
+    });
+    expect(startup.destination).toEqual({
+      channel: 'broker',
+      name: '',
+      source: null,
+      serviceKey: null,
+      broker: {
+        serviceKeysDir: path.join(root, 'service-keys'),
+        sessionsDir: path.join(root, 'sessions'),
+        destinations: ['DEST1'],
+      },
+    });
+  });
+
+  it('환경변수로 켜도 똑같이 인식한다 (구가 인자와 환경변수를 합친다)', () => {
+    const root = storeRoot();
+    writeServiceKey(root, 'DEST1');
+    const startup = resolveStartup({
+      argv: argvOf(),
+      env: { AUTH_BROKER_PATH: root, MCP_USE_AUTH_BROKER: 'true' },
+      cwd: tempDir(),
+      homedir: tempDir(),
+    });
+    expect(startup.destination?.channel).toBe('broker');
+    expect(startup.destination?.broker?.destinations).toEqual(['DEST1']);
+  });
+
+  it('스위치가 없으면 브로커 통로를 열지 않는다', () => {
+    const root = storeRoot();
+    writeServiceKey(root, 'DEST1');
+    const startup = resolveStartup({
+      argv: argvOf(),
+      env: { AUTH_BROKER_PATH: root, MCP_USE_AUTH_BROKER: 'false' },
+      cwd: tempDir(),
+      homedir: tempDir(),
+    });
+    expect(startup.destination).toBeNull();
+  });
+
+  // 통로가 열렸다고 접속이 생긴 것이 아니다 — 이 스위치는 이름을 고르지 않는다.
+  it('destination을 고르지 않으므로 접속을 만들지 않고 이유를 말한다', () => {
+    const root = storeRoot();
+    writeServiceKey(root, 'DEST1');
+    const startup = resolveStartup({
+      argv: argvOf('--auth-broker'),
+      env: { AUTH_BROKER_PATH: root },
+      cwd: tempDir(),
+      homedir: tempDir(),
+    });
+    expect(startup.profile.connection).toBeNull();
+    expect(startup.profile.envPath).toBeNull();
+    expect(startup.profile.tier).toBe('UNKNOWN');
+    expect(startup.diagnostics.join('\n')).toContain('AUTH_BROKER_NO_DESTINATION');
+    expect(startup.diagnostics.join('\n')).toContain('DEST1');
+  });
+
+  // D17 보강분. 인자 통로에도 재료 조립이 붙은 뒤에 잠금이 살아 있는지 본다.
+  it('통로가 켜지면 cwd에 .env가 있어도 접속이 생기지 않는다 (D17 보강분)', () => {
+    const root = storeRoot();
+    const cwd = tempDir();
+    writeEnvFile(path.join(cwd, '.env'), { SAP_TIER: 'PRD' });
+    for (const startup of [
+      resolveStartup({
+        argv: argvOf('--auth-broker'),
+        env: { AUTH_BROKER_PATH: root },
+        cwd,
+        homedir: tempDir(),
+      }),
+      resolveStartup({
+        argv: argvOf(),
+        env: { AUTH_BROKER_PATH: root, MCP_USE_AUTH_BROKER: 'true' },
+        cwd,
+        homedir: tempDir(),
+      }),
+    ]) {
+      expect(startup.profile.connection).toBeNull();
+      expect(startup.profile.envPath).toBeNull();
+      expect(startup.profile.tier).toBe('UNKNOWN');
+      expect(startup.destination?.channel).toBe('broker');
+    }
+  });
+
+  it('저장소가 통째로 없어도 기동이 죽지 않고 inspection-only로 간다 (D20)', () => {
+    const missing = path.join(tempDir(), 'nowhere');
+    const startup = resolveStartup({
+      argv: argvOf('--auth-broker'),
+      env: { AUTH_BROKER_PATH: missing },
+      cwd: tempDir(),
+      homedir: tempDir(),
+    });
+    expect(startup.sets).toEqual(['readonly', 'high']);
+    expect(startup.profile.connection).toBeNull();
+    expect(startup.destination?.broker?.destinations).toEqual([]);
+    expect(startup.diagnostics.join('\n')).toContain('AUTH_BROKER_NO_DESTINATION');
+  });
+
+  it('진단에 service key의 clientsecret 값이 실리지 않는다', () => {
+    const root = storeRoot();
+    writeServiceKey(root, 'DEST1');
+    const startup = resolveStartup({
+      argv: argvOf('--auth-broker'),
+      env: { AUTH_BROKER_PATH: root },
+      cwd: tempDir(),
+      homedir: tempDir(),
+    });
+    expect(startup.diagnostics.join('\n')).not.toContain(FAKE_SECRET);
+    expect(JSON.stringify(startup.destination)).not.toContain(FAKE_SECRET);
+  });
+
+  // 구 Variant 1은 브로커 스위치와 무관하게 먼저 잡힌다.
+  it('--mcp이 브로커 스위치보다 앞이다', () => {
+    const root = storeRoot();
+    const file = writeServiceKey(root, 'DEST1');
+    const startup = resolveStartup({
+      argv: argvOf('--mcp=DEST1', '--auth-broker'),
+      env: { AUTH_BROKER_PATH: root, MCP_USE_AUTH_BROKER: 'true' },
+      cwd: tempDir(),
+      homedir: tempDir(),
+    });
+    expect(startup.destination?.channel).toBe('mcp');
+    expect(startup.destination?.source).toBe(file);
+    expect(startup.diagnostics.join('\n')).toContain('MCP_DESTINATION_TOKEN_PENDING');
+  });
+
+  // 구 Variant 2도 브로커 스위치보다 앞이다(`brokerFactory.ts:167,185`).
+  it('--env이 브로커 스위치보다 앞이다 (인자 통로로도)', () => {
+    const root = storeRoot();
+    const file = writeSessionEnv(root, 'DEST1', { SAP_TIER: 'DEV' });
+    const startup = resolveStartup({
+      argv: argvOf('--env=DEST1', '--auth-broker'),
+      env: { AUTH_BROKER_PATH: root },
+      cwd: tempDir(),
+      homedir: tempDir(),
+    });
+    expect(startup.destination?.channel).toBe('env');
+    expect(startup.profile.envPath).toBe(file);
+    expect(startup.profile.tier).toBe('DEV');
+  });
+
+  /**
+   * 셰임은 `--env-path`·`--mcp`에만 `MCP_ENV_PATH` 세팅을 멈춘다
+   * (`interactive/server/launch.cjs:344-347`) — `--auth-broker`에는 멈추지
+   * 않으므로 구에서도 활성 프로파일이 그대로 Variant 2를 탄다. 브로커 스위치가
+   * 그 세 통로를 잠그면 **회귀**다.
+   */
+  it('브로커를 켜도 MCP_ENV_PATH · --env-path · 활성 프로파일은 그대로 붙는다', () => {
+    const root = storeRoot();
+    const dir = tempDir();
+    const injected = writeEnvFile(path.join(dir, 'injected.env'), { SAP_TIER: 'DEV' });
+    const explicit = writeEnvFile(path.join(dir, 'explicit.env'), { SAP_TIER: 'QA' });
+    const home = tempDir();
+    const profileCwd = tempDir();
+    const profileEnv = writeProfile({ home, cwd: profileCwd, alias: 'dev1', env: { SAP_TIER: 'DEV' } });
+
+    const cases: Array<[string, ReturnType<typeof resolveStartup>, string]> = [
+      [
+        'MCP_ENV_PATH',
+        resolveStartup({
+          argv: argvOf('--auth-broker'),
+          env: { AUTH_BROKER_PATH: root, MCP_ENV_PATH: injected },
+          cwd: tempDir(),
+          homedir: tempDir(),
+        }),
+        injected,
+      ],
+      [
+        '--env-path',
+        resolveStartup({
+          argv: argvOf('--auth-broker', `--env-path=${explicit}`),
+          env: { AUTH_BROKER_PATH: root },
+          cwd: tempDir(),
+          homedir: tempDir(),
+        }),
+        explicit,
+      ],
+      [
+        '활성 프로파일',
+        resolveStartup({
+          argv: argvOf(),
+          env: { AUTH_BROKER_PATH: root, MCP_USE_AUTH_BROKER: 'true', SAPKIT_HOME_DIR: home },
+          cwd: profileCwd,
+          homedir: tempDir(),
+        }),
+        profileEnv,
+      ],
+    ];
+
+    for (const [label, startup, expected] of cases) {
+      expect([label, startup.profile.envPath]).toEqual([label, expected]);
+      expect([label, startup.profile.connection?.baseUrl]).toEqual([label, 'http://127.0.0.1:1']);
+      // 접속을 딴 통로가 소유했다는 사실을 말한다 — 조용히 삼키지 않는다.
+      expect([label, startup.diagnostics.join('\n').includes('AUTH_BROKER_IGNORED')]).toEqual([
+        label,
+        true,
+      ]);
+    }
+  });
+});
+
+/**
  * 기존 Basic 경로 회귀 0 — spec이 이 판 안에서 기계로 확인하라고 못 박은 것.
  *
  * 네 통로 전부가 destination 인자 없이 예전 그대로 접속을 만들고,

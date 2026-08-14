@@ -26,6 +26,7 @@ import {
   type ProfileResolution,
   disconnectedProfile,
   readServiceKey,
+  resolveBrokerStores,
   resolveProfileDetailed,
   resolveSessionEnv,
 } from '../profile';
@@ -56,12 +57,14 @@ export interface Startup {
   readonly env: Readonly<Record<string, string | undefined>>;
   readonly blocklist: BlocklistConfig;
   /**
-   * `--mcp=<destination>` · `--env=<name>`이 고른 인증 통로. 둘 다 없으면 null.
+   * `--mcp=<destination>` · `--env=<name>` · 브로커 스위치(`--auth-broker` ·
+   * `MCP_USE_AUTH_BROKER=true`)가 고른 인증 통로. 하나도 없으면 null.
    *
    * 통로가 열렸다고 접속이 생긴 것은 아니다 — `--env`는 세션 env 파일을 기존
-   * Basic 해석기에 태워 접속을 만들지만, `--mcp`는 이 판에서 **설정 조립까지만**
-   * 한다(토큰 취득 = 실접속 = 범위 밖). 접속 여부는 언제나 `profile.connection`이
-   * 정본이다.
+   * Basic 해석기에 태워 접속을 만들지만, `--mcp`와 브로커 통로는 이 판에서
+   * **설정 조립까지만** 한다(토큰 취득 = 실접속 = 범위 밖). 브로커 통로는 그
+   * 위에 destination 이름조차 고르지 않으므로, 접속을 소유하지 않은 채 열려
+   * 있을 수 있다. 접속 여부는 언제나 `profile.connection`이 정본이다.
    */
   readonly destination: DestinationSelection | null;
   /** `MCP_UNSAFE` / `--unsafe`. 게이트에는 아무 영향이 없다. */
@@ -105,6 +108,27 @@ function nothingResolved(profile: ResolvedProfile): boolean {
     profile.diagnostics.length === 1 &&
     (profile.diagnostics[0] ?? '').startsWith('NO_PROFILE:')
   );
+}
+
+/**
+ * 브로커 통로를 켠 스위치들. 비어 있으면 꺼진 것이다.
+ *
+ * 구 파서는 인자와 환경변수를 **합친다** —
+ * `hasFlag('--auth-broker') || process.env.MCP_USE_AUTH_BROKER === 'true'`
+ * (`engine/src/lib/config/ArgumentsParser.ts:182-183`). 그 합에 대해 Variant 3이
+ * `!useAuthBroker`를 요구한다(`engine/src/lib/auth/brokerFactory.ts:185`).
+ * **정의를 여기 하나로 두는 이유**: 이 값은 통로를 여는 판단과 cwd `.env`
+ * 폴백을 잠그는 판단 **양쪽**에 쓰이고, 둘이 어긋나면 정확히 D17이 잡았던
+ * 구멍(환경변수로 켠 기동이 cwd `.env`에 붙는 것)이 되돌아온다.
+ */
+function brokerSwitches(
+  args: readonly string[],
+  env: Readonly<Record<string, string | undefined>>,
+): string[] {
+  const on: string[] = [];
+  if (args.includes('--auth-broker')) on.push('--auth-broker');
+  if ((env.MCP_USE_AUTH_BROKER ?? '').trim() === 'true') on.push('MCP_USE_AUTH_BROKER=true');
+  return on;
 }
 
 export function resolveStartup(input: StartupInput = {}): Startup {
@@ -267,8 +291,8 @@ export function resolveStartup(input: StartupInput = {}): Startup {
     //    합치고(`ArgumentsParser.ts:182-183`) Variant 3이 그 합에 대해 `!useAuthBroker`를
     //    요구한다(`brokerFactory.ts:185`). 인자만 보면 환경변수로 브로커를 켠 기동이
     //    운영자가 고르지 않은 cwd `.env`에 붙는다.
-    const useAuthBroker =
-      args.includes('--auth-broker') || (env.MCP_USE_AUTH_BROKER ?? '').trim() === 'true';
+    const switches = brokerSwitches(args, env);
+    const useAuthBroker = switches.length > 0;
     if (
       resolution.profile.connection === null &&
       nothingResolved(resolution.profile) &&
@@ -281,6 +305,48 @@ export function resolveStartup(input: StartupInput = {}): Startup {
       const cwdEnv = path.resolve(cwd, '.env');
       if (fs.existsSync(cwdEnv)) {
         resolution = resolveProfileDetailed({ ...profileOptions, envPath: cwdEnv });
+      }
+    }
+
+    // ④ 브로커 통로 — `--auth-broker` · `MCP_USE_AUTH_BROKER=true`.
+    //
+    //    **자리가 여기인 이유.** 구에서 이 스위치는 Variant 1(`--mcp`)과
+    //    Variant 2(`--env`·`--env-path`·`MCP_ENV_PATH`)보다 **뒤**이고 Variant 3
+    //    (cwd `.env`)보다 **앞**이다 — Variant 1·2의 조건에는 이 스위치가 아예
+    //    없고 Variant 3만 `!useAuthBroker`를 요구한다
+    //    (`engine/src/lib/auth/brokerFactory.ts:146,167,185`). 셰임도
+    //    `--auth-broker`에는 `MCP_ENV_PATH` 세팅을 멈추지 않으므로
+    //    (`interactive/server/launch.cjs:344` — 멈추는 것은 `--env-path`·`--mcp`
+    //    뿐이다) 구에서도 활성 프로파일은 그대로 Variant 2를 탄다. 그래서 이
+    //    갈래는 **앞의 통로를 가로채지 않는다** — 가로채면 그 자체가 회귀다.
+    //
+    //    통로가 열렸다고 접속이 생기는 것도 아니다. 이 스위치는 **이름을 고르지
+    //    않고**, 구도 그 상태에서는 기본 브로커를 만들지 않는다
+    //    (`brokerFactory.ts:283-293`) — destination이 지목될 때 저장소에서
+    //    그때그때 만든다(`336-372`). 조립되는 것은 저장소 재료까지이고, 그
+    //    다음(토큰)은 브라우저 OAuth2 로그인이라 실접속이다(차이 장부 D15).
+    if (useAuthBroker) {
+      const stores = resolveBrokerStores(lookup);
+      destination = {
+        channel: 'broker',
+        name: '',
+        source: null,
+        serviceKey: null,
+        broker: stores,
+      };
+      if (resolution.profile.connection !== null) {
+        // 켜 두었는데 접속은 딴 통로가 소유했다 — 조용히 삼키지 않는다.
+        diagnostics.push(
+          `AUTH_BROKER_IGNORED: the auth broker channel is on (${switches.join(', ')}), but an env-file channel resolved the connection first and owns it (${resolution.profile.envPath}). The measured broker behaves the same way: --env/--env-path/MCP_ENV_PATH is Variant 2 and the broker switch only locks Variant 3 (engine/src/lib/auth/brokerFactory.ts:167,185).`,
+        );
+      } else {
+        diagnostics.push(
+          `AUTH_BROKER_NO_DESTINATION: the auth broker channel is on (${switches.join(', ')}) but no destination was named, so this channel produced no connection — the measured broker creates no default broker in that case either (engine/src/lib/auth/brokerFactory.ts:283-293) and resolves credentials only for a destination that is named. Service keys: ${stores.serviceKeysDir}${
+            stores.destinations.length
+              ? ` (available: ${stores.destinations.join(', ')})`
+              : ' (no service keys found there)'
+          }. Sessions: ${stores.sessionsDir}. Name one with --mcp=<name>, or use --env=<name>, --env-path=<file>, or an active profile for a Basic connection. The project-local .env fallback stays locked while this channel is on.`,
+        );
       }
     }
   }

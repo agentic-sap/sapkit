@@ -19,6 +19,7 @@ export {
   resolveProfileDetailed,
 } from './resolve';
 export {
+  type BrokerStores,
   type DestinationSelection,
   type NameCheck,
   type PlatformLookup,
@@ -31,6 +32,7 @@ export {
   listStoreNames,
   platformStoreDirs,
   readServiceKey,
+  resolveBrokerStores,
   resolveSessionEnv,
   serviceKeysDir,
   sessionEnvFileName,
