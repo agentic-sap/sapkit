@@ -1811,3 +1811,62 @@ D번호를 주지 않는 이유가 그것이다. 그래도 장부에 두는 이�
   「D111」 두 건(오류가 있으면 실패 · **경고만 있으면 성공** — 과수리 역검증).
 - **기계 장부 반영**: **못 했다**(`harness/replay/**` 무접촉). 도구 응답이
   `isError`째로 달라지므로 **기계 장부에 와야 한다.**
+
+### D112 — 삭제 4종의 클라우드(JWT) 거절 갈래를 짓지 않았다 (D91의 범위 확장)
+- **분류**: 축소 — **해소 마일스톤 = 인증 확장(Basic 외) 마일스톤. D15·D30·D91과 같은 자리.**
+- **구 동작(실측)**: `DeleteInclude`·`DeleteGuiStatus`·`DeleteScreen`·
+  `DeleteTextElement` 넷이 맨 앞에서 `isCloudConnection()`을 묻고 참이면 거절한다
+  (`engine/src/handlers/include/high/handleDeleteInclude.ts:270-276` ·
+  `.../gui_status/high/handleDeleteGuiStatus.ts:66-72` ·
+  `.../screen/high/handleDeleteScreen.ts:57-61` ·
+  `.../text_element/high/handleDeleteTextElement.ts:88-94`). 그 판정의 정본은
+  `engine/src/lib/utils.ts:978-1002` — 묻는 것은 배포 축이 아니라 `authType === 'jwt'`다.
+- **신 동작**: 그 갈래가 없다. **D91과 같은 근거**다 — 이 엔진의 인증은 Basic
+  하나뿐이라 `authType === 'jwt'`가 될 수 있는 값이 아예 없고, 넷 다
+  `available_in: ['onprem','legacy']`이라 `SAP_SYSTEM_TYPE=cloud`에서는 애초에
+  `tools/list`에 뜨지 않는다. 없는 조건을 흉내 내는 분기는 영영 죽은 코드가 된다.
+- **왜 D91에 얹지 않고 새 항목인가**: D91의 본문은 대상을 "이 묶음의 구 핸들러
+  16종"으로 못 박아 두었고, 등재 항목의 **본문은 수정하지 않는 것이 이 장부의
+  규칙**이다(정정도 새 항목). 그래서 범위 확장을 여기 따로 적는다.
+- **대체 기대 시험**: 네 도구의 계약 시험이 붙잡는 「노출 선언」 절 —
+  `available_in`이 `['onprem','legacy']`라는 것이 이 갈래를 대신하는 바닥선이다.
+- **기계 장부 반영**: **안 했다** — 인증 종류는 접속 계층이고 도구 응답 시퀀스에
+  나타나지 않는다(D91과 같다).
+
+### D113 — `DeleteGuiStatus`·`DeleteScreen`이 **잠금 손잡이 없이 진행하지 않는다** (D92의 범위 확장)
+- **분류**: 강화(안전 바닥선을 올림)
+- **구 동작(실측)**: 둘 다 잠금 응답에서 `LOCK_HANDLE`을 못 꺼내도 `lockHandle`이
+  `undefined`인 채로 **그대로 진행해** 대리자 쓰기(`CUA_WRITE` · `DYNPRO_DELETE`)를
+  보낸다. 해제도 `if (lockHandle)`이라 건너뛴다
+  (`engine/src/handlers/gui_status/high/handleDeleteGuiStatus.ts:86-102`·`:134-141` ·
+  `.../screen/high/handleDeleteScreen.ts:76-92`·`:101-109`). **같은 묶음의
+  `DeleteTextElement`는 같은 자리에서 "Failed to obtain lock handle for program …"
+  으로 던진다**(`handleDeleteTextElement.ts:150-154`) — 구 엔진 안에서도 이 자리만
+  갈라져 있다.
+- **신 동작**: `client.withLock()`이 소유한다. 잠금 응답에 `LOCK_HANDLE`이 없으면
+  `protocol` 오류로 던지고(`src/adt/client.ts`), 대리자 쓰기는 나가지 않는다.
+  실패 경로에서도 해제가 보장된다.
+- **판정 근거**: 잠기지 않은 프로그램의 GUI 상태·화면을 **지우는** 것은 다른
+  세션의 편집을 덮어쓸 수 있는 write다. D92가 `UpdateScreen`에서 이미 같은 방향을
+  정했고, 구 엔진 자신이 형제 핸들러에서 이것을 실패로 다룬다.
+- **대체 기대 시험**: 두 도구 시험 파일의 「D113」 절 — 잠금 응답에 손잡이가 없으면
+  **RFC 호출이 0회**인지.
+- **기계 장부 반영**: **못 했다**(`harness/replay/**` 무접촉). 와이어가 달라지는
+  차이(요청이 아예 안 나간다)이므로 **기계 장부에 와야 한다.**
+
+### D114 — `DeleteTextElement`의 부모 프로그램 활성화 **거짓 성공**을 접지 않는다 (D93의 범위 확장)
+- **분류**: 수리(구의 거짓 성공을 고침)
+- **구 동작(실측)**: `activate: true`에서 활성화 요청을 보낸 뒤 **응답을 읽지
+  않는다** — `await makeAdtRequestWithTimeout(connection, '/sap/bc/adt/activation', …)`
+  한 줄이고 반환값을 버린다(`handleDeleteTextElement.ts:203-216`). SAP은 활성화
+  실패도 **HTTP 200 + `<chkl:msg type="E">`** 로 답하므로 응답은 `activated: true`가 된다.
+- **신 동작**: 요청 바이트는 구 그대로 두고 응답 본문을 갈라 실패로 되돌린다 —
+  D93이 이미 지은 `src/tools/write/internal/programScoped.ts`의 `activateParentProgram`을
+  그대로 쓴다.
+- **왜 D93에 얹지 않고 새 항목인가**: D93의 본문이 대상을 "쓰기 8종"으로 열거해
+  두었고 거기 `DeleteTextElement`는 없다. 본문 수정 금지 규칙에 따라 범위 확장을
+  따로 적는다.
+- **대체 기대 시험**: `sapkit-engine/src/tools/write/__tests__/deleteTextElement.test.ts`의
+  「D114」 절(오류가 있으면 실패 · 경고만 있으면 성공 — 과수리 역검증).
+- **기계 장부 반영**: **못 했다**. 도구 응답이 `isError`째로 달라지므로 **기계
+  장부에 와야 한다.**
