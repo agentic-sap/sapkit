@@ -34,7 +34,7 @@
 | attended 실기 기록 | `fixtures/attended-only/*.json` | 있음 · 2단계 |
 | 계약 시험 결과 | `evidence/contract/results.json` | 있음 · 137종 |
 | 계약 시험 파일 | `src/tools/**/__tests__/<도구>.test.ts` | 있음 · 137종에 시험 파일이 있다 — 있음이 곧 통과는 아니다 |
-| 대체 기대 시험 | `harness/replay/divergences.ts 의 substituteTest 경로` | 있음 · 7종에 실재하는 시험 파일이 있다 |
+| 대체 기대 시험 | `harness/replay/divergences.ts 의 substituteTest 경로` | 있음 · 15종에 실재하는 시험 파일이 있다 |
 | 위임형 판정 | `../engine/src/handlers/**` | 있음 · 소스 559파일을 상대 import까지 따라가 판정 — 직접 46 · 간접 140 · 없음 0 |
 
 ## 안 지음 (49)
@@ -136,21 +136,21 @@
 | ReadClass | 클래스 | 6 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | UpdateClass | 클래스 | 6 | 재생 대조 | 픽스처 있음 · 판정 미기록 | 통과(1) | — | — | 간접 |
 | UpdateClassMethod | 클래스 | 6 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| UpdateLocalTestClass | 클래스 | 6 | 재생 대조 | — | 통과(1) | — | — | 간접 |
+| UpdateLocalTestClass | 클래스 | 6 | 재생 대조 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
 | UpdateLocalTypes | 클래스 | 6 | 재생 대조 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
 | CreateTable | 테이블 | 7 | attended 실기 | — | 통과(1) | — | — | 간접 |
 | GetTable | 테이블 | 7 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | GetTableContents | 테이블 | 7 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | ReadTable | 테이블 | 7 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | UpdateTable | 테이블 | 7 | 재생 대조 | — | 통과(1) | — | — | 직접 |
-| GetProgFullCode | 프로그램 | 8 | 재생 대조 | — | 통과(1) | — | — | 간접 |
+| GetProgFullCode | 프로그램 | 8 | 재생 대조 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
 | GetProgram | 프로그램 | 8 | 재생 대조 | 픽스처 있음 · 판정 미기록 | 통과(1) | 통과(1) | — | 간접 |
 | ReadProgram | 프로그램 | 8 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | UpdateProgram | 프로그램 | 8 | 재생 대조 | 픽스처 있음 · 판정 미기록 | 통과(1) | — | — | 간접 |
 | CreateFunctionModule | 함수모듈 | 9 | attended 실기 | — | 통과(1) | — | — | 간접 |
 | GetFunctionModule | 함수모듈 | 9 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | ReadFunctionModule | 함수모듈 | 9 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| UpdateFunctionModule | 함수모듈 | 9 | 재생 대조 | — | 통과(1) | — | — | 직접 |
+| UpdateFunctionModule | 함수모듈 | 9 | 재생 대조 + 대체 | — | 통과(1) | — | 통과(1) | 직접 |
 | CreateStructure | 구조체 | 10 | attended 실기 | — | 통과(1) | — | — | 직접 |
 | GetStructure | 구조체 | 10 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | ReadStructure | 구조체 | 10 | 재생 대조 | — | 통과(1) | — | — | 간접 |
@@ -158,7 +158,7 @@
 | CreateView | 뷰 | 11 | attended 실기 | — | 통과(1) | — | — | 간접 |
 | GetView | 뷰 | 11 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | ReadView | 뷰 | 11 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| UpdateView | 뷰 | 11 | 재생 대조 | — | 통과(1) | — | — | 간접 |
+| UpdateView | 뷰 | 11 | 재생 대조 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
 | GetUnitTest | 단위시험 | 12 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | GetUnitTestResult | 단위시험 | 12 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | GetUnitTestStatus | 단위시험 | 12 | 재생 대조 | — | 통과(1) | — | — | 간접 |
@@ -170,7 +170,7 @@
 | CreateDataElement | 데이터 엘리먼트 | 14 | attended 실기 | — | 통과(1) | — | — | 직접 |
 | GetDataElement | 데이터 엘리먼트 | 14 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | ReadDataElement | 데이터 엘리먼트 | 14 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| CreateServiceBinding | 서비스 바인딩 | 15 | attended 실기 | — | 통과(1) | — | — | 간접 |
+| CreateServiceBinding | 서비스 바인딩 | 15 | attended 실기 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
 | GetServiceBinding | 서비스 바인딩 | 15 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | ListServiceBindingTypes | 서비스 바인딩 | 15 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | ReadServiceBinding | 서비스 바인딩 | 15 | 재생 대조 | — | 통과(1) | — | — | 간접 |
@@ -179,7 +179,7 @@
 | CreateDomain | 도메인 | 16 | attended 실기 | — | 통과(1) | — | — | 직접 |
 | GetDomain | 도메인 | 16 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | ReadDomain | 도메인 | 16 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| CreateTransport | 트랜스포트 | 17 | attended 실기 | — | 통과(1) | — | — | 직접 |
+| CreateTransport | 트랜스포트 | 17 | attended 실기 + 대체 | — | 통과(1) | — | 통과(1) | 직접 |
 | GetTransport | 트랜스포트 | 17 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | ListTransports | 트랜스포트 | 17 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | CreateMetadataExtension | 메타데이터 확장 (DDLX) | 18 | attended 실기 | — | 통과(1) | — | — | 간접 |
@@ -209,7 +209,7 @@
 | CreateBehaviorImplementation | 동작 구현 (BIMP) | 25 | attended 실기 | — | 통과(1) | — | — | 직접 |
 | GetBehaviorImplementation | 동작 구현 (BIMP) | 25 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | ReadBehaviorImplementation | 동작 구현 (BIMP) | 25 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| UpdateBehaviorImplementation | 동작 구현 (BIMP) | 25 | 재생 대조 | — | 통과(1) | — | — | 직접 |
+| UpdateBehaviorImplementation | 동작 구현 (BIMP) | 25 | 재생 대조 + 대체 | — | 통과(1) | — | 통과(1) | 직접 |
 | CreateFunctionGroup | 함수그룹 | 26 | attended 실기 | — | 통과(1) | — | — | 직접 |
 | GetFunctionGroup | 함수그룹 | 26 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | CreateInterface | 인터페이스 | 27 | attended 실기 | — | 통과(1) | — | — | 간접 |
@@ -239,7 +239,7 @@
 | UpdateScreen | 화면 | 23 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | ReadFunctionGroup | 함수그룹 | 26 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | ReadInterface | 인터페이스 | 27 | 계약 시험 | — | 통과(1) | — | — | 간접 |
-| UpdateInterface | 인터페이스 | 27 | 계약 시험 | — | 통과(1) | — | — | 직접 |
+| UpdateInterface | 인터페이스 | 27 | 계약 시험 + 대체 | — | 통과(1) | — | 통과(1) | 직접 |
 | GetEnhancementImpl | 인핸스먼트 | 28 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | GetEnhancements | 인핸스먼트 | 28 | 계약 시험 | — | 통과(1) | — | — | 직접 |
 | GetEnhancementSpot | 인핸스먼트 | 28 | 계약 시험 | — | 통과(1) | — | — | 간접 |

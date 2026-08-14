@@ -462,3 +462,436 @@ describe('D38·D39·D40 — ReloadProfile', () => {
     expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D38' });
   });
 });
+
+// ── D41~D105의 기계 장부 반영 ────────────────────────────────────────────────
+//
+// 오브젝트 묶음 13개가 병렬로 돌면서 `harness/replay/**`를 무접촉으로 갖고 있었기
+// 때문에 D41 이후는 사람용 장부에만 쌓였다. 여기서 옮긴 것과 옮기지 않은 것을
+// 둘 다 못박는다 — **안 옮긴 것도 판정이다.**
+
+/** 이번에 옮긴 것. 사람용 장부의 D 번호를 그대로 쓴다. */
+const MOVED_41_105: readonly string[] = [
+  'D41',
+  'D46',
+  'D51',
+  'D56',
+  'D61',
+  'D66',
+  'D73',
+  'D77',
+  'D81',
+  'D93',
+  'D99',
+  'D100',
+  'D103',
+  'D105',
+];
+
+/** 판정해서 **안 옮긴** 것. 장부에 항목은 있으나 기계 장부에는 오지 않는다. */
+const NOT_MOVED_41_105: readonly string[] = [
+  'D52',
+  'D62',
+  'D71',
+  'D72',
+  'D76',
+  'D82',
+  'D91',
+  'D92',
+  'D94',
+  'D95',
+  'D98',
+  'D101',
+  'D104',
+];
+
+const numberOf = (id: string): number => Number(id.slice(1));
+
+/** 구가 "활성화까지 마쳤다"고 답한 성공 본문 (뷰 계열의 실제 모양). */
+const OLD_ACTIVATED = {
+  success: true,
+  view_name: 'ZV_DEMO',
+  type: 'DDLS',
+  activated: true,
+  message: 'View ZV_DEMO updated and activated successfully',
+};
+
+/** 신 엔진이 활성화 실패를 되돌린 응답. */
+const NEW_ACTIVATION_FAILED = envelope(
+  'Activation failed: view ZV_DEMO was not activated (1 error): [L3] Field ZZZ is unknown. ' +
+    'The DDL source is on SAP as an inactive version; the active version is unchanged.',
+  true,
+);
+
+describe('D41~D105 판정 — 재생 대조가 보는 표면에 나타나는 것만 옮긴다', () => {
+  it('D41 이후로 옮긴 것은 열넷뿐이다', () => {
+    const moved = M1_DIVERGENCES.map((e) => e.id).filter((id) => numberOf(id) >= 41 && numberOf(id) <= 105);
+    expect(moved).toEqual([...MOVED_41_105]);
+  });
+
+  it('와이어에만 남는 차이·계층 차이는 옮기지 않았다', () => {
+    for (const id of NOT_MOVED_41_105) expect(M1_DIVERGENCES.find((e) => e.id === id)).toBeUndefined();
+  });
+
+  it('번호 예약으로 비어 있는 자리는 애초에 등재가 아니다', () => {
+    // 결번(D42~D45 등)은 예약 구간을 다 쓰지 않은 과제가 남긴 자리다.
+    const known = new Set([...MOVED_41_105, ...NOT_MOVED_41_105]);
+    for (const entry of M1_DIVERGENCES) {
+      const n = numberOf(entry.id);
+      if (n >= 41 && n <= 105) expect(known.has(entry.id)).toBe(true);
+    }
+  });
+
+  it('새 항목을 얹은 뒤에도 장부는 잘 형성돼 있다', () => {
+    expect(() => assertLedgerWellFormed(M1_DIVERGENCES)).not.toThrow();
+  });
+
+  /**
+   * 하드 게이트 — **없는 대체 기대 시험을 있다고 적지 않는다.**
+   *
+   * 위쪽 「substituteTest가 지목하는 경로는 전부 실재한다」는 경로 토큰이 하나도
+   * 없으면 공허하게 통과한다. 새 항목은 전부 **파일을 하나 이상 지목해야** 한다 —
+   * 산문만 적으면 대장(`substituteEvidenceFromLedger`)이 그 도구를 세지 않으면서
+   * 사람은 시험이 있다고 읽는다.
+   */
+  it('새 항목의 대체 기대 시험은 산문이 아니라 실재하는 파일이다', () => {
+    const bad: string[] = [];
+    for (const id of MOVED_41_105) {
+      const entry = M1_DIVERGENCES.find((e) => e.id === id);
+      if (entry === undefined) {
+        bad.push(`${id} — 장부에 없다`);
+        continue;
+      }
+      const tokens = entry.substituteTest?.match(PATHLIKE) ?? [];
+      const real = tokens.filter((token) => fs.existsSync(path.join(REPO_ROOT, token)));
+      if (real.length === 0) bad.push(`${id} — 실재하는 시험 파일이 없다`);
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('새 항목의 근거 경로도 전부 실재한다', () => {
+    const missing: string[] = [];
+    for (const id of MOVED_41_105) {
+      const entry = M1_DIVERGENCES.find((e) => e.id === id);
+      if (entry === undefined) continue;
+      for (const token of entry.evidence.match(PATHLIKE) ?? []) {
+        if (!fs.existsSync(path.join(REPO_ROOT, token))) missing.push(`${id} — ${token}`);
+      }
+    }
+    expect(missing).toEqual([]);
+  });
+});
+
+describe('활성화 거짓 성공 계열 — 도구 묶음마다 갈라 등재한다', () => {
+  /** 한 항목이 맡는 도구들. 사람용 장부가 그 항목 본문에 적은 집합 그대로다. */
+  const FAMILY: ReadonlyArray<readonly [string, readonly string[]]> = [
+    ['D41', ['UpdateLocalTestClass']],
+    ['D51', ['UpdateFunctionModule']],
+    ['D56', ['UpdateTable', 'CreateStructure', 'UpdateStructure']],
+    ['D66', ['UpdateView']],
+    ['D73', ['UpdateInterface']],
+    [
+      'D93',
+      [
+        'CreateTextElement',
+        'UpdateTextElement',
+        'CreateScreen',
+        'UpdateScreen',
+        'CreateGuiStatus',
+        'UpdateGuiStatus',
+        'PatchGuiStatus',
+      ],
+    ],
+    ['D99', ['CreateBehaviorDefinition', 'UpdateBehaviorDefinition']],
+    ['D100', ['UpdateBehaviorImplementation']],
+    ['D103', ['CreateMetadataExtension', 'UpdateMetadataExtension']],
+    ['D105', ['CreateServiceBinding']],
+  ];
+
+  it('도구 묶음이 서로 겹치지 않는다 — 배열 순서가 판정을 정하지 않게', () => {
+    const seen = new Map<string, string>();
+    for (const [id, tools] of FAMILY) {
+      for (const tool of tools) {
+        expect(seen.get(tool)).toBeUndefined();
+        seen.set(tool, id);
+      }
+    }
+  });
+
+  it('각 도구의 "활성화됨" 성공 단계는 자기 항목 하나에만 걸린다', () => {
+    for (const [id, tools] of FAMILY) {
+      for (const tool of tools) {
+        expect(idsIn(step({ index: 0, tool, response: textEnvelope(OLD_ACTIVATED) }))).toEqual([id]);
+      }
+    }
+  });
+
+  it('`CreateTable`은 D56에서 뺐다 — 그 도구는 활성화를 부르지 않는다', () => {
+    expect(idsIn(step({ index: 0, tool: 'CreateTable', response: textEnvelope(OLD_ACTIVATED) }))).toEqual([]);
+  });
+
+  it('활성화를 주장하지 않은 단계는 등재 밖이다 — 여전히 대조된다', async () => {
+    const quiet = { ...OLD_ACTIVATED, activated: false, message: 'View ZV_DEMO updated successfully' };
+    expect(idsIn(step({ index: 0, tool: 'UpdateView', response: textEnvelope(quiet) }))).toEqual([]);
+
+    const fixture = recorded([step({ index: 0, tool: 'UpdateView', response: textEnvelope(quiet) })]);
+    const result = await replaySequence(fixture, target([{ payload: textEnvelope({ ...quiet, type: 'OTHER' }) }]));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'mismatch', divergenceId: null });
+  });
+
+  it('차이가 없으면 발동하지 않는다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'UpdateView', response: textEnvelope(OLD_ACTIVATED) })]);
+    const result = await replaySequence(fixture, echoTarget(fixture));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'match', divergenceId: null });
+    expect(result.verdict).toBe('pass');
+  });
+
+  it('구의 거짓 성공을 활성화 실패로 되돌리면 통과다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'UpdateView', response: textEnvelope(OLD_ACTIVATED) })]);
+    const result = await replaySequence(fixture, target([{ payload: NEW_ACTIVATION_FAILED, isError: true }]));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D66' });
+    expect(result.verdict).toBe('pass');
+  });
+
+  it('활성화가 아닌 이유로 실패하면 등재가 덮어 주지 않는다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'UpdateView', response: textEnvelope(OLD_ACTIVATED) })]);
+    const result = await replaySequence(
+      fixture,
+      target([{ payload: envelope('[423 lock-conflict] SAP Error: object is locked by ZUSER', true), isError: true }]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D66' });
+    expect(result.verdict).toBe('fail');
+  });
+
+  it('신도 성공으로 답했는데 본문이 달라지면 등재가 덮어 주지 않는다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'UpdateView', response: textEnvelope(OLD_ACTIVATED) })]);
+    const result = await replaySequence(
+      fixture,
+      target([{ payload: textEnvelope({ ...OLD_ACTIVATED, view_name: 'ZV_OTHER' }) }]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D66' });
+  });
+
+  it('장부에서 빼면 같은 단계가 결함으로 떨어진다 — 지금 옮기는 이유', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'UpdateView', response: textEnvelope(OLD_ACTIVATED) })]);
+    const result = await replaySequence(fixture, target([{ payload: NEW_ACTIVATION_FAILED, isError: true }]), {
+      divergences: [],
+    });
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'mismatch', divergenceId: null });
+  });
+});
+
+describe('D46 — GetProgFullCode가 인클루드 본문을 실제로 꺼낸다', () => {
+  const body = (objects: { OBJECT_TYPE: string; OBJECT_NAME: string; code: string | null }[]): JsonValue => ({
+    name: 'ZPROG',
+    type: 'PROG/P',
+    total_code_objects: objects.length,
+    code_objects: objects,
+  });
+
+  const OLD = body([
+    { OBJECT_TYPE: 'PROG/P', OBJECT_NAME: 'ZPROG', code: 'REPORT zprog.' },
+    { OBJECT_TYPE: 'PROG/I', OBJECT_NAME: 'ZINC_A', code: null },
+  ]);
+
+  it('`code_objects`를 실은 성공 단계에만 걸린다', () => {
+    expect(idsIn(step({ index: 0, tool: 'GetProgFullCode', response: textEnvelope(OLD) }))).toEqual(['D46']);
+    expect(idsIn(step({ index: 0, tool: 'GetProgFullCode', response: envelope('Unsupported type') }))).toEqual([]);
+    expect(idsIn(step({ index: 0, tool: 'GetProgFullCode', isError: true, response: envelope('boom', true) }))).toEqual(
+      [],
+    );
+  });
+
+  it('빈손이던 code가 채워지고 중첩이 붙으면 통과다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'GetProgFullCode', response: textEnvelope(OLD) })]);
+    const result = await replaySequence(
+      fixture,
+      target([
+        {
+          payload: textEnvelope(
+            body([
+              { OBJECT_TYPE: 'PROG/P', OBJECT_NAME: 'ZPROG', code: 'REPORT zprog.' },
+              { OBJECT_TYPE: 'PROG/I', OBJECT_NAME: 'ZINC_A', code: 'WRITE 1.' },
+              { OBJECT_TYPE: 'PROG/I', OBJECT_NAME: 'ZINC_NESTED', code: 'WRITE 2.' },
+            ]),
+          ),
+        },
+      ]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D46' });
+  });
+
+  it('구가 싣던 본문이 달라지면 등재가 덮어 주지 않는다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'GetProgFullCode', response: textEnvelope(OLD) })]);
+    const result = await replaySequence(
+      fixture,
+      target([
+        {
+          payload: textEnvelope(
+            body([
+              { OBJECT_TYPE: 'PROG/P', OBJECT_NAME: 'ZPROG', code: 'REPORT zother.' },
+              { OBJECT_TYPE: 'PROG/I', OBJECT_NAME: 'ZINC_A', code: 'WRITE 1.' },
+            ]),
+          ),
+        },
+      ]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D46' });
+  });
+
+  it('구에 있던 항목이 빠지면 등재가 덮어 주지 않는다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'GetProgFullCode', response: textEnvelope(OLD) })]);
+    const result = await replaySequence(
+      fixture,
+      target([
+        { payload: textEnvelope(body([{ OBJECT_TYPE: 'PROG/P', OBJECT_NAME: 'ZPROG', code: 'REPORT zprog.' }])) },
+      ]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D46' });
+  });
+});
+
+describe('D77 — 인핸스먼트 두 도구의 `type: json` 블록을 규약대로 text로', () => {
+  const BODY: JsonValue = { spot: 'ZSPOT', enhancements: [{ name: 'ZENH' }] };
+
+  it('구가 json 블록으로 답한 두 도구에만 걸린다', () => {
+    expect(idsIn(step({ index: 0, tool: 'GetEnhancementSpot', response: jsonEnvelope(BODY) }))).toEqual(['D77']);
+    expect(idsIn(step({ index: 0, tool: 'GetEnhancementImpl', response: jsonEnvelope(BODY) }))).toEqual(['D77']);
+    // 같은 묶음의 `GetEnhancements`는 구도 text였다 — 이 항목 밖이다.
+    expect(idsIn(step({ index: 0, tool: 'GetEnhancements', response: jsonEnvelope(BODY) }))).toEqual([]);
+    // 같은 도구라도 구가 text로 답한 단계는 여전히 대조된다.
+    expect(idsIn(step({ index: 0, tool: 'GetEnhancementSpot', response: envelope('평문') }))).toEqual([]);
+  });
+
+  it('그릇만 바뀌었으면 통과한다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'GetEnhancementSpot', response: jsonEnvelope(BODY) })]);
+    const result = await replaySequence(fixture, target([{ payload: textEnvelope(BODY) }]));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D77' });
+  });
+
+  it('본문 값이 달라지면 실패한다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'GetEnhancementSpot', response: jsonEnvelope(BODY) })]);
+    const result = await replaySequence(
+      fixture,
+      target([{ payload: textEnvelope({ spot: 'ZOTHER', enhancements: [] }) }]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D77' });
+  });
+});
+
+describe('D81 — CreateTransport가 만든 이송번호를 응답에 싣는다', () => {
+  const OLD = {
+    success: true,
+    description: '데모',
+    type: 'K',
+    target_system: 'LOCAL',
+    message: 'Transport request unknown created successfully',
+  };
+  const NEW = {
+    success: true,
+    transport_request: 'DEVK900123',
+    description: '데모',
+    type: 'K',
+    target_system: 'LOCAL',
+    message: 'Transport request DEVK900123 created successfully',
+  };
+
+  it('구의 `unknown created successfully` 자국을 단 단계에만 걸린다', () => {
+    expect(idsIn(step({ index: 0, tool: 'CreateTransport', response: textEnvelope(OLD) }))).toEqual(['D81']);
+    // 번호가 살아 있던 채록분은 이 차이가 아니다 — 여전히 대조된다.
+    expect(idsIn(step({ index: 0, tool: 'CreateTransport', response: textEnvelope(NEW) }))).toEqual([]);
+  });
+
+  it('번호가 실리고 문구만 따라 바뀌면 통과다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'CreateTransport', response: textEnvelope(OLD) })]);
+    const result = await replaySequence(fixture, target([{ payload: textEnvelope(NEW) }]));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D81' });
+  });
+
+  it('등재되지 않은 키가 함께 달라지면 실패한다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'CreateTransport', response: textEnvelope(OLD) })]);
+    const result = await replaySequence(fixture, target([{ payload: textEnvelope({ ...NEW, target_system: 'QAS' }) }]));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D81' });
+  });
+
+  it('문구가 여전히 unknown이면 실패한다 — 번호를 잃은 자리가 그대로다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'CreateTransport', response: textEnvelope(OLD) })]);
+    const result = await replaySequence(
+      fixture,
+      target([{ payload: textEnvelope({ ...OLD, message: 'Transport request unknown created successfully!' }) }]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D81' });
+  });
+
+  /**
+   * 문구에서 `unknown`만 지우고 **번호는 여전히 안 싣는** 갈래.
+   *
+   * 이 자리가 없으면 `transport_request`를 실제로 요구하는 검사를 통째로 들어내도
+   * 시험이 통과한다 — 위 시험은 문구 쪽 검사만으로도 잡히기 때문이다.
+   */
+  it('문구만 손보고 번호를 안 실으면 실패한다 — 등재는 수리를 요구한다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'CreateTransport', response: textEnvelope(OLD) })]);
+    const result = await replaySequence(
+      fixture,
+      target([{ payload: textEnvelope({ ...OLD, message: 'Transport request created successfully' }) }]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D81' });
+    expect(result.steps[0]?.detail).toContain('이송번호가 없다');
+  });
+});
+
+describe('D61 — 데이터 엘리먼트·도메인의 ECC 우회로가 없다', () => {
+  const OLD_ECC = {
+    success: true,
+    data_element_name: 'ZDE_DEMO',
+    version: 'active',
+    data_element_data: '{}',
+    status: 200,
+    status_text: 'OK',
+    path: 'ecc-odata-rfc',
+  };
+
+  it('구가 ECC 브리지로 답한 단계에만 걸린다', () => {
+    expect(idsIn(step({ index: 0, tool: 'GetDataElement', response: textEnvelope(OLD_ECC) }))).toEqual(['D61']);
+    expect(idsIn(step({ index: 0, tool: 'GetDomain', response: textEnvelope(OLD_ECC) }))).toEqual(['D61']);
+    expect(idsIn(step({ index: 0, tool: 'CreateDataElement', response: textEnvelope(OLD_ECC) }))).toEqual(['D61']);
+    expect(idsIn(step({ index: 0, tool: 'CreateDomain', response: textEnvelope(OLD_ECC) }))).toEqual(['D61']);
+    // ADT 갈래(브리지 자국 없음)는 등재 밖이다.
+    const adt = { success: true, data_element_name: 'ZDE_DEMO', version: 'active' };
+    expect(idsIn(step({ index: 0, tool: 'GetDataElement', response: textEnvelope(adt) }))).toEqual([]);
+  });
+
+  it('축소분이라 재생은 통과가 아니라 무증거로 센다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'GetDataElement', response: textEnvelope(OLD_ECC) })]);
+    const result = await replaySequence(
+      fixture,
+      target([
+        {
+          payload: envelope(
+            'GetDataElement on SAP_VERSION=ECC needs the ZMCP_ADT_DDIC_DTEL_READ OData bridge, ' +
+              'which this engine does not implement yet (divergence D61).',
+            true,
+          ),
+          isError: true,
+        },
+      ]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-deferred', divergenceId: 'D61' });
+    expect(result.verdict).toBe('no-evidence');
+  });
+});
