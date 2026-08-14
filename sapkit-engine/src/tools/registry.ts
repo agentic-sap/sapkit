@@ -265,6 +265,7 @@ import { getEnhancements } from './read/getEnhancements';
 // 묶음: tail-read
 import { getAdtTypes } from './read/getAdtTypes';
 import { getNodeStructureLow } from './read/getNodeStructureLow';
+import { getObjectStructureLow } from './read/getObjectStructureLow';
 
 /** 스캐폴드 앵커. 배선 단계가 이 파일을 찾는 표식이다. */
 export const TOOL_REGISTRY_MARKER = 'sapkit-engine/tools/registry' as const;
@@ -491,4 +492,5 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: tail-read — 꼬리 — 조회 계열 + CreatePackage 12종 (순서 29)
   getAdtTypes,
   getNodeStructureLow,
+  getObjectStructureLow,
 ];

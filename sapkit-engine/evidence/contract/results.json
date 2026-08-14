@@ -270,6 +270,11 @@
     "detail": "src/tools/read/__tests__/getObjectStructure.test.ts"
   },
   {
+    "tool": "GetObjectStructureLow",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getObjectStructureLow.test.ts"
+  },
+  {
     "tool": "GetObjectsByType",
     "passed": true,
     "detail": "src/tools/read/__tests__/getObjectsByType.test.ts"

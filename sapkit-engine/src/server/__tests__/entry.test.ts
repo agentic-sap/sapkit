@@ -63,6 +63,7 @@ describe('셰임 계약', () => {
         'GetNodeStructureLow',
         'GetObjectInfo',
         'GetObjectStructure',
+        'GetObjectStructureLow',
         'GetObjectsByType',
         'GetPackageContents',
         'GetPackageTree',
