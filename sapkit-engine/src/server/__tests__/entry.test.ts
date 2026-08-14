@@ -50,6 +50,7 @@ describe('셰임 계약', () => {
         'GetAbapAST',
         'GetAbapSemanticAnalysis',
         'GetAbapSystemSymbols',
+        'GetEnhancements',
         'GetInactiveObjects',
         'GetInclude',
         'GetInstalledComponents',
