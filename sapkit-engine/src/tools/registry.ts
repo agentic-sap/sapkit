@@ -192,8 +192,19 @@ import { releaseTransport } from './write/releaseTransport';
 // 묶음: metadata-extension
 
 // 묶음: gui-status
+import { getGuiStatusList } from './read/getGuiStatusList';
+import { readGuiStatus } from './rfc-read/readGuiStatus';
+import { getGuiStatus } from './rfc-read/getGuiStatus';
+import { createGuiStatus } from './write/createGuiStatus';
+import { updateGuiStatus } from './write/updateGuiStatus';
+import { patchGuiStatus } from './write/patchGuiStatus';
 
 // 묶음: text-element
+import { getTextElement } from './rfc-read/getTextElement';
+import { readTextElementsBulk } from './rfc-read/readTextElementsBulk';
+import { createTextElement } from './write/createTextElement';
+import { updateTextElement } from './write/updateTextElement';
+import { writeTextElementsBulk } from './write/writeTextElementsBulk';
 
 // 묶음: atc
 import { getAtcFindings } from './read/getAtcFindings';
@@ -203,6 +214,11 @@ import { getPackage } from './read/getPackage';
 import { getPackageContents } from './read/getPackageContents';
 
 // 묶음: screen
+import { getScreensList } from './read/getScreensList';
+import { readScreen } from './rfc-read/readScreen';
+import { getScreen } from './rfc-read/getScreen';
+import { createScreen } from './write/createScreen';
+import { updateScreen } from './write/updateScreen';
 
 // 묶음: service-definition
 
@@ -382,8 +398,19 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: metadata-extension — 메타데이터 확장 (DDLX) (순서 18)
 
   // 묶음: gui-status — GUI 상태 (순서 19)
+  getGuiStatusList,
+  readGuiStatus,
+  getGuiStatus,
+  createGuiStatus,
+  updateGuiStatus,
+  patchGuiStatus,
 
   // 묶음: text-element — 텍스트 엘리먼트 (순서 20)
+  getTextElement,
+  readTextElementsBulk,
+  createTextElement,
+  updateTextElement,
+  writeTextElementsBulk,
 
   // 묶음: atc — ATC (순서 21)
   getAtcFindings,
@@ -393,6 +420,11 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getPackageContents,
 
   // 묶음: screen — 화면 (순서 23)
+  getScreensList,
+  readScreen,
+  getScreen,
+  createScreen,
+  updateScreen,
 
   // 묶음: service-definition — 서비스 정의 (순서 24)
 
