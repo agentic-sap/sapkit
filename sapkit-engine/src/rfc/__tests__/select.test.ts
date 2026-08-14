@@ -69,8 +69,19 @@ describe('selectRfcBackend — SAP_RFC_BACKEND 하나가 통로를 고른다', (
     );
   });
 
-  it('M1에서 실제로 구현된 통로는 odata 하나뿐이라고 선언한다', () => {
-    expect([...IMPLEMENTED_RFC_BACKENDS]).toEqual(['odata']);
+  it('지어진 통로가 다섯 전량이라고 선언한다', () => {
+    // M1은 odata 하나였다. 오프라인 대량 제작 판이 나머지 넷을 지었다.
+    // 이 목록이 곧 `createRfcChannel`의 분기 집합이므로 둘이 어긋나면 안 된다.
+    expect([...IMPLEMENTED_RFC_BACKENDS].sort()).toEqual(
+      ['gateway', 'native', 'odata', 'soap', 'zrfc'].sort(),
+    );
+  });
+
+  it('이름 목록과 구현 목록이 어긋나지 않는다', () => {
+    // 여섯째 이름이 추가되고 구현이 빠지면 여기서 먼저 붉어진다.
+    for (const name of IMPLEMENTED_RFC_BACKENDS) {
+      expect(RFC_BACKEND_NAMES).toContain(name);
+    }
   });
 });
 

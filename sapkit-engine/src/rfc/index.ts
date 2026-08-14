@@ -7,8 +7,12 @@
  */
 
 import { RfcError } from './errors';
+import { createGatewayChannel } from './gateway';
+import { createNativeChannel } from './native';
 import { createODataChannel } from './odata';
 import { IMPLEMENTED_RFC_BACKENDS, selectRfcBackend } from './select';
+import { createSoapChannel } from './soap';
+import { createZrfcChannel } from './zrfc';
 import type { DdicReadChannel, RfcBackendName, RfcChannel } from './types';
 
 export { RfcError, rfcKindFromStatus } from './errors';
@@ -16,6 +20,18 @@ export type { RfcErrorInit, RfcErrorKind } from './errors';
 
 export { createODataChannel } from './odata';
 export type { ODataChannelOptions } from './odata';
+
+export { createSoapChannel } from './soap';
+export type { SoapChannelOptions } from './soap';
+
+export { createNativeChannel } from './native';
+export type { NativeChannelOptions } from './native';
+
+export { createGatewayChannel } from './gateway';
+export type { GatewayChannelOptions } from './gateway';
+
+export { createZrfcChannel } from './zrfc';
+export type { ZrfcChannelOptions } from './zrfc';
 
 export {
   DEFAULT_RFC_BACKEND,
@@ -63,12 +79,31 @@ export function createRfcChannel(options: RfcChannelOptions): RfcChannel {
   if (!IMPLEMENTED_RFC_BACKENDS.includes(backend)) {
     throw unsupported(backend);
   }
-  return createODataChannel({
-    connection: options.connection,
-    env: options.env,
+
+  // 이음매(`transport`·`now`)는 **받는 통로에만** 넘긴다. `native`는 HTTP를
+  // 타지 않아 둘 다 없고, `gateway`는 토큰 캐시가 없어 시계를 쓰지 않는다.
+  // 없는 자리에 스프레드로 밀어 넣으면 exactOptionalPropertyTypes가 잡는다.
+  const seam = {
     ...(options.transport ? { transport: options.transport } : {}),
     ...(options.now ? { now: options.now } : {}),
-  });
+  };
+
+  switch (backend) {
+    case 'soap':
+      return createSoapChannel({ connection: options.connection, env: options.env, ...seam });
+    case 'native':
+      return createNativeChannel({ connection: options.connection, env: options.env });
+    case 'gateway':
+      return createGatewayChannel({
+        connection: options.connection,
+        env: options.env,
+        ...(options.transport ? { transport: options.transport } : {}),
+      });
+    case 'zrfc':
+      return createZrfcChannel({ connection: options.connection, env: options.env, ...seam });
+    case 'odata':
+      return createODataChannel({ connection: options.connection, env: options.env, ...seam });
+  }
 }
 
 /**

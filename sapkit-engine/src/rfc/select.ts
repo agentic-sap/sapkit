@@ -31,8 +31,11 @@ import type { RfcBackendName } from './types';
  * 말하는데, 정작 선택기의 분기와 오류 문구에는 없어서 `SAP_RFC_BACKEND=zrfc`는
  * "알 수 없는 값"으로 거부된다(현행 배포 번들
  * `interactive/server/server.bundle.cjs:112130`에서도 동일). 신 엔진은 결정
- * D-079 ②(5경로 전량 재제작)에 맞춰 `zrfc`를 **유효한 이름으로 인정**하고,
- * 아직 짓지 않았다는 사실은 `backend-unsupported`로 정직하게 알린다.
+ * D-079 ②(5경로 전량 재제작)에 맞춰 `zrfc`를 **유효한 이름으로 인정**한다.
+ * M1에서는 아직 짓지 않았다는 사실을 `backend-unsupported`로 알렸고, 오프라인
+ * 대량 제작 판이 실동작 구현을 넣어 지금은 그 이름이 실제 통로로 이어진다.
+ * **구 엔진(=현행 제품)의 배선 구멍 자체는 그대로 남는다** — 교체 전까지
+ * `zrfc`는 제품에서 쓸 수 없다(장부 D9).
  */
 export const RFC_BACKEND_NAMES: readonly RfcBackendName[] = [
   'odata',
@@ -45,8 +48,28 @@ export const RFC_BACKEND_NAMES: readonly RfcBackendName[] = [
 /** 키가 없거나 비었을 때의 통로. */
 export const DEFAULT_RFC_BACKEND: RfcBackendName = 'odata';
 
-/** M1이 실제로 지은 통로. 나머지는 후속 마일스톤이다. */
-export const IMPLEMENTED_RFC_BACKENDS: readonly RfcBackendName[] = ['odata'];
+/**
+ * 실제로 지은 통로. **지금은 다섯 전량이다.**
+ *
+ * M1은 `odata` 하나였고, 오프라인 대량 제작 판이 나머지 넷을 지었다. 목록이
+ * 전량이 되어 `backend-unsupported` 경로는 지금 도달 불가능하지만 **지우지
+ * 않는다** — 여섯째 이름이 `RFC_BACKEND_NAMES`에만 추가되고 구현이 빠지는
+ * 순간, 그 이름을 조용히 `odata`로 흘려보내는 대신 정직하게 실패시켜야 하기
+ * 때문이다. 이 목록이 그 방어의 유일한 자리다.
+ *
+ * **주의 — 실행 경로까지 오프라인으로 닫힌 것은 아니다.** 다섯 전부 통로 생성
+ * 계약(필수 설정 확인 시점 · 오류 종류 · 타임아웃)까지 시험돼 있으나, 실제
+ * 디스패치는 SAP 접속을 요구해 미뤄져 있다. `native`는 그에 더해 네이티브
+ * 애드온(`node-rfc`)이 이 머신에 없어 실행 구간이 관찰되지 않았고(장부 D21),
+ * `zrfc`는 SAP 측 `ZRFC` 오브젝트를 요구한다(장부 D22).
+ */
+export const IMPLEMENTED_RFC_BACKENDS: readonly RfcBackendName[] = [
+  'odata',
+  'soap',
+  'native',
+  'gateway',
+  'zrfc',
+];
 
 /** 통로를 고르는 유일한 키. */
 export const RFC_BACKEND_ENV_KEY = 'SAP_RFC_BACKEND';
