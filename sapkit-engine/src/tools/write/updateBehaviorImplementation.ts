@@ -59,7 +59,14 @@ import * as z from 'zod';
 import type { AdtClient } from '../../adt';
 import { defineTool } from '../../server/toolDefinition';
 import type { ToolContext } from '../../server/toolDefinition';
-import { bimpCheckUri, bimpObjectUri, bimpReadUri, vendorCheckErrors, vendorCheckFailed } from './behaviorUri';
+import {
+  bimpCheckUri,
+  bimpImplementationsPath,
+  bimpObjectUri,
+  bimpReadUri,
+  vendorCheckErrors,
+  vendorCheckFailed,
+} from './behaviorUri';
 import {
   ACCEPT_SOURCE,
   CT_ACTIVATION,
@@ -194,7 +201,7 @@ export const updateBehaviorImplementation = defineTool(
         // 4 — 호출자의 코드가 실리는 유일한 자리.
         await client.request({
           method: 'PUT',
-          path: `${objectUri}/includes/implementations`,
+          path: bimpImplementationsPath(className),
           params: { lockHandle: lock.handle, corrNr: args.transport_request },
           body: args.implementation_code,
           contentType: CT_SOURCE,
