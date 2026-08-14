@@ -458,5 +458,10 @@
     "tool": "UpdateView",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateView.test.ts"
+  },
+  {
+    "tool": "WriteTextElementsBulk",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/writeTextElementsBulk.test.ts"
   }
 ]
