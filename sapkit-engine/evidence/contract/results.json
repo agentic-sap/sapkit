@@ -90,6 +90,11 @@
     "detail": "src/tools/read/__tests__/getPackageTree.test.ts"
   },
   {
+    "tool": "GetProgFullCode",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getProgFullCode.test.ts"
+  },
+  {
     "tool": "GetProgram",
     "passed": true,
     "detail": "src/tools/read/__tests__/getProgram.test.ts"

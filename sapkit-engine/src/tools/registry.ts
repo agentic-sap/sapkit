@@ -126,6 +126,7 @@ import { getIncludesList } from './read/getIncludesList';
 // 묶음: table
 
 // 묶음: program
+import { getProgFullCode } from './read/getProgFullCode';
 
 // 묶음: function-module
 
@@ -253,6 +254,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: table — 테이블 (순서 7)
 
   // 묶음: program — 프로그램 (순서 8)
+  getProgFullCode,
 
   // 묶음: function-module — 함수모듈 (순서 9)
 
