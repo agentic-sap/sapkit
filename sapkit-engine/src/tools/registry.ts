@@ -196,6 +196,7 @@ import { writeTextElementsBulk } from './write/writeTextElementsBulk';
 import { getScreensList } from './read/getScreensList';
 import { readScreen } from './rfc-read/readScreen';
 import { getScreen } from './rfc-read/getScreen';
+import { createScreen } from './write/createScreen';
 
 // 묶음: service-definition
 
@@ -375,6 +376,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getScreensList,
   readScreen,
   getScreen,
+  createScreen,
 
   // 묶음: service-definition — 서비스 정의 (순서 24)
 
