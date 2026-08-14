@@ -134,6 +134,7 @@ import { updateTable } from './write/updateTable';
 
 // 묶음: structure
 import { readStructure } from './read/readStructure';
+import { createStructure } from './write/createStructure';
 import { updateStructure } from './write/updateStructure';
 
 // 묶음: view
@@ -268,6 +269,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
 
   // 묶음: structure — 구조체 (순서 10)
   readStructure,
+  createStructure,
   updateStructure,
 
   // 묶음: view — 뷰 (순서 11)
