@@ -130,6 +130,11 @@
     "detail": "src/tools/read/__tests__/getAbapSystemSymbols.test.ts"
   },
   {
+    "tool": "GetAdtTypes",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getAdtTypes.test.ts"
+  },
+  {
     "tool": "GetAtcFindings",
     "passed": true,
     "detail": "src/tools/read/__tests__/getAtcFindings.test.ts"
