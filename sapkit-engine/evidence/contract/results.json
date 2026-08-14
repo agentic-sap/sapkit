@@ -115,6 +115,11 @@
     "detail": "src/tools/write/__tests__/deleteClass.test.ts"
   },
   {
+    "tool": "DeleteDataElement",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteDataElement.test.ts"
+  },
+  {
     "tool": "DeleteDomain",
     "passed": true,
     "detail": "src/tools/write/__tests__/deleteDomain.test.ts"
