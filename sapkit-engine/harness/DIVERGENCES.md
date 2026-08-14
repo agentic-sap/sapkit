@@ -1840,3 +1840,40 @@ D번호를 주지 않는 이유가 그것이다. 그래도 장부에 두는 이�
 - **기계 장부 미반영**: 이 묶음 과제는 `harness/replay/**`가 무접촉이라
   `divergences.ts`에 옮기지 못했다. **요청 헤더 한 줄의 값이 달라지므로 기계
   장부에도 와야 하는 항목**이다 — 묶음 병합 뒤 오케스트레이터가 옮긴다.
+
+### D132 — `GetBadiImplementations`의 **ECC 브리지가 없다** (D61과 같은 결, 통로가 하나뿐이라 더 무겁다)
+
+- **분류**: 축소 — **해소 마일스톤 = `src/rfc`의 OData 통로에 FunctionImport
+  `DdicBadi`를 여는 자리.** D61이 여는 DDIC 4종과 같은 작업 묶음이다.
+- **구 동작(실측)**: 이 도구의 유일한 통로가 ECC 브리지다. 겉 핸들러가
+  `callDdicBadi`를 부르고
+  (`engine/src/handlers/enhancement/readonly/handleGetBadiImplementations.ts:100-105`)
+  그것은 `engine/src/lib/rfcBackend.ts:123-126`을 거쳐
+  `engine/src/lib/odataRfc.ts:511-537`의 `postFunctionImport('DdicBadi', …)`로
+  내려간다. 인자는 `IV_BADI_DEFINITION`·`IV_CUSTOMER_ONLY`·`IV_ACTIVE_ONLY`·
+  `IV_INCLUDE_METHODS`이고 불리언은 `'X'`/`''`로 실린다. **S/4HANA 경로는 구에도
+  없다** — `SAP_VERSION !== 'ECC'`면 겉 핸들러가 안내 문구만 돌려준다(`:83-89`).
+- **신 동작**: 갈래를 정직하게 둘로 나눈다.
+  ⑴ ECC가 **아니면** 구의 문구를 **글자 그대로** 돌려준다(이 갈래는 구와 완전히
+  같다). ⑵ ECC**면** 브리지 부재를 알리고 멈춘다 — 문구가 브리지 함수모듈
+  이름과 이 항목 번호(D132)를 지목한다. **어느 갈래에서도 접속을 만들지 않는다.**
+- **근거**: 신 엔진의 OData 통로가 가진 FunctionImport는 셋뿐이고
+  (`src/rfc/odata.ts:54` — `Dispatch`·`Textpool`·`DdicTablRead`), DDIC 읽기
+  능력도 `callDdicTablRead` 하나다(`src/rfc/types.ts:72-78`). `DdicBadi`를 여는
+  일은 `src/rfc/**`를 고치는 작업이고 이 묶음 과제의 무접촉 구역이다.
+  **조용히 ADT로 흘려보내지 않는 이유**는 D61과 같다 — ECC 커널(BASIS < 7.50)에는
+  `datapreview`·`ddic`·`enhsxsb` 엔드포인트가 없어서 그 404가 "BAdI가 없다"로
+  읽힌다. 없는 것은 BAdI가 아니라 엔드포인트다.
+- **⚠ D61과 다른 점**: 데이터 엘리먼트·도메인은 비-ECC에서 ADT 직통이 **살아
+  있지만**, 이 도구는 통로가 브리지 하나뿐이라 **어느 시스템에서도 성공 응답을
+  낼 수 없다.** 대장에 「증거 있음」으로 잡히더라도 그것은 "두 거절 갈래가
+  옳다"는 증거다.
+- **대체 기대 시험**:
+  `sapkit-engine/src/tools/read/__tests__/getBadiImplementations.test.ts` —
+  「ECC가 아닌 갈래」 6건(구 문구 글자 일치 + `' ECC '`가 갈리지 않는 것) ·
+  「ECC 갈래」 4건(문구가 `ZMCP_ADT_DDIC_BADI`·`DdicBadi`·`D132`를 지목 +
+  **접속 시도 0회**) · 「인자 갈래」 1건.
+- **기계 장부 미반영**: 이 묶음 과제는 `harness/replay/**`가 무접촉이라
+  `divergences.ts`에 옮기지 못했다. **도구 응답이 달라지는 항목**이다(ECC
+  시스템에서 구는 브리지 결과를, 신은 거절을 답한다) — 묶음 병합 뒤
+  오케스트레이터가 옮긴다.

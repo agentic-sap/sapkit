@@ -119,12 +119,15 @@ describe('계약 시험 증거 — 시험 파일의 존재 + 실행 결과', () 
   const engineRoot = path.resolve(__dirname, '../../..');
 
   it('도구별 계약 시험 파일을 찾는다', () => {
-    const found = findContractTestFiles(path.join(engineRoot, 'src', 'tools'), ['GetClass', 'CreateProgram', 'GetBadiImplementations']);
+    // 세 번째 이름은 **아직 안 지은 도구**여야 한다. `GetBadiImplementations`가
+    // 여기 있었으나 `tail-read` 묶음에서 지어져 물러났고, 같은 꼬리 물결의
+    // `DeleteLocalMacros`로 갈아 끼웠다.
+    const found = findContractTestFiles(path.join(engineRoot, 'src', 'tools'), ['GetClass', 'CreateProgram', 'DeleteLocalMacros']);
 
     expect(found.get('GetClass')).toMatch(/getClass\.test\.ts$/);
     expect(found.get('CreateProgram')).toMatch(/createProgram\.test\.ts$/);
     // 아직 짓지 않은 도구는 계약 시험 파일도 없다.
-    expect(found.has('GetBadiImplementations')).toBe(false);
+    expect(found.has('DeleteLocalMacros')).toBe(false);
   });
 
   it('jest 실행 결과를 도구별 통과로 옮긴다', () => {

@@ -140,6 +140,11 @@
     "detail": "src/tools/read/__tests__/getAtcFindings.test.ts"
   },
   {
+    "tool": "GetBadiImplementations",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getBadiImplementations.test.ts"
+  },
+  {
     "tool": "GetBehaviorDefinition",
     "passed": true,
     "detail": "src/tools/read/__tests__/getBehaviorDefinition.test.ts"
