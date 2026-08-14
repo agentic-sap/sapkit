@@ -470,6 +470,11 @@
     "detail": "src/tools/write/__tests__/updateProgram.test.ts"
   },
   {
+    "tool": "UpdateServiceBinding",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateServiceBinding.test.ts"
+  },
+  {
     "tool": "UpdateServiceDefinition",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateServiceDefinition.test.ts"
