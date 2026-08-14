@@ -121,6 +121,7 @@ import { reloadProfile } from './runtime/reloadProfile';
 // 묶음: include
 
 // 묶음: class
+import { getClassMethod } from './read/getClassMethod';
 import { readClass } from './read/readClass';
 
 // 묶음: table
@@ -249,6 +250,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
 
   // 묶음: class — 클래스 (순서 6)
   readClass,
+  getClassMethod,
 
   // 묶음: table — 테이블 (순서 7)
 

@@ -45,6 +45,11 @@
     "detail": "src/tools/read/__tests__/getClass.test.ts"
   },
   {
+    "tool": "GetClassMethod",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getClassMethod.test.ts"
+  },
+  {
     "tool": "GetFunctionModule",
     "passed": true,
     "detail": "src/tools/read/__tests__/getFunctionModule.test.ts"
