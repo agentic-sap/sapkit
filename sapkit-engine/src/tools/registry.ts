@@ -86,6 +86,7 @@ import {
 // 같은 배럴 파일에서 충돌한다. 자기 구획 안에만 더할 것.
 
 // 묶음: system
+import { getAbapAST } from './read/getAbapAST';
 
 // 묶음: search
 
@@ -136,6 +137,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
 
   // 묶음: system — 시스템·공통 조회 (순서 1)
   getInstalledComponents,
+  getAbapAST,
 
   // 묶음: search — 검색 (순서 2)
 

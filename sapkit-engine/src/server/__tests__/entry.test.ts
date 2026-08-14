@@ -46,6 +46,7 @@ describe('셰임 계약', () => {
       const listed = await client.listTools();
       expect(listed.tools.map((t) => t.name).sort()).toEqual([
         'CheckSyntax',
+        'GetAbapAST',
         'GetInactiveObjects',
         'GetInclude',
         'GetInstalledComponents',
