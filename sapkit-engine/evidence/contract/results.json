@@ -140,6 +140,11 @@
     "detail": "src/tools/read/__tests__/getFunctionModule.test.ts"
   },
   {
+    "tool": "GetGuiStatus",
+    "passed": true,
+    "detail": "src/tools/rfc-read/__tests__/getGuiStatus.test.ts"
+  },
+  {
     "tool": "GetGuiStatusList",
     "passed": true,
     "detail": "src/tools/read/__tests__/getGuiStatusList.test.ts"
