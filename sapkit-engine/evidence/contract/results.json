@@ -55,6 +55,11 @@
     "detail": "src/tools/write/__tests__/createProgram.test.ts"
   },
   {
+    "tool": "CreateServiceBinding",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createServiceBinding.test.ts"
+  },
+  {
     "tool": "CreateServiceDefinition",
     "passed": true,
     "detail": "src/tools/write/__tests__/createServiceDefinition.test.ts"

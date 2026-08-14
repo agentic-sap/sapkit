@@ -173,6 +173,7 @@ import { getServiceBinding } from './read/getServiceBinding';
 import { listServiceBindingTypes } from './read/listServiceBindingTypes';
 import { readServiceBinding } from './read/readServiceBinding';
 import { validateServiceBinding } from './read/validateServiceBinding';
+import { createServiceBinding } from './write/createServiceBinding';
 import { updateServiceBinding } from './write/updateServiceBinding';
 
 // 묶음: domain
@@ -358,6 +359,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   listServiceBindingTypes,
   validateServiceBinding,
   updateServiceBinding,
+  createServiceBinding,
 
   // 묶음: domain — 도메인 (순서 16)
   createDomain,

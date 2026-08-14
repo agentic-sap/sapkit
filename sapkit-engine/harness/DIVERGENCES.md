@@ -1297,6 +1297,44 @@
   `harness/replay/divergences.ts`로 옮겨야 한다. 이 과제는 `harness/replay/**`가
   무접촉이다.
 
+### D105 — `CreateServiceBinding`이 활성화 **거짓 성공**을 성공으로 접지 않는다
+
+- **분류**: 수리
+- **구 동작(실측)**: 생성 사슬의 활성화 응답을 **누구도 읽지 않는다.** 저수준
+  `activateServiceBinding`(`@babamba2/…/core/service/AdtService.js:613-635`)이
+  응답을 그대로 돌려주고, 사슬 `create()`(`:190-266`)는 그것을
+  `state.activateResult`에 담기만 하며, 구 핸들러
+  (`engine/src/handlers/service_binding/high/handleCreateServiceBinding.ts:126-182`)는
+  그 값을 아예 보지 않고 `activated: args.activate !== false`로 **인자를 그대로
+  메아리친다.** SAP은 활성화 실패를 **HTTP 200 + `<chkl:msg type="E">`** 로
+  돌려주므로, 활성화되지 않은 바인딩이 `success: true` · `activated: true`로
+  보고된다.
+- **신 동작**: 활성화 응답의 `E`/`A`/`X` 메시지를 실패로 판정해 오류로 되돌린다.
+  문구에 모든 오류를 줄번호와 함께 담고, "바인딩은 인액티브 판으로 SAP에 남아
+  있다"는 사실을 함께 적는다. `W`만 있으면 구와 같이 성공이다.
+  **활성화 뒤에 오던 세 요청(활성 판 읽기 · 생성정보 조회 · 활성 판 검사)은 그
+  실패로 나가지 않는다** — 실패 경로에서 요청 시퀀스가 구보다 짧아진다.
+- **근거**: D2 · D41 · D56 · D66 · D73 · D103과 **같은 계열**이고, 판정 자리는
+  `src/tools/write/shared.ts`의 `parseActivationMessages`·`activationErrors`에
+  이미 하나로 모여 있다. 같은 과제가 지은 세 계열 중 서비스 정의(SRVD)만 벤더가
+  막고 있었으므로(`core/serviceDefinition/activation.js:22-73`), 나머지 둘을
+  그대로 두면 한 표면 안에서 안전 바닥선이 도구마다 달라진다. 안전 바닥선은
+  자작을 이유로 낮추지 않는다(spec §2.3).
+- **함께 보아야 할 것 (고치지 **않은** 자리)**: 같은 사슬의 구문검사
+  (`checkServiceBinding` — 인액티브·활성 두 번)는 구가 결과를 **읽지 않고 버린다**
+  (`create()`가 `state`에 담기만 한다). 그것은 "활성화됐다"는 주장과 달리 성공을
+  참칭하는 자리가 아니므로 **구 그대로 버린다.** 여기까지 손대면 등재되지 않은
+  동작 변경이 된다.
+- **대체 기대 시험**:
+  `sapkit-engine/src/tools/write/__tests__/createServiceBinding.test.ts`의
+  「D105 — 200에 실려 온 활성화 오류를 성공으로 접지 않는다」 ·
+  「경고만 있는 활성화는 성공이다」(구 동작이 유지되는 쪽을 함께 못박는다) ·
+  「구문검사 결과는 구 그대로 버린다」.
+- **해소 마일스톤**: 없음 — 영구 차이(수리)다.
+- **기계 장부 미반영**: **도구 응답과 요청 시퀀스 둘 다** 달라지므로 병합 뒤
+  `harness/replay/divergences.ts`로 옮겨야 한다. 이 과제는 `harness/replay/**`가
+  무접촉이다 — 옮기지 않은 채 재생을 켜면 이 갈래가 가짜 실패로 잡힌다.
+
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 
 리뷰에서 차이로 잡혔지만 **유지할 이유가 없어** 구 동작으로 되돌린 것들.
