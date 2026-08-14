@@ -86,6 +86,39 @@
  *   D83~D90·D96·D97·D102)** — 병렬 제작의 번호 예약 구간을 다 쓰지 않은 자리다.
  *   차이가 아니므로 판정 대상도 아니다.
  *
+ * ### D110~D132 중 옮기지 않은 것 — **마지막 반영이 쓴 같은 가름선**
+ *
+ * 꼬리 묶음 셋(삭제 계열 25종 · `tail-test` · `tail-read`)이 쌓아 둔 분량이다.
+ * **위 가름선을 그대로 썼고 새 규칙을 만들지 않았다.**
+ *
+ * - **D112** — 삭제 넷의 클라우드(JWT) 거절 갈래. **인증 계층**이고 JWT 채록분이
+ *   없다 — D91과 같은 자리이며 지목자도 「안 옮긴다」로 판단했다.
+ * - **D113** — `DeleteGuiStatus`·`DeleteScreen`의 잠금 손잡이 부재 갈래.
+ *   **D92의 범위 확장이고 D92와 같은 판정이다.** 잠금 응답에 `LOCK_HANDLE`이
+ *   없다는 것은 **비정상 SAP 상태**이고, 채록된 구 응답은 그냥 성공이라 그 자리를
+ *   가리키는 표식이 없다. 등재하면 `applies`가 두 도구 전체를 덮는다. 지금은 그
+ *   갈래가 나면 걸리는 등재가 없어 `mismatch`(결함)로 사람에게 올라간다 — D92가
+ *   고른 방향 그대로다.
+ * - **D123** — 함수그룹 잠금 응답의 `sap-adt-lm-handle` 헤더 경로. 채록된 실 SAP
+ *   응답은 본문에 손잡이를 싣는 형태라 이 갈래가 대조에 나타나지 않는다.
+ *   지목자 판단과 같다.
+ * - **D124** — 함수그룹 콘텐츠 타입 협상 캐시. 갈리는 것은 **discovery 왕복 한
+ *   번**뿐이고 협상 결과와 헤더는 같다 — D52와 같은 모양이며 픽스처는 왕복을
+ *   담지 않는다.
+ * - **D131** — `*Low` 두 도구의 `sap-adt-connection-id` **요청 헤더 값**.
+ *   D62·D72와 같은 요청 쪽 와이어다. 지목자는 "기계 장부에도 와야 한다"고 적었으나
+ *   **이 판은 옮기지 않았다** — 픽스처에 요청 헤더가 없어 발동할 자리가 없고,
+ *   채록 쪽 표식도 없어 `applies`가 두 도구 전체로 넓어진다. 값이 실제로 응답을
+ *   가른다면 그때 신이 옳다는 증명이 없으므로 **결함으로 잡히는 쪽이 옳다**.
+ *
+ * ### D33 재판정 — 전제가 깨졌으나 판정은 그대로다
+ *
+ * D33을 「안 옮김」으로 판정한 근거는 둘이었다: ⑴ 캐시를 **얹는** 도구들의 자기
+ * 응답은 그대로다, ⑵ 그것을 **읽는** `GetObjectNodeFromCache`가 등록점에 없다.
+ * ⑵는 그 도구가 지어지며 깨졌다. 그래도 **D33 자신은 오지 않는다** — ⑴이 그대로고,
+ * 관측되는 결과(캐시 적중 응답이 사라진다)를 지목한 항목이 **D130**이기 때문이다.
+ * 사람용 장부의 D130 본문도 "옮길 때 D33이 아니라 이 D130을 옮겨라"라고 적었다.
+ *
  * ## 여기 실린 것
  *
  *   - D1·D2·D3 — spec §2.4의 M1 사전 등재 3건 (도구 단위)
@@ -104,6 +137,18 @@
  *     축소분이라 **이연**(`check: null`)이다.
  *   - **D77** — 인핸스먼트 두 도구의 `type:'json'` 그릇 (D36의 같은 규칙).
  *   - **D81** — `CreateTransport` 성공 응답의 이송번호.
+ *   - **D111·D114·D120·D121·D122·D125** — **활성화 거짓 성공 계열의 마지막 여섯**
+ *     (지역 인클루드 비우기 넷 · 텍스트요소 삭제 · CDS 단위시험 · 지역 정의 ·
+ *     지역 매크로 · 도메인 갱신). D114는 D93의, D121·D122는 D2·D41의 범위 확장이다.
+ *   - **D115** — `DeleteServiceBinding`의 **삭제 거짓 성공**. 활성화가 아니라
+ *     `del:isDeleted="false"`를 성공으로 접던 자리라 검사가 따로다.
+ *   - **D110** — 삭제 셋(`DeleteTable`·`DeleteDomain`·`DeleteDataElement`)의 구
+ *     ECC 우회로. D61과 같은 `path: 'ecc-odata-rfc'` 표식을 쓰고 축소분이라
+ *     **이연**(`check: null`)이다.
+ *   - **D130** — `GetObjectNodeFromCache`. 구의 **캐시 적중** 응답이 신에는
+ *     존재하지 않는다. 축소분이라 **이연**이며 D33의 관측 가능한 결과를 대신 진다.
+ *   - **D132** — `GetBadiImplementations`의 ECC 브리지 부재. D110·D61과 같은 표식,
+ *     같은 **이연**.
  *
  * ### 활성화 거짓 성공 계열을 왜 열로 갈랐는가
  *
@@ -118,6 +163,15 @@
  * 않으므로 배열 순서가 판정을 정하지 않는다. 집합에서 실제로 뺀 것도 있다 —
  * `CreateTable`(D56)은 활성화를 부르지 않고, `WriteTextElementsBulk`(D93)는
  * TPOOL RFC 한 번으로 끝난다.
+ *
+ * **마지막 반영도 같은 방침을 이었다**(D111·D114·D121·D122·D125). 예외가 하나
+ * 있다 — **D120(`UpdateCdsUnitTest`)에는 채록 쪽 활성화 표식이 없다.** 구 응답에
+ * `activated` 키도 "activated successfully" 문구도 없기 때문이다
+ * (`engine/src/handlers/unit_test/high/handleUpdateCdsUnitTest.ts:98-107`). 대신
+ * 구 벤더가 `activateOnUpdate: true`를 박아 두어 **활성화를 부르지 않는 성공
+ * 갈래가 아예 없으므로**, 그 도구에서는 「구가 성공이라 답했다」가 곧 활성화
+ * 주장이다. 그래서 `applies`가 성공 갈래 전체를 든다 — D1·D2·D3·D38·D40이 이미
+ * 쓰는 모양이고, 오류 갈래는 그대로 대조된다.
  *
  * ## 새로 온 것들이 지키는 두 가지
  *
@@ -559,6 +613,67 @@ const D100_TOOLS: ReadonlySet<string> = new Set(['UpdateBehaviorImplementation']
 const D103_TOOLS: ReadonlySet<string> = new Set(['CreateMetadataExtension', 'UpdateMetadataExtension']);
 /** D105 — 서비스 바인딩 생성. */
 const D105_TOOLS: ReadonlySet<string> = new Set(['CreateServiceBinding']);
+
+// ── D110~D132 — 꼬리 묶음 셋이 쌓아 둔 차이 (**마지막 반영**) ───────────────
+
+/**
+ * D110 — 구가 ECC 우회로를 갖던 삭제 셋.
+ *
+ * `DeleteStructure`·`DeleteView`는 여기 없다 — **구 안에서도 그 갈래를 갖지
+ * 않는다**(사람용 장부 D110 본문). 넣으면 우회로와 무관한 차이까지 덮는다.
+ */
+const D110_TOOLS: ReadonlySet<string> = new Set(['DeleteTable', 'DeleteDomain', 'DeleteDataElement']);
+/** D111 — 지역 인클루드를 비우는 삭제 넷(`src/tools/write/internal/classIncludeClear.ts`). */
+const D111_TOOLS: ReadonlySet<string> = new Set([
+  'DeleteLocalDefinitions',
+  'DeleteLocalMacros',
+  'DeleteLocalTestClass',
+  'DeleteLocalTypes',
+]);
+/** D114 — D93의 범위 확장. 그 항목의 일곱에 없던 삭제 하나다. */
+const D114_TOOLS: ReadonlySet<string> = new Set(['DeleteTextElement']);
+/** D121 — 지역 정의 갱신. */
+const D121_TOOLS: ReadonlySet<string> = new Set(['UpdateLocalDefinitions']);
+/** D122 — 지역 매크로 갱신. */
+const D122_TOOLS: ReadonlySet<string> = new Set(['UpdateLocalMacros']);
+/** D125 — 도메인 갱신. 짝인 `CreateDomain`은 요구 급이 attended라 이 항목 밖이다. */
+const D125_TOOLS: ReadonlySet<string> = new Set(['UpdateDomain']);
+
+/**
+ * D115 — 구 `DeleteServiceBinding`이 실어 보낸 삭제 응답이 **「안 지웠다」**고
+ * 말하는가. 이것이 이 차이의 채록 쪽 표식이다.
+ *
+ * 구 겉 핸들러는 삭제 서비스의 본문을 `payload`에 그대로 싣는다
+ * (`engine/src/handlers/service_binding/high/handleDeleteServiceBinding.ts:66-81`).
+ * `response_format`이 `xml`이면 `attributeNamePrefix: ''`로 파싱돼
+ * `"del:isDeleted": "false"`가 되고, `plain`이면 원문 그대로
+ * `del:isDeleted=\"false\"`가 남는다. **두 모양을 다 잡는다.**
+ *
+ * `"true"`인 응답은 실제로 지운 것이므로 이 차이가 아니다 — 그대로 대조된다.
+ */
+const OLD_NOT_DELETED = /isDeleted["'\\]*\s*[:=]\s*["'\\]*false/i;
+
+/** 신 엔진이 삭제 거짓 성공을 되돌릴 때 짓는 문구(`src/tools/write/internal/deletion.ts`). */
+const NEW_DELETION_FAILURE = /deletion failed:/i;
+
+/**
+ * D115의 대체 기대 시험 — 활성화 계열과 **같은 모양의 재대조**다.
+ *
+ * "신이 오류로 답했다"만으로는 부족하다. 잠금 충돌·403도 같은 모양이 되므로,
+ * 신 쪽 문구가 **삭제 실패를 이름으로 말하는지**까지 본다.
+ */
+const deletionVerdict: SubstituteCheck = ({ actual }) => {
+  if (!actual.isError) {
+    return { ok: false, detail: '신 엔진도 성공으로 답했다 — 삭제 거짓 성공을 되돌리는 갈래가 아니다.' };
+  }
+  if (!NEW_DELETION_FAILURE.test(collectText(actual.response))) {
+    return {
+      ok: false,
+      detail: '신 엔진이 오류로 답했으나 삭제 실패를 말하지 않는다 — 다른 이유로 막힌 것이고 등재된 차이가 아니다.',
+    };
+  }
+  return { ok: true, detail: '구가 "지웠다"고 답한 자리에서 신 엔진이 삭제 실패를 이름으로 되돌렸다.' };
+};
 
 /** D77 — 구가 `type:'json'`으로 싣던 인핸스먼트 도구 둘. `GetEnhancements`는 구도 text였다. */
 const ENHANCEMENT_JSON_TOOLS: ReadonlySet<string> = new Set(['GetEnhancementSpot', 'GetEnhancementImpl']);
@@ -1204,6 +1319,197 @@ export const M1_DIVERGENCES: readonly DivergenceEntry[] = [
     resolvesIn: null,
     applies: claimedActivation(D105_TOOLS),
     check: activationVerdict,
+  },
+
+  // ── D110~D132 (꼬리 묶음 셋의 반영분 — 마지막 반영) ────────────────────────
+
+  {
+    id: 'D110',
+    title: '표·도메인·데이터 엘리먼트 삭제의 ECC 우회로가 없다 — 접속 전에 거절한다',
+    // 도구 셋에 걸린다. `tool`은 한 이름만 담으므로 null로 두고 `applies`가 집합을 든다.
+    tool: null,
+    classification: '축소',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d110 · sapkit-engine/src/tools/write/internal/deletion.ts · ' +
+      'engine/src/handlers/table/high/handleDeleteTable.ts · ' +
+      'engine/src/handlers/domain/high/handleDeleteDomain.ts · ' +
+      'engine/src/handlers/data_element/high/handleDeleteDataElement.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/deleteTable.test.ts · ' +
+      'sapkit-engine/src/tools/write/__tests__/deleteDomain.test.ts · ' +
+      'sapkit-engine/src/tools/write/__tests__/deleteDataElement.test.ts — 각 「D110 — ECC」 절',
+    resolvesIn: 'RFC **쓰기** 브리지를 짓는 판 (D61이 여는 DDIC 읽기·생성과 같은 묶음)',
+    // D61과 같은 표식이다 — 구 ECC 갈래만 `path: 'ecc-odata-rfc'`를 싣는다.
+    // ADT 갈래는 그 자국이 없으므로 등재 밖이고 그대로 대조된다.
+    applies: (step) => D110_TOOLS.has(step.tool) && !step.isError && usedOldEccBridge(step.response),
+    // **이연**이다(D61·D37과 같은 모양). 축소분이 옳다는 것을 재생이 증명할 수 없다.
+    check: null,
+  },
+  {
+    id: 'D111',
+    title: '지역 인클루드 삭제 넷 — 부모 클래스 활성화의 거짓 성공을 접지 않는다',
+    tool: null,
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d111 · sapkit-engine/src/tools/write/internal/classIncludeClear.ts · ' +
+      'engine/src/handlers/class/high/handleDeleteLocalTestClass.ts · ' +
+      'engine/src/handlers/class/high/handleDeleteLocalDefinitions.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/localIncludeClearSupport.ts — 「D111」 두 건 · ' +
+      'sapkit-engine/src/tools/write/__tests__/deleteLocalTestClass.test.ts · ' +
+      'sapkit-engine/src/tools/write/__tests__/deleteLocalDefinitions.test.ts · ' +
+      'sapkit-engine/src/tools/write/__tests__/deleteLocalMacros.test.ts · ' +
+      'sapkit-engine/src/tools/write/__tests__/deleteLocalTypes.test.ts',
+    resolvesIn: null,
+    // 구는 `activated: activate_on_delete`를 그대로 실었다 — `activate_on_delete:false`로
+    // 부른 단계는 걸리지 않고 그대로 대조된다.
+    applies: claimedActivation(D111_TOOLS),
+    check: activationVerdict,
+  },
+  {
+    id: 'D114',
+    title: 'DeleteTextElement — 부모 프로그램 활성화의 거짓 성공을 접지 않는다 (D93의 범위 확장)',
+    tool: 'DeleteTextElement',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d114 · sapkit-engine/src/tools/write/internal/programScoped.ts · ' +
+      'sapkit-engine/src/tools/write/deleteTextElement.ts · ' +
+      'engine/src/handlers/text_element/high/handleDeleteTextElement.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/deleteTextElement.test.ts — 「D114」 절 (오류면 실패 · 경고만이면 성공)',
+    resolvesIn: null,
+    // D93의 일곱과 **겹치지 않는다** — 그 항목 본문이 열거한 여덟에 이 도구는 없었다.
+    applies: claimedActivation(D114_TOOLS),
+    check: activationVerdict,
+  },
+  {
+    id: 'D115',
+    title: 'DeleteServiceBinding — 삭제 응답의 거짓 성공을 성공으로 접지 않는다',
+    tool: 'DeleteServiceBinding',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d115 · sapkit-engine/src/tools/write/deleteServiceBinding.ts · ' +
+      'sapkit-engine/src/tools/write/internal/deletion.ts · ' +
+      'engine/src/handlers/service_binding/high/handleDeleteServiceBinding.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/deleteServiceBinding.test.ts — ' +
+      '「D115」 두 건(`isDeleted="false"`면 실패 · `"true"`면 성공)',
+    resolvesIn: null,
+    // 구가 「지웠다」고 답했으나 본문은 아니라고 말한 단계에만 걸린다. 실제로
+    // 지운 응답은 이 차이가 아니므로 그대로 대조된다.
+    applies: (step) =>
+      step.tool === 'DeleteServiceBinding' && !step.isError && OLD_NOT_DELETED.test(collectText(step.response)),
+    check: deletionVerdict,
+  },
+  {
+    id: 'D120',
+    title: 'UpdateCdsUnitTest — 활성화 거짓 성공을 성공으로 접지 않는다',
+    tool: 'UpdateCdsUnitTest',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d120 · sapkit-engine/src/tools/write/updateCdsUnitTest.ts · ' +
+      'engine/src/handlers/unit_test/high/handleUpdateCdsUnitTest.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/updateCdsUnitTest.test.ts — 「D120」 절',
+    resolvesIn: null,
+    // **이 계열에서 유일하게 채록 표식이 없다.** 구 응답에 `activated` 키도
+    // "activated successfully" 문구도 없기 때문이다(구 핸들러 `:98-107`). 대신
+    // 구 벤더가 `activateOnUpdate: true`를 박아 두어 활성화를 부르지 않는 성공
+    // 갈래가 없으므로, 이 도구에서는 **성공이 곧 활성화 주장**이다. 오류 갈래는
+    // 등재 밖이고 그대로 대조된다.
+    applies: (step) => step.tool === 'UpdateCdsUnitTest' && !step.isError,
+    check: activationVerdict,
+  },
+  {
+    id: 'D121',
+    title: 'UpdateLocalDefinitions — activate_on_update의 거짓 성공을 고쳤다',
+    tool: 'UpdateLocalDefinitions',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d121 · sapkit-engine/src/tools/write/updateLocalDefinitions.ts · ' +
+      'engine/src/handlers/class/high/handleUpdateLocalDefinitions.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/updateLocalDefinitions.test.ts — 「D121」 절',
+    resolvesIn: null,
+    applies: claimedActivation(D121_TOOLS),
+    check: activationVerdict,
+  },
+  {
+    id: 'D122',
+    title: 'UpdateLocalMacros — activate_on_update의 거짓 성공을 고쳤다',
+    tool: 'UpdateLocalMacros',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d122 · sapkit-engine/src/tools/write/updateLocalMacros.ts · ' +
+      'engine/src/handlers/class/high/handleUpdateLocalMacros.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/updateLocalMacros.test.ts — 「D122」 절',
+    resolvesIn: null,
+    applies: claimedActivation(D122_TOOLS),
+    check: activationVerdict,
+  },
+  {
+    id: 'D125',
+    title: 'UpdateDomain — 활성화 거짓 성공을 성공으로 접지 않는다',
+    tool: 'UpdateDomain',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d125 · sapkit-engine/src/tools/write/updateDomain.ts · ' +
+      'engine/src/handlers/domain/high/handleUpdateDomain.ts',
+    substituteTest: 'sapkit-engine/src/tools/write/__tests__/updateDomain.test.ts — 「D125」 절',
+    resolvesIn: null,
+    // 구는 `activate:false`면 문구에서 " and activated"를 뺀다 — 그 단계는
+    // 걸리지 않고 그대로 대조된다.
+    applies: claimedActivation(D125_TOOLS),
+    check: activationVerdict,
+  },
+  {
+    id: 'D130',
+    title: 'GetObjectNodeFromCache — 도구 사이 캐시가 없어 언제나 「캐시에 없다」로 답한다',
+    tool: 'GetObjectNodeFromCache',
+    classification: '축소',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d130 · sapkit-engine/src/tools/read/getObjectNodeFromCache.ts · ' +
+      'engine/src/handlers/system/readonly/handleGetObjectNodeFromCache.ts · ' +
+      'engine/src/lib/getObjectsListCache.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/read/__tests__/getObjectNodeFromCache.test.ts — ' +
+      '「캐시 없음 갈래」 3건(문구 일치 + 접속 시도 0회) · 「인자 갈래」 4건',
+    resolvesIn: '도구 사이 캐시의 자리(프로세스 전역이냐 접속 수명이냐)를 정하고 채우는 다섯 도구를 함께 고치는 판',
+    // 구의 **캐시 적중** 성공에만 걸린다. 빈-캐시 갈래(`isError` + `Node not found
+    // in cache`)는 신이 글자까지 같으므로 등재 밖이고 그대로 대조된다 — 그 문구가
+    // 달라지면 결함으로 잡혀야 한다.
+    applies: (step) => step.tool === 'GetObjectNodeFromCache' && !step.isError,
+    // **이연**이다. 축소분이 옳다는 것을 재생이 증명할 수 없다 — 「캐시에 없다」가
+    // 옳다는 말은 캐시를 여는 판이 내릴 판정이다.
+    check: null,
+  },
+  {
+    id: 'D132',
+    title: 'GetBadiImplementations — ECC 브리지가 없어 ECC에서도 거절한다',
+    tool: 'GetBadiImplementations',
+    classification: '축소',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d132 · sapkit-engine/src/tools/read/getBadiImplementations.ts · ' +
+      'engine/src/handlers/enhancement/readonly/handleGetBadiImplementations.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/read/__tests__/getBadiImplementations.test.ts — ' +
+      '「ECC가 아닌 갈래」 6건 · 「ECC 갈래」 4건(접속 시도 0회) · 「인자 갈래」 1건',
+    resolvesIn: '`src/rfc`의 OData 통로에 FunctionImport `DdicBadi`를 여는 판 (D61의 DDIC 4종과 같은 묶음)',
+    // 비-ECC 갈래는 구와 글자까지 같은 거절이라 등재 밖이다 — `path:'ecc-odata-rfc'`를
+    // 실은 ECC 성공에만 걸린다(D61·D110과 같은 표식).
+    applies: (step) => step.tool === 'GetBadiImplementations' && !step.isError && usedOldEccBridge(step.response),
+    check: null,
   },
 ];
 
