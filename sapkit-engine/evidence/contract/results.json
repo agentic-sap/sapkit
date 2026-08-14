@@ -95,6 +95,11 @@
     "detail": "src/tools/runtime/__tests__/runtimeGetDumpById.test.ts"
   },
   {
+    "tool": "RuntimeGetGatewayErrorLog",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeGetGatewayErrorLog.test.ts"
+  },
+  {
     "tool": "RuntimeGetProfilerTraceData",
     "passed": true,
     "detail": "src/tools/runtime/__tests__/runtimeGetProfilerTraceData.test.ts"

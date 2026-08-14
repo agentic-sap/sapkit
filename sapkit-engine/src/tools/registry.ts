@@ -96,6 +96,7 @@ import { runtimeAnalyzeDump } from './runtime/runtimeAnalyzeDump';
 import { runtimeAnalyzeProfilerTrace } from './runtime/runtimeAnalyzeProfilerTrace';
 import { runtimeCreateProfilerTraceParameters } from './runtime/runtimeCreateProfilerTraceParameters';
 import { runtimeGetDumpById } from './runtime/runtimeGetDumpById';
+import { runtimeGetGatewayErrorLog } from './runtime/runtimeGetGatewayErrorLog';
 import { runtimeGetProfilerTraceData } from './runtime/runtimeGetProfilerTraceData';
 import { runtimeListDumps } from './runtime/runtimeListDumps';
 import { runtimeListProfilerTraceFiles } from './runtime/runtimeListProfilerTraceFiles';
@@ -156,4 +157,5 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   runtimeGetProfilerTraceData,
   runtimeAnalyzeProfilerTrace,
   runtimeCreateProfilerTraceParameters,
+  runtimeGetGatewayErrorLog,
 ];

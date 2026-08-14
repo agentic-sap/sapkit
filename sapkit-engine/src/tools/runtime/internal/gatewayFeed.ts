@@ -244,19 +244,25 @@ export function parseGatewayErrors(xml: string): GatewayErrorEntry[] {
   });
 }
 
+/**
+ * 값의 타입이 `string`이 아니라 `string | number`인 자리들이 있다. 태그 값은
+ * 파서가 숫자로 바꾸므로(`parseTagValue` 기본 참) `<client>100</client>`는
+ * 숫자 `100`으로 실린다. 구 인터페이스는 `string`이라 적어 두었지만 **런타임
+ * 값은 숫자였고 그대로 직렬화됐다** — 여기서는 타입을 실측에 맞춘다.
+ */
 export interface GatewayErrorDetail {
   readonly type: string;
-  readonly shortText: string;
-  readonly transactionId: string;
-  readonly package: string;
-  readonly applicationComponent: string;
-  readonly dateTime: string;
-  readonly username: string;
-  readonly client: string;
-  readonly requestKind: string;
+  readonly shortText: string | number;
+  readonly transactionId: string | number;
+  readonly package: string | number;
+  readonly applicationComponent: string | number;
+  readonly dateTime: string | number;
+  readonly username: string | number;
+  readonly client: string | number;
+  readonly requestKind: string | number;
   readonly serviceInfo: Record<string, string>;
   readonly errorContext: {
-    readonly errorInfo: string;
+    readonly errorInfo: string | number;
     readonly resolution: Record<string, unknown>;
     readonly exceptions: ReadonlyArray<{ type: string; text: string; raiseLocation: string }>;
   };
@@ -280,7 +286,19 @@ export interface GatewayErrorDetail {
 const record = (value: unknown): Record<string, unknown> =>
   value !== null && typeof value === 'object' ? (value as Record<string, unknown>) : {};
 
+/** 속성에서 온 값 — 파서가 속성은 문자열로 두므로 이쪽은 정말 문자열이다. */
 const str = (value: unknown): string => (typeof value === 'string' ? value : '');
+
+/**
+ * 구의 `a ?? b ?? ''` 그대로 — **타입을 강제하지 않는다.** 태그 값이 숫자로
+ * 파싱된 자리를 문자열로 눌러 담으면 구와 다른 응답이 된다.
+ */
+const firstDefined = (...candidates: unknown[]): string | number => {
+  for (const candidate of candidates) {
+    if (candidate !== undefined && candidate !== null) return candidate as string | number;
+  }
+  return '';
+};
 
 /**
  * 상세 XML 파싱 (`runtimeFeedsHelper.ts:493-576`).
@@ -331,16 +349,17 @@ export function parseGatewayErrorDetail(xml: string): GatewayErrorDetail {
 
   return {
     type: str(root['@_type']),
-    shortText: str(root['errorlog:shortText'] ?? root['shortText']),
-    transactionId: str(root['errorlog:transactionId'] ?? root['transactionId']),
-    package: str(root['errorlog:package'] ?? root['package']),
-    applicationComponent: str(
-      root['errorlog:applicationComponent'] ?? root['applicationComponent'],
+    shortText: firstDefined(root['errorlog:shortText'], root['shortText']),
+    transactionId: firstDefined(root['errorlog:transactionId'], root['transactionId']),
+    package: firstDefined(root['errorlog:package'], root['package']),
+    applicationComponent: firstDefined(
+      root['errorlog:applicationComponent'],
+      root['applicationComponent'],
     ),
-    dateTime: str(root['errorlog:dateTime'] ?? root['dateTime']),
-    username: str(root['errorlog:username'] ?? root['username']),
-    client: str(root['errorlog:client'] ?? root['client']),
-    requestKind: str(root['errorlog:requestKind'] ?? root['requestKind']),
+    dateTime: firstDefined(root['errorlog:dateTime'], root['dateTime']),
+    username: firstDefined(root['errorlog:username'], root['username']),
+    client: firstDefined(root['errorlog:client'], root['client']),
+    requestKind: firstDefined(root['errorlog:requestKind'], root['requestKind']),
     serviceInfo: {
       namespace: str(serviceInfo['@_namespace']),
       serviceName: str(serviceInfo['@_serviceName']),
@@ -350,9 +369,9 @@ export function parseGatewayErrorDetail(xml: string): GatewayErrorDetail {
       destination: str(serviceInfo['@_destination']),
     },
     errorContext: {
-      errorInfo: str(
-        record(root['errorlog:errorContext'])['errorlog:errorInfo'] ??
-          record(root['errorContext'])['errorInfo'],
+      errorInfo: firstDefined(
+        record(root['errorlog:errorContext'])['errorlog:errorInfo'],
+        record(root['errorContext'])['errorInfo'],
       ),
       resolution: {},
       exceptions,
