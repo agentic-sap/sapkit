@@ -12,6 +12,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 import type { JsonValue, SequenceStep } from '../../recorder';
+import { loadCapturedToolNames } from '../coverage';
 import { LedgerError, M1_DIVERGENCES, assertLedgerWellFormed, divergencesFor, withSubstituteChecks } from '../divergences';
 import type { DivergenceEntry } from '../divergences';
 import { compareErrorSignatures, errorSignature } from '../errorSignature';
@@ -892,6 +893,508 @@ describe('D61 — 데이터 엘리먼트·도메인의 ECC 우회로가 없다',
     );
 
     expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-deferred', divergenceId: 'D61' });
+    expect(result.verdict).toBe('no-evidence');
+  });
+});
+
+// ── D110~D132의 기계 장부 반영 (**마지막 반영**) ─────────────────────────────
+//
+// 꼬리 묶음 셋(삭제 계열 25종 · `tail-test` · `tail-read`)이 `harness/replay/**`를
+// 무접촉으로 갖고 있어 사람용 장부에만 쌓인 마지막 분량이다. 2차 반영이 좁혀 둔
+// 가름선을 **그대로** 쓴다 — 「재생 대조가 보는 표면(도구 호출·응답·`isError`)에
+// 나타나는가」. 새 규칙을 만들지 않았다.
+
+/** 이번에 옮긴 것. 사람용 장부의 D 번호를 그대로 쓴다. */
+const MOVED_110_132: readonly string[] = [
+  'D110',
+  'D111',
+  'D114',
+  'D115',
+  'D120',
+  'D121',
+  'D122',
+  'D125',
+  'D130',
+  'D132',
+];
+
+/** 판정해서 **안 옮긴** 것. 장부에 항목은 있으나 기계 장부에는 오지 않는다. */
+const NOT_MOVED_110_132: readonly string[] = ['D112', 'D113', 'D123', 'D124', 'D131'];
+
+/** 구 ECC 브리지가 답한 자국 — D110(삭제 셋)·D132(BAdI)가 함께 쓰는 표식. */
+const OLD_ECC_BRIDGE = {
+  success: true,
+  path: 'ecc-odata-rfc',
+  table_name: 'ZTDEMO',
+  transport_request: null,
+  message: 'Table ZTDEMO deleted successfully (ECC fallback via OData).',
+};
+
+/** 구 `DeleteServiceBinding`이 「지웠다」고 답했으나 본문은 아니라고 말하는 응답. */
+const OLD_NOT_DELETED = {
+  success: true,
+  service_binding_name: 'ZSB_DEMO',
+  response_format: 'xml',
+  status: 200,
+  payload: {
+    'del:deletionResult': {
+      'del:object': { 'del:isDeleted': 'false', 'del:message': { 'del:text': 'Binding is published' } },
+    },
+  },
+};
+
+/** 같은 도구가 실제로 지운 응답 — 등재 밖이므로 그대로 대조된다. */
+const OLD_DELETED = {
+  ...OLD_NOT_DELETED,
+  payload: { 'del:deletionResult': { 'del:object': { 'del:isDeleted': 'true' } } },
+};
+
+/** 신 엔진이 삭제 거짓 성공을 되돌린 응답. */
+const NEW_DELETION_FAILED = envelope('Error: Service binding deletion failed: Binding is published', true);
+
+/** 구 `UpdateCdsUnitTest`의 성공 응답 — **`activated` 키도 문구도 없다.** */
+const OLD_CDS_UNIT_TEST_OK = {
+  success: true,
+  class_name: 'ZCL_DEMO',
+  test_class_state: { testClassCode: 'CLASS ltcl_x DEFINITION.', lockHandle: 'LH1', errors: [] },
+  message: 'CDS unit test class ZCL_DEMO updated successfully.',
+};
+
+/** 신 엔진이 활성화 실패를 되돌린 클래스 계열 문구. */
+const NEW_CLASS_ACTIVATION_FAILED = envelope(
+  'Activation failed: class ZCL_DEMO was not activated (1 error): [L3] Field ZZZ is unknown. ' +
+    'The source is on SAP as an inactive version; the active version is unchanged.',
+  true,
+);
+
+describe('D110~D132 판정 — 마지막 반영', () => {
+  it('D110 이후로 옮긴 것은 열뿐이다', () => {
+    const moved = M1_DIVERGENCES.map((e) => e.id).filter((id) => numberOf(id) >= 110 && numberOf(id) <= 132);
+    expect(moved).toEqual([...MOVED_110_132]);
+  });
+
+  it('접속 계층·와이어에만 남는 차이는 옮기지 않았다', () => {
+    for (const id of NOT_MOVED_110_132) expect(M1_DIVERGENCES.find((e) => e.id === id)).toBeUndefined();
+  });
+
+  /**
+   * **D33 재판정.** 2차 반영이 D33을 「안 옮김」으로 판정한 근거는 "읽는 도구가
+   * 등록점에 없다"였고 그 전제는 깨졌다(`GetObjectNodeFromCache`가 지어졌다).
+   * 그래도 D33 자신은 오지 않는다 — 캐시를 **얹던** 다섯 도구의 자기 응답은
+   * 그대로이기 때문이다. 관측되는 결과를 지목한 D130이 그 자리를 받는다.
+   */
+  it('D33은 여전히 기계 장부 밖이고, 그 자리를 D130이 받았다', () => {
+    expect(M1_DIVERGENCES.find((e) => e.id === 'D33')).toBeUndefined();
+    expect(M1_DIVERGENCES.find((e) => e.id === 'D130')).toBeDefined();
+  });
+
+  it('새 항목을 얹은 뒤에도 장부는 잘 형성돼 있다', () => {
+    expect(() => assertLedgerWellFormed(M1_DIVERGENCES)).not.toThrow();
+  });
+
+  /** 하드 게이트 — **없는 대체 기대 시험을 있다고 적지 않는다.** */
+  it('새 항목의 대체 기대 시험은 산문이 아니라 실재하는 파일이다', () => {
+    const bad: string[] = [];
+    for (const id of MOVED_110_132) {
+      const entry = M1_DIVERGENCES.find((e) => e.id === id);
+      if (entry === undefined) {
+        bad.push(`${id} — 장부에 없다`);
+        continue;
+      }
+      const tokens = entry.substituteTest?.match(PATHLIKE) ?? [];
+      const real = tokens.filter((token) => fs.existsSync(path.join(REPO_ROOT, token)));
+      if (real.length === 0) bad.push(`${id} — 실재하는 시험 파일이 없다`);
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('새 항목의 근거 경로도 전부 실재한다', () => {
+    const missing: string[] = [];
+    for (const id of MOVED_110_132) {
+      const entry = M1_DIVERGENCES.find((e) => e.id === id);
+      if (entry === undefined) continue;
+      for (const token of entry.evidence.match(PATHLIKE) ?? []) {
+        if (!fs.existsSync(path.join(REPO_ROOT, token))) missing.push(`${id} — ${token}`);
+      }
+    }
+    expect(missing).toEqual([]);
+  });
+});
+
+describe('과등재 역검증 — 표면 186종을 대표 응답 모양으로 훑는다', () => {
+  /**
+   * 성공 갈래의 대표 모양들. **한 단계에 두 등재가 겹치면 배열 순서가 판정을
+   * 정한다**(머리주석 규칙 ①) — 그 일이 표면 어디에서도 일어나지 않는지를
+   * 도구 이름 186개 전량으로 훑어 못박는다.
+   */
+  const SUCCESS_SHAPES: readonly JsonValue[] = [
+    envelope('평문 성공'),
+    jsonEnvelope({ any: 'body' }),
+    textEnvelope(OLD_ACTIVATED),
+    textEnvelope({ success: true, message: 'Domain ZD_DEMO updated and activated successfully' }),
+    textEnvelope(OLD_ECC_BRIDGE),
+    textEnvelope(OLD_NOT_DELETED),
+    textEnvelope(OLD_DELETED),
+    textEnvelope(OLD_CDS_UNIT_TEST_OK),
+    textEnvelope({ success: true, message: 'Transport request unknown created successfully' }),
+  ];
+
+  /** 오류 갈래의 대표 모양들. **새 항목은 어느 것에도 걸리면 안 된다.** */
+  const ERROR_SHAPES: readonly JsonValue[] = [
+    envelope('boom', true),
+    envelope('MCP error -32602: object_name is required', true),
+    envelope('Basic authentication requires SAP_CLIENT to be provided', true),
+    envelope('Node not found in cache', true),
+  ];
+
+  const SURFACE = loadCapturedToolNames();
+
+  it('표면 채록본이 186종을 준다', () => {
+    expect(SURFACE.length).toBe(186);
+  });
+
+  it('성공 갈래의 어떤 모양에서도 두 등재가 겹치지 않는다', () => {
+    const clashes: string[] = [];
+    for (const tool of SURFACE) {
+      for (const [shape, response] of SUCCESS_SHAPES.entries()) {
+        const ids = idsIn(step({ index: 0, tool, response }));
+        if (ids.length > 1) clashes.push(`${tool} · 모양 ${shape} — ${ids.join('+')}`);
+      }
+    }
+    expect(clashes).toEqual([]);
+  });
+
+  it('새 항목은 오류 단계에 하나도 걸리지 않는다 — 구가 성공이라 답한 자리만 등재다', () => {
+    const wrong: string[] = [];
+    for (const tool of SURFACE) {
+      for (const response of ERROR_SHAPES) {
+        for (const id of idsIn(step({ index: 0, tool, isError: true, response }))) {
+          if (MOVED_110_132.includes(id)) wrong.push(`${tool} — ${id}`);
+        }
+      }
+    }
+    expect(wrong).toEqual([]);
+  });
+});
+
+describe('D110 — 삭제 셋의 ECC 우회로가 없다', () => {
+  it('구가 ECC 브리지로 답한 세 도구의 단계에만 걸린다', () => {
+    for (const tool of ['DeleteTable', 'DeleteDomain', 'DeleteDataElement']) {
+      expect(idsIn(step({ index: 0, tool, response: textEnvelope(OLD_ECC_BRIDGE) }))).toEqual(['D110']);
+    }
+    // 브리지 자국이 없는 ADT 갈래는 등재 밖이다 — 그대로 대조된다.
+    expect(
+      idsIn(step({ index: 0, tool: 'DeleteTable', response: textEnvelope({ success: true, table_name: 'ZTDEMO' }) })),
+    ).toEqual([]);
+    // 구에도 ECC 우회로가 없던 형제 삭제는 이 항목 밖이다.
+    expect(idsIn(step({ index: 0, tool: 'DeleteStructure', response: textEnvelope(OLD_ECC_BRIDGE) }))).toEqual([]);
+    expect(idsIn(step({ index: 0, tool: 'DeleteView', response: textEnvelope(OLD_ECC_BRIDGE) }))).toEqual([]);
+  });
+
+  it('축소분이라 재생은 통과가 아니라 무증거로 센다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'DeleteTable', response: textEnvelope(OLD_ECC_BRIDGE) })]);
+    const result = await replaySequence(
+      fixture,
+      target([
+        {
+          payload: envelope('Error: DeleteTable on SAP_VERSION=ECC is not supported (divergence D110).', true),
+          isError: true,
+        },
+      ]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-deferred', divergenceId: 'D110' });
+    expect(result.verdict).toBe('no-evidence');
+  });
+
+  it('ADT 갈래의 차이는 등재가 덮어 주지 않는다', async () => {
+    const adt = { success: true, table_name: 'ZTDEMO' };
+    const fixture = recorded([step({ index: 0, tool: 'DeleteTable', response: textEnvelope(adt) })]);
+    const result = await replaySequence(fixture, target([{ payload: textEnvelope({ ...adt, table_name: 'ZTOTHER' }) }]));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'mismatch', divergenceId: null });
+  });
+});
+
+describe('활성화 거짓 성공 계열 — 꼬리 묶음이 더한 다섯', () => {
+  /** 한 항목이 맡는 도구들. 사람용 장부가 그 항목 본문에 적은 집합 그대로다. */
+  const FAMILY_110_132: ReadonlyArray<readonly [string, readonly string[]]> = [
+    ['D111', ['DeleteLocalDefinitions', 'DeleteLocalMacros', 'DeleteLocalTestClass', 'DeleteLocalTypes']],
+    ['D114', ['DeleteTextElement']],
+    ['D121', ['UpdateLocalDefinitions']],
+    ['D122', ['UpdateLocalMacros']],
+    ['D125', ['UpdateDomain']],
+  ];
+
+  it('각 도구의 "활성화됨" 성공 단계는 자기 항목 하나에만 걸린다', () => {
+    for (const [id, tools] of FAMILY_110_132) {
+      for (const tool of tools) {
+        expect(idsIn(step({ index: 0, tool, response: textEnvelope(OLD_ACTIVATED) }))).toEqual([id]);
+      }
+    }
+  });
+
+  it('활성화를 주장하지 않은 단계는 등재 밖이다 — 여전히 대조된다', async () => {
+    const quiet = {
+      success: true,
+      class_name: 'ZCL_DEMO',
+      activated: false,
+      message: 'Local test class deleted successfully from ZCL_DEMO.',
+    };
+    expect(idsIn(step({ index: 0, tool: 'DeleteLocalTestClass', response: textEnvelope(quiet) }))).toEqual([]);
+
+    const fixture = recorded([step({ index: 0, tool: 'DeleteLocalTestClass', response: textEnvelope(quiet) })]);
+    const result = await replaySequence(
+      fixture,
+      target([{ payload: textEnvelope({ ...quiet, class_name: 'ZCL_OTHER' }) }]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'mismatch', divergenceId: null });
+  });
+
+  it('차이가 없으면 발동하지 않는다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'UpdateDomain', response: textEnvelope(OLD_ACTIVATED) })]);
+    const result = await replaySequence(fixture, echoTarget(fixture));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'match', divergenceId: null });
+    expect(result.verdict).toBe('pass');
+  });
+
+  it('구의 거짓 성공을 활성화 실패로 되돌리면 통과다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'DeleteTextElement', response: textEnvelope(OLD_ACTIVATED) })]);
+    const result = await replaySequence(
+      fixture,
+      target([
+        {
+          payload: envelope(
+            'Activation failed: program ZPROG was not activated (1 error): [L1] boom. ' +
+              'The text element is cleared on SAP as an inactive version.',
+            true,
+          ),
+          isError: true,
+        },
+      ]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D114' });
+  });
+
+  it('활성화가 아닌 이유로 실패하면 등재가 덮어 주지 않는다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'UpdateLocalMacros', response: textEnvelope(OLD_ACTIVATED) })]);
+    const result = await replaySequence(
+      fixture,
+      target([{ payload: envelope('[423 lock-conflict] SAP Error: class is locked by ZUSER', true), isError: true }]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D122' });
+    expect(result.verdict).toBe('fail');
+  });
+});
+
+describe('D120 — UpdateCdsUnitTest는 성공 갈래 전체가 활성화 주장이다', () => {
+  /**
+   * 이 도구의 구 응답에는 `activated` 키도 "activated successfully" 문구도
+   * **없다**(`handleUpdateCdsUnitTest.ts:98-107`). 그래서 다른 항목이 쓰는 채록
+   * 표식이 걸리지 않는다. 대신 구 벤더가 `activateOnUpdate: true`를 **박아 두어**
+   * 활성화를 부르지 않는 성공 갈래가 아예 없으므로, **「구가 성공이라 답했다」가
+   * 곧 활성화 주장**이다.
+   */
+  it('구 응답에는 활성화 표식이 없는데도 성공 갈래에 걸린다', () => {
+    const text = JSON.stringify(OLD_CDS_UNIT_TEST_OK);
+    expect(text).not.toContain('"activated"');
+    expect(text).not.toContain('activated successfully');
+
+    expect(idsIn(step({ index: 0, tool: 'UpdateCdsUnitTest', response: textEnvelope(OLD_CDS_UNIT_TEST_OK) }))).toEqual([
+      'D120',
+    ]);
+  });
+
+  it('오류 갈래는 등재 밖이다 — 그대로 대조된다', async () => {
+    const fixture = recorded([
+      step({ index: 0, tool: 'UpdateCdsUnitTest', isError: true, response: envelope('Error: locked', true) }),
+    ]);
+    expect(idsIn(fixture.steps[0] as SequenceStep)).toEqual([]);
+
+    const result = await replaySequence(
+      fixture,
+      target([{ payload: envelope('Error: not found', true), isError: true }]),
+    );
+    expect(result.steps[0]?.divergenceId).toBeNull();
+  });
+
+  it('활성화 실패로 되돌리면 통과다', async () => {
+    const fixture = recorded([
+      step({ index: 0, tool: 'UpdateCdsUnitTest', response: textEnvelope(OLD_CDS_UNIT_TEST_OK) }),
+    ]);
+    const result = await replaySequence(fixture, target([{ payload: NEW_CLASS_ACTIVATION_FAILED, isError: true }]));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D120' });
+  });
+
+  it('차이가 없으면 발동하지 않는다', async () => {
+    const fixture = recorded([
+      step({ index: 0, tool: 'UpdateCdsUnitTest', response: textEnvelope(OLD_CDS_UNIT_TEST_OK) }),
+    ]);
+    const result = await replaySequence(fixture, echoTarget(fixture));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'match', divergenceId: null });
+  });
+
+  it('신도 성공인데 본문이 달라지면 등재가 덮어 주지 않는다', async () => {
+    const fixture = recorded([
+      step({ index: 0, tool: 'UpdateCdsUnitTest', response: textEnvelope(OLD_CDS_UNIT_TEST_OK) }),
+    ]);
+    const result = await replaySequence(
+      fixture,
+      target([{ payload: textEnvelope({ ...OLD_CDS_UNIT_TEST_OK, class_name: 'ZCL_OTHER' }) }]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D120' });
+    expect(result.verdict).toBe('fail');
+  });
+});
+
+describe('D115 — DeleteServiceBinding의 삭제 거짓 성공', () => {
+  it('본문이 「안 지웠다」고 말한 성공 단계에만 걸린다', () => {
+    expect(idsIn(step({ index: 0, tool: 'DeleteServiceBinding', response: textEnvelope(OLD_NOT_DELETED) }))).toEqual([
+      'D115',
+    ]);
+    // 실제로 지운 응답은 이 차이가 아니다 — 그대로 대조된다.
+    expect(idsIn(step({ index: 0, tool: 'DeleteServiceBinding', response: textEnvelope(OLD_DELETED) }))).toEqual([]);
+    // 같은 주소를 쓰는 다른 삭제 12종은 구도 이미 판정했으므로 이 항목 밖이다.
+    expect(idsIn(step({ index: 0, tool: 'DeleteClass', response: textEnvelope(OLD_NOT_DELETED) }))).toEqual([]);
+  });
+
+  it('평문 XML로 실린 본문에서도 표식을 읽는다', () => {
+    const raw = {
+      success: true,
+      service_binding_name: 'ZSB_DEMO',
+      payload:
+        '<?xml version="1.0"?><del:deletionResult xmlns:del="http://www.sap.com/adt/deletion">' +
+        '<del:object del:isDeleted="false"/></del:deletionResult>',
+    };
+    expect(idsIn(step({ index: 0, tool: 'DeleteServiceBinding', response: textEnvelope(raw) }))).toEqual(['D115']);
+  });
+
+  it('신이 삭제 실패를 이름으로 되돌리면 통과다', async () => {
+    const fixture = recorded([
+      step({ index: 0, tool: 'DeleteServiceBinding', response: textEnvelope(OLD_NOT_DELETED) }),
+    ]);
+    const result = await replaySequence(fixture, target([{ payload: NEW_DELETION_FAILED, isError: true }]));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D115' });
+    expect(result.verdict).toBe('pass');
+  });
+
+  it('삭제가 아닌 이유로 실패하면 등재가 덮어 주지 않는다', async () => {
+    const fixture = recorded([
+      step({ index: 0, tool: 'DeleteServiceBinding', response: textEnvelope(OLD_NOT_DELETED) }),
+    ]);
+    const result = await replaySequence(
+      fixture,
+      target([{ payload: envelope('[423 lock-conflict] SAP Error: object is locked', true), isError: true }]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D115' });
+  });
+
+  it('신도 성공으로 답하면 등재가 덮어 주지 않는다 — 수리를 요구한다', async () => {
+    const fixture = recorded([
+      step({ index: 0, tool: 'DeleteServiceBinding', response: textEnvelope(OLD_NOT_DELETED) }),
+    ]);
+    const result = await replaySequence(fixture, target([{ payload: textEnvelope(OLD_DELETED) }]));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D115' });
+  });
+});
+
+describe('D130 — GetObjectNodeFromCache는 캐시가 없어 언제나 「없다」로 답한다', () => {
+  const OLD_HIT: JsonValue = {
+    content: [{ type: 'json', json: { OBJECT_TYPE: 'CLAS/OC', OBJECT_NAME: 'ZCL_DEMO', TECH_NAME: 'ZCL_DEMO' } }],
+  };
+  const MISS = envelope('Node not found in cache', true);
+
+  it('구가 캐시 적중으로 답한 단계에만 걸린다 — 빈-캐시 갈래는 그대로 대조된다', () => {
+    expect(idsIn(step({ index: 0, tool: 'GetObjectNodeFromCache', response: OLD_HIT }))).toEqual(['D130']);
+    expect(idsIn(step({ index: 0, tool: 'GetObjectNodeFromCache', isError: true, response: MISS }))).toEqual([]);
+  });
+
+  it('빈-캐시 갈래는 글자까지 같으므로 등재 없이 통과한다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'GetObjectNodeFromCache', isError: true, response: MISS })]);
+    const result = await replaySequence(fixture, echoTarget(fixture));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'match', divergenceId: null });
+  });
+
+  it('빈-캐시 갈래의 문구가 달라지면 등재가 덮어 주지 않는다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'GetObjectNodeFromCache', isError: true, response: MISS })]);
+    const result = await replaySequence(fixture, target([{ payload: envelope('Cache miss', true), isError: true }]));
+
+    expect(result.steps[0]?.divergenceId).toBeNull();
+    expect(result.steps[0]?.verdict).not.toBe('allowlisted-pass');
+  });
+
+  it('축소분이라 재생은 통과가 아니라 무증거로 센다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'GetObjectNodeFromCache', response: OLD_HIT })]);
+    const result = await replaySequence(fixture, target([{ payload: MISS, isError: true }]));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-deferred', divergenceId: 'D130' });
+    expect(result.verdict).toBe('no-evidence');
+  });
+});
+
+describe('D132 — GetBadiImplementations의 ECC 브리지가 없다', () => {
+  const OLD_ECC_BADI = {
+    success: true,
+    path: 'ecc-odata-rfc',
+    badi_definition: 'ZBADI_DEMO',
+    kind: 'BAdI',
+    total_implementations: 1,
+    implementations: [{ impl_name: 'ZIMPL', active: true }],
+  };
+
+  it('구가 ECC 브리지로 답한 단계에만 걸린다', () => {
+    expect(idsIn(step({ index: 0, tool: 'GetBadiImplementations', response: textEnvelope(OLD_ECC_BADI) }))).toEqual([
+      'D132',
+    ]);
+    // 비-ECC 갈래는 구와 글자까지 같은 거절이라 등재 밖이다.
+    expect(
+      idsIn(
+        step({
+          index: 0,
+          tool: 'GetBadiImplementations',
+          isError: true,
+          response: envelope('GetBadiImplementations currently routes through the ECC bridge', true),
+        }),
+      ),
+    ).toEqual([]);
+  });
+
+  it('비-ECC 거절이 글자까지 같으면 등재 없이 통과한다', async () => {
+    const same = envelope('GetBadiImplementations currently routes through the ECC bridge', true);
+    const fixture = recorded([step({ index: 0, tool: 'GetBadiImplementations', isError: true, response: same })]);
+    const result = await replaySequence(fixture, echoTarget(fixture));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'match', divergenceId: null });
+  });
+
+  it('축소분이라 재생은 통과가 아니라 무증거로 센다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'GetBadiImplementations', response: textEnvelope(OLD_ECC_BADI) })]);
+    const result = await replaySequence(
+      fixture,
+      target([
+        {
+          payload: envelope(
+            'GetBadiImplementations on SAP_VERSION=ECC needs the ZMCP_ADT_DDIC_BADI OData bridge ' +
+              '(FunctionImport DdicBadi), which this engine does not implement yet (divergence D132).',
+            true,
+          ),
+          isError: true,
+        },
+      ]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-deferred', divergenceId: 'D132' });
     expect(result.verdict).toBe('no-evidence');
   });
 });

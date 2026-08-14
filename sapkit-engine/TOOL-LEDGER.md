@@ -34,7 +34,7 @@
 | attended 실기 기록 | `fixtures/attended-only/*.json` | 있음 · 2단계 |
 | 계약 시험 결과 | `evidence/contract/results.json` | 있음 · 186종 |
 | 계약 시험 파일 | `src/tools/**/__tests__/<도구>.test.ts` | 있음 · 186종에 시험 파일이 있다 — 있음이 곧 통과는 아니다 |
-| 대체 기대 시험 | `harness/replay/divergences.ts 의 substituteTest 경로` | 있음 · 15종에 실재하는 시험 파일이 있다 |
+| 대체 기대 시험 | `harness/replay/divergences.ts 의 substituteTest 경로` | 있음 · 23종에 실재하는 시험 파일이 있다 |
 | 위임형 판정 | `../engine/src/handlers/**` | 있음 · 소스 559파일을 상대 import까지 따라가 판정 — 직접 46 · 간접 140 · 없음 0 |
 
 ## 안 지음 (0)
@@ -185,11 +185,11 @@
 | DeleteMetadataExtension | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
 | DeleteProgram | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
 | DeleteScreen | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| DeleteServiceBinding | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
+| DeleteServiceBinding | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
 | DeleteServiceDefinition | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
 | DeleteStructure | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
 | DeleteTable | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| DeleteTextElement | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
+| DeleteTextElement | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
 | DeleteUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
 | DeleteView | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
 
@@ -222,25 +222,25 @@
 | GetEnhancements | 인핸스먼트 | 28 | 계약 시험 | — | 통과(1) | — | — | 직접 |
 | GetEnhancementSpot | 인핸스먼트 | 28 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | GetAdtTypes | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
-| GetBadiImplementations | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
+| GetBadiImplementations | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
 | GetCallGraph | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 직접 |
 | GetCdsUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | GetCdsUnitTestResult | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | GetCdsUnitTestStatus | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | GetNodeStructureLow | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 직접 |
-| GetObjectNodeFromCache | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
+| GetObjectNodeFromCache | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
 | GetObjectsList | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 직접 |
 | GetObjectStructureLow | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 직접 |
 | GetVirtualFoldersLow | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 직접 |
 | ReadPackage | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | RuntimeListFeeds | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | RuntimeListSystemMessages | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
-| UpdateCdsUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
+| UpdateCdsUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
 | UpdateDataElement | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 직접 |
-| UpdateDomain | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 직접 |
+| UpdateDomain | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 + 대체 | — | 통과(1) | — | 통과(1) | 직접 |
 | UpdateFunctionGroup | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 직접 |
-| UpdateLocalDefinitions | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
-| UpdateLocalMacros | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
+| UpdateLocalDefinitions | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
+| UpdateLocalMacros | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
 | UpdateUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 
 ## 남은 수 요약
