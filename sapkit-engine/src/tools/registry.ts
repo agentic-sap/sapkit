@@ -127,6 +127,7 @@ import { reloadProfile } from './runtime/reloadProfile';
 // 묶음: program
 
 // 묶음: function-module
+import { readFunctionModule } from './read/readFunctionModule';
 
 // 묶음: structure
 
@@ -253,6 +254,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: program — 프로그램 (순서 8)
 
   // 묶음: function-module — 함수모듈 (순서 9)
+  readFunctionModule,
 
   // 묶음: structure — 구조체 (순서 10)
 
