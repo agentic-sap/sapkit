@@ -440,6 +440,11 @@
     "detail": "src/tools/write/__tests__/updateLocalTypes.test.ts"
   },
   {
+    "tool": "UpdateMetadataExtension",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateMetadataExtension.test.ts"
+  },
+  {
     "tool": "UpdateProgram",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateProgram.test.ts"

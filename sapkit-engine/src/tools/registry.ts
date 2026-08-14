@@ -180,6 +180,7 @@ import { readDomain } from './read/readDomain';
 // 묶음: metadata-extension
 import { getMetadataExtension } from './read/getMetadataExtension';
 import { readMetadataExtension } from './read/readMetadataExtension';
+import { updateMetadataExtension } from './write/updateMetadataExtension';
 
 // 묶음: gui-status
 
@@ -357,6 +358,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: metadata-extension — 메타데이터 확장 (DDLX) (순서 18)
   readMetadataExtension,
   getMetadataExtension,
+  updateMetadataExtension,
 
   // 묶음: gui-status — GUI 상태 (순서 19)
 

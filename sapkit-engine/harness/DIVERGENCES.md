@@ -1240,6 +1240,63 @@
 - **비고**: 같은 결함이 **`UpdateClass`에도 있었고 그쪽은 이 장부에 등재되지
   않은 채 고쳐졌다.** 이 항목을 옮길 때 그 누락도 함께 다뤄야 한다.
 
+### D103 — 메타데이터 확장(DDLX) 쓰기 2종이 활성화 **거짓 성공**을 성공으로 접지 않는다
+
+- **분류**: 수리
+- **대상**: `UpdateMetadataExtension` · `CreateMetadataExtension`
+- **구 동작(실측)**: 이 계열은 활성화 응답을 **누구도 읽지 않는다.** 저수준
+  `activate.js:24-27`이 `activateObjectInSession`의 응답을 그대로 돌려주고,
+  감싸개 `AdtMetadataExtension.js:372-396`도 판정하지 않으며, 두 구 핸들러
+  (`engine/src/handlers/ddlx/high/handleUpdateMetadataExtension.ts:129-139` ·
+  `.../handleCreateMetadataExtension.ts:125-149`)도 `await` 뒤 아무 검사 없이
+  `success: true` · "…and activated successfully"로 답한다. SAP은 활성화 실패를
+  **HTTP 200 + `<chkl:msg type="E">`** 로 돌려주므로, **활성화되지 않은 DDLX가
+  "활성화 성공"으로 보고된다.**
+- **신 동작**: 활성화 응답의 `E`/`A`/`X` 메시지를 실패로 판정해 오류로 되돌린다.
+  문구에 모든 오류를 줄번호와 함께 담고, "소스는 인액티브 버전으로 SAP에 올라가
+  있고 활성 버전은 그대로"라는 사실을 함께 적는다. `W`만 있으면 구와 같이
+  성공이다 — 과잉 거부하지 않는다.
+- **근거**: 사전 등재 D2 · D41 · D56 · D66 · D73과 **같은 계열**이고, 판정 자리는
+  이미 `src/tools/write/shared.ts`의 `parseActivationMessages`·`activationErrors`에
+  하나로 모여 있다. **이웃한 서비스 정의(SRVD)는 벤더가 이미 막는다** —
+  `core/serviceDefinition/activation.js:22-73`이 `chkl:properties`의
+  `activationExecuted`·`checkExecuted`를 보고 아니면 던진다. 같은 과제가 지은 두
+  계열이 같은 실패에 다르게 답하게 두면 표면 안에서 안전 바닥선이 도구마다
+  달라진다. 안전 바닥선은 자작을 이유로 낮추지 않는다(spec §2.3).
+- **대체 기대 시험**:
+  `sapkit-engine/src/tools/write/__tests__/updateMetadataExtension.test.ts`의
+  「D103 — 200에 실려 온 활성화 오류를 성공으로 접지 않는다」 ·
+  「경고만 있는 활성화는 성공이다」(구 동작이 유지되는 쪽을 함께 못박는다) ·
+  `.../createMetadataExtension.test.ts`의 같은 이름 두 절.
+- **해소 마일스톤**: 없음 — 영구 차이(수리)다.
+- **기계 장부 미반영**: `harness/replay/divergences.ts`에는 옮기지 않았다. 이
+  과제는 `harness/replay/**`가 무접촉으로 걸려 있다(여러 묶음이 같은 파일에서
+  충돌한다). **도구 응답이 달라지는 차이이므로 묶음 병합 뒤 한 번에 옮겨야
+  한다** — 옮기지 않은 채 재생을 켜면 이 갈래가 가짜 실패로 잡힌다.
+
+### D104 — `CreateMetadataExtension`이 활성화 실패 뒤 **UNLOCK을 두 번 보내지 않는다**
+
+- **분류**: 수리
+- **구 동작(실측)**: 구 핸들러의 `try` 블록 안에 **해제와 활성화가 함께** 들어
+  있고(`engine/src/handlers/ddlx/high/handleCreateMetadataExtension.ts:110-139`),
+  `catch`가 다시 해제를 시도한다(`:128-136`). 그래서 검사·해제가 성공한 뒤
+  **활성화가 실패하면 이미 풀린 핸들로 UNLOCK이 한 번 더 나간다.** 그 두 번째
+  요청은 SAP이 거절하고, 거절은 `catch` 안에서 로그로 삼켜진 뒤 원래 오류가
+  올라간다 — 즉 결과에는 안 보이고 와이어에만 남는 요청이다.
+- **신 동작**: 잠금 수명주기를 접속 계층의 `withLock`이 소유하므로 해제는 정확히
+  한 번이다. 활성화는 잠금 창 **밖**에서 일어나므로 실패해도 추가 UNLOCK이
+  나가지 않는다.
+- **근거**: 이미 풀린 핸들로 보내는 UNLOCK은 아무것도 되돌리지 않고 실패만
+  한다(구 스스로 그 실패를 삼킨다). 재현하려면 도구가 접속 계층의 잠금 계약을
+  다시 짜야 하는데, 그 계층은 이미 지어진 쓰기 도구 전부가 공유한다.
+- **대체 기대 시험**:
+  `sapkit-engine/src/tools/write/__tests__/createMetadataExtension.test.ts`의
+  「활성화가 실패해도 해제는 한 번뿐이다」 — 요청 순서를 통째로 견준다.
+- **해소 마일스톤**: 없음 — 영구 차이(수리)다.
+- **기계 장부 미반영**: **와이어(요청 시퀀스) 차이**이므로 병합 뒤
+  `harness/replay/divergences.ts`로 옮겨야 한다. 이 과제는 `harness/replay/**`가
+  무접촉이다.
+
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 
 리뷰에서 차이로 잡혔지만 **유지할 이유가 없어** 구 동작으로 되돌린 것들.
