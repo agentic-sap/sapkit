@@ -269,6 +269,7 @@ import { getObjectStructureLow } from './read/getObjectStructureLow';
 import { getObjectNodeFromCache } from './read/getObjectNodeFromCache';
 import { getObjectsList } from './read/getObjectsList';
 import { getVirtualFoldersLow } from './read/getVirtualFoldersLow';
+import { readPackage } from './read/readPackage';
 
 /** 스캐폴드 앵커. 배선 단계가 이 파일을 찾는 표식이다. */
 export const TOOL_REGISTRY_MARKER = 'sapkit-engine/tools/registry' as const;
@@ -499,4 +500,5 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getObjectNodeFromCache,
   getObjectsList,
   getVirtualFoldersLow,
+  readPackage,
 ];

@@ -91,6 +91,7 @@ describe('셰임 계약', () => {
         'ReadFunctionModule',
         'ReadInterface',
         'ReadMetadataExtension',
+        'ReadPackage',
         'ReadServiceBinding',
         'ReadServiceDefinition',
         'ReadStructure',

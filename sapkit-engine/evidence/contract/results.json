@@ -495,6 +495,11 @@
     "detail": "src/tools/read/__tests__/readMetadataExtension.test.ts"
   },
   {
+    "tool": "ReadPackage",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readPackage.test.ts"
+  },
+  {
     "tool": "ReadProgram",
     "passed": true,
     "detail": "src/tools/read/__tests__/readProgram.test.ts"
