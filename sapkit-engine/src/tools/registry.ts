@@ -279,6 +279,7 @@ import { deleteServiceDefinition } from './write/deleteServiceDefinition';
 import { deleteDomain } from './write/deleteDomain';
 import { deleteStructure } from './write/deleteStructure';
 import { deleteTable } from './write/deleteTable';
+import { deleteTextElement } from './write/deleteTextElement';
 import { deleteUnitTest } from './write/deleteUnitTest';
 import { deleteView } from './write/deleteView';
 
@@ -527,6 +528,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   deleteLocalTypes,
   deleteGuiStatus,
   deleteScreen,
+  deleteTextElement,
 
   // 묶음: tail-test — 꼬리 — 단위시험·CDS 단위시험·Update 계열 12종 (순서 29)
 
