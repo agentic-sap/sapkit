@@ -9,13 +9,28 @@
  * 잘라먹었고, 한 번은 줄바꿈 형식 때문에 변형이 적용조차 되지 않았는데 초록으로
  * 보였다. 그래서 여기서는 **변형이 실제로 적용됐는지부터** 확인한다.
  *
+ * ## 부분 완성 판정을 시험하는 방법
+ *
+ * 표면 게이트는 이제 "발행 표면 = M1 19종"이 아니라 **등록점을 기준으로** 판정한다
+ * (`surface.mjs` 머리주석 ⓐ~ⓓ). 그 규칙을 진짜로 시험하려면 "도구 하나만 지은
+ * 상태"·"186종 전부 지은 상태"를 만들어 봐야 하는데, 엔진에 도구를 더했다 뺐다 할
+ * 수는 없다. 그래서 판정을 **순수 함수 `judge`로 떼어** 두고, 여기서 채록본으로부터
+ * 그 상태들을 **합성해** 물린다. 실제 서버를 도는 `run()` 시험은 그대로 남겨
+ * 관찰(발행 표면 채집)과 판정이 이어 붙는지를 따로 확인한다.
+ *
  * PowerShell로 실행할 것.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 import { createReport, firstDifference, tempDir, cleanupTempDirs } from './lib.mjs';
-import { CAPTURED_PATH, run as runSurface } from './surface.mjs';
+import {
+  CAPTURED_PATH,
+  LEDGER_FILE,
+  builtToolsFromLedger,
+  judge,
+  run as runSurface,
+} from './surface.mjs';
 
 const report = createReport('게이트 음성시험');
 
@@ -46,68 +61,347 @@ report.check(
   report.check('하나라도 실패하면 전체가 실패다', verdict === false, `print()가 ${verdict}를 냈다`);
 }
 
-// ── ③ 표면 게이트가 망가진 기준을 잡아내는가 ────────────────────────────────
-const original = JSON.parse(fs.readFileSync(CAPTURED_PATH, 'utf8'));
+const captured = JSON.parse(fs.readFileSync(CAPTURED_PATH, 'utf8'));
+const ALL_TOOLS = Object.keys(captured.tools).sort();
+const CONNECTED_ONLY = captured.connectedOnly;
+
+// ── ③ 대장 파서 — 조용히 비지 않는가 ────────────────────────────────────────
+//
+// ⓓ는 대장의 `지음` 집합을 읽어야 성립한다. 파서가 형식 변화에 조용히 빈 집합을
+// 내면 ⓓ는 "등록점 19 vs 대장 0"으로 시끄럽게 실패한다(fail-closed). 그 성질과,
+// 표 머리줄을 도구로 세지 않는지를 여기서 못 박는다.
+{
+  const parsed = builtToolsFromLedger(fs.readFileSync(LEDGER_FILE, 'utf8'));
+  report.check(
+    '대장에서 상태 3절을 전부 읽는다',
+    parsed.sections.size === 3,
+    `읽은 절 [${[...parsed.sections].map((title) => `「${title}」`).join(' ')}]`,
+  );
+  report.check(
+    '대장의 `지음` + `안 지음` 이 채록본 전량과 같다',
+    parsed.built.size + parsed.notBuilt.size === ALL_TOOLS.length &&
+      [...parsed.built, ...parsed.notBuilt].every((tool) => captured.tools[tool] !== undefined),
+    `지음 ${parsed.built.size} · 안 지음 ${parsed.notBuilt.size} · 채록본 ${ALL_TOOLS.length}`,
+  );
+  report.check(
+    '표 머리줄·구분줄을 도구로 세지 않는다',
+    !parsed.built.has('도구') && !parsed.notBuilt.has('도구') && !parsed.built.has('---'),
+  );
+
+  const junk = builtToolsFromLedger('# 형식이 바뀐 대장\n\n아무 표도 없다.\n');
+  report.check(
+    '형식이 바뀌면 절을 못 읽었다고 답한다 (조용히 통과하지 않는다)',
+    junk.sections.size !== 3 && junk.built.size === 0,
+    `절 ${junk.sections.size}개 · 지음 ${junk.built.size}종`,
+  );
+}
+
+// ── ④⑤ 판정 규칙 자체 — 채록본에서 상태를 합성해 물린다 ────────────────────
+
+/**
+ * 등록점에 `names`만 올라 있고, 발행 표면·대장이 그와 정확히 맞는 **성한 상태**를
+ * 채록본으로부터 합성한다. 음성시험은 이 성한 상태를 한 군데만 비틀어 쓴다.
+ */
+function scenario(names) {
+  const registered = [...names].sort();
+  const set = new Set(registered);
+  const observed = {};
+  for (const [key, condition] of Object.entries(captured.exposures)) {
+    observed[key] = condition.names
+      .filter((name) => set.has(name))
+      .map((name) => JSON.parse(JSON.stringify(captured.tools[name])));
+  }
+  return {
+    captured,
+    observed,
+    registered,
+    ledger: {
+      built: new Set(registered),
+      notBuilt: new Set(ALL_TOOLS.filter((name) => !set.has(name))),
+      sections: new Set(['안 지음', '지음 · 증거 대기', '증거 있음']),
+    },
+  };
+}
+
+function verdictOf(state) {
+  const probe = createReport('판정');
+  judge({ ...state, report: probe });
+  return probe.failed;
+}
+
+function expectPass(label, state) {
+  const failed = verdictOf(state);
+  report.check(
+    `${label} → 통과한다`,
+    failed.length === 0,
+    failed.length === 0 ? '' : `실패 [${failed.map((row) => row.name).join(' · ')}]`,
+  );
+}
+
+/** `marker`가 이름에 든 판정이 실제로 실패했는지까지 본다 — 아무거나 실패해서는 안 된다. */
+function expectReject(label, mutate, marker) {
+  const state = scenario(BASELINE);
+  const before = JSON.stringify(state.observed) + [...state.ledger.built].join() + state.registered.join();
+  mutate(state);
+  const after = JSON.stringify(state.observed) + [...state.ledger.built].join() + state.registered.join();
+  report.check(`변형이 실제로 적용됐다 (${label})`, before !== after);
+
+  const failed = verdictOf(state);
+  const hit = failed.filter((row) => row.name.includes(marker));
+  report.check(
+    `${label} → ${marker} 판정이 거부한다`,
+    hit.length > 0,
+    hit.length > 0
+      ? `${marker} 실패 ${hit.length}건`
+      : `실패 ${failed.length}건 — [${failed.map((row) => row.name).join(' · ')}]`,
+  );
+}
+
+// ④ 부분 완성 상태가 통과해야 한다 — 이 판이 존재하는 이유다.
+const BASELINE = ['GetInclude', 'GetProgram', 'CreateProgram', 'GetSqlQuery'];
+expectPass('도구를 하나만 지은 상태 (1/186)', scenario(['GetInclude']));
+expectPass('연결 전용 도구 하나만 지은 상태 (1/186)', scenario([CONNECTED_ONLY[0]]));
+expectPass(`지금 상태 모양 (${BASELINE.length}/186 · 연결 전용 섞임)`, scenario(BASELINE));
+expectPass('186종 전부 지은 끝 상태', scenario(ALL_TOOLS));
+
+// ⑤ 그리고 아래는 전부 거부해야 한다.
+expectReject(
+  '채록본과 인자가 다른 가짜 도구',
+  (state) => {
+    const tool = state.observed.connected_default.find((t) => t.name === 'GetInclude');
+    tool.inputSchema.properties.include_name.type = 'number';
+  },
+  'ⓐ',
+);
+expectReject(
+  '채록본과 설명이 다른 도구',
+  (state) => {
+    const tool = state.observed.connected_default.find((t) => t.name === 'GetProgram');
+    tool.description = `${tool.description} (변형)`;
+  },
+  'ⓐ',
+);
+expectReject(
+  '인자 하나가 통째로 빠진 도구',
+  (state) => {
+    const tool = state.observed.connected_default.find((t) => t.name === 'GetSqlQuery');
+    delete tool.inputSchema.properties.row_number;
+  },
+  'ⓐ',
+);
+expectReject(
+  '채록본에 없는 이름을 발행',
+  (state) => {
+    const fake = { name: 'ZZZ_NotCaptured', description: '채록본 밖', inputSchema: {} };
+    state.observed.connected_default.push(fake);
+    state.registered.push(fake.name);
+    state.ledger.built.add(fake.name);
+  },
+  'ⓒ',
+);
+expectReject(
+  '연결 전용 도구가 무프로파일 조건으로 샌다',
+  (state) => {
+    const leaked = state.observed.connected_default.find((t) => CONNECTED_ONLY.includes(t.name));
+    state.observed.noProfile_default.push(JSON.parse(JSON.stringify(leaked)));
+  },
+  'ⓑ',
+);
+expectReject(
+  'readonly 조건에 write 도구가 섞인다',
+  (state) => {
+    const write = state.observed.connected_default.find(
+      (t) => !captured.exposures.connected_readonly.names.includes(t.name),
+    );
+    state.observed.connected_readonly.push(JSON.parse(JSON.stringify(write)));
+  },
+  'ⓑ',
+);
+expectReject(
+  '등록점에 있는데 발행되지 않는다',
+  (state) => {
+    state.registered.push('GetClass');
+    state.ledger.built.add('GetClass');
+    state.ledger.notBuilt.delete('GetClass');
+  },
+  '그대로 발행된다',
+);
+expectReject(
+  '대장의 `지음` 집합이 등록점보다 앞서 있다',
+  (state) => {
+    state.ledger.built.add('GetClass');
+    state.ledger.notBuilt.delete('GetClass');
+  },
+  'ⓓ',
+);
+expectReject(
+  '대장의 `지음` 집합이 등록점보다 뒤처져 있다',
+  (state) => {
+    state.ledger.built.delete('GetInclude');
+    state.ledger.notBuilt.add('GetInclude');
+  },
+  'ⓓ',
+);
+{
+  // 대장이 아예 없으면 ⓓ는 판정할 수 없다 — 판정 못 함은 통과가 아니다.
+  const state = scenario(BASELINE);
+  state.ledger = null;
+  const failed = verdictOf(state);
+  report.check(
+    '대장을 못 읽으면 거부한다 (판정 불가는 통과가 아니다)',
+    failed.some((row) => row.name.includes('ⓓ')),
+    `실패 [${failed.map((row) => row.name).join(' · ')}]`,
+  );
+}
+{
+  // 채록본 자체가 성치 않으면 그 위의 판정 전부가 의미를 잃는다.
+  const state = scenario(BASELINE);
+  state.captured = JSON.parse(JSON.stringify(captured));
+  state.captured.exposures.noProfile_default.names = [...state.captured.exposures.connected_default.names];
+  const failed = verdictOf(state);
+  report.check(
+    '네 조건이 서로 갈리지 않는 채록본을 거부한다 (정본 온전성)',
+    failed.length > 0,
+    `실패 ${failed.length}건`,
+  );
+}
+
+// ── ⑥ 실제 서버를 돌린 채집 + 판정 — 망가뜨린 기준을 물린다 ─────────────────
+
+const originalCaptured = JSON.parse(fs.readFileSync(CAPTURED_PATH, 'utf8'));
 
 /** 원본을 건드리지 않고, 망가뜨린 사본의 경로를 돌려준다. */
 function corrupt(mutate, label) {
-  const copy = JSON.parse(JSON.stringify(original));
+  const copy = JSON.parse(JSON.stringify(originalCaptured));
   mutate(copy);
-  const applied = JSON.stringify(copy) !== JSON.stringify(original);
+  const applied = JSON.stringify(copy) !== JSON.stringify(originalCaptured);
   report.check(`변형이 실제로 적용됐다 (${label})`, applied);
   const file = path.join(tempDir('sapkit-gate-neg-'), 'm1-tools.json');
   fs.writeFileSync(file, JSON.stringify(copy, null, 2), 'utf8');
   return file;
 }
 
-async function expectFailure(capturedPath, label) {
+/** 대장 사본을 망가뜨린다 — 줄 단위라 변형이 적용됐는지부터 본다. */
+function corruptLedger(mutate, label) {
+  const original = fs.readFileSync(LEDGER_FILE, 'utf8');
+  const copy = mutate(original);
+  report.check(`변형이 실제로 적용됐다 (${label})`, copy !== original);
+  const file = path.join(tempDir('sapkit-gate-neg-'), 'TOOL-LEDGER.md');
+  fs.writeFileSync(file, copy, 'utf8');
+  return file;
+}
+
+async function expectFailure(options, label, marker) {
   const originalLog = console.log;
   console.log = () => {};
   let result;
   try {
-    result = await runSurface({ capturedPath });
+    result = await runSurface(options);
   } finally {
     console.log = originalLog;
   }
-  const failed = result.failed.length;
-  report.check(`${label} → 게이트가 잡아낸다`, failed > 0, `실패 ${failed}건`);
+  const hit = result.failed.filter((row) => row.name.includes(marker));
+  report.check(
+    `${label} → ${marker} 판정이 거부한다`,
+    hit.length > 0,
+    hit.length > 0
+      ? `${marker} 실패 ${hit.length}건`
+      : `실패 ${result.failed.length}건 — [${result.failed.map((row) => row.name).join(' · ')}]`,
+  );
   return result;
 }
 
-// ③-a 설명 문구 한 글자가 바뀌면 잡아야 한다.
+// ⑥-a 설명 문구 한 글자가 바뀌면 잡아야 한다.
 await expectFailure(
-  corrupt((c) => {
-    c.m1.GetInclude.description = `${c.m1.GetInclude.description} (변형)`;
-  }, '설명 문구'),
-  '채록본의 설명이 실제와 다르다',
+  {
+    capturedPath: corrupt((c) => {
+      c.tools.GetInclude.description = `${c.tools.GetInclude.description} (변형)`;
+    }, '설명 문구'),
+  },
+  '채록본의 설명이 실제 발행과 다르다',
+  'ⓐ',
 );
 
-// ③-b 인자 하나가 사라지면 잡아야 한다 — 이름만 세는 게이트는 이걸 놓친다.
+// ⑥-b 인자 하나가 사라지면 잡아야 한다 — 이름만 세는 게이트는 이걸 놓친다.
 await expectFailure(
-  corrupt((c) => {
-    delete c.m1.GetSqlQuery.inputSchema.properties.row_number;
-  }, '인자 정의'),
-  '채록본의 인자 정의가 실제와 다르다',
+  {
+    capturedPath: corrupt((c) => {
+      delete c.tools.GetSqlQuery.inputSchema.properties.row_number;
+    }, '인자 정의'),
+  },
+  '채록본의 인자 정의가 실제 발행과 다르다',
+  'ⓐ',
 );
 
-// ③-c 채록본에만 있는 도구가 있으면 잡아야 한다(신 엔진 쪽 누락과 같은 모양).
+// ⑥-c 채록본에 없는 이름을 발행하면 잡아야 한다.
 await expectFailure(
-  corrupt((c) => {
-    c.m1.ZZZ_NotBuilt = { name: 'ZZZ_NotBuilt', description: '없는 도구', inputSchema: {} };
-  }, '미구현 도구'),
-  '채록본에 있는데 신 엔진이 안 내놓는다',
+  {
+    capturedPath: corrupt((c) => {
+      delete c.tools.GetInclude;
+      for (const condition of Object.values(c.exposures)) {
+        condition.names = condition.names.filter((name) => name !== 'GetInclude');
+        condition.count = condition.names.length;
+      }
+      c.counts = Object.fromEntries(
+        Object.entries(c.exposures).map(([key, condition]) => [key, condition.count]),
+      );
+    }, '채록본에서 이름 제거'),
+  },
+  '신 엔진이 채록본에 없는 이름을 발행한다',
+  'ⓒ',
 );
 
-// ── ④ 그리고 멀쩡한 기준에는 통과해야 한다 (과수리 역검증) ──────────────────
+// ⑥-d 노출 조건 소속이 채록본과 다르면 잡아야 한다.
+await expectFailure(
+  {
+    capturedPath: corrupt((c) => {
+      // 무프로파일에서도 보이는 도구를 채록본에서만 연결 전용으로 바꿔 둔다 —
+      // 실제 발행은 그대로이므로 소속이 어긋난다.
+      c.exposures.noProfile_default.names = c.exposures.noProfile_default.names.filter(
+        (name) => name !== 'GetInclude',
+      );
+      c.exposures.noProfile_default.count = c.exposures.noProfile_default.names.length;
+    }, '노출 조건 소속'),
+  },
+  '채록본의 노출 조건 소속이 실제 발행과 다르다',
+  'ⓑ',
+);
+
+// ⑥-e 대장이 등록점과 어긋나면 잡아야 한다.
+await expectFailure(
+  {
+    ledgerPath: corruptLedger(
+      (text) =>
+        text
+          .split('\n')
+          .filter((line) => !line.startsWith('| GetInclude |'))
+          .join('\n'),
+      '대장에서 지은 도구 한 줄 제거',
+    ),
+  },
+  '대장의 `지음` 집합이 등록점과 다르다',
+  'ⓓ',
+);
+
+// ⑥-f 대장 파일이 없으면 잡아야 한다.
+await expectFailure(
+  { ledgerPath: path.join(tempDir('sapkit-gate-neg-'), '없는-대장.md') },
+  '대장 파일이 없다',
+  'ⓓ',
+);
+
+// ── ⑦ 그리고 멀쩡한 현 상태에는 통과해야 한다 (과수리 역검증) ───────────────
 {
   const originalLog = console.log;
   console.log = () => {};
   const clean = await runSurface();
   console.log = originalLog;
   report.check(
-    '멀쩡한 기준에는 통과한다 (과수리 역검증)',
+    '멀쩡한 현 상태(부분 완성)에 통과한다 (과수리 역검증)',
     clean.failed.length === 0,
-    `실패 ${clean.failed.length}건`,
+    clean.failed.length === 0
+      ? ''
+      : `실패 [${clean.failed.map((row) => row.name).join(' · ')}]`,
   );
 }
 
