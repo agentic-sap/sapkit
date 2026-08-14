@@ -155,6 +155,11 @@
     "detail": "src/tools/write/__tests__/deleteInterface.test.ts"
   },
   {
+    "tool": "DeleteMetadataExtension",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteMetadataExtension.test.ts"
+  },
+  {
     "tool": "DeleteProgram",
     "passed": true,
     "detail": "src/tools/write/__tests__/deleteProgram.test.ts"
