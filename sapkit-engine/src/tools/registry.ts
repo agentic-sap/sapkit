@@ -163,6 +163,7 @@ import { reloadProfile } from './runtime/reloadProfile';
 // 묶음: function-group
 
 // 묶음: interface
+import { createInterface } from './write/createInterface';
 
 // 묶음: enhancement
 
@@ -289,6 +290,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: function-group — 함수그룹 (순서 26)
 
   // 묶음: interface — 인터페이스 (순서 27)
+  createInterface,
 
   // 묶음: enhancement — 인핸스먼트 (순서 28)
 
