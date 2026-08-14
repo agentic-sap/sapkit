@@ -150,6 +150,11 @@
     "detail": "src/tools/read/__tests__/grepPackages.test.ts"
   },
   {
+    "tool": "ReadFunctionGroup",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readFunctionGroup.test.ts"
+  },
+  {
     "tool": "ReadFunctionModule",
     "passed": true,
     "detail": "src/tools/read/__tests__/readFunctionModule.test.ts"
