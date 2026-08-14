@@ -1,0 +1,97 @@
+[
+  {
+    "tool": "ActivateObjects",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/activateObjects.test.ts"
+  },
+  {
+    "tool": "CheckSyntax",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/checkSyntax.test.ts"
+  },
+  {
+    "tool": "CreateInclude",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createInclude.test.ts"
+  },
+  {
+    "tool": "CreateProgram",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createProgram.test.ts"
+  },
+  {
+    "tool": "GetClass",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getClass.test.ts"
+  },
+  {
+    "tool": "GetFunctionModule",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getFunctionModule.test.ts"
+  },
+  {
+    "tool": "GetInactiveObjects",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getInactiveObjects.test.ts"
+  },
+  {
+    "tool": "GetInclude",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getInclude.test.ts"
+  },
+  {
+    "tool": "GetProgram",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getProgram.test.ts"
+  },
+  {
+    "tool": "GetSourceDiff",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getSourceDiff.test.ts"
+  },
+  {
+    "tool": "GetSqlQuery",
+    "passed": true,
+    "detail": "src/tools/row-data/__tests__/getSqlQuery.test.ts"
+  },
+  {
+    "tool": "GetStructure",
+    "passed": true,
+    "detail": "src/tools/rfc-read/__tests__/getStructure.test.ts"
+  },
+  {
+    "tool": "GetTable",
+    "passed": true,
+    "detail": "src/tools/rfc-read/__tests__/getTable.test.ts"
+  },
+  {
+    "tool": "GrepObjects",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/grepObjects.test.ts"
+  },
+  {
+    "tool": "SearchObject",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/searchObject.test.ts"
+  },
+  {
+    "tool": "UpdateClass",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateClass.test.ts"
+  },
+  {
+    "tool": "UpdateInclude",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateInclude.test.ts"
+  },
+  {
+    "tool": "UpdateProgram",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateProgram.test.ts"
+  },
+  {
+    "tool": "UpdateSourceByPatch",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateSourceByPatch.test.ts"
+  }
+]
