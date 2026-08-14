@@ -193,6 +193,7 @@ import { writeTextElementsBulk } from './write/writeTextElementsBulk';
 // 묶음: package
 
 // 묶음: screen
+import { getScreensList } from './read/getScreensList';
 
 // 묶음: service-definition
 
@@ -369,6 +370,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: package — 패키지 (순서 22)
 
   // 묶음: screen — 화면 (순서 23)
+  getScreensList,
 
   // 묶음: service-definition — 서비스 정의 (순서 24)
 

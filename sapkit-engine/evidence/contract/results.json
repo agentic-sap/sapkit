@@ -210,6 +210,11 @@
     "detail": "src/tools/read/__tests__/getProgram.test.ts"
   },
   {
+    "tool": "GetScreensList",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getScreensList.test.ts"
+  },
+  {
     "tool": "GetSession",
     "passed": true,
     "detail": "src/tools/read/__tests__/getSession.test.ts"
