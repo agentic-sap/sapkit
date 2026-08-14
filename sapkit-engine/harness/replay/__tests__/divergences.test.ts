@@ -8,9 +8,15 @@
  *   ③ 분류 — 수리 / 강화 / 축소
  *   ④ 축소 항목은 해소 마일스톤을 명시한다
  */
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+
+import type { JsonValue, SequenceStep } from '../../recorder';
 import { LedgerError, M1_DIVERGENCES, assertLedgerWellFormed, divergencesFor, withSubstituteChecks } from '../divergences';
 import type { DivergenceEntry } from '../divergences';
-import { envelope, step } from './helpers';
+import { compareErrorSignatures, errorSignature } from '../errorSignature';
+import { replaySequence } from '../replay';
+import { echoTarget, envelope, recorded, step, target } from './helpers';
 
 const byId = (id: string): DivergenceEntry => {
   const found = M1_DIVERGENCES.find((entry) => entry.id === id);
@@ -109,5 +115,286 @@ describe('대체 기대 시험 붙이기', () => {
 
   it('장부에 없는 id에 검사를 물리려 하면 거부한다', () => {
     expect(() => withSubstituteChecks(M1_DIVERGENCES, { DZZZ: () => ({ ok: true, detail: '' }) })).toThrow(LedgerError);
+  });
+});
+
+// ── D21~D40의 기계 장부 반영 ─────────────────────────────────────────────────
+
+/** 레포 루트 — `substituteTest` 경로가 실재하는지 보는 기준이다. */
+const REPO_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
+
+/** `harness/ledger/evidence.ts`의 `PATHLIKE`와 같은 규칙. 두 벌이 되면 안 되지만 그 파일은 이 과제의 범위 밖이다. */
+const PATHLIKE = /[\w./@-]+\.(?:ts|mjs|js)/g;
+
+/** 구가 싣던 `type:'json'` 콘텐츠 블록 봉투. */
+function jsonEnvelope(value: JsonValue): JsonValue {
+  return { content: [{ type: 'json', json: value }] };
+}
+
+/** 신이 싣는 규약대로의 `type:'text'` 봉투. */
+function textEnvelope(value: JsonValue): JsonValue {
+  return { content: [{ type: 'text', text: JSON.stringify(value) }] };
+}
+
+const idsIn = (s: SequenceStep): string[] => divergencesFor(M1_DIVERGENCES, s).map((e) => e.id);
+
+describe('D21~D40 판정 — 와이어에 나타나는 것만 옮긴다', () => {
+  it('옮긴 것은 D34~D40 일곱뿐이다', () => {
+    const moved = M1_DIVERGENCES.map((e) => e.id).filter((id) => /^D(2[1-9]|3\d|40)$/.test(id));
+    expect(moved).toEqual(['D34', 'D35', 'D36', 'D37', 'D38', 'D39', 'D40']);
+  });
+
+  it('접속·기동·전송·캐시 계층(D21~D33)은 옮기지 않았다', () => {
+    const layerOnly = ['D21', 'D22', 'D23', 'D24', 'D25', 'D26', 'D27', 'D28', 'D29', 'D30', 'D31', 'D32', 'D33'];
+    for (const id of layerOnly) expect(M1_DIVERGENCES.find((e) => e.id === id)).toBeUndefined();
+  });
+
+  it('새 항목을 얹은 뒤에도 장부는 잘 형성돼 있다', () => {
+    expect(() => assertLedgerWellFormed(M1_DIVERGENCES)).not.toThrow();
+  });
+
+  /**
+   * 하드 게이트 — 없는 대체 기대 시험을 있다고 적지 않는다.
+   *
+   * `substituteEvidenceFromLedger`가 **파일이 실재할 때만** 센다. 경로를 지어내면
+   * 대장이 그 도구를 「증거 있음」으로 잘못 올린다. 그래서 여기서 못박는다.
+   */
+  it('substituteTest가 지목하는 경로는 전부 실재한다', () => {
+    const missing: string[] = [];
+    for (const entry of M1_DIVERGENCES) {
+      for (const token of entry.substituteTest?.match(PATHLIKE) ?? []) {
+        if (!fs.existsSync(path.join(REPO_ROOT, token))) missing.push(`${entry.id} — ${token}`);
+      }
+      for (const token of entry.evidence.match(PATHLIKE) ?? []) {
+        if (!fs.existsSync(path.join(REPO_ROOT, token))) missing.push(`${entry.id}(근거) — ${token}`);
+      }
+    }
+    expect(missing).toEqual([]);
+  });
+});
+
+describe('D34 — 인자 검증 실패 문구의 프로토콜 코드 조각', () => {
+  const OLD = 'MCP error -32602: object_name is required';
+  const NEW = 'object_name is required';
+
+  it('옮기지 않으면 무엇이 잘못되는가 — errorSignature가 -32602를 강한 신호로 쓴다', () => {
+    const before = errorSignature(OLD);
+    const after = errorSignature(NEW);
+
+    expect(before.codes).toContain('-32602');
+    expect(after.codes).not.toContain('-32602');
+    // D13의 산문 정규화로 흡수되지 않는다 — 코드가 다르면 그 앞에서 떨어진다.
+    expect(compareErrorSignatures(before, after)).toMatchObject({ ok: false, reason: 'error-kind' });
+  });
+
+  it('구 접두사를 단 오류 단계에만 걸린다', () => {
+    const withPrefix = step({ index: 0, tool: 'GrepPackages', isError: true, response: envelope(OLD, true) });
+    const withoutPrefix = step({ index: 0, tool: 'GrepPackages', isError: true, response: envelope('ERR_NOT_FOUND: 없다', true) });
+
+    expect(idsIn(withPrefix)).toEqual(['D34']);
+    expect(idsIn(withoutPrefix)).toEqual([]);
+  });
+
+  it('접두사만 빠졌으면 대체 기대 시험이 통과한다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'GrepPackages', isError: true, response: envelope(OLD, true) })]);
+    const result = await replaySequence(fixture, target([{ payload: envelope(NEW, true), isError: true }]));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D34' });
+    expect(result.verdict).toBe('pass');
+  });
+
+  it('문장 자체가 달라지면 등재가 덮어 주지 않는다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'GrepPackages', isError: true, response: envelope(OLD, true) })]);
+    const result = await replaySequence(fixture, target([{ payload: envelope('something else went wrong', true), isError: true }]));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D34' });
+    expect(result.verdict).toBe('fail');
+  });
+
+  it('장부에서 빼면 같은 단계가 결함으로 떨어진다 — 지금 옮기는 이유', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'GrepPackages', isError: true, response: envelope(OLD, true) })]);
+    const result = await replaySequence(fixture, target([{ payload: envelope(NEW, true), isError: true }]), {
+      divergences: [],
+    });
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'mismatch', divergenceId: null });
+    expect(result.steps[0]?.differences[0]?.reason).toBe('error-kind');
+  });
+});
+
+describe('D36 — `type: json` 블록을 규약대로 text로 싣는다', () => {
+  const BODY: JsonValue = { name: 'ZCL_DEMO', kind: 'CLAS', fields: [{ name: 'MANDT' }] };
+
+  it('구가 json 블록으로 답한 네 도구의 단계에만 걸린다', () => {
+    expect(idsIn(step({ index: 0, tool: 'GetTypeInfo', response: jsonEnvelope(BODY) }))).toEqual(['D36']);
+    expect(idsIn(step({ index: 0, tool: 'GetWhereUsed', response: jsonEnvelope(BODY) }))).toEqual(['D36']);
+    // 같은 도구라도 구가 text로 답한 단계는 이 차이가 아니다 — 여전히 대조된다.
+    expect(idsIn(step({ index: 0, tool: 'GetTypeInfo', response: envelope('그냥 문자열') }))).toEqual([]);
+    // 이 묶음 밖의 도구도 아니다.
+    expect(idsIn(step({ index: 0, tool: 'GetClass', response: jsonEnvelope(BODY) }))).toEqual([]);
+  });
+
+  it('차이가 없으면 발동하지 않는다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'GetTypeInfo', response: jsonEnvelope(BODY) })]);
+    const result = await replaySequence(fixture, echoTarget(fixture));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'match', divergenceId: null });
+  });
+
+  it('그릇만 바뀌었으면 통과한다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'GetTypeInfo', response: jsonEnvelope(BODY) })]);
+    const result = await replaySequence(fixture, target([{ payload: textEnvelope(BODY) }]));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D36' });
+  });
+
+  it('본문 값이 달라지면 실패한다 — 등재가 도구 전체를 대조 밖에 두지 않는다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'GetTypeInfo', response: jsonEnvelope(BODY) })]);
+    const result = await replaySequence(
+      fixture,
+      target([{ payload: textEnvelope({ ...(BODY as Record<string, JsonValue>), kind: 'INTF' }) }]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D36' });
+    expect(result.verdict).toBe('fail');
+  });
+
+  it('같은 도구의 text 단계는 등재 없이 대조된다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'GetTypeInfo', response: envelope('hello') })]);
+    const result = await replaySequence(fixture, target([{ payload: envelope('goodbye') }]));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'mismatch', divergenceId: null });
+  });
+});
+
+describe('D35 — GetObjectInfo의 enrich가 실제로 동작한다', () => {
+  const TREE: JsonValue = { OBJECT_TYPE: 'CLAS/OC', OBJECT_NAME: 'ZCL_DEMO' };
+
+  it('GetObjectInfo는 D35가 맡는다 — D36과 겹치지 않는다', () => {
+    expect(idsIn(step({ index: 0, tool: 'GetObjectInfo', response: jsonEnvelope(TREE) }))).toEqual(['D35']);
+  });
+
+  it('보강 필드가 는 것까지가 등재다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'GetObjectInfo', response: jsonEnvelope(TREE) })]);
+    const result = await replaySequence(
+      fixture,
+      target([
+        {
+          payload: textEnvelope({ ...(TREE as Record<string, JsonValue>), OBJECT_DESCRIPTION: '데모', OBJECT_PACKAGE: '$TMP' }),
+        },
+      ]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D35' });
+  });
+
+  it('보강 밖의 값이 달라지면 실패한다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'GetObjectInfo', response: jsonEnvelope(TREE) })]);
+    const result = await replaySequence(
+      fixture,
+      target([{ payload: textEnvelope({ OBJECT_TYPE: 'CLAS/OC', OBJECT_NAME: 'ZCL_OTHER', OBJECT_PACKAGE: '$TMP' }) }]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D35' });
+  });
+});
+
+describe('D37 — GetAbapSystemSymbols의 인터페이스 보강 축소', () => {
+  const INTF: JsonValue = {
+    symbols: [{ name: 'ZIF_DEMO', systemInfo: { exists: true, objectType: 'INTF', description: 'x', package: 'Y' } }],
+  };
+  const CLAS: JsonValue = {
+    symbols: [{ name: 'ZCL_DEMO', systemInfo: { exists: true, objectType: 'CLAS', description: 'x', package: 'Y' } }],
+  };
+
+  it('인터페이스 갈래에만 걸린다 — 나머지 갈래는 D36이 맡는다', () => {
+    expect(idsIn(step({ index: 0, tool: 'GetAbapSystemSymbols', response: jsonEnvelope(INTF) }))).toEqual(['D37']);
+    expect(idsIn(step({ index: 0, tool: 'GetAbapSystemSymbols', response: jsonEnvelope(CLAS) }))).toEqual(['D36']);
+  });
+
+  it('축소분이라 재생은 통과가 아니라 무증거로 센다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'GetAbapSystemSymbols', response: jsonEnvelope(INTF) })]);
+    const result = await replaySequence(
+      fixture,
+      target([
+        {
+          payload: textEnvelope({
+            symbols: [
+              { name: 'ZIF_DEMO', systemInfo: { exists: false, objectType: 'INTF', error: 'Interface resolution is not available yet' } },
+            ],
+          }),
+        },
+      ]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-deferred', divergenceId: 'D37' });
+    expect(result.verdict).toBe('no-evidence');
+  });
+});
+
+describe('D38·D39·D40 — ReloadProfile', () => {
+  const OK_BODY = {
+    ok: true,
+    alias: 'dev',
+    legacy: false,
+    tier: 'DEV',
+    readonly: false,
+    host: 'https://sap.example.test',
+    client: '100',
+    description: '',
+    sourcePath: '/home/u/.sapkit/profiles/dev/sap.env',
+    restartRequired: false,
+  };
+
+  it('실패 갈래는 D38, 성공 갈래는 D39·D40이 나눠 맡는다', () => {
+    const failed = step({ index: 0, tool: 'ReloadProfile', isError: true, response: envelope('Error: missing env file', true) });
+    const stale = step({ index: 0, tool: 'ReloadProfile', response: textEnvelope({ ...OK_BODY, restartRequired: true }) });
+    const fresh = step({ index: 0, tool: 'ReloadProfile', response: textEnvelope(OK_BODY) });
+
+    expect(idsIn(failed)).toEqual(['D38']);
+    expect(idsIn(stale)).toEqual(['D39']);
+    expect(idsIn(fresh)).toEqual(['D40']);
+  });
+
+  it('D40 — diagnostics가 는 것은 등재다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'ReloadProfile', response: textEnvelope(OK_BODY) })]);
+    const result = await replaySequence(fixture, target([{ payload: textEnvelope({ ...OK_BODY, diagnostics: [] }) }]));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D40' });
+  });
+
+  it('D40 — 등재되지 않은 키가 달라지면 실패한다', async () => {
+    const fixture = recorded([step({ index: 0, tool: 'ReloadProfile', response: textEnvelope(OK_BODY) })]);
+    const result = await replaySequence(
+      fixture,
+      target([{ payload: textEnvelope({ ...OK_BODY, tier: 'PRD', diagnostics: [] }) }]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D40' });
+  });
+
+  it('D38 — 실패가 무접속·UNKNOWN·이유로 내려앉으면 통과한다', async () => {
+    const fixture = recorded([
+      step({ index: 0, tool: 'ReloadProfile', isError: true, response: envelope('Error: missing env file', true) }),
+    ]);
+    const result = await replaySequence(
+      fixture,
+      target([
+        {
+          payload: textEnvelope({ ...OK_BODY, tier: 'UNKNOWN', readonly: true, diagnostics: ['활성 프로파일을 찾지 못했다'] }),
+        },
+      ]),
+    );
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D38' });
+  });
+
+  it('D38 — 옛 등급이 살아남으면 실패한다', async () => {
+    const fixture = recorded([
+      step({ index: 0, tool: 'ReloadProfile', isError: true, response: envelope('Error: missing env file', true) }),
+    ]);
+    const result = await replaySequence(fixture, target([{ payload: textEnvelope({ ...OK_BODY, diagnostics: [] }) }]));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D38' });
   });
 });
