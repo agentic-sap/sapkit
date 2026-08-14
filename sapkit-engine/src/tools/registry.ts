@@ -162,6 +162,7 @@ import { readFunctionModule } from './read/readFunctionModule';
 // 묶음: behavior-implementation
 
 // 묶음: function-group
+import { getFunctionGroup } from './read/getFunctionGroup';
 
 // 묶음: interface
 
@@ -289,6 +290,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: behavior-implementation — 동작 구현 (BIMP) (순서 25)
 
   // 묶음: function-group — 함수그룹 (순서 26)
+  getFunctionGroup,
 
   // 묶음: interface — 인터페이스 (순서 27)
 
