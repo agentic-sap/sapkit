@@ -20,6 +20,26 @@
     "detail": "src/tools/write/__tests__/createProgram.test.ts"
   },
   {
+    "tool": "DescribeByList",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/describeByList.test.ts"
+  },
+  {
+    "tool": "GetAbapAST",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getAbapAST.test.ts"
+  },
+  {
+    "tool": "GetAbapSemanticAnalysis",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getAbapSemanticAnalysis.test.ts"
+  },
+  {
+    "tool": "GetAbapSystemSymbols",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getAbapSystemSymbols.test.ts"
+  },
+  {
     "tool": "GetClass",
     "passed": true,
     "detail": "src/tools/read/__tests__/getClass.test.ts"
@@ -45,14 +65,34 @@
     "detail": "src/tools/read/__tests__/getInstalledComponents.test.ts"
   },
   {
+    "tool": "GetObjectInfo",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getObjectInfo.test.ts"
+  },
+  {
+    "tool": "GetObjectStructure",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getObjectStructure.test.ts"
+  },
+  {
     "tool": "GetObjectsByType",
     "passed": true,
     "detail": "src/tools/read/__tests__/getObjectsByType.test.ts"
   },
   {
+    "tool": "GetPackageTree",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getPackageTree.test.ts"
+  },
+  {
     "tool": "GetProgram",
     "passed": true,
     "detail": "src/tools/read/__tests__/getProgram.test.ts"
+  },
+  {
+    "tool": "GetSession",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getSession.test.ts"
   },
   {
     "tool": "GetSourceDiff",
@@ -70,9 +110,29 @@
     "detail": "src/tools/rfc-read/__tests__/getStructure.test.ts"
   },
   {
+    "tool": "GetSystemInfo",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getSystemInfo.test.ts"
+  },
+  {
     "tool": "GetTable",
     "passed": true,
     "detail": "src/tools/rfc-read/__tests__/getTable.test.ts"
+  },
+  {
+    "tool": "GetTransaction",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getTransaction.test.ts"
+  },
+  {
+    "tool": "GetTypeInfo",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getTypeInfo.test.ts"
+  },
+  {
+    "tool": "GetWhereUsed",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getWhereUsed.test.ts"
   },
   {
     "tool": "GrepObjects",

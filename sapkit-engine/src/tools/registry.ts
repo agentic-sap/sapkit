@@ -86,6 +86,18 @@ import {
 // 같은 배럴 파일에서 충돌한다. 자기 구획 안에만 더할 것.
 
 // 묶음: system
+import { describeByList } from './read/describeByList';
+import { getAbapAST } from './read/getAbapAST';
+import { getAbapSemanticAnalysis } from './read/getAbapSemanticAnalysis';
+import { getAbapSystemSymbols } from './read/getAbapSystemSymbols';
+import { getObjectInfo } from './read/getObjectInfo';
+import { getObjectStructure } from './read/getObjectStructure';
+import { getPackageTree } from './read/getPackageTree';
+import { getSession } from './read/getSession';
+import { getSystemInfo } from './read/getSystemInfo';
+import { getTransaction } from './read/getTransaction';
+import { getTypeInfo } from './read/getTypeInfo';
+import { getWhereUsed } from './read/getWhereUsed';
 
 // 묶음: search
 import { getObjectsByType } from './read/getObjectsByType';
@@ -138,6 +150,18 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
 
   // 묶음: system — 시스템·공통 조회 (순서 1)
   getInstalledComponents,
+  describeByList,
+  getAbapAST,
+  getAbapSemanticAnalysis,
+  getAbapSystemSymbols,
+  getObjectInfo,
+  getObjectStructure,
+  getPackageTree,
+  getSession,
+  getSystemInfo,
+  getTransaction,
+  getTypeInfo,
+  getWhereUsed,
 
   // 묶음: search — 검색 (순서 2)
   getObjectsByType,

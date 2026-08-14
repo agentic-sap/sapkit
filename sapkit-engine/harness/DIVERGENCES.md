@@ -636,6 +636,94 @@
   신호**로 잡기 때문에, 오류 단계를 재생하면 `error-kind` 불일치로 떨어진다.
   기계용 장부(`harness/replay/divergences.ts`)에 이 항목을 옮기는 일은 그 파일을
   소유한 작업의 몫이다 — 이 판의 검색 묶음 작업은 그 파일을 건드리지 않았다.
+### D35 — `GetObjectInfo`의 `enrich`가 **실제로 동작한다** (구: 언제나 빈손)
+
+- **분류**: 수리
+- **구 동작(실측)**: `engine/src/handlers/system/readonly/handleGetObjectInfo.ts:83-87`이
+  `handleSearchObject(context, { query: objectName, object_type, maxResults: 1 })`로
+  부르는데, 그 핸들러는 인자를
+  `const { object_name, object_type, maxResults } = args`로 받는다
+  (`engine/src/handlers/search/readonly/handleSearchObject.ts:56`). 즉 이름이
+  **`query`가 아니라 `object_name`**이라 값이 `undefined`가 되고, 바로 다음 줄의
+  `if (!object_name) throw new McpError(...)`(`:57-59`)에 걸린다. 그 예외는
+  `handleSearchObject` 자신의 catch가 `{ isError: true }`로 접어 돌려주므로
+  (`:149-160`), 호출부의 `if (!searchResult.isError && …)`(`handleGetObjectInfo.ts:88`)
+  가 **언제나 거짓**이 된다. 결과적으로 `enrichNodeWithSearchObject`는 늘
+  `{ packageName: undefined, description: undefined, type: objectType }`을 돌려주고,
+  `OBJECT_DESCRIPTION`·`OBJECT_PACKAGE`는 `undefined`라 `JSON.stringify`에서 통째로
+  사라진다. **기본값이 `enrich=true`인 인자가 아무 일도 하지 않는다.**
+- **신 동작**: 인자 이름을 맞춰(`object_name`) 실제로 `SearchObject`를 부르고,
+  이름이 대소문자 무시하고 정확히 일치하는 참조에서 `description`·`packageName`·
+  `type`을 가져와 채운다. 대조 조건은 구가 쓰려던 것과 같다
+  (`handleGetObjectInfo.ts:106-117`). 검색 실패는 구처럼 삼키고 트리는 그대로 낸다.
+- **근거**: 발행 설명이 "Enrich each node with description and package via
+  SearchObject if enrich=true"라고 약속하는데 그 갈래가 한 번도 실행되지 않는 것은
+  거짓 성공 계열이다(spec §2.4의 분류 기준). 인자 이름 오타 하나가 원인이며,
+  고치는 쪽이 선언·문서·의도 셋 모두와 맞는다.
+- **대체 기대 시험**: `src/tools/read/__tests__/getObjectInfo.test.ts`의
+  「enrich가 실제로 채운다」 절 4건 — 기본값에서 `SearchObject`를 한 번 부르고
+  설명·패키지를 채우는지 / `enrich:false`면 아예 부르지 않는지 / 이름이 다르면
+  채우지 않는지 / 검색이 실패해도 트리는 나오는지.
+- **비용**: `buildTree`가 불리는 노드마다(뿌리 + 재귀한 묶음 노드) 검색 왕복이
+  하나씩 는다. 말단 잎에는 붙지 않으므로 증가는 깊이에 비례하지 잎 수에 비례하지
+  않는다. 구가 의도했던 왕복 수와 같다.
+
+### D36 — `type: 'json'` 콘텐츠 블록을 **규약대로 text로** 싣는다
+
+- **분류**: 수리
+- **구 동작(실측)**: 이 묶음의 다섯 도구가 성공 응답을 `{ type: 'json', json: … }`로
+  실었다 — `GetTypeInfo`(`handleGetTypeInfo.ts:230`·`:249`) ·
+  `GetWhereUsed`(`handleGetWhereUsed.ts:102-110`) ·
+  `GetObjectInfo`(`handleGetObjectInfo.ts:285-293`) ·
+  `GetTransaction`(`handleGetTransaction.ts:73-76`) ·
+  `GetAbapSystemSymbols`(`handleGetAbapSystemSymbols.ts`의 성공 반환).
+  **`json`은 MCP 규약의 콘텐츠 종류가 아니다** — 규약이 정한 것은 `text`·`image`·
+  `audio`·`resource`(+`resource_link`)뿐이라, 이 블록을 받은 클라이언트는 본문을
+  꺼낼 표준 통로가 없다.
+- **신 동작**: 같은 객체를 `JSON.stringify`한 문자열을 `type: 'text'` 블록 하나에
+  싣는다. **필드 이름·구조·값은 그대로**이고 담는 그릇만 규약에 맞춘다.
+- **근거**: 신 엔진의 도구 반환 계약(`src/server/toolDefinition.ts`의
+  `ToolTextContent`)에는 `text`뿐이라 구의 모양을 표현할 통로 자체가 없다. 규약 밖
+  블록을 되살리려면 계약을 넓혀야 하는데, 그것은 "규약을 지키지 않는 쪽으로"
+  넓히는 일이다. 같은 묶음의 `DescribeByList`는 구도 `type: 'text'`를 썼으므로
+  이 항목에 해당하지 않는다.
+- **대체 기대 시험**: 각 도구의 계약 시험이 응답 본문을 `JSON.parse`해 필드를
+  대조한다 — `src/tools/read/__tests__/getTypeInfo.test.ts` ·
+  `getWhereUsed.test.ts` · `getObjectInfo.test.ts` · `getTransaction.test.ts` ·
+  `getAbapSystemSymbols.test.ts`. 구조가 보존됐다는 것이 그 대조의 내용이다.
+- **비고**: 도구 응답 시퀀스에 나타나는 차이이므로 재생 대조 대상이다.
+  **`harness/replay/divergences.ts`(기계가 읽는 형태)에는 아직 옮기지 않았다** —
+  이 과제의 작업 범위가 그 파일을 제외했다. D33도 같다. 재생을 켜기 전에 두
+  항목을 그쪽에 옮겨야 한다.
+
+### D37 — `GetAbapSystemSymbols`의 **인터페이스 보강**이 아직 없다
+
+- **분류**: 축소
+- **구 동작(실측)**: 심볼 종류가 `interface`이면
+  `engine/src/handlers/system/readonly/handleGetAbapSystemSymbols.ts:646-710`이
+  `handleGetInterface`(`handlers/interface/high/`)를 부른다. 성공하면
+  `{ exists: true, objectType: 'INTF', description: …, package: … }`인데,
+  `GetInterface`가 싣는 필드는 `success`·`interface_name`·`version`·`source_code`·
+  `status`·`status_text`뿐이라(구 `handleGetInterface.ts:108-114`)
+  `description`·`packageName`은 **언제나 폴백**(`ABAP Interface {이름}` ·
+  `Unknown`)이다. 즉 이 갈래가 실제로 알아내는 것은 **"그 인터페이스를 읽을 수
+  있었다"** 하나뿐이다.
+- **신 동작**: SAP에 묻지 않고
+  `{ exists: false, objectType: 'INTF', error: 'Interface resolution is not
+  available yet: this engine does not implement GetInterface. …' }`를 돌려준다.
+  나머지 종류(클래스·함수·그 밖)는 구와 같다.
+- **근거**: `GetInterface`는 **아직 신 엔진에 없는 도구**이고 이 묶음(system·common)의
+  범위 밖이다. 그 도구의 와이어를 이 모듈 안에서 새로 지으면 나중에 진짜
+  `GetInterface`가 지어질 때 **두 벌이 갈린다** — 같은 오브젝트를 읽는 경로가
+  둘이 되는 것은 이 판이 피하려는 바로 그 모양이다. 추측으로 짓지 않고 무엇이
+  없는지 밝히는 쪽을 골랐다.
+- **대체 기대 시험**: `src/tools/read/__tests__/getAbapSystemSymbols.test.ts`의
+  「인터페이스 보강 — 이 판에서 축소됐다」 절 — SAP에 묻지 않는다는 것과 문구를
+  붙잡는다. 클래스·함수·그 밖 갈래가 구와 같다는 것은 같은 파일의 나머지 절이 본다.
+- **해소 마일스톤**: **`GetInterface`를 짓는 판.** 그 도구가 등록되면
+  `resolveInterfaceSymbol`을 구와 같은 모양(`exists`만 실질적으로 의미 있는)으로
+  되살리고 이 항목을 닫는다. 그때 위의 "폴백이 언제나 나간다"는 실측도 함께
+  옮겨 적어야 한다 — 되살린다고 해서 설명·패키지가 채워지지는 않는다.
 
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 
