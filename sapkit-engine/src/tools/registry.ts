@@ -134,6 +134,7 @@ import { reloadProfile } from './runtime/reloadProfile';
 import { getView } from './read/getView';
 import { readView } from './read/readView';
 import { createView } from './write/createView';
+import { updateView } from './write/updateView';
 
 // 묶음: unit-test
 
@@ -263,6 +264,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   createView,
   getView,
   readView,
+  updateView,
 
   // 묶음: unit-test — 단위시험 (순서 12)
 
