@@ -145,6 +145,56 @@
     "detail": "src/tools/read/__tests__/grepPackages.test.ts"
   },
   {
+    "tool": "RuntimeAnalyzeDump",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeAnalyzeDump.test.ts"
+  },
+  {
+    "tool": "RuntimeAnalyzeProfilerTrace",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeAnalyzeProfilerTrace.test.ts"
+  },
+  {
+    "tool": "RuntimeCreateProfilerTraceParameters",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeCreateProfilerTraceParameters.test.ts"
+  },
+  {
+    "tool": "RuntimeGetDumpById",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeGetDumpById.test.ts"
+  },
+  {
+    "tool": "RuntimeGetGatewayErrorLog",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeGetGatewayErrorLog.test.ts"
+  },
+  {
+    "tool": "RuntimeGetProfilerTraceData",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeGetProfilerTraceData.test.ts"
+  },
+  {
+    "tool": "RuntimeListDumps",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeListDumps.test.ts"
+  },
+  {
+    "tool": "RuntimeListProfilerTraceFiles",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeListProfilerTraceFiles.test.ts"
+  },
+  {
+    "tool": "RuntimeRunClassWithProfiling",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeRunClassWithProfiling.test.ts"
+  },
+  {
+    "tool": "RuntimeRunProgramWithProfiling",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeRunProgramWithProfiling.test.ts"
+  },
+  {
     "tool": "SearchObject",
     "passed": true,
     "detail": "src/tools/read/__tests__/searchObject.test.ts"

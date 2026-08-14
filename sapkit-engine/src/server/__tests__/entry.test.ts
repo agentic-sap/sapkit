@@ -66,6 +66,14 @@ describe('셰임 계약', () => {
         'GetWhereUsed',
         'GrepObjects',
         'GrepPackages',
+        'RuntimeAnalyzeDump',
+        'RuntimeAnalyzeProfilerTrace',
+        'RuntimeCreateProfilerTraceParameters',
+        'RuntimeGetDumpById',
+        'RuntimeGetProfilerTraceData',
+        'RuntimeListDumps',
+        'RuntimeListProfilerTraceFiles',
+        'RuntimeRunClassWithProfiling',
         'SearchObject',
       ]);
     } finally {

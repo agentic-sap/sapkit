@@ -106,6 +106,16 @@ import { grepPackages } from './read/grepPackages';
 // 묶음: common
 
 // 묶음: runtime
+import { runtimeAnalyzeDump } from './runtime/runtimeAnalyzeDump';
+import { runtimeAnalyzeProfilerTrace } from './runtime/runtimeAnalyzeProfilerTrace';
+import { runtimeCreateProfilerTraceParameters } from './runtime/runtimeCreateProfilerTraceParameters';
+import { runtimeGetDumpById } from './runtime/runtimeGetDumpById';
+import { runtimeGetGatewayErrorLog } from './runtime/runtimeGetGatewayErrorLog';
+import { runtimeGetProfilerTraceData } from './runtime/runtimeGetProfilerTraceData';
+import { runtimeListDumps } from './runtime/runtimeListDumps';
+import { runtimeListProfilerTraceFiles } from './runtime/runtimeListProfilerTraceFiles';
+import { runtimeRunClassWithProfiling } from './runtime/runtimeRunClassWithProfiling';
+import { runtimeRunProgramWithProfiling } from './runtime/runtimeRunProgramWithProfiling';
 
 /** 스캐폴드 앵커. 배선 단계가 이 파일을 찾는 표식이다. */
 export const TOOL_REGISTRY_MARKER = 'sapkit-engine/tools/registry' as const;
@@ -170,4 +180,14 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: common — 공통 편집·활성 (순서 3)
 
   // 묶음: runtime — 덤프·프로파일러·시스템 메시지 (순서 4)
+  runtimeListDumps,
+  runtimeGetDumpById,
+  runtimeAnalyzeDump,
+  runtimeListProfilerTraceFiles,
+  runtimeGetProfilerTraceData,
+  runtimeAnalyzeProfilerTrace,
+  runtimeCreateProfilerTraceParameters,
+  runtimeGetGatewayErrorLog,
+  runtimeRunProgramWithProfiling,
+  runtimeRunClassWithProfiling,
 ];
