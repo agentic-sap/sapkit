@@ -196,6 +196,7 @@ import { readDomain } from './read/readDomain';
 // 묶음: service-definition
 
 // 묶음: behavior-implementation
+import { getBehaviorImplementation } from './read/getBehaviorImplementation';
 
 // 묶음: function-group
 import { getFunctionGroup } from './read/getFunctionGroup';
@@ -371,6 +372,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: service-definition — 서비스 정의 (순서 24)
 
   // 묶음: behavior-implementation — 동작 구현 (BIMP) (순서 25)
+  getBehaviorImplementation,
 
   // 묶음: function-group — 함수그룹 (순서 26)
   getFunctionGroup,
