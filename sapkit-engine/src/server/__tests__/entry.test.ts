@@ -61,6 +61,7 @@ describe('셰임 계약', () => {
         'GetSourceDiff',
         'GetSqlQuery',
         'GetSystemInfo',
+        'GetTableContents',
         'GetTransaction',
         'GetTypeInfo',
         'GetWhereUsed',
