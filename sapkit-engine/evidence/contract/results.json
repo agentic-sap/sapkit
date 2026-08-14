@@ -85,9 +85,19 @@
     "detail": "src/tools/runtime/__tests__/runtimeGetDumpById.test.ts"
   },
   {
+    "tool": "RuntimeGetProfilerTraceData",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeGetProfilerTraceData.test.ts"
+  },
+  {
     "tool": "RuntimeListDumps",
     "passed": true,
     "detail": "src/tools/runtime/__tests__/runtimeListDumps.test.ts"
+  },
+  {
+    "tool": "RuntimeListProfilerTraceFiles",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeListProfilerTraceFiles.test.ts"
   },
   {
     "tool": "SearchObject",
