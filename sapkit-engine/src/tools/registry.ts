@@ -118,6 +118,56 @@ import { runtimeRunClassWithProfiling } from './runtime/runtimeRunClassWithProfi
 import { runtimeRunProgramWithProfiling } from './runtime/runtimeRunProgramWithProfiling';
 import { reloadProfile } from './runtime/reloadProfile';
 
+// 묶음: include
+
+// 묶음: class
+
+// 묶음: table
+
+// 묶음: program
+
+// 묶음: function-module
+
+// 묶음: structure
+
+// 묶음: view
+
+// 묶음: unit-test
+
+// 묶음: behavior-definition
+
+// 묶음: data-element
+
+// 묶음: service-binding
+
+// 묶음: domain
+
+// 묶음: transport
+
+// 묶음: metadata-extension
+
+// 묶음: gui-status
+
+// 묶음: text-element
+
+// 묶음: atc
+
+// 묶음: package
+
+// 묶음: screen
+
+// 묶음: service-definition
+
+// 묶음: behavior-implementation
+
+// 묶음: function-group
+
+// 묶음: interface
+
+// 묶음: enhancement
+
+// 묶음: tail
+
 /** 스캐폴드 앵커. 배선 단계가 이 파일을 찾는 표식이다. */
 export const TOOL_REGISTRY_MARKER = 'sapkit-engine/tools/registry' as const;
 
@@ -193,4 +243,54 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   runtimeRunClassWithProfiling,
   // 이 묶음의 유일한 비(非) SAP 도구 — 서버 자신의 프로파일을 다시 읽는다.
   reloadProfile,
+
+  // 묶음: include — 인클루드 (순서 5)
+
+  // 묶음: class — 클래스 (순서 6)
+
+  // 묶음: table — 테이블 (순서 7)
+
+  // 묶음: program — 프로그램 (순서 8)
+
+  // 묶음: function-module — 함수모듈 (순서 9)
+
+  // 묶음: structure — 구조체 (순서 10)
+
+  // 묶음: view — 뷰 (순서 11)
+
+  // 묶음: unit-test — 단위시험 (순서 12)
+
+  // 묶음: behavior-definition — 동작 정의 (BDEF) (순서 13)
+
+  // 묶음: data-element — 데이터 엘리먼트 (순서 14)
+
+  // 묶음: service-binding — 서비스 바인딩 (순서 15)
+
+  // 묶음: domain — 도메인 (순서 16)
+
+  // 묶음: transport — 트랜스포트 (순서 17)
+
+  // 묶음: metadata-extension — 메타데이터 확장 (DDLX) (순서 18)
+
+  // 묶음: gui-status — GUI 상태 (순서 19)
+
+  // 묶음: text-element — 텍스트 엘리먼트 (순서 20)
+
+  // 묶음: atc — ATC (순서 21)
+
+  // 묶음: package — 패키지 (순서 22)
+
+  // 묶음: screen — 화면 (순서 23)
+
+  // 묶음: service-definition — 서비스 정의 (순서 24)
+
+  // 묶음: behavior-implementation — 동작 구현 (BIMP) (순서 25)
+
+  // 묶음: function-group — 함수그룹 (순서 26)
+
+  // 묶음: interface — 인터페이스 (순서 27)
+
+  // 묶음: enhancement — 인핸스먼트 (순서 28)
+
+  // 묶음: tail — 꼬리 — 호출·참조 양쪽 0 (순서 29)
 ];

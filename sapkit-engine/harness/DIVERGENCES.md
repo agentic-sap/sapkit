@@ -931,3 +931,30 @@ D번호를 주지 않는 이유가 그것이다. 그래도 장부에 두는 이�
 성공 응답이 언제나 `diagnostics`만큼 달라지므로 요구 급 `재생 대조`를 원리상
 채울 수 없다** — 그 도구의 요구 급을 다시 볼 자리는 제작 계획(`harness/build-plan.json`)
 이고 이 과제의 범위 밖이다.
+
+---
+
+## 번호 예약 — 병렬 제작 구간 (기록)
+
+오브젝트 묶음 13개를 병렬로 지으면서, 각 과제에 **D 번호 구간을 미리 나눠 줬다.**
+같은 물결의 과제들이 동시에 append 하면 매번 같은 번호를 집어 병합 때마다 재번호가
+필요했기 때문이다(D21·D31이 실제로 그렇게 겹쳤다).
+
+그래서 **이 아래로는 번호에 빈칸이 있다.** 예약 구간을 다 쓰지 않은 과제가 남긴
+자리이며, 결번은 누락이 아니다. 장부는 append-only이므로 나중에 당겨 메우지 않는다.
+
+| 과제 | 예약 구간 |
+|---|---|
+| class | D41~D45 |
+| program · include | D46~D50 |
+| function-module · function-group | D51~D55 |
+| table · structure | D56~D60 |
+| data-element · domain | D61~D65 |
+| view | D66~D70 |
+| interface | D71~D75 |
+| enhancement | D76~D80 |
+| package · transport | D81~D85 |
+| unit-test · atc | D86~D90 |
+| text-element · screen · gui-status | D91~D97 |
+| behavior-definition · behavior-implementation | D98~D102 |
+| service-definition · service-binding · metadata-extension | D103~D108 |
