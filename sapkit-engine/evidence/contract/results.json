@@ -180,6 +180,11 @@
     "detail": "src/tools/read/__tests__/getLocalTypes.test.ts"
   },
   {
+    "tool": "GetMetadataExtension",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getMetadataExtension.test.ts"
+  },
+  {
     "tool": "GetObjectInfo",
     "passed": true,
     "detail": "src/tools/read/__tests__/getObjectInfo.test.ts"
