@@ -35,6 +35,11 @@
     "detail": "src/tools/write/__tests__/createFunctionModule.test.ts"
   },
   {
+    "tool": "CreateGuiStatus",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createGuiStatus.test.ts"
+  },
+  {
     "tool": "CreateInclude",
     "passed": true,
     "detail": "src/tools/write/__tests__/createInclude.test.ts"

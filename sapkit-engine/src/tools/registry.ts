@@ -183,6 +183,7 @@ import { readDomain } from './read/readDomain';
 import { getGuiStatusList } from './read/getGuiStatusList';
 import { readGuiStatus } from './rfc-read/readGuiStatus';
 import { getGuiStatus } from './rfc-read/getGuiStatus';
+import { createGuiStatus } from './write/createGuiStatus';
 
 // 묶음: text-element
 import { getTextElement } from './rfc-read/getTextElement';
@@ -367,6 +368,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getGuiStatusList,
   readGuiStatus,
   getGuiStatus,
+  createGuiStatus,
 
   // 묶음: text-element — 텍스트 엘리먼트 (순서 20)
   getTextElement,
