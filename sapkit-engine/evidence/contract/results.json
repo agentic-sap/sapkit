@@ -10,6 +10,16 @@
     "detail": "src/tools/read/__tests__/checkSyntax.test.ts"
   },
   {
+    "tool": "CreateBehaviorDefinition",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createBehaviorDefinition.test.ts"
+  },
+  {
+    "tool": "CreateBehaviorImplementation",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createBehaviorImplementation.test.ts"
+  },
+  {
     "tool": "CreateClass",
     "passed": true,
     "detail": "src/tools/write/__tests__/createClass.test.ts"
@@ -35,6 +45,11 @@
     "detail": "src/tools/write/__tests__/createFunctionModule.test.ts"
   },
   {
+    "tool": "CreateGuiStatus",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createGuiStatus.test.ts"
+  },
+  {
     "tool": "CreateInclude",
     "passed": true,
     "detail": "src/tools/write/__tests__/createInclude.test.ts"
@@ -55,6 +70,11 @@
     "detail": "src/tools/write/__tests__/createProgram.test.ts"
   },
   {
+    "tool": "CreateScreen",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createScreen.test.ts"
+  },
+  {
     "tool": "CreateServiceBinding",
     "passed": true,
     "detail": "src/tools/write/__tests__/createServiceBinding.test.ts"
@@ -73,6 +93,16 @@
     "tool": "CreateTable",
     "passed": true,
     "detail": "src/tools/write/__tests__/createTable.test.ts"
+  },
+  {
+    "tool": "CreateTextElement",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createTextElement.test.ts"
+  },
+  {
+    "tool": "CreateTransport",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createTransport.test.ts"
   },
   {
     "tool": "CreateView",
@@ -98,6 +128,21 @@
     "tool": "GetAbapSystemSymbols",
     "passed": true,
     "detail": "src/tools/read/__tests__/getAbapSystemSymbols.test.ts"
+  },
+  {
+    "tool": "GetAtcFindings",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getAtcFindings.test.ts"
+  },
+  {
+    "tool": "GetBehaviorDefinition",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getBehaviorDefinition.test.ts"
+  },
+  {
+    "tool": "GetBehaviorImplementation",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getBehaviorImplementation.test.ts"
   },
   {
     "tool": "GetClass",
@@ -143,6 +188,16 @@
     "tool": "GetFunctionModule",
     "passed": true,
     "detail": "src/tools/read/__tests__/getFunctionModule.test.ts"
+  },
+  {
+    "tool": "GetGuiStatus",
+    "passed": true,
+    "detail": "src/tools/rfc-read/__tests__/getGuiStatus.test.ts"
+  },
+  {
+    "tool": "GetGuiStatusList",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getGuiStatusList.test.ts"
   },
   {
     "tool": "GetInactiveObjects",
@@ -210,6 +265,16 @@
     "detail": "src/tools/read/__tests__/getObjectsByType.test.ts"
   },
   {
+    "tool": "GetPackage",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getPackage.test.ts"
+  },
+  {
+    "tool": "GetPackageContents",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getPackageContents.test.ts"
+  },
+  {
     "tool": "GetPackageTree",
     "passed": true,
     "detail": "src/tools/read/__tests__/getPackageTree.test.ts"
@@ -223,6 +288,16 @@
     "tool": "GetProgram",
     "passed": true,
     "detail": "src/tools/read/__tests__/getProgram.test.ts"
+  },
+  {
+    "tool": "GetScreen",
+    "passed": true,
+    "detail": "src/tools/rfc-read/__tests__/getScreen.test.ts"
+  },
+  {
+    "tool": "GetScreensList",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getScreensList.test.ts"
   },
   {
     "tool": "GetServiceBinding",
@@ -270,14 +345,39 @@
     "detail": "src/tools/row-data/__tests__/getTableContents.test.ts"
   },
   {
+    "tool": "GetTextElement",
+    "passed": true,
+    "detail": "src/tools/rfc-read/__tests__/getTextElement.test.ts"
+  },
+  {
     "tool": "GetTransaction",
     "passed": true,
     "detail": "src/tools/read/__tests__/getTransaction.test.ts"
   },
   {
+    "tool": "GetTransport",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getTransport.test.ts"
+  },
+  {
     "tool": "GetTypeInfo",
     "passed": true,
     "detail": "src/tools/read/__tests__/getTypeInfo.test.ts"
+  },
+  {
+    "tool": "GetUnitTest",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/getUnitTest.test.ts"
+  },
+  {
+    "tool": "GetUnitTestResult",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/getUnitTestResult.test.ts"
+  },
+  {
+    "tool": "GetUnitTestStatus",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/getUnitTestStatus.test.ts"
   },
   {
     "tool": "GetView",
@@ -305,6 +405,26 @@
     "detail": "src/tools/read/__tests__/listServiceBindingTypes.test.ts"
   },
   {
+    "tool": "ListTransports",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/listTransports.test.ts"
+  },
+  {
+    "tool": "PatchGuiStatus",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/patchGuiStatus.test.ts"
+  },
+  {
+    "tool": "ReadBehaviorDefinition",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readBehaviorDefinition.test.ts"
+  },
+  {
+    "tool": "ReadBehaviorImplementation",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readBehaviorImplementation.test.ts"
+  },
+  {
     "tool": "ReadClass",
     "passed": true,
     "detail": "src/tools/read/__tests__/readClass.test.ts"
@@ -330,6 +450,11 @@
     "detail": "src/tools/read/__tests__/readFunctionModule.test.ts"
   },
   {
+    "tool": "ReadGuiStatus",
+    "passed": true,
+    "detail": "src/tools/rfc-read/__tests__/readGuiStatus.test.ts"
+  },
+  {
     "tool": "ReadInterface",
     "passed": true,
     "detail": "src/tools/read/__tests__/readInterface.test.ts"
@@ -343,6 +468,11 @@
     "tool": "ReadProgram",
     "passed": true,
     "detail": "src/tools/read/__tests__/readProgram.test.ts"
+  },
+  {
+    "tool": "ReadScreen",
+    "passed": true,
+    "detail": "src/tools/rfc-read/__tests__/readScreen.test.ts"
   },
   {
     "tool": "ReadServiceBinding",
@@ -365,14 +495,29 @@
     "detail": "src/tools/read/__tests__/readTable.test.ts"
   },
   {
+    "tool": "ReadTextElementsBulk",
+    "passed": true,
+    "detail": "src/tools/rfc-read/__tests__/readTextElementsBulk.test.ts"
+  },
+  {
     "tool": "ReadView",
     "passed": true,
     "detail": "src/tools/read/__tests__/readView.test.ts"
   },
   {
+    "tool": "ReleaseTransport",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/releaseTransport.test.ts"
+  },
+  {
     "tool": "ReloadProfile",
     "passed": true,
     "detail": "src/tools/runtime/__tests__/reloadProfile.test.ts"
+  },
+  {
+    "tool": "RunUnitTest",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runUnitTest.test.ts"
   },
   {
     "tool": "RuntimeAnalyzeDump",
@@ -430,6 +575,16 @@
     "detail": "src/tools/read/__tests__/searchObject.test.ts"
   },
   {
+    "tool": "UpdateBehaviorDefinition",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateBehaviorDefinition.test.ts"
+  },
+  {
+    "tool": "UpdateBehaviorImplementation",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateBehaviorImplementation.test.ts"
+  },
+  {
     "tool": "UpdateClass",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateClass.test.ts"
@@ -443,6 +598,11 @@
     "tool": "UpdateFunctionModule",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateFunctionModule.test.ts"
+  },
+  {
+    "tool": "UpdateGuiStatus",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateGuiStatus.test.ts"
   },
   {
     "tool": "UpdateInclude",
@@ -475,6 +635,11 @@
     "detail": "src/tools/write/__tests__/updateProgram.test.ts"
   },
   {
+    "tool": "UpdateScreen",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateScreen.test.ts"
+  },
+  {
     "tool": "UpdateServiceBinding",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateServiceBinding.test.ts"
@@ -500,6 +665,11 @@
     "detail": "src/tools/write/__tests__/updateTable.test.ts"
   },
   {
+    "tool": "UpdateTextElement",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateTextElement.test.ts"
+  },
+  {
     "tool": "UpdateView",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateView.test.ts"
@@ -508,5 +678,10 @@
     "tool": "ValidateServiceBinding",
     "passed": true,
     "detail": "src/tools/read/__tests__/validateServiceBinding.test.ts"
+  },
+  {
+    "tool": "WriteTextElementsBulk",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/writeTextElementsBulk.test.ts"
   }
 ]
