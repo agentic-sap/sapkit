@@ -164,6 +164,7 @@ import { updateView } from './write/updateView';
 // 묶음: behavior-definition
 import { getBehaviorDefinition } from './read/getBehaviorDefinition';
 import { readBehaviorDefinition } from './read/readBehaviorDefinition';
+import { createBehaviorDefinition } from './write/createBehaviorDefinition';
 
 // 묶음: data-element
 import { createDataElement } from './write/createDataElement';
@@ -335,6 +336,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: unit-test — 단위시험 (순서 12)
 
   // 묶음: behavior-definition — 동작 정의 (BDEF) (순서 13)
+  createBehaviorDefinition,
   getBehaviorDefinition,
   readBehaviorDefinition,
 
