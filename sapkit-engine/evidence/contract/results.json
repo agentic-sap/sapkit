@@ -45,6 +45,11 @@
     "detail": "src/tools/read/__tests__/getClass.test.ts"
   },
   {
+    "tool": "GetDataElement",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getDataElement.test.ts"
+  },
+  {
     "tool": "GetFunctionModule",
     "passed": true,
     "detail": "src/tools/read/__tests__/getFunctionModule.test.ts"

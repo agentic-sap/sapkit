@@ -804,6 +804,46 @@
 - **비고**: 키가 하나 **느는** 방향이므로 구의 키를 읽던 소비자는 그대로 돈다.
   기계용 장부로 옮기는 일은 D38과 같은 이유로 그 파일을 소유한 작업의 몫이다.
 
+### D61 — 데이터 엘리먼트·도메인의 **ECC OData 우회로가 없다** (조용히 ADT로 흘리지 않고 거절한다)
+
+- **분류**: 축소 — **해소 마일스톤 = `src/rfc`에 DDIC FunctionImport 4종을 여는
+  마일스톤**(테이블 묶음이 이미 연 `callDdicTablRead`와 같은 자리). 그 넷이 열리면
+  이 항목은 닫힌다.
+- **적용 도구 4종**: `GetDataElement` · `GetDomain` · `CreateDataElement` ·
+  `CreateDomain`. (`ReadDataElement`·`ReadDomain`은 구에도 우회로가 없어 해당 없음.)
+- **구 동작(실측)**: 네 핸들러 모두 `process.env.SAP_VERSION?.toUpperCase() === 'ECC'`
+  하나로 갈라져 OData 브리지를 탄다 —
+  `engine/src/handlers/data_element/high/handleGetDataElement.ts:70-100` ·
+  `handleCreateDataElement.ts:180-182,348-436` ·
+  `engine/src/handlers/domain/high/handleGetDomain.ts:69-97` ·
+  `handleCreateDomain.ts:167-169,356-433`. ECC 커널(BASIS < 7.50)에는
+  `/sap/bc/adt/ddic/dataelements`·`/sap/bc/adt/ddic/domains` 엔드포인트가 **아예
+  없기** 때문이다. 브리지가 부르는 것은 FunctionImport `DdicDtelRead` ·
+  `DdicDomaRead` · `DdicDtel` · `DdicDoma`(+ `DdicActivate`)이고, 그 정의는
+  `engine/src/lib/odataRfc.ts:390-460,601-660` · 선택기는
+  `engine/src/lib/rfcBackend.ts:107-153`에 있다.
+- **신 동작**: `SAP_VERSION=ECC`면 **접속을 만들기 전에 거절한다.** 문구가 빠진
+  브리지 함수모듈 이름과 이 항목 번호(D61)를 지목한다.
+- **근거**: 신 엔진의 RFC 분배층이 지금 갖고 있는 DDIC 능력은
+  `callDdicTablRead` 하나뿐이다(`src/rfc/types.ts:62-78` — 그 인터페이스가 왜
+  `RfcChannel`이 아닌 별도 능력인지까지 적혀 있다). 나머지 넷을 여는 일은
+  `src/rfc/**`를 고치는 작업이고 이 묶음 과제의 무접촉 구역이다.
+  **조용히 ADT로 흘려보내지 않는 이유**: ECC에서는 그 요청이 404가 되는데, 그
+  404는 "오브젝트가 없다"로 읽힌다 — 없는 것은 오브젝트가 아니라 엔드포인트다.
+  `Create*` 쪽은 한술 더 떠 **없는 엔드포인트에 쓰기를 시도**하게 된다.
+  틀린 답보다 못 한다는 말이 낫다.
+- **대체 기대 시험**: 거절이 실제로 일어나고 **SAP 호출이 하나도 나가지 않는지**를
+  네 도구가 각각 못 박는다 —
+  `src/tools/read/__tests__/getDataElement.test.ts`의 「ECC 갈림」 ·
+  `src/tools/read/__tests__/getDomain.test.ts`의 「ECC 갈림」 ·
+  `src/tools/write/__tests__/createDataElement.test.ts`의 「갈래」 ·
+  `src/tools/write/__tests__/createDomain.test.ts`의 「갈래」.
+  갈림 판정이 구와 같이 **trim 하지 않는다**는 것(`' ECC '`는 갈리지 않는다)도
+  같은 절이 잡는다.
+- **기계 장부 미반영**: 이 묶음 과제는 `harness/replay/**`가 무접촉이라
+  `divergences.ts`에 옮기지 못했다. **와이어와 도구 응답이 둘 다 달라지므로 기계
+  장부에도 와야 하는 항목**이다 — 묶음 병합 뒤 오케스트레이터가 옮긴다.
+
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 
 리뷰에서 차이로 잡혔지만 **유지할 이유가 없어** 구 동작으로 되돌린 것들.

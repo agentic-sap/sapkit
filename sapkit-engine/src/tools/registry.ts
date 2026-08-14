@@ -137,6 +137,7 @@ import { reloadProfile } from './runtime/reloadProfile';
 // 묶음: behavior-definition
 
 // 묶음: data-element
+import { getDataElement } from './read/getDataElement';
 
 // 묶음: service-binding
 
@@ -263,6 +264,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: behavior-definition — 동작 정의 (BDEF) (순서 13)
 
   // 묶음: data-element — 데이터 엘리먼트 (순서 14)
+  getDataElement,
 
   // 묶음: service-binding — 서비스 바인딩 (순서 15)
 
