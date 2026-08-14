@@ -266,6 +266,7 @@ import { getEnhancements } from './read/getEnhancements';
 import { getAdtTypes } from './read/getAdtTypes';
 import { getNodeStructureLow } from './read/getNodeStructureLow';
 import { getObjectStructureLow } from './read/getObjectStructureLow';
+import { getObjectNodeFromCache } from './read/getObjectNodeFromCache';
 import { getObjectsList } from './read/getObjectsList';
 import { getVirtualFoldersLow } from './read/getVirtualFoldersLow';
 
@@ -495,6 +496,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getAdtTypes,
   getNodeStructureLow,
   getObjectStructureLow,
+  getObjectNodeFromCache,
   getObjectsList,
   getVirtualFoldersLow,
 ];

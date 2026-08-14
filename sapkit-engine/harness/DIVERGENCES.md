@@ -1757,6 +1757,52 @@ D번호를 주지 않는 이유가 그것이다. 그래도 장부에 두는 이�
 **D130~D139**이고, 파일 가운데가 아니라 여기 끝에 붙이는 것은 같은 물결의 다른
 묶음 둘이 동시에 append 하고 있어 같은 자리를 물면 전면 충돌이 나기 때문이다.
 
+### D130 — `GetObjectNodeFromCache`는 **캐시가 없으므로 언제나 「없다」로 답한다** (D33을 닫는다)
+
+- **분류**: 축소 — **해소 마일스톤 = 도구 사이 캐시의 자리(프로세스 전역이냐
+  접속 수명이냐)를 정하고 그것을 채우는 다섯 도구를 함께 고치는 판.**
+  D33이 그 판정을 "`GetObjectNodeFromCache`를 짓는 마일스톤"으로 미뤄 두었고,
+  **이 항목이 그 자리에서 내린 판정이다.**
+- **구 동작(실측)**: `engine/src/lib/getObjectsListCache.ts`는 모듈 수준 싱글턴이고
+  다섯 도구가 마지막 결과를 얹는다 — `SearchObject`(`handleSearchObject.ts:139`) ·
+  `GetTypeInfo`(`handleGetTypeInfo.ts:232`·`:251`) ·
+  `GetWhereUsed`(`handleGetWhereUsed.ts:111`) ·
+  `GetObjectsByType`(`handleGetObjectsByType.ts:175`·`:191`·`:254`) ·
+  `GetObjectsList`(`handleGetObjectsList.ts:210`). 읽는 것은
+  `handleGetObjectNodeFromCache.ts:41` 하나뿐이다.
+  **프로세스가 갓 떴을 때의 구 동작을 실측했다**: `getCache()`가 `null`이므로
+  `node`가 `null`로 남고(`:41-51`) 곧바로 `isError: true` +
+  `Node not found in cache`로 접힌다(`:52-59`). **SAP 호출은 한 발도 나가지
+  않는다** — ADT를 부르는 것은 캐시 적중 뒤 `OBJECT_URI` 확장 갈래뿐이다(`:61-98`).
+- **신 동작**: 캐시를 만들지 않고, **구의 캐시-빈-상태 갈래를 글자까지 그대로**
+  옮겼다. 인자 검증 → `object_type, object_name, tech_name required`,
+  그 밖에는 `Node not found in cache`. 접속을 만들지 않는다.
+  **`OBJECT_URI` 확장 갈래는 옮기지 않았다** — 도달할 수 없는 코드를 미리 써
+  두는 것이 곧 추측이기 때문이다.
+- **근거 — 고를 수 있던 길 셋 중 왜 이것인가**:
+  ⑴ *캐시를 새로 만들고 `GetObjectsList` 하나만 채운다* — 다섯 중 하나만 채운
+  캐시는 "`GetObjectsList`를 먼저 부른 사람에게만 동작하는 도구"를 만든다.
+  **D33이 이미 물리쳤다: 절반 찬 캐시는 빈 캐시보다 나쁘다.**
+  ⑵ *다섯 도구에 모두 붙인다* — 그중 넷(`SearchObject`·`GetTypeInfo`·
+  `GetWhereUsed`·`GetObjectsByType`)이 이 묶음 과제의 **무접촉 구역**이고,
+  프로세스 전역 가변 상태를 되살릴지는 도구 묶음 하나가 정할 문제가 아니다.
+  ⑶ *구의 빈-캐시 갈래를 그대로 옮긴다* ← 골랐다. **추측이 아니다** — 구도 갓
+  뜬 프로세스에서 똑같이 답하므로, 갈라지는 것은 "앞선 도구가 캐시를 채운 뒤"
+  하나뿐이고 그 조건은 신 엔진에 존재하지 않는다.
+- **⚠ 실사용에 주는 뜻**: 이 도구는 신 엔진에서 **성공 응답을 낼 수 없다.**
+  대장에 「증거 있음」으로 잡히더라도 그것은 "빈-캐시 갈래가 구와 같다"는 증거지
+  "캐시 조회가 동작한다"는 증거가 아니다. 캐시를 여는 마일스톤이 이 항목을
+  닫거나 결함으로 승격한다.
+- **대체 기대 시험**:
+  `sapkit-engine/src/tools/read/__tests__/getObjectNodeFromCache.test.ts` —
+  「캐시 없음 갈래」 3건(문구 일치 + **접속 시도 0회**) · 「인자 갈래」 4건.
+- **기계 장부 미반영**: 이 묶음 과제는 `harness/replay/**`가 무접촉이라
+  `divergences.ts`에 옮기지 못했다. **도구 응답이 달라지는 항목**이다(캐시를
+  채우는 도구를 먼저 부른 시퀀스에서 구는 마디를, 신은 오류를 답한다) — 묶음
+  병합 뒤 오케스트레이터가 옮긴다. D33 본문은 append-only라 고치지 않았고,
+  그 항목의 「안 옮김」 판정(**읽는 도구가 등록점에 없다**)은 **이 커밋으로
+  전제가 깨졌다** — 옮길 때 D33이 아니라 이 D130을 옮겨라.
+
 ### D131 — `*Low` 두 도구의 세션 복원에서 **`sap-adt-connection-id`를 갈아 끼우지 않는다**
 
 - **분류**: 축소 — **해소 마일스톤 = 접속 계층에 「호출자가 준 세션 ID를 쓰는」

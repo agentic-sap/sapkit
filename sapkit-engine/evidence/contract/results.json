@@ -265,6 +265,11 @@
     "detail": "src/tools/read/__tests__/getObjectInfo.test.ts"
   },
   {
+    "tool": "GetObjectNodeFromCache",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getObjectNodeFromCache.test.ts"
+  },
+  {
     "tool": "GetObjectStructure",
     "passed": true,
     "detail": "src/tools/read/__tests__/getObjectStructure.test.ts"

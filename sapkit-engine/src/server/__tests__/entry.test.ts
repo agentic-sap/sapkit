@@ -62,6 +62,7 @@ describe('셰임 계약', () => {
         'GetInstalledComponents',
         'GetNodeStructureLow',
         'GetObjectInfo',
+        'GetObjectNodeFromCache',
         'GetObjectStructure',
         'GetObjectStructureLow',
         'GetObjectsByType',
