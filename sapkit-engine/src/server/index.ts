@@ -18,7 +18,13 @@ export type { Startup, StartupInput } from './startup';
 export { startFromProcess } from './bootstrap';
 export type { BootstrapOptions, StartedServer } from './bootstrap';
 
-export { NOOP_LOGGER, defineTool, toExposableTool } from './toolDefinition';
+export {
+  NOOP_LOGGER,
+  TARGET_NAME_REQUIRED_KINDS,
+  defineTool,
+  missingTargetNameDeclarations,
+  toExposableTool,
+} from './toolDefinition';
 export type {
   SapTool,
   SapToolDefinition,
@@ -28,5 +34,6 @@ export type {
   ToolInputShape,
   ToolLogger,
   ToolResult,
+  ToolTargetName,
   ToolTextContent,
 } from './toolDefinition';

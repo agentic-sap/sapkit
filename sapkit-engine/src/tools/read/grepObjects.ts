@@ -132,6 +132,7 @@ export const grepObjects = defineTool(
     available_in: ['onprem', 'cloud', 'legacy'],
     sets: ['readonly'],
     kind: 'read',
+    targetNames: [{ arg: 'objects', element: 'object_name' }],
   },
   async (context, args) => {
     try {

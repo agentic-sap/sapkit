@@ -22,6 +22,7 @@ export const getInclude = defineTool(
     available_in: ['onprem', 'cloud', 'legacy'],
     sets: ['readonly'],
     kind: 'read',
+    targetNames: ['include_name'],
   },
   async (context, args) => {
     try {

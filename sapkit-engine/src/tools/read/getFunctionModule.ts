@@ -53,6 +53,8 @@ export const getFunctionModule = defineTool(
     available_in: ['onprem', 'cloud', 'legacy'],
     sets: ['high'],
     kind: 'read',
+    // 함수그룹 이름은 대상이 아니라 좌표다 — 소스를 실어 오는 것은 FM 쪽이다.
+    targetNames: ['function_module_name'],
   },
   async (context, args) => {
     try {

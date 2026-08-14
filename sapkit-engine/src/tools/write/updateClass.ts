@@ -52,6 +52,7 @@ export const updateClass = defineTool(
     available_in: ['onprem', 'cloud', 'legacy'],
     sets: ['high'],
     kind: 'mutation',
+    targetNames: ['class_name'],
   },
   async (context: ToolContext, args) => {
     const { logger } = context;

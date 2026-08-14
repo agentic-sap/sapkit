@@ -193,6 +193,7 @@ export const updateSourceByPatch = defineTool(
     available_in: ['onprem', 'cloud', 'legacy'],
     sets: ['high'],
     kind: 'mutation',
+    targetNames: ['object_name'],
   },
   async (context: ToolContext, args) => {
     const { logger } = context;

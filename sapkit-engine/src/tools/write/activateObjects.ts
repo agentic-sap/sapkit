@@ -405,6 +405,9 @@ export const activateObjects = defineTool(
     available_in: ['onprem', 'cloud', 'legacy'],
     sets: ['high'],
     kind: 'mutation',
+    // `uri`는 선언하지 않는다 — URI는 이름 해석을 덮으므로 네임스페이스 검사를
+    // 우회하는 통로다. 녹화 시나리오는 name+type으로 준다(harness/scenarios).
+    targetNames: [{ arg: 'objects', element: 'name' }],
   },
   async (context: ToolContext, args) => {
     const { logger } = context;
