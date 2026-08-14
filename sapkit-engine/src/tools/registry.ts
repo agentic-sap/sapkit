@@ -177,6 +177,7 @@ import { readDomain } from './read/readDomain';
 
 // 묶음: transport
 import { getTransport } from './read/getTransport';
+import { listTransports } from './read/listTransports';
 
 // 묶음: metadata-extension
 
@@ -351,6 +352,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
 
   // 묶음: transport — 트랜스포트 (순서 17)
   getTransport,
+  listTransports,
 
   // 묶음: metadata-extension — 메타데이터 확장 (DDLX) (순서 18)
 
