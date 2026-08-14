@@ -272,6 +272,7 @@ import { getObjectNodeFromCache } from './read/getObjectNodeFromCache';
 import { getObjectsList } from './read/getObjectsList';
 import { getVirtualFoldersLow } from './read/getVirtualFoldersLow';
 import { readPackage } from './read/readPackage';
+import { createPackage } from './write/createPackage';
 import { runtimeListFeeds } from './runtime/runtimeListFeeds';
 import { runtimeListSystemMessages } from './runtime/runtimeListSystemMessages';
 
@@ -507,6 +508,8 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getObjectsList,
   getVirtualFoldersLow,
   readPackage,
+  // 이 묶음의 유일한 mutation — `sets: ['high']`이라 readonly 표면에 뜨지 않는다.
+  createPackage,
   // 이름이 `Runtime*`이지만 이미 지어진 runtime 묶음 11종과 별개인 꼬리다.
   runtimeListFeeds,
   runtimeListSystemMessages,

@@ -65,6 +65,11 @@
     "detail": "src/tools/write/__tests__/createMetadataExtension.test.ts"
   },
   {
+    "tool": "CreatePackage",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createPackage.test.ts"
+  },
+  {
     "tool": "CreateProgram",
     "passed": true,
     "detail": "src/tools/write/__tests__/createProgram.test.ts"
