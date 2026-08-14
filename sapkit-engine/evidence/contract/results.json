@@ -155,6 +155,11 @@
     "detail": "src/tools/read/__tests__/grepPackages.test.ts"
   },
   {
+    "tool": "ReadInterface",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readInterface.test.ts"
+  },
+  {
     "tool": "ReloadProfile",
     "passed": true,
     "detail": "src/tools/runtime/__tests__/reloadProfile.test.ts"
