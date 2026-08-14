@@ -119,6 +119,7 @@ import { runtimeRunProgramWithProfiling } from './runtime/runtimeRunProgramWithP
 import { reloadProfile } from './runtime/reloadProfile';
 
 // 묶음: include
+import { getIncludesList } from './read/getIncludesList';
 
 // 묶음: class
 
@@ -129,6 +130,8 @@ import { createTable } from './write/createTable';
 import { updateTable } from './write/updateTable';
 
 // 묶음: program
+import { getProgFullCode } from './read/getProgFullCode';
+import { readProgram } from './read/readProgram';
 
 // 묶음: function-module
 import { readFunctionModule } from './read/readFunctionModule';
@@ -275,6 +278,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   reloadProfile,
 
   // 묶음: include — 인클루드 (순서 5)
+  getIncludesList,
 
   // 묶음: class — 클래스 (순서 6)
 
@@ -287,6 +291,8 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   updateTable,
 
   // 묶음: program — 프로그램 (순서 8)
+  getProgFullCode,
+  readProgram,
 
   // 묶음: function-module — 함수모듈 (순서 9)
   readFunctionModule,

@@ -20,16 +20,6 @@
     "detail": "src/tools/write/__tests__/createProgram.test.ts"
   },
   {
-    "tool": "CreateStructure",
-    "passed": true,
-    "detail": "src/tools/write/__tests__/createStructure.test.ts"
-  },
-  {
-    "tool": "CreateTable",
-    "passed": true,
-    "detail": "src/tools/write/__tests__/createTable.test.ts"
-  },
-  {
     "tool": "DescribeByList",
     "passed": true,
     "detail": "src/tools/read/__tests__/describeByList.test.ts"
@@ -70,6 +60,11 @@
     "detail": "src/tools/read/__tests__/getInclude.test.ts"
   },
   {
+    "tool": "GetIncludesList",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getIncludesList.test.ts"
+  },
+  {
     "tool": "GetInstalledComponents",
     "passed": true,
     "detail": "src/tools/read/__tests__/getInstalledComponents.test.ts"
@@ -93,6 +88,11 @@
     "tool": "GetPackageTree",
     "passed": true,
     "detail": "src/tools/read/__tests__/getPackageTree.test.ts"
+  },
+  {
+    "tool": "GetProgFullCode",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getProgFullCode.test.ts"
   },
   {
     "tool": "GetProgram",
@@ -130,11 +130,6 @@
     "detail": "src/tools/rfc-read/__tests__/getTable.test.ts"
   },
   {
-    "tool": "GetTableContents",
-    "passed": true,
-    "detail": "src/tools/row-data/__tests__/getTableContents.test.ts"
-  },
-  {
     "tool": "GetTransaction",
     "passed": true,
     "detail": "src/tools/read/__tests__/getTransaction.test.ts"
@@ -160,14 +155,9 @@
     "detail": "src/tools/read/__tests__/grepPackages.test.ts"
   },
   {
-    "tool": "ReadStructure",
+    "tool": "ReadProgram",
     "passed": true,
-    "detail": "src/tools/read/__tests__/readStructure.test.ts"
-  },
-  {
-    "tool": "ReadTable",
-    "passed": true,
-    "detail": "src/tools/read/__tests__/readTable.test.ts"
+    "detail": "src/tools/read/__tests__/readProgram.test.ts"
   },
   {
     "tool": "ReloadProfile",
@@ -248,15 +238,5 @@
     "tool": "UpdateSourceByPatch",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateSourceByPatch.test.ts"
-  },
-  {
-    "tool": "UpdateStructure",
-    "passed": true,
-    "detail": "src/tools/write/__tests__/updateStructure.test.ts"
-  },
-  {
-    "tool": "UpdateTable",
-    "passed": true,
-    "detail": "src/tools/write/__tests__/updateTable.test.ts"
   }
 ]

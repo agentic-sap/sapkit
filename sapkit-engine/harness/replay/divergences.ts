@@ -303,6 +303,39 @@ function hasOldInterfaceEnrichment(response: JsonValue): boolean {
   return found(response);
 }
 
+/**
+ * `GetIncludesList` 응답에서 인클루드 이름 목록 (장부 D3).
+ *
+ * 두 모양을 다 읽는다 — `detailed`면 JSON 본문의 `includes`, 아니면 이름을
+ * 줄바꿈으로 이은 평문이다. 어느 쪽으로도 못 읽으면 null이다.
+ */
+function includeNamesOf(response: JsonValue): string[] | null {
+  const blocks = blocksOf(response).filter((block) => block['type'] === 'text');
+  if (blocks.length === 0) return null;
+
+  const out: string[] = [];
+  for (const block of blocks) {
+    const text = block['text'];
+    if (typeof text !== 'string') return null;
+
+    let parsed: JsonValue | undefined;
+    try {
+      parsed = JSON.parse(text) as JsonValue;
+    } catch {
+      parsed = undefined;
+    }
+    if (parsed !== undefined && isPlainObject(parsed) && Array.isArray(parsed['includes'])) {
+      for (const name of parsed['includes']) if (typeof name === 'string') out.push(name);
+      continue;
+    }
+    for (const line of text.split('\n')) {
+      const name = line.trim();
+      if (name !== '') out.push(name);
+    }
+  }
+  return out;
+}
+
 /** `ReloadProfile` 성공 응답에서 **등재된** 키. 그 밖이 달라지면 결함이다. */
 const RELOAD_REGISTERED_KEYS: readonly string[] = ['restartRequired', 'note', 'diagnostics'];
 
@@ -367,12 +400,42 @@ export const M1_DIVERGENCES: readonly DivergenceEntry[] = [
     title: 'GetIncludesList — `INCLUDE … IF FOUND`의 비실재 객체명을 돌려주던 것을 고침',
     tool: 'GetIncludesList',
     classification: '수리',
-    status: 'dormant',
-    evidence: 'sapkit-engine/harness/DIVERGENCES.md#m1-사전-등재 · HANDOFF.md §6 항목 13-13 · D-079 ⑤',
-    substituteTest: 'GetIncludesList를 짓는 마일스톤이 소유',
-    resolvesIn: 'GetIncludesList를 짓는 마일스톤 (M1 밖)',
+    // **활성화됐다** — 이 도구를 짓는 판(인클루드 묶음)에서 휴면을 깨웠다.
+    // 휴면인 채로 두면 러너가 이 도구의 모든 단계를 `mismatch`로 떨어뜨린다
+    // (`judgeWithLedger`의 휴면 갈래) — 도구가 실재하는데 장부가 낡았다는 신호를
+    // 그대로 두는 셈이기 때문이다.
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d3-활성화 · HANDOFF.md §6 항목 13-13 · D-079 ⑤ · ' +
+      'sapkit-engine/src/tools/read/getIncludesList.ts · ' +
+      'engine/src/handlers/include/readonly/handleGetIncludesList.ts · ' +
+      'engine/src/handlers/system/readonly/handleGetObjectInfo.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/read/__tests__/getIncludesList.test.ts — 「장부 D3」 절 5건',
+    resolvesIn: null,
     applies: (step) => step.tool === 'GetIncludesList',
-    check: null,
+    // 구가 실었던 이름 중 **신에서 빠진 것만** 등재된 차이다. 이름이 늘거나
+    // 구·신 공통분이 어긋나면 등재가 덮어 주지 않는다 — 그 자리가 결함이다.
+    check: ({ recorded, actual }) => {
+      if (actual.isError) return { ok: false, detail: '신 엔진이 목록 조회를 오류로 답했다 — 이 등재의 갈래가 아니다.' };
+      const before = includeNamesOf(recorded.response);
+      const after = includeNamesOf(actual.response);
+      if (before === null || after === null) {
+        return { ok: false, detail: '양쪽 응답에서 인클루드 이름 목록을 읽지 못했다.' };
+      }
+      const added = after.filter((name) => !before.includes(name));
+      if (added.length > 0) {
+        return { ok: false, detail: `구에 없던 이름이 늘었다 — ${added.slice(0, 5).join(', ')}. 등재된 차이가 아니다.` };
+      }
+      const dropped = before.filter((name) => !after.includes(name));
+      if (dropped.length === 0) {
+        return { ok: false, detail: '뺀 이름이 없다 — 이 단계에서는 D3가 발동할 차이가 없었다.' };
+      }
+      return {
+        ok: true,
+        detail: `구가 싣던 이름 중 주소 없는 ${dropped.length}건만 빠졌다 — ${dropped.slice(0, 5).join(', ')}.`,
+      };
+    },
   },
   {
     id: 'D13',

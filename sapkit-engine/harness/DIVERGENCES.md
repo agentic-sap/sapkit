@@ -25,11 +25,41 @@
 |---|---|---|---|---|
 | D1 | `GetSqlQuery` | 13-9 — wide-SELECT에서 WHERE 절이 통째로 무시됨 | 수리 | **활성** |
 | D2 | `UpdateLocalTypes` | 13-11 — `activate_on_update:true`에서 거짓 성공 | 수리 | 휴면(도구 M1 밖) |
-| D3 | `GetIncludesList` | 13-13 — `INCLUDE … IF FOUND`의 비실재 객체명 반환 | 수리 | 휴면(도구 M1 밖) |
+| D3 | `GetIncludesList` | 13-13 — `INCLUDE … IF FOUND`의 비실재 객체명 반환 | 수리 | **활성**(아래 「D3 활성화」) |
 
 근거: `HANDOFF.md` §6 항목 13의 하위 13-9·13-11·13-13 · 결정 기록 D-079 ⑤.
 대체 기대 시험: D1 = WHERE가 결과에 실제 반영됨을 검증하는 시험(실데이터 도구
-작업이 소유). D2·D3는 해당 도구를 짓는 마일스톤에서 활성화한다.
+작업이 소유). D2는 해당 도구를 짓는 마일스톤에서 활성화한다.
+
+### D3 활성화 — `GetIncludesList`를 지으면서
+
+- **활성화 시점**: 인클루드 묶음(build-plan 순서 5)에서 `GetIncludesList`를 지은 판.
+  휴면 규칙이 정한 자리 그대로다 — 도구가 등록점에 오르는 순간 장부도 깨어난다.
+- **구 동작(실측)**: `engine/src/handlers/include/readonly/handleGetIncludesList.ts:86-131` —
+  노드 구조 응답에서 `OBJECT_TYPE`이 `PROG/I`인 마디의 `OBJECT_NAME`을 **조건 없이**
+  걷는다. `INCLUDE <name> IF FOUND.`(고객 확장 슬롯 관용구)로 선언만 돼 있고
+  오브젝트는 없는 이름도 그대로 실린다. 실측: `ZUNIVR5120`의 목록에 `ZUNIVI_H011`이
+  실렸고 `SearchObject`는 0건(`HANDOFF.md` §6 항목 13-13). 이후 그 이름의 404가
+  도구 결함으로 오독됐다 — 404가 실은 정확한 응답이었다.
+- **신 동작**: **ADT가 주소(`OBJECT_URI`)를 주지 않은 마디를 실재하는 오브젝트로 보지
+  않는다.** 목록에서 빼고, `detailed` 응답에는 뺀 이름을 `unresolved_includes`로 싣는다
+  (뺄 것이 없으면 그 키를 만들지 않는다 — 흔한 경우의 모양은 구와 같다).
+- **판정 근거**: 구 엔진 자신의 분류다 —
+  `engine/src/handlers/system/readonly/handleGetObjectInfo.ts:135-145`가 **같은 노드 구조
+  응답**에서 `OBJECT_NAME` + `OBJECT_URI`를 가진 마디만 실물 잎(terminal leaf)으로 보고,
+  `OBJECT_URI`가 없는 마디는 주소 없는 묶음 마디(group node)로 가른다. 주소가 없다는
+  것은 ADT가 그 이름으로 갈 곳을 모른다는 뜻이다.
+- **폴백은 걸러 내기 전 마디 수로 판정한다.** 구는 "PROG/I 이름을 하나도 못 찾으면
+  응답 안의 모든 `OBJECT_NAME`을 걷는" 폴백을 갖는다(`:113-125`). 그 조건을 **걸러 낸
+  뒤의** 수로 보면, D3가 전부 걸러 낸 순간 폴백이 켜져 같은 이름을 도로 실어 온다.
+  그래서 신 엔진은 폴백 판정을 **PROG/I 마디의 존재 여부**로 하고, 폴백 자체는 구
+  그대로 둔다.
+- **대체 기대 시험**: `sapkit-engine/src/tools/read/__tests__/getIncludesList.test.ts`의
+  「장부 D3」 절 5건 + `sapkit-engine/harness/replay/__tests__/divergences.test.ts`의
+  「D3 — 주소 없는 인클루드 이름만 빠진다」 절 4건.
+- **기계 장부 반영**: 했다. `harness/replay/divergences.ts`의 D3가 `active`이며 `check`를
+  들고 있다 — 구가 싣던 이름 중 **빠진 것만** 등재된 차이이고, 이름이 늘거나 공통분이
+  어긋나면 `allowlisted-fail`로 떨어진다.
 
 ## 제작 중 발견분
 
@@ -1121,6 +1151,30 @@
 - **선행 항목이 없다는 관찰**: 위에 적은 M1 쓰기 4종의 같은 동작은 이 장부에
   등재돼 있지 않다. 그쪽도 등재 대상으로 보이며, 판단은 그 파일을 소유한
   작업의 몫이다.
+### D46 — `GetProgFullCode`가 인클루드 본문을 **실제로 꺼낸다** (구: `data` 키 오타로 빈손)
+
+- **분류**: 수리
+- **구 동작(실측)**: `engine/src/handlers/program/readonly/handleGetProgFullCode.ts`는
+  인클루드 한 벌을 `handleGetInclude`로 받아 그 응답에서 본문을 꺼낸다. 그런데
+  `handleGetInclude`가 싣는 키는 **`text`**인데(`engine/src/handlers/include/readonly/handleGetInclude.ts:45-53`)
+  꺼내는 자리 셋 중 둘이 **`data`**를 읽는다:
+  - `:93` — `collectIncludes` 안. 코드가 언제나 `null`이 되므로 안쪽 `INCLUDE`를
+    한 번도 찾지 못한다. **중첩 인클루드 재귀가 죽어 있다.**
+  - `:272` — FUGR 갈래의 코드 수집. **함수그룹 인클루드의 `code`가 언제나 `null`**이다.
+  같은 파일의 PROG/P 갈래(`:196`)만 `'text' in c`로 옳게 읽는다 — 한 파일 안에서
+  키가 갈리는 것이 오타의 증거다.
+- **신 동작**: 세 자리 모두 `text`를 읽는다. 그래서 중첩 인클루드가 트리 순회
+  순서로 따라 붙고, FUGR 갈래의 인클루드에도 본문이 실린다.
+- **근거**: 이 도구의 선언된 목적이 "전량 코드 내보내기·감사·마이그레이션·백업"인데
+  (구 핸들러 머리주석 `:32`), 읽기는 성공했으면서 본문을 못 꺼내는 것은 spec §2.4의
+  「구의 오답」 계열이다. 응답 **모양**은 그대로이고 채워지는 값만 달라진다.
+- **대체 기대 시험**: `sapkit-engine/src/tools/read/__tests__/getProgFullCode.test.ts` —
+  「중첩 인클루드까지 내려간다」 · 「함수그룹의 인클루드에도 코드가 실린다」.
+- **비고**: 왕복 수가 는다(중첩 하나마다 두 번 — 구도 인클루드 하나를 두 번 읽었고
+  그 왕복 수는 줄이지 않았다).
+- **기계 장부 미반영**: `harness/replay/divergences.ts`는 이 과제에서 D3 활성화 외에는
+  무접촉이다(여러 묶음이 같은 파일에서 충돌한다). 옮기지 않은 채 재생을 켜면 이
+  차이가 결함으로 잡힌다 — 묶음 병합 뒤에 옮겨야 한다.
 
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 
