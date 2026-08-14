@@ -141,6 +141,37 @@ describe('checkTierAllowed — fail-closed cross-checks', () => {
     );
   });
 
+  /**
+   * 구 가드는 이름으로 판정해 `Run*`이 읽기 접두사가 아니라는 이유만으로
+   * fail-closed였다. 이 엔진은 **선언**으로 판정하므로, 등록점 한 줄이
+   * `kind: 'read'`라고 적으면 그대로 PRD를 지나간다 — 단위시험 묶음을 지으며
+   * 사보타주로 실측된 자리이고, 구보다 약해지는 유일한 갈래였다.
+   */
+  it('refuses RunUnitTest even when it is declared read (구 바닥선 복원)', () => {
+    for (const tier of ['QA', 'PRD', 'UNKNOWN'] as const) {
+      const d = checkTierAllowed({ name: 'RunUnitTest', kind: 'read' }, tier);
+      expect(d.allowed).toBe(false);
+      expect(d.allowed === false && d.reason).toContain('declared');
+    }
+  });
+
+  /**
+   * 반대 방향의 과차단도 결함이다. `Runtime*` 12종은 덤프·프로파일러 **조회**이고
+   * 구 가드가 QA/PRD에서 허용했다 — `^Run`으로 넓히면 그 열둘이 통째로 막힌다.
+   * 그래서 교차검사는 `Run(?!time)`이고, 이 시험이 그 경계를 지킨다.
+   */
+  it('Runtime* 조회는 교차검사에 걸리지 않는다 (과차단 역검증)', () => {
+    for (const name of [
+      'RuntimeListDumps',
+      'RuntimeGetDumpById',
+      'RuntimeAnalyzeDump',
+      'RuntimeGetGatewayErrorLog',
+      'RuntimeListProfilerTraceFiles',
+    ]) {
+      expect(checkTierAllowed({ name, kind: 'read' }, 'PRD').allowed).toBe(true);
+    }
+  });
+
   // NEGATIVE — an unknown class is not a free pass.
   it('refuses a tool whose class it cannot recognise', () => {
     const d = checkTierAllowed(
