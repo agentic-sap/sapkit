@@ -75,6 +75,11 @@
     "detail": "src/tools/read/__tests__/grepObjects.test.ts"
   },
   {
+    "tool": "RuntimeAnalyzeDump",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeAnalyzeDump.test.ts"
+  },
+  {
     "tool": "RuntimeGetDumpById",
     "passed": true,
     "detail": "src/tools/runtime/__tests__/runtimeGetDumpById.test.ts"
