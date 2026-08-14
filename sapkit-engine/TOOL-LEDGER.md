@@ -34,7 +34,7 @@
 | attended 실기 기록 | `fixtures/attended-only/*.json` | 있음 · 2단계 |
 | 계약 시험 결과 | `evidence/contract/results.json` | 있음 · 45종 |
 | 계약 시험 파일 | `src/tools/**/__tests__/<도구>.test.ts` | 있음 · 45종에 시험 파일이 있다 — 있음이 곧 통과는 아니다 |
-| 대체 기대 시험 | `harness/replay/divergences.ts 의 substituteTest 경로` | **없음** · 도구 단위 등재분(D1·D2·D3)의 대체 기대 시험은 아직 산문뿐이다 |
+| 대체 기대 시험 | `harness/replay/divergences.ts 의 substituteTest 경로` | 있음 · 5종에 실재하는 시험 파일이 있다 |
 | 위임형 판정 | `../engine/src/handlers/**` | 있음 · 소스 559파일을 상대 import까지 따라가 판정 — 직접 46 · 간접 140 · 없음 0 |
 
 ## 안 지음 (141)
@@ -193,7 +193,7 @@
 |---|---|---|---|---|---|---|---|---|
 | CheckSyntax | 시스템·공통 조회 | 1 | 재생 대조 | 픽스처 있음 · 판정 미기록 | 통과(1) | — | — | 간접 |
 | DescribeByList | 시스템·공통 조회 | 1 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| GetAbapSystemSymbols | 시스템·공통 조회 | 1 | 재생 대조 | — | 통과(1) | — | — | 간접 |
+| GetAbapSystemSymbols | 시스템·공통 조회 | 1 | 재생 대조 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
 | GetInactiveObjects | 시스템·공통 조회 | 1 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | GetInstalledComponents | 시스템·공통 조회 | 1 | 재생 대조 | — | 통과(1) | — | — | 직접 |
 | GetObjectStructure | 시스템·공통 조회 | 1 | 재생 대조 | — | 통과(1) | — | — | 간접 |
@@ -208,7 +208,7 @@
 | SearchObject | 검색 | 2 | 재생 대조 | 픽스처 있음 · 판정 미기록 | 통과(1) | — | — | 직접 |
 | ActivateObjects | 공통 편집·활성 | 3 | 재생 대조 | 픽스처 있음 · 판정 미기록 | 통과(1) | — | — | 간접 |
 | UpdateSourceByPatch | 공통 편집·활성 | 3 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| ReloadProfile | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 재생 대조 | — | 통과(1) | — | — | 간접 |
+| ReloadProfile | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 재생 대조 + 대체 | — | 통과(1) | — | 통과(3) | 간접 |
 | RuntimeAnalyzeProfilerTrace | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 재생 대조 | — | 통과(1) | — | — | 직접 |
 | RuntimeGetGatewayErrorLog | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | RuntimeGetProfilerTraceData | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 재생 대조 | — | 통과(1) | — | — | 직접 |
@@ -235,7 +235,7 @@
 |---|---|---|---|---|---|---|---|---|
 | GetAbapAST | 시스템·공통 조회 | 1 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | GetAbapSemanticAnalysis | 시스템·공통 조회 | 1 | 계약 시험 | — | 통과(1) | — | — | 간접 |
-| GetObjectInfo | 시스템·공통 조회 | 1 | 계약 시험 | — | 통과(1) | — | — | 간접 |
+| GetObjectInfo | 시스템·공통 조회 | 1 | 계약 시험 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
 | GetPackageTree | 시스템·공통 조회 | 1 | 계약 시험 | — | 통과(1) | — | — | 직접 |
 | GetObjectsByType | 검색 | 2 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | GetSourceDiff | 공통 편집·활성 | 3 | 계약 시험 | — | 통과(1) | — | — | 간접 |
