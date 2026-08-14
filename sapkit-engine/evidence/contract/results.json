@@ -155,6 +155,11 @@
     "detail": "src/tools/read/__tests__/getBehaviorImplementation.test.ts"
   },
   {
+    "tool": "GetCdsUnitTest",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/getCdsUnitTest.test.ts"
+  },
+  {
     "tool": "GetClass",
     "passed": true,
     "detail": "src/tools/read/__tests__/getClass.test.ts"
