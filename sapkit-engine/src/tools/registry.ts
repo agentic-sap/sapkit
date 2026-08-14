@@ -123,6 +123,7 @@ import { reloadProfile } from './runtime/reloadProfile';
 // 묶음: class
 
 // 묶음: table
+import { readTable } from './read/readTable';
 import { getTableContents } from './row-data/getTableContents';
 
 // 묶음: program
@@ -253,6 +254,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 실데이터 2종의 나머지 한 짝 — 상시 게이트가 이 이름을 이미 알고 있다
   // (`src/safety/rowData.ts`의 ROW_DATA_TOOLS).
   getTableContents,
+  readTable,
 
   // 묶음: program — 프로그램 (순서 8)
 

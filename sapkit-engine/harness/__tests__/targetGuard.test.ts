@@ -109,7 +109,10 @@ describe('선언이 없는 도구는 사전 검사에서 막히지 않는다', (
    * 구 번들에는 있고 신 엔진에는 아직 없는 도구들. 여기서 fail-closed로 바꾸면
    * 판 중간의 녹화가 통째로 막힌다 — 계획서가 못 박은 자리다.
    */
-  it.each(['ReadTable', 'DeleteClass', 'GetTransport', 'ReleaseTransport'])(
+  // `ReadTable`이 여기 있었으나 지어져서 선언을 갖게 됐다. 예시는 **아직 안 지은**
+  // 도구여야 하므로 `DeleteTable`로 바꿨다 — `DeleteClass`와 같은 `tail` 묶음
+  // (`harness/build-plan.json` 순서 29)이라 당분간 선언이 생기지 않는다.
+  it.each(['DeleteTable', 'DeleteClass', 'GetTransport', 'ReleaseTransport'])(
     '%s — 표준 대상을 줘도 사전 검사는 통과시킨다',
     (tool) => {
       expect(checkSourceNamespace(scenarioOf({ tool, args: { object_name: 'MARA' } }), {})).toEqual([]);
@@ -126,9 +129,9 @@ describe('선언이 없는 도구는 사전 검사에서 막히지 않는다', (
   });
 
   it('선언 없는 도구가 원본 소스를 실어 오면 사후 백스톱이 잡는다', () => {
-    const problems = detectUnguardedSource(fixtureOf({ tool: 'ReadTable', response: { source: ABAP_SOURCE } }), {});
+    const problems = detectUnguardedSource(fixtureOf({ tool: 'DeleteTable', response: { source: ABAP_SOURCE } }), {});
     expect(problems).toHaveLength(1);
-    expect(problems[0]).toContain('ReadTable');
+    expect(problems[0]).toContain('DeleteTable');
   });
 
   it('선언 없는 도구의 인자에 원본 소스가 실려도 잡는다', () => {
