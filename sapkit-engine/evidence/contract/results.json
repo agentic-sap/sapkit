@@ -700,6 +700,11 @@
     "detail": "src/tools/write/__tests__/updateTextElement.test.ts"
   },
   {
+    "tool": "UpdateUnitTest",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/updateUnitTest.test.ts"
+  },
+  {
     "tool": "UpdateView",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateView.test.ts"
