@@ -182,6 +182,7 @@ import { readDomain } from './read/readDomain';
 // 묶음: gui-status
 
 // 묶음: text-element
+import { getTextElement } from './rfc-read/getTextElement';
 
 // 묶음: atc
 
@@ -353,6 +354,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: gui-status — GUI 상태 (순서 19)
 
   // 묶음: text-element — 텍스트 엘리먼트 (순서 20)
+  getTextElement,
 
   // 묶음: atc — ATC (순서 21)
 

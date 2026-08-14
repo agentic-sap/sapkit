@@ -240,6 +240,11 @@
     "detail": "src/tools/row-data/__tests__/getTableContents.test.ts"
   },
   {
+    "tool": "GetTextElement",
+    "passed": true,
+    "detail": "src/tools/rfc-read/__tests__/getTextElement.test.ts"
+  },
+  {
     "tool": "GetTransaction",
     "passed": true,
     "detail": "src/tools/read/__tests__/getTransaction.test.ts"
