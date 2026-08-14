@@ -325,6 +325,11 @@
     "detail": "src/tools/read/__tests__/readFunctionModule.test.ts"
   },
   {
+    "tool": "ReadGuiStatus",
+    "passed": true,
+    "detail": "src/tools/rfc-read/__tests__/readGuiStatus.test.ts"
+  },
+  {
     "tool": "ReadInterface",
     "passed": true,
     "detail": "src/tools/read/__tests__/readInterface.test.ts"
