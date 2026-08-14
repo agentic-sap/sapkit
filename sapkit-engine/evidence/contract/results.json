@@ -450,6 +450,11 @@
     "detail": "src/tools/write/__tests__/updateFunctionModule.test.ts"
   },
   {
+    "tool": "UpdateGuiStatus",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateGuiStatus.test.ts"
+  },
+  {
     "tool": "UpdateInclude",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateInclude.test.ts"
