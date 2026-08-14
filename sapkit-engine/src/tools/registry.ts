@@ -262,6 +262,7 @@ import { getEnhancements } from './read/getEnhancements';
 import { deleteClass } from './write/deleteClass';
 import { deleteInterface } from './write/deleteInterface';
 import { deleteProgram } from './write/deleteProgram';
+import { deleteDomain } from './write/deleteDomain';
 import { deleteStructure } from './write/deleteStructure';
 import { deleteTable } from './write/deleteTable';
 import { deleteView } from './write/deleteView';
@@ -495,6 +496,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   deleteTable,
   deleteStructure,
   deleteView,
+  deleteDomain,
 
   // 묶음: tail-test — 꼬리 — 단위시험·CDS 단위시험·Update 계열 12종 (순서 29)
 
