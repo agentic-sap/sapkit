@@ -195,6 +195,11 @@
     "detail": "src/tools/read/__tests__/getPackage.test.ts"
   },
   {
+    "tool": "GetPackageContents",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getPackageContents.test.ts"
+  },
+  {
     "tool": "GetPackageTree",
     "passed": true,
     "detail": "src/tools/read/__tests__/getPackageTree.test.ts"

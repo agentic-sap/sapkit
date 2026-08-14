@@ -187,6 +187,7 @@ import { readDomain } from './read/readDomain';
 
 // 묶음: package
 import { getPackage } from './read/getPackage';
+import { getPackageContents } from './read/getPackageContents';
 
 // 묶음: screen
 
@@ -359,6 +360,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
 
   // 묶음: package — 패키지 (순서 22)
   getPackage,
+  getPackageContents,
 
   // 묶음: screen — 화면 (순서 23)
 
