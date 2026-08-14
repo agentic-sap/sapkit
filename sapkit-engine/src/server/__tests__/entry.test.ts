@@ -105,6 +105,7 @@ describe('셰임 계약', () => {
         'RuntimeGetProfilerTraceData',
         'RuntimeListDumps',
         'RuntimeListProfilerTraceFiles',
+        'RuntimeListSystemMessages',
         'RuntimeRunClassWithProfiling',
         'SearchObject',
       ]);
