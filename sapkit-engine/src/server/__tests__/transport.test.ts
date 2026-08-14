@@ -19,6 +19,7 @@ import * as net from 'node:net';
 import * as path from 'node:path';
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 
@@ -105,6 +106,33 @@ async function startHttp(options: {
   return { started, stderr, connections };
 }
 
+/** HTTP와 같은 기동 조건 한 벌을 SSE에 먹인다 — 두 전송을 나란히 놓기 위해서다. */
+async function startSse(options: {
+  readonly exposition?: string;
+  readonly tier?: string;
+  readonly extraArgs?: readonly string[];
+  readonly extraEnv?: Readonly<Record<string, string>>;
+}): Promise<Fixture> {
+  const port = await freePort();
+  const base = startupArgs(options);
+  const stderr: string[] = [];
+  const connections = fakeConnectionFactory();
+  const started = await startFromProcess({
+    argv: argvOf(
+      ...base.argv,
+      '--transport=sse',
+      `--sse-port=${port}`,
+      ...(options.extraArgs ?? []),
+    ),
+    env: { ...base.env, ...(options.extraEnv ?? {}) },
+    cwd: tempDir(),
+    homedir: tempDir(),
+    connectionFactory: connections.factory,
+    stderr: (line) => stderr.push(line),
+  });
+  return { started, stderr, connections };
+}
+
 async function withClient<T>(
   endpoint: string,
   body: (client: Client) => Promise<T>,
@@ -116,6 +144,49 @@ async function withClient<T>(
   } finally {
     await client.close();
   }
+}
+
+async function withSseClient<T>(
+  endpoint: string,
+  body: (client: Client) => Promise<T>,
+): Promise<T> {
+  const client = new Client({ name: 'transport-test', version: '0.0.0' });
+  await client.connect(new SSEClientTransport(new URL(endpoint)));
+  try {
+    return await body(client);
+  } finally {
+    await client.close();
+  }
+}
+
+/** 날것의 요청 하나 — `fetch`가 갈아치우는 Host 헤더를 그대로 보내기 위해서다. */
+async function rawRequest(options: {
+  readonly url: URL;
+  readonly method: string;
+  readonly headers?: Readonly<Record<string, string>>;
+  readonly body?: string;
+}): Promise<number> {
+  return await new Promise<number>((resolve, reject) => {
+    const request = nodeHttp.request(
+      {
+        host: options.url.hostname,
+        port: Number(options.url.port),
+        path: `${options.url.pathname}${options.url.search}`,
+        method: options.method,
+        headers: {
+          accept: 'text/event-stream, application/json',
+          ...(options.headers ?? {}),
+        },
+      },
+      (response) => {
+        response.resume();
+        resolve(response.statusCode ?? 0);
+        response.destroy();
+      },
+    );
+    request.once('error', reject);
+    request.end(options.body);
+  });
 }
 
 async function listNames(client: Client): Promise<string[]> {
@@ -160,10 +231,92 @@ describe('전송 선택', () => {
     expect(resolution.diagnostics.join('\n')).toMatch(/TRANSPORT_UNSUPPORTED/);
   });
 
-  it('sse는 아직 없다 — 조용히 stdio로 떨어지지 않고 이유를 말한다', () => {
+  it('--transport=sse가 SSE를 고르고, 바인딩 기본값은 구 엔진의 실효값과 같다', () => {
     const resolution = resolvedWith(['--transport=sse']);
-    expect(resolution.config.kind).toBe('stdio');
-    expect(resolution.diagnostics.join('\n')).toMatch(/TRANSPORT_SSE_UNSUPPORTED/);
+    expect(resolution.config).toMatchObject({
+      kind: 'sse',
+      host: '127.0.0.1',
+      port: 3000,
+      ssePath: '/sse',
+      postPath: '/messages',
+    });
+  });
+
+  it('sse는 더 이상 stdio로 닫히지 않는다 — 미구현 진단이 사라졌다', () => {
+    const joined = resolvedWith(['--transport=sse']).diagnostics.join('\n');
+    expect(joined).not.toMatch(/TRANSPORT_SSE_UNSUPPORTED/);
+    expect(joined).not.toMatch(/transport\(resolved\): stdio/);
+  });
+
+  it('MCP_TRANSPORT=sse도 SSE를 고른다', () => {
+    expect(resolvedWith([], { MCP_TRANSPORT: 'sse' }).config.kind).toBe('sse');
+  });
+
+  it('sse 근처의 오타는 포트를 열지 않는다', () => {
+    for (const typo of ['ssee', 'sse-http', 'ss']) {
+      const resolution = resolvedWith([`--transport=${typo}`]);
+      expect(resolution.config.kind).toBe('stdio');
+      expect(resolution.diagnostics.join('\n')).toMatch(/TRANSPORT_UNSUPPORTED/);
+    }
+  });
+
+  it('SSE 기동 진단도 클라이언트 인증이 없다는 사실을 적는다', () => {
+    expect(resolvedWith(['--transport=sse']).diagnostics.join('\n')).toMatch(
+      /client-auth=none/,
+    );
+  });
+
+  it('SSE도 비루프백 바인딩을 옵트인 없이는 거부한다 (D27이 세운 잠금)', () => {
+    expect(() => resolvedWith(['--transport=sse', '--http-host=0.0.0.0'])).toThrow(
+      /ERR_HTTP_NON_LOOPBACK/,
+    );
+    expect(() => resolvedWith(['--transport=sse', '--sse-host=0.0.0.0'])).toThrow(
+      /ERR_HTTP_NON_LOOPBACK/,
+    );
+    expect(() => resolvedWith([], { MCP_TRANSPORT: 'sse', MCP_SSE_HOST: '0.0.0.0' })).toThrow(
+      /ERR_HTTP_NON_LOOPBACK/,
+    );
+  });
+
+  it('SSE도 명시 옵트인이 있으면 열리되 경고가 남는다', () => {
+    const resolution = resolvedWith([
+      '--transport=sse',
+      '--sse-host=0.0.0.0',
+      '--http-allow-remote',
+    ]);
+    expect(resolution.config).toMatchObject({ kind: 'sse', host: '0.0.0.0' });
+    expect(resolution.diagnostics.join('\n')).toMatch(/HTTP_REMOTE_BIND/);
+  });
+
+  it('SSE도 쓸 수 없는 포트 값을 거부한다', () => {
+    expect(() => resolvedWith(['--transport=sse', '--sse-port=0'])).toThrow(/port/i);
+    expect(() => resolvedWith(['--transport=sse', '--sse-port=99999'])).toThrow(/port/i);
+    expect(() => resolvedWith(['--transport=sse', '--sse-port=eighty'])).toThrow(/port/i);
+  });
+
+  it('SSE도 DNS 리바인딩 보호가 기본으로 켜진다 (D26이 세운 잠금)', () => {
+    expect(resolvedWith(['--transport=sse', '--sse-port=4123']).config).toMatchObject({
+      kind: 'sse',
+      dnsRebindingProtection: true,
+      allowedHosts: expect.arrayContaining(['127.0.0.1:4123', 'localhost:4123']),
+      allowedOrigins: expect.arrayContaining(['http://127.0.0.1:4123']),
+    });
+  });
+
+  it('SSE 전용 이름이 HTTP 이름보다 앞서지만, 없으면 HTTP 이름이 그대로 산다', () => {
+    expect(
+      resolvedWith(['--transport=sse', '--sse-port=4200', '--http-port=4300']).config,
+    ).toMatchObject({ kind: 'sse', port: 4200 });
+    expect(resolvedWith(['--transport=sse', '--http-port=4300']).config).toMatchObject({
+      kind: 'sse',
+      port: 4300,
+    });
+  });
+
+  it('경로 노브는 구 엔진의 이름을 그대로 받는다 (--sse-path · --post-path)', () => {
+    expect(
+      resolvedWith(['--transport=sse', '--sse-path=events', '--post-path=/msgs']).config,
+    ).toMatchObject({ kind: 'sse', ssePath: '/events', postPath: '/msgs' });
   });
 
   it('비루프백 바인딩은 옵트인 없이는 거부한다', () => {
@@ -361,29 +514,213 @@ describe('HTTP 왕복', () => {
   });
 });
 
-// ── ③ 프로파일 파일은 전송을 고르지 못한다 ──────────────────────────────────
+describe('SSE 왕복', () => {
+  it('SSE로 기동해 tools/list 왕복이 성사된다', async () => {
+    const fixture = await startSse({ exposition: 'readonly' });
+    try {
+      expect(fixture.started.endpoint).toMatch(/^http:\/\/127\.0\.0\.1:\d+\/sse$/);
+      const names = await withSseClient(fixture.started.endpoint ?? '', listNames);
+      expect(names.length).toBeGreaterThan(0);
+      expect(names).toContain('GetSqlQuery');
+    } finally {
+      await fixture.started.close();
+    }
+  });
 
-describe('전송 설정의 출처', () => {
-  it('프로파일 sap.env의 MCP_TRANSPORT는 포트를 열지 못한다', async () => {
-    const envPath = writeEnvFile(path.join(tempDir(), 'sap.env'), {
-      SAP_TIER: 'DEV',
-      MCP_TRANSPORT: 'http',
-    });
-    const lines: string[] = [];
+  it('세 전송(stdio·HTTP·SSE)의 노출 이름 집합이 같다', async () => {
+    const base = startupArgs({ exposition: 'readonly,high' });
     const [, serverTransport] = InMemoryTransport.createLinkedPair();
-    const started = await startFromProcess({
-      argv: argvOf('--exposition=readonly'),
-      env: { MCP_ENV_PATH: envPath },
+    const stdio = await startFromProcess({
+      argv: argvOf(...base.argv),
+      env: base.env,
       cwd: tempDir(),
       homedir: tempDir(),
       transport: serverTransport,
-      stderr: (line) => lines.push(line),
+      stderr: () => {},
+    });
+    const httpPort = await freePort();
+    const overHttpServer = await startFromProcess({
+      argv: argvOf(...base.argv, '--transport=http', `--http-port=${httpPort}`),
+      env: base.env,
+      cwd: tempDir(),
+      homedir: tempDir(),
+      stderr: () => {},
+    });
+    const ssePort = await freePort();
+    const overSseServer = await startFromProcess({
+      argv: argvOf(...base.argv, '--transport=sse', `--sse-port=${ssePort}`),
+      env: base.env,
+      cwd: tempDir(),
+      homedir: tempDir(),
+      stderr: () => {},
     });
     try {
-      expect(lines.join('\n')).toContain('transport(resolved): stdio');
-      expect(started.endpoint).toBeUndefined();
+      const overStdio = [...stdio.core.exposedToolNames].sort();
+      const overHttp = await withClient(overHttpServer.endpoint ?? '', listNames);
+      const overSse = await withSseClient(overSseServer.endpoint ?? '', listNames);
+      expect(overStdio.length).toBeGreaterThan(0);
+      expect(overHttp).toEqual(overStdio);
+      expect(overSse).toEqual(overStdio);
     } finally {
-      await started.close();
+      await stdio.close();
+      await overHttpServer.close();
+      await overSseServer.close();
     }
   });
+
+  it('실데이터 2종은 SSE에서도 접속 전에 거부된다', async () => {
+    const fixture = await startSse({ exposition: 'readonly', tier: 'DEV' });
+    try {
+      const outcome = await withSseClient(fixture.started.endpoint ?? '', async (client) => {
+        const result = (await client.callTool({
+          name: 'GetSqlQuery',
+          arguments: { sql_query: 'SELECT * FROM KNA1' },
+        })) as { isError?: boolean; content?: Array<{ text?: unknown }> };
+        return {
+          isError: result.isError === true,
+          text: (result.content ?? []).map((item) => String(item.text ?? '')).join('\n'),
+        };
+      });
+      expect(outcome.isError).toBe(true);
+      expect(outcome.text).toMatch(/row extraction refused/);
+      expect(fixture.connections.calls).toHaveLength(0);
+    } finally {
+      await fixture.started.close();
+    }
+  });
+
+  it('tier 게이트도 SSE에서 똑같이 막는다', async () => {
+    const fixture = await startSse({ exposition: 'readonly,high', tier: 'QA' });
+    try {
+      const outcome = await withSseClient(fixture.started.endpoint ?? '', async (client) => {
+        const result = (await client.callTool({
+          name: 'ActivateObjects',
+          arguments: { objects: [{ name: 'ZSAPKIT_PROBE', type: 'PROG/P' }] },
+        })) as { isError?: boolean; content?: Array<{ text?: unknown }> };
+        return {
+          isError: result.isError === true,
+          text: (result.content ?? []).map((item) => String(item.text ?? '')).join('\n'),
+        };
+      });
+      expect(outcome.isError).toBe(true);
+      expect(outcome.text).toMatch(/ERR_READONLY_TIER/);
+      expect(fixture.connections.calls).toHaveLength(0);
+    } finally {
+      await fixture.started.close();
+    }
+  });
+
+  it('감사 줄은 남고 기동 진단은 세션마다 되풀이되지 않는다', async () => {
+    const fixture = await startSse({ exposition: 'readonly', tier: 'DEV' });
+    try {
+      await withSseClient(fixture.started.endpoint ?? '', async (client) => {
+        await client.callTool({
+          name: 'GetSqlQuery',
+          arguments: { sql_query: 'SELECT * FROM VBRK', acknowledge_risk: true },
+        });
+      });
+      const profileLines = fixture.stderr.filter((line) => line.includes('[sapkit] profile:'));
+      expect(profileLines).toHaveLength(1);
+      expect(fixture.stderr).toContain('AUDIT: user-acknowledged GetSqlQuery on VBRK');
+    } finally {
+      await fixture.started.close();
+    }
+  });
+
+  it('SSE도 표면을 넓히지 않는다 — 모르는 경로 404 · 세션 없는 POST 400 · 스트림 경로 POST 405', async () => {
+    const fixture = await startSse({ exposition: 'readonly' });
+    const base = new URL(fixture.started.endpoint ?? '');
+    try {
+      expect((await fetch(new URL('/nope', base))).status).toBe(404);
+      expect(
+        await rawRequest({
+          url: new URL('/messages?sessionId=nope', base),
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
+        }),
+      ).toBe(400);
+      expect(await rawRequest({ url: new URL('/sse', base), method: 'POST' })).toBe(405);
+      expect(await rawRequest({ url: new URL('/messages', base), method: 'GET' })).toBe(405);
+      const health = await fetch(new URL('/mcp/health', base));
+      expect(health.status).toBe(200);
+      const body = (await health.json()) as { transport?: string; version?: string };
+      expect(body.transport).toBe('sse');
+      // 무인증으로 열린 창이므로 판 번호를 싣지 않는다 (D26 부수 차이와 같은 자리).
+      expect(body.version).toBeUndefined();
+    } finally {
+      await fixture.started.close();
+    }
+  });
+
+  it('허용 목록 밖의 Host 헤더는 SSE 스트림(GET)·메시지(POST)·health 전부에서 거부된다', async () => {
+    const fixture = await startSse({ exposition: 'readonly' });
+    const base = new URL(fixture.started.endpoint ?? '');
+    const evil = { host: 'evil.example' };
+    try {
+      expect(
+        await rawRequest({ url: new URL('/sse', base), method: 'GET', headers: evil }),
+      ).toBe(403);
+      expect(
+        await rawRequest({
+          url: new URL('/messages?sessionId=nope', base),
+          method: 'POST',
+          headers: { ...evil, 'content-type': 'application/json' },
+          body: '{}',
+        }),
+      ).toBe(403);
+      expect(
+        await rawRequest({ url: new URL('/mcp/health', base), method: 'GET', headers: evil }),
+      ).toBe(403);
+    } finally {
+      await fixture.started.close();
+    }
+  });
+
+  it('허용 목록 밖의 Origin 헤더도 스트림을 열지 못한다', async () => {
+    const fixture = await startSse({ exposition: 'readonly' });
+    const base = new URL(fixture.started.endpoint ?? '');
+    try {
+      expect(
+        await rawRequest({
+          url: new URL('/sse', base),
+          method: 'GET',
+          headers: { origin: 'http://evil.example' },
+        }),
+      ).toBe(403);
+    } finally {
+      await fixture.started.close();
+    }
+  });
+});
+
+// ── ③ 프로파일 파일은 전송을 고르지 못한다 ──────────────────────────────────
+
+describe('전송 설정의 출처', () => {
+  it.each(['http', 'sse'])(
+    '프로파일 sap.env의 MCP_TRANSPORT=%s는 포트를 열지 못한다',
+    async (kind) => {
+      const envPath = writeEnvFile(path.join(tempDir(), 'sap.env'), {
+        SAP_TIER: 'DEV',
+        MCP_TRANSPORT: kind,
+      });
+      const lines: string[] = [];
+      const [, serverTransport] = InMemoryTransport.createLinkedPair();
+      const started = await startFromProcess({
+        argv: argvOf('--exposition=readonly'),
+        env: { MCP_ENV_PATH: envPath },
+        cwd: tempDir(),
+        homedir: tempDir(),
+        transport: serverTransport,
+        stderr: (line) => lines.push(line),
+      });
+      try {
+        expect(lines.join('\n')).toContain('transport(resolved): stdio');
+        expect(started.endpoint).toBeUndefined();
+      } finally {
+        await started.close();
+      }
+    },
+  );
+
 });

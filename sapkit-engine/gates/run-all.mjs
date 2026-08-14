@@ -11,6 +11,7 @@
 import { run as runHttpSmoke } from './http-smoke.mjs';
 import { run as runLedger } from './ledger.mjs';
 import { run as runSafety } from './safety.mjs';
+import { run as runSseSmoke } from './sse-smoke.mjs';
 import { run as runSurface } from './surface.mjs';
 
 const GATES = [
@@ -18,6 +19,7 @@ const GATES = [
   ['안전', runSafety],
   ['대장', runLedger],
   ['HTTP 기동', runHttpSmoke],
+  ['SSE 기동', runSseSmoke],
 ];
 
 let allGreen = true;

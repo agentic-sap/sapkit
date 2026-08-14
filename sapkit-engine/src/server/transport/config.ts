@@ -3,8 +3,8 @@
  *
  * 구 엔진에서 실측해 승계한 계약이다:
  *
- *  - 전송 선택: `--transport=stdio|http|streamable-http` (1순위) → `MCP_TRANSPORT`
- *    (2순위) → 기본 `stdio`. 구 `ServerConfigManager.parseTransport`
+ *  - 전송 선택: `--transport=stdio|http|streamable-http|sse` (1순위) →
+ *    `MCP_TRANSPORT` (2순위) → 기본 `stdio`. 구 `ServerConfigManager.parseTransport`
  *    (`engine/src/lib/config/ServerConfigManager.ts:138-152`).
  *  - 호스트: `--host` → `--http-host` → `MCP_HTTP_HOST` → `127.0.0.1`
  *    (`ServerConfigManager.ts:115` · `ArgumentsParser.ts:220-221`).
@@ -32,10 +32,20 @@
  * 읽는 곳은 **argv와 프로세스 env뿐**이다. 프로파일 파일(`sap.env`)의 값은 보지
  * 않는다 — 구는 활성 프로파일의 모든 키를 `process.env`에 부어(`engine/src/lib/
  * profile.ts:271-277` `applyProfile`) 프로파일 파일 한 줄이 포트를 열 수 있었다.
+ *
+ * **SSE의 바인딩 옵션은 HTTP와 같은 자리에서 해석된다**(차이 장부 D31). 두 전송은
+ * 같은 웹 표면을 열므로 잠금(비루프백 옵트인 D27 · DNS 리바인딩 보호 D26 · 포트
+ * 검증)이 갈라지면 한쪽이 다른 쪽의 뒷문이 된다. 구는 SSE 짝 노브를
+ * (`--sse-port`·`--sse-host`·`--sse-allowed-*`·`--sse-enable-dns-protection`)
+ * 파싱만 하고 런처가 넘기지 않았다 — 실제로 쓰인 것은 `--host`/`--port`/
+ * `--http-*`였고(`engine/src/lib/config/ServerConfigManager.ts:115-122` ·
+ * `engine/src/server/launcher.ts:420-433`), SSE 전용 경로 둘(`--sse-path`·
+ * `--post-path`)만 살아 있었다. 여기서는 SSE 이름을 **HTTP 이름 앞에 두고**
+ * 되살린다 — 안 주면 구의 실효값이 그대로 나온다.
  */
 
-/** 전송 종류. SSE는 별개 과제가 여기에 `'sse'`를 더한다. */
-export type TransportKind = 'stdio' | 'http';
+/** 전송 종류. */
+export type TransportKind = 'stdio' | 'http' | 'sse';
 
 export interface StdioTransportConfig {
   readonly kind: 'stdio';
@@ -53,7 +63,30 @@ export interface HttpTransportConfig {
   readonly allowedOrigins: readonly string[];
 }
 
-export type TransportConfig = StdioTransportConfig | HttpTransportConfig;
+/**
+ * SSE 전송 설정.
+ *
+ * HTTP와 다른 것은 둘뿐이다 — 경로가 **둘**(스트림을 여는 GET · 메시지를 올리는
+ * POST)이고, `enableJsonResponse`가 없다(응답이 언제나 스트림으로 나간다).
+ * 나머지 바인딩·잠금 필드는 HTTP와 이름까지 같다.
+ */
+export interface SseTransportConfig {
+  readonly kind: 'sse';
+  readonly host: string;
+  readonly port: number;
+  /** SSE 스트림을 여는 GET 경로. 구 기본값 `/sse`(`engine/src/server/SseServer.ts:88`). */
+  readonly ssePath: string;
+  /** 클라이언트가 메시지를 올리는 POST 경로. 구 기본값 `/messages`(같은 파일 :89). */
+  readonly postPath: string;
+  readonly dnsRebindingProtection: boolean;
+  readonly allowedHosts: readonly string[];
+  readonly allowedOrigins: readonly string[];
+}
+
+export type TransportConfig =
+  | StdioTransportConfig
+  | HttpTransportConfig
+  | SseTransportConfig;
 
 export interface TransportResolution {
   readonly config: TransportConfig;
@@ -71,6 +104,8 @@ export interface TransportInput {
 const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_PORT = 3000;
 const DEFAULT_PATH = '/mcp/stream/http';
+const DEFAULT_SSE_PATH = '/sse';
+const DEFAULT_POST_PATH = '/messages';
 
 /** 인자 하나의 값을 읽는다. `--name=v`와 `--name v` 둘 다. 첫 등장이 이긴다. */
 function argValue(args: readonly string[], name: string): string | undefined {
@@ -83,31 +118,39 @@ function argValue(args: readonly string[], name: string): string | undefined {
   return undefined;
 }
 
-/** 인자 → 환경변수 → 기본값. 빈 문자열은 "주지 않은 것"으로 본다. */
+/**
+ * 인자 → 환경변수 → 기본값. 빈 문자열은 "주지 않은 것"으로 본다.
+ *
+ * 이름을 **여럿** 받는 것은 SSE 때문이다 — 같은 옵션에 SSE 이름과 HTTP 이름이
+ * 나란히 있고, 앞에 적은 것이 이긴다.
+ */
 function option(
   input: TransportInput,
   argNames: readonly string[],
-  envName: string,
+  envNames: readonly string[],
 ): string | undefined {
   for (const name of argNames) {
     const value = argValue(input.args, name);
     if (value !== undefined && value.trim() !== '') return value.trim();
   }
-  const fromEnv = (input.env[envName] ?? '').trim();
-  return fromEnv === '' ? undefined : fromEnv;
+  for (const name of envNames) {
+    const fromEnv = (input.env[name] ?? '').trim();
+    if (fromEnv !== '') return fromEnv;
+  }
+  return undefined;
 }
 
 /** 구 `resolveBooleanOption`과 같은 어휘(`utils.ts:1718-1735`). */
 function booleanOption(
   input: TransportInput,
-  argName: string,
-  envName: string,
+  argNames: readonly string[],
+  envNames: readonly string[],
   fallback: boolean,
 ): boolean {
-  const raw = option(input, [argName], envName);
+  const raw = option(input, argNames, envNames);
   if (raw === undefined) {
     // 값 없는 맨 플래그(`--http-allow-remote`)는 참이다.
-    return input.args.includes(argName) ? true : fallback;
+    return argNames.some((name) => input.args.includes(name)) ? true : fallback;
   }
   const normalized = raw.toLowerCase();
   if (normalized === 'true' || normalized === '1' || normalized === 'yes') return true;
@@ -118,10 +161,10 @@ function booleanOption(
 /** 구 `resolveListOption`과 같은 어휘(`utils.ts:1737-1750`). */
 function listOption(
   input: TransportInput,
-  argName: string,
-  envName: string,
+  argNames: readonly string[],
+  envNames: readonly string[],
 ): readonly string[] | undefined {
-  const raw = option(input, [argName], envName);
+  const raw = option(input, argNames, envNames);
   if (raw === undefined) return undefined;
   const items = raw
     .split(',')
@@ -131,17 +174,31 @@ function listOption(
 }
 
 /** 구 `resolvePortOption`과 같은 판정(`utils.ts:1700-1716`) — 1~65535만. */
-function resolvePort(input: TransportInput): number {
-  const raw = option(input, ['--port', '--http-port'], 'MCP_HTTP_PORT');
+function resolvePort(
+  input: TransportInput,
+  argNames: readonly string[],
+  envNames: readonly string[],
+): number {
+  const raw = option(input, argNames, envNames);
   if (raw === undefined) return DEFAULT_PORT;
   const port = Number.parseInt(raw, 10);
   if (!Number.isInteger(port) || port <= 0 || port > 65535) {
     throw new Error(
       `ERR_HTTP_PORT: invalid HTTP port ${JSON.stringify(raw)} — give an integer in 1..65535 ` +
-        '(--http-port / MCP_HTTP_PORT).',
+        `(${argNames.join(' / ')} · ${envNames.join(' / ')}).`,
     );
   }
   return port;
+}
+
+/** 앞이 이긴다 — SSE면 SSE 이름을 앞에, 아니면 HTTP 이름만. */
+function names(sse: boolean, sseNames: readonly string[], httpNames: readonly string[]): string[] {
+  return sse ? [...sseNames, ...httpNames] : [...httpNames];
+}
+
+/** 경로는 언제나 `/`로 시작한다 — 구 `StreamableHttpServer.ts:91`과 같은 손질. */
+function normalizePath(raw: string): string {
+  return raw.startsWith('/') ? raw : `/${raw}`;
 }
 
 /**
@@ -171,7 +228,7 @@ function defaultAllowedOrigins(port: number): string[] {
 export function resolveTransport(input: TransportInput): TransportResolution {
   const diagnostics: string[] = [];
   const requested = (
-    option(input, ['--transport'], 'MCP_TRANSPORT') ?? 'stdio'
+    option(input, ['--transport'], ['MCP_TRANSPORT']) ?? 'stdio'
   ).toLowerCase();
 
   if (requested === 'stdio') {
@@ -179,40 +236,46 @@ export function resolveTransport(input: TransportInput): TransportResolution {
     return { config: { kind: 'stdio' }, diagnostics };
   }
 
-  if (requested === 'sse') {
-    // 조용히 stdio로 떨어지지 않는다 — 이름 있는 진단을 남긴다. SSE는 별개
-    // 과제가 짓는다.
-    diagnostics.push(
-      'TRANSPORT_SSE_UNSUPPORTED: --transport=sse is not implemented in this engine yet; ' +
-        'starting on stdio instead. Nothing was bound to a port.',
-    );
-    diagnostics.push('[sapkit] transport(resolved): stdio');
-    return { config: { kind: 'stdio' }, diagnostics };
-  }
+  const sse = requested === 'sse';
 
-  if (requested !== 'http' && requested !== 'streamable-http') {
+  if (!sse && requested !== 'http' && requested !== 'streamable-http') {
     // 오타 하나가 포트를 여는 일은 없다(D5와 같은 fail-closed 방향).
     diagnostics.push(
       `TRANSPORT_UNSUPPORTED: unknown transport ${JSON.stringify(requested)} — ` +
-        'known values are stdio and http. Starting on stdio; nothing was bound to a port.',
+        'known values are stdio, http and sse. Starting on stdio; nothing was bound to a port.',
     );
     diagnostics.push('[sapkit] transport(resolved): stdio');
     return { config: { kind: 'stdio' }, diagnostics };
   }
 
-  const host = option(input, ['--host', '--http-host'], 'MCP_HTTP_HOST') ?? DEFAULT_HOST;
-  const port = resolvePort(input);
-  const rawPath = option(input, ['--path', '--http-path'], 'MCP_HTTP_PATH') ?? DEFAULT_PATH;
-  const path = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
+  // 아래의 잠금 셋(비루프백 옵트인 · DNS 리바인딩 보호 · 포트 검증)은 두 전송이
+  // **같은 자리**를 쓴다. 갈라지면 한쪽이 다른 쪽의 뒷문이 된다.
+  const host =
+    option(
+      input,
+      names(sse, ['--sse-host'], ['--host', '--http-host']),
+      names(sse, ['MCP_SSE_HOST'], ['MCP_HTTP_HOST']),
+    ) ?? DEFAULT_HOST;
+  const port = resolvePort(
+    input,
+    names(sse, ['--sse-port'], ['--port', '--http-port']),
+    names(sse, ['MCP_SSE_PORT'], ['MCP_HTTP_PORT']),
+  );
 
   if (!isLoopbackHost(host)) {
-    const allowRemote = booleanOption(input, '--http-allow-remote', 'MCP_HTTP_ALLOW_REMOTE', false);
+    const allowRemote = booleanOption(
+      input,
+      ['--http-allow-remote'],
+      ['MCP_HTTP_ALLOW_REMOTE'],
+      false,
+    );
     if (!allowRemote) {
       throw new Error(
-        `ERR_HTTP_NON_LOOPBACK: refusing to bind the HTTP transport to ${host} — this engine has ` +
-          'no HTTP client authentication, so a non-loopback bind exposes the whole tool surface ' +
-          'to anyone who can reach the port. Bind to 127.0.0.1, or opt in explicitly with ' +
-          '--http-allow-remote (MCP_HTTP_ALLOW_REMOTE=true) and restrict access yourself.',
+        `ERR_HTTP_NON_LOOPBACK: refusing to bind the ${requested} transport to ${host} — this ` +
+          'engine has no HTTP client authentication, so a non-loopback bind exposes the whole ' +
+          'tool surface to anyone who can reach the port. Bind to 127.0.0.1, or opt in ' +
+          'explicitly with --http-allow-remote (MCP_HTTP_ALLOW_REMOTE=true) and restrict access ' +
+          'yourself.',
       );
     }
     diagnostics.push(
@@ -221,24 +284,24 @@ export function resolveTransport(input: TransportInput): TransportResolution {
     );
   }
 
-  const enableJsonResponse = booleanOption(
-    input,
-    '--http-json-response',
-    'MCP_HTTP_ENABLE_JSON_RESPONSE',
-    true,
-  );
   const dnsRebindingProtection = booleanOption(
     input,
-    '--http-enable-dns-protection',
-    'MCP_HTTP_ENABLE_DNS_PROTECTION',
+    names(sse, ['--sse-enable-dns-protection'], ['--http-enable-dns-protection']),
+    names(sse, ['MCP_SSE_ENABLE_DNS_PROTECTION'], ['MCP_HTTP_ENABLE_DNS_PROTECTION']),
     true,
   );
   const allowedHosts =
-    listOption(input, '--http-allowed-hosts', 'MCP_HTTP_ALLOWED_HOSTS') ??
-    defaultAllowedHosts(host, port);
+    listOption(
+      input,
+      names(sse, ['--sse-allowed-hosts'], ['--http-allowed-hosts']),
+      names(sse, ['MCP_SSE_ALLOWED_HOSTS'], ['MCP_HTTP_ALLOWED_HOSTS']),
+    ) ?? defaultAllowedHosts(host, port);
   const allowedOrigins =
-    listOption(input, '--http-allowed-origins', 'MCP_HTTP_ALLOWED_ORIGINS') ??
-    defaultAllowedOrigins(port);
+    listOption(
+      input,
+      names(sse, ['--sse-allowed-origins'], ['--http-allowed-origins']),
+      names(sse, ['MCP_SSE_ALLOWED_ORIGINS'], ['MCP_HTTP_ALLOWED_ORIGINS']),
+    ) ?? defaultAllowedOrigins(port);
 
   if (!dnsRebindingProtection) {
     diagnostics.push(
@@ -246,6 +309,45 @@ export function resolveTransport(input: TransportInput): TransportResolution {
         'in a browser can then reach this server through a rebound hostname.',
     );
   }
+
+  if (sse) {
+    const ssePath = normalizePath(
+      option(input, ['--sse-path'], ['MCP_SSE_PATH']) ?? DEFAULT_SSE_PATH,
+    );
+    const postPath = normalizePath(
+      option(input, ['--post-path'], ['MCP_POST_PATH']) ?? DEFAULT_POST_PATH,
+    );
+
+    diagnostics.push(
+      `[sapkit] transport(resolved): sse · endpoint=http://${host}:${port}${ssePath} · ` +
+        `post=http://${host}:${port}${postPath} · ` +
+        `dns-protection=${dnsRebindingProtection} · client-auth=none`,
+    );
+
+    return {
+      config: {
+        kind: 'sse',
+        host,
+        port,
+        ssePath,
+        postPath,
+        dnsRebindingProtection,
+        allowedHosts,
+        allowedOrigins,
+      },
+      diagnostics,
+    };
+  }
+
+  const path = normalizePath(
+    option(input, ['--path', '--http-path'], ['MCP_HTTP_PATH']) ?? DEFAULT_PATH,
+  );
+  const enableJsonResponse = booleanOption(
+    input,
+    ['--http-json-response'],
+    ['MCP_HTTP_ENABLE_JSON_RESPONSE'],
+    true,
+  );
 
   diagnostics.push(
     `[sapkit] transport(resolved): http · endpoint=http://${host}:${port}${path} · ` +

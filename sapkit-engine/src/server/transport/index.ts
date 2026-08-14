@@ -8,6 +8,7 @@
 export { isLoopbackHost, resolveTransport } from './config';
 export type {
   HttpTransportConfig,
+  SseTransportConfig,
   StdioTransportConfig,
   TransportConfig,
   TransportInput,
@@ -17,3 +18,6 @@ export type {
 
 export { openHttpTransport } from './http';
 export type { HttpBinding, HttpTransportOptions } from './http';
+
+export { openSseTransport } from './sse';
+export type { SseBinding, SseTransportOptions } from './sse';
