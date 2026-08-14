@@ -50,6 +50,7 @@ const DIST_REPLAY = here('../dist/harness/replay/index.js');
 const DIST_RECORDER = here('../dist/harness/recorder/index.js');
 const DIST_SERVER = here('../dist/src/server/index.js');
 const DIST_LEDGER = here('../dist/harness/ledger/index.js');
+const DIST_REGISTRY = here('../dist/src/tools/registry.js');
 const FIXTURE_DIR = here('../fixtures');
 const CATALOG = here('./old-surface/m1-tools.json');
 
@@ -95,6 +96,7 @@ for (const [label, p] of [
   ['채록기', DIST_RECORDER],
   ['서버 코어', DIST_SERVER],
   ['대장', DIST_LEDGER],
+  ['등록점', DIST_REGISTRY],
 ]) {
   if (!fs.existsSync(p)) {
     die(`빌드 산출물이 없다 (${label}): ${p}`, '`npm run build`를 먼저 돌려라.');
@@ -104,6 +106,7 @@ const replay = require(DIST_REPLAY);
 const recorder = require(DIST_RECORDER);
 const server = require(DIST_SERVER);
 const ledger = require(DIST_LEDGER);
+const { TOOL_REGISTRY } = require(DIST_REGISTRY);
 
 const envPath = args.values.get('env-path');
 if (!envPath) {
@@ -264,8 +267,13 @@ const contractTests = contractTestsPath
   ? replay.parseContractEvidence(fs.readFileSync(contractTestsPath, 'utf8'), path.basename(contractTestsPath))
   : [];
 
+// 표의 행은 표면 **186종 전량**이다. 예전에는 M1 19종만 실었고, 그때는 19종이
+// 곧 등록점이라 「지음」 판정이 필요 없었다. 이제 행이 채록본 전량이므로
+// 등록점을 함께 넘긴다 — 넘기지 않으면 계산기가 등록 여부를 판정하지 않아
+// 아직 안 지은 도구까지 「지음」으로 실린다.
 const report = replay.buildCoverage({
-  tools: replay.loadM1ToolNames(CATALOG),
+  tools: replay.loadCapturedToolNames(CATALOG),
+  registered: TOOL_REGISTRY.map((tool) => tool.definition.name),
   replays: results,
   attended: replay.attendedEvidenceFromReplays(results),
   contractTests,

@@ -1,9 +1,16 @@
 /**
  * 도구 등록점 — **유일한 등록 지점**.
  *
- * 개별 도구 모듈은 이 파일을 건드리지 않는다. 각 모듈은 `defineTool(...)`의
- * 결과를 export 하기만 하고, 등록은 물결 말미의 배선 단계가 일괄로 한다
- * (멱등, 확인-후-추가).
+ * ## 배선은 도구마다 즉시 한다 (옛 규약을 뒤집었다)
+ *
+ * 예전 규약은 "모듈은 이 파일을 건드리지 않고, 등록은 물결 말미의 배선 단계가
+ * 일괄로 한다"였다. **더는 아니다.** 도구 1종의 완성 단위는 **모듈 + 시험 +
+ * 등록점 배선 + 대장 갱신**이고, 그 넷이 **한 커밋**으로 묶인다(spec §4.5·§5.3).
+ *
+ * 일괄 배선을 버린 이유는 반쪽 상태 때문이다. 모듈은 있는데 등록되지 않은 도구는
+ * `tools/list`에 뜨지 않으므로 표면 게이트에도 잡히지 않고, 진척 대장은 등록점을
+ * 「지음」의 유일한 기준으로 삼으므로 그 도구를 **「안 지음」으로 보고한다** —
+ * 다음 세션이 이미 지은 도구를 다시 짓는다. 절차의 정본은 `ADDING-A-TOOL.md`.
  *
  * ## 도구 하나를 여기에 올리는 방법
  *
@@ -44,9 +51,9 @@
  * 계약의 정본은 `src/server/toolDefinition.ts`다. 이름·인자 이름·응답 형태는
  * 구 엔진 그대로 두고, `sets`·`kind`만 새로 선언한다.
  *
- * **M1 물결 3 말미에 19종이 배선됐다.** 프레임 자체가 도는지는
- * `src/server/__tests__/core.test.ts`가 가짜 도구로 확인하고, 발행 계약이
- * 구 엔진과 같은지는 각 도구의 시험과 `gates/`의 표면 대조가 확인한다.
+ * 프레임 자체가 도는지는 `src/server/__tests__/core.test.ts`가 가짜 도구로
+ * 확인하고, 발행 계약이 구 엔진과 같은지는 각 도구의 시험과 `gates/`의 표면
+ * 대조가 확인한다.
  */
 
 import type { SapTool } from '../server/toolDefinition';
@@ -57,6 +64,7 @@ import { getClass } from './read/getClass';
 import { getFunctionModule } from './read/getFunctionModule';
 import { getInactiveObjects } from './read/getInactiveObjects';
 import { getInclude } from './read/getInclude';
+import { getInstalledComponents } from './read/getInstalledComponents';
 import { getProgram } from './read/getProgram';
 import { getSourceDiff } from './read/getSourceDiff';
 import { grepObjects } from './read/grepObjects';
@@ -76,10 +84,11 @@ import {
 export const TOOL_REGISTRY_MARKER = 'sapkit-engine/tools/registry' as const;
 
 /**
- * M1 도구 19종. 묶음별로 모아 두었을 뿐 순서에는 의미가 없다.
+ * 등록된 도구. 묶음별로 모아 두었을 뿐 순서에는 의미가 없다.
  *
- * 구성 근거는 spec §3 M1-c — 실사용 상위 15종(실호출의 79%)에 대표 절차
- * ("프로그램 생성 → 활성 → 반영 확인")를 완결시키는 보완 4종을 더한 것이다.
+ * M1 19종의 구성 근거는 spec §3 M1-c — 실사용 상위 15종(실호출의 79%)에 대표
+ * 절차("프로그램 생성 → 활성 → 반영 확인")를 완결시키는 보완 4종을 더한 것이다.
+ * 그 뒤로는 `harness/build-plan.json`의 묶음 순서대로 한 종씩 더해 간다.
  */
 export const TOOL_REGISTRY: readonly SapTool[] = [
   // 읽기·검색·반영확인 9종
@@ -105,4 +114,6 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getStructure,
   // 실데이터 1종 — 상시 게이트가 서버 코어에 걸려 있다
   getSqlQuery,
+  // 시스템·공통 조회 묶음 (build-plan 순서 1)
+  getInstalledComponents,
 ];

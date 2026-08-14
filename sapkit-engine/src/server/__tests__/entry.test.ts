@@ -39,12 +39,16 @@ describe('셰임 계약', () => {
       expect(started.core.startup.profile.tier).toBe('DEV');
       // 셰임이 넘기는 `readonly` 한 값이 표면을 실제로 가른다.
       // 배포 축은 프로파일에 SAP_SYSTEM_TYPE이 없으므로 기본 `cloud`이고,
-      // M1 19종 중 readonly 집합에 든 7종만 남는다.
+      // 등록점의 도구 중 `sets`에 readonly가 있고 cloud에 존재하는 것만 남는다.
+      // **도구를 하나 지어 등록하면 이 목록도 함께 늘어난다** — 목록을 계산으로
+      // 바꾸면 노출 규칙을 시험이 다시 짜는 자기확인이 되므로 손으로 적어 둔다
+      // (`ADDING-A-TOOL.md` 6단계).
       const listed = await client.listTools();
       expect(listed.tools.map((t) => t.name).sort()).toEqual([
         'CheckSyntax',
         'GetInactiveObjects',
         'GetInclude',
+        'GetInstalledComponents',
         'GetSourceDiff',
         'GetSqlQuery',
         'GrepObjects',

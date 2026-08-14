@@ -42,7 +42,7 @@ export {
 } from './divergences';
 export type { DivergenceClassification, DivergenceEntry, DivergenceStatus } from './divergences';
 
-export { DEFAULT_PRIMARY_GRADE, buildCoverage, loadM1ToolNames, renderCoverageMarkdown } from './coverage';
+export { DEFAULT_PRIMARY_GRADE, buildCoverage, loadCapturedToolNames, renderCoverageMarkdown } from './coverage';
 export type {
   CoverageInput,
   CoverageReport,

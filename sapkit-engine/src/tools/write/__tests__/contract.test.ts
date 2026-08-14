@@ -36,7 +36,8 @@ interface CapturedTool {
 }
 
 interface CapturedSurface {
-  readonly m1: Record<string, CapturedTool>;
+  /** 전량 선언 186종. `m1`(19종)이 아니다 — 그쪽이면 M1 밖 도구를 못 짓는다. */
+  readonly tools: Record<string, CapturedTool>;
   readonly connectedOnly: string[];
 }
 
@@ -47,7 +48,7 @@ const OLD_SURFACE = JSON.parse(
   ),
 ) as CapturedSurface;
 
-const CAPTURED = OLD_SURFACE.m1;
+const CAPTURED = OLD_SURFACE.tools;
 
 const TOOLS: ReadonlyArray<readonly [string, SapTool]> = [
   ['CreateProgram', createProgram],
