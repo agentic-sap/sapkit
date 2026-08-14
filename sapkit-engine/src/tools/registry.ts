@@ -121,6 +121,7 @@ import { reloadProfile } from './runtime/reloadProfile';
 // 묶음: include
 
 // 묶음: class
+import { createClass } from './write/createClass';
 import { getClassMethod } from './read/getClassMethod';
 import { getLocalDefinitions } from './read/getLocalDefinitions';
 import { getLocalMacros } from './read/getLocalMacros';
@@ -259,6 +260,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getLocalMacros,
   getLocalTestClass,
   getLocalTypes,
+  createClass,
 
   // 묶음: table — 테이블 (순서 7)
 
