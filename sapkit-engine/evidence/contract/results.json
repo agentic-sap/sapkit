@@ -120,6 +120,11 @@
     "detail": "src/tools/write/__tests__/deleteBehaviorImplementation.test.ts"
   },
   {
+    "tool": "DeleteCdsUnitTest",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteCdsUnitTest.test.ts"
+  },
+  {
     "tool": "DeleteClass",
     "passed": true,
     "detail": "src/tools/write/__tests__/deleteClass.test.ts"
