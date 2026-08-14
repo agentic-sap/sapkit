@@ -1394,3 +1394,93 @@ D번호를 주지 않는 이유가 그것이다. 그래도 장부에 두는 이�
 | text-element · screen · gui-status | D91~D97 |
 | behavior-definition · behavior-implementation | D98~D102 |
 | service-definition · service-binding · metadata-extension | D103~D108 |
+
+---
+
+## 제작 중 발견분 (append) — `text-element` · `screen` · `gui-status` 묶음
+
+이 묶음의 16종을 지으며 나온 차이다. 예약 구간은 D91~D97이다. 파일 가운데가
+아니라 여기 끝에 붙이는 것은 같은 물결의 다른 묶음 넷이 동시에 append 하고 있어
+같은 자리를 물면 전면 충돌이 나기 때문이다(이 파일의 「기계 장부 반영 기록」
+절도 같은 이유로 끝에 붙었다).
+
+### D91 — 클라우드(JWT 인증) 거절 갈래를 짓지 않았다
+- **분류**: 축소 — **해소 마일스톤 = 인증 확장(Basic 외) 마일스톤. D15·D30과 같은 자리.**
+- **구 동작(실측)**: 이 묶음의 구 핸들러 16종이 전부 맨 앞에서
+  `isCloudConnection()`을 물어보고 참이면 "Text elements are not available on
+  cloud systems (ABAP Cloud)…" 류의 문구로 거절한다(예:
+  `engine/src/handlers/text_element/high/handleGetTextElement.ts:70-76` ·
+  `engine/src/handlers/screen/readonly/handleReadScreen.ts:49-53` ·
+  `engine/src/handlers/gui_status/readonly/handleReadGuiStatus.ts:43-49`).
+  그 판정의 정본은 `engine/src/lib/utils.ts:978-1002` — **묻는 것은 배포 축이
+  아니라 `authType === 'jwt'`**다.
+- **신 동작**: 그 갈래가 없다. 신 엔진의 인증은 Basic 하나뿐이라(`src/contracts.ts:42-48`
+  — "M1 인증은 Basic만 다룬다") `authType === 'jwt'`가 될 수 있는 값이 아예 없고,
+  16종 전부 `available_in: ['onprem','legacy']`이라 `SAP_SYSTEM_TYPE=cloud`에서는
+  애초에 `tools/list`에 뜨지도 않는다(`src/safety/exposition.ts:177-195`).
+  **없는 조건을 흉내 내는 분기를 지으면 영영 죽은 코드가 된다.**
+- **대체 기대 시험**: 각 도구의 계약 시험이 붙잡는 「노출 선언」 절 —
+  `available_in`이 `['onprem','legacy']`라는 것이 이 갈래를 대신하는 바닥선이다.
+  (예: `sapkit-engine/src/tools/rfc-read/__tests__/getTextElement.test.ts`)
+- **기계 장부 반영**: **안 했다** — 인증 종류는 접속 계층이고 도구 응답 시퀀스에
+  나타나지 않는다. JWT 프로파일의 채록분 자체가 없다.
+
+### D92 — `UpdateScreen`이 잠금 없이 화면을 갈아 끼우지 않는다
+- **분류**: 강화(안전 바닥선을 올림)
+- **구 동작(실측)**: `engine/src/handlers/screen/high/handleUpdateScreen.ts:94-133` —
+  잠금 응답에서 `LOCK_HANDLE`을 못 꺼내면 `lockHandle`이 `undefined`인 채로
+  **그대로 진행해** `DYNPRO_DELETE` + `DYNPRO_INSERT`를 보낸다. 해제도
+  `if (lockHandle)`이라 건너뛴다. 같은 파일 계열의 다른 핸들러
+  (`handleUpdateGuiStatus.ts:160-164` · `handleCreateTextElement.ts:161-165`)는
+  같은 자리에서 "Failed to obtain lock handle for program …"으로 **던진다** —
+  즉 구 엔진 안에서도 이 자리만 갈라져 있다.
+- **신 동작**: `client.withLock()`이 소유한다. 잠금 응답에 `LOCK_HANDLE`이 없으면
+  `protocol` 오류로 던지고(`src/adt/client.ts:344-354`), 화면 삭제·삽입은 나가지
+  않는다. 실패 경로에서도 해제가 보장된다(`:387-406`).
+- **판정 근거**: 잠기지 않은 화면을 지웠다 다시 넣는 것은 다른 세션의 편집을
+  덮어쓸 수 있는 write다. 구 엔진 자신이 같은 묶음의 형제 핸들러에서 이것을
+  실패로 다루므로, 안전한 쪽이 구의 의도이기도 하다.
+- **대체 기대 시험**: `sapkit-engine/src/tools/write/__tests__/updateScreen.test.ts`의
+  「장부 D92」 절.
+- **기계 장부 반영**: **못 했다** — 이 과제는 `harness/replay/**`가 무접촉이다.
+  오케스트레이터가 묶음 병합 뒤에 옮길 것. 와이어가 달라지는 차이(요청이 아예
+  안 나간다)이므로 **기계 장부에 와야 한다.**
+
+### D93 — 부모 프로그램 활성화의 **거짓 성공**을 접지 않는다 (쓰기 8종)
+- **분류**: 수리(구의 거짓 성공을 고침)
+- **구 동작(실측)**: 이 묶음의 쓰기 8종은 활성화 요청을 보낸 뒤 **응답을 읽지
+  않는다** — `await makeAdtRequestWithTimeout(connection, '/sap/bc/adt/activation', …)`
+  한 줄이고 반환값을 버린다(`handleCreateTextElement.ts:223-234` ·
+  `handleUpdateTextElement.ts:202-213` · `handleCreateScreen.ts:136-147` ·
+  `handleUpdateScreen.ts:163-174` · `handleCreateGuiStatus.ts:152-163` ·
+  `handleUpdateGuiStatus.ts:188-199` · `handlePatchGuiStatus.ts:235-246`).
+  SAP은 활성화 실패도 **HTTP 200 + 본문의 `<chkl:msg type="E">`** 로 답하므로,
+  활성화가 실패해도 응답은 `activated: true`가 된다.
+- **신 동작**: 요청 바이트는 구 그대로 두고(한 줄 XML · `encoding="utf-8"` ·
+  Accept 미지정 · `long` 타임아웃 — `src/tools/write/internal/programScoped.ts`),
+  응답 본문을 `parseActivationMessages`로 갈라 `E`/`A`/`X`가 있으면 실패로
+  되돌린다.
+- **판정 근거**: 이 레포의 CLAS 거짓 성공 실증 이력과 `CLAUDE.md` 안전 규칙
+  ("write 성공 보고를 그대로 믿지 않는다"). 같은 수리가 D41·D51·D56·D66·D73에
+  선례로 있다.
+- **대체 기대 시험**: 쓰기 8종 각 시험 파일의 「장부 D93」 절
+  (`sapkit-engine/src/tools/write/__tests__/createTextElement.test.ts` 외 7종).
+- **기계 장부 반영**: **못 했다**(`harness/replay/**` 무접촉). 도구 응답이
+  `isError`째로 달라지므로 **기계 장부에 와야 한다.**
+
+### D94 — `WriteTextElementsBulk`의 `text_elements` 최소 길이가 발행 스키마에서 빠진다
+- **분류**: 축소 — **해소 마일스톤 = 표면 채록본을 다시 뜨는 판**
+- **구 동작(실측)**: 구 핸들러의 `inputSchema`에는 `text_elements.minItems: 1`이
+  적혀 있다(`handleWriteTextElementsBulk.ts:58`). 그런데 **구 서버가 발행한
+  표면에는 그 키가 없다** — 채록본
+  (`harness/old-surface/m1-tools.json`의 `tools.WriteTextElementsBulk`)의
+  `text_elements`는 `type`·`items`·`description`뿐이다. 구 서버가 JSON Schema를
+  zod로 되돌렸다가 다시 내보내는 길에서 떨어진 것으로 보인다.
+- **신 동작**: **채록본을 따른다.** 발행 선언이 채록본과 글자 일치해야 한다는
+  것이 이 판의 하드 게이트이므로 `minItems`를 zod로 되살리지 않았다. 빈 배열
+  거절은 스키마가 아니라 핸들러가 한다 — 구도 `:143-145`에서 그렇게 한다.
+- **대체 기대 시험**:
+  `sapkit-engine/src/tools/write/__tests__/writeTextElementsBulk.test.ts`의
+  「빈 배열은 핸들러가 거절한다」 절.
+- **기계 장부 반영**: **안 했다** — 발행 선언이 채록본과 같으므로 재생 대조에
+  나타날 차이가 아니다. 구 소스와 구 표면이 어긋난다는 기록이다.

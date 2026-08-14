@@ -60,6 +60,11 @@
     "detail": "src/tools/write/__tests__/createTable.test.ts"
   },
   {
+    "tool": "CreateTextElement",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createTextElement.test.ts"
+  },
+  {
     "tool": "CreateView",
     "passed": true,
     "detail": "src/tools/write/__tests__/createView.test.ts"
