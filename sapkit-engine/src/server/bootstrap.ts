@@ -19,6 +19,7 @@ import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { AdtClient } from '../adt';
 import type { ConnectionConfig } from '../contracts';
 import { type ServerCore, createServerCore } from './core';
+import { ProfileSession } from './session';
 import { resolveStartup } from './startup';
 import type { Startup } from './startup';
 import type { SapTool, ToolLogger } from './toolDefinition';
@@ -58,23 +59,6 @@ function defaultStderr(line: string): void {
 }
 
 /**
- * 접속을 **한 번만** 만드는 공장.
- *
- * HTTP는 요청마다 코어를 새로 만들고, 코어는 저마다 자기 접속을 게으르게
- * 만든다. 감싸지 않으면 요청 수만큼 로그온이 쌓인다. 구도 브로커를 요청 사이에
- * 공유했다(`engine/src/server/StreamableHttpServer.ts:126-173`).
- */
-function sharedConnectionFactory(
-  factory: (config: ConnectionConfig) => AdtClient,
-): (config: ConnectionConfig) => AdtClient {
-  let client: AdtClient | undefined;
-  return (config: ConnectionConfig): AdtClient => {
-    client ??= factory(config);
-    return client;
-  };
-}
-
-/**
  * 기동 진단을 **한 번만** 내보내는 stderr.
  *
  * `createServerCore`는 만들어질 때 `startup.diagnostics`를 그대로 뱉는다. 요청마다
@@ -104,7 +88,17 @@ export async function startFromProcess(
   });
 
   const stderr = options.stderr ?? defaultStderr;
-  const connectionFactory = sharedConnectionFactory(
+
+  // **세션 하나를 모든 코어가 나눠 갖는다.**
+  //
+  // 이유가 둘이다. ⓐ 접속: HTTP는 요청마다 코어를 새로 만들고 코어는 저마다
+  // 자기 접속을 게으르게 만든다 — 나누지 않으면 요청 수만큼 로그온이 쌓인다
+  // (구도 브로커를 요청 사이에 공유했다:
+  // `engine/src/server/StreamableHttpServer.ts:126-173`). ⓑ 프로파일 상태: 한
+  // 요청에서 부른 `ReloadProfile`이 다른 요청의 게이트에 닿지 않으면, 도구는
+  // 새 tier를 보고했는데 게이트는 낡은 tier로 통과시키는 과통과가 된다.
+  const session = new ProfileSession(
+    startup,
     options.connectionFactory ?? ((config: ConnectionConfig) => new AdtClient(config)),
   );
 
@@ -113,7 +107,7 @@ export async function startFromProcess(
       startup,
       ...(options.tools !== undefined ? { tools: options.tools } : {}),
       ...(options.logger !== undefined ? { logger: options.logger } : {}),
-      connectionFactory,
+      session,
       stderr: perRequest ? auditOnly(startup, stderr) : stderr,
     });
 

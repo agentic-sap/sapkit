@@ -116,6 +116,7 @@ import { runtimeListDumps } from './runtime/runtimeListDumps';
 import { runtimeListProfilerTraceFiles } from './runtime/runtimeListProfilerTraceFiles';
 import { runtimeRunClassWithProfiling } from './runtime/runtimeRunClassWithProfiling';
 import { runtimeRunProgramWithProfiling } from './runtime/runtimeRunProgramWithProfiling';
+import { reloadProfile } from './runtime/reloadProfile';
 
 /** 스캐폴드 앵커. 배선 단계가 이 파일을 찾는 표식이다. */
 export const TOOL_REGISTRY_MARKER = 'sapkit-engine/tools/registry' as const;
@@ -190,4 +191,6 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   runtimeGetGatewayErrorLog,
   runtimeRunProgramWithProfiling,
   runtimeRunClassWithProfiling,
+  // 이 묶음의 유일한 비(非) SAP 도구 — 서버 자신의 프로파일을 다시 읽는다.
+  reloadProfile,
 ];

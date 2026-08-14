@@ -47,6 +47,21 @@ export interface StartupInput {
   readonly homedir?: string;
 }
 
+/**
+ * 기본값이 이미 적용된 기동 입력.
+ *
+ * `Startup` 안에 그대로 실려 다니는 이유는 하나다 — **재적재가 같은 통로로 다시
+ * 해석해야 하기 때문**이다(`./session`의 `ProfileSession.reload`). 다른 통로로
+ * 다시 해석하면 재적재 자체가 D16·D17이 막아 둔 사고 자리(운영자가 고르지 않은
+ * 시스템에 조용히 붙는 것)를 뒷문으로 되살린다.
+ */
+export interface ResolvedStartupInput {
+  readonly argv: readonly string[];
+  readonly env: Readonly<Record<string, string | undefined>>;
+  readonly cwd: string;
+  readonly homedir?: string;
+}
+
 export interface Startup {
   /** `tools/list`를 가르는 활성 핸들러 집합. */
   readonly sets: HandlerSet[];
@@ -71,6 +86,12 @@ export interface Startup {
   readonly unsafe: boolean;
   /** 사람이 읽을 기동 진단. 서버가 그대로 stderr에 쓴다. */
   readonly diagnostics: string[];
+  /**
+   * 이 상태를 만든 입력. **재적재의 유일한 입력**이며, 도구가 넘긴 값은 여기에
+   * 섞이지 않는다 — 재적재 결과가 (argv · 프로세스 env · 디스크의 파일)만의
+   * 함수라는 것이 `ReloadProfile`이 연 표면의 상한이다.
+   */
+  readonly input: ResolvedStartupInput;
 }
 
 /** 인자 하나의 값을 읽는다. `--name=v`와 `--name v` 둘 다. 첫 등장이 이긴다. */
@@ -370,5 +391,15 @@ export function resolveStartup(input: StartupInput = {}): Startup {
     destination,
     unsafe: resolveUnsafeFlag({ argv: args, env }),
     diagnostics,
+    input: {
+      argv: [...argv],
+      // env는 **참조로** 실어 나른다. 기본값이 `process.env`일 때 재적재가 그
+      // 사이에 바뀐 값을 보아야 하기 때문이다. 이 계층은 env에 쓰지 않는다(구
+      // 엔진의 `applyProfile`은 `process.env.SAP_*`를 덮어썼다 —
+      // `engine/src/lib/profile.ts:271-280`).
+      env,
+      cwd,
+      ...(input.homedir !== undefined ? { homedir: input.homedir } : {}),
+    },
   };
 }

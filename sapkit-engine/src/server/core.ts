@@ -22,13 +22,15 @@ import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
 
 import { AdtClient } from '../adt';
 import type { ConnectionConfig } from '../contracts';
-import { type ExposableTool, selectExposedTools } from '../safety';
+import { SERVER_CONTROL_TOOLS, type ExposableTool, selectExposedTools } from '../safety';
 import { TOOL_REGISTRY } from '../tools/registry';
 import { type GateDenyCode, evaluateToolCall } from './gates';
+import { ProfileSession } from './session';
 import type { Startup } from './startup';
 import {
   NOOP_LOGGER,
   type SapTool,
+  type SapToolDefinition,
   type ToolContext,
   type ToolLogger,
   type ToolResult,
@@ -41,8 +43,21 @@ export interface ServerCoreOptions {
   readonly startup: Startup;
   /** 기본값은 `src/tools/registry.ts`의 등록 목록. */
   readonly tools?: readonly SapTool[];
-  /** 접속 계층 교체점(시험·기록/재생용). */
+  /** 접속 계층 교체점(시험·기록/재생용). `session`을 주면 그쪽이 이미 갖는다. */
   readonly connectionFactory?: (config: ConnectionConfig) => AdtClient;
+  /**
+   * 여러 코어가 **상태를 나눠 가질 때** 주입한다.
+   *
+   * HTTP·SSE 전송은 요청·스트림마다 코어를 새로 만든다(`./transport/http.ts:112`
+   * · `sse.ts:117`). 세션을 주지 않으면 코어마다 자기 접속과 자기 프로파일
+   * 상태를 갖게 되어, 한 요청에서 부른 `ReloadProfile`이 다른 요청의 게이트에
+   * 닿지 않는다 — 그것이 곧 "도구는 PRD라 답했는데 게이트는 DEV로 통과시키는"
+   * 과통과다. `./bootstrap`이 세션 하나를 지어 모든 코어에 물린다.
+   *
+   * 주면 `startup`은 노출 판정과 기동 진단에만 쓰이고, 게이트·도구 컨텍스트는
+   * 세션의 **지금** 상태를 본다. 둘은 같은 `Startup`에서 시작해야 한다.
+   */
+  readonly session?: ProfileSession;
   readonly logger?: ToolLogger;
   /** 감사·진단 출력 통로. 기본은 프로세스 stderr. */
   readonly stderr?: (line: string) => void;
@@ -52,8 +67,17 @@ export interface ServerCoreOptions {
 
 export interface ServerCore {
   readonly server: McpServer;
+  /** **지금** 유효한 기동 상태. 재적재가 이것을 갈아 끼운다. */
   readonly startup: Startup;
-  /** 실제로 `tools/list`에 오른 이름들. */
+  /** 가변 상태의 주인. 재적재와 접속 캐시가 여기 있다. */
+  readonly session: ProfileSession;
+  /**
+   * 실제로 `tools/list`에 오른 이름들.
+   *
+   * **재적재로 바뀌지 않는다** — 등록은 전송에 붙기 전에 끝난다. 재적재가 배포
+   * 축이 다른 프로파일을 물어 오면 `ReloadProfile`이 `restartRequired`로 그
+   * 사실을 보고한다.
+   */
   readonly exposedToolNames: readonly string[];
 }
 
@@ -107,6 +131,54 @@ function textOf(result: ToolResult): string {
   return result.content.map((item) => item.text).join('\n') || 'Unknown error';
 }
 
+/**
+ * 재적재 훅을 받을 자격이 있는 도구인가.
+ *
+ * 판정을 `src/safety/tier.ts`의 `SERVER_CONTROL_TOOLS`에 맡긴다 — **tier 게이트를
+ * 면제받는 이름 목록과 같은 목록**이다. 등급을 건너뛰는 이름과 등급을 바꿀 수
+ * 있는 이름이 갈라져서는 안 되고, 그 모듈이 이미 적어 둔 이유(선언한 분류만으로는
+ * 새 우회를 만들 수 없다)가 여기에도 그대로 적용된다. `kind`를 함께 보는 것은
+ * 같은 이름을 다른 분류로 등록해 두 판정을 어긋나게 만들지 못하게 하려는 것이다.
+ */
+function mayReload(definition: SapToolDefinition): boolean {
+  return definition.kind === 'server-control' && SERVER_CONTROL_TOOLS.has(definition.name);
+}
+
+/**
+ * 도구가 받는 컨텍스트 한 벌.
+ *
+ * `profile`·`env`가 **게터**인 것이 요점이다. 재적재가 세션의 상태를 갈아 끼우면
+ * 도구가 다음에 읽을 때 새 값이 나온다 — 값으로 복사해 두면 그 순간 기동 시점에
+ * 고정된다. 같은 이유로 이 객체를 스프레드(`{...context}`)로 베끼면 안 된다.
+ */
+function contextFor(
+  session: ProfileSession,
+  logger: ToolLogger,
+  allowReload: boolean,
+): ToolContext {
+  return {
+    getConnection: () => session.getConnection(),
+    get profile() {
+      return session.startup.profile;
+    },
+    logger,
+    get env() {
+      return session.startup.env;
+    },
+    reloadProfile: () => {
+      if (!allowReload) {
+        throw new McpError(
+          ErrorCode.InvalidRequest,
+          `ERR_RELOAD_FORBIDDEN: profile reload is reserved for ${[...SERVER_CONTROL_TOOLS].join(
+            ', ',
+          )}; this tool is not one of them.`,
+        );
+      }
+      return session.reload();
+    },
+  };
+}
+
 export function createServerCore(options: ServerCoreOptions): ServerCore {
   const { startup } = options;
   const stderr = options.stderr ?? defaultStderr;
@@ -115,31 +187,17 @@ export function createServerCore(options: ServerCoreOptions): ServerCore {
 
   for (const line of startup.diagnostics) stderr(line);
 
-  // 접속은 게으르다. 게이트에 막힌 호출은 이 함수에 닿지 않으므로 접속도
-  // 만들어지지 않는다 — 그것이 GAP-1 재발 방지의 실체다.
-  let client: AdtClient | null = null;
-  const getConnection = async (): Promise<AdtClient> => {
-    if (client) return client;
-    const config = startup.profile.connection;
-    if (!config) {
-      throw new McpError(
-        ErrorCode.InvalidRequest,
-        'ERR_NO_CONNECTION: this tool needs a SAP connection but none is configured — the server is running inspection-only. ' +
-          (startup.profile.diagnostics.join(' ') ||
-            'Point MCP_ENV_PATH at a profile sap.env, pass --env-path=<file>, or set an active profile.'),
-      );
-    }
-    const factory = options.connectionFactory ?? ((conf: ConnectionConfig) => new AdtClient(conf));
-    client = factory(config);
-    return client;
-  };
+  // 접속과 프로파일 상태의 주인. 접속은 여전히 게으르므로 게이트에 막힌 호출은
+  // 접속을 얻지 않는다 — GAP-1 재발 방지의 실체는 그대로다.
+  const session =
+    options.session ??
+    new ProfileSession(
+      startup,
+      options.connectionFactory ?? ((conf: ConnectionConfig) => new AdtClient(conf)),
+    );
 
-  const context: ToolContext = {
-    getConnection,
-    profile: startup.profile,
-    logger,
-    env: startup.env,
-  };
+  const context = contextFor(session, logger, false);
+  const reloadingContext = contextFor(session, logger, true);
 
   const server = new McpServer({
     name: options.name ?? SERVER_NAME,
@@ -158,16 +216,21 @@ export function createServerCore(options: ServerCoreOptions): ServerCore {
 
   for (const candidate of exposed) {
     const { definition, handler } = candidate.tool;
+    const toolContext = mayReload(definition) ? reloadingContext : context;
     server.registerTool(
       definition.name,
       { description: definition.description, inputSchema: definition.inputSchema },
       async (rawArgs: unknown) => {
         const args = (rawArgs ?? {}) as Record<string, unknown>;
 
+        // 게이트가 보는 tier·blocklist는 **호출마다 세션에서 다시 읽는다.**
+        // `startup`을 여기서 읽으면 재적재가 무슨 값을 물어 오든 게이트는 기동
+        // 시점의 값으로 계속 판정한다 — 그것이 이 판이 막으려는 과통과다.
+        const live = session.startup;
         const decision = evaluateToolCall(
           { name: definition.name, kind: definition.kind },
           args,
-          { tier: startup.profile.tier, blocklist: startup.blocklist },
+          { tier: live.profile.tier, blocklist: live.blocklist },
         );
         // 감사 문구는 판정과 무관하게 남는다. 거부와 함께 삼키면 우회가
         // 숨겨진다(`safety/rowData.ts`의 deny 갈래 주석 참조).
@@ -176,7 +239,7 @@ export function createServerCore(options: ServerCoreOptions): ServerCore {
           throw new McpError(errorCodeFor(decision.code), decision.message);
         }
 
-        const result = await handler(context, args);
+        const result = await handler(toolContext, args);
         // 구 `BaseMcpServer.ts:428-444`와 같은 처리 — isError는 프로토콜 오류로
         // 올린다.
         if (result.isError) throw new McpError(ErrorCode.InternalError, textOf(result));
@@ -200,9 +263,14 @@ export function createServerCore(options: ServerCoreOptions): ServerCore {
       .remove();
   }
 
+  const exposedToolNames = exposed.map((candidate) => candidate.name);
   return {
     server,
-    startup,
-    exposedToolNames: exposed.map((candidate) => candidate.name),
+    // 게터다 — 재적재 뒤에는 **새 상태**가 나와야 한다.
+    get startup() {
+      return session.startup;
+    },
+    session,
+    exposedToolNames,
   };
 }

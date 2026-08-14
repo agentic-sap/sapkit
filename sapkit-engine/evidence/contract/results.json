@@ -145,6 +145,11 @@
     "detail": "src/tools/read/__tests__/grepPackages.test.ts"
   },
   {
+    "tool": "ReloadProfile",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/reloadProfile.test.ts"
+  },
+  {
     "tool": "RuntimeAnalyzeDump",
     "passed": true,
     "detail": "src/tools/runtime/__tests__/runtimeAnalyzeDump.test.ts"
