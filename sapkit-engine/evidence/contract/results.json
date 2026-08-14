@@ -55,6 +55,11 @@
     "detail": "src/tools/read/__tests__/getProgram.test.ts"
   },
   {
+    "tool": "GetSession",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getSession.test.ts"
+  },
+  {
     "tool": "GetSourceDiff",
     "passed": true,
     "detail": "src/tools/read/__tests__/getSourceDiff.test.ts"
