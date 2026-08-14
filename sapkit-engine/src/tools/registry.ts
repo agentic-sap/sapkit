@@ -177,6 +177,12 @@ import { getDataElement } from './read/getDataElement';
 import { readDataElement } from './read/readDataElement';
 
 // 묶음: service-binding
+import { getServiceBinding } from './read/getServiceBinding';
+import { listServiceBindingTypes } from './read/listServiceBindingTypes';
+import { readServiceBinding } from './read/readServiceBinding';
+import { validateServiceBinding } from './read/validateServiceBinding';
+import { createServiceBinding } from './write/createServiceBinding';
+import { updateServiceBinding } from './write/updateServiceBinding';
 
 // 묶음: domain
 import { createDomain } from './write/createDomain';
@@ -190,6 +196,10 @@ import { createTransport } from './write/createTransport';
 import { releaseTransport } from './write/releaseTransport';
 
 // 묶음: metadata-extension
+import { getMetadataExtension } from './read/getMetadataExtension';
+import { readMetadataExtension } from './read/readMetadataExtension';
+import { createMetadataExtension } from './write/createMetadataExtension';
+import { updateMetadataExtension } from './write/updateMetadataExtension';
 
 // 묶음: gui-status
 import { getGuiStatusList } from './read/getGuiStatusList';
@@ -221,6 +231,10 @@ import { createScreen } from './write/createScreen';
 import { updateScreen } from './write/updateScreen';
 
 // 묶음: service-definition
+import { getServiceDefinition } from './read/getServiceDefinition';
+import { readServiceDefinition } from './read/readServiceDefinition';
+import { createServiceDefinition } from './write/createServiceDefinition';
+import { updateServiceDefinition } from './write/updateServiceDefinition';
 
 // 묶음: behavior-implementation
 import { getBehaviorImplementation } from './read/getBehaviorImplementation';
@@ -383,6 +397,12 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   readDataElement,
 
   // 묶음: service-binding — 서비스 바인딩 (순서 15)
+  readServiceBinding,
+  getServiceBinding,
+  listServiceBindingTypes,
+  validateServiceBinding,
+  updateServiceBinding,
+  createServiceBinding,
 
   // 묶음: domain — 도메인 (순서 16)
   createDomain,
@@ -396,6 +416,10 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   releaseTransport,
 
   // 묶음: metadata-extension — 메타데이터 확장 (DDLX) (순서 18)
+  readMetadataExtension,
+  getMetadataExtension,
+  updateMetadataExtension,
+  createMetadataExtension,
 
   // 묶음: gui-status — GUI 상태 (순서 19)
   getGuiStatusList,
@@ -427,6 +451,10 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   updateScreen,
 
   // 묶음: service-definition — 서비스 정의 (순서 24)
+  readServiceDefinition,
+  getServiceDefinition,
+  updateServiceDefinition,
+  createServiceDefinition,
 
   // 묶음: behavior-implementation — 동작 구현 (BIMP) (순서 25)
   createBehaviorImplementation,
