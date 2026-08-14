@@ -25,11 +25,41 @@
 |---|---|---|---|---|
 | D1 | `GetSqlQuery` | 13-9 — wide-SELECT에서 WHERE 절이 통째로 무시됨 | 수리 | **활성** |
 | D2 | `UpdateLocalTypes` | 13-11 — `activate_on_update:true`에서 거짓 성공 | 수리 | 휴면(도구 M1 밖) |
-| D3 | `GetIncludesList` | 13-13 — `INCLUDE … IF FOUND`의 비실재 객체명 반환 | 수리 | 휴면(도구 M1 밖) |
+| D3 | `GetIncludesList` | 13-13 — `INCLUDE … IF FOUND`의 비실재 객체명 반환 | 수리 | **활성**(아래 「D3 활성화」) |
 
 근거: `HANDOFF.md` §6 항목 13의 하위 13-9·13-11·13-13 · 결정 기록 D-079 ⑤.
 대체 기대 시험: D1 = WHERE가 결과에 실제 반영됨을 검증하는 시험(실데이터 도구
-작업이 소유). D2·D3는 해당 도구를 짓는 마일스톤에서 활성화한다.
+작업이 소유). D2는 해당 도구를 짓는 마일스톤에서 활성화한다.
+
+### D3 활성화 — `GetIncludesList`를 지으면서
+
+- **활성화 시점**: 인클루드 묶음(build-plan 순서 5)에서 `GetIncludesList`를 지은 판.
+  휴면 규칙이 정한 자리 그대로다 — 도구가 등록점에 오르는 순간 장부도 깨어난다.
+- **구 동작(실측)**: `engine/src/handlers/include/readonly/handleGetIncludesList.ts:86-131` —
+  노드 구조 응답에서 `OBJECT_TYPE`이 `PROG/I`인 마디의 `OBJECT_NAME`을 **조건 없이**
+  걷는다. `INCLUDE <name> IF FOUND.`(고객 확장 슬롯 관용구)로 선언만 돼 있고
+  오브젝트는 없는 이름도 그대로 실린다. 실측: `ZUNIVR5120`의 목록에 `ZUNIVI_H011`이
+  실렸고 `SearchObject`는 0건(`HANDOFF.md` §6 항목 13-13). 이후 그 이름의 404가
+  도구 결함으로 오독됐다 — 404가 실은 정확한 응답이었다.
+- **신 동작**: **ADT가 주소(`OBJECT_URI`)를 주지 않은 마디를 실재하는 오브젝트로 보지
+  않는다.** 목록에서 빼고, `detailed` 응답에는 뺀 이름을 `unresolved_includes`로 싣는다
+  (뺄 것이 없으면 그 키를 만들지 않는다 — 흔한 경우의 모양은 구와 같다).
+- **판정 근거**: 구 엔진 자신의 분류다 —
+  `engine/src/handlers/system/readonly/handleGetObjectInfo.ts:135-145`가 **같은 노드 구조
+  응답**에서 `OBJECT_NAME` + `OBJECT_URI`를 가진 마디만 실물 잎(terminal leaf)으로 보고,
+  `OBJECT_URI`가 없는 마디는 주소 없는 묶음 마디(group node)로 가른다. 주소가 없다는
+  것은 ADT가 그 이름으로 갈 곳을 모른다는 뜻이다.
+- **폴백은 걸러 내기 전 마디 수로 판정한다.** 구는 "PROG/I 이름을 하나도 못 찾으면
+  응답 안의 모든 `OBJECT_NAME`을 걷는" 폴백을 갖는다(`:113-125`). 그 조건을 **걸러 낸
+  뒤의** 수로 보면, D3가 전부 걸러 낸 순간 폴백이 켜져 같은 이름을 도로 실어 온다.
+  그래서 신 엔진은 폴백 판정을 **PROG/I 마디의 존재 여부**로 하고, 폴백 자체는 구
+  그대로 둔다.
+- **대체 기대 시험**: `sapkit-engine/src/tools/read/__tests__/getIncludesList.test.ts`의
+  「장부 D3」 절 5건 + `sapkit-engine/harness/replay/__tests__/divergences.test.ts`의
+  「D3 — 주소 없는 인클루드 이름만 빠진다」 절 4건.
+- **기계 장부 반영**: 했다. `harness/replay/divergences.ts`의 D3가 `active`이며 `check`를
+  들고 있다 — 구가 싣던 이름 중 **빠진 것만** 등재된 차이이고, 이름이 늘거나 공통분이
+  어긋나면 `allowlisted-fail`로 떨어진다.
 
 ## 제작 중 발견분
 

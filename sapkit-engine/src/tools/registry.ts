@@ -119,6 +119,7 @@ import { runtimeRunProgramWithProfiling } from './runtime/runtimeRunProgramWithP
 import { reloadProfile } from './runtime/reloadProfile';
 
 // 묶음: include
+import { getIncludesList } from './read/getIncludesList';
 
 // 묶음: class
 
@@ -245,6 +246,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   reloadProfile,
 
   // 묶음: include — 인클루드 (순서 5)
+  getIncludesList,
 
   // 묶음: class — 클래스 (순서 6)
 

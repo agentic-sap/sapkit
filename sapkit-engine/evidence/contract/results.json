@@ -60,6 +60,11 @@
     "detail": "src/tools/read/__tests__/getInclude.test.ts"
   },
   {
+    "tool": "GetIncludesList",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getIncludesList.test.ts"
+  },
+  {
     "tool": "GetInstalledComponents",
     "passed": true,
     "detail": "src/tools/read/__tests__/getInstalledComponents.test.ts"

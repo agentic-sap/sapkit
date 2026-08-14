@@ -64,14 +64,60 @@ describe('M1 사전 등재 3건', () => {
     expect(byId('D1')).toMatchObject({ tool: 'GetSqlQuery', status: 'active', classification: '수리' });
   });
 
-  it('D2·D3은 등재됐지만 휴면이다 — 도구가 M1 밖이다', () => {
+  it('D2는 등재됐지만 휴면이다 — 도구가 아직 없다', () => {
     expect(byId('D2')).toMatchObject({ tool: 'UpdateLocalTypes', status: 'dormant' });
-    expect(byId('D3')).toMatchObject({ tool: 'GetIncludesList', status: 'dormant' });
   });
 
   it('휴면 항목도 활성화 마일스톤을 적어 둔다', () => {
     expect(byId('D2').resolvesIn).not.toBeNull();
-    expect(byId('D3').resolvesIn).not.toBeNull();
+  });
+
+  /**
+   * D3는 인클루드 묶음에서 **깨어났다.** 도구가 등록점에 있는데 장부가 휴면이면
+   * 러너가 그 도구의 모든 차이를 `mismatch`로 떨어뜨린다 — 활성화는 그 신호를
+   * 지우는 것이 아니라 **판정 자리를 채우는 것**이다.
+   */
+  it('D3은 활성이고 대체 기대 시험을 실제 파일로 들고 있다', () => {
+    expect(byId('D3')).toMatchObject({ tool: 'GetIncludesList', status: 'active', classification: '수리' });
+    expect(byId('D3').check).not.toBeNull();
+    expect(byId('D3').substituteTest).toContain('getIncludesList.test.ts');
+  });
+});
+
+describe('D3 — 주소 없는 인클루드 이름만 빠진다', () => {
+  /** 이름 목록을 줄바꿈으로 이은 평문 응답. 구·신 둘 다 이 모양이다. */
+  const list = (...names: string[]): JsonValue => envelope(names.join('\n'));
+
+  const judge = async (before: JsonValue, after: JsonValue, isError = false) => {
+    const fixture = recorded([step({ index: 0, tool: 'GetIncludesList', response: before })]);
+    return replaySequence(fixture, target([{ payload: after, isError }]));
+  };
+
+  it('구가 싣던 비실재 이름이 빠지면 통과다', async () => {
+    const result = await judge(list('ZINC_REAL', 'ZUNIVI_H011'), list('ZINC_REAL'));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D3' });
+    expect(result.verdict).toBe('pass');
+  });
+
+  it('구에 없던 이름이 늘면 등재가 덮어 주지 않는다', async () => {
+    const result = await judge(list('ZINC_REAL'), list('ZINC_REAL', 'ZINC_NEW'));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D3' });
+  });
+
+  it('오류로 답하면 등재가 덮어 주지 않는다', async () => {
+    const result = await judge(list('ZINC_REAL'), envelope('ERR_X: 실패', true), true);
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D3' });
+  });
+
+  it('detailed 응답의 includes 배열도 같은 자로 잰다', async () => {
+    const detailed = (...names: string[]): JsonValue =>
+      envelope(JSON.stringify({ detailed: true, total_includes: names.length, includes: names }));
+    const result = await judge(detailed('ZINC_REAL', 'ZUNIVI_H011'), detailed('ZINC_REAL'));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D3' });
   });
 });
 
