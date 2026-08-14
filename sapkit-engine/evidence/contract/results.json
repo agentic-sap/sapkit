@@ -10,6 +10,16 @@
     "detail": "src/tools/read/__tests__/checkSyntax.test.ts"
   },
   {
+    "tool": "CreateBehaviorDefinition",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createBehaviorDefinition.test.ts"
+  },
+  {
+    "tool": "CreateBehaviorImplementation",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createBehaviorImplementation.test.ts"
+  },
+  {
     "tool": "CreateClass",
     "passed": true,
     "detail": "src/tools/write/__tests__/createClass.test.ts"
@@ -83,6 +93,16 @@
     "tool": "GetAbapSystemSymbols",
     "passed": true,
     "detail": "src/tools/read/__tests__/getAbapSystemSymbols.test.ts"
+  },
+  {
+    "tool": "GetBehaviorDefinition",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getBehaviorDefinition.test.ts"
+  },
+  {
+    "tool": "GetBehaviorImplementation",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getBehaviorImplementation.test.ts"
   },
   {
     "tool": "GetClass",
@@ -270,6 +290,16 @@
     "detail": "src/tools/read/__tests__/grepPackages.test.ts"
   },
   {
+    "tool": "ReadBehaviorDefinition",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readBehaviorDefinition.test.ts"
+  },
+  {
+    "tool": "ReadBehaviorImplementation",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readBehaviorImplementation.test.ts"
+  },
+  {
     "tool": "ReadClass",
     "passed": true,
     "detail": "src/tools/read/__tests__/readClass.test.ts"
@@ -378,6 +408,16 @@
     "tool": "SearchObject",
     "passed": true,
     "detail": "src/tools/read/__tests__/searchObject.test.ts"
+  },
+  {
+    "tool": "UpdateBehaviorDefinition",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateBehaviorDefinition.test.ts"
+  },
+  {
+    "tool": "UpdateBehaviorImplementation",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateBehaviorImplementation.test.ts"
   },
   {
     "tool": "UpdateClass",
