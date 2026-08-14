@@ -104,6 +104,7 @@ describe('셰임 계약', () => {
         'RuntimeGetDumpById',
         'RuntimeGetProfilerTraceData',
         'RuntimeListDumps',
+        'RuntimeListFeeds',
         'RuntimeListProfilerTraceFiles',
         'RuntimeListSystemMessages',
         'RuntimeRunClassWithProfiling',

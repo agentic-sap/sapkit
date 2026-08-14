@@ -270,6 +270,7 @@ import { getObjectNodeFromCache } from './read/getObjectNodeFromCache';
 import { getObjectsList } from './read/getObjectsList';
 import { getVirtualFoldersLow } from './read/getVirtualFoldersLow';
 import { readPackage } from './read/readPackage';
+import { runtimeListFeeds } from './runtime/runtimeListFeeds';
 import { runtimeListSystemMessages } from './runtime/runtimeListSystemMessages';
 
 /** 스캐폴드 앵커. 배선 단계가 이 파일을 찾는 표식이다. */
@@ -503,5 +504,6 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getVirtualFoldersLow,
   readPackage,
   // 이름이 `Runtime*`이지만 이미 지어진 runtime 묶음 11종과 별개인 꼬리다.
+  runtimeListFeeds,
   runtimeListSystemMessages,
 ];

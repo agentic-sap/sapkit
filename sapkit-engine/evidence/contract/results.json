@@ -590,6 +590,11 @@
     "detail": "src/tools/runtime/__tests__/runtimeListDumps.test.ts"
   },
   {
+    "tool": "RuntimeListFeeds",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeListFeeds.test.ts"
+  },
+  {
     "tool": "RuntimeListProfilerTraceFiles",
     "passed": true,
     "detail": "src/tools/runtime/__tests__/runtimeListProfilerTraceFiles.test.ts"
