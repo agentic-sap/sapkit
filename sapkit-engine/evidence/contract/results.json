@@ -310,6 +310,11 @@
     "detail": "src/tools/read/__tests__/grepPackages.test.ts"
   },
   {
+    "tool": "PatchGuiStatus",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/patchGuiStatus.test.ts"
+  },
+  {
     "tool": "ReadClass",
     "passed": true,
     "detail": "src/tools/read/__tests__/readClass.test.ts"

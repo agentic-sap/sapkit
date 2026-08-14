@@ -183,6 +183,72 @@ export function hardProblems(problems: readonly CuaValidationProblem[]): CuaVali
 }
 
 /**
+ * 표별 **자연키** — 병합이 "같은 행"을 알아보는 기준(`cuaSchema.ts:238-250`).
+ *
+ * 발행 설명(`PatchGuiStatus`의 `description`)이 이 표를 그대로 적어 두므로
+ * 값이 곧 사용자와의 계약이다. `BIV`만 구 주석이 "best guess — rarely used"라고
+ * 밝혀 두었고, 그 판단까지 그대로 옮긴다.
+ */
+const MERGE_KEYS: Readonly<Record<string, (row: Record<string, unknown>) => string>> = {
+  STA: (row) => `STA:${row['CODE'] ?? ''}`,
+  FUN: (row) => `FUN:${row['CODE'] ?? ''}`,
+  PFK: (row) => `PFK:${row['CODE'] ?? ''}|${row['PFNO'] ?? ''}`,
+  BUT: (row) => `BUT:${row['PFK_CODE'] ?? ''}|${row['CODE'] ?? ''}|${row['NO'] ?? ''}`,
+  TIT: (row) => `TIT:${row['CODE'] ?? ''}`,
+  MEN: (row) => `MEN:${row['CODE'] ?? ''}|${row['NO'] ?? ''}`,
+  MTX: (row) => `MTX:${row['CODE'] ?? ''}`,
+  ACT: (row) => `ACT:${row['CODE'] ?? ''}|${row['NO'] ?? ''}`,
+  SET: (row) => `SET:${row['STATUS'] ?? ''}|${row['FUNCTION'] ?? ''}`,
+  DOC: (row) => `DOC:${row['OBJ_TYPE'] ?? ''}|${row['OBJ_CODE'] ?? ''}`,
+  BIV: (row) => `BIV:${row['CODE'] ?? ''}|${row['POS'] ?? ''}`,
+};
+
+/** 표 하나를 자연키로 병합한다. 바뀐 행이 없으면 원본을 그대로 베낀다. */
+function mergeTable(
+  baseRows: Array<Record<string, unknown>> | undefined,
+  changeRows: Array<Record<string, unknown>> | undefined,
+  table: string,
+): Array<Record<string, unknown>> {
+  const keyOf = MERGE_KEYS[table];
+  if (!keyOf) {
+    // 모르는 표는 바뀐 쪽이 있으면 그것을, 없으면 원본을 쓴다.
+    return changeRows ?? baseRows ?? [];
+  }
+  if (!changeRows) return baseRows ? [...baseRows] : [];
+
+  const merged = new Map<string, Record<string, unknown>>();
+  for (const row of baseRows ?? []) merged.set(keyOf(row ?? {}), row);
+  for (const row of changeRows) {
+    const key = keyOf(row ?? {});
+    const existing = merged.get(key);
+    // 칸 단위 병합 — 바뀐 쪽이 이기고 원본의 나머지 칸은 살아남는다.
+    merged.set(key, existing ? { ...existing, ...row } : row);
+  }
+  return [...merged.values()];
+}
+
+/**
+ * 행 단위 병합 — `PatchGuiStatus`의 Read→merge→Write가 이것을 돈다.
+ *
+ * 실측한 것 셋(`cuaSchema.ts:282-297`):
+ *  1. **`ADM`은 언제나 결과에 있다.** 양쪽 다 없어도 빈 객체가 된다.
+ *  2. **바뀐 쪽에 없는 표는 원본 배열이 그대로 살아남는다** — 이것이 "생략한
+ *     것은 보존된다"는 계약의 자리다.
+ *  3. 양쪽 다 배열이 아니고 병합 결과도 비면 **그 표의 키를 만들지 않는다.**
+ *     빈 배열을 넣으면 전량 교체 쓰기에서 "그 표를 비워라"로 읽힐 수 있다.
+ */
+export function mergeCuaData(base: CuaData, changes: CuaData): CuaData {
+  const out: CuaData = { ADM: { ...(base.ADM ?? {}), ...(changes.ADM ?? {}) } };
+  for (const table of CUA_TABLES) {
+    const merged = mergeTable(base[table], changes[table], table);
+    if (merged.length > 0 || Array.isArray(base[table]) || Array.isArray(changes[table])) {
+      out[table] = merged;
+    }
+  }
+  return out;
+}
+
+/**
  * RFC에 실을 글로 접는다.
  *
  * 구가 이 한 겹을 둔 이유(`handleUpdateGuiStatus.ts:166-169`): ABAP은 JSON 글

@@ -1484,3 +1484,22 @@ D번호를 주지 않는 이유가 그것이다. 그래도 장부에 두는 이�
   「빈 배열은 핸들러가 거절한다」 절.
 - **기계 장부 반영**: **안 했다** — 발행 선언이 채록본과 같으므로 재생 대조에
   나타날 차이가 아니다. 구 소스와 구 표면이 어긋난다는 기록이다.
+
+### D95 — GUI 상태 쓰기 둘의 `oneOf`가 발행 스키마에서 빠진다
+- **분류**: 축소 — **해소 마일스톤 = 표면 채록본을 다시 뜨는 판. D94와 같은 자리.**
+- **구 동작(실측)**: `UpdateGuiStatus.cua_data`와 `PatchGuiStatus.changes`의 구
+  소스 스키마에는 `oneOf: [{type:'string'},{type:'object'}]`가 적혀 있다
+  (`handleUpdateGuiStatus.ts:40-44` · `handlePatchGuiStatus.ts:49-53`). 그런데
+  **구 서버가 발행한 표면에는 그 키가 없다** — 채록본의 두 자리는 `description`
+  한 줄뿐이다(D94의 `minItems`와 같은 유실 경로로 보인다: 구 서버가 JSON
+  Schema를 zod로 되돌렸다가 다시 내보낸다).
+- **신 동작**: **채록본을 따른다.** zod `unknown()`으로 선언해 `description`만
+  나가게 했다. 글이든 객체든 받는 판정은 스키마가 아니라 핸들러의
+  `normalizeCuaInput`이 한다 — 구도 같은 자리에서 같은 판정을 한다
+  (`cuaSchema.ts:115-128`).
+- **대체 기대 시험**:
+  `sapkit-engine/src/tools/write/__tests__/updateGuiStatus.test.ts`의
+  「`cua_data`의 발행 스키마에는 `type`도 `oneOf`도 없다」 + 「글로 준 cua_data와
+  객체로 준 것이 **같은 바이트**로 나간다」 두 건.
+- **기계 장부 반영**: **안 했다** — 발행 선언이 채록본과 같으므로 재생 대조에
+  나타날 차이가 아니다.
