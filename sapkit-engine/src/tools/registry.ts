@@ -100,6 +100,7 @@ import { runtimeGetGatewayErrorLog } from './runtime/runtimeGetGatewayErrorLog';
 import { runtimeGetProfilerTraceData } from './runtime/runtimeGetProfilerTraceData';
 import { runtimeListDumps } from './runtime/runtimeListDumps';
 import { runtimeListProfilerTraceFiles } from './runtime/runtimeListProfilerTraceFiles';
+import { runtimeRunClassWithProfiling } from './runtime/runtimeRunClassWithProfiling';
 import { runtimeRunProgramWithProfiling } from './runtime/runtimeRunProgramWithProfiling';
 
 /** 스캐폴드 앵커. 배선 단계가 이 파일을 찾는 표식이다. */
@@ -160,4 +161,5 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   runtimeCreateProfilerTraceParameters,
   runtimeGetGatewayErrorLog,
   runtimeRunProgramWithProfiling,
+  runtimeRunClassWithProfiling,
 ];

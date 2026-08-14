@@ -115,6 +115,11 @@
     "detail": "src/tools/runtime/__tests__/runtimeListProfilerTraceFiles.test.ts"
   },
   {
+    "tool": "RuntimeRunClassWithProfiling",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeRunClassWithProfiling.test.ts"
+  },
+  {
     "tool": "RuntimeRunProgramWithProfiling",
     "passed": true,
     "detail": "src/tools/runtime/__tests__/runtimeRunProgramWithProfiling.test.ts"
