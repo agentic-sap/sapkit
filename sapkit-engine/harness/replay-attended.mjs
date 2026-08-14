@@ -21,6 +21,7 @@
  * | `--env-path` | (필수) | 신 엔진이 붙을 `sap.env`. 녹화 때와 **같은 시스템**이어야 한다 |
  * | `--fixture` | `fixtures/*.json` 전부 | 특정 픽스처 하나만 재생 |
  * | `--out` | (없음) | 커버리지 표를 이 경로에 마크다운으로 쓴다 |
+ * | `--contract-tests` | (없음) | 계약 시험 증거 JSON — `[{ "tool": …, "passed": … }, …]`. 시험을 여기서 돌리지 않고 결과를 **받는다** |
  * | `--exposition` | 픽스처에 적힌 값 | 픽스처의 기록을 덮어쓴다. 어긋나면 표면이 갈려 대조가 무의미해진다 |
  *
  * 종료 코드: 0 = 전건 pass · 1 = fail 또는 **no-evidence**.
@@ -98,6 +99,15 @@ if (!envPath) {
   );
 }
 if (!fs.existsSync(envPath)) die(`--env-path 가 가리키는 파일이 없다: ${envPath}`);
+
+// 없는 파일을 가리켰다면 SAP에 붙기 **전에** 끊는다 — 재생을 다 돌린 뒤
+// 표를 쓰다가 죽으면 접속만 태우고 증거는 못 남긴다.
+const contractTestsPath = args.values.get('contract-tests')
+  ? path.resolve(args.values.get('contract-tests'))
+  : null;
+if (contractTestsPath !== null && !fs.existsSync(contractTestsPath)) {
+  die(`--contract-tests 가 가리키는 파일이 없다: ${contractTestsPath}`);
+}
 
 const fixtureFiles = args.values.get('fixture')
   ? [path.resolve(args.values.get('fixture'))]
@@ -212,7 +222,19 @@ try {
 
 // ── 커버리지 표 ──────────────────────────────────────────────────────────────
 
-const report = replay.buildCoverage({ tools: replay.loadM1ToolNames(CATALOG), replays: results });
+// 재생 실행 자체가 신 엔진의 attended 실기다 — 같은 질문을 사람 입회 아래 SAP에
+// 다시 던졌다. 그 사실을 표에 넘기지 않으면 실기 기록이 있어도 "증거 없음"에
+// 영원히 남는다. 계약 시험은 여기서 돌리지 않고 결과를 받는다.
+const contractTests = contractTestsPath
+  ? replay.parseContractEvidence(fs.readFileSync(contractTestsPath, 'utf8'), path.basename(contractTestsPath))
+  : [];
+
+const report = replay.buildCoverage({
+  tools: replay.loadM1ToolNames(CATALOG),
+  replays: results,
+  attended: replay.attendedEvidenceFromReplays(results),
+  contractTests,
+});
 const markdown = replay.renderCoverageMarkdown(report);
 
 const outPath = args.values.get('out');
