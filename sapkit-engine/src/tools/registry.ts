@@ -165,6 +165,7 @@ import { reloadProfile } from './runtime/reloadProfile';
 // 묶음: interface
 
 // 묶음: enhancement
+import { getEnhancementSpot } from './read/getEnhancementSpot';
 import { getEnhancements } from './read/getEnhancements';
 
 // 묶음: tail
@@ -293,6 +294,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
 
   // 묶음: enhancement — 인핸스먼트 (순서 28)
   getEnhancements,
+  getEnhancementSpot,
 
   // 묶음: tail — 꼬리 — 호출·참조 양쪽 0 (순서 29)
 ];
