@@ -165,6 +165,7 @@ import { updateView } from './write/updateView';
 import { getBehaviorDefinition } from './read/getBehaviorDefinition';
 import { readBehaviorDefinition } from './read/readBehaviorDefinition';
 import { createBehaviorDefinition } from './write/createBehaviorDefinition';
+import { updateBehaviorDefinition } from './write/updateBehaviorDefinition';
 
 // 묶음: data-element
 import { createDataElement } from './write/createDataElement';
@@ -339,6 +340,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   createBehaviorDefinition,
   getBehaviorDefinition,
   readBehaviorDefinition,
+  updateBehaviorDefinition,
 
   // 묶음: data-element — 데이터 엘리먼트 (순서 14)
   createDataElement,
