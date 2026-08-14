@@ -258,7 +258,11 @@ import { getEnhancementImpl } from './read/getEnhancementImpl';
 import { getEnhancementSpot } from './read/getEnhancementSpot';
 import { getEnhancements } from './read/getEnhancements';
 
-// 묶음: tail
+// 묶음: tail-delete
+
+// 묶음: tail-test
+
+// 묶음: tail-read
 
 /** 스캐폴드 앵커. 배선 단계가 이 파일을 찾는 표식이다. */
 export const TOOL_REGISTRY_MARKER = 'sapkit-engine/tools/registry' as const;
@@ -478,5 +482,9 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getEnhancementSpot,
   getEnhancementImpl,
 
-  // 묶음: tail — 꼬리 — 호출·참조 양쪽 0 (순서 29)
+  // 묶음: tail-delete — 꼬리 — 삭제 계열 25종 (순서 29)
+
+  // 묶음: tail-test — 꼬리 — 단위시험·CDS 단위시험·Update 계열 12종 (순서 29)
+
+  // 묶음: tail-read — 꼬리 — 조회 계열 + CreatePackage 12종 (순서 29)
 ];
