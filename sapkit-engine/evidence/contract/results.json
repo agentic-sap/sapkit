@@ -45,6 +45,11 @@
     "detail": "src/tools/read/__tests__/getInstalledComponents.test.ts"
   },
   {
+    "tool": "GetObjectsByType",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getObjectsByType.test.ts"
+  },
+  {
     "tool": "GetProgram",
     "passed": true,
     "detail": "src/tools/read/__tests__/getProgram.test.ts"
@@ -73,6 +78,11 @@
     "tool": "GrepObjects",
     "passed": true,
     "detail": "src/tools/read/__tests__/grepObjects.test.ts"
+  },
+  {
+    "tool": "GrepPackages",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/grepPackages.test.ts"
   },
   {
     "tool": "SearchObject",

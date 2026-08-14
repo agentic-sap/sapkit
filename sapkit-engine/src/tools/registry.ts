@@ -88,6 +88,8 @@ import {
 // 묶음: system
 
 // 묶음: search
+import { getObjectsByType } from './read/getObjectsByType';
+import { grepPackages } from './read/grepPackages';
 
 // 묶음: common
 
@@ -138,6 +140,8 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getInstalledComponents,
 
   // 묶음: search — 검색 (순서 2)
+  getObjectsByType,
+  grepPackages,
 
   // 묶음: common — 공통 편집·활성 (순서 3)
 

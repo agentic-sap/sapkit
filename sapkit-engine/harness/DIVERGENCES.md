@@ -592,6 +592,51 @@
 - **비고**: D16·D17·D20·D24와 같은 결의 **기동 계층** 차이라 도구 응답 시퀀스에
   나타나지 않는다 — `replay/divergences.ts`로 옮기지 않는다.
 
+### D33 — 도구 사이의 프로세스 전역 캐시(`objectsListCache`)를 승계하지 않는다
+- **분류**: 축소 — **해소 마일스톤 = `GetObjectNodeFromCache`를 짓는 마일스톤**
+- **구 동작(실측)**: `engine/src/lib/getObjectsListCache.ts`는 모듈 수준 싱글턴이고,
+  **여섯 도구가 여기에 마지막 결과를 얹는다** — `GetObjectsByType`
+  (`handleGetObjectsByType.ts:175`·`:191`·`:254`) · `GetObjectsList`(`:210`) ·
+  `SearchObject`(`handleSearchObject.ts:139`) · `GetTypeInfo`(`:232`·`:251`) ·
+  `GetWhereUsed`(`:111`). 그것을 **읽는** 유일한 도구가
+  `handleGetObjectNodeFromCache.ts:41`이다.
+- **신 동작**: 얹지 않는다. 지금 등록된 도구 중 이 캐시를 **읽는 것이 없으므로**
+  얹어 봐야 아무도 보지 않는 전역 가변 상태만 늘어난다.
+- **근거**: 캐시를 읽는 도구를 짓는 마일스톤이 캐시의 자리(프로세스 전역이냐
+  접속 수명이냐)를 함께 정하는 것이 옳다. 지금 얹으면 그 결정이 이미 내려진 것이
+  된다. 또 이 판의 검색 묶음 밖에서 `SearchObject`가 **이미** 얹지 않고 있어,
+  캐시를 절반만 채우는 상태가 만들어진다 — 절반 찬 캐시는 빈 캐시보다 나쁘다.
+- **대체 기대 시험**: 없음(축소). 판정 자리는 `GetObjectNodeFromCache`를 짓는
+  마일스톤이다 — 그때 이 항목이 닫히거나 결함으로 승격된다.
+- **비고**: 도구 자신의 응답에는 나타나지 않는다(캐시는 다음 도구가 읽을 때만
+  보인다). 그래서 `replay/divergences.ts`로 옮기지 않는다.
+
+### D34 — 인자 검증 실패 문구에서 구의 `MCP error -32602: ` 접두사가 빠진다
+- **분류**: 축소 — **해소 마일스톤 = 재생 대조 판(C2 이후) · 도구가 프로토콜 오류
+  코드를 고르는 통로를 되살릴지 정하는 자리**
+- **구 동작(실측)**: 구 핸들러는 인자 오류를 `McpError(ErrorCode.InvalidParams, …)`로
+  던져 자기 `catch`에서 접었다(예:
+  `engine/src/handlers/search/readonly/handleGrepPackages.ts:104-113` ·
+  `handleGetObjectsByType.ts:120-153`). SDK의 `McpError`는 생성자에서 메시지 앞에
+  `MCP error <코드>: `를 직접 붙이므로
+  (`@modelcontextprotocol/sdk/dist/cjs/types.js:2054-2060`), `error.message`에도
+  `String(error)`에도 **JSON-RPC 코드 `-32602`가 문자열로 박혀** 나간다.
+- **신 동작**: 같은 문장을 그대로 두고 접두사만 없다. 도구가 프로토콜 오류 코드를
+  고르는 통로를 신 엔진이 내주지 않기 때문이다(`src/server/toolDefinition.ts`의
+  `ToolResult`는 `isError`뿐이고, 코드는 서버 코어가 고른다 —
+  `src/tools/read/internal/results.ts`의 `ToolArgumentError` 주석이 그 결정의 자리).
+- **범위**: 이미 지어진 `GrepObjects`·`SearchObject`도 같은 모양이다. 이 항목은
+  그 선례를 뒤늦게 등재하는 것이며 새로 만든 차이가 아니다.
+- **대체 기대 시험**: 없음(축소). 문장 자체가 글자 그대로 보존되는지는 각 도구의
+  계약 시험이 본다(예:
+  `src/tools/read/__tests__/getObjectsByType.test.ts` 「갈래」 ·
+  `src/tools/read/__tests__/grepPackages.test.ts` 「갈래」).
+- **⚠️ 재생 대조에 주는 경고**: 이 차이는 **D13의 산문 정규화로 흡수되지 않는다.**
+  `harness/replay/errorSignature.ts`의 `DEFAULT_CODE_RULES`가 `-32\d{3}`을 **엄격
+  신호**로 잡기 때문에, 오류 단계를 재생하면 `error-kind` 불일치로 떨어진다.
+  기계용 장부(`harness/replay/divergences.ts`)에 이 항목을 옮기는 일은 그 파일을
+  소유한 작업의 몫이다 — 이 판의 검색 묶음 작업은 그 파일을 건드리지 않았다.
+
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 
 리뷰에서 차이로 잡혔지만 **유지할 이유가 없어** 구 동작으로 되돌린 것들.
