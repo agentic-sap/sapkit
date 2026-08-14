@@ -295,6 +295,11 @@
     "detail": "src/tools/read/__tests__/grepPackages.test.ts"
   },
   {
+    "tool": "ListServiceBindingTypes",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/listServiceBindingTypes.test.ts"
+  },
+  {
     "tool": "ReadClass",
     "passed": true,
     "detail": "src/tools/read/__tests__/readClass.test.ts"
