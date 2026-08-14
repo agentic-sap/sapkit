@@ -55,6 +55,11 @@
     "detail": "src/tools/read/__tests__/getDataElement.test.ts"
   },
   {
+    "tool": "GetDomain",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getDomain.test.ts"
+  },
+  {
     "tool": "GetFunctionModule",
     "passed": true,
     "detail": "src/tools/read/__tests__/getFunctionModule.test.ts"

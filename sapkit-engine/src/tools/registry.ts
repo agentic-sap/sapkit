@@ -144,6 +144,7 @@ import { readDataElement } from './read/readDataElement';
 // 묶음: service-binding
 
 // 묶음: domain
+import { getDomain } from './read/getDomain';
 
 // 묶음: transport
 
@@ -273,6 +274,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: service-binding — 서비스 바인딩 (순서 15)
 
   // 묶음: domain — 도메인 (순서 16)
+  getDomain,
 
   // 묶음: transport — 트랜스포트 (순서 17)
 
