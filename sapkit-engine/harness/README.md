@@ -30,7 +30,8 @@
 | `scenarios/` | C1 입력 | 무엇을 물어볼지 적어 두는 곳 (형식은 그 README) |
 | `fixtures/` (`../fixtures/`) | C1 산출 | 채록된 시퀀스. 마스킹 통과분만 |
 | `old-surface/` | 기준선 | 구 번들 `tools/list` 오프라인 채록본 |
-| `build-plan.json` | 계획 | 묶음·제작 순서·요구 증거 급 (뒤 작업이 산출 — 없으면 대장이 「미정」) |
+| `build-plan.mjs` | 오프라인 | 묶음·제작 순서·요구 증거 급을 **계산해** `build-plan.json`을 쓰거나 `--check`로 대조 |
+| `build-plan.json` | 계획 | 묶음 29 · 도구 186종의 묶음·제작 순서·요구 증거 급. 사람이 읽을 근거는 `BUILD-PLAN.md` |
 
 ```powershell
 node harness/record-attended.mjs --scenario=<id> --dry-run          # SAP 불필요
@@ -38,12 +39,14 @@ node harness/record-attended.mjs --scenario=<id> --env-path=<sap.env>
 node harness/replay-attended.mjs --env-path=<sap.env>
 node harness/render-ledger.mjs                                      # SAP 불필요
 node harness/render-ledger.mjs --check                              # SAP 불필요
+node harness/build-plan.mjs                                         # SAP 불필요
+node harness/build-plan.mjs --check                                 # SAP 불필요
 ```
 
 **C1·C2는 SAP에 접속한다.** 재생은 응답을 흉내 내는 것이 아니라 신 엔진이 같은
-질문을 다시 던지는 일이라, C1뿐 아니라 **C2도 attended 구간**이다. 대장 계열
-(`render-ledger.mjs`·`contract-evidence.mjs`)은 레포 안의 파일만 읽는 오프라인
-도구다.
+질문을 다시 던지는 일이라, C1뿐 아니라 **C2도 attended 구간**이다. 대장·계획 계열
+(`render-ledger.mjs`·`contract-evidence.mjs`·`build-plan.mjs`)은 레포 안의 파일만
+읽는 오프라인 도구다.
 
 ## 진입점이 지키는 것 (라이브러리가 안 보는 축)
 
