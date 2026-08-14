@@ -125,6 +125,11 @@
     "detail": "src/tools/write/__tests__/deleteProgram.test.ts"
   },
   {
+    "tool": "DeleteStructure",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteStructure.test.ts"
+  },
+  {
     "tool": "DeleteTable",
     "passed": true,
     "detail": "src/tools/write/__tests__/deleteTable.test.ts"
