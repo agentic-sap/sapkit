@@ -35,6 +35,11 @@
     "detail": "src/tools/read/__tests__/getAbapSemanticAnalysis.test.ts"
   },
   {
+    "tool": "GetAbapSystemSymbols",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getAbapSystemSymbols.test.ts"
+  },
+  {
     "tool": "GetClass",
     "passed": true,
     "detail": "src/tools/read/__tests__/getClass.test.ts"

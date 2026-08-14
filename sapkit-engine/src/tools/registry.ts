@@ -89,6 +89,7 @@ import {
 import { describeByList } from './read/describeByList';
 import { getAbapAST } from './read/getAbapAST';
 import { getAbapSemanticAnalysis } from './read/getAbapSemanticAnalysis';
+import { getAbapSystemSymbols } from './read/getAbapSystemSymbols';
 import { getObjectInfo } from './read/getObjectInfo';
 import { getObjectStructure } from './read/getObjectStructure';
 import { getPackageTree } from './read/getPackageTree';
@@ -150,6 +151,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   describeByList,
   getAbapAST,
   getAbapSemanticAnalysis,
+  getAbapSystemSymbols,
   getObjectInfo,
   getObjectStructure,
   getPackageTree,

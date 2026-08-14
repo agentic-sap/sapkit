@@ -652,6 +652,35 @@
   이 과제의 작업 범위가 그 파일을 제외했다. D33도 같다. 재생을 켜기 전에 두
   항목을 그쪽에 옮겨야 한다.
 
+### D35 — `GetAbapSystemSymbols`의 **인터페이스 보강**이 아직 없다
+
+- **분류**: 축소
+- **구 동작(실측)**: 심볼 종류가 `interface`이면
+  `engine/src/handlers/system/readonly/handleGetAbapSystemSymbols.ts:646-710`이
+  `handleGetInterface`(`handlers/interface/high/`)를 부른다. 성공하면
+  `{ exists: true, objectType: 'INTF', description: …, package: … }`인데,
+  `GetInterface`가 싣는 필드는 `success`·`interface_name`·`version`·`source_code`·
+  `status`·`status_text`뿐이라(구 `handleGetInterface.ts:108-114`)
+  `description`·`packageName`은 **언제나 폴백**(`ABAP Interface {이름}` ·
+  `Unknown`)이다. 즉 이 갈래가 실제로 알아내는 것은 **"그 인터페이스를 읽을 수
+  있었다"** 하나뿐이다.
+- **신 동작**: SAP에 묻지 않고
+  `{ exists: false, objectType: 'INTF', error: 'Interface resolution is not
+  available yet: this engine does not implement GetInterface. …' }`를 돌려준다.
+  나머지 종류(클래스·함수·그 밖)는 구와 같다.
+- **근거**: `GetInterface`는 **아직 신 엔진에 없는 도구**이고 이 묶음(system·common)의
+  범위 밖이다. 그 도구의 와이어를 이 모듈 안에서 새로 지으면 나중에 진짜
+  `GetInterface`가 지어질 때 **두 벌이 갈린다** — 같은 오브젝트를 읽는 경로가
+  둘이 되는 것은 이 판이 피하려는 바로 그 모양이다. 추측으로 짓지 않고 무엇이
+  없는지 밝히는 쪽을 골랐다.
+- **대체 기대 시험**: `src/tools/read/__tests__/getAbapSystemSymbols.test.ts`의
+  「인터페이스 보강 — 이 판에서 축소됐다」 절 — SAP에 묻지 않는다는 것과 문구를
+  붙잡는다. 클래스·함수·그 밖 갈래가 구와 같다는 것은 같은 파일의 나머지 절이 본다.
+- **해소 마일스톤**: **`GetInterface`를 짓는 판.** 그 도구가 등록되면
+  `resolveInterfaceSymbol`을 구와 같은 모양(`exists`만 실질적으로 의미 있는)으로
+  되살리고 이 항목을 닫는다. 그때 위의 "폴백이 언제나 나간다"는 실측도 함께
+  옮겨 적어야 한다 — 되살린다고 해서 설명·패키지가 채워지지는 않는다.
+
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 
 리뷰에서 차이로 잡혔지만 **유지할 이유가 없어** 구 동작으로 되돌린 것들.
