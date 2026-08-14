@@ -558,28 +558,225 @@ runtime 4종: `RuntimeGetGatewayErrorLog` `RuntimeListFeeds` `RuntimeListSystemM
 본다**(문서가 안 부르는데 사람이 쓴 도구가 있고, 문서만 부르고 아무도 안 쓴 도구가 있다).
 꼬리로 분류되는 것은 **양쪽 증거가 모두 0인 도구뿐**이다.
 
-| 항목 | 값 |
-|---|---:|
-| 측정 기간 | 2026-07-13 ~ 08-10 |
-| 세션 | **1,081** |
-| 도구 호출 | **7,441** |
-| 실제 호출된 도구 | **116** |
-| 자산 참조 110종과의 **합집합** | **137** |
-| **양쪽 증거 0 — 꼬리** | **49** (`Delete*` 25종 전부 포함) |
-| 최다 호출 | `GetSqlQuery` **2,631회 (35%)** |
+> **재측정 기록 (2026-08-14)**: 최초 기재(2026-08-10)는 **총계 일곱 줄만** 실었다 — 도구별
+> 호출 횟수도, 꼬리 49종의 이름도 없었고, §4.6의 재현 방법은 자산 참조 축(§4.1~4.6)만
+> 덮었다. 그래서 이 판의 「수요순으로 정렬한다」와 「꼬리를 맨 뒤로 모은다」가 **둘 다 실행
+> 불가능**했다. 이번에 **원 창 그대로** 다시 재고 재현 스크립트와 전량 데이터 파일을 함께
+> 남긴다. 판단의 뼈대인 두 수(**합집합 137 · 꼬리 49**)는 원 기재와 정확히 같고, 총계 계열은
+> 원인이 밝혀진 만큼 어긋난다(§4.7.6). 아래 수치는 전부 재측정본이다.
 
-읽어야 할 신호 셋. ⓐ **호출 3건 중 1건이 행 데이터 조회다**(`GetSqlQuery` 35%) — 실데이터
+#### 4.7.1 원본과 측정 방법
+
+**원본**은 이 머신의 하네스 세션 기록 2종이다. SAP MCP 호출은 하네스마다 자기 형식으로 남는다.
+
+| 하네스 | 기록 형식 | jsonl | 창 안 호출 | 호출된 도구 |
+|---|---|---:|---:|---:|
+| Claude Code | `~/.claude/projects/**/*.jsonl` — assistant 메시지의 `tool_use` 블록 | 619 | 7,541 | 115 |
+| Codex CLI | `~/.codex/sessions/**/*.jsonl` — `payload.type = function_call` | 399 | 34 | 4 |
+| **계** | | **1,018** | **7,575** | **115** |
+
+- **Codex는 포함한다.** 이 판의 원칙이 3사 하네스 중립이고, 실사용 축이 묻는 것은 *어느
+  하네스에서든 실제로 불렸는가*이기 때문이다. 34건은 전부 2026-07-31 하루에 몰려 있고 도구는
+  4종(`GetSqlQuery` 30 · `ReadFunctionModule` 2 · `ReadTable` 1 · `GetTypeInfo` 1)뿐이라
+  **꼬리와 합집합은 바꾸지 않고 총계만 0.45% 올린다**.
+- **Antigravity는 제외한다.** `~/.gemini/antigravity*` 아래에 대화 기록 파일이 **없다**.
+  `mcp/sap/*.json`이 있지만 그것은 도구 **스키마 캐시**이지 호출 기록이 아니다.
+- **서버 접두어는 시기에 따라 셋이다** — `plugin_sapkit_sap` 6,893 · `plugin_sc4sap_sap` 648 ·
+  `sap`(Codex) 34. 하나로 단정하면 9%를 잃는다. 표면 186종에 대응하지 않는 SAP 계열 이름은
+  **0건**이었다 — §4.5의 유령 참조에 대응하는 "유령 호출"도 없다는 뜻이다.
+- 서브에이전트가 낸 호출 **1,494건을 포함**한다 — 사람이 시킨 일의 일부다. 재개·분기로 두
+  파일에 복사된 중복 호출 10건은 호출 id로 뺐고, 깨진 줄 3개는 건너뛰었다. 날짜는 로컬(KST).
+
+#### 4.7.2 재현 방법 (§4.6과 같은 결)
+
+1. 표면 정본 186종 집합을 만든다 — §4.6 1번과 같다.
+2. **자산 참조 축을 이 문서에서 파싱한다** — §4.3 표 첫 열(실질 참조 110종)과 §4.4의 A·B
+   열거 블록(참조 없음 76종). 둘이 **교집합 0 · 합 186**인지 검산한다(어긋나면 중단).
+   §4.4 끝의 「주목할 쌍」 문단은 §4.3 쪽 이름을 인용하므로 잘라내야 한다.
+3. 위 기록 원본 2종을 순회하며 창 안의 SAP 호출을 도구별로 센다. 표면 186종에 **대응하는
+   이름만** 세고, 대응하지 않는 SAP 계열 이름은 따로 보고한다.
+4. **꼬리 = 「참조 없음 76종」 ∩ 「호출 0」**. 합집합 = 186 − 꼬리.
+
+```bash
+node sapkit-engine/harness/usage-census.mjs                    # 원 창으로 재측정
+node sapkit-engine/harness/usage-census.mjs --from=… --to=…    # 창 변경
+```
+
+스크립트는 **완전 오프라인**이며 SAP에 접속하지 않는다. 186종 전량 수치·꼬리 목록·하네스별
+내역은 **`sapkit-engine/harness/usage-census.json`** 이 갖는다 — 아래 표는 그 파일의 발췌이고,
+기계로 읽을 것은 그 파일이다. 스크립트는 자기검증(186종 누락·중복 0 · 꼬리+합집합=186 ·
+`Delete*` 25종 꼬리 포함)에 실패하면 exit 1이다.
+
+> **이 축은 시간이 지나면 다시 잴 수 없다.** Claude Code는 트랜스크립트를 기본 30일만
+> 보관한다(`cleanupPeriodDays` 미설정). 재측정 도중에도 정리가 돌아 대상 파일이 661 → 619로
+> 줄었다. **커밋된 JSON이 이 창의 유일한 항구 기록이다** — 다음 판은 다시 재는 대신 그 파일을
+> 읽어라.
+
+#### 4.7.3 요약 — 재측정본 대 원 기재
+
+| 항목 | 재측정 (2026-08-14) | 원 기재 (2026-08-10) | 차 |
+|---|---:|---:|---:|
+| 측정 기간 | 2026-07-13 ~ 08-10 | 같음 | — |
+| 도구 호출 | **7,575** | 7,441 | +134 |
+| — Claude Code 몫 | 7,541 | (구분 없음) | — |
+| — Codex CLI 몫 | 34 | (구분 없음) | — |
+| 실제 호출된 도구 | **115** | 116 | −1 |
+| 자산 참조 110종과의 **합집합** | **137** | 137 | **0** ✅ |
+| **양쪽 증거 0 — 꼬리** | **49** | 49 | **0** ✅ |
+| — 그중 `Delete*` | **25 / 25** | 25 | 0 |
+| 문서는 안 부르는데 호출됨 | **27** | 27 | **0** ✅ |
+| 자산은 부르는데 호출 0 | 22 | 21 | +1 |
+| 최다 호출 | `GetSqlQuery` **2,690 (35.5%)** | 2,631 (35%) | +59 |
+| 세션 — SAP 호출 1회 이상 | **126** | (원 산출법 미상) | — |
+| (참고) 창 안에 기록이 남은 대화 | 307 | — | — |
+| 원 기재의 「세션 1,081」 | — | 1,081 | **재현 불가** |
+
+#### 4.7.4 클래스별 분포
+
+| 클래스 | 표면 | 호출된 도구 | 호출 | 비중 | 꼬리 |
+|---|---:|---:|---:|---:|---:|
+| read | 90 | 65 | 3,118 | 41.2% | 12 |
+| write | 79 | 38 | 1,581 | 20.9% | 35 |
+| runtime | 15 | 10 | 147 | 1.9% | 2 |
+| row-data (상시 게이트) | 2 | 2 | **2,729** | **36.0%** | 0 |
+| **계** | **186** | **115** | **7,575** | 100% | **49** |
+
+#### 4.7.5 도구별 호출 — 수요순
+
+**상위 40종** — 여기까지가 전체 호출의 **92.8%**다.
+
+| # | 도구 | 클래스 | 호출 | 비중 | 누적 |
+|---:|---|---|---:|---:|---:|
+| 1 | `GetSqlQuery` | row-data | 2,690 | 35.5% | 35.5% |
+| 2 | `GrepObjects` | read | 630 | 8.3% | 43.8% |
+| 3 | `UpdateSourceByPatch` | write | 500 | 6.6% | 50.4% |
+| 4 | `GetInactiveObjects` | read | 321 | 4.2% | 54.7% |
+| 5 | `CheckSyntax` | read | 288 | 3.8% | 58.5% |
+| 6 | `GetInclude` | read | 268 | 3.5% | 62.0% |
+| 7 | `GetTable` | read | 250 | 3.3% | 65.3% |
+| 8 | `ActivateObjects` | write | 213 | 2.8% | 68.1% |
+| 9 | `GetFunctionModule` | read | 167 | 2.2% | 70.3% |
+| 10 | `UpdateInclude` | write | 154 | 2.0% | 72.4% |
+| 11 | `UpdateProgram` | write | 134 | 1.8% | 74.1% |
+| 12 | `GetStructure` | read | 108 | 1.4% | 75.6% |
+| 13 | `UpdateClass` | write | 101 | 1.3% | 76.9% |
+| 14 | `GetClass` | read | 87 | 1.1% | 78.0% |
+| 15 | `CreateInclude` | write | 85 | 1.1% | 79.2% |
+| 16 | `RuntimeRunProgramWithProfiling` | runtime | 82 | 1.1% | 80.2% |
+| 17 | `SearchObject` | read | 74 | 1.0% | 81.2% |
+| 18 | `GetProgram` | read | 65 | 0.9% | 82.1% |
+| 19 | `UpdateFunctionModule` | write | 60 | 0.8% | 82.9% |
+| 20 | `CreateProgram` | write | 58 | 0.8% | 83.6% |
+| 21 | `GetDataElement` | read | 49 | 0.6% | 84.3% |
+| 22 | `GetUnitTestResult` | read | 44 | 0.6% | 84.9% |
+| 23 | `GetClassMethod` | read | 43 | 0.6% | 85.4% |
+| 24 | `GetIncludesList` | read | 39 | 0.5% | 85.9% |
+| 25 | `GetTableContents` | row-data | 39 | 0.5% | 86.5% |
+| 26 | `ReadView` | read | 39 | 0.5% | 87.0% |
+| 27 | `RunUnitTest` | runtime | 39 | 0.5% | 87.5% |
+| 28 | `GrepPackages` | read | 38 | 0.5% | 88.0% |
+| 29 | `GetServiceBinding` | read | 37 | 0.5% | 88.5% |
+| 30 | `GetView` | read | 35 | 0.5% | 88.9% |
+| 31 | `UpdateView` | write | 35 | 0.5% | 89.4% |
+| 32 | `ReadClass` | read | 31 | 0.4% | 89.8% |
+| 33 | `CreateClass` | write | 30 | 0.4% | 90.2% |
+| 34 | `GetLocalTypes` | read | 30 | 0.4% | 90.6% |
+| 35 | `UpdateLocalTestClass` | write | 30 | 0.4% | 91.0% |
+| 36 | `GetDomain` | read | 29 | 0.4% | 91.4% |
+| 37 | `GetSystemInfo` | read | 29 | 0.4% | 91.8% |
+| 38 | `GetBehaviorDefinition` | read | 27 | 0.4% | 92.1% |
+| 39 | `GetTypeInfo` | read | 27 | 0.4% | 92.5% |
+| 40 | `UpdateTable` | write | 27 | 0.4% | 92.8% |
+
+**나머지 호출 75종** — 수요순, 합쳐서 **543회(7.2%)**다.
+
+`GetLocalTestClass` 26 · `ReadTable` 25 · `GetAtcFindings` 24 · `UpdateBehaviorDefinition` 23 ·
+`ReadProgram` 22 · `GetProgFullCode` 20 · `GetGuiStatusList` 19 · `GetPackageContents` 18 ·
+`GetScreensList` 14 · `GetTransport` 14 · `ReadBehaviorDefinition` 14 · `ReadFunctionModule` 14 ·
+`ReadTextElementsBulk` 14 · `CreateView` 13 · `ListTransports` 13 · `GetMetadataExtension` 12 ·
+`GetWhereUsed` 12 · `RuntimeListDumps` 12 · `UpdateLocalTypes` 12 · `CreateFunctionModule` 11 ·
+`GetFunctionGroup` 11 · `UpdateBehaviorImplementation` 10 · `UpdateClassMethod` 10 ·
+`UpdateMetadataExtension` 9 · `CreateStructure` 8 · `GetUnitTest` 8 · `ReadServiceDefinition` 8 ·
+`GetTextElement` 6 · `GetTransaction` 6 · `RuntimeRunClassWithProfiling` 6 · `CreateDataElement` 5 ·
+`CreateDomain` 5 · `CreateServiceBinding` 5 · `GetObjectStructure` 5 · `GetSession` 5 ·
+`GetUnitTestStatus` 5 · `ReadDomain` 5 · `ReadMetadataExtension` 5 · `UpdateServiceBinding` 5 ·
+`UpdateServiceDefinition` 5 · `UpdateStructure` 5 · `CreateServiceDefinition` 4 · `CreateTable` 4 ·
+`CreateTransport` 4 · `GetGuiStatus` 4 · `GetPackage` 4 · `GetScreen` 4 ·
+`ReadBehaviorImplementation` 4 · `WriteTextElementsBulk` 4 · `CreateBehaviorDefinition` 3 ·
+`DescribeByList` 3 · `GetInstalledComponents` 3 · `ListServiceBindingTypes` 3 · `ReloadProfile` 3 ·
+`CreateBehaviorImplementation` 2 · `CreateMetadataExtension` 2 · `GetBehaviorImplementation` 2 ·
+`GetServiceDefinition` 2 · `ReadGuiStatus` 2 · `ReadScreen` 2 · `CreateFunctionGroup` 1 ·
+`CreateGuiStatus` 1 · `CreateScreen` 1 · `CreateTextElement` 1 · `GetAbapSystemSymbols` 1 ·
+`GetInterface` 1 · `PatchGuiStatus` 1 · `ReadDataElement` 1 · `ReadServiceBinding` 1 ·
+`ReadStructure` 1 · `RuntimeAnalyzeProfilerTrace` 1 · `RuntimeGetGatewayErrorLog` 1 ·
+`RuntimeGetProfilerTraceData` 1 · `RuntimeListProfilerTraceFiles` 1 · `ValidateServiceBinding` 1
+
+**호출 0 — 71종.** 두 무리로 갈린다.
+
+**⒜ 꼬리 49종 — 자산 참조도 0 · 호출도 0** (사다리 ⑴의 판단 재료)
+
+- *write 35종* — `Delete*` 25종 전부: `DeleteBehaviorDefinition` `DeleteBehaviorImplementation`
+  `DeleteCdsUnitTest` `DeleteClass` `DeleteDataElement` `DeleteDomain` `DeleteFunctionGroup`
+  `DeleteFunctionModule` `DeleteGuiStatus` `DeleteInclude` `DeleteInterface`
+  `DeleteLocalDefinitions` `DeleteLocalMacros` `DeleteLocalTestClass` `DeleteLocalTypes`
+  `DeleteMetadataExtension` `DeleteProgram` `DeleteScreen` `DeleteServiceBinding`
+  `DeleteServiceDefinition` `DeleteStructure` `DeleteTable` `DeleteTextElement` `DeleteUnitTest`
+  `DeleteView` — 그리고 `CreateCdsUnitTest` `CreatePackage` `CreateUnitTest` `UpdateCdsUnitTest`
+  `UpdateDataElement` `UpdateDomain` `UpdateFunctionGroup` `UpdateLocalDefinitions`
+  `UpdateLocalMacros` `UpdateUnitTest`
+- *read 12종* — `GetAdtTypes` `GetBadiImplementations` `GetCallGraph` `GetCdsUnitTest`
+  `GetCdsUnitTestResult` `GetCdsUnitTestStatus` `GetNodeStructureLow` `GetObjectNodeFromCache`
+  `GetObjectStructureLow` `GetObjectsList` `GetVirtualFoldersLow` `ReadPackage`
+- *runtime 2종* — `RuntimeListFeeds` `RuntimeListSystemMessages`
+
+**⒝ 자산은 부르는데 호출 0 — 22종** (꼬리가 **아니다** — 한쪽 증거가 있다)
+
+`CreateInterface` `GetAbapAST` `GetAbapSemanticAnalysis` `GetEnhancementImpl` `GetEnhancementSpot`
+`GetEnhancements` `GetLocalDefinitions` `GetLocalMacros` `GetObjectInfo` `GetObjectsByType`
+`GetPackageTree` `GetSourceDiff` `ReadFunctionGroup` `ReadInterface` `ReleaseTransport`
+`RuntimeAnalyzeDump` `RuntimeCreateProfilerTraceParameters` `RuntimeGetDumpById` `UpdateGuiStatus`
+`UpdateInterface` `UpdateScreen` `UpdateTextElement`
+
+#### 4.7.6 원 기재와 어긋난 곳 — 확인된 원인
+
+**총계 +134**는 두 갈래다.
+
+- **Codex 34건** — 원 기재에는 하네스 구분이 없어 세지 않은 것으로 보인다(§4.7.1).
+- **Claude 쪽 +100** — 원 §4.7이 실린 커밋은 2026-08-10 15:40(KST)이고, **그 시각 이후 같은
+  날 발생한 호출이 125건**이다(08-10 총 184건 중 15:40 이전은 59건). 반대 방향으로, 창 앞
+  이틀(07-13·07-14)의 기록은 30일 보존 정책에 걸려 **이미 지워졌다** — 생존 최초 호출이
+  2026-07-15 11:36(KST)이다. 7,541 − 125 = 7,416이므로 **소실된 이틀 몫은 약 25건**으로
+  추정된다(125 − 25 = 100).
+
+**호출된 도구 −1**의 정체는 `GetObjectInfo` **한 종**이다. 창을 08-13까지 넓히면 이 도구가
+1회 호출로 다시 나타나 116종이 된다 — 원 기재 시점에는 소실된 이틀에 호출 기록이 있었던
+것으로 보인다. 같은 이유로 「자산은 부르는데 호출 0」이 21 → 22가 됐다. **꼬리는 영향받지
+않는다** — `GetObjectInfo`는 자산 참조가 있어 애초에 꼬리 후보가 아니다.
+
+**세션 1,081은 재현하지 못했다.** 원 산출법이 남아 있지 않다. 재측정이 셀 수 있는 것은 창
+안에서 SAP 도구를 부른 대화 **126개**와 창 안에 기록이 남은 대화 **307개**이며, 어느 쪽도
+1,081과 자릿수가 맞지 않는다. 세션 파일 총수를 센 것으로 짐작되나(그 수는 보존 정리로 계속
+줄어든다) 확인할 길이 없다. **이 행의 정본은 재측정본으로 옮긴다.**
+
+읽어야 할 신호 넷. ⓐ **호출 3건 중 1건이 행 데이터 조회다**(row-data 2종 36.0%) — 실데이터
 2종의 상시 게이트가 장식이 아니라 주 경로 위에 있다는 실측이며, 자작 엔진에서도 이 게이트가
-1순위 계약이다(§2 ⑴ 검증 기준 3). ⓑ §4.2가 "참조 없음 **76종**"으로 잡았던 집합이 실사용
-축과 겹치며 **49종으로 줄었다** — 나머지 27종은 문서가 안 부를 뿐 사람이 쓰고 있었다.
-ⓒ 반대 방향도 있다 — 합집합 계산상 **자산이 부르는데 한 번도 호출되지 않은 도구가 21종**
-(110 + 116 − 137)이다. 두 축 어느 쪽도 단독으로는 "쓰인다"의 답이 아니라는 뜻이다.
+1순위 계약이다(§2 ⑴ 검증 기준 3). ⓑ **수요는 극단적으로 앞에 쏠려 있다** — 상위 20종이
+83.6%, 상위 40종이 92.8%이고 나머지 75종이 나눠 갖는 것은 543회(7.2%)뿐이다. 「수요순으로
+만든다」가 말장난이 아니라는 근거가 이 분포다. ⓒ §4.2가 "참조 없음 **76종**"으로 잡았던
+집합이 실사용 축과 겹치며 **49종으로 줄었다** — 나머지 27종은 문서가 안 부를 뿐 사람이 쓰고
+있었다. 반대 방향도 있다 — **자산이 부르는데 한 번도 호출되지 않은 도구가 22종**이다. 두 축
+어느 쪽도 단독으로는 "쓰인다"의 답이 아니라는 뜻이다. ⓓ **write 79종 중 38종만 불렸고, 꼬리
+49종의 71%(35종)가 write다** — §4.2가 자산 참조만으로 잡았던 신호를 실사용 축이 같은 방향으로
+확인한다. `Delete*` 25종은 **양쪽 축 모두 0**이다.
 
-그 49종은 사다리 ⑴에서 **제외 대상이 아니라 재평가 대상**이다 — 표면은 전량 승계하고
+그 49종은 사다리 ⑴에서 **제외 대상이 아니라 재평가 대상이다** — 표면은 전량 승계하고
 (⑴ 절 · D-079 ②), 재평가는 **최종 교체 직전 1회**에 몰아 둔다(D-079 ⑧).
 
-**측정 한계**: 소유자 1인 · 머신 1대 · 1개월의 기록이다. 다른 사용자의 분포는 다를 수 있고,
-호출 0이 "필요 없음"의 증명이 아닌 것은 §4.4 서두의 단서와 같다.
+**측정 한계**: 소유자 1인 · 머신 1대 · 4주의 기록이다. 다른 사용자의 분포는 다를 수 있고,
+호출 0이 "필요 없음"의 증명이 아닌 것은 §4.4 서두의 단서와 같다. 여기에 둘을 더한다 —
+ⓐ 창 앞 이틀은 보존 정책으로 이미 소실됐고, ⓑ 원 기재 시점 이후 발생분이 포함돼 있어
+**원 기재와 총계를 1:1로 맞출 수는 없다**. 일치를 요구할 수 있는 것은 두 축의 교차 결과
+(합집합 137 · 꼬리 49)이며, 그것은 일치한다.
 
 ---
 
