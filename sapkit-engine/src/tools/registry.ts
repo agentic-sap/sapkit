@@ -264,6 +264,7 @@ import { getEnhancements } from './read/getEnhancements';
 
 // 묶음: tail-read
 import { getAdtTypes } from './read/getAdtTypes';
+import { getCallGraph } from './read/getCallGraph';
 import { getNodeStructureLow } from './read/getNodeStructureLow';
 import { getObjectStructureLow } from './read/getObjectStructureLow';
 import { getObjectNodeFromCache } from './read/getObjectNodeFromCache';
@@ -497,6 +498,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
 
   // 묶음: tail-read — 꼬리 — 조회 계열 + CreatePackage 12종 (순서 29)
   getAdtTypes,
+  getCallGraph,
   getNodeStructureLow,
   getObjectStructureLow,
   getObjectNodeFromCache,

@@ -150,6 +150,11 @@
     "detail": "src/tools/read/__tests__/getBehaviorImplementation.test.ts"
   },
   {
+    "tool": "GetCallGraph",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getCallGraph.test.ts"
+  },
+  {
     "tool": "GetClass",
     "passed": true,
     "detail": "src/tools/read/__tests__/getClass.test.ts"

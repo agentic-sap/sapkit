@@ -52,6 +52,7 @@ describe('셰임 계약', () => {
         'GetAbapSystemSymbols',
         'GetAdtTypes',
         'GetAtcFindings',
+        'GetCallGraph',
         'GetClassMethod',
         'GetEnhancementImpl',
         'GetEnhancementSpot',
