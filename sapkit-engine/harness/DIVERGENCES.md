@@ -1748,3 +1748,43 @@ D번호를 주지 않는 이유가 그것이다. 그래도 장부에 두는 이�
   객체로 준 것이 **같은 바이트**로 나간다」 두 건.
 - **기계 장부 반영**: **안 했다** — 발행 선언이 채록본과 같으므로 재생 대조에
   나타날 차이가 아니다.
+
+---
+
+## 제작 중 발견분 (append) — `tail-test` 묶음 (단위시험 · CDS 단위시험 · Update 계열)
+
+이 묶음의 12종을 지으며 나온 차이다. 예약 구간은 **D120~D129**다. 파일 가운데가
+아니라 여기 끝에 붙이는 것은 꼬리 묶음 셋이 동시에 append 하고 있어 같은 자리를
+물면 전면 충돌이 나기 때문이다(앞선 물결의 묶음들도 같은 이유로 끝에 붙였다).
+
+### D120 — `UpdateCdsUnitTest`가 활성화 **거짓 성공**을 성공으로 접지 않는다
+- **분류**: 수리(구의 거짓 성공을 고침)
+- **구 동작(실측)**: 구 핸들러는 벤더 `AdtCdsUnitTest.update()`를 부르고
+  (`engine/src/handlers/unit_test/high/handleUpdateCdsUnitTest.ts:75-79`), 그것이
+  `adtLocalTestClass.update(…, { activateOnUpdate: true })`로 넘어가
+  (`engine/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/unitTest/AdtCdsUnitTest.js:146-171`)
+  해제 뒤 활성화 요청을 **보내기는 한다**(`.../core/class/AdtLocalTestClass.js:227-235`).
+  그런데 그 **응답 본문을 읽지 않는다** — `activateObjectInSession`이 응답을 그대로
+  돌려주고(`.../utils/activationUtils.js:116-133`), `AdtClass.activate()`는 HTTP 4xx
+  에서만 던진다(`.../core/class/AdtClass.js:436-468`). **SAP은 활성화 실패도 HTTP
+  200으로 답하며 `<chkl:msg type="E">`를 담으므로**, 깨진 시험 클래스가
+  `CDS unit test class … updated successfully.`로 보고된다.
+- **신 동작**: 요청 바이트는 구 그대로 두고(`?method=activate&preauditRequested=true`
+  · `application/vnd.sap.adt.activation+xml` · 해제 **뒤**), 응답 본문을
+  `parseActivationMessages`로 갈라 `E`/`A`/`X`가 있으면 실패로 되돌린다. 문구에는
+  모든 오류를 줄번호와 함께 담고 "갱신본은 인액티브 버전으로 올라가 있고 활성
+  버전은 그대로"라는 사실을 함께 적는다. 경고(`W`)만 있으면 구와 같이 성공이다.
+- **판정 근거**: **같은 사슬의 같은 자리**에 선례가 둘 있다 — D2(`UpdateLocalTypes`) ·
+  D41(`UpdateLocalTestClass`). 이 도구는 그 둘과 같은 `testclasses` 인클루드 쓰기이며,
+  여기만 구를 재현하면 한 엔진 안에서 같은 실패에 세 도구가 다르게 답한다. 게다가
+  요구 급이 `계약 시험`이라 **사람 실기로 뒤늦게 잡을 기회가 없다**(D2·D41은 그
+  선택지가 있었다). 이 레포의 CLAS 거짓 성공 실증 이력과 `CLAUDE.md` 안전 규칙
+  ("write 성공 보고를 그대로 믿지 않는다")이 그 위에 있다.
+- **대체 기대 시험**: `sapkit-engine/src/tools/write/__tests__/updateCdsUnitTest.test.ts`의
+  「D120」 절 — 활성화가 언제나 나가는가 · 해제 뒤인가 · 200에 실린 `E`를 실패로
+  되돌리는가 · `A`도 실패인가 · `W`만 있으면 성공인가(구 동작이 유지되는 쪽을 함께
+  못박는다) · 실패해도 PUT은 이미 나갔다는 사실이 문구에 있는가.
+- **해소 마일스톤**: 없음 — 영구 차이(수리)다.
+- **기계 장부 반영**: **못 했다** — 이 과제는 `harness/replay/**`가 무접촉이다.
+  도구 응답이 `isError`째로 달라지므로 **기계 장부에 와야 한다.** 오케스트레이터가
+  묶음 병합 뒤에 옮긴다. 옮기기 전에 재생을 켜면 이 갈래가 가짜 실패로 잡힌다.

@@ -610,6 +610,11 @@
     "detail": "src/tools/write/__tests__/updateBehaviorImplementation.test.ts"
   },
   {
+    "tool": "UpdateCdsUnitTest",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateCdsUnitTest.test.ts"
+  },
+  {
     "tool": "UpdateClass",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateClass.test.ts"
