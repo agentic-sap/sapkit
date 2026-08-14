@@ -17,6 +17,7 @@
  */
 
 import { getObjectNodeFromCache } from '../getObjectNodeFromCache';
+import { directHarness, invokeDirect, textOf } from './dataElementDomainSupport';
 import { cleanupTempDirs, harnessFor, publishedDeclaration, runTool } from './support';
 
 afterEach(() => {
@@ -68,11 +69,37 @@ describe('캐시 없음 갈래 — 구의 캐시-빈-상태와 글자까지 같�
     expect(outcome.text).toBe('Node not found in cache');
   });
 
-  it('**SAP 호출이 한 발도 나가지 않는다** — 접속 시도 0회', async () => {
+  it('**SAP 호출이 한 발도 나가지 않는다**', async () => {
     const { requests } = await runTool(getObjectNodeFromCache, ARGS, neverReached);
 
-    // CSRF 왕복까지 포함해 0이다. 접속을 만들지 않았다는 뜻이다.
+    // CSRF 왕복까지 포함해 0이다.
     expect(requests).toHaveLength(0);
+  });
+
+  /**
+   * ⚠ 위 검사만으로는 부족하다 — **사보타주로 실증했다.**
+   *
+   * 핸들러에 `await context.getConnection()` 한 줄을 몰래 넣어도 위 검사는
+   * 통과한다. 접속 객체를 만드는 것과 바이트를 보내는 것이 다른 일이기 때문이다
+   * (`AdtClient`는 `request()`를 부를 때 비로소 나간다). "접속을 만들지 않는다"는
+   * 주장을 하려면 **접속 공장이 불린 횟수**를 세야 한다 — `tierProbe`가 같은
+   * 이유로 그렇게 한다.
+   */
+  it('**접속 공장도 불리지 않는다** (요청 0건만으로는 못 잡는 자리)', async () => {
+    const harness = directHarness();
+    const result = await invokeDirect(getObjectNodeFromCache, harness, ARGS);
+
+    expect(textOf(result)).toBe('Node not found in cache');
+    expect(harness.connections()).toBe(0);
+    expect(harness.requests).toHaveLength(0);
+  });
+
+  it('인자 검증 갈래에서도 접속 공장이 불리지 않는다', async () => {
+    const harness = directHarness();
+    const result = await invokeDirect(getObjectNodeFromCache, harness, { ...ARGS, tech_name: '' });
+
+    expect(textOf(result)).toBe('object_type, object_name, tech_name required');
+    expect(harness.connections()).toBe(0);
   });
 
   it('인자를 무엇으로 바꿔도 같은 답이다 (캐시가 없으므로 적중이 없다)', async () => {
