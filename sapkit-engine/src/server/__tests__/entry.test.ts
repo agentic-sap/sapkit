@@ -54,6 +54,7 @@ describe('셰임 계약', () => {
         'GrepObjects',
         'RuntimeAnalyzeDump',
         'RuntimeAnalyzeProfilerTrace',
+        'RuntimeCreateProfilerTraceParameters',
         'RuntimeGetDumpById',
         'RuntimeGetProfilerTraceData',
         'RuntimeListDumps',

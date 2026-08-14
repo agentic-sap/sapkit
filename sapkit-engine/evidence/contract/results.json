@@ -85,6 +85,11 @@
     "detail": "src/tools/runtime/__tests__/runtimeAnalyzeProfilerTrace.test.ts"
   },
   {
+    "tool": "RuntimeCreateProfilerTraceParameters",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeCreateProfilerTraceParameters.test.ts"
+  },
+  {
     "tool": "RuntimeGetDumpById",
     "passed": true,
     "detail": "src/tools/runtime/__tests__/runtimeGetDumpById.test.ts"
