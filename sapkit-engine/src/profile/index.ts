@@ -14,6 +14,25 @@ export {
 export {
   type ProfileResolution,
   type ProfileResolveOptions,
+  disconnectedProfile,
   resolveProfile,
   resolveProfileDetailed,
 } from './resolve';
+export {
+  type DestinationSelection,
+  type NameCheck,
+  type PlatformLookup,
+  type PlatformSubfolder,
+  type ServiceKeyAuth,
+  type ServiceKeyConfig,
+  type ServiceKeyResult,
+  type SessionEnvResult,
+  checkDestinationName,
+  listStoreNames,
+  platformStoreDirs,
+  readServiceKey,
+  resolveSessionEnv,
+  serviceKeysDir,
+  sessionEnvFileName,
+  sessionsDir,
+} from './destination';
