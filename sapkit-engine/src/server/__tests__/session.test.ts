@@ -23,6 +23,7 @@ import * as z from 'zod';
 
 import type { AdtClient } from '../../adt';
 import type { ConnectionConfig } from '../../contracts';
+import { reloadProfile } from '../../tools/runtime/reloadProfile';
 import { type ServerCore, createServerCore } from '../core';
 import { ProfileSession } from '../session';
 import * as startupModule from '../startup';
@@ -136,6 +137,8 @@ function fakeReloader(): SapTool {
 interface Harness {
   readonly client: Client;
   readonly core: ServerCore;
+  /** 코어가 stderr로 흘린 줄. 감사 줄이 정말 남는지 보는 자리다. */
+  readonly stderr: string[];
   /** 접속 공장에 넘어온 설정들. 길이가 곧 접속 시도 횟수다. */
   readonly configs: ConnectionConfig[];
   close(): Promise<void>;
@@ -153,11 +156,12 @@ async function harnessFor(
   options: { readonly tools?: SapTool[]; readonly session?: ProfileSession } = {},
 ): Promise<Harness> {
   const configs: ConnectionConfig[] = [];
+  const stderr: string[] = [];
   const core = createServerCore({
     startup,
     tools: options.tools ?? [fakeRead(), fakeWrite(), fakeRows()],
     ...(options.session ? { session: options.session } : { connectionFactory: countingFactory(configs) }),
-    stderr: () => {},
+    stderr: (line) => stderr.push(line),
   });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   const client = new Client({ name: 'session-test', version: '0.0.0' });
@@ -165,6 +169,7 @@ async function harnessFor(
   return {
     client,
     core,
+    stderr,
     configs,
     async close() {
       await client.close();
@@ -444,6 +449,53 @@ describe('재적재 훅은 지목된 이름에게만 열린다', () => {
     pointAt(cwd, 'dev1');
     const session = new ProfileSession(bootAt(cwd, home));
     expect(session.reload.length).toBe(0);
+  });
+});
+
+// ── 감사 줄 ─────────────────────────────────────────────────────────────────
+
+describe('tier가 바뀌면 서버 감사 채널에 남는다', () => {
+  it('도구 경로의 재적재가 tier 변화를 stderr에 남긴다', async () => {
+    // 도구 로거는 운영 경로에서 기본이 NOOP이다. 거기에만 적으면 런타임에
+    // tier가 바뀐 사실이 아무 데도 안 남는다 — 거부 판정이 감사 줄을 남기는
+    // 것과 같은 이유로 이 통로도 stderr를 탄다.
+    const home = tempDir();
+    const cwd = tempDir();
+    profileAt(home, 'dev1', { SAP_TIER: 'DEV' });
+    profileAt(home, 'prd1', { SAP_TIER: 'PRD' });
+    pointAt(cwd, 'dev1');
+
+    const harness = await harnessFor(bootAt(cwd, home, 'readonly'), { tools: [reloadProfile] });
+    try {
+      const bootLines = harness.stderr.length;
+      pointAt(cwd, 'prd1');
+      const outcome = await callText(harness, 'ReloadProfile');
+      expect(outcome.isError).toBe(false);
+
+      const audit = harness.stderr.slice(bootLines).filter((line) => line.startsWith('AUDIT:'));
+      expect(audit).toHaveLength(1);
+      expect(audit[0]).toContain('profile reload');
+      expect(audit[0]).toContain('DEV → PRD');
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it('바뀐 것이 없으면 감사 줄을 남기지 않는다 (소음 역검증)', async () => {
+    const home = tempDir();
+    const cwd = tempDir();
+    profileAt(home, 'dev1', { SAP_TIER: 'DEV' });
+    pointAt(cwd, 'dev1');
+
+    const harness = await harnessFor(bootAt(cwd, home, 'readonly'), { tools: [reloadProfile] });
+    try {
+      const bootLines = harness.stderr.length;
+      const outcome = await callText(harness, 'ReloadProfile');
+      expect(outcome.isError).toBe(false);
+      expect(harness.stderr.slice(bootLines).filter((l) => l.startsWith('AUDIT:'))).toHaveLength(0);
+    } finally {
+      await harness.close();
+    }
   });
 });
 

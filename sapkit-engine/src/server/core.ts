@@ -155,6 +155,7 @@ function contextFor(
   session: ProfileSession,
   logger: ToolLogger,
   allowReload: boolean,
+  stderr: (line: string) => void,
 ): ToolContext {
   return {
     getConnection: () => session.getConnection(),
@@ -174,7 +175,27 @@ function contextFor(
           )}; this tool is not one of them.`,
         );
       }
-      return session.reload();
+
+      // 재적재는 **런타임에 tier를 바꿀 수 있는 유일한 통로**다. 도구 로거는
+      // 운영 경로에서 기본이 NOOP이라 그쪽에만 남기면 아무 데도 안 남는다.
+      // 거부 판정이 감사 줄을 남기는 것과 같은 이유로(`decision.audit`) 여기도
+      // stderr에 남긴다 — 가장 안전 민감한 상태 변화가 서버 감사 채널에서
+      // 사라지지 않게.
+      const before = session.startup.profile;
+      const result = session.reload();
+      const after = session.startup.profile;
+      if (
+        before.tier !== after.tier ||
+        before.connection?.baseUrl !== after.connection?.baseUrl ||
+        result.sealed !== null
+      ) {
+        stderr(
+          `AUDIT: profile reload — tier ${before.tier} → ${after.tier} · ` +
+            `connection ${before.connection?.baseUrl ?? 'none'} → ${after.connection?.baseUrl ?? 'none'}` +
+            `${result.sealed === null ? '' : ` · sealed: ${result.sealed}`}`,
+        );
+      }
+      return result;
     },
   };
 }
@@ -196,8 +217,8 @@ export function createServerCore(options: ServerCoreOptions): ServerCore {
       options.connectionFactory ?? ((conf: ConnectionConfig) => new AdtClient(conf)),
     );
 
-  const context = contextFor(session, logger, false);
-  const reloadingContext = contextFor(session, logger, true);
+  const context = contextFor(session, logger, false, stderr);
+  const reloadingContext = contextFor(session, logger, true, stderr);
 
   const server = new McpServer({
     name: options.name ?? SERVER_NAME,
