@@ -115,12 +115,13 @@ describe('넷째 급 — 의도적 차이 등재분의 대체 기대 시험', ()
     expect(rowOf(report, 'GetClass').hasEvidence).toBe(false);
   });
 
-  it('마크다운에 대체 기대 시험 칸이 있다', () => {
+  it('마크다운 도구 표에 대체 기대 시험 칸이 있다', () => {
     const md = renderCoverageMarkdown(
       buildCoverage({ tools: ['GetSqlQuery'], substituteTests: [{ tool: 'GetSqlQuery', passed: true }] }),
     );
 
-    expect(md).toContain('대체 기대 시험');
+    // 장부 표에도 같은 낱말이 있으므로 **도구 표의 칸**임을 못박는다.
+    expect(md).toContain('| attended 실기 | 대체 기대 시험 | 증거 |');
   });
 });
 
