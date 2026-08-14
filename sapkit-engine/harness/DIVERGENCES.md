@@ -364,6 +364,60 @@
   동일하고, 구 `odata` 통로도 같은 모양이다.
 - **별건 백로그**: D9가 적은 배선 구멍(구 선택기가 `zrfc`를 안 받는다)은 그대로
   남는다. 이 판이 고친 것은 **신 엔진 쪽**이다.
+### D23 — destination 이름은 **이름이지 경로가 아니다** (구: 검사 없이 합친다)
+- **분류**: 강화
+- **구 동작(실측)**: `--mcp=<destination>`은 검사 없이
+  `path.join(serviceKeysDir, `${destination}.json`)`으로 합쳐진다
+  (`engine/node_modules/@babamba2/mcp-abap-adt-auth-stores/dist/stores/abap/AbapServiceKeyStore.js:85-86`).
+  `--env=<name>`도 `path.join(sessionsDir, normalizeEnvFileName(name))`으로
+  합쳐지고, 그 앞에 `isLikelyPath`가 **경로처럼 생긴 값을 경로로 승격**한다
+  (`engine/src/lib/config/envResolver.ts:45-48`). 어느 쪽도 `..`를 막지 않아
+  `--mcp=../../x`가 저장소 밖 파일을 읽었다.
+- **신 동작**: 두 인자 모두 값이 경로처럼 생기면(구분자 포함 · `.`/`~` 시작 ·
+  절대경로 · 드라이브 문자) **파일을 찾기 전에** 거부하고 이름 있는 진단
+  (`MCP_DESTINATION_INVALID` · `ENV_DESTINATION_INVALID`)을 남긴다. 접속은
+  만들지 않는다.
+- **근거**: 이름 하나가 저장소 밖 임의 파일로 접속을 만드는 것은 운영자가
+  고르지 않은 시스템에 붙는 것과 같은 부류다(spec §2.3 · D16·D17이 지키는 자리).
+  **D17의 「`--env=./foo.env`를 경로로 다루지 않는다」 조항은 통로를 구현한
+  뒤에도 그대로 산다** — 되돌리지 않았다.
+- **대체 기대 시험**: 프로파일 계층 `src/profile/__tests__/destination.test.ts`
+  (`checkDestinationName` 9종) + 서버 코어 `src/server/__tests__/startup.test.ts`
+  — `--env=./foo.env`가 cwd의 그 파일로 붙지 않는지 / `--mcp=../DEST1`이
+  거부되는지.
+
+### D24 — `--mcp`가 있으면 **다른 통로로 대신 붙지 않는다** (구: 프로파일을 함께 적용)
+- **분류**: 강화
+- **구 동작(실측)**: `engine/src/server/launcher.ts:227-239`이 `--mcp` 여부와
+  무관하게 `activateProfile()`을 먼저 돌려 활성 프로파일의 `SAP_*`(tier·안전
+  노브 포함)를 `process.env`에 덮어쓴다. 접속은 브로커 Variant 1이 service key로
+  만든다(`brokerFactory.ts:146-164`). 즉 **tier는 프로파일 A에서, 접속은 시스템
+  B에서** 온다.
+- **신 동작**: `--mcp`가 있으면 프로파일 해석을 아예 하지 않는다.
+  `connection: null` · `tier: 'UNKNOWN'`(fail-closed) · 안전 노브는 프로세스 env의
+  잠긴 기본값. `MCP_ENV_PATH`·활성 프로파일·cwd `.env` 어느 쪽으로도 대신 붙지
+  않는다.
+- **근거**: 한 시스템의 등급으로 다른 시스템에 대한 write 판정을 내리는 것은
+  안전 바닥선 문제다. 구 파서가 이 폴백을 잠근 것과 같은 방향이며
+  (`ArgumentsParser.ts:170`), D17이 이미 그 방향을 명문화했다.
+- **대체 기대 시험**: 서버 코어 — `--mcp` + `MCP_ENV_PATH` / `--mcp` + 활성
+  프로파일 / `--mcp` + cwd `.env` 각각에서 접속이 생기지 않는지.
+- **비고**: 이 판은 service key로 **설정 조립까지만** 짓는다(토큰 취득 = 실접속 =
+  범위 밖). 조립 성공은 `MCP_DESTINATION_TOKEN_PENDING` 진단으로 밝힌다 —
+  D15가 말하는 "접속된 척하지 않는다"를 그대로 지킨다.
+
+### D25 — `AUTH_BROKER_PATH`를 **플랫폼 구분자 하나로만** 쪼갠다 (구: `:`와 `;` 양쪽)
+- **분류**: 수리
+- **구 동작(실측)**: `engine/src/lib/stores/platformPaths.ts:66` — `split(/[:;]/)`.
+  주석은 "Unix는 콜론, Windows는 세미콜론"이라고 적어 두었지만 실제로는 양쪽을
+  모두 쪼개므로, Windows의 `C:\keys`가 `C`와 `\keys` **두 경로**로 부서진다.
+  문서가 약속하는 대로 동작하지 않는 노브다.
+- **신 동작**: `win32`는 `;`, 그 외는 `:`로만 쪼갠다.
+- **근거**: 문서화된 노브가 실제로 다르게 동작하는 것은 거짓 성공 계열이다
+  (spec §2.4 분류). 무엇도 열지 않으므로 바닥선과 무관하다.
+- **대체 기대 시험**: 프로파일 계층 — 드라이브 문자를 가진 win32
+  `AUTH_BROKER_PATH`가 쪼개지지 않는지 / posix 콜론 목록이 그대로 쪼개지는지
+  (`src/profile/__tests__/destination.test.ts`).
 
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 

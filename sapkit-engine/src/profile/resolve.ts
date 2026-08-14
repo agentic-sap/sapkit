@@ -99,7 +99,7 @@ export function resolveProfileDetailed(
     diagnostics,
   );
   if (candidate.envPath === null) {
-    return { profile: disconnected(diagnostics, candidate.alias), envVars: {} };
+    return { profile: disconnectedProfile(diagnostics, candidate.alias), envVars: {} };
   }
 
   const envVars = readEnvFile(candidate.envPath);
@@ -107,7 +107,7 @@ export function resolveProfileDetailed(
     diagnostics.push(
       `ENV_UNREADABLE: ${candidate.envPath} could not be read — starting with no connection.`,
     );
-    return { profile: disconnected(diagnostics, candidate.alias), envVars: {} };
+    return { profile: disconnectedProfile(diagnostics, candidate.alias), envVars: {} };
   }
 
   const connection = buildConnection(envVars, candidate.envPath, diagnostics);
@@ -328,8 +328,18 @@ function readSapVersion(envVars: Readonly<Record<string, string>>): string | nul
   return value === '' ? null : value;
 }
 
-/** The inspection-only shell: no connection, no tier, and a reason on record. */
-function disconnected(diagnostics: readonly string[], alias: string | null): ResolvedProfile {
+/**
+ * The inspection-only shell: no connection, no tier, and a reason on record.
+ *
+ * Exported because the startup layer needs the same shell for channels this
+ * module never sees — a `--mcp=<destination>` run resolves no env file at all,
+ * and must not be handed a "no profile found here" diagnosis that describes a
+ * lookup it never performed.
+ */
+export function disconnectedProfile(
+  diagnostics: readonly string[],
+  alias: string | null = null,
+): ResolvedProfile {
   return {
     connection: null,
     tier: 'UNKNOWN',
