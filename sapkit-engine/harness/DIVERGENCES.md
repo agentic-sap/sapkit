@@ -1785,3 +1785,29 @@ D번호를 주지 않는 이유가 그것이다. 그래도 장부에 두는 이�
 - **기계 장부 반영**: **못 했다**(이 과제는 `harness/replay/**` 무접촉). ECC 프로파일의
   채록분이 있다면 도구 응답이 달라지므로 **기계 장부에 와야 한다.** 오케스트레이터가
   묶음 병합 뒤에 옮길 것.
+
+### D111 — `DeleteLocal*` 넷이 활성화 **거짓 성공**을 성공으로 접지 않는다
+- **분류**: 수리(구의 거짓 성공을 고침) — D41·D93·D103·D105의 같은 계열
+- **구 동작(실측)**: `DeleteLocalDefinitions`·`DeleteLocalMacros`·
+  `DeleteLocalTestClass`·`DeleteLocalTypes` 넷은 `activate_on_delete: true`에서
+  `await client.getClass().activate({ className })` 한 줄을 부르고 **반환값을 버린다**
+  (`engine/src/handlers/class/high/handleDeleteLocalTestClass.ts:92-94` 외 3곳).
+  벤더 `AdtClass.activate()`는 **HTTP 4xx에서만** 던지고
+  (`…/dist/core/class/AdtClass.js`), 그 아래
+  `activationUtils.js`의 `activateObjectInSession`은 응답을 그대로 돌려줄 뿐이다.
+  **SAP은 활성화 실패도 HTTP 200 + 본문의 `<chkl:msg type="E">`로 답하므로**,
+  활성화가 실패해도 응답은 `activated: true`가 된다.
+- **신 동작**: 요청 바이트는 구 그대로 두고(같은 주소·헤더·전문 —
+  `src/tools/write/internal/classIncludeClear.ts`의 `activateParentClass`), 응답 본문을
+  `parseActivationMessages`로 갈라 `E`/`A`/`X`가 있으면 실패로 되돌린다. 인클루드는
+  이미 비워졌으므로 문구가 그 사실을 함께 말한다("cleared on SAP as an inactive
+  version; the active version is unchanged").
+- **판정 근거**: 이 레포의 CLAS 거짓 성공 실증 이력과 `CLAUDE.md` 안전 규칙
+  ("write 성공 보고를 그대로 믿지 않는다"). **같은 엔진 안에서 `UpdateLocalTestClass`
+  (D41)와 `UpdateLocalTypes`(D2)가 이미 같은 자리를 고쳤으므로**, 여기서 구를
+  재현하면 같은 실패에 두 도구가 다르게 답하게 된다.
+- **대체 기대 시험**: 넷의 시험 파일이 공유하는
+  `sapkit-engine/src/tools/write/__tests__/localIncludeClearSupport.ts`의
+  「D111」 두 건(오류가 있으면 실패 · **경고만 있으면 성공** — 과수리 역검증).
+- **기계 장부 반영**: **못 했다**(`harness/replay/**` 무접촉). 도구 응답이
+  `isError`째로 달라지므로 **기계 장부에 와야 한다.**
