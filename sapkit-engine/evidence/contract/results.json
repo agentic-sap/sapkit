@@ -10,16 +10,6 @@
     "detail": "src/tools/read/__tests__/checkSyntax.test.ts"
   },
   {
-    "tool": "CreateBehaviorDefinition",
-    "passed": true,
-    "detail": "src/tools/write/__tests__/createBehaviorDefinition.test.ts"
-  },
-  {
-    "tool": "CreateBehaviorImplementation",
-    "passed": true,
-    "detail": "src/tools/write/__tests__/createBehaviorImplementation.test.ts"
-  },
-  {
     "tool": "CreateClass",
     "passed": true,
     "detail": "src/tools/write/__tests__/createClass.test.ts"
@@ -70,6 +60,11 @@
     "detail": "src/tools/write/__tests__/createTable.test.ts"
   },
   {
+    "tool": "CreateTransport",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createTransport.test.ts"
+  },
+  {
     "tool": "CreateView",
     "passed": true,
     "detail": "src/tools/write/__tests__/createView.test.ts"
@@ -93,16 +88,6 @@
     "tool": "GetAbapSystemSymbols",
     "passed": true,
     "detail": "src/tools/read/__tests__/getAbapSystemSymbols.test.ts"
-  },
-  {
-    "tool": "GetBehaviorDefinition",
-    "passed": true,
-    "detail": "src/tools/read/__tests__/getBehaviorDefinition.test.ts"
-  },
-  {
-    "tool": "GetBehaviorImplementation",
-    "passed": true,
-    "detail": "src/tools/read/__tests__/getBehaviorImplementation.test.ts"
   },
   {
     "tool": "GetClass",
@@ -210,6 +195,16 @@
     "detail": "src/tools/read/__tests__/getObjectsByType.test.ts"
   },
   {
+    "tool": "GetPackage",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getPackage.test.ts"
+  },
+  {
+    "tool": "GetPackageContents",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getPackageContents.test.ts"
+  },
+  {
     "tool": "GetPackageTree",
     "passed": true,
     "detail": "src/tools/read/__tests__/getPackageTree.test.ts"
@@ -265,6 +260,11 @@
     "detail": "src/tools/read/__tests__/getTransaction.test.ts"
   },
   {
+    "tool": "GetTransport",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getTransport.test.ts"
+  },
+  {
     "tool": "GetTypeInfo",
     "passed": true,
     "detail": "src/tools/read/__tests__/getTypeInfo.test.ts"
@@ -290,14 +290,9 @@
     "detail": "src/tools/read/__tests__/grepPackages.test.ts"
   },
   {
-    "tool": "ReadBehaviorDefinition",
+    "tool": "ListTransports",
     "passed": true,
-    "detail": "src/tools/read/__tests__/readBehaviorDefinition.test.ts"
-  },
-  {
-    "tool": "ReadBehaviorImplementation",
-    "passed": true,
-    "detail": "src/tools/read/__tests__/readBehaviorImplementation.test.ts"
+    "detail": "src/tools/read/__tests__/listTransports.test.ts"
   },
   {
     "tool": "ReadClass",
@@ -348,6 +343,11 @@
     "tool": "ReadView",
     "passed": true,
     "detail": "src/tools/read/__tests__/readView.test.ts"
+  },
+  {
+    "tool": "ReleaseTransport",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/releaseTransport.test.ts"
   },
   {
     "tool": "ReloadProfile",
@@ -408,16 +408,6 @@
     "tool": "SearchObject",
     "passed": true,
     "detail": "src/tools/read/__tests__/searchObject.test.ts"
-  },
-  {
-    "tool": "UpdateBehaviorDefinition",
-    "passed": true,
-    "detail": "src/tools/write/__tests__/updateBehaviorDefinition.test.ts"
-  },
-  {
-    "tool": "UpdateBehaviorImplementation",
-    "passed": true,
-    "detail": "src/tools/write/__tests__/updateBehaviorImplementation.test.ts"
   },
   {
     "tool": "UpdateClass",
