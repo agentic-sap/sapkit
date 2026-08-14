@@ -190,6 +190,7 @@ import { readDomain } from './read/readDomain';
 // 묶음: screen
 
 // 묶음: service-definition
+import { getServiceDefinition } from './read/getServiceDefinition';
 import { readServiceDefinition } from './read/readServiceDefinition';
 
 // 묶음: behavior-implementation
@@ -363,6 +364,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
 
   // 묶음: service-definition — 서비스 정의 (순서 24)
   readServiceDefinition,
+  getServiceDefinition,
 
   // 묶음: behavior-implementation — 동작 구현 (BIMP) (순서 25)
 
