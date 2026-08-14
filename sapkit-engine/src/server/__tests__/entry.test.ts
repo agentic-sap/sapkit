@@ -75,6 +75,7 @@ describe('셰임 계약', () => {
         'GetTransaction',
         'GetTransport',
         'GetTypeInfo',
+        'GetVirtualFoldersLow',
         'GetWhereUsed',
         'GrepObjects',
         'GrepPackages',

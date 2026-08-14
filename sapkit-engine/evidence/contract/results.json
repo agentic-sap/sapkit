@@ -400,6 +400,11 @@
     "detail": "src/tools/read/__tests__/getView.test.ts"
   },
   {
+    "tool": "GetVirtualFoldersLow",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getVirtualFoldersLow.test.ts"
+  },
+  {
     "tool": "GetWhereUsed",
     "passed": true,
     "detail": "src/tools/read/__tests__/getWhereUsed.test.ts"
