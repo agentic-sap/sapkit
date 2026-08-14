@@ -46,6 +46,46 @@
  *   그대로**이고, 캐시는 그것을 읽는 `GetObjectNodeFromCache`에서만 보인다. 그
  *   도구는 등록점에 없다(대장 「안 지음」) — 그것을 짓는 마일스톤이 판정 자리다.
  *
+ * ### D41~D105 중 옮기지 않은 것 — **HTTP 와이어에만 남는 차이**
+ *
+ * 픽스처가 담는 것은 **도구 호출과 그 응답뿐이다**(`harness/recorder/types.ts`의
+ * `SequenceStep` — `tool`·`args`·`response`·`isError`). HTTP 요청의 주소·본문·
+ * 개수는 담기지 않는다. 그래서 SAP이 다르게 답하지 않는 한 재생 대조는 그 차이를
+ * **볼 수 없고**, 등재해도 발동할 자리가 없다. 더 나쁜 것은 그 등재가
+ * **`applies`를 도구 이름 전체로 넓힐 수밖에 없다**는 것이다 — 채록 쪽에 그
+ * 자리를 가리키는 표식이 없기 때문이다. 그러면 그 도구의 **모든** 차이가 등재로
+ * 삼켜진다(머리주석 「언제 발동하는가」가 금하는 모양).
+ *
+ * - **D52** — `CreateFunctionGroup`의 404 재시도. 사람용 장부가 스스로 "재시도가
+ *   성공하든 실패하든 도구 응답은 한 글자도 달라지지 않는다"고 적었다. 갈리는
+ *   것은 왕복 수와 5초의 정지뿐이다.
+ * - **D62·D71·D82·D98** — 생성 페이로드·질의 인자의 `masterSystem`·`responsible`·
+ *   `user`/`owner`. 해석된 프로파일에는 `SAP_USERNAME`이 반드시 있으므로 구가
+ *   쓰던 셋째 갈래는 실사용에서 걸리지 않는다(장부 D62·D82 본문의 근거). 값이
+ *   실제로 갈리면 목록·객체 내용이 달라지는데, **그때 신이 옳다는 증명이 없으므로
+ *   결함으로 잡히는 쪽이 옳다.**
+ * - **D72** — `UpdateInterface`의 UNLOCK URI 대소문자. 해제의 실효 열쇠는 URI가
+ *   아니라 `lockHandle`이고(장부 본문), 양쪽 다 해제에 성공하므로 응답이 같다.
+ * - **D76** — 인핸스먼트 GET의 `{"Accept":…}` 본문. ADT가 읽지도 않는 자리라
+ *   응답이 갈리지 않는다. 갈린다면 그것은 새 사실이고 결함으로 드러나야 한다.
+ * - **D91** — 클라우드(JWT) 거절 갈래. **인증 계층**이고 JWT 채록분 자체가 없다
+ *   (D21·D22와 같은 자리). 지목자도 「안 했다」로 판단했다.
+ * - **D92** — `UpdateScreen`의 잠금 핸들 부재 갈래. 채록 쪽에 그 자리를 가리키는
+ *   표식이 없어 `applies`가 `UpdateScreen` 전체를 덮게 되고, 그러면 **D93과
+ *   겹쳐** 배열 순서가 판정을 정한다(규칙 ① 위반). 지금은 그 갈래가 나면
+ *   D93의 대체 기대 시험이 `allowlisted-fail`로 떨어뜨린다 — 활성화 실패를
+ *   말하지 않는 오류이기 때문이다. **삼키지 않고 사람에게 올리는 쪽**이다.
+ * - **D94·D95** — 발행 스키마의 `minItems`·`oneOf` 유실. 발행 선언이 채록본과
+ *   글자 일치하므로 재생 대조에 나타날 차이가 아니다. 지목자와 같은 판단이다.
+ * - **D101** — BDEF 잠금 요청의 `asx:abap` 본문. 그 본문이 잠금 성패를 가르는지가
+ *   **이 판에서 실측되지 않았다**(장부 본문). 가른다면 도구가 실패하고, 그것은
+ *   등재로 덮을 것이 아니라 attended에서 확인할 자리다.
+ * - **D104** — `CreateMetadataExtension`의 중복 UNLOCK. 사람용 장부가 스스로
+ *   "결과에는 안 보이고 와이어에만 남는 요청"이라고 적었다.
+ * - **결번(D42~D45·D47~D50·D53~D55·D57~D60·D63~D65·D67~D70·D74·D75·D78~D80·
+ *   D83~D90·D96·D97·D102)** — 병렬 제작의 번호 예약 구간을 다 쓰지 않은 자리다.
+ *   차이가 아니므로 판정 대상도 아니다.
+ *
  * ## 여기 실린 것
  *
  *   - D1·D2·D3 — spec §2.4의 M1 사전 등재 3건 (도구 단위)
@@ -56,6 +96,28 @@
  *   - **D35·D36·D37** — 도구 응답 본문·그릇의 차이(enrich 보강 · `type:'json'`
  *     블록 · 인터페이스 보강 축소).
  *   - **D38·D39·D40** — `ReloadProfile` 응답의 세 갈래.
+ *   - **D41·D51·D56·D66·D73·D93·D99·D100·D103·D105** — **활성화 거짓 성공 계열**.
+ *     구가 `activated: true`(또는 "…activated successfully")로 답하던 자리에서
+ *     신이 실패로 되돌리므로 `isError`째 갈린다.
+ *   - **D46** — `GetProgFullCode`가 빈손이던 인클루드 본문을 채운다.
+ *   - **D61** — 구 ECC OData 브리지 갈래(`path: 'ecc-odata-rfc'`)를 신은 거절한다.
+ *     축소분이라 **이연**(`check: null`)이다.
+ *   - **D77** — 인핸스먼트 두 도구의 `type:'json'` 그릇 (D36의 같은 규칙).
+ *   - **D81** — `CreateTransport` 성공 응답의 이송번호.
+ *
+ * ### 활성화 거짓 성공 계열을 왜 열로 갈랐는가
+ *
+ * 하나로 뭉치면 `applies`가 "쓰기 도구인데 `activated:true`를 답한 단계 전부"가
+ * 되어, **등재된 적 없는 도구까지 덮는다**(예: 같은 결함을 갖고 있었으나 장부에
+ * 오르지 않은 채 고쳐진 `UpdateClass`·M1 쓰기 4종 — 장부 D41·D56의 「비고」).
+ * 반대로 D 번호보다 잘게 쪼개면(도구마다 새 id) 기계 장부가 사람용 장부의
+ * **투영이 아니게 된다** — `id`의 계약은 "장부의 항목 번호"다.
+ *
+ * 그래서 **사람용 장부의 D 번호 하나 = 기계 항목 하나**로 두되, 각 항목의
+ * `applies`가 **그 항목 본문이 이름 붙인 도구 집합만** 든다. 집합끼리 겹치지
+ * 않으므로 배열 순서가 판정을 정하지 않는다. 집합에서 실제로 뺀 것도 있다 —
+ * `CreateTable`(D56)은 활성화를 부르지 않고, `WriteTextElementsBulk`(D93)는
+ * TPOOL RFC 한 번으로 끝난다.
  *
  * ## 새로 온 것들이 지키는 두 가지
  *
@@ -362,6 +424,186 @@ function reloadSuccessVerdict(recorded: SequenceStep, actual: SubstituteInput['a
   return { ok: true, detail: `구가 싣던 키는 그대로이고, 갈린 것은 ${RELOAD_REGISTERED_KEYS.join('·')}뿐이다.` };
 }
 
+// ── D41~D105 — 오브젝트 묶음 13개가 쌓아 둔 차이 ─────────────────────────────
+//
+// 묶음 과제들은 `harness/replay/**`가 무접촉으로 걸려 있어(같은 파일에서 매번
+// 충돌한다) 사람용 장부에만 적었다. 여기 아래가 그 반영분이다.
+
+/**
+ * 응답 봉투의 `text` 블록 중 **JSON으로 읽히는 것만** 모은다.
+ *
+ * `textBodiesAsJson`은 하나라도 못 읽으면 null을 준다 — 그릇 바꿈 판정(D35·D36)이
+ * 그 엄격함을 근거로 쓰기 때문이다. 여기는 반대로 평문 블록이 섞여도 나머지를
+ * 본다. 채록 쪽 표식을 **찾는** 자리이지 동등성을 재는 자리가 아니다.
+ */
+function jsonTextBodies(response: JsonValue): JsonValue[] {
+  const out: JsonValue[] = [];
+  for (const block of blocksOf(response)) {
+    if (block['type'] !== 'text') continue;
+    const text = block['text'];
+    if (typeof text !== 'string') continue;
+    try {
+      out.push(JSON.parse(text) as JsonValue);
+    } catch {
+      // 평문 응답 — 이 자리의 판정 대상이 아니다.
+    }
+  }
+  return out;
+}
+
+/** JSON 안을 훑어 조건에 맞는 마디가 하나라도 있는가. */
+function someIn(value: JsonValue, predicate: (node: JsonValue) => boolean): boolean {
+  if (predicate(value)) return true;
+  if (Array.isArray(value)) return value.some((item) => someIn(item, predicate));
+  if (isPlainObject(value)) return Object.values(value).some((item) => someIn(item, predicate));
+  return false;
+}
+
+/**
+ * 구 응답이 **"활성화까지 마쳤다"고 주장하는가** — 활성화 거짓 성공 계열의
+ * 채록 쪽 표식이다.
+ *
+ * 구 핸들러는 두 모양 중 하나로 그것을 말한다: ⑴ `activated: true` 키
+ * (뷰·표·구조체·함수모듈·테스트클래스·화면·GUI상태·서비스바인딩), ⑵ 문구의
+ * "…created/updated and **activated successfully**" (BDEF·DDLX — 그쪽 구
+ * 핸들러에는 `activated` 키가 없다. `handleCreateBehaviorDefinition.ts:175-181` ·
+ * `handleUpdateMetadataExtension.ts:133-137`).
+ *
+ * **`activate=false`로 부른 단계는 여기 걸리지 않는다** — 그 단계의 차이는
+ * 등재 밖이고 그대로 대조된다. 등재가 도구를 통째로 덮지 않는 자리가 여기다.
+ */
+function oldClaimsActivated(response: JsonValue): boolean {
+  return jsonTextBodies(response).some((body) =>
+    someIn(
+      body,
+      (node) =>
+        (isPlainObject(node) && node['activated'] === true) ||
+        (typeof node === 'string' && /activated successfully/.test(node)),
+    ),
+  );
+}
+
+/**
+ * 신 엔진이 활성화 실패를 되돌릴 때 짓는 문구.
+ *
+ * `src/tools/write/shared.ts`의 `parseActivationMessages`·`activationErrors`를
+ * 거친 자리 전부가 같은 모양을 쓴다(`updateView.ts:140` 외 열여섯).
+ */
+const NEW_ACTIVATION_FAILURE = /Activation failed:[^\n]*was not activated/;
+
+/**
+ * 활성화 거짓 성공 계열의 공용 대체 기대 시험.
+ *
+ * **면제가 아니라 재대조다.** 구가 "활성화됨"이라 답한 자리에서 신이 오류로
+ * 답했다는 것만으로는 부족하다 — 잠금 충돌·403·구문검사 실패도 같은 모양이
+ * 된다. 그래서 신 쪽 문구가 **활성화 실패를 이름으로 말하는지**까지 본다.
+ * 다른 이유로 실패했다면 그것은 등재된 차이가 아니라 결함 후보다.
+ */
+const activationVerdict: SubstituteCheck = ({ actual }) => {
+  if (!actual.isError) {
+    return { ok: false, detail: '신 엔진도 성공으로 답했다 — 활성화 거짓 성공을 되돌리는 갈래가 아니다.' };
+  }
+  if (!NEW_ACTIVATION_FAILURE.test(collectText(actual.response))) {
+    return {
+      ok: false,
+      detail: '신 엔진이 오류로 답했으나 활성화 실패를 말하지 않는다 — 다른 이유로 막힌 것이고 등재된 차이가 아니다.',
+    };
+  }
+  return { ok: true, detail: '구가 "활성화됨"이라 답한 자리에서 신 엔진이 활성화 실패를 이름으로 되돌렸다.' };
+};
+
+/**
+ * 활성화 거짓 성공 계열의 `applies` 공장.
+ *
+ * 도구 이름 **집합**을 명시로 받는다 — 사람용 장부의 그 항목이 본문에 적은
+ * 집합 그대로다. 집합끼리 겹치지 않으므로 배열 순서가 판정을 정하지 않는다
+ * (머리주석 ①).
+ */
+const claimedActivation =
+  (tools: ReadonlySet<string>) =>
+  (step: SequenceStep): boolean =>
+    tools.has(step.tool) && !step.isError && oldClaimsActivated(step.response);
+
+/** D41 — 지역 테스트클래스. */
+const D41_TOOLS: ReadonlySet<string> = new Set(['UpdateLocalTestClass']);
+/** D51 — 함수모듈. */
+const D51_TOOLS: ReadonlySet<string> = new Set(['UpdateFunctionModule']);
+/**
+ * D56 — 표·구조체.
+ *
+ * 장부 본문의 대상은 넷이지만 **`CreateTable`은 뺐다** — 그 도구는 활성화를
+ * 부르지 않는다(`sapkit-engine/src/tools/write/createTable.ts` 머리주석: "이
+ * 도구는 활성화를 부르지 않으므로 D56의 활성화 조항이 직접 닿지는 않는다").
+ * 넣으면 활성화와 무관한 차이까지 이 등재가 덮는다.
+ */
+const D56_TOOLS: ReadonlySet<string> = new Set(['UpdateTable', 'CreateStructure', 'UpdateStructure']);
+/** D66 — 뷰. */
+const D66_TOOLS: ReadonlySet<string> = new Set(['UpdateView']);
+/** D73 — 인터페이스. */
+const D73_TOOLS: ReadonlySet<string> = new Set(['UpdateInterface']);
+/** D93 — 부모 프로그램 활성화를 타는 쓰기들(`src/tools/write/internal/programScoped.ts`). */
+const D93_TOOLS: ReadonlySet<string> = new Set([
+  'CreateTextElement',
+  'UpdateTextElement',
+  'CreateScreen',
+  'UpdateScreen',
+  'CreateGuiStatus',
+  'UpdateGuiStatus',
+  'PatchGuiStatus',
+]);
+/** D99 — BDEF 생성·수정. */
+const D99_TOOLS: ReadonlySet<string> = new Set(['CreateBehaviorDefinition', 'UpdateBehaviorDefinition']);
+/** D100 — 행위 구현 수정. */
+const D100_TOOLS: ReadonlySet<string> = new Set(['UpdateBehaviorImplementation']);
+/** D103 — 메타데이터 확장(DDLX) 쓰기 둘. */
+const D103_TOOLS: ReadonlySet<string> = new Set(['CreateMetadataExtension', 'UpdateMetadataExtension']);
+/** D105 — 서비스 바인딩 생성. */
+const D105_TOOLS: ReadonlySet<string> = new Set(['CreateServiceBinding']);
+
+/** D77 — 구가 `type:'json'`으로 싣던 인핸스먼트 도구 둘. `GetEnhancements`는 구도 text였다. */
+const ENHANCEMENT_JSON_TOOLS: ReadonlySet<string> = new Set(['GetEnhancementSpot', 'GetEnhancementImpl']);
+
+/** D81 — 구가 이송번호를 잃었다는 자국. 그 문구가 곧 이 차이의 채록 쪽 표식이다. */
+const OLD_TRANSPORT_UNKNOWN = /Transport request unknown created successfully/;
+
+/** D61 — 구 ECC OData 브리지가 답한 자국(`path: 'ecc-odata-rfc'`). 네 핸들러가 전부 이 키를 싣는다. */
+const D61_TOOLS: ReadonlySet<string> = new Set(['GetDataElement', 'GetDomain', 'CreateDataElement', 'CreateDomain']);
+
+function usedOldEccBridge(response: JsonValue): boolean {
+  return jsonTextBodies(response).some((body) =>
+    someIn(body, (node) => isPlainObject(node) && node['path'] === 'ecc-odata-rfc'),
+  );
+}
+
+/** D46 — `GetProgFullCode` 성공 본문 하나. 그 모양이 아니면 null. */
+function fullCodeBody(
+  response: JsonValue,
+): { root: { [key: string]: JsonValue }; objects: { [key: string]: JsonValue }[] } | null {
+  const bodies = jsonTextBodies(response);
+  const root = bodies.length === 1 ? bodies[0] : undefined;
+  if (root === undefined || !isPlainObject(root)) return null;
+  const list = root['code_objects'];
+  if (!Array.isArray(list)) return null;
+  const objects = list.filter(isPlainObject);
+  if (objects.length !== list.length) return null;
+  return { root, objects };
+}
+
+/** 코드 객체 하나를 가리키는 열쇠 — 종류와 이름의 짝. */
+function codeObjectKey(object: { [key: string]: JsonValue }): string {
+  return `${String(object['OBJECT_TYPE'])} ${String(object['OBJECT_NAME'])}`;
+}
+
+/** 목록에서 파생되는 두 키를 뺀 나머지 — 여기가 달라지면 등재된 차이가 아니다. */
+function fullCodeHead(root: { [key: string]: JsonValue }): JsonValue {
+  const rest: { [key: string]: JsonValue } = {};
+  for (const [name, value] of Object.entries(root)) {
+    if (name === 'code_objects' || name === 'total_code_objects') continue;
+    rest[name] = value;
+  }
+  return rest;
+}
+
 /**
  * M1 기본 장부.
  *
@@ -642,6 +884,326 @@ export const M1_DIVERGENCES: readonly DivergenceEntry[] = [
     resolvesIn: null,
     applies: (step) => step.tool === 'ReloadProfile' && !step.isError && !oldSaysRestartRequired(step.response),
     check: ({ recorded, actual }) => reloadSuccessVerdict(recorded, actual),
+  },
+
+  // ── D41~D105 (오브젝트 묶음 13개의 반영분) ─────────────────────────────────
+
+  {
+    id: 'D41',
+    title: 'UpdateLocalTestClass — 활성화 실패를 성공으로 접지 않는다',
+    tool: 'UpdateLocalTestClass',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d41 · sapkit-engine/src/tools/write/updateLocalTestClass.ts · ' +
+      'engine/src/handlers/class/high/handleUpdateLocalTestClass.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/updateLocalTestClass.test.ts — 「D41 — 활성화 실패를 성공으로 접지 않는다」 5건',
+    resolvesIn: null,
+    applies: claimedActivation(D41_TOOLS),
+    check: activationVerdict,
+  },
+  {
+    id: 'D46',
+    title: 'GetProgFullCode — 인클루드 본문을 실제로 꺼낸다 (구: `data` 키 오타로 빈손)',
+    tool: 'GetProgFullCode',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d46 · sapkit-engine/src/tools/read/getProgFullCode.ts · ' +
+      'engine/src/handlers/program/readonly/handleGetProgFullCode.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/read/__tests__/getProgFullCode.test.ts — 「중첩 인클루드까지 내려간다」·「함수그룹의 인클루드에도 코드가 실린다」',
+    resolvesIn: null,
+    // 성공 응답 중 `code_objects`를 실은 것만. 오류 단계·평문 갈래는 등재 밖이다.
+    applies: (step) => step.tool === 'GetProgFullCode' && !step.isError && fullCodeBody(step.response) !== null,
+    // 등재된 차이는 둘뿐이다 — ⑴ `code: null`이 문자열로 채워지는 것,
+    // ⑵ 구가 못 찾던 중첩 인클루드가 **느는** 것. 구가 싣던 값이 달라지거나
+    // 항목이 빠지면 등재가 덮어 주지 않는다.
+    check: ({ recorded, actual }) => {
+      if (actual.isError) return { ok: false, detail: '신 엔진이 전량 코드 조회를 오류로 답했다 — 이 등재의 갈래가 아니다.' };
+      const before = fullCodeBody(recorded.response);
+      const after = fullCodeBody(actual.response);
+      if (before === null || after === null) {
+        return { ok: false, detail: '양쪽 응답을 code_objects를 실은 JSON 본문으로 읽지 못했다.' };
+      }
+
+      const headDelta = jsonDelta(fullCodeHead(before.root), fullCodeHead(after.root));
+      if (headDelta.length > 0) {
+        return { ok: false, detail: `목록 밖의 값이 달라졌다 — ${showDelta(headDelta)}. 등재된 차이가 아니다.` };
+      }
+
+      const fresh = new Map(after.objects.map((object) => [codeObjectKey(object), object]));
+      const filled: string[] = [];
+      for (const object of before.objects) {
+        const key = codeObjectKey(object);
+        const now = fresh.get(key);
+        if (now === undefined) {
+          return { ok: false, detail: `구가 싣던 코드 객체가 빠졌다 — ${key}. 등재된 차이가 아니다.` };
+        }
+        const wasEmpty = object['code'] === null;
+        if (wasEmpty && typeof now['code'] !== 'string') {
+          return { ok: false, detail: `${key}의 code가 여전히 비어 있다 — 등재는 그 수리를 요구한다.` };
+        }
+        const delta = jsonDelta(object as JsonValue, now as JsonValue).filter(
+          (entry) => !(wasEmpty && entry.key === 'code'),
+        );
+        if (delta.length > 0) {
+          return { ok: false, detail: `구가 싣던 값이 달라졌다 — ${key} · ${showDelta(delta)}. 등재된 차이가 아니다.` };
+        }
+        if (wasEmpty) filled.push(key);
+      }
+
+      const known = new Set(before.objects.map(codeObjectKey));
+      const added = after.objects.map(codeObjectKey).filter((key) => !known.has(key));
+      if (filled.length === 0 && added.length === 0) {
+        return { ok: false, detail: '채운 code도 늘어난 인클루드도 없다 — 이 단계에서는 D46이 발동할 차이가 없었다.' };
+      }
+      return {
+        ok: true,
+        detail: `빈손이던 code ${filled.length}건이 채워졌고 구가 못 찾던 인클루드 ${added.length}건이 붙었다.`,
+      };
+    },
+  },
+  {
+    id: 'D51',
+    title: 'UpdateFunctionModule — 활성화 응답을 읽는다 (구: 버린다)',
+    tool: 'UpdateFunctionModule',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d51 · sapkit-engine/src/tools/write/updateFunctionModule.ts · ' +
+      'engine/src/handlers/function/high/handleUpdateFunctionModule.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/updateFunctionModule.test.ts — ' +
+      '「활성화가 200에 오류를 담아 와도 성공으로 접지 않는다 (D51)」',
+    resolvesIn: null,
+    applies: claimedActivation(D51_TOOLS),
+    check: activationVerdict,
+  },
+  {
+    id: 'D56',
+    title: '표·구조체 쓰기 — 활성화 실패를 성공으로 답하지 않는다',
+    // 도구 셋에 걸린다. `tool`은 한 이름만 담으므로 null로 두고 `applies`가
+    // 그 집합을 든다 (D36과 같은 모양).
+    tool: null,
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d56 · sapkit-engine/src/tools/write/shared.ts · ' +
+      'engine/src/handlers/table/high/handleUpdateTable.ts · engine/src/handlers/structure/high/handleUpdateStructure.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/updateTable.test.ts · ' +
+      'sapkit-engine/src/tools/write/__tests__/updateStructure.test.ts · ' +
+      'sapkit-engine/src/tools/write/__tests__/createStructure.test.ts',
+    resolvesIn: null,
+    applies: claimedActivation(D56_TOOLS),
+    check: activationVerdict,
+  },
+  {
+    id: 'D61',
+    title: '데이터 엘리먼트·도메인의 ECC OData 우회로가 없다 — 접속 전에 거절한다',
+    tool: null,
+    classification: '축소',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d61 · sapkit-engine/src/tools/read/internal/dataElementDomainRead.ts · ' +
+      'sapkit-engine/src/tools/write/dataElementDomainCreate.ts · ' +
+      'engine/src/handlers/data_element/high/handleGetDataElement.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/read/__tests__/getDataElement.test.ts · ' +
+      'sapkit-engine/src/tools/read/__tests__/getDomain.test.ts · ' +
+      'sapkit-engine/src/tools/write/__tests__/createDataElement.test.ts · ' +
+      'sapkit-engine/src/tools/write/__tests__/createDomain.test.ts',
+    resolvesIn: '`src/rfc`에 DDIC FunctionImport 4종을 여는 마일스톤',
+    applies: (step) => D61_TOOLS.has(step.tool) && !step.isError && usedOldEccBridge(step.response),
+    // **이연**이다(D37과 같은 모양). 축소분이 옳다는 것을 재생이 증명할 수는
+    // 없다 — 덜 채워진 쪽이 옳다는 말이 성립하지 않는다. 신 거절 문구가
+    // 빠진 브리지 이름과 `divergence D61`을 지목하는지는 위 계약 시험이 본다.
+    check: null,
+  },
+  {
+    id: 'D66',
+    title: 'UpdateView — 활성화 거짓 성공을 성공으로 접지 않는다',
+    tool: 'UpdateView',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d66 · sapkit-engine/src/tools/write/updateView.ts · ' +
+      'engine/src/handlers/view/high/handleUpdateView.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/updateView.test.ts — ' +
+      '「D66 — 200에 실려 온 활성화 오류를 성공으로 접지 않는다」·「경고만 있는 활성화는 성공이고 문구가 그대로 실린다」',
+    resolvesIn: null,
+    applies: claimedActivation(D66_TOOLS),
+    check: activationVerdict,
+  },
+  {
+    id: 'D73',
+    title: 'UpdateInterface — 활성화 실패를 성공으로 접지 않는다',
+    tool: 'UpdateInterface',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d73 · sapkit-engine/src/tools/write/updateInterface.ts · ' +
+      'engine/src/handlers/interface/high/handleUpdateInterface.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/updateInterface.test.ts — ' +
+      '「활성화가 E를 담아 200으로 오면 실패로 보고한다 (D73)」',
+    resolvesIn: null,
+    applies: claimedActivation(D73_TOOLS),
+    check: activationVerdict,
+  },
+  {
+    id: 'D77',
+    title: '인핸스먼트 두 도구의 `type: json` 블록을 규약대로 text로 (D36의 같은 규칙)',
+    // 두 도구에 걸린다 — D36과 같은 이유로 `tool`은 null이다.
+    tool: null,
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d77 · sapkit-engine/src/server/toolDefinition.ts · ' +
+      'engine/src/handlers/enhancement/readonly/handleGetEnhancementSpot.ts · ' +
+      'engine/src/handlers/enhancement/readonly/handleGetEnhancementImpl.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/read/__tests__/getEnhancementSpot.test.ts · ' +
+      'sapkit-engine/src/tools/read/__tests__/getEnhancementImpl.test.ts',
+    resolvesIn: null,
+    // `GetEnhancements`는 구도 `type:'text'`였다(`handleGetEnhancements.ts:662-670`) —
+    // 이 항목 밖이고 그 도구의 차이는 그대로 대조된다.
+    applies: (step) => ENHANCEMENT_JSON_TOOLS.has(step.tool) && oldJsonBodies(step.response).length > 0,
+    check: ({ recorded, actual }) => rewrapVerdict(recorded, actual, []),
+  },
+  {
+    id: 'D81',
+    title: 'CreateTransport — 만든 이송번호를 응답에 싣는다 (구: 키 이름 어긋남으로 빈손)',
+    tool: 'CreateTransport',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d81 · sapkit-engine/src/tools/write/createTransport.ts · ' +
+      'engine/src/handlers/transport/high/handleCreateTransport.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/createTransport.test.ts — 「응답 — 구의 키 + 이송번호 수리(D81)」 2건',
+    resolvesIn: null,
+    // 구가 번호를 **잃은** 채록분에만 걸린다. 번호가 살아 있던 응답은 이 차이가
+    // 아니므로 그대로 대조된다.
+    applies: (step) => step.tool === 'CreateTransport' && !step.isError && OLD_TRANSPORT_UNKNOWN.test(collectText(step.response)),
+    check: ({ recorded, actual }) => {
+      if (actual.isError) return { ok: false, detail: '신 엔진이 이송요청 생성을 오류로 답했다 — 이 등재의 갈래가 아니다.' };
+      const old = jsonTextBodies(recorded.response);
+      const fresh = jsonTextBodies(actual.response);
+      const before = old.length === 1 ? old[0] : undefined;
+      const after = fresh.length === 1 ? fresh[0] : undefined;
+      if (before === undefined || after === undefined || !isPlainObject(after)) {
+        return { ok: false, detail: '양쪽 응답을 text 블록 하나의 JSON 본문으로 읽지 못했다.' };
+      }
+      const number = after['transport_request'];
+      if (typeof number !== 'string' || number.trim() === '') {
+        return { ok: false, detail: '신 응답에도 이송번호가 없다 — 등재는 그 수리를 요구한다.' };
+      }
+      if (OLD_TRANSPORT_UNKNOWN.test(collectText(actual.response))) {
+        return { ok: false, detail: '신 응답의 문구가 여전히 unknown이다 — 번호를 잃은 자리가 그대로다.' };
+      }
+      const offending = jsonDelta(before, after).filter(
+        (entry) => entry.key === null || (entry.key !== 'transport_request' && entry.key !== 'message'),
+      );
+      if (offending.length > 0) {
+        return { ok: false, detail: `번호·문구 말고 다른 키가 달라졌다 — ${showDelta(offending)}. 등재된 차이가 아니다.` };
+      }
+      return { ok: true, detail: '구가 잃던 이송번호가 `transport_request`와 문구에 실렸고, 나머지 키는 그대로다.' };
+    },
+  },
+  {
+    id: 'D93',
+    title: '텍스트요소·화면·GUI상태 쓰기 — 부모 프로그램 활성화의 거짓 성공을 접지 않는다',
+    tool: null,
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d93 · sapkit-engine/src/tools/write/internal/programScoped.ts · ' +
+      'engine/src/handlers/text_element/high/handleCreateTextElement.ts · ' +
+      'engine/src/handlers/screen/high/handleUpdateScreen.ts · ' +
+      'engine/src/handlers/gui_status/high/handlePatchGuiStatus.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/createTextElement.test.ts · ' +
+      'sapkit-engine/src/tools/write/__tests__/updateTextElement.test.ts · ' +
+      'sapkit-engine/src/tools/write/__tests__/createScreen.test.ts · ' +
+      'sapkit-engine/src/tools/write/__tests__/updateScreen.test.ts · ' +
+      'sapkit-engine/src/tools/write/__tests__/createGuiStatus.test.ts · ' +
+      'sapkit-engine/src/tools/write/__tests__/updateGuiStatus.test.ts · ' +
+      'sapkit-engine/src/tools/write/__tests__/patchGuiStatus.test.ts',
+    resolvesIn: null,
+    // `WriteTextElementsBulk`는 여기 없다 — 그 도구는 ADT 활성화를 부르지 않고
+    // TPOOL RFC 한 번으로 끝난다(`src/tools/write/writeTextElementsBulk.ts` 머리주석).
+    applies: claimedActivation(D93_TOOLS),
+    check: activationVerdict,
+  },
+  {
+    id: 'D99',
+    title: 'CreateBehaviorDefinition·UpdateBehaviorDefinition — 활성화 응답을 읽는다',
+    tool: null,
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d99 · sapkit-engine/src/tools/write/createBehaviorDefinition.ts · ' +
+      'sapkit-engine/src/tools/write/updateBehaviorDefinition.ts · ' +
+      'engine/src/handlers/behavior_definition/high/handleCreateBehaviorDefinition.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/createBehaviorDefinition.test.ts · ' +
+      'sapkit-engine/src/tools/write/__tests__/updateBehaviorDefinition.test.ts',
+    resolvesIn: null,
+    applies: claimedActivation(D99_TOOLS),
+    check: activationVerdict,
+  },
+  {
+    id: 'D100',
+    title: 'UpdateBehaviorImplementation — 활성화 실패를 성공으로 접지 않는다',
+    tool: 'UpdateBehaviorImplementation',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d100 · sapkit-engine/src/tools/write/updateBehaviorImplementation.ts · ' +
+      'engine/src/handlers/behavior_implementation/high/handleUpdateBehaviorImplementation.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/updateBehaviorImplementation.test.ts — ' +
+      '「활성화가 E를 담아 200으로 오면 실패로 보고한다 (D100)」',
+    resolvesIn: null,
+    applies: claimedActivation(D100_TOOLS),
+    check: activationVerdict,
+  },
+  {
+    id: 'D103',
+    title: '메타데이터 확장(DDLX) 쓰기 둘 — 활성화 거짓 성공을 접지 않는다',
+    tool: null,
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d103 · sapkit-engine/src/tools/write/createMetadataExtension.ts · ' +
+      'sapkit-engine/src/tools/write/updateMetadataExtension.ts · ' +
+      'engine/src/handlers/ddlx/high/handleUpdateMetadataExtension.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/createMetadataExtension.test.ts · ' +
+      'sapkit-engine/src/tools/write/__tests__/updateMetadataExtension.test.ts',
+    resolvesIn: null,
+    applies: claimedActivation(D103_TOOLS),
+    check: activationVerdict,
+  },
+  {
+    id: 'D105',
+    title: 'CreateServiceBinding — 활성화 거짓 성공을 접지 않는다',
+    tool: 'CreateServiceBinding',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d105 · sapkit-engine/src/tools/write/createServiceBinding.ts · ' +
+      'engine/src/handlers/service_binding/high/handleCreateServiceBinding.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/createServiceBinding.test.ts — ' +
+      '「D105 — 200에 실려 온 활성화 오류를 성공으로 접지 않는다」',
+    resolvesIn: null,
+    applies: claimedActivation(D105_TOOLS),
+    check: activationVerdict,
   },
 ];
 
