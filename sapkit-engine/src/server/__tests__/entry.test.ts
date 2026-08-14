@@ -53,6 +53,7 @@ describe('셰임 계약', () => {
         'GetSqlQuery',
         'GrepObjects',
         'RuntimeAnalyzeDump',
+        'RuntimeAnalyzeProfilerTrace',
         'RuntimeGetDumpById',
         'RuntimeGetProfilerTraceData',
         'RuntimeListDumps',

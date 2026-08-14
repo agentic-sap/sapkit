@@ -80,6 +80,11 @@
     "detail": "src/tools/runtime/__tests__/runtimeAnalyzeDump.test.ts"
   },
   {
+    "tool": "RuntimeAnalyzeProfilerTrace",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeAnalyzeProfilerTrace.test.ts"
+  },
+  {
     "tool": "RuntimeGetDumpById",
     "passed": true,
     "detail": "src/tools/runtime/__tests__/runtimeGetDumpById.test.ts"
