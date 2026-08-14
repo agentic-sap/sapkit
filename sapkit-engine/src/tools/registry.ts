@@ -125,6 +125,7 @@ import { reloadProfile } from './runtime/reloadProfile';
 // 묶음: table
 import { readTable } from './read/readTable';
 import { getTableContents } from './row-data/getTableContents';
+import { createTable } from './write/createTable';
 import { updateTable } from './write/updateTable';
 
 // 묶음: program
@@ -258,6 +259,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // (`src/safety/rowData.ts`의 ROW_DATA_TOOLS).
   getTableContents,
   readTable,
+  createTable,
   updateTable,
 
   // 묶음: program — 프로그램 (순서 8)

@@ -20,6 +20,11 @@
     "detail": "src/tools/write/__tests__/createProgram.test.ts"
   },
   {
+    "tool": "CreateTable",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createTable.test.ts"
+  },
+  {
     "tool": "DescribeByList",
     "passed": true,
     "detail": "src/tools/read/__tests__/describeByList.test.ts"
