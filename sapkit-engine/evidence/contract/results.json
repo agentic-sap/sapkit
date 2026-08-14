@@ -105,6 +105,11 @@
     "detail": "src/tools/read/__tests__/getTypeInfo.test.ts"
   },
   {
+    "tool": "GetWhereUsed",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getWhereUsed.test.ts"
+  },
+  {
     "tool": "GrepObjects",
     "passed": true,
     "detail": "src/tools/read/__tests__/grepObjects.test.ts"

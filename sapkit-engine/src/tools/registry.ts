@@ -93,6 +93,7 @@ import { getSession } from './read/getSession';
 import { getSystemInfo } from './read/getSystemInfo';
 import { getTransaction } from './read/getTransaction';
 import { getTypeInfo } from './read/getTypeInfo';
+import { getWhereUsed } from './read/getWhereUsed';
 
 // 묶음: search
 
@@ -150,6 +151,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getSystemInfo,
   getTransaction,
   getTypeInfo,
+  getWhereUsed,
 
   // 묶음: search — 검색 (순서 2)
 

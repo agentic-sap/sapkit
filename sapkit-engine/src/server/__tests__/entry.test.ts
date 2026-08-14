@@ -58,6 +58,7 @@ describe('셰임 계약', () => {
         'GetSystemInfo',
         'GetTransaction',
         'GetTypeInfo',
+        'GetWhereUsed',
         'GrepObjects',
         'SearchObject',
       ]);
