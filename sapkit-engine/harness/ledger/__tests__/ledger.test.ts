@@ -88,19 +88,50 @@ describe('상태 판정 — 등록점 하나만 본다', () => {
   });
 });
 
-describe('위임형 여부 — 구 핸들러가 `@babamba2/*`를 참조하는가', () => {
-  it('구 엔진 소스에서 읽는다', () => {
-    const model = collectLedger();
+describe('위임형 여부 — 구 도구가 `@babamba2/*`에 기대는 깊이', () => {
+  const model = collectLedger();
 
-    expect(model.facts.get('CreateClass')?.delegated).toBe(true);
-    expect(model.facts.get('GetProgFullCode')?.delegated).toBe(false);
+  it('구 엔진 소스에서 직접과 간접을 가른다', () => {
+    expect(model.facts.get('CreateClass')?.delegated).toBe('direct');
+    // 겉 핸들러는 `@babamba2`를 직접 안 부르지만 `lib/clients.ts`를 거쳐 닿는다.
+    expect(model.facts.get('GetProgFullCode')?.delegated).toBe('indirect');
   });
 
-  it('구 엔진 소스가 없으면 「미상」이다 — 없는 것을 자립으로 적지 않는다', () => {
-    const model = collectLedger({ oldHandlersDir: NOWHERE });
+  it('총계가 도구 전량을 덮는다 — 어느 도구도 판정에서 빠지지 않는다', () => {
+    const { direct, indirect, none } = model.delegation;
 
-    expect(model.facts.get('CreateClass')?.delegated).toBeNull();
-    expect(rowOf(renderLedger(model), 'CreateClass')).toContain('미상');
+    expect(direct + indirect + none).toBe(model.coverage.totals.tools);
+  });
+
+  it('파일 수와 도구 수를 따로 싣는다 — 46과 161을 화해시키는 수들이다', () => {
+    const d = model.delegation;
+
+    expect(d.directHandlerFiles).toBe(d.direct + d.filesOutsideSurface);
+    expect(d.filesOutsideSurface).toBeGreaterThan(0);
+  });
+
+  it('대장이 그 화해를 글자로 적는다', () => {
+    const text = renderLedger(model);
+
+    expect(text).toContain('단위가 다르다');
+    expect(text).toContain(`${model.delegation.directHandlerFiles}파일`);
+    expect(text).toContain(`직접 위임하는 도구는 ${model.delegation.direct}종`);
+    expect(text).toContain(`간접 ${model.delegation.indirect}종`);
+    expect(text).toContain(`나머지 ${model.delegation.filesOutsideSurface}파일`);
+  });
+
+  it('「없음 0」이면 그것이 성긴 계산이 아님을 대장이 함께 적는다', () => {
+    expect(model.delegation.none).toBe(0);
+    expect(renderLedger(model)).toContain('계산이 성긴 탓이 아니다');
+  });
+
+  it('구 엔진 소스가 없으면 「미상」이다 — 없는 것을 「없음」으로 적지 않는다', () => {
+    const blind = collectLedger({ oldHandlersDir: NOWHERE });
+
+    expect(blind.facts.get('CreateClass')?.delegated).toBeNull();
+    expect(blind.delegation.known).toBe(false);
+    expect(rowOf(renderLedger(blind), 'CreateClass')).toContain('미상');
+    expect(renderLedger(blind)).toContain('판정하지 않았다');
   });
 });
 

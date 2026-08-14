@@ -10,8 +10,11 @@
  * 재생 판정 파일의 형식(`replayVerdictDocument`)도 여기로 낸다 — 그 형식이 SAP에
  * 붙는 스크립트 안에 있으면 영영 시험되지 않기 때문이다.
  */
-export { LEDGER_PATH, collectLedger, findEngineRoot, loadSurfaceToolNames, scanDelegation } from './collect';
-export type { CollectOptions, LedgerModel, LedgerSource, ToolFacts } from './collect';
+export { LEDGER_PATH, collectLedger, findEngineRoot, loadSurfaceToolNames } from './collect';
+export type { CollectOptions, DelegationSummary, LedgerModel, LedgerSource, ToolFacts } from './collect';
+
+export { scanDelegation } from './delegation';
+export type { DelegationKind, DelegationScan } from './delegation';
 
 export { BUILD_PLAN_FORMAT_VERSION, BUILD_PLAN_PATH, bundleOf, loadBuildPlan, parseBuildPlan, requiredGradesFrom } from './plan';
 export type { BuildPlan, PlanBundle, PlanEntry } from './plan';

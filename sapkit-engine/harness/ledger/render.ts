@@ -11,6 +11,7 @@
  */
 import type { CoverageRow, EvidenceCell, EvidenceGrade, ToolStatus } from '../replay/coverage';
 import type { LedgerModel, ToolFacts } from './collect';
+import type { DelegationKind } from './delegation';
 
 const GRADE_LABEL: Readonly<Record<EvidenceGrade, string>> = {
   replay: '재생 대조',
@@ -50,9 +51,14 @@ function requiredText(row: CoverageRow, planned: boolean): string {
   return row.requiresSubstitute ? `${base} + 대체` : base;
 }
 
-function delegatedText(delegated: boolean | null): string {
-  if (delegated === null) return '미상';
-  return delegated ? '위임' : '자립';
+const DELEGATION_LABEL: Readonly<Record<DelegationKind, string>> = {
+  direct: '직접',
+  indirect: '간접',
+  none: '없음',
+};
+
+function delegatedText(delegated: DelegationKind | null): string {
+  return delegated === null ? '미상' : DELEGATION_LABEL[delegated];
 }
 
 function rowLine(row: CoverageRow, facts: ToolFacts, planned: boolean): string {
@@ -89,6 +95,54 @@ export function renderLedger(model: LedgerModel): string {
     `도구 ${coverage.totals.tools} · **안 지음 ${coverage.totals.notBuilt}** · ` +
       `**증거 대기 ${coverage.totals.awaitingEvidence}** · **증거 있음 ${coverage.totals.evidenced}**`,
   );
+  lines.push('');
+
+  // ── 위임형 열의 수 읽기 ────────────────────────────────────────────────────
+  // 46(도구)과 161(파일)은 어긋나 보이지만 단위가 다르다. 이 문단이 없으면
+  // 다음 세션이 "수가 안 맞는다"로 시간을 쓴다.
+  lines.push('## 위임형 열을 읽는 법 — 두 수는 단위가 다르다');
+  lines.push('');
+  if (!model.delegation.known) {
+    lines.push('구 엔진 소스를 읽지 못해 위임형을 **판정하지 않았다**. 전량 「미상」이다 — 없다는 뜻이 아니다.');
+  } else {
+    const d = model.delegation;
+    lines.push(
+      `구 핸들러에서 \`@babamba2/*\`를 **직접** 쓰는 것은 **${d.directHandlerFiles}파일**이고, ` +
+        `이 표면 ${coverage.totals.tools}종 중 **직접 위임하는 도구는 ${d.direct}종**이다. ` +
+        `**둘은 단위가 다르다** — 앞은 파일 수, 뒤는 도구 수다. ` +
+        `나머지 ${d.filesOutsideSurface}파일은 이 표면 밖 이름이거나 도구 선언이 아예 없는 파일이다.`,
+    );
+    lines.push('');
+    lines.push(
+      `여기에 **간접 ${d.indirect}종**이 더 있다 — 겉 핸들러는 \`@babamba2\`를 직접 부르지 않지만 ` +
+        `\`engine/src\` 안의 공용 헬퍼를 거쳐 닿는다. 이 열이 존재하는 이유가 그것이다: ` +
+        '재생 대조를 미룬 도구에게는 **참조 원본의 깊이가 유일한 정확성 근거**이고, ' +
+        '간접 위임을 「없음」으로 읽으면 안쪽 패키지를 안 읽고 겉만 보고 짓게 된다.',
+    );
+    lines.push('');
+    lines.push(
+      `판정 범위는 \`engine/src\` 아래 소스 **${d.sourceFiles}파일**이고, 상대 import(\`./x\`·\`../x.js\`·` +
+        '`../x/index`)를 거슬러 도달 여부를 본다.',
+    );
+    lines.push('');
+    if (d.none === 0) {
+      lines.push(
+        `**「없음 ${d.none}」은 계산이 성긴 탓이 아니다.** 타입 경로로만 닿는 도구는 **${d.typeOnlyReach}종**이다 — ` +
+          `즉 ${d.direct + d.indirect}종 전부가 \`import type\`이 아니라 **값으로** \`@babamba2\`를 부르는 파일에 닿는다. ` +
+          '겉 핸들러만 읽고 지어도 되는 도구는 이 표면에 없다는 뜻이다.',
+      );
+      lines.push('');
+      lines.push(
+        `되짚어 보면 방향이 반대다: 핸들러 파일 ${d.directHandlerFiles}개의 \`@babamba2\` 참조 중 **값 참조는 ` +
+          `${d.directValueHandlerFiles}개뿐**이고 나머지는 타입이다. **런타임 위임은 겉이 아니라 \`engine/src/lib/\`에 있다** — ` +
+          '자체 저작으로 갈아탈 때 실제로 갈아엎어야 하는 것은 핸들러가 아니라 그 공용 계층이다.',
+      );
+    } else {
+      lines.push(
+        `그중 **${d.typeOnlyReach}종**은 \`import type\` 경로로만 닿는다 — 컴파일 타임 의존이라 런타임 위임과는 무게가 다르다.`,
+      );
+    }
+  }
   lines.push('');
 
   // ── 입력 ───────────────────────────────────────────────────────────────────
@@ -151,8 +205,10 @@ export function renderLedger(model: LedgerModel): string {
   lines.push('| `픽스처 있음 · 판정 미기록` | 재생 픽스처는 커밋돼 있으나 **커밋된 판정 파일이 없다** — 통과가 아니다 |');
   lines.push('| `시험 있음 · 결과 미기록` | 계약 시험 파일은 있으나 **실행 결과 파일이 없다** — 통과가 아니다 |');
   lines.push('| `요구 · 미기록` | 차이 장부 등재분이라 대체 기대 시험을 **더** 요구하는데, 그 시험 파일이 아직 없다 |');
-  lines.push('| `위임` / `자립` | 구 핸들러가 `@babamba2/*`를 참조하는가 — 자체 저작으로 갈아탈 때의 무게다 |');
-  lines.push('| `미상` | 구 엔진 소스를 읽지 못해 판정하지 않았다. 없다는 뜻이 아니다 |');
+  lines.push('| 위임형 `직접` | 그 도구의 핸들러 파일이 `@babamba2/*`를 직접 참조한다 |');
+  lines.push('| 위임형 `간접` | 핸들러는 직접 안 부르지만 `engine/src` 안의 헬퍼를 거쳐 닿는다 — **겉만 읽으면 안 된다** |');
+  lines.push('| 위임형 `없음` | 어느 경로로도 닿지 않는다 — 겉 핸들러만 읽어도 되는 도구다 |');
+  lines.push('| 위임형 `미상` | 구 엔진 소스를 읽지 못해 판정하지 않았다. 없다는 뜻이 아니다 |');
   lines.push('');
   lines.push('`통과(n)`·`실패(n)`의 `n`은 그 급에서 이 도구를 건드린 건수다.');
   lines.push('');

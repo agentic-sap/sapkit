@@ -37,6 +37,8 @@ import {
   substituteEvidenceFromLedger,
   toolsInFixtures,
 } from './evidence';
+import { scanDelegation } from './delegation';
+import type { DelegationKind } from './delegation';
 import { BUILD_PLAN_PATH, bundleOf, loadBuildPlan, requiredGradesFrom } from './plan';
 import type { BuildPlan, PlanBundle } from './plan';
 
@@ -48,8 +50,11 @@ export interface ToolFacts {
   readonly hasReplayFixture: boolean;
   /** 도구별 계약 시험 파일이 있는가. 실행 결과와는 다른 질문이다. */
   readonly contractTestFile: string | null;
-  /** 구 핸들러가 `@babamba2/*`를 참조하는가. `null` = 구 소스가 없어 판정 못 함. */
-  readonly delegated: boolean | null;
+  /**
+   * 구 도구가 `@babamba2/*`에 기대는 깊이 — 직접 / 공용 헬퍼 경유 / 없음.
+   * `null` = 구 소스가 없어 **판정하지 않았다**(없다는 뜻이 아니다).
+   */
+  readonly delegated: DelegationKind | null;
   readonly bundle: PlanBundle | null;
 }
 
@@ -60,11 +65,42 @@ export interface LedgerSource {
   readonly detail: string;
 }
 
+/**
+ * 위임형 열의 총계 — **46과 161이 어긋나 보이는 것을 화해시키는 수들.**
+ *
+ * 둘은 단위가 다르다. `directHandlerFiles`는 **파일 수**이고 `direct`는 **이
+ * 표면 안의 도구 수**다. 이 구분을 대장에 적어 두지 않으면 다음 세션이 "수가
+ * 안 맞는다"로 시간을 쓴다.
+ */
+export interface DelegationSummary {
+  /** 구 소스를 읽어 판정했는가. 거짓이면 전량 「미상」이다. */
+  readonly known: boolean;
+  readonly direct: number;
+  readonly indirect: number;
+  readonly none: number;
+  /** 핸들러 파일 중 `@babamba2`를 직접 쓰는 **파일** 수. */
+  readonly directHandlerFiles: number;
+  /** 그중 타입이 아니라 **값**으로 쓰는 파일 수. */
+  readonly directValueHandlerFiles: number;
+  /** 그중 이 표면의 도구 선언이 아닌 파일 수 — 표면 밖 이름이거나 선언이 없는 파일. */
+  readonly filesOutsideSurface: number;
+  /**
+   * 위임으로 셌지만 **타입 경로로만** 닿는 도구 수.
+   *
+   * 이 수가 0이면 「없음 0」은 계산이 성긴 탓이 아니라 실제로 전량이 남의
+   * 런타임 코드를 돌린다는 뜻이다. 0이 아니면 그만큼은 컴파일 타임 의존이다.
+   */
+  readonly typeOnlyReach: number;
+  /** import를 따라간 범위의 소스 파일 수. */
+  readonly sourceFiles: number;
+}
+
 export interface LedgerModel {
   readonly coverage: CoverageReport;
   readonly plan: BuildPlan | null;
   readonly facts: ReadonlyMap<string, ToolFacts>;
   readonly sources: readonly LedgerSource[];
+  readonly delegation: DelegationSummary;
 }
 
 export interface CollectOptions {
@@ -78,6 +114,8 @@ export interface CollectOptions {
   readonly attendedDir?: string;
   readonly toolsDir?: string;
   readonly oldHandlersDir?: string;
+  /** 위임 사슬을 따라갈 범위. 기본은 `oldHandlersDir`의 부모(= `engine/src`). */
+  readonly oldSrcRoot?: string;
   /** 등록점 스냅샷을 갈아끼운다. 시험이 상태 판정을 좁혀 보기 위한 구멍이다. */
   readonly registered?: readonly string[];
 }
@@ -101,35 +139,6 @@ export function loadSurfaceToolNames(catalogPath: string): string[] {
     throw new Error(`구 표면 채록본에 tools(전량 선언)가 없다: ${catalogPath}`);
   }
   return Object.keys(parsed.tools).sort();
-}
-
-/**
- * 구 엔진 핸들러에서 도구 이름 → `@babamba2/*` 참조 여부를 읽는다.
- *
- * 구 부품은 **읽기만** 한다. 이름은 각 핸들러가 export 하는 `TOOL_DEFINITION`의
- * `name`에서 얻는다 — 핸들러 그룹의 import 별칭을 파싱하는 것보다 흔들림이 적다.
- */
-export function scanDelegation(handlersDir: string): Map<string, boolean> {
-  const out = new Map<string, boolean>();
-  if (!fs.existsSync(handlersDir)) return out;
-
-  const stack = [handlersDir];
-  while (stack.length > 0) {
-    const dir = stack.pop() as string;
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        stack.push(full);
-        continue;
-      }
-      if (!entry.name.endsWith('.ts')) continue;
-      const text = fs.readFileSync(full, 'utf8');
-      const matched = /export const TOOL_DEFINITION[^{]*=\s*{\s*name:\s*['"]([^'"]+)['"]/.exec(text);
-      if (matched === null) continue;
-      out.set(matched[1] as string, /@babamba2/.test(text));
-    }
-  }
-  return out;
 }
 
 const show = (engineRoot: string, target: string): string =>
@@ -171,20 +180,35 @@ export function collectLedger(options: CollectOptions = {}): LedgerModel {
   });
 
   const fixtureTools = toolsInFixtures(fixtureDir);
-  const delegation = scanDelegation(handlersDir);
+  const scan = scanDelegation(handlersDir, options.oldSrcRoot);
   const facts = new Map<string, ToolFacts>(
     tools.map((tool) => [
       tool,
       {
         hasReplayFixture: fixtureTools.has(tool),
         contractTestFile: contractTestFiles.get(tool) ?? null,
-        delegated: delegation.get(tool) ?? null,
+        delegated: scan.byTool.get(tool) ?? null,
         bundle: bundleOf(plan, tool),
       },
     ]),
   );
 
-  const delegatedCount = tools.filter((tool) => delegation.get(tool) === true).length;
+  const countKind = (kind: DelegationKind): number =>
+    tools.filter((tool) => scan.byTool.get(tool) === kind).length;
+  const delegation: DelegationSummary = {
+    known: scan.byTool.size > 0,
+    direct: countKind('direct'),
+    indirect: countKind('indirect'),
+    none: countKind('none'),
+    directHandlerFiles: scan.directHandlerFiles,
+    directValueHandlerFiles: scan.directValueHandlerFiles,
+    filesOutsideSurface: scan.directHandlerFiles - countKind('direct'),
+    typeOnlyReach: tools.filter(
+      (tool) => scan.byTool.get(tool) !== 'none' && scan.byToolValue.get(tool) === 'none',
+    ).length,
+    sourceFiles: scan.sourceFiles,
+  };
+
   const sources: LedgerSource[] = [
     {
       label: '도구 전체 목록',
@@ -255,13 +279,13 @@ export function collectLedger(options: CollectOptions = {}): LedgerModel {
     {
       label: '위임형 판정',
       path: `${show(engineRoot, handlersDir)}/**`,
-      present: delegation.size > 0,
-      detail:
-        delegation.size > 0
-          ? `구 핸들러 ${delegation.size}종 중 이 표면의 ${delegatedCount}종이 \`@babamba2/*\`를 참조한다`
-          : '위임형 여부를 「미상」으로 낸다',
+      present: delegation.known,
+      detail: delegation.known
+        ? `소스 ${delegation.sourceFiles}파일을 상대 import까지 따라가 판정 — ` +
+          `직접 ${delegation.direct} · 간접 ${delegation.indirect} · 없음 ${delegation.none}`
+        : '위임형 여부를 「미상」으로 낸다',
     },
   ];
 
-  return { coverage, plan, facts, sources };
+  return { coverage, plan, facts, sources, delegation };
 }
