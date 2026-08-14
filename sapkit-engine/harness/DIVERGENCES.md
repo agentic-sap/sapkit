@@ -1240,6 +1240,105 @@
 - **비고**: 같은 결함이 **`UpdateClass`에도 있었고 그쪽은 이 장부에 등재되지
   않은 채 고쳐졌다.** 이 항목을 옮길 때 그 누락도 함께 다뤄야 한다.
 
+### D98 — `CreateBehaviorDefinition`의 소유자 속성을 **env에서만** 읽는다
+
+- **분류**: 축소 — **해소 마일스톤 = D62와 같다**(시스템 문맥 해석을 서버 기동에
+  붙이는 자리). 그 계층이 서면 D62와 함께 닫힌다.
+- **구 동작(실측)**: `createAdtClient`가 `getSystemContext()`의 값을
+  `AdtBehaviorDefinition`의 `systemContext`로 넘기고
+  (`engine/src/lib/clients.ts:20-31`), 생성 페이로드가 그것을
+  `adtcore:masterSystem`·`adtcore:responsible`로 싣는다
+  (`AdtBehaviorDefinition.js:120-121` → `dist/core/behaviorDefinition/create.js:36-45`).
+- **신 동작**: `context.env`의 `SAP_MASTER_SYSTEM` · (`SAP_RESPONSIBLE` ||
+  `SAP_USERNAME`)만 읽고, 없으면 **속성 자체를 빼고** 보낸다
+  (`src/tools/write/behaviorUri.ts`의 `ownerAttributes`).
+- **근거**: D62의 근거를 그대로 따른다 — 구의 해석 순서 셋 중 실제로 관찰되는
+  경로는 env 하나뿐이고, 없는 계층을 이 묶음에서 새로 세우는 것은 범위 밖이다.
+  **짝인 `CreateBehaviorImplementation`은 이 항목에 해당하지 않는다** — 그쪽은
+  벤더가 매 호출마다 `/sap/bc/adt/core/http/systeminformation`을 직접 물어보므로
+  그 요청을 그대로 재현했다.
+- **대체 기대 시험**: `sapkit-engine/src/tools/write/__tests__/createBehaviorDefinition.test.ts`
+  의 「생성 페이로드 — 소유자 속성 (차이 장부 D98)」 절 3건 ·
+  `.../createBehaviorImplementation.test.ts`의 「소유자 속성 — **SAP에 물어본다**」
+  절 2건(두 사슬이 이 값을 어떻게 다르게 얻는지를 함께 못 박는다).
+- **기계 장부 미반영**: 생성 POST의 본문이 달라질 수 있으므로 **와이어 차이**다.
+  이 묶음 과제에 `harness/replay/**`가 무접촉으로 걸려 있어 옮기지 못했다.
+
+### D99 — `CreateBehaviorDefinition`·`UpdateBehaviorDefinition`이 활성화 응답을 **읽는다**
+
+- **분류**: 수리
+- **구 동작(실측)**: 활성화 요청은 **나간다** —
+  `client.getBehaviorDefinition().activate({name})`
+  (`handleCreateBehaviorDefinition.ts:153-158` ·
+  `handleUpdateBehaviorDefinition.ts:139-144`). 그런데 **반환값을 어디에도 쓰지
+  않는다.** 벤더 `activate()`는 응답을 그대로 돌려주고
+  (`dist/core/behaviorDefinition/activation.js:26-29` →
+  `dist/utils/activationUtils.js:116-133`), 겉 핸들러는 곧장
+  `success: true` 응답을 조립한다. **SAP은 활성화 실패도 HTTP 200으로 답하며
+  `<chkl:msg type="E">`를 담으므로**, 깨진 BDEF가 "생성/수정하고 활성화했다"로
+  보고된다. 이 두 도구는 `UpdateBehaviorImplementation`(D100)과 달리 응답을
+  파싱하는 코드조차 없다.
+- **신 동작**: 활성화 응답 본문의 `<chkl:msg>`를 갈라 `E`·`A`·`X`가 하나라도
+  있으면 실패로 되돌리고, 문구에 모든 실패를 줄번호와 함께 담는다. **오브젝트는
+  inactive 판으로 SAP에 남아 있다**는 사실을 함께 알린다. `W`만 있으면 성공이다.
+- **근거**: 이 레포에 CLAS 거짓 성공 실증 이력이 있고(`CLAUDE.md` 안전 규칙),
+  같은 자리를 이미 지어진 `UpdateClass`·`UpdateInterface`(D73)·`UpdateView`(D66)·
+  `UpdateFunctionModule`(D51)이 같은 방식으로 고쳤다. 구를 재현하면 같은 엔진
+  안에서 도구마다 같은 실패에 다르게 답하게 된다. 안전 바닥선은 낮출 수 없다.
+- **대체 기대 시험**:
+  `sapkit-engine/src/tools/write/__tests__/createBehaviorDefinition.test.ts`의
+  「활성화가 E를 담아 200으로 오면 실패로 보고한다 (D99)」·「E가 아닌 활성화
+  메시지는 성공을 막지 않는다」 ·
+  `.../updateBehaviorDefinition.test.ts`의 같은 이름 두 건(D100 표기).
+- **기계 장부 미반영**: 도구 응답이 달라지는 차이다. 위와 같은 이유로 옮기지
+  못했다.
+
+### D100 — `UpdateBehaviorImplementation`이 **활성화 실패를 성공으로 접지 않는다**
+
+- **분류**: 수리
+- **구 동작(실측)**: 여기는 응답을 **읽기는 한다** — 본문에 `<chkl:messages`가
+  있으면 파싱해 모든 `msg`를 `activation_warnings`로 옮긴다
+  (`handleUpdateBehaviorImplementation.ts:120-141`). 그런데 **`type="E"`가 섞여
+  있어도** `success: true` · `activated: true` · "updated and activated
+  successfully"로 답한다(`:159-172`). 즉 실패 메시지를 손에 쥐고도 경고로
+  강등한다 — D73(`UpdateInterface`)과 같은 모양이다.
+- **신 동작**: `E`·`A`·`X`를 실패로 판정해 오류로 올린다. `E`가 아닌 메시지는
+  구대로 `activation_warnings`에 실린다(`W: <문구>` 모양도 그대로).
+- **근거**: D73·D99와 같다. 방향이 "성공을 실패로"이므로 없는 권한을 여는
+  종류가 아니다.
+- **대체 기대 시험**:
+  `sapkit-engine/src/tools/write/__tests__/updateBehaviorImplementation.test.ts`의
+  「활성화가 E를 담아 200으로 오면 실패로 보고한다 (D100)」·「E가 아닌 활성화
+  메시지는 구대로 activation_warnings에 실린다」.
+- **기계 장부 미반영**: 도구 응답이 달라지는 차이다. 같은 이유로 옮기지 못했다.
+
+### D101 — BDEF **잠금 요청에 구의 `asx:abap` 템플릿 본문을 싣지 않는다**
+
+- **분류**: 축소 — **해소 마일스톤 = `AdtClient.lock`의 `LockOptions`에 본문
+  통로를 여는 자리.** 한 줄짜리 추가이지만 `src/adt/client.ts`는 이 판에서
+  묶음 13개가 동시에 지나가는 공유 파일이라 이 과제의 범위 밖이다.
+- **구 동작(실측)**: BDEF 잠금만 본문을 싣는다 —
+  `dist/core/behaviorDefinition/lock.js:30-53`이 `<asx:abap>…<IS_LOCAL>X</IS_LOCAL>…`
+  한 장을 `data`로 POST 한다. **같은 벤더의 다른 오브젝트 계열은 전부
+  `data: null`이다**(`core/class/lock.js:27` · `core/interface/lock.js:25`) —
+  BDEF가 그 안에서 예외다.
+- **신 동작**: `client.withLock()`이 본문 없이 POST 한다(주소·질의 인자·Accept는
+  같다). 영향 범위는 `CreateBehaviorDefinition`·`UpdateBehaviorDefinition` 둘뿐이고,
+  **`CreateBehaviorImplementation`·`UpdateBehaviorImplementation`은 클래스 잠금이라
+  원래 본문이 없어 영향이 없다.**
+- **근거**: 잠금 수명주기를 접속 계층이 소유하는 것이 이 엔진의 계약이고
+  (D72의 같은 판단), 그 계약은 잠근 자리와 푸는 자리가 한 통로일 때 성립한다.
+  본문 통로를 여는 것은 공유 파일 변경이라 묶음 과제가 단독으로 할 일이 아니다.
+  **`IS_LOCAL`은 잠금 응답이 돌려주는 필드이기도 하므로 요청 본문이 잠금 성패를
+  가르는지는 이 판에서 실측되지 않았다** — attended 세션에서 확인할 자리다.
+- **대체 기대 시험**: 없다. 이 항목은 "덜 보낸다"이므로 다른 쪽이 옳다는 증명이
+  아니라 **실기 확인이 필요한 축소**다.
+  `sapkit-engine/src/tools/write/__tests__/createBehaviorDefinition.test.ts`의
+  「잠금·해제는 **소문자 · 인코딩 없는** URI다」가 주소·질의·Accept가 같음까지는
+  못 박는다.
+- **기계 장부 미반영**: 요청 본문이 달라지므로 **와이어 차이**다. 같은 이유로
+  옮기지 못했다.
+
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 
 리뷰에서 차이로 잡혔지만 **유지할 이유가 없어** 구 동작으로 되돌린 것들.

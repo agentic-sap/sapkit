@@ -199,6 +199,7 @@ import { readDomain } from './read/readDomain';
 import { getBehaviorImplementation } from './read/getBehaviorImplementation';
 import { readBehaviorImplementation } from './read/readBehaviorImplementation';
 import { createBehaviorImplementation } from './write/createBehaviorImplementation';
+import { updateBehaviorImplementation } from './write/updateBehaviorImplementation';
 
 // 묶음: function-group
 import { getFunctionGroup } from './read/getFunctionGroup';
@@ -377,6 +378,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   createBehaviorImplementation,
   getBehaviorImplementation,
   readBehaviorImplementation,
+  updateBehaviorImplementation,
 
   // 묶음: function-group — 함수그룹 (순서 26)
   getFunctionGroup,
