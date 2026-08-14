@@ -106,6 +106,17 @@ describe('D3 — 주소 없는 인클루드 이름만 빠진다', () => {
     expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D3' });
   });
 
+  /**
+   * 빠지면서 **동시에** 느는 갈래. 이 자리가 없으면 "늘었는가" 검사를 통째로
+   * 들어내도 시험이 통과한다 — 뺀 것이 있으면 그것만 보고 넘어가기 때문이다.
+   */
+  it('빠진 이름이 있어도 늘어난 이름이 있으면 덮어 주지 않는다', async () => {
+    const result = await judge(list('ZINC_A', 'ZINC_B'), list('ZINC_A', 'ZINC_C'));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D3' });
+    expect(result.steps[0]?.detail).toContain('ZINC_C');
+  });
+
   it('오류로 답하면 등재가 덮어 주지 않는다', async () => {
     const result = await judge(list('ZINC_REAL'), envelope('ERR_X: 실패', true), true);
 
