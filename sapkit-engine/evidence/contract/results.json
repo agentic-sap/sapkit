@@ -10,6 +10,11 @@
     "detail": "src/tools/read/__tests__/checkSyntax.test.ts"
   },
   {
+    "tool": "CreateFunctionModule",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createFunctionModule.test.ts"
+  },
+  {
     "tool": "CreateInclude",
     "passed": true,
     "detail": "src/tools/write/__tests__/createInclude.test.ts"
