@@ -804,6 +804,36 @@
 - **비고**: 키가 하나 **느는** 방향이므로 구의 키를 읽던 소비자는 그대로 돈다.
   기계용 장부로 옮기는 일은 D38과 같은 이유로 그 파일을 소유한 작업의 몫이다.
 
+### D41 — `UpdateLocalTestClass`가 활성화 실패를 성공으로 접지 않는다
+
+- **분류**: 수리
+- **구 동작(실측)**: 활성화 요청은 **나갔다**
+  (`engine/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalTestClass.js:227-235`
+  — `options.activateOnUpdate`가 참이면 `this.activate()`를 부른다). 그런데
+  **응답 본문을 아무도 읽지 않는다**: `activateObjectInSession`은 응답을 그대로
+  돌려주고(`dist/utils/activationUtils.js:116-133`), `AdtClass.activate()`는
+  HTTP 4xx에서만 던진다(`dist/core/class/AdtClass.js:436-468`). 그래서 겉
+  핸들러는 무조건 `activated: activate_on_update`를 실어 보낸다
+  (`engine/src/handlers/class/high/handleUpdateLocalTestClass.ts:149`).
+  **SAP은 활성화 실패도 HTTP 200으로 답하며 `<chkl:msg type="E">`를 담으므로**,
+  깨진 테스트 클래스가 "활성화됨"으로 보고된다.
+- **신 동작**: 활성화 응답 본문의 `<chkl:msg>`를 갈라 `E`·`A`·`X`가 하나라도
+  있으면 실패로 되돌린다(줄번호와 문구를 그대로 실어). `W`만 있으면 성공이다 —
+  과잉 거부하지 않는다.
+- **근거**: 이 레포에 **CLAS 거짓 성공 실증 이력**이 있고(`CLAUDE.md` 안전 규칙
+  「write 성공 보고를 그대로 믿지 않는다」), 같은 자리를 이미 지어진
+  `UpdateClass`가 같은 방식으로 고쳤다(`src/tools/write/updateClass.ts` 머리주석).
+  구를 재현하면 **같은 엔진 안에서 두 도구가 같은 실패에 다르게 답하게** 된다.
+  안전 바닥선은 자작을 이유로 낮추지 않는다(spec §2.3).
+- **대체 기대 시험**: `sapkit-engine/src/tools/write/__tests__/updateLocalTestClass.test.ts`
+  의 「D41 — 활성화 실패를 성공으로 접지 않는다」 절 5건.
+- **기계 장부 미반영**: `harness/replay/divergences.ts`에는 아직 옮기지 않았다.
+  이 항목을 지은 묶음 과제는 그 파일을 D2 활성화 말고는 건드리지 않기로 걸려
+  있었다(여러 묶음이 같은 파일에서 충돌한다). **묶음 병합 뒤 한 번에 옮겨야
+  한다** — 옮기지 않은 채 재생을 켜면 이 차이가 결함으로 잡힌다.
+- **비고**: 같은 결함이 **`UpdateClass`에도 있었고 그쪽은 이 장부에 등재되지
+  않은 채 고쳐졌다.** 이 항목을 옮길 때 그 누락도 함께 다뤄야 한다.
+
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 
 리뷰에서 차이로 잡혔지만 **유지할 이유가 없어** 구 동작으로 되돌린 것들.

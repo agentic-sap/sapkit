@@ -255,6 +255,11 @@
     "detail": "src/tools/write/__tests__/updateInclude.test.ts"
   },
   {
+    "tool": "UpdateLocalTestClass",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateLocalTestClass.test.ts"
+  },
+  {
     "tool": "UpdateProgram",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateProgram.test.ts"
