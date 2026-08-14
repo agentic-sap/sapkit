@@ -60,6 +60,11 @@
     "detail": "src/tools/read/__tests__/getObjectStructure.test.ts"
   },
   {
+    "tool": "GetPackageTree",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getPackageTree.test.ts"
+  },
+  {
     "tool": "GetProgram",
     "passed": true,
     "detail": "src/tools/read/__tests__/getProgram.test.ts"

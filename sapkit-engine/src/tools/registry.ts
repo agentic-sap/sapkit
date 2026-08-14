@@ -89,6 +89,7 @@ import {
 import { describeByList } from './read/describeByList';
 import { getAbapAST } from './read/getAbapAST';
 import { getObjectStructure } from './read/getObjectStructure';
+import { getPackageTree } from './read/getPackageTree';
 import { getSession } from './read/getSession';
 import { getSystemInfo } from './read/getSystemInfo';
 import { getTransaction } from './read/getTransaction';
@@ -147,6 +148,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   describeByList,
   getAbapAST,
   getObjectStructure,
+  getPackageTree,
   getSession,
   getSystemInfo,
   getTransaction,
