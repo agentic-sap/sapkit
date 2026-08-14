@@ -160,6 +160,11 @@
     "detail": "src/tools/write/__tests__/deleteLocalDefinitions.test.ts"
   },
   {
+    "tool": "DeleteLocalMacros",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteLocalMacros.test.ts"
+  },
+  {
     "tool": "DeleteLocalTestClass",
     "passed": true,
     "detail": "src/tools/write/__tests__/deleteLocalTestClass.test.ts"

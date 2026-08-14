@@ -265,6 +265,7 @@ import { deleteCdsUnitTest } from './write/deleteCdsUnitTest';
 import { deleteClass } from './write/deleteClass';
 import { deleteInterface } from './write/deleteInterface';
 import { deleteLocalDefinitions } from './write/deleteLocalDefinitions';
+import { deleteLocalMacros } from './write/deleteLocalMacros';
 import { deleteLocalTestClass } from './write/deleteLocalTestClass';
 import { deleteMetadataExtension } from './write/deleteMetadataExtension';
 import { deleteProgram } from './write/deleteProgram';
@@ -519,6 +520,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   deleteMetadataExtension,
   deleteLocalTestClass,
   deleteLocalDefinitions,
+  deleteLocalMacros,
 
   // 묶음: tail-test — 꼬리 — 단위시험·CDS 단위시험·Update 계열 12종 (순서 29)
 
