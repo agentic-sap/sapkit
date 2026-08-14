@@ -255,6 +255,11 @@
     "detail": "src/tools/read/__tests__/getTransaction.test.ts"
   },
   {
+    "tool": "GetTransport",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getTransport.test.ts"
+  },
+  {
     "tool": "GetTypeInfo",
     "passed": true,
     "detail": "src/tools/read/__tests__/getTypeInfo.test.ts"
