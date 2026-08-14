@@ -1814,3 +1814,22 @@ D번호를 주지 않는 이유가 그것이다. 그래도 장부에 두는 이�
 - **해소 마일스톤**: 없음 — 영구 차이(수리)다.
 - **기계 장부 반영**: **못 했다**(`harness/replay/**` 무접촉). 도구 응답이 `isError`째로
   달라지므로 **기계 장부에 와야 한다.** 오케스트레이터가 묶음 병합 뒤에 옮긴다.
+
+### D122 — `UpdateLocalMacros`가 `activate_on_update:true`의 **거짓 성공**을 고쳤다
+- **분류**: 수리(구의 거짓 성공을 고침)
+- **구 동작(실측)**: D121과 **같은 모양**이다. `AdtLocalMacros.update()`
+  (`engine/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalMacros.js:158-230`)
+  가 `options`에서 읽는 것은 `lockHandle`과 `sourceCode`뿐이고 **`activateOnUpdate`를
+  한 번도 읽지 않는다.** 그런데 겉 핸들러는 그 플래그를 넘긴 뒤
+  (`engine/src/handlers/class/high/handleUpdateLocalMacros.ts:85`) 응답에
+  `activated: activate_on_update`를 그대로 실었다(`:130`).
+- **신 동작**: 요청받았으면 해제 뒤에 실제로 활성화하고, 활성화 응답 본문의
+  `E`/`A`/`X`를 실패로 판정한다. 경고(`W`)만 있으면 성공이다.
+- **판정 근거**: D2 · D41 · D121과 **같은 사슬의 같은 자리**다. 짝인
+  `UpdateLocalDefinitions`만 고치고 여기를 두면 인클루드 이름 하나 차이로 안전
+  바닥선이 갈린다. 요구 급이 `계약 시험`이라 사람 실기로 뒤늦게 잡을 기회도 없다.
+- **대체 기대 시험**:
+  `sapkit-engine/src/tools/write/__tests__/updateLocalMacros.test.ts`의 「D122」 절.
+- **해소 마일스톤**: 없음 — 영구 차이(수리)다.
+- **기계 장부 반영**: **못 했다**(`harness/replay/**` 무접촉). 도구 응답이 `isError`째로
+  달라지므로 **기계 장부에 와야 한다.** 오케스트레이터가 묶음 병합 뒤에 옮긴다.

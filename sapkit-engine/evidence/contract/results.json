@@ -650,6 +650,11 @@
     "detail": "src/tools/write/__tests__/updateLocalDefinitions.test.ts"
   },
   {
+    "tool": "UpdateLocalMacros",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateLocalMacros.test.ts"
+  },
+  {
     "tool": "UpdateLocalTestClass",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateLocalTestClass.test.ts"
