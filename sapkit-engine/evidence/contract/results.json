@@ -75,6 +75,11 @@
     "detail": "src/tools/rfc-read/__tests__/getStructure.test.ts"
   },
   {
+    "tool": "GetSystemInfo",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getSystemInfo.test.ts"
+  },
+  {
     "tool": "GetTable",
     "passed": true,
     "detail": "src/tools/rfc-read/__tests__/getTable.test.ts"

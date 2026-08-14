@@ -88,6 +88,7 @@ import {
 // 묶음: system
 import { getAbapAST } from './read/getAbapAST';
 import { getSession } from './read/getSession';
+import { getSystemInfo } from './read/getSystemInfo';
 
 // 묶음: search
 
@@ -140,6 +141,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getInstalledComponents,
   getAbapAST,
   getSession,
+  getSystemInfo,
 
   // 묶음: search — 검색 (순서 2)
 
