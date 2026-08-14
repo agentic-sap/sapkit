@@ -10,16 +10,39 @@
  * 아니라 **빠진 것을 드러내는 쪽**으로 기운다: 증거 없는 도구는 따로 모아 세고,
  * 휴면 등재는 통과로 세지 않으며, 이연된 등재는 통과가 아니라 이연으로 센다.
  *
- * 증거 급은 spec §2.5:
+ * 증거 급은 **넷**이다.
  *
- * | 표면 | 증거 |
+ * | 급 | 무엇 |
  * |---|---|
- * | 실사용 표면 | 녹화-재생 대조 (`replay`) |
- * | 미사용 표면 | 도구별 계약 시험 (`contract`) + 대표 건 attended 실기 (`attended`) |
- * | 전 표면 공통 | tool-catalog 대조 diff 0 · 게이트 · 마일스톤별 attended 확인 |
+ * | `replay` | 재생 정규화 diff 0 |
+ * | `contract` | 도구별 계약 시험 |
+ * | `attended` | attended 실기 기록 |
+ * | `substitute` | **의도적 차이 등재분의 대체 기대 시험** |
  *
- * 마지막 줄(전 표면 공통)은 도구 단위가 아니라 **표면 전체**에 걸리는 증거라
- * 이 표의 행이 아니다. 그 판정은 자체 게이트가 소유한다.
+ * 넷째 급이 없으면 그것만 가진 도구가 "증거 없음"으로 떨어진다 — 비교에서
+ * 뺀 것이 곧 무증거가 되지 않게 하는 것이 장부 등재 규칙 ②인데, 표가 그
+ * 규칙을 배반하는 셈이다.
+ *
+ * "전 표면 공통"(tool-catalog 대조 diff 0 · 게이트 · 마일스톤별 attended 확인)은
+ * 도구 단위가 아니라 **표면 전체**에 걸리는 증거라 이 표의 행이 아니다. 그
+ * 판정은 자체 게이트가 소유한다.
+ *
+ * ## 요구 증거 급과 상태 3칸
+ *
+ * 도구마다 **주 급이 정확히 하나**다(사다리: `Create*`·`Delete*` → attended ·
+ * 실사용 호출 이력 → replay · 그 밖 → contract). 어느 도구가 어느 칸인지를
+ * **여기서 정하지 않는다** — 실사용 데이터를 근거로 배정하는 것은 부르는 쪽의
+ * 몫이고, 이 계산기는 그것을 입력으로 받아 셈만 한다. 입력이 없으면 사다리
+ * 3(계약 시험)이다.
+ *
+ * **차이 장부 등재분은 급이 아니라 부가 요건이다.** 등재된 도구는 주 급에
+ * *더해* 대체 기대 시험을 요구한다 — 급을 대체하지 않는다.
+ *
+ * 상태는 셋이고 **판정 기준은 등록점 하나다**: 등록점에 없으면 `안 지음`,
+ * 있는데 요구 급이 덜 찼으면 `지음 · 증거 대기`, 다 찼으면 `증거 있음`.
+ * 시험 통과·선언 일치 같은 완성 조건은 게이트가 따로 강제하며 여기 섞지
+ * 않는다 — 섞으면 "시험이 깨진 등록된 도구"가 `안 지음`으로 떨어져 다음 판이
+ * 같은 도구를 다시 짓는다.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -28,8 +51,27 @@ import { M1_DIVERGENCES } from './divergences';
 import type { DivergenceClassification, DivergenceEntry, DivergenceStatus } from './divergences';
 import type { SequenceReplayResult, SequenceVerdict } from './types';
 
-export type EvidenceGrade = 'replay' | 'contract' | 'attended';
+export type EvidenceGrade = 'replay' | 'contract' | 'attended' | 'substitute';
 export type EvidenceStatus = 'pass' | 'fail' | 'none';
+
+/**
+ * 주 급 — 사다리가 고르는 하나.
+ *
+ * 대체 기대 시험은 **부가 요건**이라 주 급이 될 수 없다. 등재분을 비교에서
+ * 빼면서 그 뺀 사실 자체를 급으로 세우면, 장부가 주 급을 대신하게 된다.
+ */
+export type PrimaryGrade = Exclude<EvidenceGrade, 'substitute'>;
+
+/** 요구 급 입력이 없을 때의 기본 — 사다리 3(호출 이력도 자산 참조도 없는 꼬리). */
+export const DEFAULT_PRIMARY_GRADE: PrimaryGrade = 'contract';
+
+export type ToolStatus =
+  /** 등록점(`src/tools/registry.ts`)에 없다. */
+  | 'not-built'
+  /** 등록점에 있다. 그러나 요구 증거 급이 아직 안 찼다. */
+  | 'awaiting-evidence'
+  /** 요구 증거 급이 찼다 (부가 요건이 있으면 그것까지). */
+  | 'evidenced';
 
 export interface EvidenceCell {
   readonly status: EvidenceStatus;
@@ -40,10 +82,24 @@ export interface EvidenceCell {
 
 export interface CoverageRow {
   readonly tool: string;
+  /** 판정 기준은 등록점 하나다 — 시험 통과 여부를 섞지 않는다. */
+  readonly status: ToolStatus;
+  /** 이 도구가 채워야 하는 주 급. 입력이 없으면 `DEFAULT_PRIMARY_GRADE`. */
+  readonly requiredGrade: PrimaryGrade;
+  /** 차이 장부 등재분인가 — 등재면 주 급에 **더해** 대체 기대 시험을 요구한다. */
+  readonly requiresSubstitute: boolean;
   readonly replay: EvidenceCell;
   readonly contract: EvidenceCell;
   readonly attended: EvidenceCell;
-  /** 어느 급에서든 pass가 하나라도 있는가. */
+  readonly substitute: EvidenceCell;
+  /** 아직 통과가 없는 요구 급(주 급 + 부가 요건). 비어 있으면 요구가 다 찼다. */
+  readonly missing: readonly EvidenceGrade[];
+  /**
+   * 어느 급에서든 pass가 하나라도 있는가.
+   *
+   * **요구 급 충족과는 다른 질문이다** — 요구가 재생인데 계약 시험만 통과한
+   * 도구는 증거는 있고 급은 덜 찬 상태다.
+   */
   readonly hasEvidence: boolean;
 }
 
@@ -67,6 +123,13 @@ export interface CoverageReport {
   readonly tools: readonly CoverageRow[];
   /** 어느 급에서도 증거가 없는 도구. **이 목록이 이 표의 존재 이유다.** */
   readonly toolsWithoutEvidence: readonly string[];
+  /** 지었으나 요구 급이 덜 찬 도구. 다음 판이 갚아야 할 빚이다. */
+  readonly toolsAwaitingEvidence: readonly string[];
+  /**
+   * 등록점 스냅샷을 받았는가. 거짓이면 `안 지음`을 **판정하지 않은 것**이지
+   * 없다는 뜻이 아니다 — 이 계산기는 등록점을 스스로 읽지 않는다.
+   */
+  readonly registryKnown: boolean;
   readonly sequences: readonly { readonly sequenceId: string; readonly verdict: SequenceVerdict; readonly steps: number }[];
   readonly proseNormalized: {
     readonly divergenceId: string;
@@ -76,7 +139,14 @@ export interface CoverageReport {
     readonly byTool: readonly { readonly tool: string; readonly count: number }[];
   };
   readonly divergences: readonly DivergenceCoverageRow[];
-  readonly totals: { readonly tools: number; readonly withEvidence: number; readonly withoutEvidence: number };
+  readonly totals: {
+    readonly tools: number;
+    readonly withEvidence: number;
+    readonly withoutEvidence: number;
+    readonly notBuilt: number;
+    readonly awaitingEvidence: number;
+    readonly evidenced: number;
+  };
 }
 
 export interface ToolEvidenceInput {
@@ -91,6 +161,20 @@ export interface CoverageInput {
   readonly replays?: readonly SequenceReplayResult[];
   readonly contractTests?: readonly ToolEvidenceInput[];
   readonly attended?: readonly ToolEvidenceInput[];
+  /**
+   * 장부 등재분의 **대체 기대 시험** 결과. 재생 밖에서 도는 시험(각 계층의
+   * 오류 정규화 시험 등)이 이 통로로 들어온다 — 재생 중에 판정된 등재분은
+   * `replays`의 `allowlisted-*` 단계에서 알아서 이 급으로 들어간다.
+   */
+  readonly substituteTests?: readonly ToolEvidenceInput[];
+  /**
+   * 등록점에 실제로 올라 있는 도구 이름. 주면 그 밖의 행은 `안 지음`이다.
+   * 주지 않으면 등록 여부를 **판정하지 않는다**(행 전체를 등록된 것으로 본다) —
+   * 등록점을 보지 않고 "안 지음"이라고 단정하지 않기 위해서다.
+   */
+  readonly registered?: readonly string[];
+  /** 도구 → 주 급. 없는 도구는 `DEFAULT_PRIMARY_GRADE`. */
+  readonly requiredGrades?: Readonly<Record<string, PrimaryGrade>>;
   /** 표에 실을 장부. 기본은 `M1_DIVERGENCES`. */
   readonly divergences?: readonly DivergenceEntry[];
 }
@@ -116,6 +200,7 @@ export function buildCoverage(input: CoverageInput): CoverageReport {
   const replays = input.replays ?? [];
 
   const replayCells = new Map<string, EvidenceCell>();
+  const substituteCells = new Map<string, EvidenceCell>();
   const proseByTool = new Map<string, number>();
   const divergenceTally = new Map<string, { judged: number; passed: number; deferred: number; failed: number }>();
   let proseTotal = 0;
@@ -133,8 +218,14 @@ export function buildCoverage(input: CoverageInput): CoverageReport {
       }
       // 이연·미실행은 증거가 아니다 — pass로도 fail로도 세지 않는다.
       if (step.verdict === 'allowlisted-deferred' || step.verdict === 'not-run') continue;
-      const status: EvidenceStatus =
-        step.verdict === 'match' || step.verdict === 'allowlisted-pass' ? 'pass' : 'fail';
+      // 등재로 판정된 단계는 **diff 0이 아니다.** 재생 급에 넣으면 장부 등재가
+      // 주 급을 대신하게 되므로 넷째 급으로 보낸다.
+      if (step.verdict === 'allowlisted-pass' || step.verdict === 'allowlisted-fail') {
+        const status: EvidenceStatus = step.verdict === 'allowlisted-pass' ? 'pass' : 'fail';
+        substituteCells.set(step.tool, merge(substituteCells.get(step.tool) ?? EMPTY_CELL, status, step.detail));
+        continue;
+      }
+      const status: EvidenceStatus = step.verdict === 'match' ? 'pass' : 'fail';
       replayCells.set(step.tool, merge(replayCells.get(step.tool) ?? EMPTY_CELL, status, step.detail));
     }
     for (const record of result.proseNormalized) {
@@ -150,21 +241,51 @@ export function buildCoverage(input: CoverageInput): CoverageReport {
 
   const contractCells = fromInputs(input.contractTests);
   const attendedCells = fromInputs(input.attended);
+  for (const evidence of input.substituteTests ?? []) {
+    substituteCells.set(
+      evidence.tool,
+      merge(
+        substituteCells.get(evidence.tool) ?? EMPTY_CELL,
+        evidence.passed ? 'pass' : 'fail',
+        evidence.detail ?? null,
+      ),
+    );
+  }
+
+  // 장부에 도구 이름으로 등재된 것만 부가 요건이 된다. 계층 차이(도구 null)는
+  // 도구 단위 요건이 아니다. 휴면 등재도 포함한다 — 등록점에 있는데 휴면으로
+  // 등재돼 있다면 장부가 낡았다는 신호이고, 요건을 빼면 그 신호가 사라진다.
+  const ledgerTools = new Set(ledger.map((entry) => entry.tool).filter((name): name is string => name !== null));
+  const registered = input.registered === undefined ? null : new Set(input.registered);
+  const requiredGrades = input.requiredGrades ?? {};
 
   const tools: CoverageRow[] = [...input.tools].sort().map((tool) => {
-    const replay = replayCells.get(tool) ?? EMPTY_CELL;
-    const contract = contractCells.get(tool) ?? EMPTY_CELL;
-    const attended = attendedCells.get(tool) ?? EMPTY_CELL;
+    const cells: Readonly<Record<EvidenceGrade, EvidenceCell>> = {
+      replay: replayCells.get(tool) ?? EMPTY_CELL,
+      contract: contractCells.get(tool) ?? EMPTY_CELL,
+      attended: attendedCells.get(tool) ?? EMPTY_CELL,
+      substitute: substituteCells.get(tool) ?? EMPTY_CELL,
+    };
+    const requiredGrade = requiredGrades[tool] ?? DEFAULT_PRIMARY_GRADE;
+    const requiresSubstitute = ledgerTools.has(tool);
+
+    const required: EvidenceGrade[] = requiresSubstitute ? [requiredGrade, 'substitute'] : [requiredGrade];
+    const missing = required.filter((grade) => cells[grade].status !== 'pass');
+    const built = registered === null || registered.has(tool);
+
     return {
       tool,
-      replay,
-      contract,
-      attended,
-      hasEvidence: [replay, contract, attended].some((cell) => cell.status === 'pass'),
+      status: !built ? 'not-built' : missing.length === 0 ? 'evidenced' : 'awaiting-evidence',
+      requiredGrade,
+      requiresSubstitute,
+      ...cells,
+      missing,
+      hasEvidence: Object.values(cells).some((cell) => cell.status === 'pass'),
     };
   });
 
   const toolsWithoutEvidence = tools.filter((row) => !row.hasEvidence).map((row) => row.tool);
+  const toolsAwaitingEvidence = tools.filter((row) => row.status === 'awaiting-evidence').map((row) => row.tool);
 
   const divergences: DivergenceCoverageRow[] = ledger.map((entry) => {
     const tally = divergenceTally.get(entry.id) ?? { judged: 0, passed: 0, deferred: 0, failed: 0 };
@@ -184,6 +305,8 @@ export function buildCoverage(input: CoverageInput): CoverageReport {
   return {
     tools,
     toolsWithoutEvidence,
+    toolsAwaitingEvidence,
+    registryKnown: registered !== null,
     sequences: replays.map((result) => ({
       sequenceId: result.sequenceId,
       verdict: result.verdict,
@@ -200,6 +323,9 @@ export function buildCoverage(input: CoverageInput): CoverageReport {
       tools: tools.length,
       withEvidence: tools.length - toolsWithoutEvidence.length,
       withoutEvidence: toolsWithoutEvidence.length,
+      notBuilt: tools.filter((row) => row.status === 'not-built').length,
+      awaitingEvidence: toolsAwaitingEvidence.length,
+      evidenced: tools.filter((row) => row.status === 'evidenced').length,
     },
   };
 }
@@ -208,8 +334,25 @@ export function buildCoverage(input: CoverageInput): CoverageReport {
 
 const CELL_MARK: Readonly<Record<EvidenceStatus, string>> = { pass: '통과', fail: '실패', none: '—' };
 
+const GRADE_LABEL: Readonly<Record<EvidenceGrade, string>> = {
+  replay: '재생 대조',
+  contract: '계약 시험',
+  attended: 'attended 실기',
+  substitute: '대체 기대 시험',
+};
+
+const STATUS_LABEL: Readonly<Record<ToolStatus, string>> = {
+  'not-built': '안 지음',
+  'awaiting-evidence': '지음 · 증거 대기',
+  evidenced: '증거 있음',
+};
+
 function cellText(cell: EvidenceCell): string {
   return cell.count === 0 ? CELL_MARK.none : `${CELL_MARK[cell.status]}(${cell.count})`;
+}
+
+function requiredText(row: CoverageRow): string {
+  return row.requiresSubstitute ? `${GRADE_LABEL[row.requiredGrade]} + 대체` : GRADE_LABEL[row.requiredGrade];
 }
 
 export function renderCoverageMarkdown(report: CoverageReport): string {
@@ -220,12 +363,21 @@ export function renderCoverageMarkdown(report: CoverageReport): string {
     `도구 ${report.totals.tools} · 증거 있는 도구 ${report.totals.withEvidence} · ` +
       `**증거 없는 도구 ${report.totals.withoutEvidence}**`,
   );
+  lines.push(
+    `상태 — 안 지음 ${report.totals.notBuilt} · **지음 · 증거 대기 ${report.totals.awaitingEvidence}** · ` +
+      `증거 있음 ${report.totals.evidenced}`,
+  );
+  if (!report.registryKnown) {
+    lines.push('');
+    lines.push('> 등록점 스냅샷을 받지 않았다 — `안 지음`은 **판정하지 않았다**. 없다는 뜻이 아니다.');
+  }
   lines.push('');
-  lines.push('| 도구 | 재생 대조 | 계약 시험 | attended 실기 | 증거 |');
-  lines.push('|---|---|---|---|---|');
+  lines.push('| 도구 | 상태 | 요구 급 | 재생 대조 | 계약 시험 | attended 실기 | 대체 기대 시험 | 증거 |');
+  lines.push('|---|---|---|---|---|---|---|---|');
   for (const row of report.tools) {
     lines.push(
-      `| ${row.tool} | ${cellText(row.replay)} | ${cellText(row.contract)} | ${cellText(row.attended)} | ` +
+      `| ${row.tool} | ${STATUS_LABEL[row.status]} | ${requiredText(row)} | ${cellText(row.replay)} | ` +
+        `${cellText(row.contract)} | ${cellText(row.attended)} | ${cellText(row.substitute)} | ` +
         `${row.hasEvidence ? '있음' : '**증거 없음**'} |`,
     );
   }
@@ -239,6 +391,20 @@ export function renderCoverageMarkdown(report: CoverageReport): string {
     lines.push('아래 도구는 **어느 급에서도 통과 증거가 없다**. 재생 픽스처나 계약 시험이 아직 없다는 뜻이다.');
     lines.push('');
     for (const tool of report.toolsWithoutEvidence) lines.push(`- ${tool}`);
+  }
+  lines.push('');
+
+  lines.push('## 지었으나 요구 급이 덜 찬 도구');
+  lines.push('');
+  if (report.toolsAwaitingEvidence.length === 0) {
+    lines.push('없다 — 등록점에 있는 도구는 모두 요구 급을 채웠다.');
+  } else {
+    lines.push('아래 도구는 **등록점에 있으나 요구 증거 급이 아직 안 찼다**. 다른 급의 증거가 있어도 대신하지 못한다.');
+    lines.push('');
+    for (const row of report.tools) {
+      if (row.status !== 'awaiting-evidence') continue;
+      lines.push(`- ${row.tool} — 요구 ${requiredText(row)} · 모자란 급 ${row.missing.map((g) => GRADE_LABEL[g]).join(', ')}`);
+    }
   }
   lines.push('');
 
