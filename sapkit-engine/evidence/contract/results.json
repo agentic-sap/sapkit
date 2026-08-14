@@ -230,6 +230,11 @@
     "detail": "src/tools/write/__tests__/updateInclude.test.ts"
   },
   {
+    "tool": "UpdateInterface",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateInterface.test.ts"
+  },
+  {
     "tool": "UpdateProgram",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateProgram.test.ts"

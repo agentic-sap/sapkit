@@ -166,6 +166,7 @@ import { reloadProfile } from './runtime/reloadProfile';
 import { getInterface } from './read/getInterface';
 import { readInterface } from './read/readInterface';
 import { createInterface } from './write/createInterface';
+import { updateInterface } from './write/updateInterface';
 
 // 묶음: enhancement
 
@@ -295,6 +296,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   createInterface,
   getInterface,
   readInterface,
+  updateInterface,
 
   // 묶음: enhancement — 인핸스먼트 (순서 28)
 
