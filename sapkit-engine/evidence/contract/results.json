@@ -50,6 +50,11 @@
     "detail": "src/tools/write/__tests__/createProgram.test.ts"
   },
   {
+    "tool": "CreateServiceDefinition",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createServiceDefinition.test.ts"
+  },
+  {
     "tool": "CreateStructure",
     "passed": true,
     "detail": "src/tools/write/__tests__/createStructure.test.ts"
