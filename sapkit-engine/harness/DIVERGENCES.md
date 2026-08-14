@@ -804,6 +804,66 @@
 - **비고**: 키가 하나 **느는** 방향이므로 구의 키를 읽던 소비자는 그대로 돈다.
   기계용 장부로 옮기는 일은 D38과 같은 이유로 그 파일을 소유한 작업의 몫이다.
 
+### D76 — 인핸스먼트 묶음의 GET에 **본문을 싣지 않는다** (구: `{"Accept":…}` JSON 본문)
+
+- **분류**: 수리
+- **구 동작(실측)**: 인핸스먼트 세 핸들러는 `Accept` 헤더를 주려고
+  `{ Accept: '…' }`를 넘기는데, **그 자리가 헤더 자리가 아니다.**
+  `makeAdtRequestWithTimeout`의 시그니처는
+  `(connection, url, method, timeoutType, data, params, headers)`이므로
+  (`engine/src/lib/utils.ts:902-910`) 다섯째 인자는 `data`다. 어긋난 호출 다섯:
+  - `handleGetEnhancements.ts:171-179`(클래스 판별 · `…oo.classes.v4+xml`)
+  - `handleGetEnhancements.ts:196-204`(프로그램 판별 · `…programs.v3+xml`)
+  - `handleGetEnhancements.ts:220-228`(인클루드 판별 · `…programs.includes.v2+xml`)
+  - `handleGetEnhancementSpot.ts:150-158`(스팟 · `…enhancements.v1+xml`)
+  - `handleGetEnhancementImpl.ts:174-182`(스팟 폴백 · `…enhancements.v1+xml`)
+
+  **구 트리 전체에서 이 어긋남은 이 다섯뿐이다.** 헤더를 제대로 넘기는 호출은
+  `undefined, undefined`를 끼워 일곱째에 놓는다(예:
+  `engine/src/handlers/atc/readonly/handleGetAtcFindings.ts:107-117`·`:138-146`).
+  그래서 구가 실제로 보낸 것은 둘이다 —
+  ⑴ `Accept`는 접속 계층 기본값(`@babamba2/mcp-abap-connection/dist/connection/
+  AbstractAbapConnection.js:160-165` — 호출자가 안 주면 붙는 값), ⑵ **GET인데
+  `requestConfig.data`가 채워진다**(`:217-219`는 메서드를 보지 않는다). axios는
+  평범한 객체를 JSON으로 직렬화하므로 `{"Accept":"application/vnd.sap.adt.…"}`가
+  GET 본문으로 나간다.
+- **신 동작**: ⑴은 **그대로 둔다** — 신 엔진의 `DEFAULT_ACCEPT`
+  (`src/adt/client.ts:51`)가 구 기본값과 같은 문자열이라 와이어가 일치한다.
+  ⑵만 하지 않는다. 다섯 요청 전부 본문 없이 나간다.
+- **근거**: 소스에 적힌 vnd `Accept`를 **되살리는** 쪽은 이식이 아니라 새 기능이다
+  (`GetTransaction`의 주석 처리된 구현을 되살리지 않은 것과 같은 판단). 그 헤더가
+  실제로 나갔을 때 SAP이 무엇을 돌려주는지 이 판은 확인할 근거가 없고, 릴리스가
+  그 표현을 모르면 구는 200이던 자리에서 신은 406이 된다. 반대로 GET 본문은
+  **되살릴 이유가 없다** — 구가 의도한 적 없는 부작용이고, 서버·프록시가 거부할
+  수 있으며, ADT가 읽지도 않는다.
+- **대체 기대 시험**: 세 도구의 계약 시험이 「D76」으로 이름 붙은 절을 갖는다 —
+  `src/tools/read/__tests__/getEnhancementSpot.test.ts`(2건: 기본 Accept가 나가고
+  vnd가 아니다 / 본문·Content-Type이 없다) ·
+  `getEnhancementImpl.test.ts`(2건: 본선·폴백 각각) ·
+  `getEnhancements.test.ts`(1건: 판별 왕복 셋 전부).
+- **⚠️ 기계 장부 미반영**: 요청 본문이 달라지므로 재생 대조에 나타난다 →
+  `harness/replay/divergences.ts`에 와야 한다. 이 과제의 범위가 그 파일을
+  제외해(묶음 8개 동시 제작) **옮기지 못했다.** 재생을 켜기 전에 옮겨야 한다.
+
+### D77 — 인핸스먼트 두 도구의 `type: 'json'` 블록을 **규약대로 text로** (D36의 같은 규칙)
+
+- **분류**: 수리
+- **구 동작(실측)**: `GetEnhancementSpot`(`handleGetEnhancementSpot.ts:169-177`)과
+  `GetEnhancementImpl`(`handleGetEnhancementImpl.ts:153-161`·`:194-208`)이 성공
+  응답을 `{ type: 'json', json: … }`로 실었다. 같은 묶음의 `GetEnhancements`는
+  구도 `type: 'text'`였다(`handleGetEnhancements.ts:662-670`) — 이 항목 밖이다.
+- **신 동작**: 같은 객체를 `JSON.stringify`한 문자열을 `type: 'text'` 블록 하나에
+  싣는다. 필드 이름·구조·값은 그대로다.
+- **근거**: D36과 **같은 규칙의 새 적용**이다 — `json`은 MCP 규약의 콘텐츠 종류가
+  아니고(`text`·`image`·`audio`·`resource`뿐), 신 엔진의 `ToolTextContent`에는
+  그것을 표현할 통로가 없다. D36 본문은 append-only라 고치지 않고 여기 새로 적는다.
+- **대체 기대 시험**: `src/tools/read/__tests__/getEnhancementSpot.test.ts`의
+  「D36 — 구의 `type: json` 블록을 규약대로 text 하나에 싣는다」 ·
+  `getEnhancementImpl.test.ts`의 「소스 꺼내기」·「폴백」 절 전량(응답 본문을
+  `JSON.parse`해 구의 필드와 대조한다).
+- **⚠️ 기계 장부 미반영**: D36과 같은 이유로 재생 대조 대상이지만, 이 과제의
+  범위가 `harness/replay/**`를 제외했다.
+
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 
 리뷰에서 차이로 잡혔지만 **유지할 이유가 없어** 구 동작으로 되돌린 것들.
