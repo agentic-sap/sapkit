@@ -71,6 +71,8 @@ describe('셰임 계약', () => {
         'GrepPackages',
         'ReadDataElement',
         'ReadDomain',
+        'ReadFunctionGroup',
+        'ReadFunctionModule',
         'ReadInterface',
         'ReadView',
         'ReloadProfile',

@@ -1032,6 +1032,59 @@
   「`adtcore:responsible`은 값이 없으면 **속성 자체가 빠진다**」.
 - **기계 장부 미반영**: 생성 POST의 본문이 달라질 수 있으므로 **와이어 차이**다.
   위와 같은 이유로 옮기지 못했다.
+### D51 — `UpdateFunctionModule`이 활성화 응답을 **읽는다** (구: 버린다)
+
+- **분류**: 수리
+- **구 동작(실측)**: `engine/src/handlers/function/high/handleUpdateFunctionModule.ts:172-191` —
+  `client.getFunctionModule().activate(...)`의 반환값을 **아무 데도 쓰지 않고**
+  바로 `activated: shouldActivate`가 박힌 성공 응답을 만든다. 그 호출은
+  `@babamba2/mcp-abap-adt-clients/dist/core/functionModule/activation.js:11-17` →
+  `utils/activationUtils.js:115-131`로 내려가는데, ADT의 활성화는 **실패도 HTTP
+  200으로** 답하고 실패 내용을 본문의 `<chkl:msg type="E">`에 담는다. 즉 활성화가
+  실패해도 도구는 `success: true, activated: true`를 보고한다.
+- **신 동작**: 응답 본문을 `parseActivationMessages`로 갈라 `E`/`A`/`X` 메시지가
+  하나라도 있으면 **실패로 되돌린다**. 문구는 활성 버전이 그대로라는 것과 쓴 소스가
+  비활성 버전으로 남아 있다는 것을 함께 말한다.
+- **근거**: 활성화되지 않은 것을 활성화됐다고 말하는 것은 거짓 성공이며, 이 레포에는
+  CLAS 거짓 성공 실증 이력이 있다(`CLAUDE.md` 안전 규칙 — write 성공 보고를 그대로
+  믿지 않는다). 이미 지어진 `UpdateProgram`(`src/tools/write/updateProgram.ts:102-122`)이
+  같은 판정을 하고 있으므로, 같은 표면 안에서 도구마다 다르게 답하지 않게 맞춘 것이기도
+  하다.
+- **범위**: 응답 **키는 늘리지 않았다** — 성공 응답의 모양은 구 그대로이고, 달라지는
+  것은 활성화가 실패했을 때 `isError`가 참이 된다는 것뿐이다.
+- **대체 기대 시험**:
+  `src/tools/write/__tests__/updateFunctionModule.test.ts`의
+  「활성화가 200에 오류를 담아 와도 성공으로 접지 않는다 (D51)」 ·
+  「activate=true면 해제 뒤에 활성화가 나간다」(깨끗한 응답은 그대로 성공).
+- **기계 장부**: **미반영.** 이 과제는 `harness/replay/**` 무접촉이다. 도구 응답의
+  `isError`가 갈리므로 **옮겨야 할 항목**이며, 옮기지 않은 채 재생을 켜면 이 갈래가
+  가짜 실패로 잡힌다(`ADDING-A-TOOL.md` 부록 A).
+
+### D52 — `CreateFunctionGroup`의 생성 뒤 읽기에서 **404 재시도(5초 대기)를 승계하지 않는다**
+
+- **분류**: 축소 — **해소 마일스톤 = C1 녹화에서 이 404가 실제로 관찰될 때**
+- **구 동작(실측)**:
+  `@babamba2/mcp-abap-adt-clients/dist/core/functionGroup/AdtFunctionGroup.js:161-189` —
+  생성 체인의 마지막 읽기가 404를 받으면 `setTimeout(5000)`으로 5초를 기다렸다가
+  **한 번 더** 같은 GET을 보내고, 그것도 실패하면 읽기 결과 없이 넘어간다.
+  클라우드의 최종 일관성을 겨눈 장치다.
+- **신 동작**: 그 읽기는 그대로 보내되 **404 재시도와 5초 대기를 하지 않는다.**
+  실패하면 구의 마지막 갈래와 같이 삼키고 넘어간다.
+- **근거**: 그 읽기의 응답을 **아무도 쓰지 않는다.** 구 핸들러
+  (`engine/src/handlers/function/high/handleCreateFunctionGroup.ts:237-262`)는
+  `create()`의 반환값을 받지 않고 자기 손으로 성공 응답을 조립한다. 즉 재시도가
+  성공하든 실패하든 도구 응답은 한 글자도 달라지지 않으며, 남는 것은 **5초의
+  정지**뿐이다. 신 엔진에는 도구가 시계를 주입받는 통로도 없어서 그 대기는
+  시험에서 그대로 실시간 5초가 된다.
+- **범위**: 왕복 **수**가 갈리는 것은 그 읽기가 404를 받는 경우뿐이다. 정상 경로의
+  요청 순서·개수는 구와 같다(8단계).
+- **대체 기대 시험**:
+  `src/tools/write/__tests__/createFunctionGroup.test.ts`의
+  「준비 대기·마무리 읽기가 404여도 성공을 막지 않는다」 —
+  읽기 둘이 모두 404여도 도구가 성공으로 끝난다는 것, 즉 재시도가 없어도 응답이
+  같다는 것을 못 박는다.
+- **기계 장부**: **미반영.** 이 과제는 `harness/replay/**` 무접촉이다. 404 갈래에서
+  **요청 시퀀스의 길이가 갈리므로** 옮겨야 할 항목이다.
 
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 

@@ -10,14 +10,14 @@
     "detail": "src/tools/read/__tests__/checkSyntax.test.ts"
   },
   {
-    "tool": "CreateDataElement",
+    "tool": "CreateFunctionGroup",
     "passed": true,
-    "detail": "src/tools/write/__tests__/createDataElement.test.ts"
+    "detail": "src/tools/write/__tests__/createFunctionGroup.test.ts"
   },
   {
-    "tool": "CreateDomain",
+    "tool": "CreateFunctionModule",
     "passed": true,
-    "detail": "src/tools/write/__tests__/createDomain.test.ts"
+    "detail": "src/tools/write/__tests__/createFunctionModule.test.ts"
   },
   {
     "tool": "CreateInclude",
@@ -55,14 +55,9 @@
     "detail": "src/tools/read/__tests__/getClass.test.ts"
   },
   {
-    "tool": "GetDataElement",
+    "tool": "GetFunctionGroup",
     "passed": true,
-    "detail": "src/tools/read/__tests__/getDataElement.test.ts"
-  },
-  {
-    "tool": "GetDomain",
-    "passed": true,
-    "detail": "src/tools/read/__tests__/getDomain.test.ts"
+    "detail": "src/tools/read/__tests__/getFunctionGroup.test.ts"
   },
   {
     "tool": "GetFunctionModule",
@@ -165,14 +160,14 @@
     "detail": "src/tools/read/__tests__/grepPackages.test.ts"
   },
   {
-    "tool": "ReadDataElement",
+    "tool": "ReadFunctionGroup",
     "passed": true,
-    "detail": "src/tools/read/__tests__/readDataElement.test.ts"
+    "detail": "src/tools/read/__tests__/readFunctionGroup.test.ts"
   },
   {
-    "tool": "ReadDomain",
+    "tool": "ReadFunctionModule",
     "passed": true,
-    "detail": "src/tools/read/__tests__/readDomain.test.ts"
+    "detail": "src/tools/read/__tests__/readFunctionModule.test.ts"
   },
   {
     "tool": "ReloadProfile",
@@ -238,6 +233,11 @@
     "tool": "UpdateClass",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateClass.test.ts"
+  },
+  {
+    "tool": "UpdateFunctionModule",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateFunctionModule.test.ts"
   },
   {
     "tool": "UpdateInclude",

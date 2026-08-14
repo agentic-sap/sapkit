@@ -127,6 +127,9 @@ import { reloadProfile } from './runtime/reloadProfile';
 // 묶음: program
 
 // 묶음: function-module
+import { readFunctionModule } from './read/readFunctionModule';
+import { createFunctionModule } from './write/createFunctionModule';
+import { updateFunctionModule } from './write/updateFunctionModule';
 
 // 묶음: structure
 
@@ -171,6 +174,9 @@ import { readDomain } from './read/readDomain';
 // 묶음: behavior-implementation
 
 // 묶음: function-group
+import { getFunctionGroup } from './read/getFunctionGroup';
+import { readFunctionGroup } from './read/readFunctionGroup';
+import { createFunctionGroup } from './write/createFunctionGroup';
 
 // 묶음: interface
 import { getInterface } from './read/getInterface';
@@ -270,6 +276,9 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: program — 프로그램 (순서 8)
 
   // 묶음: function-module — 함수모듈 (순서 9)
+  readFunctionModule,
+  createFunctionModule,
+  updateFunctionModule,
 
   // 묶음: structure — 구조체 (순서 10)
 
@@ -314,6 +323,9 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: behavior-implementation — 동작 구현 (BIMP) (순서 25)
 
   // 묶음: function-group — 함수그룹 (순서 26)
+  getFunctionGroup,
+  readFunctionGroup,
+  createFunctionGroup,
 
   // 묶음: interface — 인터페이스 (순서 27)
   createInterface,
