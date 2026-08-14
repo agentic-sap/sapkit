@@ -160,6 +160,7 @@ import { createView } from './write/createView';
 import { updateView } from './write/updateView';
 
 // 묶음: unit-test
+import { getUnitTestStatus } from './runtime/getUnitTestStatus';
 import { runUnitTest } from './runtime/runUnitTest';
 
 // 묶음: behavior-definition
@@ -333,6 +334,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
 
   // 묶음: unit-test — 단위시험 (순서 12)
   runUnitTest,
+  getUnitTestStatus,
 
   // 묶음: behavior-definition — 동작 정의 (BDEF) (순서 13)
 
