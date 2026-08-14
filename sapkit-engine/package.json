@@ -15,6 +15,9 @@
     "typecheck": "tsc --noEmit -p tsconfig.test.json",
     "build": "tsc -p tsconfig.json",
     "test": "jest --passWithNoTests",
+    "test:report": "jest --json --outputFile=.jest-report.json",
+    "evidence:contract": "node harness/contract-evidence.mjs --jest=.jest-report.json",
+    "ledger": "node harness/render-ledger.mjs",
     "gates": "node gates/run-all.mjs",
     "verify": "npm run build && npm run typecheck && npm test"
   },
