@@ -220,6 +220,11 @@
     "detail": "src/tools/read/__tests__/getProgram.test.ts"
   },
   {
+    "tool": "GetServiceBinding",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getServiceBinding.test.ts"
+  },
+  {
     "tool": "GetServiceDefinition",
     "passed": true,
     "detail": "src/tools/read/__tests__/getServiceDefinition.test.ts"
