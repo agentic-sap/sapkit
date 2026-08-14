@@ -30,6 +30,11 @@
     "detail": "src/tools/read/__tests__/getAbapAST.test.ts"
   },
   {
+    "tool": "GetAbapSemanticAnalysis",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getAbapSemanticAnalysis.test.ts"
+  },
+  {
     "tool": "GetClass",
     "passed": true,
     "detail": "src/tools/read/__tests__/getClass.test.ts"
