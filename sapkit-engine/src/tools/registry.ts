@@ -197,6 +197,7 @@ import { getScreensList } from './read/getScreensList';
 import { readScreen } from './rfc-read/readScreen';
 import { getScreen } from './rfc-read/getScreen';
 import { createScreen } from './write/createScreen';
+import { updateScreen } from './write/updateScreen';
 
 // 묶음: service-definition
 
@@ -377,6 +378,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   readScreen,
   getScreen,
   createScreen,
+  updateScreen,
 
   // 묶음: service-definition — 서비스 정의 (순서 24)
 

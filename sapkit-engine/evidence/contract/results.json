@@ -455,6 +455,11 @@
     "detail": "src/tools/write/__tests__/updateProgram.test.ts"
   },
   {
+    "tool": "UpdateScreen",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateScreen.test.ts"
+  },
+  {
     "tool": "UpdateSourceByPatch",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateSourceByPatch.test.ts"
