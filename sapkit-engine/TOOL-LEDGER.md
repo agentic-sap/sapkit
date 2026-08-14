@@ -6,7 +6,7 @@
 > - 재생성: `node harness/render-ledger.mjs` (`sapkit-engine/`에서 · `npm run build` 뒤)
 > - 대조: `node harness/render-ledger.mjs --check` — `npm run gates`의 「대장」 게이트가 같은 판정을 한다
 
-도구 186 · **안 지음 92** · **증거 대기 76** · **증거 있음 18**
+도구 186 · **안 지음 91** · **증거 대기 77** · **증거 있음 18**
 
 ## 위임형 열을 읽는 법 — 두 수는 단위가 다르다
 
@@ -27,7 +27,7 @@
 | 입력 | 파일 | 지금 |
 |---|---|---|
 | 도구 전체 목록 | `harness/old-surface/m1-tools.json` | 있음 · 186종 — 구 번들 표면 채록본의 전량 선언 |
-| 등록점 (`지음` 판정) | `src/tools/registry.ts` | 있음 · 94종 등재 |
+| 등록점 (`지음` 판정) | `src/tools/registry.ts` | 있음 · 95종 등재 |
 | 제작 계획 (묶음·순서·요구 급) | `harness/build-plan.json` | 있음 · 묶음 29 · 배정된 도구 186종 |
 | 재생 판정 파일 | `evidence/replay/*.json` | **없음** · 재생 증거는 전량 「미기록」. 러너가 판정을 이 경로에 쓰도록 배선돼 있고, 채우는 것은 다음 attended 세션이다 |
 | 재생 픽스처 | `fixtures/*.json` | 있음 · 7종의 도구를 건드린다 — 픽스처만으로는 증거가 아니다 |
@@ -37,7 +37,7 @@
 | 대체 기대 시험 | `harness/replay/divergences.ts 의 substituteTest 경로` | 있음 · 7종에 실재하는 시험 파일이 있다 |
 | 위임형 판정 | `../engine/src/handlers/**` | 있음 · 소스 559파일을 상대 import까지 따라가 판정 — 직접 46 · 간접 140 · 없음 0 |
 
-## 안 지음 (92)
+## 안 지음 (91)
 
 등록점(`src/tools/registry.ts`)에 없다. 아직 짓지 않은 도구다.
 
@@ -84,7 +84,6 @@
 | GetServiceDefinition | 서비스 정의 | 24 | 재생 대조 | — | — | — | — | 간접 |
 | ReadServiceDefinition | 서비스 정의 | 24 | 재생 대조 | — | — | — | — | 간접 |
 | UpdateServiceDefinition | 서비스 정의 | 24 | 재생 대조 | — | — | — | — | 직접 |
-| CreateBehaviorImplementation | 동작 구현 (BIMP) | 25 | attended 실기 | — | 통과(1) | — | — | 직접 |
 | UpdateBehaviorImplementation | 동작 구현 (BIMP) | 25 | 재생 대조 | — | 통과(1) | — | — | 직접 |
 | CreateCdsUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | — | — | — | 간접 |
 | CreatePackage | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | — | — | — | 직접 |
@@ -136,7 +135,7 @@
 | UpdateLocalMacros | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 간접 |
 | UpdateUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 간접 |
 
-## 지음 · 증거 대기 (76)
+## 지음 · 증거 대기 (77)
 
 등록점에 있다. 그러나 **요구 증거 급이 아직 안 찼다** — 다른 급의 증거가 있어도 요구 급을 대신하지 못한다.
 
@@ -212,6 +211,7 @@
 | CreateDomain | 도메인 | 16 | attended 실기 | — | 통과(1) | — | — | 직접 |
 | GetDomain | 도메인 | 16 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | ReadDomain | 도메인 | 16 | 재생 대조 | — | 통과(1) | — | — | 간접 |
+| CreateBehaviorImplementation | 동작 구현 (BIMP) | 25 | attended 실기 | — | 통과(1) | — | — | 직접 |
 | GetBehaviorImplementation | 동작 구현 (BIMP) | 25 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | ReadBehaviorImplementation | 동작 구현 (BIMP) | 25 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | CreateFunctionGroup | 함수그룹 | 26 | attended 실기 | — | 통과(1) | — | — | 직접 |
@@ -246,8 +246,8 @@
 
 ## 남은 수 요약
 
-- **안 지음 92** — 등록점에 없다
-- **증거 대기 76** — 지었으나 요구 증거 급이 아직 안 찼다
+- **안 지음 91** — 등록점에 없다
+- **증거 대기 77** — 지었으나 요구 증거 급이 아직 안 찼다
 - **증거 있음 18** — 요구 급이 찼다
 
 어느 급에서도 통과 증거가 없는 도구 **90종** (요구 급 충족과는 다른 질문이다 — 증거가 있어도 급이 덜 찰 수 있다).
