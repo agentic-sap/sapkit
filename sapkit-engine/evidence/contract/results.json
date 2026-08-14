@@ -135,6 +135,11 @@
     "detail": "src/tools/write/__tests__/deleteTable.test.ts"
   },
   {
+    "tool": "DeleteView",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteView.test.ts"
+  },
+  {
     "tool": "DescribeByList",
     "passed": true,
     "detail": "src/tools/read/__tests__/describeByList.test.ts"
