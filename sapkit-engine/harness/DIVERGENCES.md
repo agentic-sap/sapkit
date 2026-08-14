@@ -1240,6 +1240,59 @@
 - **비고**: 같은 결함이 **`UpdateClass`에도 있었고 그쪽은 이 장부에 등재되지
   않은 채 고쳐졌다.** 이 항목을 옮길 때 그 누락도 함께 다뤄야 한다.
 
+### D81 — `CreateTransport`가 만든 이송번호를 **응답에 싣는다** (구: 키 이름 어긋남으로 빈손)
+
+- **분류**: 수리 (구의 거짓 성공을 고침)
+- **구 동작(실측)**: 겉 핸들러는 벤더가 돌려준 객체를 `transportInfo`에 담고
+  (`engine/src/handlers/transport/high/handleCreateTransport.ts:145-147`) 거기서
+  **`transport_number`** 키를 읽는다(`:163, 175`). 그런데 벤더가 채우는 키 이름은
+  **`transport_request`**다(`@babamba2/mcp-abap-adt-clients/dist/core/transport/create.js:78`).
+  폴백으로 쓰는 지역 변수 `transportNumber`는 `:106`에서 선언만 되고 **값이
+  들어가는 자리가 없다.** 그래서 관측되는 성공 응답은 `transport_request` 키가
+  통째로 빠진 채(`undefined`는 `JSON.stringify`가 지운다) `message`가
+  **"Transport request unknown created successfully"**였다. 벤더 쪽에는 번호가
+  살아 있다 — `AdtRequest.create()`가 번호 없는 응답을 오류로 뒤집으므로
+  (`@babamba2/mcp-abap-adt-clients/dist/core/transport/AdtRequest.js`의 `create()`)
+  성공 경로에서 번호는 **반드시 존재한다.** 구는 알고 있던 값을 버린 것이다.
+- **신 동작**: `transport_request`와 `message`에 파싱된 `tm:number`를 싣는다.
+  나머지 키·폴백 순서·문구는 구 그대로이며, `task_number`도 구처럼 채우지
+  않는다 — 벤더 응답에도 구의 죽은 XML 갈래에도 그 값을 채우는 자리가 없어
+  「없다」가 곧 관측값이다.
+- **근거**: 이송요청을 만들어 놓고 번호를 못 돌려주면 호출자가 방금 만든 것을
+  가리킬 수 없다. 「성공이라고 답하지만 결과가 없다」는 이 레포가 반복해 잡아 온
+  모양이고(D46 — `GetProgFullCode`의 `data` 키 오타), 같은 분류로 고친다.
+- **대체 기대 시험**: `src/tools/write/__tests__/createTransport.test.ts`의
+  「응답 — 구의 키 + 이송번호 수리(D81)」 두 건 — 번호가 실리는지, 그리고 구의
+  `unknown created successfully` 모양이 되살아나지 않는지.
+- **⚠️ 기계 장부 미반영**: 도구 응답 본문이 달라지므로 **와이어 차이**다.
+  `harness/replay/divergences.ts`는 이 묶음 과제에 무접촉으로 걸려 있어 옮기지
+  못했다(여러 묶음이 같은 파일에서 충돌한다). **묶음 병합 뒤 한 번에 옮겨야
+  한다** — 옮기지 않은 채 재생을 켜면 이 차이가 결함으로 잡힌다.
+
+### D82 — 이송 계열의 사용자·소유자도 **env에서만** 읽는다 (D62의 범위 확장)
+
+- **분류**: 축소 — **해소 마일스톤은 D62와 같다**(시스템 문맥 해석을 서버 기동에
+  붙이는 자리).
+- **구 동작(실측)**: `ListTransports`는 `args.user || getSystemContext().responsible
+  || SAP_USERNAME || ''`로(`handleListTransports.ts:129-133`), `GetTransport`는
+  세션 사용자를 같은 식으로(`handleGetTransport.ts:271-273`), `CreateTransport`는
+  `config.owner ?? systemContext.responsible`로
+  (`@babamba2/mcp-abap-adt-clients/dist/core/transport/AdtRequest.js`의 `create()`)
+  값을 구한다. 그 `responsible`의 셋째 갈래가 `getSystemInformation(connection)`이다
+  (`engine/src/lib/systemContext.ts:45-86`).
+- **신 동작**: `context.env`의 (`SAP_RESPONSIBLE` || `SAP_USERNAME`)만 읽는다.
+- **근거**: D62와 같다 — 해석된 프로파일에는 `SAP_USERNAME`이 반드시 있으므로
+  (`src/profile/resolve.ts:233-241`) 셋째 갈래는 실사용에서 걸리지 않는다. D62는
+  같은 결정을 **생성 페이로드**에 한정해 적었으므로, 이송 계열까지 덮도록 범위만
+  넓혀 둔다.
+- **대체 기대 시험**: `src/tools/read/__tests__/listTransports.test.ts`의
+  「user는 프로파일에서 오고 …」·「user 인자가 프로파일을 이긴다」 ·
+  `src/tools/read/__tests__/getTransport.test.ts`의 「owner가 세션 사용자와 같으면
+  폴백하지 않는다」 · `src/tools/write/__tests__/createTransport.test.ts`의
+  「SAP_RESPONSIBLE이 SAP_USERNAME을 이긴다」.
+- **⚠️ 기계 장부 미반영**: 질의 인자(`?user=`)와 생성 본문의 `tm:owner`가 달라질
+  수 있으므로 **와이어 차이**다. D81과 같은 이유로 옮기지 못했다.
+
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 
 리뷰에서 차이로 잡혔지만 **유지할 이유가 없어** 구 동작으로 되돌린 것들.

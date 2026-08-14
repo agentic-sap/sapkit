@@ -60,6 +60,11 @@
     "detail": "src/tools/write/__tests__/createTable.test.ts"
   },
   {
+    "tool": "CreateTransport",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createTransport.test.ts"
+  },
+  {
     "tool": "CreateView",
     "passed": true,
     "detail": "src/tools/write/__tests__/createView.test.ts"
