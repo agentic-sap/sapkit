@@ -355,11 +355,27 @@ export const M1_DIVERGENCES: readonly DivergenceEntry[] = [
     title: 'UpdateLocalTypes — activate_on_update:true에서 거짓 성공하던 것을 고침',
     tool: 'UpdateLocalTypes',
     classification: '수리',
-    status: 'dormant',
-    evidence: 'sapkit-engine/harness/DIVERGENCES.md#m1-사전-등재 · HANDOFF.md §6 항목 13-11 · D-079 ⑤',
-    substituteTest: 'UpdateLocalTypes를 짓는 마일스톤이 소유',
-    resolvesIn: 'UpdateLocalTypes를 짓는 마일스톤 (M1 밖)',
+    // **휴면에서 깨어났다.** `UpdateLocalTypes`를 지은 마일스톤이 활성화 조건이었고
+    // (`sapkit-engine/src/tools/write/updateLocalTypes.ts`), 대체 기대 시험을
+    // 그 자리에서 저작했다.
+    status: 'active',
+    // 근거 경로는 **커밋된 것만** 적는다. 벤더 패키지(`@babamba2`)는 레포에
+    // 커밋되지 않으므로 여기 적으면 「경로는 전부 실재한다」 하드 게이트가
+    // 깨진다 — 그 실측 자리(재정의된 update가 activateOnUpdate를 읽지 않는
+    // 줄)는 아래 두 문서가 파일·줄로 담고 있다.
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#m1-사전-등재 · HANDOFF.md §6 항목 13-11 · D-079 ⑤ · ' +
+      'sapkit-engine/src/tools/write/updateLocalTypes.ts (머리주석에 벤더 실측 자리) · ' +
+      'engine/src/handlers/class/high/handleUpdateLocalTypes.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/updateLocalTypes.test.ts — 「D2 — activate_on_update의 거짓 성공을 고쳤다」 5건',
+    // 해소됐다 — 더 기다릴 마일스톤이 없다.
+    resolvesIn: null,
     applies: (step) => step.tool === 'UpdateLocalTypes',
+    // **이연**이다(D37과 같은 모양). 재생 대조가 보는 것은 도구 응답 시퀀스인데,
+    // 이 차이의 본체는 **활성화 요청이 나갔는가**라는 와이어 사실이라 응답만으로는
+    // 구와 신을 가를 수 없다(둘 다 `activated:true`를 답할 수 있다). 판정 자리는
+    // 위 계약 시험이고, 재생은 이 단계를 통과가 아니라 무증거로 센다.
     check: null,
   },
   {

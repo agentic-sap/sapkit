@@ -256,7 +256,9 @@ describe('휴면 등재는 통과로 세지 않는다', () => {
     const report = buildCoverage({ tools: [], divergences: M1_DIVERGENCES });
     const dormant = report.divergences.filter((d) => d.status === 'dormant').map((d) => d.id);
 
-    expect(dormant).toEqual(['D2', 'D3']);
+    // D2는 `UpdateLocalTypes`를 지은 class 묶음에서 깨어났다. 남은 휴면은 D3뿐이고,
+    // 그 도구(`GetIncludesList`)를 짓는 마일스톤이 활성화 자리다.
+    expect(dormant).toEqual(['D3']);
     for (const row of report.divergences) {
       if (row.status === 'dormant') expect(row.passed).toBe(0);
     }
@@ -266,7 +268,6 @@ describe('휴면 등재는 통과로 세지 않는다', () => {
     const md = renderCoverageMarkdown(buildCoverage({ tools: [], divergences: M1_DIVERGENCES }));
 
     expect(md).toContain('휴면');
-    expect(md).toContain('D2');
     expect(md).toContain('D3');
   });
 

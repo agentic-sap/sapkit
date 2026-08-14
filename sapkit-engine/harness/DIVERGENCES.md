@@ -24,12 +24,41 @@
 | # | 도구 | 구 엔진 결함 | 분류 | M1 활성 |
 |---|---|---|---|---|
 | D1 | `GetSqlQuery` | 13-9 — wide-SELECT에서 WHERE 절이 통째로 무시됨 | 수리 | **활성** |
-| D2 | `UpdateLocalTypes` | 13-11 — `activate_on_update:true`에서 거짓 성공 | 수리 | 휴면(도구 M1 밖) |
+| D2 | `UpdateLocalTypes` | 13-11 — `activate_on_update:true`에서 거짓 성공 | 수리 | **활성** (class 묶음에서 깨움) |
 | D3 | `GetIncludesList` | 13-13 — `INCLUDE … IF FOUND`의 비실재 객체명 반환 | 수리 | 휴면(도구 M1 밖) |
 
 근거: `HANDOFF.md` §6 항목 13의 하위 13-9·13-11·13-13 · 결정 기록 D-079 ⑤.
 대체 기대 시험: D1 = WHERE가 결과에 실제 반영됨을 검증하는 시험(실데이터 도구
-작업이 소유). D2·D3는 해당 도구를 짓는 마일스톤에서 활성화한다.
+작업이 소유). D3는 `GetIncludesList`를 짓는 마일스톤에서 활성화한다.
+
+### D2 활성화 — `UpdateLocalTypes`를 지으며 (class 묶음)
+
+휴면은 "등재는 지금 하되 대체 기대 시험은 그 도구를 짓는 마일스톤에서
+활성화한다"는 뜻이었다. 그 마일스톤이 왔으므로 여기서 깨운다.
+
+- **구 동작(실측)**: `AdtLocalTypes`는 부모 `AdtClass`를 상속하면서 `update()`를
+  **재정의**하는데, 그 본문
+  (`engine/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalTypes.js:156-227`)
+  이 `options`에서 읽는 것은 `lockHandle`과 `sourceCode`뿐이다 —
+  **`activateOnUpdate`를 한 번도 읽지 않는다.** 부모
+  `AdtClass.update()`(`AdtClass.js:253-377`)에는 6단계 활성화가 있지만 재정의가
+  그것을 가린다. 그런데 겉 핸들러는 그 플래그를 넘긴 뒤
+  (`engine/src/handlers/class/high/handleUpdateLocalTypes.ts:87`) 응답에
+  `activated: activate_on_update`를 그대로 실었다(`:132`). 즉
+  **활성화 요청이 한 건도 나가지 않은 채 "활성화됨"이라고 답했다.**
+- **이것이 우연한 누락이 아니라는 근거**: 형제 재정의
+  `AdtLocalTestClass.update()`(`AdtLocalTestClass.js:227-235`)에는 "Step 5:
+  Activating parent class"가 있다. 같은 패키지 안에서 한쪽에만 있다.
+- **신 동작**: 요청받았으면 해제 뒤에 실제로 활성화하고, **활성화 응답 본문의
+  `<chkl:msg>`를 판정한다.** SAP은 활성화 실패도 HTTP 200으로 답하므로 보내기만
+  하고 안 읽으면 거짓 성공이 자리만 옮긴다. `E`·`A`·`X`면 실패, `W`만이면 성공.
+- **대체 기대 시험**: `sapkit-engine/src/tools/write/__tests__/updateLocalTypes.test.ts`
+  의 「D2 — activate_on_update의 거짓 성공을 고쳤다」 절 5건.
+- **재생 판정은 이연이다**(기계 장부의 `check`가 null). 재생 대조가 보는 것은
+  도구 응답 시퀀스인데 이 차이의 본체는 **활성화 요청이 나갔는가**라는 와이어
+  사실이라, 응답만으로는 구와 신을 가를 수 없다(둘 다 `activated:true`를 답할
+  수 있다). 판정 자리는 위 계약 시험이고, 재생은 그 단계를 통과가 아니라
+  무증거로 센다 — D37과 같은 모양이다.
 
 ## 제작 중 발견분
 

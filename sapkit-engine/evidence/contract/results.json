@@ -260,6 +260,11 @@
     "detail": "src/tools/write/__tests__/updateLocalTestClass.test.ts"
   },
   {
+    "tool": "UpdateLocalTypes",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateLocalTypes.test.ts"
+  },
+  {
     "tool": "UpdateProgram",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateProgram.test.ts"
