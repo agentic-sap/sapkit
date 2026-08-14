@@ -645,6 +645,11 @@
     "detail": "src/tools/write/__tests__/updateInterface.test.ts"
   },
   {
+    "tool": "UpdateLocalDefinitions",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateLocalDefinitions.test.ts"
+  },
+  {
     "tool": "UpdateLocalTestClass",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateLocalTestClass.test.ts"

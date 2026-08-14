@@ -34,8 +34,19 @@ import type { AdtClient } from '../../adt';
 import { classUri, encodeObjectName, parseCheckRun } from './shared';
 import { ACCEPT_CHECK_MESSAGES, CT_CHECK_OBJECTS, CT_SOURCE, ACCEPT_SOURCE } from './shared';
 
-/** 쓰기가 닿는 인클루드 — 읽기 쪽 4종 중 이 둘만 도구가 있다. */
-export type WritableClassInclude = 'testclasses' | 'implementations';
+/**
+ * 쓰기가 닿는 인클루드 — 읽기 쪽 4종 **전부**에 도구가 있다.
+ *
+ * `definitions`·`macros`는 `UpdateLocalDefinitions`·`UpdateLocalMacros`가 쓴다.
+ * 벤더도 같은 저수준 함수 하나로 넷을 다룬다(`includes.js:73-97`의
+ * `updateClassInclude` — 인클루드 이름만 갈아 끼운다), 그래서 사슬을 나눌 이유가
+ * 없다. 검사 쪽도 마찬가지다(`check.js:143-196`의 `checkClassInclude`).
+ */
+export type WritableClassInclude =
+  | 'testclasses'
+  | 'implementations'
+  | 'definitions'
+  | 'macros';
 
 /** 검사 요청이 base64 아티팩트에 붙이는 콘텐츠 타입(`check.js:155`의 기본값). */
 const ARTIFACT_CONTENT_TYPE = 'text/plain; charset=utf-8';

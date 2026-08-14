@@ -1788,3 +1788,29 @@ D번호를 주지 않는 이유가 그것이다. 그래도 장부에 두는 이�
 - **기계 장부 반영**: **못 했다** — 이 과제는 `harness/replay/**`가 무접촉이다.
   도구 응답이 `isError`째로 달라지므로 **기계 장부에 와야 한다.** 오케스트레이터가
   묶음 병합 뒤에 옮긴다. 옮기기 전에 재생을 켜면 이 갈래가 가짜 실패로 잡힌다.
+
+### D121 — `UpdateLocalDefinitions`가 `activate_on_update:true`의 **거짓 성공**을 고쳤다
+- **분류**: 수리(구의 거짓 성공을 고침)
+- **구 동작(실측)**: `AdtLocalDefinitions`는 부모 `AdtClass`를 상속하면서 `update()`를
+  **재정의**하는데, 그 본문
+  (`engine/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalDefinitions.js:157-229`)
+  이 `options`에서 읽는 것은 `lockHandle`과 `sourceCode`뿐이다 — **`activateOnUpdate`를
+  한 번도 읽지 않는다.** 부모 `AdtClass.update()`에는 활성화 단계가 있지만 재정의가
+  그것을 가린다. 그런데 겉 핸들러는 그 플래그를 넘긴 뒤
+  (`engine/src/handlers/class/high/handleUpdateLocalDefinitions.ts:87`) 응답에
+  `activated: activate_on_update`를 그대로 실었다(`:139`). 즉 **활성화 요청이 한 건도
+  나가지 않은 채 "활성화됨"** 이라고 답했다.
+- **우연한 누락이 아니라는 근거**: 같은 패키지의 **형제 재정의**
+  `AdtLocalTestClass.update()`(`AdtLocalTestClass.js:227-235`)에는 "Step 5: Activating
+  parent class"가 있다. 한쪽에만 있다.
+- **신 동작**: 요청받았으면 해제 뒤에 실제로 활성화하고, **활성화 응답 본문을
+  판정한다** — SAP은 활성화 실패도 HTTP 200으로 답하며 `<chkl:msg type="E">`를 담으므로
+  보내기만 하고 안 읽으면 거짓 성공이 자리만 옮긴다. 경고(`W`)만 있으면 성공이다.
+- **판정 근거**: **같은 사슬의 같은 자리**에 선례가 둘 있다 — D2(`UpdateLocalTypes`) ·
+  D41(`UpdateLocalTestClass`). 여기만 구를 재현하면 한 엔진 안에서 같은 실패에 도구마다
+  다르게 답한다. 요구 급이 `계약 시험`이라 사람 실기로 뒤늦게 잡을 기회도 없다.
+- **대체 기대 시험**:
+  `sapkit-engine/src/tools/write/__tests__/updateLocalDefinitions.test.ts`의 「D121」 절.
+- **해소 마일스톤**: 없음 — 영구 차이(수리)다.
+- **기계 장부 반영**: **못 했다**(`harness/replay/**` 무접촉). 도구 응답이 `isError`째로
+  달라지므로 **기계 장부에 와야 한다.** 오케스트레이터가 묶음 병합 뒤에 옮긴다.
