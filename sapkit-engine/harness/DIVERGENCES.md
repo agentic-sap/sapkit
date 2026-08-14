@@ -2151,3 +2151,145 @@ D78~D80 · D83~D90 · D96·D97 · D102)은 위 「번호 예약」 절이 적은
 - **해소 마일스톤**: 없음 — 영구 차이(수리)다.
 - **기계 장부 반영**: **못 했다**(`harness/replay/**` 무접촉). 도구 응답이 `isError`째로
   달라지므로 **기계 장부에 와야 한다.** 오케스트레이터가 묶음 병합 뒤에 옮긴다.
+## 제작 중 발견분 (append) — 꼬리 **삭제 계열 25종** 묶음
+
+예약 구간은 **D110~D119**다. 파일 가운데가 아니라 끝에 붙이는 것은 같은 물결의
+꼬리 묶음 셋이 동시에 append 하고 있어 같은 자리를 물면 전면 충돌이 나기 때문이다.
+
+> **이 묶음 전체가 지는 한계 — 차이가 아니라 무증거다.**
+> 삭제는 **재생 대조가 원리상 불가능하다**(두 번째 실행은 대상이 없어 "없다"로
+> 실패한다). 그래서 25종의 요구 증거 급은 `attended 실기`이고, 이 판이 끝나도
+> 전부 **「지음 · 증거 대기」**에 머문다. 오프라인 계약 시험이 통과했다는 것은
+> "구와 같은 바이트를 보낸다"까지만 증명하며 **"SAP이 그것을 받아 실제로 지운다"는
+> 증명하지 않는다.** D22(zrfc)가 같은 모양의 한계를 지고 있다. 이것은 등재할
+> 「차이」가 아니므로 아래 항목에 넣지 않고 여기 한 번만 적어 둔다.
+
+### D110 — `DeleteTable`·`DeleteDomain`·`DeleteDataElement`의 **ECC 우회로가 없다**
+- **분류**: 축소 — **해소 마일스톤 = RFC 쓰기 브리지를 짓는 판. D61(생성 쪽)과 같은 자리.**
+- **구 동작(실측)**: 셋 다 맨 앞에서 `process.env.SAP_VERSION?.toUpperCase() === 'ECC'`를
+  묻고 참이면 OData 브리지로 우회한다 —
+  `engine/src/handlers/table/high/handleDeleteTable.ts:66-67`·`:145-185`(`callDdicTabl`
+  action `DELETE`) · `engine/src/handlers/domain/high/handleDeleteDomain.ts:65-66`·`:148-186` ·
+  `engine/src/handlers/data_element/high/handleDeleteDataElement.ts:66-67`·`:152-192`.
+  **`DeleteStructure`·`DeleteView`에는 그 갈래가 없다** — 구 안에서도 셋만 갖는다.
+- **신 동작**: `SAP_VERSION=ECC`면 **이름 있는 거절**을 돌려주고 요청을 하나도 보내지
+  않는다(`src/tools/write/internal/deletion.ts`의 `eccDeleteUnsupported`).
+- **왜 짓지 않았나**: 이 엔진의 RFC 통로가 가진 DDIC 능력은 **읽기 브리지 하나**
+  (`callDdicTablRead` — `src/rfc/types.ts:72-78`)뿐이고, 쓰기 브리지를 더하는 것은
+  `src/rfc/**`를 고치는 일이라 이 묶음의 범위 밖이다. 그냥 ADT로 흘려보내면 **ECC
+  커널에 없는 엔드포인트에 삭제를 시도**하게 된다 — 조용한 실패보다 이름 있는
+  거절이 낫다는 것이 D61이 이미 정한 방향이다.
+- **대체 기대 시험**: 세 도구 시험 파일의 「D110 — ECC」 절
+  (`sapkit-engine/src/tools/write/__tests__/deleteTable.test.ts` 외 2종) —
+  거절 문구가 나오고 **요청이 0회**인지.
+- **기계 장부 반영**: **못 했다**(이 과제는 `harness/replay/**` 무접촉). ECC 프로파일의
+  채록분이 있다면 도구 응답이 달라지므로 **기계 장부에 와야 한다.** 오케스트레이터가
+  묶음 병합 뒤에 옮길 것.
+
+### D111 — `DeleteLocal*` 넷이 활성화 **거짓 성공**을 성공으로 접지 않는다
+- **분류**: 수리(구의 거짓 성공을 고침) — D41·D93·D103·D105의 같은 계열
+- **구 동작(실측)**: `DeleteLocalDefinitions`·`DeleteLocalMacros`·
+  `DeleteLocalTestClass`·`DeleteLocalTypes` 넷은 `activate_on_delete: true`에서
+  `await client.getClass().activate({ className })` 한 줄을 부르고 **반환값을 버린다**
+  (`engine/src/handlers/class/high/handleDeleteLocalTestClass.ts:92-94` 외 3곳).
+  벤더 `AdtClass.activate()`는 **HTTP 4xx에서만** 던지고
+  (`…/dist/core/class/AdtClass.js`), 그 아래
+  `activationUtils.js`의 `activateObjectInSession`은 응답을 그대로 돌려줄 뿐이다.
+  **SAP은 활성화 실패도 HTTP 200 + 본문의 `<chkl:msg type="E">`로 답하므로**,
+  활성화가 실패해도 응답은 `activated: true`가 된다.
+- **신 동작**: 요청 바이트는 구 그대로 두고(같은 주소·헤더·전문 —
+  `src/tools/write/internal/classIncludeClear.ts`의 `activateParentClass`), 응답 본문을
+  `parseActivationMessages`로 갈라 `E`/`A`/`X`가 있으면 실패로 되돌린다. 인클루드는
+  이미 비워졌으므로 문구가 그 사실을 함께 말한다("cleared on SAP as an inactive
+  version; the active version is unchanged").
+- **판정 근거**: 이 레포의 CLAS 거짓 성공 실증 이력과 `CLAUDE.md` 안전 규칙
+  ("write 성공 보고를 그대로 믿지 않는다"). **같은 엔진 안에서 `UpdateLocalTestClass`
+  (D41)와 `UpdateLocalTypes`(D2)가 이미 같은 자리를 고쳤으므로**, 여기서 구를
+  재현하면 같은 실패에 두 도구가 다르게 답하게 된다.
+- **대체 기대 시험**: 넷의 시험 파일이 공유하는
+  `sapkit-engine/src/tools/write/__tests__/localIncludeClearSupport.ts`의
+  「D111」 두 건(오류가 있으면 실패 · **경고만 있으면 성공** — 과수리 역검증).
+- **기계 장부 반영**: **못 했다**(`harness/replay/**` 무접촉). 도구 응답이
+  `isError`째로 달라지므로 **기계 장부에 와야 한다.**
+
+### D112 — 삭제 4종의 클라우드(JWT) 거절 갈래를 짓지 않았다 (D91의 범위 확장)
+- **분류**: 축소 — **해소 마일스톤 = 인증 확장(Basic 외) 마일스톤. D15·D30·D91과 같은 자리.**
+- **구 동작(실측)**: `DeleteInclude`·`DeleteGuiStatus`·`DeleteScreen`·
+  `DeleteTextElement` 넷이 맨 앞에서 `isCloudConnection()`을 묻고 참이면 거절한다
+  (`engine/src/handlers/include/high/handleDeleteInclude.ts:270-276` ·
+  `.../gui_status/high/handleDeleteGuiStatus.ts:66-72` ·
+  `.../screen/high/handleDeleteScreen.ts:57-61` ·
+  `.../text_element/high/handleDeleteTextElement.ts:88-94`). 그 판정의 정본은
+  `engine/src/lib/utils.ts:978-1002` — 묻는 것은 배포 축이 아니라 `authType === 'jwt'`다.
+- **신 동작**: 그 갈래가 없다. **D91과 같은 근거**다 — 이 엔진의 인증은 Basic
+  하나뿐이라 `authType === 'jwt'`가 될 수 있는 값이 아예 없고, 넷 다
+  `available_in: ['onprem','legacy']`이라 `SAP_SYSTEM_TYPE=cloud`에서는 애초에
+  `tools/list`에 뜨지 않는다. 없는 조건을 흉내 내는 분기는 영영 죽은 코드가 된다.
+- **왜 D91에 얹지 않고 새 항목인가**: D91의 본문은 대상을 "이 묶음의 구 핸들러
+  16종"으로 못 박아 두었고, 등재 항목의 **본문은 수정하지 않는 것이 이 장부의
+  규칙**이다(정정도 새 항목). 그래서 범위 확장을 여기 따로 적는다.
+- **대체 기대 시험**: 네 도구의 계약 시험이 붙잡는 「노출 선언」 절 —
+  `available_in`이 `['onprem','legacy']`라는 것이 이 갈래를 대신하는 바닥선이다.
+- **기계 장부 반영**: **안 했다** — 인증 종류는 접속 계층이고 도구 응답 시퀀스에
+  나타나지 않는다(D91과 같다).
+
+### D113 — `DeleteGuiStatus`·`DeleteScreen`이 **잠금 손잡이 없이 진행하지 않는다** (D92의 범위 확장)
+- **분류**: 강화(안전 바닥선을 올림)
+- **구 동작(실측)**: 둘 다 잠금 응답에서 `LOCK_HANDLE`을 못 꺼내도 `lockHandle`이
+  `undefined`인 채로 **그대로 진행해** 대리자 쓰기(`CUA_WRITE` · `DYNPRO_DELETE`)를
+  보낸다. 해제도 `if (lockHandle)`이라 건너뛴다
+  (`engine/src/handlers/gui_status/high/handleDeleteGuiStatus.ts:86-102`·`:134-141` ·
+  `.../screen/high/handleDeleteScreen.ts:76-92`·`:101-109`). **같은 묶음의
+  `DeleteTextElement`는 같은 자리에서 "Failed to obtain lock handle for program …"
+  으로 던진다**(`handleDeleteTextElement.ts:150-154`) — 구 엔진 안에서도 이 자리만
+  갈라져 있다.
+- **신 동작**: `client.withLock()`이 소유한다. 잠금 응답에 `LOCK_HANDLE`이 없으면
+  `protocol` 오류로 던지고(`src/adt/client.ts`), 대리자 쓰기는 나가지 않는다.
+  실패 경로에서도 해제가 보장된다.
+- **판정 근거**: 잠기지 않은 프로그램의 GUI 상태·화면을 **지우는** 것은 다른
+  세션의 편집을 덮어쓸 수 있는 write다. D92가 `UpdateScreen`에서 이미 같은 방향을
+  정했고, 구 엔진 자신이 형제 핸들러에서 이것을 실패로 다룬다.
+- **대체 기대 시험**: 두 도구 시험 파일의 「D113」 절 — 잠금 응답에 손잡이가 없으면
+  **RFC 호출이 0회**인지.
+- **기계 장부 반영**: **못 했다**(`harness/replay/**` 무접촉). 와이어가 달라지는
+  차이(요청이 아예 안 나간다)이므로 **기계 장부에 와야 한다.**
+
+### D114 — `DeleteTextElement`의 부모 프로그램 활성화 **거짓 성공**을 접지 않는다 (D93의 범위 확장)
+- **분류**: 수리(구의 거짓 성공을 고침)
+- **구 동작(실측)**: `activate: true`에서 활성화 요청을 보낸 뒤 **응답을 읽지
+  않는다** — `await makeAdtRequestWithTimeout(connection, '/sap/bc/adt/activation', …)`
+  한 줄이고 반환값을 버린다(`handleDeleteTextElement.ts:203-216`). SAP은 활성화
+  실패도 **HTTP 200 + `<chkl:msg type="E">`** 로 답하므로 응답은 `activated: true`가 된다.
+- **신 동작**: 요청 바이트는 구 그대로 두고 응답 본문을 갈라 실패로 되돌린다 —
+  D93이 이미 지은 `src/tools/write/internal/programScoped.ts`의 `activateParentProgram`을
+  그대로 쓴다.
+- **왜 D93에 얹지 않고 새 항목인가**: D93의 본문이 대상을 "쓰기 8종"으로 열거해
+  두었고 거기 `DeleteTextElement`는 없다. 본문 수정 금지 규칙에 따라 범위 확장을
+  따로 적는다.
+- **대체 기대 시험**: `sapkit-engine/src/tools/write/__tests__/deleteTextElement.test.ts`의
+  「D114」 절(오류가 있으면 실패 · 경고만 있으면 성공 — 과수리 역검증).
+- **기계 장부 반영**: **못 했다**. 도구 응답이 `isError`째로 달라지므로 **기계
+  장부에 와야 한다.**
+
+### D115 — `DeleteServiceBinding`이 삭제 응답의 **거짓 성공**을 성공으로 접지 않는다
+- **분류**: 수리(구의 거짓 성공을 고침)
+- **구 동작(실측)**: 벤더 `deleteServiceBinding()`
+  (`engine/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/service/AdtService.js:585-599`)은
+  `POST /sap/bc/adt/deletion/delete`의 응답을 그대로 돌려줄 뿐 **`assertDeletionSucceeded`를
+  걸지 않는다.** 같은 주소를 쓰는 다른 12종은 전부 그 판정을 건다
+  (`dist/core/<종류>/delete.js`). 삭제 서비스는 실패도 **HTTP 200 +
+  `del:isDeleted="false"`** 로 답하므로, 지워지지 않은 바인딩이
+  `success: true`로 보고됐다. 겉 핸들러도 상태·본문을 응답에 실어 줄 뿐 판정하지
+  않는다(`handleDeleteServiceBinding.ts:60-83`).
+- **신 동작**: 다른 12종과 **같은 판정**을 건다 — `assertDeletionSucceeded(body,
+  'Service binding')`. 요청 바이트는 구 그대로다(한 줄 전문 · 검사 걸음 없음 ·
+  발행취소 사전 걸음 그대로).
+- **판정 근거**: 같은 엔진 안에서 한 주소의 같은 응답을 12종은 실패로, 1종은
+  성공으로 읽으면 안 된다. `CLAUDE.md` 안전 규칙("write 성공 보고를 그대로 믿지
+  않는다")과 D103·D105의 선례가 같은 방향이다. **삭제는 되돌릴 수 없으므로
+  "지웠다"는 거짓 보고의 값이 특히 비싸다** — 사용자가 지워진 줄 알고 다음 단계로
+  간다.
+- **대체 기대 시험**: `sapkit-engine/src/tools/write/__tests__/deleteServiceBinding.test.ts`의
+  「D115」 두 건(`isDeleted="false"`면 실패 · `"true"`면 성공 — 과수리 역검증).
+- **기계 장부 반영**: **못 했다**(`harness/replay/**` 무접촉). 도구 응답이
+  `isError`째로 달라지므로 **기계 장부에 와야 한다.**

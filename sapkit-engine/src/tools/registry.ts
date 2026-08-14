@@ -259,6 +259,31 @@ import { getEnhancementSpot } from './read/getEnhancementSpot';
 import { getEnhancements } from './read/getEnhancements';
 
 // 묶음: tail-delete
+import { deleteBehaviorDefinition } from './write/deleteBehaviorDefinition';
+import { deleteBehaviorImplementation } from './write/deleteBehaviorImplementation';
+import { deleteCdsUnitTest } from './write/deleteCdsUnitTest';
+import { deleteClass } from './write/deleteClass';
+import { deleteGuiStatus } from './write/deleteGuiStatus';
+import { deleteInclude } from './write/deleteInclude';
+import { deleteInterface } from './write/deleteInterface';
+import { deleteLocalDefinitions } from './write/deleteLocalDefinitions';
+import { deleteLocalMacros } from './write/deleteLocalMacros';
+import { deleteLocalTestClass } from './write/deleteLocalTestClass';
+import { deleteLocalTypes } from './write/deleteLocalTypes';
+import { deleteMetadataExtension } from './write/deleteMetadataExtension';
+import { deleteProgram } from './write/deleteProgram';
+import { deleteDataElement } from './write/deleteDataElement';
+import { deleteFunctionGroup } from './write/deleteFunctionGroup';
+import { deleteFunctionModule } from './write/deleteFunctionModule';
+import { deleteScreen } from './write/deleteScreen';
+import { deleteServiceBinding } from './write/deleteServiceBinding';
+import { deleteServiceDefinition } from './write/deleteServiceDefinition';
+import { deleteDomain } from './write/deleteDomain';
+import { deleteStructure } from './write/deleteStructure';
+import { deleteTable } from './write/deleteTable';
+import { deleteTextElement } from './write/deleteTextElement';
+import { deleteUnitTest } from './write/deleteUnitTest';
+import { deleteView } from './write/deleteView';
 
 // 묶음: tail-test
 import { createCdsUnitTest } from './write/createCdsUnitTest';
@@ -507,6 +532,31 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getEnhancementImpl,
 
   // 묶음: tail-delete — 꼬리 — 삭제 계열 25종 (순서 29)
+  deleteClass,
+  deleteInterface,
+  deleteProgram,
+  deleteTable,
+  deleteStructure,
+  deleteView,
+  deleteDomain,
+  deleteDataElement,
+  deleteFunctionGroup,
+  deleteFunctionModule,
+  deleteServiceDefinition,
+  deleteBehaviorDefinition,
+  deleteBehaviorImplementation,
+  deleteCdsUnitTest,
+  deleteUnitTest,
+  deleteMetadataExtension,
+  deleteLocalTestClass,
+  deleteLocalDefinitions,
+  deleteLocalMacros,
+  deleteLocalTypes,
+  deleteGuiStatus,
+  deleteScreen,
+  deleteTextElement,
+  deleteInclude,
+  deleteServiceBinding,
 
   // 묶음: tail-test — 꼬리 — 단위시험·CDS 단위시험·Update 계열 12종 (순서 29)
   createCdsUnitTest,
