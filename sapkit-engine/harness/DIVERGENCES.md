@@ -418,6 +418,94 @@
 - **대체 기대 시험**: 프로파일 계층 — 드라이브 문자를 가진 win32
   `AUTH_BROKER_PATH`가 쪼개지지 않는지 / posix 콜론 목록이 그대로 쪼개지는지
   (`src/profile/__tests__/destination.test.ts`).
+### D26 — HTTP 전송의 DNS 리바인딩 보호가 **기본으로 켜진다** (구: 노브가 배선되지 않아 항상 꺼짐)
+- **분류**: 수리 + 강화
+- **구 동작(실측)**: 구는 `--http-allowed-hosts`·`--http-allowed-origins`·
+  `--http-enable-dns-protection`(그리고 SSE 짝)을 파싱해 설정 객체까지 담는다
+  (`engine/src/lib/config/ArgumentsParser.ts:227-239`). 그런데 전송을 만들 때
+  넘기는 것은 `sessionIdGenerator`와 `enableJsonResponse` **둘뿐이다**
+  (`engine/src/server/StreamableHttpServer.ts:186-189`). 즉 **문서화된 세 노브가
+  아무 일도 하지 않는다** — 무엇을 넣든 보호는 꺼진 채다.
+- **신 동작**: 셋을 실제로 SDK 전송에 배선하고 **기본으로 켠다**. 허용 Host의
+  기본값은 바인딩 대상에서 유도하고(`localhost:P`·`127.0.0.1:P`·`[::1]:P`),
+  허용 Origin의 기본값은 같은 포트의 로컬 두 출처다. 운영자가 목록을 주면
+  그것이 이긴다. 끄면 그 사실이 진단(`HTTP_DNS_PROTECTION_OFF`)으로 남는다.
+- **근거**: 문서화된 노브가 동작하지 않는 것은 거짓 성공 계열이다(D14·D9와 같은
+  분류). 그리고 자작이 안전 바닥선을 낮추는 근거가 되지 않는다(spec §2.3) —
+  HTTP는 네트워크 표면을 여는 일이므로 기본값이 헐거우면 그 자체가 바닥선
+  저하다.
+- **대체 기대 시험**: 서버 전송 계층
+  (`src/server/__tests__/transport.test.ts`) — 기본값이 켬이고 허용 Host가
+  바인딩에서 유도되는지 / 허용 목록 밖의 Host 헤더가 403으로 막히는지.
+- **함께 등재하는 부수 차이 1건**: `GET /mcp/health` 응답에 **판 번호를 싣지
+  않는다**(구는 `version`을 실었다 — `StreamableHttpServer.ts:228-235`). 인증
+  없이 열린 창이므로 알리는 것을 최소로 둔다. 나머지 필드(`status`·`uptime`·
+  `transport`)는 구와 같다. 또 health에도 같은 Host 판정을 적용한다 — SDK의
+  검사는 MCP 경로 안에서만 돌아 그대로 두면 보호가 걸리지 않은 창이 하나 남는다.
+
+### D27 — 비루프백 바인딩은 **명시 옵트인**을 요구한다 (구: 조건 없이 허용)
+- **분류**: 강화
+- **구 동작(실측)**: 기본 호스트는 `127.0.0.1`이지만
+  (`ArgumentsParser.ts:220-221`), `--http-host=0.0.0.0`·`MCP_HTTP_HOST`는 아무
+  조건 없이 받아들여지고 도움말이 그것을 권하기까지 한다
+  (`engine/src/lib/utils.ts:1348`·`1422`). 구 HTTP 전송에는 **MCP 클라이언트
+  인증이 없다** — 요청이 요구하는 것은 SAP 접속 맥락뿐이고
+  (`StreamableHttpServer.ts:130-163`), 기본 destination이 설정돼 있으면 포트에
+  닿는 누구나 노출된 도구 표면 전체를 쓴다.
+- **신 동작**: 루프백이 아닌 주소로 바인딩하려면
+  `--http-allow-remote`(`MCP_HTTP_ALLOW_REMOTE=true`)를 **명시해야** 한다. 없으면
+  `ERR_HTTP_NON_LOOPBACK`으로 기동을 거부한다. 옵트인해도 "클라이언트 인증이
+  없다"는 경고(`HTTP_REMOTE_BIND`)가 남고, 기동 진단은 언제나 `client-auth=none`을
+  적는다.
+- **근거**: spec §2.3 — 자작이 바닥선을 낮추는 근거가 되지 않는다. 인증이 없는
+  상태에서 전 인터페이스 바인딩은 도구 표면 전체를 무인증으로 여는 일이다.
+  **기능을 없앤 것이 아니라 명시를 요구한 것**이므로 축소가 아니다.
+- **대체 기대 시험**: 서버 전송 계층 — 옵트인 없는 `0.0.0.0`이 거부되는지 /
+  옵트인하면 열리되 경고가 남는지.
+- **함께 등재하는 부수 차이 1건**: **전송 설정은 프로파일 파일(`sap.env`)에서
+  오지 않는다.** 구는 활성 프로파일의 모든 키를 `process.env`에 부으므로
+  (`engine/src/lib/profile.ts:271-277` `applyProfile`) 프로파일 파일에 적힌
+  `MCP_TRANSPORT=http` 한 줄이 포트를 열 수 있었다. 신 엔진의 전송 해석은
+  **argv와 프로세스 env만** 본다.
+
+### D28 — `--http-json-response` 노브가 **실제로 끌 수 있다** (구: 실효값 참에 갇힘)
+- **분류**: 수리
+- **구 동작(실측)**: 파서의 기본값은 거짓인데(`ArgumentsParser.ts:222-226`)
+  런처가 `parsed.httpJsonResponse || undefined`로 넘겨(`launcher.ts:439`) 거짓이
+  `undefined`로 접히고, 전송이 `opts?.enableJsonResponse ?? true`로 받는다
+  (`StreamableHttpServer.ts:89`). 결과적으로 **무엇을 주든 항상 참**이다 — 노브가
+  값을 하나만 낼 수 있다.
+- **신 동작**: 실효 기본값(참)은 그대로 승계하고, 노브가 실제로 거짓을 낼 수 있게
+  한다. **설정을 안 건드리면 동작은 구와 같다.**
+- **대체 기대 시험**: 서버 전송 계층 — 해석된 설정의 기본값이 참인지(전송 선택
+  시험이 기본 설정 전체를 단언한다).
+
+### D29 — `--transport=sse`는 아직 없다
+- **분류**: 축소 — **해소 마일스톤 = SSE 전송 과제(같은 물결)**
+- **구 동작**: `sse`는 유효한 값이고 `SseServer`가 뜬다(`launcher.ts:420-433`).
+- **신 동작**: 이름은 인식하되 이름 있는 진단(`TRANSPORT_SSE_UNSUPPORTED`)을 남기고
+  **stdio로 닫는다.** 포트를 열지 않는다. 알 수 없는 전송 값도 같다
+  (`TRANSPORT_UNSUPPORTED`) — 구도 알 수 없는 값에서는 stdio로 떨어졌으므로
+  (`ServerConfigManager.ts:138-152`) 그쪽은 진단 문구만 는 것이다.
+- **근거**: 오타 하나가 네트워크 표면을 여는 일이 없어야 한다(D5와 같은 fail-closed
+  방향). 조용히 떨어지지 않고 이유를 말하는 것은 이 레포의 기동 계층 규약이다.
+- **대체 기대 시험**: 서버 전송 계층 — `sse`·알 수 없는 값 각각에서 stdio로 닫히고
+  진단이 나오는지.
+
+### D30 — HTTP 요청 헤더로 SAP 접속을 고르는 통로가 없다
+- **분류**: 축소 — **해소 마일스톤 = 인증 확장(Basic 외) 마일스톤. D15와 같은 자리.**
+- **구 동작(실측)**: 요청마다 `x-mcp-destination` → `x-sap-url`+`x-sap-jwt-token`
+  또는 `x-sap-login`/`x-sap-password` → 기본 destination 순으로 SAP 접속 맥락을
+  고르고, 아무것도 없으면 **요청 자체를 400으로 거절**한다
+  (`StreamableHttpServer.ts:130-163`·`304-314`).
+- **신 동작**: 접속은 프로파일(또는 `--env-path`)에서만 온다 — stdio와 같다. 요청
+  헤더로 접속을 고르지 않으므로 400 갈래도 없고, 접속이 없으면 **도구를 부를 때**
+  `ERR_NO_CONNECTION`으로 정직하게 실패한다(D18과 같은 어휘).
+- **근거**: M1은 Basic 인증만 다룬다(spec §3 M1-a). 요청 헤더로 자격증명을 받는
+  통로는 인증 확장과 같은 자리에서 함께 설계해야 한다 — 그 전에 반쯤 지으면
+  자격증명이 요청 로그에 실리는 경로만 먼저 생긴다.
+- **대체 기대 시험**: 없음(축소). 접속 없는 HTTP 기동이 inspection-only로 정상
+  동작하는지는 기동 스모크(`gates/http-smoke.mjs`)가 본다.
 
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 

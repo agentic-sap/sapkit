@@ -8,6 +8,7 @@
  * PowerShell로 실행할 것 — 이 머신에서 Bash로 돌리면 자식 프로세스 수거에서
  * 블록된 실측 기록이 있다(`HANDOFF.md`).
  */
+import { run as runHttpSmoke } from './http-smoke.mjs';
 import { run as runLedger } from './ledger.mjs';
 import { run as runSafety } from './safety.mjs';
 import { run as runSurface } from './surface.mjs';
@@ -16,6 +17,7 @@ const GATES = [
   ['표면', runSurface],
   ['안전', runSafety],
   ['대장', runLedger],
+  ['HTTP 기동', runHttpSmoke],
 ];
 
 let allGreen = true;
