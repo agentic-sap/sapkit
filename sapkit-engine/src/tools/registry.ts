@@ -88,6 +88,7 @@ import {
 // 묶음: system
 import { describeByList } from './read/describeByList';
 import { getAbapAST } from './read/getAbapAST';
+import { getObjectInfo } from './read/getObjectInfo';
 import { getObjectStructure } from './read/getObjectStructure';
 import { getPackageTree } from './read/getPackageTree';
 import { getSession } from './read/getSession';
@@ -147,6 +148,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getInstalledComponents,
   describeByList,
   getAbapAST,
+  getObjectInfo,
   getObjectStructure,
   getPackageTree,
   getSession,

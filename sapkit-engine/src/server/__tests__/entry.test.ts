@@ -51,6 +51,7 @@ describe('셰임 계약', () => {
         'GetInactiveObjects',
         'GetInclude',
         'GetInstalledComponents',
+        'GetObjectInfo',
         'GetObjectStructure',
         'GetPackageTree',
         'GetSession',

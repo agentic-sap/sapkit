@@ -55,6 +55,11 @@
     "detail": "src/tools/read/__tests__/getInstalledComponents.test.ts"
   },
   {
+    "tool": "GetObjectInfo",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getObjectInfo.test.ts"
+  },
+  {
     "tool": "GetObjectStructure",
     "passed": true,
     "detail": "src/tools/read/__tests__/getObjectStructure.test.ts"
