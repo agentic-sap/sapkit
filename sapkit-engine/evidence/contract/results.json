@@ -20,6 +20,11 @@
     "detail": "src/tools/write/__tests__/createProgram.test.ts"
   },
   {
+    "tool": "CreateView",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createView.test.ts"
+  },
+  {
     "tool": "DescribeByList",
     "passed": true,
     "detail": "src/tools/read/__tests__/describeByList.test.ts"
@@ -130,6 +135,11 @@
     "detail": "src/tools/read/__tests__/getTypeInfo.test.ts"
   },
   {
+    "tool": "GetView",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getView.test.ts"
+  },
+  {
     "tool": "GetWhereUsed",
     "passed": true,
     "detail": "src/tools/read/__tests__/getWhereUsed.test.ts"
@@ -143,6 +153,11 @@
     "tool": "GrepPackages",
     "passed": true,
     "detail": "src/tools/read/__tests__/grepPackages.test.ts"
+  },
+  {
+    "tool": "ReadView",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readView.test.ts"
   },
   {
     "tool": "ReloadProfile",
@@ -223,5 +238,10 @@
     "tool": "UpdateSourceByPatch",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateSourceByPatch.test.ts"
+  },
+  {
+    "tool": "UpdateView",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateView.test.ts"
   }
 ]

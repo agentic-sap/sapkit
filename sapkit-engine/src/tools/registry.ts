@@ -131,6 +131,7 @@ import { reloadProfile } from './runtime/reloadProfile';
 // 묶음: structure
 
 // 묶음: view
+import { readView } from './read/readView';
 
 // 묶음: unit-test
 
@@ -257,6 +258,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: structure — 구조체 (순서 10)
 
   // 묶음: view — 뷰 (순서 11)
+  readView,
 
   // 묶음: unit-test — 단위시험 (순서 12)
 
