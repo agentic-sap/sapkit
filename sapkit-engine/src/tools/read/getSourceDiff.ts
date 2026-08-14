@@ -60,6 +60,7 @@ export const getSourceDiff = defineTool(
     available_in: ['onprem', 'cloud', 'legacy'],
     sets: ['readonly'],
     kind: 'read',
+    targetNames: ['object_name_a', 'object_name_b'],
   },
   async (context, args) => {
     try {

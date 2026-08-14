@@ -225,6 +225,8 @@ export const createInclude = defineTool(
     available_in: ['onprem', 'legacy'],
     sets: ['high'],
     kind: 'mutation',
+    // 메인 프로그램도 바뀐다 — 기본값이 그 소스에 `INCLUDE` 문을 끼워 넣는다.
+    targetNames: ['include_name', 'main_program'],
   },
   async (context: ToolContext, args) => {
     const { logger } = context;

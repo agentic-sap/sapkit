@@ -36,6 +36,11 @@ const require = createRequire(import.meta.url);
 const here = (rel) => fileURLToPath(new URL(rel, import.meta.url));
 
 const DIST = here('../dist/harness/recorder/index.js');
+/**
+ * 대상 검사. 무엇을 검사할지는 **도구 선언**(`SapToolDefinition.targetNames`)에서
+ * 오고, 이 모듈이 그 선언을 읽어 검사기를 만든다 — 여기 이름 표를 다시 두지 않는다.
+ */
+const GUARD_DIST = here('../dist/harness/targetGuard.js');
 const BUNDLE = here('../../interactive/server/server.bundle.cjs');
 const SCENARIO_DIR = here('./scenarios');
 const DEFAULT_OUT = here('../fixtures');
@@ -126,110 +131,6 @@ function loadScenario(spec, SEQUENCE_ID_RE) {
 }
 
 /**
- * **대상이 고객 객체여야 하는 도구**와, 그 이름을 뽑는 함수.
- *
- * 두 부류가 같은 제약을 진다.
- *  ⓐ 응답에 **원본 소스를 싣는** 도구 — 표준 객체를 담으면 이 레포가 재배포권을
- *     갖지 않은 자산이 공개 레포에 박힌다.
- *  ⓑ **SAP을 바꾸는** 도구 — P3는 DEV 연습 자리(전용 패키지 또는 `$TMP`)
- *     안에서만이다. 여기 있으면 **실 SAP 호출 전에** 판정된다. 사후에 걸러 봐야
- *     write는 이미 일어난 뒤다(4차 리뷰 지적).
- *
- * **여기서 검사하는 것은 이름의 네임스페이스뿐이고 `package_name`은 보지 않는다.**
- * 연습 자리를 벗어난 write를 기계가 막지는 못한다 — 시나리오 작성자의 책임이다.
- *
- * 인자 하나로 끝나지 않는 도구가 있다 — 배열을 받는 것도, 이름 인자가 둘인 것도
- * 있다. 그래서 값은 문자열이 아니라 **이름 배열을 뽑는 함수**다. 인자 이름은
- * 전부 `old-surface/m1-tools.json`(구 번들 발행 선언)에서 확인한 것이며 추측이
- * 없다 — 두 배열 도구의 원소 키가 서로 다르다(`object_name` vs `name`).
- */
-const CUSTOMER_OBJECT_TOOLS = {
-  // ⓐ 소스를 돌려주는 것
-  GetClass: (a) => [a?.class_name],
-  GetProgram: (a) => [a?.program_name],
-  GetInclude: (a) => [a?.include_name],
-  GetFunctionModule: (a) => [a?.function_module_name],
-  GetTable: (a) => [a?.table_name],
-  GetStructure: (a) => [a?.structure_name],
-  GrepObjects: (a) => (Array.isArray(a?.objects) ? a.objects.map((o) => o?.object_name ?? o) : [a?.objects]),
-  GetSourceDiff: (a) => [a?.object_name_a, a?.object_name_b],
-  // ⓑ SAP을 바꾸는 것
-  CreateProgram: (a) => [a?.program_name],
-  CreateInclude: (a) => [a?.include_name, a?.main_program],
-  UpdateProgram: (a) => [a?.program_name],
-  UpdateInclude: (a) => [a?.include_name, a?.main_program],
-  UpdateClass: (a) => [a?.class_name],
-  UpdateSourceByPatch: (a) => [a?.object_name],
-  ActivateObjects: (a) => (Array.isArray(a?.objects) ? a.objects.map((o) => o?.name ?? o) : [a?.objects]),
-};
-
-/**
- * ABAP 원본이 실렸는지 보는 거친 표지. 목록 밖 도구를 위한 백스톱용이다.
- *
- * **선행 경계(`\b`)에 기대지 않는다.** 검사는 `JSON.stringify` 결과 위에서
- * 도는데, 거기서 줄바꿈은 역슬래시와 `n` 두 글자가 된다. `n`은 단어 문자라
- * 줄 첫머리의 `ENDCLASS`는 `\bEND`의 경계가 성립하지 않는다 — 그래서 첫 판은
- * **들여쓴 것만 잡고 0열은 놓쳤다.** SAP이 돌려주는 표준 소스가 정확히 0열
- * + CRLF 형태라 노리던 것을 통째로 놓치고 있었다(4차 리뷰 지적).
- * 대신 ABAP 문장의 마침표를 후행 경계로 쓴다.
- */
-const ABAP_SOURCE_MARK = /END(CLASS|METHOD|FORM|FUNCTION|MODULE)\s*\./i;
-
-/** 고객 네임스페이스인가. `/NAMESPACE/ZFOO` 같은 등록 네임스페이스도 허용한다. */
-function isCustomerObject(name) {
-  const bare = String(name ?? '').trim().replace(/^\/[^/]+\//, '');
-  return /^[ZY]/i.test(bare);
-}
-
-function checkSourceNamespace(scenario, { allowStandardSource }) {
-  if (allowStandardSource) return [];
-  const offenders = [];
-  for (const [i, step] of scenario.steps.entries()) {
-    const extract = CUSTOMER_OBJECT_TOOLS[step.tool];
-    if (extract === undefined) continue;
-
-    // 선택 인자는 없을 수 있다(`UpdateInclude.main_program` 등) — 없는 것을
-    // 위반으로 세지 않는다. 대신 **하나도 못 뽑았으면** 막는다: 인자 이름이
-    // 어긋났거나 비어 있다는 뜻이고, 그 상태로 태우면 무엇을 겨눴는지 모른 채
-    // 실 SAP에 나간다(fail-closed).
-    const names = extract(step.args).filter((n) => n !== undefined && n !== null);
-    if (names.length === 0) {
-      offenders.push(`steps[${i}] ${step.tool} — 대상 객체 이름을 하나도 찾지 못했다 (인자 이름 확인)`);
-      continue;
-    }
-    for (const objectName of names) {
-      if (!isCustomerObject(objectName)) {
-        offenders.push(`steps[${i}] ${step.tool} → ${JSON.stringify(objectName)}`);
-      }
-    }
-  }
-  return offenders;
-}
-
-/**
- * 사전 검사의 백스톱 — **목록에 없는 도구**가 원본 소스를 실어 왔는지 본다.
- *
- * `checkSourceNamespace`는 시나리오의 인자만, 그것도 위 목록의 도구만 본다.
- * 목록에 없는 도구가 소스를 돌려주면 조용히 통과한다. 그래서 채록이 끝난 뒤
- * 한 번 더 훑는다. 목록에 있는 도구는 이미 Z·Y로 제한됐으므로 건너뛴다.
- *
- * **응답과 인자 양쪽을 본다** — 소스가 들어오는 자리가 응답만은 아니다.
- * `CheckSyntax`는 `source_code` 인자를 받고 목록 밖이라, 표준 객체 소스를
- * 거기 붙이면 그대로 픽스처에 실린다(3차 리뷰 지적).
- */
-function detectUnguardedSource(fixture, { allowStandardSource }) {
-  if (allowStandardSource) return [];
-  return fixture.steps
-    .filter((s) => CUSTOMER_OBJECT_TOOLS[s.tool] === undefined)
-    .filter((s) => ABAP_SOURCE_MARK.test(JSON.stringify(s.response)) || ABAP_SOURCE_MARK.test(JSON.stringify(s.args)))
-    .map(
-      (s) =>
-        `steps[${s.index}] ${s.tool} — 인자나 응답에 ABAP 원본으로 보이는 것이 있는데 이 도구는 ` +
-        '네임스페이스 검사 목록에 없다. 목록에 더하거나 대상을 Z 객체로 바꿔라.',
-    );
-}
-
-/**
  * 녹화가 **반쪽인지** 본다. capture.mjs가 표면 채록에 대해 하는 것과 같은
  * 자리다 — 조용히 강등된 증거를 커밋하면 신 엔진이 맞추는 기준 자체가 틀어진다.
  */
@@ -261,13 +162,23 @@ function detectDegradation(fixture, { allowAllErrors }) {
 const args = parseArgs(process.argv.slice(2));
 const dryRun = args.flags.has('dry-run');
 
-if (!fs.existsSync(DIST)) {
+for (const artifact of [DIST, GUARD_DIST]) {
+  if (fs.existsSync(artifact)) continue;
   die(
-    `빌드 산출물이 없다: ${DIST}`,
+    `빌드 산출물이 없다: ${artifact}`,
     '`npm run build`를 먼저 돌려라 — 이 스크립트는 소스가 아니라 산출물을 태운다.',
   );
 }
 const recorder = require(DIST);
+// 대상 검사는 도구 선언에서 온다. 검사기가 비면 사전 검사가 통째로 무력해지므로
+// 여기서 fail-closed로 막는다 — 조용히 "검사할 것이 없다"로 넘어가지 않는다.
+const guard = require(GUARD_DIST);
+if (Object.keys(guard.TARGET_NAME_EXTRACTORS).length === 0) {
+  die(
+    '대상-이름 선언을 가진 도구가 하나도 없다 — 사전 검사가 아무것도 막지 못한다.',
+    '`npm run build`가 최신인지, 도구 정의의 targetNames가 지워지지 않았는지 확인해라.',
+  );
+}
 
 const scenarioArg = args.values.get('scenario');
 if (!scenarioArg) die('--scenario 가 필요하다.', '예: --scenario=zdemo-program-create-activate');
@@ -285,7 +196,7 @@ if (!dryRun && fs.existsSync(outFile) && !args.flags.has('force')) {
 }
 
 // 태우기 **전에** 막는다 — 찍고 나서 버리면 실 SAP 호출은 이미 나간 뒤다.
-const standardSource = checkSourceNamespace(scenario, {
+const standardSource = guard.checkSourceNamespace(scenario, {
   allowStandardSource: args.flags.has('allow-standard-source'),
 });
 if (standardSource.length) {
@@ -303,6 +214,10 @@ if (dryRun) {
   console.log(`   단계       : ${scenario.steps.length}건 [${scenario.steps.map((s) => s.tool).join(' → ')}]`);
   console.log(`   저장 예정   : ${outFile}`);
   console.log(`   exposition : ${exposition}`);
+  console.log(
+    `   대상 검사   : 대상-이름을 선언한 도구 ${Object.keys(guard.TARGET_NAME_EXTRACTORS).length}종 ` +
+      '(선언 없는 도구는 사후 백스톱)',
+  );
   console.log('   (dry-run — 구 번들을 띄우지도, SAP에 붙지도 않았다.)');
   process.exit(0);
 }
@@ -354,7 +269,7 @@ console.log(`  받은 단계 ${fixture.steps.length}/${scenario.steps.length} ·
 
 const problems = [
   ...detectDegradation(fixture, { allowAllErrors: args.flags.has('allow-all-errors') }),
-  ...detectUnguardedSource(fixture, { allowStandardSource: args.flags.has('allow-standard-source') }),
+  ...guard.detectUnguardedSource(fixture, { allowStandardSource: args.flags.has('allow-standard-source') }),
 ];
 if (problems.length) {
   console.error('❌ 녹화를 저장하지 않는다.');

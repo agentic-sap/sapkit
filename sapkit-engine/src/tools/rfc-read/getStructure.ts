@@ -41,6 +41,7 @@ export const getStructure = defineTool(
     available_in: ['onprem', 'cloud'],
     sets: ['high'],
     kind: 'read',
+    targetNames: ['structure_name'],
   },
   async (context, args) =>
     readDdicObject(STRUCTURE, context, { name: args.structure_name, version: args.version }),

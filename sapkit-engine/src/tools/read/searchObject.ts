@@ -37,6 +37,9 @@ export const searchObject = defineTool(
     available_in: ['onprem', 'cloud'],
     sets: ['readonly'],
     kind: 'read',
+    // `targetNames`를 **일부러 선언하지 않는다.** `object_name`은 대상이 아니라
+    // 검색 마스크이고(`MARA*`), 응답에 원본 소스가 실리지도 않는다. 선언하면
+    // 표준 이름으로 존재를 확인하는 정상 사용이 녹화에서 막힌다.
   },
   async (context, args) => {
     try {

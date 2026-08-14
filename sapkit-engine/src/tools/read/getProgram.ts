@@ -42,6 +42,7 @@ export const getProgram = defineTool(
     available_in: ['onprem', 'legacy'],
     sets: ['high'],
     kind: 'read',
+    targetNames: ['program_name'],
   },
   async (context, args) => {
     try {

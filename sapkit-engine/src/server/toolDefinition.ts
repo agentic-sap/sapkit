@@ -14,7 +14,7 @@
  * } as const;
  * ```
  *
- * 여기에 **두 필드가 추가**된다 — 구 엔진이 디렉터리 위치와 별도 가드 테이블로
+ * 여기에 **세 필드가 추가**된다 — 구 엔진이 디렉터리 위치와 별도 가드 테이블로
  * 흩어 두었던 것을 선언으로 끌어올린 것이다:
  *
  *  - `sets` — 이 도구를 켜는 핸들러 집합(`--exposition`의 원소). 구 엔진은
@@ -22,6 +22,9 @@
  *  - `kind` — 정책 분류. 안전 게이트가 이 축으로 판단한다. 구 엔진은
  *    `readonlyGuard`의 이름 목록으로 판단했고, 그것이 통과시킨 오분류가
  *    GAP-1 계열 사고의 토양이었다.
+ *  - `targetNames` — 이 도구가 겨누는 대상 객체의 이름이 **어느 인자에 있는가**.
+ *    녹화 사전 검사가 이 선언을 읽는다. 예전에는 그 지식이 녹화 스크립트 안의
+ *    하드코딩 목록에 있었고, 목록 밖 도구는 SAP 호출이 나간 뒤에야 걸렸다.
  *
  * `inputSchema`는 **zod raw shape**(zod 검증자들의 평범한 객체)다. SDK가 이것을
  * JSON Schema로 변환해 `tools/list`에 싣기 때문에, 같은 SDK + 같은 shape이면
@@ -105,6 +108,26 @@ export interface ToolContext {
   readonly env: Readonly<Record<string, string | undefined>>;
 }
 
+/**
+ * **대상-이름 인자** 하나를 가리키는 선언.
+ *
+ * 문자열이면 그 이름의 인자를 그대로 읽고, 객체면 배열 인자(`arg`)의 각
+ * 원소에서 `element` 키를 읽는다(원소가 문자열이면 원소 자체). 인자 하나로
+ * 끝나지 않는 도구가 있어서 두 모양이 필요하다 — 이름 인자가 둘인 것도
+ * (`GetSourceDiff`), 배열을 받는 것도 있고, **배열 원소의 키가 도구마다 다르다**
+ * (`GrepObjects.objects[].object_name` vs `ActivateObjects.objects[].name`).
+ *
+ * 키는 `inputSchema`의 키로 좁혀져 있다 — 인자 이름 오타는 컴파일에서 걸린다.
+ */
+export type ToolTargetName<Shape extends ToolInputShape = ToolInputShape> =
+  | Extract<keyof Shape, string>
+  | {
+      /** 배열을 받는 인자 이름. */
+      readonly arg: Extract<keyof Shape, string>;
+      /** 배열 원소에서 이름을 담는 키. */
+      readonly element: string;
+    };
+
 export interface SapToolDefinition<Shape extends ToolInputShape = ToolInputShape> {
   readonly name: string;
   readonly description: string;
@@ -115,6 +138,43 @@ export interface SapToolDefinition<Shape extends ToolInputShape = ToolInputShape
   readonly sets: readonly HandlerSet[];
   /** 정책 분류. 안전 게이트가 이 축으로 판단한다. */
   readonly kind: ToolPolicyKind;
+  /**
+   * 이 도구가 겨누는 **대상 객체의 이름을 담는 인자들**.
+   *
+   * 녹화 사전 검사(`harness/targetGuard.ts`)가 이것을 읽어, 대상이 고객
+   * 객체(Z·Y)가 아니면 **SAP 호출이 나가기 전에** 막는다. 예전에는 그 목록이
+   * 녹화 스크립트 안의 하드코딩 15종이었고, 목록 밖 도구는 호출이 나간 **뒤에야**
+   * 사후 백스톱에 걸렸다 — 도구를 지을 때 여기에 한 줄 적으면 사전 검사가
+   * 자동으로 따라온다.
+   *
+   * **`kind`가 SAP을 바꾸는 갈래(`mutation`·`execution`)면 선언이 필수다** —
+   * {@link missingTargetNameDeclarations}가 누락을 거부한다. 대상 이름을 아예
+   * 받지 않는 도구(예: 이송번호만 받는 것)는 **빈 배열을 명시**한다. 빈 배열은
+   * "고객 네임스페이스 대상 인자가 없다"는 선언이지 귀찮음의 도피처가 아니다.
+   *
+   * 발행 표면에는 실리지 않는다 — 서버는 `description`·`inputSchema`만
+   * `registerTool`에 넘긴다.
+   */
+  readonly targetNames?: readonly ToolTargetName<Shape>[];
+}
+
+/**
+ * 대상-이름 선언이 **필수인** 정책 분류. SAP 상태를 바꾸거나 실행하는 갈래이며,
+ * `AGENTS.md`의 P3(write/execute)와 같은 경계다.
+ */
+export const TARGET_NAME_REQUIRED_KINDS: readonly ToolPolicyKind[] = ['mutation', 'execution'];
+
+/**
+ * 대상-이름 선언이 빠진 도구들의 이름. 비어 있지 않으면 게이트 실패다.
+ *
+ * 빈 배열(`targetNames: []`)은 명시 선언이므로 통과하고, **없는 것**(undefined)만
+ * 걸린다. 강제는 `src/tools/__tests__/targetNames.test.ts`가 한다.
+ */
+export function missingTargetNameDeclarations(tools: readonly SapTool[]): string[] {
+  return tools
+    .filter((tool) => TARGET_NAME_REQUIRED_KINDS.includes(tool.definition.kind))
+    .filter((tool) => tool.definition.targetNames === undefined)
+    .map((tool) => tool.definition.name);
 }
 
 export type ToolHandler<Shape extends ToolInputShape> = (
