@@ -54,6 +54,7 @@ describe('셰임 계약', () => {
         'GetSourceDiff',
         'GetSqlQuery',
         'GetSystemInfo',
+        'GetTypeInfo',
         'GrepObjects',
         'SearchObject',
       ]);

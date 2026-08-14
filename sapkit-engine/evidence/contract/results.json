@@ -85,6 +85,11 @@
     "detail": "src/tools/rfc-read/__tests__/getTable.test.ts"
   },
   {
+    "tool": "GetTypeInfo",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getTypeInfo.test.ts"
+  },
+  {
     "tool": "GrepObjects",
     "passed": true,
     "detail": "src/tools/read/__tests__/grepObjects.test.ts"
