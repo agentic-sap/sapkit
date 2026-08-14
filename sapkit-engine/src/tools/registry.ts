@@ -137,6 +137,7 @@ import { reloadProfile } from './runtime/reloadProfile';
 // 묶음: behavior-definition
 
 // 묶음: data-element
+import { createDataElement } from './write/createDataElement';
 import { getDataElement } from './read/getDataElement';
 import { readDataElement } from './read/readDataElement';
 
@@ -265,6 +266,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: behavior-definition — 동작 정의 (BDEF) (순서 13)
 
   // 묶음: data-element — 데이터 엘리먼트 (순서 14)
+  createDataElement,
   getDataElement,
   readDataElement,
 

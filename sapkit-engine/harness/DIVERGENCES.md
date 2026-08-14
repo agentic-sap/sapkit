@@ -844,6 +844,32 @@
   `divergences.ts`에 옮기지 못했다. **와이어와 도구 응답이 둘 다 달라지므로 기계
   장부에도 와야 하는 항목**이다 — 묶음 병합 뒤 오케스트레이터가 옮긴다.
 
+### D62 — 생성 페이로드의 `masterSystem`·`responsible`을 **env에서만** 읽는다
+
+- **분류**: 축소 — **해소 마일스톤 = 시스템 문맥 해석을 서버 기동에 붙이는 자리**
+  (지금은 그럴 계층 자체가 없다).
+- **구 동작(실측)**: 구는 기동 때 `resolveSystemContext`로 한 번 풀어 캐시하고
+  (`engine/src/server/BaseMcpServer.ts:146,324`), 그 값을 `createAdtClient`가
+  생성 페이로드에 실어 준다(`engine/src/lib/clients.ts:20-31`). 해석 순서는
+  ⑴ HTTP 헤더 override ⑵ `SAP_MASTER_SYSTEM` / (`SAP_RESPONSIBLE` ||
+  `SAP_USERNAME`) ⑶ 그래도 없으면 `getSystemInformation(connection)`의
+  `systemID`·`userName`이다(`engine/src/lib/systemContext.ts:45-86`).
+- **신 동작**: ⑵만 짓는다 — `context.env`에서 `SAP_MASTER_SYSTEM` ·
+  (`SAP_RESPONSIBLE` || `SAP_USERNAME`)을 읽고, 없으면 빈 값이다
+  (`src/tools/write/dataElementDomainCreate.ts`의 `systemContextOf`).
+- **근거**: ⑴은 HTTP 전송의 헤더 통로에 묶여 있고(그 통로 자체가 D30으로 이미
+  축소돼 있다), ⑶은 해석된 프로파일에 `SAP_USERNAME`이 반드시 있으므로 실사용에서
+  걸리지 않는다 — 즉 실제로 관찰되는 경로는 ⑵ 하나다. 없는 계층을 이 묶음에서
+  새로 세우는 것은 범위 밖이다.
+- **대체 기대 시험**: 두 사슬이 이 값을 **어떻게 다르게 싣는지**를 못 박는다 —
+  `src/tools/write/__tests__/createDataElement.test.ts`의
+  「`adtcore:responsible`은 값이 없어도 빈 속성으로 실린다」·「SAP_USERNAME이
+  있으면 responsible에 실린다」 ·
+  `src/tools/write/__tests__/createDomain.test.ts`의
+  「`adtcore:responsible`은 값이 없으면 **속성 자체가 빠진다**」.
+- **기계 장부 미반영**: 생성 POST의 본문이 달라질 수 있으므로 **와이어 차이**다.
+  위와 같은 이유로 옮기지 못했다.
+
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 
 리뷰에서 차이로 잡혔지만 **유지할 이유가 없어** 구 동작으로 되돌린 것들.
