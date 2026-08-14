@@ -169,6 +169,7 @@ import { getDataElement } from './read/getDataElement';
 import { readDataElement } from './read/readDataElement';
 
 // 묶음: service-binding
+import { readServiceBinding } from './read/readServiceBinding';
 
 // 묶음: domain
 import { createDomain } from './write/createDomain';
@@ -348,6 +349,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   readDataElement,
 
   // 묶음: service-binding — 서비스 바인딩 (순서 15)
+  readServiceBinding,
 
   // 묶음: domain — 도메인 (순서 16)
   createDomain,

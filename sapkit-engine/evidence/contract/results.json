@@ -330,6 +330,11 @@
     "detail": "src/tools/read/__tests__/readProgram.test.ts"
   },
   {
+    "tool": "ReadServiceBinding",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readServiceBinding.test.ts"
+  },
+  {
     "tool": "ReadServiceDefinition",
     "passed": true,
     "detail": "src/tools/read/__tests__/readServiceDefinition.test.ts"
