@@ -80,6 +80,11 @@
     "detail": "src/tools/read/__tests__/grepObjects.test.ts"
   },
   {
+    "tool": "GrepPackages",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/grepPackages.test.ts"
+  },
+  {
     "tool": "SearchObject",
     "passed": true,
     "detail": "src/tools/read/__tests__/searchObject.test.ts"
