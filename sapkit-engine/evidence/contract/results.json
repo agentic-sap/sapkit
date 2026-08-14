@@ -625,6 +625,11 @@
     "detail": "src/tools/write/__tests__/updateClassMethod.test.ts"
   },
   {
+    "tool": "UpdateFunctionGroup",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateFunctionGroup.test.ts"
+  },
+  {
     "tool": "UpdateFunctionModule",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateFunctionModule.test.ts"

@@ -1833,3 +1833,52 @@ D번호를 주지 않는 이유가 그것이다. 그래도 장부에 두는 이�
 - **해소 마일스톤**: 없음 — 영구 차이(수리)다.
 - **기계 장부 반영**: **못 했다**(`harness/replay/**` 무접촉). 도구 응답이 `isError`째로
   달라지므로 **기계 장부에 와야 한다.** 오케스트레이터가 묶음 병합 뒤에 옮긴다.
+### D123 — 함수그룹 잠금 응답의 `sap-adt-lm-handle` **헤더** 경로를 승계하지 않는다
+- **분류**: 축소 — **해소 마일스톤 = 접속 계층(`src/adt/client.ts`)이 잠금 응답 헤더
+  경로를 지원하는 판. 그때까지는 본문 경로만 쓴다.**
+- **구 동작(실측)**: 벤더 `lockFunctionGroup`
+  (`engine/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/functionGroup/lock.js:57-79`)
+  은 손잡이를 **응답 헤더 `sap-adt-lm-handle`에서 먼저** 찾고, 없을 때만 본문의
+  `asx:abap → asx:values → DATA → LOCK_HANDLE`로 내려간다. **함수그룹만 그렇다** —
+  같은 패키지의 도메인·데이터엘리먼트·클래스 잠금(`core/domain/lock.js:57-79` 등)은
+  본문만 읽는다.
+- **신 동작**: 접속 계층의 `client.withLock()`이 잠금 수명주기를 소유하고, 그 안의
+  `parseLockResult`(`src/adt/client.ts:170-186`)는 **본문만** 읽는다. 헤더에만
+  손잡이를 싣는 시스템에서는 `protocol` 오류로 던지고 PUT이 나가지 않는다.
+- **판정 근거**: ⑴ 벤더 자신이 본문 경로를 폴백으로 갖고 있고 다른 오브젝트 종류는
+  전부 본문만 읽는다 — 본문이 ADT의 보편 형태다. ⑵ 헤더 경로를 살리려면 모든 묶음이
+  함께 쓰는 `withLock`을 고쳐야 하는데, 이 꼬리 과제가 접속 계층을 건드리는 것은
+  범위 밖이고 병렬 묶음들과 충돌한다. ⑶ 실패해도 **fail-closed**다(쓰기가 나가지
+  않는다) — 조용히 잘못된 손잡이로 PUT 하는 것보다 낫다.
+- **대체 기대 시험**:
+  `sapkit-engine/src/tools/write/__tests__/updateFunctionGroup.test.ts`의 「와이어」 절 —
+  본문에 손잡이를 실은 잠금 응답으로 사슬이 끝까지 도는 것을 확인한다(PUT의
+  `lockHandle` 질의 인자 대조).
+- **기계 장부 반영**: **안 했다** — 채록된 실 SAP 응답은 본문에 손잡이를 싣는
+  형태이므로 재생 대조에 이 갈래가 나타나지 않는다. 나타나는 순간(헤더 전용 응답이
+  채록되면) 이 항목을 기계 장부로 옮기고 접속 계층을 고쳐야 한다.
+
+### D124 — 함수그룹 콘텐츠 타입 협상 캐시가 `CreateFunctionGroup`과 **공유되지 않는다**
+- **분류**: 축소 — **해소 마일스톤 = 함수그룹 두 도구의 협상 캐시를 한 자리로 모으는
+  판(생성 쪽 모듈이 협상을 내보내거나, 공용 모듈로 옮기는 정리).**
+- **구 동작(실측)**: 협상 결과는 **접속 객체 하나에 한 벌**이고 생성·갱신이 함께
+  썼다(`engine/src/lib/adtFunctionGroupContentTypes.ts:109-112`의 `negotiatedCache` —
+  "stdio mode reuses one connection for the whole session"). 그래서 한 세션에서
+  `CreateFunctionGroup` 뒤에 `UpdateFunctionGroup`을 부르면 `GET /sap/bc/adt/discovery`가
+  **한 번만** 나갔다.
+- **신 동작**: `src/tools/write/createFunctionGroup.ts`가 협상과 캐시를 모듈 사설로
+  갖고 있고 내보내지 않으므로, 갱신 쪽은
+  `src/tools/write/functionGroupContentTypes.ts`에 캐시를 하나 더 둔다. 한 세션에서 두
+  도구를 이어 부르면 discovery 왕복이 **한 번 더** 나간다. 협상 결과 자체와 PUT에
+  실리는 헤더 두 줄은 구와 같다.
+- **판정 근거**: 이 꼬리 과제는 **다른 묶음의 도구 파일을 고치지 않는다**는 제약을
+  받는다(`createFunctionGroup.ts`는 function-group 묶음 소유). 문서 파싱 두 조각은 그
+  모듈이 이미 내보내고 있어 **가져다 쓰되**, 캐시만 갈라진다. 결과가 달라지는 것이
+  아니라 왕복 한 번이 더해질 뿐이며, 실패는 양쪽 다 캐시하지 않는다.
+- **대체 기대 시험**:
+  `sapkit-engine/src/tools/write/__tests__/updateFunctionGroup.test.ts`의
+  「콘텐츠 타입 협상」 절 — 광고된 판 고르기 · 다판 중 최고판 · discovery 불가 시 v3
+  폴백 · 협상이 잠그기 전이라는 순서까지 붙잡는다.
+- **기계 장부 반영**: **못 했다**(`harness/replay/**` 무접촉). 두 도구를 이어 부르는
+  시나리오에서는 **요청 수가 달라지므로 기계 장부에 와야 한다.** 오케스트레이터가
+  묶음 병합 뒤에 옮긴다.

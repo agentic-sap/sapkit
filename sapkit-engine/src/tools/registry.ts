@@ -270,6 +270,7 @@ import { updateCdsUnitTest } from './write/updateCdsUnitTest';
 import { updateUnitTest } from './runtime/updateUnitTest';
 import { updateLocalDefinitions } from './write/updateLocalDefinitions';
 import { updateLocalMacros } from './write/updateLocalMacros';
+import { updateFunctionGroup } from './write/updateFunctionGroup';
 
 // 묶음: tail-read
 
@@ -503,6 +504,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   updateUnitTest,
   updateLocalDefinitions,
   updateLocalMacros,
+  updateFunctionGroup,
 
   // 묶음: tail-read — 꼬리 — 조회 계열 + CreatePackage 12종 (순서 29)
 ];
