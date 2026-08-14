@@ -430,6 +430,11 @@
     "detail": "src/tools/write/__tests__/updateProgram.test.ts"
   },
   {
+    "tool": "UpdateServiceDefinition",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateServiceDefinition.test.ts"
+  },
+  {
     "tool": "UpdateSourceByPatch",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateSourceByPatch.test.ts"
