@@ -172,7 +172,10 @@ describe('--check 대조', () => {
     const at = lines.findIndex((l) => l.startsWith('| GetClass |'));
     expect(at).toBeGreaterThan(0);
     const tampered = [...lines];
-    tampered[at] = (tampered[at] as string).replace('미정', '증거 있음');
+    // 변형 대상은 **도구 이름 칸**이다. 상태 값(`미정` 같은)을 노리면 제작 계획이 생기거나
+    // 증거가 붙는 순간 그 글자가 사라져 치환이 무효가 되고, 음성시험이 조용히 자기 자신을
+    // 통과시킨다 — 실제로 한 번 그렇게 깨졌다. 이름 칸은 어떤 진척 상태에서도 남는다.
+    tampered[at] = (tampered[at] as string).replace('| GetClass |', '| GetClazz |');
     expect(tampered.join('\n')).not.toBe(expected);
 
     const verdict = checkLedger(expected, tampered.join('\n'));
