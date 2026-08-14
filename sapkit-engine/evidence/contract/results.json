@@ -10,6 +10,11 @@
     "detail": "src/tools/read/__tests__/checkSyntax.test.ts"
   },
   {
+    "tool": "CreateClass",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createClass.test.ts"
+  },
+  {
     "tool": "CreateInclude",
     "passed": true,
     "detail": "src/tools/write/__tests__/createInclude.test.ts"
@@ -45,6 +50,11 @@
     "detail": "src/tools/read/__tests__/getClass.test.ts"
   },
   {
+    "tool": "GetClassMethod",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getClassMethod.test.ts"
+  },
+  {
     "tool": "GetFunctionModule",
     "passed": true,
     "detail": "src/tools/read/__tests__/getFunctionModule.test.ts"
@@ -60,14 +70,29 @@
     "detail": "src/tools/read/__tests__/getInclude.test.ts"
   },
   {
-    "tool": "GetIncludesList",
-    "passed": true,
-    "detail": "src/tools/read/__tests__/getIncludesList.test.ts"
-  },
-  {
     "tool": "GetInstalledComponents",
     "passed": true,
     "detail": "src/tools/read/__tests__/getInstalledComponents.test.ts"
+  },
+  {
+    "tool": "GetLocalDefinitions",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getLocalDefinitions.test.ts"
+  },
+  {
+    "tool": "GetLocalMacros",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getLocalMacros.test.ts"
+  },
+  {
+    "tool": "GetLocalTestClass",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getLocalTestClass.test.ts"
+  },
+  {
+    "tool": "GetLocalTypes",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getLocalTypes.test.ts"
   },
   {
     "tool": "GetObjectInfo",
@@ -88,11 +113,6 @@
     "tool": "GetPackageTree",
     "passed": true,
     "detail": "src/tools/read/__tests__/getPackageTree.test.ts"
-  },
-  {
-    "tool": "GetProgFullCode",
-    "passed": true,
-    "detail": "src/tools/read/__tests__/getProgFullCode.test.ts"
   },
   {
     "tool": "GetProgram",
@@ -155,9 +175,9 @@
     "detail": "src/tools/read/__tests__/grepPackages.test.ts"
   },
   {
-    "tool": "ReadProgram",
+    "tool": "ReadClass",
     "passed": true,
-    "detail": "src/tools/read/__tests__/readProgram.test.ts"
+    "detail": "src/tools/read/__tests__/readClass.test.ts"
   },
   {
     "tool": "ReloadProfile",
@@ -225,9 +245,24 @@
     "detail": "src/tools/write/__tests__/updateClass.test.ts"
   },
   {
+    "tool": "UpdateClassMethod",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateClassMethod.test.ts"
+  },
+  {
     "tool": "UpdateInclude",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateInclude.test.ts"
+  },
+  {
+    "tool": "UpdateLocalTestClass",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateLocalTestClass.test.ts"
+  },
+  {
+    "tool": "UpdateLocalTypes",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateLocalTypes.test.ts"
   },
   {
     "tool": "UpdateProgram",

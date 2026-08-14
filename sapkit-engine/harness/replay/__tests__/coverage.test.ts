@@ -256,18 +256,28 @@ describe('휴면 등재는 통과로 세지 않는다', () => {
     const report = buildCoverage({ tools: [], divergences: M1_DIVERGENCES });
     const dormant = report.divergences.filter((d) => d.status === 'dormant').map((d) => d.id);
 
-    // D3는 인클루드 묶음에서 깨어났다 — 남은 휴면은 D2 하나다.
-    expect(dormant).toEqual(['D2']);
+    // D2·D3 둘 다 각자의 도구를 짓는 묶음에서 깨어났다 — 남은 휴면은 없다.
+    expect(dormant).toEqual([]);
     for (const row of report.divergences) {
       if (row.status === 'dormant') expect(row.passed).toBe(0);
     }
   });
 
+  /**
+   * **장부에 실재하는 휴면 항목으로 재지 않는다.** D2·D3이 깨어난 뒤로 실제 장부의
+   * 휴면은 0건이라, 실물로 재면 이 시험은 아무것도 단정하지 않으면서 통과한다 —
+   * 커버리지처럼 보이는 빈칸이 된다. 규칙 자체를 재도록 합성 항목을 준다.
+   */
   it('마크다운이 휴면 항목을 통과가 아닌 것으로 적는다', () => {
-    const md = renderCoverageMarkdown(buildCoverage({ tools: [], divergences: M1_DIVERGENCES }));
+    const sleeping = {
+      ...(M1_DIVERGENCES.find((d) => d.id === 'D2') as (typeof M1_DIVERGENCES)[number]),
+      id: 'D-DORMANT-FIXTURE',
+      status: 'dormant' as const,
+    };
+    const md = renderCoverageMarkdown(buildCoverage({ tools: [], divergences: [sleeping] }));
 
     expect(md).toContain('휴면');
-    expect(md).toContain('D2');
+    expect(md).toContain('D-DORMANT-FIXTURE');
   });
 
   it('이연된 등재 항목은 통과가 아니라 이연으로 세어진다', async () => {

@@ -64,13 +64,6 @@ describe('M1 사전 등재 3건', () => {
     expect(byId('D1')).toMatchObject({ tool: 'GetSqlQuery', status: 'active', classification: '수리' });
   });
 
-  it('D2는 등재됐지만 휴면이다 — 도구가 아직 없다', () => {
-    expect(byId('D2')).toMatchObject({ tool: 'UpdateLocalTypes', status: 'dormant' });
-  });
-
-  it('휴면 항목도 활성화 마일스톤을 적어 둔다', () => {
-    expect(byId('D2').resolvesIn).not.toBeNull();
-  });
 
   /**
    * D3는 인클루드 묶음에서 **깨어났다.** 도구가 등록점에 있는데 장부가 휴면이면
@@ -129,6 +122,20 @@ describe('D3 — 주소 없는 인클루드 이름만 빠진다', () => {
     const result = await judge(detailed('ZINC_REAL', 'ZUNIVI_H011'), detailed('ZINC_REAL'));
 
     expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D3' });
+  });
+
+  it('D2는 UpdateLocalTypes를 지으며 깨어났고 대체 기대 시험이 실재한다', () => {
+    // 휴면의 뜻은 "대체 기대 시험은 그 도구를 짓는 마일스톤에서 활성화한다"였다.
+    // 그 마일스톤이 왔으므로 상태가 바뀌고, 시험 경로가 **파일로** 존재해야 한다 —
+    // 산문이면 대장이 없는 증거를 있다고 보고한다.
+    expect(byId('D2')).toMatchObject({ tool: 'UpdateLocalTypes', status: 'active' });
+
+    const repoRoot = path.resolve(__dirname, '../../../..');
+    const paths = (byId('D2').substituteTest ?? '').match(/[\w./-]+\.(?:ts|mjs|md)/g) ?? [];
+    expect(paths.length).toBeGreaterThan(0);
+    for (const candidate of paths) {
+      expect(fs.existsSync(path.join(repoRoot, candidate))).toBe(true);
+    }
   });
 });
 

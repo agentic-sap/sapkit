@@ -122,6 +122,16 @@ import { reloadProfile } from './runtime/reloadProfile';
 import { getIncludesList } from './read/getIncludesList';
 
 // 묶음: class
+import { createClass } from './write/createClass';
+import { updateClassMethod } from './write/updateClassMethod';
+import { updateLocalTestClass } from './write/updateLocalTestClass';
+import { updateLocalTypes } from './write/updateLocalTypes';
+import { getClassMethod } from './read/getClassMethod';
+import { getLocalDefinitions } from './read/getLocalDefinitions';
+import { getLocalMacros } from './read/getLocalMacros';
+import { getLocalTestClass } from './read/getLocalTestClass';
+import { getLocalTypes } from './read/getLocalTypes';
+import { readClass } from './read/readClass';
 
 // 묶음: table
 import { readTable } from './read/readTable';
@@ -281,6 +291,16 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getIncludesList,
 
   // 묶음: class — 클래스 (순서 6)
+  readClass,
+  getClassMethod,
+  getLocalDefinitions,
+  getLocalMacros,
+  getLocalTestClass,
+  getLocalTypes,
+  createClass,
+  updateClassMethod,
+  updateLocalTestClass,
+  updateLocalTypes,
 
   // 묶음: table — 테이블 (순서 7)
   // 실데이터 2종의 나머지 한 짝 — 상시 게이트가 이 이름을 이미 알고 있다

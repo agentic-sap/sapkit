@@ -60,6 +60,41 @@
 - **기계 장부 반영**: 했다. `harness/replay/divergences.ts`의 D3가 `active`이며 `check`를
   들고 있다 — 구가 싣던 이름 중 **빠진 것만** 등재된 차이이고, 이름이 늘거나 공통분이
   어긋나면 `allowlisted-fail`로 떨어진다.
+| D2 | `UpdateLocalTypes` | 13-11 — `activate_on_update:true`에서 거짓 성공 | 수리 | **활성** (class 묶음에서 깨움) |
+| D3 | `GetIncludesList` | 13-13 — `INCLUDE … IF FOUND`의 비실재 객체명 반환 | 수리 | 휴면(도구 M1 밖) |
+
+근거: `HANDOFF.md` §6 항목 13의 하위 13-9·13-11·13-13 · 결정 기록 D-079 ⑤.
+대체 기대 시험: D1 = WHERE가 결과에 실제 반영됨을 검증하는 시험(실데이터 도구
+작업이 소유). D3는 `GetIncludesList`를 짓는 마일스톤에서 활성화한다.
+
+### D2 활성화 — `UpdateLocalTypes`를 지으며 (class 묶음)
+
+휴면은 "등재는 지금 하되 대체 기대 시험은 그 도구를 짓는 마일스톤에서
+활성화한다"는 뜻이었다. 그 마일스톤이 왔으므로 여기서 깨운다.
+
+- **구 동작(실측)**: `AdtLocalTypes`는 부모 `AdtClass`를 상속하면서 `update()`를
+  **재정의**하는데, 그 본문
+  (`engine/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalTypes.js:156-227`)
+  이 `options`에서 읽는 것은 `lockHandle`과 `sourceCode`뿐이다 —
+  **`activateOnUpdate`를 한 번도 읽지 않는다.** 부모
+  `AdtClass.update()`(`AdtClass.js:253-377`)에는 6단계 활성화가 있지만 재정의가
+  그것을 가린다. 그런데 겉 핸들러는 그 플래그를 넘긴 뒤
+  (`engine/src/handlers/class/high/handleUpdateLocalTypes.ts:87`) 응답에
+  `activated: activate_on_update`를 그대로 실었다(`:132`). 즉
+  **활성화 요청이 한 건도 나가지 않은 채 "활성화됨"이라고 답했다.**
+- **이것이 우연한 누락이 아니라는 근거**: 형제 재정의
+  `AdtLocalTestClass.update()`(`AdtLocalTestClass.js:227-235`)에는 "Step 5:
+  Activating parent class"가 있다. 같은 패키지 안에서 한쪽에만 있다.
+- **신 동작**: 요청받았으면 해제 뒤에 실제로 활성화하고, **활성화 응답 본문의
+  `<chkl:msg>`를 판정한다.** SAP은 활성화 실패도 HTTP 200으로 답하므로 보내기만
+  하고 안 읽으면 거짓 성공이 자리만 옮긴다. `E`·`A`·`X`면 실패, `W`만이면 성공.
+- **대체 기대 시험**: `sapkit-engine/src/tools/write/__tests__/updateLocalTypes.test.ts`
+  의 「D2 — activate_on_update의 거짓 성공을 고쳤다」 절 5건.
+- **재생 판정은 이연이다**(기계 장부의 `check`가 null). 재생 대조가 보는 것은
+  도구 응답 시퀀스인데 이 차이의 본체는 **활성화 요청이 나갔는가**라는 와이어
+  사실이라, 응답만으로는 구와 신을 가를 수 없다(둘 다 `activated:true`를 답할
+  수 있다). 판정 자리는 위 계약 시험이고, 재생은 그 단계를 통과가 아니라
+  무증거로 센다 — D37과 같은 모양이다.
 
 ## 제작 중 발견분
 
@@ -1175,6 +1210,35 @@
 - **기계 장부 미반영**: `harness/replay/divergences.ts`는 이 과제에서 D3 활성화 외에는
   무접촉이다(여러 묶음이 같은 파일에서 충돌한다). 옮기지 않은 채 재생을 켜면 이
   차이가 결함으로 잡힌다 — 묶음 병합 뒤에 옮겨야 한다.
+### D41 — `UpdateLocalTestClass`가 활성화 실패를 성공으로 접지 않는다
+
+- **분류**: 수리
+- **구 동작(실측)**: 활성화 요청은 **나갔다**
+  (`engine/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalTestClass.js:227-235`
+  — `options.activateOnUpdate`가 참이면 `this.activate()`를 부른다). 그런데
+  **응답 본문을 아무도 읽지 않는다**: `activateObjectInSession`은 응답을 그대로
+  돌려주고(`dist/utils/activationUtils.js:116-133`), `AdtClass.activate()`는
+  HTTP 4xx에서만 던진다(`dist/core/class/AdtClass.js:436-468`). 그래서 겉
+  핸들러는 무조건 `activated: activate_on_update`를 실어 보낸다
+  (`engine/src/handlers/class/high/handleUpdateLocalTestClass.ts:149`).
+  **SAP은 활성화 실패도 HTTP 200으로 답하며 `<chkl:msg type="E">`를 담으므로**,
+  깨진 테스트 클래스가 "활성화됨"으로 보고된다.
+- **신 동작**: 활성화 응답 본문의 `<chkl:msg>`를 갈라 `E`·`A`·`X`가 하나라도
+  있으면 실패로 되돌린다(줄번호와 문구를 그대로 실어). `W`만 있으면 성공이다 —
+  과잉 거부하지 않는다.
+- **근거**: 이 레포에 **CLAS 거짓 성공 실증 이력**이 있고(`CLAUDE.md` 안전 규칙
+  「write 성공 보고를 그대로 믿지 않는다」), 같은 자리를 이미 지어진
+  `UpdateClass`가 같은 방식으로 고쳤다(`src/tools/write/updateClass.ts` 머리주석).
+  구를 재현하면 **같은 엔진 안에서 두 도구가 같은 실패에 다르게 답하게** 된다.
+  안전 바닥선은 자작을 이유로 낮추지 않는다(spec §2.3).
+- **대체 기대 시험**: `sapkit-engine/src/tools/write/__tests__/updateLocalTestClass.test.ts`
+  의 「D41 — 활성화 실패를 성공으로 접지 않는다」 절 5건.
+- **기계 장부 미반영**: `harness/replay/divergences.ts`에는 아직 옮기지 않았다.
+  이 항목을 지은 묶음 과제는 그 파일을 D2 활성화 말고는 건드리지 않기로 걸려
+  있었다(여러 묶음이 같은 파일에서 충돌한다). **묶음 병합 뒤 한 번에 옮겨야
+  한다** — 옮기지 않은 채 재생을 켜면 이 차이가 결함으로 잡힌다.
+- **비고**: 같은 결함이 **`UpdateClass`에도 있었고 그쪽은 이 장부에 등재되지
+  않은 채 고쳐졌다.** 이 항목을 옮길 때 그 누락도 함께 다뤄야 한다.
 
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 
