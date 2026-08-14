@@ -15,6 +15,11 @@
     "detail": "src/tools/write/__tests__/createDataElement.test.ts"
   },
   {
+    "tool": "CreateDomain",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createDomain.test.ts"
+  },
+  {
     "tool": "CreateInclude",
     "passed": true,
     "detail": "src/tools/write/__tests__/createInclude.test.ts"
