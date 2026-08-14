@@ -138,6 +138,7 @@ import { reloadProfile } from './runtime/reloadProfile';
 
 // 묶음: data-element
 import { getDataElement } from './read/getDataElement';
+import { readDataElement } from './read/readDataElement';
 
 // 묶음: service-binding
 
@@ -265,6 +266,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
 
   // 묶음: data-element — 데이터 엘리먼트 (순서 14)
   getDataElement,
+  readDataElement,
 
   // 묶음: service-binding — 서비스 바인딩 (순서 15)
 
