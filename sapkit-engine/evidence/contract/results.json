@@ -115,6 +115,11 @@
     "detail": "src/tools/write/__tests__/deleteBehaviorDefinition.test.ts"
   },
   {
+    "tool": "DeleteBehaviorImplementation",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteBehaviorImplementation.test.ts"
+  },
+  {
     "tool": "DeleteClass",
     "passed": true,
     "detail": "src/tools/write/__tests__/deleteClass.test.ts"

@@ -260,6 +260,7 @@ import { getEnhancements } from './read/getEnhancements';
 
 // 묶음: tail-delete
 import { deleteBehaviorDefinition } from './write/deleteBehaviorDefinition';
+import { deleteBehaviorImplementation } from './write/deleteBehaviorImplementation';
 import { deleteClass } from './write/deleteClass';
 import { deleteInterface } from './write/deleteInterface';
 import { deleteProgram } from './write/deleteProgram';
@@ -507,6 +508,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   deleteFunctionModule,
   deleteServiceDefinition,
   deleteBehaviorDefinition,
+  deleteBehaviorImplementation,
 
   // 묶음: tail-test — 꼬리 — 단위시험·CDS 단위시험·Update 계열 12종 (순서 29)
 
