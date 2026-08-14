@@ -230,6 +230,11 @@
     "detail": "src/tools/write/__tests__/updateClass.test.ts"
   },
   {
+    "tool": "UpdateFunctionModule",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateFunctionModule.test.ts"
+  },
+  {
     "tool": "UpdateInclude",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateInclude.test.ts"
