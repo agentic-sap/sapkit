@@ -6,7 +6,7 @@
 > - 재생성: `node harness/render-ledger.mjs` (`sapkit-engine/`에서 · `npm run build` 뒤)
 > - 대조: `node harness/render-ledger.mjs --check` — `npm run gates`의 「대장」 게이트가 같은 판정을 한다
 
-도구 186 · **안 지음 135** · **증거 대기 40** · **증거 있음 11**
+도구 186 · **안 지음 134** · **증거 대기 42** · **증거 있음 10**
 
 ## 위임형 열을 읽는 법 — 두 수는 단위가 다르다
 
@@ -27,17 +27,17 @@
 | 입력 | 파일 | 지금 |
 |---|---|---|
 | 도구 전체 목록 | `harness/old-surface/m1-tools.json` | 있음 · 186종 — 구 번들 표면 채록본의 전량 선언 |
-| 등록점 (`지음` 판정) | `src/tools/registry.ts` | 있음 · 51종 등재 |
+| 등록점 (`지음` 판정) | `src/tools/registry.ts` | 있음 · 52종 등재 |
 | 제작 계획 (묶음·순서·요구 급) | `harness/build-plan.json` | 있음 · 묶음 29 · 배정된 도구 186종 |
 | 재생 판정 파일 | `evidence/replay/*.json` | **없음** · 재생 증거는 전량 「미기록」. 러너가 판정을 이 경로에 쓰도록 배선돼 있고, 채우는 것은 다음 attended 세션이다 |
 | 재생 픽스처 | `fixtures/*.json` | 있음 · 7종의 도구를 건드린다 — 픽스처만으로는 증거가 아니다 |
 | attended 실기 기록 | `fixtures/attended-only/*.json` | 있음 · 2단계 |
-| 계약 시험 결과 | `evidence/contract/results.json` | 있음 · 51종 |
-| 계약 시험 파일 | `src/tools/**/__tests__/<도구>.test.ts` | 있음 · 51종에 시험 파일이 있다 — 있음이 곧 통과는 아니다 |
+| 계약 시험 결과 | `evidence/contract/results.json` | 있음 · 52종 |
+| 계약 시험 파일 | `src/tools/**/__tests__/<도구>.test.ts` | 있음 · 52종에 시험 파일이 있다 — 있음이 곧 통과는 아니다 |
 | 대체 기대 시험 | `harness/replay/divergences.ts 의 substituteTest 경로` | 있음 · 5종에 실재하는 시험 파일이 있다 |
 | 위임형 판정 | `../engine/src/handlers/**` | 있음 · 소스 559파일을 상대 import까지 따라가 판정 — 직접 46 · 간접 140 · 없음 0 |
 
-## 안 지음 (135)
+## 안 지음 (134)
 
 등록점(`src/tools/registry.ts`)에 없다. 아직 짓지 않은 도구다.
 
@@ -54,15 +54,11 @@
 | UpdateClassMethod | 클래스 | 6 | 재생 대조 | — | — | — | — | 간접 |
 | UpdateLocalTestClass | 클래스 | 6 | 재생 대조 | — | — | — | — | 간접 |
 | UpdateLocalTypes | 클래스 | 6 | 재생 대조 + 대체 | — | — | — | 요구 · 미기록 | 간접 |
-| CreateTable | 테이블 | 7 | attended 실기 | — | — | — | — | 간접 |
-| GetTableContents | 테이블 | 7 | 재생 대조 | — | — | — | — | 간접 |
-| ReadTable | 테이블 | 7 | 재생 대조 | — | — | — | — | 간접 |
-| UpdateTable | 테이블 | 7 | 재생 대조 | — | — | — | — | 직접 |
 | GetProgFullCode | 프로그램 | 8 | 재생 대조 | — | — | — | — | 간접 |
 | ReadProgram | 프로그램 | 8 | 재생 대조 | — | — | — | — | 간접 |
-| CreateStructure | 구조체 | 10 | attended 실기 | — | — | — | — | 직접 |
-| ReadStructure | 구조체 | 10 | 재생 대조 | — | — | — | — | 간접 |
-| UpdateStructure | 구조체 | 10 | 재생 대조 | — | — | — | — | 직접 |
+| CreateFunctionModule | 함수모듈 | 9 | attended 실기 | — | — | — | — | 간접 |
+| ReadFunctionModule | 함수모듈 | 9 | 재생 대조 | — | — | — | — | 간접 |
+| UpdateFunctionModule | 함수모듈 | 9 | 재생 대조 | — | — | — | — | 직접 |
 | CreateView | 뷰 | 11 | attended 실기 | — | — | — | — | 간접 |
 | GetView | 뷰 | 11 | 재생 대조 | — | — | — | — | 간접 |
 | ReadView | 뷰 | 11 | 재생 대조 | — | — | — | — | 간접 |
@@ -122,6 +118,9 @@
 | GetBehaviorImplementation | 동작 구현 (BIMP) | 25 | 재생 대조 | — | — | — | — | 간접 |
 | ReadBehaviorImplementation | 동작 구현 (BIMP) | 25 | 재생 대조 | — | — | — | — | 간접 |
 | UpdateBehaviorImplementation | 동작 구현 (BIMP) | 25 | 재생 대조 | — | — | — | — | 직접 |
+| CreateFunctionGroup | 함수그룹 | 26 | attended 실기 | — | — | — | — | 직접 |
+| GetFunctionGroup | 함수그룹 | 26 | 재생 대조 | — | — | — | — | 간접 |
+| ReadFunctionGroup | 함수그룹 | 26 | 계약 시험 | — | — | — | — | 간접 |
 | CreateInterface | 인터페이스 | 27 | attended 실기 | — | — | — | — | 간접 |
 | GetInterface | 인터페이스 | 27 | 재생 대조 | — | — | — | — | 간접 |
 | ReadInterface | 인터페이스 | 27 | 계약 시험 | — | — | — | — | 간접 |
@@ -179,7 +178,7 @@
 | UpdateLocalMacros | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 간접 |
 | UpdateUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 간접 |
 
-## 지음 · 증거 대기 (40)
+## 지음 · 증거 대기 (42)
 
 등록점에 있다. 그러나 **요구 증거 급이 아직 안 찼다** — 다른 급의 증거가 있어도 요구 급을 대신하지 못한다.
 
@@ -215,18 +214,20 @@
 | UpdateInclude | 인클루드 | 5 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | GetClass | 클래스 | 6 | 재생 대조 | 픽스처 있음 · 판정 미기록 | 통과(1) | — | — | 간접 |
 | UpdateClass | 클래스 | 6 | 재생 대조 | 픽스처 있음 · 판정 미기록 | 통과(1) | — | — | 간접 |
+| CreateTable | 테이블 | 7 | attended 실기 | — | 통과(1) | — | — | 간접 |
 | GetTable | 테이블 | 7 | 재생 대조 | — | 통과(1) | — | — | 간접 |
+| GetTableContents | 테이블 | 7 | 재생 대조 | — | 통과(1) | — | — | 간접 |
+| ReadTable | 테이블 | 7 | 재생 대조 | — | 통과(1) | — | — | 간접 |
+| UpdateTable | 테이블 | 7 | 재생 대조 | — | 통과(1) | — | — | 직접 |
 | GetProgram | 프로그램 | 8 | 재생 대조 | 픽스처 있음 · 판정 미기록 | 통과(1) | 통과(1) | — | 간접 |
 | UpdateProgram | 프로그램 | 8 | 재생 대조 | 픽스처 있음 · 판정 미기록 | 통과(1) | — | — | 간접 |
-| CreateFunctionModule | 함수모듈 | 9 | attended 실기 | — | 통과(1) | — | — | 간접 |
 | GetFunctionModule | 함수모듈 | 9 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| ReadFunctionModule | 함수모듈 | 9 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| UpdateFunctionModule | 함수모듈 | 9 | 재생 대조 | — | 통과(1) | — | — | 직접 |
+| CreateStructure | 구조체 | 10 | attended 실기 | — | 통과(1) | — | — | 직접 |
 | GetStructure | 구조체 | 10 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| CreateFunctionGroup | 함수그룹 | 26 | attended 실기 | — | 통과(1) | — | — | 직접 |
-| GetFunctionGroup | 함수그룹 | 26 | 재생 대조 | — | 통과(1) | — | — | 간접 |
+| ReadStructure | 구조체 | 10 | 재생 대조 | — | 통과(1) | — | — | 간접 |
+| UpdateStructure | 구조체 | 10 | 재생 대조 | — | 통과(1) | — | — | 직접 |
 
-## 증거 있음 (11)
+## 증거 있음 (10)
 
 요구 증거 급이 찼다 (부가 요건이 있으면 그것까지).
 
@@ -242,15 +243,14 @@
 | RuntimeCreateProfilerTraceParameters | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 계약 시험 | — | 통과(1) | — | — | 직접 |
 | RuntimeGetDumpById | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 계약 시험 | — | 통과(1) | — | — | 직접 |
 | CreateProgram | 프로그램 | 8 | attended 실기 | — | 통과(1) | 통과(1) | — | 직접 |
-| ReadFunctionGroup | 함수그룹 | 26 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 
 ## 남은 수 요약
 
-- **안 지음 135** — 등록점에 없다
-- **증거 대기 40** — 지었으나 요구 증거 급이 아직 안 찼다
-- **증거 있음 11** — 요구 급이 찼다
+- **안 지음 134** — 등록점에 없다
+- **증거 대기 42** — 지었으나 요구 증거 급이 아직 안 찼다
+- **증거 있음 10** — 요구 급이 찼다
 
-어느 급에서도 통과 증거가 없는 도구 **135종** (요구 급 충족과는 다른 질문이다 — 증거가 있어도 급이 덜 찰 수 있다).
+어느 급에서도 통과 증거가 없는 도구 **134종** (요구 급 충족과는 다른 질문이다 — 증거가 있어도 급이 덜 찰 수 있다).
 
 ## 칸의 말
 

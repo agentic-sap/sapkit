@@ -123,6 +123,10 @@ import { reloadProfile } from './runtime/reloadProfile';
 // 묶음: class
 
 // 묶음: table
+import { readTable } from './read/readTable';
+import { getTableContents } from './row-data/getTableContents';
+import { createTable } from './write/createTable';
+import { updateTable } from './write/updateTable';
 
 // 묶음: program
 
@@ -132,6 +136,9 @@ import { createFunctionModule } from './write/createFunctionModule';
 import { updateFunctionModule } from './write/updateFunctionModule';
 
 // 묶음: structure
+import { readStructure } from './read/readStructure';
+import { createStructure } from './write/createStructure';
+import { updateStructure } from './write/updateStructure';
 
 // 묶음: view
 import { getView } from './read/getView';
@@ -272,6 +279,12 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: class — 클래스 (순서 6)
 
   // 묶음: table — 테이블 (순서 7)
+  // 실데이터 2종의 나머지 한 짝 — 상시 게이트가 이 이름을 이미 알고 있다
+  // (`src/safety/rowData.ts`의 ROW_DATA_TOOLS).
+  getTableContents,
+  readTable,
+  createTable,
+  updateTable,
 
   // 묶음: program — 프로그램 (순서 8)
 
@@ -281,6 +294,9 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   updateFunctionModule,
 
   // 묶음: structure — 구조체 (순서 10)
+  readStructure,
+  createStructure,
+  updateStructure,
 
   // 묶음: view — 뷰 (순서 11)
   createView,

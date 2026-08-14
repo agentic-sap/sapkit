@@ -10,16 +10,6 @@
     "detail": "src/tools/read/__tests__/checkSyntax.test.ts"
   },
   {
-    "tool": "CreateFunctionGroup",
-    "passed": true,
-    "detail": "src/tools/write/__tests__/createFunctionGroup.test.ts"
-  },
-  {
-    "tool": "CreateFunctionModule",
-    "passed": true,
-    "detail": "src/tools/write/__tests__/createFunctionModule.test.ts"
-  },
-  {
     "tool": "CreateInclude",
     "passed": true,
     "detail": "src/tools/write/__tests__/createInclude.test.ts"
@@ -28,6 +18,16 @@
     "tool": "CreateProgram",
     "passed": true,
     "detail": "src/tools/write/__tests__/createProgram.test.ts"
+  },
+  {
+    "tool": "CreateStructure",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createStructure.test.ts"
+  },
+  {
+    "tool": "CreateTable",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createTable.test.ts"
   },
   {
     "tool": "DescribeByList",
@@ -53,11 +53,6 @@
     "tool": "GetClass",
     "passed": true,
     "detail": "src/tools/read/__tests__/getClass.test.ts"
-  },
-  {
-    "tool": "GetFunctionGroup",
-    "passed": true,
-    "detail": "src/tools/read/__tests__/getFunctionGroup.test.ts"
   },
   {
     "tool": "GetFunctionModule",
@@ -135,6 +130,11 @@
     "detail": "src/tools/rfc-read/__tests__/getTable.test.ts"
   },
   {
+    "tool": "GetTableContents",
+    "passed": true,
+    "detail": "src/tools/row-data/__tests__/getTableContents.test.ts"
+  },
+  {
     "tool": "GetTransaction",
     "passed": true,
     "detail": "src/tools/read/__tests__/getTransaction.test.ts"
@@ -160,14 +160,14 @@
     "detail": "src/tools/read/__tests__/grepPackages.test.ts"
   },
   {
-    "tool": "ReadFunctionGroup",
+    "tool": "ReadStructure",
     "passed": true,
-    "detail": "src/tools/read/__tests__/readFunctionGroup.test.ts"
+    "detail": "src/tools/read/__tests__/readStructure.test.ts"
   },
   {
-    "tool": "ReadFunctionModule",
+    "tool": "ReadTable",
     "passed": true,
-    "detail": "src/tools/read/__tests__/readFunctionModule.test.ts"
+    "detail": "src/tools/read/__tests__/readTable.test.ts"
   },
   {
     "tool": "ReloadProfile",
@@ -235,11 +235,6 @@
     "detail": "src/tools/write/__tests__/updateClass.test.ts"
   },
   {
-    "tool": "UpdateFunctionModule",
-    "passed": true,
-    "detail": "src/tools/write/__tests__/updateFunctionModule.test.ts"
-  },
-  {
     "tool": "UpdateInclude",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateInclude.test.ts"
@@ -253,5 +248,15 @@
     "tool": "UpdateSourceByPatch",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateSourceByPatch.test.ts"
+  },
+  {
+    "tool": "UpdateStructure",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateStructure.test.ts"
+  },
+  {
+    "tool": "UpdateTable",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateTable.test.ts"
   }
 ]
