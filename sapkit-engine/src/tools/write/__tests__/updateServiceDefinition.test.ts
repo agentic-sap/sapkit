@@ -322,12 +322,15 @@ describe('갈래', () => {
     }
   });
 
-  it('PUT이 죽으면 해제는 하되 오류로 답한다', async () => {
+  it('PUT이 죽으면 해제는 하되 오류로 답한다 — 문구에 **ADT 원문 본문**이 실린다', async () => {
     const harness = await harnessFor({ putStatus: 423, putBody: '<locked/>' });
     try {
       const result = await run(harness, { ...ARGS });
       expect(result.isError).toBe(true);
-      expect(textOf(result)).toContain('Error: Failed to update service definition:');
+      // 구 `error.response?.data` 자리 그대로 — 엔진이 지어낸 산문이 아니다.
+      expect(textOf(result)).toBe(
+        'Error: Failed to update service definition: <locked/>',
+      );
       expect(harness.nth(2).query.get('_action')).toBe('UNLOCK');
       expect(harness.calls()).toHaveLength(3);
     } finally {

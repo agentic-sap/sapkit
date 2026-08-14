@@ -43,11 +43,14 @@ import * as z from 'zod';
 
 import { defineTool } from '../../server/toolDefinition';
 import type { ToolContext } from '../../server/toolDefinition';
-import { isAlreadyCheckedMessage, messageOf } from './dataElementDomainCreate';
+import {
+  createFailureDetail,
+  isAlreadyCheckedMessage,
+  messageOf,
+} from './dataElementDomainCreate';
 import {
   SourceCheckFailure,
   assertNoCheckErrors,
-  describeFailure,
   errorResult,
   okResult,
   parseActivationMessages,
@@ -175,7 +178,10 @@ export const updateServiceDefinition = defineTool(
         logger.error(`Error updating service definition ${name}: ${error.message}`);
         return errorResult(`Error: ${error.message}`);
       }
-      const message = describeFailure(error);
+      // 구는 `error.response?.data`가 있으면 **ADT가 돌려준 원문 본문**을 그대로
+      // 싣고, 없을 때만 오류 메시지를 쓴다(`:238-246`). `createFailureDetail`이
+      // 그 순서를 그대로 옮긴다.
+      const message = createFailureDetail(error);
       logger.error(`Error updating service definition source ${name}: ${message}`);
       return errorResult(`Error: Failed to update service definition: ${message}`);
     }
