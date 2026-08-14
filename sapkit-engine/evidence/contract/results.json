@@ -45,6 +45,11 @@
     "detail": "src/tools/write/__tests__/createInterface.test.ts"
   },
   {
+    "tool": "CreateMetadataExtension",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createMetadataExtension.test.ts"
+  },
+  {
     "tool": "CreateProgram",
     "passed": true,
     "detail": "src/tools/write/__tests__/createProgram.test.ts"

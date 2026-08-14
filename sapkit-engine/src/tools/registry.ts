@@ -180,6 +180,7 @@ import { readDomain } from './read/readDomain';
 // 묶음: metadata-extension
 import { getMetadataExtension } from './read/getMetadataExtension';
 import { readMetadataExtension } from './read/readMetadataExtension';
+import { createMetadataExtension } from './write/createMetadataExtension';
 import { updateMetadataExtension } from './write/updateMetadataExtension';
 
 // 묶음: gui-status
@@ -359,6 +360,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   readMetadataExtension,
   getMetadataExtension,
   updateMetadataExtension,
+  createMetadataExtension,
 
   // 묶음: gui-status — GUI 상태 (순서 19)
 

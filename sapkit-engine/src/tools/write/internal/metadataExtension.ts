@@ -125,3 +125,24 @@ export function adtErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof Error && error.message.trim().length > 0) return error.message.trim();
   return fallback;
 }
+
+/**
+ * 구 `return_error(error)`가 ADT 실패에서 문구를 뽑던 순서
+ * (`engine/src/lib/utils.ts:317-333`): 예외 XML이면 `SAP Error: … [HTTP n]`,
+ * 그냥 본문이면 원문(2000자 상한), 응답 본문이 없으면 오류 메시지.
+ *
+ * {@link adtErrorMessage}와 갈리는 것은 **`[HTTP n]` 꼬리 하나**다. 구에서 그
+ * 꼬리가 붙는 경로(`return_error`)와 안 붙는 경로(`extractAdtErrorMessage`)가
+ * 도구마다 다르므로 합치지 않는다.
+ */
+export function returnErrorText(error: unknown): string {
+  if (error instanceof AdtError) {
+    if (error.adtMessage && error.adtMessage.trim().length > 0) {
+      const head = `SAP Error: ${error.adtMessage.trim()}`;
+      return error.status ? `${head} [HTTP ${error.status}]` : head;
+    }
+    const raw = error.rawBody;
+    if (raw && raw.length > 0) return raw.slice(0, 2000);
+  }
+  return error instanceof Error ? error.message : String(error);
+}
