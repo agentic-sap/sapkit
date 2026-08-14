@@ -245,6 +245,11 @@
     "detail": "src/tools/write/__tests__/updateClass.test.ts"
   },
   {
+    "tool": "UpdateClassMethod",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateClassMethod.test.ts"
+  },
+  {
     "tool": "UpdateInclude",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateInclude.test.ts"
