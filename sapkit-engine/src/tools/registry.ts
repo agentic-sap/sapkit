@@ -265,6 +265,7 @@ import { deleteProgram } from './write/deleteProgram';
 import { deleteDataElement } from './write/deleteDataElement';
 import { deleteFunctionGroup } from './write/deleteFunctionGroup';
 import { deleteFunctionModule } from './write/deleteFunctionModule';
+import { deleteServiceDefinition } from './write/deleteServiceDefinition';
 import { deleteDomain } from './write/deleteDomain';
 import { deleteStructure } from './write/deleteStructure';
 import { deleteTable } from './write/deleteTable';
@@ -503,6 +504,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   deleteDataElement,
   deleteFunctionGroup,
   deleteFunctionModule,
+  deleteServiceDefinition,
 
   // 묶음: tail-test — 꼬리 — 단위시험·CDS 단위시험·Update 계열 12종 (순서 29)
 

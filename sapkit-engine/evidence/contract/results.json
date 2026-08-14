@@ -145,6 +145,11 @@
     "detail": "src/tools/write/__tests__/deleteProgram.test.ts"
   },
   {
+    "tool": "DeleteServiceDefinition",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteServiceDefinition.test.ts"
+  },
+  {
     "tool": "DeleteStructure",
     "passed": true,
     "detail": "src/tools/write/__tests__/deleteStructure.test.ts"
