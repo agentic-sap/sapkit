@@ -27,6 +27,22 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
   inspection-only 155 / connected 186) + 어댑터 3사(Claude/Codex/Antigravity).
   번들의 소스 정본은 레포 내 **`engine/`**(D-017 편입) — 엔진 수리→재번들→반영은
   `interactive/server/UPDATE-RUNBOOK.md` 절차로만.
+- **`sapkit-engine/` — 자체 저작 엔진 (사다리 ⑴ · 제품 아님).** D-079가 연 새 경로로,
+  구 번들을 대체할 후보를 **구 부품 무접촉으로 병행 제작**한다. 지금 도구 **186/186** ·
+  전송 3(stdio·HTTP·SSE) · RFC 5경로 · 인증 4통로. **그러나 제품은 여전히 구 번들
+  (엔진 5.0.0)이다** — 교체는 `docs/BLUEPRINT.md` §3.2가 검증 없이 금지하고, 아직
+  일어나지 않았다. **이 둘을 섞지 말 것**: `engine/`·`interactive/server/`는 현역 제품이고
+  `sapkit-engine/`은 아직 아무 사용자에게도 나가지 않았다.
+  - **도구 하나 짓는 절차의 정본** = `sapkit-engine/ADDING-A-TOOL.md`. 도구 1종 =
+    모듈+시험+**등록점 배선**+대장 갱신을 **한 커밋**(반쪽 상태는 다음 판이 같은 도구를
+    두 번 짓게 만든다).
+  - **`sapkit-engine/TOOL-LEDGER.md`는 기계 생성물**이다. 손으로 고치면 게이트가 거부한다.
+    도구 상태는 세 칸(`안 지음` / `지음·증거 대기` / `증거 있음`)이고 **`증거 대기`를 완료로
+    읽지 않는다**(D-082 — 2026-08-12에 실제로 난 오해다). 지금 **증거 대기 143종**이
+    남은 SAP 증거의 총량이다.
+  - **구·신 차이는 두 곳에 등재한다** — 사람용 `harness/DIVERGENCES.md`(**append-only**)와
+    재생 러너가 읽는 `harness/replay/divergences.ts`(**재생 대조에 나타나는 것만**).
+    등재되지 않은 차이는 **결함**으로 다룬다.
 - 품질 모델: **1명 작업 + 1명 새-컨텍스트 리뷰(read-only) + SAP 기계 확인**.
   안전 모델: 3층 방어(도구 단위 권한 allowlist · PreToolUse 훅 · 엔진 tier 게이트) +
   실데이터 2종(GetTableContents/GetSqlQuery) 상시 게이트.
@@ -109,9 +125,24 @@ node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (�
 `test-codex-wire-mcp.mjs` 51/51 · `test-doctor.mjs` 47/47 · `test-get-vsp.mjs` 21/21.
 **PowerShell로 실행할 것** — Bash로 돌리면 자식 프로세스 수거에서 블록된다.
 
+**위 8종(+doctor)은 제품 게이트다. `sapkit-engine/`은 자기 게이트를 따로 갖는다** —
+그 안에서 돌린다:
+
+```bash
+npm run verify        # build + typecheck + jest
+npm run gates         # 표면(글자 일치·4조건 소속·채록본 밖 이름·대장 대조) · 안전 · 대장 · 기동 스모크 3종
+node gates/test-gates.mjs              # 게이트 음성시험 (게이트가 정말 거부하는지)
+node harness/render-ledger.mjs --check # 대장 ↔ 계산 결과
+node harness/build-plan.mjs --check    # 제작 계획 ↔ 산식
+```
+
+**「기존 제품 게이트 8종 여전히 green」이 구 부품 무접촉의 기계 증명이다** — 그래서
+`sapkit-engine/` 작업이 그 게이트 스크립트를 고치면 증명이 무너진다. 고치지 말 것.
+
 CI(`.github/workflows/offline-gates.yml`)는 위 게이트에서 **doctor 본체만 빼고** 전부
 돌리고, 음성시험은 `test-get-vsp`를 뺀 전부를 돌린다(`test-doctor`는 windows 잡).
-엔진 소스 테스트와 번들 재현 빌드, vsp in-repo 빌드·오프라인 계약 스모크도 CI 소관이다.
+엔진 소스 테스트와 번들 재현 빌드, vsp in-repo 빌드·오프라인 계약 스모크,
+그리고 **`sapkit-engine` 잡**(자체 게이트 전종 + 대장 `--check`)도 CI 소관이다.
 
 **은퇴한 게이트 — 되살리지 말 것.** 이식 장부 계열(`check-migration-snapshot` ·
 그 음성시험 · `build-migration-snapshot` · `report-sc4sap-public-drift`)은 renew 1차에서
