@@ -259,6 +259,7 @@ import { getEnhancementSpot } from './read/getEnhancementSpot';
 import { getEnhancements } from './read/getEnhancements';
 
 // 묶음: tail-delete
+import { deleteClass } from './write/deleteClass';
 
 // 묶음: tail-test
 
@@ -483,6 +484,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getEnhancementImpl,
 
   // 묶음: tail-delete — 꼬리 — 삭제 계열 25종 (순서 29)
+  deleteClass,
 
   // 묶음: tail-test — 꼬리 — 단위시험·CDS 단위시험·Update 계열 12종 (순서 29)
 

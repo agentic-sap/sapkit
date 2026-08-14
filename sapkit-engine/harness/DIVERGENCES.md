@@ -1748,3 +1748,40 @@ D번호를 주지 않는 이유가 그것이다. 그래도 장부에 두는 이�
   객체로 준 것이 **같은 바이트**로 나간다」 두 건.
 - **기계 장부 반영**: **안 했다** — 발행 선언이 채록본과 같으므로 재생 대조에
   나타날 차이가 아니다.
+
+---
+
+## 제작 중 발견분 (append) — 꼬리 **삭제 계열 25종** 묶음
+
+예약 구간은 **D110~D119**다. 파일 가운데가 아니라 끝에 붙이는 것은 같은 물결의
+꼬리 묶음 셋이 동시에 append 하고 있어 같은 자리를 물면 전면 충돌이 나기 때문이다.
+
+> **이 묶음 전체가 지는 한계 — 차이가 아니라 무증거다.**
+> 삭제는 **재생 대조가 원리상 불가능하다**(두 번째 실행은 대상이 없어 "없다"로
+> 실패한다). 그래서 25종의 요구 증거 급은 `attended 실기`이고, 이 판이 끝나도
+> 전부 **「지음 · 증거 대기」**에 머문다. 오프라인 계약 시험이 통과했다는 것은
+> "구와 같은 바이트를 보낸다"까지만 증명하며 **"SAP이 그것을 받아 실제로 지운다"는
+> 증명하지 않는다.** D22(zrfc)가 같은 모양의 한계를 지고 있다. 이것은 등재할
+> 「차이」가 아니므로 아래 항목에 넣지 않고 여기 한 번만 적어 둔다.
+
+### D110 — `DeleteTable`·`DeleteDomain`·`DeleteDataElement`의 **ECC 우회로가 없다**
+- **분류**: 축소 — **해소 마일스톤 = RFC 쓰기 브리지를 짓는 판. D61(생성 쪽)과 같은 자리.**
+- **구 동작(실측)**: 셋 다 맨 앞에서 `process.env.SAP_VERSION?.toUpperCase() === 'ECC'`를
+  묻고 참이면 OData 브리지로 우회한다 —
+  `engine/src/handlers/table/high/handleDeleteTable.ts:66-67`·`:145-185`(`callDdicTabl`
+  action `DELETE`) · `engine/src/handlers/domain/high/handleDeleteDomain.ts:65-66`·`:148-186` ·
+  `engine/src/handlers/data_element/high/handleDeleteDataElement.ts:66-67`·`:152-192`.
+  **`DeleteStructure`·`DeleteView`에는 그 갈래가 없다** — 구 안에서도 셋만 갖는다.
+- **신 동작**: `SAP_VERSION=ECC`면 **이름 있는 거절**을 돌려주고 요청을 하나도 보내지
+  않는다(`src/tools/write/internal/deletion.ts`의 `eccDeleteUnsupported`).
+- **왜 짓지 않았나**: 이 엔진의 RFC 통로가 가진 DDIC 능력은 **읽기 브리지 하나**
+  (`callDdicTablRead` — `src/rfc/types.ts:72-78`)뿐이고, 쓰기 브리지를 더하는 것은
+  `src/rfc/**`를 고치는 일이라 이 묶음의 범위 밖이다. 그냥 ADT로 흘려보내면 **ECC
+  커널에 없는 엔드포인트에 삭제를 시도**하게 된다 — 조용한 실패보다 이름 있는
+  거절이 낫다는 것이 D61이 이미 정한 방향이다.
+- **대체 기대 시험**: 세 도구 시험 파일의 「D110 — ECC」 절
+  (`sapkit-engine/src/tools/write/__tests__/deleteTable.test.ts` 외 2종) —
+  거절 문구가 나오고 **요청이 0회**인지.
+- **기계 장부 반영**: **못 했다**(이 과제는 `harness/replay/**` 무접촉). ECC 프로파일의
+  채록분이 있다면 도구 응답이 달라지므로 **기계 장부에 와야 한다.** 오케스트레이터가
+  묶음 병합 뒤에 옮길 것.

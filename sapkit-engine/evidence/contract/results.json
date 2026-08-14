@@ -110,6 +110,11 @@
     "detail": "src/tools/write/__tests__/createView.test.ts"
   },
   {
+    "tool": "DeleteClass",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteClass.test.ts"
+  },
+  {
     "tool": "DescribeByList",
     "passed": true,
     "detail": "src/tools/read/__tests__/describeByList.test.ts"
