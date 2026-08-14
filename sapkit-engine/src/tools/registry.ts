@@ -186,6 +186,7 @@ import { readDomain } from './read/readDomain';
 // 묶음: atc
 
 // 묶음: package
+import { getPackage } from './read/getPackage';
 
 // 묶음: screen
 
@@ -357,6 +358,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: atc — ATC (순서 21)
 
   // 묶음: package — 패키지 (순서 22)
+  getPackage,
 
   // 묶음: screen — 화면 (순서 23)
 

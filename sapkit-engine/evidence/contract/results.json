@@ -190,6 +190,11 @@
     "detail": "src/tools/read/__tests__/getObjectsByType.test.ts"
   },
   {
+    "tool": "GetPackage",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getPackage.test.ts"
+  },
+  {
     "tool": "GetPackageTree",
     "passed": true,
     "detail": "src/tools/read/__tests__/getPackageTree.test.ts"
