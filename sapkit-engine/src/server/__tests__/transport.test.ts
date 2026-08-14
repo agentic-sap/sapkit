@@ -268,6 +268,27 @@ describe('HTTP 왕복', () => {
     }
   });
 
+  it('tier 게이트도 HTTP에서 똑같이 막는다', async () => {
+    const fixture = await startHttp({ exposition: 'readonly,high', tier: 'QA' });
+    try {
+      const outcome = await withClient(fixture.started.endpoint ?? '', async (client) => {
+        const result = (await client.callTool({
+          name: 'ActivateObjects',
+          arguments: { objects: [{ name: 'ZSAPKIT_PROBE', type: 'PROG/P' }] },
+        })) as { isError?: boolean; content?: Array<{ text?: unknown }> };
+        return {
+          isError: result.isError === true,
+          text: (result.content ?? []).map((item) => String(item.text ?? '')).join('\n'),
+        };
+      });
+      expect(outcome.isError).toBe(true);
+      expect(outcome.text).toMatch(/ERR_READONLY_TIER/);
+      expect(fixture.connections.calls).toHaveLength(0);
+    } finally {
+      await fixture.started.close();
+    }
+  });
+
   it('감사 줄은 남고 기동 진단은 요청마다 되풀이되지 않는다', async () => {
     const fixture = await startHttp({ exposition: 'readonly', tier: 'DEV' });
     try {
