@@ -73,6 +73,7 @@ describe('셰임 계약', () => {
         'GrepObjects',
         'GrepPackages',
         'ReadBehaviorDefinition',
+        'ReadBehaviorImplementation',
         'ReadClass',
         'ReadDataElement',
         'ReadDomain',
