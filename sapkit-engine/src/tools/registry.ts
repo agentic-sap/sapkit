@@ -185,6 +185,7 @@ import { readDomain } from './read/readDomain';
 import { getTextElement } from './rfc-read/getTextElement';
 import { readTextElementsBulk } from './rfc-read/readTextElementsBulk';
 import { createTextElement } from './write/createTextElement';
+import { updateTextElement } from './write/updateTextElement';
 
 // 묶음: atc
 
@@ -359,6 +360,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getTextElement,
   readTextElementsBulk,
   createTextElement,
+  updateTextElement,
 
   // 묶음: atc — ATC (순서 21)
 

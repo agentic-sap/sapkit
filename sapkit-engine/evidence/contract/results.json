@@ -450,6 +450,11 @@
     "detail": "src/tools/write/__tests__/updateTable.test.ts"
   },
   {
+    "tool": "UpdateTextElement",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateTextElement.test.ts"
+  },
+  {
     "tool": "UpdateView",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateView.test.ts"
