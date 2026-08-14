@@ -1748,3 +1748,49 @@ D번호를 주지 않는 이유가 그것이다. 그래도 장부에 두는 이�
   객체로 준 것이 **같은 바이트**로 나간다」 두 건.
 - **기계 장부 반영**: **안 했다** — 발행 선언이 채록본과 같으므로 재생 대조에
   나타날 차이가 아니다.
+
+---
+
+## 제작 중 발견분 (append) — `tail-read` 묶음 (조회 계열 11종 + `CreatePackage`)
+
+꼬리 묶음 셋이 동시에 도는 중이라 예약 구간이 나뉘어 있다. 이 묶음의 구간은
+**D130~D139**이고, 파일 가운데가 아니라 여기 끝에 붙이는 것은 같은 물결의 다른
+묶음 둘이 동시에 append 하고 있어 같은 자리를 물면 전면 충돌이 나기 때문이다.
+
+### D131 — `*Low` 두 도구의 세션 복원에서 **`sap-adt-connection-id`를 갈아 끼우지 않는다**
+
+- **분류**: 축소 — **해소 마일스톤 = 접속 계층에 「호출자가 준 세션 ID를 쓰는」
+  통로를 여는 자리.** 지금은 그 통로 자체가 없다.
+- **적용 도구 2종**: `GetNodeStructureLow` · `GetObjectStructureLow`.
+- **구 동작(실측)**: 두 겉 핸들러는 `session_id`와 `session_state`가 **둘 다**
+  있을 때 `restoreSessionInConnection`을 부른다
+  (`engine/src/handlers/system/low/handleGetNodeStructure.ts:92-101` ·
+  `handleGetObjectStructure.ts:80-89`). 그 함수가 하는 일은 둘이다
+  (`engine/src/lib/utils.ts:763-788`):
+  ⑴ `connection.setSessionId(sessionId)` — 접속의 `sap-adt-connection-id` 헤더
+  값을 호출자가 준 문자열로 **바꾼다**
+  (`@babamba2/mcp-abap-connection/dist/connection/AbstractAbapConnection.js:101-104`
+  가 필드를 갈고 `:170-173`이 그 값을 헤더에 싣는다).
+  ⑵ `connection.setSessionType('stateful')` — 이후 요청에
+  `x-sap-adt-sessiontype: stateful`이 붙는다(`:176`).
+  **`session_state`의 내용은 읽지 않는다** — 인자 이름이 `_sessionState`이고
+  쿠키도 CSRF 토큰도 꺼내 쓰지 않는다.
+- **신 동작**: ⑵만 승계한다(`src/tools/read/internal/lowLevelSession.ts`).
+  ⑴은 하지 않으므로 `sap-adt-connection-id`에는 접속 계층이 스스로 만든 UUID가
+  그대로 실린다.
+- **근거**: 신 `AdtClient`의 `connectionId`는 인스턴스 생성 때 정해지고 바꾸는
+  공개 통로가 없다(`src/adt/client.ts`). 그것을 여는 일은 **접속 계층을 고치는
+  일**이고, 도구 묶음 하나가 자기 도구 둘 때문에 모든 도구가 쓰는 계층의 세션
+  식별자 수명을 바꾸는 것은 범위를 넘는다. 게다가 이 통로는 **실사용에서 닿기
+  어렵다** — 값을 내주는 `GetSession`이 `session_state`에 언제나 `null`을 싣기
+  때문에(`engine/src/handlers/system/readonly/handleGetSession.ts:69`) 두 인자를
+  모두 채우려면 사용자가 상태를 손으로 지어내야 한다.
+- **대체 기대 시험**: 승계한 절반이 실제로 동작하고 조건이 구와 같은 `&&`인지를
+  못 박는다 —
+  `sapkit-engine/src/tools/read/__tests__/getNodeStructureLow.test.ts`의
+  「세션 복원 갈래」 3건 ·
+  `sapkit-engine/src/tools/read/__tests__/getObjectStructureLow.test.ts`의
+  같은 절.
+- **기계 장부 미반영**: 이 묶음 과제는 `harness/replay/**`가 무접촉이라
+  `divergences.ts`에 옮기지 못했다. **요청 헤더 한 줄의 값이 달라지므로 기계
+  장부에도 와야 하는 항목**이다 — 묶음 병합 뒤 오케스트레이터가 옮긴다.

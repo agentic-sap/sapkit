@@ -255,6 +255,11 @@
     "detail": "src/tools/read/__tests__/getMetadataExtension.test.ts"
   },
   {
+    "tool": "GetNodeStructureLow",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getNodeStructureLow.test.ts"
+  },
+  {
     "tool": "GetObjectInfo",
     "passed": true,
     "detail": "src/tools/read/__tests__/getObjectInfo.test.ts"
