@@ -180,6 +180,7 @@ import { readDomain } from './read/readDomain';
 // 묶음: metadata-extension
 
 // 묶음: gui-status
+import { getGuiStatusList } from './read/getGuiStatusList';
 
 // 묶음: text-element
 import { getTextElement } from './rfc-read/getTextElement';
@@ -361,6 +362,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: metadata-extension — 메타데이터 확장 (DDLX) (순서 18)
 
   // 묶음: gui-status — GUI 상태 (순서 19)
+  getGuiStatusList,
 
   // 묶음: text-element — 텍스트 엘리먼트 (순서 20)
   getTextElement,

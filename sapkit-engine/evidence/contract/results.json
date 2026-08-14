@@ -140,6 +140,11 @@
     "detail": "src/tools/read/__tests__/getFunctionModule.test.ts"
   },
   {
+    "tool": "GetGuiStatusList",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getGuiStatusList.test.ts"
+  },
+  {
     "tool": "GetInactiveObjects",
     "passed": true,
     "detail": "src/tools/read/__tests__/getInactiveObjects.test.ts"
