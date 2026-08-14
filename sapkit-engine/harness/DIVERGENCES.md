@@ -1882,3 +1882,35 @@ D번호를 주지 않는 이유가 그것이다. 그래도 장부에 두는 이�
 - **기계 장부 반영**: **못 했다**(`harness/replay/**` 무접촉). 두 도구를 이어 부르는
   시나리오에서는 **요청 수가 달라지므로 기계 장부에 와야 한다.** 오케스트레이터가
   묶음 병합 뒤에 옮긴다.
+
+### D125 — `UpdateDomain`이 활성화 **거짓 성공**을 성공으로 접지 않는다
+- **분류**: 수리(구의 거짓 성공을 고침)
+- **구 동작(실측)**: 벤더 `activateDomain`은 `activateObjectInSession`의 응답을
+  **그대로 돌려주고**
+  (`engine/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/domain/activation.js:15-17`),
+  `AdtDomain.activate()`도 그것을 상태에 담을 뿐 판정하지 않는다
+  (`.../core/domain/AdtDomain.js:390-406`). 겉 핸들러 역시 반환값을 버린다
+  (`engine/src/handlers/domain/high/handleUpdateDomain.ts:243-245`). **SAP은 활성화
+  실패도 HTTP 200으로 답하며 `<chkl:msg type="E">`를 담으므로**, 활성화되지 않은
+  도메인이 `Domain … updated and activated successfully` · `status: "active"`로
+  보고된다.
+- **짝은 이미 옳다**: 같은 물결의 데이터 엘리먼트는 벤더가 판정한다
+  (`.../core/dataElement/activation.js:69-72` — `chkl:properties`의
+  `activationExecuted`·`checkExecuted`를 읽고 던진다). 두 DDIC 오브젝트에서 한쪽만
+  판정하는 것이 벤더의 실측 상태이고, 그래서 `UpdateDataElement`에는 고칠 것이 없었다.
+- **신 동작**: 요청 바이트는 구 그대로 두고(`?method=activate&preauditRequested=true` ·
+  `application/vnd.sap.adt.activation+xml` · `Accept: application/xml` · 한 줄 XML 본문),
+  응답 본문의 `E`/`A`/`X`를 실패로 되돌린다. 경고(`W`)만 있으면 구와 같이 성공이다.
+- **왜 짝인 `CreateDomain`은 그대로인가**: 그 도구는 요구 급이 `attended 실기`라 사람이
+  실물로 확인하는 관문이 남아 있고, 그 모듈이 그 판단을 머리주석에 적어 두었다(이
+  꼬리 과제는 다른 묶음의 도구를 고치지 않는다). **`UpdateDomain`은 요구 급이
+  `계약 시험`이라 이 시험이 유일한 증거**이고, 구를 재현하면 "활성화되지 않았는데
+  활성화됐다"는 응답이 증거 있음으로 표시된 채 남는다. 선례는 D66(`UpdateView`) —
+  그쪽도 짝인 생성은 두고 갱신만 고쳤다.
+- **대체 기대 시험**: `sapkit-engine/src/tools/write/__tests__/updateDomain.test.ts`의
+  「D125」 절 — 요청 바이트가 구 그대로인가 · 200에 실린 `E`를 실패로 되돌리는가 ·
+  `X`도 실패인가 · `W`만 있으면 성공인가 · `activate:false`면 요청 자체가 없는가 ·
+  실패해도 PUT은 이미 나갔다는 사실이 문구에 있는가.
+- **해소 마일스톤**: 없음 — 영구 차이(수리)다.
+- **기계 장부 반영**: **못 했다**(`harness/replay/**` 무접촉). 도구 응답이 `isError`째로
+  달라지므로 **기계 장부에 와야 한다.** 오케스트레이터가 묶음 병합 뒤에 옮긴다.

@@ -114,8 +114,12 @@ describe('선언이 없는 도구는 사전 검사에서 막히지 않는다', (
   // (`harness/build-plan.json` 순서 29)이라 당분간 선언이 생기지 않는다.
   // 같은 이유로 `GetTransport`·`ReleaseTransport`도 물러났다 — transport 묶음이
   // 지어지면서 둘 다 등록됐기 때문이다. 대신 같은 `tail` 묶음의 `ReadPackage`(읽기)와
-  // `UpdateDomain`(변경)을 넣어, 두 성격이 섞인 예시 구성을 유지한다.
-  it.each(['DeleteTable', 'DeleteClass', 'ReadPackage', 'UpdateDomain'])(
+  // `UpdateDomain`(변경)을 넣어, 두 성격이 섞인 예시 구성을 유지했다.
+  // **`UpdateDomain`이 지어져 선언을 갖게 돼(`tail-test` 묶음) `DeleteDomain`으로
+  // 갈아 끼웠다.** 꼬리 묶음 셋이 동시에 돌고 있어 여기 남은 네 이름도 곧 전부
+  // 선언을 갖는다 — 꼬리가 다 지어지면 이 예시는 **합성 이름**으로 바꿔야 한다
+  // (구 번들 186종 중 "아직 안 지은" 것이 하나도 남지 않기 때문).
+  it.each(['DeleteTable', 'DeleteClass', 'ReadPackage', 'DeleteDomain'])(
     '%s — 표준 대상을 줘도 사전 검사는 통과시킨다',
     (tool) => {
       expect(checkSourceNamespace(scenarioOf({ tool, args: { object_name: 'MARA' } }), {})).toEqual([]);

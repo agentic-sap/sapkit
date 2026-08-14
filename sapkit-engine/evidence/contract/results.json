@@ -630,6 +630,11 @@
     "detail": "src/tools/write/__tests__/updateDataElement.test.ts"
   },
   {
+    "tool": "UpdateDomain",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateDomain.test.ts"
+  },
+  {
     "tool": "UpdateFunctionGroup",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateFunctionGroup.test.ts"
