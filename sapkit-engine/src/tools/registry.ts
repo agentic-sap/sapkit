@@ -264,6 +264,7 @@ import { getEnhancements } from './read/getEnhancements';
 import { createCdsUnitTest } from './write/createCdsUnitTest';
 import { createUnitTest } from './runtime/createUnitTest';
 import { getCdsUnitTest } from './runtime/getCdsUnitTest';
+import { getCdsUnitTestResult } from './runtime/getCdsUnitTestResult';
 
 // 묶음: tail-read
 
@@ -491,6 +492,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   createCdsUnitTest,
   createUnitTest,
   getCdsUnitTest,
+  getCdsUnitTestResult,
 
   // 묶음: tail-read — 꼬리 — 조회 계열 + CreatePackage 12종 (순서 29)
 ];

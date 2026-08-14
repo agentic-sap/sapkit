@@ -160,6 +160,11 @@
     "detail": "src/tools/runtime/__tests__/getCdsUnitTest.test.ts"
   },
   {
+    "tool": "GetCdsUnitTestResult",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/getCdsUnitTestResult.test.ts"
+  },
+  {
     "tool": "GetClass",
     "passed": true,
     "detail": "src/tools/read/__tests__/getClass.test.ts"
