@@ -20,6 +20,11 @@
     "detail": "src/tools/write/__tests__/createBehaviorImplementation.test.ts"
   },
   {
+    "tool": "CreateCdsUnitTest",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createCdsUnitTest.test.ts"
+  },
+  {
     "tool": "CreateClass",
     "passed": true,
     "detail": "src/tools/write/__tests__/createClass.test.ts"
@@ -65,11 +70,6 @@
     "detail": "src/tools/write/__tests__/createMetadataExtension.test.ts"
   },
   {
-    "tool": "CreatePackage",
-    "passed": true,
-    "detail": "src/tools/write/__tests__/createPackage.test.ts"
-  },
-  {
     "tool": "CreateProgram",
     "passed": true,
     "detail": "src/tools/write/__tests__/createProgram.test.ts"
@@ -110,6 +110,11 @@
     "detail": "src/tools/write/__tests__/createTransport.test.ts"
   },
   {
+    "tool": "CreateUnitTest",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/createUnitTest.test.ts"
+  },
+  {
     "tool": "CreateView",
     "passed": true,
     "detail": "src/tools/write/__tests__/createView.test.ts"
@@ -135,19 +140,9 @@
     "detail": "src/tools/read/__tests__/getAbapSystemSymbols.test.ts"
   },
   {
-    "tool": "GetAdtTypes",
-    "passed": true,
-    "detail": "src/tools/read/__tests__/getAdtTypes.test.ts"
-  },
-  {
     "tool": "GetAtcFindings",
     "passed": true,
     "detail": "src/tools/read/__tests__/getAtcFindings.test.ts"
-  },
-  {
-    "tool": "GetBadiImplementations",
-    "passed": true,
-    "detail": "src/tools/read/__tests__/getBadiImplementations.test.ts"
   },
   {
     "tool": "GetBehaviorDefinition",
@@ -160,9 +155,19 @@
     "detail": "src/tools/read/__tests__/getBehaviorImplementation.test.ts"
   },
   {
-    "tool": "GetCallGraph",
+    "tool": "GetCdsUnitTest",
     "passed": true,
-    "detail": "src/tools/read/__tests__/getCallGraph.test.ts"
+    "detail": "src/tools/runtime/__tests__/getCdsUnitTest.test.ts"
+  },
+  {
+    "tool": "GetCdsUnitTestResult",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/getCdsUnitTestResult.test.ts"
+  },
+  {
+    "tool": "GetCdsUnitTestStatus",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/getCdsUnitTestStatus.test.ts"
   },
   {
     "tool": "GetClass",
@@ -270,19 +275,9 @@
     "detail": "src/tools/read/__tests__/getMetadataExtension.test.ts"
   },
   {
-    "tool": "GetNodeStructureLow",
-    "passed": true,
-    "detail": "src/tools/read/__tests__/getNodeStructureLow.test.ts"
-  },
-  {
     "tool": "GetObjectInfo",
     "passed": true,
     "detail": "src/tools/read/__tests__/getObjectInfo.test.ts"
-  },
-  {
-    "tool": "GetObjectNodeFromCache",
-    "passed": true,
-    "detail": "src/tools/read/__tests__/getObjectNodeFromCache.test.ts"
   },
   {
     "tool": "GetObjectStructure",
@@ -290,19 +285,9 @@
     "detail": "src/tools/read/__tests__/getObjectStructure.test.ts"
   },
   {
-    "tool": "GetObjectStructureLow",
-    "passed": true,
-    "detail": "src/tools/read/__tests__/getObjectStructureLow.test.ts"
-  },
-  {
     "tool": "GetObjectsByType",
     "passed": true,
     "detail": "src/tools/read/__tests__/getObjectsByType.test.ts"
-  },
-  {
-    "tool": "GetObjectsList",
-    "passed": true,
-    "detail": "src/tools/read/__tests__/getObjectsList.test.ts"
   },
   {
     "tool": "GetPackage",
@@ -425,11 +410,6 @@
     "detail": "src/tools/read/__tests__/getView.test.ts"
   },
   {
-    "tool": "GetVirtualFoldersLow",
-    "passed": true,
-    "detail": "src/tools/read/__tests__/getVirtualFoldersLow.test.ts"
-  },
-  {
     "tool": "GetWhereUsed",
     "passed": true,
     "detail": "src/tools/read/__tests__/getWhereUsed.test.ts"
@@ -508,11 +488,6 @@
     "tool": "ReadMetadataExtension",
     "passed": true,
     "detail": "src/tools/read/__tests__/readMetadataExtension.test.ts"
-  },
-  {
-    "tool": "ReadPackage",
-    "passed": true,
-    "detail": "src/tools/read/__tests__/readPackage.test.ts"
   },
   {
     "tool": "ReadProgram",
@@ -605,19 +580,9 @@
     "detail": "src/tools/runtime/__tests__/runtimeListDumps.test.ts"
   },
   {
-    "tool": "RuntimeListFeeds",
-    "passed": true,
-    "detail": "src/tools/runtime/__tests__/runtimeListFeeds.test.ts"
-  },
-  {
     "tool": "RuntimeListProfilerTraceFiles",
     "passed": true,
     "detail": "src/tools/runtime/__tests__/runtimeListProfilerTraceFiles.test.ts"
-  },
-  {
-    "tool": "RuntimeListSystemMessages",
-    "passed": true,
-    "detail": "src/tools/runtime/__tests__/runtimeListSystemMessages.test.ts"
   },
   {
     "tool": "RuntimeRunClassWithProfiling",
@@ -645,6 +610,11 @@
     "detail": "src/tools/write/__tests__/updateBehaviorImplementation.test.ts"
   },
   {
+    "tool": "UpdateCdsUnitTest",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateCdsUnitTest.test.ts"
+  },
+  {
     "tool": "UpdateClass",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateClass.test.ts"
@@ -653,6 +623,21 @@
     "tool": "UpdateClassMethod",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateClassMethod.test.ts"
+  },
+  {
+    "tool": "UpdateDataElement",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateDataElement.test.ts"
+  },
+  {
+    "tool": "UpdateDomain",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateDomain.test.ts"
+  },
+  {
+    "tool": "UpdateFunctionGroup",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateFunctionGroup.test.ts"
   },
   {
     "tool": "UpdateFunctionModule",
@@ -673,6 +658,16 @@
     "tool": "UpdateInterface",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateInterface.test.ts"
+  },
+  {
+    "tool": "UpdateLocalDefinitions",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateLocalDefinitions.test.ts"
+  },
+  {
+    "tool": "UpdateLocalMacros",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateLocalMacros.test.ts"
   },
   {
     "tool": "UpdateLocalTestClass",
@@ -728,6 +723,11 @@
     "tool": "UpdateTextElement",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateTextElement.test.ts"
+  },
+  {
+    "tool": "UpdateUnitTest",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/updateUnitTest.test.ts"
   },
   {
     "tool": "UpdateView",

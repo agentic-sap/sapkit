@@ -6,7 +6,7 @@
 > - 재생성: `node harness/render-ledger.mjs` (`sapkit-engine/`에서 · `npm run build` 뒤)
 > - 대조: `node harness/render-ledger.mjs --check` — `npm run gates`의 「대장」 게이트가 같은 판정을 한다
 
-도구 186 · **안 지음 37** · **증거 대기 116** · **증거 있음 33**
+도구 186 · **안 지음 37** · **증거 대기 117** · **증거 있음 32**
 
 ## 위임형 열을 읽는 법 — 두 수는 단위가 다르다
 
@@ -43,8 +43,7 @@
 
 | 도구 | 묶음 | 순서 | 요구 급 | 재생 | 계약 | attended | 대체 | 위임형 |
 |---|---|---|---|---|---|---|---|---|
-| CreateCdsUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | — | — | — | 간접 |
-| CreateUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | — | — | — | 간접 |
+| CreatePackage | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | — | — | — | 직접 |
 | DeleteBehaviorDefinition | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | — | — | — | 간접 |
 | DeleteBehaviorImplementation | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | — | — | — | 간접 |
 | DeleteCdsUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | — | — | — | 간접 |
@@ -70,18 +69,19 @@
 | DeleteTextElement | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | — | — | — | 간접 |
 | DeleteUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | — | — | — | 간접 |
 | DeleteView | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | — | — | — | 간접 |
-| GetCdsUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 간접 |
-| GetCdsUnitTestResult | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 간접 |
-| GetCdsUnitTestStatus | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 간접 |
-| UpdateCdsUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 간접 |
-| UpdateDataElement | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 직접 |
-| UpdateDomain | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 직접 |
-| UpdateFunctionGroup | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 직접 |
-| UpdateLocalDefinitions | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 간접 |
-| UpdateLocalMacros | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 간접 |
-| UpdateUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 간접 |
+| GetAdtTypes | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 간접 |
+| GetBadiImplementations | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 간접 |
+| GetCallGraph | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 직접 |
+| GetNodeStructureLow | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 직접 |
+| GetObjectNodeFromCache | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 간접 |
+| GetObjectsList | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 직접 |
+| GetObjectStructureLow | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 직접 |
+| GetVirtualFoldersLow | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 직접 |
+| ReadPackage | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 간접 |
+| RuntimeListFeeds | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 간접 |
+| RuntimeListSystemMessages | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | — | — | — | 간접 |
 
-## 지음 · 증거 대기 (116)
+## 지음 · 증거 대기 (117)
 
 등록점에 있다. 그러나 **요구 증거 급이 아직 안 찼다** — 다른 급의 증거가 있어도 요구 급을 대신하지 못한다.
 
@@ -202,9 +202,10 @@
 | GetFunctionGroup | 함수그룹 | 26 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | CreateInterface | 인터페이스 | 27 | attended 실기 | — | 통과(1) | — | — | 간접 |
 | GetInterface | 인터페이스 | 27 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| CreatePackage | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 직접 |
+| CreateCdsUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
+| CreateUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
 
-## 증거 있음 (33)
+## 증거 있음 (32)
 
 요구 증거 급이 찼다 (부가 요건이 있으면 그것까지).
 
@@ -232,23 +233,22 @@
 | GetEnhancementImpl | 인핸스먼트 | 28 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | GetEnhancements | 인핸스먼트 | 28 | 계약 시험 | — | 통과(1) | — | — | 직접 |
 | GetEnhancementSpot | 인핸스먼트 | 28 | 계약 시험 | — | 통과(1) | — | — | 간접 |
-| GetAdtTypes | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
-| GetBadiImplementations | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
-| GetCallGraph | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 직접 |
-| GetNodeStructureLow | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 직접 |
-| GetObjectNodeFromCache | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
-| GetObjectsList | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 직접 |
-| GetObjectStructureLow | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 직접 |
-| GetVirtualFoldersLow | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 직접 |
-| ReadPackage | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
-| RuntimeListFeeds | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
-| RuntimeListSystemMessages | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
+| GetCdsUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
+| GetCdsUnitTestResult | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
+| GetCdsUnitTestStatus | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
+| UpdateCdsUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
+| UpdateDataElement | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 직접 |
+| UpdateDomain | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 직접 |
+| UpdateFunctionGroup | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 직접 |
+| UpdateLocalDefinitions | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
+| UpdateLocalMacros | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
+| UpdateUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 
 ## 남은 수 요약
 
 - **안 지음 37** — 등록점에 없다
-- **증거 대기 116** — 지었으나 요구 증거 급이 아직 안 찼다
-- **증거 있음 33** — 요구 급이 찼다
+- **증거 대기 117** — 지었으나 요구 증거 급이 아직 안 찼다
+- **증거 있음 32** — 요구 급이 찼다
 
 어느 급에서도 통과 증거가 없는 도구 **37종** (요구 급 충족과는 다른 질문이다 — 증거가 있어도 급이 덜 찰 수 있다).
 

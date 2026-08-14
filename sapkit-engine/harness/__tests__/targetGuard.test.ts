@@ -115,11 +115,16 @@ describe('선언이 없는 도구는 사전 검사에서 막히지 않는다', (
   // 같은 이유로 `GetTransport`·`ReleaseTransport`도 물러났다 — transport 묶음이
   // 지어지면서 둘 다 등록됐기 때문이다. 대신 같은 `tail` 묶음의 `ReadPackage`(읽기)와
   // `UpdateDomain`(변경)을 넣어, 두 성격이 섞인 예시 구성을 유지했다.
-  // 그 `ReadPackage`도 `tail-read` 묶음에서 지어지며 `targetNames: ['package_name']`을
-  // 갖게 돼 물러났다. 읽기 쪽 예시는 **`GetCdsUnitTestStatus`**로 갈아 끼웠다 —
-  // 인자가 `run_id`·`with_long_polling`뿐이라(채록본) 지어져도 대상-이름 선언이
-  // 생길 자리가 없고, 그러면 이 절의 전제("선언이 없는 도구")가 계속 성립한다.
-  it.each(['DeleteTable', 'DeleteClass', 'GetCdsUnitTestStatus', 'UpdateDomain'])(
+  // **이름 돌려막기를 여기서 끝낸다.** 위 교체가 네 번 반복된 것은 예시를 「아직
+  // 안 지은 186종 중 하나」에서 골랐기 때문이다 — 꼬리까지 다 지으면 그런 이름은
+  // **하나도 남지 않는다.** 그래서 구 핸들러 트리에는 실재하지만 **이 표면 밖**인
+  // 이름으로 바꿨다: low/ 갈래의 *Low와 compact/ 갈래의 Handler*는 구 트리의
+  // TOOL_DEFINITION 이름이면서 채록본 186종과 교집합이 0이라(제작 계획이 compact
+  // 묶음을 세우지 않은 근거) **이 판이 끝나도 선언이 생기지 않는다.**
+  //
+  // 이 절이 지키는 것은 「186종을 아직 다 못 지었다」가 아니라 **「등록점에 없는
+  // 이름은 사전 검사가 막지 않는다」**이고, 후자는 표면을 다 지어도 그대로 유효하다.
+  it.each(['CreateBehaviorDefinitionLow', 'UpdateBehaviorDefinitionLow', 'HandlerActivate', 'HandlerValidate'])(
     '%s — 표준 대상을 줘도 사전 검사는 통과시킨다',
     (tool) => {
       expect(checkSourceNamespace(scenarioOf({ tool, args: { object_name: 'MARA' } }), {})).toEqual([]);

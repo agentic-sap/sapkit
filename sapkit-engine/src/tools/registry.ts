@@ -261,6 +261,18 @@ import { getEnhancements } from './read/getEnhancements';
 // 묶음: tail-delete
 
 // 묶음: tail-test
+import { createCdsUnitTest } from './write/createCdsUnitTest';
+import { createUnitTest } from './runtime/createUnitTest';
+import { getCdsUnitTest } from './runtime/getCdsUnitTest';
+import { getCdsUnitTestResult } from './runtime/getCdsUnitTestResult';
+import { getCdsUnitTestStatus } from './runtime/getCdsUnitTestStatus';
+import { updateCdsUnitTest } from './write/updateCdsUnitTest';
+import { updateUnitTest } from './runtime/updateUnitTest';
+import { updateLocalDefinitions } from './write/updateLocalDefinitions';
+import { updateLocalMacros } from './write/updateLocalMacros';
+import { updateFunctionGroup } from './write/updateFunctionGroup';
+import { updateDataElement } from './write/updateDataElement';
+import { updateDomain } from './write/updateDomain';
 
 // 묶음: tail-read
 import { getAdtTypes } from './read/getAdtTypes';
@@ -497,6 +509,18 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: tail-delete — 꼬리 — 삭제 계열 25종 (순서 29)
 
   // 묶음: tail-test — 꼬리 — 단위시험·CDS 단위시험·Update 계열 12종 (순서 29)
+  createCdsUnitTest,
+  createUnitTest,
+  getCdsUnitTest,
+  getCdsUnitTestResult,
+  getCdsUnitTestStatus,
+  updateCdsUnitTest,
+  updateUnitTest,
+  updateLocalDefinitions,
+  updateLocalMacros,
+  updateFunctionGroup,
+  updateDataElement,
+  updateDomain,
 
   // 묶음: tail-read — 꼬리 — 조회 계열 + CreatePackage 12종 (순서 29)
   getAdtTypes,

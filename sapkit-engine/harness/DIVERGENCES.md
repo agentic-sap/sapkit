@@ -1988,3 +1988,166 @@ D78~D80 · D83~D90 · D96·D97 · D102)은 위 「번호 예약」 절이 적은
   `divergences.ts`에 옮기지 못했다. **도구 응답이 달라지는 항목**이다(ECC
   시스템에서 구는 브리지 결과를, 신은 거절을 답한다) — 묶음 병합 뒤
   오케스트레이터가 옮긴다.
+## 제작 중 발견분 (append) — `tail-test` 묶음 (단위시험 · CDS 단위시험 · Update 계열)
+
+이 묶음의 12종을 지으며 나온 차이다. 예약 구간은 **D120~D129**다. 파일 가운데가
+아니라 여기 끝에 붙이는 것은 꼬리 묶음 셋이 동시에 append 하고 있어 같은 자리를
+물면 전면 충돌이 나기 때문이다(앞선 물결의 묶음들도 같은 이유로 끝에 붙였다).
+
+### D120 — `UpdateCdsUnitTest`가 활성화 **거짓 성공**을 성공으로 접지 않는다
+- **분류**: 수리(구의 거짓 성공을 고침)
+- **구 동작(실측)**: 구 핸들러는 벤더 `AdtCdsUnitTest.update()`를 부르고
+  (`engine/src/handlers/unit_test/high/handleUpdateCdsUnitTest.ts:75-79`), 그것이
+  `adtLocalTestClass.update(…, { activateOnUpdate: true })`로 넘어가
+  (`engine/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/unitTest/AdtCdsUnitTest.js:146-171`)
+  해제 뒤 활성화 요청을 **보내기는 한다**(`.../core/class/AdtLocalTestClass.js:227-235`).
+  그런데 그 **응답 본문을 읽지 않는다** — `activateObjectInSession`이 응답을 그대로
+  돌려주고(`.../utils/activationUtils.js:116-133`), `AdtClass.activate()`는 HTTP 4xx
+  에서만 던진다(`.../core/class/AdtClass.js:436-468`). **SAP은 활성화 실패도 HTTP
+  200으로 답하며 `<chkl:msg type="E">`를 담으므로**, 깨진 시험 클래스가
+  `CDS unit test class … updated successfully.`로 보고된다.
+- **신 동작**: 요청 바이트는 구 그대로 두고(`?method=activate&preauditRequested=true`
+  · `application/vnd.sap.adt.activation+xml` · 해제 **뒤**), 응답 본문을
+  `parseActivationMessages`로 갈라 `E`/`A`/`X`가 있으면 실패로 되돌린다. 문구에는
+  모든 오류를 줄번호와 함께 담고 "갱신본은 인액티브 버전으로 올라가 있고 활성
+  버전은 그대로"라는 사실을 함께 적는다. 경고(`W`)만 있으면 구와 같이 성공이다.
+- **판정 근거**: **같은 사슬의 같은 자리**에 선례가 둘 있다 — D2(`UpdateLocalTypes`) ·
+  D41(`UpdateLocalTestClass`). 이 도구는 그 둘과 같은 `testclasses` 인클루드 쓰기이며,
+  여기만 구를 재현하면 한 엔진 안에서 같은 실패에 세 도구가 다르게 답한다. 게다가
+  요구 급이 `계약 시험`이라 **사람 실기로 뒤늦게 잡을 기회가 없다**(D2·D41은 그
+  선택지가 있었다). 이 레포의 CLAS 거짓 성공 실증 이력과 `CLAUDE.md` 안전 규칙
+  ("write 성공 보고를 그대로 믿지 않는다")이 그 위에 있다.
+- **대체 기대 시험**: `sapkit-engine/src/tools/write/__tests__/updateCdsUnitTest.test.ts`의
+  「D120」 절 — 활성화가 언제나 나가는가 · 해제 뒤인가 · 200에 실린 `E`를 실패로
+  되돌리는가 · `A`도 실패인가 · `W`만 있으면 성공인가(구 동작이 유지되는 쪽을 함께
+  못박는다) · 실패해도 PUT은 이미 나갔다는 사실이 문구에 있는가.
+- **해소 마일스톤**: 없음 — 영구 차이(수리)다.
+- **기계 장부 반영**: **못 했다** — 이 과제는 `harness/replay/**`가 무접촉이다.
+  도구 응답이 `isError`째로 달라지므로 **기계 장부에 와야 한다.** 오케스트레이터가
+  묶음 병합 뒤에 옮긴다. 옮기기 전에 재생을 켜면 이 갈래가 가짜 실패로 잡힌다.
+
+### D121 — `UpdateLocalDefinitions`가 `activate_on_update:true`의 **거짓 성공**을 고쳤다
+- **분류**: 수리(구의 거짓 성공을 고침)
+- **구 동작(실측)**: `AdtLocalDefinitions`는 부모 `AdtClass`를 상속하면서 `update()`를
+  **재정의**하는데, 그 본문
+  (`engine/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalDefinitions.js:157-229`)
+  이 `options`에서 읽는 것은 `lockHandle`과 `sourceCode`뿐이다 — **`activateOnUpdate`를
+  한 번도 읽지 않는다.** 부모 `AdtClass.update()`에는 활성화 단계가 있지만 재정의가
+  그것을 가린다. 그런데 겉 핸들러는 그 플래그를 넘긴 뒤
+  (`engine/src/handlers/class/high/handleUpdateLocalDefinitions.ts:87`) 응답에
+  `activated: activate_on_update`를 그대로 실었다(`:139`). 즉 **활성화 요청이 한 건도
+  나가지 않은 채 "활성화됨"** 이라고 답했다.
+- **우연한 누락이 아니라는 근거**: 같은 패키지의 **형제 재정의**
+  `AdtLocalTestClass.update()`(`AdtLocalTestClass.js:227-235`)에는 "Step 5: Activating
+  parent class"가 있다. 한쪽에만 있다.
+- **신 동작**: 요청받았으면 해제 뒤에 실제로 활성화하고, **활성화 응답 본문을
+  판정한다** — SAP은 활성화 실패도 HTTP 200으로 답하며 `<chkl:msg type="E">`를 담으므로
+  보내기만 하고 안 읽으면 거짓 성공이 자리만 옮긴다. 경고(`W`)만 있으면 성공이다.
+- **판정 근거**: **같은 사슬의 같은 자리**에 선례가 둘 있다 — D2(`UpdateLocalTypes`) ·
+  D41(`UpdateLocalTestClass`). 여기만 구를 재현하면 한 엔진 안에서 같은 실패에 도구마다
+  다르게 답한다. 요구 급이 `계약 시험`이라 사람 실기로 뒤늦게 잡을 기회도 없다.
+- **대체 기대 시험**:
+  `sapkit-engine/src/tools/write/__tests__/updateLocalDefinitions.test.ts`의 「D121」 절.
+- **해소 마일스톤**: 없음 — 영구 차이(수리)다.
+- **기계 장부 반영**: **못 했다**(`harness/replay/**` 무접촉). 도구 응답이 `isError`째로
+  달라지므로 **기계 장부에 와야 한다.** 오케스트레이터가 묶음 병합 뒤에 옮긴다.
+
+### D122 — `UpdateLocalMacros`가 `activate_on_update:true`의 **거짓 성공**을 고쳤다
+- **분류**: 수리(구의 거짓 성공을 고침)
+- **구 동작(실측)**: D121과 **같은 모양**이다. `AdtLocalMacros.update()`
+  (`engine/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/class/AdtLocalMacros.js:158-230`)
+  가 `options`에서 읽는 것은 `lockHandle`과 `sourceCode`뿐이고 **`activateOnUpdate`를
+  한 번도 읽지 않는다.** 그런데 겉 핸들러는 그 플래그를 넘긴 뒤
+  (`engine/src/handlers/class/high/handleUpdateLocalMacros.ts:85`) 응답에
+  `activated: activate_on_update`를 그대로 실었다(`:130`).
+- **신 동작**: 요청받았으면 해제 뒤에 실제로 활성화하고, 활성화 응답 본문의
+  `E`/`A`/`X`를 실패로 판정한다. 경고(`W`)만 있으면 성공이다.
+- **판정 근거**: D2 · D41 · D121과 **같은 사슬의 같은 자리**다. 짝인
+  `UpdateLocalDefinitions`만 고치고 여기를 두면 인클루드 이름 하나 차이로 안전
+  바닥선이 갈린다. 요구 급이 `계약 시험`이라 사람 실기로 뒤늦게 잡을 기회도 없다.
+- **대체 기대 시험**:
+  `sapkit-engine/src/tools/write/__tests__/updateLocalMacros.test.ts`의 「D122」 절.
+- **해소 마일스톤**: 없음 — 영구 차이(수리)다.
+- **기계 장부 반영**: **못 했다**(`harness/replay/**` 무접촉). 도구 응답이 `isError`째로
+  달라지므로 **기계 장부에 와야 한다.** 오케스트레이터가 묶음 병합 뒤에 옮긴다.
+### D123 — 함수그룹 잠금 응답의 `sap-adt-lm-handle` **헤더** 경로를 승계하지 않는다
+- **분류**: 축소 — **해소 마일스톤 = 접속 계층(`src/adt/client.ts`)이 잠금 응답 헤더
+  경로를 지원하는 판. 그때까지는 본문 경로만 쓴다.**
+- **구 동작(실측)**: 벤더 `lockFunctionGroup`
+  (`engine/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/functionGroup/lock.js:57-79`)
+  은 손잡이를 **응답 헤더 `sap-adt-lm-handle`에서 먼저** 찾고, 없을 때만 본문의
+  `asx:abap → asx:values → DATA → LOCK_HANDLE`로 내려간다. **함수그룹만 그렇다** —
+  같은 패키지의 도메인·데이터엘리먼트·클래스 잠금(`core/domain/lock.js:57-79` 등)은
+  본문만 읽는다.
+- **신 동작**: 접속 계층의 `client.withLock()`이 잠금 수명주기를 소유하고, 그 안의
+  `parseLockResult`(`src/adt/client.ts:170-186`)는 **본문만** 읽는다. 헤더에만
+  손잡이를 싣는 시스템에서는 `protocol` 오류로 던지고 PUT이 나가지 않는다.
+- **판정 근거**: ⑴ 벤더 자신이 본문 경로를 폴백으로 갖고 있고 다른 오브젝트 종류는
+  전부 본문만 읽는다 — 본문이 ADT의 보편 형태다. ⑵ 헤더 경로를 살리려면 모든 묶음이
+  함께 쓰는 `withLock`을 고쳐야 하는데, 이 꼬리 과제가 접속 계층을 건드리는 것은
+  범위 밖이고 병렬 묶음들과 충돌한다. ⑶ 실패해도 **fail-closed**다(쓰기가 나가지
+  않는다) — 조용히 잘못된 손잡이로 PUT 하는 것보다 낫다.
+- **대체 기대 시험**:
+  `sapkit-engine/src/tools/write/__tests__/updateFunctionGroup.test.ts`의 「와이어」 절 —
+  본문에 손잡이를 실은 잠금 응답으로 사슬이 끝까지 도는 것을 확인한다(PUT의
+  `lockHandle` 질의 인자 대조).
+- **기계 장부 반영**: **안 했다** — 채록된 실 SAP 응답은 본문에 손잡이를 싣는
+  형태이므로 재생 대조에 이 갈래가 나타나지 않는다. 나타나는 순간(헤더 전용 응답이
+  채록되면) 이 항목을 기계 장부로 옮기고 접속 계층을 고쳐야 한다.
+
+### D124 — 함수그룹 콘텐츠 타입 협상 캐시가 `CreateFunctionGroup`과 **공유되지 않는다**
+- **분류**: 축소 — **해소 마일스톤 = 함수그룹 두 도구의 협상 캐시를 한 자리로 모으는
+  판(생성 쪽 모듈이 협상을 내보내거나, 공용 모듈로 옮기는 정리).**
+- **구 동작(실측)**: 협상 결과는 **접속 객체 하나에 한 벌**이고 생성·갱신이 함께
+  썼다(`engine/src/lib/adtFunctionGroupContentTypes.ts:109-112`의 `negotiatedCache` —
+  "stdio mode reuses one connection for the whole session"). 그래서 한 세션에서
+  `CreateFunctionGroup` 뒤에 `UpdateFunctionGroup`을 부르면 `GET /sap/bc/adt/discovery`가
+  **한 번만** 나갔다.
+- **신 동작**: `src/tools/write/createFunctionGroup.ts`가 협상과 캐시를 모듈 사설로
+  갖고 있고 내보내지 않으므로, 갱신 쪽은
+  `src/tools/write/functionGroupContentTypes.ts`에 캐시를 하나 더 둔다. 한 세션에서 두
+  도구를 이어 부르면 discovery 왕복이 **한 번 더** 나간다. 협상 결과 자체와 PUT에
+  실리는 헤더 두 줄은 구와 같다.
+- **판정 근거**: 이 꼬리 과제는 **다른 묶음의 도구 파일을 고치지 않는다**는 제약을
+  받는다(`createFunctionGroup.ts`는 function-group 묶음 소유). 문서 파싱 두 조각은 그
+  모듈이 이미 내보내고 있어 **가져다 쓰되**, 캐시만 갈라진다. 결과가 달라지는 것이
+  아니라 왕복 한 번이 더해질 뿐이며, 실패는 양쪽 다 캐시하지 않는다.
+- **대체 기대 시험**:
+  `sapkit-engine/src/tools/write/__tests__/updateFunctionGroup.test.ts`의
+  「콘텐츠 타입 협상」 절 — 광고된 판 고르기 · 다판 중 최고판 · discovery 불가 시 v3
+  폴백 · 협상이 잠그기 전이라는 순서까지 붙잡는다.
+- **기계 장부 반영**: **못 했다**(`harness/replay/**` 무접촉). 두 도구를 이어 부르는
+  시나리오에서는 **요청 수가 달라지므로 기계 장부에 와야 한다.** 오케스트레이터가
+  묶음 병합 뒤에 옮긴다.
+
+### D125 — `UpdateDomain`이 활성화 **거짓 성공**을 성공으로 접지 않는다
+- **분류**: 수리(구의 거짓 성공을 고침)
+- **구 동작(실측)**: 벤더 `activateDomain`은 `activateObjectInSession`의 응답을
+  **그대로 돌려주고**
+  (`engine/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/domain/activation.js:15-17`),
+  `AdtDomain.activate()`도 그것을 상태에 담을 뿐 판정하지 않는다
+  (`.../core/domain/AdtDomain.js:390-406`). 겉 핸들러 역시 반환값을 버린다
+  (`engine/src/handlers/domain/high/handleUpdateDomain.ts:243-245`). **SAP은 활성화
+  실패도 HTTP 200으로 답하며 `<chkl:msg type="E">`를 담으므로**, 활성화되지 않은
+  도메인이 `Domain … updated and activated successfully` · `status: "active"`로
+  보고된다.
+- **짝은 이미 옳다**: 같은 물결의 데이터 엘리먼트는 벤더가 판정한다
+  (`.../core/dataElement/activation.js:69-72` — `chkl:properties`의
+  `activationExecuted`·`checkExecuted`를 읽고 던진다). 두 DDIC 오브젝트에서 한쪽만
+  판정하는 것이 벤더의 실측 상태이고, 그래서 `UpdateDataElement`에는 고칠 것이 없었다.
+- **신 동작**: 요청 바이트는 구 그대로 두고(`?method=activate&preauditRequested=true` ·
+  `application/vnd.sap.adt.activation+xml` · `Accept: application/xml` · 한 줄 XML 본문),
+  응답 본문의 `E`/`A`/`X`를 실패로 되돌린다. 경고(`W`)만 있으면 구와 같이 성공이다.
+- **왜 짝인 `CreateDomain`은 그대로인가**: 그 도구는 요구 급이 `attended 실기`라 사람이
+  실물로 확인하는 관문이 남아 있고, 그 모듈이 그 판단을 머리주석에 적어 두었다(이
+  꼬리 과제는 다른 묶음의 도구를 고치지 않는다). **`UpdateDomain`은 요구 급이
+  `계약 시험`이라 이 시험이 유일한 증거**이고, 구를 재현하면 "활성화되지 않았는데
+  활성화됐다"는 응답이 증거 있음으로 표시된 채 남는다. 선례는 D66(`UpdateView`) —
+  그쪽도 짝인 생성은 두고 갱신만 고쳤다.
+- **대체 기대 시험**: `sapkit-engine/src/tools/write/__tests__/updateDomain.test.ts`의
+  「D125」 절 — 요청 바이트가 구 그대로인가 · 200에 실린 `E`를 실패로 되돌리는가 ·
+  `X`도 실패인가 · `W`만 있으면 성공인가 · `activate:false`면 요청 자체가 없는가 ·
+  실패해도 PUT은 이미 나갔다는 사실이 문구에 있는가.
+- **해소 마일스톤**: 없음 — 영구 차이(수리)다.
+- **기계 장부 반영**: **못 했다**(`harness/replay/**` 무접촉). 도구 응답이 `isError`째로
+  달라지므로 **기계 장부에 와야 한다.** 오케스트레이터가 묶음 병합 뒤에 옮긴다.
