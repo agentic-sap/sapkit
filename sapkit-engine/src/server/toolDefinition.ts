@@ -46,6 +46,7 @@ import type {
   ToolPolicyKind,
 } from '../contracts';
 import type { ExposableTool } from '../safety';
+import type { ProfileReload } from './session';
 
 /** zod 검증자들의 평범한 객체. SDK가 그대로 JSON Schema로 바꾼다. */
 export type ToolInputShape = Record<string, z.ZodType>;
@@ -106,6 +107,21 @@ export interface ToolContext {
   readonly logger: ToolLogger;
   /** 프로파일 값이 얹힌 환경. 도구가 자기 노브를 읽어야 할 때 쓴다. */
   readonly env: Readonly<Record<string, string | undefined>>;
+  /**
+   * 활성 프로파일을 다시 해석하고 캐시된 접속을 버린다 — `ReloadProfile` 하나를
+   * 위한 훅이다.
+   *
+   * **거의 모든 도구에서 이것은 던진다.** 서버 코어가 도구마다 컨텍스트를 짓고,
+   * `src/safety/tier.ts`의 `SERVER_CONTROL_TOOLS`에 이름이 있는 도구에만 실제
+   * 재적재를 물린다(`src/server/core.ts`). 그 목록은 tier 게이트를 면제받는
+   * 목록과 **같은 목록**이다 — 등급을 건너뛰는 이름과 등급을 바꿀 수 있는
+   * 이름이 갈라지면 안 되고, 레지스트리 한 줄이 `kind: 'server-control'`이라고
+   * 적는 것만으로 새 통로가 생겨서도 안 된다.
+   *
+   * 인자가 없는 것이 계약이다. 새 상태는 `startup.input`만의 함수이며, 도구가
+   * 넘긴 값이 tier·blocklist·접속 대상을 정하지 못한다.
+   */
+  reloadProfile(): ProfileReload;
 }
 
 /**
