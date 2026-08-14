@@ -145,6 +145,7 @@ import { readDataElement } from './read/readDataElement';
 
 // 묶음: domain
 import { getDomain } from './read/getDomain';
+import { readDomain } from './read/readDomain';
 
 // 묶음: transport
 
@@ -275,6 +276,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
 
   // 묶음: domain — 도메인 (순서 16)
   getDomain,
+  readDomain,
 
   // 묶음: transport — 트랜스포트 (순서 17)
 
