@@ -166,6 +166,10 @@ import { getUnitTestStatus } from './runtime/getUnitTestStatus';
 import { runUnitTest } from './runtime/runUnitTest';
 
 // 묶음: behavior-definition
+import { getBehaviorDefinition } from './read/getBehaviorDefinition';
+import { readBehaviorDefinition } from './read/readBehaviorDefinition';
+import { createBehaviorDefinition } from './write/createBehaviorDefinition';
+import { updateBehaviorDefinition } from './write/updateBehaviorDefinition';
 
 // 묶음: data-element
 import { createDataElement } from './write/createDataElement';
@@ -197,6 +201,10 @@ import { getAtcFindings } from './read/getAtcFindings';
 // 묶음: service-definition
 
 // 묶음: behavior-implementation
+import { getBehaviorImplementation } from './read/getBehaviorImplementation';
+import { readBehaviorImplementation } from './read/readBehaviorImplementation';
+import { createBehaviorImplementation } from './write/createBehaviorImplementation';
+import { updateBehaviorImplementation } from './write/updateBehaviorImplementation';
 
 // 묶음: function-group
 import { getFunctionGroup } from './read/getFunctionGroup';
@@ -342,6 +350,10 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getUnitTest,
 
   // 묶음: behavior-definition — 동작 정의 (BDEF) (순서 13)
+  createBehaviorDefinition,
+  getBehaviorDefinition,
+  readBehaviorDefinition,
+  updateBehaviorDefinition,
 
   // 묶음: data-element — 데이터 엘리먼트 (순서 14)
   createDataElement,
@@ -373,6 +385,10 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: service-definition — 서비스 정의 (순서 24)
 
   // 묶음: behavior-implementation — 동작 구현 (BIMP) (순서 25)
+  createBehaviorImplementation,
+  getBehaviorImplementation,
+  readBehaviorImplementation,
+  updateBehaviorImplementation,
 
   // 묶음: function-group — 함수그룹 (순서 26)
   getFunctionGroup,

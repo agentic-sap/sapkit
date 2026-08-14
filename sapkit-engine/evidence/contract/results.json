@@ -10,6 +10,16 @@
     "detail": "src/tools/read/__tests__/checkSyntax.test.ts"
   },
   {
+    "tool": "CreateBehaviorDefinition",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createBehaviorDefinition.test.ts"
+  },
+  {
+    "tool": "CreateBehaviorImplementation",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createBehaviorImplementation.test.ts"
+  },
+  {
     "tool": "CreateClass",
     "passed": true,
     "detail": "src/tools/write/__tests__/createClass.test.ts"
@@ -85,9 +95,14 @@
     "detail": "src/tools/read/__tests__/getAbapSystemSymbols.test.ts"
   },
   {
-    "tool": "GetAtcFindings",
+    "tool": "GetBehaviorDefinition",
     "passed": true,
-    "detail": "src/tools/read/__tests__/getAtcFindings.test.ts"
+    "detail": "src/tools/read/__tests__/getBehaviorDefinition.test.ts"
+  },
+  {
+    "tool": "GetBehaviorImplementation",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getBehaviorImplementation.test.ts"
   },
   {
     "tool": "GetClass",
@@ -255,21 +270,6 @@
     "detail": "src/tools/read/__tests__/getTypeInfo.test.ts"
   },
   {
-    "tool": "GetUnitTest",
-    "passed": true,
-    "detail": "src/tools/runtime/__tests__/getUnitTest.test.ts"
-  },
-  {
-    "tool": "GetUnitTestResult",
-    "passed": true,
-    "detail": "src/tools/runtime/__tests__/getUnitTestResult.test.ts"
-  },
-  {
-    "tool": "GetUnitTestStatus",
-    "passed": true,
-    "detail": "src/tools/runtime/__tests__/getUnitTestStatus.test.ts"
-  },
-  {
     "tool": "GetView",
     "passed": true,
     "detail": "src/tools/read/__tests__/getView.test.ts"
@@ -288,6 +288,16 @@
     "tool": "GrepPackages",
     "passed": true,
     "detail": "src/tools/read/__tests__/grepPackages.test.ts"
+  },
+  {
+    "tool": "ReadBehaviorDefinition",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readBehaviorDefinition.test.ts"
+  },
+  {
+    "tool": "ReadBehaviorImplementation",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readBehaviorImplementation.test.ts"
   },
   {
     "tool": "ReadClass",
@@ -345,11 +355,6 @@
     "detail": "src/tools/runtime/__tests__/reloadProfile.test.ts"
   },
   {
-    "tool": "RunUnitTest",
-    "passed": true,
-    "detail": "src/tools/runtime/__tests__/runUnitTest.test.ts"
-  },
-  {
     "tool": "RuntimeAnalyzeDump",
     "passed": true,
     "detail": "src/tools/runtime/__tests__/runtimeAnalyzeDump.test.ts"
@@ -403,6 +408,16 @@
     "tool": "SearchObject",
     "passed": true,
     "detail": "src/tools/read/__tests__/searchObject.test.ts"
+  },
+  {
+    "tool": "UpdateBehaviorDefinition",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateBehaviorDefinition.test.ts"
+  },
+  {
+    "tool": "UpdateBehaviorImplementation",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateBehaviorImplementation.test.ts"
   },
   {
     "tool": "UpdateClass",
