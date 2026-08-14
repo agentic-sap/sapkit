@@ -190,6 +190,11 @@
     "detail": "src/tools/write/__tests__/deleteProgram.test.ts"
   },
   {
+    "tool": "DeleteScreen",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteScreen.test.ts"
+  },
+  {
     "tool": "DeleteServiceDefinition",
     "passed": true,
     "detail": "src/tools/write/__tests__/deleteServiceDefinition.test.ts"
