@@ -85,6 +85,11 @@
     "detail": "src/tools/read/__tests__/getLocalTestClass.test.ts"
   },
   {
+    "tool": "GetLocalTypes",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getLocalTypes.test.ts"
+  },
+  {
     "tool": "GetObjectInfo",
     "passed": true,
     "detail": "src/tools/read/__tests__/getObjectInfo.test.ts"

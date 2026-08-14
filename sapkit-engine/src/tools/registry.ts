@@ -125,6 +125,7 @@ import { getClassMethod } from './read/getClassMethod';
 import { getLocalDefinitions } from './read/getLocalDefinitions';
 import { getLocalMacros } from './read/getLocalMacros';
 import { getLocalTestClass } from './read/getLocalTestClass';
+import { getLocalTypes } from './read/getLocalTypes';
 import { readClass } from './read/readClass';
 
 // 묶음: table
@@ -257,6 +258,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getLocalDefinitions,
   getLocalMacros,
   getLocalTestClass,
+  getLocalTypes,
 
   // 묶음: table — 테이블 (순서 7)
 
