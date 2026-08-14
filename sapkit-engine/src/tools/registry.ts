@@ -94,6 +94,7 @@ import {
 // 묶음: runtime
 import { runtimeAnalyzeDump } from './runtime/runtimeAnalyzeDump';
 import { runtimeGetDumpById } from './runtime/runtimeGetDumpById';
+import { runtimeGetProfilerTraceData } from './runtime/runtimeGetProfilerTraceData';
 import { runtimeListDumps } from './runtime/runtimeListDumps';
 import { runtimeListProfilerTraceFiles } from './runtime/runtimeListProfilerTraceFiles';
 
@@ -150,4 +151,5 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   runtimeGetDumpById,
   runtimeAnalyzeDump,
   runtimeListProfilerTraceFiles,
+  runtimeGetProfilerTraceData,
 ];
