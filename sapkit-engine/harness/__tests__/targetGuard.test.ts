@@ -104,23 +104,49 @@ describe('기존 15종의 거부 동작이 회귀하지 않는다', () => {
 
 // ── ⓒ 아직 안 지은 도구 · 선언 없는 도구는 막지 않는다 ───────────────────────
 
+/**
+ * 이 절의 예시는 **실물 도구 이름이 아니다.**
+ *
+ * 그동안 이 자리에는 "신 엔진이 아직 안 지은 도구"의 실물 이름을 넣어 왔다
+ * (`ReadTable` → `DeleteTable`·`DeleteClass`·`ReadPackage`·`UpdateDomain`으로
+ * 차례로 물러났다 — 그 도구들이 지어질 때마다 선언이 생겨 예시가 깨졌기 때문이다).
+ * **꼬리 묶음 셋이 끝나면 안 지은 도구가 0이 되므로 그 방식은 더 이상 성립하지
+ * 않는다.**
+ *
+ * 그래서 예시를 **구 번들에만 있는 이름**의 자리로 옮겼다. 검사기가 보는 것은
+ * 등록된 도구 선언의 표이고, 그 표에 없는 이름이면 성격과 무관하게 건너뛴다 —
+ * 판정의 입력은 "이 이름이 표에 있는가"뿐이므로 실물이 아니어도 같은 갈래를
+ * 정확히 겨눈다. 아래 첫 단언이 그 전제(정말 표에 없다)를 함께 못 박으므로,
+ * 어느 이름이 나중에 실물이 되어도 이 시험은 조용히 무의미해지지 않고 깨진다.
+ */
+const NOT_IN_REGISTRY = [
+  'DeleteThingThatOnlyExistsInTheOldBundle',
+  'ReadThingThatOnlyExistsInTheOldBundle',
+  'UpdateThingThatOnlyExistsInTheOldBundle',
+] as const;
+
 describe('선언이 없는 도구는 사전 검사에서 막히지 않는다', () => {
   /**
-   * 구 번들에는 있고 신 엔진에는 아직 없는 도구들. 여기서 fail-closed로 바꾸면
-   * 판 중간의 녹화가 통째로 막힌다 — 계획서가 못 박은 자리다.
+   * 구 번들에는 있고 신 엔진에는 없는 도구들. 여기서 fail-closed로 바꾸면
+   * 구 번들(도구 186종) 대상 녹화가 통째로 막힌다 — 계획서가 못 박은 자리다.
    */
-  // `ReadTable`이 여기 있었으나 지어져서 선언을 갖게 됐다. 예시는 **아직 안 지은**
-  // 도구여야 하므로 `DeleteTable`로 바꿨다 — `DeleteClass`와 같은 `tail` 묶음
-  // (`harness/build-plan.json` 순서 29)이라 당분간 선언이 생기지 않는다.
-  // 같은 이유로 `GetTransport`·`ReleaseTransport`도 물러났다 — transport 묶음이
-  // 지어지면서 둘 다 등록됐기 때문이다. 대신 같은 `tail` 묶음의 `ReadPackage`(읽기)와
-  // `UpdateDomain`(변경)을 넣어, 두 성격이 섞인 예시 구성을 유지한다.
-  it.each(['DeleteTable', 'DeleteClass', 'ReadPackage', 'UpdateDomain'])(
-    '%s — 표준 대상을 줘도 사전 검사는 통과시킨다',
-    (tool) => {
-      expect(checkSourceNamespace(scenarioOf({ tool, args: { object_name: 'MARA' } }), {})).toEqual([]);
-    },
-  );
+  it.each(NOT_IN_REGISTRY)('%s — 애초에 검사 대상 표에 없다 (예시의 전제)', (tool) => {
+    expect(Object.keys(TARGET_NAME_EXTRACTORS)).not.toContain(tool);
+  });
+
+  it.each(NOT_IN_REGISTRY)('%s — 표준 대상을 줘도 사전 검사는 통과시킨다', (tool) => {
+    expect(checkSourceNamespace(scenarioOf({ tool, args: { object_name: 'MARA' } }), {})).toEqual([]);
+  });
+
+  it('지어진 삭제 도구는 반대로 **사전 검사가 막는다** — 이 판이 사전 검사를 지은 이유', () => {
+    // 실물 `Delete*`가 검사 대상이 되었다는 것이 위 예시가 물러난 사유다.
+    const offenders = checkSourceNamespace(
+      scenarioOf({ tool: 'DeleteClass', args: { class_name: 'CL_ABAP_TYPEDESCR' } }),
+      {},
+    );
+    expect(offenders).toHaveLength(1);
+    expect(offenders[0]).toContain('DeleteClass');
+  });
 
   it('신 엔진에 등록됐어도 선언이 없으면 검사 대상이 아니다 — 사후 백스톱이 계속 소유한다', () => {
     // 이 넷은 일부러 선언하지 않는다. SearchObject는 표준 마스크를 받는 것이
@@ -132,9 +158,13 @@ describe('선언이 없는 도구는 사전 검사에서 막히지 않는다', (
   });
 
   it('선언 없는 도구가 원본 소스를 실어 오면 사후 백스톱이 잡는다', () => {
-    const problems = detectUnguardedSource(fixtureOf({ tool: 'DeleteTable', response: { source: ABAP_SOURCE } }), {});
+    // 여기도 같은 이유로 실물 이름(`DeleteTable`)에서 물러났다 — 그 도구가 선언을
+    // 갖게 되면 백스톱은 그것을 **건너뛰는 것이 옳고**, 그러면 이 시험이 겨누던
+    // 갈래(선언 없는 도구)가 통째로 사라진다.
+    const tool = NOT_IN_REGISTRY[0];
+    const problems = detectUnguardedSource(fixtureOf({ tool, response: { source: ABAP_SOURCE } }), {});
     expect(problems).toHaveLength(1);
-    expect(problems[0]).toContain('DeleteTable');
+    expect(problems[0]).toContain(tool);
   });
 
   it('선언 없는 도구의 인자에 원본 소스가 실려도 잡는다', () => {
