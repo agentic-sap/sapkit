@@ -20,6 +20,11 @@
     "detail": "src/tools/write/__tests__/createBehaviorImplementation.test.ts"
   },
   {
+    "tool": "CreateCdsUnitTest",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createCdsUnitTest.test.ts"
+  },
+  {
     "tool": "CreateClass",
     "passed": true,
     "detail": "src/tools/write/__tests__/createClass.test.ts"
