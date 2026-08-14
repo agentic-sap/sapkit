@@ -125,6 +125,11 @@
     "detail": "src/tools/write/__tests__/deleteDomain.test.ts"
   },
   {
+    "tool": "DeleteFunctionGroup",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteFunctionGroup.test.ts"
+  },
+  {
     "tool": "DeleteInterface",
     "passed": true,
     "detail": "src/tools/write/__tests__/deleteInterface.test.ts"
