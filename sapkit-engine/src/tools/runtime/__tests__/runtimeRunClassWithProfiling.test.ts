@@ -51,14 +51,12 @@ interface Scenario {
 
 function replies(scenario: Scenario) {
   let byUriIndex = 0;
+  const paramsHeaders: Record<string, string> =
+    scenario.withLocation === false ? {} : { location: PROFILER_ID };
   return csrfAware((request) => {
     const url = new URL(request.url);
     if (url.pathname === PARAMS_PATH) {
-      return {
-        status: 201,
-        body: '',
-        headers: scenario.withLocation === false ? {} : { location: PROFILER_ID },
-      };
+      return { status: 201, body: '', headers: paramsHeaders };
     }
     if (url.pathname.startsWith(CLASS_RUN)) return { status: 200, body: 'run accepted' };
     if (url.pathname === REQUESTS_PATH && url.searchParams.has('uri')) {

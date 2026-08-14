@@ -33,9 +33,10 @@ const PROFILER_ID = '/sap/bc/adt/runtime/traces/abaptraces/parameters/00FIXTURE0
 
 /** 첫 요청(파라미터 생성)만 Location을 준다. 두 번째는 실행 응답이다. */
 function replies(withLocation: boolean) {
+  const headers: Record<string, string> = withLocation ? { location: PROFILER_ID } : {};
   return csrfAware((request) =>
     request.url.includes(PARAMS_PATH)
-      ? { status: 201, body: '', headers: withLocation ? { location: PROFILER_ID } : {} }
+      ? { status: 201, body: '', headers }
       : { status: 200, body: 'run accepted' },
   );
 }
