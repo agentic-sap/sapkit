@@ -45,6 +45,11 @@
     "detail": "src/tools/read/__tests__/getInstalledComponents.test.ts"
   },
   {
+    "tool": "GetObjectsByType",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getObjectsByType.test.ts"
+  },
+  {
     "tool": "GetProgram",
     "passed": true,
     "detail": "src/tools/read/__tests__/getProgram.test.ts"
