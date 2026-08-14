@@ -310,6 +310,11 @@
     "detail": "src/tools/read/__tests__/readInterface.test.ts"
   },
   {
+    "tool": "ReadMetadataExtension",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readMetadataExtension.test.ts"
+  },
+  {
     "tool": "ReadProgram",
     "passed": true,
     "detail": "src/tools/read/__tests__/readProgram.test.ts"
