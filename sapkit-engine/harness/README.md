@@ -13,26 +13,37 @@
   목록(divergence allowlist)**에 등재된 항목은 diff 비교 대신 **대체 기대 시험**
   으로 판정하며, 각 항목은 근거 문서 경로를 가진다. 도구 × 증거 급을 기록한
   **커버리지 표**를 산출한다.
+- `ledger/` — 등록점·표면 채록본·제작 계획·증거 파일에서 **진척 대장**
+  (`../TOOL-LEDGER.md`)을 계산하고, 커밋본과 대조한다. 상태 3칸의 계산은
+  `replay/coverage.ts`가 소유하고 여기서 다시 짜지 않는다. 증거는 **레포 안의
+  파일**에서만 온다 — 문서 서술과 옛 콘솔 출력은 입력이 아니다(`../evidence/README.md`).
 
 ## 진입점 (조립기 — 판정 규칙을 다시 구현하지 않는다)
 
 | 파일 | 구간 | 하는 일 |
 |---|---|---|
 | `record-attended.mjs` | **C1** | 시나리오를 구 번들에 태워 픽스처로 저장 |
-| `replay-attended.mjs` | **C2** | 픽스처를 신 엔진에 먹여 판정 + 커버리지 표 |
+| `replay-attended.mjs` | **C2** | 픽스처를 신 엔진에 먹여 판정 + 커버리지 표 + **판정 파일**(`../evidence/replay/`) |
+| `render-ledger.mjs` | 오프라인 | 진척 대장(`../TOOL-LEDGER.md`)을 계산해 쓰거나 `--check`로 대조 |
+| `contract-evidence.mjs` | 오프라인 | jest `--json` 보고서를 도구별 통과로 접어 `../evidence/contract/results.json` |
 | `auth-guard.mjs` | 공용 | 401 계열 첫 건에서 전송을 끊는다 |
 | `scenarios/` | C1 입력 | 무엇을 물어볼지 적어 두는 곳 (형식은 그 README) |
 | `fixtures/` (`../fixtures/`) | C1 산출 | 채록된 시퀀스. 마스킹 통과분만 |
 | `old-surface/` | 기준선 | 구 번들 `tools/list` 오프라인 채록본 |
+| `build-plan.json` | 계획 | 묶음·제작 순서·요구 증거 급 (뒤 작업이 산출 — 없으면 대장이 「미정」) |
 
 ```powershell
 node harness/record-attended.mjs --scenario=<id> --dry-run          # SAP 불필요
 node harness/record-attended.mjs --scenario=<id> --env-path=<sap.env>
 node harness/replay-attended.mjs --env-path=<sap.env>
+node harness/render-ledger.mjs                                      # SAP 불필요
+node harness/render-ledger.mjs --check                              # SAP 불필요
 ```
 
-**둘 다 SAP에 접속한다.** 재생은 응답을 흉내 내는 것이 아니라 신 엔진이 같은
-질문을 다시 던지는 일이라, C1뿐 아니라 **C2도 attended 구간**이다.
+**C1·C2는 SAP에 접속한다.** 재생은 응답을 흉내 내는 것이 아니라 신 엔진이 같은
+질문을 다시 던지는 일이라, C1뿐 아니라 **C2도 attended 구간**이다. 대장 계열
+(`render-ledger.mjs`·`contract-evidence.mjs`)은 레포 안의 파일만 읽는 오프라인
+도구다.
 
 ## 진입점이 지키는 것 (라이브러리가 안 보는 축)
 
