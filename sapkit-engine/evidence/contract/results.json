@@ -170,6 +170,11 @@
     "detail": "src/tools/write/__tests__/deleteLocalTestClass.test.ts"
   },
   {
+    "tool": "DeleteLocalTypes",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteLocalTypes.test.ts"
+  },
+  {
     "tool": "DeleteMetadataExtension",
     "passed": true,
     "detail": "src/tools/write/__tests__/deleteMetadataExtension.test.ts"
