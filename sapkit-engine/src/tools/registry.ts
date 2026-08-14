@@ -131,6 +131,7 @@ import { getTableContents } from './row-data/getTableContents';
 // 묶음: function-module
 
 // 묶음: structure
+import { readStructure } from './read/readStructure';
 
 // 묶음: view
 
@@ -261,6 +262,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: function-module — 함수모듈 (순서 9)
 
   // 묶음: structure — 구조체 (순서 10)
+  readStructure,
 
   // 묶음: view — 뷰 (순서 11)
 

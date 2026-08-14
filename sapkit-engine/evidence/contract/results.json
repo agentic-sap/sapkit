@@ -150,6 +150,11 @@
     "detail": "src/tools/read/__tests__/grepPackages.test.ts"
   },
   {
+    "tool": "ReadStructure",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readStructure.test.ts"
+  },
+  {
     "tool": "ReadTable",
     "passed": true,
     "detail": "src/tools/read/__tests__/readTable.test.ts"
