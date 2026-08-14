@@ -120,6 +120,11 @@
     "detail": "src/tools/write/__tests__/deleteInterface.test.ts"
   },
   {
+    "tool": "DeleteProgram",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteProgram.test.ts"
+  },
+  {
     "tool": "DescribeByList",
     "passed": true,
     "detail": "src/tools/read/__tests__/describeByList.test.ts"
