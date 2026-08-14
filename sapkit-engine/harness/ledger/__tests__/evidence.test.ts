@@ -158,14 +158,15 @@ describe('대체 기대 시험 — 장부 등재분에 대응하는 시험 파�
   it('시험 파일이 실재하는 등재분만 증거가 된다', () => {
     const evidence = substituteEvidenceFromLedger(M1_DIVERGENCES, repoRoot);
 
-    // D1·D3은 대체 기대 시험을 아직 다른 작업이 소유한다 — 산문뿐이고 파일이 없다.
+    // D1은 대체 기대 시험을 아직 다른 작업이 소유한다 — 산문뿐이고 파일이 없다.
     expect(evidence.map((e) => e.tool)).not.toContain('GetSqlQuery');
-    expect(evidence.map((e) => e.tool)).not.toContain('GetIncludesList');
 
-    // **D2는 반대쪽 증거다.** class 묶음이 `UpdateLocalTypes`를 지으며 휴면을
-    // 깨우고 대체 기대 시험을 실제 파일로 저작했으므로, 이제 **잡혀야** 한다.
-    // 산문과 실재 파일을 가르는 것이 이 수집기의 존재 이유이므로 양쪽을 함께 못박는다.
+    // **반대쪽 증거.** D2·D3은 각자의 도구(`UpdateLocalTypes`·`GetIncludesList`)를
+    // 짓는 묶음에서 휴면을 깨우고 대체 기대 시험을 **실제 파일로** 저작했으므로 이제
+    // 잡혀야 한다. 산문과 실재 파일을 가르는 것이 이 수집기의 존재 이유이니
+    // 양쪽을 함께 못박는다 — 한쪽만 두면 "아무것도 안 잡는" 구현도 통과한다.
     expect(evidence.map((e) => e.tool)).toContain('UpdateLocalTypes');
+    expect(evidence.map((e) => e.tool)).toContain('GetIncludesList');
   });
 
   it('도구가 없는 등재분(계층 차이)은 도구 단위 증거가 아니다', () => {
