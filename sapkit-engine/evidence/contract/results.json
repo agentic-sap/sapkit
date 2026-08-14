@@ -10,14 +10,19 @@
     "detail": "src/tools/read/__tests__/checkSyntax.test.ts"
   },
   {
+    "tool": "CreateDataElement",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createDataElement.test.ts"
+  },
+  {
+    "tool": "CreateDomain",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createDomain.test.ts"
+  },
+  {
     "tool": "CreateInclude",
     "passed": true,
     "detail": "src/tools/write/__tests__/createInclude.test.ts"
-  },
-  {
-    "tool": "CreateInterface",
-    "passed": true,
-    "detail": "src/tools/write/__tests__/createInterface.test.ts"
   },
   {
     "tool": "CreateProgram",
@@ -50,6 +55,16 @@
     "detail": "src/tools/read/__tests__/getClass.test.ts"
   },
   {
+    "tool": "GetDataElement",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getDataElement.test.ts"
+  },
+  {
+    "tool": "GetDomain",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getDomain.test.ts"
+  },
+  {
     "tool": "GetFunctionModule",
     "passed": true,
     "detail": "src/tools/read/__tests__/getFunctionModule.test.ts"
@@ -68,11 +83,6 @@
     "tool": "GetInstalledComponents",
     "passed": true,
     "detail": "src/tools/read/__tests__/getInstalledComponents.test.ts"
-  },
-  {
-    "tool": "GetInterface",
-    "passed": true,
-    "detail": "src/tools/read/__tests__/getInterface.test.ts"
   },
   {
     "tool": "GetObjectInfo",
@@ -155,9 +165,14 @@
     "detail": "src/tools/read/__tests__/grepPackages.test.ts"
   },
   {
-    "tool": "ReadInterface",
+    "tool": "ReadDataElement",
     "passed": true,
-    "detail": "src/tools/read/__tests__/readInterface.test.ts"
+    "detail": "src/tools/read/__tests__/readDataElement.test.ts"
+  },
+  {
+    "tool": "ReadDomain",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readDomain.test.ts"
   },
   {
     "tool": "ReloadProfile",
@@ -228,11 +243,6 @@
     "tool": "UpdateInclude",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateInclude.test.ts"
-  },
-  {
-    "tool": "UpdateInterface",
-    "passed": true,
-    "detail": "src/tools/write/__tests__/updateInterface.test.ts"
   },
   {
     "tool": "UpdateProgram",

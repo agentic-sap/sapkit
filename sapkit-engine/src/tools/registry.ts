@@ -141,10 +141,16 @@ import { updateView } from './write/updateView';
 // 묶음: behavior-definition
 
 // 묶음: data-element
+import { createDataElement } from './write/createDataElement';
+import { getDataElement } from './read/getDataElement';
+import { readDataElement } from './read/readDataElement';
 
 // 묶음: service-binding
 
 // 묶음: domain
+import { createDomain } from './write/createDomain';
+import { getDomain } from './read/getDomain';
+import { readDomain } from './read/readDomain';
 
 // 묶음: transport
 
@@ -278,10 +284,16 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: behavior-definition — 동작 정의 (BDEF) (순서 13)
 
   // 묶음: data-element — 데이터 엘리먼트 (순서 14)
+  createDataElement,
+  getDataElement,
+  readDataElement,
 
   // 묶음: service-binding — 서비스 바인딩 (순서 15)
 
   // 묶음: domain — 도메인 (순서 16)
+  createDomain,
+  getDomain,
+  readDomain,
 
   // 묶음: transport — 트랜스포트 (순서 17)
 
