@@ -166,6 +166,7 @@ import { updateFunctionModule } from './write/updateFunctionModule';
 // 묶음: function-group
 import { getFunctionGroup } from './read/getFunctionGroup';
 import { readFunctionGroup } from './read/readFunctionGroup';
+import { createFunctionGroup } from './write/createFunctionGroup';
 
 // 묶음: interface
 
@@ -297,6 +298,7 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: function-group — 함수그룹 (순서 26)
   getFunctionGroup,
   readFunctionGroup,
+  createFunctionGroup,
 
   // 묶음: interface — 인터페이스 (순서 27)
 

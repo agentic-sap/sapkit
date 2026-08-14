@@ -40,6 +40,13 @@ import { encodeObjectName, errorResult } from './shared';
 
 /** `contentTypes.js:73` — 벤더 기본값. 시스템이 v2만 광고하면 협상이 이긴다. */
 export const CT_FUNCTION_GROUP = 'application/vnd.sap.adt.functions.groups.v3+xml';
+/**
+ * 레거시 시스템(BASIS 7.50 미만 · ECC)이 쓰는 판 없는 미디어 타입 —
+ * `core/shared/contentTypes.js:117-122`의 `AdtContentTypesBase`.
+ * 구는 `AdtClientLegacy` 생성자가 이 벌을 주입하고 **주입된 협상 결과를 무시한다**
+ * (`clients/AdtClientLegacy.js:41-46` · `engine/src/lib/clients.ts:25-29`).
+ */
+export const CT_FUNCTION_GROUP_LEGACY = 'application/vnd.sap.adt.functions.groups+xml';
 /** `contentTypes.js:76`. */
 export const CT_FUNCTION_MODULE = 'application/vnd.sap.adt.functions.fmodules+xml';
 /**
@@ -105,6 +112,23 @@ export function ownerAttributeXml(owner: OwnerAttributes): string {
     (owner.masterSystem ? ` adtcore:masterSystem="${owner.masterSystem}"` : '') +
     (owner.responsible ? ` adtcore:responsible="${owner.responsible}"` : '')
   );
+}
+
+// ── 시스템 세대 ─────────────────────────────────────────────────────────────
+
+/**
+ * 구 `detectLegacy()`(`engine/src/lib/systemContext.ts:36-42`)와 같은 세 조건.
+ *
+ * **배포 축(`systemType`)과 별개다.** 배포 축은 `SAP_SYSTEM_TYPE` 하나만 보지만
+ * (D7), 세대 판정은 `SAP_VERSION=ECC`와 `ABAP_RELEASE < 750`도 레거시로 친다.
+ * 함수그룹 생성이 이 값을 보는 이유는 레거시 클라이언트가 콘텐츠 타입 협상 결과를
+ * 무시하기 때문이다 — 협상 왕복 자체가 낭비다.
+ */
+export function isLegacySystem(context: ToolContext): boolean {
+  if (context.profile.systemType === 'legacy') return true;
+  if (context.profile.sapVersion?.toUpperCase() === 'ECC') return true;
+  const release = Number.parseInt(context.env.ABAP_RELEASE ?? '', 10);
+  return Number.isFinite(release) && release < 750;
 }
 
 // ── 이름 검증 응답 읽기 ─────────────────────────────────────────────────────
