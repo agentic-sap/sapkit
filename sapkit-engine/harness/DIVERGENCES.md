@@ -507,6 +507,45 @@
 - **대체 기대 시험**: 없음(축소). 접속 없는 HTTP 기동이 inspection-only로 정상
   동작하는지는 기동 스모크(`gates/http-smoke.mjs`)가 본다.
 
+### D31 — 브로커 스위치는 **저장소 재료까지만** 조립하고, 그 통로로는 접속이 서지 않는다
+- **분류**: 축소 — **해소 마일스톤 = 인증 확장(Basic 외) 마일스톤. D15·D30과 같은 자리.**
+- **구 동작(실측)**: `--auth-broker` · `MCP_USE_AUTH_BROKER=true`가 하는 일은 둘뿐이다.
+  ⓐ 인자와 환경변수를 하나로 합쳐(`engine/src/lib/config/ArgumentsParser.ts:182-183`)
+  Variant 3(cwd `.env`)을 잠근다(`engine/src/lib/auth/brokerFactory.ts:185`).
+  ⓑ **기본 브로커를 만들지 않는다** — Variant 1(`--mcp`)·2(`--env`)에 걸리지
+  않으면 `DEFAULT_BROKER_NOT_CREATED`로 끝나고(`brokerFactory.ts:283-296`),
+  접속 맥락은 destination이 **지목될 때** 저장소에서 그때그때 만들어진다
+  (`brokerFactory.ts:336-372`). 지목하는 통로는 `--mcp`이거나 HTTP 요청 헤더
+  `x-mcp-destination`이며, 토큰은 그 위에서 `AuthBroker.getToken`이 **브라우저
+  OAuth2 로그인**으로 받아 온다
+  (`engine/node_modules/@babamba2/mcp-abap-adt-auth-broker/dist/AuthBroker.js:373-464`
+  → `…/mcp-abap-adt-auth-providers/dist/providers/AuthorizationCodeProvider.js:76-90`).
+- **신 동작**: ⓐ는 그대로 지킨다(D17이 이미 못 박은 자리 — 인자·환경변수 양쪽).
+  ⓑ에 대해서는 저장소 재료(`service-keys`·`sessions` 디렉터리 + 그 안의
+  destination 이름)까지 조립해 `startup.destination.channel === 'broker'`로 싣고
+  **접속은 만들지 않는다.** 이유는 이름 있는 진단으로 말한다 — 이름이 지목되지
+  않았으면 `AUTH_BROKER_NO_DESTINATION`, 접속을 이미 딴 통로가 소유했으면
+  `AUTH_BROKER_IGNORED`. 구는 이 자리를 `logger?.debug`로만 남겨 DEBUG 변수가
+  없으면 **아무 말도 하지 않는다**(`brokerFactory.ts:284-292`).
+- **곁딸린 차이 1건(강화)**: 구는 `--unsafe`에서 세션 저장소를 파일 기반으로
+  세우고 그 생성자가 디렉터리를 **없으면 만든다**
+  (`engine/node_modules/@babamba2/mcp-abap-adt-auth-stores/dist/stores/abap/AbapSessionStore.js:71-74`).
+  신은 경로를 재료로 실어 나르기만 하고 **만들지 않는다** — 기동만으로 운영자
+  디스크에 폴더가 생기지 않는다. service key도 이름만 세고 열지 않으므로 재료에
+  비밀이 실릴 자리가 없다.
+- **왜 여기까지인가**: 그다음이 전부 실접속이다. destination을 지목하는 통로는
+  `--mcp`(D15 — 토큰 취득 미구현)와 HTTP 헤더(D30 — 통로 자체가 없음) 둘뿐이고,
+  토큰은 브라우저 로그인 왕복이다. 이 판은 실접속 성공을 범위 밖으로 둔다.
+- **대체 기대 시험**: 서버 코어 `src/server/__tests__/startup.test.ts`
+  「브로커 통로 — --auth-broker / MCP_USE_AUTH_BROKER」 10건 — 인자·환경변수 양쪽
+  인식 · 재료 조립 · 스위치 없으면 통로 미개방 · 접속 미생성과 그 이유 ·
+  cwd `.env` 잠금 유지(D17 보강분) · 저장소 부재에서도 기동 생존(D20) · 진단에
+  비밀 미유출 · `--mcp`/`--env`가 앞이라는 순서 · **브로커를 켜도
+  `MCP_ENV_PATH`·`--env-path`·활성 프로파일이 그대로 붙는다는 회귀 0**. 재료
+  계층은 `src/profile/__tests__/destination.test.ts`의 `resolveBrokerStores` 4건.
+- **비고**: D16·D17·D20·D24와 같은 결의 **기동 계층** 차이라 도구 응답 시퀀스에
+  나타나지 않는다 — `replay/divergences.ts`로 옮기지 않는다.
+
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 
 리뷰에서 차이로 잡혔지만 **유지할 이유가 없어** 구 동작으로 되돌린 것들.

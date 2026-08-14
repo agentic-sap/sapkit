@@ -23,6 +23,19 @@
  * - `engine/node_modules/@babamba2/mcp-abap-adt-auth-stores/dist/utils/JsonFileHandler.js`
  * - `engine/node_modules/@babamba2/mcp-abap-adt-auth-stores/dist/stores/env/EnvFileSessionStore.js`
  *
+ * 브로커 통로(`--auth-broker` · `MCP_USE_AUTH_BROKER`)를 위해 더 읽은 것:
+ * - `engine/src/lib/auth/brokerFactory.ts:283-296` (기본 브로커 **미생성** 갈래) ·
+ *   `336-372`(destination이 지목될 때의 요청별 생성) · `379-458`(store 한 벌 세우기)
+ * - `engine/src/server/AuthBrokerConfig.ts` — `useAuthBroker`가 서버 설정에서
+ *   브로커 공장으로 넘어가는 경로
+ * - `engine/node_modules/@babamba2/mcp-abap-adt-auth-broker/dist/AuthBroker.js`
+ *   (특히 `getToken` 373-464 — 토큰은 브라우저 OAuth2 로그인으로만 나온다)
+ * - `engine/node_modules/@babamba2/mcp-abap-adt-auth-providers/dist/providers/AuthorizationCodeProvider.js`
+ * - `engine/node_modules/@babamba2/mcp-abap-adt-auth-stores/dist/stores/abap/AbapSessionStore.js`
+ *   (생성자가 세션 디렉터리를 **만든다** — 신은 만들지 않는다) ·
+ *   `…/stores/abap/SafeAbapSessionStore.js`(기본값인 메모리 저장소) ·
+ *   `…/utils/pathResolver.js`
+ *
  * **이름은 이름이지 경로가 아니다.** 두 인자의 값은 저장소 디렉터리 안의 파일
  * 이름으로 합쳐진다. 경로처럼 생긴 값을 그대로 합치면 운영자가 고르지 않은
  * 파일에 닿을 수 있으므로, 합치기 **전에** 거른다(D17이 지키는 자리와 같은 결).
@@ -354,6 +367,57 @@ export function readServiceKey(
   };
 }
 
+// ── `--auth-broker` / `MCP_USE_AUTH_BROKER` — 브로커 저장소 ──────────────────
+
+/**
+ * 브로커 통로가 쓸 저장소 재료.
+ *
+ * **destination 이름이 없다.** 구 브로커에서 이 스위치의 효과는 두 가지뿐이기
+ * 때문이다(전부 읽기만 한 실측):
+ *  ⓐ 인자와 환경변수를 하나로 합쳐(`engine/src/lib/config/ArgumentsParser.ts:182-183`)
+ *     Variant 3(cwd `.env`)을 잠근다(`engine/src/lib/auth/brokerFactory.ts:185`).
+ *  ⓑ **기본 브로커를 만들지 않는다** — Variant 1(`--mcp`)·2(`--env`)에 걸리지
+ *     않으면 `DEFAULT_BROKER_NOT_CREATED`로 끝나고(`brokerFactory.ts:283-293`),
+ *     접속 맥락은 destination이 **지목될 때** 저장소에서 그때그때 만들어진다
+ *     (`brokerFactory.ts:336-372` — `getPlatformPaths`로 두 디렉터리를 잡고
+ *     `detectStoreType`으로 형식을 가른 뒤 store 한 벌을 세운다).
+ *
+ * 그래서 기동 시점에 조립할 수 있는 것은 **저장소가 어디이고 그 안에 어떤
+ * 이름이 있는가**까지다. 그 이상(토큰)은 `AuthBroker.getToken`이 브라우저
+ * OAuth2 로그인으로 받아 오는 것이라 실접속이다
+ * (`engine/node_modules/@babamba2/mcp-abap-adt-auth-broker/dist/AuthBroker.js:373-464` →
+ * `…/mcp-abap-adt-auth-providers/dist/providers/AuthorizationCodeProvider.js:76-90`).
+ */
+export interface BrokerStores {
+  /** service key를 읽을 디렉터리. 구 `getPlatformPaths(custom,'service-keys')[0]`. */
+  readonly serviceKeysDir: string;
+  /**
+   * 세션 디렉터리. 구는 이것을 언제나 계산해 두지만 실제로 파일을 쓰는 것은
+   * `--unsafe`일 때뿐이고(`brokerFactory.ts:407-425`), 기본값은 메모리 저장소다
+   * (`SafeAbapSessionStore`). 재료로 실어 나르기만 하고 **만들지 않는다** —
+   * 구 `AbapSessionStore` 생성자는 없으면 `mkdirSync`로 만든다
+   * (`…/mcp-abap-adt-auth-stores/dist/stores/abap/AbapSessionStore.js:71-74`).
+   */
+  readonly sessionsDir: string;
+  /** service key 저장소에 실제로 있는 destination 이름들. 파일을 열지 않는다. */
+  readonly destinations: readonly string[];
+}
+
+/**
+ * 브로커 통로의 저장소 재료를 조립한다. 절대 던지지 않는다(D20).
+ *
+ * 디렉터리를 만들지도, service key를 열지도 않는다 — 이름만 센다. 비밀이
+ * 재료에 실릴 자리를 아예 두지 않기 위해서다.
+ */
+export function resolveBrokerStores(lookup: PlatformLookup = {}): BrokerStores {
+  const keysDir = serviceKeysDir(lookup);
+  return {
+    serviceKeysDir: keysDir,
+    sessionsDir: sessionsDir(lookup),
+    destinations: listStoreNames(keysDir, '.json'),
+  };
+}
+
 // ── 기동 계층이 들고 다니는 선택 결과 ───────────────────────────────────────
 
 /**
@@ -363,11 +427,16 @@ export function readServiceKey(
  * 재료를 담을 칸을 하나 더한다.
  */
 export interface DestinationSelection {
-  readonly channel: 'mcp' | 'env';
-  /** 운영자가 인자에 적은 이름 그대로. */
+  readonly channel: 'mcp' | 'env' | 'broker';
+  /**
+   * 운영자가 인자에 적은 이름 그대로. **`broker` 통로는 빈 문자열이다** —
+   * 그 통로는 이름을 고르지 않는다(위 `BrokerStores` 주석 ⓑ).
+   */
   readonly name: string;
-  /** 이 통로가 실제로 고른 파일. 못 찾았으면 null. */
+  /** 이 통로가 실제로 고른 파일. 못 찾았거나 파일을 고르지 않는 통로면 null. */
   readonly source: string | null;
-  /** `--mcp`가 조립한 OAuth2 재료. `--env` 통로면 null. */
+  /** `--mcp`가 조립한 OAuth2 재료. 다른 통로면 null. */
   readonly serviceKey: ServiceKeyConfig | null;
+  /** `broker` 통로가 조립한 저장소 재료. 다른 통로면 아예 실리지 않는다. */
+  readonly broker?: BrokerStores;
 }

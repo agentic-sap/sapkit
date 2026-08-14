@@ -22,6 +22,7 @@ import {
   checkDestinationName,
   platformStoreDirs,
   readServiceKey,
+  resolveBrokerStores,
   resolveSessionEnv,
   serviceKeysDir,
   sessionEnvFileName,
@@ -399,5 +400,67 @@ describe('readServiceKey — `--mcp=<destination>`이 조립하는 설정', () =
     expect(result.kind).toBe('invalid');
     if (result.kind !== 'invalid') return;
     expect(result.reason).not.toContain(FAKE_SECRET);
+  });
+});
+
+// ── 브로커 저장소 ───────────────────────────────────────────────────────────
+
+/**
+ * 브로커 통로(`--auth-broker` · `MCP_USE_AUTH_BROKER=true`)는 **이름을 고르지
+ * 않는다** — 구 브로커에서 이 스위치의 효과는 두 가지뿐이다:
+ *   ⓐ Variant 3(cwd `.env`)을 잠근다(`brokerFactory.ts:185`),
+ *   ⓑ 기본 브로커를 만들지 않고, destination이 지목될 때 저장소에서 그때그때
+ *      브로커를 만든다(`brokerFactory.ts:283-293`의 미생성 갈래 ·
+ *      `336-372`의 요청별 생성).
+ * 그래서 이 계층이 조립할 수 있는 재료는 **저장소 위치와 그 안의 이름들**이다.
+ */
+describe('resolveBrokerStores — 브로커 통로가 쓸 저장소', () => {
+  it('두 저장소 디렉터리와 있는 destination 이름을 모은다', () => {
+    const root = storeRoot();
+    writeJson(path.join(root, 'service-keys', 'DEST1.json'), {
+      uaa: { url: 'https://uaa.invalid', clientid: 'c', clientsecret: FAKE_SECRET },
+    });
+    writeJson(path.join(root, 'service-keys', 'DEST2.json'), {
+      uaa: { url: 'https://uaa.invalid', clientid: 'c', clientsecret: FAKE_SECRET },
+    });
+    const stores = resolveBrokerStores({ env: {}, cwd: mkdtemp('cwd'), authBrokerPath: root });
+    expect(stores).toEqual({
+      serviceKeysDir: path.join(root, 'service-keys'),
+      sessionsDir: path.join(root, 'sessions'),
+      destinations: ['DEST1', 'DEST2'],
+    });
+  });
+
+  // 구 `getPlatformPaths`의 4단 우선순위를 그대로 탄다 — 브로커도 `--mcp`와
+  // 같은 저장소를 본다(`brokerFactory.ts:346-349`).
+  it('지정이 없으면 플랫폼 기본 저장소를 가리킨다', () => {
+    const home = mkdtemp('home');
+    const stores = resolveBrokerStores({
+      env: {},
+      cwd: mkdtemp('cwd'),
+      homedir: home,
+      platform: 'win32',
+    });
+    expect(stores.serviceKeysDir).toBe(
+      path.join(home, 'Documents', 'mcp-abap-adt', 'service-keys'),
+    );
+    expect(stores.sessionsDir).toBe(path.join(home, 'Documents', 'mcp-abap-adt', 'sessions'));
+  });
+
+  it('저장소가 아예 없어도 던지지 않고 빈 목록을 준다 (D20)', () => {
+    const root = path.join(mkdtemp('gone'), 'nowhere');
+    const stores = resolveBrokerStores({ env: {}, cwd: mkdtemp('cwd'), authBrokerPath: root });
+    expect(stores.destinations).toEqual([]);
+    expect(stores.serviceKeysDir).toBe(path.join(root, 'service-keys'));
+  });
+
+  // 이름만 모은다 — 파일을 열지 않으므로 비밀이 재료에 실릴 자리가 없다.
+  it('재료에 service key의 내용이 실리지 않는다', () => {
+    const root = storeRoot();
+    writeJson(path.join(root, 'service-keys', 'DEST1.json'), {
+      uaa: { url: 'https://uaa.invalid', clientid: 'c', clientsecret: FAKE_SECRET },
+    });
+    const stores = resolveBrokerStores({ env: {}, cwd: mkdtemp('cwd'), authBrokerPath: root });
+    expect(JSON.stringify(stores)).not.toContain(FAKE_SECRET);
   });
 });
