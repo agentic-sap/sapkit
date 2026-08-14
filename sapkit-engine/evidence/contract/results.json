@@ -280,6 +280,11 @@
     "detail": "src/tools/read/__tests__/getObjectsByType.test.ts"
   },
   {
+    "tool": "GetObjectsList",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getObjectsList.test.ts"
+  },
+  {
     "tool": "GetPackage",
     "passed": true,
     "detail": "src/tools/read/__tests__/getPackage.test.ts"

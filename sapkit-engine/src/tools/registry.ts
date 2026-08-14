@@ -266,6 +266,7 @@ import { getEnhancements } from './read/getEnhancements';
 import { getAdtTypes } from './read/getAdtTypes';
 import { getNodeStructureLow } from './read/getNodeStructureLow';
 import { getObjectStructureLow } from './read/getObjectStructureLow';
+import { getObjectsList } from './read/getObjectsList';
 import { getVirtualFoldersLow } from './read/getVirtualFoldersLow';
 
 /** 스캐폴드 앵커. 배선 단계가 이 파일을 찾는 표식이다. */
@@ -494,5 +495,6 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getAdtTypes,
   getNodeStructureLow,
   getObjectStructureLow,
+  getObjectsList,
   getVirtualFoldersLow,
 ];
