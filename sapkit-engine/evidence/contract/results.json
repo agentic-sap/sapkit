@@ -493,5 +493,10 @@
     "tool": "UpdateView",
     "passed": true,
     "detail": "src/tools/write/__tests__/updateView.test.ts"
+  },
+  {
+    "tool": "ValidateServiceBinding",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/validateServiceBinding.test.ts"
   }
 ]
