@@ -320,6 +320,11 @@
     "detail": "src/tools/read/__tests__/readTable.test.ts"
   },
   {
+    "tool": "ReadTextElementsBulk",
+    "passed": true,
+    "detail": "src/tools/rfc-read/__tests__/readTextElementsBulk.test.ts"
+  },
+  {
     "tool": "ReadView",
     "passed": true,
     "detail": "src/tools/read/__tests__/readView.test.ts"
