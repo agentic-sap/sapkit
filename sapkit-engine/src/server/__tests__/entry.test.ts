@@ -69,6 +69,7 @@ describe('셰임 계약', () => {
         'GetWhereUsed',
         'GrepObjects',
         'GrepPackages',
+        'ReadInterface',
         'ReadView',
         'ReloadProfile',
         'RuntimeAnalyzeDump',

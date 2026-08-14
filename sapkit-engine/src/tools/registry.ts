@@ -167,6 +167,10 @@ import { updateView } from './write/updateView';
 // 묶음: function-group
 
 // 묶음: interface
+import { getInterface } from './read/getInterface';
+import { readInterface } from './read/readInterface';
+import { createInterface } from './write/createInterface';
+import { updateInterface } from './write/updateInterface';
 
 // 묶음: enhancement
 import { getEnhancementImpl } from './read/getEnhancementImpl';
@@ -300,6 +304,10 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   // 묶음: function-group — 함수그룹 (순서 26)
 
   // 묶음: interface — 인터페이스 (순서 27)
+  createInterface,
+  getInterface,
+  readInterface,
+  updateInterface,
 
   // 묶음: enhancement — 인핸스먼트 (순서 28)
   getEnhancements,

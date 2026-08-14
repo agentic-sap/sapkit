@@ -891,6 +891,82 @@
   달라지므로 `harness/replay/divergences.ts`에도 와야 한다. 뷰 묶음 과제는
   `harness/replay/**`가 무접촉이라 옮기지 못했다 — 묶음 병합 뒤 오케스트레이터가
   한 번에 옮긴다. 옮기기 전에 재생을 켜면 이 갈래가 가짜 실패로 잡힌다.
+### D71 — 생성 페이로드에 `adtcore:masterSystem`·`adtcore:responsible`을 싣지 않는다
+
+- **분류**: 축소 — **해소 마일스톤 = 시스템 컨텍스트(마스터 시스템·담당자) 계층을
+  짓는 판**
+- **구 동작(실측)**: `create.js:36-48`이 두 속성을 조건부로 붙이고, 값은
+  `AdtClient`의 `systemContext`에서 온다(`clients/AdtClient.js:91-93` ←
+  `engine/src/lib/clients.ts:20-24`). 그 컨텍스트는 stdio 기동에서 접속마다 실제로
+  해석되며(`engine/src/server/BaseMcpServer.ts:146` · `:324`),
+  `responsible`은 `SAP_RESPONSIBLE || SAP_USERNAME`으로 떨어지므로
+  (`engine/src/lib/systemContext.ts:64-66`) **실전에서는 거의 언제나 채워진
+  채로 나갔다.**
+- **신 동작**: 두 속성 없이 보낸다. 신 엔진에는 그 컨텍스트 계층 자체가 없다.
+- **근거**: 시스템 컨텍스트는 도구 하나의 문제가 아니라 접속 계층의 기능이고,
+  이 묶음 안에서 새로 지으면 나중에 진짜 계층이 생길 때 두 벌이 갈린다. 추측으로
+  값을 지어내는 대신 무엇이 없는지를 밝히는 쪽을 골랐다.
+- **대체 기대 시험**: `src/tools/write/__tests__/createInterface.test.ts`의
+  「로그온 언어를 물어본 뒤 생성 POST를 보내고 껍데기를 검사한다」 — 페이로드
+  전문을 글자로 견주므로 **무엇을 보내고 무엇을 안 보내는지가 그 한 줄에
+  드러난다.**
+- **비고**: 이미 지어진 `CreateProgram`·`CreateInclude`도 같은 구멍을 갖고 있고
+  (`src/tools/write/createProgram.ts`의 페이로드 조립) 등재된 적이 없다. 이
+  항목이 그 구멍의 첫 등재이며, 해소는 세 도구를 함께 본다.
+- **기계 장부**: **미반영** — 이 과제는 `harness/replay/**`가 무접촉이다.
+  와이어(요청 본문) 차이이므로 묶음 병합 뒤 옮겨야 한다.
+
+### D72 — `UpdateInterface`의 UNLOCK을 **잠근 자리와 같은 URI로** 보낸다
+
+- **분류**: 수리
+- **구 동작(실측)**: 인터페이스 계열은 단계마다 URI 대소문자 규칙이 다르다.
+  LOCK은 `/sap/bc/adt/oo/interfaces/{encodeSapObjectName(이름).toLowerCase()}`
+  (`engine/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/interface/lock.js:16`),
+  UNLOCK은 소문자화 없이 `{encodeSapObjectName(이름)}`
+  (`core/interface/unlock.js:14`)이다. 핸들러가 이름을 대문자로 올려 두므로
+  (`engine/src/handlers/interface/high/handleUpdateInterface.ts:88`) 구는 **소문자
+  URI에 걸고 대문자 URI에서 푼다.** 클래스 계열은 두 자리 모두 소문자라
+  (`core/class/lock.js:19` · `core/class/unlock.js:17`) 이 갈라짐은 인터페이스
+  고유다.
+- **신 동작**: 잠금 수명주기는 접속 계층이 소유한다(`src/adt/client.ts`의
+  `withLock`/`lock`/`unlock`). 그 계약은 실패 경로에서도 해제를 보장하고 미해제
+  잠금을 `activeLocks()`로 드러내는데, 그러려면 **잠근 자리와 푸는 자리가 같은
+  문자열**이라야 한다. 그래서 UNLOCK도 소문자 URI로 나간다. **PUT은 구대로
+  대문자 URI를 그대로 쓴다**(`core/interface/update.js:16`) — 여섯 자리 중 이
+  하나만 다르다.
+- **근거**: 잠금 대장의 키를 URI로 두는 것이 누수 탐지의 근거이고, 그것을
+  단계별 대소문자 규칙에 맞춰 흔들면 `activeLocks()`가 영원히 비지 않는다 —
+  해제에 성공해도 대장에서 지워지지 않기 때문이다. ADT는 오브젝트 이름 구간의
+  대소문자를 가리지 않으며(구 엔진이 두 규칙을 섞어 쓰고도 동작했다), 해제의
+  실효 열쇠는 URI가 아니라 `lockHandle`이다.
+- **대체 기대 시험**: `src/tools/write/__tests__/updateInterface.test.ts`의
+  「잠금 → 사전검사 → PUT → 해제 → 사후검사 순으로 나간다」(다섯 요청의 경로를
+  대소문자까지 글자로 못박는다) · 「사전검사가 실패하면 PUT을 보내지 않고 잠금을
+  푼다」(실패 경로의 해제와 `activeLocks()` 0).
+- **기계 장부**: **미반영.** 이 과제는 `harness/replay/**`가 무접촉이다.
+  와이어(요청 주소) 차이이므로 묶음 병합 뒤 옮겨야 한다.
+
+### D73 — `UpdateInterface`가 **활성화 실패를 성공으로 접지 않는다**
+
+- **분류**: 수리
+- **구 동작(실측)**: 활성화 응답을 파싱해 `<chkl:msg>`를 전부
+  `activation_warnings`로 옮기고(`handleUpdateInterface.ts:232-253`), **`type="E"`가
+  섞여 있어도** `success: true` · `activated: true`로 답한다(`:271-282`). SAP은
+  활성화 실패도 HTTP 200으로 돌려주므로(응답 본문에 `E` 메시지) 이 갈래는
+  "깨진 인터페이스가 「활성화됨」으로 보고되는" 자리다.
+- **신 동작**: 활성화 응답의 `E`/`A`/`X`를 실패로 판정해 오류로 올린다. 문구에
+  모든 실패를 줄번호와 함께 담고, **소스는 inactive 판으로 SAP에 올라가 있으며
+  active 판은 그대로**라는 사실을 함께 알린다. `E`가 아닌 메시지는 구대로
+  `activation_warnings`에 실린다.
+- **근거**: 이 레포에는 같은 모양의 CLAS 거짓 성공 실증 이력이 있고, 그래서
+  `src/tools/write/shared.ts`가 활성화 응답 판정을 한 자리에 모아 두었다.
+  안전 바닥선은 낮출 수 없다(하드 게이트 4). 방향도 "성공을 실패로" 쪽이라
+  없는 권한을 여는 종류가 아니다.
+- **대체 기대 시험**: `src/tools/write/__tests__/updateInterface.test.ts`의
+  「활성화가 E를 담아 200으로 오면 실패로 보고한다 (D73)」 ·
+  「활성화 경고(E가 아닌 것)는 activation_warnings로 실린다」(구 갈래가 살아
+  있는지를 함께 본다).
+- **기계 장부**: **미반영** — D72와 같은 이유. 도구 응답이 달라지는 차이다.
 
 ## 등재하지 않고 **구 동작에 맞춘 것** (해소 완료 — 기록만)
 
