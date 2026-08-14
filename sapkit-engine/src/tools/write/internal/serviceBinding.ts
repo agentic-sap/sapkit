@@ -129,13 +129,35 @@ const stateParser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix
 export interface ServiceBindingState {
   readonly published: boolean;
   readonly allowedAction?: string;
+  /**
+   * 발행 통로 — `binding@type`이 `ODATA`일 때만 정해진다(`V4`면 `odatav4`, 아니면
+   * `odatav2`). `DeleteServiceBinding`의 발행취소 사전 걸음이 읽는다.
+   */
+  readonly serviceType?: ServiceBindingServiceType;
+  /** `srvb:services@name`. */
+  readonly serviceName?: string;
+  /** `srvb:services > srvb:content@version`. */
+  readonly serviceVersion?: string;
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
   return (value ?? {}) as Record<string, unknown>;
 }
 
-/** 벤더 `parseServiceBindingState`(`:85-110`) 중 두 도구가 실제로 읽는 두 값. */
+function stringOrUndefined(value: unknown): string | undefined {
+  if (value === undefined || value === null) return undefined;
+  const text = String(value);
+  return text.length > 0 ? text : undefined;
+}
+
+/**
+ * 벤더 `parseServiceBindingState`(`:85-110`) 그대로.
+ *
+ * `published`·`allowedAction` 둘만 쓰던 자리에 `serviceType`·`serviceName`·
+ * `serviceVersion` 셋을 **더했다**(값을 덜어내지 않았으므로 기존 호출자에는 영향이
+ * 없다). 셋을 읽는 것은 `DeleteServiceBinding` 하나뿐이며, 벤더의 `delete()`가
+ * 발행취소 사전 걸음에 그 값을 넘긴다.
+ */
 export function parseServiceBindingState(body: string): ServiceBindingState {
   if (!body) return { published: false };
 
@@ -150,9 +172,20 @@ export function parseServiceBindingState(body: string): ServiceBindingState {
   const publishedRaw = root['@_srvb:published'] ?? root['@_published'];
   const allowedActionRaw = root['@_srvb:allowedAction'] ?? root['@_allowedAction'];
 
+  const binding = asRecord(root['srvb:binding'] ?? root['binding']);
+  const services = asRecord(root['srvb:services'] ?? root['services']);
+  const content = asRecord(services['srvb:content'] ?? services['content']);
+  const bindingType = String(binding['@_srvb:type'] ?? binding['@_type'] ?? '').toUpperCase();
+  const bindingVersion = String(binding['@_srvb:version'] ?? binding['@_version'] ?? '').toUpperCase();
+
   return {
     published: String(publishedRaw).toLowerCase() === 'true',
     allowedAction: allowedActionRaw ? String(allowedActionRaw) : undefined,
+    // 벤더는 `ODATA`가 아니면 통로를 정하지 않는다 — 여기서 짐작하지 않는다.
+    serviceType:
+      bindingType === 'ODATA' ? (bindingVersion === 'V4' ? 'odatav4' : 'odatav2') : undefined,
+    serviceName: stringOrUndefined(services['@_srvb:name'] ?? services['@_name']),
+    serviceVersion: stringOrUndefined(content['@_srvb:version'] ?? content['@_version']),
   };
 }
 

@@ -1870,3 +1870,26 @@ D번호를 주지 않는 이유가 그것이다. 그래도 장부에 두는 이�
   「D114」 절(오류가 있으면 실패 · 경고만 있으면 성공 — 과수리 역검증).
 - **기계 장부 반영**: **못 했다**. 도구 응답이 `isError`째로 달라지므로 **기계
   장부에 와야 한다.**
+
+### D115 — `DeleteServiceBinding`이 삭제 응답의 **거짓 성공**을 성공으로 접지 않는다
+- **분류**: 수리(구의 거짓 성공을 고침)
+- **구 동작(실측)**: 벤더 `deleteServiceBinding()`
+  (`engine/node_modules/@babamba2/mcp-abap-adt-clients/dist/core/service/AdtService.js:585-599`)은
+  `POST /sap/bc/adt/deletion/delete`의 응답을 그대로 돌려줄 뿐 **`assertDeletionSucceeded`를
+  걸지 않는다.** 같은 주소를 쓰는 다른 12종은 전부 그 판정을 건다
+  (`dist/core/<종류>/delete.js`). 삭제 서비스는 실패도 **HTTP 200 +
+  `del:isDeleted="false"`** 로 답하므로, 지워지지 않은 바인딩이
+  `success: true`로 보고됐다. 겉 핸들러도 상태·본문을 응답에 실어 줄 뿐 판정하지
+  않는다(`handleDeleteServiceBinding.ts:60-83`).
+- **신 동작**: 다른 12종과 **같은 판정**을 건다 — `assertDeletionSucceeded(body,
+  'Service binding')`. 요청 바이트는 구 그대로다(한 줄 전문 · 검사 걸음 없음 ·
+  발행취소 사전 걸음 그대로).
+- **판정 근거**: 같은 엔진 안에서 한 주소의 같은 응답을 12종은 실패로, 1종은
+  성공으로 읽으면 안 된다. `CLAUDE.md` 안전 규칙("write 성공 보고를 그대로 믿지
+  않는다")과 D103·D105의 선례가 같은 방향이다. **삭제는 되돌릴 수 없으므로
+  "지웠다"는 거짓 보고의 값이 특히 비싸다** — 사용자가 지워진 줄 알고 다음 단계로
+  간다.
+- **대체 기대 시험**: `sapkit-engine/src/tools/write/__tests__/deleteServiceBinding.test.ts`의
+  「D115」 두 건(`isDeleted="false"`면 실패 · `"true"`면 성공 — 과수리 역검증).
+- **기계 장부 반영**: **못 했다**(`harness/replay/**` 무접촉). 도구 응답이
+  `isError`째로 달라지므로 **기계 장부에 와야 한다.**

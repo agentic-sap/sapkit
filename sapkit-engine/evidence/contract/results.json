@@ -200,6 +200,11 @@
     "detail": "src/tools/write/__tests__/deleteScreen.test.ts"
   },
   {
+    "tool": "DeleteServiceBinding",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteServiceBinding.test.ts"
+  },
+  {
     "tool": "DeleteServiceDefinition",
     "passed": true,
     "detail": "src/tools/write/__tests__/deleteServiceDefinition.test.ts"
