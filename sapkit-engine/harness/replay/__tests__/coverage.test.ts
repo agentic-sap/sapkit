@@ -4,7 +4,7 @@
  * 후자가 조용히 사라지면 표가 존재할 이유가 없다. 그래서 여기서 못박는 것은
  * 통과 집계가 아니라 **빠진 것이 눈에 띄는가**다.
  */
-import { buildCoverage, loadM1ToolNames, renderCoverageMarkdown } from '../coverage';
+import { buildCoverage, loadCapturedToolNames, renderCoverageMarkdown } from '../coverage';
 import type { CoverageReport } from '../coverage';
 import { M1_DIVERGENCES } from '../divergences';
 import type { DivergenceEntry } from '../divergences';
@@ -332,13 +332,16 @@ describe('두 형태로 낸다', () => {
   });
 });
 
-describe('M1 도구 목록', () => {
-  it('구 표면 채록에서 M1 19종을 읽는다 — 이름을 여기 베끼지 않는다', () => {
-    const names = loadM1ToolNames();
+describe('표면 도구 목록', () => {
+  it('구 표면 채록의 전량 선언 186종을 읽는다 — 이름을 여기 베끼지 않는다', () => {
+    const names = loadCapturedToolNames();
 
-    expect(names).toHaveLength(19);
+    expect(names).toHaveLength(186);
+    // M1 19종은 그 안에 그대로 들어 있다.
     expect(names).toContain('GetSqlQuery');
     expect(names).toContain('ActivateObjects');
+    // M1 밖 도구도 잡힌다 — 이것이 안 되면 M1 밖 도구를 지을 수 없다.
+    expect(names).toContain('GetInstalledComponents');
     expect([...names]).toEqual([...names].sort());
   });
 });

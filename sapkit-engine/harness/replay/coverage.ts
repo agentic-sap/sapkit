@@ -156,7 +156,7 @@ export interface ToolEvidenceInput {
 }
 
 export interface CoverageInput {
-  /** 표의 행이 될 도구 전체. `loadM1ToolNames()`가 M1 19종을 준다. */
+  /** 표의 행이 될 도구 전체. `loadCapturedToolNames()`가 표면 186종을 준다. */
   readonly tools: readonly string[];
   readonly replays?: readonly SequenceReplayResult[];
   readonly contractTests?: readonly ToolEvidenceInput[];
@@ -448,23 +448,28 @@ export function renderCoverageMarkdown(report: CoverageReport): string {
   return lines.join('\n');
 }
 
-// ── M1 도구 목록 ─────────────────────────────────────────────────────────────
+// ── 표면 도구 목록 ───────────────────────────────────────────────────────────
 
 /**
- * 구 표면 채록(`harness/old-surface/m1-tools.json`)에서 M1 도구 이름을 읽는다.
+ * 구 표면 채록(`harness/old-surface/m1-tools.json`)의 **전량 선언 186종**에서
+ * 도구 이름을 읽는다.
  *
  * 이름을 여기 베끼지 않는 이유는 하나 — 그 파일이 **구 엔진의 실측 기록**이고,
  * 두 벌이 되는 순간 어느 쪽이 정본인지 알 수 없어진다.
  *
+ * 예전에는 `m1`(19종)을 읽었고 이름도 `loadM1ToolNames`였다. M1 밖 도구를 짓기
+ * 시작하면 그 범위는 커버리지 표에서 **아직 안 지은 167종을 통째로 숨기는**
+ * 필터가 된다. `m1` 키는 다른 소비자를 위해 파일에 그대로 남아 있다.
+ *
  * `dist/`에서 돌 때도 닿도록 위로 훑는다. JSON은 tsc가 옮기지 않는다.
  */
-export function loadM1ToolNames(catalogPath?: string): string[] {
+export function loadCapturedToolNames(catalogPath?: string): string[] {
   const resolved = catalogPath ?? findCatalog();
-  const parsed = JSON.parse(fs.readFileSync(resolved, 'utf8')) as { m1?: Record<string, unknown> };
-  if (parsed.m1 === undefined || typeof parsed.m1 !== 'object') {
-    throw new Error(`구 표면 채록에 m1 항목이 없다: ${resolved}`);
+  const parsed = JSON.parse(fs.readFileSync(resolved, 'utf8')) as { tools?: Record<string, unknown> };
+  if (parsed.tools === undefined || typeof parsed.tools !== 'object') {
+    throw new Error(`구 표면 채록에 tools(전량 선언) 항목이 없다: ${resolved}`);
   }
-  return Object.keys(parsed.m1).sort();
+  return Object.keys(parsed.tools).sort();
 }
 
 function findCatalog(): string {

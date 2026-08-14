@@ -27,12 +27,13 @@ type CapturedTool = Record<string, unknown>;
 
 const CAPTURE_PATH = path.resolve(__dirname, '../../../../harness/old-surface/m1-tools.json');
 
+/** 읽는 키는 `tools`(전량 선언 186종)다 — `m1`(19종)이면 M1 밖 도구를 못 짓는다. */
 function captured(name: string): CapturedTool {
   const raw = JSON.parse(fs.readFileSync(CAPTURE_PATH, 'utf8')) as {
-    m1: Record<string, CapturedTool>;
+    tools: Record<string, CapturedTool>;
   };
-  const entry = raw.m1[name];
-  if (!entry) throw new Error(`채록본에 ${name}이 없다`);
+  const entry = raw.tools[name];
+  if (!entry) throw new Error(`채록본의 전량 선언에 ${name}이 없다`);
   return entry;
 }
 
