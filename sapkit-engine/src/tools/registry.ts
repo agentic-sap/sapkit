@@ -80,6 +80,19 @@ import {
   updateSourceByPatch,
 } from './write';
 
+// ── 묶음별 import 구획 ──────────────────────────────────────────────────
+// 아래 배열의 「묶음 구획」과 짝을 이룬다. **새 도구는 배럴(`./write` 같은
+// 재수출)이 아니라 파일 경로로 직접 가져온다** — 배럴을 거치면 여러 묶음이
+// 같은 배럴 파일에서 충돌한다. 자기 구획 안에만 더할 것.
+
+// 묶음: system
+
+// 묶음: search
+
+// 묶음: common
+
+// 묶음: runtime
+
 /** 스캐폴드 앵커. 배선 단계가 이 파일을 찾는 표식이다. */
 export const TOOL_REGISTRY_MARKER = 'sapkit-engine/tools/registry' as const;
 
@@ -114,6 +127,19 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
   getStructure,
   // 실데이터 1종 — 상시 게이트가 서버 코어에 걸려 있다
   getSqlQuery,
-  // 시스템·공통 조회 묶음 (build-plan 순서 1)
+
+  // ── 묶음 구획 ────────────────────────────────────────────────────────
+  // 아래 구획은 `harness/build-plan.json`의 묶음 하나씩에 대응한다.
+  // **자기 구획 안에만 더하고 남의 구획은 손대지 않는다** — 여러 묶음이 동시에
+  // 지어질 때 이 파일에서 나는 충돌을 줄이려고 미리 갈라 둔 자리다.
+  // 새 묶음을 시작할 때는 여기에 구획을 하나 더 연다.
+
+  // 묶음: system — 시스템·공통 조회 (순서 1)
   getInstalledComponents,
+
+  // 묶음: search — 검색 (순서 2)
+
+  // 묶음: common — 공통 편집·활성 (순서 3)
+
+  // 묶음: runtime — 덤프·프로파일러·시스템 메시지 (순서 4)
 ];
