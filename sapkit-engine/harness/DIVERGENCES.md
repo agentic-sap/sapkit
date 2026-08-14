@@ -1862,3 +1862,129 @@ D78~D80 · D83~D90 · D96·D97 · D102)은 위 「번호 예약」 절이 적은
 3. **D101의 BDEF 잠금 본문**이 잠금 성패를 가르는지도 attended 확인 자리다.
 4. **D61의 ECC 채록분이 없다.** 등재는 해 뒀으나 `SAP_VERSION=ECC` 시퀀스를
    딴 적이 없어 발동을 실측한 적이 없다.
+## 제작 중 발견분 (append) — `tail-read` 묶음 (조회 계열 11종 + `CreatePackage`)
+
+꼬리 묶음 셋이 동시에 도는 중이라 예약 구간이 나뉘어 있다. 이 묶음의 구간은
+**D130~D139**이고, 파일 가운데가 아니라 여기 끝에 붙이는 것은 같은 물결의 다른
+묶음 둘이 동시에 append 하고 있어 같은 자리를 물면 전면 충돌이 나기 때문이다.
+
+### D130 — `GetObjectNodeFromCache`는 **캐시가 없으므로 언제나 「없다」로 답한다** (D33을 닫는다)
+
+- **분류**: 축소 — **해소 마일스톤 = 도구 사이 캐시의 자리(프로세스 전역이냐
+  접속 수명이냐)를 정하고 그것을 채우는 다섯 도구를 함께 고치는 판.**
+  D33이 그 판정을 "`GetObjectNodeFromCache`를 짓는 마일스톤"으로 미뤄 두었고,
+  **이 항목이 그 자리에서 내린 판정이다.**
+- **구 동작(실측)**: `engine/src/lib/getObjectsListCache.ts`는 모듈 수준 싱글턴이고
+  다섯 도구가 마지막 결과를 얹는다 — `SearchObject`(`handleSearchObject.ts:139`) ·
+  `GetTypeInfo`(`handleGetTypeInfo.ts:232`·`:251`) ·
+  `GetWhereUsed`(`handleGetWhereUsed.ts:111`) ·
+  `GetObjectsByType`(`handleGetObjectsByType.ts:175`·`:191`·`:254`) ·
+  `GetObjectsList`(`handleGetObjectsList.ts:210`). 읽는 것은
+  `handleGetObjectNodeFromCache.ts:41` 하나뿐이다.
+  **프로세스가 갓 떴을 때의 구 동작을 실측했다**: `getCache()`가 `null`이므로
+  `node`가 `null`로 남고(`:41-51`) 곧바로 `isError: true` +
+  `Node not found in cache`로 접힌다(`:52-59`). **SAP 호출은 한 발도 나가지
+  않는다** — ADT를 부르는 것은 캐시 적중 뒤 `OBJECT_URI` 확장 갈래뿐이다(`:61-98`).
+- **신 동작**: 캐시를 만들지 않고, **구의 캐시-빈-상태 갈래를 글자까지 그대로**
+  옮겼다. 인자 검증 → `object_type, object_name, tech_name required`,
+  그 밖에는 `Node not found in cache`. 접속을 만들지 않는다.
+  **`OBJECT_URI` 확장 갈래는 옮기지 않았다** — 도달할 수 없는 코드를 미리 써
+  두는 것이 곧 추측이기 때문이다.
+- **근거 — 고를 수 있던 길 셋 중 왜 이것인가**:
+  ⑴ *캐시를 새로 만들고 `GetObjectsList` 하나만 채운다* — 다섯 중 하나만 채운
+  캐시는 "`GetObjectsList`를 먼저 부른 사람에게만 동작하는 도구"를 만든다.
+  **D33이 이미 물리쳤다: 절반 찬 캐시는 빈 캐시보다 나쁘다.**
+  ⑵ *다섯 도구에 모두 붙인다* — 그중 넷(`SearchObject`·`GetTypeInfo`·
+  `GetWhereUsed`·`GetObjectsByType`)이 이 묶음 과제의 **무접촉 구역**이고,
+  프로세스 전역 가변 상태를 되살릴지는 도구 묶음 하나가 정할 문제가 아니다.
+  ⑶ *구의 빈-캐시 갈래를 그대로 옮긴다* ← 골랐다. **추측이 아니다** — 구도 갓
+  뜬 프로세스에서 똑같이 답하므로, 갈라지는 것은 "앞선 도구가 캐시를 채운 뒤"
+  하나뿐이고 그 조건은 신 엔진에 존재하지 않는다.
+- **⚠ 실사용에 주는 뜻**: 이 도구는 신 엔진에서 **성공 응답을 낼 수 없다.**
+  대장에 「증거 있음」으로 잡히더라도 그것은 "빈-캐시 갈래가 구와 같다"는 증거지
+  "캐시 조회가 동작한다"는 증거가 아니다. 캐시를 여는 마일스톤이 이 항목을
+  닫거나 결함으로 승격한다.
+- **대체 기대 시험**:
+  `sapkit-engine/src/tools/read/__tests__/getObjectNodeFromCache.test.ts` —
+  「캐시 없음 갈래」 3건(문구 일치 + **접속 시도 0회**) · 「인자 갈래」 4건.
+- **기계 장부 미반영**: 이 묶음 과제는 `harness/replay/**`가 무접촉이라
+  `divergences.ts`에 옮기지 못했다. **도구 응답이 달라지는 항목**이다(캐시를
+  채우는 도구를 먼저 부른 시퀀스에서 구는 마디를, 신은 오류를 답한다) — 묶음
+  병합 뒤 오케스트레이터가 옮긴다. D33 본문은 append-only라 고치지 않았고,
+  그 항목의 「안 옮김」 판정(**읽는 도구가 등록점에 없다**)은 **이 커밋으로
+  전제가 깨졌다** — 옮길 때 D33이 아니라 이 D130을 옮겨라.
+
+### D131 — `*Low` 두 도구의 세션 복원에서 **`sap-adt-connection-id`를 갈아 끼우지 않는다**
+
+- **분류**: 축소 — **해소 마일스톤 = 접속 계층에 「호출자가 준 세션 ID를 쓰는」
+  통로를 여는 자리.** 지금은 그 통로 자체가 없다.
+- **적용 도구 2종**: `GetNodeStructureLow` · `GetObjectStructureLow`.
+- **구 동작(실측)**: 두 겉 핸들러는 `session_id`와 `session_state`가 **둘 다**
+  있을 때 `restoreSessionInConnection`을 부른다
+  (`engine/src/handlers/system/low/handleGetNodeStructure.ts:92-101` ·
+  `handleGetObjectStructure.ts:80-89`). 그 함수가 하는 일은 둘이다
+  (`engine/src/lib/utils.ts:763-788`):
+  ⑴ `connection.setSessionId(sessionId)` — 접속의 `sap-adt-connection-id` 헤더
+  값을 호출자가 준 문자열로 **바꾼다**
+  (`@babamba2/mcp-abap-connection/dist/connection/AbstractAbapConnection.js:101-104`
+  가 필드를 갈고 `:170-173`이 그 값을 헤더에 싣는다).
+  ⑵ `connection.setSessionType('stateful')` — 이후 요청에
+  `x-sap-adt-sessiontype: stateful`이 붙는다(`:176`).
+  **`session_state`의 내용은 읽지 않는다** — 인자 이름이 `_sessionState`이고
+  쿠키도 CSRF 토큰도 꺼내 쓰지 않는다.
+- **신 동작**: ⑵만 승계한다(`src/tools/read/internal/lowLevelSession.ts`).
+  ⑴은 하지 않으므로 `sap-adt-connection-id`에는 접속 계층이 스스로 만든 UUID가
+  그대로 실린다.
+- **근거**: 신 `AdtClient`의 `connectionId`는 인스턴스 생성 때 정해지고 바꾸는
+  공개 통로가 없다(`src/adt/client.ts`). 그것을 여는 일은 **접속 계층을 고치는
+  일**이고, 도구 묶음 하나가 자기 도구 둘 때문에 모든 도구가 쓰는 계층의 세션
+  식별자 수명을 바꾸는 것은 범위를 넘는다. 게다가 이 통로는 **실사용에서 닿기
+  어렵다** — 값을 내주는 `GetSession`이 `session_state`에 언제나 `null`을 싣기
+  때문에(`engine/src/handlers/system/readonly/handleGetSession.ts:69`) 두 인자를
+  모두 채우려면 사용자가 상태를 손으로 지어내야 한다.
+- **대체 기대 시험**: 승계한 절반이 실제로 동작하고 조건이 구와 같은 `&&`인지를
+  못 박는다 —
+  `sapkit-engine/src/tools/read/__tests__/getNodeStructureLow.test.ts`의
+  「세션 복원 갈래」 3건 ·
+  `sapkit-engine/src/tools/read/__tests__/getObjectStructureLow.test.ts`의
+  같은 절.
+- **기계 장부 미반영**: 이 묶음 과제는 `harness/replay/**`가 무접촉이라
+  `divergences.ts`에 옮기지 못했다. **요청 헤더 한 줄의 값이 달라지므로 기계
+  장부에도 와야 하는 항목**이다 — 묶음 병합 뒤 오케스트레이터가 옮긴다.
+
+### D132 — `GetBadiImplementations`의 **ECC 브리지가 없다** (D61과 같은 결, 통로가 하나뿐이라 더 무겁다)
+
+- **분류**: 축소 — **해소 마일스톤 = `src/rfc`의 OData 통로에 FunctionImport
+  `DdicBadi`를 여는 자리.** D61이 여는 DDIC 4종과 같은 작업 묶음이다.
+- **구 동작(실측)**: 이 도구의 유일한 통로가 ECC 브리지다. 겉 핸들러가
+  `callDdicBadi`를 부르고
+  (`engine/src/handlers/enhancement/readonly/handleGetBadiImplementations.ts:100-105`)
+  그것은 `engine/src/lib/rfcBackend.ts:123-126`을 거쳐
+  `engine/src/lib/odataRfc.ts:511-537`의 `postFunctionImport('DdicBadi', …)`로
+  내려간다. 인자는 `IV_BADI_DEFINITION`·`IV_CUSTOMER_ONLY`·`IV_ACTIVE_ONLY`·
+  `IV_INCLUDE_METHODS`이고 불리언은 `'X'`/`''`로 실린다. **S/4HANA 경로는 구에도
+  없다** — `SAP_VERSION !== 'ECC'`면 겉 핸들러가 안내 문구만 돌려준다(`:83-89`).
+- **신 동작**: 갈래를 정직하게 둘로 나눈다.
+  ⑴ ECC가 **아니면** 구의 문구를 **글자 그대로** 돌려준다(이 갈래는 구와 완전히
+  같다). ⑵ ECC**면** 브리지 부재를 알리고 멈춘다 — 문구가 브리지 함수모듈
+  이름과 이 항목 번호(D132)를 지목한다. **어느 갈래에서도 접속을 만들지 않는다.**
+- **근거**: 신 엔진의 OData 통로가 가진 FunctionImport는 셋뿐이고
+  (`src/rfc/odata.ts:54` — `Dispatch`·`Textpool`·`DdicTablRead`), DDIC 읽기
+  능력도 `callDdicTablRead` 하나다(`src/rfc/types.ts:72-78`). `DdicBadi`를 여는
+  일은 `src/rfc/**`를 고치는 작업이고 이 묶음 과제의 무접촉 구역이다.
+  **조용히 ADT로 흘려보내지 않는 이유**는 D61과 같다 — ECC 커널(BASIS < 7.50)에는
+  `datapreview`·`ddic`·`enhsxsb` 엔드포인트가 없어서 그 404가 "BAdI가 없다"로
+  읽힌다. 없는 것은 BAdI가 아니라 엔드포인트다.
+- **⚠ D61과 다른 점**: 데이터 엘리먼트·도메인은 비-ECC에서 ADT 직통이 **살아
+  있지만**, 이 도구는 통로가 브리지 하나뿐이라 **어느 시스템에서도 성공 응답을
+  낼 수 없다.** 대장에 「증거 있음」으로 잡히더라도 그것은 "두 거절 갈래가
+  옳다"는 증거다.
+- **대체 기대 시험**:
+  `sapkit-engine/src/tools/read/__tests__/getBadiImplementations.test.ts` —
+  「ECC가 아닌 갈래」 6건(구 문구 글자 일치 + `' ECC '`가 갈리지 않는 것) ·
+  「ECC 갈래」 4건(문구가 `ZMCP_ADT_DDIC_BADI`·`DdicBadi`·`D132`를 지목 +
+  **접속 시도 0회**) · 「인자 갈래」 1건.
+- **기계 장부 미반영**: 이 묶음 과제는 `harness/replay/**`가 무접촉이라
+  `divergences.ts`에 옮기지 못했다. **도구 응답이 달라지는 항목**이다(ECC
+  시스템에서 구는 브리지 결과를, 신은 거절을 답한다) — 묶음 병합 뒤
+  오케스트레이터가 옮긴다.
