@@ -45,6 +45,21 @@
     "detail": "src/tools/read/__tests__/getClass.test.ts"
   },
   {
+    "tool": "GetEnhancementImpl",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getEnhancementImpl.test.ts"
+  },
+  {
+    "tool": "GetEnhancementSpot",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getEnhancementSpot.test.ts"
+  },
+  {
+    "tool": "GetEnhancements",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getEnhancements.test.ts"
+  },
+  {
     "tool": "GetFunctionModule",
     "passed": true,
     "detail": "src/tools/read/__tests__/getFunctionModule.test.ts"
