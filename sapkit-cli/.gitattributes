@@ -1,0 +1,4 @@
+# 코퍼스 판정 동일성(CI ubuntu ↔ 로컬 Windows)의 전제 — 픽스처·기준은 LF 고정.
+# 판정에 행/열이 들어가므로 EOL이 흔들리면 diff 0이 성립하지 않는다.
+*.abap text eol=lf
+fixtures/** text eol=lf
