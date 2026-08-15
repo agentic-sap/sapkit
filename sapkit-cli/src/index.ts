@@ -3,3 +3,5 @@
 // 런타임 외부 의존 0이 이 부품의 설계 전제다 (표준 라이브러리만 쓴다).
 
 export const SAPKIT_CLI_VERSION = '0.1.0';
+
+export * from './core';
