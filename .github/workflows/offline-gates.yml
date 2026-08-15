@@ -52,6 +52,11 @@ jobs:
         # 조상인지 `git merge-base --is-ancestor`로 재므로 얕은 클론이면 오판한다.
         run: node interactive/scripts/verify-checker.mjs
 
+      - name: 검사기 게이트 음성시험 (번들 오염·버전 어긋남·소스 표류를 실제로 거부하는지)
+        # 이 잡에 있는 이유는 위와 같다 — ③(sourceCommit 실재·HEAD 조상) 케이스가
+        # 실제 git 이력을 쓰므로 얕은 클론에서는 판정이 무의미하다.
+        run: node interactive/scripts/test-verify-checker.mjs
+
       - name: MCP 도구 표면 계약 (readonly mutation 0 · row-data · 어댑터 deny)
         run: node interactive/scripts/smoke-mcp.mjs
 

@@ -136,8 +136,9 @@ node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (�
 
 게이트 자체의 음성시험(게이트가 정말 거부하는지): `test-smoke-mcp.mjs` 20/20 ·
 `test-check-runtime-path-rename.mjs` 13/13 · `test-hook-switch.mjs` 13/13 ·
-`test-setup-state.mjs` 118/118 · `test-launch-toolsurface.mjs` 56/56 ·
-`test-codex-wire-mcp.mjs` 51/51 · `test-doctor.mjs` 47/47 · `test-get-vsp.mjs` 21/21.
+`test-setup-state.mjs` 120/120 · `test-launch-toolsurface.mjs` 56/56 ·
+`test-codex-wire-mcp.mjs` 51/51 · `test-doctor.mjs` 47/47 ·
+`test-verify-checker.mjs` 21/21 · `test-get-vsp.mjs` 21/21.
 **PowerShell로 실행할 것** — Bash로 돌리면 자식 프로세스 수거에서 블록된다.
 
 **위 9종(+doctor)은 제품 게이트다. `sapkit-engine/`과 `sapkit-cli/`는 자기 게이트를

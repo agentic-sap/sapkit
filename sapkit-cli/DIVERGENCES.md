@@ -172,3 +172,21 @@
   판정을 고치면 그것은 「구 vsp와의 갈림」이 아니라 **이 항목의 정정**으로 단다.
   `IF FOUND`를 결함으로 세지 않는 것은 구 엔진 결함 13-13의 교훈을 미리 반영한 것이다.
 - **판정**: 의도적 차이
+
+## D-010 — 정정: D-002가 적은 `rules_applied`는 새 CLI의 출력 키가 아니다
+
+- **표면**: analyze
+- **무엇을 정정하나**: D-002 본문이 "`sapkit`… `rules_applied`도 13으로 낸다"라고 적었다.
+  **키 이름이 틀렸다.** 새 CLI의 analyze 출력 키는 **`rulesApplied`**(camelCase)이며,
+  이는 구 계약을 그대로 승계한 것이다 — 이 자리에 차이는 **없다**.
+- **실측**: `src/cli/analyze.ts:62,104,129`가 `rulesApplied`를 내고,
+  `src/cli/__tests__/analyze.test.ts:11`이 최상위 키를 `['findings','summary','rulesApplied']`로
+  고정한다. `rules_applied`는 **기준 파일의 스키마**다 —
+  `harness/judge-current.mjs:91`이 `rules_applied: doc.rulesApplied`로 옮겨 담고,
+  `harness/record-baseline.mjs:201`도 채록할 때 같은 이름으로 적는다
+  (`harness/RECORDING.md` §4의 기준 파일 형식).
+- **왜 남기나**: 이 장부는 **append-only**라 D-002 본문을 고치지 않는다(머리말 규정 —
+  정정도 새 항목). D-002의 실질(무늬 없는 `local_variable_names`를 등록만 하고 아무것도
+  내지 않는 무동작을 그대로 승계했고, 그럼에도 적용 규칙 수는 13으로 보고한다)은
+  **그대로 유효**하다. 틀린 것은 그 사실을 적을 때 쓴 키 이름 하나뿐이다.
+- **판정**: 정정 (차이 아님 — 구·신 동일)

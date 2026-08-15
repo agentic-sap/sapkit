@@ -19,27 +19,27 @@
 단일 git 레포에 두 트랙이 **실행 코드 의존 없이** 공존한다:
 
 - **트랙 A(하네스 트랙)** — Direct 기본·Guided 명시 승격·Engine attended의
-  3 실행 구조와 P0~P4 Policy를 직교 매핑한다. final-harness는 Engine,
-  vsp-custom CLI는 Engine 실행·공통 완료 증거 backend다. 사람 Direct/Guided의
-  적용 경로는 트랙 B MCP·사람이 모는 CLI·abapGit이다. final-harness는 외부 레포로
-  분리 유지하고(D-018), vsp는 레포 내 `vsp/`로 편입 완료다(D-030·D-037 —
-  히스토리 비이식 스냅샷·바이너리 비커밋).
+  3 실행 구조와 P0~P4 Policy를 직교 매핑한다. final-harness는 Engine이고 외부 레포로
+  분리 유지한다(D-018). Engine 실행 구조는 D-040으로 template-only가 된 뒤 R1에서
+  설비가 제거돼 **지금 배선된 증거 backend가 없다**. 사람 Direct/Guided의 적용 경로는
+  트랙 B MCP·사람이 모는 CLI·abapGit이며, 어느 길로 넣든 정책 등급과 관문은 같다.
+  로컬 오프라인 검사는 동봉 검사기(`interactive/checker/`, 소스 정본 `sapkit-cli/`)가
+  맡는다.
 - **트랙 B(대화형 플러그인)** — Node MCP 서버 + 3사 어댑터. 도구 표면 소스 정본은 레포 내
   engine/(D-017 편입), 배포 형태는 interactive/server/의 번들.
 
 유일한 물류: 트랙 A packs ← interactive/core/knowledge 선별 이식(커밋 이력 = provenance).
 
-## 핵심 의존·final-harness lock v2 (D-018·D-025·D-030)
+## 핵심 의존·final-harness lock v2 (D-018·D-025)
 
 | 의존 | 역할 | lock 파일 · 고정값 |
 |---|---|---|
 | final-harness | 트랙 A Engine attended(자체 제작 독립 제품) | `adapters/final-harness.lock.json` schema v2 계약 — `verified`·`candidate`·`history`·`safety_state` 분리 |
-| vsp-custom | Engine 실행 backend·적용 경로와 독립인 Track A 완료 증거 backend(CLI) | `adapters/vsp/vsp.lock.json` — 로컬 우월분 **v2.38.1-94**(write 프로파일 게이트·재검증 포함, 평가 §4). lock 파일이 원천 커밋 sha·재현 빌드 바이너리 sha256·명령 계약·provenance의 정본. 편입 완료(레포 내 `vsp/`, D-030·D-037 — 바이너리 비커밋) |
+| 오프라인 검사기 | 로컬 무접속 검사(lint/parse/analyze/check) — 제품에 동봉 | 소스 정본 `sapkit-cli/`, 배포 형태 `interactive/checker/`의 단일 파일 번들. 무결성·출처 핀은 `interactive/checker/integrity.json`이고 게이트는 `interactive/scripts/verify-checker.mjs`, 재번들 절차는 `interactive/checker/UPDATE-RUNBOOK.md` |
 | engine/ (MCP 서버) | 트랙 B 도구 표면 소스 정본 | 레포 내 편입(D-017). 수리→재번들→interactive/server 반영은 `interactive/server/UPDATE-RUNBOOK.md` 절차로만 |
 
-두 외부 의존의 분리 근거는 D-018, `engine/`만 편입한 대조 근거는 D-017이다. vsp는
-D-030으로 편입이 확정됐고(D-018 supersede), subtree 편입은 레포 구조 작업이라 분기 통합
-완료 직후 별도 단계로 실행한다.
+외부 의존(final-harness)을 분리 유지한 근거는 D-018, `engine/`을 편입한 대조 근거는
+D-017이다.
 
 lock v2의 `verified`(`8f7f13b…`)와 `candidate`(D-028에서 `d4a0aeb`, v0.20.0으로 확정)는
 별개다. candidate state는 `selected|staged`뿐이며 PROMOTE event가 이전 verified를 `history`에
@@ -86,7 +86,7 @@ stale다. 현 phase-only template/checker는 v0.17 legacy; run-scoped 갱신은 
   무관): "재대조 필요"류 미검증 배지는 실제 대조로 해소한 뒤에만 구현에 착수한다 —
   배지를 코드 주석으로 옮기는 건 회수가 아니다.
 
-## SAP 검증 계약 (상세 정본: adapters/vsp/VERIFY-PATTERNS.md)
+## SAP 검증 계약 (상세 정본: interactive/core/procedures/troubleshooting.md §7)
 
 - **offline**: 동봉 검사기(`interactive/checker/sapkit-checker.bundle.cjs`, 소스 정본
   `sapkit-cli/`) — `lint <file>`(Error 있으면 exit 1) · `parse <file>`(항상 exit 0) ·
