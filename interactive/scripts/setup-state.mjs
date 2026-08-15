@@ -7,9 +7,10 @@
 // ───────────────────────────── 이 스크립트가 아닌 것 ─────────────────────────
 // **질문하지 않는다.** 사람의 선택은 `core/procedures/setup.md`(대화)가 받고, 이 도구는
 // 이미 승인된 선택을 **같은 방식으로** 적용만 한다(D-045가 기각한 "비대화형 setup"의
-// 부활이 아니다). 권한 템플릿 병합·훅 설치/제거·vsp 설치는 범위 밖 —
-// `adapters/claude/hooks/install-hooks.mjs` · `scripts/get-vsp.mjs`가 소유하고
-// 여기서는 `status`가 보고만 한다.
+// 부활이 아니다). 권한 템플릿 병합·훅 설치/제거는 범위 밖 —
+// `adapters/claude/hooks/install-hooks.mjs`가 소유하고 여기서는 `status`가
+// 보고만 한다. 오프라인 검사기는 설치 대상이 아니라 동봉물이라 `pluginRuntime`에
+// 존재 여부만 실린다.
 //
 // ────────────────────────────── 다루는 파일 3종 ──────────────────────────────
 //   ①  <home>/profiles/<alias>/sap.env        (setup.md Step 1)
@@ -570,12 +571,14 @@ function buildStatus(ctx) {
       root: PLUGIN_ROOT,
       launcher: exists(path.join(PLUGIN_ROOT, 'server', 'launch.cjs')),
       bundle: exists(path.join(PLUGIN_ROOT, 'server', 'server.bundle.cjs')),
+      // 오프라인 검사기는 플러그인에 동봉된다 — 설치기가 없으므로 '범위 밖'이 아니라
+      // 런타임 자산이다. 없으면 훅이 무음 통과할 뿐 setup 이 할 일은 없다.
+      checker: exists(path.join(PLUGIN_ROOT, 'checker', 'sapkit-checker.bundle.cjs')),
     },
     outOfScope: {
       note: '아래는 이 도구가 보고만 하고 바꾸지 않는다 — 각 소유자 스크립트가 담당한다.',
       claudePermissions: exists(path.join(ctx.project, '.claude', 'settings.local.json')),
       hooksInstaller: exists(path.join(PLUGIN_ROOT, 'adapters', 'claude', 'hooks', 'install-hooks.mjs')),
-      vspInstaller: exists(path.join(PLUGIN_ROOT, 'scripts', 'get-vsp.mjs')),
     },
   };
 }

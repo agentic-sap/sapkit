@@ -379,37 +379,56 @@ Before any risky operation ("which system am I connected to?"), render a compact
 - **Blocklist**: profile + extend/allow entry counts
 - **sap.env path**: absolute path in effect
 
-## 7. SAPKIT Verifier — Local Verification (Optional)
+## 7. SAPKIT Checker — Local Offline Analysis (Bundled)
 
-The **SAPKIT verifier** — the command it installs today is `vsp`, which is also what this section calls it — is an optional offline ABAP verifier that runs entirely on the local machine: no SAP connection needed, and nothing else in this document depends on it.
+The **SAPKIT checker** ships inside the plugin as a single CommonJS file,
+`checker/sapkit-checker.bundle.cjs`. There is nothing to download and nothing
+to install — it is present exactly when the plugin is, and it runs with the
+same `node` that runs the harness. It **never connects to SAP and has no MCP
+mode**, so it stays entirely on the local machine, and nothing else in this
+document depends on it.
 
-- **Install**: `node interactive/scripts/get-vsp.mjs` — detects OS/arch, downloads the matching GitHub release asset, and installs only on a sha256 match.
-- **Location**: `~/.sapkit/bin/vsp` (`vsp.exe` on Windows).
+- **Run it**: `node "PLUGIN_ROOT/checker/sapkit-checker.bundle.cjs" --help`
+- **Provenance / re-bundling**: [checker/UPDATE-RUNBOOK.md](../../checker/UPDATE-RUNBOOK.md)
+  (source of record is `sapkit-cli/` in the repo; the integrity gate is
+  `node interactive/scripts/verify-checker.mjs`).
 
-vsp ships **two different offline checkers** — do not confuse them (D-049 measurements):
+Four surfaces — do not confuse the two that report code quality:
 
-- **`vsp lint --file <f>` (CLI)** — 6 style rules only (line length, obsolete
-  statements, one-statement-per-line, compare operators, naming, empty
-  statement). Measured: a file containing hardcoded credentials, `SELECT *`,
-  and `COMMIT WORK` in a loop passes with "No issues found". Style filter,
-  not defect detection.
-- **`AnalyzeABAPCode` via `vsp --offline` (MCP stdio, local-only)** — 13 rules
-  including security (hardcoded_credentials), performance (commit_in_loop,
-  select_star), and robustness (catch_cx_root, dynamic_call_no_try). Measured:
-  same probe file yields 10 findings (3 high). This is the checker worth
-  running on abapGit-dropped local sources. `--offline` starts no SAP
-  connection and touches no ADT — it is outside the online-MCP prohibition
-  (R-002 as narrowed by D-049).
+- **`lint <file>`** — 7 style rules (line length, empty statement, obsolete
+  statements, one-statement-per-line, compare operators, colon spacing, local
+  naming). Style filter, not defect detection.
+- **`analyze <file> --format json`** — 13 rules including security
+  (hardcoded_credentials), performance (commit_in_loop, select_star), and
+  robustness (catch_cx_root, dynamic_call_no_try). This is the surface worth
+  running on abapGit-dropped local sources, and the one the Claude hook uses.
+- **`parse <file>`** — lexer-grade statement split and classification.
+  **Not a syntax check**: non-ABAP garbage is still split into statements and
+  still exits 0.
+- **`check <dir>`** — project INCLUDE resolution across a directory tree;
+  unresolved `Z*` / `Y*` / `$*` includes are defects.
+
+The two quality surfaces disagree by design. Measured 2026-08-15 on a probe
+carrying `SELECT *`, `COMMIT WORK` inside a loop, and `CATCH cx_root`: `lint`
+reports **no findings** (exit 0) while `analyze` flags **3 (1 high)**. Reading
+a clean `lint` as "this code is fine" is the mistake this paragraph exists to
+prevent.
+
+- **Exit contract**: `0` clean · `1` defects found · `2` usage or input error.
+  Only `lint` (Error severity) and `check` (unresolved Z/Y/$ includes) return
+  1; `parse` and `analyze` return 0 whenever they could run at all.
 - **Claude adapter**: the `offline-code-analysis.mjs` PostToolUse hook runs the
-  13-rule analyzer automatically after `.abap` file writes and MCP
-  `source_code` uploads (warn-only; silent no-op when vsp is absent). Other
-  harnesses: invoke it manually.
-- **Coverage honesty**: neither checker verifies syntax — `vsp parse` is
-  tokenizer-grade (measured: non-ABAP garbage classified as statements, exit
-  0). Syntax and activation authority is always the server-side `CheckSyntax`
-  + `ActivateObjects` chain.
+  13-rule `analyze` surface automatically after `.abap` file writes and MCP
+  `source_code` uploads (warn-only; silent no-op if the bundle cannot run).
+  Other harnesses: invoke it manually.
+- **Coverage honesty**: no surface here verifies syntax. Syntax and activation
+  authority is always the server-side `CheckSyntax` + `ActivateObjects` chain,
+  and completion still needs [verify-applied.md](verify-applied.md).
 
-Not installed → skip this section; the plugin works the same without it.
+**Leftover from the download era**: releases before 0.7.0 installed a separate
+`vsp` binary under `~/.sapkit/bin/vsp` (`vsp.exe` on Windows) to do this job.
+Nothing reads it any more. If it is still on the machine it is inert — delete
+it whenever convenient; the plugin behaves identically either way.
 
 ## 8. Tool Response Pitfalls
 

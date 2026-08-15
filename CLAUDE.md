@@ -3,9 +3,9 @@
 ## 프로젝트 정체성 (30초 맥락 — 이걸 모르면 판단하지 말 것)
 
 SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트랙**이며, **제품은
-`interactive/` 플러그인 단독**이고 나머지(`engine/`·`vsp/`)는 공방(개발 도구·소스
-정본·증거)이다 — 모노레포 유지(D-040). 철학: **차용 후 완전 소유**(sc4sap 지식 이식,
-엔진 편입 D-017) · 가볍지만 강력하게(무게의 척도 = 세션 토큰·설치 부담, 레포 바이트
+`interactive/` 플러그인 단독**이고 나머지(`engine/`·`sapkit-cli/`·`vsp/`)는 공방(개발
+도구·소스 정본·증거)이다 — 모노레포 유지(D-040). 철학: **차용 후 완전 소유**(sc4sap
+지식 이식, 엔진 편입 D-017) · 가볍지만 강력하게(무게의 척도 = 세션 토큰·설치 부담, 레포 바이트
 아님 — D-040) · 3사 하네스 중립. 어디까지 자작으로 바꿀 것인가의 **계획 정본**은
 `docs/BLUEPRINT.md`(끝그림 = 포크 0 · 교체 사다리 ⑴~⑷ · 무중단 교체 규칙 · 도구 실사).
 
@@ -17,16 +17,23 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
   이관됐다. ENGINE(final-harness 루프)은 D-040으로 이미 template-only였고 R1이 그 설비를
   제거했다 — 재개하려면 실수요 트리거 + 새 D-결정이 필요하다. **제품 원칙 =
   attended-only**, unattended는 비약속 휴면 옵션(U-gate 안전조건은 D-034에 보존, 배선
-  우선순위는 D-040이 supersede). 사람 소유 Direct/Guided의 SAP 적용은 트랙 B MCP·사람
-  vsp CLI·사용자 abapGit 모두 허용된다. vsp-custom은 **오프라인 검증 백엔드**이며 사람
-  작업의 유일한 SAP 접점은 아니다(docs/DESIGN.md §3 — powerup 엔진은 트랙 A에서 쓰지
-  않음). **vsp-custom은 D-030으로 레포 내 `vsp/`에 편입 완료(D-037 — 히스토리 비이식
-  스냅샷·바이너리 비커밋; D-018 vsp 조항 supersede)**.
+  우선순위는 D-040이 supersede). 사람 소유 Direct/Guided의 SAP 적용은 트랙 B MCP·사람이
+  모는 CLI·사용자 abapGit 모두 허용되며, 어느 길로 넣든 정책 등급과 관문은 같다
+  (docs/DESIGN.md §3 — powerup 엔진은 트랙 A에서 쓰지 않음).
 - **트랙 B — 대화형 플러그인 (제품, 검증 완료)** = `interactive/` — 하네스 중립 코어(지식
   `.md` 148·페르소나 26·절차 22·스킬 17·정책) + MCP 서버 번들(엔진 5.0.0, 도구
-  inspection-only 155 / connected 186) + 어댑터 3사(Claude/Codex/Antigravity).
-  번들의 소스 정본은 레포 내 **`engine/`**(D-017 편입) — 엔진 수리→재번들→반영은
-  `interactive/server/UPDATE-RUNBOOK.md` 절차로만.
+  inspection-only 155 / connected 186) + **오프라인 검사기 번들**(`interactive/checker/`)
+  + 어댑터 3사(Claude/Codex/Antigravity). 번들의 소스 정본은 레포 내 **`engine/`**
+  (D-017 편입) — 엔진 수리→재번들→반영은 `interactive/server/UPDATE-RUNBOOK.md` 절차로만.
+- **`sapkit-cli/` — 자체 저작 오프라인 ABAP 검사기 (소스 정본).** 구 `vsp/`(Go 포크)가
+  하던 **로컬 검사**를 대체한다 — 명령 `lint`·`parse`·`analyze`·`check`이고 **SAP 접속도
+  MCP 모드도 코드에 없다**. 이 소스를 만 번들이 `interactive/checker/`로 제품에 동봉되므로
+  **설치가 완전 오프라인**이다(내려받는 단계 없음). 훅
+  `adapters/claude/hooks/offline-code-analysis.mjs`가 그 번들을 띄운다. 재번들·핀 갱신은
+  `interactive/checker/UPDATE-RUNBOOK.md` 절차로만, 무결성·출처 게이트는
+  `interactive/scripts/verify-checker.mjs`. 구 판정과의 **의도적 차이는
+  `sapkit-cli/DIVERGENCES.md`(append-only)에 등재**하며 등재 없는 차이는 결함이다.
+  레포의 `vsp/`는 이 커밋 시점에 아직 있으나 **제품이 부르는 곳은 없다**(은퇴는 별도 판).
 - **`sapkit-engine/` — 자체 저작 엔진 (사다리 ⑴ · 제품 아님).** D-079가 연 새 경로로,
   구 번들을 대체할 후보를 **구 부품 무접촉으로 병행 제작**한다. 지금 도구 **186/186** ·
   전송 3(stdio·HTTP·SSE) · RFC 5경로 · 인증 4통로. **그러나 제품은 여전히 구 번들
@@ -82,11 +89,14 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
 것만 남겼다. SAP 정책 등급(P0~P4)의 정의는 `AGENTS.md`.
 
 - **SAP write는 DEV tier에서만** — QA/PRD tier 시스템에 write(`Create*`·`Update*`·
-  `Delete*`·활성화·실행, vsp `deploy`/`copy`/`execute`)를 실행하지 않는다. (구 R-003)
-- **실데이터 추출은 건별 사람 승인** — `GetTableContents`·`GetSqlQuery`·vsp `query`
-  실행 **전에** 범위·필드·행 상한을 제시하고 승인을 받는다. 배치·서브에이전트·자동승인
-  금지. 소유자 머신 예외(D-043)는 이 건별 승인을 서버측 table blocklist 하한으로
-  대체할 뿐이며, 배치·서브에이전트 금지는 그대로다. 배포 기본값은 잠긴 채 둔다.
+  `Delete*`·활성화·실행)를 실행하지 않는다. **MCP 도구든 로컬 CLI든 사람이 올리는
+  abapGit이든 경로를 가리지 않는다** — 금지는 행위에 걸리지 도구 이름에 걸리지 않는다.
+  (구 R-003)
+- **실데이터 추출은 건별 사람 승인** — `GetTableContents`·`GetSqlQuery`를 비롯해 **SAP
+  행 데이터를 끌어오는 모든 경로**(로컬 CLI·스크립트·직접 질의) 실행 **전에** 범위·
+  필드·행 상한을 제시하고 승인을 받는다. 배치·서브에이전트·자동승인 금지. 소유자
+  머신 예외(D-043)는 이 건별 승인을 서버측 table blocklist 하한으로 대체할 뿐이며,
+  배치·서브에이전트 금지는 그대로다. 배포 기본값은 잠긴 채 둔다.
 - **write 성공 보고를 그대로 믿지 않는다** — SAP write 뒤에는 소스를 되읽어 실제
   반영을 확인한다. write 성공만으로는 `PROVISIONAL_WRITE`이고 완료가 아니다. 완료는
   **기계 확인**(반영 소스 되읽기 대조 + 구문·활성 확인 — 절차 정본
@@ -99,9 +109,12 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
 - **비밀정보 커밋 금지** — SAP 접속 정보(호스트·자격증명·`.env` 내용)를 레포에
   커밋하지 않는다. 런타임 프로파일 홈은 `SAPKIT_HOME_DIR`(기본 `~/.sapkit`) — **레포
   밖**이며 `.gitignore`가 레포 내 잔재(`.sapkit/`·`.env`)를 차단한다. (구 R-005)
-- **vsp는 오프라인·CLI로만** — vsp를 온라인(SAP 접속) MCP 서버 모드로 기동하지
-  않는다. powerup MCP와 도구가 겹치고 권한이 이원화된다. 로컬 전용 `--offline`
-  모드(SAP 무접속)는 이 금지 밖. (구 R-002, D-049로 축소)
+- **SAP 접점을 이원화하지 않는다** — 같은 ADT 표면을 두 개의 서버·도구가 나눠 갖게
+  만들지 않는다. SAP에 닿는 경로를 하나 더 열면 tier 게이트·테이블 blocklist가 한쪽만
+  지키게 되어 권한 정책이 갈라진다. 그러므로 **로컬 검사는 SAP에 접속하지 않는
+  도구로만** 한다 — 그 자리는 동봉 검사기(`interactive/checker/`, 소스 정본
+  `sapkit-cli/`)이고 접속·MCP 모드가 코드에 없다. 로컬 전용(SAP 무접속) 실행은 이 금지
+  밖이다. (구 R-002 — 특정 도구를 겨눈 조항이었으나 D-049로 축소된 뒤 원리로 일반화)
 - **재개 전 원격 대조** — 재개 세션은 `git fetch` + `main..origin/main` 확인 뒤에
   시작한다. 로컬 문서만 믿으면 다른 머신의 병렬 줄기를 놓친다(두 머신 6일 분기
   실증). 분기를 발견하면 작업 전에 사용자에게 보고한다. (구 R-008)
@@ -117,6 +130,7 @@ node interactive/scripts/conformance-server-gates.mjs    # 서버 안전 게이�
 node interactive/scripts/gen-plugin-manifests.mjs --check # 생성물 7종(매니페스트 5+MCP wrapper 2) ↔ 단일 정본
 node interactive/scripts/check-runtime-path-rename.mjs   # 구 세대 경로 토큰 재등장 금지 + 안전 앵커 7종
 node interactive/scripts/conformance-runtime-dir.mjs     # 경로 해석 적합성 (fixture 26 · assert 138 · 안전 회귀 5종)
+node interactive/scripts/verify-checker.mjs              # 동봉 검사기 번들 무결성·출처 (번들 바이트·버전 3자·소스 커밋·소스 해시)
 node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (로컬 전용 — 설치 상태를 읽는다)
 ```
 
@@ -126,8 +140,23 @@ node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (�
 `test-codex-wire-mcp.mjs` 51/51 · `test-doctor.mjs` 47/47 · `test-get-vsp.mjs` 21/21.
 **PowerShell로 실행할 것** — Bash로 돌리면 자식 프로세스 수거에서 블록된다.
 
-**위 8종(+doctor)은 제품 게이트다. `sapkit-engine/`은 자기 게이트를 따로 갖는다** —
-그 안에서 돌린다:
+**위 9종(+doctor)은 제품 게이트다. `sapkit-engine/`과 `sapkit-cli/`는 자기 게이트를
+따로 갖는다** — 각각 그 안에서 돌린다.
+
+`sapkit-cli/`(동봉 검사기의 소스 정본):
+
+```bash
+npm run verify        # build + typecheck + jest
+npm run gates         # 자체 게이트 (코퍼스 판정 대조 등)
+node harness/test-corpus-gate.mjs      # 게이트 음성시험 (코퍼스 게이트가 정말 거부하는지)
+node harness/test-compare-baseline.mjs # 음성시험 (판정 비교기가 갈림을 정말 잡는지)
+```
+
+소스를 고쳤으면 **재번들까지가 한 커밋**이다 —
+`interactive/checker/UPDATE-RUNBOOK.md`를 따르고 제품 쪽 `verify-checker.mjs`로 닫는다
+(반쪽이면 배포되는 번들이 조용히 낡는다).
+
+`sapkit-engine/`:
 
 ```bash
 npm run verify        # build + typecheck + jest
@@ -137,13 +166,16 @@ node harness/render-ledger.mjs --check # 대장 ↔ 계산 결과
 node harness/build-plan.mjs --check    # 제작 계획 ↔ 산식
 ```
 
-**「기존 제품 게이트 8종 여전히 green」이 구 부품 무접촉의 기계 증명이다** — 그래서
-`sapkit-engine/` 작업이 그 게이트 스크립트를 고치면 증명이 무너진다. 고치지 말 것.
+**「제품 게이트 전종 여전히 green」이 구 부품 무접촉의 기계 증명이다** — 그래서
+`sapkit-engine/`·`sapkit-cli/` 작업이 그 게이트 스크립트를 고치면 증명이 무너진다.
+고치지 말 것.
 
 CI(`.github/workflows/offline-gates.yml`)는 위 게이트에서 **doctor 본체만 빼고** 전부
 돌리고, 음성시험은 `test-get-vsp`를 뺀 전부를 돌린다(`test-doctor`는 windows 잡).
 엔진 소스 테스트와 번들 재현 빌드, vsp in-repo 빌드·오프라인 계약 스모크,
 그리고 **`sapkit-engine` 잡**(자체 게이트 전종 + 대장 `--check`)도 CI 소관이다.
+단 새로 선 `verify-checker`와 `sapkit-cli` 자체 게이트는 **아직 CI에 배선되지
+않았다** — 같은 판의 별도 커밋 몫이다.
 
 **은퇴한 게이트 — 되살리지 말 것.** 이식 장부 계열(`check-migration-snapshot` ·
 그 음성시험 · `build-migration-snapshot` · `report-sc4sap-public-drift`)은 renew 1차에서

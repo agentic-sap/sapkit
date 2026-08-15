@@ -19,7 +19,7 @@
 ## 빠른 시작 — `/sapkit:setup` (권장)
 
 설치·재시작 후 `/sapkit:setup`을 실행하면 아래 수동 단계 대부분(SAP 연결 프로파일·
-`.sapkit/` 파일 2개·권한 템플릿 병합·안전훅 스위치 안내·선택적 vsp 설치)을 대화형
+`.sapkit/` 파일 2개·권한 템플릿 병합·안전훅 스위치 안내)을 대화형
 마법사가 대신하고 층별 자가 점검으로 끝난다. 훅 설치는 기본 단계가 아니라 마법사가
 안내만 하고 명시 요청 시에만 실행한다(아래 "안전훅 6종" 참고). 아래 절들은 수동 경로
 정본이자 마법사 폴백이다. 정본 절차 = `core/procedures/setup.md`.
@@ -31,18 +31,18 @@
 2. 프로젝트에 `.sapkit/active-profile.txt`(별칭 1줄) + `.sapkit/config.json`
    (sapVersion·abapRelease·activeModules·industry·country)
 
-## 로컬 오프라인 검증 — SAPKIT 검사기 (선택)
+## 로컬 오프라인 검증 — SAPKIT 검사기 (동봉)
 
-SAP 반영 전 `.abap` 파일을 로컬에서 미리 점검하고 싶으면 **SAPKIT 검사기**(오프라인
-ABAP 검증기 — 현재 설치되는 명령어는 `vsp`)를 설치한다 — 없어도 플러그인 동작에는
-지장 없다.
+SAP 반영 전 `.abap`을 로컬에서 미리 점검하는 **SAPKIT 검사기**는 플러그인에 함께
+온다 — 내려받을 것도 설치할 것도 없다. SAP에 접속하지 않고 MCP 모드도 없다.
 
 ```
-node interactive/scripts/get-vsp.mjs   # ~/.sapkit/bin/vsp(.exe) 설치
+node "PLUGIN_ROOT/checker/sapkit-checker.bundle.cjs" lint <파일>
+node "PLUGIN_ROOT/checker/sapkit-checker.bundle.cjs" analyze <파일> --format json
 ```
 
-설치 후 `vsp lint <파일>` / `vsp parse <파일>`로 사용. 자세한 내용:
-[core/procedures/troubleshooting.md §7](../../core/procedures/troubleshooting.md#7-sapkit-verifier--local-verification-optional).
+명령 4종(`lint`·`parse`·`analyze`·`check`)·exit 계약·두 품질 표면의 차이:
+[core/procedures/troubleshooting.md §7](../../core/procedures/troubleshooting.md#7-sapkit-checker--local-offline-analysis-bundled).
 
 ## 안전훅 6종 (기본 미설치, 선택 스위치)
 

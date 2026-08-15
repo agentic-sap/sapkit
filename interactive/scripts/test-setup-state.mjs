@@ -140,7 +140,11 @@ console.log('setup-state 계약 시험 (status/plan/apply/verify)');
   check('활성 프로파일 없음', r.json?.activeProfile?.alias === null);
   check('config 없음', r.json?.config?.exists === false);
   check('클라이언트 3종 boolean 보고', ['claude', 'codex', 'antigravity'].every((k) => typeof r.json?.clients?.[k] === 'boolean'), JSON.stringify(r.json?.clients));
-  check('범위 밖 항목은 보고만(훅·vsp·권한)', typeof r.json?.outOfScope?.hooksInstaller === 'boolean');
+  check('범위 밖 항목은 보고만(훅·권한)', typeof r.json?.outOfScope?.hooksInstaller === 'boolean');
+  // 검사기는 동봉물이라 설치기가 없다 — 존재 여부는 pluginRuntime 이 보고하고,
+  // 은퇴한 설치기 항목이 되살아나면 여기서 걸린다.
+  check('동봉 검사기는 pluginRuntime 이 보고한다', typeof r.json?.pluginRuntime?.checker === 'boolean', JSON.stringify(r.json?.pluginRuntime));
+  check('은퇴한 검증기 설치기 항목은 없다', !('vspInstaller' in (r.json?.outOfScope ?? {})), JSON.stringify(r.json?.outOfScope));
   check('status 는 아무것도 쓰지 않는다', sameSnapshot(before, snapshot(c.project, c.home)) === null);
 }
 

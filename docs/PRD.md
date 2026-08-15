@@ -13,7 +13,7 @@
 ## 목표
 
 SAP ABAP/RAP/CDS/AMDP 개발을 AI 하네스로 수행한다. 세션의 자기보고 대신
-exact-subject fresh-context review와 vsp 기계 증거로 완료를 판정하고, 실전 실패에서
+exact-subject fresh-context review와 SAP 기계 확인으로 완료를 판정하고, 실전 실패에서
 증류된 규칙을 모듈 지식으로 축적하는 것이 핵심.
 단일 레포·두 트랙 구조(아래 §트랙별 기능). 철학: 차용 후 완전 소유(sc4sap 지식 이식,
 엔진 편입 D-017 · vsp 편입 D-030) · 가볍지만 강력하게 · 3사 하네스 중립.
@@ -46,8 +46,9 @@ extraction / P3 write-execute / P4 transport**다. 15칸 전체 matrix·소유�
 사용자 승인. **U-gate의 정의·기계 배선은 후속 소규모 설계이며, 배선 완료 전까지 무인
 SAP write의 운영 개방은 그 배선에 종속된다(그 전까지 `unattended=sealed` 유지).**
 각 cell의 지원 경로·gate는 지켜야 한다(예: Direct-P4 진입점 없음, Engine-P2 직접 실행
-금지). 사람 Direct/Guided-P3은 트랙 B MCP·vsp CLI·abapGit 적용이 모두 정당하고,
-Engine-P3/P4와 공통 완료 증거 backend는 vsp CLI다.
+금지). 사람 Direct/Guided-P3은 트랙 B MCP·사람이 모는 CLI·abapGit 적용이 모두
+정당하며, 어느 길로 넣든 정책 등급과 관문은 같다. Engine 실행 구조는 D-040으로
+template-only가 된 뒤 R1에서 설비가 제거돼 지금 배선된 증거 backend가 없다.
 
 D-019 완료 matrix는 변하지 않는다. Direct SAP code는 `DRAFT`, Direct-P3는
 `PROVISIONAL_WRITE`다. 완료는 **기계 확인 + 독립 새-컨텍스트 리뷰** 둘 다이며 —
@@ -57,10 +58,11 @@ D-019 완료 matrix는 변하지 않는다. Direct SAP code는 `DRAFT`, Direct-P
 SAP reviewer 기계 격리는 약화됐고 `sap_mutation_boundary=unverified`(reviewer +
 all attended child)를 숨기지 않는다.
 
-P2는 `GetTableContents`, `GetSqlQuery`, vsp `query` **매 호출 전** 범위·필드·
-row 상한을 보여 사람 승인을 받고 batch·subagent·자동 승인을 금지한다.
-하네스별 승인 메커니즘은 재기준 v2 §4 및
-`adapters/vsp/SAFETY-PROFILES.md`의 해당 포인터를 따른다.
+P2는 `GetTableContents`·`GetSqlQuery`를 비롯해 **SAP 행 데이터를 끌어오는 모든
+경로**(로컬 CLI·스크립트·직접 질의) **매 호출 전** 범위·필드·row 상한을 보여 사람
+승인을 받고 batch·subagent·자동 승인을 금지한다 — 규칙은 도구 이름이 아니라 행위에
+걸리므로 도구가 은퇴해도 좁아지지 않는다. 하네스별 승인 메커니즘은 재기준 v2 §4와
+D-025를 따른다.
 
 **수행 로드맵(legacy phase 기준 — 완료 사실 보존, 재기준에서 phase는 legacy)**: 0a
 Scaffold(설치·게이트 미통과 실증, 완료 07-11) · 0b Connected Discovery(vsp 전수 실측,
@@ -90,13 +92,14 @@ interactive/DESIGN.md.
 
 ## 품질·안전 모델
 
-- **품질**: 1 worker + 1 fresh reviewer + vsp 기계 검증. reviewer는 고치지
+- **품질**: 1 worker + 1 fresh reviewer + SAP 기계 확인. reviewer는 고치지
   않고 P0/P1만 수행하며 transport read를 포함한 모든 transport 동작을 하지
   않는다. 작업 세션은 자기 결과를 리뷰하지 않는다. 상세는 D-019·D-025·재기준 v2 §5.
 - **검증 체인**: 테스트 먼저(테스트 클래스를 먼저 쓰고 스텝 경계로 증명) · 2단
-  검증 offline(vsp lint/parse) → connected(deploy→activate→drift→ATC→unit) ·
+  검증 offline(동봉 검사기 lint/analyze) → connected(deploy→activate→drift→ATC→unit) ·
   실패 마커 3종 CODE_FAIL/ENV_FAIL/LOCK_FAIL(ENV·LOCK은 코드 결함 기록 금지, R-001).
-  계약 정본 = docs/ARCHITECTURE.md §SAP 검증 계약 · adapters/vsp/VERIFY-PATTERNS.md.
+  계약 정본 = docs/ARCHITECTURE.md §SAP 검증 계약 ·
+  interactive/core/procedures/troubleshooting.md §7(오프라인 검사기).
 - **안전 3층 방어**: 도구 단위 권한 allowlist · PreToolUse 훅 · 엔진 tier 게이트.
 - **실데이터 P2 상시 게이트**: 호출별 사람 승인, 최소화, 자동·batch 금지
   (D-008·D-025; 재기준 v2 §4).

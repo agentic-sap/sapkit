@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Interactive onboarding wizard — SAP connection profile, project context files with tool-surface selection, and a layered self-check, plus optional permission-template, SAPKIT-verifier, and safety-hook switches.
+description: Interactive onboarding wizard — SAP connection profile, project context files with tool-surface selection, and a layered self-check, plus optional permission-template and safety-hook switches.
 ---
 
 # Setup Wizard
@@ -80,8 +80,8 @@ missing or broken, and never rewrite a healthy existing artifact.
    canonical keys are present/empty, and whether a password value exists —
    never the values themselves); `config.json`'s known/unknown keys and
    current `toolSurface`; which of Claude/Codex/Antigravity are on `PATH`; and
-   a few out-of-scope items (permission-template file, hooks installer,
-   SAPKIT-verifier presence) that Step 4 owns.
+   a few out-of-scope items (permission-template file, hooks installer) that
+   Step 4 owns, plus whether the bundled SAPKIT checker is present.
 2. Summarize this in plain language for the user before doing anything else.
 
 ## Step 2 — Connection Profile
@@ -169,16 +169,16 @@ missing or broken, and never rewrite a healthy existing artifact.
    plan/confirm/apply round-trip as Step 2, kept as its own confirmed action
    rather than folded into Step 2's.
 
-## Step 4 — Optional: Permission Template, SAPKIT Verifier, and Safety Hooks
+## Step 4 — Optional: Permission Template, SAPKIT Checker, and Safety Hooks
 
-All three of the following are optional and independent — skip whichever the
-user doesn't want.
+The two switches below (4a, 4c) are optional and independent — skip whichever
+the user doesn't want. 4b installs nothing; it is one paragraph of orientation.
 
 On Claude Code (`PLUGIN_ROOT` below = the plugin root the skill wrapper resolved —
 the directory containing `core/` and `adapters/`; the shell's working directory
 is the user's project, so bare relative paths will NOT find these files). If your
-installed plugin cache turns out not to contain `adapters/` or `scripts/`,
-downgrade the affected item (4a, 4b, or 4c) to guidance — point the user at the
+installed plugin cache turns out not to contain `adapters/`, `scripts/`, or
+`checker/`, downgrade the affected item (4a, 4b, or 4c) to guidance — point the user at the
 matching adapter README section instead of running the command, and say so
 plainly rather than failing silently.
 
@@ -206,21 +206,25 @@ or [adapters/antigravity/README.md](../../adapters/antigravity/README.md).
    absent from the template — per-call human approval on those two stays in
    force regardless of this merge.
 
-### 4b. SAPKIT Verifier — offline (optional, any harness)
+### 4b. SAPKIT Checker — offline (bundled, any harness)
 
-Ask whether the user wants the **SAPKIT verifier** — an optional offline ABAP
-lint/parse tool that runs with no SAP connection. The command it installs today
-is `vsp`; call it that when you show the user a command line. Skipping it does
-not limit anything else in this plugin. If yes, after confirmation run (same
-`PLUGIN_ROOT` substitution):
+Nothing to ask and nothing to install here: the **SAPKIT checker** ships inside
+the plugin at `PLUGIN_ROOT/checker/sapkit-checker.bundle.cjs`. Tell the user it
+is already there, and show one command line (same `PLUGIN_ROOT` substitution):
 
 ```
-node "PLUGIN_ROOT/scripts/get-vsp.mjs"
+node "PLUGIN_ROOT/checker/sapkit-checker.bundle.cjs" --help
 ```
 
-This detects OS/arch, downloads the matching release asset, verifies its
-sha256, and installs to the resolved profile home's `bin/vsp`
-(`~/.sapkit/bin/vsp` — `vsp.exe` on Windows) only on a hash match.
+It runs entirely on the local machine — no SAP connection, no MCP mode — and
+offers `lint` / `parse` / `analyze` / `check`. On the Claude adapter the
+optional `offline-code-analysis` hook (Step 4c) calls the `analyze` surface
+automatically; on other harnesses the user invokes it directly. Details:
+[troubleshooting.md §7](troubleshooting.md#7-sapkit-checker--local-offline-analysis-bundled).
+
+If the user set this machine up on an earlier release, a `vsp` binary may still
+sit in the profile home's `bin/` (`~/.sapkit/bin/vsp`, `vsp.exe` on Windows).
+Nothing reads it any more — mention it once as safe to delete, and move on.
 
 ### 4c. Safety Hooks (optional, Claude Code only)
 

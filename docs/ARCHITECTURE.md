@@ -21,7 +21,7 @@
 - **트랙 A(하네스 트랙)** — Direct 기본·Guided 명시 승격·Engine attended의
   3 실행 구조와 P0~P4 Policy를 직교 매핑한다. final-harness는 Engine,
   vsp-custom CLI는 Engine 실행·공통 완료 증거 backend다. 사람 Direct/Guided의
-  적용 경로는 트랙 B MCP·vsp CLI·abapGit이다. final-harness는 외부 레포로
+  적용 경로는 트랙 B MCP·사람이 모는 CLI·abapGit이다. final-harness는 외부 레포로
   분리 유지하고(D-018), vsp는 레포 내 `vsp/`로 편입 완료다(D-030·D-037 —
   히스토리 비이식 스냅샷·바이너리 비커밋).
 - **트랙 B(대화형 플러그인)** — Node MCP 서버 + 3사 어댑터. 도구 표면 소스 정본은 레포 내
@@ -88,15 +88,19 @@ stale다. 현 phase-only template/checker는 v0.17 legacy; run-scoped 갱신은 
 
 ## SAP 검증 계약 (상세 정본: adapters/vsp/VERIFY-PATTERNS.md)
 
-- **offline**: `vsp lint --file`(Error만 exit≠0, Warning 통과) · `vsp parse --file`
-  (파일 감시용, 항상 exit 0).
+- **offline**: 동봉 검사기(`interactive/checker/sapkit-checker.bundle.cjs`, 소스 정본
+  `sapkit-cli/`) — `lint <file>`(Error 있으면 exit 1) · `parse <file>`(항상 exit 0) ·
+  `analyze <file> --format json`(13룰) · `check <dir>`(INCLUDE 정합). exit 계약은
+  0 통과 / 1 결함 / 2 사용·입력 오류. SAP 접속·MCP 모드 없음. 상세 =
+  `interactive/core/procedures/troubleshooting.md` §7.
 - **online**: 반드시 `scripts/verify-sap.ps1` 경유 — vsp 직접 호출 금지(vsp는 모든 오류가
   exit 1이라 래퍼가 출력 패턴으로 판정). 체인 = deploy→activate→drift→ATC→unit.
 - **마커 3종**: `CODE_FAIL`(코드 결함 — 수정 대상) / `ENV_FAIL`(연결·환경) /
   `LOCK_FAIL`(잠금) — ENV·LOCK은 코드 결함으로 기록·규칙 승격 금지(R-001). 존재
   확인(Test-Path류)은 verify가 아니다.
-- write는 DEV tier에만(R-003). deploy/copy 후 성공 보고만 믿지 말고 `vsp source read`로
-  반영을 확인한다(R-006). CLAS 테스트 include 배포는 리포트 로컬 테스트 클래스 배치로
+- write는 DEV tier에만(R-003). write 뒤 성공 보고만 믿지 말고 **경로와 무관하게 소스를
+  되읽어** 반영을 확인한다(R-006 — 절차 정본
+  `interactive/core/procedures/verify-applied.md`). CLAS 테스트 include 배포는 리포트 로컬 테스트 클래스 배치로
   회피했으나(ADR-002), vsp v2.38.1-94에서 지원이 실측 확인됨(ADR-002 Addendum — 재배치는
   사용자 결정 대기).
 
@@ -154,9 +158,11 @@ interactive/scripts/               게이트 스크립트 (check-links·smoke-mc
   denylist · server.bundle.cjs `.gitattributes` 보호(갱신은 UPDATE-RUNBOOK) · 실데이터 2종
   자동 승인 금지 · 게이트 상시 통과 · superpowers 재활성화 제안 금지 · 굵직한 결정은
   docs/reference/DECISIONS.md append.
-- **.harness/RULES.md (R-001~R-006)**: ENV/LOCK_FAIL 마커 실패는 규칙 승격 제외 · vsp는 CLI
-  전용(MCP 금지) · QA/PRD tier write 금지 · 동결 레포 수정·private 읽기 금지 · 접속정보 커밋
-  금지 · vsp write 후 `vsp source read`로 반영 확인.
+- **안전 규칙 (구 `.harness/RULES.md` R-001~R-006 — R1 이후 정본은 루트 `CLAUDE.md`
+  「안전 규칙」 절)**: ENV/LOCK_FAIL 마커 실패는 규칙 승격 제외 · **SAP 접점 이원화 금지**
+  (SAP에 닿는 경로를 하나 더 열지 않는다 — 로컬 검사는 무접속 도구로만) · QA/PRD tier
+  write 금지(경로 무관) · 동결 레포 수정·private 읽기 금지 · 접속정보 커밋 금지 ·
+  write 뒤 **소스 되읽기**로 반영 확인.
 
 ## 검증 게이트 (구조 변경 시 항상 통과 유지)
 
