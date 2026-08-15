@@ -8,6 +8,9 @@
   "type": "commonjs",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
+  "bin": {
+    "sapkit": "bin/sapkit.js"
+  },
   "engines": {
     "node": ">=20.0.0"
   },
@@ -16,6 +19,7 @@
     "build": "tsc -p tsconfig.json",
     "test": "jest --passWithNoTests",
     "gates": "node gates/run-all.mjs",
+    "sapkit": "node bin/sapkit.js",
     "verify": "npm run build && npm run typecheck && npm test"
   },
   "devDependencies": {
