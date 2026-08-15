@@ -124,9 +124,10 @@ limits have no aegis analogue:
   classification are settled**. Delegation never changes a policy classification.
 - **P2 (real-data extraction) is always main-only.** The subagent/batch
   prohibition holds even under the D-043 owner-machine exception (`AGENTS.md` P2).
-  This includes `vsp query` from a worker's shell — the worker's mechanical block
-  covers only the two MCP row-data tools, so the vsp path is a boundary the worker
-  honors procedurally.
+  This includes pulling row data from a worker's shell by any non-MCP route — a
+  local CLI, a script, a direct query. The worker's mechanical block covers only
+  the two MCP row-data tools, so every path outside those two is a boundary the
+  worker honors procedurally, and retiring any one tool does not narrow it.
 - **P4 (transport) is never delegable** — the existing human-only ownership gate
   stands. When delegating a Phase 4 implementation, split off mixed transport
   create / assign / release actions and keep them main-owned. Registering assigned

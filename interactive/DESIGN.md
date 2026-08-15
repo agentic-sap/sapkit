@@ -199,15 +199,15 @@ sc4sap-lite/
    컨설팅용)와 `connected`(서버+SAP 연결). 서버 8.25MB+런타임 4.5MB는 후자에서만.
 4. **지식 정본 선언**: 이식 완료 시점부터 지식 정본 = sc4sap-lite. 동결된 sc4sap-custom은
    지식 수정 금지. sap-agentic-harness packs는 lite의 스냅샷 버전을 provenance로 명기.
-5. **선택적 로컬 검증기 (vsp)**: 오프라인 ABAP 검증기 vsp(레포 내 `vsp/` 소스 정본,
-   D-030/D-037)를 sapkit의 **선택적 로컬 검증기**로 동봉한다 — 제품 MCP 서버 병합이
-   아니라(번들 도구와 표면 중복) CLI 검증기로, SAP 반영 전 오프라인 lint/parse를 붙인다.
-   배포는 D-037 비커밋 원칙과 정합하게 **GitHub 릴리스 자산**으로 하고, 플랫폼별 sha256
-   정본은 핀 파일 `provenance/vsp-release.lock.json`이 소유한다. 설치 = `scripts/get-vsp.mjs`
-   (OS/arch 감지 → 핀 URL 다운로드 → sha256 일치 시에만 `~/.sapkit/bin/` — 구 세대
-   폴백은 R5에서 제거). 선택 사항이라
-   미설치에서도 하네스는 정상 동작하며, 릴리스 자산 방식이라 완전 오프라인이 아니라
-   다운로드 1회가 필요하다. 근거·집행 = D-044.
+5. **동봉 로컬 검사기 (sapkit 검사기)**: SAP 반영 전 오프라인 lint/parse/analyze는
+   자체 저작 검사기(소스 정본 `sapkit-cli/`)가 맡고, 그 단일 파일 번들
+   `checker/sapkit-checker.bundle.cjs`를 **플러그인에 동봉**한다. 제품 MCP 서버에
+   병합하지 않는 이유는 그대로다(번들 도구와 표면 중복) — 별도 CLI로 둔다. 검사기에는
+   **SAP 접속도 MCP 모드도 없다**. 동봉이므로 설치 단계가 아예 없고(내려받기 0),
+   **설치가 완전 오프라인**이 된다 — 릴리스 자산을 1회 내려받던 구 방식(D-044)이 해소한
+   문제 자체가 사라졌다. 미보유 상태에서도 하네스는 정상 동작한다(훅은 무음 통과).
+   무결성·출처 게이트 = `scripts/verify-checker.mjs`, 재번들 절차 =
+   `checker/UPDATE-RUNBOOK.md`.
 6. **방법론 강도 축**: `development-loop.md`(정책)가 강도 축(Minimal/Standard/Full)·
    execution_owner·보증 등급 매트릭스를 소유한다. 강도 축은 **Track A 실행 구조
    (Direct/Guided) 라우팅과 직교**한다 — 어느 쪽도 서로를 바꾸지 않는다(D-047).
@@ -222,7 +222,7 @@ sc4sap-lite/
    폐기 상태** — §2의 "자동 디스패치 폐기"는 8역할 자동 교대의 폐기이지, 메인이 배정하는
    워커 1기의 기본 기동을 막는 것이 아니다. 품질 모델(1작업 + 1리뷰 + 기계검증)은 불변이다.
    위임 불가 두 축의 MCP 도구 4종(P2 실데이터 2·P4 이송 2)은 Claude 어댑터에서
-   `disallowedTools` 4줄로 **기계 차단**하고 게이트가 그 생존을 assert한다(셸 경유 vsp 등
+   `disallowedTools` 4줄로 **기계 차단**하고 게이트가 그 생존을 assert한다(셸 경유 CLI 등
    도구 밖 경로는 절차 규범 — D-051·D-066).
 
 ## 4. 어댑터 3벌 (§2 확정안)

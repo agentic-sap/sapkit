@@ -153,18 +153,19 @@ codex mcp get sap --json     # "disabled_tools": ["GetTableContents","GetSqlQuer
 > 배포할 수 있는 설정이 아니므로, `launch.cjs` 앞단에 이름-보존형 tools/list 필터가
 > 필요하다(별도 항목 — 권장만, 미구현). 현재 정본 권장은 위의 하드 차단.
 
-## 로컬 오프라인 검증 — SAPKIT 검사기 (선택)
+## 로컬 오프라인 검증 — SAPKIT 검사기 (동봉)
 
-SAP 반영 전 `.abap` 파일을 로컬에서 미리 점검하고 싶으면 **SAPKIT 검사기**(오프라인
-ABAP 검증기 — 현재 설치되는 명령어는 `vsp`)를 설치한다 — 없어도 플러그인 동작에는
-지장 없다.
+SAP 반영 전 `.abap`을 로컬에서 미리 점검하는 **SAPKIT 검사기**는 플러그인에 함께
+온다 — 내려받을 것도 설치할 것도 없다. SAP에 접속하지 않고 MCP 모드도 없다.
 
 ```
-node interactive/scripts/get-vsp.mjs   # ~/.sapkit/bin/vsp(.exe) 설치
+node "PLUGIN_ROOT/checker/sapkit-checker.bundle.cjs" lint <파일>
+node "PLUGIN_ROOT/checker/sapkit-checker.bundle.cjs" analyze <파일> --format json
 ```
 
-설치 후 `vsp lint <파일>` / `vsp parse <파일>`로 사용. 자세한 내용:
-[core/procedures/troubleshooting.md §7](../../core/procedures/troubleshooting.md#7-sapkit-verifier--local-verification-optional).
+Codex에는 훅이 없으므로 필요할 때 위 명령을 직접 부른다. 명령 4종
+(`lint`·`parse`·`analyze`·`check`)·exit 계약·두 품질 표면의 차이:
+[core/procedures/troubleshooting.md §7](../../core/procedures/troubleshooting.md#7-sapkit-checker--local-offline-analysis-bundled).
 
 ## SAP 프로젝트 루트 AGENTS.md
 

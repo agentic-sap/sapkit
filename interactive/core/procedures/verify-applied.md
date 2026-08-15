@@ -30,9 +30,9 @@ procedure never substitutes for it.
 
 - User says "확인해줘", "완료 확인", "반영됐는지 봐줘", "제대로 들어갔나",
   "verify this program/class", "did it really apply", "is this done".
-- An object was created or modified this session (via MCP, human `vsp deploy`,
-  or user-operated abapGit) and needs confirming before anything is reported
-  as finished.
+- An object was created or modified this session (via MCP, a human-operated
+  CLI, or user-operated abapGit) and needs confirming before anything is
+  reported as finished. The path the change took never changes this procedure.
 - Following up after [create-program](create-program.md) /
   [create-object](create-object.md) / [modify-object](modify-object.md) left an
   object at `PROVISIONAL_WRITE`.

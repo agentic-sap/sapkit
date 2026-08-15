@@ -18,7 +18,7 @@
 | `block-forbidden-tables.mjs` | PreToolUse (`GetTableContents`\|`GetSqlQuery`) | 서버 blocklist의 상위 호환 — 활성 프로파일별(`.sapkit/config.json`의 `blocklistProfile`: `minimal`\|`standard`\|`strict`\|`custom`) 테이블 차단을 **호출 전에** 판정 | fail CLOSED(빈 페이로드·파싱 실패·blocklist 로드 실패·빌트인 0건 시 deny) | `blocklistProfile` 미설정 시 **strict** 기본값(서버는 standard) · `.sapkit/config.json`의 `blocklistProfile`(4종, `custom`은 서버엔 없는 값) · `blocklist-extend.txt`/`blocklist-custom.txt` 파일 · deny/ask 확인창 |
 | `tier-readonly-guard.mjs` | PreToolUse (Create/Update/Delete/Activate/Patch/Release/Write*, RunUnitTest, Runtime\*Profiling, ReloadProfile) | 서버 tier 게이트와 같은 판정(QA/PRD write·실행 차단)을 클라이언트에서 한 번 더 | fail CLOSED(tier 미해석 시 deny) | 서버와 같은 차단을 클라이언트 레벨에서 이중화 — 훅이 없어도 서버가 이미 담당(아래 표) |
 | `prefer-sqlquery-explicit-fields.mjs` | PreToolUse (`GetTableContents`\|`GetSqlQuery`) | 비용/UX 조언(잔소리) — 전체 컬럼 조회·`SELECT *` 시 확인 요구, COUNT 등 집계는 예외 | fail OPEN | 확인창(Claude 권한 모드와 무관하게 뜬다 — 정상 모드든 bypass/자동수락 모드든 훅의 ask/deny는 별도 경로) |
-| `offline-code-analysis.mjs` | PostToolUse (Edit/Write/MultiEdit의 `.abap` · MCP Create/Update) | 로컬 품질 조언(D-049) — vsp 오프라인 13룰 분석 결과를 모델에 되먹임, 절대 차단하지 않음 | fail OPEN(vsp 미설치 시 무음 통과) | 해당 없음 — vsp 선택 설치와 함께 안내되는 순수 부가 기능 |
+| `offline-code-analysis.mjs` | PostToolUse (Edit/Write/MultiEdit의 `.abap` · MCP Create/Update) | 로컬 품질 조언(D-049) — **플러그인에 동봉된 검사기 번들**(`checker/sapkit-checker.bundle.cjs`)을 `analyze --stdin --format json`으로 띄워 13룰 판정을 모델에 되먹임, 절대 차단하지 않음 | fail OPEN(번들 부재·기동 실패·시간초과·파싱 실패 시 무음 통과) | 해당 없음 — 번들이 플러그인과 함께 오므로 내려받거나 설치할 것이 없는 순수 부가 기능 |
 | `syntax-checker.mjs` | PostToolUseFailure (MCP ABAP Create/Update 실패) | 실패 직후 `CheckSyntax` 실행을 제안하는 조언 | 해당 없음(advisory, 차단하지 않음) | 해당 없음 |
 | `transport-validator.mjs` | PreToolUse (MCP ABAP Create/Update, 비-`$TMP`) | 이송 요청 누락 시 상기시키는 조언(non-blocking) | 해당 없음(advisory, 차단하지 않음) | 해당 없음 |
 
@@ -104,3 +104,5 @@ marker 기준으로 SAPKIT 훅만 제거하고 다른 훅·설정 키는 그대�
   `block-forbidden-tables.mjs`가 읽는 blocklist 원본
 - [adapters/codex/README.md](../../codex/README.md) — Codex의 등가 방어선(`disabled_tools`
   하드 차단, 훅 없음)
+- [checker/UPDATE-RUNBOOK.md](../../../checker/UPDATE-RUNBOOK.md) —
+  `offline-code-analysis.mjs`가 띄우는 동봉 검사기 번들의 정체·재번들 절차
