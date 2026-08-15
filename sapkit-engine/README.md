@@ -30,11 +30,15 @@
 | `src/tools/write/` | 쓰기·활성 도구 |
 | `src/tools/rfc-read/` | RFC 경유 읽기 도구 |
 | `src/tools/row-data/` | 실데이터 도구 (상시 게이트 결합) |
-| `src/tools/registry.ts` | **유일한 도구 등록점.** 도구 작업은 이 파일을 건드리지 않는다 |
+| `src/tools/registry.ts` | **유일한 도구 등록점.** 도구를 지으면 **그 커밋에서 바로** 배선한다 |
 | `harness/recorder/` | 구 번들 채록기 + 정규화·마스킹 필터 |
 | `harness/replay/` | 재생 대조 러너 + 의도적 차이 목록 + 커버리지 표 |
+| `harness/ledger/` | 진척 대장 계산기 (`TOOL-LEDGER.md` 생성 + `--check` 대조) |
 | `gates/` | 신 엔진 자체 적합성 게이트 (`.mjs`) |
 | `fixtures/` | 녹화 픽스처 (attended C1 산출물) |
+| `evidence/` | 커밋되는 증거 파일 — 재생 판정 · 계약 시험 결과 (형식은 그 README) |
+| `TOOL-LEDGER.md` | **생성물.** 손으로 고치지 말 것 — `npm run ledger`로 다시 만든다 |
+| `ADDING-A-TOOL.md` | **도구 하나 짓는 절차서.** 남은 167종은 이 순서로 짓는다 |
 
 ## 명령
 
@@ -42,8 +46,13 @@
 npm run typecheck   # tsc --noEmit (시험 포함)
 npm test            # jest
 npm run build       # dist/ 로 CJS 산출
-npm run gates       # 신 엔진 자체 게이트 일괄
+npm run gates       # 신 엔진 자체 게이트 일괄 (표면 · 안전 · 대장)
+npm run ledger      # TOOL-LEDGER.md 재생성 (SAP 불필요)
 ```
+
+**도구를 하나 지으려면 `ADDING-A-TOOL.md`를 따른다** — 참조 원본을 어디까지 읽고,
+선언을 무엇에 맞추고, 시험을 어떤 이름으로 쓰고, 등록·대장·커밋을 어떤 순서로
+하는지가 거기에 번호로 적혀 있다.
 
 **PowerShell로 실행할 것** — 이 머신에서 Bash로 돌리면 자식 프로세스 수거에서
 블록되는 사례가 실측됐다(`HANDOFF.md`).

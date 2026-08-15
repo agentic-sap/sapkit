@@ -1,0 +1,932 @@
+[
+  {
+    "tool": "ActivateObjects",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/activateObjects.test.ts"
+  },
+  {
+    "tool": "CheckSyntax",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/checkSyntax.test.ts"
+  },
+  {
+    "tool": "CreateBehaviorDefinition",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createBehaviorDefinition.test.ts"
+  },
+  {
+    "tool": "CreateBehaviorImplementation",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createBehaviorImplementation.test.ts"
+  },
+  {
+    "tool": "CreateCdsUnitTest",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createCdsUnitTest.test.ts"
+  },
+  {
+    "tool": "CreateClass",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createClass.test.ts"
+  },
+  {
+    "tool": "CreateDataElement",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createDataElement.test.ts"
+  },
+  {
+    "tool": "CreateDomain",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createDomain.test.ts"
+  },
+  {
+    "tool": "CreateFunctionGroup",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createFunctionGroup.test.ts"
+  },
+  {
+    "tool": "CreateFunctionModule",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createFunctionModule.test.ts"
+  },
+  {
+    "tool": "CreateGuiStatus",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createGuiStatus.test.ts"
+  },
+  {
+    "tool": "CreateInclude",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createInclude.test.ts"
+  },
+  {
+    "tool": "CreateInterface",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createInterface.test.ts"
+  },
+  {
+    "tool": "CreateMetadataExtension",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createMetadataExtension.test.ts"
+  },
+  {
+    "tool": "CreatePackage",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createPackage.test.ts"
+  },
+  {
+    "tool": "CreateProgram",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createProgram.test.ts"
+  },
+  {
+    "tool": "CreateScreen",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createScreen.test.ts"
+  },
+  {
+    "tool": "CreateServiceBinding",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createServiceBinding.test.ts"
+  },
+  {
+    "tool": "CreateServiceDefinition",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createServiceDefinition.test.ts"
+  },
+  {
+    "tool": "CreateStructure",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createStructure.test.ts"
+  },
+  {
+    "tool": "CreateTable",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createTable.test.ts"
+  },
+  {
+    "tool": "CreateTextElement",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createTextElement.test.ts"
+  },
+  {
+    "tool": "CreateTransport",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createTransport.test.ts"
+  },
+  {
+    "tool": "CreateUnitTest",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/createUnitTest.test.ts"
+  },
+  {
+    "tool": "CreateView",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/createView.test.ts"
+  },
+  {
+    "tool": "DeleteBehaviorDefinition",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteBehaviorDefinition.test.ts"
+  },
+  {
+    "tool": "DeleteBehaviorImplementation",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteBehaviorImplementation.test.ts"
+  },
+  {
+    "tool": "DeleteCdsUnitTest",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteCdsUnitTest.test.ts"
+  },
+  {
+    "tool": "DeleteClass",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteClass.test.ts"
+  },
+  {
+    "tool": "DeleteDataElement",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteDataElement.test.ts"
+  },
+  {
+    "tool": "DeleteDomain",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteDomain.test.ts"
+  },
+  {
+    "tool": "DeleteFunctionGroup",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteFunctionGroup.test.ts"
+  },
+  {
+    "tool": "DeleteFunctionModule",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteFunctionModule.test.ts"
+  },
+  {
+    "tool": "DeleteGuiStatus",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteGuiStatus.test.ts"
+  },
+  {
+    "tool": "DeleteInclude",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteInclude.test.ts"
+  },
+  {
+    "tool": "DeleteInterface",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteInterface.test.ts"
+  },
+  {
+    "tool": "DeleteLocalDefinitions",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteLocalDefinitions.test.ts"
+  },
+  {
+    "tool": "DeleteLocalMacros",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteLocalMacros.test.ts"
+  },
+  {
+    "tool": "DeleteLocalTestClass",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteLocalTestClass.test.ts"
+  },
+  {
+    "tool": "DeleteLocalTypes",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteLocalTypes.test.ts"
+  },
+  {
+    "tool": "DeleteMetadataExtension",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteMetadataExtension.test.ts"
+  },
+  {
+    "tool": "DeleteProgram",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteProgram.test.ts"
+  },
+  {
+    "tool": "DeleteScreen",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteScreen.test.ts"
+  },
+  {
+    "tool": "DeleteServiceBinding",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteServiceBinding.test.ts"
+  },
+  {
+    "tool": "DeleteServiceDefinition",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteServiceDefinition.test.ts"
+  },
+  {
+    "tool": "DeleteStructure",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteStructure.test.ts"
+  },
+  {
+    "tool": "DeleteTable",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteTable.test.ts"
+  },
+  {
+    "tool": "DeleteTextElement",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteTextElement.test.ts"
+  },
+  {
+    "tool": "DeleteUnitTest",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteUnitTest.test.ts"
+  },
+  {
+    "tool": "DeleteView",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/deleteView.test.ts"
+  },
+  {
+    "tool": "DescribeByList",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/describeByList.test.ts"
+  },
+  {
+    "tool": "GetAbapAST",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getAbapAST.test.ts"
+  },
+  {
+    "tool": "GetAbapSemanticAnalysis",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getAbapSemanticAnalysis.test.ts"
+  },
+  {
+    "tool": "GetAbapSystemSymbols",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getAbapSystemSymbols.test.ts"
+  },
+  {
+    "tool": "GetAdtTypes",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getAdtTypes.test.ts"
+  },
+  {
+    "tool": "GetAtcFindings",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getAtcFindings.test.ts"
+  },
+  {
+    "tool": "GetBadiImplementations",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getBadiImplementations.test.ts"
+  },
+  {
+    "tool": "GetBehaviorDefinition",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getBehaviorDefinition.test.ts"
+  },
+  {
+    "tool": "GetBehaviorImplementation",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getBehaviorImplementation.test.ts"
+  },
+  {
+    "tool": "GetCallGraph",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getCallGraph.test.ts"
+  },
+  {
+    "tool": "GetCdsUnitTest",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/getCdsUnitTest.test.ts"
+  },
+  {
+    "tool": "GetCdsUnitTestResult",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/getCdsUnitTestResult.test.ts"
+  },
+  {
+    "tool": "GetCdsUnitTestStatus",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/getCdsUnitTestStatus.test.ts"
+  },
+  {
+    "tool": "GetClass",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getClass.test.ts"
+  },
+  {
+    "tool": "GetClassMethod",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getClassMethod.test.ts"
+  },
+  {
+    "tool": "GetDataElement",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getDataElement.test.ts"
+  },
+  {
+    "tool": "GetDomain",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getDomain.test.ts"
+  },
+  {
+    "tool": "GetEnhancementImpl",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getEnhancementImpl.test.ts"
+  },
+  {
+    "tool": "GetEnhancementSpot",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getEnhancementSpot.test.ts"
+  },
+  {
+    "tool": "GetEnhancements",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getEnhancements.test.ts"
+  },
+  {
+    "tool": "GetFunctionGroup",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getFunctionGroup.test.ts"
+  },
+  {
+    "tool": "GetFunctionModule",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getFunctionModule.test.ts"
+  },
+  {
+    "tool": "GetGuiStatus",
+    "passed": true,
+    "detail": "src/tools/rfc-read/__tests__/getGuiStatus.test.ts"
+  },
+  {
+    "tool": "GetGuiStatusList",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getGuiStatusList.test.ts"
+  },
+  {
+    "tool": "GetInactiveObjects",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getInactiveObjects.test.ts"
+  },
+  {
+    "tool": "GetInclude",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getInclude.test.ts"
+  },
+  {
+    "tool": "GetIncludesList",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getIncludesList.test.ts"
+  },
+  {
+    "tool": "GetInstalledComponents",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getInstalledComponents.test.ts"
+  },
+  {
+    "tool": "GetInterface",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getInterface.test.ts"
+  },
+  {
+    "tool": "GetLocalDefinitions",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getLocalDefinitions.test.ts"
+  },
+  {
+    "tool": "GetLocalMacros",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getLocalMacros.test.ts"
+  },
+  {
+    "tool": "GetLocalTestClass",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getLocalTestClass.test.ts"
+  },
+  {
+    "tool": "GetLocalTypes",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getLocalTypes.test.ts"
+  },
+  {
+    "tool": "GetMetadataExtension",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getMetadataExtension.test.ts"
+  },
+  {
+    "tool": "GetNodeStructureLow",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getNodeStructureLow.test.ts"
+  },
+  {
+    "tool": "GetObjectInfo",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getObjectInfo.test.ts"
+  },
+  {
+    "tool": "GetObjectNodeFromCache",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getObjectNodeFromCache.test.ts"
+  },
+  {
+    "tool": "GetObjectStructure",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getObjectStructure.test.ts"
+  },
+  {
+    "tool": "GetObjectStructureLow",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getObjectStructureLow.test.ts"
+  },
+  {
+    "tool": "GetObjectsByType",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getObjectsByType.test.ts"
+  },
+  {
+    "tool": "GetObjectsList",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getObjectsList.test.ts"
+  },
+  {
+    "tool": "GetPackage",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getPackage.test.ts"
+  },
+  {
+    "tool": "GetPackageContents",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getPackageContents.test.ts"
+  },
+  {
+    "tool": "GetPackageTree",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getPackageTree.test.ts"
+  },
+  {
+    "tool": "GetProgFullCode",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getProgFullCode.test.ts"
+  },
+  {
+    "tool": "GetProgram",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getProgram.test.ts"
+  },
+  {
+    "tool": "GetScreen",
+    "passed": true,
+    "detail": "src/tools/rfc-read/__tests__/getScreen.test.ts"
+  },
+  {
+    "tool": "GetScreensList",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getScreensList.test.ts"
+  },
+  {
+    "tool": "GetServiceBinding",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getServiceBinding.test.ts"
+  },
+  {
+    "tool": "GetServiceDefinition",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getServiceDefinition.test.ts"
+  },
+  {
+    "tool": "GetSession",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getSession.test.ts"
+  },
+  {
+    "tool": "GetSourceDiff",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getSourceDiff.test.ts"
+  },
+  {
+    "tool": "GetSqlQuery",
+    "passed": true,
+    "detail": "src/tools/row-data/__tests__/getSqlQuery.test.ts"
+  },
+  {
+    "tool": "GetStructure",
+    "passed": true,
+    "detail": "src/tools/rfc-read/__tests__/getStructure.test.ts"
+  },
+  {
+    "tool": "GetSystemInfo",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getSystemInfo.test.ts"
+  },
+  {
+    "tool": "GetTable",
+    "passed": true,
+    "detail": "src/tools/rfc-read/__tests__/getTable.test.ts"
+  },
+  {
+    "tool": "GetTableContents",
+    "passed": true,
+    "detail": "src/tools/row-data/__tests__/getTableContents.test.ts"
+  },
+  {
+    "tool": "GetTextElement",
+    "passed": true,
+    "detail": "src/tools/rfc-read/__tests__/getTextElement.test.ts"
+  },
+  {
+    "tool": "GetTransaction",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getTransaction.test.ts"
+  },
+  {
+    "tool": "GetTransport",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getTransport.test.ts"
+  },
+  {
+    "tool": "GetTypeInfo",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getTypeInfo.test.ts"
+  },
+  {
+    "tool": "GetUnitTest",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/getUnitTest.test.ts"
+  },
+  {
+    "tool": "GetUnitTestResult",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/getUnitTestResult.test.ts"
+  },
+  {
+    "tool": "GetUnitTestStatus",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/getUnitTestStatus.test.ts"
+  },
+  {
+    "tool": "GetView",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getView.test.ts"
+  },
+  {
+    "tool": "GetVirtualFoldersLow",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getVirtualFoldersLow.test.ts"
+  },
+  {
+    "tool": "GetWhereUsed",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/getWhereUsed.test.ts"
+  },
+  {
+    "tool": "GrepObjects",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/grepObjects.test.ts"
+  },
+  {
+    "tool": "GrepPackages",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/grepPackages.test.ts"
+  },
+  {
+    "tool": "ListServiceBindingTypes",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/listServiceBindingTypes.test.ts"
+  },
+  {
+    "tool": "ListTransports",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/listTransports.test.ts"
+  },
+  {
+    "tool": "PatchGuiStatus",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/patchGuiStatus.test.ts"
+  },
+  {
+    "tool": "ReadBehaviorDefinition",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readBehaviorDefinition.test.ts"
+  },
+  {
+    "tool": "ReadBehaviorImplementation",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readBehaviorImplementation.test.ts"
+  },
+  {
+    "tool": "ReadClass",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readClass.test.ts"
+  },
+  {
+    "tool": "ReadDataElement",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readDataElement.test.ts"
+  },
+  {
+    "tool": "ReadDomain",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readDomain.test.ts"
+  },
+  {
+    "tool": "ReadFunctionGroup",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readFunctionGroup.test.ts"
+  },
+  {
+    "tool": "ReadFunctionModule",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readFunctionModule.test.ts"
+  },
+  {
+    "tool": "ReadGuiStatus",
+    "passed": true,
+    "detail": "src/tools/rfc-read/__tests__/readGuiStatus.test.ts"
+  },
+  {
+    "tool": "ReadInterface",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readInterface.test.ts"
+  },
+  {
+    "tool": "ReadMetadataExtension",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readMetadataExtension.test.ts"
+  },
+  {
+    "tool": "ReadPackage",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readPackage.test.ts"
+  },
+  {
+    "tool": "ReadProgram",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readProgram.test.ts"
+  },
+  {
+    "tool": "ReadScreen",
+    "passed": true,
+    "detail": "src/tools/rfc-read/__tests__/readScreen.test.ts"
+  },
+  {
+    "tool": "ReadServiceBinding",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readServiceBinding.test.ts"
+  },
+  {
+    "tool": "ReadServiceDefinition",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readServiceDefinition.test.ts"
+  },
+  {
+    "tool": "ReadStructure",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readStructure.test.ts"
+  },
+  {
+    "tool": "ReadTable",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readTable.test.ts"
+  },
+  {
+    "tool": "ReadTextElementsBulk",
+    "passed": true,
+    "detail": "src/tools/rfc-read/__tests__/readTextElementsBulk.test.ts"
+  },
+  {
+    "tool": "ReadView",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/readView.test.ts"
+  },
+  {
+    "tool": "ReleaseTransport",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/releaseTransport.test.ts"
+  },
+  {
+    "tool": "ReloadProfile",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/reloadProfile.test.ts"
+  },
+  {
+    "tool": "RunUnitTest",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runUnitTest.test.ts"
+  },
+  {
+    "tool": "RuntimeAnalyzeDump",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeAnalyzeDump.test.ts"
+  },
+  {
+    "tool": "RuntimeAnalyzeProfilerTrace",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeAnalyzeProfilerTrace.test.ts"
+  },
+  {
+    "tool": "RuntimeCreateProfilerTraceParameters",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeCreateProfilerTraceParameters.test.ts"
+  },
+  {
+    "tool": "RuntimeGetDumpById",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeGetDumpById.test.ts"
+  },
+  {
+    "tool": "RuntimeGetGatewayErrorLog",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeGetGatewayErrorLog.test.ts"
+  },
+  {
+    "tool": "RuntimeGetProfilerTraceData",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeGetProfilerTraceData.test.ts"
+  },
+  {
+    "tool": "RuntimeListDumps",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeListDumps.test.ts"
+  },
+  {
+    "tool": "RuntimeListFeeds",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeListFeeds.test.ts"
+  },
+  {
+    "tool": "RuntimeListProfilerTraceFiles",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeListProfilerTraceFiles.test.ts"
+  },
+  {
+    "tool": "RuntimeListSystemMessages",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeListSystemMessages.test.ts"
+  },
+  {
+    "tool": "RuntimeRunClassWithProfiling",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeRunClassWithProfiling.test.ts"
+  },
+  {
+    "tool": "RuntimeRunProgramWithProfiling",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/runtimeRunProgramWithProfiling.test.ts"
+  },
+  {
+    "tool": "SearchObject",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/searchObject.test.ts"
+  },
+  {
+    "tool": "UpdateBehaviorDefinition",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateBehaviorDefinition.test.ts"
+  },
+  {
+    "tool": "UpdateBehaviorImplementation",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateBehaviorImplementation.test.ts"
+  },
+  {
+    "tool": "UpdateCdsUnitTest",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateCdsUnitTest.test.ts"
+  },
+  {
+    "tool": "UpdateClass",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateClass.test.ts"
+  },
+  {
+    "tool": "UpdateClassMethod",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateClassMethod.test.ts"
+  },
+  {
+    "tool": "UpdateDataElement",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateDataElement.test.ts"
+  },
+  {
+    "tool": "UpdateDomain",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateDomain.test.ts"
+  },
+  {
+    "tool": "UpdateFunctionGroup",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateFunctionGroup.test.ts"
+  },
+  {
+    "tool": "UpdateFunctionModule",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateFunctionModule.test.ts"
+  },
+  {
+    "tool": "UpdateGuiStatus",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateGuiStatus.test.ts"
+  },
+  {
+    "tool": "UpdateInclude",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateInclude.test.ts"
+  },
+  {
+    "tool": "UpdateInterface",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateInterface.test.ts"
+  },
+  {
+    "tool": "UpdateLocalDefinitions",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateLocalDefinitions.test.ts"
+  },
+  {
+    "tool": "UpdateLocalMacros",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateLocalMacros.test.ts"
+  },
+  {
+    "tool": "UpdateLocalTestClass",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateLocalTestClass.test.ts"
+  },
+  {
+    "tool": "UpdateLocalTypes",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateLocalTypes.test.ts"
+  },
+  {
+    "tool": "UpdateMetadataExtension",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateMetadataExtension.test.ts"
+  },
+  {
+    "tool": "UpdateProgram",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateProgram.test.ts"
+  },
+  {
+    "tool": "UpdateScreen",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateScreen.test.ts"
+  },
+  {
+    "tool": "UpdateServiceBinding",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateServiceBinding.test.ts"
+  },
+  {
+    "tool": "UpdateServiceDefinition",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateServiceDefinition.test.ts"
+  },
+  {
+    "tool": "UpdateSourceByPatch",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateSourceByPatch.test.ts"
+  },
+  {
+    "tool": "UpdateStructure",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateStructure.test.ts"
+  },
+  {
+    "tool": "UpdateTable",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateTable.test.ts"
+  },
+  {
+    "tool": "UpdateTextElement",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateTextElement.test.ts"
+  },
+  {
+    "tool": "UpdateUnitTest",
+    "passed": true,
+    "detail": "src/tools/runtime/__tests__/updateUnitTest.test.ts"
+  },
+  {
+    "tool": "UpdateView",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/updateView.test.ts"
+  },
+  {
+    "tool": "ValidateServiceBinding",
+    "passed": true,
+    "detail": "src/tools/read/__tests__/validateServiceBinding.test.ts"
+  },
+  {
+    "tool": "WriteTextElementsBulk",
+    "passed": true,
+    "detail": "src/tools/write/__tests__/writeTextElementsBulk.test.ts"
+  }
+]

@@ -21,7 +21,15 @@
  * | `--env-path` | (필수) | 신 엔진이 붙을 `sap.env`. 녹화 때와 **같은 시스템**이어야 한다 |
  * | `--fixture` | `fixtures/*.json` 전부 | 특정 픽스처 하나만 재생 |
  * | `--out` | (없음) | 커버리지 표를 이 경로에 마크다운으로 쓴다 |
+ * | `--contract-tests` | (없음) | 계약 시험 증거 JSON — `[{ "tool": …, "passed": … }, …]`. 시험을 여기서 돌리지 않고 결과를 **받는다** |
+ * | `--verdict-dir` | `evidence/replay` | **커밋되는 재생 판정 파일**을 쓸 자리. `--no-verdict`로 끈다 |
  * | `--exposition` | 픽스처에 적힌 값 | 픽스처의 기록을 덮어쓴다. 어긋나면 표면이 갈려 대조가 무의미해진다 |
+ *
+ * **판정은 파일로 남는다.** 예전에는 판정이 표준출력과 호출자가 지정한 `--out`
+ * 으로만 나가서, 재생이 돌았다는 사실이 레포에 남지 않았다 — 진척 대장은 그런
+ * 증거를 **미기록**으로 셀 수밖에 없다. 이제 시퀀스마다 판정 파일 한 장이
+ * `evidence/replay/<시퀀스>.json`에 떨어지고, 그 파일이 대장의 재생 열을 채운다.
+ * 형식의 정본은 `harness/ledger/evidence.ts`다.
  *
  * 종료 코드: 0 = 전건 pass · 1 = fail 또는 **no-evidence**.
  * 무증거는 통과가 아니다 — 비교에서 뺀 것이 곧 통과가 되지 않게 하는 것이
@@ -41,6 +49,8 @@ const here = (rel) => fileURLToPath(new URL(rel, import.meta.url));
 const DIST_REPLAY = here('../dist/harness/replay/index.js');
 const DIST_RECORDER = here('../dist/harness/recorder/index.js');
 const DIST_SERVER = here('../dist/src/server/index.js');
+const DIST_LEDGER = here('../dist/harness/ledger/index.js');
+const DIST_REGISTRY = here('../dist/src/tools/registry.js');
 const FIXTURE_DIR = here('../fixtures');
 const CATALOG = here('./old-surface/m1-tools.json');
 
@@ -81,7 +91,13 @@ function cleanup() {
 
 const args = parseArgs(process.argv.slice(2));
 
-for (const [label, p] of [['재생 러너', DIST_REPLAY], ['채록기', DIST_RECORDER], ['서버 코어', DIST_SERVER]]) {
+for (const [label, p] of [
+  ['재생 러너', DIST_REPLAY],
+  ['채록기', DIST_RECORDER],
+  ['서버 코어', DIST_SERVER],
+  ['대장', DIST_LEDGER],
+  ['등록점', DIST_REGISTRY],
+]) {
   if (!fs.existsSync(p)) {
     die(`빌드 산출물이 없다 (${label}): ${p}`, '`npm run build`를 먼저 돌려라.');
   }
@@ -89,6 +105,8 @@ for (const [label, p] of [['재생 러너', DIST_REPLAY], ['채록기', DIST_REC
 const replay = require(DIST_REPLAY);
 const recorder = require(DIST_RECORDER);
 const server = require(DIST_SERVER);
+const ledger = require(DIST_LEDGER);
+const { TOOL_REGISTRY } = require(DIST_REGISTRY);
 
 const envPath = args.values.get('env-path');
 if (!envPath) {
@@ -98,6 +116,22 @@ if (!envPath) {
   );
 }
 if (!fs.existsSync(envPath)) die(`--env-path 가 가리키는 파일이 없다: ${envPath}`);
+
+// 없는 파일을 가리켰다면 SAP에 붙기 **전에** 끊는다 — 재생을 다 돌린 뒤
+// 표를 쓰다가 죽으면 접속만 태우고 증거는 못 남긴다.
+const contractTestsPath = args.values.get('contract-tests')
+  ? path.resolve(args.values.get('contract-tests'))
+  : null;
+if (contractTestsPath !== null && !fs.existsSync(contractTestsPath)) {
+  die(`--contract-tests 가 가리키는 파일이 없다: ${contractTestsPath}`);
+}
+
+// 판정 파일의 자리도 SAP에 붙기 **전에** 정한다. 재생을 다 태운 뒤 쓸 곳이
+// 없어 죽으면 접속만 태우고 증거는 못 남긴다.
+const verdictDir = args.flags.has('no-verdict')
+  ? null
+  : path.resolve(args.values.get('verdict-dir') ?? here(`../${ledger.REPLAY_VERDICT_DIR}`));
+if (verdictDir !== null) fs.mkdirSync(verdictDir, { recursive: true });
 
 const fixtureFiles = args.values.get('fixture')
   ? [path.resolve(args.values.get('fixture'))]
@@ -210,9 +244,40 @@ try {
   cleanup();
 }
 
+// ── 판정 파일 ────────────────────────────────────────────────────────────────
+// 표준출력은 세션이 끝나면 사라진다. 레포에 남는 판정 파일만이 다음 판의
+// 진척 대장에서 증거로 잡힌다 — 문서에 적힌 "재생 증거 N종"은 잡히지 않는다.
+if (verdictDir !== null) {
+  const at = new Date().toISOString();
+  for (const result of results) {
+    const file = path.join(verdictDir, `${result.sequenceId}.json`);
+    const document = ledger.replayVerdictDocument(result, at);
+    fs.writeFileSync(file, `${JSON.stringify(document, null, 2)}\n`, 'utf8');
+    console.log(`재생 판정 → ${file}`);
+  }
+  console.log('   · 이 파일을 커밋해야 진척 대장의 재생 열이 「미기록」에서 벗어난다.');
+}
+
 // ── 커버리지 표 ──────────────────────────────────────────────────────────────
 
-const report = replay.buildCoverage({ tools: replay.loadM1ToolNames(CATALOG), replays: results });
+// 재생 실행 자체가 신 엔진의 attended 실기다 — 같은 질문을 사람 입회 아래 SAP에
+// 다시 던졌다. 그 사실을 표에 넘기지 않으면 실기 기록이 있어도 "증거 없음"에
+// 영원히 남는다. 계약 시험은 여기서 돌리지 않고 결과를 받는다.
+const contractTests = contractTestsPath
+  ? replay.parseContractEvidence(fs.readFileSync(contractTestsPath, 'utf8'), path.basename(contractTestsPath))
+  : [];
+
+// 표의 행은 표면 **186종 전량**이다. 예전에는 M1 19종만 실었고, 그때는 19종이
+// 곧 등록점이라 「지음」 판정이 필요 없었다. 이제 행이 채록본 전량이므로
+// 등록점을 함께 넘긴다 — 넘기지 않으면 계산기가 등록 여부를 판정하지 않아
+// 아직 안 지은 도구까지 「지음」으로 실린다.
+const report = replay.buildCoverage({
+  tools: replay.loadCapturedToolNames(CATALOG),
+  registered: TOOL_REGISTRY.map((tool) => tool.definition.name),
+  replays: results,
+  attended: replay.attendedEvidenceFromReplays(results),
+  contractTests,
+});
 const markdown = replay.renderCoverageMarkdown(report);
 
 const outPath = args.values.get('out');

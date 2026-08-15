@@ -72,6 +72,7 @@ export const updateInclude = defineTool(
     available_in: ['onprem', 'legacy'],
     sets: ['high'],
     kind: 'mutation',
+    targetNames: ['include_name', 'main_program'],
   },
   async (context: ToolContext, args) => {
     const { logger } = context;

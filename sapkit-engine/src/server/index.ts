@@ -12,13 +12,22 @@ export type { ServerCore, ServerCoreOptions } from './core';
 export { ROW_DATA_ARGS, evaluateToolCall } from './gates';
 export type { GateContext, GateDecision, GateDenyCode, GatedTool } from './gates';
 
+export { ProfileSession } from './session';
+export type { ConnectionFactory, ProfileReload, ProfileSnapshot } from './session';
+
 export { resolveStartup } from './startup';
-export type { Startup, StartupInput } from './startup';
+export type { ResolvedStartupInput, Startup, StartupInput } from './startup';
 
 export { startFromProcess } from './bootstrap';
 export type { BootstrapOptions, StartedServer } from './bootstrap';
 
-export { NOOP_LOGGER, defineTool, toExposableTool } from './toolDefinition';
+export {
+  NOOP_LOGGER,
+  TARGET_NAME_REQUIRED_KINDS,
+  defineTool,
+  missingTargetNameDeclarations,
+  toExposableTool,
+} from './toolDefinition';
 export type {
   SapTool,
   SapToolDefinition,
@@ -28,5 +37,6 @@ export type {
   ToolInputShape,
   ToolLogger,
   ToolResult,
+  ToolTargetName,
   ToolTextContent,
 } from './toolDefinition';

@@ -77,9 +77,22 @@ export const SERVER_CONTROL_TOOLS: ReadonlySet<string> = new Set(['ReloadProfile
 /**
  * Names that change or run something, whatever the registry claims. Used only
  * to catch a mis-declared entry — never as the primary classification.
+ *
+ * **`Run(?!time)` is deliberate, and the negative lookahead is the whole point.**
+ * The old guard classified by *name*, so `RunUnitTest` was fail-closed simply by
+ * not being a read prefix (`engine/src/lib/readonlyGuard.ts:42-54`). This engine
+ * classifies by *declaration*, so a registry line reading `kind: 'read'` would
+ * have carried `RunUnitTest` straight through PRD — measured by sabotage while
+ * the unit-test bundle was built, and strictly weaker than the engine it
+ * replaces. Adding the name to this cross-check restores the old floor.
+ *
+ * A bare `^Run` would over-block: the twelve `Runtime*` tools are dump and
+ * profiler **reads** that the old guard allowed on QA/PRD, and blocking them
+ * would be a regression in the other direction. The two `Runtime*` names that
+ * really do run or create stay listed explicitly.
  */
 const DANGEROUS_NAME_RE =
-  /^(Create|Update|Delete|Activate|Release|Patch|Write|Install|RuntimeRun|RuntimeCreate)/;
+  /^(Create|Update|Delete|Activate|Release|Patch|Write|Install|Run(?!time)|RuntimeRun|RuntimeCreate)/;
 
 const ALLOWED: TierDecision = { allowed: true };
 

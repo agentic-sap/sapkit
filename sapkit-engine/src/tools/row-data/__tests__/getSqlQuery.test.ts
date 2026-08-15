@@ -51,12 +51,13 @@ interface CapturedTool {
   readonly inputSchema: Record<string, unknown>;
 }
 
+/** 읽는 키는 `tools`(전량 선언 186종)다 — `m1`(19종)이면 M1 밖 도구를 못 짓는다. */
 function capturedGetSqlQuery(): CapturedTool {
   const parsed = JSON.parse(fs.readFileSync(M1_TOOLS, 'utf8')) as {
-    m1: Record<string, CapturedTool>;
+    tools: Record<string, CapturedTool>;
   };
-  const tool = parsed.m1['GetSqlQuery'];
-  if (!tool) throw new Error('채록본에 GetSqlQuery가 없다');
+  const tool = parsed.tools['GetSqlQuery'];
+  if (!tool) throw new Error('채록본의 전량 선언에 GetSqlQuery가 없다');
   return tool;
 }
 

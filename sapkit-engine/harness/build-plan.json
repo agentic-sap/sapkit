@@ -1,0 +1,896 @@
+{
+  "formatVersion": 1,
+  "bundles": [
+    {
+      "id": "system",
+      "title": "시스템·공통 조회",
+      "order": 1
+    },
+    {
+      "id": "search",
+      "title": "검색",
+      "order": 2
+    },
+    {
+      "id": "common",
+      "title": "공통 편집·활성",
+      "order": 3
+    },
+    {
+      "id": "runtime",
+      "title": "런타임 — 덤프·프로파일러·시스템 메시지",
+      "order": 4
+    },
+    {
+      "id": "include",
+      "title": "인클루드",
+      "order": 5
+    },
+    {
+      "id": "class",
+      "title": "클래스",
+      "order": 6
+    },
+    {
+      "id": "table",
+      "title": "테이블",
+      "order": 7
+    },
+    {
+      "id": "program",
+      "title": "프로그램",
+      "order": 8
+    },
+    {
+      "id": "function-module",
+      "title": "함수모듈",
+      "order": 9
+    },
+    {
+      "id": "structure",
+      "title": "구조체",
+      "order": 10
+    },
+    {
+      "id": "view",
+      "title": "뷰",
+      "order": 11
+    },
+    {
+      "id": "unit-test",
+      "title": "단위시험",
+      "order": 12
+    },
+    {
+      "id": "behavior-definition",
+      "title": "동작 정의 (BDEF)",
+      "order": 13
+    },
+    {
+      "id": "data-element",
+      "title": "데이터 엘리먼트",
+      "order": 14
+    },
+    {
+      "id": "service-binding",
+      "title": "서비스 바인딩",
+      "order": 15
+    },
+    {
+      "id": "domain",
+      "title": "도메인",
+      "order": 16
+    },
+    {
+      "id": "transport",
+      "title": "트랜스포트",
+      "order": 17
+    },
+    {
+      "id": "metadata-extension",
+      "title": "메타데이터 확장 (DDLX)",
+      "order": 18
+    },
+    {
+      "id": "gui-status",
+      "title": "GUI 상태",
+      "order": 19
+    },
+    {
+      "id": "text-element",
+      "title": "텍스트 엘리먼트",
+      "order": 20
+    },
+    {
+      "id": "atc",
+      "title": "ATC",
+      "order": 21
+    },
+    {
+      "id": "package",
+      "title": "패키지",
+      "order": 22
+    },
+    {
+      "id": "screen",
+      "title": "화면",
+      "order": 23
+    },
+    {
+      "id": "service-definition",
+      "title": "서비스 정의",
+      "order": 24
+    },
+    {
+      "id": "behavior-implementation",
+      "title": "동작 구현 (BIMP)",
+      "order": 25
+    },
+    {
+      "id": "function-group",
+      "title": "함수그룹",
+      "order": 26
+    },
+    {
+      "id": "interface",
+      "title": "인터페이스",
+      "order": 27
+    },
+    {
+      "id": "enhancement",
+      "title": "인핸스먼트",
+      "order": 28
+    },
+    {
+      "id": "tail",
+      "title": "꼬리 — 호출·참조 양쪽 0",
+      "order": 29
+    }
+  ],
+  "tools": {
+    "ActivateObjects": {
+      "bundle": "common",
+      "requiredGrade": "replay"
+    },
+    "CheckSyntax": {
+      "bundle": "system",
+      "requiredGrade": "replay"
+    },
+    "CreateBehaviorDefinition": {
+      "bundle": "behavior-definition",
+      "requiredGrade": "attended"
+    },
+    "CreateBehaviorImplementation": {
+      "bundle": "behavior-implementation",
+      "requiredGrade": "attended"
+    },
+    "CreateCdsUnitTest": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "CreateClass": {
+      "bundle": "class",
+      "requiredGrade": "attended"
+    },
+    "CreateDataElement": {
+      "bundle": "data-element",
+      "requiredGrade": "attended"
+    },
+    "CreateDomain": {
+      "bundle": "domain",
+      "requiredGrade": "attended"
+    },
+    "CreateFunctionGroup": {
+      "bundle": "function-group",
+      "requiredGrade": "attended"
+    },
+    "CreateFunctionModule": {
+      "bundle": "function-module",
+      "requiredGrade": "attended"
+    },
+    "CreateGuiStatus": {
+      "bundle": "gui-status",
+      "requiredGrade": "attended"
+    },
+    "CreateInclude": {
+      "bundle": "include",
+      "requiredGrade": "attended"
+    },
+    "CreateInterface": {
+      "bundle": "interface",
+      "requiredGrade": "attended"
+    },
+    "CreateMetadataExtension": {
+      "bundle": "metadata-extension",
+      "requiredGrade": "attended"
+    },
+    "CreatePackage": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "CreateProgram": {
+      "bundle": "program",
+      "requiredGrade": "attended"
+    },
+    "CreateScreen": {
+      "bundle": "screen",
+      "requiredGrade": "attended"
+    },
+    "CreateServiceBinding": {
+      "bundle": "service-binding",
+      "requiredGrade": "attended"
+    },
+    "CreateServiceDefinition": {
+      "bundle": "service-definition",
+      "requiredGrade": "attended"
+    },
+    "CreateStructure": {
+      "bundle": "structure",
+      "requiredGrade": "attended"
+    },
+    "CreateTable": {
+      "bundle": "table",
+      "requiredGrade": "attended"
+    },
+    "CreateTextElement": {
+      "bundle": "text-element",
+      "requiredGrade": "attended"
+    },
+    "CreateTransport": {
+      "bundle": "transport",
+      "requiredGrade": "attended"
+    },
+    "CreateUnitTest": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "CreateView": {
+      "bundle": "view",
+      "requiredGrade": "attended"
+    },
+    "DeleteBehaviorDefinition": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteBehaviorImplementation": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteCdsUnitTest": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteClass": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteDataElement": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteDomain": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteFunctionGroup": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteFunctionModule": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteGuiStatus": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteInclude": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteInterface": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteLocalDefinitions": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteLocalMacros": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteLocalTestClass": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteLocalTypes": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteMetadataExtension": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteProgram": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteScreen": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteServiceBinding": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteServiceDefinition": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteStructure": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteTable": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteTextElement": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteUnitTest": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DeleteView": {
+      "bundle": "tail",
+      "requiredGrade": "attended"
+    },
+    "DescribeByList": {
+      "bundle": "system",
+      "requiredGrade": "replay"
+    },
+    "GetAbapAST": {
+      "bundle": "system",
+      "requiredGrade": "contract"
+    },
+    "GetAbapSemanticAnalysis": {
+      "bundle": "system",
+      "requiredGrade": "contract"
+    },
+    "GetAbapSystemSymbols": {
+      "bundle": "system",
+      "requiredGrade": "replay"
+    },
+    "GetAdtTypes": {
+      "bundle": "tail",
+      "requiredGrade": "contract"
+    },
+    "GetAtcFindings": {
+      "bundle": "atc",
+      "requiredGrade": "replay"
+    },
+    "GetBadiImplementations": {
+      "bundle": "tail",
+      "requiredGrade": "contract"
+    },
+    "GetBehaviorDefinition": {
+      "bundle": "behavior-definition",
+      "requiredGrade": "replay"
+    },
+    "GetBehaviorImplementation": {
+      "bundle": "behavior-implementation",
+      "requiredGrade": "replay"
+    },
+    "GetCallGraph": {
+      "bundle": "tail",
+      "requiredGrade": "contract"
+    },
+    "GetCdsUnitTest": {
+      "bundle": "tail",
+      "requiredGrade": "contract"
+    },
+    "GetCdsUnitTestResult": {
+      "bundle": "tail",
+      "requiredGrade": "contract"
+    },
+    "GetCdsUnitTestStatus": {
+      "bundle": "tail",
+      "requiredGrade": "contract"
+    },
+    "GetClass": {
+      "bundle": "class",
+      "requiredGrade": "replay"
+    },
+    "GetClassMethod": {
+      "bundle": "class",
+      "requiredGrade": "replay"
+    },
+    "GetDataElement": {
+      "bundle": "data-element",
+      "requiredGrade": "replay"
+    },
+    "GetDomain": {
+      "bundle": "domain",
+      "requiredGrade": "replay"
+    },
+    "GetEnhancementImpl": {
+      "bundle": "enhancement",
+      "requiredGrade": "contract"
+    },
+    "GetEnhancementSpot": {
+      "bundle": "enhancement",
+      "requiredGrade": "contract"
+    },
+    "GetEnhancements": {
+      "bundle": "enhancement",
+      "requiredGrade": "contract"
+    },
+    "GetFunctionGroup": {
+      "bundle": "function-group",
+      "requiredGrade": "replay"
+    },
+    "GetFunctionModule": {
+      "bundle": "function-module",
+      "requiredGrade": "replay"
+    },
+    "GetGuiStatus": {
+      "bundle": "gui-status",
+      "requiredGrade": "replay"
+    },
+    "GetGuiStatusList": {
+      "bundle": "gui-status",
+      "requiredGrade": "replay"
+    },
+    "GetInactiveObjects": {
+      "bundle": "system",
+      "requiredGrade": "replay"
+    },
+    "GetInclude": {
+      "bundle": "include",
+      "requiredGrade": "replay"
+    },
+    "GetIncludesList": {
+      "bundle": "include",
+      "requiredGrade": "replay"
+    },
+    "GetInstalledComponents": {
+      "bundle": "system",
+      "requiredGrade": "replay"
+    },
+    "GetInterface": {
+      "bundle": "interface",
+      "requiredGrade": "replay"
+    },
+    "GetLocalDefinitions": {
+      "bundle": "class",
+      "requiredGrade": "contract"
+    },
+    "GetLocalMacros": {
+      "bundle": "class",
+      "requiredGrade": "contract"
+    },
+    "GetLocalTestClass": {
+      "bundle": "class",
+      "requiredGrade": "replay"
+    },
+    "GetLocalTypes": {
+      "bundle": "class",
+      "requiredGrade": "replay"
+    },
+    "GetMetadataExtension": {
+      "bundle": "metadata-extension",
+      "requiredGrade": "replay"
+    },
+    "GetNodeStructureLow": {
+      "bundle": "tail",
+      "requiredGrade": "contract"
+    },
+    "GetObjectInfo": {
+      "bundle": "system",
+      "requiredGrade": "contract"
+    },
+    "GetObjectNodeFromCache": {
+      "bundle": "tail",
+      "requiredGrade": "contract"
+    },
+    "GetObjectStructure": {
+      "bundle": "system",
+      "requiredGrade": "replay"
+    },
+    "GetObjectStructureLow": {
+      "bundle": "tail",
+      "requiredGrade": "contract"
+    },
+    "GetObjectsByType": {
+      "bundle": "search",
+      "requiredGrade": "contract"
+    },
+    "GetObjectsList": {
+      "bundle": "tail",
+      "requiredGrade": "contract"
+    },
+    "GetPackage": {
+      "bundle": "package",
+      "requiredGrade": "replay"
+    },
+    "GetPackageContents": {
+      "bundle": "package",
+      "requiredGrade": "replay"
+    },
+    "GetPackageTree": {
+      "bundle": "system",
+      "requiredGrade": "contract"
+    },
+    "GetProgFullCode": {
+      "bundle": "program",
+      "requiredGrade": "replay"
+    },
+    "GetProgram": {
+      "bundle": "program",
+      "requiredGrade": "replay"
+    },
+    "GetScreen": {
+      "bundle": "screen",
+      "requiredGrade": "replay"
+    },
+    "GetScreensList": {
+      "bundle": "screen",
+      "requiredGrade": "replay"
+    },
+    "GetServiceBinding": {
+      "bundle": "service-binding",
+      "requiredGrade": "replay"
+    },
+    "GetServiceDefinition": {
+      "bundle": "service-definition",
+      "requiredGrade": "replay"
+    },
+    "GetSession": {
+      "bundle": "system",
+      "requiredGrade": "replay"
+    },
+    "GetSourceDiff": {
+      "bundle": "common",
+      "requiredGrade": "contract"
+    },
+    "GetSqlQuery": {
+      "bundle": "system",
+      "requiredGrade": "replay"
+    },
+    "GetStructure": {
+      "bundle": "structure",
+      "requiredGrade": "replay"
+    },
+    "GetSystemInfo": {
+      "bundle": "system",
+      "requiredGrade": "replay"
+    },
+    "GetTable": {
+      "bundle": "table",
+      "requiredGrade": "replay"
+    },
+    "GetTableContents": {
+      "bundle": "table",
+      "requiredGrade": "replay"
+    },
+    "GetTextElement": {
+      "bundle": "text-element",
+      "requiredGrade": "replay"
+    },
+    "GetTransaction": {
+      "bundle": "system",
+      "requiredGrade": "replay"
+    },
+    "GetTransport": {
+      "bundle": "transport",
+      "requiredGrade": "replay"
+    },
+    "GetTypeInfo": {
+      "bundle": "system",
+      "requiredGrade": "replay"
+    },
+    "GetUnitTest": {
+      "bundle": "unit-test",
+      "requiredGrade": "replay"
+    },
+    "GetUnitTestResult": {
+      "bundle": "unit-test",
+      "requiredGrade": "replay"
+    },
+    "GetUnitTestStatus": {
+      "bundle": "unit-test",
+      "requiredGrade": "replay"
+    },
+    "GetView": {
+      "bundle": "view",
+      "requiredGrade": "replay"
+    },
+    "GetVirtualFoldersLow": {
+      "bundle": "tail",
+      "requiredGrade": "contract"
+    },
+    "GetWhereUsed": {
+      "bundle": "system",
+      "requiredGrade": "replay"
+    },
+    "GrepObjects": {
+      "bundle": "search",
+      "requiredGrade": "replay"
+    },
+    "GrepPackages": {
+      "bundle": "search",
+      "requiredGrade": "replay"
+    },
+    "ListServiceBindingTypes": {
+      "bundle": "service-binding",
+      "requiredGrade": "replay"
+    },
+    "ListTransports": {
+      "bundle": "transport",
+      "requiredGrade": "replay"
+    },
+    "PatchGuiStatus": {
+      "bundle": "gui-status",
+      "requiredGrade": "replay"
+    },
+    "ReadBehaviorDefinition": {
+      "bundle": "behavior-definition",
+      "requiredGrade": "replay"
+    },
+    "ReadBehaviorImplementation": {
+      "bundle": "behavior-implementation",
+      "requiredGrade": "replay"
+    },
+    "ReadClass": {
+      "bundle": "class",
+      "requiredGrade": "replay"
+    },
+    "ReadDataElement": {
+      "bundle": "data-element",
+      "requiredGrade": "replay"
+    },
+    "ReadDomain": {
+      "bundle": "domain",
+      "requiredGrade": "replay"
+    },
+    "ReadFunctionGroup": {
+      "bundle": "function-group",
+      "requiredGrade": "contract"
+    },
+    "ReadFunctionModule": {
+      "bundle": "function-module",
+      "requiredGrade": "replay"
+    },
+    "ReadGuiStatus": {
+      "bundle": "gui-status",
+      "requiredGrade": "replay"
+    },
+    "ReadInterface": {
+      "bundle": "interface",
+      "requiredGrade": "contract"
+    },
+    "ReadMetadataExtension": {
+      "bundle": "metadata-extension",
+      "requiredGrade": "replay"
+    },
+    "ReadPackage": {
+      "bundle": "tail",
+      "requiredGrade": "contract"
+    },
+    "ReadProgram": {
+      "bundle": "program",
+      "requiredGrade": "replay"
+    },
+    "ReadScreen": {
+      "bundle": "screen",
+      "requiredGrade": "replay"
+    },
+    "ReadServiceBinding": {
+      "bundle": "service-binding",
+      "requiredGrade": "replay"
+    },
+    "ReadServiceDefinition": {
+      "bundle": "service-definition",
+      "requiredGrade": "replay"
+    },
+    "ReadStructure": {
+      "bundle": "structure",
+      "requiredGrade": "replay"
+    },
+    "ReadTable": {
+      "bundle": "table",
+      "requiredGrade": "replay"
+    },
+    "ReadTextElementsBulk": {
+      "bundle": "text-element",
+      "requiredGrade": "replay"
+    },
+    "ReadView": {
+      "bundle": "view",
+      "requiredGrade": "replay"
+    },
+    "ReleaseTransport": {
+      "bundle": "transport",
+      "requiredGrade": "contract"
+    },
+    "ReloadProfile": {
+      "bundle": "runtime",
+      "requiredGrade": "replay"
+    },
+    "RunUnitTest": {
+      "bundle": "unit-test",
+      "requiredGrade": "replay"
+    },
+    "RuntimeAnalyzeDump": {
+      "bundle": "runtime",
+      "requiredGrade": "contract"
+    },
+    "RuntimeAnalyzeProfilerTrace": {
+      "bundle": "runtime",
+      "requiredGrade": "replay"
+    },
+    "RuntimeCreateProfilerTraceParameters": {
+      "bundle": "runtime",
+      "requiredGrade": "contract"
+    },
+    "RuntimeGetDumpById": {
+      "bundle": "runtime",
+      "requiredGrade": "contract"
+    },
+    "RuntimeGetGatewayErrorLog": {
+      "bundle": "runtime",
+      "requiredGrade": "replay"
+    },
+    "RuntimeGetProfilerTraceData": {
+      "bundle": "runtime",
+      "requiredGrade": "replay"
+    },
+    "RuntimeListDumps": {
+      "bundle": "runtime",
+      "requiredGrade": "replay"
+    },
+    "RuntimeListFeeds": {
+      "bundle": "tail",
+      "requiredGrade": "contract"
+    },
+    "RuntimeListProfilerTraceFiles": {
+      "bundle": "runtime",
+      "requiredGrade": "replay"
+    },
+    "RuntimeListSystemMessages": {
+      "bundle": "tail",
+      "requiredGrade": "contract"
+    },
+    "RuntimeRunClassWithProfiling": {
+      "bundle": "runtime",
+      "requiredGrade": "replay"
+    },
+    "RuntimeRunProgramWithProfiling": {
+      "bundle": "runtime",
+      "requiredGrade": "replay"
+    },
+    "SearchObject": {
+      "bundle": "search",
+      "requiredGrade": "replay"
+    },
+    "UpdateBehaviorDefinition": {
+      "bundle": "behavior-definition",
+      "requiredGrade": "replay"
+    },
+    "UpdateBehaviorImplementation": {
+      "bundle": "behavior-implementation",
+      "requiredGrade": "replay"
+    },
+    "UpdateCdsUnitTest": {
+      "bundle": "tail",
+      "requiredGrade": "contract"
+    },
+    "UpdateClass": {
+      "bundle": "class",
+      "requiredGrade": "replay"
+    },
+    "UpdateClassMethod": {
+      "bundle": "class",
+      "requiredGrade": "replay"
+    },
+    "UpdateDataElement": {
+      "bundle": "tail",
+      "requiredGrade": "contract"
+    },
+    "UpdateDomain": {
+      "bundle": "tail",
+      "requiredGrade": "contract"
+    },
+    "UpdateFunctionGroup": {
+      "bundle": "tail",
+      "requiredGrade": "contract"
+    },
+    "UpdateFunctionModule": {
+      "bundle": "function-module",
+      "requiredGrade": "replay"
+    },
+    "UpdateGuiStatus": {
+      "bundle": "gui-status",
+      "requiredGrade": "contract"
+    },
+    "UpdateInclude": {
+      "bundle": "include",
+      "requiredGrade": "replay"
+    },
+    "UpdateInterface": {
+      "bundle": "interface",
+      "requiredGrade": "contract"
+    },
+    "UpdateLocalDefinitions": {
+      "bundle": "tail",
+      "requiredGrade": "contract"
+    },
+    "UpdateLocalMacros": {
+      "bundle": "tail",
+      "requiredGrade": "contract"
+    },
+    "UpdateLocalTestClass": {
+      "bundle": "class",
+      "requiredGrade": "replay"
+    },
+    "UpdateLocalTypes": {
+      "bundle": "class",
+      "requiredGrade": "replay"
+    },
+    "UpdateMetadataExtension": {
+      "bundle": "metadata-extension",
+      "requiredGrade": "replay"
+    },
+    "UpdateProgram": {
+      "bundle": "program",
+      "requiredGrade": "replay"
+    },
+    "UpdateScreen": {
+      "bundle": "screen",
+      "requiredGrade": "contract"
+    },
+    "UpdateServiceBinding": {
+      "bundle": "service-binding",
+      "requiredGrade": "replay"
+    },
+    "UpdateServiceDefinition": {
+      "bundle": "service-definition",
+      "requiredGrade": "replay"
+    },
+    "UpdateSourceByPatch": {
+      "bundle": "common",
+      "requiredGrade": "replay"
+    },
+    "UpdateStructure": {
+      "bundle": "structure",
+      "requiredGrade": "replay"
+    },
+    "UpdateTable": {
+      "bundle": "table",
+      "requiredGrade": "replay"
+    },
+    "UpdateTextElement": {
+      "bundle": "text-element",
+      "requiredGrade": "contract"
+    },
+    "UpdateUnitTest": {
+      "bundle": "tail",
+      "requiredGrade": "contract"
+    },
+    "UpdateView": {
+      "bundle": "view",
+      "requiredGrade": "replay"
+    },
+    "ValidateServiceBinding": {
+      "bundle": "service-binding",
+      "requiredGrade": "replay"
+    },
+    "WriteTextElementsBulk": {
+      "bundle": "text-element",
+      "requiredGrade": "replay"
+    }
+  }
+}

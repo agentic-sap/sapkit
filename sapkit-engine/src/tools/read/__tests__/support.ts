@@ -211,7 +211,13 @@ export async function runTool(
   }
 }
 
-/** 채록본(`harness/old-surface/m1-tools.json`)의 그 도구 항목. */
+/**
+ * 채록본(`harness/old-surface/m1-tools.json`)의 그 도구 항목.
+ *
+ * 읽는 키는 **`tools`(전량 선언 186종)**이지 `m1`(19종)이 아니다. `m1`을 읽으면
+ * M1 밖 도구를 지을 때 그 도구의 계약 시험이 채록본에서 자기 선언을 못 찾아
+ * **지을 수가 없다.** `m1` 키는 다른 소비자를 위해 파일에 그대로 남아 있다.
+ */
 export function publishedDeclaration(name: string): {
   name: string;
   description: string;
@@ -220,9 +226,9 @@ export function publishedDeclaration(name: string): {
 } {
   const file = path.join(__dirname, '..', '..', '..', '..', 'harness', 'old-surface', 'm1-tools.json');
   const parsed = JSON.parse(fs.readFileSync(file, 'utf8')) as {
-    m1: Record<string, { name: string; description: string; inputSchema: unknown; execution: unknown }>;
+    tools: Record<string, { name: string; description: string; inputSchema: unknown; execution: unknown }>;
   };
-  const entry = parsed.m1[name];
-  if (!entry) throw new Error(`m1-tools.json에 ${name} 항목이 없다`);
+  const entry = parsed.tools[name];
+  if (!entry) throw new Error(`m1-tools.json의 tools(전량 선언)에 ${name} 항목이 없다`);
   return entry;
 }

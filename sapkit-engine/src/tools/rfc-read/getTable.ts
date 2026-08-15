@@ -39,6 +39,7 @@ export const getTable = defineTool(
     available_in: ['onprem', 'cloud'],
     sets: ['high'],
     kind: 'read',
+    targetNames: ['table_name'],
   },
   async (context, args) =>
     readDdicObject(TABLE, context, { name: args.table_name, version: args.version }),

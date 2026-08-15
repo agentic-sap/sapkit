@@ -13,42 +13,61 @@
   목록(divergence allowlist)**에 등재된 항목은 diff 비교 대신 **대체 기대 시험**
   으로 판정하며, 각 항목은 근거 문서 경로를 가진다. 도구 × 증거 급을 기록한
   **커버리지 표**를 산출한다.
+- `ledger/` — 등록점·표면 채록본·제작 계획·증거 파일에서 **진척 대장**
+  (`../TOOL-LEDGER.md`)을 계산하고, 커밋본과 대조한다. 상태 3칸의 계산은
+  `replay/coverage.ts`가 소유하고 여기서 다시 짜지 않는다. 증거는 **레포 안의
+  파일**에서만 온다 — 문서 서술과 옛 콘솔 출력은 입력이 아니다(`../evidence/README.md`).
 
 ## 진입점 (조립기 — 판정 규칙을 다시 구현하지 않는다)
 
 | 파일 | 구간 | 하는 일 |
 |---|---|---|
 | `record-attended.mjs` | **C1** | 시나리오를 구 번들에 태워 픽스처로 저장 |
-| `replay-attended.mjs` | **C2** | 픽스처를 신 엔진에 먹여 판정 + 커버리지 표 |
+| `replay-attended.mjs` | **C2** | 픽스처를 신 엔진에 먹여 판정 + 커버리지 표 + **판정 파일**(`../evidence/replay/`) |
+| `render-ledger.mjs` | 오프라인 | 진척 대장(`../TOOL-LEDGER.md`)을 계산해 쓰거나 `--check`로 대조 |
+| `contract-evidence.mjs` | 오프라인 | jest `--json` 보고서를 도구별 통과로 접어 `../evidence/contract/results.json` |
 | `auth-guard.mjs` | 공용 | 401 계열 첫 건에서 전송을 끊는다 |
 | `scenarios/` | C1 입력 | 무엇을 물어볼지 적어 두는 곳 (형식은 그 README) |
 | `fixtures/` (`../fixtures/`) | C1 산출 | 채록된 시퀀스. 마스킹 통과분만 |
 | `old-surface/` | 기준선 | 구 번들 `tools/list` 오프라인 채록본 |
+| `build-plan.mjs` | 오프라인 | 묶음·제작 순서·요구 증거 급을 **계산해** `build-plan.json`을 쓰거나 `--check`로 대조 |
+| `build-plan.json` | 계획 | 묶음 29 · 도구 186종의 묶음·제작 순서·요구 증거 급. 사람이 읽을 근거는 `BUILD-PLAN.md` |
 
 ```powershell
 node harness/record-attended.mjs --scenario=<id> --dry-run          # SAP 불필요
 node harness/record-attended.mjs --scenario=<id> --env-path=<sap.env>
 node harness/replay-attended.mjs --env-path=<sap.env>
+node harness/render-ledger.mjs                                      # SAP 불필요
+node harness/render-ledger.mjs --check                              # SAP 불필요
+node harness/build-plan.mjs                                         # SAP 불필요
+node harness/build-plan.mjs --check                                 # SAP 불필요
 ```
 
-**둘 다 SAP에 접속한다.** 재생은 응답을 흉내 내는 것이 아니라 신 엔진이 같은
-질문을 다시 던지는 일이라, C1뿐 아니라 **C2도 attended 구간**이다.
+**C1·C2는 SAP에 접속한다.** 재생은 응답을 흉내 내는 것이 아니라 신 엔진이 같은
+질문을 다시 던지는 일이라, C1뿐 아니라 **C2도 attended 구간**이다. 대장·계획 계열
+(`render-ledger.mjs`·`contract-evidence.mjs`·`build-plan.mjs`)은 레포 안의 파일만
+읽는 오프라인 도구다.
 
 ## 진입점이 지키는 것 (라이브러리가 안 보는 축)
 
 - **강등 감지** — 무접속 문구가 섞였거나 · 전 단계가 오류이거나 · 신 엔진을
   잘못 채록했으면 **저장하지 않는다.** 반쪽 증거를 커밋하면 신 엔진이 맞추는
   기준 자체가 틀어진다.
-- **고객 네임스페이스 제한** — **대상이 고객 객체(Z·Y)여야 하는 도구 15종**을
-  태우기 **전에** 판정한다. 둘이 같은 제약을 진다: 원본 소스를 돌려주는 8종
-  (`GetClass` `GetProgram` `GetInclude` `GetFunctionModule` `GetTable`
-  `GetStructure` `GrepObjects` `GetSourceDiff` — 마스킹 검사기는 제3자
+- **고객 네임스페이스 제한** — **대상이 고객 객체(Z·Y)여야 하는 도구**를 태우기
+  **전에** 판정한다. 무엇을 검사할지는 **도구 선언**에서 온다:
+  `SapToolDefinition.targetNames`가 그 도구의 대상-이름 인자를 밝히고,
+  `harness/targetGuard.ts`가 그 선언을 읽어 검사기를 만든다 — 녹화 스크립트에
+  이름 표를 두지 않는다. 도구를 지으면 사전 검사가 자동으로 따라오고, **SAP을
+  바꾸는 도구(`mutation`·`execution`)는 선언 없이는 게이트를 통과하지 못한다**
+  (`src/tools/__tests__/targetNames.test.ts`).
+  둘이 같은 제약을 진다: 원본 소스를 돌려주는 것(마스킹 검사기는 제3자
   소스코드를 보지 않으므로 표준 소스가 공개 레포에 박히는 것을 여기서 막는다)
-  와 SAP을 바꾸는 7종(`Create*` `Update*` `ActivateObjects` — P3는 DEV 연습
-  자리(전용 패키지 또는 `$TMP`) 안에서만이고, 사후에 걸러 봐야 write는 이미
-  일어난 뒤다). **연습 자리 축은 러너가 검사하지 않는다** — 강제되는 것은
-  Z·Y 네임스페이스뿐이고, 패키지는 시나리오 작성자의 책임이다.
-  목록 밖 도구는 인자·응답의 ABAP 원본 표지로 **사후** 차단한다.
+  과 SAP을 바꾸는 것(P3는 DEV 연습 자리(전용 패키지 또는 `$TMP`) 안에서만이고,
+  사후에 걸러 봐야 write는 이미 일어난 뒤다). **연습 자리 축은 러너가 검사하지
+  않는다** — 강제되는 것은 Z·Y 네임스페이스뿐이고, 패키지는 시나리오 작성자의
+  책임이다. **선언이 없는 도구는 막지 않는다** — 신 엔진이 아직 짓지 않은 구
+  번들 도구가 대다수라 여기서 fail-closed로 뒤집으면 녹화가 통째로 막힌다.
+  그쪽은 지금처럼 인자·응답의 ABAP 원본 표지로 **사후** 차단한다.
   (`--allow-standard-source`로 풀 수 있으나 그 픽스처는 커밋하지 말 것.)
 - **인증 실패 중단** — 오류 응답도 대조 대상이라 러너는 다음 단계를 계속
   태우는 것이 옳지만, **인증 실패만은 반복이 계정 잠금을 부른다**(2026-08-11

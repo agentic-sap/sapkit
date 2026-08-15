@@ -93,6 +93,11 @@ export function harness(options: {
     profile,
     logger: NOOP_LOGGER,
     env: options.env ?? {},
+    // 이 장치는 서버 코어를 세우지 않으므로 재적재할 세션이 없다. 조용한 no-op을
+    // 두면 재적재를 부르는 도구가 여기서 통과해 버린다 — 크게 터뜨린다.
+    reloadProfile: () => {
+      throw new Error('이 시험 장치는 프로파일 재적재를 지원하지 않는다');
+    },
   };
   return { context, adtCalls: spy.calls, connectionCalls };
 }

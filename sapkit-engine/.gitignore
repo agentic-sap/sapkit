@@ -6,6 +6,10 @@ node_modules
 dist
 coverage
 
+# jest 원시 보고서 — 절대 경로·머신 사정이 섞여 있다. 접힌 결과
+# (evidence/contract/results.json)만 커밋한다.
+.jest-report.json
+
 # 접속 정보 — 절대 커밋 금지 (CLAUDE.md 안전 규칙)
 .env
 *.env

@@ -42,6 +42,7 @@ export const getClass = defineTool(
     available_in: ['onprem', 'cloud', 'legacy'],
     sets: ['high'],
     kind: 'read',
+    targetNames: ['class_name'],
   },
   async (context, args) => {
     try {

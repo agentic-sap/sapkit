@@ -246,6 +246,10 @@ export const checkSyntax = defineTool(
     available_in: ['onprem', 'cloud', 'legacy'],
     sets: ['readonly'],
     kind: 'read',
+    // `targetNames`를 **일부러 선언하지 않는다.** 이 도구는 `source_code` 인자로
+    // 원본을 통째로 받으므로, 대상 이름이 Z여도 표준 소스가 실려 올 수 있다.
+    // 선언하는 순간 녹화의 사후 백스톱(`detectUnguardedSource`)이 이 도구를
+    // 건너뛰어 그 경로가 열린다. 판정은 백스톱이 계속 소유한다.
   },
   async (context, args) => {
     try {

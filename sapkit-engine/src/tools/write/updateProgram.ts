@@ -61,6 +61,7 @@ export const updateProgram = defineTool(
     available_in: ['onprem', 'legacy'],
     sets: ['high'],
     kind: 'mutation',
+    targetNames: ['program_name'],
   },
   async (context: ToolContext, args) => {
     const { logger } = context;

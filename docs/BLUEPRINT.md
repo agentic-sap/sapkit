@@ -104,6 +104,14 @@ RFC 백엔드 5경로(`odata`·`soap`·`native`·`gateway`·`zrfc`)도 전부 �
 > 자작과 묶지 않는다), 양쪽 증거가 0인 **꼬리 49종**(§4.7)도 계약에는 포함하되 **최종 교체
 > 직전 재평가 체크포인트 1회**를 둔다. 그때의 결정은 새 D-항목으로 남긴다.
 
+**꼬리 재평가 — 짓기 직전 관문의 결과 = 전량 유지** (D-083, 2026-08-14). 위 체크포인트를
+그대로 최종 교체 직전까지 두면, 재평가 시점에 꼬리 49종은 **이미 다 지어져 있다** — 그 재평가는
+판단이 아니라 추인이 된다. 그래서 오프라인 대량 제작 판이 **짓기 직전**에 관문을 하나 더
+세워 목록(삭제 계열 25종 + 그 밖 24종)과 성질을 보고하고 물었고, 사용자가 **전량 제작**을
+택했다 — **제외 0종**. 삭제 계열 25종은 재생 대조가 원리상 불가능하므로 요구 증거 급이
+`attended 실기`로 대장에 남는다. **「최종 교체 직전 1회」의 자리는 소진되지 않고 그대로
+남는다** — 다만 그때 묻는 것은 "짓지 말자"가 아니라 **"표면에서 뺄 것인가"**다(D-083 ⓑ).
+
 **설계 방향**
 - 도구는 **수요순으로 만들되 표면은 전량 승계한다** — 실사용 상위부터 짓고, 꼬리와 미사용
   전송·RFC 경로까지 계약을 채운 뒤에 교체한다.
@@ -121,6 +129,126 @@ RFC 백엔드 5경로(`odata`·`soap`·`native`·`gateway`·`zrfc`)도 전부 �
 4. 실 SAP 대상 손 검증: 대표 절차 1건(예: 프로그램 생성→활성→기계 확인)이
    구·신 엔진에서 **같은 결과**를 낸다.
 5. 위 4가 통과할 때까지 **구 번들이 현역**이다 (§3).
+
+#### 마일스톤 체계 M1 잔여부터 M6까지
+
+**층위를 먼저 분명히 한다.** 바로 위 「검증 기준」 5개는 **사다리 ⑴ 전체의 끝 판정**이다 —
+구 번들을 새 엔진으로 갈아끼워도 되는가를 묻는 마지막 관문. 아래 M-표는 **그보다 한 층
+아래**로, 그 끝 판정에 이르기까지의 제작을 여섯 구간으로 나눈 것이다. **M 하나가 닫히는 것은
+그 구간의 증거가 갖춰졌다는 뜻일 뿐 ⑴이 끝났다는 뜻이 아니다** — M2가 닫혀도 ⑴은 그대로
+진행 중이다. ⑴이 끝나는 것은 M6까지 전부 닫히고 위 「검증 기준」 1~4가 성립할 때이며,
+기준 5 「구 번들이 현역」은 통과할 항목이 아니라 그때까지 지켜야 할 조건이다.
+
+> **표에 나오는 증거 방식 셋.** **녹화(C1)** = 구 번들을 실 SAP에 붙여 오간 MCP 요청·응답
+> 시퀀스를 픽스처로 남긴다. **재생(C2)** = 같은 질문을 새 엔진이 다시 던지게 하고 응답이
+> **정규화 후 diff 0**인지 대조한다(잠금 핸들·세션 토큰·타임스탬프처럼 매번 달라지는 값은
+> 정규화로 지운 뒤 비교한다). **실기(C3)** = 대표 절차를 사람이 처음부터 끝까지 돌려 결과를
+> 확인한다. **셋 다 SAP에 접속하는 attended 단계**이고 소유자 세션에서만 수행한다 —
+> 배치·서브에이전트 무인 실행 금지. 장치의 정본은
+> [`sapkit-engine/harness/`](../sapkit-engine/harness/README.md).
+
+> **표의 `D8`·`D15`·`D18`은** 새 엔진이 구 엔진과 **의도적으로 다르게 만든(또는 아직 안 지은)
+> 지점**에 붙인 일련번호이며, 목록의 정본은
+> [`sapkit-engine/harness/DIVERGENCES.md`](../sapkit-engine/harness/DIVERGENCES.md)다.
+> 결정 로그의 `D-079` 같은 **D-번호와는 다른 체계**이니 혼동하지 말 것. 이 표에 나오는 셋은
+> **D8** = 접속 계층에서 M1이 승계하지 않은 구 기능 3가지, **D15** = destination·service-key
+> 통로 미구현, **D18** = 무접속 거부 문구가 구·신 사이에 다름.
+
+| M | 범위 | 완료 판정 (아래 공통 요건에 더해) | `짓기 완료` | `증거 완료` |
+|---|---|---|---|---|
+| **M1** **(진행 중)** | **잔여 둘.** ⓐ 증거 없는 도구 **12종** — 재생 대상 **10종**은 C1 녹화 → C2 재생 대조, `Create*` **2종**은 실기 기록(`CreateProgram`은 이미 있고 `CreateInclude`가 남았다). ⓑ **C3 실기** — 대표 절차(프로그램 생성 → 활성 → 반영 확인) 1건. | ⓐ M1 도구 **19종 전량**이 **각자의 증거 급**을 갖는다(아래 「증거 급」 참조) — 재생 가능한 것은 정규화 diff 0, `Create*`처럼 재생이 원리상 불가한 것은 attended 실기 기록. ⓑ 대표 절차가 구·신 엔진에서 같은 결과. **→ 이 둘이 닫혀야 M2에 착수한다.** | ✅ (2026-08-12) | ⬜ **열려 있다** |
+| **M2** | **접속 방식 확장** — destination · service-key · broker 인증. `--mcp=<destination>` · `--env=<name>` 통로 구현. | ⓐ destination 프로파일로 **실접속 성공**(inspection-only 강등 아님). ⓑ `--mcp` 진단 `MCP_DESTINATION_UNSUPPORTED`가 더 이상 나오지 않는다. ⓒ 기존 Basic 경로 회귀 0. **→ D15 해소** | **일부** ¹ | ⬜ **열려 있다** |
+| **M3** | **전송 + RFC 완성** — HTTP · SSE 전송 2종. RFC `soap`·`native`·`gateway`·`zrfc` 4경로. | ⓐ 전송 3종(M1의 stdio 포함) 각각으로 기동 → 도구 호출 성공. ⓑ RFC 5경로(M1의 `odata` 포함) 각각 통로 생성이 계약대로. ⓒ `zrfc`가 `backend-unsupported`(미구현 실패)에서 **실동작으로 전환**. **뼈대는 여기서 끝난다.** | ✅ (2026-08-14) | ⬜ **열려 있다** |
+| **M4** | **도구 — 실호출 116종** (§4.7 실사 정본 기준). M1이 이미 지은 것 포함. | 116종 **전량**이 증거 급을 갖는다(아래 「증거 급」 참조) — 원칙은 녹화-재생 정규화 diff 0, `Create*`·`Delete*`는 attended 실기 기록, 의도적 차이 목록 등재분은 **대체 기대 시험** 통과. | ✅ (2026-08-14) | ⬜ **열려 있다** |
+| **M5** | **도구 — 나머지 70종** (자산참조만 21 + 꼬리 49 — 앞은 문서가 부르지만 호출 이력이 0인 것, 뒤는 양쪽 증거가 모두 0인 것. §4.7). | ⓐ 70종 전량 **계약 시험 신규 저작** 통과 + 대표 건 attended 실기(증거 급은 아래 「증거 급」 참조 — 이 구간의 주 증거는 재생이 아니라 계약 시험이다). ⓑ **tools/list 186종 전량**이 tool-catalog 대조 **diff 0**. | ✅ (2026-08-14) | ⬜ **열려 있다** |
+| **M6** | **교체 직전 관문** — **판정과 재평가의 자리이며, 원칙적으로 새 기능을 짓지 않는다**(아래 예외 참조). | ⓐ **D8 관찰 판정**. ⓑ **D18 해소** — `conformance-server-gates.mjs`의 무접속 거부 분류 어휘를 **구·신 두 문구를 모두 인식하도록 넓힌다.** 신 문구로 *교체*하면 안 된다 — M6 시점엔 아직 구 번들이 현역이라(위 「검증 기준」 5) 교체하는 순간 그쪽 판정이 깨진다. 안 넓히면 교체 후 신 엔진의 정상 거부가 `OTHER`로 떨어져 게이트 판정이 어긋난다. ⓒ **꼬리 49종 재평가 1회 → 새 D-항목**(D-079 ⑧). ⓓ 위 「검증 기준」 1~4 전건 + 실 SAP 대표 절차 구·신 동일 결과. | — ² | — ² |
+
+**`짓기 완료` / `증거 완료` 두 칸은 D-082 ①이 나눈 눈금이다** — 위 정의를 그대로 옮긴 것이고,
+`증거 완료`가 서기 전에는 그 M이 닫히지 않는다. **여섯 중 하나도 닫히지 않았다.**
+
+> ¹ **M2가 `일부`인 이유.** 오프라인 대량 제작 판이 `--env=<name>`은 **접속까지** 세웠고
+> `--mcp=<destination>`은 service key를 읽어 **설정 조립까지**, 브로커는 **저장소 재료까지**
+> 갔다. 남은 것은 실접속 미룸이 아니라 **안 지은 코드**다 — UAA 토큰 취득(브라우저 OAuth2
+> 왕복)과 그 위의 JWT 접속 계층이 없다(신 엔진 `AdtClient`는 Basic만 다룬다). 그래서 D15는
+> 장부에 남아 있고, M2는 `짓기 완료`로도 아직 서지 않았다. 실측 근거는
+> [`sapkit-engine/harness/DIVERGENCES.md`](../sapkit-engine/harness/DIVERGENCES.md)의 D15 상태 갱신 절.
+>
+> ² **M6은 판정의 자리라 두 칸이 성립하지 않는다.** 다만 그 안의 「꼬리 49종 재평가 1회」는
+> **이미 수행됐다** — 다 지어 버린 뒤의 재평가는 추인이 되므로 짓기 직전으로 앞당겼고,
+> 결과는 **전량 유지**다(D-083). D-079 ⑧이 예약한 *교체 직전* 재평가의 자리는 그대로 남는다.
+
+**지금 위치는 M1 한가운데다** — 재생 증거는 M1 도구 19종 중 **7종**이고, 나머지 12종 중
+**재생 대상 10종의 녹화-재생** · `CreateInclude`의 실기 기록 · C3 실기가 남았다. 그것들이
+닫히는 것이 다음 할 일이다.
+
+- **순서는 M1 → M2 → M3 → M4 → M5 → M6으로 고정한다.** M 안에서의 병행 여부는 지금
+  정하지 않는다.
+- **116/70 분할의 기준은 이 문서 §4.7의 실사 정본이다.** 실사 수치가 갱신되면 경계도 따라
+  움직인다 — M4·M5의 정의는 *수치*가 아니라 *증거 방식*이다.
+- **「증거 급」 — 전 M 공통.** 완료 판정의 "전량 재생 diff 0"은 **재생이 가능한 도구에 대한
+  것**이다. **`Create*`·`Delete*` 계열은 재생 대상이 아니다** — 재생은 신 엔진이 같은 요청을
+  SAP에 다시 던지는 일이라, 생성 시퀀스는 두 번째 실행에서 "이미 있다"로, 삭제 시퀀스는
+  "없다"로 실패한다(신 엔진이 옳아도 실패한다). 그래서 그 계열의 증거 급은 **재생이 아니라
+  attended 실기 기록**이며, 규칙과 실측 근거의 정본은
+  [`sapkit-engine/fixtures/README.md`](../sapkit-engine/fixtures/README.md)다.
+  **M1·M4·M5의 "전량"은 이 급 구분을 포함한 전량**이다 — 도구마다 **넷 중 하나**를 갖고
+  있으면 된다: ⓐ 재생 정규화 diff 0 · ⓑ **계약 시험** 통과(M5의 주 증거) · ⓒ attended 실기
+  기록 · ⓓ 의도적 차이 목록 등재분의 대체 기대 시험. **넷 중 하나도 없는 도구가 있으면 그
+  M은 닫히지 않는다.** 급의 정의는 하네스가 기계로 들고 있다(`replay | contract | attended`).
+
+**전 M 공통 완료 요건** (M1 잔여부터 M6까지 전부에 적용)
+
+1. jest 스위트 green + `sapkit-engine` CI 잡 green.
+2. **기존 제품 게이트 전종 여전히 green** — 구 부품 무접촉의 기계 증명.
+3. 안전 게이트 적합성 + **음성시험** 통과(tier · 블록리스트 · 실데이터 2종).
+4. **노출 제어 회귀 0** — 무프로파일 inspection-only / onprem / readonly 세 상태에서
+   tools/list가 갈리는 것이 그 M의 표면에 대해 유지된다.
+5. 해당 M의 도구·경로 증거 급이 **커버리지 표**에 기록된다.
+6. **마일스톤별 실 SAP attended 확인 1건** — 소유자 attended 세션 · 전용 DEV 연습 패키지
+   안 · 배치/서브에이전트 무인 실행 금지.
+
+**M6의 제작 금지 원칙과 그 예외**
+
+M6은 **판정하는 자리**이지 짓는 자리가 아니다. 단 D8 관찰이 **양성**이면(= 406/415 재협상 ·
+discovery 외 폴백 · `skipSessionType` 중 하나라도 발동이 관찰되면) 그 항목은 **결함으로
+승격되고 승계 제작이 필요해진다.**
+
+그 경우 **M6은 판정만 하고, 제작 자체는 뼈대 계층(M3 성격)의 추가 작업으로 다룬다.** 관문이
+새 기능을 짓지 않는다는 원칙과 충돌하지 않게 하기 위함이며, 그 분량과 일정은 **관찰 시점의
+판단**이다 — 지금 정하지 않는다.
+
+**완료 눈금은 두 단계다 — `짓기 완료` / `증거 완료`** (D-082 ①, 2026-08-13). `짓기 완료`는
+위 검증 기준 중 **SAP 접속을 요구하지 않는 것이 전부 초록**인 상태(1·2·3 + 기존 제품 게이트
+무접촉 + 노출 제어 회귀 0)이고, `증거 완료`는 거기에 **접속을 요구하는 증거**가 붙은
+상태다(실사용 표면의 녹화-재생 대조 · 미사용 표면의 대표 건 attended 실기 · 마일스톤별 실 SAP
+확인 1건 = 위 검증 기준 4). **`증거 완료`가 되기 전에는 그 마일스톤을 "닫혔다"고 말하지
+않는다** — `짓기 완료`를 완료로 쓰는 것이 D-082가 막으려는 오독이며, 오프라인 계약 시험은
+**신 엔진이 스스로 정한 기대값을 통과한 것**이지 구 엔진·실 SAP과 같다는 증거가 아니다.
+증거를 태우는 **순서**는 여전히 M1 → M2 → … 로 고정돼 있다(D-081 · D-082 ④).
+
+**지금 어디까지 왔나** (2026-08-14 · 오프라인 대량 제작 판 종료 시점 · 병행 제작 경로
+`sapkit-engine/` 0.1.0 · **구 부품 무접촉이고 제품은 계속 구 번들로 동작한다**)
+
+| 축 | 현재 | 목표 |
+|---|---|---|
+| 도구 등록 | **186** | 186 (전량 승계) |
+| 전송 | stdio · HTTP · SSE — **3** | 3 |
+| RFC 백엔드 | `odata`·`soap`·`native`·`gateway`·`zrfc` — **5** | 5 |
+| 인증 통로 | Basic **접속까지** · `--env=<name>` 세션 **접속까지** · `--mcp=<destination>` service-key **설정 조립까지**(UAA 토큰 취득 미구현) · 브로커 **저장소 재료 조립까지** | 4통로 전부 접속 |
+
+- **오프라인 증거**: jest **4,001 통과 / 1 skip** · 신 엔진 자체 게이트 전종 통과 · 게이트
+  음성시험 **44건** · **기존 제품 게이트 8종 무접촉이고 전부 exit 0**(doctor 제외).
+  의도적 차이 장부 `sapkit-engine/harness/DIVERGENCES.md`는 **D1~D132**(예약 결번을 뺀
+  실등재 82건).
+- **SAP 증거는 이 판에서 하나도 얻지 않았다.** 대장 `sapkit-engine/TOOL-LEDGER.md` 기준
+  **안 지음 0 · 지음·증거 대기 143 · 증거 있음 43**이고, 그 **143이 그대로 나중에 태울
+  attended 노동량**이다(요구 급 내역: 재생 대조 96 · attended 실기 47). 「증거 있음 43」의
+  42종은 요구 급이 `계약 시험`이라 오프라인으로 찬 것이고, 실 SAP을 한 번이라도 밟은 것은
+  `CreateProgram` **1종**뿐이다.
+- **이 판이 도달한 것은 M2·M3·M4·M5의 `짓기 완료`이고, 네 M 모두 `증거 완료`는 열려 있다.
+  M1도 여전히 열려 있다** — 재생 대상 10종의 녹화·재생 대조 · `CreateInclude` 실기 · 대표
+  절차 실기(C3)가 남았고 **전부 SAP 접속을 요구한다**(D-082 ②·③). 사다리 ⑴은 닫히지
+  않았고, 마일스톤 하나도 닫히지 않았다.
 
 ---
 
@@ -558,28 +686,225 @@ runtime 4종: `RuntimeGetGatewayErrorLog` `RuntimeListFeeds` `RuntimeListSystemM
 본다**(문서가 안 부르는데 사람이 쓴 도구가 있고, 문서만 부르고 아무도 안 쓴 도구가 있다).
 꼬리로 분류되는 것은 **양쪽 증거가 모두 0인 도구뿐**이다.
 
-| 항목 | 값 |
-|---|---:|
-| 측정 기간 | 2026-07-13 ~ 08-10 |
-| 세션 | **1,081** |
-| 도구 호출 | **7,441** |
-| 실제 호출된 도구 | **116** |
-| 자산 참조 110종과의 **합집합** | **137** |
-| **양쪽 증거 0 — 꼬리** | **49** (`Delete*` 25종 전부 포함) |
-| 최다 호출 | `GetSqlQuery` **2,631회 (35%)** |
+> **재측정 기록 (2026-08-14)**: 최초 기재(2026-08-10)는 **총계 일곱 줄만** 실었다 — 도구별
+> 호출 횟수도, 꼬리 49종의 이름도 없었고, §4.6의 재현 방법은 자산 참조 축(§4.1~4.6)만
+> 덮었다. 그래서 이 판의 「수요순으로 정렬한다」와 「꼬리를 맨 뒤로 모은다」가 **둘 다 실행
+> 불가능**했다. 이번에 **원 창 그대로** 다시 재고 재현 스크립트와 전량 데이터 파일을 함께
+> 남긴다. 판단의 뼈대인 두 수(**합집합 137 · 꼬리 49**)는 원 기재와 정확히 같고, 총계 계열은
+> 원인이 밝혀진 만큼 어긋난다(§4.7.6). 아래 수치는 전부 재측정본이다.
 
-읽어야 할 신호 셋. ⓐ **호출 3건 중 1건이 행 데이터 조회다**(`GetSqlQuery` 35%) — 실데이터
+#### 4.7.1 원본과 측정 방법
+
+**원본**은 이 머신의 하네스 세션 기록 2종이다. SAP MCP 호출은 하네스마다 자기 형식으로 남는다.
+
+| 하네스 | 기록 형식 | jsonl | 창 안 호출 | 호출된 도구 |
+|---|---|---:|---:|---:|
+| Claude Code | `~/.claude/projects/**/*.jsonl` — assistant 메시지의 `tool_use` 블록 | 619 | 7,541 | 115 |
+| Codex CLI | `~/.codex/sessions/**/*.jsonl` — `payload.type = function_call` | 399 | 34 | 4 |
+| **계** | | **1,018** | **7,575** | **115** |
+
+- **Codex는 포함한다.** 이 판의 원칙이 3사 하네스 중립이고, 실사용 축이 묻는 것은 *어느
+  하네스에서든 실제로 불렸는가*이기 때문이다. 34건은 전부 2026-07-31 하루에 몰려 있고 도구는
+  4종(`GetSqlQuery` 30 · `ReadFunctionModule` 2 · `ReadTable` 1 · `GetTypeInfo` 1)뿐이라
+  **꼬리와 합집합은 바꾸지 않고 총계만 0.45% 올린다**.
+- **Antigravity는 제외한다.** `~/.gemini/antigravity*` 아래에 대화 기록 파일이 **없다**.
+  `mcp/sap/*.json`이 있지만 그것은 도구 **스키마 캐시**이지 호출 기록이 아니다.
+- **서버 접두어는 시기에 따라 셋이다** — `plugin_sapkit_sap` 6,893 · `plugin_sc4sap_sap` 648 ·
+  `sap`(Codex) 34. 하나로 단정하면 9%를 잃는다. 표면 186종에 대응하지 않는 SAP 계열 이름은
+  **0건**이었다 — §4.5의 유령 참조에 대응하는 "유령 호출"도 없다는 뜻이다.
+- 서브에이전트가 낸 호출 **1,494건을 포함**한다 — 사람이 시킨 일의 일부다. 재개·분기로 두
+  파일에 복사된 중복 호출 10건은 호출 id로 뺐고, 깨진 줄 3개는 건너뛰었다. 날짜는 로컬(KST).
+
+#### 4.7.2 재현 방법 (§4.6과 같은 결)
+
+1. 표면 정본 186종 집합을 만든다 — §4.6 1번과 같다.
+2. **자산 참조 축을 이 문서에서 파싱한다** — §4.3 표 첫 열(실질 참조 110종)과 §4.4의 A·B
+   열거 블록(참조 없음 76종). 둘이 **교집합 0 · 합 186**인지 검산한다(어긋나면 중단).
+   §4.4 끝의 「주목할 쌍」 문단은 §4.3 쪽 이름을 인용하므로 잘라내야 한다.
+3. 위 기록 원본 2종을 순회하며 창 안의 SAP 호출을 도구별로 센다. 표면 186종에 **대응하는
+   이름만** 세고, 대응하지 않는 SAP 계열 이름은 따로 보고한다.
+4. **꼬리 = 「참조 없음 76종」 ∩ 「호출 0」**. 합집합 = 186 − 꼬리.
+
+```bash
+node sapkit-engine/harness/usage-census.mjs                    # 원 창으로 재측정
+node sapkit-engine/harness/usage-census.mjs --from=… --to=…    # 창 변경
+```
+
+스크립트는 **완전 오프라인**이며 SAP에 접속하지 않는다. 186종 전량 수치·꼬리 목록·하네스별
+내역은 **`sapkit-engine/harness/usage-census.json`** 이 갖는다 — 아래 표는 그 파일의 발췌이고,
+기계로 읽을 것은 그 파일이다. 스크립트는 자기검증(186종 누락·중복 0 · 꼬리+합집합=186 ·
+`Delete*` 25종 꼬리 포함)에 실패하면 exit 1이다.
+
+> **이 축은 시간이 지나면 다시 잴 수 없다.** Claude Code는 트랜스크립트를 기본 30일만
+> 보관한다(`cleanupPeriodDays` 미설정). 재측정 도중에도 정리가 돌아 대상 파일이 661 → 619로
+> 줄었다. **커밋된 JSON이 이 창의 유일한 항구 기록이다** — 다음 판은 다시 재는 대신 그 파일을
+> 읽어라.
+
+#### 4.7.3 요약 — 재측정본 대 원 기재
+
+| 항목 | 재측정 (2026-08-14) | 원 기재 (2026-08-10) | 차 |
+|---|---:|---:|---:|
+| 측정 기간 | 2026-07-13 ~ 08-10 | 같음 | — |
+| 도구 호출 | **7,575** | 7,441 | +134 |
+| — Claude Code 몫 | 7,541 | (구분 없음) | — |
+| — Codex CLI 몫 | 34 | (구분 없음) | — |
+| 실제 호출된 도구 | **115** | 116 | −1 |
+| 자산 참조 110종과의 **합집합** | **137** | 137 | **0** ✅ |
+| **양쪽 증거 0 — 꼬리** | **49** | 49 | **0** ✅ |
+| — 그중 `Delete*` | **25 / 25** | 25 | 0 |
+| 문서는 안 부르는데 호출됨 | **27** | 27 | **0** ✅ |
+| 자산은 부르는데 호출 0 | 22 | 21 | +1 |
+| 최다 호출 | `GetSqlQuery` **2,690 (35.5%)** | 2,631 (35%) | +59 |
+| 세션 — SAP 호출 1회 이상 | **126** | (원 산출법 미상) | — |
+| (참고) 창 안에 기록이 남은 대화 | 307 | — | — |
+| 원 기재의 「세션 1,081」 | — | 1,081 | **재현 불가** |
+
+#### 4.7.4 클래스별 분포
+
+| 클래스 | 표면 | 호출된 도구 | 호출 | 비중 | 꼬리 |
+|---|---:|---:|---:|---:|---:|
+| read | 90 | 65 | 3,118 | 41.2% | 12 |
+| write | 79 | 38 | 1,581 | 20.9% | 35 |
+| runtime | 15 | 10 | 147 | 1.9% | 2 |
+| row-data (상시 게이트) | 2 | 2 | **2,729** | **36.0%** | 0 |
+| **계** | **186** | **115** | **7,575** | 100% | **49** |
+
+#### 4.7.5 도구별 호출 — 수요순
+
+**상위 40종** — 여기까지가 전체 호출의 **92.8%**다.
+
+| # | 도구 | 클래스 | 호출 | 비중 | 누적 |
+|---:|---|---|---:|---:|---:|
+| 1 | `GetSqlQuery` | row-data | 2,690 | 35.5% | 35.5% |
+| 2 | `GrepObjects` | read | 630 | 8.3% | 43.8% |
+| 3 | `UpdateSourceByPatch` | write | 500 | 6.6% | 50.4% |
+| 4 | `GetInactiveObjects` | read | 321 | 4.2% | 54.7% |
+| 5 | `CheckSyntax` | read | 288 | 3.8% | 58.5% |
+| 6 | `GetInclude` | read | 268 | 3.5% | 62.0% |
+| 7 | `GetTable` | read | 250 | 3.3% | 65.3% |
+| 8 | `ActivateObjects` | write | 213 | 2.8% | 68.1% |
+| 9 | `GetFunctionModule` | read | 167 | 2.2% | 70.3% |
+| 10 | `UpdateInclude` | write | 154 | 2.0% | 72.4% |
+| 11 | `UpdateProgram` | write | 134 | 1.8% | 74.1% |
+| 12 | `GetStructure` | read | 108 | 1.4% | 75.6% |
+| 13 | `UpdateClass` | write | 101 | 1.3% | 76.9% |
+| 14 | `GetClass` | read | 87 | 1.1% | 78.0% |
+| 15 | `CreateInclude` | write | 85 | 1.1% | 79.2% |
+| 16 | `RuntimeRunProgramWithProfiling` | runtime | 82 | 1.1% | 80.2% |
+| 17 | `SearchObject` | read | 74 | 1.0% | 81.2% |
+| 18 | `GetProgram` | read | 65 | 0.9% | 82.1% |
+| 19 | `UpdateFunctionModule` | write | 60 | 0.8% | 82.9% |
+| 20 | `CreateProgram` | write | 58 | 0.8% | 83.6% |
+| 21 | `GetDataElement` | read | 49 | 0.6% | 84.3% |
+| 22 | `GetUnitTestResult` | read | 44 | 0.6% | 84.9% |
+| 23 | `GetClassMethod` | read | 43 | 0.6% | 85.4% |
+| 24 | `GetIncludesList` | read | 39 | 0.5% | 85.9% |
+| 25 | `GetTableContents` | row-data | 39 | 0.5% | 86.5% |
+| 26 | `ReadView` | read | 39 | 0.5% | 87.0% |
+| 27 | `RunUnitTest` | runtime | 39 | 0.5% | 87.5% |
+| 28 | `GrepPackages` | read | 38 | 0.5% | 88.0% |
+| 29 | `GetServiceBinding` | read | 37 | 0.5% | 88.5% |
+| 30 | `GetView` | read | 35 | 0.5% | 88.9% |
+| 31 | `UpdateView` | write | 35 | 0.5% | 89.4% |
+| 32 | `ReadClass` | read | 31 | 0.4% | 89.8% |
+| 33 | `CreateClass` | write | 30 | 0.4% | 90.2% |
+| 34 | `GetLocalTypes` | read | 30 | 0.4% | 90.6% |
+| 35 | `UpdateLocalTestClass` | write | 30 | 0.4% | 91.0% |
+| 36 | `GetDomain` | read | 29 | 0.4% | 91.4% |
+| 37 | `GetSystemInfo` | read | 29 | 0.4% | 91.8% |
+| 38 | `GetBehaviorDefinition` | read | 27 | 0.4% | 92.1% |
+| 39 | `GetTypeInfo` | read | 27 | 0.4% | 92.5% |
+| 40 | `UpdateTable` | write | 27 | 0.4% | 92.8% |
+
+**나머지 호출 75종** — 수요순, 합쳐서 **543회(7.2%)**다.
+
+`GetLocalTestClass` 26 · `ReadTable` 25 · `GetAtcFindings` 24 · `UpdateBehaviorDefinition` 23 ·
+`ReadProgram` 22 · `GetProgFullCode` 20 · `GetGuiStatusList` 19 · `GetPackageContents` 18 ·
+`GetScreensList` 14 · `GetTransport` 14 · `ReadBehaviorDefinition` 14 · `ReadFunctionModule` 14 ·
+`ReadTextElementsBulk` 14 · `CreateView` 13 · `ListTransports` 13 · `GetMetadataExtension` 12 ·
+`GetWhereUsed` 12 · `RuntimeListDumps` 12 · `UpdateLocalTypes` 12 · `CreateFunctionModule` 11 ·
+`GetFunctionGroup` 11 · `UpdateBehaviorImplementation` 10 · `UpdateClassMethod` 10 ·
+`UpdateMetadataExtension` 9 · `CreateStructure` 8 · `GetUnitTest` 8 · `ReadServiceDefinition` 8 ·
+`GetTextElement` 6 · `GetTransaction` 6 · `RuntimeRunClassWithProfiling` 6 · `CreateDataElement` 5 ·
+`CreateDomain` 5 · `CreateServiceBinding` 5 · `GetObjectStructure` 5 · `GetSession` 5 ·
+`GetUnitTestStatus` 5 · `ReadDomain` 5 · `ReadMetadataExtension` 5 · `UpdateServiceBinding` 5 ·
+`UpdateServiceDefinition` 5 · `UpdateStructure` 5 · `CreateServiceDefinition` 4 · `CreateTable` 4 ·
+`CreateTransport` 4 · `GetGuiStatus` 4 · `GetPackage` 4 · `GetScreen` 4 ·
+`ReadBehaviorImplementation` 4 · `WriteTextElementsBulk` 4 · `CreateBehaviorDefinition` 3 ·
+`DescribeByList` 3 · `GetInstalledComponents` 3 · `ListServiceBindingTypes` 3 · `ReloadProfile` 3 ·
+`CreateBehaviorImplementation` 2 · `CreateMetadataExtension` 2 · `GetBehaviorImplementation` 2 ·
+`GetServiceDefinition` 2 · `ReadGuiStatus` 2 · `ReadScreen` 2 · `CreateFunctionGroup` 1 ·
+`CreateGuiStatus` 1 · `CreateScreen` 1 · `CreateTextElement` 1 · `GetAbapSystemSymbols` 1 ·
+`GetInterface` 1 · `PatchGuiStatus` 1 · `ReadDataElement` 1 · `ReadServiceBinding` 1 ·
+`ReadStructure` 1 · `RuntimeAnalyzeProfilerTrace` 1 · `RuntimeGetGatewayErrorLog` 1 ·
+`RuntimeGetProfilerTraceData` 1 · `RuntimeListProfilerTraceFiles` 1 · `ValidateServiceBinding` 1
+
+**호출 0 — 71종.** 두 무리로 갈린다.
+
+**⒜ 꼬리 49종 — 자산 참조도 0 · 호출도 0** (사다리 ⑴의 판단 재료)
+
+- *write 35종* — `Delete*` 25종 전부: `DeleteBehaviorDefinition` `DeleteBehaviorImplementation`
+  `DeleteCdsUnitTest` `DeleteClass` `DeleteDataElement` `DeleteDomain` `DeleteFunctionGroup`
+  `DeleteFunctionModule` `DeleteGuiStatus` `DeleteInclude` `DeleteInterface`
+  `DeleteLocalDefinitions` `DeleteLocalMacros` `DeleteLocalTestClass` `DeleteLocalTypes`
+  `DeleteMetadataExtension` `DeleteProgram` `DeleteScreen` `DeleteServiceBinding`
+  `DeleteServiceDefinition` `DeleteStructure` `DeleteTable` `DeleteTextElement` `DeleteUnitTest`
+  `DeleteView` — 그리고 `CreateCdsUnitTest` `CreatePackage` `CreateUnitTest` `UpdateCdsUnitTest`
+  `UpdateDataElement` `UpdateDomain` `UpdateFunctionGroup` `UpdateLocalDefinitions`
+  `UpdateLocalMacros` `UpdateUnitTest`
+- *read 12종* — `GetAdtTypes` `GetBadiImplementations` `GetCallGraph` `GetCdsUnitTest`
+  `GetCdsUnitTestResult` `GetCdsUnitTestStatus` `GetNodeStructureLow` `GetObjectNodeFromCache`
+  `GetObjectStructureLow` `GetObjectsList` `GetVirtualFoldersLow` `ReadPackage`
+- *runtime 2종* — `RuntimeListFeeds` `RuntimeListSystemMessages`
+
+**⒝ 자산은 부르는데 호출 0 — 22종** (꼬리가 **아니다** — 한쪽 증거가 있다)
+
+`CreateInterface` `GetAbapAST` `GetAbapSemanticAnalysis` `GetEnhancementImpl` `GetEnhancementSpot`
+`GetEnhancements` `GetLocalDefinitions` `GetLocalMacros` `GetObjectInfo` `GetObjectsByType`
+`GetPackageTree` `GetSourceDiff` `ReadFunctionGroup` `ReadInterface` `ReleaseTransport`
+`RuntimeAnalyzeDump` `RuntimeCreateProfilerTraceParameters` `RuntimeGetDumpById` `UpdateGuiStatus`
+`UpdateInterface` `UpdateScreen` `UpdateTextElement`
+
+#### 4.7.6 원 기재와 어긋난 곳 — 확인된 원인
+
+**총계 +134**는 두 갈래다.
+
+- **Codex 34건** — 원 기재에는 하네스 구분이 없어 세지 않은 것으로 보인다(§4.7.1).
+- **Claude 쪽 +100** — 원 §4.7이 실린 커밋은 2026-08-10 15:40(KST)이고, **그 시각 이후 같은
+  날 발생한 호출이 125건**이다(08-10 총 184건 중 15:40 이전은 59건). 반대 방향으로, 창 앞
+  이틀(07-13·07-14)의 기록은 30일 보존 정책에 걸려 **이미 지워졌다** — 생존 최초 호출이
+  2026-07-15 11:36(KST)이다. 7,541 − 125 = 7,416이므로 **소실된 이틀 몫은 약 25건**으로
+  추정된다(125 − 25 = 100).
+
+**호출된 도구 −1**의 정체는 `GetObjectInfo` **한 종**이다. 창을 08-13까지 넓히면 이 도구가
+1회 호출로 다시 나타나 116종이 된다 — 원 기재 시점에는 소실된 이틀에 호출 기록이 있었던
+것으로 보인다. 같은 이유로 「자산은 부르는데 호출 0」이 21 → 22가 됐다. **꼬리는 영향받지
+않는다** — `GetObjectInfo`는 자산 참조가 있어 애초에 꼬리 후보가 아니다.
+
+**세션 1,081은 재현하지 못했다.** 원 산출법이 남아 있지 않다. 재측정이 셀 수 있는 것은 창
+안에서 SAP 도구를 부른 대화 **126개**와 창 안에 기록이 남은 대화 **307개**이며, 어느 쪽도
+1,081과 자릿수가 맞지 않는다. 세션 파일 총수를 센 것으로 짐작되나(그 수는 보존 정리로 계속
+줄어든다) 확인할 길이 없다. **이 행의 정본은 재측정본으로 옮긴다.**
+
+읽어야 할 신호 넷. ⓐ **호출 3건 중 1건이 행 데이터 조회다**(row-data 2종 36.0%) — 실데이터
 2종의 상시 게이트가 장식이 아니라 주 경로 위에 있다는 실측이며, 자작 엔진에서도 이 게이트가
-1순위 계약이다(§2 ⑴ 검증 기준 3). ⓑ §4.2가 "참조 없음 **76종**"으로 잡았던 집합이 실사용
-축과 겹치며 **49종으로 줄었다** — 나머지 27종은 문서가 안 부를 뿐 사람이 쓰고 있었다.
-ⓒ 반대 방향도 있다 — 합집합 계산상 **자산이 부르는데 한 번도 호출되지 않은 도구가 21종**
-(110 + 116 − 137)이다. 두 축 어느 쪽도 단독으로는 "쓰인다"의 답이 아니라는 뜻이다.
+1순위 계약이다(§2 ⑴ 검증 기준 3). ⓑ **수요는 극단적으로 앞에 쏠려 있다** — 상위 20종이
+83.6%, 상위 40종이 92.8%이고 나머지 75종이 나눠 갖는 것은 543회(7.2%)뿐이다. 「수요순으로
+만든다」가 말장난이 아니라는 근거가 이 분포다. ⓒ §4.2가 "참조 없음 **76종**"으로 잡았던
+집합이 실사용 축과 겹치며 **49종으로 줄었다** — 나머지 27종은 문서가 안 부를 뿐 사람이 쓰고
+있었다. 반대 방향도 있다 — **자산이 부르는데 한 번도 호출되지 않은 도구가 22종**이다. 두 축
+어느 쪽도 단독으로는 "쓰인다"의 답이 아니라는 뜻이다. ⓓ **write 79종 중 38종만 불렸고, 꼬리
+49종의 71%(35종)가 write다** — §4.2가 자산 참조만으로 잡았던 신호를 실사용 축이 같은 방향으로
+확인한다. `Delete*` 25종은 **양쪽 축 모두 0**이다.
 
-그 49종은 사다리 ⑴에서 **제외 대상이 아니라 재평가 대상**이다 — 표면은 전량 승계하고
+그 49종은 사다리 ⑴에서 **제외 대상이 아니라 재평가 대상이다** — 표면은 전량 승계하고
 (⑴ 절 · D-079 ②), 재평가는 **최종 교체 직전 1회**에 몰아 둔다(D-079 ⑧).
 
-**측정 한계**: 소유자 1인 · 머신 1대 · 1개월의 기록이다. 다른 사용자의 분포는 다를 수 있고,
-호출 0이 "필요 없음"의 증명이 아닌 것은 §4.4 서두의 단서와 같다.
+**측정 한계**: 소유자 1인 · 머신 1대 · 4주의 기록이다. 다른 사용자의 분포는 다를 수 있고,
+호출 0이 "필요 없음"의 증명이 아닌 것은 §4.4 서두의 단서와 같다. 여기에 둘을 더한다 —
+ⓐ 창 앞 이틀은 보존 정책으로 이미 소실됐고, ⓑ 원 기재 시점 이후 발생분이 포함돼 있어
+**원 기재와 총계를 1:1로 맞출 수는 없다**. 일치를 요구할 수 있는 것은 두 축의 교차 결과
+(합집합 137 · 꼬리 49)이며, 그것은 일치한다.
 
 ---
 

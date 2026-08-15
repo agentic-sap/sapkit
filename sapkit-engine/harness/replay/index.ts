@@ -5,6 +5,9 @@
  *   `replaySequence` — 픽스처를 신 엔진에 먹여 판정한다
  *   `M1_DIVERGENCES` — 등재된 차이만 diff 대신 대체 기대 시험으로 판정한다
  *   `buildCoverage` / `renderCoverageMarkdown` — 무엇이 아직 증거가 없는지 드러낸다
+ *
+ * 표에 무엇을 먹일지 모으는 배선(`evidenceInputs.ts`)도 여기로 낸다 — 그 배선이
+ * SAP에 붙는 스크립트 안에 있으면 영영 시험되지 않기 때문이다.
  */
 export type {
   Difference,
@@ -39,7 +42,7 @@ export {
 } from './divergences';
 export type { DivergenceClassification, DivergenceEntry, DivergenceStatus } from './divergences';
 
-export { buildCoverage, loadM1ToolNames, renderCoverageMarkdown } from './coverage';
+export { DEFAULT_PRIMARY_GRADE, buildCoverage, loadCapturedToolNames, renderCoverageMarkdown } from './coverage';
 export type {
   CoverageInput,
   CoverageReport,
@@ -48,8 +51,12 @@ export type {
   EvidenceCell,
   EvidenceGrade,
   EvidenceStatus,
+  PrimaryGrade,
   ToolEvidenceInput,
+  ToolStatus,
 } from './coverage';
+
+export { attendedEvidenceFromReplays, parseContractEvidence } from './evidenceInputs';
 
 export { InProcessTarget } from './inProcessTarget';
 export type { InProcessTargetOptions } from './inProcessTarget';

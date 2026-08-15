@@ -27,6 +27,13 @@ if (!fs.existsSync(DIST)) {
 
 export const server = require(DIST);
 
+/**
+ * 산출물 안의 모듈을 그대로 부른다 — 게이트는 소스가 아니라 **실려 나가는 물건**을
+ * 본다. 등록점 스냅샷(`src/tools/registry.ts`)과 대장 모델(`harness/ledger`)을
+ * 여기로 가져온다: 둘 다 이미 있는 부품이므로 게이트가 다시 구현하지 않는다.
+ */
+export const requireDist = (rel) => require(here(`../dist/${rel}`));
+
 const created = [];
 
 export function tempDir(prefix = 'sapkit-gate-') {

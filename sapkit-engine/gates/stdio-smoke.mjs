@@ -13,7 +13,32 @@ import { spawn } from 'node:child_process';
 import * as fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
+import { requireDist } from './lib.mjs';
+
 const ENTRY = fileURLToPath(new URL('../dist/src/server/entry.js', import.meta.url));
+
+/**
+ * 기대 집합은 **세지 않고 계산한다.**
+ *
+ * 전에는 `7종`이 상수로 박혀 있었다. 도구를 하나 지을 때마다 이 수가 틀려져
+ * 스모크가 빨개지고, 그때마다 사람이 상수를 고치게 된다 — 그 습관이 붙으면
+ * 스모크는 노출 제어를 지키는 게 아니라 지금 상태를 추인하는 장치가 된다.
+ * 그래서 표면 게이트 ⓑ와 **같은 규칙**으로 계산한다:
+ * 채록본의 「무프로파일 + readonly」 이름 집합 ∩ 등록점.
+ */
+function expectedNames() {
+  const captured = JSON.parse(
+    fs.readFileSync(fileURLToPath(new URL('../harness/old-surface/m1-tools.json', import.meta.url)), 'utf8'),
+  );
+  const names = captured?.exposures?.noProfile_readonly?.names;
+  if (!Array.isArray(names) || names.length === 0) {
+    console.error('[smoke] 채록본에 무프로파일·readonly 이름 집합이 없다 — 기대를 계산할 수 없다.');
+    process.exit(2);
+  }
+  const { TOOL_REGISTRY } = requireDist('src/tools/registry.js');
+  const registered = new Set(TOOL_REGISTRY.map((tool) => tool.definition.name));
+  return names.filter((name) => registered.has(name)).sort();
+}
 
 if (!fs.existsSync(ENTRY)) {
   console.error(`[smoke] 빌드 산출물이 없다: ${ENTRY}\n        \`npm run build\`를 먼저 돌려라.`);
@@ -96,9 +121,22 @@ const poll = setInterval(() => {
   if (!init?.result?.serverInfo?.name) problems.push('initialize 응답에 serverInfo가 없다');
   const tools = listed?.result?.tools;
   if (!Array.isArray(tools)) problems.push('tools/list 응답이 배열이 아니다');
-  // 무프로파일 + readonly = M1 ∩ 65 = 7종. 노출 제어가 실제 기동에서도 도는지.
-  else if (tools.length !== 7) {
-    problems.push(`무프로파일·readonly에서 7종이 떠야 하는데 ${tools.length}종이다`);
+  else {
+    // 노출 제어가 **실제 기동에서도** 도는지. 수가 아니라 이름으로 본다 —
+    // 수만 맞고 이름이 뒤바뀐 경우를 놓치지 않기 위해서다.
+    const expected = expectedNames();
+    const actual = tools.map((t) => t.name).sort();
+    if (expected.length === 0) problems.push('기대 집합이 비었다 — 채록본이나 등록점이 이상하다');
+    else if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+      const missing = expected.filter((n) => !actual.includes(n));
+      const extra = actual.filter((n) => !expected.includes(n));
+      problems.push(
+        `무프로파일·readonly 노출이 채록본∩등록점과 다르다 ` +
+          `(기대 ${expected.length}종 · 실제 ${actual.length}종` +
+          `${missing.length > 0 ? ` · 빠짐 [${missing.join(', ')}]` : ''}` +
+          `${extra.length > 0 ? ` · 여분 [${extra.join(', ')}]` : ''})`,
+      );
+    }
   }
 
   child.kill();
