@@ -1,0 +1,4403 @@
+{
+  "schema": 1,
+  "surface": "parse",
+  "producer": "일회용 Go 채록 셈 (abaplint.NewABAPFile → GetStatements) — 비커밋, RECORDING.md 참조",
+  "source_of_truth": "vsp/pkg/abaplint/{lexer,statements,matcher}.go",
+  "normalized_as": "파일별 (문장 유형, 행) 시퀀스 — 순서 보존",
+  "excluded_from_comparison": [
+    "메시지·description·match·suggestion 문구 — 새 검사기가 새로 쓰므로 대조 대상이 아니다",
+    "analyze의 summary — findings의 파생",
+    "EOL — CRLF는 LF로 정규화한 뒤 판정한다"
+  ],
+  "file_count": 47,
+  "files": {
+    "synthetic/rules/catch_cx_root_neg.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Try",
+          "line": 5
+        },
+        {
+          "type": "Write",
+          "line": 6
+        },
+        {
+          "type": "Catch",
+          "line": 7
+        },
+        {
+          "type": "Write",
+          "line": 8
+        },
+        {
+          "type": "Catch",
+          "line": 9
+        },
+        {
+          "type": "Write",
+          "line": 10
+        },
+        {
+          "type": "EndTry",
+          "line": 11
+        }
+      ]
+    },
+    "synthetic/rules/catch_cx_root_pos.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Try",
+          "line": 5
+        },
+        {
+          "type": "Write",
+          "line": 6
+        },
+        {
+          "type": "Catch",
+          "line": 7
+        },
+        {
+          "type": "Write",
+          "line": 8
+        },
+        {
+          "type": "EndTry",
+          "line": 9
+        },
+        {
+          "type": "Try",
+          "line": 11
+        },
+        {
+          "type": "Write",
+          "line": 12
+        },
+        {
+          "type": "Catch",
+          "line": 13
+        },
+        {
+          "type": "Write",
+          "line": 14
+        },
+        {
+          "type": "Catch",
+          "line": 15
+        },
+        {
+          "type": "Write",
+          "line": 16
+        },
+        {
+          "type": "EndTry",
+          "line": 17
+        }
+      ]
+    },
+    "synthetic/rules/colon_missing_space_neg.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Comment",
+          "line": 6
+        },
+        {
+          "type": "Move",
+          "line": 7
+        },
+        {
+          "type": "Write",
+          "line": 9
+        }
+      ]
+    },
+    "synthetic/rules/colon_missing_space_pos.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "Write",
+          "line": 6
+        }
+      ]
+    },
+    "synthetic/rules/commit_in_loop_neg.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "Loop",
+          "line": 6
+        },
+        {
+          "type": "Move",
+          "line": 7
+        },
+        {
+          "type": "EndLoop",
+          "line": 8
+        },
+        {
+          "type": "Commit",
+          "line": 10
+        }
+      ]
+    },
+    "synthetic/rules/commit_in_loop_pos.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "Data",
+          "line": 5
+        },
+        {
+          "type": "Loop",
+          "line": 7
+        },
+        {
+          "type": "Move",
+          "line": 8
+        },
+        {
+          "type": "Commit",
+          "line": 9
+        },
+        {
+          "type": "EndLoop",
+          "line": 10
+        },
+        {
+          "type": "Do",
+          "line": 12
+        },
+        {
+          "type": "Commit",
+          "line": 13
+        },
+        {
+          "type": "EndDo",
+          "line": 14
+        },
+        {
+          "type": "While",
+          "line": 16
+        },
+        {
+          "type": "Move",
+          "line": 17
+        },
+        {
+          "type": "Commit",
+          "line": 18
+        },
+        {
+          "type": "EndWhile",
+          "line": 19
+        }
+      ]
+    },
+    "synthetic/rules/double_space_neg.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "Comment",
+          "line": 6
+        },
+        {
+          "type": "Comment",
+          "line": 7
+        },
+        {
+          "type": "Move",
+          "line": 8
+        },
+        {
+          "type": "Move",
+          "line": 9
+        },
+        {
+          "type": "Comment",
+          "line": 9
+        },
+        {
+          "type": "Move",
+          "line": 10
+        }
+      ]
+    },
+    "synthetic/rules/double_space_pos.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "Move",
+          "line": 6
+        },
+        {
+          "type": "Move",
+          "line": 7
+        },
+        {
+          "type": "If",
+          "line": 9
+        },
+        {
+          "type": "Write",
+          "line": 10
+        },
+        {
+          "type": "EndIf",
+          "line": 11
+        }
+      ]
+    },
+    "synthetic/rules/dynamic_call_no_try_neg.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "CallFunction",
+          "line": 5
+        },
+        {
+          "type": "Try",
+          "line": 7
+        },
+        {
+          "type": "CallFunction",
+          "line": 8
+        },
+        {
+          "type": "Catch",
+          "line": 9
+        },
+        {
+          "type": "Write",
+          "line": 10
+        },
+        {
+          "type": "EndTry",
+          "line": 11
+        }
+      ]
+    },
+    "synthetic/rules/dynamic_call_no_try_pos.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "CallFunction",
+          "line": 6
+        },
+        {
+          "type": "Call",
+          "line": 7
+        }
+      ]
+    },
+    "synthetic/rules/empty_statement_neg.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Write",
+          "line": 3
+        },
+        {
+          "type": "Write",
+          "line": 4
+        }
+      ]
+    },
+    "synthetic/rules/empty_statement_pos.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Write",
+          "line": 3
+        },
+        {
+          "type": "Empty",
+          "line": 4
+        },
+        {
+          "type": "Write",
+          "line": 5
+        },
+        {
+          "type": "Empty",
+          "line": 6
+        }
+      ]
+    },
+    "synthetic/rules/hardcoded_credentials_neg.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "Data",
+          "line": 5
+        },
+        {
+          "type": "Data",
+          "line": 6
+        },
+        {
+          "type": "Move",
+          "line": 8
+        },
+        {
+          "type": "Move",
+          "line": 9
+        },
+        {
+          "type": "Move",
+          "line": 10
+        }
+      ]
+    },
+    "synthetic/rules/hardcoded_credentials_pos.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "Data",
+          "line": 5
+        },
+        {
+          "type": "Move",
+          "line": 7
+        },
+        {
+          "type": "Move",
+          "line": 8
+        },
+        {
+          "type": "Move",
+          "line": 9
+        }
+      ]
+    },
+    "synthetic/rules/line_length_neg.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Comment",
+          "line": 5
+        },
+        {
+          "type": "Move",
+          "line": 6
+        },
+        {
+          "type": "Move",
+          "line": 8
+        }
+      ]
+    },
+    "synthetic/rules/line_length_pos.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Comment",
+          "line": 5
+        },
+        {
+          "type": "Move",
+          "line": 6
+        },
+        {
+          "type": "Comment",
+          "line": 8
+        },
+        {
+          "type": "Move",
+          "line": 9
+        }
+      ]
+    },
+    "synthetic/rules/local_variable_names_neg.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "ClassDefinition",
+          "line": 5
+        },
+        {
+          "type": "Public",
+          "line": 6
+        },
+        {
+          "type": "MethodDef",
+          "line": 7
+        },
+        {
+          "type": "EndClass",
+          "line": 8
+        },
+        {
+          "type": "ClassImplementation",
+          "line": 10
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 11
+        },
+        {
+          "type": "Data",
+          "line": 12
+        },
+        {
+          "type": "Data",
+          "line": 13
+        },
+        {
+          "type": "Data",
+          "line": 14
+        },
+        {
+          "type": "Constant",
+          "line": 15
+        },
+        {
+          "type": "Move",
+          "line": 16
+        },
+        {
+          "type": "EndMethod",
+          "line": 17
+        },
+        {
+          "type": "EndClass",
+          "line": 18
+        }
+      ]
+    },
+    "synthetic/rules/local_variable_names_pos.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "ClassDefinition",
+          "line": 3
+        },
+        {
+          "type": "Public",
+          "line": 4
+        },
+        {
+          "type": "MethodDef",
+          "line": 5
+        },
+        {
+          "type": "EndClass",
+          "line": 6
+        },
+        {
+          "type": "ClassImplementation",
+          "line": 8
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 9
+        },
+        {
+          "type": "Data",
+          "line": 10
+        },
+        {
+          "type": "Data",
+          "line": 11
+        },
+        {
+          "type": "Constant",
+          "line": 12
+        },
+        {
+          "type": "FieldSymbol",
+          "line": 13
+        },
+        {
+          "type": "Move",
+          "line": 14
+        },
+        {
+          "type": "EndMethod",
+          "line": 15
+        },
+        {
+          "type": "EndClass",
+          "line": 16
+        }
+      ]
+    },
+    "synthetic/rules/max_one_statement_neg.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Move",
+          "line": 6
+        },
+        {
+          "type": "Move",
+          "line": 7
+        },
+        {
+          "type": "Write",
+          "line": 8
+        },
+        {
+          "type": "Write",
+          "line": 9
+        }
+      ]
+    },
+    "synthetic/rules/max_one_statement_pos.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "Move",
+          "line": 6
+        },
+        {
+          "type": "Move",
+          "line": 6
+        },
+        {
+          "type": "Write",
+          "line": 7
+        },
+        {
+          "type": "Write",
+          "line": 7
+        }
+      ]
+    },
+    "synthetic/rules/obsolete_statement_neg.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "Data",
+          "line": 5
+        },
+        {
+          "type": "Move",
+          "line": 7
+        },
+        {
+          "type": "Move",
+          "line": 8
+        },
+        {
+          "type": "Move",
+          "line": 9
+        },
+        {
+          "type": "Move",
+          "line": 10
+        },
+        {
+          "type": "Move",
+          "line": 11
+        },
+        {
+          "type": "Move",
+          "line": 12
+        },
+        {
+          "type": "Clear",
+          "line": 13
+        }
+      ]
+    },
+    "synthetic/rules/obsolete_statement_pos.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "Data",
+          "line": 5
+        },
+        {
+          "type": "Data",
+          "line": 6
+        },
+        {
+          "type": "Data",
+          "line": 7
+        },
+        {
+          "type": "Move",
+          "line": 9
+        },
+        {
+          "type": "Add",
+          "line": 10
+        },
+        {
+          "type": "Move",
+          "line": 11
+        },
+        {
+          "type": "Move",
+          "line": 12
+        },
+        {
+          "type": "Move",
+          "line": 13
+        },
+        {
+          "type": "Move",
+          "line": 14
+        },
+        {
+          "type": "Move",
+          "line": 15
+        },
+        {
+          "type": "Refresh",
+          "line": 16
+        }
+      ]
+    },
+    "synthetic/rules/preferred_compare_operator_neg.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "If",
+          "line": 6
+        },
+        {
+          "type": "Write",
+          "line": 7
+        },
+        {
+          "type": "ElseIf",
+          "line": 8
+        },
+        {
+          "type": "Write",
+          "line": 9
+        },
+        {
+          "type": "EndIf",
+          "line": 10
+        },
+        {
+          "type": "While",
+          "line": 12
+        },
+        {
+          "type": "Move",
+          "line": 13
+        },
+        {
+          "type": "EndWhile",
+          "line": 14
+        },
+        {
+          "type": "Comment",
+          "line": 16
+        },
+        {
+          "type": "Comment",
+          "line": 17
+        },
+        {
+          "type": "Move",
+          "line": 18
+        }
+      ]
+    },
+    "synthetic/rules/preferred_compare_operator_pos.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "If",
+          "line": 6
+        },
+        {
+          "type": "Write",
+          "line": 7
+        },
+        {
+          "type": "ElseIf",
+          "line": 8
+        },
+        {
+          "type": "Write",
+          "line": 9
+        },
+        {
+          "type": "EndIf",
+          "line": 10
+        },
+        {
+          "type": "While",
+          "line": 12
+        },
+        {
+          "type": "Move",
+          "line": 13
+        },
+        {
+          "type": "EndWhile",
+          "line": 14
+        },
+        {
+          "type": "If",
+          "line": 16
+        },
+        {
+          "type": "Write",
+          "line": 17
+        },
+        {
+          "type": "EndIf",
+          "line": 18
+        },
+        {
+          "type": "If",
+          "line": 20
+        },
+        {
+          "type": "Write",
+          "line": 21
+        },
+        {
+          "type": "EndIf",
+          "line": 22
+        }
+      ]
+    },
+    "synthetic/rules/select_star_neg.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "Data",
+          "line": 5
+        },
+        {
+          "type": "Data",
+          "line": 6
+        },
+        {
+          "type": "Select",
+          "line": 8
+        },
+        {
+          "type": "Select",
+          "line": 9
+        },
+        {
+          "type": "Select",
+          "line": 10
+        }
+      ]
+    },
+    "synthetic/rules/select_star_pos.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "Data",
+          "line": 5
+        },
+        {
+          "type": "Select",
+          "line": 7
+        },
+        {
+          "type": "Select",
+          "line": 8
+        }
+      ]
+    },
+    "synthetic/statements/control_flow.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "If",
+          "line": 6
+        },
+        {
+          "type": "Write",
+          "line": 7
+        },
+        {
+          "type": "ElseIf",
+          "line": 8
+        },
+        {
+          "type": "Write",
+          "line": 9
+        },
+        {
+          "type": "Else",
+          "line": 10
+        },
+        {
+          "type": "Write",
+          "line": 11
+        },
+        {
+          "type": "EndIf",
+          "line": 12
+        },
+        {
+          "type": "Case",
+          "line": 14
+        },
+        {
+          "type": "When",
+          "line": 15
+        },
+        {
+          "type": "Write",
+          "line": 16
+        },
+        {
+          "type": "When",
+          "line": 17
+        },
+        {
+          "type": "Write",
+          "line": 18
+        },
+        {
+          "type": "WhenOthers",
+          "line": 19
+        },
+        {
+          "type": "Write",
+          "line": 20
+        },
+        {
+          "type": "EndCase",
+          "line": 21
+        },
+        {
+          "type": "Do",
+          "line": 23
+        },
+        {
+          "type": "Move",
+          "line": 24
+        },
+        {
+          "type": "If",
+          "line": 25
+        },
+        {
+          "type": "Continue",
+          "line": 26
+        },
+        {
+          "type": "EndIf",
+          "line": 27
+        },
+        {
+          "type": "If",
+          "line": 28
+        },
+        {
+          "type": "Exit",
+          "line": 29
+        },
+        {
+          "type": "EndIf",
+          "line": 30
+        },
+        {
+          "type": "EndDo",
+          "line": 31
+        },
+        {
+          "type": "While",
+          "line": 33
+        },
+        {
+          "type": "Move",
+          "line": 34
+        },
+        {
+          "type": "EndWhile",
+          "line": 35
+        },
+        {
+          "type": "Try",
+          "line": 37
+        },
+        {
+          "type": "Raise",
+          "line": 38
+        },
+        {
+          "type": "Catch",
+          "line": 39
+        },
+        {
+          "type": "Write",
+          "line": 40
+        },
+        {
+          "type": "EndTry",
+          "line": 41
+        }
+      ]
+    },
+    "synthetic/statements/declarations.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "TypeBegin",
+          "line": 3
+        },
+        {
+          "type": "Type",
+          "line": 3
+        },
+        {
+          "type": "Type",
+          "line": 3
+        },
+        {
+          "type": "TypeEnd",
+          "line": 3
+        },
+        {
+          "type": "Type",
+          "line": 8
+        },
+        {
+          "type": "Constant",
+          "line": 10
+        },
+        {
+          "type": "Data",
+          "line": 12
+        },
+        {
+          "type": "Data",
+          "line": 13
+        },
+        {
+          "type": "Data",
+          "line": 14
+        },
+        {
+          "type": "FieldSymbol",
+          "line": 16
+        },
+        {
+          "type": "Parameter",
+          "line": 18
+        },
+        {
+          "type": "SelectOption",
+          "line": 19
+        },
+        {
+          "type": "SelectionScreen",
+          "line": 20
+        },
+        {
+          "type": "SelectionScreen",
+          "line": 21
+        },
+        {
+          "type": "Include",
+          "line": 23
+        },
+        {
+          "type": "StartOfSelection",
+          "line": 25
+        },
+        {
+          "type": "ReadTextpool",
+          "line": 26
+        },
+        {
+          "type": "InsertTextpool",
+          "line": 27
+        },
+        {
+          "type": "Write",
+          "line": 28
+        }
+      ]
+    },
+    "synthetic/statements/function_module.abap": {
+      "statements": [
+        {
+          "type": "FunctionPool",
+          "line": 1
+        },
+        {
+          "type": "FunctionModule",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "Move",
+          "line": 5
+        },
+        {
+          "type": "Write",
+          "line": 6
+        },
+        {
+          "type": "EndFunction",
+          "line": 7
+        }
+      ]
+    },
+    "synthetic/statements/lexical_forms.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Comment",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "Move",
+          "line": 8
+        },
+        {
+          "type": "Comment",
+          "line": 8
+        },
+        {
+          "type": "Move",
+          "line": 9
+        },
+        {
+          "type": "Move",
+          "line": 11
+        },
+        {
+          "type": "Move",
+          "line": 12
+        },
+        {
+          "type": "Move",
+          "line": 13
+        },
+        {
+          "type": "Move",
+          "line": 15
+        },
+        {
+          "type": "Write",
+          "line": 17
+        },
+        {
+          "type": "Write",
+          "line": 17
+        },
+        {
+          "type": "Write",
+          "line": 17
+        }
+      ]
+    },
+    "synthetic/statements/native_sql.abap": {
+      "statements": [
+        {
+          "type": "ClassDefinition",
+          "line": 1
+        },
+        {
+          "type": "Public",
+          "line": 2
+        },
+        {
+          "type": "InterfaceDef",
+          "line": 3
+        },
+        {
+          "type": "MethodDef",
+          "line": 4
+        },
+        {
+          "type": "EndClass",
+          "line": 6
+        },
+        {
+          "type": "ClassImplementation",
+          "line": 8
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 9
+        },
+        {
+          "type": "NativeSQL",
+          "line": 10
+        },
+        {
+          "type": "EndMethod",
+          "line": 11
+        },
+        {
+          "type": "EndClass",
+          "line": 12
+        }
+      ]
+    },
+    "synthetic/statements/oo_class.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "ClassDeferred",
+          "line": 3
+        },
+        {
+          "type": "Interface",
+          "line": 5
+        },
+        {
+          "type": "MethodDef",
+          "line": 6
+        },
+        {
+          "type": "EndInterface",
+          "line": 7
+        },
+        {
+          "type": "ClassDefinition",
+          "line": 9
+        },
+        {
+          "type": "Public",
+          "line": 10
+        },
+        {
+          "type": "InterfaceDef",
+          "line": 11
+        },
+        {
+          "type": "ClassData",
+          "line": 12
+        },
+        {
+          "type": "MethodDef",
+          "line": 13
+        },
+        {
+          "type": "MethodDef",
+          "line": 14
+        },
+        {
+          "type": "Protected",
+          "line": 15
+        },
+        {
+          "type": "Data",
+          "line": 16
+        },
+        {
+          "type": "Private",
+          "line": 17
+        },
+        {
+          "type": "MethodDef",
+          "line": 18
+        },
+        {
+          "type": "EndClass",
+          "line": 19
+        },
+        {
+          "type": "ClassImplementation",
+          "line": 21
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 22
+        },
+        {
+          "type": "CreateObject",
+          "line": 23
+        },
+        {
+          "type": "EndMethod",
+          "line": 24
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 26
+        },
+        {
+          "type": "Move",
+          "line": 27
+        },
+        {
+          "type": "EndMethod",
+          "line": 28
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 30
+        },
+        {
+          "type": "Clear",
+          "line": 31
+        },
+        {
+          "type": "Return",
+          "line": 32
+        },
+        {
+          "type": "EndMethod",
+          "line": 33
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 35
+        },
+        {
+          "type": "Data",
+          "line": 36
+        },
+        {
+          "type": "Data",
+          "line": 37
+        },
+        {
+          "type": "Move",
+          "line": 38
+        },
+        {
+          "type": "Call",
+          "line": 39
+        },
+        {
+          "type": "CreateData",
+          "line": 40
+        },
+        {
+          "type": "EndMethod",
+          "line": 41
+        },
+        {
+          "type": "EndClass",
+          "line": 42
+        }
+      ]
+    },
+    "synthetic/statements/open_sql.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "Select",
+          "line": 6
+        },
+        {
+          "type": "Sort",
+          "line": 7
+        },
+        {
+          "type": "ReadTable",
+          "line": 8
+        },
+        {
+          "type": "Append",
+          "line": 9
+        },
+        {
+          "type": "InsertInternal",
+          "line": 10
+        },
+        {
+          "type": "DeleteInternal",
+          "line": 11
+        },
+        {
+          "type": "Loop",
+          "line": 13
+        },
+        {
+          "type": "Write",
+          "line": 14
+        },
+        {
+          "type": "EndLoop",
+          "line": 15
+        },
+        {
+          "type": "Loop",
+          "line": 17
+        },
+        {
+          "type": "Write",
+          "line": 18
+        },
+        {
+          "type": "EndLoop",
+          "line": 19
+        },
+        {
+          "type": "Commit",
+          "line": 21
+        },
+        {
+          "type": "Refresh",
+          "line": 22
+        }
+      ]
+    },
+    "synthetic/statements/screen_module.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "CallScreen",
+          "line": 6
+        },
+        {
+          "type": "Module",
+          "line": 8
+        },
+        {
+          "type": "SetPFStatus",
+          "line": 9
+        },
+        {
+          "type": "SetTitlebar",
+          "line": 10
+        },
+        {
+          "type": "EndModule",
+          "line": 11
+        },
+        {
+          "type": "Module",
+          "line": 13
+        },
+        {
+          "type": "Case",
+          "line": 14
+        },
+        {
+          "type": "When",
+          "line": 15
+        },
+        {
+          "type": "Leave",
+          "line": 16
+        },
+        {
+          "type": "When",
+          "line": 17
+        },
+        {
+          "type": "CallTransaction",
+          "line": 18
+        },
+        {
+          "type": "When",
+          "line": 19
+        },
+        {
+          "type": "LeaveToTransaction",
+          "line": 20
+        },
+        {
+          "type": "WhenOthers",
+          "line": 21
+        },
+        {
+          "type": "Leave",
+          "line": 22
+        },
+        {
+          "type": "EndCase",
+          "line": 23
+        },
+        {
+          "type": "EndModule",
+          "line": 24
+        },
+        {
+          "type": "CallSelectionScreen",
+          "line": 26
+        },
+        {
+          "type": "GetTime",
+          "line": 27
+        }
+      ]
+    },
+    "synthetic/statements/string_ops.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "Data",
+          "line": 4
+        },
+        {
+          "type": "Data",
+          "line": 5
+        },
+        {
+          "type": "Data",
+          "line": 6
+        },
+        {
+          "type": "Data",
+          "line": 7
+        },
+        {
+          "type": "Concatenate",
+          "line": 9
+        },
+        {
+          "type": "Split",
+          "line": 10
+        },
+        {
+          "type": "Condense",
+          "line": 11
+        },
+        {
+          "type": "Translate",
+          "line": 12
+        },
+        {
+          "type": "Replace",
+          "line": 13
+        },
+        {
+          "type": "Find",
+          "line": 14
+        },
+        {
+          "type": "Message",
+          "line": 15
+        },
+        {
+          "type": "Write",
+          "line": 16
+        },
+        {
+          "type": "Submit",
+          "line": 17
+        },
+        {
+          "type": "CallTransformation",
+          "line": 18
+        },
+        {
+          "type": "Clear",
+          "line": 19
+        }
+      ]
+    },
+    "synthetic/statements/subroutine_form.abap": {
+      "statements": [
+        {
+          "type": "Report",
+          "line": 1
+        },
+        {
+          "type": "Data",
+          "line": 3
+        },
+        {
+          "type": "FieldSymbol",
+          "line": 4
+        },
+        {
+          "type": "Perform",
+          "line": 6
+        },
+        {
+          "type": "Perform",
+          "line": 7
+        },
+        {
+          "type": "Form",
+          "line": 9
+        },
+        {
+          "type": "Move",
+          "line": 10
+        },
+        {
+          "type": "EndForm",
+          "line": 11
+        },
+        {
+          "type": "Form",
+          "line": 13
+        },
+        {
+          "type": "Assign",
+          "line": 14
+        },
+        {
+          "type": "If",
+          "line": 15
+        },
+        {
+          "type": "Write",
+          "line": 16
+        },
+        {
+          "type": "EndIf",
+          "line": 17
+        },
+        {
+          "type": "Unassign",
+          "line": 18
+        },
+        {
+          "type": "EndForm",
+          "line": 19
+        }
+      ]
+    },
+    "templates/zrsc4sap_oop_ex.prog.abap": {
+      "statements": [
+        {
+          "type": "Comment",
+          "line": 1
+        },
+        {
+          "type": "Comment",
+          "line": 2
+        },
+        {
+          "type": "Comment",
+          "line": 3
+        },
+        {
+          "type": "Comment",
+          "line": 4
+        },
+        {
+          "type": "Comment",
+          "line": 5
+        },
+        {
+          "type": "Comment",
+          "line": 6
+        },
+        {
+          "type": "Comment",
+          "line": 7
+        },
+        {
+          "type": "Comment",
+          "line": 8
+        },
+        {
+          "type": "Comment",
+          "line": 9
+        },
+        {
+          "type": "Comment",
+          "line": 10
+        },
+        {
+          "type": "Comment",
+          "line": 11
+        },
+        {
+          "type": "Report",
+          "line": 12
+        },
+        {
+          "type": "Include",
+          "line": 15
+        },
+        {
+          "type": "Include",
+          "line": 16
+        },
+        {
+          "type": "Include",
+          "line": 17
+        },
+        {
+          "type": "Include",
+          "line": 18
+        },
+        {
+          "type": "Include",
+          "line": 19
+        },
+        {
+          "type": "Include",
+          "line": 20
+        },
+        {
+          "type": "Include",
+          "line": 21
+        },
+        {
+          "type": "Include",
+          "line": 22
+        },
+        {
+          "type": "Include",
+          "line": 23
+        },
+        {
+          "type": "Comment",
+          "line": 23
+        },
+        {
+          "type": "Comment",
+          "line": 26
+        },
+        {
+          "type": "Comment",
+          "line": 27
+        },
+        {
+          "type": "Comment",
+          "line": 28
+        },
+        {
+          "type": "Move",
+          "line": 29
+        },
+        {
+          "type": "Move",
+          "line": 30
+        },
+        {
+          "type": "Move",
+          "line": 31
+        },
+        {
+          "type": "Comment",
+          "line": 34
+        },
+        {
+          "type": "Comment",
+          "line": 35
+        },
+        {
+          "type": "Comment",
+          "line": 36
+        },
+        {
+          "type": "Move",
+          "line": 37
+        },
+        {
+          "type": "Comment",
+          "line": 39
+        },
+        {
+          "type": "Comment",
+          "line": 40
+        },
+        {
+          "type": "Comment",
+          "line": 41
+        },
+        {
+          "type": "Move",
+          "line": 42
+        },
+        {
+          "type": "Comment",
+          "line": 44
+        },
+        {
+          "type": "Comment",
+          "line": 45
+        },
+        {
+          "type": "Comment",
+          "line": 46
+        },
+        {
+          "type": "Move",
+          "line": 47
+        },
+        {
+          "type": "Comment",
+          "line": 49
+        },
+        {
+          "type": "Comment",
+          "line": 51
+        },
+        {
+          "type": "Comment",
+          "line": 52
+        },
+        {
+          "type": "Comment",
+          "line": 53
+        },
+        {
+          "type": "StartOfSelection",
+          "line": 54
+        },
+        {
+          "type": "Call",
+          "line": 56
+        },
+        {
+          "type": "Comment",
+          "line": 58
+        },
+        {
+          "type": "Comment",
+          "line": 59
+        },
+        {
+          "type": "Comment",
+          "line": 60
+        },
+        {
+          "type": "Move",
+          "line": 61
+        },
+        {
+          "type": "Call",
+          "line": 63
+        }
+      ]
+    },
+    "templates/zrsc4sap_oop_ex.prog.screen_0100.abap": {
+      "statements": [
+        {
+          "type": "Move",
+          "line": 1
+        },
+        {
+          "type": "Module",
+          "line": 2
+        },
+        {
+          "type": "Module",
+          "line": 3
+        },
+        {
+          "type": "Comment",
+          "line": 4
+        },
+        {
+          "type": "Move",
+          "line": 5
+        },
+        {
+          "type": "Module",
+          "line": 6
+        }
+      ]
+    },
+    "templates/zrsc4sap_oop_ex.prog.screen_0200.abap": {
+      "statements": [
+        {
+          "type": "Move",
+          "line": 1
+        },
+        {
+          "type": "Module",
+          "line": 2
+        },
+        {
+          "type": "Module",
+          "line": 3
+        },
+        {
+          "type": "Comment",
+          "line": 4
+        },
+        {
+          "type": "Move",
+          "line": 5
+        },
+        {
+          "type": "Module",
+          "line": 6
+        },
+        {
+          "type": "Module",
+          "line": 7
+        }
+      ]
+    },
+    "templates/zrsc4sap_oop_exa.prog.abap": {
+      "statements": [
+        {
+          "type": "Comment",
+          "line": 1
+        },
+        {
+          "type": "Comment",
+          "line": 2
+        },
+        {
+          "type": "Comment",
+          "line": 3
+        },
+        {
+          "type": "ClassDeferred",
+          "line": 5
+        },
+        {
+          "type": "Data",
+          "line": 6
+        },
+        {
+          "type": "ClassDefinition",
+          "line": 8
+        },
+        {
+          "type": "Public",
+          "line": 10
+        },
+        {
+          "type": "MethodDef",
+          "line": 11
+        },
+        {
+          "type": "MethodDef",
+          "line": 11
+        },
+        {
+          "type": "MethodDef",
+          "line": 11
+        },
+        {
+          "type": "MethodDef",
+          "line": 11
+        },
+        {
+          "type": "MethodDef",
+          "line": 11
+        },
+        {
+          "type": "MethodDef",
+          "line": 11
+        },
+        {
+          "type": "MethodDef",
+          "line": 11
+        },
+        {
+          "type": "MethodDef",
+          "line": 11
+        },
+        {
+          "type": "MethodDef",
+          "line": 11
+        },
+        {
+          "type": "MethodDef",
+          "line": 11
+        },
+        {
+          "type": "MethodDef",
+          "line": 11
+        },
+        {
+          "type": "MethodDef",
+          "line": 11
+        },
+        {
+          "type": "Private",
+          "line": 45
+        },
+        {
+          "type": "Data",
+          "line": 46
+        },
+        {
+          "type": "EndClass",
+          "line": 48
+        },
+        {
+          "type": "ClassImplementation",
+          "line": 50
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 52
+        },
+        {
+          "type": "FieldSymbol",
+          "line": 54
+        },
+        {
+          "type": "Call",
+          "line": 56
+        },
+        {
+          "type": "Comment",
+          "line": 58
+        },
+        {
+          "type": "Move",
+          "line": 59
+        },
+        {
+          "type": "If",
+          "line": 60
+        },
+        {
+          "type": "Loop",
+          "line": 62
+        },
+        {
+          "type": "If",
+          "line": 63
+        },
+        {
+          "type": "Move",
+          "line": 64
+        },
+        {
+          "type": "EndIf",
+          "line": 65
+        },
+        {
+          "type": "If",
+          "line": 67
+        },
+        {
+          "type": "Move",
+          "line": 68
+        },
+        {
+          "type": "EndIf",
+          "line": 69
+        },
+        {
+          "type": "EndLoop",
+          "line": 71
+        },
+        {
+          "type": "EndIf",
+          "line": 72
+        },
+        {
+          "type": "Move",
+          "line": 74
+        },
+        {
+          "type": "If",
+          "line": 75
+        },
+        {
+          "type": "Loop",
+          "line": 77
+        },
+        {
+          "type": "If",
+          "line": 79
+        },
+        {
+          "type": "Move",
+          "line": 80
+        },
+        {
+          "type": "EndIf",
+          "line": 81
+        },
+        {
+          "type": "If",
+          "line": 83
+        },
+        {
+          "type": "Move",
+          "line": 84
+        },
+        {
+          "type": "EndIf",
+          "line": 85
+        },
+        {
+          "type": "EndLoop",
+          "line": 87
+        },
+        {
+          "type": "EndIf",
+          "line": 88
+        },
+        {
+          "type": "EndMethod",
+          "line": 93
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 96
+        },
+        {
+          "type": "Case",
+          "line": 98
+        },
+        {
+          "type": "When",
+          "line": 99
+        },
+        {
+          "type": "Move",
+          "line": 100
+        },
+        {
+          "type": "When",
+          "line": 101
+        },
+        {
+          "type": "Move",
+          "line": 102
+        },
+        {
+          "type": "Comment",
+          "line": 103
+        },
+        {
+          "type": "Comment",
+          "line": 104
+        },
+        {
+          "type": "EndCase",
+          "line": 105
+        },
+        {
+          "type": "CallScreen",
+          "line": 106
+        },
+        {
+          "type": "EndMethod",
+          "line": 108
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 110
+        },
+        {
+          "type": "Try",
+          "line": 112
+        },
+        {
+          "type": "Move",
+          "line": 113
+        },
+        {
+          "type": "Call",
+          "line": 114
+        },
+        {
+          "type": "Call",
+          "line": 115
+        },
+        {
+          "type": "Move",
+          "line": 116
+        },
+        {
+          "type": "Loop",
+          "line": 118
+        },
+        {
+          "type": "If",
+          "line": 120
+        },
+        {
+          "type": "Move",
+          "line": 121
+        },
+        {
+          "type": "ElseIf",
+          "line": 122
+        },
+        {
+          "type": "Move",
+          "line": 123
+        },
+        {
+          "type": "Move",
+          "line": 124
+        },
+        {
+          "type": "EndIf",
+          "line": 125
+        },
+        {
+          "type": "EndLoop",
+          "line": 127
+        },
+        {
+          "type": "Call",
+          "line": 130
+        },
+        {
+          "type": "Call",
+          "line": 131
+        },
+        {
+          "type": "Call",
+          "line": 132
+        },
+        {
+          "type": "Call",
+          "line": 133
+        },
+        {
+          "type": "Catch",
+          "line": 135
+        },
+        {
+          "type": "Message",
+          "line": 136
+        },
+        {
+          "type": "EndTry",
+          "line": 137
+        },
+        {
+          "type": "EndMethod",
+          "line": 139
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 141
+        },
+        {
+          "type": "Try",
+          "line": 142
+        },
+        {
+          "type": "Call",
+          "line": 143
+        },
+        {
+          "type": "Call",
+          "line": 144
+        },
+        {
+          "type": "Call",
+          "line": 146
+        },
+        {
+          "type": "Call",
+          "line": 147
+        },
+        {
+          "type": "Catch",
+          "line": 150
+        },
+        {
+          "type": "Message",
+          "line": 151
+        },
+        {
+          "type": "Leave",
+          "line": 152
+        },
+        {
+          "type": "EndTry",
+          "line": 153
+        },
+        {
+          "type": "EndMethod",
+          "line": 156
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 158
+        },
+        {
+          "type": "Call",
+          "line": 159
+        },
+        {
+          "type": "Call",
+          "line": 162
+        },
+        {
+          "type": "Comment",
+          "line": 175
+        },
+        {
+          "type": "Comment",
+          "line": 179
+        },
+        {
+          "type": "Call",
+          "line": 172
+        },
+        {
+          "type": "Call",
+          "line": 184
+        },
+        {
+          "type": "Call",
+          "line": 185
+        },
+        {
+          "type": "Call",
+          "line": 186
+        },
+        {
+          "type": "Call",
+          "line": 188
+        },
+        {
+          "type": "EndMethod",
+          "line": 190
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 191
+        },
+        {
+          "type": "Loop",
+          "line": 193
+        },
+        {
+          "type": "Move",
+          "line": 198
+        },
+        {
+          "type": "Append",
+          "line": 207
+        },
+        {
+          "type": "Loop",
+          "line": 211
+        },
+        {
+          "type": "Move",
+          "line": 213
+        },
+        {
+          "type": "Append",
+          "line": 224
+        },
+        {
+          "type": "EndLoop",
+          "line": 228
+        },
+        {
+          "type": "EndLoop",
+          "line": 231
+        },
+        {
+          "type": "EndMethod",
+          "line": 233
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 234
+        },
+        {
+          "type": "Call",
+          "line": 235
+        },
+        {
+          "type": "Call",
+          "line": 236
+        },
+        {
+          "type": "Move",
+          "line": 237
+        },
+        {
+          "type": "Loop",
+          "line": 239
+        },
+        {
+          "type": "If",
+          "line": 241
+        },
+        {
+          "type": "Move",
+          "line": 242
+        },
+        {
+          "type": "ElseIf",
+          "line": 243
+        },
+        {
+          "type": "Move",
+          "line": 244
+        },
+        {
+          "type": "Move",
+          "line": 245
+        },
+        {
+          "type": "EndIf",
+          "line": 246
+        },
+        {
+          "type": "EndLoop",
+          "line": 248
+        },
+        {
+          "type": "Call",
+          "line": 250
+        },
+        {
+          "type": "Call",
+          "line": 251
+        },
+        {
+          "type": "Call",
+          "line": 252
+        },
+        {
+          "type": "Call",
+          "line": 253
+        },
+        {
+          "type": "EndMethod",
+          "line": 256
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 259
+        },
+        {
+          "type": "Move",
+          "line": 261
+        },
+        {
+          "type": "Case",
+          "line": 263
+        },
+        {
+          "type": "When",
+          "line": 264
+        },
+        {
+          "type": "ReadTable",
+          "line": 265
+        },
+        {
+          "type": "Move",
+          "line": 267
+        },
+        {
+          "type": "Case",
+          "line": 269
+        },
+        {
+          "type": "When",
+          "line": 270
+        },
+        {
+          "type": "Move",
+          "line": 272
+        },
+        {
+          "type": "CallTransaction",
+          "line": 273
+        },
+        {
+          "type": "EndCase",
+          "line": 274
+        },
+        {
+          "type": "WhenOthers",
+          "line": 275
+        },
+        {
+          "type": "EndCase",
+          "line": 276
+        },
+        {
+          "type": "EndMethod",
+          "line": 279
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 280
+        },
+        {
+          "type": "Case",
+          "line": 282
+        },
+        {
+          "type": "When",
+          "line": 283
+        },
+        {
+          "type": "ReadTable",
+          "line": 284
+        },
+        {
+          "type": "Move",
+          "line": 286
+        },
+        {
+          "type": "Case",
+          "line": 288
+        },
+        {
+          "type": "When",
+          "line": 289
+        },
+        {
+          "type": "Move",
+          "line": 291
+        },
+        {
+          "type": "CallTransaction",
+          "line": 292
+        },
+        {
+          "type": "EndCase",
+          "line": 293
+        },
+        {
+          "type": "WhenOthers",
+          "line": 294
+        },
+        {
+          "type": "EndCase",
+          "line": 295
+        },
+        {
+          "type": "EndMethod",
+          "line": 298
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 299
+        },
+        {
+          "type": "If",
+          "line": 301
+        },
+        {
+          "type": "Loop",
+          "line": 303
+        },
+        {
+          "type": "Case",
+          "line": 304
+        },
+        {
+          "type": "When",
+          "line": 305
+        },
+        {
+          "type": "Call",
+          "line": 306
+        },
+        {
+          "type": "EndCase",
+          "line": 308
+        },
+        {
+          "type": "EndLoop",
+          "line": 309
+        },
+        {
+          "type": "ElseIf",
+          "line": 310
+        },
+        {
+          "type": "EndIf",
+          "line": 312
+        },
+        {
+          "type": "EndMethod",
+          "line": 313
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 314
+        },
+        {
+          "type": "ReadTable",
+          "line": 316
+        },
+        {
+          "type": "Move",
+          "line": 318
+        },
+        {
+          "type": "If",
+          "line": 320
+        },
+        {
+          "type": "Move",
+          "line": 322
+        },
+        {
+          "type": "Else",
+          "line": 331
+        },
+        {
+          "type": "Comment",
+          "line": 332
+        },
+        {
+          "type": "Comment",
+          "line": 333
+        },
+        {
+          "type": "Comment",
+          "line": 334
+        },
+        {
+          "type": "Comment",
+          "line": 335
+        },
+        {
+          "type": "Comment",
+          "line": 336
+        },
+        {
+          "type": "EndIf",
+          "line": 337
+        },
+        {
+          "type": "EndMethod",
+          "line": 340
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 341
+        },
+        {
+          "type": "ReadTable",
+          "line": 343
+        },
+        {
+          "type": "Move",
+          "line": 345
+        },
+        {
+          "type": "Move",
+          "line": 347
+        },
+        {
+          "type": "EndMethod",
+          "line": 351
+        },
+        {
+          "type": "EndClass",
+          "line": 353
+        }
+      ]
+    },
+    "templates/zrsc4sap_oop_exc.prog.abap": {
+      "statements": [
+        {
+          "type": "Comment",
+          "line": 1
+        },
+        {
+          "type": "Comment",
+          "line": 2
+        },
+        {
+          "type": "Comment",
+          "line": 3
+        },
+        {
+          "type": "ClassDeferred",
+          "line": 4
+        },
+        {
+          "type": "Data",
+          "line": 5
+        },
+        {
+          "type": "ClassDefinition",
+          "line": 7
+        },
+        {
+          "type": "Public",
+          "line": 9
+        },
+        {
+          "type": "Data",
+          "line": 11
+        },
+        {
+          "type": "Data",
+          "line": 12
+        },
+        {
+          "type": "MethodDef",
+          "line": 14
+        },
+        {
+          "type": "MethodDef",
+          "line": 14
+        },
+        {
+          "type": "Private",
+          "line": 17
+        },
+        {
+          "type": "Data",
+          "line": 18
+        },
+        {
+          "type": "EndClass",
+          "line": 20
+        },
+        {
+          "type": "ClassImplementation",
+          "line": 23
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 25
+        },
+        {
+          "type": "Comment",
+          "line": 27
+        },
+        {
+          "type": "Move",
+          "line": 28
+        },
+        {
+          "type": "Move",
+          "line": 29
+        },
+        {
+          "type": "Comment",
+          "line": 30
+        },
+        {
+          "type": "EndMethod",
+          "line": 32
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 35
+        },
+        {
+          "type": "Select",
+          "line": 37
+        },
+        {
+          "type": "EndMethod",
+          "line": 53
+        },
+        {
+          "type": "EndClass",
+          "line": 56
+        }
+      ]
+    },
+    "templates/zrsc4sap_oop_exe.prog.abap": {
+      "statements": [
+        {
+          "type": "Comment",
+          "line": 1
+        },
+        {
+          "type": "Comment",
+          "line": 2
+        },
+        {
+          "type": "Comment",
+          "line": 3
+        },
+        {
+          "type": "ClassDeferred",
+          "line": 7
+        },
+        {
+          "type": "ClassDeferred",
+          "line": 8
+        },
+        {
+          "type": "Comment",
+          "line": 10
+        },
+        {
+          "type": "Comment",
+          "line": 11
+        },
+        {
+          "type": "Comment",
+          "line": 12
+        },
+        {
+          "type": "ClassDefinition",
+          "line": 15
+        },
+        {
+          "type": "Public",
+          "line": 17
+        },
+        {
+          "type": "MethodDef",
+          "line": 18
+        },
+        {
+          "type": "MethodDef",
+          "line": 18
+        },
+        {
+          "type": "MethodDef",
+          "line": 18
+        },
+        {
+          "type": "MethodDef",
+          "line": 18
+        },
+        {
+          "type": "MethodDef",
+          "line": 18
+        },
+        {
+          "type": "MethodDef",
+          "line": 18
+        },
+        {
+          "type": "MethodDef",
+          "line": 18
+        },
+        {
+          "type": "MethodDef",
+          "line": 18
+        },
+        {
+          "type": "Private",
+          "line": 52
+        },
+        {
+          "type": "EndClass",
+          "line": 54
+        },
+        {
+          "type": "Comment",
+          "line": 54
+        },
+        {
+          "type": "Comment",
+          "line": 57
+        },
+        {
+          "type": "Comment",
+          "line": 58
+        },
+        {
+          "type": "Comment",
+          "line": 59
+        },
+        {
+          "type": "ClassImplementation",
+          "line": 62
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 63
+        },
+        {
+          "type": "Comment",
+          "line": 63
+        },
+        {
+          "type": "Comment",
+          "line": 65
+        },
+        {
+          "type": "Comment",
+          "line": 66
+        },
+        {
+          "type": "Comment",
+          "line": 67
+        },
+        {
+          "type": "EndMethod",
+          "line": 68
+        },
+        {
+          "type": "Comment",
+          "line": 68
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 70
+        },
+        {
+          "type": "Comment",
+          "line": 74
+        },
+        {
+          "type": "Comment",
+          "line": 75
+        },
+        {
+          "type": "EndMethod",
+          "line": 76
+        },
+        {
+          "type": "Comment",
+          "line": 76
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 78
+        },
+        {
+          "type": "Call",
+          "line": 80
+        },
+        {
+          "type": "Comment",
+          "line": 86
+        },
+        {
+          "type": "Comment",
+          "line": 87
+        },
+        {
+          "type": "Comment",
+          "line": 88
+        },
+        {
+          "type": "Comment",
+          "line": 89
+        },
+        {
+          "type": "Comment",
+          "line": 90
+        },
+        {
+          "type": "Comment",
+          "line": 91
+        },
+        {
+          "type": "EndMethod",
+          "line": 92
+        },
+        {
+          "type": "Comment",
+          "line": 92
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 94
+        },
+        {
+          "type": "Comment",
+          "line": 95
+        },
+        {
+          "type": "Comment",
+          "line": 96
+        },
+        {
+          "type": "Comment",
+          "line": 97
+        },
+        {
+          "type": "EndMethod",
+          "line": 98
+        },
+        {
+          "type": "Comment",
+          "line": 98
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 100
+        },
+        {
+          "type": "Call",
+          "line": 102
+        },
+        {
+          "type": "EndMethod",
+          "line": 108
+        },
+        {
+          "type": "Comment",
+          "line": 108
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 110
+        },
+        {
+          "type": "Comment",
+          "line": 111
+        },
+        {
+          "type": "Comment",
+          "line": 112
+        },
+        {
+          "type": "Comment",
+          "line": 113
+        },
+        {
+          "type": "Comment",
+          "line": 114
+        },
+        {
+          "type": "EndMethod",
+          "line": 116
+        },
+        {
+          "type": "Comment",
+          "line": 116
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 118
+        },
+        {
+          "type": "Comment",
+          "line": 119
+        },
+        {
+          "type": "Comment",
+          "line": 120
+        },
+        {
+          "type": "Comment",
+          "line": 121
+        },
+        {
+          "type": "Comment",
+          "line": 122
+        },
+        {
+          "type": "Comment",
+          "line": 123
+        },
+        {
+          "type": "Comment",
+          "line": 124
+        },
+        {
+          "type": "Comment",
+          "line": 125
+        },
+        {
+          "type": "EndMethod",
+          "line": 126
+        },
+        {
+          "type": "Comment",
+          "line": 126
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 128
+        },
+        {
+          "type": "Comment",
+          "line": 129
+        },
+        {
+          "type": "Comment",
+          "line": 130
+        },
+        {
+          "type": "EndMethod",
+          "line": 131
+        },
+        {
+          "type": "EndClass",
+          "line": 133
+        },
+        {
+          "type": "Comment",
+          "line": 133
+        },
+        {
+          "type": "Comment",
+          "line": 136
+        },
+        {
+          "type": "Comment",
+          "line": 137
+        },
+        {
+          "type": "Comment",
+          "line": 138
+        },
+        {
+          "type": "ClassDefinition",
+          "line": 140
+        },
+        {
+          "type": "Public",
+          "line": 142
+        },
+        {
+          "type": "Comment",
+          "line": 144
+        },
+        {
+          "type": "MethodDef",
+          "line": 144
+        },
+        {
+          "type": "Comment",
+          "line": 149
+        },
+        {
+          "type": "MethodDef",
+          "line": 149
+        },
+        {
+          "type": "Comment",
+          "line": 154
+        },
+        {
+          "type": "MethodDef",
+          "line": 154
+        },
+        {
+          "type": "Comment",
+          "line": 159
+        },
+        {
+          "type": "MethodDef",
+          "line": 159
+        },
+        {
+          "type": "Comment",
+          "line": 166
+        },
+        {
+          "type": "MethodDef",
+          "line": 166
+        },
+        {
+          "type": "Comment",
+          "line": 172
+        },
+        {
+          "type": "MethodDef",
+          "line": 172
+        },
+        {
+          "type": "Comment",
+          "line": 178
+        },
+        {
+          "type": "MethodDef",
+          "line": 178
+        },
+        {
+          "type": "EndClass",
+          "line": 183
+        },
+        {
+          "type": "Comment",
+          "line": 183
+        },
+        {
+          "type": "ClassImplementation",
+          "line": 185
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 187
+        },
+        {
+          "type": "EndMethod",
+          "line": 189
+        },
+        {
+          "type": "Comment",
+          "line": 189
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 191
+        },
+        {
+          "type": "EndMethod",
+          "line": 193
+        },
+        {
+          "type": "Comment",
+          "line": 193
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 195
+        },
+        {
+          "type": "Comment",
+          "line": 196
+        },
+        {
+          "type": "Comment",
+          "line": 197
+        },
+        {
+          "type": "Comment",
+          "line": 198
+        },
+        {
+          "type": "EndMethod",
+          "line": 199
+        },
+        {
+          "type": "Comment",
+          "line": 199
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 201
+        },
+        {
+          "type": "EndMethod",
+          "line": 203
+        },
+        {
+          "type": "Comment",
+          "line": 203
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 205
+        },
+        {
+          "type": "EndMethod",
+          "line": 207
+        },
+        {
+          "type": "Comment",
+          "line": 207
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 209
+        },
+        {
+          "type": "EndMethod",
+          "line": 211
+        },
+        {
+          "type": "Comment",
+          "line": 211
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 213
+        },
+        {
+          "type": "Comment",
+          "line": 214
+        },
+        {
+          "type": "EndMethod",
+          "line": 215
+        },
+        {
+          "type": "Comment",
+          "line": 215
+        },
+        {
+          "type": "EndClass",
+          "line": 216
+        },
+        {
+          "type": "Comment",
+          "line": 216
+        },
+        {
+          "type": "Comment",
+          "line": 219
+        },
+        {
+          "type": "Comment",
+          "line": 220
+        },
+        {
+          "type": "Comment",
+          "line": 221
+        },
+        {
+          "type": "ClassDefinition",
+          "line": 222
+        },
+        {
+          "type": "Public",
+          "line": 223
+        },
+        {
+          "type": "MethodDef",
+          "line": 224
+        },
+        {
+          "type": "MethodDef",
+          "line": 224
+        },
+        {
+          "type": "MethodDef",
+          "line": 224
+        },
+        {
+          "type": "MethodDef",
+          "line": 224
+        },
+        {
+          "type": "MethodDef",
+          "line": 224
+        },
+        {
+          "type": "MethodDef",
+          "line": 224
+        },
+        {
+          "type": "MethodDef",
+          "line": 224
+        },
+        {
+          "type": "MethodDef",
+          "line": 224
+        },
+        {
+          "type": "MethodDef",
+          "line": 224
+        },
+        {
+          "type": "MethodDef",
+          "line": 224
+        },
+        {
+          "type": "MethodDef",
+          "line": 224
+        },
+        {
+          "type": "EndClass",
+          "line": 258
+        },
+        {
+          "type": "Comment",
+          "line": 258
+        },
+        {
+          "type": "Comment",
+          "line": 259
+        },
+        {
+          "type": "Comment",
+          "line": 260
+        },
+        {
+          "type": "Comment",
+          "line": 261
+        },
+        {
+          "type": "Comment",
+          "line": 262
+        },
+        {
+          "type": "Comment",
+          "line": 263
+        },
+        {
+          "type": "ClassImplementation",
+          "line": 264
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 265
+        },
+        {
+          "type": "EndMethod",
+          "line": 266
+        },
+        {
+          "type": "Comment",
+          "line": 266
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 267
+        },
+        {
+          "type": "EndMethod",
+          "line": 268
+        },
+        {
+          "type": "Comment",
+          "line": 268
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 269
+        },
+        {
+          "type": "Comment",
+          "line": 270
+        },
+        {
+          "type": "EndMethod",
+          "line": 271
+        },
+        {
+          "type": "Comment",
+          "line": 271
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 272
+        },
+        {
+          "type": "Call",
+          "line": 273
+        },
+        {
+          "type": "Comment",
+          "line": 274
+        },
+        {
+          "type": "EndMethod",
+          "line": 275
+        },
+        {
+          "type": "Comment",
+          "line": 275
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 276
+        },
+        {
+          "type": "Comment",
+          "line": 277
+        },
+        {
+          "type": "EndMethod",
+          "line": 278
+        },
+        {
+          "type": "Comment",
+          "line": 278
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 279
+        },
+        {
+          "type": "Comment",
+          "line": 280
+        },
+        {
+          "type": "EndMethod",
+          "line": 281
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 282
+        },
+        {
+          "type": "Comment",
+          "line": 284
+        },
+        {
+          "type": "EndMethod",
+          "line": 286
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 287
+        },
+        {
+          "type": "Comment",
+          "line": 289
+        },
+        {
+          "type": "Comment",
+          "line": 290
+        },
+        {
+          "type": "EndMethod",
+          "line": 291
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 292
+        },
+        {
+          "type": "Comment",
+          "line": 293
+        },
+        {
+          "type": "EndMethod",
+          "line": 294
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 295
+        },
+        {
+          "type": "Comment",
+          "line": 296
+        },
+        {
+          "type": "EndMethod",
+          "line": 297
+        },
+        {
+          "type": "MethodImplementation",
+          "line": 298
+        },
+        {
+          "type": "Call",
+          "line": 299
+        },
+        {
+          "type": "EndMethod",
+          "line": 302
+        },
+        {
+          "type": "EndClass",
+          "line": 303
+        },
+        {
+          "type": "Comment",
+          "line": 303
+        }
+      ]
+    },
+    "templates/zrsc4sap_oop_exf.prog.abap": {
+      "statements": [
+        {
+          "type": "Comment",
+          "line": 1
+        },
+        {
+          "type": "Comment",
+          "line": 2
+        },
+        {
+          "type": "Comment",
+          "line": 3
+        },
+        {
+          "type": "Comment",
+          "line": 5
+        },
+        {
+          "type": "Comment",
+          "line": 6
+        },
+        {
+          "type": "Comment",
+          "line": 7
+        },
+        {
+          "type": "Comment",
+          "line": 8
+        },
+        {
+          "type": "Comment",
+          "line": 9
+        },
+        {
+          "type": "Comment",
+          "line": 10
+        },
+        {
+          "type": "Comment",
+          "line": 11
+        },
+        {
+          "type": "Comment",
+          "line": 12
+        },
+        {
+          "type": "Comment",
+          "line": 13
+        },
+        {
+          "type": "Comment",
+          "line": 14
+        },
+        {
+          "type": "Comment",
+          "line": 15
+        },
+        {
+          "type": "Comment",
+          "line": 16
+        },
+        {
+          "type": "Comment",
+          "line": 17
+        },
+        {
+          "type": "Comment",
+          "line": 18
+        },
+        {
+          "type": "Comment",
+          "line": 19
+        },
+        {
+          "type": "Comment",
+          "line": 20
+        },
+        {
+          "type": "Comment",
+          "line": 21
+        },
+        {
+          "type": "Comment",
+          "line": 22
+        }
+      ]
+    },
+    "templates/zrsc4sap_oop_exi.prog.abap": {
+      "statements": [
+        {
+          "type": "Comment",
+          "line": 1
+        },
+        {
+          "type": "Comment",
+          "line": 2
+        },
+        {
+          "type": "Comment",
+          "line": 3
+        },
+        {
+          "type": "Comment",
+          "line": 6
+        },
+        {
+          "type": "Comment",
+          "line": 7
+        },
+        {
+          "type": "Comment",
+          "line": 8
+        },
+        {
+          "type": "Comment",
+          "line": 9
+        },
+        {
+          "type": "Comment",
+          "line": 10
+        },
+        {
+          "type": "Module",
+          "line": 11
+        },
+        {
+          "type": "Leave",
+          "line": 12
+        },
+        {
+          "type": "EndModule",
+          "line": 13
+        },
+        {
+          "type": "Comment",
+          "line": 16
+        },
+        {
+          "type": "Comment",
+          "line": 17
+        },
+        {
+          "type": "Comment",
+          "line": 18
+        },
+        {
+          "type": "Comment",
+          "line": 19
+        },
+        {
+          "type": "Module",
+          "line": 20
+        },
+        {
+          "type": "Move",
+          "line": 22
+        },
+        {
+          "type": "Case",
+          "line": 24
+        },
+        {
+          "type": "When",
+          "line": 25
+        },
+        {
+          "type": "EndCase",
+          "line": 27
+        },
+        {
+          "type": "EndModule",
+          "line": 29
+        }
+      ]
+    },
+    "templates/zrsc4sap_oop_exo.prog.abap": {
+      "statements": [
+        {
+          "type": "Comment",
+          "line": 1
+        },
+        {
+          "type": "Comment",
+          "line": 2
+        },
+        {
+          "type": "Comment",
+          "line": 3
+        },
+        {
+          "type": "Comment",
+          "line": 5
+        },
+        {
+          "type": "Comment",
+          "line": 6
+        },
+        {
+          "type": "Comment",
+          "line": 7
+        },
+        {
+          "type": "Comment",
+          "line": 8
+        },
+        {
+          "type": "Comment",
+          "line": 9
+        },
+        {
+          "type": "Module",
+          "line": 10
+        },
+        {
+          "type": "SetPFStatus",
+          "line": 11
+        },
+        {
+          "type": "EndModule",
+          "line": 13
+        },
+        {
+          "type": "Comment",
+          "line": 14
+        },
+        {
+          "type": "Comment",
+          "line": 15
+        },
+        {
+          "type": "Comment",
+          "line": 16
+        },
+        {
+          "type": "Comment",
+          "line": 17
+        },
+        {
+          "type": "Comment",
+          "line": 18
+        },
+        {
+          "type": "Module",
+          "line": 19
+        },
+        {
+          "type": "If",
+          "line": 21
+        },
+        {
+          "type": "Call",
+          "line": 22
+        },
+        {
+          "type": "Else",
+          "line": 23
+        },
+        {
+          "type": "Call",
+          "line": 24
+        },
+        {
+          "type": "EndIf",
+          "line": 25
+        },
+        {
+          "type": "EndModule",
+          "line": 27
+        },
+        {
+          "type": "Comment",
+          "line": 28
+        },
+        {
+          "type": "Comment",
+          "line": 29
+        },
+        {
+          "type": "Comment",
+          "line": 30
+        },
+        {
+          "type": "Comment",
+          "line": 31
+        },
+        {
+          "type": "Comment",
+          "line": 32
+        },
+        {
+          "type": "Module",
+          "line": 33
+        },
+        {
+          "type": "SetPFStatus",
+          "line": 34
+        },
+        {
+          "type": "Comment",
+          "line": 35
+        },
+        {
+          "type": "EndModule",
+          "line": 36
+        },
+        {
+          "type": "Comment",
+          "line": 37
+        },
+        {
+          "type": "Comment",
+          "line": 38
+        },
+        {
+          "type": "Comment",
+          "line": 39
+        },
+        {
+          "type": "Comment",
+          "line": 40
+        },
+        {
+          "type": "Comment",
+          "line": 41
+        },
+        {
+          "type": "Module",
+          "line": 42
+        },
+        {
+          "type": "If",
+          "line": 44
+        },
+        {
+          "type": "Call",
+          "line": 45
+        },
+        {
+          "type": "Else",
+          "line": 46
+        },
+        {
+          "type": "Call",
+          "line": 47
+        },
+        {
+          "type": "EndIf",
+          "line": 48
+        },
+        {
+          "type": "EndModule",
+          "line": 50
+        }
+      ]
+    },
+    "templates/zrsc4sap_oop_exs.prog.abap": {
+      "statements": [
+        {
+          "type": "Comment",
+          "line": 1
+        },
+        {
+          "type": "Comment",
+          "line": 2
+        },
+        {
+          "type": "Comment",
+          "line": 3
+        },
+        {
+          "type": "SelectionScreen",
+          "line": 6
+        },
+        {
+          "type": "SelectionScreen",
+          "line": 7
+        },
+        {
+          "type": "Parameter",
+          "line": 8
+        },
+        {
+          "type": "SelectionScreen",
+          "line": 9
+        },
+        {
+          "type": "Parameter",
+          "line": 10
+        },
+        {
+          "type": "SelectionScreen",
+          "line": 11
+        },
+        {
+          "type": "Comment",
+          "line": 12
+        },
+        {
+          "type": "Comment",
+          "line": 13
+        },
+        {
+          "type": "SelectionScreen",
+          "line": 14
+        },
+        {
+          "type": "SelectionScreen",
+          "line": 15
+        }
+      ]
+    },
+    "templates/zrsc4sap_oop_ext.prog.abap": {
+      "statements": [
+        {
+          "type": "Comment",
+          "line": 1
+        },
+        {
+          "type": "Comment",
+          "line": 2
+        },
+        {
+          "type": "Comment",
+          "line": 3
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "Constant",
+          "line": 6
+        },
+        {
+          "type": "TypeBegin",
+          "line": 37
+        },
+        {
+          "type": "Type",
+          "line": 37
+        },
+        {
+          "type": "Type",
+          "line": 37
+        },
+        {
+          "type": "Type",
+          "line": 37
+        },
+        {
+          "type": "Type",
+          "line": 37
+        },
+        {
+          "type": "Type",
+          "line": 37
+        },
+        {
+          "type": "Type",
+          "line": 37
+        },
+        {
+          "type": "Type",
+          "line": 37
+        },
+        {
+          "type": "Type",
+          "line": 37
+        },
+        {
+          "type": "Type",
+          "line": 37
+        },
+        {
+          "type": "TypeEnd",
+          "line": 37
+        },
+        {
+          "type": "Type",
+          "line": 37
+        },
+        {
+          "type": "TypeBegin",
+          "line": 50
+        },
+        {
+          "type": "Type",
+          "line": 50
+        },
+        {
+          "type": "Type",
+          "line": 50
+        },
+        {
+          "type": "Type",
+          "line": 50
+        },
+        {
+          "type": "TypeEnd",
+          "line": 50
+        },
+        {
+          "type": "TypeBegin",
+          "line": 56
+        },
+        {
+          "type": "Type",
+          "line": 56
+        },
+        {
+          "type": "Type",
+          "line": 56
+        },
+        {
+          "type": "Type",
+          "line": 56
+        },
+        {
+          "type": "TypeEnd",
+          "line": 56
+        },
+        {
+          "type": "Comment",
+          "line": 63
+        }
+      ]
+    }
+  }
+}
