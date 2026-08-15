@@ -1,7 +1,7 @@
 {
   "_generated": "⚠️ 생성물 — 직접 편집하지 말 것. 정본은 interactive/plugin-metadata.json (gen-plugin-manifests.mjs)",
   "name": "sapkit",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "SAPKIT — SAP ABAP development and consulting in one plugin: 15 module knowledge packs (14 + BC), 14 industries, 16 countries, ABAP conventions/templates, 26 personas (on-demand via INDEX selector), 22 procedures (17 exposed as skills) with human approval + fresh-context review gates. Harness-neutral core plus a thin adapter per harness. SAP connectivity via the bundled ABAP ADT MCP server — no separate registration; on Codex, run $sapkit:setup once to wire the plugin-local path (see adapters/codex/README.md).",
   "author": {
     "name": "hjaewon"

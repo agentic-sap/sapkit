@@ -20,6 +20,7 @@
     "test": "jest --passWithNoTests",
     "gates": "node gates/run-all.mjs",
     "sapkit": "node bin/sapkit.js",
+    "bundle": "esbuild src/cli/entry.ts --bundle --platform=node --target=node20 --format=cjs --legal-comments=none --outfile=../interactive/checker/sapkit-checker.bundle.cjs",
     "verify": "npm run build && npm run typecheck && npm test"
   },
   "devDependencies": {
