@@ -3,8 +3,8 @@
 ## 프로젝트 정체성 (30초 맥락 — 이걸 모르면 판단하지 말 것)
 
 SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트랙**이며, **제품은
-`interactive/` 플러그인 단독**이고 나머지(`engine/`·`sapkit-cli/`·`vsp/`)는 공방(개발
-도구·소스 정본·증거)이다 — 모노레포 유지(D-040). 철학: **차용 후 완전 소유**(sc4sap
+`interactive/` 플러그인 단독**이고 나머지(`engine/`·`sapkit-cli/`·`sapkit-engine/`)는
+공방(개발 도구·소스 정본·증거)이다 — 모노레포 유지(D-040). 철학: **차용 후 완전 소유**(sc4sap
 지식 이식, 엔진 편입 D-017) · 가볍지만 강력하게(무게의 척도 = 세션 토큰·설치 부담, 레포 바이트
 아님 — D-040) · 3사 하네스 중립. 어디까지 자작으로 바꿀 것인가의 **계획 정본**은
 `docs/BLUEPRINT.md`(끝그림 = 포크 0 · 교체 사다리 ⑴~⑷ · 무중단 교체 규칙 · 도구 실사).
@@ -33,7 +33,10 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
   `interactive/checker/UPDATE-RUNBOOK.md` 절차로만, 무결성·출처 게이트는
   `interactive/scripts/verify-checker.mjs`. 구 판정과의 **의도적 차이는
   `sapkit-cli/DIVERGENCES.md`(append-only)에 등재**하며 등재 없는 차이는 결함이다.
-  레포의 `vsp/`는 이 커밋 시점에 아직 있으나 **제품이 부르는 곳은 없다**(은퇴는 별도 판).
+  **구 `vsp/` 서브트리는 은퇴했다** — 레포에서 삭제됐고 Go 툴체인도 함께 빠졌다.
+  그러므로 **구 판정을 다시 뜰 수 없다**: `sapkit-cli/fixtures/baseline/`의 채록본과
+  `harness/RECORDING.md`가 「구 vsp가 무엇을 어떻게 판정했는가」의 유일한 잔존
+  형태이며, 코퍼스 대조 게이트가 그 기준을 상시 지킨다.
 - **`sapkit-engine/` — 자체 저작 엔진 (사다리 ⑴ · 제품 아님).** D-079가 연 새 경로로,
   구 번들을 대체할 후보를 **구 부품 무접촉으로 병행 제작**한다. 지금 도구 **186/186** ·
   전송 3(stdio·HTTP·SSE) · RFC 5경로 · 인증 4통로. **그러나 제품은 여전히 구 번들
@@ -136,8 +139,9 @@ node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (�
 
 게이트 자체의 음성시험(게이트가 정말 거부하는지): `test-smoke-mcp.mjs` 20/20 ·
 `test-check-runtime-path-rename.mjs` 13/13 · `test-hook-switch.mjs` 13/13 ·
-`test-setup-state.mjs` 118/118 · `test-launch-toolsurface.mjs` 56/56 ·
-`test-codex-wire-mcp.mjs` 51/51 · `test-doctor.mjs` 47/47 · `test-get-vsp.mjs` 21/21.
+`test-setup-state.mjs` 120/120 · `test-launch-toolsurface.mjs` 56/56 ·
+`test-codex-wire-mcp.mjs` 51/51 · `test-doctor.mjs` 47/47 ·
+`test-verify-checker.mjs` 21/21.
 **PowerShell로 실행할 것** — Bash로 돌리면 자식 프로세스 수거에서 블록된다.
 
 **위 9종(+doctor)은 제품 게이트다. `sapkit-engine/`과 `sapkit-cli/`는 자기 게이트를
@@ -171,12 +175,13 @@ node harness/build-plan.mjs --check    # 제작 계획 ↔ 산식
 고치지 말 것.
 
 CI(`.github/workflows/offline-gates.yml`)는 위 게이트에서 **doctor 본체만 빼고** 전부
-돌리고, 음성시험은 `test-get-vsp`를 뺀 전부를 돌린다(`test-doctor`는 windows 잡).
-엔진 소스 테스트와 번들 재현 빌드, vsp in-repo 빌드·오프라인 계약 스모크,
+돌리고, 음성시험도 **전부** 돌린다(`test-doctor`는 windows 잡).
+엔진 소스 테스트와 번들 재현 빌드,
 그리고 **`sapkit-engine` 잡**(자체 게이트 전종 + 대장 `--check`)도 CI 소관이다.
 **`sapkit-cli` 잡**(verify + 게이트 + 그 음성시험 + exit 계약 양극 assert)도 마찬가지고,
-`verify-checker`는 `node-gates` 잡에 있다 — 소스 커밋 대조에 전체 이력(`fetch-depth: 0`)이
-필요해서 그 잡만이 자리다.
+`verify-checker`**와 그 음성시험**은 `node-gates` 잡에 있다 — 소스 커밋 대조에 전체
+이력(`fetch-depth: 0`)이 필요해서 그 잡만이 자리다. **Go 툴체인은 CI에서 빠졌다**
+(vsp 은퇴로 `vsp-build` 잡 제거).
 
 **은퇴한 게이트 — 되살리지 말 것.** 이식 장부 계열(`check-migration-snapshot` ·
 그 음성시험 · `build-migration-snapshot` · `report-sc4sap-public-drift`)은 renew 1차에서

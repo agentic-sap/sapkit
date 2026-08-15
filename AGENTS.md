@@ -63,8 +63,12 @@ Real-data, tier, and escort gates are Policy, not modes.
 Record exactly: `attended-only`, `unattended=sealed`,
 `historical_rv4_classifier=open`, `sap_mutation_boundary=unverified` (scope:
 reviewer + all attended children). Practice/escort does not close RV4. These
-four values and the RV1~RV4 classification behind them are defined by the two
-sources this section already cites — `docs/reference/designs/2026-07-15-track-a-rebase-v2.md`
-(§6 and its state block) and D-025 in `docs/reference/DECISIONS.md` — and those
-control directly. Only new evidence recorded there can move a value; no
+four values are defined by the two sources this section already cites —
+`docs/reference/designs/2026-07-15-track-a-rebase-v2.md` (§6 and its state
+block) and D-025 in `docs/reference/DECISIONS.md` — and those control directly.
+The RV1~RV4 classification behind them, and the V1~V5 blocking measurements it
+rests on, are preserved verbatim in
+`docs/reference/audits/2026-08-15-rv-classification-record.md` (relocated from
+the retired vsp profile document — a record, not an authority). Only new
+evidence recorded in the two controlling sources can move a value; no
 downstream profile document may restate or relax them.

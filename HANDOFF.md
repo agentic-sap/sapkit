@@ -3556,6 +3556,7 @@ node interactive/scripts/conformance-server-gates.mjs    # 서버 안전 게이�
 node interactive/scripts/gen-plugin-manifests.mjs --check # 생성물 7종(매니페스트 5+MCP 2) ↔ 단일 정본
 node interactive/scripts/check-runtime-path-rename.mjs   # 구 세대 토큰 재등장 금지 + 안전 앵커
 node interactive/scripts/conformance-runtime-dir.mjs     # 런타임 경로 적합성
+node interactive/scripts/verify-checker.mjs              # 동봉 검사기 번들 무결성·출처 (바이트·버전 3자·소스 커밋·소스 표류)
 node interactive/scripts/doctor.mjs                      # 3사 동기화 · capability 진단 (로컬 전용)
 # 음성시험 (게이트가 정말 거부하는지 — PowerShell로 실행할 것)
 node interactive/scripts/test-smoke-mcp.mjs
@@ -3565,9 +3566,13 @@ node interactive/scripts/test-setup-state.mjs
 node interactive/scripts/test-launch-toolsurface.mjs
 node interactive/scripts/test-codex-wire-mcp.mjs
 node interactive/scripts/test-doctor.mjs
-node interactive/scripts/test-get-vsp.mjs
-# 은퇴 (renew 1차 판) — check-migration-snapshot · build-migration-snapshot ·
-#   report-sc4sap-public-drift · migrate-runtime-dir + 각 음성시험 (D-072 · D-076)
+node interactive/scripts/test-verify-checker.mjs
+# 공방 자체 게이트 (각 디렉터리 안에서 — 제품 게이트와 별도)
+cd sapkit-cli    && npm run verify && npm run gates && node harness/test-corpus-gate.mjs && node harness/test-compare-baseline.mjs
+cd sapkit-engine && npm run verify && npm run gates && node gates/test-gates.mjs && node harness/render-ledger.mjs --check
+# 은퇴 — check-migration-snapshot · build-migration-snapshot · report-sc4sap-public-drift ·
+#   migrate-runtime-dir + 각 음성시험 (renew 1차, D-072 · D-076) · get-vsp + test-get-vsp
+#   (vsp 은퇴 판 — 다운로드 경로 자체가 사라졌다)
 node interactive/adapters/codex/toggle-plugin.mjs status # Codex 활성 상태
 codex plugin list | grep sapkit                          # Codex 설치 상태
 agy plugin list                                          # AG 임포트 상태
