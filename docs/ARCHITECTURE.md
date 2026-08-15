@@ -93,8 +93,10 @@ stale다. 현 phase-only template/checker는 v0.17 legacy; run-scoped 갱신은 
   `analyze <file> --format json`(13룰) · `check <dir>`(INCLUDE 정합). exit 계약은
   0 통과 / 1 결함 / 2 사용·입력 오류. SAP 접속·MCP 모드 없음. 상세 =
   `interactive/core/procedures/troubleshooting.md` §7.
-- **online**: 반드시 `scripts/verify-sap.ps1` 경유 — vsp 직접 호출 금지(vsp는 모든 오류가
-  exit 1이라 래퍼가 출력 패턴으로 판정). 체인 = deploy→activate→drift→ATC→unit.
+- **online**: 트랙 B MCP·사람이 모는 CLI·사용자 abapGit 중 어느 경로로 넣든 관문은
+  같다(P3 = DEV tier 한정). 체인 = 반영→활성화→drift 대조→ATC→unit. **전용 verify
+  래퍼는 없다** — 그 자리를 채우던 래퍼는 R1에서, 그것이 몰던 오프라인 백엔드는
+  vsp 은퇴 판에서 레포를 떠났다.
 - **마커 3종**: `CODE_FAIL`(코드 결함 — 수정 대상) / `ENV_FAIL`(연결·환경) /
   `LOCK_FAIL`(잠금) — ENV·LOCK은 코드 결함으로 기록·규칙 승격 금지(R-001). 존재
   확인(Test-Path류)은 verify가 아니다.
@@ -121,7 +123,8 @@ docs/reference/templates/ 현 v0.17 phase-only review legacy 템플릿; run-scop
 engine/                 MCP 엔진 소스 정본 — TS 소스·tests·번들 도구·patches·
                         UPSTREAM-FIX-HANDOFF.md·CHANGELOG (D-017 편입, 플러그인 표면 밖)
 interactive/            트랙 B 플러그인 루트 (아래 세부)
-adapters/               트랙 A 의존 lock 2종 + vsp/ COMMANDS·VERIFY-PATTERNS·SAFETY-PROFILES
+sapkit-cli/             동봉 오프라인 검사기의 소스 정본 (lint·parse·analyze·check;
+                        번들 산출물은 interactive/checker/)
 domain/                 트랙 A 도메인 규칙 시드 — 현재 abap/만(CHECKLIST·RULES.seed, S-001~025)
 packs/                  트랙 A 모듈 지식팩(Phase 4~) — modules/README.md(이중 구조 규약) ·
                         modules/fi/(CONSULTANT.md 포인터 허브 + RULES.seed.md FI-001~005;

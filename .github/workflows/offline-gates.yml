@@ -15,7 +15,7 @@
 #
 # 여전히 CI에 없는 것 (러너에 존재하지 않는 상태를 읽음 — 로컬 전용):
 #   - doctor.mjs → 설치된 CLI 버전·플러그인 설치·훅 배선을 본다. 러너엔 무의미.
-#   - Track A의 실제 verify(살아있는 SAP 대상 vsp) → 자격증명·네트워크 부재. 로컬/에스코트 전용.
+#   - 살아있는 SAP을 대상으로 하는 검증 → 자격증명·네트워크 부재. 로컬/에스코트 전용.
 name: offline-gates
 
 on:
@@ -167,44 +167,13 @@ jobs:
       - name: doctor 음성시험 (판정 규칙 · 비밀 무출력 · 배선 3분류)
         run: node interactive/scripts/test-doctor.mjs
 
-  vsp-build:
-    # vsp-custom 편입(D-030/D-037) — 레포 내 vsp/ 서브트리에서 in-repo 재현 빌드 +
-    # 오프라인 계약 스모크. 바이너리는 비커밋(lock binary.build_command로 재현)이라
-    # CI가 매번 빌드해 명령 계약을 assert한다. 온라인 명령(deploy/atc/test 등)은
-    # SAP 자격증명·네트워크 부재로 여기서 못 돈다 — 오프라인 3종 + 파서 패키지 테스트만.
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: vsp/go.mod
-          cache-dependency-path: vsp/go.sum
-
-      - name: build (vsp · CGO0 · trimpath)
-        working-directory: vsp
-        run: CGO_ENABLED=0 go build -trimpath -buildvcs=false -o build/vsp ./cmd/vsp
-
-      - name: 오프라인 계약 스모크 — lint (Error만 비-0, clean 파일 exit 0)
-        working-directory: vsp
-        run: ./build/vsp lint --file embedded/abap/zadt_test_simple_report.prog.abap
-
-      - name: 오프라인 계약 스모크 — parse (exit 0)
-        working-directory: vsp
-        run: ./build/vsp parse --file embedded/abap/zadt_test_simple_report.prog.abap
-
-      - name: 오프라인 계약 스모크 — execute --help gated write 문구
-        working-directory: vsp
-        run: ./build/vsp execute --help | grep -i "write permissions"
-
-      - name: 검증 중심 계약 핵심 패키지 테스트 (abaplint · CGO0 green 실측)
-        working-directory: vsp
-        run: CGO_ENABLED=0 go test ./pkg/abaplint/...
+  # (구 `vsp/` 서브트리를 재현 빌드하던 `vsp-build` 잡은 vsp 은퇴 판에서 제거됐다 —
+  #  setup-go 포함. 그 잡이 지키던 lint/parse 오프라인 계약은 아래 `sapkit-cli` 잡이
+  #  자체 저작 검사기로 이어받는다. Go 툴체인은 이 레포에서 더 이상 쓰이지 않는다.)
 
   sapkit-cli:
     # 자체 저작 오프라인 ABAP 검사기(청사진 사다리 ⑵ · T8). 구 `vsp/`가 담당하던
-    # lint/parse/analyze/check를 대체할 후보 — SAP 무접속. **기존 잡은 무수정 — 순수 추가다.**
-    # vsp-build 잡은 vsp 은퇴가 별도 커밋으로 확정되기 전까지 그대로 공존한다.
+    # lint/parse/analyze/check를 **대체 완료**했다 — SAP 무접속.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
