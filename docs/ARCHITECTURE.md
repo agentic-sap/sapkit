@@ -104,7 +104,8 @@ stale다. 현 phase-only template/checker는 v0.17 legacy; run-scoped 갱신은 
   되읽어** 반영을 확인한다(R-006 — 절차 정본
   `interactive/core/procedures/verify-applied.md`). CLAS 테스트 include 배포는 리포트 로컬 테스트 클래스 배치로
   회피했으나(ADR-002), vsp v2.38.1-94에서 지원이 실측 확인됨(ADR-002 Addendum — 재배치는
-  사용자 결정 대기).
+  사용자 결정 대기). **⚠ 그 실측의 근거 도구(vsp)는 판1에서 은퇴했다(D-085)** — 재배치를
+  결정하려면 지금 배선된 경로(트랙 B MCP)로 다시 재야 한다.
 
 ## 파일 지도 (실측 트리 — 여기 뭐가 살고 왜)
 
