@@ -31,15 +31,95 @@ const WHITE_BEFORE_CHARS = new Set([' ', '\n', '\t', ':']);
 /** 토큰 뒤가 "비었다"고 보는 글자 (빈 문자열 = 원문 끝). */
 const WHITE_AFTER_CHARS = new Set([' ', '\n', '\t', ':', ',', '.', '', '"']);
 
-const ASCII_SPACE = new Set([' ', '\t', '\n', '\v', '\f', '\r']);
+/**
+ * 구 검사기가 토큰을 다듬을 때 쓴 공백 집합 (Go `unicode.IsSpace`와 같은 집합).
+ *
+ * **ASCII 6종으로 갈음하면 안 된다.** 전각 공백(CJK 입력기)과 NBSP(붙여넣은 코드)는
+ * 실무 ABAP 원문에 나오고, 그 한 글자에서 열이 밀리고 문장 유형이 뒤집히고 문장
+ * 개수까지 달라진다. JS `String.prototype.trim()`으로도 갈음하면 안 된다 — 집합이
+ * 다르다(U+0085는 Go만 공백, U+FEFF는 JS만 뗀다).
+ *
+ * 라틴-1 안: `\t \n \v \f \r` 공백 U+0085 U+00A0.
+ * 그 위: 유니코드 Z 범주 — Zs(U+1680, U+2000–200A, U+202F, U+205F, U+3000) ·
+ * Zl(U+2028) · Zp(U+2029).
+ */
+const GO_SPACE_RUNES: ReadonlySet<number> = new Set([
+  0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x20, 0x85, 0xa0, 0x1680, 0x2000, 0x2001, 0x2002, 0x2003, 0x2004,
+  0x2005, 0x2006, 0x2007, 0x2008, 0x2009, 0x200a, 0x2028, 0x2029, 0x202f, 0x205f, 0x3000,
+]);
 
-/** 양끝의 ASCII 공백만 떼어낸다 (바이트 시점에서 안전한 다듬기). */
-function trimAsciiSpace(s: string): string {
+/** 읽어낸 글자 하나. `rune`이 음수면 못 읽었다는 뜻(다듬기를 거기서 멈춘다). */
+interface DecodedRune {
+  readonly rune: number;
+  readonly size: number;
+}
+
+const UNREADABLE: DecodedRune = { rune: -1, size: 1 };
+
+/**
+ * 바이트 시점 문자열의 `index` 자리에서 UTF-8 글자 하나를 읽는다.
+ *
+ * 4바이트 글자는 일부러 읽지 않는다 — 공백 글자는 전부 U+FFFF 이하라 "못 읽었다"로
+ * 돌려줘도 다듬기 결과가 같다.
+ */
+function runeAt(bytes: string, index: number, end: number): DecodedRune {
+  const lead = bytes.charCodeAt(index);
+  if (lead < 0x80) return { rune: lead, size: 1 };
+
+  let size: number;
+  let rune: number;
+  if (lead >= 0xc2 && lead <= 0xdf) {
+    size = 2;
+    rune = lead & 0x1f;
+  } else if (lead >= 0xe0 && lead <= 0xef) {
+    size = 3;
+    rune = lead & 0x0f;
+  } else {
+    return UNREADABLE;
+  }
+
+  if (index + size > end) return UNREADABLE;
+  for (let k = 1; k < size; k++) {
+    const next = bytes.charCodeAt(index + k);
+    if ((next & 0xc0) !== 0x80) return UNREADABLE;
+    rune = (rune << 6) | (next & 0x3f);
+  }
+  return { rune, size };
+}
+
+/** `end` 바로 앞 글자 하나를 읽는다 (뒤에서 앞으로 다듬을 때 쓴다). */
+function runeBefore(bytes: string, start: number, end: number): DecodedRune {
+  const tail = bytes.charCodeAt(end - 1);
+  if (tail < 0x80) return { rune: tail, size: 1 };
+
+  // 이어 붙는 바이트를 최대 두 칸 되짚어 선두 바이트를 찾는다 (공백은 최대 3바이트).
+  for (let back = 1; back <= 2; back++) {
+    const index = end - 1 - back;
+    if (index < start) break;
+    if ((bytes.charCodeAt(index) & 0xc0) === 0x80) continue;
+    const decoded = runeAt(bytes, index, end);
+    return decoded.rune >= 0 && index + decoded.size === end ? decoded : UNREADABLE;
+  }
+  return UNREADABLE;
+}
+
+/** 양끝의 공백 글자를 떼어낸다. 바이트 수로 떼므로 열 계산이 함께 맞는다. */
+function trimGoSpace(bytes: string): string {
   let start = 0;
-  let end = s.length;
-  while (start < end && ASCII_SPACE.has(s.charAt(start))) start++;
-  while (end > start && ASCII_SPACE.has(s.charAt(end - 1))) end--;
-  return s.slice(start, end);
+  let end = bytes.length;
+
+  while (start < end) {
+    const { rune, size } = runeAt(bytes, start, end);
+    if (rune < 0 || !GO_SPACE_RUNES.has(rune)) break;
+    start += size;
+  }
+  while (end > start) {
+    const { rune, size } = runeBefore(bytes, start, end);
+    if (rune < 0 || !GO_SPACE_RUNES.has(rune)) break;
+    end -= size;
+  }
+
+  return bytes.slice(start, end);
 }
 
 /** 앞뒤 공백 유무로 4변종 중 하나를 고른다. */
@@ -185,7 +265,7 @@ class Lexer {
       this.mode = 'comment';
       return;
     }
-    if (ahead === '@' && trimAsciiSpace(this.buffer) === '') {
+    if (ahead === '@' && trimGoSpace(this.buffer) === '') {
       this.emit();
       return;
     }
@@ -268,7 +348,7 @@ class Lexer {
 
   /** 담개에 쌓인 것을 토큰 하나로 내놓고 담개를 비운다. */
   private emit(): void {
-    const s = trimAsciiSpace(this.buffer);
+    const s = trimGoSpace(this.buffer);
     this.buffer = '';
     if (s.length === 0) return;
 

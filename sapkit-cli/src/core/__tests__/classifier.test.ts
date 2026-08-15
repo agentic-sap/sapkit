@@ -240,3 +240,31 @@ describe('classify — 잡다한 승계 동작', () => {
     expect(types('ENDCLASS. " trailing')).toEqual(['EndClass', 'Comment']);
   });
 });
+
+// 구 구현은 파일마다 대문자화가 달랐다: 분류기(`matcher.go`·`combi.go`)는 유니코드,
+// 문장 분할기(`statements.go`)는 ASCII 전용. 여기서는 분류기 쪽 규칙을 고정한다.
+describe('classify — 키워드 대문자화는 유니코드 (구 strings.ToUpper 승계)', () => {
+  it('점 없는 i(U+0131)는 I로 올라가 If가 된다', () => {
+    expect(type1('ıf a = 1.')).toBe('If');
+  });
+
+  it('긴 s(U+017F)는 S로 올라가 Sort가 된다', () => {
+    expect(type1('ſoRT t.')).toBe('Sort');
+  });
+
+  it('한 글자가 둘로 늘어나는 대문자화는 쓰지 않는다 — ﬁnd는 Find가 아니다', () => {
+    // Go `unicode.ToUpper`는 1:1 대응만 하므로 U+FB01을 그대로 둔다.
+    // JS `toUpperCase()`를 그냥 쓰면 "FI"로 펴져 Find로 잘못 분류된다.
+    expect(type1("ﬁnd 'a' IN b.")).toBe('Move');
+    expect(type1('ßORT t.')).toBe('Move');
+  });
+
+  it('평범한 ASCII 키워드는 그대로 잡힌다 (빠른 길 회귀)', () => {
+    expect(type1('sort t.')).toBe('Sort');
+    expect(type1('SoRt t.')).toBe('Sort');
+  });
+
+  it('토큰 가운데 낀 전각 공백은 이름의 일부라 Data가 아니다', () => {
+    expect(type1('DATA' + '\u3000lv_x TYPE i.')).toBe('Move');
+  });
+});

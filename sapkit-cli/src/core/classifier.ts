@@ -41,6 +41,38 @@ const REST: Step = { kind: 'rest' };
 
 const IDENT_PATTERN = /^[\w~/<>]+$/;
 
+/**
+ * 키워드 대조용 대문자화 — 구 **분류기**의 `strings.ToUpper`(유니코드) 대응.
+ *
+ * 문장 분할기 쪽 `asciiUpper`와 **일부러 다르다.** 구 구현이 파일마다 달랐기 때문이다:
+ * `matcher.go`·`combi.go`는 유니코드, `statements.go`는 ASCII 전용. 그 차이가 판정에
+ * 실린다 — 점 없는 i(U+0131)는 `I`로, 긴 s(U+017F)는 `S`로 올라가므로 `ıf ...`는
+ * `If`, `ſoRT ...`는 `Sort`로 분류된다.
+ *
+ * 한 글자가 여러 글자로 늘어나는 대문자화(ß→SS, ﬁ→FI)는 **쓰지 않는다.** Go는 1:1
+ * 대응만 하므로 `ß`·`ﬁ`를 그대로 둔다. JS `toUpperCase()`를 통째로 쓰면 `ﬁnd`가
+ * `Find`로 잘못 분류된다(구 구현은 `Move`). 전 코드포인트를 훑어 실측한 결과, 1:1로
+ * 가두면 키워드 대조에 닿는 차이가 0이다.
+ */
+function keywordUpper(s: string): string {
+  // 흔한 길: 순수 ASCII면 곧바로 올린다.
+  for (let i = 0; i < s.length; i++) {
+    if (s.charCodeAt(i) > 0x7f) return unicodeSimpleUpper(s);
+  }
+  return asciiUpper(s);
+}
+
+function unicodeSimpleUpper(s: string): string {
+  let out = '';
+  for (const ch of s) {
+    const upper = ch.toUpperCase();
+    const first = upper.codePointAt(0);
+    const isOneToOne = first !== undefined && String.fromCodePoint(first).length === upper.length;
+    out += isOneToOne ? upper : ch;
+  }
+  return out;
+}
+
 /** 무늬 한 개. 첫 걸음은 늘 키워드이고, 그 낱말이 곧 색인 열쇠다. */
 interface Pattern {
   readonly type: StatementType;
@@ -203,7 +235,7 @@ function matches(steps: readonly Step[], tokens: readonly Token[]): boolean {
     }
     const token = tokens[pos];
     if (token === undefined) return false;
-    if (step.kind === 'keyword' && asciiUpper(token.str) !== step.word) return false;
+    if (step.kind === 'keyword' && keywordUpper(token.str) !== step.word) return false;
     if (step.kind === 'tokenType' && token.type !== step.tokenType) return false;
     if (step.kind === 'ident' && !IDENT_PATTERN.test(token.str)) return false;
     pos++;
@@ -267,7 +299,7 @@ export function classifyStatement(stmt: Statement): StatementType {
   const first = tokens[0];
   if (first === undefined) return 'Empty';
 
-  for (const candidate of BY_KEYWORD.get(asciiUpper(first.str)) ?? []) {
+  for (const candidate of BY_KEYWORD.get(keywordUpper(first.str)) ?? []) {
     if (matches(candidate.steps, tokens)) return candidate.type;
   }
 

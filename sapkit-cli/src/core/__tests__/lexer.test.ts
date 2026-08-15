@@ -1,7 +1,7 @@
 // 어휘 분석기 단위 시험.
 // 기대값은 구 vsp 검사기(Go)를 실제로 돌려 실측한 것이다 — 문서에서 옮겨오지 않았다.
 
-import { TokenType, tokenize } from '../index';
+import { AbapFile, TokenType, tokenize } from '../index';
 import type { Token } from '../index';
 
 /** 토큰을 [문자열, 유형, 행, 열]로 납작하게 편다 (읽기 쉬운 대조용). */
@@ -327,5 +327,55 @@ describe('tokenize — 열 계산은 UTF-8 바이트 기준 (구 구현 실측)'
       ['" 한글 주석', TokenType.Comment, 1, 1],
       ['DATA', TokenType.Identifier, 2, 1],
     ]);
+  });
+});
+
+// 여기서 공백 글자는 반드시 `\uXXXX` 이스케이프로 적는다 — 원문에 그대로 넣으면
+// 눈에 보이지 않아 편집기·도구가 조용히 뭉갠다.
+describe('tokenize — 유니코드 공백 다듬기 (구 Go strings.TrimSpace 승계)', () => {
+  const IDEOGRAPHIC = '\u3000';
+  const NBSP = '\u00a0';
+
+  it('선행 전각 공백을 떼되 열은 바이트 수만큼 민다', () => {
+    expect(shape(IDEOGRAPHIC + 'DATA lv_x TYPE i.')).toEqual([
+      ['DATA', TokenType.Identifier, 1, 4],
+      ['lv_x', TokenType.Identifier, 1, 9],
+      ['TYPE', TokenType.Identifier, 1, 14],
+      ['i', TokenType.Identifier, 1, 19],
+      ['.', TokenType.Punctuation, 1, 20],
+    ]);
+  });
+
+  it('ASCII 공백만 떼면 유형이 뒤집힌다 — 전각 공백 뒤도 Data여야 한다', () => {
+    expect(new AbapFile('t.abap', IDEOGRAPHIC + 'DATA lv_x TYPE i.').getStatements()[0]?.type).toBe(
+      'Data',
+    );
+  });
+
+  it('토큰 사이의 전각 공백은 떼지 않는다 (양끝만 다듬는다)', () => {
+    expect(shape('DATA' + IDEOGRAPHIC + 'lv_x TYPE i.').slice(0, 2)).toEqual([
+      ['DATA' + IDEOGRAPHIC + 'lv_x', TokenType.Identifier, 1, 1],
+      ['TYPE', TokenType.Identifier, 1, 13],
+    ]);
+  });
+
+  it('후행 NBSP가 문장을 하나 더 만들지 않는다', () => {
+    expect(strs('IF a = 1.' + NBSP)).toEqual(['IF', 'a', '=', '1', '.']);
+    expect(new AbapFile('t.abap', 'IF a = 1.' + NBSP).getStatements()).toHaveLength(1);
+  });
+
+  it('Go가 공백으로 보는 글자를 모두 뗀다', () => {
+    const spaces = ['\u0085', '\u00a0', '\u1680', '\u2002', '\u2028', '\u2029', '\u202f', '\u205f', '\u3000'];
+    for (const space of spaces) {
+      expect(strs('WRITE' + space + "'x'.")).toEqual(['WRITE', "'x'", '.']);
+    }
+  });
+
+  it('JS만 공백으로 보는 U+FEFF는 떼지 않는다 (Go 집합 밖)', () => {
+    expect(strs('\ufeffDATA lv_x TYPE i.')[0]).toBe('\ufeffDATA');
+  });
+
+  it('공백 글자뿐인 원문은 토큰 0개', () => {
+    expect(tokenize('\u3000 \u00a0\u2003')).toEqual([]);
   });
 });
