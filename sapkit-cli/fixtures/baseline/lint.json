@@ -1,0 +1,399 @@
+{
+  "schema": 1,
+  "surface": "lint",
+  "producer": "vsp lint --file fixtures/corpus/<경로>",
+  "source_of_truth": "vsp/cmd/vsp/cli_extra.go runLint (규칙 7종)",
+  "normalized_as": "파일별 (규칙 키, 행, 열, 심각도) 다중집합 + exit code",
+  "excluded_from_comparison": [
+    "메시지·description·match·suggestion 문구 — 새 검사기가 새로 쓰므로 대조 대상이 아니다",
+    "analyze의 summary — findings의 파생",
+    "EOL — CRLF는 LF로 정규화한 뒤 판정한다"
+  ],
+  "file_count": 47,
+  "files": {
+    "synthetic/rules/catch_cx_root_neg.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/rules/catch_cx_root_pos.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/rules/colon_missing_space_neg.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/rules/colon_missing_space_pos.abap": {
+      "exit_code": 0,
+      "findings": [
+        {
+          "rule": "colon_missing_space",
+          "line": 3,
+          "col": 5,
+          "severity": "Warning"
+        },
+        {
+          "rule": "colon_missing_space",
+          "line": 4,
+          "col": 5,
+          "severity": "Warning"
+        },
+        {
+          "rule": "colon_missing_space",
+          "line": 6,
+          "col": 6,
+          "severity": "Warning"
+        }
+      ]
+    },
+    "synthetic/rules/commit_in_loop_neg.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/rules/commit_in_loop_pos.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/rules/double_space_neg.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/rules/double_space_pos.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/rules/dynamic_call_no_try_neg.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/rules/dynamic_call_no_try_pos.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/rules/empty_statement_neg.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/rules/empty_statement_pos.abap": {
+      "exit_code": 1,
+      "findings": [
+        {
+          "rule": "empty_statement",
+          "line": 4,
+          "col": 1,
+          "severity": "Error"
+        },
+        {
+          "rule": "empty_statement",
+          "line": 6,
+          "col": 1,
+          "severity": "Error"
+        }
+      ]
+    },
+    "synthetic/rules/hardcoded_credentials_neg.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/rules/hardcoded_credentials_pos.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/rules/line_length_neg.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/rules/line_length_pos.abap": {
+      "exit_code": 0,
+      "findings": [
+        {
+          "rule": "line_length",
+          "line": 6,
+          "col": 1,
+          "severity": "Warning"
+        },
+        {
+          "rule": "line_length",
+          "line": 9,
+          "col": 1,
+          "severity": "Warning"
+        }
+      ]
+    },
+    "synthetic/rules/local_variable_names_neg.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/rules/local_variable_names_pos.abap": {
+      "exit_code": 0,
+      "findings": [
+        {
+          "rule": "local_variable_names",
+          "line": 10,
+          "col": 10,
+          "severity": "Warning"
+        },
+        {
+          "rule": "local_variable_names",
+          "line": 11,
+          "col": 10,
+          "severity": "Warning"
+        },
+        {
+          "rule": "local_variable_names",
+          "line": 12,
+          "col": 15,
+          "severity": "Warning"
+        },
+        {
+          "rule": "local_variable_names",
+          "line": 13,
+          "col": 11,
+          "severity": "Warning"
+        }
+      ]
+    },
+    "synthetic/rules/max_one_statement_neg.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/rules/max_one_statement_pos.abap": {
+      "exit_code": 1,
+      "findings": [
+        {
+          "rule": "max_one_statement",
+          "line": 6,
+          "col": 11,
+          "severity": "Error"
+        },
+        {
+          "rule": "max_one_statement",
+          "line": 7,
+          "col": 13,
+          "severity": "Error"
+        }
+      ]
+    },
+    "synthetic/rules/obsolete_statement_neg.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/rules/obsolete_statement_pos.abap": {
+      "exit_code": 0,
+      "findings": [
+        {
+          "rule": "obsolete_statement",
+          "line": 9,
+          "col": 1,
+          "severity": "Warning"
+        },
+        {
+          "rule": "obsolete_statement",
+          "line": 10,
+          "col": 1,
+          "severity": "Warning"
+        },
+        {
+          "rule": "obsolete_statement",
+          "line": 11,
+          "col": 1,
+          "severity": "Warning"
+        },
+        {
+          "rule": "obsolete_statement",
+          "line": 12,
+          "col": 1,
+          "severity": "Warning"
+        },
+        {
+          "rule": "obsolete_statement",
+          "line": 13,
+          "col": 1,
+          "severity": "Warning"
+        },
+        {
+          "rule": "obsolete_statement",
+          "line": 14,
+          "col": 1,
+          "severity": "Warning"
+        },
+        {
+          "rule": "obsolete_statement",
+          "line": 15,
+          "col": 1,
+          "severity": "Warning"
+        },
+        {
+          "rule": "obsolete_statement",
+          "line": 16,
+          "col": 1,
+          "severity": "Warning"
+        }
+      ]
+    },
+    "synthetic/rules/preferred_compare_operator_neg.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/rules/preferred_compare_operator_pos.abap": {
+      "exit_code": 1,
+      "findings": [
+        {
+          "rule": "preferred_compare_operator",
+          "line": 6,
+          "col": 9,
+          "severity": "Error"
+        },
+        {
+          "rule": "preferred_compare_operator",
+          "line": 8,
+          "col": 13,
+          "severity": "Error"
+        },
+        {
+          "rule": "preferred_compare_operator",
+          "line": 12,
+          "col": 12,
+          "severity": "Error"
+        },
+        {
+          "rule": "preferred_compare_operator",
+          "line": 16,
+          "col": 9,
+          "severity": "Error"
+        },
+        {
+          "rule": "preferred_compare_operator",
+          "line": 16,
+          "col": 23,
+          "severity": "Error"
+        },
+        {
+          "rule": "preferred_compare_operator",
+          "line": 20,
+          "col": 9,
+          "severity": "Error"
+        },
+        {
+          "rule": "preferred_compare_operator",
+          "line": 20,
+          "col": 23,
+          "severity": "Error"
+        }
+      ]
+    },
+    "synthetic/rules/select_star_neg.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/rules/select_star_pos.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/statements/control_flow.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/statements/declarations.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/statements/function_module.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/statements/lexical_forms.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/statements/native_sql.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/statements/oo_class.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/statements/open_sql.abap": {
+      "exit_code": 0,
+      "findings": [
+        {
+          "rule": "obsolete_statement",
+          "line": 22,
+          "col": 1,
+          "severity": "Warning"
+        }
+      ]
+    },
+    "synthetic/statements/screen_module.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/statements/string_ops.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "synthetic/statements/subroutine_form.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "templates/zrsc4sap_oop_ex.prog.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "templates/zrsc4sap_oop_ex.prog.screen_0100.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "templates/zrsc4sap_oop_ex.prog.screen_0200.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "templates/zrsc4sap_oop_exa.prog.abap": {
+      "exit_code": 0,
+      "findings": [
+        {
+          "rule": "local_variable_names",
+          "line": 54,
+          "col": 11,
+          "severity": "Warning"
+        }
+      ]
+    },
+    "templates/zrsc4sap_oop_exc.prog.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "templates/zrsc4sap_oop_exe.prog.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "templates/zrsc4sap_oop_exf.prog.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "templates/zrsc4sap_oop_exi.prog.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "templates/zrsc4sap_oop_exo.prog.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "templates/zrsc4sap_oop_exs.prog.abap": {
+      "exit_code": 0,
+      "findings": []
+    },
+    "templates/zrsc4sap_oop_ext.prog.abap": {
+      "exit_code": 0,
+      "findings": [
+        {
+          "rule": "colon_missing_space",
+          "line": 6,
+          "col": 11,
+          "severity": "Warning"
+        }
+      ]
+    }
+  }
+}

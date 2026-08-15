@@ -1,0 +1,4 @@
+# 번들은 esbuild가 낸 바이트 그대로 보존한다 — 체크아웃 EOL 변환이 일어나면
+# integrity.json의 sha256이 플랫폼마다 달라져 게이트가 거짓 FAIL한다.
+# (같은 이유로 interactive/.gitattributes가 엔진 번들에 -text를 건다)
+sapkit-checker.bundle.cjs -text

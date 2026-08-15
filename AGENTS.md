@@ -29,7 +29,9 @@ Choose the highest effect: **P4 > P3 > P2 > P1 > P0**.
 - **P0 offline** — local/repo work; no SAP connection.
 - **P1 connected-read** — metadata/source/ATC/health; no row data or mutation.
 - **P2 real-data extraction** — before each `GetTableContents`, `GetSqlQuery`,
-  or vsp `query`, show scope, fields, and row cap; get human approval. No
+  or **any other route that pulls SAP row data** (a local CLI, a script, a
+  direct query), show scope, fields, and row cap; get human approval. The rule
+  binds the act, not a tool name — retiring a tool never narrows it. No
   batch, subagent, or auto-approval. **Owner-machine exception (D-043)**: on
   the owner's machines the per-call approval step is replaced by the server-side
   table-blocklist floor (`MCP_ALLOW_TABLE` opt-ins per profile); distribution
@@ -38,9 +40,10 @@ Choose the highest effect: **P4 > P3 > P2 > P1 > P0**.
 - **P4 transport** — package/request create, assignment, release, or import.
   Direct-P4 has no supported entry; follow v2 §4.2 ownership.
 
-Tools are paths, not axes. Human Direct/Guided P3 may use Track B MCP, human vsp
-CLI, or user-operated abapGit. Reviewers may use P0/P1 but perform no transport
-operation, including reads.
+Tools are paths, not axes. Human Direct/Guided P3 may use Track B MCP, a
+human-operated CLI, or user-operated abapGit; whichever path applies the change,
+the profile and its gates are the same. Reviewers may use P0/P1 but perform no
+transport operation, including reads.
 
 Direct SAP code is `DRAFT`; Direct-P3 is `PROVISIONAL_WRITE`. `COMPLETE` needs
 both halves: the **machine confirmation** of
@@ -59,5 +62,13 @@ Real-data, tier, and escort gates are Policy, not modes.
 
 Record exactly: `attended-only`, `unattended=sealed`,
 `historical_rv4_classifier=open`, `sap_mutation_boundary=unverified` (scope:
-reviewer + all attended children). Practice/escort does not close RV4. Details:
-`adapters/vsp/SAFETY-PROFILES.md`; until its §11 migration, v2/D-025 controls.
+reviewer + all attended children). Practice/escort does not close RV4. These
+four values are defined by the two sources this section already cites —
+`docs/reference/designs/2026-07-15-track-a-rebase-v2.md` (§6 and its state
+block) and D-025 in `docs/reference/DECISIONS.md` — and those control directly.
+The RV1~RV4 classification behind them, and the V1~V5 blocking measurements it
+rests on, are preserved verbatim in
+`docs/reference/audits/2026-08-15-rv-classification-record.md` (relocated from
+the retired vsp profile document — a record, not an authority). Only new
+evidence recorded in the two controlling sources can move a value; no
+downstream profile document may restate or relax them.

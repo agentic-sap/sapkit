@@ -1,0 +1,10 @@
+{
+  "name": "sapkit-cli",
+  "version": "0.1.0",
+  "sourceCommit": "f19542dc0b9a9984131f4f1568d1e766d334c049",
+  "sourceHash": "6610f6f075e437b468fa5aacbee2f2ed3d29a84b7786aae353cba77452f5ef24",
+  "sourceFiles": 36,
+  "file": "interactive/checker/sapkit-checker.bundle.cjs",
+  "sha256": "7eabb526511421b42e39f004f7b03c9bb78c933dc6aa98e8696e7f64ea4c7258",
+  "bytes": 57795
+}

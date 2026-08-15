@@ -9,6 +9,14 @@ sc4sap-lite는 다음 상류 프로젝트의 파생·재구성물이다. 각 라
 | `server/server.bundle.cjs` (MCP 서버 번들) | `hjaewon/abap-mcp-adt-powerup` (업스트림 `babamba2` 네임스페이스 모듈 베이크인) — 버전·커밋은 `server/VERSION` | MIT |
 | `server/runtime-deps/keyring/` | `@napi-rs/keyring` (네이티브 키링 바인딩) | MIT |
 | 번들 external 런타임 의존 | `node-rfc`(옵션, SAP RFC SDK 별도 라이선스 유의) · `pino` · `pino-pretty` | 각 패키지 라이선스 |
+| `checker/sapkit-checker.bundle.cjs` (오프라인 ABAP 검사기 번들) | 자체 저작 — 소스 정본 `sapkit-cli/`. 런타임 외부 의존 0 | MIT (루트 LICENSE) |
+
+**검사기의 계보 각주** (의무 아님 — 정직한 기록): 이 번들이 대체한 구 `vsp/pkg/abaplint`는
+상류 **abaplint**(Lars Hvam Petersen · MIT)의 기계 번역이었고, 그 고지는 Go 소스 헤더에만
+있어 `vsp/` 은퇴(D-085)와 함께 레포를 떠났다. `sapkit-cli`는 abaplint 유래 **이름**
+(문장 유형명 · 규칙 키)을 기능 계약으로 승계하되 **코드 표현은 복제하지 않았다**(독립
+리뷰가 Go 원본과 대조해 확인). MIT상 고지 의무는 없으나 계보가 조용히 사라지지 않도록
+여기 남긴다.
 
 `assets/spec/template_base.xlsx`·ABAP 템플릿·샘플은 sc4sap-custom 저작물로 MIT 승계 대상이다.
 

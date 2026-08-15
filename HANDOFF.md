@@ -1,7 +1,7 @@
 # HANDOFF — 프로젝트 전체 상태와 재개 지침
 
 > **목적: 컨텍스트/세션이 클리어돼도 이 문서 하나로 전부 복원.**
-> 작성 2026-07-10 · 최종 갱신 2026-08-15. 새 세션은 ① 이 문서 → ② 필요 시 해당 트랙
+> 작성 2026-07-10 · 최종 갱신 2026-08-16. 새 세션은 ① 이 문서 → ② 필요 시 해당 트랙
 > DESIGN.md 순으로 읽는다. 상태가 바뀌면 이 문서를 갱신하는 것까지가 작업의 일부다.
 >
 > ═══════════════════════════════════════════════════════════════════
@@ -23,7 +23,9 @@
 >
 > 오프라인 증거: jest **4,001 통과 / 1 skip** · 신 엔진 자체 게이트 전종 · 게이트
 > 음성시험 **44건** · `render-ledger --check` 통과 · **기존 제품 게이트 8종 무접촉이고
-> 전부 exit 0**(doctor 제외 — 로컬 설치 상태를 읽는다). 차이 장부 **D1~D132**
+> 전부 exit 0**(doctor 제외 — 로컬 설치 상태를 읽는다. **당시 8종이고 판1에서
+> `verify-checker`가 더해져 지금은 9종**이다 — 판5가 이 문장을 현행으로 읽지 말 것).
+> 차이 장부 **D1~D132**
 > (예약 결번 제외 실등재 82건).
 >
 > ## 🧾 미뤄 둔 SAP 증거의 총량 — **이 수가 곧 다음 attended 노동량이다**
@@ -48,34 +50,51 @@
 > 오프라인 판에서 돌릴 수 없었고, 이 판은 **판정 파일의 경로·형식만 만들어 뒀다**
 > (`sapkit-engine/evidence/replay/`). 채우는 것은 다음 attended 세션이다.
 >
-> ## ✅ 직전 판 — 오프라인 대량 제작 (`dryforge/offline-bulk-build` · 2026-08-13~14)
+> ## ✅ 직전 판 — **판1: ⑵ 검사기 자작 + vsp 은퇴** (2026-08-16 · D-085)
 >
-> **도구 186종을 전부 지었다**(19 → 186). 전송 3종·RFC 5경로도 함께 닫혔다. 이 판은
-> **오프라인 전용**이었고 설계대로 **SAP 증거를 하나도 얻지 않았다** — 그래서 위
-> 「증거 대기 143」이 남는 것이 이 판의 **정상 종료 상태**다(D-082 ②).
+> **사다리 ⑵가 닫혔다 — 고지 3→2.** `vsp/`(Go 포크)가 하던 로컬 ABAP 검사를
+> `sapkit-cli/`(TypeScript · 런타임 외부 의존 0)가 대체했고, 그 번들이
+> `interactive/checker/`로 제품에 동봉돼 **설치가 완전 오프라인**이 됐다.
+> `vsp/` 서브트리 **570파일**·배포 경로·CI의 Go 툴체인이 전부 떠났다(은퇴 커밋의 총
+> 삭제 577 = 서브트리 570 + `adapters/vsp/` 4 + `interactive/` 3).
 >
-> - 결정 기록 2건이 append됐다: **D-082**(마일스톤 완료를 `짓기 완료`/`증거 완료` 두
->   단계로 분리 · 판 단위 순차) · **D-083**(꼬리 49종 재평가 관문 결과 = **전량 유지**,
->   짓기 직전에 물었고 사용자가 전량 제작을 택했다 · 제외 0종).
-> - `docs/BLUEPRINT.md` 사다리 ⑴ 절에 두 단계 완료 눈금 · 꼬리 관문 결과 · 도달 지점을
->   적었고, §4.7에 실사용 축 재측정본(도구별 표)이 들어갔다.
-> - **머신 함정**: 임시 작업 폴더는 `engine/node_modules`·`sapkit-engine/node_modules`가
->   없다(git 밖) → **junction으로 붙여 줘야** 참조 원본과 jest가 산다.
->   `engine/.gitignore`는 `node_modules/`(슬래시 有)라 링크가 안 걸러진다 →
->   `.git/info/exclude`에 슬래시 없는 `node_modules`를 넣어 뒀다(이미 적용됨).
->   자식 프로세스 띄우는 스크립트는 **PowerShell로**.
+> - **판정 동등성**: 커밋 코퍼스 47파일 × 세 표면(lint·parse·analyze) **갈림 0**,
+>   광역 대조(구 내장 샘플 25 + 레포 전체 `.abap` 174)도 **갈림 0**. 독립 리뷰어가
+>   구 vsp를 직접 빌드해 **기준 파일을 보지 않고** 재도출한 결과도 같았다.
+> - **⚠ 구 판정은 다시 뜰 수 없다.** `sapkit-cli/fixtures/baseline/`(141칸)과
+>   `harness/RECORDING.md`가 「구 vsp가 무엇을 어떻게 판정했는가」의 **유일한 잔존
+>   형태**다. 판정을 바꾸는 변경은 그 채록본과 `sapkit-cli/DIVERGENCES.md`
+>   (append-only · D-001~D-010)로만 정당화된다 — 등재 없는 차이는 결함이다.
+> - **제품 게이트가 8종 → 9종**이 됐다(`verify-checker.mjs` 신설 — 번들 해시 ↔
+>   integrity + 소스 커밋 표류). 음성시험은 `test-get-vsp`가 빠지고
+>   `test-verify-checker`가 들어와 8종. CI에 `sapkit-cli` 잡이 섰다.
+> - **머신 함정**(직전 판에서 승계 — 여전히 유효): 임시 작업 폴더는
+>   `engine/node_modules`·`sapkit-engine/node_modules`가 없다(git 밖) → **junction으로
+>   붙여 줘야** 참조 원본과 jest가 산다. `engine/.gitignore`는 `node_modules/`(슬래시
+>   有)라 링크가 안 걸러진다 → `.git/info/exclude`에 슬래시 없는 `node_modules`를 넣어
+>   뒀다(이미 적용됨). 자식 프로세스 띄우는 스크립트는 **PowerShell로**.
+> - **로컬 잔재 안내**: 기설치 `~/.sapkit/bin/vsp(.exe)`와 레포 `vsp/build/`의 빌드
+>   산출물(134MB · 크로스컴파일 바이너리 7종)은 **일부러 건드리지 않았다**. 지우고
+>   싶으면 손으로 지우면 된다. ⚠ `vsp/build/`를 막던 무시 규칙이 `vsp/.gitignore`에
+>   있어 **서브트리와 함께 사라졌다** — 루트 `.gitignore`에 `/vsp/`를 다시 넣어 막았다.
+>   그 한 줄이 없으면 `git add -A` 한 번에 은퇴가 통째로 되돌아온다(독립 리뷰가 잡음).
+> - **머신 함정 하나 더**: 구 세대 런타임 홈(`.sc4sap/`)의 로컬 잔재는 **레포
+>   `.gitignore`에 적을 수 없다** — `check-runtime-path-rename.mjs`가 추적 파일의 구
+>   세대 경로 토큰을 금지해서 게이트가 거부한다(판1에서 실제로 걸렸다). 그쪽은 레포 밖
+>   `.git/info/exclude`가 막는다(이 머신에는 적용해 뒀다 — **새 머신에서는 다시 넣어야
+>   한다**).
 >
-> ## 🔻 다음 판 — **판1: ⑵ 검사기 CLI 자작** (D-084 · 2026-08-15)
+> ## 🔻 다음 판 — **판2: ⑶-a GPL 빈자리 결정 + 집행**
 >
-> **진행 방식이 바뀌었다 — 「짓기 우선 완주, SAP 증거는 최종 테스트 판으로 이연」(D-084).**
-> 사다리 ⑵ 전체(검증·은퇴까지 오프라인)·⑶ 집필·⑴ 잔여 코드를 먼저 다 짓고, attended
-> 증거는 **판6(최종 테스트 판)** 하나로 모은다. §3.2(검증 없는 교체·은퇴 금지)와
-> 증거 순서 M1→M6(D-081·D-082 ④)은 불변 — **이연이지 재배열이 아니다.**
+> **진행 방식은 D-084 그대로다 — 「짓기 우선 완주, SAP 증거는 최종 테스트 판으로 이연」.**
+> ⑵는 닫혔고, 남은 오프라인 갈래는 ⑶ 집필(판2·판3.x·판4)과 ⑴ 잔여 코드(판5)다.
+> attended 증거는 **판6(최종 테스트 판)** 하나로 모은다. §3.2(검증 없는 교체·은퇴
+> 금지)와 증거 순서 M1→M6(D-081·D-082 ④)은 불변 — **이연이지 재배열이 아니다.**
 >
 > **판 큐의 정본 = `docs/RUN-PLAN.md`** (판 = dryforge ready→go 1사이클 · 판 완료 시
 > 그 표 갱신까지가 작업의 일부 · 판 사이 맥락은 .dryforge 아카이브가 아니라 그 파일이
-> 든다). 시작 명령: `/dryforge:ready docs/RUN-PLAN.md 판1`.
-> 직전 재개점의 「M1 잔여부터」는 **판6 몫으로 이연** — 상세는 아래 절에 재료로 보존.
+> 든다). 시작 명령: `/dryforge:ready docs/RUN-PLAN.md 판2`.
+> 「M1 잔여부터」는 **판6 몫으로 이연** — 상세는 아래 절에 재료로 보존.
 >
 > ## 📦 이연 재료 — M1 잔여 (판6 몫 · D-084로 이연 · 내용은 그대로 유효)
 >
@@ -129,13 +148,15 @@
 > 사다리 전체로는 ⑵ 전 과정(검증·은퇴까지 오프라인)·⑶ 집필 전부·⑴ 잔여 코드(M2
 > 인증·D18·keyring CI)가 오프라인 활주로로 남아 있고, D-084가 그쪽을 먼저 완주하는
 > 방향으로 전환했다. 판 큐 정본 = `docs/RUN-PLAN.md`.
+> **⑵는 2026-08-16 판1로 소진됐다**(D-085) — 남은 오프라인 활주로는 ⑶ 집필(판2·판3.x·
+> 판4)과 ⑴ 잔여 코드(판5)다.
 >
 > ### 고지 은퇴는 훨씬 멀다 (혼동 방지)
 >
 > `engine/LICENSE` 은퇴 = 사다리 ⑴의 **마지막 칸**(①병행제작 → ②검증통과 →
-> ③교체 → ④구부품·고지 은퇴). 고지 3건 전부 0건이 되려면 ⑵(vsp)·⑶(지식
-> 재저작 — 청사진이 **"가장 김"**이라 적었다)·⑷까지 가야 한다.
-> **검증 없는 고지 은퇴는 §3.2가 금지한다.**
+> ③교체 → ④구부품·고지 은퇴). **고지는 판1에서 3→2가 됐고**(⑵ vsp 완료 · D-085),
+> 남은 2건이 0이 되려면 ⑴(교체 = 판7)과 ⑶(지식 재저작 — 청사진이 **"가장 김"**이라
+> 적었다)·⑷까지 가야 한다. **검증 없는 고지 은퇴는 §3.2가 금지한다.**
 >
 > ---
 >
@@ -3547,7 +3568,7 @@ docs/superpowers/specs/…lite-design.md  ← 설계 스냅샷 (정본은 intera
 
 ```bash
 cd "D:/AI PROJECT/sap-agentic-harness"
-# 오프라인 게이트 (renew 1차 판 기준 — doctor를 뺀 전부가 CI에서도 돈다)
+# 오프라인 게이트 (판1 기준 — doctor를 뺀 전부가 CI에서도 돈다)
 node interactive/scripts/check-links.mjs interactive     # 깨짐 0 이어야 함
 node interactive/server/verify-engine.mjs                # 번들 무결성 OK
 node interactive/scripts/check-engine-provenance.mjs     # 엔진 소스 커밋 ↔ 번들
@@ -3556,6 +3577,7 @@ node interactive/scripts/conformance-server-gates.mjs    # 서버 안전 게이�
 node interactive/scripts/gen-plugin-manifests.mjs --check # 생성물 7종(매니페스트 5+MCP 2) ↔ 단일 정본
 node interactive/scripts/check-runtime-path-rename.mjs   # 구 세대 토큰 재등장 금지 + 안전 앵커
 node interactive/scripts/conformance-runtime-dir.mjs     # 런타임 경로 적합성
+node interactive/scripts/verify-checker.mjs              # 동봉 검사기 번들 무결성·출처 (바이트·버전 3자·소스 커밋·소스 표류)
 node interactive/scripts/doctor.mjs                      # 3사 동기화 · capability 진단 (로컬 전용)
 # 음성시험 (게이트가 정말 거부하는지 — PowerShell로 실행할 것)
 node interactive/scripts/test-smoke-mcp.mjs
@@ -3565,13 +3587,17 @@ node interactive/scripts/test-setup-state.mjs
 node interactive/scripts/test-launch-toolsurface.mjs
 node interactive/scripts/test-codex-wire-mcp.mjs
 node interactive/scripts/test-doctor.mjs
-node interactive/scripts/test-get-vsp.mjs
-# 은퇴 (renew 1차 판) — check-migration-snapshot · build-migration-snapshot ·
-#   report-sc4sap-public-drift · migrate-runtime-dir + 각 음성시험 (D-072 · D-076)
+node interactive/scripts/test-verify-checker.mjs
+# 공방 자체 게이트 (각 디렉터리 안에서 — 제품 게이트와 별도)
+cd sapkit-cli    && npm run verify && npm run gates && node harness/test-corpus-gate.mjs && node harness/test-compare-baseline.mjs
+cd sapkit-engine && npm run verify && npm run gates && node gates/test-gates.mjs && node harness/render-ledger.mjs --check
+# 은퇴 — check-migration-snapshot · build-migration-snapshot · report-sc4sap-public-drift ·
+#   migrate-runtime-dir + 각 음성시험 (renew 1차, D-072 · D-076) · get-vsp + test-get-vsp
+#   (vsp 은퇴 판 — 다운로드 경로 자체가 사라졌다)
 node interactive/adapters/codex/toggle-plugin.mjs status # Codex 활성 상태
 codex plugin list | grep sapkit                          # Codex 설치 상태
 agy plugin list                                          # AG 임포트 상태
-git log --oneline | head                                 # 최근: renew 1차 판 (D-071~D-077)
+git log --oneline | head                                 # 최근: 판1 ⑵ 검사기 자작 + vsp 은퇴 (D-085)
 ```
 
 push는 사용자 판단 — 커밋까지만 하고 push는 요청 시에만 (원격: `agentic-sap/sapkit`).

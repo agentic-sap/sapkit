@@ -10,9 +10,11 @@
  *   3. prefer-sqlquery-explicit-fields — credit-saving `ask` guard for
  *      full-column reads (`GetTableContents`) / `SELECT *` in `GetSqlQuery`.
  *      (PreToolUse)
- *   4. offline-code-analysis    — warn-only vsp `--offline` 13-rule analysis
- *      of written ABAP source (local .abap files + MCP source_code writes);
- *      silent no-op when vsp is not installed. (PostToolUse, D-049)
+ *   4. offline-code-analysis    — warn-only 13-rule analysis of written ABAP
+ *      source (local .abap files + MCP source_code writes), run through the
+ *      checker bundle shipped inside this plugin
+ *      (`checker/sapkit-checker.bundle.cjs`) — nothing to download or install;
+ *      silent no-op when the bundle cannot run. (PostToolUse, D-049)
  *   5. syntax-checker           — advisory suggestion to run `CheckSyntax`
  *      after an MCP ABAP Create/Update tool call fails.
  *      (PostToolUseFailure)
@@ -88,7 +90,7 @@ const HOOKS = [
     event: 'PostToolUse',
     matcher: 'Edit|Write|MultiEdit|mcp__.*__(Create|Update)',
     testHint:
-      "Test it by writing a .abap file assigning a literal to lv_password — the model should receive offline analysis findings (requires vsp at ~/.sapkit/bin; silent no-op otherwise).",
+      'Test it by writing a .abap file assigning a literal to lv_password — the model should receive offline analysis findings (the analyzer ships with the plugin; silent no-op if the bundle cannot run).',
   },
   {
     marker: 'syntax-checker.mjs',

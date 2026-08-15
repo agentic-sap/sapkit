@@ -42,15 +42,17 @@ control artifact.
    - Never allocate your own reviewer and never spawn nested workers. Review is allocated by
      the main context precisely so that no one reviews their own change.
    - Never edit the approved spec to match what you built. Report the mismatch instead.
-   - Never extract row data through side channels the mechanical block cannot see — `vsp
-     query` from your shell is P2 and main-only, exactly like the two blocked MCP tools. If
-     the task needs it, stop and hand the request back to the main context.
+   - Never extract row data through side channels the mechanical block cannot see. Pulling
+     rows from your shell by any route — a local CLI, a script, a direct query — is P2 and
+     main-only, exactly like the two blocked MCP tools. If the task needs it, stop and hand
+     the request back to the main context.
 6. Machine-verify what you changed before returning: `CheckSyntax` → `ActivateObjects` →
    `GetInactiveObjects` (the object set must return 0 inactive), plus `RunUnitTest` and
    `GetAtcFindings` when the contract names them. The syntax fix-and-retry loop is bounded
    to 3 iterations; if it does not converge, return the failure with its evidence rather
-   than working around it. When `vsp` is installed, run the offline analysis on generated
-   sources before writing them to SAP.
+   than working around it. Run the bundled checker's offline analysis on generated sources
+   before writing them to SAP (`node "<plugin root>/checker/sapkit-checker.bundle.cjs"
+   analyze <file> --format json` — it ships with the plugin, so there is nothing to install).
 7. A successful MCP write is `PROVISIONAL_WRITE`, never completion (D-025). Do not describe
    the work as complete, reviewed, or verified-as-correct — completion needs an independent
    `R-PASS` plus a machine check reading back what SAP actually holds, and neither is yours

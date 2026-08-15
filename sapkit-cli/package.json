@@ -1,0 +1,61 @@
+{
+  "name": "sapkit-cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SAPKIT 자체 저작 오프라인 ABAP 검사기 CLI — 청사진 사다리 ⑵. 배포 정체성(npm/PATH 설치)은 범위 밖이므로 private.",
+  "license": "MIT",
+  "author": "hjaewon",
+  "type": "commonjs",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "bin": {
+    "sapkit": "bin/sapkit.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.test.json",
+    "build": "tsc -p tsconfig.json",
+    "test": "jest --passWithNoTests",
+    "gates": "node gates/run-all.mjs",
+    "sapkit": "node bin/sapkit.js",
+    "bundle": "esbuild src/cli/entry.ts --bundle --platform=node --target=node20 --format=cjs --legal-comments=none --outfile=../interactive/checker/sapkit-checker.bundle.cjs",
+    "verify": "npm run build && npm run typecheck && npm test"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.3.5",
+    "esbuild": "^0.25.0",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.2.0",
+    "typescript": "^5.9.2"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/src",
+      "<rootDir>/harness"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.test.ts"
+    ],
+    "transform": {
+      "^.+\\.ts$": [
+        "ts-jest",
+        {
+          "tsconfig": "tsconfig.test.json"
+        }
+      ]
+    },
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json"
+    ],
+    "maxWorkers": 1,
+    "testTimeout": 30000,
+    "clearMocks": true
+  }
+}

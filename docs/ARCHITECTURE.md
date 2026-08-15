@@ -19,27 +19,27 @@
 단일 git 레포에 두 트랙이 **실행 코드 의존 없이** 공존한다:
 
 - **트랙 A(하네스 트랙)** — Direct 기본·Guided 명시 승격·Engine attended의
-  3 실행 구조와 P0~P4 Policy를 직교 매핑한다. final-harness는 Engine,
-  vsp-custom CLI는 Engine 실행·공통 완료 증거 backend다. 사람 Direct/Guided의
-  적용 경로는 트랙 B MCP·vsp CLI·abapGit이다. final-harness는 외부 레포로
-  분리 유지하고(D-018), vsp는 레포 내 `vsp/`로 편입 완료다(D-030·D-037 —
-  히스토리 비이식 스냅샷·바이너리 비커밋).
+  3 실행 구조와 P0~P4 Policy를 직교 매핑한다. final-harness는 Engine이고 외부 레포로
+  분리 유지한다(D-018). Engine 실행 구조는 D-040으로 template-only가 된 뒤 R1에서
+  설비가 제거돼 **지금 배선된 증거 backend가 없다**. 사람 Direct/Guided의 적용 경로는
+  트랙 B MCP·사람이 모는 CLI·abapGit이며, 어느 길로 넣든 정책 등급과 관문은 같다.
+  로컬 오프라인 검사는 동봉 검사기(`interactive/checker/`, 소스 정본 `sapkit-cli/`)가
+  맡는다.
 - **트랙 B(대화형 플러그인)** — Node MCP 서버 + 3사 어댑터. 도구 표면 소스 정본은 레포 내
   engine/(D-017 편입), 배포 형태는 interactive/server/의 번들.
 
 유일한 물류: 트랙 A packs ← interactive/core/knowledge 선별 이식(커밋 이력 = provenance).
 
-## 핵심 의존·final-harness lock v2 (D-018·D-025·D-030)
+## 핵심 의존·final-harness lock v2 (D-018·D-025)
 
 | 의존 | 역할 | lock 파일 · 고정값 |
 |---|---|---|
 | final-harness | 트랙 A Engine attended(자체 제작 독립 제품) | `adapters/final-harness.lock.json` schema v2 계약 — `verified`·`candidate`·`history`·`safety_state` 분리 |
-| vsp-custom | Engine 실행 backend·적용 경로와 독립인 Track A 완료 증거 backend(CLI) | `adapters/vsp/vsp.lock.json` — 로컬 우월분 **v2.38.1-94**(write 프로파일 게이트·재검증 포함, 평가 §4). lock 파일이 원천 커밋 sha·재현 빌드 바이너리 sha256·명령 계약·provenance의 정본. 편입 완료(레포 내 `vsp/`, D-030·D-037 — 바이너리 비커밋) |
+| 오프라인 검사기 | 로컬 무접속 검사(lint/parse/analyze/check) — 제품에 동봉 | 소스 정본 `sapkit-cli/`, 배포 형태 `interactive/checker/`의 단일 파일 번들. 무결성·출처 핀은 `interactive/checker/integrity.json`이고 게이트는 `interactive/scripts/verify-checker.mjs`, 재번들 절차는 `interactive/checker/UPDATE-RUNBOOK.md` |
 | engine/ (MCP 서버) | 트랙 B 도구 표면 소스 정본 | 레포 내 편입(D-017). 수리→재번들→interactive/server 반영은 `interactive/server/UPDATE-RUNBOOK.md` 절차로만 |
 
-두 외부 의존의 분리 근거는 D-018, `engine/`만 편입한 대조 근거는 D-017이다. vsp는
-D-030으로 편입이 확정됐고(D-018 supersede), subtree 편입은 레포 구조 작업이라 분기 통합
-완료 직후 별도 단계로 실행한다.
+외부 의존(final-harness)을 분리 유지한 근거는 D-018, `engine/`을 편입한 대조 근거는
+D-017이다.
 
 lock v2의 `verified`(`8f7f13b…`)와 `candidate`(D-028에서 `d4a0aeb`, v0.20.0으로 확정)는
 별개다. candidate state는 `selected|staged`뿐이며 PROMOTE event가 이전 verified를 `history`에
@@ -86,19 +86,26 @@ stale다. 현 phase-only template/checker는 v0.17 legacy; run-scoped 갱신은 
   무관): "재대조 필요"류 미검증 배지는 실제 대조로 해소한 뒤에만 구현에 착수한다 —
   배지를 코드 주석으로 옮기는 건 회수가 아니다.
 
-## SAP 검증 계약 (상세 정본: adapters/vsp/VERIFY-PATTERNS.md)
+## SAP 검증 계약 (상세 정본: interactive/core/procedures/troubleshooting.md §7)
 
-- **offline**: `vsp lint --file`(Error만 exit≠0, Warning 통과) · `vsp parse --file`
-  (파일 감시용, 항상 exit 0).
-- **online**: 반드시 `scripts/verify-sap.ps1` 경유 — vsp 직접 호출 금지(vsp는 모든 오류가
-  exit 1이라 래퍼가 출력 패턴으로 판정). 체인 = deploy→activate→drift→ATC→unit.
+- **offline**: 동봉 검사기(`interactive/checker/sapkit-checker.bundle.cjs`, 소스 정본
+  `sapkit-cli/`) — `lint <file>`(Error 있으면 exit 1) · `parse <file>`(항상 exit 0) ·
+  `analyze <file> --format json`(13룰) · `check <dir>`(INCLUDE 정합). exit 계약은
+  0 통과 / 1 결함 / 2 사용·입력 오류. SAP 접속·MCP 모드 없음. 상세 =
+  `interactive/core/procedures/troubleshooting.md` §7.
+- **online**: 트랙 B MCP·사람이 모는 CLI·사용자 abapGit 중 어느 경로로 넣든 관문은
+  같다(P3 = DEV tier 한정). 체인 = 반영→활성화→drift 대조→ATC→unit. **전용 verify
+  래퍼는 없다** — 그 자리를 채우던 래퍼는 R1에서, 그것이 몰던 오프라인 백엔드는
+  vsp 은퇴 판에서 레포를 떠났다.
 - **마커 3종**: `CODE_FAIL`(코드 결함 — 수정 대상) / `ENV_FAIL`(연결·환경) /
   `LOCK_FAIL`(잠금) — ENV·LOCK은 코드 결함으로 기록·규칙 승격 금지(R-001). 존재
   확인(Test-Path류)은 verify가 아니다.
-- write는 DEV tier에만(R-003). deploy/copy 후 성공 보고만 믿지 말고 `vsp source read`로
-  반영을 확인한다(R-006). CLAS 테스트 include 배포는 리포트 로컬 테스트 클래스 배치로
+- write는 DEV tier에만(R-003). write 뒤 성공 보고만 믿지 말고 **경로와 무관하게 소스를
+  되읽어** 반영을 확인한다(R-006 — 절차 정본
+  `interactive/core/procedures/verify-applied.md`). CLAS 테스트 include 배포는 리포트 로컬 테스트 클래스 배치로
   회피했으나(ADR-002), vsp v2.38.1-94에서 지원이 실측 확인됨(ADR-002 Addendum — 재배치는
-  사용자 결정 대기).
+  사용자 결정 대기). **⚠ 그 실측의 근거 도구(vsp)는 판1에서 은퇴했다(D-085)** — 재배치를
+  결정하려면 지금 배선된 경로(트랙 B MCP)로 다시 재야 한다.
 
 ## 파일 지도 (실측 트리 — 여기 뭐가 살고 왜)
 
@@ -117,7 +124,8 @@ docs/reference/templates/ 현 v0.17 phase-only review legacy 템플릿; run-scop
 engine/                 MCP 엔진 소스 정본 — TS 소스·tests·번들 도구·patches·
                         UPSTREAM-FIX-HANDOFF.md·CHANGELOG (D-017 편입, 플러그인 표면 밖)
 interactive/            트랙 B 플러그인 루트 (아래 세부)
-adapters/               트랙 A 의존 lock 2종 + vsp/ COMMANDS·VERIFY-PATTERNS·SAFETY-PROFILES
+sapkit-cli/             동봉 오프라인 검사기의 소스 정본 (lint·parse·analyze·check;
+                        번들 산출물은 interactive/checker/)
 domain/                 트랙 A 도메인 규칙 시드 — 현재 abap/만(CHECKLIST·RULES.seed, S-001~025)
 packs/                  트랙 A 모듈 지식팩(Phase 4~) — modules/README.md(이중 구조 규약) ·
                         modules/fi/(CONSULTANT.md 포인터 허브 + RULES.seed.md FI-001~005;
@@ -154,9 +162,11 @@ interactive/scripts/               게이트 스크립트 (check-links·smoke-mc
   denylist · server.bundle.cjs `.gitattributes` 보호(갱신은 UPDATE-RUNBOOK) · 실데이터 2종
   자동 승인 금지 · 게이트 상시 통과 · superpowers 재활성화 제안 금지 · 굵직한 결정은
   docs/reference/DECISIONS.md append.
-- **.harness/RULES.md (R-001~R-006)**: ENV/LOCK_FAIL 마커 실패는 규칙 승격 제외 · vsp는 CLI
-  전용(MCP 금지) · QA/PRD tier write 금지 · 동결 레포 수정·private 읽기 금지 · 접속정보 커밋
-  금지 · vsp write 후 `vsp source read`로 반영 확인.
+- **안전 규칙 (구 `.harness/RULES.md` R-001~R-006 — R1 이후 정본은 루트 `CLAUDE.md`
+  「안전 규칙」 절)**: ENV/LOCK_FAIL 마커 실패는 규칙 승격 제외 · **SAP 접점 이원화 금지**
+  (SAP에 닿는 경로를 하나 더 열지 않는다 — 로컬 검사는 무접속 도구로만) · QA/PRD tier
+  write 금지(경로 무관) · 동결 레포 수정·private 읽기 금지 · 접속정보 커밋 금지 ·
+  write 뒤 **소스 되읽기**로 반영 확인.
 
 ## 검증 게이트 (구조 변경 시 항상 통과 유지)
 

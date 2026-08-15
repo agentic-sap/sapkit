@@ -1,0 +1,1131 @@
+{
+  "schema": 1,
+  "purpose": "구 vsp 검사기의 판정과 앞으로 쓸 sapkit 검사기의 판정을 맞대는 기준선. 각 합성 파일이 무엇을 겨냥하는지 기계가 읽는다.",
+  "path_base": "sapkit-cli/fixtures/corpus",
+  "layout": {
+    "synthetic/rules/": "규칙 13종 각각의 양성·음성 사례. kind=rule.",
+    "synthetic/statements/": "문장 분류 커버리지 세트. kind=coverage. 디렉터리 이름이 coverage/가 아닌 이유는 sapkit-cli/.gitignore 7행의 `coverage` 패턴이 깊이를 가리지 않고 매치해서 그 이름으로는 커밋되지 않기 때문이다(.gitignore는 이 판의 수정 범위 밖이라 디렉터리 쪽을 바꿨다).",
+    "templates/": "동결 사본. 대장의 files 배열 밖."
+  },
+  "authority": "규칙의 정체·파라미터·심각도는 vsp 코드 실측이 정본이다 (vsp/pkg/abaplint/rules.go · lint.go · vsp/cmd/vsp/cli_extra.go runLint · vsp/pkg/adt/codeanalysis.go allRules). 문서에 적힌 규칙 수는 믿지 않는다.",
+  "predicted_hits_disclaimer": "predicted_hits는 코드 정독으로 얻은 예측값이지 실측이 아니다. 다음 판(구 vsp 채록)의 실측과 어긋나면 예측을 고치지 말고 실측을 정본으로 기록하고 차이를 등재한다.",
+  "measured_hits_provenance": {
+    "what": "measured_hits는 구 vsp를 실제로 돌려 뜬 실측값이다. predicted_hits(예측)를 덮지 않고 나란히 둔다 — 어느 쪽이 코드 정독이고 어느 쪽이 실행 결과인지 구분이 사라지면 다시는 가를 수 없기 때문이다.",
+    "derived_from": "sapkit-cli/fixtures/baseline/{lint,analyze}.json",
+    "regenerate": "node harness/derive-measured-hits.mjs (검사만: --check). 채록 절차는 sapkit-cli/harness/RECORDING.md.",
+    "shape": "{ lint: {rule, all}, analyze: {rule, all} } — rule은 targets[0].rule의 적중 수(겨냥 없는 coverage 파일은 null), all은 그 표면에서 그 파일이 낸 전체 적중 수.",
+    "predicted_vs_measured": "겨냥 규칙이 안 울린 픽스처는 실측 결과 0건이다(모든 positive 픽스처가 최소 한 표면에서 울렸다). predicted_hits와 measured_hits가 갈리는 3건은 전부 analyze 표면의 파라미터 차이가 원인이며 아래 rules 절의 note가 이미 예고한 것이다 — 즉 predicted_hits는 그 규칙이 lint·analyze 양쪽에 등록된 경우 **lint 표면 기준의 수**로 읽어야 한다: line_length_pos(lint 2 / analyze 1 — 상한 120 vs 130) · obsolete_statement_pos(lint 8 / analyze 7 — Refresh 켬 vs 끔) · local_variable_names_pos(lint 4 / analyze 0 — analyze는 빈 패턴이라 무동작)."
+  },
+  "statement_type_coverage": {
+    "matcher_type_names": 93,
+    "claimed_by_this_corpus": 95,
+    "note": "93 = vsp/pkg/abaplint/matcher.go의 등록 95건에서 이름 중복 2건(MethodDef·Interface)을 뺀 값. 여기에 파서가 직접 붙이는 Comment·Empty를 더해 95를 겨냥한다. 나머지 하나인 Unknown은 Move 폴백 매처가 어떤 토큰 열이든 받아내므로 실제로는 도달할 수 없다. coverage 배열은 코드 정독 기반 예측이며 실측이 정본이다.",
+    "measured_distinct_types": 95,
+    "measured_statements": 1050,
+    "measured_unknown": 0,
+    "measured_note": "fixtures/baseline/parse.json 실측 — 코퍼스 47파일이 낸 문장 1050건에서 고유 유형 95종, Unknown 0건. 예측(claimed_by_this_corpus 95 · Unknown 도달 불가)과 일치한다. 실측 산출: node -e 로 parse.json의 statements[].type 집계."
+  },
+  "surfaces": {
+    "vsp_lint_cli": {
+      "source": "vsp/cmd/vsp/cli_extra.go runLint",
+      "rule_count": 7,
+      "rules": [
+        "line_length",
+        "empty_statement",
+        "obsolete_statement",
+        "max_one_statement",
+        "preferred_compare_operator",
+        "colon_missing_space",
+        "local_variable_names"
+      ]
+    },
+    "abaplint_default_rules": {
+      "source": "vsp/pkg/abaplint/lint.go defaultRules()",
+      "rule_count": 8,
+      "rules": [
+        "line_length",
+        "empty_statement",
+        "obsolete_statement",
+        "max_one_statement",
+        "preferred_compare_operator",
+        "colon_missing_space",
+        "double_space",
+        "local_variable_names"
+      ],
+      "note": "NewLinter()가 쓰는 기본 구성. CLI lint는 이걸 쓰지 않고 자기 목록을 따로 만든다 — double_space가 빠진 것이 차이다."
+    },
+    "vsp_analyze": {
+      "source": "vsp/pkg/adt/codeanalysis.go allRules() (MCP AnalyzeABAPCode)",
+      "rule_count": 13,
+      "rules": [
+        "line_length",
+        "empty_statement",
+        "max_one_statement",
+        "preferred_compare_operator",
+        "obsolete_statement",
+        "colon_missing_space",
+        "double_space",
+        "local_variable_names",
+        "select_star",
+        "hardcoded_credentials",
+        "catch_cx_root",
+        "commit_in_loop",
+        "dynamic_call_no_try"
+      ],
+      "note": "구현된 13종 전부를 등록한다. 다만 local_variable_names는 패턴이 비어 있어 실제로는 아무것도 울리지 않고, obsolete_statement는 Refresh가 꺼져 있으며, line_length 상한은 130이다."
+    }
+  },
+  "rules": {
+    "line_length": {
+      "severity": [
+        "Warning (> max)",
+        "Error (> 255)"
+      ],
+      "surfaces": {
+        "vsp_lint_cli": "max = --max-length (default 120)",
+        "abaplint_default_rules": "max = 120",
+        "vsp_analyze": "max = 130"
+      },
+      "note": "파일당 10건에서 조기 중단한다 (rules.go: len(issues) >= 10 break)."
+    },
+    "empty_statement": {
+      "severity": [
+        "Error"
+      ],
+      "surfaces": {
+        "vsp_lint_cli": "on",
+        "abaplint_default_rules": "on",
+        "vsp_analyze": "on"
+      },
+      "note": "토큰이 구두점 1개뿐인 문장(Empty)만 대상."
+    },
+    "max_one_statement": {
+      "severity": [
+        "Error"
+      ],
+      "surfaces": {
+        "vsp_lint_cli": "on",
+        "abaplint_default_rules": "on",
+        "vsp_analyze": "on"
+      },
+      "note": "콜론 체인(stmt.Colon != nil)·Comment·Empty·NativeSQL은 건너뛴다."
+    },
+    "preferred_compare_operator": {
+      "severity": [
+        "Error"
+      ],
+      "surfaces": {
+        "vsp_lint_cli": "EQ NE GT LT GE LE ><",
+        "abaplint_default_rules": "EQ NE GT LT GE LE ><",
+        "vsp_analyze": "EQ NE GT LT GE LE ><"
+      },
+      "note": "If·ElseIf·While·Check 문장 안에서만 본다. 그런데 'Check' 유형을 만드는 매처가 없어서 CHECK 문은 Move로 분류되고 이 규칙에 걸리지 않는다.",
+      "measured_note": "실측 확인 — parse.json에서 preferred_compare_operator_neg.abap 18행 `CHECK lv_a EQ 1.`이 Move로 분류되고, 코퍼스 전체 문장 1050건 중 'Check' 유형은 0건이다. condStmts의 'Check'는 사문(死文)임이 실행으로 확정됐다."
+    },
+    "obsolete_statement": {
+      "severity": [
+        "Warning"
+      ],
+      "surfaces": {
+        "vsp_lint_cli": "COMPUTE ADD SUBTRACT MULTIPLY DIVIDE MOVE REFRESH",
+        "abaplint_default_rules": "COMPUTE ADD SUBTRACT MULTIPLY DIVIDE MOVE REFRESH",
+        "vsp_analyze": "REFRESH 빠짐 (6종)"
+      },
+      "note": "첫 토큰만 본다 — MOVE-CORRESPONDING도 MOVE로 잡힌다."
+    },
+    "colon_missing_space": {
+      "severity": [
+        "Warning"
+      ],
+      "surfaces": {
+        "vsp_lint_cli": "on",
+        "abaplint_default_rules": "on",
+        "vsp_analyze": "on"
+      },
+      "note": "원시 행 대상. 문자열 리터럴 안은 건너뛰지만 주석 안은 건너뛰지 않는다. 행당 1건."
+    },
+    "double_space": {
+      "severity": [
+        "Warning"
+      ],
+      "surfaces": {
+        "vsp_lint_cli": "미등록",
+        "abaplint_default_rules": "on",
+        "vsp_analyze": "on"
+      },
+      "note": "CLI lint 구성에는 빠져 있다. AfterKeywords 필드는 Run()이 읽지 않는 사문(死文). 행당 1건."
+    },
+    "local_variable_names": {
+      "severity": [
+        "Warning"
+      ],
+      "surfaces": {
+        "vsp_lint_cli": "패턴 있음",
+        "abaplint_default_rules": "패턴 있음",
+        "vsp_analyze": "등록은 되나 패턴이 빈 문자열 → compilePattern이 nil을 돌려주어 한 건도 울리지 않는다"
+      },
+      "note": "FORM·METHOD·FUNCTION 안에서만. Data 패턴은 ^[Ll][VvSsTtRrCc]_\\w+$ 라서 lo_ 접두어는 통과하지 못한다(제안 문구는 lo_를 권하는데도). FieldSymbol은 Tokens[2]를 이름으로 읽는데 그 자리는 항상 'SYMBOLS'라서, 이름이 맞아도 항상 울린다."
+    },
+    "select_star": {
+      "severity": [
+        "Warning"
+      ],
+      "surfaces": {
+        "vsp_lint_cli": "미등록",
+        "abaplint_default_rules": "미등록",
+        "vsp_analyze": "on"
+      },
+      "note": "SINGLE·DISTINCT는 건너뛰고 그 다음 토큰이 '*'일 때만. COUNT( * )는 안 울린다."
+    },
+    "hardcoded_credentials": {
+      "severity": [
+        "Error"
+      ],
+      "surfaces": {
+        "vsp_lint_cli": "미등록",
+        "abaplint_default_rules": "미등록",
+        "vsp_analyze": "on"
+      },
+      "note": "변수명이 password/passwd/secret/api_key/apikey/auth_token/access_token/bearer_token/refresh_token/api_token 중 하나를 포함하고, 우변이 문자열/템플릿 토큰이며 길이 > 3일 때."
+    },
+    "catch_cx_root": {
+      "severity": [
+        "Warning"
+      ],
+      "surfaces": {
+        "vsp_lint_cli": "미등록",
+        "abaplint_default_rules": "미등록",
+        "vsp_analyze": "on"
+      },
+      "note": "CX_ROOT·CX_STATIC_CHECK·CX_DYNAMIC_CHECK·CX_NO_CHECK."
+    },
+    "commit_in_loop": {
+      "severity": [
+        "Error"
+      ],
+      "surfaces": {
+        "vsp_lint_cli": "미등록",
+        "abaplint_default_rules": "미등록",
+        "vsp_analyze": "on"
+      },
+      "note": "LOOP·DO·WHILE 깊이를 세고, 깊이 > 0에서 COMMIT WORK일 때."
+    },
+    "dynamic_call_no_try": {
+      "severity": [
+        "Warning"
+      ],
+      "surfaces": {
+        "vsp_lint_cli": "미등록",
+        "abaplint_default_rules": "미등록",
+        "vsp_analyze": "on"
+      },
+      "note": "CALL METHOD ( ... ) 또는 CALL FUNCTION <문자열 아닌 토큰>이 TRY 밖에 있을 때."
+    }
+  },
+  "templates": {
+    "dir": "templates/",
+    "source": "interactive/core/knowledge/abap/templates/oop-sample/*.abap",
+    "file_count": 11,
+    "note": "내용 무수정 동결 사본(줄바꿈만 LF로 정규화). 원본은 후속 판에서 재작성·삭제될 예정이라 제자리 참조로 두면 이 판의 대조가 조용히 깨진다. 합성 픽스처가 아니므로 files 배열에는 넣지 않는다."
+  },
+  "files": [
+    {
+      "path": "synthetic/rules/line_length_pos.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "line_length",
+          "expect": "positive"
+        }
+      ],
+      "predicted_hits": 2,
+      "note": "121바이트 행 1개 + 135바이트 행 1개. 상한 120에서는 2건, analyze의 130에서는 135행 1건만 울린다.",
+      "measured_hits": {
+        "lint": {
+          "rule": 2,
+          "all": 2
+        },
+        "analyze": {
+          "rule": 1,
+          "all": 1
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/line_length_neg.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "line_length",
+          "expect": "negative"
+        }
+      ],
+      "predicted_hits": 0,
+      "note": "가장 긴 행이 정확히 120바이트 — 경계값이라 '초과'가 아니다.",
+      "measured_hits": {
+        "lint": {
+          "rule": 0,
+          "all": 0
+        },
+        "analyze": {
+          "rule": 0,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/empty_statement_pos.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "empty_statement",
+          "expect": "positive"
+        }
+      ],
+      "predicted_hits": 2,
+      "note": "홀로 선 마침표 행 2개.",
+      "coverage": [
+        "Empty"
+      ],
+      "measured_hits": {
+        "lint": {
+          "rule": 2,
+          "all": 2
+        },
+        "analyze": {
+          "rule": 2,
+          "all": 2
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/empty_statement_neg.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "empty_statement",
+          "expect": "negative"
+        }
+      ],
+      "predicted_hits": 0,
+      "note": "빈 문장 없음.",
+      "measured_hits": {
+        "lint": {
+          "rule": 0,
+          "all": 0
+        },
+        "analyze": {
+          "rule": 0,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/max_one_statement_pos.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "max_one_statement",
+          "expect": "positive"
+        }
+      ],
+      "predicted_hits": 2,
+      "note": "한 행에 문장 2개인 행 2개. 각 행의 두 번째 문장에서 1건씩.",
+      "measured_hits": {
+        "lint": {
+          "rule": 2,
+          "all": 2
+        },
+        "analyze": {
+          "rule": 2,
+          "all": 2
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/max_one_statement_neg.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "max_one_statement",
+          "expect": "negative"
+        }
+      ],
+      "predicted_hits": 0,
+      "note": "한 행 한 문장. 콜론 체인은 규칙이 건너뛰므로 여러 행에 걸친 DATA: 체인도 무해하다.",
+      "measured_hits": {
+        "lint": {
+          "rule": 0,
+          "all": 0
+        },
+        "analyze": {
+          "rule": 0,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/preferred_compare_operator_pos.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "preferred_compare_operator",
+          "expect": "positive"
+        }
+      ],
+      "predicted_hits": 7,
+      "note": "IF/ELSEIF/WHILE 안의 EQ NE LT GE LE GT >< 7개.",
+      "measured_hits": {
+        "lint": {
+          "rule": 7,
+          "all": 7
+        },
+        "analyze": {
+          "rule": 7,
+          "all": 7
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/preferred_compare_operator_neg.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "preferred_compare_operator",
+          "expect": "negative"
+        }
+      ],
+      "predicted_hits": 0,
+      "note": "현대 연산자만 쓴다. 끝의 CHECK ... EQ 1 은 일부러 남긴 범위 밖 사례다 — condStmts에 'Check'가 있지만 그 유형을 만드는 매처가 없어 CHECK는 Move로 분류된다.",
+      "measured_hits": {
+        "lint": {
+          "rule": 0,
+          "all": 0
+        },
+        "analyze": {
+          "rule": 0,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/obsolete_statement_pos.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "obsolete_statement",
+          "expect": "positive"
+        }
+      ],
+      "predicted_hits": 8,
+      "note": "COMPUTE ADD SUBTRACT MULTIPLY DIVIDE MOVE MOVE-CORRESPONDING REFRESH = 8건(lint·defaultRules). analyze는 Refresh를 끄므로 7건.",
+      "coverage": [
+        "Add",
+        "Refresh"
+      ],
+      "measured_hits": {
+        "lint": {
+          "rule": 8,
+          "all": 8
+        },
+        "analyze": {
+          "rule": 7,
+          "all": 7
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/obsolete_statement_neg.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "obsolete_statement",
+          "expect": "negative"
+        }
+      ],
+      "predicted_hits": 0,
+      "note": "현대 등가 표현으로만 씀.",
+      "measured_hits": {
+        "lint": {
+          "rule": 0,
+          "all": 0
+        },
+        "analyze": {
+          "rule": 0,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/colon_missing_space_pos.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "colon_missing_space",
+          "expect": "positive"
+        }
+      ],
+      "predicted_hits": 3,
+      "note": "DATA:· DATA:· WRITE:/ — 행당 1건씩 3건.",
+      "measured_hits": {
+        "lint": {
+          "rule": 3,
+          "all": 3
+        },
+        "analyze": {
+          "rule": 3,
+          "all": 3
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/colon_missing_space_neg.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "colon_missing_space",
+          "expect": "negative"
+        }
+      ],
+      "predicted_hits": 0,
+      "note": "콜론 뒤에 항상 공백. 문자열 안의 10:30·11:45는 리터럴 판정으로 건너뛴다.",
+      "measured_hits": {
+        "lint": {
+          "rule": 0,
+          "all": 0
+        },
+        "analyze": {
+          "rule": 0,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/double_space_pos.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "double_space",
+          "expect": "positive"
+        }
+      ],
+      "predicted_hits": 3,
+      "note": "코드부에 이중 공백이 있는 행 3개. CLI lint에는 이 규칙이 없으므로 analyze/defaultRules에서만 울린다.",
+      "measured_hits": {
+        "lint": {
+          "rule": 0,
+          "all": 0
+        },
+        "analyze": {
+          "rule": 3,
+          "all": 3
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/double_space_neg.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "double_space",
+          "expect": "negative"
+        }
+      ],
+      "predicted_hits": 0,
+      "note": "* 주석행·\" 주석행은 규칙이 건너뛰고, 후행 주석 안의 이중 공백은 코드부 밖이다.",
+      "measured_hits": {
+        "lint": {
+          "rule": 0,
+          "all": 0
+        },
+        "analyze": {
+          "rule": 0,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/local_variable_names_pos.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "local_variable_names",
+          "expect": "positive"
+        }
+      ],
+      "predicted_hits": 4,
+      "note": "lo_helper(데이터 패턴에 lo_ 없음) · counter · gc_limit(상수 패턴 위반) · <lv_row>. <lv_row>는 이름이 규약에 맞는데도 울린다 — 규칙이 Tokens[2]를 이름으로 읽지만 그 자리는 'SYMBOLS'이기 때문. analyze 표면에서는 패턴이 비어 있어 0건.",
+      "measured_hits": {
+        "lint": {
+          "rule": 4,
+          "all": 4
+        },
+        "analyze": {
+          "rule": 0,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/local_variable_names_neg.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "local_variable_names",
+          "expect": "negative"
+        }
+      ],
+      "predicted_hits": 0,
+      "note": "메서드 안 이름은 전부 규약에 맞고, 규약을 어긴 gv_outside는 메서드 밖이라 범위 밖이다. FIELD-SYMBOLS는 위 결함 때문에 음성 사례를 만들 수 없어 일부러 넣지 않았다.",
+      "measured_hits": {
+        "lint": {
+          "rule": 0,
+          "all": 0
+        },
+        "analyze": {
+          "rule": 0,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/select_star_pos.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "select_star",
+          "expect": "positive"
+        }
+      ],
+      "predicted_hits": 2,
+      "note": "SELECT * 와 SELECT SINGLE *. analyze 표면 전용 규칙.",
+      "measured_hits": {
+        "lint": {
+          "rule": 0,
+          "all": 0
+        },
+        "analyze": {
+          "rule": 2,
+          "all": 2
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/select_star_neg.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "select_star",
+          "expect": "negative"
+        }
+      ],
+      "predicted_hits": 0,
+      "note": "명시 필드 목록 2건 + COUNT( * ) 1건 — COUNT는 첫 필드가 '*'가 아니라 안 울린다.",
+      "measured_hits": {
+        "lint": {
+          "rule": 0,
+          "all": 0
+        },
+        "analyze": {
+          "rule": 0,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/hardcoded_credentials_pos.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "hardcoded_credentials",
+          "expect": "positive"
+        }
+      ],
+      "predicted_hits": 3,
+      "note": "lv_password·lv_api_key에 문자열 리터럴, lv_auth_token에 문자열 템플릿. 리터럴은 전부 명백한 자리표시자다. analyze 표면 전용.",
+      "measured_hits": {
+        "lint": {
+          "rule": 0,
+          "all": 0
+        },
+        "analyze": {
+          "rule": 3,
+          "all": 3
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/hardcoded_credentials_neg.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "hardcoded_credentials",
+          "expect": "negative"
+        }
+      ],
+      "predicted_hits": 0,
+      "note": "우변이 변수(리터럴 아님) · 길이 3 이하('') · 변수명이 자격증명 어휘가 아님, 세 가지 회피 경로.",
+      "measured_hits": {
+        "lint": {
+          "rule": 0,
+          "all": 0
+        },
+        "analyze": {
+          "rule": 0,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/catch_cx_root_pos.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "catch_cx_root",
+          "expect": "positive"
+        }
+      ],
+      "predicted_hits": 3,
+      "note": "cx_root · cx_static_check · cx_no_check. analyze 표면 전용.",
+      "measured_hits": {
+        "lint": {
+          "rule": 0,
+          "all": 0
+        },
+        "analyze": {
+          "rule": 3,
+          "all": 3
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/catch_cx_root_neg.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "catch_cx_root",
+          "expect": "negative"
+        }
+      ],
+      "predicted_hits": 0,
+      "note": "구체 예외만 잡는다.",
+      "measured_hits": {
+        "lint": {
+          "rule": 0,
+          "all": 0
+        },
+        "analyze": {
+          "rule": 0,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/commit_in_loop_pos.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "commit_in_loop",
+          "expect": "positive"
+        }
+      ],
+      "predicted_hits": 3,
+      "note": "LOOP·DO·WHILE 안의 COMMIT WORK 3건. analyze 표면 전용.",
+      "measured_hits": {
+        "lint": {
+          "rule": 0,
+          "all": 0
+        },
+        "analyze": {
+          "rule": 3,
+          "all": 3
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/commit_in_loop_neg.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "commit_in_loop",
+          "expect": "negative"
+        }
+      ],
+      "predicted_hits": 0,
+      "note": "COMMIT WORK가 ENDLOOP 뒤에 있어 깊이 0이다.",
+      "measured_hits": {
+        "lint": {
+          "rule": 0,
+          "all": 0
+        },
+        "analyze": {
+          "rule": 0,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/dynamic_call_no_try_pos.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "dynamic_call_no_try",
+          "expect": "positive"
+        }
+      ],
+      "predicted_hits": 2,
+      "note": "CALL FUNCTION <변수> · CALL METHOD (<변수>)=>run, 둘 다 TRY 밖. analyze 표면 전용.",
+      "coverage": [
+        "CallFunction"
+      ],
+      "measured_hits": {
+        "lint": {
+          "rule": 0,
+          "all": 0
+        },
+        "analyze": {
+          "rule": 2,
+          "all": 2
+        }
+      }
+    },
+    {
+      "path": "synthetic/rules/dynamic_call_no_try_neg.abap",
+      "kind": "rule",
+      "targets": [
+        {
+          "rule": "dynamic_call_no_try",
+          "expect": "negative"
+        }
+      ],
+      "predicted_hits": 0,
+      "note": "문자열 리터럴 FM 호출 1건 + TRY로 감싼 동적 호출 1건.",
+      "coverage": [
+        "CallFunction"
+      ],
+      "measured_hits": {
+        "lint": {
+          "rule": 0,
+          "all": 0
+        },
+        "analyze": {
+          "rule": 0,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/statements/oo_class.abap",
+      "kind": "coverage",
+      "targets": [],
+      "coverage": [
+        "Report",
+        "ClassDeferred",
+        "Interface",
+        "MethodDef",
+        "EndInterface",
+        "ClassDefinition",
+        "Public",
+        "InterfaceDef",
+        "ClassData",
+        "Protected",
+        "Data",
+        "Private",
+        "EndClass",
+        "ClassImplementation",
+        "MethodImplementation",
+        "CreateObject",
+        "EndMethod",
+        "Move",
+        "Clear",
+        "Return",
+        "Call",
+        "CreateData"
+      ],
+      "note": "클래스 선언/구현, 인터페이스, 3개 섹션, 정적/인스턴스 메서드, 객체 생성.",
+      "measured_hits": {
+        "lint": {
+          "rule": null,
+          "all": 0
+        },
+        "analyze": {
+          "rule": null,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/statements/control_flow.abap",
+      "kind": "coverage",
+      "targets": [],
+      "coverage": [
+        "Report",
+        "Data",
+        "If",
+        "Write",
+        "ElseIf",
+        "Else",
+        "EndIf",
+        "Case",
+        "When",
+        "WhenOthers",
+        "EndCase",
+        "Do",
+        "Move",
+        "Continue",
+        "Exit",
+        "EndDo",
+        "While",
+        "EndWhile",
+        "Try",
+        "Raise",
+        "Catch",
+        "EndTry"
+      ],
+      "note": "분기·CASE·루프 두 형태·예외 블록.",
+      "measured_hits": {
+        "lint": {
+          "rule": null,
+          "all": 0
+        },
+        "analyze": {
+          "rule": null,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/statements/subroutine_form.abap",
+      "kind": "coverage",
+      "targets": [],
+      "coverage": [
+        "Report",
+        "Data",
+        "FieldSymbol",
+        "Perform",
+        "Form",
+        "Move",
+        "EndForm",
+        "Assign",
+        "If",
+        "Write",
+        "EndIf",
+        "Unassign"
+      ],
+      "note": "서브루틴(FORM)과 필드 심볼. FIELD-SYMBOLS를 FORM 밖에 두어 local_variable_names 결함을 건드리지 않는다.",
+      "measured_hits": {
+        "lint": {
+          "rule": null,
+          "all": 0
+        },
+        "analyze": {
+          "rule": null,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/statements/function_module.abap",
+      "kind": "coverage",
+      "targets": [],
+      "coverage": [
+        "FunctionPool",
+        "FunctionModule",
+        "Data",
+        "Move",
+        "Write",
+        "EndFunction"
+      ],
+      "note": "함수 그룹과 함수 모듈. FunctionModule 매처는 'FUNCTION <이름>' 두 토큰일 때만 맞는다.",
+      "measured_hits": {
+        "lint": {
+          "rule": null,
+          "all": 0
+        },
+        "analyze": {
+          "rule": null,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/statements/declarations.abap",
+      "kind": "coverage",
+      "targets": [],
+      "coverage": [
+        "Report",
+        "TypeBegin",
+        "Type",
+        "TypeEnd",
+        "Constant",
+        "Data",
+        "FieldSymbol",
+        "Parameter",
+        "SelectOption",
+        "SelectionScreen",
+        "Include",
+        "StartOfSelection",
+        "ReadTextpool",
+        "InsertTextpool",
+        "Write"
+      ],
+      "note": "구조체 타입 체인, 상수, 선택 화면, INCLUDE, 이벤트 블록, 텍스트풀 읽기/쓰기.",
+      "measured_hits": {
+        "lint": {
+          "rule": null,
+          "all": 0
+        },
+        "analyze": {
+          "rule": null,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/statements/lexical_forms.abap",
+      "kind": "coverage",
+      "targets": [],
+      "coverage": [
+        "Report",
+        "Comment",
+        "Data",
+        "Move",
+        "Write"
+      ],
+      "note": "어휘 층 위주 — 콜론 체이닝, 주석 두 형태(* 전행 / \" 후행), 프래그마 ##NEEDED, 문자열 템플릿 |{ }|, 백틱 문자열, 인라인 선언 DATA( ).",
+      "measured_hits": {
+        "lint": {
+          "rule": null,
+          "all": 0
+        },
+        "analyze": {
+          "rule": null,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/statements/native_sql.abap",
+      "kind": "coverage",
+      "targets": [],
+      "coverage": [
+        "ClassDefinition",
+        "Public",
+        "InterfaceDef",
+        "MethodDef",
+        "EndClass",
+        "ClassImplementation",
+        "MethodImplementation",
+        "NativeSQL",
+        "EndMethod"
+      ],
+      "note": "METHOD ... BY DATABASE PROCEDURE — 파서가 ENDMETHOD까지를 NativeSQL로 돌리고 끝에서 ENDMETHOD를 떼어낸다.",
+      "measured_hits": {
+        "lint": {
+          "rule": null,
+          "all": 0
+        },
+        "analyze": {
+          "rule": null,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/statements/open_sql.abap",
+      "kind": "coverage",
+      "targets": [],
+      "coverage": [
+        "Report",
+        "Data",
+        "Select",
+        "Sort",
+        "ReadTable",
+        "Append",
+        "InsertInternal",
+        "DeleteInternal",
+        "Loop",
+        "Write",
+        "EndLoop",
+        "Commit",
+        "Refresh"
+      ],
+      "note": "Open SQL과 내부 테이블 연산. LOOP 두 형태(INTO / ASSIGNING FIELD-SYMBOL 인라인). 끝의 REFRESH는 obsolete_statement를 함께 울린다 — 의도된 부수 효과다.",
+      "measured_hits": {
+        "lint": {
+          "rule": null,
+          "all": 1
+        },
+        "analyze": {
+          "rule": null,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/statements/screen_module.abap",
+      "kind": "coverage",
+      "targets": [],
+      "coverage": [
+        "Report",
+        "Data",
+        "CallScreen",
+        "Module",
+        "SetPFStatus",
+        "SetTitlebar",
+        "EndModule",
+        "Case",
+        "When",
+        "Leave",
+        "CallTransaction",
+        "LeaveToTransaction",
+        "WhenOthers",
+        "EndCase",
+        "CallSelectionScreen",
+        "GetTime"
+      ],
+      "note": "화면 모듈 풀. LEAVE TO SCREEN은 LeaveToTransaction 매처가 빗나가 Leave로 떨어진다.",
+      "measured_hits": {
+        "lint": {
+          "rule": null,
+          "all": 0
+        },
+        "analyze": {
+          "rule": null,
+          "all": 0
+        }
+      }
+    },
+    {
+      "path": "synthetic/statements/string_ops.abap",
+      "kind": "coverage",
+      "targets": [],
+      "coverage": [
+        "Report",
+        "Data",
+        "Concatenate",
+        "Split",
+        "Condense",
+        "Translate",
+        "Replace",
+        "Find",
+        "Message",
+        "Write",
+        "Submit",
+        "CallTransformation",
+        "Clear"
+      ],
+      "note": "문자열 처리 계열, 프로그램 호출, 변환 호출.",
+      "measured_hits": {
+        "lint": {
+          "rule": null,
+          "all": 0
+        },
+        "analyze": {
+          "rule": null,
+          "all": 0
+        }
+      }
+    }
+  ]
+}

@@ -5,6 +5,15 @@
 > 결정의 근거**로 읽고, 실행 설비의 존재를 전제한 서술은 현행으로 취급하지 말 것.
 > 현행 게이트·완료 의미론은 `CLAUDE.md`, 상태는 `HANDOFF.md`, 재구성 계획은
 > `docs/BLUEPRINT.md`.
+>
+> ⚠ **검증 백엔드 은퇴 (2026-08-15)**: 이 문서가 §1·§3·§16에서 **검증/배포 백엔드**로
+> 지목하는 `vsp`(Go 포크)와 그 lock·프로파일 문서는 **레포에서 삭제됐다.** 그 자리에서
+> 로컬 오프라인 검사를 맡는 것은 자체 저작 검사기(`sapkit-cli/` → 동봉
+> `interactive/checker/`)이고, SAP에 닿는 적용 경로는 트랙 B MCP·사람이 모는 CLI·
+> 사용자 abapGit이다(정책 등급과 관문은 경로와 무관하게 같다 — `AGENTS.md`).
+> **이 문서에서 `vsp`를 이름으로 부르는 모든 서술은 그 결정 당시의 기록으로만 읽고
+> 실행 지시로 읽지 말 것.** 설계 판단의 근거(왜 오프라인 검증 백엔드가 필요한가,
+> 어떤 계약을 요구했는가)는 그대로 유효하다.
 
 > **상태: 주/보조 머신 분기 통합 완료(2026-07-19) — 이 v2.4 3축(Direct/Guided/Engine
 > attended) 틀이 트랙 A 설계 정본(통합 결정 ⑴, 아래 v2.5 주). 초기 설계는
@@ -156,12 +165,15 @@ P4에서 vsp worker 할당은 `vsp deploy <file> <package> --transport <req>`만
 생성 폭, 런타임 진단)은 트랙 B MCP를 켠 **대화형 세션**에서 보완한다 —
 대화형 세션은 사람 소유라 MCP 사용이 하네스 보증과 충돌하지 않는다.
 
-주의: vsp의 **온라인(SAP 접속) MCP 모드**는 본 프로젝트에서 사용하지 않는다. 같은
-ADT를 두고 MCP 서버가 2개(powerup + vsp) 공존하면 도구 중복과 권한 정책 이원화가
-생긴다. SAP 접점으로서 vsp = CLI 전용. 단 **`--offline` 로컬 전용 모드**(SAP 무접속·
-ADT 무접촉 — AnalyzeABAPCode 13종 결함 분석 등 로컬 도구 4종)는 이 근거가 성립하지
-않아 금지 밖이다(D-049) — 트랙 B가 abapGit 로컬 소스 흐름의 사전 검사로 훅 배선해
-사용한다(경고 전용, 서버 CheckSyntax와 반영 확인 절차의 권위 불변).
+주의(현행으로 갱신): **SAP 접점을 이원화하지 않는다**는 것이 이 절이 지키는 원리다.
+같은 ADT를 두고 MCP 서버가 2개 공존하면 도구가 겹치고 권한 정책이 갈라진다 — 그래서
+어떤 로컬 도구도 온라인(SAP 접속) MCP 모드로 기동하지 않는다. **SAP 무접속 로컬
+검사**는 이 근거가 성립하지 않아 금지 밖이고(D-049), 지금 그 자리는 **자체 저작
+검사기**가 맡는다: 소스 정본 `sapkit-cli/`, 제품에 동봉된 번들
+`interactive/checker/sapkit-checker.bundle.cjs`이며 **접속·MCP 모드가 코드에 없다**.
+트랙 B가 abapGit 로컬 소스 흐름의 사전 검사로 훅 배선해 쓴다(경고 전용, 서버
+CheckSyntax와 반영 확인 절차의 권위 불변). 이 절의 나머지 비교표는 백엔드 결정 당시의
+기록이다.
 
 ## 4. 아키텍처 계층
 
@@ -256,8 +268,8 @@ RULES.md 항목과 harness-plan 체크리스트로 강제하고, 이 한계를 S
 구 Offline/Read-Only/Gated Write는 실행 모드가 아니다. action마다
 **실행 구조** 하나와 직교하는 **SAP Policy 프로필** 하나를 고른다. 전체
 15칸 소유권·경로·종결 조건의 단일 정본은
-`docs/reference/designs/2026-07-15-track-a-rebase-v2.md` §3~§4이며,
-`adapters/vsp/SAFETY-PROFILES.md` §11 migration 전에는 v2/D-025가 우선한다.
+`docs/reference/designs/2026-07-15-track-a-rebase-v2.md` §3~§4이며, v2와 D-025가
+직접 통제한다(하위 프로필 문서가 이를 고쳐 적거나 완화할 수 없다).
 
 | 실행 구조 | 선택 규칙 |
 |---|---|
@@ -269,7 +281,7 @@ RULES.md 항목과 harness-plan 체크리스트로 강제하고, 이 한계를 S
 |---|---|---|
 | **P0 offline** | SAP 연결 없음 | Offline |
 | **P1 connected-read** | metadata/source/ATC/health; row data·mutation 없음 | Read의 비-row 부분 |
-| **P2 real-data extraction** | `GetTableContents`/`GetSqlQuery`/vsp `query` | Read에서 분리된 실데이터 호출 |
+| **P2 real-data extraction** | `GetTableContents`/`GetSqlQuery` 및 SAP 행 데이터를 끌어오는 **모든 경로**(로컬 CLI·스크립트·직접 질의) | Read에서 분리된 실데이터 호출 |
 | **P3 write/execute** | SAP 상태·코드 변경 또는 실행 | Gated Write의 write/execute 부분 |
 | **P4 transport** | package/request 생성·할당·release·import | Gated Write에서 소유권을 별도 정의한 상위 효과 |
 
@@ -278,7 +290,7 @@ RULES.md 항목과 harness-plan 체크리스트로 강제하고, 이 한계를 S
 합치지 않는다. P2는 **매 호출 전** 범위·필드·row 상한을 보여 사람
 승인을 받고 batch·subagent·자동 승인을 금지한다.
 
-Direct/Guided-P3의 사람 적용 경로는 MCP·vsp CLI·abapGit 모두 정당하다.
+Direct/Guided-P3의 사람 적용 경로는 MCP·사람이 모는 CLI·abapGit 모두 정당하다.
 Direct SAP code는 `DRAFT`, Direct-P3는 `PROVISIONAL_WRITE`이며, 완료는
 **기계 확인**(`interactive/core/procedures/verify-applied.md`) **+ Guided-P3
 exact-subject `R-PASS`** 둘 다가 필요하다(도장 의식 폐지 — D-075). Engine-P3/P4 worker는
