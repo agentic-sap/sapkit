@@ -1,0 +1,8 @@
+sapkit-cli 0.1.0
+source commit f19542dc0b9a9984131f4f1568d1e766d334c049 (sap-agentic-harness sapkit-cli/src — 번들을 만든 소스의 마지막 커밋. verify-checker.mjs가 이 줄에서 sourceCommit을 읽는다)
+source identity: 정확한 신원은 integrity.json의 sourceHash다 — sapkit-cli/src(시험 제외)의 내용 해시라 커밋 경계와 무관하게 표류를 잡는다. 위 커밋은 사람이 읽는 출처 표시다.
+built: cd sapkit-cli && npm run bundle (esbuild — CommonJS 단일 파일, 진입점 src/cli/entry.ts, target node20)
+externals: 없음. 번들이 부르는 외부 모듈은 node builtin `node:fs` 하나뿐이다 — 그래서 설치·실행에 네트워크도 의존성 설치도 필요 없다.
+surface: sapkit lint | parse | analyze | check. 훅(adapters/claude/hooks/offline-code-analysis.mjs)이 쓰는 것은 `analyze --stdin --format json`이다.
+why: 이 번들을 동봉하기 전에는 플러그인이 설치 때 vsp 바이너리를 내려받아야 오프라인 코드 분석이 돌았다. 동봉으로 그 다운로드 단계가 사라져 설치가 완전 오프라인이 된다.
+history: 0.1.0 최초 동봉 2026-08-15 (CLI 표면 4종 · 구 vsp 판정과 갈림 0으로 검증된 소스)
