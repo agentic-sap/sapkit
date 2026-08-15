@@ -174,8 +174,9 @@ CI(`.github/workflows/offline-gates.yml`)는 위 게이트에서 **doctor 본체
 돌리고, 음성시험은 `test-get-vsp`를 뺀 전부를 돌린다(`test-doctor`는 windows 잡).
 엔진 소스 테스트와 번들 재현 빌드, vsp in-repo 빌드·오프라인 계약 스모크,
 그리고 **`sapkit-engine` 잡**(자체 게이트 전종 + 대장 `--check`)도 CI 소관이다.
-단 새로 선 `verify-checker`와 `sapkit-cli` 자체 게이트는 **아직 CI에 배선되지
-않았다** — 같은 판의 별도 커밋 몫이다.
+**`sapkit-cli` 잡**(verify + 게이트 + 그 음성시험 + exit 계약 양극 assert)도 마찬가지고,
+`verify-checker`는 `node-gates` 잡에 있다 — 소스 커밋 대조에 전체 이력(`fetch-depth: 0`)이
+필요해서 그 잡만이 자리다.
 
 **은퇴한 게이트 — 되살리지 말 것.** 이식 장부 계열(`check-migration-snapshot` ·
 그 음성시험 · `build-migration-snapshot` · `report-sc4sap-public-drift`)은 renew 1차에서
