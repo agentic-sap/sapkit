@@ -1,6 +1,6 @@
 # RAP & OData Rules — Field-Verified Failure Modes
 
-**Scope.** This file lists the ways RAP artifacts fail **silently or misleadingly**. Every rule below was verified on an S/4HANA on-premise system (ABAP 7.57) in real project work; SAP-standard samples are cited where they settled the question. When a rule names an exact checker message, match on the message, not on guesswork.
+**Scope.** This file lists the ways RAP artifacts fail **silently or misleadingly**. Every rule below was verified on an S/4HANA on-premise system (ABAP 7.57) in real project work; SAP-standard samples are cited where they settled the question. When a rule names an exact checker message, match on the message, not on guesswork. When the RAP/EML or ABAP syntax itself is what you need, fetch the official ABAP Keyword Documentation through the [help-portal-fetch](../../../procedures/help-portal-fetch.md) procedure — and if that fetch cannot be completed, say so plainly rather than stating the syntax from memory.
 
 ## BDEF Authoring
 
