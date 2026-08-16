@@ -48,10 +48,16 @@ core/knowledge/abap/reference/               ← 2026-08-09 삭제됨
 **미확정**: babamba2가 secondsky에서 직접 받았는지 `mcpmarket` 카탈로그를 경유했는지 —
 처분에는 영향이 없었다(어느 경로든 원천과 GPL-3.0 조건은 동일).
 
-**향후 경로**: 같은 주제(ABAP 언어 레퍼런스)를 공백으로 남기지 않는다. SAP 공식
-`SAP-samples/abap-cheat-sheets`(Apache-2.0) 원자료를 근거로 **선별·순서·구성부터 새로
-자체 집필**한다 — 항목 배열을 그대로 두고 문장만 바꾸는 것은 재작성이 아니라 편집
-저작물의 파생이므로 이 구분을 지킨다. 착수·완료는 재구성 청사진 `docs/BLUEPRINT.md`의
-교체 사다리 ⑶-a(GPL 주제 자체 집필)가 정본이며, 실수요 트리거와 별도 결정을 요구한다.
+**향후 경로 (2026-08-16 확정 — `docs/reference/DECISIONS.md` D-086)**: 빈자리를 **제품 내
+사전(辭典) 재수록으로 채우지 않는다.** 같은 주제(ABAP 언어 레퍼런스)가 필요하면 이미
+동봉된 **help.sap.com 조회 체계**(`core/procedures/help-portal-fetch.md` +
+`tools/fetch/fetch-abap-keyword-doc.mjs` · `fetch-sap-help-doc.mjs`)로 SAP 공식 ABAP
+Keyword Documentation을 **필요할 때 가져와** 출처와 함께 답한다. 제품에 남는 참조 지식은
+실전에서 확인한 함정 모음(`core/knowledge/abap/conventions/`)이다.
+`SAP-samples/abap-cheat-sheets`(Apache-2.0)는 **향후 자체 집필이 필요해질 경우의 인용 가능
+원자료**로 여기 기록만 남긴다 — 제품의 수요 지점에서는 가리키지 않는다. 그때가 오면
+선별·순서·구성부터 새로 쓴다는 제약(항목 배열을 그대로 두고 문장만 바꾸는 것은 재작성이
+아니라 편집 저작물의 파생)이 그대로 적용된다. 사다리 ⑶-a의 판정은 재구성 청사진
+`docs/BLUEPRINT.md`가 정본이다.
 
 이 항목의 상세 판정은 `docs/reference/DECISIONS.md` D-068.
