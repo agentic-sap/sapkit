@@ -57,7 +57,7 @@ Keyword Documentation을 **필요할 때 가져와** 출처와 함께 답한다.
 `SAP-samples/abap-cheat-sheets`(Apache-2.0)는 **향후 자체 집필이 필요해질 경우의 인용 가능
 원자료**로 여기 기록만 남긴다 — 제품의 수요 지점에서는 가리키지 않는다. 그때가 오면
 선별·순서·구성부터 새로 쓴다는 제약(항목 배열을 그대로 두고 문장만 바꾸는 것은 재작성이
-아니라 편집 저작물의 파생)이 그대로 적용된다. 사다리 ⑶-a의 판정은 재구성 청사진
-`docs/BLUEPRINT.md`가 정본이다.
+아니라 편집 저작물의 파생)이 그대로 적용된다. 사다리 ⑶-a의 **진행 상태**는 재구성 청사진
+`docs/BLUEPRINT.md`가, 그 **결정의 '왜'** 는 `docs/reference/DECISIONS.md`가 정본이다.
 
 이 항목의 상세 판정은 `docs/reference/DECISIONS.md` D-068.

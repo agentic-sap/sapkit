@@ -115,7 +115,7 @@ sc4sap-lite/
                                           빈자리는 자체 집필이 아니라 조회로 처리한다(D-086) —
                                           동봉 help-portal 체계(procedures/help-portal-fetch.md +
                                           tools/fetch/)로 공식 문서를 필요할 때 가져오고,
-                                          사전(辭典) 층은 재수록하지 않는다. 판정 정본 docs/BLUEPRINT.md ⑶-a
+                                          사전(辭典) 층은 재수록하지 않는다. 사다리 진행 상태는 docs/BLUEPRINT.md ⑶-a
         conventions/                   ← common/ 규약 (include-structure, oop-pattern, alv-rules,
                                           clean-code 3종, naming, text-element, constant 등)
         templates/                     ← oop/procedural/alv 샘플 + ecc/ (DDIC 헬퍼 템플릿 3종)

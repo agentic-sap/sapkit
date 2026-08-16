@@ -90,6 +90,10 @@
 - **불변 실측**: 지식 `.md` **148 유지**(신설·삭제 0) · 플러그인 버전 무변(전달은 판1의
   미배포 0.7.0 범프에 **편승** — D-060) · 게이트·훅·서버 번들·검사기 번들·`engine/`·
   `sapkit-engine/`·`sapkit-cli/` 무접촉 · 제품 게이트 9종 전부 exit 0.
+  ⚠ **그러므로 push 직전에 설치본 버전을 확인한다** — `node interactive/scripts/doctor.mjs`가
+  설치된 플러그인 manifest version을 레포 버전과 병기한다. **이미 0.7.0 설치본이 존재하는
+  머신이 발견되면 패치 범프 후 push.** (`HANDOFF.md` 재개점에도 있으나 그 블록은 다음 판이
+  덮어쓰므로, 판이 넘어가도 남는 자리로 여기에 둔다.)
 - **조회 경로 생존 스모크 1회 통과** — `node interactive/tools/fetch/fetch-abap-keyword-doc.mjs
   abenwhere_all_entries` exit 0(공식 ABAP Keyword Documentation 본문 수신). ⚠ **상설
   게이트가 아니다** — 외부 문서 사이트의 이동·폐쇄는 감시하지 않기로 수용했고(D-086 ⑤ ·
