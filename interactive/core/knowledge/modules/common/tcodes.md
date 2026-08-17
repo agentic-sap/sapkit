@@ -1,8 +1,8 @@
 # Common - Cross-Module Transaction Codes
 # 공통 - 교차 모듈 트랜잭션 코드
 
-모든 SAP 모듈에서 공통으로 사용되는 트랜잭션 코드 참조.
-Transaction codes used across all SAP modules.
+어느 한 모듈에만 속하지 않고 SAP 모듈 전체가 함께 쓰는 트랜잭션 코드 참조.
+A reference for the transaction codes that belong to no single module but are shared by all SAP modules.
 
 ## ABAP Workbench / Development / ABAP 워크벤치 및 개발
 
