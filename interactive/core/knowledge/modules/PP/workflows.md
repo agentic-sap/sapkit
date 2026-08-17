@@ -3,18 +3,18 @@
 
 ## Workflow 1: Create and Release Production Order via BAPI
 ### Steps
-1. Read BOM and routing for material/plant using CS_BOM_EXPL_MAT_V2 and BAPI_ROUTING_GET_DETAIL
-2. Populate BAPI_PRODORD_CREATE parameters: material, plant, order type, quantity, basic dates
-3. Call BAPI_PRODORD_CREATE; check RETURN for errors
-4. On success, retrieve ORDER_NUMBER from return
-5. Release order: call BAPI_PRODORD_CHANGE with ORDER_STATUS = 'REL'
-6. Check material availability: BAPI_MATERIAL_AVAILABILITY for all components
-7. Post goods issue for components: BAPI_GOODSMVT_CREATE with movement type 261
-8. Commit transaction; verify order status in CO03
+1. CS_BOM_EXPL_MAT_V2 and BAPI_ROUTING_GET_DETAIL supply the BOM and the routing for the material/plant — read those first
+2. Then fill BAPI_PRODORD_CREATE's parameters — material, plant, order type, quantity, and basic dates
+3. Issue the BAPI_PRODORD_CREATE call, then look in RETURN for errors
+4. Where the call succeeded, pull ORDER_NUMBER out of the return
+5. Release the order with a call to BAPI_PRODORD_CHANGE that carries ORDER_STATUS = 'REL'
+6. Material availability is a BAPI_MATERIAL_AVAILABILITY check, run over all components
+7. Post the components' goods issue through BAPI_GOODSMVT_CREATE under movement type 261
+8. Commit the transaction, then read the order status back in CO03
 
 ### Required MCP Tools
 - `GetFunctionModule` — read BAPI_PRODORD_CREATE interface
-- `GetTable` — inspect AUFK, AFKO, AFPO, RESB structures
+- `GetTable` — look through the AUFK, AFKO, AFPO, and RESB structures
 - `CreateProgram` — scaffold test program
 
 ### Related Config
@@ -26,18 +26,18 @@
 
 ## Workflow 2: Custom MRP User Exit for Special Procurement
 ### Steps
-1. Identify USEREXIT_MD_CHANGE_MRP_DATA in include MD_USEREXIT
-2. Implement logic to override procurement type or lot size for specific materials
-3. Alternatively use BAdI MD_PURREQ_CHANGE for purchase requisition modifications after MRP
-4. In exit: check material attributes (MARC-BESCHR, MARC-DISPO), apply business rules
-5. Modify PLSC (planned order) or EBAN (purchase requisition) data structures
-6. Test: run MD01 for affected material, verify results in MD04
+1. USEREXIT_MD_CHANGE_MRP_DATA sits in include MD_USEREXIT — find it there
+2. The logic to write there overrides the procurement type or the lot size for specific materials
+3. The alternative route is BAdI MD_PURREQ_CHANGE, for purchase requisition modifications after MRP
+4. Inside the exit, read the material attributes (MARC-BESCHR, MARC-DISPO) and apply the business rules
+5. The data structures to change are PLSC (planned order) or EBAN (purchase requisition)
+6. To test, run MD01 on the affected material and check the results in MD04
 
 ### Required MCP Tools
 - `GetInclude` — read MD_USEREXIT structure
 - `UpdateInclude` — implement user exit
-- `GetTable` — inspect MARC, PLAF, EBAN
-- `GetClass` — inspect BAdI MD_PURREQ_CHANGE interface
+- `GetTable` — go over MARC, PLAF, and EBAN
+- `GetClass` — read the BAdI MD_PURREQ_CHANGE interface
 
 ### Related Config
 - MRP Types: V_T438A
@@ -48,17 +48,17 @@
 
 ## Workflow 3: Production Order Confirmation with Goods Movement
 ### Steps
-1. Read production order details via BAPI_PRODORD_GET_DETAIL for operation list
-2. Identify operation to confirm (AUFPL + APLZL from AFVC)
-3. Populate BAPI_PRODORDCONF_CREATE_TT: order number, operation, yield/scrap quantities, activities
-4. Include GOODSMOVEMENTS for simultaneous goods movements (261 for components, 101 for finished goods)
-5. Call BAPI_PRODORDCONF_CREATE_TT with all tables
-6. Check RETURN; commit on success
-7. Verify stock changes in MMBE and confirmation in AFRU (confirmation records)
+1. Read the production order details with BAPI_PRODORD_GET_DETAIL to get the operation list
+2. Single out the operation to confirm — AUFPL + APLZL, taken from AFVC
+3. Fill BAPI_PRODORDCONF_CREATE_TT with the order number, the operation, the yield/scrap quantities, and the activities
+4. Add GOODSMOVEMENTS so the goods movements post simultaneously (261 for components, 101 for finished goods)
+5. Hand every table to BAPI_PRODORDCONF_CREATE_TT and make the call
+6. Read RETURN, and commit where it came back successful
+7. The stock changes show in MMBE and the confirmation in AFRU (confirmation records) — verify both
 
 ### Required MCP Tools
-- `GetFunctionModule` — read confirmation BAPI interface
-- `GetTable` — inspect AFRU, AFVC, AUFK
+- `GetFunctionModule` — read the interface of the confirmation BAPI
+- `GetTable` — look at AFRU, AFVC, and AUFK
 - `CreateProgram` — create confirmation program
 
 ### Related Config
