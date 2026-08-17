@@ -1,8 +1,8 @@
 # Field Typing Rule — Data Element First
 
-**Scope.** Every Table / Structure / Table Type field-type decision made by sc4sap skills or agents (standard `CreateTable` / `CreateStructure` flow **and** the ECC helper-program fallback under `ecc-ddic-fallback.md`).
+**Scope.** This rule governs every field-type decision an sc4sap skill or agent makes for a Table, a Structure, or a Table Type — the standard `CreateTable` / `CreateStructure` flow **and** the ECC helper-program fallback under `ecc-ddic-fallback.md` alike.
 
-**Problem this rule fixes.** Past runs generated fields like `LIFNR CHAR 10`, `MATNR CHAR 40`, `WERKS CHAR 4` — raw data-type + length — even though SAP ships authoritative Data Elements with exactly the same semantics (`LIFNR`, `MATNR`, `WERKS_D`, …). That strips search helps, foreign-key propagation, conversion exits, and documentation from every consuming program. Reuse is mandatory, not optional.
+**What goes wrong without it.** Earlier runs typed fields as a raw data type plus a length — `LIFNR CHAR 10`, `MATNR CHAR 40`, `WERKS CHAR 4` — even though SAP already delivers authoritative Data Elements carrying exactly those semantics (`LIFNR`, `MATNR`, `WERKS_D`, …). Every consuming program is then left without the search helps, the foreign-key propagation, the conversion exits, and the documentation. That reuse is obligatory, not discretionary.
 
 ## Priority (MANDATORY — applied per field)
 
@@ -15,7 +15,7 @@
 
 ## HARD RULE — Semantic Categories That REQUIRE a Data Element
 
-**Priority 4 (raw data type + length) is FORBIDDEN when the field falls into any of these five semantic categories — MUST use priority 1, 2, or 3 (create a new DE if nothing fits):**
+**A field that belongs to any of the five semantic categories below may never be typed at priority 4 (raw data type + length). It MUST land on priority 1, 2, or 3 — and when nothing existing fits, that means creating a new DE:**
 
 | Category | Intent | Typical standard DE candidates | If no match → create |
 |---|---|---|---|
@@ -25,37 +25,37 @@
 | **Number / 번호** | Document numbers, IDs, sequences, reference numbers | `BELNR_D`, `VBELN`, `EBELN`, `EBELP`, `MBLNR`, `AUFNR`, `POSNR`, `BANFN`, `BNFPO`, `MATNR`, `LIFNR`, `KUNNR`, `AENNR`, `STLNR` | `ZMME{NN}` domain `CHAR n` or `NUMC n` |
 | **Status / 상태값** | Enum-like status / flag with a fixed set of values | `SYMSGTY`, domain-backed status DEs | `ZMME{NN}` + **new `ZMMD{NN}` domain with fixed values** (e.g., `S` / `E` / `P` for Success/Error/Pending). Do NOT emit `CHAR 1` as raw primitive — the fixed-value list is what makes a status semantically meaningful. |
 
-### Why this rule exists
+### What each category loses without a DE
 
-- **Quantity / Amount** without a DE loses the decimal handling, unit/currency linkage (`REFERENCE` fields in DDIC), and conversion exits — data silently rounds or misaligns at report time.
-- **Date** without a DE loses locale-aware display and validation helpers.
-- **Number** without a DE loses foreign-key propagation, conversion exits (alpha/numc), and search helps.
-- **Status** without a DE-backed domain loses the fixed-value whitelist — any 1-char junk becomes accepted, and the UI shows no F4 dropdown.
+- **Quantity / Amount** — the decimal handling, the unit/currency linkage (the `REFERENCE` fields in DDIC), and the conversion exits all fall away, so the data quietly rounds or drifts out of alignment by report time.
+- **Date** — locale-aware display and the validation helpers are gone.
+- **Number** — foreign-key propagation, the alpha/numc conversion exits, and search helps are gone.
+- **Status** — with no DE-backed domain there is no fixed-value whitelist, so any 1-char junk gets accepted and the UI shows no F4 dropdown.
 
 ### Detection heuristics (field-name → category)
 
-Agents applying this rule classify a field by name + length + business context:
-- Ends with `MENGE` / `QTY` / `_QTY` / `_MNG` or decimal places > 0 on a number type → **Quantity**
-- Ends with `BETR` / `AMT` / `_AMT` / `WRBTR` / `NETWR` or type `CURR` → **Amount**
-- Ends with `DAT` / `_DATE` / `_DT` or type `DATS` → **Date**
-- Ends with `NR` / `NO` / `_NO` / `_ID` / `NUMBER` / `BELNR` / `VBELN` / `EBELN` / `POSNR` or type `NUMC` → **Number**
-- 1-char `CHAR` used as flag / state / indicator, or name contains `STATUS` / `FLAG` / `TYPE` / `KZ` / `_ST` → **Status** (MUST have a fixed-value domain)
+An agent applying this rule reads the field's name alongside its length and its business context, then assigns a category:
+- Name ends with `MENGE` / `QTY` / `_QTY` / `_MNG`, or a number type carries decimal places > 0 → **Quantity**
+- Name ends with `BETR` / `AMT` / `_AMT` / `WRBTR` / `NETWR`, or the type is `CURR` → **Amount**
+- Name ends with `DAT` / `_DATE` / `_DT`, or the type is `DATS` → **Date**
+- Name ends with `NR` / `NO` / `_NO` / `_ID` / `NUMBER` / `BELNR` / `VBELN` / `EBELN` / `POSNR`, or the type is `NUMC` → **Number**
+- A 1-char `CHAR` serving as a flag / state / indicator, or a name containing `STATUS` / `FLAG` / `TYPE` / `KZ` / `_ST` → **Status** (MUST have a fixed-value domain)
 
-If any heuristic matches, priority-4 primitive is automatically rejected at plan review. The planner/executor must route through priority 1→2→3 and, on priority 3, create the DE (and domain where needed) as a sibling artifact of the table.
+Once a heuristic fires, plan review rejects the priority-4 primitive automatically. Instead the planner/executor is required to route through priority 1→2→3 and, at priority 3, to create the DE — plus the domain wherever one is needed — as a sibling artifact of the table.
 
 ## Lookup Protocol (before picking a priority)
 
-Each field goes through this order on every run — no shortcut, no cached guess.
+Every field walks this sequence on every run. No shortcut, no cached guess.
 
-0. **Verify standard-table field names against the live system FIRST (standard tables only)** — before enumerating or typing any field of a *standard* SAP table, confirm the actual field names via `GetTable` or a single-column `GetSqlQuery` (`SELECT fieldname FROM dd03l WHERE tabname = '<TAB>'` — single-column deliberately, so the multi-column result-shift risk never applies). Never write standard-table field names from memory or from a design document — an offline ABAP parser cannot catch a wrong field name in principle (the name is syntactically valid, only semantically absent). Counterexamples that were all wrong when trusted from memory: `VBAK-WAERS` → the real field is `WAERK`; `AWTYPE` → real `AWTYP`; `COSS-WKG_WRT` does not exist at all (the period amounts live in columns `WKG001`–`WKG016`); `PLPO-ARBPL` → the work center is not on `PLPO`, it lives on `CRHD` (join `PLPO-ARBID` → `CRHD-OBJID`). New CBO fields are defined by you and skip this step.
-1. **Standard DE search** — call `SearchObject` with `query = <field-semantic-guess>` and `object_type = DTEL`, or match the field name against the **Common Standard DE Reference** below.
-   - Hit → priority 1. Use that DE as `rollname`. Stop.
-   - Miss → continue.
-2. **CBO DE search** — if `.sapkit/cbo/<MODULE>/<PACKAGE>/inventory.json` exists, grep it for a DE whose role / domain / length / label matches. Also call `SearchObject` with the project Z-prefix (e.g., `ZFIE*`).
-   - Hit → priority 2. Stop.
-   - Miss → continue.
-3. **New CBO DE decision** — does the field justify a new DE? Apply the priority-3 gate (reuse ≥ 2 OR domain-specific label). If yes → priority 3; emit a `CreateDataElement` (S/4) or an ECC DTEL helper program (ECC, per `ecc-ddic-fallback.md`). Then reference it as `rollname`.
-4. **Primitive only if all above fail** — priority 4. Justify inline in the plan / spec (`"Field X: primitive CHAR 20 — internal scratch buffer, no business meaning"`).
+0. **Verify standard-table field names against the live system FIRST (standard tables only)** — never enumerate or type a field of a *standard* SAP table before reading its real field names out of the system, via `GetTable` or a single-column `GetSqlQuery` (`SELECT fieldname FROM dd03l WHERE tabname = '<TAB>'` — the single column is deliberate, so the multi-column result-shift risk cannot arise). Memory and design documents are not sources for a standard field name: an offline ABAP parser is incapable in principle of catching a wrong one, because such a name is syntactically valid and only semantically absent. Trusting memory produced these, every one of them wrong: `VBAK-WAERS` → the real field is `WAERK`; `AWTYPE` → real `AWTYP`; `COSS-WKG_WRT` → no such field exists at all, the period amounts live in columns `WKG001`–`WKG016`; `PLPO-ARBPL` → the work center is not on `PLPO`, it lives on `CRHD` (join `PLPO-ARBID` → `CRHD-OBJID`). Fields you define yourself as new CBO fields skip this step.
+1. **Standard DE search** — run `SearchObject` with `query = <field-semantic-guess>` and `object_type = DTEL`, or look the field name up in the **Common Standard DE Reference** below.
+   - Hit → priority 1: that DE becomes the field's `rollname`. Stop here.
+   - Miss → fall through.
+2. **CBO DE search** — when `.sapkit/cbo/<MODULE>/<PACKAGE>/inventory.json` is present, grep it for a DE whose role / domain / length / label lines up. Run `SearchObject` against the project Z-prefix as well (e.g., `ZFIE*`).
+   - Hit → priority 2. Stop here.
+   - Miss → fall through.
+3. **New CBO DE decision** — ask whether the field earns a DE of its own and answer with the priority-3 gate (reuse ≥ 2 OR domain-specific label). Yes → priority 3: emit a `CreateDataElement` (S/4) or an ECC DTEL helper program (ECC, per `ecc-ddic-fallback.md`), then point the field's `rollname` at it.
+4. **Primitive only once every step above has failed** — priority 4, with the reason written inline in the plan / spec (`"Field X: primitive CHAR 20 — internal scratch buffer, no business meaning"`).
 
 ## Common Standard DE Reference (quick lookup — expand as needed)
 
@@ -77,7 +77,7 @@ Date / time / user:
 Technical / system:
 - Client: `MANDT` · Language: `SPRAS` · Country: `LAND1` · Unit: `UNIT`
 
-Agents facing an unlisted field MUST call `SearchObject` against `DTEL` with 2–3 synonym queries (e.g., `vendor`, `supplier`, `creditor`) before concluding "no standard DE exists." Document negative searches in the plan so the next run can verify.
+For a field this list does not cover, the agent MUST run `SearchObject` against `DTEL` with 2–3 synonym queries (e.g., `vendor`, `supplier`, `creditor`) before it may conclude "no standard DE exists." Write the empty searches into the plan, so the next run can verify them.
 
 ## Anti-Patterns (STOP — these must never pass review)
 
@@ -85,37 +85,37 @@ Agents facing an unlisted field MUST call `SearchObject` against `DTEL` with 2�
 - `MATNR CHAR 40` ← use data element `MATNR`
 - `WERKS CHAR 4` ← use data element `WERKS_D`
 - `BUKRS CHAR 4` ← use data element `BUKRS`
-- `BELNR CHAR 10` ← use data element `BELNR_D` (or `VBELN` / `MBLNR` / `EBELN` depending on doc type)
+- `BELNR CHAR 10` ← use data element `BELNR_D` (or `VBELN` / `MBLNR` / `EBELN`, according to the document type)
 - `BUDAT DATS 8` ← use data element `BUDAT`
-- `MENGE QUAN 13 3` without UoM companion ← use `MENGE_D` + sibling `MEINS` field
+- `MENGE QUAN 13 3` with no UoM companion ← use `MENGE_D` plus a sibling `MEINS` field
 - `WAERS CHAR 5` ← use data element `WAERS`
 - `USNAM CHAR 12` ← use data element `USNAM`
-- `MANDT CLNT 3` ← use data element `MANDT` (also: client field must be `MANDT` name + `MANDT` DE, at position 1 of every client-dependent transparent table)
+- `MANDT CLNT 3` ← use data element `MANDT` (and the client field itself: name `MANDT`, DE `MANDT`, at position 1 of every client-dependent transparent table)
 
 ## Anti-Pattern — Field Name / Domain ≠ Meaning
 
-Never infer a field's business meaning from its name or its domain name alone — SAP reuses both, and the name/domain will steer you into the wrong join or the wrong data model.
+A field's business meaning cannot be read off its name or its domain name alone — SAP reuses both, and either one will steer you into the wrong join or the wrong data model.
 
-- `T001B-BUKRS` carries domain `OPVAR` — it is the **posting period variant**, NOT the company code, despite the `BUKRS` field name.
-- Conversely `SKA1-VBUND` carries domain `RCOMP` yet **IS** the trading partner, not a generic company-code field.
+- `T001B-BUKRS` carries domain `OPVAR`: despite the `BUKRS` field name it is the **posting period variant**, NOT the company code.
+- `SKA1-VBUND` runs the other way — its domain is `RCOMP`, yet the field **IS** the trading partner, not a generic company-code field.
 
-Confirm meaning via the data element's semantics (`GetDataElement` → label + documentation), never the field name or the domain name. For shared-vs-org-specific data-model decisions (one shared table vs an org-partitioned one), do not decide from the key structure — **measure the actual data**: values that cross org units → the entity is SHARED; values dedicated to a single org unit → PARTITIONED.
+Establish meaning from the data element's own semantics instead (`GetDataElement` → label + documentation); never from the field name or the domain name. Where the question is shared versus org-specific data modelling (one shared table against an org-partitioned one), the key structure is not what decides it — **measure the actual data**: values that cross org units → the entity is SHARED; values dedicated to a single org unit → PARTITIONED.
 
 ## DDIC Activation Constraint — No NOT NULL on Fields Longer Than 255 Bytes
 
-Never set the NOT NULL / initial-values flag on a `RAWSTRING`, `STRING`, or any field exceeding 255 bytes — DDIC refuses activation with `'not null' flag ... too long (>255)`, and SAP standard has zero exceptions (a full `DD03L` sweep of active `RSTR` fields found all 25 with the flag blank). Habitually flagging every field NOT NULL is the trap; leave LOB-class fields unflagged. (Field-verified in real project work, 2026-07.)
+A `RAWSTRING`, a `STRING`, or any field exceeding 255 bytes must never carry the NOT NULL / initial-values flag — DDIC declines activation and reports `'not null' flag ... too long (>255)`, and SAP standard holds zero exceptions (a full `DD03L` sweep of active `RSTR` fields found all 25 with the flag blank). The trap is the habit of flagging every field NOT NULL; leave the LOB-class fields unflagged. (Field-verified in real project work, 2026-07.)
 
 ## Integration Points
 
-- `skills/create-object/workflow-steps.md` → Step 5 (standard flow) and Step 4-ECC (helper-program generation) both route field-type decisions through this rule.
-- `skills/create-program/phase4-parallel.md` → Wave 1 sub-step 3 (parallel `CreateTable` / `CreateStructure`) applies this rule per field before emitting `rollname`.
-- `skills/create-program/phase6-review.md` → reviewer fails the plan if any field drops to priority 4 without an inline justification, or if any priority-1 miss is visible (a standard DE existed and the plan still used a primitive).
-- `skills/analyze-cbo-obj/` → CBO inventory `inventory.json` is the source for priority 2 (existing CBO DE). Keep it fresh; stale inventory forces needless priority-3 creations.
+- `skills/create-object/workflow-steps.md` → Step 5 (standard flow) and Step 4-ECC (helper-program generation) both send their field-type decisions through this rule.
+- `skills/create-program/phase4-parallel.md` → Wave 1 sub-step 3 (parallel `CreateTable` / `CreateStructure`) applies the rule to each field before emitting `rollname`.
+- `skills/create-program/phase6-review.md` → the reviewer fails the plan when a field drops to priority 4 without an inline justification, and equally when a priority-1 miss is visible — a standard DE existed and the plan reached for a primitive anyway.
+- `skills/analyze-cbo-obj/` → the CBO inventory `inventory.json` is the source priority 2 (existing CBO DE) draws on. Keep it fresh; a stale inventory forces needless priority-3 creations.
 
 ## Enforcement Checklist (per field, before `CreateTable` / `UpdateTable` / ECC helper emission)
 
-1. Ran `SearchObject` for standard DE OR matched against the quick-lookup table → decision recorded.
-2. If no standard hit, checked `cbo-context.md` for a CBO DE → decision recorded.
-3. If priority 3 (new CBO DE), DE name follows `ZFIE{NN}` / `ZMME{NN}` / … from `naming-conventions.md`.
-4. If priority 4 (primitive), inline justification exists in `plan.md` / `spec.md`.
+1. `SearchObject` was run for a standard DE, OR the quick-lookup table was matched → decision recorded.
+2. No standard hit → `cbo-context.md` was checked for a CBO DE → decision recorded.
+3. Priority 3 (new CBO DE) → the DE name follows `ZFIE{NN}` / `ZMME{NN}` / … from `naming-conventions.md`.
+4. Priority 4 (primitive) → an inline justification exists in `plan.md` / `spec.md`.
 5. Client-dependent table → field 1 is `MANDT` with DE `MANDT`, key-flag `X`.
