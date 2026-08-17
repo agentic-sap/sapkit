@@ -77,12 +77,12 @@ const HISTORY = [
 // 런타임 경로가 아니라 SAP 안에 실재하는 이름이다.
 const ANCHORS = [
   { file: 'interactive/core/procedures/troubleshooting.md', label: 'keychain 서비스명', strings: ['keychain:sc4sap/'] },
-  { file: 'interactive/core/procedures/create-program.md', label: 'ABAP 앵커', strings: ['zrsc4sap_oop_ex'] },
-  { file: 'interactive/core/procedures/review-checklist.md', label: 'ABAP 앵커', strings: ['zrsc4sap_oop_ex'] },
-  { file: 'interactive/core/personas/sap-executor.md', label: 'ABAP 앵커', strings: ['zrsc4sap_oop_ex'] },
-  { file: 'interactive/core/knowledge/abap/conventions/clean-code-oop.md', label: 'ABAP 앵커', strings: ['zrsc4sap_oop_ex'] },
-  { file: 'interactive/core/knowledge/abap/conventions/include-structure.md', label: 'ABAP 앵커', strings: ['zrsc4sap_oop_ex'] },
-  { file: 'interactive/core/knowledge/abap/conventions/oop-pattern.md', label: 'ABAP 앵커', strings: ['zrsc4sap_oop_ex'] },
+  { file: 'interactive/core/procedures/create-program.md', label: 'ABAP 앵커', strings: ['zsapkit_oop_ex'] },
+  { file: 'interactive/core/procedures/review-checklist.md', label: 'ABAP 앵커', strings: ['zsapkit_oop_ex'] },
+  { file: 'interactive/core/personas/sap-executor.md', label: 'ABAP 앵커', strings: ['zsapkit_oop_ex'] },
+  { file: 'interactive/core/knowledge/abap/conventions/clean-code-oop.md', label: 'ABAP 앵커', strings: ['zsapkit_oop_ex'] },
+  { file: 'interactive/core/knowledge/abap/conventions/include-structure.md', label: 'ABAP 앵커', strings: ['zsapkit_oop_ex'] },
+  { file: 'interactive/core/knowledge/abap/conventions/oop-pattern.md', label: 'ABAP 앵커', strings: ['zsapkit_oop_ex'] },
 ];
 
 // ── 스캔 ────────────────────────────────────────────────────────────────────
