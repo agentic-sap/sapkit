@@ -1,34 +1,34 @@
 # Banking / Payment — Customer & Vendor Financial Credentials
 <!-- tier: minimal -->
 
-Bank accounts, payment runs, cheque and card data — direct financial-credential exposure.
+Bank accounts, payment runs, cheque and card data — these rows expose financial credentials directly.
 
 | Table | Description | Why |
 |-------|-------------|-----|
 | BNKA | Bank master data | Customer/vendor bank account credentials |
-| KNBK | Customer bank details | Customer bank account numbers |
-| LFBK | Vendor bank details | Vendor bank account numbers |
-| BUT0BK | Business Partner bank details (S/4) | BP bank account numbers |
-| T012K | House banks / bank account details | Company banking credentials |
-| REGUH | Settlement data from payment program | Outgoing payment details |
-| REGUP | Processed items from payment program | Payment line items |
-| PAYR | Payment medium file | Cheque/payment numbers |
-| FPLT | Billing plan — dates | Linked payment data |
-| FPLTC | Billing plan — payment cards | Credit card tokens |
-| CCARD | Payment cards (obsolete) | Credit card numbers |
-| TCRCO | Credit card organizations | Card processor credentials |
-| BSEGC | FI doc payment card segment | Card transaction data |
-| FPAYH / FPAYHX / FPAYP / FPAYPX | Payment medium data | Payment file contents |
+| KNBK | Bank details of the customer | The customer's bank account numbers |
+| LFBK | Bank details of the vendor | The vendor's bank account numbers |
+| BUT0BK | Bank details of the Business Partner (S/4) | Bank account numbers held under a BP |
+| T012K | House banks and their bank account details | The company's own banking credentials |
+| REGUH | Settlement data produced by the payment program | Detail of outgoing payments |
+| REGUP | Items the payment program processed | Line items behind each payment |
+| PAYR | Payment medium file | Cheque and payment numbers |
+| FPLT | Dates in the billing plan | Payment data linked to the plan |
+| FPLTC | Payment cards in the billing plan | Tokenized credit card data |
+| CCARD | Payment cards (no longer used) | Credit card numbers |
+| TCRCO | Credit card organizations | Credentials of the card processor |
+| BSEGC | Payment card segment of the FI document | Data on the card transaction |
+| FPAYH / FPAYHX / FPAYP / FPAYPX | Payment medium data | Contents of the payment file |
 
 ### Related Standard CDS Views
 
 | View | Wraps | Why |
 |------|-------|-----|
-| I_BankAccount | BNKA / T012K | Bank master and house-bank accounts |
+| I_BankAccount | BNKA / T012K | Bank master together with house-bank accounts |
 | I_Bank | BNKA | Bank master |
-| I_BusinessPartnerBankDetails | BUT0BK | BP bank accounts |
-| I_CustomerBankDetails | KNBK | Customer bank accounts |
-| I_SupplierBankDetails | LFBK | Vendor bank accounts |
-| I_HouseBankAccount | T012K | Company-code house bank |
-| I_PaymentMediumMT940 | FEBKO / FEBEP | Bank statement lines |
-| I_PaymentCard | CCARD / FPLTC | Payment-card tokens |
+| I_BusinessPartnerBankDetails | BUT0BK | Bank accounts of the Business Partner |
+| I_CustomerBankDetails | KNBK | Bank accounts of the customer |
+| I_SupplierBankDetails | LFBK | Bank accounts of the vendor |
+| I_HouseBankAccount | T012K | House bank of the company code |
+| I_PaymentMediumMT940 | FEBKO / FEBEP | Lines of the bank statement |
+| I_PaymentCard | CCARD / FPLTC | Tokens for payment cards |
