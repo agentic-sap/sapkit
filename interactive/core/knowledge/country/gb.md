@@ -16,7 +16,7 @@
 - Standard 20%, reduced 5%, plus zero-rated and exempt
 - **VAT Number**: `GB` followed by 9 or 12 digits, with some variants
 - Post-Brexit (2021): UK VAT separate from EU VAT — UK no longer in EU VAT system
-- NI (Northern Ireland) stays in EU goods VAT scheme (`XI` prefix for NI VAT)
+- For goods, NI (Northern Ireland) remains inside the EU VAT scheme — NI VAT carries the `XI` prefix
 
 ## e-Invoicing / Fiscal Reporting
 - **Making Tax Digital (MTD)** — mandatory for all VAT-registered since 2022, with returns filed to HMRC via API

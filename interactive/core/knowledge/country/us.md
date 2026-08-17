@@ -67,4 +67,4 @@
 - Mixing up EIN and SSN; sending SSN over unencrypted channels
 - MM/DD vs DD/MM date confusion across documents
 - Leaving Nexus unhandled — collecting/remitting sales tax in states where not registered (or failing to where required)
-- Treating sales tax as VAT — it's **not deductible**; flows to expense
+- Treating sales tax as VAT — sales tax is **not deductible** and flows to expense
