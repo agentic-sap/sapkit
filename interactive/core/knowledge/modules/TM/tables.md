@@ -50,5 +50,5 @@
 ## S/4HANA Specific
 ## S/4HANA 전용
 
-All `/SCMTMS/*` tables listed above are S/4HANA TM specific (embedded or standalone TM).
-위의 모든 `/SCMTMS/*` 테이블은 S/4HANA TM 전용입니다(임베디드 또는 독립형 TM).
+Every `/SCMTMS/*` table listed above exists only in S/4HANA TM (embedded or standalone TM).
+위에 나온 `/SCMTMS/*` 테이블은 모두 S/4HANA TM에만 있습니다(임베디드 또는 독립형 TM).
