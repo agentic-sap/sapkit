@@ -1,6 +1,6 @@
 # Include Structure Convention
 
-sc4sap ABAP programs share one layout: a Main Program plus conditional Includes that carry the logic. **For Procedural programs the source of truth is [`procedural-sample/main-program.abap`](../templates/procedural-sample/main-program.abap)**. Programs written OOP take their pattern from [`oop-sample/zrsc4sap_oop_ex.prog.abap`](../templates/oop-sample/zrsc4sap_oop_ex.prog.abap).
+sc4sap ABAP programs share one layout: a Main Program plus conditional Includes that carry the logic. **For Procedural programs the source of truth is [`procedural-sample/main-program.abap`](../templates/procedural-sample/main-program.abap)**. Programs written OOP take their pattern from [`oop-sample/zsapkit_oop_ex.prog.abap`](../templates/oop-sample/zsapkit_oop_ex.prog.abap).
 
 ## Include Set
 
