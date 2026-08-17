@@ -374,14 +374,16 @@ tables·spro·enhancements)**을 로드** · **naming 2편의 소비자** = `ana
     MP-variant↔평가 변형 대역 불일치.
   - `FI/bapi.md` — `Post GL Posting…`의 GL→G/L **표기 정규화 1건 인정**(같은 셀 KR이 이미
     G/L이라 리뷰가 정규화로 판단).
-  - `FI/bapi.md` KR 「전기→계상」 **5셀 용어 갈림** — **판3.5 일관성 재료**(같은 어휘가 다른
-    파일에서 어떻게 처리되는지 함께 볼 것).
+  - `FI/bapi.md` KR 「전기」 보유 5셀 중 **4셀이 「계상」으로 전환, 1셀(전기 기간 판별)은
+    「전기」 유지** — 파일 내 용어 갈림, **판3.5 일관성 재료**(같은 어휘가 다른 파일에서
+    어떻게 처리되는지 함께 볼 것).
   - `MM/tcodes.md`·`FI/tcodes.md`·`common/tcodes.md` 등 — System 열·명칭 의심 소량(각 리뷰
     보고서에 기록).
 - **판정 폭 기록 (위반 아님 — 후속 감사가 오독하지 않도록)**: 표 셀 재저작 폭이 파일 간에
   갈렸다 — **광폭**(`common/bapi` Description 62셀 · `common/enhancements` gloss 36셀 ·
   `FI/bapi` Description+Usage 54셀) vs **협폭 수렴선**(`FI/enhancements`·`FI/tables`·
-  `CO/tables`·`MM/enhancements`·`MM/tables`·`SD/tables` 등 — 명칭·명사구 보존, 진짜 술어절만).
+  `CO/tables`·`MM/enhancements`·`MM/tables`·`PP/tables`·`PM/tables` 등 — 명칭·명사구 보존,
+  진짜 술어절만. `SD/tables`는 이 계열이 아니라 **무변경 검증 체크 13편**의 하나다).
   D-088 ①의 「저작 gloss냐 공식 명칭이냐」 판정 재량 범위이고, **전 파일에서 식별자·수치
   다중집합 불변이 기계로 증명**돼 사실 무변은 성립한다(D-088 정직 유보 ⓒ). 같은 계열 2건:
   `Internal FM:` 셀은 `SD/bapi` 보존 vs `MM/bapi`·`PP/bapi` 재저작으로 **갈렸고**, 스텝 태
@@ -393,7 +395,7 @@ tables·spro·enhancements)**을 로드** · **naming 2편의 소비자** = `ana
 - **배치 내 상호 인용 (판3.5도 같음)**: 14개 모듈 `spro.md:9`가 `common/spro.md`의 헤딩
   **「IMG Activity Verification」**을 인용한다. 재저작으로 그 절의 **행 좌표는 이동했고
   헤딩 문구는 보존**됐다 — 후속 판은 이 인용을 **절 이름으로만** 다루고 행 좌표를 박지 말 것.
-- **이월 지적 ③의 좌표 전환**(판3.1 등재분 — 행 좌표가 이동해 절 좌표로 갱신): `sap-executor.md:60`·
+- **이월 지적 ③의 좌표 전환**(판3.1 등재분 — 행 좌표를 박지 않도록 절 좌표로 갱신): `sap-executor.md:60`·
   `analyze-code.md:62`가 변수 접두사·상수를 `abap/conventions/naming-conventions.md`에 있다고
   하나 그 내용은 `modules/common/naming-conventions.md` **§ Code-Level Naming의
   Variables·Constants 표**에 있다(구 표기 `:51–71`).
