@@ -81,6 +81,14 @@ jobs:
       - name: 훅 스위치 왕복 (install-hooks 설치·제거 멱등 · 타 설정 보존 · 밖 무접촉)
         run: node interactive/scripts/test-hook-switch.mjs
 
+      # 스위치가 성한 것과 **판정이 성한 것**은 다른 질문이다. 위 시험은 설치·제거
+      # 메커니즘만 재고, 「어떤 페이로드에 어떤 판정이 나오는가」는 아무도 재지 않았다.
+      # 이 러너가 훅을 자식 프로세스로 띄워 stdin에 PreToolUse JSON을 넣고 stdout
+      # 판정을 단언한다 — 훅 재저작의 회귀 기준으로 채록한 74케이스다(D-089 ⓔ).
+      # 임시 fixture만 쓰므로 오프라인이고 머신 상태에 의존하지 않는다.
+      - name: 훅 판정 채록 (fail-closed 2종 · fail-open 1종 · advisory 1종 · 74케이스)
+        run: node interactive/scripts/test-hook-decisions.mjs
+
       # ── setup·패키징 결정론 (설계 §8-2 · §6 방식 ④ — 2026-08-02) ─────────────
       # 셋 다 임시 디렉터리 fixture만 쓰는 오프라인 시험이다. setup-state는 홈을
       # SAPKIT_HOME_DIR 스텁으로 격리하고, codex-wire는 가짜 캐시 트리로 재작성을
@@ -271,6 +279,26 @@ jobs:
         # 시험은 전송을 주입해 같은 프로세스에서 돈다 — 그건 로직 증거이지
         # 실려 나가는 물건이 뜬다는 증거가 아니다. SAP 무접속.
         run: node gates/stdio-smoke.mjs
+
+      - name: 키체인 폴백 스모크 (네이티브 모듈 부재 → inspection-only 강등 · 크래시 0)
+        working-directory: sapkit-engine
+        # `secrets.ts`의 `nativeReader()`는 try/catch require로 fail-closed지만,
+        # 기존 시험은 전부 reader를 **주입**해 그 갈래를 흉내 냈다 — 실제
+        # `require('@napi-rs/keyring')`가 실패하는 경로는 한 번도 실행된 적이 없다.
+        # 이 스모크가 그 자리를 판다: 주입 없는 해석 + `keychain:` 참조 프로파일로
+        # 산출물 실기동.
+        #
+        # **`npm ci --omit=optional` 트리를 따로 깔지 않는다.** production 코드가 그
+        # 모듈과 닿는 자리는 require 한 곳뿐이고, 스모크는 `Module._load`를 그 이름에만
+        # 걸어 같은 `MODULE_NOT_FOUND`를 같은 자리에 세운다 — 관측 가능한 차이가 없다.
+        # 오히려 증거로는 더 강하다: 가로채기가 걸렸다는 사실이 남으므로 「require가
+        # 실제로 시도됐다」까지 증명한다(모듈이 없는 트리는 코드가 require를 아예
+        # 부르지 않아도 똑같이 초록이라 그걸 증명하지 못한다). 설치가 0이므로 위
+        # 스텝들의 npm ci 트리도 건드리지 않는다.
+        #
+        # 루프백에 리스너를 세워 **프로파일 주소로 들어온 접속을 센다** — 0건이
+        # "해석하지 못한 참조로 로그온을 쌓지 않았다"의 증거다. SAP 무접속.
+        run: node gates/keyring-fallback-smoke.mjs
 
       - name: 구 번들 발행 표면 표류 확인 (채록본이 낡지 않았는지)
         working-directory: sapkit-engine
