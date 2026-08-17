@@ -1,6 +1,6 @@
 # Include Structure Convention
 
-Shared convention for sc4sap ABAP programs that wrap logic in a Main Program + conditional Includes. **Source of truth for Procedural programs: [`procedural-sample/main-program.abap`](../templates/procedural-sample/main-program.abap)**. OOP programs follow [`oop-sample/zrsc4sap_oop_ex.prog.abap`](../templates/oop-sample/zrsc4sap_oop_ex.prog.abap).
+sc4sap ABAP programs share one layout: a Main Program plus conditional Includes that carry the logic. **For Procedural programs the source of truth is [`procedural-sample/main-program.abap`](../templates/procedural-sample/main-program.abap)**. Programs written OOP take their pattern from [`oop-sample/zrsc4sap_oop_ex.prog.abap`](../templates/oop-sample/zrsc4sap_oop_ex.prog.abap).
 
 ## Include Set
 
@@ -18,37 +18,37 @@ Shared convention for sc4sap ABAP programs that wrap logic in a Main Program + c
 
 ## Main Program Body
 
-The main program contains ONLY:
+Only the following belong in the main program:
 - `REPORT` statement
 - **6-field header comment block** (mandatory — see [`clean-code-procedural.md`](clean-code-procedural.md) § *Mandatory Main Program Header*)
 - `INCLUDE` statements (Procedural order: t → s → c → a → o → i → f → _tst; `e` is NEVER in Procedural order)
 - Event blocks: `INITIALIZATION`, `AT SELECTION-SCREEN`, `AT SELECTION-SCREEN OUTPUT`, `AT SELECTION-SCREEN OUTPUT FOR FIELD <p>`, `START-OF-SELECTION`, `END-OF-SELECTION`
 
-All declarations and business logic live inside the includes, not the main program. Event blocks delegate to FORMs: `START-OF-SELECTION. PERFORM get_data_0100.`
+Declarations and business logic belong in the includes, not in the main program. An event block's job is to delegate to a FORM: `START-OF-SELECTION. PERFORM get_data_0100.`
 
 ## Conditional Generation Rule
 
-- **Procedural, no Screen, no ALV**: generate `t` / `s` / `f` only.
-- **Procedural, with Screen + ALV**: generate `t` / `s` / `a` / `o` / `i` / `f` (6 — `c` may be skipped if no local classes are used). **Never add `e`.**
-- **OOP, with Screen + ALV**: generate `t` / `s` / `c` / `a` / `o` / `i` / `e` / `f` / `_tst` (`e` only for `LCL_EVENT` — ALV event handler class).
+- **Procedural, no Screen, no ALV**: `t` / `s` / `f` and nothing else.
+- **Procedural, with Screen + ALV**: `t` / `s` / `a` / `o` / `i` / `f` (6 — `c` may be left out when no local classes are used). **Never add `e`.**
+- **OOP, with Screen + ALV**: `t` / `s` / `c` / `a` / `o` / `i` / `e` / `f` / `_tst` (`e` appears only for `LCL_EVENT` — the ALV event handler class).
 
 ## Activation Protocol — MANDATORY (matches every skill that creates includes)
 
-**`UpdateProgram(activate=true)` activates ONLY the main program. It does NOT cascade to sub-includes.** Skills that generate a main program + N includes MUST:
+**The reach of `UpdateProgram(activate=true)` stops at the main program; activation does NOT cascade down to sub-includes.** Any skill that produces a main program + N includes MUST:
 
-1. Create each include (`CreateInclude`) and upload its body (`UpdateInclude`).
-2. After every include is uploaded, either:
-   - Call `UpdateInclude` with `activate=true` for each include **in dependency order** (typically `t → s → a → o → i → f` because later includes reference earlier declarations), OR
-   - Call `ActivateObjects` once with the full list `[main + every include + screen + gui_status]`.
-3. **Verify with `GetInactiveObjects`** — if any program-scoped include appears in the result, the skill has FAILED regardless of what individual tool responses reported.
+1. Create every include with `CreateInclude` and upload its body with `UpdateInclude`.
+2. Once all includes are uploaded, do either of the following:
+   - `UpdateInclude` with `activate=true` on each include **in dependency order** — usually `t → s → a → o → i → f`, since a later include references declarations made in an earlier one — OR
+   - a single `ActivateObjects` call carrying the whole list `[main + every include + screen + gui_status]`.
+3. **Verify with `GetInactiveObjects`** — a program-scoped include showing up in that result means the skill has FAILED, whatever the individual tool responses reported.
 
-Agents that report "5/5 프로그램 활성화 OK" without a `GetInactiveObjects=0` check are producing **false positives** and are a MAJOR finding in Phase 6 review.
+An agent that claims "5/5 프로그램 활성화 OK" without running the `GetInactiveObjects=0` check is emitting **false positives**, and that is a MAJOR finding in Phase 6 review.
 
 ## Anti-patterns (each is a MAJOR Phase 6 finding)
 
-- **`{PROG}e` include exists in a Procedural program** — event blocks moved out of Main body into `e` include. This is an invalid structure that hides control flow.
-- **Event blocks (`START-OF-SELECTION` / `END-OF-SELECTION` / `AT SELECTION-SCREEN`) placed in `f` or `e` include instead of Main** — same control-flow hiding.
-- **Main program missing the 6-field header comment block** — violates `clean-code-procedural.md` § *Mandatory Main Program Header*.
-- **Includes left inactive after "successful" build** — `GetInactiveObjects` returns any `{PROG}<suffix>` entry.
-- **`c` / `a` include missing when spec declares local classes or ALV** — silently skipped.
-- **Inferring suffix meaning from the suffix list in `naming-conventions.md` alone** — that file only enumerates suffixes. Their conditions (OOP vs Procedural, ALV vs none) live **here** and in the sample files. Always cross-check this table + the sample before generating.
+- **`{PROG}e` include exists in a Procedural program** — the event blocks were pulled out of the Main body and parked in the `e` include. The structure is invalid and it hides control flow.
+- **Event blocks (`START-OF-SELECTION` / `END-OF-SELECTION` / `AT SELECTION-SCREEN`) placed in `f` or `e` include instead of Main** — control flow gets hidden the same way.
+- **Main program missing the 6-field header comment block** — a violation of `clean-code-procedural.md` § *Mandatory Main Program Header*.
+- **Includes left inactive after "successful" build** — any `{PROG}<suffix>` entry comes back from `GetInactiveObjects`.
+- **`c` / `a` include missing when spec declares local classes or ALV** — skipped without a word.
+- **Inferring suffix meaning from the suffix list in `naming-conventions.md` alone** — enumerating suffixes is all that file does. The conditions attached to them (OOP vs Procedural, ALV vs none) live **here** and in the sample files. Cross-check this table + the sample every time before generating.
