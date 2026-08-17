@@ -1,8 +1,8 @@
 # Function Module Source Convention
 
-**Scope.** Every `CreateFunctionModule` + `UpdateFunctionModule` source body produced by sc4sap skills and agents.
+**Scope.** Every source body that sc4sap skills and agents produce for `CreateFunctionModule` and `UpdateFunctionModule`.
 
-**Problem this rule fixes.** Prior runs generated Function Module source like:
+**Problem this rule fixes.** Earlier runs emitted Function Module source shaped like this:
 
 ```abap
 FUNCTION zmmfm_po_create_ext
@@ -13,11 +13,11 @@ FUNCTION zmmfm_po_create_ext
 ENDFUNCTION.
 ```
 
-Result: SE37 signature was empty, callers could not pass arguments, and internal `IS INITIAL` checks always fired — the FM looked activated but was functionally dead.
+What came of it: SE37 showed an empty signature, no caller could hand the module an argument, and every internal `IS INITIAL` guard fired unconditionally. To all appearances the FM was activated; in function it was dead.
 
 ## HARD RULE — Inline signature only
 
-SAP ADT stores Function Module parameters **inline in the `FUNCTION` statement source** (not in `*"` comment blocks, not via a separate metadata endpoint). Proof: standard `BAPI_TRANSACTION_COMMIT` / `BAPI_MATERIAL_SAVEDATA` source as returned by `GetFunctionModule` shows parameters directly between `FUNCTION name` and the first `.`:
+As far as SAP ADT is concerned, Function Module parameters live **inline in the `FUNCTION` statement source** — not in `*"` comment blocks, and not behind a separate metadata endpoint. The evidence is standard SAP code: ask `GetFunctionModule` for `BAPI_TRANSACTION_COMMIT` or `BAPI_MATERIAL_SAVEDATA` and its source shows the parameters sitting directly between `FUNCTION name` and the first `.`:
 
 ```abap
 FUNCTION bapi_transaction_commit
@@ -30,7 +30,7 @@ FUNCTION bapi_transaction_commit
 ENDFUNCTION.
 ```
 
-When sc4sap writes FM source via `UpdateFunctionModule`, SAP parses the inline signature and updates TFDIR/FUPARAREF automatically. **There is no other way to set the signature** — no separate "parameters" endpoint, no `*"*"Local Interface:` auto-generation that writes into source.
+Hand FM source to `UpdateFunctionModule` from sc4sap and SAP parses that inline signature, updating TFDIR/FUPARAREF on its own. **The signature can be set no other way** — there is no "parameters" endpoint standing apart from the source, and no `*"*"Local Interface:` auto-generation that writes itself back into it.
 
 ## Required source template (every FM)
 
@@ -56,12 +56,12 @@ ENDFUNCTION.
 
 ### Key constraints
 
-1. **`FUNCTION {name}` line must be followed immediately by `IMPORTING` / `EXPORTING` / `CHANGING` / `TABLES` / `EXCEPTIONS` clauses** — or by a `.` only when the FM truly takes no parameters (rare — only dispatcher / trigger FMs).
-2. **Never emit this placeholder line**: `" You can use the template 'functionModuleParameter' to add here the signature!` → it means signature is empty.
-3. **Never declare "shadow locals"** like `lv_iv_lifnr TYPE lifnr` inside the body to stand in for a missing IMPORTING parameter. Either declare the parameter for real, or omit the check.
-4. **TABLES vs TYPES table**: the old `TABLES` clause uses `STRUCTURE` (line type), not `TYPE`. Modern style prefers `IMPORTING it_xxx TYPE STANDARD TABLE OF structure` when the BAPI pattern allows, but traditional RFC BAPIs typically use `TABLES ... STRUCTURE`. RFC `TABLES` parameters cannot carry null — an uncomputed value arrives as `0.00`, never as "absent". Normalize absence to null on the caller side; see [`clean-code.md`](clean-code.md) § Reconciliation Logic — Null vs Zero.
-5. **Return pattern**: prefer `EXPORTING ev_return TYPE bapiret2` or `TABLES et_return STRUCTURE bapiret2` (for multi-row) over ABAP `EXCEPTIONS` for BAPI-style RFCs — matches SAP standard convention.
-6. **Pass-by-value** is the default for RFC-enabled FMs (`VALUE(param)`). Non-RFC FMs may use reference pass (`REFERENCE(param)` or bare name).
+1. **Whatever follows the `FUNCTION {name}` line must immediately be an `IMPORTING` / `EXPORTING` / `CHANGING` / `TABLES` / `EXCEPTIONS` clause** — the only alternative is a bare `.`, and that only for a module which genuinely takes no parameters (rare — dispatcher and trigger FMs alone).
+2. **This placeholder line must never be emitted**: `" You can use the template 'functionModuleParameter' to add here the signature!` → its presence means the signature is empty.
+3. **No "shadow locals"** — a declaration such as `lv_iv_lifnr TYPE lifnr` inside the body, standing in for a missing IMPORTING parameter, is forbidden. Either declare the parameter for real, or leave the check out.
+4. **TABLES vs TYPES table**: `STRUCTURE` (the line type) is what the old `TABLES` clause takes, never `TYPE`. Where the BAPI pattern allows it, modern style favours `IMPORTING it_xxx TYPE STANDARD TABLE OF structure`, yet traditional RFC BAPIs typically stay with `TABLES ... STRUCTURE`. Null cannot travel through an RFC `TABLES` parameter — a value that was never computed arrives as `0.00`, and never as "absent". The caller is the side that has to normalize absence into null; see [`clean-code.md`](clean-code.md) § Reconciliation Logic — Null vs Zero.
+5. **Return pattern**: for BAPI-style RFCs, take `EXPORTING ev_return TYPE bapiret2` — or `TABLES et_return STRUCTURE bapiret2` where several rows are possible — in preference to ABAP `EXCEPTIONS`; that is what SAP standard convention does.
+6. **Pass-by-value** (`VALUE(param)`) is the default for RFC-enabled FMs. Reference pass — `REFERENCE(param)`, or the bare name — stays available to non-RFC FMs.
 
 ## Anti-Patterns (MUST NEVER EMIT)
 
@@ -86,65 +86,65 @@ FUNCTION zmmfm_xxx.
   " body
 ENDFUNCTION.
 ```
-Those `*"` lines are GENERATED by SAP on read based on TFDIR metadata. Writing them into source does NOT create parameters — it creates comment lines that will be overwritten/ignored on save.
+SAP itself GENERATES those `*"` lines on read, deriving them from TFDIR metadata. Putting them into source creates no parameters — it creates comment lines, and saving overwrites or ignores them.
 
 ## FM Signature Representation Is Direction-Specific (ADT ↔ abapGit)
 
-The two serializations are legitimately different, and **neither direction survives a verbatim transfer** (field-verified in real project work, 2026-07, both directions):
+The difference between the two serializations is legitimate, and **a verbatim transfer survives in neither direction** (field-verified in real project work, 2026-07, both directions):
 
-- **Mirror → server**: abapGit serializes the classic form (`FUNCTION NAME.` + `*"` interface comment block + `TABLES ... STRUCTURE`). Pasting that into `UpdateFunctionModule` is rejected (`Parameterkommentarblöcke sind nicht zulässig`). The ADT write path accepts **modern inline signatures only**.
-- **Server → mirror**: `GetFunctionModule` returns the modern inline form; pasting it into an abapGit mirror breaks the mirror's classic-format convention. Keep the body byte-identical and rewrite only the signature representation.
-- Fastest safe path when authoring a new FM: read an existing FM **on the same system** with `GetFunctionModule` and imitate the exact format the server returns. See [`abapgit-roundtrip-rule.md`](abapgit-roundtrip-rule.md) for the mirror-side rules.
+- **Mirror → server**: the classic form is what abapGit serializes (`FUNCTION NAME.` plus a `*"` interface comment block plus `TABLES ... STRUCTURE`). Paste that into `UpdateFunctionModule` and it comes back rejected — `Parameterkommentarblöcke sind nicht zulässig`. **Modern inline signatures are all the ADT write path accepts.**
+- **Server → mirror**: what `GetFunctionModule` returns is the modern inline form, and dropping that into an abapGit mirror violates the mirror's classic-format convention. Leave the body byte-identical; rewrite the signature representation and nothing else.
+- When authoring a new FM, the fastest safe path is to pull an existing FM **from the same system** through `GetFunctionModule` and copy, exactly, the format the server hands back. The mirror-side rules live in [`abapgit-roundtrip-rule.md`](abapgit-roundtrip-rule.md).
 
 ## Integration Points
 
-- `skills/create-object/SKILL.md` → FM path must route through this rule before `UpdateFunctionModule`.
-- `skills/create-program/phase4-parallel.md` Wave 2 Group 3 (Functions) → executor builds FM body with inline signature from `spec.md` parameter list.
-- `skills/create-program/phase6-review.md` → reviewer rejects any FM where `GetFunctionModule` returns the `" You can use the template...` placeholder, or where the FUNCTION statement lacks parameter clauses despite the spec calling for them.
-- `agents/sap-executor.md` → executor templates must include an explicit inline-signature example before any `UpdateFunctionModule` call.
+- `skills/create-object/SKILL.md` → the FM path has to route through this rule before it reaches `UpdateFunctionModule`.
+- `skills/create-program/phase4-parallel.md` Wave 2 Group 3 (Functions) → the executor assembles the FM body with an inline signature drawn from the `spec.md` parameter list.
+- `skills/create-program/phase6-review.md` → the reviewer rejects any FM whose `GetFunctionModule` output still carries the `" You can use the template...` placeholder, and any whose FUNCTION statement lacks parameter clauses although the spec called for them.
+- `agents/sap-executor.md` → executor templates have to carry an explicit inline-signature example ahead of every `UpdateFunctionModule` call.
 
 ## Enforcement Checklist (per FM, before `UpdateFunctionModule`)
 
-1. Source starts with `FUNCTION {name}` followed by parameter clauses (no empty placeholder line).
-2. Every IN/OUT parameter declared in spec appears in the source signature — no shadow locals.
-3. `TABLES` clause uses `STRUCTURE {linetype}`, not `TYPE`.
-4. Return convention: `BAPIRET2` scalar or table (preferred) OR well-named `EXCEPTIONS`; not both.
-5. RFC-enabled FM → all parameters use `VALUE(...)` pass-by-value.
-6. After `UpdateFunctionModule` + activation, a sanity `GetFunctionModule` call does NOT contain the `'functionModuleParameter'` placeholder string.
+1. The source opens with `FUNCTION {name}` and parameter clauses follow it (no empty placeholder line).
+2. Each IN/OUT parameter the spec declares appears in the signature as written — no shadow locals.
+3. `STRUCTURE {linetype}` is what the `TABLES` clause uses, not `TYPE`.
+4. Return convention: either a `BAPIRET2` scalar or table — the preferred choice — or well-named `EXCEPTIONS`, never both.
+5. RFC-enabled FM → every parameter passed by value with `VALUE(...)`.
+6. A sanity `GetFunctionModule` call made after `UpdateFunctionModule` + activation comes back WITHOUT the `'functionModuleParameter'` placeholder string.
 
 ## Calling Standard FMs — Read the Signature First
 
-Never call a standard FM on an assumed interface — read the real signature with `GetFunctionModule` first. Two failure modes, neither caught by syntax check or activation (field-verified in real project work, 2026-07, both on one call):
+An assumed interface is never a basis for calling a standard FM — read the real signature out with `GetFunctionModule` first. There are two failure modes, and neither syntax check nor activation catches either one (field-verified in real project work, 2026-07, both on one call):
 
-- **Parameter type mismatch** surfaces only at runtime as a `CALL_FUNCTION_CONFLICT_TYPE` dump.
-- **`EXCEPTIONS OTHERS = 1` on an FM that declares no EXCEPTIONS** makes `sy-subrc` always 0 — every failure reads as success, silently. Add an `EXCEPTIONS` clause only when the signature actually declares exceptions.
+- **Parameter type mismatch** stays invisible until runtime, where it surfaces as a `CALL_FUNCTION_CONFLICT_TYPE` dump.
+- **`EXCEPTIONS OTHERS = 1` written against an FM that declares no EXCEPTIONS** pins `sy-subrc` at 0 — every failure then reads as success, silently. An `EXCEPTIONS` clause belongs there only when the signature actually declares exceptions.
 
 ## Remote-Enabled (RFC) flag — manual step, scope note
 
-The RFC flag (`Processing Type: Remote-Enabled Module`) is stored in `TFDIR.FMODE`, not in source. It is a **known manual step** after MCP-based FM creation — investigation (2026-04-19) confirmed ADT REST API does not expose a metadata PUT endpoint for this attribute, and the `fmodule:processingType` attribute is silently ignored in the CREATE payload. Eclipse ADT sets it via an internal RFC channel, not REST.
+`TFDIR.FMODE` is where the RFC flag (`Processing Type: Remote-Enabled Module`) is stored; source does not carry it. After MCP-based FM creation it remains a **known manual step** — an investigation (2026-04-19) confirmed that the ADT REST API exposes no metadata PUT endpoint for this attribute, and that a `fmodule:processingType` attribute placed in the CREATE payload gets silently ignored. Eclipse ADT reaches it over an internal RFC channel rather than REST.
 
-**Verify, don't assume**: after creating any FM that will be called via RFC/JCo, check the flag with `SELECT funcname FROM tfdir WHERE funcname = '<FM>' AND fmode = 'R'` — an empty result means the module is NOT remote-enabled. Activation success and a 0-error/0-warning syntax check do **not** catch this; the defect surfaces only at call time as "function not found in repository" on the caller side (field-verified in real project work, 2026-07: 5 of 6 freshly-created FMs failed exactly this way until the type was fixed in SE37).
+**Verify, don't assume**: for every FM destined to be reached via RFC/JCo, interrogate the flag once it exists — `SELECT funcname FROM tfdir WHERE funcname = '<FM>' AND fmode = 'R'`; nothing coming back means the module is NOT remote-enabled. Neither a successful activation nor a 0-error/0-warning syntax check exposes this; the defect appears only at call time, as "function not found in repository" on the caller side (field-verified in real project work, 2026-07: 5 of 6 freshly-created FMs failed exactly this way until the type was fixed in SE37).
 
-When sc4sap creates an RFC-facing FM (PLM / WMS / external I/F), the completion report MUST flag the affected FMs with:
+Whenever sc4sap creates an RFC-facing FM (PLM / WMS / external I/F), the FMs concerned MUST be flagged in the completion report with:
 
 > ⚠ Processing Type `Remote-Enabled Module` must be set manually in SE37 Properties for: `<FM_LIST>`. MCP ADT REST does not expose this flag.
 
-Do not attempt to set the flag via source code, metadata PUT, or CREATE-time attributes — all three paths are non-functional.
+Setting the flag through source code, a metadata PUT, or CREATE-time attributes must not be attempted — all three paths are non-functional.
 
 ## RFC Interface Type Constraints
 
-RFC-enabled FM parameters reject generic types — `TYPE P DECIMALS 2` (and any other non-concrete type) is rejected; every RFC parameter needs a concrete DDIC type (a data element, or a DDIC structure / table type). `ABAP_BOOL` is a **domain**, not a data element — never place it in a data-element slot; use `ABAP_BOOLEAN` (the data element built on that domain). See [`abap-release-reference.md`](abap-release-reference.md) for the `ABAP_BOOL` → `ABAP_BOOLEAN` release note.
+Generic types get rejected on RFC-enabled FM parameters — `TYPE P DECIMALS 2` is rejected, as is any other non-concrete type; a concrete DDIC type is required of each RFC parameter, meaning a data element or else a DDIC structure / table type. Note also that `ABAP_BOOL` is a **domain** rather than a data element: it never belongs in a data-element slot, and the data element built on that domain — `ABAP_BOOLEAN` — is what goes there. The `ABAP_BOOL` → `ABAP_BOOLEAN` release note is in [`abap-release-reference.md`](abap-release-reference.md).
 
 ## Narrow DEC Fields — BCD Overflow Kills the Whole Call
 
-Never assign percentage / ratio arithmetic into a narrow DEC field (e.g., `DEC(5,2)`). The moment real data pushes the ratio past ±999.99, `COMPUTE_BCD_OVERFLOW` aborts the **entire FM call** at runtime — not just the offending statement. No static gate catches this: syntax check, code review, and activation all pass, because the defect fires only on values, never on the source. Worse, when the FM is called over RFC the runtime error can return to the caller without leaving an ST22 dump on the server — there is nothing to find after the fact.
+Percentage / ratio arithmetic must never be assigned into a narrow DEC field (e.g., `DEC(5,2)`). Once real data drives the ratio past ±999.99, `COMPUTE_BCD_OVERFLOW` tears down the **entire FM call** at runtime — the offending statement is not the limit of the damage. Nothing static catches it: syntax check, code review and activation all pass, since only values trigger the defect and the source never does. It gets worse over RFC — the runtime error can travel back to the caller while leaving no ST22 dump behind on the server, so afterwards there is nothing to find.
 
-Rule: ratio / percentage math belongs to the caller (e.g., Java `BigDecimal`), not to a narrow ABAP DEC/CURR result field. If an RFC call fails with no explanation, capture the exception verbatim with an independent standalone probe — a minimal separate caller that does nothing but invoke the FM and surface the exception, not the full application — so the raw runtime text is preserved.
+Rule: ratio / percentage math is the caller's business (Java `BigDecimal`, for instance), not that of a narrow ABAP DEC/CURR result field. When an RFC call fails and offers no explanation, capture the exception verbatim from an independent standalone probe — a minimal separate caller whose only job is to invoke the FM and surface the exception, as opposed to the full application — which is what preserves the raw runtime text.
 
 ## Function Group Is One Compile and Activation Unit
 
-The whole function group compiles together — group syntax must be **0 errors / 0 warnings** before activation, and a defect in a **sibling FM** blocks activation of *your* FM too (you cannot activate one FM of a defective group in isolation).
+Compilation takes the function group as a whole — the group's syntax has to read **0 errors / 0 warnings** before activation, and a defect sitting in a **sibling FM** blocks activation of *your* FM as well (isolating one FM out of a defective group for activation is not possible).
 
-- **Diagnosis leverage**: run the server-side check per FM — `CheckSyntax` with `object_type='function_module'` plus the shared `function_group_name` returns that module's errors with `line:column` (read-only). Because the group compiles as one unit, sibling defects surface in these checks too. Do NOT try to shortcut via `object_type='program'` on the `SAPL<fugr>` main program — that path checks only the main program body and misses errors inside the FM includes.
-- **False-failure trap**: FM write tools postcheck the whole group, so a pre-existing sibling defect can make your own write look *failed* while the write itself persisted. Re-read the FM to verify before re-writing — see [`source-repair-protocol.md`](source-repair-protocol.md).
-- **Never put the system UXX include (`L<fugr>UXX`) in an activation list.** It is a generated container editor-locked by `SAP*`. When building an `ActivateObjects` list by mechanically enumerating group members (includes list, object structure), filter `L<fugr>UXX` out — on the legacy `/sap/bc/adt/activation` endpoint one UXX entry kills the ENTIRE run with 403 `ExceptionResourceNoAccess` ("Changes to L...UXX are forbidden by SAP*"; live-verified on S/4 2021, 2026-07-17). The proven FUGR family is exactly: `SAPL<fugr>` main program + `L<fugr>TOP` + every FM + the FUGR itself — UXX is not part of it. (Behavior of the `/sap/bc/adt/activation/runs` mass endpoint with a UXX entry is unmeasured — exclude it there too.)
+- **Diagnosis leverage**: check server-side per FM — `CheckSyntax` given `object_type='function_module'` together with the shared `function_group_name` reports that module's errors with `line:column` (read-only). One compile unit means sibling defects show up in those checks too. Do NOT reach for the shortcut of `object_type='program'` against the `SAPL<fugr>` main program — only the main program body gets checked that way, and errors inside the FM includes are missed.
+- **False-failure trap**: the whole group is postchecked by FM write tools, which lets a pre-existing sibling defect report your own write as *failed* even though it persisted. Verify by re-reading the FM before you write again — see [`source-repair-protocol.md`](source-repair-protocol.md).
+- **The system UXX include (`L<fugr>UXX`) never belongs in an activation list.** `SAP*` editor-locks it; it is a generated container. Mechanically enumerating group members (includes list, object structure) to build an `ActivateObjects` list therefore has to filter `L<fugr>UXX` out — on the legacy `/sap/bc/adt/activation` endpoint a single UXX entry kills the ENTIRE run with 403 `ExceptionResourceNoAccess` ("Changes to L...UXX are forbidden by SAP*"; live-verified on S/4 2021, 2026-07-17). What the proven FUGR family consists of is exactly this: the `SAPL<fugr>` main program, `L<fugr>TOP`, every FM, and the FUGR itself — UXX has no place in it. (What the `/sap/bc/adt/activation/runs` mass endpoint does with a UXX entry is unmeasured — exclude it there as well.)

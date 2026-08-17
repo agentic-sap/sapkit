@@ -1,26 +1,30 @@
 # ALV Rules
 
-Shared ALV display rules for sc4sap programs.
+This file holds the ALV display rules that sc4sap programs have in common.
 
 ## Display Mode Selection
 
-**Full ALV** → `CL_GUI_ALV_GRID`
-- Custom Screen (e.g. 0100) created via `CreateScreen`
-- GUI Status via `CreateGuiStatus` (standard BACK/EXIT/CANCEL + application toolbar)
-- Container: **Docking Container** (`CL_GUI_DOCKING_CONTAINER`) — not custom container
-- Field catalog type: `LVC_T_FCAT`
+A **full ALV** is built on `CL_GUI_ALV_GRID`. It needs a custom screen — 0100,
+for example — produced by `CreateScreen`, plus a GUI status produced by
+`CreateGuiStatus` that carries the standard BACK/EXIT/CANCEL together with an
+application toolbar. The container is a **docking container**
+(`CL_GUI_DOCKING_CONTAINER`), not a custom container, and the field catalog is
+typed `LVC_T_FCAT`.
 
-**Simple popup display** → `CL_SALV_TABLE` (SALV) allowed
-- No screen / GUI status needed
-- Use `cl_salv_table=>factory` then `display( )`
+Where the requirement is a **simple popup display**, `CL_SALV_TABLE` (SALV) is
+allowed. No screen and no GUI status are needed. Call
+`cl_salv_table=>factory` and then `display( )`.
 
 ## Field Catalog Construction Standard
 
-Reference: `sc4sap/common/alv-sample/field-catalog-guide.abap`.
+The reference for what follows is
+`sc4sap/common/alv-sample/field-catalog-guide.abap`.
 
 ### Step 1 — Auto-Extract via SALV Factory
 
-Use this pattern **even when `CL_GUI_ALV_GRID` is the final display target** — let SALV generate the base catalog, then transform to `LVC_T_FCAT`.
+**Even where `CL_GUI_ALV_GRID` is the final display target**, this is the
+pattern to follow: SALV produces the base catalog first, and that catalog is
+afterwards transformed into `LVC_T_FCAT`.
 
 ```abap
 FORM convert_fcat_data_grid USING pt_table TYPE STANDARD TABLE
@@ -41,4 +45,7 @@ ENDFORM.
 
 ### Step 2 — Modify Per-Screen Catalog Attributes
 
-Adjust per-field properties (examples: `coltext`, `qfieldname`, `cfieldname`, `do_sum`, `no_out`, `outputlen`, `hotspot`) via `CASE` on `FIELDNAME`. See `field-catalog-guide.abap` for a worked example.
+Field-by-field properties are then adjusted from a `CASE` over `FIELDNAME`.
+`coltext`, `qfieldname`, `cfieldname`, `do_sum`, `no_out`, `outputlen`, and
+`hotspot` are examples of the properties set there. A worked example is in
+`field-catalog-guide.abap`.

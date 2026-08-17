@@ -37,7 +37,7 @@
 |---|---|---|---|---|
 | 판1 | ⑵ | 검사기 `sapkit` CLI 자작 + 코퍼스 대조 | 불필요 | **완료** (2026-08-16 · `bd826187` 은퇴 커밋) |
 | 판2 | ⑶-a | GPL 빈자리 처리 — **조회** 결정 + 집행 | 불필요 | **완료** (2026-08-16 · `33bcb290` 결정 기록 커밋) |
-| **판3.x** | ⑶-b | copy 지식 치환 (반복 판 — 실전 검증분부터) | 불필요 | **진행** — 판3.1 **완료** (2026-08-17 · `69137bc5` 결정 기록 커밋) · 잔량 **165**/170 · 다음 = 판3.2 |
+| **판3.x** | ⑶-b | copy 지식 치환 (반복 판 — 실전 검증분부터) | 불필요 | **진행** — 판3.1·판3.2 **완료** (판3.2: 2026-08-17) · 잔량 **152**/170 · 다음 = 판3.3 |
 | 판4 | ⑶-c | ZRSC4SAP 템플릿 20파일 재생성 (집필분) | 불필요 (SAP 확인은 판6) | 대기 |
 | 판5 | ⑴ | 엔진 잔여 코드 — M2 인증(UAA·JWT) + 교체 전 필수(D18·keyring CI) | 불필요 | 대기 |
 | 판6.x | ⑴·⑶ | **최종 테스트 판** — M1→M6 증거 + 판4 템플릿 SAP 확인 + 실사용 겸 채록 | **필요 (attended)** | 대기 |
@@ -104,7 +104,7 @@
 ⑶-b(판3.x)와 ⑶-c(판4)다. BLUEPRINT §⑶-a의 집필 제약 세 불릿은 **폐기가 아니라 보류**다 —
 향후 자체 집필이 필요해질 때 그대로 적용된다.
 
-### 판3.x — ⑶-b copy 지식 치환 (반복 판 · 진행 중 — 다음은 판3.2)
+### 판3.x — ⑶-b copy 지식 치환 (반복 판 · 진행 중 — 다음은 판3.3)
 
 - **목표**: 차용(copy) 지식을 **실전에서 검증된 것부터** 자체 문장으로 치환. 파일
   단위, 치환 사실은 git 이력이 센다(분류 장부는 은퇴한 역사 — 갱신 금지).
@@ -166,6 +166,60 @@
   `sap-version-reference.md`의 `MATNR 40 characters (1909+)` — 외부 확인으로는 40자리
   확장이 S/4HANA **1511**이고 기본 비활성(MFLE 활성화 필요)이다. `abap-release-reference.md`
   체크리스트의 `GetPackage`도 실제 도구 표면은 `GetPackageContents`/`ReadPackage`다.
+
+#### 판3.2 — 1-D 규약 잔여 13편 재저작 — **완료 (2026-08-17)**
+
+**도달점**: D-087 ⑧ **소비 실증** 기준으로 명부 1-D(규약)의 **잔여 13편을 전량 재저작**했다.
+앵커 3편(`clean-code-oop` · `include-structure` · `oop-pattern`)은 `zrsc4sap_oop_ex`를
+그대로 보존했고 개명 게이트로 확인했다. 이로써 **1-D 갈래가 소진**됐다(18/18).
+**잔량 165 → 152.** **새 D-결정은 없다** — 이 판의 선택은 전부 D-087의 적용이거나 기존
+규율의 승계, 또는 사용자 확정 답이었다. **코드 0줄 · 지식 `.md`만.**
+
+- **재저작 13편**: `abap-release-examples` · `alv-rules` · `clean-code-oop` ·
+  `clean-code-procedural` · `clean-code` · `constant-rule` · `field-typing-rule` ·
+  `function-module-rule` · `include-structure` · `ok-code-pattern` · `oop-pattern` ·
+  `procedural-form-naming` · `text-element-rule`. 커밋 해시와 리뷰 근거는 명부
+  [`reference/copy-baseline.md`](reference/copy-baseline.md) §6 1-D가 든다.
+- **검증**: 독립 새-컨텍스트 리뷰 **4건**(사실 전수 대조 3그룹 + 통합 리뷰) 전부 통과 —
+  **사실 대조 13/13 PASS**(누락 0 · 추가 0 · 코드 fence·표·링크·코드스팬 다중집합 기계
+  대조) · 리뷰가 지적한 **강도·범위 미세 이탈 9곳**은 회수 커밋 `bcbe36f6`으로 원문 수준
+  복원 후 **재확인 9/9 OK** · **구성 독립성 13/13** · **소비자·상호 인용 125곳 전부 유효**
+  (새로 깨진 것 0). 제품 게이트 9종 + doctor 전부 exit 0 · 지식 `.md` **148 유지** ·
+  버전 무변.
+  ⚠ **push 직전 설치본 확인 의무 승계**(판2·판3.1과 동일 — D-060 편승): `node
+  interactive/scripts/doctor.mjs`로 확인하고 **이미 0.7.0 설치본이 있는 머신이 발견되면
+  패치 범프 후 push**.
+
+**판3.3 재료** (다음 판이 이어받는 것)
+- **다음 배치 후보**: 명부 1부의 나머지 갈래 — **1-A 모듈 91 · 1-B 산업 15 · 1-C 국가 17 ·
+  1-E 견본 5**. 선정 기준은 D-087 ⑧ **소비 실증**을 그대로 적용한다.
+- **이월 승계 (판3.2는 손대지 않았다 — 사용자 확정)**: 위 「판3.2 재료」로 넘어왔던
+  **소비자 오인용 4건** · **사실 의심 2건**(`MATNR 40 characters (1909+)` · 체크리스트의
+  `GetPackage`) · **제품명 표기 갈림**(`SAPKIT` vs `sc4sap`)을 **전부 그대로 이월**한다.
+- **이식 전 참조 보존 목록 (신규 등재 — 일괄 정비 안건)**: 재저작이 **원문 그대로 보존**한
+  옛 경로 표기다(재저작은 표현·구성만 바꾸므로 경로 현행화는 범위 밖이었다).
+  `clean-code.md` 3곳(`common/abap-release-reference.md` · `configs/{MODULE}/` ·
+  `exceptions/*.md`) · `field-typing-rule.md` 5곳(`skills/…` 4 + bare `cbo-context.md`
+  유령 참조) · `function-module-rule.md` 4곳(`skills/…` 3 + `agents/sap-executor.md`) ·
+  `ok-code-pattern.md` 4곳(`common/…` 2 + `skills/…` 2) · `oop-pattern.md` 3곳
+  (`common/oop-sample/…` 2 + `abap/alv-oop-handlers/` 라벨-타깃 불일치) ·
+  `alv-rules.md` 1곳(`sc4sap/common/alv-sample/…`). ⚠ 이 중 `clean-code.md`의
+  `common/abap-release-reference.md`는 위 이월 승계의 **소비자 오인용 ④와 같은 건**이다 —
+  두 목록에 겹쳐 있으니 다음 판이 이중으로 세지 말 것.
+- **소비자 서술 불일치 신규 발견 4건** (전부 **재저작 이전부터 존재** — 구본 대조로 확인 ·
+  내용 개정 판 소관): ① `analyze-code.md:63`이 `constant-rule`을 "GC_/LC_/CO_ patterns"로
+  설명하나 실제 파일에서 `GC_`는 `gc_status` 예시로만 등장하고 `LC_`·`CO_`는 없다 ·
+  ② `include-structure.md`가 인용하는
+  `clean-code-procedural.md § Mandatory Main Program Header`가 실제 헤딩
+  (`… Template (MUST match)`)과 다르다 · ③ `ok-code-pattern.md`가 인용하는
+  `§ PBO / PAI Module`은 헤딩이 아니라 불릿이다 · ④ `text-element-rule.md`가 지시하는
+  도구 `GetTextElement`·`ReadTextElementsBulk`가 현행 도구 표면에 없다(실재는
+  `WriteTextElementsBulk`).
+- **기록 2건 (헤딩이 바뀐 파일 — 나머지 11편은 헤딩 집합 불변)**: ⓐ `constant-rule.md`는
+  재저작에서 **절 헤딩 4종이 번호부로 재작성**됐다 · ⓑ `field-typing-rule.md`는 h3 1종이
+  재작성됐다(`Why this rule exists` → `What each category loses without a DE`). 리뷰
+  실측으로 **둘 다 옛 헤딩을 인용하는 문서 0건**이라 실질 피해가 없다 — 스펙의 계약 앵커는
+  「소비자가 인용하는 절 제목」에만 걸린다.
 
 ### 판4 — ⑶-c ZRSC4SAP 템플릿 재생성 (집필분)
 

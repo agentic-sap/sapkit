@@ -1,14 +1,14 @@
 # ABAP Release Examples
 
-Concrete before/after ABAP syntax examples per release feature. Companion to [abap-release-reference.md](abap-release-reference.md) — consult the reference for the feature matrix, decision rules, and the emission checklist.
+Per release feature, the concrete ABAP syntax — before and after. The feature matrix, the decision rules, and the emission checklist sit in the companion document [abap-release-reference.md](abap-release-reference.md); go there for those.
 
-Agents MUST NOT emit features newer than the configured `ABAP_RELEASE` in `.sapkit/config.json` (or `sap.env`) — doing so causes activation failures on the target system.
+The `ABAP_RELEASE` value configured in `.sapkit/config.json` (or `sap.env`) bounds what may be written: agents MUST NOT emit features newer than it. The cost of overshooting is an activation failure on the target system.
 
 ---
 
 ### 2.1 Inline Declarations (≥ 740)
 
-**Allowed (740+)**
+**Allowed on 740 and above**
 ```abap
 SELECT * FROM mara INTO TABLE @DATA(lt_mara) UP TO 10 ROWS.
 LOOP AT lt_mara INTO DATA(ls_mara).
@@ -16,7 +16,7 @@ LOOP AT lt_mara INTO DATA(ls_mara).
 ENDLOOP.
 ```
 
-**Not allowed (< 740) — rewrite as**
+**Not allowed below 740 — rewrite as**
 ```abap
 DATA: lt_mara TYPE STANDARD TABLE OF mara,
       ls_mara TYPE mara.
@@ -29,7 +29,7 @@ ENDLOOP.
 
 ### 2.2 Constructor Expressions — `NEW`, `VALUE`, `CORRESPONDING` (≥ 740)
 
-**Allowed (740+)**
+**Allowed on 740 and above**
 ```abap
 DATA(lo_obj) = NEW zcl_sales_processor( iv_orderid = '0000012345' ).
 
@@ -43,7 +43,7 @@ DATA(lt_target) = CORRESPONDING zsd_target_tab( lt_source
   MAPPING vbeln = orderid auart = ordertype ).
 ```
 
-**Not allowed (< 740) — rewrite as**
+**Not allowed below 740 — rewrite as**
 ```abap
 DATA lo_obj TYPE REF TO zcl_sales_processor.
 CREATE OBJECT lo_obj EXPORTING iv_orderid = '0000012345'.
@@ -64,14 +64,14 @@ ENDLOOP.
 
 ### 2.3 Table Expressions (≥ 740)
 
-**Allowed (740+)**
+**Allowed on 740 and above**
 ```abap
 DATA(ls_item) = lt_items[ posnr = '000010' ].
 " Exception-safe variant
 DATA(lv_qty) = VALUE #( lt_items[ posnr = '000010' ]-menge OPTIONAL ).
 ```
 
-**Not allowed (< 740)**
+**Not allowed below 740**
 ```abap
 READ TABLE lt_items INTO DATA(ls_item) WITH KEY posnr = '000010'.
 IF sy-subrc = 0.
@@ -81,12 +81,12 @@ ENDIF.
 
 ### 2.4 String Templates (≥ 740)
 
-**Allowed (740+)**
+**Allowed on 740 and above**
 ```abap
 DATA(lv_msg) = |Order { lv_vbeln } posted on { sy-datum DATE = USER } with { lines( lt_items ) } items|.
 ```
 
-**Not allowed (< 740)**
+**Not allowed below 740**
 ```abap
 DATA lv_msg TYPE string.
 CONCATENATE 'Order' lv_vbeln 'posted on' sy-datum 'with' lines( lt_items ) 'items' INTO lv_msg SEPARATED BY space.
@@ -94,7 +94,7 @@ CONCATENATE 'Order' lv_vbeln 'posted on' sy-datum 'with' lines( lt_items ) 'item
 
 ### 2.5 `FOR` Expressions (≥ 741)
 
-**Allowed (741+)**
+**Allowed on 741 and above**
 ```abap
 DATA(lt_matnr) = VALUE string_table(
   FOR ls_line IN lt_items WHERE ( menge > 0 )
@@ -108,7 +108,7 @@ DATA(lv_total) = REDUCE i(
 
 ### 2.6 Open SQL Expressions (≥ 750)
 
-**Allowed (750+)**
+**Allowed on 750 and above**
 ```abap
 SELECT vbeln,
        CASE WHEN netwr > 10000 THEN 'HIGH'
@@ -121,7 +121,7 @@ SELECT vbeln,
   UP TO 100 ROWS.
 ```
 
-**Not allowed (< 750) — do CASE in ABAP after SELECT**
+**Not allowed below 750 — do CASE in ABAP after SELECT**
 ```abap
 SELECT vbeln netwr erdat augru FROM vbak INTO TABLE lt_raw UP TO 100 ROWS.
 LOOP AT lt_raw INTO DATA(ls_raw).
@@ -141,7 +141,7 @@ ENDLOOP.
 
 ### 2.7 `GROUP BY` in Internal Tables (≥ 751)
 
-**Allowed (751+)**
+**Allowed on 751 and above**
 ```abap
 LOOP AT lt_items INTO DATA(ls_item)
      GROUP BY ( matnr = ls_item-matnr )
@@ -156,7 +156,7 @@ ENDLOOP.
 
 ### 2.8 RAP / EML (≥ 754)
 
-**Allowed (754+)**
+**Allowed on 754 and above**
 ```abap
 MODIFY ENTITIES OF z_i_salesorder
   ENTITY SalesOrder
@@ -168,7 +168,7 @@ MODIFY ENTITIES OF z_i_salesorder
 COMMIT ENTITIES.
 ```
 
-**Not allowed (< 754) — use classic BAPI**
+**Not allowed below 754 — use classic BAPI**
 ```abap
 DATA: lt_return TYPE STANDARD TABLE OF bapiret2.
 CALL FUNCTION 'BAPI_SALESORDER_CHANGE'
@@ -182,7 +182,7 @@ CALL FUNCTION 'BAPI_TRANSACTION_COMMIT' EXPORTING wait = 'X'.
 
 ### 2.9 ABAP Cloud Restriction (≥ 756 with `SAP_SYSTEM_TYPE=cloud`)
 
-**Cloud-safe (use released API)**
+**Cloud-safe — use a released API**
 ```abap
 " I_BusinessPartner is a released CDS view (C1)
 SELECT * FROM i_businesspartner
@@ -190,9 +190,9 @@ SELECT * FROM i_businesspartner
   INTO TABLE @DATA(lt_bp).
 ```
 
-**Cloud-forbidden (on-prem only)**
+**Cloud-forbidden — on-prem only**
 ```abap
 SELECT * FROM but000 INTO TABLE @DATA(lt_bp).  " ❌ not released for ABAP Cloud
 ```
 
-Agents MUST check `SAP_SYSTEM_TYPE` — on `cloud`, only released (C1) APIs, CDS views, and BAdIs are permitted. On `onprem`, classic DDIC tables are allowed but still discouraged when a released view exists.
+`SAP_SYSTEM_TYPE` is a value agents MUST check. On `cloud`, permission extends only to released (C1) APIs, CDS views, and BAdIs. On `onprem`, classic DDIC tables remain allowed — still the discouraged choice, though, wherever a released view exists.

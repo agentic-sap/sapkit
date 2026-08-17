@@ -1,18 +1,18 @@
 # OK_CODE Pattern for Procedural Screens
 
-Authoritative wiring rule for screen user commands in a Procedural ABAP program that uses classical Dynpro (`CALL SCREEN {num}`). Non-negotiable — this pattern is enforced by Phase 6 review.
+This is the governing rule for wiring screen user commands in a Procedural ABAP program that runs on classical Dynpro (`CALL SCREEN {num}`). There is no room to negotiate it — Phase 6 review enforces the pattern.
 
 ## Why — what goes wrong with `CASE sy-ucomm`
 
-`sy-ucomm` is a system field that every dialog step clears + re-populates. Reading it in PAI works for a simple single-screen program, but the moment the program:
+Every dialog step wipes `sy-ucomm` and fills it again, because it is a system field. In a simple, single-screen program, reading it during PAI holds up; the trouble starts the moment the program:
 
-- opens a popup dialog (confirmation, F4 help, message-with-selection),
-- chains screens (`CALL SCREEN 0100 STARTING AT …`),
-- or dispatches an asynchronous control event (ALV toolbar, drag/drop, editable grid),
+- brings up a popup dialog (a confirmation, an F4 help, a message-with-selection),
+- moves from screen to screen (`CALL SCREEN 0100 STARTING AT …`),
+- or fires an asynchronous control event (the ALV toolbar, drag/drop, an editable grid).
 
-…the popup runtime overwrites `sy-ucomm` with its own function code before the outer CASE runs, and the original command is lost. The bug ships silently — smoke tests on a single main screen pass, the first real popup flow breaks.
+In each of those cases the popup runtime has already written its own function code into `sy-ucomm` by the time the outer CASE runs, so the original command is lost. Nothing flags the defect on the way out — a smoke test that stays on the single main screen passes, and the breakage surfaces on the first genuine popup flow.
 
-The binding pattern below gives the PAI FORM a local copy of the function code that the dynpro runtime populated specifically for the current screen, BEFORE any popup / control event can touch `sy-ucomm`.
+The binding pattern set out below hands the PAI FORM its own local copy of the function code that the dynpro runtime filled in for this specific screen, taken BEFORE any popup / control event can reach `sy-ucomm`.
 
 ## The 3-step contract — ALL required when a screen is present
 
@@ -23,19 +23,19 @@ The binding pattern below gives the PAI FORM a local copy of the function code t
 DATA: gv_okcode TYPE sy-ucomm.
 ```
 
-- Fixed name `gv_okcode` (project-wide consistency — do not use `ok_code`, `lv_cmd`, `g_ucomm`, etc.).
-- Type `sy-ucomm` (short function codes like `BACK` / `SAVE` / custom `ZXYZ`).
-- Declared once in the TOP include; never re-declared inside a FORM or MODULE.
+- The name is fixed at `gv_okcode` — for consistency across the project, do not use `ok_code`, `lv_cmd`, `g_ucomm`, or the like.
+- The type is `sy-ucomm`, which holds short function codes such as `BACK` / `SAVE` or a custom `ZXYZ`.
+- One declaration, in the TOP include; it is never re-declared inside a FORM or a MODULE.
 
 ### Step 2 — Bind the screen's OK_CODE field to `GV_OKCODE`
 
-Classical Dynpro requires an OK_CODE element on the screen, and the **name** you give that element is what the runtime populates before PAI fires.
+An OK_CODE element on the screen is mandatory under classical Dynpro, and whatever **name** that element carries is the one the runtime fills before PAI fires.
 
 **SE51 manual path**: Screen {num} → Element List → General attributes → **OK_CODE field** = `GV_OKCODE`.
 
-**ADT / `UpdateScreen` (sc4sap MCP) path**: the screen's `fields_to_containers[]` entry with `TYPE=OKCODE` MUST have `NAME=GV_OKCODE`. A screen whose OKCODE field has the default placeholder (`TEXT=____________________`) and no NAME causes the code to land in `sy-ucomm` only — defeating the whole pattern.
+**ADT / `UpdateScreen` (sc4sap MCP) path**: within the screen's `fields_to_containers[]`, the entry carrying `TYPE=OKCODE` MUST also carry `NAME=GV_OKCODE`. Leave that OKCODE field with the default placeholder (`TEXT=____________________`) and no NAME, and the code lands in `sy-ucomm` alone — which defeats the whole pattern.
 
-Example `UpdateScreen` payload fragment:
+A fragment of such an `UpdateScreen` payload:
 ```json
 {
   "fields_to_containers": [
@@ -76,29 +76,29 @@ FORM user_command_0100.
 ENDFORM.
 ```
 
-Three rules inside the FORM (each is non-negotiable):
-1. **Copy `gv_okcode` into a local `lv_fcode` before branching.** The CASE runs on the local — protects against popups changing the global mid-branch.
-2. **`CLEAR gv_okcode` immediately after the copy.** Prevents the same function code re-firing on a redraw PAI that doesn't carry a fresh user action.
-3. **Compare against CONSTANTS declared in TOP**, not string literals. See [`constant-rule.md`](constant-rule.md). Typical constants: `gc_fcode_back / _exit / _canc / _save / _refresh TYPE sy-ucomm VALUE 'BACK' / 'EXIT' / 'CANC' / 'SAVE' / 'REFRESH'.`
+The FORM carries three rules, none of them open to negotiation:
+1. **Take a copy of `gv_okcode` into a local `lv_fcode` before you branch.** Running the CASE on the local is what shields you from a popup changing the global mid-branch.
+2. **Issue `CLEAR gv_okcode` right after the copy.** Without it, a redraw PAI that carries no fresh user action re-fires the same function code.
+3. **Branch on CONSTANTS declared in TOP**, never on string literals. See [`constant-rule.md`](constant-rule.md). The usual set: `gc_fcode_back / _exit / _canc / _save / _refresh TYPE sy-ucomm VALUE 'BACK' / 'EXIT' / 'CANC' / 'SAVE' / 'REFRESH'.`
 
 ## Anti-patterns — each is a MAJOR Phase 6 finding
 
-- **PAI FORM reads `sy-ucomm` directly** — `CASE sy-ucomm.` or `IF sy-ucomm = 'BACK'.` anywhere inside a `user_command_xxxx` FORM. Fix: route through `gv_okcode`.
-- **TOP missing `gv_okcode` while a screen is present** — the screen has nowhere to deposit its code. Breaks on popup flows; SAP does NOT error at activation, so the defect lands in production.
-- **Screen OK_CODE field has no NAME** — `UpdateScreen` payload's OKCODE field has only TYPE and placeholder TEXT, no NAME attribute. Same failure mode as the missing TOP declaration.
-- **Multiple OK_CODE globals** (`gv_okcode` + `ok_code` + `lv_cmd` co-existing in the same program) — pick one (`gv_okcode`) and delete the others.
-- **Copying `sy-ucomm` into a local instead of `gv_okcode`** — same value on the simple path, different value as soon as the popup runtime steps in. Looks right in review, breaks in production.
+- **The PAI FORM reads `sy-ucomm` itself** — any `CASE sy-ucomm.` or `IF sy-ucomm = 'BACK'.` sitting inside a `user_command_xxxx` FORM. The fix is to route through `gv_okcode`.
+- **A screen is present but TOP has no `gv_okcode`** — the screen then has nowhere to deposit its code. Popup flows break, yet SAP does NOT error at activation, so the defect travels all the way into production.
+- **The screen's OK_CODE field carries no NAME** — the OKCODE field of the `UpdateScreen` payload holds only TYPE and placeholder TEXT, with no NAME attribute. It fails exactly the way a missing TOP declaration does.
+- **More than one OK_CODE global** (`gv_okcode`, `ok_code` and `lv_cmd` living side by side in one program) — settle on `gv_okcode` and delete the rest.
+- **A local copied from `sy-ucomm` rather than from `gv_okcode`** — on the simple path both hold the same value, but they diverge the moment the popup runtime steps in. It reads as correct in review and fails in production.
 
 ## Integration points
 
-- `common/include-structure.md` TOP include row — mandates the `DATA: gv_okcode TYPE sy-ucomm.` declaration when a screen is present; this file is the "why + full contract + anti-pattern" companion.
-- `common/clean-code-procedural.md` § PBO / PAI Module — references this pattern as the source of truth for PAI user-command routing.
-- `skills/create-program/phase4-parallel.md` Wave 4 — `UpdateScreen` payload for any screen with an OKCODE field MUST set `NAME=GV_OKCODE`. An OKCODE field with no NAME is a MAJOR Phase 6 finding.
-- `skills/create-program/phase6-review.md` §1 — reviewer verifies the 3-step contract: TOP declaration exists, screen OKCODE field NAME=`GV_OKCODE`, PAI FORM uses `gv_okcode` not `sy-ucomm`.
+- `common/include-structure.md` TOP include row — makes the `DATA: gv_okcode TYPE sy-ucomm.` declaration mandatory whenever a screen is present; the "why + full contract + anti-pattern" companion to that row is this file.
+- `common/clean-code-procedural.md` § PBO / PAI Module — points at this pattern as the source of truth for routing PAI user commands.
+- `skills/create-program/phase4-parallel.md` Wave 4 — every screen with an OKCODE field MUST have `NAME=GV_OKCODE` set in its `UpdateScreen` payload. An OKCODE field left with no NAME is a MAJOR Phase 6 finding.
+- `skills/create-program/phase6-review.md` §1 — the reviewer confirms all three steps of the contract: the TOP declaration is there, the screen's OKCODE field has NAME=`GV_OKCODE`, and the PAI FORM works from `gv_okcode` rather than `sy-ucomm`.
 
 ## Applicability
 
-- **REQUIRED**: Procedural programs with at least one `CALL SCREEN {num}`.
-- **N/A**: OOP programs using RAP / BOPF / SALV popup only (no classical Dynpro).
-- **N/A**: Selection-screen-only reports (no `CALL SCREEN` — user commands on the selection screen flow through `AT SELECTION-SCREEN`, not PAI MODULE).
-- **Follows elsewhere**: if the program has multiple classical screens (e.g., 0100 + 0200 dialog), declare `gv_okcode` once in TOP and reuse on every screen — do NOT declare a per-screen `gv_okcode_0100`.
+- **REQUIRED**: Procedural programs carrying one or more `CALL SCREEN {num}`.
+- **N/A**: OOP programs that rely on RAP / BOPF / SALV popup alone (no classical Dynpro).
+- **N/A**: reports that have nothing but a selection screen (no `CALL SCREEN` — commands entered there travel through `AT SELECTION-SCREEN` instead of a PAI MODULE).
+- **Follows elsewhere**: where one program holds several classical screens (0100 plus a 0200 dialog, say), `gv_okcode` is declared once in TOP and reused on every screen — a per-screen `gv_okcode_0100` is NOT declared.
