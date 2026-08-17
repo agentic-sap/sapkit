@@ -23,7 +23,7 @@ The binding pattern set out below hands the PAI FORM its own local copy of the f
 DATA: gv_okcode TYPE sy-ucomm.
 ```
 
-- The name is fixed at `gv_okcode` — for consistency across the project, `ok_code`, `lv_cmd`, `g_ucomm` and the like are not used.
+- The name is fixed at `gv_okcode` — for consistency across the project, do not use `ok_code`, `lv_cmd`, `g_ucomm`, or the like.
 - The type is `sy-ucomm`, which holds short function codes such as `BACK` / `SAVE` or a custom `ZXYZ`.
 - One declaration, in the TOP include; it is never re-declared inside a FORM or a MODULE.
 

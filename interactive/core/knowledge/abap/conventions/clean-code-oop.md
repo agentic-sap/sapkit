@@ -1,6 +1,6 @@
 # Clean ABAP — OOP Paradigm
 
-The Clean ABAP rules that apply specifically to the **OOP paradigm** — local classes (`LCL_DATA` / `LCL_ALV`) held inside a REPORT, global classes, interfaces, exception classes, and ABAP Unit with test doubles. Load it when the Phase 1B interview settles `paradigm = OOP`, and leave it unloaded when that answer comes out `Procedural`. The paradigm-neutral baseline that both paradigms share sits in its companion, [`clean-code.md`](clean-code.md). Every rule below remains gated by `abap-release-reference.md`.
+The Clean ABAP rules that apply specifically to the **OOP paradigm** — local classes (`LCL_DATA` / `LCL_ALV`) held inside a REPORT, global classes, interfaces, exception classes, and ABAP Unit with test doubles. Load it when the Phase 1B interview settles `paradigm = OOP` — and NOT when that answer comes out `Procedural`. The paradigm-neutral baseline that both paradigms share sits in its companion, [`clean-code.md`](clean-code.md). Every rule below remains gated by `abap-release-reference.md`.
 
 > The sc4sap OOP pattern file [`oop-pattern.md`](oop-pattern.md) is this file's partner: the split into two classes (LCL_DATA + LCL_ALV / LCL_SCREEN) is settled there, and the coding style that fills those class bodies is settled here.
 
@@ -10,7 +10,7 @@ The main `REPORT` source of an OOP program is not written from a blank page: the
 
 **Source of truth**: [`oop-sample/zrsc4sap_oop_ex.prog.abap`](../templates/oop-sample/zrsc4sap_oop_ex.prog.abap) (companion includes: `zrsc4sap_oop_exa/exc/exe/exf/exi/exo/exs/ext.prog.abap`, screens `zrsc4sap_oop_ex.prog.screen_0100.abap` / `_0200.abap`).
 
-- **Do**: take the skeleton over — the REPORT statement, the INCLUDE order, the INITIALIZATION / AT SELECTION-SCREEN / START-OF-SELECTION / END-OF-SELECTION blocks, and the class bootstrap pattern `DATA(go_data) = NEW lcl_data( )` / `DATA(go_alv) = NEW lcl_alv( go_data )` — and adapt only the identifiers afterwards (`zrsc4sap_oop_ex` becomes the actual program name, while the include suffix letters stay as they are).
+- **Do**: take the skeleton over — the REPORT statement, the INCLUDE order, the INITIALIZATION / AT SELECTION-SCREEN / START-OF-SELECTION / END-OF-SELECTION blocks, and the class bootstrap pattern `DATA(go_data) = NEW lcl_data( )` / `DATA(go_alv) = NEW lcl_alv( go_data )` — and adapt the identifiers afterwards (`zrsc4sap_oop_ex` becomes the actual program name, while the include suffix letters stay as they are).
 - **Do not**: reorder the event blocks; drop the two-class bootstrap; move logic into the events themselves (every piece of logic belongs in a class method); swap Docking + Full ALV for a Custom Control; or bring in some other include-suffix convention.
 - **Deviation requires written justification in `spec.md`**, recorded before the executor runs Phase 4. Structural drift away from the template that nobody documented is raised as a MAJOR finding in the Phase 6 review.
 
@@ -98,7 +98,7 @@ The main `REPORT` source of an OOP program is not written from a blank page: the
 - **Optimize for reading**, not for writing: code gets read 10× as often as it gets written.
 - **Use the project's Pretty Printer / ABAP Formatter settings** — the ones configured in `.abap_formatter` where that file is present.
 - **One statement per line** — no `.` chains packed onto a single line.
-- **Reasonable line length** — wrap somewhere around 120 characters, so that nothing has to be scrolled horizontally.
+- **Reasonable line length** — wrap somewhere around 120 characters. Avoid horizontal scrolling.
 - **Blank lines separate thoughts** — one blank line between groups of related statements, and no padding around every single statement.
 - **Align assignments to the same target**, while leaving assignments to different targets unaligned:
   ```abap

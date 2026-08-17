@@ -6,7 +6,7 @@
 
 Declare each of the following as a constant:
 
-- Status and type codes — `'A'`, `'X'`, `'I'`, `'EQ'`, document categories, status indicators.
+- Status and type codes — e.g. `'A'`, `'X'`, `'I'`, `'EQ'`, document categories, status indicators.
 - Screen numbers referenced in the code, such as `'0100'` and `'0200'`.
 - GUI Status and GUI Title names, such as `'STATUS_0100'`.
 - Table and view names used in dynamic access.
@@ -31,4 +31,4 @@ The rule stops at these cases, and the literal is allowed to stay as written:
 
 ## 4. Enforcement
 
-`sap-code-reviewer` checks this rule with a magic-literal scan and withholds review sign-off where it finds a violation.
+`sap-code-reviewer` enforces this rule with a magic-literal scan and withholds review sign-off where it finds a violation.

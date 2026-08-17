@@ -12,7 +12,7 @@ application toolbar. The container is a **docking container**
 typed `LVC_T_FCAT`.
 
 Where the requirement is a **simple popup display**, `CL_SALV_TABLE` (SALV) is
-allowed. Nothing has to be prepared for it — no screen, no GUI status. Call
+allowed. No screen and no GUI status are needed. Call
 `cl_salv_table=>factory` and then `display( )`.
 
 ## Field Catalog Construction Standard

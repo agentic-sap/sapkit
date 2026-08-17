@@ -24,7 +24,7 @@ Only the following belong in the main program:
 - `INCLUDE` statements (Procedural order: t → s → c → a → o → i → f → _tst; `e` is NEVER in Procedural order)
 - Event blocks: `INITIALIZATION`, `AT SELECTION-SCREEN`, `AT SELECTION-SCREEN OUTPUT`, `AT SELECTION-SCREEN OUTPUT FOR FIELD <p>`, `START-OF-SELECTION`, `END-OF-SELECTION`
 
-Declarations and business logic belong in the includes, not in the main program. An event block's job is to delegate to a FORM: `START-OF-SELECTION. PERFORM get_data_0100.`
+All declarations and business logic belong in the includes, not in the main program. An event block's job is to delegate to a FORM: `START-OF-SELECTION. PERFORM get_data_0100.`
 
 ## Conditional Generation Rule
 

@@ -90,7 +90,7 @@ For a field this list does not cover, the agent MUST run `SearchObject` against 
 - `MENGE QUAN 13 3` with no UoM companion ← use `MENGE_D` plus a sibling `MEINS` field
 - `WAERS CHAR 5` ← use data element `WAERS`
 - `USNAM CHAR 12` ← use data element `USNAM`
-- `MANDT CLNT 3` ← use data element `MANDT` (and the client field itself: name `MANDT`, DE `MANDT`, at position 1 of every client-dependent transparent table)
+- `MANDT CLNT 3` ← use data element `MANDT` (and the client field itself must be `MANDT` name + `MANDT` DE, at position 1 of every client-dependent transparent table)
 
 ## Anti-Pattern — Field Name / Domain ≠ Meaning
 
