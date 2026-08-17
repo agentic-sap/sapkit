@@ -39,7 +39,35 @@ export interface ToolExposure {
   readonly availableIn: readonly DeploymentType[];
 }
 
-/** ADT 접속 계층이 소비하는 최소 접속 정보. M1 인증은 Basic만 다룬다. */
+/**
+ * 인증 방식. **미지정은 `basic`이다** — 기존 프로파일과 기존 호출부가 이 키를
+ * 갖지 않으므로, 없을 때의 뜻이 지금까지의 동작과 같아야 한다.
+ *
+ * 구 엔진의 어휘와 같은 두 값이다(`engine/src/lib/utils.ts:1946-1959` — 읽기
+ * 참조). 구는 `saml`도 값으로 받지만 그 갈래를 타는 코드가 없어 싣지 않는다.
+ */
+export type AuthType = 'basic' | 'jwt';
+
+/**
+ * UAA(XSUAA) OAuth2 재료 — **토큰이 아니라 토큰을 받아 올 자격**이다.
+ *
+ * service key가 조립하고(`profile/destination.ts`) 토큰 계층이 소비한다
+ * (`auth/uaa.ts`). 여기 담긴 `clientSecret`은 진단·로그 어디에도 나가지 않는다.
+ */
+export interface UaaCredentials {
+  /** UAA 오리진(경로 없는 base). 토큰·인가 종단점은 여기서 파생한다. */
+  readonly url: string;
+  readonly clientId: string;
+  readonly clientSecret: string;
+}
+
+/**
+ * ADT 접속 계층이 소비하는 최소 접속 정보.
+ *
+ * **Basic이 기본이고, JWT(Bearer)가 M2에서 더해졌다.** 아래 Basic 필드들은
+ * 모양이 바뀌지 않았다 — 더해진 것은 전부 선택 필드이고, 하나도 주지 않으면
+ * 접속은 지금까지와 똑같이 Basic으로 선다.
+ */
 export interface ConnectionConfig {
   /** 예: `https://host:44300` — 경로 없는 오리진. */
   readonly baseUrl: string;
@@ -69,6 +97,32 @@ export interface ConnectionConfig {
     /** SQL·테이블 조회 등 장시간 (기본 60000ms) */
     readonly long: number;
   };
+
+  // ── M2 인증 확장 — 전부 선택. 없으면 위 Basic 경로가 그대로 선다. ──────────
+
+  /**
+   * 어느 인증을 쓰는가. **없으면 `basic`**이다.
+   *
+   * 접속 계층은 이 값 하나로 `Authorization` 헤더를 가른다 — Basic이면
+   * 사용자·비밀번호를, `jwt`면 {@link jwtToken}을 Bearer로 싣는다.
+   */
+  readonly authType?: AuthType;
+  /**
+   * Bearer 자리에 실릴 접근 토큰. `authType === 'jwt'`일 때 **필수**다 —
+   * 없이 접속을 만들면 접속 계층이 `AUTH_TOKEN_MISSING`으로 거절한다(인증
+   * 헤더 없는 요청이 SAP에 나가는 갈래를 두지 않는다).
+   *
+   * 토큰은 **메모리에만 산다.** 이 필드가 디스크로 나가는 경로는 없다.
+   */
+  readonly jwtToken?: string;
+  /** 갱신 토큰. 있으면 토큰 계층이 만료 전에 이것으로 갱신한다. */
+  readonly refreshToken?: string;
+  /**
+   * UAA 재료. 있으면 토큰 계층이 스스로 취득·갱신할 수 있고, 없으면
+   * {@link jwtToken}이 만료될 때 **갱신할 방법이 없다**(그 상태도 명시 진단으로
+   * 끝난다 — 조용히 무인증으로 내려가지 않는다).
+   */
+  readonly uaa?: UaaCredentials;
 }
 
 /**
