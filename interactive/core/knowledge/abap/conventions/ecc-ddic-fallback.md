@@ -1,37 +1,90 @@
 # ECC DDIC Fallback
 
-Shared rule for any sc4sap skill that may create DDIC objects (Table, Data Element, Domain). Referenced from:
-- `skills/create-object/SKILL.md` → `<ECC_DDIC_Fallback>`
-- `skills/create-program/SKILL.md` → `<Shared_Conventions>`
-- Any other skill that creates or may create DDIC objects as part of its pipeline.
+**Scope.** A shared rule, not a skill-local one. It binds every SAPKIT flow whose pipeline can reach the creation of a Dictionary object, and it covers exactly three object types: **Table**, **Data Element**, and **Domain**.
 
-**Context.** On ECC systems the ADT REST API does not expose DDIC object endpoints (no source-based DDIC representation). Direct `CreateTable` / `CreateDataElement` / `CreateDomain` calls fail. For those three types and `SAP_VERSION = ECC` only, the skill switches to a **program-generation fallback**: it writes an executable ABAP report into `$TMP` that — when the user runs it in SE38 — creates the DDIC object via the SAP-internal `DDIF_*_PUT` function modules (inactive version only; the user activates and assigns to transport manually in SE11).
+Flows that consume it today:
 
-**When this branch triggers.**
-- `SAP_VERSION` (from `.sapkit/config.json` or `sap.env`) equals `ECC`, AND
-- The skill needs to create an object of type Table, Data Element, or Domain.
+| Consumer | Why it reaches here |
+|---|---|
+| [create-object](../../../procedures/create-object.md) | Before creating any Table / Data Element / Domain. |
+| [create-program](../../../procedures/create-program.md) | Whenever the planned object list contains one of the three. |
+| [field-typing-rule](./field-typing-rule.md) | Its priority-3 new-DE gate emits a helper program instead of `CreateDataElement` on ECC. |
+| [sap-standards](../../../policies/sap-standards.md) | The ECC row of the version guard routes a missing DDIC element here. |
+| [sap-executor](../../../personas/sap-executor.md) | Persona lookup table, consulted when the plan includes new DDIC. |
 
-All other object types (Class, Program, Function Module, Structure, CDS View, …) continue through the standard MCP create flow unchanged. S/4HANA always uses the standard flow.
+Any other flow that creates — or may create — one of the three types is bound by this rule as well, whether or not it is listed above.
 
-**Program naming (Y-prefix on purpose — helper generators are distinct from their Z* targets).**
+## 1. Does the fallback branch trigger?
+
+Both conditions must hold:
+
+1. `SAP_VERSION` — read from `.sapkit/config.json` or `sap.env` — equals `ECC`.
+2. The flow needs to create an object of type **Table**, **Data Element**, or **Domain**.
+
+Anything outside that intersection stays on the normal path:
+
+- **Other object types on ECC** — Class, Program, Function Module, Structure, CDS View, and the rest — go through the standard MCP create flow, unchanged.
+- **S/4HANA** — always the standard flow, for every object type including the three above.
+
+## 2. Why the branch exists
+
+On ECC the ADT REST API exposes no DDIC object endpoints; there is no source-based representation of a Dictionary object to POST. `CreateTable`, `CreateDataElement`, and `CreateDomain` therefore fail outright. This is a platform limitation, not a transient error — do not retry the MCP call and do not look for a different tool to route it through.
+
+What replaces it is a **program-generation fallback**. Instead of creating the DDIC object, the agent writes an executable ABAP report into `$TMP`. When the user runs that report in SE38, the report creates the DDIC object by calling the SAP-internal `DDIF_*_PUT` function modules — `DDIF_TABL_PUT`, `DDIF_DTEL_PUT`, `DDIF_DOMA_PUT`. Those write the **inactive version only**. Activation and transport assignment stay with the user, done by hand in SE11.
+
+So the agent's deliverable is a generator, and the DDIC object itself remains uncreated until the user acts.
+
+## 3. Naming the helper program
+
+The generator carries a **Y** prefix on purpose: it keeps helper generators visibly distinct from the `Z*` objects they target.
+
 | DDIC target | Generator program |
 |---|---|
 | Table `Z<NAME>` | `YCREATE_<NAME>` |
 | Data Element `Z<NAME>` | `YCREATE_DTEL_<NAME>` |
 | Domain `Z<NAME>` | `YCREATE_DOMA_<NAME>` |
 
-If the resulting name exceeds 30 characters, truncate the `<NAME>` segment while keeping prefix and type tag intact.
+If the assembled name runs past **30 characters**, shorten the `<NAME>` segment only. The prefix and the type tag stay intact.
 
-**Source format (strict).** Mirror the three reference templates one-to-one — same header block, same `p_dryrun` checkbox default `'X'`, same `DEFINE ... END-OF-DEFINITION` helper macros, same preview/WRITE section, same `DDIF_*_PUT` exception list, same final "Next steps: open SE11 -> activate -> assign to transport." line. Reference files (relative to plugin root):
-- Table:        `skills/create-object/ecc/table_create_sample.abap`
-- Domain:       `skills/create-object/ecc/domain_create_sample.abap`
-- Data Element: `skills/create-object/ecc/element_create_sample.abap`
+## 4. Generating the source (strict)
 
-Read the matching template with `Read` on every run and generate the new report by substituting only: target object name, DDIC field list / fixed values / label texts, and the `ddtext` description. Do not refactor the skeleton.
+Each of the three target types has one reference template, and the generated report must mirror it one-to-one:
 
-**Target package.** `$TMP` always. The helper program is a one-shot developer utility, not a deliverable. Never assign it to a transport. Never attempt to activate the DDIC object from inside the program (PUT only, no `DDIF_*_ACTIVATE`, no `TR_OBJECTS_INSERT`).
+| Target type | Template |
+|---|---|
+| Table | [table_create_sample.abap](../templates/ecc/table_create_sample.abap) |
+| Domain | [domain_create_sample.abap](../templates/ecc/domain_create_sample.abap) |
+| Data Element | [element_create_sample.abap](../templates/ecc/element_create_sample.abap) |
 
-**Mandatory completion message format** (when this fallback triggers):
+"Mirror one-to-one" means the generated report keeps all of the following from its template:
+
+- the same header block,
+- the same `p_dryrun` checkbox with default `'X'`,
+- the same `DEFINE ... END-OF-DEFINITION` helper macros,
+- the same preview / `WRITE` section,
+- the same `DDIF_*_PUT` exception list,
+- the same closing line, `Next steps: open SE11 -> activate -> assign to transport.`
+
+**Read the matching template with `Read` on every run** — do not reproduce it from memory. Then substitute only these three things:
+
+1. the target object name,
+2. the DDIC field list / fixed values / label texts,
+3. the `ddtext` description.
+
+Do not refactor the skeleton. Everything the substitution list does not name stays byte-for-byte as the template has it.
+
+## 5. Hard limits on the generated program
+
+- **Package is `$TMP`, always.** The helper is a one-shot developer utility, not a deliverable.
+- **Never assign it to a transport.**
+- **Never let the program activate the DDIC object.** It performs the PUT and stops: no `DDIF_*_ACTIVATE` call, no `TR_OBJECTS_INSERT` call.
+
+Note the asymmetry these limits create, because the completion message depends on it: the **helper report** is activated by the agent so the user can run it, while the **DDIC object** it targets is not — that half belongs to the user in SE11.
+
+## 6. Reporting back
+
+When this fallback triggers, the completion message is mandatory and takes this form:
+
 ```
 ⚠ ECC detected — DDIC {Table|Data Element|Domain} cannot be created via MCP.
 Helper program generated instead:
@@ -43,4 +96,8 @@ Next steps (manual, in ECC):
   2. Uncheck p_dryrun → re-run                (writes inactive DDIC version)
   3. SE11 → open <DDIC_OBJECT_NAME>           (activate, assign package + transport)
 ```
-Do not claim the DDIC object is created. Do not propose follow-up automation until the user confirms activation in SE11.
+
+Two prohibitions go with it:
+
+- **Do not claim the DDIC object is created.** It is not, and it will not be until the user completes step 3.
+- **Do not propose follow-up automation** — code that reads the table, further generators, anything downstream — until the user confirms activation in SE11.
