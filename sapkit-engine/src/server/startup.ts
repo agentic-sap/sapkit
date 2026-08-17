@@ -25,6 +25,7 @@ import {
   type PlatformLookup,
   type ProfileResolution,
   disconnectedProfile,
+  planServiceKeyConnection,
   readServiceKey,
   resolveBrokerStores,
   resolveProfileDetailed,
@@ -76,8 +77,9 @@ export interface Startup {
    * `MCP_USE_AUTH_BROKER=true`)가 고른 인증 통로. 하나도 없으면 null.
    *
    * 통로가 열렸다고 접속이 생긴 것은 아니다 — `--env`는 세션 env 파일을 기존
-   * Basic 해석기에 태워 접속을 만들지만, `--mcp`와 브로커 통로는 이 판에서
-   * **설정 조립까지만** 한다(토큰 취득 = 실접속 = 범위 밖). 브로커 통로는 그
+   * Basic 해석기에 태워 접속을 만들지만, `--mcp`와 브로커 통로는 **재료 조립까지만**
+   * 한다. 토큰을 받아 오는 계층은 `src/auth/`에 있으나 **기동이 그것을 돌리지
+   * 않는다** — UAA로 나가는 실왕복이고 사람이 필요할 수 있기 때문이다. 브로커 통로는 그
    * 위에 destination 이름조차 고르지 않으므로, 접속을 소유하지 않은 채 열려
    * 있을 수 있다. 접속 여부는 언제나 `profile.connection`이 정본이다.
    */
@@ -204,8 +206,11 @@ export function resolveStartup(input: StartupInput = {}): Startup {
     //    프로파일이나 cwd `.env`로 대신 붙지 않는다. 운영자가 고른 시스템이
     //    아닌 곳에 조용히 붙는 것이 D16·D17이 막아 둔 사고 자리다.
     //
-    //    이 판은 **설정 조립까지만** 짓는다. service key 인증은 UAA에 토큰을
-    //    받아 와야 완성되고 그것은 실접속이라 이 판의 범위 밖이다(차이 장부 D15).
+    //    **기동은 토큰을 받지 않는다.** 인증 계층(`src/auth/`)이 생긴 뒤에도
+    //    그대로다 — 토큰 취득은 UAA로 나가는 실왕복이고, authorization_code는
+    //    사람이 브라우저 앞에 있어야 끝난다. 기동 한복판에서 그 둘 중 무엇도
+    //    말없이 시작하지 않는다(attended 명시성). 그래서 이 갈래가 짓는 것은
+    //    여전히 **재료와 진단**이고, 언제 받아 올지는 호출부가 정한다(장부 D15).
     const channelDiagnostics: string[] = [];
     if (envDestination !== '') {
       channelDiagnostics.push(
@@ -215,19 +220,27 @@ export function resolveStartup(input: StartupInput = {}): Startup {
 
     const found = readServiceKey(mcpDestination, lookup);
     switch (found.kind) {
-      case 'ok':
+      case 'ok': {
         destination = {
           channel: 'mcp',
           name: mcpDestination,
           source: found.key.source,
           serviceKey: found.key,
         };
+        // 두 갈래를 갈라 말한다 — "토큰만 받으면 된다"와 "토큰을 받아도 붙을
+        // 주소가 없다"는 사람이 해야 할 일이 다르다.
+        const plan = planServiceKeyConnection(found.key);
         channelDiagnostics.push(
           `MCP_DESTINATION_TOKEN_PENDING: --mcp=${mcpDestination} resolved its service key (${found.key.source}, ${found.key.storeType} shape${
-            found.key.serviceUrl ? `, service URL ${found.key.serviceUrl}` : ', no service URL in the key'
-          }) and the OAuth2 configuration is assembled, but this engine does not yet acquire a token from the UAA endpoint — the server starts with no connection. Use --env=<name>, --env-path=<file>, or an active profile for a Basic connection.`,
+            plan.kind === 'ready' ? `, service URL ${plan.baseUrl}` : ', no service URL in the key'
+          }) and the OAuth2 material is assembled, but no token has been acquired — the server starts with no connection. ${
+            plan.kind === 'ready'
+              ? 'Acquiring one is a live round trip to the UAA endpoint, and the authorization_code grant needs a person at a browser, so startup never begins it on its own.'
+              : 'Even with a token this key names no ADT service URL, so it cannot produce a connection on its own; add the ABAP service URL to the key.'
+          } Use --env=<name>, --env-path=<file>, or an active profile for a Basic connection.`,
         );
         break;
+      }
       case 'unsafe-name':
         channelDiagnostics.push(
           `MCP_DESTINATION_INVALID: --mcp=${mcpDestination} is not a destination name — ${found.reason}. A destination names a file inside the service-key store, never a path; the server starts with no connection.`,

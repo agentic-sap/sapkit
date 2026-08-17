@@ -20,6 +20,7 @@ import * as path from 'node:path';
 
 import {
   checkDestinationName,
+  planServiceKeyConnection,
   platformStoreDirs,
   readServiceKey,
   resolveBrokerStores,
@@ -28,6 +29,7 @@ import {
   sessionEnvFileName,
   sessionsDir,
 } from '../destination';
+import type { ServiceKeyConfig } from '../destination';
 
 const temps: string[] = [];
 
@@ -462,5 +464,62 @@ describe('resolveBrokerStores — 브로커 통로가 쓸 저장소', () => {
     });
     const stores = resolveBrokerStores({ env: {}, cwd: mkdtemp('cwd'), authBrokerPath: root });
     expect(JSON.stringify(stores)).not.toContain(FAKE_SECRET);
+  });
+});
+
+// ── service key → 토큰 취득 재료 ────────────────────────────────────────────
+
+describe('planServiceKeyConnection — 재료를 인증 계층 모양으로 옮긴다', () => {
+  function key(overrides: Partial<ServiceKeyConfig> = {}): ServiceKeyConfig {
+    return {
+      destination: 'DEST1',
+      source: '/fixture/DEST1.json',
+      storeType: 'abap',
+      serviceUrl: 'http://127.0.0.1:1',
+      client: '100',
+      language: 'EN',
+      auth: {
+        uaaUrl: 'https://uaa.invalid/oauth',
+        clientId: 'fixture-client',
+        clientSecret: FAKE_SECRET,
+      },
+      ...overrides,
+    };
+  }
+
+  it('service URL이 있으면 ready — uaaUrl이 UaaCredentials.url이 된다', () => {
+    const plan = planServiceKeyConnection(key());
+    expect(plan).toEqual({
+      kind: 'ready',
+      uaa: {
+        url: 'https://uaa.invalid/oauth',
+        clientId: 'fixture-client',
+        clientSecret: FAKE_SECRET,
+      },
+      baseUrl: 'http://127.0.0.1:1',
+      client: '100',
+      language: 'EN',
+    });
+  });
+
+  it('클라이언트·언어가 없으면 null로 실어 나른다', () => {
+    const plan = planServiceKeyConnection(key({ client: null, language: null }));
+    expect(plan.kind).toBe('ready');
+    if (plan.kind !== 'ready') return;
+    expect(plan.client).toBeNull();
+    expect(plan.language).toBeNull();
+  });
+
+  // 토큰을 받아 본 뒤에야 "그런데 어디로 붙지?"를 알게 되면, 사람은 이미
+  // 브라우저 로그인을 마친 뒤에 그 사실을 듣는다.
+  it('service URL이 없으면 no-service-url — 재료는 그대로 준다', () => {
+    const plan = planServiceKeyConnection(key({ serviceUrl: null }));
+    expect(plan.kind).toBe('no-service-url');
+    expect(plan.uaa.clientId).toBe('fixture-client');
+  });
+
+  it('SAP에도 UAA에도 접속하지 않는다 — 순수 변환이다', () => {
+    // 같은 입력에 같은 출력. 부수효과가 있으면 여기서 드러난다.
+    expect(planServiceKeyConnection(key())).toEqual(planServiceKeyConnection(key()));
   });
 });

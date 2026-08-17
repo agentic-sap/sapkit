@@ -22,6 +22,7 @@
 | 경로 | 내용 |
 |---|---|
 | `src/adt/` | 자체 저작 ADT 클라이언트 — 접속·인증·세션·CSRF·잠금 수명주기 |
+| `src/auth/` | UAA(XSUAA) 토큰 취득과 그 수명 — OAuth2 3방식·loopback 콜백·무상태 캐시. **SAP에는 말을 걸지 않는다**(인가 서버 전용) |
 | `src/profile/` | `~/.sapkit` 홈 해석, `sap.env`/`active-profile.txt`, `MCP_ENV_PATH` |
 | `src/safety/` | 노출 제어(`--exposition`)·tier 게이트·테이블 블록리스트·실데이터 게이트 |
 | `src/server/` | MCP 프로토콜 계층 + stdio 전송 + 도구 등록 프레임 |

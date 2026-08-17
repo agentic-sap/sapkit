@@ -22,11 +22,17 @@
  *    판단하지 않는다.
  * 5. Basic 인증에서 첫 GET을 401로 튕기며 세션 쿠키만 심어 주는 시스템이 있다.
  *    그 쿠키를 회수해 **한 번만** 되민다.
+ *
+ * 인증은 두 갈래다 — `ConnectionConfig.authType`이 `jwt`면 `Bearer`, 그 밖의
+ * 모든 경우(키가 없는 기존 프로파일 포함)는 `Basic`이다. 갈림은 **헤더 하나**에
+ * 그치고 위 다섯 가지 프로토콜 사실은 두 갈래에서 똑같이 적용된다 — CSRF도
+ * 세션도 잠금도 인증 방식과 무관하다.
  */
 
 import { randomUUID } from 'node:crypto';
 
 import type { ConnectionConfig } from '../contracts';
+import { AuthError } from '../auth/errors';
 import { CookieJar } from './cookies';
 import { AdtError, adtErrorFromResponse } from './errors';
 import { HttpTransportError, nodeHttpTransport } from './http';
@@ -215,7 +221,10 @@ export class AdtClient {
   private readonly config: ConnectionConfig;
   private readonly transport: HttpTransport;
   private readonly connectionId: string;
-  private readonly authorization: string;
+  /** Basic 자격증명 한 줄. `jwt` 접속에서는 null이다. */
+  private readonly basicAuthorization: string | null;
+  /** 지금 실을 Bearer 토큰. `basic` 접속에서는 null이다. */
+  private bearer: string | null;
   private readonly sleep: (ms: number) => Promise<void>;
   private readonly newRequestId: () => string;
   private readonly cookies = new CookieJar();
@@ -237,14 +246,63 @@ export class AdtClient {
         }));
     // 구 계층과 같은 모양 — 하이픈 없는 32자리 16진수.
     this.newRequestId = options.newRequestId ?? (() => randomUUID().replace(/-/g, ''));
-    const credentials = Buffer.from(`${config.username}:${config.password}`, 'utf8').toString(
-      'base64',
-    );
-    this.authorization = `Basic ${credentials}`;
+
+    if (config.authType === 'jwt') {
+      const token = (config.jwtToken ?? '').trim();
+      if (token === '') {
+        // 여기서 접지 않으면 인증 헤더 없는 요청이 SAP에 나가고, 돌아온 401은
+        // "자격증명이 틀렸다"로 읽힌다 — 실제 원인(토큰을 못 받았다)에서 아주
+        // 먼 진단이다. 접속을 만들지 않는 쪽이 안전 강등 계약(D20)과도 같은 결이다.
+        throw new AuthError(
+          'AUTH_TOKEN_MISSING',
+          'authType=jwt 접속인데 실을 토큰이 없다 — 인증 헤더 없이 SAP에 요청을 보내지 않는다.',
+        );
+      }
+      this.basicAuthorization = null;
+      this.bearer = token;
+    } else {
+      // `authType`이 없거나 `basic`이면 지금까지와 똑같다.
+      const credentials = Buffer.from(`${config.username}:${config.password}`, 'utf8').toString(
+        'base64',
+      );
+      this.basicAuthorization = `Basic ${credentials}`;
+      this.bearer = null;
+    }
   }
 
   get sessionType(): SessionType {
     return this.session;
+  }
+
+  /** 이 접속이 무엇으로 인증하는가. `ConnectionConfig`가 정한 값 그대로. */
+  get authType(): 'basic' | 'jwt' {
+    return this.bearer === null ? 'basic' : 'jwt';
+  }
+
+  /**
+   * Bearer 토큰을 갈아 끼운다 — 토큰 계층(`src/auth/tokenSource.ts`)이 갱신한
+   * 것을 밀어 넣는 자리.
+   *
+   * **접속 계층이 스스로 토큰을 받아 오지 않는 이유**: 그러려면 이 클래스가
+   * UAA 재료와 갱신 정책을 알아야 하고, 헤더를 짓는 동기 경로가 비동기가 된다.
+   * 언제 받아 올지는 호출부의 판단(attended 명시성)이고, 여기는 받은 것을
+   * 싣기만 한다.
+   *
+   * @throws `AUTH_TOKEN_MISSING` — 빈 토큰으로 갈아 끼우려 할 때.
+   *   `basic` 접속에서 부르는 것도 같은 오류다(인증 방식을 도중에 바꾸지 않는다).
+   */
+  setBearerToken(token: string): void {
+    if (this.bearer === null) {
+      throw new AuthError(
+        'AUTH_TOKEN_MISSING',
+        'Basic 접속에 Bearer 토큰을 실을 수 없다 — 인증 방식은 접속을 만들 때 정해진다.',
+      );
+    }
+    const trimmed = token.trim();
+    if (trimmed === '') {
+      throw new AuthError('AUTH_TOKEN_MISSING', '빈 Bearer 토큰으로 갈아 끼울 수 없다.');
+    }
+    this.bearer = trimmed;
   }
 
   get csrfToken(): string | null {
@@ -510,6 +568,22 @@ export class AdtClient {
     return this.config.timeouts.default;
   }
 
+  /**
+   * 지금 실을 `Authorization` 값. 생성자가 둘 중 정확히 하나를 세워 두므로
+   * 여기서 갈리는 것은 **그 하나를 고르는 일**뿐이다.
+   *
+   * 마지막 갈래는 도달할 수 없다 — 도달했다면 생성자의 불변식이 깨진 것이므로
+   * 빈 헤더로 SAP에 가느니 여기서 이름을 대고 멈춘다.
+   */
+  private authorizationHeader(): string {
+    if (this.bearer !== null) return `Bearer ${this.bearer}`;
+    if (this.basicAuthorization !== null) return this.basicAuthorization;
+    throw new AuthError(
+      'AUTH_TOKEN_MISSING',
+      '접속에 실을 인증 정보가 없다 — 인증 헤더 없이 요청을 보내지 않는다.',
+    );
+  }
+
   private buildHeaders(
     options: AdtRequestOptions,
     csrfHeader: string | undefined,
@@ -540,7 +614,7 @@ export class AdtClient {
     }
 
     // 인증 3종은 호출자 헤더 뒤에 놓는다 — 덮어쓸 수 없어야 한다.
-    headers['Authorization'] = this.authorization;
+    headers['Authorization'] = this.authorizationHeader();
     if (this.config.client) headers['X-SAP-Client'] = this.config.client;
     const cookie = this.cookies.header();
     if (cookie) headers['Cookie'] = cookie;

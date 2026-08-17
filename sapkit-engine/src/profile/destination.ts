@@ -45,6 +45,8 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 
+import type { UaaCredentials } from '../contracts';
+
 /** 저장소 하위 폴더 — 구 `getPlatformPaths`의 `subfolder`와 같은 어휘. */
 export type PlatformSubfolder = 'service-keys' | 'sessions';
 
@@ -364,6 +366,57 @@ export function readServiceKey(
       language: language || null,
       auth: { uaaUrl, clientId, clientSecret },
     },
+  };
+}
+
+// ── service key → 토큰 취득 재료 ────────────────────────────────────────────
+
+/**
+ * service key 하나로 **무엇까지 할 수 있는가**.
+ *
+ * `ready`는 "토큰만 받으면 접속이 선다"이고, `no-service-url`은 "토큰은 받을 수
+ * 있지만 붙을 주소가 key에 없다"이다. 둘을 가르는 이유는 진단이다 — 토큰을
+ * 받아 본 뒤에야 "그런데 어디로 붙지?"를 알게 되면, 사람은 이미 브라우저
+ * 로그인을 한 번 마친 뒤에 그 사실을 듣는다.
+ *
+ * **여기서 토큰을 받지 않는다.** 이 모듈은 여전히 SAP에도 UAA에도 접속하지
+ * 않는다(머리말) — 재료를 인증 계층(`src/auth/`)이 먹을 수 있는 모양으로
+ * 옮겨 놓을 뿐이고, 언제 받아 올지는 호출부가 정한다.
+ */
+export type ServiceKeyPlan =
+  | {
+      readonly kind: 'ready';
+      readonly uaa: UaaCredentials;
+      /** ADT가 붙을 오리진. */
+      readonly baseUrl: string;
+      readonly client: string | null;
+      readonly language: string | null;
+    }
+  | {
+      readonly kind: 'no-service-url';
+      readonly uaa: UaaCredentials;
+    };
+
+/**
+ * 읽어 둔 service key를 토큰 취득 재료로 옮긴다.
+ *
+ * `ServiceKeyAuth`의 `uaaUrl`이 {@link UaaCredentials}의 `url`이 된다 — 이름이
+ * 다른 것은 출처가 다르기 때문이다(전자는 "service key의 uaa 절", 후자는
+ * "인가 서버 하나"). 옮기는 자리를 여기 하나로 두어 두 어휘가 섞이지 않게 한다.
+ */
+export function planServiceKeyConnection(key: ServiceKeyConfig): ServiceKeyPlan {
+  const uaa: UaaCredentials = {
+    url: key.auth.uaaUrl,
+    clientId: key.auth.clientId,
+    clientSecret: key.auth.clientSecret,
+  };
+  if (!key.serviceUrl) return { kind: 'no-service-url', uaa };
+  return {
+    kind: 'ready',
+    uaa,
+    baseUrl: key.serviceUrl,
+    client: key.client,
+    language: key.language,
   };
 }
 
