@@ -83,10 +83,14 @@
    의 `rules`(81개)를
    [`../../interactive/provenance/sc4sap-public-source.json`](../../interactive/provenance/sc4sap-public-source.json)
    의 `inventory.entries`(**487**건, 핀 커밋 `a95eb0fe`)에 **배열 순서 첫 매칭**으로 적용해
-   원본 파일마다 `class`를 정한다. 미매칭 0건이어야 한다.
+   원본 파일마다 `class`를 정한다. 미매칭 0건이어야 한다. **`pattern`은 glob이다** — `**`
+   말고 `*`를 쓰는 규칙이 3건(`docs/INSTALLATION.*.md` · `docs/multi-profile-*.md` ·
+   `README.*.md`) 있으므로, 접두사 비교만으로 맞추면 미매칭 3이 남아 위 assert가 깨진다.
 2. `class === 'copy'`인 것만 남긴다 → **원본 282**건.
 3. 규칙의 `targets[0].token`으로 목적지 경로를 만든다 — `pattern`이 `<prefix>/**`이면
-   `token + (원본경로 − prefix)`, 단일 파일 규칙이면 `token + basename`. 첫 매칭이므로
+   `token + (원본경로 − prefix)`, 단일 파일 규칙이면 `token + basename` — 단
+   `targets[0].kind`가 `file`이면 `token` 자체가 목적지다(해당 규칙은 `LICENSE` 1건이고
+   §3.2로 셈 밖이므로 계수에 영향이 없다). 첫 매칭이므로
    `common/alv-sample/**` 류의 좁은 규칙이 `common/**`보다 먼저 걸린다.
 4. 목적지 token은 `interactive/` 기준이다 — 그 아래에서 현존을 대조한다. (`LICENSE`는 레포
    루트와 `interactive/` 양쪽에 실재하고 어느 쪽이든 §3.2로 셈 밖이라 계수에 영향이 없다.)

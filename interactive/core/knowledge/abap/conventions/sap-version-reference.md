@@ -190,8 +190,8 @@ Directives for this area: §2.1 (no direct `BSEG` SELECT on S/4;
 
 ### 7.3 Credit management
 
-Classic FI-AR credit management is not merely deprecated on S/4HANA — the FSCM
-implementation is mandatory, and the data moves to BP-based tables.
+On S/4HANA the FSCM implementation of credit management is mandatory, and the
+data moves to BP-based tables.
 
 | Area | ECC 6.0 | S/4HANA |
 |------|---------|---------|

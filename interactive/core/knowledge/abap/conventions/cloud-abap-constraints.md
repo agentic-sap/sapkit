@@ -99,8 +99,7 @@ ENDCLASS.
 
 ### 5.3 Repository and master-data reads
 
-Direct `SELECT` on these tables is one of the prohibited DDIC accesses — go through the
-released reader instead.
+Use the released reader instead of a direct `SELECT` on these tables.
 
 | Category | Classic | Cloud ABAP Replacement |
 |---|---|---|

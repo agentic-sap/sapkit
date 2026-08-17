@@ -13,8 +13,8 @@ file does not carry is delegated at the end of §4.
 
 ## 1. The pieces every pattern reuses
 
-All patterns sit in the customer `Z` namespace and are assembled from the same
-three building blocks.
+The patterns below sit in the customer `Z` namespace and are assembled from the
+same three building blocks.
 
 - **`{MODULE}`** — the two-letter functional module code:
   `FI`, `SD`, `MM`, `PP`, `PM`, `QM`, `WM`, `TM`, `TR`, `CO`, `HCM`, `BW`,

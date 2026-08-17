@@ -28,7 +28,7 @@ Anything outside that intersection stays on the normal path:
 
 ## 2. Why the branch exists
 
-On ECC the ADT REST API exposes no DDIC object endpoints; there is no source-based representation of a Dictionary object to POST. `CreateTable`, `CreateDataElement`, and `CreateDomain` therefore fail outright. This is a platform limitation, not a transient error — do not retry the MCP call and do not look for a different tool to route it through.
+On ECC the ADT REST API exposes no DDIC object endpoints; there is no source-based representation of a Dictionary object to POST. `CreateTable`, `CreateDataElement`, and `CreateDomain` therefore fail outright. This is a platform limitation, not a transient error.
 
 What replaces it is a **program-generation fallback**. Instead of creating the DDIC object, the agent writes an executable ABAP report into `$TMP`. When the user runs that report in SE38, the report creates the DDIC object by calling the SAP-internal `DDIF_*_PUT` function modules — `DDIF_TABL_PUT`, `DDIF_DTEL_PUT`, `DDIF_DOMA_PUT`. Those write the **inactive version only**. Activation and transport assignment stay with the user, done by hand in SE11.
 
