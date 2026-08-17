@@ -55,7 +55,7 @@
 |-------|--------|-------------|
 | ACDOCA | S4 | Universal Journal |
 | ACDOCP | S4 | Planning data |
-| BKPF | ECC/S4 | Header remains, but line items in ACDOCA |
+| BKPF | ECC/S4 | Header is still stored here, while line items are in ACDOCA |
 | FAGLFLEXA | ECC | New GL (pre-S/4HANA) — replaced by ACDOCA |
 | FAGLFLEXT | ECC | New GL Totals (pre-S/4HANA) — replaced by ACDOCA |
 
