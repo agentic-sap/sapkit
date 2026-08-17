@@ -3,18 +3,18 @@
 
 ## Workflow 1: Create Sales Order via BAPI
 ### Steps
-1. Determine Sales Area (Sales Org / Distribution Channel / Division) from customer master (KNA1, KNVV)
-2. Read material and pricing data using BAPI_MATERIAL_GET_DETAIL
-3. Simulate order first with BAPI_SALESORDER_SIMULATE to validate pricing and ATP
-4. Populate BAPISDHEAD1 (header), BAPISDITEM (items), BAPISDSCHEDULE (schedule lines), BAPIPARTNR (partners)
-5. Call BAPI_SALESORDER_CREATEFROMDAT2 with populated tables
-6. Check RETURN table: filter TYPE = 'E' for errors, TYPE = 'S' for success with SALESDOCUMENT
-7. Call BAPI_TRANSACTION_COMMIT if no errors; BAPI_TRANSACTION_ROLLBACK on error
-8. Log the created VBELN (sales document number) to VBAK
+1. Derive the Sales Area — Sales Org / Distribution Channel / Division — from the customer master (KNA1, KNVV)
+2. Pull the material and pricing data through BAPI_MATERIAL_GET_DETAIL
+3. Run BAPI_SALESORDER_SIMULATE on the order first, to validate pricing and ATP
+4. Populate BAPISDHEAD1 for the header, BAPISDITEM for the items, BAPISDSCHEDULE for the schedule lines, and BAPIPARTNR for the partners
+5. Hand the populated tables to BAPI_SALESORDER_CREATEFROMDAT2
+6. Inspect the RETURN table — filter TYPE = 'E' for errors, TYPE = 'S' for the success entry carrying SALESDOCUMENT
+7. Call BAPI_TRANSACTION_COMMIT when no errors came back; call BAPI_TRANSACTION_ROLLBACK when one did
+8. Take the created VBELN — the sales document number — and log it to VBAK
 
 ### Required MCP Tools
 - `GetFunctionModule` — read BAPI signature
-- `GetTable` — inspect VBAK, VBAP, KNVV table structures
+- `GetTable` — inspect the VBAK, VBAP, and KNVV table structures
 - `CreateProgram` — scaffold test program
 - `UpdateProgram` — iterate on implementation
 
@@ -27,20 +27,20 @@
 
 ## Workflow 2: Implement Custom Pricing Condition (User Exit)
 ### Steps
-1. Identify target pricing procedure via V/08 transaction and V_T683V view
-2. Create new condition type in V_T685 with appropriate calculation type
-3. Create access sequence in V_T682 pointing to required condition tables
-4. Implement pricing user exit: USEREXIT_PRICING_PREPARE_TKOMV in include MV45AFZZ (for orders) or RV60AFZZ (for billing)
-5. Alternatively use BAdI SD_CND_ACCESS for modern implementations
-6. In user exit, populate TKOMV structure with calculated condition amount
-7. Activate condition type in pricing procedure with requirement/alternative calculation routine if needed
-8. Test via VA01 (create sales order) and verify condition appears in pricing analysis (condition tab → Analysis)
+1. Locate the target pricing procedure through transaction V/08 and view V_T683V
+2. Create the new condition type in V_T685, giving it an appropriate calculation type
+3. Create the access sequence in V_T682, pointing it at the condition tables required
+4. Implement the pricing user exit USEREXIT_PRICING_PREPARE_TKOMV — include MV45AFZZ for orders, or RV60AFZZ for billing
+5. Alternatively, reach for BAdI SD_CND_ACCESS on modern implementations
+6. Inside the user exit, populate the TKOMV structure with the calculated condition amount
+7. Activate the condition type in the pricing procedure, adding a requirement or alternative calculation routine if one is needed
+8. Test through VA01 (create sales order) and confirm the condition shows up in the pricing analysis (condition tab → Analysis)
 
 ### Required MCP Tools
 - `GetView` — inspect V_T685, V_T683
-- `GetInclude` — read MV45AFZZ for user exit structure
-- `UpdateInclude` — implement user exit code
-- `GetClass` — inspect BAdI implementation class
+- `GetInclude` — read the user exit structure out of MV45AFZZ
+- `UpdateInclude` — write the user exit code
+- `GetClass` — look into the BAdI implementation class
 
 ### Related Config
 - Condition Types: V_T685
@@ -51,19 +51,19 @@
 
 ## Workflow 3: Enhance Sales Order Output (SmartForm/PDF)
 ### Steps
-1. Identify output type in V_TNAPR (e.g., BA00 for order confirmation)
-2. Review existing output program and form in NACE transaction
-3. Create enhancement spot or copy standard SmartForm (SF_EXAMPLE_01 pattern) to Z-namespace
-4. Add custom fields: extend communication structure using append structure to KOMKBV1/KOMPBV1
-5. Implement USEREXIT_FILL_VBCO3 in MV45AFZZ to populate custom fields
-6. Assign new SmartForm to output type via NACE → Processing routines
-7. Test output via VA02 → Output → Issue output to
+1. Find the output type in V_TNAPR — BA00 for order confirmation, for instance
+2. Review the existing output program and form in transaction NACE
+3. Either create an enhancement spot or copy the standard SmartForm (SF_EXAMPLE_01 pattern) into the Z-namespace
+4. Add the custom fields by extending the communication structure — an append structure onto KOMKBV1/KOMPBV1
+5. Implement USEREXIT_FILL_VBCO3 in MV45AFZZ so the custom fields get populated
+6. Assign the new SmartForm to the output type through NACE → Processing routines
+7. Test the output through VA02 → Output → Issue output to
 
 ### Required MCP Tools
-- `GetProgram` — read standard output driver
-- `CreateProgram` — create Z-copy of output program
+- `GetProgram` — read the standard output driver
+- `CreateProgram` — make the Z-copy of the output program
 - `GetStructure` — inspect KOMKBV1, KOMPBV1
-- `CreateStructure` — add append structure for custom fields
+- `CreateStructure` — declare the append structure for the custom fields
 - `UpdateInclude` — implement user exit
 
 ### Related Config
