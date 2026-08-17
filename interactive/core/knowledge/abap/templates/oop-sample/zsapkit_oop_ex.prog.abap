@@ -8,7 +8,7 @@
 *&           EKPO, LCL_ALV puts the result on a screen. This main body
 *&           holds nothing but the INCLUDE list and the event blocks,
 *&           and every event block does one thing: hand over to a
-*&           method. All ten includes named below really exist.
+*&           method. All nine includes named below really exist.
 *& Caution : LCL_ALV inherits from ZCL_S4SAP_CM_ALV, and the event
 *&           bridges name ZCL_S4SAP_CM_OALV / ZCL_S4SAP_CM_OTREE /
 *&           ZCX_S4SAP_EXCP. Those global classes are not part of this
