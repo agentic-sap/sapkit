@@ -8,8 +8,8 @@
 | BAPI_PO_CHANGE | ECC/S4 | Change PO (sync back to Ariba) / PO 변경 (Ariba에 동기화) | Updates fields on the PO; the changes then go out to Ariba as IDoc ORDCHG |
 | BAPI_INCOMINGINVOICE_CREATE | ECC/S4 | Create Invoice from Ariba e-Invoice / Ariba 전자 송장에서 송장 생성 | Posts a vendor invoice received from Ariba Network, along the cXML invoice → IDoc → MIRO path |
 | BAPI_GOODSMVT_CREATE | ECC/S4 | Post GR from Ariba-triggered Confirmation / Ariba 확인 기반 입고 전기 | Posts the goods receipt as movement 101 following the Ariba order confirmation |
-| BAPI_VENDOR_CREATE | ECC | Create Vendor from Ariba SLP / Ariba SLP에서 공급업체 생성 | Creates the vendor master on the SAP side. On S/4HANA use BAPI_BUPA_CREATE_FROM_DATA instead |
-| BAPI_VENDOR_CHANGE | ECC | Change Vendor Master from Ariba / Ariba에서 공급업체 마스터 변경 | Brings vendor data changes into sync. On S/4HANA use BAPI_BUPA_CHANGE_FROM_DATA instead |
+| BAPI_VENDOR_CREATE | ECC | Create Vendor from Ariba SLP / Ariba SLP에서 공급업체 생성 | Creates the vendor master on the SAP side. S/4HANA: Use BAPI_BUPA_CREATE_FROM_DATA |
+| BAPI_VENDOR_CHANGE | ECC | Change Vendor Master from Ariba / Ariba에서 공급업체 마스터 변경 | Brings vendor data changes into sync. S/4HANA: Use BAPI_BUPA_CHANGE_FROM_DATA |
 | BAPI_CONTRACT_CREATEFROMDATA | ECC/S4 | Create Contract from Ariba Sourcing Award / Ariba 소싱 계약에서 계약 생성 | Turns an Ariba sourcing award into an SAP outline agreement |
 
 ## IDoc-Based Integration FMs
