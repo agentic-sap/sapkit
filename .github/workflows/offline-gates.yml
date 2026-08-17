@@ -300,6 +300,12 @@ jobs:
         # "해석하지 못한 참조로 로그온을 쌓지 않았다"의 증거다. SAP 무접속.
         run: node gates/keyring-fallback-smoke.mjs
 
+      - name: 거부 어휘 병행 인식 확인 (D18 — 판5 E2 방어 시험)
+        working-directory: sapkit-engine
+        # 제품 게이트의 무접속 분류 정규식을 **읽어 와**(복제 없음) 구·신 거부
+        # 문구 양쪽에 대입한다. 누군가 alternation을 좁혀 되돌리면 여기서 빨개진다.
+        run: node gates/test-refusal-vocab.mjs
+
       - name: 구 번들 발행 표면 표류 확인 (채록본이 낡지 않았는지)
         working-directory: sapkit-engine
         # 구 번들을 자식 프로세스로 띄워 tools/list를 다시 딴다 — SAP 무접속.

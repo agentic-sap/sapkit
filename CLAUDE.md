@@ -167,6 +167,8 @@ node harness/test-compare-baseline.mjs # 음성시험 (판정 비교기가 갈�
 npm run verify        # build + typecheck + jest
 npm run gates         # 표면(글자 일치·4조건 소속·채록본 밖 이름·대장 대조) · 안전 · 대장 · 기동 스모크 3종
 node gates/test-gates.mjs              # 게이트 음성시험 (게이트가 정말 거부하는지)
+node gates/keyring-fallback-smoke.mjs  # keyring 부재 강등 스모크 (require-seam 차단 — 판5)
+node gates/test-refusal-vocab.mjs      # 거부 어휘 구·신 병행 인식 (D18 방어 — 판5)
 node harness/render-ledger.mjs --check # 대장 ↔ 계산 결과
 node harness/build-plan.mjs --check    # 제작 계획 ↔ 산식
 ```
