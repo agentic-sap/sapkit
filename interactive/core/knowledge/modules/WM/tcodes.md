@@ -1,8 +1,8 @@
 # WM - Warehouse Management Transaction Codes
 # WM - 창고 관리 트랜잭션 코드
 
-> **⚠ LE-WM은 S/4HANA에서 지원되지 않습니다. S/4HANA에서는 EWM (Extended Warehouse Management)을 사용하십시오.**
-> **⚠ LE-WM is deprecated in S/4HANA. Use EWM (Extended Warehouse Management) instead.**
+> **⚠ LE-WM은 S/4HANA에서 지원 대상이 아닙니다. S/4HANA라면 EWM (Extended Warehouse Management)을 쓰십시오.**
+> **⚠ S/4HANA has deprecated LE-WM. Turn to EWM (Extended Warehouse Management) in its place.**
 
 ## Master Data (ECC LE-WM)
 | TCode | System | Description |
