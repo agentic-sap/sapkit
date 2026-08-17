@@ -2,8 +2,8 @@
 
 ## Overview / 개요
 
-The SD (Sales & Distribution) module provides one of SAP's richest enhancement landscapes, heavily leveraging form-based user exits in addition to classic exits, BAdIs, and VOFM routines.
-SD(영업 및 유통) 모듈은 SAP에서 가장 풍부한 확장 환경을 제공하며, 전통적 출구와 BAdI 외에도 폼 기반 사용자 출구와 VOFM 루틴을 적극 활용합니다.
+Among SAP modules, SD (Sales & Distribution) carries one of the richest enhancement landscapes: on top of classic exits, BAdIs, and VOFM routines, it leans heavily on form-based user exits.
+확장 환경이 SAP에서 가장 풍부한 모듈이 SD(영업 및 유통)이며, 전통적 출구와 BAdI 말고도 폼 기반 사용자 출구와 VOFM 루틴까지 적극 씁니다.
 
 - Classic Customer Exits (CMOD/SMOD) / 전통적 고객 출구
 - BAdIs (Business Add-Ins) / 비즈니스 애드인
@@ -78,8 +78,8 @@ SD(영업 및 유통) 모듈은 SAP에서 가장 풍부한 확장 환경을 제�
 
 ### 4.1 Form-Based User Exits (Include Programs) / 폼 기반 사용자 출구
 
-**IMPORTANT**: SD heavily uses include-based user exits in standard programs. These are accessed by editing specific include programs directly. (These remain supported in S/4HANA.)
-중요: SD는 표준 프로그램의 include 기반 사용자 출구를 광범위하게 사용합니다.
+**IMPORTANT**: include-based user exits sit inside SD's standard programs, and SD uses them heavily. Reaching one means editing the specific include program directly. (S/4HANA still supports them.)
+중요: 표준 프로그램에 들어 있는 include 기반 사용자 출구를 SD는 광범위하게 씁니다.
 
 #### Sales Order (Sales Documents) / 판매 주문
 
@@ -121,8 +121,8 @@ SD(영업 및 유통) 모듈은 SAP에서 가장 풍부한 확장 환경을 제�
 
 ### 4.2 VOFM Routines / VOFM 루틴
 
-VOFM transaction provides customer-namespace routines for:
-VOFM 트랜잭션은 다음 영역의 고객 네임스페이스 루틴을 제공합니다:
+Customer-namespace routines come from the VOFM transaction, covering:
+고객 네임스페이스 루틴은 VOFM 트랜잭션에서 제공되며, 대상 영역은 다음과 같습니다:
 
 | Category | System | Description / 설명 |
 |----------|--------|--------------------|
@@ -137,8 +137,8 @@ VOFM 트랜잭션은 다음 영역의 고객 네임스페이스 루틴을 제공
 
 ## 5. Validations / Substitutions / 검증 및 대체
 
-SD uses **incompletion procedures** (tx `OVA2`) and BAdIs (e.g., `SD_SALES_DOCUMENT_CHECK`) rather than GGB0/GGB1.
-SD는 GGB0/GGB1 대신 미완료 절차(OVA2)와 BAdI를 사용합니다.
+Rather than GGB0/GGB1, SD works through **incompletion procedures** (tx `OVA2`) and BAdIs (e.g., `SD_SALES_DOCUMENT_CHECK`).
+SD가 쓰는 것은 GGB0/GGB1이 아니라 미완료 절차(OVA2)와 BAdI입니다.
 
 ---
 
@@ -166,20 +166,20 @@ SD는 GGB0/GGB1 대신 미완료 절차(OVA2)와 BAdI를 사용합니다.
 | I_SalesOrderScheduleLine | S4 | Schedule line CDS / 스케줄 라인 CDS |
 | I_BillingDocument | S4 | Billing document CDS / 청구 문서 CDS |
 
-Extensible via Key User Extensibility (Fiori Custom Fields and Logic).
-Fiori Key User Extensibility를 통해 확장 가능.
+Extension runs through Key User Extensibility (Fiori Custom Fields and Logic).
+Fiori Key User Extensibility를 거쳐 확장할 수 있음.
 
 ---
 
 ## 8. Recommended Approach / 권장 접근 방식
 
-1. **Prefer BAdIs over CMOD exits** for new implementations.
-   신규 구현 시 BAdI를 CMOD보다 우선 사용.
-2. **Use form-based user exits only when BAdI is unavailable** (still common in SD).
-   BAdI로 불가능한 경우에만 폼 기반 사용자 출구 사용.
-3. **Prefer CDS extensions in S/4HANA** for custom fields instead of append structures where possible.
-   S/4HANA에서는 가능한 경우 CDS 확장을 우선 사용.
-4. **Use VOFM for copy control and pricing** — configuration-first approach.
-   복사 제어와 가격 결정은 VOFM 활용.
-5. **Document all user-exit modifications** — these survive upgrades but require retesting.
-   모든 사용자 출구 수정은 문서화 및 업그레이드 후 재테스트 필요.
+1. **Prefer BAdIs over CMOD exits** whenever the implementation is new.
+   새로 구현할 때 CMOD보다 BAdI를 앞세워 사용.
+2. **Use form-based user exits only when BAdI is unavailable** (in SD this remains common).
+   폼 기반 사용자 출구는 BAdI로 안 되는 경우에 한해 사용.
+3. **Prefer CDS extensions in S/4HANA** — where it can be done, custom fields go there instead of into append structures.
+   S/4HANA라면 가능한 선에서 CDS 확장을 앞세워 사용.
+4. **Use VOFM for copy control and pricing** — configuration comes first there.
+   VOFM을 복사 제어와 가격 결정에 활용.
+5. **Document all user-exit modifications** — upgrades leave them standing, but retesting is still required.
+   사용자 출구 수정 전부에 문서화와 업그레이드 후 재테스트가 필요.

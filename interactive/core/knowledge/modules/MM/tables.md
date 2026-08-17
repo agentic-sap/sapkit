@@ -30,7 +30,7 @@
 | EKKN | ECC/S4 | PO Account Assignment |
 | EBAN | ECC/S4 | Purchase Requisition |
 | EBKN | ECC/S4 | PR Account Assignment |
-| MKPF | ECC/S4 | Material Document Header (S4: MATDOC merges MKPF+MSEG) |
+| MKPF | ECC/S4 | Material Document Header (S4: MKPF and MSEG are combined into MATDOC) |
 | MSEG | ECC/S4 | Material Document Item |
 | MATDOC | S4 | Material Documents (unified, merges MKPF/MSEG) |
 | RBKP | ECC/S4 | Invoice Document Header |

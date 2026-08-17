@@ -1,16 +1,16 @@
 # PP Module Enhancements / PP 모듈 확장
 
-Production Planning (PP) enhancement catalog covering classic customer exits (CMOD/SMOD), BAdIs, enhancement spots, custom fields, and S/4HANA extensibility.
+This catalog collects the Production Planning (PP) enhancements — classic customer exits (CMOD/SMOD), BAdIs, enhancement spots, custom fields, and S/4HANA extensibility.
 
-생산 계획(PP) 모듈의 클래식 사용자 출구(CMOD/SMOD), BAdI, 확장 스폿, 사용자 정의 필드 및 S/4HANA 확장성 카탈로그.
+생산 계획(PP) 모듈의 확장을 모은 카탈로그 — 클래식 사용자 출구(CMOD/SMOD), BAdI, 확장 스폿, 사용자 정의 필드, S/4HANA 확장성.
 
 ---
 
 ## 1. Overview / 개요
 
-SAP PP offers multiple enhancement mechanisms depending on release and use case:
+SAP PP has several enhancement mechanisms to draw on, and the choice turns on release and use case:
 
-SAP PP는 릴리스 및 사용 사례에 따라 다양한 확장 메커니즘을 제공합니다:
+SAP PP가 가진 확장 메커니즘은 여러 가지이고, 릴리스와 사용 사례에 따라 갈립니다:
 
 - **Classic Customer Exits (CMOD/SMOD)** — Legacy function module exits, still active in ECC and S/4HANA.
 - **BAdIs (Business Add-Ins)** — Object-oriented, supported on both ECC and S/4HANA.
@@ -18,7 +18,7 @@ SAP PP는 릴리스 및 사용 사례에 따라 다양한 확장 메커니즘을
 - **Custom Fields / Append Structures** — Extend standard tables (CI_* include structures).
 - **S/4HANA Extensions (CDS / RAP / Key User Extensibility)** — Cloud-ready extensibility.
 
-클래식 사용자 출구는 ECC 및 S/4HANA 모두 유효하며, 신규 개발은 BAdI/확장 스폿을 권장합니다.
+클래식 사용자 출구가 유효한 곳은 ECC와 S/4HANA 양쪽이며, 신규 개발에는 BAdI/확장 스폿을 권장합니다.
 
 ---
 
@@ -109,7 +109,7 @@ SAP PP는 릴리스 및 사용 사례에 따라 다양한 확장 메커니즘을
   - `I_ManufacturingOrder` — Manufacturing order interface view
   - `I_BillOfMaterial` — BOM interface view
 - **aMRP (advanced MRP on S/4HANA)** — BAdIs exposed in `/SAPAPO/` namespace
-- **Production planning** migrated from SAP APO → S/4HANA embedded PP/DS
+- **Production planning** moved across from SAP APO → S/4HANA embedded PP/DS
 - **Key User Extensibility** (Fiori) — Custom fields/logic for manufacturing apps
 - **RAP** — Build custom manufacturing order extensions via Behavior Definitions
 
@@ -117,10 +117,10 @@ SAP PP는 릴리스 및 사용 사례에 따라 다양한 확장 메커니즘을
 
 ## 8. Recommended Approach / 권장 접근 방식
 
-1. **BAdIs > CMOD customer exits** — prefer object-oriented BAdIs.
-2. **MRP customization** — use `MD_CHANGE_MRP_DATA` rather than `MDKP0001`.
-3. **Order changes** — use `WORKORDER_UPDATE` / `CO_PRODORD_UPDATE`.
-4. **S/4HANA** — leverage CDS extensions + Key User Extensibility before classic exits.
-5. **Custom fields** — use CI_* append structures; for S/4 prefer Custom Fields app.
+1. **BAdIs > CMOD customer exits** — the object-oriented BAdIs get the preference.
+2. **MRP customization** — `MD_CHANGE_MRP_DATA` is the one to use, not `MDKP0001`.
+3. **Order changes** — reach for `WORKORDER_UPDATE` / `CO_PRODORD_UPDATE`.
+4. **S/4HANA** — CDS extensions + Key User Extensibility come before classic exits.
+5. **Custom fields** — go through CI_* append structures; for S/4 the Custom Fields app is preferred.
 
-BAdI를 우선 사용하고, MRP 결과 변경에는 `MD_CHANGE_MRP_DATA`를 권장합니다. S/4HANA에서는 CDS 확장 및 키 사용자 확장성을 먼저 고려하세요.
+우선순위는 BAdI에 두고, MRP 결과를 바꿀 때는 `MD_CHANGE_MRP_DATA`를 권장합니다. S/4HANA라면 CDS 확장과 키 사용자 확장성을 먼저 고려하세요.

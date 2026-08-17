@@ -45,9 +45,9 @@
 
 ## S/4HANA Specific
 
-- Asset Central Foundation (ACF) integration via S/4HANA Asset Management for Operations (formerly EAM) — equipment/functional location synchronize with ACF master data.
-- Fiori apps (e.g., Maintenance Scheduling Board, Manage Technical Objects) use CDS views over IFLO/EQUI.
-- Mobile Asset Management integrates via OData services built on PM tables.
+- Asset Central Foundation (ACF) integration via S/4HANA Asset Management for Operations (formerly EAM) — synchronization runs between equipment/functional location and ACF master data.
+- CDS views over IFLO/EQUI are what the Fiori apps (e.g., Maintenance Scheduling Board, Manage Technical Objects) use.
+- For Mobile Asset Management, integration goes through OData services built on PM tables.
 
 ## Related Tables
 

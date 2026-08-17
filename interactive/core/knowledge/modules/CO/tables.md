@@ -40,7 +40,7 @@
 ## S/4HANA Specific Tables
 | Table | System | Description |
 |-------|--------|-------------|
-| ACDOCA | S4 | Replaces COBK/COEP/COSP/COSS/GLPCA |
+| ACDOCA | S4 | Takes the place of COBK/COEP/COSP/COSS/GLPCA |
 | SKA1 | S4 | Cost elements merged with G/L accounts |
 | SKB1 | S4 | Cost elements merged with G/L accounts (cost element category) |
 | GLPCA | ECC | Profit Center Actuals — replaced by ACDOCA |

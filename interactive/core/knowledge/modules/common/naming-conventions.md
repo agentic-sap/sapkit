@@ -1,8 +1,8 @@
 # Common - ABAP Naming Conventions
 # 공통 - ABAP 명명 규칙
 
-All custom ABAP objects MUST follow these naming conventions. Customer namespace uses `Z` (standard) or `Y` (temporary/prototype) prefix.
-모든 커스텀 ABAP 오브젝트는 아래 명명 규칙을 따라야 합니다. 커스텀 네임스페이스는 `Z`(표준) 또는 `Y`(임시/프로토타입) 접두사를 사용합니다.
+Every custom ABAP object MUST comply with the naming conventions below. The customer namespace is entered through the `Z` prefix for standard development or the `Y` prefix for temporary and prototype work.
+커스텀 ABAP 오브젝트는 예외 없이 아래 명명 규칙을 지켜야 합니다. 커스텀 네임스페이스로 들어가는 접두사는 표준 개발이면 `Z`, 임시·프로토타입 작업이면 `Y`입니다.
 
 ## General Rules / 공통 규칙
 
@@ -17,7 +17,7 @@ All custom ABAP objects MUST follow these naming conventions. Customer namespace
 
 ## Module Codes / 모듈 코드
 
-Use these 2-3 letter module codes as the second segment (`Z{MODULE}_...`):
+The second segment of a name carries one of the 2-3 letter module codes below (`Z{MODULE}_...`):
 
 | Code | Module |
 |------|--------|
@@ -40,7 +40,7 @@ Use these 2-3 letter module codes as the second segment (`Z{MODULE}_...`):
 
 ## Object-Specific Naming / 오브젝트별 명명 규칙
 
-Per-type naming patterns (classes, interfaces, programs, function groups, data dictionary, UI/Dynpro, OData/RAP, enhancements, configuration, IDoc/ALE) are maintained in the companion file **[naming-conventions-objects.md](naming-conventions-objects.md)**. Consult it before creating any ABAP object.
+The patterns for each object type — classes, interfaces, programs, function groups, data dictionary, UI/Dynpro, OData/RAP, enhancements, configuration, IDoc/ALE — live in the companion file **[naming-conventions-objects.md](naming-conventions-objects.md)**. Read it before you create any ABAP object.
 
 ## Code-Level Naming / 코드 레벨 명명
 
@@ -81,16 +81,16 @@ Per-type naming patterns (classes, interfaces, programs, function groups, data d
 
 ### Methods / 메서드
 
-- Use verbs: `GET_`, `SET_`, `CREATE_`, `DELETE_`, `CALCULATE_`, `CHECK_`, `VALIDATE_`, `PROCESS_`, `CONVERT_`, `BUILD_`
-- Private methods: no additional prefix; public methods use same style; static methods same
-- Events: `ON_{EVENT}` (handler methods)
-- Example: `GET_ORDER_DETAIL`, `CALCULATE_TAX`, `ON_VALUE_CHANGED`
+- Use one of these verbs: `GET_`, `SET_`, `CREATE_`, `DELETE_`, `CALCULATE_`, `CHECK_`, `VALIDATE_`, `PROCESS_`, `CONVERT_`, `BUILD_`
+- Private methods carry no extra prefix; public methods keep the same style, and so do static methods
+- Event handler methods: `ON_{EVENT}`
+- For instance: `GET_ORDER_DETAIL`, `CALCULATE_TAX`, `ON_VALUE_CHANGED`
 
 ### Forms (ABAP Subroutines - legacy) / 폼 (레거시)
 
-- Pattern: `F01_{NAME}` / `FORM_{NAME}` / verb-based
-- Example: `FORM GET_ORDER_DATA`, `FORM F01_READ_CUSTOMER`
-- Modern ABAP prefers class methods over FORMs
+- Naming pattern: `F01_{NAME}`, `FORM_{NAME}`, or verb-based
+- Such as: `FORM GET_ORDER_DATA`, `FORM F01_READ_CUSTOMER`
+- Modern ABAP reaches for class methods rather than FORMs
 
 ## Special Prefixes / 특수 접두사 (예약됨)
 
@@ -105,23 +105,23 @@ Per-type naming patterns (classes, interfaces, programs, function groups, data d
 
 ## Validation Rules / 검증 규칙
 
-Before creating any object, verify:
+Check each of these before you create an object:
 
-1. **Name starts with `Z` or `Y`** (customer namespace)
-2. **Name is uppercase** (no lowercase letters)
-3. **Only A-Z, 0-9, _** (no hyphens, spaces, special chars)
-4. **Max length respected** (30 chars for most; check specific type)
-5. **Not reserved** (not matching SAP reserved names)
-6. **Not generic** (avoid `ZTEST`, `ZTEMP`, `ZDUMMY`, `Z1`, `ZAAA`)
-7. **Descriptive** (name communicates purpose)
-8. **Module code included** when applicable (`Z{MODULE}_...`)
-9. **Package assignment correct** (not `$TMP` for transportable objects)
+1. **Name starts with `Z` or `Y`** (these are the customer-namespace prefixes)
+2. **Name is uppercase** (not a single lowercase letter)
+3. **Only A-Z, 0-9, _** (no hyphen, no space, no special character)
+4. **Max length respected** (30 characters for most; confirm the limit for the specific type)
+5. **Not reserved** (no collision with an SAP reserved name)
+6. **Not generic** (steer clear of `ZTEST`, `ZTEMP`, `ZDUMMY`, `Z1`, `ZAAA`)
+7. **Descriptive** (the name says what the object is for)
+8. **Module code included** where it applies (`Z{MODULE}_...`)
+9. **Package assignment correct** (`$TMP` is wrong for anything transportable)
 
 ## Recommended Approach / 권장 접근
 
-- Follow the `Z{MODULE}_{TYPE}_{NAME}` pattern for maximum clarity
-- For classes, always use `ZCL_`, `ZIF_`, `ZCX_` type prefixes
-- For local objects inside programs, use `LCL_`, `LIF_`, `LTCL_`
-- Avoid `Y` prefix for production code — reserve for prototypes that will be renamed
-- Respect character limits — truncate the `{NAME}` portion if needed, never the prefix
-- In S/4HANA, follow RAP naming for OData/Fiori artifacts: `Z_I_`, `Z_C_`, `Z_SD_`, `Z_SB_`, `Z_BP_`
+- Reach for the `Z{MODULE}_{TYPE}_{NAME}` pattern; it reads clearest
+- Classes always take one of the type prefixes `ZCL_`, `ZIF_`, `ZCX_`
+- Objects local to a program take `LCL_`, `LIF_`, `LTCL_`
+- Keep the `Y` prefix out of production code — it is reserved for prototypes that will be renamed
+- Stay inside the character limits — when something has to give, truncate the `{NAME}` portion and never the prefix
+- On S/4HANA, OData/Fiori artifacts follow RAP naming: `Z_I_`, `Z_C_`, `Z_SD_`, `Z_SB_`, `Z_BP_`
