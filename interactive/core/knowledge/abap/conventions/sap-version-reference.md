@@ -22,10 +22,9 @@ working in (§3–§9), and escalate when the answer is not certain (§10).
   release supports is a separate axis, documented in
   [`abap-release-reference.md`](abap-release-reference.md); emitting syntax the
   configured release does not have fails at activation.
-- **Unset is not a default.** If `SAP_VERSION` is missing, stop. Ask the user to
-  run the profile setup
-  ([`troubleshooting.md`](../../../procedures/troubleshooting.md)) and proceed
-  only once it is established. Never fall back to a guess.
+- If `SAP_VERSION` is unset, fail safe: ask the user to run the profile setup
+  ([`troubleshooting.md`](../../../procedures/troubleshooting.md)) before
+  proceeding.
 
 ---
 
@@ -234,8 +233,6 @@ Directive for this area: §2.4 (no new SAPscript on S/4; Adobe Forms preferred).
 
 ### 9.4 Development model
 
-This row set decides how new code is shaped, not merely which object it reads.
-
 | Area | ECC 6.0 | S/4HANA |
 |------|---------|---------|
 | Recommended model | Classic Dynpro + Module Pool + BAPI | **RAP** (ABAP RESTful Application Programming, 754+) |
@@ -256,8 +253,8 @@ This row set decides how new code is shaped, not merely which object it reads.
   are callable. Consult
   [`spro-lookup.md`](../../../procedures/spro-lookup.md) and SAP Note guidance
   before recommending any classic FM or BAPI.
-- **Version unknown means stop, not improvise.** An unset `SAP_VERSION` routes
-  back to §1: ask the user to run the profile setup before proceeding.
+- **An unset `SAP_VERSION` routes back to §1** — ask the user to run the profile
+  setup before proceeding.
 - **Release is checked separately from version.** Even on the correct platform,
   syntax newer than the configured `ABAP_RELEASE` causes activation errors —
   see [`abap-release-reference.md`](abap-release-reference.md).

@@ -17,7 +17,7 @@ The release value is the input to every other section here, so it comes first.
 
 ## 2. Decision rules — what each release band allows
 
-With the release in hand, this table is the operational answer for most code. Pick the row the configured release falls into.
+With the release in hand, pick the row the configured release falls into.
 
 | Target release | Use | Avoid |
 |----------------|-----|-------|
@@ -34,7 +34,7 @@ Aim at the top of the band, not the bottom: always prefer the most modern syntax
 
 ## 3. Feature matrix — the release each feature arrives in
 
-Reach for this when the band table is not specific enough about one feature. Read every entry in one direction: the feature is off limits whenever the configured release is lower than the number beside it.
+Read every entry in one direction: the feature is off limits whenever the configured release is lower than the number beside it.
 
 **Floor marker** — at **702 (7.02)**, `READ TABLE ... ASSIGNING FIELD-SYMBOL(<fs>)` is not yet available.
 

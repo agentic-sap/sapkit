@@ -23,7 +23,7 @@ Anything outside that intersection stays on the normal path:
 
 ## 2. Why the branch exists
 
-On ECC the ADT REST API exposes no DDIC object endpoints; there is no source-based representation of a Dictionary object to POST. `CreateTable`, `CreateDataElement`, and `CreateDomain` therefore fail outright.
+On ECC the ADT REST API exposes no DDIC object endpoints; there is no source-based DDIC representation. `CreateTable`, `CreateDataElement`, and `CreateDomain` therefore fail outright.
 
 What replaces it is a **program-generation fallback**. Instead of creating the DDIC object, the agent writes an executable ABAP report into `$TMP`. When the user runs that report in SE38, the report creates the DDIC object by calling the SAP-internal `DDIF_*_PUT` function modules. Those write the **inactive version only**. Activation and transport assignment stay with the user, done by hand in SE11.
 
@@ -73,8 +73,6 @@ Do not refactor the skeleton.
 - **Package is `$TMP`, always.** The helper is a one-shot developer utility, not a deliverable.
 - **Never assign it to a transport.**
 - **Never let the program activate the DDIC object.** It performs the PUT and stops: no `DDIF_*_ACTIVATE` call, no `TR_OBJECTS_INSERT` call.
-
-Note the asymmetry these limits create, because the completion message depends on it: the **helper report** is activated by the agent so the user can run it, while the **DDIC object** it targets is not — that half belongs to the user in SE11.
 
 ## 6. Reporting back
 

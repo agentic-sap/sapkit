@@ -41,6 +41,11 @@
 체크는 판이 끝날 때 그 판이 찍는다. 명부 자체의 행을 지우거나 총계를 줄이지 않는다 — 체크가
 늘 뿐이다.
 
+**리뷰 근거는 양방향이다.** 원문 사실의 **누락 0**만이 아니라, 원문에 없던 단언·지시가
+들어가지 않았다는 **추가 0**까지 확인한 결과를 적는다. 재저작은 표현·구성만 바꾸는 일이므로
+**더하는 것도 범위 밖**이고, 한쪽만 재면 새 SAP 단언이 지식 파일에 조용히 얹힌다(판3.1에서
+실제로 그렇게 됐고 세 차례에 걸쳐 회수했다).
+
 ---
 
 ## 3. 범위
@@ -284,22 +289,22 @@ alv-sample 1 · procedural-sample 1).
 | 체크 | 파일 | 재저작 커밋 | 리뷰 근거 | 비고 |
 |---|---|---|---|---|
 | ☐ | `abap-release-examples.md` | | | |
-| ☑ | `abap-release-reference.md` | `515bdb50` | 2026-08-17 · 독립 리뷰 통과 — 사실 134항 누락 0 · 릴리스 번호 49쌍 양방향 일치 | 판3.1 |
+| ☑ | `abap-release-reference.md` | `515bdb50` | 2026-08-17 · 독립 리뷰 통과 — 누락 0(사실 134항 · 릴리스 번호 49쌍 양방향 일치) · 추가 0(회수 후 재검) | 판3.1 · 추가분 회수 3차까지 반영 |
 | ☐ | `alv-rules.md` | | | |
 | ☐ | `clean-code-oop.md` | | | 앵커 `zrsc4sap_oop_ex` 보존 필수 |
 | ☐ | `clean-code-procedural.md` | | | |
 | ☐ | `clean-code.md` | | | |
-| ☑ | `cloud-abap-constraints.md` | `aced6526` | 2026-08-17 · 독립 리뷰 통과 — 사실 214항 누락 0 · 표 39행 셀 일치 | 판3.1 · 리뷰 지적 회수 `48d05a52` |
+| ☑ | `cloud-abap-constraints.md` | `aced6526` | 2026-08-17 · 독립 리뷰 통과 — 누락 0(사실 214항 · 표 39행 셀 일치) · 추가 0(회수 후 재검) | 판3.1 · 추가분 회수 3차까지 반영 |
 | ☐ | `constant-rule.md` | | | |
-| ☑ | `ecc-ddic-fallback.md` | `554a85a3` | 2026-08-17 · 독립 리뷰 통과 — 사실 64항 누락 0 · 완료 메시지 fence 동일 | 판3.1 · 리뷰 지적 회수 `48d05a52` |
+| ☑ | `ecc-ddic-fallback.md` | `554a85a3` | 2026-08-17 · 독립 리뷰 통과 — 누락 0(사실 64항 · 완료 메시지 fence 동일) · 추가 0(회수 후 재검) | 판3.1 · 추가분 회수 3차까지 반영 |
 | ☐ | `field-typing-rule.md` | | | |
 | ☐ | `function-module-rule.md` | | | |
 | ☐ | `include-structure.md` | | | 앵커 `zrsc4sap_oop_ex` 보존 필수 |
-| ☑ | `naming-conventions.md` | `98eb7190` | 2026-08-17 · 독립 리뷰 통과 — 사실 158항 누락 0 · 표 23행 일치 | 판3.1 · 리뷰 지적 회수 `48d05a52` |
+| ☑ | `naming-conventions.md` | `98eb7190` | 2026-08-17 · 독립 리뷰 통과 — 누락 0(사실 158항 · 표 23행 일치) · 추가 0(회수 후 재검) | 판3.1 · 추가분 회수 3차까지 반영 |
 | ☐ | `ok-code-pattern.md` | | | |
 | ☐ | `oop-pattern.md` | | | 앵커 `zrsc4sap_oop_ex` 보존 필수 |
 | ☐ | `procedural-form-naming.md` | | | |
-| ☑ | `sap-version-reference.md` | `74648e17` | 2026-08-17 · 독립 리뷰 통과 — 사실 223항 누락 0 · 표 63행 전부 동일 | 판3.1 · 리뷰 지적 회수 `48d05a52` |
+| ☑ | `sap-version-reference.md` | `74648e17` | 2026-08-17 · 독립 리뷰 통과 — 누락 0(사실 223항 · 표 63행 전부 동일) · 추가 0(회수 후 재검) | 판3.1 · 추가분 회수 3차까지 반영 |
 | ☐ | `text-element-rule.md` | | | |
 
 #### 1-E · `interactive/core/knowledge/abap/templates/` — 견본 코드 5
