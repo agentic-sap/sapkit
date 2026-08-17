@@ -444,9 +444,9 @@ integrity + 소스 커밋 표류) · 각각의 음성시험. 「통과만 하는
 |---|---|---|---|
 | ⑴ 엔진 | tool-catalog diff 0 · `smoke-mcp` · `conformance-server-gates` · 실데이터 게이트 음성시험 | 대표 절차 1건 구·신 동일 결과 | `engine/` 소스 + 고지 |
 | ⑵ 검사기 ✅ | 코퍼스 판정 diff 0 · exit code 계약 CI assert **양극** | 훅 배선 후 경고 전용 성격 확인 | ~~`vsp/` 소스 + 고지~~ **은퇴 완료 2026-08-16** |
-| ⑶ 지식 | `check-links` 0 · `copy` 잔량 단조 감소(계수 방식은 착수 시 결정) | 구성 독립성 설명 가능 · 소비 절차 동작 | 차용 지식 파일 |
+| ⑶ 지식 | `check-links` 0 · `copy` 잔량 단조 감소(계수 방식 = **D-087** · 명부 [`reference/copy-baseline.md`](reference/copy-baseline.md)) | 구성 독립성 설명 가능 · 소비 절차 동작 | 차용 지식 파일 |
 | ⑶-c 템플릿 | 개명 게이트 통과 · 새 템플릿 생성→활성→기계 확인 | — | 옛 이름 템플릿 (SAP 오브젝트는 무접촉) |
-| ⑷ 고지 | `copy` 잔량 0(git 이력 대조) | LICENSE 표 ↔ 실제 서브트리 일치 | `interactive/LICENSE` |
+| ⑷ 고지 | 명부 잔량 0(증명은 git 이력) **+ 판4(oop 20) + 판7 소관분 판정** — 명부는 그 셋을 세지 않는다(**D-087 ③**) | LICENSE 표 ↔ 실제 서브트리 일치 | `interactive/LICENSE` |
 
 ---
 
