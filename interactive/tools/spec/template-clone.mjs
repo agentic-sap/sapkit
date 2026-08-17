@@ -1,128 +1,133 @@
-// sc4sap:program-to-spec — Template-clone xlsx renderer.
+// program-to-spec — Excel writer that clones the reference workbook.
 //
-// Strategy (양식 보존 / format-preserving):
-//   1. Read asset/template_base.xlsx (canonical reference workbook —
-//      English-source ZMMRTEST003 spec with all styles, borders, fonts, column
-//      widths, row heights, drawings, images intact).
-//   2. Re-zip every entry byte-for-byte EXCEPT xl/sharedStrings.xml.
-//   3. For xl/sharedStrings.xml, replace each <t>…</t> content using the
-//      user-supplied translation map TR { "English key": "한국어 값" }.
-//   4. Write the resulting xlsx to outPath.
+// The workbook is never assembled from scratch. `assets/spec/template_base.xlsx`
+// is unpacked, `xl/sharedStrings.xml` gets its cell texts swapped, and every
+// other zip entry is written back with its bytes untouched. Styles, borders,
+// fonts, column widths, row heights, drawing anchors and media therefore cannot
+// drift — they are literally the same bytes the reference workbook shipped.
+// That byte passthrough is the geometry guarantee documented in
+// `core/procedures/program-to-spec.md`; widening the edited set would void it.
 //
-// Why this exists:
-//   The previous workflow built xlsx geometry from JSON (SHEETS_DATA + custom
-//   styles), which silently drifted from the agreed reference format. By
-//   cloning the template and only swapping text payload, the output is GUARANTEED
-//   to match the reference layout exactly — styles, borders, image anchors,
-//   row heights, column widths all preserved.
+// The caller's deliverable is a TR map, not a workbook: a flat object whose keys
+// are the template's English cell texts (entity-decoded) and whose values are
+// this program's target-language replacements.
 //
-// Slot semantics (must be honoured by the TR map producer — sap-writer):
-//   · Sheet 1 (Program Overview): 17 Field/Value rows
-//   · Sheet 2 (Data Model):       4 table rows (slots: VBAK → MARA-style, VBAP →
-//                                 MARC-style, KNA1 → MAKT-style, MAKT → 4th) +
-//                                 CDS Views / BAPIs / BAdIs trailer rows
-//   · Sheet 3 (Inputs & Screens): 5 parameter slots (S_VKORG..S_VBELN) + 5
-//                                 warning rows. Repurpose unused slots with
-//                                 "— (해당 없음)" placeholders to keep row count.
-//   · Sheet 4 (Processing Logic): 12 step slots. Use "—" for unused.
-//   · Sheet 5 (Output):           10 ALV column slots. Use "—" for unused.
-//   · Sheet 6 (Authorizations):   5 rows.
-//   · Sheet 7 (Exceptions):       3 rows.
+//     { "Object Type": "오브젝트 타입", "ZMMRTEST003": "ZMMR1001" }
 //
-// SAP standard identifiers (table names, field names, parameter names) that
-// happen to match the source spec (ZMMRTEST003 / VBAK / VBELN / S_VKORG …)
-// MUST be present as TR keys to swap them for the target program's identifiers.
-// Identifiers absent from TR remain in the cloned file unchanged.
+// A cell text with no TR entry is left exactly as the template had it. That is
+// deliberate — SAP identifiers the target program shares with the reference spec
+// (table names, field names) need no swap — so unmapped texts are reported as a
+// warning list rather than treated as an error. The producer decides which of
+// them are genuine TR-map gaps.
+//
+// Fixed slot counts per sheet, and the placeholder conventions for filling slots
+// the target program does not use, live in `core/procedures/program-to-spec.md`
+// (§Excel TR Map). Keeping the row counts intact is what keeps the borders and
+// fills aligned with the cloned geometry.
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { unzipEntries, zipFiles } from './xlsx-zip.mjs';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const HERE = dirname(fileURLToPath(import.meta.url));
+
+/** The one zip entry this module is allowed to rewrite. */
+const STRINGS_ENTRY = 'xl/sharedStrings.xml';
+
+/** Reference workbook, relative to this file: tools/spec → assets/spec.
+ *  (Upstream filed it under a top-level `asset/`; the sapkit layout is
+ *  `assets/spec/`, and the inherited default pointed at a path that does not
+ *  exist here — every CLI run died with "template not found", 2026-07-31.) */
+const TEMPLATE_FROM_HERE = ['..', '..', 'assets', 'spec', 'template_base.xlsx'];
+
+/** `<t>` elements carry the cell text; the capture keeps their attributes. */
+const CELL_TEXT = /<t([^>]*)>([\s\S]*?)<\/t>/g;
+
+/** How much of the unmapped-text report to print, and how long each line runs. */
+const REPORT_LIMIT = 20;
+const REPORT_WIDTH = 80;
 
 // =============================================================
-// sharedStrings.xml translation
+// XML text entities
 // =============================================================
-function translateSharedStrings(xml, tr, { warnUntranslated = true } = {}) {
-  const missing = [];
-  const out = xml.replace(/<t([^>]*)>([\s\S]*?)<\/t>/g, (m, attrs, body) => {
-    const decoded = body
-      .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"').replace(/&apos;/g, "'")
-      .replace(/&amp;/g, '&');
-    const translated = tr[decoded];
-    if (translated == null) {
-      // English-looking strings that lack a mapping are likely bugs in the TR map.
-      // Pure-ASCII single tokens (table names, field codes) are intentionally
-      // unmapped when the target program shares the identifier.
-      if (warnUntranslated && /[A-Za-z]/.test(decoded) && decoded.length > 1) {
-        missing.push(decoded.slice(0, 80));
-      }
-      return m;
+// Both tables are order-sensitive: `&amp;` is decoded last and encoded first,
+// so a literal ampersand in the source text never gets read as the start of an
+// entity, and an encoded entity never gets its own ampersand re-encoded.
+const DECODE = [[/&lt;/g, '<'], [/&gt;/g, '>'], [/&quot;/g, '"'], [/&apos;/g, "'"], [/&amp;/g, '&']];
+const ENCODE = [[/&/g, '&amp;'], [/</g, '&lt;'], [/>/g, '&gt;'], [/"/g, '&quot;'], [/'/g, '&apos;']];
+
+const applyEntities = (text, table) =>
+  table.reduce((acc, [pattern, literal]) => acc.replace(pattern, literal), text);
+
+// Excel collapses leading/trailing whitespace and newlines unless the element
+// opts out, so a replacement that carries any needs the preserve flag.
+const needsPreserve = (text) => /^\s|\s$|\n/.test(text);
+
+// Worth reporting as a possible TR-map gap: has Latin letters (so it reads as
+// English source text) and is longer than a single character (bare codes and
+// numbering cells are not prose).
+const looksTranslatable = (text) => /[A-Za-z]/.test(text) && text.length > 1;
+
+// =============================================================
+// sharedStrings.xml rewrite
+// =============================================================
+function rewriteCellTexts(xml, tr) {
+  const unmapped = [];
+  const rewritten = xml.replace(CELL_TEXT, (element, attrs, encoded) => {
+    const source = applyEntities(encoded, DECODE);
+    const replacement = tr[source];
+    if (replacement == null) {
+      if (looksTranslatable(source)) unmapped.push(source.slice(0, REPORT_WIDTH));
+      return element;
     }
-    const enc = translated
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
-    const needsSpace = /^\s|\s$|\n/.test(translated);
-    const newAttrs = needsSpace && !/xml:space/.test(attrs)
-      ? ' xml:space="preserve"' + attrs : attrs;
-    return `<t${newAttrs}>${enc}</t>`;
+    const keptAttrs = needsPreserve(replacement) && !/xml:space/.test(attrs)
+      ? ` xml:space="preserve"${attrs}`
+      : attrs;
+    return `<t${keptAttrs}>${applyEntities(replacement, ENCODE)}</t>`;
   });
-  return { xml: out, missing };
+  return { xml: rewritten, unmapped };
+}
+
+function report(outPath, byteCount, unmapped) {
+  console.log(`template-clone: wrote ${outPath} (${byteCount} bytes)`);
+  if (unmapped.length === 0) return;
+  console.log(`template-clone: ${unmapped.length} English string(s) had no TR mapping:`);
+  for (const text of unmapped.slice(0, REPORT_LIMIT)) console.log(`  · ${JSON.stringify(text)}`);
+  const rest = unmapped.length - REPORT_LIMIT;
+  if (rest > 0) console.log(`  · … (${rest} more)`);
 }
 
 // =============================================================
 // Public API
 // =============================================================
 export function cloneTemplate({ outPath, tr, templatePath, verbose = true }) {
-  // Default: <plugin-root>/assets/spec/template_base.xlsx (two levels up from
-  // tools/spec/). The upstream layout is `asset/` at the repo root; the sapkit
-  // migration filed the same workbook under `assets/spec/`, so the inherited
-  // default resolved to a path that does not exist here and every CLI run of
-  // build-spec.mjs died with "template not found" (2026-07-31 실측).
-  const tplPath = templatePath
-    || resolve(__dirname, '..', '..', 'assets', 'spec', 'template_base.xlsx');
+  const tplPath = templatePath || resolve(HERE, ...TEMPLATE_FROM_HERE);
   if (!existsSync(tplPath)) {
     throw new Error(`template-clone: template not found at ${tplPath}`);
   }
-  const src = readFileSync(tplPath);
-  const entries = unzipEntries(src);
-  let foundSS = false;
-  let missing = [];
-  for (const e of entries) {
-    if (e.name === 'xl/sharedStrings.xml') {
-      foundSS = true;
-      const result = translateSharedStrings(e.data.toString('utf8'), tr);
-      e.data = Buffer.from(result.xml, 'utf8');
-      missing = result.missing;
-    }
+  const entries = unzipEntries(readFileSync(tplPath));
+  const strings = entries.find((entry) => entry.name === STRINGS_ENTRY);
+  if (!strings) {
+    throw new Error(`template-clone: ${STRINGS_ENTRY} missing from template`);
   }
-  if (!foundSS) throw new Error('template-clone: xl/sharedStrings.xml missing from template');
-  const out = zipFiles(entries);
-  writeFileSync(outPath, out);
-  if (verbose) {
-    console.log(`template-clone: wrote ${outPath} (${out.length} bytes)`);
-    if (missing.length > 0) {
-      console.log(`template-clone: ${missing.length} English string(s) had no TR mapping:`);
-      for (const s of missing.slice(0, 20)) console.log(`  · ${JSON.stringify(s)}`);
-      if (missing.length > 20) console.log(`  · … (${missing.length - 20} more)`);
-    }
-  }
-  return { outPath, bytes: out.length, missing };
+  const { xml, unmapped } = rewriteCellTexts(strings.data.toString('utf8'), tr);
+  strings.data = Buffer.from(xml, 'utf8');
+
+  const workbook = zipFiles(entries);
+  writeFileSync(outPath, workbook);
+  if (verbose) report(outPath, workbook.length, unmapped);
+  return { outPath, bytes: workbook.length, missing: unmapped };
 }
 
-// CLI usage:  node template-clone.mjs <tr-json-path> <out-xlsx-path>
-// Run unconditionally when invoked as the entrypoint script (process.argv[1]
-// equals this file). On Windows, fileURLToPath round-trip handles drive-letter
-// + backslash mismatches that broke the older `file://` comparison.
-const thisFile = fileURLToPath(import.meta.url);
-if (process.argv[1] && resolve(process.argv[1]) === thisFile) {
+// CLI:  node template-clone.mjs <tr-json-path> <out-xlsx-path>
+// argv[1] is compared through resolve() against this file's own path so the
+// Windows drive-letter and separator spellings of the same file still match.
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [trPath, outPath] = process.argv.slice(2);
   if (!trPath || !outPath) {
     console.error('Usage: node template-clone.mjs <tr-json-path> <out-xlsx-path>');
     process.exit(2);
   }
-  const tr = JSON.parse(readFileSync(trPath, 'utf8'));
-  cloneTemplate({ outPath, tr });
+  cloneTemplate({ outPath, tr: JSON.parse(readFileSync(trPath, 'utf8')) });
 }

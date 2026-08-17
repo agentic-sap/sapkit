@@ -2,13 +2,13 @@
 <!-- tier: minimal -->
 <!-- action: warn -->
 
-Customer (`Z*`/`Y*`) extension tables typically holding PII or sensitive business data. Must be evaluated per project; add concrete Z-table names to `.sapkit/blocklist-extend.txt` or to this file.
+Customer extension tables in the `Z*`/`Y*` namespace commonly hold PII or sensitive business data. Which ones actually do must be assessed project by project; record the concrete Z-table names in `.sapkit/blocklist-extend.txt` or in this file.
 
 | Pattern | Description | Why |
 |---------|-------------|-----|
-| `Z*` / `Y*` with PII content | Customer/partner Z-tables storing PII | Must be added to this list case-by-case |
+| `Z*` / `Y*` with PII content | Customer/partner Z-tables storing PII | Must be listed here case by case |
 | `ZHR_*`, `ZPA_*` | Typical customer HR extensions | Employee PII |
 | `ZCUST_*`, `ZKNA_*` | Customer-master extensions | Customer PII |
 | `ZLFA_*`, `ZVEND_*` | Vendor-master extensions | Vendor PII |
 
-> When a new Z-table is introduced, the developer/consultant MUST evaluate whether it belongs in this blocklist and append it before any extraction.
+> Whenever a new Z-table appears, the developer/consultant MUST judge whether it belongs on this blocklist and append it there before anything is extracted.

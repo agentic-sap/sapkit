@@ -1,7 +1,7 @@
 # Customer / Vendor / BP Master PII
 <!-- tier: minimal -->
 
-Name, address, tax ID, DUNS, national ID, DOB, relationships — core master-data PII for business partners, customers, and vendors.
+Master data for business partners, customers, and vendors is PII at its core — name, address, tax ID, DUNS, national ID, DOB, relationships.
 
 | Table | Description | Why |
 |-------|-------------|-----|

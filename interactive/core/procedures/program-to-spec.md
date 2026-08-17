@@ -149,7 +149,7 @@ Adopt the [sap-writer](../personas/sap-writer.md) persona for this step. Render 
      node tools/spec/build-spec.mjs <tr.json> <image-spec.json> <out.xlsx>
      ```
      (path relative to the harness repo root). Internally: `cloneTemplate(tr)` → `renderScreenImages(imageSpec)` → `swapImages(xlsxPath, …pngBuffers)`. Default output path is `.sapkit/specs/{OBJECT}-{YYYYMMDD}-{lang}.xlsx`. Pass `-` for the image-spec argument to skip image rendering and ship the text-only spec with the template's generic mockups (rare — only when no per-program imagery makes sense).
-  3. **Verify the artifact** — output size ≈ 95–110 KB depending on PNG sizes. `unzip -l` lists `xl/sharedStrings.xml` + `xl/media/image1.png` + `image2.png` + `image3.png` + `xl/drawings/drawing3.xml` + `drawing4.xml`. Open in Excel and scan every sheet — geometry MUST match [template_base.xlsx](../../assets/spec/template_base.xlsx), Sheet 3 shows the program-specific Selection + ALV, Sheet 4 shows the horizontal Process Flow under the heading.
+  3. **Verify the artifact** — output size ≈ 60–75 KB depending on PNG sizes. `unzip -l` lists `xl/sharedStrings.xml` + `xl/media/image1.png` + `image2.png` + `image3.png` + `xl/drawings/drawing3.xml` + `drawing4.xml`. Open in Excel and scan every sheet — geometry MUST match [template_base.xlsx](../../assets/spec/template_base.xlsx), Sheet 3 shows the program-specific Selection + ALV, Sheet 4 shows the horizontal Process Flow under the heading.
   4. **Cleanup** — leave both JSON files in `_tr/` and `_img/` for traceability. Remove only ephemeral files (probes, smoke tests).
 
   **Graceful degrade** — when no headless browser is on PATH (Chrome / Edge / Chromium not installed), `renderScreenImages` returns `null` per slot and `swapImages` skips them. The xlsx ends with template generic mockups on Sheet 3 and a blank Sheet 4 drawing — never crashes.
@@ -212,7 +212,7 @@ The Excel output is produced by cloning [template_base.xlsx](../../assets/spec/t
 
 ```jsonc
 {
-  "Program Overview (ZMMTEST003)": "프로그램 개요 (ZMMR1001)",
+  "Program Overview (ZMMRTEST003)": "프로그램 개요 (ZMMR1001)",
   "ZMMRTEST003":                   "ZMMR1001",
   "Object Type":                   "오브젝트 타입",
   "PROG/P (ABAP Report)":          "PROG/P (ABAP Report)",
@@ -232,7 +232,7 @@ When the target program has fewer items than the template's fixed slot count, **
 | Sheet 3 Warnings | 5 ⚠ rows | Use real findings; if fewer than 5, repeat the most important caveat or summarise into 5 buckets |
 | Sheet 4 Steps | 12 numbered rows | `— (해당 없음)` for the FORM name, brief explainer for the step text |
 | Sheet 5 Output columns | 10 ALV column rows | `— (해당 없음)` for unused field, `—` for length |
-| Sheet 6 Auth | 5 rows | Use real auth objects + GAP rows; rewire the template row labels semantically when needed (e.g. `Sales Org row-level` → `플랜트 단위`) |
+| Sheet 6 Auth | 5 rows | Use real auth objects + GAP rows; rewire the template row labels semantically when needed (e.g. `Sales organisation` → `플랜트 단위`) |
 | Sheet 7 Exceptions | 3 rows | Combine if target has only 2; split if it has 4+ — keep the 3-row template count |
 
 ### SAP identifier remapping
@@ -243,8 +243,8 @@ Identifiers in the template (`ZMMRTEST003`, `VBAK`, `VBELN`, `S_VKORG`, etc.) MU
 
 1. `node tools/spec/template-clone.mjs <tr-json> <out-xlsx>` exits 0.
 2. Stdout shows `NO TRANSLATION:` for ONLY the SAP standard identifiers the target program genuinely reuses (table names, field names common to both specs). Any prose / label / sheet-title / warning string missing from TR is a bug — patch and re-run.
-3. `unzip -l <out-xlsx>` lists 32 entries identical to the template (same names, similar sizes — only `xl/sharedStrings.xml` size differs).
-4. Output file ≈ 90 KB (text-only clone) / ≈ 95–110 KB (with images).
+3. `unzip -l <out-xlsx>` lists 32 entries — the template's 30 plus the injected `xl/media/image3.png` and `xl/drawings/_rels/drawing4.xml.rels` (text-only clone stays at 30; only `xl/sharedStrings.xml` size differs from the template).
+4. Output file ≈ 45 KB (text-only clone) / ≈ 60–75 KB (with images).
 5. Open in Excel — every sheet renders with identical geometry to the template.
 
 ## Image Replacement (always-on — part of the default Excel pipeline)

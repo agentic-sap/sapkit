@@ -5,8 +5,11 @@
 > 문장·우리 구현으로 다시 쓰는 일**의 잔량을 세는 장부다.
 >
 > **총계 170** = 1부 지식 갈래 **146** + 2부 편입분 **24**.
-> **현재 잔량 29** (체크 누계 141 — 판3.1·판3.2·판3.3·판3.4·판3.5. 최신 값은 §5 잔량 이력이
-> 정본이다.)
+> **현재 잔량 0** (체크 누계 **170** — 판3.1~판3.6. 최신 값은 §5 잔량 이력이 정본이다.)
+>
+> **⑶-b 갈래 완주 — 170/170 (2026-08-18 · 판3.6).** 미체크 행이 남지 않았다. 이 문서는 이제
+> 진척 장부가 아니라 **완주 기록**이다 — 셈 밖 소관(§3.2 — oop 20 = 판4 · 서버 결부 39 = 판7 ·
+> keyring 21 = 끝그림 ② · LICENSE = 판8)은 그대로 열려 있고, 그것이 판8(⑷)의 남은 전제다.
 
 ---
 
@@ -132,6 +135,7 @@ copy **166**(oop 20 포함) → 1부 **146** · 2부 **24** / 24 현존 · 총�
 | 판3.3 (산업 1-B 15 + 국가 1-C 17 재저작) | 2026-08-17 | +32 | **120** |
 | 판3.4 (모듈 전반부 43 — 재저작 30 + 검증 체크 13) | 2026-08-17 | +43 | **77** |
 | 판3.5 (모듈 후반부 48 — 재저작 35 + 검증 체크 13 · **1-A 소진**) | 2026-08-18 | +48 | **29** |
+| 판3.6 (잔량 5갈래 29 — 견본 5 · 훅 4 · 사양서 5 · 조회 2 · 정책 12 · xlsx 1 · **⑶-b 완주**) | 2026-08-18 | +29 | **0** |
 
 ---
 
@@ -325,11 +329,11 @@ alv-sample 1 · procedural-sample 1).
 
 | 체크 | 파일 | 재저작 커밋 | 리뷰 근거 | 비고 |
 |---|---|---|---|---|
-| ☐ | `alv-sample/field-catalog-guide.abap` | | | |
-| ☐ | `ecc/domain_create_sample.abap` | | | |
-| ☐ | `ecc/element_create_sample.abap` | | | |
-| ☐ | `ecc/table_create_sample.abap` | | | |
-| ☐ | `procedural-sample/main-program.abap` | | | |
+| ☑ | `alv-sample/field-catalog-guide.abap` | `df63ba58` | 2026-08-18 · 독립 리뷰 통과(R-CODE) — diff 정독 + 동봉 검사기 `lint` exit 0 + 인라인 복제 fence sha 동일 | 판3.6 · **D-089 ⓑ·ⓓ** · `conventions/alv-rules.md` 인라인 fence 1곳 동기(체크 완료편 무접촉의 명시 예외 — fence만) · CATCH `cx_root`→`cx_salv_msg` 협소화는 검사기 규칙 정합(의도 개선으로 기록) |
+| ☑ | `ecc/domain_create_sample.abap` | `55fa0e4d` | 2026-08-18 · 독립 리뷰 통과(R-CODE) — diff 정독 + `lint` exit 0 + 소비자 1:1 표 유효 | 판3.6 · **D-089 ⓑ** · `ecc-ddic-fallback.md` §4 축자 고정 요소 발견·준수 · What/How/Caution 헤더 라벨 독립 수렴(ecc 트리오) |
+| ☑ | `ecc/element_create_sample.abap` | `f4db4b65` + 회수 `378db9c7` | 2026-08-18 · 독립 리뷰 통과(R-CODE) — **초회 FAIL(Major) → 회수 후 재확인 PASS**(축자 문자열 복원 · `lint` 0) | 판3.6 · **D-089 ⓑ** · closing line이 `ecc-ddic-fallback` §4 축자 계약을 이탈해 원문 문자열로 복원 · 헤더 주석의 유령 이름(`ZDTEL_`/`ZDOM_`) 제거 · 형제 짝 도메인 불일치(원문 선재)는 무접촉 보존 |
+| ☑ | `ecc/table_create_sample.abap` | `290893a1` | 2026-08-18 · 독립 리뷰 통과(R-CODE) — diff 정독 + `lint` exit 0 + 교차 계약 표 실측 | 판3.6 · **D-089 ⓑ** · `add_field` 컬럼 정렬 스타일 보존(analyze double_space 오탐 무시) |
+| ☑ | `procedural-sample/main-program.abap` | `b3b91e97` | 2026-08-18 · 독립 리뷰 통과(R-CODE) — diff 정독 + `lint` exit 0 + 본문 INCLUDE 실순서 대조 | 판3.6 · **D-089 ⓑ** · SOURCE OF TRUTH 지위 보존 · 헤더 주석의 INCLUDE 순서 오기를 **본문 정본으로 정정** · ⚠ 그 정정이 **소비자 4곳의 인용 순서 어긋남을 표면화**(판4 재료) |
 
 ---
 
@@ -346,12 +350,17 @@ alv-sample 1 · procedural-sample 1).
 (`README.md` · `offline-code-analysis.mjs` · `syntax-checker.mjs` ·
 `transport-validator.mjs`)은 차용분이 아니다.
 
+**판정 채록 러너 신설** — 이 4편은 판정 로직을 검증하는 시험이 레포에 **없는 채로** 재구현됐다.
+그래서 재구현 **전에** 현행 훅의 판정을 `interactive/scripts/test-hook-decisions.mjs`(커밋
+`1b1384f8` · **74케이스**)로 채록해 회귀 기준을 세웠다(D-089 ⓔ). 아래 4행의 리뷰 근거는 그
+러너를 **원본 훅에도 걸어 동일 통과**시킨 교차 대조를 포함한다.
+
 | 체크 | 파일 | 재저작 커밋 | 리뷰 근거 | 비고 |
 |---|---|---|---|---|
-| ☐ | `block-forbidden-tables.mjs` | | | |
-| ☐ | `install-hooks.mjs` | | | |
-| ☐ | `prefer-sqlquery-explicit-fields.mjs` | | | |
-| ☐ | `tier-readonly-guard.mjs` | | | |
+| ☑ | `block-forbidden-tables.mjs` | `2224a5c6` | 2026-08-18 · 독립 리뷰 통과(R-CODE) — 채록 74/74(원본 훅 교차 통과) + **325케이스 차분** + 변이 음성 5종 + 원·신 payload 문자 대조 | 판3.6 · **D-089 ⓑ·ⓔ** · fail-closed 보존 · 집계 SELECT도 FROM 판정(deny)·`t~*` 별칭 사각 등 채록 특이 5건은 **현행 동작 동결** |
+| ☑ | `install-hooks.mjs` | `f9f37ed1` | 2026-08-18 · 독립 리뷰 통과(R-CODE) — 54/54 바이트 차등 + `test-hook-switch.mjs` 13/13 | 판3.6 · **D-089 ⓑ** · 콘솔 접두 `[sc4sap]`→`[sapkit]` 전환(무의존 grep 확인 — 브랜드 표기 혼재는 후속 정리 별건) |
+| ☑ | `prefer-sqlquery-explicit-fields.mjs` | `61db3952` | 2026-08-18 · 독립 리뷰 통과(R-CODE) — 채록 74/74(원본 훅 교차 통과) + 변이 검출 실증 | 판3.6 · **D-089 ⓑ·ⓔ** · **fail-open 비대칭**을 계약대로 동결(4훅 중 유일) |
+| ☑ | `tier-readonly-guard.mjs` | `d164b5ef` | 2026-08-18 · 독립 리뷰 통과(R-CODE) — 채록 74/74(원본 훅 교차 통과) + mutation prefix 전 계열 대조 | 판3.6 · **D-089 ⓑ·ⓔ** · 비객체 JSON 크래시 = 실질 fail-open 갭 **발견·동결 승계**(수리는 별도 D-결정 소관) |
 
 #### 2-B · `interactive/tools/spec/` — 사양서 도구 5
 
@@ -360,11 +369,11 @@ alv-sample 1 · procedural-sample 1).
 
 | 체크 | 파일 | 재저작 커밋 | 리뷰 근거 | 비고 |
 |---|---|---|---|---|
-| ☐ | `build-spec.mjs` | | | 제2출처 (D-053) — 핀 사본 아님 |
-| ☐ | `image-swap.mjs` | | | |
-| ☐ | `screen-image-renderer.mjs` | | | 제2출처 (D-053) — 핀 사본 아님 |
-| ☐ | `template-clone.mjs` | | | 핀 사본 + 로컬 1줄 수리 (D-053) |
-| ☐ | `xlsx-zip.mjs` | | | |
+| ☑ | `build-spec.mjs` | `8558fd95` | 2026-08-18 · 독립 리뷰 통과(R-SPEC) — **E2E 43/43**(독립 ZIP 파서 + OPC + SpreadsheetML 3종 검증기) + 37/37 + 음성 5종 | 판3.6 · **D-089 ⓑ** · 제2출처 (D-053) — 핀 사본 아님 · npm 의존 0 유지 |
+| ☑ | `image-swap.mjs` | `3780a387` | 2026-08-18 · 독립 리뷰 통과(R-SPEC) — 1,131 assert + drawing4 주입 검증 | 판3.6 · **D-089 ⓑ** · 헤더의 "opt-in" 잔존 주석(폐기된 옛 설계) 재구현으로 해소 |
+| ☑ | `screen-image-renderer.mjs` | `b452b9da` | 2026-08-18 · 독립 리뷰 통과(R-SPEC) — **814 + 6,800 fuzz 바이트 동일** + 변이 10종 음성 + D-053 앵커 4종 재현 | 판3.6 · **D-089 ⓑ** · 제2출처 (D-053) — 핀 사본 아님 · **export 표면 18종 이름 불변**(3중 소비) · QUIRK 5건 동결 마킹 |
+| ☑ | `template-clone.mjs` | `1fbc8b69` | 2026-08-18 · 독립 리뷰 통과(R-SPEC) — 전 표면 바이트 동일 + 단독 스모크 exit 0 | 판3.6 · **D-089 ⓑ** · 핀 사본 + 로컬 1줄 수리 (D-053) |
+| ☑ | `xlsx-zip.mjs` | `a81ecd8c` | 2026-08-18 · 독립 리뷰 통과(R-SPEC) — 38/38 + round-trip 바이트 동일 | 판3.6 · **D-089 ⓑ** · zip 파트명·`xml:space="preserve"` 조건 로직 리터럴 보존 |
 
 #### 2-C · `interactive/tools/fetch/` — 조회 도구 2
 
@@ -374,27 +383,35 @@ alv-sample 1 · procedural-sample 1).
 
 | 체크 | 파일 | 재저작 커밋 | 리뷰 근거 | 비고 |
 |---|---|---|---|---|
-| ☐ | `fetch-abap-keyword-doc.mjs` | | | |
-| ☐ | `fetch-sap-help-doc.mjs` | | | |
+| ☑ | `fetch-abap-keyword-doc.mjs` | `adad33f5` | 2026-08-18 · 독립 리뷰 통과(R-CODE) — 원↔재 **77쌍 바이트 동일** + exit 코드 계약 양극 assert | 판3.6 · **D-089 ⓑ** · 호스트 화이트리스트·topic charset·no-eval 브레이스 스캔 리터럴 보존 · 헤더 `sc4sap`→`SAPKIT` 전환 |
+| ☑ | `fetch-sap-help-doc.mjs` | `632ad71a` | 2026-08-18 · 독립 리뷰 통과(R-CODE) — 원↔재 **30쌍 동일** + `/docs/r/` 거부·version 미지정 경고 문구 대조 | 판3.6 · **D-089 ⓑ** · 전송 실패 경로의 `process.exit(1)` 크래시(Node24/Windows undici — **선재**)를 채록대로 재현·동결(수리는 별건) |
 
 #### 2-D · `interactive/core/policies/data-protection/` — 데이터보호 정책 12
 
 원본 `exceptions/**`. 폴더의 13파일 중 `data-extraction-policy.md`는 차용분이 아니다.
 
+**갈래 공통 근거** — 이 12편은 11편이 훅 `block-forbidden-tables.mjs`가 정규식으로 파싱하는
+**살아있는 블록리스트 데이터**다(`table_exception.md`만 파싱 제외). 그래서 체크 전제가
+**파싱 동치 기계 증명**이다(D-089 ⓐ): 재저작 전후의 블록리스트 집합(테이블·tier·action·패턴)이
+완전 동일함을 스크립트로 증명하고, 리뷰가 독립 재검 **11/11**(절취 충실도 기계 대조 + 변이
+15종 음성)과 **실훅 바이너리 530회 종단 대조**(5프로파일 · 판정 차이 **0**)로 재확인했다.
+**게이트 하드코딩 6종은 6/6 바이트 동일** · **구문 층 12/12 불변**(H3→H2 승격 0 · 링크 11 ·
+fence) · 서문 **12/12 재저작** · 숫자 변경 0.
+
 | 체크 | 파일 | 재저작 커밋 | 리뷰 근거 | 비고 |
 |---|---|---|---|---|
-| ☐ | `addresses-communication.md` | | | |
-| ☐ | `audit-security-logs.md` | | | |
-| ☐ | `auth-security.md` | | | |
-| ☐ | `banking-payment.md` | | | |
-| ☐ | `communication-workflow.md` | | | |
-| ☐ | `custom-patterns.md` | | | |
-| ☐ | `hr-payroll.md` | | | |
-| ☐ | `master-data-pii.md` | | | |
-| ☐ | `pricing-conditions.md` | | | |
-| ☐ | `protected-business-data.md` | | | |
-| ☐ | `table_exception.md` | | | |
-| ☐ | `tax-government-ids.md` | | | |
+| ☑ | `addresses-communication.md` | `7d748d04` | 2026-08-18 · 독립 리뷰 통과(R-DP) — 파싱 동치 + 구문 층 불변 + 강도 동급 | 판3.6 · **D-089 ⓐ** · 서문·Why 열 재저작 |
+| ☑ | `audit-security-logs.md` | `bffa1a39` | 2026-08-18 · 독립 리뷰 통과(R-DP) — 파싱 동치 + 하드코딩 문자 대조 | 판3.6 · **D-089 ⓐ** · 게이트 앵커 `BALDAT`(strict/deny) 문자 불변 · SLG1 = 트랜잭션(원문 자기표시 보존) |
+| ☑ | `auth-security.md` | `0b43edcf` | 2026-08-18 · 독립 리뷰 통과(R-DP) — 파싱 동치 + 하드코딩 문자 대조 | 판3.6 · **D-089 ⓐ** · 게이트 앵커 `USR02`(minimal) 불변 · Why 셀 재저작(술어성 서술 실재 — 강도 동급) |
+| ☑ | `banking-payment.md` | `c77da1b5` | 2026-08-18 · 독립 리뷰 통과(R-DP) — 파싱 동치 + 하드코딩 문자 대조 | 판3.6 · **D-089 ⓐ** · 게이트 앵커 `BNKA`(minimal/deny) 불변 · ⚠ Description 10셀 재저작(일관성 이탈 **명시 수용** — `rule.description`은 dead field · D-089 정직 유보) |
+| ☑ | `communication-workflow.md` | `79ce6448` | 2026-08-18 · 독립 리뷰 통과(R-DP) — 파싱 동치 + 구문 층 불변 | 판3.6 · **D-089 ⓐ** · 서문 재저작(표면 소) |
+| ☑ | `custom-patterns.md` | `b770a7a0` | 2026-08-18 · 독립 리뷰 통과(R-DP) — 파싱 동치 + 지시 강도 동급 | 판3.6 · **D-089 ⓐ** · MUST 지시문 강도 그대로 재저작 · ⚠ 훅 파서 첫 토큰 취득으로 `Y*` 커버리지 0(문서↔훅 갭 — 동결·별건) |
+| ☑ | `hr-payroll.md` | `8b149773` | 2026-08-18 · 독립 리뷰 통과(R-DP) — 파싱 동치 + 하드코딩 문자 대조 | 판3.6 · **D-089 ⓐ** · 게이트 앵커 `PA0008`(deny) 불변 · 헤더 행 미스킵으로 생기는 유령 엔트리 2종은 **선재 결함**으로 보존 |
+| ☑ | `master-data-pii.md` | `cfedca95` | 2026-08-18 · 독립 리뷰 통과(R-DP) — 파싱 동치 + 하드코딩 문자 대조 | 판3.6 · **D-089 ⓐ** · 게이트 앵커 `KNA1`(minimal/deny) 불변 · **Why 열 전면 보존**(1~4단어 명사구 = 기계 소비 controlled vocabulary · 훅 deny 메시지에 verbatim 노출 — 판정 폭) |
+| ☑ | `pricing-conditions.md` | `80a33620` | 2026-08-18 · 독립 리뷰 통과(R-DP) — 파싱 동치 + 식별자(KBETR·KWERT 등) 불변 | 판3.6 · **D-089 ⓐ** · Description 1셀 재저작(위 정직 유보와 같은 계열) |
+| ☑ | `protected-business-data.md` | `bd9af857` | 2026-08-18 · 독립 리뷰 통과(R-DP) — 파싱 동치 + 하드코딩 문자 대조 | 판3.6 · **D-089 ⓐ** · 게이트 앵커 `VBRK`(standard/warn) 불변 |
+| ☑ | `table_exception.md` | `5e9e53a2` | 2026-08-18 · 독립 리뷰 통과(R-DP) — 산문 전량 대조 + 「Pattern Syntax」 절 ↔ 훅 실동작 대조 + 링크 11 유효 | 판3.6 · **D-089 ⓐ④**(절차 문서 취급 — 파싱 제외 1편) · ⚠ **문서↔훅 불일치 5건 원문대로 보존·보고만**(구경로 2곳 · 제외 파일 서술 과소 · H2 리셋 서술 · 와일드카드 형제 소실 실증 · 구도구명) |
+| ☑ | `tax-government-ids.md` | `1384f525` | 2026-08-18 · 독립 리뷰 통과(R-DP) — 파싱 동치 + 구문 층 불변 | 판3.6 · **D-089 ⓐ** · EN 단일 유지(KR 신설 0) |
 
 #### 2-E · `interactive/assets/spec/` — 사양서 엑셀 템플릿 1
 
@@ -402,4 +419,4 @@ alv-sample 1 · procedural-sample 1).
 
 | 체크 | 파일 | 재저작 커밋 | 리뷰 근거 | 비고 |
 |---|---|---|---|---|
-| ☐ | `template_base.xlsx` | | | 바이너리 — 재제작 방법은 후속 판이 정한다 |
+| ☑ | `template_base.xlsx` | `4d7e8ce5` | 2026-08-18 · 독립 리뷰 통과(R-SPEC) — 신조 자산 zip 재개봉 assert(시트 7·슬롯 앵커·이미지 주입) + **재현성 기계 증명**(재실행 산출물 해시 = 커밋 자산 해시) + build-spec **E2E 43/43** | 판3.6 · **D-089 ⓒ** · 바이너리 재제작 = **생성 스크립트** `tools/spec/gen-template-base.mjs` 신설 · **45,357B 신조**(30파트 전부 자체 산출 · image1/2.png도 재저작 렌더러로 자체 렌더) · theme/metadata 파트는 **의도적 미포함** |

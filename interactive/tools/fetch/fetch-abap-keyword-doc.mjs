@@ -1,143 +1,319 @@
 #!/usr/bin/env node
 /**
- * sc4sap — ABAP Keyword Documentation fetcher (browserless, no eval)
+ * SAPKIT — ABAP Keyword Documentation reader for help.sap.com (no browser, no eval)
  *
- * The SAP Help Portal ABAP keyword docs (`help.sap.com/doc/abapdocu_*`) are a
- * SAPUI5 SPA. The browser route (`...<topic>.htm`) is a client-side wrapper that
- * returns "Page Not Found" to direct fetches. The ACTUAL content lives in a
- * sibling `...<topic>.html` file (note: `.html`, not `.htm`) as a JS object
- * literal passed to `new sap.ui.model.json.JSONModel({ par1: "...", ... })`.
+ * WHY A SPECIAL READER IS NEEDED
+ * The abapdocu pages (`help.sap.com/doc/abapdocu_*`) are served by a SAPUI5
+ * single-page app. The address a browser shows — `…/<topic>.htm` — is only the
+ * client-side shell; fetched directly it answers "Page Not Found". The prose
+ * lives one letter away, in the sibling `…/<topic>.html`, where the build has
+ * inlined it as a JavaScript object literal handed to
+ * `new sap.ui.model.json.JSONModel({ par1: "…", ul1: "…", code1: "…" })`.
  *
- * This script fetches that `.html` and extracts the content WITHOUT executing
- * any remote code: it locates the model block by brace-balancing (string scan
- * only) and pulls the par / ul / code STRING values with a constrained parser.
+ * HOW THE LITERAL IS READ — WITHOUT RUNNING IT
+ * Remote page text is never executed and never handed to `eval`, `Function`, or
+ * `JSON.parse` on unvetted input. Instead the literal is located by scanning
+ * characters: `sliceBalancedObject` walks forward from the opening brace keeping
+ * a depth counter, skipping over anything inside quotes so that a `{` or `}`
+ * printed in the documentation prose cannot end the object early. Inside that
+ * slice, only `par<n>` / `ul<n>` / `code<n>` string values are lifted out, one
+ * quoted run at a time, and their backslash escapes are expanded by an explicit
+ * decoder. So the worst a hostile page could achieve is nonsense on stdout.
  *
- * Usage:
+ * USAGE
  *   node fetch-abap-keyword-doc.mjs <topic-or-help.sap.com-url>
  *   node fetch-abap-keyword-doc.mjs abenwhere_all_entries
  *
- * Security: only help.sap.com is contacted; topic ids are validated; no eval.
- * Scope: keyword/statement reference pages (the par / ul / code template).
- * Out of scope: OSS Notes (auth-walled) and non-abapdocu Help Portal products.
+ * EXIT CODES
+ *   0  documentation printed to stdout
+ *   1  the page could not be retrieved (network failure or non-OK HTTP status)
+ *   2  nothing to do: no argument, or an argument this reader will not accept
+ *   3  page retrieved, but it holds no keyword-reference content model
+ *
+ * BOUNDARIES
+ *   Contacts help.sap.com and nothing else. Node built-ins only, no packages,
+ *   no credentials. Covers keyword/statement reference pages, i.e. the
+ *   par/ul/code page template. Out of scope: OSS Notes behind an S-user login,
+ *   and Help Portal products that are not abapdocu.
  */
 
-const BASE = 'https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US';
+const DOC_ROOT = 'https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US';
+const ALLOWED_HOST = 'help.sap.com';
 
-function toContentUrl(arg) {
-  let topic = String(arg).trim();
-  if (/^https?:\/\//i.test(topic)) {
-    let u;
-    try { u = new URL(topic); } catch { throw new Error('Invalid URL: ' + topic); }
-    if (u.hostname !== 'help.sap.com') throw new Error('Only help.sap.com URLs are allowed (got ' + u.hostname + ').');
-    const m = u.pathname.match(/\/([A-Za-z0-9_]+)\.html?$/);
-    if (!m) throw new Error('Could not parse an abapdocu topic id from URL: ' + topic);
-    topic = m[1];
+const LOOKS_LIKE_URL = /^https?:\/\//i;
+const TOPIC_IN_PATH = /\/([A-Za-z0-9_]+)\.html?$/;
+const TRAILING_HTML_SUFFIX = /\.html?$/i;
+const TOPIC_ID = /^[A-Za-z0-9_]+$/;
+const PAGE_TITLE = /<title>([^<]*)<\/title>/i;
+
+const EXIT_UNREACHABLE = 1;
+const EXIT_BAD_INVOCATION = 2;
+const EXIT_NO_MODEL = 3;
+
+// ---------------------------------------------------------------------------
+// Argument → content URL
+// ---------------------------------------------------------------------------
+
+/**
+ * Accepts either a bare topic id or a help.sap.com URL and returns the address
+ * of the `.html` file that carries the text. Throws on anything else; every
+ * throw here is an invocation problem, so main() maps it to exit 2.
+ */
+function resolveContentUrl(argument) {
+  let topic = String(argument).trim();
+  if (LOOKS_LIKE_URL.test(topic)) topic = topicFromUrl(topic);
+  topic = topic.replace(TRAILING_HTML_SUFFIX, '');
+  if (!TOPIC_ID.test(topic)) {
+    throw new Error(`Not a usable topic id — letters, digits and underscore only: ${topic}`);
   }
-  topic = topic.replace(/\.html?$/i, '');
-  if (!/^[A-Za-z0-9_]+$/.test(topic)) throw new Error('Invalid topic id (expected [A-Za-z0-9_]): ' + topic);
-  return `${BASE}/${topic}.html`;
+  return `${DOC_ROOT}/${topic}.html`;
 }
 
-// Brace-balanced slice starting at the '{' at openIdx (string scan; respects quotes/escapes). No eval.
-function extractBalanced(s, openIdx) {
-  let depth = 0, inStr = false, q = '', esc = false;
-  for (let i = openIdx; i < s.length; i++) {
-    const c = s[i];
-    if (inStr) { if (esc) esc = false; else if (c === '\\') esc = true; else if (c === q) inStr = false; continue; }
-    if (c === '"' || c === "'") { inStr = true; q = c; continue; }
-    if (c === '{') depth++;
-    else if (c === '}') { depth--; if (depth === 0) return s.slice(openIdx, i + 1); }
+/** Narrow a supplied URL down to its topic id, refusing any other host. */
+function topicFromUrl(candidate) {
+  let parsed;
+  try {
+    parsed = new URL(candidate);
+  } catch {
+    throw new Error(`Could not read that as a URL: ${candidate}`);
+  }
+  if (parsed.hostname !== ALLOWED_HOST) {
+    throw new Error(`This reader contacts ${ALLOWED_HOST} only — that URL points at ${parsed.hostname}.`);
+  }
+  const inPath = parsed.pathname.match(TOPIC_IN_PATH);
+  if (!inPath) {
+    throw new Error(`No abapdocu topic id at the end of that path: ${candidate}`);
+  }
+  return inPath[1];
+}
+
+// ---------------------------------------------------------------------------
+// Locating and reading the embedded model — character scanning, never eval
+// ---------------------------------------------------------------------------
+
+/**
+ * Return the `{ … }` run that starts at openIndex, matched by brace depth.
+ * Quoted spans are stepped over wholesale (honouring backslash escapes) so a
+ * brace inside a documentation string never counts toward the depth.
+ * Null when the braces never balance before the text runs out.
+ */
+function sliceBalancedObject(source, openIndex) {
+  let depth = 0;
+  let quote = '';
+  let escaped = false;
+  for (let at = openIndex; at < source.length; at++) {
+    const ch = source[at];
+    if (quote) {
+      if (escaped) escaped = false;
+      else if (ch === '\\') escaped = true;
+      else if (ch === quote) quote = '';
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      quote = ch;
+      continue;
+    }
+    if (ch === '{') {
+      depth++;
+    } else if (ch === '}') {
+      depth--;
+      if (depth === 0) return source.slice(openIndex, at + 1);
+    }
   }
   return null;
 }
 
-// Decode a JS string-literal body (escapes intact) to plain text — proper unescaper, no eval.
-function decodeJsString(raw) {
-  return String(raw).replace(/\\(u[0-9a-fA-F]{4}|x[0-9a-fA-F]{2}|[\s\S])/g, (_, e) => {
-    if (e[0] === 'u' || e[0] === 'x') return String.fromCharCode(parseInt(e.slice(1), 16));
-    switch (e) {
-      case 'n': return '\n'; case 't': return '\t'; case 'r': return '\r';
-      case 'b': return '\b'; case 'f': return '\f'; case 'v': return '\v'; case '0': return '\0';
-      default: return e; // \" -> "  \\ -> \  \/ -> /  \<space> -> <space>
+/**
+ * Read one quoted run starting at `from`, which must be the first character
+ * after the opening quote. Escapes are carried through untouched — decoding is
+ * a separate step — so the scan only has to know that a backslash makes the
+ * next character ordinary, including a quote that would otherwise close.
+ * Reports where the closing quote sits (or where the text ended).
+ */
+function readQuotedRun(source, from, quote) {
+  let body = '';
+  let at = from;
+  let escaped = false;
+  for (; at < source.length; at++) {
+    const ch = source[at];
+    if (escaped) {
+      body += '\\' + ch;
+      escaped = false;
+      continue;
     }
+    if (ch === '\\') {
+      escaped = true;
+      continue;
+    }
+    if (ch === quote) break;
+    body += ch;
+  }
+  return { body, closesAt: at };
+}
+
+const SHORT_ESCAPE = new Map([
+  ['n', '\n'],
+  ['t', '\t'],
+  ['r', '\r'],
+  ['b', '\b'],
+  ['f', '\f'],
+  ['v', '\v'],
+  ['0', '\0'],
+]);
+
+/** Expand the backslash escapes of a JS string literal body into real text. */
+function expandEscapes(body) {
+  return String(body).replace(/\\(u[0-9a-fA-F]{4}|x[0-9a-fA-F]{2}|[\s\S])/g, (_, sequence) => {
+    const lead = sequence[0];
+    if (lead === 'u' || lead === 'x') return String.fromCharCode(parseInt(sequence.slice(1), 16));
+    if (SHORT_ESCAPE.has(lead)) return SHORT_ESCAPE.get(lead);
+    return sequence; // \" → "  \\ → \  \/ → /  \<newline> → <newline>
   });
 }
 
-// Pull (par|ul|code)N string values from the model block — constrained parser, no eval.
-function parseModelFields(block) {
-  const obj = {};
-  const re = /\b(par|ul|code)(\d+)\s*:\s*("|')/g;
-  let m;
-  while ((m = re.exec(block))) {
-    const key = m[1] + m[2];
-    const quote = m[3];
-    let i = re.lastIndex, out = '', esc = false;
-    for (; i < block.length; i++) {
-      const c = block[i];
-      if (esc) { out += '\\' + c; esc = false; continue; }
-      if (c === '\\') { esc = true; continue; }
-      if (c === quote) break;
-      out += c;
-    }
-    if (obj[key] === undefined) obj[key] = decodeJsString(out);
-    re.lastIndex = i + 1; // resume scanning AFTER the closing quote — never rescan string contents
+/**
+ * Harvest the par/ul/code string values out of one object literal. Keys are
+ * matched by pattern rather than by parsing the whole object, and scanning
+ * always resumes past the closing quote so string contents are never mistaken
+ * for further keys. First value wins if a key somehow repeats.
+ * Null when the literal contributes no fields at all.
+ */
+function collectContentFields(objectSource) {
+  const fieldHead = /\b(par|ul|code)(\d+)\s*:\s*("|')/g;
+  const fields = {};
+  let head;
+  while ((head = fieldHead.exec(objectSource))) {
+    const key = head[1] + head[2];
+    const run = readQuotedRun(objectSource, fieldHead.lastIndex, head[3]);
+    if (fields[key] === undefined) fields[key] = expandEscapes(run.body);
+    fieldHead.lastIndex = run.closesAt + 1;
   }
-  return Object.keys(obj).length ? obj : null;
+  return Object.keys(fields).length ? fields : null;
 }
 
-function extractModel(html) {
-  const re = /JSONModel\(\s*\{/g; let m;
-  while ((m = re.exec(html))) {
-    const braceIdx = html.indexOf('{', m.index);
-    const block = extractBalanced(html, braceIdx);
-    if (block && /\bpar1\s*:\s*["']/.test(block)) {
-      const obj = parseModelFields(block);
-      if (obj && obj.par1) return obj;
-    }
+/**
+ * Walk every JSONModel construction on the page and return the first one that
+ * looks like a documentation model — a `par1` field is the tell, since the same
+ * page also builds small models for navigation and versioning.
+ */
+function findContentModel(pageSource) {
+  const modelCall = /JSONModel\(\s*\{/g;
+  let call;
+  while ((call = modelCall.exec(pageSource))) {
+    const objectSource = sliceBalancedObject(pageSource, pageSource.indexOf('{', call.index));
+    if (!objectSource || !/\bpar1\s*:\s*["']/.test(objectSource)) continue;
+    const fields = collectContentFields(objectSource);
+    if (fields && fields.par1) return fields;
   }
   return null;
 }
 
-const strip = h => String(h || '')
-  .replace(/<pre[^>]*>/gi, '\n').replace(/<\/pre>/gi, '\n')
-  .replace(/<li[^>]*>/gi, '\n  - ').replace(/<\/p>/gi, '\n')
-  .replace(/<[^>]+>/g, '')
-  .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')
-  .replace(/&#x9;/g, '  ').replace(/&#xA;/g, '\n').replace(/&nbsp;/g, ' ')
-  .replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+// ---------------------------------------------------------------------------
+// Rendering the model as plain text
+// ---------------------------------------------------------------------------
 
-function render(obj) {
-  const pars = [], uls = [], codes = [];
-  for (const k of Object.keys(obj)) {
-    const t = strip(obj[k]); if (!t) continue;
-    if (/^par\d+$/.test(k)) pars.push([+k.slice(3), t]);
-    else if (/^ul\d+$/.test(k)) uls.push([+k.slice(2), t]);
-    else if (/^code\d+$/.test(k)) codes.push([+k.slice(4), t]);
-  }
-  const byNum = (a, b) => a[0] - b[0];
-  const out = [];
-  pars.sort(byNum).forEach(p => out.push(p[1]));
-  if (uls.length) { out.push('\n## Hints / Restrictions'); uls.sort(byNum).forEach(u => out.push(u[1])); }
-  if (codes.length) { out.push('\n## Examples'); codes.sort(byNum).forEach(c => out.push('```abap\n' + c[1] + '\n```')); }
-  return out.join('\n\n');
+// Applied in order: block-level tags become line breaks first, then the rest of
+// the markup is dropped, then entities are resolved, then whitespace is tidied.
+const TEXT_REWRITES = [
+  [/<pre[^>]*>/gi, '\n'],
+  [/<\/pre>/gi, '\n'],
+  [/<li[^>]*>/gi, '\n  - '],
+  [/<\/p>/gi, '\n'],
+  [/<[^>]+>/g, ''],
+  [/&lt;/g, '<'],
+  [/&gt;/g, '>'],
+  [/&amp;/g, '&'],
+  [/&#x9;/g, '  '],
+  [/&#xA;/g, '\n'],
+  [/&nbsp;/g, ' '],
+  [/[ \t]+\n/g, '\n'],
+  [/\n{3,}/g, '\n\n'],
+];
+
+/** Reduce a documentation HTML fragment to readable plain text. */
+function htmlToText(fragment) {
+  let text = String(fragment || '');
+  for (const [pattern, replacement] of TEXT_REWRITES) text = text.replace(pattern, replacement);
+  return text.trim();
 }
 
+// The three field families, in the order they are printed. `par` carries the
+// running description and needs no heading of its own.
+const SECTIONS = [
+  { prefix: 'par', keyPattern: /^par\d+$/, heading: null, fenced: false },
+  { prefix: 'ul', keyPattern: /^ul\d+$/, heading: '\n## Hints / Restrictions', fenced: false },
+  { prefix: 'code', keyPattern: /^code\d+$/, heading: '\n## Examples', fenced: true },
+];
+
+/**
+ * Assemble the printable document. Fields arrive keyed by family and number
+ * (`par1`, `par2`, `ul1`, …); each family is emitted in numeric order, because
+ * the key order in the page source is not reliably the reading order.
+ */
+function formatDocument(fields) {
+  const buckets = SECTIONS.map(() => []);
+  for (const [key, fragment] of Object.entries(fields)) {
+    const text = htmlToText(fragment);
+    if (!text) continue;
+    const which = SECTIONS.findIndex((section) => section.keyPattern.test(key));
+    if (which === -1) continue;
+    const order = Number(key.slice(SECTIONS[which].prefix.length));
+    buckets[which].push([order, text]);
+  }
+
+  const blocks = [];
+  SECTIONS.forEach((section, which) => {
+    const bucket = buckets[which];
+    if (!bucket.length) return;
+    if (section.heading) blocks.push(section.heading);
+    bucket.sort((left, right) => left[0] - right[0]);
+    for (const [, text] of bucket) {
+      blocks.push(section.fenced ? '```abap\n' + text + '\n```' : text);
+    }
+  });
+  return blocks.join('\n\n');
+}
+
+// ---------------------------------------------------------------------------
+
 async function main() {
-  const arg = process.argv[2];
-  if (!arg) { console.error('Usage: node fetch-abap-keyword-doc.mjs <topic-or-help.sap.com-url>'); process.exit(2); }
+  const argument = process.argv[2];
+  if (!argument) {
+    console.error('Usage: node fetch-abap-keyword-doc.mjs <topic-or-help.sap.com-url>');
+    process.exit(EXIT_BAD_INVOCATION);
+  }
+
   let url;
-  try { url = toContentUrl(arg); } catch (e) { console.error(e.message); process.exit(2); }
-  let res;
-  try { res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'text/html' } }); }
-  catch (e) { console.error('FETCH ERROR: ' + e.message); process.exit(1); }
-  if (!res.ok) { console.error(`HTTP ${res.status} for ${url} — topic may not exist (use the exact abapdocu topic id).`); process.exit(1); }
-  const html = await res.text();
-  const obj = extractModel(html);
-  if (!obj) { console.error('NO_CONTENT_MODEL: not a standard keyword/statement reference page (' + url + ')'); process.exit(3); }
-  const titleM = html.match(/<title>([^<]*)<\/title>/i);
-  console.log('# ' + (titleM ? titleM[1].trim() : arg));
+  try {
+    url = resolveContentUrl(argument);
+  } catch (problem) {
+    console.error(problem.message);
+    process.exit(EXIT_BAD_INVOCATION);
+  }
+
+  let response;
+  try {
+    response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'text/html' } });
+  } catch (problem) {
+    console.error('FETCH FAILED: ' + problem.message);
+    process.exit(EXIT_UNREACHABLE);
+  }
+  if (!response.ok) {
+    console.error(`HTTP ${response.status} from ${url} — check the topic id against the abapdocu index.`);
+    process.exit(EXIT_UNREACHABLE);
+  }
+
+  const pageSource = await response.text();
+  const fields = findContentModel(pageSource);
+  if (!fields) {
+    console.error('NO_CONTENT_MODEL: no keyword/statement reference content on this page (' + url + ')');
+    process.exit(EXIT_NO_MODEL);
+  }
+
+  const title = pageSource.match(PAGE_TITLE);
+  console.log('# ' + (title ? title[1].trim() : argument));
   console.log('Source: ' + url + '\n');
-  console.log(render(obj));
+  console.log(formatDocument(fields));
 }
 
 main();
