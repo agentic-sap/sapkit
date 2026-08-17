@@ -1,8 +1,8 @@
 # WM - Key Tables Reference
 # WM - 주요 테이블 참조
 
-> **Deprecation Note**: LE-WM tables are ECC-only. S/4HANA uses EWM tables (`/SCWM/*`).
-> **사용 중단 안내**: LE-WM 테이블은 ECC 전용입니다. S/4HANA는 EWM 테이블(`/SCWM/*`)을 사용합니다.
+> **Deprecation Note**: The LE-WM tables exist in ECC alone. S/4HANA works with the EWM tables (`/SCWM/*`).
+> **사용 중단 안내**: LE-WM 테이블은 ECC에만 있습니다. S/4HANA에서는 EWM 테이블(`/SCWM/*`)을 씁니다.
 
 ## Master Data Tables
 ## 마스터 데이터 테이블
