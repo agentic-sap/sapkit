@@ -2,16 +2,16 @@
 
 ## Overview / 개요
 
-Treasury and Risk Management enhancements cover financial transactions, cash management, electronic bank statement processing, in-house cash, and market risk. TR makes heavy use of **BTE (Business Transaction Events)** alongside classic BAdIs.
+Enhancements in Treasury and Risk Management span financial transactions, cash management, electronic bank statement processing, in-house cash, and market risk. Alongside the classic BAdIs, TR leans heavily on **BTE (Business Transaction Events)**.
 
 | Type / 유형 | Description / 설명 |
 |------|-------------|
 | Customer Exits (CMOD) | Bank statement, treasury, loans, funds mgmt |
-| BTE | Business Transaction Events (critical for TR/CM) |
+| BTE | Business Transaction Events — critical to TR and CM |
 | BAdIs | Financial transactions, cash mgmt, IHC, risk |
-| Enhancement Spots | FSCM enhancement containers |
+| Enhancement Spots | Containers for FSCM enhancements |
 | EBS processing | Posting rules, interpretation algorithms |
-| IHC | In-House Cash payment processing |
+| IHC | Payment processing in In-House Cash |
 
 ---
 
@@ -19,16 +19,16 @@ Treasury and Risk Management enhancements cover financial transactions, cash man
 
 | Name | System | Description | Usage |
 |------|--------|-------------|-------|
-| FEBOLD0001 | ECC | Bank statement old format | Legacy bank statement format exit |
-| FEB00001 | ECC | Electronic bank statement | EBS processing exit 1 |
-| FEB00002 | ECC | Electronic bank statement | EBS processing exit 2 |
-| FEB00003 | ECC | Electronic bank statement | EBS processing exit 3 |
-| TPMW_GENERIC | ECC | Treasury generic | Generic treasury workstation exit |
-| TPMPROD01 | ECC | Treasury production | Treasury production data exit |
-| JBDFIARL01 | ECC | Loans | Loans management exit 1 |
-| JBDFIARL02 | ECC | Loans | Loans management exit 2 |
-| FMFW00001 | ECC | Funds management | Funds management exit |
-| FARC_TRA0001 | ECC | Archiving treasury | Treasury archiving exit |
+| FEBOLD0001 | ECC | Bank statement old format | Exit for the legacy bank statement format |
+| FEB00001 | ECC | Electronic bank statement | Exit 1 in EBS processing |
+| FEB00002 | ECC | Electronic bank statement | Exit 2 in EBS processing |
+| FEB00003 | ECC | Electronic bank statement | Exit 3 in EBS processing |
+| TPMW_GENERIC | ECC | Treasury generic | Generic exit on the treasury workstation |
+| TPMPROD01 | ECC | Treasury production | Exit for treasury production data |
+| JBDFIARL01 | ECC | Loans | Exit 1 in loans management |
+| JBDFIARL02 | ECC | Loans | Exit 2 in loans management |
+| FMFW00001 | ECC | Funds management | Exit for funds management |
+| FARC_TRA0001 | ECC | Archiving treasury | Exit for treasury archiving |
 
 ---
 
@@ -36,10 +36,10 @@ Treasury and Risk Management enhancements cover financial transactions, cash man
 
 | Event | System | Description | Usage |
 |-------|--------|-------------|-------|
-| 00001063 | ECC/S4 | Bank statement: posting rules | Custom posting logic on EBS |
-| 00001820 | ECC/S4 | Treasury transaction posting | Treasury posting customization |
-| 00001830 | ECC/S4 | Cash management update | CM update logic |
-| 00001840 | ECC/S4 | Cash position refresh | Cash position logic |
+| 00001063 | ECC/S4 | Bank statement: posting rules | Posting logic written by the user on EBS |
+| 00001820 | ECC/S4 | Treasury transaction posting | Customizing of treasury posting |
+| 00001830 | ECC/S4 | Cash management update | Logic for the CM update |
+| 00001840 | ECC/S4 | Cash position refresh | Logic for the cash position |
 
 ---
 
@@ -47,19 +47,19 @@ Treasury and Risk Management enhancements cover financial transactions, cash man
 
 | Name | System | Description | Usage |
 |------|--------|-------------|-------|
-| FTR_BADI | ECC/S4 | Financial transactions | TR-TM transaction enhancements |
-| FTR_TRANSACTION_CONTROL | ECC/S4 | Transaction control | Control transaction processing |
-| FTR_VALUATION | ECC/S4 | Valuation logic | Custom valuation |
-| FSCM_CMAN_MEMO | ECC/S4 | Cash management memo | Memo record logic |
-| FDCB_SUBBST | ECC/S4 | Payment program substitution | Payment program field substitution |
-| IHC_PAYMENT | ECC/S4 | In-house cash payment | IHC payment processing |
-| IHC_PAYMENT_FORM | ECC/S4 | IHC payment format | IHC payment form customization |
-| JBRX_ADDON | ECC/S4 | Market risk analyzer | Risk analyzer add-ons |
-| JBR_BADI_PRODUCT_ENH | ECC/S4 | Product enhancement | Product definition enhancement |
-| CNV_MDT_NUM_CHANGES | ECC/S4 | Number changes | Number range changes |
-| BADI_FITR_RATE | ECC/S4 | Exchange rate | Custom FX rate logic |
-| BAI2_BADI_LOCK | ECC/S4 | Bank statement lock | Lock logic for BAI2 statements |
-| CNTR_CTPTY_LIMIT_CHECK | ECC/S4 | Counterparty limit | Counterparty limit check |
+| FTR_BADI | ECC/S4 | Financial transactions | Enhancements on TR-TM transactions |
+| FTR_TRANSACTION_CONTROL | ECC/S4 | Transaction control | Control the processing of transactions |
+| FTR_VALUATION | ECC/S4 | Valuation logic | Valuation written by the user |
+| FSCM_CMAN_MEMO | ECC/S4 | Cash management memo | Logic for the memo record |
+| FDCB_SUBBST | ECC/S4 | Payment program substitution | Substitution of fields in the payment program |
+| IHC_PAYMENT | ECC/S4 | In-house cash payment | Processing of IHC payments |
+| IHC_PAYMENT_FORM | ECC/S4 | IHC payment format | Customizing of the IHC payment form |
+| JBRX_ADDON | ECC/S4 | Market risk analyzer | Add-ons on the risk analyzer |
+| JBR_BADI_PRODUCT_ENH | ECC/S4 | Product enhancement | Enhancement of the product definition |
+| CNV_MDT_NUM_CHANGES | ECC/S4 | Number changes | Changes to the number range |
+| BADI_FITR_RATE | ECC/S4 | Exchange rate | FX rate logic written by the user |
+| BAI2_BADI_LOCK | ECC/S4 | Bank statement lock | Logic that locks BAI2 statements |
+| CNTR_CTPTY_LIMIT_CHECK | ECC/S4 | Counterparty limit | Check on the counterparty limit |
 
 ---
 
@@ -67,7 +67,7 @@ Treasury and Risk Management enhancements cover financial transactions, cash man
 
 | Name | System | Description | Usage |
 |------|--------|-------------|-------|
-| ES_FSCM_CMAN | ECC/S4 | FSCM Cash Management enhancement spot | Container for CM BAdIs |
+| ES_FSCM_CMAN | ECC/S4 | The enhancement spot for FSCM Cash Management | Holds the CM BAdIs |
 
 ---
 
@@ -75,27 +75,27 @@ Treasury and Risk Management enhancements cover financial transactions, cash man
 
 ### Electronic Bank Statement (EBS) Processing / 전자 은행 명세서 처리
 
-- **Posting rules (OT83)**: Extensible via BTE `00001063`
-- **External transaction types (OT51)**: Mapping external codes to posting rules
-- **Interpretation algorithm (OT55)**: Controls how statement lines are interpreted
-- **Search string configuration**: Intelligent matching against open items
-- **Custom posting logic**: Implement via BTE `00001063`
+- **Posting rules (OT83)**: Can be extended through BTE `00001063`
+- **External transaction types (OT51)**: Maps external codes onto posting rules
+- **Interpretation algorithm (OT55)**: Governs the way statement lines are interpreted
+- **Search string configuration**: Matches intelligently against open items
+- **Custom posting logic**: Implement it through BTE `00001063`
 
 ### Cash Flow Forecast / 현금 흐름 예측
 
-- **Planning levels / groups (OT55)**: Determine cash flow aggregation
-- **BAdI `FSCM_CMAN_MEMO`**: Memo record logic for planned flows
-- **User exits**: For custom cash flow sources
+- **Planning levels / groups (OT55)**: Determine how cash flow is aggregated
+- **BAdI `FSCM_CMAN_MEMO`**: Logic for the memo record on planned flows
+- **User exits**: For cash flow sources defined by the user
 
 ### In-House Cash (IHC) / 사내 은행
 
-- **BAdI `IHC_PAYMENT`**: Payment processing in IHC
+- **BAdI `IHC_PAYMENT`**: Processing of payments inside IHC
 - **IHC accounts customization**: Transaction `FBICA1`
 - **Payment formats**: `IHC_PAYMENT_FORM`
 
 ### Market Risk Analyzer / 시장 위험 분석기
 
-- **BAdI `JBRX_ADDON`**: Custom risk calculations
+- **BAdI `JBRX_ADDON`**: Risk calculations written by the user
 - **Customer-specific risk metrics**: VaR, sensitivity, scenario analysis
 
 ---
@@ -113,18 +113,18 @@ Treasury and Risk Management enhancements cover financial transactions, cash man
 
 ## S/4HANA Extensions (CDS/RAP) / S/4HANA 확장
 
-- **SAP Cash Management (on S/4HANA)** replaces classic CM.
+- **SAP Cash Management (on S/4HANA)** takes the place of classic CM.
 - **New tables**: `FCLM_BAM_AMD` (Bank Account Master), `FQM_FLOW` (Cash flow one-exposure model).
-- **Bank Account Management (BAM)**: Fiori-based, extensible via Key User Extensibility.
+- **Bank Account Management (BAM)**: Built on Fiori, and extensible through Key User Extensibility.
 - **CDS views**: `I_BankAccount`, `I_CashFlow`, etc.
-- **Advanced Credit Management (FSCM-CR)**: Own BAdIs with prefix `BADI_FSCM_CR_*`.
+- **Advanced Credit Management (FSCM-CR)**: Carries its own BAdIs under the prefix `BADI_FSCM_CR_*`.
 - **BAdIs**: `FCLM_BAM_AMD_BADI` (Bank Account Master Data), `FCLM_BAM_SIG_PROC` (Signature process).
 
 ---
 
 ## Recommended Approach / 권장 접근법
 
-- **S/4HANA / S/4HANA**: Use new **Cash Management (BAM)** and **Fiori Key User Extensibility** for field-level extensions.
-- **Legacy ECC / 레거시 ECC**: Combine **BTE + BAdI** — BTEs for event-driven logic, BAdIs for object-level extensions.
-- **EBS**: Always prefer BTE `00001063` over CMOD `FEB00001-00003`.
-- **Avoid modifications**: Use documented enhancement points only — TR modifications are risky due to compliance and audit implications.
+- **S/4HANA / S/4HANA**: For field-level extensions, use the new **Cash Management (BAM)** and **Fiori Key User Extensibility**.
+- **Legacy ECC / 레거시 ECC**: Combine **BTE + BAdI** — BTEs carry the event-driven logic, BAdIs the object-level extensions.
+- **EBS**: Always prefer BTE `00001063` to CMOD `FEB00001-00003`.
+- **Avoid modifications**: Use only the documented enhancement points — in TR, modifications are risky because of their compliance and audit implications.
