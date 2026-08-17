@@ -2,8 +2,8 @@
 
 ## Overview / 개요
 
-The FI (Financial Accounting) module uses a distinctive enhancement landscape including Business Transaction Events (BTEs), Validations/Substitutions (GGB0/GGB1), and the Coding Block for account-assignment field extensions.
-FI(재무 회계) 모듈은 BTE(비즈니스 트랜잭션 이벤트), 검증/대체(GGB0/GGB1), Coding Block을 포함한 고유한 확장 체계를 사용합니다.
+The FI (Financial Accounting) module works through an enhancement landscape of its own, one that takes in Business Transaction Events (BTEs), Validations/Substitutions (GGB0/GGB1), and the Coding Block for account-assignment field extensions.
+FI(재무 회계) 모듈에는 BTE(비즈니스 트랜잭션 이벤트), 검증/대체(GGB0/GGB1), Coding Block을 아우르는 고유한 확장 체계가 있습니다.
 
 - Classic Customer Exits (CMOD/SMOD) / 전통적 고객 출구
 - **BTE (Business Transaction Events)** — FI primary framework / FI의 핵심 프레임워크
@@ -35,8 +35,8 @@ FI(재무 회계) 모듈은 BTE(비즈니스 트랜잭션 이벤트), 검증/대
 
 ## 2. BTE — Business Transaction Events (CRITICAL for FI) / BTE (FI 핵심)
 
-BTE is the primary enhancement mechanism for FI, managed in transaction **FIBF**.
-BTE는 FI 모듈의 주요 확장 방식이며 트랜잭션 **FIBF**에서 관리됩니다.
+For FI, BTE is the primary enhancement mechanism, and transaction **FIBF** is where it is managed.
+FI 모듈에서 BTE가 주요 확장 방식이고, 그 관리는 트랜잭션 **FIBF**에서 이루어집니다.
 
 | Event | System | Description / 설명 |
 |-------|--------|--------------------|
@@ -55,8 +55,8 @@ BTE는 FI 모듈의 주요 확장 방식이며 트랜잭션 **FIBF**에서 관�
 | 00002210 | ECC/S4 | Payment proposal edit / 지급 제안 편집 |
 | 00002310 | ECC/S4 | Payment run additional info / 지급 실행 추가 정보 |
 
-BTE types: **Publish & Subscribe** (notification) and **Process Interface** (substitution). Use FIBF to link Function Module to event.
-BTE 유형: Publish & Subscribe (알림) 및 Process Interface (대체). FIBF에서 Function Module을 이벤트에 연결.
+The BTE types are **Publish & Subscribe** (notification) and **Process Interface** (substitution). To link a Function Module to an event, use FIBF.
+BTE의 유형 — Publish & Subscribe (알림)와 Process Interface (대체). Function Module을 이벤트에 연결하려면 FIBF를 사용.
 
 ---
 
@@ -81,8 +81,8 @@ BTE 유형: Publish & Subscribe (알림) 및 Process Interface (대체). FIBF에
 
 ## 4. Coding Block (CRITICAL for FI) / 코딩 블록 (FI 핵심)
 
-The Coding Block extends FI account-assignment fields system-wide — affecting FB01, MIRO, MIGO, and all FI-relevant postings.
-Coding Block은 FI 문서의 계정 할당 필드를 시스템 전체에 걸쳐 확장하며, FB01, MIRO, MIGO 및 모든 FI 관련 전기에 영향을 줍니다.
+Account-assignment fields in FI are extended system-wide by the Coding Block, which reaches FB01, MIRO, MIGO, and every FI-relevant posting.
+Coding Block이 확장하는 것은 FI 문서의 계정 할당 필드이며 그 범위는 시스템 전체이고, FB01, MIRO, MIGO와 모든 FI 관련 전기가 그 영향을 받습니다.
 
 | Object | System | Description / 설명 |
 |--------|--------|--------------------|
@@ -96,8 +96,8 @@ Coding Block은 FI 문서의 계정 할당 필드를 시스템 전체에 걸쳐 
 
 ## 5. Validations / Substitutions (GGB0 / GGB1 / OBBH) / 검증 및 대체
 
-One of FI's most powerful enhancement techniques — rules can be defined **without ABAP code**.
-FI의 가장 강력한 확장 기법 — ABAP 코드 없이 규칙 정의 가능.
+This ranks among FI's most powerful enhancement techniques — the rules can be laid down **without ABAP code**.
+FI의 확장 기법 중 가장 강력한 것 — ABAP 코드 없이 규칙을 정의할 수 있음.
 
 | Transaction | System | Description / 설명 |
 |-------------|--------|--------------------|
@@ -133,20 +133,20 @@ Callup Points: 0001 (Document header), 0002 (Line item), 0003 (Complete document
 | FINS_ACDOCA_CUSTOM_BADI | S4 | Universal Journal custom BAdI / Universal Journal BAdI |
 | Key User Extensibility (Fiori) | S4 | Custom Fields and Logic app / Custom Fields and Logic 앱 |
 
-In S/4HANA, BSEG remains as a compatibility view but **ACDOCA is the leading table**.
-S/4HANA에서 BSEG는 호환성 뷰로 남아있지만 **ACDOCA가 주도 테이블**입니다.
+BSEG stays on in S/4HANA as a compatibility view, yet **ACDOCA is the leading table**.
+S/4HANA에서 BSEG는 호환성 뷰의 자리를 유지하지만, **ACDOCA가 주도 테이블**입니다.
 
 ---
 
 ## 8. Recommended Approach / 권장 접근 방식
 
-1. **Use BAdIs and BTEs first** — primary modern enhancement path in FI.
-   BAdI와 BTE를 우선 사용 — FI의 주요 현대적 확장 경로.
-2. **Use GGB0/GGB1 for simple rules** before writing ABAP — zero-code rules are upgrade-safe.
-   간단한 규칙은 GGB0/GGB1 사용 — 코드 없이 업그레이드 안전.
-3. **Coding Block extension (OXK3)** for FI-wide account-assignment custom fields.
-   FI 전반의 계정 할당 커스텀 필드는 OXK3 사용.
-4. **In S/4HANA, extend ACDOCA** via INCL_EEW_ACDOC — not BSEG — and prefer Key User Extensibility.
-   S/4HANA에서는 BSEG가 아닌 ACDOCA를 INCL_EEW_ACDOC로 확장; Key User Extensibility 우선.
-5. **Transaction FIBF** is the central hub for BTE configuration and discovery.
-   FIBF는 BTE 구성과 탐색의 중앙 허브.
+1. **Use BAdIs and BTEs first** — in FI this is the primary modern enhancement path.
+   BAdI와 BTE를 우선 사용 — FI의 현대적 확장 경로 중 주된 것.
+2. **Use GGB0/GGB1 for simple rules** ahead of reaching for ABAP — rules that carry no code are upgrade-safe.
+   간단한 규칙은 GGB0/GGB1 사용 — 코드 없는 규칙은 업그레이드에 안전.
+3. **Coding Block extension (OXK3)** is for account-assignment custom fields that reach across all of FI.
+   FI 전체에 걸치는 계정 할당 커스텀 필드에는 OXK3를 사용.
+4. **In S/4HANA, extend ACDOCA** through INCL_EEW_ACDOC rather than BSEG, and give Key User Extensibility preference.
+   S/4HANA에서 확장 대상은 BSEG가 아니라 ACDOCA이며 그 통로는 INCL_EEW_ACDOC; Key User Extensibility를 우선.
+5. **Transaction FIBF** is the central hub — BTE configuration and discovery both run through it.
+   FIBF가 BTE 구성과 탐색을 아우르는 중앙 허브.
