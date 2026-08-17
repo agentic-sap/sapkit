@@ -5,6 +5,7 @@
 > 문장·우리 구현으로 다시 쓰는 일**의 잔량을 세는 장부다.
 >
 > **총계 170** = 1부 지식 갈래 **146** + 2부 편입분 **24**.
+> **현재 잔량 165** (체크 누계 5 — 판3.1. 최신 값은 §5 잔량 이력이 정본이다.)
 
 ---
 
@@ -115,6 +116,7 @@ copy **166**(oop 20 포함) → 1부 **146** · 2부 **24** / 24 현존 · 총�
 | 판 | 일자 | 체크 증가 | 잔량 |
 |---|---|---|---|
 | 판3.1 (명부 신설) | 2026-08-17 | — | **170** |
+| 판3.1 (상시 로드 규약 5편 재저작) | 2026-08-17 | +5 | **165** |
 
 ---
 
@@ -282,22 +284,22 @@ alv-sample 1 · procedural-sample 1).
 | 체크 | 파일 | 재저작 커밋 | 리뷰 근거 | 비고 |
 |---|---|---|---|---|
 | ☐ | `abap-release-examples.md` | | | |
-| ☐ | `abap-release-reference.md` | | | |
+| ☑ | `abap-release-reference.md` | `515bdb50` | 2026-08-17 · 독립 리뷰 통과 — 사실 134항 누락 0 · 릴리스 번호 49쌍 양방향 일치 | 판3.1 |
 | ☐ | `alv-rules.md` | | | |
 | ☐ | `clean-code-oop.md` | | | 앵커 `zrsc4sap_oop_ex` 보존 필수 |
 | ☐ | `clean-code-procedural.md` | | | |
 | ☐ | `clean-code.md` | | | |
-| ☐ | `cloud-abap-constraints.md` | | | |
+| ☑ | `cloud-abap-constraints.md` | `aced6526` | 2026-08-17 · 독립 리뷰 통과 — 사실 214항 누락 0 · 표 39행 셀 일치 | 판3.1 · 리뷰 지적 회수 `48d05a52` |
 | ☐ | `constant-rule.md` | | | |
-| ☐ | `ecc-ddic-fallback.md` | | | |
+| ☑ | `ecc-ddic-fallback.md` | `554a85a3` | 2026-08-17 · 독립 리뷰 통과 — 사실 64항 누락 0 · 완료 메시지 fence 동일 | 판3.1 · 리뷰 지적 회수 `48d05a52` |
 | ☐ | `field-typing-rule.md` | | | |
 | ☐ | `function-module-rule.md` | | | |
 | ☐ | `include-structure.md` | | | 앵커 `zrsc4sap_oop_ex` 보존 필수 |
-| ☐ | `naming-conventions.md` | | | |
+| ☑ | `naming-conventions.md` | `98eb7190` | 2026-08-17 · 독립 리뷰 통과 — 사실 158항 누락 0 · 표 23행 일치 | 판3.1 · 리뷰 지적 회수 `48d05a52` |
 | ☐ | `ok-code-pattern.md` | | | |
 | ☐ | `oop-pattern.md` | | | 앵커 `zrsc4sap_oop_ex` 보존 필수 |
 | ☐ | `procedural-form-naming.md` | | | |
-| ☐ | `sap-version-reference.md` | | | |
+| ☑ | `sap-version-reference.md` | `74648e17` | 2026-08-17 · 독립 리뷰 통과 — 사실 223항 누락 0 · 표 63행 전부 동일 | 판3.1 · 리뷰 지적 회수 `48d05a52` |
 | ☐ | `text-element-rule.md` | | | |
 
 #### 1-E · `interactive/core/knowledge/abap/templates/` — 견본 코드 5
