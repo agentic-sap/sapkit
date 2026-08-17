@@ -1,94 +1,195 @@
 #!/usr/bin/env node
 /**
- * sc4sap — SAP Help Portal FUNCTIONAL / module doc fetcher (browserless)
+ * Reads one SAP Help Portal FUNCTIONAL page as plain text — no browser, no auth, no deps.
  *
- * For application/configuration/process docs at
+ * Target material is application knowledge: configuration, process and module docs living at
  *   help.sap.com/docs/<product>/<deliverable>/<topic>.html
- * (e.g. SD pricing, FI config, MM procurement — the consultant/module knowledge).
+ * (SD pricing, FI dunning, MM release strategy, IMG concepts, Fiori app help …).
+ * ABAP language/keyword reference is a different portal area with a different mechanism —
+ * fetch-abap-keyword-doc.mjs handles that one.
  *
- * This is a DIFFERENT mechanism from the ABAP keyword fetcher: the `.html` here is
- * an empty SPA shell; the real content is delivered by the http.svc JSON API.
- * Chain (all plain HTTPS GET, no browser, no auth):
- *   1. deliverableMetadata(product_url, deliverable_url, topic_url) -> data.deliverable.id
- *   2. pagecontent(deliverable_id, file_path)                       -> data.body (HTML)
+ * Why two requests instead of downloading the .html: that page is only an SPA shell, so the
+ * prose is not in it. The portal serves the prose from its http.svc JSON endpoints, and the
+ * second endpoint needs a numeric deliverable id that only the first one knows:
+ *   deliverableMetadata(product, topic, version, deliverable) -> data.deliverable.id
+ *   pagecontent(that id, topic)                               -> data.body   (HTML fragment)
+ * Both are ordinary HTTPS GETs.
  *
  * Usage:
  *   node fetch-sap-help-doc.mjs "<full help.sap.com/docs URL>"
  *
- * Scope: help.sap.com application/functional docs only.
- * Out of scope: OSS Notes (me.sap.com — auth-walled) and the `/docs/r/...` readable-URL form.
+ * Exit codes (a caller may branch on these):
+ *   0  page fetched, text on stdout
+ *   1  an http.svc call did not come back usable
+ *   2  nothing fetchable was asked for — argument missing, or URL rejected before any request
+ *   3  http.svc answered, but the answer carried no deliverable id / no body
+ *
+ * Not covered: SAP Notes on me.sap.com (an S-user login stands in front of them, so this method
+ * cannot reach them) and the /docs/r/… readable-URL form, which this tool asks the caller to
+ * convert rather than guess at.
  */
 
 const SVC = 'https://help.sap.com/http.svc';
+const PORTAL_HOST = 'help.sap.com';
+const UNPINNED_VERSION = 'LATEST';
 
-function parseDocUrl(input) {
-  let u;
-  try { u = new URL(input); } catch { throw new Error('Invalid URL: ' + input); }
-  if (u.hostname !== 'help.sap.com') throw new Error('Only help.sap.com URLs are allowed (got ' + u.hostname + ').');
-  const parts = u.pathname.split('/').filter(Boolean); // [docs, <product>, <deliverable>, <topic>.html]
-  const di = parts.indexOf('docs');
-  if (di >= 0 && parts[di + 1] === 'r') {
-    throw new Error('Readable-URL form (/docs/r/...) is not supported. Get the canonical /docs/<product>/<deliverable>/<topic>.html form: re-run WebSearch and pick the help.sap.com result whose path is NOT "/docs/r/", or open the page and copy its address-bar canonical URL.');
+const EXIT_TRANSPORT = 1;
+const EXIT_UNUSABLE_INPUT = 2;
+const EXIT_EMPTY_ANSWER = 3;
+
+/**
+ * Splits a portal doc URL into the four coordinates http.svc wants, and refuses anything the
+ * two-call chain cannot address. Throwing here is always an exit-2 situation: no request has
+ * gone out yet, and none can.
+ */
+function readCoordinates(rawUrl) {
+  let parsed;
+  try {
+    parsed = new URL(rawUrl);
+  } catch {
+    throw new Error('Not a URL: ' + rawUrl);
   }
-  if (di < 0 || parts.length < di + 4) {
-    throw new Error('Expected a /docs/<product>/<deliverable>/<topic>.html URL: ' + input);
+  if (parsed.hostname !== PORTAL_HOST) {
+    throw new Error('This tool reads ' + PORTAL_HOST + ' only — got ' + parsed.hostname + '.');
   }
-  const explicit = u.searchParams.get('version');
+
+  // Canonical shape: /docs/<product>/<deliverable>/<topic>.html
+  const segments = parsed.pathname.split('/').filter(Boolean);
+  const docsAt = segments.indexOf('docs');
+
+  if (docsAt >= 0 && segments[docsAt + 1] === 'r') {
+    throw new Error(
+      'The /docs/r/… readable-URL form carries no product segment, so the metadata call cannot be built. ' +
+      'Supply the canonical /docs/<product>/<deliverable>/<topic>.html form instead: search again and take ' +
+      'the help.sap.com hit whose path is not "/docs/r/", or open this page in a browser and copy the URL ' +
+      'its address bar settles on.',
+    );
+  }
+  if (docsAt < 0 || segments.length < docsAt + 4) {
+    throw new Error('Not a /docs/<product>/<deliverable>/<topic>.html URL: ' + rawUrl);
+  }
+
+  // No ?version= means the portal picks; that is a fallback, and the printed header says so.
+  const pinned = parsed.searchParams.get('version');
   return {
-    product: parts[di + 1],
-    deliverable: parts[di + 2],
-    topic: parts[di + 3],
-    version: explicit || 'LATEST',
-    versionExplicit: !!explicit,
+    product: segments[docsAt + 1],
+    deliverable: segments[docsAt + 2],
+    topic: segments[docsAt + 3],
+    version: pinned || UNPINNED_VERSION,
+    versionPinned: !!pinned,
   };
 }
 
-async function getJson(url) {
-  const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' } });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+/** Step 1 of the chain — resolves the opaque deliverable id. */
+function metadataUrl(at) {
+  return `${SVC}/deliverableMetadata` +
+    `?product_url=${encodeURIComponent(at.product)}` +
+    `&topic_url=${encodeURIComponent(at.topic)}` +
+    `&version=${encodeURIComponent(at.version)}` +
+    `&loadlandingpageontopicnotfound=true` +
+    `&deliverable_url=${encodeURIComponent(at.deliverable)}`;
 }
 
-const strip = h => String(h || '')
-  .replace(/<(script|style)[\s\S]*?<\/\1>/gi, '')
-  .replace(/<li[^>]*>/gi, '\n  - ')
-  .replace(/<\/(p|div|h[1-6]|tr|li|ul|ol)>/gi, '\n')
-  .replace(/<th[^>]*>|<td[^>]*>/gi, ' | ')
-  .replace(/<[^>]+>/g, '')
-  .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')
-  .replace(/&nbsp;/g, ' ').replace(/&#39;/g, "'").replace(/&quot;/g, '"')
-  .replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+/** Step 2 of the chain — the prose itself, keyed by the id step 1 returned. */
+function pageContentUrl(deliverableId, topic) {
+  return `${SVC}/pagecontent` +
+    `?deliverableInfo=1` +
+    `&deliverable_id=${deliverableId}` +
+    `&file_path=${encodeURIComponent(topic)}`;
+}
+
+/** A default Node user-agent gets a shell back, so present as a browser and ask for JSON. */
+async function fetchJson(url) {
+  const response = await fetch(url, {
+    headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json();
+}
+
+/**
+ * Flattens the returned HTML fragment to readable text, in this order — the order is the
+ * behaviour: list markers must be inserted while the <li> tags still exist, and every entity
+ * rule must run after tag removal.
+ */
+const TEXT_RULES = [
+  [/<(script|style)[\s\S]*?<\/\1>/gi, ''],      // machinery, never prose
+  [/<li[^>]*>/gi, '\n  - '],                    // bullets survive as dashes
+  [/<\/(p|div|h[1-6]|tr|li|ul|ol)>/gi, '\n'],   // block ends become line breaks
+  [/<th[^>]*>|<td[^>]*>/gi, ' | '],             // table rows stay column-separated
+  [/<[^>]+>/g, ''],                             // whatever markup is left
+  [/&lt;/g, '<'],
+  [/&gt;/g, '>'],
+  [/&amp;/g, '&'],
+  [/&nbsp;/g, ' '],
+  [/&#39;/g, "'"],
+  [/&quot;/g, '"'],
+  [/[ \t]+\n/g, '\n'],                          // trailing whitespace from the markup
+  [/\n{3,}/g, '\n\n'],                          // at most one blank line
+];
+
+function toPlainText(fragment) {
+  let text = String(fragment || '');
+  for (const [pattern, replacement] of TEXT_RULES) text = text.replace(pattern, replacement);
+  return text.trim();
+}
+
+function abort(message, code) {
+  console.error(message);
+  process.exit(code);
+}
 
 async function main() {
-  const input = process.argv[2];
-  if (!input) { console.error('Usage: node fetch-sap-help-doc.mjs "<help.sap.com/docs URL>"'); process.exit(2); }
-  let p;
-  try { p = parseDocUrl(input); } catch (e) { console.error(e.message); process.exit(2); }
+  const rawUrl = process.argv[2];
+  if (!rawUrl) {
+    abort('Usage: node fetch-sap-help-doc.mjs "<help.sap.com/docs URL>"', EXIT_UNUSABLE_INPUT);
+  }
 
-  let meta;
+  let at;
   try {
-    meta = await getJson(`${SVC}/deliverableMetadata?product_url=${encodeURIComponent(p.product)}&topic_url=${encodeURIComponent(p.topic)}&version=${encodeURIComponent(p.version)}&loadlandingpageontopicnotfound=true&deliverable_url=${encodeURIComponent(p.deliverable)}`);
-  } catch (e) { console.error('METADATA ERROR: ' + e.message + ' (' + input + ')'); process.exit(1); }
-  const did = meta?.data?.deliverable?.id;
-  if (!did) { console.error('Could not resolve deliverable_id — page may not exist or URL form unsupported.'); process.exit(3); }
+    at = readCoordinates(rawUrl);
+  } catch (err) {
+    abort(err.message, EXIT_UNUSABLE_INPUT);
+  }
 
-  let page;
+  let metadata;
   try {
-    page = await getJson(`${SVC}/pagecontent?deliverableInfo=1&deliverable_id=${did}&file_path=${encodeURIComponent(p.topic)}`);
-  } catch (e) { console.error('PAGECONTENT ERROR: ' + e.message); process.exit(1); }
-  const body = page?.data?.body;
-  if (!body) { console.error('No body content for ' + p.topic); process.exit(3); }
+    metadata = await fetchJson(metadataUrl(at));
+  } catch (err) {
+    abort('METADATA ERROR: ' + err.message + ' (' + rawUrl + ')', EXIT_TRANSPORT);
+  }
+  const deliverableId = metadata?.data?.deliverable?.id;
+  if (!deliverableId) {
+    abort('Could not resolve deliverable_id — page may not exist or URL form unsupported.', EXIT_EMPTY_ANSWER);
+  }
 
-  const d = page.data;
-  const title = (d.currentPage && d.currentPage.title) || (d.deliverable && d.deliverable.title) || p.topic;
-  const resolvedVer = (d.deliverable && d.deliverable.version) || null;
-  console.log('# ' + title);
-  console.log('Source: ' + input);
-  console.log('Deliverable: ' + ((d.deliverable && d.deliverable.title) || p.deliverable) + ' (id ' + did + ')');
-  console.log('Version: ' + (resolvedVer || '(unknown)') +
-    (p.versionExplicit ? ' [requested explicitly]'
-                       : ' [resolved from LATEST — pass ?version=<rel> for a release-specific page; confirm it matches the project release]') + '\n');
-  console.log(strip(body));
+  let payload;
+  try {
+    payload = await fetchJson(pageContentUrl(deliverableId, at.topic));
+  } catch (err) {
+    abort('PAGECONTENT ERROR: ' + err.message, EXIT_TRANSPORT);
+  }
+  const body = payload?.data?.body;
+  if (!body) {
+    abort('No body content for ' + at.topic, EXIT_EMPTY_ANSWER);
+  }
+
+  const page = payload.data;
+  // Whichever title is present is the citable one; the topic slug is the last resort.
+  const heading = page.currentPage?.title || page.deliverable?.title || at.topic;
+  const resolvedVersion = page.deliverable?.version || null;
+  const versionNote = at.versionPinned
+    ? ' [requested explicitly]'
+    : ' [resolved from LATEST — pass ?version=<rel> for a release-specific page; confirm it matches the project release]';
+
+  console.log([
+    '# ' + heading,
+    'Source: ' + rawUrl,
+    'Deliverable: ' + (page.deliverable?.title || at.deliverable) + ' (id ' + deliverableId + ')',
+    'Version: ' + (resolvedVersion || '(unknown)') + versionNote,
+    '',
+    toPlainText(body),
+  ].join('\n'));
 }
 
 main();
