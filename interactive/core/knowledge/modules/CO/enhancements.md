@@ -2,8 +2,8 @@
 
 ## Overview / 개요
 
-The CO (Controlling) module offers enhancements for cost center accounting, internal orders, product costing, and profitability analysis (CO-PA). In S/4HANA, many CO functions converge with FI via the Universal Journal (ACDOCA).
-CO(관리 회계) 모듈은 원가 센터 회계, 내부 주문, 제품 원가 계산, 수익성 분석(CO-PA)을 위한 확장을 제공합니다. S/4HANA에서는 많은 CO 기능이 Universal Journal(ACDOCA)을 통해 FI와 통합됩니다.
+Enhancements in the CO (Controlling) module cover cost center accounting, internal orders, product costing, and profitability analysis (CO-PA). Under S/4HANA, many CO functions come together with FI through the Universal Journal (ACDOCA).
+CO(관리 회계) 모듈의 확장은 원가 센터 회계, 내부 주문, 제품 원가 계산, 수익성 분석(CO-PA)을 대상으로 합니다. S/4HANA에서는 많은 CO 기능이 Universal Journal(ACDOCA)을 거쳐 FI와 하나로 묶입니다.
 
 - Classic Customer Exits (CMOD/SMOD) / 전통적 고객 출구
 - BAdIs / 비즈니스 애드인
@@ -21,7 +21,7 @@ CO(관리 회계) 모듈은 원가 센터 회계, 내부 주문, 제품 원가 �
 | COOMKS01 | ECC/S4 | Cost center master: field checks / 원가 센터 마스터 필드 검사 | KS01/KS02 validations |
 | COOMKS02 | ECC/S4 | Cost center master: default values / 기본값 | Set defaults |
 | COOMKS03 | ECC/S4 | Cost center master: custom fields / 커스텀 필드 | Additional fields |
-| COOMKA01 | ECC | Cost element: field checks / 원가 요소 검사 | KA01/KA02 — ECC only; in S/4HANA cost elements = G/L accounts |
+| COOMKA01 | ECC | Cost element: field checks / 원가 요소 검사 | KA01/KA02 — ECC only; S/4HANA holds cost elements as G/L accounts |
 | COOMKA02 | ECC | Cost element: custom fields / 원가 요소 커스텀 필드 | ECC only |
 | COOPA_01 | ECC/S4 | CO-PA: derivation / CO-PA 도출 | Custom derivations |
 | COOPA_02 | ECC/S4 | CO-PA: valuation / CO-PA 평가 | Valuation strategies |
@@ -66,8 +66,8 @@ CO(관리 회계) 모듈은 원가 센터 회계, 내부 주문, 제품 원가 �
 
 ## 3. Enhancement Spots / 확장 스팟
 
-Modern CO BAdIs are delivered under enhancement spots such as `ES_COPA_DERIVATION` and product-costing spots; check system via SE84 → Enhancement Spots → CO.
-최신 CO BAdI는 `ES_COPA_DERIVATION` 등의 확장 스팟 하에 제공됩니다. SE84에서 확인.
+Enhancement spots are where modern CO BAdIs are delivered — `ES_COPA_DERIVATION` and the product-costing spots among them; the system is checked through SE84 → Enhancement Spots → CO.
+최신 CO BAdI가 제공되는 자리는 `ES_COPA_DERIVATION` 등의 확장 스팟 아래입니다. 확인은 SE84에서.
 
 ---
 
@@ -103,8 +103,8 @@ Modern CO BAdIs are delivered under enhancement spots such as `ES_COPA_DERIVATIO
 
 ## 5. Validations / Substitutions Summary / 검증·대체 요약
 
-Use OKC7 and GGB0/GGB1 for rule-based CO validations before custom code.
-커스텀 코드 이전에 OKC7 및 GGB0/GGB1 규칙 기반 검증 사용.
+For rule-based CO validations, reach for OKC7 and GGB0/GGB1 ahead of custom code.
+커스텀 코드에 앞서 OKC7 및 GGB0/GGB1의 규칙 기반 검증부터.
 
 ---
 
@@ -123,29 +123,29 @@ Use OKC7 and GGB0/GGB1 for rule-based CO validations before custom code.
 
 | Artifact | System | Description / 설명 |
 |----------|--------|--------------------|
-| ACDOCA replaces COEP | S4 | Universal Journal is CO line-item source / Universal Journal이 CO 라인 품목 소스 |
-| ACDOCA extensions via INCL_EEW_ACDOC | S4 | Custom fields span FI & CO / FI·CO 통합 커스텀 필드 |
+| ACDOCA takes over from COEP | S4 | CO line items source from the Universal Journal / CO 라인 품목의 소스가 Universal Journal |
+| ACDOCA extensions via INCL_EEW_ACDOC | S4 | Custom fields reach across FI and CO / FI·CO에 함께 걸치는 커스텀 필드 |
 | I_CostCenter | S4 | Cost center CDS (extensible) / 원가 센터 CDS |
 | I_InternalOrder | S4 | Internal order CDS / 내부 주문 CDS |
 | I_ProfitCenter | S4 | Profit center CDS / 수익 센터 CDS |
 | Account-based CO-PA (preferred in S/4HANA) | S4 | Uses ACDOCA directly / ACDOCA 직접 사용 |
 
-**Note**: In S/4HANA, cost elements are managed as **G/L accounts** (not CSKA/CSKB). Tables CSKA/CSKB remain as compatibility views but maintenance is via FS00.
-참고: S/4HANA에서 원가 요소는 **G/L 계정**으로 관리됩니다 (CSKA/CSKB 아님). CSKA/CSKB는 호환성 뷰로 남아있지만 유지는 FS00에서 수행.
+**Note**: S/4HANA manages cost elements as **G/L accounts**, not as CSKA/CSKB. The CSKA/CSKB tables survive as compatibility views, but FS00 is where maintenance happens.
+참고: S/4HANA는 원가 요소를 **G/L 계정**으로 관리합니다 (CSKA/CSKB 아님). CSKA/CSKB가 호환성 뷰로 남는 것과 별개로, 유지는 FS00에서 수행.
 
 ---
 
 ## 8. Recommended Approach / 권장 접근 방식
 
-1. **BAdIs > CMOD exits** — prefer modern BAdIs for new CO logic.
-   BAdI를 CMOD보다 우선 — 신규 CO 로직은 현대적 BAdI 사용.
-2. **In S/4HANA, prefer account-based CO-PA** over costing-based CO-PA.
-   S/4HANA에서는 costing-based CO-PA보다 account-based CO-PA 우선.
-3. **Cost elements are G/L accounts in S/4HANA** — do not build custom logic around CSKA/CSKB.
-   S/4HANA에서 원가 요소는 G/L 계정 — CSKA/CSKB 기반 커스텀 로직 지양.
-4. **Use KEDR (derivation rules) before KEDRU (user exit)** for CO-PA derivation — configuration-first.
-   CO-PA 도출은 KEDRU보다 KEDR 우선 — 구성 우선 접근.
-5. **Extend ACDOCA** for any custom fields that must flow through FI and CO together.
-   FI·CO 통합 커스텀 필드는 ACDOCA 확장.
-6. **Operating concern (KEA0)** changes require regeneration — plan transports carefully.
-   운영 관심 영역(KEA0) 변경은 재생성 필요 — 트랜스포트 신중 계획.
+1. **BAdIs > CMOD exits** — for new CO logic, the modern BAdIs are preferred.
+   CMOD보다 BAdI에 우선순위 — 신규 CO 로직에 쓰는 쪽은 현대적 BAdI.
+2. **In S/4HANA, account-based CO-PA gets the preference** over costing-based CO-PA.
+   S/4HANA에서는 account-based CO-PA를 costing-based CO-PA보다 우선.
+3. **In S/4HANA a cost element is a G/L account** — keep custom logic off CSKA/CSKB.
+   S/4HANA의 원가 요소는 곧 G/L 계정 — CSKA/CSKB에 기대는 커스텀 로직은 지양.
+4. For CO-PA derivation, **KEDR (derivation rules) comes before KEDRU (user exit)** — configuration-first.
+   CO-PA 도출은 KEDRU 앞에 KEDR — 구성이 앞서는 접근.
+5. **Extend ACDOCA** whenever a custom field must flow through FI and CO together.
+   FI·CO를 함께 지나는 커스텀 필드라면 ACDOCA 확장.
+6. Any change to the **Operating concern (KEA0)** requires regeneration — plan transports carefully.
+   운영 관심 영역(KEA0)을 바꾸려면 재생성이 필요 — 트랜스포트는 신중히 계획.
