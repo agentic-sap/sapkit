@@ -3,21 +3,21 @@
 
 ## Workflow 1: Create Purchase Order via BAPI
 ### Steps
-1. Gather vendor (LFA1/LFM1), material (MARA/MARC), and purchasing org data
-2. Populate POHEADER (doc type NB, purchasing org, purchasing group, company code)
-3. Populate POITEM table: material, plant, quantity, delivery date, price unit
-4. Populate POACCOUNT for account assignment (if cost center / project based)
-5. Populate POSCHEDULE for delivery schedule lines
-6. Call BAPI_PO_CREATE1 with all populated tables
-7. Check RETURN table for errors (TYPE = 'E')
-8. BAPI_TRANSACTION_COMMIT on success, BAPI_TRANSACTION_ROLLBACK on error
-9. Store PURCHASEORDER number from POHEADER_EXP
+1. Collect the vendor data (LFA1/LFM1), the material data (MARA/MARC), and the purchasing org data
+2. Fill POHEADER with doc type NB, purchasing org, purchasing group, and company code
+3. Fill the POITEM table with material, plant, quantity, delivery date, and price unit
+4. Fill POACCOUNT for the account assignment if it is cost center or project based
+5. Fill POSCHEDULE for the delivery schedule lines
+6. Call BAPI_PO_CREATE1, handing it every table you populated
+7. Look through the RETURN table for errors (TYPE = 'E')
+8. On success issue BAPI_TRANSACTION_COMMIT; on error issue BAPI_TRANSACTION_ROLLBACK
+9. Keep the PURCHASEORDER number that POHEADER_EXP carries
 
 ### Required MCP Tools
-- `GetFunctionModule` — read BAPI_PO_CREATE1 signature
-- `GetTable` — inspect EKKO, EKPO, LFA1 structures
-- `CreateProgram` — scaffold test program
-- `UpdateProgram` — iterate on implementation
+- `GetFunctionModule` — to see the BAPI_PO_CREATE1 signature
+- `GetTable` — to look over the EKKO, EKPO, and LFA1 structures
+- `CreateProgram` — to scaffold a test program
+- `UpdateProgram` — to keep revising the implementation
 
 ### Related Config
 - PO Document Types: V_T161
@@ -28,18 +28,18 @@
 
 ## Workflow 2: Post Goods Receipt with BAPI_GOODSMVT_CREATE
 ### Steps
-1. Determine reference document (PO number EBELN, PO item EBELP) from EKKO/EKPO
-2. Populate GOODSMVT_HEADER: posting date, document date, reference
-3. Populate GOODSMVT_ITEM: movement type (101 for GR against PO), plant, storage location, quantity
-4. Set GM_CODE = '01' for GR for purchase order
+1. Pin down the reference document (PO number EBELN, PO item EBELP) from EKKO/EKPO
+2. Fill GOODSMVT_HEADER with posting date, document date, and reference
+3. Fill GOODSMVT_ITEM with movement type (101 for GR against PO), plant, storage location, and quantity
+4. Set GM_CODE = '01', which marks GR for purchase order
 5. Call BAPI_GOODSMVT_CREATE
-6. Parse RETURN for errors; on success read MATERIALDOCUMENT and MATDOCUMENTYEAR
-7. Commit transaction; verify stock update in MARD (storage location stock) and MKPF/MSEG (material document)
+6. Walk RETURN for errors; where the call succeeded, read MATERIALDOCUMENT and MATDOCUMENTYEAR
+7. Commit the transaction; confirm the stock update in MARD (storage location stock) and MKPF/MSEG (material document)
 
 ### Required MCP Tools
-- `GetTable` — inspect MKPF, MSEG, MARD
-- `GetFunctionModule` — read BAPI_GOODSMVT_CREATE signature
-- `CreateProgram` — create test posting program
+- `GetTable` — to look over MKPF, MSEG, and MARD
+- `GetFunctionModule` — to see the BAPI_GOODSMVT_CREATE signature
+- `CreateProgram` — to build a test posting program
 
 ### Related Config
 - Movement Types: V_156 / OMJJ
@@ -49,17 +49,17 @@
 
 ## Workflow 3: Extend Material Master to New Plant
 ### Steps
-1. Read existing material views from MARA (general), MARC (plant), MARD (storage loc)
-2. Prepare CLIENTDATA (basic data), PLANTDATA (MRP, purchasing, storage), STORAGELOCATIONDATA
-3. Call BAPI_MATERIAL_SAVEDATA with HEADDATA specifying material and views to extend
-4. Set HEADDATA-IND_SECTOR, HEADDATA-MATL_TYPE for new views
-5. Check RETURN table; commit on success
-6. Verify extension in MM03 or by reading MARC for new plant entry
+1. Read the existing material views out of MARA (general), MARC (plant), and MARD (storage loc)
+2. Get CLIENTDATA (basic data), PLANTDATA (MRP, purchasing, storage), and STORAGELOCATIONDATA ready
+3. Call BAPI_MATERIAL_SAVEDATA with HEADDATA naming the material and the views to extend
+4. For the new views, set HEADDATA-IND_SECTOR and HEADDATA-MATL_TYPE
+5. Inspect the RETURN table; commit where it succeeded
+6. Confirm the extension in MM03, or by reading MARC for the new plant entry
 
 ### Required MCP Tools
-- `GetFunctionModule` — inspect BAPI_MATERIAL_SAVEDATA parameters
-- `GetTable` — read MARA, MARC, MARD structure
-- `GetView` — inspect V_T134 for material type config
+- `GetFunctionModule` — to look over the BAPI_MATERIAL_SAVEDATA parameters
+- `GetTable` — to pull the MARA, MARC, and MARD structure
+- `GetView` — to see V_T134 for the material type config
 
 ### Related Config
 - Material Types: V_T134 / OMS2
