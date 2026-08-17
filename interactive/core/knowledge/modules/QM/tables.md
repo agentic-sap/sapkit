@@ -45,13 +45,13 @@
 
 ## S/4HANA Specific
 
-- QM integration with MATDOC: Inspection lots for goods receipts reference MATDOC entries (no MKPF/MSEG direct reads).
-- Fiori-based apps for defect recording and usage decision rely on CDS views over QALS/QMEL (e.g., I_InspectionLot).
-- QM in Procurement: QINF record behavior unchanged but linked to S/4HANA sourcing/BP model.
+- QM integration with MATDOC: Goods-receipt inspection lots point to MATDOC entries (MKPF/MSEG are not read directly).
+- Defect recording and usage decision in the Fiori-based apps go through CDS views over QALS/QMEL (e.g., I_InspectionLot).
+- QM in Procurement: no change in how the QINF record behaves, but its link runs to the S/4HANA sourcing/BP model.
 
 ## Related Tables
 
-- PLPO / PLMK — Shared with PP routing (inspection characteristics embedded in task list).
+- PLPO / PLMK — Held jointly with PP routing (the inspection characteristics sit inside the task list).
 - MCHA / MCH1 — Batch data relevant for batch-based inspections.
-- EKPO / EKKO — Purchase orders triggering GR-based inspection lots (origin 01).
-- AUFK / AFKO — Production orders triggering in-process inspections (origin 03).
+- EKPO / EKKO — Purchase orders that set off GR-based inspection lots (origin 01).
+- AUFK / AFKO — Production orders that set off in-process inspections (origin 03).
