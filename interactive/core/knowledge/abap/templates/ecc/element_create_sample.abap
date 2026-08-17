@@ -1,60 +1,61 @@
 *&---------------------------------------------------------------------*
-*& Report  YCREATE_DTEL_ZMME_MMINPTYPE
+*& Report  YCREATE_DTEL_ZMMD_MMINPTYPE
 *&---------------------------------------------------------------------*
-*& Purpose : Programmatically create DDIC data element ZDTEL_MMINPTYPE
-*&           (references domain ZDOM_MMINPTYPE) on ECC systems where
-*&           ADT DDIC REST API is not available.
-*& Method  : DDIF_DTEL_PUT only (inactive version).
-*&           Activation and CTS assignment are done manually in SE11.
-*& Notes   : DDIF_* family is SAP-internal (unreleased). Use at own risk.
-*&           The referenced domain must exist and be active beforehand.
+*& What   : Creates DDIC data element ZMMD_MMINPTYPE and binds it to
+*&          domain ZMME_MMINPTYPE from ABAP code. Needed on ECC stacks
+*&          that expose no ADT DDIC REST endpoint for data elements.
+*& How    : One DDIF_DTEL_PUT call, which stores an inactive version.
+*&          Activation and CTS assignment stay manual work in SE11.
+*& Caution: The DDIF_* family is SAP-internal and unreleased - run it
+*&          in a development client only, at your own risk. The
+*&          referenced domain must already exist in active state.
 *&---------------------------------------------------------------------*
-REPORT ycreate_dtel_zmme_mminptype.
+REPORT ycreate_dtel_zmmd_mminptype.
 
-CONSTANTS: gc_rollname TYPE rollname VALUE 'ZMMD_MMINPTYPE',
-           gc_domname  TYPE domname  VALUE 'ZMME_MMINPTYPE'.
+CONSTANTS: gc_dtel   TYPE rollname VALUE 'ZMMD_MMINPTYPE',
+           gc_domain TYPE domname  VALUE 'ZMME_MMINPTYPE'.
 
 PARAMETERS: p_dryrun AS CHECKBOX DEFAULT 'X'.
 
-DATA: ls_dd04v TYPE dd04v.
+DATA: ls_dtel_def TYPE dd04v.
 
-*-- Data element header ------------------------------------------------*
-ls_dd04v-rollname   = gc_rollname.
-ls_dd04v-ddlanguage = sy-langu.
-ls_dd04v-domname    = gc_domname.          " reference to domain
-ls_dd04v-headlen    = 55.
-ls_dd04v-scrlen1    = 10.                  " short field label
-ls_dd04v-scrlen2    = 20.                  " medium field label
-ls_dd04v-scrlen3    = 40.                  " long field label
+*-- Definition: domain reference, label widths, label texts -----------*
+ls_dtel_def-rollname   = gc_dtel.
+ls_dtel_def-ddlanguage = sy-langu.
+ls_dtel_def-domname    = gc_domain.    " data type comes from the domain
+ls_dtel_def-headlen    = 55.           " heading width
+ls_dtel_def-scrlen1    = 10.           " short label width
+ls_dtel_def-scrlen2    = 20.           " medium label width
+ls_dtel_def-scrlen3    = 40.           " long label width
 
-ls_dd04v-reptext    = 'Material Input Type'.
-ls_dd04v-scrtext_s  = 'InpType'.
-ls_dd04v-scrtext_m  = 'Input Type'.
-ls_dd04v-scrtext_l  = 'Material Input Type'.
-ls_dd04v-ddtext     = 'Material Input Type'.
+ls_dtel_def-reptext    = 'Material Input Type'.
+ls_dtel_def-scrtext_s  = 'InpType'.
+ls_dtel_def-scrtext_m  = 'Input Type'.
+ls_dtel_def-scrtext_l  = 'Material Input Type'.
+ls_dtel_def-ddtext     = 'Material Input Type'.
 
-*-- Preview ------------------------------------------------------------*
-WRITE: / '--- YCREATE_DTEL_ZMME_MMINPTYPE ---',
-       / 'Data element :', gc_rollname,
-       / 'Domain ref   :', gc_domname,
+*-- Show what would be sent, before anything is sent ------------------*
+WRITE: / '=== ECC data element helper ===',
+       / 'Data element :', gc_dtel,
+       / 'Domain       :', gc_domain,
        / 'Dry-run      :', p_dryrun.
 ULINE.
-WRITE: / 'Header       :', ls_dd04v-reptext,
-       / 'Short label  :', ls_dd04v-scrtext_s,
-       / 'Medium label :', ls_dd04v-scrtext_m,
-       / 'Long label   :', ls_dd04v-scrtext_l.
+WRITE: / 'Heading      :', ls_dtel_def-reptext,
+       / 'Short label  :', ls_dtel_def-scrtext_s,
+       / 'Medium label :', ls_dtel_def-scrtext_m,
+       / 'Long label   :', ls_dtel_def-scrtext_l.
 ULINE.
 
 IF p_dryrun = 'X'.
-  WRITE: / 'Dry-run flag ON - nothing written to DDIC.'.
-  WRITE: / 'Uncheck p_dryrun and re-run to create the data element.'.
+  WRITE: / 'Dry-run is on - DDIC was left untouched.'.
+  WRITE: / 'Clear the checkbox and start again to write the element.'.
   RETURN.
 ENDIF.
 
-*-- Put (inactive). Activate manually in SE11. ------------------------*
+*-- Inactive PUT. SE11 does activation and transport. -----------------*
 CALL FUNCTION 'DDIF_DTEL_PUT'
-  EXPORTING  name              = gc_rollname
-             dd04v_wa          = ls_dd04v
+  EXPORTING  name              = gc_dtel
+             dd04v_wa          = ls_dtel_def
   EXCEPTIONS dtel_not_found    = 1
              name_inconsistent = 2
              dtel_inconsistent = 3
@@ -62,9 +63,9 @@ CALL FUNCTION 'DDIF_DTEL_PUT'
              put_refused       = 5
              OTHERS            = 6.
 IF sy-subrc <> 0.
-  WRITE: / 'DDIF_DTEL_PUT failed. Subrc =', sy-subrc.
+  WRITE: / 'DDIF_DTEL_PUT wrote nothing. sy-subrc =', sy-subrc.
   RETURN.
 ENDIF.
 
-WRITE: / 'Data element', gc_rollname, 'written (inactive).'.
-WRITE: / 'Next steps: open SE11 -> activate -> assign to transport.'.
+WRITE: / gc_dtel, 'is stored as an inactive version.'.
+WRITE: / 'Finish in SE11: activate, then assign to a transport.'.
