@@ -139,6 +139,7 @@ node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (�
 
 게이트 자체의 음성시험(게이트가 정말 거부하는지): `test-smoke-mcp.mjs` 20/20 ·
 `test-check-runtime-path-rename.mjs` 13/13 · `test-hook-switch.mjs` 13/13 ·
+`test-hook-decisions.mjs` 74케이스 ·
 `test-setup-state.mjs` 120/120 · `test-launch-toolsurface.mjs` 56/56 ·
 `test-codex-wire-mcp.mjs` 51/51 · `test-doctor.mjs` 47/47 ·
 `test-verify-checker.mjs` 21/21.
