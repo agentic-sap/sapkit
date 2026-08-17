@@ -1,8 +1,8 @@
 # HCM - Human Capital Management Transaction Codes
 # HCM - 인적 자본 관리 트랜잭션 코드
 
-> **S/4HANA Cloud에서는 SAP SuccessFactors가 HCM을 대체합니다. S/4HANA On-Premise에서는 대부분의 HCM 기능이 유지됩니다.**
-> **In S/4HANA Cloud, SAP SuccessFactors replaces HCM. Most HCM functions remain available in S/4HANA On-Premise.**
+> **S/4HANA Cloud에서 HCM의 자리를 넘겨받는 것은 SAP SuccessFactors입니다. S/4HANA On-Premise에서는 HCM 기능이 대부분 그대로 남습니다.**
+> **On S/4HANA Cloud, it is SAP SuccessFactors that takes over from HCM. On S/4HANA On-Premise, most HCM functionality stays in place.**
 
 ## Master Data / Personnel Administration
 | TCode | System | Description |

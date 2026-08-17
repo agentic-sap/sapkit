@@ -66,7 +66,7 @@
 ## S/4HANA Specific
 ## S/4HANA 전용
 
-- `FQM_FLOW`, `FQMA` — One Exposure (replaces FDSR/FDES in S/4HANA Cash Management).
-- `FCLM_BAM_AMD`, `FCLM_BAM_SIG` — Bank Account Management (BAM) in S/4HANA (replaces classic T012K-based setup).
-- `FQM_FLOW`, `FQMA` — One Exposure(S/4HANA 현금 관리에서 FDSR/FDES 대체).
-- `FCLM_BAM_AMD`, `FCLM_BAM_SIG` — S/4HANA의 은행 계좌 관리(BAM)(클래식 T012K 기반 설정 대체).
+- `FQM_FLOW`, `FQMA` — One Exposure (takes over from FDSR/FDES in S/4HANA Cash Management).
+- `FCLM_BAM_AMD`, `FCLM_BAM_SIG` — Bank Account Management (BAM) in S/4HANA (takes the place of the classic T012K-based setup).
+- `FQM_FLOW`, `FQMA` — One Exposure(S/4HANA 현금 관리에서 FDSR/FDES 자리를 이어받음).
+- `FCLM_BAM_AMD`, `FCLM_BAM_SIG` — S/4HANA의 은행 계좌 관리(BAM)(클래식 T012K 기반 설정을 대신 맡음).

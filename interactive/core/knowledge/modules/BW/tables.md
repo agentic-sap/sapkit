@@ -61,6 +61,6 @@
 ## S/4HANA Specific (BW/4HANA)
 ## S/4HANA 전용 (BW/4HANA)
 
-- `RSDADSO` — BW/4HANA ADSO directory.
-- InfoCube-related tables (`RSDCUBE`, `/BIC/F*`, `/BIC/E*`) are deprecated in BW/4HANA; use ADSO instead.
-- InfoCube 관련 테이블(`RSDCUBE`, `/BIC/F*`, `/BIC/E*`)은 BW/4HANA에서 사용 중단됨; 대신 ADSO 사용.
+- `RSDADSO` — the ADSO directory in BW/4HANA.
+- BW/4HANA deprecates the InfoCube-related tables (`RSDCUBE`, `/BIC/F*`, `/BIC/E*`); use ADSO in their place.
+- BW/4HANA는 InfoCube 관련 테이블(`RSDCUBE`, `/BIC/F*`, `/BIC/E*`)을 사용 중단 처리; 그 자리에 ADSO 사용.
