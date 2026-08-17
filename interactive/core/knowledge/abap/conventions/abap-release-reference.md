@@ -10,8 +10,8 @@ This file is the inventory behind that ceiling: where the release value comes fr
 
 The release value is the input to every other section here, so it comes first.
 
-- Read the configured ABAP release — `ABAP_RELEASE` in `.sapkit/config.json` (or `sap.env`); the same setting appears in project context as `abapRelease`.
-- If `ABAP_RELEASE` is unset, fail safe: do not guess a release and do not generate code. Ask the user to run the profile setup ([troubleshooting](../../../procedures/troubleshooting.md)) first.
+- Read the configured ABAP release — `ABAP_RELEASE` in `.sapkit/config.json` (or `sap.env`).
+- If `ABAP_RELEASE` is unset, fail safe: do not generate code. Ask the user to run the profile setup ([troubleshooting](../../../procedures/troubleshooting.md)) first.
 
 ---
 
@@ -122,8 +122,8 @@ Do not drop the requirement — swap the idiom. Concrete before/after code for e
 
 ## 5. Checklist before emitting ABAP
 
-1. Have I read `ABAP_RELEASE` from config? If not → stop and ask the user.
-2. Is any feature I am about to emit newer than `ABAP_RELEASE`? If yes → rewrite it to the older idiom in [abap-release-examples.md](abap-release-examples.md).
-3. Is `SAP_SYSTEM_TYPE=cloud`? If yes → every `SELECT`/`CALL FUNCTION`/`CALL METHOD` must target a **released** API (check `GetPackage` or released annotations).
-4. Have I put a `TRY...CATCH` around operations that raise class-based exceptions? (RAP, CDS read, reference conversion.)
-5. Have I avoided `SELECT *` in favor of named fields?
+1. `ABAP_RELEASE` — did it actually come out of config? If it did not → stop there and ask the user.
+2. Does anything in what I am about to emit postdate `ABAP_RELEASE`? Where it does → swap it for the older idiom in [abap-release-examples.md](abap-release-examples.md).
+3. `SAP_SYSTEM_TYPE=cloud`? Then every `SELECT`, `CALL FUNCTION`, and `CALL METHOD` has to land on a **released** API — confirm via `GetPackage` or the released annotations.
+4. Operations that raise class-based exceptions — RAP, CDS read, reference conversion — did each one get a `TRY...CATCH` around it?
+5. Has `SELECT *` given way to named fields everywhere?

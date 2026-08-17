@@ -4,13 +4,8 @@
 
 Flows that consume it today:
 
-| Consumer | Why it reaches here |
-|---|---|
-| [create-object](../../../procedures/create-object.md) | Before creating any Table / Data Element / Domain. |
-| [create-program](../../../procedures/create-program.md) | Whenever the planned object list contains one of the three. |
-| [field-typing-rule](./field-typing-rule.md) | Its priority-3 new-DE gate emits a helper program instead of `CreateDataElement` on ECC. |
-| [sap-standards](../../../policies/sap-standards.md) | The ECC row of the version guard routes a missing DDIC element here. |
-| [sap-executor](../../../personas/sap-executor.md) | Persona lookup table, consulted when the plan includes new DDIC. |
+- [create-object](../../../procedures/create-object.md)
+- [create-program](../../../procedures/create-program.md)
 
 Any other flow that creates — or may create — one of the three types is bound by this rule as well, whether or not it is listed above.
 
@@ -28,9 +23,9 @@ Anything outside that intersection stays on the normal path:
 
 ## 2. Why the branch exists
 
-On ECC the ADT REST API exposes no DDIC object endpoints; there is no source-based representation of a Dictionary object to POST. `CreateTable`, `CreateDataElement`, and `CreateDomain` therefore fail outright. This is a platform limitation, not a transient error.
+On ECC the ADT REST API exposes no DDIC object endpoints; there is no source-based representation of a Dictionary object to POST. `CreateTable`, `CreateDataElement`, and `CreateDomain` therefore fail outright.
 
-What replaces it is a **program-generation fallback**. Instead of creating the DDIC object, the agent writes an executable ABAP report into `$TMP`. When the user runs that report in SE38, the report creates the DDIC object by calling the SAP-internal `DDIF_*_PUT` function modules — `DDIF_TABL_PUT`, `DDIF_DTEL_PUT`, `DDIF_DOMA_PUT`. Those write the **inactive version only**. Activation and transport assignment stay with the user, done by hand in SE11.
+What replaces it is a **program-generation fallback**. Instead of creating the DDIC object, the agent writes an executable ABAP report into `$TMP`. When the user runs that report in SE38, the report creates the DDIC object by calling the SAP-internal `DDIF_*_PUT` function modules. Those write the **inactive version only**. Activation and transport assignment stay with the user, done by hand in SE11.
 
 So the agent's deliverable is a generator, and the DDIC object itself remains uncreated until the user acts.
 
@@ -65,13 +60,13 @@ Each of the three target types has one reference template, and the generated rep
 - the same `DDIF_*_PUT` exception list,
 - the same closing line, `Next steps: open SE11 -> activate -> assign to transport.`
 
-**Read the matching template with `Read` on every run** — do not reproduce it from memory. Then substitute only these three things:
+**Read the matching template with `Read` on every run.** Then substitute only these three things:
 
 1. the target object name,
 2. the DDIC field list / fixed values / label texts,
 3. the `ddtext` description.
 
-Do not refactor the skeleton. Everything the substitution list does not name stays byte-for-byte as the template has it.
+Do not refactor the skeleton.
 
 ## 5. Hard limits on the generated program
 
@@ -100,4 +95,4 @@ Next steps (manual, in ECC):
 Two prohibitions go with it:
 
 - **Do not claim the DDIC object is created.** It is not, and it will not be until the user completes step 3.
-- **Do not propose follow-up automation** — code that reads the table, further generators, anything downstream — until the user confirms activation in SE11.
+- **Do not propose follow-up automation** until the user confirms activation in SE11.

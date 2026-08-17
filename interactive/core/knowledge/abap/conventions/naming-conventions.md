@@ -3,13 +3,12 @@
 Every custom name emitted for an sc4sap ABAP program and its related objects is
 decided here — the report itself, the DDIC objects behind it, function groups
 and modules, global classes, CDS views, and the identifiers living inside the
-program. A name is settled *before* the first create call, because an object
-that already exists in a system cannot be renamed cheaply.
+program.
 
-Two things are deliberately out of scope. **Which** includes a given program
-needs is decided in [`include-structure.md`](include-structure.md) — §5 below
-only enumerates the suffixes. And the per-type detail for object kinds this
-file does not carry is delegated at the end of §4.
+Two things are deliberately out of scope. The role mapping for includes lives
+in [`include-structure.md`](include-structure.md) — §5 below only enumerates
+the suffixes. And the per-type detail for object kinds this file does not carry
+is delegated at the end of §4.
 
 ## 1. The pieces every pattern reuses
 
@@ -94,9 +93,8 @@ Two older shapes are obsolete and must never be emitted: the underscored
 prefix-style tag `ZFG_{MODULE}_...`.
 
 A function module carries the same module code as the function group hosting
-it, so only the `{PURPOSE}` distinguishes them — keep each side's purpose short
-and distinct. Group `ZMMFG_HISTORY`, for instance, hosts `ZMMFM_GET_HISTORY`
-and `ZMMFM_POST_HISTORY`.
+it. Keep each side's `{PURPOSE}` short and distinct. Group `ZMMFG_HISTORY`, for
+instance, hosts `ZMMFM_GET_HISTORY` and `ZMMFM_POST_HISTORY`.
 
 ### 4.2 Global classes and interfaces
 
@@ -138,8 +136,7 @@ and packages lives in
 Include names are the main program name plus a suffix, drawn from:
 `t` / `s` / `c` / `a` / `o` / `i` / `e` / `f` / `_tst`.
 
-This is the suffix inventory only. Which of them a given program actually gets,
-and what each one holds, is the role mapping in
+This is the suffix inventory only. Role mapping: see
 [`include-structure.md`](include-structure.md).
 
 ### Local classes
@@ -163,7 +160,7 @@ Either `STATUS_{SCREEN}` or a purpose-based name such as `MAIN_0100`.
 
 ### Procedural ALV FORMs
 
-Must end with `_{screen_no}` — the rule and its exceptions are in
+Must end with `_{screen_no}` — see
 [`procedural-form-naming.md`](procedural-form-naming.md).
 
 ## 6. Not settled — ask before defaulting
