@@ -2,7 +2,7 @@
 <!-- tier: standard -->
 <!-- action: warn -->
 
-Transactional tables that aggregate customer/vendor PII with commercial data (orders, invoices, accounting). Blocked at `standard` and above.
+These transactional tables carry customer and vendor PII together with commercial data — orders, invoices, accounting. Blocking starts at `standard` and applies to every tier above it.
 
 | Table | Description | Why |
 |-------|-------------|-----|
@@ -36,4 +36,4 @@ Transactional tables that aggregate customer/vendor PII with commercial data (or
 | I_Receivable | BSID / BSAD | Open / cleared customer items |
 | I_TrialBalance | ACDOCA | Full FI trial balance |
 
-> ⚠️ These "Protected Business Data" tables are **not unconditionally blocked** — extraction may be allowed for the user's own company code / sales org scope, with anonymization of party IDs. Require explicit user authorization per request; default posture is **blocked** until authorized.
+> ⚠️ Tables in this "Protected Business Data" set are **not blocked outright** — extraction may be opened for the user's own company code or sales org scope, and only with party IDs anonymized. Explicit authorization must come from the user for each request; until it is given, the default posture stays **blocked**.
