@@ -203,18 +203,23 @@
   유령 참조) · `function-module-rule.md` 4곳(`skills/…` 3 + `agents/sap-executor.md`) ·
   `ok-code-pattern.md` 4곳(`common/…` 2 + `skills/…` 2) · `oop-pattern.md` 3곳
   (`common/oop-sample/…` 2 + `abap/alv-oop-handlers/` 라벨-타깃 불일치) ·
-  `alv-rules.md` 1곳(`sc4sap/common/alv-sample/…`).
+  `alv-rules.md` 1곳(`sc4sap/common/alv-sample/…`). ⚠ 이 중 `clean-code.md`의
+  `common/abap-release-reference.md`는 위 이월 승계의 **소비자 오인용 ④와 같은 건**이다 —
+  두 목록에 겹쳐 있으니 다음 판이 이중으로 세지 말 것.
 - **소비자 서술 불일치 신규 발견 4건** (전부 **재저작 이전부터 존재** — 구본 대조로 확인 ·
   내용 개정 판 소관): ① `analyze-code.md:63`이 `constant-rule`을 "GC_/LC_/CO_ patterns"로
-  설명하나 그 파일에 그 접두사가 없다 · ② `include-structure.md`가 인용하는
+  설명하나 실제 파일에서 `GC_`는 `gc_status` 예시로만 등장하고 `LC_`·`CO_`는 없다 ·
+  ② `include-structure.md`가 인용하는
   `clean-code-procedural.md § Mandatory Main Program Header`가 실제 헤딩
   (`… Template (MUST match)`)과 다르다 · ③ `ok-code-pattern.md`가 인용하는
   `§ PBO / PAI Module`은 헤딩이 아니라 불릿이다 · ④ `text-element-rule.md`가 지시하는
   도구 `GetTextElement`·`ReadTextElementsBulk`가 현행 도구 표면에 없다(실재는
   `WriteTextElementsBulk`).
-- **기록 1건**: `constant-rule.md`는 재저작에서 **절 헤딩 4종이 번호부로 재작성**됐다.
-  리뷰 실측으로 **그 옛 헤딩을 인용하는 문서는 0건**이라 실질 피해가 없다 — 스펙의 계약
-  앵커는 「소비자가 인용하는 절 제목」에만 걸린다.
+- **기록 2건 (헤딩이 바뀐 파일 — 나머지 11편은 헤딩 집합 불변)**: ⓐ `constant-rule.md`는
+  재저작에서 **절 헤딩 4종이 번호부로 재작성**됐다 · ⓑ `field-typing-rule.md`는 h3 1종이
+  재작성됐다(`Why this rule exists` → `What each category loses without a DE`). 리뷰
+  실측으로 **둘 다 옛 헤딩을 인용하는 문서 0건**이라 실질 피해가 없다 — 스펙의 계약 앵커는
+  「소비자가 인용하는 절 제목」에만 걸린다.
 
 ### 판4 — ⑶-c ZRSC4SAP 템플릿 재생성 (집필분)
 
