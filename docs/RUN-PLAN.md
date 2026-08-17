@@ -37,7 +37,7 @@
 |---|---|---|---|---|
 | 판1 | ⑵ | 검사기 `sapkit` CLI 자작 + 코퍼스 대조 | 불필요 | **완료** (2026-08-16 · `bd826187` 은퇴 커밋) |
 | 판2 | ⑶-a | GPL 빈자리 처리 — **조회** 결정 + 집행 | 불필요 | **완료** (2026-08-16 · `33bcb290` 결정 기록 커밋) |
-| **판3.x** | ⑶-b | copy 지식 치환 (반복 판 — 실전 검증분부터) | 불필요 | **진행** — 판3.1·3.2·3.3 **완료** (판3.3: 2026-08-17) · 잔량 **120**/170 · 다음 = 판3.4 |
+| **판3.x** | ⑶-b | copy 지식 치환 (반복 판 — 실전 검증분부터) | 불필요 | **진행** — 판3.1~3.4 **완료** (판3.4: 2026-08-17) · 잔량 **77**/170 · 다음 = 판3.5 |
 | 판4 | ⑶-c | ZRSC4SAP 템플릿 20파일 재생성 (집필분) | 불필요 (SAP 확인은 판6) | 대기 |
 | 판5 | ⑴ | 엔진 잔여 코드 — M2 인증(UAA·JWT) + 교체 전 필수(D18·keyring CI) | 불필요 | 대기 |
 | 판6.x | ⑴·⑶ | **최종 테스트 판** — M1→M6 증거 + 판4 템플릿 SAP 확인 + 실사용 겸 채록 | **필요 (attended)** | 대기 |
@@ -104,7 +104,7 @@
 ⑶-b(판3.x)와 ⑶-c(판4)다. BLUEPRINT §⑶-a의 집필 제약 세 불릿은 **폐기가 아니라 보류**다 —
 향후 자체 집필이 필요해질 때 그대로 적용된다.
 
-### 판3.x — ⑶-b copy 지식 치환 (반복 판 · 진행 중 — 다음은 판3.4)
+### 판3.x — ⑶-b copy 지식 치환 (반복 판 · 진행 중 — 다음은 판3.5)
 
 - **목표**: 차용(copy) 지식을 **실전에서 검증된 것부터** 자체 문장으로 치환. 파일
   단위, 치환 사실은 git 이력이 센다(분류 장부는 은퇴한 역사 — 갱신 금지).
@@ -280,6 +280,123 @@
   수식어를 볼드 밖으로 뺐다(`**Cost/revenue planning at WBS**` → `**Cost and revenue
   planning**, held at the WBS` — 사실 잔존). 「볼드 라벨도 앵커로 볼 것인가」는 판3.4
   계약 설계의 판단 재료다.
+- **이식 전 참조**: 이 배치 본문 **0건**(신규 등재 없음).
+
+#### 판3.4 — 1-A 모듈 전반부 43편 (재저작 30 + 검증 체크 13) — **완료 (2026-08-17)**
+
+**도달점**: D-087 ⑧ **소비 실증** 기준으로 명부 1-A(모듈 91)의 **전반부 43편**을 처리했다 —
+`common` 7 + **FI·CO·MM·SD·PP·PM 6모듈 × 6편**. 실증한 소비 표면은 넷이다: **모듈 컨설턴트
+페르소나 14편이 자기 모듈 6편을 파일별로 지시 로드**(예 `sap-fi-consultant.md:10` +
+MANDATORY 3곳 `:37`·`:64`·`:69`) · **컨설턴트 공통 블록이 `common` 5편**(bapi·tcodes·
+tables·spro·enhancements)**을 로드** · **naming 2편의 소비자** = `analyze-code.md:73`·`:82`
+(module-aware naming extension) + `create-object.md:77`(내용 요약 인용) +
+`sap-bc-consultant.md:10` 글롭 · **모듈 폴더 패턴 로더 6편**(`spro-lookup` ·
+`troubleshooting` · `package-to-process` · `customization-lookup` · `create-program:294` ·
+`analyze-cbo-obj` — 플레이스홀더 표기는 `{MODULE}`/`<MODULE>` 두 형태가 섞여 있다).
+처리 방식이 두 갈래로 갈렸다 — **재저작 30편** + **검증 체크(무변경) 13편**. 후자를 위해
+**D-088을 신설**했다(표 지배 참조 파일의 셀 분류 재정의 + 무변경 인정 · **사용자 상시 위임 하
+산출자 권고 채택**). **잔량 120 → 77.** **코드 0줄 · 지식 `.md`만.**
+
+- **재저작 30편 · 검증 체크 13편**: 커밋 해시(무변경분은 「검증 체크(무변경)」)와 리뷰 근거는
+  명부 [`reference/copy-baseline.md`](reference/copy-baseline.md) §6 **1-A**가 든다. 무변경
+  13편 = FI·CO·MM·SD·PP·PM의 `spro`·`tcodes` 각 6편 + `SD/tables`(즉 spro 6 · tcodes 6 ·
+  tables 1). 규칙 근거는 **D-088 ②**이고 명부 §2에 보충 1줄로 명문화했다.
+- **근거 문장 정정 3건**(선정 근거를 실측으로 바로잡은 것 — 다음 판이 물려받는 정확한 값):
+  컨설턴트 공통 블록은 `common` **5편**이다(7편 전부가 아니다 — `naming-conventions` 2편은
+  그 블록에 없고 절차·글롭이 따로 부른다) · naming 2편의 소비자는 위 도달점의 4지점이다 ·
+  `FI/tcodes.md`는 **실측 81행 중 표가 63행**이다.
+- **검증**: 독립 새-컨텍스트 리뷰 **6건** 전부 통과 —
+  - **전수 대조 4그룹 43/43 PASS**(누락 0 · 추가 0 양방향 · 셀 **1,356+** · 산문 **445행+** ·
+    식별자·수치·한글 다중집합 기계 대조 · **식별자 열 밀림 0**).
+  - **무변경 13편 총괄 재검**(RD) — **551셀 전수 분류** · **blob 해시 무변 13/13** · 모듈 spro
+    경고 블록이 차용분이 아니라 **자작 신설분(커밋 `5fb1d901`)임을 확정**.
+  - **통합 리뷰**(RF) — 구성 독립성 **43/43**(재저작 표면 기준 조정 판정) · **소비 표면 28지점
+    유효** · 새로 깨진 것 **0**.
+  - **회수 2회**: `88165eeb` **9곳**(규범 voice·과잉 환언·어미체 이탈 — `common/tcodes` ·
+    `common/spro` · `CO/enhancements` · `MM/enhancements` · `PM/enhancements`) ·
+    `d24e18a4` **3곳**(미재저작 1셀 + 과잉 회수 1행 재환언 — `SD/bapi` · `SD/enhancements` ·
+    `MM/enhancements`). 둘 다 후 재확인 정상.
+  - 제품 게이트 9종 + doctor 전부 exit 0 · 지식 `.md` **148 유지** · 버전 무변.
+  ⚠ **push 직전 설치본 확인 의무 승계**(판2·판3.1~3.3과 동일 — D-060 편승 · 미배포 0.7.0):
+  `node interactive/scripts/doctor.mjs`로 확인하고 **이미 0.7.0 설치본이 있는 머신이
+  발견되면 패치 범프 후 push**.
+
+**판3.5 재료** (다음 판이 이어받는 것)
+
+- **다음 배치 = 1-A 후반부**: **Ariba·BW·HCM·PS·QM·TM·TR·WM 8모듈 × 6 = 48편.**
+  **계약은 판3.4와 같다 — D-088 그대로** 적용하면 되고 새 결정이 필요하지 않다. 이 48편으로
+  **1-A 갈래가 소진**된다(43 + 48 = 91).
+- **정찰 2건 (판3.4가 실측해 남긴 것 — 무변경 선례를 전제하지 말 것)**:
+  ⓐ **`PS/spro.md`는 표 밖 산문이 실재한다**(L82-84 불릿 — Fiori 대체 · Hierarchical
+  Projects · ACDOCA). 다른 모듈 spro가 무변경이었다는 사실을 **PS에 그대로 옮기면 틀린다.**
+  ⓑ **spro 술어 탐침의 Title-Case 명사 함정** — `Sets`(QM/PM Cycle Sets) · `Means`
+  (TM Means of Transport). 동사로 읽으면 문장형 셀로 오분류된다.
+- **이월 전량 승계 (판3.4도 손대지 않았다 — 전부 그대로)**: 위 「판3.4 재료」(판3.3 브리프)
+  본문의 항목 전부 — 소비자 오인용 4건 · 사실 의심 2건(`MATNR 40 characters (1909+)` ·
+  체크리스트의 `GetPackage`) · 제품명 표기 갈림(`SAPKIT` vs `sc4sap`) · **이식 전 참조 보존
+  목록 20곳** · 소비자 서술 불일치 4건 · 헤딩 재작성 기록 2건 · 판3.3이 등재한 사실 의심
+  (`fr.md` · `in.md` · `kr.md` · `chemical.md` · `food-beverage.md` · `es.md`) · 배치 내 기존
+  불일치 5건 · 재저작 구조 기록 2건. ⚠ **이중 계수 금지** — `clean-code.md`의
+  `common/abap-release-reference.md`는 「이식 전 참조 20곳」과 「소비자 오인용 ④」에 **겹쳐
+  있는 같은 건**이다.
+- **낡은 도구명 동결 36곳 (사실 의심 등재)**: 현행 도구 표면에 없는 `GetTable`(16곳) ·
+  `GetFunctionModule`(9) · `GetClass`(5) · `GetProgram`(3) · `GetView`(2) · `GetStructure`(1)
+  을 **원문 그대로 보존**했다(Read* 현행화 금지 — 판3.2 발견 ④의 `GetPackage`와 동종 ·
+  내용 개정 판 소관).
+- **사실 의심 신규 등재 (재저작은 원문대로 보존함 — 내용 개정 판 소관)**:
+  - `common/naming-conventions.md` — 소비자 `create-object.md:77`이 이 파일의 범위를 잘못
+    요약한다(오브젝트별 패턴은 실제로 `naming-conventions-objects` 소관 — 소비자 서술 불일치
+    계열).
+  - `CO/tcodes.md` — KSU5/KEU5 국문 「배분/분배」 용어 갈림 · OKEON 대역에 '원가 센터' 누락.
+  - `SD/spro.md` — `V_TVAPt` 소문자 표기 · Config Name 「Define Item Categories…」 중복 2회 ·
+    `V_MTVFP`↔`V_TMVFP` 전치 의심.
+  - `SD/tcodes.md` — V/06·V/08 명칭 한 칸 밀림 의심 · VFX3 국문 대역 「전기」 vs Release ·
+    `SPRO = SAP Project Reference Object` 역두문자 · VL60·SD70 실재 미확인.
+  - `SD/bapi.md` — `AVAILABILITY_CHECK`·`CREDIT_EXPOSURE_CALCULATE` FM 실재 의심 ·
+    `BAPI_OUTB_DELIVERY_CONFIRM_DEC`의 Description(Transfer Order)↔Usage(goods issue) 긴장.
+  - `PP/bapi.md` — `BAPI_BOM_GETDETAIL`·`BAPI_ROUTING_GET_DETAIL`·`BAPI_WORKCENTER_GET_DETAIL`·
+    `BAPI_CAPACITY_REQUIREMENTS`·`MD_MRP_PARAMETERS_MATERIAL` 이름 의심 · PBHI/PBIM 짝
+    (통상 PBIM+PBED) 의심 · `BAPI_GOODSMVT_CREATE`의 PP 한정 gloss.
+  - `PP/spro.md` — 합성 의심 뷰명 7종: `V_T003O_PP`·`V_MARC_MRP`·`V_MARC_PTF`·`V_MTVFP_PP`·
+    `V_TC44_ALT`·`V_T024D_W`·`V_TCO15`.
+  - `PP/workflows.md` — WF2의 `PLSC (planned order)` vs Required Tools의 `PLAF`(문서 내부
+    불일치).
+  - `PP/tcodes.md` — MDVP↔MD09 의심(유력) · OPJN↔OPJH · OP43↔OMD0/OPPU · MD45 라벨 과대 ·
+    COOIS 중복 표기 갈림.
+  - `PM/bapi.md` — `RIIFLO20`(FM 아닌 리포트 의심) · `MPLAN`(통상 MPLA/MPOS) ·
+    `BAPI_MAINTPLAN_CREATE`/`BAPI_MAINTPLAN_GETDETAIL` 실재 의심.
+  - `PM/enhancements.md` — `IWP1` 4자 형태 이질 · `IEQM_SERNO_CHECK` 표기 관례 · `ITOB`가
+    Table 열에 있는 점.
+  - `PM/tcodes.md` — 해석적 라벨 4종(IP10·IW37N·PMSM·IW65) · 코드 의심 9종
+    (S_ALR_87012894·IWBK·MCJB·MCIZ·OIOF·OIB2·OIH2·OIYL·OIM0).
+  - `PM/tables.md` — IFLO(뷰)·IFLOTX·MMPT·T352T 라벨 사실성 의심.
+  - `CO/enhancements.md` — §4.2 표 3열 헤더에 4셀 행(**렌더링 결함** · 이식 시점부터) ·
+    MP-variant↔평가 변형 대역 불일치.
+  - `FI/bapi.md` — `Post GL Posting…`의 GL→G/L **표기 정규화 1건 인정**(같은 셀 KR이 이미
+    G/L이라 리뷰가 정규화로 판단).
+  - `FI/bapi.md` KR 「전기→계상」 **5셀 용어 갈림** — **판3.5 일관성 재료**(같은 어휘가 다른
+    파일에서 어떻게 처리되는지 함께 볼 것).
+  - `MM/tcodes.md`·`FI/tcodes.md`·`common/tcodes.md` 등 — System 열·명칭 의심 소량(각 리뷰
+    보고서에 기록).
+- **판정 폭 기록 (위반 아님 — 후속 감사가 오독하지 않도록)**: 표 셀 재저작 폭이 파일 간에
+  갈렸다 — **광폭**(`common/bapi` Description 62셀 · `common/enhancements` gloss 36셀 ·
+  `FI/bapi` Description+Usage 54셀) vs **협폭 수렴선**(`FI/enhancements`·`FI/tables`·
+  `CO/tables`·`MM/enhancements`·`MM/tables`·`SD/tables` 등 — 명칭·명사구 보존, 진짜 술어절만).
+  D-088 ①의 「저작 gloss냐 공식 명칭이냐」 판정 재량 범위이고, **전 파일에서 식별자·수치
+  다중집합 불변이 기계로 증명**돼 사실 무변은 성립한다(D-088 정직 유보 ⓒ). 같은 계열 2건:
+  `Internal FM:` 셀은 `SD/bapi` 보존 vs `MM/bapi`·`PP/bapi` 재저작으로 **갈렸고**, 스텝 태
+  drift가 `PP/workflows` vs `SD/workflows`에서 갈렸다 — **전 파일 사실 무변은 기계 증명됨**.
+- **EN/KR 쌍 규정 적용 기록**: 산문 쌍은 두 언어를 함께 재저작했고(`common/spro`·
+  `common/tables`·`common/tcodes`·`MM/enhancements`·`CO/enhancements`·`PP/enhancements`·
+  `PM/enhancements` 등) **EN 단독 본문에 KR을 신설한 것은 0**, KR 단독 산문도 재저작했다
+  (`MM/bapi.md:19`).
+- **배치 내 상호 인용 (판3.5도 같음)**: 14개 모듈 `spro.md:9`가 `common/spro.md`의 헤딩
+  **「IMG Activity Verification」**을 인용한다. 재저작으로 그 절의 **행 좌표는 이동했고
+  헤딩 문구는 보존**됐다 — 후속 판은 이 인용을 **절 이름으로만** 다루고 행 좌표를 박지 말 것.
+- **이월 지적 ③의 좌표 전환**(판3.1 등재분 — 행 좌표가 이동해 절 좌표로 갱신): `sap-executor.md:60`·
+  `analyze-code.md:62`가 변수 접두사·상수를 `abap/conventions/naming-conventions.md`에 있다고
+  하나 그 내용은 `modules/common/naming-conventions.md` **§ Code-Level Naming의
+  Variables·Constants 표**에 있다(구 표기 `:51–71`).
 - **이식 전 참조**: 이 배치 본문 **0건**(신규 등재 없음).
 
 ### 판4 — ⑶-c ZRSC4SAP 템플릿 재생성 (집필분)
