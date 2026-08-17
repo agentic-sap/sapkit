@@ -7,7 +7,7 @@
 *& How     : A single DDIF_TABL_PUT call. That stores the inactive
 *&           version and stops there. Activation, package and
 *&           transport assignment stay a manual SE11 step.
-*& Caution : The DDIF_* function group is SAP-internal and unreleased.
+*& Caution : The DDIF_* family is SAP-internal and unreleased.
 *&           No API contract covers it; run it knowing that.
 *&---------------------------------------------------------------------*
 REPORT ycreate_zmmt44021.
