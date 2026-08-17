@@ -65,14 +65,14 @@
 
 ## S/4HANA Specific
 
-- SAP HCM for S/4HANA (on-premise) is available as a compatibility pack; core PA/PD/PT/PY tables remain identical to ECC.
-- H4S4 (HCM for S/4HANA) is the recommended path when SuccessFactors Employee Central is not adopted.
-- Integration with SuccessFactors Employee Central uses replication via SAP Cloud Platform Integration (CPI) — PA infotypes map to EC entities.
-- Core Hybrid deployment: PA/PD remain on-premise, Payroll on-premise, EC for talent processes.
+- A compatibility pack is the form in which SAP HCM for S/4HANA (on-premise) is available; the core PA/PD/PT/PY tables are still identical to ECC.
+- Where SuccessFactors Employee Central is not adopted, the recommended path is H4S4 (HCM for S/4HANA).
+- Integration with SuccessFactors Employee Central works by replication over SAP Cloud Platform Integration (CPI) — PA infotypes are mapped onto EC entities.
+- Core Hybrid deployment: PA/PD and Payroll stay on-premise, talent processes on EC.
 
 ## Related Tables
 
 - CSKS — Cost Centers (CO integration via PA0001 / PA0027).
 - T001 / T001P — Company code / personnel subarea mapping.
-- BUT000 — Business Partner (when HCM-BP integration is active in S/4HANA).
+- BUT000 — Business Partner (when S/4HANA has HCM-BP integration active).
 - PTEX2000 / PTEX2010 — Interface tables for external time data transfer.
