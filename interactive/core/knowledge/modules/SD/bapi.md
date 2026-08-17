@@ -4,7 +4,7 @@
 ## Core BAPIs
 | BAPI/FM | System | Description | Usage |
 |---------|--------|-------------|-------|
-| BAPI_SALESORDER_CREATEFROMDAT2 | ECC/S4 | Create Sales Order / 판매 주문 생성 | Standard sales order creation with header, items, schedule lines, partners |
+| BAPI_SALESORDER_CREATEFROMDAT2 | ECC/S4 | Create Sales Order / 판매 주문 생성 | Creates a standard sales order with its header, items, schedule lines, and partners |
 | BAPI_SALESORDER_CHANGE | ECC/S4 | Change Sales Order / 판매 주문 변경 | Change fields on an existing sales order, add/delete items |
 | BAPI_SALESORDER_GETLIST | ECC/S4 | Get Sales Order List / 판매 주문 목록 조회 | Read a list of sales orders by customer, material, date |
 | BAPI_SALESORDER_GETSTATUS | ECC/S4 | Get Sales Order Status / 판매 주문 상태 조회 | Read delivery/billing status at overall and item level |

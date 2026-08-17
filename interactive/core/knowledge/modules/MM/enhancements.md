@@ -124,4 +124,4 @@ Extension runs through `@AbapCatalog.extensibility.extensible: true` and through
 3. **Use Enhancement Spots** where they are available, for enhancements that stay modern and upgrade-safe.
    업그레이드에 안전하도록 확장 스팟을 사용.
 4. **Release strategy configuration** for PR/PO approval belongs ahead of any code-level change.
-   PR/PO 승인은 해제 전략 구성이 우선.
+   PR/PO 승인 쪽은 해제 전략 구성이 우선.

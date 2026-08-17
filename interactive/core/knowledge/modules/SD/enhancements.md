@@ -121,8 +121,8 @@ Among SAP modules, SD (Sales & Distribution) carries one of the richest enhancem
 
 ### 4.2 VOFM Routines / VOFM 루틴
 
-VOFM transaction provides customer-namespace routines for:
-VOFM 트랜잭션은 다음 영역의 고객 네임스페이스 루틴을 제공합니다:
+Customer-namespace routines come from the VOFM transaction, covering:
+고객 네임스페이스 루틴은 VOFM 트랜잭션에서 제공되며, 대상 영역은 다음과 같습니다:
 
 | Category | System | Description / 설명 |
 |----------|--------|--------------------|
