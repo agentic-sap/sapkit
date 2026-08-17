@@ -180,10 +180,10 @@ t(
   'keychain 서비스명',
 );
 t(
-  'ABAP 앵커(zrsc4sap_oop_ex) 개명 → FAIL',
+  'ABAP 앵커(zsapkit_oop_ex) 개명 → FAIL',
   (root) => {
     const rel = 'interactive/core/knowledge/abap/conventions/oop-pattern.md';
-    W(root, rel, R(root, rel).replaceAll('zrsc4sap_oop_ex', 'zrsapkit_oop_ex'));
+    W(root, rel, R(root, rel).replaceAll('zsapkit_oop_ex', 'zrenamed_oop_ex'));
   },
   1,
   'ABAP 앵커',

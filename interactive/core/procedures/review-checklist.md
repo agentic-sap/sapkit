@@ -195,7 +195,7 @@ Core (clean-code.md, both paradigms):
 - [ ] Reconciliation/verification outputs do not treat absent values as 0 (empty lookup must not assert "difference = 0")
 
 Paradigm = OOP (clean-code-oop.md):
-- [ ] **Main program structure matches [zrsc4sap_oop_ex.prog.abap](../knowledge/abap/templates/oop-sample/zrsc4sap_oop_ex.prog.abap)** — REPORT statement, INCLUDE order, event block layout, two-class bootstrap (`go_data = NEW lcl_data( )` / `go_alv = NEW lcl_alv( go_data )`). Any structural deviation must be justified in `spec.md`; otherwise MAJOR finding.
+- [ ] **Main program structure matches [zsapkit_oop_ex.prog.abap](../knowledge/abap/templates/oop-sample/zsapkit_oop_ex.prog.abap)** — REPORT statement, INCLUDE order, event block layout, two-class bootstrap (`go_data = NEW #( ).` / `go_alv = NEW #( ).`). Any structural deviation must be justified in `spec.md`; otherwise MAJOR finding.
 - [ ] Classes `FINAL` unless designed for inheritance; members `PRIVATE` by default
 - [ ] Methods do one thing, ≤ 30 lines, single abstraction level, ≤ 3 IMPORTING parameters
 - [ ] Methods return one value (`RETURNING` over `EXPORTING`); no boolean input parameters
