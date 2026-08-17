@@ -44,13 +44,13 @@
 
 ## S/4HANA Specific
 
-- Material master simplification: MATDOC replaces aggregate tables for inventory (cross-module impact on PP goods movements).
-- MRP Live (PPH_MRP_*): MRP runs use HANA-optimized logic; classic MD01/MD02 still available but MD01N (MRP Live) is preferred in S/4HANA.
-- Advanced Planning (aATP, pMRP) leverages embedded PP/DS tables (e.g., /SAPAPO/*) when activated.
+- Material master simplification: the aggregate tables for inventory give way to MATDOC (cross-module impact on PP goods movements).
+- MRP Live (PPH_MRP_*): the MRP run is performed with HANA-optimized logic; classic MD01/MD02 still available but S/4HANA prefers MD01N (MRP Live).
+- Advanced Planning (aATP, pMRP) draws on the embedded PP/DS tables (e.g., /SAPAPO/*) once activated.
 
 ## Related Tables
 
-- MKPF / MSEG (ECC) — Material Documents; in S/4HANA superseded by MATDOC (compatibility views remain).
+- MKPF / MSEG (ECC) — Material Documents; in S/4HANA superseded by MATDOC (compatibility views stay in place).
 - EBAN / EBKN — Purchase Requisitions generated from MRP.
 - COEP / COSP — Cost postings for production orders (CO integration).
 - JEST / JCDS — Object status for production orders.
