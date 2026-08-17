@@ -1,8 +1,8 @@
 # Common - Cross-Module Key Tables
 # 공통 - 교차 모듈 주요 테이블
 
-모든 SAP 모듈에서 공통으로 참조되는 핵심 테이블.
-Key tables referenced across all SAP modules.
+SAP 전 모듈이 공통으로 참조하는 핵심 테이블이다.
+Every SAP module refers to these key tables in common.
 
 ## Data Dictionary (DD* series) / 데이터 사전
 
