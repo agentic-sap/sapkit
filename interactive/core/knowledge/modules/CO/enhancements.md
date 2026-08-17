@@ -66,7 +66,7 @@ CO(관리 회계) 모듈의 확장은 원가 센터 회계, 내부 주문, 제�
 
 ## 3. Enhancement Spots / 확장 스팟
 
-Enhancement spots are where modern CO BAdIs are delivered — `ES_COPA_DERIVATION` and the product-costing spots among them; the system is checked through SE84 → Enhancement Spots → CO.
+Enhancement spots are where modern CO BAdIs are delivered — `ES_COPA_DERIVATION` and the product-costing spots among them; check the system through SE84 → Enhancement Spots → CO.
 최신 CO BAdI가 제공되는 자리는 `ES_COPA_DERIVATION` 등의 확장 스팟 아래입니다. 확인은 SE84에서.
 
 ---
@@ -137,13 +137,13 @@ For rule-based CO validations, reach for OKC7 and GGB0/GGB1 ahead of custom code
 
 ## 8. Recommended Approach / 권장 접근 방식
 
-1. **BAdIs > CMOD exits** — for new CO logic, the modern BAdIs are preferred.
+1. **BAdIs > CMOD exits** — for new CO logic, prefer the modern BAdIs.
    CMOD보다 BAdI에 우선순위 — 신규 CO 로직에 쓰는 쪽은 현대적 BAdI.
 2. **In S/4HANA, account-based CO-PA gets the preference** over costing-based CO-PA.
    S/4HANA에서는 account-based CO-PA를 costing-based CO-PA보다 우선.
 3. **In S/4HANA a cost element is a G/L account** — keep custom logic off CSKA/CSKB.
    S/4HANA의 원가 요소는 곧 G/L 계정 — CSKA/CSKB에 기대는 커스텀 로직은 지양.
-4. For CO-PA derivation, **KEDR (derivation rules) comes before KEDRU (user exit)** — configuration-first.
+4. For CO-PA derivation, **use KEDR (derivation rules) before KEDRU (user exit)** — configuration-first.
    CO-PA 도출은 KEDRU 앞에 KEDR — 구성이 앞서는 접근.
 5. **Extend ACDOCA** whenever a custom field must flow through FI and CO together.
    FI·CO를 함께 지나는 커스텀 필드라면 ACDOCA 확장.

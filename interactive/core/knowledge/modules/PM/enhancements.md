@@ -109,7 +109,7 @@ Maintenance orders, notifications, technical objects (equipment & functional loc
 
 ## 8. Recommended Approach / 권장 접근 방식
 
-1. **Prefer BAdIs over CMOD exits** — `WORKORDER_UPDATE` and `NOTIF_EVENT_HANDLER` are the ones to use.
+1. **Prefer BAdIs over CMOD exits** — use `WORKORDER_UPDATE` and `NOTIF_EVENT_HANDLER`.
 2. **Technical object master data** — go through `EQUIPMENT_MODIFY` and `FUNCL_MODIFY`.
 3. **Shared logic** — `WORKORDER_UPDATE` (PP+PM) and `NOTIF_EVENT_HANDLER` (QM+PM) are there to be reused.
 4. **S/4HANA** — for mobile/Fiori scenarios, pair CDS views with Key User Extensibility.

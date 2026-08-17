@@ -52,8 +52,8 @@ SPRO customizing that every SAP module has in common.
 | Number Range Intervals | ECC/S4 | NRIV | Intervals, held per object / 객체별 번호 범위 구간 | - |
 
 **Group ≠ interval / 그룹과 인터벌은 별개 체계.** Where a number-range object is grouped
-(CO orders via KONK, CO documents via KANK, …), the *group* numbers run on a counter of
-their own, unrelated to the `NRIV` interval numbers — and the standard groups SAP ships
+(CO orders via KONK, CO documents via KANK, …), the *group* numbering stays independent
+of the `NRIV` interval numbers — and the standard groups SAP ships
 are already present on a fresh system: for `AUFTRAG`, groups 03–20. Read "interval 20 is
 free" as "group 20 does not exist yet" and the instructions you write will contradict what
 the Group Selection popup actually shows; a group created by mistake is also not

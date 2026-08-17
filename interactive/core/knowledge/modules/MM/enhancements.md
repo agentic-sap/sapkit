@@ -84,7 +84,7 @@ MM(자재 관리) 모듈이 ECC 및 S/4HANA 양쪽에서 쓸 수 있는 확장 �
 
 ## 5. Validations / Substitutions / 검증 및 대체
 
-For validations, what MM leans on first is BAdIs (e.g., `ME_PROCESS_PO_CUST`) together with release strategies.
+For validations, MM leans primarily on BAdIs (e.g., `ME_PROCESS_PO_CUST`) together with release strategies.
 MM의 검증 구현은 주로 BAdI와 해제 전략을 거쳐 이루어집니다.
 
 ---
@@ -124,4 +124,4 @@ Extension runs through `@AbapCatalog.extensibility.extensible: true` and through
 3. **Use Enhancement Spots** where they are available, for enhancements that stay modern and upgrade-safe.
    업그레이드에 안전하도록 확장 스팟을 사용.
 4. **Release strategy configuration** for PR/PO approval belongs ahead of any code-level change.
-   PR/PO 승인이라면 해제 전략 구성을 먼저 둔다.
+   PR/PO 승인은 해제 전략 구성이 우선.
