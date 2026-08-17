@@ -1,16 +1,91 @@
 # SAP Version Reference (ECC vs S/4HANA)
 
-Comprehensive reference of the differences between **ECC 6.0** and **S/4HANA** that change agent behavior — tables, TCodes, BAPIs, Fiori apps, and development patterns.
+Between ECC 6.0 and S/4HANA the same recommendation can be right on one platform
+and wrong on the other — a different table holds the data, a different API writes
+it, a different programming model is expected. This document is the lookup that
+keeps an agent from making them: which **tables**, **TCodes**, **BAPIs**,
+**Fiori apps**, and **development patterns** apply to the system that is
+actually configured.
 
-Agents MUST check `SAP_VERSION` from `.sapkit/config.json` (or `sap.env`) **before** recommending any TCode, table, BAPI, or pattern. Agents MUST also check `ABAP_RELEASE` before generating ABAP code — see `common/abap-release-reference.md` for release-by-release syntax.
-
-If `SAP_VERSION` is unset, fail safe: ask the user to run the profile setup (core/procedures/troubleshooting.md) before proceeding.
+Read it in four moves: settle which version you are on (§1), obey what that
+version forbids (§2), look up the concrete object names for the area you are
+working in (§3–§9), and escalate when the answer is not certain (§10).
 
 ---
 
-## 1. Master Data
+## 1. Entry gate — settle the version before you speak
 
-### 1.1 Business Partner (the most frequently misunderstood area)
+- Resolve `SAP_VERSION` from `.sapkit/config.json` (or `sap.env`) **before**
+  naming a single TCode, table, BAPI, or pattern. This is a precondition of the
+  recommendation, not a review step afterwards.
+- Resolve `ABAP_RELEASE` **before** generating ABAP source. Which syntax each
+  release supports is a separate axis, documented in
+  [`abap-release-reference.md`](abap-release-reference.md); emitting syntax the
+  configured release does not have fails at activation.
+- If `SAP_VERSION` is unset, fail safe: ask the user to run the profile setup
+  ([`troubleshooting.md`](../../../procedures/troubleshooting.md)) before
+  proceeding.
+
+---
+
+## 2. What the configured version forbids — and what to use instead
+
+Everything in this section is a directive. §3–§9 are the evidence behind it.
+
+### 2.1 Reading data
+
+**On S/4HANA:**
+
+- **Do not `SELECT` directly from `BSEG`.** It survived the move from cluster
+  storage to transparent, but it is retained for legacy compatibility only —
+  `ACDOCA` is the actual source of truth. Report from `ACDOCA`, or from the
+  released CDS view `I_JournalEntryItem`.
+- **Do not `SELECT` directly from `MKPF` / `MSEG`.** Performance suffers and the
+  result can be inaccurate. Read `MATDOC`, or a released CDS view such as
+  `I_MaterialDocumentItem`.
+- `KNA1` / `LFA1` are still kept in sync and may be **read**, but treat them as
+  strictly read-only (see §2.2 for the write path).
+- Account-based CO-PA carried in `ACDOCA` is the standard. Name the
+  costing-based `CE1xxxx` / `CE4xxxx` tables only after confirming that
+  costing-based CO-PA is actually in use on that system.
+
+**On ECC 6.0:**
+
+- The `MKPF` ∪ `MSEG` JOIN is the correct construction for material documents,
+  and `BSEG` ∪ `BKPF` for finance reporting — on this platform that is the
+  design, not a workaround.
+- Establish whether new G/L is active before settling on a finance data source:
+  check `T881` / `T882G` first.
+
+### 2.2 Creating and changing master data
+
+- **On S/4HANA, never recommend `BAPI_CUSTOMER_CREATEFROMDATA1` for new work.**
+  SAP has explicitly flagged it for removal (deprecated). Use the CVI/BUPA family
+  (`BUPA_CREATE_FROM_DATA`, `CVI_EI_INBOUND_MAIN`) or the OData service
+  `API_BUSINESS_PARTNER` instead.
+- On S/4HANA, perform business-partner create and change **exclusively** through
+  the `BP` transaction or the CVI APIs. The compatibility tables `KNA1` / `LFA1`
+  are never a write target, even though they still exist.
+
+### 2.3 Field typing
+
+- **On ECC, force `CHAR18` on `MATNR` declarations.** Declaring `CHAR40` risks
+  truncation on the ECC 7.x runtime.
+- **On S/4HANA, type against the `MATNR` domain** rather than hardcoding any
+  length.
+
+### 2.4 Forms and output
+
+- **Do not author SAPscript for new S/4HANA projects.** SmartForms is
+  acceptable; Adobe Forms is preferred.
+
+---
+
+## 3. Master data — Business Partner
+
+The single most frequently misunderstood area. ECC keeps customer and vendor as
+two separate masters; S/4HANA unifies them behind one Business Partner object
+with roles.
 
 | Area | ECC 6.0 | S/4HANA |
 |------|---------|---------|
@@ -22,11 +97,12 @@ If `SAP_VERSION` is unset, fail safe: ask the user to run the profile setup (cor
 | Address | ADRC (via ADRNR) | ADRC (BUT020 via PARTNER_GUID) |
 | BAPI | BAPI_CUSTOMER_CREATEFROMDATA1 / BAPI_VENDOR_CREATE | BUPA_CREATE_FROM_DATA, CVI_EI_INBOUND_MAIN |
 
-**Agent guidance:**
-- On S/4HANA, never recommend `BAPI_CUSTOMER_CREATEFROMDATA1` for new work — SAP has explicitly flagged it for removal (deprecated). Use the CVI/BUPA family or the OData `API_BUSINESS_PARTNER` instead.
-- KNA1/LFA1 are retained on S/4HANA for compatibility, but **reference them read-only**; perform create/change exclusively through the BP transaction or the CVI APIs.
+Directives for this area: §2.1 (read-only compatibility tables) and §2.2
+(deprecated BAPI, BP/CVI write path).
 
-### 1.2 Material Master
+---
+
+## 4. Master data — Material
 
 | Area | ECC 6.0 | S/4HANA |
 |------|---------|---------|
@@ -35,15 +111,13 @@ If `SAP_VERSION` is unset, fail safe: ask the user to run the profile setup (cor
 | Tables | MARA, MARC (plant), MARD (storage), MVKE (sales), MBEW (valuation) | Same — MARA retained, only the MATNR field length is extended |
 | Images/documents | DMS | DMS + Fiori "Manage Product Master Data" |
 
-**Agent guidance:**
-- When generating code for an ECC system, force `CHAR18` on `MATNR` declarations — declaring `CHAR40` risks truncation on the ECC 7.x runtime.
-- On S/4HANA, reference the `MATNR` domain rather than hardcoding a length.
+Directive for this area: §2.3 (how to type `MATNR` on each platform).
 
 ---
 
-## 2. Logistics & Inventory
+## 5. Logistics — material movement documents
 
-### 2.1 Material Movement Document
+The header/item pair collapses into one table.
 
 | Area | ECC 6.0 | S/4HANA |
 |------|---------|---------|
@@ -52,11 +126,14 @@ If `SAP_VERSION` is unset, fail safe: ask the user to run the profile setup (cor
 | TCode | MB01/MB1A/MB1B/MB1C, MIGO | MIGO only — many MB* transactions are obsolete |
 | BAPI | BAPI_GOODS_CREATE_FROM_DATA, BAPI_GOODS_MVT_CREATE | Same BAPIs retained; internal logic routed through MATDOC |
 
-**Agent guidance:**
-- On S/4HANA, **do not SELECT directly from MKPF/MSEG** — performance suffers and results can be inaccurate. Use MATDOC or a released CDS view (e.g., `I_MaterialDocumentItem`).
-- On ECC, an MKPF ∪ MSEG JOIN is the correct approach.
+Directive for this area: §2.1 (MATDOC / `I_MaterialDocumentItem` on S/4, the
+MKPF ∪ MSEG JOIN on ECC).
 
-### 2.2 Sales Documents
+---
+
+## 6. Logistics — sales and purchasing documents
+
+### 6.1 Sales documents
 
 | Area | ECC 6.0 | S/4HANA |
 |------|---------|---------|
@@ -65,7 +142,7 @@ If `SAP_VERSION` is unset, fail safe: ask the user to run the profile setup (cor
 | BAPI | BAPI_SALESORDER_CREATEFROMDAT2 | Same (+ API_SALES_ORDER_SRV OData) |
 | Output | NACE (condition-based) | BRF+ Output Management (SAP S4 1809+) |
 
-### 2.3 Purchasing
+### 6.2 Purchasing
 
 | Area | ECC 6.0 | S/4HANA |
 |------|---------|---------|
@@ -76,9 +153,11 @@ If `SAP_VERSION` is unset, fail safe: ask the user to run the profile setup (cor
 
 ---
 
-## 3. Financials
+## 7. Financials
 
-### 3.1 Accounting Document (Universal Journal)
+### 7.1 Accounting document (Universal Journal)
+
+Header, item, totals, and sub-ledger indexes converge on one transparent table.
 
 | Area | ECC 6.0 | S/4HANA |
 |------|---------|---------|
@@ -89,19 +168,20 @@ If `SAP_VERSION` is unset, fail safe: ask the user to run the profile setup (cor
 | Asset accounting | ANLA + ANLP (classic) | ACDOCA-integrated (new asset accounting, mandatory) |
 | New G/L | FAGLFLEXA (optional) | None — ACDOCA replaces it |
 
-**Agent guidance:**
-- On S/4HANA, **do not SELECT directly from BSEG** — although it moved from cluster to transparent, ACDOCA is the actual source of truth. BSEG is kept for legacy compatibility only.
-- For reporting, use ACDOCA (+ released CDS view `I_JournalEntryItem`) on S/4, and the BSEG ∪ BKPF combination on ECC.
-- On ECC, first check whether new G/L is active via `T881`/`T882G`.
+Directives for this area: §2.1 (no direct `BSEG` SELECT on S/4;
+`I_JournalEntryItem` for reporting; `T881` / `T882G` new-G/L check on ECC).
 
-### 3.2 G/L Master
+### 7.2 G/L master
 
 | Area | ECC 6.0 | S/4HANA |
 |------|---------|---------|
 | Chart of accounts | SKA1 (chart level) + SKB1 (company code) | Same + **FINS_FIN_GLA** (extensions) |
 | TCode | FS00 | FS00 + Fiori "Manage G/L Account Master Data" |
 
-### 3.3 Credit Management
+### 7.3 Credit management
+
+On S/4HANA the FSCM implementation of credit management is mandatory, and the
+data moves to BP-based tables.
 
 | Area | ECC 6.0 | S/4HANA |
 |------|---------|---------|
@@ -111,7 +191,7 @@ If `SAP_VERSION` is unset, fail safe: ask the user to run the profile setup (cor
 
 ---
 
-## 4. Costing & Controlling
+## 8. Costing and controlling
 
 | Area | ECC 6.0 | S/4HANA |
 |------|---------|---------|
@@ -120,14 +200,14 @@ If `SAP_VERSION` is unset, fail safe: ask the user to run the profile setup (cor
 | Cost Center Master | KS01 | KS01 + Fiori "Manage Cost Centers" |
 | Profitability Analysis | CE1xxxx/CE4xxxx (costing-based) | ACDOCA (account-based CO-PA, default) |
 
-**Agent guidance:**
-- Account-based CO-PA is the S/4 standard — only recommend the CE1/CE4 tables after confirming that costing-based CO-PA is in use.
+Directive for this area: §2.1 (confirm costing-based CO-PA before naming
+CE1/CE4).
 
 ---
 
-## 5. Planning & Execution
+## 9. Planning, execution, output, and the development model
 
-### 5.1 MRP
+### 9.1 MRP
 
 | Area | ECC 6.0 | S/4HANA |
 |------|---------|---------|
@@ -135,28 +215,23 @@ If `SAP_VERSION` is unset, fail safe: ask the user to run the profile setup (cor
 | MRP Live | None | **MD01N** (HANA-based, in-memory, 10x+ faster) — recommended default |
 | Tables | MDKP, MDTB (obsolete in S4) | PPH_DBVM (HANA-optimized) |
 
-### 5.2 Production Order
+### 9.2 Production orders
 
 | Area | ECC 6.0 | S/4HANA |
 |------|---------|---------|
 | TCode | CO01/CO02/CO03 | Same + Fiori "Manage Production Orders" |
 | Tables | AUFK (header), AFKO (order), AFPO (item) | Same |
 
----
-
-## 6. Output Management
+### 9.3 Output management
 
 | Area | ECC 6.0 | S/4HANA |
 |------|---------|---------|
 | Approach | NACE (condition-based), SmartForms / SAPscript | **BRF+** Output Management (S4 1809+) + Adobe Forms recommended; NACE compatibility retained |
 | New development | NACE-based condition records | BRF+ conditions + determination |
 
-**Agent guidance:**
-- Do not create SAPscript for new S/4 projects. SmartForms is acceptable, but Adobe Forms is preferred.
+Directive for this area: §2.4 (no new SAPscript on S/4; Adobe Forms preferred).
 
----
-
-## 7. Development Model
+### 9.4 Development model
 
 | Area | ECC 6.0 | S/4HANA |
 |------|---------|---------|
@@ -168,10 +243,18 @@ If `SAP_VERSION` is unset, fail safe: ask the user to run the profile setup (cor
 
 ---
 
-## 8. Enforcement Rules
+## 10. Escalation and fallback
 
-- Agents MUST check `SAP_VERSION` from config before recommending TCodes, tables, BAPIs, or development patterns.
-- Agents MUST check `ABAP_RELEASE` from config before generating ABAP code — using unsupported syntax causes activation errors.
-- If `SAP_VERSION` is unset, fail safe: ask the user to run the profile setup (core/procedures/troubleshooting.md) before proceeding.
-- When migrating ECC→S/4HANA scripts, never assume compatibility views alone are enough — verify with `GetView` before SELECT.
-- For S/4HANA ABAP Cloud tier (`SAP_SYSTEM_TYPE=cloud`), only released APIs (C1 tier) are callable — consult `common/spro-lookup.md` and SAP Note guidance before recommending classic FMs/BAPIs.
+- **A compatibility view is not a guarantee.** When migrating an ECC→S/4HANA
+  script, never assume the compatibility views alone are enough — verify with
+  `GetView` before you SELECT.
+- **ABAP Cloud tier narrows the surface further.** On an S/4HANA system running
+  the ABAP Cloud tier (`SAP_SYSTEM_TYPE=cloud`), only released APIs (C1 tier)
+  are callable. Consult
+  [`spro-lookup.md`](../../../procedures/spro-lookup.md) and SAP Note guidance
+  before recommending any classic FM or BAPI.
+- **An unset `SAP_VERSION` routes back to §1** — ask the user to run the profile
+  setup before proceeding.
+- **Release is checked separately from version.** Even on the correct platform,
+  syntax newer than the configured `ABAP_RELEASE` causes activation errors —
+  see [`abap-release-reference.md`](abap-release-reference.md).
