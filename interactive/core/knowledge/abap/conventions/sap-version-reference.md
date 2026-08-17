@@ -2,11 +2,10 @@
 
 Between ECC 6.0 and S/4HANA the same recommendation can be right on one platform
 and wrong on the other — a different table holds the data, a different API writes
-it, a different programming model is expected. The dangerous cases are the ones
-that still compile and still return rows. This document is the lookup that keeps
-an agent from making them: which **tables**, **TCodes**, **BAPIs**, **Fiori
-apps**, and **development patterns** apply to the system that is actually
-configured.
+it, a different programming model is expected. This document is the lookup that
+keeps an agent from making them: which **tables**, **TCodes**, **BAPIs**,
+**Fiori apps**, and **development patterns** apply to the system that is
+actually configured.
 
 Read it in four moves: settle which version you are on (§1), obey what that
 version forbids (§2), look up the concrete object names for the area you are
@@ -106,9 +105,6 @@ Directives for this area: §2.1 (read-only compatibility tables) and §2.2
 
 ## 4. Master data — Material
 
-Structurally the most stable area: the transactions and the table set carry over
-unchanged. The one thing that moves is the field length.
-
 | Area | ECC 6.0 | S/4HANA |
 |------|---------|---------|
 | Length limit | MATNR 18 characters | MATNR 40 characters (1909+) |
@@ -122,8 +118,7 @@ Directive for this area: §2.3 (how to type `MATNR` on each platform).
 
 ## 5. Logistics — material movement documents
 
-The header/item pair collapses into one table. This is the change most likely to
-produce a silently wrong query, because the old tables are still there.
+The header/item pair collapses into one table.
 
 | Area | ECC 6.0 | S/4HANA |
 |------|---------|---------|
@@ -138,9 +133,6 @@ MKPF ∪ MSEG JOIN on ECC).
 ---
 
 ## 6. Logistics — sales and purchasing documents
-
-Document tables largely survive intact here; what changes is the UI layer and,
-for sales, the output determination technology.
 
 ### 6.1 Sales documents
 
@@ -166,8 +158,7 @@ for sales, the output determination technology.
 
 ### 7.1 Accounting document (Universal Journal)
 
-The deepest structural change in the whole comparison: header, item, totals, and
-sub-ledger indexes converge on one transparent table.
+Header, item, totals, and sub-ledger indexes converge on one transparent table.
 
 | Area | ECC 6.0 | S/4HANA |
 |------|---------|---------|

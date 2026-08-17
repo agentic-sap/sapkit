@@ -3,7 +3,7 @@
 ## 1. When this reference governs
 
 Consult this file during the Phase 0 preflight of the
-[create-program procedure](../../../procedures/create-program.md), and only when the
+[create-program procedure](../../../procedures/create-program.md), when the
 resolved `sapVersion` is **S/4HANA Cloud Public**. The language version in force there is
 **Cloud ABAP (ABAP for Cloud Platform)**, and the classic constructs catalogued in §2 are
 not available on it.
@@ -35,10 +35,9 @@ successor for the whole category, it is in the last column.
 When a user request maps onto anything in §2, stop at that point and propose the
 Cloud-native equivalent instead — do not begin building and discover the wall later.
 
-Two rows above compound into the single most common collision: the screen family is gone
-*and* the event blocks are gone, so the default **Main+Include + Dynpro +
-`CL_GUI_ALV_GRID`** pipeline **cannot execute** on Cloud Public. The program-creation flow
-has to route the request elsewhere:
+Two rows above compound: the screen family is gone *and* the event blocks are gone, so the
+default **Main+Include + Dynpro + `CL_GUI_ALV_GRID`** pipeline **cannot execute** on Cloud
+Public. The program-creation flow has to route the request elsewhere:
 
 | Request type | Cloud Public landing point |
 |---|---|
@@ -98,8 +97,6 @@ ENDCLASS.
 | Conversion (binary/xstring/base64) | `SCMS_BINARY_TO_XSTRING`, `SCMS_BINARY_TO_STRING`, `SCMS_XSTRING_TO_BINARY`, `SCMS_STRING_TO_XSTRING`, `SCMS_BASE64_ENCODE_STR`, `SCMS_BASE64_DECODE_STR` | `xco_cp=>xstring`, `xco_cp_binary` |
 
 ### 5.3 Repository and master-data reads
-
-Use the released reader instead of a direct `SELECT` on these tables.
 
 | Category | Classic | Cloud ABAP Replacement |
 |---|---|---|
