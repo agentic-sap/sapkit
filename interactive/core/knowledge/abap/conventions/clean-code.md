@@ -1,48 +1,48 @@
 # Clean ABAP — Shared Baseline (Paradigm-Neutral)
 
-This file lists the Clean ABAP rules that apply regardless of paradigm. Follow every rule unless a project-specific override is documented.
+Gathered here are the Clean ABAP rules that hold whatever paradigm a program is written in. Each one is binding unless a project-specific override has been documented.
 
-> **Gate rule**: every rule below is subordinate to `common/abap-release-reference.md` — never use syntax newer than the configured `ABAP_RELEASE` in `.sapkit/config.json`.
+> **Gate rule**: `common/abap-release-reference.md` outranks everything below — syntax newer than the `ABAP_RELEASE` configured in `.sapkit/config.json` is never permitted.
 
-> **Paradigm-specific rules live in companion files — load the right one based on the interview's Paradigm dimension (Phase 1B #2)**:
+> **Paradigm-specific rules live in companion files — the interview's Paradigm dimension (Phase 1B #2) decides which one gets loaded**:
 > - **OOP** (`paradigm = OOP`) → load **[`clean-code-oop.md`](clean-code-oop.md)** (classes, objects, constructors, method signatures, class-based exceptions, ABAP Unit with test doubles).
 > - **Procedural** (`paradigm = Procedural`) → load **[`clean-code-procedural.md`](clean-code-procedural.md)** (FORM / PERFORM, `USING`/`CHANGING`, TOP-include globals discipline, `EXCEPTIONS` clause on function modules, procedural testing limits).
 >
-> Load exactly ONE of the two paradigm files per program. Loading both mixes signatures and leads to inconsistent code. The formatting, testing-principles, and comment-detail rules that apply to both paradigms remain in `clean-code-oop.md` (as the more exhaustive companion) — procedural code reviewers treat the OOP file's formatting / testing-principles / comment-detail sections as canonical while skipping the class-scope / constructor / method-call-syntax sections.
+> Per program, load exactly ONE of the two paradigm files. Pulling in both blends the two signature styles and the code comes out inconsistent. Formatting, testing-principles, and comment-detail rules apply to both paradigms and stay in `clean-code-oop.md`, the more exhaustive of the two companions; a reviewer working on procedural code therefore reads the OOP file's formatting / testing-principles / comment-detail sections as canonical while passing over its class-scope / constructor / method-call-syntax sections.
 
 ## Naming
 
-- Follow [`naming-conventions.md`](naming-conventions.md) for object-level naming (Z/Y prefix, module namespace, includes, function groups, tables, DEs, DOs).
-- Variables: descriptive full words, not abbreviations. `lv_order_total`, not `lv_ord_tot`.
-- No single-letter variables except loop counters (`i`, `j`) and obvious short scopes.
-- Booleans: `is_*` / `has_*` / `should_*` prefix. `lv_is_released`, not `lv_released_flag`.
-- Method names are verbs; class names are nouns. `calculate_tax`, `order_processor`.
-- Avoid Hungarian for objects and structures (`ls_`, `lt_`, `lo_` are tolerated for locals but discouraged on class members).
+- Object-level naming (Z/Y prefix, module namespace, includes, function groups, tables, DEs, DOs) is governed by [`naming-conventions.md`](naming-conventions.md).
+- Spell variables out as descriptive full words instead of abbreviating them: `lv_order_total`, not `lv_ord_tot`.
+- Single-letter variables are out, with loop counters (`i`, `j`) and obviously short scopes the only exceptions.
+- Give booleans an `is_*` / `has_*` / `should_*` prefix — `lv_is_released`, not `lv_released_flag`.
+- Name a method with a verb and a class with a noun: `calculate_tax`, `order_processor`.
+- Keep Hungarian notation off objects and structures; `ls_`, `lt_`, `lo_` are tolerated on locals but discouraged on class members.
 
 ## Variables and Types
 
-- **Declare where you use** (ABAP 740+). Use inline declarations (`DATA(x) = ...`, `FIELD-SYMBOLS(<fs>) ASSIGNING ...`) when release allows.
-- **Minimize scope**. Locals over globals; method-locals over class attributes when possible.
-- **Use typed constants, not magic numbers**. See [`constant-rule.md`](constant-rule.md).
-- **Avoid `TYPE STANDARD TABLE WITH EMPTY KEY`** unless you really mean it; prefer `HASHED` / `SORTED` when lookup patterns allow.
-- **Never reuse a variable** for a different semantic meaning across a routine.
-- **Ratio / percentage arithmetic assigned into a narrow DEC/CURR field is a runtime-only defect class** (`COMPUTE_BCD_OVERFLOW` fires only on values, never at syntax check) — see [`function-module-rule.md`](function-module-rule.md) § Narrow DEC Fields — BCD Overflow.
+- **Declare where you use** (ABAP 740+). Reach for inline declarations (`DATA(x) = ...`, `FIELD-SYMBOLS(<fs>) ASSIGNING ...`) whenever the release permits them.
+- **Minimize scope**. Favour locals over globals, and method-locals over class attributes wherever that is possible.
+- **Use typed constants, not magic numbers**. The detail sits in [`constant-rule.md`](constant-rule.md).
+- **Avoid `TYPE STANDARD TABLE WITH EMPTY KEY`** where it is not genuinely what you mean; when the lookup pattern allows it, reach for `HASHED` / `SORTED` instead.
+- **Never reuse a variable** to carry a second, different meaning elsewhere in the same routine.
+- **Ratio / percentage arithmetic assigned into a narrow DEC/CURR field is a runtime-only defect class** — the syntax check never sees it, because `COMPUTE_BCD_OVERFLOW` fires on values alone — see [`function-module-rule.md`](function-module-rule.md) § Narrow DEC Fields — BCD Overflow.
 
 ## Control Flow
 
-- **Early exit / guard clauses**. Return on invalid input first; keep the happy path un-indented.
-- **No deeply nested `IF`**. More than 3 levels = extract a method.
-- **Prefer `CASE`** over an `IF/ELSEIF` chain on a single variable.
-- **Avoid `EXIT` / `CHECK` in the middle of long loops**. Extract instead.
-- **No silent `CONTINUE`** — the skip reason must be obvious or commented.
+- **Early exit / guard clauses**. Return on invalid input before anything else; keep the happy path free of indentation.
+- **No deeply nested `IF`**. Once nesting passes 3 levels, extract a method.
+- **Prefer `CASE`** where an `IF/ELSEIF` chain tests a single variable.
+- **Avoid `EXIT` / `CHECK` in the middle of long loops**; extract instead.
+- **No silent `CONTINUE`** — the reason for skipping must be self-evident, or else commented.
 
 ## Conditions and IFs
 
-- **Prefer positive conditions**. `IF lv_is_ready` over `IF NOT lv_is_not_ready`.
-- **Prefer `IS NOT` to `NOT IS`**. `IF lv_x IS NOT INITIAL` over `IF NOT lv_x IS INITIAL`.
-- **No empty `IF` branches** — if one branch is empty, invert the condition or remove the branch.
-- **Decompose complex conditions** — assign each sub-condition to a well-named `lv_is_*` boolean, then combine. Long `IF ... AND ... OR ...` chains are unreadable.
-- **Predicative method calls** when the method returns a boolean — `IF is_released( lo_order )` over `IF is_released( lo_order ) = abap_true`.
+- **Prefer positive conditions**. `IF lv_is_ready` beats `IF NOT lv_is_not_ready`.
+- **Prefer `IS NOT` to `NOT IS`**. Write `IF lv_x IS NOT INITIAL`, not `IF NOT lv_x IS INITIAL`.
+- **No empty `IF` branches** — where a branch has no body, either invert the condition or drop the branch.
+- **Decompose complex conditions** — give each sub-condition its own well-named `lv_is_*` boolean, then combine those. A long `IF ... AND ... OR ...` chain cannot be read.
+- **Predicative method calls** where the method already returns a boolean — `IF is_released( lo_order )` rather than `IF is_released( lo_order ) = abap_true`.
 
 ## Internal Tables
 
@@ -50,60 +50,60 @@ This file lists the Clean ABAP rules that apply regardless of paradigm. Follow e
   - `HASHED TABLE WITH UNIQUE KEY` — single-value lookups, ≥ a few thousand rows
   - `SORTED TABLE WITH NON-UNIQUE KEY` — range reads / ordered iteration
   - `STANDARD TABLE` — sequential processing only, no random access
-- **Avoid `DEFAULT KEY`** — implicit and inefficient. Declare the key explicitly or use a sorted/hashed type.
-- **Prefer `INSERT INTO TABLE`** to `APPEND TO` when the table is sorted/hashed. `APPEND` on a sorted table errors at runtime; on a hashed table it is rejected.
-- **Prefer `LINE_EXISTS( )`** to `READ TABLE ... TRANSPORTING NO FIELDS` or `LOOP AT ... ENDLOOP` just to detect presence.
-- **Prefer `READ TABLE ... WITH KEY` + `ASSIGNING <fs>`** over `INTO ls_` when only inspecting the row.
-- **Prefer `LOOP AT lt WHERE ...`** to a `LOOP AT` + inner `IF` filter — SAP evaluates `WHERE` with the key when possible.
-- **Secondary keys** — see the large-table rule under `## Open SQL` below.
+- **Avoid `DEFAULT KEY`** — it is implicit and inefficient. State the key explicitly or switch to a sorted/hashed type.
+- **Prefer `INSERT INTO TABLE`** over `APPEND TO` for a sorted or hashed table. `APPEND` against a sorted table errors at runtime; against a hashed table it is rejected.
+- **Prefer `LINE_EXISTS( )`** where the only goal is detecting presence, rather than `READ TABLE ... TRANSPORTING NO FIELDS` or a `LOOP AT ... ENDLOOP`.
+- **Prefer `READ TABLE ... WITH KEY` + `ASSIGNING <fs>`** to `INTO ls_` whenever the row is only being inspected.
+- **Prefer `LOOP AT lt WHERE ...`** over a `LOOP AT` with an inner `IF` filter — where it can, SAP evaluates the `WHERE` using the key.
+- **Secondary keys** — covered by the large-table rule under `## Open SQL` below.
 
 ## Strings
 
-- **Use backticks** `` `literal` `` for string literals, not single quotes `'literal'`. Single quotes create fixed-length `C` types and silently trim trailing spaces; backticks create proper `STRING` values.
-- **Use string templates** `|text { lv_var } more|` for assembly. Avoid `CONCATENATE lv_a lv_b INTO lv_s` chains — the template is shorter and preserves explicit formatting (`|{ lv_amount NUMBER = USER }|`).
-- **One translatable literal per text element** — see [`text-element-rule.md`](text-element-rule.md). Never embed only-literal text in a template when the string is user-visible.
+- **Use backticks** `` `literal` `` rather than single quotes `'literal'` for string literals. A single-quoted literal yields a fixed-length `C` type whose trailing spaces are trimmed without warning; backticks yield proper `STRING` values.
+- **Use string templates** `|text { lv_var } more|` when assembling text. Steer clear of `CONCATENATE lv_a lv_b INTO lv_s` chains — the template is shorter and keeps formatting explicit (`|{ lv_amount NUMBER = USER }|`).
+- **One translatable literal per text element** — see [`text-element-rule.md`](text-element-rule.md). Where the string is user-visible, never bury an only-literal text inside a template.
 
 ## Booleans
 
-- **Type**: declare boolean variables as `ABAP_BOOL`, not `CHAR1` / `C(1)`.
-- **Compare against** `abap_true` / `abap_false` / `abap_undefined` — never `'X'` / `' '` / `''`.
-- **Set** via `XSDBOOL( condition )` instead of `IF ... lv_b = abap_true. ELSE. lv_b = abap_false. ENDIF.`
-- **Prefer enumeration types** (`ENUM STRUCTURE` or constants cluster) over a boolean when the concept has more than two states — "is_released" + "is_blocked" + "is_draft" should be one status enum, not three booleans.
+- **Type**: boolean variables are declared `ABAP_BOOL`, not `CHAR1` / `C(1)`.
+- **Compare against** `abap_true` / `abap_false` / `abap_undefined`; `'X'` / `' '` / `''` are never the comparison values.
+- **Set** with `XSDBOOL( condition )` in place of `IF ... lv_b = abap_true. ELSE. lv_b = abap_false. ENDIF.`
+- **Prefer enumeration types** (`ENUM STRUCTURE` or constants cluster) once the concept carries more than two states — "is_released" + "is_blocked" + "is_draft" belongs in one status enum, not three booleans.
 
 ## Expressions and Constructors (ABAP 740+)
 
-- **Prefer `NEW`** over `CREATE OBJECT`.
-- **Prefer `VALUE #( ... )`** and `CORRESPONDING #( ... )` over `MOVE-CORRESPONDING` / explicit field-by-field copies.
-- **Use `COND #( ... )` / `SWITCH #( ... )`** instead of temp-variable IF trees.
-- **Use `REDUCE`/`FOR` table-expressions** for small transformations; fall back to `LOOP` for complex logic.
-- **Table expressions `table[ key = ... ]`** over `READ TABLE ... INTO`. Catch `CX_SY_ITAB_LINE_NOT_FOUND`.
+- **Prefer `NEW`** to `CREATE OBJECT`.
+- **Prefer `VALUE #( ... )`** and `CORRESPONDING #( ... )` in place of `MOVE-CORRESPONDING` or explicit field-by-field copies.
+- **Use `COND #( ... )` / `SWITCH #( ... )`** where a temp-variable IF tree would otherwise appear.
+- **Use `REDUCE`/`FOR` table-expressions** on small transformations; when the logic turns complex, fall back to `LOOP`.
+- **Table expressions `table[ key = ... ]`** in place of `READ TABLE ... INTO`. Catch `CX_SY_ITAB_LINE_NOT_FOUND`.
 
 ## Exception / Error Handling (paradigm-neutral part)
 
-- **Always act on errors** — catch what you can handle, propagate what you cannot. Never silently swallow.
-- **Preserve the cause** — always include the original exception / `sy-subrc` value in any escalated error.
-- **Never swallow runtime exceptions** (`CX_SY_*`) unless the recovery path is explicit and documented.
+- **Always act on errors** — handle what you are able to handle, pass on what you are not. Swallowing one silently is never acceptable.
+- **Preserve the cause** — always carry the original exception or `sy-subrc` value into the escalated error.
+- **Never swallow runtime exceptions** (`CX_SY_*`) except where the recovery path is both explicit and documented.
 - Paradigm-specific details:
   - OOP: class-based exceptions, `RAISE EXCEPTION NEW`, `CX_STATIC_CHECK` vs `CX_NO_CHECK` vs `CX_DYNAMIC_CHECK` — see [`clean-code-oop.md`](clean-code-oop.md) § Error Handling.
   - Procedural: `sy-subrc` check after each statement, `EXCEPTIONS` clause on `CALL FUNCTION`, `MESSAGE ... RAISING` for FM errors — see [`clean-code-procedural.md`](clean-code-procedural.md) § Error Handling.
 
 ## Reconciliation Logic — Null vs Zero
 
-Never read an absent value as `0` in verification / reconciliation logic — a failed or empty lookup then masquerades as "difference = 0, match ✓" (two empty totals compare `0 = 0` and the check passes on nothing). If the underlying rows are empty, do not emit totals at all — block the zero assertion rather than let it read as a match. RFC `TABLES` parameters cannot carry null (an uncomputed value arrives as `0.00` — see [`function-module-rule.md`](function-module-rule.md)), so design a caller-side normalization hook that maps "no rows / not computed" to null before any comparison.
+In verification / reconciliation logic an absent value must never be read as `0` — do that and a lookup that failed or came back empty masquerades as "difference = 0, match ✓", because two empty totals compare `0 = 0` and the check passes on nothing. Where the underlying rows are empty, emit no totals at all — block the zero assertion instead of letting it read as a match. Null cannot travel through RFC `TABLES` parameters (a value that was never computed arrives as `0.00` — see [`function-module-rule.md`](function-module-rule.md)), so put a normalization hook on the caller side that maps "no rows / not computed" to null ahead of any comparison.
 
 ## Currency Amounts — CURR Internal Unit ≠ Display Unit (TCURX)
 
-For currencies registered in `TCURX` with `CURRDEC = 0` (KRW, JPY, …) the **database value of a CURR field is the display value ÷ `10 ** (2 − CURRDEC)`** — for KRW, 1/100. SAP applies the conversion automatically between screen and DB, so nothing ever errors; three failure modes follow, all invisible on screen because the UI converts back on render:
+Where a currency is registered in `TCURX` with `CURRDEC = 0` (KRW, JPY, …), **the database value of a CURR field is the display value ÷ `10 ** (2 − CURRDEC)`** — 1/100 in the KRW case. SAP performs that conversion on its own between screen and DB, so nothing ever errors; three failure modes follow from it, and none is visible on screen, because the UI converts back on render:
 
-- **Never compare a CURR value against a threshold / master-data parameter registered in display units** (tax minimums, bracket boundaries, truncation units) — convert the *parameter* with the factor; do not scale the amount up and back (rounding loss). Standard FI pattern: `CURRENCY_CONVERTING_FACTOR` over `TCURX-CURRDEC`, unlisted currencies → factor 1.
-- **Never assign an externally-sourced amount (Excel / CSV / interface string) into a CURR field without the conversion** — it stores 100× inflated with no dump and no error. Screen ALV paths with a fcat `cfieldname` convert automatically; file-parsing paths have no such protection.
-- Eyeball checks cannot catch either case — verify at DB level (raw value), not on screen. (Field-verified in real project work, 2026-07: a threshold misjudged to 0 tax and a 100× stored upload, both caught only by direct DB reads.)
+- **Never compare a CURR value against a threshold / master-data parameter registered in display units** (tax minimums, bracket boundaries, truncation units) — apply the factor to the *parameter*, and never scale the amount up and back instead (rounding loss). The standard FI pattern reads `CURRENCY_CONVERTING_FACTOR` over `TCURX-CURRDEC`, with factor 1 for currencies not listed there.
+- **Never assign an externally-sourced amount (Excel / CSV / interface string) into a CURR field without the conversion** — what lands is 100× inflated, with no dump and no error. A screen ALV path whose fcat carries a `cfieldname` converts automatically; a file-parsing path has no such protection.
+- Neither case survives an eyeball check — verify at DB level (raw value), not on screen. (Field-verified in real project work, 2026-07: a threshold misjudged to 0 tax and a 100× stored upload, both caught only by direct DB reads.)
 
 ## Open SQL
 
-- **No `SELECT *`**. Always list the fields you need. Exception: `GetTable` schema probe (never for business reads).
-- **Prefer explicit typed internal tables over inline `INTO TABLE @DATA(...)` declarations in SELECT** — declare the row `TYPES` + table variable at the top of the local FORM / method, then use `INTO CORRESPONDING FIELDS OF TABLE @<var>` (or `APPENDING CORRESPONDING FIELDS OF TABLE @<var>` when accumulating across multiple SELECTs). Rationale: the typed structure is reused across the FORM/method, DDIC alignment is explicit, the itab's field catalog is traceable for SALV and for QA review, and multi-SELECT accumulation flows cleanly with `APPENDING` without allocating throwaway inline tables each round. Inline `INTO TABLE @DATA(...)` is acceptable **only** for one-shot local helpers (lookup helper with single SELECT whose result never leaves the method and never feeds another SELECT).
-- **Secondary keys on internal tables that receive large-table SELECT results** — when the SELECT source is a transactional / high-volume table (VBRK, VBAP, BKPF, BSEG, EKKO, EKPO, ACDOCA, MATDOC, LIPS, MKPF, MSEG, etc.) AND the resulting internal table is subsequently accessed by `READ TABLE` / `LOOP ... WHERE` on a non-primary-key column, declare a `SECONDARY KEY` on that itab. Pattern:
+- **No `SELECT *`**. Always list the fields you actually need. An exception is made for the `GetTable` schema probe, never for a business read.
+- **Prefer explicit typed internal tables over inline `INTO TABLE @DATA(...)` declarations in SELECT** — put the row `TYPES` and the table variable at the top of the local FORM / method, then select `INTO CORRESPONDING FIELDS OF TABLE @<var>` (or `APPENDING CORRESPONDING FIELDS OF TABLE @<var>` where several SELECTs accumulate). Rationale: the typed structure gets reused across the FORM/method, the DDIC alignment is spelled out, the itab's field catalog stays traceable for SALV and for QA review, and `APPENDING` lets multi-SELECT accumulation flow cleanly without a throwaway inline table allocated each round. Inline `INTO TABLE @DATA(...)` is acceptable **only** in one-shot local helpers — a lookup helper with a single SELECT whose result neither leaves the method nor feeds another SELECT.
+- **Secondary keys on internal tables that receive large-table SELECT results** — declare a `SECONDARY KEY` on the itab when the SELECT source is a transactional / high-volume table (VBRK, VBAP, BKPF, BSEG, EKKO, EKPO, ACDOCA, MATDOC, LIPS, MKPF, MSEG, etc.) AND the internal table it fills is subsequently accessed by `READ TABLE` / `LOOP ... WHERE` on a non-primary-key column. Pattern:
   ```abap
   DATA: lt_vbap TYPE SORTED TABLE OF ty_vbap_row
                 WITH NON-UNIQUE KEY vbeln
@@ -113,83 +113,83 @@ For currencies registered in `TCURX` with `CURRDEC = 0` (KRW, JPY, …) the **da
                      ASSIGNING <ls_vbap>.
   LOOP AT lt_vbap USING KEY k_matnr WHERE matnr = lv_mat ...
   ```
-  Choose `SORTED` vs `HASHED` by access pattern (range → SORTED; equality-only → HASHED). Do NOT blanket-apply secondary keys on small config/master itabs — they add memory overhead and make sense only when the lookup hotspot is measurable. This rule does NOT apply to small tables (T001, T001W, KNA1/LFA1 cached singletons, SPRO config tables). Record the rationale in a one-line comment next to the secondary key declaration when the itab size is borderline (< 100k but frequently accessed).
-- **Use CDS views** for any reusable read logic (ABAP 750+). See `configs/{MODULE}/` for module-standard views.
-- **Never `SELECT` inside a `LOOP`** — use `FOR ALL ENTRIES IN` or a join.
-- **Always check `sy-subrc`** or catch the class-based equivalent (`CX_SY_OPEN_SQL_DB`).
-- **Filter and aggregate server-side**. No `LOOP ... WHERE ... DELETE` to post-filter.
-- **Large transactional tables — mandatory pre-count**: before a SELECT on a transactional table (VBRK, VBAP, BKPF, BSEG, EKKO, EKPO, ACDOCA, MATDOC, LIPS, MKPF, MSEG, WBCROSSGT and equivalents), first run `SELECT COUNT(*) FROM <table> WHERE <same predicate>` to size the result set. If the count exceeds **1,000,000 rows**, do NOT run the main SELECT as-is — apply at least one of the following tuning measures before proceeding:
-  - tighten the `WHERE` predicate (add mandatory date/org unit filter) and re-count
-  - confirm an index covers the predicate (`DB02` / `ST05` during development, or the table's secondary index list via `GetTable`)
-  - switch to **package iteration**: `SELECT ... PACKAGE SIZE n` with chunked processing, or `OPEN CURSOR` + `FETCH NEXT CURSOR`
-  - parallelize via `aRFC` / `bgRFC` on independent key ranges
-  - push filtering/aggregation to a CDS view with the matching annotations (`@Analytics`, `@ClientHandling`, buffer hints) so only aggregates hit the ABAP layer
-  - reject row-level extraction and switch to aggregated output (SUM / GROUP BY)
-  
-  Record the count and the chosen tuning measure in `spec.md` / `plan.md` when Phase 2 detects the risk, and in the Phase 6 review notes when confirmed.
-- **Blocked tables**: before any `GetTableContents` / `GetSqlQuery`, consult [`data-extraction-policy.md`](../../../policies/data-protection/data-extraction-policy.md) and [`table_exception.md`](../../../policies/data-protection/table_exception.md).
+  Access pattern decides `SORTED` vs `HASHED` (range → SORTED; equality-only → HASHED). Small config/master itabs must NOT get secondary keys as a blanket measure — they add memory overhead and pay off only where the lookup hotspot is measurable. This rule does NOT extend to small tables (T001, T001W, KNA1/LFA1 cached singletons, SPRO config tables). Where the itab size is borderline (< 100k but frequently accessed), note the rationale in a one-line comment beside the secondary key declaration.
+- **Use CDS views** for any reusable read logic (ABAP 750+). The module-standard views sit in `configs/{MODULE}/`.
+- **Never `SELECT` inside a `LOOP`** — `FOR ALL ENTRIES IN` or a join takes its place.
+- **Always check `sy-subrc`**, or catch the class-based equivalent (`CX_SY_OPEN_SQL_DB`).
+- **Filter and aggregate server-side**. Post-filtering via `LOOP ... WHERE ... DELETE` is out.
+- **Large transactional tables — mandatory pre-count**: ahead of a SELECT on a transactional table (VBRK, VBAP, BKPF, BSEG, EKKO, EKPO, ACDOCA, MATDOC, LIPS, MKPF, MSEG, WBCROSSGT and equivalents), size the result set first by running `SELECT COUNT(*) FROM <table> WHERE <same predicate>`. Should that count come out above **1,000,000 rows**, the main SELECT does NOT run as-is — at least one of the following tuning measures comes first:
+  - re-count after tightening the `WHERE` predicate (add mandatory date/org unit filter)
+  - check that an index covers the predicate (`DB02` / `ST05` during development, or the table's secondary index list via `GetTable`)
+  - move to **package iteration**: `SELECT ... PACKAGE SIZE n` with chunked processing, or `OPEN CURSOR` + `FETCH NEXT CURSOR`
+  - spread the work over independent key ranges with `aRFC` / `bgRFC`
+  - push filtering/aggregation down into a CDS view carrying the matching annotations (`@Analytics`, `@ClientHandling`, buffer hints), so only aggregates hit the ABAP layer
+  - drop row-level extraction in favour of aggregated output (SUM / GROUP BY)
+
+  The count and the tuning measure chosen go into `spec.md` / `plan.md` when Phase 2 detects the risk, and into the Phase 6 review notes once confirmed.
+- **Blocked tables**: consult [`data-extraction-policy.md`](../../../policies/data-protection/data-extraction-policy.md) and [`table_exception.md`](../../../policies/data-protection/table_exception.md) before any `GetTableContents` / `GetSqlQuery`.
 
 ## Modularization (paradigm-neutral part)
 
-- **One unit does one thing.** Whether the unit is a method, a FORM, or a function module, it should have a single purpose that the name captures.
-- **Length limit** — default under ~30 lines; extract when it grows.
-- **Parameter count** — aim for ≤ 3 inputs. Beyond that, pass a structure.
-- **Respect include structure**: see [`include-structure.md`](include-structure.md).
+- **One unit does one thing.** Method, FORM, or function module alike, it should carry a single purpose, and the name should capture that purpose.
+- **Length limit** — the default ceiling is roughly 30 lines; extract once it outgrows that.
+- **Parameter count** — target ≤ 3 inputs. Beyond that, hand over a structure.
+- **Respect include structure**: [`include-structure.md`](include-structure.md) lays it out.
 - Paradigm-specific guidance:
   - OOP methods / classes / constructors — see [`clean-code-oop.md`](clean-code-oop.md) § Methods and § OOP.
   - Procedural FORM / PERFORM / FM — see [`clean-code-procedural.md`](clean-code-procedural.md) § Modularization and [`procedural-form-naming.md`](procedural-form-naming.md).
 
 ## Text and User Interaction
 
-- **All user-visible text via Text Elements**. See [`text-element-rule.md`](text-element-rule.md).
-- **No hardcoded language literals** in logic — use text symbols (`TEXT-001`), message classes (`MESSAGE e001(z_msg)`), or OTR.
-- **ALV output follows** [`alv-rules.md`](alv-rules.md) (field catalog, events, layout).
+- **All user-visible text via Text Elements**. [`text-element-rule.md`](text-element-rule.md) governs.
+- **No hardcoded language literals** in logic — text symbols (`TEXT-001`), message classes (`MESSAGE e001(z_msg)`), or OTR instead.
+- **ALV output follows** [`alv-rules.md`](alv-rules.md) for field catalog, events, and layout.
 
 ## Comments
 
-- **Default: no comments.** Clean naming and short methods explain themselves.
-- **Write a comment only for the WHY** — a hidden invariant, a workaround for a specific SAP Note, a constraint from a domain expert. Never the WHAT.
-- **No comment banners, author tags, or change logs.** Git/Transport is the audit trail.
-- **Delete commented-out code** — don't check it in.
+- **Default: no comments.** Clean naming and short methods do the explaining.
+- **Write a comment only for the WHY** — a hidden invariant, a workaround for a specific SAP Note, a constraint handed down by a domain expert. Never the WHAT.
+- **No comment banners, author tags, or change logs.** The audit trail is Git/Transport.
+- **Delete commented-out code** — it does not get checked in.
 
 ## Testing (paradigm-neutral principles)
 
-- **Tests exist for non-trivial logic** — every calculation, every branching decision, every integration edge.
-- **Test the public contract**, not private internals.
-- **One concept per test** when practical; descriptive test names: `is_released_returns_true_when_status_is_X`.
-- **Each commit's tests pass** — `RunUnitTest` via MCP before release.
+- **Non-trivial logic has tests** — every calculation, every branching decision, every integration edge.
+- **Test the public contract**, not the private internals.
+- **One concept per test** where that is practical, under a descriptive name: `is_released_returns_true_when_status_is_X`.
+- **Each commit's tests pass** — run `RunUnitTest` via MCP before release.
 - Paradigm-specific test patterns:
   - OOP — ABAP Unit `LOCAL CLASS ... FOR TESTING`, `CL_ABAP_TESTDOUBLE`, `LOCAL FRIENDS` only for constructor access — see [`clean-code-oop.md`](clean-code-oop.md) § Testing.
   - Procedural — FORM testing limits (hard to mock globals); recommend extracting testable logic into a helper class tested separately — see [`clean-code-procedural.md`](clean-code-procedural.md) § Testing.
 
 ## Performance
 
-- **Measure, don't guess**. Use `RuntimeRunClassWithProfiling` / `RuntimeAnalyzeProfilerTrace`.
-- **Server-side work beats client-side**. Filter/aggregate/sort in Open SQL or CDS; bring back only what you need.
-- **Avoid nested SELECTs / nested loops over large itabs**. Use `FOR ALL ENTRIES`, joins, or hashed lookups.
-- **Parallelization**: `aRFC` / `bgRFC` for independent chunks when the operation supports it.
-- **Avoid buffer-busting patterns** — `SELECT ... BYPASSING BUFFER` is a last resort.
+- **Measure, don't guess**. The instruments are `RuntimeRunClassWithProfiling` / `RuntimeAnalyzeProfilerTrace`.
+- **Server-side work beats client-side**. Filter, aggregate, and sort in Open SQL or CDS, and bring back only what you need.
+- **Avoid nested SELECTs / nested loops over large itabs**. `FOR ALL ENTRIES`, joins, or hashed lookups replace them.
+- **Parallelization**: `aRFC` / `bgRFC` for independent chunks where the operation supports it.
+- **Avoid buffer-busting patterns** — reach for `SELECT ... BYPASSING BUFFER` only as a last resort.
 
 ## Security and Data Handling
 
-- **Authorization checks at every entry point** (`AUTHORITY-CHECK` before read/write of restricted data).
-- **No SQL injection**: never concatenate user input into `EXEC SQL` or dynamic `WHERE`. Use parameter markers.
-- **Mask/skip PII in logs, dumps, and error messages.** PII categories in `exceptions/*.md`.
-- **Data extraction rules are hard rules** — see [`data-extraction-policy.md`](../../../policies/data-protection/data-extraction-policy.md). `acknowledge_risk` requires explicit user affirmative (`yes` / `authorize` / `approve` / `proceed` / `confirmed`). Never auto-set.
+- **Authorization checks at every entry point** (`AUTHORITY-CHECK` ahead of any read/write of restricted data).
+- **No SQL injection**: user input is never concatenated into `EXEC SQL` or a dynamic `WHERE`. Use parameter markers.
+- **Mask/skip PII in logs, dumps, and error messages.** The PII categories are listed in `exceptions/*.md`.
+- **Data extraction rules are hard rules** — see [`data-extraction-policy.md`](../../../policies/data-protection/data-extraction-policy.md). `acknowledge_risk` requires an explicit user affirmative (`yes` / `authorize` / `approve` / `proceed` / `confirmed`). Never auto-set.
 
 ## Version Awareness
 
-- Configured `SAP_VERSION` (`S4` vs `ECC`) and `ABAP_RELEASE` are the gate for every generated code snippet. Check [`sap-version-reference.md`](sap-version-reference.md) and [`abap-release-reference.md`](abap-release-reference.md).
-- In S/4HANA: use Business Partner (BP), not `XD01`/`XK01`. Use `ACDOCA` / `MATDOC` / CDS views, not classic cluster tables.
-- Before suggesting a feature (inline decl, RAP, CDS behavior def, Open SQL expressions), verify the minimum release.
+- Every generated code snippet passes the gate of the configured `SAP_VERSION` (`S4` vs `ECC`) and `ABAP_RELEASE`. Check [`sap-version-reference.md`](sap-version-reference.md) and [`abap-release-reference.md`](abap-release-reference.md).
+- On S/4HANA: Business Partner (BP) instead of `XD01`/`XK01`; `ACDOCA` / `MATDOC` / CDS views instead of the classic cluster tables.
+- Verify the minimum release before proposing a feature (inline decl, RAP, CDS behavior def, Open SQL expressions).
 
 ## Review Checklist (agent self-check before handing off)
 
-1. All names pass [`naming-conventions.md`](naming-conventions.md).
+1. Every name passes [`naming-conventions.md`](naming-conventions.md).
 2. No `SELECT *`; no hardcoded magic literals.
-3. Methods short, one responsibility, ≤ 3 params.
-4. Every exception is caught by a handler that does something, or rethrown.
-5. Text Elements used; no language literals in output.
+3. Methods stay short, hold one responsibility, take ≤ 3 params.
+4. Every exception either reaches a handler that does something, or is rethrown.
+5. Text Elements are used; output carries no language literals.
 6. `RunUnitTest` and `CheckSyntax` both green; `GetInactiveObjects` empty.
 7. Syntax matches the configured `ABAP_RELEASE`.
 8. Blocklist / `acknowledge_risk` rules respected in any `GetTableContents` / `GetSqlQuery` invocation.
