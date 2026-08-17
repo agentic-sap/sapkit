@@ -2,8 +2,8 @@
 
 ## Overview / 개요
 
-The MM (Materials Management) module supports multiple enhancement techniques across ECC and S/4HANA:
-MM(자재 관리) 모듈은 ECC 및 S/4HANA 전반에 걸쳐 다양한 확장 기법을 지원합니다.
+Across ECC and S/4HANA alike, the MM (Materials Management) module has several enhancement techniques open to it:
+MM(자재 관리) 모듈이 ECC 및 S/4HANA 양쪽에서 쓸 수 있는 확장 기법은 여러 가지입니다.
 
 - Classic Customer Exits (CMOD/SMOD) / 전통적 고객 출구
 - BAdIs (Business Add-Ins) / 비즈니스 애드인
@@ -84,8 +84,8 @@ MM(자재 관리) 모듈은 ECC 및 S/4HANA 전반에 걸쳐 다양한 확장 �
 
 ## 5. Validations / Substitutions / 검증 및 대체
 
-MM relies primarily on BAdIs (e.g., `ME_PROCESS_PO_CUST`) and release strategies for validations.
-MM에서는 주로 BAdI와 해제 전략을 통해 검증을 구현합니다.
+For validations, what MM leans on first is BAdIs (e.g., `ME_PROCESS_PO_CUST`) together with release strategies.
+MM의 검증 구현은 주로 BAdI와 해제 전략을 거쳐 이루어집니다.
 
 ---
 
@@ -110,18 +110,18 @@ MM에서는 주로 BAdI와 해제 전략을 통해 검증을 구현합니다.
 | I_PurchaseRequisition | S4 | Extensible CDS view for PR / PR CDS 뷰 |
 | I_Material | S4 | Extensible CDS view for material / 자재 CDS 뷰 |
 
-Extension via `@AbapCatalog.extensibility.extensible: true` and Key User Extensibility (Custom Fields and Logic Fiori app).
-`@AbapCatalog.extensibility.extensible: true` 및 Fiori Key User Extensibility를 통한 확장.
+Extension runs through `@AbapCatalog.extensibility.extensible: true` and through Key User Extensibility (the Custom Fields and Logic Fiori app).
+`@AbapCatalog.extensibility.extensible: true`와 Fiori Key User Extensibility를 거치는 확장.
 
 ---
 
 ## 8. Recommended Approach / 권장 접근 방식
 
-1. **Prefer BAdIs over CMOD exits** — better encapsulation, multi-implementation support.
-   BAdI를 CMOD보다 우선 사용 — 더 나은 캡슐화 및 다중 구현 지원.
-2. **In S/4HANA, prefer Key User Extensibility** for custom fields before deep ABAP work.
-   S/4HANA에서는 먼저 Key User Extensibility 사용을 고려.
-3. **Use Enhancement Spots** where available for modern, upgrade-safe enhancements.
-   확장 스팟은 업그레이드 안전성을 위해 사용.
-4. **Release strategy configuration** for PR/PO approval should precede code-level changes.
-   PR/PO 승인은 해제 전략 구성이 우선.
+1. **Prefer BAdIs over CMOD exits** — encapsulation is better, and multiple implementations are supported.
+   BAdI를 CMOD보다 우선 사용 — 캡슐화가 더 낫고 다중 구현을 지원.
+2. **In S/4HANA, prefer Key User Extensibility** for custom fields, ahead of any deep ABAP work.
+   S/4HANA에서는 Key User Extensibility 사용을 먼저 검토.
+3. **Use Enhancement Spots** where they are available, for enhancements that stay modern and upgrade-safe.
+   업그레이드에 안전하도록 확장 스팟을 사용.
+4. **Release strategy configuration** for PR/PO approval belongs ahead of any code-level change.
+   PR/PO 승인이라면 해제 전략 구성을 먼저 둔다.
