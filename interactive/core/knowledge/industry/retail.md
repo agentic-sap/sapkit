@@ -45,6 +45,6 @@
 ## Pitfalls / Anti-patterns
 - Treating Article as Material — the Article structure is what Retail requires
 - Taking customer-based pricing over as-is, with no redesign around store or channel
-- Putting consignment purchases through as regular POs, which produces errors in ownership and revenue recognition
-- Aggregating FI postings with no allowance for POS volume, which brings on performance issues
+- Putting consignment purchases through as regular POs → ownership and revenue recognition errors
+- Aggregating FI postings with no allowance for POS volume → performance issues
 - Modeling season and markdown pricing as plain conditions rather than reaching for Promotion Pricing

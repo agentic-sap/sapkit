@@ -25,7 +25,7 @@
   - The issuance obligation is phased in: large firms at **Sept 2026**, medium/small by 2027
   - Delivery goes through PDPs (Plateformes de Dématérialisation Partenaires) plus the central PPF directory
   - Formats: Factur-X (hybrid PDF-A/3 + XML), UBL, or CII
-- **DEB / DES** — declarations covering intra-EU trade
+- **DEB / DES** — deklaration for intra-EU trade
 
 ## Banking / Payments
 - **SEPA** (SCT / SDD)

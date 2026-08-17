@@ -10,7 +10,7 @@
 
 ## Key Processes
 - **Process Manufacturing** works from the Master Recipe and runs continuous / campaign
-- **Blending** and **Tolling (toll manufacturing)** are key processes here as well
+- **Blending** and **Tolling (toll manufacturing)**
 - **Tank / Silo inventory** together with bulk movement
 - **Dangerous Goods shipping**, which covers DG classification and placarding
 - **Formula Pricing**, where prices are tied to external indices (e.g., Platts)

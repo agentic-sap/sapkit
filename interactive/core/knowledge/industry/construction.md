@@ -5,7 +5,7 @@
 - Projects run long — months to years — and billing follows progress.
 - **Revenue recognition** follows Percentage-of-Completion (POC) and IFRS 15.
 - Material, labor, and equipment are managed at site level.
-- Equipment comes in two forms, rented and owned (rental equipment fleet).
+- Equipment is both rented and owned (rental equipment fleet).
 - Subcontracting and joint ventures (JV) are both present.
 - Gap management covers actual cost against execution budget (EVM).
 
@@ -44,8 +44,8 @@
 - **SAP Portfolio and Project Management (PPM)**
 
 ## Pitfalls / Anti-patterns
-- Accounting only by cost center leaves no project-level profitability analysis.
-- Calculating POC manually each month produces delays and errors.
-- Receiving invoices without service entry sheets leaves the evidence missing.
-- Managing on-site material only in the central warehouse view creates a discrepancy with the physical site.
-- Handling variation orders outside the contract structures loses cost traceability.
+- Accounting only by cost center → no project-level profitability analysis
+- Calculating POC manually each month → delays and errors
+- Receiving invoices without service entry sheets → missing evidence
+- Managing on-site material only in the central warehouse view → discrepancy with the physical site
+- Handling variation orders outside the contract structures → cost traceability is lost

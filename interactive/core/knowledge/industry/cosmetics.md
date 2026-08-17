@@ -25,7 +25,7 @@
 - **Customer Hierarchy**: built per channel (department / H&B / duty-free / export)
 
 ## Module Implications
-- **PP-PI (Process Industry)**: the objects involved are Master Recipe, Process Order, and Resource
+- **PP-PI (Process Industry)**: Master Recipe, Process Order, and Resource
 - **QM**: inspection at GR, in-process, and release; the usage decision; CoA printing
 - **MM**: batch management, the vendor batch, and shelf life at goods receipt
 - **SD**: batch determination (FEFO), order types for samples and GWP, and channel-based pricing

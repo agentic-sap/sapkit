@@ -4,7 +4,7 @@ Pair this file with the country-specific ones (`de.md`, `fr.md`, `it.md`, `es.md
 
 ## VAT ID Format (EU-wide)
 
-A country prefix, then the national format. Validation runs through **VIES (VAT Information Exchange System)**.
+A country prefix, then the national format. Validate with **VIES (VAT Information Exchange System)**.
 
 | Country | Prefix | Format (after prefix) |
 |---------|--------|------------------------|

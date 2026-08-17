@@ -42,7 +42,7 @@
 - **SAP FI-CA** (Contract Accounting)
 
 ## Pitfalls / Anti-patterns
-- Standard FI AR is used → open items collapse under millions of consumers (FI-CA is required)
-- Device history is not tracked → replacement / maintenance records missing
-- Tariff changes are managed only in custom Z-tables → regulatory audit failures
-- Move-in / move-out is processed manually → settlement gaps
+- Using standard FI AR → open items collapse under millions of consumers (FI-CA is required)
+- Not tracking device history → replacement / maintenance records missing
+- Managing tariff changes only in custom Z-tables → regulatory audit failures
+- Processing move-in / move-out manually → settlement gaps

@@ -15,7 +15,7 @@
 
 ## Tax System — Consumption Tax (消費税)
 - Standard rate: **10%**; food and newspapers take the reduced 8%
-- **Qualified Invoice System (適格請求書等保存方式)** in force since **October 2023** — the buyer can claim input VAT only where the issuer is a registered "qualified invoice issuer" (適格請求書発行事業者 / 登録番号 `T + 13 digits`)
+- **Qualified Invoice System (適格請求書等保存方式)** in force since **October 2023** — the invoice issuer must be a registered "qualified invoice issuer" (適格請求書発行事業者 / 登録番号 `T + 13 digits`) for the buyer to claim input VAT
 - Registration number: `T` + 13-digit corporate number (法人番号)
 - Filing: small businesses file annually, large ones monthly or quarterly
 
@@ -65,4 +65,4 @@
 - Holding My Number as plain text → 番号法 violation
 - A single invoice-level tax rate where 8%/10% are mixed → invoice rejected
 - Leaving the imperial calendar unhandled in government-facing reports
-- Using Furikae where the payment terms call for Furikomi, or the reverse
+- Using Furikae where the payment terms require Furikomi, or the reverse
