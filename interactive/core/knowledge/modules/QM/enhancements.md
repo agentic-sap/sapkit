@@ -1,16 +1,16 @@
 # QM Module Enhancements / QM 모듈 확장
 
-Quality Management (QM) enhancement catalog covering classic customer exits, BAdIs, enhancement spots, custom fields, and S/4HANA extensibility.
+The enhancement catalog for Quality Management (QM) — it brings together classic customer exits, BAdIs, enhancement spots, custom fields, and S/4HANA extensibility.
 
-품질 관리(QM) 모듈의 사용자 출구, BAdI, 확장 스폿, 사용자 정의 필드 및 S/4HANA 확장성 카탈로그.
+사용자 출구와 BAdI, 확장 스폿, 사용자 정의 필드, S/4HANA 확장성을 모은 품질 관리(QM) 모듈 카탈로그.
 
 ---
 
 ## 1. Overview / 개요
 
-QM enhancements cover inspection lots, results recording, usage decisions, quality notifications, certificates, sampling procedures, and master data.
+The areas the QM enhancements cover are inspection lots, results recording, usage decisions, quality notifications, certificates, sampling procedures, and master data.
 
-QM 확장은 검사 로트, 결과 기록, 사용 결정, 품질 통지, 인증서, 샘플링 절차 및 마스터 데이터를 다룹니다.
+QM 확장이 다루는 영역은 검사 로트와 결과 기록, 사용 결정, 품질 통지, 인증서, 샘플링 절차, 마스터 데이터입니다.
 
 - Classic Customer Exits (CMOD/SMOD)
 - BAdIs (Business Add-Ins)
@@ -73,7 +73,7 @@ QM 확장은 검사 로트, 결과 기록, 사용 결정, 품질 통지, 인증�
 - **Defects recording**: BAdI `INSPECTIONRESULT_SAVE` — 결함 기록 저장
 - **Sampling**: `EXIT_SAPLQPLP_001` — Sampling procedure / 샘플링 절차
 - **Calibration**: BAdI `CALIBRATION_BADI` — 교정 관리
-- **Stability study**: Quality certificate-related enhancements / 안정성 연구
+- **Stability study**: Enhancements tied to the quality certificate / 안정성 연구
 - **Test equipment management**: IA11 / IA12 exits — 시험 장비 관리
 
 ---
@@ -96,16 +96,16 @@ QM 확장은 검사 로트, 결과 기록, 사용 결정, 품질 통지, 인증�
 - **CDS Views**:
   - `I_InspectionLot` — Inspection lot interface view
   - `I_QualityNotification` — Quality notification interface view
-- **Key User Extensibility** — Available for QM notifications (Fiori apps)
-- **RAP** — Build custom quality apps on top of CDS + behavior definitions
+- **Key User Extensibility** — Open to the QM notifications (Fiori apps)
+- **RAP** — Build quality apps of your own over CDS + behavior definitions
 
 ---
 
 ## 8. Recommended Approach / 권장 접근 방식
 
-1. **BAdIs for processing logic** — prefer `INSPECTIONLOT_UPDATE`, `INSPRES_RECORD`, `INSPUSAGEDEC_UPDATE`.
-2. **Customer exits for simple field additions** — use CMOD when BAdI is not available.
-3. **Shared notification logic** — reuse `NOTIF_EVENT_HANDLER` (PM & QM).
-4. **S/4HANA** — Key User Extensibility for notification extensions; CDS views for reporting.
+1. **BAdIs for processing logic** — prefer `INSPECTIONLOT_UPDATE`, `INSPRES_RECORD`, and `INSPUSAGEDEC_UPDATE`.
+2. **Customer exits for simple field additions** — use CMOD for the cases where no BAdI is available.
+3. **Shared notification logic** — reuse the existing `NOTIF_EVENT_HANDLER` (PM & QM).
+4. **S/4HANA** — notification extensions through Key User Extensibility; reporting through CDS views.
 
-처리 로직은 BAdI를 우선 사용하고, 단순 필드 추가는 사용자 출구를 활용하세요.
+처리 로직에는 BAdI를 먼저 쓰고, 단순한 필드 추가에는 사용자 출구를 활용하세요.
