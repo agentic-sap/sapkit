@@ -79,6 +79,6 @@
 | Info System Profile (CNS41) | V_TCNPR | Structure report profile / 구조 보고서 프로파일 |
 
 ## S/4HANA Specifics / S/4HANA 특이사항
-- Project Control Fiori apps (F2730, F3368) replace CJ20N for many scenarios.
-- Hierarchical Projects (S/4HANA 1909+) — simplified structure without networks for EPPM/PPM.
-- ACDOCA replaces COEP/COSP/COSS for line items; customizing remains; reports use CDS views `I_Project*`.
+- CJ20N gives way to the Project Control Fiori apps (F2730, F3368) in many scenarios.
+- Hierarchical Projects (S/4HANA 1909+) carry a simplified structure for EPPM/PPM — one without networks.
+- ACDOCA takes over the line items from COEP/COSP/COSS; the customizing stays, and reports use the CDS views `I_Project*`.
