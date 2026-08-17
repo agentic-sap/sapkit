@@ -68,4 +68,4 @@ IF sy-subrc <> 0.
 ENDIF.
 
 WRITE: / gc_dtel, 'is stored as an inactive version.'.
-WRITE: / 'Finish in SE11: activate, then assign to a transport.'.
+WRITE: / 'Next steps: open SE11 -> activate -> assign to transport.'.
