@@ -1,25 +1,25 @@
 # Public Sector
 
 ## Business Characteristics
-- **Budget-centric** operations with availability control on overspend
-- Funds / Grants management, separation of funds by purpose
-- Fiscal year-end and carryforward handling
-- Audit-driven environment; transparency and disclosure are mandatory
-- Procurement and contracting must follow public tender regulations
-- Public-sector HR / payroll
+- **Budget-centric** operations, with availability control acting on overspend
+- Funds and Grants management, funds held apart according to purpose
+- Handling for fiscal year-end and for carryforward
+- The environment is audit-driven, and both transparency and disclosure are mandatory
+- Procurement and contracting are bound by public tender regulations
+- HR and payroll in their public-sector form
 
 ## Key Processes
 - **Budget formulation / execution / control**
-- **Funds Management (FM)**: fund / funds center / commitment item
+- **Funds Management (FM)**: fund, funds center, and commitment item
 - **Grants Management (GM)**
-- **Public procurement**: tendering, contract management
+- **Public procurement**: tendering together with contract management
 - **Year-end carryforward**
 
 ## Module Implications
 - **PSM-FM (Public Sector Management – Funds Management)**
 - **PSM-GM (Grants Management)**
-- **SRM / MM**: public procurement processes
-- **HCM**: public-sector payroll
+- **SRM / MM**: the processes of public procurement
+- **HCM**: payroll for the public sector
 
 ## SAP Industry Solutions
 - **SAP for Public Sector (IS-PS)**
@@ -27,6 +27,6 @@
 - **SAP Tax and Revenue Management (TRM-PS)**
 
 ## Pitfalls / Anti-patterns
-- Controlling budgets with CO alone instead of FM → cannot track commitments
-- Missing fund separation → co-mingled use of dedicated funding
-- No fiscal-year carryforward plan → budget initialization errors
+- Budget control left to CO alone rather than FM → commitments cannot be tracked
+- Fund separation absent → dedicated funding is put to co-mingled use
+- The fiscal-year carryforward left unplanned → budget initialization errors
