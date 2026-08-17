@@ -1,28 +1,28 @@
 # Industry Reference
 
-This folder holds per-industry business-characteristic references that SAP consultant agents MUST consult when performing **configuration analysis, process design, Fit-Gap analysis, master data modeling, or requirement interpretation**.
+Collected in this folder are the per-industry business-characteristic references that SAP consultant agents MUST consult whenever they perform **configuration analysis, process design, Fit-Gap analysis, master data modeling, or requirement interpretation**.
 
 ## When to Use
 
-Every `sap-*-consultant` agent must load the project's industry file before responding to:
+The project's industry file must be loaded by every `sap-*-consultant` agent before it responds to any of these:
 
-- SPRO / Customizing analysis (org structure, pricing, output, account determination, etc.)
-- Business process design or review
+- Customizing analysis in SPRO — org structure, pricing, output, account determination, and so on
+- Design or review of a business process
 - Fit-Gap analysis
-- Master data modeling
-- Ambiguous requirements that require domain judgement
-- SAP Industry Solution (IS-*) applicability decisions
+- Modeling of master data
+- Requirements ambiguous enough to need domain judgement
+- Decisions on whether an SAP Industry Solution (IS-*) applies
 
 ## How to Identify Industry
 
-Resolution order:
-1. `.sapkit/config.json` → `industry` field (canonical plugin-side source)
-2. `.sapkit/sap.env` → `SAP_INDUSTRY` (MCP-server mirror, must match config.json)
-3. If both are missing, ask the user and direct them to persist via `the profile settings (edit .sapkit/config.json — see core/procedures/troubleshooting.md)`
-4. If the value is `other`, skip the industry reference and fall back to standard, industry-agnostic recommendations
+Resolve in this order:
+1. The `industry` field of `.sapkit/config.json` — the canonical plugin-side source
+2. `SAP_INDUSTRY` in `.sapkit/sap.env` — the MCP-server mirror, which must match config.json
+3. With both absent, ask the user and send them to `the profile settings (edit .sapkit/config.json — see core/procedures/troubleshooting.md)` so the answer is persisted
+4. Where the value is `other`, bypass the industry reference and fall back on standard, industry-agnostic recommendations
 
-**Change industry**: `the profile settings (edit .sapkit/config.json — see core/procedures/troubleshooting.md)` → type `industry` (updates both files atomically).
-**Initial selection**: `the profile setup (core/procedures/troubleshooting.md)` wizard, step 2.
+**Change industry**: `the profile settings (edit .sapkit/config.json — see core/procedures/troubleshooting.md)` → type `industry` (both files are updated atomically).
+**Initial selection**: step 2 of `the profile setup (core/procedures/troubleshooting.md)` wizard.
 
 ## Industry Files
 
@@ -55,11 +55,11 @@ Resolution order:
 
 ## File Structure
 
-Each industry MD file contains the following sections:
-- **Business Characteristics** — defining traits of the industry
-- **Key Processes** — core business processes
-- **Master Data Specifics** — master data peculiarities
-- **Module Implications** — SD / MM / PP / FI / CO / WM / etc. implications
-- **Common Customizations** — frequently required enhancements
-- **SAP Industry Solutions** — relevant SAP IS offerings
-- **Pitfalls / Anti-patterns** — patterns to avoid
+Every industry MD file is laid out in these sections:
+- **Business Characteristics** — what sets the industry apart
+- **Key Processes** — the business processes at its core
+- **Master Data Specifics** — what is unusual about its master data
+- **Module Implications** — what follows for SD / MM / PP / FI / CO / WM / etc.
+- **Common Customizations** — the enhancements it routinely calls for
+- **SAP Industry Solutions** — the SAP IS offerings that apply
+- **Pitfalls / Anti-patterns** — the patterns to steer clear of

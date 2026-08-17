@@ -1,29 +1,29 @@
 # Country Reference (국가별 비즈니스·규제 특성)
 
-This folder holds per-country localization and regulatory characteristics that SAP consultants MUST consult alongside `industry/*.md` when performing **configuration analysis, process design, master-data decisions, tax/e-invoicing setup, or any requirement interpretation** that has a jurisdictional dimension.
+Per-country localization and regulatory characteristics live in this folder. SAP consultants MUST read them together with `industry/*.md` whenever the work at hand is **configuration analysis, process design, master-data decisions, tax/e-invoicing setup, or any requirement interpretation** carrying a jurisdictional dimension.
 
 ## When to Use
 
-`sap-*-consultant` agents load the country file for the project when dealing with:
+Whenever any of the following comes up, `sap-*-consultant` agents load the project's country file:
 
-- Date / number / currency / decimal-separator formats
-- Tax determination, VAT/GST registration, withholding
-- e-Invoicing, tax-reporting, real-time fiscal submissions (SDI, SII, MTD, SAT, Golden Tax, e-tax, NF-e …)
-- Bank transfer / payment medium formats (SEPA, ACH, JIS, CMS, Zengin …)
+- Date, number, currency, and decimal-separator formats
+- Tax determination, VAT/GST registration, and withholding
+- e-Invoicing, tax-reporting, and real-time fiscal submissions (SDI, SII, MTD, SAT, Golden Tax, e-tax, NF-e …)
+- Bank transfer and payment medium formats (SEPA, ACH, JIS, CMS, Zengin …)
 - Statutory reporting (ELSTER, FEC, SPED, GSTR, BAS …)
-- Address format, postal code, phone format
-- Language, timezone, fiscal-year calendar
-- Localization-relevant Customizing (country-specific field extensions, SAP Country Version)
+- Address format, postal code, and phone format
+- Language, timezone, and the fiscal-year calendar
+- Customizing that is localization-relevant (country-specific field extensions, SAP Country Version)
 
 ## How to Identify Country
 
-Resolution order:
-1. `.sapkit/config.json` → `country` field (canonical plugin-side source, ISO-3166 alpha-2 like `KR`, `US`, `DE`)
-2. `.sapkit/sap.env` → `SAP_COUNTRY` (MCP-server mirror)
-3. Inferred from company-code country (`T001.LAND1`) when analyzing a specific CoCode
-4. Ask the user if unset
+Resolve in this order:
+1. `.sapkit/config.json` → `country` field — the canonical plugin-side source; ISO-3166 alpha-2 such as `KR`, `US`, `DE`
+2. `.sapkit/sap.env` → `SAP_COUNTRY` — the MCP-server mirror
+3. When the analysis targets one specific CoCode, infer it from the company-code country (`T001.LAND1`)
+4. Ask the user when it remains unset
 
-Multi-country projects: load every relevant country file and flag cross-country touchpoints (intercompany, transfer pricing, VAT ESL).
+On a multi-country project, load every country file that applies and flag the cross-country touchpoints (intercompany, transfer pricing, VAT ESL).
 
 ## Country Files
 
@@ -48,25 +48,25 @@ Multi-country projects: load every relevant country file and flag cross-country 
 
 ## File Structure
 
-Each country file contains:
-- **Formats** — date, number/decimal/thousand separator, currency code, phone, postal code
-- **Language & Locale** — ABAP language keys, typical locale
-- **Tax System** — VAT/GST/sales tax structure, rates, registration number format
-- **e-Invoicing / Fiscal Reporting** — mandatory systems, go-live dates, formats
-- **Banking / Payments** — IBAN/domestic accounts, payment methods, SEPA membership
-- **Master Data Peculiarities** — tax numbers, ID numbers, address format quirks
-- **Statutory Reporting** — tax returns, payroll, year-end
-- **SAP Country Version** — localization delivered with SAP (country-install)
-- **Common Customizations** — what projects typically build on top
+Every country file contains the following:
+- **Formats** — date, number/decimal/thousand separator, currency code, phone, and postal code
+- **Language & Locale** — ABAP language keys and the typical locale
+- **Tax System** — the structure of VAT/GST/sales tax, rates, registration number format
+- **e-Invoicing / Fiscal Reporting** — mandatory systems, go-live dates, and formats
+- **Banking / Payments** — IBAN/domestic accounts, payment methods, and SEPA membership
+- **Master Data Peculiarities** — tax numbers, ID numbers, and address format quirks
+- **Statutory Reporting** — tax returns, payroll, and year-end
+- **SAP Country Version** — the localization delivered with SAP (country-install)
+- **Common Customizations** — the things projects typically build on top
 - **Pitfalls / Anti-patterns**
 
 ## Relationship to Industry
 
-`industry/` drives *what the business does*. `country/` drives *what the jurisdiction requires*. Both apply simultaneously — e.g., a Korean cosmetics company loads `industry/cosmetics.md` **and** `country/kr.md`. Conflicts are rare but flag them (e.g., IS-Retail pricing rules vs Korean POS invoicing rules).
+*What the business does* is driven by `industry/`; *what the jurisdiction requires* is driven by `country/`. The two apply at the same time — a Korean cosmetics company, for example, loads `industry/cosmetics.md` **and** `country/kr.md`. Conflicts seldom arise; flag them nonetheless (e.g., IS-Retail pricing rules vs Korean POS invoicing rules).
 
 ## Adding a New Country
 
-1. Copy an existing file as a template (e.g., `kr.md` for APAC, `de.md` for EU).
-2. Fill in the sections above.
-3. Add a row to the table in this README.
-4. If agents will actively need it, update `.sapkit/config.json` → `country` and `sap.env` → `SAP_COUNTRY` via `the profile settings (edit .sapkit/config.json — see core/procedures/troubleshooting.md)`.
+1. Copy an existing file to use as the template — `kr.md` for APAC, `de.md` for EU, for instance.
+2. Populate the sections listed above.
+3. Add the new row to this README's table.
+4. Where agents will actively need it, update `.sapkit/config.json` → `country` and `sap.env` → `SAP_COUNTRY` through `the profile settings (edit .sapkit/config.json — see core/procedures/troubleshooting.md)`.

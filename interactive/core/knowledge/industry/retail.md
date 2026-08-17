@@ -1,50 +1,50 @@
 # Retail
 
 ## Business Characteristics
-- Very large SKU count (tens to hundreds of thousands), short product lifecycle, strong seasonality
-- Multi-channel: brick-and-mortar stores, online, mobile, omnichannel
-- Store-level sales and inventory management; promotion- and discount-driven pricing
-- POS integration with tens of millions of daily transactions
-- Vendor power varies; direct-buy, consignment, and concession models coexist
+- SKU count is very large (tens to hundreds of thousands), product lifecycle is short, seasonality is strong
+- Multiple channels are in play at once — brick-and-mortar stores, online, mobile, omnichannel
+- Sales and inventory are managed at store level; pricing is driven by promotions and discounts
+- POS integration carrying tens of millions of transactions a day
+- Vendor power is not uniform, and the direct-buy, consignment, and concession models coexist
 
 ## Key Processes
-- **Merchandising**: Assortment Planning, Listing, Allocation, Replenishment
-- **Pricing & Promotion**: store/channel-specific pricing, promotions, coupons, loyalty
-- **Store Operations**: POS, store inventory, store-to-store transfers, returns
-- **Distribution Center**: cross-docking, flow-through, pick-by-line
-- **Season Management**: in-season/out-of-season, markdown, clearance
-- **Vendor Management**: direct buy, consignment, concession
+- **Merchandising** covers Assortment Planning, Listing, Allocation, and Replenishment
+- **Pricing & Promotion** spans pricing specific to a store or channel, plus promotions, coupons, and loyalty
+- **Store Operations** comprises POS, store inventory, store-to-store transfers, and returns
+- **Distribution Center** work is cross-docking, flow-through, and pick-by-line
+- **Season Management** deals with in-season and out-of-season, markdown, and clearance
+- **Vendor Management** runs across direct buy, consignment, and concession
 
 ## Master Data Specifics
-- **Article (MARA)** — in Retail it is Article, not Material, with Generic/Variant structure
-- **Site (T001W)** — stores and DCs are separate site types
-- **Assortment** — list of articles carried per site
-- **Listing Conditions** — which article is sold/stocked in which site
-- **Merchandise Category Hierarchy** — article classification hierarchy (MC)
+- **Article (MARA)** — Retail calls it Article rather than Material, and it carries a Generic/Variant structure
+- **Site (T001W)** — a store and a DC are distinct site types
+- **Assortment** — it lists the articles a site carries
+- **Listing Conditions** — they say which article is sold or stocked in which site
+- **Merchandise Category Hierarchy** — the hierarchy that classifies articles (MC)
 
 ## Module Implications
-- **SD**: channel/POS-based rather than customer-based; concession stores use consignment sales
-- **MM**: high-volume POs, vendor management, EDI, auto-replenishment
-- **WM/EWM**: cross-docking, wave management, put-to-store
-- **FI/CO**: store-level profit center, daily close, inventory valuation (FIFO/Moving Avg)
-- **BW/CAR**: real-time store sales/inventory analytics via CAR (Customer Activity Repository)
+- **SD** works from channel and POS rather than from the customer; concession stores use consignment sales
+- **MM** brings high-volume POs, vendor management, EDI, and auto-replenishment
+- **WM/EWM** carries cross-docking, wave management, and put-to-store
+- **FI/CO** works with a store-level profit center, a daily close, and inventory valuation (FIFO/Moving Avg)
+- **BW/CAR** delivers real-time store sales and inventory analytics through CAR (Customer Activity Repository)
 
 ## Common Customizations
-- POS interface (POSDM, SAP POS DM)
-- Markdown / clearance automation
-- Vendor commission calculation (concession / consignment)
-- Store replenishment logic (BAdI: `MB_DOCUMENT_BADI`)
-- EDI order/invoice (IDOC: `ORDERS05`, `INVOIC02`)
+- POS interfacing (POSDM, SAP POS DM)
+- Automation of markdown and clearance
+- Calculation of vendor commission (concession / consignment)
+- Replenishment logic for stores (BAdI: `MB_DOCUMENT_BADI`)
+- Order and invoice over EDI (IDOC: `ORDERS05`, `INVOIC02`)
 
 ## SAP Industry Solutions
-- **IS-Retail** (ECC)
-- **S/4HANA for Retail** (extended into Fashion & Vertical Business)
-- **SAP CAR (Customer Activity Repository)** — real-time POS/inventory analytics
-- **SAP Customer Checkout**, **SAP Omnichannel Promotion Pricing (OPP)**
+- **IS-Retail** on ECC
+- **S/4HANA for Retail**, which extends into Fashion & Vertical Business
+- **SAP CAR (Customer Activity Repository)** — analytics on POS and inventory in real time
+- **SAP Customer Checkout** and **SAP Omnichannel Promotion Pricing (OPP)**
 
 ## Pitfalls / Anti-patterns
-- Confusing Article with Material — Retail requires the Article structure
-- Reusing customer-based pricing without redesigning around store/channel
-- Processing consignment purchases as regular POs → ownership and revenue recognition errors
-- Aggregating FI postings without accounting for POS volume → performance issues
-- Modeling season/markdown pricing as plain conditions instead of leveraging Promotion Pricing
+- Treating Article as Material — the Article structure is what Retail requires
+- Taking customer-based pricing over as-is, with no redesign around store or channel
+- Putting consignment purchases through as regular POs → ownership and revenue recognition errors
+- Aggregating FI postings with no allowance for POS volume → performance issues
+- Modeling season and markdown pricing as plain conditions rather than reaching for Promotion Pricing

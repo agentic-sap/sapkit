@@ -1,41 +1,41 @@
 # Construction / Engineering & Construction (E&C)
 
 ## Business Characteristics
-- **Project-centric** accounting and operations (PS is required)
-- Long-duration projects (months to years), progress billing
-- **Revenue recognition**: Percentage-of-Completion (POC), IFRS 15
-- Site-level material, labor, and equipment management
-- Subcontracting; joint ventures (JV)
-- Actual cost vs execution budget (EVM) gap management
-- Equipment rental and ownership (rental equipment fleet)
+- Accounting and operations alike are **project-centric**; PS is required.
+- Projects run long — months to years — and billing follows progress.
+- **Revenue recognition** follows Percentage-of-Completion (POC) and IFRS 15.
+- Material, labor, and equipment are managed at site level.
+- Equipment is both rented and owned (rental equipment fleet).
+- Subcontracting and joint ventures (JV) are both present.
+- Gap management covers actual cost against execution budget (EVM).
 
 ## Key Processes
-- **Project structuring**: WBS, Network, Activity
+- **Project structuring** covers WBS, Network, and Activity.
 - **Budgeting / cost planning / release**
-- **Progress measurement**: POC, milestone billing
-- **Subcontractor management**: service PO, service entry sheet
-- **Site logistics**: inbound/outbound on site, material flow
+- **Progress measurement** uses POC and milestone billing.
+- **Subcontractor management** runs on the service PO and the service entry sheet.
+- **Site logistics** handles on-site inbound and outbound, and material flow.
 - **Claim / variation orders**
 
 ## Master Data Specifics
 - **Project (PS) / WBS / Network**
-- **Cost/revenue planning at WBS**
-- **Service master** (for external services)
-- **Equipment** (plant equipment, rentals)
+- **Cost and revenue planning**, held at the WBS.
+- **Service master**, used for external services.
+- **Equipment**, covering plant equipment and rentals.
 
 ## Module Implications
-- **PS (Project System)**: core module; all costs/revenues aggregate under WBS
-- **SD**: milestone billing, down payment request, resource-related billing (DP91)
-- **MM**: project stock, service PO + service entry sheet (ML81N)
-- **CO**: POC results recognition (KKA*), results analysis
-- **PM**: equipment management, preventive maintenance
+- **PS (Project System)** is the core module, and every cost and revenue aggregates under the WBS.
+- **SD** covers milestone billing, the down payment request, and resource-related billing (DP91).
+- **MM** brings project stock, plus the service PO paired with the service entry sheet (ML81N).
+- **CO** handles POC results recognition (KKA*) and results analysis.
+- **PM** owns equipment management and preventive maintenance.
 
 ## Common Customizations
-- Automatic POC calculation enhancements
-- Automatic generation of milestone billing plans
-- On-site mobile app (material flow, attendance)
-- Joint Venture accounting (JV settlement)
-- Execution budget vs actual dashboards
+- Enhancements that calculate POC automatically.
+- Milestone billing plans generated automatically.
+- An on-site mobile app for material flow and attendance.
+- Joint Venture accounting, covering JV settlement.
+- Dashboards that set execution budget against actual.
 
 ## SAP Industry Solutions
 - **SAP for Engineering, Construction & Operations (IS-EC&O)**
@@ -44,8 +44,8 @@
 - **SAP Portfolio and Project Management (PPM)**
 
 ## Pitfalls / Anti-patterns
-- Cost-center-only accounting → no project-level profitability analysis
-- Monthly manual POC calculation → delays and errors
+- Accounting only by cost center → no project-level profitability analysis
+- Calculating POC manually each month → delays and errors
 - Receiving invoices without service entry sheets → missing evidence
-- Managing on-site material only in the central warehouse view → discrepancy with physical site
-- Handling variation orders outside of contract structures → cost traceability is lost
+- Managing on-site material only in the central warehouse view → discrepancy with the physical site
+- Handling variation orders outside the contract structures → cost traceability is lost
