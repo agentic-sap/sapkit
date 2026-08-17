@@ -312,7 +312,8 @@ function verdictOf(msg) {
   if (/row extraction refused/.test(t)) return 'BLOCKLIST_DENY';
   if (/user confirmation required for row extraction/.test(t)) return 'BLOCKLIST_ASK';
   if (/ECONNREFUSED/.test(t)) return 'REACHED_SAP';
-  if (/Basic authentication requires SAP_CLIENT/.test(t)) return 'NO_CONNECTION';
+  // D18: 무접속 거부 어휘 2종 병기 — 구 번들 `Basic authentication requires SAP_CLIENT` · 신 엔진 `ERR_NO_CONNECTION`. 구 문구는 구 번들이 현역인 동안 유지한다.
+  if (/Basic authentication requires SAP_CLIENT|ERR_NO_CONNECTION/.test(t)) return 'NO_CONNECTION';
   if (/Input validation error/.test(t)) return 'SCHEMA_ERROR';
   if (/Tool .* not found/.test(t)) return 'TOOL_ABSENT';
   return `OTHER(${t.replace(/\s+/g, ' ').slice(0, 120)})`;
