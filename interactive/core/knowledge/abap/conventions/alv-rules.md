@@ -28,18 +28,29 @@ afterwards transformed into `LVC_T_FCAT`.
 
 ```abap
 FORM convert_fcat_data_grid USING pt_table TYPE STANDARD TABLE
-                         CHANGING pt_fieldcat TYPE lvc_t_fcat.
-  DATA lo_table TYPE REF TO data.
-  CREATE DATA lo_table LIKE pt_table.
-  ASSIGN lo_table->* TO FIELD-SYMBOL(<fo_table>).
+                            CHANGING pt_fieldcat TYPE lvc_t_fcat.
+
+  DATA lr_probe TYPE REF TO data.
+  DATA lr_salv TYPE REF TO cl_salv_table.
+
+  " SALV has to bind to a table of its own, and PT_TABLE arrives
+  " generically typed. An empty twin of it serves as the probe - only the
+  " row type is read from it, never the contents.
+  CREATE DATA lr_probe LIKE pt_table.
+  ASSIGN lr_probe->* TO FIELD-SYMBOL(<fs_probe>).
+
   TRY.
-      cl_salv_table=>factory( IMPORTING r_salv_table = DATA(salv_table)
-                              CHANGING  t_table      = <fo_table> ).
+      cl_salv_table=>factory( IMPORTING r_salv_table = lr_salv
+                              CHANGING t_table = <fs_probe> ).
+
       pt_fieldcat = cl_salv_controller_metadata=>get_lvc_fieldcatalog(
-        r_columns      = salv_table->get_columns( )
-        r_aggregations = salv_table->get_aggregations( ) ).
-    CATCH cx_root.
+                      r_columns = lr_salv->get_columns( )
+                      r_aggregations = lr_salv->get_aggregations( ) ).
+    CATCH cx_salv_msg.
+      " Row type not displayable by SALV: PT_FIELDCAT stays as the caller
+      " left it, and the caller decides whether a grid is still possible.
   ENDTRY.
+
 ENDFORM.
 ```
 
