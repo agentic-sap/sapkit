@@ -1,23 +1,23 @@
 # OOP Pattern — Two-Class Split
 
-Shared convention for OOP-mode ABAP programs in sc4sap. Canonical reference: [`common/oop-sample/zrsc4sap_oop_ex*`](../templates/oop-sample/) (derived from `babamba2/OOALV` / `YRPAEK001`).
+Every OOP-mode ABAP program in sc4sap shares the convention set out below. Its canonical reference is [`common/oop-sample/zrsc4sap_oop_ex*`](../templates/oop-sample/), derived from `babamba2/OOALV` / `YRPAEK001`.
 
 ## Two-Class Split (Mandatory)
 
-OOP-mode programs must split responsibilities across two local classes (plus an optional event handler):
+An OOP-mode program must divide its responsibilities between two local classes, with an event handler available as an optional third:
 
-- **`LCL_DATA`** (in `{PROG}c`) — data selection / extraction
-  - Methods: `CONSTRUCTOR`, `GET_DATA`
-  - Holds result internal tables as private attributes
-  - No UI concerns
+- **`LCL_DATA`** (in `{PROG}c`) — selection and extraction of data
+  - Its methods: `CONSTRUCTOR`, `GET_DATA`
+  - Keeps the resulting internal tables as private attributes
+  - Stays clear of UI concerns
 
-- **`LCL_ALV`** (in `{PROG}a`) — screen / ALV / display
-  - Methods: `CONSTRUCTOR`, `DISPLAY`, field catalog builders, button/menu handlers
-  - Holds ALV grid / container references
-  - Reads data from `LCL_DATA` instance
+- **`LCL_ALV`** (in `{PROG}a`) — screen, ALV, and display
+  - Its methods: `CONSTRUCTOR`, `DISPLAY`, field catalog builders, button/menu handlers
+  - Keeps the ALV grid / container references
+  - Takes its data from the `LCL_DATA` instance
 
-- **`LCL_EVENT`** (in `{PROG}e`) — *optional* ALV event handler
-  - Handles `double_click`, `hotspot_click`, `user_command`, etc.
+- **`LCL_EVENT`** (in `{PROG}e`) — an *optional* handler for ALV events
+  - Covers `double_click`, `hotspot_click`, `user_command`, and the like
 
 ## Main Program Orchestration
 
@@ -33,15 +33,15 @@ END-OF-SELECTION.
   GO_ALV->DISPLAY( ).
 ```
 
-Global references (`GO_DATA`, `GO_ALV`, `GO_EVENT`) are declared in the TOP include (`{PROG}t`).
+The TOP include (`{PROG}t`) is where the global references `GO_DATA`, `GO_ALV`, and `GO_EVENT` get their declarations.
 
 ## ALV Requirement (Mandatory)
 
-**When the program needs ALV (grid, tree, SALV, or editable ALV), you MUST model it after the sample programs at [`common/oop-sample/`](../templates/oop-sample/).** Do not invent a new ALV skeleton.
+**Whenever a program needs ALV (grid, tree, SALV, or editable ALV), you MUST model it on the sample programs at [`common/oop-sample/`](../templates/oop-sample/).** Inventing a new ALV skeleton is not an option.
 
-- **Reference set**: `zrsc4sap_oop_ex.prog.abap` + includes `*a` (ALV class) `*c` (DATA class) `*e` (event handler) `*f` (forms) `*i` (PAI) `*o` (PBO) `*s` (selection) `*t` (TOP) + screens `0100`/`0200`.
-- **Reuse-first**: the sample leverages the reusable handlers in [`abap/alv-oop-handlers/`](../../../../server/sap-assets/alv-oop-handlers/) — `ZCL_S4SAP_CM_ALV`, `ZCL_S4SAP_CM_OALV`, `ZCL_S4SAP_CM_OTREE`, `ZCL_S4SAP_CM_ALV_EVENT`, `ZCL_S4SAP_CM_TREE_EVENT`, `ZIF_S4SAP_CM`, `ZCX_S4SAP_EXCP`. Generated programs should instantiate/extend these, not duplicate them.
-- **Messages**: use standard message class `S_UNIFIED_CON` (`013 No data found`, `000 &1 &2 &3 &4`). Never create a custom `ZMC` class — `ZCX_S4SAP_EXCP` and the sample already point to `S_UNIFIED_CON`.
-- **When in doubt**: copy the sample's include split (`a/c/e/f/i/o/s/t`), event handler wiring, container creation, field catalog builder shape, and PAI/PBO module names. Deviating from this layout breaks the create-program procedure expectations and the OOP reviewer checks.
+- **What the reference set holds**: `zrsc4sap_oop_ex.prog.abap`, its includes `*a` (ALV class) `*c` (DATA class) `*e` (event handler) `*f` (forms) `*i` (PAI) `*o` (PBO) `*s` (selection) `*t` (TOP), and screens `0100`/`0200`.
+- **Reuse before writing**: the sample leans on the reusable handlers kept in [`abap/alv-oop-handlers/`](../../../../server/sap-assets/alv-oop-handlers/) — `ZCL_S4SAP_CM_ALV`, `ZCL_S4SAP_CM_OALV`, `ZCL_S4SAP_CM_OTREE`, `ZCL_S4SAP_CM_ALV_EVENT`, `ZCL_S4SAP_CM_TREE_EVENT`, `ZIF_S4SAP_CM`, `ZCX_S4SAP_EXCP`. In a generated program these should be instantiated or extended, not duplicated.
+- **Message class**: the standard message class to reach for is `S_UNIFIED_CON` (`013 No data found`, `000 &1 &2 &3 &4`). A custom `ZMC` class is never to be created — both `ZCX_S4SAP_EXCP` and the sample are already pointed at `S_UNIFIED_CON`.
+- **If anything is unclear**: take over the sample's include split (`a/c/e/f/i/o/s/t`), its event handler wiring, its container creation, the shape of its field catalog builder, and its PAI/PBO module names. A layout that departs from this breaks what the create-program procedure expects and what the OOP reviewer checks look for.
 
-Agents invoking the create-program procedure in OOP mode, `sap-executor` when writing ALV logic, and `sap-code-reviewer` when reviewing it — all three MUST open the sample files before generating or approving ALV code.
+Three parties MUST open the sample files before any ALV code is generated or approved: agents that invoke the create-program procedure in OOP mode, `sap-executor` as it writes ALV logic, and `sap-code-reviewer` as it reviews that logic.
