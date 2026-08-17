@@ -77,16 +77,16 @@
 
 ## S/4HANA Specifics
 
-- **ACDOCA (Universal Journal)** replaces COEP/COSP/COSS/BSEG for actual postings; compatibility views `V_COEP`, `V_COSP_VV` preserved for legacy code.
-- **ACDOCP** for plan data replaces COEJ (plan line items) — used by Universal Allocation and new cost planning apps.
-- **Hierarchical Project (S/4HANA 1909+)**: simplified tables `CPD_PROJECT`, `CPD_TASK`, `CPD_ROLE` for Commercial Project Management scenarios.
-- **CDS views**: `I_WBSElement`, `I_WBSElementBasic`, `I_ProjectDefinition`, `I_NetworkActivity`, `I_ProjectHierarchyNode` — preferred for reporting and Fiori apps.
-- **Project Control Fiori app** uses `C_Project*` consumption views.
+- **ACDOCA (Universal Journal)** takes over actual postings from COEP/COSP/COSS/BSEG; the compatibility views `V_COEP` and `V_COSP_VV` remain available for legacy code.
+- **ACDOCP** holds plan data in place of COEJ (plan line items) — Universal Allocation and the new cost planning apps work against it.
+- **Hierarchical Project (S/4HANA 1909+)**: `CPD_PROJECT`, `CPD_TASK`, `CPD_ROLE` — the simplified tables behind Commercial Project Management scenarios.
+- **CDS views**: `I_WBSElement`, `I_WBSElementBasic`, `I_ProjectDefinition`, `I_NetworkActivity`, `I_ProjectHierarchyNode` — the first choice for reporting and Fiori apps.
+- **Project Control Fiori app** draws on the `C_Project*` consumption views.
 
 ## Related Tables
 
-- **MM**: EBAN / EBKN (purchase requisition account assignment to WBS), EKKO / EKPO, MIGO documents reference WBS in account assignment.
-- **SD**: VBAK / VBAP (sales order with WBS account assignment), FPLT (milestone billing).
-- **FI**: BKPF / BSEG (ECC); ACDOCA (S/4) — document references WBS/network.
-- **PP**: CO/PP production orders can settle to WBS receivers.
-- **HR/CATS**: CATSDB (timesheets to WBS/activity).
+- **MM**: EBAN / EBKN hold the purchase requisition account assignment to WBS; EKKO / EKPO and MIGO documents cite the WBS in their account assignment.
+- **SD**: VBAK / VBAP carry a sales order whose account assignment points to a WBS; FPLT covers milestone billing.
+- **FI**: BKPF / BSEG on ECC, ACDOCA on S/4 — the document names the WBS or network.
+- **PP**: a CO/PP production order can settle onto WBS receivers.
+- **HR/CATS**: CATSDB records timesheets against a WBS or activity.
