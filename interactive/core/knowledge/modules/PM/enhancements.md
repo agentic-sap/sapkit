@@ -1,16 +1,16 @@
 # PM Module Enhancements / PM 모듈 확장
 
-Plant Maintenance (PM) / Enterprise Asset Management (EAM) enhancement catalog covering classic customer exits, BAdIs, enhancement spots, custom fields, and S/4HANA extensibility.
+Enhancement catalog for Plant Maintenance (PM) / Enterprise Asset Management (EAM) — it spans classic customer exits, BAdIs, enhancement spots, custom fields, and S/4HANA extensibility.
 
-설비 관리(PM) / 기업 자산 관리(EAM) 모듈의 사용자 출구, BAdI, 확장 스폿, 사용자 정의 필드 및 S/4HANA 확장성 카탈로그.
+사용자 출구, BAdI, 확장 스폿, 사용자 정의 필드, S/4HANA 확장성 — 설비 관리(PM) / 기업 자산 관리(EAM) 모듈의 카탈로그.
 
 ---
 
 ## 1. Overview / 개요
 
-PM/EAM enhancements cover maintenance orders, notifications, technical objects (equipment & functional location), measurement documents, maintenance plans, and confirmations.
+Maintenance orders, notifications, technical objects (equipment & functional location), measurement documents, maintenance plans, and confirmations — these are the areas PM/EAM enhancements cover.
 
-PM/EAM 확장은 보전 오더, 통지, 기술 객체(장비 및 기능 위치), 측정 문서, 보전 계획 및 확인을 다룹니다.
+보전 오더, 통지, 기술 객체(장비 및 기능 위치), 측정 문서, 보전 계획, 확인이 PM/EAM 확장의 대상입니다.
 
 - Classic Customer Exits (CMOD/SMOD)
 - BAdIs (Business Add-Ins)
@@ -102,16 +102,16 @@ PM/EAM 확장은 보전 오더, 통지, 기술 객체(장비 및 기능 위치),
   - `I_Equipment` — Equipment interface view
   - `I_FunctionalLocation` — Functional location interface view
 - **SAP Asset Manager** (mobile app) integration via OData
-- **EAM on S/4HANA Cloud** uses Fiori apps with Key User Extensibility
+- **EAM on S/4HANA Cloud** — the apps are Fiori, and Key User Extensibility comes with them
 - **RAP** — Custom maintenance apps via Behavior Definitions
 
 ---
 
 ## 8. Recommended Approach / 권장 접근 방식
 
-1. **Prefer BAdIs over CMOD exits** — use `WORKORDER_UPDATE`, `NOTIF_EVENT_HANDLER`.
-2. **Technical object master data** — use `EQUIPMENT_MODIFY`, `FUNCL_MODIFY`.
-3. **Shared logic** — reuse `WORKORDER_UPDATE` (PP+PM) and `NOTIF_EVENT_HANDLER` (QM+PM).
-4. **S/4HANA** — combine CDS views with Key User Extensibility for mobile/Fiori scenarios.
+1. **Prefer BAdIs over CMOD exits** — `WORKORDER_UPDATE` and `NOTIF_EVENT_HANDLER` are the ones to use.
+2. **Technical object master data** — go through `EQUIPMENT_MODIFY` and `FUNCL_MODIFY`.
+3. **Shared logic** — `WORKORDER_UPDATE` (PP+PM) and `NOTIF_EVENT_HANDLER` (QM+PM) are there to be reused.
+4. **S/4HANA** — for mobile/Fiori scenarios, pair CDS views with Key User Extensibility.
 
-BAdI를 우선 사용하고, 기술 객체 마스터 데이터는 `EQUIPMENT_MODIFY` / `FUNCL_MODIFY`를 활용하세요.
+BAdI 쪽을 먼저 고르고, 기술 객체 마스터 데이터에는 `EQUIPMENT_MODIFY` / `FUNCL_MODIFY`를 쓰세요.
