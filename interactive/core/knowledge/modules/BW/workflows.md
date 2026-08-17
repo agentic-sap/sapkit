@@ -3,21 +3,21 @@
 
 ## Workflow 1: Custom DataSource Creation and Delta Load Setup
 ### Steps
-1. Identify source data in ERP: determine source tables (e.g., VBAK for SD orders, BSEG for FI line items)
-2. Create Generic DataSource in RSA6: use table/view or function module extraction method
-3. For delta capability: implement FM-based extraction using delta pointer (ROIS delta queue or timestamp)
-4. Create extraction FM: select changed records since last delta based on AEDАТ/AEZEIT or change document
-5. In RSA1: replicate DataSource from source system; create InfoSource and transformation
-6. Create DSO as staging layer: define key fields and data fields matching DataSource structure
-7. Create DTP: set extraction mode (delta/full), define filter conditions
-8. Create InfoPackage: schedule delta load via process chain
-9. Create process chain in RSPC: sequence = InfoPackage → DTP to DSO → DTP to InfoCube → rollup aggregates
+1. Locate the source data in ERP: settle which source tables hold it (e.g., VBAK for SD orders, BSEG for FI line items)
+2. Create the Generic DataSource in RSA6: take either the table/view or the function module extraction method
+3. For delta capability: build the FM-based extraction around a delta pointer (ROIS delta queue or timestamp)
+4. Create the extraction FM: it picks up the records changed since the last delta, going by AEDАТ/AEZEIT or by the change document
+5. In RSA1: replicate the DataSource out of the source system, then create the InfoSource and the transformation
+6. Create the DSO as the staging layer: lay out key fields and data fields that line up with the DataSource structure
+7. Create the DTP: set its extraction mode (delta/full) and lay down the filter conditions
+8. Create the InfoPackage: schedule its delta load through a process chain
+9. Create the process chain in RSPC: the sequence runs InfoPackage → DTP to DSO → DTP to InfoCube → rollup aggregates
 
 ### Required MCP Tools
-- `CreateFunctionGroup` — create extraction function group
-- `CreateFunctionModule` — implement delta extraction FM
-- `GetTable` — inspect source tables (VBAK, BSEG, etc.)
-- `UpdateFunctionModule` — implement delta selection logic
+- `CreateFunctionGroup` — makes the extraction function group
+- `CreateFunctionModule` — stands up the delta extraction FM
+- `GetTable` — shows the source tables (VBAK, BSEG, etc.)
+- `UpdateFunctionModule` — fills in the delta selection logic
 
 ### Related Config
 - DataSources: ROOSOURCE / RSA6
@@ -28,18 +28,18 @@
 
 ## Workflow 2: Custom BEx Query with Calculated and Restricted Key Figures
 ### Steps
-1. Open BEx Query Designer (or RSA1 → Queries node) for target InfoProvider (InfoCube/CompositeProvider)
-2. Create Restricted Key Figure: drag measure (e.g., Revenue 0NET_VAL_S) + restrict by characteristic (e.g., 0CALMONTH = current month variable)
-3. Create Calculated Key Figure: define formula e.g., (Current Month Revenue - Prior Month Revenue) / Prior Month Revenue * 100 for growth %
-4. Define Selection Variables: replacement path variable for prior month, user input variable for sales org
-5. Create exception (traffic light): define thresholds for growth % (green > 5%, yellow 0-5%, red < 0%)
-6. Add conditions: top/bottom N customers by revenue
-7. Test query: RSRT (Query Monitor) → execute with test data
-8. Publish: assign to role for Business Explorer portal or activate for Fiori Analytical app
+1. Open BEx Query Designer — or the RSA1 → Queries node — on the target InfoProvider (InfoCube/CompositeProvider)
+2. Create the Restricted Key Figure: drag the measure in (e.g., Revenue 0NET_VAL_S) + restrict it by a characteristic (e.g., 0CALMONTH = current month variable)
+3. Create the Calculated Key Figure: write the formula, e.g., (Current Month Revenue - Prior Month Revenue) / Prior Month Revenue * 100 for growth %
+4. Define the Selection Variables: a replacement path variable for the prior month, a user input variable for the sales org
+5. Create the exception (traffic light): set the thresholds on growth % (green > 5%, yellow 0-5%, red < 0%)
+6. Add the conditions: top/bottom N customers by revenue
+7. Test the query: RSRT (Query Monitor) → run it against test data
+8. Publish: assign it to a role for the Business Explorer portal, or activate it for a Fiori Analytical app
 
 ### Required MCP Tools
-- `GetTable` — inspect RSZCOMPDIR (query components), RSZGLOBV (variables)
-- `GetProgram` — read standard BW query program for debugging
+- `GetTable` — opens up RSZCOMPDIR (query components) and RSZGLOBV (variables)
+- `GetProgram` — brings up the standard BW query program for debugging
 
 ### Related Config
 - Variables: RSZV
@@ -50,20 +50,20 @@
 
 ## Workflow 3: Enhance Standard BW Extractor (Enhancement Spot / Customer Exit)
 ### Steps
-1. Identify standard SAP DataSource to enhance (e.g., 2LIS_11_VAHDR for SD order header)
-2. Find enhancement spot: transaction CMOD → project for DataSource exits (e.g., RSAP0001)
-3. Implement EXIT_SAPLRSAP_001 (header) or EXIT_SAPLRSAP_002 (item) user exit
-4. In exit: add custom fields to ZFIELDS append structure of extraction structure (e.g., ZZ_CUSTOM_FIELD)
-5. Add field to DataSource field list in RSA6: add ZZ_CUSTOM_FIELD with type, description, delta-relevant flag
-6. Map field in BW transformation: add field to DSO/InfoCube structure; create transformation rule
-7. Test via RSA3: verify custom field populated in extraction preview
-8. Replicate DataSource in RSA1; adjust transformation; reload historical data (full init)
+1. Pick out the standard SAP DataSource that is to be enhanced (e.g., 2LIS_11_VAHDR for SD order header)
+2. Find the enhancement spot: transaction CMOD → the project that holds the DataSource exits (e.g., RSAP0001)
+3. Write the user exit — EXIT_SAPLRSAP_001 (header) or EXIT_SAPLRSAP_002 (item)
+4. Inside the exit: add the custom fields to the ZFIELDS append structure of the extraction structure (e.g., ZZ_CUSTOM_FIELD)
+5. Add the field to the DataSource field list in RSA6: ZZ_CUSTOM_FIELD goes in with its type, description, and delta-relevant flag
+6. Map the field in the BW transformation: put the field into the DSO/InfoCube structure, then create the transformation rule
+7. Test through RSA3: check that the custom field comes out filled in the extraction preview
+8. Replicate the DataSource in RSA1, adjust the transformation, and reload the historical data (full init)
 
 ### Required MCP Tools
-- `GetInclude` — read EXIT_SAPLRSAP_001 user exit structure
-- `UpdateInclude` — implement custom field population logic
-- `CreateStructure` — add ZZ append structure to extraction structure
-- `GetTable` — inspect extraction structure (e.g., MC11VA0HDR for 2LIS_11_VAHDR)
+- `GetInclude` — opens the structure of the EXIT_SAPLRSAP_001 user exit
+- `UpdateInclude` — puts the custom field population logic in place
+- `CreateStructure` — attaches the ZZ append structure to the extraction structure
+- `GetTable` — lays out the extraction structure (e.g., MC11VA0HDR for 2LIS_11_VAHDR)
 
 ### Related Config
 - DataSource Maintenance: RSA6
