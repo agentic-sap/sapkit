@@ -1,0 +1,47 @@
+{
+  "formatVersion": 1,
+  "sequenceId": "zsapkit-m1-ddic-read",
+  "description": "[재실행 자유 · P1] 이 판이 $TMP에 세운 연습 대상들을 읽기만 한다 — 테이블 ZSAPKIT_M1_TAB · 구조 ZSAPKIT_M1_STR · 함수모듈 Z_SAPKIT_M1_FM(그룹 ZSAPKIT_M1_FG) · 그리고 프로그램·인클루드 두 벌을 가로지르는 소스 검색. SAP을 바꾸지 않으므로 몇 번이든 돌릴 수 있고, 대상이 전부 Z 객체라 소스를 픽스처에 담아도 재배포권 문제가 없다(시나리오 README 함정 ⑴).",
+  "recordedAt": "2026-08-18T05:27:28.572Z",
+  "verdict": "pass",
+  "recordedEngine": {
+    "name": "mcp-abap-adt",
+    "version": "1.0.0"
+  },
+  "actualEngine": {
+    "name": "sapkit-engine",
+    "version": "0.1.0"
+  },
+  "transportError": null,
+  "steps": [
+    {
+      "index": 0,
+      "tool": "GetTable",
+      "verdict": "match",
+      "divergenceId": null,
+      "detail": null
+    },
+    {
+      "index": 1,
+      "tool": "GetStructure",
+      "verdict": "match",
+      "divergenceId": null,
+      "detail": null
+    },
+    {
+      "index": 2,
+      "tool": "GetFunctionModule",
+      "verdict": "match",
+      "divergenceId": null,
+      "detail": null
+    },
+    {
+      "index": 3,
+      "tool": "GrepObjects",
+      "verdict": "match",
+      "divergenceId": null,
+      "detail": null
+    }
+  ],
+  "proseNormalized": []
+}

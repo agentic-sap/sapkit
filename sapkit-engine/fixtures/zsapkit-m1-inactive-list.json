@@ -1,0 +1,30 @@
+{
+  "formatVersion": 1,
+  "sequenceId": "zsapkit-m1-inactive-list",
+  "description": "[재실행 자유 · P1] 비활성 객체 목록을 한 번 읽는다. SAP을 바꾸지 않으므로 이 시퀀스 자신은 목록을 흔들지 않는다 — 시나리오 README 함정 ⑵가 겨눈 것이 바로 그 자기 오염이고, 그래서 write와 한 시퀀스에 묶지 않았다. 다만 목록은 **시스템 전역 상태**라 이 판 밖의 누군가가 무언가를 비활성으로 남기거나 활성화하면 갈린다. 녹화 시점(2026-08-18)의 목록에는 이 판의 객체가 하나도 없었고 남의 잔재 둘만 있었다 — 재생이 어긋나면 신 엔진이 아니라 그 상태를 먼저 의심하라.",
+  "engine": {
+    "name": "mcp-abap-adt",
+    "version": "1.0.0",
+    "protocolVersion": "2024-11-05",
+    "exposition": "readonly,high"
+  },
+  "recordedAt": "2026-08-18T05:26:50.972Z",
+  "steps": [
+    {
+      "index": 0,
+      "tool": "GetInactiveObjects",
+      "args": {},
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"count\": 2,\n  \"objects\": [\n    {\n      \"type\": \"DDLS/DF\",\n      \"name\": \"YYDOCTEST\"\n    },\n    {\n      \"type\": \"TABL/DS\",\n      \"name\": \"ZFIRS0010\"\n    }\n  ]\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "인자가 없는 도구다 — 필터가 없으므로 '내가 만든 객체만'으로 좁힐 방법이 구 선언에 존재하지 않는다. 그래서 이 시퀀스는 자기가 목록을 바꾸지 않는 것으로만 안정을 얻는다."
+    }
+  ],
+  "placeholders": []
+}

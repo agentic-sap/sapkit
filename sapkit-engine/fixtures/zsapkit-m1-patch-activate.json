@@ -1,0 +1,54 @@
+{
+  "formatVersion": 1,
+  "sequenceId": "zsapkit-m1-patch-activate",
+  "description": "[재실행 자유 · P3] $TMP의 ZSAPKIT_M1_DEMO에 외과적 문자열 치환(UpdateSourceByPatch)을 먹이고 → 활성화 → 되읽기. 전제: zsapkit-m1-program-update-activate가 쓴 소스가 들어 있어야 한다. old_string과 new_string을 **같은 글자로** 두어 소스가 달라지지 않게 했다 — 치환은 한 번 돌면 원본이 사라져 다시 찾을 수 없으므로, 재실행 가능한 시나리오로 만들려면 이 방법뿐이다(시나리오 README 함정 ⑶). 2026-08-18에 구 엔진으로 두 번 연속 돌려 응답이 같음을 실측한 뒤 녹화했다. $TMP를 쓰므로 transport_request가 없다.",
+  "engine": {
+    "name": "mcp-abap-adt",
+    "version": "1.0.0",
+    "protocolVersion": "2024-11-05",
+    "exposition": "readonly,high"
+  },
+  "recordedAt": "2026-08-18T05:26:50.307Z",
+  "steps": [
+    {
+      "index": 0,
+      "tool": "UpdateSourceByPatch",
+      "args": {
+        "object_type": "PROG",
+        "object_name": "ZSAPKIT_M1_DEMO",
+        "old_string": "  lv_message = 'sapkit engine M1 equivalence probe'.",
+        "new_string": "  lv_message = 'sapkit engine M1 equivalence probe'.",
+        "activate": true
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"object_type\": \"PROG\",\n  \"object_name\": \"ZSAPKIT_M1_DEMO\",\n  \"occurrences_replaced\": 1,\n  \"diff_preview\": \"@@ -4,4 +4,4 @@\\n \\r\\n START-OF-SELECTION.\\r\\n-  lv_message = 'sapkit engine M1 equivalence probe'.\\r\\n+  lv_message = 'sapkit engine M1 equivalence probe'.\\r\\n   WRITE: / lv_message.\",\n  \"activated\": true,\n  \"message\": \"PROG ZSAPKIT_M1_DEMO patched (1 occurrence replaced) and activated\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "구 엔진이 현재 소스를 가져와 치환하고, 그 결과를 UpdateProgram과 같은 잠금→검사→쓰기→해제→활성화 흐름에 위임한다. 위임 사슬 전체가 한 응답에 접혀 나오는 자리라 M1의 다른 write와 모양이 다르다."
+    },
+    {
+      "index": 1,
+      "tool": "GetProgram",
+      "args": {
+        "program_name": "ZSAPKIT_M1_DEMO",
+        "version": "active"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"program_name\": \"ZSAPKIT_M1_DEMO\",\n  \"version\": \"active\",\n  \"program_data\": \"REPORT zsapkit_m1_demo.\\r\\n\\r\\nDATA lv_message TYPE string.\\r\\n\\r\\nSTART-OF-SELECTION.\\r\\n  lv_message = 'sapkit engine M1 equivalence probe'.\\r\\n  WRITE: / lv_message.\",\n  \"status\": 200,\n  \"status_text\": \"OK\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "write 성공 응답만으로는 PROVISIONAL_WRITE라 소스를 SAP에서 되읽는 것이 기계 확인의 절반이다(verify-applied.md)."
+    }
+  ],
+  "placeholders": []
+}

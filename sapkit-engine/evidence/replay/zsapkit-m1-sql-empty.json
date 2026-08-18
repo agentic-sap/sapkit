@@ -1,0 +1,26 @@
+{
+  "formatVersion": 1,
+  "sequenceId": "zsapkit-m1-sql-empty",
+  "description": "[재실행 자유 · P2] 이 판이 만든 **빈** 연습 테이블 ZSAPKIT_M1_TAB에서 두 필드를 골라 읽는다. 행 상한 100, 예상 결과 0행 — 실 업무 데이터가 한 줄도 실리지 않는 유일한 형태로 P2 도구의 증거를 세운다. 이 질의 하나만이 판6.1에서 승인된 실데이터 호출이다(spec §4). 재생은 러너가 --fixture 단건으로만 허용한다 — 실데이터 도구가 섞인 픽스처의 전량 재생을 거부하는 것이 정상 동작이다.",
+  "recordedAt": "2026-08-18T05:30:40.960Z",
+  "verdict": "pass",
+  "recordedEngine": {
+    "name": "mcp-abap-adt",
+    "version": "1.0.0"
+  },
+  "actualEngine": {
+    "name": "sapkit-engine",
+    "version": "0.1.0"
+  },
+  "transportError": null,
+  "steps": [
+    {
+      "index": 0,
+      "tool": "GetSqlQuery",
+      "verdict": "match",
+      "divergenceId": null,
+      "detail": null
+    }
+  ],
+  "proseNormalized": []
+}

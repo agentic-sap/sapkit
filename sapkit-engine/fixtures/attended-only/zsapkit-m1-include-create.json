@@ -1,0 +1,55 @@
+{
+  "formatVersion": 1,
+  "sequenceId": "zsapkit-m1-include-create",
+  "description": "[1회성 · P3] $TMP에 연습용 인클루드 ZSAPKIT_M1_INC01을 만들어 숙주 프로그램 ZSAPKIT_M1_INCMAIN에 끼우고 되읽어 확인한다. 전제: 그 이름의 인클루드가 SAP에 없어야 하고 숙주 프로그램은 있어야 한다. 재실행(C2 재생 포함) 전에 사람이 SE38 또는 ADT로 인클루드를 지워야 한다 — M1 19종에 Delete 도구가 없다. 숙주를 ZSAPKIT_M1_DEMO가 아니라 따로 둔 이유: zsapkit-m1-program-update-activate 픽스처가 ZSAPKIT_M1_DEMO의 소스를 통째로 다시 쓰므로, 거기에 INCLUDE 문을 끼우면 그 픽스처를 재생할 때마다 인클루드의 집이 사라진다(시나리오 README 함정 ⑶). $TMP를 쓰므로 transport_request가 없고 이송(P4)이 일어나지 않는다.",
+  "engine": {
+    "name": "mcp-abap-adt",
+    "version": "1.0.0",
+    "protocolVersion": "2024-11-05",
+    "exposition": "readonly,high"
+  },
+  "recordedAt": "2026-08-18T05:24:03.289Z",
+  "steps": [
+    {
+      "index": 0,
+      "tool": "CreateInclude",
+      "args": {
+        "include_name": "ZSAPKIT_M1_INC01",
+        "main_program": "ZSAPKIT_M1_INCMAIN",
+        "description": "sapkit-engine M1 include probe",
+        "package_name": "$TMP",
+        "source_code": "* sapkit engine M1 include probe\nCONSTANTS gc_probe TYPE string VALUE 'sapkit engine M1 include probe'.\n",
+        "insert_into_main": true,
+        "activate_main_program": true
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"include_name\": \"ZSAPKIT_M1_INC01\",\n  \"main_program\": \"ZSAPKIT_M1_INCMAIN\",\n  \"package_name\": \"$TMP\",\n  \"transport_request\": null,\n  \"type\": \"PROG/I\",\n  \"source_written\": true,\n  \"activated\": false,\n  \"message\": \"Include ZSAPKIT_M1_INC01 created. INCLUDE ZSAPKIT_M1_INC01. inserted into ZSAPKIT_M1_INCMAIN. Inline source_code (104 bytes) written — not yet activated.\",\n  \"uri\": \"/sap/bc/adt/programs/includes/zsapkit_m1_inc01\",\n  \"steps_completed\": [\n    \"create\",\n    \"insert_into_main\",\n    \"activate_main\",\n    \"inline_source\",\n    \"check_new_code\"\n  ],\n  \"insert_note\": \"INCLUDE ZSAPKIT_M1_INC01. inserted into ZSAPKIT_M1_INCMAIN.\",\n  \"inline_source_note\": \"Inline source_code (104 bytes) written — not yet activated.\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "M1 19종의 마지막 Create 실기다. 한 호출 안에서 인클루드 생성 · 소스 투입 · 숙주 프로그램에 INCLUDE 문 삽입 · 숙주 활성화까지 일어나므로, 구 엔진이 그 네 갈래를 어떻게 묶어 응답에 싣는지가 채록 대상이다. $TMP + transport_request 없음 조합은 구 번들 선언 자신이 명시한 길이다(CreateInclude.transport_request — \"Optional for local ($TMP) objects\")."
+    },
+    {
+      "index": 1,
+      "tool": "GetInclude",
+      "args": {
+        "include_name": "ZSAPKIT_M1_INC01"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "* sapkit engine M1 include probe\r\nCONSTANTS gc_probe TYPE string VALUE 'sapkit engine M1 include probe'."
+          }
+        ]
+      },
+      "isError": false,
+      "note": "생성 직후 되읽기. write 성공 응답만으로는 PROVISIONAL_WRITE라 소스를 SAP에서 되읽는 것이 기계 확인의 절반이다(verify-applied.md). 대상이 Z 객체이므로 소스를 픽스처에 담아도 재배포권 문제가 없다."
+    }
+  ],
+  "placeholders": []
+}
