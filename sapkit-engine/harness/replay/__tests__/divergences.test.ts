@@ -65,6 +65,24 @@ describe('M1 사전 등재 3건', () => {
     expect(byId('D1')).toMatchObject({ tool: 'GetSqlQuery', status: 'active', classification: '수리' });
   });
 
+  /**
+   * D1의 소유자는 장부가 적어 둔 "실데이터 도구 작업"이었다. 그 작업이 오면
+   * 이연이 끝나야 한다 — 산문 자리를 파일 경로로 바꾸고 `check`를 물리는 것이
+   * 곧 이연의 종료다. 경로가 산문으로 남으면 대장이 **없는 증거를 있다고**
+   * 보고한다(`harness/ledger/evidence.ts`).
+   */
+  it('D1은 대체 기대 시험을 실제 파일로 들고 판정 검사를 갖는다', () => {
+    expect(byId('D1').check).not.toBeNull();
+    expect(byId('D1').substituteTest).toContain('getSqlQuery.test.ts');
+
+    const repoRoot = path.resolve(__dirname, '../../../..');
+    const paths = (byId('D1').substituteTest ?? '').match(/[\w./-]+\.(?:ts|mjs|md)/g) ?? [];
+    expect(paths.length).toBeGreaterThan(0);
+    for (const candidate of paths) {
+      expect(fs.existsSync(path.join(repoRoot, candidate))).toBe(true);
+    }
+  });
+
 
   /**
    * D3는 인클루드 묶음에서 **깨어났다.** 도구가 등록점에 있는데 장부가 휴면이면
@@ -140,6 +158,82 @@ describe('D3 — 주소 없는 인클루드 이름만 빠진다', () => {
   });
 });
 
+describe('D1 — 술어를 무시한 표를 성공으로 내주지 않는다', () => {
+  const SQL = "SELECT * FROM zsapkit_m1_tab WHERE probe_id = 'A'";
+
+  /** Data Preview 응답 본문의 모양 그대로 — 도구가 싣는 pretty-print JSON이다. */
+  const table = (...rows: Record<string, string | null>[]): JsonValue =>
+    envelope(
+      JSON.stringify({
+        sql_query: SQL,
+        row_number: 100,
+        returned_row_count: rows.length,
+        truncated: false,
+        columns: [{ name: 'PROBE_ID' }],
+        rows,
+      }),
+    );
+
+  const refusal = (text: string): JsonValue => envelope(text, true);
+  const IGNORED = 'ERR_SQLQUERY_PREDICATE_IGNORED: the rows the server returned do not satisfy';
+
+  const judge = async (before: JsonValue, after: JsonValue, isError = false, beforeIsError = false) => {
+    const fixture = recorded([
+      step({ index: 0, tool: 'GetSqlQuery', args: { sql_query: SQL, row_number: 100 }, response: before, isError: beforeIsError }),
+    ]);
+    return replaySequence(fixture, target([{ payload: after, isError }]));
+  };
+
+  it('구가 술어를 어긴 표를 성공으로 냈고 신이 거부하면 통과다', async () => {
+    const result = await judge(table({ PROBE_ID: 'B' }), refusal(IGNORED), true);
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D1' });
+    expect(result.verdict).toBe('pass');
+  });
+
+  /**
+   * 과수리 역검증. 이 자리가 없으면 "거부하기만 하면 통과"가 되어, 신 엔진이
+   * 옳은 표까지 물리치는 회귀를 등재가 삼킨다.
+   */
+  it('구 표가 술어를 지켰는데 신이 거부하면 덮어 주지 않는다', async () => {
+    const result = await judge(table({ PROBE_ID: 'A' }), refusal(IGNORED), true);
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D1' });
+    expect(result.steps[0]?.detail).toContain('옳은 표를 거부했다');
+  });
+
+  it('신의 거부가 술어 무시 거부가 아니면 덮어 주지 않는다', async () => {
+    const result = await judge(table({ PROBE_ID: 'B' }), refusal('ADT error: 500'), true);
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D1' });
+  });
+
+  it('신이 성공으로 답했는데 표가 갈리면 덮어 주지 않는다', async () => {
+    const result = await judge(table({ PROBE_ID: 'B' }), table({ PROBE_ID: 'C' }));
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D1' });
+  });
+
+  it('구도 오류였으면 거부할 표가 없었으므로 덮어 주지 않는다', async () => {
+    const result = await judge(refusal('ADT error: 400'), refusal(IGNORED), true, true);
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D1' });
+  });
+
+  /**
+   * 등재는 **차이가 났을 때만** 발동한다. 같으면 그냥 통과이고, 그래야
+   * `GetSqlQuery`가 재생 급 증거를 얻을 수 있다 — 등재가 언제나 발동하면
+   * 이 도구의 재생 칸은 영원히 빈다.
+   */
+  it('구·신이 같으면 등재가 발동하지 않고 재생 급으로 통과한다', async () => {
+    const same = table({ PROBE_ID: 'A' });
+    const result = await judge(same, same);
+
+    expect(result.steps[0]).toMatchObject({ verdict: 'match', divergenceId: null });
+    expect(result.verdict).toBe('pass');
+  });
+});
+
 describe('단계에 걸리는 항목 고르기', () => {
   it('도구 이름이 맞는 항목만 고른다', () => {
     const sql = step({ index: 0, tool: 'GetSqlQuery' });
@@ -168,13 +262,16 @@ describe('단계에 걸리는 항목 고르기', () => {
 });
 
 describe('대체 기대 시험 붙이기', () => {
+  // 본보기를 D1에서 D2로 옮겼다 — D1의 이연은 실데이터 도구 작업(판6.1)이
+  // 끝냈고, 지금 이연으로 남은 도구 단위 항목은 D2다(재생 대조가 볼 수 없는
+  // 와이어 사실이라 계약 시험이 판정 자리를 갖는다).
   it('이연된 항목에 검사를 나중에 물릴 수 있다', () => {
     const wired = withSubstituteChecks(M1_DIVERGENCES, {
-      D1: () => ({ ok: true, detail: '실데이터 도구 작업이 소유하는 시험이 통과했다.' }),
+      D2: () => ({ ok: true, detail: '활성화 요청이 실제로 나갔음을 계약 시험이 증명했다.' }),
     });
 
-    expect(M1_DIVERGENCES.find((e) => e.id === 'D1')?.check).toBeNull();
-    expect(wired.find((e) => e.id === 'D1')?.check).not.toBeNull();
+    expect(M1_DIVERGENCES.find((e) => e.id === 'D2')?.check).toBeNull();
+    expect(wired.find((e) => e.id === 'D2')?.check).not.toBeNull();
     expect(() => assertLedgerWellFormed(wired)).not.toThrow();
   });
 

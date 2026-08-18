@@ -20,6 +20,15 @@
  *
  * 반대로 **건드리지 않는 것**: 결정적인 객체 URI(`/sap/bc/adt/oo/classes/zcl_x`),
  * 숫자·불리언·null. 결정적인 값이야말로 대조가 봐야 할 신호다.
+ *
+ * **숫자에 뚫린 구멍 하나 — 서버가 잰 소요 시간.** `GetSqlQuery` 응답의
+ * `execution_time`은 SAP이 그 질의에 실제로 쓴 시간이라 부를 때마다 다르다
+ * (2026-08-18 실측: 같은 빈 표에 구 18.464 · 신 0.475). 숫자라는 이유로 그대로
+ * 두면 재생 판정이 **엔진 동등성이 아니라 그날 시스템이 얼마나 바빴는지**로
+ * 정해진다 — 시나리오 README 함정 ⑵가 도구 단위로 말한 것과 같은 병이다. 그래서
+ * 이 값만 자리표시자로 바꾸되, **따옴표를 씌운다**: 응답 본문이 text 블록 안의
+ * JSON 문자열이라, 따옴표 없이 넣으면 그 블록이 더 이상 JSON으로 읽히지 않고
+ * 대체 기대 시험(D1)이 행 표를 못 읽게 된다.
  */
 import { PLACEHOLDER_PREFIX, findPlaceholders, isPlaceholder, parsePlaceholder } from './types';
 import type { JsonValue, NormalizationKind, PlaceholderBinding, SequenceFixture, SequenceStep } from './types';
@@ -60,6 +69,11 @@ interface StringRule {
   readonly re: RegExp;
   /** 토큰이 담긴 캡처 그룹 번호. 1..tokenGroup-1은 그대로 되돌려 붙일 접두부다. */
   readonly tokenGroup: number;
+  /**
+   * 자리표시자에 따옴표를 씌운다. 원본이 **JSON 안의 숫자**였던 자리에만 쓴다 —
+   * 씌우지 않으면 그 JSON이 깨진다.
+   */
+  readonly quote?: boolean;
 }
 
 /**
@@ -85,6 +99,18 @@ const STRING_RULES: readonly StringRule[] = [
   { kind: 'server-id', re: /([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/g, tokenGroup: 1 },
   // 서버 생성 32자리 hex (ATC 워크리스트·트레이스 id 등)
   { kind: 'server-id', re: /(?<![0-9A-Za-z])([0-9A-Fa-f]{32})(?![0-9A-Za-z])/g, tokenGroup: 1 },
+  // "execution_time": 18.464 · execution_time=18.464 — SAP이 잰 소요 시간
+  // (머리말의 「숫자에 뚫린 구멍」). `:`는 JSON 본문, `=`는 진단 문구의 형태다
+  // (`ERR_SQLQUERY_PREDICATE_IGNORED`가 그 모양으로 소요 시간을 싣는다).
+  // 앞의 뒤돌아보기가 **접미사 오탐**을 막는다 — `total_execution_time` 같은 다른
+  // 필드까지 삼키면 주석의 「이 값만」이 거짓이 된다.
+  // 이미 자리표시자로 바뀐 자리는 따옴표가 앞서므로 숫자와 만나지 않는다 = 멱등.
+  {
+    kind: 'duration',
+    re: /((?<![A-Za-z0-9_])["']?execution[_-]?time["']?\s*[:=]\s*)(\d+(?:\.\d+)?)/gi,
+    tokenGroup: 2,
+    quote: true,
+  },
 ];
 
 /** 키 이름 → 종류. 해당 없으면 null. */
@@ -158,7 +184,8 @@ export class Normalizer {
         if (typeof raw !== 'string' || raw.length === 0 || isPlaceholder(raw)) return whole;
         let prefix = '';
         for (let i = 1; i < rule.tokenGroup; i++) prefix += typeof args[i] === 'string' ? (args[i] as string) : '';
-        return prefix + this.token(rule.kind, raw);
+        const placeholder = this.token(rule.kind, raw);
+        return prefix + (rule.quote === true ? `"${placeholder}"` : placeholder);
       });
     }
     return out;

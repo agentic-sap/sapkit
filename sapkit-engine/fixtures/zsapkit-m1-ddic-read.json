@@ -1,0 +1,96 @@
+{
+  "formatVersion": 1,
+  "sequenceId": "zsapkit-m1-ddic-read",
+  "description": "[재실행 자유 · P1] 이 판이 $TMP에 세운 연습 대상들을 읽기만 한다 — 테이블 ZSAPKIT_M1_TAB · 구조 ZSAPKIT_M1_STR · 함수모듈 Z_SAPKIT_M1_FM(그룹 ZSAPKIT_M1_FG) · 그리고 프로그램·인클루드 두 벌을 가로지르는 소스 검색. SAP을 바꾸지 않으므로 몇 번이든 돌릴 수 있고, 대상이 전부 Z 객체라 소스를 픽스처에 담아도 재배포권 문제가 없다(시나리오 README 함정 ⑴).",
+  "engine": {
+    "name": "mcp-abap-adt",
+    "version": "1.0.0",
+    "protocolVersion": "2024-11-05",
+    "exposition": "readonly,high"
+  },
+  "recordedAt": "2026-08-18T05:26:49.388Z",
+  "steps": [
+    {
+      "index": 0,
+      "tool": "GetTable",
+      "args": {
+        "table_name": "ZSAPKIT_M1_TAB"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"table_name\": \"ZSAPKIT_M1_TAB\",\n  \"version\": \"active\",\n  \"table_data\": \"@EndUserText.label : 'sapkit engine M1 evidence probe table'\\n@AbapCatalog.enhancement.category : #NOT_EXTENSIBLE\\n@AbapCatalog.tableCategory : #TRANSPARENT\\n@AbapCatalog.deliveryClass : #A\\n@AbapCatalog.dataMaintenance : #RESTRICTED\\ndefine table zsapkit_m1_tab {\\n  key mandt    : mandt not null;\\n  key probe_id : abap.char(10) not null;\\n  probe_text   : abap.char(60);\\n\\n}\",\n  \"status\": 200,\n  \"status_text\": \"OK\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "DDIC 테이블 DDL 되읽기. 이 판이 제품 MCP로 만든 빈 연습 테이블이고, GetSqlQuery(P2)가 겨누는 것과 같은 대상이다."
+    },
+    {
+      "index": 1,
+      "tool": "GetStructure",
+      "args": {
+        "structure_name": "ZSAPKIT_M1_STR"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"structure_name\": \"ZSAPKIT_M1_STR\",\n  \"version\": \"active\",\n  \"structure_data\": \"@EndUserText.label : 'sapkit engine M1 evidence probe structure'\\n@AbapCatalog.enhancement.category : #NOT_EXTENSIBLE\\ndefine structure zsapkit_m1_str {\\n  probe_id    : abap.char(10);\\n  probe_text  : abap.char(60);\\n  probe_count : abap.int4;\\n\\n}\",\n  \"status\": 200,\n  \"status_text\": \"OK\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "구조는 테이블과 같은 DDIC 계열이지만 ADT 주소가 다르다(ddic/structures). 두 주소가 갈리는 자리를 한 시퀀스에 함께 담아 둔다."
+    },
+    {
+      "index": 2,
+      "tool": "GetFunctionModule",
+      "args": {
+        "function_module_name": "Z_SAPKIT_M1_FM",
+        "function_group_name": "ZSAPKIT_M1_FG"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"function_module_name\": \"Z_SAPKIT_M1_FM\",\n  \"function_group_name\": \"ZSAPKIT_M1_FG\",\n  \"version\": \"active\",\n  \"function_module_data\": \"FUNCTION z_sapkit_m1_fm\\r\\n  IMPORTING\\r\\n    VALUE(iv_input) TYPE string OPTIONAL\\r\\n  EXPORTING\\r\\n    VALUE(ev_output) TYPE string.\\r\\n\\r\\n\\r\\n\\r\\n  ev_output = COND string( WHEN iv_input IS INITIAL\\r\\n                           THEN 'sapkit engine M1 equivalence probe'\\r\\n                           ELSE iv_input ).\\r\\nENDFUNCTION.\",\n  \"status\": 200,\n  \"status_text\": \"OK\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "함수모듈은 그룹 이름이 있어야 주소가 서는 유일한 M1 읽기 도구다. 구 엔진이 active 읽기에 비활성 확인을 곁들이는 갈래(check_inactive 기본 참)가 여기서 드러난다."
+    },
+    {
+      "index": 3,
+      "tool": "GrepObjects",
+      "args": {
+        "objects": [
+          {
+            "object_type": "PROG",
+            "object_name": "ZSAPKIT_M1_DEMO"
+          },
+          {
+            "object_type": "INCL",
+            "object_name": "ZSAPKIT_M1_INC01"
+          }
+        ],
+        "pattern": "sapkit engine M1",
+        "context_lines": 0,
+        "max_results": 100
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"total_matches\": 3,\n  \"truncated\": false,\n  \"results\": [\n    {\n      \"object_type\": \"PROG\",\n      \"object_name\": \"ZSAPKIT_M1_DEMO\",\n      \"matches\": [\n        {\n          \"line\": 6,\n          \"text\": \"  lv_message = 'sapkit engine M1 equivalence probe'.\",\n          \"context_before\": [],\n          \"context_after\": []\n        }\n      ]\n    },\n    {\n      \"object_type\": \"INCL\",\n      \"object_name\": \"ZSAPKIT_M1_INC01\",\n      \"matches\": [\n        {\n          \"line\": 1,\n          \"text\": \"* sapkit engine M1 include probe\",\n          \"context_before\": [],\n          \"context_after\": []\n        },\n        {\n          \"line\": 2,\n          \"text\": \"CONSTANTS gc_probe TYPE string VALUE 'sapkit engine M1 include probe'.\",\n          \"context_before\": [],\n          \"context_after\": []\n        }\n      ]\n    }\n  ],\n  \"skipped\": []\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "여러 객체의 소스를 가로질러 정규식을 먹이는 도구라, 객체 종류마다 소스를 어떻게 얻어 오는지가 응답에 함께 실린다. 대상을 이 판의 Z 객체 둘로 좁혀 시스템 전역 상태에 기대지 않게 했다(함정 ⑵)."
+    }
+  ],
+  "placeholders": []
+}

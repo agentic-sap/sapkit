@@ -22,7 +22,15 @@ export type JsonValue = string | number | boolean | null | JsonValue[] | { [key:
 export const FIXTURE_FORMAT_VERSION = 1;
 
 /** 정규화가 다루는 비결정 토큰의 종류. */
-export type NormalizationKind = 'lock-handle' | 'csrf-token' | 'session-id' | 'timestamp' | 'server-id' | 'uri';
+export type NormalizationKind =
+  | 'lock-handle'
+  | 'csrf-token'
+  | 'session-id'
+  | 'timestamp'
+  | 'server-id'
+  | 'uri'
+  /** 서버가 잰 **소요 시간**. 시각이 아니라 길이라 timestamp와 따로 둔다. */
+  | 'duration';
 
 /** 종류 → 자리표시자 접두어. */
 export const PLACEHOLDER_PREFIX: Readonly<Record<NormalizationKind, string>> = {
@@ -32,6 +40,7 @@ export const PLACEHOLDER_PREFIX: Readonly<Record<NormalizationKind, string>> = {
   timestamp: 'TIMESTAMP',
   'server-id': 'SERVER_ID',
   uri: 'URI',
+  duration: 'DURATION',
 };
 
 /** 접두어 → 종류 (역인덱스). 이미 정규화된 픽스처를 다시 읽을 때 쓴다. */

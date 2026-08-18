@@ -183,6 +183,7 @@
  *    단계를 통째로 대조 밖에 두지 않는다 — 등재 밖의 값이 달라지면
  *    `allowlisted-fail`로 떨어진다. `applies`가 보는 것은 **채록분(구 엔진)**이다.
  */
+import { verifyWherePredicate } from '../../src/tools/row-data/wherePredicate';
 import type { JsonValue, SequenceStep } from '../recorder';
 import { compareErrorSignatures, errorSignature } from './errorSignature';
 import type { SubstituteCheck, SubstituteInput, SubstituteVerdict } from './types';
@@ -287,6 +288,41 @@ function textBodiesAsJson(response: JsonValue): JsonValue[] | null {
     }
   }
   return out;
+}
+
+/**
+ * 실데이터 표의 **행 목록**. 성공 응답의 text 블록 안 JSON에서만 읽는다.
+ *
+ * 못 읽은 것을 "행 0건"으로 접지 않는다 — 0건은 술어를 어길 수 없어서, 접는
+ * 순간 D1의 검사가 언제나 "어기지 않았다"로 기울고 등재가 무증거가 된다.
+ */
+function sqlRowsOf(response: JsonValue): Record<string, string | null>[] | null {
+  const bodies = textBodiesAsJson(response);
+  if (bodies === null) return null;
+  for (const body of bodies) {
+    if (!isPlainObject(body)) continue;
+    const rows = body['rows'];
+    if (!Array.isArray(rows)) continue;
+    const out: Record<string, string | null>[] = [];
+    for (const row of rows) {
+      if (!isPlainObject(row)) return null;
+      const cells: Record<string, string | null> = {};
+      for (const [column, value] of Object.entries(row)) {
+        if (value === null || typeof value === 'string') cells[column] = value;
+        else return null;
+      }
+      out.push(cells);
+    }
+    return out;
+  }
+  return null;
+}
+
+/** 픽스처가 보낸 질의문. 인자 이름은 상시 게이트가 읽는 이름 그대로다. */
+function sqlQueryOf(args: JsonValue): string | null {
+  if (!isPlainObject(args)) return null;
+  const query = args['sql_query'];
+  return typeof query === 'string' ? query : null;
 }
 
 /** 두 JSON이 갈리는 자리 하나. `key`는 그 자리를 감싼 마지막 객체 키다. */
@@ -732,13 +768,53 @@ export const M1_DIVERGENCES: readonly DivergenceEntry[] = [
     tool: 'GetSqlQuery',
     classification: '수리',
     status: 'active',
-    evidence: 'sapkit-engine/harness/DIVERGENCES.md#m1-사전-등재 · HANDOFF.md §6 항목 13-9 · D-079 ⑤',
-    // 장부: "대체 기대 시험: D1 = WHERE가 결과에 실제 반영됨을 검증하는 시험
-    // (실데이터 도구 작업이 소유)". 그 작업이 검사를 물릴 때까지 이연이다.
-    substituteTest: '실데이터 도구 작업이 소유 — WHERE가 결과에 실제 반영됨을 검증하는 시험',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#m1-사전-등재 · sapkit-engine/harness/DIVERGENCES.md#d1-활성화 · ' +
+      'HANDOFF.md §6 항목 13-9 · D-079 ⑤ · sapkit-engine/src/tools/row-data/wherePredicate.ts',
+    // 장부가 적어 둔 소유자("실데이터 도구 작업")가 왔다. 시험 본체는 아래 경로에
+    // 실재하므로 산문 자리를 **파일 경로**로 바꾼다 — 산문이면 대장이 없는 증거를
+    // 있다고 보고한다(`harness/ledger/evidence.ts`의 substituteEvidenceFromLedger).
+    substituteTest:
+      'sapkit-engine/src/tools/row-data/__tests__/getSqlQuery.test.ts — 「13-9 — WHERE가 결과에 실제로 반영되는가」 8건 · ' +
+      'sapkit-engine/harness/replay/__tests__/divergences.test.ts — 「D1 — 술어를 무시한 표를 성공으로 내주지 않는다」 절',
     resolvesIn: null,
     applies: (step) => step.tool === 'GetSqlQuery',
-    check: null,
+    // 등재는 **차이가 났을 때만** 발동한다(머리주석). 그러므로 여기 오는 것은
+    // 구·신이 갈린 자리뿐이고, D1이 덮는 갈림은 하나다 — 구가 술어를 어긴 표를
+    // 성공으로 냈고 신이 그 표를 거부한 자리. 그 밖의 갈림은 등재 밖이다.
+    //
+    // 판정 자를 여기서 새로 짜지 않는다. 도구가 쓰는 검증기를 그대로 부른다 —
+    // 검사가 자기 자를 따로 들면 "도구는 거부했는데 등재는 옳다고 못 하는" 어긋남이
+    // 생기고, 그 어긋남은 신 엔진 결함처럼 보인다.
+    check: ({ recorded, actual }) => {
+      if (!actual.isError) {
+        return { ok: false, detail: '신 엔진이 표를 성공으로 내줬다 — D1이 덮는 갈림이 아니다.' };
+      }
+      if (!/ERR_SQLQUERY_PREDICATE_IGNORED/.test(collectText(actual.response))) {
+        return { ok: false, detail: '신 엔진의 거부가 술어 무시 거부가 아니다 — 다른 오류다.' };
+      }
+      if (recorded.isError) {
+        return { ok: false, detail: '구도 오류였다 — 거부할 표가 애초에 없었다.' };
+      }
+      const sql = sqlQueryOf(recorded.args);
+      if (sql === null) return { ok: false, detail: '픽스처에서 sql_query를 읽지 못했다.' };
+      const rows = sqlRowsOf(recorded.response);
+      if (rows === null) return { ok: false, detail: '구 응답에서 행 표를 읽지 못했다.' };
+
+      const verdict = verifyWherePredicate(sql, rows);
+      if (verdict.kind !== 'violated') {
+        return {
+          ok: false,
+          detail: `구가 낸 표는 자기 술어를 어기지 않았다(${verdict.kind}) — 신 엔진이 옳은 표를 거부했다.`,
+        };
+      }
+      return {
+        ok: true,
+        detail:
+          `구는 술어를 어긴 표를 성공으로 냈고(${verdict.term} · 컬럼 ${verdict.column} · ` +
+          `행 #${verdict.rowIndex + 1}) 신 엔진은 그 표를 거부했다.`,
+      };
+    },
   },
   {
     id: 'D2',

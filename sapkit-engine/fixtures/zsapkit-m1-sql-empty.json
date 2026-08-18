@@ -1,0 +1,39 @@
+{
+  "formatVersion": 1,
+  "sequenceId": "zsapkit-m1-sql-empty",
+  "description": "[재실행 자유 · P2] 이 판이 만든 **빈** 연습 테이블 ZSAPKIT_M1_TAB에서 두 필드를 골라 읽는다. 행 상한 100, 예상 결과 0행 — 실 업무 데이터가 한 줄도 실리지 않는 유일한 형태로 P2 도구의 증거를 세운다. 이 질의 하나만이 판6.1에서 승인된 실데이터 호출이다(spec §4). 재생은 러너가 --fixture 단건으로만 허용한다 — 실데이터 도구가 섞인 픽스처의 전량 재생을 거부하는 것이 정상 동작이다.",
+  "engine": {
+    "name": "mcp-abap-adt",
+    "version": "1.0.0",
+    "protocolVersion": "2024-11-05",
+    "exposition": "readonly,high"
+  },
+  "recordedAt": "2026-08-18T05:30:34.145Z",
+  "steps": [
+    {
+      "index": 0,
+      "tool": "GetSqlQuery",
+      "args": {
+        "sql_query": "SELECT probe_id, probe_text FROM zsapkit_m1_tab",
+        "row_number": 100
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"sql_query\": \"SELECT probe_id, probe_text FROM zsapkit_m1_tab\",\n  \"row_number\": 100,\n  \"execution_time\": \"<<DURATION_1>>\",\n  \"total_rows\": 0,\n  \"returned_row_count\": 0,\n  \"truncated\": false,\n  \"server_total_rows\": 0,\n  \"columns\": [\n    {\n      \"name\": \"PROBE_ID\",\n      \"type\": \"C\",\n      \"description\": \"PROBE_ID\"\n    },\n    {\n      \"name\": \"PROBE_TEXT\",\n      \"type\": \"C\",\n      \"description\": \"PROBE_TEXT\"\n    }\n  ],\n  \"rows\": []\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "구 엔진의 13-9 결함(넓은 SELECT에서 WHERE가 통째로 무시됨)은 등재 D1이 덮는다. 여기서는 술어가 없고 표가 비어 있어 구·신이 같은 답을 내므로 등재가 발동하지 않고 재생 급 증거가 선다 — 대체 급은 계약 시험이 따로 소유한다."
+    }
+  ],
+  "placeholders": [
+    {
+      "placeholder": "<<DURATION_1>>",
+      "kind": "duration",
+      "occurrences": 1
+    }
+  ]
+}

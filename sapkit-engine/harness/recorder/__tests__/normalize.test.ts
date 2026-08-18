@@ -227,3 +227,69 @@ describe('정규화 — 인자 쪽도 대상이다', () => {
     expect(argsText(f, 0)).toContain('<<TIMESTAMP_1>>');
   });
 });
+
+/**
+ * 서버가 잰 소요 시간 — 숫자이지만 결정적이지 않다. 2026-08-18에 같은 빈 표를
+ * 두고 구 18.464 · 신 0.475가 나왔고, 그대로 두면 재생 판정이 엔진 동등성이
+ * 아니라 그날 시스템이 얼마나 바빴는지로 정해진다.
+ */
+describe('정규화 — 서버가 잰 소요 시간', () => {
+  const body = (seconds: string): string =>
+    JSON.stringify({ sql_query: 'SELECT a FROM ztab', execution_time: 0, rows: [] }).replace('"execution_time":0', `"execution_time":${seconds}`);
+
+  it('text 블록 안의 execution_time이 자리표시자로 바뀐다', () => {
+    const n = new Normalizer();
+    const out = n.normalizeString(body('18.464'));
+
+    expect(out).toContain('<<DURATION_1>>');
+    expect(out).not.toContain('18.464');
+  });
+
+  /** 따옴표를 씌우는 이유 — 이 블록은 JSON으로 다시 읽힌다(D1의 대체 기대 시험). */
+  it('바꾼 뒤에도 그 블록은 JSON으로 읽힌다', () => {
+    const n = new Normalizer();
+    const parsed = JSON.parse(n.normalizeString(body('0.475'))) as { execution_time: unknown };
+
+    expect(parsed.execution_time).toBe('<<DURATION_1>>');
+  });
+
+  it('구·신의 서로 다른 값이 같은 자리표시자가 된다 — 대조가 성립하는 조건', () => {
+    const old = new Normalizer().normalizeString(body('18.464'));
+    const fresh = new Normalizer().normalizeString(body('0.475'));
+
+    expect(old).toBe(fresh);
+  });
+
+  it('두 번 정규화해도 결과가 같다 — 자리표시자를 다시 감싸지 않는다', () => {
+    const once = new Normalizer().normalizeString(body('1.5'));
+    const twice = new Normalizer().normalizeString(once);
+
+    expect(twice).toBe(once);
+  });
+
+  it('다른 숫자는 여전히 건드리지 않는다', () => {
+    const out = new Normalizer().normalizeString(JSON.stringify({ returned_row_count: 0, total_rows: 12 }));
+
+    expect(out).toBe(JSON.stringify({ returned_row_count: 0, total_rows: 12 }));
+  });
+
+  /**
+   * 진단 문구는 `=`로 싣는다 — `ERR_SQLQUERY_PREDICATE_IGNORED`의 「tells in this
+   * response」 줄이 그 모양이다. 거부 응답을 언젠가 채록하면 그 픽스처도 시간
+   * 의존이 되므로 같은 규칙이 덮어야 한다.
+   */
+  it('진단 문구의 `execution_time=…` 형태도 잡는다', () => {
+    const out = new Normalizer().normalizeString('returned_row_count=0 · execution_time=0.475 · truncated=false');
+
+    expect(out).toContain('<<DURATION_1>>');
+    expect(out).not.toContain('0.475');
+    expect(out).toContain('returned_row_count=0');
+  });
+
+  /** 접미사 오탐 — 이 자리가 없으면 주석의 「이 값만」이 거짓이 된다. */
+  it('이름이 execution_time으로 끝나는 다른 필드는 삼키지 않는다', () => {
+    const text = JSON.stringify({ total_execution_time: 3.5, my_execution_time: 1 });
+
+    expect(new Normalizer().normalizeString(text)).toBe(text);
+  });
+});

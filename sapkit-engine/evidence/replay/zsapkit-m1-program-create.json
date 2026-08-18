@@ -1,0 +1,33 @@
+{
+  "formatVersion": 1,
+  "sequenceId": "zsapkit-m1-program-create",
+  "description": "[1회성 · P3] $TMP(로컬 오브젝트)에 연습용 프로그램 ZSAPKIT_M1_DEMO를 생성하고 되읽어 확인한다. 전제: 해당 이름의 프로그램이 SAP에 없어야 한다. 재실행(C2 재생 포함) 전에 사람이 SE38 또는 ADT로 지워야 한다 — M1 19종에 Delete 도구가 없다. $TMP를 쓰므로 transport_request가 없고 이송(P4)이 일어나지 않는다.",
+  "recordedAt": "2026-08-18T05:20:23.096Z",
+  "verdict": "pass",
+  "recordedEngine": {
+    "name": "mcp-abap-adt",
+    "version": "1.0.0"
+  },
+  "actualEngine": {
+    "name": "sapkit-engine",
+    "version": "0.1.0"
+  },
+  "transportError": null,
+  "steps": [
+    {
+      "index": 0,
+      "tool": "CreateProgram",
+      "verdict": "match",
+      "divergenceId": null,
+      "detail": null
+    },
+    {
+      "index": 1,
+      "tool": "GetProgram",
+      "verdict": "match",
+      "divergenceId": null,
+      "detail": null
+    }
+  ],
+  "proseNormalized": []
+}

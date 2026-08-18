@@ -277,15 +277,17 @@ describe('기본 장부', () => {
     const fixture = recorded([
       step({
         index: 0,
-        tool: 'GetSqlQuery',
-        args: { sql_query: 'SELECT mandt FROM t000' },
-        response: envelope('구 결과 — WHERE 무시'),
+        tool: 'UpdateLocalTypes',
+        args: { class_name: 'ZCL_DEMO', source_code: 'TYPES ty_x TYPE string.' },
+        response: envelope('구 결과 — 활성화했다고 답한다'),
       }),
     ]);
-    const result = await replaySequence(fixture, target([{ payload: envelope('신 결과 — WHERE 반영') }]));
+    const result = await replaySequence(fixture, target([{ payload: envelope('신 결과 — 활성화 응답을 읽는다') }]));
 
-    // D1(GetSqlQuery)은 활성이지만 대체 기대 시험을 실데이터 도구 작업이 소유한다.
-    expect(result.steps[0]?.divergenceId).toBe('D1');
+    // D2(UpdateLocalTypes)는 활성이지만 대체 기대 시험을 계약 시험이 소유한다 —
+    // 차이의 본체가 응답이 아니라 와이어 사실이라 재생이 가를 수 없다.
+    // (본보기가 D1이었으나 판6.1에서 D1의 이연이 끝나 자리를 옮겼다.)
+    expect(result.steps[0]?.divergenceId).toBe('D2');
     expect(result.steps[0]?.verdict).toBe('allowlisted-deferred');
     expect(result.verdict).toBe('no-evidence');
   });

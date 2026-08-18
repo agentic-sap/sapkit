@@ -281,10 +281,11 @@ describe('휴면 등재는 통과로 세지 않는다', () => {
   });
 
   it('이연된 등재 항목은 통과가 아니라 이연으로 세어진다', async () => {
-    const fixture = recorded([step({ index: 0, tool: 'GetSqlQuery', response: envelope('구') })]);
+    // 본보기를 D1에서 D2로 옮겼다 — 판6.1에서 D1의 이연이 끝났다.
+    const fixture = recorded([step({ index: 0, tool: 'UpdateLocalTypes', response: envelope('구') })]);
     const result = await replaySequence(fixture, target([{ payload: envelope('신') }]));
-    const report = buildCoverage({ tools: ['GetSqlQuery'], replays: [result], divergences: M1_DIVERGENCES });
-    const d1 = report.divergences.find((d) => d.id === 'D1');
+    const report = buildCoverage({ tools: ['UpdateLocalTypes'], replays: [result], divergences: M1_DIVERGENCES });
+    const d1 = report.divergences.find((d) => d.id === 'D2');
 
     expect(d1).toMatchObject({ judged: 1, passed: 0, deferred: 1, failed: 0 });
     expect(report.tools[0]?.replay.status).toBe('none');

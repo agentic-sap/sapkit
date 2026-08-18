@@ -69,6 +69,9 @@ describe('상태 판정 — 등록점 하나만 본다', () => {
     const model = collectLedger({
       registered: ['GetClass'],
       contractResultsPath: tempFile(JSON.stringify([{ tool: 'GetClass', passed: false }])),
+      // 상태 판정만 좁혀 본다 — 레포의 실제 재생 판정을 읽으면 이 시험은
+      // 「GetClass에 증거가 있는가」라는 딴 질문에 답하게 된다.
+      replayVerdictDir: NOWHERE,
     });
     const row = model.coverage.tools.find((r) => r.tool === 'GetClass');
 
@@ -77,7 +80,7 @@ describe('상태 판정 — 등록점 하나만 본다', () => {
   });
 
   it('등록점에 없는 도구만 `안 지음`이다', () => {
-    const model = collectLedger({ registered: ['GetClass'] });
+    const model = collectLedger({ registered: ['GetClass'], replayVerdictDir: NOWHERE });
 
     expect(model.coverage.tools.find((r) => r.tool === 'GetClass')?.status).toBe('awaiting-evidence');
     expect(model.coverage.tools.find((r) => r.tool === 'ReadTable')?.status).toBe('not-built');
