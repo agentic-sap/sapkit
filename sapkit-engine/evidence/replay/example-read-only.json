@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "sequenceId": "example-read-only",
   "description": "표준 클래스 검색 → 문법검사 (배관 확인용 · SAP 무변경 · 소스 미채록)",
-  "recordedAt": "2026-08-18T04:15:06.037Z",
+  "recordedAt": "2026-08-18T05:20:53.166Z",
   "verdict": "pass",
   "recordedEngine": {
     "name": "mcp-abap-adt",
