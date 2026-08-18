@@ -162,14 +162,39 @@ update 쪽은 몇 번이든 자유롭게 재생할 수 있다.
 | `example-read-only` | P1 | 자유 | 배관 확인 — 접속·기동·정규화·마스킹이 실제로 도는지. SAP 무변경 · 소스 미채록 · 가변 상태 미채록 |
 | `zsapkit-m1-program-create` | P3 | **1회성** | `$TMP`에 `ZSAPKIT_M1_DEMO` 생성 → 되읽기. 픽스처는 `fixtures/attended-only/`에 있고 기본 재생에서 빠진다 |
 | `zsapkit-m1-program-update-activate` | P3 | 자유 | 같은 프로그램에 소스 갱신 → 문법검사 → 활성화 → 되읽기. **위 시나리오가 먼저 돌아야 한다** |
-
 | `zsapkit-m1-class-update-activate` | P3 | 자유 | `ZCL_SAPKIT_M1_DEMO`에 클래스 전문 갱신 → 문법검사 → 활성화 → 되읽기. **안정 상태에서 재녹화된 판**(위 규칙) |
+| `zsapkit-m1-include-create` | P3 | **1회성** | `$TMP`에 `ZSAPKIT_M1_INC01` 생성 → 숙주 `ZSAPKIT_M1_INCMAIN`에 삽입 → 되읽기. 픽스처는 `fixtures/attended-only/` |
+| `zsapkit-m1-include-update-activate` | P3 | 자유 | 그 인클루드에 소스 갱신 → 활성화 → 되읽기. `main_program`을 넘겨 프로그램 전체 문법검사를 태운다 |
+| `zsapkit-m1-ddic-read` | P1 | 자유 | 이 판이 세운 DDIC·함수 자산 읽기 — 테이블·구조·함수모듈 + 두 객체를 가로지르는 소스 검색 |
+| `zsapkit-m1-patch-activate` | P3 | 자유 | `ZSAPKIT_M1_DEMO`에 외과적 치환 → 활성화 → 되읽기. **`old_string`과 `new_string`이 같은 글자**다(아래) |
+| `zsapkit-m1-inactive-list` | P1 | 자유 | 비활성 객체 목록 한 번 읽기. 시스템 전역 상태에 기댄다(아래) |
+| `zsapkit-m1-sql-empty` | **P2** | 자유 | **빈** 연습 테이블에서 두 필드 SELECT(상한 100 · 0행). 재생은 **`--fixture` 단건으로만** — 배치 거부가 정상 동작이다 |
 
-넷 다 **C1 녹화 완료**(2026-08-12 · KR-DEV). C2 재생은 `Create*`를 뺀 **3건 전부
-pass** — 증거 있는 도구 7/19. `Create*`는 재생으로 증거를 얻을 수 없어
-**`attended` 급으로 닫힌다**(이유는 `fixtures/README.md`). 나머지 12종은 후속
-C1에서 채운다.
+**M1 19종의 증거가 이로써 전부 섰다**(2026-08-18 · KR-DEV · 판6.1). 재생 대조는
+`Create*` 둘을 뺀 전건 pass이고, `Create*`는 재생으로 증거를 얻을 수 없어
+**`attended` 급으로 닫힌다**(이유는 `fixtures/README.md`). `GetSourceDiff`는 요구
+급이 `계약 시험`이라 재생 대상이 아니다 — **M1 19종이 전부 「증거 있음」이라는 것과
+19종이 전부 실 SAP을 밟았다는 것은 같은 말이 아니다.**
+
+### 이 묶음이 남긴 설계 메모 셋 (다음 사람이 되밟지 않도록)
+
+- **치환 시나리오는 같은 글자로 친다.** `UpdateSourceByPatch`는 한 번 돌면
+  `old_string`이 사라져 두 번째 실행이 대상을 못 찾는다 — 함정 ⑶의 가장 날카로운
+  형태다. 그래서 `zsapkit-m1-patch-activate`는 두 인자를 같은 글자로 두어 소스가
+  달라지지 않게 했다. 구 엔진으로 두 번 연속 돌려 응답이 같음을 먼저 실측한 뒤
+  녹화했다. 대가: 이 픽스처는 **치환 경로가 구·신에서 같게 돈다**를 증명하지,
+  **치환이 소스를 실제로 바꾸는 갈래**를 증명하지 않는다.
+- **인클루드의 숙주는 따로 세운다.** `ZSAPKIT_M1_DEMO`에 INCLUDE 문을 끼우면
+  `zsapkit-m1-program-update-activate`가 그 프로그램 소스를 통째로 다시 쓸 때마다
+  인클루드의 집이 사라진다. 그래서 숙주를 `ZSAPKIT_M1_INCMAIN`으로 갈랐다.
+- **`GetInactiveObjects`는 인자가 없다.** 「내가 만든 객체만」으로 좁힐 방법이 구
+  선언에 존재하지 않으므로, 시나리오를 읽기 전용으로 두어 **자기가 목록을 흔들지
+  않는 것**까지가 할 수 있는 전부다. 이 판 밖의 누군가가 무언가를 비활성으로
+  남기거나 활성화하면 그 재생은 깨진다 — 어긋나면 신 엔진이 아니라 그 상태를 먼저
+  의심하라.
 
 `ZCL_SAPKIT_M1_DEMO`의 셋업(빈 클래스 생성)은 구 번들의 `CreateClass`로 했고
 **픽스처를 레포에 두지 않았다** — `CreateClass`는 M1 19종 밖이라 증거가 아니라
-준비 작업이기 때문이다.
+준비 작업이기 때문이다. 판6.1이 세운 `ZSAPKIT_M1_TAB`·`ZSAPKIT_M1_STR`·
+`ZSAPKIT_M1_FG`/`Z_SAPKIT_M1_FM`·`ZSAPKIT_M1_INCMAIN`도 같은 이유로 **제품 MCP로**
+만들었고 그 생성은 채록하지 않았다.
