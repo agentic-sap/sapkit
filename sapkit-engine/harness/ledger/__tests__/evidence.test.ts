@@ -168,8 +168,16 @@ describe('대체 기대 시험 — 장부 등재분에 대응하는 시험 파�
   it('시험 파일이 실재하는 등재분만 증거가 된다', () => {
     const evidence = substituteEvidenceFromLedger(M1_DIVERGENCES, repoRoot);
 
-    // D1은 대체 기대 시험을 아직 다른 작업이 소유한다 — 산문뿐이고 파일이 없다.
-    expect(evidence.map((e) => e.tool)).not.toContain('GetSqlQuery');
+    // D1의 이연은 끝났다 — 실데이터 도구 작업(판6.1)이 시험을 물리면서 산문
+    // 자리가 **실재하는 파일 경로**로 바뀌었으므로 이제 잡혀야 한다.
+    expect(evidence.map((e) => e.tool)).toContain('GetSqlQuery');
+
+    // 산문만 있는 자리는 여전히 증거가 아니다 — 이 수집기의 가름선이다.
+    const prose = substituteEvidenceFromLedger(
+      [{ ...M1_DIVERGENCES[0]!, id: 'DZZ', tool: 'GetSqlQuery', substituteTest: '어느 작업이 소유한다' }],
+      repoRoot,
+    );
+    expect(prose).toEqual([]);
 
     // **반대쪽 증거.** D2·D3은 각자의 도구(`UpdateLocalTypes`·`GetIncludesList`)를
     // 짓는 묶음에서 휴면을 깨우고 대체 기대 시험을 **실제 파일로** 저작했으므로 이제

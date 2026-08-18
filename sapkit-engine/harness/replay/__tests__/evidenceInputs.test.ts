@@ -48,16 +48,18 @@ describe('attended 실기 증거 — 재생 실행 자체가 실기다', () => {
   });
 
   it('실기 기록만 있는 도구는 더 이상 증거 없음에 남지 않는다', async () => {
-    // D1(GetSqlQuery)은 이연이라 재생 급을 채우지 못한다. 그래도 신 엔진이
-    // 그 도구를 실제로 돌린 사실은 남는다.
-    const fixture = recorded([step({ index: 0, tool: 'GetSqlQuery', response: envelope('구') })]);
+    // D2(UpdateLocalTypes)는 이연이라 재생 급을 채우지 못한다 — 차이의 본체가
+    // "활성화 요청이 나갔는가"라는 와이어 사실이라 응답만으로는 구·신을 가를 수
+    // 없기 때문이다. 그래도 신 엔진이 그 도구를 실제로 돌린 사실은 남는다.
+    // (본보기가 D1이었으나 판6.1에서 D1의 이연이 끝나 자리를 옮겼다.)
+    const fixture = recorded([step({ index: 0, tool: 'UpdateLocalTypes', response: envelope('구') })]);
     const result = await replaySequence(fixture, target([{ payload: envelope('신') }]));
 
-    const before = buildCoverage({ tools: ['GetSqlQuery'], replays: [result], divergences: M1_DIVERGENCES });
-    expect(before.toolsWithoutEvidence).toEqual(['GetSqlQuery']);
+    const before = buildCoverage({ tools: ['UpdateLocalTypes'], replays: [result], divergences: M1_DIVERGENCES });
+    expect(before.toolsWithoutEvidence).toEqual(['UpdateLocalTypes']);
 
     const after = buildCoverage({
-      tools: ['GetSqlQuery'],
+      tools: ['UpdateLocalTypes'],
       replays: [result],
       attended: attendedEvidenceFromReplays([result]),
       divergences: M1_DIVERGENCES,
