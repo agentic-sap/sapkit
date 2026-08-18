@@ -272,4 +272,24 @@ describe('정규화 — 서버가 잰 소요 시간', () => {
 
     expect(out).toBe(JSON.stringify({ returned_row_count: 0, total_rows: 12 }));
   });
+
+  /**
+   * 진단 문구는 `=`로 싣는다 — `ERR_SQLQUERY_PREDICATE_IGNORED`의 「tells in this
+   * response」 줄이 그 모양이다. 거부 응답을 언젠가 채록하면 그 픽스처도 시간
+   * 의존이 되므로 같은 규칙이 덮어야 한다.
+   */
+  it('진단 문구의 `execution_time=…` 형태도 잡는다', () => {
+    const out = new Normalizer().normalizeString('returned_row_count=0 · execution_time=0.475 · truncated=false');
+
+    expect(out).toContain('<<DURATION_1>>');
+    expect(out).not.toContain('0.475');
+    expect(out).toContain('returned_row_count=0');
+  });
+
+  /** 접미사 오탐 — 이 자리가 없으면 주석의 「이 값만」이 거짓이 된다. */
+  it('이름이 execution_time으로 끝나는 다른 필드는 삼키지 않는다', () => {
+    const text = JSON.stringify({ total_execution_time: 3.5, my_execution_time: 1 });
+
+    expect(new Normalizer().normalizeString(text)).toBe(text);
+  });
 });

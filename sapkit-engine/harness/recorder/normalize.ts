@@ -99,9 +99,18 @@ const STRING_RULES: readonly StringRule[] = [
   { kind: 'server-id', re: /([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/g, tokenGroup: 1 },
   // 서버 생성 32자리 hex (ATC 워크리스트·트레이스 id 등)
   { kind: 'server-id', re: /(?<![0-9A-Za-z])([0-9A-Fa-f]{32})(?![0-9A-Za-z])/g, tokenGroup: 1 },
-  // "execution_time": 18.464 — SAP이 잰 소요 시간 (머리말의 「숫자에 뚫린 구멍」).
+  // "execution_time": 18.464 · execution_time=18.464 — SAP이 잰 소요 시간
+  // (머리말의 「숫자에 뚫린 구멍」). `:`는 JSON 본문, `=`는 진단 문구의 형태다
+  // (`ERR_SQLQUERY_PREDICATE_IGNORED`가 그 모양으로 소요 시간을 싣는다).
+  // 앞의 뒤돌아보기가 **접미사 오탐**을 막는다 — `total_execution_time` 같은 다른
+  // 필드까지 삼키면 주석의 「이 값만」이 거짓이 된다.
   // 이미 자리표시자로 바뀐 자리는 따옴표가 앞서므로 숫자와 만나지 않는다 = 멱등.
-  { kind: 'duration', re: /(["']?execution[_-]?time["']?\s*:\s*)(\d+(?:\.\d+)?)/gi, tokenGroup: 2, quote: true },
+  {
+    kind: 'duration',
+    re: /((?<![A-Za-z0-9_])["']?execution[_-]?time["']?\s*[:=]\s*)(\d+(?:\.\d+)?)/gi,
+    tokenGroup: 2,
+    quote: true,
+  },
 ];
 
 /** 키 이름 → 종류. 해당 없으면 null. */

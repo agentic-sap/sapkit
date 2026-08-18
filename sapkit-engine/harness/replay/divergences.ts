@@ -775,7 +775,7 @@ export const M1_DIVERGENCES: readonly DivergenceEntry[] = [
     // 실재하므로 산문 자리를 **파일 경로**로 바꾼다 — 산문이면 대장이 없는 증거를
     // 있다고 보고한다(`harness/ledger/evidence.ts`의 substituteEvidenceFromLedger).
     substituteTest:
-      'sapkit-engine/src/tools/row-data/__tests__/getSqlQuery.test.ts — 「13-9 — WHERE가 결과에 실제로 반영되는가」 9건 · ' +
+      'sapkit-engine/src/tools/row-data/__tests__/getSqlQuery.test.ts — 「13-9 — WHERE가 결과에 실제로 반영되는가」 8건 · ' +
       'sapkit-engine/harness/replay/__tests__/divergences.test.ts — 「D1 — 술어를 무시한 표를 성공으로 내주지 않는다」 절',
     resolvesIn: null,
     applies: (step) => step.tool === 'GetSqlQuery',
