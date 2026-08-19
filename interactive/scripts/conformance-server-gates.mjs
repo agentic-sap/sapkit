@@ -444,7 +444,7 @@ function check(id, title, ok, evidence) {
  * 관측이 want면 개선이므로 통과시키되 승격을 요구하고, recorded면 통과시키되 격차를
  * 배너에 싣는다. 셋 중 아무것도 아니면 실패 — 제3의 변화는 재검토 대상이다.
  */
-function checkRecordedGap(id, title, { measured, want, recorded, gapNote, evidence }) {
+function checkRecordedGap(id, title, { measured, want, recorded, gapNote, evidence, byTarget }) {
   const norm = (v) => (Array.isArray(v) ? v.join(',') : String(v));
   const m = norm(measured);
   if (m === norm(want)) {
@@ -457,7 +457,20 @@ function checkRecordedGap(id, title, { measured, want, recorded, gapNote, eviden
     gaps.push(`${id} ${title}: 관측=${m} · 설계 요구=${norm(want)}. ${gapNote}`);
     return true;
   }
-  record(id, title, 'FAIL', `${evidence} — 관측=${m}; 기대는 ${norm(want)}(설계) 또는 ${norm(recorded)}(기록된 격차)`);
+  // 대상별로 **따로 등재된** 관측. `recorded`는 구 번들의 실측이라 다른 배포물에는
+  // 맞지 않을 수 있는데, 그 차이가 장부(`sapkit-engine/harness/DIVERGENCES.md`)에
+  // 등재된 의도적인 것이라면 제3의 변화가 아니다. 등재된 값과 **정확히 같을 때만**
+  // 통과하고 그 밖은 아래에서 FAIL로 떨어진다 — 등재되지 않은 차이는 결함으로
+  // 다룬다는 레포 규칙 그대로다.
+  const own = byTarget && Object.hasOwn(byTarget, targetName) ? byTarget[targetName] : null;
+  if (own && m === norm(own.observed)) {
+    record(id, title, 'GAP', `${evidence} — 관측=${m} · 설계 요구=${norm(want)} (${targetName} 대상 등재 차이)`);
+    gaps.push(`${id} ${title} [대상 ${targetName}]: 관측=${m} · 설계 요구=${norm(want)}. ${own.note}`);
+    return true;
+  }
+  const expected = [`${norm(want)}(설계)`, `${norm(recorded)}(기록된 격차)`];
+  if (own) expected.push(`${norm(own.observed)}(${targetName} 등재)`);
+  record(id, title, 'FAIL', `${evidence} — 관측=${m}; 기대는 ${expected.join(' 또는 ')}`);
   return false;
 }
 
@@ -650,6 +663,25 @@ const GAP2_NOTE =
       want: ['REACHED_SAP', 'BLOCKLIST_DENY'],
       // 실측: 세 노브 전부 무시 → 기본 standard 그대로.
       recorded: ['BLOCKLIST_DENY', 'REACHED_SAP'],
+      // 신 엔진은 프로세스 env 통로를 **받는다** — 장부 D6(분류: 수리)로 등재된
+      // 의도적 차이이고, 바로 위 GAP-2가 그것이 닫은 격차다.
+      //
+      // 그러면 왜 관측이 want(REACHED_SAP,BLOCKLIST_DENY)가 아닌가: 이 주입은 푸는
+      // 노브(`off`)와 조이는 노브(`EXTEND`)를 **한꺼번에** 넣는데, `off`는 구·신
+      // 양쪽에서 EXTEND 검사보다 먼저 단락한다(구 `engine/src/lib/policy/
+      // tableBlocklist.ts:503` · 신 `sapkit-engine/src/safety/blocklist.ts:272`).
+      // 즉 노브를 받는 구현이면 무엇이든 둘 다 열린다 — want는 노브를 **버리는**
+      // 구현에서만 실패하지 않는 형태로 쓰여 있었다.
+      //
+      // ⚠ 그래서 이 단언은 「조이는 노브가 프로세스 env로 실제 먹는가」를 증명하지
+      // 못한다. `off`가 가려서다. 그 증명은 `off` 없이 EXTEND만 주입하는 별도
+      // 단언이라야 하고, 그건 구 번들 대상 출력을 바꾸므로 별건이다.
+      byTarget: {
+        engine: {
+          observed: ['REACHED_SAP', 'REACHED_SAP'],
+          note: '신 엔진은 프로세스 env 통로를 수용한다(DIVERGENCES D6 · 분류 수리 — GAP-2가 닫힌 것). 같은 주입의 MCP_BLOCKLIST_PROFILE=off가 EXTEND보다 먼저 단락하므로 둘 다 열린다 — off의 이 의미는 구·신 공통이라 새 차이가 아니다. 이 단언은 조이는 노브의 프로세스 env 수용 여부를 증명하지 않는다(off가 가린다).',
+        },
+      },
       gapNote: GAP2_NOTE,
       evidence: 'PROFILE=off·ALLOW_TABLE=BNKA·EXTEND=ZSAPKIT_SECRET를 프로세스 env로 주입 → BNKA/ZSAPKIT_SECRET',
     });
