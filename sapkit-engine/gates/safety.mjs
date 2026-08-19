@@ -177,6 +177,36 @@ export async function run() {
       tool: 'GetSqlQuery',
       args: { sql_query: 'SELECT banks FROM BNKA' },
     });
+    // ⚠ 위 부정 단언 하나만으로는 **공허하게 초록일 수 있다**: `boot()`의 `env:` 전개가
+    // 빠지거나 옵션 이름이 바뀌면 주입이 통째로 사라지고, 그러면 열리지 않는 것이
+    // 당연해져 네 연언이 전부 참이 된다. 같은 `env:` 통로로 **긍정** 단언을 하나 붙여
+    // 그 배선을 붙든다 — 조이는 노브는 프로세스 env로 들어야 하므로 여기서 실제로 조인다.
+    const tightened = await callTool({
+      exposition: 'readonly',
+      envPath,
+      env: { MCP_BLOCKLIST_EXTEND: 'ZGATE_SECRET' },
+      tool: 'GetSqlQuery',
+      args: { sql_query: 'SELECT f FROM ZGATE_SECRET' },
+    });
+    const untouched = await callTool({
+      exposition: 'readonly',
+      envPath,
+      env: { MCP_BLOCKLIST_EXTEND: 'ZGATE_SECRET' },
+      tool: 'GetSqlQuery',
+      args: { sql_query: 'SELECT f FROM ZGATE_FREE' },
+    });
+    // 목록 밖 테이블도 `isError`다 — 게이트를 통과한 뒤 접속 공장이 던지기 때문이다.
+    // 그래서 `isError`가 아니라 **거부 문구와 접속 시도 횟수**로 가른다: blocklist가
+    // 막았으면 `refused` + 접속 0회, 통과했으면 접속을 시도한다.
+    report.check(
+      '프로세스 env의 조이는 노브는 실제로 든다 (위 부정 단언의 배선 증명)',
+      /refused/i.test(tightened.text) &&
+        tightened.connections === 0 &&
+        !/refused/i.test(untouched.text) &&
+        untouched.connections > 0,
+      `등재 ZGATE_SECRET=거부${tightened.connections}회 · 목록 밖 ZGATE_FREE=${/refused/i.test(untouched.text) ? '거부' : '통과'}(접속 ${untouched.connections}회)`,
+    );
+
     report.check(
       '프로세스 env의 허용 목록은 가드를 열지 못한다',
       notBypassed.isError &&

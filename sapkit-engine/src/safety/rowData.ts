@@ -111,7 +111,14 @@ export function evaluateRowDataRequest(
   const candidates = collectTables(request);
   if (candidates.kind === 'deny') return candidates.decision;
 
-  const config = context.config ?? readBlocklistConfig();
+  // `readBlocklistConfig()` with no argument reads the **raw `process.env`**, which is
+  // exactly the composition `resolveSafetyEnv` exists to replace — a caller that forgot
+  // to pass `config` would silently get the un-directioned knobs back (decision D-096
+  // closed that hole; this line is the shape it could return through). No production
+  // caller reaches it today — `GateContext.blocklist` is required and the one dispatch
+  // site always supplies it — so pass the **locked default** instead, the same thing
+  // `server/session.ts` does when it drops a connection.
+  const config = context.config ?? readBlocklistConfig({});
   const { verdict, audit } = evaluateTables(
     candidates.tables,
     config,
