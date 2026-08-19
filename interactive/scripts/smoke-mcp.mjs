@@ -65,7 +65,10 @@ const TARGETS = {
     build: 'sapkit-engine에서 npm install && npm run build',
   },
 };
-const TARGET = TARGETS[targetName];
+// hasOwn으로 물어야 한다. 맨 인덱싱이면 `--target=constructor`·`--target=toString` 같은
+// Object.prototype 상속 키가 truthy로 잡혀 아래 안내 분기를 건너뛰고, 뒤에서 undefined
+// 경로를 만지다 스택 트레이스로 죽는다 — 이름이 틀렸다는 말을 못 듣는다.
+const TARGET = Object.hasOwn(TARGETS, targetName) ? TARGETS[targetName] : undefined;
 if (!TARGET) {
   console.error(`❌ 알 수 없는 대상: --target=${targetName}`);
   console.error(`   유효한 이름: ${Object.keys(TARGETS).join(' · ')}`);
