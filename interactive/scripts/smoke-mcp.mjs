@@ -15,7 +15,7 @@
 //
 // 도구 표면이 바뀌면 실패한다. 의도된 변경이면 --update로 스냅샷을 **일부러** 갱신한다.
 //
-// 사용: node interactive/scripts/smoke-mcp.mjs [--exposition=<name>] [--update]
+// 사용: node interactive/scripts/smoke-mcp.mjs [--target=<name>] [--exposition=<name>] [--update]
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -31,13 +31,64 @@ const argv = process.argv.slice(2);
 const UPDATE = argv.includes('--update');
 let only;
 let surfaceOverride;
+let targetName = 'bundle';
 for (let i = 0; i < argv.length; i++) {
-  if (argv[i].startsWith('--exposition=')) only = argv[i].slice('--exposition='.length);
+  if (argv[i].startsWith('--target=')) targetName = argv[i].slice('--target='.length);
+  else if (argv[i] === '--target') targetName = argv[++i];
+  else if (argv[i].startsWith('--exposition=')) only = argv[i].slice('--exposition='.length);
   else if (argv[i] === '--exposition') only = argv[++i];
   // --surface <file>: 음성시험이 변조 스냅샷을 먹이기 위한 override.
   else if (argv[i] === '--surface') surfaceOverride = argv[++i];
 }
 const SURFACE = surfaceOverride ? path.resolve(surfaceOverride) : path.join(ROOT, 'provenance', 'mcp-surface.json');
+
+// ── 대상(target) ───────────────────────────────────────────────────────────
+// 이 게이트가 겨눌 서버를 **이름 하나**로 고른다. 기동 파일과 NODE_PATH는 한 묶음이라
+// 경로를 직접 받는 인자를 두면 인자 수가 불어나고 짝이 어긋난 조합이 생긴다 — 이름 하나가
+// 묶음 전체를 정한다.
+//
+// 왜 늘리는가: 사다리 ⑴(자체 저작 엔진)의 교체 관문이 「같은 표면 계약을 새 엔진에도
+// 그대로 물린다」인데, 여기 구 번들 경로가 박혀 있어 겨눌 방법이 없었다.
+// **대상을 늘리는 것이지 바꾸는 것이 아니다** — 무인자 기본값은 언제나 bundle이고,
+// 그때의 기동 대상·NODE_PATH·판정·출력·exit는 이 인자가 없던 때와 같다.
+// 「제품 게이트 전종 여전히 green」이 구 부품 무접촉의 기계 증명이므로 그 경로는 불변이다.
+const REPO = path.join(ROOT, '..');
+const TARGETS = {
+  bundle: {
+    entry: path.join(ROOT, 'server', 'server.bundle.cjs'),
+    nodePath: path.join(ROOT, 'server', 'runtime-deps', 'keyring', 'node_modules'),
+    build: null,
+  },
+  engine: {
+    entry: path.join(REPO, 'sapkit-engine', 'dist', 'src', 'server', 'entry.js'),
+    nodePath: path.join(REPO, 'sapkit-engine', 'node_modules'),
+    build: 'sapkit-engine에서 npm install && npm run build',
+  },
+};
+const TARGET = TARGETS[targetName];
+if (!TARGET) {
+  console.error(`❌ 알 수 없는 대상: --target=${targetName}`);
+  console.error(`   유효한 이름: ${Object.keys(TARGETS).join(' · ')}`);
+  process.exit(1);
+}
+
+// 대조 기준(SURFACE)은 **두 대상 공용**이다. 신 엔진이 --update로 그 기준을 제 실측으로
+// 덮어쓰면 자기 답안지로 채점하는 꼴이 되어 이 검사의 존재 이유가 사라진다 — 그래서 막는다.
+if (targetName === 'engine' && UPDATE) {
+  console.error('❌ --target=engine 과 --update 는 함께 쓸 수 없다.');
+  console.error('   기준 스냅샷은 구·신 공용이며, 신 엔진이 제 실측으로 그것을 덮어쓰면');
+  console.error('   자기 답안지로 채점하는 꼴이 되어 교체 관문이 무의미해진다.');
+  console.error('   스냅샷 갱신은 제품 대상에서만: node interactive/scripts/smoke-mcp.mjs --update');
+  process.exit(1);
+}
+
+// 기동 파일이 없으면 **여기서 멈춘다**. 조용히 통과하거나 다른 대상으로 흘러내리면
+// "게이트가 초록"이라는 말이 아무것도 재지 않았다는 뜻이 된다.
+if (!fs.existsSync(TARGET.entry)) {
+  console.error(`❌ ${targetName} 기동 파일 부재: ${path.relative(REPO, TARGET.entry).split(path.sep).join('/')}`);
+  if (TARGET.build) console.error(`   빌드한 뒤 다시 실행할 것 — ${TARGET.build}`);
+  process.exit(1);
+}
 
 const fail = [];
 const warn = [];
@@ -71,9 +122,9 @@ const classify = (n) => {
 // ── 서버 기동 → tools/list ─────────────────────────────────────────────────
 function probe(exposition) {
   return new Promise((resolve, reject) => {
-    const env = { ...process.env, NODE_PATH: path.join(ROOT, 'server', 'runtime-deps', 'keyring', 'node_modules') };
+    const env = { ...process.env, NODE_PATH: TARGET.nodePath };
     for (const k of Object.keys(env)) if (k.startsWith('SAP_') || k.startsWith('MCP_')) delete env[k];
-    const args = [path.join(ROOT, 'server', 'server.bundle.cjs')];
+    const args = [TARGET.entry];
     if (exposition) args.push(`--exposition=${exposition}`);
     const srv = spawn('node', args, { cwd: ROOT, env });
     let buf = '';
