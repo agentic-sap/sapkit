@@ -422,6 +422,8 @@ function verdicts(run, calls) {
 // ── 단언 기록 ───────────────────────────────────────────────────────────────
 const rows = [];
 const gaps = [];
+// 어떤 갈래의 격차가 실렸는지 — 아래 배너의 §14-3 문장이 갈래마다 다르기 때문이다.
+const gapKinds = new Set();
 const promotions = [];
 let failCount = 0;
 
@@ -455,6 +457,7 @@ function checkRecordedGap(id, title, { measured, want, recorded, gapNote, eviden
   if (m === norm(recorded)) {
     record(id, title, 'GAP', `${evidence} — 관측=${m} · 설계 요구=${norm(want)} (기록된 격차)`);
     gaps.push(`${id} ${title}: 관측=${m} · 설계 요구=${norm(want)}. ${gapNote}`);
+    gapKinds.add('recorded');
     return true;
   }
   // 대상별로 **따로 등재된** 관측. `recorded`는 구 번들의 실측이라 다른 배포물에는
@@ -466,6 +469,10 @@ function checkRecordedGap(id, title, { measured, want, recorded, gapNote, eviden
   if (own && m === norm(own.observed)) {
     record(id, title, 'GAP', `${evidence} — 관측=${m} · 설계 요구=${norm(want)} (${targetName} 대상 등재 차이)`);
     gaps.push(`${id} ${title} [대상 ${targetName}]: 관측=${m} · 설계 요구=${norm(want)}. ${own.note}`);
+    // 아래 배너의 §14-3 면책 문장은 **구 번들 격차 전용 논거**(「노브가 무시되니 더
+    // 조이는 방향」)라 이 갈래에는 그대로 쓸 수 없다 — 등재 차이는 반대 방향일 수도
+    // 있다. 어느 갈래가 발동했는지를 남겨 배너가 갈라 말하게 한다.
+    gapKinds.add('byTarget');
     return true;
   }
   const expected = [`${norm(want)}(설계)`, `${norm(recorded)}(기록된 격차)`];
@@ -679,7 +686,7 @@ const GAP2_NOTE =
       byTarget: {
         engine: {
           observed: ['REACHED_SAP', 'REACHED_SAP'],
-          note: '신 엔진은 프로세스 env 통로를 수용한다(DIVERGENCES D6 · 분류 수리 — GAP-2가 닫힌 것). 같은 주입의 MCP_BLOCKLIST_PROFILE=off가 EXTEND보다 먼저 단락하므로 둘 다 열린다 — off의 이 의미는 구·신 공통이라 새 차이가 아니다. 이 단언은 조이는 노브의 프로세스 env 수용 여부를 증명하지 않는다(off가 가린다).',
+          note: '신 엔진은 프로세스 env 통로를 수용한다(DIVERGENCES D6 · 분류 수리 — GAP-2가 닫힌 것). 같은 주입의 MCP_BLOCKLIST_PROFILE=off가 EXTEND보다 먼저 단락하므로 둘 다 열린다 — off가 EXTEND를 함께 끄는 **의미** 자체는 구·신 공통이라 새 차이가 아니다. 다만 그 off가 **프로세스 env로 도달할 수 있게 된 것**이 D6이고, BNKA가 나간 직접 원인은 그쪽이다(「공통이니 볼 것 없다」로 읽지 말 것). 이 단언은 조이는 노브의 프로세스 env 수용 여부를 증명하지 않는다(off가 가린다).',
         },
       },
       gapNote: GAP2_NOTE,
@@ -751,9 +758,20 @@ console.log(`총 ${rows.length}건 · PASS ${passN} · 기록된 격차 ${gapN} 
 if (gaps.length) {
   console.log('\n⚠ 기록된 격차 (설계 §7-2 요구 ↔ 번들 실체) — 수리는 별건 결정:');
   for (const g of gaps) console.log(`  · ${g}`);
-  console.log('  → 각 격차의 §14-3 해당 여부는 성격에 따라 다르다 — GAP-2(env 노브가 sap.env 전용)는');
-  console.log('    무시된 노브가 기본 standard를 유지하는 "더 조이는" 방향이라 §14-3 6번 우회가 아니다');
-  console.log('    (D-062 ⑥). 이 러너는 실체를 고정할 뿐 수리하지 않는다.');
+  if (gapKinds.has('recorded')) {
+    console.log('  → 각 격차의 §14-3 해당 여부는 성격에 따라 다르다 — GAP-2(env 노브가 sap.env 전용)는');
+    console.log('    무시된 노브가 기본 standard를 유지하는 "더 조이는" 방향이라 §14-3 6번 우회가 아니다');
+    console.log('    (D-062 ⑥). 이 러너는 실체를 고정할 뿐 수리하지 않는다.');
+  }
+  // 대상별 등재 차이에는 위 논거를 쓸 수 없다. 그 논거는 「노브가 무시된다」에 기대는데,
+  // 등재 차이는 **노브가 먹어서** 생긴 것일 수 있고 그러면 방향이 정반대다(푸는 쪽).
+  // 판정을 여기서 대신 내리지 않고 **미판정임을 밝힌다** — 없는 판단을 도장으로 찍는 것이
+  // 이 러너가 가장 하지 말아야 할 일이다.
+  if (gapKinds.has('byTarget')) {
+    console.log(`  → 위 [대상 ${targetName}] 격차의 §14-3 해당 여부는 **미판정**이다. 구 번들 격차의 면책 논거`);
+    console.log('    (「무시된 노브라 더 조이는 방향」)는 여기 적용되지 않는다 — 등재 차이는 노브가');
+    console.log('    **먹어서** 생긴 것일 수 있고 그 방향은 푸는 쪽이다. 판정은 별건 결정이다.');
+  }
 }
 if (promotions.length) {
   console.log('\nℹ 격차 해소 감지 — 기대값을 승격할 것:');
