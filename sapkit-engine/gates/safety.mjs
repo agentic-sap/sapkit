@@ -138,10 +138,18 @@ export async function run() {
       ask.text.slice(0, 90),
     );
 
+    // 허용 목록은 **활성 프로파일 파일**에 적는다 — 프로세스 env로는 열리지 않기
+    // 때문이다(`resolveSafetyEnv`: 푸는 노브는 파일 소유 · 결정 D-096). 전에는 이
+    // 픽스처가 `env:`로 줬고, 통로가 닫히자 우회가 아예 일어나지 않아 아래 감사줄
+    // 단언이 빨개졌다 — 게이트가 제 몫을 한 것이다.
+    const bypassEnvPath = writeProfileEnv({
+      SAP_TIER: 'DEV',
+      SAP_SYSTEM_TYPE: 'onprem',
+      MCP_ALLOW_TABLE: 'BNKA',
+    });
     const bypass = await callTool({
       exposition: 'readonly',
-      envPath,
-      env: { MCP_ALLOW_TABLE: 'BNKA' },
+      envPath: bypassEnvPath,
       tool: 'GetSqlQuery',
       args: { sql_query: 'SELECT a~banks FROM BNKA AS a INNER JOIN KNA1 AS b ON a~banks = b~land1' },
     });
@@ -157,6 +165,25 @@ export async function run() {
       '거부 판정에서도 감사 줄이 남는다',
       bypass.audit.some((l) => /AUDIT: MCP_ALLOW_TABLE bypass for BNKA/.test(l)),
       bypass.audit.find((l) => /AUDIT/.test(l)) ?? '(AUDIT 줄 없음)',
+    );
+
+    // 같은 허용 목록을 **프로세스 env**로 주면 아무것도 열리지 않는다 — 바닥선을
+    // 밖에서 낮출 수 없다는 규칙(D-096)을 엔진 자체 게이트에서도 붙든다. 우회가
+    // 없었으므로 감사줄도 없어야 한다: 열지도 않고 열었다고 적지도 않는다.
+    const notBypassed = await callTool({
+      exposition: 'readonly',
+      envPath,
+      env: { MCP_ALLOW_TABLE: 'BNKA' },
+      tool: 'GetSqlQuery',
+      args: { sql_query: 'SELECT banks FROM BNKA' },
+    });
+    report.check(
+      '프로세스 env의 허용 목록은 가드를 열지 못한다',
+      notBypassed.isError &&
+        /refused/i.test(notBypassed.text) &&
+        notBypassed.connections === 0 &&
+        !notBypassed.audit.some((l) => /MCP_ALLOW_TABLE bypass/.test(l)),
+      `${notBypassed.text.slice(0, 60)} · 접속 ${notBypassed.connections}회 · 감사줄 ${notBypassed.audit.filter((l) => /bypass/.test(l)).length}건`,
     );
   }
 
