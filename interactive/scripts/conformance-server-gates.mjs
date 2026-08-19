@@ -59,8 +59,18 @@
 //     정의(.mcp.json의 `env`)나 셸 export로 준 값은 조용히 무시된다.
 //
 // ─────────────────────────────── 사용 ──────────────────────────────────────
-//   node interactive/scripts/conformance-server-gates.mjs [--verbose]
+//   node interactive/scripts/conformance-server-gates.mjs [--target=<이름>] [--verbose]
 //   exit 0 = 전 단언 통과(격차는 기록된 대로) · exit 1 = 단언 실패
+//
+//   `--target`은 **이름표**다 — 이름 하나가 기동 파일·NODE_PATH·내장 문자열 검사
+//   범위를 한 묶음으로 정한다(경로를 직접 받는 인자는 두지 않는다: 묶음의 나머지를
+//   전달할 길이 없어 인자만 넷으로 불어난다). 이름은 `bundle`(구 번들 · 기본) ·
+//   `engine`(자체 저작 엔진 `sapkit-engine/dist`). 없는 이름이면 즉시 exit 1.
+//
+//   **인자를 안 주면 `bundle`이고, 그때의 출력·판정·exit 코드는 대상 인자가 없던
+//   시절과 한 글자도 다르지 않다.** 「제품 게이트 전종 여전히 green」이 사다리 ⑴의
+//   구 부품 무접촉 기계 증명이라, 구 번들 대상 경로가 흔들리면 그 증명이 함께
+//   무너지기 때문이다. **대상을 늘리는 것이지 바꾸는 것이 아니다.**
 
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
@@ -70,19 +80,105 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const INTERACTIVE = path.resolve(HERE, '..');
-const BUNDLE = path.join(INTERACTIVE, 'server', 'server.bundle.cjs');
-const KEYRING = path.join(INTERACTIVE, 'server', 'runtime-deps', 'keyring', 'node_modules');
+const REPO = path.resolve(INTERACTIVE, '..');
 
-const VERBOSE = process.argv.includes('--verbose');
+const BUNDLE_ENTRY = path.join(INTERACTIVE, 'server', 'server.bundle.cjs');
+const ENGINE_DIST = path.join(REPO, 'sapkit-engine', 'dist');
+
+// ── 대상표 — 이름 하나 = 묶음 하나 ──────────────────────────────────────────
+// 기동 파일 · NODE_PATH(런타임 의존) · 내장 문자열 검사 범위 · 헤더 표기가 한
+// 이름에 딸려 온다. `bundle` 줄의 값은 대상 인자가 없던 시절의 상수 그대로다.
+const TARGETS = {
+  bundle: {
+    noun: '번들', // 부재 메시지의 주어
+    header: '번들   ', // 헤더 정렬용 — 콜론 앞까지
+    entry: BUNDLE_ENTRY,
+    nodePath: path.join(INTERACTIVE, 'server', 'runtime-deps', 'keyring', 'node_modules'),
+    // 단일 파일 배포물: 텍스트 하나만 본다.
+    embedded: { kind: 'file', root: BUNDLE_ENTRY, what: '번들' },
+    // keyring 런타임 의존은 레포에 추적돼 늘 있다 — 부재를 별도로 물을 이유가 없다.
+    requireNodePath: false,
+    buildHint: null,
+  },
+  engine: {
+    noun: '엔진 산출물',
+    header: '엔진   ',
+    entry: path.join(ENGINE_DIST, 'src', 'server', 'entry.js'),
+    nodePath: path.join(REPO, 'sapkit-engine', 'node_modules'),
+    // 다중 파일 배포물: dist/ 트리를 훑는다.
+    embedded: { kind: 'tree', root: ENGINE_DIST, what: 'dist/ 트리' },
+    // dist/·node_modules는 git에 추적되지 않는다 — 부재는 "안 지었다"는 뜻이므로
+    // 조용히 통과시키지 않고 빌드 안내와 함께 즉시 끊는다.
+    requireNodePath: true,
+    buildHint: 'sapkit-engine/ 에서 `npm ci && npm run build`를 돌려 dist/·node_modules를 만든 뒤 다시 실행할 것.',
+  },
+};
+const DEFAULT_TARGET = 'bundle';
+
+const argv = process.argv.slice(2);
+const VERBOSE = argv.includes('--verbose');
+let targetName = DEFAULT_TARGET;
+for (let i = 0; i < argv.length; i++) {
+  if (argv[i].startsWith('--target=')) targetName = argv[i].slice('--target='.length);
+  else if (argv[i] === '--target') targetName = argv[++i] ?? '';
+}
+// hasOwn으로 받는다 — TARGETS['constructor'] 같은 프로토타입 상속 값이 대상으로
+// 통과하면 없는 이름이 조용히 살아난다.
+if (!Object.hasOwn(TARGETS, targetName)) {
+  console.error(`❌ 알 수 없는 대상 이름: ${JSON.stringify(targetName)}`);
+  console.error(`   유효한 이름: ${Object.keys(TARGETS).join(' · ')} (기본 ${DEFAULT_TARGET})`);
+  process.exit(1);
+}
+const TARGET = TARGETS[targetName];
+const ENTRY = TARGET.entry;
+const RUNTIME_DEPS = TARGET.nodePath;
+
 const SPAWN_TIMEOUT_MS = 20000;
 // 아무도 bind할 수 없는(권한) · 아무도 bind하지 않는 루프백 포트. "디스패치되면
 // 즉시 실패"를 보장하는 것이 요점이다.
 const DEAD_URL = 'http://127.0.0.1:1';
 const ALIAS = 'conformance';
 
-if (!fs.existsSync(BUNDLE)) {
-  console.error(`❌ 번들 부재: ${BUNDLE}`);
+if (!fs.existsSync(ENTRY)) {
+  console.error(`❌ ${TARGET.noun} 부재: ${ENTRY}`);
+  if (TARGET.buildHint) console.error(`   ${TARGET.buildHint}`);
   process.exit(1);
+}
+if (TARGET.requireNodePath && !fs.existsSync(RUNTIME_DEPS)) {
+  console.error(`❌ 런타임 의존 부재: ${RUNTIME_DEPS}`);
+  if (TARGET.buildHint) console.error(`   ${TARGET.buildHint}`);
+  process.exit(1);
+}
+
+// ── 배포물 내장 문자열 검사 (B0의 재료) ─────────────────────────────────────
+// 묻는 것은 하나다: **보호 테이블 이름이 배포물 자체에 들어 있는가** = 바깥에서
+// 주입된 목록이 아닌가. 대상의 모양만 다르다 — 구 번들은 단일 파일, 신 엔진은
+// 여러 파일이 든 dist/ 트리. 실호출 거부(B1)로 대체할 수 없다: 주입된 목록으로도
+// B1은 통과하므로 그 순간 이 질문 자체가 사라진다.
+const PROTECTED_TABLES = ['BNKA', 'KNA1', 'VBRK', 'BALDAT'];
+
+/** 디렉터리를 재귀로 훑어 JS 산출물 경로를 모은다. */
+function jsFilesUnder(dir) {
+  const out = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...jsFilesUnder(p));
+    else if (entry.isFile() && /\.(js|cjs|mjs)$/.test(entry.name)) out.push(p);
+  }
+  return out;
+}
+
+/** 대상 배포물에 리터럴로 존재하는 보호 테이블 이름 (+훑은 파일 수 — 공허한 통과 방지). */
+function scanEmbeddedTables() {
+  const files = TARGET.embedded.kind === 'file' ? [TARGET.embedded.root] : jsFilesUnder(TARGET.embedded.root);
+  const found = new Set();
+  for (const file of files) {
+    const text = fs.readFileSync(file, 'utf8');
+    for (const t of PROTECTED_TABLES) {
+      if (text.includes(`"${t}"`) || text.includes(`'${t}'`)) found.add(t);
+    }
+  }
+  return { found: PROTECTED_TABLES.filter((t) => found.has(t)), scanned: files.length };
 }
 
 // ── 격리된 임시 세계 ────────────────────────────────────────────────────────
@@ -125,7 +221,7 @@ function childEnv(extra = {}) {
     if (/^(SAP_|MCP_|SAPKIT_)/.test(k)) continue;
     env[k] = v;
   }
-  env.NODE_PATH = KEYRING;
+  env.NODE_PATH = RUNTIME_DEPS;
   env.HOME = FAKE_HOME; // POSIX os.homedir()
   env.USERPROFILE = FAKE_HOME; // win32 os.homedir()
   return { ...env, ...extra };
@@ -175,7 +271,7 @@ function connectedEnv(fx, extra = {}) {
 // 실제로 사라진 뒤에 resolve한다(다음 spawn 전 잔존 0).
 function callServer({ cwd, env, args = [], calls = [] }) {
   return new Promise((resolve) => {
-    const child = spawn(process.execPath, [BUNDLE, ...args], { cwd, env, stdio: ['pipe', 'pipe', 'pipe'] });
+    const child = spawn(process.execPath, [ENTRY, ...args], { cwd, env, stdio: ['pipe', 'pipe', 'pipe'] });
     live.add(child);
 
     let buf = '';
@@ -326,6 +422,8 @@ function verdicts(run, calls) {
 // ── 단언 기록 ───────────────────────────────────────────────────────────────
 const rows = [];
 const gaps = [];
+// 어떤 갈래의 격차가 실렸는지 — 아래 배너의 §14-3 문장이 갈래마다 다르기 때문이다.
+const gapKinds = new Set();
 const promotions = [];
 let failCount = 0;
 
@@ -348,7 +446,7 @@ function check(id, title, ok, evidence) {
  * 관측이 want면 개선이므로 통과시키되 승격을 요구하고, recorded면 통과시키되 격차를
  * 배너에 싣는다. 셋 중 아무것도 아니면 실패 — 제3의 변화는 재검토 대상이다.
  */
-function checkRecordedGap(id, title, { measured, want, recorded, gapNote, evidence }) {
+function checkRecordedGap(id, title, { measured, want, recorded, gapNote, evidence, byTarget }) {
   const norm = (v) => (Array.isArray(v) ? v.join(',') : String(v));
   const m = norm(measured);
   if (m === norm(want)) {
@@ -359,9 +457,27 @@ function checkRecordedGap(id, title, { measured, want, recorded, gapNote, eviden
   if (m === norm(recorded)) {
     record(id, title, 'GAP', `${evidence} — 관측=${m} · 설계 요구=${norm(want)} (기록된 격차)`);
     gaps.push(`${id} ${title}: 관측=${m} · 설계 요구=${norm(want)}. ${gapNote}`);
+    gapKinds.add('recorded');
     return true;
   }
-  record(id, title, 'FAIL', `${evidence} — 관측=${m}; 기대는 ${norm(want)}(설계) 또는 ${norm(recorded)}(기록된 격차)`);
+  // 대상별로 **따로 등재된** 관측. `recorded`는 구 번들의 실측이라 다른 배포물에는
+  // 맞지 않을 수 있는데, 그 차이가 장부(`sapkit-engine/harness/DIVERGENCES.md`)에
+  // 등재된 의도적인 것이라면 제3의 변화가 아니다. 등재된 값과 **정확히 같을 때만**
+  // 통과하고 그 밖은 아래에서 FAIL로 떨어진다 — 등재되지 않은 차이는 결함으로
+  // 다룬다는 레포 규칙 그대로다.
+  const own = byTarget && Object.hasOwn(byTarget, targetName) ? byTarget[targetName] : null;
+  if (own && m === norm(own.observed)) {
+    record(id, title, 'GAP', `${evidence} — 관측=${m} · 설계 요구=${norm(want)} (${targetName} 대상 등재 차이)`);
+    gaps.push(`${id} ${title} [대상 ${targetName}]: 관측=${m} · 설계 요구=${norm(want)}. ${own.note}`);
+    // 아래 배너의 §14-3 면책 문장은 **구 번들 격차 전용 논거**(「노브가 무시되니 더
+    // 조이는 방향」)라 이 갈래에는 그대로 쓸 수 없다 — 등재 차이는 반대 방향일 수도
+    // 있다. 어느 갈래가 발동했는지를 남겨 배너가 갈라 말하게 한다.
+    gapKinds.add('byTarget');
+    return true;
+  }
+  const expected = [`${norm(want)}(설계)`, `${norm(recorded)}(기록된 격차)`];
+  if (own) expected.push(`${norm(own.observed)}(${targetName} 등재)`);
+  record(id, title, 'FAIL', `${evidence} — 관측=${m}; 기대는 ${expected.join(' 또는 ')}`);
   return false;
 }
 
@@ -375,7 +491,7 @@ function guardRun(id, run) {
 
 // ═══════════════════════════════════════════════════════════════════════════
 console.log('서버 자체 안전 게이트 적합성 (설계 §7-2 · §14-1)');
-console.log(`  번들   : ${path.relative(process.cwd(), BUNDLE) || BUNDLE}`);
+console.log(`  ${TARGET.header}: ${path.relative(process.cwd(), ENTRY) || ENTRY}`);
 console.log(`  임시世 : ${ROOT}`);
 console.log(`  대상 SAP: ${DEAD_URL} (죽은 루프백 — 디스패치되면 즉시 ECONNREFUSED)\n`);
 
@@ -476,11 +592,12 @@ const GAP2_NOTE =
 
 {
   // B1 + B4 — 노브 전무 = 기본 프로파일. 보호 테이블(BNKA=deny층, VBRK=ask층)은
-  // 서버 내장 목록에서 골랐고, 번들 문자열 존재와 실호출 거부로 이중 확인한다.
-  const bundleText = fs.readFileSync(BUNDLE, 'utf8');
-  const embedded = ['BNKA', 'KNA1', 'VBRK', 'BALDAT'].filter((t) => bundleText.includes(`"${t}"`) || bundleText.includes(`'${t}'`));
-  check('B0', '보호 테이블이 번들에 내장돼 있다 (문자열 확인)', embedded.length === 4,
-    `번들 내 발견: ${embedded.join(', ') || '(없음)'}`);
+  // 서버 내장 목록에서 골랐고, 배포물 문자열 존재와 실호출 거부로 이중 확인한다.
+  const { found: embedded, scanned } = scanEmbeddedTables();
+  // 트리 대상은 훑은 파일 수를 함께 남긴다 — 0개를 훑고 통과하는 일이 없도록.
+  const scanNote = TARGET.embedded.kind === 'tree' ? ` (파일 ${scanned}개 훑음)` : '';
+  check('B0', `보호 테이블이 ${TARGET.embedded.what}에 내장돼 있다 (문자열 확인)`, embedded.length === PROTECTED_TABLES.length,
+    `${TARGET.embedded.what} 내 발견: ${embedded.join(', ') || '(없음)'}${scanNote}`);
 
   const calls = [
     { tool: 'GetTableContents', args: { table_name: 'BNKA', max_rows: 1 } },
@@ -553,6 +670,25 @@ const GAP2_NOTE =
       want: ['REACHED_SAP', 'BLOCKLIST_DENY'],
       // 실측: 세 노브 전부 무시 → 기본 standard 그대로.
       recorded: ['BLOCKLIST_DENY', 'REACHED_SAP'],
+      // 신 엔진은 프로세스 env 통로를 **받는다** — 장부 D6(분류: 수리)로 등재된
+      // 의도적 차이이고, 바로 위 GAP-2가 그것이 닫은 격차다.
+      //
+      // 그러면 왜 관측이 want(REACHED_SAP,BLOCKLIST_DENY)가 아닌가: 이 주입은 푸는
+      // 노브(`off`)와 조이는 노브(`EXTEND`)를 **한꺼번에** 넣는데, `off`는 구·신
+      // 양쪽에서 EXTEND 검사보다 먼저 단락한다(구 `engine/src/lib/policy/
+      // tableBlocklist.ts:503` · 신 `sapkit-engine/src/safety/blocklist.ts:272`).
+      // 즉 노브를 받는 구현이면 무엇이든 둘 다 열린다 — want는 노브를 **버리는**
+      // 구현에서만 실패하지 않는 형태로 쓰여 있었다.
+      //
+      // ⚠ 그래서 이 단언은 「조이는 노브가 프로세스 env로 실제 먹는가」를 증명하지
+      // 못한다. `off`가 가려서다. 그 증명은 `off` 없이 EXTEND만 주입하는 별도
+      // 단언이라야 하고, 그건 구 번들 대상 출력을 바꾸므로 별건이다.
+      byTarget: {
+        engine: {
+          observed: ['REACHED_SAP', 'REACHED_SAP'],
+          note: '신 엔진은 프로세스 env 통로를 수용한다(DIVERGENCES D6 · 분류 수리 — GAP-2가 닫힌 것). 같은 주입의 MCP_BLOCKLIST_PROFILE=off가 EXTEND보다 먼저 단락하므로 둘 다 열린다 — off가 EXTEND를 함께 끄는 **의미** 자체는 구·신 공통이라 새 차이가 아니다. 다만 그 off가 **프로세스 env로 도달할 수 있게 된 것**이 D6이고, BNKA가 나간 직접 원인은 그쪽이다(「공통이니 볼 것 없다」로 읽지 말 것). 이 단언은 조이는 노브의 프로세스 env 수용 여부를 증명하지 않는다(off가 가린다).',
+        },
+      },
       gapNote: GAP2_NOTE,
       evidence: 'PROFILE=off·ALLOW_TABLE=BNKA·EXTEND=ZSAPKIT_SECRET를 프로세스 env로 주입 → BNKA/ZSAPKIT_SECRET',
     });
@@ -607,9 +743,20 @@ console.log('\nC. inspection-only 정직 실패');
     const allError = calls.every((_, i) => run.responses.get(i)?.result?.isError === true);
     check('C1a', '프로파일 전무 → initialize·tools/list는 성공', Array.isArray(run.tools) && run.tools.length > 0,
       `tools/list = ${run.tools?.length}개 · stderr "Starting in inspection-only mode"=${/inspection-only mode/.test(run.stderr)}`);
+    // 문구는 **관측한 것을 적는다.** 전에는 구 번들 문구가 상수로 박혀 있었는데,
+    // 판정(verdictOf)은 D18 alternation으로 구·신 두 어휘를 모두 받으므로 신 엔진을
+    // 겨누면 **낸 적 없는 문구를 관측했다고 적는** 상태가 됐다(대상 인자가 생기기
+    // 전에는 구 번들만 검사해서 드러나지 않던 자리다). 판정이 아니라 증거가 틀리는
+    // 것이고, 증거가 틀리면 초록의 의미가 바뀐다.
+    const c1Text = textOf(run.responses.get(0));
+    const wording = /Basic authentication requires SAP_CLIENT/.test(c1Text)
+      ? 'Basic authentication requires SAP_CLIENT to be provided'
+      : /ERR_NO_CONNECTION/.test(c1Text)
+        ? 'ERR_NO_CONNECTION'
+        : '(등재된 두 어휘 중 어느 것도 아님)';
     check('C1', '연결 필요 도구 호출 → 정직한 실패 (침묵 성공·mock 성공 아님)',
       allError && v.every((x) => x === 'NO_CONNECTION'),
-      `2종 관측=${v.join(', ')} · isError=${allError} · 문구 "Basic authentication requires SAP_CLIENT to be provided"`);
+      `2종 관측=${v.join(', ')} · isError=${allError} · 문구 "${wording}"`);
   }
 }
 
@@ -622,9 +769,20 @@ console.log(`총 ${rows.length}건 · PASS ${passN} · 기록된 격차 ${gapN} 
 if (gaps.length) {
   console.log('\n⚠ 기록된 격차 (설계 §7-2 요구 ↔ 번들 실체) — 수리는 별건 결정:');
   for (const g of gaps) console.log(`  · ${g}`);
-  console.log('  → 각 격차의 §14-3 해당 여부는 성격에 따라 다르다 — GAP-2(env 노브가 sap.env 전용)는');
-  console.log('    무시된 노브가 기본 standard를 유지하는 "더 조이는" 방향이라 §14-3 6번 우회가 아니다');
-  console.log('    (D-062 ⑥). 이 러너는 실체를 고정할 뿐 수리하지 않는다.');
+  if (gapKinds.has('recorded')) {
+    console.log('  → 각 격차의 §14-3 해당 여부는 성격에 따라 다르다 — GAP-2(env 노브가 sap.env 전용)는');
+    console.log('    무시된 노브가 기본 standard를 유지하는 "더 조이는" 방향이라 §14-3 6번 우회가 아니다');
+    console.log('    (D-062 ⑥). 이 러너는 실체를 고정할 뿐 수리하지 않는다.');
+  }
+  // 대상별 등재 차이에는 위 논거를 쓸 수 없다. 그 논거는 「노브가 무시된다」에 기대는데,
+  // 등재 차이는 **노브가 먹어서** 생긴 것일 수 있고 그러면 방향이 정반대다(푸는 쪽).
+  // 판정을 여기서 대신 내리지 않고 **미판정임을 밝힌다** — 없는 판단을 도장으로 찍는 것이
+  // 이 러너가 가장 하지 말아야 할 일이다.
+  if (gapKinds.has('byTarget')) {
+    console.log(`  → 위 [대상 ${targetName}] 격차의 §14-3 해당 여부는 **미판정**이다. 구 번들 격차의 면책 논거`);
+    console.log('    (「무시된 노브라 더 조이는 방향」)는 여기 적용되지 않는다 — 등재 차이는 노브가');
+    console.log('    **먹어서** 생긴 것일 수 있고 그 방향은 푸는 쪽이다. 판정은 별건 결정이다.');
+  }
 }
 if (promotions.length) {
   console.log('\nℹ 격차 해소 감지 — 기대값을 승격할 것:');

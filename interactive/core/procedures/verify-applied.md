@@ -77,10 +77,14 @@ procedure never substitutes for it.
 ② **Read the source back out of SAP and compare it against what was sent.**
    This is the load-bearing step — it is what distinguishes confirmation from
    restating the writer's own claim.
-   - Fetch the served source: `GetProgFullCode` (REPS, full source including
-     includes) · `ReadClass` (CLAS) · `GetInclude` (includes) ·
-     `ReadFunctionGroup` + `ReadFunctionModule` (FUGR) · `ReadInterface`
-     (INTF) · `ReadView` (CDS).
+   - Fetch the served source: `GetProgram` (REPS) · `GetInclude` (includes) ·
+     `ReadClass` (CLAS) · `ReadFunctionGroup` + `ReadFunctionModule` (FUGR) ·
+     `ReadInterface` (INTF) · `ReadView` (CDS). **Do not use `GetProgFullCode`
+     for this comparison** — it normalizes whitespace and indentation, so a sent
+     `*& What    :` reads back as `*& What :` (field-verified on an on-prem DEV
+     system, 2026-08-19) and a byte comparison reports a mismatch that is not
+     there. It stays the right tool for surveying a program together with its
+     includes in one read — just not for this step.
    - Compare it against the intended source — the text this session sent, or a
      local copy (an abapGit-style checkout, a workspace folder the user names).
      `GetSourceDiff` does the comparison server-side when a reference version
@@ -123,9 +127,10 @@ procedure never substitutes for it.
 
 ## MCP Tools Used
 
-`GetProgFullCode` / `ReadClass` / `GetInclude` / `ReadFunctionGroup` +
+`GetProgram` / `GetInclude` / `ReadClass` / `ReadFunctionGroup` +
 `ReadFunctionModule` / `ReadInterface` / `ReadView` (source read-back per object
 type) · `GetSourceDiff` (server-side comparison when a reference version exists)
 · `CheckSyntax` (the served source compiles) · `GetInactiveObjects` (nothing
 left inactive) · `GetObjectInfo` (existence and metadata, when the target needs
-resolving).
+resolving). `GetProgFullCode` (a program with its includes in one read) is not
+used for the step ② comparison — it normalizes whitespace.

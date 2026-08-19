@@ -139,13 +139,19 @@ node interactive/scripts/verify-checker.mjs              # 동봉 검사기 번�
 node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (로컬 전용 — 설치 상태를 읽는다)
 ```
 
-게이트 자체의 음성시험(게이트가 정말 거부하는지): `test-smoke-mcp.mjs` 20/20 ·
+게이트 자체의 음성시험(게이트가 정말 거부하는지): `test-smoke-mcp.mjs` 24/24 ·
 `test-check-runtime-path-rename.mjs` 13/13 · `test-hook-switch.mjs` 13/13 ·
 `test-hook-decisions.mjs` 74케이스 ·
 `test-setup-state.mjs` 120/120 · `test-launch-toolsurface.mjs` 56/56 ·
 `test-codex-wire-mcp.mjs` 51/51 · `test-doctor.mjs` 47/47 ·
 `test-verify-checker.mjs` 21/21.
 **PowerShell로 실행할 것** — Bash로 돌리면 자식 프로세스 수거에서 블록된다.
+
+**`smoke-mcp.mjs`와 `conformance-server-gates.mjs`는 `--target=bundle|engine`을 받는다**
+(판7-a · D-094 ⓐ). 기본은 `bundle`(구 번들)이고 **인자를 안 주면 배선 전과 바이트 동일**이다.
+`--target=engine`은 신 엔진(`sapkit-engine/dist`)을 겨눠 **BLUEPRINT 검증 기준 2**를 재며,
+CI가 `sapkit-engine` 잡에서 돌린다(**main 푸시·PR** — 워크플로 트리거가 그 둘이라 feature
+브랜치 단독 푸시로는 안 돈다). 로컬에서 돌리려면 `sapkit-engine`에서 `npm ci && npm run build` 선행.
 
 **위 9종(+doctor)은 제품 게이트다. `sapkit-engine/`과 `sapkit-cli/`는 자기 게이트를
 따로 갖는다** — 각각 그 안에서 돌린다.
