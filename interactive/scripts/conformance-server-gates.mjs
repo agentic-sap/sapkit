@@ -743,9 +743,20 @@ console.log('\nC. inspection-only 정직 실패');
     const allError = calls.every((_, i) => run.responses.get(i)?.result?.isError === true);
     check('C1a', '프로파일 전무 → initialize·tools/list는 성공', Array.isArray(run.tools) && run.tools.length > 0,
       `tools/list = ${run.tools?.length}개 · stderr "Starting in inspection-only mode"=${/inspection-only mode/.test(run.stderr)}`);
+    // 문구는 **관측한 것을 적는다.** 전에는 구 번들 문구가 상수로 박혀 있었는데,
+    // 판정(verdictOf)은 D18 alternation으로 구·신 두 어휘를 모두 받으므로 신 엔진을
+    // 겨누면 **낸 적 없는 문구를 관측했다고 적는** 상태가 됐다(대상 인자가 생기기
+    // 전에는 구 번들만 검사해서 드러나지 않던 자리다). 판정이 아니라 증거가 틀리는
+    // 것이고, 증거가 틀리면 초록의 의미가 바뀐다.
+    const c1Text = textOf(run.responses.get(0));
+    const wording = /Basic authentication requires SAP_CLIENT/.test(c1Text)
+      ? 'Basic authentication requires SAP_CLIENT to be provided'
+      : /ERR_NO_CONNECTION/.test(c1Text)
+        ? 'ERR_NO_CONNECTION'
+        : '(등재된 두 어휘 중 어느 것도 아님)';
     check('C1', '연결 필요 도구 호출 → 정직한 실패 (침묵 성공·mock 성공 아님)',
       allError && v.every((x) => x === 'NO_CONNECTION'),
-      `2종 관측=${v.join(', ')} · isError=${allError} · 문구 "Basic authentication requires SAP_CLIENT to be provided"`);
+      `2종 관측=${v.join(', ')} · isError=${allError} · 문구 "${wording}"`);
   }
 }
 

@@ -8,7 +8,7 @@
 > **현재 잔량 0** (체크 누계 **170** — 판3.1~판3.6. 최신 값은 §5 잔량 이력이 정본이다.)
 >
 > **⑶-b 갈래 완주 — 170/170 (2026-08-18 · 판3.6).** 미체크 행이 남지 않았다. 이 문서는 이제
-> 진척 장부가 아니라 **완주 기록**이다 — 셈 밖 소관(§3.2 — oop 20 = 판4 · 서버 결부 39 = 판7 ·
+> 진척 장부가 아니라 **완주 기록**이다 — 셈 밖 소관(§3.2 — oop 20 = 판4 · 서버 결부 39 = 판7-b ·
 > keyring 21 = 끝그림 ② · LICENSE = 판8)은 그대로 열려 있고, 그것이 판8(⑷)의 남은 전제다.
 
 ---
@@ -75,7 +75,7 @@ D-088). 잔존 0 = **문장형** 차용 산문 0이며, 자작 산문(모듈 spr
 | 대상 | 수 | 소관 |
 |---|---|---|
 | `interactive/core/knowledge/abap/templates/oop-sample/` | 20 | **⑶-c (판4)** — ZRSC4SAP_* 템플릿 재생성 |
-| `interactive/server/sap-assets/` | 30 | **⑴ 교체 (판7)** 이 은퇴·대체 범위에서 판정 |
+| `interactive/server/sap-assets/` | 30 | **⑴ 교체 (판7-b)** 가 은퇴·대체 범위에서 판정 |
 | `interactive/server/tool-catalog/` | 4 | 〃 |
 | `interactive/server/` 유틸 (`verify-engine.mjs` · `bundle-keyring.mjs`) | 2 | 〃 |
 | `interactive/server/` 번들 계열 (원본 `engine/**`) | 3 | 〃 |
@@ -84,7 +84,7 @@ D-088). 잔존 0 = **문장형** 차용 산문 0이며, 자작 산문(모듈 spr
 | `interactive/core/knowledge/abap/conventions/` 자체분 3편 | 3 | 차용분이 아님 (이식 후 신설) |
 | `interactive/core/knowledge/modules/` 등의 transform 분류 | — | 차용분이 아님 |
 
-**판8(⑷) 착수의 실질 전제 = 이 명부 전체(170) 소진 + 판4(oop 20) + 판7 소관분 판정.**
+**판8(⑷) 착수의 실질 전제 = 이 명부 전체(170) 소진 + 판4(oop 20) + 판7-b 소관분 판정.**
 
 ---
 
