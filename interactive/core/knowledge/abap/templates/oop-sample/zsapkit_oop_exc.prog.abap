@@ -8,7 +8,7 @@
 *&           this class knows about a screen, a container or a grid -
 *&           that side of the program lives in LCL_ALV.
 *& Caution : BUILD_HEADER touches no database on purpose. That is what
-*&           lets ZSAPKIT_OOP_EXTST assert on it without a test double.
+*&           lets ZSAPKIT_OOP_EX_TST assert on it without a test double.
 *&---------------------------------------------------------------------*
 
 CLASS lcl_data DEFINITION.

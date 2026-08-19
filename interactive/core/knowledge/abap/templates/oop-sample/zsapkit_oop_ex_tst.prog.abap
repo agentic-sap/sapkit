@@ -1,5 +1,5 @@
 *&---------------------------------------------------------------------*
-*& Include ZSAPKIT_OOP_EXTST
+*& Include ZSAPKIT_OOP_EX_TST
 *&---------------------------------------------------------------------*
 *& What    : FOR TESTING classes. One test class covering LCL_DATA -
 *&           the skeleton a real program grows its unit tests in.
