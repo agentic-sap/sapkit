@@ -22,15 +22,41 @@
 //
 // PowerShell로 실행할 것 — 자식 프로세스를 띄운다.
 import { spawn } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = (rel) => fileURLToPath(new URL(rel, import.meta.url));
 
-const BUNDLE = here('../../../interactive/server/server.bundle.cjs');
+// **구 번들의 위치는 더 이상 제품 경로가 아니다.**
+//
+// 판7-b(D-095)가 `interactive/server/server.bundle.cjs`를 자체 저작 엔진 번들로
+// 교체했다. 그 경로를 계속 가리키면 이 채록기는 **신 엔진으로 「구 번들」 채록본을
+// 덮어쓰게** 되고, 그 순간 신 엔진이 맞추는 기준이 자기 자신이 되어 표면 게이트가
+// 뜻을 잃는다. 그래서 롤백 소스에서 직접 빌드한 산출물을 가리킨다:
+//
+//   cd engine && npm install && npm run build:bundle   → engine/dist/server.bundle.cjs
+//
+// 그 산출물은 `.gitignore` 대상이라 신선한 체크아웃에는 없다. **없으면 조용히 넘어가지
+// 않고 멈춘다** — "채록을 안 했다"와 "채록이 같았다"를 구별 못 하는 것이 이 스크립트가
+// 가장 하지 말아야 할 일이다.
+//
+// ⚠ 이 스크립트는 **상시 게이트가 아니다.** 교체 전에는 CI가 매 푸시 이것을 돌려
+// `git diff --exit-code`로 채록본 표류를 봤는데, 그 질문("구 번들이 여전히 이렇게
+// 발행하는가")은 구 번들이 현역일 때만 뜻이 있었다. 지금 `engine/`은 아무도 고치지
+// 않는 롤백 자산이므로 그 대조는 동어반복이고, CI에서 내렸다. 채록본은
+// `sapkit-cli/fixtures/baseline/`과 같은 지위 — **되뜰 수 없는 기준의 잔존 형태**이고,
+// 그것을 지키는 것은 `gates/surface.mjs`다.
+const BUNDLE = here('../../../engine/dist/server.bundle.cjs');
 const OUT = here('./m1-tools.json');
+
+if (!existsSync(BUNDLE)) {
+  console.error(`[capture] 구 번들이 없다: ${BUNDLE}`);
+  console.error('        롤백 소스에서 먼저 지어라 — cd engine && npm install && npm run build:bundle');
+  console.error('        (판7-b 이후 제품 경로의 번들은 신 엔진이다. 그것으로 채록하면 기준이 자기 자신이 된다.)');
+  process.exit(2);
+}
 
 const M1 = [
   'SearchObject', 'GetInclude', 'GetClass', 'GetProgram', 'GetFunctionModule',

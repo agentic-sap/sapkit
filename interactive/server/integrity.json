@@ -1,8 +1,8 @@
 {
-  "name": "@hjaewon/abap-mcp-adt-powerup",
-  "version": "5.0.0",
-  "sourceCommit": "ace43db6ec82ab5bd48cd7c8efe0cb70df1d2704",
-  "file": "engine/server.bundle.cjs",
-  "sha256": "404c3b39b74661ee1fc2c97ac446f8315ec56ffa2e28a815a5273dc0daef639a",
-  "bytes": 8304513
+  "name": "sapkit-engine",
+  "version": "1.0.0",
+  "sourceCommit": "e812c9e252018f108152950848f7d345713e43c4",
+  "file": "interactive/server/server.bundle.cjs",
+  "sha256": "e0f72ae2461be31dc3412a30c71947f28fdba2953f7499adda997fbc6994ea50",
+  "bytes": 3812231
 }

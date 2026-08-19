@@ -125,7 +125,14 @@ jobs:
         run: git diff --check HEAD
 
   engine-tests:
-    # 엔진 소스 테스트 (§9.3 · 실측 717 passed / 9 skipped — engine 5.0.0). 번들 바이트만 검사하면 소스 회귀를 못 본다.
+    # **롤백 소스의 건강 확인** (구 `engine/` 포크 · 실측 717 passed / 9 skipped — 5.0.0).
+    #
+    # 2026-08-19 판7-b(D-095) 전에는 이 잡이 **제품 엔진**을 재는 자리였다. 교체 뒤
+    # `engine/`은 제품이 아니라 **되돌릴 자리**다(검증 기준 5 · 은퇴는 판7.5). 그래도
+    # 계속 도는 이유는 하나다 — 되돌릴 수 없는 롤백 자산은 롤백 자산이 아니다.
+    #
+    # 번들 재현 빌드(`check-engine-provenance --rebuild`) 스텝은 여기 없다. 그 판정의
+    # 대상이 `sapkit-engine/`으로 옮겨 갔고, 그쪽 의존이 깔린 잡은 아래 `sapkit-engine`이다.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -152,9 +159,10 @@ jobs:
         # (tests/test-config.yaml은 gitignore 대상 — 로컬에서도 부재 상태로 717 passed 실측).
         run: npm test -- --runInBand
 
-      - name: 번들 재현 빌드 (같은 커밋 → 같은 바이트)
-        # devDeps(esbuild/tsc)가 깔린 이 잡에서만 가능하다.
-        run: node interactive/scripts/check-engine-provenance.mjs --rebuild
+      - name: 롤백 번들이 여전히 지어진다 (되돌릴 수 있는가)
+        # 산출물은 검사하지 않는다 — 제품이 아니기 때문이다. 지어지는지만 본다.
+        working-directory: engine
+        run: npm run build:bundle
 
   # (Track A PowerShell 검사기 스위트를 돌리던 windows 잡은 R1에서 제거됐다 —
   #  그 스위트가 루트 스크립트 디렉터리와 함께 삭제됐기 때문이다.)
@@ -230,14 +238,20 @@ jobs:
         run: '! node bin/sapkit.js check src/cli/__tests__/fixtures/check/missing-z'
 
   sapkit-engine:
-    # 자체 저작 엔진(청사진 사다리 ⑴ · M1 · D-079). **기존 잡은 무수정 — 순수 추가다.**
-    # 구 부품 무접촉이 하드 게이트이므로 이 잡은 sapkit-engine/ 안에서만 돈다.
+    # 자체 저작 엔진(청사진 사다리 ⑴ · D-079 → **제품 · D-095**).
+    #
+    # 판7-b 전에는 "병행 제작 중인 물건"을 재는 잡이었다. 지금은 **제품 번들의 소스**를
+    # 재는 잡이다 — 여기가 빨개지면 배포되는 엔진이 빨간 것이다.
     #
     # 이 머신에서 spawn 다발 시험이 자식 프로세스 수거에서 비결정적으로 블록된
     # 실측 기록이 있다(HANDOFF.md) — 그때 판정 자리를 대신하는 것이 이 잡이다.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # check-engine-provenance --rebuild가 `git log -1 -- sapkit-engine/src …`로
+          # 번들 소스 최종 커밋을 찾는다. 얕은 클론이면 이력이 없어 오판한다.
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -280,6 +294,13 @@ jobs:
         # 실려 나가는 물건이 뜬다는 증거가 아니다. SAP 무접속.
         run: node gates/stdio-smoke.mjs
 
+      - name: 번들 스모크 (제품에 실리는 단일 파일이 뜨고 스탬프·표면이 맞는가)
+        working-directory: sapkit-engine
+        # `verify`가 방금 `build:bundle`까지 돌렸으므로 dist/server.bundle.cjs가 있다.
+        # 번들을 **임시 디렉터리로 옮겨** 띄운다 — dist/에 둔 채 띄우면 판 스탬프가
+        # 빠져도 폴백이 sapkit-engine/package.json을 만나 단언이 공허해진다.
+        run: node gates/bundle-smoke.mjs
+
       - name: 키체인 폴백 스모크 (네이티브 모듈 부재 → inspection-only 강등 · 크래시 0)
         working-directory: sapkit-engine
         # `secrets.ts`의 `nativeReader()`는 try/catch require로 fail-closed지만,
@@ -306,31 +327,36 @@ jobs:
         # 문구 양쪽에 대입한다. 누군가 alternation을 좁혀 되돌리면 여기서 빨개진다.
         run: node gates/test-refusal-vocab.mjs
 
-      - name: 구 번들 발행 표면 표류 확인 (채록본이 낡지 않았는지)
-        working-directory: sapkit-engine
-        # 구 번들을 자식 프로세스로 띄워 tools/list를 다시 딴다 — SAP 무접속.
-        # 채록본과 달라지면 신 엔진이 맞추고 있는 기준 자체가 낡은 것이다.
-        run: |
-          node harness/old-surface/capture.mjs
-          git diff --exit-code -- harness/old-surface/m1-tools.json
+      # (구 번들 발행 표면 표류 확인 스텝은 판7-b에서 내렸다. 그 질문 — "구 번들이
+      #  여전히 이렇게 발행하는가" — 은 구 번들이 현역일 때만 뜻이 있었다. 교체 뒤
+      #  `engine/`은 아무도 고치지 않는 롤백 자산이라 그 대조는 동어반복이다.
+      #  채록본 `harness/old-surface/m1-tools.json`은 이제 **되뜰 수 없는 기준의
+      #  잔존 형태**이고 — `sapkit-cli/fixtures/baseline/`과 같은 지위 — 그것을
+      #  상시로 지키는 것은 `gates/surface.mjs`다. 재채록이 필요하면 롤백 소스에서
+      #  지어 `harness/old-surface/capture.mjs`를 돌린다.)
 
-      # ── 교체 관문: BLUEPRINT 사다리 ⑴ 「검증 기준」 2의 상설 증거 ──────────────
-      # 아래 둘은 **제품 게이트를 신 엔진에 겨눈 것**이다. 제품 게이트가 이사 온 것이
-      # 아니다 — node-gates·win-gates의 구 번들 대상 실행은 그대로 있고, 여기 있는
-      # 것은 그 게이트로 **신 엔진을 재는 증거**다. 그래서 잡이 여기다: 이 잡이 방금
-      # dist/를 빌드했으므로 산출물이 있고, 다른 잡에 넣으면 그 빌드를 한 번 더 해야
-      # 한다. working-directory는 레포 루트(기본값)로 되돌린다.
-      #
-      # 「기준 2가 선다」가 매 푸시마다 갱신되는 기계 사실이 되어, 교체 판이 그것을
-      # 다시 증명할 필요가 없어진다. 엔진을 고치다 표면이나 안전 집행이 어긋나면
-      # 여기서 빨개진다 — **그게 이 검사의 목적이지 부작용이 아니다.**
-      - name: 교체 관문 ①  도구 표면 계약을 신 엔진에 겨눈다 (기준 2)
+      - name: 번들 재현 빌드 (같은 커밋 → 같은 바이트) + 소스 커밋 대조
+        # 제품 번들의 provenance 판정이다. 이 잡에 있는 이유는 둘 — devDeps(tsc/esbuild)가
+        # 여기 깔려 있고, 판정이 실 git 이력을 쓰므로 fetch-depth: 0이 필요하다.
+        # working-directory는 레포 루트(기본값)로 되돌린다.
+        run: node interactive/scripts/check-engine-provenance.mjs --rebuild
+
+      # ── 번들 ↔ 소스 대조 (구 「교체 관문」 · BLUEPRINT 검증 기준 2가 서던 자리) ──
+      # 아래 둘은 **제품 게이트를 dist/ 산출물에 겨눈 것**이다. 교체(D-095) 전에는 이
+      # 인자가 "구 번들 vs 신 엔진"을 갈랐고 그것이 기준 2의 증거였다. 지금 `bundle`과
+      # `engine`은 **같은 엔진의 두 형태**다 — node-gates가 도는 무인자(`bundle`)는
+      # 제품이 싣는 단일 파일이고, 여기 둘은 그 파일을 만든 소스의 tsc 산출물이다.
+      # 그래서 이 둘이 재는 것은 이제 **번들링이 표면·안전 집행을 떨어뜨리지 않았는가**이고,
+      # 갈리면 번들러를 의심할 자리다. 잡이 여기인 이유는 그대로다: 이 잡이 방금
+      # dist/를 빌드했다. working-directory는 레포 루트(기본값)로 되돌린다.
+      - name: 번들↔소스 대조 ①  도구 표면 계약 (같은 엔진의 두 형태)
         # 대조 기준은 구·신 공용인 제품 계약(interactive/provenance/mcp-surface.json)이다.
         # 신 엔진이 제 채록본으로 자기를 채점하지 않는다는 것이 이 단언의 값어치다.
         run: node interactive/scripts/smoke-mcp.mjs --target=engine
 
-      - name: 교체 관문 ②  서버 안전 게이트를 신 엔진에 겨눈다 (기준 2)
+      - name: 번들↔소스 대조 ②  서버 안전 게이트 (같은 엔진의 두 형태)
         # tier 집행 · 테이블 blocklist · ask 왕복 · inspection-only 정직 실패.
-        # 구·신 사이의 의도적 차이는 B2p의 대상별 등재 칸에 적혀 있고(DIVERGENCES D6),
-        # 등재되지 않은 차이는 여기서 FAIL로 떨어진다.
+        # 옛 GAP-2(blocklist 노브가 프로세스 env로 안 들던 것)는 교체로 닫혔고,
+        # B2p·B2p2·B2p3가 그 자리를 정식 단언으로 덮는다 — 「푸는 노브가 든다」
+        # 「조이는 노브가 든다」 「같은 키면 활성 프로파일이 이긴다」.
         run: node interactive/scripts/conformance-server-gates.mjs --target=engine

@@ -46,6 +46,9 @@
 
 - **엔진 번들화 완료**: `engine/server.bundle.cjs`(8.25MB) + npm 채널
   `@hjaewon/abap-mcp-adt-powerup@4.9.x`. vendor 771MB 공정은 이미 제거됨.
+  (⚠ 이 줄은 **2026-07 시점의 승계 기록**이다. 번들의 소스는 2026-08-19 판7-b에서
+  자체 저작 `sapkit-engine`으로 교체됐다 — 아래 §1-4와 `docs/BLUEPRINT.md` ⑴ 참조.
+  번들화라는 **형태**는 그대로 승계됐고, 바뀐 것은 그 안의 소스다.)
 - **훅 다이어트 완료**: 편의성 훅 15종은 `SC4SAP_LEAN` 기본 오프. 감사 결과 주입기들은
   run.cjs stdin 버그로 애초에 동작한 적이 없었음이 실측됨.
 - **안전 훅 경계 확정**: 안전 3종(block-forbidden-tables, tier-readonly-guard,
@@ -64,7 +67,8 @@
 |---|---|
 | 이식 원천 (동결 예정) | `D:\claude for SAP\sc4sap-custom` — `hjaewon/sc4sap-custom` (MIT, 업스트림 babamba2/superclaude-for-sap) |
 | 본 설계 산출물 | `sapkit/interactive/` — L0에서 sc4sap-lite 레포로 생성 후 2026-07-10 subtree 병합·개명 (플러그인명 `sapkit` — D-041 개명 전 `sap-agentic-harness`) |
-| MCP 엔진 업스트림 | `hjaewon/abap-mcp-adt-powerup` (번들 원천, npm `@hjaewon/abap-mcp-adt-powerup`) |
+| **MCP 엔진 소스 정본** | **`sapkit-engine/`** (자체 저작 · 2026-08-19 판7-b · D-095). 번들러 `sapkit-engine/tools/bundle.mjs` → `interactive/server/server.bundle.cjs`. npm 발행 없음 |
+| ~~MCP 엔진 업스트림~~ | ~~`hjaewon/abap-mcp-adt-powerup`~~ — 교체로 배포물에서 빠졌다. 포크 소스 `engine/`은 **되돌릴 자리**로 잔존(은퇴는 판7.5) |
 | 무인 하네스 트랙 (별개) | `D:\claude for SAP\sap-agentic-harness` — DESIGN.md v2.1. packs가 lite core를 지식 원천으로 사용 (§5-3) |
 | 선행 설계 문서 | `sc4sap-custom/private/lightweight-redesign-design.md` (비공개 유지) |
 

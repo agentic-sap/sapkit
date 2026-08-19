@@ -288,6 +288,27 @@
     "exposition_does_not_gate_row_data": "GetTableContents/GetSqlQuery는 default·readonly **양쪽 모두** 노출된다. 즉 P2는 exposition으로 막히지 않는다. 기계적 차단면은 어댑터 deny(Codex disabled_tools / Antigravity excludeTools / Claude allow-list 제외)뿐이고 그 위에 호출별 사람 승인이 있다.",
     "run_program_vs_run_class": "RuntimeRunProgramWithProfiling은 inspection-only 155에 없고 RuntimeRunClassWithProfiling은 있다. 상류 비대칭으로 보이며 이 스냅샷은 실측을 그대로 고정한다."
   },
+  "mcp_wiring": {
+    "_": "제품이 발행하는 MCP 배선이 blocklist 노브를 env로 선언하지 않는다 — 신 엔진은 프로세스 env 통로를 받으므로(D6) 이 파일이 곧 바닥선을 낮출 수 있는 자리다.",
+    "_knobs": [
+      "MCP_BLOCKLIST_PROFILE",
+      "MCP_BLOCKLIST_EXTEND",
+      "MCP_ALLOW_TABLE"
+    ],
+    "claude": {
+      "file": ".mcp.json",
+      "at": [
+        "mcpServers",
+        "sap"
+      ]
+    },
+    "codex": {
+      "file": "adapters/codex/.mcp.json",
+      "at": [
+        "sap"
+      ]
+    }
+  },
   "adapter_deny": {
     "_": "row-data 2종에 대한 어댑터별 기계 차단 계약이 문서 표면에서 사라지면 게이트가 잡는다.",
     "codex": {

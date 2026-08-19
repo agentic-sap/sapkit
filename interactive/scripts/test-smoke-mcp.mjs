@@ -177,6 +177,52 @@ t(
   '금지 문구 등장'
 );
 
+console.log('\nMCP 배선 env 계약 (판7-b — 신 엔진은 프로세스 env 노브를 받는다)');
+t(
+  '계약 자체가 스냅샷에서 사라지면 → 공허한 통과 대신 검출',
+  (d) => delete d.mcp_wiring,
+  1,
+  'mcp_wiring 계약이 없다'
+);
+t(
+  '배선 파일이 사라지면 → 검출',
+  (d) => (d.mcp_wiring.claude.file = 'NOPE.mcp.json'),
+  1,
+  'MCP 배선 부재'
+);
+t(
+  'sap 서버 항목까지 못 내려가면 → 조용히 통과하지 않는다',
+  (d) => (d.mcp_wiring.claude.at = ['mcpServers', 'nope']),
+  1,
+  'sap 서버 항목을 찾지 못함'
+);
+t(
+  '배선 env에 푸는 노브(PROFILE=off)가 들어오면 → 검출',
+  (d, tmp) => {
+    // 실물 wrapper를 tmp로 복사해 노브를 심고, 계약이 그쪽을 가리키게 한다.
+    // 원본은 건드리지 않는다.
+    const doc = JSON.parse(fs.readFileSync(path.join(ROOT, '.mcp.json'), 'utf8'));
+    doc.mcpServers.sap.env.MCP_BLOCKLIST_PROFILE = 'off';
+    const f = path.join(tmp, 'wiring.json');
+    fs.writeFileSync(f, JSON.stringify(doc, null, 2));
+    d.mcp_wiring.claude.file = f; // 다른 드라이브면 상대 경로가 안 나온다 — 게이트가 resolve한다
+  },
+  1,
+  'blocklist 노브를 선언함'
+);
+t(
+  '배선 env에 여는 노브(ALLOW_TABLE)가 들어와도 → 검출',
+  (d, tmp) => {
+    const doc = JSON.parse(fs.readFileSync(path.join(ROOT, 'adapters', 'codex', '.mcp.json'), 'utf8'));
+    doc.sap.env.MCP_ALLOW_TABLE = 'KNA1';
+    const f = path.join(tmp, 'wiring-codex.json');
+    fs.writeFileSync(f, JSON.stringify(doc, null, 2));
+    d.mcp_wiring.codex.file = f;
+  },
+  1,
+  'MCP_ALLOW_TABLE'
+);
+
 console.log('\n에이전트 차단 계약 (fail-open 방향 — 조용히 열리는 자리)');
 tAgents(
   '워커 파일이 사라지면 → 검출',

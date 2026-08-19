@@ -121,8 +121,10 @@ docs/PRD.md             스코프·비목표·품질 모델 (Engine 주입, thin
 docs/ARCHITECTURE.md    이 문서 — 구조·파일 지도·불변식 (Engine 주입, thin+pointer)
 docs/superpowers/       설계 스냅샷 아카이브 (docs/*.md glob 밖 = Engine 미주입)
 docs/reference/templates/ 현 v0.17 phase-only review legacy 템플릿; run-scoped 갱신 이월
-engine/                 MCP 엔진 소스 정본 — TS 소스·tests·번들 도구·patches·
-                        UPSTREAM-FIX-HANDOFF.md·CHANGELOG (D-017 편입, 플러그인 표면 밖)
+sapkit-engine/          **MCP 엔진 소스 정본** — 자체 저작. 번들러 tools/bundle.mjs가
+                        interactive/server/server.bundle.cjs를 만든다 (2026-08-19 판7-b · D-095)
+engine/                 구 MCP 엔진(포크) — **되돌릴 자리**. 제품이 아니다.
+                        은퇴는 판7.5 (D-017 편입, 플러그인 표면 밖)
 interactive/            트랙 B 플러그인 루트 (아래 세부)
 sapkit-cli/             동봉 오프라인 검사기의 소스 정본 (lint·parse·analyze·check;
                         번들 산출물은 interactive/checker/)
@@ -146,7 +148,7 @@ interactive/DESIGN.md              트랙 B 설계 정본 (상태는 여기 기�
 interactive/MIGRATION-MANIFEST.md  원본 5분류 정본 (분류 변경은 이 파일 수정으로만)
 interactive/provenance/            이식 pin·인벤토리·목적지 해시·드리프트 판단 (S3)
 interactive/core/                  하네스 중립 지식·페르소나 26·절차·정책·vocabulary
-interactive/server/                MCP 번들 + keyring + tool-catalog + sap-assets + UPDATE-RUNBOOK
+interactive/server/                MCP 번들(sapkit-engine 산출물) + keyring + tool-catalog + sap-assets + UPDATE-RUNBOOK
 interactive/adapters/ (claude·codex·antigravity)  어댑터별 설치·안전모델 가이드 + compatibility.json
 interactive/skills/ agents/ plugin.json           플러그인 표면
 interactive/scripts/               게이트 스크립트 (check-links·smoke-mcp·

@@ -21,10 +21,12 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
   모는 CLI·사용자 abapGit 모두 허용되며, 어느 길로 넣든 정책 등급과 관문은 같다
   (docs/DESIGN.md §3 — powerup 엔진은 트랙 A에서 쓰지 않음).
 - **트랙 B — 대화형 플러그인 (제품, 검증 완료)** = `interactive/` — 하네스 중립 코어(지식
-  `.md` 148·페르소나 26·절차 22·스킬 17·정책) + MCP 서버 번들(엔진 5.0.0, 도구
+  `.md` 148·페르소나 26·절차 22·스킬 17·정책) + MCP 서버 번들(**자체 저작 엔진
+  `sapkit-engine` 1.0.0** — 2026-08-19 판7-b 교체 · D-095 · 도구
   inspection-only 155 / connected 186) + **오프라인 검사기 번들**(`interactive/checker/`)
-  + 어댑터 3사(Claude/Codex/Antigravity). 번들의 소스 정본은 레포 내 **`engine/`**
-  (D-017 편입) — 엔진 수리→재번들→반영은 `interactive/server/UPDATE-RUNBOOK.md` 절차로만.
+  + 어댑터 3사(Claude/Codex/Antigravity). 번들의 소스 정본은 레포 내 **`sapkit-engine/`**
+  (2026-08-19 판7-b 교체 · 그 전에는 `engine/` 포크 · D-017 편입) — 엔진 수리→재번들→반영은
+  `interactive/server/UPDATE-RUNBOOK.md` 절차로만.
 - **`sapkit-cli/` — 자체 저작 오프라인 ABAP 검사기 (소스 정본).** 구 `vsp/`(Go 포크)가
   하던 **로컬 검사**를 대체한다 — 명령 `lint`·`parse`·`analyze`·`check`이고 **SAP 접속도
   MCP 모드도 코드에 없다**. 이 소스를 만 번들이 `interactive/checker/`로 제품에 동봉되므로
@@ -37,12 +39,13 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
   그러므로 **구 판정을 다시 뜰 수 없다**: `sapkit-cli/fixtures/baseline/`의 채록본과
   `harness/RECORDING.md`가 「구 vsp가 무엇을 어떻게 판정했는가」의 유일한 잔존
   형태이며, 코퍼스 대조 게이트가 그 기준을 상시 지킨다.
-- **`sapkit-engine/` — 자체 저작 엔진 (사다리 ⑴ · 제품 아님).** D-079가 연 새 경로로,
-  구 번들을 대체할 후보를 **구 부품 무접촉으로 병행 제작**한다. 지금 도구 **186/186** ·
-  전송 3(stdio·HTTP·SSE) · RFC 5경로 · 인증 4통로. **그러나 제품은 여전히 구 번들
-  (엔진 5.0.0)이다** — 교체는 `docs/BLUEPRINT.md` §3.2가 검증 없이 금지하고, 아직
-  일어나지 않았다. **이 둘을 섞지 말 것**: `engine/`·`interactive/server/`는 현역 제품이고
-  `sapkit-engine/`은 아직 아무 사용자에게도 나가지 않았다.
+- **`sapkit-engine/` — 자체 저작 엔진 (사다리 ⑴ · **제품**).** D-079가 연 새 경로에서
+  병행 제작했고 **2026-08-19 판7-b에서 제품 번들 자리를 넘겨받았다**(D-095). 도구
+  **186/186** · 전송 3(stdio·HTTP·SSE) · RFC 5경로 · 인증 4통로. 제품 번들
+  `interactive/server/server.bundle.cjs`가 이 소스의 산출물이다(1.0.0 · 3.81MB ·
+  구 번들 8.30MB의 46%). **구 `engine/`은 되돌릴 자리로 남는다** — 롤백은 교체 커밋
+  revert이고(번들·핀·게이트 기대값이 한 커밋), 소스 은퇴는 **판7.5**다. `engine/`을
+  고칠 이유는 롤백 말고 없다.
   - **도구 하나 짓는 절차의 정본** = `sapkit-engine/ADDING-A-TOOL.md`. 도구 1종 =
     모듈+시험+**등록점 배선**+대장 갱신을 **한 커밋**(반쪽 상태는 다음 판이 같은 도구를
     두 번 짓게 만든다).
@@ -161,8 +164,8 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
 
 ```bash
 node interactive/scripts/check-links.mjs interactive     # 상대 링크 깨짐 0
-node interactive/server/verify-engine.mjs                # 번들 무결성 OK (엔진 5.0.0)
-node interactive/scripts/check-engine-provenance.mjs     # 엔진 소스 커밋 ↔ 번들
+node interactive/server/verify-engine.mjs                # 번들 무결성 OK (sapkit-engine 1.0.0)
+node interactive/scripts/check-engine-provenance.mjs     # 엔진 소스 커밋 ↔ 번들 (--rebuild면 재현 빌드까지 — npm 불요)
 node interactive/scripts/smoke-mcp.mjs                   # 도구 표면 계약 assert
 node interactive/scripts/conformance-server-gates.mjs    # 서버 안전 게이트 (tier·blocklist·ask — 훅 0개 기본의 정본)
 node interactive/scripts/gen-plugin-manifests.mjs --check # 생성물 7종(매니페스트 5+MCP wrapper 2) ↔ 단일 정본
@@ -172,7 +175,7 @@ node interactive/scripts/verify-checker.mjs              # 동봉 검사기 번�
 node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (로컬 전용 — 설치 상태를 읽는다)
 ```
 
-게이트 자체의 음성시험(게이트가 정말 거부하는지): `test-smoke-mcp.mjs` 24/24 ·
+게이트 자체의 음성시험(게이트가 정말 거부하는지): `test-smoke-mcp.mjs` 29/29 ·
 `test-check-runtime-path-rename.mjs` 13/13 · `test-hook-switch.mjs` 13/13 ·
 `test-hook-decisions.mjs` 74케이스 ·
 `test-setup-state.mjs` 120/120 · `test-launch-toolsurface.mjs` 56/56 ·
@@ -181,10 +184,13 @@ node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (�
 **PowerShell로 실행할 것** — Bash로 돌리면 자식 프로세스 수거에서 블록된다.
 
 **`smoke-mcp.mjs`와 `conformance-server-gates.mjs`는 `--target=bundle|engine`을 받는다**
-(판7-a · D-094 ⓐ). 기본은 `bundle`(구 번들)이고 **인자를 안 주면 배선 전과 바이트 동일**이다.
-`--target=engine`은 신 엔진(`sapkit-engine/dist`)을 겨눠 **BLUEPRINT 검증 기준 2**를 재며,
-CI가 `sapkit-engine` 잡에서 돌린다(**main 푸시·PR** — 워크플로 트리거가 그 둘이라 feature
-브랜치 단독 푸시로는 안 돈다). 로컬에서 돌리려면 `sapkit-engine`에서 `npm ci && npm run build` 선행.
+(판7-a · D-094 ⓐ). **판7-b 교체 뒤 이 인자는 「구 vs 신」이 아니라 「번들 vs 소스」를 가른다** —
+`bundle`(기본)은 제품이 싣는 단일 파일 `interactive/server/server.bundle.cjs`이고
+`engine`은 그 파일을 만든 소스의 tsc 산출물 `sapkit-engine/dist`다. 둘 다 같은 엔진이므로
+**판정이 갈리면 엔진이 아니라 번들러를 의심할 자리**다. CI는 `node-gates` 잡에서 `bundle`,
+`sapkit-engine` 잡에서 `engine`을 돌린다(**main 푸시·PR** — 워크플로 트리거가 그 둘이라
+feature 브랜치 단독 푸시로는 안 돈다). 로컬에서 `engine`을 돌리려면 `sapkit-engine`에서
+`npm ci && npm run build` 선행.
 
 **위 9종(+doctor)은 제품 게이트다. `sapkit-engine/`과 `sapkit-cli/`는 자기 게이트를
 따로 갖는다** — 각각 그 안에서 돌린다.
@@ -205,8 +211,10 @@ node harness/test-compare-baseline.mjs # 음성시험 (판정 비교기가 갈�
 `sapkit-engine/`:
 
 ```bash
-npm run verify        # build + typecheck + jest
-npm run gates         # 표면(글자 일치·4조건 소속·채록본 밖 이름·대장 대조) · 안전 · 대장 · 기동 스모크 3종
+npm run verify        # build:bundle + typecheck + jest (번들까지 만든다 — 제품에 실리는 물건)
+npm run gates         # 표면(글자 일치·4조건 소속·채록본 밖 이름·대장 대조) · 안전 · 대장 · HTTP/SSE 기동
+node gates/stdio-smoke.mjs             # dist 산출물 실기동
+node gates/bundle-smoke.mjs            # **제품에 실리는 단일 파일** 실기동 + 판 스탬프 + 표면
 node gates/test-gates.mjs              # 게이트 음성시험 (게이트가 정말 거부하는지)
 node gates/keyring-fallback-smoke.mjs  # keyring 부재 강등 스모크 (require-seam 차단 — 판5)
 node gates/test-refusal-vocab.mjs      # 거부 어휘 구·신 병행 인식 (D18 방어 — 판5)
@@ -214,14 +222,20 @@ node harness/render-ledger.mjs --check # 대장 ↔ 계산 결과
 node harness/build-plan.mjs --check    # 제작 계획 ↔ 산식
 ```
 
-**「제품 게이트 전종 여전히 green」이 구 부품 무접촉의 기계 증명이다** — 그래서
-`sapkit-engine/`·`sapkit-cli/` 작업이 그 게이트 스크립트를 고치면 증명이 무너진다.
-고치지 말 것.
+~~**「제품 게이트 전종 여전히 green」이 구 부품 무접촉의 기계 증명이다**~~ — 이 조항은
+**판7-b 교체로 소멸했다**. 그 증명의 목적은 병행 제작 기간에 구 부품을 흔들리지 않는
+대조군으로 두는 것이었고, 교체가 그 기간을 끝냈다. 지금 제품 게이트는 **신 엔진을
+겨눈다** — 그러므로 이제는 「게이트를 고치지 마라」가 아니라 **「게이트를 고치면 그것이
+제품 계약의 변경이고, 무엇을·왜 바꿨는지가 커밋에 남아야 한다」**가 규칙이다.
+`sapkit-cli/`(사다리 ⑵)에는 같은 논리가 여전히 적용된다 — 그쪽 기준선은 되뜰 수 없는
+채록본이다.
 
 CI(`.github/workflows/offline-gates.yml`)는 위 게이트에서 **doctor 본체만 빼고** 전부
 돌리고, 음성시험도 **전부** 돌린다(`test-doctor`는 windows 잡).
-엔진 소스 테스트와 번들 재현 빌드,
-그리고 **`sapkit-engine` 잡**(자체 게이트 전종 + 대장 `--check`)도 CI 소관이다.
+**`sapkit-engine` 잡**이 제품 엔진의 소관이다 — 자체 게이트 전종 · 대장 `--check` ·
+**번들 스모크** · **번들 재현 빌드**(`check-engine-provenance --rebuild`) · 번들↔소스 대조 2종.
+**`engine-tests` 잡은 이제 롤백 소스의 건강 확인**이다(구 포크 jest + 번들이 여전히
+지어지는지) — 되돌릴 수 없는 롤백 자산은 롤백 자산이 아니기 때문이다.
 **`sapkit-cli` 잡**(verify + 게이트 + 그 음성시험 + exit 계약 양극 assert)도 마찬가지고,
 `verify-checker`**와 그 음성시험**은 `node-gates` 잡에 있다 — 소스 커밋 대조에 전체
 이력(`fetch-depth: 0`)이 필요해서 그 잡만이 자리다. **Go 툴체인은 CI에서 빠졌다**

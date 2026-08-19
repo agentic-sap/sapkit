@@ -8,8 +8,12 @@
 > **현재 잔량 0** (체크 누계 **170** — 판3.1~판3.6. 최신 값은 §5 잔량 이력이 정본이다.)
 >
 > **⑶-b 갈래 완주 — 170/170 (2026-08-18 · 판3.6).** 미체크 행이 남지 않았다. 이 문서는 이제
-> 진척 장부가 아니라 **완주 기록**이다 — 셈 밖 소관(§3.2 — oop 20 = 판4 · 서버 결부 39 = 판7-b ·
-> keyring 21 = 끝그림 ② · LICENSE = 판8)은 그대로 열려 있고, 그것이 판8(⑷)의 남은 전제다.
+> 진척 장부가 아니라 **완주 기록**이다.
+>
+> **셈 밖 소관도 전부 판정됐다 (2026-08-19)** — oop 20 = 판4 몫이었고 판6.2가 해소(D-093 ⓓ) ·
+> 서버 결부 39 = 판7-b가 판정(**3 해소 · 36 잔존** — §3.2) · keyring 21 = 끝그림 ② ·
+> LICENSE = 판8 자체. **판8(⑷)의 전제는 섰고, 대신 판8의 목표가 바뀌었다**: 잔존 36건이
+> `interactive/` 아래 있는 한 그 서브트리 고지를 은퇴시키면 사실과 어긋난다(§3.2 판정).
 
 ---
 
@@ -72,19 +76,38 @@ D-088). 잔존 0 = **문장형** 차용 산문 0이며, 자작 산문(모듈 spr
 
 ### 3.2 세지 않는 것 — 소관 명기
 
-| 대상 | 수 | 소관 |
-|---|---|---|
-| `interactive/core/knowledge/abap/templates/oop-sample/` | 20 | **⑶-c (판4)** — ZRSC4SAP_* 템플릿 재생성 |
-| `interactive/server/sap-assets/` | 30 | **⑴ 교체 (판7-b)** 가 은퇴·대체 범위에서 판정 |
-| `interactive/server/tool-catalog/` | 4 | 〃 |
-| `interactive/server/` 유틸 (`verify-engine.mjs` · `bundle-keyring.mjs`) | 2 | 〃 |
-| `interactive/server/` 번들 계열 (원본 `engine/**`) | 3 | 〃 |
-| `interactive/server/runtime-deps/keyring/` | 21 | **끝그림 ②** 가 이미 커버 — 정식 패키지 귀속 |
-| `LICENSE` (MIT 고지 승계) | 1 | **⑷ (판8)** 자체 소관 — `interactive/LICENSE` 은퇴 + 루트 표 정리 |
-| `interactive/core/knowledge/abap/conventions/` 자체분 3편 | 3 | 차용분이 아님 (이식 후 신설) |
-| `interactive/core/knowledge/modules/` 등의 transform 분류 | — | 차용분이 아님 |
+| 대상 | 수 | 소관 | 상태 |
+|---|---|---|---|
+| `interactive/core/knowledge/abap/templates/oop-sample/` | 20 | **⑶-c (판4)** — ZRSC4SAP_* 템플릿 재생성 | ✅ **해소** (판6.2 · D-093 ⓓ — 신 템플릿 SAP 확인 + 옛 20파일 제거) |
+| `interactive/server/` 번들 계열 (원본 `engine/**`) | 3 | ⑴ 교체 (판7-b) | ✅ **대체 완료** (2026-08-19 · D-095) — `server.bundle.cjs`·`VERSION`·`integrity.json`이 전부 자체 저작 `sapkit-engine` 산출물 |
+| `interactive/server/sap-assets/` | 30 | ⑴ 교체 (판7-b) | ❌ **대체하지 않는다 — 존치 확정.** **D-079 ⑥**이 이미 정했다: 신 엔진도 기설치 `ZMCP_ADT_*`를 그대로 호출한다. SAP 오브젝트는 개명·재생성이 곧 SAP 측 재설치이고 무접촉 원칙에 걸린다 |
+| `interactive/server/tool-catalog/` | 4 | ⑴ 교체 (판7-b) | ❌ **대체하지 않는다 — 이월.** 교체가 이 문서의 **주인**만 바꿨다(서술 대상이 `sapkit-engine`의 표면이 됐다). 자체 저작 대체안은 **등록점에서 생성**하는 것이고, 그러면 「자동 대조 게이트 부재」도 함께 닫힌다 |
+| `interactive/server/` 유틸 (`verify-engine.mjs` · `bundle-keyring.mjs`) | 2 | ⑴ 교체 (판7-b) | ❌ **대체하지 않는다 — 이월.** `verify-engine.mjs`는 판7-b가 문서·라벨·대상을 전면 갱신했으나 **골격은 차용분 그대로**다. `bundle-keyring.mjs`는 무접촉 |
+| `interactive/server/runtime-deps/keyring/` | 21 | **끝그림 ②** 가 이미 커버 — 정식 패키지 귀속 | — |
+| `LICENSE` (MIT 고지 승계) | 1 | **⑷ (판8)** 자체 소관 — `interactive/LICENSE` 은퇴 + 루트 표 정리 | — |
+| `interactive/core/knowledge/abap/conventions/` 자체분 3편 | 3 | 차용분이 아님 (이식 후 신설) | — |
+| `interactive/core/knowledge/modules/` 등의 transform 분류 | — | 차용분이 아님 | — |
 
-**판8(⑷) 착수의 실질 전제 = 이 명부 전체(170) 소진 + 판4(oop 20) + 판7-b 소관분 판정.**
+### 판7-b 소관분 판정 (2026-08-19 · D-095 ⓔ) — **39 중 3 해소 · 36 잔존**
+
+⑴ 교체가 대체한 것은 **번들 계열 3**뿐이다. 나머지 **36**(sap-assets 30 + tool-catalog 4
++ 유틸 2)은 교체와 무관한 이유로 남는다 — 위 표의 사유가 정본이다.
+
+⚠ **그래서 판8(⑷)의 전제가 그대로 서지 않는다.** 루트 `LICENSE`의 상류 고지 표는
+`interactive/LICENSE`를 **`interactive/` 서브트리 전체**에 걸어 두었지, 지식 폴더에만
+건 것이 아니다(BLUEPRINT §1.3의 「`interactive/core/**` 차용 지식」 표기는 그보다 좁다).
+그러므로 위 36건이 `interactive/` 아래 남아 있는 한 **그 고지를 은퇴시키면 사실과
+어긋난다** — 상류 저작물을 계속 배포하면서 고지만 지우는 꼴이기 때문이다.
+
+**판8이 택할 수 있는 길은 셋이고, 고르는 것은 판8이다**(판7-b는 재료만 넘긴다):
+① 36건을 재저작·재생성한다(sap-assets는 SAP 측 재설치를 뜻한다 — D-079 ⑥과 충돌) ·
+② 고지를 은퇴시키지 않고 **범위를 좁혀 다시 적는다**(「지식 갈래는 소진, 서버 결부분은
+잔존」) · ③ ⑷의 완료 정의를 「고지 0건」이 아니라 「지식 차용분 0」으로 고쳐 적고
+**포크 0 미달을 명시한다**.
+
+**판8(⑷) 착수의 실질 전제** = 이 명부 전체(170) 소진 ✅ + 판4(oop 20) ✅ +
+판7-b 소관분 판정 ✅(= 위 판정) — **셋 다 섰다.** 다만 판정의 **결과**가 판8의 목표를
+바꾼다: 「고지 2 → 0」이 아니라 위 셋 중 하나를 고르는 판이 됐다.
 
 ---
 

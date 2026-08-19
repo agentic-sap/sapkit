@@ -28,35 +28,33 @@
 //   프로파일의 sap.env를 찾아 `MCP_ENV_PATH`로 넘김)은 fixture가 직접 재현한다 —
 //   시험 대상은 런처가 아니라 **번들의 게이트**이기 때문이다.
 //
-// ──────────────── 이 러너는 관측이지 수리가 아니다 (GAP-2 잔존) ─────────────
-// 최초 실측(2026-08-02)에서 §7-2가 요구하는 것 중 **둘이 성립하지 않았다**(GAP-1 ·
-// GAP-2). GAP-1은 엔진 4.14.1에서 수리됐고 A1·A2·A3·A4a·A4b는 기록된 격차에서
-// **정식 단언으로 승격**됐다(아래 `check` 호출 — 이제 TIER_BLOCKED가 아니면 FAIL).
-// GAP-2는 남아 있고, 그 수리는 별건의 결정이다(§7-2 "server-side 검증이 하나라도
-// 빠지면 … 런타임을 수리한 뒤 출시"). 남은 격차는 **실체 그대로 고정하되** 매 실행
-// `⚠ GAP` 배너로 드러낸다. 판정 규칙:
-//   · 관측 == 기록된 실체  → PASS (격차 배너)
-//   · 관측 == 설계가 요구하는 값 → PASS + "기대를 승격하라" 고지 (개선을 회귀로
-//     취급하지 않는다 — 고쳐지면 이 파일의 `recorded`를 `want`로 올리고 배너를 지운다)
-//   · 그 밖의 값 → FAIL
+// ─────────────────── 옛 격차 둘은 **둘 다 닫혔다** ──────────────────────────
+// 최초 실측(2026-08-02)에서 §7-2가 요구하는 것 중 둘이 성립하지 않았고, 이 러너는
+// 그 실체를 「기록된 격차」로 고정한 채 돌았다. 지금은 둘 다 정식 단언이다.
 //
-//   GAP-1 — **해소됨** (엔진 4.14.1 · `engine/UPSTREAM-FIX-HANDOFF.md` §19).
-//     `readonlyGuard.guardTool()`이 `BaseHandlerGroup.registerToolOnServer()`에만
-//     걸려 있었는데, 어떤 서버도 그 경로로 도구를 등록하지 않는다 — stdio/SSE/HTTP은
-//     전부 `BaseMcpServer.registerHandlers()`를 거치고 그 래퍼는 guardTool을 부르지
+//   GAP-1 — **해소 (엔진 4.14.1 · 2026-08-02)**. `readonlyGuard.guardTool()`이
+//     `BaseHandlerGroup.registerToolOnServer()`에만 걸려 있었는데 어떤 서버도 그
+//     경로로 도구를 등록하지 않는다 — stdio/SSE/HTTP은 전부
+//     `BaseMcpServer.registerHandlers()`를 거치고 그 래퍼는 guardTool을 부르지
 //     않았다. 그래서 QA·PRD·tier 미해석 어느 쪽이든 CreateProgram/UpdateClass/
-//     RuntimeRunClassWithProfiling이 ECONNREFUSED까지 도달했다(= SAP로 디스패치).
-//     같은 guardTool을 그 래퍼의 `getConnection()` **앞에** 배선해 수리했다(정책·분류
-//     불변). A1~A4b는 TIER_BLOCKED를 요구하는 단언이 됐고, A5(DEV 통과)는 과수리
-//     역검증으로 그대로 남는다 — 게이트가 DEV까지 막으면 제품이 죽는다.
+//     RuntimeRunClassWithProfiling이 SAP까지 디스패치됐다. 같은 guardTool을 그 래퍼의
+//     `getConnection()` **앞에** 배선해 수리했고, A1~A4b가 TIER_BLOCKED를 요구하는
+//     단언이 됐다. A5(DEV 통과)는 과수리 역검증으로 남는다 — 게이트가 DEV까지 막으면
+//     제품이 죽는다.
 //
-//   GAP-2 — **blocklist env 노브가 서버 프로세스 env로는 전달되지 않는다.**
-//     기동 시 `activateProfile()` → `applyProfile()`이 `SAP_ENV_KEYS_TO_CLEAR`에
-//     담긴 `MCP_BLOCKLIST_PROFILE` · `MCP_BLOCKLIST_EXTEND` · `MCP_ALLOW_TABLE`를
-//     **process.env에서 지운 뒤** 프로파일 파일의 값만 다시 채운다. 프로파일이 없어
-//     빈 껍데기가 로드되는 경우에도 삭제는 그대로 일어난다. 결과적으로 세 노브의
-//     **유일하게 작동하는 전달 경로는 활성 프로파일의 `sap.env` 안**이다. MCP 서버
-//     정의(.mcp.json의 `env`)나 셸 export로 준 값은 조용히 무시된다.
+//   GAP-2 — **해소 (판7-b 교체 · 2026-08-19 · D-095)**. 구 번들은 기동 시
+//     `applyProfile()`이 `SAP_ENV_KEYS_TO_CLEAR`로 `MCP_BLOCKLIST_PROFILE` ·
+//     `MCP_BLOCKLIST_EXTEND` · `MCP_ALLOW_TABLE`를 process.env에서 **지운 뒤**
+//     프로파일 파일 값만 다시 채웠다. 그래서 세 노브의 유일한 유효 통로가 활성
+//     프로파일 `sap.env`였고, `.mcp.json`의 `env`나 셸 export는 조용히 무시됐다.
+//     자체 저작 엔진은 `resolveSafetyEnv`가 `{...processEnv, ...profileEnv}`이므로
+//     두 통로가 다 살아 있고 **충돌 시 프로파일이 이긴다**(장부 D6 · 분류 수리).
+//     B2p·B2p2·B2p3가 각각 「푸는 노브가 든다」 「조이는 노브가 든다」 「프로파일이
+//     이긴다」를 단언한다 — 셋째가 D-043 소유자 머신 예외의 바닥선을 지키는 자리다.
+//
+// **그래서 이 파일에는 「기록된 격차」 기구가 없다.** 남은 격차가 없기 때문이지
+// 그런 상태를 표현할 수 없어서가 아니다 — 필요해지면 git 이력에서 그 기구를 도로
+// 꺼낼 수 있다(`checkRecordedGap` · GAP 배너 · 승격 안내).
 //
 // ─────────────────────────────── 사용 ──────────────────────────────────────
 //   node interactive/scripts/conformance-server-gates.mjs [--target=<이름>] [--verbose]
@@ -64,13 +62,16 @@
 //
 //   `--target`은 **이름표**다 — 이름 하나가 기동 파일·NODE_PATH·내장 문자열 검사
 //   범위를 한 묶음으로 정한다(경로를 직접 받는 인자는 두지 않는다: 묶음의 나머지를
-//   전달할 길이 없어 인자만 넷으로 불어난다). 이름은 `bundle`(구 번들 · 기본) ·
-//   `engine`(자체 저작 엔진 `sapkit-engine/dist`). 없는 이름이면 즉시 exit 1.
+//   전달할 길이 없어 인자만 넷으로 불어난다). 이름은 둘이다:
 //
-//   **인자를 안 주면 `bundle`이고, 그때의 출력·판정·exit 코드는 대상 인자가 없던
-//   시절과 한 글자도 다르지 않다.** 「제품 게이트 전종 여전히 green」이 사다리 ⑴의
-//   구 부품 무접촉 기계 증명이라, 구 번들 대상 경로가 흔들리면 그 증명이 함께
-//   무너지기 때문이다. **대상을 늘리는 것이지 바꾸는 것이 아니다.**
+//     `bundle` (기본) — 제품이 싣는 **단일 파일** `interactive/server/server.bundle.cjs`
+//     `engine`        — 그 파일을 만든 소스의 tsc 산출물 `sapkit-engine/dist`
+//
+//   **판7-b(D-095) 이후 둘은 같은 엔진이다.** 그래서 이 인자는 이제 「구 vs 신」이
+//   아니라 「번들 vs 소스」를 가른다 — 번들링이 안전 집행을 떨어뜨리지 않았는지가
+//   그 질문이고, 둘의 판정이 갈리면 번들러를 의심할 자리다. (교체 전에는 이 인자가
+//   구 번들과 신 엔진을 갈랐고, 그때 무인자 출력의 불변이 「구 부품 무접촉」의 기계
+//   증명이었다. 교체가 그 증명의 목적을 소멸시켰다.) 없는 이름이면 즉시 exit 1.
 
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
@@ -421,15 +422,11 @@ function verdicts(run, calls) {
 
 // ── 단언 기록 ───────────────────────────────────────────────────────────────
 const rows = [];
-const gaps = [];
-// 어떤 갈래의 격차가 실렸는지 — 아래 배너의 §14-3 문장이 갈래마다 다르기 때문이다.
-const gapKinds = new Set();
-const promotions = [];
 let failCount = 0;
 
 function record(id, title, status, evidence) {
   rows.push({ id, title, status, evidence });
-  const icon = status === 'PASS' ? '✅' : status === 'GAP' ? '⚠️' : '❌';
+  const icon = status === 'PASS' ? '✅' : '❌';
   console.log(`  ${icon} ${id} ${title}`);
   console.log(`       ${evidence}`);
   if (status === 'FAIL') failCount++;
@@ -439,46 +436,6 @@ function record(id, title, status, evidence) {
 function check(id, title, ok, evidence) {
   record(id, title, ok ? 'PASS' : 'FAIL', evidence);
   return ok;
-}
-
-/**
- * 격차가 기록된 단언. `want`는 설계가 요구하는 값, `recorded`는 2026-08-02 실측값.
- * 관측이 want면 개선이므로 통과시키되 승격을 요구하고, recorded면 통과시키되 격차를
- * 배너에 싣는다. 셋 중 아무것도 아니면 실패 — 제3의 변화는 재검토 대상이다.
- */
-function checkRecordedGap(id, title, { measured, want, recorded, gapNote, evidence, byTarget }) {
-  const norm = (v) => (Array.isArray(v) ? v.join(',') : String(v));
-  const m = norm(measured);
-  if (m === norm(want)) {
-    record(id, title, 'PASS', `${evidence} — 관측=${m} (설계 요구값)`);
-    promotions.push(`${id}: 관측이 설계 요구값(${norm(want)})으로 개선됐다 — 이 파일의 recorded를 want로 승격하고 격차 주석을 지울 것.`);
-    return true;
-  }
-  if (m === norm(recorded)) {
-    record(id, title, 'GAP', `${evidence} — 관측=${m} · 설계 요구=${norm(want)} (기록된 격차)`);
-    gaps.push(`${id} ${title}: 관측=${m} · 설계 요구=${norm(want)}. ${gapNote}`);
-    gapKinds.add('recorded');
-    return true;
-  }
-  // 대상별로 **따로 등재된** 관측. `recorded`는 구 번들의 실측이라 다른 배포물에는
-  // 맞지 않을 수 있는데, 그 차이가 장부(`sapkit-engine/harness/DIVERGENCES.md`)에
-  // 등재된 의도적인 것이라면 제3의 변화가 아니다. 등재된 값과 **정확히 같을 때만**
-  // 통과하고 그 밖은 아래에서 FAIL로 떨어진다 — 등재되지 않은 차이는 결함으로
-  // 다룬다는 레포 규칙 그대로다.
-  const own = byTarget && Object.hasOwn(byTarget, targetName) ? byTarget[targetName] : null;
-  if (own && m === norm(own.observed)) {
-    record(id, title, 'GAP', `${evidence} — 관측=${m} · 설계 요구=${norm(want)} (${targetName} 대상 등재 차이)`);
-    gaps.push(`${id} ${title} [대상 ${targetName}]: 관측=${m} · 설계 요구=${norm(want)}. ${own.note}`);
-    // 아래 배너의 §14-3 면책 문장은 **구 번들 격차 전용 논거**(「노브가 무시되니 더
-    // 조이는 방향」)라 이 갈래에는 그대로 쓸 수 없다 — 등재 차이는 반대 방향일 수도
-    // 있다. 어느 갈래가 발동했는지를 남겨 배너가 갈라 말하게 한다.
-    gapKinds.add('byTarget');
-    return true;
-  }
-  const expected = [`${norm(want)}(설계)`, `${norm(recorded)}(기록된 격차)`];
-  if (own) expected.push(`${norm(own.observed)}(${targetName} 등재)`);
-  record(id, title, 'FAIL', `${evidence} — 관측=${m}; 기대는 ${expected.join(' 또는 ')}`);
-  return false;
 }
 
 function guardRun(id, run) {
@@ -587,9 +544,6 @@ async function tierCase(id, label, tier, callIdx) {
 // 설계 §7-2 ③ — 기본 프로파일 standard · env 노브 3종 · ask층 acknowledge_risk.
 console.log('\nB. 테이블 blocklist (exposition=readonly)');
 
-const GAP2_NOTE =
-  'applyProfile()이 SAP_ENV_KEYS_TO_CLEAR로 세 노브를 process.env에서 지운 뒤 프로파일 파일 값만 다시 채운다 — 서버 프로세스 env(.mcp.json env·셸 export)로 준 값은 조용히 무시된다. 유일한 유효 전달 경로 = 활성 프로파일 sap.env.';
-
 {
   // B1 + B4 — 노브 전무 = 기본 프로파일. 보호 테이블(BNKA=deny층, VBRK=ask층)은
   // 서버 내장 목록에서 골랐고, 배포물 문자열 존재와 실호출 거부로 이중 확인한다.
@@ -646,7 +600,27 @@ const GAP2_NOTE =
   }
 }
 {
-  // B2'·B3' — 같은 노브를 **서버 프로세스 env**로 주면? (GAP-2)
+  // B2p·B2p2·B2p3 — 같은 노브를 **서버 프로세스 env**로 주면?
+  //
+  // 구 번들에서는 "안 든다"였다(옛 GAP-2). 기동 시 applyProfile()이 세 노브를
+  // process.env에서 지우고 프로파일 파일 값만 다시 채웠기 때문에, `.mcp.json`의
+  // `env`나 셸 export로 준 값은 조용히 무시됐다. **판7-b의 교체(D-095)가 그 격차를
+  // 닫았다** — 신 엔진의 `resolveSafetyEnv`는 `{...processEnv, ...profileEnv}`이고,
+  // 그것이 설계 §7-2 ③의 평문 독해다(장부 D6 · 분류 수리). 그래서 이 셋은 이제
+  // 「기록된 격차」가 아니라 **정식 단언**이다.
+  //
+  // 셋으로 나눈 이유가 중요하다. ①만 두면 「노브가 든다」와 「blocklist가 통째로
+  // 죽었다」를 구별하지 못한다 — 둘 다 REACHED_SAP이기 때문이다. ②가 그 자리를
+  // 막고, ③은 D-043의 소유자 머신 예외가 기대는 **바닥선의 소유권**을 잰다.
+
+  // ① 푸는 노브(`MCP_BLOCKLIST_PROFILE=off`)가 프로세스 env로 든다.
+  //
+  //    셋을 한꺼번에 주입하지만 판정은 `off` 하나로 결정된다 — `off`는 구·신 양쪽에서
+  //    EXTEND 검사보다 먼저 단락한다(구 `engine/src/lib/policy/tableBlocklist.ts:503` ·
+  //    신 `sapkit-engine/src/safety/blocklist.ts:272`). 그러므로 기대는 **둘 다
+  //    REACHED_SAP**이고, 이 단언이 재는 것은 「푸는 노브가 이 통로로 도달하는가」다.
+  //    ⚠ 이 주입만으로는 **조이는** 노브(EXTEND)가 도달하는지 알 수 없다 — `off`가
+  //    가린다. 그것이 ②가 따로 있는 이유다(판7-a 최종 리뷰가 짚은 자리).
   const calls = [
     { tool: 'GetTableContents', args: { table_name: 'BNKA', max_rows: 1 } },
     { tool: 'GetTableContents', args: { table_name: 'ZSAPKIT_SECRET', max_rows: 1 } },
@@ -664,34 +638,54 @@ const GAP2_NOTE =
   });
   if (guardRun('B2p', run)) {
     const v = verdicts(run, calls);
-    checkRecordedGap('B2p', 'blocklist 노브를 서버 프로세스 env로 전달', {
-      measured: [v[0], v[1]],
-      // 설계 §7-2 ③의 평문 독해: env 노브면 프로세스 env로 들어야 한다.
-      want: ['REACHED_SAP', 'BLOCKLIST_DENY'],
-      // 실측: 세 노브 전부 무시 → 기본 standard 그대로.
-      recorded: ['BLOCKLIST_DENY', 'REACHED_SAP'],
-      // 신 엔진은 프로세스 env 통로를 **받는다** — 장부 D6(분류: 수리)로 등재된
-      // 의도적 차이이고, 바로 위 GAP-2가 그것이 닫은 격차다.
-      //
-      // 그러면 왜 관측이 want(REACHED_SAP,BLOCKLIST_DENY)가 아닌가: 이 주입은 푸는
-      // 노브(`off`)와 조이는 노브(`EXTEND`)를 **한꺼번에** 넣는데, `off`는 구·신
-      // 양쪽에서 EXTEND 검사보다 먼저 단락한다(구 `engine/src/lib/policy/
-      // tableBlocklist.ts:503` · 신 `sapkit-engine/src/safety/blocklist.ts:272`).
-      // 즉 노브를 받는 구현이면 무엇이든 둘 다 열린다 — want는 노브를 **버리는**
-      // 구현에서만 실패하지 않는 형태로 쓰여 있었다.
-      //
-      // ⚠ 그래서 이 단언은 「조이는 노브가 프로세스 env로 실제 먹는가」를 증명하지
-      // 못한다. `off`가 가려서다. 그 증명은 `off` 없이 EXTEND만 주입하는 별도
-      // 단언이라야 하고, 그건 구 번들 대상 출력을 바꾸므로 별건이다.
-      byTarget: {
-        engine: {
-          observed: ['REACHED_SAP', 'REACHED_SAP'],
-          note: '신 엔진은 프로세스 env 통로를 수용한다(DIVERGENCES D6 · 분류 수리 — GAP-2가 닫힌 것). 같은 주입의 MCP_BLOCKLIST_PROFILE=off가 EXTEND보다 먼저 단락하므로 둘 다 열린다 — off가 EXTEND를 함께 끄는 **의미** 자체는 구·신 공통이라 새 차이가 아니다. 다만 그 off가 **프로세스 env로 도달할 수 있게 된 것**이 D6이고, BNKA가 나간 직접 원인은 그쪽이다(「공통이니 볼 것 없다」로 읽지 말 것). 이 단언은 조이는 노브의 프로세스 env 수용 여부를 증명하지 않는다(off가 가린다).',
-        },
-      },
-      gapNote: GAP2_NOTE,
-      evidence: 'PROFILE=off·ALLOW_TABLE=BNKA·EXTEND=ZSAPKIT_SECRET를 프로세스 env로 주입 → BNKA/ZSAPKIT_SECRET',
-    });
+    check('B2p', '푸는 노브(PROFILE=off)를 서버 프로세스 env로 전달 — 가드가 열린다',
+      v[0] === 'REACHED_SAP' && v[1] === 'REACHED_SAP',
+      `PROFILE=off·ALLOW_TABLE=BNKA·EXTEND=ZSAPKIT_SECRET를 프로세스 env로 주입 → BNKA=${v[0]} · ZSAPKIT_SECRET=${v[1]} (off가 EXTEND보다 먼저 단락하므로 둘 다 열리는 것이 맞다)`);
+  }
+}
+{
+  // ② 조이는 노브(`MCP_BLOCKLIST_EXTEND`)**만** 프로세스 env로 — `off`가 가리지 않는 자리.
+  //    등재 테이블은 막히고 목록 밖은 나가야 한다. 뒤엣것이 있어야 "전부 막는 서버"가
+  //    이 단언을 우연히 통과하지 못한다.
+  const calls = [
+    { tool: 'GetTableContents', args: { table_name: 'ZSAPKIT_SECRET', max_rows: 1 } },
+    { tool: 'GetTableContents', args: { table_name: 'ZSAPKIT_FREE', max_rows: 1 } },
+  ];
+  const fx = makeFixture('bl-procenv-tighten', { tier: 'DEV' });
+  const run = await callServer({
+    cwd: fx.project,
+    env: connectedEnv(fx, { MCP_BLOCKLIST_EXTEND: 'ZSAPKIT_SECRET' }),
+    args: ['--exposition=readonly'],
+    calls,
+  });
+  if (guardRun('B2p2', run)) {
+    const v = verdicts(run, calls);
+    check('B2p2', '조이는 노브(EXTEND)만 프로세스 env로 전달 — 실제로 조인다',
+      v[0] === 'BLOCKLIST_DENY' && v[1] === 'REACHED_SAP',
+      `EXTEND=ZSAPKIT_SECRET만 프로세스 env로 주입 → ZSAPKIT_SECRET=${v[0]} · 목록 밖 ZSAPKIT_FREE=${v[1]}`);
+  }
+}
+{
+  // ③ **같은 키**가 양쪽에 있으면 활성 프로파일이 이긴다.
+  //
+  //    프로세스 env가 노브를 나르게 된 것은 「누가 바닥선을 풀 수 있는가」를 넓힌다 —
+  //    `.mcp.json`의 `env`나 셸 export도 통로가 됐기 때문이다. D-043의 소유자 머신
+  //    예외는 호출별 사람 승인을 **서버측 blocklist 하한**으로 대체했으므로, 그 하한이
+  //    누구 손에 있는지가 곧 그 예외의 값어치다. 프로파일이 자기 시스템의 바닥선을
+  //    선언하면 프로세스 env가 그것을 낮추지 못한다 — 이 단언이 그 문장을 기계로 만든다.
+  const calls = [{ tool: 'GetTableContents', args: { table_name: 'KNA1', max_rows: 1 } }];
+  const fx = makeFixture('bl-precedence', { tier: 'DEV', profileEnv: ['MCP_BLOCKLIST_PROFILE=standard'] });
+  const run = await callServer({
+    cwd: fx.project,
+    env: connectedEnv(fx, { MCP_BLOCKLIST_PROFILE: 'off' }),
+    args: ['--exposition=readonly'],
+    calls,
+  });
+  if (guardRun('B2p3', run)) {
+    const v = verdicts(run, calls);
+    check('B2p3', '같은 키가 겹치면 활성 프로파일이 프로세스 env를 이긴다 (바닥선을 밖에서 못 낮춘다)',
+      v[0] === 'BLOCKLIST_DENY',
+      `프로파일 sap.env=standard vs 프로세스 env=off → KNA1=${v[0]} (프로파일 승리 = BLOCKLIST_DENY)`);
   }
 }
 {
@@ -763,31 +757,8 @@ console.log('\nC. inspection-only 정직 실패');
 // ── 보고 ────────────────────────────────────────────────────────────────────
 console.log('\n─────────────────────────────────────────────────────────────');
 const passN = rows.filter((r) => r.status === 'PASS').length;
-const gapN = rows.filter((r) => r.status === 'GAP').length;
-console.log(`총 ${rows.length}건 · PASS ${passN} · 기록된 격차 ${gapN} · FAIL ${failCount}`);
+console.log(`총 ${rows.length}건 · PASS ${passN} · FAIL ${failCount}`);
 
-if (gaps.length) {
-  console.log('\n⚠ 기록된 격차 (설계 §7-2 요구 ↔ 번들 실체) — 수리는 별건 결정:');
-  for (const g of gaps) console.log(`  · ${g}`);
-  if (gapKinds.has('recorded')) {
-    console.log('  → 각 격차의 §14-3 해당 여부는 성격에 따라 다르다 — GAP-2(env 노브가 sap.env 전용)는');
-    console.log('    무시된 노브가 기본 standard를 유지하는 "더 조이는" 방향이라 §14-3 6번 우회가 아니다');
-    console.log('    (D-062 ⑥). 이 러너는 실체를 고정할 뿐 수리하지 않는다.');
-  }
-  // 대상별 등재 차이에는 위 논거를 쓸 수 없다. 그 논거는 「노브가 무시된다」에 기대는데,
-  // 등재 차이는 **노브가 먹어서** 생긴 것일 수 있고 그러면 방향이 정반대다(푸는 쪽).
-  // 판정을 여기서 대신 내리지 않고 **미판정임을 밝힌다** — 없는 판단을 도장으로 찍는 것이
-  // 이 러너가 가장 하지 말아야 할 일이다.
-  if (gapKinds.has('byTarget')) {
-    console.log(`  → 위 [대상 ${targetName}] 격차의 §14-3 해당 여부는 **미판정**이다. 구 번들 격차의 면책 논거`);
-    console.log('    (「무시된 노브라 더 조이는 방향」)는 여기 적용되지 않는다 — 등재 차이는 노브가');
-    console.log('    **먹어서** 생긴 것일 수 있고 그 방향은 푸는 쪽이다. 판정은 별건 결정이다.');
-  }
-}
-if (promotions.length) {
-  console.log('\nℹ 격차 해소 감지 — 기대값을 승격할 것:');
-  for (const p of promotions) console.log(`  · ${p}`);
-}
 if (VERBOSE) {
   console.log('\n[verbose] 단언 표');
   for (const r of rows) console.log(`  ${r.status.padEnd(4)} ${r.id.padEnd(6)} ${r.title} :: ${r.evidence}`);
@@ -797,4 +768,4 @@ if (failCount) {
   console.log(`\n❌ 서버 게이트 적합성 실패 ${failCount}건`);
   process.exit(1);
 }
-console.log('\n✅ 서버 게이트 적합성 통과 — tier 집행(QA·PRD·미해석 fail-closed, DEV 통과)·blocklist 집행·ask 왕복·inspection-only 정직 실패 고정, 잔여 격차는 기록됨');
+console.log('\n✅ 서버 게이트 적합성 통과 — tier 집행(QA·PRD·미해석 fail-closed, DEV 통과)·blocklist 집행·ask 왕복·inspection-only 정직 실패 고정 — 잔여 격차 0');

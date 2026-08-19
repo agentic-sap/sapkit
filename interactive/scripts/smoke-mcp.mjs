@@ -12,6 +12,7 @@
 //      — readonly는 실행 무풍지대가 아니다. 새 실행 도구가 슬며시 들어오면 잡는다
 //   ⑤ row-data 도구(GetTableContents/GetSqlQuery)의 노출/차단 상태가 기대대로인가
 //   ⑥ 어댑터 3사의 deny 계약이 문서 표면에 살아 있는가 (오프라인)
+//   ⑦ 제품이 발행하는 MCP 배선이 blocklist 노브를 env로 선언하지 않는가 (오프라인)
 //
 // 도구 표면이 바뀌면 실패한다. 의도된 변경이면 --update로 스냅샷을 **일부러** 갱신한다.
 //
@@ -177,6 +178,72 @@ function probe(exposition) {
   });
 }
 
+// ── ⑦ MCP 배선의 env 선언 (오프라인 · 서버 무관) ────────────────────────────
+// **판7-b(D-095)에서 생긴 질문이다.** 구 번들은 기동 시 blocklist 노브 3종을
+// process.env에서 지우고 활성 프로파일 `sap.env`의 값만 읽었다 — 그래서 MCP 서버
+// 정의(`.mcp.json`의 `env`)에 무엇을 적든 안전 바닥선은 움직이지 않았다. 자체 저작
+// 엔진은 그 통로를 살렸다(장부 D6 · 옛 GAP-2의 수리). 유용한 수리지만, `off`와
+// `MCP_ALLOW_TABLE`은 **푸는** 노브라 그만큼 「누가 바닥선을 낮출 수 있는가」가 넓어진다.
+//
+// D-043의 소유자 머신 예외가 호출별 사람 승인을 그 바닥선으로 대체했으므로, 넓어진
+// 통로 중 **레포 안에 있는 것**은 닫아 둔다: 이 두 파일은 생성물이고 에이전트가
+// 일상적으로 건드리는 자리다.
+//
+// `gen-plugin-manifests.mjs --check`로는 이 자리를 못 막는다 — 그쪽은 「생성물이
+// 생성기 출력과 같은가」만 보므로, **생성기 자체에** 노브가 들어가면 그대로 초록이다.
+// 그래서 독립된 단언으로 둔다.
+const BLOCKLIST_KNOBS = ['MCP_BLOCKLIST_PROFILE', 'MCP_BLOCKLIST_EXTEND', 'MCP_ALLOW_TABLE'];
+
+// 계약을 코드가 아니라 **스냅샷**에 둔다 — `adapter_deny`와 같은 자리, 같은 이유다.
+// 그래야 음성시험이 스냅샷을 변조해 이 검사가 정말 거부하는지 잴 수 있고, wrapper가
+// 하나 늘거나 경로가 바뀌었을 때 `--update` 한 번으로 계약이 따라온다.
+// `at`은 wrapper JSON에서 sap 서버 항목까지 내려가는 키 경로다(모양이 어댑터마다 다르다).
+const MCP_WIRING = {
+  _: '제품이 발행하는 MCP 배선이 blocklist 노브를 env로 선언하지 않는다 — 신 엔진은 프로세스 env 통로를 받으므로(D6) 이 파일이 곧 바닥선을 낮출 수 있는 자리다.',
+  _knobs: BLOCKLIST_KNOBS,
+  claude: { file: '.mcp.json', at: ['mcpServers', 'sap'] },
+  codex: { file: 'adapters/codex/.mcp.json', at: ['sap'] },
+};
+
+function checkMcpWiringEnv(contract) {
+  const entries = Object.entries(contract ?? {}).filter(([k]) => !k.startsWith('_'));
+  if (entries.length === 0) {
+    fail.push('스냅샷에 mcp_wiring 계약이 없다 — 이 검사가 공허해진다. `--update`로 갱신할 것.');
+    return ['(계약 부재)'];
+  }
+  const lines = [];
+  for (const [label, spec] of entries) {
+    // resolve — 음성시험이 임시 디렉터리의 위조 wrapper를 먹일 때 절대 경로가 온다
+    // (다른 드라이브면 상대 경로 자체가 만들어지지 않는다). 계약 파일은 상대 경로다.
+    const f = path.resolve(ROOT, spec.file);
+    if (!fs.existsSync(f)) {
+      fail.push(`MCP 배선 부재: ${spec.file} (${label})`);
+      continue;
+    }
+    let entry;
+    try {
+      entry = spec.at.reduce((acc, key) => acc?.[key], JSON.parse(fs.readFileSync(f, 'utf8')));
+    } catch (e) {
+      fail.push(`MCP 배선을 JSON으로 읽지 못함: ${spec.file} (${e.message})`);
+      continue;
+    }
+    if (!entry) {
+      fail.push(`MCP 배선에서 sap 서버 항목을 찾지 못함: ${spec.file} → [${spec.at.join('.')}]`);
+      continue;
+    }
+    const declared = Object.keys(entry.env ?? {});
+    const knobs = declared.filter((k) => BLOCKLIST_KNOBS.includes(k));
+    if (knobs.length) {
+      fail.push(
+        `MCP 배선이 blocklist 노브를 선언함: ${spec.file} → ${knobs.join(' · ')}. ` +
+          '이 통로는 자체 저작 엔진에서 실제로 먹는다(장부 D6) — 바닥선을 낮추려면 활성 프로파일 sap.env에 적을 것.'
+      );
+    }
+    lines.push(`${label} ${knobs.length ? '❌' : '✅'}(env ${declared.length}키)`);
+  }
+  return lines;
+}
+
 // ── 어댑터 deny 계약 (오프라인 · 서버 무관) ─────────────────────────────────
 // 각 어댑터가 row-data 2종을 어떻게 막는지가 문서 표면에서 사라지면 잡는다.
 // P2는 exposition으로 막히지 않으므로(아래 ⑤) 이 계약이 유일한 기계적 차단면이다.
@@ -240,6 +307,7 @@ if (UPDATE) {
       run_program_vs_run_class:
         'RuntimeRunProgramWithProfiling은 inspection-only 155에 없고 RuntimeRunClassWithProfiling은 있다. 상류 비대칭으로 보이며 이 스냅샷은 실측을 그대로 고정한다.',
     },
+    mcp_wiring: MCP_WIRING,
     adapter_deny: {
       _: 'row-data 2종에 대한 어댑터별 기계 차단 계약이 문서 표면에서 사라지면 게이트가 잡는다.',
       codex: {
@@ -406,6 +474,9 @@ for (const [e, names] of Object.entries(measured)) {
 // ⑥ 어댑터 deny 계약
 const denyLines = checkAdapterDeny(pinned.adapter_deny ?? {});
 
+// ⑦ MCP 배선의 env 선언
+const wiringLines = checkMcpWiringEnv(pinned.mcp_wiring);
+
 // ── 보고 ───────────────────────────────────────────────────────────────────
 for (const [e, names] of Object.entries(measured)) {
   const byClass = {};
@@ -418,6 +489,7 @@ for (const [e, names] of Object.entries(measured)) {
   );
 }
 console.log(`어댑터 deny : ${denyLines.join(' · ')}`);
+console.log(`MCP 배선 env: ${wiringLines.join(' · ')} (blocklist 노브 선언 0)`);
 if (measured.readonly) {
   const exec = measured.readonly.filter((n) => EXECUTION.includes(n));
   console.log(`\nℹ readonly는 실행 무풍지대가 아니다 — 등재된 실행 도구 ${exec.length}개 노출: ${exec.join(', ')}`);
@@ -430,4 +502,4 @@ if (fail.length) {
   for (const f of fail) console.log('  - ' + f);
   process.exit(1);
 }
-console.log('\n✅ 도구 표면 계약 통과 — 이름 집합 고정 · readonly mutation 0 · 실행/row-data 등재분 일치 · 어댑터 deny 유지');
+console.log('\n✅ 도구 표면 계약 통과 — 이름 집합 고정 · readonly mutation 0 · 실행/row-data 등재분 일치 · 어댑터 deny 유지 · MCP 배선에 blocklist 노브 0');
