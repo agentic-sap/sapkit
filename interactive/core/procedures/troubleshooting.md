@@ -354,7 +354,9 @@ The MCP server carries an internal row-extraction guard on `GetTableContents` / 
 - `MCP_BLOCKLIST_EXTEND` — comma-separated extra table names/patterns, always denied (use for site-specific Z-tables with sensitive data, e.g. `ZHR_SALARY,ZCUSTOMER_PII`)
 - `MCP_ALLOW_TABLE` — comma-separated whitelist for an **audited one-off bypass**; each use is logged to stderr. Remove entries when no longer actively needed.
 
-> **Which channel wins.** `MCP_ALLOW_TABLE` is read from the **active profile's `sap.env` only** — a value in the process environment is ignored, because it opens the guard. A `MCP_BLOCKLIST_PROFILE` from the environment applies only when it is **stricter** than the profile's, and the two `MCP_BLOCKLIST_EXTEND` lists are **unioned**. In one line: the process environment can tighten this guard, never loosen it (D-096). So if a table is refused and you believe it should not be, the fix is always in `sap.env`.
+> **Which channel wins.** `MCP_ALLOW_TABLE` is read from the **active profile's `sap.env` only** — a value in the process environment is ignored, because it opens the guard. A `MCP_BLOCKLIST_PROFILE` from the environment applies only when it is **stricter** than the profile's, and the two `MCP_BLOCKLIST_EXTEND` lists are **unioned**. In one line: the process environment can tighten this guard, never loosen it (D-096). So if a table is refused and you believe it should not be, the fix goes in `sap.env`.
+>
+> ⚠ That rule is about the **contents** of the profile file, not about **which file** is used. `MCP_ENV_PATH` and `SAPKIT_HOME_DIR` still select the profile from the process environment, so whoever can set those can point the server at a `sap.env` they wrote. Read "the profile file only" as "the only place an opening value can be written", not as a wall.
 
 Value format for EXTEND/ALLOW: uppercase table names, `[A-Z0-9_*]+` where `*` is a glob; strip whitespace around commas.
 

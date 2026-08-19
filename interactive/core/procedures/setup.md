@@ -162,7 +162,10 @@ missing or broken, and never rewrite a healthy existing artifact.
    alone, a level name from the environment applies only when it is stricter
    than the profile's, and the two `MCP_BLOCKLIST_EXTEND` lists are unioned.
    So the answer to "how do I open something up" is always the same: edit
-   `sap.env` (Step 2), not `config.json` and not the environment.
+   `sap.env` (Step 2), not `config.json` and not the environment. (That rule
+   covers the file's **contents**; `MCP_ENV_PATH`/`SAPKIT_HOME_DIR` still pick
+   **which** profile file is read, so it is a rule about where an opening value
+   can be written, not a wall.)
 
    > Changed on 2026-08-19 (decisions D-095/D-096). Before that release the
    > engine deleted those three keys from its process environment at startup,

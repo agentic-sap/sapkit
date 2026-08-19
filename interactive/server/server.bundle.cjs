@@ -39481,7 +39481,7 @@ var require_rowData = __commonJS({
       const candidates = collectTables(request);
       if (candidates.kind === "deny")
         return candidates.decision;
-      const config = context.config ?? (0, blocklist_1.readBlocklistConfig)();
+      const config = context.config ?? (0, blocklist_1.readBlocklistConfig)({});
       const { verdict, audit } = (0, blocklist_1.evaluateTables)(candidates.tables, config, request.acknowledgeRisk === true);
       switch (verdict.kind) {
         case "deny":

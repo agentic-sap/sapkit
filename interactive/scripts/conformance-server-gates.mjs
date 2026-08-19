@@ -688,6 +688,30 @@ console.log('\nB. 테이블 blocklist (exposition=readonly)');
   }
 }
 {
+  // ⑤ 층 이름의 **조이는 절반**. 넷 중 이것만 비어 있었다(2차 리뷰 지적) — B2p는
+  //    내리는 쪽만 보고 B5a~d는 전부 프로파일 파일 경유라, `tightestLevel`을
+  //    `return fromProfile ?? floor` 한 줄로 줄여 승격 갈래를 죽여도 25건이 전부
+  //    초록이었다. D-096이 대안 (c)·(d)를 기각한 근거가 「조이는 통로를 버리는 것은
+  //    안전과 무관한 손실」이므로, 그 근거가 번들 수준에서 무증거이면 안 된다.
+  const calls = [
+    { tool: 'GetTableContents', args: { table_name: 'BALDAT', max_rows: 1 } }, // strict층 deny
+    { tool: 'GetTableContents', args: { table_name: 'ZSAPKIT_FREE', max_rows: 1 } },
+  ];
+  const fx = makeFixture('bl-procenv-raise', { tier: 'DEV' }); // 프로파일은 층에 침묵
+  const run = await callServer({
+    cwd: fx.project,
+    env: connectedEnv(fx, { MCP_BLOCKLIST_PROFILE: 'strict' }),
+    args: ['--exposition=readonly'],
+    calls,
+  });
+  if (guardRun('B2p5', run)) {
+    const v = verdicts(run, calls);
+    check('B2p5', '프로세스 env는 층을 **올릴** 수 있다 (조이는 절반)',
+      v[0] === 'BLOCKLIST_DENY' && v[1] === 'REACHED_SAP',
+      `프로파일 층 침묵(기본 standard) · 프로세스 env PROFILE=strict → strict층 BALDAT=${v[0]} · 목록 밖 ZSAPKIT_FREE=${v[1]}`);
+  }
+}
+{
   // ④ 조이는 목록은 합집합 — 어느 쪽도 상대를 지우지 못한다. 단순 병합이었다면
   //    프로파일 값이 프로세스 값을 통째로 덮어 ZSAPKIT_SECRET이 나갔을 자리다.
   const calls = [

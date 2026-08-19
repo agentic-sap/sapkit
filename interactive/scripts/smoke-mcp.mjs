@@ -192,7 +192,19 @@ function probe(exposition) {
 // `gen-plugin-manifests.mjs --check`로는 이 자리를 못 막는다 — 그쪽은 「생성물이
 // 생성기 출력과 같은가」만 보므로, **생성기 자체에** 노브가 들어가면 그대로 초록이다.
 // 그래서 독립된 단언으로 둔다.
-const BLOCKLIST_KNOBS = ['MCP_BLOCKLIST_PROFILE', 'MCP_BLOCKLIST_EXTEND', 'MCP_ALLOW_TABLE'];
+// 바닥선을 낮출 수 있는 env 키. **blocklist 노브 셋으로는 부족하다** — 프로파일
+// **파일을 고르는** 두 키가 같은 일을 한다. D-096이 「푸는 노브는 활성 프로파일 파일
+// 소유」로 막았지만 그 규칙은 **파일의 내용**에 대한 것이고 **어느 파일인가**는 여전히
+// 프로세스 env가 정한다: `MCP_ENV_PATH`를 딴 곳으로 돌리고 그 파일에 `MCP_ALLOW_TABLE`
+// 한 줄을 적으면 같은 시스템에서 바닥선이 열린다(2차 리뷰 실측). 셸·argv 쪽 절반은
+// D-043 ③의 "여는 쪽이 옵트인"으로 남기고, **레포가 발행하는 배선**에서는 다섯 다 막는다.
+const BLOCKLIST_KNOBS = [
+  'MCP_BLOCKLIST_PROFILE',
+  'MCP_BLOCKLIST_EXTEND',
+  'MCP_ALLOW_TABLE',
+  'MCP_ENV_PATH',
+  'SAPKIT_HOME_DIR',
+];
 
 // 계약을 코드가 아니라 **스냅샷**에 둔다 — `adapter_deny`와 같은 자리, 같은 이유다.
 // 그래야 음성시험이 스냅샷을 변조해 이 검사가 정말 거부하는지 잴 수 있고, wrapper가

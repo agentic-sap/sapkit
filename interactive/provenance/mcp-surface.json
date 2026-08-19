@@ -289,11 +289,13 @@
     "run_program_vs_run_class": "RuntimeRunProgramWithProfiling은 inspection-only 155에 없고 RuntimeRunClassWithProfiling은 있다. 상류 비대칭으로 보이며 이 스냅샷은 실측을 그대로 고정한다."
   },
   "mcp_wiring": {
-    "_": "제품이 발행하는 MCP 배선이 blocklist 노브를 env로 선언하지 않는다 — 신 엔진은 프로세스 env 통로를 받으므로(D6) 이 파일이 곧 바닥선을 낮출 수 있는 자리다.",
+    "_": "제품이 발행하는 MCP 배선이 바닥선을 낮출 수 있는 env 키를 선언하지 않는다 — 신 엔진은 프로세스 env 통로를 받고(D6), 푸는 노브는 프로파일 파일 소유이나(D-096) **어느 파일인가**는 여전히 프로세스 env가 정한다. 그래서 blocklist 노브 3종 + 프로파일 파일을 고르는 2종을 함께 막는다.",
     "_knobs": [
       "MCP_BLOCKLIST_PROFILE",
       "MCP_BLOCKLIST_EXTEND",
-      "MCP_ALLOW_TABLE"
+      "MCP_ALLOW_TABLE",
+      "MCP_ENV_PATH",
+      "SAPKIT_HOME_DIR"
     ],
     "claude": {
       "file": ".mcp.json",
