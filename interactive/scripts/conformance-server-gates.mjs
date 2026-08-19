@@ -59,8 +59,18 @@
 //     정의(.mcp.json의 `env`)나 셸 export로 준 값은 조용히 무시된다.
 //
 // ─────────────────────────────── 사용 ──────────────────────────────────────
-//   node interactive/scripts/conformance-server-gates.mjs [--verbose]
+//   node interactive/scripts/conformance-server-gates.mjs [--target=<이름>] [--verbose]
 //   exit 0 = 전 단언 통과(격차는 기록된 대로) · exit 1 = 단언 실패
+//
+//   `--target`은 **이름표**다 — 이름 하나가 기동 파일·NODE_PATH·내장 문자열 검사
+//   범위를 한 묶음으로 정한다(경로를 직접 받는 인자는 두지 않는다: 묶음의 나머지를
+//   전달할 길이 없어 인자만 넷으로 불어난다). 이름은 `bundle`(구 번들 · 기본) ·
+//   `engine`(자체 저작 엔진 `sapkit-engine/dist`). 없는 이름이면 즉시 exit 1.
+//
+//   **인자를 안 주면 `bundle`이고, 그때의 출력·판정·exit 코드는 대상 인자가 없던
+//   시절과 한 글자도 다르지 않다.** 「제품 게이트 전종 여전히 green」이 사다리 ⑴의
+//   구 부품 무접촉 기계 증명이라, 구 번들 대상 경로가 흔들리면 그 증명이 함께
+//   무너지기 때문이다. **대상을 늘리는 것이지 바꾸는 것이 아니다.**
 
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
@@ -70,19 +80,105 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const INTERACTIVE = path.resolve(HERE, '..');
-const BUNDLE = path.join(INTERACTIVE, 'server', 'server.bundle.cjs');
-const KEYRING = path.join(INTERACTIVE, 'server', 'runtime-deps', 'keyring', 'node_modules');
+const REPO = path.resolve(INTERACTIVE, '..');
 
-const VERBOSE = process.argv.includes('--verbose');
+const BUNDLE_ENTRY = path.join(INTERACTIVE, 'server', 'server.bundle.cjs');
+const ENGINE_DIST = path.join(REPO, 'sapkit-engine', 'dist');
+
+// ── 대상표 — 이름 하나 = 묶음 하나 ──────────────────────────────────────────
+// 기동 파일 · NODE_PATH(런타임 의존) · 내장 문자열 검사 범위 · 헤더 표기가 한
+// 이름에 딸려 온다. `bundle` 줄의 값은 대상 인자가 없던 시절의 상수 그대로다.
+const TARGETS = {
+  bundle: {
+    noun: '번들', // 부재 메시지의 주어
+    header: '번들   ', // 헤더 정렬용 — 콜론 앞까지
+    entry: BUNDLE_ENTRY,
+    nodePath: path.join(INTERACTIVE, 'server', 'runtime-deps', 'keyring', 'node_modules'),
+    // 단일 파일 배포물: 텍스트 하나만 본다.
+    embedded: { kind: 'file', root: BUNDLE_ENTRY, what: '번들' },
+    // keyring 런타임 의존은 레포에 추적돼 늘 있다 — 부재를 별도로 물을 이유가 없다.
+    requireNodePath: false,
+    buildHint: null,
+  },
+  engine: {
+    noun: '엔진 산출물',
+    header: '엔진   ',
+    entry: path.join(ENGINE_DIST, 'src', 'server', 'entry.js'),
+    nodePath: path.join(REPO, 'sapkit-engine', 'node_modules'),
+    // 다중 파일 배포물: dist/ 트리를 훑는다.
+    embedded: { kind: 'tree', root: ENGINE_DIST, what: 'dist/ 트리' },
+    // dist/·node_modules는 git에 추적되지 않는다 — 부재는 "안 지었다"는 뜻이므로
+    // 조용히 통과시키지 않고 빌드 안내와 함께 즉시 끊는다.
+    requireNodePath: true,
+    buildHint: 'sapkit-engine/ 에서 `npm ci && npm run build`를 돌려 dist/·node_modules를 만든 뒤 다시 실행할 것.',
+  },
+};
+const DEFAULT_TARGET = 'bundle';
+
+const argv = process.argv.slice(2);
+const VERBOSE = argv.includes('--verbose');
+let targetName = DEFAULT_TARGET;
+for (let i = 0; i < argv.length; i++) {
+  if (argv[i].startsWith('--target=')) targetName = argv[i].slice('--target='.length);
+  else if (argv[i] === '--target') targetName = argv[++i] ?? '';
+}
+// hasOwn으로 받는다 — TARGETS['constructor'] 같은 프로토타입 상속 값이 대상으로
+// 통과하면 없는 이름이 조용히 살아난다.
+if (!Object.hasOwn(TARGETS, targetName)) {
+  console.error(`❌ 알 수 없는 대상 이름: ${JSON.stringify(targetName)}`);
+  console.error(`   유효한 이름: ${Object.keys(TARGETS).join(' · ')} (기본 ${DEFAULT_TARGET})`);
+  process.exit(1);
+}
+const TARGET = TARGETS[targetName];
+const ENTRY = TARGET.entry;
+const RUNTIME_DEPS = TARGET.nodePath;
+
 const SPAWN_TIMEOUT_MS = 20000;
 // 아무도 bind할 수 없는(권한) · 아무도 bind하지 않는 루프백 포트. "디스패치되면
 // 즉시 실패"를 보장하는 것이 요점이다.
 const DEAD_URL = 'http://127.0.0.1:1';
 const ALIAS = 'conformance';
 
-if (!fs.existsSync(BUNDLE)) {
-  console.error(`❌ 번들 부재: ${BUNDLE}`);
+if (!fs.existsSync(ENTRY)) {
+  console.error(`❌ ${TARGET.noun} 부재: ${ENTRY}`);
+  if (TARGET.buildHint) console.error(`   ${TARGET.buildHint}`);
   process.exit(1);
+}
+if (TARGET.requireNodePath && !fs.existsSync(RUNTIME_DEPS)) {
+  console.error(`❌ 런타임 의존 부재: ${RUNTIME_DEPS}`);
+  if (TARGET.buildHint) console.error(`   ${TARGET.buildHint}`);
+  process.exit(1);
+}
+
+// ── 배포물 내장 문자열 검사 (B0의 재료) ─────────────────────────────────────
+// 묻는 것은 하나다: **보호 테이블 이름이 배포물 자체에 들어 있는가** = 바깥에서
+// 주입된 목록이 아닌가. 대상의 모양만 다르다 — 구 번들은 단일 파일, 신 엔진은
+// 여러 파일이 든 dist/ 트리. 실호출 거부(B1)로 대체할 수 없다: 주입된 목록으로도
+// B1은 통과하므로 그 순간 이 질문 자체가 사라진다.
+const PROTECTED_TABLES = ['BNKA', 'KNA1', 'VBRK', 'BALDAT'];
+
+/** 디렉터리를 재귀로 훑어 JS 산출물 경로를 모은다. */
+function jsFilesUnder(dir) {
+  const out = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...jsFilesUnder(p));
+    else if (entry.isFile() && /\.(js|cjs|mjs)$/.test(entry.name)) out.push(p);
+  }
+  return out;
+}
+
+/** 대상 배포물에 리터럴로 존재하는 보호 테이블 이름 (+훑은 파일 수 — 공허한 통과 방지). */
+function scanEmbeddedTables() {
+  const files = TARGET.embedded.kind === 'file' ? [TARGET.embedded.root] : jsFilesUnder(TARGET.embedded.root);
+  const found = new Set();
+  for (const file of files) {
+    const text = fs.readFileSync(file, 'utf8');
+    for (const t of PROTECTED_TABLES) {
+      if (text.includes(`"${t}"`) || text.includes(`'${t}'`)) found.add(t);
+    }
+  }
+  return { found: PROTECTED_TABLES.filter((t) => found.has(t)), scanned: files.length };
 }
 
 // ── 격리된 임시 세계 ────────────────────────────────────────────────────────
@@ -125,7 +221,7 @@ function childEnv(extra = {}) {
     if (/^(SAP_|MCP_|SAPKIT_)/.test(k)) continue;
     env[k] = v;
   }
-  env.NODE_PATH = KEYRING;
+  env.NODE_PATH = RUNTIME_DEPS;
   env.HOME = FAKE_HOME; // POSIX os.homedir()
   env.USERPROFILE = FAKE_HOME; // win32 os.homedir()
   return { ...env, ...extra };
@@ -175,7 +271,7 @@ function connectedEnv(fx, extra = {}) {
 // 실제로 사라진 뒤에 resolve한다(다음 spawn 전 잔존 0).
 function callServer({ cwd, env, args = [], calls = [] }) {
   return new Promise((resolve) => {
-    const child = spawn(process.execPath, [BUNDLE, ...args], { cwd, env, stdio: ['pipe', 'pipe', 'pipe'] });
+    const child = spawn(process.execPath, [ENTRY, ...args], { cwd, env, stdio: ['pipe', 'pipe', 'pipe'] });
     live.add(child);
 
     let buf = '';
@@ -375,7 +471,7 @@ function guardRun(id, run) {
 
 // ═══════════════════════════════════════════════════════════════════════════
 console.log('서버 자체 안전 게이트 적합성 (설계 §7-2 · §14-1)');
-console.log(`  번들   : ${path.relative(process.cwd(), BUNDLE) || BUNDLE}`);
+console.log(`  ${TARGET.header}: ${path.relative(process.cwd(), ENTRY) || ENTRY}`);
 console.log(`  임시世 : ${ROOT}`);
 console.log(`  대상 SAP: ${DEAD_URL} (죽은 루프백 — 디스패치되면 즉시 ECONNREFUSED)\n`);
 
@@ -476,11 +572,12 @@ const GAP2_NOTE =
 
 {
   // B1 + B4 — 노브 전무 = 기본 프로파일. 보호 테이블(BNKA=deny층, VBRK=ask층)은
-  // 서버 내장 목록에서 골랐고, 번들 문자열 존재와 실호출 거부로 이중 확인한다.
-  const bundleText = fs.readFileSync(BUNDLE, 'utf8');
-  const embedded = ['BNKA', 'KNA1', 'VBRK', 'BALDAT'].filter((t) => bundleText.includes(`"${t}"`) || bundleText.includes(`'${t}'`));
-  check('B0', '보호 테이블이 번들에 내장돼 있다 (문자열 확인)', embedded.length === 4,
-    `번들 내 발견: ${embedded.join(', ') || '(없음)'}`);
+  // 서버 내장 목록에서 골랐고, 배포물 문자열 존재와 실호출 거부로 이중 확인한다.
+  const { found: embedded, scanned } = scanEmbeddedTables();
+  // 트리 대상은 훑은 파일 수를 함께 남긴다 — 0개를 훑고 통과하는 일이 없도록.
+  const scanNote = TARGET.embedded.kind === 'tree' ? ` (파일 ${scanned}개 훑음)` : '';
+  check('B0', `보호 테이블이 ${TARGET.embedded.what}에 내장돼 있다 (문자열 확인)`, embedded.length === PROTECTED_TABLES.length,
+    `${TARGET.embedded.what} 내 발견: ${embedded.join(', ') || '(없음)'}${scanNote}`);
 
   const calls = [
     { tool: 'GetTableContents', args: { table_name: 'BNKA', max_rows: 1 } },
