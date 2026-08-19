@@ -67,7 +67,7 @@
 > |---|---|---|
 > | **제품 자리** | **차지했다** — `interactive/server/server.bundle.cjs` = `sapkit-engine` 1.0.0 (2026-08-19 · D-095) | 〃 |
 > | **도구** | **186** | **186** — 전량 등록 |
-> | 번들 무게 | **3,812,231 B** (구 8,304,513 B의 **46%**) | — |
+> | 번들 무게 | **3,813,328 B** (구 8,304,513 B의 **46%**) | — |
 > | 전송 | stdio · HTTP · SSE **3** | 3 |
 > | RFC 백엔드 | `odata`·`soap`·`native`·`gateway`·`zrfc` **5** | 5 |
 > | 인증 | Basic **접속** · `--env=<name>` **해석기는 접속하나 저장소가 다른 자리다**(판6.2 실측 — `~/.sapkit/profiles/`가 아니라 `<home>/Documents/mcp-abap-adt/sessions/<name>.env`. 같은 해석기를 `--env-path`로 태우면 실접속 성립) · `--mcp=<destination>` **토큰 계층까지**(판5 — 코드는 있으나 **기동이 취득을 돌리지 않는다** · 실접속은 `판M2-b`) · 브로커 **저장소 재료까지** | 4통로 전부 접속 |
@@ -75,11 +75,15 @@
 > 오프라인 증거 — **판7-b 실측(2026-08-19 · 교체 후 전종 재실행)**: 제품 게이트 **9종
 > exit 0** · 음성시험 **9종 exit 0**(`test-smoke-mcp`는 **30건**으로 늘었다 — 판7-b) ·
 > **신 엔진(dist) 대상 2종 exit 0** ·
-> `sapkit-engine` verify·gates·음성시험 3종·**번들 스모크**·`render-ledger --check`·
+> `sapkit-engine` verify·gates(표면 202 · **안전 14** · 대장 3 · HTTP 7 · SSE 11)·
+> 음성시험 3종·**번들 스모크**·`stdio` 스모크·`render-ledger --check`·
 > `build-plan --check` **전부 0**(jest **4,161 통과 / 1 skip** · 242 스위트) ·
 > `sapkit-cli` verify **355/355**·gates(**코퍼스 47파일 × 표면 3종 갈림 0**)·
 > 음성시험 2종 **전부 0**. `doctor`만 **exit 1**이고 **착수 전 기준선과 동일**(FAIL 1 =
 > Antigravity 설치본 1.1.1 ≠ 고정 1.1.4 · WARN 4 — 전부 머신 환경 사유).
+>
+> **마감 스윕은 커밋된 상태에서 다시 돌렸다** — 위 35스텝 중 `doctor` 하나만 exit 1이고
+> 나머지 전부 exit 0(`--rebuild` 포함).
 >
 > **`check-engine-provenance --rebuild`가 처음으로 소유자 머신에서 섰다** — 구 판정은
 > Windows에서 `npm.cmd`를 띄우지 못해 실행 불가였고 "기계 재현 판정의 정본은 CI뿐"이라는
@@ -131,7 +135,7 @@
 > ## ✅ 직전 판 — **판7-b: ⑴ 교체(swap) 실행 (D-095 · 회수 D-096)** (2026-08-19)
 >
 > **제품 번들이 자체 저작 엔진이 됐다.** `interactive/server/server.bundle.cjs` =
-> `sapkit-engine` **1.0.0** · **3,812,231 바이트**(구 8,304,513의 **46%**).
+> `sapkit-engine` **1.0.0** · **3,813,328 바이트**(구 8,304,513의 **46%**).
 > 여섯을 냈다 — ⓐ **번들러 신설**(esbuild 단일 파일) ⓑ **판 빌드 스탬프** ⓒ **안전
 > 파급 판정**(프로세스 env 통로 존치 + 세 겹 방어) ⓓ **게이트 GAP 기구 은퇴 + B2p
 > 3분할** ⓔ **⑶-b 서버 결부 39 판정**(3 해소 · **36 잔존**) ⓕ **provenance·CI 이전**.
