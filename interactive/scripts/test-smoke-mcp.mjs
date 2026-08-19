@@ -244,5 +244,65 @@ console.log('\n스냅샷 부재');
   fs.rmSync(tmp, { recursive: true, force: true });
 }
 
+// ── 대상(--target) 갈림길 ──────────────────────────────────────────────────
+// 게이트가 겨눌 서버를 이름으로 고르게 되면서 갈림길이 셋 생겼다. 갈림길은 **잘못
+// 들어섰을 때 멈춘다는 것이 증명돼야** 의미가 있다 — 안 그러면 "engine 대상으로도
+// 초록"이라는 말이 아무것도 재지 않은 초록일 수 있다. 네 케이스 전부 서버를 띄우기
+// 전에 끝나므로 비용이 없다.
+function runArgv(args) {
+  try {
+    return { code: 0, out: execFileSync('node', [GATE, ...args], { encoding: 'utf8' }) };
+  } catch (e) {
+    return { code: e.status, out: (e.stdout ?? '') + (e.stderr ?? '') };
+  }
+}
+
+function tArgv(name, args, expectCode, expectText) {
+  const { code, out } = runArgv(args);
+  const codeOk = code === expectCode;
+  const textOk = !expectText || out.includes(expectText);
+  if (codeOk && textOk) {
+    console.log(`  ✅ ${name}`);
+    pass++;
+  } else {
+    console.log(`  ❌ ${name}`);
+    if (!codeOk) console.log(`       exit 기대 ${expectCode} / 실제 ${code}`);
+    if (!textOk) console.log(`       출력에 "${expectText}" 없음`);
+    fail++;
+  }
+}
+
+console.log('\n대상(--target) 갈림길');
+
+tArgv('없는 대상 이름 → 거부', ['--target=nosuch'], 1, '알 수 없는 대상');
+
+// Object.prototype 상속 키. 맨 인덱싱이면 truthy로 잡혀 안내 분기를 건너뛰고 뒤에서
+// undefined를 만지다 스택 트레이스로 죽는다 — exit 1이라 통과로는 안 새지만 이름이
+// 틀렸다는 말을 못 듣는다. 실제로 한 번 그렇게 났던 자리라 회귀로 남긴다.
+tArgv('상속 키(constructor)도 이름으로 인정되지 않는다', ['--target=constructor'], 1, '알 수 없는 대상');
+
+// 대조 기준은 구·신 공용이다. 신 엔진이 --update로 그것을 제 실측으로 덮어쓰면
+// 자기 답안지로 채점하는 꼴이라 교체 관문이 무의미해진다.
+tArgv('engine + --update 조합 → 거부', ['--target=engine', '--update'], 1, '함께 쓸 수 없다');
+
+// 기동 파일 부재는 **명확한 실패**여야 한다 — 조용히 통과하거나 bundle로 흘러내리면
+// 안 된다. dist/는 빌드 산출물이라 있을 수도 없을 수도 있으므로, 있으면 잠깐 치워서
+// 두 상태 모두에서 결정적으로 재고 finally로 반드시 되돌린다.
+{
+  const entry = path.join(ROOT, '..', 'sapkit-engine', 'dist', 'src', 'server', 'entry.js');
+  const stashed = fs.existsSync(entry) ? `${entry}.__negtest` : null;
+  if (stashed) fs.renameSync(entry, stashed);
+  try {
+    tArgv('engine 기동 파일 부재 → 빌드 안내와 함께 실패', ['--target=engine'], 1, '기동 파일 부재');
+  } finally {
+    if (stashed) fs.renameSync(stashed, entry);
+  }
+  // 되돌리기가 실패하면 산출물이 깨진 채 남는다. 조용히 넘기지 않는다.
+  if (stashed && !fs.existsSync(entry)) {
+    console.log('  ❌ 시험이 치워 둔 engine 기동 파일을 되돌리지 못했다 — sapkit-engine을 다시 빌드할 것');
+    fail++;
+  }
+}
+
 console.log(`\n${pass + fail}건 중 ${pass} PASS / ${fail} FAIL`);
 process.exit(fail ? 1 : 0);
