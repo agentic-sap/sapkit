@@ -102,11 +102,27 @@ function errorCodeFor(code: GateDenyCode): ErrorCode {
 }
 
 /**
- * 엔진 판을 찾는다. `dist/src/server/`에서도 `src/server/`에서도 같은
- * `package.json`에 닿도록 위로 훑는다. 못 찾으면 `0.0.0` — 판 번호를 지어내지
- * 않는다.
+ * 번들 빌드가 박아 넣는 판 번호. `tools/bundle.mjs`가 esbuild `define`으로
+ * 문자열 리터럴을 치환한다 — 번들이 아닌 실행(소스·`dist/`)에서는 이 식별자가
+ * 아예 없으므로 `typeof` 가드로 물어야 한다(맨 참조는 ReferenceError).
+ */
+declare const __SAPKIT_ENGINE_VERSION__: string;
+
+/**
+ * 엔진 판을 찾는다.
+ *
+ * ① 번들 스탬프가 있으면 그것. 번들은 제품의 `interactive/server/` 아래로
+ *    실려 나가는데, 그 위로 훑어 올라가면 **호스트 패키지**의 `package.json`만
+ *    나오고 `sapkit-engine`은 어디에도 없다 — 스탬프가 없으면 그 배포 형태에서
+ *    무조건 `0.0.0`이 된다(구 엔진이 같은 이유로 `__ENGINE_VERSION__`을 박았다).
+ * ② 스탬프가 없으면 `dist/src/server/`에서도 `src/server/`에서도 같은
+ *    `package.json`에 닿도록 위로 훑는다.
+ * ③ 그래도 못 찾으면 `0.0.0` — 판 번호를 지어내지 않는다.
  */
 function readEngineVersion(): string {
+  if (typeof __SAPKIT_ENGINE_VERSION__ === 'string' && __SAPKIT_ENGINE_VERSION__) {
+    return __SAPKIT_ENGINE_VERSION__;
+  }
   let dir = __dirname;
   for (let depth = 0; depth < 6; depth += 1) {
     try {

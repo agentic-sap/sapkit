@@ -1,8 +1,8 @@
 {
   "name": "sapkit-engine",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
-  "description": "SAPKIT 자체 저작 ABAP MCP 엔진 — 청사진 사다리 ⑴ M1. 배포 정체성(npm/레지스트리)은 교체 판까지 미결이므로 private.",
+  "description": "SAPKIT 자체 저작 ABAP MCP 엔진 — 청사진 사다리 ⑴. 2026-08-19 판7-b에서 제품 번들 자리를 넘겨받았다(D-095). npm 레지스트리에는 발행하지 않는다 — 제품은 tools/bundle.mjs가 만든 단일 파일을 interactive/server/server.bundle.cjs로 동봉하므로 설치가 완전 오프라인이다. 그래서 private.",
   "license": "MIT",
   "author": "hjaewon",
   "type": "commonjs",
@@ -19,7 +19,9 @@
     "evidence:contract": "node harness/contract-evidence.mjs --jest=.jest-report.json",
     "ledger": "node harness/render-ledger.mjs",
     "gates": "node gates/run-all.mjs",
-    "verify": "npm run build && npm run typecheck && npm test"
+    "verify": "npm run build:bundle && npm run typecheck && npm test",
+    "bundle": "node tools/bundle.mjs",
+    "build:bundle": "npm run build && npm run bundle"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
@@ -29,6 +31,7 @@
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/node": "^25.3.5",
+    "esbuild": "^0.28.2",
     "jest": "^30.2.0",
     "ts-jest": "^29.2.0",
     "typescript": "^5.9.2"
