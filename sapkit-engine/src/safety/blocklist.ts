@@ -30,16 +30,15 @@
  *    keys out of `process.env` on startup, which left the active profile's
  *    `sap.env` as their only working channel and silently ignored a value set
  *    in an MCP server definition. Here the caller composes the environment —
- *    see {@link resolveSafetyEnv} — and both channels work, with the profile
- *    winning on a conflict.
+ *    see {@link resolveSafetyEnv} — and both channels work, **but only in the
+ *    tightening direction from the process environment**. Loosening stays with
+ *    the profile file. That asymmetry is not decoration; `resolveSafetyEnv`
+ *    documents the measurement that forced it.
  *
  *    This one is not a new judgement: the repo's own gate already treats it as
  *    the wanted behaviour. `interactive/scripts/conformance-server-gates.mjs`
  *    records it as **GAP-2** — "the blocklist env knobs are not carried into
- *    the server process env" — which is the gap this closes. It does widen who
- *    can loosen the guard, since `off` and `MCP_ALLOW_TABLE` are loosening
- *    knobs: what keeps that honest is that the default stays locked with no
- *    knob set, and every bypass is written to the audit channel by name.
+ *    the server process env" — which is the gap this closes.
  *  - **Nothing is written to stderr from inside this module.** Audit lines are
  *    returned to the caller, which owns the process's output streams.
  */
@@ -227,15 +226,76 @@ const COMPILED: readonly CompiledCategory[] = CATEGORIES.map(({ names, ...rest }
 type EnvLike = Readonly<Record<string, string | undefined>>;
 
 /**
- * Compose the environment the safety layer reads: the process environment,
- * overridden by the active profile's own `sap.env`. A profile that sets a
- * floor for its system wins over whatever the process happened to inherit.
+ * Compose the environment the safety layer reads.
+ *
+ * Both channels work — the process environment and the active profile's own
+ * `sap.env` — but they are **not symmetric**, and the asymmetry is the point:
+ *
+ *   **the process environment may tighten this guard, never loosen it.**
+ *
+ * Why the rule exists. On the owner's machines the per-call human approval for
+ * row extraction is replaced by this server-side floor (decision D-043), which
+ * makes "who can lower the floor" the whole value of that exception. A plain
+ * `{...processEnv, ...profileEnv}` merge sounds like "the profile wins", but it
+ * only wins **for keys the profile actually spells out** — and the product's own
+ * setup wizard writes just one of the three (`interactive/scripts/setup-state.mjs`
+ * `ENV_KEYS`). So a profile created by the wizard opposed nothing on
+ * `MCP_ALLOW_TABLE`, and anything able to set that variable for the server
+ * process could wave a protected table through. Measured, not theorised: a
+ * profile with no blocklist keys plus `MCP_ALLOW_TABLE=BNKA` in the process
+ * environment let a bank-account table (a `minimal`-level deny) reach SAP.
+ *
+ * So each knob is composed by its direction:
+ *
+ *   `MCP_ALLOW_TABLE`       loosens only  → **active profile file only**
+ *   `MCP_BLOCKLIST_PROFILE` either way    → profile sets the floor; the process
+ *                                           environment may only raise it
+ *   `MCP_BLOCKLIST_EXTEND`  tightens only → **union** of both channels
+ *
+ * This keeps the repair the old GAP-2 asked for (env knobs are no longer thrown
+ * away) while the one direction that matters for safety stays owned by a file
+ * outside the repository, written by the operator.
+ *
+ * Everything else merges as before: profile over process.
  */
 export function resolveSafetyEnv(
   processEnv: EnvLike,
   profileEnv: Readonly<Record<string, string>>,
 ): Record<string, string | undefined> {
-  return { ...processEnv, ...profileEnv };
+  const merged: Record<string, string | undefined> = { ...processEnv, ...profileEnv };
+  merged.MCP_ALLOW_TABLE = profileEnv.MCP_ALLOW_TABLE;
+  merged.MCP_BLOCKLIST_PROFILE = tightestLevel(processEnv.MCP_BLOCKLIST_PROFILE, profileEnv.MCP_BLOCKLIST_PROFILE);
+  merged.MCP_BLOCKLIST_EXTEND = unionNames(processEnv.MCP_BLOCKLIST_EXTEND, profileEnv.MCP_BLOCKLIST_EXTEND);
+  return merged;
+}
+
+/** Depth of each level name. `off` is below every guarding level. */
+const PROFILE_DEPTH: Record<BlocklistProfileName, number> = {
+  off: -1,
+  minimal: 0,
+  standard: 1,
+  strict: 2,
+};
+
+/**
+ * The floor is whatever the profile says (its absence means the locked
+ * default); the process environment replaces it only when strictly deeper.
+ * An unrecognised name is already normalised to `standard` by
+ * {@link readProfileName}, so a typo cannot dig under the default either.
+ */
+function tightestLevel(fromProcess: string | undefined, fromProfile: string | undefined): string | undefined {
+  if (fromProcess === undefined) return fromProfile;
+  const floor = fromProfile === undefined ? DEFAULT_BLOCKLIST_PROFILE : readProfileName(fromProfile);
+  const candidate = readProfileName(fromProcess);
+  if (PROFILE_DEPTH[candidate] > PROFILE_DEPTH[floor]) return candidate;
+  return fromProfile ?? floor;
+}
+
+/** Both lists deny, so neither channel may erase the other's entries. */
+function unionNames(fromProcess: string | undefined, fromProfile: string | undefined): string | undefined {
+  const parts = [fromProfile, fromProcess].filter((v): v is string => typeof v === 'string' && v.trim() !== '');
+  if (parts.length === 0) return fromProfile ?? fromProcess;
+  return parts.join(',');
 }
 
 export function readBlocklistConfig(env: EnvLike = process.env): BlocklistConfig {

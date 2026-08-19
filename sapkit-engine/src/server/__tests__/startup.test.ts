@@ -493,16 +493,19 @@ describe('destination 통로 — --env=<name> (세션 env 파일)', () => {
     expect(startup.profile.envPath).toBe(file);
   });
 
-  it('세션 파일의 안전 노브도 프로파일 값으로 읽힌다', () => {
+  it('세션 파일의 안전 노브도 프로파일 값으로 읽힌다 — 푸는 쪽은 그 파일만이 정한다', () => {
     const root = storeRoot();
-    writeSessionEnv(root, 'DEST1', { MCP_BLOCKLIST_PROFILE: 'minimal' });
+    writeSessionEnv(root, 'DEST1', { MCP_BLOCKLIST_PROFILE: 'minimal', MCP_ALLOW_TABLE: 'BNKA' });
     const startup = resolveStartup({
       argv: argvOf('--env=DEST1'),
-      env: { AUTH_BROKER_PATH: root, MCP_BLOCKLIST_PROFILE: 'strict' },
+      // 프로세스 env가 다른 테이블을 열려고 한다 — 통하지 않아야 한다.
+      env: { AUTH_BROKER_PATH: root, MCP_ALLOW_TABLE: 'KNA1' },
       cwd: tempDir(),
       homedir: tempDir(),
     });
     expect(startup.blocklist.profile).toBe('minimal');
+    expect(startup.blocklist.allow.has('BNKA')).toBe(true);
+    expect(startup.blocklist.allow.has('KNA1')).toBe(false);
   });
 });
 
@@ -947,7 +950,7 @@ describe('안전 노브', () => {
     expect(startup.blocklist.profile).toBe('strict');
   });
 
-  it('충돌하면 프로파일의 값이 이긴다', () => {
+  it('프로세스 env는 층을 **올릴** 수는 있다 (조이는 방향)', () => {
     const dir = tempDir();
     const envPath = writeEnvFile(path.join(dir, 'sap.env'), {
       MCP_BLOCKLIST_PROFILE: 'minimal',
@@ -958,7 +961,37 @@ describe('안전 노브', () => {
       cwd: tempDir(),
       homedir: tempDir(),
     });
-    expect(startup.blocklist.profile).toBe('minimal');
+    expect(startup.blocklist.profile).toBe('strict');
+  });
+
+  it('프로세스 env는 층을 **내리지** 못한다 — 프로파일이 바닥을 정한다', () => {
+    const dir = tempDir();
+    const envPath = writeEnvFile(path.join(dir, 'sap.env'), {
+      MCP_BLOCKLIST_PROFILE: 'strict',
+    });
+    const startup = resolveStartup({
+      argv: argvOf(),
+      env: { MCP_ENV_PATH: envPath, MCP_BLOCKLIST_PROFILE: 'off' },
+      cwd: tempDir(),
+      homedir: tempDir(),
+    });
+    expect(startup.blocklist.profile).toBe('strict');
+  });
+
+  it('프로파일이 그 키에 침묵해도 프로세스 env가 가드를 끄지 못한다', () => {
+    // 제품 마법사(`interactive/scripts/setup-state.mjs` ENV_KEYS)가 만든 프로파일은
+    // MCP_ALLOW_TABLE을 아예 쓰지 않는다. 「프로파일이 이긴다」가 그 키에 대해서는
+    // 성립하지 않던 자리이고, 실측으로 보호 테이블이 새 나갔다.
+    const dir = tempDir();
+    const envPath = writeEnvFile(path.join(dir, 'sap.env'), { SAP_TIER: 'DEV' });
+    const startup = resolveStartup({
+      argv: argvOf(),
+      env: { MCP_ENV_PATH: envPath, MCP_BLOCKLIST_PROFILE: 'off', MCP_ALLOW_TABLE: 'BNKA' },
+      cwd: tempDir(),
+      homedir: tempDir(),
+    });
+    expect(startup.blocklist.profile).toBe('standard');
+    expect(startup.blocklist.allow.size).toBe(0);
   });
 
   it('노브가 하나도 없으면 배포 기본값은 잠긴 채다', () => {

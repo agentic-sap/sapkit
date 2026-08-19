@@ -173,34 +173,61 @@ describe('evaluateTables', () => {
 // MCP_BLOCKLIST_PROFILE / MCP_BLOCKLIST_EXTEND / MCP_ALLOW_TABLE out of
 // process.env at startup, leaving the active profile's sap.env as their only
 // working channel — a value set in an MCP server definition was silently
-// ignored. Here both channels work and the profile wins. These tests pin that.
+// ignored. Here both channels work, but **the process environment may only
+// tighten**: loosening belongs to the profile file. See resolveSafetyEnv's doc
+// comment for the measurement that forced the asymmetry.
 describe('resolveSafetyEnv', () => {
-  it('honours all three knobs when only the process environment sets them (GAP-2)', () => {
-    const merged = resolveSafetyEnv(
-      {
-        MCP_BLOCKLIST_PROFILE: 'strict',
-        MCP_BLOCKLIST_EXTEND: 'ZSECRET',
-        MCP_ALLOW_TABLE: 'BNKA',
-      },
-      {},
-    );
+  it('takes a tightening level from the process environment when the profile is silent', () => {
+    const merged = resolveSafetyEnv({ MCP_BLOCKLIST_PROFILE: 'strict' }, {});
+    expect(readBlocklistConfig(merged).profile).toBe('strict');
+  });
+
+  it('takes a tightening extend list from the process environment', () => {
+    const merged = resolveSafetyEnv({ MCP_BLOCKLIST_EXTEND: 'ZSECRET' }, {});
     const config = readBlocklistConfig(merged);
-    expect(config.profile).toBe('strict');
-    expect(config.allow.has('BNKA')).toBe(true);
     expect(checkTables(['ZSECRET'], config).hits.map((h) => h.table)).toEqual(['ZSECRET']);
   });
 
-  it('lets the profile sap.env win over the process environment', () => {
-    const merged = resolveSafetyEnv(
-      { MCP_BLOCKLIST_PROFILE: 'off', PATH: '/bin' },
-      { MCP_BLOCKLIST_PROFILE: 'strict' },
-    );
-    expect(merged.MCP_BLOCKLIST_PROFILE).toBe('strict');
-    expect(merged.PATH).toBe('/bin');
+  it('unions the extend lists so neither channel erases the other', () => {
+    const merged = resolveSafetyEnv({ MCP_BLOCKLIST_EXTEND: 'ZFROM_PROC' }, { MCP_BLOCKLIST_EXTEND: 'ZFROM_FILE' });
+    const config = readBlocklistConfig(merged);
+    expect(checkTables(['ZFROM_PROC', 'ZFROM_FILE'], config).hits.map((h) => h.table).sort()).toEqual([
+      'ZFROM_FILE',
+      'ZFROM_PROC',
+    ]);
   });
 
-  it('keeps a process-environment knob when the profile is silent about it', () => {
+  // ── 여기부터가 바닥선의 소유권 ──────────────────────────────────────────
+  it('refuses a loosening level from the process environment when the profile is silent', () => {
+    const merged = resolveSafetyEnv({ MCP_BLOCKLIST_PROFILE: 'off' }, {});
+    expect(readBlocklistConfig(merged).profile).toBe(DEFAULT_BLOCKLIST_PROFILE);
+  });
+
+  it('refuses a loosening level from the process environment even against an explicit profile value', () => {
+    const merged = resolveSafetyEnv({ MCP_BLOCKLIST_PROFILE: 'off' }, { MCP_BLOCKLIST_PROFILE: 'strict' });
+    expect(readBlocklistConfig(merged).profile).toBe('strict');
+  });
+
+  it('never takes MCP_ALLOW_TABLE from the process environment — not even when the profile is silent', () => {
     const merged = resolveSafetyEnv({ MCP_ALLOW_TABLE: 'BNKA' }, {});
-    expect(merged.MCP_ALLOW_TABLE).toBe('BNKA');
+    expect(merged.MCP_ALLOW_TABLE).toBeUndefined();
+    expect(readBlocklistConfig(merged).allow.has('BNKA')).toBe(false);
+  });
+
+  it('takes MCP_ALLOW_TABLE from the profile file, and only from there', () => {
+    const merged = resolveSafetyEnv({ MCP_ALLOW_TABLE: 'KNA1' }, { MCP_ALLOW_TABLE: 'BNKA' });
+    const config = readBlocklistConfig(merged);
+    expect(config.allow.has('BNKA')).toBe(true);
+    expect(config.allow.has('KNA1')).toBe(false);
+  });
+
+  it('honours an explicit profile-file opt-out', () => {
+    const merged = resolveSafetyEnv({}, { MCP_BLOCKLIST_PROFILE: 'off' });
+    expect(readBlocklistConfig(merged).profile).toBe('off');
+  });
+
+  it('leaves unrelated variables alone', () => {
+    const merged = resolveSafetyEnv({ PATH: '/bin' }, {});
+    expect(merged.PATH).toBe('/bin');
   });
 });
