@@ -6,7 +6,7 @@ SAPKIT은 다음 상류 프로젝트의 파생·재구성물이다. 각 라이�
 
 | 구성요소 | 출처 | 라이선스 |
 |---|---|---|
-| 지식·페르소나·절차·정책 원천 (**아래 GPL 서브트리 제외**) | `babamba2/superclaude-for-sap` → `hjaewon/sc4sap-custom` (동결) | MIT — 루트 LICENSE에 고지 승계 |
+| 지식·페르소나·절차·정책 원천 (**아래 GPL 서브트리 제외**) | `babamba2/superclaude-for-sap` → `hjaewon/sc4sap-custom` (동결) | MIT — **`interactive/LICENSE`**에 고지 승계(루트 `LICENSE` 표가 `interactive/` **서브트리 전체**를 그 파일에 건다) |
 | ~~`core/knowledge/abap/reference/` (31파일)~~ | `secondsky/sap-skills`의 `sap-abap` 스킬 — babamba2 경유 무변경 전달(`migration-map.json` `class: copy`). 내용 원자료는 `SAP-samples/abap-cheat-sheets`(Apache-2.0) | **GPL-3.0 — 2026-08-09 제거로 해소.** 아래 §GPL 참조 |
 | `server/server.bundle.cjs` (MCP 서버 번들) | **자체 저작 — 소스 정본 `sapkit-engine/`.** 2026-08-19 판7-b(D-095)에 `hjaewon/abap-mcp-adt-powerup` 포크 번들을 대체했다. 판·소스 커밋은 `server/VERSION` | MIT (루트 LICENSE) |
 | ~~`server/server.bundle.cjs`의 이전 판~~ | ~~`hjaewon/abap-mcp-adt-powerup` (업스트림 `babamba2` 네임스페이스 모듈 베이크인)~~ | **MIT — 2026-08-19 교체로 배포물에서 빠졌다.** 소스 `engine/`은 되돌릴 자리로 레포에 남아 있고(은퇴는 판7.5) 그동안 `engine/LICENSE`가 그 서브트리에 계속 적용된다 |

@@ -1,7 +1,13 @@
-# SAP MCP Tool Catalog (abap-mcp-adt-powerup)
+# SAP MCP Tool Catalog
 
-Index of MCP handlers exposed by the bundled `abap-mcp-adt-powerup` server
-(**connected** tools/list — profile-active state). Tools are listed by **bare
+Index of MCP handlers exposed by the bundled SAP ADT MCP server
+(**connected** tools/list — profile-active state). Since 2026-08-19 that server
+is this repo's own `sapkit-engine` (decision D-095); the catalog was written
+against the `abap-mcp-adt-powerup` fork it replaced, and the swap kept every
+tool name and call contract, so the surface it describes is unchanged.
+**The file itself is still borrowed content** — re-authoring it (ideally by
+generating it from the engine's registry) is an open item, see
+`docs/reference/copy-baseline.md` §3.2. Tools are listed by **bare
 capability name**; each harness maps names to its own tool identifiers per the
 [capability vocabulary](../../core/vocabulary.md) (e.g. Claude Code prefixes
 `mcp__<plugin-namespace>__`).

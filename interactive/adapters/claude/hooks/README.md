@@ -29,7 +29,7 @@
 
 | 층 | 담당 | 한계 |
 |---|---|---|
-| 서버 blocklist | 보호 테이블 거부(deny/ask) · ask층은 `acknowledge_risk` 자기신고 + stderr 감사 | 기본값 `standard`(훅 기본 strict보다 한 단계 낮음). 서버가 실제 받는 `MCP_BLOCKLIST_PROFILE` 값은 **`minimal`·`standard`(기본)·`strict`·`off` 4종뿐**이며 그 밖의 값은 조용히 `standard`로 폴백한다(실측, `sapkit-engine/src/safety/blocklist.ts`) — 훅의 `custom`은 서버엔 없는 값이다. **노브 3종(`MCP_BLOCKLIST_PROFILE`·`MCP_BLOCKLIST_EXTEND`·`MCP_ALLOW_TABLE`)의 통로는 둘이다** — 활성 프로파일의 `sap.env`, 그리고 **서버 프로세스 env**(MCP 서버 등록의 `env` 블록·셸 export). 같은 키가 겹치면 **프로파일이 이긴다**. ⚠ 2026-08-19 엔진 교체(D-095) 전에는 프로파일 `sap.env` 하나뿐이었다 — 구 엔진이 기동 시 프로세스 env의 이 3종을 지웠기 때문이다. 지금 그 값은 무시되지 않는다. ask는 자기신고이지 하드 게이트가 아니다(D-043 ⓑ). |
+| 서버 blocklist | 보호 테이블 거부(deny/ask) · ask층은 `acknowledge_risk` 자기신고 + stderr 감사 | 기본값 `standard`(훅 기본 strict보다 한 단계 낮음). 서버가 실제 받는 `MCP_BLOCKLIST_PROFILE` 값은 **`minimal`·`standard`(기본)·`strict`·`off` 4종뿐**이며 그 밖의 값은 조용히 `standard`로 폴백한다(실측, `sapkit-engine/src/safety/blocklist.ts`) — 훅의 `custom`은 서버엔 없는 값이다. **노브 3종(`MCP_BLOCKLIST_PROFILE`·`MCP_BLOCKLIST_EXTEND`·`MCP_ALLOW_TABLE`)의 통로는 둘이다** — 활성 프로파일의 `sap.env`, 그리고 **서버 프로세스 env**(MCP 서버 등록의 `env` 블록·셸 export). **그러나 프로세스 env는 조일 수는 있어도 풀 수는 없다**(D-096): `MCP_ALLOW_TABLE`은 **프로파일 파일에서만** 읽고, 층 이름은 프로파일보다 **더 조일 때만** 먹으며, `MCP_BLOCKLIST_EXTEND`는 두 통로의 **합집합**이다. ⚠ 2026-08-19 엔진 교체(D-095) 전에는 프로파일 `sap.env` 하나뿐이었다 — 구 엔진이 기동 시 프로세스 env의 이 3종을 지웠기 때문이다. ask는 자기신고이지 하드 게이트가 아니다(D-043 ⓑ). |
 | 서버 tier 게이트 | QA/PRD write·실행 차단, tier 미해석 시 write fail-closed | stdio 경로 배선은 이 릴리스의 엔진 수리로 확보됐다 — `conformance-server-gates.mjs`가 매 CI에서 검증한다 |
 | Claude 권한창 | permissions-template의 실데이터 2종 제외 → 정상 권한 모드에서 호출별 승인 | bypass/자동수락 모드에서는 이 승인창 자체가 뜨지 않는다 |
 | Codex `disabled_tools` | row-data 2종(`GetTableContents`/`GetSqlQuery`) 하드 차단 | 사용자가 `~/.codex/config.toml`에 직접 설정(자동 배선 여부는 실측 진행 중) — [adapters/codex/README.md](../../codex/README.md) 참고 |
@@ -42,10 +42,14 @@
 > 가벼운 변화가 아니다. 세 가지가 그 자리를 지킨다:
 >
 > 1. **기본값은 잠긴 채다.** 노브가 하나도 없으면 `standard`이고, 알 수 없는 값은
->    `standard`로 폴백한다 — 오타는 조일 수만 있지 풀 수 없다.
-> 2. **프로파일이 이긴다.** 시스템의 바닥선을 프로파일 `sap.env`에 적어 두면 프로세스
->    env가 그것을 낮추지 못한다. `conformance-server-gates.mjs`의 **B2p3**이 이 문장을
->    매 CI에서 실호출로 단언한다.
+>    `standard`로 폴백한다. ⚠ 「오타는 조일 수만 있다」는 **부정확**하다 — `off`·`minimal`
+>    오타는 조이지만 **`strict` 오타는 `standard`로 내려온다.** 정확한 문장은 「오타가
+>    기본값 **아래로** 파고들지는 못한다」다.
+> 2. **푸는 쪽은 프로파일 파일 소유다.** `MCP_ALLOW_TABLE`은 프로세스 env에서 아예 읽지
+>    않고, 층 이름은 프로파일보다 조일 때만 먹는다 — **프로파일이 그 키에 침묵해도**
+>    그렇다. `conformance-server-gates.mjs`의 **B2p·B2p3**이 매 CI에서 실호출로 단언한다.
+>    (교체 직후에는 단순 병합이라 「프로파일이 그 키를 적었을 때만」 이겼고, 제품 마법사가
+>    셋 중 하나만 쓰므로 실측에서 보호 테이블이 나갔다 — D-096이 그 자리를 닫았다.)
 > 3. **제품이 발행하는 MCP 배선에는 노브가 0개다.** `.mcp.json`(Claude)과
 >    `adapters/codex/.mcp.json`은 `NODE_PATH` 하나만 선언하며, `smoke-mcp.mjs`의 ⑦번
 >    검사가 그 사실을 단언한다 — 레포 안에서 바닥선을 낮출 수 있는 자리를 닫아 둔 것이다.

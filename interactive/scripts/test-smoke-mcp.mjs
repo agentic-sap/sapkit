@@ -197,6 +197,12 @@ t(
   'sap 서버 항목을 찾지 못함'
 );
 t(
+  '경로가 한 칸 얕아 env가 없는 객체에 닿으면 → 공허한 통과 대신 검출',
+  (d) => (d.mcp_wiring.claude.at = ['mcpServers']),
+  1,
+  '경로가 얕다'
+);
+t(
   '배선 env에 푸는 노브(PROFILE=off)가 들어오면 → 검출',
   (d, tmp) => {
     // 실물 wrapper를 tmp로 복사해 노브를 심고, 계약이 그쪽을 가리키게 한다.

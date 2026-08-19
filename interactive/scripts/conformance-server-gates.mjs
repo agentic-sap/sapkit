@@ -47,10 +47,14 @@
 //     `MCP_BLOCKLIST_EXTEND` · `MCP_ALLOW_TABLE`를 process.env에서 **지운 뒤**
 //     프로파일 파일 값만 다시 채웠다. 그래서 세 노브의 유일한 유효 통로가 활성
 //     프로파일 `sap.env`였고, `.mcp.json`의 `env`나 셸 export는 조용히 무시됐다.
-//     자체 저작 엔진은 `resolveSafetyEnv`가 `{...processEnv, ...profileEnv}`이므로
-//     두 통로가 다 살아 있고 **충돌 시 프로파일이 이긴다**(장부 D6 · 분류 수리).
-//     B2p·B2p2·B2p3가 각각 「푸는 노브가 든다」 「조이는 노브가 든다」 「프로파일이
-//     이긴다」를 단언한다 — 셋째가 D-043 소유자 머신 예외의 바닥선을 지키는 자리다.
+//     자체 저작 엔진은 그 통로를 살리되 **방향을 가른다** — 프로세스 env는 **조일
+//     수는 있어도 풀 수는 없다**(장부 D6 + 판7-b 회수 · 결정 D-096). 아래
+//     B2p·B2p2·B2p3·B2p4가 그 규칙 넷을 각각 단언한다.
+//
+//     ⚠ 처음 판7-b는 「두 통로가 다 살고 충돌 시 프로파일이 이긴다」로 닫았다가
+//     독립 리뷰에서 **되돌렸다**: 그 병합은 프로파일이 **그 키를 실제로 적었을 때만**
+//     이기는데 제품 마법사가 셋 중 하나만 쓰므로, 마법사가 만든 프로파일은
+//     `MCP_ALLOW_TABLE`을 막지 못했고 실측에서 보호 테이블이 나갔다.
 //
 // **그래서 이 파일에는 「기록된 격차」 기구가 없다.** 남은 격차가 없기 때문이지
 // 그런 상태를 표현할 수 없어서가 아니다 — 필요해지면 git 이력에서 그 기구를 도로
@@ -516,7 +520,12 @@ async function tierCase(id, label, tier, callIdx) {
     const v = verdicts(run, WRITE_CALLS);
     const sawUnknown = /tier=UNKNOWN/.test(run.stderr);
     check('A3-tier', 'SAP_TIER 부재 → 프로파일 로더가 UNKNOWN으로 fail-closed 판정', sawUnknown,
-      sawUnknown ? 'stderr: "Active sc4sap profile: … (tier=UNKNOWN, readonly=true)"' : `stderr에 tier=UNKNOWN 없음: ${run.stderr.split('\n')[0]}`);
+      // 증거는 **관측한 줄을 그대로** 싣는다. 전에는 구 번들 문구가 상수로 박혀 있었는데
+      // (`Active sc4sap profile: …`), 판정은 정규식 `tier=UNKNOWN` 하나라 신 엔진을 겨누면
+      // **낸 적 없는 문구를 관측했다고 적는** 상태가 된다 — 판정이 아니라 증거가 틀린다.
+      sawUnknown
+        ? `stderr: "${(run.stderr.split(String.fromCharCode(10)).find((l) => /tier=UNKNOWN/.test(l)) ?? '').trim()}"`
+        : `stderr에 tier=UNKNOWN 없음: ${run.stderr.split(String.fromCharCode(10))[0]}`);
     check('A3', 'SAP_TIER 부재 → write fail-closed', v[0] === 'TIER_BLOCKED' && v[1] === 'TIER_BLOCKED',
       `SAP_TIER 키 없는 sap.env · CreateProgram=${v[0]} · UpdateClass=${v[1]} (판정 UNKNOWN이 실제로 소비된다)`);
   }
@@ -600,53 +609,45 @@ console.log('\nB. 테이블 blocklist (exposition=readonly)');
   }
 }
 {
-  // B2p·B2p2·B2p3 — 같은 노브를 **서버 프로세스 env**로 주면?
+  // B2p·B2p2·B2p3·B2p4 — 같은 노브를 **서버 프로세스 env**로 주면?
   //
-  // 구 번들에서는 "안 든다"였다(옛 GAP-2). 기동 시 applyProfile()이 세 노브를
-  // process.env에서 지우고 프로파일 파일 값만 다시 채웠기 때문에, `.mcp.json`의
-  // `env`나 셸 export로 준 값은 조용히 무시됐다. **판7-b의 교체(D-095)가 그 격차를
-  // 닫았다** — 신 엔진의 `resolveSafetyEnv`는 `{...processEnv, ...profileEnv}`이고,
-  // 그것이 설계 §7-2 ③의 평문 독해다(장부 D6 · 분류 수리). 그래서 이 셋은 이제
-  // 「기록된 격차」가 아니라 **정식 단언**이다.
+  // 구 번들에서는 "안 든다"였다(옛 GAP-2). 자체 저작 엔진은 그 격차를 닫되 **방향을
+  // 가른다** — `resolveSafetyEnv`가 노브마다 다르게 합성한다:
   //
-  // 셋으로 나눈 이유가 중요하다. ①만 두면 「노브가 든다」와 「blocklist가 통째로
-  // 죽었다」를 구별하지 못한다 — 둘 다 REACHED_SAP이기 때문이다. ②가 그 자리를
-  // 막고, ③은 D-043의 소유자 머신 예외가 기대는 **바닥선의 소유권**을 잰다.
+  //     MCP_ALLOW_TABLE        푼다   → 활성 프로파일 파일만
+  //     MCP_BLOCKLIST_PROFILE  양방향 → 프로파일이 바닥 · 프로세스 env는 올릴 때만
+  //     MCP_BLOCKLIST_EXTEND   조인다 → 두 통로 합집합
+  //
+  // **왜 그렇게 갈랐는지가 이 넷의 존재 이유다.** 단순 병합(`{...proc, ...profile}`)은
+  // 「프로파일이 이긴다」로 읽히지만 **프로파일이 그 키를 실제로 적었을 때만** 이기고,
+  // 제품 마법사(`interactive/scripts/setup-state.mjs` ENV_KEYS)는 셋 중 하나만 쓴다.
+  // 그래서 마법사가 만든 프로파일은 `MCP_ALLOW_TABLE`을 막지 못했고, 실측에서 보호
+  // 테이블이 나갔다. D-043의 소유자 머신 예외가 이 바닥선에 기대므로 가벼운 자리가 아니다.
+  // 결정 기록 D-096 · 장부 D6의 방향 변경.
 
-  // ① 푸는 노브(`MCP_BLOCKLIST_PROFILE=off`)가 프로세스 env로 든다.
-  //
-  //    셋을 한꺼번에 주입하지만 판정은 `off` 하나로 결정된다 — `off`는 구·신 양쪽에서
-  //    EXTEND 검사보다 먼저 단락한다(구 `engine/src/lib/policy/tableBlocklist.ts:503` ·
-  //    신 `sapkit-engine/src/safety/blocklist.ts:272`). 그러므로 기대는 **둘 다
-  //    REACHED_SAP**이고, 이 단언이 재는 것은 「푸는 노브가 이 통로로 도달하는가」다.
-  //    ⚠ 이 주입만으로는 **조이는** 노브(EXTEND)가 도달하는지 알 수 없다 — `off`가
-  //    가린다. 그것이 ②가 따로 있는 이유다(판7-a 최종 리뷰가 짚은 자리).
+  // ① 푸는 시도가 프로세스 env로는 통하지 않는다 — **프로파일이 그 키에 침묵해도**.
+  //    이것이 실측으로 새 나갔던 바로 그 모양이다.
   const calls = [
     { tool: 'GetTableContents', args: { table_name: 'BNKA', max_rows: 1 } },
-    { tool: 'GetTableContents', args: { table_name: 'ZSAPKIT_SECRET', max_rows: 1 } },
+    { tool: 'GetTableContents', args: { table_name: 'KNA1', max_rows: 1 } },
   ];
-  const fx = makeFixture('bl-procenv', { tier: 'DEV' });
+  const fx = makeFixture('bl-procenv-loosen', { tier: 'DEV' }); // 프로파일에 blocklist 키 없음
   const run = await callServer({
     cwd: fx.project,
-    env: connectedEnv(fx, {
-      MCP_BLOCKLIST_PROFILE: 'off',
-      MCP_BLOCKLIST_EXTEND: 'ZSAPKIT_SECRET',
-      MCP_ALLOW_TABLE: 'BNKA',
-    }),
+    env: connectedEnv(fx, { MCP_BLOCKLIST_PROFILE: 'off', MCP_ALLOW_TABLE: 'BNKA' }),
     args: ['--exposition=readonly'],
     calls,
   });
   if (guardRun('B2p', run)) {
     const v = verdicts(run, calls);
-    check('B2p', '푸는 노브(PROFILE=off)를 서버 프로세스 env로 전달 — 가드가 열린다',
-      v[0] === 'REACHED_SAP' && v[1] === 'REACHED_SAP',
-      `PROFILE=off·ALLOW_TABLE=BNKA·EXTEND=ZSAPKIT_SECRET를 프로세스 env로 주입 → BNKA=${v[0]} · ZSAPKIT_SECRET=${v[1]} (off가 EXTEND보다 먼저 단락하므로 둘 다 열리는 것이 맞다)`);
+    check('B2p', '푸는 노브를 프로세스 env로 줘도 바닥선이 안 내려간다 (프로파일 침묵 시에도)',
+      v[0] === 'BLOCKLIST_DENY' && v[1] === 'BLOCKLIST_DENY',
+      `프로파일에 blocklist 키 없음 · 프로세스 env PROFILE=off·ALLOW_TABLE=BNKA → BNKA=${v[0]} · KNA1=${v[1]}`);
   }
 }
 {
-  // ② 조이는 노브(`MCP_BLOCKLIST_EXTEND`)**만** 프로세스 env로 — `off`가 가리지 않는 자리.
-  //    등재 테이블은 막히고 목록 밖은 나가야 한다. 뒤엣것이 있어야 "전부 막는 서버"가
-  //    이 단언을 우연히 통과하지 못한다.
+  // ② 조이는 통로는 산다 — 옛 GAP-2가 요구한 수리가 방향을 좁힌 뒤에도 남아 있다.
+  //    목록 밖이 나가야 「전부 막는 서버」가 우연히 통과하지 못한다.
   const calls = [
     { tool: 'GetTableContents', args: { table_name: 'ZSAPKIT_SECRET', max_rows: 1 } },
     { tool: 'GetTableContents', args: { table_name: 'ZSAPKIT_FREE', max_rows: 1 } },
@@ -660,32 +661,52 @@ console.log('\nB. 테이블 blocklist (exposition=readonly)');
   });
   if (guardRun('B2p2', run)) {
     const v = verdicts(run, calls);
-    check('B2p2', '조이는 노브(EXTEND)만 프로세스 env로 전달 — 실제로 조인다',
+    check('B2p2', '조이는 노브(EXTEND)는 프로세스 env로 든다 — 실제로 조인다',
       v[0] === 'BLOCKLIST_DENY' && v[1] === 'REACHED_SAP',
       `EXTEND=ZSAPKIT_SECRET만 프로세스 env로 주입 → ZSAPKIT_SECRET=${v[0]} · 목록 밖 ZSAPKIT_FREE=${v[1]}`);
   }
 }
 {
-  // ③ **같은 키**가 양쪽에 있으면 활성 프로파일이 이긴다.
-  //
-  //    프로세스 env가 노브를 나르게 된 것은 「누가 바닥선을 풀 수 있는가」를 넓힌다 —
-  //    `.mcp.json`의 `env`나 셸 export도 통로가 됐기 때문이다. D-043의 소유자 머신
-  //    예외는 호출별 사람 승인을 **서버측 blocklist 하한**으로 대체했으므로, 그 하한이
-  //    누구 손에 있는지가 곧 그 예외의 값어치다. 프로파일이 자기 시스템의 바닥선을
-  //    선언하면 프로세스 env가 그것을 낮추지 못한다 — 이 단언이 그 문장을 기계로 만든다.
-  const calls = [{ tool: 'GetTableContents', args: { table_name: 'KNA1', max_rows: 1 } }];
-  const fx = makeFixture('bl-precedence', { tier: 'DEV', profileEnv: ['MCP_BLOCKLIST_PROFILE=standard'] });
+  // ③ 여는 권한은 **파일에만** 있다. 파일이 연 것은 열리고, 프로세스 env가 열려 한
+  //    다른 테이블은 열리지 않는다 — 같은 실행에서 둘을 함께 본다.
+  const calls = [
+    { tool: 'GetTableContents', args: { table_name: 'BNKA', max_rows: 1 } },
+    { tool: 'GetTableContents', args: { table_name: 'KNA1', max_rows: 1 } },
+  ];
+  const fx = makeFixture('bl-allow-owner', { tier: 'DEV', profileEnv: ['MCP_ALLOW_TABLE=BNKA'] });
   const run = await callServer({
     cwd: fx.project,
-    env: connectedEnv(fx, { MCP_BLOCKLIST_PROFILE: 'off' }),
+    env: connectedEnv(fx, { MCP_ALLOW_TABLE: 'KNA1' }),
     args: ['--exposition=readonly'],
     calls,
   });
   if (guardRun('B2p3', run)) {
     const v = verdicts(run, calls);
-    check('B2p3', '같은 키가 겹치면 활성 프로파일이 프로세스 env를 이긴다 (바닥선을 밖에서 못 낮춘다)',
-      v[0] === 'BLOCKLIST_DENY',
-      `프로파일 sap.env=standard vs 프로세스 env=off → KNA1=${v[0]} (프로파일 승리 = BLOCKLIST_DENY)`);
+    check('B2p3', '여는 권한은 활성 프로파일 파일에만 있다 (파일 BNKA 열림 · 프로세스 env KNA1 안 열림)',
+      v[0] === 'REACHED_SAP' && v[1] === 'BLOCKLIST_DENY',
+      `프로파일 sap.env ALLOW_TABLE=BNKA · 프로세스 env ALLOW_TABLE=KNA1 → BNKA=${v[0]} · KNA1=${v[1]}`);
+  }
+}
+{
+  // ④ 조이는 목록은 합집합 — 어느 쪽도 상대를 지우지 못한다. 단순 병합이었다면
+  //    프로파일 값이 프로세스 값을 통째로 덮어 ZSAPKIT_SECRET이 나갔을 자리다.
+  const calls = [
+    { tool: 'GetTableContents', args: { table_name: 'ZSAPKIT_SECRET', max_rows: 1 } },
+    { tool: 'GetTableContents', args: { table_name: 'ZSAPKIT_OTHER', max_rows: 1 } },
+    { tool: 'GetTableContents', args: { table_name: 'ZSAPKIT_FREE', max_rows: 1 } },
+  ];
+  const fx = makeFixture('bl-extend-union', { tier: 'DEV', profileEnv: ['MCP_BLOCKLIST_EXTEND=ZSAPKIT_OTHER'] });
+  const run = await callServer({
+    cwd: fx.project,
+    env: connectedEnv(fx, { MCP_BLOCKLIST_EXTEND: 'ZSAPKIT_SECRET' }),
+    args: ['--exposition=readonly'],
+    calls,
+  });
+  if (guardRun('B2p4', run)) {
+    const v = verdicts(run, calls);
+    check('B2p4', 'EXTEND는 두 통로의 합집합 — 어느 쪽도 상대를 지우지 않는다',
+      v[0] === 'BLOCKLIST_DENY' && v[1] === 'BLOCKLIST_DENY' && v[2] === 'REACHED_SAP',
+      `프로파일 EXTEND=ZSAPKIT_OTHER · 프로세스 env EXTEND=ZSAPKIT_SECRET → 프로세스분=${v[0]} · 프로파일분=${v[1]} · 목록 밖=${v[2]}`);
   }
 }
 {

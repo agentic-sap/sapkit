@@ -18,7 +18,7 @@ source:
 
 # Troubleshooting & Operations
 
-Diagnostic and operational know-how for the `abap-mcp-adt-powerup` MCP server (bundled in this repo at `server/server.bundle.cjs`) and its SAP connection. Everything here is harness-neutral: any agent that can call the MCP tools and read/write local files can follow it.
+Diagnostic and operational know-how for the bundled SAP ADT MCP server (`server/server.bundle.cjs` — built from this repo's own `sapkit-engine/` since 2026-08-19; before that it was the `abap-mcp-adt-powerup` fork) and its SAP connection. Everything here is harness-neutral: any agent that can call the MCP tools and read/write local files can follow it.
 
 Use this document when:
 
@@ -344,7 +344,7 @@ Fix by re-creating the profile through [setup](setup.md) on this machine, or by 
 
 ## 5. Blocklist Verification
 
-The MCP server carries an internal row-extraction guard on `GetTableContents` / `GetSqlQuery`, configured in the profile's `sap.env`:
+The MCP server carries an internal row-extraction guard on `GetTableContents` / `GetSqlQuery`, configured in the profile's `sap.env` — and, **for tightening only**, in the server's process environment:
 
 - `MCP_BLOCKLIST_PROFILE` — `minimal` | `standard` | `strict` | `off` (default: `standard`)
   - `minimal` — block only PII / credentials / banking
@@ -353,6 +353,8 @@ The MCP server carries an internal row-extraction guard on `GetTableContents` / 
   - `off` — disable the guard entirely (NOT recommended; require an explicit confirmation such as "This disables ALL row-extraction guards. Type `I UNDERSTAND` to proceed.")
 - `MCP_BLOCKLIST_EXTEND` — comma-separated extra table names/patterns, always denied (use for site-specific Z-tables with sensitive data, e.g. `ZHR_SALARY,ZCUSTOMER_PII`)
 - `MCP_ALLOW_TABLE` — comma-separated whitelist for an **audited one-off bypass**; each use is logged to stderr. Remove entries when no longer actively needed.
+
+> **Which channel wins.** `MCP_ALLOW_TABLE` is read from the **active profile's `sap.env` only** — a value in the process environment is ignored, because it opens the guard. A `MCP_BLOCKLIST_PROFILE` from the environment applies only when it is **stricter** than the profile's, and the two `MCP_BLOCKLIST_EXTEND` lists are **unioned**. In one line: the process environment can tighten this guard, never loosen it (D-096). So if a table is refused and you believe it should not be, the fix is always in `sap.env`.
 
 Value format for EXTEND/ALLOW: uppercase table names, `[A-Z0-9_*]+` where `*` is a glob; strip whitespace around commas.
 

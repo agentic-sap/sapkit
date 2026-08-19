@@ -5,7 +5,10 @@
 #
 # S3에서 달라진 것:
 #   - smoke-mcp가 관찰에서 assertion으로 바뀌었다.
-#   - 엔진 소스 테스트와 provenance 검사를 편입했다(현재 실측 717 passed / 9 skipped — 5.0.0).
+#   - 엔진 소스 테스트와 provenance 검사를 편입했다.
+#     (그때의 「엔진」은 구 `engine/` 포크였다 — 실측 717 passed / 9 skipped · 5.0.0.
+#      2026-08-19 교체(D-095) 뒤 제품 엔진은 `sapkit-engine`이고, 그 잡은 아래
+#      `sapkit-engine`이다. `engine-tests`는 롤백 소스의 건강 확인으로 남는다.)
 #
 # 은퇴 (이식 장부): sc4sap 이식 provenance 게이트(check-migration-snapshot)와 그 음성시험을
 # 이 워크플로에서 제거했다. **이식 시대가 끝났고** 이후 콘텐츠는 원본에서 의도적으로
@@ -30,8 +33,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # check-engine-provenance가 `git log -1 -- engine/src …`로 번들 소스 최종 커밋을
-          # 찾는다. 얕은 클론(기본 depth 1)이면 이력이 없어 오판한다.
+          # check-engine-provenance가 `git log -1 -- sapkit-engine/src …`로 번들 소스 최종
+          # 커밋을 찾는다. 얕은 클론(기본 depth 1)이면 이력이 없어 오판한다.
           fetch-depth: 0
 
       - uses: actions/setup-node@v4

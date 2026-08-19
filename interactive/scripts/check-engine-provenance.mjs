@@ -47,7 +47,9 @@ const ENGINE_SOURCE_PATHS = [
   'sapkit-engine/package.json',
   'sapkit-engine/package-lock.json',
   'sapkit-engine/tsconfig.json',
-  'sapkit-engine/tools/bundle.mjs',
+  // 파일 하나가 아니라 **디렉터리**다 — tools/ 아래 헬퍼가 생겨 bundle.mjs가 그것을
+  // import하면, 파일로 고정했을 때는 번들 산출이 바뀌어도 검사 3이 안 걸린다.
+  'sapkit-engine/tools',
 ];
 
 const fail = [];
@@ -117,6 +119,9 @@ if (vCommit && integrity.sourceCommit !== vCommit[1])
 let rebuildLine = '재현 빌드    : (--rebuild 미지정 — 건너뜀)';
 if (REBUILD) {
   const shippedSha = sha256(fs.readFileSync(BUNDLE_PATH));
+  // 빌드를 **실제로 돌렸는가**. 안 돌렸으면 이전 빌드가 남긴 dist/를 비교해선 안 된다 —
+  // 그러면 하지 않은 일을 「✅ 재현」으로 적게 된다(소유자 머신처럼 dist/가 남아 있는 곳).
+  let ranBuild = false;
   const dirty = git(['status', '--porcelain', '--', 'sapkit-engine']);
   // 헤더 줄을 여기서 바꾼다. 안 바꾸면 `--rebuild`를 줬는데도 "미지정 — 건너뜀"이
   // 찍혀 **하지 않은 말을 출력**한다(실측: 작업트리가 더러운 채 돌렸을 때).
@@ -145,18 +150,23 @@ if (REBUILD) {
       .map(([k, v]) => `${k}: 기대 "${v}" != 실제 "${enginePkg.scripts?.[k] ?? '(없음)'}"`);
     if (drift.length) {
       fail.push(`sapkit-engine 빌드 명령이 바뀌었다 — 재현 절차를 함께 고칠 것: ${drift.join(' / ')}`);
+      rebuildLine = '재현 빌드    : ⛔ 판정 불가 (빌드 명령 드리프트)';
     } else {
       try {
         const tsc = path.join(ENGINE, 'node_modules', 'typescript', 'bin', 'tsc');
         if (!fs.existsSync(tsc)) throw new Error('typescript 미설치 — sapkit-engine에서 npm ci 선행');
         execFileSync(process.execPath, [tsc, '-p', 'tsconfig.json'], { cwd: ENGINE, encoding: 'utf8', stdio: 'pipe' });
         execFileSync(process.execPath, [path.join(ENGINE, 'tools', 'bundle.mjs')], { cwd: ENGINE, encoding: 'utf8', stdio: 'pipe' });
+        ranBuild = true;
       } catch (e) {
         fail.push(`재현 빌드 실패: ${String(e.message).split(String.fromCharCode(10))[0]}`);
+        rebuildLine = '재현 빌드    : ⛔ 판정 불가 (빌드 실패)';
       }
     }
     const built = path.join(ENGINE, 'dist', 'server.bundle.cjs');
-    if (!fs.existsSync(built)) fail.push('재현 빌드 산출물 부재: sapkit-engine/dist/server.bundle.cjs');
+    if (!ranBuild) {
+      // 위에서 이미 실패를 기록했다. 돌리지 않은 빌드의 산출물은 비교하지 않는다.
+    } else if (!fs.existsSync(built)) fail.push('재현 빌드 산출물 부재: sapkit-engine/dist/server.bundle.cjs');
     else {
       const builtSha = sha256(fs.readFileSync(built));
       if (builtSha !== shippedSha) {

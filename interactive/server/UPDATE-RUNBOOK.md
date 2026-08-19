@@ -75,7 +75,13 @@ node interactive/scripts/conformance-server-gates.mjs --target=engine
 - `--exposition` CLI 플래그 — 노출 그룹. 런처 셰임이 프로젝트
   `<runtime dir>/config.json`의 `toolSurface`에서 정해 **정확히 하나** 넘긴다.
 - `MCP_BLOCKLIST_PROFILE` / `MCP_BLOCKLIST_EXTEND` / `MCP_ALLOW_TABLE` — 테이블
-  blocklist. **통로가 둘이다**: 활성 프로파일 `sap.env`와 서버 프로세스 env. 같은 키가
-  겹치면 **프로파일이 이긴다**. (구 엔진은 프로세스 env 값을 지웠다 — 옛 GAP-2.
-  파급 판정은 D-095 ⓒ, 표는 `adapters/claude/hooks/README.md`.)
+  blocklist. **통로가 둘이다**(활성 프로파일 `sap.env` · 서버 프로세스 env) **그러나
+  프로세스 env는 조일 수는 있어도 풀 수는 없다**: `MCP_ALLOW_TABLE`은 프로파일 파일만 ·
+  층 이름은 프로파일보다 **더 조일 때만** · `MCP_BLOCKLIST_EXTEND`는 **합집합**.
+  (구 엔진은 프로세스 env 값을 통째로 지웠다 — 옛 GAP-2. 방향을 가른 근거는 D-096,
+  표는 `adapters/claude/hooks/README.md`.)
+- `MCP_UNSAFE` / `--unsafe` — **해석은 하되 게이트에는 손대지 않는다.** 구 문서가
+  「의미 실측 필요」로 남겨 둔 노브인데, 자체 저작 엔진이 실측해 결론을 냈다
+  (`sapkit-engine/src/server/startup.ts` + `src/safety/__tests__/unsafe.test.ts`의
+  음성시험). 값은 `true`만 참으로 읽고 `TRUE`는 거짓이다. **이 노브로 열리는 도구는 없다.**
 - `SAP_TIER`(프로파일) — QA/PRD에서 write·실행 차단. 연결 시에만 유효.

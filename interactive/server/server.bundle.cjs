@@ -39013,7 +39013,32 @@ var require_blocklist = __commonJS({
       compiled: compileNames(names)
     }));
     function resolveSafetyEnv(processEnv, profileEnv) {
-      return { ...processEnv, ...profileEnv };
+      const merged = { ...processEnv, ...profileEnv };
+      merged.MCP_ALLOW_TABLE = profileEnv.MCP_ALLOW_TABLE;
+      merged.MCP_BLOCKLIST_PROFILE = tightestLevel(processEnv.MCP_BLOCKLIST_PROFILE, profileEnv.MCP_BLOCKLIST_PROFILE);
+      merged.MCP_BLOCKLIST_EXTEND = unionNames(processEnv.MCP_BLOCKLIST_EXTEND, profileEnv.MCP_BLOCKLIST_EXTEND);
+      return merged;
+    }
+    var PROFILE_DEPTH = {
+      off: -1,
+      minimal: 0,
+      standard: 1,
+      strict: 2
+    };
+    function tightestLevel(fromProcess, fromProfile) {
+      if (fromProcess === void 0)
+        return fromProfile;
+      const floor = fromProfile === void 0 ? exports2.DEFAULT_BLOCKLIST_PROFILE : readProfileName(fromProfile);
+      const candidate = readProfileName(fromProcess);
+      if (PROFILE_DEPTH[candidate] > PROFILE_DEPTH[floor])
+        return candidate;
+      return fromProfile ?? floor;
+    }
+    function unionNames(fromProcess, fromProfile) {
+      const parts = [fromProfile, fromProcess].filter((v) => typeof v === "string" && v.trim() !== "");
+      if (parts.length === 0)
+        return fromProfile ?? fromProcess;
+      return parts.join(",");
     }
     function readBlocklistConfig(env = process.env) {
       return {

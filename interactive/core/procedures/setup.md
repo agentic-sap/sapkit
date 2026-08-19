@@ -152,13 +152,24 @@ missing or broken, and never rewrite a healthy existing artifact.
    `sap.env`), which is what actually gates row-data access in the
    hooks-off default state. Tell the user plainly: the server only accepts
    `minimal`\|`standard`(default)\|`strict`\|`off` for that key — anything
-   else silently falls back to `standard` — and it **only** reads
-   `MCP_BLOCKLIST_PROFILE`/`MCP_BLOCKLIST_EXTEND`/`MCP_ALLOW_TABLE` from the
-   **active profile's `sap.env` file itself**; a shell export or an MCP
-   registration's `env` block is silently discarded, because the server
-   clears and re-fills those three keys from `sap.env` on every profile
-   activation. If the user wants to change server-side blocklist behavior
-   without hooks, they edit `sap.env` (Step 2), not `config.json`.
+   else falls back to `standard`, so a typo can only land on the default and
+   never below it. The three keys
+   (`MCP_BLOCKLIST_PROFILE`/`MCP_BLOCKLIST_EXTEND`/`MCP_ALLOW_TABLE`) reach the
+   server through **two** channels — the active profile's `sap.env` and the
+   server's own process environment (a shell export, or an `env` block in the
+   MCP registration) — but **the process environment may only tighten this
+   guard, never loosen it**: `MCP_ALLOW_TABLE` is read from the profile file
+   alone, a level name from the environment applies only when it is stricter
+   than the profile's, and the two `MCP_BLOCKLIST_EXTEND` lists are unioned.
+   So the answer to "how do I open something up" is always the same: edit
+   `sap.env` (Step 2), not `config.json` and not the environment.
+
+   > Changed on 2026-08-19 (decisions D-095/D-096). Before that release the
+   > engine deleted those three keys from its process environment at startup,
+   > so `sap.env` was their only working channel at all. If you are reading an
+   > older note that says an `env` block is "silently discarded", that was true
+   > then and is not true now — what is still true is that it cannot open
+   > anything.
 3. Optional: if the user has local best-practice knowledge vaults (directories
    of `.md` notes from real implementations), offer to register them as
    `referenceLibraries` — consultant answers will consult them first

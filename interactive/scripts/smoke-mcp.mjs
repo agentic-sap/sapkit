@@ -227,8 +227,14 @@ function checkMcpWiringEnv(contract) {
       fail.push(`MCP 배선을 JSON으로 읽지 못함: ${spec.file} (${e.message})`);
       continue;
     }
-    if (!entry) {
-      fail.push(`MCP 배선에서 sap 서버 항목을 찾지 못함: ${spec.file} → [${spec.at.join('.')}]`);
+    // truthy만 보면 **얕은 경로로 공허하게 통과**한다 — `at: ["mcpServers"]`처럼 한 칸
+    // 덜 내려간 객체에는 `env`가 없어 `knobs=[]`가 되고 ✅로 찍힌다. 서버 항목의 표식인
+    // `command`까지 요구해야 「제대로 내려갔다」가 성립한다.
+    if (!entry || typeof entry.command !== 'string') {
+      fail.push(
+        `MCP 배선에서 sap 서버 항목을 찾지 못함: ${spec.file} → [${spec.at.join('.')}]` +
+          (entry ? ' (내려간 값에 command가 없다 — 경로가 얕다)' : '')
+      );
       continue;
     }
     const declared = Object.keys(entry.env ?? {});

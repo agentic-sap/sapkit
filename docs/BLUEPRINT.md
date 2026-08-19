@@ -37,7 +37,7 @@
 |---|---|---|
 | 제품 플러그인 | **sapkit** | 이미 개명 완료 (D-041) |
 | 검사기 CLI 명령 | **`sapkit`** | ✅ 개명 완료 (판1 · 소스 정본 `sapkit-cli/`) |
-| 새 엔진 | **SAPKIT Engine** / 패키지 **`sapkit-engine`** | 현재 `abap-mcp-adt-powerup` 포크 번들 |
+| 엔진 | **SAPKIT Engine** / 패키지 **`sapkit-engine`** | ✅ **2026-08-19 제품 번들 자리 인수**(D-095). 구 `abap-mcp-adt-powerup` 포크 번들이 물러났고 소스 `engine/`은 롤백 자산으로 잔존(은퇴 판7.5) |
 
 **SAP 시스템 측은 예외**: 이미 SAP에 생성된 `ZRSC4SAP_*` 오브젝트는 **무접촉**이다.
 SAP 오브젝트는 개명이 불가하므로 옛 이름이 그대로 남는다. 개명 대상은 레포가 배포하는
