@@ -267,7 +267,8 @@ discovery 외 폴백 · `skipSessionType` 중 하나라도 발동이 관찰되�
 | RFC 백엔드 | `odata`·`soap`·`native`·`gateway`·`zrfc` — **5** | 5 |
 | 인증 통로 | Basic **접속까지** · `--env=<name>` 세션 **접속까지** · `--mcp=<destination>` service-key **설정 조립까지**(UAA 토큰 취득 미구현) · 브로커 **저장소 재료 조립까지** | 4통로 전부 접속 |
 
-- **오프라인 증거**: jest **4,001 통과 / 1 skip** · 신 엔진 자체 게이트 전종 통과 · 게이트
+- **오프라인 증거**: jest **4,001 통과 / 1 skip**(당시 수 — 판6.1이 시험을 더해 **지금은
+  4,153**이다) · 신 엔진 자체 게이트 전종 통과 · 게이트
   음성시험 **44건** · **기존 제품 게이트 8종 무접촉이고 전부 exit 0**(doctor 제외 —
   당시 8종이고 판1에서 `verify-checker`가 더해져 **지금은 9종**이다).
   의도적 차이 장부 `sapkit-engine/harness/DIVERGENCES.md`는 **D1~D132**(예약 결번을 뺀
