@@ -8,7 +8,7 @@ The Clean ABAP rules that apply specifically to the **OOP paradigm** — local c
 
 The main `REPORT` source of an OOP program is not written from a blank page: the executor MUST take the canonical sample as its starting point and stay conformant to it.
 
-**Source of truth**: [`oop-sample/zsapkit_oop_ex.prog.abap`](../templates/oop-sample/zsapkit_oop_ex.prog.abap) (companion includes: `zsapkit_oop_exa/exc/exe/exf/exi/exo/exs/ext/extst.prog.abap`, screens `zsapkit_oop_ex.prog.screen_0100.abap` / `_0200.abap`).
+**Source of truth**: [`oop-sample/zsapkit_oop_ex.prog.abap`](../templates/oop-sample/zsapkit_oop_ex.prog.abap) (companion includes: `zsapkit_oop_exa/exc/exe/exf/exi/exo/exs/ext/ex_tst.prog.abap`, screens `zsapkit_oop_ex.prog.screen_0100.abap` / `_0200.abap`).
 
 - **Do**: take the skeleton over — the REPORT statement, the INCLUDE order, the INITIALIZATION / AT SELECTION-SCREEN / START-OF-SELECTION / END-OF-SELECTION blocks, and the class bootstrap pattern `go_data = NEW #( ).` / `go_alv = NEW #( ).` — and adapt the identifiers afterwards (`zsapkit_oop_ex` becomes the actual program name, while the include suffix letters stay as they are).
 - **Do not**: reorder the event blocks; drop the two-class bootstrap; move logic into the events themselves (every piece of logic belongs in a class method); swap Docking + Full ALV for a Custom Control; or bring in some other include-suffix convention.

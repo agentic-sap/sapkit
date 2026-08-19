@@ -42,7 +42,7 @@ INCLUDE zsapkit_oop_exi.
 INCLUDE zsapkit_oop_exf.
 
 *-- FOR TESTING classes
-INCLUDE zsapkit_oop_extst.
+INCLUDE zsapkit_oop_ex_tst.
 
 
 *&---------------------------------------------------------------------*
