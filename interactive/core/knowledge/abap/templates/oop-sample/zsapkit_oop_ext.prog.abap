@@ -88,7 +88,9 @@ DATA go_alv TYPE REF TO lcl_alv.
 DATA gv_okcode TYPE sy-ucomm.
 
 *-- Texts of the two radio-button comments, filled in LCL_DATA
-*-- CONSTRUCTOR so the wording travels with the code. The names are
-*-- short because a selection-screen element name stops at 8 characters.
-DATA gv_tgrid TYPE c LENGTH 15.
-DATA gv_ttree TYPE c LENGTH 15.
+*-- CONSTRUCTOR so the wording travels with the code. They are not
+*-- declared here on purpose: SELECTION-SCREEN COMMENT (15) gv_tgrid
+*-- declares the field it names, as C LENGTH 15, so a DATA line for it
+*-- in this include would be a second declaration and the program would
+*-- not compile. The names stay short because a selection-screen
+*-- element name stops at 8 characters.
