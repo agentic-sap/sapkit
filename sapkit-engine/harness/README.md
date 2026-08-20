@@ -35,8 +35,10 @@
 | `fixtures/attended-only/` | C1 산출 | 채록된 시퀀스. 마스킹 통과분만 |
 | `fixtures/` (`../fixtures/`) | 재생 기준선 | **구 엔진 채록분.** 여기에 새로 저장하는 것은 거부된다 (교체 뒤에는 자기 대조라 증거가 아니다) |
 | `old-surface/` | 기준선 | 구 번들 `tools/list` 오프라인 채록본 |
-| `build-plan.mjs` | 오프라인 | 묶음·제작 순서·요구 증거 급을 **계산해** `build-plan.json`을 쓰거나 `--check`로 대조 |
-| `build-plan.json` | 계획 | 묶음 29 · 도구 186종의 묶음·제작 순서·요구 증거 급. 사람이 읽을 근거는 `BUILD-PLAN.md` |
+| `build-plan.mjs` | 오프라인 | 묶음·제작 순서·요구 증거 급을 **계산해** `build-plan.json`을 쓰거나 `--check`로 대조 (`npm run build` 뒤에 — 사다리는 `ledger/grade.ts`가 소유한다) |
+| `build-plan.json` | 계획 | 묶음 29 · 도구 186종의 묶음·제작 순서·요구 증거 급 + **인하 표시**. 사람이 읽을 근거는 `BUILD-PLAN.md` |
+| `phase6-exercised.mjs` | 오프라인 | `fixtures/`를 훑어 **얼린 관측**을 뽑거나 `--check`로 갈라짐만 알린다 (**자동으로 다시 얼리지 않는다**) |
+| `phase6-exercised.json` | 얼린 관측 | 판6까지 픽스처가 실제로 태운 도구 78종. 요구 급 인하(D-092 ⓐ)의 근거 — 근거는 `BUILD-PLAN.md` §3.1 |
 
 ```powershell
 node harness/record-attended.mjs --scenario=<id> --dry-run          # SAP 불필요
@@ -44,14 +46,16 @@ node harness/record-attended.mjs --scenario=<id> --env-path=<sap.env>
 node harness/replay-attended.mjs --env-path=<sap.env>
 node harness/render-ledger.mjs                                      # SAP 불필요
 node harness/render-ledger.mjs --check                              # SAP 불필요
-node harness/build-plan.mjs                                         # SAP 불필요
-node harness/build-plan.mjs --check                                 # SAP 불필요
+node harness/build-plan.mjs                                         # SAP 불필요 (npm run build 뒤)
+node harness/build-plan.mjs --check                                 # SAP 불필요 (npm run build 뒤)
+node harness/phase6-exercised.mjs --check                           # SAP 불필요 — 갈라짐만 알린다
+node harness/phase6-exercised.mjs                                   # SAP 불필요 — **다시 얼린다** (사람의 판단)
 ```
 
 **C1·C2는 SAP에 접속한다.** 재생은 응답을 흉내 내는 것이 아니라 신 엔진이 같은
 질문을 다시 던지는 일이라, C1뿐 아니라 **C2도 attended 구간**이다. 대장·계획 계열
-(`render-ledger.mjs`·`contract-evidence.mjs`·`build-plan.mjs`)은 레포 안의 파일만
-읽는 오프라인 도구다.
+(`render-ledger.mjs`·`contract-evidence.mjs`·`build-plan.mjs`·`phase6-exercised.mjs`)은
+레포 안의 파일만 읽는 오프라인 도구다.
 
 ## 진입점이 지키는 것 (라이브러리가 안 보는 축)
 

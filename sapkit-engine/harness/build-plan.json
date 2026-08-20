@@ -350,7 +350,8 @@
     },
     "DescribeByList": {
       "bundle": "system",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetAbapAST": {
       "bundle": "system",
@@ -362,7 +363,8 @@
     },
     "GetAbapSystemSymbols": {
       "bundle": "system",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetAdtTypes": {
       "bundle": "tail",
@@ -370,7 +372,8 @@
     },
     "GetAtcFindings": {
       "bundle": "atc",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetBadiImplementations": {
       "bundle": "tail",
@@ -378,11 +381,13 @@
     },
     "GetBehaviorDefinition": {
       "bundle": "behavior-definition",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetBehaviorImplementation": {
       "bundle": "behavior-implementation",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetCallGraph": {
       "bundle": "tail",
@@ -406,7 +411,8 @@
     },
     "GetClassMethod": {
       "bundle": "class",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetDataElement": {
       "bundle": "data-element",
@@ -438,11 +444,13 @@
     },
     "GetGuiStatus": {
       "bundle": "gui-status",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetGuiStatusList": {
       "bundle": "gui-status",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetInactiveObjects": {
       "bundle": "system",
@@ -454,11 +462,13 @@
     },
     "GetIncludesList": {
       "bundle": "include",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetInstalledComponents": {
       "bundle": "system",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetInterface": {
       "bundle": "interface",
@@ -498,7 +508,8 @@
     },
     "GetObjectStructure": {
       "bundle": "system",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetObjectStructureLow": {
       "bundle": "tail",
@@ -514,11 +525,13 @@
     },
     "GetPackage": {
       "bundle": "package",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetPackageContents": {
       "bundle": "package",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetPackageTree": {
       "bundle": "system",
@@ -526,7 +539,8 @@
     },
     "GetProgFullCode": {
       "bundle": "program",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetProgram": {
       "bundle": "program",
@@ -534,11 +548,13 @@
     },
     "GetScreen": {
       "bundle": "screen",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetScreensList": {
       "bundle": "screen",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetServiceBinding": {
       "bundle": "service-binding",
@@ -550,7 +566,8 @@
     },
     "GetSession": {
       "bundle": "system",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetSourceDiff": {
       "bundle": "common",
@@ -566,7 +583,8 @@
     },
     "GetSystemInfo": {
       "bundle": "system",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetTable": {
       "bundle": "table",
@@ -574,35 +592,43 @@
     },
     "GetTableContents": {
       "bundle": "table",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetTextElement": {
       "bundle": "text-element",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetTransaction": {
       "bundle": "system",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetTransport": {
       "bundle": "transport",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetTypeInfo": {
       "bundle": "system",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetUnitTest": {
       "bundle": "unit-test",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetUnitTestResult": {
       "bundle": "unit-test",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetUnitTestStatus": {
       "bundle": "unit-test",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GetView": {
       "bundle": "view",
@@ -614,7 +640,8 @@
     },
     "GetWhereUsed": {
       "bundle": "system",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "GrepObjects": {
       "bundle": "search",
@@ -622,19 +649,23 @@
     },
     "GrepPackages": {
       "bundle": "search",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "ListServiceBindingTypes": {
       "bundle": "service-binding",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "ListTransports": {
       "bundle": "transport",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "PatchGuiStatus": {
       "bundle": "gui-status",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "ReadBehaviorDefinition": {
       "bundle": "behavior-definition",
@@ -646,15 +677,18 @@
     },
     "ReadClass": {
       "bundle": "class",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "ReadDataElement": {
       "bundle": "data-element",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "ReadDomain": {
       "bundle": "domain",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "ReadFunctionGroup": {
       "bundle": "function-group",
@@ -662,11 +696,13 @@
     },
     "ReadFunctionModule": {
       "bundle": "function-module",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "ReadGuiStatus": {
       "bundle": "gui-status",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "ReadInterface": {
       "bundle": "interface",
@@ -674,7 +710,8 @@
     },
     "ReadMetadataExtension": {
       "bundle": "metadata-extension",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "ReadPackage": {
       "bundle": "tail",
@@ -682,35 +719,43 @@
     },
     "ReadProgram": {
       "bundle": "program",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "ReadScreen": {
       "bundle": "screen",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "ReadServiceBinding": {
       "bundle": "service-binding",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "ReadServiceDefinition": {
       "bundle": "service-definition",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "ReadStructure": {
       "bundle": "structure",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "ReadTable": {
       "bundle": "table",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "ReadTextElementsBulk": {
       "bundle": "text-element",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "ReadView": {
       "bundle": "view",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "ReleaseTransport": {
       "bundle": "transport",
@@ -718,11 +763,13 @@
     },
     "ReloadProfile": {
       "bundle": "runtime",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "RunUnitTest": {
       "bundle": "unit-test",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "RuntimeAnalyzeDump": {
       "bundle": "runtime",
@@ -730,7 +777,8 @@
     },
     "RuntimeAnalyzeProfilerTrace": {
       "bundle": "runtime",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "RuntimeCreateProfilerTraceParameters": {
       "bundle": "runtime",
@@ -742,15 +790,18 @@
     },
     "RuntimeGetGatewayErrorLog": {
       "bundle": "runtime",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "RuntimeGetProfilerTraceData": {
       "bundle": "runtime",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "RuntimeListDumps": {
       "bundle": "runtime",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "RuntimeListFeeds": {
       "bundle": "tail",
@@ -758,7 +809,8 @@
     },
     "RuntimeListProfilerTraceFiles": {
       "bundle": "runtime",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "RuntimeListSystemMessages": {
       "bundle": "tail",
@@ -766,11 +818,13 @@
     },
     "RuntimeRunClassWithProfiling": {
       "bundle": "runtime",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "RuntimeRunProgramWithProfiling": {
       "bundle": "runtime",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "SearchObject": {
       "bundle": "search",
@@ -778,11 +832,13 @@
     },
     "UpdateBehaviorDefinition": {
       "bundle": "behavior-definition",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "UpdateBehaviorImplementation": {
       "bundle": "behavior-implementation",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "UpdateCdsUnitTest": {
       "bundle": "tail",
@@ -794,7 +850,8 @@
     },
     "UpdateClassMethod": {
       "bundle": "class",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "UpdateDataElement": {
       "bundle": "tail",
@@ -810,7 +867,8 @@
     },
     "UpdateFunctionModule": {
       "bundle": "function-module",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "UpdateGuiStatus": {
       "bundle": "gui-status",
@@ -854,7 +912,8 @@
     },
     "UpdateServiceBinding": {
       "bundle": "service-binding",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "UpdateServiceDefinition": {
       "bundle": "service-definition",
@@ -866,7 +925,8 @@
     },
     "UpdateStructure": {
       "bundle": "structure",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "UpdateTable": {
       "bundle": "table",
@@ -886,11 +946,13 @@
     },
     "ValidateServiceBinding": {
       "bundle": "service-binding",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     },
     "WriteTextElementsBulk": {
       "bundle": "text-element",
-      "requiredGrade": "replay"
+      "requiredGrade": "contract",
+      "downgradedFrom": "replay"
     }
   }
 }
