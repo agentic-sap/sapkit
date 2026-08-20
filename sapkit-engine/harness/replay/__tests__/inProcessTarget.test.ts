@@ -3,7 +3,7 @@
  *
  * 이 머신에서 jest가 자식 프로세스 수거에서 비결정적으로 블록된 실측 기록이
  * 있다(`HANDOFF.md`). 그래서 재생 쪽 신 엔진은 SDK의 `InMemoryTransport`로
- * 같은 프로세스 안에 세운다 — 구 엔진 채록만이 프로세스를 띄운다.
+ * 같은 프로세스 안에 세운다 — 번들 채록(C1)만이 프로세스를 띄운다.
  */
 import * as fs from 'node:fs';
 import * as os from 'node:os';

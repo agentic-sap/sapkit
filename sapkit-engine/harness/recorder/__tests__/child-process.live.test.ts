@@ -4,7 +4,7 @@
  * 이 머신에서 jest가 자식 프로세스 수거에서 비결정적으로 블록된 실측 기록이
  * 있다(레포 `HANDOFF.md`). 그래서 이 파일은 `SAPKIT_RECORDER_LIVE=1`일 때만 돈다.
  *
- * 켜도 SAP에는 접속하지 않는다 — 구 번들을 inspection-only(무프로파일)로 띄워
+ * 켜도 SAP에는 접속하지 않는다 — 제품 번들을 inspection-only(무프로파일)로 띄워
  * `tools/list`만 확인한다. 접속이 필요한 도구는 여기서 부르지 않는다.
  *
  * 실행:  $env:SAPKIT_RECORDER_LIVE=1; npx jest child-process.live --forceExit
@@ -27,7 +27,7 @@ const KEYRING = path.join(REPO_ROOT, 'interactive', 'server', 'runtime-deps', 'k
 describeLive('ChildProcessTransport (실기동 — opt-in)', () => {
   jest.setTimeout(60_000);
 
-  it('구 번들을 띄워 tools/list에 응답받는다 (SAP 무접속)', async () => {
+  it('제품 번들을 띄워 tools/list에 응답받는다 (SAP 무접속)', async () => {
     const t = new ChildProcessTransport({ bundlePath: BUNDLE, exposition: 'readonly', nodePath: KEYRING });
     try {
       const handshake = await t.open();

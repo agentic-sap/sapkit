@@ -2,7 +2,7 @@
  * 채록기 코어 — 시퀀스 하나를 돌려 픽스처를 만든다.
  *
  * 코어는 **전송을 모른다**. `RecorderTransport`(요청 하나를 보내고 응답 하나를
- * 받는다)에만 의존하고, 구 번들을 자식 프로세스로 띄우는 것은 그 인터페이스의
+ * 받는다)에만 의존하고, 제품 번들을 자식 프로세스로 띄우는 것은 그 인터페이스의
  * 한 구현일 뿐이다(`childProcessTransport.ts`). 이 머신에서 jest가 자식 프로세스
  * 수거에서 비결정적으로 블록된 실측 기록이 있어(`HANDOFF.md`) 단위 시험은 전부
  * 가짜 전송(`scriptedTransport.ts`)으로 돈다.
@@ -70,7 +70,7 @@ export interface SequenceSpec {
  * 시퀀스를 순서대로 돌려 **정규화된** 픽스처를 만든다.
  *
  * 단계 사이에 상태(잠금 핸들 등)가 흐르므로 호출은 반드시 직렬이고, 도구가
- * 오류를 돌려줘도 시퀀스는 계속한다 — 오류 응답도 구 엔진의 계약이고 재생
+ * 오류를 돌려줘도 시퀀스는 계속한다 — 오류 응답도 그 엔진의 계약이고 재생
  * 대조의 대상이다. 전송 자체가 끊기면 거기서 멈추되 전송은 반드시 닫는다.
  */
 export async function recordSequence(spec: SequenceSpec, transport: RecorderTransport): Promise<SequenceFixture> {
