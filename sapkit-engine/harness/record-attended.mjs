@@ -43,6 +43,7 @@ import { AuthFailureAbort, abortOnAuthFailure } from './auth-guard.mjs';
 import {
   classifyOutDir,
   detectDegradation,
+  noConnectionPattern,
   outDirNotices,
   outDirRefusal,
   resolveOutDir,
@@ -193,6 +194,16 @@ if (outRefusal) die('저장 자리가 증거의 자리가 아니다 — 녹화�
 // 막지는 않되 알린다 — 「그 밖의 자리」는 정당한 쓰임이지만 커밋 대상이 아니다.
 for (const notice of outDirNotices(outDir)) console.warn(`⚠️ ${notice}`);
 
+// 무접속 판정도 **태우기 전에** 세운다. 이 판정은 저장 직전에 한 번 더 서고 못 서면
+// fail-closed로 막지만(그쪽이 정본이다), 그때는 P3 write가 이미 나간 뒤다 —
+// 자리 판정과 같은 이유로, 미리 세울 수 있는 판정은 미리 세운다.
+let noConnectionRe;
+try {
+  noConnectionRe = noConnectionPattern();
+} catch (err) {
+  die('무접속 판정을 세우지 못했다 — 녹화를 시작하지 않는다.', err?.message ?? String(err));
+}
+
 // 덮어쓰기 확인은 **실제로 쓰는 경로에서만** 한다. dry-run은 아무것도 쓰지
 // 않으므로 여기서 막으면 이미 채록한 시퀀스의 형식 검사가 영영 불가능해진다.
 if (!dryRun && fs.existsSync(outFile) && !args.flags.has('force')) {
@@ -222,6 +233,7 @@ if (dryRun) {
       (outDirKind === 'attended-only' ? ' (제품 엔진 이름을 요구한다)' : ''),
   );
   console.log(`   exposition : ${exposition}`);
+  console.log(`   무접속 판정 : /${noConnectionRe.source}/ (제품 게이트에서 긁어온 어휘 정본)`);
   console.log(
     `   대상 검사   : 대상-이름을 선언한 도구 ${Object.keys(guard.TARGET_NAME_EXTRACTORS).length}종 ` +
       '(선언 없는 도구는 사후 백스톱)',

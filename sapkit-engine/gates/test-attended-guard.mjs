@@ -193,6 +193,32 @@ check('인자 없는 --out은 기본 저장 자리다', path.resolve(resolveOutD
   check('엔진 안의 자리는 「그 밖」 알림을 내지 않는다', outDirNotices(ATTENDED_DIR).length === 0);
 }
 
+// ── ⑦ 진입점이 두 판정을 **태우기 전에** 세우는가 ────────────────────────────
+//
+// 계약이 요구하는 fail-closed는 저장 직전에도 서지만, 그때는 P3 write가 이미 나간
+// 뒤다 — 「저장이 안 됐다」는 「SAP이 안 바뀌었다」가 아니다. 그래서 진입점은 자리
+// 판정과 무접속 어휘를 **`recordSequence` 앞에서** 한 번 세운다. 그 배선이 뒤로
+// 밀리면 이 시험이 잡는다(순서를 소스에서 본다 — 진입점은 톱레벨 부작용이 있어
+// import할 수 없다).
+{
+  const entry = fs.readFileSync(path.join(ENGINE_ROOT, 'harness', 'record-attended.mjs'), 'utf8');
+  const at = (needle) => entry.indexOf(needle);
+  const burn = at('recordSequence(');
+  check('진입점이 recordSequence를 부른다 (기준점)', burn > 0);
+  check(
+    '자리 거부가 태우기 전에 선다',
+    at('outDirRefusal(') > 0 && at('outDirRefusal(') < burn,
+  );
+  check(
+    '무접속 어휘 정본이 태우기 전에 선다',
+    at('noConnectionPattern(') > 0 && at('noConnectionPattern(') < burn,
+  );
+  check(
+    '세우지 못하면 녹화를 시작하지 않는다',
+    /무접속 판정을 세우지 못했다/.test(entry),
+  );
+}
+
 fs.rmSync(tmpRoot, { recursive: true, force: true });
 
 for (const r of rows) console.log(`  ${r.ok ? '✅' : '❌'} ${r.name}${r.detail ? ` — ${r.detail}` : ''}`);
