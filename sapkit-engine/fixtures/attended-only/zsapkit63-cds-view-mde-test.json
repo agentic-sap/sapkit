@@ -1,52 +1,110 @@
 {
-  "_": "판6.3 실기 왕복 ⑧ — CDS 계열. 메타데이터 확장·CDS 단위시험은 CDS 뷰가 숙주이고, 뷰 자신은 베이스 테이블이 숙주다(RUN-PLAN 함정 3). 온프렘 지원 여부는 착수 시점에 미확인이었다 — T4-1 정찰이 CreateView 1회로 먼저 가른다.",
+  "formatVersion": 1,
   "sequenceId": "zsapkit63-cds-view-mde-test",
   "description": "[재실행 가능 · P3 · $TMP] 베이스 테이블 ZSAPKIT_63_VT 생성·DDL 투입·활성 → CDS 뷰 ZSAPKIT_63_V 생성·DDL 투입·활성 → 되읽기 → 메타데이터 확장 ZSAPKIT_63_MDE 생성·소스 투입·활성 → 되읽기 → CDS 단위시험 실행 시도(원리상 오류) → 삭제 대상 숙주 클래스 ZCL_SAPKIT_63_CDST를 CreateClass로 세움 → 되읽기 → 셋 다 삭제 → 베이스 테이블 삭제 → 네 이름으로 재조회해 0건 확인. 전제: 네 이름이 시스템에 없어야 한다. 숙주까지 이 시퀀스가 세우므로 재실행 가능하다. 베이스 테이블을 표준 테이블(T000 등)로 대신하지 않는 이유는 둘이다 — 남의 것을 건드리지 않기 위해서이고, 픽스처에 실리는 소스가 전부 우리가 만든 Z 객체여야 하기 때문이다. 대상 시스템은 ABAP 757(S/4 2022)이라 `define view entity`(7.55+)와 `annotate entity`가 성립한다 — 그래서 sqlViewName 주석이 필요 없다. T4-1 정찰이 「안 선다」로 나오면 이 시퀀스와 RAP 시퀀스는 태우지 않고 6짝 전부 「못 섬 + 이유」로 기록한다. $TMP라 transport_request가 없다. **실기 1회차가 확정한 것 셋이 반영돼 있다.** ⑴ 뷰에 `@Metadata.allowExtensions: true`가 없으면 메타데이터 확장이 붙지 못한다. ⑵ `CreateMetadataExtension`은 **객체를 만들면서 오류를 보고한다**(검사가 생성 뒤에 돌기 때문) — 실패 보고도 그대로 믿으면 안 된다는 실례다. ⑶ `CreateCdsUnitTest`는 **원리상 언제나 오류**이고 SAP 호출이 0건이다 — 그래서 `DeleteCdsUnitTest`의 대상은 CreateClass로 따로 세운다.",
+  "engine": {
+    "name": "sapkit-engine",
+    "version": "1.0.0",
+    "protocolVersion": "2024-11-05",
+    "exposition": "readonly,high"
+  },
+  "recordedAt": "2026-08-20T05:23:56.311Z",
   "steps": [
     {
+      "index": 0,
       "tool": "CreateTable",
       "args": {
         "table_name": "ZSAPKIT_63_VT",
         "description": "sapkit 63 attended probe base table for CDS",
         "package_name": "$TMP"
       },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"success\":true,\"table_name\":\"ZSAPKIT_63_VT\",\"package_name\":\"$TMP\",\"transport_request\":\"local\",\"skeleton\":\"mandt\",\"message\":\"Table ZSAPKIT_63_VT created with MANDT skeleton. Use UpdateTable to add fields (preserve #NOT_EXTENSIBLE, #RESTRICTED, and 'key mandt : mandt not null').\"}"
+          }
+        ]
+      },
+      "isError": false,
       "note": "CDS 뷰가 select 할 자리. 껍데기만 서므로 다음 단계에서 DDL을 채운다."
     },
     {
+      "index": 1,
       "tool": "UpdateTable",
       "args": {
         "table_name": "ZSAPKIT_63_VT",
         "ddl_code": "@EndUserText.label : 'sapkit 63 attended probe base table'\n@AbapCatalog.enhancement.category : #NOT_EXTENSIBLE\n@AbapCatalog.tableCategory : #TRANSPARENT\n@AbapCatalog.deliveryClass : #A\n@AbapCatalog.dataMaintenance : #RESTRICTED\ndefine table zsapkit_63_vt {\n  key mandt : mandt not null;\n  key id    : abap.char(10) not null;\n  name      : abap.char(60);\n}\n",
         "activate": true
       },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"table_name\": \"ZSAPKIT_63_VT\",\n  \"transport_request\": \"local\",\n  \"activated\": true,\n  \"message\": \"Table ZSAPKIT_63_VT source updated and activated successfully\",\n  \"uri\": \"/sap/bc/adt/ddic/tables/ZSAPKIT_63_VT\",\n  \"steps_completed\": [\n    \"lock\",\n    \"check_new_code\",\n    \"update\",\n    \"unlock\",\n    \"check_inactive\",\n    \"activate\"\n  ],\n  \"source_size_bytes\": 356\n}"
+          }
+        ]
+      },
+      "isError": false,
       "note": "클라이언트 키는 MANDT 데이터엘리먼트다(abap.clnt는 CDS 뷰 문법). 활성 테이블이라야 뷰가 그 위에 선다."
     },
     {
+      "index": 2,
       "tool": "CreateView",
       "args": {
         "view_name": "ZSAPKIT_63_V",
         "package_name": "$TMP",
         "description": "sapkit 63 attended probe CDS view"
       },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"view_name\": \"ZSAPKIT_63_V\",\n  \"package_name\": \"$TMP\",\n  \"transport_request\": null,\n  \"type\": \"DDLS\",\n  \"message\": \"View ZSAPKIT_63_V created successfully. Use UpdateView to set DDL source code.\",\n  \"uri\": \"/sap/bc/adt/ddic/ddl/sources/zsapkit_63_v\",\n  \"steps_completed\": [\n    \"validate\",\n    \"create\"\n  ]\n}"
+          }
+        ]
+      },
+      "isError": false,
       "note": "CreateView는 이름·패키지만 받는다 — DDL은 다음 단계의 UpdateView가 채운다. $TMP 허용은 도구 선언 자신이 명시한다."
     },
     {
+      "index": 3,
       "tool": "UpdateView",
       "args": {
         "view_name": "ZSAPKIT_63_V",
         "ddl_source": "@AccessControl.authorizationCheck: #NOT_REQUIRED\n@EndUserText.label: 'sapkit 63 attended probe view'\n@Metadata.ignorePropagatedAnnotations: true\n@Metadata.allowExtensions: true\ndefine view entity ZSAPKIT_63_V\n  as select from zsapkit_63_vt\n{\n  key id   as Id,\n      name as Name\n}\n",
         "activate": true
       },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"view_name\": \"ZSAPKIT_63_V\",\n  \"type\": \"DDLS\",\n  \"activated\": true,\n  \"message\": \"View ZSAPKIT_63_V updated and activated successfully\",\n  \"uri\": \"/sap/bc/adt/ddic/ddl/sources/zsapkit_63_v\",\n  \"steps_completed\": [\n    \"lock\",\n    \"check_new_code\",\n    \"update\",\n    \"unlock\",\n    \"check_inactive\",\n    \"activate\"\n  ]\n}"
+          }
+        ]
+      },
+      "isError": false,
       "note": "mandt를 명시로 뽑지 않는다 — view entity는 클라이언트 열을 암묵으로 다루고, 명시하면 오류다. **`@Metadata.allowExtensions: true`가 없으면 메타데이터 확장이 붙지 못한다**(실기 1회차 실측: 「Annotation 'Metadata.allowExtensions' missing in 'ZSAPKIT_63_V'」). 이 뷰가 뒤의 메타데이터 확장의 숙주다."
     },
     {
+      "index": 4,
       "tool": "GetView",
       "args": {
         "view_name": "ZSAPKIT_63_V"
       },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"view_name\": \"ZSAPKIT_63_V\",\n  \"version\": \"active\",\n  \"view_data\": \"@AccessControl.authorizationCheck: #NOT_REQUIRED\\n@EndUserText.label: 'sapkit 63 attended probe view'\\n@Metadata.ignorePropagatedAnnotations: true\\n@Metadata.allowExtensions: true\\ndefine view entity ZSAPKIT_63_V\\n  as select from zsapkit_63_vt\\n{\\n  key id   as Id,\\n      name as Name\\n}\\n\",\n  \"status\": 200,\n  \"status_text\": \"OK\"\n}"
+          }
+        ]
+      },
+      "isError": false,
       "note": "되읽기 — 보낸 DDL이 실제로 반영됐는지. 이 판이 만든 Z 객체라 소스가 픽스처에 실려도 된다."
     },
     {
+      "index": 5,
       "tool": "CreateMetadataExtension",
       "args": {
         "name": "ZSAPKIT_63_MDE",
@@ -54,25 +112,56 @@
         "package_name": "$TMP",
         "activate": false
       },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "MCP error -32603: Error: Metadata Extension ZSAPKIT_63_MDE preCheck syntax check failed (1 error): [L1] Illegal syntax. Malformed 'annotate' statement."
+          }
+        ],
+        "isError": true
+      },
+      "isError": true,
       "note": "⚠ **이 단계는 오류로 돌아올 것이 예고돼 있다** — 실기 1회차 실측: 「preCheck syntax check failed [L1] Illegal syntax. Malformed 'annotate' statement」. 그런데 **객체는 실제로 만들어진다**(같은 시퀀스의 GetMetadataExtension·DeleteMetadataExtension이 성공한다). 사슬이 ② 껍데기 생성 → ③ 잠금 → ④ 인액티브 검사 순서라, 검사가 깨져도 생성은 이미 끝난 뒤이기 때문이다. **「write 성공 보고를 그대로 믿지 않는다」의 뒤집힌 짝이다 — 실패 보고도 그대로 믿으면 안 된다.** 대장은 이 단계를 fail로 접으므로 CreateMetadataExtension은 「증거 대기」로 남는다."
     },
     {
+      "index": 6,
       "tool": "UpdateMetadataExtension",
       "args": {
         "name": "ZSAPKIT_63_MDE",
         "source_code": "@Metadata.layer: #CORE\nannotate entity ZSAPKIT_63_V with\n{\n  @UI.lineItem: [ { position: 10 } ]\n  Id;\n}\n",
         "activate": true
       },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"name\": \"ZSAPKIT_63_MDE\",\n  \"message\": \"Metadata Extension ZSAPKIT_63_MDE updated and activated successfully\"\n}"
+          }
+        ]
+      },
+      "isError": false,
       "note": "view entity에는 `annotate entity`가 맞다(고전 뷰의 `annotate view`가 아니다 — 757이라 둘이 갈린다). 실패하면 그 응답이 갈림의 근거가 된다."
     },
     {
+      "index": 7,
       "tool": "GetMetadataExtension",
       "args": {
         "metadata_extension_name": "ZSAPKIT_63_MDE"
       },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"metadata_extension_name\": \"ZSAPKIT_63_MDE\",\n  \"version\": \"active\",\n  \"metadata_extension_data\": \"@Metadata.layer: #CORE\\nannotate entity ZSAPKIT_63_V with\\n{\\n  @UI.lineItem: [ { position: 10 } ]\\n  Id;\\n}\\n\",\n  \"status\": 200,\n  \"status_text\": \"OK\"\n}"
+          }
+        ]
+      },
+      "isError": false,
       "note": "되읽기."
     },
     {
+      "index": 8,
       "tool": "CreateCdsUnitTest",
       "args": {
         "class_name": "ZCL_SAPKIT_63_CDST",
@@ -80,9 +169,20 @@
         "cds_view_name": "ZSAPKIT_63_V",
         "description": "sapkit 63 attended probe CDS unit test"
       },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "MCP error -32603: Error: At least one test definition is required for test run"
+          }
+        ],
+        "isError": true
+      },
+      "isError": true,
       "note": "⚠ **이 단계는 반드시 오류다 — 원리상 그렇다.** 벤더의 생성 갈래는 `classTemplate`·`testClassSource`를 요구하는데 그 둘은 **발행 스키마에 없어서** 언제나 빈 문자열이고, 그래서 호출은 늘 시험 실행 갈래로 떨어져 「At least one test definition is required for test run」을 던진다 — **SAP 요청은 0건이다.** 엔진 소스(src/tools/write/createCdsUnitTest.ts 머리말)가 이 사연을 이미 적어 두었고, 요구 급이 attended 실기인 이유가 「사람이 한 번 눈으로 확인하라」였다. **이 단계가 그 확인이다.** DeleteUnitTest와 같은 부류로 「증거 대기」에 남는다."
     },
     {
+      "index": 9,
       "tool": "CreateClass",
       "args": {
         "class_name": "ZCL_SAPKIT_63_CDST",
@@ -90,75 +190,155 @@
         "package_name": "$TMP",
         "final": true
       },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"data\": {\n    \"class_name\": \"ZCL_SAPKIT_63_CDST\",\n    \"package_name\": \"$TMP\",\n    \"transport_request\": null,\n    \"activated\": false,\n    \"errors\": []\n  },\n  \"class_name\": \"ZCL_SAPKIT_63_CDST\",\n  \"package_name\": \"$TMP\",\n  \"transport_request\": null,\n  \"activated\": false,\n  \"errors\": [],\n  \"message\": \"Class ZCL_SAPKIT_63_CDST created successfully. Use UpdateClass to set source code.\"\n}"
+          }
+        ]
+      },
+      "isError": false,
       "note": "앞 단계가 원리상 클래스를 못 만들므로 숙주를 따로 세운다 — 그래야 DeleteCdsUnitTest가 빈 대상이 아니라 실재하는 클래스를 지운다. 이것이 없으면 그 도구의 응답은 「없는 것을 못 지웠다」가 되어 아무것도 증명하지 못한다."
     },
     {
+      "index": 10,
       "tool": "SearchObject",
       "args": {
         "object_name": "ZCL_SAPKIT_63_CDST",
         "maxResults": 5
       },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"results\":[{\"name\":\"ZCL_SAPKIT_63_CDST\",\"type\":\"CLAS/OC\",\"description\":\"sapkit 63 attended probe - DeleteCdsUnitTest host\",\"packageName\":\"$TMP\"}],\"rawXML\":\"<?xml version=\\\"1.0\\\" encoding=\\\"utf-8\\\"?><adtcore:objectReferences xmlns:adtcore=\\\"http://www.sap.com/adt/core\\\"><adtcore:objectReference adtcore:uri=\\\"/sap/bc/adt/oo/classes/zcl_sapkit_63_cdst\\\" adtcore:type=\\\"CLAS/OC\\\" adtcore:name=\\\"ZCL_SAPKIT_63_CDST\\\" adtcore:packageName=\\\"$TMP\\\" adtcore:description=\\\"sapkit 63 attended probe - DeleteCdsUnitTest host\\\"/></adtcore:objectReferences>\"}"
+          }
+        ]
+      },
+      "isError": false,
       "note": "되읽기 — 숙주 클래스가 실재하는지 이름으로 확인한다. **GetClass를 쓰지 않는 것이 의도다**: 갓 만든 클래스는 활성판이 없어 GetClass가 실패하고, 그 오류 본문에 **실호스트가 실려** 픽스처 저장이 통째로 거부된다(실기 2회차 실측). 한 단계의 오류 문구가 19단계의 증거를 날리는 자리라, 존재 확인만 필요한 여기서는 SearchObject가 맞다."
     },
     {
+      "index": 11,
       "tool": "DeleteCdsUnitTest",
       "args": {
         "class_name": "ZCL_SAPKIT_63_CDST"
       },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"class_name\": \"ZCL_SAPKIT_63_CDST\",\n  \"message\": \"CDS unit test class ZCL_SAPKIT_63_CDST deleted successfully.\"\n}"
+          }
+        ]
+      },
+      "isError": false,
       "note": "DeleteCdsUnitTest는 **클래스를 지우는 도구**다. CreateCdsUnitTest가 원리상 클래스를 못 만들므로, 이 도구에 정당한 대상을 주려면 숙주를 따로 세워야 한다 — 그래서 바로 앞에서 CreateClass로 세웠다. 숙주 준비 경로가 「의도된 흐름」과 다르다는 사실을 여기 적어 둔다."
     },
     {
+      "index": 12,
       "tool": "DeleteMetadataExtension",
       "args": {
         "metadata_extension_name": "ZSAPKIT_63_MDE"
       },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"metadata_extension_name\": \"ZSAPKIT_63_MDE\",\n  \"transport_request\": null,\n  \"message\": \"MetadataExtension ZSAPKIT_63_MDE deleted successfully.\"\n}"
+          }
+        ]
+      },
+      "isError": false,
       "note": "인자 이름이 Create 쪽(name)과 다르다 — 선언을 추측하지 말고 m1-tools.json을 볼 것."
     },
     {
+      "index": 13,
       "tool": "DeleteView",
       "args": {
         "view_name": "ZSAPKIT_63_V"
       },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"view_name\": \"ZSAPKIT_63_V\",\n  \"transport_request\": null,\n  \"message\": \"View ZSAPKIT_63_V deleted successfully.\"\n}"
+          }
+        ]
+      },
+      "isError": false,
       "note": "숙주 뷰 정리."
     },
     {
+      "index": 14,
       "tool": "DeleteTable",
       "args": {
         "table_name": "ZSAPKIT_63_VT"
       },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"table_name\": \"ZSAPKIT_63_VT\",\n  \"transport_request\": null,\n  \"message\": \"Table ZSAPKIT_63_VT deleted successfully.\"\n}"
+          }
+        ]
+      },
+      "isError": false,
       "note": "베이스 테이블 정리. 여기까지가 이 시퀀스의 왕복이다."
     },
     {
+      "index": 15,
       "tool": "SearchObject",
       "args": {
         "object_name": "ZCL_SAPKIT_63_CDST",
         "maxResults": 5
       },
+      "response": {
+        "content": []
+      },
+      "isError": false,
       "note": "삭제의 기계 확인 ①. 0건이어야 한다."
     },
     {
+      "index": 16,
       "tool": "SearchObject",
       "args": {
         "object_name": "ZSAPKIT_63_MDE",
         "maxResults": 5
       },
+      "response": {
+        "content": []
+      },
+      "isError": false,
       "note": "삭제의 기계 확인 ②."
     },
     {
+      "index": 17,
       "tool": "SearchObject",
       "args": {
         "object_name": "ZSAPKIT_63_V",
         "maxResults": 5
       },
+      "response": {
+        "content": []
+      },
+      "isError": false,
       "note": "삭제의 기계 확인 ③."
     },
     {
+      "index": 18,
       "tool": "SearchObject",
       "args": {
         "object_name": "ZSAPKIT_63_VT",
         "maxResults": 5
       },
+      "response": {
+        "content": []
+      },
+      "isError": false,
       "note": "삭제의 기계 확인 ④."
     }
-  ]
+  ],
+  "placeholders": []
 }

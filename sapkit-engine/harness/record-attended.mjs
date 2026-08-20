@@ -315,6 +315,15 @@ try {
   if (err instanceof recorder.MaskingRejection) {
     console.error('❌ 마스킹 검사에서 거부됐다 — 파일은 만들어지지 않았다.');
     console.error(`   ${err.message}`);
+    // 위치를 찍는다. 메시지는 "violations[].path 참조"라고만 하는데, 그 배열을 볼 수
+    // 있는 것은 이 자리뿐이다 — 안 찍으면 사람이 22단계를 손으로 뒤져야 하고, 그 사이
+    // SAP write는 **이미 나간 뒤**다. `hint`는 설계상 걸린 원문을 담지 않으므로
+    // (masking.ts의 HINTS) 여기 찍어도 비밀이 새지 않는다.
+    for (const v of err.violations ?? []) {
+      console.error(`   · [${v.ruleId}] ${v.path}`);
+      console.error(`     ${v.hint}`);
+    }
+    console.error(SAP_ALREADY_RAN);
     console.error('   시나리오가 실데이터·실호스트·자격증명에 닿았다는 뜻이다. 대상을 데모로 바꿔라.');
     process.exit(1);
   }

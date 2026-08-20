@@ -1,7 +1,7 @@
 {
-  "_": "판6.3 실기 왕복 ⑥ — 프로그램 숙주 위의 텍스트 엘리먼트·화면·GUI 상태. 화면·GUI 4종은 판6.2에서 0/4였다(ZMCP_ADT_SRV Dispatch 고장 — SAP 측 오브젝트 문제이지 미설치가 아니다). 그래서 단계 순서를 위험도로 정렬한다: 안전한 텍스트 왕복을 먼저 닫고, 못 설 공산이 큰 화면·GUI를 뒤에 둔다. 그 넷이 실패해도 앞의 왕복은 이미 이 픽스처에 기록된 뒤다.",
+  "_": "판6.3 실기 왕복 ⑥ — 프로그램 숙주 위의 텍스트 엘리먼트·화면·GUI 상태. **2026-08-20 현재 이 시퀀스는 녹화할 수 없다** — 아래 description의 실측 근거를 볼 것. 파일을 남겨 두는 것은 ZMCP_ADT_SRV가 고쳐진 날 그대로 태우기 위해서다.",
   "sequenceId": "zsapkit63-program-text-screen-gui",
-  "description": "[재실행 가능 · P3 · $TMP] 프로그램 ZSAPKIT_63_PROG 생성 → 소스 투입·활성 → 텍스트 엘리먼트 생성·되읽기·삭제 → 화면 0100 생성·되읽기·삭제 → GUI 상태 STAT63 생성·되읽기·삭제 → 프로그램 삭제 → 이름으로 재조회해 0건 확인. 전제: ZSAPKIT_63_PROG가 시스템에 없어야 한다. 만든 것을 같은 시퀀스 안에서 지우므로 재실행 가능하다. 화면·GUI 6단계는 판6.2 실측상 실패할 공산이 크고, 그 실패는 결함이 아니라 **관측 대상**이다 — 어느 단계에서 어떤 응답으로 막혔는지가 「못 섬 + 이유」의 근거가 된다. T4-2 정찰이 「선다」로 나오면 그대로 태우고, 「안 선다」로 나와도 단계를 빼지 않고 태워 실패 응답을 증거로 남긴다(빼면 「관찰되지 않았다」밖에 못 적는다). 단, 실패가 프로그램을 잠그거나 뒤의 삭제를 막으면 그때 갈라 다시 태운다. $TMP라 transport_request가 없다.",
+  "description": "[**녹화 불가 (2026-08-20 실측)** · P3 · $TMP] 프로그램 ZSAPKIT_63_PROG 생성 → 소스 투입·활성 → 텍스트 엘리먼트 생성·되읽기·삭제 → 화면 0100 생성·되읽기·삭제 → GUI 상태 STAT63 생성·되읽기·삭제 → 프로그램 삭제 → 이름으로 재조회해 0건 확인. 만든 것을 같은 시퀀스 안에서 지우므로 원래는 재실행 가능하다.\n\n**왜 녹화가 안 되는가 — 두 겹이다.**\n⑴ 텍스트 엘리먼트·화면·GUI 상태 9단계는 전부 커스텀 OData 서비스 `ZMCP_ADT_SRV`를 거치는데, 그 서비스가 **HTTP 500**을 낸다(`Im Rahmen der Datenservices ist ein unbekannter interner Serverfehler`). 판6.2가 화면·GUI 4종에서 본 것과 같은 고장이고, 이 판이 `ZMCP_ADT_FLUSH_CACHE`를 태운 **뒤에도 그대로**다. Gateway 에러로그에 `Service: /SAP/-ZMCP_ADT_SRV-0` Frontend Error가 새로 남았고 상세는 여전히 빈 구조다. ⚠ **「미설치」가 아니다** — 등록·라우팅은 살아 있고 서비스가 예외를 안에서 잡는다.\n⑵ 그 500 오류 문구에 **요청 URL이 통째로 실려 실호스트가 들어간다.** 그래서 마스킹 검사가 픽스처 저장을 거부한다(실측: 13단계 중 9단계가 real-host 위반). 픽스처는 PUBLIC 레포로 나가므로 이것은 옳은 거부다.\n\n**그래서 이 판은 여섯 종을 「못 섬 + 이유」로 기록한다** — Create/Delete TextElement · Screen · GuiStatus. ⚠ **판6.3 브리프가 예고한 것은 화면·GUI 4종이었는데 실제로는 6종이다** — 텍스트 엘리먼트도 같은 서비스를 탄다는 것이 이 판의 새 관측이다. `DeleteProgram`은 이 시퀀스가 아니라 `zsapkit63-include`에서 증거가 섰다.\n\n서비스가 고쳐지면 이 파일을 그대로 태우면 된다. $TMP라 transport_request가 없다.",
   "steps": [
     {
       "tool": "CreateProgram",
@@ -35,7 +35,9 @@
     },
     {
       "tool": "GetTextElement",
-      "args": { "program_name": "ZSAPKIT_63_PROG" },
+      "args": {
+        "program_name": "ZSAPKIT_63_PROG"
+      },
       "note": "되읽기 — 심볼 001이 실제로 박혔는지."
     },
     {
@@ -60,12 +62,18 @@
     },
     {
       "tool": "GetScreen",
-      "args": { "program_name": "ZSAPKIT_63_PROG", "screen_number": "0100" },
+      "args": {
+        "program_name": "ZSAPKIT_63_PROG",
+        "screen_number": "0100"
+      },
       "note": "되읽기. 앞 단계가 실패했으면 이것도 실패하고, 그 두 응답이 함께 「못 섬」의 근거가 된다."
     },
     {
       "tool": "DeleteScreen",
-      "args": { "program_name": "ZSAPKIT_63_PROG", "screen_number": "0100" },
+      "args": {
+        "program_name": "ZSAPKIT_63_PROG",
+        "screen_number": "0100"
+      },
       "note": "화면 왕복의 닫는 쪽."
     },
     {
@@ -81,22 +89,33 @@
     },
     {
       "tool": "GetGuiStatus",
-      "args": { "program_name": "ZSAPKIT_63_PROG", "status_name": "STAT63" },
+      "args": {
+        "program_name": "ZSAPKIT_63_PROG",
+        "status_name": "STAT63"
+      },
       "note": "되읽기."
     },
     {
       "tool": "DeleteGuiStatus",
-      "args": { "program_name": "ZSAPKIT_63_PROG", "status_name": "STAT63" },
+      "args": {
+        "program_name": "ZSAPKIT_63_PROG",
+        "status_name": "STAT63"
+      },
       "note": "GUI 왕복의 닫는 쪽."
     },
     {
       "tool": "DeleteProgram",
-      "args": { "program_name": "ZSAPKIT_63_PROG" },
+      "args": {
+        "program_name": "ZSAPKIT_63_PROG"
+      },
       "note": "숙주 정리. 앞의 화면·GUI가 실패했더라도 프로그램은 지워져야 한다 — 실패가 여기까지 막으면 그것 자체가 보고할 발견이다."
     },
     {
       "tool": "SearchObject",
-      "args": { "object_name": "ZSAPKIT_63_PROG", "maxResults": 5 },
+      "args": {
+        "object_name": "ZSAPKIT_63_PROG",
+        "maxResults": 5
+      },
       "note": "삭제의 기계 확인. 0건이어야 한다."
     }
   ]

@@ -171,3 +171,116 @@ authorization master ( instance )
   T3에서 그 시나리오를 화면·GUI 단계를 **빼지 않고** 위험도 역순으로 짜 뒀기 때문에,
   실패하면 그 응답 전문이 「어느 단계에서 어떤 이유로 막혔는가」의 근거로 픽스처에 남는다.
   단계를 빼면 「관찰되지 않았다」밖에 못 적는다. **상한 1회를 지켰다**(플러시 1회).
+
+---
+
+## T5~T10 — 실기 46종 (2026-08-20 · KR-DEV · P3/P4)
+
+### 갈림 — **34종 섰다 / 12종 못 섰다** (기계 집계)
+
+집계는 `fixtures/attended-only/zsapkit63-*.json` 9편에서 **도구별 `isError`를 세어** 낸 것이다
+(사람이 센 것이 아니다). 픽스처 9편 · 단계 107 · 엔진은 전부 `sapkit-engine 1.0.0`.
+
+| 픽스처 | 단계 | 오류 |
+|---|---:|---:|
+| `zsapkit63-domain-dataelement` | 9 | 0 |
+| `zsapkit63-structure-table` | 9 | 0 |
+| `zsapkit63-class-locals-unittest` | 21 | 1 |
+| `zsapkit63-interface` | 5 | 0 |
+| `zsapkit63-function` | 9 | 0 |
+| `zsapkit63-include` | 8 | 0 |
+| `zsapkit63-cds-view-mde-test` | 19 | 2 |
+| `zsapkit63-rap-bdef-bimp-service` | 26 | 1 |
+| `zsapkit63-p4-transport` | 1 | 0 |
+
+**섰다 (34)** — `CreateBehaviorDefinition` `CreateBehaviorImplementation` `CreateClass`
+`CreateDataElement` `CreateDomain` `CreateFunctionGroup` `CreateFunctionModule`
+`CreateInterface` `CreateServiceBinding` `CreateStructure` `CreateTable` `CreateTransport`
+`CreateView` `DeleteBehaviorDefinition` `DeleteBehaviorImplementation` `DeleteCdsUnitTest`
+`DeleteClass` `DeleteDataElement` `DeleteDomain` `DeleteFunctionGroup` `DeleteFunctionModule`
+`DeleteInclude` `DeleteInterface` `DeleteLocalDefinitions` `DeleteLocalMacros`
+`DeleteLocalTestClass` `DeleteLocalTypes` `DeleteMetadataExtension` `DeleteProgram`
+`DeleteServiceBinding` `DeleteServiceDefinition` `DeleteStructure` `DeleteTable` `DeleteView`
+
+**못 섰다 (12) — 이유가 네 부류로 갈린다**
+
+| 부류 | 도구 | 이유 (실측) |
+|---|---|---|
+| **원리상 불가 · SAP 호출 0회** | `DeleteUnitTest` · `CreateCdsUnitTest` | ADT가 그 조작을 지원하지 않거나(전자), 벤더의 생성 갈래가 요구하는 인자가 **발행 스키마에 없어** 언제나 시험-실행 갈래로 떨어진다(후자). 둘 다 엔진 소스가 이미 그 사연을 적어 두었고, 이 판이 **그 계약 문구를 실기로 확인**했다. 관측 문구: `Delete operation is not supported for Unit Test objects in ADT` · `At least one test definition is required for test run` |
+| **거짓 음성 — 객체는 생겼는데 오류를 보고한다** | `CreateMetadataExtension` · `CreateServiceDefinition` | 사슬이 **껍데기 생성 → 잠금 → 인액티브 검사** 순서라, 빈 소스가 자기 검사에서 깨져도 **생성은 이미 끝난 뒤다.** 같은 시퀀스의 `Get*`·`Update*`·`Delete*`가 전부 성공하는 것이 그 증거다. 관측 문구: `preCheck syntax check failed (1 error): [L1] Illegal syntax. Malformed 'annotate' statement` / `… Malformed service definition`. **「write 성공 보고를 그대로 믿지 않는다」의 뒤집힌 짝 — 실패 보고도 그대로 믿으면 안 된다.** |
+| **시스템 측 고장 · 오류에 실호스트** | `CreateTextElement` · `DeleteTextElement` · `CreateScreen` · `DeleteScreen` · `CreateGuiStatus` · `DeleteGuiStatus` | 여섯 종 전부 커스텀 OData 서비스 `ZMCP_ADT_SRV`를 거치는데 그 서비스가 **HTTP 500**을 낸다. `ZMCP_ADT_FLUSH_CACHE`를 태운 **뒤에도 그대로**였고, Gateway 에러로그에 `Service: /SAP/-ZMCP_ADT_SRV-0` Frontend Error가 새로 남았다(상세는 여전히 빈 구조). ⚠ **브리프가 예고한 것은 4종인데 실제로는 6종이다** — 텍스트 엘리먼트도 같은 서비스를 탄다는 것이 이 판의 새 관측이다. |
+| **엔드포인트 부재 / P4 실패** | `CreateUnitTest` · `CreatePackage` | 아래 별항 |
+
+### `CreateUnitTest` — 이 시스템에 엔드포인트가 없다
+
+벤더 경로 `POST /sap/bc/adt/abapunit/runs`가 **404**다(제품 MCP로 직접 재현). 엔진 소스
+(`src/tools/write/createUnitTest.ts` 머리말)가 이미 그 사실을 적고 있다 — 구 엔진이 실
+S/4HANA·BASIS 7.00에서 discovery로 확인해 **형제 `RunUnitTest`만** 고전 엔드포인트
+(`/abapunit/testruns`)로 옮겼고, `CreateUnitTest`는 구가 보내던 전문을 그대로 보내도록
+남겨 두었다. 그러므로 **이 시스템에서는 원리상 설 수 없다.**
+
+⚠ 그리고 그 404 오류 문구에 **실호스트가 실려** 마스킹 검사가 시퀀스 전체의 저장을 거부했다.
+한 단계가 21단계의 증거를 날리는 자리라 시나리오 3에서 **뺐다.**
+
+### `CreatePackage` — 세 갈래가 다 막혔고, **되돌릴 수 없는 흔적이 남았다**
+
+| 시도 | 인자 | 결과 |
+|---|---|---|
+| ⑴ 로컬 우선 | `software_component=LOCAL` | SAP 거부 — `Package ZSAPKIT_63_PKG may not be assigned to software component LOCAL` (T100 `TR/462`). **아무것도 안 생김**(직후 `GetPackage`=not found) |
+| ⑵ 인자 생략 | `software_component` 없음 | **도구가** 거부 — `Software component is required`(`createPackage.ts:299`, 벤더 가드를 그대로 되살린 자리). ⚠ **발행 설명과 실제가 갈린다** — 선언은 「주지 않으면 SAP이 기본값(보통 ZLOCAL)을 정한다」고 적는다 |
+| ⑶ 이송 갈래 | `HOME` + `ZDEV` + `DEVK901065` + `record_changes` | 도구는 **오류를 보고**했고 픽스처는 없다. 그러나 **패키지는 존재한다** — 아래 |
+
+**⑶의 흔적 판정 (여러 읽기 경로가 갈린다 — 그대로 적는다):**
+
+- `CreatePackage` 재시도 → `Package ZSAPKIT_63_PKG already exists` (SAP 이름 검증이 그렇게 답한다)
+- `GetPackageContents` → `[]` (**오류가 아니라 빈 목록** — 존재하는 빈 패키지의 응답이다)
+- `ReadPackage` → `success: true`이나 `metadata: null`
+- `GetPackage`(active·inactive) → `not found`
+- `SearchObject ZSAPKIT_63_PKG` → 0건
+
+→ **반쯤 만들어진 패키지**로 판단한다. 생성 요청은 통과했고 그 뒤 단계에서 깨졌다.
+**「없다」로 적지 않는다** — 존재를 가리키는 경로가 둘, 부재를 가리키는 경로가 셋이고,
+확정은 사용자가 SE80/SE21에서 해야 한다.
+
+이송요청 `DEVK901065`(+태스크 `DEVK901066`)는 **미해제**다(status `D` 수정가능 ·
+target `로컬변경요청`)이고 **객체 0건**이다 — 반쯤 만들어진 패키지가 이 요청에 실리지도
+않았다. **해제(`ReleaseTransport`)는 하지 않았다.**
+
+### 신 엔진이 고친 것이 실기로 확인됐다 — `CreateTransport`의 번호 회수
+
+`zsapkit63-p4-transport` 픽스처의 유일한 단계 응답에 `"transport_request": "DEVK901065"`가
+실려 있다. **구 엔진은 이 번호를 응답에서 잃었고 신 엔진이 고쳤다(장부 D81)** — 그 수리가
+실제로 먹는다는 것이 여기서 관측됐다.
+
+### 안전 — 세 지점 조회 결과
+
+| 시점 | `ZSAPKIT*` | `ZCL_SAPKIT*` | `Z_SAPKIT*` | 판정 |
+|---|---:|---:|---:|---|
+| T1 착수 전 | 6 | 1 | 1 | 보호 8종 |
+| T7 중간 (프로그램 계열 직후) | 6 | 1 | 1 | **기준선과 일치** |
+| T10 정리 후 | 6 | 1 | 1 | **기준선과 일치** |
+
+- **보호 자산 8종 전부 무사.** 세 조회 모두 같은 8개 이름·타입·패키지(`$TMP`)다.
+- **연습 객체 잔재 0** — `ZSAPKIT_63*` · `ZCL_SAPKIT_63*` · `Z_SAPKIT_63*` · `ZIF_SAPKIT*` ·
+  `ZBP_SAPKIT*` 다섯 마스크 전부 0건. ⚠ **마스크를 넷이 아니라 다섯으로 뜬 이유**는 T4가
+  확정한 대로 동작 구현 클래스 이름을 SAP이 `ZBP_`로 정하기 때문이다.
+- **예외 2종**(§T9) — 이송요청 `DEVK901065` · 반쯤 만들어진 패키지 `ZSAPKIT_63_PKG`.
+  **우리 도구로 지울 수 없다**(표면 186종에 `DeleteTransport`·`DeletePackage`가 없다).
+- **P2 0건** — `GetTableContents`·`GetSqlQuery` 호출 0회로 판을 마쳤다.
+
+### 마스킹이 증거를 막는 구조적 자리 — 이 판이 새로 관측한 것
+
+엔진이 실패를 접을 때 **요청 URL을 오류 문구에 싣는 경로**가 있다(예: `POST http://…/sap/opu/odata/…`).
+픽스처는 PUBLIC 레포로 나가므로 마스킹 검사가 그것을 옳게 거부하는데, 그 결과
+**한 단계의 오류 문구가 시퀀스 전체의 증거를 날린다.** 이 판에서 세 번 겪었다 —
+`CreateUnitTest`(시나리오 3) · 화면·GUI 9단계(시나리오 6) · `GetClass`를 갓 만든 클래스에
+건 되읽기(시나리오 8). **처방은 시나리오 쪽에서 그 단계를 피하는 것뿐이고, 그것은
+「증거를 못 만든다」와 같은 말이다.** 근본 처방(오류 문구에서 호스트를 정규화)은 이 판의
+범위 밖이며 **백로그로 넘긴다.**
+
+### 채록기 회수 — 위치를 안 찍으면 사람이 22단계를 손으로 뒤진다
+
+마스킹 거부가 `violations[].path`를 참조하라고만 하고 **그 배열을 아무도 안 찍었다.**
+attended 구간에서 그것은 「SAP write는 이미 나갔는데 어디가 걸렸는지 모른다」는 뜻이라,
+실기 도중에 진입점이 위반 목록(`ruleId` + `path` + `hint`)을 찍도록 고쳤다.
+`hint`는 설계상 걸린 원문을 담지 않으므로 이 출력으로 비밀이 새지 않는다.

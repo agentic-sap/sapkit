@@ -10,10 +10,12 @@
         "description": "sapkit 63 attended probe package",
         "super_package": "$TMP",
         "package_type": "development",
-        "software_component": "LOCAL",
-        "record_changes": false
+        "software_component": "HOME",
+        "transport_layer": "ZDEV",
+        "transport_request": "DEVK901065",
+        "record_changes": true
       },
-      "note": "갈래 ⑴ 로컬 우선. software_component=LOCAL · record_changes=false로 이송을 통째로 피한다. 이것이 거부되면 갈래 ⑵로 간다 — transport_layer를 시스템의 표준 계층으로, transport_request를 10a의 번호로 채운다."
+      "note": "**갈래 ⑵ — 로컬 우선이 두 번 막힌 뒤의 자리다.** 1회차: `software_component=LOCAL`을 SAP이 거부(「may not be assigned to software component LOCAL」 · T100 TR/462). 2회차: 그 인자를 빼자 **도구가** 막았다(「Software component is required」 — `createPackage.ts:299`, 벤더 가드를 그대로 되살린 자리다). ⚠ **발행 설명과 실제가 갈리는 자리다** — 선언은 「주지 않으면 SAP이 기본값(보통 ZLOCAL)을 정한다」고 적는데 실제로는 필수다. 그래서 이 시스템의 실측값을 쓴다: 기존 고객 패키지 ZDTV3TAX를 읽어 softwareComponent=HOME(「고객개발」) · transportLayer=ZDEV를 확인했고, 이송요청은 10a가 만든 DEVK901065다. super_package는 도구가 빈 값을 거부하므로($TMP를 준다 — `createPackage.ts:274`) **이 도구로는 최상위 패키지를 만들 수 없다**는 뜻이기도 하다. 남의 패키지를 부모로 쓰지 않는 것이 이 판의 안전 계약이라 선택지가 $TMP뿐이다. 이것도 거부되면 **CreatePackage는 「못 섬 + 이유」로 닫는다** — 실패는 아무것도 만들지 않으므로(1·2회차로 실측 확인) 그 판정에 흔적이 따라붙지 않는다."
     }
   ]
 }
