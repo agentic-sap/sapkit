@@ -1,0 +1,205 @@
+/**
+ * test-attended-guard.mjs — attended 녹화 관문이 **정말 거부하는가**.
+ *
+ * `harness/attended-guard.mjs`가 판7-b(D-095) 교체 뒤의 규칙을 소유한다. 통과만
+ * 확인하는 관문은 통째로 빠져도 초록이므로, 여기서는 **거부해야 하는 입력**을 물려
+ * 거부가 실제로 나오는지 본다. 특히 이 관문의 판정은 SAP 호출이 **전부 나간 뒤**에도
+ * 한 번 돌기 때문에, 느슨해지면 그 대가를 실 SAP이 치른다.
+ *
+ * 여섯 갈래:
+ *   ① 재생 기준선 자리(`fixtures/`)로 저장 시도 → 거부 (이유를 말한다)
+ *   ② `attended-only`에 제품 엔진이 아닌 이름 → 거부
+ *   ③ 무접속 응답 → 거부. **신 어휘(`ERR_NO_CONNECTION`)와 구 어휘 둘 다**
+ *   ④ 어휘 정본 스크레이프 실패 → 죽는다 (조용히 통과하지 않는다)
+ *   ⑤ 기본 저장 자리가 `fixtures/attended-only`다
+ *   ⑥ 「그 밖의 자리」는 막지 않되 알린다
+ *
+ * 소스와 임시 파일만 본다 — `dist/`도 SAP 접속도 필요 없다. 그래서 `gates/lib.mjs`
+ * (산출물 의존)를 쓰지 않고 홀로 선다. 선례는 `gates/test-refusal-vocab.mjs`.
+ *
+ * 실행: node gates/test-attended-guard.mjs
+ */
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+
+import {
+  ATTENDED_DIR,
+  DEFAULT_OUT,
+  ENGINE_ROOT,
+  FIXTURES_DIR,
+  PRODUCT_ENGINE_NAME,
+  PRODUCT_GATE,
+  classifyOutDir,
+  detectDegradation,
+  noConnectionPattern,
+  outDirNotices,
+  outDirRefusal,
+  resolveOutDir,
+} from '../harness/attended-guard.mjs';
+
+const rows = [];
+const check = (name, ok, detail = '') => rows.push({ name, ok: Boolean(ok), detail });
+
+/** 판정을 부르되 던진 것도 결과로 받는다 — ④가 「죽는다」를 단언할 수 있게. */
+function judge(fixture, options) {
+  try {
+    return { problems: detectDegradation(fixture, options), threw: null };
+  } catch (err) {
+    return { problems: null, threw: err };
+  }
+}
+
+/** 최소 픽스처 한 벌. 실제 채록물의 모양(`harness/recorder/types.ts`)만 따른다. */
+function fixtureOf({ engineName = PRODUCT_ENGINE_NAME, text = '정상 응답', isError = false } = {}) {
+  return {
+    formatVersion: 1,
+    sequenceId: 'probe',
+    description: '시험용',
+    engine: { name: engineName, version: '1.0.0', protocolVersion: '2024-11-05', exposition: 'readonly,high' },
+    steps: [
+      { index: 0, tool: 'GetProgram', args: { object_name: 'ZPROBE' }, response: { content: [{ type: 'text', text }] }, isError, note: null },
+    ],
+    placeholders: [],
+  };
+}
+
+const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'sapkit-attended-guard-'));
+
+console.log('\nattended 녹화 관문 음성시험 — 관문이 정말 거부하는가\n');
+
+// ── ① 재생 기준선 자리는 무조건 거부 ────────────────────────────────────────
+for (const dir of [FIXTURES_DIR, path.join(FIXTURES_DIR, 'nested')]) {
+  const { problems } = judge(fixtureOf(), { outDir: dir });
+  check(
+    `재생 기준선 자리는 거부한다 — ${path.relative(ENGINE_ROOT, dir) || 'fixtures'}`,
+    problems?.length >= 1,
+    `문제 ${problems?.length ?? '(던짐)'}건`,
+  );
+  check(
+    `거부문이 이유를 말한다 (자기 대조) — ${path.relative(ENGINE_ROOT, dir) || 'fixtures'}`,
+    (problems ?? []).some((p) => p.includes('자기 대조')),
+  );
+  check(`태우기 전 거부도 같은 판정이다 — ${path.relative(ENGINE_ROOT, dir) || 'fixtures'}`, outDirRefusal(dir) !== null);
+}
+check('제품 엔진 이름이어도 재생 자리면 거부한다', judge(fixtureOf({ engineName: PRODUCT_ENGINE_NAME }), { outDir: FIXTURES_DIR }).problems.length >= 1);
+
+// ── ② attended 자리는 제품 엔진 이름을 요구한다 ─────────────────────────────
+{
+  const wrong = judge(fixtureOf({ engineName: 'mcp-abap-adt' }), { outDir: ATTENDED_DIR }).problems;
+  check('attended 자리에 구 엔진 이름을 채록하면 거부한다', wrong.length >= 1, `문제 ${wrong.length}건`);
+  check('거부문이 제품 엔진 이름을 말한다', wrong.some((p) => p.includes(PRODUCT_ENGINE_NAME)));
+
+  const right = judge(fixtureOf(), { outDir: ATTENDED_DIR }).problems;
+  check('attended 자리에 제품 엔진을 채록하면 통과한다 (양성 대조)', right.length === 0, right.join(' / '));
+
+  const nested = judge(fixtureOf({ engineName: 'mcp-abap-adt' }), { outDir: path.join(ATTENDED_DIR, 'sub') }).problems;
+  check('attended 자리의 하위도 같은 규칙이다', nested.length >= 1);
+}
+
+// ── ③ 무접속 어휘 — 구·신 둘 다 잡는다 ──────────────────────────────────────
+{
+  const NEW_VOCAB =
+    'ERR_NO_CONNECTION: this tool needs a SAP connection but none is configured — the server is running inspection-only.';
+  const OLD_VOCAB = 'Basic authentication requires SAP_CLIENT to be provided';
+  const UNRELATED = 'ERR_READONLY_TIER: this tool is not exposed on a readonly tier';
+
+  const re = noConnectionPattern();
+  check('정본 정규식을 제품 게이트에서 읽어온다', re instanceof RegExp, `/${re.source}/ ← ${path.relative(ENGINE_ROOT, PRODUCT_GATE)}`);
+
+  const withNew = judge(fixtureOf({ text: NEW_VOCAB, isError: true }), { outDir: ATTENDED_DIR, allowAllErrors: true }).problems;
+  check('신 어휘(ERR_NO_CONNECTION) 무접속 응답을 거부한다', withNew.length >= 1, `문제 ${withNew.length}건`);
+
+  const withOld = judge(fixtureOf({ text: OLD_VOCAB, isError: true }), { outDir: ATTENDED_DIR, allowAllErrors: true }).problems;
+  check('구 어휘도 여전히 거부한다', withOld.length >= 1, `문제 ${withOld.length}건`);
+
+  const unrelated = judge(fixtureOf({ text: UNRELATED, isError: true }), { outDir: ATTENDED_DIR, allowAllErrors: true }).problems;
+  check('무관한 거부(tier)는 무접속으로 읽지 않는다', unrelated.length === 0, unrelated.join(' / '));
+
+  const allError = judge(fixtureOf({ text: '404', isError: true }), { outDir: ATTENDED_DIR }).problems;
+  check('전 단계 오류는 여전히 거부한다 (기존 규칙 회귀)', allError.length >= 1);
+}
+
+// ── ④ 어휘 정본을 못 읽으면 죽는다 ──────────────────────────────────────────
+{
+  const original = fs.readFileSync(PRODUCT_GATE, 'utf8');
+  // 줄 단위로 걷어낸다 — 여러 줄에 걸친 정규식으로 지우려다 **줄바꿈 형식(CRLF) 때문에
+  // 변형이 적용조차 되지 않는데 초록으로 보이는** 함정을 실제로 밟았다(`test-gates.mjs`
+  // 머리주석이 경고하는 바로 그 자리다). JS의 `.`은 `\r`도 물지 않는다.
+  const mutated = original
+    .split('\n')
+    .filter((line) => !/return 'NO_CONNECTION';/.test(line))
+    .join('\n');
+  // 변형이 실제로 적용됐는지부터 본다 — 안 바뀐 소스를 물리면 이 갈래는 공허하다.
+  check('변형이 실제로 적용됐다 (그 줄이 사라졌다)', mutated !== original && !/return 'NO_CONNECTION';/.test(mutated));
+
+  const missingLine = path.join(tmpRoot, 'gate-without-line.mjs');
+  fs.writeFileSync(missingLine, mutated, 'utf8');
+  const scraped = judge(fixtureOf(), { outDir: ATTENDED_DIR, gateFile: missingLine });
+  check('정규식 줄이 사라진 정본을 물리면 던진다', scraped.threw !== null, scraped.threw?.message?.split('\n')[0] ?? '(던지지 않았다)');
+  check('조용히 통과하지 않는다', scraped.problems === null);
+
+  const absent = path.join(tmpRoot, 'does-not-exist.mjs');
+  check('정본 파일 자체가 없어도 던진다', judge(fixtureOf(), { outDir: ATTENDED_DIR, gateFile: absent }).threw !== null);
+
+  // 판정 자리를 모르면 규칙을 고를 수 없다 — 기본값으로 눙치지 않는다.
+  check('outDir 없이 부르면 던진다', judge(fixtureOf(), {}).threw !== null);
+}
+
+// ── ⑤ 기본 저장 자리 ────────────────────────────────────────────────────────
+check(
+  '기본 저장 자리가 fixtures/attended-only 다',
+  path.resolve(DEFAULT_OUT) === path.resolve(ENGINE_ROOT, 'fixtures', 'attended-only'),
+  DEFAULT_OUT,
+);
+check('기본 저장 자리는 attended 갈래로 분류된다', classifyOutDir(DEFAULT_OUT) === 'attended-only');
+check('인자 없는 --out은 기본 저장 자리다', path.resolve(resolveOutDir(undefined)) === path.resolve(DEFAULT_OUT));
+
+// 상대 `--out`은 cwd가 아니라 엔진 루트 기준 — ⑵의 기본값이 옳아도 여기가 새면 소용없다.
+{
+  const cwdBefore = process.cwd();
+  try {
+    process.chdir(tmpRoot);
+    check(
+      '상대 --out은 cwd가 아니라 엔진 루트 기준으로 푼다',
+      path.resolve(resolveOutDir('fixtures/attended-only')) === path.resolve(ATTENDED_DIR),
+      resolveOutDir('fixtures/attended-only'),
+    );
+    check(
+      '절대 --out은 준 대로 쓴다',
+      path.resolve(resolveOutDir(path.join(tmpRoot, 'elsewhere'))) === path.resolve(tmpRoot, 'elsewhere'),
+    );
+  } finally {
+    process.chdir(cwdBefore);
+  }
+}
+
+// ── ⑥ 그 밖의 자리 — 막지 않되 알린다 ───────────────────────────────────────
+{
+  const outside = path.join(tmpRoot, 'scratch');
+  check('그 밖의 자리는 outside로 분류된다', classifyOutDir(outside) === 'outside');
+  check('그 밖의 자리는 막지 않는다', judge(fixtureOf({ engineName: 'mcp-abap-adt' }), { outDir: outside }).problems.length === 0);
+  check('그 밖의 자리는 태우기 전에도 막지 않는다', outDirRefusal(outside) === null);
+  const notices = outDirNotices(outside);
+  check('그 밖의 자리는 알린다', notices.length >= 1, notices[0] ?? '(알림 없음)');
+  check('알림이 커밋 대상이 아님을 말한다', notices.some((n) => n.includes('커밋 대상이 아니다')));
+
+  for (const look of [path.join(tmpRoot, 'fixtures'), path.join(tmpRoot, 'fixtures', 'attended-only')]) {
+    const loud = outDirNotices(look);
+    check(`이름만 같고 엔진 밖이면 더 크게 알린다 — ${path.relative(tmpRoot, look)}`, loud.length >= 2, `알림 ${loud.length}건`);
+    check(`그래도 막지는 않는다 — ${path.relative(tmpRoot, look)}`, outDirRefusal(look) === null);
+  }
+
+  check('엔진 안의 자리는 「그 밖」 알림을 내지 않는다', outDirNotices(ATTENDED_DIR).length === 0);
+}
+
+fs.rmSync(tmpRoot, { recursive: true, force: true });
+
+for (const r of rows) console.log(`  ${r.ok ? '✅' : '❌'} ${r.name}${r.detail ? ` — ${r.detail}` : ''}`);
+const bad = rows.filter((r) => !r.ok).length;
+console.log(
+  bad === 0
+    ? `\n✅ attended 녹화 관문 — ${rows.length}건 전부 통과`
+    : `\n❌ attended 녹화 관문 — ${rows.length}건 중 ${bad}건 실패`,
+);
+process.exit(bad === 0 ? 0 : 1);
