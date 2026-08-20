@@ -17,6 +17,15 @@
 
 검사를 통과하지 못한 채록물은 저장 자체가 거부된다 — 손으로 넣지 말 것.
 
+**여기에 사람 이름·계정 아이디가 있으면 안 된다.** SAP은 객체 메타데이터의
+`adtcore:responsible`·`changedBy`·`createdBy`와 `CreateTransport` 응답의 `owner`에
+접속 사용자를 박고, 레포는 PUBLIC이다. 그래서 채록기는 접속 프로파일에서 가릴 이름을
+읽어 `<<PRINCIPAL_n>>`으로 바꾸고(`harness/recorder/README.md`의 「신원 가리기」),
+가린 뒤에도 남아 있으면 저장을 거부한다(`harness/attended-guard.mjs`의
+`detectRedactionLeak`). **이 규칙은 2026-08-20에 붙었다** — 그보다 앞서 채록된 파일에는
+`principal` 자리표시자가 없고, 그건 가릴 것이 없었다는 뜻이 아니라 **그때는 그 관문이
+없었다**는 뜻이다.
+
 ## `attended-only/` — 재생할 수 없는 픽스처
 
 `replay-attended.mjs`는 **이 디렉터리 바로 아래의 `*.json`만** 수집한다

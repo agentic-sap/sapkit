@@ -29,6 +29,34 @@
  * 이 값만 자리표시자로 바꾸되, **따옴표를 씌운다**: 응답 본문이 text 블록 안의
  * JSON 문자열이라, 따옴표 없이 넣으면 그 블록이 더 이상 JSON으로 읽히지 않고
  * 대체 기대 시험(D1)이 행 표를 못 읽게 된다.
+ *
+ * ## `principal` — 성격이 갈리는 여덟 번째 종류
+ *
+ * 위 일곱은 전부 **비결정 토큰**이다: 부를 때마다 값이 달라져서 대조를 방해하니
+ * 치운다. 여덟 번째 `principal`은 다르다 — **값이 안정적인데도** 치운다. 픽스처가
+ * PUBLIC 레포에 커밋되고, SAP이 객체 메타데이터의 `adtcore:responsible`·
+ * `adtcore:changedBy`·`adtcore:createdBy`와 `CreateTransport` 응답의 `owner`에
+ * 접속 사용자의 로그인 아이디를 반드시 박기 때문이다(2026-08-20 실기: 픽스처 9편
+ * 중 4편에 22군데).
+ *
+ * 그래서 이것만 **패턴이 아니라 목록**으로 온다 — 사람 이름·계정 아이디는 모양으로
+ * 알아볼 수 없다. 목록은 `normalizeFixture(fixture, { redact })`로 밖에서 들어오고,
+ * 채록 진입점이 접속 프로파일의 `SAP_USERNAME`에서 채운다.
+ *
+ * 마스킹(거부)이 아니라 정규화(치환)인 이유: 거부하면 작성자를 박는 도구들
+ * (`Create*`·`Read*` 대부분)의 증거를 영영 남길 수 없다. **가리되 증거는 남겨야**
+ * 하므로 자리표시자로 바꾼다. 기존 계약은 그대로다 — 같은 원본 → 같은 자리표시자.
+ *
+ * 두 가지가 이 종류에만 붙는다.
+ * - **대소문자 무시.** SAP은 같은 이름을 두 꼴로 낸다: ADT URI는 소문자
+ *   (`/sap/bc/adt/…/testuser`), 메타데이터 속성은 대문자(`responsible="TESTUSER"`).
+ *   둘은 **같은 신원**이므로 **같은 자리표시자**를 받는다 — 사상의 키를 대문자로
+ *   접어서 그렇게 만든다. 갈라 놓으면 「이 객체의 작성자가 곧 접속자」라는 상관이
+ *   픽스처에서 사라진다.
+ * - **경계는 영숫자다.** 이름 앞뒤가 `[A-Za-z0-9]`면 매치하지 않는다. `_`는 경계로
+ *   **친다** — 그래서 `TESTUSER2`(다른 계정)는 안 걸리고 `ZCL_TESTUSER_DEMO`(이름을
+ *   품은 객체명)는 걸린다. 후자를 남기면 그것도 신원 유출이고, 남겨 두면 저장
+ *   뒷문(`harness/attended-guard.mjs`)이 어차피 거부해 아무것도 저장되지 않는다.
  */
 import { PLACEHOLDER_PREFIX, findPlaceholders, isPlaceholder, parsePlaceholder } from './types';
 import type { JsonValue, NormalizationKind, PlaceholderBinding, SequenceFixture, SequenceStep } from './types';
@@ -118,6 +146,67 @@ export function keyKind(key: string): NormalizationKind | null {
   return KEY_KINDS[key.toLowerCase().replace(/[^a-z0-9]/g, '')] ?? null;
 }
 
+// ── 신원 가리기 (`principal`) ────────────────────────────────────────────────
+
+/**
+ * 가릴 이름의 **최소 길이**. 이보다 짧은 항목은 목록에서 조용히 버린다.
+ *
+ * 왜 하한이 필요한가. 빈 문자열을 가리면 문자 사이 **모든 자리**가 자리표시자가
+ * 되어 픽스처가 통째로 무의미해진다. 두 글자도 거의 그렇다 — 경계가 영숫자라 `_`가
+ * 경계로 쳐지므로 `AB`는 `ZCL_AB_DEMO`·`SET AB` 같은 흔한 SAP 토큰 안에서 끝없이
+ * 걸리고, 그러면 남는 것은 대조할 수 없는 잡음이다.
+ *
+ * 3자는 SAP 사용자 아이디의 현실적 하한이기도 하다. 그보다 짧은 아이디로 접속한다면
+ * **자동 가리기로는 안전하지 않다**는 뜻이고, 그 판단은 조용히 넘기지 않고 채록
+ * 진입점이 사람에게 돌려준다 — `harness/attended-guard.mjs`의 `REDACTION_MIN_LENGTH`가
+ * 같은 수를 들고 그 자리를 막는다(두 수가 어긋나면 `gates/test-attended-guard.mjs`가
+ * 잡는다).
+ */
+export const REDACT_MIN_LENGTH = 3;
+
+/** 정규화에 밖에서 들어오는 것 — 지금은 가릴 이름 목록 하나뿐이다. */
+export interface NormalizeOptions {
+  /**
+   * 자리표시자로 가릴 **신원 이름** 목록(접속 사용자의 SAP 로그인 아이디 등).
+   * 비었거나 없으면 `principal` 치환은 **아무 일도 하지 않는다** — 기존 픽스처의
+   * 정규화 결과가 이 인자 하나로 흔들리지 않게 하기 위해서다.
+   */
+  readonly redact?: readonly string[];
+}
+
+/**
+ * 가릴 이름 목록을 쓸 수 있는 꼴로 다듬는다 — 공백 제거 · 짧은 것 버림 ·
+ * 대문자로 접어 중복 제거 · **긴 것부터** 정렬.
+ *
+ * 긴 것부터인 이유: 짧은 이름이 긴 이름의 앞부분일 때(`ZDEV` / `ZDEVOPS`) 교대
+ * 정규식은 먼저 쓴 쪽을 택하므로, 긴 쪽이 앞에 서야 잘려 나가지 않는다.
+ */
+export function redactionTargets(names: readonly string[] | undefined): string[] {
+  const seen = new Set<string>();
+  for (const raw of names ?? []) {
+    if (typeof raw !== 'string') continue;
+    const name = raw.trim();
+    if (name.length < REDACT_MIN_LENGTH) continue;
+    seen.add(name.toUpperCase());
+  }
+  return [...seen].sort((a, b) => b.length - a.length || a.localeCompare(b));
+}
+
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * 목록에서 치환 정규식 하나를 만든다. 목록이 비면 `null` — 부를 자리에서
+ * 「아무것도 안 한다」가 분기 하나로 끝나게.
+ *
+ * 앞뒤 조건이 곧 경계 규칙이다(머리주석 참조): 영숫자만 경계가 아니고 `_`는 경계다.
+ */
+function redactionPattern(targets: readonly string[]): RegExp | null {
+  if (targets.length === 0) return null;
+  return new RegExp(`(?<![A-Za-z0-9])(?:${targets.map(escapeRegExp).join('|')})(?![A-Za-z0-9])`, 'gi');
+}
+
 /**
  * 시퀀스 하나에 걸친 정규화 상태.
  *
@@ -131,6 +220,27 @@ export class Normalizer {
   private readonly occurrences = new Map<string, number>();
   private readonly issueOrder: string[] = [];
   private readonly nextIndex = new Map<NormalizationKind, number>();
+  /** 가릴 신원의 치환 정규식. 목록이 비면 null이고 `principal`은 한 번도 발급되지 않는다. */
+  private readonly redactRe: RegExp | null;
+
+  constructor(options: NormalizeOptions = {}) {
+    this.redactRe = redactionPattern(redactionTargets(options.redact));
+  }
+
+  /**
+   * 가릴 이름을 자리표시자로 바꾼다. **다른 어떤 규칙보다 먼저** 돈다 — 신원이
+   * 다른 규칙(잠금 핸들 값 등)에 먼저 삼켜지면 종류가 뒤바뀌고, 대장이 「이 픽스처가
+   * 무엇을 가렸는가」를 거짓으로 세게 된다.
+   *
+   * 사상의 키를 **대문자로 접는다**: `HJAEWON`과 `hjaewon`은 같은 신원이므로 같은
+   * 자리표시자를 받아야 한다. 접두사 `@principal:`은 우연히 같은 글자의 비결정
+   * 토큰과 키가 부딪히는 것을 막는다. 이 키는 `assigned` 안에만 있고 대장에도
+   * 픽스처에도 나가지 않는다.
+   */
+  private redact(text: string): string {
+    if (this.redactRe === null) return text;
+    return text.replace(this.redactRe, (match) => this.token('principal', `@principal:${match.toUpperCase()}`));
+  }
 
   /** 원본 토큰에 대응하는 자리표시자를 얻고 등장 횟수를 1 올린다. */
   token(kind: NormalizationKind, raw: string): string {
@@ -176,7 +286,7 @@ export class Normalizer {
   /** 자유 텍스트 하나를 정규화한다. */
   normalizeString(text: string): string {
     this.absorb(text);
-    let out = text;
+    let out = this.redact(text);
     for (const rule of STRING_RULES) {
       out = out.replace(rule.re, (...args: unknown[]): string => {
         const whole = String(args[0]);
@@ -230,9 +340,16 @@ export class Normalizer {
  * 정규화된다.
  *
  * `steps[i].index`는 배열 위치로 다시 매긴다 — 형식 불변식을 여기서 세운다.
+ *
+ * `options.redact`는 **가릴 신원 이름 목록**이다(머리주석의 `principal`). 훑는
+ * 자리가 단계의 **인자와 응답 양쪽**이므로 가리기도 양쪽에 걸린다. 시나리오가
+ * 소유한 자리(`description`·`note`·`sequenceId`)는 **일부러 손대지 않는다** —
+ * 거기 신원이 박혀 있으면 고칠 자리는 픽스처가 아니라 **시나리오 파일**이고
+ * (그 파일도 커밋된다), 저장 뒷문(`harness/attended-guard.mjs`의
+ * `detectRedactionLeak`)이 그 경우를 거부해 사람에게 돌려준다.
  */
-export function normalizeFixture(fixture: SequenceFixture): SequenceFixture {
-  const n = new Normalizer();
+export function normalizeFixture(fixture: SequenceFixture, options: NormalizeOptions = {}): SequenceFixture {
+  const n = new Normalizer(options);
   const steps: SequenceStep[] = fixture.steps.map((step, index) => ({
     index,
     tool: step.tool,

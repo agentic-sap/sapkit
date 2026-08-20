@@ -20,7 +20,7 @@
  * | 인자 | 기본값 | 뜻 |
  * |---|---|---|
  * | `--scenario` | (필수) | `harness/scenarios/<id>.json` 의 id, 또는 파일 경로 |
- * | `--env-path` | (dry-run 아니면 필수) | 접속을 실체화할 `sap.env`. tier=DEV여야 write 표면이 열린다 |
+ * | `--env-path` | (dry-run 아니면 필수) | 접속을 실체화할 `sap.env`. tier=DEV여야 write 표면이 열린다. **가릴 신원 이름도 여기서 읽는다** |
  * | `--exposition` | `readonly,high` | 번들에 넘길 도구 표면. `readonly`면 write 도구가 안 뜬다 |
  * | `--out` | `fixtures/attended-only/` | 픽스처를 떨굴 디렉터리. **상대 경로는 cwd가 아니라 `sapkit-engine/` 루트 기준**으로 푼다(절대 경로는 준 대로) — 어느 cwd에서 돌려도 `--out=fixtures/attended-only`가 같은 자리를 가리킨다 |
  * | `--node-path` | 레포의 `runtime-deps/keyring/node_modules` | 번들이 keyring을 찾는 `NODE_PATH` |
@@ -33,6 +33,12 @@
  * `fixtures/attended-only/`는 **제품 엔진 이름을 요구**하고, 재생 기준선
  * `fixtures/`는 **무조건 거부**하며(자기 대조), 그 밖의 자리는 막지 않되
  * 커밋 대상이 아님을 알린다.
+ *
+ * **신원 가리기.** 픽스처는 커밋되고 레포는 PUBLIC인데 SAP은 작성자를 메타데이터에
+ * 박는다. 그래서 이 스크립트는 `--env-path`의 프로파일에서 **가릴 이름**을 읽어
+ * 채록기에 넘기고(정규화기가 `<<PRINCIPAL_n>>`으로 바꾼다), 정규화가 놓친 것이
+ * 남아 있으면 저장을 거부한다. ⚠ 그 이름은 **어디에도 출력하지 않는다** — 건수만
+ * 알린다. 두 판정 모두 소유자는 `attended-guard.mjs`다.
  */
 import { createRequire } from 'node:module';
 import * as fs from 'node:fs';
@@ -41,11 +47,15 @@ import { fileURLToPath } from 'node:url';
 
 import { AuthFailureAbort, abortOnAuthFailure } from './auth-guard.mjs';
 import {
+  PRINCIPAL_ENV_KEYS,
+  REDACTION_MIN_LENGTH,
   classifyOutDir,
   detectDegradation,
+  detectRedactionLeak,
   noConnectionPattern,
   outDirNotices,
   outDirRefusal,
+  readRedactionNames,
   resolveOutDir,
 } from './attended-guard.mjs';
 
@@ -252,8 +262,35 @@ if (!envPath) {
 if (!fs.existsSync(envPath)) die(`--env-path 가 가리키는 파일이 없다: ${envPath}`);
 if (!fs.existsSync(BUNDLE)) die(`제품 번들이 없다: ${BUNDLE}`);
 
+// 가릴 신원 목록을 **태우기 전에** 세운다. 이 판정이 서지 못하면 녹화를 시작하지
+// 않는다 — 조용히 빈 목록으로 넘어가면 그 다음에 일어나는 일은 「접속 사용자의 SAP
+// 로그인 아이디가 22군데 실린 픽스처가 PUBLIC 레포에 커밋되는 것」이고, 그건 저장
+// 뒤에 되돌릴 수 없다. 자리·무접속 판정과 같은 이유로 미리 세울 수 있는 것은 미리
+// 세운다. ⚠ 읽은 **값은 어디에도 찍지 않는다** — 건수만 알린다.
+let redactNames;
+try {
+  const read = readRedactionNames(envPath);
+  if (read.tooShort.length) {
+    die(
+      `프로파일의 ${read.tooShort.join('·')} 값이 자동으로 가리기에는 너무 짧다 (최소 ${REDACTION_MIN_LENGTH}자).`,
+      '짧은 이름을 가리면 흔한 SAP 토큰 안에서 끝없이 걸려 픽스처가 대조할 수 없는 잡음이 된다.',
+      '그렇다고 조용히 넘기면 그 이름이 실린 픽스처가 커밋된다 — 사람이 정할 자리다.',
+    );
+  }
+  if (read.names.length === 0) {
+    die(
+      `프로파일에서 가릴 이름을 하나도 읽지 못했다 (${PRINCIPAL_ENV_KEYS.join('·')} 중 어느 것도 비어 있지 않아야 한다): ${envPath}`,
+      'SAP은 객체 메타데이터의 adtcore:responsible·changedBy·createdBy와 CreateTransport 응답의 owner에 접속 사용자를 박는다.',
+      '가릴 이름 없이 채록하면 그 아이디가 PUBLIC 레포에 커밋된다. 프로파일을 고치고 다시 돌려라.',
+    );
+  }
+  redactNames = read.names;
+} catch (err) {
+  die('가릴 이름을 프로파일에서 읽지 못했다 — 녹화를 시작하지 않는다.', err?.message ?? String(err));
+}
 console.log(`▶ 녹화 시작 — ${scenario.sequenceId} (${scenario.steps.length}단계, exposition=${exposition})`);
 console.log('  attended 구간이다. 실 SAP에 붙고, 시나리오에 write가 있으면 실제로 바뀐다.');
+console.log(`  가릴 이름 ${redactNames.length}건을 프로파일에서 읽었다 — 값은 로그에 남기지 않는다.`);
 
 const nodePath = args.values.get('node-path') ?? (fs.existsSync(KEYRING_NODE_PATH) ? KEYRING_NODE_PATH : undefined);
 if (nodePath === undefined) {
@@ -279,6 +316,9 @@ try {
       steps: scenario.steps.map((s) => ({ tool: s.tool, args: s.args, note: s.note })),
     },
     abortOnAuthFailure(transport),
+    // 가리기는 **채록 시점**에 붙는다. 저장 뒤에 지우는 것은 늦다 —
+    // `recorder/normalize.ts`의 `principal` 참조.
+    { redact: redactNames },
   );
 } catch (err) {
   if (err instanceof AuthFailureAbort) die(err.message);
@@ -293,6 +333,9 @@ try {
   problems = [
     ...detectDegradation(fixture, { allowAllErrors: args.flags.has('allow-all-errors'), outDir }),
     ...guard.detectUnguardedSource(fixture, { allowStandardSource: args.flags.has('allow-standard-source') }),
+    // fail-closed 뒷문 — 정규화가 놓쳤어도 저장은 막힌다. 판정은 attended-guard가
+    // 소유하고 여기서는 부르기만 한다. 거부문은 이름을 싣지 않는다(위치만).
+    ...detectRedactionLeak(fixture, redactNames),
   ];
 } catch (err) {
   console.error('❌ 녹화를 저장하지 않는다 — 강등 판정을 세우지 못했다.');

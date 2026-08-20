@@ -23,6 +23,15 @@
  *
  * 판정은 **절대 경로로 해석해** 엔진의 두 자리와 대조한다 — 문자열 접미사로 보면
  * 다른 트리의 같은 이름 디렉터리가 통과한다.
+ *
+ * ## 신원 뒷문 (2026-08-20)
+ *
+ * 픽스처는 커밋되고 레포는 PUBLIC인데, SAP은 객체 메타데이터의
+ * `adtcore:responsible`·`changedBy`·`createdBy`와 `CreateTransport` 응답의 `owner`에
+ * **접속 사용자의 로그인 아이디를 반드시 박는다**(실기: 픽스처 9편 중 4편에 22군데).
+ * 가리는 일 자체는 정규화기(`recorder/normalize.ts`의 `principal`)가 하고, 여기 있는
+ * 것은 **그것이 놓쳤을 때 저장을 막는 뒷문**이다 — `readRedactionNames`(어디서
+ * 가릴 이름을 얻는가)와 `detectRedactionLeak`(가린 뒤에도 남았는가).
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -206,4 +215,166 @@ export function detectDegradation(fixture, { allowAllErrors = false, outDir, gat
   }
 
   return problems;
+}
+
+// ── 신원 가리기 — 목록 읽기와 fail-closed 뒷문 ──────────────────────────────
+
+/**
+ * 가릴 이름의 최소 길이. `recorder/normalize.ts`의 `REDACT_MIN_LENGTH`와 **같은 수**여야
+ * 한다 — 어긋나면 한쪽이 가리지 않은 것을 다른 쪽이 거부하거나(막다른 골목),
+ * 다른 쪽이 통과시킨다(구멍). 두 수가 어긋나면 `gates/test-attended-guard.mjs`가 잡는다.
+ */
+export const REDACTION_MIN_LENGTH = 3;
+
+/**
+ * 프로파일에서 **가릴 이름이 들어 있는 키**.
+ *
+ * `SAP_USERNAME`은 접속 계정이라 SAP이 작성자 자리에 그대로 박는다. `SAP_RESPONSIBLE`을
+ * 함께 보는 이유는 이 엔진 자신이 그렇게 쓰기 때문이다 — `src/tools/read/getTransport.ts`와
+ * `listTransports.ts`가 세션 사용자를 `SAP_RESPONSIBLE || SAP_USERNAME`으로 정한다.
+ * 둘 중 하나만 가리면 나머지 하나로 같은 사람이 새어 나간다.
+ */
+export const PRINCIPAL_ENV_KEYS = ['SAP_USERNAME', 'SAP_RESPONSIBLE'];
+
+/** 거부문에 찍는 위치의 최대 개수. 22군데가 나온 실측이 있어 상한을 둔다. */
+const MAX_LEAK_LOCATIONS = 8;
+
+/**
+ * `sap.env` 최소 파서.
+ *
+ * 받아들이는 꼴은 제품이 **같은 파일을 읽는 정본**(`src/profile/envFile.ts`)과 같다:
+ * `KEY=VALUE` 한 줄씩 · `#`로 시작하는 줄은 주석 · 선택적 `export ` 접두 · 값을 감싼
+ * 따옴표 **한 쌍**만 벗김 · **줄 안쪽 `#`는 주석이 아니다**(비밀번호에 들어갈 수 있다) ·
+ * 같은 키가 두 번이면 마지막이 이긴다 · 키와 값의 앞뒤 공백은 버린다.
+ *
+ * 왜 그 정본을 import하지 않는가: 정본은 `dist/`를 거쳐야 하는 TS이고, 이 모듈과 그
+ * 음성시험(`gates/test-attended-guard.mjs`)은 **산출물 없이 홀로 서는 것**이 계약이다
+ * (그 파일 머리주석). 여기서 필요한 것은 키 두 개의 값뿐이라 계약을 깨면서까지 묶을
+ * 값어치가 없다 — 대신 받아들이는 꼴을 위에 적고 정본을 가리킨다.
+ */
+export function parseEnvNames(text) {
+  const out = {};
+  for (const rawLine of String(text).split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+    const eq = line.indexOf('=');
+    if (eq < 0) continue;
+    let key = line.slice(0, eq).trim();
+    if (key.startsWith('export ')) key = key.slice('export '.length).trim();
+    if (!key) continue;
+    let value = line.slice(eq + 1).trim();
+    const first = value.charAt(0);
+    if ((first === '"' || first === "'") && value.length >= 2 && value.charAt(value.length - 1) === first) {
+      value = value.slice(1, -1).trim();
+    }
+    out[key] = value;
+  }
+  return out;
+}
+
+/**
+ * 접속 프로파일에서 **가릴 이름 목록**을 읽는다.
+ *
+ * ⚠ 돌려주는 이름은 **비밀 취급**이다. 부르는 쪽은 이 값을 로그·콘솔·오류 문구
+ * 어디에도 싣지 않는다. 이 함수도 실패 문구에 값을 담지 않는다 — 담는 순간 「가리기」의
+ * 반대가 된다.
+ *
+ * @returns `{ names, tooShort }` — `tooShort`는 값이 있으나 하한보다 짧은 **키 이름**
+ *          목록이다(값이 아니다). 그 판단은 부르는 쪽이 한다: 짧은 이름은 자동으로
+ *          가릴 수 없으므로 조용히 버리지 않고 사람에게 돌려줘야 한다.
+ */
+export function readRedactionNames(envPath) {
+  let text;
+  try {
+    text = fs.readFileSync(envPath, 'utf8');
+  } catch (err) {
+    throw new Error(
+      `가릴 이름을 읽을 프로파일을 열지 못했다: ${envPath}\n` +
+        `   ${err.message}\n` +
+        '   이 목록 없이 채록하면 접속 사용자의 SAP 로그인 아이디가 픽스처에 실린 채 커밋된다.',
+    );
+  }
+  const env = parseEnvNames(text);
+  const names = [];
+  const tooShort = [];
+  for (const key of PRINCIPAL_ENV_KEYS) {
+    const value = (env[key] ?? '').trim();
+    if (value === '') continue;
+    if (value.length < REDACTION_MIN_LENGTH) {
+      tooShort.push(key);
+      continue;
+    }
+    if (!names.some((n) => n.toUpperCase() === value.toUpperCase())) names.push(value);
+  }
+  return { names, tooShort };
+}
+
+/** 픽스처 안의 모든 문자열을 경로와 함께 훑는다. **객체의 키 이름도 문자열이다.** */
+function walkStrings(value, at, visit) {
+  if (typeof value === 'string') {
+    visit(value, at === '' ? '/' : at);
+    return;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item, i) => walkStrings(item, `${at}/${i}`, visit));
+    return;
+  }
+  if (value !== null && typeof value === 'object') {
+    for (const [i, [key, item]] of Object.entries(value).entries()) {
+      // 키 이름 자체도 본다. 다만 **경로에는 키를 쓰지 않는다** — 유출된 이름이 키
+      // 자리에 있으면 경로가 그 이름을 되싣게 된다(`recorder/masking.ts`가 같은 이유로
+      // `<key#N>`을 쓴다).
+      visit(key, `${at}/<key#${i}>`);
+      walkStrings(item, `${at}/${key}`, visit);
+    }
+  }
+}
+
+/**
+ * **fail-closed 뒷문** — 정규화가 끝난 뒤에도 가려야 할 이름이 픽스처에 남아 있는가.
+ *
+ * 정규화기의 경계 규칙을 여기 **다시 구현하지 않는다.** 뒷받침하는 규칙을 그대로
+ * 베낀 뒷문은 그 규칙과 **함께 틀린다** — 정규화가 놓친 이유가 규칙 자체면 뒷문도
+ * 똑같이 놓친다. 그래서 여기는 **대소문자만 무시하는 맨 부분 문자열 검사**로,
+ * 정규화기보다 의도적으로 **더 넓게** 본다. 넓은 쪽으로만 틀리므로 새는 일은 없고,
+ * 과잉 거부는 `recorder/masking.ts`가 정한 이 집의 방향(「오탐이 조금 있는 편이 누락보다
+ * 낫다」)과 같다.
+ *
+ * 넓어서 생기는 유일한 대가: 이름을 **부분 문자열로 품은** 값(`TESTUSER2` 같은 다른
+ * 계정, 사람이 시나리오 `description`·`note`에 적은 아이디)이 거부를 부른다. 그건
+ * 막다른 골목이 아니라 **사람이 볼 자리**다 — 어느 쪽이든 신원이 커밋되려던 참이고,
+ * 고칠 자리는 픽스처가 아니라 시나리오 파일이다(그 파일도 커밋된다).
+ *
+ * ⚠ 거부문에 **원본 이름을 싣지 않는다.** 위치만 말한다.
+ *
+ * @param fixture 정규화가 끝난 픽스처
+ * @param names   가려야 했던 이름 목록 (`readRedactionNames`의 `names`)
+ * @returns 문제 문구 배열 — 없으면 빈 배열
+ */
+export function detectRedactionLeak(fixture, names) {
+  const targets = [
+    ...new Set(
+      (names ?? [])
+        .map((n) => (typeof n === 'string' ? n.trim().toUpperCase() : ''))
+        .filter((n) => n.length >= REDACTION_MIN_LENGTH),
+    ),
+  ];
+  if (targets.length === 0) return [];
+
+  const hits = [];
+  walkStrings(fixture, '', (text, where) => {
+    const upper = text.toUpperCase();
+    if (targets.some((t) => upper.includes(t)) && !hits.includes(where)) hits.push(where);
+  });
+  if (hits.length === 0) return [];
+
+  const shown = hits.slice(0, MAX_LEAK_LOCATIONS);
+  const more = hits.length - shown.length;
+  return [
+    '가려야 할 이름이 픽스처에 남아 있다 — 정규화가 놓쳤다. ' +
+      `위치: ${shown.join(', ')}${more > 0 ? ` 외 ${more}곳` : ''} ` +
+      `(총 ${hits.length}곳). 이름 자체는 여기 싣지 않는다 — 거부문도 새면 안 된다. ` +
+      '가리기 목록이 채록에 실제로 넘어갔는지, 시나리오의 대상 이름·설명·메모에 그 이름이 ' +
+      '박혀 있지는 않은지 확인해라. 시나리오 쪽이면 고칠 자리는 그 파일이다(그 파일도 커밋된다).',
+  ];
 }
