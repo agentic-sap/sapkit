@@ -4,11 +4,14 @@
 
 ## 라이브러리 (판정의 소유자)
 
-- `recorder/` — 구 번들(`interactive/server/server.bundle.cjs`)을 자식 프로세스로
-  구동해 MCP 요청/응답 **시퀀스**를 채록한다. 정규화 필터(잠금 핸들·세션/CSRF
-  토큰·타임스탬프·서버 생성 URI)와 **마스킹 검사기**(자격증명·호스트·접속정보·
-  실데이터 패턴이 0인지)를 통과한 것만 픽스처로 저장한다. 구 번들은 **실행만**
-  하고 수정하지 않는다.
+- `recorder/` — **제품 번들**(`interactive/server/server.bundle.cjs`)을 자식
+  프로세스로 구동해 MCP 요청/응답 **시퀀스**를 채록한다. 정규화 필터(잠금 핸들·
+  세션/CSRF 토큰·타임스탬프·서버 생성 URI)와 **마스킹 검사기**(자격증명·호스트·
+  접속정보·실데이터 패턴이 0인지)를 통과한 것만 픽스처로 저장한다. 번들은
+  **실행만** 하고 수정하지 않는다.
+  ⚠ 판7-b(D-095) 뒤 그 번들은 **신 엔진**이다. 그러므로 지금의 채록은 「구 엔진이
+  무엇을 냈는가」를 남기는 대조 채록이 아니라 **attended 실기 증거**이고, 저장
+  자리도 `../fixtures/attended-only/`로 갈린다(`attended-guard.mjs`).
 - `replay/` — 픽스처를 신 엔진에 먹여 정규화 diff 0을 판정한다. **의도적 차이
   목록(divergence allowlist)**에 등재된 항목은 diff 비교 대신 **대체 기대 시험**
   으로 판정하며, 각 항목은 근거 문서 경로를 가진다. 도구 × 증거 급을 기록한
@@ -22,16 +25,20 @@
 
 | 파일 | 구간 | 하는 일 |
 |---|---|---|
-| `record-attended.mjs` | **C1** | 시나리오를 구 번들에 태워 픽스처로 저장 |
+| `record-attended.mjs` | **C1** | 시나리오를 **제품 번들**에 태워 픽스처로 저장 (기본 자리 `../fixtures/attended-only/`) |
 | `replay-attended.mjs` | **C2** | 픽스처를 신 엔진에 먹여 판정 + 커버리지 표 + **판정 파일**(`../evidence/replay/`) |
 | `render-ledger.mjs` | 오프라인 | 진척 대장(`../TOOL-LEDGER.md`)을 계산해 쓰거나 `--check`로 대조 |
 | `contract-evidence.mjs` | 오프라인 | jest `--json` 보고서를 도구별 통과로 접어 `../evidence/contract/results.json` |
 | `auth-guard.mjs` | 공용 | 401 계열 첫 건에서 전송을 끊는다 |
+| `attended-guard.mjs` | C1 판정 | 저장 자리 3분기·무접속 어휘·강등 판정 (부작용 없음 — `gates/test-attended-guard.mjs`가 겨눈다) |
 | `scenarios/` | C1 입력 | 무엇을 물어볼지 적어 두는 곳 (형식은 그 README) |
-| `fixtures/` (`../fixtures/`) | C1 산출 | 채록된 시퀀스. 마스킹 통과분만 |
+| `fixtures/attended-only/` | C1 산출 | 채록된 시퀀스. 마스킹 통과분만 |
+| `fixtures/` (`../fixtures/`) | 재생 기준선 | **구 엔진 채록분.** 여기에 새로 저장하는 것은 거부된다 (교체 뒤에는 자기 대조라 증거가 아니다) |
 | `old-surface/` | 기준선 | 구 번들 `tools/list` 오프라인 채록본 |
-| `build-plan.mjs` | 오프라인 | 묶음·제작 순서·요구 증거 급을 **계산해** `build-plan.json`을 쓰거나 `--check`로 대조 |
-| `build-plan.json` | 계획 | 묶음 29 · 도구 186종의 묶음·제작 순서·요구 증거 급. 사람이 읽을 근거는 `BUILD-PLAN.md` |
+| `build-plan.mjs` | 오프라인 | 묶음·제작 순서·요구 증거 급을 **계산해** `build-plan.json`을 쓰거나 `--check`로 대조 (`npm run build` 뒤에 — 사다리는 `ledger/grade.ts`가 소유한다) |
+| `build-plan.json` | 계획 | 묶음 29 · 도구 186종의 묶음·제작 순서·요구 증거 급 + **인하 표시**. 사람이 읽을 근거는 `BUILD-PLAN.md` |
+| `phase6-exercised.mjs` | 오프라인 | `fixtures/`를 훑어 **얼린 관측**을 뽑거나 `--check`로 갈라짐만 알린다 (**자동으로 다시 얼리지 않는다**) |
+| `phase6-exercised.json` | 얼린 관측 | 판6까지 픽스처가 실제로 태운 도구 78종. 요구 급 인하(D-092 ⓐ)의 근거 — 근거는 `BUILD-PLAN.md` §3.1 |
 
 ```powershell
 node harness/record-attended.mjs --scenario=<id> --dry-run          # SAP 불필요
@@ -39,20 +46,28 @@ node harness/record-attended.mjs --scenario=<id> --env-path=<sap.env>
 node harness/replay-attended.mjs --env-path=<sap.env>
 node harness/render-ledger.mjs                                      # SAP 불필요
 node harness/render-ledger.mjs --check                              # SAP 불필요
-node harness/build-plan.mjs                                         # SAP 불필요
-node harness/build-plan.mjs --check                                 # SAP 불필요
+node harness/build-plan.mjs                                         # SAP 불필요 (npm run build 뒤)
+node harness/build-plan.mjs --check                                 # SAP 불필요 (npm run build 뒤)
+node harness/phase6-exercised.mjs --check                           # SAP 불필요 — 갈라짐만 알린다
+node harness/phase6-exercised.mjs                                   # SAP 불필요 — **다시 얼린다** (사람의 판단)
 ```
 
 **C1·C2는 SAP에 접속한다.** 재생은 응답을 흉내 내는 것이 아니라 신 엔진이 같은
 질문을 다시 던지는 일이라, C1뿐 아니라 **C2도 attended 구간**이다. 대장·계획 계열
-(`render-ledger.mjs`·`contract-evidence.mjs`·`build-plan.mjs`)은 레포 안의 파일만
-읽는 오프라인 도구다.
+(`render-ledger.mjs`·`contract-evidence.mjs`·`build-plan.mjs`·`phase6-exercised.mjs`)은
+레포 안의 파일만 읽는 오프라인 도구다.
 
 ## 진입점이 지키는 것 (라이브러리가 안 보는 축)
 
-- **강등 감지** — 무접속 문구가 섞였거나 · 전 단계가 오류이거나 · 신 엔진을
-  잘못 채록했으면 **저장하지 않는다.** 반쪽 증거를 커밋하면 신 엔진이 맞추는
-  기준 자체가 틀어진다.
+- **강등 감지** — 무접속 거부가 섞였거나 · 전 단계가 오류이거나 · **저장 자리에
+  맞지 않는 엔진**을 채록했으면 **저장하지 않는다.** 반쪽 증거를 커밋하면 대장이
+  거짓을 센다. 무접속 어휘는 상수를 복제하지 않고 제품 게이트
+  (`interactive/scripts/conformance-server-gates.mjs`의 `verdictOf`)에서 **긁어온다** —
+  못 찾으면 판정 없이 죽는다. 저장 자리 규칙은 셋으로 갈린다:
+  `../fixtures/attended-only/`는 **제품 엔진 이름을 요구**하고, 재생 기준선
+  `../fixtures/`는 **무조건 거부**하며, 그 밖의 자리는 막지 않되 커밋 대상이
+  아님을 알린다. ⚠ 이 판정은 시퀀스가 **다 나간 뒤**에 돈다 — 「저장이 안 됐다」는
+  「SAP이 안 바뀌었다」가 아니다(자리 거부만은 태우기 전에도 한 번 돈다).
 - **고객 네임스페이스 제한** — **대상이 고객 객체(Z·Y)여야 하는 도구**를 태우기
   **전에** 판정한다. 무엇을 검사할지는 **도구 선언**에서 온다:
   `SapToolDefinition.targetNames`가 그 도구의 대상-이름 인자를 밝히고,

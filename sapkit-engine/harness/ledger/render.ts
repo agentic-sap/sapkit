@@ -9,7 +9,7 @@
  * 렌더에 **생성 시각 같은 비결정 값을 싣지 않는다.** 싣는 순간 대조는 매번
  * 실패하고, 게이트는 곧 꺼진다.
  */
-import type { CoverageRow, EvidenceCell, EvidenceGrade, ToolStatus } from '../replay/coverage';
+import type { CoverageRow, EvidenceCell, EvidenceGrade, PrimaryGrade, ToolStatus } from '../replay/coverage';
 import type { LedgerModel, ToolFacts } from './collect';
 import type { DelegationKind } from './delegation';
 
@@ -19,6 +19,14 @@ const GRADE_LABEL: Readonly<Record<EvidenceGrade, string>> = {
   attended: 'attended 실기',
   substitute: '대체 기대 시험',
 };
+
+/**
+ * 인하 표시 — **증거가 는 것이 아니라 요구가 내려간 것**임이 한눈에 읽혀야 한다.
+ *
+ * 그냥 `계약 시험`으로 두면 다음 사람이 「원래 계약 시험이었구나」로 읽는다.
+ * 원래 급을 함께 적어야 그 오해가 성립하지 않는다.
+ */
+const downgradeMark = (from: PrimaryGrade): string => `(인하 · 원래 ${GRADE_LABEL[from]})`;
 
 const SECTIONS: readonly { readonly status: ToolStatus; readonly title: string; readonly gloss: string }[] = [
   {
@@ -46,8 +54,9 @@ function cell(value: EvidenceCell, fallback: string): string {
   return `${value.status === 'pass' ? '통과' : value.status === 'fail' ? '실패' : '—'}(${value.count})`;
 }
 
-function requiredText(row: CoverageRow, planned: boolean): string {
-  const base = planned ? GRADE_LABEL[row.requiredGrade] : `${UNDECIDED}(→${GRADE_LABEL[row.requiredGrade]})`;
+function requiredText(row: CoverageRow, planned: boolean, downgradedFrom: PrimaryGrade | null): string {
+  const label = planned ? GRADE_LABEL[row.requiredGrade] : `${UNDECIDED}(→${GRADE_LABEL[row.requiredGrade]})`;
+  const base = downgradedFrom === null ? label : `${label} ${downgradeMark(downgradedFrom)}`;
   return row.requiresSubstitute ? `${base} + 대체` : base;
 }
 
@@ -66,7 +75,7 @@ function rowLine(row: CoverageRow, facts: ToolFacts, planned: boolean): string {
     row.tool,
     facts.bundle?.title ?? UNDECIDED,
     facts.bundle === null ? UNDECIDED : String(facts.bundle.order),
-    requiredText(row, planned),
+    requiredText(row, planned, facts.downgradedFrom),
     cell(row.replay, facts.hasReplayFixture ? '픽스처 있음 · 판정 미기록' : '—'),
     cell(row.contract, facts.contractTestFile === null ? '—' : '시험 있음 · 결과 미기록'),
     cell(row.attended, '—'),
@@ -79,7 +88,13 @@ function rowLine(row: CoverageRow, facts: ToolFacts, planned: boolean): string {
 export function renderLedger(model: LedgerModel): string {
   const { coverage, plan, facts } = model;
   const factsOf = (tool: string): ToolFacts =>
-    facts.get(tool) ?? { hasReplayFixture: false, contractTestFile: null, delegated: null, bundle: null };
+    facts.get(tool) ?? {
+      hasReplayFixture: false,
+      contractTestFile: null,
+      delegated: null,
+      bundle: null,
+      downgradedFrom: null,
+    };
   const isPlanned = (tool: string): boolean => plan !== null && plan.tools[tool] !== undefined;
 
   const lines: string[] = [];
@@ -96,6 +111,20 @@ export function renderLedger(model: LedgerModel): string {
       `**증거 대기 ${coverage.totals.awaitingEvidence}** · **증거 있음 ${coverage.totals.evidenced}**`,
   );
   lines.push('');
+
+  // 인하 뒤의 수치만 실으면 그 수가 증거를 만들어 얻은 것처럼 읽힌다. 인하 전
+  // 수치를 나란히 적어야 무엇이 달라졌는지가 드러난다.
+  if (model.downgrade !== null) {
+    const d = model.downgrade;
+    lines.push(
+      `그중 **요구 급 인하 ${d.count}종**(재생 대조 → 계약 시험 · D-092 ⓐ). ` +
+        `인하 전이었다면 같은 증거로 **증거 대기 ${d.awaitingEvidenceBefore} · ` +
+        `증거 있음 ${d.evidencedBefore}**이다.`,
+    );
+    lines.push('');
+    lines.push('> **인하는 증거를 만든 것이 아니라 요구를 낮춘 것이다.**');
+    lines.push('');
+  }
 
   // ── 위임형 열의 수 읽기 ────────────────────────────────────────────────────
   // 46(도구)과 161(파일)은 어긋나 보이지만 단위가 다르다. 이 문단이 없으면
@@ -202,6 +231,10 @@ export function renderLedger(model: LedgerModel): string {
   lines.push('|---|---|');
   lines.push(`| \`${UNDECIDED}\` | 제작 계획이 아직 이 도구를 배정하지 않았다 |`);
   lines.push(`| \`${UNDECIDED}(→계약 시험)\` | 요구 급 미정 — 계산기 기본값(사다리 3)을 쓴 것이지 정해진 것이 아니다 |`);
+  lines.push(
+    `| \`계약 시험 ${downgradeMark('replay')}\` | **요구를 낮춘 자리**(D-092 ⓐ) — 실호출은 있으나 판6이 끝나도록 ` +
+      '재생 자산이 생기지 않아 계약 시험 급으로 내렸다. 증거가 는 것이 아니다 |',
+  );
   lines.push('| `픽스처 있음 · 판정 미기록` | 재생 픽스처는 커밋돼 있으나 **커밋된 판정 파일이 없다** — 통과가 아니다 |');
   lines.push('| `시험 있음 · 결과 미기록` | 계약 시험 파일은 있으나 **실행 결과 파일이 없다** — 통과가 아니다 |');
   lines.push('| `요구 · 미기록` | 차이 장부 등재분이라 대체 기대 시험을 **더** 요구하는데, 그 시험 파일이 아직 없다 |');

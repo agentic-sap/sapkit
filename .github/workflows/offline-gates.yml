@@ -291,6 +291,17 @@ jobs:
         # 입구가 깨지면 대장을 다시 만들 길이 막히고, 그러면 대장이 낡은 채 굳는다.
         run: node harness/render-ledger.mjs --check
 
+      - name: 제작 계획 --check (요구 급 인하를 손으로 못 고치게)
+        working-directory: sapkit-engine
+        # 판6.3(D-098 ⓒ)이 요구 급 **인하**를 집행하면서 `build-plan.json`이 「어느 도구의
+        # 요구를 낮췄는가」를 담게 됐다. 그런데 이 `--check`는 그때까지 `npm run gates`에도
+        # CI에도 없었고, **그 구멍이 실측으로 드러났다**: `build-plan.json`을 손으로 고쳐
+        # 인하를 한 종 늘리고 대장을 재생성하면 대장 게이트·`render-ledger --check`·표면
+        # 게이트가 **전부 초록**이었다(판6.3 최종 독립 리뷰 A1 · 사보타주 S26).
+        # 인하는 「증거가 아니라 요구를 낮춘 것」이라 손으로 늘리면 수치가 조용히 좋아진다.
+        # 위 스텝들이 이미 `npm ci && npm run build`를 마쳤으므로 `dist/`가 있다.
+        run: node harness/build-plan.mjs --check
+
       - name: 기동 스모크 (산출물을 자식 프로세스로 띄워 stdio 왕복)
         working-directory: sapkit-engine
         # 시험은 전송을 주입해 같은 프로세스에서 돈다 — 그건 로직 증거이지
@@ -329,6 +340,16 @@ jobs:
         # 제품 게이트의 무접속 분류 정규식을 **읽어 와**(복제 없음) 구·신 거부
         # 문구 양쪽에 대입한다. 누군가 alternation을 좁혀 되돌리면 여기서 빨개진다.
         run: node gates/test-refusal-vocab.mjs
+
+      - name: attended 녹화 관문 음성시험 (저장 자리 3분기 · 무접속 어휘 · 기본 저장 자리)
+        working-directory: sapkit-engine
+        # 판7-b 교체 뒤 녹화 관문의 규칙이 바뀌었다: `fixtures/attended-only/`는 **제품
+        # 엔진 이름을 요구**하고, 재생 기준선 `fixtures/`는 **무조건 거부**한다(신 엔진이
+        # 제 응답을 제 기준으로 삼는 자기 대조라 증거가 아니다). 이 관문의 판정 일부는
+        # **SAP 호출이 전부 나간 뒤**에 돌기 때문에, 느슨해지면 대가를 실 SAP이 치른다.
+        # 그래서 「거부해야 할 입력이 정말 거부되는가」를 상시로 잰다. SAP 무접속 ·
+        # dist 불요(소스와 임시 파일만 본다).
+        run: node gates/test-attended-guard.mjs
 
       # (구 번들 발행 표면 표류 확인 스텝은 판7-b에서 내렸다. 그 질문 — "구 번들이
       #  여전히 이렇게 발행하는가" — 은 구 번들이 현역일 때만 뜻이 있었다. 교체 뒤

@@ -1,0 +1,187 @@
+{
+  "_": "판6.3 실기 왕복 ③ — 클래스 계열. Delete Local* 4종은 독립 객체가 아니라 클래스의 로컬 인클루드라 숙주가 반드시 필요하고(RUN-PLAN 함정 3), Update Local*로 먼저 채워야 지울 것이 생긴다. DeleteUnitTest는 원리상 오류다(spec 함정 ⑥).",
+  "sequenceId": "zsapkit63-class-locals-unittest",
+  "description": "[재실행 가능 · P3 · $TMP] 클래스 ZCL_SAPKIT_63_C1 생성 → 소스 투입 → 활성 → 로컬 인클루드 4종(정의·타입=구현·매크로·시험클래스)을 채우고 한 번에 활성 → 각각 되읽기 → DeleteUnitTest(ADT 미지원이라 반드시 오류) → 로컬 4종 삭제 → 재활성 → 클래스 되읽기 → 클래스 삭제 → 이름으로 재조회해 0건 확인. 전제: ZCL_SAPKIT_63_C1이 시스템에 없어야 한다. 만든 것을 같은 시퀀스 안에서 지우므로 재실행 가능하다. 로컬 인클루드의 ADT 대응은 정의=definitions · 타입=implementations · 매크로=macros · 시험클래스=testclasses다. **각 인클루드는 자기 완결이어야 한다** — Update Local*은 갱신 시점에 그 인클루드만 놓고 구문검사를 돌리므로, 선언을 CCDEF에 두고 구현을 CCIMP에 두는 고전적 분업은 서로를 거부한다(실기 1회차 실측: 「구현이 없다」·「타입을 모른다」). 그래서 definitions에는 구현이 필요 없는 로컬 인터페이스를, implementations에는 그 인터페이스를 구현하는 로컬 클래스를 선언+구현 함께 둔다. 네 인클루드는 activate_on_update=false로 넣고 마지막에 한 번만 활성화한다(중간 반쪽 상태를 만들지 않는다). 삭제도 같은 이유로 activate_on_delete=false로 넷을 지운 뒤 한 번 활성화한다. DeleteUnitTest는 SAP에 요청을 한 건도 보내지 않고 계약 문구를 그대로 던진다 — 그래서 이 단계의 isError=true는 결함이 아니라 관측 대상이고, 대장에서는 「증거 대기 · 이유: ADT 미지원 · SAP 호출 0회」로 남는다. run_id를 앞 단계 응답에서 물려줄 수 없어(채록기에 출력 연쇄가 없다) 고정 자리표시자를 넣는다 — 어차피 접속 뒤 즉시 던지므로 값이 판정을 바꾸지 않는다. $TMP라 transport_request가 없다. **CreateUnitTest는 이 시퀀스에서 뺐다(실측 근거).** 그 도구는 벤더 엔드포인트 `POST /sap/bc/adt/abapunit/runs`를 치는데 그 컬렉션이 이 시스템에 **없다** — 실기에서 404였고, 엔진 소스가 이미 그 사실을 적어 두고 있다(구 엔진이 실 S/4HANA·BASIS 7.00에서 discovery로 확인해 형제 RunUnitTest만 고전 엔드포인트로 옮겼고, CreateUnitTest는 구가 보내던 전문을 그대로 보내도록 남겨 뒀다). 게다가 그 404 오류 문구에 **실호스트가 실려** 마스킹 검사가 픽스처 저장을 통째로 거부한다 — 한 단계 때문에 21단계의 증거가 전부 날아가므로 뺀다. CreateUnitTest는 DeleteUnitTest와 같은 이유로(원리상) 이 시스템에서 「증거 대기」로 남는다.",
+  "steps": [
+    {
+      "tool": "CreateClass",
+      "args": {
+        "class_name": "ZCL_SAPKIT_63_C1",
+        "description": "sapkit 63 attended probe class",
+        "package_name": "$TMP",
+        "final": true
+      },
+      "note": "껍데기 클래스. 로컬 인클루드 4종의 숙주다."
+    },
+    {
+      "tool": "UpdateClass",
+      "args": {
+        "class_name": "ZCL_SAPKIT_63_C1",
+        "source_code": "CLASS zcl_sapkit_63_c1 DEFINITION\n  PUBLIC\n  FINAL\n  CREATE PUBLIC.\n\n  PUBLIC SECTION.\n    METHODS probe\n      RETURNING VALUE(rv_text) TYPE string.\n  PROTECTED SECTION.\n  PRIVATE SECTION.\nENDCLASS.\n\n\nCLASS zcl_sapkit_63_c1 IMPLEMENTATION.\n  METHOD probe.\n    rv_text = 'sapkit 63 attended probe'.\n  ENDMETHOD.\nENDCLASS.\n",
+        "activate": false
+      },
+      "note": "activate=false로 둔다 — 활성화를 합치면 ActivateObjects가 이 시퀀스에서 제 증거를 얻지 못한다(판6.1이 같은 이유로 갈랐다)."
+    },
+    {
+      "tool": "ActivateObjects",
+      "args": {
+        "objects": [
+          {
+            "name": "ZCL_SAPKIT_63_C1",
+            "type": "CLAS/OC"
+          }
+        ]
+      },
+      "note": "본체를 먼저 세운다. 로컬 인클루드는 활성 클래스 위에 얹는다."
+    },
+    {
+      "tool": "UpdateLocalDefinitions",
+      "args": {
+        "class_name": "ZCL_SAPKIT_63_C1",
+        "definitions_code": "INTERFACE lif_sapkit_63_probe.\n  METHODS ping\n    RETURNING VALUE(rv_text) TYPE string.\nENDINTERFACE.\n",
+        "activate_on_update": false
+      },
+      "note": "definitions 인클루드(CCDEF). 구현이 필요 없는 로컬 인터페이스를 둔다. ⚠ **각 인클루드는 자기 완결이어야 한다** — Update Local*은 갱신 시점에 그 인클루드만 놓고 구문검사를 돌리므로, 선언을 CCDEF에 두고 구현을 CCIMP에 두는 고전적 분업이 여기서는 「구현이 없다 / 타입을 모른다」로 서로를 거부한다(실기 1회차 실측). 그래서 definitions에는 구현이 필요 없는 **로컬 인터페이스**를, implementations에는 **선언+구현을 함께** 둔다."
+    },
+    {
+      "tool": "UpdateLocalTypes",
+      "args": {
+        "class_name": "ZCL_SAPKIT_63_C1",
+        "local_types_code": "CLASS lcl_sapkit_63_helper DEFINITION.\n  PUBLIC SECTION.\n    INTERFACES lif_sapkit_63_probe.\nENDCLASS.\n\n\nCLASS lcl_sapkit_63_helper IMPLEMENTATION.\n  METHOD lif_sapkit_63_probe~ping.\n    rv_text = 'sapkit 63 local helper'.\n  ENDMETHOD.\nENDCLASS.\n",
+        "activate_on_update": false
+      },
+      "note": "이름은 「로컬 타입」이지만 ADT 대응은 implementations 인클루드(CCIMP)다 — 도구 소스가 그 근거를 적어 둔다. CCDEF의 인터페이스를 구현하는 로컬 클래스를 **선언과 구현을 함께** 둔다(위 ⚠)."
+    },
+    {
+      "tool": "UpdateLocalMacros",
+      "args": {
+        "class_name": "ZCL_SAPKIT_63_C1",
+        "macros_code": "DEFINE sapkit_63_touch.\n  CLEAR &1.\nEND-OF-DEFINITION.\n",
+        "activate_on_update": false
+      },
+      "note": "macros 인클루드(CCMAC). 어디서도 호출하지 않는다 — 매크로는 전개되는 자리에서만 문법이 걸린다."
+    },
+    {
+      "tool": "UpdateLocalTestClass",
+      "args": {
+        "class_name": "ZCL_SAPKIT_63_C1",
+        "test_class_code": "CLASS ltcl_sapkit_63 DEFINITION FINAL FOR TESTING\n  DURATION SHORT\n  RISK LEVEL HARMLESS.\n  PRIVATE SECTION.\n    METHODS probe FOR TESTING.\nENDCLASS.\n\n\nCLASS ltcl_sapkit_63 IMPLEMENTATION.\n  METHOD probe.\n    cl_abap_unit_assert=>assert_equals( act = 1 exp = 1 ).\n  ENDMETHOD.\nENDCLASS.\n",
+        "activate_on_update": false
+      },
+      "note": "testclasses 인클루드(CCAU). **로컬 도우미를 참조하지 않는 자기 완결 시험**이다 — 갱신 시점 구문검사가 다른 인클루드를 아직 못 보기 때문이다(위 ⚠)."
+    },
+    {
+      "tool": "ActivateObjects",
+      "args": {
+        "objects": [
+          {
+            "name": "ZCL_SAPKIT_63_C1",
+            "type": "CLAS/OC"
+          }
+        ]
+      },
+      "note": "네 인클루드를 한 번에 세운다 — 중간 상태를 만들지 않기 위해 앞의 넷을 activate_on_update=false로 두었다."
+    },
+    {
+      "tool": "GetLocalDefinitions",
+      "args": {
+        "class_name": "ZCL_SAPKIT_63_C1"
+      },
+      "note": "되읽기 ① — 보낸 것이 실제로 들어갔는지. 네 인클루드를 다 되읽는 이유는 뒤의 Delete Local* 4종이 「무엇을 지웠는가」를 대조할 기준이 필요해서다."
+    },
+    {
+      "tool": "GetLocalTypes",
+      "args": {
+        "class_name": "ZCL_SAPKIT_63_C1"
+      },
+      "note": "되읽기 ②."
+    },
+    {
+      "tool": "GetLocalMacros",
+      "args": {
+        "class_name": "ZCL_SAPKIT_63_C1"
+      },
+      "note": "되읽기 ③."
+    },
+    {
+      "tool": "GetLocalTestClass",
+      "args": {
+        "class_name": "ZCL_SAPKIT_63_C1"
+      },
+      "note": "되읽기 ④."
+    },
+    {
+      "tool": "DeleteUnitTest",
+      "args": {
+        "run_id": "SAPKIT63-PLACEHOLDER-RUN-ID"
+      },
+      "note": "**반드시 오류다.** ADT가 이 조작을 지원하지 않아 벤더가 즉시 던지고, 엔진은 그 계약 문구('Delete operation is not supported for Unit Test objects in ADT')를 그대로 낸다 — SAP에 나가는 요청은 0건이다. 앞선 CreateUnitTest 단계를 이 시퀀스에서 뺐으므로 run_id를 물려받을 곳이 애초에 없고(채록기에 출력 연쇄도 없다), 고정 자리표시자를 넣는다. 접속 뒤 즉시 던지므로 값이 판정을 바꾸지 않는 것이 그 근거다."
+    },
+    {
+      "tool": "DeleteLocalTestClass",
+      "args": {
+        "class_name": "ZCL_SAPKIT_63_C1",
+        "activate_on_delete": false
+      },
+      "note": "지우는 순서는 의존의 역순 — 시험클래스가 lcl_ 도우미를 쓰므로 먼저 걷는다."
+    },
+    {
+      "tool": "DeleteLocalMacros",
+      "args": {
+        "class_name": "ZCL_SAPKIT_63_C1",
+        "activate_on_delete": false
+      },
+      "note": "매크로는 아무도 참조하지 않아 순서가 자유롭다."
+    },
+    {
+      "tool": "DeleteLocalTypes",
+      "args": {
+        "class_name": "ZCL_SAPKIT_63_C1",
+        "activate_on_delete": false
+      },
+      "note": "구현(implementations)을 먼저 걷고 선언을 나중에 걷는다 — 반대로 하면 중간 상태가 선언만 남은 반쪽이 된다."
+    },
+    {
+      "tool": "DeleteLocalDefinitions",
+      "args": {
+        "class_name": "ZCL_SAPKIT_63_C1",
+        "activate_on_delete": false
+      },
+      "note": "선언 정리. 여기까지가 로컬 4종의 왕복이다."
+    },
+    {
+      "tool": "ActivateObjects",
+      "args": {
+        "objects": [
+          {
+            "name": "ZCL_SAPKIT_63_C1",
+            "type": "CLAS/OC"
+          }
+        ]
+      },
+      "note": "네 인클루드가 빠진 클래스를 한 번에 세운다."
+    },
+    {
+      "tool": "GetClass",
+      "args": {
+        "class_name": "ZCL_SAPKIT_63_C1"
+      },
+      "note": "되읽기 — 본체가 온전하고 로컬이 빠졌는지 대조할 수 있게 한다."
+    },
+    {
+      "tool": "DeleteClass",
+      "args": {
+        "class_name": "ZCL_SAPKIT_63_C1"
+      },
+      "note": "숙주 정리."
+    },
+    {
+      "tool": "SearchObject",
+      "args": {
+        "object_name": "ZCL_SAPKIT_63_C1",
+        "maxResults": 5
+      },
+      "note": "삭제의 기계 확인. 0건이어야 한다."
+    }
+  ]
+}

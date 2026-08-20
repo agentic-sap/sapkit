@@ -22,7 +22,8 @@ export type {
   SequenceStep,
 } from './types';
 
-export { Normalizer, keyKind, normalizeFixture } from './normalize';
+export { REDACT_MIN_LENGTH, Normalizer, keyKind, normalizeFixture, redactionTargets } from './normalize';
+export type { NormalizeOptions } from './normalize';
 
 export { MaskingRejection, assertMasked, scanForSecrets } from './masking';
 export type { MaskingOptions, MaskingRuleId, MaskingViolation } from './masking';

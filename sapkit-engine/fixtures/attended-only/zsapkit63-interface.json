@@ -1,0 +1,109 @@
+{
+  "formatVersion": 1,
+  "sequenceId": "zsapkit63-interface",
+  "description": "[재실행 가능 · P3 · $TMP] 인터페이스 ZIF_SAPKIT_63_I1 생성 → 활성 → 되읽기 → 삭제 → 이름으로 재조회해 0건 확인. 전제: 그 이름이 시스템에 없어야 한다. 만든 것을 같은 시퀀스 안에서 지우므로 재실행 가능하다. CreateInterface에는 activate 플래그가 없어 ActivateObjects를 따로 태운다 — 그 김에 활성화의 「갓 만든 객체」 갈래가 한 번 더 밟힌다. 활성화 갈래: 기본은 ⑴ 생성 → 활성화 → 삭제이고, T4-3 정찰이 비활성 삭제를 실측하면 ActivateObjects 단계만 뺀다. $TMP라 transport_request가 없다.",
+  "engine": {
+    "name": "sapkit-engine",
+    "version": "1.0.0",
+    "protocolVersion": "2024-11-05",
+    "exposition": "readonly,high"
+  },
+  "recordedAt": "2026-08-20T05:14:05.618Z",
+  "steps": [
+    {
+      "index": 0,
+      "tool": "CreateInterface",
+      "args": {
+        "interface_name": "ZIF_SAPKIT_63_I1",
+        "description": "sapkit 63 attended probe interface",
+        "package_name": "$TMP"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"interface_name\": \"ZIF_SAPKIT_63_I1\",\n  \"package_name\": \"$TMP\",\n  \"transport_request\": null,\n  \"type\": \"INTF/OI\",\n  \"message\": \"Interface ZIF_SAPKIT_63_I1 created successfully. Use UpdateInterface to set source code.\",\n  \"uri\": \"/sap/bc/adt/oo/interfaces/zif_sapkit_63_i1\",\n  \"steps_completed\": [\n    \"create\",\n    \"check\"\n  ]\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "껍데기 인터페이스가 선다. 메서드 선언을 넣지 않는 것은 의도다 — 이 시퀀스가 재는 것은 왕복이지 소스 편집이 아니다."
+    },
+    {
+      "index": 1,
+      "tool": "ActivateObjects",
+      "args": {
+        "objects": [
+          {
+            "name": "ZIF_SAPKIT_63_I1",
+            "type": "INTF/OI"
+          }
+        ]
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"endpoint\": \"runs\",\n  \"run_id\": \"<<SERVER_ID_1>>\",\n  \"activated\": true,\n  \"checked\": true,\n  \"generated\": true,\n  \"objects_count\": 1,\n  \"failed_count\": 0,\n  \"objects\": [\n    {\n      \"name\": \"ZIF_SAPKIT_63_I1\",\n      \"type\": \"INTF/OI\",\n      \"uri\": \"/sap/bc/adt/oo/interfaces/zif_sapkit_63_i1\",\n      \"status\": \"activated\",\n      \"errors\": [],\n      \"warnings\": []\n    }\n  ],\n  \"errors\": [],\n  \"warnings\": [],\n  \"message\": \"Activated 1 object(s) via runs endpoint\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "uri 대신 name+type."
+    },
+    {
+      "index": 2,
+      "tool": "GetInterface",
+      "args": {
+        "interface_name": "ZIF_SAPKIT_63_I1"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"interface_name\": \"ZIF_SAPKIT_63_I1\",\n  \"version\": \"active\",\n  \"interface_data\": \"INTERFACE ZIF_SAPKIT_63_I1\\r\\n  PUBLIC .\\r\\n\\r\\nENDINTERFACE.\",\n  \"status\": 200,\n  \"status_text\": \"OK\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "되읽기. 이 판이 만든 Z 객체라 소스가 픽스처에 실려도 된다."
+    },
+    {
+      "index": 3,
+      "tool": "DeleteInterface",
+      "args": {
+        "interface_name": "ZIF_SAPKIT_63_I1"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"interface_name\": \"ZIF_SAPKIT_63_I1\",\n  \"transport_request\": null,\n  \"message\": \"Interface ZIF_SAPKIT_63_I1 deleted successfully.\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "왕복의 닫는 쪽."
+    },
+    {
+      "index": 4,
+      "tool": "SearchObject",
+      "args": {
+        "object_name": "ZIF_SAPKIT_63_I1",
+        "maxResults": 5
+      },
+      "response": {
+        "content": []
+      },
+      "isError": false,
+      "note": "삭제의 기계 확인. 0건이어야 한다."
+    }
+  ],
+  "placeholders": [
+    {
+      "placeholder": "<<SERVER_ID_1>>",
+      "kind": "server-id",
+      "occurrences": 1
+    }
+  ]
+}

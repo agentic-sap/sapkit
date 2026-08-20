@@ -2,14 +2,15 @@
  * 대장의 입력을 모은다 — **입력이 무엇인지 못 박는 자리.**
  *
  * "등록점과 채록본에서 계산한다"만으로는 증거 열을 채울 수 없다. 등록점에도
- * 채록본에도 증거는 없기 때문이다. 그래서 입력을 여덟으로 벌려 적고, 각각이
+ * 채록본에도 증거는 없기 때문이다. 그래서 입력을 아홉으로 벌려 적고, 각각이
  * 레포 안의 **어느 파일**인지와 **지금 있는지**를 대장에 그대로 싣는다.
  *
  * | 열 | 입력 |
  * |---|---|
  * | 도구 이름 · 전체 목록 | `harness/old-surface/m1-tools.json` 의 `tools` (186종) |
  * | 상태의 `지음` 여부 | `src/tools/registry.ts` 등록점 |
- * | 묶음 · 제작 순서 · 요구 급 | `harness/build-plan.json` (뒤 작업이 산출 — 없으면 「미정」) |
+ * | 묶음 · 제작 순서 · 요구 급 · **인하 표시** | `harness/build-plan.json` (뒤 작업이 산출 — 없으면 「미정」) |
+ * | 인하의 근거 | `harness/phase6-exercised.json` (얼린 관측 — 계획이 이미 반영해 온다) |
  * | 증거 · attended | `fixtures/attended-only/*.json` |
  * | 증거 · replay | 커밋된 재생 픽스처 + 커밋된 재생 판정 파일 |
  * | 증거 · contract | 도구별 계약 시험 파일의 존재 + 최근 실행 결과 파일 |
@@ -26,7 +27,7 @@ import { TOOL_REGISTRY } from '../../src/tools/registry';
 import { M1_DIVERGENCES } from '../replay/divergences';
 import { buildCoverage } from '../replay/coverage';
 import { parseContractEvidence } from '../replay/evidenceInputs';
-import type { CoverageReport } from '../replay/coverage';
+import type { CoverageReport, PrimaryGrade } from '../replay/coverage';
 import {
   CONTRACT_RESULTS_PATH,
   REPLAY_VERDICT_DIR,
@@ -39,6 +40,7 @@ import {
 } from './evidence';
 import { scanDelegation } from './delegation';
 import type { DelegationKind } from './delegation';
+import { PHASE6_EXERCISED_PATH, loadPhase6Exercised } from './grade';
 import { BUILD_PLAN_PATH, bundleOf, loadBuildPlan, requiredGradesFrom } from './plan';
 import type { BuildPlan, PlanBundle } from './plan';
 
@@ -56,6 +58,13 @@ export interface ToolFacts {
    */
   readonly delegated: DelegationKind | null;
   readonly bundle: PlanBundle | null;
+  /**
+   * 요구 급을 **낮춘 흔적** — 인하 전의 급. 인하가 아니면 `null`.
+   *
+   * 이 칸이 없으면 대장은 인하분을 「원래 계약 시험이었구나」로 보이게 한다.
+   * 증거가 는 것과 요구가 내려간 것은 다른 사실이고, 대장은 그 둘을 섞지 않는다.
+   */
+  readonly downgradedFrom: PrimaryGrade | null;
 }
 
 export interface LedgerSource {
@@ -95,12 +104,28 @@ export interface DelegationSummary {
   readonly sourceFiles: number;
 }
 
+/**
+ * 요구 급 인하(D-092 ⓐ)의 총계 — **인하 전 수치를 함께 갖는다.**
+ *
+ * 인하 뒤의 「증거 있음」만 실으면 그 수가 증거를 만들어 얻은 것처럼 읽힌다.
+ * 인하 전이었다면 몇이었는지를 나란히 적어야 「요구가 내려갔다」가 드러난다.
+ */
+export interface DowngradeSummary {
+  /** 인하된 도구 수. */
+  readonly count: number;
+  /** 인하가 없었다면(원래 급 그대로였다면) 나왔을 수치. */
+  readonly awaitingEvidenceBefore: number;
+  readonly evidencedBefore: number;
+}
+
 export interface LedgerModel {
   readonly coverage: CoverageReport;
   readonly plan: BuildPlan | null;
   readonly facts: ReadonlyMap<string, ToolFacts>;
   readonly sources: readonly LedgerSource[];
   readonly delegation: DelegationSummary;
+  /** 인하가 0종이거나 계획이 없으면 `null`. */
+  readonly downgrade: DowngradeSummary | null;
 }
 
 export interface CollectOptions {
@@ -169,15 +194,52 @@ export function collectLedger(options: CollectOptions = {}): LedgerModel {
     : [];
   const substituteTests = substituteEvidenceFromLedger(M1_DIVERGENCES, repoRoot);
 
-  const coverage = buildCoverage({
+  const evidenceInput = {
     tools,
     replays: replaysFromVerdicts(verdicts),
     attended,
     contractTests,
     substituteTests,
     registered,
+  };
+
+  const coverage = buildCoverage({
+    ...evidenceInput,
     ...(plan === null ? {} : { requiredGrades: requiredGradesFrom(plan) }),
   });
+
+  // 인하 전이었다면 어땠을지를 **같은 증거로 한 번 더** 센다. 증거는 그대로 두고
+  // 요구만 되돌리는 셈이라, 두 수의 차이는 정확히 「요구가 내려간 몫」이다.
+  const downgraded = plan === null ? [] : Object.entries(plan.tools).filter(([, e]) => e.downgradedFrom !== null);
+  const downgrade: DowngradeSummary | null =
+    plan === null || downgraded.length === 0
+      ? null
+      : (() => {
+          const before: Record<string, PrimaryGrade> = requiredGradesFrom(plan);
+          for (const [tool, entry] of downgraded) {
+            if (entry.downgradedFrom !== null) before[tool] = entry.downgradedFrom;
+          }
+          const was = buildCoverage({ ...evidenceInput, requiredGrades: before });
+          return {
+            count: downgraded.length,
+            awaitingEvidenceBefore: was.totals.awaitingEvidence,
+            evidencedBefore: was.totals.evidenced,
+          };
+        })();
+
+  // 얼린 관측의 **종수**만 읽는다 — 판정에는 쓰지 않는다(그건 계획이 이미 반영해 온다).
+  // 여기서 던지지 않는 이유: 이 자리는 입력 표를 그리는 서술이고, 얼린 관측이 없을 때
+  // 인하가 조용히 사라지는 것을 막는 fail-closed는 `grade.ts`가 소유한다. 대장이 그
+  // 자리에서 한 번 더 던지면 「입력이 없다」를 보여 줄 기회조차 사라진다.
+  const exercisedCount = ((): number | null => {
+    const file = path.join(engineRoot, PHASE6_EXERCISED_PATH);
+    if (!fs.existsSync(file)) return null;
+    try {
+      return loadPhase6Exercised(file).tools.size;
+    } catch {
+      return null;
+    }
+  })();
 
   const fixtureTools = toolsInFixtures(fixtureDir);
   const scan = scanDelegation(handlersDir, options.oldSrcRoot);
@@ -189,6 +251,7 @@ export function collectLedger(options: CollectOptions = {}): LedgerModel {
         contractTestFile: contractTestFiles.get(tool) ?? null,
         delegated: scan.byTool.get(tool) ?? null,
         bundle: bundleOf(plan, tool),
+        downgradedFrom: plan?.tools[tool]?.downgradedFrom ?? null,
       },
     ]),
   );
@@ -229,7 +292,18 @@ export function collectLedger(options: CollectOptions = {}): LedgerModel {
       detail:
         plan === null
           ? '묶음·순서·요구 급을 「미정」으로 낸다 (요구 급은 계산기 기본값 = 계약 시험)'
-          : `묶음 ${plan.bundles.length} · 배정된 도구 ${Object.keys(plan.tools).length}종`,
+          : `묶음 ${plan.bundles.length} · 배정된 도구 ${Object.keys(plan.tools).length}종 · ` +
+            `요구 급 인하 ${downgrade?.count ?? 0}종`,
+    },
+    {
+      label: '얼린 관측 (인하의 근거)',
+      path: PHASE6_EXERCISED_PATH,
+      present: exercisedCount !== null,
+      detail:
+        (exercisedCount === null ? '' : `${exercisedCount}종 — **`) +
+        (exercisedCount === null ? '' : '`fixtures/` 아래를 재귀로 훑은 수**다(아래 「재생 픽스처」 행과 단위가 다르다 — 그 행은 최상위만 본다). ') +
+        '판6까지 픽스처가 실제로 태운 도구 목록. 산식이 매 실행마다 `fixtures/`를 다시 훑으면 ' +
+        '증거를 못 만들수록 요구가 저절로 낮아지므로, 한 번 뽑아 얼린 것만 읽는다',
     },
     {
       label: '재생 판정 파일',
@@ -244,7 +318,10 @@ export function collectLedger(options: CollectOptions = {}): LedgerModel {
       label: '재생 픽스처',
       path: `${show(engineRoot, fixtureDir)}/*.json`,
       present: fixtureTools.size > 0,
-      detail: `${fixtureTools.size}종의 도구를 건드린다 — 픽스처만으로는 증거가 아니다`,
+      detail:
+        `${fixtureTools.size}종의 도구를 건드린다 — 픽스처만으로는 증거가 아니다. ` +
+        '⚠ **이 수는 최상위 `fixtures/*.json`만 센 것**이고 하위(`attended-only/`)를 세지 않는다 — ' +
+        '재생은 그 자리를 수집하지 않기 때문이다. 위 「얼린 관측」의 수와 **단위가 달라** 서로 안 맞는 것이 정상이다',
     },
     {
       label: 'attended 실기 기록',
@@ -287,5 +364,5 @@ export function collectLedger(options: CollectOptions = {}): LedgerModel {
     },
   ];
 
-  return { coverage, plan, facts, sources, delegation };
+  return { coverage, plan, facts, sources, delegation, downgrade };
 }

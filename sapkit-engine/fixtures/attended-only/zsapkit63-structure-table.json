@@ -1,0 +1,181 @@
+{
+  "formatVersion": 1,
+  "sequenceId": "zsapkit63-structure-table",
+  "description": "[재실행 가능 · P3 · $TMP] 구조체 ZSAPKIT_63_STR을 필드 선언과 함께 생성 → 되읽기 → 테이블 ZSAPKIT_63_TAB 생성 → DDL을 채워 활성 → 되읽기 → 둘 다 삭제 → 이름으로 재조회해 0건 확인. 전제: 두 이름이 시스템에 없어야 한다. 만든 것을 같은 시퀀스 안에서 지우므로 재실행 가능하다. CreateTable은 이름·설명·패키지만 받고 필드를 받지 않아 껍데기만 선다 — 필드 없는 테이블은 활성화되지 않으므로 UpdateTable로 DDL을 채우는 단계가 왕복의 일부다(그 김에 replay 급 도구 UpdateTable도 실기로 밟힌다). $TMP라 transport_request가 없다.",
+  "engine": {
+    "name": "sapkit-engine",
+    "version": "1.0.0",
+    "protocolVersion": "2024-11-05",
+    "exposition": "readonly,high"
+  },
+  "recordedAt": "2026-08-20T05:13:56.758Z",
+  "steps": [
+    {
+      "index": 0,
+      "tool": "CreateStructure",
+      "args": {
+        "structure_name": "ZSAPKIT_63_STR",
+        "description": "sapkit 63 attended probe structure",
+        "package_name": "$TMP",
+        "fields": [
+          {
+            "name": "ID",
+            "data_type": "CHAR",
+            "length": 10,
+            "description": "probe key"
+          },
+          {
+            "name": "NAME",
+            "data_type": "CHAR",
+            "length": 60,
+            "description": "probe text"
+          }
+        ],
+        "activate": true
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"success\":true,\"structure_name\":\"ZSAPKIT_63_STR\",\"package_name\":\"$TMP\",\"transport_request\":\"local\",\"activated\":true,\"fields_applied\":2,\"message\":\"Structure ZSAPKIT_63_STR created with 2 field(s)/include(s) applied and activated\"}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "CreateStructure는 fields를 직접 받고 activate 플래그도 갖는다 — 테이블과 달리 한 번에 선다."
+    },
+    {
+      "index": 1,
+      "tool": "GetStructure",
+      "args": {
+        "structure_name": "ZSAPKIT_63_STR"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"structure_name\": \"ZSAPKIT_63_STR\",\n  \"version\": \"active\",\n  \"structure_data\": \"@EndUserText.label : 'sapkit 63 attended probe structure'\\n@AbapCatalog.enhancement.category : #NOT_EXTENSIBLE\\ndefine structure zsapkit_63_str {\\n  id   : abap.char(10);\\n  name : abap.char(60);\\n\\n}\",\n  \"status\": 200,\n  \"status_text\": \"OK\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "되읽기. 선언한 두 필드가 실제로 박혔는지 여기서 드러난다."
+    },
+    {
+      "index": 2,
+      "tool": "CreateTable",
+      "args": {
+        "table_name": "ZSAPKIT_63_TAB",
+        "description": "sapkit 63 attended probe table",
+        "package_name": "$TMP"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"success\":true,\"table_name\":\"ZSAPKIT_63_TAB\",\"package_name\":\"$TMP\",\"transport_request\":\"local\",\"skeleton\":\"mandt\",\"message\":\"Table ZSAPKIT_63_TAB created with MANDT skeleton. Use UpdateTable to add fields (preserve #NOT_EXTENSIBLE, #RESTRICTED, and 'key mandt : mandt not null').\"}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "CreateTable은 필드 인자가 없다 — 주석 블록만 심은 껍데기가 선다. 이 상태로는 활성화되지 않는다."
+    },
+    {
+      "index": 3,
+      "tool": "UpdateTable",
+      "args": {
+        "table_name": "ZSAPKIT_63_TAB",
+        "ddl_code": "@EndUserText.label : 'sapkit 63 attended probe table'\n@AbapCatalog.enhancement.category : #NOT_EXTENSIBLE\n@AbapCatalog.tableCategory : #TRANSPARENT\n@AbapCatalog.deliveryClass : #A\n@AbapCatalog.dataMaintenance : #RESTRICTED\ndefine table zsapkit_63_tab {\n  key mandt : mandt not null;\n  key id    : abap.char(10) not null;\n  name      : abap.char(60);\n}\n",
+        "activate": true
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"table_name\": \"ZSAPKIT_63_TAB\",\n  \"transport_request\": \"local\",\n  \"activated\": true,\n  \"message\": \"Table ZSAPKIT_63_TAB source updated and activated successfully\",\n  \"uri\": \"/sap/bc/adt/ddic/tables/ZSAPKIT_63_TAB\",\n  \"steps_completed\": [\n    \"lock\",\n    \"check_new_code\",\n    \"update\",\n    \"unlock\",\n    \"check_inactive\",\n    \"activate\"\n  ],\n  \"source_size_bytes\": 352\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "클라이언트 키는 MANDT 데이터엘리먼트다 — abap.clnt는 CDS 뷰 문법이라 여기서는 틀린다(도구 선언 자신이 그 함정을 적어 둔다). CreateTable이 심은 주석 블록 4종을 글자 그대로 보존한다."
+    },
+    {
+      "index": 4,
+      "tool": "GetTable",
+      "args": {
+        "table_name": "ZSAPKIT_63_TAB"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"table_name\": \"ZSAPKIT_63_TAB\",\n  \"version\": \"active\",\n  \"table_data\": \"@EndUserText.label : 'sapkit 63 attended probe table'\\n@AbapCatalog.enhancement.category : #NOT_EXTENSIBLE\\n@AbapCatalog.tableCategory : #TRANSPARENT\\n@AbapCatalog.deliveryClass : #A\\n@AbapCatalog.dataMaintenance : #RESTRICTED\\ndefine table zsapkit_63_tab {\\n  key mandt : mandt not null;\\n  key id    : abap.char(10) not null;\\n  name      : abap.char(60);\\n\\n}\",\n  \"status\": 200,\n  \"status_text\": \"OK\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "되읽기 — 보낸 DDL이 실제로 반영됐는지 대조할 수 있게 한다. 이 판이 만든 Z 테이블이라 소스가 픽스처에 실려도 재배포권 문제가 없다."
+    },
+    {
+      "index": 5,
+      "tool": "DeleteTable",
+      "args": {
+        "table_name": "ZSAPKIT_63_TAB"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"table_name\": \"ZSAPKIT_63_TAB\",\n  \"transport_request\": null,\n  \"message\": \"Table ZSAPKIT_63_TAB deleted successfully.\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "왕복의 닫는 쪽."
+    },
+    {
+      "index": 6,
+      "tool": "DeleteStructure",
+      "args": {
+        "structure_name": "ZSAPKIT_63_STR"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"structure_name\": \"ZSAPKIT_63_STR\",\n  \"transport_request\": null,\n  \"message\": \"Structure ZSAPKIT_63_STR deleted successfully.\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "구조체는 테이블과 의존이 없어 순서가 자유롭지만, 만든 역순으로 지워 두면 다른 시나리오와 읽는 결이 같아진다."
+    },
+    {
+      "index": 7,
+      "tool": "SearchObject",
+      "args": {
+        "object_name": "ZSAPKIT_63_TAB",
+        "maxResults": 5
+      },
+      "response": {
+        "content": []
+      },
+      "isError": false,
+      "note": "삭제의 기계 확인. 0건이어야 한다."
+    },
+    {
+      "index": 8,
+      "tool": "SearchObject",
+      "args": {
+        "object_name": "ZSAPKIT_63_STR",
+        "maxResults": 5
+      },
+      "response": {
+        "content": []
+      },
+      "isError": false,
+      "note": "같은 확인. 0건이어야 한다."
+    }
+  ],
+  "placeholders": []
+}

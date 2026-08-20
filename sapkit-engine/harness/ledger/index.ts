@@ -1,6 +1,7 @@
 /**
- * 진척 대장의 공개 표면. 생성기(`harness/render-ledger.mjs`)·게이트
- * (`gates/ledger.mjs`)·재생 러너는 여기만 import 한다.
+ * 진척 대장의 공개 표면. 생성기(`harness/render-ledger.mjs`)·계획 산출기
+ * (`harness/build-plan.mjs`)·게이트(`gates/ledger.mjs`)·재생 러너는 여기만
+ * import 한다.
  *
  * 세 갈래가 한 관문으로 묶여 있다는 것이 이 모듈의 계약이다:
  *   `collectLedger` — 레포 안의 파일 여덟에서 입력을 모은다
@@ -18,6 +19,15 @@ export type { DelegationKind, DelegationScan } from './delegation';
 
 export { BUILD_PLAN_FORMAT_VERSION, BUILD_PLAN_PATH, bundleOf, loadBuildPlan, parseBuildPlan, requiredGradesFrom } from './plan';
 export type { BuildPlan, PlanBundle, PlanEntry } from './plan';
+
+export {
+  PHASE6_EXERCISED_PATH,
+  PHASE6_EXERCISED_SCHEMA,
+  gradeOf,
+  loadPhase6Exercised,
+  parsePhase6Exercised,
+} from './grade';
+export type { GradeVerdict, Phase6Exercised } from './grade';
 
 export {
   CONTRACT_RESULTS_PATH,

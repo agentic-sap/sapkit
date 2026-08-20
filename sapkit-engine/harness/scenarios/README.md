@@ -1,8 +1,9 @@
 # scenarios/ — C1 녹화 시나리오
 
-**무엇을 구 엔진에 물어볼지**를 사람이 미리 적어 두는 곳이다. 녹화는 대화형
-캡처가 아니라 **여기 적힌 호출 목록을 그대로 태우는 것**이므로, 시나리오가
-곧 녹화의 정본이다.
+**무엇을 물어볼지**를 사람이 미리 적어 두는 곳이다. 녹화는 대화형 캡처가 아니라
+**여기 적힌 호출 목록을 그대로 태우는 것**이므로, 시나리오가 곧 녹화의 정본이다.
+태우는 대상은 제품 번들(`interactive/server/server.bundle.cjs`)이고, 판7-b(D-095)
+교체 뒤 그 번들은 **신 엔진**이다.
 
 ```powershell
 node harness/record-attended.mjs --scenario=example-read-only --dry-run   # 형식만 검사 (SAP 불필요)
@@ -119,10 +120,18 @@ C2 : CreateProgram ZFOO → "이미 있다" 오류 → mismatch → fail
 **같은 소스를 다시 쓰면 바뀐 것이 없어 활성화할 대상이 없다.** 1회차 응답을
 기대값으로 굳히면 재생이 영원히 실패한다 — 신 엔진이 옳아도.
 
-**신 엔진 결함과 구별하는 법**: 재생이 어긋나면 **구 엔진을 지금 상태에서 다시
-녹화**해 본다(`--out`을 레포 밖으로 돌리고 `--force`). 구 엔진도 같은 값을 내면
-엔진 차이가 아니라 상태 의존이고, 고칠 것은 시나리오다. 위 사례가 정확히
-그랬다 — 구 엔진도 2회차에서 `activated=false`였다.
+**상태 의존과 엔진 결함을 구별하는 법**: 재생이 어긋나면 **지금 상태에서 다시
+녹화**해 본다(`--out`을 엔진 밖으로 돌리고 `--force` — 그 자리는 막히지 않되
+「커밋 대상이 아니다」라는 알림이 뜬다). 같은 시퀀스를 연달아 두 번 돌려 응답이
+서로 달라지면 그것은 엔진 차이가 아니라 상태 의존이고, 고칠 것은 시나리오다.
+
+⚠ **교체 뒤 「구 엔진을 지금 다시 녹화해 본다」는 성립하지 않는다.** 이 스크립트가
+태우는 것은 제품 번들 하드코딩이고 그것은 이제 신 엔진이며, 구 번들 파일은 레포에
+없다(롤백 소스 `engine/`에서 따로 지어야 나온다 —
+`harness/old-surface/capture.mjs` 머리주석). 구 엔진의 그때 값이 필요하면
+**이미 채록된 픽스처**(`../fixtures/`)와 `../DIVERGENCES.md`가 유일한 잔존
+형태다. 위 사례가 정확히 그랬다 — 당시 실측에서 구 엔진도 2회차에서
+`activated=false`였다(2026-08-12).
 
 **처방**: 대상을 만든 직후가 아니라 **한 번 돌려 안정된 뒤에 녹화한다.**
 프로그램은 1회차와 2회차가 같아 이 문제가 없었다 — 객체 종류마다 다르므로
@@ -175,6 +184,49 @@ update 쪽은 몇 번이든 자유롭게 재생할 수 있다.
 **`attended` 급으로 닫힌다**(이유는 `fixtures/README.md`). `GetSourceDiff`는 요구
 급이 `계약 시험`이라 재생 대상이 아니다 — **M1 19종이 전부 「증거 있음」이라는 것과
 19종이 전부 실 SAP을 밟았다는 것은 같은 말이 아니다.**
+
+### 판6.3 왕복 시퀀스 11편 (`zsapkit63-*`)
+
+대상은 **`Create*` 21 + `Delete*` 25 = 46종**이고(`CreateProgram`·`CreateInclude`는 판6.1에서
+이미 닫혀 빠졌다 — 여기서는 숙주 준비로만 쓰인다), **11편이 실제로 덮는 것은 45종**이다.
+⚠ **빠진 하나는 `CreateUnitTest`다** — 벤더 엔드포인트 `POST /sap/bc/adt/abapunit/runs`가 이
+시스템에 없어(404) 실패하는데 **그 오류 문구에 실호스트가 실려** 마스킹이 21단계짜리 시퀀스의
+저장을 통째로 거부한다. 한 단계가 스무 단계의 증거를 날리는 자리라 시나리오 3에서 뺐다
+(판6.3 · D-098 ⓓ). 서비스/엔드포인트가 생기면 되넣을 자리다.
+
+| 시나리오 | 정책 | 재실행 | 덮는 것 |
+|---|---|---|---|
+| `zsapkit63-domain-dataelement` | P3 | 자유 | Create/Delete Domain · DataElement |
+| `zsapkit63-structure-table` | P3 | 자유 | Create/Delete Structure · Table |
+| `zsapkit63-class-locals-unittest` | P3 | 자유 | Create/Delete Class · Delete Local×4 · **Delete**UnitTest (Create는 뺐다 — 위 ⚠) |
+| `zsapkit63-interface` | P3 | 자유 | Create/Delete Interface |
+| `zsapkit63-function` | P3 | 자유 | Create/Delete FunctionGroup · FunctionModule |
+| `zsapkit63-include` | P3 | 자유 | Delete Include (+ 숙주 프로그램 왕복) |
+| `zsapkit63-program-text-screen-gui` | P3 | 자유 | Create/Delete TextElement · Screen · GuiStatus · Delete Program |
+| `zsapkit63-cds-view-mde-test` | P3 | 자유 | Create/Delete View · MetadataExtension · CdsUnitTest |
+| `zsapkit63-rap-bdef-bimp-service` | P3 | 자유 | Create/Delete BehaviorDefinition · BehaviorImplementation · ServiceDefinition · ServiceBinding |
+| `zsapkit63-p4-transport` | **P4** | **1회성** | Create Transport — **되돌릴 수 없다** |
+| `zsapkit63-p4-package` | **P4** | **1회성** | Create Package — **되돌릴 수 없다** |
+
+**이 11편이 함정 ⑶을 정면으로 만족한다** — 만든 것을 **같은 시퀀스 안에서 지운다.**
+그래서 `Create*`가 들어 있는데도 재실행 가능하고, 앞 시퀀스의 잔재에 인질로 잡히지
+않는다(숙주까지 시퀀스가 세운다). 위 표의 「1회성」 둘만 예외이고, 그 이유는 재실행
+성질이 아니라 **P4가 남기는 흔적을 우리 도구로 지울 수 없다는 것**이다 — 표면 186종에
+`DeletePackage`·`DeleteTransport`가 없다.
+
+- 이름은 `ZSAPKIT_63*` · `ZCL_SAPKIT_63*` · `Z_SAPKIT_63*` · `ZIF_SAPKIT_63*`,
+  패키지는 `$TMP`(P4 둘 제외). 보호 자산 8종(`*_M1_*`)과 **글자로 갈린다.**
+- 삭제 뒤 확인은 **마스크가 아니라 정확한 이름**으로 `SearchObject`를 뜬다. 마스크로
+  뜨면 지울 수 없는 P4 산물이 섞여 재실행 판정이 흔들린다.
+**어느 시나리오가 증거를 남겼나** — 11편 중 **9편**이 픽스처를 냈다
+(`fixtures/attended-only/zsapkit63-*.json`). 못 낸 둘:
+`zsapkit63-program-text-screen-gui`(텍스트·화면·GUI 9단계가 `ZMCP_ADT_SRV`의 HTTP 500을 받고
+그 오류 문구에 실호스트가 실려 마스킹이 거부 — **파일은 서비스가 고쳐지는 날을 위해 남겨 둔다**)와
+`zsapkit63-p4-package`(세 갈래 다 거부 · **재실행 금지** — 반쯤 만들어진 흔적이 남았다).
+
+- **`DeleteUnitTest`는 반드시 오류다** — ADT가 지원하지 않아 SAP에 요청이 0건 나가고
+  계약 문구가 그대로 돌아온다. 그 오류는 결함이 아니라 관측 대상이고, 대장에서는
+  「증거 대기」로 남는다.
 
 ### 이 묶음이 남긴 설계 메모 셋 (다음 사람이 되밟지 않도록)
 

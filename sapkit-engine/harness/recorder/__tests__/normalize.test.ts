@@ -6,7 +6,7 @@
  * 인자가 그대로 쓴다. 두 자리가 서로 다른 자리표시자를 받으면 재생 대조는
  * "같은 흐름"을 "다른 흐름"으로 판정한다.
  */
-import { Normalizer, normalizeFixture } from '../normalize';
+import { REDACT_MIN_LENGTH, Normalizer, normalizeFixture, redactionTargets } from '../normalize';
 import { findPlaceholders, isPlaceholder } from '../types';
 import type { JsonValue } from '../types';
 import { fixture, step, withArgs, withResponse } from './helpers';
@@ -291,5 +291,135 @@ describe('정규화 — 서버가 잰 소요 시간', () => {
     const text = JSON.stringify({ total_execution_time: 3.5, my_execution_time: 1 });
 
     expect(new Normalizer().normalizeString(text)).toBe(text);
+  });
+});
+
+/**
+ * `principal` — 가려야 할 신원.
+ *
+ * 앞의 종류들과 시험하는 것이 다르다. 저것들은 「비결정 값이 안정된 자리표시자가
+ * 되는가」를 보지만, 여기서는 **안정된 값이 사라지는가**를 본다. 픽스처가 PUBLIC
+ * 레포에 커밋되고 SAP은 작성자를 메타데이터에 박기 때문이다.
+ *
+ * 시험용 이름은 전부 명백한 가짜다 — 실제 계정 아이디를 여기 쓰지 않는다.
+ */
+describe('정규화 — 가려야 할 신원(principal)', () => {
+  const USER = 'TESTUSER';
+  /** SAP이 실제로 내는 두 꼴을 한 응답에 담는다: 대문자 메타데이터 속성 + 소문자 ADT URI. */
+  const bothCases = `<abap adtcore:responsible="${USER}" adtcore:changedBy="${USER}"/> /sap/bc/adt/oo/classes/zcl_demo/source/main?user=${USER.toLowerCase()}`;
+
+  it('대문자 꼴과 소문자 꼴을 둘 다 잡고, 같은 자리표시자를 준다', () => {
+    const f = normalizeFixture(withResponse({ content: [{ type: 'text', text: bothCases }] }), { redact: [USER] });
+    const text = responseText(f, 0);
+
+    expect(text).toContain('<<PRINCIPAL_1>>');
+    expect(text.toUpperCase()).not.toContain(USER);
+    // 같은 신원의 두 꼴이 갈라지면 「이 객체의 작성자가 곧 접속자」라는 상관이 사라진다.
+    expect(new Set(findPlaceholders(text).filter((p) => p.startsWith('<<PRINCIPAL')))).toEqual(
+      new Set(['<<PRINCIPAL_1>>']),
+    );
+  });
+
+  it('인자와 응답 양쪽에서 가린다', () => {
+    const f = normalizeFixture(
+      fixture([
+        step({ index: 0, args: { object_name: 'ZCL_DEMO', owner: USER } }),
+        step({ index: 1, response: { content: [{ type: 'text', text: `owner: ${USER}` }] } }),
+      ]),
+      { redact: [USER] },
+    );
+
+    expect(argsText(f, 0)).toContain('<<PRINCIPAL_1>>');
+    expect(argsText(f, 0)).not.toContain(USER);
+    expect(responseText(f, 1)).toContain('<<PRINCIPAL_1>>');
+    expect(responseText(f, 1)).not.toContain(USER);
+  });
+
+  it('같은 이름은 시퀀스 전체에서 같은 자리표시자다 — 대장이 등장 횟수를 센다', () => {
+    const f = normalizeFixture(
+      fixture([
+        step({ index: 0, response: { content: [{ type: 'text', text: `responsible="${USER}"` }] } }),
+        step({ index: 1, response: { content: [{ type: 'text', text: `changedBy="${USER}"` }] } }),
+      ]),
+      { redact: [USER] },
+    );
+
+    const binding = f.placeholders.find((b) => b.kind === 'principal');
+    expect(binding?.placeholder).toBe('<<PRINCIPAL_1>>');
+    expect(binding?.occurrences).toBe(2);
+  });
+
+  it('다른 이름은 다른 자리표시자다', () => {
+    const f = normalizeFixture(
+      withResponse({ content: [{ type: 'text', text: `created=${USER} changed=OTHERUSER` }] }),
+      { redact: [USER, 'OTHERUSER'] },
+    );
+    const text = responseText(f, 0);
+
+    expect(text).toContain('<<PRINCIPAL_1>>');
+    expect(text).toContain('<<PRINCIPAL_2>>');
+    expect(text).not.toContain(USER);
+    expect(text).not.toContain('OTHERUSER');
+  });
+
+  it('목록이 비면 아무것도 바뀌지 않는다 — 인자 하나로 기존 정규화가 흔들리지 않는다', () => {
+    const source = withResponse({ content: [{ type: 'text', text: bothCases }] });
+    const untouched = JSON.stringify(normalizeFixture(source));
+
+    expect(JSON.stringify(normalizeFixture(source, {}))).toBe(untouched);
+    expect(JSON.stringify(normalizeFixture(source, { redact: [] }))).toBe(untouched);
+    expect(responseText(normalizeFixture(source, { redact: [] }), 0)).toContain(USER);
+  });
+
+  it('빈 문자열·공백·너무 짧은 이름은 무시한다 — 가리면 픽스처가 통째로 무의미해진다', () => {
+    const source = withResponse({ content: [{ type: 'text', text: `${USER} AB` }] });
+    const untouched = JSON.stringify(normalizeFixture(source));
+
+    expect(JSON.stringify(normalizeFixture(source, { redact: ['', '   ', 'AB'] }))).toBe(untouched);
+    expect(redactionTargets(['', '  ', 'AB', 'ABC'])).toEqual(['ABC']);
+    expect(REDACT_MIN_LENGTH).toBe(3);
+  });
+
+  /**
+   * 경계 규칙 — 영숫자가 붙으면 다른 이름이고, `_`는 경계다. 후자를 놓치면 이름을
+   * 품은 객체명(`ZCL_TESTUSER_DEMO`)이 그대로 커밋되고, 저장 뒷문이 그걸 잡아
+   * 아무것도 저장되지 않는다.
+   */
+  it('오탐 경계 — 영숫자가 이어지면 안 걸리고, 밑줄로 끊기면 걸린다', () => {
+    const f = normalizeFixture(
+      withResponse({
+        content: [{ type: 'text', text: `${USER}2 MY${USER} ${USER}X ZCL_${USER}_DEMO (${USER})` }],
+      }),
+      { redact: [USER] },
+    );
+    const text = responseText(f, 0);
+
+    expect(text).toContain(`${USER}2`);
+    expect(text).toContain(`MY${USER}`);
+    expect(text).toContain(`${USER}X`);
+    expect(text).toContain('ZCL_<<PRINCIPAL_1>>_DEMO');
+    expect(text).toContain('(<<PRINCIPAL_1>>)');
+  });
+
+  it('가린 뒤 다시 정규화해도 결과가 같다 (멱등)', () => {
+    const once = normalizeFixture(withResponse({ content: [{ type: 'text', text: bothCases }] }), { redact: [USER] });
+    const twice = normalizeFixture(once, { redact: [USER] });
+
+    expect(JSON.stringify(twice.steps)).toBe(JSON.stringify(once.steps));
+  });
+
+  /**
+   * 시나리오가 소유한 자리는 정규화가 손대지 않는다 — 고칠 자리가 픽스처가 아니라
+   * 시나리오 파일이기 때문이다(그 파일도 커밋된다). 저장 뒷문이 그 경우를 거부한다
+   * (`gates/test-attended-guard.mjs` ⑧).
+   */
+  it('description·note는 정규화 대상이 아니다 — 그 자리는 저장 뒷문이 맡는다', () => {
+    const f = normalizeFixture(
+      fixture([step({ index: 0, note: `${USER}가 만든 객체` })], { description: `${USER}의 시퀀스` }),
+      { redact: [USER] },
+    );
+
+    expect(f.description).toContain(USER);
+    expect(f.steps[0]?.note).toContain(USER);
   });
 });

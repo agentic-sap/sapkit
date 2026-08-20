@@ -1,9 +1,13 @@
 /**
- * C1 녹화 진입점 — 시나리오 하나를 **구 번들**에 태워 픽스처로 남긴다.
+ * C1 녹화 진입점 — 시나리오 하나를 **제품 번들**에 태워 픽스처로 남긴다.
+ *
+ * 태우는 것은 `interactive/server/server.bundle.cjs`이고, 판7-b(D-095) 교체 뒤
+ * 그 번들은 **자체 저작 엔진 `sapkit-engine`**이다. 구 포크(`engine/`)가 아니다.
  *
  * 이 스크립트는 조립기다. 정규화·마스킹·저장은 전부 `harness/recorder/`가
- * 소유하고, 여기서는 ⓐ 무엇을 태울지 고르고 ⓑ 태우기 전후로 **녹화가 반쪽이
- * 아닌지** 확인할 뿐이다. 판정 규칙을 여기 다시 구현하지 않는다.
+ * 소유하고, 저장 자리·강등 판정은 `harness/attended-guard.mjs`가 소유한다.
+ * 여기서는 ⓐ 무엇을 태울지 고르고 ⓑ 그 판정들을 제자리에 부를 뿐이다 —
+ * 판정 규칙을 여기 다시 구현하지 않는다.
  *
  * **attended 전용.** 실 SAP에 접속하고, 시나리오에 따라 P3 write가 실제로
  * 일어난다. 배치·서브에이전트 무인 실행 금지.
@@ -16,14 +20,25 @@
  * | 인자 | 기본값 | 뜻 |
  * |---|---|---|
  * | `--scenario` | (필수) | `harness/scenarios/<id>.json` 의 id, 또는 파일 경로 |
- * | `--env-path` | (dry-run 아니면 필수) | 접속을 실체화할 `sap.env`. tier=DEV여야 write 표면이 열린다 |
- * | `--exposition` | `readonly,high` | 구 번들에 넘길 도구 표면. `readonly`면 write 도구가 안 뜬다 |
- * | `--out` | `fixtures/` | 픽스처를 떨굴 디렉터리 |
- * | `--node-path` | 레포의 `runtime-deps/keyring/node_modules` | 구 번들이 keyring을 찾는 `NODE_PATH` |
+ * | `--env-path` | (dry-run 아니면 필수) | 접속을 실체화할 `sap.env`. tier=DEV여야 write 표면이 열린다. **가릴 신원 이름도 여기서 읽는다** |
+ * | `--exposition` | `readonly,high` | 번들에 넘길 도구 표면. `readonly`면 write 도구가 안 뜬다 |
+ * | `--out` | `fixtures/attended-only/` | 픽스처를 떨굴 디렉터리. **상대 경로는 cwd가 아니라 `sapkit-engine/` 루트 기준**으로 푼다(절대 경로는 준 대로) — 어느 cwd에서 돌려도 `--out=fixtures/attended-only`가 같은 자리를 가리킨다 |
+ * | `--node-path` | 레포의 `runtime-deps/keyring/node_modules` | 번들이 keyring을 찾는 `NODE_PATH` |
  * | `--dry-run` | 꺼짐 | 접속·기동 없이 시나리오 형식만 검사하고 끝낸다 |
  * | `--force` | 꺼짐 | 같은 이름의 픽스처를 덮어쓴다 |
  * | `--allow-all-errors` | 꺼짐 | 전 단계가 오류여도 저장한다(오류 경로만 노린 시나리오용) |
  * | `--allow-standard-source` | 꺼짐 | 고객 객체(Z·Y) 제한을 푼다. **그 픽스처는 커밋하지 말 것** |
+ *
+ * 저장 자리에 따라 판정이 갈린다(`attended-guard.mjs` 머리주석의 3분기):
+ * `fixtures/attended-only/`는 **제품 엔진 이름을 요구**하고, 재생 기준선
+ * `fixtures/`는 **무조건 거부**하며(자기 대조), 그 밖의 자리는 막지 않되
+ * 커밋 대상이 아님을 알린다.
+ *
+ * **신원 가리기.** 픽스처는 커밋되고 레포는 PUBLIC인데 SAP은 작성자를 메타데이터에
+ * 박는다. 그래서 이 스크립트는 `--env-path`의 프로파일에서 **가릴 이름**을 읽어
+ * 채록기에 넘기고(정규화기가 `<<PRINCIPAL_n>>`으로 바꾼다), 정규화가 놓친 것이
+ * 남아 있으면 저장을 거부한다. ⚠ 그 이름은 **어디에도 출력하지 않는다** — 건수만
+ * 알린다. 두 판정 모두 소유자는 `attended-guard.mjs`다.
  */
 import { createRequire } from 'node:module';
 import * as fs from 'node:fs';
@@ -31,6 +46,18 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { AuthFailureAbort, abortOnAuthFailure } from './auth-guard.mjs';
+import {
+  PRINCIPAL_ENV_KEYS,
+  REDACTION_MIN_LENGTH,
+  classifyOutDir,
+  detectDegradation,
+  detectRedactionLeak,
+  noConnectionPattern,
+  outDirNotices,
+  outDirRefusal,
+  readRedactionNames,
+  resolveOutDir,
+} from './attended-guard.mjs';
 
 const require = createRequire(import.meta.url);
 const here = (rel) => fileURLToPath(new URL(rel, import.meta.url));
@@ -43,9 +70,8 @@ const DIST = here('../dist/harness/recorder/index.js');
 const GUARD_DIST = here('../dist/harness/targetGuard.js');
 const BUNDLE = here('../../interactive/server/server.bundle.cjs');
 const SCENARIO_DIR = here('./scenarios');
-const DEFAULT_OUT = here('../fixtures');
 /**
- * 구 번들의 **선택 의존성**(`@napi-rs/keyring`)이 사는 곳. 제품 게이트
+ * 제품 번들의 **선택 의존성**(`@napi-rs/keyring`)이 사는 곳. 제품 게이트
  * (`interactive/scripts/smoke-mcp.mjs:74`)가 쓰는 것과 같은 경로다.
  *
  * 프로파일의 `SAP_PASSWORD`가 `keychain:<service>/<account>` 참조면 번들은 이
@@ -53,11 +79,6 @@ const DEFAULT_OUT = here('../fixtures');
  * 실패해 녹화가 인증 오류로 무너진다 — 원인이 드러나지 않는 자리라 기본으로 문다.
  */
 const KEYRING_NODE_PATH = here('../../interactive/server/runtime-deps/keyring/node_modules');
-
-/** 구 번들이 무접속일 때 내는 문구. 이게 응답에 있으면 녹화는 반쪽이다. */
-const NO_CONNECTION_MARK = 'Basic authentication requires SAP_CLIENT';
-/** 신 엔진의 MCP serverInfo 이름. 이게 잡히면 대조 대상을 잘못 태운 것이다. */
-const NEW_ENGINE_NAME = 'sapkit-engine';
 
 // ── 인자 ─────────────────────────────────────────────────────────────────────
 
@@ -71,6 +92,14 @@ function parseArgs(argv) {
   }
   return out;
 }
+
+/**
+ * 저장 거부는 **SAP 호출이 전부 나간 뒤**에 돈다. 그 둘을 같은 것으로 읽으면
+ * 실제로 바뀐 DEV 객체를 없던 일로 여기게 된다 — 그래서 거부문에 늘 붙인다.
+ */
+const SAP_ALREADY_RAN =
+  '   ⚠ 저장이 안 됐다는 것은 SAP이 안 바뀌었다는 뜻이 아니다 — 이 판정은 시퀀스가 다 나간 뒤에 돈다. ' +
+  '시나리오에 write가 있었다면 그 변경은 이미 SAP에 있다.';
 
 function die(message, ...detail) {
   console.error(`❌ ${message}`);
@@ -130,33 +159,6 @@ function loadScenario(spec, SEQUENCE_ID_RE) {
   return { file, scenario };
 }
 
-/**
- * 녹화가 **반쪽인지** 본다. capture.mjs가 표면 채록에 대해 하는 것과 같은
- * 자리다 — 조용히 강등된 증거를 커밋하면 신 엔진이 맞추는 기준 자체가 틀어진다.
- */
-function detectDegradation(fixture, { allowAllErrors }) {
-  const problems = [];
-
-  const text = JSON.stringify(fixture.steps);
-  if (text.includes(NO_CONNECTION_MARK)) {
-    problems.push(
-      `응답에 무접속 문구가 있다 ("${NO_CONNECTION_MARK}…") — 구 번들이 SAP에 붙지 못했다. ` +
-        '--env-path가 가리키는 sap.env와 프로파일 홈을 확인해라. (이 문구는 원인을 SAP_CLIENT로 ' +
-        '잘못 말한다 — 실제로는 프로파일이 안 잡힌 것이다.)',
-    );
-  }
-  if (fixture.engine.name === NEW_ENGINE_NAME) {
-    problems.push(`신 엔진(${NEW_ENGINE_NAME})을 채록했다 — 대조 기준이 되어야 할 구 번들이 아니다.`);
-  }
-  if (!allowAllErrors && fixture.steps.every((s) => s.isError)) {
-    problems.push(
-      '전 단계가 오류다 — 강등의 전형적 징후다. 오류 경로만 노린 시나리오라면 --allow-all-errors 를 붙여라.',
-    );
-  }
-
-  return problems;
-}
-
 // ── 본체 ─────────────────────────────────────────────────────────────────────
 
 const args = parseArgs(process.argv.slice(2));
@@ -184,10 +186,33 @@ const scenarioArg = args.values.get('scenario');
 if (!scenarioArg) die('--scenario 가 필요하다.', '예: --scenario=zdemo-program-create-activate');
 const { file: scenarioFile, scenario } = loadScenario(scenarioArg, recorder.SEQUENCE_ID_RE);
 
-const outDir = args.values.get('out') ? path.resolve(args.values.get('out')) : DEFAULT_OUT;
+// 상대 경로는 **엔진 루트 기준**으로 푼다(`attended-guard.mjs`). cwd 기준이면
+// 레포 루트에서 `--out=fixtures/attended-only`가 `<repo>/fixtures/…`라는 엉뚱한
+// 자리를 새로 만들고, 그 자리는 3분기상 「그 밖」이라 거부 없이 증거가 딴 데 쌓인다.
+const outDir = resolveOutDir(args.values.get('out'));
+const outDirKind = classifyOutDir(outDir);
 const outFile = path.join(outDir, `${scenario.sequenceId}.json`);
 const exposition = args.values.get('exposition') ?? 'readonly,high';
 const envPath = args.values.get('env-path');
+
+// 저장 자리 거부는 **태우기 전에** 판정한다. 같은 판정이 저장 직전에도 한 번 더
+// 돌지만(`detectDegradation`), 그때는 SAP 호출이 전부 나간 뒤다 — 「저장이 안 됐다」는
+// 「SAP이 안 바뀌었다」가 아니다. 자리 판정은 엔진 이름과 무관해 여기서 이미 성립한다.
+const outRefusal = outDirRefusal(outDir);
+if (outRefusal) die('저장 자리가 증거의 자리가 아니다 — 녹화를 시작하지 않는다.', outRefusal);
+
+// 막지는 않되 알린다 — 「그 밖의 자리」는 정당한 쓰임이지만 커밋 대상이 아니다.
+for (const notice of outDirNotices(outDir)) console.warn(`⚠️ ${notice}`);
+
+// 무접속 판정도 **태우기 전에** 세운다. 이 판정은 저장 직전에 한 번 더 서고 못 서면
+// fail-closed로 막지만(그쪽이 정본이다), 그때는 P3 write가 이미 나간 뒤다 —
+// 자리 판정과 같은 이유로, 미리 세울 수 있는 판정은 미리 세운다.
+let noConnectionRe;
+try {
+  noConnectionRe = noConnectionPattern();
+} catch (err) {
+  die('무접속 판정을 세우지 못했다 — 녹화를 시작하지 않는다.', err?.message ?? String(err));
+}
 
 // 덮어쓰기 확인은 **실제로 쓰는 경로에서만** 한다. dry-run은 아무것도 쓰지
 // 않으므로 여기서 막으면 이미 채록한 시퀀스의 형식 검사가 영영 불가능해진다.
@@ -213,12 +238,17 @@ if (dryRun) {
   console.log(`   sequenceId : ${scenario.sequenceId}`);
   console.log(`   단계       : ${scenario.steps.length}건 [${scenario.steps.map((s) => s.tool).join(' → ')}]`);
   console.log(`   저장 예정   : ${outFile}`);
+  console.log(
+    `   저장 자리   : ${outDirKind}` +
+      (outDirKind === 'attended-only' ? ' (제품 엔진 이름을 요구한다)' : ''),
+  );
   console.log(`   exposition : ${exposition}`);
+  console.log(`   무접속 판정 : /${noConnectionRe.source}/ (제품 게이트에서 긁어온 어휘 정본)`);
   console.log(
     `   대상 검사   : 대상-이름을 선언한 도구 ${Object.keys(guard.TARGET_NAME_EXTRACTORS).length}종 ` +
       '(선언 없는 도구는 사후 백스톱)',
   );
-  console.log('   (dry-run — 구 번들을 띄우지도, SAP에 붙지도 않았다.)');
+  console.log('   (dry-run — 제품 번들을 띄우지도, SAP에 붙지도 않았다.)');
   process.exit(0);
 }
 
@@ -230,10 +260,37 @@ if (!envPath) {
   );
 }
 if (!fs.existsSync(envPath)) die(`--env-path 가 가리키는 파일이 없다: ${envPath}`);
-if (!fs.existsSync(BUNDLE)) die(`구 번들이 없다: ${BUNDLE}`);
+if (!fs.existsSync(BUNDLE)) die(`제품 번들이 없다: ${BUNDLE}`);
 
+// 가릴 신원 목록을 **태우기 전에** 세운다. 이 판정이 서지 못하면 녹화를 시작하지
+// 않는다 — 조용히 빈 목록으로 넘어가면 그 다음에 일어나는 일은 「접속 사용자의 SAP
+// 로그인 아이디가 22군데 실린 픽스처가 PUBLIC 레포에 커밋되는 것」이고, 그건 저장
+// 뒤에 되돌릴 수 없다. 자리·무접속 판정과 같은 이유로 미리 세울 수 있는 것은 미리
+// 세운다. ⚠ 읽은 **값은 어디에도 찍지 않는다** — 건수만 알린다.
+let redactNames;
+try {
+  const read = readRedactionNames(envPath);
+  if (read.tooShort.length) {
+    die(
+      `프로파일의 ${read.tooShort.join('·')} 값이 자동으로 가리기에는 너무 짧다 (최소 ${REDACTION_MIN_LENGTH}자).`,
+      '짧은 이름을 가리면 흔한 SAP 토큰 안에서 끝없이 걸려 픽스처가 대조할 수 없는 잡음이 된다.',
+      '그렇다고 조용히 넘기면 그 이름이 실린 픽스처가 커밋된다 — 사람이 정할 자리다.',
+    );
+  }
+  if (read.names.length === 0) {
+    die(
+      `프로파일에서 가릴 이름을 하나도 읽지 못했다 (${PRINCIPAL_ENV_KEYS.join('·')} 중 어느 것도 비어 있지 않아야 한다): ${envPath}`,
+      'SAP은 객체 메타데이터의 adtcore:responsible·changedBy·createdBy와 CreateTransport 응답의 owner에 접속 사용자를 박는다.',
+      '가릴 이름 없이 채록하면 그 아이디가 PUBLIC 레포에 커밋된다. 프로파일을 고치고 다시 돌려라.',
+    );
+  }
+  redactNames = read.names;
+} catch (err) {
+  die('가릴 이름을 프로파일에서 읽지 못했다 — 녹화를 시작하지 않는다.', err?.message ?? String(err));
+}
 console.log(`▶ 녹화 시작 — ${scenario.sequenceId} (${scenario.steps.length}단계, exposition=${exposition})`);
 console.log('  attended 구간이다. 실 SAP에 붙고, 시나리오에 write가 있으면 실제로 바뀐다.');
+console.log(`  가릴 이름 ${redactNames.length}건을 프로파일에서 읽었다 — 값은 로그에 남기지 않는다.`);
 
 const nodePath = args.values.get('node-path') ?? (fs.existsSync(KEYRING_NODE_PATH) ? KEYRING_NODE_PATH : undefined);
 if (nodePath === undefined) {
@@ -247,7 +304,7 @@ const transport = new recorder.ChildProcessTransport({
   exposition,
   envPath,
   nodePath,
-  onStderr: (chunk) => process.stderr.write(`  [구 번들] ${chunk}`),
+  onStderr: (chunk) => process.stderr.write(`  [제품 번들] ${chunk}`),
 });
 
 let fixture;
@@ -259,6 +316,9 @@ try {
       steps: scenario.steps.map((s) => ({ tool: s.tool, args: s.args, note: s.note })),
     },
     abortOnAuthFailure(transport),
+    // 가리기는 **채록 시점**에 붙는다. 저장 뒤에 지우는 것은 늦다 —
+    // `recorder/normalize.ts`의 `principal` 참조.
+    { redact: redactNames },
   );
 } catch (err) {
   if (err instanceof AuthFailureAbort) die(err.message);
@@ -267,13 +327,26 @@ try {
 
 console.log(`  받은 단계 ${fixture.steps.length}/${scenario.steps.length} · 엔진 ${fixture.engine.name} ${fixture.engine.version}`);
 
-const problems = [
-  ...detectDegradation(fixture, { allowAllErrors: args.flags.has('allow-all-errors') }),
-  ...guard.detectUnguardedSource(fixture, { allowStandardSource: args.flags.has('allow-standard-source') }),
-];
+// 판정 자체가 서지 못하면(무접속 어휘 정본을 못 읽는 등) **판정 없이 저장하지 않는다.**
+let problems;
+try {
+  problems = [
+    ...detectDegradation(fixture, { allowAllErrors: args.flags.has('allow-all-errors'), outDir }),
+    ...guard.detectUnguardedSource(fixture, { allowStandardSource: args.flags.has('allow-standard-source') }),
+    // fail-closed 뒷문 — 정규화가 놓쳤어도 저장은 막힌다. 판정은 attended-guard가
+    // 소유하고 여기서는 부르기만 한다. 거부문은 이름을 싣지 않는다(위치만).
+    ...detectRedactionLeak(fixture, redactNames),
+  ];
+} catch (err) {
+  console.error('❌ 녹화를 저장하지 않는다 — 강등 판정을 세우지 못했다.');
+  console.error(`   ${err?.message ?? String(err)}`);
+  console.error(SAP_ALREADY_RAN);
+  process.exit(1);
+}
 if (problems.length) {
   console.error('❌ 녹화를 저장하지 않는다.');
   for (const p of problems) console.error(`   · ${p}`);
+  console.error(SAP_ALREADY_RAN);
   process.exit(1);
 }
 
@@ -285,6 +358,15 @@ try {
   if (err instanceof recorder.MaskingRejection) {
     console.error('❌ 마스킹 검사에서 거부됐다 — 파일은 만들어지지 않았다.');
     console.error(`   ${err.message}`);
+    // 위치를 찍는다. 메시지는 "violations[].path 참조"라고만 하는데, 그 배열을 볼 수
+    // 있는 것은 이 자리뿐이다 — 안 찍으면 사람이 22단계를 손으로 뒤져야 하고, 그 사이
+    // SAP write는 **이미 나간 뒤**다. `hint`는 설계상 걸린 원문을 담지 않으므로
+    // (masking.ts의 HINTS) 여기 찍어도 비밀이 새지 않는다.
+    for (const v of err.violations ?? []) {
+      console.error(`   · [${v.ruleId}] ${v.path}`);
+      console.error(`     ${v.hint}`);
+    }
+    console.error(SAP_ALREADY_RAN);
     console.error('   시나리오가 실데이터·실호스트·자격증명에 닿았다는 뜻이다. 대상을 데모로 바꿔라.');
     process.exit(1);
   }

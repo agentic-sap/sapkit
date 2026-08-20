@@ -1,0 +1,21 @@
+{
+  "_": "판6.3 실기 ⑩b — P4. **되돌릴 수 없다.** 표면 186종에 DeletePackage가 없어 우리 도구로 지울 수 없다(정리는 사용자가 SE80/SE21에서 한다). 10a와 갈라 둔 이유는 채록기에 출력 연쇄가 없어서다 — 이송요청 번호를 물려야 하는 갈래에서 한 시퀀스로 묶으면 재실행이 이송요청을 두 벌 만든다.",
+  "sequenceId": "zsapkit63-p4-package",
+  "description": "[**1회성** · **P4** · 사용자 승인 완료] 패키지 ZSAPKIT_63_PKG 1개를 생성한다. **미리 적어 두는 두 갈래** — ⑴ 먼저 로컬(비이송) 구성으로 친다: super_package=$TMP · transport_layer 없음 · transport_request 없음. 이러면 승인을 최소로 쓴다. ⑵ 로컬이 서지 않으면(SAP이 Z 이름 패키지에 이송 계층을 요구하면) 10a가 만든 이송요청 번호를 transport_request에 박고 transport_layer를 채워 다시 친다 — 그때 이 파일의 args 두 칸만 고치고 시나리오를 새로 설계하지 않는다. 실패한 시도는 아무것도 만들지 않으므로 재시도가 두 벌을 만들지 않는다(10a와 성질이 갈리는 자리가 정확히 여기다). 성공한 뒤에는 재실행 금지 — 만든 이름은 판 기록과 마감 보고에 적고, 정리 방법(SE80/SE21 — 패키지 삭제)을 사용자에게 명시한다.",
+  "steps": [
+    {
+      "tool": "CreatePackage",
+      "args": {
+        "package_name": "ZSAPKIT_63_PKG",
+        "description": "sapkit 63 attended probe package",
+        "super_package": "$TMP",
+        "package_type": "development",
+        "software_component": "HOME",
+        "transport_layer": "ZDEV",
+        "transport_request": "DEVK901065",
+        "record_changes": true
+      },
+      "note": "**갈래 ⑵ — 로컬 우선이 두 번 막힌 뒤의 자리다.** 1회차: `software_component=LOCAL`을 SAP이 거부(「may not be assigned to software component LOCAL」 · T100 TR/462). 2회차: 그 인자를 빼자 **도구가** 막았다(「Software component is required」 — `createPackage.ts:299`, 벤더 가드를 그대로 되살린 자리다). ⚠ **발행 설명과 실제가 갈리는 자리다** — 선언은 「주지 않으면 SAP이 기본값(보통 ZLOCAL)을 정한다」고 적는데 실제로는 필수다. 그래서 이 시스템의 실측값을 쓴다: 기존 고객 패키지 ZDTV3TAX를 읽어 softwareComponent=HOME(「고객개발」) · transportLayer=ZDEV를 확인했고, 이송요청은 10a가 만든 DEVK901065다. super_package는 도구가 빈 값을 거부하므로($TMP를 준다 — `createPackage.ts:274`) **이 도구로는 최상위 패키지를 만들 수 없다**는 뜻이기도 하다. 남의 패키지를 부모로 쓰지 않는 것이 이 판의 안전 계약이라 선택지가 $TMP뿐이다. 이것도 거부되면 **CreatePackage는 「못 섬 + 이유」로 닫는다** — 실패는 아무것도 만들지 않으므로(1·2회차로 실측 확인) 그 판정에 흔적이 따라붙지 않는다."
+    }
+  ]
+}

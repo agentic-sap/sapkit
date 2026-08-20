@@ -51,10 +51,12 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
     두 번 짓게 만든다).
   - **`sapkit-engine/TOOL-LEDGER.md`는 기계 생성물**이다. 손으로 고치면 게이트가 거부한다.
     도구 상태는 세 칸(`안 지음` / `지음·증거 대기` / `증거 있음`)이고 **`증거 대기`를 완료로
-    읽지 않는다**(D-082 — 2026-08-12에 실제로 난 오해다). 지금 **증거 대기 126종**이
-    남은 SAP 증거의 총량이다(판6.1에서 143 → 126 · **M1 19종은 전부 「증거 있음」**).
-    ⚠ 이 수는 **꼬리 기준 인하가 아직 반영되지 않은 수치**다 — 인하의 집행은 판6
-    종료판 몫이다(D-092 ⓐ).
+    읽지 않는다**(D-082 — 2026-08-12에 실제로 난 오해다). 지금 **증거 대기 30종 · 증거 있음
+    156종**이다(판6.3 · D-098).
+    ⚠ **그 수를 「증거가 늘었다」로만 읽으면 틀린다.** 판6.3에서 두 가지가 함께 움직였다 —
+    **실기 34종**(126 → 92, 이건 증거다)과 **요구 급 인하 62종**(92 → 30, **이건 증거가 아니라
+    요구를 낮춘 것**이다. D-092 ⓐ 집행). 인하된 62종은 실 SAP에서 검증된 적이 없다.
+    대장 머리말이 **인하 전 수치를 병기**하므로 두 사실은 대장에서 갈려 보인다.
   - **구·신 차이는 두 곳에 등재한다** — 사람용 `harness/DIVERGENCES.md`(**append-only**)와
     재생 러너가 읽는 `harness/replay/divergences.ts`(**재생 대조에 나타나는 것만**).
     등재되지 않은 차이는 **결함**으로 다룬다.
@@ -175,7 +177,7 @@ node interactive/scripts/verify-checker.mjs              # 동봉 검사기 번�
 node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (로컬 전용 — 설치 상태를 읽는다)
 ```
 
-게이트 자체의 음성시험(게이트가 정말 거부하는지): `test-smoke-mcp.mjs` 29/29 ·
+게이트 자체의 음성시험(게이트가 정말 거부하는지): `test-smoke-mcp.mjs` 30/30 ·
 `test-check-runtime-path-rename.mjs` 13/13 · `test-hook-switch.mjs` 13/13 ·
 `test-hook-decisions.mjs` 74케이스 ·
 `test-setup-state.mjs` 120/120 · `test-launch-toolsurface.mjs` 56/56 ·
@@ -218,9 +220,14 @@ node gates/bundle-smoke.mjs            # **제품에 실리는 단일 파일** �
 node gates/test-gates.mjs              # 게이트 음성시험 (게이트가 정말 거부하는지)
 node gates/keyring-fallback-smoke.mjs  # keyring 부재 강등 스모크 (require-seam 차단 — 판5)
 node gates/test-refusal-vocab.mjs      # 거부 어휘 구·신 병행 인식 (D18 방어 — 판5)
+node gates/test-attended-guard.mjs     # attended 녹화 관문 음성시험 (저장 자리 3분기 · 무접속 어휘 · 신원 가리기 — 판6.3)
 node harness/render-ledger.mjs --check # 대장 ↔ 계산 결과
 node harness/build-plan.mjs --check    # 제작 계획 ↔ 산식
 ```
+
+⚠ **`harness/record-attended.mjs`(attended 실기 녹화)는 게이트가 아니다** — 실 SAP에 붙고
+P3 write가 실제로 일어나는 **attended 전용 도구**다. 여기 목록에 넣지 말 것.
+`--dry-run`만 접속 없이 돈다. 그 관문들이 정말 거부하는지는 위 `test-attended-guard.mjs`가 잰다.
 
 ~~**「제품 게이트 전종 여전히 green」이 구 부품 무접촉의 기계 증명이다**~~ — 이 조항은
 **판7-b 교체로 소멸했다**. 그 증명의 목적은 병행 제작 기간에 구 부품을 흔들리지 않는

@@ -19,7 +19,8 @@
  *     { "id": "class-read", "title": "클래스 읽기", "order": 1 }
  *   ],
  *   "tools": {
- *     "GetClass": { "bundle": "class-read", "requiredGrade": "replay" }
+ *     "GetClass": { "bundle": "class-read", "requiredGrade": "replay" },
+ *     "GetDomain": { "bundle": "domain", "requiredGrade": "contract", "downgradedFrom": "replay" }
  *   }
  * }
  * ```
@@ -29,6 +30,9 @@
  * - `tools` — 도구 이름 → 어느 묶음인지 + **요구 증거 급**. 급은 주 급 셋
  *   (`replay`·`contract`·`attended`) 중 하나다. `substitute`(대체 기대 시험)는
  *   부가 요건이지 주 급이 아니라 여기 적을 수 없다 — 차이 장부가 소유한다.
+ * - `downgradedFrom` — **요구를 낮춘 흔적**(D-092 ⓐ). 있으면 그 도구의 요구 급은
+ *   원래 이 급이었고, 증거가 는 것이 아니라 요구가 내려간 것이다. 없으면 처음부터
+ *   지금 급이었다. 이 칸이 없으면 다음 사람이 인하분을 「원래 계약이었구나」로 읽는다.
  * - 여기 없는 도구는 요구 급이 **정해지지 않은 것**이고, 대장은 계산기의
  *   기본값(사다리 3 = 계약 시험)을 쓰되 「미정」임을 표시한다.
  *
@@ -57,6 +61,8 @@ export interface PlanBundle {
 export interface PlanEntry {
   readonly bundle: string;
   readonly requiredGrade: PrimaryGrade;
+  /** 인하 전의 급. 인하가 아니면 `null`. */
+  readonly downgradedFrom: PrimaryGrade | null;
 }
 
 export interface BuildPlan {
@@ -131,7 +137,23 @@ export function parseBuildPlan(text: string, source: string): BuildPlan {
         `${at} 의 requiredGrade 가 주 급 셋(${PRIMARY_GRADES.join('·')}) 밖이다: ${JSON.stringify(requiredGrade)}`,
       );
     }
-    tools[tool] = { bundle, requiredGrade: requiredGrade as PrimaryGrade };
+    const downgradedFrom = entry['downgradedFrom'];
+    if (downgradedFrom !== undefined) {
+      if (typeof downgradedFrom !== 'string' || !PRIMARY_GRADES.includes(downgradedFrom as PrimaryGrade)) {
+        fail(
+          source,
+          `${at} 의 downgradedFrom 이 주 급 셋(${PRIMARY_GRADES.join('·')}) 밖이다: ${JSON.stringify(downgradedFrom)}`,
+        );
+      }
+      if (downgradedFrom === requiredGrade) {
+        fail(source, `${at} 의 downgradedFrom 이 requiredGrade 와 같다 — 인하가 아닌 것을 인하로 적었다`);
+      }
+    }
+    tools[tool] = {
+      bundle,
+      requiredGrade: requiredGrade as PrimaryGrade,
+      downgradedFrom: downgradedFrom === undefined ? null : (downgradedFrom as PrimaryGrade),
+    };
   }
 
   return { formatVersion: BUILD_PLAN_FORMAT_VERSION, bundles, tools };
