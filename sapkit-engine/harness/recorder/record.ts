@@ -16,6 +16,7 @@ import path from 'node:path';
 import { assertMasked } from './masking';
 import type { MaskingOptions } from './masking';
 import { normalizeFixture } from './normalize';
+import type { NormalizeOptions } from './normalize';
 import { FIXTURE_FORMAT_VERSION, SEQUENCE_ID_RE } from './types';
 import type { JsonValue, PlaceholderBinding, SequenceFixture, SequenceStep } from './types';
 
@@ -72,8 +73,18 @@ export interface SequenceSpec {
  * 단계 사이에 상태(잠금 핸들 등)가 흐르므로 호출은 반드시 직렬이고, 도구가
  * 오류를 돌려줘도 시퀀스는 계속한다 — 오류 응답도 그 엔진의 계약이고 재생
  * 대조의 대상이다. 전송 자체가 끊기면 거기서 멈추되 전송은 반드시 닫는다.
+ *
+ * `options.redact`는 정규화기로 **그대로 넘어간다**(가릴 신원 이름 목록). 채록
+ * 시점에 붙어야 하는 이유는 자격증명·호스트와 같다 — 픽스처에 한 번 들어간 뒤에
+ * 지우는 것은 늦다. 목록을 채우는 것은 진입점 몫이고
+ * (`harness/record-attended.mjs`가 접속 프로파일에서 읽는다), 정규화가 놓쳤을 때
+ * 저장을 막는 뒷문은 `harness/attended-guard.mjs`가 소유한다.
  */
-export async function recordSequence(spec: SequenceSpec, transport: RecorderTransport): Promise<SequenceFixture> {
+export async function recordSequence(
+  spec: SequenceSpec,
+  transport: RecorderTransport,
+  options: NormalizeOptions = {},
+): Promise<SequenceFixture> {
   if (!SEQUENCE_ID_RE.test(spec.sequenceId)) {
     throw new Error(`sequenceId가 파일 이름으로 안전하지 않다: ${JSON.stringify(spec.sequenceId)} (${SEQUENCE_ID_RE})`);
   }
@@ -93,20 +104,23 @@ export async function recordSequence(spec: SequenceSpec, transport: RecorderTran
         note: stepSpec.note ?? null,
       });
     }
-    return normalizeFixture({
-      formatVersion: FIXTURE_FORMAT_VERSION,
-      sequenceId: spec.sequenceId,
-      description: spec.description,
-      engine: {
-        name: handshake.serverName,
-        version: handshake.serverVersion,
-        protocolVersion: handshake.protocolVersion,
-        exposition: handshake.exposition,
+    return normalizeFixture(
+      {
+        formatVersion: FIXTURE_FORMAT_VERSION,
+        sequenceId: spec.sequenceId,
+        description: spec.description,
+        engine: {
+          name: handshake.serverName,
+          version: handshake.serverVersion,
+          protocolVersion: handshake.protocolVersion,
+          exposition: handshake.exposition,
+        },
+        recordedAt: new Date().toISOString(),
+        steps,
+        placeholders: [],
       },
-      recordedAt: new Date().toISOString(),
-      steps,
-      placeholders: [],
-    });
+      options,
+    );
   } finally {
     await transport.close();
   }

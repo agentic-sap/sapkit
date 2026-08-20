@@ -13,6 +13,9 @@
  *   ④ 어휘 정본 스크레이프 실패 → 죽는다 (조용히 통과하지 않는다)
  *   ⑤ 기본 저장 자리가 `fixtures/attended-only`다
  *   ⑥ 「그 밖의 자리」는 막지 않되 알린다
+ *   ⑧ 가려야 할 신원이 픽스처에 남아 있으면 → 거부. **거부문에 그 이름을 싣지 않는다**
+ *   ⑨ 가릴 이름을 접속 프로파일에서 읽는다 (없거나 너무 짧으면 부르는 쪽이 막는다)
+ *   ⑩ 진입점 배선 — 태우기 전에 읽고, 값을 로그에 찍지 않는다
  *
  * 소스와 임시 파일만 본다 — `dist/`도 SAP 접속도 필요 없다. 그래서 `gates/lib.mjs`
  * (산출물 의존)를 쓰지 않고 홀로 선다. 선례는 `gates/test-refusal-vocab.mjs`.
@@ -30,11 +33,15 @@ import {
   FIXTURES_DIR,
   PRODUCT_ENGINE_NAME,
   PRODUCT_GATE,
+  REDACTION_MIN_LENGTH,
   classifyOutDir,
   detectDegradation,
+  detectRedactionLeak,
   noConnectionPattern,
   outDirNotices,
   outDirRefusal,
+  parseEnvNames,
+  readRedactionNames,
   resolveOutDir,
 } from '../harness/attended-guard.mjs';
 
@@ -217,6 +224,162 @@ check('인자 없는 --out은 기본 저장 자리다', path.resolve(resolveOutD
     '세우지 못하면 녹화를 시작하지 않는다',
     /무접속 판정을 세우지 못했다/.test(entry),
   );
+}
+
+
+// ── ⑧ 신원 뒷문 — 가려야 할 이름이 남아 있으면 저장을 막는가 ──────────────────
+//
+// 정규화기(`recorder/normalize.ts`의 `principal`)가 놓쳤을 때 마지막으로 막는 자리다.
+// 통과만 보는 시험은 이 뒷문이 통째로 빠져도 초록이므로, 여기서는 **거부해야 하는
+// 입력**을 물린다. 그리고 거부문 자체가 새면 뒷문이 유출 경로가 되므로, **거부문에
+// 이름이 안 실리는지**를 같은 무게로 본다.
+//
+// 시험용 이름은 명백한 가짜다 — 실제 계정 아이디를 이 레포에 쓰지 않는다.
+{
+  const USER = 'TESTUSER';
+  const leaky = (text) => ({
+    ...fixtureOf(),
+    steps: [
+      { index: 0, tool: 'GetClass', args: { object_name: 'ZCL_PROBE' }, response: { content: [{ type: 'text', text }] }, isError: false, note: null },
+    ],
+  });
+  /**
+   * 거부문이 이름을 되싣지 않는가 — 대소문자를 접어 본다.
+   *
+   * 이 단언은 항상 **거부가 실제로 나왔음**과 함께 쓴다. 빈 배열은 이름을 담을 수 없어
+   * 마음대로 통과하므로, 똍어놓으면 뒷문을 무력화했을 때도 초록으로 남는다(사보타주로 실측).
+   */
+  const carriesName = (problems) => problems.some((p) => p.toUpperCase().includes(USER));
+
+  const clean = detectRedactionLeak(fixtureOf(), [USER]);
+  check('가릴 이름이 없는 픽스처는 통과한다 (양성 대조)', clean.length === 0, clean.join(' / '));
+
+  const inResponse = detectRedactionLeak(leaky(`adtcore:responsible="${USER}"`), [USER]);
+  check('응답에 남은 이름을 거부한다', inResponse.length >= 1, `문제 ${inResponse.length}건`);
+  check('거부문에 원본 이름을 싣지 않는다 (응답)', inResponse.length >= 1 && !carriesName(inResponse), inResponse[0] ?? '');
+  check('거부문이 위치를 말한다', inResponse.some((p) => p.includes('/steps/0/response')));
+
+  const lower = detectRedactionLeak(leaky(`/sap/bc/adt/oo/classes/zcl_demo?user=${USER.toLowerCase()}`), [USER]);
+  check('소문자 꼴도 거부한다 (대소문자 무시)', lower.length >= 1);
+
+  const inArgs = detectRedactionLeak(
+    { ...fixtureOf(), steps: [{ index: 0, tool: 'ListTransports', args: { user: USER }, response: {}, isError: false, note: null }] },
+    [USER],
+  );
+  check('인자에 남은 이름도 거부한다', inArgs.length >= 1);
+  check('거부문에 원본 이름을 싣지 않는다 (인자)', inArgs.length >= 1 && !carriesName(inArgs));
+
+  const inKey = detectRedactionLeak(
+    { ...fixtureOf(), steps: [{ index: 0, tool: 'GetClass', args: { [USER]: 1 }, response: {}, isError: false, note: null }] },
+    [USER],
+  );
+  check('키 이름 자리에 실린 이름도 거부한다', inKey.length >= 1);
+  check('거부문에 원본 이름을 싣지 않는다 (키 자리)', inKey.length >= 1 && !carriesName(inKey));
+  check('키 자리 경로는 키를 되쓰지 않는다 (<key#N>)', inKey.some((p) => p.includes('<key#')));
+
+  // 시나리오가 소유한 자리 — 정규화는 손대지 않는다(고칠 자리가 시나리오 파일이다).
+  const inDescription = detectRedactionLeak({ ...fixtureOf(), description: `${USER}의 시퀀스` }, [USER]);
+  check('시나리오 description에 박힌 이름도 거부한다', inDescription.length >= 1);
+  check('거부문에 원본 이름을 싣지 않는다 (description)', inDescription.length >= 1 && !carriesName(inDescription));
+
+  // 목록이 비면 이 판정은 아무 일도 하지 않는다 — 자리·무접속 판정과 섞이지 않게.
+  check('가릴 목록이 비면 판정하지 않는다', detectRedactionLeak(leaky(USER), []).length === 0);
+  check('가릴 목록이 undefined여도 던지지 않는다', detectRedactionLeak(leaky(USER), undefined).length === 0);
+  check(
+    '하한보다 짧은 이름은 목록에서 버린다 — 아니면 모든 픽스처가 거부된다',
+    detectRedactionLeak(leaky('ZCL_AB_DEMO'), ['AB']).length === 0,
+  );
+
+  // 뒷문은 정규화기보다 **넓다**(맨 부분 문자열). 규칙을 베끼면 함께 틀리기 때문이다.
+  const wider = detectRedactionLeak(leaky(`${USER}2`), [USER]);
+  check('정규화기가 남긴 부분 문자열도 뒷문은 거부한다 (의도적 과잉)', wider.length >= 1, `문제 ${wider.length}건`);
+
+  // 하한 상수가 정규화기와 어긋나면 한쪽은 막다른 골목, 다른 쪽은 구멍이 된다.
+  const normalizeSrc = fs.readFileSync(path.join(ENGINE_ROOT, 'harness', 'recorder', 'normalize.ts'), 'utf8');
+  const declared = /REDACT_MIN_LENGTH\s*=\s*(\d+)/.exec(normalizeSrc);
+  check(
+    '최소 길이가 정규화기와 같다',
+    declared !== null && Number(declared[1]) === REDACTION_MIN_LENGTH,
+    `normalize.ts=${declared?.[1] ?? '(못 찾음)'} · attended-guard=${REDACTION_MIN_LENGTH}`,
+  );
+}
+
+// ── ⑨ 가릴 이름을 프로파일에서 읽는다 ────────────────────────────────────────
+//
+// 값은 비밀 취급이다 — 읽기가 실패해도 문구에 값이 실리면 안 되고, 진입점이 그 값을
+// 찍어서도 안 된다. 여기서 쓰는 값은 전부 명백한 가짜다.
+{
+  const envOf = (name, lines) => {
+    const file = path.join(tmpRoot, name);
+    fs.writeFileSync(file, lines.join('\n'), 'utf8');
+    return file;
+  };
+
+  const plain = readRedactionNames(envOf('plain.env', ['SAP_URL=https://sap.example.test', 'SAP_USERNAME=TESTUSER']));
+  check('SAP_USERNAME을 읽는다', plain.names.length === 1 && plain.names[0] === 'TESTUSER', plain.names.join(','));
+
+  const fancy = readRedactionNames(
+    envOf('fancy.env', [
+      '# 주석 줄은 건너뛴다',
+      '',
+      'export SAP_USERNAME = "TESTUSER"  ',
+      "SAP_RESPONSIBLE='OTHERUSER'",
+      'SAP_PASSWORD=pw#not-a-comment',
+    ]),
+  );
+  check(
+    '따옴표·공백·export·주석을 정본과 같은 규칙으로 다룬다',
+    fancy.names.length === 2 && fancy.names[0] === 'TESTUSER' && fancy.names[1] === 'OTHERUSER',
+    fancy.names.join(','),
+  );
+  check(
+    '줄 안쪽 #는 주석이 아니다 (비밀번호에 들어갈 수 있다)',
+    parseEnvNames('SAP_PASSWORD=pw#not-a-comment')['SAP_PASSWORD'] === 'pw#not-a-comment',
+  );
+  check('같은 키가 두 번이면 마지막이 이긴다', parseEnvNames('SAP_USERNAME=A\nSAP_USERNAME=TESTUSER')['SAP_USERNAME'] === 'TESTUSER');
+
+  const dup = readRedactionNames(envOf('dup.env', ['SAP_USERNAME=TESTUSER', 'SAP_RESPONSIBLE=testuser']));
+  check('같은 신원의 두 꼴은 한 건으로 센다', dup.names.length === 1, dup.names.join(','));
+
+  const none = readRedactionNames(envOf('none.env', ['SAP_URL=https://sap.example.test']));
+  check('키가 없으면 빈 목록이다 — 부르는 쪽이 막는다', none.names.length === 0 && none.tooShort.length === 0);
+
+  const short = readRedactionNames(envOf('short.env', ['SAP_USERNAME=AB']));
+  check('짧은 값은 조용히 버리지 않고 키 이름으로 돌려준다', short.names.length === 0 && short.tooShort.includes('SAP_USERNAME'));
+  check('돌려주는 것은 키 이름이지 값이 아니다', !short.tooShort.some((k) => k.includes('AB')));
+
+  let threw = null;
+  try {
+    readRedactionNames(path.join(tmpRoot, 'does-not-exist.env'));
+  } catch (err) {
+    threw = err;
+  }
+  check('프로파일을 못 읽으면 던진다 — 빈 목록으로 넘어가지 않는다', threw !== null, threw?.message?.split('\n')[0] ?? '(던지지 않았다)');
+}
+
+// ── ⑩ 진입점 배선 — 태우기 전에 읽고, 값은 찍지 않는가 ───────────────────────
+{
+  const entry = fs.readFileSync(path.join(ENGINE_ROOT, 'harness', 'record-attended.mjs'), 'utf8');
+  const at = (needle) => entry.indexOf(needle);
+  const burn = at('recordSequence(');
+
+  check('가릴 이름을 태우기 전에 읽는다', at('readRedactionNames(') > 0 && at('readRedactionNames(') < burn);
+  check('읽은 목록을 채록기에 넘긴다', /redact:\s*redactNames/.test(entry));
+  check('저장 전에 뒷문을 부른다', at('detectRedactionLeak(') > burn);
+  check('읽지 못하면 녹화를 시작하지 않는다', /가릴 이름을 프로파일에서 읽지 못했다/.test(entry));
+  // 뒷문 거부는 저장 직전 = SAP 호출이 전부 나간 뒤다. 기존 거부 경로를 함께 쓰므로
+  // `SAP_ALREADY_RAN`이 같이 나간다.
+  check(
+    '뒷문 거부가 SAP_ALREADY_RAN과 같은 경로로 나간다',
+    entry.indexOf('SAP_ALREADY_RAN', at('detectRedactionLeak(')) > 0,
+  );
+
+  // ⚠ 값이 로그에 실리면 가리는 의미가 없다. 이름을 담은 변수를 출력 줄에서 찾는다.
+  const printsNames = entry
+    .split('\n')
+    .filter((line) => /console\.(log|warn|error)/.test(line) && /redactNames|read\.names/.test(line))
+    .filter((line) => !/redactNames\.length/.test(line));
+  check('가릴 이름 값을 로그에 찍지 않는다 (건수만)', printsNames.length === 0, printsNames[0] ?? '');
 }
 
 fs.rmSync(tmpRoot, { recursive: true, force: true });

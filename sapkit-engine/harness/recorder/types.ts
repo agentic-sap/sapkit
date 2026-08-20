@@ -30,7 +30,21 @@ export type NormalizationKind =
   | 'server-id'
   | 'uri'
   /** 서버가 잰 **소요 시간**. 시각이 아니라 길이라 timestamp와 따로 둔다. */
-  | 'duration';
+  | 'duration'
+  /**
+   * **가려야 할 신원** — 접속 사용자의 SAP 로그인 아이디처럼 사람을 가리키는 이름.
+   *
+   * 앞의 일곱과 성격이 갈린다. 저것들은 **부를 때마다 달라지는 값**이라 대조를
+   * 방해해서 치운다. 이것은 **값이 안정적인데도** 치운다 — 픽스처가 PUBLIC 레포에
+   * 커밋되기 때문이다. 그래서 패턴으로 알아볼 수 없고, **가릴 이름 목록이 밖에서**
+   * (접속 프로파일에서) 들어온다.
+   *
+   * 그래도 마스킹(거부)이 아니라 정규화(치환)인 이유: SAP은 객체 메타데이터의
+   * `adtcore:responsible`·`changedBy`·`createdBy`와 `CreateTransport`의 `owner`에
+   * 작성자를 **반드시** 박는다. 거부하면 그 도구들의 증거를 영영 남길 수 없다.
+   * 가리되 증거는 남겨야 하므로 자리표시자로 바꾼다.
+   */
+  | 'principal';
 
 /** 종류 → 자리표시자 접두어. */
 export const PLACEHOLDER_PREFIX: Readonly<Record<NormalizationKind, string>> = {
@@ -41,6 +55,7 @@ export const PLACEHOLDER_PREFIX: Readonly<Record<NormalizationKind, string>> = {
   'server-id': 'SERVER_ID',
   uri: 'URI',
   duration: 'DURATION',
+  principal: 'PRINCIPAL',
 };
 
 /** 접두어 → 종류 (역인덱스). 이미 정규화된 픽스처를 다시 읽을 때 쓴다. */
