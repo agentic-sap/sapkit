@@ -6,7 +6,7 @@
 > - 재생성: `node harness/render-ledger.mjs` (`sapkit-engine/`에서 · `npm run build` 뒤)
 > - 대조: `node harness/render-ledger.mjs --check` — `npm run gates`의 「대장」 게이트가 같은 판정을 한다
 
-도구 186 · **안 지음 0** · **증거 대기 126** · **증거 있음 60**
+도구 186 · **안 지음 0** · **증거 대기 92** · **증거 있음 94**
 
 ## 위임형 열을 읽는 법 — 두 수는 단위가 다르다
 
@@ -31,7 +31,7 @@
 | 제작 계획 (묶음·순서·요구 급) | `harness/build-plan.json` | 있음 · 묶음 29 · 배정된 도구 186종 |
 | 재생 판정 파일 | `evidence/replay/*.json` | 있음 · 9건 |
 | 재생 픽스처 | `fixtures/*.json` | 있음 · 16종의 도구를 건드린다 — 픽스처만으로는 증거가 아니다 |
-| attended 실기 기록 | `fixtures/attended-only/*.json` | 있음 · 4단계 |
+| attended 실기 기록 | `fixtures/attended-only/*.json` | 있음 · 111단계 |
 | 계약 시험 결과 | `evidence/contract/results.json` | 있음 · 186종 |
 | 계약 시험 파일 | `src/tools/**/__tests__/<도구>.test.ts` | 있음 · 186종에 시험 파일이 있다 — 있음이 곧 통과는 아니다 |
 | 대체 기대 시험 | `harness/replay/divergences.ts 의 substituteTest 경로` | 있음 · 24종에 실재하는 시험 파일이 있다 |
@@ -43,7 +43,7 @@
 
 없다.
 
-## 지음 · 증거 대기 (126)
+## 지음 · 증거 대기 (92)
 
 등록점에 있다. 그러나 **요구 증거 급이 아직 안 찼다** — 다른 급의 증거가 있어도 요구 급을 대신하지 못한다.
 
@@ -68,57 +68,47 @@
 | RuntimeRunClassWithProfiling | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 재생 대조 | — | 통과(1) | — | — | 직접 |
 | RuntimeRunProgramWithProfiling | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 재생 대조 | — | 통과(1) | — | — | 직접 |
 | GetIncludesList | 인클루드 | 5 | 재생 대조 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
-| CreateClass | 클래스 | 6 | attended 실기 | — | 통과(1) | — | — | 직접 |
 | GetClassMethod | 클래스 | 6 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| GetLocalTestClass | 클래스 | 6 | 재생 대조 | — | 통과(1) | — | — | 직접 |
-| GetLocalTypes | 클래스 | 6 | 재생 대조 | — | 통과(1) | — | — | 간접 |
+| GetLocalTestClass | 클래스 | 6 | 재생 대조 | — | 통과(1) | 통과(1) | — | 직접 |
+| GetLocalTypes | 클래스 | 6 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
 | ReadClass | 클래스 | 6 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | UpdateClassMethod | 클래스 | 6 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| UpdateLocalTestClass | 클래스 | 6 | 재생 대조 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
-| UpdateLocalTypes | 클래스 | 6 | 재생 대조 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
-| CreateTable | 테이블 | 7 | attended 실기 | — | 통과(1) | — | — | 간접 |
+| UpdateLocalTestClass | 클래스 | 6 | 재생 대조 + 대체 | — | 통과(1) | 통과(1) | 통과(1) | 간접 |
+| UpdateLocalTypes | 클래스 | 6 | 재생 대조 + 대체 | — | 통과(1) | 통과(1) | 통과(1) | 간접 |
 | GetTableContents | 테이블 | 7 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | ReadTable | 테이블 | 7 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| UpdateTable | 테이블 | 7 | 재생 대조 | — | 통과(1) | — | — | 직접 |
+| UpdateTable | 테이블 | 7 | 재생 대조 | — | 통과(1) | 통과(3) | — | 직접 |
 | GetProgFullCode | 프로그램 | 8 | 재생 대조 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
 | ReadProgram | 프로그램 | 8 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| CreateFunctionModule | 함수모듈 | 9 | attended 실기 | — | 통과(1) | — | — | 간접 |
 | ReadFunctionModule | 함수모듈 | 9 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | UpdateFunctionModule | 함수모듈 | 9 | 재생 대조 + 대체 | — | 통과(1) | — | 통과(1) | 직접 |
-| CreateStructure | 구조체 | 10 | attended 실기 | — | 통과(1) | — | — | 직접 |
 | ReadStructure | 구조체 | 10 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | UpdateStructure | 구조체 | 10 | 재생 대조 | — | 통과(1) | — | — | 직접 |
-| CreateView | 뷰 | 11 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| GetView | 뷰 | 11 | 재생 대조 | — | 통과(1) | — | — | 간접 |
+| GetView | 뷰 | 11 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
 | ReadView | 뷰 | 11 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| UpdateView | 뷰 | 11 | 재생 대조 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
+| UpdateView | 뷰 | 11 | 재생 대조 + 대체 | — | 통과(1) | 통과(2) | 통과(1) | 간접 |
 | GetUnitTest | 단위시험 | 12 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | GetUnitTestResult | 단위시험 | 12 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | GetUnitTestStatus | 단위시험 | 12 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | RunUnitTest | 단위시험 | 12 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| CreateBehaviorDefinition | 동작 정의 (BDEF) | 13 | attended 실기 | — | 통과(1) | — | — | 직접 |
 | GetBehaviorDefinition | 동작 정의 (BDEF) | 13 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| ReadBehaviorDefinition | 동작 정의 (BDEF) | 13 | 재생 대조 | — | 통과(1) | — | — | 간접 |
+| ReadBehaviorDefinition | 동작 정의 (BDEF) | 13 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
 | UpdateBehaviorDefinition | 동작 정의 (BDEF) | 13 | 재생 대조 | — | 통과(1) | — | — | 직접 |
-| CreateDataElement | 데이터 엘리먼트 | 14 | attended 실기 | — | 통과(1) | — | — | 직접 |
-| GetDataElement | 데이터 엘리먼트 | 14 | 재생 대조 | — | 통과(1) | — | — | 간접 |
+| GetDataElement | 데이터 엘리먼트 | 14 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
 | ReadDataElement | 데이터 엘리먼트 | 14 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| CreateServiceBinding | 서비스 바인딩 | 15 | attended 실기 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
-| GetServiceBinding | 서비스 바인딩 | 15 | 재생 대조 | — | 통과(1) | — | — | 간접 |
+| GetServiceBinding | 서비스 바인딩 | 15 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
 | ListServiceBindingTypes | 서비스 바인딩 | 15 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | ReadServiceBinding | 서비스 바인딩 | 15 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | UpdateServiceBinding | 서비스 바인딩 | 15 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | ValidateServiceBinding | 서비스 바인딩 | 15 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| CreateDomain | 도메인 | 16 | attended 실기 | — | 통과(1) | — | — | 직접 |
-| GetDomain | 도메인 | 16 | 재생 대조 | — | 통과(1) | — | — | 간접 |
+| GetDomain | 도메인 | 16 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
 | ReadDomain | 도메인 | 16 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| CreateTransport | 트랜스포트 | 17 | attended 실기 + 대체 | — | 통과(1) | — | 통과(1) | 직접 |
 | GetTransport | 트랜스포트 | 17 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | ListTransports | 트랜스포트 | 17 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| CreateMetadataExtension | 메타데이터 확장 (DDLX) | 18 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| GetMetadataExtension | 메타데이터 확장 (DDLX) | 18 | 재생 대조 | — | 통과(1) | — | — | 간접 |
+| CreateMetadataExtension | 메타데이터 확장 (DDLX) | 18 | attended 실기 | — | 통과(1) | 실패(1) | — | 간접 |
+| GetMetadataExtension | 메타데이터 확장 (DDLX) | 18 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
 | ReadMetadataExtension | 메타데이터 확장 (DDLX) | 18 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| UpdateMetadataExtension | 메타데이터 확장 (DDLX) | 18 | 재생 대조 | — | 통과(1) | — | — | 간접 |
+| UpdateMetadataExtension | 메타데이터 확장 (DDLX) | 18 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
 | CreateGuiStatus | GUI 상태 | 19 | attended 실기 | — | 통과(1) | — | — | 간접 |
 | GetGuiStatus | GUI 상태 | 19 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | GetGuiStatusList | GUI 상태 | 19 | 재생 대조 | — | 통과(1) | — | — | 간접 |
@@ -135,48 +125,24 @@
 | GetScreen | 화면 | 23 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | GetScreensList | 화면 | 23 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | ReadScreen | 화면 | 23 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| CreateServiceDefinition | 서비스 정의 | 24 | attended 실기 | — | 통과(1) | — | — | 직접 |
-| GetServiceDefinition | 서비스 정의 | 24 | 재생 대조 | — | 통과(1) | — | — | 간접 |
+| CreateServiceDefinition | 서비스 정의 | 24 | attended 실기 | — | 통과(1) | 실패(1) | — | 직접 |
+| GetServiceDefinition | 서비스 정의 | 24 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
 | ReadServiceDefinition | 서비스 정의 | 24 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| UpdateServiceDefinition | 서비스 정의 | 24 | 재생 대조 | — | 통과(1) | — | — | 직접 |
-| CreateBehaviorImplementation | 동작 구현 (BIMP) | 25 | attended 실기 | — | 통과(1) | — | — | 직접 |
+| UpdateServiceDefinition | 서비스 정의 | 24 | 재생 대조 | — | 통과(1) | 통과(1) | — | 직접 |
 | GetBehaviorImplementation | 동작 구현 (BIMP) | 25 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| ReadBehaviorImplementation | 동작 구현 (BIMP) | 25 | 재생 대조 | — | 통과(1) | — | — | 간접 |
+| ReadBehaviorImplementation | 동작 구현 (BIMP) | 25 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
 | UpdateBehaviorImplementation | 동작 구현 (BIMP) | 25 | 재생 대조 + 대체 | — | 통과(1) | — | 통과(1) | 직접 |
-| CreateFunctionGroup | 함수그룹 | 26 | attended 실기 | — | 통과(1) | — | — | 직접 |
-| GetFunctionGroup | 함수그룹 | 26 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| CreateInterface | 인터페이스 | 27 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| GetInterface | 인터페이스 | 27 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| CreateCdsUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
+| GetFunctionGroup | 함수그룹 | 26 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
+| GetInterface | 인터페이스 | 27 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
+| CreateCdsUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 실패(1) | — | 간접 |
 | CreatePackage | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 직접 |
 | CreateUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| DeleteBehaviorDefinition | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| DeleteBehaviorImplementation | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| DeleteCdsUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| DeleteClass | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| DeleteDataElement | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| DeleteDomain | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| DeleteFunctionGroup | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| DeleteFunctionModule | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
 | DeleteGuiStatus | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| DeleteInclude | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 직접 |
-| DeleteInterface | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| DeleteLocalDefinitions | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| DeleteLocalMacros | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| DeleteLocalTestClass | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| DeleteLocalTypes | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| DeleteMetadataExtension | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| DeleteProgram | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
 | DeleteScreen | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| DeleteServiceBinding | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
-| DeleteServiceDefinition | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| DeleteStructure | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| DeleteTable | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
 | DeleteTextElement | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
-| DeleteUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| DeleteView | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | — | — | 간접 |
+| DeleteUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 실패(1) | — | 간접 |
 
-## 증거 있음 (60)
+## 증거 있음 (94)
 
 요구 증거 급이 찼다 (부가 요건이 있으면 그것까지).
 
@@ -191,36 +157,70 @@
 | GetSqlQuery | 시스템·공통 조회 | 1 | 재생 대조 + 대체 | 통과(1) | 통과(1) | — | 통과(1) | 직접 |
 | GetObjectsByType | 검색 | 2 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | GrepObjects | 검색 | 2 | 재생 대조 | 통과(1) | 통과(1) | — | — | 직접 |
-| SearchObject | 검색 | 2 | 재생 대조 | 통과(1) | 통과(1) | — | — | 직접 |
-| ActivateObjects | 공통 편집·활성 | 3 | 재생 대조 | 통과(2) | 통과(1) | — | — | 간접 |
+| SearchObject | 검색 | 2 | 재생 대조 | 통과(1) | 통과(1) | 통과(20) | — | 직접 |
+| ActivateObjects | 공통 편집·활성 | 3 | 재생 대조 | 통과(2) | 통과(1) | 통과(8) | — | 간접 |
 | GetSourceDiff | 공통 편집·활성 | 3 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | UpdateSourceByPatch | 공통 편집·활성 | 3 | 재생 대조 | 통과(1) | 통과(1) | — | — | 간접 |
 | RuntimeAnalyzeDump | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 계약 시험 | — | 통과(1) | — | — | 직접 |
 | RuntimeCreateProfilerTraceParameters | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 계약 시험 | — | 통과(1) | — | — | 직접 |
 | RuntimeGetDumpById | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 계약 시험 | — | 통과(1) | — | — | 직접 |
-| CreateInclude | 인클루드 | 5 | attended 실기 | — | 통과(1) | 통과(1) | — | 직접 |
-| GetInclude | 인클루드 | 5 | 재생 대조 | 통과(1) | 통과(1) | 통과(1) | — | 간접 |
+| CreateInclude | 인클루드 | 5 | attended 실기 | — | 통과(1) | 통과(2) | — | 직접 |
+| GetInclude | 인클루드 | 5 | 재생 대조 | 통과(1) | 통과(1) | 통과(2) | — | 간접 |
 | UpdateInclude | 인클루드 | 5 | 재생 대조 | 통과(1) | 통과(1) | — | — | 간접 |
-| GetClass | 클래스 | 6 | 재생 대조 | 통과(1) | 통과(1) | — | — | 간접 |
-| GetLocalDefinitions | 클래스 | 6 | 계약 시험 | — | 통과(1) | — | — | 간접 |
-| GetLocalMacros | 클래스 | 6 | 계약 시험 | — | 통과(1) | — | — | 간접 |
-| UpdateClass | 클래스 | 6 | 재생 대조 | 통과(1) | 통과(1) | — | — | 간접 |
-| GetTable | 테이블 | 7 | 재생 대조 | 통과(1) | 통과(1) | — | — | 간접 |
-| CreateProgram | 프로그램 | 8 | attended 실기 | 통과(1) | 통과(1) | 통과(1) | — | 직접 |
+| CreateClass | 클래스 | 6 | attended 실기 | — | 통과(1) | 통과(2) | — | 직접 |
+| GetClass | 클래스 | 6 | 재생 대조 | 통과(1) | 통과(1) | 통과(1) | — | 간접 |
+| GetLocalDefinitions | 클래스 | 6 | 계약 시험 | — | 통과(1) | 통과(1) | — | 간접 |
+| GetLocalMacros | 클래스 | 6 | 계약 시험 | — | 통과(1) | 통과(1) | — | 간접 |
+| UpdateClass | 클래스 | 6 | 재생 대조 | 통과(1) | 통과(1) | 통과(1) | — | 간접 |
+| CreateTable | 테이블 | 7 | attended 실기 | — | 통과(1) | 통과(3) | — | 간접 |
+| GetTable | 테이블 | 7 | 재생 대조 | 통과(1) | 통과(1) | 통과(1) | — | 간접 |
+| CreateProgram | 프로그램 | 8 | attended 실기 | 통과(1) | 통과(1) | 통과(2) | — | 직접 |
 | GetProgram | 프로그램 | 8 | 재생 대조 | 통과(3) | 통과(1) | 통과(1) | — | 간접 |
-| UpdateProgram | 프로그램 | 8 | 재생 대조 | 통과(1) | 통과(1) | — | — | 간접 |
-| GetFunctionModule | 함수모듈 | 9 | 재생 대조 | 통과(1) | 통과(1) | — | — | 간접 |
-| GetStructure | 구조체 | 10 | 재생 대조 | 통과(1) | 통과(1) | — | — | 간접 |
+| UpdateProgram | 프로그램 | 8 | 재생 대조 | 통과(1) | 통과(1) | 통과(1) | — | 간접 |
+| CreateFunctionModule | 함수모듈 | 9 | attended 실기 | — | 통과(1) | 통과(1) | — | 간접 |
+| GetFunctionModule | 함수모듈 | 9 | 재생 대조 | 통과(1) | 통과(1) | 통과(1) | — | 간접 |
+| CreateStructure | 구조체 | 10 | attended 실기 | — | 통과(1) | 통과(1) | — | 직접 |
+| GetStructure | 구조체 | 10 | 재생 대조 | 통과(1) | 통과(1) | 통과(1) | — | 간접 |
+| CreateView | 뷰 | 11 | attended 실기 | — | 통과(1) | 통과(2) | — | 간접 |
+| CreateBehaviorDefinition | 동작 정의 (BDEF) | 13 | attended 실기 | — | 통과(1) | 통과(1) | — | 직접 |
+| CreateDataElement | 데이터 엘리먼트 | 14 | attended 실기 | — | 통과(1) | 통과(1) | — | 직접 |
+| CreateServiceBinding | 서비스 바인딩 | 15 | attended 실기 + 대체 | — | 통과(1) | 통과(1) | 통과(1) | 간접 |
+| CreateDomain | 도메인 | 16 | attended 실기 | — | 통과(1) | 통과(1) | — | 직접 |
+| CreateTransport | 트랜스포트 | 17 | attended 실기 + 대체 | — | 통과(1) | 통과(1) | 통과(1) | 직접 |
 | ReleaseTransport | 트랜스포트 | 17 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | UpdateGuiStatus | GUI 상태 | 19 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | UpdateTextElement | 텍스트 엘리먼트 | 20 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | UpdateScreen | 화면 | 23 | 계약 시험 | — | 통과(1) | — | — | 간접 |
+| CreateBehaviorImplementation | 동작 구현 (BIMP) | 25 | attended 실기 | — | 통과(1) | 통과(1) | — | 직접 |
+| CreateFunctionGroup | 함수그룹 | 26 | attended 실기 | — | 통과(1) | 통과(1) | — | 직접 |
 | ReadFunctionGroup | 함수그룹 | 26 | 계약 시험 | — | 통과(1) | — | — | 간접 |
+| CreateInterface | 인터페이스 | 27 | attended 실기 | — | 통과(1) | 통과(1) | — | 간접 |
 | ReadInterface | 인터페이스 | 27 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | UpdateInterface | 인터페이스 | 27 | 계약 시험 + 대체 | — | 통과(1) | — | 통과(1) | 직접 |
 | GetEnhancementImpl | 인핸스먼트 | 28 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | GetEnhancements | 인핸스먼트 | 28 | 계약 시험 | — | 통과(1) | — | — | 직접 |
 | GetEnhancementSpot | 인핸스먼트 | 28 | 계약 시험 | — | 통과(1) | — | — | 간접 |
+| DeleteBehaviorDefinition | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 통과(1) | — | 간접 |
+| DeleteBehaviorImplementation | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 통과(1) | — | 간접 |
+| DeleteCdsUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 통과(1) | — | 간접 |
+| DeleteClass | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 통과(1) | — | 간접 |
+| DeleteDataElement | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 통과(1) | — | 간접 |
+| DeleteDomain | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 통과(1) | — | 간접 |
+| DeleteFunctionGroup | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 통과(1) | — | 간접 |
+| DeleteFunctionModule | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 통과(1) | — | 간접 |
+| DeleteInclude | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 통과(1) | — | 직접 |
+| DeleteInterface | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 통과(1) | — | 간접 |
+| DeleteLocalDefinitions | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 통과(1) | — | 간접 |
+| DeleteLocalMacros | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 통과(1) | — | 간접 |
+| DeleteLocalTestClass | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 통과(1) | — | 간접 |
+| DeleteLocalTypes | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 통과(1) | — | 간접 |
+| DeleteMetadataExtension | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 통과(1) | — | 간접 |
+| DeleteProgram | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 통과(1) | — | 간접 |
+| DeleteServiceBinding | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 + 대체 | — | 통과(1) | 통과(1) | 통과(1) | 간접 |
+| DeleteServiceDefinition | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 통과(1) | — | 간접 |
+| DeleteStructure | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 통과(1) | — | 간접 |
+| DeleteTable | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 통과(3) | — | 간접 |
+| DeleteView | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 통과(2) | — | 간접 |
 | GetAdtTypes | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | GetBadiImplementations | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
 | GetCallGraph | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 직접 |
@@ -239,15 +239,15 @@
 | UpdateDataElement | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 직접 |
 | UpdateDomain | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 + 대체 | — | 통과(1) | — | 통과(1) | 직접 |
 | UpdateFunctionGroup | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 직접 |
-| UpdateLocalDefinitions | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
-| UpdateLocalMacros | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
+| UpdateLocalDefinitions | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 + 대체 | — | 통과(1) | 통과(1) | 통과(1) | 간접 |
+| UpdateLocalMacros | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 + 대체 | — | 통과(1) | 통과(1) | 통과(1) | 간접 |
 | UpdateUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 
 ## 남은 수 요약
 
 - **안 지음 0** — 등록점에 없다
-- **증거 대기 126** — 지었으나 요구 증거 급이 아직 안 찼다
-- **증거 있음 60** — 요구 급이 찼다
+- **증거 대기 92** — 지었으나 요구 증거 급이 아직 안 찼다
+- **증거 있음 94** — 요구 급이 찼다
 
 어느 급에서도 통과 증거가 없는 도구 **0종** (요구 급 충족과는 다른 질문이다 — 증거가 있어도 급이 덜 찰 수 있다).
 
