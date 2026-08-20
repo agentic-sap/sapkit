@@ -6,7 +6,11 @@
 > - 재생성: `node harness/render-ledger.mjs` (`sapkit-engine/`에서 · `npm run build` 뒤)
 > - 대조: `node harness/render-ledger.mjs --check` — `npm run gates`의 「대장」 게이트가 같은 판정을 한다
 
-도구 186 · **안 지음 0** · **증거 대기 92** · **증거 있음 94**
+도구 186 · **안 지음 0** · **증거 대기 30** · **증거 있음 156**
+
+그중 **요구 급 인하 62종**(재생 대조 → 계약 시험 · D-092 ⓐ). 인하 전이었다면 같은 증거로 **증거 대기 92 · 증거 있음 94**이다.
+
+> **인하는 증거를 만든 것이 아니라 요구를 낮춘 것이다.**
 
 ## 위임형 열을 읽는 법 — 두 수는 단위가 다르다
 
@@ -28,7 +32,8 @@
 |---|---|---|
 | 도구 전체 목록 | `harness/old-surface/m1-tools.json` | 있음 · 186종 — 구 번들 표면 채록본의 전량 선언 |
 | 등록점 (`지음` 판정) | `src/tools/registry.ts` | 있음 · 186종 등재 |
-| 제작 계획 (묶음·순서·요구 급) | `harness/build-plan.json` | 있음 · 묶음 29 · 배정된 도구 186종 |
+| 제작 계획 (묶음·순서·요구 급) | `harness/build-plan.json` | 있음 · 묶음 29 · 배정된 도구 186종 · 요구 급 인하 62종 |
+| 얼린 관측 (인하의 근거) | `harness/phase6-exercised.json` | 있음 · 판6까지 픽스처가 실제로 태운 도구 목록. 산식이 매 실행마다 `fixtures/`를 다시 훑으면 증거를 못 만들수록 요구가 저절로 낮아지므로, 한 번 뽑아 얼린 것만 읽는다 |
 | 재생 판정 파일 | `evidence/replay/*.json` | 있음 · 9건 |
 | 재생 픽스처 | `fixtures/*.json` | 있음 · 16종의 도구를 건드린다 — 픽스처만으로는 증거가 아니다 |
 | attended 실기 기록 | `fixtures/attended-only/*.json` | 있음 · 111단계 |
@@ -43,95 +48,33 @@
 
 없다.
 
-## 지음 · 증거 대기 (92)
+## 지음 · 증거 대기 (30)
 
 등록점에 있다. 그러나 **요구 증거 급이 아직 안 찼다** — 다른 급의 증거가 있어도 요구 급을 대신하지 못한다.
 
 | 도구 | 묶음 | 순서 | 요구 급 | 재생 | 계약 | attended | 대체 | 위임형 |
 |---|---|---|---|---|---|---|---|---|
-| DescribeByList | 시스템·공통 조회 | 1 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| GetAbapSystemSymbols | 시스템·공통 조회 | 1 | 재생 대조 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
-| GetInstalledComponents | 시스템·공통 조회 | 1 | 재생 대조 | — | 통과(1) | — | — | 직접 |
-| GetObjectStructure | 시스템·공통 조회 | 1 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| GetSession | 시스템·공통 조회 | 1 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| GetSystemInfo | 시스템·공통 조회 | 1 | 재생 대조 | — | 통과(1) | — | — | 직접 |
-| GetTransaction | 시스템·공통 조회 | 1 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| GetTypeInfo | 시스템·공통 조회 | 1 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| GetWhereUsed | 시스템·공통 조회 | 1 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| GrepPackages | 검색 | 2 | 재생 대조 | — | 통과(1) | — | — | 직접 |
-| ReloadProfile | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 재생 대조 + 대체 | — | 통과(1) | — | 통과(3) | 간접 |
-| RuntimeAnalyzeProfilerTrace | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 재생 대조 | — | 통과(1) | — | — | 직접 |
-| RuntimeGetGatewayErrorLog | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| RuntimeGetProfilerTraceData | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 재생 대조 | — | 통과(1) | — | — | 직접 |
-| RuntimeListDumps | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 재생 대조 | — | 통과(1) | — | — | 직접 |
-| RuntimeListProfilerTraceFiles | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 재생 대조 | — | 통과(1) | — | — | 직접 |
-| RuntimeRunClassWithProfiling | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 재생 대조 | — | 통과(1) | — | — | 직접 |
-| RuntimeRunProgramWithProfiling | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 재생 대조 | — | 통과(1) | — | — | 직접 |
-| GetIncludesList | 인클루드 | 5 | 재생 대조 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
-| GetClassMethod | 클래스 | 6 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | GetLocalTestClass | 클래스 | 6 | 재생 대조 | — | 통과(1) | 통과(1) | — | 직접 |
 | GetLocalTypes | 클래스 | 6 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
-| ReadClass | 클래스 | 6 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| UpdateClassMethod | 클래스 | 6 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | UpdateLocalTestClass | 클래스 | 6 | 재생 대조 + 대체 | — | 통과(1) | 통과(1) | 통과(1) | 간접 |
 | UpdateLocalTypes | 클래스 | 6 | 재생 대조 + 대체 | — | 통과(1) | 통과(1) | 통과(1) | 간접 |
-| GetTableContents | 테이블 | 7 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| ReadTable | 테이블 | 7 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | UpdateTable | 테이블 | 7 | 재생 대조 | — | 통과(1) | 통과(3) | — | 직접 |
-| GetProgFullCode | 프로그램 | 8 | 재생 대조 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
-| ReadProgram | 프로그램 | 8 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| ReadFunctionModule | 함수모듈 | 9 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| UpdateFunctionModule | 함수모듈 | 9 | 재생 대조 + 대체 | — | 통과(1) | — | 통과(1) | 직접 |
-| ReadStructure | 구조체 | 10 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| UpdateStructure | 구조체 | 10 | 재생 대조 | — | 통과(1) | — | — | 직접 |
 | GetView | 뷰 | 11 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
-| ReadView | 뷰 | 11 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | UpdateView | 뷰 | 11 | 재생 대조 + 대체 | — | 통과(1) | 통과(2) | 통과(1) | 간접 |
-| GetUnitTest | 단위시험 | 12 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| GetUnitTestResult | 단위시험 | 12 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| GetUnitTestStatus | 단위시험 | 12 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| RunUnitTest | 단위시험 | 12 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| GetBehaviorDefinition | 동작 정의 (BDEF) | 13 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | ReadBehaviorDefinition | 동작 정의 (BDEF) | 13 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
-| UpdateBehaviorDefinition | 동작 정의 (BDEF) | 13 | 재생 대조 | — | 통과(1) | — | — | 직접 |
 | GetDataElement | 데이터 엘리먼트 | 14 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
-| ReadDataElement | 데이터 엘리먼트 | 14 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | GetServiceBinding | 서비스 바인딩 | 15 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
-| ListServiceBindingTypes | 서비스 바인딩 | 15 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| ReadServiceBinding | 서비스 바인딩 | 15 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| UpdateServiceBinding | 서비스 바인딩 | 15 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| ValidateServiceBinding | 서비스 바인딩 | 15 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | GetDomain | 도메인 | 16 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
-| ReadDomain | 도메인 | 16 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| GetTransport | 트랜스포트 | 17 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| ListTransports | 트랜스포트 | 17 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | CreateMetadataExtension | 메타데이터 확장 (DDLX) | 18 | attended 실기 | — | 통과(1) | 실패(1) | — | 간접 |
 | GetMetadataExtension | 메타데이터 확장 (DDLX) | 18 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
-| ReadMetadataExtension | 메타데이터 확장 (DDLX) | 18 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | UpdateMetadataExtension | 메타데이터 확장 (DDLX) | 18 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
 | CreateGuiStatus | GUI 상태 | 19 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| GetGuiStatus | GUI 상태 | 19 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| GetGuiStatusList | GUI 상태 | 19 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| PatchGuiStatus | GUI 상태 | 19 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| ReadGuiStatus | GUI 상태 | 19 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | CreateTextElement | 텍스트 엘리먼트 | 20 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| GetTextElement | 텍스트 엘리먼트 | 20 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| ReadTextElementsBulk | 텍스트 엘리먼트 | 20 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| WriteTextElementsBulk | 텍스트 엘리먼트 | 20 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| GetAtcFindings | ATC | 21 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| GetPackage | 패키지 | 22 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| GetPackageContents | 패키지 | 22 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | CreateScreen | 화면 | 23 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| GetScreen | 화면 | 23 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| GetScreensList | 화면 | 23 | 재생 대조 | — | 통과(1) | — | — | 간접 |
-| ReadScreen | 화면 | 23 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | CreateServiceDefinition | 서비스 정의 | 24 | attended 실기 | — | 통과(1) | 실패(1) | — | 직접 |
 | GetServiceDefinition | 서비스 정의 | 24 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
-| ReadServiceDefinition | 서비스 정의 | 24 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | UpdateServiceDefinition | 서비스 정의 | 24 | 재생 대조 | — | 통과(1) | 통과(1) | — | 직접 |
-| GetBehaviorImplementation | 동작 구현 (BIMP) | 25 | 재생 대조 | — | 통과(1) | — | — | 간접 |
 | ReadBehaviorImplementation | 동작 구현 (BIMP) | 25 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
-| UpdateBehaviorImplementation | 동작 구현 (BIMP) | 25 | 재생 대조 + 대체 | — | 통과(1) | — | 통과(1) | 직접 |
 | GetFunctionGroup | 함수그룹 | 26 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
 | GetInterface | 인터페이스 | 27 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
 | CreateCdsUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 실패(1) | — | 간접 |
@@ -142,56 +85,118 @@
 | DeleteTextElement | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
 | DeleteUnitTest | 꼬리 — 호출·참조 양쪽 0 | 29 | attended 실기 | — | 통과(1) | 실패(1) | — | 간접 |
 
-## 증거 있음 (94)
+## 증거 있음 (156)
 
 요구 증거 급이 찼다 (부가 요건이 있으면 그것까지).
 
 | 도구 | 묶음 | 순서 | 요구 급 | 재생 | 계약 | attended | 대체 | 위임형 |
 |---|---|---|---|---|---|---|---|---|
 | CheckSyntax | 시스템·공통 조회 | 1 | 재생 대조 | 통과(3) | 통과(1) | — | — | 간접 |
+| DescribeByList | 시스템·공통 조회 | 1 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
 | GetAbapAST | 시스템·공통 조회 | 1 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | GetAbapSemanticAnalysis | 시스템·공통 조회 | 1 | 계약 시험 | — | 통과(1) | — | — | 간접 |
+| GetAbapSystemSymbols | 시스템·공통 조회 | 1 | 계약 시험 (인하 · 원래 재생 대조) + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
 | GetInactiveObjects | 시스템·공통 조회 | 1 | 재생 대조 | 통과(1) | 통과(1) | — | — | 간접 |
+| GetInstalledComponents | 시스템·공통 조회 | 1 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 직접 |
 | GetObjectInfo | 시스템·공통 조회 | 1 | 계약 시험 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
+| GetObjectStructure | 시스템·공통 조회 | 1 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
 | GetPackageTree | 시스템·공통 조회 | 1 | 계약 시험 | — | 통과(1) | — | — | 직접 |
+| GetSession | 시스템·공통 조회 | 1 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
 | GetSqlQuery | 시스템·공통 조회 | 1 | 재생 대조 + 대체 | 통과(1) | 통과(1) | — | 통과(1) | 직접 |
+| GetSystemInfo | 시스템·공통 조회 | 1 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 직접 |
+| GetTransaction | 시스템·공통 조회 | 1 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| GetTypeInfo | 시스템·공통 조회 | 1 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| GetWhereUsed | 시스템·공통 조회 | 1 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
 | GetObjectsByType | 검색 | 2 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | GrepObjects | 검색 | 2 | 재생 대조 | 통과(1) | 통과(1) | — | — | 직접 |
+| GrepPackages | 검색 | 2 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 직접 |
 | SearchObject | 검색 | 2 | 재생 대조 | 통과(1) | 통과(1) | 통과(20) | — | 직접 |
 | ActivateObjects | 공통 편집·활성 | 3 | 재생 대조 | 통과(2) | 통과(1) | 통과(8) | — | 간접 |
 | GetSourceDiff | 공통 편집·활성 | 3 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | UpdateSourceByPatch | 공통 편집·활성 | 3 | 재생 대조 | 통과(1) | 통과(1) | — | — | 간접 |
+| ReloadProfile | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 계약 시험 (인하 · 원래 재생 대조) + 대체 | — | 통과(1) | — | 통과(3) | 간접 |
 | RuntimeAnalyzeDump | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 계약 시험 | — | 통과(1) | — | — | 직접 |
+| RuntimeAnalyzeProfilerTrace | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 직접 |
 | RuntimeCreateProfilerTraceParameters | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 계약 시험 | — | 통과(1) | — | — | 직접 |
 | RuntimeGetDumpById | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 계약 시험 | — | 통과(1) | — | — | 직접 |
+| RuntimeGetGatewayErrorLog | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| RuntimeGetProfilerTraceData | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 직접 |
+| RuntimeListDumps | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 직접 |
+| RuntimeListProfilerTraceFiles | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 직접 |
+| RuntimeRunClassWithProfiling | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 직접 |
+| RuntimeRunProgramWithProfiling | 런타임 — 덤프·프로파일러·시스템 메시지 | 4 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 직접 |
 | CreateInclude | 인클루드 | 5 | attended 실기 | — | 통과(1) | 통과(2) | — | 직접 |
 | GetInclude | 인클루드 | 5 | 재생 대조 | 통과(1) | 통과(1) | 통과(2) | — | 간접 |
+| GetIncludesList | 인클루드 | 5 | 계약 시험 (인하 · 원래 재생 대조) + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
 | UpdateInclude | 인클루드 | 5 | 재생 대조 | 통과(1) | 통과(1) | — | — | 간접 |
 | CreateClass | 클래스 | 6 | attended 실기 | — | 통과(1) | 통과(2) | — | 직접 |
 | GetClass | 클래스 | 6 | 재생 대조 | 통과(1) | 통과(1) | 통과(1) | — | 간접 |
+| GetClassMethod | 클래스 | 6 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
 | GetLocalDefinitions | 클래스 | 6 | 계약 시험 | — | 통과(1) | 통과(1) | — | 간접 |
 | GetLocalMacros | 클래스 | 6 | 계약 시험 | — | 통과(1) | 통과(1) | — | 간접 |
+| ReadClass | 클래스 | 6 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
 | UpdateClass | 클래스 | 6 | 재생 대조 | 통과(1) | 통과(1) | 통과(1) | — | 간접 |
+| UpdateClassMethod | 클래스 | 6 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
 | CreateTable | 테이블 | 7 | attended 실기 | — | 통과(1) | 통과(3) | — | 간접 |
 | GetTable | 테이블 | 7 | 재생 대조 | 통과(1) | 통과(1) | 통과(1) | — | 간접 |
+| GetTableContents | 테이블 | 7 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| ReadTable | 테이블 | 7 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
 | CreateProgram | 프로그램 | 8 | attended 실기 | 통과(1) | 통과(1) | 통과(2) | — | 직접 |
+| GetProgFullCode | 프로그램 | 8 | 계약 시험 (인하 · 원래 재생 대조) + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
 | GetProgram | 프로그램 | 8 | 재생 대조 | 통과(3) | 통과(1) | 통과(1) | — | 간접 |
+| ReadProgram | 프로그램 | 8 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
 | UpdateProgram | 프로그램 | 8 | 재생 대조 | 통과(1) | 통과(1) | 통과(1) | — | 간접 |
 | CreateFunctionModule | 함수모듈 | 9 | attended 실기 | — | 통과(1) | 통과(1) | — | 간접 |
 | GetFunctionModule | 함수모듈 | 9 | 재생 대조 | 통과(1) | 통과(1) | 통과(1) | — | 간접 |
+| ReadFunctionModule | 함수모듈 | 9 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| UpdateFunctionModule | 함수모듈 | 9 | 계약 시험 (인하 · 원래 재생 대조) + 대체 | — | 통과(1) | — | 통과(1) | 직접 |
 | CreateStructure | 구조체 | 10 | attended 실기 | — | 통과(1) | 통과(1) | — | 직접 |
 | GetStructure | 구조체 | 10 | 재생 대조 | 통과(1) | 통과(1) | 통과(1) | — | 간접 |
+| ReadStructure | 구조체 | 10 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| UpdateStructure | 구조체 | 10 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 직접 |
 | CreateView | 뷰 | 11 | attended 실기 | — | 통과(1) | 통과(2) | — | 간접 |
+| ReadView | 뷰 | 11 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| GetUnitTest | 단위시험 | 12 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| GetUnitTestResult | 단위시험 | 12 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| GetUnitTestStatus | 단위시험 | 12 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| RunUnitTest | 단위시험 | 12 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
 | CreateBehaviorDefinition | 동작 정의 (BDEF) | 13 | attended 실기 | — | 통과(1) | 통과(1) | — | 직접 |
+| GetBehaviorDefinition | 동작 정의 (BDEF) | 13 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| UpdateBehaviorDefinition | 동작 정의 (BDEF) | 13 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 직접 |
 | CreateDataElement | 데이터 엘리먼트 | 14 | attended 실기 | — | 통과(1) | 통과(1) | — | 직접 |
+| ReadDataElement | 데이터 엘리먼트 | 14 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
 | CreateServiceBinding | 서비스 바인딩 | 15 | attended 실기 + 대체 | — | 통과(1) | 통과(1) | 통과(1) | 간접 |
+| ListServiceBindingTypes | 서비스 바인딩 | 15 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| ReadServiceBinding | 서비스 바인딩 | 15 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| UpdateServiceBinding | 서비스 바인딩 | 15 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| ValidateServiceBinding | 서비스 바인딩 | 15 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
 | CreateDomain | 도메인 | 16 | attended 실기 | — | 통과(1) | 통과(1) | — | 직접 |
+| ReadDomain | 도메인 | 16 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
 | CreateTransport | 트랜스포트 | 17 | attended 실기 + 대체 | — | 통과(1) | 통과(1) | 통과(1) | 직접 |
+| GetTransport | 트랜스포트 | 17 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| ListTransports | 트랜스포트 | 17 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
 | ReleaseTransport | 트랜스포트 | 17 | 계약 시험 | — | 통과(1) | — | — | 간접 |
+| ReadMetadataExtension | 메타데이터 확장 (DDLX) | 18 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| GetGuiStatus | GUI 상태 | 19 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| GetGuiStatusList | GUI 상태 | 19 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| PatchGuiStatus | GUI 상태 | 19 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| ReadGuiStatus | GUI 상태 | 19 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
 | UpdateGuiStatus | GUI 상태 | 19 | 계약 시험 | — | 통과(1) | — | — | 간접 |
+| GetTextElement | 텍스트 엘리먼트 | 20 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| ReadTextElementsBulk | 텍스트 엘리먼트 | 20 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
 | UpdateTextElement | 텍스트 엘리먼트 | 20 | 계약 시험 | — | 통과(1) | — | — | 간접 |
+| WriteTextElementsBulk | 텍스트 엘리먼트 | 20 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| GetAtcFindings | ATC | 21 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| GetPackage | 패키지 | 22 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| GetPackageContents | 패키지 | 22 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| GetScreen | 화면 | 23 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| GetScreensList | 화면 | 23 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| ReadScreen | 화면 | 23 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
 | UpdateScreen | 화면 | 23 | 계약 시험 | — | 통과(1) | — | — | 간접 |
+| ReadServiceDefinition | 서비스 정의 | 24 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
 | CreateBehaviorImplementation | 동작 구현 (BIMP) | 25 | attended 실기 | — | 통과(1) | 통과(1) | — | 직접 |
+| GetBehaviorImplementation | 동작 구현 (BIMP) | 25 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| UpdateBehaviorImplementation | 동작 구현 (BIMP) | 25 | 계약 시험 (인하 · 원래 재생 대조) + 대체 | — | 통과(1) | — | 통과(1) | 직접 |
 | CreateFunctionGroup | 함수그룹 | 26 | attended 실기 | — | 통과(1) | 통과(1) | — | 직접 |
 | ReadFunctionGroup | 함수그룹 | 26 | 계약 시험 | — | 통과(1) | — | — | 간접 |
 | CreateInterface | 인터페이스 | 27 | attended 실기 | — | 통과(1) | 통과(1) | — | 간접 |
@@ -246,8 +251,8 @@
 ## 남은 수 요약
 
 - **안 지음 0** — 등록점에 없다
-- **증거 대기 92** — 지었으나 요구 증거 급이 아직 안 찼다
-- **증거 있음 94** — 요구 급이 찼다
+- **증거 대기 30** — 지었으나 요구 증거 급이 아직 안 찼다
+- **증거 있음 156** — 요구 급이 찼다
 
 어느 급에서도 통과 증거가 없는 도구 **0종** (요구 급 충족과는 다른 질문이다 — 증거가 있어도 급이 덜 찰 수 있다).
 
@@ -257,6 +262,7 @@
 |---|---|
 | `미정` | 제작 계획이 아직 이 도구를 배정하지 않았다 |
 | `미정(→계약 시험)` | 요구 급 미정 — 계산기 기본값(사다리 3)을 쓴 것이지 정해진 것이 아니다 |
+| `계약 시험 (인하 · 원래 재생 대조)` | **요구를 낮춘 자리**(D-092 ⓐ) — 실호출은 있으나 판6이 끝나도록 재생 자산이 생기지 않아 계약 시험 급으로 내렸다. 증거가 는 것이 아니다 |
 | `픽스처 있음 · 판정 미기록` | 재생 픽스처는 커밋돼 있으나 **커밋된 판정 파일이 없다** — 통과가 아니다 |
 | `시험 있음 · 결과 미기록` | 계약 시험 파일은 있으나 **실행 결과 파일이 없다** — 통과가 아니다 |
 | `요구 · 미기록` | 차이 장부 등재분이라 대체 기대 시험을 **더** 요구하는데, 그 시험 파일이 아직 없다 |

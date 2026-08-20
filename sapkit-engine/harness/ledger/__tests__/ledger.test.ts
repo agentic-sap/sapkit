@@ -230,3 +230,63 @@ describe('배선 정적 대조 — SAP에 붙는 스크립트는 돌리지 않�
     expect(runAll).toContain('대장');
   });
 });
+
+describe('요구 급 인하 표시 — 증거가 는 것과 요구가 내려간 것을 섞지 않는다', () => {
+  /** 인하 하나만 든 계획을 합성해 물린다 — 실제 계획이 바뀌어도 이 시험은 흔들리지 않는다. */
+  const planWith = (tools: Record<string, unknown>): string => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sapkit-plan-'));
+    const file = path.join(dir, 'build-plan.json');
+    fs.writeFileSync(
+      file,
+      JSON.stringify({ formatVersion: 1, bundles: [{ id: 'b', title: '묶음', order: 1 }], tools }),
+      'utf8',
+    );
+    return file;
+  };
+
+  const DOWNGRADED = planWith({
+    GetClass: { bundle: 'b', requiredGrade: 'contract', downgradedFrom: 'replay' },
+    GetEnhancements: { bundle: 'b', requiredGrade: 'contract' },
+  });
+
+  it('인하분의 요구 급 칸에 인하 표시와 인하 전 급이 함께 붙는다', () => {
+    const text = renderLedger(collectLedger({ planPath: DOWNGRADED }));
+
+    expect(rowOf(text, 'GetClass')).toContain('계약 시험 (인하 · 원래 재생 대조)');
+  });
+
+  it('처음부터 계약 시험이던 도구에는 붙지 않는다 — 두 사실이 구별돼야 한다', () => {
+    const text = renderLedger(collectLedger({ planPath: DOWNGRADED }));
+
+    expect(rowOf(text, 'GetEnhancements')).toContain('계약 시험');
+    expect(rowOf(text, 'GetEnhancements')).not.toContain('인하');
+  });
+
+  it('머리말이 인하 총수와 **인하 전 수치**를 병기한다', () => {
+    const model = collectLedger({ planPath: DOWNGRADED });
+    const head = renderLedger(model).split('\n').slice(0, 14).join('\n');
+
+    expect(model.downgrade?.count).toBe(1);
+    expect(head).toContain('요구 급 인하 1종');
+    expect(head).toContain(`증거 대기 ${model.downgrade?.awaitingEvidenceBefore}`);
+    expect(head).toContain(`증거 있음 ${model.downgrade?.evidencedBefore}`);
+    expect(head).toContain('인하는 증거를 만든 것이 아니라 요구를 낮춘 것이다');
+  });
+
+  it('인하가 없는 계획에서는 그 문단이 아예 나오지 않는다', () => {
+    const none = planWith({ GetClass: { bundle: 'b', requiredGrade: 'replay' } });
+    const model = collectLedger({ planPath: none });
+
+    expect(model.downgrade).toBeNull();
+    // 입력 표는 「인하 0종」을 그대로 적는다 — 사라지는 것은 머리말의 그 문단이다.
+    expect(renderLedger(model)).toContain('요구 급 인하 0종');
+    expect(renderLedger(model)).not.toContain('인하는 증거를 만든 것이 아니라');
+  });
+
+  it('실제 커밋된 계획에도 인하가 서 있다 (D-092 ⓐ 집행)', () => {
+    const model = collectLedger();
+
+    expect(model.downgrade).not.toBeNull();
+    expect(model.downgrade?.awaitingEvidenceBefore).toBeGreaterThan(model.coverage.totals.awaitingEvidence);
+  });
+});

@@ -19,9 +19,14 @@
  * |---|---|
  * | 도구 186종 정본 | `harness/old-surface/m1-tools.json` 의 `tools` |
  * | 호출 횟수 · 꼬리 49종 · 클래스 | `harness/usage-census.json` |
+ * | 픽스처가 실제로 태운 도구 | `harness/phase6-exercised.json` (**얼린 관측**) |
  * | 오브젝트 종류(묶음의 단위) | `../engine/src/handlers/**` 의 `TOOL_DEFINITION` 이름 |
  *
  * 구 핸들러 트리는 **읽기만 한다.**
+ *
+ * 사다리 판정 자체는 `harness/ledger/grade.ts`가 소유한다 — `.mjs` 안에 있는
+ * 판정은 jest가 못 잡고, 사다리는 조용히 틀리면 대장 전체가 조용히 틀리는
+ * 자리이기 때문이다. 그래서 이 스크립트는 **`npm run build` 뒤에** 돈다.
  *
  * ## 산식 (spec §4.4 · §4.4.2 · §3.3)
  *
@@ -37,21 +42,40 @@
  *    같으면 도구 수 내림차순, 그래도 같으면 묶음 id 오름차순이다.
  * 5. **요구 급** — 사다리에서 **높은 것이 이긴다**:
  *    ① `Create*`·`Delete*` → `attended` (재생은 원리상 불가)
- *    ② 호출 횟수 > 0 → `replay`
- *    ③ 그 밖 → `contract`
+ *    ② 호출 횟수 > 0 **이고** 얼린 관측(`harness/phase6-exercised.json`)에 있으면 → `replay`
+ *    ②' 호출 횟수 > 0 인데 얼린 관측에 **없으면** → `contract` · `downgradedFrom: "replay"`
+ *       — **인하**다(D-092 ⓐ: 판6이 끝나는 시점까지 한 번도 쓰이지 않은 재생 대상은
+ *       계약 시험 급으로 내린다). 인하는 증거를 만든 것이 아니라 요구를 낮춘 것이므로
+ *       그 사실이 `build-plan.json`에 남아야 한다.
+ *    ③ 그 밖 (호출 0) → `contract` — **인하가 아니다.** ②'와 결과가 같아도 다른 사실이라
+ *       `downgradedFrom`으로 구별한다.
  *    `substitute`(대체 기대 시험)는 급이 아니라 부가 요건이라 여기 적지 않는다 —
  *    차이 장부 등재분에 대해 대장이 자동으로 붙인다.
+ *
+ *    ②의 「얼린 관측」을 매 실행마다 `fixtures/`를 다시 훑어 대신하지 않는다.
+ *    그러면 **증거를 못 만들수록 요구가 저절로 낮아지는 자기충족 구조**가 된다.
  */
+import { createRequire } from 'node:module';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+const require = createRequire(import.meta.url);
 const here = (rel) => fileURLToPath(new URL(rel, import.meta.url));
+
+const DIST_LEDGER = here('../dist/harness/ledger/index.js');
+if (!fs.existsSync(DIST_LEDGER)) {
+  console.error(`❌ 빌드 산출물이 없다: ${DIST_LEDGER}`);
+  console.error('   · 사다리 판정은 `harness/ledger/grade.ts`가 소유한다 — `npm run build`를 먼저 돌려라.');
+  process.exit(2);
+}
+const { PHASE6_EXERCISED_PATH, gradeOf, loadPhase6Exercised } = require(DIST_LEDGER);
 
 const ENGINE_ROOT = path.resolve(here('..'));
 const REPO_ROOT = path.resolve(ENGINE_ROOT, '..');
 const SURFACE = path.join(ENGINE_ROOT, 'harness', 'old-surface', 'm1-tools.json');
 const CENSUS = path.join(ENGINE_ROOT, 'harness', 'usage-census.json');
+const EXERCISED = path.join(ENGINE_ROOT, PHASE6_EXERCISED_PATH);
 const HANDLERS = path.join(REPO_ROOT, 'engine', 'src', 'handlers');
 const TARGET = path.join(ENGINE_ROOT, 'harness', 'build-plan.json');
 
@@ -169,19 +193,23 @@ function bundleIdOf(tool, folder, census) {
   return folder.replace(/_/g, '-');
 }
 
-/** 사다리 — 높은 것이 이긴다. */
-function gradeOf(tool, calls) {
-  if (/^(Create|Delete)/.test(tool)) return 'attended';
-  if (calls > 0) return 'replay';
-  return 'contract';
-}
-
 function buildPlan() {
   const surface = Object.keys(JSON.parse(fs.readFileSync(SURFACE, 'utf8')).tools ?? {}).sort();
   if (surface.length === 0) bail(`표면 채록본에 tools(전량 선언)가 없다: ${SURFACE}`);
 
   const raw = JSON.parse(fs.readFileSync(CENSUS, 'utf8'));
   const census = { counts: raw.counts, classOf: raw.classOf, tailSet: new Set(raw.tail) };
+
+  // 얼린 관측이 없거나 깨졌으면 **던진다**(fail-closed). 조용히 인하 없이 넘어가면
+  // 인하 전의 계획이 다시 쓰이고, 그 파일을 읽는 사람은 인하가 집행된 줄 안다.
+  let exercised;
+  try {
+    exercised = loadPhase6Exercised(EXERCISED);
+  } catch (error) {
+    console.error(`❌ ${error?.message ?? String(error)}`);
+    process.exit(2);
+  }
+
   const folders = folderByTool();
 
   const missing = surface.filter((tool) => !folders.has(tool));
@@ -194,7 +222,12 @@ function buildPlan() {
     if (TITLES[id] === undefined) bail(`묶음 제목이 없다: ${id} (도구 ${tool})`);
     if (!members.has(id)) members.set(id, []);
     members.get(id).push(tool);
-    tools[tool] = { bundle: id, requiredGrade: gradeOf(tool, census.counts[tool] ?? 0) };
+    const verdict = gradeOf(tool, census.counts[tool] ?? 0, exercised.tools);
+    tools[tool] = {
+      bundle: id,
+      requiredGrade: verdict.grade,
+      ...(verdict.downgradedFrom === null ? {} : { downgradedFrom: verdict.downgradedFrom }),
+    };
   }
 
   // 순서 — 횡단 먼저, 꼬리 맨 뒤, 그 안에서는 호출 합 내림차순.
@@ -216,13 +249,14 @@ function buildPlan() {
     plan: { formatVersion: 1, bundles, tools },
     members,
     census,
+    exercised,
     callsOf,
   };
 }
 
 // ── 검산 — 계획서가 못 박은 기준 넷 ─────────────────────────────────────────
 
-function verify({ plan, members, census }) {
+function verify({ plan, members, census, exercised }) {
   const problems = [];
   const surfaceCount = Object.keys(plan.tools).length;
   if (surfaceCount !== 186) problems.push(`도구가 186종이 아니다: ${surfaceCount}`);
@@ -251,15 +285,43 @@ function verify({ plan, members, census }) {
   if (!(crossMax < objectMin)) problems.push(`횡단 묶음이 오브젝트 묶음보다 앞이 아니다: ${crossMax} ≮ ${objectMin}`);
 
   for (const [tool, entry] of Object.entries(plan.tools)) {
-    const want = gradeOf(tool, census.counts[tool] ?? 0);
-    if (entry.requiredGrade !== want) problems.push(`요구 급이 사다리와 다르다: ${tool} — ${entry.requiredGrade} ≠ ${want}`);
+    const want = gradeOf(tool, census.counts[tool] ?? 0, exercised.tools);
+    if (entry.requiredGrade !== want.grade) {
+      problems.push(`요구 급이 사다리와 다르다: ${tool} — ${entry.requiredGrade} ≠ ${want.grade}`);
+    }
+    if ((entry.downgradedFrom ?? null) !== want.downgradedFrom) {
+      problems.push(
+        `인하 표시가 사다리와 다르다: ${tool} — ${JSON.stringify(entry.downgradedFrom ?? null)} ≠ ` +
+          `${JSON.stringify(want.downgradedFrom)}`,
+      );
+    }
     if (entry.requiredGrade === 'substitute') problems.push(`substitute 는 주 급이 아니다: ${tool}`);
+  }
+
+  // 인하는 **호출 이력이 있는데 얼린 관측 밖**인 도구에만 붙는다. 이 단언이
+  // 없으면 얼린 관측이 통째로 비어도 "사다리대로다"라며 전량 인하가 지나간다.
+  const downgraded = Object.entries(plan.tools).filter(([, entry]) => (entry.downgradedFrom ?? null) !== null);
+  for (const [tool, entry] of downgraded) {
+    if (entry.downgradedFrom !== 'replay') problems.push(`인하 전 급이 재생이 아니다: ${tool} — ${entry.downgradedFrom}`);
+    if ((census.counts[tool] ?? 0) <= 0) problems.push(`실호출이 없는데 인하로 적혔다: ${tool}`);
+    if (exercised.tools.has(tool)) problems.push(`얼린 관측 안인데 인하로 적혔다: ${tool}`);
   }
 
   return problems;
 }
 
 // ── 실행 ─────────────────────────────────────────────────────────────────────
+
+/** 급 분포 한 줄. **인하 수를 여기 실어야** 조용히 사라지지 않는다. */
+function gradeLine({ plan, exercised }) {
+  const entries = Object.values(plan.tools);
+  const count = (grade) => entries.filter((e) => e.requiredGrade === grade).length;
+  const downgraded = entries.filter((e) => e.downgradedFrom !== undefined).length;
+  return (
+    `요구 급 — 재생 ${count('replay')} · attended ${count('attended')} · 계약 ${count('contract')} ` +
+    `(그중 인하 ${downgraded}종 · 얼린 관측 ${exercised.tools.size}종 @ ${exercised.capturedAt})`
+  );
+}
 
 const CHECK = process.argv.includes('--check');
 const STDOUT = process.argv.includes('--stdout');
@@ -291,12 +353,14 @@ if (CHECK) {
   }
   console.log('✅ 제작 계획이 산식과 일치한다 — harness/build-plan.json');
   console.log(`   · 묶음 ${built.plan.bundles.length} · 도구 ${Object.keys(built.plan.tools).length}종 · 검증 기준 4종 통과`);
+  console.log(`   · ${gradeLine(built)}`);
   process.exit(0);
 }
 
 fs.writeFileSync(TARGET, rendered, 'utf8');
 console.log(`제작 계획 → ${TARGET}`);
 console.log(`   · 묶음 ${built.plan.bundles.length} · 도구 ${Object.keys(built.plan.tools).length}종`);
+console.log(`   · ${gradeLine(built)}`);
 for (const bundle of built.plan.bundles) {
   const list = built.members.get(bundle.id);
   console.log(
