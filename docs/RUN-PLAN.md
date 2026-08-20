@@ -1050,8 +1050,10 @@ oop 20은 ⑶-b 명부의 셈 밖(⑶-c 눈금)이고 `copy-baseline.md`의 **17
   (함정 ⑶ + 설계 메모 셋) · `harness/ADDING-A-TOOL.md` · 판6.1/판6.2 브리프의 SAP 함정.
 
 - **도달점** (2026-08-20 · 실행 기록 `docs/reference/audits/2026-08-20-phase63-attended-record.md`):
-  - **46종 갈림 — 34종 섰다 / 12종 못 섰다.** 기계 집계(픽스처의 도구별 `isError`)이고 사람이
-    센 것이 아니다. 픽스처 **9편 · 107단계**, 엔진은 전부 `sapkit-engine 1.0.0`.
+  - **46종 갈림 — 34종 섰다 / 12종 못 섰다.** 기계 집계이고 사람이 센 것이 아니다. 방법은
+    **「대상 46종 안에서 픽스처의 도구별 `isError`를 센다」**이고, **대상 필터를 빼면 36이 나온다**
+    (`CreateProgram`·`CreateInclude`가 늘어나는데 그 둘은 판6.1에서 이미 닫혀 이 판의 대상이
+    아니다). 픽스처 **9편 · 107단계**, 엔진은 전부 `sapkit-engine 1.0.0`.
     못 선 12종은 **이유가 네 부류**다 — ⓐ **원리상 불가·SAP 호출 0회 2종**
     (`DeleteUnitTest`·`CreateCdsUnitTest`: 엔진 소스가 이미 적어 둔 사연을 실기로 확인했다)
     ⓑ **거짓 음성 2종**(`CreateMetadataExtension`·`CreateServiceDefinition`: **객체는 생겼는데

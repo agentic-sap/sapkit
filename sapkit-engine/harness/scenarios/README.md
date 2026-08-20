@@ -187,14 +187,18 @@ update 쪽은 몇 번이든 자유롭게 재생할 수 있다.
 
 ### 판6.3 왕복 시퀀스 11편 (`zsapkit63-*`)
 
-**`Create*` 21 + `Delete*` 25 = 46종**을 덮는다(`CreateProgram`·`CreateInclude`는 판6.1에서
-이미 닫혀 빠졌고, 여기서는 숙주 준비로만 쓰인다).
+대상은 **`Create*` 21 + `Delete*` 25 = 46종**이고(`CreateProgram`·`CreateInclude`는 판6.1에서
+이미 닫혀 빠졌다 — 여기서는 숙주 준비로만 쓰인다), **11편이 실제로 덮는 것은 45종**이다.
+⚠ **빠진 하나는 `CreateUnitTest`다** — 벤더 엔드포인트 `POST /sap/bc/adt/abapunit/runs`가 이
+시스템에 없어(404) 실패하는데 **그 오류 문구에 실호스트가 실려** 마스킹이 21단계짜리 시퀀스의
+저장을 통째로 거부한다. 한 단계가 스무 단계의 증거를 날리는 자리라 시나리오 3에서 뺐다
+(판6.3 · D-098 ⓓ). 서비스/엔드포인트가 생기면 되넣을 자리다.
 
 | 시나리오 | 정책 | 재실행 | 덮는 것 |
 |---|---|---|---|
 | `zsapkit63-domain-dataelement` | P3 | 자유 | Create/Delete Domain · DataElement |
 | `zsapkit63-structure-table` | P3 | 자유 | Create/Delete Structure · Table |
-| `zsapkit63-class-locals-unittest` | P3 | 자유 | Create/Delete Class · Delete Local×4 · Create/Delete UnitTest |
+| `zsapkit63-class-locals-unittest` | P3 | 자유 | Create/Delete Class · Delete Local×4 · **Delete**UnitTest (Create는 뺐다 — 위 ⚠) |
 | `zsapkit63-interface` | P3 | 자유 | Create/Delete Interface |
 | `zsapkit63-function` | P3 | 자유 | Create/Delete FunctionGroup · FunctionModule |
 | `zsapkit63-include` | P3 | 자유 | Delete Include (+ 숙주 프로그램 왕복) |
@@ -214,6 +218,12 @@ update 쪽은 몇 번이든 자유롭게 재생할 수 있다.
   패키지는 `$TMP`(P4 둘 제외). 보호 자산 8종(`*_M1_*`)과 **글자로 갈린다.**
 - 삭제 뒤 확인은 **마스크가 아니라 정확한 이름**으로 `SearchObject`를 뜬다. 마스크로
   뜨면 지울 수 없는 P4 산물이 섞여 재실행 판정이 흔들린다.
+**어느 시나리오가 증거를 남겼나** — 11편 중 **9편**이 픽스처를 냈다
+(`fixtures/attended-only/zsapkit63-*.json`). 못 낸 둘:
+`zsapkit63-program-text-screen-gui`(텍스트·화면·GUI 9단계가 `ZMCP_ADT_SRV`의 HTTP 500을 받고
+그 오류 문구에 실호스트가 실려 마스킹이 거부 — **파일은 서비스가 고쳐지는 날을 위해 남겨 둔다**)와
+`zsapkit63-p4-package`(세 갈래 다 거부 · **재실행 금지** — 반쯤 만들어진 흔적이 남았다).
+
 - **`DeleteUnitTest`는 반드시 오류다** — ADT가 지원하지 않아 SAP에 요청이 0건 나가고
   계약 문구가 그대로 돌아온다. 그 오류는 결함이 아니라 관측 대상이고, 대장에서는
   「증거 대기」로 남는다.

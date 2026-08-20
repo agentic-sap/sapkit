@@ -181,6 +181,13 @@ authorization master ( instance )
 집계는 `fixtures/attended-only/zsapkit63-*.json` 9편에서 **도구별 `isError`를 세어** 낸 것이다
 (사람이 센 것이 아니다). 픽스처 9편 · 단계 107 · 엔진은 전부 `sapkit-engine 1.0.0`.
 
+⚠ **필터가 하나 더 있다 — 그것을 빼면 36이 나온다.** 같은 방법을 필터 없이 돌리면
+`isError: false`인 `Create*`/`Delete*`는 **36종**인데, 늘어난 둘은 `CreateProgram`·`CreateInclude`이고
+**이 판의 대상 46종이 아니다**(판6.1에서 이미 닫혔고 여기서는 숙주 준비로 쓰였다).
+그러므로 정확한 방법은 「`isError`를 센다」가 아니라 **「대상 46종 안에서 `isError`를 센다」**이고,
+그렇게 세면 **34**다. 대장 델타 `+34`가 이 수와 맞는 이유도 같다 — 그 둘은 이미 「증거 있음」이었다.
+(판6.3 최종 독립 리뷰 B2가 이 서술의 불완전함을 잡았다.)
+
 | 픽스처 | 단계 | 오류 |
 |---|---:|---:|
 | `zsapkit63-domain-dataelement` | 9 | 0 |
@@ -208,7 +215,7 @@ authorization master ( instance )
 |---|---|---|
 | **원리상 불가 · SAP 호출 0회** | `DeleteUnitTest` · `CreateCdsUnitTest` | ADT가 그 조작을 지원하지 않거나(전자), 벤더의 생성 갈래가 요구하는 인자가 **발행 스키마에 없어** 언제나 시험-실행 갈래로 떨어진다(후자). 둘 다 엔진 소스가 이미 그 사연을 적어 두었고, 이 판이 **그 계약 문구를 실기로 확인**했다. 관측 문구: `Delete operation is not supported for Unit Test objects in ADT` · `At least one test definition is required for test run` |
 | **거짓 음성 — 객체는 생겼는데 오류를 보고한다** | `CreateMetadataExtension` · `CreateServiceDefinition` | 사슬이 **껍데기 생성 → 잠금 → 인액티브 검사** 순서라, 빈 소스가 자기 검사에서 깨져도 **생성은 이미 끝난 뒤다.** 같은 시퀀스의 `Get*`·`Update*`·`Delete*`가 전부 성공하는 것이 그 증거다. 관측 문구: `preCheck syntax check failed (1 error): [L1] Illegal syntax. Malformed 'annotate' statement` / `… Malformed service definition`. **「write 성공 보고를 그대로 믿지 않는다」의 뒤집힌 짝 — 실패 보고도 그대로 믿으면 안 된다.** |
-| **시스템 측 고장 · 오류에 실호스트** | `CreateTextElement` · `DeleteTextElement` · `CreateScreen` · `DeleteScreen` · `CreateGuiStatus` · `DeleteGuiStatus` | 여섯 종 전부 커스텀 OData 서비스 `ZMCP_ADT_SRV`를 거치는데 그 서비스가 **HTTP 500**을 낸다. `ZMCP_ADT_FLUSH_CACHE`를 태운 **뒤에도 그대로**였고, Gateway 에러로그에 `Service: /SAP/-ZMCP_ADT_SRV-0` Frontend Error가 새로 남았다(상세는 여전히 빈 구조). ⚠ **브리프가 예고한 것은 4종인데 실제로는 6종이다** — 텍스트 엘리먼트도 같은 서비스를 탄다는 것이 이 판의 새 관측이다. |
+| **시스템 측 고장 · 오류에 실호스트** ⚠ **레포에 픽스처가 없다 — 근거는 이 서술과 아래 T7 절뿐이다** | `CreateTextElement` · `DeleteTextElement` · `CreateScreen` · `DeleteScreen` · `CreateGuiStatus` · `DeleteGuiStatus` | 여섯 종 전부 커스텀 OData 서비스 `ZMCP_ADT_SRV`를 거치는데 그 서비스가 **HTTP 500**을 낸다. `ZMCP_ADT_FLUSH_CACHE`를 태운 **뒤에도 그대로**였고, Gateway 에러로그에 `Service: /SAP/-ZMCP_ADT_SRV-0` Frontend Error가 새로 남았다(상세는 여전히 빈 구조). ⚠ **브리프가 예고한 것은 4종인데 실제로는 6종이다** — 텍스트 엘리먼트도 같은 서비스를 탄다는 것이 이 판의 새 관측이다. |
 | **엔드포인트 부재 / P4 실패** | `CreateUnitTest` · `CreatePackage` | 아래 별항 |
 
 ### `CreateUnitTest` — 이 시스템에 엔드포인트가 없다
@@ -259,6 +266,21 @@ target `로컬변경요청`)이고 **객체 0건**이다 — 반쯤 만들어진
 | T1 착수 전 | 6 | 1 | 1 | 보호 8종 |
 | T7 중간 (프로그램 계열 직후) | 6 | 1 | 1 | **기준선과 일치** |
 | T10 정리 후 | 6 | 1 | 1 | **기준선과 일치** |
+
+**세 시점 모두 같은 8개 이름·타입·패키지였다** — 건수만이 아니라 명부로 대조했다.
+T7·T10의 조회가 돌려준 것도 T1 절의 표와 **글자로 같다**:
+
+```
+ZSAPKIT*     : ZSAPKIT_M1_DEMO (PROG/P) · ZSAPKIT_M1_FG (FUGR/F) · ZSAPKIT_M1_INC01 (PROG/I)
+               ZSAPKIT_M1_INCMAIN (PROG/P) · ZSAPKIT_M1_STR (TABL/DS) · ZSAPKIT_M1_TAB (TABL/DT)
+ZCL_SAPKIT*  : ZCL_SAPKIT_M1_DEMO (CLAS/OC)
+Z_SAPKIT*    : Z_SAPKIT_M1_FM (FUGR/FF)
+               — 여덟 전부 packageName `$TMP`
+```
+
+⚠ **다음 attended 판을 위한 메모**: 이 명부를 세 시점 모두 적어 두지 않으면 「같은 수의 다른
+객체로 바뀐 경우」를 기록만으로는 배제할 수 없다. 이 판은 세션 안에서 세 번 다 명부를 봤고
+그것을 여기 옮겼지만, **처음부터 그렇게 적는 편이 낫다**(판6.3 최종 독립 리뷰 A4).
 
 - **보호 자산 8종 전부 무사.** 세 조회 모두 같은 8개 이름·타입·패키지(`$TMP`)다.
 - **연습 객체 잔재 0** — `ZSAPKIT_63*` · `ZCL_SAPKIT_63*` · `Z_SAPKIT_63*` · `ZIF_SAPKIT*` ·
@@ -419,3 +441,54 @@ D-092 ⓐ의 문언은 「**판6이 끝나는 시점까지 한 번도 쓰이지 
 `package-lock.json`·`tsconfig.json`·`tools`뿐이고 `harness/`·`gates/`는 **명시 제외**다.
 이 판이 건드린 것은 전부 `harness/`·`gates/`이므로 번들·VERSION·integrity를 **손대지 않았다**.
 `verify-engine`·`check-engine-provenance` 둘 다 통과한다.
+
+---
+
+## T15 — 독립 새-컨텍스트 리뷰 (오프라인)
+
+이 프로젝트 품질 모델(1명 작업 + 1명 새-컨텍스트 리뷰 + SAP 기계 확인)의 나머지 절반.
+리뷰어는 **읽기 전용**이고 작업자의 결론을 신뢰하지 않는다.
+
+### 리뷰어가 독립으로 확인한 것
+
+- **수치 전건 재계산 일치** — 대장 세 지점(126/60 → 92/94 → 30/156) · 인하 62종(**명단 차이 0**) ·
+  분포 34/48/104 · 인하 전 96/48/42 · 얼린 관측 78종(19파일·131단계) · 착수 80/18 ·
+  픽스처 9편·107단계·엔진 단일 · 신원 자리표시자 22건/4편 · 묶음 편성표 29행.
+  **자기 스크립트로 셌고 레포의 계산기를 쓰지 않았다.**
+- **사보타주 22종 전건에서 빨개짐** — 채록 관문(저장 자리 3분기 · 무접속 어휘 · 신원 뒷문 ·
+  진입점 배선)과 인하 산식(얼린 파일 부재·빈 목록·JSON 파손·schema 위조)의 각 갈래.
+  ⚠ **1차 시도에서 앵커 5개가 CRLF 때문에 조용히 안 물렸고**, 「변형이 실제로 적용됐는가」
+  단언이 그것을 잡았다 — 이 레포에서 같은 함정이 **세 번째**다.
+- **요구 급에 닿는 픽스처 스캔 경로 0개** — 호출 사슬로 추적(`build-plan.mjs` → `ledger/*` →
+  `evidence.ts`). 얼린 관측 종수는 **표시용**으로만 읽히고 판정에 안 쓰인다.
+- **기존 플래그가 새 판정을 끄지 못한다** — `--force`·`--allow-all-errors`·`--allow-standard-source`
+  전부 자리·무접속·신원 판정과 무관함을 소스로 확인.
+- **「불변」 주장 전건 확인** — `src/` · 번들 3자 · `engine/` · `sapkit-cli/` · `usage-census.json` ·
+  `DIVERGENCES.md` · `replay/divergences.ts` **전부 diff 0바이트**.
+- **게이트 전종 직접 실행** — 제품 9 + 음성시험 9 + 엔진 11종 + cli 4종 **전부 exit 0**
+  (`doctor`만 1 — 착수와 동일).
+
+### 회수 — 차단 2건 · 권고 7건
+
+**차단 둘은 수치가 아니라 서술이었다.** 상세와 처리는 **D-099**에 있다.
+
+| 항목 | 내용 | 처리 |
+|---|---|---|
+| **B1** | 시나리오 README가 11편이 **46종**을 덮는다고 적으나 실제로는 **45종**(`CreateUnitTest`를 뺐다) | **고침** |
+| **B2** | 「34종」의 집계 방법을 그대로 돌리면 **36**이 나온다 — 「대상 46종 안에서」라는 필터가 서술에 빠졌다(수치 34는 옳다) | **고침** |
+| B2 딸림 | 그 결과 **D-098 정직 유보 ⓑ가 낡았다** — 이 판이 `CreateProgram`·`CreateInclude`를 신 엔진으로 다시 태워 대장이 `attended 통과(2)`로 적는다 | **D-099 ⓐ로 정정 append** |
+| A1 | `build-plan.mjs --check`가 CI에 없어 **손으로 고친 계획이 전 게이트를 통과**(사보타주 S26 실측) | **CI에 추가** |
+| A2 | 「못 섰다 6종」의 근거 파일이 레포에 없다는 사실이 표에 없다 | **표에 표시** |
+| A3 | D8의 관측 가능성 한계가 결정 기록에만 있고 **장부에 없다** | **장부에 append** |
+| A4 | 보호 자산 명부가 T1에만 있다 | **세 시점 명부를 기록에 남김** |
+| A5 | 부수 발견 셋이 HANDOFF 백로그에 없다 | **HANDOFF에 추가** |
+| A6 | 어느 시나리오가 픽스처를 냈는지 표에 없다 | **README에 명시** |
+| A7 | attended-only에 **손으로 넣은** 픽스처를 잡는 게이트 없음 | **이월**(기존 자리 · 새 구멍 아님) |
+
+### 리뷰어가 판단하지 못한 것 (그대로 적는다)
+
+**SAP의 현재 상태 전부** — 리뷰는 접속 0회다. 보호 자산이 지금도 무사한지 ·
+`ZSAPKIT_63_PKG`의 실제 상태 · 이송요청 미해제 여부 · 연습 잔재 0은 **기록으로만** 확인됐고
+**독립 재현이 없다.** 확정은 사용자의 SE80/SE21·SE01에서만 난다.
+그 밖에 — 텍스트·화면·GUI 6종의 「같은 서비스를 탄다」 인과(소스 미확인) · P4 픽스처의
+사후 정규화 절차 재현 · 신설 CI 스텝의 실 러너 실행.
