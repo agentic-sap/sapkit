@@ -1,0 +1,199 @@
+{
+  "formatVersion": 1,
+  "sequenceId": "zsapkit63-domain-dataelement",
+  "description": "[재실행 가능 · P3 · $TMP] 도메인 ZSAPKIT_63_DOM 생성 → 활성 → 되읽기 → 그것을 타입으로 삼는 데이터엘리먼트 ZSAPKIT_63_DTEL 생성 → 활성 → 되읽기 → 둘 다 삭제 → 이름으로 재조회해 0건 확인. 전제: 두 이름이 시스템에 없어야 한다(시퀀스가 끝나면 다시 없다). 만든 것을 같은 시퀀스 안에서 지우므로 Create*인데도 몇 번이든 다시 돌 수 있다 — scenarios/README 「시나리오 함정 ⑶」이 요구하는 성질을 정면으로 만족한다. $TMP라 transport_request가 없다. 활성화 갈래: 기본은 ⑴ 생성 → 활성화 → 삭제다. T4-3 정찰이 「비활성 객체도 그냥 지워진다」를 실측하면 ActivateObjects 단계만 뺀 ⑵ 갈래로 간다 — 시나리오를 새로 설계하지 않는다.",
+  "engine": {
+    "name": "sapkit-engine",
+    "version": "1.0.0",
+    "protocolVersion": "2024-11-05",
+    "exposition": "readonly,high"
+  },
+  "recordedAt": "2026-08-20T05:56:30.036Z",
+  "steps": [
+    {
+      "index": 0,
+      "tool": "CreateDomain",
+      "args": {
+        "domain_name": "ZSAPKIT_63_DOM",
+        "description": "sapkit 63 attended probe domain",
+        "package_name": "$TMP",
+        "datatype": "CHAR",
+        "length": 10,
+        "activate": true
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"success\":true,\"domain_name\":\"ZSAPKIT_63_DOM\",\"package\":\"$TMP\",\"status\":\"active\",\"message\":\"Domain ZSAPKIT_63_DOM created and activated successfully\",\"domain_details\":null}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "CreateDomain은 자체 activate 플래그를 갖는다 — 데이터엘리먼트가 이 도메인을 타입으로 물려면 먼저 활성이어야 한다."
+    },
+    {
+      "index": 1,
+      "tool": "GetDomain",
+      "args": {
+        "domain_name": "ZSAPKIT_63_DOM"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"domain_name\": \"ZSAPKIT_63_DOM\",\n  \"version\": \"active\",\n  \"domain_data\": \"<?xml version=\\\"1.0\\\" encoding=\\\"utf-8\\\"?><doma:domain adtcore:responsible=\\\"<<PRINCIPAL_1>>\\\" adtcore:masterLanguage=\\\"KO\\\" adtcore:masterSystem=\\\"DEV\\\" adtcore:abapLanguageVersion=\\\"0\\\" adtcore:name=\\\"ZSAPKIT_63_DOM\\\" adtcore:type=\\\"DOMA/DD\\\" adtcore:changedAt=\\\"<<TIMESTAMP_1>>\\\" adtcore:version=\\\"active\\\" adtcore:createdAt=\\\"<<TIMESTAMP_2>>\\\" adtcore:changedBy=\\\"<<PRINCIPAL_1>>\\\" adtcore:createdBy=\\\"<<PRINCIPAL_1>>\\\" adtcore:description=\\\"sapkit 63 attended probe domain\\\" adtcore:language=\\\"KO\\\" xmlns:doma=\\\"http://www.sap.com/dictionary/domain\\\" xmlns:adtcore=\\\"http://www.sap.com/adt/core\\\"><atom:link href=\\\"versions\\\" rel=\\\"http://www.sap.com/adt/relations/versions\\\" title=\\\"Historic versions\\\" xmlns:atom=\\\"http://www.w3.org/2005/Atom\\\"/><atom:link href=\\\"/sap/bc/adt/repository/informationsystem/abaplanguageversions?uri=%2Fsap%2Fbc%2Fadt%2Fddic%2Fdomains%2Fzsapkit_63_dom\\\" rel=\\\"http://www.sap.com/adt/relations/informationsystem/abaplanguageversions\\\" type=\\\"application/vnd.sap.adt.nameditems.v1+xml\\\" title=\\\"Allowed ABAP language versions\\\" xmlns:atom=\\\"http://www.w3.org/2005/Atom\\\"/><atom:link href=\\\"/sap/bc/adt/vit/wb/object_type/domadd/object_name/ZSAPKIT_63_DOM\\\" rel=\\\"self\\\" type=\\\"application/vnd.sap.sapgui\\\" title=\\\"Representation in SAP Gui\\\" xmlns:atom=\\\"http://www.w3.org/2005/Atom\\\"/><atom:link href=\\\"/sap/bc/adt/vit/docu/object_type/do/object_name/zsapkit_63_dom?masterLanguage=3&amp;mode=edit\\\" rel=\\\"http://www.sap.com/adt/relations/documentation\\\" type=\\\"application/vnd.sap.sapgui\\\" title=\\\"Documentation\\\" xmlns:atom=\\\"http://www.w3.org/2005/Atom\\\"/><atom:link href=\\\"/sap/bc/adt/ddic/logs/db/ACTDOMAZSAPKIT_63_DOM\\\" rel=\\\"http://www.sap.com/adt/relations/ddic/activationlog\\\" type=\\\"application/vnd.sap.adt.logs+xml\\\" title=\\\"Activation Log\\\" xmlns:atom=\\\"http://www.w3.org/2005/Atom\\\"/><adtcore:packageRef adtcore:uri=\\\"/sap/bc/adt/packages/%24tmp\\\" adtcore:type=\\\"DEVC/K\\\" adtcore:name=\\\"$TMP\\\" adtcore:description=\\\"Temporary Objects (never transported!)\\\"/><doma:content><doma:typeInformation><doma:datatype>CHAR</doma:datatype><doma:length>000010</doma:length><doma:decimals>000000</doma:decimals></doma:typeInformation><doma:outputInformation><doma:length>000010</doma:length><doma:style>00</doma:style><doma:conversionExit/><doma:signExists>false</doma:signExists><doma:lowercase>false</doma:lowercase><doma:ampmFormat>false</doma:ampmFormat></doma:outputInformation><doma:valueInformation><doma:valueTableRef/><doma:appendExists>false</doma:appendExists><doma:fixValues/></doma:valueInformation></doma:content></doma:domain>\",\n  \"status\": 200,\n  \"status_text\": \"OK\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "되읽기 — write 성공 응답만으로 완료로 적지 않는다(verify-applied.md). 대상이 이 시퀀스가 만든 Z 객체라 공개 레포에 실려도 된다."
+    },
+    {
+      "index": 2,
+      "tool": "CreateDataElement",
+      "args": {
+        "data_element_name": "ZSAPKIT_63_DTEL",
+        "description": "sapkit 63 attended probe data element",
+        "package_name": "$TMP",
+        "type_kind": "domain",
+        "type_name": "ZSAPKIT_63_DOM",
+        "short_label": "SK63",
+        "medium_label": "sapkit 63",
+        "long_label": "sapkit 63 probe",
+        "heading_label": "sapkit 63"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"data_element_name\": \"ZSAPKIT_63_DTEL\",\n  \"package\": \"$TMP\",\n  \"data_type\": \"CHAR\",\n  \"status\": \"active\",\n  \"message\": \"Data element ZSAPKIT_63_DTEL created and activated successfully\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "type_kind=domain + type_name으로 앞 단계의 도메인을 문다. CreateDataElement에는 activate 플래그가 없어 다음 단계에서 따로 활성화한다."
+    },
+    {
+      "index": 3,
+      "tool": "ActivateObjects",
+      "args": {
+        "objects": [
+          {
+            "name": "ZSAPKIT_63_DTEL",
+            "type": "DTEL/DE"
+          }
+        ]
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"endpoint\": \"runs\",\n  \"run_id\": \"<<SERVER_ID_1>>\",\n  \"activated\": true,\n  \"checked\": true,\n  \"generated\": false,\n  \"objects_count\": 1,\n  \"failed_count\": 0,\n  \"objects\": [\n    {\n      \"name\": \"ZSAPKIT_63_DTEL\",\n      \"type\": \"DTEL/DE\",\n      \"uri\": \"/sap/bc/adt/ddic/dataelements/zsapkit_63_dtel\",\n      \"status\": \"activated\",\n      \"errors\": [],\n      \"warnings\": []\n    }\n  ],\n  \"errors\": [],\n  \"warnings\": [],\n  \"message\": \"Activated 1 object(s) via runs endpoint\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "uri 대신 name+type — uri는 스키마상 이름 해석을 덮어 러너의 네임스페이스 사전 검사를 우회한다."
+    },
+    {
+      "index": 4,
+      "tool": "GetDataElement",
+      "args": {
+        "data_element_name": "ZSAPKIT_63_DTEL"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"data_element_name\": \"ZSAPKIT_63_DTEL\",\n  \"version\": \"active\",\n  \"data_element_data\": \"<?xml version=\\\"1.0\\\" encoding=\\\"utf-8\\\"?><blue:wbobj adtcore:responsible=\\\"<<PRINCIPAL_1>>\\\" adtcore:masterLanguage=\\\"KO\\\" adtcore:masterSystem=\\\"DEV\\\" adtcore:abapLanguageVersion=\\\"0\\\" adtcore:name=\\\"ZSAPKIT_63_DTEL\\\" adtcore:type=\\\"DTEL/DE\\\" adtcore:changedAt=\\\"<<TIMESTAMP_1>>\\\" adtcore:version=\\\"active\\\" adtcore:createdAt=\\\"<<TIMESTAMP_2>>\\\" adtcore:changedBy=\\\"<<PRINCIPAL_1>>\\\" adtcore:createdBy=\\\"<<PRINCIPAL_1>>\\\" adtcore:description=\\\"sapkit 63 attended probe data element\\\" adtcore:language=\\\"KO\\\" xmlns:blue=\\\"http://www.sap.com/wbobj/dictionary/dtel\\\" xmlns:adtcore=\\\"http://www.sap.com/adt/core\\\"><atom:link href=\\\"versions\\\" rel=\\\"http://www.sap.com/adt/relations/versions\\\" title=\\\"Historic versions\\\" xmlns:atom=\\\"http://www.w3.org/2005/Atom\\\"/><atom:link href=\\\"/sap/bc/adt/repository/informationsystem/abaplanguageversions?uri=%2Fsap%2Fbc%2Fadt%2Fddic%2Fdataelements%2Fzsapkit_63_dtel\\\" rel=\\\"http://www.sap.com/adt/relations/informationsystem/abaplanguageversions\\\" type=\\\"application/vnd.sap.adt.nameditems.v1+xml\\\" title=\\\"Allowed ABAP language versions\\\" xmlns:atom=\\\"http://www.w3.org/2005/Atom\\\"/><atom:link href=\\\"/sap/bc/adt/vit/wb/object_type/dtelde/object_name/ZSAPKIT_63_DTEL\\\" rel=\\\"self\\\" type=\\\"application/vnd.sap.sapgui\\\" title=\\\"Representation in SAP Gui\\\" xmlns:atom=\\\"http://www.w3.org/2005/Atom\\\"/><atom:link href=\\\"/sap/bc/adt/vit/docu/object_type/de/object_name/zsapkit_63_dtel?masterLanguage=3&amp;mode=edit\\\" rel=\\\"http://www.sap.com/adt/relations/documentation\\\" type=\\\"application/vnd.sap.sapgui\\\" title=\\\"Documentation\\\" xmlns:atom=\\\"http://www.w3.org/2005/Atom\\\"/><atom:link href=\\\"/sap/bc/adt/ddic/logs/db/ACTDTELZSAPKIT_63_DTEL\\\" rel=\\\"http://www.sap.com/adt/relations/ddic/activationlog\\\" type=\\\"application/vnd.sap.adt.logs+xml\\\" title=\\\"Activation Log\\\" xmlns:atom=\\\"http://www.w3.org/2005/Atom\\\"/><adtcore:packageRef adtcore:uri=\\\"/sap/bc/adt/packages/%24tmp\\\" adtcore:type=\\\"DEVC/K\\\" adtcore:name=\\\"$TMP\\\" adtcore:description=\\\"Temporary Objects (never transported!)\\\"/><dtel:dataElement xmlns:dtel=\\\"http://www.sap.com/adt/dictionary/dataelements\\\"><dtel:typeKind>domain</dtel:typeKind><dtel:typeName>ZSAPKIT_63_DOM</dtel:typeName><dtel:dataType>CHAR</dtel:dataType><dtel:dataTypeLength>000010</dtel:dataTypeLength><dtel:dataTypeDecimals>000000</dtel:dataTypeDecimals><dtel:shortFieldLabel>SK63</dtel:shortFieldLabel><dtel:shortFieldLength>04</dtel:shortFieldLength><dtel:shortFieldMaxLength>10</dtel:shortFieldMaxLength><dtel:mediumFieldLabel>sapkit 63</dtel:mediumFieldLabel><dtel:mediumFieldLength>09</dtel:mediumFieldLength><dtel:mediumFieldMaxLength>20</dtel:mediumFieldMaxLength><dtel:longFieldLabel>sapkit 63 probe</dtel:longFieldLabel><dtel:longFieldLength>15</dtel:longFieldLength><dtel:longFieldMaxLength>40</dtel:longFieldMaxLength><dtel:headingFieldLabel>sapkit 63</dtel:headingFieldLabel><dtel:headingFieldLength>09</dtel:headingFieldLength><dtel:headingFieldMaxLength>55</dtel:headingFieldMaxLength><dtel:searchHelp/><dtel:searchHelpParameter/><dtel:setGetParameter/><dtel:defaultComponentName/><dtel:deactivateInputHistory>false</dtel:deactivateInputHistory><dtel:changeDocument>false</dtel:changeDocument><dtel:leftToRightDirection>false</dtel:leftToRightDirection><dtel:deactivateBIDIFiltering>false</dtel:deactivateBIDIFiltering></dtel:dataElement></blue:wbobj>\",\n  \"status\": 200,\n  \"status_text\": \"OK\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "되읽기 — 도메인 참조가 실제로 박혔는지 여기서 드러난다."
+    },
+    {
+      "index": 5,
+      "tool": "DeleteDataElement",
+      "args": {
+        "data_element_name": "ZSAPKIT_63_DTEL"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"data_element_name\": \"ZSAPKIT_63_DTEL\",\n  \"transport_request\": null,\n  \"message\": \"Data element ZSAPKIT_63_DTEL deleted successfully.\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "의존하는 쪽을 먼저 지운다. 도메인을 먼저 지우면 참조가 남아 실패한다."
+    },
+    {
+      "index": 6,
+      "tool": "DeleteDomain",
+      "args": {
+        "domain_name": "ZSAPKIT_63_DOM"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"domain_name\": \"ZSAPKIT_63_DOM\",\n  \"transport_request\": null,\n  \"message\": \"Domain ZSAPKIT_63_DOM deleted successfully.\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "숙주 정리. 여기까지가 왕복이다 — 정리까지가 이 판이다."
+    },
+    {
+      "index": 7,
+      "tool": "SearchObject",
+      "args": {
+        "object_name": "ZSAPKIT_63_DTEL",
+        "maxResults": 5
+      },
+      "response": {
+        "content": []
+      },
+      "isError": false,
+      "note": "삭제의 기계 확인. 마스크가 아니라 정확한 이름으로 뜬다 — 마스크로 뜨면 다른 시퀀스의 산물(특히 지울 수 없는 P4 패키지)이 섞여 재실행 판정이 흔들린다."
+    },
+    {
+      "index": 8,
+      "tool": "SearchObject",
+      "args": {
+        "object_name": "ZSAPKIT_63_DOM",
+        "maxResults": 5
+      },
+      "response": {
+        "content": []
+      },
+      "isError": false,
+      "note": "같은 이유로 도메인도 이름으로 확인한다. 0건이어야 한다."
+    }
+  ],
+  "placeholders": [
+    {
+      "placeholder": "<<PRINCIPAL_1>>",
+      "kind": "principal",
+      "occurrences": 6
+    },
+    {
+      "placeholder": "<<TIMESTAMP_1>>",
+      "kind": "timestamp",
+      "occurrences": 2
+    },
+    {
+      "placeholder": "<<TIMESTAMP_2>>",
+      "kind": "timestamp",
+      "occurrences": 2
+    },
+    {
+      "placeholder": "<<SERVER_ID_1>>",
+      "kind": "server-id",
+      "occurrences": 1
+    }
+  ]
+}

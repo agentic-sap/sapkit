@@ -1,0 +1,507 @@
+{
+  "formatVersion": 1,
+  "sequenceId": "zsapkit63-rap-bdef-bimp-service",
+  "description": "[재실행 가능 · P3 · $TMP] 베이스 테이블 ZSAPKIT_63_RT 생성·DDL 투입·활성 → 루트 CDS 뷰 ZSAPKIT_63_RV 생성·DDL 투입·활성 → 동작 정의(BDEF, 이름은 루트 엔티티와 같다) 생성(비활성) → 되읽기 → 동작 구현 클래스 ZBP_SAPKIT_63_RV 생성·활성 → 되읽기 → BDEF 활성 → 서비스 정의 ZSAPKIT_63_SD 생성·소스 투입·활성·되읽기 → 서비스 바인딩 ZSAPKIT_63_SB 생성·되읽기 → 여섯을 역순으로 삭제 → 이름으로 재조회해 0건 확인. 전제: 여섯 이름이 시스템에 없어야 한다. 숙주까지 이 시퀀스가 세우므로 재실행 가능하다. 대상은 ABAP 757(S/4 2022)이고 T4 정찰에서 `define root view entity` + managed BDEF가 실제로 선 것을 실측했다. **정찰이 확정한 두 가지가 이 시퀀스에 반영돼 있다.** ⑴ 동작 구현 클래스 이름은 우리가 고르는 것이 아니라 CreateBehaviorDefinition이 생성한 BDEF 소스가 정한다 — 실측값은 `managed implementation in class zbp_sapkit_63_rv0 unique;`였고, 규칙은 이름의 선두 Z를 ZBP_로 바꾸는 것이다. 그래서 이 시퀀스의 클래스 이름은 spec §4.1의 네 접두어 밖인 ZBP_SAPKIT_63_RV이고, 그 이유를 여기 적어 둔다(정리 마스크에 ZBP_SAPKIT*를 더한다). ⑵ BDEF는 구현 클래스가 생긴 **뒤에** 활성화한다 — 먼저 활성화하면 없는 클래스를 참조해 실패한다. $TMP라 transport_request가 없다.",
+  "engine": {
+    "name": "sapkit-engine",
+    "version": "1.0.0",
+    "protocolVersion": "2024-11-05",
+    "exposition": "readonly,high"
+  },
+  "recordedAt": "2026-08-20T05:56:42.384Z",
+  "steps": [
+    {
+      "index": 0,
+      "tool": "CreateTable",
+      "args": {
+        "table_name": "ZSAPKIT_63_RT",
+        "description": "sapkit 63 attended probe RAP persistence table",
+        "package_name": "$TMP"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"success\":true,\"table_name\":\"ZSAPKIT_63_RT\",\"package_name\":\"$TMP\",\"transport_request\":\"local\",\"skeleton\":\"mandt\",\"message\":\"Table ZSAPKIT_63_RT created with MANDT skeleton. Use UpdateTable to add fields (preserve #NOT_EXTENSIBLE, #RESTRICTED, and 'key mandt : mandt not null').\"}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "managed RAP의 영속 테이블이 될 자리. 껍데기만 서므로 다음 단계에서 DDL을 채운다."
+    },
+    {
+      "index": 1,
+      "tool": "UpdateTable",
+      "args": {
+        "table_name": "ZSAPKIT_63_RT",
+        "ddl_code": "@EndUserText.label : 'sapkit 63 attended probe RAP table'\n@AbapCatalog.enhancement.category : #NOT_EXTENSIBLE\n@AbapCatalog.tableCategory : #TRANSPARENT\n@AbapCatalog.deliveryClass : #A\n@AbapCatalog.dataMaintenance : #RESTRICTED\ndefine table zsapkit_63_rt {\n  key mandt : mandt not null;\n  key id    : abap.char(10) not null;\n  name      : abap.char(60);\n}\n",
+        "activate": true
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"table_name\": \"ZSAPKIT_63_RT\",\n  \"transport_request\": \"local\",\n  \"activated\": true,\n  \"message\": \"Table ZSAPKIT_63_RT source updated and activated successfully\",\n  \"uri\": \"/sap/bc/adt/ddic/tables/ZSAPKIT_63_RT\",\n  \"steps_completed\": [\n    \"lock\",\n    \"check_new_code\",\n    \"update\",\n    \"unlock\",\n    \"check_inactive\",\n    \"activate\"\n  ],\n  \"source_size_bytes\": 355\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "클라이언트 키는 MANDT 데이터엘리먼트다."
+    },
+    {
+      "index": 2,
+      "tool": "CreateView",
+      "args": {
+        "view_name": "ZSAPKIT_63_RV",
+        "package_name": "$TMP",
+        "description": "sapkit 63 attended probe RAP root view"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"view_name\": \"ZSAPKIT_63_RV\",\n  \"package_name\": \"$TMP\",\n  \"transport_request\": null,\n  \"type\": \"DDLS\",\n  \"message\": \"View ZSAPKIT_63_RV created successfully. Use UpdateView to set DDL source code.\",\n  \"uri\": \"/sap/bc/adt/ddic/ddl/sources/zsapkit_63_rv\",\n  \"steps_completed\": [\n    \"validate\",\n    \"create\"\n  ]\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "껍데기 DDLS. DDL은 다음 단계가 채운다."
+    },
+    {
+      "index": 3,
+      "tool": "UpdateView",
+      "args": {
+        "view_name": "ZSAPKIT_63_RV",
+        "ddl_source": "@AccessControl.authorizationCheck: #NOT_REQUIRED\n@EndUserText.label: 'sapkit 63 attended probe root view'\n@Metadata.ignorePropagatedAnnotations: true\ndefine root view entity ZSAPKIT_63_RV\n  as select from zsapkit_63_rt\n{\n  key id   as Id,\n      name as Name\n}\n",
+        "activate": true
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"view_name\": \"ZSAPKIT_63_RV\",\n  \"type\": \"DDLS\",\n  \"activated\": true,\n  \"message\": \"View ZSAPKIT_63_RV updated and activated successfully\",\n  \"uri\": \"/sap/bc/adt/ddic/ddl/sources/zsapkit_63_rv\",\n  \"steps_completed\": [\n    \"lock\",\n    \"check_new_code\",\n    \"update\",\n    \"unlock\",\n    \"check_inactive\",\n    \"activate\"\n  ]\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "`define root view entity` — 동작 정의가 붙으려면 루트여야 한다. mandt는 명시로 뽑지 않는다."
+    },
+    {
+      "index": 4,
+      "tool": "CreateBehaviorDefinition",
+      "args": {
+        "name": "ZSAPKIT_63_RV",
+        "description": "sapkit 63 attended probe behavior definition",
+        "package_name": "$TMP",
+        "root_entity": "ZSAPKIT_63_RV",
+        "implementation_type": "Managed",
+        "activate": false
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"name\": \"ZSAPKIT_63_RV\",\n  \"package_name\": \"$TMP\",\n  \"type\": \"BDEF\",\n  \"message\": \"Behavior Definition ZSAPKIT_63_RV created successfully\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "BDEF의 이름은 루트 엔티티 이름과 같다 — ABAP이 그렇게 요구한다. **activate=false가 의도다**: 생성되는 소스가 `implementation in class zbp_…`를 선언하는데 그 클래스가 아직 없어서, 여기서 활성화하면 반드시 실패한다(T4 정찰 실측). 활성화는 구현 클래스를 만든 뒤에 한다."
+    },
+    {
+      "index": 5,
+      "tool": "ReadBehaviorDefinition",
+      "args": {
+        "behavior_definition_name": "ZSAPKIT_63_RV",
+        "version": "inactive"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"behavior_definition_name\": \"ZSAPKIT_63_RV\",\n  \"version\": \"inactive\",\n  \"source_code\": \"managed implementation in class zbp_sapkit_63_rv unique;\\nstrict ( 1 );\\n\\ndefine behavior for ZSAPKIT_63_RV //alias <alias_name>\\npersistent table ZSAPKIT_63_RT\\nlock master\\nauthorization master ( instance )\\n//etag master <field_name>\\n{\\n  create;\\n  update;\\n  delete;\\n}\",\n  \"metadata\": \"<?xml version=\\\"1.0\\\" encoding=\\\"utf-8\\\"?><blue:blueSource abapsource:sourceUri=\\\"./zsapkit_63_rv/source/main\\\" abapsource:fixPointArithmetic=\\\"true\\\" abapsource:activeUnicodeCheck=\\\"true\\\" adtcore:responsible=\\\"<<PRINCIPAL_1>>\\\" adtcore:masterLanguage=\\\"KO\\\" adtcore:masterSystem=\\\"DEV\\\" adtcore:abapLanguageVersion=\\\"X\\\" adtcore:name=\\\"ZSAPKIT_63_RV\\\" adtcore:type=\\\"BDEF/BDO\\\" adtcore:changedAt=\\\"<<TIMESTAMP_1>>\\\" adtcore:version=\\\"inactive\\\" adtcore:createdAt=\\\"<<TIMESTAMP_2>>\\\" adtcore:changedBy=\\\"<<PRINCIPAL_1>>\\\" adtcore:createdBy=\\\"<<PRINCIPAL_1>>\\\" adtcore:description=\\\"sapkit 63 attended probe behavior definition\\\" adtcore:descriptionTextLimit=\\\"60\\\" adtcore:language=\\\"KO\\\" xmlns:blue=\\\"http://www.sap.com/wbobj/blue\\\" xmlns:abapsource=\\\"http://www.sap.com/adt/abapsource\\\" xmlns:adtcore=\\\"http://www.sap.com/adt/core\\\"><atom:link href=\\\"./zsapkit_63_rv?version=active\\\" rel=\\\"http://www.sap.com/adt/relations/objectstates\\\" title=\\\"Complementary active/inactive version\\\" xmlns:atom=\\\"http://www.w3.org/2005/Atom\\\"/><atom:link href=\\\"./zsapkit_63_rv/source/main/versions\\\" rel=\\\"http://www.sap.com/adt/relations/versions\\\" title=\\\"Historic versions\\\" xmlns:atom=\\\"http://www.w3.org/2005/Atom\\\"/><atom:link href=\\\"/sap/bc/adt/repository/informationsystem/abaplanguageversions?uri=%2Fsap%2Fbc%2Fadt%2Fbo%2Fbehaviordefinitions%2Fzsapkit_63_rv\\\" rel=\\\"http://www.sap.com/adt/relations/informationsystem/abaplanguageversions\\\" type=\\\"application/vnd.sap.adt.nameditems.v1+xml\\\" title=\\\"Allowed ABAP language versions\\\" xmlns:atom=\\\"http://www.w3.org/2005/Atom\\\"/><atom:link href=\\\"./zsapkit_63_rv/source/main\\\" rel=\\\"http://www.sap.com/adt/relations/source\\\" type=\\\"text/plain\\\" title=\\\"Source Content\\\" etag=\\\"20260820055638000text/plain_dw8c+KUhYoOWBi6KbEI3TGzFduA=\\\" xmlns:atom=\\\"http://www.w3.org/2005/Atom\\\"/><atom:link href=\\\"./zsapkit_63_rv/source/main\\\" rel=\\\"http://www.sap.com/adt/relations/source\\\" type=\\\"text/html\\\" title=\\\"Source Content (HTML)\\\" etag=\\\"\\\" xmlns:atom=\\\"http://www.w3.org/2005/Atom\\\"/><atom:link href=\\\"./zsapkit_63_rv/objectstructure\\\" rel=\\\"http://www.sap.com/adt/relations/objectstructure\\\" title=\\\"Object Structure\\\" xmlns:atom=\\\"http://www.w3.org/2005/Atom\\\"/><atom:link href=\\\"/sap/bc/adt/vit/wb/object_type/bdefbdo/object_name/ZSAPKIT_63_RV\\\" rel=\\\"self\\\" type=\\\"application/vnd.sap.sapgui\\\" title=\\\"Representation in SAP GUI\\\" xmlns:atom=\\\"http://www.w3.org/2005/Atom\\\"/><adtcore:packageRef adtcore:uri=\\\"/sap/bc/adt/packages/%24tmp\\\" adtcore:type=\\\"DEVC/K\\\" adtcore:name=\\\"$TMP\\\" adtcore:description=\\\"Temporary Objects (never transported!)\\\"/><abapsource:syntaxConfiguration><abapsource:language><abapsource:version>X</abapsource:version><abapsource:description>Standard ABAP</abapsource:description><atom:link href=\\\"/sap/bc/adt/abapsource/parsers/rnd/grammar\\\" rel=\\\"http://www.sap.com/adt/relations/abapsource/parser\\\" type=\\\"text/plain\\\" title=\\\"Standard ABAP\\\" etag=\\\"757\\\" xmlns:atom=\\\"http://www.w3.org/2005/Atom\\\"/></abapsource:language></abapsource:syntaxConfiguration></blue:blueSource>\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "되읽기이자 **관측**이다 — 생성된 소스의 `implementation in class` 절이 어떤 클래스 이름을 선언하는지가 다음 단계 인자의 근거다. 아직 활성판이 없으므로 version=inactive로 읽는다."
+    },
+    {
+      "index": 6,
+      "tool": "CreateBehaviorImplementation",
+      "args": {
+        "class_name": "ZBP_SAPKIT_63_RV",
+        "behavior_definition": "ZSAPKIT_63_RV",
+        "description": "sapkit 63 attended probe behavior pool",
+        "package_name": "$TMP"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"class_name\": \"ZBP_SAPKIT_63_RV\",\n  \"behavior_definition\": \"ZSAPKIT_63_RV\",\n  \"package_name\": \"$TMP\",\n  \"transport_request\": null,\n  \"type\": \"CLAS/OC\",\n  \"message\": \"Behavior Implementation ZBP_SAPKIT_63_RV created successfully. Use UpdateBehaviorImplementation to set implementation code.\",\n  \"uri\": \"/sap/bc/adt/oo/classes/zbp_sapkit_63_rv\",\n  \"steps_completed\": [\n    \"create\"\n  ]\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "이름을 우리가 고르지 않는다 — BDEF가 선언한 이름과 같아야 한다. T4 정찰에서 그 규칙을 실측했다(BDEF 이름의 선두 Z → ZBP_). 그래서 spec §4.1의 네 접두어 밖 이름이고, 정리 마스크에 ZBP_SAPKIT*를 더해 잔재 확인이 이 객체를 놓치지 않게 한다."
+    },
+    {
+      "index": 7,
+      "tool": "ActivateObjects",
+      "args": {
+        "objects": [
+          {
+            "name": "ZBP_SAPKIT_63_RV",
+            "type": "CLAS/OC"
+          }
+        ]
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"endpoint\": \"runs\",\n  \"run_id\": \"<<SERVER_ID_1>>\",\n  \"activated\": true,\n  \"checked\": true,\n  \"generated\": true,\n  \"objects_count\": 1,\n  \"failed_count\": 0,\n  \"objects\": [\n    {\n      \"name\": \"ZBP_SAPKIT_63_RV\",\n      \"type\": \"CLAS/OC\",\n      \"uri\": \"/sap/bc/adt/oo/classes/zbp_sapkit_63_rv\",\n      \"status\": \"activated\",\n      \"errors\": [],\n      \"warnings\": []\n    }\n  ],\n  \"errors\": [],\n  \"warnings\": [],\n  \"message\": \"Activated 1 object(s) via runs endpoint\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "구현 클래스를 먼저 세운다. BDEF가 아직 비활성이어도 이 클래스는 활성화된다(T4 정찰 실측)."
+    },
+    {
+      "index": 8,
+      "tool": "ReadBehaviorImplementation",
+      "args": {
+        "behavior_implementation_name": "ZBP_SAPKIT_63_RV"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"behavior_implementation_name\": \"ZBP_SAPKIT_63_RV\",\n  \"version\": \"active\",\n  \"source_code\": \"CLASS ZBP_SAPKIT_63_RV DEFINITION\\r\\n  PUBLIC\\r\\n  CREATE PUBLIC .\\r\\n\\r\\n  PUBLIC SECTION.\\r\\n  PROTECTED SECTION.\\r\\n  PRIVATE SECTION.\\r\\nENDCLASS.\\r\\n\\r\\n\\r\\n\\r\\nCLASS ZBP_SAPKIT_63_RV IMPLEMENTATION.\\r\\nENDCLASS.\",\n  \"metadata\": null\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "되읽기. 앞 단계에서 활성화했으므로 활성판을 읽는다."
+    },
+    {
+      "index": 9,
+      "tool": "ActivateObjects",
+      "args": {
+        "objects": [
+          {
+            "name": "ZSAPKIT_63_RV",
+            "type": "BDEF/BDO",
+            "uri": "/sap/bc/adt/bo/behaviordefinitions/zsapkit_63_rv"
+          }
+        ]
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"endpoint\": \"runs\",\n  \"run_id\": \"<<SERVER_ID_2>>\",\n  \"activated\": true,\n  \"checked\": true,\n  \"generated\": true,\n  \"objects_count\": 1,\n  \"failed_count\": 0,\n  \"objects\": [\n    {\n      \"name\": \"ZSAPKIT_63_RV\",\n      \"type\": \"BDEF/BDO\",\n      \"uri\": \"/sap/bc/adt/bo/behaviordefinitions/zsapkit_63_rv\",\n      \"status\": \"activated\",\n      \"errors\": [],\n      \"warnings\": []\n    }\n  ],\n  \"errors\": [],\n  \"warnings\": [],\n  \"message\": \"Activated 1 object(s) via runs endpoint\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "**uri를 명시하는 것이 의도다.** T4 정찰에서 실측: 엔진의 이름 해석이 BDEF/BDO를 `/sap/bc/adt/ddic/bdef/sources/…`로 푸는데(activateObjects.ts) 실제 주소는 `/sap/bc/adt/bo/behaviordefinitions/…`이다(같은 엔진의 읽기 쪽 behaviorRead.ts가 쓰는 주소). 이름만 주면 활성화 후 재조회 오라클이 「여전히 비활성」으로 정직하게 실패한다. 구 엔진(engine/src/lib/resolveAdtUri.ts)도 같은 매핑이라 **교체가 만든 회귀가 아니라 물려받은 결함**이다. 대가: uri는 러너의 네임스페이스 사전 검사를 우회한다 — 대상은 이 시퀀스가 방금 만든 Z 객체이고 사후 백스톱은 그대로 돈다."
+    },
+    {
+      "index": 10,
+      "tool": "CreateServiceDefinition",
+      "args": {
+        "service_definition_name": "ZSAPKIT_63_SD",
+        "description": "sapkit 63 attended probe service definition",
+        "package_name": "$TMP",
+        "activate": false
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "MCP error -32603: Error: Service Definition ZSAPKIT_63_SD preCheck syntax check failed (1 error): [L1] Illegal syntax. Malformed service definition"
+          }
+        ],
+        "isError": true
+      },
+      "isError": true,
+      "note": "껍데기 SRVD. expose 문은 다음 단계 소스가 갖는다 — 그래서 여기서는 활성화하지 않는다."
+    },
+    {
+      "index": 11,
+      "tool": "UpdateServiceDefinition",
+      "args": {
+        "service_definition_name": "ZSAPKIT_63_SD",
+        "source_code": "@EndUserText.label: 'sapkit 63 attended probe service'\ndefine service ZSAPKIT_63_SD {\n  expose ZSAPKIT_63_RV;\n}\n",
+        "activate": true
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"service_definition_name\": \"ZSAPKIT_63_SD\",\n  \"transport_request\": \"local\",\n  \"activated\": true,\n  \"message\": \"Service Definition ZSAPKIT_63_SD updated and activated successfully\",\n  \"uri\": \"/sap/bc/adt/ddic/srvd/sources/ZSAPKIT_63_SD\",\n  \"steps_completed\": [\n    \"lock\",\n    \"update\",\n    \"check\",\n    \"unlock\",\n    \"activate\"\n  ],\n  \"source_size_bytes\": 112\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "루트 뷰 하나만 노출한다 — 서비스 바인딩이 물 대상이다."
+    },
+    {
+      "index": 12,
+      "tool": "GetServiceDefinition",
+      "args": {
+        "service_definition_name": "ZSAPKIT_63_SD"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"service_definition_name\": \"ZSAPKIT_63_SD\",\n  \"version\": \"active\",\n  \"service_definition_data\": \"@EndUserText.label: 'sapkit 63 attended probe service'\\ndefine service ZSAPKIT_63_SD {\\n  expose ZSAPKIT_63_RV;\\n}\\n\",\n  \"status\": 200,\n  \"status_text\": \"OK\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "되읽기."
+    },
+    {
+      "index": 13,
+      "tool": "CreateServiceBinding",
+      "args": {
+        "service_binding_name": "ZSAPKIT_63_SB",
+        "service_definition_name": "ZSAPKIT_63_SD",
+        "package_name": "$TMP",
+        "description": "sapkit 63 attended probe service binding",
+        "binding_type": "ODataV4",
+        "activate": true
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"service_binding_name\": \"ZSAPKIT_63_SB\",\n  \"service_definition_name\": \"ZSAPKIT_63_SD\",\n  \"package_name\": \"$TMP\",\n  \"binding_type\": \"ODataV4\",\n  \"service_binding_version\": \"V4\",\n  \"service_name\": \"ZSAPKIT_63_SB\",\n  \"service_version\": \"0001\",\n  \"activated\": true,\n  \"response_format\": \"xml\",\n  \"status\": 201,\n  \"payload\": {\n    \"?xml\": {\n      \"version\": \"1.0\",\n      \"encoding\": \"utf-8\"\n    },\n    \"srvb:serviceBinding\": {\n      \"atom:link\": [\n        {\n          \"href\": \"versions\",\n          \"rel\": \"http://www.sap.com/adt/relations/versions\",\n          \"title\": \"Historic versions\",\n          \"xmlns:atom\": \"http://www.w3.org/2005/Atom\"\n        },\n        {\n          \"href\": \"/sap/bc/adt/repository/informationsystem/abaplanguageversions?uri=%2Fsap%2Fbc%2Fadt%2Fbusinessservices%2Fbindings%2Fzsapkit_63_sb\",\n          \"rel\": \"http://www.sap.com/adt/relations/informationsystem/abaplanguageversions\",\n          \"type\": \"application/vnd.sap.adt.nameditems.v1+xml\",\n          \"title\": \"Allowed ABAP language versions\",\n          \"xmlns:atom\": \"http://www.w3.org/2005/Atom\"\n        },\n        {\n          \"href\": \"/sap/bc/adt/businessservices/odatav4/\",\n          \"rel\": \"http://www.sap.com/categories/odatav4\",\n          \"type\": \"application/vnd.sap.adt.businessservices.odatav4.v1+xml\",\n          \"title\": \"ODATAV4\",\n          \"xmlns:atom\": \"http://www.w3.org/2005/Atom\"\n        },\n        {\n          \"href\": \"/sap/bc/adt/businessservices/testclass\",\n          \"rel\": \"http://www.sap.com/categories/testclass\",\n          \"type\": \"application/vnd.sap.adt.businessservices.testclass.v1+xml\",\n          \"title\": \"TESTCLASS\",\n          \"xmlns:atom\": \"http://www.w3.org/2005/Atom\"\n        },\n        {\n          \"href\": \"/sap/bc/adt/businessservices/testclass\",\n          \"rel\": \"http://www.sap.com/categories/testclass\",\n          \"type\": \"application/vnd.sap.adt.businessservices.testclassv4.v1+xml\",\n          \"title\": \"TESTCLASSV4\",\n          \"xmlns:atom\": \"http://www.w3.org/2005/Atom\"\n        },\n        {\n          \"href\": \"/sap/bc/adt/businessservices/semanticversion\",\n          \"rel\": \"http://www.sap.com/categories/semanticversion\",\n          \"type\": \"application/vnd.sap.adt.businessservices.semanticversion.v1+xml\",\n          \"title\": \"SemanticVersion\",\n          \"xmlns:atom\": \"http://www.w3.org/2005/Atom\"\n        }\n      ],\n      \"adtcore:packageRef\": {\n        \"adtcore:uri\": \"/sap/bc/adt/packages/%24tmp\",\n        \"adtcore:type\": \"DEVC/K\",\n        \"adtcore:name\": \"$TMP\",\n        \"adtcore:description\": \"Temporary Objects (never transported!)\"\n      },\n      \"srvb:services\": {\n        \"srvb:content\": {\n          \"srvb:serviceDefinition\": {\n            \"adtcore:name\": \"ZSAPKIT_63_SD\"\n          },\n          \"srvb:version\": \"0001\",\n          \"srvb:minorVersion\": \"0\",\n          \"srvb:patchVersion\": \"0\",\n          \"srvb:buildVersion\": \"\",\n          \"srvb:releaseState\": \"\"\n        },\n        \"srvb:name\": \"ZSAPKIT_63_SB\"\n      },\n      \"srvb:binding\": {\n        \"srvb:type\": \"ODATA\",\n        \"srvb:version\": \"V4\",\n        \"srvb:category\": \"1\"\n      },\n      \"srvb:releaseSupported\": \"false\",\n      \"srvb:published\": \"false\",\n      \"srvb:bindingCreated\": \"false\",\n      \"adtcore:responsible\": \"<<PRINCIPAL_1>>\",\n      \"adtcore:masterLanguage\": \"KO\",\n      \"adtcore:masterSystem\": \"DEV\",\n      \"adtcore:abapLanguageVersion\": \"0\",\n      \"adtcore:name\": \"ZSAPKIT_63_SB\",\n      \"adtcore:type\": \"SRVB/SVB\",\n      \"adtcore:changedAt\": \"<<TIMESTAMP_3>>\",\n      \"adtcore:version\": \"inactive\",\n      \"adtcore:createdAt\": \"<<TIMESTAMP_3>>\",\n      \"adtcore:changedBy\": \"<<PRINCIPAL_1>>\",\n      \"adtcore:createdBy\": \"<<PRINCIPAL_1>>\",\n      \"adtcore:description\": \"sapkit 63 attended probe service binding\",\n      \"adtcore:language\": \"KO\",\n      \"xmlns:srvb\": \"http://www.sap.com/adt/ddic/ServiceBindings\",\n      \"xmlns:adtcore\": \"http://www.sap.com/adt/core\"\n    }\n  },\n  \"read_payload\": {\n    \"?xml\": {\n      \"version\": \"1.0\",\n      \"encoding\": \"utf-8\"\n    },\n    \"srvb:serviceBinding\": {\n      \"atom:link\": [\n        {\n          \"href\": \"versions\",\n          \"rel\": \"http://www.sap.com/adt/relations/versions\",\n          \"title\": \"Historic versions\",\n          \"xmlns:atom\": \"http://www.w3.org/2005/Atom\"\n        },\n        {\n          \"href\": \"/sap/bc/adt/repository/informationsystem/abaplanguageversions?uri=%2Fsap%2Fbc%2Fadt%2Fbusinessservices%2Fbindings%2Fzsapkit_63_sb\",\n          \"rel\": \"http://www.sap.com/adt/relations/informationsystem/abaplanguageversions\",\n          \"type\": \"application/vnd.sap.adt.nameditems.v1+xml\",\n          \"title\": \"Allowed ABAP language versions\",\n          \"xmlns:atom\": \"http://www.w3.org/2005/Atom\"\n        },\n        {\n          \"href\": \"/sap/bc/adt/businessservices/odatav4/ZSAPKIT_63_SB\",\n          \"rel\": \"http://www.sap.com/categories/odatav4\",\n          \"type\": \"application/vnd.sap.adt.businessservices.odatav4.v1+xml\",\n          \"title\": \"ODATAV4\",\n          \"xmlns:atom\": \"http://www.w3.org/2005/Atom\"\n        },\n        {\n          \"href\": \"/sap/bc/adt/businessservices/testclass\",\n          \"rel\": \"http://www.sap.com/categories/testclass\",\n          \"type\": \"application/vnd.sap.adt.businessservices.testclass.v1+xml\",\n          \"title\": \"TESTCLASS\",\n          \"xmlns:atom\": \"http://www.w3.org/2005/Atom\"\n        },\n        {\n          \"href\": \"/sap/bc/adt/businessservices/testclass\",\n          \"rel\": \"http://www.sap.com/categories/testclass\",\n          \"type\": \"application/vnd.sap.adt.businessservices.testclassv4.v1+xml\",\n          \"title\": \"TESTCLASSV4\",\n          \"xmlns:atom\": \"http://www.w3.org/2005/Atom\"\n        },\n        {\n          \"href\": \"/sap/bc/adt/businessservices/semanticversion\",\n          \"rel\": \"http://www.sap.com/categories/semanticversion\",\n          \"type\": \"application/vnd.sap.adt.businessservices.semanticversion.v1+xml\",\n          \"title\": \"SemanticVersion\",\n          \"xmlns:atom\": \"http://www.w3.org/2005/Atom\"\n        }\n      ],\n      \"adtcore:packageRef\": {\n        \"adtcore:uri\": \"/sap/bc/adt/packages/%24tmp\",\n        \"adtcore:type\": \"DEVC/K\",\n        \"adtcore:name\": \"$TMP\",\n        \"adtcore:description\": \"Temporary Objects (never transported!)\"\n      },\n      \"srvb:services\": {\n        \"srvb:content\": {\n          \"srvb:serviceDefinition\": {\n            \"adtcore:uri\": \"/sap/bc/adt/ddic/srvd/sources/zsapkit_63_sd\",\n            \"adtcore:type\": \"SRVD/SRV\",\n            \"adtcore:name\": \"ZSAPKIT_63_SD\"\n          },\n          \"srvb:bindingTypeData\": {\n            \"adtcore:content\": {\n              \"adtcore:encoding\": \"base64\"\n            }\n          },\n          \"srvb:version\": \"0001\",\n          \"srvb:minorVersion\": \"0\",\n          \"srvb:patchVersion\": \"0\",\n          \"srvb:buildVersion\": \"\",\n          \"srvb:releaseState\": \"NOT_RELEASED\"\n        },\n        \"srvb:name\": \"ZSAPKIT_63_SB\"\n      },\n      \"srvb:binding\": {\n        \"srvb:implementation\": {\n          \"adtcore:name\": \"ZSAPKIT_63_SB\"\n        },\n        \"srvb:type\": \"ODATA\",\n        \"srvb:version\": \"V4\",\n        \"srvb:category\": \"1\"\n      },\n      \"srvb:contract\": \"C2\",\n      \"srvb:releaseSupported\": \"true\",\n      \"srvb:published\": \"false\",\n      \"srvb:bindingCreated\": \"true\",\n      \"adtcore:responsible\": \"<<PRINCIPAL_1>>\",\n      \"adtcore:masterLanguage\": \"KO\",\n      \"adtcore:masterSystem\": \"DEV\",\n      \"adtcore:abapLanguageVersion\": \"0\",\n      \"adtcore:name\": \"ZSAPKIT_63_SB\",\n      \"adtcore:type\": \"SRVB/SVB\",\n      \"adtcore:changedAt\": \"<<TIMESTAMP_3>>\",\n      \"adtcore:version\": \"active\",\n      \"adtcore:createdAt\": \"<<TIMESTAMP_2>>\",\n      \"adtcore:changedBy\": \"<<PRINCIPAL_1>>\",\n      \"adtcore:createdBy\": \"<<PRINCIPAL_1>>\",\n      \"adtcore:description\": \"sapkit 63 attended probe service binding\",\n      \"adtcore:language\": \"KO\",\n      \"xmlns:srvb\": \"http://www.sap.com/adt/ddic/ServiceBindings\",\n      \"xmlns:adtcore\": \"http://www.sap.com/adt/core\"\n    }\n  },\n  \"generated_info\": {\n    \"?xml\": {\n      \"version\": \"1.0\",\n      \"encoding\": \"utf-8\"\n    },\n    \"odatav4:serviceGroup\": {\n      \"atom:link\": [\n        {\n          \"href\": \"/sap/bc/adt/businessservices/odatav4/publishjobs\",\n          \"rel\": \"http://www.sap.com/categories/odatav4\",\n          \"title\": \"ODATAV4PUBLISH\",\n          \"xmlns:atom\": \"http://www.w3.org/2005/Atom\"\n        },\n        {\n          \"href\": \"/sap/bc/adt/businessservices/odatav4/unpublishjobs\",\n          \"rel\": \"http://www.sap.com/categories/odatav4\",\n          \"title\": \"ODATAV4UNPUBLISH\",\n          \"xmlns:atom\": \"http://www.w3.org/2005/Atom\"\n        }\n      ],\n      \"odatav4:services\": {\n        \"serviceInfo:serviceInformation\": {\n          \"xmlns:serviceInfo\": \"http://www.sap.com/categories/serviceinformation\"\n        },\n        \"odatav4:repositoryId\": \"SRVD_A2X\",\n        \"odatav4:serviceId\": \"ZSAPKIT_63_SB\",\n        \"odatav4:serviceVersion\": \"0001\",\n        \"odatav4:serviceUrl\": \"\",\n        \"odatav4:annotationUrl\": \"\",\n        \"odatav4:created\": \"true\"\n      },\n      \"odatav4:published\": \"false\",\n      \"odatav4:serviceUrlPrefix\": \"/sap/opu/odata4/sap/zsapkit_63_sb/srvd_a2x/\",\n      \"adtcore:name\": \"ZSAPKIT_63_SB\",\n      \"xmlns:odatav4\": \"http://www.sap.com/categories/odatav4\",\n      \"xmlns:adtcore\": \"http://www.sap.com/adt/core\"\n    }\n  }\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "ODataV4 바인딩. 활성화가 실제 서비스 발행까지 가는 자리라 RAP 계열에서 가장 늦게 서고 가장 먼저 막히는 단계다."
+    },
+    {
+      "index": 14,
+      "tool": "GetServiceBinding",
+      "args": {
+        "service_binding_name": "ZSAPKIT_63_SB"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"service_binding_name\": \"ZSAPKIT_63_SB\",\n  \"response_format\": \"xml\",\n  \"status\": 200,\n  \"payload\": {\n    \"?xml\": {\n      \"version\": \"1.0\",\n      \"encoding\": \"utf-8\"\n    },\n    \"srvb:serviceBinding\": {\n      \"atom:link\": [\n        {\n          \"href\": \"versions\",\n          \"rel\": \"http://www.sap.com/adt/relations/versions\",\n          \"title\": \"Historic versions\",\n          \"xmlns:atom\": \"http://www.w3.org/2005/Atom\"\n        },\n        {\n          \"href\": \"/sap/bc/adt/repository/informationsystem/abaplanguageversions?uri=%2Fsap%2Fbc%2Fadt%2Fbusinessservices%2Fbindings%2Fzsapkit_63_sb\",\n          \"rel\": \"http://www.sap.com/adt/relations/informationsystem/abaplanguageversions\",\n          \"type\": \"application/vnd.sap.adt.nameditems.v1+xml\",\n          \"title\": \"Allowed ABAP language versions\",\n          \"xmlns:atom\": \"http://www.w3.org/2005/Atom\"\n        },\n        {\n          \"href\": \"/sap/bc/adt/businessservices/odatav4/ZSAPKIT_63_SB\",\n          \"rel\": \"http://www.sap.com/categories/odatav4\",\n          \"type\": \"application/vnd.sap.adt.businessservices.odatav4.v1+xml\",\n          \"title\": \"ODATAV4\",\n          \"xmlns:atom\": \"http://www.w3.org/2005/Atom\"\n        },\n        {\n          \"href\": \"/sap/bc/adt/businessservices/testclass\",\n          \"rel\": \"http://www.sap.com/categories/testclass\",\n          \"type\": \"application/vnd.sap.adt.businessservices.testclass.v1+xml\",\n          \"title\": \"TESTCLASS\",\n          \"xmlns:atom\": \"http://www.w3.org/2005/Atom\"\n        },\n        {\n          \"href\": \"/sap/bc/adt/businessservices/testclass\",\n          \"rel\": \"http://www.sap.com/categories/testclass\",\n          \"type\": \"application/vnd.sap.adt.businessservices.testclassv4.v1+xml\",\n          \"title\": \"TESTCLASSV4\",\n          \"xmlns:atom\": \"http://www.w3.org/2005/Atom\"\n        },\n        {\n          \"href\": \"/sap/bc/adt/businessservices/semanticversion\",\n          \"rel\": \"http://www.sap.com/categories/semanticversion\",\n          \"type\": \"application/vnd.sap.adt.businessservices.semanticversion.v1+xml\",\n          \"title\": \"SemanticVersion\",\n          \"xmlns:atom\": \"http://www.w3.org/2005/Atom\"\n        }\n      ],\n      \"adtcore:packageRef\": {\n        \"adtcore:uri\": \"/sap/bc/adt/packages/%24tmp\",\n        \"adtcore:type\": \"DEVC/K\",\n        \"adtcore:name\": \"$TMP\",\n        \"adtcore:description\": \"Temporary Objects (never transported!)\"\n      },\n      \"srvb:services\": {\n        \"srvb:content\": {\n          \"srvb:serviceDefinition\": {\n            \"adtcore:uri\": \"/sap/bc/adt/ddic/srvd/sources/zsapkit_63_sd\",\n            \"adtcore:type\": \"SRVD/SRV\",\n            \"adtcore:name\": \"ZSAPKIT_63_SD\"\n          },\n          \"srvb:bindingTypeData\": {\n            \"adtcore:content\": {\n              \"adtcore:encoding\": \"base64\"\n            }\n          },\n          \"srvb:version\": \"0001\",\n          \"srvb:minorVersion\": \"0\",\n          \"srvb:patchVersion\": \"0\",\n          \"srvb:buildVersion\": \"\",\n          \"srvb:releaseState\": \"NOT_RELEASED\"\n        },\n        \"srvb:name\": \"ZSAPKIT_63_SB\"\n      },\n      \"srvb:binding\": {\n        \"srvb:implementation\": {\n          \"adtcore:name\": \"ZSAPKIT_63_SB\"\n        },\n        \"srvb:type\": \"ODATA\",\n        \"srvb:version\": \"V4\",\n        \"srvb:category\": \"1\"\n      },\n      \"srvb:contract\": \"C2\",\n      \"srvb:releaseSupported\": \"true\",\n      \"srvb:published\": \"false\",\n      \"srvb:bindingCreated\": \"true\",\n      \"adtcore:responsible\": \"<<PRINCIPAL_1>>\",\n      \"adtcore:masterLanguage\": \"KO\",\n      \"adtcore:masterSystem\": \"DEV\",\n      \"adtcore:abapLanguageVersion\": \"0\",\n      \"adtcore:name\": \"ZSAPKIT_63_SB\",\n      \"adtcore:type\": \"SRVB/SVB\",\n      \"adtcore:changedAt\": \"<<TIMESTAMP_3>>\",\n      \"adtcore:version\": \"active\",\n      \"adtcore:createdAt\": \"<<TIMESTAMP_2>>\",\n      \"adtcore:changedBy\": \"<<PRINCIPAL_1>>\",\n      \"adtcore:createdBy\": \"<<PRINCIPAL_1>>\",\n      \"adtcore:description\": \"sapkit 63 attended probe service binding\",\n      \"adtcore:language\": \"KO\",\n      \"xmlns:srvb\": \"http://www.sap.com/adt/ddic/ServiceBindings\",\n      \"xmlns:adtcore\": \"http://www.sap.com/adt/core\"\n    }\n  }\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "되읽기."
+    },
+    {
+      "index": 15,
+      "tool": "DeleteServiceBinding",
+      "args": {
+        "service_binding_name": "ZSAPKIT_63_SB"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"service_binding_name\": \"ZSAPKIT_63_SB\",\n  \"response_format\": \"xml\",\n  \"status\": 200,\n  \"payload\": {\n    \"?xml\": {\n      \"version\": \"1.0\",\n      \"encoding\": \"utf-8\"\n    },\n    \"del:deletionResult\": {\n      \"del:object\": [\n        {\n          \"del:message\": {\n            \"del:text\": \"\",\n            \"del:priority\": \"0\",\n            \"del:type\": \"S\"\n          },\n          \"del:isDeleted\": \"true\",\n          \"adtcore:uri\": \"/sap/bc/adt/businessservices/bindings/zsapkit_63_sb\",\n          \"adtcore:type\": \"SRVB/SVB\",\n          \"adtcore:name\": \"ZSAPKIT_63_SB\",\n          \"adtcore:packageName\": \"$TMP\",\n          \"xmlns:adtcore\": \"http://www.sap.com/adt/core\"\n        },\n        {\n          \"del:message\": {\n            \"del:text\": \"\",\n            \"del:priority\": \"0\",\n            \"del:type\": \"S\"\n          },\n          \"del:isDeleted\": \"true\",\n          \"adtcore:uri\": \"/sap/bc/adt/businessservices/odatav4/zsapkit_63_sb\",\n          \"adtcore:type\": \"G4BA\",\n          \"adtcore:name\": \"ZSAPKIT_63_SB\",\n          \"xmlns:adtcore\": \"http://www.sap.com/adt/core\"\n        },\n        {\n          \"del:message\": {\n            \"del:text\": \"\",\n            \"del:priority\": \"0\",\n            \"del:type\": \"S\"\n          },\n          \"del:isDeleted\": \"true\",\n          \"adtcore:uri\": \"/sap/bc/adt/vit/wb/object_type/sush/object_name/F18CFAE973610FD4952F32765C907BHT\",\n          \"adtcore:type\": \"SUSH\",\n          \"adtcore:name\": \"F18CFAE973610FD4952F32765C907BHT\",\n          \"xmlns:adtcore\": \"http://www.sap.com/adt/core\"\n        }\n      ],\n      \"xmlns:del\": \"http://www.sap.com/adt/deletion\"\n    }\n  }\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "여기부터 의존의 역순으로 걷는다."
+    },
+    {
+      "index": 16,
+      "tool": "DeleteServiceDefinition",
+      "args": {
+        "service_definition_name": "ZSAPKIT_63_SD"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"service_definition_name\": \"ZSAPKIT_63_SD\",\n  \"transport_request\": null,\n  \"message\": \"ServiceDefinition ZSAPKIT_63_SD deleted successfully.\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "바인딩이 빠진 뒤라야 지워진다."
+    },
+    {
+      "index": 17,
+      "tool": "DeleteBehaviorImplementation",
+      "args": {
+        "behavior_implementation_name": "ZBP_SAPKIT_63_RV"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"behavior_implementation_name\": \"ZBP_SAPKIT_63_RV\",\n  \"transport_request\": null,\n  \"message\": \"BehaviorImplementation ZBP_SAPKIT_63_RV deleted successfully.\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "동작 구현 정리."
+    },
+    {
+      "index": 18,
+      "tool": "DeleteBehaviorDefinition",
+      "args": {
+        "behavior_definition_name": "ZSAPKIT_63_RV"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"behavior_definition_name\": \"ZSAPKIT_63_RV\",\n  \"transport_request\": null,\n  \"message\": \"BehaviorDefinition ZSAPKIT_63_RV deleted successfully.\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "동작 정의 정리. 구현보다 나중이어야 한다."
+    },
+    {
+      "index": 19,
+      "tool": "DeleteView",
+      "args": {
+        "view_name": "ZSAPKIT_63_RV"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"view_name\": \"ZSAPKIT_63_RV\",\n  \"transport_request\": null,\n  \"message\": \"View ZSAPKIT_63_RV deleted successfully.\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "루트 뷰 정리."
+    },
+    {
+      "index": 20,
+      "tool": "DeleteTable",
+      "args": {
+        "table_name": "ZSAPKIT_63_RT"
+      },
+      "response": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": true,\n  \"table_name\": \"ZSAPKIT_63_RT\",\n  \"transport_request\": null,\n  \"message\": \"Table ZSAPKIT_63_RT deleted successfully.\"\n}"
+          }
+        ]
+      },
+      "isError": false,
+      "note": "영속 테이블 정리. 여기까지가 이 시퀀스의 왕복이다."
+    },
+    {
+      "index": 21,
+      "tool": "SearchObject",
+      "args": {
+        "object_name": "ZSAPKIT_63_SB",
+        "maxResults": 5
+      },
+      "response": {
+        "content": []
+      },
+      "isError": false,
+      "note": "삭제의 기계 확인 ①."
+    },
+    {
+      "index": 22,
+      "tool": "SearchObject",
+      "args": {
+        "object_name": "ZSAPKIT_63_SD",
+        "maxResults": 5
+      },
+      "response": {
+        "content": []
+      },
+      "isError": false,
+      "note": "삭제의 기계 확인 ②."
+    },
+    {
+      "index": 23,
+      "tool": "SearchObject",
+      "args": {
+        "object_name": "ZBP_SAPKIT_63_RV",
+        "maxResults": 5
+      },
+      "response": {
+        "content": []
+      },
+      "isError": false,
+      "note": "삭제의 기계 확인 ③."
+    },
+    {
+      "index": 24,
+      "tool": "SearchObject",
+      "args": {
+        "object_name": "ZSAPKIT_63_RV",
+        "maxResults": 5
+      },
+      "response": {
+        "content": []
+      },
+      "isError": false,
+      "note": "삭제의 기계 확인 ④ — 이 이름은 DDLS와 BDEF 둘을 가리켰으므로 둘 다 0건이어야 한다."
+    },
+    {
+      "index": 25,
+      "tool": "SearchObject",
+      "args": {
+        "object_name": "ZSAPKIT_63_RT",
+        "maxResults": 5
+      },
+      "response": {
+        "content": []
+      },
+      "isError": false,
+      "note": "삭제의 기계 확인 ⑤."
+    }
+  ],
+  "placeholders": [
+    {
+      "placeholder": "<<PRINCIPAL_1>>",
+      "kind": "principal",
+      "occurrences": 12
+    },
+    {
+      "placeholder": "<<TIMESTAMP_1>>",
+      "kind": "timestamp",
+      "occurrences": 1
+    },
+    {
+      "placeholder": "<<TIMESTAMP_2>>",
+      "kind": "timestamp",
+      "occurrences": 3
+    },
+    {
+      "placeholder": "<<SERVER_ID_1>>",
+      "kind": "server-id",
+      "occurrences": 1
+    },
+    {
+      "placeholder": "<<SERVER_ID_2>>",
+      "kind": "server-id",
+      "occurrences": 1
+    },
+    {
+      "placeholder": "<<TIMESTAMP_3>>",
+      "kind": "timestamp",
+      "occurrences": 4
+    }
+  ]
+}
