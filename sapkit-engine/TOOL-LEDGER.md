@@ -33,9 +33,9 @@
 | 도구 전체 목록 | `harness/old-surface/m1-tools.json` | 있음 · 186종 — 구 번들 표면 채록본의 전량 선언 |
 | 등록점 (`지음` 판정) | `src/tools/registry.ts` | 있음 · 186종 등재 |
 | 제작 계획 (묶음·순서·요구 급) | `harness/build-plan.json` | 있음 · 묶음 29 · 배정된 도구 186종 · 요구 급 인하 62종 |
-| 얼린 관측 (인하의 근거) | `harness/phase6-exercised.json` | 있음 · 판6까지 픽스처가 실제로 태운 도구 목록. 산식이 매 실행마다 `fixtures/`를 다시 훑으면 증거를 못 만들수록 요구가 저절로 낮아지므로, 한 번 뽑아 얼린 것만 읽는다 |
+| 얼린 관측 (인하의 근거) | `harness/phase6-exercised.json` | 있음 · 78종 — **`fixtures/` 아래를 재귀로 훑은 수**다(아래 「재생 픽스처」 행과 단위가 다르다 — 그 행은 최상위만 본다). 판6까지 픽스처가 실제로 태운 도구 목록. 산식이 매 실행마다 `fixtures/`를 다시 훑으면 증거를 못 만들수록 요구가 저절로 낮아지므로, 한 번 뽑아 얼린 것만 읽는다 |
 | 재생 판정 파일 | `evidence/replay/*.json` | 있음 · 9건 |
-| 재생 픽스처 | `fixtures/*.json` | 있음 · 16종의 도구를 건드린다 — 픽스처만으로는 증거가 아니다 |
+| 재생 픽스처 | `fixtures/*.json` | 있음 · 16종의 도구를 건드린다 — 픽스처만으로는 증거가 아니다. ⚠ **이 수는 최상위 `fixtures/*.json`만 센 것**이고 하위(`attended-only/`)를 세지 않는다 — 재생은 그 자리를 수집하지 않기 때문이다. 위 「얼린 관측」의 수와 **단위가 달라** 서로 안 맞는 것이 정상이다 |
 | attended 실기 기록 | `fixtures/attended-only/*.json` | 있음 · 111단계 |
 | 계약 시험 결과 | `evidence/contract/results.json` | 있음 · 186종 |
 | 계약 시험 파일 | `src/tools/**/__tests__/<도구>.test.ts` | 있음 · 186종에 시험 파일이 있다 — 있음이 곧 통과는 아니다 |

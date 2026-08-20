@@ -175,7 +175,7 @@ node interactive/scripts/verify-checker.mjs              # 동봉 검사기 번�
 node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (로컬 전용 — 설치 상태를 읽는다)
 ```
 
-게이트 자체의 음성시험(게이트가 정말 거부하는지): `test-smoke-mcp.mjs` 29/29 ·
+게이트 자체의 음성시험(게이트가 정말 거부하는지): `test-smoke-mcp.mjs` 30/30 ·
 `test-check-runtime-path-rename.mjs` 13/13 · `test-hook-switch.mjs` 13/13 ·
 `test-hook-decisions.mjs` 74케이스 ·
 `test-setup-state.mjs` 120/120 · `test-launch-toolsurface.mjs` 56/56 ·
@@ -218,9 +218,14 @@ node gates/bundle-smoke.mjs            # **제품에 실리는 단일 파일** �
 node gates/test-gates.mjs              # 게이트 음성시험 (게이트가 정말 거부하는지)
 node gates/keyring-fallback-smoke.mjs  # keyring 부재 강등 스모크 (require-seam 차단 — 판5)
 node gates/test-refusal-vocab.mjs      # 거부 어휘 구·신 병행 인식 (D18 방어 — 판5)
+node gates/test-attended-guard.mjs     # attended 녹화 관문 음성시험 (저장 자리 3분기 · 무접속 어휘 · 신원 가리기 — 판6.3)
 node harness/render-ledger.mjs --check # 대장 ↔ 계산 결과
 node harness/build-plan.mjs --check    # 제작 계획 ↔ 산식
 ```
+
+⚠ **`harness/record-attended.mjs`(attended 실기 녹화)는 게이트가 아니다** — 실 SAP에 붙고
+P3 write가 실제로 일어나는 **attended 전용 도구**다. 여기 목록에 넣지 말 것.
+`--dry-run`만 접속 없이 돈다. 그 관문들이 정말 거부하는지는 위 `test-attended-guard.mjs`가 잰다.
 
 ~~**「제품 게이트 전종 여전히 green」이 구 부품 무접촉의 기계 증명이다**~~ — 이 조항은
 **판7-b 교체로 소멸했다**. 그 증명의 목적은 병행 제작 기간에 구 부품을 흔들리지 않는

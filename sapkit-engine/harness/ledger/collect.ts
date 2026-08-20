@@ -40,7 +40,7 @@ import {
 } from './evidence';
 import { scanDelegation } from './delegation';
 import type { DelegationKind } from './delegation';
-import { PHASE6_EXERCISED_PATH } from './grade';
+import { PHASE6_EXERCISED_PATH, loadPhase6Exercised } from './grade';
 import { BUILD_PLAN_PATH, bundleOf, loadBuildPlan, requiredGradesFrom } from './plan';
 import type { BuildPlan, PlanBundle } from './plan';
 
@@ -227,6 +227,20 @@ export function collectLedger(options: CollectOptions = {}): LedgerModel {
           };
         })();
 
+  // 얼린 관측의 **종수**만 읽는다 — 판정에는 쓰지 않는다(그건 계획이 이미 반영해 온다).
+  // 여기서 던지지 않는 이유: 이 자리는 입력 표를 그리는 서술이고, 얼린 관측이 없을 때
+  // 인하가 조용히 사라지는 것을 막는 fail-closed는 `grade.ts`가 소유한다. 대장이 그
+  // 자리에서 한 번 더 던지면 「입력이 없다」를 보여 줄 기회조차 사라진다.
+  const exercisedCount = ((): number | null => {
+    const file = path.join(engineRoot, PHASE6_EXERCISED_PATH);
+    if (!fs.existsSync(file)) return null;
+    try {
+      return loadPhase6Exercised(file).tools.size;
+    } catch {
+      return null;
+    }
+  })();
+
   const fixtureTools = toolsInFixtures(fixtureDir);
   const scan = scanDelegation(handlersDir, options.oldSrcRoot);
   const facts = new Map<string, ToolFacts>(
@@ -284,8 +298,10 @@ export function collectLedger(options: CollectOptions = {}): LedgerModel {
     {
       label: '얼린 관측 (인하의 근거)',
       path: PHASE6_EXERCISED_PATH,
-      present: fs.existsSync(path.join(engineRoot, PHASE6_EXERCISED_PATH)),
+      present: exercisedCount !== null,
       detail:
+        (exercisedCount === null ? '' : `${exercisedCount}종 — **`) +
+        (exercisedCount === null ? '' : '`fixtures/` 아래를 재귀로 훑은 수**다(아래 「재생 픽스처」 행과 단위가 다르다 — 그 행은 최상위만 본다). ') +
         '판6까지 픽스처가 실제로 태운 도구 목록. 산식이 매 실행마다 `fixtures/`를 다시 훑으면 ' +
         '증거를 못 만들수록 요구가 저절로 낮아지므로, 한 번 뽑아 얼린 것만 읽는다',
     },
@@ -302,7 +318,10 @@ export function collectLedger(options: CollectOptions = {}): LedgerModel {
       label: '재생 픽스처',
       path: `${show(engineRoot, fixtureDir)}/*.json`,
       present: fixtureTools.size > 0,
-      detail: `${fixtureTools.size}종의 도구를 건드린다 — 픽스처만으로는 증거가 아니다`,
+      detail:
+        `${fixtureTools.size}종의 도구를 건드린다 — 픽스처만으로는 증거가 아니다. ` +
+        '⚠ **이 수는 최상위 `fixtures/*.json`만 센 것**이고 하위(`attended-only/`)를 세지 않는다 — ' +
+        '재생은 그 자리를 수집하지 않기 때문이다. 위 「얼린 관측」의 수와 **단위가 달라** 서로 안 맞는 것이 정상이다',
     },
     {
       label: 'attended 실기 기록',
