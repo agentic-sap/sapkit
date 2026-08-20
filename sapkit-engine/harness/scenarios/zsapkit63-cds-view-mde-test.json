@@ -1,0 +1,153 @@
+{
+  "_": "판6.3 실기 왕복 ⑧ — CDS 계열. 메타데이터 확장·CDS 단위시험은 CDS 뷰가 숙주이고, 뷰 자신은 베이스 테이블이 숙주다(RUN-PLAN 함정 3). 온프렘 지원 여부는 착수 시점에 미확인이었다 — T4-1 정찰이 CreateView 1회로 먼저 가른다.",
+  "sequenceId": "zsapkit63-cds-view-mde-test",
+  "description": "[재실행 가능 · P3 · $TMP] 베이스 테이블 ZSAPKIT_63_VT 생성·DDL 투입·활성 → CDS 뷰 ZSAPKIT_63_V 생성·DDL 투입·활성 → 되읽기 → 메타데이터 확장 ZSAPKIT_63_MDE 생성·소스 투입·활성 → 되읽기 → CDS 단위시험 클래스 ZCL_SAPKIT_63_CDST 생성 → 되읽기 → 셋 다 삭제 → 베이스 테이블 삭제 → 네 이름으로 재조회해 0건 확인. 전제: 네 이름이 시스템에 없어야 한다. 숙주까지 이 시퀀스가 세우므로 재실행 가능하다. 베이스 테이블을 표준 테이블(T000 등)로 대신하지 않는 이유는 둘이다 — 남의 것을 건드리지 않기 위해서이고, 픽스처에 실리는 소스가 전부 우리가 만든 Z 객체여야 하기 때문이다. 대상 시스템은 ABAP 757(S/4 2022)이라 `define view entity`(7.55+)와 `annotate entity`가 성립한다 — 그래서 sqlViewName 주석이 필요 없다. T4-1 정찰이 「안 선다」로 나오면 이 시퀀스와 RAP 시퀀스는 태우지 않고 6짝 전부 「못 섬 + 이유」로 기록한다. $TMP라 transport_request가 없다.",
+  "steps": [
+    {
+      "tool": "CreateTable",
+      "args": {
+        "table_name": "ZSAPKIT_63_VT",
+        "description": "sapkit 63 attended probe base table for CDS",
+        "package_name": "$TMP"
+      },
+      "note": "CDS 뷰가 select 할 자리. 껍데기만 서므로 다음 단계에서 DDL을 채운다."
+    },
+    {
+      "tool": "UpdateTable",
+      "args": {
+        "table_name": "ZSAPKIT_63_VT",
+        "ddl_code": "@EndUserText.label : 'sapkit 63 attended probe base table'\n@AbapCatalog.enhancement.category : #NOT_EXTENSIBLE\n@AbapCatalog.tableCategory : #TRANSPARENT\n@AbapCatalog.deliveryClass : #A\n@AbapCatalog.dataMaintenance : #RESTRICTED\ndefine table zsapkit_63_vt {\n  key mandt : mandt not null;\n  key id    : abap.char(10) not null;\n  name      : abap.char(60);\n}\n",
+        "activate": true
+      },
+      "note": "클라이언트 키는 MANDT 데이터엘리먼트다(abap.clnt는 CDS 뷰 문법). 활성 테이블이라야 뷰가 그 위에 선다."
+    },
+    {
+      "tool": "CreateView",
+      "args": {
+        "view_name": "ZSAPKIT_63_V",
+        "package_name": "$TMP",
+        "description": "sapkit 63 attended probe CDS view"
+      },
+      "note": "CreateView는 이름·패키지만 받는다 — DDL은 다음 단계의 UpdateView가 채운다. $TMP 허용은 도구 선언 자신이 명시한다."
+    },
+    {
+      "tool": "UpdateView",
+      "args": {
+        "view_name": "ZSAPKIT_63_V",
+        "ddl_source": "@AccessControl.authorizationCheck: #NOT_REQUIRED\n@EndUserText.label: 'sapkit 63 attended probe view'\n@Metadata.ignorePropagatedAnnotations: true\ndefine view entity ZSAPKIT_63_V\n  as select from zsapkit_63_vt\n{\n  key id   as Id,\n      name as Name\n}\n",
+        "activate": true
+      },
+      "note": "mandt를 명시로 뽑지 않는다 — view entity는 클라이언트 열을 암묵으로 다루고, 명시하면 오류다. 이 뷰가 뒤의 메타데이터 확장·CDS 단위시험의 숙주다."
+    },
+    {
+      "tool": "GetView",
+      "args": {
+        "view_name": "ZSAPKIT_63_V"
+      },
+      "note": "되읽기 — 보낸 DDL이 실제로 반영됐는지. 이 판이 만든 Z 객체라 소스가 픽스처에 실려도 된다."
+    },
+    {
+      "tool": "CreateMetadataExtension",
+      "args": {
+        "name": "ZSAPKIT_63_MDE",
+        "description": "sapkit 63 attended probe metadata extension",
+        "package_name": "$TMP",
+        "activate": false
+      },
+      "note": "껍데기 DDLX가 선다. 대상 뷰를 가리키는 문장은 다음 단계의 소스가 갖는다 — 그래서 여기서는 활성화하지 않는다."
+    },
+    {
+      "tool": "UpdateMetadataExtension",
+      "args": {
+        "name": "ZSAPKIT_63_MDE",
+        "source_code": "@Metadata.layer: #CORE\nannotate entity ZSAPKIT_63_V with\n{\n  @UI.lineItem: [ { position: 10 } ]\n  Id;\n}\n",
+        "activate": true
+      },
+      "note": "view entity에는 `annotate entity`가 맞다(고전 뷰의 `annotate view`가 아니다 — 757이라 둘이 갈린다). 실패하면 그 응답이 갈림의 근거가 된다."
+    },
+    {
+      "tool": "GetMetadataExtension",
+      "args": {
+        "metadata_extension_name": "ZSAPKIT_63_MDE"
+      },
+      "note": "되읽기."
+    },
+    {
+      "tool": "CreateCdsUnitTest",
+      "args": {
+        "class_name": "ZCL_SAPKIT_63_CDST",
+        "package_name": "$TMP",
+        "cds_view_name": "ZSAPKIT_63_V",
+        "description": "sapkit 63 attended probe CDS unit test"
+      },
+      "note": "CDS 단위시험은 뷰 하나를 겨눈 시험 클래스를 만든다 — 클래스 계열의 CreateUnitTest(실행을 시작하는 도구)와 성질이 다르다."
+    },
+    {
+      "tool": "GetClass",
+      "args": {
+        "class_name": "ZCL_SAPKIT_63_CDST"
+      },
+      "note": "되읽기 — CreateCdsUnitTest가 만드는 것은 CDS 뷰를 겨눈 **시험 클래스 객체**라 GetClass로 되읽는다. GetCdsUnitTest는 객체가 아니라 **실행(run_id)** 을 읽는 도구여서 여기 쓸 수 없다(선언을 추측하지 말고 m1-tools.json을 볼 것 — 착수 전 인자 대조에서 실제로 걸린 자리다)."
+    },
+    {
+      "tool": "DeleteCdsUnitTest",
+      "args": {
+        "class_name": "ZCL_SAPKIT_63_CDST"
+      },
+      "note": "의존의 역순 — 뷰를 겨눈 것부터 걷는다."
+    },
+    {
+      "tool": "DeleteMetadataExtension",
+      "args": {
+        "metadata_extension_name": "ZSAPKIT_63_MDE"
+      },
+      "note": "인자 이름이 Create 쪽(name)과 다르다 — 선언을 추측하지 말고 m1-tools.json을 볼 것."
+    },
+    {
+      "tool": "DeleteView",
+      "args": {
+        "view_name": "ZSAPKIT_63_V"
+      },
+      "note": "숙주 뷰 정리."
+    },
+    {
+      "tool": "DeleteTable",
+      "args": {
+        "table_name": "ZSAPKIT_63_VT"
+      },
+      "note": "베이스 테이블 정리. 여기까지가 이 시퀀스의 왕복이다."
+    },
+    {
+      "tool": "SearchObject",
+      "args": {
+        "object_name": "ZCL_SAPKIT_63_CDST",
+        "maxResults": 5
+      },
+      "note": "삭제의 기계 확인 ①. 0건이어야 한다."
+    },
+    {
+      "tool": "SearchObject",
+      "args": {
+        "object_name": "ZSAPKIT_63_MDE",
+        "maxResults": 5
+      },
+      "note": "삭제의 기계 확인 ②."
+    },
+    {
+      "tool": "SearchObject",
+      "args": {
+        "object_name": "ZSAPKIT_63_V",
+        "maxResults": 5
+      },
+      "note": "삭제의 기계 확인 ③."
+    },
+    {
+      "tool": "SearchObject",
+      "args": {
+        "object_name": "ZSAPKIT_63_VT",
+        "maxResults": 5
+      },
+      "note": "삭제의 기계 확인 ④."
+    }
+  ]
+}

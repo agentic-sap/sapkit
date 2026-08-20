@@ -1,0 +1,103 @@
+{
+  "_": "판6.3 실기 왕복 ⑥ — 프로그램 숙주 위의 텍스트 엘리먼트·화면·GUI 상태. 화면·GUI 4종은 판6.2에서 0/4였다(ZMCP_ADT_SRV Dispatch 고장 — SAP 측 오브젝트 문제이지 미설치가 아니다). 그래서 단계 순서를 위험도로 정렬한다: 안전한 텍스트 왕복을 먼저 닫고, 못 설 공산이 큰 화면·GUI를 뒤에 둔다. 그 넷이 실패해도 앞의 왕복은 이미 이 픽스처에 기록된 뒤다.",
+  "sequenceId": "zsapkit63-program-text-screen-gui",
+  "description": "[재실행 가능 · P3 · $TMP] 프로그램 ZSAPKIT_63_PROG 생성 → 소스 투입·활성 → 텍스트 엘리먼트 생성·되읽기·삭제 → 화면 0100 생성·되읽기·삭제 → GUI 상태 STAT63 생성·되읽기·삭제 → 프로그램 삭제 → 이름으로 재조회해 0건 확인. 전제: ZSAPKIT_63_PROG가 시스템에 없어야 한다. 만든 것을 같은 시퀀스 안에서 지우므로 재실행 가능하다. 화면·GUI 6단계는 판6.2 실측상 실패할 공산이 크고, 그 실패는 결함이 아니라 **관측 대상**이다 — 어느 단계에서 어떤 응답으로 막혔는지가 「못 섬 + 이유」의 근거가 된다. T4-2 정찰이 「선다」로 나오면 그대로 태우고, 「안 선다」로 나와도 단계를 빼지 않고 태워 실패 응답을 증거로 남긴다(빼면 「관찰되지 않았다」밖에 못 적는다). 단, 실패가 프로그램을 잠그거나 뒤의 삭제를 막으면 그때 갈라 다시 태운다. $TMP라 transport_request가 없다.",
+  "steps": [
+    {
+      "tool": "CreateProgram",
+      "args": {
+        "program_name": "ZSAPKIT_63_PROG",
+        "description": "sapkit 63 attended probe program",
+        "package_name": "$TMP",
+        "program_type": "executable"
+      },
+      "note": "숙주 준비. CreateProgram은 판6.1에서 이미 증거가 섰으므로 이 판의 46종에는 들어가지 않는다."
+    },
+    {
+      "tool": "UpdateProgram",
+      "args": {
+        "program_name": "ZSAPKIT_63_PROG",
+        "source_code": "REPORT zsapkit_63_prog.\n\n* sapkit 63 attended probe host\nWRITE / 'sapkit 63'.\n",
+        "activate": true
+      },
+      "note": "텍스트 엘리먼트·화면·GUI 상태가 붙을 자리를 확실히 세운다."
+    },
+    {
+      "tool": "CreateTextElement",
+      "args": {
+        "program_name": "ZSAPKIT_63_PROG",
+        "text_type": "I",
+        "key": "001",
+        "text": "sapkit 63 attended probe text",
+        "activate": true
+      },
+      "note": "text_type=I는 텍스트 심볼이다. 안전한 쪽을 먼저 닫는다 — 뒤의 화면·GUI가 무너져도 이 왕복은 이 픽스처에 이미 들어 있다."
+    },
+    {
+      "tool": "GetTextElement",
+      "args": { "program_name": "ZSAPKIT_63_PROG" },
+      "note": "되읽기 — 심볼 001이 실제로 박혔는지."
+    },
+    {
+      "tool": "DeleteTextElement",
+      "args": {
+        "program_name": "ZSAPKIT_63_PROG",
+        "text_type": "I",
+        "key": "001",
+        "activate": true
+      },
+      "note": "텍스트 왕복의 닫는 쪽. 여기까지가 이 시퀀스에서 가장 확실한 두 종이다."
+    },
+    {
+      "tool": "CreateScreen",
+      "args": {
+        "program_name": "ZSAPKIT_63_PROG",
+        "screen_number": "0100",
+        "description": "sapkit 63 attended probe screen",
+        "activate": true
+      },
+      "note": "여기서부터 판6.2가 0/4로 막혔던 구간이다. 실패하면 응답 전문이 「어느 단계에서 어떤 이유로」의 근거가 된다 — 「미설치」로 오귀인하지 말 것(등록·라우팅은 살아 있다)."
+    },
+    {
+      "tool": "GetScreen",
+      "args": { "program_name": "ZSAPKIT_63_PROG", "screen_number": "0100" },
+      "note": "되읽기. 앞 단계가 실패했으면 이것도 실패하고, 그 두 응답이 함께 「못 섬」의 근거가 된다."
+    },
+    {
+      "tool": "DeleteScreen",
+      "args": { "program_name": "ZSAPKIT_63_PROG", "screen_number": "0100" },
+      "note": "화면 왕복의 닫는 쪽."
+    },
+    {
+      "tool": "CreateGuiStatus",
+      "args": {
+        "program_name": "ZSAPKIT_63_PROG",
+        "status_name": "STAT63",
+        "description": "sapkit 63 attended probe status",
+        "status_type": "N",
+        "activate": true
+      },
+      "note": "status_type=N은 일반 상태다. 화면과 같은 Dispatch 경로를 타므로 함께 서거나 함께 막힐 공산이 크다."
+    },
+    {
+      "tool": "GetGuiStatus",
+      "args": { "program_name": "ZSAPKIT_63_PROG", "status_name": "STAT63" },
+      "note": "되읽기."
+    },
+    {
+      "tool": "DeleteGuiStatus",
+      "args": { "program_name": "ZSAPKIT_63_PROG", "status_name": "STAT63" },
+      "note": "GUI 왕복의 닫는 쪽."
+    },
+    {
+      "tool": "DeleteProgram",
+      "args": { "program_name": "ZSAPKIT_63_PROG" },
+      "note": "숙주 정리. 앞의 화면·GUI가 실패했더라도 프로그램은 지워져야 한다 — 실패가 여기까지 막으면 그것 자체가 보고할 발견이다."
+    },
+    {
+      "tool": "SearchObject",
+      "args": { "object_name": "ZSAPKIT_63_PROG", "maxResults": 5 },
+      "note": "삭제의 기계 확인. 0건이어야 한다."
+    }
+  ]
+}

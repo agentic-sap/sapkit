@@ -1,0 +1,15 @@
+{
+  "_": "판6.3 실기 ⑩a — P4. **되돌릴 수 없다.** 표면 186종에 DeleteTransport가 없어 우리 도구로 지울 수 없다(정리는 사용자가 SE01에서 한다). CreatePackage와 한 시퀀스로 묶지 않은 이유는 채록기에 출력 연쇄가 없어서다 — 이송요청 번호는 이 시퀀스의 **응답**에만 있고 CreatePackage의 transport_request는 **입력 문자열**이라, 한 시퀀스에 묶으면 실패-수정-재실행에서 이송요청이 두 벌 생긴다.",
+  "sequenceId": "zsapkit63-p4-transport",
+  "description": "[**1회성** · **P4** · 사용자 승인 완료 · 해제 없음] 워크벤치 이송요청 1건을 생성한다. target_system을 주지 않아 LOCAL로 선다 — 흔적을 최소로 남기기 위해서다. owner도 주지 않아 접속 사용자가 소유자가 된다. **해제(ReleaseTransport)는 이 판의 승인 밖**이고, 이 시퀀스에도 없다. **재실행 금지** — 저장 거부는 SAP 호출이 전부 나간 뒤에 돌므로(record-attended.mjs의 강등 판정이 완성된 픽스처를 본다), 픽스처가 안 남았다고 다시 돌리면 이송요청이 두 벌 생긴다. 실패하면 먼저 ListTransports로 무엇이 생겼는지 조회한다. 만든 번호는 판 기록과 마감 보고에 적고, 정리 방법(SE01 — 미해제 요청 삭제)을 사용자에게 명시한다. 이 시퀀스는 재실행 가능하지 않다 — 이 판의 11편 중 유일한 예외이고, 그 이유가 P4다.",
+  "steps": [
+    {
+      "tool": "CreateTransport",
+      "args": {
+        "transport_type": "workbench",
+        "description": "sapkit 63 attended probe - do not release"
+      },
+      "note": "target_system 미지정 = LOCAL. 설명 문구에 'do not release'를 박아 둔다 — 이 요청을 나중에 보는 사람이 해제하지 않도록. 구 엔진은 생성된 번호를 응답에서 잃었고 신 엔진이 그것을 고쳤다(장부 D81) — **그 수리가 실제로 먹는지 여기서 관측된다.** 번호가 응답에 안 실리면 그것 자체가 보고할 발견이다."
+    }
+  ]
+}

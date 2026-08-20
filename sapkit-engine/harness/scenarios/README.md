@@ -185,6 +185,39 @@ update 쪽은 몇 번이든 자유롭게 재생할 수 있다.
 급이 `계약 시험`이라 재생 대상이 아니다 — **M1 19종이 전부 「증거 있음」이라는 것과
 19종이 전부 실 SAP을 밟았다는 것은 같은 말이 아니다.**
 
+### 판6.3 왕복 시퀀스 11편 (`zsapkit63-*`)
+
+**`Create*` 21 + `Delete*` 25 = 46종**을 덮는다(`CreateProgram`·`CreateInclude`는 판6.1에서
+이미 닫혀 빠졌고, 여기서는 숙주 준비로만 쓰인다).
+
+| 시나리오 | 정책 | 재실행 | 덮는 것 |
+|---|---|---|---|
+| `zsapkit63-domain-dataelement` | P3 | 자유 | Create/Delete Domain · DataElement |
+| `zsapkit63-structure-table` | P3 | 자유 | Create/Delete Structure · Table |
+| `zsapkit63-class-locals-unittest` | P3 | 자유 | Create/Delete Class · Delete Local×4 · Create/Delete UnitTest |
+| `zsapkit63-interface` | P3 | 자유 | Create/Delete Interface |
+| `zsapkit63-function` | P3 | 자유 | Create/Delete FunctionGroup · FunctionModule |
+| `zsapkit63-include` | P3 | 자유 | Delete Include (+ 숙주 프로그램 왕복) |
+| `zsapkit63-program-text-screen-gui` | P3 | 자유 | Create/Delete TextElement · Screen · GuiStatus · Delete Program |
+| `zsapkit63-cds-view-mde-test` | P3 | 자유 | Create/Delete View · MetadataExtension · CdsUnitTest |
+| `zsapkit63-rap-bdef-bimp-service` | P3 | 자유 | Create/Delete BehaviorDefinition · BehaviorImplementation · ServiceDefinition · ServiceBinding |
+| `zsapkit63-p4-transport` | **P4** | **1회성** | Create Transport — **되돌릴 수 없다** |
+| `zsapkit63-p4-package` | **P4** | **1회성** | Create Package — **되돌릴 수 없다** |
+
+**이 11편이 함정 ⑶을 정면으로 만족한다** — 만든 것을 **같은 시퀀스 안에서 지운다.**
+그래서 `Create*`가 들어 있는데도 재실행 가능하고, 앞 시퀀스의 잔재에 인질로 잡히지
+않는다(숙주까지 시퀀스가 세운다). 위 표의 「1회성」 둘만 예외이고, 그 이유는 재실행
+성질이 아니라 **P4가 남기는 흔적을 우리 도구로 지울 수 없다는 것**이다 — 표면 186종에
+`DeletePackage`·`DeleteTransport`가 없다.
+
+- 이름은 `ZSAPKIT_63*` · `ZCL_SAPKIT_63*` · `Z_SAPKIT_63*` · `ZIF_SAPKIT_63*`,
+  패키지는 `$TMP`(P4 둘 제외). 보호 자산 8종(`*_M1_*`)과 **글자로 갈린다.**
+- 삭제 뒤 확인은 **마스크가 아니라 정확한 이름**으로 `SearchObject`를 뜬다. 마스크로
+  뜨면 지울 수 없는 P4 산물이 섞여 재실행 판정이 흔들린다.
+- **`DeleteUnitTest`는 반드시 오류다** — ADT가 지원하지 않아 SAP에 요청이 0건 나가고
+  계약 문구가 그대로 돌아온다. 그 오류는 결함이 아니라 관측 대상이고, 대장에서는
+  「증거 대기」로 남는다.
+
 ### 이 묶음이 남긴 설계 메모 셋 (다음 사람이 되밟지 않도록)
 
 - **치환 시나리오는 같은 글자로 친다.** `UpdateSourceByPatch`는 한 번 돌면

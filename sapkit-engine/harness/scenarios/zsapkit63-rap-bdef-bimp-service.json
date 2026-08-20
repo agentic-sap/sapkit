@@ -1,0 +1,171 @@
+{
+  "_": "판6.3 실기 왕복 ⑨ — RAP 계열. 동작 정의는 루트 CDS 뷰가 숙주이고, 동작 구현은 동작 정의가, 서비스 바인딩은 서비스 정의가 숙주다(RUN-PLAN 함정 3). 온프렘 지원 여부는 착수 시점에 미확인이었다(spec 정직 유보 ⓔ).",
+  "sequenceId": "zsapkit63-rap-bdef-bimp-service",
+  "description": "[재실행 가능 · P3 · $TMP] 베이스 테이블 ZSAPKIT_63_RT 생성·DDL 투입·활성 → 루트 CDS 뷰 ZSAPKIT_63_RV 생성·DDL 투입·활성 → 동작 정의(BDEF, 이름은 루트 엔티티와 같다) 생성·되읽기 → 동작 구현 클래스 ZCL_SAPKIT_63_BP 생성·되읽기 → 서비스 정의 ZSAPKIT_63_SD 생성·소스 투입·활성·되읽기 → 서비스 바인딩 ZSAPKIT_63_SB 생성·되읽기 → 여섯을 역순으로 삭제 → 이름으로 재조회해 0건 확인. 전제: 여섯 이름이 시스템에 없어야 한다. 숙주까지 이 시퀀스가 세우므로 재실행 가능하다. 대상은 ABAP 757(S/4 2022)이라 `define root view entity`와 managed RAP이 성립한다. **미리 적어 두는 갈래**: CreateBehaviorDefinition이 생성하는 BDEF 소스가 `implementation in class`로 어떤 클래스 이름을 선언하는지가 관측 전에는 확정되지 않는다 — T4-1 정찰에서 BDEF를 되읽어 그 이름을 확인하고, ZCL_SAPKIT_63_BP와 다르면 이 시퀀스의 class_name 인자 하나만 그 이름으로 맞춘다(시나리오를 새로 설계하지 않는다). T4-1이 「CDS 자체가 안 선다」로 나오면 이 시퀀스는 태우지 않고 8종 전부 「못 섬 + 이유」로 기록한다. $TMP라 transport_request가 없다.",
+  "steps": [
+    {
+      "tool": "CreateTable",
+      "args": {
+        "table_name": "ZSAPKIT_63_RT",
+        "description": "sapkit 63 attended probe RAP persistence table",
+        "package_name": "$TMP"
+      },
+      "note": "managed RAP의 영속 테이블이 될 자리. 껍데기만 서므로 다음 단계에서 DDL을 채운다."
+    },
+    {
+      "tool": "UpdateTable",
+      "args": {
+        "table_name": "ZSAPKIT_63_RT",
+        "ddl_code": "@EndUserText.label : 'sapkit 63 attended probe RAP table'\n@AbapCatalog.enhancement.category : #NOT_EXTENSIBLE\n@AbapCatalog.tableCategory : #TRANSPARENT\n@AbapCatalog.deliveryClass : #A\n@AbapCatalog.dataMaintenance : #RESTRICTED\ndefine table zsapkit_63_rt {\n  key mandt : mandt not null;\n  key id    : abap.char(10) not null;\n  name      : abap.char(60);\n}\n",
+        "activate": true
+      },
+      "note": "클라이언트 키는 MANDT 데이터엘리먼트다."
+    },
+    {
+      "tool": "CreateView",
+      "args": {
+        "view_name": "ZSAPKIT_63_RV",
+        "package_name": "$TMP",
+        "description": "sapkit 63 attended probe RAP root view"
+      },
+      "note": "껍데기 DDLS. DDL은 다음 단계가 채운다."
+    },
+    {
+      "tool": "UpdateView",
+      "args": {
+        "view_name": "ZSAPKIT_63_RV",
+        "ddl_source": "@AccessControl.authorizationCheck: #NOT_REQUIRED\n@EndUserText.label: 'sapkit 63 attended probe root view'\n@Metadata.ignorePropagatedAnnotations: true\ndefine root view entity ZSAPKIT_63_RV\n  as select from zsapkit_63_rt\n{\n  key id   as Id,\n      name as Name\n}\n",
+        "activate": true
+      },
+      "note": "`define root view entity` — 동작 정의가 붙으려면 루트여야 한다. mandt는 명시로 뽑지 않는다."
+    },
+    {
+      "tool": "CreateBehaviorDefinition",
+      "args": {
+        "name": "ZSAPKIT_63_RV",
+        "description": "sapkit 63 attended probe behavior definition",
+        "package_name": "$TMP",
+        "root_entity": "ZSAPKIT_63_RV",
+        "implementation_type": "Managed",
+        "activate": true
+      },
+      "note": "BDEF의 이름은 루트 엔티티 이름과 같다 — ABAP이 그렇게 요구한다. 그래서 SearchObject로 이 이름을 뜨면 DDLS와 BDEF가 함께 잡힌다."
+    },
+    {
+      "tool": "ReadBehaviorDefinition",
+      "args": { "behavior_definition_name": "ZSAPKIT_63_RV" },
+      "note": "되읽기이자 **관측**이다 — 생성된 소스의 `implementation in class` 절이 어떤 클래스 이름을 선언하는지가 다음 단계 인자의 근거다."
+    },
+    {
+      "tool": "CreateBehaviorImplementation",
+      "args": {
+        "class_name": "ZCL_SAPKIT_63_BP",
+        "behavior_definition": "ZSAPKIT_63_RV",
+        "description": "sapkit 63 attended probe behavior pool",
+        "package_name": "$TMP"
+      },
+      "note": "BDEF가 선언한 이름과 다르면 실패한다 — T4-1 정찰이 확인해 이 인자 하나만 맞춘다. RAP 관례는 ZBP_ 접두어이지만 이 판의 이름 규칙(spec §4.1)은 네 접두어뿐이라 ZCL_로 먼저 친다. 관례가 강제되면 그 사실 자체가 보고할 발견이다."
+    },
+    {
+      "tool": "ReadBehaviorImplementation",
+      "args": { "behavior_implementation_name": "ZCL_SAPKIT_63_BP" },
+      "note": "되읽기."
+    },
+    {
+      "tool": "CreateServiceDefinition",
+      "args": {
+        "service_definition_name": "ZSAPKIT_63_SD",
+        "description": "sapkit 63 attended probe service definition",
+        "package_name": "$TMP",
+        "activate": false
+      },
+      "note": "껍데기 SRVD. expose 문은 다음 단계 소스가 갖는다 — 그래서 여기서는 활성화하지 않는다."
+    },
+    {
+      "tool": "UpdateServiceDefinition",
+      "args": {
+        "service_definition_name": "ZSAPKIT_63_SD",
+        "source_code": "@EndUserText.label: 'sapkit 63 attended probe service'\ndefine service ZSAPKIT_63_SD {\n  expose ZSAPKIT_63_RV;\n}\n",
+        "activate": true
+      },
+      "note": "루트 뷰 하나만 노출한다 — 서비스 바인딩이 물 대상이다."
+    },
+    {
+      "tool": "GetServiceDefinition",
+      "args": { "service_definition_name": "ZSAPKIT_63_SD" },
+      "note": "되읽기."
+    },
+    {
+      "tool": "CreateServiceBinding",
+      "args": {
+        "service_binding_name": "ZSAPKIT_63_SB",
+        "service_definition_name": "ZSAPKIT_63_SD",
+        "package_name": "$TMP",
+        "description": "sapkit 63 attended probe service binding",
+        "binding_type": "ODataV4",
+        "activate": true
+      },
+      "note": "ODataV4 바인딩. 활성화가 실제 서비스 발행까지 가는 자리라 RAP 계열에서 가장 늦게 서고 가장 먼저 막히는 단계다."
+    },
+    {
+      "tool": "GetServiceBinding",
+      "args": { "service_binding_name": "ZSAPKIT_63_SB" },
+      "note": "되읽기."
+    },
+    {
+      "tool": "DeleteServiceBinding",
+      "args": { "service_binding_name": "ZSAPKIT_63_SB" },
+      "note": "여기부터 의존의 역순으로 걷는다."
+    },
+    {
+      "tool": "DeleteServiceDefinition",
+      "args": { "service_definition_name": "ZSAPKIT_63_SD" },
+      "note": "바인딩이 빠진 뒤라야 지워진다."
+    },
+    {
+      "tool": "DeleteBehaviorImplementation",
+      "args": { "behavior_implementation_name": "ZCL_SAPKIT_63_BP" },
+      "note": "동작 구현 정리."
+    },
+    {
+      "tool": "DeleteBehaviorDefinition",
+      "args": { "behavior_definition_name": "ZSAPKIT_63_RV" },
+      "note": "동작 정의 정리. 구현보다 나중이어야 한다."
+    },
+    {
+      "tool": "DeleteView",
+      "args": { "view_name": "ZSAPKIT_63_RV" },
+      "note": "루트 뷰 정리."
+    },
+    {
+      "tool": "DeleteTable",
+      "args": { "table_name": "ZSAPKIT_63_RT" },
+      "note": "영속 테이블 정리. 여기까지가 이 시퀀스의 왕복이다."
+    },
+    {
+      "tool": "SearchObject",
+      "args": { "object_name": "ZSAPKIT_63_SB", "maxResults": 5 },
+      "note": "삭제의 기계 확인 ①."
+    },
+    {
+      "tool": "SearchObject",
+      "args": { "object_name": "ZSAPKIT_63_SD", "maxResults": 5 },
+      "note": "삭제의 기계 확인 ②."
+    },
+    {
+      "tool": "SearchObject",
+      "args": { "object_name": "ZCL_SAPKIT_63_BP", "maxResults": 5 },
+      "note": "삭제의 기계 확인 ③."
+    },
+    {
+      "tool": "SearchObject",
+      "args": { "object_name": "ZSAPKIT_63_RV", "maxResults": 5 },
+      "note": "삭제의 기계 확인 ④ — 이 이름은 DDLS와 BDEF 둘을 가리켰으므로 둘 다 0건이어야 한다."
+    },
+    {
+      "tool": "SearchObject",
+      "args": { "object_name": "ZSAPKIT_63_RT", "maxResults": 5 },
+      "note": "삭제의 기계 확인 ⑤."
+    }
+  ]
+}

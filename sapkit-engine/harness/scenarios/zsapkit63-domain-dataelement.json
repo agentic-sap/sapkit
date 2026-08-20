@@ -1,0 +1,71 @@
+{
+  "_": "판6.3 실기 왕복 ① — DDIC 타입 계열. 도메인이 데이터엘리먼트의 숙주다(RUN-PLAN 함정 3).",
+  "sequenceId": "zsapkit63-domain-dataelement",
+  "description": "[재실행 가능 · P3 · $TMP] 도메인 ZSAPKIT_63_DOM 생성 → 활성 → 되읽기 → 그것을 타입으로 삼는 데이터엘리먼트 ZSAPKIT_63_DTEL 생성 → 활성 → 되읽기 → 둘 다 삭제 → 이름으로 재조회해 0건 확인. 전제: 두 이름이 시스템에 없어야 한다(시퀀스가 끝나면 다시 없다). 만든 것을 같은 시퀀스 안에서 지우므로 Create*인데도 몇 번이든 다시 돌 수 있다 — scenarios/README 「시나리오 함정 ⑶」이 요구하는 성질을 정면으로 만족한다. $TMP라 transport_request가 없다. 활성화 갈래: 기본은 ⑴ 생성 → 활성화 → 삭제다. T4-3 정찰이 「비활성 객체도 그냥 지워진다」를 실측하면 ActivateObjects 단계만 뺀 ⑵ 갈래로 간다 — 시나리오를 새로 설계하지 않는다.",
+  "steps": [
+    {
+      "tool": "CreateDomain",
+      "args": {
+        "domain_name": "ZSAPKIT_63_DOM",
+        "description": "sapkit 63 attended probe domain",
+        "package_name": "$TMP",
+        "datatype": "CHAR",
+        "length": 10,
+        "activate": true
+      },
+      "note": "CreateDomain은 자체 activate 플래그를 갖는다 — 데이터엘리먼트가 이 도메인을 타입으로 물려면 먼저 활성이어야 한다."
+    },
+    {
+      "tool": "GetDomain",
+      "args": { "domain_name": "ZSAPKIT_63_DOM" },
+      "note": "되읽기 — write 성공 응답만으로 완료로 적지 않는다(verify-applied.md). 대상이 이 시퀀스가 만든 Z 객체라 공개 레포에 실려도 된다."
+    },
+    {
+      "tool": "CreateDataElement",
+      "args": {
+        "data_element_name": "ZSAPKIT_63_DTEL",
+        "description": "sapkit 63 attended probe data element",
+        "package_name": "$TMP",
+        "type_kind": "domain",
+        "type_name": "ZSAPKIT_63_DOM",
+        "short_label": "SK63",
+        "medium_label": "sapkit 63",
+        "long_label": "sapkit 63 probe",
+        "heading_label": "sapkit 63"
+      },
+      "note": "type_kind=domain + type_name으로 앞 단계의 도메인을 문다. CreateDataElement에는 activate 플래그가 없어 다음 단계에서 따로 활성화한다."
+    },
+    {
+      "tool": "ActivateObjects",
+      "args": {
+        "objects": [{ "name": "ZSAPKIT_63_DTEL", "type": "DTEL/DE" }]
+      },
+      "note": "uri 대신 name+type — uri는 스키마상 이름 해석을 덮어 러너의 네임스페이스 사전 검사를 우회한다."
+    },
+    {
+      "tool": "GetDataElement",
+      "args": { "data_element_name": "ZSAPKIT_63_DTEL" },
+      "note": "되읽기 — 도메인 참조가 실제로 박혔는지 여기서 드러난다."
+    },
+    {
+      "tool": "DeleteDataElement",
+      "args": { "data_element_name": "ZSAPKIT_63_DTEL" },
+      "note": "의존하는 쪽을 먼저 지운다. 도메인을 먼저 지우면 참조가 남아 실패한다."
+    },
+    {
+      "tool": "DeleteDomain",
+      "args": { "domain_name": "ZSAPKIT_63_DOM" },
+      "note": "숙주 정리. 여기까지가 왕복이다 — 정리까지가 이 판이다."
+    },
+    {
+      "tool": "SearchObject",
+      "args": { "object_name": "ZSAPKIT_63_DTEL", "maxResults": 5 },
+      "note": "삭제의 기계 확인. 마스크가 아니라 정확한 이름으로 뜬다 — 마스크로 뜨면 다른 시퀀스의 산물(특히 지울 수 없는 P4 패키지)이 섞여 재실행 판정이 흔들린다."
+    },
+    {
+      "tool": "SearchObject",
+      "args": { "object_name": "ZSAPKIT_63_DOM", "maxResults": 5 },
+      "note": "같은 이유로 도메인도 이름으로 확인한다. 0건이어야 한다."
+    }
+  ]
+}

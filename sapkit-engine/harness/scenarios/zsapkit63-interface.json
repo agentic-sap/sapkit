@@ -1,0 +1,38 @@
+{
+  "_": "판6.3 실기 왕복 ④ — 인터페이스. 짝이 가장 단순한 왕복이라 배관 확인의 성격도 겸한다.",
+  "sequenceId": "zsapkit63-interface",
+  "description": "[재실행 가능 · P3 · $TMP] 인터페이스 ZIF_SAPKIT_63_I1 생성 → 활성 → 되읽기 → 삭제 → 이름으로 재조회해 0건 확인. 전제: 그 이름이 시스템에 없어야 한다. 만든 것을 같은 시퀀스 안에서 지우므로 재실행 가능하다. CreateInterface에는 activate 플래그가 없어 ActivateObjects를 따로 태운다 — 그 김에 활성화의 「갓 만든 객체」 갈래가 한 번 더 밟힌다. 활성화 갈래: 기본은 ⑴ 생성 → 활성화 → 삭제이고, T4-3 정찰이 비활성 삭제를 실측하면 ActivateObjects 단계만 뺀다. $TMP라 transport_request가 없다.",
+  "steps": [
+    {
+      "tool": "CreateInterface",
+      "args": {
+        "interface_name": "ZIF_SAPKIT_63_I1",
+        "description": "sapkit 63 attended probe interface",
+        "package_name": "$TMP"
+      },
+      "note": "껍데기 인터페이스가 선다. 메서드 선언을 넣지 않는 것은 의도다 — 이 시퀀스가 재는 것은 왕복이지 소스 편집이 아니다."
+    },
+    {
+      "tool": "ActivateObjects",
+      "args": {
+        "objects": [{ "name": "ZIF_SAPKIT_63_I1", "type": "INTF/OI" }]
+      },
+      "note": "uri 대신 name+type."
+    },
+    {
+      "tool": "GetInterface",
+      "args": { "interface_name": "ZIF_SAPKIT_63_I1" },
+      "note": "되읽기. 이 판이 만든 Z 객체라 소스가 픽스처에 실려도 된다."
+    },
+    {
+      "tool": "DeleteInterface",
+      "args": { "interface_name": "ZIF_SAPKIT_63_I1" },
+      "note": "왕복의 닫는 쪽."
+    },
+    {
+      "tool": "SearchObject",
+      "args": { "object_name": "ZIF_SAPKIT_63_I1", "maxResults": 5 },
+      "note": "삭제의 기계 확인. 0건이어야 한다."
+    }
+  ]
+}
