@@ -48,4 +48,4 @@ adapters/    claude/ codex/ antigravity/ — manifest·정책 매핑·설치물�
 scripts/     빌드·설치·검증 도구
 ```
 
-라이선스: [MIT](LICENSE) (업스트림 `babamba2/superclaude-for-sap` 고지 승계) · [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md)
+라이선스: **[MIT](../LICENSE)** (레포 루트 · Copyright (c) 2026 Hong Jaewon) · 상류 고지 [LICENSE](LICENSE)는 `server/` 아래 차용 **36파일**에만 걸린다 (2026-08-22 범위 정정 · D-103) · [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md)

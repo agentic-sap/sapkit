@@ -19,3 +19,29 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+## Scope of this notice (added 2026-08-22 · decision D-103)
+
+This file is the **retained upstream notice** for content borrowed from
+`babamba2/superclaude-for-sap` (via the frozen `hjaewon/sc4sap-custom`).
+It is **not the license of the SAPKIT plugin** — that is the repository root
+`LICENSE` (MIT, Copyright (c) 2026 Hong Jaewon). Nothing above has been
+altered; this section only records what the notice above still covers.
+
+As of 2026-08-22 that is **36 files, all under `interactive/server/`**:
+
+- `sap-assets/` — **30 files**. ABAP sources for the SAP-side `ZMCP_ADT_*` and
+  `Z*_S4SAP_*` objects. Kept as-is by decision D-079 ⑥: SAP objects already
+  installed on a customer system are never renamed or regenerated, so these
+  install scripts stay upstream-authored. They have not been modified since
+  they entered this repository.
+- `tool-catalog/` — **4 files** (`sc4sap-mcp-tools*.md`).
+- `verify-engine.mjs` · `bundle-keyring.mjs` — **2 files**.
+
+Everything else under `interactive/` is the repository owner's own work:
+knowledge, personas, procedures, policies, skills, adapters, scripts, and the
+bundled MCP server. The server bundle became so on 2026-08-19 (D-095, replaced
+by the in-repo `sapkit-engine`); the knowledge branch was re-authored file by
+file and finished on 2026-08-18.

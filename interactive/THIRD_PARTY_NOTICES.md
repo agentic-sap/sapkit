@@ -2,18 +2,25 @@
 
 SAPKIT은 다음 상류 프로젝트의 파생·재구성물이다. 각 라이선스 전문은 해당 저장소 참조.
 자체 저작으로 **대체가 끝난** 부품은 그 사실을 함께 적는다 — 고지는 실제로 배포되는 것에
-붙어야 하고, 남아 있는 고지가 무엇을 덮는지가 사다리 ⑷의 판단 재료이기 때문이다.
+붙어야 하기 때문이다.
+
+**2026-08-22 · 판8이 그 질문을 닫았다 (D-103).** 상류 고지는 **1건**(`interactive/LICENSE`)이고,
+그것이 덮는 범위는 이제 **`interactive/server/` 아래 36파일**로 정확히 적혀 있다 —
+그전까지는 `interactive/` 서브트리 **전체**에 걸려 있어 실제보다 넓었다. 그 36은 다시
+둘로 갈린다 — **동결 30**(이식 이후 변경 0 · 영구 존치)과 **활성 6**(우리가 계속 개작해
+온 것 · 은퇴 대상). 아래 표가 그 갈림을 행으로 보인다.
 
 | 구성요소 | 출처 | 라이선스 |
 |---|---|---|
-| 지식·페르소나·절차·정책 원천 (**아래 GPL 서브트리 제외**) | `babamba2/superclaude-for-sap` → `hjaewon/sc4sap-custom` (동결) | MIT — **`interactive/LICENSE`**에 고지 승계(루트 `LICENSE` 표가 `interactive/` **서브트리 전체**를 그 파일에 건다) |
+| ~~지식·페르소나·절차·정책 원천~~ (**아래 GPL 서브트리 제외**) | `babamba2/superclaude-for-sap` → `hjaewon/sc4sap-custom` (동결) | **MIT — 2026-08-18 재저작 소진으로 해소.** 명부 **170/170**이 자체 집필로 치환됐고(`docs/reference/copy-baseline.md`), 2026-08-22 판8이 루트 `LICENSE` 표의 범위를 실제 잔존물로 좁혔다(D-103 ⓒ). **계보는 지워지지 않고 이 행으로 남는다** |
 | ~~`core/knowledge/abap/reference/` (31파일)~~ | `secondsky/sap-skills`의 `sap-abap` 스킬 — babamba2 경유 무변경 전달(`migration-map.json` `class: copy`). 내용 원자료는 `SAP-samples/abap-cheat-sheets`(Apache-2.0) | **GPL-3.0 — 2026-08-09 제거로 해소.** 아래 §GPL 참조 |
 | `server/server.bundle.cjs` (MCP 서버 번들) | **자체 저작 — 소스 정본 `sapkit-engine/`.** 2026-08-19 판7-b(D-095)에 `hjaewon/abap-mcp-adt-powerup` 포크 번들을 대체했다. 판·소스 커밋은 `server/VERSION` | MIT (루트 LICENSE) |
 | ~~`server/server.bundle.cjs`의 이전 판~~ | ~~`hjaewon/abap-mcp-adt-powerup` (업스트림 `babamba2` 네임스페이스 모듈 베이크인)~~ | **MIT — 2026-08-19 교체로 배포물에서 빠졌다.** 소스 `engine/`도 판7.5(2026-08-22)에 레포에서 은퇴했다 — 그때까지 적용되던 `engine/LICENSE`도 함께 떠났다 |
 | `server/runtime-deps/keyring/` | `@napi-rs/keyring` (네이티브 키링 바인딩) | MIT |
 | 번들 external 런타임 의존 | `node-rfc`(옵션, SAP RFC SDK 별도 라이선스 유의) · `@napi-rs/keyring`(옵션) | 각 패키지 라이선스 |
 | 번들 인라인 의존 | `@modelcontextprotocol/sdk` · `zod` · `fast-xml-parser` | 각 패키지 라이선스 (MIT) |
-| `server/sap-assets/` · `server/tool-catalog/` · `server/verify-engine.mjs` · `server/bundle-keyring.mjs` | `hjaewon/sc4sap-custom` 차용분 **36파일** — ⑴ 교체가 대체하지 않는다(판7-b 판정 · D-095 ⓔ). SAP 측 `ZMCP_ADT_*` 오브젝트는 D-079 ⑥이 존치로 정했다 | MIT — `interactive/LICENSE`에 고지 승계 |
+| `server/sap-assets/` — **30파일** (동결) | `hjaewon/sc4sap-custom` 차용분. SAP 측 `ZMCP_ADT_*`·`Z*_S4SAP_*` 오브젝트의 **설치 소스**이고, 이식 커밋 `038085c2` 이후 **변경 커밋 0**이다 — 우리가 개작·유지보수하지 않는다 | MIT — `interactive/LICENSE`에 고지 승계. **영구 존치** — D-079 ⑥(SAP 오브젝트 무접촉)이 정했고 D-103 ⓓ가 끝그림에 명시했다 |
+| `server/tool-catalog/` (**4**) · `server/verify-engine.mjs` · `server/bundle-keyring.mjs` — **6파일** (활성) | `hjaewon/sc4sap-custom` 차용분. ⑴ 교체가 대체하지 않았고(D-095 ⓔ) **우리가 계속 고쳐 왔다**(판8 착수 실측 — 이식 이후 각각 6·3·3 커밋) — 즉 유지보수 부채가 살아 있다 | MIT — `interactive/LICENSE`에 고지 승계. **은퇴 대상** — 판10이 `tool-catalog/`을 엔진 등록점 생성으로 바꾸고 `verify-engine.mjs` 골격을 재저작한다(D-103 ⓔ) |
 | `checker/sapkit-checker.bundle.cjs` (오프라인 ABAP 검사기 번들) | 자체 저작 — 소스 정본 `sapkit-cli/`. 런타임 외부 의존 0 | MIT (루트 LICENSE) |
 
 **검사기의 계보 각주** (의무 아님 — 정직한 기록): 이 번들이 대체한 구 `vsp/pkg/abaplint`는

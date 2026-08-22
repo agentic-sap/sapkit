@@ -26,11 +26,18 @@ SOFTWARE.
 
 This repository incorporates work from upstream MIT-licensed projects. Their
 copyright notices are retained in the files below and continue to apply to the
-corresponding subtrees. The notice above does not replace them.
+paths listed. The notice above does not replace them.
 
-| Subtree | Upstream notice |
+| Scope | Upstream notice |
 |---|---|
-| `interactive/` | `interactive/LICENSE` — derived from `babamba2/superclaude-for-sap` |
+| `interactive/server/sap-assets/` (30 files) · `interactive/server/tool-catalog/` (4) · `interactive/server/verify-engine.mjs` · `interactive/server/bundle-keyring.mjs` — **36 files** | `interactive/LICENSE` — derived from `babamba2/superclaude-for-sap` |
+
+The scope column was narrowed from the whole `interactive/` subtree on
+2026-08-22 (decision D-103). The borrowed knowledge, persona, procedure and
+policy content it used to cover has since been re-authored in full, and the 36
+files above are what actually remains. Narrowing the scope does not retire the
+notice — `docs/BLUEPRINT.md` §1.3 records what each remaining file is and on
+what condition it can retire.
 
 Component-level attribution for the distributed plugin, including bundled
 runtime dependencies, is in `interactive/THIRD_PARTY_NOTICES.md`.

@@ -6,10 +6,13 @@
  * (interactive/server/server.bundle.cjs) built in-repo from `sapkit-engine/` —
  * the repo's own engine, which took over the product bundle slot on 2026-08-19
  * (D-095, ladder step ⑴). Before that the source was the `engine/` fork
- * absorbed on 2026-07-11 (D-017); that tree stays in the repo as the rollback
- * source until it retires in 판7.5. interactive/server/VERSION records
- * provenance as free text; interactive/server/integrity.json pins the exact
- * bytes. This script keeps the three in agreement — the same model
+ * absorbed on 2026-07-11 (D-017); that tree was retired from the repo on
+ * 2026-08-22 (D-101), so a rollback now takes two steps: restore the tree from
+ * commit 2264f89d, then revert the swap on top of it.
+ *
+ * interactive/server/VERSION records provenance as free text;
+ * interactive/server/integrity.json pins the exact bytes. This script keeps
+ * the three in agreement — the same model
  * interactive/server/bundle-keyring.mjs applies to the keyring bundle
  * (procedure: interactive/server/UPDATE-RUNBOOK.md).
  *
