@@ -12,12 +12,11 @@
 >
 > ## 🔔 상태 셋 (2026-08-23 세션 마감 시점 — 다음 세션은 이 셋부터 확인)
 >
-> **① push 완료 · CI 확인 필요.** 23커밋(`1ed0436a..88163d9b`)이 origin/main에
-> 올라갔고 CI(`offline-gates.yml`)가 그 SHA로 돌기 시작한 것까지 확인했다
-> (`in_progress` — 세션 마감 시점 미완주). **다음 세션 첫 확인**:
+> **① push 완료 · CI success 확인됨.** 23커밋(`1ed0436a..88163d9b`)이 origin/main에
+> 올라갔고 CI(`offline-gates.yml`)가 그 SHA에서 **`completed | success`**로 완주했다
+> (2026-08-23 세션 안에서 확인). 마감 문서 커밋들의 런은 문서만이라 위험 없음 —
+> 무인증 확인법:
 > `curl -s "https://api.github.com/repos/agentic-sap/sapkit/actions/runs?per_page=1&branch=main"`
-> 에서 `conclusion`이 `success`인지. 로컬 34/34 + 재현 빌드 일치였으므로 빨간불이면
-> 러너 환경 차이부터 의심할 것.
 >
 > **② BTP 계정 — 사용자가 개설을 결정했다** (2026-08-23 · trial). 개설 안내까지
 > 전달됐고(SAP Universal ID → hanatrial 접속 → 리전 US East(VA) 권장 → Boosters
