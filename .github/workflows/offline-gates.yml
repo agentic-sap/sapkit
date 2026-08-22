@@ -232,7 +232,7 @@ jobs:
         working-directory: sapkit-engine
         run: npm run verify
 
-      - name: 자체 적합성 게이트 (표면 ⓐ~ⓓ · 안전 · 대장)
+      - name: 자체 적합성 게이트 (표면 ⓐ~ⓓ · 카탈로그 · 안전 · 대장 · HTTP/SSE 기동)
         working-directory: sapkit-engine
         # 산출물에 대고 돈다 — verify가 방금 빌드했다. `npm run gates`와 같은 명령이다.
         #

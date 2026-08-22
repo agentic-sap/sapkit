@@ -42,7 +42,15 @@ Select-String -Path TOOL-LEDGER.md -Pattern '^## 안 지음' -Context 0,8
 `@babamba2`에 닿는다(직접 46 · 간접 140 · 없음 0). 런타임 위임의 무게는 겉이
 아니라 `engine/src/lib/`에 있다 — 특히 `lib/clients.ts`(핸들러 246개가 import).
 
-읽는 순서는 셋이다.
+> **⚠ 이 절의 참조 원본 `engine/`은 2026-08-22 판7.5(D-101)에 레포를 떠났다.**
+> 아래 절차는 그 시절의 기록이며 **지금 그대로는 실행할 수 없다.** 레포에 남은 것은
+> 채록본 둘 — `harness/old-surface/m1-tools.json`(표면)과 `handler-tree.json`(도구
+> 339 → 폴더 30 + 위임형 판정)이고, 위임형 열의 뜻은 `TOOL-LEDGER.md` 머리말에 있다.
+> 구 소스를 실제로 읽어야 하는 도구가 새로 생기면(지금 「안 지음」은 0이다)
+> `2264f89d`에서 그 트리를 되떠 읽는다 — 그 커밋이 `engine/`이 온전한 마지막
+> 자리다(`HANDOFF.md` 🔙 절).
+
+읽는 순서는 셋이었다 (역사 기록 — 위 ⚠ 참조):
 
 ```powershell
 # ① 겉 핸들러 — 선언과 흐름
@@ -56,9 +64,6 @@ Get-ChildItem ..\engine\node_modules\@babamba2 -Recurse -Filter *.js |
   Select-String -Pattern 'async makeAdtRequest'
 ```
 
-> `engine/node_modules/`는 커밋되지 않는다. 비어 있으면 `engine/`에서
-> `npm install`을 한 번 돌린다(patch-package가 패치를 다시 입힌다).
-
 `@babamba2/*`의 `dist`는 주석이 살아 있는 가독 JS다. 거기서 **주소·메서드·헤더·
 질의 인자·본문**을 복원한다. 이 판은 재생 대조를 미뤘으므로 **참조 원본의 깊이가
 유일한 정확성 근거**다 — 겉만 읽고 지으면 "같은 에이전트가 자기 독해로 쓴 시험이
@@ -66,7 +71,8 @@ Get-ChildItem ..\engine\node_modules\@babamba2 -Recurse -Filter *.js |
 
 - 확인: 지으려는 도구가 보내는 요청의 **헤더 한 줄까지** 근거 파일·줄로 댈 수
   있다. 그 근거를 모듈 머리주석에 파일·줄로 적는다.
-- **읽기만 한다.** `engine/`·`interactive/server/`는 무접촉이다.
+- **읽기만 한다.** `engine/`·`interactive/server/`는 무접촉이다 — **단 7번의 카탈로그
+  재생성은 예외다**(생성기가 `interactive/server/tool-catalog/` 4파일을 쓴다).
 - 주의: 대장의 「위임형」 열은 텍스트 검사라 **주석에 `@babamba2`가 적혀 있기만
   해도 「직접」**이 된다. 그 열을 "겉만 읽어도 되는가"의 근거로 쓰지 마라.
 
@@ -250,25 +256,35 @@ export const TOOL_REGISTRY: readonly SapTool[] = [
 
 ---
 
-## 7. 대장과 증거 파일을 다시 만든다
+## 7. 대장과 증거 파일, 그리고 **제품 카탈로그**를 다시 만든다
 
 ```powershell
-npm run build                      # 대장 생성기는 dist/ 를 읽는다
-node harness/render-ledger.mjs     # TOOL-LEDGER.md 재생성
-npm run test:report                # jest --json --outputFile=.jest-report.json
-npm run evidence:contract          # evidence/contract/results.json 갱신
-node harness/render-ledger.mjs     # 증거 파일이 바뀌었으니 한 번 더
+npm run build                        # 대장·카탈로그 생성기는 둘 다 dist/ 를 읽는다
+node harness/render-ledger.mjs       # TOOL-LEDGER.md 재생성
+node harness/render-tool-catalog.mjs # 제품 카탈로그 4파일 재생성 (등록점이 바뀌었다)
+npm run test:report                  # jest --json --outputFile=.jest-report.json
+npm run evidence:contract            # evidence/contract/results.json 갱신
+node harness/render-ledger.mjs       # 증거 파일이 바뀌었으니 한 번 더
 ```
 
 - **대장은 손으로 고치지 않는다.** 손으로 고친 대장은 게이트가 거부한다.
+- **카탈로그도 같은 지위다** — `interactive/server/tool-catalog/sc4sap-mcp-tools*.md`
+  4파일은 등록점(`TOOL_REGISTRY`)에서 만드는 **기계 생성물**이고(D-107 ⓐ), 손으로
+  고치면 게이트 「카탈로그」가 거부한다. **도구를 하나 지으면 등록점이 바뀌므로
+  이 재생성이 같은 커밋에 들어간다** — 미루면 CI가 빨개질 때까지 반쪽 상태다.
+  이것이 6번의 등록점 배선과 같은 이유로 「한 커밋」에 편입돼 있다(D-108 ⓑ).
 - `evidence/contract/results.json`을 **커밋해야** 대장의 계약 열이 「미기록」에서
   벗어난다. 레포에 없는 것은 없는 것이다 — 그것이 이 대장의 규칙이다.
 - 확인: `node harness/render-ledger.mjs --check` (exit 0) ·
+  `node harness/render-tool-catalog.mjs --check` (exit 0) ·
   대장에서 그 도구가 「안 지음」에서 「지음」 절로 옮겨 갔다.
 
 ```powershell
 Select-String -Path TOOL-LEDGER.md -Pattern '^\| GetInstalledComponents '
 ```
+
+> **카탈로그는 도구 이름으로 인용한다 — 행 번호로 하지 마라**(D-108 ⓒ④). 생성
+> 파일이라 도구를 하나 지을 때마다 뒤 행이 전부 밀린다.
 
 ---
 
@@ -278,7 +294,7 @@ Select-String -Path TOOL-LEDGER.md -Pattern '^\| GetInstalledComponents '
 npm run build
 npm run typecheck
 npm test
-npm run gates                        # 표면 · 안전 · 대장
+npm run gates                        # 표면 · 카탈로그 · 안전 · 대장 · HTTP 기동 · SSE 기동
 node gates/test-gates.mjs            # 게이트 자체의 음성시험
 node harness/render-ledger.mjs --check
 node harness/build-plan.mjs --check
@@ -303,8 +319,13 @@ src/tools/<성격>/__tests__/<도구>.test.ts        시험
 src/tools/registry.ts                            등록점 배선
 TOOL-LEDGER.md                                   대장 (생성물)
 evidence/contract/results.json                   계약 시험 증거 (생성물)
+../interactive/server/tool-catalog/
+    sc4sap-mcp-tools*.md (4파일)                 제품 카탈로그 (생성물 — 7번)
 (표면을 글자로 적어 둔 시험이 있으면 그것도)
 ```
+
+**카탈로그 4파일이 빠진 커밋은 반쪽이다** — 등록점은 넓어졌는데 제품이 싣는 목록은
+낡은 상태이고, CI의 `sapkit-engine` 잡이 그것을 잡을 때까지 아무도 모른다.
 
 메시지는 한국어로, **무엇을 지었고 왜 그 모양인지**를 적는다.
 

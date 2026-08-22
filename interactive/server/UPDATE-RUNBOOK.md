@@ -15,9 +15,10 @@
   package.json이 없기 때문이다.
 
 > **이력**: 2026-08-19 판7-b(D-095) 전까지 이 자리는 `engine/` 포크
-> (`@hjaewon/abap-mcp-adt-powerup` 5.0.0)의 번들이었다. `engine/`은 **되돌릴 자리**로
-> 레포에 남아 있고(검증 기준 5), 은퇴는 판7.5다. 롤백은 **교체 커밋 revert** —
-> 번들 바이트·VERSION·`integrity.json`·게이트 기대값이 한 커밋에 묶여 있다.
+> (`@hjaewon/abap-mcp-adt-powerup` 5.0.0)의 번들이었다. 그 소스 트리는
+> **2026-08-22 판7.5(D-101)에 레포를 떠났다** — 그래서 롤백은 이제 **두 걸음**이다:
+> ① `engine/`이 온전한 마지막 커밋 `2264f89d`에서 트리를 되뜨고 ② 그 위에서
+> 교체분을 되돌린다(정본은 `HANDOFF.md` 🔙 절 — 외우지 말고 거기서 읽을 것).
 
 ## 갱신 절차
 
@@ -45,9 +46,21 @@
 
 4. **capability diff**: 갱신 전후 `node interactive/scripts/smoke-mcp.mjs`의 도구 이름
    집합을 비교한다. 추가/삭제/개명이 있으면 **의도한 것일 때만**
-   `smoke-mcp.mjs --update`로 스냅샷을 갱신하고, `server/tool-catalog/`·어댑터 노출
-   프리셋·권한 정책을 함께 고친다. write/runtime 도구가 늘거나 줄면
+   `smoke-mcp.mjs --update`로 스냅샷을 갱신하고, `server/tool-catalog/`를 **재생성**하며,
+   어댑터 노출 프리셋·권한 정책을 함께 고친다. write/runtime 도구가 늘거나 줄면
    `interactive/agents/sap-reviewer.md`의 `disallowedTools` 열거를 동기화한다.
+
+   > ⚠ **`server/tool-catalog/`는 손으로 고치지 않는다.** 그 4파일
+   > (`sc4sap-mcp-tools*.md`)은 2026-08-23 판10(D-107 ⓐ)부터 **엔진 등록점
+   > (`TOOL_REGISTRY`)에서 만드는 기계 생성물**이고, 손으로 고치면 엔진 게이트
+   > 「카탈로그」가 거부한다 — `TOOL-LEDGER.md`와 같은 지위다. 재생성은 이렇게 한다:
+   >
+   > ```bash
+   > cd sapkit-engine && npm run build && node harness/render-tool-catalog.mjs
+   > ```
+   >
+   > 등록점이 입력이므로 **프로파일도 SAP 접속도 필요 없다.** 어댑터 노출 프리셋과
+   > 권한 정책은 생성기가 만들지 않는다 — 그쪽은 여전히 **사람 몫**이다.
 
 5. **게이트 전종**(아래 「닫는 법」)을 돌린다.
 
@@ -62,13 +75,19 @@ node interactive/scripts/smoke-mcp.mjs                    # 도구 표면 계약
 node interactive/scripts/smoke-mcp.mjs --target=engine    # 같은 계약을 소스 산출물에도
 node interactive/scripts/conformance-server-gates.mjs     # 서버 안전 게이트 (번들)
 node interactive/scripts/conformance-server-gates.mjs --target=engine
+cd sapkit-engine && node harness/render-tool-catalog.mjs --check   # 카탈로그 4파일 ↔ 등록점
 ```
 
 `--target`은 **번들 vs 소스**를 가른다(교체 전에는 구 vs 신이었다). 둘의 판정이
 갈리면 엔진이 아니라 **번들러**를 의심할 자리다.
 
+마지막 줄이 4단계의 재생성을 닫는다 — **커밋된 카탈로그 4파일 == 등록점에서 만든
+결과**를 재고 어긋나면 exit 1이다. 같은 대조가 엔진 게이트 「카탈로그」
+(`gates/catalog.mjs`)로도 돌고, CI의 `sapkit-engine` 잡이 그것을 매번 돌린다.
+
 `sapkit-engine/` 안에서는 `npm run verify`(= build:bundle + typecheck + test) ·
-`npm run gates` · `node gates/bundle-smoke.mjs`가 같은 물건을 반대편에서 잰다.
+`npm run gates`(**6종** — 표면 · 카탈로그 · 안전 · 대장 · HTTP 기동 · SSE 기동) ·
+`node gates/bundle-smoke.mjs`가 같은 물건을 반대편에서 잰다.
 
 ## 알려진 노출 제어
 

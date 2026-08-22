@@ -176,7 +176,12 @@ sc4sap-lite/
   server/
     server.bundle.cjs  VERSION  integrity.json
     runtime-deps/keyring/              ← NODE_PATH 배선 포함 (keychain 비밀번호 저장)
-    tool-catalog/                      ← data/ 4파일 (read 81 / write 76 분류 — 노출 프리셋 원천)
+    tool-catalog/                      ← sc4sap-mcp-tools*.md 4파일 — 엔진 등록점 생성물
+                                          (판10 · D-107 · read 90 / write 79 / runtime 15 ·
+                                          행 데이터 2종은 섹션 밖·인덱스에 사유). 노출 프리셋
+                                          원천. 생성기 harness/render-tool-catalog.mjs · 대조
+                                          게이트 gates/catalog.mjs (둘 다 sapkit-engine/) —
+                                          손으로 고치면 거부된다
     sap-assets/                        ← abap/ 헬퍼 17파일 + ALV 핸들러 + 설치 manifest
     UPDATE-RUNBOOK.md                  ← 업스트림 재번들·무결성 검증·capability diff 절차
   adapters/                            ← 콘텐츠 복제 없음. manifest·정책 매핑·설치물만
