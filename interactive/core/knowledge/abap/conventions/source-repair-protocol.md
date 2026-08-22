@@ -1,27 +1,27 @@
 # Source Repair Protocol — Editing Existing Server Objects
 
-**Scope.** Every edit to an object that already exists on the server — any `Update*` on an object not created in the current session (function module, class, program, include, DDIC). "Repair" here means changing existing server state, not authoring a new object.
+**Scope.** Every edit that lands on an object already present on the server — that is, any `Update*` against an object the current session did not create (function module, class, program, include, DDIC). "Repair" in this document means mutating server state that is already there, not authoring a fresh object.
 
 ## Read Before Edit — Never Re-Author From the Repo
 
-Repair is: read the server source first → apply a minimal edit on top of it → write → **re-read to confirm the previous edit survived** → mirror to the repo immediately. Never re-author the object from the repo copy and push it over server state — the repo may lag the server (someone edited directly through ADT), and re-authoring silently overwrites those changes.
+The repair sequence runs: pull the source down from the server → lay a minimal edit on top of what came back → write → **re-read to confirm the previous edit survived** → mirror into the repo without delay. Never rebuild the object out of the repo copy and push that over server state — the repo is allowed to trail the server (somebody may have edited straight through ADT), and rebuilding silently overwrites those edits.
 
 ## Inactive-Version Trap
 
-If an object may hold an unactivated edit, reading with the default `version=active` returns the **pre-edit** source; writing on top of that silently destroys the previous edit. No gate catches it — the update succeeds, syntax is clean, and the already-committed mirror shows no diff. When re-editing an object that may have a pending change, read `version=inactive` first (or check `GetInactiveObjects` before reading).
+Where an object might be carrying an unactivated edit, a read at the default `version=active` hands back the **pre-edit** source, and writing on top of that silently destroys the edit that was pending. Nothing catches the loss — the update reports success, the syntax is clean, and the mirror, already committed, shows no diff. So before re-editing an object that could have a change in flight, read `version=inactive` first (or run `GetInactiveObjects` ahead of the read).
 
 ## "Active Source Returned" Is Not Activation Evidence
 
-A read tool returning "active" source is not proof the object was ever activated — never-activated and non-compiling FMs still return "active" source. Real evidence that an object works =
+A read tool handing back "active" source is not proof the object was ever activated — an FM that was never activated, and one that does not compile, both still return "active" source. What actually counts as evidence that an object works =
 
-- group syntax check **0 / 0**, AND
-- post-activation source comparison (the source you wrote is the source now active), AND
+- a group syntax check that comes back **0 / 0**, AND
+- a source comparison after activation (what you wrote is what is now active), AND
 - an end-to-end **live call**.
 
 ## Sibling-Defect False Failure
 
-FM write tools postcheck the entire function group, so a pre-existing defect in a **sibling** FM can report *your* write as failed while the write actually persisted. Re-read the FM before assuming the write was lost — see [`function-module-rule.md`](function-module-rule.md) § Function Group Is One Compile and Activation Unit. For mass repairs across many FMs, use the abapGit path (see [`abapgit-roundtrip-rule.md`](abapgit-roundtrip-rule.md)) instead of serial per-FM writes — it avoids the repeated whole-group postchecks and the false-failure churn they cause.
+The postcheck an FM write tool runs covers the whole function group, so a defect that was already sitting in a **sibling** FM can come back as a failure report on *your* write while the write in fact persisted. Re-read the FM before concluding it was lost — see [`function-module-rule.md`](function-module-rule.md) § Function Group Is One Compile and Activation Unit. When the repair spans many FMs at once, take the abapGit path (see [`abapgit-roundtrip-rule.md`](abapgit-roundtrip-rule.md)) rather than writing FM by FM in sequence — that route skips the repeated whole-group postchecks, and with them the false-failure churn they cause.
 
 ## Identity-Write Isolation
 
-When a write tool is suspected of false success (or false failure), perform an **identity write** — re-send the exact unchanged source — to separate a tool defect from an edit defect. If the identity write behaves the same way as the real edit, the tool is the variable, not your change.
+Where a write tool is under suspicion of false success (or false failure), run an **identity write** — send the exact same source back unchanged — to tell a tool defect apart from an edit defect. If the identity write behaves the way the real edit did, the variable is the tool, not your change.

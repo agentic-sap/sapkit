@@ -1,91 +1,63 @@
 #!/usr/bin/env node
 //
-// Customization (Enhancement + Extension) inventory extractor — sapkit `tools/extract/`
+// Customization inventory builder — sapkit `tools/extract/`
 //
-// Parses standard exit / BAdI / append-structure definitions from
-// `core/knowledge/modules/{MODULE}/enhancements.md`, then queries the live SAP
-// system (via the bundled MCP server) to find which of them the customer has
-// actually implemented with Z-namespace or Y-namespace objects. Writes the
-// inventory that [customization-lookup](../../core/procedures/customization-lookup.md)
-// Step 1 consumes:
+// SAP ships hundreds of extension points per module. The question this tool
+// answers is a narrower one: which of them has *this customer* actually turned
+// on, and with which Z or Y object? It reads the standard exit / BAdI / append
+// definitions out of `core/knowledge/modules/{MODULE}/enhancements.md`, asks the
+// live system about each, and keeps only what came back with customer-namespace
+// evidence behind it. The result is what
+// [customization-lookup](../../core/procedures/customization-lookup.md) Step 1
+// reads:
 //
-//   <project>/.sapkit/customizations/{MODULE}/enhancements.json  (BAdI impls, SMOD→CMOD, form exits, GGB, BTE)
-//   <project>/.sapkit/customizations/{MODULE}/extensions.json    (append structures + custom fields)
+//   <project>/.sapkit/customizations/{MODULE}/enhancements.json
+//        BAdI implementations · SMOD→CMOD · form exits · GGB rules · BTE FMs
+//   <project>/.sapkit/customizations/{MODULE}/extensions.json
+//        append structures and custom fields on base tables
 //
-// Persistence rules (unchanged from the original):
-//   - BAdI  -> record only when at least one Z/Y implementation exists
-//   - SMOD  -> record only when a CMOD project includes this enhancement AND
-//              the CMOD project is Z/Y (proof the customer turned it on)
-//   - Append structures / custom fields -> always recorded when any Z/Y append
-//              or field exists on the base table; written to extensions.json
+// What earns a place in the inventory:
+//   BAdI     at least one Z/Y implementation exists
+//   SMOD     a CMOD project includes the enhancement AND that project is Z/Y —
+//            proof the customer switched it on, not merely that SAP ships it
+//   Appends  any Z/Y append or custom field on the base table; these go to
+//            extensions.json rather than enhancements.json
 //
-// ─────────────────────── APPROVAL GATE — read before running ───────────────
-// Two of the scans issue `GetSqlQuery` (MODACT/MODATTR, GB03, TBE24, TPS34), so
-// this is a **P2 row-data extraction** (AGENTS.md) and Gate B of
-// [approval-gates](../../core/policies/approval-gates.md) applies.
+// ══════════════════ APPROVAL GATE — read this before running ═══════════════
+// Several scans go out as `GetSqlQuery` (MODACT/MODATTR, GB03, TBE24, TPS34),
+// which makes this a **P2 row-data extraction** (AGENTS.md) under Gate B of
+// [approval-gates](../../core/policies/approval-gates.md).
 //
-//   • The **human runs this command.** An agent must not run it on the user's
-//     behalf, must not hand it to a subagent, and must not use it to sidestep
-//     the per-call approval it would otherwise owe. Gate B(c) — "subagent and
-//     batch use are prohibited" — has no exception path.
-//   • `--dry-run` discloses the scope offline: modules, what was parsed out of
-//     each `enhancements.md`, the exact SQL scans, and the output paths.
-//     Running without `--dry-run` is the human's approval act for that scope.
-//   • Allowed scope is **enhancement registration metadata** — which standard
-//     exit the customer switched on, and the names of the Z objects doing it.
-//     `MODACT`/`MODATTR` (CMOD projects), `GB03` (GGB0/GGB1 rule headers) and
-//     `TBE24`/`TPS34` (BTE FM registrations) are Customizing/registration
-//     tables, not transactional or personal data. The other scans
+//   • **A human runs this command.** Not an agent on the user's behalf, not a
+//     subagent it was handed to, and not as a way of collecting in one batch
+//     what would otherwise need approval call by call. Gate B(c) — "subagent
+//     and batch use are prohibited" — has no exception path.
+//   • `--dry-run` states the scope offline: the modules, what was parsed out of
+//     each enhancements.md, the exact SQL scans, and where the output would go.
+//     Running the same command without it is the human's act of approval for
+//     that scope.
+//   • The scope is **enhancement registration metadata** — which standard exit
+//     the customer switched on, and the names of the Z objects doing it.
+//     `MODACT`/`MODATTR` hold CMOD projects, `GB03` holds GGB0/GGB1 rule
+//     headers, `TBE24`/`TPS34` hold BTE function-module registrations: all
+//     customizing, none of it transactional or personal. The remaining scans
 //     (`GetEnhancementSpot`, `GetInclude`, `GetTable`, `SearchObject`) are
-//     repository/DDIC reads — P1, not row data.
-//   • This script never sets `acknowledge_risk`, so the server-side blocklist
-//     floor still decides. A refused table simply yields no findings; nothing
-//     is cached from a refusal.
+//     repository/DDIC reads, which are P1 and not row data at all.
+//   • `acknowledge_risk` is never set, so the server-side blocklist floor keeps
+//     the last word. A refused table simply yields no findings; a refusal is
+//     never cached.
 //   • [data-extraction-policy](../../core/policies/data-protection/data-extraction-policy.md)
-//     stays authoritative for everything else.
+//     stays authoritative for everything outside this scope.
 //
-// Usage (run from the project root — the directory holding `.sapkit/`):
+// Usage — run from the project root, the directory holding `.sapkit/`:
 //   node tools/extract/extract-customizations.mjs --dry-run SD MM
 //   node tools/extract/extract-customizations.mjs SD MM FI CO
 //   node tools/extract/extract-customizations.mjs all
 //
-// ─────────────────────── Runtime directory (D-057) ──────────────────────────
-// The inventory lands beside the cwd's runtime dir, or names the `.sapkit`
-// creation site when the project has none (R-NEW). `--resolve-only` prints the
-// selection offline.
-//
-// ──────── Transform note (sc4sap-custom `scripts/extract-customizations.mjs`) ────────
-// Parsers, heuristics, filters and output shape are unchanged. What differs:
-//   • source of enhancement lists: `configs/{MODULE}/enhancements.md` →
-//     `core/knowledge/modules/{MODULE}/enhancements.md`
-//   • transport: `@modelcontextprotocol/sdk` → `./lib/mcp-stdio.mjs` (this
-//     plugin ships no npm dependencies)
-//   • server: `engine/server.bundle.cjs` (started with **no** env path, which
-//     left the broker on a mock connection) → `server/launch.cjs`, which
-//     resolves the active profile from the cwd. Exposition `readonly,high`:
-//     `GetTable` is not in the `readonly` set, everything else this script
-//     calls is; the script itself only ever issues the read calls listed above
-//   • output base: `resolveArtifactBase()` (`.sapkit/work/<alias>/`) →
-//     `<cwd>/.sapkit/customizations/`. Multi-profile artifact resolution is
-//     classified `obsolete` in MIGRATION-MANIFEST, and the consumer contract in
-//     customization-lookup.md / project-context.md is the plain `.sapkit/` path
-//   • tool arguments realigned with the bundled engine's current schemas —
-//     `GetEnhancementSpot` takes `enhancement_spot` (not `enhancement_spot_name`)
-//     and `SearchObject` takes `object_name` / `object_type` / `maxResults`
-//     (not `query` / `objectType` / `max_results`). The frozen original would
-//     have been rejected with InvalidParams on both
-//   • bare invocation used to mean `all` silently; it now prints usage and
-//     exits 2 — scope must be stated explicitly (Gate B)
-//   • `--dry-run` added (offline scope disclosure)
-//   • **defect repair, not a scope change**: the section detector matched
-//     `\bbadi\b`, which never matches the plural header the shipped files
-//     actually use ("## 2. BAdIs / 비즈니스 애드인" — 13 of 15 modules). The
-//     BAdI bucket therefore filled only by accident, via a later
-//     "Enhancement Spots" header, and stayed empty in FI/CO/BW/TM/WM — while
-//     customization-lookup.md's contract requires `badiImplementations[]`.
-//     Now `\bbadis?\b` in both the `##` and `###` detectors. Nothing new is
-//     read from SAP: the same GetEnhancementSpot call is simply made for the
-//     BAdI names the original meant to collect.
+// ══════════════════ Runtime directory (D-057) ══════════════════════════════
+// The inventory is written beside the runtime directory this project already
+// keeps, or names the `.sapkit` creation site when it keeps none (R-NEW).
+// `--resolve-only` prints that decision as JSON without connecting to anything.
 //
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
@@ -97,21 +69,24 @@ const PLUGIN_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const KNOWLEDGE_DIR = resolve(PLUGIN_ROOT, 'core', 'knowledge', 'modules');
 const PROJECT_DIR = process.cwd();
 
-// ── runtime directory (D-057) ───────────────────────────────────────────────
 const NEW_DIR = '.sapkit';
 
-// Existence is this tool's criterion — depth 0, no walk-up.
+// Customer namespace. Everything this tool keeps has to match it — that is what
+// separates "the customer built this" from "SAP shipped this".
+const Z_PATTERN = /^[ZY]/i;
+
+// ── runtime directory ───────────────────────────────────────────────────────
+// No walk-up: the inventory belongs to the project the operator is standing in,
+// and inheriting a parent's runtime directory would file one system's
+// customizations under another's.
 function pickRuntimeDir(dir) {
   const candidate = join(dir, NEW_DIR);
   return existsSync(candidate) ? candidate : null;
 }
 
-// R-E + R-NEW: write where this project already keeps runtime state; `.sapkit`
-// when it keeps none.
+// R-E where state already exists, R-NEW where it does not.
 const RUNTIME_DIR = pickRuntimeDir(PROJECT_DIR) ?? join(PROJECT_DIR, NEW_DIR);
 const OUTPUT_DIR = join(RUNTIME_DIR, 'customizations');
-
-const Z_PATTERN = /^[ZY]/i;
 
 const USAGE = `Usage: node tools/extract/extract-customizations.mjs [--dry-run] <MODULE...|all>
 
@@ -136,7 +111,10 @@ if (argv.includes('--help') || argv.includes('-h')) {
 const DRY_RUN = argv.includes('--dry-run');
 
 // ── offline path-resolution seam (D-057 §7-3) ───────────────────────────────
-// Pure path computation: no module list, no MCP server, no SAP connection.
+// Path arithmetic only: no module list, no MCP server, no SAP connection. Unlike
+// its sibling this tool never resolves the sapkit home, so a broken
+// SAPKIT_HOME_DIR cannot stop it here — there is nothing under the home for it
+// to report.
 if (argv.includes('--resolve-only')) {
   let alias = null;
   try {
@@ -163,240 +141,261 @@ if (argv.includes('--resolve-only')) {
   process.exit(0);
 }
 
-const positional = argv.filter((a) => !a.startsWith('-'));
+// ── module selection ────────────────────────────────────────────────────────
+// Scope has to be stated. A bare invocation used to mean `all`, which is exactly
+// the silent widening Gate B exists to prevent.
+const positional = argv.filter((arg) => !arg.startsWith('-'));
 if (positional.length === 0) {
   console.error(USAGE);
   process.exit(2);
 }
 
-let selectedModules = positional;
-if (positional[0] === 'all') {
-  selectedModules = readdirSync(KNOWLEDGE_DIR).filter((d) => {
-    try {
-      return statSync(resolve(KNOWLEDGE_DIR, d)).isDirectory() && d !== 'common';
-    } catch {
-      return false;
-    }
-  });
-}
+const selectedModules =
+  positional[0] === 'all'
+    ? readdirSync(KNOWLEDGE_DIR).filter((entry) => {
+        try {
+          return statSync(resolve(KNOWLEDGE_DIR, entry)).isDirectory() && entry !== 'common';
+        } catch {
+          return false;
+        }
+      })
+    : positional;
 
 console.log(`[cust] Modules: ${selectedModules.join(', ')}`);
 
-/* ──────────────────── enhancements.md parser ──────────────────── */
+/* ═══════════════════ enhancements.md parser ═══════════════════ */
 
-/**
- * Parse `core/knowledge/modules/{MODULE}/enhancements.md` into structured
- * section buckets. Section detection is heuristic — based on the `##` / `###`
- * headers used across the shipped files (CMOD/SMOD, BAdIs, Enhancement Spots,
- * Form-based user exits, VOFM, Custom Fields / Append Structures).
- */
+// The shipped files are prose with tables in them, not a data format, so which
+// bucket a table row belongs to is decided by the heading above it. Headings are
+// matched loosely because fifteen modules wrote them fifteen ways — note
+// `badis?`, which matters: the plural ("## 2. BAdIs / 비즈니스 애드인") is what
+// thirteen of the fifteen actually use.
+const H2_SECTIONS = [
+  [/\bcustomer exits\b|\bcmod\/smod\b|\bclassic\b/, 'smod'],
+  [/\bbadis?\b|\benhancement spots\b/, 'badi'],
+  [/\bform[\s-]?based\b|\binclude programs\b|\bmodule-specific\b/, 'formExits'],
+  [/\bcustom fields\b|\bappend structures\b/, 'appends'],
+];
+
+// An `###` heading refines the section it sits under; anything unrecognised
+// leaves the current bucket alone rather than clearing it.
+const H3_SECTIONS = [
+  [/\bform[\s-]?based\b|\binclude\b/, 'formExits'],
+  [/\bappend\b|\bcustom fields\b/, 'appends'],
+  [/\bbadis?\b/, 'badi'],
+];
+
+function matchSection(headingLower, table) {
+  for (const [pattern, section] of table) {
+    if (pattern.test(headingLower)) return section;
+  }
+  return null;
+}
+
+// Header cells and rule rows that are not data.
+const NON_DATA_COL1 = new Set(['Name', 'Include', 'Append']);
+
+// Per-bucket shape of a data row. Each entry says how strict column 1 has to
+// look and how the row is recorded; a row failing the test is skipped.
+const ROW_SHAPES = {
+  smod: [/^[A-Z][A-Z0-9_]{5,}$/, (c1, c2, c3) => ({ name: c1, description: c3 })],
+  badi: [/^[A-Z][A-Z0-9_]+$/, (c1, c2, c3) => ({ name: c1, description: c3 })],
+  formExits: [/^[A-Z][A-Z0-9_]{3,}$/, (c1, c2, c3) => ({ include: c1, routines: c3 })],
+  // SD writes | Append | Table | System | Description |, so column 2 is the
+  // base table where there is one.
+  appends: [/^[A-Z][A-Z0-9_]+$/, (c1, c2, c3) => ({ append: c1, baseTable: c2, description: c3 })],
+};
+
+// Parse one module's enhancements.md into the four buckets. Returns null when
+// the file is absent — the caller reports that and moves on.
 function parseEnhancementsMd(path) {
   if (!existsSync(path)) return null;
-  const text = readFileSync(path, 'utf-8');
-  const lines = text.split(/\r?\n/);
 
   const sections = {
-    smod: [],         // classic SMOD enhancement names (e.g. V45A0001)
-    badi: [],         // BAdI / Enhancement Spot names (BADI_SD_SALES, ES_SAPLV45A)
-    formExits: [],    // include programs (MV45AFZZ, RV60AFZZ, ZXRSRU01…)
-    appends: [],      // { append, baseTable }
+    smod: [], // classic SMOD enhancement names (V45A0001 …)
+    badi: [], // BAdI and enhancement spot names (BADI_SD_SALES, ES_SAPLV45A …)
+    formExits: [], // include programs (MV45AFZZ, RV60AFZZ …)
+    appends: [], // { append, baseTable, description }
   };
 
-  let mode = null; // 'smod' | 'badi' | 'formExits' | 'appends' | null
+  let bucket = null;
 
-  for (const raw of lines) {
-    const line = raw.trim();
-    if (/^##\s+/.test(raw)) {
-      const h = raw.toLowerCase();
-      if (/\bcustomer exits\b|\bcmod\/smod\b|\bclassic\b/.test(h)) mode = 'smod';
-      else if (/\bbadis?\b|\benhancement spots\b/.test(h)) mode = 'badi';
-      else if (/\bform[\s-]?based\b|\binclude programs\b|\bmodule-specific\b/.test(h)) mode = 'formExits';
-      else if (/\bcustom fields\b|\bappend structures\b/.test(h)) mode = 'appends';
-      else mode = null;
+  for (const rawLine of readFileSync(path, 'utf-8').split(/\r?\n/)) {
+    if (/^##\s+/.test(rawLine)) {
+      bucket = matchSection(rawLine.toLowerCase(), H2_SECTIONS);
       continue;
     }
-    if (/^###\s+/.test(raw)) {
-      const h = raw.toLowerCase();
-      if (/\bform[\s-]?based\b|\binclude\b/.test(h)) mode = 'formExits';
-      else if (/\bappend\b|\bcustom fields\b/.test(h)) mode = 'appends';
-      else if (/\bbadis?\b/.test(h)) mode = 'badi';
+    if (/^###\s+/.test(rawLine)) {
+      const refined = matchSection(rawLine.toLowerCase(), H3_SECTIONS);
+      if (refined) bucket = refined;
       continue;
     }
 
-    const m = line.match(/^\|([^|]+)\|([^|]+)\|([^|]+)\|/);
-    if (!m) continue;
-    const col1 = m[1].trim().replace(/\*+/g, '').trim();
-    const col2 = m[2].trim().replace(/\*+/g, '').trim();
-    const col3 = m[3].trim().replace(/\*+/g, '').trim();
-    if (!col1 || col1 === 'Name' || col1 === 'Include' || col1 === 'Append' || col1.startsWith('---')) continue;
+    const row = rawLine.trim().match(/^\|([^|]+)\|([^|]+)\|([^|]+)\|/);
+    if (!row) continue;
 
-    if (mode === 'smod') {
-      if (/^[A-Z][A-Z0-9_]{5,}$/.test(col1)) sections.smod.push({ name: col1, description: col3 });
-    } else if (mode === 'badi') {
-      if (/^[A-Z][A-Z0-9_]+$/.test(col1)) sections.badi.push({ name: col1, description: col3 });
-    } else if (mode === 'formExits') {
-      if (/^[A-Z][A-Z0-9_]{3,}$/.test(col1)) sections.formExits.push({ include: col1, routines: col3 });
-    } else if (mode === 'appends') {
-      // In SD the header row is | Append | Table | System | Description |
-      // col2 may contain the base table; otherwise skip
-      if (/^[A-Z][A-Z0-9_]+$/.test(col1)) sections.appends.push({ append: col1, baseTable: col2, description: col3 });
-    }
+    // Bold markers are decoration, not part of any name.
+    const [col1, col2, col3] = row.slice(1, 4).map((cell) => cell.trim().replace(/\*+/g, '').trim());
+    if (!col1 || NON_DATA_COL1.has(col1) || col1.startsWith('---')) continue;
+
+    const shape = ROW_SHAPES[bucket];
+    if (!shape) continue;
+    const [namePattern, build] = shape;
+    if (namePattern.test(col1)) sections[bucket].push(build(col1, col2, col3));
   }
 
   return sections;
 }
 
-/* ──────────────────── MCP helpers ──────────────────── */
+/* ═══════════════════ MCP helpers ═══════════════════ */
 
+// One call, one uniform answer. Some tools reply with JSON and others with
+// ADT XML, so both the parsed and the raw form are handed back and each scan
+// takes whichever it needs.
 async function callTool(client, name, args) {
   try {
-    const r = await client.callTool({ name, arguments: args });
-    const text = r?.content?.[0]?.text;
+    const response = await client.callTool({ name, arguments: args });
+    const text = response?.content?.[0]?.text;
     if (!text) return { ok: false, error: 'empty response' };
-    // Some tools return JSON; others return XML/text. Try parsing JSON, else return raw.
-    try { return { ok: true, json: JSON.parse(text), raw: text }; }
-    catch { return { ok: true, raw: text }; }
-  } catch (e) {
-    return { ok: false, error: e.message };
+    try {
+      return { ok: true, json: JSON.parse(text), raw: text };
+    } catch {
+      return { ok: true, raw: text };
+    }
+  } catch (err) {
+    return { ok: false, error: err.message };
   }
 }
 
-// BAdI — fetch enhancement spot and extract Z/Y implementations.
+// BAdI — read the enhancement spot and harvest customer-namespace names from
+// whatever came back. Not every row in enhancements.md is really a spot; some
+// are plain BAdI definitions, so a miss falls back to a name lookup and returns
+// quietly with nothing found rather than raising.
 async function scanBadiImplementations(client, badiName) {
-  const r = await callTool(client, 'GetEnhancementSpot', { enhancement_spot: badiName });
-  if (!r.ok) {
-    // Not every row in enhancements.md is a real enhancement spot — some are
-    // BAdI definitions. Fall back to a SearchObject lookup and move on silently.
-    const s = await callTool(client, 'SearchObject', { object_name: badiName, object_type: 'BADI', maxResults: 5 });
-    return { ok: r.ok || s.ok, implementations: [], spot: r.raw || s.raw || null };
+  const spot = await callTool(client, 'GetEnhancementSpot', { enhancement_spot: badiName });
+  if (!spot.ok) {
+    const search = await callTool(client, 'SearchObject', {
+      object_name: badiName,
+      object_type: 'BADI',
+      maxResults: 5,
+    });
+    return { ok: spot.ok || search.ok, implementations: [], spot: spot.raw || search.raw || null };
   }
-  // Try to extract implementation class names from the response text.
-  const raw = r.raw || '';
-  const impls = new Set();
-  // Look for ZCL_IM_*, ZCL_*_IMPL, or Z*_IMPL patterns in the payload
-  for (const m of raw.matchAll(/\b([ZY][A-Z0-9_]{2,30})\b/g)) impls.add(m[1]);
-  return { ok: true, implementations: [...impls].filter((n) => Z_PATTERN.test(n)) };
+
+  // Implementation classes appear under several conventions (ZCL_IM_*,
+  // ZCL_*_IMPL, Z*_IMPL), so the payload is swept for Z/Y identifiers instead
+  // of any one shape.
+  const found = new Set();
+  for (const hit of (spot.raw || '').matchAll(/\b([ZY][A-Z0-9_]{2,30})\b/g)) found.add(hit[1]);
+  return { ok: true, implementations: [...found].filter((name) => Z_PATTERN.test(name)) };
 }
 
-// SMOD — find ACTIVE CMOD projects (Z/Y namespace) including this enhancement.
-// Tables used:
-//   MODACT  — CMOD project ↔ SMOD membership (NAME=project, MEMBER=SMOD name)
-//   MODATTR — CMOD project header; STATUS='A' means activated in CMOD
-// Both are Customizing/metadata tables (not transactional row data).
-// Historical note: prior code queried MODSAP here, which is the SAP-delivered
-// SMOD definition repository and holds no customer CMOD membership at all —
-// every call returned 0 rows regardless of system state (see issue #29).
+// SMOD — which activated CMOD projects include this enhancement.
+//   MODACT   project ↔ SMOD membership (NAME = project, MEMBER = SMOD name)
+//   MODATTR  project header; STATUS 'A' means activated in CMOD
+// Both are customizing tables, not transactional data.
+//
+// Historical note: this used to query MODSAP, which is SAP's own delivered SMOD
+// repository and holds no customer membership whatsoever — every call returned
+// zero rows no matter what the system contained (issue #29).
 async function scanSmodCmod(client, smodName) {
   const sql =
     'SELECT a~NAME, a~MEMBER FROM MODACT AS a '
     + 'INNER JOIN MODATTR AS b ON a~NAME = b~NAME '
     + `WHERE b~STATUS = 'A' AND a~MEMBER = '${smodName}'`;
-  const r = await callTool(client, 'GetSqlQuery', { sql_query: sql, row_number: 50 });
-  if (!r.ok || !r.json) return { ok: false, error: r.error || 'no MODACT data' };
-  const rows = r.json.rows || [];
-  const cmodProjects = rows
+
+  const answer = await callTool(client, 'GetSqlQuery', { sql_query: sql, row_number: 50 });
+  if (!answer.ok || !answer.json) return { ok: false, error: answer.error || 'no MODACT data' };
+
+  const cmodProjects = (answer.json.rows || [])
     .map((row) => row.NAME || row.name)
-    .filter((n) => n && Z_PATTERN.test(n));
+    .filter((name) => name && Z_PATTERN.test(name));
   return { ok: true, cmodProjects };
 }
 
-/** Form-based user exits — check if the include file contains Z forms or
- *  USEREXIT forms with non-empty bodies. Simple heuristic: if GetInclude
- *  returns source longer than a threshold, mark as "customized". */
+// Form-based user exits — a heuristic, and knowingly so. SAP ships these
+// includes as empty FORM stubs, so weight is the signal: strip comments, count
+// what is left, and read more than 150 live lines as customer code having moved
+// in. There is no cheap exact answer here.
 async function scanFormExit(client, includeName) {
-  const r = await callTool(client, 'GetInclude', { include_name: includeName });
-  if (!r.ok) return { ok: false };
-  const src = r.raw || '';
-  // Strip comments; count non-empty, non-* lines
-  const meaningful = src
+  const answer = await callTool(client, 'GetInclude', { include_name: includeName });
+  if (!answer.ok) return { ok: false };
+
+  const lineCount = (answer.raw || '')
     .split('\n')
-    .filter((l) => l.trim() && !l.trim().startsWith('*'))
-    .length;
-  // Heuristic: a "pristine" SAP include is typically a few dozen lines of FORM stubs.
-  // Anything >150 lines strongly suggests customer code inside FORMs.
-  return { ok: true, customized: meaningful > 150, lineCount: meaningful };
+    .filter((line) => line.trim() && !line.trim().startsWith('*')).length;
+  return { ok: true, customized: lineCount > 150, lineCount };
 }
 
-// GGB0 (Substitution) / GGB1 (Validation) / GGB4 (Rule) — scan GB03 for
-// customer-namespace rule names (VSR_NAME starting with Z/Y) that are active.
-// BTYP encoding:
-//   1 = Validation (GGB1)
-//   2 = Substitution (GGB0)
-//   3 = Rule
-// GB03 is Customizing metadata — the VSR_NAME / BCLASS / APPLAREA / CALLUP_P
-// keys describe the rule, not transaction row data, so it is not blocklisted
-// (same category as MODACT/MODATTR used in scanSmodCmod above).
+// BTYP as GB03 stores it.
+const GGB_RULE_TYPES = { 1: 'validation', 2: 'substitution', 3: 'rule' };
+
+// GGB0 (substitution) / GGB1 (validation) / GGB4 (rule) — active rules whose
+// name is in the customer namespace. GB03 is customizing metadata: VSR_NAME,
+// BCLASS, APPLAREA and CALLUP_P describe the rule, not any transaction it acts
+// on, which puts it in the same category as MODACT/MODATTR above.
 async function scanGgbRulesAll(client) {
   const sql = "SELECT VSR_NAME, BCLASS, BTYP, BSTAT, APPLAREA, CALLUP_P FROM GB03 "
             + "WHERE BSTAT = 'A' AND (VSR_NAME LIKE 'Z%' OR VSR_NAME LIKE 'Y%')";
-  const r = await callTool(client, 'GetSqlQuery', { sql_query: sql, row_number: 500 });
-  if (!r.ok || !r.json) return { ok: false, rules: [], error: r.error || 'no GB03 data' };
-  const rows = r.json.rows || [];
-  const rules = rows.map((row) => ({
-    name: row.VSR_NAME || row.vsr_name,
-    type: ({ '1': 'validation', '2': 'substitution', '3': 'rule' })[String(row.BTYP || row.btyp)] || 'unknown',
-    bclass: row.BCLASS || row.bclass,
-    applArea: row.APPLAREA || row.applarea,
-    callupPoint: row.CALLUP_P || row.callup_p,
-    status: 'active',
-  })).filter((x) => x.name && Z_PATTERN.test(x.name));
+
+  const answer = await callTool(client, 'GetSqlQuery', { sql_query: sql, row_number: 500 });
+  if (!answer.ok || !answer.json) return { ok: false, rules: [], error: answer.error || 'no GB03 data' };
+
+  const rules = (answer.json.rows || [])
+    .map((row) => ({
+      name: row.VSR_NAME || row.vsr_name,
+      type: GGB_RULE_TYPES[String(row.BTYP || row.btyp)] || 'unknown',
+      bclass: row.BCLASS || row.bclass,
+      applArea: row.APPLAREA || row.applarea,
+      callupPoint: row.CALLUP_P || row.callup_p,
+      status: 'active',
+    }))
+    .filter((rule) => rule.name && Z_PATTERN.test(rule.name));
   return { ok: true, rules };
 }
 
-// BTE (Business Transaction Events, FIBF / BF11 / BF24 / BF34) — scan the two
-// customer-FM registration tables:
-//   TBE24 — Publish/Subscribe customer product → FM (IFNR = P/S interface)
-//   TPS34 — Process Interface customer product → FM (IFNR = process interface)
-// Filter by FUNCTION starting with Z/Y (customer-namespace FM). EVENT is the
-// numeric event id (e.g. 00001025 = FI_TRANSFER_CUST_TO_SD). APPL is the
-// application code (FI-AP, FI-AR, FI-GL, FI-BL, TR-CM, CA, PM, etc.) which
-// we use downstream for module filtering.
+// BTE (Business Transaction Events — FIBF, BF11/BF24/BF34). Customer function
+// modules are registered in two tables, one per interface kind:
+//   TBE24  publish/subscribe
+//   TPS34  process interface
+// Both carry EVENT (the numeric id, e.g. 00001025), APPL (the application code
+// used downstream for module filtering), PRODUCT and FUNCTION.
+const BTE_SOURCES = [
+  ['P/S', 'TBE24'],
+  ['Process', 'TPS34'],
+];
+
 async function scanBteImplementationsAll(client) {
-  const out = { ok: true, implementations: [] };
-  // Publish/Subscribe
-  {
-    const sql = "SELECT EVENT, APPL, PRODUCT, FUNCTION FROM TBE24 "
+  const implementations = [];
+
+  for (const [kind, table] of BTE_SOURCES) {
+    const sql = `SELECT EVENT, APPL, PRODUCT, FUNCTION FROM ${table} `
               + "WHERE FUNCTION LIKE 'Z%' OR FUNCTION LIKE 'Y%'";
-    const r = await callTool(client, 'GetSqlQuery', { sql_query: sql, row_number: 500 });
-    if (r.ok && r.json) {
-      for (const row of r.json.rows || []) {
-        const fn = row.FUNCTION || row.function;
-        if (!fn || !Z_PATTERN.test(fn)) continue;
-        out.implementations.push({
-          kind: 'P/S',
-          event: row.EVENT || row.event,
-          application: row.APPL || row.appl,
-          product: row.PRODUCT || row.product,
-          function: fn,
-        });
-      }
+    const answer = await callTool(client, 'GetSqlQuery', { sql_query: sql, row_number: 500 });
+    if (!answer.ok || !answer.json) continue;
+
+    for (const row of answer.json.rows || []) {
+      const fn = row.FUNCTION || row.function;
+      if (!fn || !Z_PATTERN.test(fn)) continue;
+      implementations.push({
+        kind,
+        event: row.EVENT || row.event,
+        application: row.APPL || row.appl,
+        product: row.PRODUCT || row.product,
+        function: fn,
+      });
     }
   }
-  // Process Interface
-  {
-    const sql = "SELECT EVENT, APPL, PRODUCT, FUNCTION FROM TPS34 "
-              + "WHERE FUNCTION LIKE 'Z%' OR FUNCTION LIKE 'Y%'";
-    const r = await callTool(client, 'GetSqlQuery', { sql_query: sql, row_number: 500 });
-    if (r.ok && r.json) {
-      for (const row of r.json.rows || []) {
-        const fn = row.FUNCTION || row.function;
-        if (!fn || !Z_PATTERN.test(fn)) continue;
-        out.implementations.push({
-          kind: 'Process',
-          event: row.EVENT || row.event,
-          application: row.APPL || row.appl,
-          product: row.PRODUCT || row.product,
-          function: fn,
-        });
-      }
-    }
-  }
-  return out;
+
+  return { ok: true, implementations };
 }
 
-// Module scope for GGB APPLAREA / BTE APPL filtering. Keys are module codes
-// used in the script; values are substring prefixes checked case-insensitively
-// against the rule's applArea / application field.
+// GGB and BTE are scanned system-wide, so each rule has to be handed to the
+// module it belongs to. The application-area codes SAP uses do not match module
+// codes, hence this table: values are prefixes, compared case-insensitively
+// against the rule's applArea or application field. A module absent from the
+// table gets nothing, which is deliberate — a wrong assignment is worse than a
+// missing one.
 const MODULE_SCOPE = {
   FI: ['GLT', 'GLX', 'FS', 'RF05', 'FI-GL', 'FI-AP', 'FI-AR', 'FI-BL', 'FI-TV', 'FI-CA', 'FKR'],
   CO: ['KOAR', 'KBE', 'CO'],
@@ -409,44 +408,56 @@ const MODULE_SCOPE = {
 };
 
 function filterByModuleScope(items, mod, field) {
-  const scope = MODULE_SCOPE[mod];
-  if (!scope) return [];
-  return items.filter((it) => {
-    const v = String(it[field] || '').toUpperCase();
-    if (!v) return false;
-    return scope.some((p) => v.startsWith(p.toUpperCase()));
+  const prefixes = MODULE_SCOPE[mod];
+  if (!prefixes) return [];
+  return items.filter((item) => {
+    const value = String(item[field] || '').toUpperCase();
+    if (!value) return false;
+    return prefixes.some((prefix) => value.startsWith(prefix.toUpperCase()));
   });
 }
 
-// Append structures / custom fields on a base table.
-// GetTable returns CDS-DDL in modern systems: `include ci_vbak_zz;` / `include z_append_vbak;`
-// Classic SE11 format: `.APPEND.CI_VBAK`
-// Accept both.
+// Append structures and custom fields on a base table. Two source formats have
+// to be read: modern systems return CDS DDL (`include ci_vbak_zz;`), classic
+// SE11 returns `.APPEND.CI_VBAK`. CI_* counts as customer extension even
+// without a Z prefix — those are SAP's own reserved customer-include slots.
 async function scanTableExtensions(client, baseTable) {
-  const r = await callTool(client, 'GetTable', { table_name: baseTable });
-  if (!r.ok) return { ok: false, error: r.error };
-  const raw = r.raw || '';
-  const cdsIncludes = [...raw.matchAll(/\binclude\s+(\w+)/gi)].map((m) => m[1].toUpperCase());
-  const seAppends = [...raw.matchAll(/\.APPEND\.\s*([A-Z_][A-Z0-9_]*)/gi)].map((m) => m[1].toUpperCase());
-  const allIncludes = [...new Set([...cdsIncludes, ...seAppends])];
-  const customAppends = allIncludes.filter((n) => Z_PATTERN.test(n) || /^CI_/.test(n));
-  // ZZ_*/YY_* customer fields declared inside the table body
-  const zzFields = [...new Set(
-    [...raw.matchAll(/\b((?:ZZ?|YY?)_[A-Z0-9_]{2,})\b/gi)].map((m) => m[1].toUpperCase())
-  )];
-  return { ok: true, appendStructures: customAppends, customFields: zzFields };
+  const answer = await callTool(client, 'GetTable', { table_name: baseTable });
+  if (!answer.ok) return { ok: false, error: answer.error };
+
+  const raw = answer.raw || '';
+  const includes = new Set();
+  for (const hit of raw.matchAll(/\binclude\s+(\w+)/gi)) includes.add(hit[1].toUpperCase());
+  for (const hit of raw.matchAll(/\.APPEND\.\s*([A-Z_][A-Z0-9_]*)/gi)) includes.add(hit[1].toUpperCase());
+
+  const appendStructures = [...includes].filter((name) => Z_PATTERN.test(name) || /^CI_/.test(name));
+  // ZZ_* / YY_* fields declared straight into the table body.
+  const customFields = [
+    ...new Set([...raw.matchAll(/\b((?:ZZ?|YY?)_[A-Z0-9_]{2,})\b/gi)].map((hit) => hit[1].toUpperCase())),
+  ];
+  return { ok: true, appendStructures, customFields };
 }
 
-/* ──────────────────── orchestration ──────────────────── */
+/* ═══════════════════ orchestration ═══════════════════ */
+
+// The base tables worth asking about: column 2 of the appends rows, kept only
+// where it looks like a table name at all.
+function baseTablesOf(parsed) {
+  return [
+    ...new Set(parsed.appends.map((entry) => entry.baseTable).filter((name) => /^[A-Z][A-Z0-9_]+$/.test(name))),
+  ];
+}
 
 async function extractForModule(client, mod, globalCache) {
-  const mdPath = resolve(KNOWLEDGE_DIR, mod, 'enhancements.md');
-  const parsed = parseEnhancementsMd(mdPath);
+  const parsed = parseEnhancementsMd(resolve(KNOWLEDGE_DIR, mod, 'enhancements.md'));
   if (!parsed) {
     console.warn(`[cust] ${mod}: enhancements.md not found — skipping`);
     return null;
   }
-  console.log(`[cust] ${mod}: parsed ${parsed.smod.length} SMOD / ${parsed.badi.length} BAdI / ${parsed.formExits.length} form-exits / ${parsed.appends.length} appends`);
+  console.log(
+    `[cust] ${mod}: parsed ${parsed.smod.length} SMOD / ${parsed.badi.length} BAdI` +
+      ` / ${parsed.formExits.length} form-exits / ${parsed.appends.length} appends`
+  );
 
   const enhancements = {
     smodExits: [],
@@ -455,113 +466,108 @@ async function extractForModule(client, mod, globalCache) {
     ggbRules: [],
     bteImplementations: [],
   };
-  const extensions = {
-    appendStructures: [],
-  };
+  const extensions = { appendStructures: [] };
 
   // 1) BAdI implementations
-  for (const b of parsed.badi) {
-    const r = await scanBadiImplementations(client, b.name);
-    if (r.ok && r.implementations && r.implementations.length > 0) {
-      enhancements.badiImplementations.push({
-        standardName: b.name,
-        description: b.description,
-        customs: r.implementations.map((n) => ({ name: n, type: 'CLAS' })),
-      });
-      console.log(`  ✓ BAdI ${b.name} — ${r.implementations.length} Z impl`);
-    }
+  for (const badi of parsed.badi) {
+    const found = await scanBadiImplementations(client, badi.name);
+    if (!found.ok || !found.implementations?.length) continue;
+    enhancements.badiImplementations.push({
+      standardName: badi.name,
+      description: badi.description,
+      customs: found.implementations.map((name) => ({ name, type: 'CLAS' })),
+    });
+    console.log(`  ✓ BAdI ${badi.name} — ${found.implementations.length} Z impl`);
   }
 
   // 2) SMOD → CMOD
-  for (const s of parsed.smod) {
-    const r = await scanSmodCmod(client, s.name);
-    if (r.ok && r.cmodProjects && r.cmodProjects.length > 0) {
-      enhancements.smodExits.push({
-        standardName: s.name,
-        description: s.description,
-        customs: r.cmodProjects.map((n) => ({ name: n, type: 'CMOD' })),
-      });
-      console.log(`  ✓ SMOD ${s.name} — CMOD(${r.cmodProjects.join(', ')})`);
-    }
+  for (const smod of parsed.smod) {
+    const found = await scanSmodCmod(client, smod.name);
+    if (!found.ok || !found.cmodProjects?.length) continue;
+    enhancements.smodExits.push({
+      standardName: smod.name,
+      description: smod.description,
+      customs: found.cmodProjects.map((name) => ({ name, type: 'CMOD' })),
+    });
+    console.log(`  ✓ SMOD ${smod.name} — CMOD(${found.cmodProjects.join(', ')})`);
   }
 
   // 3) Form-based user exits
-  for (const f of parsed.formExits) {
-    const r = await scanFormExit(client, f.include);
-    if (r.ok && r.customized) {
-      enhancements.formBasedExits.push({
-        include: f.include,
-        routines: f.routines,
-        lineCount: r.lineCount,
-      });
-      console.log(`  ✓ Form-exit ${f.include} — ${r.lineCount} lines (likely customized)`);
-    }
+  for (const exit of parsed.formExits) {
+    const found = await scanFormExit(client, exit.include);
+    if (!found.ok || !found.customized) continue;
+    enhancements.formBasedExits.push({
+      include: exit.include,
+      routines: exit.routines,
+      lineCount: found.lineCount,
+    });
+    console.log(`  ✓ Form-exit ${exit.include} — ${found.lineCount} lines (likely customized)`);
   }
 
-  // 4) GGB0/GGB1/Rule — from the pre-computed global scan, filtered by APPLAREA
+  // 4) GGB rules — sliced out of the one system-wide scan by APPLAREA
   if (globalCache?.ggb && MODULE_SCOPE[mod]) {
     const mine = filterByModuleScope(globalCache.ggb, mod, 'applArea');
     if (mine.length) {
       enhancements.ggbRules = mine;
-      for (const g of mine) {
-        console.log(`  ✓ GGB ${g.type.padEnd(12)} ${g.name} — ${g.applArea}/${g.callupPoint || '*'}`);
+      for (const rule of mine) {
+        console.log(`  ✓ GGB ${rule.type.padEnd(12)} ${rule.name} — ${rule.applArea}/${rule.callupPoint || '*'}`);
       }
     }
   }
 
-  // 5) BTE — from the pre-computed global scan, filtered by APPL
+  // 5) BTE function modules — same, sliced by APPL
   if (globalCache?.bte && MODULE_SCOPE[mod]) {
     const mine = filterByModuleScope(globalCache.bte, mod, 'application');
     if (mine.length) {
       enhancements.bteImplementations = mine;
-      for (const b of mine) {
-        console.log(`  ✓ BTE ${b.kind.padEnd(8)} ${b.event} [${b.application}] → ${b.function}`);
+      for (const impl of mine) {
+        console.log(`  ✓ BTE ${impl.kind.padEnd(8)} ${impl.event} [${impl.application}] → ${impl.function}`);
       }
     }
   }
 
-  // 6) Append structures / custom fields on base tables
-  const baseTables = [...new Set(parsed.appends.map((a) => a.baseTable).filter((t) => /^[A-Z][A-Z0-9_]+$/.test(t)))];
-  for (const tbl of baseTables) {
-    const r = await scanTableExtensions(client, tbl);
-    if (r.ok && ((r.appendStructures && r.appendStructures.length) || (r.customFields && r.customFields.length))) {
-      extensions.appendStructures.push({
-        baseTable: tbl,
-        appendStructures: r.appendStructures || [],
-        customFields: r.customFields || [],
-      });
-      console.log(`  ✓ Table ${tbl} — ${r.appendStructures.length} append / ${r.customFields.length} Z field`);
-    }
+  // 6) Append structures and custom fields
+  for (const table of baseTablesOf(parsed)) {
+    const found = await scanTableExtensions(client, table);
+    if (!found.ok) continue;
+    const appends = found.appendStructures || [];
+    const fields = found.customFields || [];
+    if (!appends.length && !fields.length) continue;
+
+    extensions.appendStructures.push({ baseTable: table, appendStructures: appends, customFields: fields });
+    console.log(`  ✓ Table ${table} — ${appends.length} append / ${fields.length} Z field`);
   }
 
   return { enhancements, extensions };
 }
 
-// Offline scope disclosure — parse only, report what would be read.
-function dryRun() {
+// The offline half of the approval gate: parse the shipped files, state exactly
+// what would be read, and stop. Exits 1 only when not one module could be
+// parsed — otherwise the disclosure succeeded, which is what was asked for.
+function discloseScope() {
   console.log('\n[cust] DRY RUN — nothing was started and nothing was read.');
   console.log('[cust] Workspace-wide SQL scans that would run once:');
   console.log("  - GB03  (GGB0/GGB1 rules)  SELECT VSR_NAME, BCLASS, BTYP, BSTAT, APPLAREA, CALLUP_P … BSTAT='A' AND VSR_NAME LIKE 'Z%'/'Y%'  [cap 500]");
   console.log("  - TBE24 (BTE P/S)          SELECT EVENT, APPL, PRODUCT, FUNCTION … FUNCTION LIKE 'Z%'/'Y%'  [cap 500]");
   console.log("  - TPS34 (BTE Process)      SELECT EVENT, APPL, PRODUCT, FUNCTION … FUNCTION LIKE 'Z%'/'Y%'  [cap 500]");
+
   let missing = 0;
   for (const mod of selectedModules) {
-    const mdPath = resolve(KNOWLEDGE_DIR, mod, 'enhancements.md');
-    const parsed = parseEnhancementsMd(mdPath);
+    const parsed = parseEnhancementsMd(resolve(KNOWLEDGE_DIR, mod, 'enhancements.md'));
     if (!parsed) {
       console.warn(`[cust] ${mod}: enhancements.md not found — would be skipped`);
       missing++;
       continue;
     }
-    const baseTables = [...new Set(parsed.appends.map((a) => a.baseTable).filter((t) => /^[A-Z][A-Z0-9_]+$/.test(t)))];
     console.log(
       `[cust] ${mod.padEnd(5)} SMOD ${String(parsed.smod.length).padStart(3)} (→ MODACT/MODATTR query each)` +
         ` · BAdI ${String(parsed.badi.length).padStart(3)} (GetEnhancementSpot)` +
         ` · form-exits ${String(parsed.formExits.length).padStart(3)} (GetInclude)` +
-        ` · base tables ${String(baseTables.length).padStart(3)} (GetTable)`
+        ` · base tables ${String(baseTablesOf(parsed).length).padStart(3)} (GetTable)`
     );
     console.log(`         output → ${join(OUTPUT_DIR, mod)} / {enhancements,extensions}.json`);
   }
+
   console.log(
     `[cust] Approval gate: re-running without --dry-run authorises exactly this scope. ` +
       `You are the approver — an agent must not run it for you (approval-gates.md Gate B).`
@@ -569,22 +575,37 @@ function dryRun() {
   process.exit(missing === selectedModules.length ? 1 : 0);
 }
 
+function writeModuleFiles(mod, result) {
+  const modDir = resolve(OUTPUT_DIR, mod);
+  mkdirSync(modDir, { recursive: true });
+  const timestamp = new Date().toISOString();
+
+  writeFileSync(
+    resolve(modDir, 'enhancements.json'),
+    JSON.stringify({ timestamp, module: mod, ...result.enhancements }, null, 2),
+    'utf-8',
+  );
+  writeFileSync(
+    resolve(modDir, 'extensions.json'),
+    JSON.stringify({ timestamp, module: mod, ...result.extensions }, null, 2),
+    'utf-8',
+  );
+}
+
 async function main() {
-  if (DRY_RUN) dryRun();
+  if (DRY_RUN) discloseScope();
 
   console.log(`[cust] Project: ${PROJECT_DIR}`);
   console.log('[cust] Connecting to MCP server...');
-  // `readonly,high` — GetTable is not exposed in the `readonly` set; the other
-  // four calls are. This script issues read calls only.
+  // `readonly,high` — GetTable sits outside the `readonly` set while the other
+  // four calls are inside it. Every call this script makes is a read.
   const client = await connectMcp({ cwd: PROJECT_DIR, exposition: 'readonly,high', label: 'customization-extractor' });
   console.log('[cust] Connected.');
 
   mkdirSync(OUTPUT_DIR, { recursive: true });
 
-  // One-shot global scans — GGB (GB03) and BTE (TBE24 + TPS34) customer impls
-  // are workspace-wide, not per-module; scanning once and filtering by
-  // APPLAREA/APPL into each module's bucket avoids repeating heavy SQL on
-  // every module iteration.
+  // GGB and BTE registrations are system-wide, not per-module. Scanning once and
+  // slicing by application area keeps the heavy SQL off every module iteration.
   console.log('[cust] Scanning GGB0/GGB1 customer rules (GB03)...');
   const ggbAll = await scanGgbRulesAll(client);
   console.log(`[cust]   → ${ggbAll.rules?.length || 0} customer GGB rules`);
@@ -596,40 +617,26 @@ async function main() {
   const summary = { modules: [], total: { smod: 0, badi: 0, formExits: 0, extensions: 0, ggb: 0, bte: 0 } };
 
   for (const mod of selectedModules) {
-    const res = await extractForModule(client, mod, globalCache);
-    if (!res) continue;
-    const modDir = resolve(OUTPUT_DIR, mod);
-    mkdirSync(modDir, { recursive: true });
+    const result = await extractForModule(client, mod, globalCache);
+    if (!result) continue;
+    writeModuleFiles(mod, result);
 
-    const enhancementsPath = resolve(modDir, 'enhancements.json');
-    const extensionsPath = resolve(modDir, 'extensions.json');
-
-    writeFileSync(enhancementsPath, JSON.stringify({
-      timestamp: new Date().toISOString(),
+    const counts = {
       module: mod,
-      ...res.enhancements,
-    }, null, 2), 'utf-8');
-    writeFileSync(extensionsPath, JSON.stringify({
-      timestamp: new Date().toISOString(),
-      module: mod,
-      ...res.extensions,
-    }, null, 2), 'utf-8');
-
-    summary.modules.push({
-      module: mod,
-      smodExits: res.enhancements.smodExits.length,
-      badiImpls: res.enhancements.badiImplementations.length,
-      formExits: res.enhancements.formBasedExits.length,
-      ggbRules: res.enhancements.ggbRules.length,
-      bteImpls: res.enhancements.bteImplementations.length,
-      tableExtensions: res.extensions.appendStructures.length,
-    });
-    summary.total.smod += res.enhancements.smodExits.length;
-    summary.total.badi += res.enhancements.badiImplementations.length;
-    summary.total.formExits += res.enhancements.formBasedExits.length;
-    summary.total.ggb += res.enhancements.ggbRules.length;
-    summary.total.bte += res.enhancements.bteImplementations.length;
-    summary.total.extensions += res.extensions.appendStructures.length;
+      smodExits: result.enhancements.smodExits.length,
+      badiImpls: result.enhancements.badiImplementations.length,
+      formExits: result.enhancements.formBasedExits.length,
+      ggbRules: result.enhancements.ggbRules.length,
+      bteImpls: result.enhancements.bteImplementations.length,
+      tableExtensions: result.extensions.appendStructures.length,
+    };
+    summary.modules.push(counts);
+    summary.total.smod += counts.smodExits;
+    summary.total.badi += counts.badiImpls;
+    summary.total.formExits += counts.formExits;
+    summary.total.ggb += counts.ggbRules;
+    summary.total.bte += counts.bteImpls;
+    summary.total.extensions += counts.tableExtensions;
   }
 
   console.log('\n[cust] === Summary ===');
@@ -643,7 +650,7 @@ async function main() {
   process.exit(0);
 }
 
-main().catch((e) => {
-  console.error('[cust] Fatal error:', e);
+main().catch((err) => {
+  console.error('[cust] Fatal error:', err);
   process.exit(1);
 });

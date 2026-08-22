@@ -7,24 +7,24 @@ source:
 
 # Deep Interview
 
-Conduct a structured Socratic interview to crystallize SAP development requirements before any code is written. Prevents wasted execution cycles on underspecified ABAP tasks.
+Run a staged Socratic interview so that SAP development requirements harden before any code is written. What it buys back is the execution cycles otherwise burned on an underspecified ABAP task.
 
 ## Purpose
 
-Ask targeted questions to resolve ambiguity in SAP requirements. Gate on a mathematical ambiguity threshold: only when requirements are sufficiently specified does the interview produce a validated spec file and offer to proceed to a build procedure (`create-program` / `create-object`).
+Aim each question at a specific piece of ambiguity in the SAP requirement. A scored ambiguity threshold gates the exit: only once the requirements are specified enough does the interview write a validated spec file and offer to move on to a build procedure (`create-program` / `create-object`).
 
 ## When to Use
 
-- Requirement is vague (no object names, package, transport, or system details)
-- User says "deep interview", "ask me questions", "help me spec this", or "I'm not sure what I need"
-- Task involves complex SAP scenarios (RAP, BAdI, enhancement framework) where wrong assumptions are costly
-- User is unfamiliar with SAP object types and needs guidance on the right approach
+- The requirement is still vague — no object names, no package, no transport, no system details
+- The user says "deep interview", "ask me questions", "help me spec this", or "I'm not sure what I need"
+- The task lands in a complex SAP scenario (RAP, BAdI, enhancement framework) where a wrong assumption is expensive
+- The user does not know the SAP object types well enough to choose the right approach unaided
 
 ## When NOT to Use
 
-- Requirements are concrete (specific class name, method signature, package) — proceed directly to `create-object`
-- User wants immediate execution on a full program spec — use `create-program`
-- Task is a one-line fix — skip interview entirely
+- The requirements are already concrete (a specific class name, method signature, package) — go straight to `create-object`
+- The user has a full program spec and wants it executed now — use `create-program`
+- The task is a one-line fix — skip the interview entirely
 
 ## Knowledge Preflight (runs before the first question)
 
@@ -55,34 +55,34 @@ shorter than the first.
 
 ## SAP Interview Dimensions
 
-The interview covers these dimensions until each is resolved:
+Work these dimensions until every one of them is resolved:
 
-**Object scope**: What ABAP objects are needed? (class, interface, program, function module, BAdI implementation, CDS view, RAP business object)
+**Object scope**: Which ABAP objects does this need? (class, interface, program, function module, BAdI implementation, CDS view, RAP business object)
 
-**Package and transport**: Which development package? New transport or existing? Which system landscape (DEV → QAS → PRD)?
+**Package and transport**: Which development package? A new transport or an existing one? Which system landscape (DEV → QAS → PRD)?
 
-**Technical pattern**: OO class hierarchy? Procedural? RAP/OData? Enhancement spot/BAdI? Which release (ECC vs S/4HANA)?
+**Technical pattern**: An OO class hierarchy? Procedural? RAP/OData? An enhancement spot/BAdI? Which release (ECC vs S/4HANA)?
 
-**Integration points**: Which SAP modules does this touch? (FI, MM, SD, HCM, etc.) Any BAPIs, RFCs, or IDocs involved?
+**Integration points**: Which SAP modules does it touch? (FI, MM, SD, HCM, etc.) Are any BAPIs, RFCs, or IDocs in play?
 
-**Data model**: Which tables are read/written? Custom Z-tables or standard SAP tables? Authorization objects needed?
+**Data model**: Which tables get read and written? Custom Z-tables or standard SAP tables? Which authorization objects does it need?
 
-**Testing requirements**: Unit tests needed? Which test classes? Test data strategy?
+**Testing requirements**: Are unit tests wanted? In which test classes? What test data strategy?
 
 ## Ambiguity Gating
 
-After each round of questions, score ambiguity 0–10:
-- 8+: too vague, continue interview
+Close each round of questions by scoring the remaining ambiguity 0–10:
+- 8+: still too vague, keep interviewing
 - 5–7: borderline, ask 1–2 clarifying questions
-- Below 5: sufficient, generate spec
+- Below 5: specified enough, generate the spec
 
-Do not proceed to spec generation until score is below 5.
+Do not move on to spec generation until the score is below 5.
 
 ## Output
 
-When the ambiguity threshold is met:
+Once the ambiguity threshold is met:
 1. Write the validated spec to `.sapkit/deep-interviews/sap-{timestamp}.md`
-2. Spec includes: object list, package, transport strategy, technical pattern, integration points, test requirements
+2. The spec carries: object list, package, transport strategy, technical pattern, integration points, test requirements
 3. Offer: "Spec ready. Proceed with `create-program` (full program) or `create-object` (single object)?"
 4. If the interview established a business or system fact — a company-specific rule, a non-obvious status meaning, a legacy table's real grain — grep the two knowledge files for its key terms first, and only if it is **not** already recorded offer one line: *"Record `<fact>` to project knowledge? (yes/no)"*. On `yes`, follow [knowledge](knowledge.md). Nothing newly established, or already recorded → no prompt.
 
@@ -90,5 +90,5 @@ The brief is standing input, not a one-shot handoff: a later `create-program` ru
 
 ## Related Procedures
 
-- [ask-consultant](ask-consultant.md) — for operational Q&A rather than build-requirement clarification
-- [program-to-spec](program-to-spec.md) — reverse direction: existing program → spec
+- [ask-consultant](ask-consultant.md) — when the question is operational Q&A rather than build-requirement clarification
+- [program-to-spec](program-to-spec.md) — the reverse direction: existing program → spec

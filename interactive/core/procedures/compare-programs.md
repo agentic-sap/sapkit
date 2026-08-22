@@ -11,34 +11,34 @@ source:
 
 # Compare Programs
 
-Read 2–5 ABAP programs that implement the **same business scenario** but in **different variants**, analyze them across 10 business dimensions, and emit a side-by-side Markdown comparison targeted at **functional consultants** (not developers).
+Read 2–5 ABAP programs that carry the **same business scenario** in **different variants**, work them over across 10 business dimensions, and emit a side-by-side Markdown comparison aimed at **functional consultants** (not developers).
 
 ## Purpose
 
-Companies often split one logical business flow (e.g. GR list) into 2–3 programs so the same data answers different questions — MM sees quantity, CO sees value; KR sees e-tax-invoice fields, EU sees VAT codes; month-end controllers see aggregates, warehouse clerks see live transactions.
+Companies routinely split one logical business flow (a GR list, say) across 2–3 programs so that the same data answers different questions — MM sees quantity, CO sees value; KR sees e-tax-invoice fields, EU sees VAT codes; month-end controllers see aggregates, warehouse clerks see live transactions.
 
-This procedure crystallizes **why each variant exists** so a consultant can:
-- pick the right program for a new requirement instead of creating a 4th,
-- map fit/gap across localizations,
-- brief a handover or knowledge transfer without reading ABAP.
+This procedure pins down **why each variant exists**, so a consultant can:
+- reach for the right program on a new requirement instead of building a 4th,
+- map fit/gap across the localizations,
+- brief a handover or a knowledge transfer without reading ABAP.
 
 ## When to Use
 
-- User says "compare programs", "what's the difference between A and B", "MM vs CO version", "country-specific programs", or equivalent in the user's language
-- Consultant handover / AMS transition — need to document "when to use which"
-- Fit/Gap analysis across country rollouts — same flow, different programs
-- Rationalization / decommissioning — considering whether to merge duplicates
+- The user says "compare programs", "what's the difference between A and B", "MM vs CO version", "country-specific programs", or the equivalent in their own language
+- A consultant handover / AMS transition — "when to use which" has to be written down
+- Fit/Gap analysis across country rollouts — one flow, different programs
+- Rationalization / decommissioning — weighing whether to merge duplicates
 
 ## When NOT to Use
 
-- Only **one** program → use [program-to-spec](program-to-spec.md) instead
-- User wants **code quality** review (not business intent) → `analyze-code`
-- User wants to **build a new** program → `create-program`
-- More than 5 programs — break into multiple comparison sessions
+- Only **one** program → reach for [program-to-spec](program-to-spec.md) instead
+- A **code quality** review is wanted (not business intent) → `analyze-code`
+- **Building a new** program is wanted → `create-program`
+- More than 5 programs — break it into several comparison sessions
 
 ## Comparison Scope — 10 Business Dimensions
 
-The comparison is organized along **10 dimensions**. Each dimension answers a question a consultant actually asks when two programs claim to do "the same thing".
+The comparison runs along **10 dimensions**. Every dimension answers a question a consultant genuinely asks once two programs both claim to do "the same thing".
 
 ### Default vs Opt-in
 
@@ -55,12 +55,12 @@ The comparison is organized along **10 dimensions**. Each dimension answers a qu
 | 9 | **Country / Legal specifics** | ⬜ | "KR e-tax-invoice? EU VAT triangulation? BR NFe? US 1099?" |
 | 10 | **Usage timing / Persona** | ✅ | "Month-end controller, daily warehouse clerk, real-time auditor?" |
 
-**Default bundle** = 1, 2, 3, 5, 6, 7, 10 (7 dimensions) — covers ~80% of consultant questions without reading every include.
+**Default bundle** = 1, 2, 3, 5, 6, 7, 10 (7 dimensions) — it covers ~80% of consultant questions without reading every include.
 **Opt-in** = 4, 8, 9 — technical depth / enhancement depth / country depth.
 
 ### Scope Prompt (Step 2 of workflow)
 
-Show the user this table with checkboxes, marking defaults pre-ticked, and ask a **single question**. Render the prompt in the user's current conversation language; the skeleton below is English.
+Put this checkbox table in front of the user with the defaults pre-ticked, and ask a **single question**. Render the prompt in the user's current conversation language; the skeleton below is English.
 
 ```
 Confirm comparison dimensions (7 defaults pre-selected, [x]=include / [ ]=exclude):
@@ -80,9 +80,9 @@ Reply with: numbers to toggle (e.g. "+4 +8", "-7"), "all" to enable every dimens
 "only N,M" to keep a specific subset, or "ok" to proceed with defaults.
 ```
 
-Accept short replies (language-agnostic):
-- `ok` / `proceed` / equivalents → keep defaults.
-- `+N` / `-N` → toggle dimension N.
+Accept short replies, whatever the language:
+- `ok` / `proceed` / equivalents → the defaults stand.
+- `+N` / `-N` → flip dimension N.
 - `all` → enable 1–10.
 - `only N,M` → keep only the listed numbers.
 
@@ -90,68 +90,68 @@ Accept short replies (language-agnostic):
 
 | Dim | Primary MCP source | Notes |
 |-----|--------------------|-------|
-| 1 | `GetObjectInfo`, package name, program TITLE, message class usage | Module is often encoded in package prefix (ZMM / ZCO / ZSD / ZFI) |
-| 2 | Selection screen field types (DDIC), hard-coded WHERE on BUKRS/LAND1 | See [naming-conventions](../knowledge/abap/conventions/naming-conventions.md) for module prefix rules |
-| 3 | Selection screen PARAMETERS / SELECT-OPTIONS + associated types | From `GetScreen` or parsed from source |
+| 1 | `GetObjectInfo`, package name, program TITLE, message class usage | The module is often encoded in the package prefix (ZMM / ZCO / ZSD / ZFI) |
+| 2 | Selection screen field types (DDIC), hard-coded WHERE on BUKRS/LAND1 | See [naming-conventions](../knowledge/abap/conventions/naming-conventions.md) for the module prefix rules |
+| 3 | Selection screen PARAMETERS / SELECT-OPTIONS + associated types | From `GetScreen`, or parsed out of the source |
 | 4 | `FROM` clauses in SELECT statements, JOIN targets, CDS view names | AST-based |
 | 5 | Main computation blocks: ON CHANGE, COLLECT, AT END OF, aggregation FMs, BAPI calls | Narrative summary, not line-by-line |
 | 6 | ALV field catalog entries, WRITE statements, output structure fields | `GetScreen` + source parse |
 | 7 | `AUTHORITY-CHECK OBJECT '…'` statements | Listed verbatim with field/value |
 | 8 | `GetEnhancements`, `GetEnhancementImpl`, append structures on referenced tables | See [customization-lookup](customization-lookup.md) |
-| 9 | Country-specific includes (`L*ID*`, RFUMSV*), country table lookups (T005), CDS localization | Cross-reference with the loaded `../knowledge/country/<iso>.md` file |
+| 9 | Country-specific includes (`L*ID*`, RFUMSV*), country table lookups (T005), CDS localization | Cross-reference against the loaded `../knowledge/country/<iso>.md` file |
 | 10 | Job scheduling metadata, variant names, program title wording | Often explicit: "Month-end", "Daily", "Real-time" |
 
 ### Dimension Scoring — "Different or Same?"
 
-For each selected dimension × each program, emit one of:
+Per selected dimension × per program, emit one of:
 
 - ✅ **Same** — all programs behave identically on this dimension
-- 🔷 **Variant** — differs but in a structured, comparable way (e.g. different currency conversion rule)
-- ⚠️ **Divergent** — fundamentally different (e.g. one reads MSEG, another reads ACDOCA)
-- ❓ **Unclear** — source doesn't expose the answer; consultant must clarify
+- 🔷 **Variant** — it differs, but in a structured and comparable way (a different currency conversion rule, say)
+- ⚠️ **Divergent** — different at the root (one reads MSEG, another reads ACDOCA)
+- ❓ **Unclear** — the source does not expose the answer; the consultant must clarify
 
-The **Executive Summary** is driven by the ⚠️ Divergent rows (those are the "why this program exists" story).
+The ⚠️ Divergent rows drive the **Executive Summary** — they carry the "why this program exists" story.
 
 ## Workflow Steps
 
 **Step 1 — Program Input**
 
 **Accepts**:
-- User passes 2–5 program names in the initial argument: `"compare ZMMR_GR_LIST and ZCOR_GR_LIST"` / `"ZMMR_GR_LIST, ZCOR_GR_LIST, ZFIR_GR_LIST"`.
-- User passes nothing → ask (in the user's current conversation language): *"Which 2–5 programs should I compare? (comma-separated, e.g. ZMMR_GR_LIST, ZCOR_GR_LIST)"*.
+- The user hands over 2–5 program names in the initial argument: `"compare ZMMR_GR_LIST and ZCOR_GR_LIST"` / `"ZMMR_GR_LIST, ZCOR_GR_LIST, ZFIR_GR_LIST"`.
+- The user hands over nothing → ask (in the user's current conversation language): *"Which 2–5 programs should I compare? (comma-separated, e.g. ZMMR_GR_LIST, ZCOR_GR_LIST)"*.
 
 **Validation**:
-1. For each name, call `SearchObject` to resolve the ADT object type (REPS / CLAS / FUGR / CDS).
-2. If a name is ambiguous or missing → list candidates, ask user to choose.
-3. If user provides only 1 → suggest [program-to-spec](program-to-spec.md) instead and stop.
-4. If user provides > 5 → ask to trim, or propose splitting into multiple comparison sessions.
+1. Call `SearchObject` on each name to resolve the ADT object type (REPS / CLAS / FUGR / CDS).
+2. Where a name is ambiguous or missing → list the candidates and ask the user to choose.
+3. Where the user supplies only 1 → point at [program-to-spec](program-to-spec.md) instead and stop.
+4. Where the user supplies > 5 → ask them to trim, or propose splitting across several comparison sessions.
 
-Store the confirmed list as `compared_objects` (array of `{name, type, package}`).
+Hold the confirmed list as `compared_objects` (an array of `{name, type, package}`).
 
 **Step 2 — Scope Confirmation**
 
-Show the **Scope Prompt** from § Comparison Scope above with defaults pre-ticked, rendered in the user's current conversation language. Wait for user response. Accept `ok` / `proceed` / `+N` / `-N` / `only N,M` / `all` (and equivalent phrasings in other languages).
+Show the **Scope Prompt** from § Comparison Scope above, defaults pre-ticked, rendered in the user's current conversation language. Wait for the user's response. Accept `ok` / `proceed` / `+N` / `-N` / `only N,M` / `all` (and the equivalent phrasings in other languages).
 
-Store the confirmed dimension set as `active_dimensions` (subset of 1–10). Echo back one line confirming the selection, e.g.: *"Dimensions confirmed: 1·2·3·5·6·7·10 (7 of 10). Starting analysis."*
+Hold the confirmed dimension set as `active_dimensions` (a subset of 1–10). Echo one line back confirming the selection, e.g.: *"Dimensions confirmed: 1·2·3·5·6·7·10 (7 of 10). Starting analysis."*
 
 **Step 3 — Facts Extraction (one program at a time, sequentially)**
 
-Adopt the [sap-code-reviewer](../personas/sap-code-reviewer.md) persona for this step. For **each program in `compared_objects` in turn**, extract structural facts ONLY — no quality scoring:
+Adopt the [sap-code-reviewer](../personas/sap-code-reviewer.md) persona for this step. Taking **each program in `compared_objects` in turn**, extract structural facts ONLY — no quality scoring:
 
 Read:
 - Source: `GetProgFullCode` (REPS) / `ReadClass` (CLAS) / `ReadFunctionGroup` + `ReadFunctionModule` (FUGR) / `ReadView` + `GetMetadataExtension` (CDS)
 - Structure: `GetAbapAST` (selection-screen fields, SELECT targets, AUTHORITY-CHECK calls)
 - Object info: `GetObjectInfo` (package, author, transport history)
-- UI surface (if applicable): `GetScreensList` + per-screen `GetScreen`, `GetGuiStatusList`, `GetTextElement`
+- UI surface (where applicable): `GetScreensList` + per-screen `GetScreen`, `GetGuiStatusList`, `GetTextElement`
 - Enhancements (only if dim 8 active): `GetEnhancements`, `GetEnhancementImpl`, `GetEnhancementSpot`
 - Where-used (only if caller-frequency in scope): `GetWhereUsed`
 
-Facts format per program (structured JSON, minimal):
+The per-program facts format (structured JSON, kept minimal):
 - `selection_fields`: [{name, type, label}]
 - `db_tables`: [{name, ops: [SELECT|MODIFY|INSERT|DELETE]}]
 - `authority_checks`: [{object, fields}]
 - `alv_columns`: [{position, fieldname, title}]
-- `computation_narrative`: 1 paragraph (what the program computes at a high level)
+- `computation_narrative`: one paragraph (what the program computes, at a high level)
 - `package`: <name>
 - `transport_history`: [{trkorr, desc, released_at}]
 - `screens`: [{number, title, fields_count}]
@@ -162,44 +162,44 @@ Facts format per program (structured JSON, minimal):
 
 Rules:
 - Do NOT call `GetTableContents` or `GetSqlQuery` under any circumstance.
-- No quality scoring, no "this is bad" commentary — pure facts.
+- No quality scoring, no "this is bad" commentary — facts and nothing else.
 - No cross-program comparison yet — one program at a time.
 
-If a program cannot be read (blocked / missing), surface the reason and ask the user whether to proceed with the remaining programs or abort. Store the N facts blobs as `program_facts[<PROG>]`.
+Where a program cannot be read (blocked / missing), surface the reason and ask the user whether to carry on with the remaining programs or abort. Hold the N facts blobs as `program_facts[<PROG>]`.
 
 **Step 4 — Analysis & Narrative**
 
-Adopt the [sap-analyst](../personas/sap-analyst.md) persona for this step. With all N facts blobs + the active dimension set + the user's conversation language, perform in this order, in one continuous pass:
+Adopt the [sap-analyst](../personas/sap-analyst.md) persona for this step. With all N facts blobs, the active dimension set, and the user's conversation language in hand, work through this order in one continuous pass:
 
-A. **Module classification** — for each program, decide primary module based on package prefix, table families touched, and TITLE wording. Output: `[{prog, module}]`.
+A. **Module classification** — settle each program's primary module off the package prefix, the table families it touches, and the TITLE wording. Output: `[{prog, module}]`.
 
-B. **Dimension scoring** — per active dimension × per program, mark ✅ / 🔷 / ⚠️ / ❓ per the rubric in § Dimension Scoring. Output: matrix (JSON).
+B. **Dimension scoring** — per active dimension × per program, mark ✅ / 🔷 / ⚠️ / ❓ by the rubric in § Dimension Scoring. Output: the matrix (JSON).
 
-C. **Executive Summary** — 3 sentences. Headline = the single biggest divergence among the programs. Write in the user's current conversation language.
+C. **Executive Summary** — 3 sentences. The headline = the single biggest divergence across the programs. Write it in the user's current conversation language.
 
-D. **Recommendation** — "when to use which" matrix (one row per program, one column per likely use-case).
+D. **Recommendation** — a "when to use which" matrix (one row per program, one column per likely use-case).
 
-E. If programs span 2+ distinct modules (from step A), list the module set for Step 4b. Output: `module_set: [MM, CO, ...]`.
+E. Where the programs span 2+ distinct modules (out of step A), list the module set for Step 4b. Output: `module_set: [MM, CO, ...]`.
 
-All narrative text in the user's current conversation language.
+All narrative text goes in the user's current conversation language.
 
 **Step 4b — Module Specialist Pass (conditional, one perspective at a time)**
 
-Triggered when `module_set` has ≥ 2 modules. If `module_set` has 1 module, SKIP this step.
+Fires when `module_set` holds ≥ 2 modules. Where `module_set` holds 1 module, SKIP this step.
 
-For **each distinct module in `module_set` in turn**, adopt the matching module consultant persona (pick from [INDEX](../personas/INDEX.md), e.g. [sap-mm-consultant](../personas/sap-mm-consultant.md), [sap-co-consultant](../personas/sap-co-consultant.md)) and — from that module consultant's view — briefly explain (2–3 sentences per program) which of these programs a {module} user would reach for, and why, working from the subset of `program_facts` relevant to that module. Answer in the user's current conversation language.
+Taking **each distinct module in `module_set` in turn**, adopt the matching module consultant persona (pick one from [INDEX](../personas/INDEX.md), e.g. [sap-mm-consultant](../personas/sap-mm-consultant.md), [sap-co-consultant](../personas/sap-co-consultant.md)) and — from that module consultant's vantage — explain briefly (2–3 sentences per program) which of these programs a {module} user would reach for, and why, working off the subset of `program_facts` that bears on that module. Answer in the user's current conversation language.
 
-Collect the per-module answers as `module_consultant_outputs`.
+Gather the per-module answers as `module_consultant_outputs`.
 
 **Step 5 — Render**
 
-Adopt the [sap-writer](../personas/sap-writer.md) persona for this step. Render the comparison report using § Report Template below as the skeleton. Do NOT re-read any MCP objects — work only from:
+Adopt the [sap-writer](../personas/sap-writer.md) persona for this step. Render the comparison report on the skeleton in § Report Template below. Do NOT re-read any MCP objects — work only from:
 - `compared_objects`, `active_dimensions`, `program_facts`
 - analyst outputs: { module_classification, dimension_matrix, exec_summary, recommendation }
 - `module_consultant_outputs` (optional)
 - user language
 
-Write the Markdown file to `.sapkit/comparisons/<filename>.md` (path rule in § Output Location). Then emit a concise completion block to the user (in the user's current conversation language — English skeleton below):
+Write the Markdown file out to `.sapkit/comparisons/<filename>.md` (the path rule lives in § Output Location). Then emit a tight completion block to the user (in the user's current conversation language — the English skeleton is below):
 
 ```
 Comparison report generated.
@@ -210,36 +210,36 @@ Key divergence: ZMMR = quantity-centric (MSEG, M_MSEG_WWA) / ZCOR = cost-value-c
 
 **Step 6 — Follow-up Options (offer, don't execute)**
 
-Present as a short menu (localized to the user's language at render time):
+Present it as a short menu (localized into the user's language at render time):
 
-- Deeper analysis of a specific dimension — user specifies the number
-- Add more programs to the comparison (current N → up to 5)
+- A deeper analysis of one specific dimension — the user names the number
+- Add more programs into the comparison (current N → up to 5)
 - Convert to Excel (.xlsx) *(deferred — stub for future parity with program-to-spec)*
-- Generate the report in another language
-- Add Where-used analysis to compare actual call-site frequency
-- Derive a consolidation / split recommendation report from the findings
+- Generate the report in a different language
+- Add a Where-used analysis, to compare the real call-site frequency
+- Derive a consolidation / split recommendation report out of the findings
 
-Wait for user instruction — do not loop automatically.
+Wait for the user's instruction — do not loop automatically.
 
 ## Language Policy
 
 **Report language mirrors the user's current conversation language.**
-- User writes in Korean → report in Korean (section headers + body).
-- User writes in English → report in English.
-- User writes in Japanese → report in Japanese.
-- If mixed or unclear, default to the user's last full sentence language.
-- Do not ask — detect and proceed. Only ask if the user explicitly requests a specific language.
+- The user writes Korean → the report is Korean (section headers and body).
+- The user writes English → the report is English.
+- The user writes Japanese → the report is Japanese.
+- Where it is mixed or unclear, default to the language of the user's last full sentence.
+- Do not ask — detect it and proceed. Only ask where the user explicitly requests a specific language.
 
 ## Output Location
 
 `.sapkit/comparisons/{prog1}__vs__{prog2}[__vs__{prog3}…]-{YYYYMMDD}.md`
 
 - Program names are uppercase, underscore-safe (slashes → `_`).
-- If the filename exceeds 120 chars (5-program case), use `.sapkit/comparisons/compare-{YYYYMMDD}-{hash6}.md` and list the programs inside the front-matter.
+- Where the filename runs past 120 chars (the 5-program case), use `.sapkit/comparisons/compare-{YYYYMMDD}-{hash6}.md` and list the programs inside the front-matter.
 
 ## Report Template
 
-All section headings and body prose are rendered **in the user's current conversation language**. The example below is English; translate the section titles and narrative, keep the structure identical.
+Every section heading and every line of body prose renders **in the user's current conversation language**. The example below is English; translate the section titles and the narrative, and keep the structure identical.
 
 ### Front-matter (YAML)
 
@@ -356,24 +356,24 @@ Legend: ✅ Same · 🔷 Variant · ⚠️ Divergent · ❓ Unclear
 
 ### Rendering Rules
 
-1. **Omit unused sections** — if a dimension wasn't selected in Step 2, drop the corresponding matrix row AND any dedicated section (e.g. skip §8.3 if dim 8 is off).
-2. **Minimum bar**: Executive Summary + Matrix + Per-program detail + Recommendation are **always** present, even if the user picked only 3 dimensions.
-3. **Placeholder filling**: every ▫ placeholder must be replaced. If a value is genuinely unknown, write "❓ Not determined — confirmation needed" and also add it to §7 Risk & Open Questions.
-4. **Verbatim extracts** in §8 — AUTHORITY-CHECK lines and table names are pulled directly from the source, not paraphrased.
-5. **Length target** — 3–8 printed pages. Trim narrative if longer; split into two sessions if more than 5 programs.
-6. **No code snippets** — this is a consultant-facing document. If an implementation detail is load-bearing, paraphrase it in business terms.
-7. **Language localization** — when rendering for a non-English user, translate all section headers, table headers, narrative sentences, and the Legend (Same/Variant/Divergent/Unclear). Keep placeholders (▫) and technical identifiers (table names, object names, program names, authorization objects) verbatim.
+1. **Omit unused sections** — where a dimension went unselected in Step 2, drop its matrix row AND any dedicated section (skip §8.3 when dim 8 is off, for instance).
+2. **Minimum bar**: Executive Summary + Matrix + Per-program detail + Recommendation are **always** present, even where the user picked only 3 dimensions.
+3. **Placeholder filling**: every ▫ placeholder must be replaced. Where a value is genuinely unknown, write "❓ Not determined — confirmation needed" and add it to §7 Risk & Open Questions as well.
+4. **Verbatim extracts** in §8 — AUTHORITY-CHECK lines and table names come straight out of the source, not paraphrased.
+5. **Length target** — 3–8 printed pages. Trim the narrative where it runs longer; split into two sessions where more than 5 programs are in play.
+6. **No code snippets** — this document faces consultants. Where an implementation detail is load-bearing, paraphrase it in business terms.
+7. **Language localization** — when rendering for a non-English user, translate every section header, table header, narrative sentence, and the Legend (Same/Variant/Divergent/Unclear). Keep the placeholders (▫) and the technical identifiers (table names, object names, program names, authorization objects) verbatim.
 
 ## Safety Rails
 
-- Blocklist: `GetTableContents` / `GetSqlQuery` are **forbidden** in this procedure. If the user asks for sample row data to illustrate a difference, refuse per [data-extraction-policy](../policies/data-protection/data-extraction-policy.md) and document the request in the report's `Risk & Open Questions` section instead.
-- Country/Industry context: if dimension 9 is active, load `../knowledge/country/<iso>.md` based on `.sapkit/config.json` → `country` (or `sap.env` → `SAP_COUNTRY`). If unset, ask the user once for the relevant country list.
-- Module activation: respect [active-modules](../knowledge/modules/common/active-modules.md) — if a module is not active in the project, flag with "(module not active in this landscape — observation only)".
-- Per-call transports: this procedure is **read-only** — never creates or modifies transports.
+- Blocklist: `GetTableContents` / `GetSqlQuery` are **forbidden** in this procedure. Where the user asks for sample row data to illustrate a difference, refuse per [data-extraction-policy](../policies/data-protection/data-extraction-policy.md) and record the request in the report's `Risk & Open Questions` section instead.
+- Country/Industry context: where dimension 9 is active, load `../knowledge/country/<iso>.md` off `.sapkit/config.json` → `country` (or `sap.env` → `SAP_COUNTRY`). Where that is unset, ask the user once for the relevant country list.
+- Module activation: respect [active-modules](../knowledge/modules/common/active-modules.md) — where a module is not active in the project, flag it with "(module not active in this landscape — observation only)".
+- Per-call transports: this procedure is **read-only** — it never creates or modifies a transport.
 
 ## Related Procedures
 
 - [program-to-spec](program-to-spec.md) — single-program reverse-engineering (vertical depth)
 - [analyze-cbo-obj](analyze-cbo-obj.md) — CBO package inventory (complementary context for dimension 8)
 - [package-to-process](package-to-process.md) — when the two programs turn out to be neighbours in one business-document flow rather than variants of each other
-- [deep-interview](deep-interview.md) — use before comparison if user is unsure which programs to include
+- [deep-interview](deep-interview.md) — run it before the comparison where the user is unsure which programs to include

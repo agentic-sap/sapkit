@@ -22,13 +22,13 @@ Diagnostic and operational know-how for the bundled SAP ADT MCP server (`server/
 
 Use this document when:
 
-- something isn't working and you're not sure where the problem is
-- after initial configuration, to confirm everything is set up correctly
-- after a SAP system change (password reset, IP change, client migration)
-- MCP tools return errors or are not visible in your harness
-- you need to confirm which system you are connected to before a risky operation
+- something is broken and where it broke is not yet obvious
+- initial configuration just finished and you want confirmation that it all landed correctly
+- a SAP system change just happened (password reset, IP change, client migration)
+- MCP tools are erroring out, or they are missing from your harness entirely
+- a risky operation is coming and you need to confirm which system you are connected to
 
-Run the checks in order and report **PASS / FAIL / WARN / SKIP** per layer — later layers depend on earlier ones.
+Walk the checks in order and report **PASS / FAIL / WARN / SKIP** for each layer — the later layers rest on the earlier ones.
 
 > **Before walking the checklist**: if `.sapkit/RULES.md` / `LESSONS.md` / `knowledge/system.md` exist, grep them for the failing symptom first — this project's recorded failure modes (a profile-missing rule, a tool-response trap) resolve many diagnostics in one step, and the verified cause is already written down. Absent → proceed normally. Contract: [knowledge-sourcing](../policies/knowledge-sourcing.md).
 
@@ -43,17 +43,17 @@ Run the checks in order and report **PASS / FAIL / WARN / SKIP** per layer — l
 
 ### Layer 2 — SAP system connection
 
-- [ ] `GetSession` returns valid system data (system ID, client, user)
-- [ ] `GetInactiveObjects` responds (tests developer authorization `S_DEVELOP`)
-- [ ] `ListTransports` responds (tests transport authorization `S_TRANSPRT`)
-- [ ] `SearchObject` with a simple query responds (tests object repository access)
-- [ ] `GetTableContents` on `T000` responds (tests table access)
+- [ ] `GetSession` comes back with valid system data (system ID, client, user)
+- [ ] `GetInactiveObjects` answers (exercises developer authorization `S_DEVELOP`)
+- [ ] `ListTransports` answers (exercises transport authorization `S_TRANSPRT`)
+- [ ] `SearchObject` answers on a simple query (exercises object repository access)
+- [ ] `GetTableContents` answers on `T000` (exercises table access)
 
 ### Layer 3 — configuration consistency
 
-- [ ] SAP host URL is reachable (HTTPS / ICM port, typically 44300)
-- [ ] Configured client matches the `GetSession` response
-- [ ] Configured username matches the `GetSession` response
+- [ ] The SAP host URL is reachable (HTTPS / ICM port, typically 44300)
+- [ ] The configured client matches what `GetSession` reports
+- [ ] The configured username matches what `GetSession` reports
 
 ### Layer 4 — required server-side ABAP objects (gated)
 
@@ -128,23 +128,23 @@ If everything passes: `System healthy. System: {SID} Client: {client} User: {use
 
 ### System type
 
-Determine which system type you are working against:
+Work out which system type you are up against:
 
 - **S/4HANA** (`S4`) — Business Partner (BP), MATDOC, ACDOCA, Fiori, CDS-based
 - **ECC 6.0** (`ECC`) — Vendor/Customer separate (XK01/XD01/FK01/FD01), MKPF/MSEG, BKPF/BSEG
 
 ### ABAP release
 
-Determine the **ABAP release** (e.g. `750`, `751`, `756`, `757`, `758`):
+Pin down the **ABAP release** (e.g. `750`, `751`, `756`, `757`, `758`):
 
-- Check via `GetSession` once connected, or in SAPGUI: TCode `SE38` → System → Status
-- Or ask the user directly
+- Read it off `GetSession` once connected, or in SAPGUI: TCode `SE38` → System → Status
+- Or ask the user outright
 
-This is **critical** — it determines:
+This is **critical**, because it decides:
 
-- Which SPRO config tables, BAPIs, TCodes, and workflows to reference from the module knowledge (`../knowledge/modules/{MODULE}/`)
-- Which tables/views to query (ECC: `MKPF`+`MSEG` vs S4: `MATDOC`; ECC: `KNA1`+`LFA1` vs S4: `BUT000`)
-- Which ABAP syntax features generated code may use — see [abap-release-reference](../knowledge/abap/conventions/abap-release-reference.md) and [sap-version-reference](../knowledge/abap/conventions/sap-version-reference.md)
+- Which SPRO config tables, BAPIs, TCodes, and workflows the module knowledge (`../knowledge/modules/{MODULE}/`) gets read for
+- Which tables/views a query targets (ECC: `MKPF`+`MSEG` vs S4: `MATDOC`; ECC: `KNA1`+`LFA1` vs S4: `BUT000`)
+- Which ABAP syntax features generated code may reach for — see [abap-release-reference](../knowledge/abap/conventions/abap-release-reference.md) and [sap-version-reference](../knowledge/abap/conventions/sap-version-reference.md)
 
 Persist the answers as `SAP_VERSION` (`S4` | `ECC`) and `ABAP_RELEASE` (3-digit numeric) in the profile's `sap.env` and in `.sapkit/config.json`. `SAP_INDUSTRY` (industry key) belongs in the same pair of files and drives which industry knowledge applies.
 
@@ -371,7 +371,7 @@ Category definitions and the full policy live in [data-extraction-policy](../pol
 
 ## 6. Quick Status Snapshot
 
-Before any risky operation ("which system am I connected to?"), render a compact panel (~10–14 lines). Silence rows you cannot resolve (e.g. MCP disconnected) rather than failing:
+Ahead of any risky operation ("which system am I connected to?"), render a compact panel (~10–14 lines). Rows you cannot resolve (e.g. MCP disconnected) go silent rather than failing the panel:
 
 - **Active profile**: `<alias> [<tier>]` (locked marker if tier ≠ DEV) — from `active-profile.txt` + profile `sap.env` → `SAP_TIER`; `(legacy)` if running on a legacy single-profile `sap.env`
 - **System**: `<SID>` · client `<MANDT>` · user `<BNAME>` · lang — from `GetSession`

@@ -1,15 +1,16 @@
 # Active SAP Modules — Cross-Module Integration Context
 
 ## Purpose
-When multiple SAP modules are active in a landscape, integration points
-between them affect how custom objects should be designed. Before generating
-code, proposing configuration, or analyzing existing CBOs, consult the user's
-active module set and factor in cross-module concerns.
+Where a landscape runs several SAP modules at once, the integration points
+between them shape how custom objects ought to be designed. Before code gets
+generated, configuration gets proposed, or existing CBOs get analyzed, read
+the user's active module set and factor the cross-module concerns into what you
+produce.
 
-**Example**: MM purchase order creation in a landscape where **PS is active** must
-consider account assignment category **P (Project)** with field `PS_POSID` (WBS
-element). Without PS, the PO design would miss project cost tracking. With PS
-active and the field missing, project controlling breaks.
+**Example**: an MM purchase order created in a landscape where **PS is active** must
+reckon with account assignment category **P (Project)** and its field `PS_POSID` (WBS
+element). Without PS, project cost tracking drops out of the PO design. With PS
+active and that field missing, project controlling breaks.
 
 ## Data source
 
@@ -27,8 +28,8 @@ SAP_ACTIVE_MODULES=FI,CO,MM,SD,PP,QM,HCM
 }
 ```
 
-Keep `sap.env` and `config.json` in sync (both updated by `the profile setup (core/procedures/troubleshooting.md)` and
-`the profile settings (edit .sapkit/config.json — see core/procedures/troubleshooting.md)`). If one is missing or empty, fall back to the other.
+`sap.env` and `config.json` are to stay in sync (both are written by `the profile setup (core/procedures/troubleshooting.md)` and
+`the profile settings (edit .sapkit/config.json — see core/procedures/troubleshooting.md)`). Should one of them be missing or empty, fall back to the other.
 
 ## Canonical module codes
 
@@ -51,8 +52,8 @@ Keep `sap.env` and `config.json` in sync (both updated by `the profile setup (co
 
 ## Module interaction matrix
 
-Each row lists integration concerns that arise when a **companion** module is
-active alongside a **primary** module.
+Each row records the integration concerns that surface once a **companion** module
+runs alongside a **primary** module.
 
 | Primary | Active companion | Integration concern |
 |---------|------------------|---------------------|
@@ -81,29 +82,29 @@ active alongside a **primary** module.
 | TM      | SD / MM          | Freight order from delivery; carrier selection; freight cost settlement to FI |
 
 Multi-module rules (three-way):
-- **MM + PS + CO**: PO with WBS → commitment on WBS + cost center shadow; settlement profile needed.
-- **SD + PS + CO-PA**: Project billing → CO-PA characteristic `WERKS`/`KUNAG` carried via WBS settlement rule.
-- **PP + MM + QM + WM**: Production GR → inspection lot → usage decision → WM putaway.
+- **MM + PS + CO**: a PO carrying a WBS → commitment on the WBS + cost center shadow; a settlement profile is needed.
+- **SD + PS + CO-PA**: project billing → CO-PA characteristic `WERKS`/`KUNAG` travels through the WBS settlement rule.
+- **PP + MM + QM + WM**: production GR → inspection lot → usage decision → WM putaway.
 
 ## How skills apply this
 
 ### `create-program` / `create-object` / `program-to-spec`
 **Before proposing table fields**:
 - Load `SAP_ACTIVE_MODULES`.
-- For each active companion of the primary module, add the integration fields from the matrix (e.g., MM CBO with PS active → `PS_POSID`, `KDAUF`/`KDPOS`, `AUFNR`, `KOSTL`).
+- For each active companion of the primary module, pull that companion's integration fields out of the matrix (e.g., an MM CBO with PS active → `PS_POSID`, `KDAUF`/`KDPOS`, `AUFNR`, `KOSTL`).
 
 **Before proposing logic**:
-- Add derivation hooks for active modules (CO cost elem from `CSKB`; PS from `PROJ`/`PRPS`; WM bin from `LAGP`).
-- Pull-in validation: if WBS supplied but PS not in `SAP_ACTIVE_MODULES` → warn user.
+- Put derivation hooks in for the active modules (CO cost elem from `CSKB`; PS from `PROJ`/`PRPS`; WM bin from `LAGP`).
+- Pull-in validation: WBS supplied while PS is absent from `SAP_ACTIVE_MODULES` → warn user.
 
 ### `analyze-cbo-obj`
-- When surveying CBO fields, flag **expected-but-missing** integration fields per active module combo.
+- While surveying CBO fields, flag the **expected-but-missing** integration fields for each active module combo.
 - Output section: "Cross-module gap analysis — modules active but no integration field found".
 
 ### Module consultant agents (`sap-mm-consultant`, `sap-sd-consultant`, …)
-- On every design/config question: read `SAP_ACTIVE_MODULES` first.
-- Mention relevant companion-module integration without prompting (e.g., MM question + PS active → mention WBS integration).
-- If user's question assumes an inactive module, flag the mismatch.
+- On every design/config question: read `SAP_ACTIVE_MODULES` before anything else.
+- Raise the relevant companion-module integration unprompted (e.g., MM question + PS active → bring up WBS integration).
+- Where the user's question assumes a module that is not active, flag the mismatch.
 
 ## Preflight hook (pseudo-code)
 
@@ -121,5 +122,5 @@ function crossModuleAdvisory(primary, context):
         yield concern_text(primary, companion)
 ```
 
-Skills consuming this: `create-program`, `create-object`, `program-to-spec`,
-`analyze-cbo-obj`, `analyze-code`, `deep-interview`, all consultant agents.
+Skills that consume this file: `create-program`, `create-object`, `program-to-spec`,
+`analyze-cbo-obj`, `analyze-code`, `deep-interview`, and all consultant agents.

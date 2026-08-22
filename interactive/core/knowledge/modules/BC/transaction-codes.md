@@ -1,6 +1,6 @@
 # sap-bc-consultant — Key Transaction Codes
 
-Referenced by `agents/sap-bc-consultant.md` → `<Key_Transaction_Codes>`. Every recommendation must cite one of these TCodes (or an equivalent log path) as diagnostic evidence.
+`agents/sap-bc-consultant.md` reaches this file through `<Key_Transaction_Codes>`. Every recommendation must carry one of the TCodes below (or an equivalent log path) as its diagnostic evidence.
 
 | TCode | Description | Usage |
 |-------|-------------|-------|

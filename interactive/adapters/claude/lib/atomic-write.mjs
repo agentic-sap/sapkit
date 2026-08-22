@@ -1,14 +1,36 @@
 /**
- * Atomic file writes for sc4sap hooks.
- * Ported from OMC. Self-contained module with no external dependencies.
+ * All-or-nothing file writes for the Claude adapter.
+ *
+ * A hook that is killed mid-write must not leave a half-written file behind:
+ * the next run would read the fragment as if it were the whole thing. So the
+ * content goes to a sibling temporary file first and only becomes the target
+ * through `rename`, which is atomic on the same filesystem — a reader sees
+ * either the previous file or the complete new one, never a partial one.
+ *
+ * Durability is bought with two `fsync` calls: one on the file, so the bytes
+ * are on disk before the rename, and one on the directory afterwards, so the
+ * rename itself survives a crash. The second is best-effort, since not every
+ * platform lets a directory be opened for that.
+ *
+ * The temporary file is created with `wx` and mode 0600 — it must not exist
+ * already, and it must not be readable by other users while it holds the
+ * content. It is removed again on any failure.
+ *
+ * Node built-ins only. These helpers run inside hooks, which ship without
+ * dependencies.
  */
 
-import { openSync, writeSync, fsyncSync, closeSync, renameSync, unlinkSync, mkdirSync, existsSync } from 'fs';
-import { dirname, basename, join } from 'path';
+import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, renameSync, unlinkSync, writeSync } from 'fs';
+import { basename, dirname, join } from 'path';
 import { randomUUID } from 'crypto';
 
 /**
- * Ensure directory exists.
+ * Create `dir` and any missing parents.
+ *
+ * A concurrent creator winning the race is success, not failure, so `EEXIST`
+ * is swallowed; every other error is the caller's to handle.
+ *
+ * @param {string} dir directory to create
  */
 export function ensureDirSync(dir) {
   if (existsSync(dir)) return;
@@ -21,19 +43,17 @@ export function ensureDirSync(dir) {
 }
 
 /**
- * Write string content atomically to a file.
- * Uses temp file + atomic rename pattern with fsync for durability.
+ * Write `content` to `filePath` so that readers never observe a partial file.
  *
- * @param {string} filePath Target file path
- * @param {string} content String content to write
+ * @param {string} filePath target path; its directory is created if missing
+ * @param {string} content  text to store, written as UTF-8
  */
 export function atomicWriteFileSync(filePath, content) {
   const dir = dirname(filePath);
-  const base = basename(filePath);
-  const tempPath = join(dir, `.${base}.tmp.${randomUUID()}`);
+  const tempPath = join(dir, `.${basename(filePath)}.tmp.${randomUUID()}`);
 
   let fd = null;
-  let success = false;
+  let renamed = false;
 
   try {
     ensureDirSync(dir);
@@ -43,20 +63,22 @@ export function atomicWriteFileSync(filePath, content) {
     closeSync(fd);
     fd = null;
     renameSync(tempPath, filePath);
-    success = true;
+    renamed = true;
 
     try {
       const dirFd = openSync(dir, 'r');
       try { fsyncSync(dirFd); } finally { closeSync(dirFd); }
     } catch {
-      // Some platforms don't support directory fsync
+      // Directory fsync is unavailable on some platforms — the rename stands.
     }
   } finally {
+    // Anything a failure left behind is ours to clean up; neither cleanup can
+    // be allowed to replace the error that got us here.
     if (fd !== null) {
-      try { closeSync(fd); } catch {}
+      try { closeSync(fd); } catch { /* the descriptor dies with the process */ }
     }
-    if (!success) {
-      try { unlinkSync(tempPath); } catch {}
+    if (!renamed) {
+      try { unlinkSync(tempPath); } catch { /* it may never have been created */ }
     }
   }
 }

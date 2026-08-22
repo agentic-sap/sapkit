@@ -9,33 +9,33 @@ source:
 
 # Program → Specification
 
-Read an existing ABAP program (Report / Module Pool / FM Group / Class / CDS / RAP) via MCP, run structural + semantic + where-used analysis, then produce a Specification artifact in **Markdown** (`.md`) or **Excel** (`.xlsx`) format. Scope is **negotiated Socratically** — start wide, narrow on each turn, stop when the user's target granularity is confirmed.
+Read an existing ABAP program (Report / Module Pool / FM Group / Class / CDS / RAP) through MCP, run the structural + semantic + where-used analysis, then turn out a Specification artifact in **Markdown** (`.md`) or **Excel** (`.xlsx`) format. The scope is **negotiated Socratically** — open wide, narrow on every turn, stop once the user's target granularity is confirmed.
 
 ## Purpose
 
-Turn legacy or unfamiliar ABAP objects into a reviewable Functional/Technical Spec for handover, documentation audit, AMS transition, refactoring preparation, or compliance artifacts. Unlike a code-quality review (`analyze-code`), this procedure is **documentation-focused**: it describes what the program DOES, not what's wrong with it.
+Turn legacy or unfamiliar ABAP objects into a reviewable Functional/Technical Spec — for a handover, a documentation audit, an AMS transition, refactoring preparation, or compliance artifacts. Where a code-quality review (`analyze-code`) asks what is wrong, this procedure is **documentation-focused**: it sets down what the program DOES, not what's wrong with it.
 
 ## When to Use
 
 - User says "program to spec", "reverse engineer", "make a spec", "document this program", "functional specification", "technical specification", "generate a specification"
-- Knowledge transfer / handover of legacy ABAP to another team
-- Preparing a refactoring or rewrite (need to capture as-is behavior)
-- Compliance / audit requires a written spec for custom code
-- Building a WRICEF inventory with detailed per-object specs
+- Knowledge transfer / handover of legacy ABAP into another team's hands
+- Preparing a refactoring or a rewrite (the as-is behavior has to be captured)
+- Compliance / audit demands a written spec for custom code
+- Building a WRICEF inventory carrying detailed per-object specs
 
 ## When NOT to Use
 
-- User wants a **code quality review** → `analyze-code`
-- User wants to **create a new** program from a spec → `create-program`
-- User wants to **fix** the program → direct MCP `Update*` calls
-- Object does not exist yet
+- A **code quality review** is wanted → `analyze-code`
+- **Creating a new** program from a spec is wanted → `create-program`
+- **Fixing** the program is wanted → direct MCP `Update*` calls
+- The object does not exist yet
 
 ## Socratic Scope Narrowing
 
-The interview is a **funnel**: every turn reduces the remaining decision space. Score remaining ambiguity 0–10 after each answer; stop when **≤3**.
+The interview works as a **funnel**: each turn shrinks the decision space that is left. Score the remaining ambiguity 0–10 after every answer; stop at **≤3**.
 
-**Default opener — bundled 4-question message** (MANDATORY when the target object is already supplied in the task arguments):
-Ask the user these four questions in ONE message, in this exact order — Audience / Format / Depth / Language — each single-select with "(Recommended)" as the first option. This replaces Rounds 2+3+5 in one turn. Only fall back to per-round questioning when the object itself is missing or ambiguous (Round 1) or when the user picks L3/L4 (Round 4 scope trimming).
+**Default opener — bundled 4-question message** (MANDATORY once the target object arrives in the task arguments):
+Put these four questions to the user in ONE message, in exactly this order — Audience / Format / Depth / Language — each a single-select whose first option carries "(Recommended)". One turn here stands in for Rounds 2+3+5. Only fall back to per-round questioning where the object itself is missing or ambiguous (Round 1), or where the user picks L3/L4 (Round 4 scope trimming).
 
 | # | Header | Question | Options (Recommended first) |
 |---|--------|----------|-----------------------------|
@@ -46,12 +46,12 @@ Ask the user these four questions in ONE message, in this exact order — Audien
 
 **Round 1 — Target object (only if the arguments did not supply it)**
 - "Which object? (program / FM group / class / CDS / RAP BO name)"
-- Verify via `SearchObject`. If ambiguous, list candidates.
+- Verify with `SearchObject`. Where it is ambiguous, list the candidates.
 
 **Round 2 — Audience + format** *(covered by the default opener — do not ask separately)*
 - Audience: **Functional** (business readers — SD/FI/MM users) vs **Technical** (developers) vs **Both**
 - Format: **Markdown** (review-friendly, git-friendly) vs **Excel** (project-PMO-friendly, reviewable cell-by-cell)
-- Default if user says "up to you" / "you choose" → Both + Markdown.
+- Default when the user says "up to you" / "you choose" → Both + Markdown.
 
 **Round 3 — Depth (pick one)** *(covered by the default opener)*
 
@@ -63,7 +63,7 @@ Ask the user these four questions in ONE message, in this exact order — Audien
 | **L4 — Audit-grade** | L3 + line-level cross-references, **where-used** (scope: main object + screens × `Z*` / `Y*` callers), risk register, transport history |
 
 **Round 4 — Scope trimming (only if L3/L4)**
-Ask ONE narrowing question per turn until ambiguity ≤3:
+Put ONE narrowing question per turn until the ambiguity is ≤3:
 - "Include unit tests inventory?"
 - "Include generated artifacts (Screens / GUI Status / Text Elements)?"
 - "Cover all includes or just main?"
@@ -71,92 +71,92 @@ Ask ONE narrowing question per turn until ambiguity ≤3:
 **Where-Used scope (L4 only — fixed default, no interactive prompt)**
 - Target = main program / class / FM-group / CDS / RAP-BO object **+ each of its screens**.
 - Caller filter = customer namespace `Z*` / `Y*` only. Standard SAP and add-on namespaces are excluded.
-- The rendered `Where-Used` section MUST repeat this scope in its header so reviewers know what was (and wasn't) searched.
+- The rendered `Where-Used` section MUST restate this scope in its header, so a reviewer knows what was (and wasn't) searched.
 
 **Round 5 — Output location**
 - Default: `.sapkit/specs/{object_name}-{YYYYMMDD}-{lang}.{md|xlsx}`
-- Language: ko / en / ja (infer from user's current language; confirm once).
+- Language: ko / en / ja (infer it from the user's current language; confirm once).
 
-**Stop condition**: every dimension above has a concrete answer OR user explicitly says "skip remaining, use defaults".
+**Stop condition**: every dimension above carries a concrete answer OR the user explicitly says "skip remaining, use defaults".
 
 ## Workflow Steps
 
 **Step 0 — Socratic interview** (see § Socratic Scope Narrowing above)
-Never skip entirely unless the user supplies `object=... depth=L2 format=md lang=ko` style fully-qualified arguments.
+Never skip it outright unless the user supplies fully-qualified arguments in the `object=... depth=L2 format=md lang=ko` style.
 
 **Step 1 — Inventory** (auto)
-- `SearchObject` — confirm object + sub-type
+- `SearchObject` — confirm the object and its sub-type
 - Metadata: `GetObjectInfo` — package, author, created/changed, transport
 
 **Step 1.5 — CBO inventory lookup** (auto)
-- Resolve `<PACKAGE>` from `GetObjectInfo` above.
-- Ask the user one question: "Which module does package `<PACKAGE>` belong to? (SD / MM / PP / PM / QM / WM / TM / TR / FI / CO / HCM / BW / PS / Ariba)" — only if the module cannot be derived from `.sapkit/config.json` or the package's existing CBO folder (see [project-context](../project-context.md)).
+- Resolve `<PACKAGE>` out of the `GetObjectInfo` above.
+- Put one question to the user: "Which module does package `<PACKAGE>` belong to? (SD / MM / PP / PM / QM / WM / TM / TR / FI / CO / HCM / BW / PS / Ariba)" — only where the module cannot be derived from `.sapkit/config.json` or from the package's existing CBO folder (see [project-context](../project-context.md)).
 - Check `.sapkit/cbo/<MODULE>/<PACKAGE>/inventory.json`.
-  - **Exists** → Load it. When describing data sources, tables, or helper calls in Step 3, annotate each one that matches an inventory entry with its CBO role + one-line business purpose (e.g., "writes to `ZSD_ORDER_LOG` — append-only sales-order processing log"). This turns opaque Z-references in the spec into named reusable assets.
+  - **Exists** → Load it. While Step 3 describes data sources, tables, or helper calls, annotate every one that matches an inventory entry with its CBO role + one-line business purpose (e.g., "writes to `ZSD_ORDER_LOG` — append-only sales-order processing log"). That turns the spec's opaque Z-references into named reusable assets.
   - **Missing** → Print one line: "No CBO inventory at `.sapkit/cbo/<MODULE>/<PACKAGE>/`. Run the [analyze-cbo-obj](analyze-cbo-obj.md) procedure first for richer spec annotations, or type `skip` to proceed."
-- Persist the loaded entries to `.sapkit/specs/<OBJECT>/cbo-context.md` for use in Steps 3–4.
+- Persist the loaded entries into `.sapkit/specs/<OBJECT>/cbo-context.md` for Steps 3–4 to use.
 - Source reads:
   - Report/Program: `GetProgFullCode` + `GetIncludesList` → iterate `GetInclude`
   - Class: `ReadClass` (all sections) + `GetLocalDefinitions` / `GetLocalMacros` / `GetLocalTestClass` / `GetLocalTypes`
   - Function Module: `ReadFunctionModule` + function group includes
   - CDS: `ReadView` + `GetMetadataExtension`
   - RAP: `ReadBehaviorDefinition` + `ReadBehaviorImplementation` + `ReadServiceDefinition` + `ReadServiceBinding`
-- Screens / GUI Status / Text Elements (if report / module pool): `GetScreensList`, `GetGuiStatusList`, `GetTextElement`
+- Screens / GUI Status / Text Elements (where it is a report / module pool): `GetScreensList`, `GetGuiStatusList`, `GetTextElement`
 - Structural: `GetAbapAST`, `GetAbapSemanticAnalysis`
 - Enhancements (L3+): `GetEnhancements`, `GetEnhancementSpot`
-- Where-Used (L4 only — fixed scope): `GetWhereUsed` against the main object **plus each screen**; filter callers to customer namespace `Z*` / `Y*` only. Skip standard SAP and add-on namespaces.
+- Where-Used (L4 only — fixed scope): `GetWhereUsed` against the main object **plus each screen**; filter the callers down to customer namespace `Z*` / `Y*` only. Skip standard SAP and add-on namespaces.
 
 **Step 2 — Classify** (auto)
 - Object archetype: ALV report / batch job / BDC / FM wrapper / CDS view / RAP BO / enhancement impl / utility class
-- Drives which spec template is applied in Step 3.
+- It decides which spec template Step 3 applies.
 
 **Step 3 — Analysis**
 
-Adopt the [sap-analyst](../personas/sap-analyst.md) persona for this step. Extract: business purpose, inputs (selection screen / importing params), outputs (ALV cols / exporting params / OData entity), data sources (tables + CDS + BAPIs), main logic narrative, error cases, authorization checks (`AUTHORITY-CHECK` statements). When `cbo-context.md` exists, cross-reference every Z-object mentioned against the inventory and replace opaque "Z-table" / "Z-class" labels with the inventory's documented role + business purpose.
+Adopt the [sap-analyst](../personas/sap-analyst.md) persona for this step. Extract the business purpose, the inputs (selection screen / importing params), the outputs (ALV cols / exporting params / OData entity), the data sources (tables + CDS + BAPIs), the main logic narrative, the error cases, and the authorization checks (`AUTHORITY-CHECK` statements). Where `cbo-context.md` exists, check every Z-object mentioned against the inventory and swap the opaque "Z-table" / "Z-class" labels for the inventory's documented role + business purpose.
 
-**Audit verification gate (L4 only)**: adopt the [sap-critic](../personas/sap-critic.md) persona **in a fresh context** (new session/subagent per adapter guidance). The critic judges read-only: verify that every claim in the rendered spec cross-references a concrete line range in source. Fixes are applied by the worker, then re-verified. Skip for L1 / L2 / L3.
+**Audit verification gate (L4 only)**: adopt the [sap-critic](../personas/sap-critic.md) persona **in a fresh context** (a new session/subagent, per the adapter guidance). The critic judges read-only: confirm that every claim in the rendered spec cross-references a concrete line range in source. The worker applies the fixes, and they are verified again. Skip it for L1 / L2 / L3.
 
 **Step 3.5 — Draw screens (Markdown only)**
 
-Excel output inherits the reference mockup imagery pipeline (see Step 4) — do NOT hand-draw images for Excel.
+The Excel output inherits the reference mockup imagery pipeline (see Step 4) — do NOT hand-draw images for Excel.
 
-For **Markdown output only**, render every Selection-Screen and output Screen / ALV as an ASCII wireframe inside fenced code blocks (character widths are uniform there):
+For **Markdown output only**, draw every Selection-Screen and every output Screen / ALV as an ASCII wireframe inside fenced code blocks (character widths run uniform there):
 - Reconstruct Dynpros from `GetScreen` / `ReadScreen` (`HEADER` + `FLOW_LOGIC` + field positions `LINE` / `COLUMN` / `LENGTH` / `HEIGHT`).
 - Reconstruct Selection-Screens from `PARAMETERS` / `SELECT-OPTIONS` / `SELECTION-SCREEN BLOCK` statements.
 - Reconstruct ALV output from the field catalog (columns + widths + headings).
-- Show label + input box + F4-help marker `[▼]` + mandatory `*`.
-- Optional Mermaid `flowchart TD` for screen-to-screen navigation.
-- For GUI Status: short FKEY → FCODE → text table plus an ASCII toolbar bar.
+- Show the label, the input box, the F4-help marker `[▼]`, and the mandatory `*`.
+- Optionally a Mermaid `flowchart TD` for screen-to-screen navigation.
+- For GUI Status: a short FKEY → FCODE → text table, plus an ASCII toolbar bar.
 
-For objects without UI (pure class, FM, CDS, RAP without screens), skip the wireframes — the Parameters table inside the Inputs section is enough.
+For objects without UI (a pure class, an FM, a CDS, a RAP without screens), skip the wireframes — the Parameters table inside the Inputs section carries enough.
 
 **Step 4 — Render**
 
-Adopt the [sap-writer](../personas/sap-writer.md) persona for this step. Render into the chosen format (MD or Excel) at the chosen depth + language.
+Adopt the [sap-writer](../personas/sap-writer.md) persona for this step. Render into whichever format was chosen (MD or Excel), at the chosen depth + language.
 
-- **Markdown**: single `.md` with H2 sections per spec dimension, tables for selection-screen / tables / methods / exits. See § Markdown Template below.
+- **Markdown**: one `.md`, an H2 section per spec dimension, tables for the selection-screen / tables / methods / exits. See § Markdown Template below.
 - **Excel (MANDATORY workflow — template preservation + program-specific imagery, single entry point)**:
 
-  > **Why clone + image swap?** Geometry (styles / borders / fonts / column widths / row heights / drawings) comes from a byte-for-byte clone of [template_base.xlsx](../../assets/spec/template_base.xlsx) — that's what prevents throwaway-driver geometry drift. Per-program data flows in through TWO inputs: (1) a TR (translation) map that replaces the template's English strings, and (2) an image-spec that drives the per-program Selection / ALV / Process-Flow mockups. Both run on every Excel spec — no opt-in trigger keywords. The writer's job is to produce both JSON files; one helper does the rest.
+  > **Why clone + image swap?** The geometry (styles / borders / fonts / column widths / row heights / drawings) arrives from a byte-for-byte clone of [template_base.xlsx](../../assets/spec/template_base.xlsx) — that is what holds throwaway-driver geometry drift off. Per-program data comes in through TWO inputs: (1) a TR (translation) map that swaps out the template's English strings, and (2) an image-spec that drives the per-program Selection / ALV / Process-Flow mockups. Both run on every Excel spec — no opt-in trigger keywords. The writer's job is to produce both JSON files; one helper handles the rest.
 
-  Pipeline for each Excel-output spec:
+  The pipeline for each Excel-output spec:
 
   1. **Produce TWO JSON files**:
-     - `.sapkit/specs/_tr/{OBJECT}-{YYYYMMDD}.tr.json` — flat `{ "English key": "한국어 값" }` map. Schema + slot semantics in § Excel TR Map below.
-     - `.sapkit/specs/_img/{OBJECT}-{YYYYMMDD}.image-spec.json` — `renderScreenImages()` argument: `{ selection: {fields:[…]}, alv: {columns:[…], sampleRows:[…]}, processFlow: [string,…], lang }`. Exact key names in § image-spec.json Schema below. Schema mistakes (e.g. `field` instead of `name`, array sampleRows instead of objects) silently render empty PNGs — verify by inspecting the resulting ALV byte size (~12 KB normal, ~1 KB = empty grid).
+     - `.sapkit/specs/_tr/{OBJECT}-{YYYYMMDD}.tr.json` — a flat `{ "English key": "한국어 값" }` map. Schema + slot semantics live in § Excel TR Map below.
+     - `.sapkit/specs/_img/{OBJECT}-{YYYYMMDD}.image-spec.json` — the `renderScreenImages()` argument: `{ selection: {fields:[…]}, alv: {columns:[…], sampleRows:[…]}, processFlow: [string,…], lang }`. The exact key names live in § image-spec.json Schema below. A schema mistake (e.g. `field` where `name` belongs, or sampleRows as arrays instead of objects) renders empty PNGs in silence — catch it by inspecting the resulting ALV byte size (~12 KB normal, ~1 KB = empty grid).
   2. **Run the single entry point** — [build-spec.mjs](../../tools/spec/build-spec.mjs):
      ```bash
      node tools/spec/build-spec.mjs <tr.json> <image-spec.json> <out.xlsx>
      ```
-     (path relative to the harness repo root). Internally: `cloneTemplate(tr)` → `renderScreenImages(imageSpec)` → `swapImages(xlsxPath, …pngBuffers)`. Default output path is `.sapkit/specs/{OBJECT}-{YYYYMMDD}-{lang}.xlsx`. Pass `-` for the image-spec argument to skip image rendering and ship the text-only spec with the template's generic mockups (rare — only when no per-program imagery makes sense).
-  3. **Verify the artifact** — output size ≈ 60–75 KB depending on PNG sizes. `unzip -l` lists `xl/sharedStrings.xml` + `xl/media/image1.png` + `image2.png` + `image3.png` + `xl/drawings/drawing3.xml` + `drawing4.xml`. Open in Excel and scan every sheet — geometry MUST match [template_base.xlsx](../../assets/spec/template_base.xlsx), Sheet 3 shows the program-specific Selection + ALV, Sheet 4 shows the horizontal Process Flow under the heading.
-  4. **Cleanup** — leave both JSON files in `_tr/` and `_img/` for traceability. Remove only ephemeral files (probes, smoke tests).
+     (the path is relative to the harness repo root). Inside: `cloneTemplate(tr)` → `renderScreenImages(imageSpec)` → `swapImages(xlsxPath, …pngBuffers)`. The default output path is `.sapkit/specs/{OBJECT}-{YYYYMMDD}-{lang}.xlsx`. Pass `-` as the image-spec argument to skip image rendering and ship the text-only spec carrying the template's generic mockups (rare — only where no per-program imagery makes sense).
+  3. **Verify the artifact** — the output runs ≈ 60–75 KB, depending on the PNG sizes. `unzip -l` lists `xl/sharedStrings.xml` + `xl/media/image1.png` + `image2.png` + `image3.png` + `xl/drawings/drawing3.xml` + `drawing4.xml`. Open it in Excel and scan every sheet — the geometry MUST match [template_base.xlsx](../../assets/spec/template_base.xlsx), Sheet 3 shows the program-specific Selection + ALV, Sheet 4 shows the horizontal Process Flow under the heading.
+  4. **Cleanup** — leave both JSON files sitting in `_tr/` and `_img/` for traceability. Remove only the ephemeral files (probes, smoke tests).
 
-  **Graceful degrade** — when no headless browser is on PATH (Chrome / Edge / Chromium not installed), `renderScreenImages` returns `null` per slot and `swapImages` skips them. The xlsx ends with template generic mockups on Sheet 3 and a blank Sheet 4 drawing — never crashes.
+  **Graceful degrade** — where no headless browser sits on PATH (Chrome / Edge / Chromium not installed), `renderScreenImages` returns `null` per slot and `swapImages` skips them. The xlsx lands with template generic mockups on Sheet 3 and a blank Sheet 4 drawing — never crashes.
 
-  **Zero external npm dependencies** — [build-spec.mjs](../../tools/spec/build-spec.mjs) / [template-clone.mjs](../../tools/spec/template-clone.mjs) / [image-swap.mjs](../../tools/spec/image-swap.mjs) use only `node:fs` / `node:zlib` / `node:path` / `node:url`. Image rendering uses [screen-image-renderer.mjs](../../tools/spec/screen-image-renderer.mjs) which shells out to a system headless browser; no npm modules.
+  **Zero external npm dependencies** — [build-spec.mjs](../../tools/spec/build-spec.mjs) / [template-clone.mjs](../../tools/spec/template-clone.mjs) / [image-swap.mjs](../../tools/spec/image-swap.mjs) draw only on `node:fs` / `node:zlib` / `node:path` / `node:url`. Image rendering runs through [screen-image-renderer.mjs](../../tools/spec/screen-image-renderer.mjs), which shells out to a system headless browser; no npm modules.
 
-  **Sheet order is fixed by the template** — clone never reorders. The template ships with:
+  **Sheet order is fixed by the template** — the clone never reorders it. What the template ships with:
   1. `프로그램 개요` / Program Overview — Field/Value metadata (17 rows)
   2. `데이터 모델` / Data Model — Table/Access/Key Fields/Join Type/Notes (4 table slots + trailer)
   3. `입력 및 화면` / Inputs & Screens — Parameters (5 slots) + 5 warning rows + image anchors at C4 (Selection) / C19 (ALV)
@@ -165,12 +165,12 @@ Adopt the [sap-writer](../personas/sap-writer.md) persona for this step. Render 
   6. `권한` / Authorizations — Check/Object/Level/Implemented?/Notes (5 rows)
   7. `예외 처리` / Exceptions — Trigger/Mechanism/Message/Recovery (3 rows)
 
-  **Image anchor extents are dynamic** — each `<xdr:ext>` is computed from the supplied PNG's IHDR (`px × 9525` EMU) so PNGs render at native aspect ratio without stretching. Sheet 3 anchors (drawing3.xml C4 + C19) are surgically updated by image name. Sheet 4 (drawing4.xml) is injected on demand because each program's flow chart differs (`xl/media/image3.png` + `<xdr:oneCellAnchor>` from B19 + `_rels/drawing4.xml.rels`).
+  **Image anchor extents are dynamic** — every `<xdr:ext>` is computed off the supplied PNG's IHDR (`px × 9525` EMU), so the PNGs render at native aspect ratio without stretching. The Sheet 3 anchors (drawing3.xml C4 + C19) are updated surgically, by image name. Sheet 4 (drawing4.xml) is injected on demand, because each program's flow chart differs (`xl/media/image3.png` + `<xdr:oneCellAnchor>` from B19 + `_rels/drawing4.xml.rels`).
 
 **Step 5 — Review loop**
-- Show a table of contents + first section inline.
+- Show a table of contents and the first section inline.
 - Ask: "OK to finalize, or trim/expand a section?"
-- On confirm → write file → print absolute path.
+- On confirmation → write the file → print the absolute path.
 
 ## Markdown Template — L2 Standard Spec skeleton
 
@@ -206,7 +206,7 @@ Adopt the [sap-writer](../personas/sap-writer.md) persona for this step. Render 
 
 ## Excel TR Map — Template-clone workflow
 
-The Excel output is produced by cloning [template_base.xlsx](../../assets/spec/template_base.xlsx) byte-for-byte and swapping only `xl/sharedStrings.xml`. The clone helper is [template-clone.mjs](../../tools/spec/template-clone.mjs). The writer's deliverable is therefore a **TR (translation) map**, not a styled workbook.
+The Excel output comes from cloning [template_base.xlsx](../../assets/spec/template_base.xlsx) byte-for-byte and swapping out only `xl/sharedStrings.xml`. The clone helper is [template-clone.mjs](../../tools/spec/template-clone.mjs). What the writer delivers is therefore a **TR (translation) map**, not a styled workbook.
 
 ### TR map schema
 
@@ -220,36 +220,36 @@ The Excel output is produced by cloning [template_base.xlsx](../../assets/spec/t
 }
 ```
 
-Flat object · key = English source string from the template's sharedStrings.xml · value = target-language replacement for THIS program. Persist to `.sapkit/specs/_tr/{OBJECT}-{YYYYMMDD}.tr.json` (UTF-8, pretty-printed).
+A flat object · key = the English source string out of the template's sharedStrings.xml · value = the target-language replacement for THIS program. Persist it to `.sapkit/specs/_tr/{OBJECT}-{YYYYMMDD}.tr.json` (UTF-8, pretty-printed).
 
 ### Slot semantics
 
-When the target program has fewer items than the template's fixed slot count, **fill unused slots with placeholders** so row counts (and therefore borders, fills, styles) stay identical:
+Where the target program carries fewer items than the template's fixed slot count, **fill unused slots with placeholders** so row counts — and with them the borders, fills, and styles — stay identical:
 
 | Section | Template count | Placeholder convention |
 |---|---|---|
-| Sheet 3 Parameters | 5 (S_VKORG..S_VBELN) | `— (해당 없음)` for the field name, `—` for type/required/default, short note in the description |
-| Sheet 3 Warnings | 5 ⚠ rows | Use real findings; if fewer than 5, repeat the most important caveat or summarise into 5 buckets |
-| Sheet 4 Steps | 12 numbered rows | `— (해당 없음)` for the FORM name, brief explainer for the step text |
-| Sheet 5 Output columns | 10 ALV column rows | `— (해당 없음)` for unused field, `—` for length |
-| Sheet 6 Auth | 5 rows | Use real auth objects + GAP rows; rewire the template row labels semantically when needed (e.g. `Sales organisation` → `플랜트 단위`) |
-| Sheet 7 Exceptions | 3 rows | Combine if target has only 2; split if it has 4+ — keep the 3-row template count |
+| Sheet 3 Parameters | 5 (S_VKORG..S_VBELN) | `— (해당 없음)` for the field name, `—` for type/required/default, and a short note in the description |
+| Sheet 3 Warnings | 5 ⚠ rows | Use the real findings; where fewer than 5 exist, repeat the most important caveat or summarise into 5 buckets |
+| Sheet 4 Steps | 12 numbered rows | `— (해당 없음)` for the FORM name, and a brief explainer for the step text |
+| Sheet 5 Output columns | 10 ALV column rows | `— (해당 없음)` for an unused field, `—` for length |
+| Sheet 6 Auth | 5 rows | Use the real auth objects + GAP rows; rewire the template's row labels semantically where needed (e.g. `Sales organisation` → `플랜트 단위`) |
+| Sheet 7 Exceptions | 3 rows | Combine where the target has only 2; split where it has 4+ — keep the 3-row template count |
 
 ### SAP identifier remapping
 
-Identifiers in the template (`ZMMRTEST003`, `VBAK`, `VBELN`, `S_VKORG`, etc.) MUST appear as TR keys mapping to the target program's identifiers when they differ (`ZMMR1001`, `MARA`, `MATNR`, `P_WERKS`). Identifiers absent from TR remain in the cloned file unchanged — that's the desired behaviour when the target shares the identifier with the template.
+The template's identifiers (`ZMMRTEST003`, `VBAK`, `VBELN`, `S_VKORG`, etc.) MUST show up as TR keys mapping onto the target program's identifiers wherever the two differ (`ZMMR1001`, `MARA`, `MATNR`, `P_WERKS`). An identifier absent from TR stays in the cloned file unchanged — which is the behaviour wanted when the target shares that identifier with the template.
 
 ### Quality gates (before declaring done)
 
 1. `node tools/spec/template-clone.mjs <tr-json> <out-xlsx>` exits 0.
-2. Stdout shows `NO TRANSLATION:` for ONLY the SAP standard identifiers the target program genuinely reuses (table names, field names common to both specs). Any prose / label / sheet-title / warning string missing from TR is a bug — patch and re-run.
-3. `unzip -l <out-xlsx>` lists 32 entries — the template's 30 plus the injected `xl/media/image3.png` and `xl/drawings/_rels/drawing4.xml.rels` (text-only clone stays at 30; only `xl/sharedStrings.xml` size differs from the template).
+2. Stdout shows `NO TRANSLATION:` for ONLY the SAP standard identifiers the target program genuinely reuses (table names, field names the two specs share). Any prose / label / sheet-title / warning string missing from TR is a bug — patch it and re-run.
+3. `unzip -l <out-xlsx>` lists 32 entries — the template's 30, plus the injected `xl/media/image3.png` and `xl/drawings/_rels/drawing4.xml.rels` (a text-only clone stays at 30; only the `xl/sharedStrings.xml` size differs from the template).
 4. Output file ≈ 45 KB (text-only clone) / ≈ 60–75 KB (with images).
-5. Open in Excel — every sheet renders with identical geometry to the template.
+5. Open it in Excel — every sheet renders with geometry identical to the template.
 
 ## Image Replacement (always-on — part of the default Excel pipeline)
 
-Every Excel spec ships with program-specific imagery on Sheet 3 (Selection + ALV mockups) and Sheet 4 (horizontal Process Flow chart). The image pipeline runs from a single `image-spec.json` consumed by [build-spec.mjs](../../tools/spec/build-spec.mjs). No trigger keywords required.
+Every Excel spec ships carrying program-specific imagery on Sheet 3 (the Selection + ALV mockups) and Sheet 4 (the horizontal Process Flow chart). The image pipeline runs off a single `image-spec.json` that [build-spec.mjs](../../tools/spec/build-spec.mjs) consumes. No trigger keywords required.
 
 | Slot | xlsx path | Sheet | Anchor | Ext | Source |
 |---|---|---|---|---|---|
@@ -266,14 +266,14 @@ node tools/spec/image-swap.mjs <out-xlsx> --selection <sel.png> --alv <alv.png> 
 - `--selection`     → `xl/media/image2.png` (Sheet 3, C4)
 - `--alv`           → `xl/media/image1.png` (Sheet 3, C19)
 - `--process-flow`  → injects `xl/media/image3.png` + `drawing4.xml` oneCellAnchor + rels (Sheet 4, B19)
-- Any flag may be omitted; omitted slots keep their template state.
-- Positional form (`<xlsx> <sel.png> <alv.png> <pf.png>`, use `-` to skip) also accepted.
+- Any flag may be left off; a slot left off keeps its template state.
+- The positional form (`<xlsx> <sel.png> <alv.png> <pf.png>`, with `-` to skip) is accepted too.
 
-PNG signature is verified before any write; non-PNG input is rejected without touching the xlsx.
+The PNG signature is verified before any write; non-PNG input is rejected without the xlsx being touched.
 
 ### image-spec.json schema
 
-**Exact JSON shape** (mismatched keys silently render an empty grid — verify by inspecting PNG byte sizes: ~12 KB normal ALV vs ~1 KB empty grid):
+**Exact JSON shape** (keys that fail to match render an empty grid in silence — check it by inspecting the PNG byte sizes: ~12 KB normal ALV vs ~1 KB empty grid):
 
 ```jsonc
 {
@@ -306,16 +306,16 @@ PNG signature is verified before any write; non-PNG input is rejected without to
 ```
 
 **Field semantics**
-- `selection.fields[].name` — identifier shown in parentheses next to the label
+- `selection.fields[].name` — the identifier shown in parentheses beside the label
 - `selection.fields[].required` — `true` adds the red `*` mark + legend entry
-- `selection.fields[].range` — `true` renders SELECT-OPTIONS style (LOW input ~ HIGH input + dropdown)
-- `alv.columns[].name` — **REQUIRED**; used as the lookup key for each `sampleRows[i][name]`. Schema mistake here is the most common cause of empty ALV PNGs.
-- `alv.columns[].header` — display text (falls back to `name` if absent)
+- `selection.fields[].range` — `true` renders it SELECT-OPTIONS style (LOW input ~ HIGH input + dropdown)
+- `alv.columns[].name` — **REQUIRED**; it serves as the lookup key for each `sampleRows[i][name]`. A schema mistake here is the most common cause of empty ALV PNGs.
+- `alv.columns[].header` — the display text (it falls back to `name` when absent)
 - `alv.columns[].align` — `'end'` (right-aligned, monospace for numerics) / `'left'` / default centre
 - `alv.columns[].hotspot` — `true` renders the cell value as blue underlined text
 - `alv.columns[].editable` — `true` renders a yellow input cell
 - `alv.sampleRows[]` — **OBJECTS** keyed by `name` (NOT positional arrays). Special keys: `_status` (`'●'`/`'○'`/`'◉'`) for tri-state indicators, `_locked: true` to grey the row
-- `processFlow[]` — string array. Prefix `?` = decision (diamond), `!` = terminal (pill), no prefix = process box. Always rendered **horizontal** in the xlsx embed path (Markdown callers wanting vertical should call `renderProcessFlowSVG()` directly with `orientation: 'vertical'`)
+- `processFlow[]` — a string array. Prefix `?` = decision (diamond), `!` = terminal (pill), no prefix = process box. Always rendered **horizontal** on the xlsx embed path (a Markdown caller wanting vertical should call `renderProcessFlowSVG()` directly with `orientation: 'vertical'`)
 
 ## Output Format (completion block)
 
@@ -350,11 +350,11 @@ Next options:
 
 ## Data Extraction Safety
 
-Spec generation only reads **source code + DDIC metadata + where-used** — never `GetTableContents` / `GetSqlQuery`. No row data is extracted. If the user asks for sample data, refuse per [data-extraction-policy](../policies/data-protection/data-extraction-policy.md) and document the request in the `Risk` sheet instead.
+Spec generation only reads **source code + DDIC metadata + where-used** — never `GetTableContents` / `GetSqlQuery`. No row data is extracted. Where the user asks for sample data, refuse per [data-extraction-policy](../policies/data-protection/data-extraction-policy.md) and record the request in the `Risk` sheet instead.
 
 ## Related Procedures
 
 - [compare-programs](compare-programs.md) — business-angle comparison across 2–5 programs
 - [analyze-cbo-obj](analyze-cbo-obj.md) — CBO package inventory (feeds Step 1.5 annotations)
-- [package-to-process](package-to-process.md) — process-level view of the whole package; use it to see which flow this program sits in
+- [package-to-process](package-to-process.md) — a process-level view of the whole package; reach for it to see which flow this program sits in
 - [deep-interview](deep-interview.md) — requirement clarification for new builds

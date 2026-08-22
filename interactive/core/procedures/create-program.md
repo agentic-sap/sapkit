@@ -12,7 +12,7 @@ source:
 
 # Create Program — Procedure
 
-Core ABAP program creation procedure. Generates a Main Program wrapped with conditional Includes following the sc4sap template convention. Supports both OOP (two-class split: Data + Screen/ALV) and Procedural (PERFORM) paradigms.
+The core ABAP program creation procedure. It produces a Main Program wrapped in conditional Includes per the sc4sap template convention, and it carries both paradigms — OOP (two-class split: Data + Screen/ALV) and Procedural (PERFORM).
 
 **The main conversation owns every phase below and runs them in order.** Phase 4 implementation may be delegated per the `execution_owner` convention in [development-loop.md](../policies/development-loop.md). Where a step says "adopt the X persona", switch working persona for that step; do not skip, reorder, or merge phases. Every phase is MANDATORY unless explicitly marked conditional.
 
@@ -59,20 +59,20 @@ self-completing unit — map its phases to that Policy:
 ## Use When / Do Not Use When
 
 Use when:
-- The user asks for "create program", "new report", "ALV program", "CRUD program", "batch program", etc.
-- A new ABAP executable program (REPORT) needs to be created from scratch
-- The program requires the Main+Include wrapping convention
-- ALV display is needed (full CL_GUI_ALV_GRID or simple SALV popup)
+- The user asks for a "create program", "new report", "ALV program", "CRUD program", "batch program", etc.
+- A new ABAP executable program (REPORT) has to be built from scratch
+- The program calls for the Main+Include wrapping convention
+- ALV display is wanted (full CL_GUI_ALV_GRID or simple SALV popup)
 
 Do NOT use when:
-- Creating a single class/interface/table — use the `create-object` procedure
-- Modifying an existing program — use the [modify-object](./modify-object.md) procedure (Minimal intensity)
-- Creating a RAP business object / OData service — use `create-object` (with service binding + behavior definition)
+- A single class/interface/table is what is wanted — use the `create-object` procedure
+- An existing program is being modified — use the [modify-object](./modify-object.md) procedure (Minimal intensity)
+- A RAP business object / OData service is being created — use `create-object` (with service binding + behavior definition)
 - The user wants only scaffolding without coding — use `create-object` with type=program
 
 ## Shared Conventions
 
-The following rules are shared across procedures. Load and apply them during the relevant phases:
+These rules are shared across procedures. Load and apply each one during the phases named:
 
 | Convention | Reference File | Applied In |
 |------------|----------------|------------|
@@ -93,17 +93,17 @@ The following rules are shared across procedures. Load and apply them during the
 
 ### ECC DDIC Fallback Gate
 
-When the Phase 2 object list includes a new Table, Data Element, or Domain AND `SAP_VERSION = ECC`, Phase 4 must NOT call `CreateTable` / `CreateDataElement` / `CreateDomain`. Instead, follow [ecc-ddic-fallback.md](../knowledge/abap/conventions/ecc-ddic-fallback.md): generate a helper report in `$TMP` using the matching template — [table_create_sample.abap](../knowledge/abap/templates/ecc/table_create_sample.abap), [element_create_sample.abap](../knowledge/abap/templates/ecc/element_create_sample.abap), or [domain_create_sample.abap](../knowledge/abap/templates/ecc/domain_create_sample.abap) — activate the helper, then emit the mandatory user message (SE38 run → uncheck dry-run → SE11 activate + assign transport). Do not treat the DDIC object as created until the user confirms activation. Remaining objects (classes, includes, screens, …) proceed on the normal flow; the plan must sequence the DDIC helpers first so the user can create them before code that depends on them is activated.
+Where the Phase 2 object list carries a new Table, Data Element, or Domain AND `SAP_VERSION = ECC`, Phase 4 must NOT call `CreateTable` / `CreateDataElement` / `CreateDomain`. Follow [ecc-ddic-fallback.md](../knowledge/abap/conventions/ecc-ddic-fallback.md) instead: generate a helper report in `$TMP` from the matching template — [table_create_sample.abap](../knowledge/abap/templates/ecc/table_create_sample.abap), [element_create_sample.abap](../knowledge/abap/templates/ecc/element_create_sample.abap), or [domain_create_sample.abap](../knowledge/abap/templates/ecc/domain_create_sample.abap) — activate the helper, then emit the mandatory user message (SE38 run → uncheck dry-run → SE11 activate + assign transport). Do not count the DDIC object as created until the user confirms activation. The remaining objects (classes, includes, screens, …) continue on the normal flow; the plan must sequence the DDIC helpers first, so the user can create them before any code depending on them is activated.
 
 ## Phase 0 — SAP Version Preflight (MANDATORY, runs before the interview)
 
-The entire development approach (tables, BAPIs, CDS availability, ABAP syntax, RAP eligibility) depends on the SAP platform and release.
+Everything about the development approach (tables, BAPIs, CDS availability, ABAP syntax, RAP eligibility) hangs on the SAP platform and release.
 
 Steps:
 1. Read `.sapkit/config.json` for `sapVersion`, `abapRelease`, and `activeModules`
    - Also read `.sapkit/sap.env` → `SAP_ACTIVE_MODULES` as fallback
    - Load `../knowledge/modules/common/active-modules.md` (if present) and precompute the cross-module concern list for the program's primary module. Every downstream phase (planning, spec, implementation) receives this list and must factor in integration fields (e.g., MM primary + PS active → add `PS_POSID`).
-2. If missing or stale, ask the user to confirm:
+2. Where any of these is missing or stale, ask the user to confirm:
    - **ECC** (ECC 6.0) — classical DDIC, LFA1/KNA1/BKPF/BSEG/MKPF/MSEG world, SAPGUI only
    - **S/4HANA On-Premise** — ACDOCA, MATDOC, Business Partner (BUT000), CDS/AMDP preferred, Fiori possible, ADT-first
    - **S/4HANA Cloud (Public)** — no classical Dynpro, no SE80 custom dev, only Developer Extensibility / Key User Extensibility (RAP managed, Custom Fields/Logic, Custom Business Objects)
@@ -111,10 +111,10 @@ Steps:
 3. Confirm `abapRelease` (e.g. `750`, `756`, `758`) — drives allowed syntax
 
 Branching consequences:
-- **ECC**: no RAP, no ACDOCA, no Business Partner; inline decl only if 740+; CDS/AMDP typically unavailable (<750)
+- **ECC**: no RAP, no ACDOCA, no Business Partner; inline decl only from 740+; CDS/AMDP typically unavailable (<750)
 - **S/4HANA On-Prem**: prefer CDS + AMDP, RAP where applicable, Business Partner APIs, ACDOCA for finance
-- **S/4HANA Cloud Public**: **REJECT classical Dynpro / custom screen + GUI Status requests**. The standard Full-ALV path (CL_GUI_ALV_GRID + Docking Container) is not executable on Cloud Public — redirect to RAP + Fiori Elements, `if_oo_adt_classrun`, or SALV-only output. Fail fast with an explanation. Full prohibited-statement list and Cloud-native API replacements: [cloud-abap-constraints.md](../knowledge/abap/conventions/cloud-abap-constraints.md).
-- **S/4HANA Cloud Private**: classical Dynpro technically possible but discouraged; warn the user and confirm intent before proceeding.
+- **S/4HANA Cloud Public**: **REJECT classical Dynpro / custom screen + GUI Status requests**. Cloud Public cannot run the standard Full-ALV path (CL_GUI_ALV_GRID + Docking Container) — redirect to RAP + Fiori Elements, `if_oo_adt_classrun`, or SALV-only output. Fail fast, with an explanation. The full prohibited-statement list and the Cloud-native API replacements: [cloud-abap-constraints.md](../knowledge/abap/conventions/cloud-abap-constraints.md).
+- **S/4HANA Cloud Private**: classical Dynpro is technically possible but discouraged; warn the user and confirm intent before proceeding.
 
 Outputs:
 - `.sapkit/program/{PROG}/platform.md` — resolved platform, release, and constraints
@@ -142,44 +142,44 @@ Check three signals in order — the first match sets the interview scope:
 
 Phase 1 runs as two sequential sub-phases (1A then 1B) on every invocation. What "never skip" protects is that **all 13 dimensions (7 when the Phase 1A skip rule applies) close with user-confirmed answers** — not the act of questioning itself. When Intake Resolution (above) resolved a document input, dimensions the document answers close by confirmation restatement with a source citation — a brought document is the user answering in advance, not a bypass; claiming document coverage with no document on the table, or beyond what the document actually answers, remains a protocol violation. Skipping **any** dimension (a deficit dimension on a document-input run), accepting "just build it" to bypass questioning, inferring answers from context instead of from a confirmed source, or bulk-proposing multiple dimensions in a single message is a protocol violation. If the user pushes to skip a remaining dimension — **with or without a document** — answer: *"The interview is mandatory — I will run Module Interview first, then Program Interview, one question at a time."*
 
-**Two-stage rule**: Phase 1B (technical) NEVER starts before Phase 1A (business) closes. The technical conversation has no meaning without business context.
+**Two-stage rule**: Phase 1B (technical) NEVER starts before Phase 1A (business) closes. Without the business context the technical conversation means nothing.
 
 ### One-Question-Per-Turn Rule (applies to BOTH 1A and 1B)
 
-This rule is the single most important enforcement in the entire interview — it protects first-time users who need to understand each decision. Both sub-phases run as Socratic dialogue, one dimension per message, regardless of user impatience. On a document-input run (Intake Resolution forms 1–2), this cadence governs the **deficit dimensions**; document-covered dimensions close by confirmation restatement as specified there — restating an answer the user already gave in a document is not a bulk proposal.
+This is the single most important enforcement in the whole interview — it protects the first-time user who needs to understand each decision as it arrives. Both sub-phases run as Socratic dialogue, one dimension per message, however impatient the user gets. On a document-input run (Intake Resolution forms 1–2), this cadence governs the **deficit dimensions**; document-covered dimensions close by confirmation restatement as specified there — restating an answer the user already gave in a document is not a bulk proposal.
 
 Hard prohibitions:
-- Do NOT dump all remaining dimensions into a single table/proposal block for "batch approval" — even if the user says *"알아서 해줘"*, *"figure it out"*, *"just decide"*, *"ok everything"*, *"batch them"*.
-- Do NOT present Q2, Q3, Q4 as sub-questions of Q1. One dimension = one message = wait for the user's answer.
-- Do NOT pre-answer on the user's behalf and ask only *"approve?"*. The user must actively choose for each dimension.
+- Do NOT tip all the remaining dimensions into a single table/proposal block for "batch approval" — not even when the user says *"알아서 해줘"*, *"figure it out"*, *"just decide"*, *"ok everything"*, *"batch them"*.
+- Do NOT slip Q2, Q3, Q4 in as sub-questions of Q1. One dimension = one message = wait for the user's answer.
+- Do NOT answer on the user's behalf and then ask only *"approve?"*. The user must actively choose on every dimension.
 
 Handling an impatient user (*"알아서 해줘"* / *"you decide"*):
-1. Acknowledge the fatigue politely.
+1. Acknowledge the fatigue, politely.
 2. Explain: *"I will keep going one question at a time — this protects you from decisions you didn't see. I can propose a default per question which you confirm with a single word."*
-3. Continue with the next single dimension only, presenting your recommended default as part of that one question (not as part of a block).
-4. Wait for the user's response. Advance only after they confirm or modify that one dimension.
+3. Carry on with the next single dimension only, carrying your recommended default inside that one question (not inside a block).
+4. Wait for the user's response. Move on only once they confirm or modify that one dimension.
 
-First-time user safeguard: a person running this procedure for the first time does not know what "Paradigm OOP vs Procedural" or "Full CL_GUI_ALV_GRID vs SALV" actually means. Bulk-proposing all 7 dimensions at once denies them the chance to ask "what does this mean?" on each one. Always keep the door open for one dimension at a time.
+First-time user safeguard: someone running this procedure for the first time has no idea what "Paradigm OOP vs Procedural" or "Full CL_GUI_ALV_GRID vs SALV" actually means. Bulk-proposing all 7 dimensions at once takes away their chance to ask "what does this mean?" on each one. Always keep the door open for one dimension at a time.
 
-Recovery clause: if you already bulk-proposed (protocol violation), apologize, roll back, and restart the sub-phase from the first unanswered dimension with strict one-question cadence. Do NOT count a block "ok" as approval for a block proposal — it is invalid by protocol.
+Recovery clause: where a bulk proposal already went out (protocol violation), apologize, roll it back, and restart the sub-phase from the first unanswered dimension at strict one-question cadence. Do NOT read a block "ok" as approval of a block proposal — protocol makes it invalid.
 
 ### Phase 1A — Module Interview (module consultant persona)
 
-**Purpose**: establish business context, validate the need for custom development, identify reusable assets, and let a domain consultant propose SAP-standard alternatives BEFORE any technical decision is made.
+**Purpose**: fix the business context, test whether custom development is warranted, surface the reusable assets, and let a domain consultant put SAP-standard alternatives on the table BEFORE any technical decision is made.
 
 **Persona**: Adopt the matching `sap-{module}-consultant` persona for this step — see the [persona index](../personas/INDEX.md); e.g. [sap-sd-consultant](../personas/sap-sd-consultant.md), [sap-mm-consultant](../personas/sap-mm-consultant.md), [sap-fi-consultant](../personas/sap-fi-consultant.md), [sap-co-consultant](../personas/sap-co-consultant.md), [sap-pp-consultant](../personas/sap-pp-consultant.md), [sap-ps-consultant](../personas/sap-ps-consultant.md), [sap-qm-consultant](../personas/sap-qm-consultant.md), [sap-pm-consultant](../personas/sap-pm-consultant.md), [sap-wm-consultant](../personas/sap-wm-consultant.md), [sap-hcm-consultant](../personas/sap-hcm-consultant.md), [sap-tm-consultant](../personas/sap-tm-consultant.md), [sap-tr-consultant](../personas/sap-tr-consultant.md), [sap-ariba-consultant](../personas/sap-ariba-consultant.md), [sap-bw-consultant](../personas/sap-bw-consultant.md), [sap-bc-consultant](../personas/sap-bc-consultant.md).
 
-**Trigger**: as soon as Intake Resolution closes. If the target module is unclear from the initial request, the FIRST question is "which module?" — the consultant persona cannot be adopted until resolved. Multi-module: work through each module's consultant perspective and reconcile the question streams.
+**Trigger**: as soon as Intake Resolution closes. Where the initial request leaves the target module unclear, the FIRST question is "which module?" — the consultant persona cannot be adopted until that is resolved. Multi-module: work each module's consultant perspective in turn and reconcile the question streams.
 
 **Industry / Country context preflight (MANDATORY — runs before the first business question)**:
 - Read `.sapkit/config.json` (`industry`, `country`) and `.sapkit/sap.env` (`SAP_INDUSTRY`, `SAP_COUNTRY`). Precedence: `config.json` > `sap.env`.
-- If `industry` is set → load `../knowledge/industry/<key>.md` and use it as the consultant's business-context backdrop (do NOT re-ask the user).
-- If `country` is set → load `../knowledge/country/<iso>.md` (ISO alpha-2 lowercase, e.g. `kr`, `us`, `de`, or `eu-common` for EU-wide); multi-country: load each file and flag intercompany / intra-EU / transfer-pricing touchpoints. Do NOT re-ask the user.
-- If either value is missing → asking is MANDATORY before dimension 1. Do not infer from the project name, package, or prior interviews. Blocking questions:
+- Where `industry` is set → load `../knowledge/industry/<key>.md` and let it stand as the consultant's business-context backdrop (do NOT re-ask the user).
+- Where `country` is set → load `../knowledge/country/<iso>.md` (ISO alpha-2 lowercase, e.g. `kr`, `us`, `de`, or `eu-common` for EU-wide); multi-country: load each file and flag intercompany / intra-EU / transfer-pricing touchpoints. Do NOT re-ask the user.
+- Where either value is missing → asking is MANDATORY before dimension 1. Do not infer it from the project name, the package, or prior interviews. Blocking questions:
   - Industry missing: *"Which industry does this program belong to? (see [industry/README.md](../knowledge/industry/README.md) for the supported keys — e.g. `automotive`, `retail`, `pharmaceutical`, …)"*
   - Country missing: *"Which country / localization applies? (ISO alpha-2 lowercase, e.g. `kr`, `us`, `de`, or `eu-common` for EU-wide; multiple allowed)"*
-- Offer to persist the answer: *"Save to `.sapkit/config.json` so future runs skip this question? (yes/no)"*. On `yes`, write the value; on `no`, keep it for this run only.
-- Record resolved values in the `module-interview.md` header (`industry:`, `country:`, `source: config.json | sap.env | user-this-run`).
+- Offer to persist the answer: *"Save to `.sapkit/config.json` so future runs skip this question? (yes/no)"*. On `yes`, write the value; on `no`, hold it for this run only.
+- Record the resolved values in the `module-interview.md` header (`industry:`, `country:`, `source: config.json | sap.env | user-this-run`).
 
 **Project knowledge preflight (MANDATORY — runs with the above, before dimension 1)**:
 - Read `.sapkit/knowledge/domain.md` and `.sapkit/knowledge/system.md` if present — the business and this-system facts earlier runs had to find out. Absent directory → continue silently.
@@ -191,28 +191,28 @@ Recovery clause: if you already bulk-proposed (protocol violation), apologize, r
 
 **Question dimensions** (one per turn):
 1. **Module identification** — single or multi (SD/MM/FI/CO/PP/PS/QM/PM/WM/HCM/TM/TR/Ariba/BW/BC)
-2. **Business purpose** — what business outcome does this program produce (handed off to which role / used for which decision)
-3. **Business reason / pain point** — what current Gap, manual workaround, or compliance/regulatory requirement drives the request
-4. **Company-specific business rules** — deviations from SAP standard process (special pricing, custom statuses, local compliance, industry-specific calculations, etc.)
-5. **Reference assets** — existing CBO packages, prior Z programs, vendor add-ons to model after
-   - If the user names a reference Z program: you MAY run a `program-to-spec`-style quick lookup at depth L1 (Quick Spec) for that single object — extract Purpose / inputs / outputs / main logic steps (numbered) — and inline the summary into `module-interview.md` (collapse the step list to 2–3 sentences if it runs long). Do NOT produce a full spec artifact for the reference object; this is a focused lookup.
-6. **Standard SAP solution screen (mandatory)** — the consultant MUST propose at least one standard alternative (Fiori app, standard report/transaction, BAPI flow, CDS analytical query, embedded analytics) BEFORE agreeing to a custom build. The user explicitly accepts/rejects each alternative; rejections are logged with reason.
+2. **Business purpose** — which business outcome the program produces (handed to which role / feeding which decision)
+3. **Business reason / pain point** — which current Gap, manual workaround, or compliance/regulatory requirement drives the request
+4. **Company-specific business rules** — where the process departs from the SAP standard (special pricing, custom statuses, local compliance, industry-specific calculations, etc.)
+5. **Reference assets** — existing CBO packages, earlier Z programs, vendor add-ons worth modelling after
+   - Where the user names a reference Z program: you MAY run a `program-to-spec`-style quick lookup at depth L1 (Quick Spec) on that single object — pull Purpose / inputs / outputs / main logic steps (numbered) — and inline the summary into `module-interview.md` (collapse the step list to 2–3 sentences where it runs long). Do NOT produce a full spec artifact for the reference object; this is a focused lookup.
+6. **Standard SAP solution screen (mandatory)** — the consultant MUST put at least one standard alternative (Fiori app, standard report/transaction, BAPI flow, CDS analytical query, embedded analytics) on the table BEFORE agreeing to a custom build. The user explicitly accepts/rejects each alternative; every rejection is logged with its reason.
 
-**Skip rule**: skip Phase 1A only for pure technical utilities with zero business logic (e.g., generic string helper, file converter). Default behavior is "do not skip".
+**Skip rule**: skip Phase 1A only for a pure technical utility with zero business logic (e.g., a generic string helper, a file converter). The default is "do not skip".
 
 **Gate**: business ambiguity ≤ 5%.
 
 **Output**: `.sapkit/program/{PROG}/module-interview.md`
 
-**Enforcement**: Phase 1B refuses to start if this file is missing or its ambiguity score > 5%.
+**Enforcement**: Phase 1B refuses to start where this file is missing or its ambiguity score > 5%.
 
 ### Phase 1B — Program Interview (analyst + architect personas)
 
 **Pre-condition**: Phase 1A closed; `module-interview.md` exists; business ambiguity ≤ 5%.
 
-**Purpose**: translate the agreed business solution into concrete technical decisions.
+**Purpose**: turn the agreed business solution into concrete technical decisions.
 
-**Personas**: Adopt the [sap-analyst](../personas/sap-analyst.md) persona for functional decomposition (owns dimensions 1, 5) and the [sap-architect](../personas/sap-architect.md) persona for technical structure (owns dimensions 2, 3, 4, 7); both perspectives contribute to dimension 6. Keep the question stream to one dimension per turn.
+**Personas**: Adopt the [sap-analyst](../personas/sap-analyst.md) persona for functional decomposition (owns dimensions 1, 5) and the [sap-architect](../personas/sap-architect.md) persona for technical structure (owns dimensions 2, 3, 4, 7); both perspectives feed dimension 6. Hold the question stream to one dimension per turn.
 
 **Question dimensions** (one per turn, pre-filtered by resolved platform):
 1. **Purpose-type** — Report / CRUD / ALV List / Batch / Interface
@@ -223,13 +223,13 @@ Recovery clause: if you already bulk-proposed (protocol violation), apologize, r
 6. **Package + Transport** — target package, new or existing transport
 7. **Testing scope** — when OOP is selected, which test class methods to cover
 
-For each dimension, you may propose a recommended default (derived from Phase 1A context + CBO inventory + platform constraints). The proposal belongs to the single question for that dimension — never merge proposals across dimensions into a table.
+On each dimension you may propose a recommended default (drawn from Phase 1A context + CBO inventory + platform constraints). That proposal belongs inside the single question for its dimension — never merge proposals across dimensions into a table.
 
 **Gate**: technical ambiguity ≤ 5%. Do NOT proceed to Phase 2 until ≤ 5%.
 
 **Output**: `.sapkit/program/{PROG}/interview.md` — one Q&A block per resolved dimension and a final ambiguity score ≤ 5%.
 
-**Enforcement**: the Phase 2 planning step MUST refuse to run if either `module-interview.md` or `interview.md` is missing or incomplete. Both files are passed forward to Phase 2 so planning does not re-interview.
+**Enforcement**: the Phase 2 planning step MUST refuse to run where either `module-interview.md` or `interview.md` is missing or incomplete. Both files carry forward into Phase 2, so planning does not re-interview.
 
 ### Inventory Lookups (run immediately after `<MODULE>` and `<PACKAGE>` are resolved — Phase 1B dimension 6)
 
@@ -288,11 +288,11 @@ If `.sapkit/RULES.md` (written by the [lesson](./lesson.md) procedure) exists, r
 - **Customization reuse gate (mandatory when `customization-context.md` exists)**: before proposing a new BAdI implementation, CMOD component, form-based user-exit FORM, or append structure, scan `customization-context.md` for an existing customer asset covering the same `standardName` / base table. Default to extending the existing asset. Every new-enhancement/extension proposal in the plan must include a written justification of why no customization candidate fits (follow [customization-lookup.md](./customization-lookup.md)). Creating a second parallel impl when one already exists is a MAJOR finding in Phase 6.
 - Apply shared conventions: [include-structure.md](../knowledge/abap/conventions/include-structure.md), [naming-conventions.md](../knowledge/abap/conventions/naming-conventions.md)
 - **Consultant consultation (mandatory when requirements touch SAP business configuration)**:
-  - Identify the affected SAP module(s) from the interview output (SD / MM / FI / CO / PP / PS / QM / PM / WM / HCM / TM / TR / Ariba / BW / BC)
+  - Name the affected SAP module(s) off the interview output (SD / MM / FI / CO / PP / PS / QM / PM / WM / HCM / TM / TR / Ariba / BW / BC)
   - Adopt the corresponding `sap-{module}-consultant` persona for this sub-step (see the [persona index](../personas/INDEX.md))
   - Check for a local SPRO cache at `.sapkit/spro-config.json` before querying live
   - Resolve SPRO data per [spro-lookup.md](./spro-lookup.md) (priority: local cache → static module docs under `../knowledge/modules/{MODULE}/` → live query with user confirmation)
-  - Consultant output: business-aligned recommendations — relevant IMG customizing tables/views, master data dependencies, standard BAPIs/FMs to leverage, authorization objects, integration touchpoints with neighboring modules
+  - Consultant output: business-aligned recommendations — the relevant IMG customizing tables/views, master data dependencies, standard BAPIs/FMs worth leveraging, authorization objects, and integration touchpoints with neighboring modules
   - File: `.sapkit/program/{PROG}/consult-{module}.md` (one per consulted module)
   - For multi-module scenarios, consult each module in turn and reconcile as planner
 - Integrate consultant inputs into the final plan
@@ -304,12 +304,12 @@ If `.sapkit/RULES.md` (written by the [lesson](./lesson.md) procedure) exists, r
 
 ## Phase 3 — Spec Writing
 
-Adopt the [sap-writer](../personas/sap-writer.md) persona for this step. The spec is the single most critical artifact between interview and implementation — invest full care here.
+Adopt the [sap-writer](../personas/sap-writer.md) persona for this step. The spec is the most critical artifact standing between interview and implementation — put full care into it here.
 
-- Produce a functional + technical spec from `plan.md`
+- Produce a functional + technical spec out of `plan.md`
 - **CBO reuse (mandatory when `cbo-context.md` exists)**: every spec section that references an existing CBO asset must name it explicitly (e.g., "writes to existing table `ZSD_ORDER_LOG`") and include a one-line reason for reuse.
 - **Customization reuse (mandatory when `customization-context.md` exists)**: when the spec extends a BAdI / SMOD / form-based exit / append, it MUST reference the existing `Z*`/`Y*` implementation class, CMOD project, include, or append structure by name (e.g., "add new method to existing BAdI impl `ZCL_SD_ORDER_IMPL`"; "extend existing append `CI_VBAK_ZZ` with field `ZZ_DELIVERY_PRIORITY`"). Never silently introduce a parallel Z-object when a reuse target exists in `customization-context.md`.
-- **MANDATORY before writing**: open and read every shared convention file applicable to the program type — [alv-rules.md](../knowledge/abap/conventions/alv-rules.md), [text-element-rule.md](../knowledge/abap/conventions/text-element-rule.md), [constant-rule.md](../knowledge/abap/conventions/constant-rule.md), [oop-pattern.md](../knowledge/abap/conventions/oop-pattern.md) if OOP, [procedural-form-naming.md](../knowledge/abap/conventions/procedural-form-naming.md) if Procedural, [naming-conventions.md](../knowledge/abap/conventions/naming-conventions.md), [include-structure.md](../knowledge/abap/conventions/include-structure.md). The spec must NOT contain instructions that contradict these conventions (e.g., "build LVC_T_FCAT manually" contradicts the SALV-factory rule in alv-rules.md). When the spec describes a technique, paraphrase the convention's prescribed approach — never invent a shortcut.
+- **MANDATORY before writing**: open and read every shared convention file that applies to the program type — [alv-rules.md](../knowledge/abap/conventions/alv-rules.md), [text-element-rule.md](../knowledge/abap/conventions/text-element-rule.md), [constant-rule.md](../knowledge/abap/conventions/constant-rule.md), [oop-pattern.md](../knowledge/abap/conventions/oop-pattern.md) if OOP, [procedural-form-naming.md](../knowledge/abap/conventions/procedural-form-naming.md) if Procedural, [naming-conventions.md](../knowledge/abap/conventions/naming-conventions.md), [include-structure.md](../knowledge/abap/conventions/include-structure.md). The spec must NOT carry an instruction that contradicts these conventions (e.g., "build LVC_T_FCAT manually" contradicts the SALV-factory rule in alv-rules.md). Where the spec describes a technique, paraphrase the approach the convention prescribes — never invent a shortcut.
 - File: `.sapkit/program/{PROG}/spec.md`
 
 ### Spec template (minimum sections)
@@ -359,14 +359,14 @@ and rationale here. Empty section if none.
 
 ## Spec Approval Gate (MANDATORY — HUMAN GATE, never skip, never shortcut)
 
-After the interview closes (ambiguity ≤ 5%) and Phase 2 produces `plan.md` and Phase 3 produces `spec.md`, this gate MUST run before any `Create*` / `Update*` call.
+Once the interview closes (ambiguity ≤ 5%), Phase 2 has produced `plan.md`, and Phase 3 has produced `spec.md`, this gate MUST run before any `Create*` / `Update*` call.
 
 Required steps:
 1. **Display the spec.md contents in the chat** (or surface the file path prominently) so the user can read it end-to-end.
 2. **Block all further progress** — no `CreateProgram`, `CreateClass`, `CreateInclude`, or any other `Create*` / `Update*` call may happen — until the user provides an **explicit affirmative acknowledgement** of the spec.
    - Acceptable approval keywords: `승인`, `approve`, `approved`, `ok`, `proceed`, `go ahead`, `confirmed`
    - Silence, "just try it", "빨리", "해봐", "pull it", "yes", "alright", "그냥 해" are **NOT approval**
-3. If the user responds with change requests (e.g., "rename the class", "skip the Dynpro", "add one more field"), loop: revise `spec.md` → re-display → wait again. Do not silently merge comments and proceed.
+3. Where the user comes back with change requests (e.g., "rename the class", "skip the Dynpro", "add one more field"), loop: revise `spec.md` → re-display → wait again. Do not silently fold the comments in and proceed.
 4. Only after explicit approval:
    - Append the `## Approval` section to `spec.md` (approver / timestamp / keyword).
    - Compute the SHA-256 of the approved `spec.md` and write `.sapkit/program/{PROG}/approval.json` conforming to [schemas/approval.schema.json](./schemas/approval.schema.json) — this binds the approval to the exact spec content (`spec_sha256`) AND the target system (`sid` / `client` / `tier` from the active connection profile in `.sapkit/sap.env` / `.sapkit/config.json`, plus the `transport` from Phase 1B dimension 6).
@@ -388,7 +388,7 @@ User-facing message (verbatim template):
 - `approval.json` is missing, does not validate against [schemas/approval.schema.json](./schemas/approval.schema.json), or its `spec_sha256` no longer matches the current `spec.md` (meaning a change arrived post-approval — needs re-approval)
 - `approval.json`'s `sid` / `client` do not match the currently connected system
 
-**Rationale**: the spec is the contract between user intent and AI execution. Creating ABAP objects (tables, classes, programs) on the SAP system without this contract being visible and signed off leads to: unexpected objects in the user's package/transport, naming conventions misaligned with team standards, business logic subtly off from actual requirements, and difficulty justifying the generated code in code review. The 30–60 seconds of spec reading + approval saves hours of "oh no, that's not what I meant, please delete all of this and start over".
+**Rationale**: the spec is the contract between user intent and AI execution. Create ABAP objects (tables, classes, programs) on the SAP system without that contract visible and signed off, and what follows is: unexpected objects in the user's package/transport, naming conventions out of step with team standards, business logic subtly off the actual requirements, and generated code that is hard to justify in code review. The 30–60 seconds of spec reading + approval buys back hours of "oh no, that's not what I meant, please delete all of this and start over".
 
 ## Phase 3.5 — Execution Mode Gate (MANDATORY, between spec approval and Phase 4)
 
@@ -468,7 +468,7 @@ Proceed to Phase {N}?
 ```
 
 - `y` / Enter: run the next phase
-- `s`: valid only for conditional phases — Phase 5 (testing scope = none) or Phase 7 (no failures). Required phases re-prompt.
+- `s`: valid only on conditional phases — Phase 5 (testing scope = none) or Phase 7 (no failures). A required phase re-prompts.
 - `a`: record the current phase in `state.json` and exit. The next run resumes from this phase.
 
 ### Enforcement Contract
@@ -508,7 +508,7 @@ Adopt the [sap-qa-tester](../personas/sap-qa-tester.md) persona for this step.
 - Paradigm = OOP AND `interview.md` dimension 7 (testing scope) = `none` / empty
 
 **When running**:
-- The test class include (`{PROG}_tst`) should already exist from Phase 4 — this phase only writes test methods and runs them.
+- The test class include (`{PROG}_tst`) should already be there from Phase 4 — this phase only writes test methods and runs them.
 - Call `RunUnitTest` → `GetUnitTestResult`
 - On FAIL: fix production code (not tests) → re-activate → re-run (loop until green or 3 attempts)
 - In `manual`/`hybrid` mode: prompt before starting Phase 5 (unless a skip condition matched, then auto-skip with a message)
@@ -521,7 +521,7 @@ Adopt the [sap-qa-tester](../personas/sap-qa-tester.md) persona for this step.
 
 > Phase 4 is NOT complete until Phase 6 has run. Phase 5 (QA) is conditional on OOP mode, Phase 7 (Debug) is conditional on failures, but **Phase 6 is unconditional**.
 
-A successful activation only proves the code compiles and links — it does NOT prove the code follows the shared conventions. Phase 6 closes this gap.
+A successful activation only proves the code compiles and links — it does NOT prove the code follows the shared conventions. Phase 6 is what closes that gap.
 
 Steps:
 1. Verify `verification.json` is complete (all four steps recorded) AND check the gate
@@ -573,8 +573,8 @@ In `manual`/`hybrid` mode: prompt before starting Phase 6; the review run itself
 ## Phase 7 — Debug Escalation (conditional)
 
 Adopt the [sap-debugger](../personas/sap-debugger.md) persona for this step. Triggers:
-- Activation failures persisting after the Phase 4 retry loop
-- Runtime dumps during test execution
+- An activation failure that survives the Phase 4 retry loop
+- A runtime dump during test execution
 
 A verified root cause likely to recur may be proposed for capture via the [lesson](./lesson.md) procedure — user approval required; never auto-promote.
 
@@ -612,13 +612,13 @@ After completion, a verified root cause likely to recur may be proposed for capt
 An MCP success response, an ACTIVE flag, or a single `CheckSyntax` result alone
 never upgrades the state past PROVISIONAL_WRITE.
 
-Report inputs (from local state, no re-fetching):
+Report inputs (taken from local state, with no re-fetching):
 - Objects created + activation status
 - Transport number
-- Test results summary (Phase 5, if run) and `verification.json` step results
+- Test results summary (Phase 5, where it ran) and `verification.json` step results
 - Review verdict + findings summary (from `review-result.json`)
-- Timing summary — per-phase `ts` fields from `state.json` so the report can render a total-duration table
-- User conversation language (so the report localizes — Korean / English / Japanese / etc.)
+- Timing summary — the per-phase `ts` fields out of `state.json`, so the report can render a total-duration table
+- The user's conversation language (so the report localizes — Korean / English / Japanese / etc.)
 
 Output: `.sapkit/program/{PROG}/report.md`
 
@@ -675,9 +675,9 @@ In `manual`/`hybrid` mode: prompt the user before writing the report.
 ## Resume Behavior
 
 On a subsequent invocation for the same `{PROG}`:
-1. If `state.json` exists and has `execution_mode` set, skip Phase 0–3.5 re-prompting.
+1. Where `state.json` exists with `execution_mode` set, skip the Phase 0–3.5 re-prompting.
 2. If that `state.json` lacks `execution_owner` (a pre-0.5.3 run), resolve it once per Phase 3.5 Step 1b, announce the result in one line, and record it with its `selection_source` before continuing. A persisted owner is honored as-is — never re-derived on resume.
-3. Find the first phase with `status != "completed" && status != "skipped"` — resume from there.
-4. In `auto` mode, resumption happens silently; in `manual`/`hybrid`, show the user the resume point and ask to confirm.
+3. Find the first phase whose `status != "completed" && status != "skipped"` — resume from there.
+4. Under `auto` the resumption is silent; under `manual`/`hybrid`, show the user the resume point and ask them to confirm.
 
-Phase restart (rerun a completed phase) requires the user to delete the corresponding `state.json` entry explicitly — the pipeline does not re-run completed phases automatically.
+Restarting a phase (re-running one already completed) requires the user to delete the corresponding `state.json` entry explicitly — the pipeline does not re-run a completed phase on its own.

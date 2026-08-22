@@ -1,27 +1,49 @@
-// sc4sap:program-to-spec — Markdown image renderer.
+// program-to-spec — the Markdown branch's image stage.
 //
-// The xlsx path (build-spec.mjs) clones a template and SWAPS PNGs into it.
-// Markdown has no template — it references images by relative path. This
-// helper renders the SAME program-specific PNGs (Selection / ALV / Process
-// Flow) that the xlsx embeds, but writes them to a per-spec asset folder so
-// the .md can embed them with `![](…)`. Result: MD specs get the identical
-// high-quality v12 imagery (branching flowchart, etc.) the xlsx ships with —
-// no more ASCII-wireframe / Mermaid-text quality gap.
+// The workbook branch (`build-spec.mjs`) never needs this file: it clones a
+// template and swaps the rendered PNGs straight into the archive. Markdown has
+// no container to swap into. It points at files on disk, so the same three
+// renders — selection screen, ALV layout, process flow — have to be written out
+// as real PNGs in a folder the `.md` can reach with `![](…)`.
+//
+// The point is that both branches draw from the same renderer. Before this, a
+// Markdown spec fell back to ASCII wireframes and Mermaid source while the xlsx
+// carried proper diagrams; the gap was in the plumbing, not the drawing.
 //
 // CLI
 //   node render-md-images.mjs <image-spec.json> <out-dir>
-//     Writes selection.png / alv.png / flow.png for whichever slots the
-//     image-spec populates. Prints a JSON manifest { slot: relPath|null }.
 //
-// Graceful degrade: if no headless browser is on PATH, renderScreenImages
-// returns null per slot → that PNG is skipped and the manifest marks it null
-// (the MD writer then keeps the ASCII wireframe / Mermaid fallback for it).
+// Writes `selection.png`, `alv.png` and `flow.png` for whichever slots the spec
+// fills, and prints the manifest as JSON.
+//
+// Missing slots are normal, not errors. `renderScreenImages` returns null for a
+// slot it could not rasterise — most often because no headless browser is on
+// PATH — and each null simply leaves that PNG unwritten and marked `null` in the
+// manifest, which is the writer's cue to keep its text fallback for that one.
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
-import { resolve, basename, join } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { renderScreenImages } from './screen-image-renderer.mjs';
 
+// slot key → the manifest key it is reported under, and the file it is written
+// to. `processFlow` is the renderer's name for what the spec calls `flow`.
+const SLOTS = [
+  ['selection', 'selection', 'selection.png'],
+  ['alv', 'alv', 'alv.png'],
+  ['processFlow', 'flow', 'flow.png'],
+];
+
+/**
+ * Render the PNGs an `image-spec.json` describes into `outDir`.
+ *
+ * @param {object}  args
+ * @param {string}  args.imageSpecPath  path to the spec written by the caller
+ * @param {string}  args.outDir         asset folder; created when missing
+ * @param {boolean} [args.verbose=true] narrate each slot on stdout
+ * @returns {Promise<object>} `{ selection, alv, flow }`, each either null or
+ *   `{ file, width, height, bytes }`
+ */
 export async function renderMdImages({ imageSpecPath, outDir, verbose = true }) {
   if (!imageSpecPath || !existsSync(imageSpecPath)) {
     throw new Error(`render-md-images: image-spec.json not found at ${imageSpecPath}`);
@@ -32,37 +54,42 @@ export async function renderMdImages({ imageSpecPath, outDir, verbose = true }) 
   const spec = JSON.parse(readFileSync(imageSpecPath, 'utf8'));
   const rendered = await renderScreenImages(spec);
 
+  // Every key is present from the start, so a consumer can tell "not rendered"
+  // from "slot unknown" without probing.
   const manifest = { selection: null, alv: null, flow: null };
-  const slots = [
-    ['selection', rendered.selection, 'selection.png'],
-    ['alv',       rendered.alv,       'alv.png'],
-    ['flow',      rendered.processFlow, 'flow.png'],
-  ];
-  for (const [key, res, fname] of slots) {
-    if (res?.pngBuffer) {
-      const fp = join(outDir, fname);
-      writeFileSync(fp, res.pngBuffer);
-      manifest[key] = { file: fname, width: res.width, height: res.height, bytes: res.pngBuffer.length };
-      if (verbose) console.log(`render-md-images: ${fname} ${res.width}x${res.height} (${res.pngBuffer.length} B)`);
-    } else if (verbose) {
-      console.log(`render-md-images: ${key} → null (no PNG; MD keeps text fallback)`);
+
+  for (const [renderedKey, manifestKey, fileName] of SLOTS) {
+    const image = rendered[renderedKey];
+    if (!image?.pngBuffer) {
+      if (verbose) console.log(`render-md-images: ${manifestKey} → null (no PNG; MD keeps text fallback)`);
+      continue;
     }
+    const { pngBuffer, width, height } = image;
+    writeFileSync(join(outDir, fileName), pngBuffer);
+    manifest[manifestKey] = { file: fileName, width, height, bytes: pngBuffer.length };
+    if (verbose) console.log(`render-md-images: ${fileName} ${width}x${height} (${pngBuffer.length} B)`);
   }
+
   return manifest;
 }
 
-const thisFile = fileURLToPath(import.meta.url);
-if (process.argv[1] && resolve(process.argv[1]) === thisFile) {
-  const [imageSpecPath, outDir] = process.argv.slice(2);
-  if (!imageSpecPath || !outDir) {
+// ── CLI ─────────────────────────────────────────────────────────────────────
+// Only when this file is what was launched; importing it must stay side-effect
+// free.
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const [specArg, outArg] = process.argv.slice(2);
+  if (!specArg || !outArg) {
     console.error('Usage: node render-md-images.mjs <image-spec.json> <out-dir>');
     process.exit(2);
   }
   try {
-    const manifest = await renderMdImages({ imageSpecPath: resolve(imageSpecPath), outDir: resolve(outDir) });
+    const manifest = await renderMdImages({
+      imageSpecPath: resolve(specArg),
+      outDir: resolve(outArg),
+    });
     console.log(JSON.stringify(manifest, null, 2));
-  } catch (e) {
-    console.error(`render-md-images: ${e.message}`);
+  } catch (err) {
+    console.error(`render-md-images: ${err.message}`);
     process.exit(1);
   }
 }

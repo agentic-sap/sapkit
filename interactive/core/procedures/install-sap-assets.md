@@ -33,9 +33,9 @@ Do NOT use when:
 ## Ground Rules (apply to every step)
 
 - **Package `$TMP`, transport `LOCAL`** — pass `transport_request=LOCAL` on every upload; the objects are local and not transportable.
-- **Already-exists skip** — check each bundle's anchor object via `SearchObject` before creating anything; if it exists, skip that bundle and report "already exists".
-- **Partial failure** — if some objects were created and a later one fails, surface which object failed and the error, then let the user decide whether to retry or remove. Do NOT auto-delete successfully created objects.
-- **RFC-enabled flag is a MANUAL step** — `TFDIR.FMODE` is not writable via ADT REST. After upload, the user must set each FM to Remote-Enabled in SE37 (Properties → Processing Type → Remote-Enabled Module). This applies to the dispatch/textpool FMs AND the ECC DDIC bridge FMs.
+- **Already-exists skip** — before creating anything, probe each bundle's anchor object via `SearchObject`; where it is already there, skip that bundle and report "already exists".
+- **Partial failure** — when some objects were created and a later one fails, name the object that failed along with its error, then leave the retry-or-remove call to the user. Do NOT auto-delete objects that were created successfully.
+- **RFC-enabled flag is a MANUAL step** — ADT REST cannot write `TFDIR.FMODE`. Once the upload is done, each FM must be switched by the user to Remote-Enabled in SE37 (Properties → Processing Type → Remote-Enabled Module). That holds for the dispatch/textpool FMs AND for the ECC DDIC bridge FMs.
 - **Source selection by `SAP_VERSION`** — read `SAP_VERSION` (`S4` | `ECC`) from the active profile's `sap.env`. Release-specific variants exist only as sibling source files (`*_ecc.abap`); **installed FM object names never carry the `_ecc` suffix** — the MCP server calls the unsuffixed names directly, and the `FUNCTION <name>` identifier inside every variant file is already unsuffixed.
 
 ## Step 0 — Tier Gate (MANDATORY — runs before anything else)
@@ -112,13 +112,13 @@ Required by the MCP server for the Screen, GUI Status, and Text Element tool fam
 
 ## Step 2 — ECC DDIC Bridge FMs (ECC ONLY — skip on S/4HANA)
 
-**Version gate:** if `SAP_VERSION=S4`, skip Step 2 entirely — the MCP server uses ADT's native DDIC paths on S/4HANA (`CreateTable` / `CreateDataElement` / `CreateDomain` / `GetTable` / ...). Do not port these FMs to S/4. If `ECC`, proceed.
+**Version gate:** where `SAP_VERSION=S4`, skip Step 2 entirely — on S/4HANA the MCP server rides ADT's native DDIC paths (`CreateTable` / `CreateDataElement` / `CreateDomain` / `GetTable` / ...). Do not port these FMs to S/4. On `ECC`, proceed.
 
-All eight FMs live in the same function group `ZMCP_ADT_UTILS` (created in Step 1) — do NOT create a separate group. Create each via `CreateFunctionModule` (group `ZMCP_ADT_UTILS`), then upload via `UpdateFunctionModule` (`activate=true`, `transport_request=LOCAL`).
+All eight FMs belong to the same function group `ZMCP_ADT_UTILS` (created in Step 1) — do NOT create a separate group. Create each one via `CreateFunctionModule` (group `ZMCP_ADT_UTILS`), then upload via `UpdateFunctionModule` (`activate=true`, `transport_request=LOCAL`).
 
 ### 2a — DDIC write fallback FMs
 
-ECC's ADT REST API does not support DDIC writes (TABL / DTEL / DOMA), so the MCP server falls back to RFC-exposed wrappers around `DDIF_*_PUT` / `DDIF_*_ACTIVATE`:
+DDIC writes (TABL / DTEL / DOMA) are unsupported by ECC's ADT REST API, so the MCP server falls back onto RFC-exposed wrappers around `DDIF_*_PUT` / `DDIF_*_ACTIVATE`:
 
 | Installed FM name | Source file | Description |
 |---|---|---|
@@ -132,7 +132,7 @@ ECC's ADT REST API does not support DDIC writes (TABL / DTEL / DOMA), so the MCP
 
 ### 2b — DDIC read bridge FMs
 
-Bridges for legacy ECC kernels (BASIS < 7.50) where the standard ADT read endpoints are missing; the MCP server routes the matching read operations through them:
+Bridges for legacy ECC kernels (BASIS < 7.50) on which the standard ADT read endpoints are missing; the MCP server sends the matching read operations through them instead:
 
 | Installed FM name | Source file | Bridges |
 |---|---|---|
@@ -149,9 +149,9 @@ Finish Step 2 with:
 
 ## Step 3 — ALV OOP Reuse Handlers (`ZIF_S4SAP_CM` / `ZCX_S4SAP_EXCP` / `ZCL_S4SAP_CM_*`)
 
-Reusable ALV Grid + ALV Tree + SALV wrapper library consumed by programs generated via the [create-program](create-program.md) procedure and by custom dialogs.
+A reusable ALV Grid + ALV Tree + SALV wrapper library, consumed both by programs generated through the [create-program](create-program.md) procedure and by custom dialogs.
 
-1. Check via `SearchObject` (query=`ZIF_S4SAP_CM`, objectType=`INTF`). If found, skip Step 3 entirely and report "ALV OOP handlers already installed".
+1. Probe via `SearchObject` (query=`ZIF_S4SAP_CM`, objectType=`INTF`). Where it is found, skip Step 3 entirely and report "ALV OOP handlers already installed".
 2. Source location: [server/sap-assets/alv-oop-handlers/](../../server/sap-assets/alv-oop-handlers/) — 7 objects = 14 files (`.abap` source + `.xml` ADT metadata pairs; take each object's description from the paired `.xml` → `DESCRIPT`).
 3. Uses **standard message class `S_UNIFIED_CON`** (messages `013 No data found`, `000 &1 &2 &3 &4`). Do NOT create a custom message class — SAP ships it, and the exception class is hardcoded against it. If `S_UNIFIED_CON` is missing from the system (very rare), stop and inform the user.
 4. Create in **dependency order** (`CreateInterface`/`CreateClass` → `UpdateInterface`/`UpdateClass` with the `.abap` source → activate):
@@ -205,9 +205,9 @@ Note: the `_EXT` extension classes are SEGW-generated shells — their final sou
 
 ### Manual follow-up — service registration (cannot be automated)
 
-One of three paths, in order of preference:
+Pick one of three paths, in order of preference:
 
-- **Path A — Basis cooperation (recommended)**: ask the Basis team to run `/IWBEP/REG_SERVICE` + `/IWFND/MAINT_SERVICE` for `ZMCP_ADT_SRV` (~5 minutes).
+- **Path A — Basis cooperation (recommended)**: have the Basis team run `/IWBEP/REG_SERVICE` + `/IWFND/MAINT_SERVICE` for `ZMCP_ADT_SRV` (~5 minutes).
 - **Path B — Self-service via SEGW (requires `/IWBEP/SB` auth)**: in SEGW with project `ZMCP_ADT` open: Generate Runtime Objects (F6, Local Object `$TMP`) → Activate (Ctrl+F3) → Register Service (System Alias `LOCAL`, Package `$TMP`) → `/IWFND/MAINT_SERVICE` → Add Service → `ZMCP_ADT_SRV` → then SICF: activate `/default_host/sap/opu/odata/sap/ZMCP_ADT_SRV` if not already active.
 - **Path C — Emergency escape hatch**: `SE38 → ZMCP_ADT_FLUSH_CACHE → F8 with P_REG = X`. This is a **partial** workaround — it writes the minimum SRH/OHD/SRG rows but may leave related tables under-populated. Full Basis registration remains preferred.
 
@@ -221,9 +221,9 @@ Only when `SAP_RFC_BACKEND=zrfc`. The zrfc backend is powered by a single ICF ha
 
 ## Post-Install Verification
 
-1. Re-run the required-objects checks in [troubleshooting §1 Layer 4](troubleshooting.md#layer-4--required-server-side-abap-objects-gated) — every installed object found via `SearchObject`, and `GetInactiveObjects` returns 0 entries for them.
-2. Remind the user of any pending **manual** steps: SE37 RFC-enabled flags (Steps 1–2), OData service registration (Step 4).
-3. On successful activation of the final bundle, write the sentinel to `~/.sapkit/profiles/<alias>/.abap-utils-installed`:
+1. Re-run the required-objects checks in [troubleshooting §1 Layer 4](troubleshooting.md#layer-4--required-server-side-abap-objects-gated) — every installed object turns up via `SearchObject`, and `GetInactiveObjects` returns 0 entries for them.
+2. Point the user at whatever **manual** steps are still pending: SE37 RFC-enabled flags (Steps 1–2), OData service registration (Step 4).
+3. Once the final bundle activates successfully, write the sentinel to `~/.sapkit/profiles/<alias>/.abap-utils-installed`:
 
 ```json
 { "installedAt": "<ISO 8601>", "dedupKey": "<SAP_URL>#<SAP_CLIENT>", "skippedReason": null, "objects": ["ZMCP_ADT_UTILS", "ZMCP_ADT_DISPATCH", "ZMCP_ADT_TEXTPOOL", "..."] }

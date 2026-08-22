@@ -1,6 +1,6 @@
 # sap-bc-consultant — Diagnostic Flows
 
-Referenced by `agents/sap-bc-consultant.md` → `<Diagnostic_Flows>`. Nine symptom-specific investigation flows. Follow the flow matching the routing-tree classification; **collect the listed evidence before recommending any fix**.
+`agents/sap-bc-consultant.md` reaches this file through `<Diagnostic_Flows>`. What follows is nine investigation flows, one per symptom type. Work the flow that the routing-tree classification points at; **collect the listed evidence before recommending any fix**.
 
 ## Flow 1: ABAP Dump Analysis (ST22)
 

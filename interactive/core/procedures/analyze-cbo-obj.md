@@ -8,66 +8,66 @@ source:
 
 # Analyze CBO Objects
 
-Walk a CBO (Customer Business Object) package, inventory every project-built ABAP element (table, structure, data element, class, interface, function module, program, view, table type), detect which elements are **frequently reused inside the package**, infer each element's business purpose from its name/fields/descriptions, and persist the result to `.sapkit/cbo/<MODULE>/<PACKAGE>/` for downstream procedures (`create-program`, [program-to-spec](program-to-spec.md), `create-object`) to consult before creating anything new.
+Walk a CBO (Customer Business Object) package, take stock of every ABAP element the project built (table, structure, data element, class, interface, function module, program, view, table type), work out which of them are **reused often inside the package**, read each element's business purpose off its name/fields/descriptions, and write the result down under `.sapkit/cbo/<MODULE>/<PACKAGE>/` so downstream procedures (`create-program`, [program-to-spec](program-to-spec.md), `create-object`) can consult it before anything new gets created.
 
 ## Purpose
 
-Projects accumulate Z tables, Z data elements, Z function modules, and ZCL_ classes that encode domain logic. New development too often recreates near-duplicates because nobody has a compact inventory of what already exists. This procedure produces that inventory — once per package — and writes it to a file that later procedures read automatically, so the next spec / program / object creation defaults to reusing proven CBO assets.
+Projects pile up Z tables, Z data elements, Z function modules, and ZCL_ classes that carry domain logic. New development keeps rebuilding near-duplicates of them, because nobody holds a compact inventory of what is already there. This procedure builds that inventory — once per package — into a file later procedures read on their own, so the next spec / program / object creation reaches for proven CBO assets by default.
 
 ## When to Use
 
-- Starting development on a module that already has a sizeable Z-package
-- Onboarding onto an AMS / support engagement (need a map of custom assets)
-- Before `create-program` or `create-object` on a new spec — so reuse is evaluated
+- Development is starting on a module that already carries a sizeable Z-package
+- Onboarding onto an AMS / support engagement, where a map of the custom assets is needed
+- Before `create-program` or `create-object` runs against a new spec — so reuse gets weighed
 - User says "analyze CBO", "analyze custom objects", "map Z package", "list frequently used customs", "CBO inventory"
 
 ## When NOT to Use
 
-- User wants a code quality review of one object → `analyze-code`
-- User wants to reverse-engineer ONE program into a spec → [program-to-spec](program-to-spec.md)
-- User wants to create an object → `create-object`
-- Package does not yet contain custom objects (CBO discovery is not meaningful)
+- A code quality review of one object is wanted → `analyze-code`
+- Reverse-engineering ONE program into a spec is wanted → [program-to-spec](program-to-spec.md)
+- An object is to be created → `create-object`
+- The package does not yet hold custom objects (CBO discovery has nothing to find)
 
 ## Workflow Steps
 
-The flow is: **3 Socratic intake steps** (Step 1 / 1.5 / 2) → **the inventory walk** (Steps 3–7, performed by adopting the sap-stocker persona) → **a branching hand-off summary** (Step 8).
+The shape of the flow: **3 Socratic intake steps** (Step 1 / 1.5 / 2) → **the inventory walk** (Steps 3–7, carried out by adopting the sap-stocker persona) → **a hand-off summary that branches** (Step 8).
 
 ### Socratic intake
 
 **Step 1 — Ask for the CBO package name** (exactly one question)
 > "Which CBO package do you want to analyze? (e.g., `ZSD_MAIN`, `ZMM_CORE`). If you only know a prefix like `ZSD*`, tell me the prefix and I will search for packages."
 
-- If the user gives a prefix pattern: call `SearchObject(objectType='DEVC', query=<prefix>)` and list matches, then re-ask.
-- Verify the final package with `GetPackage(<name>)`. If it does not exist, report and stop.
+- If a prefix pattern comes back: call `SearchObject(objectType='DEVC', query=<prefix>)`, list what matches, then ask again.
+- Confirm the settled package with `GetPackage(<name>)`. Where it does not exist, report that and stop.
 
 **Step 1.5 — Ask about flagship programs in this package** (exactly one question, optional)
 > "Are there any programs in this package that are especially frequently used? If yes, list them comma-separated (e.g., `ZSDR_ORDER_ALV, ZSDR_BILL_POST`). Type `skip` if none or unknown."
 
-- Accept comma-separated PROG names. Normalize to uppercase and trim whitespace.
-- Verify each name via `SearchObject(<name>, PROG)`. For unknown names, print a one-line warning (`"ZXXX not found — ignored"`) and drop them.
-- Keep the validated list as `<KEY_PROGRAMS>` (may be empty).
-- **Why this step exists**: CBO objects referenced by user-marked flagship programs carry stronger business signal than pure internal reference count. In the scoring pass they receive a `key_boost = len(used_by_key_programs) * 10` so they surface at the top of the inventory.
+- Accept PROG names separated by commas. Upper-case them and trim the whitespace.
+- Check each name with `SearchObject(<name>, PROG)`. Names that come back unknown get a one-line warning (`"ZXXX not found — ignored"`) and are dropped.
+- Hold the validated list as `<KEY_PROGRAMS>` (it may be empty).
+- **Why this step exists**: a CBO object that a user-marked flagship program references carries a stronger business signal than raw internal reference count does. In the scoring pass it receives a `key_boost = len(used_by_key_programs) * 10`, which floats it to the top of the inventory.
 
 **Step 2 — Ask which module this package belongs to** (exactly one question, constrained list)
 > "Which SAP module does this package belong to? Pick one of: SD / MM / PP / PM / QM / WM / TM / TR / FI / CO / HCM / BW / PS / Ariba."
 
-- Valid values = the module folder list under `core/knowledge/modules/`. Reject anything else and re-ask.
-- Normalize to uppercase (e.g., `sd` → `SD`) and verify `../knowledge/modules/<MODULE>/` exists.
+- Valid values = the list of module folders under `core/knowledge/modules/`. Anything else is rejected, and the question is asked again.
+- Upper-case it (e.g., `sd` → `SD`) and confirm `../knowledge/modules/<MODULE>/` is there.
 
 ### Inventory walk (Steps 3–7)
 
-Adopt the [sap-stocker](../personas/sap-stocker.md) persona for these steps and perform the full inventory pass yourself — walk → where-used graph → classify → interpret → cross-module gap → safety → persist. The persona file's § Investigation_Protocol and § Output_Format are the authoritative spec; the summary:
+Adopt the [sap-stocker](../personas/sap-stocker.md) persona across these steps and run the whole inventory pass yourself — walk → where-used graph → classify → interpret → cross-module gap → safety → persist. The authoritative spec sits in the persona file's § Investigation_Protocol and § Output_Format; what follows is the summary:
 
-- **Walk** (`GetPackageContents` + `GetPackageTree`): TABL / STRU / TTYP / DTEL / DOMA / VIEW / CLAS / INTF / FUGR / PROG (+ DDLS / BDEF / SRVB on S/4).
-- **Reference graph** (`GetWhereUsed` per object, filtered to in-package callers): `ref_count`, `used_by_key_programs`, `key_boost`, `score`.
-- **Frequently-used tier**: package-size thresholds (small <30 → ref_count ≥2 · medium 30–150 → ≥3 · large >150 → ≥5); flagship-referenced → always pinned.
-- **Business purpose inference** (DDIC signals): role classification — `header / line / log / mapping / classification / config / util / service / event / dto` — plus 1–2 sentence purpose.
-- **Cross-module gap** (read `SAP_ACTIVE_MODULES` from `sap.env` / `config.json`, see [project-context](../project-context.md)): per the [active-modules](../knowledge/modules/common/active-modules.md) matrix, flag expected-but-missing integration fields (e.g., MM CBO without `PS_POSID` when PS is active) → `inventory.json → crossModuleGaps[]`.
+- **Walk** (`GetPackageContents` + `GetPackageTree`): TABL / STRU / TTYP / DTEL / DOMA / VIEW / CLAS / INTF / FUGR / PROG (and DDLS / BDEF / SRVB on S/4).
+- **Reference graph** (`GetWhereUsed` object by object, filtered down to in-package callers): `ref_count`, `used_by_key_programs`, `key_boost`, `score`.
+- **Frequently-used tier**: thresholds keyed to package size (small <30 → ref_count ≥2 · medium 30–150 → ≥3 · large >150 → ≥5); anything a flagship references → always pinned.
+- **Business purpose inference** (off DDIC signals): a role classification — `header / line / log / mapping / classification / config / util / service / event / dto` — and a purpose in 1–2 sentences.
+- **Cross-module gap** (read `SAP_ACTIVE_MODULES` out of `sap.env` / `config.json`, see [project-context](../project-context.md)): against the [active-modules](../knowledge/modules/common/active-modules.md) matrix, flag the integration fields that ought to be there and are not (e.g., an MM CBO without `PS_POSID` while PS is active) → `inventory.json → crossModuleGaps[]`.
 - **Sensitive-name check** against [custom-patterns](../policies/data-protection/custom-patterns.md) (PII / HR / CUST / BANK / PRICE / ...). Never call `GetTableContents` or `GetSqlQuery`.
-- **Persist** `.sapkit/cbo/<MODULE>/<PACKAGE>/{index.md, inventory.json}` (+ optional `raw-walk.md` if the package has <200 objects).
-- **Classify the result** as `Logic-heavy: <true|false>` per the persona's Output_Format rule (drives Step 8 branching).
+- **Persist** `.sapkit/cbo/<MODULE>/<PACKAGE>/{index.md, inventory.json}` (plus an optional `raw-walk.md` where the package holds <200 objects).
+- **Classify the result** as `Logic-heavy: <true|false>` by the persona's Output_Format rule (it drives the Step 8 branching).
 
-`inventory.json` schema example (authoritative — also consumed by `create-program` / `create-object`):
+`inventory.json` schema example (authoritative — `create-program` / `create-object` consume it too):
 
 ```json
 {
@@ -95,12 +95,12 @@ Adopt the [sap-stocker](../personas/sap-stocker.md) persona for these steps and 
 }
 ```
 
-Sort order in `objects[]`: every object with `used_by_key_programs` non-empty first, then the rest by `score` descending.
+Sort order inside `objects[]`: every object whose `used_by_key_programs` is non-empty comes first, and the rest follow by `score` descending.
 
-Sort order in `index.md`:
-1. `## 📌 Pinned — used by flagship programs` (grouped by the flagship program that pulls each in)
-2. `## Frequently used tables`, `## Frequently used structures`, ... (remaining non-pinned frequently-used objects, by score descending)
-3. `## Sensitive CBO objects` (name-pattern flagged; suggest additions to `.sapkit/blocklist-extend.txt`)
+Sort order inside `index.md`:
+1. `## 📌 Pinned — used by flagship programs` (grouped under the flagship program that pulls each one in)
+2. `## Frequently used tables`, `## Frequently used structures`, ... (the frequently-used objects that were not pinned, by score descending)
+3. `## Sensitive CBO objects` (flagged by name pattern; suggest additions to `.sapkit/blocklist-extend.txt`)
 
 ### Hand-off (Step 8 — branches on `Logic-heavy` flag)
 
@@ -123,28 +123,28 @@ read inventory.json and prefer pinned objects > frequently-used objects > new cr
 
 **Branch B — `Logic-heavy: true` (FM / class / interface / large PROG in the inventory) · reader-facing briefing**
 
-Structured counts alone do not convey what the business-logic assets DO. Adopt the [sap-writer](../personas/sap-writer.md) persona and produce a reader-facing briefing from `.sapkit/cbo/<MODULE>/<PACKAGE>/inventory.json` (language = user's current conversation language; default Korean).
+Counts on their own do not convey what the business-logic assets DO. Adopt the [sap-writer](../personas/sap-writer.md) persona and write a reader-facing briefing out of `.sapkit/cbo/<MODULE>/<PACKAGE>/inventory.json` (language = the user's current conversation language; Korean by default).
 
 Required sections (15–25 lines, markdown):
-1. **📌 Pinned highlights** — for each pinned object, one line: name · type · 1-sentence purpose · reuse_hint.
-2. **🔧 Business-logic assets** — top 3 most-referenced FUGR/CLAS/INTF (outside pinned). For each: name · what it does in business terms · when to call it vs write new.
-3. **🔗 Cross-module gaps** — if `crossModuleGaps[]` non-empty, explain each gap in one sentence with a concrete remediation hint. If empty, one line "No integration gaps detected for active modules: <list>".
-4. **⚠️ Sensitive objects** — if any, list with short reason and blocklist-extension suggestion. Skip section if none.
-5. **▶ Next step hint** — one line pointing to which downstream procedure to run next (create-program / create-object / program-to-spec).
+1. **📌 Pinned highlights** — one line for each pinned object: name · type · 1-sentence purpose · reuse_hint.
+2. **🔧 Business-logic assets** — the 3 most-referenced FUGR/CLAS/INTF outside the pinned set. For each: name · what it does in business terms · when to call it rather than write something new.
+3. **🔗 Cross-module gaps** — where `crossModuleGaps[]` is non-empty, explain each gap in one sentence and attach a concrete remediation hint. Where it is empty, one line: "No integration gaps detected for active modules: <list>".
+4. **⚠️ Sensitive objects** — where any exist, list them with a short reason and a blocklist-extension suggestion. Skip the section when there are none.
+5. **▶ Next step hint** — one line naming which downstream procedure runs next (create-program / create-object / program-to-spec).
 
 Rules:
-- Do NOT re-read SAP via MCP for the briefing. Work only from `inventory.json`.
-- Do NOT restate the full file counts (already printed in the header lines).
-- Be concrete: prefer "ZFM_CALC_SD_MARGIN — calculates gross margin per sales order line; call from any billing-related new program" over generic "utility FM".
+- Do NOT read SAP again through MCP for the briefing. Work only from `inventory.json`.
+- Do NOT repeat the full file counts (the header lines already printed them).
+- Stay concrete: "ZFM_CALC_SD_MARGIN — calculates gross margin per sales order line; call from any billing-related new program" beats a generic "utility FM".
 
-Prepend one header line identifying the artifacts:
+Prepend one header line that names the artifacts:
 ```
 CBO inventory written:
   .sapkit/cbo/<MODULE>/<PACKAGE>/index.md
   .sapkit/cbo/<MODULE>/<PACKAGE>/inventory.json
 ```
 
-**Failure handling (both branches)**: if the inventory walk is blocked (missing package, connection failure), surface the reason verbatim and stop — do not retry blindly. If the Branch B briefing cannot be produced, fall back to Branch A (canned summary) and log `briefing: "fallback_to_canned: <reason>"` in `inventory.json → meta`.
+**Failure handling (both branches)**: where the inventory walk is blocked (package missing, connection failure), surface the reason verbatim and stop — do not retry blindly. Where the Branch B briefing cannot be produced, fall back to Branch A (the canned summary) and log `briefing: "fallback_to_canned: <reason>"` into `inventory.json → meta`.
 
 ## Output Files
 
@@ -166,11 +166,11 @@ CBO inventory written:
 
 ## Data Extraction Safety
 
-This procedure only reads DDIC metadata and where-used relations. It MUST NOT call `GetTableContents` or `GetSqlQuery`. Row-level access stays behind the standard blocklist gate. See [data-extraction-policy](../policies/data-protection/data-extraction-policy.md).
+Reading DDIC metadata and where-used relations is the only thing this procedure does. It MUST NOT call `GetTableContents` or `GetSqlQuery`. Row-level access stays behind the standard blocklist gate. See [data-extraction-policy](../policies/data-protection/data-extraction-policy.md).
 
 ## Related Procedures
 
-- `create-program` — reads `.sapkit/cbo/<MODULE>/<PACKAGE>/inventory.json` during spec drafting to prefer existing CBO elements
-- [program-to-spec](program-to-spec.md) — same, for reverse-engineering
-- `create-object` — same, to suggest reuse before creation
-- [package-to-process](package-to-process.md) — consumes the same `inventory.json` one level up: how the package's programs cooperate as a business-document flow
+- `create-program` — reads `.sapkit/cbo/<MODULE>/<PACKAGE>/inventory.json` while drafting a spec, so existing CBO elements win
+- [program-to-spec](program-to-spec.md) — the same, on the reverse-engineering side
+- `create-object` — the same, to put reuse forward before anything is created
+- [package-to-process](package-to-process.md) — consumes that same `inventory.json` a level up: how the package's programs work together as a business-document flow

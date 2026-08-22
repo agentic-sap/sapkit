@@ -1,220 +1,245 @@
-// sapkit multi-profile resolver — shared helper for HUD, hooks, scripts.
+// Where a sapkit run finds its profile state — shared by the HUD, the hooks and
+// the scripts, so that all of them answer the same question the same way.
 //
-// Resolves the active SAP profile's env file, config JSON, and work-artifact
-// base directory. The single-profile mode (pre-0.6.0 layout, no alias pointer)
-// is still read so a project that never adopted profiles keeps working.
+// Two layouts are supported, and the second is only a fallback:
 //
-// Resolution order for config.json and sap.env:
-//   1. <workspace>/.sapkit/active-profile.txt → <alias>
-//      → $SAPKIT_HOME_DIR/profiles/<alias>/{sap.env, config.json}
-//      (fallback: ~/.sapkit/profiles/<alias>/...)
-//   2. Single-profile: <workspace>/.sapkit/{sap.env, config.json}
+//   multi-profile   `<workspace>/.sapkit/active-profile.txt` names an alias, and
+//                   the files themselves live under the sapkit home at
+//                   `profiles/<alias>/{sap.env,config.json}`.
+//   single-profile  no alias pointer; `sap.env` and `config.json` sit directly
+//                   in `<workspace>/.sapkit/`. This is the pre-0.6.0 shape, kept
+//                   because a project that never adopted profiles still works.
 //
-// `.sapkit` is the only runtime directory. The pre-0.6 directory and its home
-// variable were a migration-period fallback and were removed once the migration
-// completed (D-057); a leftover one of that name is invisible. The walk
-// depth stays 64 and the state definition below — active-profile.txt ‖ sap.env ‖
-// config.json — is untouched, because `block-forbidden-tables` reads the chosen
-// config.json's `blocklistProfile` as its row-data policy source.
+// `.sapkit` is the only runtime directory there is. The earlier generation's
+// directory name and its home variable existed as a migration-period fallback
+// and were removed once the migration finished (D-057); a leftover directory of
+// that name is simply invisible.
 //
-// Callers pass the workspace directory (usually `process.cwd()`). Returning
-// `null` means no profile state exists.
+// Callers pass the directory to start from — usually `process.cwd()`. A `null`
+// return means the state being asked for does not exist anywhere.
 
 import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
+// Kept under this name on purpose: `test-check-runtime-path-rename.mjs` injects
+// a retired-generation fallback directly after this exact line to prove the
+// rename gate still refuses one. Renaming the constant turns that injection into
+// a no-op and the negative test quietly stops testing anything.
 const NEW_DIR = '.sapkit';
 
-const warned = new Set();
-// Library-level diagnostics go to stderr only (hooks answer on stdout as JSON,
-// the MCP server speaks JSON-RPC there), once per process — D-057 §4-5.
+// State files whose presence proves a `.sapkit` directory is a profile root
+// rather than a bag of artifacts. `block-forbidden-tables` reads its row-data
+// policy out of the config.json this module picks, so the definition below is
+// load-bearing for that policy and is not to be narrowed casually.
+const STATE_FILES = ['active-profile.txt', 'sap.env', 'config.json'];
+
+// How far up the ancestry chain the walk will go. A guard against a pathological
+// path, not a real limit — no workspace is 64 levels deep.
+const MAX_WALK_DEPTH = 64;
+
+// ── diagnostics ─────────────────────────────────────────────────────────────
+// Everything printed from a library goes to stderr, and goes there once per
+// process (D-057 §4-5). Hooks answer on stdout in JSON and the MCP server speaks
+// JSON-RPC there; a stray line on stdout corrupts both.
+const alreadyWarned = new Set();
+
 function warnOnce(code, message) {
-  if (warned.has(code)) return;
-  warned.add(code);
+  if (alreadyWarned.has(code)) return;
+  alreadyWarned.add(code);
   try {
     process.stderr.write(`[sapkit/profile-resolve] ${code}: ${message}\n`);
   } catch {
-    /* never let a diagnostic break resolution */
+    /* a diagnostic must never be the reason resolution fails */
   }
 }
 
-// R-ENV. `SAPKIT_HOME_DIR` set but missing is ENV_INVALID and it is TERMINAL for
-// the connection source: the operator pinned a home, the pin is broken, and
-// nothing may stand in for it — not `~/.sapkit`, and not the project-local
-// `<runtime dir>/sap.env` either. `resolveSapEnvPath` enforces that below.
+function brokenHomeMessage(explicit, tail) {
+  return `SAPKIT_HOME_DIR points at a path that does not exist (${explicit}) — ${tail}`;
+}
+
+// ── the sapkit home ─────────────────────────────────────────────────────────
+
+// R-ENV. A home that was pinned by the operator and then went missing is
+// ENV_INVALID. Reporting it is deliberately split from acting on it: this
+// predicate only states the fact, and `resolveSapEnvPath` is the single place
+// that treats it as terminal.
 //
-// Scope is deliberately narrow. ENV_INVALID must NOT reach into the row-data
-// policy source: `block-forbidden-tables` reads `blocklistProfile` out of the
-// config.json this module resolves, and that config.json is project-local —
-// it has nothing to do with the home. Cutting it off would silently swap the
-// project's own `strict` for the hook's DEFAULT_PROFILE, i.e. let a broken env
-// var move the row-data posture. So `resolveConfigJsonPath`, the runtime-dir
-// walk, and the alias pointer all keep working unchanged.
+// The narrowness matters. ENV_INVALID must not reach the row-data policy source.
+// `block-forbidden-tables` reads `blocklistProfile` from a config.json that is
+// project-local and has nothing to do with the home; cutting that off would
+// silently trade the project's own `strict` for the hook's built-in default and
+// let a broken environment variable move the row-data posture. So the config
+// lookup, the runtime-dir walk and the alias pointer all carry on regardless.
 export function envHomeInvalid() {
   const explicit = process.env.SAPKIT_HOME_DIR;
   return Boolean(explicit) && !existsSync(explicit);
 }
 
-// The path is returned as-is so every lookup under it misses and each caller's
-// own fail-closed branch engages — a broken pin is never silently stepped over.
-// The `alias` parameter is accepted (and ignored) so callers keep reading as
-// "the home that should hold this alias"; there is only one home to return.
+// The home directory holding `profiles/`. A pinned-but-missing path is returned
+// unchanged rather than replaced: every lookup beneath it then misses, and each
+// caller's own fail-closed branch engages. Silently stepping over a broken pin
+// would hand someone a connection they did not choose.
+//
+// `alias` is accepted and ignored — callers read better saying "the home that
+// should hold this alias", and there is only ever one home to return.
 export function sapkitHome(_alias = null) {
   const explicit = process.env.SAPKIT_HOME_DIR;
-  if (explicit) {
-    if (!existsSync(explicit)) {
-      warnOnce(
-        'ENV_INVALID',
-        `SAPKIT_HOME_DIR points at a path that does not exist (${explicit}) — no other home stands in for it.`,
-      );
-    }
-    return explicit;
+  if (!explicit) return join(homedir(), NEW_DIR);
+  if (!existsSync(explicit)) {
+    warnOnce('ENV_INVALID', brokenHomeMessage(explicit, 'no other home stands in for it.'));
   }
-  return join(homedir(), NEW_DIR);
+  return explicit;
 }
 
 export function profilesDir(alias = null) {
   return join(sapkitHome(alias), 'profiles');
 }
 
-// Walk up from `startDir` looking for the effective runtime directory.
-// Users often launch Claude Code from a subdirectory of their workspace
-// (e.g., the plugin dev repo inside a larger project), so resolving profile
-// state only at the exact cwd diverges from the MCP server's walk-up
-// behaviour and leaves the HUD showing "SAP not configured" while the MCP
-// connection is alive.
+// ── the runtime directory ───────────────────────────────────────────────────
+
+function holdsProfileState(runtimeDir) {
+  return STATE_FILES.some((file) => existsSync(join(runtimeDir, file)));
+}
+
+// Walk from `startDir` towards the filesystem root looking for `.sapkit`.
 //
-// Nested-runtime-dir handling: a subdirectory may contain its own runtime dir
-// holding only artifact folders (e.g. `comparisons/`, `test-reports/`) while
-// the real profile state (active-profile.txt, sap.env, config.json) lives
-// at a higher ancestor. Prefer the first runtime dir on the chain that
-// actually contains profile state; fall back to the first one seen
-// when no ancestor has state. Returns null only when no runtime dir exists
-// anywhere on the chain. Depth-limited as a paranoia guard.
-function hasProfileState(runtimeDir) {
-  return (
-    existsSync(join(runtimeDir, 'active-profile.txt')) ||
-    existsSync(join(runtimeDir, 'sap.env')) ||
-    existsSync(join(runtimeDir, 'config.json'))
-  );
-}
-
+// Two reasons this is a walk and not a single lookup at `startDir`:
+//
+//   · people launch Claude Code from a subdirectory of their workspace, and
+//     resolving only at the exact cwd would report "SAP not configured" while
+//     the MCP server — which does walk up — is connected and working.
+//   · a subdirectory can hold its own `.sapkit` containing nothing but artifact
+//     folders (`comparisons/`, `test-reports/`) while the real state lives
+//     further up.
+//
+// So the first directory on the chain that actually holds state wins; the first
+// one merely seen is the consolation prize; `null` means there was neither.
 function findRuntimeDir(startDir) {
-  let cur = startDir;
-  let firstHit = null;
-  for (let i = 0; i < 64; i++) {
-    const candidate = join(cur, NEW_DIR);
-    if (existsSync(candidate) && hasProfileState(candidate)) return candidate;
-    if (!firstHit && existsSync(candidate)) firstHit = candidate;
-    const parent = dirname(cur);
-    if (!parent || parent === cur) break;
-    cur = parent;
+  let current = startDir;
+  let firstSeen = null;
+
+  for (let depth = 0; depth < MAX_WALK_DEPTH; depth++) {
+    const candidate = join(current, NEW_DIR);
+    if (existsSync(candidate)) {
+      if (holdsProfileState(candidate)) return candidate;
+      if (!firstSeen) firstSeen = candidate;
+    }
+    const parent = dirname(current);
+    if (!parent || parent === current) break;
+    current = parent;
   }
-  return firstHit;
+
+  return firstSeen;
 }
 
-// The runtime directory itself (`<root>/.sapkit`). When none exists anywhere on
-// the chain it names the R-NEW creation site — `<startDir>/.sapkit`.
+// The effective runtime directory. With nothing on the chain this names where
+// one would be created — `<startDir>/.sapkit` (R-NEW).
 export function resolveRuntimeDir(startDir) {
   return findRuntimeDir(startDir) ?? join(startDir, NEW_DIR);
 }
 
-// The directory that *contains* the effective runtime dir — i.e., the
-// workspace root as the plugin sees it. Falls back to `startDir` when no
-// runtime dir exists anywhere on the ancestry chain.
+// The directory containing the effective runtime dir — the workspace root as the
+// plugin sees it. Falls back to `startDir` when the chain holds none.
 export function resolveWorkspaceRoot(startDir) {
   const hit = findRuntimeDir(startDir);
   return hit ? dirname(hit) : startDir;
 }
 
-// Returns the active alias (reading the nearest ancestor's
-// active-profile.txt), or null when the pointer is missing /
-// empty / unreadable.
+// ── the active profile ──────────────────────────────────────────────────────
+
+// The alias named by the nearest `active-profile.txt`, or `null` when the
+// pointer is absent, blank or unreadable.
 export function readActiveAlias(startDir) {
   const pointer = join(resolveRuntimeDir(startDir), 'active-profile.txt');
   if (!existsSync(pointer)) return null;
   try {
-    const raw = readFileSync(pointer, 'utf8').trim();
-    return raw.length > 0 ? raw : null;
+    const alias = readFileSync(pointer, 'utf8').trim();
+    return alias.length > 0 ? alias : null;
   } catch {
     return null;
   }
 }
 
-// Returns { path, source: 'profile' | 'legacy' } or null.
+// Shared shape of the two lookups below: try the aliased profile's copy first,
+// then the single-profile copy sitting in the runtime directory itself.
+function locate(startDir, fileName) {
+  const alias = readActiveAlias(startDir);
+  if (alias) {
+    const inProfile = join(profilesDir(alias), alias, fileName);
+    if (existsSync(inProfile)) return { path: inProfile, source: 'profile', alias };
+  }
+  const inRuntimeDir = join(resolveRuntimeDir(startDir), fileName);
+  if (existsSync(inRuntimeDir)) return { path: inRuntimeDir, source: 'legacy', alias: null };
+  return null;
+}
+
+// The active connection file. Returns `{ path, source, alias }` or `null`.
+//
+// This is the one place ENV_INVALID is terminal. Without the early return the
+// aliased lookup would miss under the broken home and the search would fall
+// through to the project-local `sap.env`, handing back a connection the operator
+// never selected (3rd-review MAJOR #2). Nothing is an acceptable substitute for
+// a pinned home, so the answer is "no connection source at all".
 export function resolveSapEnvPath(startDir) {
-  // ENV_INVALID is terminal HERE and only here: no connection source at all.
-  // Without this the alias lookup misses under the broken home and the function
-  // falls through to `<runtime dir>/sap.env`, handing the caller a connection
-  // the operator never selected (3rd-review MAJOR #2).
   if (envHomeInvalid()) {
     warnOnce(
       'ENV_INVALID',
-      `SAPKIT_HOME_DIR points at a path that does not exist (${process.env.SAPKIT_HOME_DIR}) — refusing to resolve any connection source, including a project-local sap.env.`,
+      brokenHomeMessage(
+        process.env.SAPKIT_HOME_DIR,
+        'refusing to resolve any connection source, including a project-local sap.env.',
+      ),
     );
     return null;
   }
-  const alias = readActiveAlias(startDir);
-  if (alias) {
-    const p = join(profilesDir(alias), alias, 'sap.env');
-    if (existsSync(p)) return { path: p, source: 'profile', alias };
-  }
-  const legacy = join(resolveRuntimeDir(startDir), 'sap.env');
-  if (existsSync(legacy)) return { path: legacy, source: 'legacy', alias: null };
-  return null;
+  return locate(startDir, 'sap.env');
 }
 
-// Returns { path, source: 'profile' | 'legacy' } or null.
+// The active config file. Returns `{ path, source, alias }` or `null`. No
+// ENV_INVALID check here, on purpose — see `envHomeInvalid` above.
 export function resolveConfigJsonPath(startDir) {
-  const alias = readActiveAlias(startDir);
-  if (alias) {
-    const p = join(profilesDir(alias), alias, 'config.json');
-    if (existsSync(p)) return { path: p, source: 'profile', alias };
-  }
-  const legacy = join(resolveRuntimeDir(startDir), 'config.json');
-  if (existsSync(legacy)) return { path: legacy, source: 'legacy', alias: null };
-  return null;
+  return locate(startDir, 'config.json');
 }
 
-// Returns the base directory for per-profile artifacts.
-// - Multi-profile: <runtime-dir>/work/<alias>/
-// - Legacy:        <runtime-dir>/
-// Always returns a string (never null) — callers may need to create it.
-// R-NEW: with nothing on the chain the base is `<startDir>/.sapkit`.
+// Where per-profile work artifacts belong: `<runtime-dir>/work/<alias>/` under an
+// alias, the runtime dir itself without one. Always a string, never `null`,
+// because callers may have to create it. R-NEW applies when the chain is empty.
 export function resolveArtifactBase(startDir) {
   const runtimeDir = resolveRuntimeDir(startDir);
   const alias = readActiveAlias(startDir);
-  if (alias) return join(runtimeDir, 'work', alias);
-  return runtimeDir;
+  return alias ? join(runtimeDir, 'work', alias) : runtimeDir;
 }
 
-// Parse a minimal KEY=VALUE dotenv file into a plain object.
-// Returns null if file is missing or unreadable. Values are unquoted.
+// ── file readers ────────────────────────────────────────────────────────────
+
+const QUOTE_CHARS = ['"', "'"];
+
+// Minimal KEY=VALUE reader for `sap.env`. Blank lines and `#` comments are
+// skipped, as is any line without a key in front of its first `=`; one matching
+// pair of surrounding quotes is stripped from the value. Returns `null` when the
+// file is missing or unreadable — deliberately the same answer for both, since
+// neither yields settings.
 export function readDotenv(path) {
   if (!existsSync(path)) return null;
   try {
-    const out = {};
-    for (const raw of readFileSync(path, 'utf8').split(/\r?\n/)) {
-      const line = raw.trim();
+    const values = {};
+    for (const rawLine of readFileSync(path, 'utf8').split(/\r?\n/)) {
+      const line = rawLine.trim();
       if (!line || line.startsWith('#')) continue;
       const eq = line.indexOf('=');
       if (eq <= 0) continue;
-      const k = line.slice(0, eq).trim();
-      let v = line.slice(eq + 1).trim();
-      if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
-        v = v.slice(1, -1);
-      }
-      out[k] = v;
+      const key = line.slice(0, eq).trim();
+      const value = line.slice(eq + 1).trim();
+      const quoted = QUOTE_CHARS.some((q) => value.startsWith(q) && value.endsWith(q));
+      values[key] = quoted ? value.slice(1, -1) : value;
     }
-    return out;
+    return values;
   } catch {
     return null;
   }
 }
 
-// Convenience: read and parse the active profile's sap.env. Returns null when
-// the env cannot be resolved.
+// Resolve and parse the active `sap.env` in one step, or `null`.
 export function readActiveSapEnv(workspaceDir) {
   const hit = resolveSapEnvPath(workspaceDir);
   if (!hit) return null;
@@ -222,22 +247,22 @@ export function readActiveSapEnv(workspaceDir) {
   return env ? { env, ...hit } : null;
 }
 
-// Convenience: read and parse the active profile's config.json. Returns null
-// when the config cannot be resolved.
+// Resolve and parse the active `config.json` in one step, or `null` — invalid
+// JSON reads as absent, since a config that cannot be parsed configures nothing.
 export function readActiveConfigJson(workspaceDir) {
   const hit = resolveConfigJsonPath(workspaceDir);
   if (!hit) return null;
   try {
-    const parsed = JSON.parse(readFileSync(hit.path, 'utf8'));
-    return { config: parsed, ...hit };
+    return { config: JSON.parse(readFileSync(hit.path, 'utf8')), ...hit };
   } catch {
     return null;
   }
 }
 
-// Normalize SAP_TIER — enum DEV | QA | PRD. Non-canonical values default to DEV.
+// SAP_TIER as an enum: DEV | QA | PRD. Anything unrecognised becomes DEV. That
+// is safe only because callers who must refuse an unresolved tier test the raw
+// value themselves rather than asking this function.
 export function normalizeTier(value) {
-  const v = String(value || '').trim().toUpperCase();
-  if (v === 'DEV' || v === 'QA' || v === 'PRD') return v;
-  return 'DEV';
+  const tier = String(value || '').trim().toUpperCase();
+  return tier === 'DEV' || tier === 'QA' || tier === 'PRD' ? tier : 'DEV';
 }
