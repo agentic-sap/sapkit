@@ -19,7 +19,7 @@
 > `abap-mcp-adt-powerup`(v4.13.0 · 「339 tools」 등)은 **판7-b에서 자체 저작
 > `sapkit-engine`으로 교체됐다**(D-095). §3의 비교는 **그 결정 당시의 평가 기록**이고,
 > 거기 적힌 도구 수·버전을 **현행 제품 서버의 성질로 읽지 말 것** — 현행은
-> `sapkit-engine` 1.0.0이고 표면은 186종이다(정본: `CLAUDE.md`·`HANDOFF.md`).
+> `sapkit-engine` 1.1.0이고 표면은 186종이다(정본: `CLAUDE.md`·`HANDOFF.md`).
 
 > **상태: 주/보조 머신 분기 통합 완료(2026-07-19) — 이 v2.4 3축(Direct/Guided/Engine
 > attended) 틀이 트랙 A 설계 정본(통합 결정 ⑴, 아래 v2.5 주). 초기 설계는
