@@ -22,7 +22,7 @@ SOFTWARE.
 
 ---
 
-## What this notice covers (2026-08-22, revised 2026-08-23 — decisions D-103, D-104, D-107)
+## What this notice covers (2026-08-22 · last revised 2026-08-23 — D-103, D-104, D-112)
 
 This file is the **retained upstream notice** for content borrowed from
 `babamba2/superclaude-for-sap` (via the frozen `hjaewon/sc4sap-custom`).
@@ -31,22 +31,19 @@ It is **not the license of the SAPKIT plugin** — that is the repository root
 and nothing above will be: this section only records what is known about the
 subtree it covers.
 
-**It covers the whole `interactive/` subtree.** A 2026-08-22 revision narrowed it
-to 36 files; a review found that narrowing counted only one of the two migration
-classes, and it was **restored the next day**. A second review found the
-replacement count short as well — the ledger's path mapping had never produced a
-dozen of the procedure files — so the figures below come from a **reverse scan**
-that starts at the files in this tree instead of at the ledger. What is known
-today:
+**It covers the whole `interactive/` subtree.** Two attempts to narrow it to a
+file list failed review (a migration class was missed, then the ledger's path
+mapping was found short), and the re-authoring that followed showed why a file
+list is the wrong shape: what remains of the upstream work is not files but
+**scattered contract lines**. What is known today, ledger by ledger:
 
 | Group | Count | State |
 |---|---:|---|
-| `server/sap-assets/` | 30 | Upstream, unmodified since import (`copy`). Kept as-is by D-079 ⑥ — these install SAP-side objects that are never renamed or regenerated. **Permanent.** |
-| `server/tool-catalog/sc4sap-mcp-tools*.md` · `server/verify-engine.mjs` · `server/bundle-keyring.mjs` | 6 | **Retired on 2026-08-23 (D-107)** — the catalog files are now generated from the engine registry and the two utilities were rewritten from scratch; a reverse scan finds no surviving upstream prose. |
-| `core/personas/` 25 · `core/procedures/` 16 · adapters 5 · `core/knowledge/` 5 · policies 2 · tools 3 | **56** | Mostly `transform` — **form-converted imports, not rewrites** — plus files the ledger's path mapping never produced. All 56 still share long lines with the upstream original; the personas match on 54–95% of their substantive lines and four procedures on 54–65%. **Not yet accounted for.** |
-| Knowledge, industry, country and ABAP-convention content | 170 | Re-authored file by file, each under independent review, finished 2026-08-18. |
+| `server/sap-assets/` | 30 files | Upstream, unmodified since import. Kept as-is by D-079 ⑥ — these install SAP-side objects that are never renamed or regenerated. **Permanent, and the reason this notice never fully retires.** |
+| Knowledge, industry, country and ABAP-convention content (`copy` ledger) | 170 files | **Re-authored in full**, file by file, each under independent review — finished 2026-08-18. |
+| Server-bound utilities and the tool catalog | 6 files | **Replaced or rewritten 2026-08-23**: the catalog is now generated from the engine registry; both utilities were rewritten from scratch. |
+| Personas, procedures, hooks, libs, extraction tools, policies (§3.4 ledger) | 56 files | **Re-authored 2026-08-23** across three reviewed batches. |
+| What still matches the upstream text | ~600 lines across 40 files | **Contract lines, kept deliberately**: reference tables and TCode/identifier data, output templates and print-verbatim blocks, user-facing trigger phrases and approval keywords, shared-block labels and paths. Prose that merely explains is no longer upstream. |
 
-The `transform` group is why this notice still covers the whole subtree. Until
-each of those files is either re-authored or judged clear, drawing a tighter
-boundary would claim authorship the repository cannot support. Progress is
-tracked in `docs/reference/copy-baseline.md`; the plan is `docs/BLUEPRINT.md`.
+The accounting lives in `docs/reference/copy-baseline.md` (§3.4 — 56/56
+checked); the plan and its end-state are `docs/BLUEPRINT.md`.

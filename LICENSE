@@ -32,16 +32,15 @@ paths listed. The notice above does not replace them.
 |---|---|
 | `interactive/` (the whole subtree) | `interactive/LICENSE` — derived from `babamba2/superclaude-for-sap` |
 
-This scope was briefly narrowed to 36 files on 2026-08-22 (D-103) and **restored
-on 2026-08-23 (D-104)**: the narrowing counted only files classified `copy` and
-missed the `transform` class entirely. A second review then found that even the
-replacement count was short, because the ledger's own path mapping had missed a
-dozen procedure files. A reverse scan — starting from the files in this tree
-rather than from the ledger — puts the figure at **56 files** that still share
-long lines with the upstream original: 25 personas, 16 procedures, and 15 others
-(D-106). `interactive/LICENSE` lists them by group.
-`interactive/LICENSE` records what is known file-by-file. The notice covers the
-subtree until that accounting is finished; see `docs/BLUEPRINT.md` §1.3.
+This scope was twice narrowed to a file list (2026-08-22/23) and twice
+restored when review found the list short. The re-authoring that followed
+settled the question the other way: as of 2026-08-23 every borrowed file
+outside `interactive/server/sap-assets/` (30 files, kept deliberately — they
+install SAP-side objects) has been re-authored under independent review, and
+what still matches the upstream text is ~600 scattered lines of deliberately
+kept contract material — reference tables, output templates, user-facing
+phrases. A file list cannot express that, so the notice stays on the subtree
+and `interactive/LICENSE` records the accounting.
 
 Component-level attribution for the distributed plugin, including bundled
 runtime dependencies, is in `interactive/THIRD_PARTY_NOTICES.md`.
