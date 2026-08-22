@@ -48,4 +48,4 @@ adapters/    claude/ codex/ antigravity/ — manifest·정책 매핑·설치물�
 scripts/     빌드·설치·검증 도구
 ```
 
-라이선스: **[MIT](../LICENSE)** (레포 루트 · Copyright (c) 2026 Hong Jaewon) · 상류 고지 [LICENSE](LICENSE)는 `server/` 아래 차용 **36파일**에만 걸린다 (2026-08-22 범위 정정 · D-103) · [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md)
+라이선스: **[MIT](../LICENSE)** (레포 루트 · Copyright (c) 2026 Hong Jaewon) · 상류 고지 [LICENSE](LICENSE)는 **이 서브트리 전체**에 걸린다 — 그 파일이 무엇이 재저작됐고 무엇이 남았는지를 기록한다(D-104) · [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md)

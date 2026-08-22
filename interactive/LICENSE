@@ -22,26 +22,27 @@ SOFTWARE.
 
 ---
 
-## Scope of this notice (added 2026-08-22 · decision D-103)
+## What this notice covers (2026-08-22, revised 2026-08-23 — decisions D-103, D-104)
 
 This file is the **retained upstream notice** for content borrowed from
 `babamba2/superclaude-for-sap` (via the frozen `hjaewon/sc4sap-custom`).
 It is **not the license of the SAPKIT plugin** — that is the repository root
-`LICENSE` (MIT, Copyright (c) 2026 Hong Jaewon). Nothing above has been
-altered; this section only records what the notice above still covers.
+`LICENSE` (MIT, Copyright (c) 2026 Hong Jaewon). Nothing above has been altered
+and nothing above will be: this section only records what is known about the
+subtree it covers.
 
-As of 2026-08-22 that is **36 files, all under `interactive/server/`**:
+**It covers the whole `interactive/` subtree.** A 2026-08-22 revision narrowed it
+to 36 files; a review found that narrowing counted only one of the two migration
+classes, and it was **restored the next day**. What is known today:
 
-- `sap-assets/` — **30 files**. ABAP sources for the SAP-side `ZMCP_ADT_*` and
-  `Z*_S4SAP_*` objects. Kept as-is by decision D-079 ⑥: SAP objects already
-  installed on a customer system are never renamed or regenerated, so these
-  install scripts stay upstream-authored. They have not been modified since
-  they entered this repository.
-- `tool-catalog/` — **4 files** (`sc4sap-mcp-tools*.md`).
-- `verify-engine.mjs` · `bundle-keyring.mjs` — **2 files**.
+| Group | Count | State |
+|---|---:|---|
+| `server/sap-assets/` | 30 | Upstream, unmodified since import (`copy`). Kept as-is by D-079 ⑥ — these install SAP-side objects that are never renamed or regenerated. **Permanent.** |
+| `server/tool-catalog/sc4sap-mcp-tools*.md` · `server/verify-engine.mjs` · `server/bundle-keyring.mjs` | 6 | Upstream (`copy`), still being edited here. Scheduled for replacement. |
+| `core/personas/` (all 26) · `core/procedures/` · `core/knowledge/modules/` · `tools/extract/` · hooks · policies | 42 live | `transform` — **form-converted imports, not rewrites.** 38 still share long lines with the upstream original; 25 of the personas match on 54–95% of their substantive lines. **Not yet accounted for.** |
+| Knowledge, industry, country and ABAP-convention content | 170 | Re-authored file by file, each under independent review, finished 2026-08-18. |
 
-Everything else under `interactive/` is the repository owner's own work:
-knowledge, personas, procedures, policies, skills, adapters, scripts, and the
-bundled MCP server. The server bundle became so on 2026-08-19 (D-095, replaced
-by the in-repo `sapkit-engine`); the knowledge branch was re-authored file by
-file and finished on 2026-08-18.
+The `transform` group is why this notice still covers the whole subtree. Until
+each of those files is either re-authored or judged clear, drawing a tighter
+boundary would claim authorship the repository cannot support. Progress is
+tracked in `docs/reference/copy-baseline.md`; the plan is `docs/BLUEPRINT.md`.

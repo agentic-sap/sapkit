@@ -14,10 +14,15 @@
 > 서버 결부 39 = 판7-b가 판정(**3 해소 · 36 잔존** — §3.2) · keyring 21 = 끝그림 ② ·
 > LICENSE = 판8 자체.
 >
-> **그리고 판8이 그 잔존 36을 판정했다 (2026-08-22 · D-103).** 고지를 은퇴시키는 대신
-> **범위를 실제 잔존물로 좁혔고**, 36을 **동결 30**(이식 이후 변경 커밋 0 · 영구 존치)과
-> **활성 6**(우리가 계속 개작해 온 것 · 판10이 소진)으로 갈랐다. ⑷의 완료 정의도
-> 「고지 0건」에서 **「범위 정합 + 활성 차용분 0」**으로 바뀌었다(§3.3).
+> **그리고 판8이 그 잔존 36을 판정했다 (2026-08-22 · D-103).** 36을 **동결 30**(이식 이후
+> 변경 커밋 0 · 영구 존치)과 **활성 6**(우리가 계속 개작해 온 것 · 판10이 소진)으로 갈랐고,
+> ⑷의 완료 정의를 「고지 0건」에서 **「범위 정합 + 활성 차용분 0」**으로 고쳤다(§3.3).
+>
+> **⚠ 그러나 그 판의 「고지 범위 좁히기」는 2026-08-23 독립 리뷰가 R-FAIL을 내 철회됐다
+> (D-104).** 좁힘이 `copy`만 세고 **`class: transform`을 통째로 빠뜨렸기** 때문이다 —
+> 이 명부가 세는 170에 **페르소나·절차는 한 줄도 없다.** 그 범주의 잔존은 **§3.4 신설
+> 명부**가 세고, 재저작은 **판3.7**이 맡는다. 「⑶-b 갈래 완주」는 여전히 사실이되 그
+> 완주는 **`copy` 범주 안에서의 완주**다 — 그 한정을 빼고 읽지 말 것.
 
 ---
 
@@ -90,7 +95,7 @@ D-088). 잔존 0 = **문장형** 차용 산문 0이며, 자작 산문(모듈 spr
 | `interactive/server/runtime-deps/keyring/` | 21 | **끝그림 ②** 가 이미 커버 — 정식 패키지 귀속 | — |
 | `LICENSE` (MIT 고지 승계) | 1 | **⑷ (판8)** 자체 소관 | ✅ **판정 완료 (2026-08-22 · D-103).** ~~은퇴~~ → **범위 정합**: `interactive/LICENSE`는 남고, 그것이 덮는 범위가 `interactive/` 전체에서 **실제 잔존 36파일**로 좁혀졌다 |
 | `interactive/core/knowledge/abap/conventions/` 자체분 3편 | 3 | 차용분이 아님 (이식 후 신설) | — |
-| `interactive/core/knowledge/modules/` 등의 transform 분류 | — | 차용분이 아님 | — |
+| **`class: transform` 전량** (지식 폴더 밖 포함) | 목적지 **현존 42** | ~~차용분이 아님~~ → **⑶ 재저작 대상 · 판3.7** | ❌ **오분류였다 (2026-08-23 · D-104 ⓒ).** D-087 ①은 **명부의 계수 범위**를 copy로 한정했을 뿐인데 이 칸이 그것을 **저작권 귀속 판정으로 격상**시켰다. `MIGRATION-MANIFEST.md`의 정의는 `copy`(무변환 이식)·`transform`(**형태 변환 이식**)이고 **둘 다 이식**이다. 실측 결과 **38파일이 상류와 60자 초과 동일 행 1,326행을 공유**한다 — §3.4 |
 
 ### 판7-b 소관분 판정 (2026-08-19 · D-095 ⓔ) — **39 중 3 해소 · 36 잔존**
 
@@ -124,10 +129,10 @@ D-079 ⑥과 정면 충돌하고, [`install-sap-assets.md`](../../interactive/co
 
 **판정의 열쇠는 git 이력이 36을 둘로 가른 것이다.**
 
-| 갈래 | 파일 | 이식 이후 변경 커밋 | 처분 |
+| 갈래 | 파일 | 총 커밋(**이식 커밋 `038085c2` 포함**) | 처분 |
 |---|---|---:|---|
-| **동결** | `server/sap-assets/` | **0** | **영구 존치** — 끝그림 ②의 정의(「레포 안에서 개작·유지보수하지 않는다」)를 **이미 만족**한다 |
-| **활성** | `server/tool-catalog/` 4 | 6 | **은퇴 대상 — 판10** (엔진 등록점에서 생성 · 「자동 대조 게이트 부재」도 함께 닫힌다) |
+| **동결** | `server/sap-assets/` | **1** (이식뿐) | **영구 존치** — 끝그림 ②의 정의(「레포 안에서 개작·유지보수하지 않는다」)를 **이미 만족**한다 |
+| **활성** | `server/tool-catalog/sc4sap-mcp-tools*.md` 4 | 6 | **은퇴 대상 — 판10** (엔진 등록점에서 생성 · 「자동 대조 게이트 부재」도 함께 닫힌다) |
 | **활성** | `server/verify-engine.mjs` | 3 | **은퇴 대상 — 판10** (골격 재저작) |
 | **활성** | `server/bundle-keyring.mjs` | 3 | **판10이 처분을 정한다** |
 
@@ -143,6 +148,92 @@ D-079 ⑥과 정면 충돌하고, [`install-sap-assets.md`](../../interactive/co
 `tool-catalog/` 4와 `verify-engine.mjs`는 **보수적으로** 차용에 남겨져 있다 — 실제 잔존
 차용 문장은 36파일보다 적을 수 있다. 그리고 「우리가 고쳤다」가 「자체 저작이 됐다」를
 함의하지는 않으므로, 활성 6은 여전히 **갚아야 할 것**으로 센다.
+
+### 3.3-R 회수 (2026-08-23 · D-104) — **집행이 철회됐다 · 판정은 선다**
+
+독립 리뷰가 **R-FAIL · 차단 2**를 냈다. **판정(동결/활성 갈림 · ① 기각 · ⑷ 완료 정의
+변경)은 재현으로 전부 확인됐고 그대로 선다.** 무너진 것은 **집행**이다.
+
+| 차단 | 내용 | 조치 |
+|---|---|---|
+| 1 | `THIRD_PARTY_NOTICES.md`의 「`template_base.xlsx`·ABAP 템플릿·샘플은 sc4sap-custom 저작물」 문장이 같은 파일 새 머리말과 모순 — **게다가 이미 사실이 아니었다**(xlsx는 판3.6 재제작 `4d7e8ce5` · 견본 5는 1부 체크 · oop 20은 판6.2 교체) | 정정 |
+| 2 | 고지 범위를 `copy`만 보고 좁혔다 — **`transform` 42건이 소관 없이 방치**돼 있었고 그중 38파일이 상류와 동일 행 **1,326행**을 공유한다 | **범위 좁히기 철회** · §3.4 신설 · 판3.7 등재 |
+
+**뿌리는 §3.2의 한 칸이었다** — D-087 ①이 정한 것은 **계수 범위**인데 그 칸이 「차용분이
+아님」이라 적어 **귀속 판정으로 격상**시켰고, 판8이 그 위에 고지를 세웠다. 위 §3.2 표가
+정정됐다.
+
+**여기서 남는 규칙**: 고지를 **넓게 두는 것**은 부정확할 뿐이지만, **좁히면서 「나머지는
+우리 것」이라 적는 것**은 방향이 다르다 — 판정이 설 때까지 넓은 쪽에 둔다.
+
+### 3.4 `transform` 명부 (2026-08-23 신설 · D-104 ⓔ) — **판3.7의 대상**
+
+§3.2가 「차용분이 아님」으로 잘못 적어 **어느 명부도 세지 않던 범주**다. 위 170 명부는
+`copy`만 세므로 **페르소나·절차는 그 안에 한 줄도 없다** — 이 표가 그 자리를 대신한다.
+
+**계수 규칙은 §2를 그대로 따른다** — 체크는 **재저작만** · 부분 편집은 체크 아님 ·
+**독립 리뷰 통과 후** 체크 · 커밋 해시와 리뷰 근거 병기 · 양방향(누락 0 · **추가 0**).
+
+**도출**: §4 레시피를 `class === 'transform'`에 적용해 목적지를 만들고(**유니크**),
+`interactive/` 아래 현존만 남긴 **42건**이다. 잔존 열은 동결 원본
+`D:\claude for SAP\sc4sap-custom`와의 **읽기 전용 대조**이며 `private/` 경로는 대조
+대상에서 제외했다(안전 규칙). 재현: 정규화(공백 축약) 후 **60자 초과 행의 완전 일치**를
+세고, 한 목적지에 원본이 여럿이면 **가장 많이 맞는 원본**을 취한다.
+
+⚠ **이 열은 잔존의 상한도 하한도 아니다** — 부분 일치·문장 재배열·짧은 실질 행은
+안 잡히고(과소), 표·머리말·정형 문구가 섞여 든다(과대). **파일별 판정은 사람이 한다.**
+
+**잔량 42 · 체크 0** (2026-08-23 신설 시점).
+
+| 목적지 | 동일행/실질행 | 비율 |
+|---|---:|---:|
+| tools/extract/extract-customizations.mjs | 111/217 | 51% |
+| core/personas/sap-critic.md | 69/76 | 91% |
+| core/personas/sap-architect.md | 58/61 | 95% |
+| core/personas/sap-debugger.md | 56/60 | 93% |
+| core/personas/sap-analyst.md | 55/61 | 90% |
+| core/personas/sap-planner.md | 54/64 | 84% |
+| core/personas/sap-code-reviewer.md | 53/61 | 87% |
+| core/personas/sap-bc-consultant.md | 52/59 | 88% |
+| core/knowledge/modules/common/active-modules.md | 48/50 | 96% |
+| core/personas/sap-executor.md | 44/77 | 57% |
+| core/personas/sap-ariba-consultant.md | 42/60 | 70% |
+| core/personas/sap-bw-consultant.md | 39/59 | 66% |
+| core/personas/sap-qa-tester.md | 39/42 | 93% |
+| core/personas/sap-sd-consultant.md | 39/60 | 65% |
+| core/personas/sap-ps-consultant.md | 37/56 | 66% |
+| core/policies/data-protection/data-extraction-policy.md | 35/53 | 66% |
+| core/personas/sap-stocker.md | 34/46 | 74% |
+| core/personas/sap-co-consultant.md | 33/53 | 62% |
+| core/procedures/customization-lookup.md | 33/70 | 47% |
+| core/personas/sap-fi-consultant.md | 32/52 | 62% |
+| core/personas/sap-tm-consultant.md | 28/47 | 60% |
+| core/personas/sap-wm-consultant.md | 28/47 | 60% |
+| core/personas/sap-writer.md | 28/33 | 85% |
+| tools/extract/extract-spro.mjs | 28/124 | 23% |
+| core/personas/sap-mm-consultant.md | 27/47 | 57% |
+| core/personas/sap-pp-consultant.md | 26/45 | 58% |
+| adapters/claude/hooks/transport-validator.mjs | 25/29 | 86% |
+| core/personas/sap-hcm-consultant.md | 24/43 | 56% |
+| core/personas/sap-qm-consultant.md | 24/43 | 56% |
+| core/personas/sap-pm-consultant.md | 23/42 | 55% |
+| core/personas/sap-tr-consultant.md | 22/41 | 54% |
+| adapters/claude/hooks/syntax-checker.mjs | 21/22 | 95% |
+| core/procedures/spro-lookup.md | 20/72 | 28% |
+| core/knowledge/modules/BC/diagnostic-flows.md | 15/15 | 100% |
+| core/policies/transport-client-rule.md | 10/18 | 56% |
+| core/knowledge/modules/BC/transaction-codes.md | 5/5 | 100% |
+| core/procedures/help-portal-fetch.md | 5/19 | 26% |
+| core/procedures/troubleshooting.md | 4/222 | 2% |
+| core/personas/sap-doc-specialist.md | 0/51 | 0% |
+| server/UPDATE-RUNBOOK.md | 0/28 | 0% |
+| core/project-context.md | 0/74 | 0% |
+| scripts/doctor.mjs | 0/164 | 0% |
+
+**읽는 법**: 비율이 높을수록 원본 문장이 그대로 살아 있다는 뜻이다. **0%인 4건**
+(`sap-doc-specialist.md` · `server/UPDATE-RUNBOOK.md` · `core/project-context.md` ·
+`scripts/doctor.mjs`)은 **이미 사실상 자체 저작**일 가능성이 높으나, §2의 체크 조건은
+독립 리뷰 통과이므로 **지금 체크하지 않는다** — 판3.7이 확인하고 찍는다.
 
 ---
 
