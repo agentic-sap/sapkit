@@ -23845,16 +23845,16 @@ var require_connectDestination = __commonJS({
     }
     function lifetime(status) {
       if (status.expiresAtMs === null) {
-        return "the token says nothing about its own lifetime (no exp claim and no expires_in)";
+        return "The token says nothing about its own lifetime (no exp claim and no expires_in)";
       }
-      return `the token expires at ${new Date(status.expiresAtMs).toISOString()}`;
+      return `The token expires at ${new Date(status.expiresAtMs).toISOString()}`;
     }
     function successLine(key, baseUrl, status) {
       const where = [
         key.client !== null ? `client ${key.client}` : null,
         key.language !== null ? `language ${key.language}` : null
       ].filter((part) => part !== null).join(", ");
-      return `MCP_DESTINATION_CONNECTED: --mcp=${key.destination} acquired a client_credentials token and the connection stands as Bearer on ${baseUrl}${where === "" ? "" : ` (${where})`}. ${lifetime(status)}, it lives in this process's memory only, and startup does not renew it \u2014 restart the server when it expires. No SAP tier comes with a service key, so tier=UNKNOWN and every write and execution is refused (fail-closed); set up a profile sap.env if this system needs to be writable.`;
+      return `MCP_DESTINATION_CONNECTED: --mcp=${key.destination} acquired a client_credentials token and the connection stands as Bearer on ${baseUrl}${where === "" ? "" : ` (${where})`}. ${lifetime(status)}; it lives in this process's memory only, and startup does not renew it \u2014 restart the server when it expires. No SAP tier comes with a service key, so tier=UNKNOWN and every write and execution is refused (fail-closed); set up a profile sap.env if this system needs to be writable.`;
     }
     function nextStep(code, key) {
       switch (code) {
@@ -23870,7 +23870,10 @@ var require_connectDestination = __commonJS({
     }
     function failureLine(key, endpoint, error) {
       const code = (0, auth_1.isAuthError)(error) ? error.code : "UNEXPECTED";
-      const detail = error instanceof Error ? error.message : String(error);
+      const raw = error instanceof Error ? error.message : String(error);
+      const dashAt = raw.indexOf("\u2014");
+      const cause = dashAt >= 0 ? raw.slice(dashAt + 1).trim() : null;
+      const detail = code === "UNEXPECTED" ? raw : `${code}${cause !== null && cause !== "" ? ` (${cause})` : ""}`;
       return `MCP_DESTINATION_TOKEN_FAILED: --mcp=${key.destination} uses the client_credentials grant and startup could not get a token from ${endpoint} \u2014 ${detail}. The server starts with no connection and does not fall back to another system. ${nextStep(code, key)} Until then use --env=<name>, --env-path=<file>, or an active profile for a Basic connection.`;
     }
   }
@@ -51624,8 +51627,11 @@ var require_reloadProfile = __commonJS({
           client,
           description,
           sourcePath: profile.envPath,
-          restartRequired: outcome.exposureStale,
-          note: outcome.exposureStale ? `The reloaded profile runs on the ${outcome.after.systemType} deployment axis, but this server started on ${outcome.bootSystemType} and its published tool list was fixed at startup, so the list no longer matches this system. Tier, blocklist and the SAP connection are already using the new profile \u2014 only the tool list is stale. Restart (reconnect) the MCP server to publish the matching set.` : void 0,
+          // 재적재는 기동만이 받을 수 있는 destination 토큰을 되찾지 못한다 —
+          // --mcp 기동에서 접속이 있다가 재적재 후 없어졌다면 재기동만이 답이다
+          // (D-114 · 판M2-a 리뷰 권고 1). exposureStale과는 별개의 사유이므로 OR.
+          restartRequired: outcome.exposureStale || outcome.connectionDropped && outcome.startup.profile.connection === null,
+          note: outcome.exposureStale ? `The reloaded profile runs on the ${outcome.after.systemType} deployment axis, but this server started on ${outcome.bootSystemType} and its published tool list was fixed at startup, so the list no longer matches this system. Tier, blocklist and the SAP connection are already using the new profile \u2014 only the tool list is stale. Restart (reconnect) the MCP server to publish the matching set.` : outcome.connectionDropped && outcome.startup.profile.connection === null ? "The connection this server held was dropped by the reload and the reloaded profile could not stand a new one \u2014 a token acquired at startup does not come back on reload. Restart (reconnect) the MCP server to get it again." : void 0,
           // 왜 이 상태인지. 프로파일을 못 찾았거나 접속 정보가 모자라면 여기에
           // 이유가 들어온다 — 구는 그것을 예외로 알렸고 신의 계층은 던지지 않는다.
           diagnostics: [...profile.diagnostics]
