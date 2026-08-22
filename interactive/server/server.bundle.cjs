@@ -21288,6 +21288,2594 @@ var require_adt = __commonJS({
   }
 });
 
+// dist/src/auth/jwt.js
+var require_jwt = __commonJS({
+  "dist/src/auth/jwt.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.EXPIRY_BUFFER_SECONDS = void 0;
+    exports2.decodeJwtClaims = decodeJwtClaims;
+    exports2.jwtExpiresAtMs = jwtExpiresAtMs;
+    exports2.isExpired = isExpired;
+    exports2.remainingMs = remainingMs;
+    var errors_1 = require_errors3();
+    exports2.EXPIRY_BUFFER_SECONDS = 60;
+    function decodeSegment(segment) {
+      if (segment === "")
+        return null;
+      const normalized = segment.replace(/-/g, "+").replace(/_/g, "/");
+      const padded = normalized + "=".repeat((4 - normalized.length % 4) % 4);
+      try {
+        return Buffer.from(padded, "base64").toString("utf8");
+      } catch {
+        return null;
+      }
+    }
+    function decodeJwtClaims(token) {
+      const parts = token.split(".");
+      if (parts.length !== 3)
+        return null;
+      const payload = decodeSegment(parts[1] ?? "");
+      if (payload === null)
+        return null;
+      try {
+        const parsed = JSON.parse(payload);
+        return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed) ? parsed : null;
+      } catch {
+        return null;
+      }
+    }
+    function jwtExpiresAtMs(token) {
+      const claims = decodeJwtClaims(token);
+      if (claims === null)
+        return null;
+      if (!("exp" in claims))
+        return null;
+      const exp = claims.exp;
+      if (typeof exp !== "number" || !Number.isFinite(exp)) {
+        throw new errors_1.AuthError("JWT_MALFORMED", "JWT\uC758 exp claim\uC774 \uC720\uD55C\uD55C \uC218\uAC00 \uC544\uB2C8\uB2E4.");
+      }
+      return Math.trunc(exp * 1e3);
+    }
+    function isExpired(expiresAtMs, nowMs, bufferSeconds = exports2.EXPIRY_BUFFER_SECONDS) {
+      if (expiresAtMs === null)
+        return false;
+      return expiresAtMs - bufferSeconds * 1e3 <= nowMs;
+    }
+    function remainingMs(expiresAtMs, nowMs) {
+      return expiresAtMs === null ? null : expiresAtMs - nowMs;
+    }
+  }
+});
+
+// dist/src/auth/uaa.js
+var require_uaa = __commonJS({
+  "dist/src/auth/uaa.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.UaaClient = exports2.AUTHORIZE_PATH = exports2.TOKEN_PATH = exports2.DEFAULT_UAA_TIMEOUT_MS = void 0;
+    exports2.uaaEndpoints = uaaEndpoints;
+    var http_1 = require_http();
+    var errors_1 = require_errors3();
+    var jwt_1 = require_jwt();
+    exports2.DEFAULT_UAA_TIMEOUT_MS = 3e4;
+    exports2.TOKEN_PATH = "/oauth/token";
+    exports2.AUTHORIZE_PATH = "/oauth/authorize";
+    function uaaEndpoints(url) {
+      const base = url.trim().replace(/\/+$/, "");
+      return { token: `${base}${exports2.TOKEN_PATH}`, authorize: `${base}${exports2.AUTHORIZE_PATH}` };
+    }
+    function isRecord(value) {
+      return typeof value === "object" && value !== null && !Array.isArray(value);
+    }
+    function describeRejection(response) {
+      let parsed;
+      try {
+        parsed = JSON.parse(response.body);
+      } catch {
+        return `HTTP ${response.status}`;
+      }
+      if (!isRecord(parsed))
+        return `HTTP ${response.status}`;
+      const error = typeof parsed.error === "string" ? parsed.error : "";
+      const description = typeof parsed.error_description === "string" ? parsed.error_description : "";
+      const detail = [error, description].filter((part) => part !== "").join(" \u2014 ");
+      return detail === "" ? `HTTP ${response.status}` : `HTTP ${response.status} (${detail})`;
+    }
+    var UaaClient = class {
+      credentials;
+      transport;
+      rejectUnauthorized;
+      timeoutMs;
+      now;
+      endpoints;
+      basic;
+      constructor(credentials, options = {}) {
+        this.credentials = credentials;
+        this.transport = options.transport ?? http_1.nodeHttpTransport;
+        this.rejectUnauthorized = options.rejectUnauthorized ?? true;
+        this.timeoutMs = options.timeoutMs ?? exports2.DEFAULT_UAA_TIMEOUT_MS;
+        this.now = options.now ?? (() => Date.now());
+        this.endpoints = uaaEndpoints(credentials.url);
+        this.basic = `Basic ${Buffer.from(`${credentials.clientId}:${credentials.clientSecret}`, "utf8").toString("base64")}`;
+      }
+      /** 진단·시험용. 비밀은 없다. */
+      get tokenEndpoint() {
+        return this.endpoints.token;
+      }
+      /**
+       * 사람이 브라우저에서 열 인가 URL. **여는 것은 호출부다.**
+       *
+       * `response_type=code`이고 `client_secret`은 실리지 않는다 — 이 URL은 주소창에
+       * 남고 히스토리에 쌓인다.
+       */
+      authorizeUrl(params) {
+        const query = new URLSearchParams({
+          response_type: "code",
+          client_id: this.credentials.clientId,
+          redirect_uri: params.redirectUri,
+          state: params.state
+        });
+        if (params.scope)
+          query.set("scope", params.scope);
+        return `${this.endpoints.authorize}?${query.toString()}`;
+      }
+      /** 콜백이 받아 온 코드를 토큰으로 바꾼다. */
+      async exchangeCode(code, redirectUri) {
+        return this.post(new URLSearchParams({
+          grant_type: "authorization_code",
+          code,
+          redirect_uri: redirectUri,
+          client_id: this.credentials.clientId
+        }), "UAA_REJECTED");
+      }
+      /**
+       * 갱신 토큰으로 새 접근 토큰을 받는다.
+       *
+       * 실패는 **`UAA_REFRESH_FAILED`**로 나간다 — 거절이든 전송 실패든 갱신
+       * 갈래에서 난 것은 하나의 코드로 묶는다. 호출부가 "갱신이 안 됐다"와 "처음
+       * 취득이 안 됐다"를 다르게 다뤄야 하기 때문이다(`tokenSource.ts`).
+       */
+      async refresh(refreshToken) {
+        return this.post(new URLSearchParams({
+          grant_type: "refresh_token",
+          refresh_token: refreshToken,
+          client_id: this.credentials.clientId
+        }), "UAA_REFRESH_FAILED");
+      }
+      /** 사람 없이 service key 재료만으로 받는다. */
+      async clientCredentials() {
+        return this.post(new URLSearchParams({ grant_type: "client_credentials", response_type: "token" }), "UAA_REJECTED");
+      }
+      // ------------------------------------------------------------ 내부 구현
+      async post(form, rejectionCode) {
+        const body = form.toString();
+        const grant = form.get("grant_type") ?? "(unknown)";
+        let response;
+        try {
+          response = await this.transport({
+            method: "POST",
+            url: this.endpoints.token,
+            headers: {
+              Authorization: this.basic,
+              "Content-Type": "application/x-www-form-urlencoded",
+              Accept: "application/json"
+            },
+            body,
+            timeoutMs: this.timeoutMs,
+            rejectUnauthorized: this.rejectUnauthorized
+          });
+        } catch (error) {
+          const detail = error instanceof http_1.HttpTransportError ? error.message : String(error);
+          throw new errors_1.AuthError(rejectionCode === "UAA_REFRESH_FAILED" ? "UAA_REFRESH_FAILED" : "UAA_REQUEST_FAILED", `${grant} \uC694\uCCAD\uC774 ${this.endpoints.token} \uC5D0 \uB2FF\uC9C0 \uBABB\uD588\uB2E4 \u2014 ${detail}`, { cause: error });
+        }
+        if (response.status < 200 || response.status >= 300) {
+          throw new errors_1.AuthError(rejectionCode, `${this.endpoints.token} \uC774(\uAC00) ${grant} \uB97C \uAC70\uC808\uD588\uB2E4 \u2014 ${describeRejection(response)}`);
+        }
+        return this.toTokenSet(response, grant, rejectionCode);
+      }
+      toTokenSet(response, grant, rejectionCode) {
+        const invalid = (reason) => new errors_1.AuthError(rejectionCode === "UAA_REFRESH_FAILED" ? "UAA_REFRESH_FAILED" : "UAA_RESPONSE_INVALID", `${this.endpoints.token} \uC758 ${grant} \uC751\uB2F5\uC744 \uC4F8 \uC218 \uC5C6\uB2E4 \u2014 ${reason}`);
+        let parsed;
+        try {
+          parsed = JSON.parse(response.body);
+        } catch {
+          throw invalid("\uBCF8\uBB38\uC774 JSON\uC774 \uC544\uB2C8\uB2E4");
+        }
+        if (!isRecord(parsed))
+          throw invalid("\uBCF8\uBB38\uC774 JSON \uAC1D\uCCB4\uAC00 \uC544\uB2C8\uB2E4");
+        const accessToken = typeof parsed.access_token === "string" ? parsed.access_token.trim() : "";
+        if (accessToken === "")
+          throw invalid("access_token \uCE78\uC774 \uC5C6\uAC70\uB098 \uBE44\uC5B4 \uC788\uB2E4");
+        const refreshToken = typeof parsed.refresh_token === "string" && parsed.refresh_token.trim() !== "" ? parsed.refresh_token.trim() : null;
+        const tokenType = typeof parsed.token_type === "string" && parsed.token_type.trim() !== "" ? parsed.token_type.trim() : "bearer";
+        const scope = typeof parsed.scope === "string" && parsed.scope !== "" ? parsed.scope : null;
+        return {
+          accessToken,
+          refreshToken,
+          tokenType,
+          expiresAtMs: this.resolveExpiry(accessToken, parsed.expires_in),
+          scope
+        };
+      }
+      /**
+       * `exp`(토큰 자신이 말하는 것)가 `expires_in`(종단점이 말하는 것)을 이긴다.
+       *
+       * 둘이 어긋나면 SAP이 믿는 쪽은 토큰 안의 `exp`다. `expires_in`은 왕복 지연을
+       * 포함하지 않은 발급 시점 기준이라, 그것만 믿으면 항상 조금씩 늦게 갱신한다.
+       */
+      resolveExpiry(accessToken, expiresIn) {
+        let fromJwt = null;
+        try {
+          fromJwt = (0, jwt_1.jwtExpiresAtMs)(accessToken);
+        } catch {
+          fromJwt = null;
+        }
+        if (fromJwt !== null)
+          return fromJwt;
+        const seconds = typeof expiresIn === "number" ? expiresIn : typeof expiresIn === "string" ? Number(expiresIn) : Number.NaN;
+        if (!Number.isFinite(seconds) || seconds <= 0)
+          return null;
+        return this.now() + Math.trunc(seconds) * 1e3;
+      }
+    };
+    exports2.UaaClient = UaaClient;
+  }
+});
+
+// dist/src/auth/callback.js
+var require_callback = __commonJS({
+  "dist/src/auth/callback.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m, k);
+      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m[k];
+        } };
+      }
+      Object.defineProperty(o, k2, desc);
+    }) : (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      o[k2] = m[k];
+    }));
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    }) : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports2 && exports2.__importStar || /* @__PURE__ */ (function() {
+      var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function(o2) {
+          var ar = [];
+          for (var k in o2) if (Object.prototype.hasOwnProperty.call(o2, k)) ar[ar.length] = k;
+          return ar;
+        };
+        return ownKeys(o);
+      };
+      return function(mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) {
+          for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        }
+        __setModuleDefault(result, mod);
+        return result;
+      };
+    })();
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.DEFAULT_CALLBACK_HOST = exports2.DEFAULT_CALLBACK_PATH = void 0;
+    exports2.startCallbackServer = startCallbackServer;
+    exports2.acquireByAuthorizationCode = acquireByAuthorizationCode;
+    var http = __importStar(require("node:http"));
+    var node_crypto_1 = require("node:crypto");
+    var errors_1 = require_errors3();
+    exports2.DEFAULT_CALLBACK_PATH = "/callback";
+    exports2.DEFAULT_CALLBACK_HOST = "127.0.0.1";
+    var PAGE_OK = "SAPKIT: authorization received. You can close this window.";
+    var PAGE_FAILED = "SAPKIT: authorization failed. Return to the terminal for the reason.";
+    async function startCallbackServer(options) {
+      const host = options.host ?? exports2.DEFAULT_CALLBACK_HOST;
+      const callbackPath = options.path ?? exports2.DEFAULT_CALLBACK_PATH;
+      let settle = null;
+      let fail = null;
+      const received = new Promise((resolve, reject) => {
+        settle = resolve;
+        fail = reject;
+      });
+      received.catch(() => {
+      });
+      const server = http.createServer((req, res) => {
+        const target = new URL(req.url ?? "/", `http://${host}`);
+        if (target.pathname !== callbackPath) {
+          res.statusCode = 404;
+          res.end("not found");
+          return;
+        }
+        const error = target.searchParams.get("error");
+        const code = target.searchParams.get("code");
+        const state = target.searchParams.get("state");
+        if (error !== null) {
+          const description = target.searchParams.get("error_description");
+          respond(res, 400, PAGE_FAILED);
+          finish(new errors_1.AuthError("CALLBACK_FAILED", `\uC778\uAC00 \uC11C\uBC84\uAC00 \uCF5C\uBC31\uC744 \uC624\uB958\uB85C \uB3CC\uB824\uBCF4\uB0C8\uB2E4 \u2014 ${error}${description ? ` (${description})` : ""}`));
+          return;
+        }
+        if (options.state !== void 0 && state !== options.state) {
+          respond(res, 400, PAGE_FAILED);
+          finish(new errors_1.AuthError("CALLBACK_STATE_MISMATCH", "\uCF5C\uBC31\uC758 state\uAC00 \uBCF4\uB0B8 \uAC12\uACFC \uB2E4\uB974\uB2E4 \u2014 \uC774 \uCF5C\uBC31\uC740 \uC774 \uC694\uCCAD\uC774 \uC2DC\uC791\uD55C \uB85C\uADF8\uC778\uC774 \uC544\uB2C8\uB2E4."));
+          return;
+        }
+        if (code === null || code === "") {
+          respond(res, 400, PAGE_FAILED);
+          finish(new errors_1.AuthError("CALLBACK_FAILED", "\uCF5C\uBC31\uC5D0 code\uAC00 \uC5C6\uB2E4."));
+          return;
+        }
+        respond(res, 200, PAGE_OK);
+        finish({ code, state });
+      });
+      let done = false;
+      let timer;
+      const onAbort = () => {
+        finish(new errors_1.AuthError("CALLBACK_ABORTED", "\uD638\uCD9C\uBD80\uAC00 \uC778\uAC00 \uB300\uAE30\uB97C \uC811\uC5C8\uB2E4."));
+      };
+      function finish(outcome) {
+        if (done)
+          return;
+        done = true;
+        if (timer)
+          clearTimeout(timer);
+        options.signal?.removeEventListener("abort", onAbort);
+        if (outcome instanceof errors_1.AuthError)
+          fail?.(outcome);
+        else
+          settle?.(outcome);
+      }
+      let listenFailed = null;
+      const onListenError = (err) => {
+        listenFailed?.(new errors_1.AuthError("CALLBACK_FAILED", `\uCF5C\uBC31 \uC11C\uBC84\uB97C ${host}:${options.port} \uC5D0 \uB744\uC6B0\uC9C0 \uBABB\uD588\uB2E4 \u2014 ${err.message}`, { cause: err }));
+      };
+      await new Promise((resolve, reject) => {
+        listenFailed = reject;
+        server.once("error", onListenError);
+        server.listen(options.port, host, resolve);
+      }).catch(async (err) => {
+        await closeServer(server);
+        throw err;
+      });
+      server.removeListener("error", onListenError);
+      server.on("error", (err) => {
+        finish(new errors_1.AuthError("CALLBACK_FAILED", `\uCF5C\uBC31 \uC11C\uBC84\uAC00 \uC624\uB958\uB85C \uBA48\uCDC4\uB2E4 \u2014 ${err.message}`, { cause: err }));
+      });
+      timer = setTimeout(() => {
+        finish(new errors_1.AuthError("CALLBACK_TIMEOUT", `\uC778\uAC00 \uCF5C\uBC31\uC774 ${options.timeoutMs}ms \uC548\uC5D0 \uC624\uC9C0 \uC54A\uC558\uB2E4 \u2014 \uB418\uBC00\uC9C0 \uC54A\uB294\uB2E4(\uC778\uAC00 \uCF54\uB4DC\uB294 \uC77C\uD68C\uC6A9\uC774\uB77C \uC7AC\uC2DC\uB3C4\uB294 \uBE0C\uB77C\uC6B0\uC800\uB97C \uB2E4\uC2DC \uC5EC\uB294 \uC77C\uC774\uACE0, \uADF8\uAC83\uC740 \uC0AC\uB78C\uC758 \uACB0\uC815\uC774\uB2E4).`));
+      }, options.timeoutMs);
+      if (options.signal) {
+        if (options.signal.aborted)
+          onAbort();
+        else
+          options.signal.addEventListener("abort", onAbort, { once: true });
+      }
+      const address = server.address();
+      const port = address?.port ?? options.port;
+      return {
+        redirectUri: `http://${host}:${port}${callbackPath}`,
+        received,
+        // 닫는 것이 곧 **기다리기를 그만두는 것**이다. 서버만 닫고 시한 타이머를
+        // 두면 그 타이머가 시한만큼 프로세스를 붙잡는다 — 이미 끝난 대기라도
+        // 마찬가지다. `finish`는 한 번만 먹히므로 이미 끝난 갈래는 그대로다.
+        close: async () => {
+          finish(new errors_1.AuthError("CALLBACK_ABORTED", "\uCF5C\uBC31 \uC11C\uBC84\uB97C \uB2EB\uC558\uB2E4 \u2014 \uB354 \uAE30\uB2E4\uB9AC\uC9C0 \uC54A\uB294\uB2E4."));
+          await closeServer(server);
+        }
+      };
+    }
+    function respond(res, status, text) {
+      res.statusCode = status;
+      res.setHeader("Content-Type", "text/plain; charset=utf-8");
+      res.end(text);
+    }
+    function closeServer(server) {
+      if (!server.listening)
+        return Promise.resolve();
+      server.closeAllConnections();
+      return new Promise((resolve) => {
+        server.close(() => resolve());
+      });
+    }
+    async function acquireByAuthorizationCode(options) {
+      const state = (options.newState ?? node_crypto_1.randomUUID)();
+      const capture = await startCallbackServer({
+        port: options.port,
+        ...options.host !== void 0 ? { host: options.host } : {},
+        ...options.path !== void 0 ? { path: options.path } : {},
+        timeoutMs: options.timeoutMs,
+        state,
+        ...options.signal !== void 0 ? { signal: options.signal } : {}
+      });
+      try {
+        await options.openAuthorizeUrl(options.client.authorizeUrl({
+          redirectUri: capture.redirectUri,
+          state,
+          ...options.scope !== void 0 ? { scope: options.scope } : {}
+        }));
+        const result = await capture.received;
+        return await options.client.exchangeCode(result.code, capture.redirectUri);
+      } finally {
+        await capture.close();
+      }
+    }
+  }
+});
+
+// dist/src/auth/tokenSource.js
+var require_tokenSource = __commonJS({
+  "dist/src/auth/tokenSource.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.TokenSource = void 0;
+    var errors_1 = require_errors3();
+    var jwt_1 = require_jwt();
+    var TokenSource = class {
+      client;
+      acquireFirst;
+      now;
+      bufferSeconds;
+      cached;
+      refreshToken;
+      /** 진행 중인 취득·갱신. 동시 호출이 같은 왕복을 두 번 내지 않게 한다. */
+      pending = null;
+      constructor(options = {}) {
+        this.client = options.client;
+        this.acquireFirst = options.acquire;
+        this.now = options.now ?? (() => Date.now());
+        this.bufferSeconds = options.bufferSeconds ?? jwt_1.EXPIRY_BUFFER_SECONDS;
+        this.cached = options.seed ?? null;
+        this.refreshToken = options.seed?.refreshToken ?? null;
+      }
+      /**
+       * 지금 실을 수 있는 접근 토큰. 필요하면 갱신하고, 못 하면 **던진다**.
+       *
+       * 만료 판정에는 {@link EXPIRY_BUFFER_SECONDS} 만큼의 여유가 들어간다 — 남은
+       * 수명이 그보다 짧으면 아직 살아 있어도 미리 갈아 끼운다.
+       */
+      async accessToken() {
+        if (this.cached !== null && !this.needsRenewal())
+          return this.cached.accessToken;
+        if (this.pending === null) {
+          this.pending = this.renew().finally(() => {
+            this.pending = null;
+          });
+        }
+        const fresh = await this.pending;
+        return fresh.accessToken;
+      }
+      status() {
+        const expiresAtMs = this.cached?.expiresAtMs ?? null;
+        return {
+          hasToken: this.cached !== null,
+          expiresAtMs,
+          remainingMs: (0, jwt_1.remainingMs)(expiresAtMs, this.now()),
+          needsRenewal: this.cached === null || this.needsRenewal(),
+          renewable: this.refreshToken !== null || this.acquireFirst !== void 0 || this.client !== void 0
+        };
+      }
+      /**
+       * 캐시된 접근 토큰을 버린다. **갱신 재료는 남긴다** — 다음 호출이 갱신
+       * 갈래를 타게 하려는 것이다(SAP이 401로 거절했을 때 호출부가 쓴다).
+       *
+       * 갱신 재료까지 버리려면 이 객체를 버리면 된다. 메모리 말고는 아무 데도
+       * 없으므로 그것으로 끝이다.
+       */
+      invalidate() {
+        this.cached = null;
+      }
+      // ------------------------------------------------------------ 내부 구현
+      needsRenewal() {
+        return (0, jwt_1.isExpired)(this.cached?.expiresAtMs ?? null, this.now(), this.bufferSeconds);
+      }
+      async renew() {
+        if (this.refreshToken !== null) {
+          if (this.client === void 0) {
+            throw new errors_1.AuthError("AUTH_NO_REFRESH_MATERIAL", "\uAC31\uC2E0 \uD1A0\uD070\uC740 \uC788\uB294\uB370 UAA \uC7AC\uB8CC(url\xB7clientid\xB7clientsecret)\uAC00 \uC5C6\uC5B4 \uAC31\uC2E0\uD560 \uC218 \uC5C6\uB2E4.");
+          }
+          return this.adopt(await this.client.refresh(this.refreshToken));
+        }
+        if (this.acquireFirst !== void 0)
+          return this.adopt(await this.acquireFirst());
+        if (this.client !== void 0)
+          return this.adopt(await this.client.clientCredentials());
+        throw new errors_1.AuthError("AUTH_NO_REFRESH_MATERIAL", "\uD1A0\uD070\uC774 \uB9CC\uB8CC\uB410\uAC70\uB098 \uC5C6\uB294\uB370 \uBC1B\uC544 \uC62C \uBC29\uBC95\uC774 \uC5C6\uB2E4 \u2014 UAA \uC7AC\uB8CC\uB3C4, \uAC31\uC2E0 \uD1A0\uD070\uB3C4, \uCDE8\uB4DD \uBC29\uBC95\uB3C4 \uC8FC\uC5B4\uC9C0\uC9C0 \uC54A\uC558\uB2E4.");
+      }
+      adopt(token) {
+        this.cached = token;
+        if (token.refreshToken !== null)
+          this.refreshToken = token.refreshToken;
+        return token;
+      }
+    };
+    exports2.TokenSource = TokenSource;
+  }
+});
+
+// dist/src/auth/index.js
+var require_auth = __commonJS({
+  "dist/src/auth/index.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.TokenSource = exports2.startCallbackServer = exports2.acquireByAuthorizationCode = exports2.DEFAULT_CALLBACK_PATH = exports2.DEFAULT_CALLBACK_HOST = exports2.uaaEndpoints = exports2.UaaClient = exports2.TOKEN_PATH = exports2.DEFAULT_UAA_TIMEOUT_MS = exports2.AUTHORIZE_PATH = exports2.remainingMs = exports2.jwtExpiresAtMs = exports2.isExpired = exports2.decodeJwtClaims = exports2.EXPIRY_BUFFER_SECONDS = exports2.isAuthError = exports2.AuthError = void 0;
+    var errors_1 = require_errors3();
+    Object.defineProperty(exports2, "AuthError", { enumerable: true, get: function() {
+      return errors_1.AuthError;
+    } });
+    Object.defineProperty(exports2, "isAuthError", { enumerable: true, get: function() {
+      return errors_1.isAuthError;
+    } });
+    var jwt_1 = require_jwt();
+    Object.defineProperty(exports2, "EXPIRY_BUFFER_SECONDS", { enumerable: true, get: function() {
+      return jwt_1.EXPIRY_BUFFER_SECONDS;
+    } });
+    Object.defineProperty(exports2, "decodeJwtClaims", { enumerable: true, get: function() {
+      return jwt_1.decodeJwtClaims;
+    } });
+    Object.defineProperty(exports2, "isExpired", { enumerable: true, get: function() {
+      return jwt_1.isExpired;
+    } });
+    Object.defineProperty(exports2, "jwtExpiresAtMs", { enumerable: true, get: function() {
+      return jwt_1.jwtExpiresAtMs;
+    } });
+    Object.defineProperty(exports2, "remainingMs", { enumerable: true, get: function() {
+      return jwt_1.remainingMs;
+    } });
+    var uaa_1 = require_uaa();
+    Object.defineProperty(exports2, "AUTHORIZE_PATH", { enumerable: true, get: function() {
+      return uaa_1.AUTHORIZE_PATH;
+    } });
+    Object.defineProperty(exports2, "DEFAULT_UAA_TIMEOUT_MS", { enumerable: true, get: function() {
+      return uaa_1.DEFAULT_UAA_TIMEOUT_MS;
+    } });
+    Object.defineProperty(exports2, "TOKEN_PATH", { enumerable: true, get: function() {
+      return uaa_1.TOKEN_PATH;
+    } });
+    Object.defineProperty(exports2, "UaaClient", { enumerable: true, get: function() {
+      return uaa_1.UaaClient;
+    } });
+    Object.defineProperty(exports2, "uaaEndpoints", { enumerable: true, get: function() {
+      return uaa_1.uaaEndpoints;
+    } });
+    var callback_1 = require_callback();
+    Object.defineProperty(exports2, "DEFAULT_CALLBACK_HOST", { enumerable: true, get: function() {
+      return callback_1.DEFAULT_CALLBACK_HOST;
+    } });
+    Object.defineProperty(exports2, "DEFAULT_CALLBACK_PATH", { enumerable: true, get: function() {
+      return callback_1.DEFAULT_CALLBACK_PATH;
+    } });
+    Object.defineProperty(exports2, "acquireByAuthorizationCode", { enumerable: true, get: function() {
+      return callback_1.acquireByAuthorizationCode;
+    } });
+    Object.defineProperty(exports2, "startCallbackServer", { enumerable: true, get: function() {
+      return callback_1.startCallbackServer;
+    } });
+    var tokenSource_1 = require_tokenSource();
+    Object.defineProperty(exports2, "TokenSource", { enumerable: true, get: function() {
+      return tokenSource_1.TokenSource;
+    } });
+  }
+});
+
+// dist/src/profile/envFile.js
+var require_envFile = __commonJS({
+  "dist/src/profile/envFile.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m, k);
+      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m[k];
+        } };
+      }
+      Object.defineProperty(o, k2, desc);
+    }) : (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      o[k2] = m[k];
+    }));
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    }) : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports2 && exports2.__importStar || /* @__PURE__ */ (function() {
+      var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function(o2) {
+          var ar = [];
+          for (var k in o2) if (Object.prototype.hasOwnProperty.call(o2, k)) ar[ar.length] = k;
+          return ar;
+        };
+        return ownKeys(o);
+      };
+      return function(mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) {
+          for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        }
+        __setModuleDefault(result, mod);
+        return result;
+      };
+    })();
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.parseEnvText = parseEnvText;
+    exports2.readEnvFile = readEnvFile;
+    var fs = __importStar(require("node:fs"));
+    function parseEnvText(text) {
+      const out = {};
+      for (const rawLine of text.split(/\r?\n/)) {
+        const line = rawLine.trim();
+        if (!line || line.startsWith("#"))
+          continue;
+        const eq = line.indexOf("=");
+        if (eq < 0)
+          continue;
+        let key = line.slice(0, eq).trim();
+        if (key.startsWith("export "))
+          key = key.slice("export ".length).trim();
+        if (!key)
+          continue;
+        out[key] = unquote(line.slice(eq + 1).trim());
+      }
+      return out;
+    }
+    function unquote(value) {
+      const first = value.charAt(0);
+      const last = value.charAt(value.length - 1);
+      if ((first === '"' || first === "'") && value.length >= 2 && last === first) {
+        return value.slice(1, -1).trim();
+      }
+      return value;
+    }
+    function readEnvFile(file) {
+      let text;
+      try {
+        text = fs.readFileSync(file, "utf8");
+      } catch {
+        return null;
+      }
+      return parseEnvText(text);
+    }
+  }
+});
+
+// dist/src/profile/home.js
+var require_home = __commonJS({
+  "dist/src/profile/home.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m, k);
+      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m[k];
+        } };
+      }
+      Object.defineProperty(o, k2, desc);
+    }) : (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      o[k2] = m[k];
+    }));
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    }) : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports2 && exports2.__importStar || /* @__PURE__ */ (function() {
+      var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function(o2) {
+          var ar = [];
+          for (var k in o2) if (Object.prototype.hasOwnProperty.call(o2, k)) ar[ar.length] = k;
+          return ar;
+        };
+        return ownKeys(o);
+      };
+      return function(mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) {
+          for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        }
+        __setModuleDefault(result, mod);
+        return result;
+      };
+    })();
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.RUNTIME_DIR_NAME = void 0;
+    exports2.resolveHomeDir = resolveHomeDir;
+    exports2.listProfileAliases = listProfileAliases;
+    var fs = __importStar(require("node:fs"));
+    var os = __importStar(require("node:os"));
+    var path = __importStar(require("node:path"));
+    exports2.RUNTIME_DIR_NAME = ".sapkit";
+    function resolveHomeDir(lookup = {}) {
+      const env = lookup.env ?? process.env;
+      const pinned = (env.SAPKIT_HOME_DIR ?? "").trim();
+      if (pinned) {
+        if (!fs.existsSync(pinned))
+          return { kind: "env-invalid", dir: pinned };
+        return { kind: "ok", dir: pinned, source: "env" };
+      }
+      const home = lookup.homedir ?? os.homedir();
+      return { kind: "ok", dir: path.join(home, exports2.RUNTIME_DIR_NAME), source: "default" };
+    }
+    function listProfileAliases(home) {
+      try {
+        return fs.readdirSync(path.join(home, "profiles"), { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort();
+      } catch {
+        return [];
+      }
+    }
+  }
+});
+
+// dist/src/profile/secrets.js
+var require_secrets = __commonJS({
+  "dist/src/profile/secrets.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.SecretResolutionError = void 0;
+    exports2.parseKeychainRef = parseKeychainRef;
+    exports2.resolveSecret = resolveSecret;
+    var KEYCHAIN_SCHEME = "keychain:";
+    var HAS_SCHEME = /^keychain:/;
+    var SecretResolutionError = class extends Error {
+      code;
+      constructor(code, message) {
+        super(message);
+        this.code = code;
+        this.name = "SecretResolutionError";
+      }
+    };
+    exports2.SecretResolutionError = SecretResolutionError;
+    function parseKeychainRef(value) {
+      if (!HAS_SCHEME.test(value))
+        return null;
+      const [service, ...rest] = value.slice(KEYCHAIN_SCHEME.length).split("/");
+      const account = rest.join("/");
+      if (service === void 0 || service === "" || account === "") {
+        throw new SecretResolutionError("KEYCHAIN_REF_INVALID", `SAP_PASSWORD\uAC00 "${KEYCHAIN_SCHEME}" \uB85C \uC2DC\uC791\uD558\uB294\uB370 \uBAA8\uC591\uC774 \uC5B4\uAE0B\uB09C\uB2E4 \u2014 \uD615\uC2DD\uC740 ${KEYCHAIN_SCHEME}<service>/<account> \uB2E4.`);
+      }
+      return { service, account };
+    }
+    function nativeReader() {
+      try {
+        const mod = require("@napi-rs/keyring");
+        return (ref) => new mod.Entry(ref.service, ref.account).getPassword();
+      } catch {
+        return null;
+      }
+    }
+    function resolveSecret(value, options = {}) {
+      const ref = parseKeychainRef(value);
+      if (ref === null)
+        return value;
+      const reader = "reader" in options ? options.reader : nativeReader();
+      if (reader === null || reader === void 0) {
+        throw new SecretResolutionError("KEYCHAIN_UNAVAILABLE", "SAP_PASSWORD\uAC00 \uD0A4\uCCB4\uC778 \uCC38\uC870\uC778\uB370 @napi-rs/keyring \uC744 \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uB2E4 \u2014 \uC774 \uD50C\uB7AB\uD3FC\uC5D0 \uB124\uC774\uD2F0\uBE0C \uD0A4\uCCB4\uC778 \uBAA8\uB4C8\uC774 \uC5C6\uAC70\uB098 \uD574\uC11D \uACBD\uB85C(NODE_PATH)\uC5D0 \uC5C6\uB2E4.");
+      }
+      let password;
+      try {
+        password = reader(ref);
+      } catch (err) {
+        throw new SecretResolutionError("KEYCHAIN_UNAVAILABLE", `\uD0A4\uCCB4\uC778 \uC870\uD68C\uAC00 \uC2E4\uD328\uD588\uB2E4 (service="${ref.service}"): ${err instanceof Error ? err.message : String(err)}`);
+      }
+      if (password === null || password === "") {
+        throw new SecretResolutionError("KEYCHAIN_ENTRY_NOT_FOUND", `\uD0A4\uCCB4\uC778\uC5D0 \uC4F8 \uC218 \uC788\uB294 \uD56D\uBAA9\uC774 \uC5C6\uB2E4 (service="${ref.service}") \u2014 sap.env\uC758 SAP_PASSWORD\uAC00 \uAC00\uB9AC\uD0A4\uB294 \uACC4\uC815\uC73C\uB85C \uB2E4\uC2DC \uB4F1\uB85D\uD574\uC57C \uD55C\uB2E4.`);
+      }
+      return password;
+    }
+  }
+});
+
+// dist/src/profile/resolve.js
+var require_resolve = __commonJS({
+  "dist/src/profile/resolve.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m, k);
+      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m[k];
+        } };
+      }
+      Object.defineProperty(o, k2, desc);
+    }) : (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      o[k2] = m[k];
+    }));
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    }) : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports2 && exports2.__importStar || /* @__PURE__ */ (function() {
+      var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function(o2) {
+          var ar = [];
+          for (var k in o2) if (Object.prototype.hasOwnProperty.call(o2, k)) ar[ar.length] = k;
+          return ar;
+        };
+        return ownKeys(o);
+      };
+      return function(mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) {
+          for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        }
+        __setModuleDefault(result, mod);
+        return result;
+      };
+    })();
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.DEFAULT_TIMEOUTS = void 0;
+    exports2.resolveProfile = resolveProfile;
+    exports2.resolveProfileDetailed = resolveProfileDetailed;
+    exports2.disconnectedProfile = disconnectedProfile;
+    var path = __importStar(require("node:path"));
+    var fs = __importStar(require("node:fs"));
+    var envFile_1 = require_envFile();
+    var home_1 = require_home();
+    var secrets_1 = require_secrets();
+    var TIMEOUT_DEFAULT = 45e3;
+    var TIMEOUT_CSRF = 15e3;
+    var TIMEOUT_LONG = 6e4;
+    exports2.DEFAULT_TIMEOUTS = {
+      default: TIMEOUT_DEFAULT,
+      csrf: TIMEOUT_CSRF,
+      long: TIMEOUT_LONG
+    };
+    function resolveProfile(options = {}) {
+      return resolveProfileDetailed(options).profile;
+    }
+    function resolveProfileDetailed(options = {}) {
+      const env = options.env ?? process.env;
+      const cwd = options.cwd ?? process.cwd();
+      const diagnostics = [];
+      const candidate = locateEnvFile({ cwd, env, homedir: options.homedir, envPath: options.envPath }, diagnostics);
+      if (candidate.envPath === null) {
+        return { profile: disconnectedProfile(diagnostics, candidate.alias), envVars: {} };
+      }
+      const envVars = (0, envFile_1.readEnvFile)(candidate.envPath);
+      if (!envVars) {
+        diagnostics.push(`ENV_UNREADABLE: ${candidate.envPath} could not be read \u2014 starting with no connection.`);
+        return { profile: disconnectedProfile(diagnostics, candidate.alias), envVars: {} };
+      }
+      const connection = buildConnection(envVars, candidate.envPath, diagnostics);
+      const systemType = readSystemType(envVars);
+      const sapVersion = readSapVersion(envVars);
+      if (!connection) {
+        return {
+          profile: {
+            connection: null,
+            tier: "UNKNOWN",
+            systemType,
+            sapVersion,
+            envPath: candidate.envPath,
+            alias: candidate.alias,
+            diagnostics
+          },
+          envVars
+        };
+      }
+      const tier = readTier(envVars.SAP_TIER);
+      if (tier === "UNKNOWN") {
+        diagnostics.push(`TIER_UNRESOLVED: SAP_TIER in ${candidate.envPath} is ${envVars.SAP_TIER === void 0 ? "absent" : `"${envVars.SAP_TIER}"`} \u2014 the tier resolves to UNKNOWN and every write and execution is refused (fail-closed). Set SAP_TIER=DEV|QA|PRD.`);
+      }
+      return {
+        profile: {
+          connection,
+          tier,
+          systemType,
+          sapVersion,
+          envPath: candidate.envPath,
+          alias: candidate.alias,
+          diagnostics
+        },
+        envVars
+      };
+    }
+    function locateEnvFile(ctx, diagnostics) {
+      const explicit = (ctx.envPath ?? "").trim();
+      const injected = explicit || (ctx.env.MCP_ENV_PATH ?? "").trim();
+      if (injected) {
+        if (fs.existsSync(injected))
+          return { envPath: injected, alias: null };
+        diagnostics.push(`ENV_PATH_MISSING: ${explicit ? "the explicit env-file path" : "MCP_ENV_PATH"} points at a file that does not exist (${injected}) \u2014 refusing to fall back to the profile home or a project-local sap.env; the server starts with no connection.`);
+        return { envPath: null, alias: null };
+      }
+      const home = (0, home_1.resolveHomeDir)({ env: ctx.env, homedir: ctx.homedir });
+      if (home.kind === "env-invalid") {
+        diagnostics.push(`ENV_INVALID: SAPKIT_HOME_DIR points at a path that does not exist (${home.dir}) \u2014 refusing to fall back to ~/${home_1.RUNTIME_DIR_NAME} or to a project-local sap.env; the server starts with no connection.`);
+        return { envPath: null, alias: null };
+      }
+      const runtimeDir = path.join(ctx.cwd, home_1.RUNTIME_DIR_NAME);
+      const alias = readPointer(runtimeDir);
+      if (alias) {
+        const envPath = path.join(home.dir, "profiles", alias, "sap.env");
+        if (fs.existsSync(envPath))
+          return { envPath, alias };
+        const available = (0, home_1.listProfileAliases)(home.dir);
+        diagnostics.push(`PROFILE_NOT_FOUND: active profile "${alias}" has no sap.env under ${home.dir}${available.length ? ` (available: ${available.join(", ")})` : " (no profiles found there)"}. Fix the alias in ${path.join(runtimeDir, "active-profile.txt")} or create the profile; until then the server starts with no connection.`);
+        return { envPath: null, alias };
+      }
+      const local = path.join(runtimeDir, "sap.env");
+      if (fs.existsSync(local))
+        return { envPath: local, alias: null };
+      diagnostics.push(`NO_PROFILE: neither ${path.join(runtimeDir, "active-profile.txt")} nor ${local} was found \u2014 starting in inspection-only mode with no connection.`);
+      return { envPath: null, alias: null };
+    }
+    function readPointer(runtimeDir) {
+      try {
+        const raw = fs.readFileSync(path.join(runtimeDir, "active-profile.txt"), "utf8").trim();
+        return raw.length > 0 ? raw : null;
+      } catch {
+        return null;
+      }
+    }
+    function buildConnection(envVars, envPath, diagnostics) {
+      const baseUrl = (envVars.SAP_URL ?? "").trim();
+      const username = (envVars.SAP_USERNAME ?? "").trim();
+      const storedPassword = envVars.SAP_PASSWORD ?? "";
+      const missing = [];
+      if (!baseUrl)
+        missing.push("SAP_URL");
+      if (!username)
+        missing.push("SAP_USERNAME");
+      if (!storedPassword)
+        missing.push("SAP_PASSWORD");
+      if (missing.length) {
+        diagnostics.push(`INCOMPLETE_CONNECTION: ${envPath} is missing ${missing.join(", ")} \u2014 the server starts with no connection (M1 supports Basic authentication only).`);
+        return null;
+      }
+      let password;
+      try {
+        password = (0, secrets_1.resolveSecret)(storedPassword);
+      } catch (err) {
+        const code = err instanceof secrets_1.SecretResolutionError ? err.code : "KEYCHAIN_UNAVAILABLE";
+        const detail = err instanceof Error ? err.message : String(err);
+        diagnostics.push(`${code}: ${envPath} \u2014 ${detail} \uC811\uC18D\uC744 \uB9CC\uB4E4\uC9C0 \uC54A\uB294\uB2E4(\uD574\uC11D\uD558\uC9C0 \uBABB\uD55C \uCC38\uC870\uB97C \uBE44\uBC00\uBC88\uD638\uB85C \uBCF4\uB0B4\uBA74 \uC2E4\uD328 \uB85C\uADF8\uC628\uC774 \uC313\uC5EC \uACC4\uC815\uC774 \uC7A0\uAE34\uB2E4).`);
+        return null;
+      }
+      const client = (envVars.SAP_CLIENT ?? "").trim();
+      const language = (envVars.SAP_LANGUAGE ?? "").trim();
+      return {
+        baseUrl,
+        username,
+        password,
+        client: client || void 0,
+        language: language || void 0,
+        // Only an explicit `0` opens self-signed certificates; every other value,
+        // including an absent one, keeps verification on.
+        rejectUnauthorized: (envVars.TLS_REJECT_UNAUTHORIZED ?? "").trim() !== "0",
+        timeouts: {
+          default: readTimeout(envVars.SAP_TIMEOUT_DEFAULT, TIMEOUT_DEFAULT),
+          csrf: readTimeout(envVars.SAP_TIMEOUT_CSRF, TIMEOUT_CSRF),
+          long: readTimeout(envVars.SAP_TIMEOUT_LONG, TIMEOUT_LONG)
+        }
+      };
+    }
+    function readTimeout(raw, fallback) {
+      const value = Number((raw ?? "").trim());
+      return Number.isFinite(value) && value > 0 ? value : fallback;
+    }
+    function readTier(raw) {
+      const value = (raw ?? "").trim().toUpperCase();
+      return value === "DEV" || value === "QA" || value === "PRD" ? value : "UNKNOWN";
+    }
+    function readSystemType(envVars) {
+      const value = (envVars.SAP_SYSTEM_TYPE ?? "").trim().toLowerCase();
+      if (value === "onprem")
+        return "onprem";
+      if (value === "legacy")
+        return "legacy";
+      return "cloud";
+    }
+    function readSapVersion(envVars) {
+      const value = (envVars.SAP_VERSION ?? "").trim();
+      return value === "" ? null : value;
+    }
+    function disconnectedProfile(diagnostics, alias = null) {
+      return {
+        connection: null,
+        tier: "UNKNOWN",
+        systemType: "cloud",
+        sapVersion: null,
+        envPath: null,
+        alias,
+        diagnostics: [...diagnostics]
+      };
+    }
+  }
+});
+
+// dist/src/profile/destination.js
+var require_destination = __commonJS({
+  "dist/src/profile/destination.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m, k);
+      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m[k];
+        } };
+      }
+      Object.defineProperty(o, k2, desc);
+    }) : (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      o[k2] = m[k];
+    }));
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    }) : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports2 && exports2.__importStar || /* @__PURE__ */ (function() {
+      var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function(o2) {
+          var ar = [];
+          for (var k in o2) if (Object.prototype.hasOwnProperty.call(o2, k)) ar[ar.length] = k;
+          return ar;
+        };
+        return ownKeys(o);
+      };
+      return function(mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) {
+          for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        }
+        __setModuleDefault(result, mod);
+        return result;
+      };
+    })();
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.DEFAULT_SERVICE_KEY_GRANT = void 0;
+    exports2.platformStoreDirs = platformStoreDirs;
+    exports2.serviceKeysDir = serviceKeysDir;
+    exports2.sessionsDir = sessionsDir;
+    exports2.checkDestinationName = checkDestinationName;
+    exports2.listStoreNames = listStoreNames;
+    exports2.sessionEnvFileName = sessionEnvFileName;
+    exports2.resolveSessionEnv = resolveSessionEnv;
+    exports2.readServiceKey = readServiceKey;
+    exports2.planServiceKeyConnection = planServiceKeyConnection;
+    exports2.resolveBrokerStores = resolveBrokerStores;
+    var fs = __importStar(require("node:fs"));
+    var os = __importStar(require("node:os"));
+    var path = __importStar(require("node:path"));
+    function platformStoreDirs(subfolder, lookup = {}) {
+      const env = lookup.env ?? process.env;
+      const cwd = lookup.cwd ?? process.cwd();
+      const platform = lookup.platform ?? process.platform;
+      const dirs = [];
+      const withSubfolder = (raw) => {
+        let resolved = path.resolve(cwd, raw);
+        if (path.basename(resolved) === subfolder)
+          resolved = path.dirname(resolved);
+        return path.join(resolved, subfolder);
+      };
+      const custom = (lookup.authBrokerPath ?? "").trim();
+      if (custom)
+        dirs.push(withSubfolder(custom));
+      const fromEnv = (env.AUTH_BROKER_PATH ?? "").trim();
+      if (fromEnv) {
+        const delimiter = platform === "win32" ? ";" : ":";
+        for (const part of fromEnv.split(delimiter)) {
+          const trimmed = part.trim();
+          if (trimmed)
+            dirs.push(withSubfolder(trimmed));
+        }
+      }
+      if (dirs.length === 0) {
+        const home = lookup.homedir ?? os.homedir();
+        const base = platform === "win32" ? path.join(home, "Documents", "mcp-abap-adt") : path.join(home, ".config", "mcp-abap-adt");
+        dirs.push(path.join(base, subfolder));
+      }
+      dirs.push(cwd);
+      const seen = /* @__PURE__ */ new Set();
+      const unique = [];
+      for (const dir of dirs) {
+        const normalized = path.normalize(dir);
+        if (seen.has(normalized))
+          continue;
+        seen.add(normalized);
+        unique.push(normalized);
+      }
+      return unique;
+    }
+    function serviceKeysDir(lookup = {}) {
+      return platformStoreDirs("service-keys", lookup)[0] ?? path.resolve(lookup.cwd ?? process.cwd());
+    }
+    function sessionsDir(lookup = {}) {
+      const dirs = platformStoreDirs("sessions", lookup);
+      const cwd = path.resolve(lookup.cwd ?? process.cwd());
+      return dirs.find((dir) => path.resolve(dir) !== cwd) ?? dirs[0] ?? cwd;
+    }
+    function checkDestinationName(raw) {
+      const name = raw.trim();
+      if (name === "")
+        return { ok: false, reason: "the value is empty" };
+      if (name.includes("/") || name.includes("\\")) {
+        return { ok: false, reason: "it contains a path separator" };
+      }
+      if (name.startsWith(".") || name.startsWith("~")) {
+        return { ok: false, reason: 'it starts with a path prefix ("." or "~")' };
+      }
+      if (/^[A-Za-z]:/.test(name))
+        return { ok: false, reason: "it starts with a drive letter" };
+      if (path.isAbsolute(name))
+        return { ok: false, reason: "it is an absolute path" };
+      return { ok: true };
+    }
+    function listStoreNames(dir, extension) {
+      try {
+        return fs.readdirSync(dir, { withFileTypes: true }).filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(extension)).map((entry) => entry.name.slice(0, -extension.length)).sort();
+      } catch {
+        return [];
+      }
+    }
+    function sessionEnvFileName(name) {
+      const trimmed = name.trim();
+      return trimmed.toLowerCase().endsWith(".env") ? trimmed : `${trimmed}.env`;
+    }
+    function resolveSessionEnv(name, lookup = {}) {
+      const checked = checkDestinationName(name);
+      if (!checked.ok)
+        return { kind: "unsafe-name", reason: checked.reason };
+      const dir = sessionsDir(lookup);
+      const file = path.join(dir, sessionEnvFileName(name));
+      if (!fs.existsSync(file)) {
+        return { kind: "not-found", path: file, available: listStoreNames(dir, ".env") };
+      }
+      return { kind: "ok", path: file };
+    }
+    exports2.DEFAULT_SERVICE_KEY_GRANT = "authorization_code";
+    var GRANT_FIELD_NAMES = ["granttype", "grant_type", "grant-type"];
+    function readGrantDeclaration(uaa, root) {
+      let raw = "";
+      for (const source of [uaa, root]) {
+        for (const name of GRANT_FIELD_NAMES) {
+          const found = str(source[name]);
+          if (found) {
+            raw = found;
+            break;
+          }
+        }
+        if (raw)
+          break;
+      }
+      if (!raw)
+        return { ok: true, grant: exports2.DEFAULT_SERVICE_KEY_GRANT, declared: false };
+      const normalized = raw.toLowerCase().replace(/[\s_-]/g, "");
+      if (normalized === "clientcredentials") {
+        return { ok: true, grant: "client_credentials", declared: true };
+      }
+      if (normalized === "authorizationcode") {
+        return { ok: true, grant: "authorization_code", declared: true };
+      }
+      return { ok: false, raw: raw.slice(0, 40) };
+    }
+    function isRecord(value) {
+      return typeof value === "object" && value !== null && !Array.isArray(value);
+    }
+    function str(value) {
+      return typeof value === "string" ? value.trim() : "";
+    }
+    function unwrapCredentials(data) {
+      const keys = Object.keys(data);
+      if (keys.length !== 1 || keys[0] !== "credentials")
+        return data;
+      const inner = data.credentials;
+      return isRecord(inner) ? inner : data;
+    }
+    function parseServiceKeyJson(text) {
+      const attempt = (candidate) => {
+        try {
+          const parsed = JSON.parse(candidate);
+          return isRecord(parsed) ? parsed : null;
+        } catch {
+          return null;
+        }
+      };
+      const direct = attempt(text);
+      if (direct)
+        return direct;
+      const start = text.indexOf("{");
+      const end = text.lastIndexOf("}");
+      if (start === -1 || end <= start)
+        return null;
+      return attempt(text.slice(start, end + 1));
+    }
+    function readServiceKey(destination, lookup = {}) {
+      const checked = checkDestinationName(destination);
+      if (!checked.ok)
+        return { kind: "unsafe-name", reason: checked.reason };
+      const name = destination.trim();
+      const dir = serviceKeysDir(lookup);
+      const file = path.join(dir, `${name}.json`);
+      if (!fs.existsSync(file)) {
+        return { kind: "not-found", path: file, available: listStoreNames(dir, ".json") };
+      }
+      let text;
+      try {
+        text = fs.readFileSync(file, "utf8");
+      } catch (err) {
+        return {
+          kind: "invalid",
+          path: file,
+          reason: `it could not be read (${err instanceof Error ? err.message : String(err)})`
+        };
+      }
+      const raw = parseServiceKeyJson(text);
+      if (!raw)
+        return { kind: "invalid", path: file, reason: "it is not a JSON object" };
+      const data = unwrapCredentials(raw);
+      const nested = isRecord(data.uaa) ? data.uaa : null;
+      const storeType = nested ? "abap" : "btp";
+      const uaa = nested ?? data;
+      const uaaUrl = str(uaa.url);
+      const clientId = str(uaa.clientid);
+      const clientSecret = str(uaa.clientsecret);
+      const missing = [];
+      if (!uaaUrl)
+        missing.push(nested ? "uaa.url" : "url");
+      if (!clientId)
+        missing.push(nested ? "uaa.clientid" : "clientid");
+      if (!clientSecret)
+        missing.push(nested ? "uaa.clientsecret" : "clientsecret");
+      if (missing.length) {
+        return {
+          kind: "invalid",
+          path: file,
+          reason: `it is missing ${missing.join(", ")} \u2014 neither the ABAP (nested "uaa") nor the XSUAA (flat) service-key shape is complete`
+        };
+      }
+      const grant = readGrantDeclaration(uaa, data);
+      if (!grant.ok) {
+        return {
+          kind: "invalid",
+          path: file,
+          reason: `it declares an OAuth2 grant this engine does not use (${JSON.stringify(grant.raw)}) \u2014 use "client_credentials" (server-to-server: startup acquires the token itself) or "authorization_code" (a person logs in at a browser)`
+        };
+      }
+      const abap = isRecord(data.abap) ? data.abap : null;
+      const rootUrl = str(data.url);
+      const serviceUrl = str(abap?.url) || str(data.sap_url) || (rootUrl && !rootUrl.includes("authentication") ? rootUrl : "");
+      const client = str(abap?.client) || str(data.sap_client) || str(data.client);
+      const language = str(abap?.language) || str(data.language);
+      return {
+        kind: "ok",
+        key: {
+          destination: name,
+          source: file,
+          storeType,
+          serviceUrl: serviceUrl || null,
+          client: client || null,
+          language: language || null,
+          auth: { uaaUrl, clientId, clientSecret },
+          grant: grant.grant,
+          grantDeclared: grant.declared
+        }
+      };
+    }
+    function planServiceKeyConnection(key) {
+      const uaa = {
+        url: key.auth.uaaUrl,
+        clientId: key.auth.clientId,
+        clientSecret: key.auth.clientSecret
+      };
+      if (!key.serviceUrl)
+        return { kind: "no-service-url", uaa };
+      return {
+        kind: "ready",
+        uaa,
+        baseUrl: key.serviceUrl,
+        client: key.client,
+        language: key.language
+      };
+    }
+    function resolveBrokerStores(lookup = {}) {
+      const keysDir = serviceKeysDir(lookup);
+      return {
+        serviceKeysDir: keysDir,
+        sessionsDir: sessionsDir(lookup),
+        destinations: listStoreNames(keysDir, ".json")
+      };
+    }
+  }
+});
+
+// dist/src/profile/index.js
+var require_profile = __commonJS({
+  "dist/src/profile/index.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.sessionsDir = exports2.sessionEnvFileName = exports2.serviceKeysDir = exports2.resolveSessionEnv = exports2.resolveBrokerStores = exports2.readServiceKey = exports2.platformStoreDirs = exports2.planServiceKeyConnection = exports2.listStoreNames = exports2.checkDestinationName = exports2.DEFAULT_SERVICE_KEY_GRANT = exports2.resolveProfileDetailed = exports2.resolveProfile = exports2.disconnectedProfile = exports2.DEFAULT_TIMEOUTS = exports2.resolveHomeDir = exports2.listProfileAliases = exports2.RUNTIME_DIR_NAME = exports2.readEnvFile = exports2.parseEnvText = void 0;
+    var envFile_1 = require_envFile();
+    Object.defineProperty(exports2, "parseEnvText", { enumerable: true, get: function() {
+      return envFile_1.parseEnvText;
+    } });
+    Object.defineProperty(exports2, "readEnvFile", { enumerable: true, get: function() {
+      return envFile_1.readEnvFile;
+    } });
+    var home_1 = require_home();
+    Object.defineProperty(exports2, "RUNTIME_DIR_NAME", { enumerable: true, get: function() {
+      return home_1.RUNTIME_DIR_NAME;
+    } });
+    Object.defineProperty(exports2, "listProfileAliases", { enumerable: true, get: function() {
+      return home_1.listProfileAliases;
+    } });
+    Object.defineProperty(exports2, "resolveHomeDir", { enumerable: true, get: function() {
+      return home_1.resolveHomeDir;
+    } });
+    var resolve_1 = require_resolve();
+    Object.defineProperty(exports2, "DEFAULT_TIMEOUTS", { enumerable: true, get: function() {
+      return resolve_1.DEFAULT_TIMEOUTS;
+    } });
+    Object.defineProperty(exports2, "disconnectedProfile", { enumerable: true, get: function() {
+      return resolve_1.disconnectedProfile;
+    } });
+    Object.defineProperty(exports2, "resolveProfile", { enumerable: true, get: function() {
+      return resolve_1.resolveProfile;
+    } });
+    Object.defineProperty(exports2, "resolveProfileDetailed", { enumerable: true, get: function() {
+      return resolve_1.resolveProfileDetailed;
+    } });
+    var destination_1 = require_destination();
+    Object.defineProperty(exports2, "DEFAULT_SERVICE_KEY_GRANT", { enumerable: true, get: function() {
+      return destination_1.DEFAULT_SERVICE_KEY_GRANT;
+    } });
+    Object.defineProperty(exports2, "checkDestinationName", { enumerable: true, get: function() {
+      return destination_1.checkDestinationName;
+    } });
+    Object.defineProperty(exports2, "listStoreNames", { enumerable: true, get: function() {
+      return destination_1.listStoreNames;
+    } });
+    Object.defineProperty(exports2, "planServiceKeyConnection", { enumerable: true, get: function() {
+      return destination_1.planServiceKeyConnection;
+    } });
+    Object.defineProperty(exports2, "platformStoreDirs", { enumerable: true, get: function() {
+      return destination_1.platformStoreDirs;
+    } });
+    Object.defineProperty(exports2, "readServiceKey", { enumerable: true, get: function() {
+      return destination_1.readServiceKey;
+    } });
+    Object.defineProperty(exports2, "resolveBrokerStores", { enumerable: true, get: function() {
+      return destination_1.resolveBrokerStores;
+    } });
+    Object.defineProperty(exports2, "resolveSessionEnv", { enumerable: true, get: function() {
+      return destination_1.resolveSessionEnv;
+    } });
+    Object.defineProperty(exports2, "serviceKeysDir", { enumerable: true, get: function() {
+      return destination_1.serviceKeysDir;
+    } });
+    Object.defineProperty(exports2, "sessionEnvFileName", { enumerable: true, get: function() {
+      return destination_1.sessionEnvFileName;
+    } });
+    Object.defineProperty(exports2, "sessionsDir", { enumerable: true, get: function() {
+      return destination_1.sessionsDir;
+    } });
+  }
+});
+
+// dist/src/safety/blocklist.js
+var require_blocklist = __commonJS({
+  "dist/src/safety/blocklist.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.DEFAULT_BLOCKLIST_PROFILE = void 0;
+    exports2.resolveSafetyEnv = resolveSafetyEnv;
+    exports2.readBlocklistConfig = readBlocklistConfig;
+    exports2.checkTables = checkTables;
+    exports2.evaluateTables = evaluateTables;
+    exports2.DEFAULT_BLOCKLIST_PROFILE = "standard";
+    var LEVEL_DEPTH = { minimal: 1, standard: 2, strict: 3 };
+    var CATEGORIES = [
+      {
+        category: "Banking / Payment",
+        level: "minimal",
+        action: "deny",
+        why: "Customer/vendor bank account credentials",
+        names: [
+          "BNKA",
+          "KNBK",
+          "LFBK",
+          "BUT0BK",
+          "T012K",
+          "REGUH",
+          "REGUP",
+          "PAYR",
+          "FPLT",
+          "FPLTC",
+          "CCARD",
+          "TCRCO",
+          "BSEGC",
+          "FPAYH",
+          "FPAYHX",
+          "FPAYP",
+          "FPAYPX"
+        ]
+      },
+      {
+        category: "Customer / Vendor Master PII",
+        level: "minimal",
+        action: "deny",
+        why: "Name, address, tax ID, DUNS, business-partner core PII",
+        names: [
+          "KNA1",
+          "KNB1",
+          "KNVK",
+          "KNVV",
+          "KNVL",
+          "LFA1",
+          "LFB1",
+          "LFM1",
+          "LFM2",
+          "BUT000",
+          "BUT020",
+          "BUT021",
+          "BUT021_FS",
+          "BUT050",
+          "BUT051",
+          "BUT100",
+          "BUT0ID",
+          "BUT0BANK"
+        ]
+      },
+      {
+        category: "Addresses / Communication",
+        level: "minimal",
+        action: "deny",
+        why: "Address, phone, fax, email, URL \u2014 PII",
+        names: [
+          "ADRC",
+          "ADRP",
+          "ADR2",
+          "ADR3",
+          "ADR6",
+          "ADR7",
+          "ADR9",
+          "ADR11",
+          "ADR12",
+          "ADR13",
+          "ADRT",
+          "ADRCT"
+        ]
+      },
+      {
+        category: "Authentication / Authorization / Security",
+        level: "minimal",
+        action: "deny",
+        why: "Password hashes, authorization values, RFC secrets, crypto keys",
+        names: [
+          "USR02",
+          "USH02",
+          "USRBF2",
+          "USR01",
+          "USR04",
+          "USR10",
+          "USR12",
+          "USR21",
+          "USR22",
+          "USR40",
+          "USR41",
+          "USR_CUST",
+          "AGR_1251",
+          "AGR_USERS",
+          "AGR_AGRS",
+          "PRGN_CUST",
+          "RFCDES",
+          "RSECACTB",
+          "RSECTAB",
+          "SNCSYSACL",
+          "SSF_PSE_D"
+        ]
+      },
+      {
+        category: "HR / Payroll / Personnel",
+        level: "minimal",
+        action: "deny",
+        why: "Employee PII, salary, payroll results, medical data",
+        names: [
+          "PA*",
+          "PB9*",
+          "PD9*",
+          "HRP*",
+          "PCL1",
+          "PCL2",
+          "PCL3",
+          "PCL4",
+          "PCL5",
+          "T526"
+        ]
+      },
+      {
+        category: "Tax / Government IDs",
+        level: "minimal",
+        action: "deny",
+        why: "Tax IDs, VAT registrations, national IDs",
+        names: [
+          "DFKKBPTAXNUM",
+          "TFKTAXNUMTYPE",
+          "J_1BTXIC3",
+          "J_1BNFDOC",
+          "KNAS",
+          "LFAS",
+          "BUT0TX"
+        ]
+      },
+      {
+        category: "Protected Business Data",
+        level: "standard",
+        action: "ask",
+        why: "Transactional data linked to customer/vendor PII; allow only with an authorized scope",
+        names: [
+          "VBRK",
+          "VBRP",
+          "VBAK",
+          "VBAP",
+          "VBPA",
+          "EKKO",
+          "EKPO",
+          "BKPF",
+          "BSEG",
+          "ACDOCA",
+          "FAGLFLEXA",
+          "FAGLFLEXT",
+          "CDHDR",
+          "CDPOS",
+          "STXH",
+          "STXL"
+        ]
+      },
+      {
+        category: "Audit / Security Logs",
+        level: "strict",
+        action: "deny",
+        why: "May carry PII in message variables and user activity traces",
+        names: [
+          "BALDAT",
+          "BALHDR",
+          "SLG1",
+          "SLGD",
+          "RSAU_BUF_DATA",
+          "SNAP",
+          "SMONI",
+          "SWNCMONI",
+          "SWNCT*",
+          "STAD",
+          "STATTRACE",
+          "DBTABLOG"
+        ]
+      },
+      {
+        category: "Communication & Workflow",
+        level: "strict",
+        action: "deny",
+        why: "Mail bodies, workflow context, broadcast records",
+        names: [
+          "SOOD",
+          "SOC3",
+          "SOST",
+          "SOFM",
+          "SWWWIHEAD",
+          "SWWCONT",
+          "SWWLOGHIST",
+          "BCST_SR",
+          "BCST_CAM"
+        ]
+      }
+    ];
+    function compileNames(names) {
+      const exact = /* @__PURE__ */ new Set();
+      const patterns = [];
+      for (const raw of names) {
+        const name = raw.trim().toUpperCase();
+        if (!name)
+          continue;
+        if (name.includes("*"))
+          patterns.push(new RegExp(`^${name.replace(/\*/g, "[A-Z0-9_]*")}$`));
+        else
+          exact.add(name);
+      }
+      return { exact, patterns };
+    }
+    function matches(compiled, table) {
+      return compiled.exact.has(table) || compiled.patterns.some((pattern) => pattern.test(table));
+    }
+    var COMPILED = CATEGORIES.map(({ names, ...rest }) => ({
+      ...rest,
+      compiled: compileNames(names)
+    }));
+    function resolveSafetyEnv(processEnv, profileEnv) {
+      const merged = { ...processEnv, ...profileEnv };
+      merged.MCP_ALLOW_TABLE = profileEnv.MCP_ALLOW_TABLE;
+      merged.MCP_BLOCKLIST_PROFILE = tightestLevel(processEnv.MCP_BLOCKLIST_PROFILE, profileEnv.MCP_BLOCKLIST_PROFILE);
+      merged.MCP_BLOCKLIST_EXTEND = unionNames(processEnv.MCP_BLOCKLIST_EXTEND, profileEnv.MCP_BLOCKLIST_EXTEND);
+      return merged;
+    }
+    var PROFILE_DEPTH = {
+      off: -1,
+      minimal: 0,
+      standard: 1,
+      strict: 2
+    };
+    function tightestLevel(fromProcess, fromProfile) {
+      if (fromProcess === void 0)
+        return fromProfile;
+      const floor = fromProfile === void 0 ? exports2.DEFAULT_BLOCKLIST_PROFILE : readProfileName(fromProfile);
+      const candidate = readProfileName(fromProcess);
+      if (PROFILE_DEPTH[candidate] > PROFILE_DEPTH[floor])
+        return candidate;
+      return fromProfile ?? floor;
+    }
+    function unionNames(fromProcess, fromProfile) {
+      const parts = [fromProfile, fromProcess].filter((v) => typeof v === "string" && v.trim() !== "");
+      if (parts.length === 0)
+        return fromProfile ?? fromProcess;
+      return parts.join(",");
+    }
+    function readBlocklistConfig(env = process.env) {
+      return {
+        profile: readProfileName(env.MCP_BLOCKLIST_PROFILE),
+        extend: compileNames(splitNames(env.MCP_BLOCKLIST_EXTEND)),
+        allow: new Set(splitNames(env.MCP_ALLOW_TABLE))
+      };
+    }
+    function readProfileName(raw) {
+      const value = (raw ?? "").trim().toLowerCase();
+      if (value === "off" || value === "minimal" || value === "standard" || value === "strict") {
+        return value;
+      }
+      return exports2.DEFAULT_BLOCKLIST_PROFILE;
+    }
+    function splitNames(raw) {
+      if (!raw)
+        return [];
+      return raw.split(/[,\s]+/).map((token) => token.trim().toUpperCase()).filter((token) => token.length > 0);
+    }
+    function checkTables(names, config) {
+      const hits = [];
+      const bypassed = [];
+      const audit = [];
+      if (config.profile === "off")
+        return { hits, bypassed, audit };
+      const seen = /* @__PURE__ */ new Set();
+      for (const raw of names) {
+        const table = raw.trim().toUpperCase();
+        if (!table || seen.has(table))
+          continue;
+        seen.add(table);
+        if (config.allow.has(table)) {
+          bypassed.push(table);
+          audit.push(`AUDIT: MCP_ALLOW_TABLE bypass for ${table}`);
+          continue;
+        }
+        const hit = matchBuiltIn(table, config.profile) ?? matchExtend(table, config.extend);
+        if (hit)
+          hits.push(hit);
+      }
+      return { hits, bypassed, audit };
+    }
+    function matchBuiltIn(table, profile) {
+      if (profile === "off")
+        return null;
+      const depth = LEVEL_DEPTH[profile];
+      for (const category of COMPILED) {
+        if (LEVEL_DEPTH[category.level] > depth)
+          continue;
+        if (!matches(category.compiled, table))
+          continue;
+        return {
+          table,
+          category: category.category,
+          level: category.level,
+          action: category.action,
+          why: category.why
+        };
+      }
+      return null;
+    }
+    function matchExtend(table, extend) {
+      if (!matches(extend, table))
+        return null;
+      return {
+        table,
+        category: "Operator extend list",
+        level: "minimal",
+        action: "deny",
+        why: "Listed in MCP_BLOCKLIST_EXTEND"
+      };
+    }
+    function evaluateTables(names, config, acknowledgeRisk) {
+      const result = checkTables(names, config);
+      return { ...result, verdict: verdictFor(result.hits, config, acknowledgeRisk) };
+    }
+    function verdictFor(hits, config, acknowledgeRisk) {
+      if (hits.length === 0)
+        return { kind: "pass" };
+      const ask = hits.filter((hit) => hit.action === "ask");
+      if (ask.length !== hits.length)
+        return { kind: "deny", message: refusal(hits, config) };
+      if (!acknowledgeRisk)
+        return { kind: "ask", message: askPrompt(ask, config) };
+      return { kind: "approved", tables: ask.map((hit) => hit.table) };
+    }
+    function listHits(hits) {
+      return hits.map((hit) => `  - ${hit.table} \u2014 ${hit.category}: ${hit.why}`).join("\n");
+    }
+    function refusal(hits, config) {
+      return `sapkit blocklist (profile: ${config.profile}) \u2014 row extraction refused:
+${listHits(hits)}
+
+Schema metadata is unaffected. For rows, use a released CDS view that masks the sensitive fields, anonymized test data, or a COUNT/SUM aggregate. An audited one-off bypass is MCP_ALLOW_TABLE=<NAME[,NAME...]>.`;
+    }
+    function askPrompt(hits, config) {
+      return `sapkit blocklist (profile: ${config.profile}) \u2014 user confirmation required for row extraction:
+${listHits(hits)}
+
+These tables hold sensitive business data. If the user has authorized this extraction, re-invoke the tool with \`acknowledge_risk: true\`; the approval is written to the audit channel. Prefer a masking CDS view, anonymized test data, or an aggregate.`;
+    }
+  }
+});
+
+// dist/src/safety/exposition.js
+var require_exposition = __commonJS({
+  "dist/src/safety/exposition.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.DEFAULT_EXPOSITION = void 0;
+    exports2.parseExposition = parseExposition;
+    exports2.parseExpositionDetailed = parseExpositionDetailed;
+    exports2.expositionFromArgv = expositionFromArgv;
+    exports2.expositionFromArgvDetailed = expositionFromArgvDetailed;
+    exports2.resolveActiveSets = resolveActiveSets;
+    exports2.selectExposedTools = selectExposedTools;
+    exports2.DEFAULT_EXPOSITION = ["readonly", "high"];
+    var KNOWN_SETS = [
+      "readonly",
+      "high",
+      "compact",
+      "low",
+      "system",
+      "search"
+    ];
+    function parseExposition(raw) {
+      return parseExpositionDetailed(raw).sets;
+    }
+    function parseExpositionDetailed(raw) {
+      const text = (raw ?? "").trim();
+      if (!text)
+        return { sets: [...exports2.DEFAULT_EXPOSITION], diagnostics: [] };
+      const sets = [];
+      const dropped = [];
+      for (const token of text.split(/[,\s]+/)) {
+        const value = token.trim().toLowerCase();
+        if (!value)
+          continue;
+        const known = KNOWN_SETS.find((set) => set === value);
+        if (!known) {
+          dropped.push(token.trim());
+          continue;
+        }
+        if (!sets.includes(known))
+          sets.push(known);
+      }
+      const diagnostics = [];
+      if (dropped.length > 0) {
+        diagnostics.push(`EXPOSITION_UNKNOWN: --exposition named ${dropped.map((token) => `"${token}"`).join(", ")}, which no handler set is called. Known sets: ${KNOWN_SETS.join(", ")}. Unrecognised names are dropped and do NOT fall back to the default (${exports2.DEFAULT_EXPOSITION.join(",")}), so a typo narrows the surface rather than opening the write tools.`);
+      }
+      if (sets.length === 0) {
+        diagnostics.push("EXPOSITION_EMPTY: no handler set in this value was recognised, so only the always-on search group is exposed and the server will look nearly empty. Pass --exposition=readonly for the read-only surface or --exposition=readonly,high for the full one.");
+      }
+      return { sets, diagnostics };
+    }
+    function expositionFromArgv(argv) {
+      return expositionFromArgvDetailed(argv).sets;
+    }
+    function expositionFromArgvDetailed(argv) {
+      for (let i = 0; i < argv.length; i++) {
+        const arg = argv[i] ?? "";
+        if (arg.startsWith("--exposition=")) {
+          return parseExpositionDetailed(arg.slice("--exposition=".length));
+        }
+        if (arg === "--exposition")
+          return parseExpositionDetailed(argv[i + 1] ?? "");
+      }
+      return { sets: [...exports2.DEFAULT_EXPOSITION], diagnostics: [] };
+    }
+    function resolveActiveSets(requested) {
+      const active = /* @__PURE__ */ new Set(["search"]);
+      for (const set of requested) {
+        active.add(set);
+        if (set === "readonly")
+          active.add("system");
+      }
+      return active;
+    }
+    function selectExposedTools(tools, query) {
+      const active = resolveActiveSets(query.sets);
+      return tools.filter((tool) => tool.exposure.sets.some((set) => active.has(set)) && isAvailableOn(tool.exposure.availableIn, query.systemType));
+    }
+    function isAvailableOn(availableIn, systemType) {
+      return availableIn.length === 0 || availableIn.includes(systemType);
+    }
+  }
+});
+
+// dist/src/safety/sql.js
+var require_sql = __commonJS({
+  "dist/src/safety/sql.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.stripSqlComments = stripSqlComments;
+    exports2.sqlHasTableSource = sqlHasTableSource;
+    exports2.extractTablesFromSql = extractTablesFromSql;
+    exports2.isAggregateOnly = isAggregateOnly;
+    var IDENTIFIER = /^[A-Za-z0-9_/]+/;
+    var NON_TABLE_WORDS = /* @__PURE__ */ new Set([
+      "SELECT",
+      "FROM",
+      "WHERE",
+      "JOIN",
+      "INNER",
+      "LEFT",
+      "RIGHT",
+      "OUTER",
+      "FULL",
+      "CROSS",
+      "ON",
+      "AS",
+      "GROUP",
+      "ORDER",
+      "BY",
+      "HAVING",
+      "UNION",
+      "ALL",
+      "INTO",
+      "AND",
+      "OR",
+      "NOT",
+      "DISTINCT",
+      "UP",
+      "TO",
+      "ROWS",
+      "CLIENT",
+      "SPECIFIED",
+      "FOR",
+      "WITH",
+      "WHEN",
+      "CASE",
+      "END"
+    ]);
+    function stripSqlComments(sql) {
+      return sql.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/--[^\r\n]*/g, " ");
+    }
+    function sqlHasTableSource(sql) {
+      return /\b(?:FROM|JOIN)\b/i.test(stripSqlComments(sql));
+    }
+    function skipSpace(text, from) {
+      let i = from;
+      while (i < text.length && /\s/.test(text.charAt(i)))
+        i++;
+      return i;
+    }
+    function readIdentifier(text, from) {
+      const match = IDENTIFIER.exec(text.slice(from));
+      if (!match)
+        return null;
+      const value = match[0];
+      return { value, end: from + value.length };
+    }
+    function extractTablesFromSql(sql) {
+      const text = stripSqlComments(sql);
+      const found = /* @__PURE__ */ new Set();
+      for (const match of text.matchAll(/\b(FROM|JOIN)\b/gi)) {
+        const isFrom = (match[1] ?? "").toUpperCase() === "FROM";
+        let i = (match.index ?? 0) + match[0].length;
+        for (; ; ) {
+          i = skipSpace(text, i);
+          if (text.charAt(i) === "(")
+            break;
+          const table = readIdentifier(text, i);
+          if (!table)
+            break;
+          const name = table.value.toUpperCase();
+          if (NON_TABLE_WORDS.has(name))
+            break;
+          found.add(name);
+          i = table.end;
+          if (!isFrom)
+            break;
+          const aliasStart = skipSpace(text, i);
+          const alias = readIdentifier(text, aliasStart);
+          if (alias) {
+            const upper = alias.value.toUpperCase();
+            if (upper === "AS") {
+              const named = readIdentifier(text, skipSpace(text, alias.end));
+              i = named ? named.end : alias.end;
+            } else if (!NON_TABLE_WORDS.has(upper)) {
+              i = alias.end;
+            }
+          }
+          i = skipSpace(text, i);
+          if (text.charAt(i) !== ",")
+            break;
+          i++;
+        }
+      }
+      return [...found];
+    }
+    function isAggregateOnly(sql) {
+      const text = `${sql.replace(/\s+/g, " ").trim()} `;
+      if (/\b(UNION|GROUP\s+BY|HAVING)\b/i.test(text))
+        return false;
+      const match = /^SELECT\s+(.+?)\s+FROM\s/i.exec(text);
+      if (!match)
+        return false;
+      const projection = match[1] ?? "";
+      if (/\(\s*SELECT\b/i.test(projection))
+        return false;
+      const items = splitTopLevel(projection, ",");
+      if (items.length === 0)
+        return false;
+      const aggregate = /^(?:COUNT|SUM|MIN|MAX|AVG)\s*\(\s*(?:DISTINCT\s+)?(?:\*|[A-Za-z0-9_./~]+)\s*\)(?:\s+AS\s+[A-Za-z0-9_]+)?$/i;
+      return items.every((item) => aggregate.test(item.trim()));
+    }
+    function splitTopLevel(text, separator) {
+      const out = [];
+      let depth = 0;
+      let buffer = "";
+      for (const char of text) {
+        if (char === "(")
+          depth++;
+        else if (char === ")")
+          depth--;
+        if (char === separator && depth === 0) {
+          out.push(buffer);
+          buffer = "";
+        } else {
+          buffer += char;
+        }
+      }
+      if (buffer.trim())
+        out.push(buffer);
+      return out;
+    }
+  }
+});
+
+// dist/src/safety/tier.js
+var require_tier = __commonJS({
+  "dist/src/safety/tier.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.TierBlockedError = exports2.SERVER_CONTROL_TOOLS = exports2.UNIT_TEST_EXECUTION_TOOLS = void 0;
+    exports2.checkTierAllowed = checkTierAllowed;
+    exports2.assertTierAllowed = assertTierAllowed;
+    exports2.UNIT_TEST_EXECUTION_TOOLS = /* @__PURE__ */ new Set([
+      "RunUnitTest",
+      "RunClassUnitTestsLow",
+      "HandlerUnitTestRun"
+    ]);
+    exports2.SERVER_CONTROL_TOOLS = /* @__PURE__ */ new Set(["ReloadProfile"]);
+    var DANGEROUS_NAME_RE = /^(Create|Update|Delete|Activate|Release|Patch|Write|Install|Run(?!time)|RuntimeRun|RuntimeCreate)/;
+    var ALLOWED = { allowed: true };
+    function misdeclared(tool, tier) {
+      return {
+        allowed: false,
+        reason: `${tool.name} is declared "${tool.kind}" but its name is that of a mutating or executing tool; refusing on a ${tier} profile (fail-closed).`
+      };
+    }
+    function checkTierAllowed(tool, tier) {
+      if (tier === "DEV")
+        return ALLOWED;
+      switch (tool.kind) {
+        case "server-control":
+          if (DANGEROUS_NAME_RE.test(tool.name))
+            return misdeclared(tool, tier);
+          if (exports2.SERVER_CONTROL_TOOLS.has(tool.name))
+            return ALLOWED;
+          return {
+            allowed: false,
+            reason: `${tool.name} is declared "server-control", but that exemption covers only ${[
+              ...exports2.SERVER_CONTROL_TOOLS
+            ].join(", ")}; refusing on a ${tier} profile (fail-closed).`
+          };
+        case "read":
+        case "row-data":
+          if (DANGEROUS_NAME_RE.test(tool.name))
+            return misdeclared(tool, tier);
+          return ALLOWED;
+        case "execution":
+          if (exports2.UNIT_TEST_EXECUTION_TOOLS.has(tool.name) && tier === "QA")
+            return ALLOWED;
+          return {
+            allowed: false,
+            reason: `${tool.name} executes ABAP code on the server and is blocked on ${tier} profiles.`
+          };
+        case "mutation":
+          return {
+            allowed: false,
+            reason: `${tool.name} mutates SAP objects; only DEV profiles may run it.`
+          };
+        default:
+          return {
+            allowed: false,
+            reason: `${tool.name} could not be classified; only DEV profiles may run it (fail-closed).`
+          };
+      }
+    }
+    var TierBlockedError = class extends Error {
+      toolName;
+      tier;
+      code = "ERR_READONLY_TIER";
+      constructor(toolName, tier, reason) {
+        super(`ERR_READONLY_TIER: ${reason} Active profile tier=${tier}. Switch to a DEV profile to perform this operation.`);
+        this.toolName = toolName;
+        this.tier = tier;
+        this.name = "TierBlockedError";
+      }
+    };
+    exports2.TierBlockedError = TierBlockedError;
+    function assertTierAllowed(tool, tier) {
+      const decision = checkTierAllowed(tool, tier);
+      if (decision.allowed)
+        return;
+      throw new TierBlockedError(tool.name, tier, decision.reason);
+    }
+  }
+});
+
+// dist/src/safety/rowData.js
+var require_rowData = __commonJS({
+  "dist/src/safety/rowData.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.ROW_DATA_TOOLS = void 0;
+    exports2.isRowDataTool = isRowDataTool;
+    exports2.evaluateRowDataRequest = evaluateRowDataRequest;
+    var blocklist_1 = require_blocklist();
+    var sql_1 = require_sql();
+    var tier_1 = require_tier();
+    exports2.ROW_DATA_TOOLS = ["GetTableContents", "GetSqlQuery"];
+    function isRowDataTool(name) {
+      return exports2.ROW_DATA_TOOLS.includes(name);
+    }
+    function evaluateRowDataRequest(request, context) {
+      const kind = context.toolKind ?? "row-data";
+      const tier = (0, tier_1.checkTierAllowed)({ name: request.tool, kind }, context.tier);
+      if (!tier.allowed) {
+        return {
+          kind: "deny",
+          code: "ERR_READONLY_TIER",
+          message: `ERR_READONLY_TIER: ${tier.reason} Active profile tier=${context.tier}.`,
+          audit: []
+        };
+      }
+      const candidates = collectTables(request);
+      if (candidates.kind === "deny")
+        return candidates.decision;
+      const config = context.config ?? (0, blocklist_1.readBlocklistConfig)({});
+      const { verdict, audit } = (0, blocklist_1.evaluateTables)(candidates.tables, config, request.acknowledgeRisk === true);
+      switch (verdict.kind) {
+        case "deny":
+          return { kind: "deny", code: "ERR_ROWDATA_BLOCKED", message: verdict.message, audit };
+        case "ask":
+          return { kind: "deny", code: "ERR_ROWDATA_CONFIRM", message: verdict.message, audit };
+        case "approved":
+          return {
+            kind: "allow",
+            tables: candidates.tables,
+            audit: [
+              ...audit,
+              `AUDIT: user-acknowledged ${request.tool} on ${verdict.tables.join(",")}`
+            ]
+          };
+        default:
+          return { kind: "allow", tables: candidates.tables, audit };
+      }
+    }
+    function collectTables(request) {
+      if (request.tool === "GetTableContents") {
+        const table = (request.tableName ?? "").trim();
+        if (!table) {
+          return {
+            kind: "deny",
+            decision: {
+              kind: "deny",
+              code: "ERR_ROWDATA_ARGS",
+              message: "GetTableContents was called without a table name, so the protected-table gate cannot evaluate it; the call is refused (fail-closed).",
+              audit: []
+            }
+          };
+        }
+        return { kind: "tables", tables: [table.toUpperCase()] };
+      }
+      const sql = (request.sql ?? "").trim();
+      if (!sql) {
+        return {
+          kind: "deny",
+          decision: {
+            kind: "deny",
+            code: "ERR_ROWDATA_ARGS",
+            message: "GetSqlQuery was called without a statement, so the protected-table gate cannot evaluate it; the call is refused (fail-closed).",
+            audit: []
+          }
+        };
+      }
+      const tables = (0, sql_1.extractTablesFromSql)(sql);
+      if (tables.length === 0) {
+        if ((0, sql_1.sqlHasTableSource)(sql)) {
+          return {
+            kind: "deny",
+            decision: {
+              kind: "deny",
+              code: "ERR_ROWDATA_UNPARSEABLE",
+              message: "sapkit blocklist \u2014 no table name could be extracted from this query, so the protected-table gate cannot evaluate it; the query is refused (fail-closed). Rewrite it with a plain `FROM <table>` reference \u2014 one table per FROM/JOIN, no comment between FROM and the name.",
+              audit: []
+            }
+          };
+        }
+        return { kind: "tables", tables: [] };
+      }
+      if ((0, sql_1.isAggregateOnly)(sql))
+        return { kind: "tables", tables: [] };
+      return { kind: "tables", tables };
+    }
+  }
+});
+
+// dist/src/safety/unsafe.js
+var require_unsafe = __commonJS({
+  "dist/src/safety/unsafe.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.resolveUnsafeFlag = resolveUnsafeFlag;
+    function resolveUnsafeFlag(input = {}) {
+      const argv = input.argv ?? process.argv;
+      const env = input.env ?? process.env;
+      return argv.includes("--unsafe") || env.MCP_UNSAFE === "true";
+    }
+  }
+});
+
+// dist/src/safety/index.js
+var require_safety = __commonJS({
+  "dist/src/safety/index.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.resolveUnsafeFlag = exports2.checkTierAllowed = exports2.assertTierAllowed = exports2.UNIT_TEST_EXECUTION_TOOLS = exports2.TierBlockedError = exports2.SERVER_CONTROL_TOOLS = exports2.stripSqlComments = exports2.sqlHasTableSource = exports2.isAggregateOnly = exports2.extractTablesFromSql = exports2.isRowDataTool = exports2.evaluateRowDataRequest = exports2.ROW_DATA_TOOLS = exports2.selectExposedTools = exports2.resolveActiveSets = exports2.parseExpositionDetailed = exports2.parseExposition = exports2.expositionFromArgvDetailed = exports2.expositionFromArgv = exports2.DEFAULT_EXPOSITION = exports2.resolveSafetyEnv = exports2.readBlocklistConfig = exports2.evaluateTables = exports2.checkTables = exports2.DEFAULT_BLOCKLIST_PROFILE = void 0;
+    var blocklist_1 = require_blocklist();
+    Object.defineProperty(exports2, "DEFAULT_BLOCKLIST_PROFILE", { enumerable: true, get: function() {
+      return blocklist_1.DEFAULT_BLOCKLIST_PROFILE;
+    } });
+    Object.defineProperty(exports2, "checkTables", { enumerable: true, get: function() {
+      return blocklist_1.checkTables;
+    } });
+    Object.defineProperty(exports2, "evaluateTables", { enumerable: true, get: function() {
+      return blocklist_1.evaluateTables;
+    } });
+    Object.defineProperty(exports2, "readBlocklistConfig", { enumerable: true, get: function() {
+      return blocklist_1.readBlocklistConfig;
+    } });
+    Object.defineProperty(exports2, "resolveSafetyEnv", { enumerable: true, get: function() {
+      return blocklist_1.resolveSafetyEnv;
+    } });
+    var exposition_1 = require_exposition();
+    Object.defineProperty(exports2, "DEFAULT_EXPOSITION", { enumerable: true, get: function() {
+      return exposition_1.DEFAULT_EXPOSITION;
+    } });
+    Object.defineProperty(exports2, "expositionFromArgv", { enumerable: true, get: function() {
+      return exposition_1.expositionFromArgv;
+    } });
+    Object.defineProperty(exports2, "expositionFromArgvDetailed", { enumerable: true, get: function() {
+      return exposition_1.expositionFromArgvDetailed;
+    } });
+    Object.defineProperty(exports2, "parseExposition", { enumerable: true, get: function() {
+      return exposition_1.parseExposition;
+    } });
+    Object.defineProperty(exports2, "parseExpositionDetailed", { enumerable: true, get: function() {
+      return exposition_1.parseExpositionDetailed;
+    } });
+    Object.defineProperty(exports2, "resolveActiveSets", { enumerable: true, get: function() {
+      return exposition_1.resolveActiveSets;
+    } });
+    Object.defineProperty(exports2, "selectExposedTools", { enumerable: true, get: function() {
+      return exposition_1.selectExposedTools;
+    } });
+    var rowData_1 = require_rowData();
+    Object.defineProperty(exports2, "ROW_DATA_TOOLS", { enumerable: true, get: function() {
+      return rowData_1.ROW_DATA_TOOLS;
+    } });
+    Object.defineProperty(exports2, "evaluateRowDataRequest", { enumerable: true, get: function() {
+      return rowData_1.evaluateRowDataRequest;
+    } });
+    Object.defineProperty(exports2, "isRowDataTool", { enumerable: true, get: function() {
+      return rowData_1.isRowDataTool;
+    } });
+    var sql_1 = require_sql();
+    Object.defineProperty(exports2, "extractTablesFromSql", { enumerable: true, get: function() {
+      return sql_1.extractTablesFromSql;
+    } });
+    Object.defineProperty(exports2, "isAggregateOnly", { enumerable: true, get: function() {
+      return sql_1.isAggregateOnly;
+    } });
+    Object.defineProperty(exports2, "sqlHasTableSource", { enumerable: true, get: function() {
+      return sql_1.sqlHasTableSource;
+    } });
+    Object.defineProperty(exports2, "stripSqlComments", { enumerable: true, get: function() {
+      return sql_1.stripSqlComments;
+    } });
+    var tier_1 = require_tier();
+    Object.defineProperty(exports2, "SERVER_CONTROL_TOOLS", { enumerable: true, get: function() {
+      return tier_1.SERVER_CONTROL_TOOLS;
+    } });
+    Object.defineProperty(exports2, "TierBlockedError", { enumerable: true, get: function() {
+      return tier_1.TierBlockedError;
+    } });
+    Object.defineProperty(exports2, "UNIT_TEST_EXECUTION_TOOLS", { enumerable: true, get: function() {
+      return tier_1.UNIT_TEST_EXECUTION_TOOLS;
+    } });
+    Object.defineProperty(exports2, "assertTierAllowed", { enumerable: true, get: function() {
+      return tier_1.assertTierAllowed;
+    } });
+    Object.defineProperty(exports2, "checkTierAllowed", { enumerable: true, get: function() {
+      return tier_1.checkTierAllowed;
+    } });
+    var unsafe_1 = require_unsafe();
+    Object.defineProperty(exports2, "resolveUnsafeFlag", { enumerable: true, get: function() {
+      return unsafe_1.resolveUnsafeFlag;
+    } });
+  }
+});
+
+// dist/src/server/startup.js
+var require_startup = __commonJS({
+  "dist/src/server/startup.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m, k);
+      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m[k];
+        } };
+      }
+      Object.defineProperty(o, k2, desc);
+    }) : (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      o[k2] = m[k];
+    }));
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    }) : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports2 && exports2.__importStar || /* @__PURE__ */ (function() {
+      var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function(o2) {
+          var ar = [];
+          for (var k in o2) if (Object.prototype.hasOwnProperty.call(o2, k)) ar[ar.length] = k;
+          return ar;
+        };
+        return ownKeys(o);
+      };
+      return function(mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) {
+          for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        }
+        __setModuleDefault(result, mod);
+        return result;
+      };
+    })();
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.PROFILE_SUMMARY_PREFIX = void 0;
+    exports2.profileSummaryLine = profileSummaryLine;
+    exports2.resolveStartup = resolveStartup;
+    var fs = __importStar(require("node:fs"));
+    var path = __importStar(require("node:path"));
+    var auth_1 = require_auth();
+    var profile_1 = require_profile();
+    var safety_1 = require_safety();
+    function argValue(args, name) {
+      const prefix = `${name}=`;
+      for (let i = 0; i < args.length; i++) {
+        const arg = args[i] ?? "";
+        if (arg.startsWith(prefix))
+          return arg.slice(prefix.length);
+        if (arg === name)
+          return args[i + 1] ?? "";
+      }
+      return void 0;
+    }
+    function resolveEnvPathLike(raw, cwd) {
+      return path.isAbsolute(raw) ? raw : path.resolve(cwd, raw);
+    }
+    function nothingResolved(profile) {
+      return profile.envPath === null && profile.alias === null && profile.diagnostics.length === 1 && (profile.diagnostics[0] ?? "").startsWith("NO_PROFILE:");
+    }
+    function describeServiceKeyDestination(name, key) {
+      const plan = (0, profile_1.planServiceKeyConnection)(key);
+      const shape = `${key.source}, ${key.storeType} shape`;
+      const basic = "use --env=<name>, --env-path=<file>, or an active profile for a Basic connection.";
+      if (plan.kind === "no-service-url") {
+        return `MCP_DESTINATION_NO_SERVICE_URL: --mcp=${name} resolved its service key (${shape}) and its OAuth2 material is complete, but the key names no ADT service URL \u2014 a token would have nowhere to go, so the server starts with no connection and no token is requested. Add the ABAP service URL to ${key.source} (an "abap": { "url": ... } block, or "sap_url"), or ${basic}`;
+      }
+      const grant = `the ${key.grant} grant ` + (key.grantDeclared ? "(declared by the key)" : "(the default for a key that declares no granttype)");
+      if (key.grant === "client_credentials") {
+        return `MCP_DESTINATION_TOKEN_REQUIRED: --mcp=${name} resolved its service key (${shape}, service URL ${plan.baseUrl}) and it uses ${grant}. That grant needs no person and no browser, so startup acquires the first token itself \u2014 the next diagnostic says whether it got one. A profile reload does not: ReloadProfile re-reads argv, the environment and the disk, and a token is on none of them, so reloading a --mcp startup ends inspection-only and the server has to be restarted.`;
+      }
+      return `MCP_DESTINATION_TOKEN_PENDING: --mcp=${name} resolved its service key (${shape}, service URL ${plan.baseUrl}) and it uses ${grant}. Startup does not begin that flow \u2014 it ends at a browser a person drives, and this engine never opens one \u2014 so the server starts with no connection. The authorization endpoint is ${(0, auth_1.uaaEndpoints)(plan.uaa.url).authorize} (client_id ${plan.uaa.clientId}, response_type=code, redirect_uri a loopback callback that startup does not bind). Next: if this destination is meant to run server-to-server, add "granttype": "client_credentials" to ${key.source} and restart \u2014 startup acquires that token on its own. Otherwise ${basic}`;
+    }
+    function brokerSwitches(args, env) {
+      const on = [];
+      if (args.includes("--auth-broker"))
+        on.push("--auth-broker");
+      if ((env.MCP_USE_AUTH_BROKER ?? "").trim() === "true")
+        on.push("MCP_USE_AUTH_BROKER=true");
+      return on;
+    }
+    exports2.PROFILE_SUMMARY_PREFIX = "[sapkit] profile: ";
+    function profileSummaryLine(profile, sets) {
+      return `${exports2.PROFILE_SUMMARY_PREFIX}${profile.alias ?? "(none)"} \xB7 tier=${profile.tier} \xB7 systemType=${profile.systemType} \xB7 connection=${profile.connection ? "yes" : "none"} \xB7 exposition=${sets.join(",") || "(empty)"}`;
+    }
+    function resolveStartup(input = {}) {
+      const argv = input.argv ?? process.argv;
+      const args = argv.slice(2);
+      const env = input.env ?? process.env;
+      const cwd = input.cwd ?? process.cwd();
+      const diagnostics = [];
+      const exposition = (0, safety_1.expositionFromArgvDetailed)(args);
+      diagnostics.push(...exposition.diagnostics);
+      const explicitEnvPath = argValue(args, "--env-path");
+      const mcpDestination = (argValue(args, "--mcp") ?? "").trim();
+      const envDestination = (argValue(args, "--env") ?? "").trim();
+      const authBrokerPath = (argValue(args, "--auth-broker-path") ?? "").trim();
+      const envPathOption = explicitEnvPath !== void 0 && explicitEnvPath.trim() !== "" ? resolveEnvPathLike(explicitEnvPath.trim(), cwd) : void 0;
+      const injectedEnvPath = (env.MCP_ENV_PATH ?? "").trim();
+      const lookup = {
+        env,
+        cwd,
+        ...input.homedir !== void 0 ? { homedir: input.homedir } : {},
+        ...authBrokerPath !== "" ? { authBrokerPath } : {}
+      };
+      const profileOptions = {
+        cwd,
+        env,
+        ...input.homedir !== void 0 ? { homedir: input.homedir } : {}
+      };
+      let destination = null;
+      let resolution;
+      if (mcpDestination !== "") {
+        const channelDiagnostics = [];
+        if (envDestination !== "") {
+          channelDiagnostics.push(`ENV_DESTINATION_IGNORED: --env=${envDestination} was ignored because --mcp=${mcpDestination} names a service-key destination, which outranks it (the measured broker tries the service key first: engine/src/lib/auth/brokerFactory.ts:146-183).`);
+        }
+        const found = (0, profile_1.readServiceKey)(mcpDestination, lookup);
+        switch (found.kind) {
+          case "ok": {
+            destination = {
+              channel: "mcp",
+              name: mcpDestination,
+              source: found.key.source,
+              serviceKey: found.key
+            };
+            channelDiagnostics.push(describeServiceKeyDestination(mcpDestination, found.key));
+            break;
+          }
+          case "unsafe-name":
+            channelDiagnostics.push(`MCP_DESTINATION_INVALID: --mcp=${mcpDestination} is not a destination name \u2014 ${found.reason}. A destination names a file inside the service-key store, never a path; the server starts with no connection.`);
+            break;
+          case "not-found":
+            channelDiagnostics.push(`MCP_DESTINATION_NOT_FOUND: --mcp=${mcpDestination} has no service key at ${found.path}${found.available.length ? ` (available: ${found.available.join(", ")})` : " (no service keys found there)"} \u2014 the server starts with no connection and does not fall back to another system.`);
+            break;
+          default:
+            channelDiagnostics.push(`SERVICE_KEY_INVALID: the service key for --mcp=${mcpDestination} at ${found.path} could not be used \u2014 ${found.reason}. The server starts with no connection.`);
+            break;
+        }
+        if (destination === null) {
+          destination = { channel: "mcp", name: mcpDestination, source: null, serviceKey: null };
+        }
+        resolution = { profile: (0, profile_1.disconnectedProfile)(channelDiagnostics), envVars: {} };
+      } else if (envDestination !== "" && envPathOption === void 0 && injectedEnvPath === "") {
+        const found = (0, profile_1.resolveSessionEnv)(envDestination, lookup);
+        if (found.kind === "ok") {
+          destination = {
+            channel: "env",
+            name: envDestination,
+            source: found.path,
+            serviceKey: null
+          };
+          resolution = (0, profile_1.resolveProfileDetailed)({ ...profileOptions, envPath: found.path });
+        } else {
+          destination = { channel: "env", name: envDestination, source: null, serviceKey: null };
+          const channelDiagnostics = found.kind === "unsafe-name" ? [
+            `ENV_DESTINATION_INVALID: --env=${envDestination} is not a session name \u2014 ${found.reason}. --env names a file inside the session store; use --env-path=<file> to point at a path. The server starts with no connection.`
+          ] : [
+            `ENV_DESTINATION_NOT_FOUND: --env=${envDestination} has no session env file at ${found.path}${found.available.length ? ` (available: ${found.available.join(", ")})` : " (no session env files found there)"} \u2014 the server starts with no connection and does not fall back to another system.`
+          ];
+          resolution = { profile: (0, profile_1.disconnectedProfile)(channelDiagnostics), envVars: {} };
+        }
+      } else {
+        if (envDestination !== "") {
+          diagnostics.push(`ENV_DESTINATION_IGNORED: --env=${envDestination} was ignored because an explicit env-file path (${envPathOption !== void 0 ? "--env-path" : "MCP_ENV_PATH"}) outranks it (the measured parser tries envPath before envDestination: engine/src/lib/config/envResolver.ts:35-43).`);
+        }
+        resolution = (0, profile_1.resolveProfileDetailed)({
+          ...profileOptions,
+          ...envPathOption !== void 0 ? { envPath: envPathOption } : {}
+        });
+        const switches = brokerSwitches(args, env);
+        const useAuthBroker = switches.length > 0;
+        if (resolution.profile.connection === null && nothingResolved(resolution.profile) && envPathOption === void 0 && mcpDestination === "" && envDestination === "" && !injectedEnvPath && !useAuthBroker) {
+          const cwdEnv = path.resolve(cwd, ".env");
+          if (fs.existsSync(cwdEnv)) {
+            resolution = (0, profile_1.resolveProfileDetailed)({ ...profileOptions, envPath: cwdEnv });
+          }
+        }
+        if (useAuthBroker) {
+          const stores = (0, profile_1.resolveBrokerStores)(lookup);
+          destination = {
+            channel: "broker",
+            name: "",
+            source: null,
+            serviceKey: null,
+            broker: stores
+          };
+          if (resolution.profile.connection !== null) {
+            diagnostics.push(`AUTH_BROKER_IGNORED: the auth broker channel is on (${switches.join(", ")}), but an env-file channel resolved the connection first and owns it (${resolution.profile.envPath}). The measured broker behaves the same way: --env/--env-path/MCP_ENV_PATH is Variant 2 and the broker switch only locks Variant 3 (engine/src/lib/auth/brokerFactory.ts:167,185).`);
+          } else {
+            diagnostics.push(`AUTH_BROKER_NO_DESTINATION: the auth broker channel is on (${switches.join(", ")}) but no destination was named, so this channel produced no connection \u2014 the measured broker creates no default broker in that case either (engine/src/lib/auth/brokerFactory.ts:283-293) and resolves credentials only for a destination that is named. Service keys: ${stores.serviceKeysDir}${stores.destinations.length ? ` (available: ${stores.destinations.join(", ")})` : " (no service keys found there)"}. Sessions: ${stores.sessionsDir}. Name one with --mcp=<name>, or use --env=<name>, --env-path=<file>, or an active profile for a Basic connection. The project-local .env fallback stays locked while this channel is on.`);
+          }
+        }
+      }
+      diagnostics.push(...resolution.profile.diagnostics);
+      const safetyEnv = (0, safety_1.resolveSafetyEnv)(env, resolution.envVars);
+      const profile = resolution.profile;
+      diagnostics.push(profileSummaryLine(profile, exposition.sets));
+      return {
+        sets: exposition.sets,
+        profile,
+        envVars: resolution.envVars,
+        env: safetyEnv,
+        blocklist: (0, safety_1.readBlocklistConfig)(safetyEnv),
+        destination,
+        unsafe: (0, safety_1.resolveUnsafeFlag)({ argv: args, env }),
+        diagnostics,
+        input: {
+          argv: [...argv],
+          // env는 **참조로** 실어 나른다. 기본값이 `process.env`일 때 재적재가 그
+          // 사이에 바뀐 값을 보아야 하기 때문이다. 이 계층은 env에 쓰지 않는다(구
+          // 엔진의 `applyProfile`은 `process.env.SAP_*`를 덮어썼다 —
+          // `engine/src/lib/profile.ts:271-280`).
+          env,
+          cwd,
+          ...input.homedir !== void 0 ? { homedir: input.homedir } : {}
+        }
+      };
+    }
+  }
+});
+
+// dist/src/server/connectDestination.js
+var require_connectDestination = __commonJS({
+  "dist/src/server/connectDestination.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.connectDestination = connectDestination;
+    var auth_1 = require_auth();
+    var profile_1 = require_profile();
+    var startup_1 = require_startup();
+    async function connectDestination(startup, options = {}) {
+      const selection = startup.destination;
+      const key = selection !== null && selection.channel === "mcp" ? selection.serviceKey : null;
+      if (key === null || key.grant !== "client_credentials")
+        return startup;
+      const plan = (0, profile_1.planServiceKeyConnection)(key);
+      if (plan.kind !== "ready")
+        return startup;
+      const client = new auth_1.UaaClient(plan.uaa, {
+        ...options.transport !== void 0 ? { transport: options.transport } : {},
+        ...options.now !== void 0 ? { now: options.now } : {}
+      });
+      const source = new auth_1.TokenSource({
+        client,
+        ...options.now !== void 0 ? { now: options.now } : {}
+      });
+      let token;
+      try {
+        token = await source.accessToken();
+      } catch (error) {
+        const line2 = failureLine(key, client.tokenEndpoint, error);
+        return replace(startup, { ...startup.profile, diagnostics: [...startup.profile.diagnostics, line2] }, line2);
+      }
+      const connection = {
+        baseUrl: plan.baseUrl,
+        // Bearer 접속에는 사용자·비밀번호가 없다. 접속 계층은 `authType: 'jwt'`에서
+        // 이 둘을 아예 보지 않는다(`src/adt/client.ts`의 인증 분기). Basic만 아는
+        // RFC 경로(`src/rfc/`)는 이 축에 노출되지 않는다 — destination 접속의
+        // 배포 축은 `cloud`이고 그 도구 20종은 `available_in: onprem|legacy`다.
+        username: "",
+        password: "",
+        ...plan.client !== null ? { client: plan.client } : {},
+        ...plan.language !== null ? { language: plan.language } : {},
+        // service key에는 TLS 노브가 없다. 검증은 켠 채로 둔다 — 끄는 것은 언제나
+        // 명시적 선택이어야 하고, 그 선택을 적을 자리가 이 통로에는 없다.
+        rejectUnauthorized: true,
+        timeouts: { ...profile_1.DEFAULT_TIMEOUTS },
+        authType: "jwt",
+        jwtToken: token,
+        uaa: plan.uaa
+      };
+      const line = successLine(key, plan.baseUrl, source.status());
+      const profile = {
+        connection,
+        // service key는 tier를 말하지 않는다. **UNKNOWN이 곧 fail-closed다** —
+        // write도 실행도 전부 거부된다. 넘겨짚어 DEV로 여는 갈래를 두지 않는다.
+        tier: "UNKNOWN",
+        systemType: "cloud",
+        sapVersion: null,
+        envPath: null,
+        alias: null,
+        diagnostics: [...startup.profile.diagnostics, line]
+      };
+      return replace(startup, profile, line);
+    }
+    function replace(startup, profile, line) {
+      const kept = startup.diagnostics.filter((entry) => !entry.startsWith(startup_1.PROFILE_SUMMARY_PREFIX));
+      return {
+        ...startup,
+        profile,
+        diagnostics: [...kept, line, (0, startup_1.profileSummaryLine)(profile, startup.sets)]
+      };
+    }
+    function lifetime(status) {
+      if (status.expiresAtMs === null) {
+        return "the token says nothing about its own lifetime (no exp claim and no expires_in)";
+      }
+      return `the token expires at ${new Date(status.expiresAtMs).toISOString()}`;
+    }
+    function successLine(key, baseUrl, status) {
+      const where = [
+        key.client !== null ? `client ${key.client}` : null,
+        key.language !== null ? `language ${key.language}` : null
+      ].filter((part) => part !== null).join(", ");
+      return `MCP_DESTINATION_CONNECTED: --mcp=${key.destination} acquired a client_credentials token and the connection stands as Bearer on ${baseUrl}${where === "" ? "" : ` (${where})`}. ${lifetime(status)}, it lives in this process's memory only, and startup does not renew it \u2014 restart the server when it expires. No SAP tier comes with a service key, so tier=UNKNOWN and every write and execution is refused (fail-closed); set up a profile sap.env if this system needs to be writable.`;
+    }
+    function nextStep(code, key) {
+      switch (code) {
+        case "UAA_REQUEST_FAILED":
+          return `The token endpoint was not reachable from this machine \u2014 check the uaa url in ${key.source} against DNS, the proxy, and any VPN this machine needs, then restart.`;
+        case "UAA_REJECTED":
+          return `The token endpoint refused these credentials \u2014 the clientid/clientsecret in ${key.source} is wrong or its binding secret was rotated. Re-download the service key from BTP and restart.`;
+        case "UAA_RESPONSE_INVALID":
+          return `The token endpoint answered but the body carried no usable access_token \u2014 check that the uaa url in ${key.source} points at the XSUAA token endpoint and not at a proxy or a login page.`;
+        default:
+          return `Fix the cause above in ${key.source} and restart.`;
+      }
+    }
+    function failureLine(key, endpoint, error) {
+      const code = (0, auth_1.isAuthError)(error) ? error.code : "UNEXPECTED";
+      const detail = error instanceof Error ? error.message : String(error);
+      return `MCP_DESTINATION_TOKEN_FAILED: --mcp=${key.destination} uses the client_credentials grant and startup could not get a token from ${endpoint} \u2014 ${detail}. The server starts with no connection and does not fall back to another system. ${nextStep(code, key)} Until then use --env=<name>, --env-path=<file>, or an active profile for a Basic connection.`;
+    }
+  }
+});
+
 // node_modules/zod/v3/helpers/util.cjs
 var require_util2 = __commonJS({
   "node_modules/zod/v3/helpers/util.cjs"(exports2) {
@@ -32069,7 +34657,7 @@ var require_json_schema_traverse = __commonJS({
 });
 
 // node_modules/ajv/dist/compile/resolve.js
-var require_resolve = __commonJS({
+var require_resolve2 = __commonJS({
   "node_modules/ajv/dist/compile/resolve.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
@@ -32239,7 +34827,7 @@ var require_validate = __commonJS({
     var subschema_1 = require_subschema();
     var codegen_1 = require_codegen();
     var names_1 = require_names();
-    var resolve_1 = require_resolve();
+    var resolve_1 = require_resolve2();
     var util_1 = require_util3();
     var errors_1 = require_errors6();
     function validateFunctionCode(it) {
@@ -32753,7 +35341,7 @@ var require_ref_error = __commonJS({
   "node_modules/ajv/dist/compile/ref_error.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
-    var resolve_1 = require_resolve();
+    var resolve_1 = require_resolve2();
     var MissingRefError = class extends Error {
       constructor(resolver, baseId, ref, msg) {
         super(msg || `can't resolve reference ${ref} from id ${baseId}`);
@@ -32774,7 +35362,7 @@ var require_compile = __commonJS({
     var codegen_1 = require_codegen();
     var validation_error_1 = require_validation_error();
     var names_1 = require_names();
-    var resolve_1 = require_resolve();
+    var resolve_1 = require_resolve2();
     var util_1 = require_util3();
     var validate_1 = require_validate();
     var SchemaEnv = class {
@@ -33888,7 +36476,7 @@ var require_core3 = __commonJS({
     var rules_1 = require_rules();
     var compile_1 = require_compile();
     var codegen_2 = require_codegen();
-    var resolve_1 = require_resolve();
+    var resolve_1 = require_resolve2();
     var dataType_1 = require_dataType();
     var util_1 = require_util3();
     var $dataRefSchema = require_data();
@@ -38780,878 +41368,6 @@ var require_mcp = __commonJS({
         hasMore: false
       }
     };
-  }
-});
-
-// dist/src/safety/blocklist.js
-var require_blocklist = __commonJS({
-  "dist/src/safety/blocklist.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.DEFAULT_BLOCKLIST_PROFILE = void 0;
-    exports2.resolveSafetyEnv = resolveSafetyEnv;
-    exports2.readBlocklistConfig = readBlocklistConfig;
-    exports2.checkTables = checkTables;
-    exports2.evaluateTables = evaluateTables;
-    exports2.DEFAULT_BLOCKLIST_PROFILE = "standard";
-    var LEVEL_DEPTH = { minimal: 1, standard: 2, strict: 3 };
-    var CATEGORIES = [
-      {
-        category: "Banking / Payment",
-        level: "minimal",
-        action: "deny",
-        why: "Customer/vendor bank account credentials",
-        names: [
-          "BNKA",
-          "KNBK",
-          "LFBK",
-          "BUT0BK",
-          "T012K",
-          "REGUH",
-          "REGUP",
-          "PAYR",
-          "FPLT",
-          "FPLTC",
-          "CCARD",
-          "TCRCO",
-          "BSEGC",
-          "FPAYH",
-          "FPAYHX",
-          "FPAYP",
-          "FPAYPX"
-        ]
-      },
-      {
-        category: "Customer / Vendor Master PII",
-        level: "minimal",
-        action: "deny",
-        why: "Name, address, tax ID, DUNS, business-partner core PII",
-        names: [
-          "KNA1",
-          "KNB1",
-          "KNVK",
-          "KNVV",
-          "KNVL",
-          "LFA1",
-          "LFB1",
-          "LFM1",
-          "LFM2",
-          "BUT000",
-          "BUT020",
-          "BUT021",
-          "BUT021_FS",
-          "BUT050",
-          "BUT051",
-          "BUT100",
-          "BUT0ID",
-          "BUT0BANK"
-        ]
-      },
-      {
-        category: "Addresses / Communication",
-        level: "minimal",
-        action: "deny",
-        why: "Address, phone, fax, email, URL \u2014 PII",
-        names: [
-          "ADRC",
-          "ADRP",
-          "ADR2",
-          "ADR3",
-          "ADR6",
-          "ADR7",
-          "ADR9",
-          "ADR11",
-          "ADR12",
-          "ADR13",
-          "ADRT",
-          "ADRCT"
-        ]
-      },
-      {
-        category: "Authentication / Authorization / Security",
-        level: "minimal",
-        action: "deny",
-        why: "Password hashes, authorization values, RFC secrets, crypto keys",
-        names: [
-          "USR02",
-          "USH02",
-          "USRBF2",
-          "USR01",
-          "USR04",
-          "USR10",
-          "USR12",
-          "USR21",
-          "USR22",
-          "USR40",
-          "USR41",
-          "USR_CUST",
-          "AGR_1251",
-          "AGR_USERS",
-          "AGR_AGRS",
-          "PRGN_CUST",
-          "RFCDES",
-          "RSECACTB",
-          "RSECTAB",
-          "SNCSYSACL",
-          "SSF_PSE_D"
-        ]
-      },
-      {
-        category: "HR / Payroll / Personnel",
-        level: "minimal",
-        action: "deny",
-        why: "Employee PII, salary, payroll results, medical data",
-        names: [
-          "PA*",
-          "PB9*",
-          "PD9*",
-          "HRP*",
-          "PCL1",
-          "PCL2",
-          "PCL3",
-          "PCL4",
-          "PCL5",
-          "T526"
-        ]
-      },
-      {
-        category: "Tax / Government IDs",
-        level: "minimal",
-        action: "deny",
-        why: "Tax IDs, VAT registrations, national IDs",
-        names: [
-          "DFKKBPTAXNUM",
-          "TFKTAXNUMTYPE",
-          "J_1BTXIC3",
-          "J_1BNFDOC",
-          "KNAS",
-          "LFAS",
-          "BUT0TX"
-        ]
-      },
-      {
-        category: "Protected Business Data",
-        level: "standard",
-        action: "ask",
-        why: "Transactional data linked to customer/vendor PII; allow only with an authorized scope",
-        names: [
-          "VBRK",
-          "VBRP",
-          "VBAK",
-          "VBAP",
-          "VBPA",
-          "EKKO",
-          "EKPO",
-          "BKPF",
-          "BSEG",
-          "ACDOCA",
-          "FAGLFLEXA",
-          "FAGLFLEXT",
-          "CDHDR",
-          "CDPOS",
-          "STXH",
-          "STXL"
-        ]
-      },
-      {
-        category: "Audit / Security Logs",
-        level: "strict",
-        action: "deny",
-        why: "May carry PII in message variables and user activity traces",
-        names: [
-          "BALDAT",
-          "BALHDR",
-          "SLG1",
-          "SLGD",
-          "RSAU_BUF_DATA",
-          "SNAP",
-          "SMONI",
-          "SWNCMONI",
-          "SWNCT*",
-          "STAD",
-          "STATTRACE",
-          "DBTABLOG"
-        ]
-      },
-      {
-        category: "Communication & Workflow",
-        level: "strict",
-        action: "deny",
-        why: "Mail bodies, workflow context, broadcast records",
-        names: [
-          "SOOD",
-          "SOC3",
-          "SOST",
-          "SOFM",
-          "SWWWIHEAD",
-          "SWWCONT",
-          "SWWLOGHIST",
-          "BCST_SR",
-          "BCST_CAM"
-        ]
-      }
-    ];
-    function compileNames(names) {
-      const exact = /* @__PURE__ */ new Set();
-      const patterns = [];
-      for (const raw of names) {
-        const name = raw.trim().toUpperCase();
-        if (!name)
-          continue;
-        if (name.includes("*"))
-          patterns.push(new RegExp(`^${name.replace(/\*/g, "[A-Z0-9_]*")}$`));
-        else
-          exact.add(name);
-      }
-      return { exact, patterns };
-    }
-    function matches(compiled, table) {
-      return compiled.exact.has(table) || compiled.patterns.some((pattern) => pattern.test(table));
-    }
-    var COMPILED = CATEGORIES.map(({ names, ...rest }) => ({
-      ...rest,
-      compiled: compileNames(names)
-    }));
-    function resolveSafetyEnv(processEnv, profileEnv) {
-      const merged = { ...processEnv, ...profileEnv };
-      merged.MCP_ALLOW_TABLE = profileEnv.MCP_ALLOW_TABLE;
-      merged.MCP_BLOCKLIST_PROFILE = tightestLevel(processEnv.MCP_BLOCKLIST_PROFILE, profileEnv.MCP_BLOCKLIST_PROFILE);
-      merged.MCP_BLOCKLIST_EXTEND = unionNames(processEnv.MCP_BLOCKLIST_EXTEND, profileEnv.MCP_BLOCKLIST_EXTEND);
-      return merged;
-    }
-    var PROFILE_DEPTH = {
-      off: -1,
-      minimal: 0,
-      standard: 1,
-      strict: 2
-    };
-    function tightestLevel(fromProcess, fromProfile) {
-      if (fromProcess === void 0)
-        return fromProfile;
-      const floor = fromProfile === void 0 ? exports2.DEFAULT_BLOCKLIST_PROFILE : readProfileName(fromProfile);
-      const candidate = readProfileName(fromProcess);
-      if (PROFILE_DEPTH[candidate] > PROFILE_DEPTH[floor])
-        return candidate;
-      return fromProfile ?? floor;
-    }
-    function unionNames(fromProcess, fromProfile) {
-      const parts = [fromProfile, fromProcess].filter((v) => typeof v === "string" && v.trim() !== "");
-      if (parts.length === 0)
-        return fromProfile ?? fromProcess;
-      return parts.join(",");
-    }
-    function readBlocklistConfig(env = process.env) {
-      return {
-        profile: readProfileName(env.MCP_BLOCKLIST_PROFILE),
-        extend: compileNames(splitNames(env.MCP_BLOCKLIST_EXTEND)),
-        allow: new Set(splitNames(env.MCP_ALLOW_TABLE))
-      };
-    }
-    function readProfileName(raw) {
-      const value = (raw ?? "").trim().toLowerCase();
-      if (value === "off" || value === "minimal" || value === "standard" || value === "strict") {
-        return value;
-      }
-      return exports2.DEFAULT_BLOCKLIST_PROFILE;
-    }
-    function splitNames(raw) {
-      if (!raw)
-        return [];
-      return raw.split(/[,\s]+/).map((token) => token.trim().toUpperCase()).filter((token) => token.length > 0);
-    }
-    function checkTables(names, config) {
-      const hits = [];
-      const bypassed = [];
-      const audit = [];
-      if (config.profile === "off")
-        return { hits, bypassed, audit };
-      const seen = /* @__PURE__ */ new Set();
-      for (const raw of names) {
-        const table = raw.trim().toUpperCase();
-        if (!table || seen.has(table))
-          continue;
-        seen.add(table);
-        if (config.allow.has(table)) {
-          bypassed.push(table);
-          audit.push(`AUDIT: MCP_ALLOW_TABLE bypass for ${table}`);
-          continue;
-        }
-        const hit = matchBuiltIn(table, config.profile) ?? matchExtend(table, config.extend);
-        if (hit)
-          hits.push(hit);
-      }
-      return { hits, bypassed, audit };
-    }
-    function matchBuiltIn(table, profile) {
-      if (profile === "off")
-        return null;
-      const depth = LEVEL_DEPTH[profile];
-      for (const category of COMPILED) {
-        if (LEVEL_DEPTH[category.level] > depth)
-          continue;
-        if (!matches(category.compiled, table))
-          continue;
-        return {
-          table,
-          category: category.category,
-          level: category.level,
-          action: category.action,
-          why: category.why
-        };
-      }
-      return null;
-    }
-    function matchExtend(table, extend) {
-      if (!matches(extend, table))
-        return null;
-      return {
-        table,
-        category: "Operator extend list",
-        level: "minimal",
-        action: "deny",
-        why: "Listed in MCP_BLOCKLIST_EXTEND"
-      };
-    }
-    function evaluateTables(names, config, acknowledgeRisk) {
-      const result = checkTables(names, config);
-      return { ...result, verdict: verdictFor(result.hits, config, acknowledgeRisk) };
-    }
-    function verdictFor(hits, config, acknowledgeRisk) {
-      if (hits.length === 0)
-        return { kind: "pass" };
-      const ask = hits.filter((hit) => hit.action === "ask");
-      if (ask.length !== hits.length)
-        return { kind: "deny", message: refusal(hits, config) };
-      if (!acknowledgeRisk)
-        return { kind: "ask", message: askPrompt(ask, config) };
-      return { kind: "approved", tables: ask.map((hit) => hit.table) };
-    }
-    function listHits(hits) {
-      return hits.map((hit) => `  - ${hit.table} \u2014 ${hit.category}: ${hit.why}`).join("\n");
-    }
-    function refusal(hits, config) {
-      return `sapkit blocklist (profile: ${config.profile}) \u2014 row extraction refused:
-${listHits(hits)}
-
-Schema metadata is unaffected. For rows, use a released CDS view that masks the sensitive fields, anonymized test data, or a COUNT/SUM aggregate. An audited one-off bypass is MCP_ALLOW_TABLE=<NAME[,NAME...]>.`;
-    }
-    function askPrompt(hits, config) {
-      return `sapkit blocklist (profile: ${config.profile}) \u2014 user confirmation required for row extraction:
-${listHits(hits)}
-
-These tables hold sensitive business data. If the user has authorized this extraction, re-invoke the tool with \`acknowledge_risk: true\`; the approval is written to the audit channel. Prefer a masking CDS view, anonymized test data, or an aggregate.`;
-    }
-  }
-});
-
-// dist/src/safety/exposition.js
-var require_exposition = __commonJS({
-  "dist/src/safety/exposition.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.DEFAULT_EXPOSITION = void 0;
-    exports2.parseExposition = parseExposition;
-    exports2.parseExpositionDetailed = parseExpositionDetailed;
-    exports2.expositionFromArgv = expositionFromArgv;
-    exports2.expositionFromArgvDetailed = expositionFromArgvDetailed;
-    exports2.resolveActiveSets = resolveActiveSets;
-    exports2.selectExposedTools = selectExposedTools;
-    exports2.DEFAULT_EXPOSITION = ["readonly", "high"];
-    var KNOWN_SETS = [
-      "readonly",
-      "high",
-      "compact",
-      "low",
-      "system",
-      "search"
-    ];
-    function parseExposition(raw) {
-      return parseExpositionDetailed(raw).sets;
-    }
-    function parseExpositionDetailed(raw) {
-      const text = (raw ?? "").trim();
-      if (!text)
-        return { sets: [...exports2.DEFAULT_EXPOSITION], diagnostics: [] };
-      const sets = [];
-      const dropped = [];
-      for (const token of text.split(/[,\s]+/)) {
-        const value = token.trim().toLowerCase();
-        if (!value)
-          continue;
-        const known = KNOWN_SETS.find((set) => set === value);
-        if (!known) {
-          dropped.push(token.trim());
-          continue;
-        }
-        if (!sets.includes(known))
-          sets.push(known);
-      }
-      const diagnostics = [];
-      if (dropped.length > 0) {
-        diagnostics.push(`EXPOSITION_UNKNOWN: --exposition named ${dropped.map((token) => `"${token}"`).join(", ")}, which no handler set is called. Known sets: ${KNOWN_SETS.join(", ")}. Unrecognised names are dropped and do NOT fall back to the default (${exports2.DEFAULT_EXPOSITION.join(",")}), so a typo narrows the surface rather than opening the write tools.`);
-      }
-      if (sets.length === 0) {
-        diagnostics.push("EXPOSITION_EMPTY: no handler set in this value was recognised, so only the always-on search group is exposed and the server will look nearly empty. Pass --exposition=readonly for the read-only surface or --exposition=readonly,high for the full one.");
-      }
-      return { sets, diagnostics };
-    }
-    function expositionFromArgv(argv) {
-      return expositionFromArgvDetailed(argv).sets;
-    }
-    function expositionFromArgvDetailed(argv) {
-      for (let i = 0; i < argv.length; i++) {
-        const arg = argv[i] ?? "";
-        if (arg.startsWith("--exposition=")) {
-          return parseExpositionDetailed(arg.slice("--exposition=".length));
-        }
-        if (arg === "--exposition")
-          return parseExpositionDetailed(argv[i + 1] ?? "");
-      }
-      return { sets: [...exports2.DEFAULT_EXPOSITION], diagnostics: [] };
-    }
-    function resolveActiveSets(requested) {
-      const active = /* @__PURE__ */ new Set(["search"]);
-      for (const set of requested) {
-        active.add(set);
-        if (set === "readonly")
-          active.add("system");
-      }
-      return active;
-    }
-    function selectExposedTools(tools, query) {
-      const active = resolveActiveSets(query.sets);
-      return tools.filter((tool) => tool.exposure.sets.some((set) => active.has(set)) && isAvailableOn(tool.exposure.availableIn, query.systemType));
-    }
-    function isAvailableOn(availableIn, systemType) {
-      return availableIn.length === 0 || availableIn.includes(systemType);
-    }
-  }
-});
-
-// dist/src/safety/sql.js
-var require_sql = __commonJS({
-  "dist/src/safety/sql.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.stripSqlComments = stripSqlComments;
-    exports2.sqlHasTableSource = sqlHasTableSource;
-    exports2.extractTablesFromSql = extractTablesFromSql;
-    exports2.isAggregateOnly = isAggregateOnly;
-    var IDENTIFIER = /^[A-Za-z0-9_/]+/;
-    var NON_TABLE_WORDS = /* @__PURE__ */ new Set([
-      "SELECT",
-      "FROM",
-      "WHERE",
-      "JOIN",
-      "INNER",
-      "LEFT",
-      "RIGHT",
-      "OUTER",
-      "FULL",
-      "CROSS",
-      "ON",
-      "AS",
-      "GROUP",
-      "ORDER",
-      "BY",
-      "HAVING",
-      "UNION",
-      "ALL",
-      "INTO",
-      "AND",
-      "OR",
-      "NOT",
-      "DISTINCT",
-      "UP",
-      "TO",
-      "ROWS",
-      "CLIENT",
-      "SPECIFIED",
-      "FOR",
-      "WITH",
-      "WHEN",
-      "CASE",
-      "END"
-    ]);
-    function stripSqlComments(sql) {
-      return sql.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/--[^\r\n]*/g, " ");
-    }
-    function sqlHasTableSource(sql) {
-      return /\b(?:FROM|JOIN)\b/i.test(stripSqlComments(sql));
-    }
-    function skipSpace(text, from) {
-      let i = from;
-      while (i < text.length && /\s/.test(text.charAt(i)))
-        i++;
-      return i;
-    }
-    function readIdentifier(text, from) {
-      const match = IDENTIFIER.exec(text.slice(from));
-      if (!match)
-        return null;
-      const value = match[0];
-      return { value, end: from + value.length };
-    }
-    function extractTablesFromSql(sql) {
-      const text = stripSqlComments(sql);
-      const found = /* @__PURE__ */ new Set();
-      for (const match of text.matchAll(/\b(FROM|JOIN)\b/gi)) {
-        const isFrom = (match[1] ?? "").toUpperCase() === "FROM";
-        let i = (match.index ?? 0) + match[0].length;
-        for (; ; ) {
-          i = skipSpace(text, i);
-          if (text.charAt(i) === "(")
-            break;
-          const table = readIdentifier(text, i);
-          if (!table)
-            break;
-          const name = table.value.toUpperCase();
-          if (NON_TABLE_WORDS.has(name))
-            break;
-          found.add(name);
-          i = table.end;
-          if (!isFrom)
-            break;
-          const aliasStart = skipSpace(text, i);
-          const alias = readIdentifier(text, aliasStart);
-          if (alias) {
-            const upper = alias.value.toUpperCase();
-            if (upper === "AS") {
-              const named = readIdentifier(text, skipSpace(text, alias.end));
-              i = named ? named.end : alias.end;
-            } else if (!NON_TABLE_WORDS.has(upper)) {
-              i = alias.end;
-            }
-          }
-          i = skipSpace(text, i);
-          if (text.charAt(i) !== ",")
-            break;
-          i++;
-        }
-      }
-      return [...found];
-    }
-    function isAggregateOnly(sql) {
-      const text = `${sql.replace(/\s+/g, " ").trim()} `;
-      if (/\b(UNION|GROUP\s+BY|HAVING)\b/i.test(text))
-        return false;
-      const match = /^SELECT\s+(.+?)\s+FROM\s/i.exec(text);
-      if (!match)
-        return false;
-      const projection = match[1] ?? "";
-      if (/\(\s*SELECT\b/i.test(projection))
-        return false;
-      const items = splitTopLevel(projection, ",");
-      if (items.length === 0)
-        return false;
-      const aggregate = /^(?:COUNT|SUM|MIN|MAX|AVG)\s*\(\s*(?:DISTINCT\s+)?(?:\*|[A-Za-z0-9_./~]+)\s*\)(?:\s+AS\s+[A-Za-z0-9_]+)?$/i;
-      return items.every((item) => aggregate.test(item.trim()));
-    }
-    function splitTopLevel(text, separator) {
-      const out = [];
-      let depth = 0;
-      let buffer = "";
-      for (const char of text) {
-        if (char === "(")
-          depth++;
-        else if (char === ")")
-          depth--;
-        if (char === separator && depth === 0) {
-          out.push(buffer);
-          buffer = "";
-        } else {
-          buffer += char;
-        }
-      }
-      if (buffer.trim())
-        out.push(buffer);
-      return out;
-    }
-  }
-});
-
-// dist/src/safety/tier.js
-var require_tier = __commonJS({
-  "dist/src/safety/tier.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.TierBlockedError = exports2.SERVER_CONTROL_TOOLS = exports2.UNIT_TEST_EXECUTION_TOOLS = void 0;
-    exports2.checkTierAllowed = checkTierAllowed;
-    exports2.assertTierAllowed = assertTierAllowed;
-    exports2.UNIT_TEST_EXECUTION_TOOLS = /* @__PURE__ */ new Set([
-      "RunUnitTest",
-      "RunClassUnitTestsLow",
-      "HandlerUnitTestRun"
-    ]);
-    exports2.SERVER_CONTROL_TOOLS = /* @__PURE__ */ new Set(["ReloadProfile"]);
-    var DANGEROUS_NAME_RE = /^(Create|Update|Delete|Activate|Release|Patch|Write|Install|Run(?!time)|RuntimeRun|RuntimeCreate)/;
-    var ALLOWED = { allowed: true };
-    function misdeclared(tool, tier) {
-      return {
-        allowed: false,
-        reason: `${tool.name} is declared "${tool.kind}" but its name is that of a mutating or executing tool; refusing on a ${tier} profile (fail-closed).`
-      };
-    }
-    function checkTierAllowed(tool, tier) {
-      if (tier === "DEV")
-        return ALLOWED;
-      switch (tool.kind) {
-        case "server-control":
-          if (DANGEROUS_NAME_RE.test(tool.name))
-            return misdeclared(tool, tier);
-          if (exports2.SERVER_CONTROL_TOOLS.has(tool.name))
-            return ALLOWED;
-          return {
-            allowed: false,
-            reason: `${tool.name} is declared "server-control", but that exemption covers only ${[
-              ...exports2.SERVER_CONTROL_TOOLS
-            ].join(", ")}; refusing on a ${tier} profile (fail-closed).`
-          };
-        case "read":
-        case "row-data":
-          if (DANGEROUS_NAME_RE.test(tool.name))
-            return misdeclared(tool, tier);
-          return ALLOWED;
-        case "execution":
-          if (exports2.UNIT_TEST_EXECUTION_TOOLS.has(tool.name) && tier === "QA")
-            return ALLOWED;
-          return {
-            allowed: false,
-            reason: `${tool.name} executes ABAP code on the server and is blocked on ${tier} profiles.`
-          };
-        case "mutation":
-          return {
-            allowed: false,
-            reason: `${tool.name} mutates SAP objects; only DEV profiles may run it.`
-          };
-        default:
-          return {
-            allowed: false,
-            reason: `${tool.name} could not be classified; only DEV profiles may run it (fail-closed).`
-          };
-      }
-    }
-    var TierBlockedError = class extends Error {
-      toolName;
-      tier;
-      code = "ERR_READONLY_TIER";
-      constructor(toolName, tier, reason) {
-        super(`ERR_READONLY_TIER: ${reason} Active profile tier=${tier}. Switch to a DEV profile to perform this operation.`);
-        this.toolName = toolName;
-        this.tier = tier;
-        this.name = "TierBlockedError";
-      }
-    };
-    exports2.TierBlockedError = TierBlockedError;
-    function assertTierAllowed(tool, tier) {
-      const decision = checkTierAllowed(tool, tier);
-      if (decision.allowed)
-        return;
-      throw new TierBlockedError(tool.name, tier, decision.reason);
-    }
-  }
-});
-
-// dist/src/safety/rowData.js
-var require_rowData = __commonJS({
-  "dist/src/safety/rowData.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.ROW_DATA_TOOLS = void 0;
-    exports2.isRowDataTool = isRowDataTool;
-    exports2.evaluateRowDataRequest = evaluateRowDataRequest;
-    var blocklist_1 = require_blocklist();
-    var sql_1 = require_sql();
-    var tier_1 = require_tier();
-    exports2.ROW_DATA_TOOLS = ["GetTableContents", "GetSqlQuery"];
-    function isRowDataTool(name) {
-      return exports2.ROW_DATA_TOOLS.includes(name);
-    }
-    function evaluateRowDataRequest(request, context) {
-      const kind = context.toolKind ?? "row-data";
-      const tier = (0, tier_1.checkTierAllowed)({ name: request.tool, kind }, context.tier);
-      if (!tier.allowed) {
-        return {
-          kind: "deny",
-          code: "ERR_READONLY_TIER",
-          message: `ERR_READONLY_TIER: ${tier.reason} Active profile tier=${context.tier}.`,
-          audit: []
-        };
-      }
-      const candidates = collectTables(request);
-      if (candidates.kind === "deny")
-        return candidates.decision;
-      const config = context.config ?? (0, blocklist_1.readBlocklistConfig)({});
-      const { verdict, audit } = (0, blocklist_1.evaluateTables)(candidates.tables, config, request.acknowledgeRisk === true);
-      switch (verdict.kind) {
-        case "deny":
-          return { kind: "deny", code: "ERR_ROWDATA_BLOCKED", message: verdict.message, audit };
-        case "ask":
-          return { kind: "deny", code: "ERR_ROWDATA_CONFIRM", message: verdict.message, audit };
-        case "approved":
-          return {
-            kind: "allow",
-            tables: candidates.tables,
-            audit: [
-              ...audit,
-              `AUDIT: user-acknowledged ${request.tool} on ${verdict.tables.join(",")}`
-            ]
-          };
-        default:
-          return { kind: "allow", tables: candidates.tables, audit };
-      }
-    }
-    function collectTables(request) {
-      if (request.tool === "GetTableContents") {
-        const table = (request.tableName ?? "").trim();
-        if (!table) {
-          return {
-            kind: "deny",
-            decision: {
-              kind: "deny",
-              code: "ERR_ROWDATA_ARGS",
-              message: "GetTableContents was called without a table name, so the protected-table gate cannot evaluate it; the call is refused (fail-closed).",
-              audit: []
-            }
-          };
-        }
-        return { kind: "tables", tables: [table.toUpperCase()] };
-      }
-      const sql = (request.sql ?? "").trim();
-      if (!sql) {
-        return {
-          kind: "deny",
-          decision: {
-            kind: "deny",
-            code: "ERR_ROWDATA_ARGS",
-            message: "GetSqlQuery was called without a statement, so the protected-table gate cannot evaluate it; the call is refused (fail-closed).",
-            audit: []
-          }
-        };
-      }
-      const tables = (0, sql_1.extractTablesFromSql)(sql);
-      if (tables.length === 0) {
-        if ((0, sql_1.sqlHasTableSource)(sql)) {
-          return {
-            kind: "deny",
-            decision: {
-              kind: "deny",
-              code: "ERR_ROWDATA_UNPARSEABLE",
-              message: "sapkit blocklist \u2014 no table name could be extracted from this query, so the protected-table gate cannot evaluate it; the query is refused (fail-closed). Rewrite it with a plain `FROM <table>` reference \u2014 one table per FROM/JOIN, no comment between FROM and the name.",
-              audit: []
-            }
-          };
-        }
-        return { kind: "tables", tables: [] };
-      }
-      if ((0, sql_1.isAggregateOnly)(sql))
-        return { kind: "tables", tables: [] };
-      return { kind: "tables", tables };
-    }
-  }
-});
-
-// dist/src/safety/unsafe.js
-var require_unsafe = __commonJS({
-  "dist/src/safety/unsafe.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.resolveUnsafeFlag = resolveUnsafeFlag;
-    function resolveUnsafeFlag(input = {}) {
-      const argv = input.argv ?? process.argv;
-      const env = input.env ?? process.env;
-      return argv.includes("--unsafe") || env.MCP_UNSAFE === "true";
-    }
-  }
-});
-
-// dist/src/safety/index.js
-var require_safety = __commonJS({
-  "dist/src/safety/index.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.resolveUnsafeFlag = exports2.checkTierAllowed = exports2.assertTierAllowed = exports2.UNIT_TEST_EXECUTION_TOOLS = exports2.TierBlockedError = exports2.SERVER_CONTROL_TOOLS = exports2.stripSqlComments = exports2.sqlHasTableSource = exports2.isAggregateOnly = exports2.extractTablesFromSql = exports2.isRowDataTool = exports2.evaluateRowDataRequest = exports2.ROW_DATA_TOOLS = exports2.selectExposedTools = exports2.resolveActiveSets = exports2.parseExpositionDetailed = exports2.parseExposition = exports2.expositionFromArgvDetailed = exports2.expositionFromArgv = exports2.DEFAULT_EXPOSITION = exports2.resolveSafetyEnv = exports2.readBlocklistConfig = exports2.evaluateTables = exports2.checkTables = exports2.DEFAULT_BLOCKLIST_PROFILE = void 0;
-    var blocklist_1 = require_blocklist();
-    Object.defineProperty(exports2, "DEFAULT_BLOCKLIST_PROFILE", { enumerable: true, get: function() {
-      return blocklist_1.DEFAULT_BLOCKLIST_PROFILE;
-    } });
-    Object.defineProperty(exports2, "checkTables", { enumerable: true, get: function() {
-      return blocklist_1.checkTables;
-    } });
-    Object.defineProperty(exports2, "evaluateTables", { enumerable: true, get: function() {
-      return blocklist_1.evaluateTables;
-    } });
-    Object.defineProperty(exports2, "readBlocklistConfig", { enumerable: true, get: function() {
-      return blocklist_1.readBlocklistConfig;
-    } });
-    Object.defineProperty(exports2, "resolveSafetyEnv", { enumerable: true, get: function() {
-      return blocklist_1.resolveSafetyEnv;
-    } });
-    var exposition_1 = require_exposition();
-    Object.defineProperty(exports2, "DEFAULT_EXPOSITION", { enumerable: true, get: function() {
-      return exposition_1.DEFAULT_EXPOSITION;
-    } });
-    Object.defineProperty(exports2, "expositionFromArgv", { enumerable: true, get: function() {
-      return exposition_1.expositionFromArgv;
-    } });
-    Object.defineProperty(exports2, "expositionFromArgvDetailed", { enumerable: true, get: function() {
-      return exposition_1.expositionFromArgvDetailed;
-    } });
-    Object.defineProperty(exports2, "parseExposition", { enumerable: true, get: function() {
-      return exposition_1.parseExposition;
-    } });
-    Object.defineProperty(exports2, "parseExpositionDetailed", { enumerable: true, get: function() {
-      return exposition_1.parseExpositionDetailed;
-    } });
-    Object.defineProperty(exports2, "resolveActiveSets", { enumerable: true, get: function() {
-      return exposition_1.resolveActiveSets;
-    } });
-    Object.defineProperty(exports2, "selectExposedTools", { enumerable: true, get: function() {
-      return exposition_1.selectExposedTools;
-    } });
-    var rowData_1 = require_rowData();
-    Object.defineProperty(exports2, "ROW_DATA_TOOLS", { enumerable: true, get: function() {
-      return rowData_1.ROW_DATA_TOOLS;
-    } });
-    Object.defineProperty(exports2, "evaluateRowDataRequest", { enumerable: true, get: function() {
-      return rowData_1.evaluateRowDataRequest;
-    } });
-    Object.defineProperty(exports2, "isRowDataTool", { enumerable: true, get: function() {
-      return rowData_1.isRowDataTool;
-    } });
-    var sql_1 = require_sql();
-    Object.defineProperty(exports2, "extractTablesFromSql", { enumerable: true, get: function() {
-      return sql_1.extractTablesFromSql;
-    } });
-    Object.defineProperty(exports2, "isAggregateOnly", { enumerable: true, get: function() {
-      return sql_1.isAggregateOnly;
-    } });
-    Object.defineProperty(exports2, "sqlHasTableSource", { enumerable: true, get: function() {
-      return sql_1.sqlHasTableSource;
-    } });
-    Object.defineProperty(exports2, "stripSqlComments", { enumerable: true, get: function() {
-      return sql_1.stripSqlComments;
-    } });
-    var tier_1 = require_tier();
-    Object.defineProperty(exports2, "SERVER_CONTROL_TOOLS", { enumerable: true, get: function() {
-      return tier_1.SERVER_CONTROL_TOOLS;
-    } });
-    Object.defineProperty(exports2, "TierBlockedError", { enumerable: true, get: function() {
-      return tier_1.TierBlockedError;
-    } });
-    Object.defineProperty(exports2, "UNIT_TEST_EXECUTION_TOOLS", { enumerable: true, get: function() {
-      return tier_1.UNIT_TEST_EXECUTION_TOOLS;
-    } });
-    Object.defineProperty(exports2, "assertTierAllowed", { enumerable: true, get: function() {
-      return tier_1.assertTierAllowed;
-    } });
-    Object.defineProperty(exports2, "checkTierAllowed", { enumerable: true, get: function() {
-      return tier_1.checkTierAllowed;
-    } });
-    var unsafe_1 = require_unsafe();
-    Object.defineProperty(exports2, "resolveUnsafeFlag", { enumerable: true, get: function() {
-      return unsafe_1.resolveUnsafeFlag;
-    } });
   }
 });
 
@@ -70534,973 +72250,6 @@ var require_gates = __commonJS({
   }
 });
 
-// dist/src/profile/envFile.js
-var require_envFile = __commonJS({
-  "dist/src/profile/envFile.js"(exports2) {
-    "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
-      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-        desc = { enumerable: true, get: function() {
-          return m[k];
-        } };
-      }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
-    }));
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
-      Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
-      o["default"] = v;
-    });
-    var __importStar = exports2 && exports2.__importStar || /* @__PURE__ */ (function() {
-      var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function(o2) {
-          var ar = [];
-          for (var k in o2) if (Object.prototype.hasOwnProperty.call(o2, k)) ar[ar.length] = k;
-          return ar;
-        };
-        return ownKeys(o);
-      };
-      return function(mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) {
-          for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        }
-        __setModuleDefault(result, mod);
-        return result;
-      };
-    })();
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.parseEnvText = parseEnvText;
-    exports2.readEnvFile = readEnvFile;
-    var fs = __importStar(require("node:fs"));
-    function parseEnvText(text) {
-      const out = {};
-      for (const rawLine of text.split(/\r?\n/)) {
-        const line = rawLine.trim();
-        if (!line || line.startsWith("#"))
-          continue;
-        const eq = line.indexOf("=");
-        if (eq < 0)
-          continue;
-        let key = line.slice(0, eq).trim();
-        if (key.startsWith("export "))
-          key = key.slice("export ".length).trim();
-        if (!key)
-          continue;
-        out[key] = unquote(line.slice(eq + 1).trim());
-      }
-      return out;
-    }
-    function unquote(value) {
-      const first = value.charAt(0);
-      const last = value.charAt(value.length - 1);
-      if ((first === '"' || first === "'") && value.length >= 2 && last === first) {
-        return value.slice(1, -1).trim();
-      }
-      return value;
-    }
-    function readEnvFile(file) {
-      let text;
-      try {
-        text = fs.readFileSync(file, "utf8");
-      } catch {
-        return null;
-      }
-      return parseEnvText(text);
-    }
-  }
-});
-
-// dist/src/profile/home.js
-var require_home = __commonJS({
-  "dist/src/profile/home.js"(exports2) {
-    "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
-      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-        desc = { enumerable: true, get: function() {
-          return m[k];
-        } };
-      }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
-    }));
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
-      Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
-      o["default"] = v;
-    });
-    var __importStar = exports2 && exports2.__importStar || /* @__PURE__ */ (function() {
-      var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function(o2) {
-          var ar = [];
-          for (var k in o2) if (Object.prototype.hasOwnProperty.call(o2, k)) ar[ar.length] = k;
-          return ar;
-        };
-        return ownKeys(o);
-      };
-      return function(mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) {
-          for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        }
-        __setModuleDefault(result, mod);
-        return result;
-      };
-    })();
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.RUNTIME_DIR_NAME = void 0;
-    exports2.resolveHomeDir = resolveHomeDir;
-    exports2.listProfileAliases = listProfileAliases;
-    var fs = __importStar(require("node:fs"));
-    var os = __importStar(require("node:os"));
-    var path = __importStar(require("node:path"));
-    exports2.RUNTIME_DIR_NAME = ".sapkit";
-    function resolveHomeDir(lookup = {}) {
-      const env = lookup.env ?? process.env;
-      const pinned = (env.SAPKIT_HOME_DIR ?? "").trim();
-      if (pinned) {
-        if (!fs.existsSync(pinned))
-          return { kind: "env-invalid", dir: pinned };
-        return { kind: "ok", dir: pinned, source: "env" };
-      }
-      const home = lookup.homedir ?? os.homedir();
-      return { kind: "ok", dir: path.join(home, exports2.RUNTIME_DIR_NAME), source: "default" };
-    }
-    function listProfileAliases(home) {
-      try {
-        return fs.readdirSync(path.join(home, "profiles"), { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort();
-      } catch {
-        return [];
-      }
-    }
-  }
-});
-
-// dist/src/profile/secrets.js
-var require_secrets = __commonJS({
-  "dist/src/profile/secrets.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.SecretResolutionError = void 0;
-    exports2.parseKeychainRef = parseKeychainRef;
-    exports2.resolveSecret = resolveSecret;
-    var KEYCHAIN_SCHEME = "keychain:";
-    var HAS_SCHEME = /^keychain:/;
-    var SecretResolutionError = class extends Error {
-      code;
-      constructor(code, message) {
-        super(message);
-        this.code = code;
-        this.name = "SecretResolutionError";
-      }
-    };
-    exports2.SecretResolutionError = SecretResolutionError;
-    function parseKeychainRef(value) {
-      if (!HAS_SCHEME.test(value))
-        return null;
-      const [service, ...rest] = value.slice(KEYCHAIN_SCHEME.length).split("/");
-      const account = rest.join("/");
-      if (service === void 0 || service === "" || account === "") {
-        throw new SecretResolutionError("KEYCHAIN_REF_INVALID", `SAP_PASSWORD\uAC00 "${KEYCHAIN_SCHEME}" \uB85C \uC2DC\uC791\uD558\uB294\uB370 \uBAA8\uC591\uC774 \uC5B4\uAE0B\uB09C\uB2E4 \u2014 \uD615\uC2DD\uC740 ${KEYCHAIN_SCHEME}<service>/<account> \uB2E4.`);
-      }
-      return { service, account };
-    }
-    function nativeReader() {
-      try {
-        const mod = require("@napi-rs/keyring");
-        return (ref) => new mod.Entry(ref.service, ref.account).getPassword();
-      } catch {
-        return null;
-      }
-    }
-    function resolveSecret(value, options = {}) {
-      const ref = parseKeychainRef(value);
-      if (ref === null)
-        return value;
-      const reader = "reader" in options ? options.reader : nativeReader();
-      if (reader === null || reader === void 0) {
-        throw new SecretResolutionError("KEYCHAIN_UNAVAILABLE", "SAP_PASSWORD\uAC00 \uD0A4\uCCB4\uC778 \uCC38\uC870\uC778\uB370 @napi-rs/keyring \uC744 \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uB2E4 \u2014 \uC774 \uD50C\uB7AB\uD3FC\uC5D0 \uB124\uC774\uD2F0\uBE0C \uD0A4\uCCB4\uC778 \uBAA8\uB4C8\uC774 \uC5C6\uAC70\uB098 \uD574\uC11D \uACBD\uB85C(NODE_PATH)\uC5D0 \uC5C6\uB2E4.");
-      }
-      let password;
-      try {
-        password = reader(ref);
-      } catch (err) {
-        throw new SecretResolutionError("KEYCHAIN_UNAVAILABLE", `\uD0A4\uCCB4\uC778 \uC870\uD68C\uAC00 \uC2E4\uD328\uD588\uB2E4 (service="${ref.service}"): ${err instanceof Error ? err.message : String(err)}`);
-      }
-      if (password === null || password === "") {
-        throw new SecretResolutionError("KEYCHAIN_ENTRY_NOT_FOUND", `\uD0A4\uCCB4\uC778\uC5D0 \uC4F8 \uC218 \uC788\uB294 \uD56D\uBAA9\uC774 \uC5C6\uB2E4 (service="${ref.service}") \u2014 sap.env\uC758 SAP_PASSWORD\uAC00 \uAC00\uB9AC\uD0A4\uB294 \uACC4\uC815\uC73C\uB85C \uB2E4\uC2DC \uB4F1\uB85D\uD574\uC57C \uD55C\uB2E4.`);
-      }
-      return password;
-    }
-  }
-});
-
-// dist/src/profile/resolve.js
-var require_resolve2 = __commonJS({
-  "dist/src/profile/resolve.js"(exports2) {
-    "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
-      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-        desc = { enumerable: true, get: function() {
-          return m[k];
-        } };
-      }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
-    }));
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
-      Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
-      o["default"] = v;
-    });
-    var __importStar = exports2 && exports2.__importStar || /* @__PURE__ */ (function() {
-      var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function(o2) {
-          var ar = [];
-          for (var k in o2) if (Object.prototype.hasOwnProperty.call(o2, k)) ar[ar.length] = k;
-          return ar;
-        };
-        return ownKeys(o);
-      };
-      return function(mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) {
-          for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        }
-        __setModuleDefault(result, mod);
-        return result;
-      };
-    })();
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.resolveProfile = resolveProfile;
-    exports2.resolveProfileDetailed = resolveProfileDetailed;
-    exports2.disconnectedProfile = disconnectedProfile;
-    var path = __importStar(require("node:path"));
-    var fs = __importStar(require("node:fs"));
-    var envFile_1 = require_envFile();
-    var home_1 = require_home();
-    var secrets_1 = require_secrets();
-    var TIMEOUT_DEFAULT = 45e3;
-    var TIMEOUT_CSRF = 15e3;
-    var TIMEOUT_LONG = 6e4;
-    function resolveProfile(options = {}) {
-      return resolveProfileDetailed(options).profile;
-    }
-    function resolveProfileDetailed(options = {}) {
-      const env = options.env ?? process.env;
-      const cwd = options.cwd ?? process.cwd();
-      const diagnostics = [];
-      const candidate = locateEnvFile({ cwd, env, homedir: options.homedir, envPath: options.envPath }, diagnostics);
-      if (candidate.envPath === null) {
-        return { profile: disconnectedProfile(diagnostics, candidate.alias), envVars: {} };
-      }
-      const envVars = (0, envFile_1.readEnvFile)(candidate.envPath);
-      if (!envVars) {
-        diagnostics.push(`ENV_UNREADABLE: ${candidate.envPath} could not be read \u2014 starting with no connection.`);
-        return { profile: disconnectedProfile(diagnostics, candidate.alias), envVars: {} };
-      }
-      const connection = buildConnection(envVars, candidate.envPath, diagnostics);
-      const systemType = readSystemType(envVars);
-      const sapVersion = readSapVersion(envVars);
-      if (!connection) {
-        return {
-          profile: {
-            connection: null,
-            tier: "UNKNOWN",
-            systemType,
-            sapVersion,
-            envPath: candidate.envPath,
-            alias: candidate.alias,
-            diagnostics
-          },
-          envVars
-        };
-      }
-      const tier = readTier(envVars.SAP_TIER);
-      if (tier === "UNKNOWN") {
-        diagnostics.push(`TIER_UNRESOLVED: SAP_TIER in ${candidate.envPath} is ${envVars.SAP_TIER === void 0 ? "absent" : `"${envVars.SAP_TIER}"`} \u2014 the tier resolves to UNKNOWN and every write and execution is refused (fail-closed). Set SAP_TIER=DEV|QA|PRD.`);
-      }
-      return {
-        profile: {
-          connection,
-          tier,
-          systemType,
-          sapVersion,
-          envPath: candidate.envPath,
-          alias: candidate.alias,
-          diagnostics
-        },
-        envVars
-      };
-    }
-    function locateEnvFile(ctx, diagnostics) {
-      const explicit = (ctx.envPath ?? "").trim();
-      const injected = explicit || (ctx.env.MCP_ENV_PATH ?? "").trim();
-      if (injected) {
-        if (fs.existsSync(injected))
-          return { envPath: injected, alias: null };
-        diagnostics.push(`ENV_PATH_MISSING: ${explicit ? "the explicit env-file path" : "MCP_ENV_PATH"} points at a file that does not exist (${injected}) \u2014 refusing to fall back to the profile home or a project-local sap.env; the server starts with no connection.`);
-        return { envPath: null, alias: null };
-      }
-      const home = (0, home_1.resolveHomeDir)({ env: ctx.env, homedir: ctx.homedir });
-      if (home.kind === "env-invalid") {
-        diagnostics.push(`ENV_INVALID: SAPKIT_HOME_DIR points at a path that does not exist (${home.dir}) \u2014 refusing to fall back to ~/${home_1.RUNTIME_DIR_NAME} or to a project-local sap.env; the server starts with no connection.`);
-        return { envPath: null, alias: null };
-      }
-      const runtimeDir = path.join(ctx.cwd, home_1.RUNTIME_DIR_NAME);
-      const alias = readPointer(runtimeDir);
-      if (alias) {
-        const envPath = path.join(home.dir, "profiles", alias, "sap.env");
-        if (fs.existsSync(envPath))
-          return { envPath, alias };
-        const available = (0, home_1.listProfileAliases)(home.dir);
-        diagnostics.push(`PROFILE_NOT_FOUND: active profile "${alias}" has no sap.env under ${home.dir}${available.length ? ` (available: ${available.join(", ")})` : " (no profiles found there)"}. Fix the alias in ${path.join(runtimeDir, "active-profile.txt")} or create the profile; until then the server starts with no connection.`);
-        return { envPath: null, alias };
-      }
-      const local = path.join(runtimeDir, "sap.env");
-      if (fs.existsSync(local))
-        return { envPath: local, alias: null };
-      diagnostics.push(`NO_PROFILE: neither ${path.join(runtimeDir, "active-profile.txt")} nor ${local} was found \u2014 starting in inspection-only mode with no connection.`);
-      return { envPath: null, alias: null };
-    }
-    function readPointer(runtimeDir) {
-      try {
-        const raw = fs.readFileSync(path.join(runtimeDir, "active-profile.txt"), "utf8").trim();
-        return raw.length > 0 ? raw : null;
-      } catch {
-        return null;
-      }
-    }
-    function buildConnection(envVars, envPath, diagnostics) {
-      const baseUrl = (envVars.SAP_URL ?? "").trim();
-      const username = (envVars.SAP_USERNAME ?? "").trim();
-      const storedPassword = envVars.SAP_PASSWORD ?? "";
-      const missing = [];
-      if (!baseUrl)
-        missing.push("SAP_URL");
-      if (!username)
-        missing.push("SAP_USERNAME");
-      if (!storedPassword)
-        missing.push("SAP_PASSWORD");
-      if (missing.length) {
-        diagnostics.push(`INCOMPLETE_CONNECTION: ${envPath} is missing ${missing.join(", ")} \u2014 the server starts with no connection (M1 supports Basic authentication only).`);
-        return null;
-      }
-      let password;
-      try {
-        password = (0, secrets_1.resolveSecret)(storedPassword);
-      } catch (err) {
-        const code = err instanceof secrets_1.SecretResolutionError ? err.code : "KEYCHAIN_UNAVAILABLE";
-        const detail = err instanceof Error ? err.message : String(err);
-        diagnostics.push(`${code}: ${envPath} \u2014 ${detail} \uC811\uC18D\uC744 \uB9CC\uB4E4\uC9C0 \uC54A\uB294\uB2E4(\uD574\uC11D\uD558\uC9C0 \uBABB\uD55C \uCC38\uC870\uB97C \uBE44\uBC00\uBC88\uD638\uB85C \uBCF4\uB0B4\uBA74 \uC2E4\uD328 \uB85C\uADF8\uC628\uC774 \uC313\uC5EC \uACC4\uC815\uC774 \uC7A0\uAE34\uB2E4).`);
-        return null;
-      }
-      const client = (envVars.SAP_CLIENT ?? "").trim();
-      const language = (envVars.SAP_LANGUAGE ?? "").trim();
-      return {
-        baseUrl,
-        username,
-        password,
-        client: client || void 0,
-        language: language || void 0,
-        // Only an explicit `0` opens self-signed certificates; every other value,
-        // including an absent one, keeps verification on.
-        rejectUnauthorized: (envVars.TLS_REJECT_UNAUTHORIZED ?? "").trim() !== "0",
-        timeouts: {
-          default: readTimeout(envVars.SAP_TIMEOUT_DEFAULT, TIMEOUT_DEFAULT),
-          csrf: readTimeout(envVars.SAP_TIMEOUT_CSRF, TIMEOUT_CSRF),
-          long: readTimeout(envVars.SAP_TIMEOUT_LONG, TIMEOUT_LONG)
-        }
-      };
-    }
-    function readTimeout(raw, fallback) {
-      const value = Number((raw ?? "").trim());
-      return Number.isFinite(value) && value > 0 ? value : fallback;
-    }
-    function readTier(raw) {
-      const value = (raw ?? "").trim().toUpperCase();
-      return value === "DEV" || value === "QA" || value === "PRD" ? value : "UNKNOWN";
-    }
-    function readSystemType(envVars) {
-      const value = (envVars.SAP_SYSTEM_TYPE ?? "").trim().toLowerCase();
-      if (value === "onprem")
-        return "onprem";
-      if (value === "legacy")
-        return "legacy";
-      return "cloud";
-    }
-    function readSapVersion(envVars) {
-      const value = (envVars.SAP_VERSION ?? "").trim();
-      return value === "" ? null : value;
-    }
-    function disconnectedProfile(diagnostics, alias = null) {
-      return {
-        connection: null,
-        tier: "UNKNOWN",
-        systemType: "cloud",
-        sapVersion: null,
-        envPath: null,
-        alias,
-        diagnostics: [...diagnostics]
-      };
-    }
-  }
-});
-
-// dist/src/profile/destination.js
-var require_destination = __commonJS({
-  "dist/src/profile/destination.js"(exports2) {
-    "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
-      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-        desc = { enumerable: true, get: function() {
-          return m[k];
-        } };
-      }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
-    }));
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
-      Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
-      o["default"] = v;
-    });
-    var __importStar = exports2 && exports2.__importStar || /* @__PURE__ */ (function() {
-      var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function(o2) {
-          var ar = [];
-          for (var k in o2) if (Object.prototype.hasOwnProperty.call(o2, k)) ar[ar.length] = k;
-          return ar;
-        };
-        return ownKeys(o);
-      };
-      return function(mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) {
-          for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        }
-        __setModuleDefault(result, mod);
-        return result;
-      };
-    })();
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.platformStoreDirs = platformStoreDirs;
-    exports2.serviceKeysDir = serviceKeysDir;
-    exports2.sessionsDir = sessionsDir;
-    exports2.checkDestinationName = checkDestinationName;
-    exports2.listStoreNames = listStoreNames;
-    exports2.sessionEnvFileName = sessionEnvFileName;
-    exports2.resolveSessionEnv = resolveSessionEnv;
-    exports2.readServiceKey = readServiceKey;
-    exports2.planServiceKeyConnection = planServiceKeyConnection;
-    exports2.resolveBrokerStores = resolveBrokerStores;
-    var fs = __importStar(require("node:fs"));
-    var os = __importStar(require("node:os"));
-    var path = __importStar(require("node:path"));
-    function platformStoreDirs(subfolder, lookup = {}) {
-      const env = lookup.env ?? process.env;
-      const cwd = lookup.cwd ?? process.cwd();
-      const platform = lookup.platform ?? process.platform;
-      const dirs = [];
-      const withSubfolder = (raw) => {
-        let resolved = path.resolve(cwd, raw);
-        if (path.basename(resolved) === subfolder)
-          resolved = path.dirname(resolved);
-        return path.join(resolved, subfolder);
-      };
-      const custom = (lookup.authBrokerPath ?? "").trim();
-      if (custom)
-        dirs.push(withSubfolder(custom));
-      const fromEnv = (env.AUTH_BROKER_PATH ?? "").trim();
-      if (fromEnv) {
-        const delimiter = platform === "win32" ? ";" : ":";
-        for (const part of fromEnv.split(delimiter)) {
-          const trimmed = part.trim();
-          if (trimmed)
-            dirs.push(withSubfolder(trimmed));
-        }
-      }
-      if (dirs.length === 0) {
-        const home = lookup.homedir ?? os.homedir();
-        const base = platform === "win32" ? path.join(home, "Documents", "mcp-abap-adt") : path.join(home, ".config", "mcp-abap-adt");
-        dirs.push(path.join(base, subfolder));
-      }
-      dirs.push(cwd);
-      const seen = /* @__PURE__ */ new Set();
-      const unique = [];
-      for (const dir of dirs) {
-        const normalized = path.normalize(dir);
-        if (seen.has(normalized))
-          continue;
-        seen.add(normalized);
-        unique.push(normalized);
-      }
-      return unique;
-    }
-    function serviceKeysDir(lookup = {}) {
-      return platformStoreDirs("service-keys", lookup)[0] ?? path.resolve(lookup.cwd ?? process.cwd());
-    }
-    function sessionsDir(lookup = {}) {
-      const dirs = platformStoreDirs("sessions", lookup);
-      const cwd = path.resolve(lookup.cwd ?? process.cwd());
-      return dirs.find((dir) => path.resolve(dir) !== cwd) ?? dirs[0] ?? cwd;
-    }
-    function checkDestinationName(raw) {
-      const name = raw.trim();
-      if (name === "")
-        return { ok: false, reason: "the value is empty" };
-      if (name.includes("/") || name.includes("\\")) {
-        return { ok: false, reason: "it contains a path separator" };
-      }
-      if (name.startsWith(".") || name.startsWith("~")) {
-        return { ok: false, reason: 'it starts with a path prefix ("." or "~")' };
-      }
-      if (/^[A-Za-z]:/.test(name))
-        return { ok: false, reason: "it starts with a drive letter" };
-      if (path.isAbsolute(name))
-        return { ok: false, reason: "it is an absolute path" };
-      return { ok: true };
-    }
-    function listStoreNames(dir, extension) {
-      try {
-        return fs.readdirSync(dir, { withFileTypes: true }).filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(extension)).map((entry) => entry.name.slice(0, -extension.length)).sort();
-      } catch {
-        return [];
-      }
-    }
-    function sessionEnvFileName(name) {
-      const trimmed = name.trim();
-      return trimmed.toLowerCase().endsWith(".env") ? trimmed : `${trimmed}.env`;
-    }
-    function resolveSessionEnv(name, lookup = {}) {
-      const checked = checkDestinationName(name);
-      if (!checked.ok)
-        return { kind: "unsafe-name", reason: checked.reason };
-      const dir = sessionsDir(lookup);
-      const file = path.join(dir, sessionEnvFileName(name));
-      if (!fs.existsSync(file)) {
-        return { kind: "not-found", path: file, available: listStoreNames(dir, ".env") };
-      }
-      return { kind: "ok", path: file };
-    }
-    function isRecord(value) {
-      return typeof value === "object" && value !== null && !Array.isArray(value);
-    }
-    function str(value) {
-      return typeof value === "string" ? value.trim() : "";
-    }
-    function unwrapCredentials(data) {
-      const keys = Object.keys(data);
-      if (keys.length !== 1 || keys[0] !== "credentials")
-        return data;
-      const inner = data.credentials;
-      return isRecord(inner) ? inner : data;
-    }
-    function parseServiceKeyJson(text) {
-      const attempt = (candidate) => {
-        try {
-          const parsed = JSON.parse(candidate);
-          return isRecord(parsed) ? parsed : null;
-        } catch {
-          return null;
-        }
-      };
-      const direct = attempt(text);
-      if (direct)
-        return direct;
-      const start = text.indexOf("{");
-      const end = text.lastIndexOf("}");
-      if (start === -1 || end <= start)
-        return null;
-      return attempt(text.slice(start, end + 1));
-    }
-    function readServiceKey(destination, lookup = {}) {
-      const checked = checkDestinationName(destination);
-      if (!checked.ok)
-        return { kind: "unsafe-name", reason: checked.reason };
-      const name = destination.trim();
-      const dir = serviceKeysDir(lookup);
-      const file = path.join(dir, `${name}.json`);
-      if (!fs.existsSync(file)) {
-        return { kind: "not-found", path: file, available: listStoreNames(dir, ".json") };
-      }
-      let text;
-      try {
-        text = fs.readFileSync(file, "utf8");
-      } catch (err) {
-        return {
-          kind: "invalid",
-          path: file,
-          reason: `it could not be read (${err instanceof Error ? err.message : String(err)})`
-        };
-      }
-      const raw = parseServiceKeyJson(text);
-      if (!raw)
-        return { kind: "invalid", path: file, reason: "it is not a JSON object" };
-      const data = unwrapCredentials(raw);
-      const nested = isRecord(data.uaa) ? data.uaa : null;
-      const storeType = nested ? "abap" : "btp";
-      const uaa = nested ?? data;
-      const uaaUrl = str(uaa.url);
-      const clientId = str(uaa.clientid);
-      const clientSecret = str(uaa.clientsecret);
-      const missing = [];
-      if (!uaaUrl)
-        missing.push(nested ? "uaa.url" : "url");
-      if (!clientId)
-        missing.push(nested ? "uaa.clientid" : "clientid");
-      if (!clientSecret)
-        missing.push(nested ? "uaa.clientsecret" : "clientsecret");
-      if (missing.length) {
-        return {
-          kind: "invalid",
-          path: file,
-          reason: `it is missing ${missing.join(", ")} \u2014 neither the ABAP (nested "uaa") nor the XSUAA (flat) service-key shape is complete`
-        };
-      }
-      const abap = isRecord(data.abap) ? data.abap : null;
-      const rootUrl = str(data.url);
-      const serviceUrl = str(abap?.url) || str(data.sap_url) || (rootUrl && !rootUrl.includes("authentication") ? rootUrl : "");
-      const client = str(abap?.client) || str(data.sap_client) || str(data.client);
-      const language = str(abap?.language) || str(data.language);
-      return {
-        kind: "ok",
-        key: {
-          destination: name,
-          source: file,
-          storeType,
-          serviceUrl: serviceUrl || null,
-          client: client || null,
-          language: language || null,
-          auth: { uaaUrl, clientId, clientSecret }
-        }
-      };
-    }
-    function planServiceKeyConnection(key) {
-      const uaa = {
-        url: key.auth.uaaUrl,
-        clientId: key.auth.clientId,
-        clientSecret: key.auth.clientSecret
-      };
-      if (!key.serviceUrl)
-        return { kind: "no-service-url", uaa };
-      return {
-        kind: "ready",
-        uaa,
-        baseUrl: key.serviceUrl,
-        client: key.client,
-        language: key.language
-      };
-    }
-    function resolveBrokerStores(lookup = {}) {
-      const keysDir = serviceKeysDir(lookup);
-      return {
-        serviceKeysDir: keysDir,
-        sessionsDir: sessionsDir(lookup),
-        destinations: listStoreNames(keysDir, ".json")
-      };
-    }
-  }
-});
-
-// dist/src/profile/index.js
-var require_profile = __commonJS({
-  "dist/src/profile/index.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.sessionsDir = exports2.sessionEnvFileName = exports2.serviceKeysDir = exports2.resolveSessionEnv = exports2.resolveBrokerStores = exports2.readServiceKey = exports2.platformStoreDirs = exports2.planServiceKeyConnection = exports2.listStoreNames = exports2.checkDestinationName = exports2.resolveProfileDetailed = exports2.resolveProfile = exports2.disconnectedProfile = exports2.resolveHomeDir = exports2.listProfileAliases = exports2.RUNTIME_DIR_NAME = exports2.readEnvFile = exports2.parseEnvText = void 0;
-    var envFile_1 = require_envFile();
-    Object.defineProperty(exports2, "parseEnvText", { enumerable: true, get: function() {
-      return envFile_1.parseEnvText;
-    } });
-    Object.defineProperty(exports2, "readEnvFile", { enumerable: true, get: function() {
-      return envFile_1.readEnvFile;
-    } });
-    var home_1 = require_home();
-    Object.defineProperty(exports2, "RUNTIME_DIR_NAME", { enumerable: true, get: function() {
-      return home_1.RUNTIME_DIR_NAME;
-    } });
-    Object.defineProperty(exports2, "listProfileAliases", { enumerable: true, get: function() {
-      return home_1.listProfileAliases;
-    } });
-    Object.defineProperty(exports2, "resolveHomeDir", { enumerable: true, get: function() {
-      return home_1.resolveHomeDir;
-    } });
-    var resolve_1 = require_resolve2();
-    Object.defineProperty(exports2, "disconnectedProfile", { enumerable: true, get: function() {
-      return resolve_1.disconnectedProfile;
-    } });
-    Object.defineProperty(exports2, "resolveProfile", { enumerable: true, get: function() {
-      return resolve_1.resolveProfile;
-    } });
-    Object.defineProperty(exports2, "resolveProfileDetailed", { enumerable: true, get: function() {
-      return resolve_1.resolveProfileDetailed;
-    } });
-    var destination_1 = require_destination();
-    Object.defineProperty(exports2, "checkDestinationName", { enumerable: true, get: function() {
-      return destination_1.checkDestinationName;
-    } });
-    Object.defineProperty(exports2, "listStoreNames", { enumerable: true, get: function() {
-      return destination_1.listStoreNames;
-    } });
-    Object.defineProperty(exports2, "planServiceKeyConnection", { enumerable: true, get: function() {
-      return destination_1.planServiceKeyConnection;
-    } });
-    Object.defineProperty(exports2, "platformStoreDirs", { enumerable: true, get: function() {
-      return destination_1.platformStoreDirs;
-    } });
-    Object.defineProperty(exports2, "readServiceKey", { enumerable: true, get: function() {
-      return destination_1.readServiceKey;
-    } });
-    Object.defineProperty(exports2, "resolveBrokerStores", { enumerable: true, get: function() {
-      return destination_1.resolveBrokerStores;
-    } });
-    Object.defineProperty(exports2, "resolveSessionEnv", { enumerable: true, get: function() {
-      return destination_1.resolveSessionEnv;
-    } });
-    Object.defineProperty(exports2, "serviceKeysDir", { enumerable: true, get: function() {
-      return destination_1.serviceKeysDir;
-    } });
-    Object.defineProperty(exports2, "sessionEnvFileName", { enumerable: true, get: function() {
-      return destination_1.sessionEnvFileName;
-    } });
-    Object.defineProperty(exports2, "sessionsDir", { enumerable: true, get: function() {
-      return destination_1.sessionsDir;
-    } });
-  }
-});
-
-// dist/src/server/startup.js
-var require_startup = __commonJS({
-  "dist/src/server/startup.js"(exports2) {
-    "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
-      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-        desc = { enumerable: true, get: function() {
-          return m[k];
-        } };
-      }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
-    }));
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
-      Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
-      o["default"] = v;
-    });
-    var __importStar = exports2 && exports2.__importStar || /* @__PURE__ */ (function() {
-      var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function(o2) {
-          var ar = [];
-          for (var k in o2) if (Object.prototype.hasOwnProperty.call(o2, k)) ar[ar.length] = k;
-          return ar;
-        };
-        return ownKeys(o);
-      };
-      return function(mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) {
-          for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        }
-        __setModuleDefault(result, mod);
-        return result;
-      };
-    })();
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.resolveStartup = resolveStartup;
-    var fs = __importStar(require("node:fs"));
-    var path = __importStar(require("node:path"));
-    var profile_1 = require_profile();
-    var safety_1 = require_safety();
-    function argValue(args, name) {
-      const prefix = `${name}=`;
-      for (let i = 0; i < args.length; i++) {
-        const arg = args[i] ?? "";
-        if (arg.startsWith(prefix))
-          return arg.slice(prefix.length);
-        if (arg === name)
-          return args[i + 1] ?? "";
-      }
-      return void 0;
-    }
-    function resolveEnvPathLike(raw, cwd) {
-      return path.isAbsolute(raw) ? raw : path.resolve(cwd, raw);
-    }
-    function nothingResolved(profile) {
-      return profile.envPath === null && profile.alias === null && profile.diagnostics.length === 1 && (profile.diagnostics[0] ?? "").startsWith("NO_PROFILE:");
-    }
-    function brokerSwitches(args, env) {
-      const on = [];
-      if (args.includes("--auth-broker"))
-        on.push("--auth-broker");
-      if ((env.MCP_USE_AUTH_BROKER ?? "").trim() === "true")
-        on.push("MCP_USE_AUTH_BROKER=true");
-      return on;
-    }
-    function resolveStartup(input = {}) {
-      const argv = input.argv ?? process.argv;
-      const args = argv.slice(2);
-      const env = input.env ?? process.env;
-      const cwd = input.cwd ?? process.cwd();
-      const diagnostics = [];
-      const exposition = (0, safety_1.expositionFromArgvDetailed)(args);
-      diagnostics.push(...exposition.diagnostics);
-      const explicitEnvPath = argValue(args, "--env-path");
-      const mcpDestination = (argValue(args, "--mcp") ?? "").trim();
-      const envDestination = (argValue(args, "--env") ?? "").trim();
-      const authBrokerPath = (argValue(args, "--auth-broker-path") ?? "").trim();
-      const envPathOption = explicitEnvPath !== void 0 && explicitEnvPath.trim() !== "" ? resolveEnvPathLike(explicitEnvPath.trim(), cwd) : void 0;
-      const injectedEnvPath = (env.MCP_ENV_PATH ?? "").trim();
-      const lookup = {
-        env,
-        cwd,
-        ...input.homedir !== void 0 ? { homedir: input.homedir } : {},
-        ...authBrokerPath !== "" ? { authBrokerPath } : {}
-      };
-      const profileOptions = {
-        cwd,
-        env,
-        ...input.homedir !== void 0 ? { homedir: input.homedir } : {}
-      };
-      let destination = null;
-      let resolution;
-      if (mcpDestination !== "") {
-        const channelDiagnostics = [];
-        if (envDestination !== "") {
-          channelDiagnostics.push(`ENV_DESTINATION_IGNORED: --env=${envDestination} was ignored because --mcp=${mcpDestination} names a service-key destination, which outranks it (the measured broker tries the service key first: engine/src/lib/auth/brokerFactory.ts:146-183).`);
-        }
-        const found = (0, profile_1.readServiceKey)(mcpDestination, lookup);
-        switch (found.kind) {
-          case "ok": {
-            destination = {
-              channel: "mcp",
-              name: mcpDestination,
-              source: found.key.source,
-              serviceKey: found.key
-            };
-            const plan = (0, profile_1.planServiceKeyConnection)(found.key);
-            channelDiagnostics.push(`MCP_DESTINATION_TOKEN_PENDING: --mcp=${mcpDestination} resolved its service key (${found.key.source}, ${found.key.storeType} shape${plan.kind === "ready" ? `, service URL ${plan.baseUrl}` : ", no service URL in the key"}) and the OAuth2 material is assembled, but no token has been acquired \u2014 the server starts with no connection. ${plan.kind === "ready" ? "Acquiring one is a live round trip to the UAA endpoint, and the authorization_code grant needs a person at a browser, so startup never begins it on its own." : "Even with a token this key names no ADT service URL, so it cannot produce a connection on its own; add the ABAP service URL to the key."} Use --env=<name>, --env-path=<file>, or an active profile for a Basic connection.`);
-            break;
-          }
-          case "unsafe-name":
-            channelDiagnostics.push(`MCP_DESTINATION_INVALID: --mcp=${mcpDestination} is not a destination name \u2014 ${found.reason}. A destination names a file inside the service-key store, never a path; the server starts with no connection.`);
-            break;
-          case "not-found":
-            channelDiagnostics.push(`MCP_DESTINATION_NOT_FOUND: --mcp=${mcpDestination} has no service key at ${found.path}${found.available.length ? ` (available: ${found.available.join(", ")})` : " (no service keys found there)"} \u2014 the server starts with no connection and does not fall back to another system.`);
-            break;
-          default:
-            channelDiagnostics.push(`SERVICE_KEY_INVALID: the service key for --mcp=${mcpDestination} at ${found.path} could not be used \u2014 ${found.reason}. The server starts with no connection.`);
-            break;
-        }
-        if (destination === null) {
-          destination = { channel: "mcp", name: mcpDestination, source: null, serviceKey: null };
-        }
-        resolution = { profile: (0, profile_1.disconnectedProfile)(channelDiagnostics), envVars: {} };
-      } else if (envDestination !== "" && envPathOption === void 0 && injectedEnvPath === "") {
-        const found = (0, profile_1.resolveSessionEnv)(envDestination, lookup);
-        if (found.kind === "ok") {
-          destination = {
-            channel: "env",
-            name: envDestination,
-            source: found.path,
-            serviceKey: null
-          };
-          resolution = (0, profile_1.resolveProfileDetailed)({ ...profileOptions, envPath: found.path });
-        } else {
-          destination = { channel: "env", name: envDestination, source: null, serviceKey: null };
-          const channelDiagnostics = found.kind === "unsafe-name" ? [
-            `ENV_DESTINATION_INVALID: --env=${envDestination} is not a session name \u2014 ${found.reason}. --env names a file inside the session store; use --env-path=<file> to point at a path. The server starts with no connection.`
-          ] : [
-            `ENV_DESTINATION_NOT_FOUND: --env=${envDestination} has no session env file at ${found.path}${found.available.length ? ` (available: ${found.available.join(", ")})` : " (no session env files found there)"} \u2014 the server starts with no connection and does not fall back to another system.`
-          ];
-          resolution = { profile: (0, profile_1.disconnectedProfile)(channelDiagnostics), envVars: {} };
-        }
-      } else {
-        if (envDestination !== "") {
-          diagnostics.push(`ENV_DESTINATION_IGNORED: --env=${envDestination} was ignored because an explicit env-file path (${envPathOption !== void 0 ? "--env-path" : "MCP_ENV_PATH"}) outranks it (the measured parser tries envPath before envDestination: engine/src/lib/config/envResolver.ts:35-43).`);
-        }
-        resolution = (0, profile_1.resolveProfileDetailed)({
-          ...profileOptions,
-          ...envPathOption !== void 0 ? { envPath: envPathOption } : {}
-        });
-        const switches = brokerSwitches(args, env);
-        const useAuthBroker = switches.length > 0;
-        if (resolution.profile.connection === null && nothingResolved(resolution.profile) && envPathOption === void 0 && mcpDestination === "" && envDestination === "" && !injectedEnvPath && !useAuthBroker) {
-          const cwdEnv = path.resolve(cwd, ".env");
-          if (fs.existsSync(cwdEnv)) {
-            resolution = (0, profile_1.resolveProfileDetailed)({ ...profileOptions, envPath: cwdEnv });
-          }
-        }
-        if (useAuthBroker) {
-          const stores = (0, profile_1.resolveBrokerStores)(lookup);
-          destination = {
-            channel: "broker",
-            name: "",
-            source: null,
-            serviceKey: null,
-            broker: stores
-          };
-          if (resolution.profile.connection !== null) {
-            diagnostics.push(`AUTH_BROKER_IGNORED: the auth broker channel is on (${switches.join(", ")}), but an env-file channel resolved the connection first and owns it (${resolution.profile.envPath}). The measured broker behaves the same way: --env/--env-path/MCP_ENV_PATH is Variant 2 and the broker switch only locks Variant 3 (engine/src/lib/auth/brokerFactory.ts:167,185).`);
-          } else {
-            diagnostics.push(`AUTH_BROKER_NO_DESTINATION: the auth broker channel is on (${switches.join(", ")}) but no destination was named, so this channel produced no connection \u2014 the measured broker creates no default broker in that case either (engine/src/lib/auth/brokerFactory.ts:283-293) and resolves credentials only for a destination that is named. Service keys: ${stores.serviceKeysDir}${stores.destinations.length ? ` (available: ${stores.destinations.join(", ")})` : " (no service keys found there)"}. Sessions: ${stores.sessionsDir}. Name one with --mcp=<name>, or use --env=<name>, --env-path=<file>, or an active profile for a Basic connection. The project-local .env fallback stays locked while this channel is on.`);
-          }
-        }
-      }
-      diagnostics.push(...resolution.profile.diagnostics);
-      const safetyEnv = (0, safety_1.resolveSafetyEnv)(env, resolution.envVars);
-      const profile = resolution.profile;
-      diagnostics.push(`[sapkit] profile: ${profile.alias ?? "(none)"} \xB7 tier=${profile.tier} \xB7 systemType=${profile.systemType} \xB7 connection=${profile.connection ? "yes" : "none"} \xB7 exposition=${exposition.sets.join(",") || "(empty)"}`);
-      return {
-        sets: exposition.sets,
-        profile,
-        envVars: resolution.envVars,
-        env: safetyEnv,
-        blocklist: (0, safety_1.readBlocklistConfig)(safetyEnv),
-        destination,
-        unsafe: (0, safety_1.resolveUnsafeFlag)({ argv: args, env }),
-        diagnostics,
-        input: {
-          argv: [...argv],
-          // env는 **참조로** 실어 나른다. 기본값이 `process.env`일 때 재적재가 그
-          // 사이에 바뀐 값을 보아야 하기 때문이다. 이 계층은 env에 쓰지 않는다(구
-          // 엔진의 `applyProfile`은 `process.env.SAP_*`를 덮어썼다 —
-          // `engine/src/lib/profile.ts:271-280`).
-          env,
-          cwd,
-          ...input.homedir !== void 0 ? { homedir: input.homedir } : {}
-        }
-      };
-    }
-  }
-});
-
 // dist/src/server/session.js
 var require_session = __commonJS({
   "dist/src/server/session.js"(exports2) {
@@ -71667,8 +72416,8 @@ var require_core5 = __commonJS({
       }
     }
     function readEngineVersion() {
-      if ("1.0.0") {
-        return "1.0.0";
+      if ("1.1.0") {
+        return "1.1.0";
       }
       let dir = __dirname;
       for (let depth = 0; depth < 6; depth += 1) {
@@ -79490,6 +80239,7 @@ var require_bootstrap = __commonJS({
     exports2.startFromProcess = startFromProcess;
     var stdio_js_1 = require_stdio2();
     var adt_1 = require_adt();
+    var connectDestination_1 = require_connectDestination();
     var core_1 = require_core5();
     var session_1 = require_session();
     var startup_1 = require_startup();
@@ -79509,12 +80259,12 @@ var require_bootstrap = __commonJS({
       };
     }
     async function startFromProcess(options = {}) {
-      const startup = (0, startup_1.resolveStartup)({
+      const startup = await (0, connectDestination_1.connectDestination)((0, startup_1.resolveStartup)({
         ...options.argv !== void 0 ? { argv: options.argv } : {},
         ...options.env !== void 0 ? { env: options.env } : {},
         ...options.cwd !== void 0 ? { cwd: options.cwd } : {},
         ...options.homedir !== void 0 ? { homedir: options.homedir } : {}
-      });
+      }));
       const stderr = options.stderr ?? defaultStderr;
       const session = new session_1.ProfileSession(startup, options.connectionFactory ?? ((config) => new adt_1.AdtClient(config)));
       const makeCore = (perRequest) => (0, core_1.createServerCore)({
