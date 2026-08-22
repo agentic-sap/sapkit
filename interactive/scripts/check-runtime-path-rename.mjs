@@ -56,19 +56,17 @@ const HISTORY = [
   //   의식적으로 감수한 구멍이다 — 이 파일을 고칠 때는 사람이 직접 확인할 것.
   'interactive/DESIGN.md',
   'interactive/docs/research/',
-  'engine/CHANGELOG.md',
-  'engine/UPSTREAM-FIX-HANDOFF.md',
   // 빌드 산출물 — 소스가 정본이다
   'interactive/server/VERSION',
   'interactive/server/server.bundle.cjs',
-  'engine/dist/',
   // 시험 자산: 구 세대가 **무시되는지**를 시험하려면 그 이름을 적어야 한다
   //
-  // `engine/__tests__/`와 `engine/tests/`는 여기 없다 — 전자는 fixture
-  // `runtime-dir-selection.json`이 `interactive/`로 옮겨가며 비었고(판7.5), 후자는
-  // 애초에 구 세대 토큰이 없다. 둘 다 지금 스캔에 들어가도 위반이 0건이므로
-  // 뺐다 — `engine/`이 삭제되면 자동으로 무해해질 죽은 예외를 남겨 두지 않는다.
-  'engine/src/__tests__/',
+  // ⚠ `engine/` 예외는 여기 **하나도 없다**(판7.5 · D-101). 구 포크가 은퇴하며
+  // `engine/CHANGELOG.md`·`engine/UPSTREAM-FIX-HANDOFF.md`·`engine/dist/`·
+  // `engine/src/__tests__/`·`engine/__tests__/`·`engine/tests/`가 전부 스캔 대상
+  // 자체를 잃었다. **죽은 예외를 남기지 않는다** — 남겨 두면 다음 사람이 「이건
+  // 아직 뭔가를 막고 있나」를 다시 조사하게 된다. 되살릴 일이 생기면 커밋
+  // `2264f89d`에서 그 목록을 확인할 것.
   // 판7.5에서 engine/__tests__/fixtures/에서 옮겨왔다(conformance-runtime-dir.mjs
   // 참조) — 은퇴한 세대가 실제로 무시되는지를 시험하는 입력이라 구 토큰을 그대로 담는다.
   'interactive/scripts/__tests__/fixtures/runtime-dir-selection.json',

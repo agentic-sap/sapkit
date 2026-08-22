@@ -203,21 +203,28 @@ t(
   '개명 완료 게이트 통과',
 );
 t(
-  // 판7.5에서 engine/__tests__/(fixture 하나뿐이었다)가 비었다 — 그 fixture는
-  // interactive/로 옮겨갔고(자기 자리에서 별도로 HISTORY 등재됐다), 남은
-  // engine/__tests__/는 더 이상 예외가 필요 없어 HISTORY에서 빠졌다. 이 케이스는
-  // 여전히 남아 있는 같은 범주의 예외(engine/src/__tests__/)로 옮겨 같은 뜻
-  // ("시험 자산의 구 토큰은 PASS")을 계속 지킨다.
-  '시험 자산(engine/src/__tests__)의 구 토큰 → PASS',
-  (root) => W(root, 'engine/src/__tests__/lib/x.test.ts', 'const LEGACY = ".sc4sap";\n'),
+  // 판7.5(D-101)에서 `engine/` 예외가 HISTORY에서 전부 빠졌다 — 구 포크가 은퇴해
+  // 스캔 대상 자체가 없어졌기 때문이다. 이 두 케이스가 지키는 뜻은 경로가 아니라
+  // **범주**다("시험 자산의 구 토큰은 PASS" · "빌드 산출물의 구 토큰은 PASS").
+  // 그래서 같은 범주의 **살아 있는** 예외로 옮겨 뜻을 유지한다.
+  '시험 자산(interactive/scripts/test-*)의 구 토큰 → PASS',
+  (root) => W(root, 'interactive/scripts/test-setup-state.mjs', 'const LEGACY = ".sc4sap";\n'),
   0,
   '개명 완료 게이트 통과',
 );
 t(
-  '빌드 산출물(engine/dist)의 구 토큰 → PASS',
-  (root) => W(root, 'engine/dist/lib/profile.js', 'const LEGACY = ".sc4sap";\n'),
+  '빌드 산출물(server.bundle.cjs)의 구 토큰 → PASS',
+  (root) => W(root, 'interactive/server/server.bundle.cjs', 'const LEGACY = ".sc4sap";\n'),
   0,
   '개명 완료 게이트 통과',
+);
+t(
+  // 죽은 예외를 지운 것이 **실제로 효력이 있는지** 잰다 — engine/ 예외가 남아 있었다면
+  // 이 케이스가 PASS(exit 0)로 새어 나갔을 것이다.
+  '은퇴한 engine/ 경로의 구 토큰 → 더는 봐주지 않는다 (exit 1)',
+  (root) => W(root, 'engine/dist/lib/profile.js', 'const LEGACY = ".sc4sap";\n'),
+  1,
+  '구 세대 토큰',
 );
 
 console.log(`\n${pass + fail}건 중 ${pass} PASS / ${fail} FAIL`);

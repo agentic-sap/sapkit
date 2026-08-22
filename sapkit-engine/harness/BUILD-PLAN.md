@@ -20,7 +20,7 @@ node harness/build-plan.mjs --stdout  # 파일을 건드리지 않고 화면에 
 | 도구 186종 정본 | `harness/old-surface/m1-tools.json` 의 `tools` |
 | 호출 횟수 · 꼬리 49종 · 클래스 | `harness/usage-census.json` |
 | 픽스처가 실제로 태운 도구 | `harness/phase6-exercised.json` — **얼린 관측**(§3.1) |
-| 오브젝트 종류(묶음의 단위) | `../engine/src/handlers/**` 의 `TOOL_DEFINITION` 이름 — **읽기만 한다** |
+| 오브젝트 종류(묶음의 단위) | `harness/old-surface/handler-tree.json` 의 `folderByTool` — **채록본이다.** 원본 `../engine/src/handlers/**`는 판7.5(2026-08-22 · D-101)에서 은퇴했고, 그 전에 한 번 읽어 굳혔다. 재채록 수단은 없다 |
 
 사다리 판정 자체는 `harness/ledger/grade.ts`가 소유한다 — `.mjs` 안에 있는 판정은 jest가 못
 잡기 때문이다. 그래서 위 명령은 **`npm run build` 뒤에** 돈다.
@@ -74,7 +74,7 @@ spec §4.4가 못 박은 단위는 **오브젝트 종류**(클래스 · 프로�
 ### 1.4 `compact` 묶음은 세우지 않았다 — 이 표면에 도구가 0종이다
 
 spec §4.4는 횡단 폴더를 넷(`system` `common` `compact` `search`)으로 적었다. 그중 **`compact`만은
-이 표면 186종에 도구를 하나도 내지 않는다.** `engine/src/handlers/compact/high/` 가 선언하는
+이 표면 186종에 도구를 하나도 내지 않는다.** 구 `engine/src/handlers/compact/high/` 가 선언하던
 것은 `HandlerActivate` · `HandlerCreate` · `HandlerGet` … 처럼 **`Handler*`로 시작하는 22종**이고,
 이는 compact 표면(라우터형 축약 표면)이지 connected 186종이 아니다.
 
@@ -82,8 +82,10 @@ spec §4.4는 횡단 폴더를 넷(`system` `common` `compact` `search`)으로 �
 "아직 안 지은 묶음"으로 읽힌다. 횡단 묶음은 **넷**(`system` · `search` · `common` · `runtime`)이고,
 검증 기준 「횡단 묶음이 오브젝트 묶음보다 앞」은 그 넷에 대해 성립한다.
 
-> 재현: `engine/src/handlers/compact/**` 의 `TOOL_DEFINITION` 이름 22종과
-> `harness/old-surface/m1-tools.json` 의 `tools` 키 186종의 교집합은 0이다.
+> 재현: `harness/old-surface/handler-tree.json` 의 `folderByTool` 중 폴더가 `compact`인
+> 22종과 `harness/old-surface/m1-tools.json` 의 `tools` 키 186종의 교집합은 0이다.
+> ⚠ 판7.5 이전에는 이 재현이 `engine/src/handlers/compact/**` 를 직접 읽는 것이었다 —
+> 원본이 은퇴해 **채록본에 대고 재현한다**(D-101).
 
 ## 2. 순서 — 수요순, 단 두 제약이 산식보다 앞선다
 
