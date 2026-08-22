@@ -32,9 +32,8 @@ const BUNDLE_PATH = path.join(ROOT, 'interactive', 'server', 'server.bundle.cjs'
 // 번들을 만드는 소스 트리. 2026-08-19 판7-b(D-095)로 `engine/`(포크)에서
 // `sapkit-engine/`(자체 저작)으로 옮겼다 — 제품 번들의 출처가 바뀌었으므로 이
 // 게이트가 겨누는 곳도 함께 옮겨야 한다. 옮기지 않으면 **신 엔진 소스를 고치고
-// 재핀하지 않아도 초록**이 되고(그쪽을 안 보므로), 반대로 롤백 자산인 `engine/`을
-// 건드리면 무관한 실패가 난다. `engine/`은 판7.5까지 되돌릴 자리로 남지만 번들의
-// 출처는 아니다.
+// 재핀하지 않아도 초록**이 된다(그쪽을 안 보므로). 구 포크 `engine/`은 2026-08-22
+// 판7.5(D-101)에서 은퇴해 레포에 없다 — 되뜨려면 커밋 `2264f89d`를 참조한다.
 const ENGINE = path.join(ROOT, 'sapkit-engine');
 
 const REBUILD = process.argv.includes('--rebuild');
@@ -100,7 +99,7 @@ if (!/^[0-9a-f]{40}$/.test(pinned ?? '')) {
       const subj = git(['log', '-1', '--format=%s', last]);
       fail.push(
         `엔진 소스가 재핀 없이 변경됨 — 번들 소스 최종 커밋 ${last.slice(0, 12)}… ("${subj}") vs ` +
-          `핀 ${pinned.slice(0, 12)}…\n      소스를 고쳤으면: cd engine && npm run build:bundle → 번들 복사 → ` +
+          `핀 ${pinned.slice(0, 12)}…\n      소스를 고쳤으면: cd sapkit-engine && npm run build:bundle → 번들 복사 → ` +
           `VERSION의 source commit 갱신 → node interactive/server/verify-engine.mjs --refresh`
       );
     }

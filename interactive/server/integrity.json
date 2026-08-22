@@ -1,7 +1,7 @@
 {
   "name": "sapkit-engine",
   "version": "1.0.0",
-  "sourceCommit": "15b3b7ab34e0ff1f1a8084b8e0c0369e928fd203",
+  "sourceCommit": "843a6aba06b1c364072dff4a45a46ccc7bb4714a",
   "file": "interactive/server/server.bundle.cjs",
   "sha256": "56f12f160567034fa757a3c090d2a59abc1294a97e24a05544d55e6724015479",
   "bytes": 3813330
