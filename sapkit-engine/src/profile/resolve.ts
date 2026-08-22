@@ -37,6 +37,20 @@ const TIMEOUT_DEFAULT = 45000;
 const TIMEOUT_CSRF = 15000;
 const TIMEOUT_LONG = 60000;
 
+/**
+ * The timeout block a profile with no overrides produces.
+ *
+ * Exported because the destination channel builds its connection from a
+ * service key rather than an env file (`src/server/connectDestination.ts`) and
+ * must not carry its own copy of these numbers — two copies drift, and the
+ * drift shows up as one channel timing out where the other does not.
+ */
+export const DEFAULT_TIMEOUTS = {
+  default: TIMEOUT_DEFAULT,
+  csrf: TIMEOUT_CSRF,
+  long: TIMEOUT_LONG,
+} as const;
+
 export interface ProfileResolveOptions {
   /** Project directory whose `.sapkit` holds the pointer. Defaults to `process.cwd()`. */
   readonly cwd?: string;

@@ -221,6 +221,69 @@ export interface ServiceKeyAuth {
   readonly clientSecret: string;
 }
 
+/**
+ * 이 키로 토큰을 받는 방법 — **성격이 다른 두 갈래**다.
+ *
+ * `client_credentials`는 clientid/clientsecret만으로 끝나는 서버 간 왕복이라
+ * 사람이 개입할 자리가 없고, `authorization_code`는 사람이 브라우저 앞에
+ * 있어야만 끝난다. 기동이 자동으로 시작해도 되는지가 이 축으로 갈린다
+ * (D-114 ⓐⓑ) — 그래서 재료 계층이 이 값을 실어 나른다.
+ */
+export type OAuthGrant = 'client_credentials' | 'authorization_code';
+
+/**
+ * 그랜트를 **선언하지 않은** service key의 갈래.
+ *
+ * `authorization_code`다 — 구 부품의 `--mcp` 통로가 실제로 그 갈래였기 때문이다
+ * (`AuthBroker.getToken` → `AuthorizationCodeProvider`, 이 파일 머리말의 읽기
+ * 실측). 말하지 않은 키를 `client_credentials`로 넘겨짚으면 기동이 **사람이 아닌
+ * 다른 권한 주체**의 토큰을 조용히 실어 붙는다 — 사람이 자기가 무엇으로
+ * 인증됐는지 모른 채 SAP에 요청을 보내게 되는 자리이고, D116 ⓐ가 갱신 갈래에서
+ * 막아 둔 것과 같은 사고다. 자동 취득은 키가 그렇게 **말할 때만** 켜진다.
+ */
+export const DEFAULT_SERVICE_KEY_GRANT: OAuthGrant = 'authorization_code';
+
+/** 같은 뜻의 철자들. service key는 `clientid`처럼 구분자를 생략하기도 한다. */
+const GRANT_FIELD_NAMES = ['granttype', 'grant_type', 'grant-type'] as const;
+
+type GrantDeclaration =
+  | { readonly ok: true; readonly grant: OAuthGrant; readonly declared: boolean }
+  | { readonly ok: false; readonly raw: string };
+
+/**
+ * 키가 선언한 그랜트를 읽는다. 없으면 {@link DEFAULT_SERVICE_KEY_GRANT}.
+ *
+ * 알 수 없는 값은 **기본값으로 흘려보내지 않는다** — 오타 하나가 조용히 다른
+ * 인증 주체를 고르는 자리이므로, 읽지 못한 선언은 읽지 못했다고 말한다.
+ */
+function readGrantDeclaration(
+  uaa: Record<string, unknown>,
+  root: Record<string, unknown>,
+): GrantDeclaration {
+  let raw = '';
+  for (const source of [uaa, root]) {
+    for (const name of GRANT_FIELD_NAMES) {
+      const found = str(source[name]);
+      if (found) {
+        raw = found;
+        break;
+      }
+    }
+    if (raw) break;
+  }
+  if (!raw) return { ok: true, grant: DEFAULT_SERVICE_KEY_GRANT, declared: false };
+
+  const normalized = raw.toLowerCase().replace(/[\s_-]/g, '');
+  if (normalized === 'clientcredentials') {
+    return { ok: true, grant: 'client_credentials', declared: true };
+  }
+  if (normalized === 'authorizationcode') {
+    return { ok: true, grant: 'authorization_code', declared: true };
+  }
+  // 값 자체는 비밀이 아니지만, 파일이 무엇을 담고 있든 진단이 길어지지 않게 자른다.
+  return { ok: false, raw: raw.slice(0, 40) };
+}
+
 export interface ServiceKeyConfig {
   readonly destination: string;
   /** 실제로 읽은 파일. */
@@ -232,6 +295,14 @@ export interface ServiceKeyConfig {
   readonly client: string | null;
   readonly language: string | null;
   readonly auth: ServiceKeyAuth;
+  /** 이 키로 토큰을 받는 방법. 선언이 없으면 {@link DEFAULT_SERVICE_KEY_GRANT}. */
+  readonly grant: OAuthGrant;
+  /**
+   * 그랜트를 키가 **말했는가**. 거짓이면 기본값을 쓴 것이고, 진단은 그 둘을
+   * 갈라 말해야 한다 — 「이 키가 그렇게 정했다」와 「아무 말이 없어 이렇게
+   * 본다」는 사람이 할 일이 다르다.
+   */
+  readonly grantDeclared: boolean;
 }
 
 export type ServiceKeyResult =
@@ -342,6 +413,19 @@ export function readServiceKey(
     };
   }
 
+  // 그랜트는 재료가 다 있는 것을 본 **뒤에** 읽는다 — 반쪽 키에는 그랜트를
+  // 따질 일이 없고, 진단은 더 앞선 결함부터 말해야 한다.
+  const grant = readGrantDeclaration(uaa, data);
+  if (!grant.ok) {
+    return {
+      kind: 'invalid',
+      path: file,
+      reason: `it declares an OAuth2 grant this engine does not use (${JSON.stringify(
+        grant.raw,
+      )}) — use "client_credentials" (server-to-server: startup acquires the token itself) or "authorization_code" (a person logs in at a browser)`,
+    };
+  }
+
   // serviceUrl·client·language의 우선순위는 구 store와 같다
   // (`AbapServiceKeyStore.js:147-149` · `XsuaaServiceKeyStore.js:107-117`).
   // `url`은 인증 엔드포인트일 수 있으므로 'authentication'이 들어 있으면
@@ -365,6 +449,8 @@ export function readServiceKey(
       client: client || null,
       language: language || null,
       auth: { uaaUrl, clientId, clientSecret },
+      grant: grant.grant,
+      grantDeclared: grant.declared,
     },
   };
 }

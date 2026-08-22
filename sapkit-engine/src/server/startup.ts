@@ -19,11 +19,13 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
+import { uaaEndpoints } from '../auth';
 import type { HandlerSet, ResolvedProfile } from '../contracts';
 import {
   type DestinationSelection,
   type PlatformLookup,
   type ProfileResolution,
+  type ServiceKeyConfig,
   disconnectedProfile,
   planServiceKeyConnection,
   readServiceKey,
@@ -77,11 +79,13 @@ export interface Startup {
    * `MCP_USE_AUTH_BROKER=true`)가 고른 인증 통로. 하나도 없으면 null.
    *
    * 통로가 열렸다고 접속이 생긴 것은 아니다 — `--env`는 세션 env 파일을 기존
-   * Basic 해석기에 태워 접속을 만들지만, `--mcp`와 브로커 통로는 **재료 조립까지만**
-   * 한다. 토큰을 받아 오는 계층은 `src/auth/`에 있으나 **기동이 그것을 돌리지
-   * 않는다** — UAA로 나가는 실왕복이고 사람이 필요할 수 있기 때문이다. 브로커 통로는 그
-   * 위에 destination 이름조차 고르지 않으므로, 접속을 소유하지 않은 채 열려
-   * 있을 수 있다. 접속 여부는 언제나 `profile.connection`이 정본이다.
+   * Basic 해석기에 태워 접속을 만들지만, **이 함수** 안에서 `--mcp`와 브로커
+   * 통로는 여전히 **재료 조립까지만** 한다. `--mcp`의 토큰은 기동 경로의 다음
+   * 걸음(`./connectDestination`)이 받으며, 그것도 `client_credentials` 그랜트일
+   * 때뿐이다(D-114 ⓑ) — `authorization_code`는 사람이 브라우저 앞에 있어야
+   * 끝나므로 기동이 시작하지 않는다. 브로커 통로는 그 위에 destination 이름조차
+   * 고르지 않으므로, 접속을 소유하지 않은 채 열려 있을 수 있다. 접속 여부는
+   * 언제나 `profile.connection`이 정본이다.
    */
   readonly destination: DestinationSelection | null;
   /** `MCP_UNSAFE` / `--unsafe`. 게이트에는 아무 영향이 없다. */
@@ -144,6 +148,62 @@ function nothingResolved(profile: ResolvedProfile): boolean {
  * 폴백을 잠그는 판단 **양쪽**에 쓰이고, 둘이 어긋나면 정확히 D17이 잡았던
  * 구멍(환경변수로 켠 기동이 cwd `.env`에 붙는 것)이 되돌아온다.
  */
+/**
+ * service key 하나를 읽은 **결과를 사람 말로** — 한 줄.
+ *
+ * 세 갈래이고, 갈래마다 사람이 할 일이 다르므로 진단 코드도 다르다:
+ *  - `MCP_DESTINATION_NO_SERVICE_URL` — 토큰을 받아도 붙을 주소가 키에 없다.
+ *    그랜트와 무관하게 끝나는 자리라 그랜트보다 먼저 말한다.
+ *  - `MCP_DESTINATION_TOKEN_REQUIRED` — `client_credentials`. 기동이 곧
+ *    받아 온다(`./connectDestination`). 이 줄은 그 다음 줄의 머리말이다.
+ *  - `MCP_DESTINATION_TOKEN_PENDING` — `authorization_code`. **여기서 끝난다.**
+ *    D-114 ⓑ가 좁힌 뜻 그대로 이 그랜트 전용이 됐다: 기동은 시작하지 않고,
+ *    사람이 무엇을 해야 하는지만 말한다.
+ */
+function describeServiceKeyDestination(name: string, key: ServiceKeyConfig): string {
+  const plan = planServiceKeyConnection(key);
+  const shape = `${key.source}, ${key.storeType} shape`;
+  const basic =
+    'use --env=<name>, --env-path=<file>, or an active profile for a Basic connection.';
+
+  if (plan.kind === 'no-service-url') {
+    return (
+      `MCP_DESTINATION_NO_SERVICE_URL: --mcp=${name} resolved its service key (${shape}) and its ` +
+      'OAuth2 material is complete, but the key names no ADT service URL — a token would have ' +
+      'nowhere to go, so the server starts with no connection and no token is requested. Add the ' +
+      `ABAP service URL to ${key.source} (an "abap": { "url": ... } block, or "sap_url"), or ${basic}`
+    );
+  }
+
+  const grant =
+    `the ${key.grant} grant ` +
+    (key.grantDeclared
+      ? '(declared by the key)'
+      : '(the default for a key that declares no granttype)');
+
+  if (key.grant === 'client_credentials') {
+    return (
+      `MCP_DESTINATION_TOKEN_REQUIRED: --mcp=${name} resolved its service key (${shape}, service ` +
+      `URL ${plan.baseUrl}) and it uses ${grant}. That grant needs no person and no browser, so ` +
+      'startup acquires the first token itself — the next diagnostic says whether it got one. ' +
+      'A profile reload does not: ReloadProfile re-reads argv, the environment and the disk, and ' +
+      'a token is on none of them, so reloading a --mcp startup ends inspection-only and the ' +
+      'server has to be restarted.'
+    );
+  }
+
+  return (
+    `MCP_DESTINATION_TOKEN_PENDING: --mcp=${name} resolved its service key (${shape}, service ` +
+    `URL ${plan.baseUrl}) and it uses ${grant}. Startup does not begin that flow — it ends at a ` +
+    'browser a person drives, and this engine never opens one — so the server starts with no ' +
+    `connection. The authorization endpoint is ${uaaEndpoints(plan.uaa.url).authorize} ` +
+    `(client_id ${plan.uaa.clientId}, response_type=code, redirect_uri a loopback callback that ` +
+    'startup does not bind). Next: if this destination is meant to run server-to-server, add ' +
+    `"granttype": "client_credentials" to ${key.source} and restart — startup acquires that token ` +
+    `on its own. Otherwise ${basic}`
+  );
+}
+
 function brokerSwitches(
   args: readonly string[],
   env: Readonly<Record<string, string | undefined>>,
@@ -152,6 +212,28 @@ function brokerSwitches(
   if (args.includes('--auth-broker')) on.push('--auth-broker');
   if ((env.MCP_USE_AUTH_BROKER ?? '').trim() === 'true') on.push('MCP_USE_AUTH_BROKER=true');
   return on;
+}
+
+/**
+ * 진단 맨 끝의 한 줄 요약이 시작하는 글자.
+ *
+ * 기동 경로가 이 줄 **뒤에** 상태를 더 바꿀 수 있으므로(`./connectDestination`이
+ * 토큰을 받아 접속을 세운다) 그 뒤에 이 줄을 다시 쓸 자리가 필요하다. 접두사를
+ * 여기 하나로 두는 이유는 그것뿐이다 — 낡은 요약이 `connection=none`이라고
+ * 적힌 채 남으면 진단이 자기 자신과 어긋난다.
+ */
+export const PROFILE_SUMMARY_PREFIX = '[sapkit] profile: ';
+
+/** 그 한 줄. */
+export function profileSummaryLine(
+  profile: ResolvedProfile,
+  sets: readonly HandlerSet[],
+): string {
+  return (
+    `${PROFILE_SUMMARY_PREFIX}${profile.alias ?? '(none)'} · tier=${profile.tier} · ` +
+    `systemType=${profile.systemType} · connection=${profile.connection ? 'yes' : 'none'} · ` +
+    `exposition=${sets.join(',') || '(empty)'}`
+  );
 }
 
 export function resolveStartup(input: StartupInput = {}): Startup {
@@ -206,11 +288,12 @@ export function resolveStartup(input: StartupInput = {}): Startup {
     //    프로파일이나 cwd `.env`로 대신 붙지 않는다. 운영자가 고른 시스템이
     //    아닌 곳에 조용히 붙는 것이 D16·D17이 막아 둔 사고 자리다.
     //
-    //    **기동은 토큰을 받지 않는다.** 인증 계층(`src/auth/`)이 생긴 뒤에도
-    //    그대로다 — 토큰 취득은 UAA로 나가는 실왕복이고, authorization_code는
-    //    사람이 브라우저 앞에 있어야 끝난다. 기동 한복판에서 그 둘 중 무엇도
-    //    말없이 시작하지 않는다(attended 명시성). 그래서 이 갈래가 짓는 것은
-    //    여전히 **재료와 진단**이고, 언제 받아 올지는 호출부가 정한다(장부 D15).
+    //    **이 함수는 토큰을 받지 않는다** — 순수한 해석이고, `ProfileSession`의
+    //    재적재도 같은 통로로 다시 돈다. 토큰은 기동 경로의 다음 걸음
+    //    (`./connectDestination`)이 받으며, D-114 ⓑ가 그 자리를 그랜트로 갈랐다:
+    //    `client_credentials`는 사람이 개입할 자리가 없으므로 기동이 자동으로
+    //    받고, `authorization_code`는 사람이 브라우저 앞에 있어야 끝나므로
+    //    기동이 시작하지 않는다(attended 명시성 · 장부 D15).
     const channelDiagnostics: string[] = [];
     if (envDestination !== '') {
       channelDiagnostics.push(
@@ -227,18 +310,9 @@ export function resolveStartup(input: StartupInput = {}): Startup {
           source: found.key.source,
           serviceKey: found.key,
         };
-        // 두 갈래를 갈라 말한다 — "토큰만 받으면 된다"와 "토큰을 받아도 붙을
-        // 주소가 없다"는 사람이 해야 할 일이 다르다.
-        const plan = planServiceKeyConnection(found.key);
-        channelDiagnostics.push(
-          `MCP_DESTINATION_TOKEN_PENDING: --mcp=${mcpDestination} resolved its service key (${found.key.source}, ${found.key.storeType} shape${
-            plan.kind === 'ready' ? `, service URL ${plan.baseUrl}` : ', no service URL in the key'
-          }) and the OAuth2 material is assembled, but no token has been acquired — the server starts with no connection. ${
-            plan.kind === 'ready'
-              ? 'Acquiring one is a live round trip to the UAA endpoint, and the authorization_code grant needs a person at a browser, so startup never begins it on its own.'
-              : 'Even with a token this key names no ADT service URL, so it cannot produce a connection on its own; add the ABAP service URL to the key.'
-          } Use --env=<name>, --env-path=<file>, or an active profile for a Basic connection.`,
-        );
+        // 갈래마다 사람이 할 일이 다르다 — "곧 받아 온다" · "사람이 시작해야
+        // 한다" · "토큰을 받아도 붙을 주소가 없다"는 서로 다른 이야기다.
+        channelDiagnostics.push(describeServiceKeyDestination(mcpDestination, found.key));
         break;
       }
       case 'unsafe-name':
@@ -389,11 +463,7 @@ export function resolveStartup(input: StartupInput = {}): Startup {
 
   const safetyEnv = resolveSafetyEnv(env, resolution.envVars);
   const profile = resolution.profile;
-  diagnostics.push(
-    `[sapkit] profile: ${profile.alias ?? '(none)'} · tier=${profile.tier} · ` +
-      `systemType=${profile.systemType} · connection=${profile.connection ? 'yes' : 'none'} · ` +
-      `exposition=${exposition.sets.join(',') || '(empty)'}`,
-  );
+  diagnostics.push(profileSummaryLine(profile, exposition.sets));
 
   return {
     sets: exposition.sets,

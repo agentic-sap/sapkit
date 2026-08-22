@@ -14,6 +14,7 @@ export {
 export {
   type ProfileResolution,
   type ProfileResolveOptions,
+  DEFAULT_TIMEOUTS,
   disconnectedProfile,
   resolveProfile,
   resolveProfileDetailed,
@@ -22,6 +23,7 @@ export {
   type BrokerStores,
   type DestinationSelection,
   type NameCheck,
+  type OAuthGrant,
   type PlatformLookup,
   type PlatformSubfolder,
   type ServiceKeyAuth,
@@ -29,6 +31,7 @@ export {
   type ServiceKeyPlan,
   type ServiceKeyResult,
   type SessionEnvResult,
+  DEFAULT_SERVICE_KEY_GRANT,
   checkDestinationName,
   listStoreNames,
   planServiceKeyConnection,

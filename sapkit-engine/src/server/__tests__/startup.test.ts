@@ -542,6 +542,8 @@ describe('destination 통로 — --mcp=<destination> (service key)', () => {
         clientId: 'fixture-client',
         clientSecret: FAKE_SECRET,
       },
+      grant: 'authorization_code',
+      grantDeclared: false,
     });
     // 접속된 척하지 않는다.
     expect(startup.profile.connection).toBeNull();
@@ -650,6 +652,110 @@ describe('destination 통로 — --mcp=<destination> (service key)', () => {
     expect(startup.destination?.channel).toBe('mcp');
     expect(startup.profile.connection).toBeNull();
     expect(startup.diagnostics.join('\n')).toContain('ENV_DESTINATION_IGNORED');
+  });
+});
+
+/**
+ * 그랜트가 진단을 가른다 (D-114 ⓑ).
+ *
+ * **이 계층은 여전히 토큰을 받지 않는다** — `resolveStartup`은 순수 해석이고,
+ * 받는 것은 기동 경로의 다음 걸음(`connectDestination`)이다. 여기서 재는 것은
+ * 「무엇을 할 참인지 사람에게 제대로 말하는가」다.
+ */
+describe('destination 통로 — 그랜트별 진단 (D-114)', () => {
+  function keyBody(overrides: Record<string, unknown> = {}): unknown {
+    return {
+      uaa: {
+        url: 'https://uaa.invalid/oauth',
+        clientid: 'fixture-client',
+        clientsecret: FAKE_SECRET,
+        ...overrides,
+      },
+      abap: { url: 'http://127.0.0.1:1', client: '100', language: 'EN' },
+    };
+  }
+
+  function startupFor(body: unknown) {
+    const root = storeRoot();
+    writeServiceKey(root, 'DEST1', body);
+    return resolveStartup({
+      argv: argvOf('--mcp=DEST1'),
+      env: { AUTH_BROKER_PATH: root },
+      cwd: tempDir(),
+      homedir: tempDir(),
+    });
+  }
+
+  it('client_credentials면 TOKEN_REQUIRED — 기동이 곧 받아 온다고 말한다', () => {
+    const startup = startupFor(keyBody({ granttype: 'client_credentials' }));
+    const joined = startup.diagnostics.join('\n');
+    expect(joined).toContain('MCP_DESTINATION_TOKEN_REQUIRED');
+    expect(joined).not.toContain('MCP_DESTINATION_TOKEN_PENDING');
+    expect(joined).toContain('client_credentials');
+    expect(joined).toContain('startup acquires the first token itself');
+    // 재적재로는 토큰이 돌아오지 않는다는 사실을 그 자리에서 말한다.
+    expect(joined).toContain('ReloadProfile');
+    // 그래도 **이 계층에서는** 아직 접속이 아니다.
+    expect(startup.profile.connection).toBeNull();
+  });
+
+  // TOKEN_PENDING의 뜻이 이 그랜트 전용으로 좁아졌다.
+  it('authorization_code면 TOKEN_PENDING — 인가 종단점과 다음 걸음을 안내한다', () => {
+    const startup = startupFor(keyBody());
+    const joined = startup.diagnostics.join('\n');
+    expect(joined).toContain('MCP_DESTINATION_TOKEN_PENDING');
+    expect(joined).toContain('authorization_code');
+    // 무엇이 멈춰 있는가 — 브라우저가 필요하고 엔진은 열지 않는다.
+    expect(joined).toContain('this engine never opens one');
+    // 어디로 가야 하는가.
+    // fixture의 uaa url이 이미 `/oauth`로 끝나므로 종단점은 그 뒤에 붙는다.
+    expect(joined).toContain('https://uaa.invalid/oauth/oauth/authorize');
+    expect(joined).toContain('client_id fixture-client');
+    // 다음에 무엇을 할 수 있는가 — 두 갈래를 다 준다.
+    expect(joined).toContain('"granttype": "client_credentials"');
+    expect(joined).toContain('--env-path=<file>');
+    expect(startup.profile.connection).toBeNull();
+  });
+
+  it('선언이 없으면 기본값이라고 말한다 (넘겨짚지 않았다는 것을 사람이 안다)', () => {
+    const declared = startupFor(keyBody({ granttype: 'authorization_code' }));
+    const implied = startupFor(keyBody());
+    expect(declared.diagnostics.join('\n')).toContain('declared by the key');
+    expect(implied.diagnostics.join('\n')).toContain('declares no granttype');
+  });
+
+  // 토큰을 받아 봐야 붙을 데가 없다 — 그랜트보다 먼저 말해야 하는 사실이다.
+  it('service URL이 없으면 그랜트와 무관하게 NO_SERVICE_URL로 끝난다', () => {
+    for (const grant of ['client_credentials', 'authorization_code']) {
+      const startup = startupFor({
+        uaa: {
+          url: 'https://uaa.invalid/oauth',
+          clientid: 'fixture-client',
+          clientsecret: FAKE_SECRET,
+          granttype: grant,
+        },
+      });
+      const joined = startup.diagnostics.join('\n');
+      expect(joined).toContain('MCP_DESTINATION_NO_SERVICE_URL');
+      expect(joined).toContain('no token is requested');
+      expect(startup.profile.connection).toBeNull();
+    }
+  });
+
+  it('알 수 없는 그랜트는 SERVICE_KEY_INVALID로 끝난다 (기동은 죽지 않는다)', () => {
+    const startup = startupFor(keyBody({ granttype: 'password' }));
+    const joined = startup.diagnostics.join('\n');
+    expect(joined).toContain('SERVICE_KEY_INVALID');
+    expect(startup.sets).toEqual(['readonly', 'high']);
+    expect(startup.profile.connection).toBeNull();
+    expect(joined).not.toContain(FAKE_SECRET);
+  });
+
+  it('어느 갈래든 진단에 clientsecret이 실리지 않는다', () => {
+    for (const grant of ['client_credentials', 'authorization_code']) {
+      const startup = startupFor(keyBody({ granttype: grant }));
+      expect(startup.diagnostics.join('\n')).not.toContain(FAKE_SECRET);
+    }
   });
 });
 

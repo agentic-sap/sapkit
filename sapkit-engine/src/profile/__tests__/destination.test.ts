@@ -288,6 +288,8 @@ describe('readServiceKey — `--mcp=<destination>`이 조립하는 설정', () =
         clientId: 'fixture-client',
         clientSecret: FAKE_SECRET,
       },
+      grant: 'authorization_code',
+      grantDeclared: false,
     });
   });
 
@@ -405,6 +407,125 @@ describe('readServiceKey — `--mcp=<destination>`이 조립하는 설정', () =
   });
 });
 
+// ── 그랜트 선언 ─────────────────────────────────────────────────────────────
+
+/**
+ * 키가 **어느 그랜트로 토큰을 받는지**는 기동이 자동으로 시작해도 되는지를 가르는
+ * 축이다(D-114 ⓐⓑ). 그래서 재료 계층이 그 값을 읽어 나른다.
+ *
+ * 기본값은 `authorization_code`다 — 구 부품의 `--mcp` 통로가 그 갈래였고, 말하지
+ * 않은 키를 `client_credentials`로 넘겨짚으면 기동이 **다른 권한 주체**의 토큰을
+ * 조용히 실어 붙는다.
+ */
+describe('readServiceKey — 그랜트 선언 (D-114)', () => {
+  function keyWith(name: string, body: unknown): string {
+    const root = storeRoot();
+    writeJson(path.join(root, 'service-keys', `${name}.json`), body);
+    return root;
+  }
+
+  function read(name: string, root: string) {
+    return readServiceKey(name, { env: {}, cwd: mkdtemp('cwd'), authBrokerPath: root });
+  }
+
+  it('선언이 없으면 authorization_code — 그리고 그것이 기본값임을 말한다', () => {
+    const root = keyWith('DEST1', {
+      uaa: { url: 'https://uaa.invalid', clientid: 'c', clientsecret: FAKE_SECRET },
+      abap: { url: 'http://127.0.0.1:1' },
+    });
+    const result = read('DEST1', root);
+    expect(result.kind).toBe('ok');
+    if (result.kind !== 'ok') return;
+    expect(result.key.grant).toBe('authorization_code');
+    expect(result.key.grantDeclared).toBe(false);
+  });
+
+  it('uaa 절의 granttype이 client_credentials면 그것을 읽는다', () => {
+    const root = keyWith('DEST2', {
+      uaa: {
+        url: 'https://uaa.invalid',
+        clientid: 'c',
+        clientsecret: FAKE_SECRET,
+        granttype: 'client_credentials',
+      },
+      abap: { url: 'http://127.0.0.1:1' },
+    });
+    const result = read('DEST2', root);
+    expect(result.kind).toBe('ok');
+    if (result.kind !== 'ok') return;
+    expect(result.key.grant).toBe('client_credentials');
+    expect(result.key.grantDeclared).toBe(true);
+  });
+
+  // service key는 `clientid`처럼 구분자를 생략하기도 하고, 사람이 손으로 적기도
+  // 한다. 같은 뜻의 철자로 갈래가 갈리면 그 자체가 사고다.
+  it.each([
+    ['grant_type', 'client_credentials'],
+    ['grant-type', 'CLIENT_CREDENTIALS'],
+    ['granttype', ' client credentials '],
+  ])('%s = %s 도 같은 값으로 읽는다', (field, value) => {
+    const root = keyWith('DEST3', {
+      url: 'http://127.0.0.1:1',
+      clientid: 'c',
+      clientsecret: FAKE_SECRET,
+      [field]: value,
+    });
+    const result = read('DEST3', root);
+    expect(result.kind).toBe('ok');
+    if (result.kind !== 'ok') return;
+    expect(result.key.grant).toBe('client_credentials');
+    expect(result.key.grantDeclared).toBe(true);
+  });
+
+  it('authorization_code를 명시하면 선언으로 읽는다', () => {
+    const root = keyWith('DEST4', {
+      uaa: {
+        url: 'https://uaa.invalid',
+        clientid: 'c',
+        clientsecret: FAKE_SECRET,
+        granttype: 'authorization_code',
+      },
+      abap: { url: 'http://127.0.0.1:1' },
+    });
+    const result = read('DEST4', root);
+    expect(result.kind).toBe('ok');
+    if (result.kind !== 'ok') return;
+    expect(result.key.grant).toBe('authorization_code');
+    expect(result.key.grantDeclared).toBe(true);
+  });
+
+  // 오타 하나가 조용히 인증 주체를 바꾸는 자리다 — 기본값으로 흘려보내지 않는다.
+  it('알 수 없는 그랜트는 기본값으로 흘러내리지 않고 invalid로 끝난다', () => {
+    const root = keyWith('DEST5', {
+      uaa: {
+        url: 'https://uaa.invalid',
+        clientid: 'c',
+        clientsecret: FAKE_SECRET,
+        granttype: 'password',
+      },
+      abap: { url: 'http://127.0.0.1:1' },
+    });
+    const result = read('DEST5', root);
+    expect(result.kind).toBe('invalid');
+    if (result.kind !== 'invalid') return;
+    expect(result.reason).toContain('password');
+    expect(result.reason).toContain('client_credentials');
+    expect(result.reason).toContain('authorization_code');
+    expect(result.reason).not.toContain(FAKE_SECRET);
+  });
+
+  // 반쪽 키에는 그랜트를 따질 일이 없다 — 더 앞선 결함부터 말해야 한다.
+  it('재료가 빠진 키는 그랜트가 이상해도 재료 부족으로 먼저 끝난다', () => {
+    const root = keyWith('DEST6', {
+      uaa: { url: 'https://uaa.invalid', clientid: 'c', granttype: 'password' },
+    });
+    const result = read('DEST6', root);
+    expect(result.kind).toBe('invalid');
+    if (result.kind !== 'invalid') return;
+    expect(result.reason).toContain('clientsecret');
+  });
+});
+
 // ── 브로커 저장소 ───────────────────────────────────────────────────────────
 
 /**
@@ -483,6 +604,8 @@ describe('planServiceKeyConnection — 재료를 인증 계층 모양으로 옮�
         clientId: 'fixture-client',
         clientSecret: FAKE_SECRET,
       },
+      grant: 'authorization_code',
+      grantDeclared: false,
       ...overrides,
     };
   }

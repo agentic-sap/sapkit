@@ -15,8 +15,11 @@ export type { GateContext, GateDecision, GateDenyCode, GatedTool } from './gates
 export { ProfileSession } from './session';
 export type { ConnectionFactory, ProfileReload, ProfileSnapshot } from './session';
 
-export { resolveStartup } from './startup';
+export { PROFILE_SUMMARY_PREFIX, profileSummaryLine, resolveStartup } from './startup';
 export type { ResolvedStartupInput, Startup, StartupInput } from './startup';
+
+export { connectDestination } from './connectDestination';
+export type { DestinationConnectOptions } from './connectDestination';
 
 export { startFromProcess } from './bootstrap';
 export type { BootstrapOptions, StartedServer } from './bootstrap';

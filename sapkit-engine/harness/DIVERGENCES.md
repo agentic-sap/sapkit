@@ -2689,3 +2689,48 @@ SAP 측 설치가 선행돼야 하고 그 셋 중 무엇도 지금 이 프로젝
 만들어 바닥선을 열 수 있다. **레포가 발행하는 배선**에 대해서는 `smoke-mcp.mjs`
 검사 ⑦이 다섯 키를 다 막지만(3종 + 그 2종), 셸·argv 쪽 절반은 D-043 ③의 "여는 쪽이
 옵트인" 그대로 남는다.
+
+## 상태 갱신 (append) — D15 3차: 기동이 `client_credentials` 첫 토큰을 받는다 (2026-08-23)
+
+**위 D15 본문도, 1차·2차 갱신 표도 고치지 않는다.** 이 장부는 append로만 자란다.
+판M2-a가 옮긴 것은 **정지선의 자리**이고, D-114가 그 근거를 그랜트별로 다시 읽어
+**뒤집지 않고 좁혔다**.
+
+| 통로 | 2026-08-18 상태 | 지금 (2026-08-23) | 남은 것 |
+|---|---|---|---|
+| `--env=<name>` | 접속까지 완성 | 변화 없음 | attended 실접속 확인 |
+| `--mcp=<destination>` · **`client_credentials` 선언 키** | 토큰 취득 계층은 있으나 **기동이 돌리지 않음** | **기동이 첫 토큰을 받아 Bearer 접속을 세운다** — 기동 경로에 걸음이 하나 늘었다(`src/server/connectDestination.ts`, `bootstrap.startFromProcess`가 `resolveStartup` **뒤에** 부른다). 진단 코드 두 개가 새로 갈렸다: 해석 자리의 **`MCP_DESTINATION_TOKEN_REQUIRED`**(곧 받아 온다) → 결과 자리의 **`MCP_DESTINATION_CONNECTED`** 또는 **`MCP_DESTINATION_TOKEN_FAILED`** | **실접속 성공**(판M2-b · BTP 계정) · 토큰 **갱신** 배선 |
+| `--mcp=<destination>` · **`authorization_code`**(선언 또는 **기본값**) | 같음 | **정지선 유지** — 기동은 시작하지 않는다. `MCP_DESTINATION_TOKEN_PENDING`이 **이 그랜트 전용 의미**로 좁아졌고, 진단이 인가 종단점·`client_id`·다음 걸음 둘(키에 `granttype` 선언 / Basic 통로)을 안내한다 | 사람 개시 통로(엔진에 진입점 없음 — 뒤 판) |
+| 브로커 | 저장소 재료 조립까지 (D32) | 변화 없음 | D32 참조 |
+
+- **분류와 해소 마일스톤은 그대로다** — `축소` · M2. **`증거 완료`를 주장하지 않는다**
+  (D-082 ①): 이 판의 증거는 전부 오프라인 목이고 실 UAA 왕복은 0회다.
+- **그랜트는 service key가 말한다.** `granttype`(= `grant_type` = `grant-type`, uaa 절
+  또는 루트)이고, **선언이 없으면 `authorization_code`**다 — 구 부품의 `--mcp`가 실제로
+  그 갈래였기 때문이다(`AuthBroker.getToken` → `AuthorizationCodeProvider`, 이미 등재된
+  읽기 실측). 말하지 않은 키를 `client_credentials`로 넘겨짚으면 기동이 **다른 권한
+  주체**의 토큰을 조용히 실어 붙는다 — D116 ⓐ가 갱신 갈래에서 막아 둔 것과 같은 사고다.
+  알 수 없는 값은 기본값으로 흘려보내지 않고 `SERVICE_KEY_INVALID`로 끝난다.
+- **승계 제약 셋(D116)은 그대로다.** 토큰은 `TokenSource`를 거쳐 받으므로 무상태(메모리
+  전용 · `exp` 60초 버퍼)이고, 갱신 폴백은 없으며, 이 걸음이 부르는 grant는
+  `client_credentials` 하나여서 브라우저를 열 코드가 아예 없다.
+- **여기서 짓지 않은 것 둘 — 다음 판이 갚는다.**
+  ⓐ **토큰 갱신.** 받는 것은 첫 토큰 하나이고, 만료되면 서버를 다시 띄워야 한다.
+     진단이 그 사실을 말한다. 접속에 `uaa` 재료가 실려 있으므로 그 위에 얹을 수 있다.
+  ⓑ **재적재는 토큰을 되찾지 못한다.** `ReloadProfile`은 argv·env·디스크만의 함수이고
+     토큰은 그 셋 중 어디에도 없다 — `--mcp` 기동을 재적재하면 inspection-only로
+     내려앉는다. `MCP_DESTINATION_TOKEN_REQUIRED` 진단이 그 자리에서 미리 말한다.
+- **tier는 `UNKNOWN`으로 남는다.** service key는 tier를 말하지 않으므로 destination
+  접속은 **fail-closed**다 — write도 실행도 전부 거부된다. 넘겨짚어 DEV로 여는 갈래를
+  두지 않았다.
+- **대체 기대 시험**:
+  - `src/server/__tests__/connectDestination.test.ts` — 성공 경로 6건 · 실패 6건
+    (UAA 미도달 · 401 · 쓸 수 없는 2xx · 프로파일 진단 전달 · 요약 줄 · 노출 집합) ·
+    손대지 않는 갈래 6건(**같은 객체를 돌려주는지**로 회귀 0을 잰다).
+  - `src/server/__tests__/startup.test.ts` 「destination 통로 — 그랜트별 진단 (D-114)」
+    6건 — 진단이 **무엇이 실패했고 사람이 다음에 무엇을 하는지** 말하는지를 글자로 잰다.
+  - `src/profile/__tests__/destination.test.ts` 「readServiceKey — 그랜트 선언 (D-114)」
+    8건(철자 3종 포함).
+- **기계 장부 반영**: **안 했다** — 기동 시 인증 절차이고 도구 응답 시퀀스에 나타나지
+  않는다. D116·D6와 같은 자리다.
+- **결정 기록**: D-114.

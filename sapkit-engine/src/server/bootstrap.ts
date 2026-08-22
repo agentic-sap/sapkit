@@ -18,6 +18,7 @@ import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 
 import { AdtClient } from '../adt';
 import type { ConnectionConfig } from '../contracts';
+import { connectDestination } from './connectDestination';
 import { type ServerCore, createServerCore } from './core';
 import { ProfileSession } from './session';
 import { resolveStartup } from './startup';
@@ -80,12 +81,18 @@ function auditOnly(startup: Startup, stderr: (line: string) => void): (line: str
 export async function startFromProcess(
   options: BootstrapOptions = {},
 ): Promise<StartedServer> {
-  const startup = resolveStartup({
-    ...(options.argv !== undefined ? { argv: options.argv } : {}),
-    ...(options.env !== undefined ? { env: options.env } : {}),
-    ...(options.cwd !== undefined ? { cwd: options.cwd } : {}),
-    ...(options.homedir !== undefined ? { homedir: options.homedir } : {}),
-  });
+  // 해석 → **토큰 한 걸음** → 코어. 가운데 걸음이 하는 일이 있는 것은 `--mcp`
+  // destination이 `client_credentials`를 선언했을 때뿐이고(D-114 ⓑ), 그 밖의
+  // 기동은 해석 결과를 **그대로** 받는다. 여기가 유일한 자리인 이유: 코어와
+  // 세션은 이 상태 한 덩이를 나눠 갖고, 진단도 이 시점의 것이 stderr로 나간다.
+  const startup = await connectDestination(
+    resolveStartup({
+      ...(options.argv !== undefined ? { argv: options.argv } : {}),
+      ...(options.env !== undefined ? { env: options.env } : {}),
+      ...(options.cwd !== undefined ? { cwd: options.cwd } : {}),
+      ...(options.homedir !== undefined ? { homedir: options.homedir } : {}),
+    }),
+  );
 
   const stderr = options.stderr ?? defaultStderr;
 
