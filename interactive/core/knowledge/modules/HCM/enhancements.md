@@ -143,7 +143,7 @@ Creating a custom infotype normally goes through **PM01** (the transaction that 
   - **MDF (Metadata Framework)** — Objects and fields defined by the user
   - **Business Rules** — Logic stated declaratively (replaces PCRs/Features)
   - **Integration Center** — Integrations built by the user (replaces PI/PO for SFSF)
-  - **SAP Build / Extension Suite** — UI extensions
+  - **SAP Build / Extension Suite** — Extensions built on the UI side
 
 S/4HANA 온프레미스는 HCM을 거의 그대로 남겨 두지만, S/4HANA Cloud는 SuccessFactors로 통째로 대체되며 MDF와 Business Rules를 씁니다.
 

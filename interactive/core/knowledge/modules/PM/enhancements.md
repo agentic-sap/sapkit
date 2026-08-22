@@ -103,7 +103,7 @@ Maintenance orders, notifications, technical objects (equipment & functional loc
   - `I_FunctionalLocation` — Functional location interface view
 - **SAP Asset Manager** (mobile app) integration via OData
 - **EAM on S/4HANA Cloud** — the apps are Fiori, and Key User Extensibility comes with them
-- **RAP** — Custom maintenance apps via Behavior Definitions
+- **RAP** — maintenance apps of your own, written as Behavior Definitions
 
 ---
 

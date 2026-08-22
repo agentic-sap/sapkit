@@ -6,7 +6,7 @@ The FI (Financial Accounting) module works through an enhancement landscape of i
 FI(재무 회계) 모듈에는 BTE(비즈니스 트랜잭션 이벤트), 검증/대체(GGB0/GGB1), Coding Block을 아우르는 고유한 확장 체계가 있습니다.
 
 - Classic Customer Exits (CMOD/SMOD) / 전통적 고객 출구
-- **BTE (Business Transaction Events)** — FI primary framework / FI의 핵심 프레임워크
+- **BTE (Business Transaction Events)** — the framework at the center of FI / FI가 중심으로 삼는 프레임워크
 - BAdIs / 비즈니스 애드인
 - **Coding Block extension (OXK3)** / 코딩 블록 확장
 - **Validations / Substitutions (GGB0 / GGB1 / OB28 / OBBH)** / 검증 및 대체

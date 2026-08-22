@@ -12,11 +12,11 @@ SAP PP has several enhancement mechanisms to draw on, and the choice turns on re
 
 SAP PP가 가진 확장 메커니즘은 여러 가지이고, 릴리스와 사용 사례에 따라 갈립니다:
 
-- **Classic Customer Exits (CMOD/SMOD)** — Legacy function module exits, still active in ECC and S/4HANA.
-- **BAdIs (Business Add-Ins)** — Object-oriented, supported on both ECC and S/4HANA.
-- **Enhancement Spots / Implicit & Explicit Enhancements** — Modern framework (NetWeaver 7.0+).
-- **Custom Fields / Append Structures** — Extend standard tables (CI_* include structures).
-- **S/4HANA Extensions (CDS / RAP / Key User Extensibility)** — Cloud-ready extensibility.
+- **Classic Customer Exits (CMOD/SMOD)** — Function module exits from the earlier generation, and both ECC and S/4HANA still run them.
+- **BAdIs (Business Add-Ins)** — The object-oriented mechanism; ECC and S/4HANA both support it.
+- **Enhancement Spots / Implicit & Explicit Enhancements** — The modern framework, available from NetWeaver 7.0 onward.
+- **Custom Fields / Append Structures** — Standard tables get extended through the CI_* include structures.
+- **S/4HANA Extensions (CDS / RAP / Key User Extensibility)** — Extensibility that holds up in the cloud.
 
 클래식 사용자 출구가 유효한 곳은 ECC와 S/4HANA 양쪽이며, 신규 개발에는 BAdI/확장 스폿을 권장합니다.
 
@@ -108,10 +108,10 @@ SAP PP가 가진 확장 메커니즘은 여러 가지이고, 릴리스와 사용
 - **CDS Views**:
   - `I_ManufacturingOrder` — Manufacturing order interface view
   - `I_BillOfMaterial` — BOM interface view
-- **aMRP (advanced MRP on S/4HANA)** — BAdIs exposed in `/SAPAPO/` namespace
+- **aMRP (advanced MRP on S/4HANA)** — its BAdIs sit in the `/SAPAPO/` namespace
 - **Production planning** moved across from SAP APO → S/4HANA embedded PP/DS
-- **Key User Extensibility** (Fiori) — Custom fields/logic for manufacturing apps
-- **RAP** — Build custom manufacturing order extensions via Behavior Definitions
+- **Key User Extensibility** (Fiori) — manufacturing apps take custom fields and logic through it
+- **RAP** — manufacturing order extensions of your own, written as Behavior Definitions
 
 ---
 
