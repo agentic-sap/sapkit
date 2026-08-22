@@ -1,12 +1,25 @@
+<!--
+  GENERATED FILE — do not edit by hand.
+  Source: the engine tool registry (sapkit-engine/src/tools/registry.ts).
+  Regenerate: node harness/render-tool-catalog.mjs   (from sapkit-engine/, after npm run build)
+  Gate: the 「카탈로그」 gate inside `npm run gates` (sapkit-engine/gates/catalog.mjs).
+        `node harness/render-tool-catalog.mjs --check` makes the same comparison by hand.
+-->
+
 # SAP MCP Tool Catalog — Read operations
 
-Get / Read / List / Search / Check / Grep handlers — schema, metadata, object
-introspection, source search, navigation, and server-side syntax checks.
-Part of [sc4sap-mcp-tools.md](sc4sap-mcp-tools.md). Names are bare capability
-names (no harness prefix) per [core/vocabulary.md](../../core/vocabulary.md).
+Get / Read / Check / List / Search / Describe / Grep handlers — DDIC and object
+metadata, source retrieval, structure navigation, cross-object search, and
+server-side syntax checks. Nothing here changes SAP state.
 
-**EXCLUDED from this list (prompt-gated, never auto-approved)**:
-`GetTableContents`, `GetSqlQuery`. See the index file for the rationale.
+Part of [sc4sap-mcp-tools.md](sc4sap-mcp-tools.md).
+
+Tools are listed by **bare capability name**. Each harness maps those names to its
+own tool identifiers — see the [capability vocabulary](../../core/vocabulary.md)
+(Claude Code, for instance, prefixes `mcp__<plugin-namespace>__`).
+
+**Not listed here (prompt-gated, never auto-approved)**: `GetTableContents`, `GetSqlQuery`.
+The index file explains why.
 
 ## Get*
 

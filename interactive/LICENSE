@@ -22,7 +22,7 @@ SOFTWARE.
 
 ---
 
-## What this notice covers (2026-08-22, revised 2026-08-23 — decisions D-103, D-104)
+## What this notice covers (2026-08-22, revised 2026-08-23 — decisions D-103, D-104, D-107)
 
 This file is the **retained upstream notice** for content borrowed from
 `babamba2/superclaude-for-sap` (via the frozen `hjaewon/sc4sap-custom`).
@@ -42,7 +42,7 @@ today:
 | Group | Count | State |
 |---|---:|---|
 | `server/sap-assets/` | 30 | Upstream, unmodified since import (`copy`). Kept as-is by D-079 ⑥ — these install SAP-side objects that are never renamed or regenerated. **Permanent.** |
-| `server/tool-catalog/sc4sap-mcp-tools*.md` · `server/verify-engine.mjs` · `server/bundle-keyring.mjs` | 6 | Upstream (`copy`), still being edited here. Scheduled for replacement. |
+| `server/tool-catalog/sc4sap-mcp-tools*.md` · `server/verify-engine.mjs` · `server/bundle-keyring.mjs` | 6 | **Retired on 2026-08-23 (D-107)** — the catalog files are now generated from the engine registry and the two utilities were rewritten from scratch; a reverse scan finds no surviving upstream prose. |
 | `core/personas/` 25 · `core/procedures/` 16 · adapters 5 · `core/knowledge/` 5 · policies 2 · tools 3 | **56** | Mostly `transform` — **form-converted imports, not rewrites** — plus files the ledger's path mapping never produced. All 56 still share long lines with the upstream original; the personas match on 54–95% of their substantive lines and four procedures on 54–65%. **Not yet accounted for.** |
 | Knowledge, industry, country and ABAP-convention content | 170 | Re-authored file by file, each under independent review, finished 2026-08-18. |
 

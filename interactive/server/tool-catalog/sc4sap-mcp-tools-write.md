@@ -1,9 +1,22 @@
+<!--
+  GENERATED FILE — do not edit by hand.
+  Source: the engine tool registry (sapkit-engine/src/tools/registry.ts).
+  Regenerate: node harness/render-tool-catalog.mjs   (from sapkit-engine/, after npm run build)
+  Gate: the 「카탈로그」 gate inside `npm run gates` (sapkit-engine/gates/catalog.mjs).
+        `node harness/render-tool-catalog.mjs --check` makes the same comparison by hand.
+-->
+
 # SAP MCP Tool Catalog — Write operations
 
-Create / Update / Delete / Activate / Patch / Release / Write handlers for ABAP
-object lifecycle. Part of [sc4sap-mcp-tools.md](sc4sap-mcp-tools.md). Names are
-bare capability names (no harness prefix) per
-[core/vocabulary.md](../../core/vocabulary.md).
+Create / Update / Delete / Activate / Patch / Release / Write handlers covering
+the ABAP object lifecycle. Every tool here changes SAP state and is therefore
+DEV-tier only.
+
+Part of [sc4sap-mcp-tools.md](sc4sap-mcp-tools.md).
+
+Tools are listed by **bare capability name**. Each harness maps those names to its
+own tool identifiers — see the [capability vocabulary](../../core/vocabulary.md)
+(Claude Code, for instance, prefixes `mcp__<plugin-namespace>__`).
 
 ## Create*
 

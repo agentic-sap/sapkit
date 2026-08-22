@@ -1,277 +1,226 @@
 #!/usr/bin/env node
-/**
- * Bundle keyring script.
- *
- * Copies @napi-rs/keyring and its platform-specific native binaries from the
- * development node_modules into runtime-deps/keyring/node_modules/ so that
- * end users receive a working keychain integration via plain `git clone`
- * (Claude Code's plugin installer does not run `npm install`).
- *
- * Usage (paths are repo-root relative — this script lives in interactive/server/):
- *   node interactive/server/bundle-keyring.mjs                     # refresh from current node_modules
- *   node interactive/server/bundle-keyring.mjs --check             # verify bundle completeness, exit 0/1
- *   node interactive/server/bundle-keyring.mjs --refresh-integrity # regenerate integrity.json from package-lock + bundle
- *   node interactive/server/bundle-keyring.mjs --verify            # offline tamper check against integrity.json
- *
- * Platforms the bundle should cover (full list):
- *   - @napi-rs/keyring-win32-x64-msvc
- *   - @napi-rs/keyring-darwin-x64
- *   - @napi-rs/keyring-darwin-arm64
- *   - @napi-rs/keyring-linux-x64-gnu
- *
- * Each platform binary must be installed locally BEFORE running the default
- * bundle/refresh-integrity modes. On Windows, only keyring-win32-x64-msvc is
- * installed by a plain `npm install`. To fetch the others:
- *
- *   npm install --no-save --force \
- *     @napi-rs/keyring-darwin-x64 \
- *     @napi-rs/keyring-darwin-arm64 \
- *     @napi-rs/keyring-linux-x64-gnu
- *
- * (The --force is required because each sub-package declares a specific
- * os/cpu combination and npm would otherwise skip non-matching ones.)
- *
- * Integrity model:
- *   - integrity.json captures two kinds of hashes per bundled package:
- *       npmIntegrity  sha512 copied verbatim from package-lock.json
- *                     (provenance — proves the bundle originated from a
- *                     specific npm registry tarball the maintainer installed)
- *       files         per-file sha256 of the bytes currently on disk in
- *                     runtime-deps/keyring/node_modules/@napi-rs/<pkg>/
- *                     (tamper detection — --verify recomputes and compares)
- *   - --verify runs entirely offline and fails if any file was added,
- *     removed, or modified since the last --refresh-integrity run.
- */
+// keyring 런타임 의존을 제품에 동봉하고 그 바이트를 핀하는 도구.
+//
+// 플러그인 설치는 `git clone`만 한다 — 설치기가 `npm install`을 돌리지 않는다.
+// 그래서 네이티브 모듈인 `@napi-rs/keyring`은 번들러가 삼킬 수도, 설치 시점에
+// 내려받을 수도 없다. 대신 개발 머신의 `node_modules`에서 꺼내
+// `runtime-deps/keyring/node_modules/`에 통째로 옮겨 두고, 서버가 NODE_PATH로
+// 그 자리를 본다. 여기서 강등이 나면 자격증명은 평문으로 떨어진다.
+//
+// 담는 것은 코어 1 + 플랫폼 바이너리 4다(win32-x64-msvc · darwin-x64 ·
+// darwin-arm64 · linux-x64-gnu). 각 하위 패키지가 자기 os/cpu를 선언하므로
+// 평범한 `npm install`은 지금 머신 것 하나만 깔아 준다. 나머지를 끌어오려면
+// 플러그인 루트에서:
+//
+//   npm install --no-save --force \
+//     @napi-rs/keyring-darwin-x64 @napi-rs/keyring-darwin-arm64 \
+//     @napi-rs/keyring-linux-x64-gnu
+//
+// (`--force`가 없으면 npm이 os/cpu 불일치를 이유로 건너뛴다.)
+//
+// integrity.json은 성격이 다른 두 해시를 함께 적는다:
+//   npmIntegrity  package-lock.json의 sha512를 그대로 옮긴 것 — **출처**의 증거다
+//                 (이 바이트가 특정 npm 타르볼에서 왔음을 말한다).
+//   files         지금 디스크에 있는 파일들의 sha256 — **변조**의 증거다
+//                 (--verify가 다시 계산해 맞대 본다).
+// --verify는 망 없이 돌고, 파일이 늘거나 줄거나 바뀌었으면 떨어진다.
+//
+// 사용 (경로는 레포 루트 기준):
+//   node interactive/server/bundle-keyring.mjs                     # node_modules에서 다시 담는다
+//   node interactive/server/bundle-keyring.mjs --check             # 5종이 다 있는지, exit 0/1
+//   node interactive/server/bundle-keyring.mjs --refresh-integrity # 담은 뒤 핀을 다시 적는다
+//   node interactive/server/bundle-keyring.mjs --verify            # 오프라인 변조 대조
 
-import {
-  cpSync,
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
 import { createHash } from 'node:crypto';
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = __dirname;
-const SRC_NAPI = join(ROOT, 'node_modules', '@napi-rs');
-const DST_NAPI = join(ROOT, 'runtime-deps', 'keyring', 'node_modules', '@napi-rs');
-const INTEGRITY_PATH = join(ROOT, 'runtime-deps', 'keyring', 'integrity.json');
-const LOCK_PATH = join(ROOT, 'package-lock.json');
+const SERVER_DIR = dirname(fileURLToPath(import.meta.url));
+const FROM_DIR = join(SERVER_DIR, 'node_modules', '@napi-rs');
+const INTO_DIR = join(SERVER_DIR, 'runtime-deps', 'keyring', 'node_modules', '@napi-rs');
+const PIN_PATH = join(SERVER_DIR, 'runtime-deps', 'keyring', 'integrity.json');
+const LOCK_PATH = join(SERVER_DIR, 'package-lock.json');
 
-const REQUIRED_CORE = 'keyring';
-const PLATFORMS = [
-  'keyring-win32-x64-msvc',
-  'keyring-darwin-x64',
-  'keyring-darwin-arm64',
-  'keyring-linux-x64-gnu',
-];
-const ALL_PACKAGES = [REQUIRED_CORE, ...PLATFORMS];
+const SCOPE = '@napi-rs/';
+const CORE = 'keyring';
+const PLATFORMS = ['keyring-win32-x64-msvc', 'keyring-darwin-x64', 'keyring-darwin-arm64', 'keyring-linux-x64-gnu'];
+const BUNDLED = [CORE, ...PLATFORMS];
 
-const args = process.argv.slice(2);
-const mode = args.includes('--verify')
-  ? 'verify'
-  : args.includes('--refresh-integrity')
-    ? 'refresh-integrity'
-    : args.includes('--check')
-      ? 'check'
-      : 'bundle';
+const SELF = 'node interactive/server/bundle-keyring.mjs';
 
-function has(pkg) {
-  return existsSync(join(SRC_NAPI, pkg));
-}
-function hasBundled(pkg) {
-  return existsSync(join(DST_NAPI, pkg));
+// exit 코드는 모드마다 다르다 — 호출자가 무엇이 틀어졌는지 코드로 가른다.
+function die(code, ...lines) {
+  for (const line of lines) console.error(`[bundle-keyring] ${line}`);
+  process.exit(code);
 }
 
-function sha256File(path) {
-  const buf = readFileSync(path);
-  return `sha256-${createHash('sha256').update(buf).digest('base64')}`;
+const say = (line) => console.log(`[bundle-keyring] ${line}`);
+
+function hashOf(path) {
+  return `sha256-${createHash('sha256').update(readFileSync(path)).digest('base64')}`;
 }
 
-function listBundleFiles(bundleDir) {
-  const out = [];
-  (function walk(dir, rel) {
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      const full = join(dir, entry.name);
-      const relPath = rel ? `${rel}/${entry.name}` : entry.name;
-      if (entry.isDirectory()) walk(full, relPath);
-      else if (entry.isFile()) out.push(relPath);
+// 한 패키지 폴더 안의 파일을 상대경로로 납작하게 편다. 정렬은 핀을 재현 가능하게 만든다.
+function filesUnder(dir) {
+  const found = [];
+  const walk = (at, prefix) => {
+    for (const entry of readdirSync(at, { withFileTypes: true })) {
+      const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) walk(join(at, entry.name), rel);
+      else if (entry.isFile()) found.push(rel);
     }
-  })(bundleDir, '');
-  out.sort();
-  return out;
-}
-
-function loadPackageLock() {
-  try {
-    return JSON.parse(readFileSync(LOCK_PATH, 'utf8'));
-  } catch (e) {
-    console.error(`[bundle-keyring] cannot read package-lock.json: ${e.message}`);
-    process.exit(4);
-  }
-}
-
-function lockLookup(lock, pkg) {
-  const entry = lock.packages?.[`node_modules/@napi-rs/${pkg}`];
-  if (!entry) return null;
-  return {
-    version: entry.version,
-    npmIntegrity: entry.integrity || null,
-    resolved: entry.resolved || null,
   };
+  walk(dir, '');
+  return found.sort();
 }
 
-if (mode === 'check') {
-  const missing = ALL_PACKAGES.filter((p) => !hasBundled(p));
-  if (missing.length === 0) {
-    console.log('[bundle-keyring] Bundle OK — all packages present.');
-    process.exit(0);
+// ── --check : 5종이 동봉돼 있는가 ──────────────────────────────────────────
+function runCheck() {
+  const absent = BUNDLED.filter((pkg) => !existsSync(join(INTO_DIR, pkg)));
+  if (absent.length > 0) {
+    die(
+      1,
+      `동봉 미완 — 빠진 패키지: ${absent.join(', ')}`,
+      `고치는 법: npm install --no-save --force <빠진 것> && ${SELF}`,
+    );
   }
-  console.error(`[bundle-keyring] Bundle INCOMPLETE — missing: ${missing.join(', ')}`);
-  console.error(
-    '[bundle-keyring] Fix: npm install --no-save --force <missing> && node scripts/bundle-keyring.mjs',
-  );
-  process.exit(1);
+  say(`Bundle OK — ${BUNDLED.length}종 전부 있다.`);
 }
 
-if (mode === 'verify') {
-  if (!existsSync(INTEGRITY_PATH)) {
-    console.error(`[bundle-keyring] integrity.json not found: ${INTEGRITY_PATH}`);
-    console.error('[bundle-keyring] Fix: node scripts/bundle-keyring.mjs --refresh-integrity');
-    process.exit(7);
+// ── --verify : 핀과 디스크가 같은가 (오프라인) ────────────────────────────
+function runVerify() {
+  if (!existsSync(PIN_PATH)) {
+    die(7, `핀 파일이 없다: ${PIN_PATH}`, `고치는 법: ${SELF} --refresh-integrity`);
   }
-  const doc = JSON.parse(readFileSync(INTEGRITY_PATH, 'utf8'));
+  const pin = JSON.parse(readFileSync(PIN_PATH, 'utf8'));
+  const entries = Object.entries(pin.entries || {});
   const problems = [];
-  let filesChecked = 0;
-  for (const [key, meta] of Object.entries(doc.entries || {})) {
-    const atIdx = key.lastIndexOf('@');
-    const pkg = key.slice('@napi-rs/'.length, atIdx);
-    const bundleDir = join(DST_NAPI, pkg);
-    if (!existsSync(bundleDir)) {
-      problems.push(`${key}: bundle dir missing`);
+  let checked = 0;
+
+  for (const [key, meta] of entries) {
+    // 키는 "@napi-rs/<패키지>@<버전>" — 마지막 @가 버전 구분자다.
+    const pkg = key.slice(SCOPE.length, key.lastIndexOf('@'));
+    const dir = join(INTO_DIR, pkg);
+    if (!existsSync(dir)) {
+      problems.push(`${key}: 폴더가 없다`);
       continue;
     }
-    const actualFiles = new Set(listBundleFiles(bundleDir));
-    const expectedFiles = new Set(Object.keys(meta.files || {}));
-    for (const f of expectedFiles) {
-      if (!actualFiles.has(f)) problems.push(`${key}: missing file ${f}`);
-    }
-    for (const f of actualFiles) {
-      if (!expectedFiles.has(f)) problems.push(`${key}: unexpected file ${f}`);
-    }
-    for (const f of expectedFiles) {
-      if (!actualFiles.has(f)) continue;
-      filesChecked += 1;
-      const actual = sha256File(join(bundleDir, f));
-      if (actual !== meta.files[f]) {
-        problems.push(
-          `${key}: hash mismatch for ${f}\n      expected ${meta.files[f]}\n      actual   ${actual}`,
-        );
+    const expected = meta.files || {};
+    const onDisk = new Set(filesUnder(dir));
+
+    for (const rel of Object.keys(expected)) {
+      if (!onDisk.has(rel)) {
+        problems.push(`${key}: 파일이 사라졌다 ${rel}`);
+        continue;
+      }
+      checked += 1;
+      const actual = hashOf(join(dir, rel));
+      if (actual !== expected[rel]) {
+        problems.push(`${key}: 해시 불일치 ${rel}\n      핀   ${expected[rel]}\n      실물 ${actual}`);
       }
     }
+    for (const rel of onDisk) {
+      if (!(rel in expected)) problems.push(`${key}: 핀에 없는 파일 ${rel}`);
+    }
   }
-  if (problems.length === 0) {
-    console.log(
-      `[bundle-keyring] Integrity OK — ${filesChecked} files verified across ${Object.keys(doc.entries || {}).length} packages.`,
+
+  if (problems.length > 0) {
+    die(
+      8,
+      `Integrity FAILED — 문제 ${problems.length}건:`,
+      ...problems.map((p) => `  - ${p}`),
+      `동봉을 의도적으로 바꾼 것이라면: ${SELF} --refresh-integrity`,
     );
-    process.exit(0);
   }
-  console.error(`[bundle-keyring] Integrity FAILED — ${problems.length} problem(s):`);
-  for (const p of problems) console.error(`  - ${p}`);
-  console.error(
-    '[bundle-keyring] If the mismatch is intended (bundle updated), run: node scripts/bundle-keyring.mjs --refresh-integrity',
-  );
-  process.exit(8);
+  say(`Integrity OK — ${entries.length}개 패키지 / ${checked}개 파일 대조 통과.`);
 }
 
-if (mode === 'refresh-integrity') {
-  const lock = loadPackageLock();
+// ── --refresh-integrity : 지금 상태로 핀을 다시 적는다 ────────────────────
+function readLock() {
+  try {
+    return JSON.parse(readFileSync(LOCK_PATH, 'utf8'));
+  } catch (err) {
+    die(4, `package-lock.json을 읽을 수 없다: ${err.message}`);
+  }
+}
+
+function runRefreshIntegrity() {
+  const lock = readLock();
   const entries = {};
-  for (const pkg of ALL_PACKAGES) {
-    const bundleDir = join(DST_NAPI, pkg);
-    if (!existsSync(bundleDir)) {
-      console.error(`[bundle-keyring] bundle missing package: ${pkg}`);
-      console.error('[bundle-keyring] Run the bundler (default mode) first.');
-      process.exit(5);
+
+  for (const pkg of BUNDLED) {
+    const dir = join(INTO_DIR, pkg);
+    if (!existsSync(dir)) {
+      die(5, `동봉본에 ${pkg}가 없다`, '먼저 인자 없이 실행해 담는다.');
     }
-    const lockEntry = lockLookup(lock, pkg);
-    if (!lockEntry) {
-      console.error(`[bundle-keyring] package-lock.json has no entry for @napi-rs/${pkg}`);
-      process.exit(6);
+    const locked = lock.packages?.[`node_modules/${SCOPE}${pkg}`];
+    if (!locked) {
+      die(6, `package-lock.json에 ${SCOPE}${pkg} 항목이 없다`);
     }
     const files = {};
-    for (const rel of listBundleFiles(bundleDir)) {
-      files[rel] = sha256File(join(bundleDir, rel));
-    }
-    const key = `@napi-rs/${pkg}@${lockEntry.version}`;
+    for (const rel of filesUnder(dir)) files[rel] = hashOf(join(dir, rel));
+
+    const key = `${SCOPE}${pkg}@${locked.version}`;
     entries[key] = {
-      npmIntegrity: lockEntry.npmIntegrity,
-      resolved: lockEntry.resolved,
+      npmIntegrity: locked.integrity || null,
+      resolved: locked.resolved || null,
       files,
     };
-    console.log(`[bundle-keyring] recorded: ${key} (${Object.keys(files).length} files)`);
+    say(`recorded: ${key} (파일 ${Object.keys(files).length})`);
   }
-  const doc = {
+
+  const pin = {
     schema: 1,
     generated: new Date().toISOString(),
     source: 'package-lock.json + runtime-deps/keyring/node_modules/',
     entries,
   };
-  writeFileSync(INTEGRITY_PATH, JSON.stringify(doc, null, 2) + '\n', 'utf8');
-  console.log(`[bundle-keyring] wrote: ${INTEGRITY_PATH}`);
-  process.exit(0);
+  writeFileSync(PIN_PATH, `${JSON.stringify(pin, null, 2)}\n`, 'utf8');
+  say(`wrote: ${PIN_PATH}`);
 }
 
-// mode === 'bundle' (default)
-if (!existsSync(SRC_NAPI)) {
-  console.error(`[bundle-keyring] Source not found: ${SRC_NAPI}`);
-  console.error('[bundle-keyring] Run `npm install` in the plugin root first.');
-  process.exit(1);
-}
-
-mkdirSync(DST_NAPI, { recursive: true });
-
-function copyPackage(pkg, { required }) {
-  const src = join(SRC_NAPI, pkg);
-  const dst = join(DST_NAPI, pkg);
-  if (!has(pkg)) {
-    if (required) {
-      console.error(`[bundle-keyring] MISSING required package: ${pkg}`);
-      process.exit(2);
-    }
-    console.warn(`[bundle-keyring] skip (not installed): ${pkg}`);
+// ── 기본 모드 : node_modules에서 다시 담는다 ──────────────────────────────
+// 한 패키지를 통째로 갈아끼운다. 지우고 복사하는 이유는, 남은 파일이 핀에 없는
+// 파일로 --verify에 잡히기 때문이다.
+function replant(pkg, { required }) {
+  const from = join(FROM_DIR, pkg);
+  if (!existsSync(from)) {
+    if (required) die(2, `필수 패키지가 설치돼 있지 않다: ${pkg}`);
+    console.warn(`[bundle-keyring] 건너뜀 (미설치): ${pkg}`);
     return false;
   }
-  if (existsSync(dst)) rmSync(dst, { recursive: true, force: true });
-  cpSync(src, dst, { recursive: true, dereference: true });
-  console.log(`[bundle-keyring] copied: ${pkg}`);
+  const into = join(INTO_DIR, pkg);
+  if (existsSync(into)) rmSync(into, { recursive: true, force: true });
+  cpSync(from, into, { recursive: true, dereference: true });
+  say(`copied: ${pkg}`);
   return true;
 }
 
-copyPackage(REQUIRED_CORE, { required: true });
-let platformsCopied = 0;
-for (const p of PLATFORMS) {
-  if (copyPackage(p, { required: false })) platformsCopied += 1;
+function runBundle() {
+  if (!existsSync(FROM_DIR)) {
+    die(1, `가져올 곳이 없다: ${FROM_DIR}`, '플러그인 루트에서 `npm install`을 먼저 돌린다.');
+  }
+  mkdirSync(INTO_DIR, { recursive: true });
+
+  replant(CORE, { required: true });
+  const copied = PLATFORMS.filter((pkg) => replant(pkg, { required: false })).length;
+
+  // 플랫폼 바이너리가 하나도 없으면 코어만 있는 껍데기다 — 어디서도 열쇠고리를 못 연다.
+  if (copied === 0) die(3, '플랫폼 바이너리를 하나도 담지 못했다 — 이 동봉본은 쓸모가 없다');
+  if (copied < PLATFORMS.length) {
+    console.warn(
+      `[bundle-keyring] 경고: 플랫폼 ${copied}/${PLATFORMS.length}만 담겼다. ` +
+        '빠진 플랫폼에서는 런타임이 평문으로 강등된다.',
+    );
+  }
+
+  say('Done.');
+  say(`다음: ${SELF} --refresh-integrity 로 핀을 갱신한다`);
 }
 
-if (platformsCopied === 0) {
-  console.error('[bundle-keyring] ERROR: no platform binaries copied — bundle would be useless');
-  process.exit(3);
-}
-
-if (platformsCopied < PLATFORMS.length) {
-  console.warn(
-    `[bundle-keyring] WARNING: ${platformsCopied}/${PLATFORMS.length} platforms bundled. ` +
-      `Missing platforms will fall back to plaintext at runtime.`,
-  );
-}
-
-console.log('[bundle-keyring] Done.');
-console.log(
-  '[bundle-keyring] Next: node scripts/bundle-keyring.mjs --refresh-integrity to update integrity.json',
-);
+const args = process.argv.slice(2);
+if (args.includes('--verify')) runVerify();
+else if (args.includes('--refresh-integrity')) runRefreshIntegrity();
+else if (args.includes('--check')) runCheck();
+else runBundle();

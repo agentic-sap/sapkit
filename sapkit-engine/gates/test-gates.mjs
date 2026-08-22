@@ -23,6 +23,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
+import { CATALOG_DIR, run as runCatalog } from './catalog.mjs';
 import { createReport, firstDifference, tempDir, cleanupTempDirs } from './lib.mjs';
 import {
   CAPTURED_PATH,
@@ -403,6 +404,106 @@ await expectFailure(
       ? ''
       : `실패 [${clean.failed.map((row) => row.name).join(' · ')}]`,
   );
+}
+
+// ── ⑧ 카탈로그 게이트 — 손으로 고친 카탈로그를 거부하는가 ────────────────────
+//
+// `interactive/server/tool-catalog/`의 네 파일은 등록점에서 생성된다. 그 전에는 사람이
+// 도구 이름을 손으로 옮겨 적었고 맞는지 재는 것이 없어 카탈로그가 조용히 낡을 수
+// 있었다. 게이트를 새로 달았으니 **그 게이트가 정말 거부하는지**를 여기서 못 박는다.
+//
+// 레포의 진짜 파일을 고쳤다 되돌리는 대신 **임시 사본을 물린다**(위 ⑥의 `corrupt`와
+// 같은 방식). 되돌리기는 프로세스가 중간에 죽으면 실행되지 않지만, 애초에 건드리지
+// 않은 파일은 되돌릴 것이 없다 — finally보다 강한 보장이다.
+{
+  const READ_FILE = 'sc4sap-mcp-tools-read.md';
+
+  function catalogCopy() {
+    const dir = tempDir('sapkit-gate-catalog-');
+    for (const name of fs.readdirSync(CATALOG_DIR)) {
+      fs.copyFileSync(path.join(CATALOG_DIR, name), path.join(dir, name));
+    }
+    return dir;
+  }
+
+  /** 사본의 파일 하나를 비틀고, 변형이 실제로 적용됐는지부터 확인한다. */
+  function catalogCorrupt(file, mutate, label) {
+    const dir = catalogCopy();
+    const target = path.join(dir, file);
+    const before = fs.readFileSync(target, 'utf8');
+    const after = mutate(before);
+    report.check(`변형이 실제로 적용됐다 (${label})`, after !== before);
+    fs.writeFileSync(target, after, 'utf8');
+    return dir;
+  }
+
+  async function expectCatalogReject(label, dir, marker) {
+    const result = await runCatalog({ catalogDir: dir });
+    const hit = result.failed.filter((row) => row.name.includes(marker));
+    report.check(
+      `${label} → ${marker} 판정이 거부한다`,
+      hit.length > 0,
+      hit.length > 0
+        ? `${marker} 실패 ${hit.length}건`
+        : `실패 ${result.failed.length}건 — [${result.failed.map((row) => row.name).join(' · ')}]`,
+    );
+  }
+
+  async function expectCatalogPass(label, dir) {
+    const result = await runCatalog({ catalogDir: dir });
+    report.check(
+      `${label} → 통과한다`,
+      result.failed.length === 0,
+      result.failed.length === 0
+        ? ''
+        : `실패 [${result.failed.map((row) => row.name).join(' · ')}]`,
+    );
+  }
+
+  // ⑧-a 도구 한 줄이 사라지면 잡아야 한다 — 카탈로그가 낡는 가장 흔한 모양이다.
+  await expectCatalogReject(
+    '카탈로그에서 도구 한 줄을 지웠다',
+    catalogCorrupt(
+      READ_FILE,
+      (text) =>
+        text
+          .split('\n')
+          .filter((line) => line !== '- `GetInclude`')
+          .join('\n'),
+      '도구 한 줄 제거',
+    ),
+    READ_FILE,
+  );
+
+  // ⑧-b 이름이 바뀌면 잡아야 한다 — 줄 수만 세는 대조는 이걸 놓친다.
+  await expectCatalogReject(
+    '카탈로그의 도구 이름을 손으로 고쳤다',
+    catalogCorrupt(READ_FILE, (text) => text.replace('- `GetInclude`\n', '- `GetIncludeZ`\n'), '도구 이름 변경'),
+    READ_FILE,
+  );
+
+  // ⑧-c 파일이 아예 없으면 잡아야 한다 — 판정 불가는 통과가 아니다.
+  {
+    const dir = catalogCopy();
+    fs.rmSync(path.join(dir, READ_FILE));
+    report.check('변형이 실제로 적용됐다 (파일 제거)', !fs.existsSync(path.join(dir, READ_FILE)));
+    await expectCatalogReject('카탈로그 파일이 없다', dir, READ_FILE);
+  }
+
+  // ⑧-d 줄바꿈만 다른 사본은 통과해야 한다 — CRLF로 체크아웃한 Windows에서 빨간
+  //     게이트는 사람을 게이트가 아니라 줄바꿈을 의심하게 만들고, 그 습관이 진짜
+  //     표류도 같이 넘긴다.
+  {
+    const dir = catalogCopy();
+    for (const name of fs.readdirSync(dir)) {
+      const file = path.join(dir, name);
+      fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace(/\r?\n/g, '\r\n'), 'utf8');
+    }
+    await expectCatalogPass('CRLF로 체크아웃된 카탈로그', dir);
+  }
+
+  // ⑧-e 그리고 레포의 현 상태에는 통과해야 한다 (과수리 역검증).
+  await expectCatalogPass('멀쩡한 현 상태의 카탈로그', CATALOG_DIR);
 }
 
 cleanupTempDirs();

@@ -55,6 +55,9 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
     모듈+시험+**등록점 배선**+대장 갱신을 **한 커밋**(반쪽 상태는 다음 판이 같은 도구를
     두 번 짓게 만든다).
   - **`sapkit-engine/TOOL-LEDGER.md`는 기계 생성물**이다. 손으로 고치면 게이트가 거부한다.
+    **`interactive/server/tool-catalog/`의 `sc4sap-mcp-tools*.md` 4파일도 판10부터 같은
+    지위다** — 등록점에서 생성하며(`harness/render-tool-catalog.mjs`), 손으로 고치면
+    엔진 게이트 「카탈로그」가 거부한다.
     도구 상태는 세 칸(`안 지음` / `지음·증거 대기` / `증거 있음`)이고 **`증거 대기`를 완료로
     읽지 않는다**(D-082 — 2026-08-12에 실제로 난 오해다). 지금 **증거 대기 30종 · 증거 있음
     156종**이다(판6.3 · D-098).
@@ -219,7 +222,7 @@ node harness/test-compare-baseline.mjs # 음성시험 (판정 비교기가 갈�
 
 ```bash
 npm run verify        # build:bundle + typecheck + jest (번들까지 만든다 — 제품에 실리는 물건)
-npm run gates         # 표면(글자 일치·4조건 소속·채록본 밖 이름·대장 대조) · 안전 · 대장 · HTTP/SSE 기동
+npm run gates         # 표면 · **카탈로그 대조**(tool-catalog 4파일 ↔ 등록점 — 판10 신설) · 안전 · 대장 · HTTP/SSE 기동
 node gates/stdio-smoke.mjs             # dist 산출물 실기동
 node gates/bundle-smoke.mjs            # **제품에 실리는 단일 파일** 실기동 + 판 스탬프 + 표면
 node gates/test-gates.mjs              # 게이트 음성시험 (게이트가 정말 거부하는지)
