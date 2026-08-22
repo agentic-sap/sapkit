@@ -219,7 +219,7 @@ D-079 ⑥과 정면 충돌하고, [`install-sap-assets.md`](../../interactive/co
 **계수·체크 규칙은 §2를 그대로 따른다** — 체크는 **재저작만** · 부분 편집은 체크 아님 ·
 **독립 리뷰 통과 후** 체크 · 커밋 해시와 리뷰 근거 병기 · 양방향(누락 0 · **추가 0**).
 
-**잔량 31 · 체크 25** (2026-08-23 배치2 — 페르소나 20편 · 공유 블록 6종 3차 일괄 · D-110. 배치1은 5 · 신설 시점은 56 · 0).
+**잔량 0 · 체크 56 — 명부 완주** (2026-08-23 배치3 · D-111. 경로: 신설 56·0 → 배치1 +5 → 배치2 +20 → 배치3 +31).
 
 ⚠ **유보 — 이 표는 판정이 아니라 판3.7의 착수 재료다.** 그리고 유보는 **수치가 아니라
 목록 자체에 걸린다**(D-106 ⓔ①): ⓐ 문장을 쪼개거나 어순을 바꾼 잔존 · 60자 이하의 실질
@@ -229,14 +229,14 @@ D-079 ⑥과 정면 충돌하고, [`install-sap-assets.md`](../../interactive/co
 
 | 목적지 | 동일/실질 | % | 최선 매칭 원본 |
 |---|---:|---:|---|
-| `core/knowledge/modules/BC/diagnostic-flows.md` | 15/15 | 100% | `agents/agent_details/**` |
-| `core/knowledge/abap/conventions/source-repair-protocol.md` | 7/7 | 100% | `common/**` |
-| `core/knowledge/modules/BC/transaction-codes.md` | 5/5 | 100% | `agents/agent_details/**` |
-| `adapters/claude/lib/atomic-write.mjs` | 3/3 | 100% | `scripts/lib/**` |
-| `adapters/claude/lib/stdin.mjs` | 3/3 | 100% | `scripts/lib/**` |
-| `core/knowledge/modules/common/active-modules.md` | 48/50 | 96% | `common/**` |
+| ☑ `core/knowledge/modules/BC/diagnostic-flows.md` | 15/15 → **14** | — | `agents/agent_details/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 진단 스텝 57 바이트 동일(참조표) — 산문 1행만 갚음 |
+| ☑ `core/knowledge/abap/conventions/source-repair-protocol.md` | 7/7 → **0** | — | `common/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: — |
+| ☑ `core/knowledge/modules/BC/transaction-codes.md` | 5/5 → **4** | — | `agents/agent_details/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 표 26행 바이트 동일(참조표) |
+| ☑ `adapters/claude/lib/atomic-write.mjs` | 3/3 → **0** | — | `scripts/lib/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: — |
+| ☑ `adapters/claude/lib/stdin.mjs` | 3/3 → **0** | — | `scripts/lib/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: — |
+| ☑ `core/knowledge/modules/common/active-modules.md` | 48/50 → **45** | — | `common/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 모듈 코드표·상호작용 매트릭스(참조표) |
 | ☑ `core/personas/sap-architect.md` | 58/61 → **11** | — | `agents/**` · **체크 `b1df26e2`** — 2026-08-23 독립 리뷰 통과(구판 전행 1:1 + 상류 대조 · critic은 차단 1건 두 단어 복원 후 해소 · D-109 ⓓ) · 잔존은 명사구·템플릿·식별자행·강도 지는 축자 지시(의도 존치) · ⚠ **26편 공통 문장 부채 조건부**(D-109 ⓔ) |
-| `adapters/claude/hooks/syntax-checker.mjs` | 19/20 | 95% | `scripts/**` |
+| ☑ `adapters/claude/hooks/syntax-checker.mjs` | 19/20 → **1** | — | `scripts/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 별칭 폴백 체인 — 계약 |
 | ☑ `core/personas/sap-debugger.md` | 56/60 → **7** | — | `agents/**` · **체크 `b1df26e2`** — 2026-08-23 독립 리뷰 통과(구판 전행 1:1 + 상류 대조 · critic은 차단 1건 두 단어 복원 후 해소 · D-109 ⓓ) · 잔존은 명사구·템플릿·식별자행·강도 지는 축자 지시(의도 존치) · ⚠ **26편 공통 문장 부채 조건부**(D-109 ⓔ) |
 | ☑ `core/personas/sap-qa-tester.md` | 39/42 → **2** | — | `agents/**` · **체크 `b1df26e2`** — 2026-08-23 독립 리뷰 통과(구판 전행 1:1 + 상류 대조 · critic은 차단 1건 두 단어 복원 후 해소 · D-109 ⓓ) · 잔존은 명사구·템플릿·식별자행·강도 지는 축자 지시(의도 존치) · ⚠ **26편 공통 문장 부채 조건부**(D-109 ⓔ) |
 | ☑ `core/personas/sap-critic.md` | 69/76 → **10** | — | `agents/**` · **체크 `b1df26e2`** — 2026-08-23 독립 리뷰 통과(구판 전행 1:1 + 상류 대조 · critic은 차단 1건 두 단어 복원 후 해소 · D-109 ⓓ) · 잔존은 명사구·템플릿·식별자행·강도 지는 축자 지시(의도 존치) · ⚠ **26편 공통 문장 부채 조건부**(D-109 ⓔ) |
@@ -245,19 +245,19 @@ D-079 ⑥과 정면 충돌하고, [`install-sap-assets.md`](../../interactive/co
 | ☑ `core/personas/sap-code-reviewer.md` | 53/61 → **6** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 접두사표·템플릿 (D-088 ① 보존 대상 · **축자 산문 0**) |
 | ☑ `core/personas/sap-writer.md` | 28/33 → **1** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구 (D-088 ① 보존 대상 · **축자 산문 0**) |
 | ☑ `core/personas/sap-planner.md` | 54/64 → **9** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 템플릿·식별자 (D-088 ① 보존 대상 · **축자 산문 0**) |
-| `adapters/claude/hooks/transport-validator.mjs` | 21/25 | 84% | `scripts/**` |
-| `core/knowledge/abap/conventions/abapgit-roundtrip-rule.md` | 11/14 | 79% | `common/**` |
+| ☑ `adapters/claude/hooks/transport-validator.mjs` | 21/25 → **2** | — | `scripts/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: LOCAL_PACKAGES 리터럴·삼항 — 계약 |
+| ☑ `core/knowledge/abap/conventions/abapgit-roundtrip-rule.md` | 11/14 → **2** | — | `common/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 참조 항목 |
 | ☑ `core/personas/sap-stocker.md` | 34/46 → **1** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 템플릿 (D-088 ① 보존 대상 · **축자 산문 0**) |
 | ☑ `core/personas/sap-ariba-consultant.md` | 42/60 → **32** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 표15·명사구9·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
 | ☑ `core/personas/sap-bw-consultant.md` | 39/59 → **19** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구10·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
 | ☑ `core/personas/sap-ps-consultant.md` | 37/56 → **22** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구9·템플릿5·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
-| `core/policies/data-protection/data-extraction-policy.md` | 35/53 | 66% | `common/**` |
-| `core/procedures/program-to-spec.md` | 90/138 | 65% | `skills/program-to-spec/**` |
+| ☑ `core/policies/data-protection/data-extraction-policy.md` | 35/53 → **4** | — | `common/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 거부 템플릿·Accept 키워드 목록 — 보존 필수 |
+| ☑ `core/procedures/program-to-spec.md` | 90/138 → **56** | — | `skills/program-to-spec/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 펜스12·표11·식별자13·자유산문~2 |
 | ☑ `core/personas/sap-sd-consultant.md` | 39/60 → **14** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구5·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
-| `core/procedures/compare-programs.md` | 88/141 | 62% | `skills/compare-programs/**` |
+| ☑ `core/procedures/compare-programs.md` | 88/141 → **49** | — | `skills/compare-programs/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 펜스28(템플릿)·표15·산문5 |
 | ☑ `core/personas/sap-co-consultant.md` | 33/53 → **19** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
 | ☑ `core/personas/sap-fi-consultant.md` | 32/52 → **18** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
-| `core/procedures/analyze-symptom.md` | 69/113 | 61% | `skills/analyze-symptom/**` |
+| ☑ `core/procedures/analyze-symptom.md` | 69/113 → **20** | — | `skills/analyze-symptom/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 표10·펜스2·도구주석5 |
 | ☑ `core/personas/sap-tm-consultant.md` | 28/47 → **17** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
 | ☑ `core/personas/sap-wm-consultant.md` | 28/47 → **18** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
 | ☑ `core/personas/sap-pp-consultant.md` | 26/45 → **19** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
@@ -265,26 +265,26 @@ D-079 ⑥과 정면 충돌하고, [`install-sap-assets.md`](../../interactive/co
 | ☑ `core/personas/sap-mm-consultant.md` | 27/47 → **13** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
 | ☑ `core/personas/sap-hcm-consultant.md` | 24/43 → **17** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
 | ☑ `core/personas/sap-qm-consultant.md` | 24/43 → **16** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
-| `core/policies/transport-client-rule.md` | 10/18 | 56% | `common/**` |
+| ☑ `core/policies/transport-client-rule.md` | 10/18 → **0** | — | `common/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: — |
 | ☑ `core/personas/sap-pm-consultant.md` | 23/42 → **15** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
-| `core/procedures/analyze-cbo-obj.md` | 37/69 | 54% | `skills/analyze-cbo-obj/**` |
+| ☑ `core/procedures/analyze-cbo-obj.md` | 37/69 → **18** | — | `skills/analyze-cbo-obj/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 펜스9·인용4·산문3 |
 | ☑ `core/personas/sap-tr-consultant.md` | 22/41 → **16** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
-| `tools/extract/extract-customizations.mjs` | 108/213 | 51% | `scripts/**` |
-| `core/procedures/customization-lookup.md` | 33/70 | 47% | `common/**` |
-| `core/procedures/analyze-code.md` | 27/75 | 36% | `skills/analyze-code/**` |
-| `core/procedures/release.md` | 15/47 | 32% | `skills/release/**` |
-| `adapters/claude/lib/profile-resolve.mjs` | 19/66 | 29% | `scripts/lib/**` |
-| `core/procedures/create-object.md` | 30/108 | 28% | `skills/create-object/**` |
-| `core/procedures/spro-lookup.md` | 20/72 | 28% | `common/**` |
-| `core/procedures/deep-interview.md` | 11/39 | 28% | `skills/deep-interview/**` |
-| `core/procedures/review-checklist.md` | 43/167 | 26% | `skills/create-program/**` |
-| `core/procedures/help-portal-fetch.md` | 5/19 | 26% | `common/**` |
-| `tools/extract/extract-spro.mjs` | 28/124 | 23% | `scripts/**` |
-| `core/procedures/create-program.md` | 58/361 | 16% | `skills/create-program/**` |
-| `core/procedures/ask-consultant.md` | 9/66 | 14% | `skills/ask-consultant/**` |
-| `tools/spec/render-md-images.mjs` | 3/23 | 13% | `scripts/spec/**` |
-| `core/procedures/install-sap-assets.md` | 11/119 | 9% | `skills/setup/**` |
-| `core/procedures/troubleshooting.md` | 13/222 | 6% | `skills/sap-doctor/**` |
+| ☑ `tools/extract/extract-customizations.mjs` | 108/213 → **15** | — | `scripts/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: SQL 원문·stdout 포맷 — 계약 |
+| ☑ `core/procedures/customization-lookup.md` | 33/70 → **9** | — | `common/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 인용7·펜스1·산문0 |
+| ☑ `core/procedures/analyze-code.md` | 27/75 → **7** | — | `skills/analyze-code/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 펜스6·인용1·산문0 |
+| ☑ `core/procedures/release.md` | 15/47 → **0** | — | `skills/release/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: — |
+| ☑ `adapters/claude/lib/profile-resolve.mjs` | 19/66 → **0** | — | `scripts/lib/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: — |
+| ☑ `core/procedures/create-object.md` | 30/108 → **5** | — | `skills/create-object/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 펜스3·표1·산문0 |
+| ☑ `core/procedures/spro-lookup.md` | 20/72 → **6** | — | `common/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 펜스1·인용2·산문0(회수 후) |
+| ☑ `core/procedures/deep-interview.md` | 11/39 → **0** | — | `skills/deep-interview/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: — |
+| ☑ `core/procedures/review-checklist.md` | 43/167 → **24** | — | `skills/create-program/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 체크박스 규범항 24 — §7 하위 의도적 보류 |
+| ☑ `core/procedures/help-portal-fetch.md` | 5/19 → **2** | — | `common/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 산문2(소액) |
+| ☑ `tools/extract/extract-spro.mjs` | 28/124 → **9** | — | `scripts/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 동일 성격 — 계약 |
+| ☑ `core/procedures/create-program.md` | 58/361 → **43** | — | `skills/create-program/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 펜스11·인용5·열거11·자유산문5 |
+| ☑ `core/procedures/ask-consultant.md` | 9/66 → **6** | — | `skills/ask-consultant/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 펜스1·식별자4·산문1 |
+| ☑ `tools/spec/render-md-images.mjs` | 3/23 → **2** | — | `scripts/spec/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: import 2행 — 모듈 API |
+| ☑ `core/procedures/install-sap-assets.md` | 11/119 → **11** | — | `skills/setup/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: print-verbatim 9·sentinel 1·도구주석1 |
+| ☑ `core/procedures/troubleshooting.md` | 13/222 → **15** | — | `skills/sap-doctor/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 체크박스10·펜스4·식별자1 |
 
 **읽는 법**: 비율이 높을수록 원본 문장이 그대로 살아 있다. 구성은 **페르소나 25**
 (26편 중 `sap-doc-specialist.md`만 겹침 3행 미만이라 빠졌다) · **절차 16** ·
