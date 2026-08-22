@@ -145,9 +145,9 @@ function replace(startup: Startup, profile: ResolvedProfile, line: string): Star
 
 function lifetime(status: TokenStatus): string {
   if (status.expiresAtMs === null) {
-    return 'the token says nothing about its own lifetime (no exp claim and no expires_in)';
+    return 'The token says nothing about its own lifetime (no exp claim and no expires_in)';
   }
-  return `the token expires at ${new Date(status.expiresAtMs).toISOString()}`;
+  return `The token expires at ${new Date(status.expiresAtMs).toISOString()}`;
 }
 
 function successLine(key: ServiceKeyConfig, baseUrl: string, status: TokenStatus): string {
@@ -161,7 +161,7 @@ function successLine(key: ServiceKeyConfig, baseUrl: string, status: TokenStatus
   return (
     `MCP_DESTINATION_CONNECTED: --mcp=${key.destination} acquired a client_credentials token and ` +
     `the connection stands as Bearer on ${baseUrl}${where === '' ? '' : ` (${where})`}. ` +
-    `${lifetime(status)}, it lives in this process's memory only, and startup does not renew it — ` +
+    `${lifetime(status)}; it lives in this process's memory only, and startup does not renew it — ` +
     'restart the server when it expires. No SAP tier comes with a service key, so tier=UNKNOWN ' +
     'and every write and execution is refused (fail-closed); set up a profile sap.env if this ' +
     'system needs to be writable.'
@@ -193,9 +193,17 @@ function nextStep(code: string, key: ServiceKeyConfig): string {
 
 function failureLine(key: ServiceKeyConfig, endpoint: string, error: unknown): string {
   const code = isAuthError(error) ? error.code : 'UNEXPECTED';
-  // `AuthError.message`는 이미 코드로 시작한다. 비밀은 담기지 않는다 —
-  // 인증 계층이 UAA 응답의 error/error_description 두 칸만 옮긴다.
-  const detail = error instanceof Error ? error.message : String(error);
+  // 진단은 전부 영문이다 — 인증 계층의 한국어 메시지를 통째로 싣지 않고
+  // 코드와 원인(HTTP 상태 등 괄호 원문)만 뽑아 영문 문장에 끼운다(리뷰 권고 2).
+  // 비밀은 어느 쪽에도 담기지 않는다 — 인증 계층이 UAA 응답의
+  // error/error_description 두 칸만 옮기고, cause는 상태·URL뿐이다.
+  const raw = error instanceof Error ? error.message : String(error);
+  // AuthError.message = "CODE: <한국어 본문> — <원인(HTTP 상태 등)>" 꼴 — 마지막
+  // em-dash 뒤가 원인이다. 그것만 영문 문장에 끼운다.
+  const dashAt = raw.indexOf('—');
+  const cause = dashAt >= 0 ? raw.slice(dashAt + 1).trim() : null;
+  const detail =
+    code === 'UNEXPECTED' ? raw : `${code}${cause !== null && cause !== '' ? ` (${cause})` : ''}`;
 
   return (
     `MCP_DESTINATION_TOKEN_FAILED: --mcp=${key.destination} uses the client_credentials grant and ` +

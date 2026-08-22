@@ -101,14 +101,23 @@ export const reloadProfile = defineTool(
         client,
         description,
         sourcePath: profile.envPath,
-        restartRequired: outcome.exposureStale,
+        // 재적재는 기동만이 받을 수 있는 destination 토큰을 되찾지 못한다 —
+        // --mcp 기동에서 접속이 있다가 재적재 후 없어졌다면 재기동만이 답이다
+        // (D-114 · 판M2-a 리뷰 권고 1). exposureStale과는 별개의 사유이므로 OR.
+        restartRequired:
+          outcome.exposureStale ||
+          (outcome.connectionDropped && outcome.startup.profile.connection === null),
         note: outcome.exposureStale
           ? `The reloaded profile runs on the ${outcome.after.systemType} deployment axis, but this ` +
             `server started on ${outcome.bootSystemType} and its published tool list was fixed at ` +
             'startup, so the list no longer matches this system. Tier, blocklist and the SAP ' +
             'connection are already using the new profile — only the tool list is stale. Restart ' +
             '(reconnect) the MCP server to publish the matching set.'
-          : undefined,
+          : outcome.connectionDropped && outcome.startup.profile.connection === null
+            ? 'The connection this server held was dropped by the reload and the reloaded ' +
+              'profile could not stand a new one — a token acquired at startup does not come ' +
+              'back on reload. Restart (reconnect) the MCP server to get it again.'
+            : undefined,
         // 왜 이 상태인지. 프로파일을 못 찾았거나 접속 정보가 모자라면 여기에
         // 이유가 들어온다 — 구는 그것을 예외로 알렸고 신의 계층은 던지지 않는다.
         diagnostics: [...profile.diagnostics],
