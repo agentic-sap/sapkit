@@ -219,7 +219,7 @@ D-079 ⑥과 정면 충돌하고, [`install-sap-assets.md`](../../interactive/co
 **계수·체크 규칙은 §2를 그대로 따른다** — 체크는 **재저작만** · 부분 편집은 체크 아님 ·
 **독립 리뷰 통과 후** 체크 · 커밋 해시와 리뷰 근거 병기 · 양방향(누락 0 · **추가 0**).
 
-**잔량 51 · 체크 5** (2026-08-23 배치1 — 페르소나 5편 · D-109. 신설 시점은 56 · 0).
+**잔량 31 · 체크 25** (2026-08-23 배치2 — 페르소나 20편 · 공유 블록 6종 3차 일괄 · D-110. 배치1은 5 · 신설 시점은 56 · 0).
 
 ⚠ **유보 — 이 표는 판정이 아니라 판3.7의 착수 재료다.** 그리고 유보는 **수치가 아니라
 목록 자체에 걸린다**(D-106 ⓔ①): ⓐ 문장을 쪼개거나 어순을 바꾼 잔존 · 60자 이하의 실질
@@ -241,34 +241,34 @@ D-079 ⑥과 정면 충돌하고, [`install-sap-assets.md`](../../interactive/co
 | ☑ `core/personas/sap-qa-tester.md` | 39/42 → **2** | — | `agents/**` · **체크 `b1df26e2`** — 2026-08-23 독립 리뷰 통과(구판 전행 1:1 + 상류 대조 · critic은 차단 1건 두 단어 복원 후 해소 · D-109 ⓓ) · 잔존은 명사구·템플릿·식별자행·강도 지는 축자 지시(의도 존치) · ⚠ **26편 공통 문장 부채 조건부**(D-109 ⓔ) |
 | ☑ `core/personas/sap-critic.md` | 69/76 → **10** | — | `agents/**` · **체크 `b1df26e2`** — 2026-08-23 독립 리뷰 통과(구판 전행 1:1 + 상류 대조 · critic은 차단 1건 두 단어 복원 후 해소 · D-109 ⓓ) · 잔존은 명사구·템플릿·식별자행·강도 지는 축자 지시(의도 존치) · ⚠ **26편 공통 문장 부채 조건부**(D-109 ⓔ) |
 | ☑ `core/personas/sap-analyst.md` | 55/61 → **3** | — | `agents/**` · **체크 `b1df26e2`** — 2026-08-23 독립 리뷰 통과(구판 전행 1:1 + 상류 대조 · critic은 차단 1건 두 단어 복원 후 해소 · D-109 ⓓ) · 잔존은 명사구·템플릿·식별자행·강도 지는 축자 지시(의도 존치) · ⚠ **26편 공통 문장 부채 조건부**(D-109 ⓔ) |
-| `core/personas/sap-bc-consultant.md` | 52/59 | 88% | `agents/**` |
-| `core/personas/sap-code-reviewer.md` | 53/61 | 87% | `agents/**` |
-| `core/personas/sap-writer.md` | 28/33 | 85% | `agents/**` |
-| `core/personas/sap-planner.md` | 54/64 | 84% | `agents/**` |
+| ☑ `core/personas/sap-bc-consultant.md` | 52/59 → **9** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 공유2·트리·열거 (D-088 ① 보존 대상 · **축자 산문 0**) |
+| ☑ `core/personas/sap-code-reviewer.md` | 53/61 → **6** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 접두사표·템플릿 (D-088 ① 보존 대상 · **축자 산문 0**) |
+| ☑ `core/personas/sap-writer.md` | 28/33 → **1** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구 (D-088 ① 보존 대상 · **축자 산문 0**) |
+| ☑ `core/personas/sap-planner.md` | 54/64 → **9** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 템플릿·식별자 (D-088 ① 보존 대상 · **축자 산문 0**) |
 | `adapters/claude/hooks/transport-validator.mjs` | 21/25 | 84% | `scripts/**` |
 | `core/knowledge/abap/conventions/abapgit-roundtrip-rule.md` | 11/14 | 79% | `common/**` |
-| `core/personas/sap-stocker.md` | 34/46 | 74% | `agents/**` |
-| `core/personas/sap-ariba-consultant.md` | 42/60 | 70% | `agents/**` |
-| `core/personas/sap-bw-consultant.md` | 39/59 | 66% | `agents/**` |
-| `core/personas/sap-ps-consultant.md` | 37/56 | 66% | `agents/**` |
+| ☑ `core/personas/sap-stocker.md` | 34/46 → **1** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 템플릿 (D-088 ① 보존 대상 · **축자 산문 0**) |
+| ☑ `core/personas/sap-ariba-consultant.md` | 42/60 → **32** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 표15·명사구9·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
+| ☑ `core/personas/sap-bw-consultant.md` | 39/59 → **19** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구10·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
+| ☑ `core/personas/sap-ps-consultant.md` | 37/56 → **22** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구9·템플릿5·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
 | `core/policies/data-protection/data-extraction-policy.md` | 35/53 | 66% | `common/**` |
 | `core/procedures/program-to-spec.md` | 90/138 | 65% | `skills/program-to-spec/**` |
-| `core/personas/sap-sd-consultant.md` | 39/60 | 65% | `agents/**` |
+| ☑ `core/personas/sap-sd-consultant.md` | 39/60 → **14** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구5·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
 | `core/procedures/compare-programs.md` | 88/141 | 62% | `skills/compare-programs/**` |
-| `core/personas/sap-co-consultant.md` | 33/53 | 62% | `agents/**` |
-| `core/personas/sap-fi-consultant.md` | 32/52 | 62% | `agents/**` |
+| ☑ `core/personas/sap-co-consultant.md` | 33/53 → **19** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
+| ☑ `core/personas/sap-fi-consultant.md` | 32/52 → **18** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
 | `core/procedures/analyze-symptom.md` | 69/113 | 61% | `skills/analyze-symptom/**` |
-| `core/personas/sap-tm-consultant.md` | 28/47 | 60% | `agents/**` |
-| `core/personas/sap-wm-consultant.md` | 28/47 | 60% | `agents/**` |
-| `core/personas/sap-pp-consultant.md` | 26/45 | 58% | `agents/**` |
-| `core/personas/sap-executor.md` | 44/77 | 57% | `agents/**` |
-| `core/personas/sap-mm-consultant.md` | 27/47 | 57% | `agents/**` |
-| `core/personas/sap-hcm-consultant.md` | 24/43 | 56% | `agents/**` |
-| `core/personas/sap-qm-consultant.md` | 24/43 | 56% | `agents/**` |
+| ☑ `core/personas/sap-tm-consultant.md` | 28/47 → **17** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
+| ☑ `core/personas/sap-wm-consultant.md` | 28/47 → **18** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
+| ☑ `core/personas/sap-pp-consultant.md` | 26/45 → **19** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
+| ☑ `core/personas/sap-executor.md` | 44/77 → **1** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구 (D-088 ① 보존 대상 · **축자 산문 0**) |
+| ☑ `core/personas/sap-mm-consultant.md` | 27/47 → **13** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
+| ☑ `core/personas/sap-hcm-consultant.md` | 24/43 → **17** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
+| ☑ `core/personas/sap-qm-consultant.md` | 24/43 → **16** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
 | `core/policies/transport-client-rule.md` | 10/18 | 56% | `common/**` |
-| `core/personas/sap-pm-consultant.md` | 23/42 | 55% | `agents/**` |
+| ☑ `core/personas/sap-pm-consultant.md` | 23/42 → **15** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
 | `core/procedures/analyze-cbo-obj.md` | 37/69 | 54% | `skills/analyze-cbo-obj/**` |
-| `core/personas/sap-tr-consultant.md` | 22/41 | 54% | `agents/**` |
+| ☑ `core/personas/sap-tr-consultant.md` | 22/41 → **16** | — | `agents/**` · **체크 `03992a7d`** — 2026-08-23 독립 리뷰 2명 통과(20/20 PASS · 구판 1:1 + 상류 대조) · 잔존 정체: 명사구·산문0 (D-088 ① 보존 대상 · **축자 산문 0**) |
 | `tools/extract/extract-customizations.mjs` | 108/213 | 51% | `scripts/**` |
 | `core/procedures/customization-lookup.md` | 33/70 | 47% | `common/**` |
 | `core/procedures/analyze-code.md` | 27/75 | 36% | `skills/analyze-code/**` |
