@@ -22,7 +22,7 @@ SOFTWARE.
 
 ---
 
-## What this notice covers (2026-08-22 · last revised 2026-08-23 — D-103, D-104, D-112)
+## What this notice covers (2026-08-22 · last revised 2026-08-23 — D-103, D-104, D-112, D-113)
 
 This file is the **retained upstream notice** for content borrowed from
 `babamba2/superclaude-for-sap` (via the frozen `hjaewon/sc4sap-custom`).
@@ -40,10 +40,10 @@ list is the wrong shape: what remains of the upstream work is not files but
 | Group | Count | State |
 |---|---:|---|
 | `server/sap-assets/` | 30 files | Upstream, unmodified since import. Kept as-is by D-079 ⑥ — these install SAP-side objects that are never renamed or regenerated. **Permanent, and the reason this notice never fully retires.** |
-| Knowledge, industry, country and ABAP-convention content (`copy` ledger) | 170 files | **Re-authored in full**, file by file, each under independent review — finished 2026-08-18. |
+| Knowledge, industry, country and ABAP-convention content (`copy` ledger) | 170 files | **Re-authored file by file under independent review** (finished 2026-08-18) — except **27 pure reference-table files** (TCode/SPRO tables), which were **verified unchanged** instead: their content is factual data, kept byte-identical on purpose (D-088 ②). |
 | Server-bound utilities and the tool catalog | 6 files | **Replaced or rewritten 2026-08-23**: the catalog is now generated from the engine registry; both utilities were rewritten from scratch. |
 | Personas, procedures, hooks, libs, extraction tools, policies (§3.4 ledger) | 56 files | **Re-authored 2026-08-23** across three reviewed batches. |
-| What still matches the upstream text | ~600 lines across 40 files | **Contract lines, kept deliberately**: reference tables and TCode/identifier data, output templates and print-verbatim blocks, user-facing trigger phrases and approval keywords, shared-block labels and paths. Prose that merely explains is no longer upstream. |
+| What still matches the upstream text | **~2,200 lines across ~130 files** (whole subtree: ~600/40 in the §3.4 ledger · ~950/64 in re-authored `copy` files · ~660/25 in the unchanged reference tables) | **Contract lines and reference data, kept deliberately**: tables and TCode/identifier data, output templates and print-verbatim blocks, checklists, user-facing trigger phrases and approval keywords, shared-block labels and paths. Almost all explanatory prose has been re-authored — a handful of byte-identical normative sentences remain and are itemized in the ledger. |
 
 The accounting lives in `docs/reference/copy-baseline.md` (§3.4 — 56/56
 checked); the plan and its end-state are `docs/BLUEPRINT.md`.

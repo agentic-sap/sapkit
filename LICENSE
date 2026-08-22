@@ -36,11 +36,14 @@ This scope was twice narrowed to a file list (2026-08-22/23) and twice
 restored when review found the list short. The re-authoring that followed
 settled the question the other way: as of 2026-08-23 every borrowed file
 outside `interactive/server/sap-assets/` (30 files, kept deliberately — they
-install SAP-side objects) has been re-authored under independent review, and
-what still matches the upstream text is ~600 scattered lines of deliberately
-kept contract material — reference tables, output templates, user-facing
-phrases. A file list cannot express that, so the notice stays on the subtree
-and `interactive/LICENSE` records the accounting.
+install SAP-side objects) has been **re-authored under independent review, or
+— for 27 pure reference-table files — verified unchanged** (their content is
+factual data, kept byte-identical on purpose). What still matches the upstream
+text across the whole subtree is roughly **2,200 scattered lines in ~130
+files** of deliberately kept contract material — reference tables, output
+templates, checklists, user-facing phrases. A file list cannot express that,
+so the notice stays on the subtree and `interactive/LICENSE` records the
+accounting.
 
 Component-level attribution for the distributed plugin, including bundled
 runtime dependencies, is in `interactive/THIRD_PARTY_NOTICES.md`.

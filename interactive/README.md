@@ -48,4 +48,4 @@ adapters/    claude/ codex/ antigravity/ — manifest·정책 매핑·설치물�
 scripts/     빌드·설치·검증 도구
 ```
 
-라이선스: **[MIT](../LICENSE)** (레포 루트 · Copyright (c) 2026 Hong Jaewon) · 상류 고지 [LICENSE](LICENSE)는 **이 서브트리 전체**에 걸린다 — 재저작은 끝났고(장부 226/226 · D-112) 남은 상류 유래는 `server/sap-assets/` 30(영구)과 산재 계약행뿐이며, 그 내역을 그 파일이 기록한다 · [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md)
+라이선스: **[MIT](../LICENSE)** (레포 루트 · Copyright (c) 2026 Hong Jaewon) · 상류 고지 [LICENSE](LICENSE)는 **이 서브트리 전체**에 걸린다 — 장부 226/226이 소진됐고(재저작 199 + 무변경 검증 참조표 27 · D-112~D-113) 남은 상류 유래는 `server/sap-assets/` 30(영구)과 산재 계약행·참조 데이터(~2,200행/~130파일)이며, 그 내역을 그 파일이 기록한다 · [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md)
