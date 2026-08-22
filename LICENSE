@@ -31,7 +31,6 @@ corresponding subtrees. The notice above does not replace them.
 | Subtree | Upstream notice |
 |---|---|
 | `interactive/` | `interactive/LICENSE` — derived from `babamba2/superclaude-for-sap` |
-| `engine/` | `engine/LICENSE` — fork lineage in `engine/CLAUDE.md` |
 
 Component-level attribution for the distributed plugin, including bundled
 runtime dependencies, is in `interactive/THIRD_PARTY_NOTICES.md`.

@@ -20,9 +20,11 @@
  * | 도구 186종 정본 | `harness/old-surface/m1-tools.json` 의 `tools` |
  * | 호출 횟수 · 꼬리 49종 · 클래스 | `harness/usage-census.json` |
  * | 픽스처가 실제로 태운 도구 | `harness/phase6-exercised.json` (**얼린 관측**) |
- * | 오브젝트 종류(묶음의 단위) | `../engine/src/handlers/**` 의 `TOOL_DEFINITION` 이름 |
+ * | 오브젝트 종류(묶음의 단위) | `harness/old-surface/handler-tree.json` 의 `folderByTool` |
  *
- * 구 핸들러 트리는 **읽기만 한다.**
+ * 구 핸들러 트리는 **읽지 않는다** — 판7.5에서 `engine/`이 레포에서 삭제됐다.
+ * `folderByTool`은 삭제 전 마지막으로 `engine/src/handlers`를 읽어 굳힌 채록본이고,
+ * `harness/old-surface/capture-handler-tree.mjs`가 그 채록기다(되뜰 수 없다).
  *
  * 사다리 판정 자체는 `harness/ledger/grade.ts`가 소유한다 — `.mjs` 안에 있는
  * 판정은 jest가 못 잡고, 사다리는 조용히 틀리면 대장 전체가 조용히 틀리는
@@ -72,11 +74,10 @@ if (!fs.existsSync(DIST_LEDGER)) {
 const { PHASE6_EXERCISED_PATH, gradeOf, loadPhase6Exercised } = require(DIST_LEDGER);
 
 const ENGINE_ROOT = path.resolve(here('..'));
-const REPO_ROOT = path.resolve(ENGINE_ROOT, '..');
 const SURFACE = path.join(ENGINE_ROOT, 'harness', 'old-surface', 'm1-tools.json');
 const CENSUS = path.join(ENGINE_ROOT, 'harness', 'usage-census.json');
 const EXERCISED = path.join(ENGINE_ROOT, PHASE6_EXERCISED_PATH);
-const HANDLERS = path.join(REPO_ROOT, 'engine', 'src', 'handlers');
+const HANDLER_TREE = path.join(ENGINE_ROOT, 'harness', 'old-surface', 'handler-tree.json');
 const TARGET = path.join(ENGINE_ROOT, 'harness', 'build-plan.json');
 
 /**
@@ -144,37 +145,17 @@ const TITLES = {
 
 const TAIL_BUNDLE = 'tail';
 
-// ── 구 핸들러 트리에서 오브젝트 종류를 읽는다 (읽기 전용) ────────────────────
-
-const TOOL_NAME = /export const TOOL_DEFINITION[^{]*=\s*{\s*name:\s*['"]([^'"]+)['"]/;
-
-function walkTypeScript(dir, out = []) {
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      if (entry.name === 'node_modules') continue;
-      walkTypeScript(full, out);
-    } else if (entry.name.endsWith('.ts')) {
-      out.push(full);
-    }
-  }
-  return out;
-}
+// ── 구 핸들러 트리에서 오브젝트 종류를 읽는다 — **채록본에서**, 원본은 은퇴했다 ──
 
 function folderByTool() {
-  if (!fs.existsSync(HANDLERS)) {
-    console.error(`❌ 구 핸들러 트리가 없다: ${HANDLERS}`);
+  if (!fs.existsSync(HANDLER_TREE)) {
+    console.error(`❌ 구 핸들러 트리 채록본이 없다: ${HANDLER_TREE}`);
     console.error('   · 오브젝트 종류의 근거가 없으면 묶음을 짐작하지 않는다.');
+    console.error('   · 원본 engine/src/handlers는 판7.5에서 은퇴했다 — 이 채록본이 되뜰 수 없는 기준이다.');
     process.exit(2);
   }
-  const map = new Map();
-  for (const file of walkTypeScript(HANDLERS)) {
-    const hit = TOOL_NAME.exec(fs.readFileSync(file, 'utf8'));
-    if (hit === null) continue;
-    const rel = path.relative(HANDLERS, file).split(path.sep);
-    map.set(hit[1], rel.length > 1 ? rel[0] : '(root)');
-  }
-  return map;
+  const parsed = JSON.parse(fs.readFileSync(HANDLER_TREE, 'utf8'));
+  return new Map(Object.entries(parsed.folderByTool ?? {}));
 }
 
 // ── 산출 ─────────────────────────────────────────────────────────────────────

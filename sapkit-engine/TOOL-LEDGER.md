@@ -40,7 +40,7 @@
 | 계약 시험 결과 | `evidence/contract/results.json` | 있음 · 186종 |
 | 계약 시험 파일 | `src/tools/**/__tests__/<도구>.test.ts` | 있음 · 186종에 시험 파일이 있다 — 있음이 곧 통과는 아니다 |
 | 대체 기대 시험 | `harness/replay/divergences.ts 의 substituteTest 경로` | 있음 · 24종에 실재하는 시험 파일이 있다 |
-| 위임형 판정 | `../engine/src/handlers/**` | 있음 · 소스 559파일을 상대 import까지 따라가 판정 — 직접 46 · 간접 140 · 없음 0 |
+| 위임형 판정 | `harness/old-surface/handler-tree.json` | 있음 · 소스 559파일을 상대 import까지 따라가 판정 — 직접 46 · 간접 140 · 없음 0 |
 
 ## 안 지음 (0)
 

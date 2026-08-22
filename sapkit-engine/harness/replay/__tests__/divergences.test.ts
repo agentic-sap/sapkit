@@ -288,6 +288,29 @@ const REPO_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 /** `harness/ledger/evidence.ts`의 `PATHLIKE`와 같은 규칙. 두 벌이 되면 안 되지만 그 파일은 이 과제의 범위 밖이다. */
 const PATHLIKE = /[\w./@-]+\.(?:ts|mjs|js)/g;
 
+/**
+ * 은퇴 근거 경로의 얼린 목록 — `engine/`이 레포에 있을 때(판7.5 이전) 실재를
+ * 확인해 굳힌 것. `capture-retired-evidence-paths.mjs`가 만든다.
+ *
+ * 아래 "경로가 전부 실재한다" 계열이 이 목록에 **있는** `engine/` 경로만 면제한다
+ * — `engine/`이 삭제되면 그 경로는 `fs.existsSync`로 다시 확인할 길이 없지만,
+ * 삭제 전에는 실재했다는 사실 자체는 사라지지 않기 때문이다. 목록 **밖**의
+ * `engine/` 경로(앞으로 새로 등재될 것)는 여전히 `fs.existsSync`로 검증된다 —
+ * 「`engine/`으로 시작하면 무조건 통과」가 되면 장부에 아무 허구나 적을 수 있다.
+ */
+const RETIRED_EVIDENCE_PATHS: ReadonlySet<string> = new Set(
+  (
+    JSON.parse(
+      fs.readFileSync(path.join(__dirname, '..', 'retired-evidence-paths.json'), 'utf8'),
+    ) as { paths: string[] }
+  ).paths,
+);
+
+/** 토큰이 실재하는가 — 실물이거나, `engine/` 은퇴 전에 실재를 확인해 얼린 목록에 있으면. */
+function tokenExists(token: string): boolean {
+  return fs.existsSync(path.join(REPO_ROOT, token)) || RETIRED_EVIDENCE_PATHS.has(token);
+}
+
 /** 구가 싣던 `type:'json'` 콘텐츠 블록 봉투. */
 function jsonEnvelope(value: JsonValue): JsonValue {
   return { content: [{ type: 'json', json: value }] };
@@ -320,15 +343,20 @@ describe('D21~D40 판정 — 와이어에 나타나는 것만 옮긴다', () => 
    *
    * `substituteEvidenceFromLedger`가 **파일이 실재할 때만** 센다. 경로를 지어내면
    * 대장이 그 도구를 「증거 있음」으로 잘못 올린다. 그래서 여기서 못박는다.
+   *
+   * 판7.5에서 `engine/`이 레포에서 삭제된 뒤로 `engine/` 접두 경로는
+   * `RETIRED_EVIDENCE_PATHS`(얼린 목록, 채록 시점 `${RETIRED_EVIDENCE_PATHS.size}`개)에
+   * **있을 때만** 면제한다 — 삭제 전에 실재를 확인해 두었다는 뜻이다. 목록 밖의
+   * `engine/` 경로는 새로 지어낸 것일 수 있으므로 여전히 `fs.existsSync`로 떨어진다.
    */
-  it('substituteTest가 지목하는 경로는 전부 실재한다', () => {
+  it(`substituteTest가 지목하는 경로는 전부 실재한다 (engine/ 은퇴분 ${RETIRED_EVIDENCE_PATHS.size}종은 얼린 목록으로 면제)`, () => {
     const missing: string[] = [];
     for (const entry of M1_DIVERGENCES) {
       for (const token of entry.substituteTest?.match(PATHLIKE) ?? []) {
-        if (!fs.existsSync(path.join(REPO_ROOT, token))) missing.push(`${entry.id} — ${token}`);
+        if (!tokenExists(token)) missing.push(`${entry.id} — ${token}`);
       }
       for (const token of entry.evidence.match(PATHLIKE) ?? []) {
-        if (!fs.existsSync(path.join(REPO_ROOT, token))) missing.push(`${entry.id}(근거) — ${token}`);
+        if (!tokenExists(token)) missing.push(`${entry.id}(근거) — ${token}`);
       }
     }
     expect(missing).toEqual([]);
@@ -660,19 +688,21 @@ describe('D41~D105 판정 — 재생 대조가 보는 표면에 나타나는 것
         continue;
       }
       const tokens = entry.substituteTest?.match(PATHLIKE) ?? [];
-      const real = tokens.filter((token) => fs.existsSync(path.join(REPO_ROOT, token)));
+      const real = tokens.filter((token) => tokenExists(token));
       if (real.length === 0) bad.push(`${id} — 실재하는 시험 파일이 없다`);
     }
     expect(bad).toEqual([]);
   });
 
-  it('새 항목의 근거 경로도 전부 실재한다', () => {
+  // engine/ 은퇴분은 얼린 목록(RETIRED_EVIDENCE_PATHS)에 있을 때만 면제한다 —
+  // 새로 지어낸 engine/ 경로는 여전히 fs.existsSync로 떨어진다.
+  it(`새 항목의 근거 경로도 전부 실재한다 (engine/ 은퇴분 ${RETIRED_EVIDENCE_PATHS.size}종은 얼린 목록으로 면제)`, () => {
     const missing: string[] = [];
     for (const id of MOVED_41_105) {
       const entry = M1_DIVERGENCES.find((e) => e.id === id);
       if (entry === undefined) continue;
       for (const token of entry.evidence.match(PATHLIKE) ?? []) {
-        if (!fs.existsSync(path.join(REPO_ROOT, token))) missing.push(`${id} — ${token}`);
+        if (!tokenExists(token)) missing.push(`${id} — ${token}`);
       }
     }
     expect(missing).toEqual([]);
@@ -1099,19 +1129,21 @@ describe('D110~D132 판정 — 마지막 반영', () => {
         continue;
       }
       const tokens = entry.substituteTest?.match(PATHLIKE) ?? [];
-      const real = tokens.filter((token) => fs.existsSync(path.join(REPO_ROOT, token)));
+      const real = tokens.filter((token) => tokenExists(token));
       if (real.length === 0) bad.push(`${id} — 실재하는 시험 파일이 없다`);
     }
     expect(bad).toEqual([]);
   });
 
-  it('새 항목의 근거 경로도 전부 실재한다', () => {
+  // engine/ 은퇴분은 얼린 목록(RETIRED_EVIDENCE_PATHS)에 있을 때만 면제한다 —
+  // 새로 지어낸 engine/ 경로는 여전히 fs.existsSync로 떨어진다.
+  it(`새 항목의 근거 경로도 전부 실재한다 (engine/ 은퇴분 ${RETIRED_EVIDENCE_PATHS.size}종은 얼린 목록으로 면제)`, () => {
     const missing: string[] = [];
     for (const id of MOVED_110_132) {
       const entry = M1_DIVERGENCES.find((e) => e.id === id);
       if (entry === undefined) continue;
       for (const token of entry.evidence.match(PATHLIKE) ?? []) {
-        if (!fs.existsSync(path.join(REPO_ROOT, token))) missing.push(`${id} — ${token}`);
+        if (!tokenExists(token)) missing.push(`${id} — ${token}`);
       }
     }
     expect(missing).toEqual([]);

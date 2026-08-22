@@ -207,3 +207,44 @@ export function scanDelegation(handlersDir: string, srcRoot?: string): Delegatio
 
   return { byTool, byToolValue, sourceFiles: files.length, directHandlerFiles, directValueHandlerFiles };
 }
+
+/**
+ * 채록본에서 위임형 판정을 읽는다 — **원본이 아니라 `harness/old-surface/handler-tree.json`에서.**
+ *
+ * `engine/`은 판7.5에서 레포에서 삭제됐다 — `scanDelegation()`은 더 이상 대장이 매
+ * 실행 부르는 자리가 아니다(라이브로 읽을 원본이 없다). `scanDelegation()` 자체는
+ * 죽지 않았다 — `harness/old-surface/capture-handler-tree.mjs`(`engine/`이 있을
+ * 때만 도는 채록기, 되뜰 수 없다)와 이 파일의 합성 픽스처 단위시험이 계속 부른다.
+ * 대장(`harness/ledger/collect.ts`)이 부르던 자리만 여기로 옮긴다 — 채록기가 이미
+ * 한 번 계산해 굳힌 결과를 다시 계산하지 않고 읽기만 한다.
+ */
+export function loadDelegationCapture(handlerTreePath: string): DelegationScan {
+  const empty: DelegationScan = {
+    byTool: new Map(),
+    byToolValue: new Map(),
+    sourceFiles: 0,
+    directHandlerFiles: 0,
+    directValueHandlerFiles: 0,
+  };
+  if (!fs.existsSync(handlerTreePath)) return empty;
+
+  const parsed = JSON.parse(fs.readFileSync(handlerTreePath, 'utf8')) as {
+    delegation?: {
+      byTool?: Record<string, DelegationKind>;
+      byToolValue?: Record<string, DelegationKind>;
+      sourceFiles?: number;
+      directHandlerFiles?: number;
+      directValueHandlerFiles?: number;
+    };
+  };
+  const d = parsed.delegation;
+  if (d === undefined) return empty;
+
+  return {
+    byTool: new Map(Object.entries(d.byTool ?? {})),
+    byToolValue: new Map(Object.entries(d.byToolValue ?? {})),
+    sourceFiles: d.sourceFiles ?? 0,
+    directHandlerFiles: d.directHandlerFiles ?? 0,
+    directValueHandlerFiles: d.directValueHandlerFiles ?? 0,
+  };
+}

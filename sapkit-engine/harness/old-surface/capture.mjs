@@ -48,10 +48,25 @@ const here = (rel) => fileURLToPath(new URL(rel, import.meta.url));
 // 않는 롤백 자산이므로 그 대조는 동어반복이고, CI에서 내렸다. 채록본은
 // `sapkit-cli/fixtures/baseline/`과 같은 지위 — **되뜰 수 없는 기준의 잔존 형태**이고,
 // 그것을 지키는 것은 `gates/surface.mjs`다.
+//
+// **판7.5 이후에는 이 스크립트가 영구히 돌 수 없다** — `engine/` 자체가 레포에서
+// 삭제됐기 때문이다(구 MCP 서버 포크 은퇴). 그래서 아래 검사는 "번들이 없다"와
+// "원본 자체가 없다"를 가른다: 전자는 `engine/`이 아직 있고 그 안에서 빌드만 하면
+// 되는 일시적 상태이지만, 후자는 되돌릴 수 없다. 후자일 때는 조용히 넘어가지 않고
+// `m1-tools.json`이 **되뜰 수 없는 기준**이며 git 이력에서만 되뜰 수 있음을 명확히
+// 말하고 멈춘다.
+const ENGINE_ROOT = here('../../../engine');
 const BUNDLE = here('../../../engine/dist/server.bundle.cjs');
 const OUT = here('./m1-tools.json');
 
 if (!existsSync(BUNDLE)) {
+  if (!existsSync(ENGINE_ROOT)) {
+    console.error('[capture] 원본이 은퇴했다 — engine/ 은 판7.5에서 레포에서 삭제됐다(구 MCP 서버 포크 은퇴).');
+    console.error('        `harness/old-surface/m1-tools.json`이 되뜰 수 없는 기준이다 — 재채록 수단이 없다.');
+    console.error('        되뜨려야 하면 git 이력에서 삭제 이전 커밋을 참조하라 — 예:');
+    console.error('          git log --oneline --diff-filter=D -- engine/dist/server.bundle.cjs');
+    process.exit(2);
+  }
   console.error(`[capture] 구 번들이 없다: ${BUNDLE}`);
   console.error('        롤백 소스에서 먼저 지어라 — cd engine && npm install && npm run build:bundle');
   console.error('        (판7-b 이후 제품 경로의 번들은 신 엔진이다. 그것으로 채록하면 기준이 자기 자신이 된다.)');

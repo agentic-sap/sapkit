@@ -34,7 +34,9 @@
  * 셋을 `process.env`에서 직접 읽는다(`zrfcProxy.ts:65-76` — 접속 계층·인증
  * 브로커를 아예 거치지 않는다).
  *
- * 참조 원본(읽은 시점의 줄번호):
+ * 참조 원본(읽은 시점의 줄번호). ⚠ 아래 `engine/…`는 **전부 구 포크의 경로이고
+ * 판7.5(2026-08-22)에서 레포를 떠났다** — 되뜨려면 은퇴 직전 커밋 `2264f89d`를
+ * 참조한다. 줄번호를 남겨 두는 이유가 그것이다:
  * - `engine/src/lib/zrfcProxy.ts:1-315`                 — 주 참조. 완성된 구 구현
  * - `engine/abap/zcl_mcp_rfc_http_handler.abap:119-389` — SAP 측이 실제로 답하는 모양
  * - `engine/docs/installation/ZRFC_SETUP.md:17-134`     — 설치 요건과 증상표

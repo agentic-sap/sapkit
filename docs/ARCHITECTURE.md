@@ -25,8 +25,8 @@
   트랙 B MCP·사람이 모는 CLI·abapGit이며, 어느 길로 넣든 정책 등급과 관문은 같다.
   로컬 오프라인 검사는 동봉 검사기(`interactive/checker/`, 소스 정본 `sapkit-cli/`)가
   맡는다.
-- **트랙 B(대화형 플러그인)** — Node MCP 서버 + 3사 어댑터. 도구 표면 소스 정본은 레포 내
-  engine/(D-017 편입), 배포 형태는 interactive/server/의 번들.
+- **트랙 B(대화형 플러그인)** — Node MCP 서버 + 3사 어댑터. 도구 표면 소스 정본은
+  `sapkit-engine/`(2026-08-19 판7-b · D-095 편입), 배포 형태는 interactive/server/의 번들.
 
 유일한 물류: 트랙 A packs ← interactive/core/knowledge 선별 이식(커밋 이력 = provenance).
 
@@ -36,7 +36,7 @@
 |---|---|---|
 | final-harness | 트랙 A Engine attended(자체 제작 독립 제품) | `adapters/final-harness.lock.json` schema v2 계약 — `verified`·`candidate`·`history`·`safety_state` 분리 |
 | 오프라인 검사기 | 로컬 무접속 검사(lint/parse/analyze/check) — 제품에 동봉 | 소스 정본 `sapkit-cli/`, 배포 형태 `interactive/checker/`의 단일 파일 번들. 무결성·출처 핀은 `interactive/checker/integrity.json`이고 게이트는 `interactive/scripts/verify-checker.mjs`, 재번들 절차는 `interactive/checker/UPDATE-RUNBOOK.md` |
-| engine/ (MCP 서버) | 트랙 B 도구 표면 소스 정본 | 레포 내 편입(D-017). 수리→재번들→interactive/server 반영은 `interactive/server/UPDATE-RUNBOOK.md` 절차로만 |
+| `sapkit-engine/` (MCP 서버) | 트랙 B 도구 표면 소스 정본 | 2026-08-19 판7-b · D-095 편입(구 `engine/` 포크를 대체 — 그 포크는 판7.5에 은퇴). 수리→재번들→interactive/server 반영은 `interactive/server/UPDATE-RUNBOOK.md` 절차로만 |
 
 외부 의존(final-harness)을 분리 유지한 근거는 D-018, `engine/`을 편입한 대조 근거는
 D-017이다.
@@ -123,8 +123,6 @@ docs/superpowers/       설계 스냅샷 아카이브 (docs/*.md glob 밖 = Engi
 docs/reference/templates/ 현 v0.17 phase-only review legacy 템플릿; run-scoped 갱신 이월
 sapkit-engine/          **MCP 엔진 소스 정본** — 자체 저작. 번들러 tools/bundle.mjs가
                         interactive/server/server.bundle.cjs를 만든다 (2026-08-19 판7-b · D-095)
-engine/                 구 MCP 엔진(포크) — **되돌릴 자리**. 제품이 아니다.
-                        은퇴는 판7.5 (D-017 편입, 플러그인 표면 밖)
 interactive/            트랙 B 플러그인 루트 (아래 세부)
 sapkit-cli/             동봉 오프라인 검사기의 소스 정본 (lint·parse·analyze·check;
                         번들 산출물은 interactive/checker/)

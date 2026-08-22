@@ -15,7 +15,9 @@
  * | 증거 · replay | 커밋된 재생 픽스처 + 커밋된 재생 판정 파일 |
  * | 증거 · contract | 도구별 계약 시험 파일의 존재 + 최근 실행 결과 파일 |
  * | 증거 · 대체 기대 시험 | 차이 장부 등재분이 지목하는 시험 파일의 실재 |
- * | 위임형 여부 | 구 핸들러가 `@babamba2/*`를 참조하는가 |
+ * | 위임형 여부 | `harness/old-surface/handler-tree.json` 의 `delegation` (구 핸들러가
+ *   `@babamba2/*`를 참조하는가 — `engine/`이 있을 때 한 번 채록해 굳혔다. 판7.5로
+ *   원본이 삭제됐으므로 여기서는 그 채록본만 읽는다) |
  *
  * 상태 3칸의 계산은 `harness/replay/coverage.ts`가 소유한다. 여기서 다시 짜지
  * 않는다 — **판정 기준은 등록점 하나**라는 규칙이 거기 한 곳에만 있어야 한다.
@@ -38,7 +40,7 @@ import {
   substituteEvidenceFromLedger,
   toolsInFixtures,
 } from './evidence';
-import { scanDelegation } from './delegation';
+import { loadDelegationCapture } from './delegation';
 import type { DelegationKind } from './delegation';
 import { PHASE6_EXERCISED_PATH, loadPhase6Exercised } from './grade';
 import { BUILD_PLAN_PATH, bundleOf, loadBuildPlan, requiredGradesFrom } from './plan';
@@ -138,9 +140,13 @@ export interface CollectOptions {
   readonly fixtureDir?: string;
   readonly attendedDir?: string;
   readonly toolsDir?: string;
-  readonly oldHandlersDir?: string;
-  /** 위임 사슬을 따라갈 범위. 기본은 `oldHandlersDir`의 부모(= `engine/src`). */
-  readonly oldSrcRoot?: string;
+  /**
+   * 위임형 판정 채록본의 자리 — `harness/old-surface/handler-tree.json` 파일 하나.
+   * 기본값은 `engineRoot` 기준 그 경로. 판7.5 이전에는 이 자리가 **구 핸들러
+   * 디렉터리**(`engine/src/handlers`)였고 매 실행 라이브로 스캔했다 — 원본이
+   * 삭제된 뒤로는 채록본(정적 JSON) 하나만 읽는다.
+   */
+  readonly handlerTreePath?: string;
   /** 등록점 스냅샷을 갈아끼운다. 시험이 상태 판정을 좁혀 보기 위한 구멍이다. */
   readonly registered?: readonly string[];
 }
@@ -180,7 +186,7 @@ export function collectLedger(options: CollectOptions = {}): LedgerModel {
   const fixtureDir = options.fixtureDir ?? path.join(engineRoot, 'fixtures');
   const attendedDir = options.attendedDir ?? path.join(engineRoot, 'fixtures', 'attended-only');
   const toolsDir = options.toolsDir ?? path.join(engineRoot, 'src', 'tools');
-  const handlersDir = options.oldHandlersDir ?? path.join(repoRoot, 'engine', 'src', 'handlers');
+  const handlerTreePath = options.handlerTreePath ?? path.join(engineRoot, 'harness', 'old-surface', 'handler-tree.json');
 
   const tools = loadSurfaceToolNames(catalogPath);
   const registered = options.registered ?? TOOL_REGISTRY.map((tool) => tool.definition.name);
@@ -242,7 +248,7 @@ export function collectLedger(options: CollectOptions = {}): LedgerModel {
   })();
 
   const fixtureTools = toolsInFixtures(fixtureDir);
-  const scan = scanDelegation(handlersDir, options.oldSrcRoot);
+  const scan = loadDelegationCapture(handlerTreePath);
   const facts = new Map<string, ToolFacts>(
     tools.map((tool) => [
       tool,
@@ -355,7 +361,7 @@ export function collectLedger(options: CollectOptions = {}): LedgerModel {
     },
     {
       label: '위임형 판정',
-      path: `${show(engineRoot, handlersDir)}/**`,
+      path: show(engineRoot, handlerTreePath),
       present: delegation.known,
       detail: delegation.known
         ? `소스 ${delegation.sourceFiles}파일을 상대 import까지 따라가 판정 — ` +

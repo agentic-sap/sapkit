@@ -68,7 +68,7 @@
 | 이식 원천 (동결 예정) | `D:\claude for SAP\sc4sap-custom` — `hjaewon/sc4sap-custom` (MIT, 업스트림 babamba2/superclaude-for-sap) |
 | 본 설계 산출물 | `sapkit/interactive/` — L0에서 sc4sap-lite 레포로 생성 후 2026-07-10 subtree 병합·개명 (플러그인명 `sapkit` — D-041 개명 전 `sap-agentic-harness`) |
 | **MCP 엔진 소스 정본** | **`sapkit-engine/`** (자체 저작 · 2026-08-19 판7-b · D-095). 번들러 `sapkit-engine/tools/bundle.mjs` → `interactive/server/server.bundle.cjs`. npm 발행 없음 |
-| ~~MCP 엔진 업스트림~~ | ~~`hjaewon/abap-mcp-adt-powerup`~~ — 교체로 배포물에서 빠졌다. 포크 소스 `engine/`은 **되돌릴 자리**로 잔존(은퇴는 판7.5) |
+| ~~MCP 엔진 업스트림~~ | ~~`hjaewon/abap-mcp-adt-powerup`~~ — 교체로 배포물에서 빠졌다. 포크 소스 `engine/`도 **판7.5(2026-08-22)에 은퇴했다** |
 | 무인 하네스 트랙 (별개) | `D:\claude for SAP\sap-agentic-harness` — DESIGN.md v2.1. packs가 lite core를 지식 원천으로 사용 (§5-3) |
 | 선행 설계 문서 | `sc4sap-custom/private/lightweight-redesign-design.md` (비공개 유지) |
 

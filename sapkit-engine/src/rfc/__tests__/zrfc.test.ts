@@ -7,7 +7,9 @@
  * 못박는 **요청 조립 대조가 이 통로의 정확성 근거 전부**다 — 재생 대조도, 실접속
  * 확인도 이 판에는 없다.
  *
- * 대조 원본(줄번호는 읽은 시점의 것):
+ * 대조 원본(줄번호는 읽은 시점의 것). ⚠ 아래 `engine/…`는 **전부 구 포크의
+ * 경로이고 판7.5(2026-08-22)에서 레포를 떠났다** — 되뜨려면 은퇴 직전 커밋
+ * `2264f89d`를 참조한다:
  * - `engine/src/lib/zrfcProxy.ts:104-156`  — CSRF 취득(GET `{base}/dispatch`)
  * - `engine/src/lib/zrfcProxy.ts:179-240`  — 엔드포인트 POST(헤더·본문·403 되밀기)
  * - `engine/src/lib/zrfcProxy.ts:247-303`  — dispatch/textpool 본문 조립과 결과 정규화

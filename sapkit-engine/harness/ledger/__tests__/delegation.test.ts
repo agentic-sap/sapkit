@@ -17,7 +17,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 
-import { scanDelegation } from '../delegation';
+import { loadDelegationCapture, scanDelegation } from '../delegation';
 
 /** 가짜 구 엔진 한 벌. `src/handlers/**`와 `src/lib/**`만 있으면 된다. */
 function fakeEngine(files: Readonly<Record<string, string>>): { handlersDir: string; srcRoot: string } {
@@ -131,11 +131,18 @@ describe('위임 사슬 따라가기', () => {
   });
 });
 
-describe('실제 구 엔진에 대고 — 회귀 확인', () => {
-  const handlersDir = path.resolve(__dirname, '../../../../engine/src/handlers');
-  const scan = scanDelegation(handlersDir);
+describe('채록본 무결성 — 구 엔진 실물이 아니라 handler-tree.json에 대고 확인한다', () => {
+  // 판7.5에서 engine/ 이 레포에서 통째로 삭제됐다 — "실제 구 엔진에 대고" 회귀
+  // 확인은 더 이상 성립하지 않는다(댈 실물이 없다). 이 블록의 뜻은 그래서
+  // 바뀌었다: "구 엔진이 여전히 이렇게 판정하는가"가 아니라 "삭제 전 마지막으로
+  // 굳힌 채록본(harness/old-surface/handler-tree.json, capture-handler-tree.mjs가
+  // 만든다)이 여전히 같은 값을 내는가" — 즉 **채록본이 손으로 틀어지지 않았다**는
+  // 무결성 확인이다. 단언 값(직접 위임 도구 셋 · 「없음」 0건)은 삭제 전과 동일하게
+  // 유지한다 — 채록 자체가 삭제 직전 라이브 스캔의 산출물이기 때문이다.
+  const handlerTreePath = path.resolve(__dirname, '../../old-surface/handler-tree.json');
+  const scan = loadDelegationCapture(handlerTreePath);
 
-  it('직접 위임하던 도구는 넓힌 뒤에도 `direct`로 남는다', () => {
+  it('직접 위임하던 도구는 채록본에서도 `direct`로 남는다', () => {
     for (const tool of ['CreateClass', 'CreateDomain', 'CreateDataElement']) {
       expect(scan.byTool.get(tool)).toBe('direct');
     }
@@ -147,7 +154,7 @@ describe('실제 구 엔진에 대고 — 회귀 확인', () => {
   });
 
   it('`없음 0`이 성긴 계산의 결과가 아님을 값 경로로 뒷받침한다', () => {
-    // 구 엔진에서는 어느 도구도 `@babamba2` 밖에 있지 않다. 그것이 성긴 판정이
+    // 구 엔진에서는 어느 도구도 `@babamba2` 밖에 있지 않았다. 그것이 성긴 판정이
     // 아니라는 근거는 **값 경로로도 전부 닿는다**는 것이다 — 타입 경로로만
     // 닿는 도구가 하나라도 있으면 그만큼은 런타임 위임이 아니다.
     const typeOnly = [...scan.byTool.keys()].filter(
@@ -158,9 +165,9 @@ describe('실제 구 엔진에 대고 — 회귀 확인', () => {
     expect(typeOnly).toEqual([]);
   });
 
-  it('구 엔진의 런타임 위임은 겉이 아니라 공용 계층에 있다', () => {
-    // 핸들러의 `@babamba2` 참조는 대부분 타입이다. 값 참조는 훨씬 적고,
-    // 그래서 "직접 위임하는 도구"를 갈아엎는 것만으로는 남의 코드가 안 걷힌다.
+  it('구 엔진의 런타임 위임은 겉이 아니라 공용 계층에 있었다', () => {
+    // 핸들러의 `@babamba2` 참조는 대부분 타입이었다. 값 참조는 훨씬 적고,
+    // 그래서 "직접 위임하는 도구"를 갈아엎는 것만으로는 남의 코드가 안 걷혔다.
     expect(scan.directValueHandlerFiles).toBeLessThan(scan.directHandlerFiles);
   });
 });

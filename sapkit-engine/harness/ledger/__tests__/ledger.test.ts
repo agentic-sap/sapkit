@@ -129,7 +129,7 @@ describe('위임형 여부 — 구 도구가 `@babamba2/*`에 기대는 깊이',
   });
 
   it('구 엔진 소스가 없으면 「미상」이다 — 없는 것을 「없음」으로 적지 않는다', () => {
-    const blind = collectLedger({ oldHandlersDir: NOWHERE });
+    const blind = collectLedger({ handlerTreePath: NOWHERE });
 
     expect(blind.facts.get('CreateClass')?.delegated).toBeNull();
     expect(blind.delegation.known).toBe(false);

@@ -1,9 +1,17 @@
 #!/usr/bin/env node
 // conformance-runtime-dir.mjs — 런타임 경로 해석 적합성 러너 (D-057 §7-3).
 //
-// `engine/__tests__/fixtures/runtime-dir-selection.json`(공통 입력 + **소비자별** 기대)을
-// 읽어 **실물 코드를 구동**해 대조한다. 엔진 Jest와 같은 파일을 읽되 구현 모듈은 공유
-// 하지 않는다(3차 리뷰 수용).
+// `interactive/scripts/__tests__/fixtures/runtime-dir-selection.json`(공통 입력 +
+// **소비자별** 기대)을 읽어 **실물 코드를 구동**해 대조한다.
+//
+// 이 fixture는 원래 `engine/__tests__/fixtures/`에 있었고 엔진 Jest
+// (`engine/src/__tests__/lib/profile.test.ts`)와 이 러너가 나눠 읽었다 — 구현
+// 모듈은 공유하지 않되(3차 리뷰 수용) 파일은 공유하는 구도였다. 판7.5에서 구 MCP
+// 서버 포크 `engine/`이 레포에서 통째로 삭제되며 그 Jest도 함께 없어졌다. 이제
+// 이 fixture를 읽는 소비자는 이 러너 하나뿐이므로 제품 트리(`interactive/`)로
+// 옮겼고, 각 케이스의 `consumers.engine`(그 Jest 전용 기대값)도 함께 걷어냈다 —
+// 아무도 안 읽는 기대값을 fixture에 남겨 두면 다음 세션이 "이거 누가 보는
+// 거지"로 시간을 쓴다.
 //
 // ─────────────────────────── 이 시험이 묻는 것 ──────────────────────────────
 // "모두 같은 답을 내는가"가 **아니다.** 소비자마다 깊이(0/8/64)·채택 기준·state
@@ -20,7 +28,6 @@
 //   launch.cjs       실 shim + 스텁 번들로 실기동 (MCP_ENV_PATH·exposition 관측)
 //                    + 진짜 번들 부팅 스모크 1회(무접속 안전 확인)
 //   extract          `--resolve-only` (무접속 · exit 0 · JSON stdout)
-//   engine           **이 러너의 범위 밖** — fixture `_schema.readers`대로 Jest가 소유한다
 //
 // 모든 자식은 가짜 HOME/USERPROFILE을 받는다. 실사용자 상태(`~/.sapkit` 실물)는
 // 읽지도 쓰지도 않는다.
@@ -48,7 +55,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const INTERACTIVE = path.resolve(HERE, '..');
 const REPO = path.resolve(INTERACTIVE, '..');
-const FIXTURE = path.join(REPO, 'engine', '__tests__', 'fixtures', 'runtime-dir-selection.json');
+const FIXTURE = path.join(INTERACTIVE, 'scripts', '__tests__', 'fixtures', 'runtime-dir-selection.json');
 
 const argv = process.argv.slice(2);
 const VERBOSE = argv.includes('--verbose');
@@ -448,8 +455,7 @@ try {
 
     // 정적 레포 단언 케이스 — 이 러너의 대상이 아니다(§7-2 게이트가 소유).
     const allNull = CONSUMERS.every((c) => (kase.consumers?.[c]?.expected ?? null) === null);
-    const noEngine = (kase.consumers?.engine?.expected ?? null) === null;
-    if (allNull && noEngine) {
+    if (allNull) {
       row.note = '정적 레포 단언 — check-runtime-path-rename.mjs가 소유';
       for (const c of CONSUMERS) row.cells[c] = 'n/a';
       results.push(row);

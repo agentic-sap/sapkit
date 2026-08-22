@@ -6,9 +6,10 @@
 # S3에서 달라진 것:
 #   - smoke-mcp가 관찰에서 assertion으로 바뀌었다.
 #   - 엔진 소스 테스트와 provenance 검사를 편입했다.
-#     (그때의 「엔진」은 구 `engine/` 포크였다 — 실측 717 passed / 9 skipped · 5.0.0.
-#      2026-08-19 교체(D-095) 뒤 제품 엔진은 `sapkit-engine`이고, 그 잡은 아래
-#      `sapkit-engine`이다. `engine-tests`는 롤백 소스의 건강 확인으로 남는다.)
+#     (그때의 「엔진」은 구 `engine/` 포크였다. 2026-08-19 교체(D-095) 뒤 제품 엔진은
+#      `sapkit-engine`이고, 그 잡은 아래 `sapkit-engine`이다. 롤백 소스의 건강을
+#      확인하던 `engine-tests` 잡은 **판7.5(2026-08-22)에서 제거했다** — 그 소스가
+#      레포를 떠났기 때문이다.)
 #
 # 은퇴 (이식 장부): sc4sap 이식 provenance 게이트(check-migration-snapshot)와 그 음성시험을
 # 이 워크플로에서 제거했다. **이식 시대가 끝났고** 이후 콘텐츠는 원본에서 의도적으로
@@ -127,45 +128,6 @@ jobs:
       - name: git diff --check (공백/충돌 마커)
         run: git diff --check HEAD
 
-  engine-tests:
-    # **롤백 소스의 건강 확인** (구 `engine/` 포크 · 실측 717 passed / 9 skipped — 5.0.0).
-    #
-    # 2026-08-19 판7-b(D-095) 전에는 이 잡이 **제품 엔진**을 재는 자리였다. 교체 뒤
-    # `engine/`은 제품이 아니라 **되돌릴 자리**다(검증 기준 5 · 은퇴는 판7.5). 그래도
-    # 계속 도는 이유는 하나다 — 되돌릴 수 없는 롤백 자산은 롤백 자산이 아니다.
-    #
-    # 번들 재현 빌드(`check-engine-provenance --rebuild`) 스텝은 여기 없다. 그 판정의
-    # 대상이 `sapkit-engine/`으로 옮겨 갔고, 그쪽 의존이 깔린 잡은 아래 `sapkit-engine`이다.
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: npm
-          cache-dependency-path: engine/package-lock.json
-
-      - name: install (engine)
-        working-directory: engine
-        # HUSKY=0: husky는 개발자 훅 설치용이라 러너에서 불필요.
-        # patch-package는 그대로 돌아야 한다 — 벤더링된 ADT 클라이언트 패치가 소스 계약의 일부다.
-        env:
-          HUSKY: '0'
-        run: npm ci
-
-      - name: unit/offline tests
-        working-directory: engine
-        # SAP 자격증명이 없으므로 integration 스위트는 스스로 skip한다
-        # (tests/test-config.yaml은 gitignore 대상 — 로컬에서도 부재 상태로 717 passed 실측).
-        run: npm test -- --runInBand
-
-      - name: 롤백 번들이 여전히 지어진다 (되돌릴 수 있는가)
-        # 산출물은 검사하지 않는다 — 제품이 아니기 때문이다. 지어지는지만 본다.
-        working-directory: engine
-        run: npm run build:bundle
 
   # (Track A PowerShell 검사기 스위트를 돌리던 windows 잡은 R1에서 제거됐다 —
   #  그 스위트가 루트 스크립트 디렉터리와 함께 삭제됐기 때문이다.)
@@ -353,11 +315,12 @@ jobs:
 
       # (구 번들 발행 표면 표류 확인 스텝은 판7-b에서 내렸다. 그 질문 — "구 번들이
       #  여전히 이렇게 발행하는가" — 은 구 번들이 현역일 때만 뜻이 있었다. 교체 뒤
-      #  `engine/`은 아무도 고치지 않는 롤백 자산이라 그 대조는 동어반복이다.
-      #  채록본 `harness/old-surface/m1-tools.json`은 이제 **되뜰 수 없는 기준의
-      #  잔존 형태**이고 — `sapkit-cli/fixtures/baseline/`과 같은 지위 — 그것을
-      #  상시로 지키는 것은 `gates/surface.mjs`다. 재채록이 필요하면 롤백 소스에서
-      #  지어 `harness/old-surface/capture.mjs`를 돌린다.)
+      #  `engine/`은 아무도 고치지 않는 롤백 자산이라 그 대조는 동어반복이었다.
+      #  **판7.5(2026-08-22)에서 그 소스가 레포를 떠났다** — 그래서 채록본
+      #  `harness/old-surface/m1-tools.json`은 이제 **되뜰 수 없는 기준**이다
+      #  (`sapkit-cli/fixtures/baseline/`과 같은 지위). 그것을 상시로 지키는 것은
+      #  `gates/surface.mjs`이고, **재채록 수단은 더 이상 없다** — 되뜨려면 git
+      #  이력에서 은퇴 직전 커밋 `2264f89d`를 참조한다.)
 
       - name: 번들 재현 빌드 (같은 커밋 → 같은 바이트) + 소스 커밋 대조
         # 제품 번들의 provenance 판정이다. 이 잡에 있는 이유는 둘 — devDeps(tsc/esbuild)가

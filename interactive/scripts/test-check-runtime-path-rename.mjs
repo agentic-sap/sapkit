@@ -203,8 +203,13 @@ t(
   '개명 완료 게이트 통과',
 );
 t(
-  '시험 자산(engine/__tests__)의 구 토큰 → PASS',
-  (root) => W(root, 'engine/__tests__/fixtures/x.json', '{"dir":"$PROJECT/.sc4sap"}\n'),
+  // 판7.5에서 engine/__tests__/(fixture 하나뿐이었다)가 비었다 — 그 fixture는
+  // interactive/로 옮겨갔고(자기 자리에서 별도로 HISTORY 등재됐다), 남은
+  // engine/__tests__/는 더 이상 예외가 필요 없어 HISTORY에서 빠졌다. 이 케이스는
+  // 여전히 남아 있는 같은 범주의 예외(engine/src/__tests__/)로 옮겨 같은 뜻
+  // ("시험 자산의 구 토큰은 PASS")을 계속 지킨다.
+  '시험 자산(engine/src/__tests__)의 구 토큰 → PASS',
+  (root) => W(root, 'engine/src/__tests__/lib/x.test.ts', 'const LEGACY = ".sc4sap";\n'),
   0,
   '개명 완료 게이트 통과',
 );
