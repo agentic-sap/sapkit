@@ -34,10 +34,12 @@ paths listed. The notice above does not replace them.
 
 This scope was briefly narrowed to 36 files on 2026-08-22 (D-103) and **restored
 on 2026-08-23 (D-104)**: the narrowing counted only files classified `copy` and
-missed the `transform` class entirely — 42 of those files live under
-`interactive/` today and 38 still carry upstream prose (all 26 personas are in
-that class; 25 of them match their upstream original on 54–95% of their
-substantive lines).
+missed the `transform` class entirely. A second review then found that even the
+replacement count was short, because the ledger's own path mapping had missed a
+dozen procedure files. A reverse scan — starting from the files in this tree
+rather than from the ledger — puts the figure at **56 files** that still share
+long lines with the upstream original: 25 personas, 16 procedures, and 15 others
+(D-106). `interactive/LICENSE` lists them by group.
 `interactive/LICENSE` records what is known file-by-file. The notice covers the
 subtree until that accounting is finished; see `docs/BLUEPRINT.md` §1.3.
 

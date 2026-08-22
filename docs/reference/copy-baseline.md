@@ -166,74 +166,122 @@ D-079 ⑥과 정면 충돌하고, [`install-sap-assets.md`](../../interactive/co
 **여기서 남는 규칙**: 고지를 **넓게 두는 것**은 부정확할 뿐이지만, **좁히면서 「나머지는
 우리 것」이라 적는 것**은 방향이 다르다 — 판정이 설 때까지 넓은 쪽에 둔다.
 
-### 3.4 `transform` 명부 (2026-08-23 신설 · D-104 ⓔ) — **판3.7의 대상**
+### 3.4 상류 잔존 명부 (2026-08-23 신설 · D-104 ⓔ → **D-106 ⓐⓑ로 재작성**) — **판3.7의 대상**
 
-§3.2가 「차용분이 아님」으로 잘못 적어 **어느 명부도 세지 않던 범주**다. 위 170 명부는
-`copy`만 세므로 **페르소나·절차는 그 안에 한 줄도 없다** — 이 표가 그 자리를 대신한다.
+`copy` 명부 170이 세지 않는 자리를 센다 — **페르소나·절차는 그 명부에 한 줄도 없다.**
 
-**계수 규칙은 §2를 그대로 따른다** — 체크는 **재저작만** · 부분 편집은 체크 아님 ·
+> **⚠ 이 표는 두 번 틀렸다가 세 번째에 방법을 바꿔 만든 것이다.** 처음(D-104)에는
+> §3.2가 transform을 「차용분이 아님」이라 적어 **범주 자체가 없었고**, 다음(D-104의
+> 42건)에는 **§4 레시피의 목적지 도출이 절차 12파일을 통째로 놓쳤다** — 규칙
+> `skills/**` → `core/procedures/`가 `core/procedures/<스킬>/SKILL.md`를 만드는데
+> 이식은 그 폴더를 **`<스킬>.md` 한 파일로 납작하게** 했기 때문이다. 그래서 이 표는
+> **장부에서 목적지를 도출하지 않는다.**
+
+**도출 = 역방향 스캔** (D-106 ⓑ · 재현 절차):
+
+1. 동결 원본 `sc4sap-custom`의 모든 텍스트 파일에서 **정규화(공백 축약) 후 60자 초과
+   행**을 모은다. **`private/` 하위는 읽지 않는다**(안전 규칙).
+2. 그 행들을 **파일 단위 + 상위 디렉터리 2단계 단위**로 묶어 역인덱스를 만든다.
+   **디렉터리 묶음이 핵심이다** — 여러 파일이 한 파일로 납작해진 이식은 파일 단위
+   비교로 과소 계상된다(`program-to-spec.md`가 파일 단위 36/138 = 26%, 폴더 단위
+   **90/138 = 65%**).
+3. `interactive/` 아래 파일마다 자기 긴 행을 역인덱스에 조회해 **최선 매칭 원본**을
+   찾는다. `node_modules`·`runtime-deps`·`provenance`는 훑지 않는다.
+4. **`copy` 명부 170의 목적지**와 **server 결부 36**을 뺀다(각각 §3.1·§3.2 소관).
+5. 남은 것 중 **겹침 3행 이상**이 이 표다.
+
+**계수·체크 규칙은 §2를 그대로 따른다** — 체크는 **재저작만** · 부분 편집은 체크 아님 ·
 **독립 리뷰 통과 후** 체크 · 커밋 해시와 리뷰 근거 병기 · 양방향(누락 0 · **추가 0**).
 
-**도출**: §4 레시피를 `class === 'transform'`에 적용해 목적지를 만들고(**유니크**),
-`interactive/` 아래 현존만 남긴 **42건**이다. 잔존 열은 동결 원본
-`D:\claude for SAP\sc4sap-custom`와의 **읽기 전용 대조**이며 `private/` 경로는 대조
-대상에서 제외했다(안전 규칙). 재현: 정규화(공백 축약) 후 **60자 초과 행의 완전 일치**를
-세고, 한 목적지에 원본이 여럿이면 **가장 많이 맞는 원본**을 취한다.
+**잔량 56 · 체크 0** (2026-08-23 기준).
 
-⚠ **이 열은 잔존의 상한도 하한도 아니다** — 부분 일치·문장 재배열·짧은 실질 행은
-안 잡히고(과소), 표·머리말·정형 문구가 섞여 든다(과대). **파일별 판정은 사람이 한다.**
+⚠ **유보 — 이 표는 판정이 아니라 판3.7의 착수 재료다.** 그리고 유보는 **수치가 아니라
+목록 자체에 걸린다**(D-106 ⓔ①): ⓐ 문장을 쪼개거나 어순을 바꾼 잔존 · 60자 이하의 실질
+문장 · 번역된 문장은 **잡히지 않는다**(과소). ⓑ 표 행·정형 문구·코드 관용구는 **과대
+계상**된다. ⓒ `private/` 하위에서 온 이식이 있다면 이 방법으로는 영원히 안 보인다.
+**「56이 전수다」라고 읽지 말 것** — 두 번 그렇게 읽었다가 두 번 틀렸다.
 
-**잔량 42 · 체크 0** (2026-08-23 신설 시점).
+| 목적지 | 동일/실질 | % | 최선 매칭 원본 |
+|---|---:|---:|---|
+| `core/knowledge/modules/BC/diagnostic-flows.md` | 15/15 | 100% | `agents/agent_details/**` |
+| `core/knowledge/abap/conventions/source-repair-protocol.md` | 7/7 | 100% | `common/**` |
+| `core/knowledge/modules/BC/transaction-codes.md` | 5/5 | 100% | `agents/agent_details/**` |
+| `adapters/claude/lib/atomic-write.mjs` | 3/3 | 100% | `scripts/lib/**` |
+| `adapters/claude/lib/stdin.mjs` | 3/3 | 100% | `scripts/lib/**` |
+| `core/knowledge/modules/common/active-modules.md` | 48/50 | 96% | `common/**` |
+| `core/personas/sap-architect.md` | 58/61 | 95% | `agents/**` |
+| `adapters/claude/hooks/syntax-checker.mjs` | 19/20 | 95% | `scripts/**` |
+| `core/personas/sap-debugger.md` | 56/60 | 93% | `agents/**` |
+| `core/personas/sap-qa-tester.md` | 39/42 | 93% | `agents/**` |
+| `core/personas/sap-critic.md` | 69/76 | 91% | `agents/**` |
+| `core/personas/sap-analyst.md` | 55/61 | 90% | `agents/**` |
+| `core/personas/sap-bc-consultant.md` | 52/59 | 88% | `agents/**` |
+| `core/personas/sap-code-reviewer.md` | 53/61 | 87% | `agents/**` |
+| `core/personas/sap-writer.md` | 28/33 | 85% | `agents/**` |
+| `core/personas/sap-planner.md` | 54/64 | 84% | `agents/**` |
+| `adapters/claude/hooks/transport-validator.mjs` | 21/25 | 84% | `scripts/**` |
+| `core/knowledge/abap/conventions/abapgit-roundtrip-rule.md` | 11/14 | 79% | `common/**` |
+| `core/personas/sap-stocker.md` | 34/46 | 74% | `agents/**` |
+| `core/personas/sap-ariba-consultant.md` | 42/60 | 70% | `agents/**` |
+| `core/personas/sap-bw-consultant.md` | 39/59 | 66% | `agents/**` |
+| `core/personas/sap-ps-consultant.md` | 37/56 | 66% | `agents/**` |
+| `core/policies/data-protection/data-extraction-policy.md` | 35/53 | 66% | `common/**` |
+| `core/procedures/program-to-spec.md` | 90/138 | 65% | `skills/program-to-spec/**` |
+| `core/personas/sap-sd-consultant.md` | 39/60 | 65% | `agents/**` |
+| `core/procedures/compare-programs.md` | 88/141 | 62% | `skills/compare-programs/**` |
+| `core/personas/sap-co-consultant.md` | 33/53 | 62% | `agents/**` |
+| `core/personas/sap-fi-consultant.md` | 32/52 | 62% | `agents/**` |
+| `core/procedures/analyze-symptom.md` | 69/113 | 61% | `skills/analyze-symptom/**` |
+| `core/personas/sap-tm-consultant.md` | 28/47 | 60% | `agents/**` |
+| `core/personas/sap-wm-consultant.md` | 28/47 | 60% | `agents/**` |
+| `core/personas/sap-pp-consultant.md` | 26/45 | 58% | `agents/**` |
+| `core/personas/sap-executor.md` | 44/77 | 57% | `agents/**` |
+| `core/personas/sap-mm-consultant.md` | 27/47 | 57% | `agents/**` |
+| `core/personas/sap-hcm-consultant.md` | 24/43 | 56% | `agents/**` |
+| `core/personas/sap-qm-consultant.md` | 24/43 | 56% | `agents/**` |
+| `core/policies/transport-client-rule.md` | 10/18 | 56% | `common/**` |
+| `core/personas/sap-pm-consultant.md` | 23/42 | 55% | `agents/**` |
+| `core/procedures/analyze-cbo-obj.md` | 37/69 | 54% | `skills/analyze-cbo-obj/**` |
+| `core/personas/sap-tr-consultant.md` | 22/41 | 54% | `agents/**` |
+| `tools/extract/extract-customizations.mjs` | 108/213 | 51% | `scripts/**` |
+| `core/procedures/customization-lookup.md` | 33/70 | 47% | `common/**` |
+| `core/procedures/analyze-code.md` | 27/75 | 36% | `skills/analyze-code/**` |
+| `core/procedures/release.md` | 15/47 | 32% | `skills/release/**` |
+| `adapters/claude/lib/profile-resolve.mjs` | 19/66 | 29% | `scripts/lib/**` |
+| `core/procedures/create-object.md` | 30/108 | 28% | `skills/create-object/**` |
+| `core/procedures/spro-lookup.md` | 20/72 | 28% | `common/**` |
+| `core/procedures/deep-interview.md` | 11/39 | 28% | `skills/deep-interview/**` |
+| `core/procedures/review-checklist.md` | 43/167 | 26% | `skills/create-program/**` |
+| `core/procedures/help-portal-fetch.md` | 5/19 | 26% | `common/**` |
+| `tools/extract/extract-spro.mjs` | 28/124 | 23% | `scripts/**` |
+| `core/procedures/create-program.md` | 58/361 | 16% | `skills/create-program/**` |
+| `core/procedures/ask-consultant.md` | 9/66 | 14% | `skills/ask-consultant/**` |
+| `tools/spec/render-md-images.mjs` | 3/23 | 13% | `scripts/spec/**` |
+| `core/procedures/install-sap-assets.md` | 11/119 | 9% | `skills/setup/**` |
+| `core/procedures/troubleshooting.md` | 13/222 | 6% | `skills/sap-doctor/**` |
 
-| 목적지 | 동일행/실질행 | 비율 |
-|---|---:|---:|
-| tools/extract/extract-customizations.mjs | 111/217 | 51% |
-| core/personas/sap-critic.md | 69/76 | 91% |
-| core/personas/sap-architect.md | 58/61 | 95% |
-| core/personas/sap-debugger.md | 56/60 | 93% |
-| core/personas/sap-analyst.md | 55/61 | 90% |
-| core/personas/sap-planner.md | 54/64 | 84% |
-| core/personas/sap-code-reviewer.md | 53/61 | 87% |
-| core/personas/sap-bc-consultant.md | 52/59 | 88% |
-| core/knowledge/modules/common/active-modules.md | 48/50 | 96% |
-| core/personas/sap-executor.md | 44/77 | 57% |
-| core/personas/sap-ariba-consultant.md | 42/60 | 70% |
-| core/personas/sap-bw-consultant.md | 39/59 | 66% |
-| core/personas/sap-qa-tester.md | 39/42 | 93% |
-| core/personas/sap-sd-consultant.md | 39/60 | 65% |
-| core/personas/sap-ps-consultant.md | 37/56 | 66% |
-| core/policies/data-protection/data-extraction-policy.md | 35/53 | 66% |
-| core/personas/sap-stocker.md | 34/46 | 74% |
-| core/personas/sap-co-consultant.md | 33/53 | 62% |
-| core/procedures/customization-lookup.md | 33/70 | 47% |
-| core/personas/sap-fi-consultant.md | 32/52 | 62% |
-| core/personas/sap-tm-consultant.md | 28/47 | 60% |
-| core/personas/sap-wm-consultant.md | 28/47 | 60% |
-| core/personas/sap-writer.md | 28/33 | 85% |
-| tools/extract/extract-spro.mjs | 28/124 | 23% |
-| core/personas/sap-mm-consultant.md | 27/47 | 57% |
-| core/personas/sap-pp-consultant.md | 26/45 | 58% |
-| adapters/claude/hooks/transport-validator.mjs | 25/29 | 86% |
-| core/personas/sap-hcm-consultant.md | 24/43 | 56% |
-| core/personas/sap-qm-consultant.md | 24/43 | 56% |
-| core/personas/sap-pm-consultant.md | 23/42 | 55% |
-| core/personas/sap-tr-consultant.md | 22/41 | 54% |
-| adapters/claude/hooks/syntax-checker.mjs | 21/22 | 95% |
-| core/procedures/spro-lookup.md | 20/72 | 28% |
-| core/knowledge/modules/BC/diagnostic-flows.md | 15/15 | 100% |
-| core/policies/transport-client-rule.md | 10/18 | 56% |
-| core/knowledge/modules/BC/transaction-codes.md | 5/5 | 100% |
-| core/procedures/help-portal-fetch.md | 5/19 | 26% |
-| core/procedures/troubleshooting.md | 4/222 | 2% |
-| core/personas/sap-doc-specialist.md | 0/51 | 0% |
-| server/UPDATE-RUNBOOK.md | 0/28 | 0% |
-| core/project-context.md | 0/74 | 0% |
-| scripts/doctor.mjs | 0/164 | 0% |
+**읽는 법**: 비율이 높을수록 원본 문장이 그대로 살아 있다. 구성은 **페르소나 25**
+(26편 중 `sap-doc-specialist.md`만 겹침 3행 미만이라 빠졌다) · **절차 16** ·
+**어댑터 5**(훅 2 + lib 3) · **지식 5** · **정책 2** · **도구 3**(`tools/extract` 2 +
+`tools/spec` 1) = **56**이다.
 
-**읽는 법**: 비율이 높을수록 원본 문장이 그대로 살아 있다는 뜻이다. **0%인 4건**
-(`sap-doc-specialist.md` · `server/UPDATE-RUNBOOK.md` · `core/project-context.md` ·
-`scripts/doctor.mjs`)은 **이미 사실상 자체 저작**일 가능성이 높으나, §2의 체크 조건은
-독립 리뷰 통과이므로 **지금 체크하지 않는다** — 판3.7이 확인하고 찍는다.
+⚠ **`conventions/` 2편이 여기 있는 이유** — `source-repair-protocol.md`(7/7)와
+`abapgit-roundtrip-rule.md`(11/14)는 **D-087 ①이 「이식 후 신설된 자체분」이라 셈 밖으로
+둔 3편 중 둘**이다. 동결 원본 `common/`과 79~100% 겹치므로 **그 분류가 사실과 다르다**
+(D-106 ⓐ). 나머지 1편(`rap-odata-rules.md`)은 겹침이 잡히지 않았다.
+
+### 3.5 이월 — `copy` 체크 완료분의 잔존 (2026-08-23 · D-106 ⓕ)
+
+역방향 스캔은 **`copy` 명부에서 이미 재저작 체크가 끝난 128건에서도 겹침을 본다.**
+대부분은 **D-088 ②의 「순수 참조표 = 검증 체크(무변경)」**라 100%가 정상이지만
+(`*/tcodes.md`·`tables.md`), **재저작 커밋으로 체크된 것 중에도 높은 겹침이 있다**:
+`*/spro.md` **85~92%** · `*/enhancements.md` **85%** · `conventions/` 12편 **12~100%**.
+
+**이것만으로 「체크가 틀렸다」고 단정하지 않는다** — 표·코드 예시·SAP 사실 문장은
+재저작해도 같아질 수 있다. 그러나 **확인되지 않은 채로 두지도 않는다.** **판3.7이 착수
+시 표본을 떠서 판정**하고, 결과가 「체크 기준을 다시 봐야 한다」면 새 D-항목을 낸다.
+**첫 표본** = `core/knowledge/modules/SD/enhancements.md`(재저작 커밋 `f57e1d8b`로
+체크 · **64/75 = 85%**).
 
 ---
 

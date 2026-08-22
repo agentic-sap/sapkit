@@ -6,9 +6,12 @@ SAPKIT은 다음 상류 프로젝트의 파생·재구성물이다. 각 라이�
 
 **⚠ 2026-08-22 판8이 이 고지의 범위를 36파일로 좁혔고, 2026-08-23 독립 리뷰가 그것을
 되돌리게 했다 (D-103 → D-104).** 좁힘은 `class: copy`만 세었고 **`class: transform`
-범주를 통째로 빠뜨렸다** — 그 범주는 지금 `interactive/` 아래 **42건**이 살아 있고
-그중 **38파일이 상류 원본과 60자 초과 동일 행을 공유한다**(합계 1,326행 · **페르소나 26이
-전부 이 범주**이고 그중 25파일이 자기 실질 행의 **54~95%**). 그러므로 **상류 고지 1건(`interactive/LICENSE`)은
+범주를 통째로 빠뜨렸다** — 그리고 **2차 리뷰가 그 대체 수치마저 미달임을 잡았다**
+(D-106: 장부의 경로 매핑이 절차 12파일을 아예 만들어 내지 못했다). **장부가 아니라
+레포 파일에서 출발하는 역방향 스캔**으로 다시 세면 **56건**이 살아 있고
+그 **56이 전부 상류 원본과 60자 초과 동일 행을 공유한다**(**페르소나 26이
+전부 이 범주**이고 그중 25파일이 자기 실질 행의 **54~95%** · 절차 넷이 **54~65%**).
+그러므로 **상류 고지 1건(`interactive/LICENSE`)은
 `interactive/` 서브트리 전체에 걸린다.**
 
 아래 표는 **알려진 만큼**을 적는다 — 무엇이 재저작으로 해소됐고, 무엇이 남았으며,
@@ -24,8 +27,8 @@ SAPKIT은 다음 상류 프로젝트의 파생·재구성물이다. 각 라이�
 | 번들 external 런타임 의존 | `node-rfc`(옵션, SAP RFC SDK 별도 라이선스 유의) · `@napi-rs/keyring`(옵션) | 각 패키지 라이선스 |
 | 번들 인라인 의존 | `@modelcontextprotocol/sdk` · `zod` · `fast-xml-parser` | 각 패키지 라이선스 (MIT) |
 | `server/sap-assets/` — **30파일** (동결) | `hjaewon/sc4sap-custom` 차용분. SAP 측 `ZMCP_ADT_*`·`Z*_S4SAP_*` 오브젝트의 **설치 소스**이고, 이식 커밋 `038085c2` 이후 **변경 커밋 0**이다 — 우리가 개작·유지보수하지 않는다 | MIT — `interactive/LICENSE`에 고지 승계. **영구 존치** — D-079 ⑥(SAP 오브젝트 무접촉)이 정했고 D-103 ⓓ가 끝그림에 명시했다 |
-| `server/tool-catalog/sc4sap-mcp-tools*.md` (**4** — `README.md`는 자체 저작) · `server/verify-engine.mjs` · `server/bundle-keyring.mjs` — **6파일** (활성) | `hjaewon/sc4sap-custom` 차용분. ⑴ 교체가 대체하지 않았고(D-095 ⓔ) **우리가 계속 고쳐 왔다**(판8 착수 실측 — 이식 이후 각각 6·3·3 커밋) — 즉 유지보수 부채가 살아 있다 | MIT — `interactive/LICENSE`에 고지 승계. **은퇴 대상** — 판10이 `tool-catalog/`을 엔진 등록점 생성으로 바꾸고 `verify-engine.mjs` 골격을 재저작한다(D-103 ⓔ) |
-| `core/personas/` **26 전량** · `core/procedures/` 5 · `core/knowledge/modules/` 3 · `tools/extract/` 2 · 훅 2 · 정책 2 · 그 밖 — **현존 42파일** (`transform`) | `hjaewon/sc4sap-custom` **형태 변환 이식분**(`MIGRATION-MANIFEST.md` 분류 정의 — 「무변환 이식」인 `copy`와 나란한 **이식**이지 재저작이 아니다). 2026-08-23 동결 원본 대조에서 **38파일이 60자 초과 동일 행 1,326행을 공유**한다 — `sap-architect.md` 58/61(95%) · `sap-critic.md` 69/76(91%) · `extract-customizations.mjs` 111/217 · `sap-doc-specialist.md`만 0/51 | MIT — `interactive/LICENSE`에 고지 승계. **미판정 — 아무 명부도 이 범주를 센 적이 없다**(D-104 ⓒ). 재저작은 **판3.7** |
+| `server/tool-catalog/sc4sap-mcp-tools*.md` (**4** — `README.md`는 자체 저작) · `server/verify-engine.mjs` · `server/bundle-keyring.mjs` — **6파일** (활성) | `hjaewon/sc4sap-custom` 차용분. ⑴ 교체가 대체하지 않았고(D-095 ⓔ) **우리가 계속 고쳐 왔다**(판8 착수 실측 — **이식 커밋 포함 총계** 각각 6·3·3 · 이식 이후로만 세면 5·2·2) — 즉 유지보수 부채가 살아 있다 | MIT — `interactive/LICENSE`에 고지 승계. **은퇴 대상** — 판10이 `tool-catalog/`을 엔진 등록점 생성으로 바꾸고 `verify-engine.mjs` 골격을 재저작한다(D-103 ⓔ) |
+| `core/personas/` **25** · `core/procedures/` **16** · 어댑터 5(훅 2 + lib 3) · `core/knowledge/` 5 · 정책 2 · 도구 3 — **56파일** | `hjaewon/sc4sap-custom` **형태 변환 이식분**(`MIGRATION-MANIFEST.md` 분류 정의 — 「무변환 이식」인 `copy`와 나란한 **이식**이지 재저작이 아니다)과 **장부의 경로 매핑이 만들어 내지 못한 것들**. 2026-08-23 역방향 스캔에서 **56파일이 상류와 60자 초과 동일 행을 공유**한다 — `sap-architect.md` 58/61(95%) · `sap-critic.md` 69/76(91%) · `program-to-spec.md` 90/138(65%) · `compare-programs.md` 88/141(62%) · `extract-customizations.mjs` 111/217 | MIT — `interactive/LICENSE`에 고지 승계. **미판정 — 아무 명부도 이 범주를 센 적이 없다**(D-104 ⓒ · 명부 = `copy-baseline.md` **§3.4**). 재저작은 **판3.7** |
 | `checker/sapkit-checker.bundle.cjs` (오프라인 ABAP 검사기 번들) | 자체 저작 — 소스 정본 `sapkit-cli/`. 런타임 외부 의존 0 | MIT (루트 LICENSE) |
 
 **검사기의 계보 각주** (의무 아님 — 정직한 기록): 이 번들이 대체한 구 `vsp/pkg/abaplint`는
