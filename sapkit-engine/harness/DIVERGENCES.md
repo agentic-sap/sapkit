@@ -2768,3 +2768,37 @@ SAP 측 설치가 선행돼야 하고 그 셋 중 무엇도 지금 이 프로젝
 - **기계 장부 반영**: **안 했다** — 기동 시 인증 절차이고 도구 응답 시퀀스에 나타나지
   않는다. 3차와 같은 자리다.
 - **결정 기록**: D-115 · 리뷰 회수 D-116.
+
+## 상태 갱신 (append) — D15 5차: `authorization_code` 기동 배선 (2026-08-23 · D-117)
+
+**위 D15 본문도, 1차~4차 갱신 표도 고치지 않는다.** 4차가 「이 통로로는 M2가 서지
+않는다」와 「기동 진입점(판M2-c)」을 남긴 자리를 이 판이 채웠다.
+
+| 통로 | 4차 시점 (D-115) | 지금 (2026-08-23 · D-117) | 남은 것 |
+|---|---|---|---|
+| `--mcp` · **`authorization_code`** · 플래그 **없음** | 정지선 — 기동은 시작하지 않는다 | **변화 없음.** `MCP_DESTINATION_TOKEN_PENDING` · 무접속 · 네트워크 왕복 0. 진단이 다음 걸음으로 `--auth-interactive`와 콜백 기본 주소·화이트리스트 조건을 안내한다 | — (이것이 기본값이다) |
+| `--mcp` · **`authorization_code`** · **`--auth-interactive`** | (없던 통로) | **기동이 사용자 토큰을 받아 Bearer 접속을 세운다.** 콜백을 `localhost:8080`(기본)에 열고 인가 URL을 **stderr**로 건네고 사람을 기다린다(시한 180초). 취득은 `TokenSource`의 `acquire` 훅으로 `client_credentials`와 **같은 자리에서 합류**한다 | **엔진이 그 토큰으로 도구를 실제로 돌리는 것**(attended 확인) · 토큰 **갱신** 배선 · **세션마다 로그인** 문제 |
+| 진단 어휘 | `MCP_DESTINATION_CONNECTED` | **`MCP_DESTINATION_TOKEN_ACQUIRED`**로 개명. **`CONNECTED`는 방출하지 않는다** — 「대상이 그 토큰을 실제로 받는 것을 확인한 자리」에 예약이다(D-116 ⓔ → D-117 ⓖ) | 그 확인을 하는 판이 `CONNECTED`를 쓴다 |
+
+- **분류와 해소 마일스톤은 그대로다** — `축소` · M2. **`증거 완료`를 주장하지 않는다**
+  (D-082 ①): 이 판의 증거는 **전부 오프라인 목**이고 실 UAA 왕복은 0회다.
+- **`src/auth/**`는 한 줄도 고치지 않았다.** 기구(`startCallbackServer` ·
+  `acquireByAuthorizationCode` · `authorizeUrl` · `exchangeCode` · `TokenSource.acquire`)는
+  판5가 이미 완성해 뒀고 시험 85건이 그것을 잰다. 이 판이 지은 것은 **기동이 그것을
+  부르는 자리 하나**다.
+- **콜백 주소가 두 곳에서 다른 기본값을 갖는 것은 의도다** — auth 계층의
+  `DEFAULT_CALLBACK_HOST`는 **`127.0.0.1`**(바인딩 안전에 관한 그 계층의 결정)이고,
+  기동 통로의 기본값은 **`localhost`**(D-115가 실측한 XSUAA 화이트리스트)다.
+  **문자열이 다르면 XSUAA가 거부하므로** 통로가 자기 기본값을 명시적으로 넘긴다.
+- **승계 제약 셋은 그대로다** — ③ 「브라우저를 열지 않는다」는 **여전히 참**이고
+  (레포 전량 grep 히트 0), 「열지 않는다」가 「기다리지 않는다」가 아니라는 것을
+  `callback.ts:19-21`과 `openAuthorizeUrl` 주석이 이미 적어 두고 있었다(D-117 ⓑ).
+- **대체 기대 시험**: `src/server/__tests__/connectDestination.test.ts`(성공 4 ·
+  실패 4종 + 요약/노출 · argv 노브 6 · **회귀 4** — 플래그 없으면 `toBe(startup)`) ·
+  `src/server/__tests__/startup.test.ts` 「플래그·노브 파싱」 11건 ·
+  `src/tools/runtime/__tests__/reloadProfile.test.ts` 재적재 갈래 2건(**판M2-a 이월 수령**).
+  전 구간 **실 네트워크 0**(콜백만 loopback 임의 포트).
+- **기계 장부 반영**: **안 했다** — 기동 시 인증 절차이고 도구 응답 시퀀스에 나타나지
+  않는다. 3차·4차와 같은 자리다.
+- **결정 기록**: D-117.
+

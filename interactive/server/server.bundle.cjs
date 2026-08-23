@@ -23584,7 +23584,7 @@ var require_startup = __commonJS({
       };
     })();
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.PROFILE_SUMMARY_PREFIX = void 0;
+    exports2.PROFILE_SUMMARY_PREFIX = exports2.DEFAULT_INTERACTIVE_CALLBACK_PORT = exports2.DEFAULT_INTERACTIVE_CALLBACK_HOST = void 0;
     exports2.profileSummaryLine = profileSummaryLine;
     exports2.resolveStartup = resolveStartup;
     var fs = __importStar(require("node:fs"));
@@ -23592,6 +23592,8 @@ var require_startup = __commonJS({
     var auth_1 = require_auth();
     var profile_1 = require_profile();
     var safety_1 = require_safety();
+    exports2.DEFAULT_INTERACTIVE_CALLBACK_HOST = "localhost";
+    exports2.DEFAULT_INTERACTIVE_CALLBACK_PORT = 8080;
     function argValue(args, name) {
       const prefix = `${name}=`;
       for (let i = 0; i < args.length; i++) {
@@ -23603,13 +23605,31 @@ var require_startup = __commonJS({
       }
       return void 0;
     }
+    function resolveAuthInteractive(args, diagnostics) {
+      const rawHost = (argValue(args, "--callback-host") ?? "").trim();
+      const rawPort = (argValue(args, "--callback-port") ?? "").trim();
+      let callbackPort = exports2.DEFAULT_INTERACTIVE_CALLBACK_PORT;
+      if (rawPort !== "") {
+        const parsed = Number(rawPort);
+        if (Number.isInteger(parsed) && parsed >= 1 && parsed <= 65535) {
+          callbackPort = parsed;
+        } else {
+          diagnostics.push(`CALLBACK_PORT_INVALID: --callback-port=${rawPort} is not a port number (1-65535), so the loopback callback stays on ${exports2.DEFAULT_INTERACTIVE_CALLBACK_PORT}. That address has to match a redirect_uri registered on the XSUAA client, so fix the argument if this key's whitelist names a different port.`);
+        }
+      }
+      return {
+        enabled: args.includes("--auth-interactive"),
+        callbackHost: rawHost === "" ? exports2.DEFAULT_INTERACTIVE_CALLBACK_HOST : rawHost,
+        callbackPort
+      };
+    }
     function resolveEnvPathLike(raw, cwd) {
       return path.isAbsolute(raw) ? raw : path.resolve(cwd, raw);
     }
     function nothingResolved(profile) {
       return profile.envPath === null && profile.alias === null && profile.diagnostics.length === 1 && (profile.diagnostics[0] ?? "").startsWith("NO_PROFILE:");
     }
-    function describeServiceKeyDestination(name, key) {
+    function describeServiceKeyDestination(name, key, interactive) {
       const plan = (0, profile_1.planServiceKeyConnection)(key);
       const shape = `${key.source}, ${key.storeType} shape`;
       const basic = "use --env=<name>, --env-path=<file>, or an active profile for a Basic connection.";
@@ -23620,7 +23640,11 @@ var require_startup = __commonJS({
       if (key.grant === "client_credentials") {
         return `MCP_DESTINATION_TOKEN_REQUIRED: --mcp=${name} resolved its service key (${shape}, service URL ${plan.baseUrl}) and it uses ${grant}. That grant needs no person and no browser, so startup acquires the first token itself \u2014 the next diagnostic says whether it got one. A profile reload does not: ReloadProfile re-reads argv, the environment and the disk, and a token is on none of them, so reloading a --mcp startup ends inspection-only and the server has to be restarted.`;
       }
-      return `MCP_DESTINATION_TOKEN_PENDING: --mcp=${name} resolved its service key (${shape}, service URL ${plan.baseUrl}) and it uses ${grant}. Startup does not begin that flow \u2014 it ends at a browser a person drives, and this engine never opens one \u2014 so the server starts with no connection. The authorization endpoint is ${(0, auth_1.uaaEndpoints)(plan.uaa.url).authorize} (client_id ${plan.uaa.clientId}, response_type=code, redirect_uri a loopback callback that startup does not bind). Next: if this destination is meant to run server-to-server, add "granttype": "client_credentials" to ${key.source} and restart \u2014 startup acquires that token on its own. Otherwise ${basic}`;
+      const callback = `http://${interactive.callbackHost}:${interactive.callbackPort}${auth_1.DEFAULT_CALLBACK_PATH}`;
+      if (interactive.enabled) {
+        return `MCP_DESTINATION_TOKEN_REQUIRED: --mcp=${name} resolved its service key (${shape}, service URL ${plan.baseUrl}) and it uses ${grant}. --auth-interactive is on, so startup binds a loopback callback on ${callback}, prints the authorization URL on stderr, and waits for a person to open it and sign in \u2014 it still opens no browser itself. That callback address has to be registered as a redirect_uri on this XSUAA client, or the authorization server refuses the redirect; --callback-host and --callback-port move it. The next diagnostic says whether a token arrived. A profile reload does not bring one back \u2014 ReloadProfile re-reads argv, the environment and the disk, and a token is on none of them.`;
+      }
+      return `MCP_DESTINATION_TOKEN_PENDING: --mcp=${name} resolved its service key (${shape}, service URL ${plan.baseUrl}) and it uses ${grant}. Startup does not begin that flow \u2014 it ends at a browser a person drives, and this engine never opens one \u2014 so the server starts with no connection. The authorization endpoint is ${(0, auth_1.uaaEndpoints)(plan.uaa.url).authorize} (client_id ${plan.uaa.clientId}, response_type=code, redirect_uri a loopback callback that startup does not bind). Next: pass --auth-interactive and restart \u2014 startup then binds that callback on ${callback} (move it with --callback-host and --callback-port), prints the authorization URL on stderr for a person to open, and waits for the browser round trip; the callback address has to be one of this XSUAA client's registered redirect_uri values or the authorization server refuses the redirect. Or, if this destination is meant to run server-to-server, add "granttype": "client_credentials" to ${key.source} and restart \u2014 startup acquires that token on its own. Otherwise ${basic}`;
     }
     function brokerSwitches(args, env) {
       const on = [];
@@ -23642,6 +23666,7 @@ var require_startup = __commonJS({
       const diagnostics = [];
       const exposition = (0, safety_1.expositionFromArgvDetailed)(args);
       diagnostics.push(...exposition.diagnostics);
+      const authInteractive = resolveAuthInteractive(args, diagnostics);
       const explicitEnvPath = argValue(args, "--env-path");
       const mcpDestination = (argValue(args, "--mcp") ?? "").trim();
       const envDestination = (argValue(args, "--env") ?? "").trim();
@@ -23675,7 +23700,7 @@ var require_startup = __commonJS({
               source: found.key.source,
               serviceKey: found.key
             };
-            channelDiagnostics.push(describeServiceKeyDestination(mcpDestination, found.key));
+            channelDiagnostics.push(describeServiceKeyDestination(mcpDestination, found.key, authInteractive));
             break;
           }
           case "unsafe-name":
@@ -23754,6 +23779,7 @@ var require_startup = __commonJS({
         env: safetyEnv,
         blocklist: (0, safety_1.readBlocklistConfig)(safetyEnv),
         destination,
+        authInteractive,
         unsafe: (0, safety_1.resolveUnsafeFlag)({ argv: args, env }),
         diagnostics,
         input: {
@@ -23776,31 +23802,57 @@ var require_connectDestination = __commonJS({
   "dist/src/server/connectDestination.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.DEFAULT_AUTHORIZE_TIMEOUT_MS = void 0;
     exports2.connectDestination = connectDestination;
     var auth_1 = require_auth();
     var profile_1 = require_profile();
     var startup_1 = require_startup();
+    exports2.DEFAULT_AUTHORIZE_TIMEOUT_MS = 18e4;
+    function printAuthorizeUrl(url) {
+      process.stderr.write(`MCP_DESTINATION_AUTHORIZE_URL: startup is waiting for a browser round trip. Open this URL, sign in, and the loopback callback finishes the login here. Nothing opens on its own.
+${url}
+`);
+    }
     async function connectDestination(startup, options = {}) {
       const selection = startup.destination;
       const key = selection !== null && selection.channel === "mcp" ? selection.serviceKey : null;
-      if (key === null || key.grant !== "client_credentials")
+      if (key === null)
+        return startup;
+      if (key.grant === "authorization_code" && !startup.authInteractive.enabled)
         return startup;
       const plan = (0, profile_1.planServiceKeyConnection)(key);
       if (plan.kind !== "ready")
         return startup;
+      const host = options.callbackHost ?? startup.authInteractive.callbackHost;
+      const port = options.callbackPort ?? startup.authInteractive.callbackPort;
+      const timeoutMs = options.timeoutMs ?? exports2.DEFAULT_AUTHORIZE_TIMEOUT_MS;
+      const flow = key.grant === "authorization_code" ? {
+        grant: "authorization_code",
+        callbackUrl: `http://${host}:${port}${auth_1.DEFAULT_CALLBACK_PATH}`,
+        timeoutMs
+      } : { grant: "client_credentials" };
       const client = new auth_1.UaaClient(plan.uaa, {
         ...options.transport !== void 0 ? { transport: options.transport } : {},
         ...options.now !== void 0 ? { now: options.now } : {}
       });
       const source = new auth_1.TokenSource({
         client,
+        ...flow.grant === "authorization_code" ? {
+          acquire: () => (0, auth_1.acquireByAuthorizationCode)({
+            client,
+            host,
+            port,
+            timeoutMs,
+            openAuthorizeUrl: options.openAuthorizeUrl ?? printAuthorizeUrl
+          })
+        } : {},
         ...options.now !== void 0 ? { now: options.now } : {}
       });
       let token;
       try {
         token = await source.accessToken();
       } catch (error) {
-        const line2 = failureLine(key, client.tokenEndpoint, error);
+        const line2 = failureLine(key, client.tokenEndpoint, error, flow);
         return replace(startup, { ...startup.profile, diagnostics: [...startup.profile.diagnostics, line2] }, line2);
       }
       const connection = {
@@ -23821,7 +23873,7 @@ var require_connectDestination = __commonJS({
         jwtToken: token,
         uaa: plan.uaa
       };
-      const line = successLine(key, plan.baseUrl, source.status());
+      const line = successLine(key, plan.baseUrl, source.status(), flow);
       const profile = {
         connection,
         // service key는 tier를 말하지 않는다. **UNKNOWN이 곧 fail-closed다** —
@@ -23843,18 +23895,22 @@ var require_connectDestination = __commonJS({
         diagnostics: [...kept, line, (0, startup_1.profileSummaryLine)(profile, startup.sets)]
       };
     }
+    function wait(ms) {
+      return ms >= 1e3 ? `${Math.round(ms / 1e3)}s` : `${ms}ms`;
+    }
     function lifetime(status) {
       if (status.expiresAtMs === null) {
         return "The token says nothing about its own lifetime (no exp claim and no expires_in)";
       }
       return `The token expires at ${new Date(status.expiresAtMs).toISOString()}`;
     }
-    function successLine(key, baseUrl, status) {
+    function successLine(key, baseUrl, status, flow) {
       const where = [
         key.client !== null ? `client ${key.client}` : null,
         key.language !== null ? `language ${key.language}` : null
       ].filter((part) => part !== null).join(", ");
-      return `MCP_DESTINATION_CONNECTED: --mcp=${key.destination} acquired a client_credentials token and the connection is configured as Bearer on ${baseUrl}${where === "" ? "" : ` (${where})`}. Nothing has been sent to that system yet \u2014 whether it accepts this token is decided by the first request, not by this line. A client_credentials token carries no user identity, and an ABAP system that maps requests to users can answer 401 on every path while the token itself stays valid; if every tool comes back unauthorized, that is the cause, and the destination needs a grant that carries a user rather than a fix on this side. ${lifetime(status)}; it lives in this process's memory only, and startup does not renew it \u2014 restart the server when it expires. No SAP tier comes with a service key, so tier=UNKNOWN and every write and execution is refused (fail-closed); set up a profile sap.env if this system needs to be writable.`;
+      const grantNote = flow.grant === "client_credentials" ? "A client_credentials token carries no user identity, and an ABAP system that maps requests to users can answer 401 on every path while the token itself stays valid; if every tool comes back unauthorized, that is the cause, and the destination needs a grant that carries a user rather than a fix on this side. " : `This token came from a person signing in, so it carries a user identity. Startup blocked on that sign-in (up to ${wait(flow.timeoutMs)}, callback ${flow.callbackUrl}), which delays the MCP handshake by however long the browser round trip took \u2014 a client whose own startup timeout is shorter can score this launch as a failure even though the token arrived. `;
+      return `MCP_DESTINATION_TOKEN_ACQUIRED: --mcp=${key.destination} acquired a ${flow.grant} token and the connection is configured as Bearer on ${baseUrl}${where === "" ? "" : ` (${where})`}. Nothing has been sent to that system yet \u2014 whether it accepts this token is decided by the first request, not by this line. ` + grantNote + `${lifetime(status)}; it lives in this process's memory only, and startup does not renew it \u2014 restart the server when it expires. No SAP tier comes with a service key, so tier=UNKNOWN and every write and execution is refused (fail-closed); set up a profile sap.env if this system needs to be writable.`;
     }
     function nextStep(code, key) {
       switch (code) {
@@ -23868,13 +23924,35 @@ var require_connectDestination = __commonJS({
           return `Fix the cause above in ${key.source} and restart.`;
       }
     }
-    function failureLine(key, endpoint, error) {
+    function interactiveNextStep(code, key, flow) {
+      switch (code) {
+        case "CALLBACK_TIMEOUT":
+          return `No callback arrived at ${flow.callbackUrl} within ${wait(flow.timeoutMs)}, and startup does not push the login again (an authorization code is single-use, so retrying means opening the browser once more, and that is a person's decision). Restart with --auth-interactive and finish the sign-in, or check that the browser was actually sent to the URL printed on stderr.`;
+        case "CALLBACK_STATE_MISMATCH":
+          return "The callback carried a different state than the one this startup sent, so it did not belong to this login and was refused. A stale browser tab from an earlier attempt is the usual cause \u2014 close those tabs, restart, and use only the URL this run prints.";
+        case "CALLBACK_FAILED":
+          return `The loopback callback could not be held at ${flow.callbackUrl} \u2014 either something else already listens on that port (startup does not quietly move to another one, because the redirect_uri would then no longer match what is registered) or the authorization server sent the callback back as an error. Free that port, or point --callback-host and --callback-port at an address that is in this XSUAA client's registered redirect_uri list.`;
+        case "UAA_REJECTED":
+          return `The token endpoint refused the code exchange. The usual cause is a redirect_uri that does not match the one registered on this XSUAA client \u2014 this run used ${flow.callbackUrl} (move it with --callback-host and --callback-port; the address is compared as a string, so 127.0.0.1 and localhost are different values). A code that sat unused for too long also expires. Check the redirect_uri list in BTP against that address, then restart.`;
+        case "UAA_REQUEST_FAILED":
+          return `The token endpoint was not reachable from this machine \u2014 check the uaa url in ${key.source} against DNS, the proxy, and any VPN this machine needs, then restart.`;
+        default:
+          return "The interactive login did not finish. Fix the cause above, then restart with --auth-interactive.";
+      }
+    }
+    var OPAQUE_CAUSE = /* @__PURE__ */ new Set([
+      "CALLBACK_TIMEOUT",
+      "CALLBACK_STATE_MISMATCH",
+      "CALLBACK_ABORTED"
+    ]);
+    function failureLine(key, endpoint, error, flow) {
       const code = (0, auth_1.isAuthError)(error) ? error.code : "UNEXPECTED";
       const raw = error instanceof Error ? error.message : String(error);
       const dashAt = raw.indexOf("\u2014");
-      const cause = dashAt >= 0 ? raw.slice(dashAt + 1).trim() : null;
+      const cause = OPAQUE_CAUSE.has(code) || dashAt < 0 ? null : raw.slice(dashAt + 1).trim();
       const detail = code === "UNEXPECTED" ? raw : `${code}${cause !== null && cause !== "" ? ` (${cause})` : ""}`;
-      return `MCP_DESTINATION_TOKEN_FAILED: --mcp=${key.destination} uses the client_credentials grant and startup could not get a token from ${endpoint} \u2014 ${detail}. The server starts with no connection and does not fall back to another system. ${nextStep(code, key)} Until then use --env=<name>, --env-path=<file>, or an active profile for a Basic connection.`;
+      const where = flow.grant === "client_credentials" ? `startup could not get a token from ${endpoint}` : `startup could not finish the interactive login (callback ${flow.callbackUrl}, token endpoint ${endpoint})`;
+      return `MCP_DESTINATION_TOKEN_FAILED: --mcp=${key.destination} uses the ${flow.grant} grant and ${where} \u2014 ${detail}. The server starts with no connection and does not fall back to another system. ${flow.grant === "client_credentials" ? nextStep(code, key) : interactiveNextStep(code, key, flow)} Until then use --env=<name>, --env-path=<file>, or an active profile for a Basic connection.`;
     }
   }
 });
@@ -72286,6 +72364,8 @@ var require_session = __commonJS({
         env: {},
         blocklist: (0, safety_1.readBlocklistConfig)({}),
         destination: null,
+        // 봉인은 destination 통로 자체를 버리므로 그 통로의 옵트인도 함께 꺼진다.
+        authInteractive: { ...previous.authInteractive, enabled: false },
         unsafe: false,
         diagnostics,
         input: previous.input
@@ -72422,8 +72502,8 @@ var require_core5 = __commonJS({
       }
     }
     function readEngineVersion() {
-      if ("1.1.1") {
-        return "1.1.1";
+      if ("1.2.0") {
+        return "1.2.0";
       }
       let dir = __dirname;
       for (let depth = 0; depth < 6; depth += 1) {
