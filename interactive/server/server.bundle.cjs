@@ -41571,8 +41571,8 @@ var require_gateway = __commonJS({
     var http_1 = require_http();
     var errors_1 = require_errors7();
     var BACKEND = "gateway";
-    var DISPATCH_FM = "ZMCP_ADT_DISPATCH";
-    var TEXTPOOL_FM = "ZMCP_ADT_TEXTPOOL";
+    var DISPATCH_FM = "ZSAPKIT_ADT_DISPATCH";
+    var TEXTPOOL_FM = "ZSAPKIT_ADT_TEXTPOOL";
     var DISPATCH_PATH = "/rfc/dispatch";
     var TEXTPOOL_PATH = "/rfc/textpool";
     function field(node, name) {
@@ -41770,8 +41770,8 @@ var require_native = __commonJS({
     exports2.createNativeChannel = createNativeChannel;
     var errors_1 = require_errors7();
     var BACKEND = "native";
-    var DISPATCH_FM = "ZMCP_ADT_DISPATCH";
-    var TEXTPOOL_FM = "ZMCP_ADT_TEXTPOOL";
+    var DISPATCH_FM = "ZSAPKIT_ADT_DISPATCH";
+    var TEXTPOOL_FM = "ZSAPKIT_ADT_TEXTPOOL";
     var DEFAULT_LANG = "EN";
     var DEFAULT_GROUP = "PUBLIC";
     var POOL_OPTIONS = { low: 0, high: 3, idleTimeout: 300 };
@@ -42018,9 +42018,9 @@ var require_odata = __commonJS({
     var BACKEND = "odata";
     var DEFAULT_CSRF_TTL_SEC = 600;
     var MIN_CSRF_TTL_SEC = 60;
-    var DISPATCH_FM = "ZMCP_ADT_DISPATCH";
-    var TEXTPOOL_FM = "ZMCP_ADT_TEXTPOOL";
-    var DDIC_TABL_READ_FM = "ZMCP_ADT_DDIC_TABL_READ";
+    var DISPATCH_FM = "ZSAPKIT_ADT_DISPATCH";
+    var TEXTPOOL_FM = "ZSAPKIT_ADT_TEXTPOOL";
+    var DDIC_TABL_READ_FM = "ZSAPKIT_ADT_DDIC_TABL_READ";
     function field(node, name) {
       if (node !== null && typeof node === "object") {
         return node[name];
@@ -42100,7 +42100,7 @@ var require_odata = __commonJS({
           throw new errors_1.RfcError({
             kind: "config",
             backend: BACKEND,
-            message: `${key} is required for SAP_RFC_BACKEND=odata but not set in sap.env. Set it to the ZMCP_ADT_SRV service root, e.g. https://<host>:<port>/sap/opu/odata/sap/ZMCP_ADT_SRV (no trailing slash).`
+            message: `${key} is required for SAP_RFC_BACKEND=odata but not set in sap.env. Set it to the ZSAPKIT_ADT_SRV service root, e.g. https://<host>:<port>/sap/opu/odata/sap/ZSAPKIT_ADT_SRV (no trailing slash).`
           });
         }
         return value;
@@ -42382,8 +42382,8 @@ var require_soap = __commonJS({
     var SOAP_NS = "http://schemas.xmlsoap.org/soap/envelope/";
     var URN_NS = "urn:sap-com:document:sap:rfc:functions";
     var SOAP_CONTENT_TYPE = "text/xml; charset=utf-8";
-    var DISPATCH_FM = "ZMCP_ADT_DISPATCH";
-    var TEXTPOOL_FM = "ZMCP_ADT_TEXTPOOL";
+    var DISPATCH_FM = "ZSAPKIT_ADT_DISPATCH";
+    var TEXTPOOL_FM = "ZSAPKIT_ADT_TEXTPOOL";
     var RFC_KIND_BY_ADT_KIND = {
       timeout: "timeout",
       network: "network",
@@ -42614,8 +42614,8 @@ var require_zrfc = __commonJS({
     var BACKEND = "zrfc";
     var DEFAULT_CSRF_TTL_SEC = 600;
     var MIN_CSRF_TTL_SEC = 60;
-    var DISPATCH_FM = "ZMCP_ADT_DISPATCH";
-    var TEXTPOOL_FM = "ZMCP_ADT_TEXTPOOL";
+    var DISPATCH_FM = "ZSAPKIT_ADT_DISPATCH";
+    var TEXTPOOL_FM = "ZSAPKIT_ADT_TEXTPOOL";
     var SICF_NODE = "/sap/bc/rest/zmcp_rfc";
     var HANDLER_CLASS = "ZCL_MCP_RFC_HTTP_HANDLER";
     function field(node, name) {
@@ -42661,7 +42661,7 @@ var require_zrfc = __commonJS({
         this.authorization = `Basic ${Buffer.from(`${options.connection.username}:${options.connection.password}`, "utf8").toString("base64")}`;
       }
       /**
-       * `ZMCP_ADT_DISPATCH` 호출.
+       * `ZSAPKIT_ADT_DISPATCH` 호출.
        *
        * `params`는 **객체가 아니라 JSON 문자열**로 실린다. ABAP 핸들러가
        * `ls_req-params`를 `IV_PARAMS`에 그대로 넘기므로(`:223-230`), 문자열로 만드는
@@ -42675,7 +42675,7 @@ var require_zrfc = __commonJS({
         return this.unwrap(raw, { functionModule: DISPATCH_FM, action, emptyResult: {} });
       }
       /**
-       * `ZMCP_ADT_TEXTPOOL` 호출.
+       * `ZSAPKIT_ADT_TEXTPOOL` 호출.
        *
        * 본문 필드 이름이 `textpoolJson`인 것은 핸들러가 `/ui2/cl_json`을
        * `pretty_mode-camel_case`로 역직렬화하기 때문이다 — ABAP 쪽 필드는
@@ -42977,7 +42977,7 @@ var require_rfc = __commonJS({
         throw new errors_1.RfcError({
           kind: "config",
           backend,
-          message: `The ECC DDIC bridge requires SAP_RFC_BACKEND=odata (current='${backend}'). ZMCP_ADT_DDIC_TABL_READ is only exposed through the OData ZMCP_ADT_SRV service, so no other backend can reach it. Set SAP_RFC_BACKEND=odata in the active profile's sap.env, or read this object through the standard ADT endpoints on a non-ECC system.`
+          message: `The ECC DDIC bridge requires SAP_RFC_BACKEND=odata (current='${backend}'). ZSAPKIT_ADT_DDIC_TABL_READ is only exposed through the OData ZSAPKIT_ADT_SRV service, so no other backend can reach it. Set SAP_RFC_BACKEND=odata in the active profile's sap.env, or read this object through the standard ADT endpoints on a non-ECC system.`
         });
       }
       return (0, odata_1.createODataChannel)({
@@ -43047,7 +43047,7 @@ var require_ddicRead = __commonJS({
         version: version === "inactive" ? "I" : "A"
       });
       if (result.subrc !== 0) {
-        return fail(`ZMCP_ADT_DDIC_TABL_READ subrc=${result.subrc}: ${result.message}`);
+        return fail(`ZSAPKIT_ADT_DDIC_TABL_READ subrc=${result.subrc}: ${result.message}`);
       }
       return ok({
         success: true,
@@ -53809,7 +53809,7 @@ var require_createTable = __commonJS({
     var toolDefinition_1 = require_toolDefinition();
     var shared_1 = require_shared();
     var tableStructureWrite_1 = require_tableStructureWrite();
-    var ECC_REFUSAL = `CreateTable is not supported on ECC via this MCP tool. ECC's DDIC write layer is row-based (DD02V + DD03P) and does not accept the S/4HANA CDS-style DDL skeleton this handler generates. Call the OData FunctionImport /DdicTabl on ZMCP_ADT_SRV directly with IV_ACTION='CREATE' and IV_PAYLOAD_JSON = '{"dd02v":{...},"dd03p":[...]}'.`;
+    var ECC_REFUSAL = `CreateTable is not supported on ECC via this MCP tool. ECC's DDIC write layer is row-based (DD02V + DD03P) and does not accept the S/4HANA CDS-style DDL skeleton this handler generates. Call the OData FunctionImport /DdicTabl on ZSAPKIT_ADT_SRV directly with IV_ACTION='CREATE' and IV_PAYLOAD_JSON = '{"dd02v":{...},"dd03p":[...]}'.`;
     function mandtSkeleton(tableName, description) {
       const label = description.replace(/'/g, "''");
       return `@EndUserText.label : '${label}'
@@ -53941,7 +53941,7 @@ var require_updateTable = __commonJS({
     var shared_1 = require_shared();
     var tableStructureWrite_1 = require_tableStructureWrite();
     var DDL_CODE_DESCRIPTION = "Complete DDL source code for a TRANSPARENT TABLE. IMPORTANT \u2014 use the MANDT data element for the client key ('key mandt : mandt not null'), NOT 'abap.clnt' (that's CDS-view syntax). Standard SAP tables (MARA, T001, VBAK, \u2026) all use MANDT. The annotation block CreateTable seeded must be preserved verbatim: #NOT_EXTENSIBLE enhancement category, #TRANSPARENT tableCategory, #A deliveryClass, #RESTRICTED dataMaintenance. Example: '@EndUserText.label : \\'My Table\\' @AbapCatalog.enhancement.category : #NOT_EXTENSIBLE @AbapCatalog.tableCategory : #TRANSPARENT @AbapCatalog.deliveryClass : #A @AbapCatalog.dataMaintenance : #RESTRICTED define table ztst_table { key mandt : mandt not null; key id : abap.char(10); name : abap.char(255); }'";
-    var ECC_REFUSAL = `UpdateTable is not supported on ECC via this MCP tool. ECC's DDIC write layer is row-based (DD03P), not CDS-DDL-based. Call the OData FunctionImport /DdicTabl on ZMCP_ADT_SRV directly with IV_ACTION='UPDATE' and IV_PAYLOAD_JSON = '{"dd02v":{...},"dd03p":[...]}'.`;
+    var ECC_REFUSAL = `UpdateTable is not supported on ECC via this MCP tool. ECC's DDIC write layer is row-based (DD03P), not CDS-DDL-based. Call the OData FunctionImport /DdicTabl on ZSAPKIT_ADT_SRV directly with IV_ACTION='UPDATE' and IV_PAYLOAD_JSON = '{"dd02v":{...},"dd03p":[...]}'.`;
     exports2.updateTable = (0, toolDefinition_1.defineTool)({
       name: "UpdateTable",
       description: "Update DDL source code of an existing ABAP table. Locks the table, uploads new DDL source, and unlocks. Optionally activates after update. Use this to modify existing tables without re-creating metadata.",
@@ -57165,7 +57165,7 @@ var require_createDataElement = __commonJS({
         return (0, shared_1.errorResult)("Package name is required");
       const dataElementName = args.data_element_name.toUpperCase();
       if ((0, dataElementDomainCreate_1.isEcc)(context.profile.sapVersion)) {
-        return (0, shared_1.errorResult)((0, dataElementDomainCreate_1.eccCreateUnsupported)("CreateDataElement", "ZMCP_ADT_DDIC_DTEL", SEGMENT));
+        return (0, shared_1.errorResult)((0, dataElementDomainCreate_1.eccCreateUnsupported)("CreateDataElement", "ZSAPKIT_ADT_DDIC_DTEL", SEGMENT));
       }
       const typeKind = args.type_kind;
       const description = args.description || dataElementName;
@@ -57312,7 +57312,7 @@ var require_dataElementDomainRead = __commonJS({
       accept: exports2.ACCEPT_DATA_ELEMENT,
       noun: "data element",
       label: "Data element",
-      eccBridgeFm: "ZMCP_ADT_DDIC_DTEL_READ"
+      eccBridgeFm: "ZSAPKIT_ADT_DDIC_DTEL_READ"
     };
     exports2.DOMAIN = {
       nameField: "domain_name",
@@ -57321,7 +57321,7 @@ var require_dataElementDomainRead = __commonJS({
       accept: exports2.ACCEPT_DOMAIN,
       noun: "domain",
       label: "Domain",
-      eccBridgeFm: "ZMCP_ADT_DDIC_DOMA_READ"
+      eccBridgeFm: "ZSAPKIT_ADT_DDIC_DOMA_READ"
     };
     function isEcc(sapVersion) {
       return sapVersion?.toUpperCase() === "ECC";
@@ -58614,7 +58614,7 @@ ${items}
         return (0, shared_1.errorResult)("Package name is required");
       const domainName = args.domain_name.toUpperCase();
       if ((0, dataElementDomainCreate_1.isEcc)(context.profile.sapVersion)) {
-        return (0, shared_1.errorResult)((0, dataElementDomainCreate_1.eccCreateUnsupported)("CreateDomain", "ZMCP_ADT_DDIC_DOMA", SEGMENT));
+        return (0, shared_1.errorResult)((0, dataElementDomainCreate_1.eccCreateUnsupported)("CreateDomain", "ZSAPKIT_ADT_DDIC_DOMA", SEGMENT));
       }
       const shouldActivate = args.activate !== false;
       const description = args.description || domainName;
@@ -67225,7 +67225,7 @@ var require_deleteDataElement = __commonJS({
         return (0, shared_1.errorResult)("Error: data_element_name is required");
       const dataElementName = args.data_element_name.toUpperCase();
       if ((0, deletion_1.isEcc)(context.profile.sapVersion)) {
-        return (0, shared_1.errorResult)(`Error: ${(0, deletion_1.eccDeleteUnsupported)("DeleteDataElement", "ZMCP_ADT_DDIC_DTEL", "dataelements")}`);
+        return (0, shared_1.errorResult)(`Error: ${(0, deletion_1.eccDeleteUnsupported)("DeleteDataElement", "ZSAPKIT_ADT_DDIC_DTEL", "dataelements")}`);
       }
       context.logger.info(`Starting data element deletion: ${dataElementName}`);
       try {
@@ -67824,7 +67824,7 @@ var require_deleteDomain = __commonJS({
         return (0, shared_1.errorResult)("Error: domain_name is required");
       const domainName = args.domain_name.toUpperCase();
       if ((0, deletion_1.isEcc)(context.profile.sapVersion)) {
-        return (0, shared_1.errorResult)(`Error: ${(0, deletion_1.eccDeleteUnsupported)("DeleteDomain", "ZMCP_ADT_DDIC_DOMA", "domains")}`);
+        return (0, shared_1.errorResult)(`Error: ${(0, deletion_1.eccDeleteUnsupported)("DeleteDomain", "ZSAPKIT_ADT_DDIC_DOMA", "domains")}`);
       }
       context.logger.info(`Starting domain deletion: ${domainName}`);
       try {
@@ -68015,7 +68015,7 @@ var require_deleteTable = __commonJS({
         return (0, shared_1.errorResult)("Error: table_name is required");
       const tableName = args.table_name.toUpperCase();
       if ((0, deletion_1.isEcc)(context.profile.sapVersion)) {
-        return (0, shared_1.errorResult)(`Error: ${(0, deletion_1.eccDeleteUnsupported)("DeleteTable", "ZMCP_ADT_DDIC_TABL", "tables")}`);
+        return (0, shared_1.errorResult)(`Error: ${(0, deletion_1.eccDeleteUnsupported)("DeleteTable", "ZSAPKIT_ADT_DDIC_TABL", "tables")}`);
       }
       context.logger.info(`Starting table deletion: ${tableName}`);
       try {
@@ -69643,7 +69643,7 @@ Note: All provided parameters completely replace existing values. Field labels a
         return (0, shared_1.errorResult)("Package name is required");
       const dataElementName = args.data_element_name.toUpperCase();
       if ((0, dataElementDomainCreate_1.isEcc)(context.profile.sapVersion)) {
-        return (0, shared_1.errorResult)((0, dataElementDomainCreate_1.eccCreateUnsupported)("UpdateDataElement", "ZMCP_ADT_DDIC_DTEL", SEGMENT));
+        return (0, shared_1.errorResult)((0, dataElementDomainCreate_1.eccCreateUnsupported)("UpdateDataElement", "ZSAPKIT_ADT_DDIC_DTEL", SEGMENT));
       }
       const shouldActivate = args.activate !== false;
       const description = args.description || dataElementName;
@@ -69910,7 +69910,7 @@ Note: All provided parameters completely replace existing values. Use GetDomain 
         return (0, shared_1.errorResult)("Package name is required");
       const domainName = args.domain_name.toUpperCase();
       if ((0, dataElementDomainCreate_1.isEcc)(context.profile.sapVersion)) {
-        return (0, shared_1.errorResult)((0, dataElementDomainCreate_1.eccCreateUnsupported)("UpdateDomain", "ZMCP_ADT_DDIC_DOMA", SEGMENT));
+        return (0, shared_1.errorResult)((0, dataElementDomainCreate_1.eccCreateUnsupported)("UpdateDomain", "ZSAPKIT_ADT_DDIC_DOMA", SEGMENT));
       }
       const shouldActivate = args.activate !== false;
       const packageName = args.package_name;
@@ -70167,11 +70167,11 @@ var require_getBadiImplementations = __commonJS({
     function isEcc(sapVersion) {
       return sapVersion?.toUpperCase() === "ECC";
     }
-    exports2.NON_ECC_MESSAGE = "GetBadiImplementations currently routes through the ECC bridge (ZMCP_ADT_DDIC_BADI via OData FunctionImport DdicBadi). Set SAP_VERSION=ECC in .sapkit/sap.env, or wait for the S/4HANA native ADT path (planned).";
-    exports2.ECC_BRIDGE_MISSING_MESSAGE = "GetBadiImplementations on SAP_VERSION=ECC needs the ZMCP_ADT_DDIC_BADI OData bridge (FunctionImport DdicBadi), which this engine does not implement yet (divergence D132). This tool has no ADT fallback: the datapreview / ddic / enhsxsb endpoints it would need are absent on ECC kernels (BASIS < 7.50), so falling through to them would report a missing endpoint as a missing BAdI.";
+    exports2.NON_ECC_MESSAGE = "GetBadiImplementations currently routes through the ECC bridge (ZSAPKIT_ADT_DDIC_BADI via OData FunctionImport DdicBadi). Set SAP_VERSION=ECC in .sapkit/sap.env, or wait for the S/4HANA native ADT path (planned).";
+    exports2.ECC_BRIDGE_MISSING_MESSAGE = "GetBadiImplementations on SAP_VERSION=ECC needs the ZSAPKIT_ADT_DDIC_BADI OData bridge (FunctionImport DdicBadi), which this engine does not implement yet (divergence D132). This tool has no ADT fallback: the datapreview / ddic / enhsxsb endpoints it would need are absent on ECC kernels (BASIS < 7.50), so falling through to them would report a missing endpoint as a missing BAdI.";
     exports2.getBadiImplementations = (0, toolDefinition_1.defineTool)({
       name: "GetBadiImplementations",
-      description: "[read-only] Find implementations of a (classic) BAdI definition. Use during symptom analysis when a standard SAP BAdI is implicated \u2014 answers 'which Z class extends this standard BAdI?'. Example flow: PO BAPI error \u2192 ME_PROCESS_PO_CUST \u2192 list Z impls \u2192 read the impl class source via GetClass to find the bug. Currently ECC-only (routes through the ZMCP_ADT_DDIC_BADI bridge FM). Classic BAdI only; kernel BAdI returns kind='unknown'.",
+      description: "[read-only] Find implementations of a (classic) BAdI definition. Use during symptom analysis when a standard SAP BAdI is implicated \u2014 answers 'which Z class extends this standard BAdI?'. Example flow: PO BAPI error \u2192 ME_PROCESS_PO_CUST \u2192 list Z impls \u2192 read the impl class source via GetClass to find the bug. Currently ECC-only (routes through the ZSAPKIT_ADT_DDIC_BADI bridge FM). Classic BAdI only; kernel BAdI returns kind='unknown'.",
       inputSchema: {
         badi_definition: z.string().describe("BAdI definition name (e.g., ME_PROCESS_PO_CUST). Will be uppercased."),
         customer_only: z.boolean().optional().describe("Restrict to Z*/Y* implementations. Default: true. Set false to include SAP-shipped implementations."),
@@ -72521,8 +72521,8 @@ var require_core5 = __commonJS({
       }
     }
     function readEngineVersion() {
-      if ("1.2.1") {
-        return "1.2.1";
+      if ("1.3.0") {
+        return "1.3.0";
       }
       let dir = __dirname;
       for (let depth = 0; depth < 6; depth += 1) {
