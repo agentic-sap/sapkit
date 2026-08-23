@@ -23854,7 +23854,7 @@ var require_connectDestination = __commonJS({
         key.client !== null ? `client ${key.client}` : null,
         key.language !== null ? `language ${key.language}` : null
       ].filter((part) => part !== null).join(", ");
-      return `MCP_DESTINATION_CONNECTED: --mcp=${key.destination} acquired a client_credentials token and the connection stands as Bearer on ${baseUrl}${where === "" ? "" : ` (${where})`}. ${lifetime(status)}; it lives in this process's memory only, and startup does not renew it \u2014 restart the server when it expires. No SAP tier comes with a service key, so tier=UNKNOWN and every write and execution is refused (fail-closed); set up a profile sap.env if this system needs to be writable.`;
+      return `MCP_DESTINATION_CONNECTED: --mcp=${key.destination} acquired a client_credentials token and the connection is configured as Bearer on ${baseUrl}${where === "" ? "" : ` (${where})`}. Nothing has been sent to that system yet \u2014 whether it accepts this token is decided by the first request, not by this line. A client_credentials token carries no user identity, and an ABAP system that maps requests to users can answer 401 on every path while the token itself stays valid; if every tool comes back unauthorized, that is the cause, and the destination needs a grant that carries a user rather than a fix on this side. ${lifetime(status)}; it lives in this process's memory only, and startup does not renew it \u2014 restart the server when it expires. No SAP tier comes with a service key, so tier=UNKNOWN and every write and execution is refused (fail-closed); set up a profile sap.env if this system needs to be writable.`;
     }
     function nextStep(code, key) {
       switch (code) {
@@ -72422,8 +72422,8 @@ var require_core5 = __commonJS({
       }
     }
     function readEngineVersion() {
-      if ("1.1.0") {
-        return "1.1.0";
+      if ("1.1.1") {
+        return "1.1.1";
       }
       let dir = __dirname;
       for (let depth = 0; depth < 6; depth += 1) {
