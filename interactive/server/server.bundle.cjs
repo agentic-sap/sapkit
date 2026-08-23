@@ -23605,23 +23605,34 @@ var require_startup = __commonJS({
       }
       return void 0;
     }
+    var LOOPBACK_CALLBACK_HOSTS = ["localhost", "127.0.0.1"];
     function resolveAuthInteractive(args, diagnostics) {
+      const enabled = args.includes("--auth-interactive");
       const rawHost = (argValue(args, "--callback-host") ?? "").trim();
       const rawPort = (argValue(args, "--callback-port") ?? "").trim();
+      const say = (line) => {
+        if (enabled)
+          diagnostics.push(line);
+      };
+      let callbackHost = exports2.DEFAULT_INTERACTIVE_CALLBACK_HOST;
+      if (rawHost !== "") {
+        const match = LOOPBACK_CALLBACK_HOSTS.find((allowed) => allowed.toLowerCase() === rawHost.toLowerCase());
+        if (match !== void 0) {
+          callbackHost = match;
+        } else {
+          say(`CALLBACK_HOST_INVALID: --callback-host=${rawHost} is not a loopback address, so the callback stays on ${exports2.DEFAULT_INTERACTIVE_CALLBACK_HOST}. This server receives the authorization code over plain HTTP, so it binds loopback only \u2014 a non-loopback bind would put that code on the network for any process on the same segment to take. Allowed: ${LOOPBACK_CALLBACK_HOSTS.join(", ")}. Pick the one this key's XSUAA client has registered as a redirect_uri.`);
+        }
+      }
       let callbackPort = exports2.DEFAULT_INTERACTIVE_CALLBACK_PORT;
       if (rawPort !== "") {
         const parsed = Number(rawPort);
         if (Number.isInteger(parsed) && parsed >= 1 && parsed <= 65535) {
           callbackPort = parsed;
         } else {
-          diagnostics.push(`CALLBACK_PORT_INVALID: --callback-port=${rawPort} is not a port number (1-65535), so the loopback callback stays on ${exports2.DEFAULT_INTERACTIVE_CALLBACK_PORT}. That address has to match a redirect_uri registered on the XSUAA client, so fix the argument if this key's whitelist names a different port.`);
+          say(`CALLBACK_PORT_INVALID: --callback-port=${rawPort} is not a port number (1-65535), so the loopback callback stays on ${exports2.DEFAULT_INTERACTIVE_CALLBACK_PORT}. That address has to match a redirect_uri registered on the XSUAA client, so fix the argument if this key's whitelist names a different port.`);
         }
       }
-      return {
-        enabled: args.includes("--auth-interactive"),
-        callbackHost: rawHost === "" ? exports2.DEFAULT_INTERACTIVE_CALLBACK_HOST : rawHost,
-        callbackPort
-      };
+      return { enabled, callbackHost, callbackPort };
     }
     function resolveEnvPathLike(raw, cwd) {
       return path.isAbsolute(raw) ? raw : path.resolve(cwd, raw);
@@ -23809,7 +23820,7 @@ var require_connectDestination = __commonJS({
     var startup_1 = require_startup();
     exports2.DEFAULT_AUTHORIZE_TIMEOUT_MS = 18e4;
     function printAuthorizeUrl(url) {
-      process.stderr.write(`MCP_DESTINATION_AUTHORIZE_URL: startup is waiting for a browser round trip. Open this URL, sign in, and the loopback callback finishes the login here. Nothing opens on its own.
+      process.stderr.write(`MCP_DESTINATION_AUTHORIZE_URL: startup is waiting for a browser round trip. Open this URL, sign in, and the loopback callback finishes the login here. Nothing opens on its own. Startup is blocked until then, which delays the MCP handshake for as long as the sign-in takes \u2014 a client whose own startup timeout is shorter can score this launch as a failure even after the token arrives, so sign in now or restart without --auth-interactive.
 ${url}
 `);
     }
@@ -23933,7 +23944,7 @@ ${url}
         case "CALLBACK_FAILED":
           return `The loopback callback could not be held at ${flow.callbackUrl} \u2014 either something else already listens on that port (startup does not quietly move to another one, because the redirect_uri would then no longer match what is registered) or the authorization server sent the callback back as an error. Free that port, or point --callback-host and --callback-port at an address that is in this XSUAA client's registered redirect_uri list.`;
         case "UAA_REJECTED":
-          return `The token endpoint refused the code exchange. The usual cause is a redirect_uri that does not match the one registered on this XSUAA client \u2014 this run used ${flow.callbackUrl} (move it with --callback-host and --callback-port; the address is compared as a string, so 127.0.0.1 and localhost are different values). A code that sat unused for too long also expires. Check the redirect_uri list in BTP against that address, then restart.`;
+          return `The token endpoint refused the code exchange. The usual cause is a redirect_uri that does not match the one registered on this XSUAA client \u2014 this run used ${flow.callbackUrl} (move it with --callback-host and --callback-port; the address is compared as a string, so 127.0.0.1 and localhost are different values). A code that sat unused for too long also expires. A third cause has no fix on this side: this engine sends no PKCE code_challenge, so an XSUAA client configured to require it refuses every exchange here no matter what the redirect_uri says. Check the redirect_uri list in BTP against that address first, then whether this client mandates PKCE, then restart.`;
         case "UAA_REQUEST_FAILED":
           return `The token endpoint was not reachable from this machine \u2014 check the uaa url in ${key.source} against DNS, the proxy, and any VPN this machine needs, then restart.`;
         default:
@@ -23943,7 +23954,12 @@ ${url}
     var OPAQUE_CAUSE = /* @__PURE__ */ new Set([
       "CALLBACK_TIMEOUT",
       "CALLBACK_STATE_MISMATCH",
-      "CALLBACK_ABORTED"
+      "CALLBACK_ABORTED",
+      // 이 둘은 판M2-c가 만든 결함이 아니라 **선재**였다 — 두 그랜트 모두에서 도달
+      // 가능하고 em-dash 뒤가 한국어다(`uaa.ts`의 응답 불량 · `tokenSource.ts`의
+      // 갱신 재료 없음). 기구를 세운 판이 두 줄로 닫는다(D-119 ⓔ).
+      "UAA_RESPONSE_INVALID",
+      "AUTH_NO_REFRESH_MATERIAL"
     ]);
     function failureLine(key, endpoint, error, flow) {
       const code = (0, auth_1.isAuthError)(error) ? error.code : "UNEXPECTED";

@@ -2842,3 +2842,33 @@ BTP ABAP trial `TRL` · `--mcp=TRIAL --auth-interactive --exposition=readonly`:
 - **기계 장부 반영**: **안 했다** — 기동 시 인증 절차다. 3차~5차와 같은 자리다.
 - **결정 기록**: D-118.
 
+## 상태 갱신 (append) — D15 7차: 콜백 호스트를 loopback으로 조였다 (2026-08-23 · D-119)
+
+**위 D15 본문도, 1차~6차 갱신 표도 고치지 않는다.** 5차가 연 `--callback-host` 노브에
+**입력 검증이 없었고**, 독립 리뷰(R-FAIL)가 그것을 차단으로 냈다.
+
+| 자리 | 5차 시점 | 지금 (D-119 회수) |
+|---|---|---|
+| `--callback-host` | **`.trim()`만 하고 통과** — 리뷰어 실측으로 `0.0.0.0`·`192.168.1.50`이 그대로 `server.listen(port, host)`까지 내려갔다 | **loopback 리터럴만**(`localhost`·`127.0.0.1`). 그 밖은 **기본값으로 되돌리고** `CALLBACK_HOST_INVALID`로 이유를 말한다 |
+| 진단 발화 | 플래그 없이도 `CALLBACK_PORT_INVALID`가 났다 | **`--auth-interactive`일 때만.** 플래그 없는 기동의 진단 수가 **무인자 기동과 같다**(실측 2건 = 2건) |
+| 핸드셰이크 경고 | **성공 진단에만** — 대기가 끝난 뒤에야 보인다 | **`printAuthorizeUrl`에도.** `bootstrap`이 transport 연결 **전에** await 하므로 대기 중 보이는 유일한 출력이다 |
+| `UAA_REJECTED` 안내 | redirect_uri 불일치 · 코드 만료 | **+ PKCE** — 이 엔진은 `code_challenge`를 안 보내므로 그것을 요구하는 클라이언트에서는 **이쪽에 고칠 것이 없다** |
+| `OPAQUE_CAUSE` | 3종 | **5종** — `UAA_RESPONSE_INVALID`·`AUTH_NO_REFRESH_MATERIAL`도 em-dash 뒤가 한국어이고 **두 그랜트 모두에서 도달 가능**하다(선재 결함) |
+
+- **`src/auth/callback.ts`의 「지키는 것 ①」은 고치지 않았다.** 리뷰어가 제시한 두 길 중
+  **코드를 조이는 쪽**을 택했다 — 「loopback에만 바인딩한다」는 **지켜야 할 보장**이지
+  완화할 서술이 아니다. `src/auth/**` 무수정 원칙도 그대로다.
+- ⚠ **`::1`은 회수 초안에 넣었다가 뺐다** — loopback이 맞지만 이 통로가 만드는 URL이
+  깨진다. 콜백 계층 조립이 `http://${host}:${port}${path}`라 `http://::1:8080/callback`이
+  되고 **IPv6는 `http://[::1]:8080/…`처럼 대괄호를 요구한다.** 조립을 고치려면
+  `src/auth/**`를 건드려야 하므로 **받아 놓고 깨진 `redirect_uri`를 보내느니 거부하고
+  이유를 말한다.** 대괄호 표기가 필요해지면 별도 판에서 연다. **시험이 잡은 결함이다.**
+- **대체 기대 시험**: `startup.test.ts` — 비-loopback 거부 3종(**`authInteractive` 전체를
+  `toEqual`로 재어 되돌아간 것이 값임을 단언**) · 허용 2종 · 대소문자 정규형 · **`::1` 거부** ·
+  진단 게이트 2건(**개수 대조**). `connectDestination.test.ts` — `CALLBACK_FAILED`·
+  `UAA_RESPONSE_INVALID` 한글 미포함 · PKCE 문면 · **기본 `printAuthorizeUrl` 문면**
+  (`process.stderr.write` 가로채기 · 외부 요청 0).
+  **돌연변이 확인**: 호스트 검사를 무력화하면 **4건 red**.
+- **기계 장부 반영**: **안 했다** — 3차~6차와 같은 자리다.
+- **결정 기록**: D-119.
+
