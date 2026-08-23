@@ -104,13 +104,40 @@ TYPES: BEGIN OF ty_adt_screen_call,
          dynpro_data TYPE string,
        END OF ty_adt_screen_call.
 
+* Flow logic needs two shapes, and merging them back into one is the
+* mistake this block exists to prevent.
+*
+* On the wire a flow line is an object with a single member named LINE.
+* That is what a caller sends and what a read has to hand back, so the
+* JSON side needs a line type that actually has a component of that name.
+*
+* The Workbench side speaks something else. RPY_DYNPRO_READ and
+* RPY_DYNPRO_INSERT exchange flow logic as bare 72-character text lines,
+* and they type that table parameter generically. A generic type may only
+* type a field symbol or a formal parameter; naming one in a DATA
+* statement or a structure component is a syntax error. An earlier draft
+* of this module did exactly that and would not compile.
+*
+* So there are two declarations here, and a short copying loop wherever
+* the two meet. That loop is the price of letting the wire and the
+* Workbench each keep the shape it genuinely requires.
+TYPES: BEGIN OF ty_adt_flow_line,
+         line TYPE string,
+       END OF ty_adt_flow_line.
+TYPES ty_adt_flow_lines TYPE STANDARD TABLE OF ty_adt_flow_line
+                        WITH DEFAULT KEY.
+
+TYPES ty_adt_flow_text     TYPE c LENGTH 72.
+TYPES ty_adt_flow_text_tab TYPE STANDARD TABLE OF ty_adt_flow_text
+                           WITH DEFAULT KEY.
+
 * A whole screen. RPY_DYNPRO_READ fills it and RPY_DYNPRO_INSERT consumes
 * it, so what a read hands out can be fed straight back into a write.
 TYPES: BEGIN OF ty_adt_screen,
          header               TYPE rpy_dyhead,
-         containers           TYPE TABLE OF rpy_dycatt WITH DEFAULT KEY,
-         fields_to_containers TYPE TABLE OF rpy_dyfield WITH DEFAULT KEY,
-         flow_logic           TYPE swbse_max_line_tab,
+         containers           TYPE dycatt_tab,
+         fields_to_containers TYPE dyfatc_tab,
+         flow_logic           TYPE ty_adt_flow_lines,
        END OF ty_adt_screen.
 
 * Operands of CUA_FETCH and CUA_WRITE. A fetch leaves cua_data empty.
@@ -156,12 +183,14 @@ FORM collect_screen_source USING iv_params TYPE string
 
   DATA ls_call   TYPE ty_adt_screen_call.
   DATA ls_screen TYPE ty_adt_screen.
+  DATA lt_flow   TYPE ty_adt_flow_text_tab.
 
   /ui2/cl_json=>deserialize( EXPORTING json = iv_params
                              CHANGING  data = ls_call ).
 
-* The four parts of a screen are collected straight into the answer
-* structure, so no second copying step can quietly drop one of them.
+* Three of the four parts land straight in the answer structure. Flow
+* logic cannot, because the Workbench delivers it as plain text lines
+* while the answer carries objects, so it is picked up on its own below.
   CALL FUNCTION 'RPY_DYNPRO_READ'
     EXPORTING
       progname             = CONV syrepid( to_upper( ls_call-program ) )
@@ -171,7 +200,7 @@ FORM collect_screen_source USING iv_params TYPE string
     TABLES
       containers           = ls_screen-containers
       fields_to_containers = ls_screen-fields_to_containers
-      flow_logic           = ls_screen-flow_logic
+      flow_logic           = lt_flow
     EXCEPTIONS
       cancelled            = 1
       not_found            = 2
@@ -183,6 +212,13 @@ FORM collect_screen_source USING iv_params TYPE string
     cv_message = |RPY_DYNPRO_READ declined with sy-subrc { cv_subrc }|.
     RETURN.
   ENDIF.
+
+* Text line to wire object. Assigning a fixed-length field to a string
+* drops the padding, so the caller never sees the 72-character frame.
+  LOOP AT lt_flow INTO DATA(lv_flow_text).
+    APPEND VALUE ty_adt_flow_line( line = lv_flow_text )
+           TO ls_screen-flow_logic.
+  ENDLOOP.
 
   cv_result  = /ui2/cl_json=>serialize( data = ls_screen ).
   cv_message = |Screen { ls_call-program }/{ ls_call-dynpro } read|.
@@ -200,6 +236,7 @@ FORM apply_screen_source USING iv_params TYPE string
 
   DATA ls_call    TYPE ty_adt_screen_call.
   DATA ls_screen  TYPE ty_adt_screen.
+  DATA lt_flow    TYPE ty_adt_flow_text_tab.
   DATA lv_program TYPE string.
   DATA lv_dynpro  TYPE string.
 
@@ -215,6 +252,13 @@ FORM apply_screen_source USING iv_params TYPE string
   /ui2/cl_json=>deserialize( EXPORTING json = ls_call-dynpro_data
                              CHANGING  data = ls_screen ).
 
+* Wire object back to text line. Anything past column 72 is cut here
+* rather than by the Workbench, which reports an over-long line as a
+* whole-screen refusal and never says which line was at fault.
+  LOOP AT ls_screen-flow_logic INTO DATA(ls_flow_line).
+    APPEND CONV ty_adt_flow_text( ls_flow_line-line ) TO lt_flow.
+  ENDLOOP.
+
 * Existence checks stay suppressed because the caller has already decided
 * the screen belongs there; letting them run turns a deliberate overwrite
 * into a refusal.
@@ -225,7 +269,7 @@ FORM apply_screen_source USING iv_params TYPE string
     TABLES
       containers            = ls_screen-containers
       fields_to_containers  = ls_screen-fields_to_containers
-      flow_logic            = ls_screen-flow_logic
+      flow_logic            = lt_flow
     EXCEPTIONS
       already_exists        = 1
       cancelled             = 2

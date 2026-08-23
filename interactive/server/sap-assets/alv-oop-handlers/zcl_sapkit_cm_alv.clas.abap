@@ -600,10 +600,10 @@ ENDCLASS.
 CLASS zcl_sapkit_cm_alv IMPLEMENTATION.
 
 
-* --- lookups -----------------------------------------------------------
 
 
   METHOD grid_index.
+    " ── lookups ──
 
     DATA lv_row TYPE i.
     DATA lv_column TYPE i.
@@ -698,10 +698,10 @@ CLASS zcl_sapkit_cm_alv IMPLEMENTATION.
   ENDMETHOD.
 
 
-* --- containers --------------------------------------------------------
 
 
   METHOD create_dock_container.
+    " ── containers ──
 
     ro_dock_container = NEW #( repid     = iv_repid
                                dynnr     = iv_dynnr
@@ -862,10 +862,10 @@ CLASS zcl_sapkit_cm_alv IMPLEMENTATION.
   ENDMETHOD.
 
 
-* --- grid --------------------------------------------------------------
 
 
   METHOD create_alv_grid.
+    " ── grid ──
 
     DATA(lr_parent) = parent_container( io_parent      = io_parent
                                         io_parent_dock = io_parent_dock
@@ -1320,10 +1320,10 @@ CLASS zcl_sapkit_cm_alv IMPLEMENTATION.
   ENDMETHOD.
 
 
-* --- tree --------------------------------------------------------------
 
 
   METHOD create_alv_tree.
+    " ── tree ──
 
     DATA(lr_parent) = parent_container( io_parent      = io_parent
                                         io_parent_dock = io_parent_dock
@@ -1717,10 +1717,10 @@ CLASS zcl_sapkit_cm_alv IMPLEMENTATION.
   ENDMETHOD.
 
 
-* --- interface ---------------------------------------------------------
 
 
   METHOD zif_sapkit_cm~create_dynamic_table.
+    " ── interface ──
 
     DATA lt_fieldcat TYPE lvc_t_fcat.
 

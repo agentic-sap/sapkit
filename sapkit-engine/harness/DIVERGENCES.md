@@ -2941,3 +2941,38 @@ D-118·D-119 커밋이 착지해 **대상이 두 번 움직였고**, 그 부채�
   ⚠ **시험되지 않았다** — 접속이 막혀 대조 단계에 닿지도 못했다. **접속이 돌아오면 가장
   먼저 시험할 길이다.**
 - **결정 기록**: D-122.
+
+### D140 — 화면 흐름로직의 **읽기 방향**이 구와 다르다: 우리는 `[{LINE}]`을 낸다 (신설 · 2026-08-23 · D-130 판S)
+
+**분류**: 수리 · **도구**: `GetScreen` · `ReadScreen` (RFC 대리자 통로)
+
+**구는 이렇게 한다.** `ZMCP_ADT_DISPATCH`의 `DYNPRO_READ`가 `RPY_DYNPRO_READ`에서 받은
+흐름로직을 **`c LENGTH 72` 테이블 그대로 직렬화**한다. 그래서 와이어에 나가는 것은
+**문자열 배열**(`["PROCESS BEFORE OUTPUT.", …]`)이다.
+
+**신은 `[{ "LINE": "…" }]`을 낸다.** 읽기·쓰기 양쪽 모두 그 모양이다.
+
+**왜 갈랐나.** 엔진이 읽는 자리가 그 모양을 요구한다 —
+`src/tools/rfc-read/dynpro.ts`의 `flowLogicOf`가 **`record['LINE']`**을 꺼내고,
+쓰기 쪽 `internal/dynproData.ts`의 `normalizeFlowLogic`은 **언제나 `[{LINE: string}]`을
+만든다.** 즉 **구의 읽기 출력은 신 엔진의 읽기 파서와 맞물리지 않는다** — 그대로 두면
+`GetScreen`이 흐름로직을 **빈 줄로** 돌려주고, 읽기→쓰기 왕복도 성립하지 않는다.
+시험 픽스처도 이미 `FLOW_LOGIC: [{ LINE: 'PROCESS BEFORE OUTPUT.' }]` 모양이다
+(`__tests__/getScreen.test.ts` · `readScreen.test.ts`).
+
+**ABAP 쪽에서 무엇이 바뀌었나.** 재저작본은 두 형식을 **일부러 갈라 둔다** —
+와이어용 `ty_adt_flow_line`(`line TYPE string`)과 Workbench FM용
+`ty_adt_flow_text`(`c LENGTH 72`), 그리고 만나는 자리마다 옮김 루프. 하나로 합치려던
+시도가 제네릭 타입 `swbse_max_line_tab`을 붙잡아 **ADT precheck가 거부했고**(L113),
+그 실패가 이 분리를 강제했다. 파일 주석에 두 실패를 이름 붙여 남겼다.
+
+**대체 기대 시험**: `src/tools/rfc-read/__tests__/getScreen.test.ts` ·
+`readScreen.test.ts`(`FLOW_LOGIC: [{ LINE: … }]` 픽스처) ·
+`src/tools/write/__tests__/`의 `normalizeFlowLogic` 경로.
+
+⚠ **실기 확인의 한계**: 이 차이는 **활성화까지만 섰다**. 실제 화면 왕복
+(`GetScreen` → SAP → 응답)은 **확인되지 않았다** — 그 통로가 OData 서비스
+`ZSAPKIT_ADT_SRV`를 타는데 그 서비스는 아직 이 시스템에 없다(구 `ZMCP_ADT_SRV`만 있다).
+**「ABAP이 활성화됐다」와 「왕복이 성립한다」는 다른 말이다.**
+
+**결정 기록**: D-130 · D-132.
