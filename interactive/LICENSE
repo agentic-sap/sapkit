@@ -31,7 +31,7 @@ It is **not the license of the SAPKIT plugin** — that is the repository root
 and nothing above will be: this section only records what is known about the
 subtree it covers.
 
-**It covers the whole `interactive/` subtree.** Two attempts to narrow it to a
+**It covers the whole `interactive/` subtree.** As of 2026-08-23 the reason it still exists is **the scattered contract lines in the last row below**, not any whole file: every file-sized borrowing has been re-authored (`server/sap-assets/` was the last one — D-130). Two attempts to narrow it to a
 file list failed review (a migration class was missed, then the ledger's path
 mapping was found short), and the re-authoring that followed showed why a file
 list is the wrong shape: what remains of the upstream work is not files but
@@ -39,7 +39,7 @@ list is the wrong shape: what remains of the upstream work is not files but
 
 | Group | Count | State |
 |---|---:|---|
-| `server/sap-assets/` | 30 files | Upstream, unmodified since import. Kept as-is by D-079 ⑥ — these install SAP-side objects that are never renamed or regenerated. **Permanent, and the reason this notice never fully retires.** |
+| `server/sap-assets/` | 29 files | ~~Upstream, unmodified since import~~ → **Re-authored from scratch and renamed on 2026-08-23** (D-130, D-131; nine of them installed and activated on a real S/4HANA system — D-132). Verbatim overlap with the upstream sources is **17 lines**, every one of them a contract that cannot differ (DDIC type declarations, selection-screen parameters, framework redefinition signatures, OData properties, public method signatures). **This group is no longer a reason for this notice to exist.** |
 | Knowledge, industry, country and ABAP-convention content (`copy` ledger) | 170 files | **Re-authored file by file under independent review** (finished 2026-08-18) — except **26 pure reference-table files** (TCode/SPRO tables), which were **verified unchanged** instead: their content is factual data, kept byte-identical on purpose (D-088 ②). |
 | Server-bound utilities and the tool catalog | 6 files | **Replaced or rewritten 2026-08-23**: the catalog is now generated from the engine registry; both utilities were rewritten from scratch. |
 | Personas, procedures, hooks, libs, extraction tools, policies (§3.4 ledger) | 56 files | **Re-authored 2026-08-23** across three reviewed batches. |
