@@ -25,9 +25,11 @@
 > ⚠ **「ADT가 열리는 것을 봤다」를 「엔진이 붙었다」로 읽지 말 것** — 실접속을 세운
 > 것은 **엔진 기동이 아니라 프로브**다. **M-표 M2는 승격하지 않았다.**
 >
-> **③ 아직 push하지 않았다.** 판M2-b의 커밋 **6종**(`6823129a` D-115 · `7e275c7e` 회수 ·
-> `0eea19f1` 번들 · `26d4d71c` D-116 · `6612346b` 리뷰 회수 집행 · `ed02e521` 재핀)이
-> 로컬에 있다. **push는 사용자 판단이다**(묻는 자리 ①). push 뒤 CI 확인은 무인증으로:
+> **③ push 완료 · CI success 확인됨.** 커밋 **7종**(`6823129a` D-115 · `7e275c7e` 회수 ·
+> `0eea19f1` 번들 · `26d4d71c` D-116 · `6612346b` 리뷰 회수 집행 · `ed02e521` 재핀 ·
+> `8bfba801` 마감)이 `a8f3288d..8bfba801`로 origin/main에 올라갔고, CI
+> (`offline-gates.yml`)가 그 SHA에서 **`completed | success`**로 완주했다
+> (2026-08-23 세션 안에서 확인). 무인증 확인법:
 > `curl -s "https://api.github.com/repos/agentic-sap/sapkit/actions/runs?per_page=1&branch=main"`
 >
 > **판M2-c 착수 시 순서**(브리프는 `docs/RUN-PLAN.md`): ① 착수 기준선 네 묶음 ②
