@@ -2802,3 +2802,43 @@ SAP 측 설치가 선행돼야 하고 그 셋 중 무엇도 지금 이 프로젝
   않는다. 3차·4차와 같은 자리다.
 - **결정 기록**: D-117.
 
+## 상태 갱신 (append) — D15 6차: **해소** (2026-08-23 · D-118)
+
+**위 D15 본문도, 1차~5차 갱신 표도 고치지 않는다.** 5차가 「남은 것」으로 적은
+**「엔진이 그 토큰으로 도구를 실제로 돌리는 것(attended 확인)」**이 섰다.
+
+**실측** — 제품 번들 `interactive/server/server.bundle.cjs` **1.2.0** ·
+BTP ABAP trial `TRL` · `--mcp=TRIAL --auth-interactive --exposition=readonly`:
+
+| 걸음 | 결과 |
+|---|---|
+| 인가 URL | `MCP_DESTINATION_AUTHORIZE_URL`이 **stderr**로 · 문면 **「Nothing opens on its own」** · redirect_uri **`http://localhost:8080/callback`** |
+| 사람 로그인 | 브라우저 1회 · 콜백이 code 수령 |
+| 토큰 | **`MCP_DESTINATION_TOKEN_ACQUIRED`** · 문면이 **「This token came from a person signing in, so it carries a user identity」** |
+| 기동 상태 | `connection=yes` · tier=UNKNOWN · systemType=cloud · 노출 65종(`readonly` 축) |
+| **도구 왕복** | **`GetSystemInfo` → `{"supported":true,"system_id":"TRL","client":"100","language":"EN","user_name":"CB9980000836","adt_stack_type":"modern"}`** |
+
+**4차에서 `client_credentials`로 같은 도구가 `{"supported":false}`를 내던 바로 그
+자리다.** 신원 있는 토큰이 그 결핍을 메웠다.
+
+- **분류를 `축소`에서 **해소**로 옮긴다** — 해소 마일스톤 **M2가 섰다**
+  (`docs/BLUEPRINT.md` M-표 · **D-118 ⓐ**). `--mcp` 통로의 세 갈래
+  (`client_credentials` 자동 · `authorization_code` 옵트인 · 플래그 없음 = 정지)가
+  전부 제 자리를 갖는다.
+- ⚠ **`증거 완료`는 여전히 주장하지 않는다**(D-082 ① · D-118 ⓒ) — 이 등재가 닫는 것은
+  **접속 통로**이고, 도구별 증거 급은 대장의 **증거 대기 30종**이 따로 채운다.
+  **「접속이 된다」와 「도구들이 증명됐다」는 다른 사실이다.**
+- ⚠ **`MCP_DESTINATION_CONNECTED`의 예약은 유지된다**(D-118 ⓓ) — 이 확인이 「대상이
+  토큰을 받는다」를 실증했지만 **확인한 주체는 사람이 부른 도구이지 기동이 아니다.**
+  기동이 스스로 왕복해 확인하는 코드는 여전히 없으므로 그 이름의 자리도 그대로 빈다.
+  **실증됐다고 해서 코드가 그것을 아는 것은 아니다.**
+- **남은 것**: 토큰 **갱신** 배선 · **세션마다 로그인** 마찰(토큰 무상태 · D-091 ⓒ①) ·
+  나머지 185종이 이 접속에서 도는지(**증거 판의 몫** — 이 확인이 잰 것은 `GetSystemInfo`
+  하나다).
+- **대체 기대 시험**: 배선 쪽은 5차가 적은 오프라인 시험 그대로(회귀 4 · 실패 4종 ·
+  파싱 11 · 이월 2). **이 등재의 실왕복 자체는 외부 시스템의 사실이라 시험으로 얼릴 수
+  없다** — 재현 수단은 `harness/probe-destination.mjs`(attended 전용 · 게이트 아님)와
+  채록본 `docs/reference/audits/2026-08-23-btp-abap-trial-grant-probe.md`.
+- **기계 장부 반영**: **안 했다** — 기동 시 인증 절차다. 3차~5차와 같은 자리다.
+- **결정 기록**: D-118.
+

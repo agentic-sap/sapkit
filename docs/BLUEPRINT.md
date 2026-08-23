@@ -253,7 +253,7 @@ RFC 백엔드 5경로(`odata`·`soap`·`native`·`gateway`·`zrfc`)도 전부 �
 | M | 범위 | 완료 판정 (아래 공통 요건에 더해) | `짓기 완료` | `증거 완료` |
 |---|---|---|---|---|
 | **M1** | **증거는 판6.1(2026-08-18)에서 전부 섰다.** ⓐ 증거 없던 **12종**이 닫혔다 — 재생 **9종**(`GetInclude` `GetFunctionModule` `GetTable` `GetStructure` `GrepObjects` `UpdateInclude` `UpdateSourceByPatch` `GetInactiveObjects` `GetSqlQuery`) C1 녹화 → C2 재생 대조 · `Create*` **2종** 실기 기록(`CreateProgram`·`CreateInclude`) · **`GetSourceDiff` 1종**은 재생 대상이 아니다(요구 급 `계약 시험` · 기충족 — `build-plan.json`이 기계 정본. 전에 이 셀이 「재생 대상 10종」으로 적은 것이 오기였다). 9+2+1=12. ⓑ **C3 실기** — 대표 절차(프로그램 생성 → 활성 → 반영 확인) 1건 닫힘. | ⓐ M1 도구 **19종 전량**이 **각자의 증거 급**을 갖는다(아래 「증거 급」 참조) — 재생 가능한 것은 정규화 diff 0, `Create*`처럼 재생이 원리상 불가한 것은 attended 실기 기록. ⓑ 대표 절차가 구·신 엔진에서 같은 결과. **→ 이 둘이 닫혀야 M2에 착수한다.** | ✅ (2026-08-12) | **✅ (2026-08-18 · 판6.1 · D-092)** ³ |
-| **M2** | **접속 방식 확장** — destination · service-key · broker 인증. `--mcp=<destination>` · `--env=<name>` 통로 구현. **오프라인 배선은 2026-08-23 판M2-a에서 끝났다**(D-114 — 기동 토큰 취득 · 진단 5종). **판M2-b(D-115)가 실접속을 재고 마감했다 — 그리고 ⓐ는 서지 않았다**: `client_credentials` 그랜트로는 ABAP ADT가 열리지 않는다(토큰은 200이나 신원이 없어 전 경로 401). **ⓐ에 도달하는 경로는 `authorization_code`뿐이고 그 기동 배선이 판M2-c다.** | ⓐ destination 프로파일로 **실접속 성공**(inspection-only 강등 아님). ⓑ `--mcp` 진단 `MCP_DESTINATION_UNSUPPORTED`가 더 이상 나오지 않는다. ⓒ 기존 Basic 경로 회귀 0. **→ D15 해소** | **일부** ¹ | ⬜ **열려 있다** |
+| **M2** | **접속 방식 확장** — destination · service-key · broker 인증. `--mcp=<destination>` · `--env=<name>` 통로 구현. **오프라인 배선은 2026-08-23 판M2-a에서 끝났다**(D-114 — 기동 토큰 취득 · 진단 5종). 판M2-b(D-115)가 실접속을 재어 **`client_credentials`로는 ABAP ADT가 열리지 않음**을 실측했고(토큰은 200이나 신원이 없어 전 경로 401), **판M2-c(D-117)가 `authorization_code` 기동 배선을 명시 옵트인 `--auth-interactive`로 세웠으며, 그 attended 확인(D-118)이 섰다** — `GetSystemInfo` → `{"supported":true,"system_id":"TRL",…}`. | ⓐ destination 프로파일로 **실접속 성공**(inspection-only 강등 아님). ⓑ `--mcp` 진단 `MCP_DESTINATION_UNSUPPORTED`가 더 이상 나오지 않는다. ⓒ 기존 Basic 경로 회귀 0. **→ D15 해소** | **✅ (2026-08-23 · 판M2-c · D-118)** ¹ | ⬜ **열려 있다** |
 | **M3** | **전송 + RFC 완성** — HTTP · SSE 전송 2종. RFC `soap`·`native`·`gateway`·`zrfc` 4경로. | **완료 = 전송 3종**(**D-093 ⓑ**, 2026-08-19): ⓐ stdio·HTTP·SSE 각각으로 기동 → 도구 호출 성공 + 전 M 공통 요건. ⓑ RFC 5경로 각각 통로 생성이 계약대로(이미 ✅). — **이월**: `native`·`gateway`·`zrfc` **3경로의 실동작 확인**(옛 ⓒ 포함)은 M3에서 떼어 **교체 판정 시점의 재평가**로 옮겼다. 셋 다 장비·비용·SAP 측 설치가 선행돼야 밟히므로(유료 RFC SDK · 중계 미들웨어 호스트 · SAP 측 핸들러+SICF+FM 설치=P3/P4) M3에 묶어 두면 **M3가 어느 판에서도 닫히지 않는다**. **교체를 막는 조건은 아니다** — 관문은 검증 기준 1~4이고(D-093 ⓐ) 그 넷은 RFC 경로를 요구하지 않는다. 등재는 `sapkit-engine/harness/DIVERGENCES.md` D21·D22 + **`gateway` 신규 등재**. **뼈대는 여기서 끝난다.** | ✅ (2026-08-14) | ⬜ **열려 있다** |
 | **M4** | **도구 — 실호출 116종** (§4.7 실사 정본 기준). M1이 이미 지은 것 포함. | 116종 **전량**이 증거 급을 갖는다(아래 「증거 급」 참조) — 원칙은 녹화-재생 정규화 diff 0, `Create*`·`Delete*`는 attended 실기 기록, 의도적 차이 목록 등재분은 **대체 기대 시험** 통과. | ✅ (2026-08-14) | ⬜ **열려 있다** |
 | **M5** | **도구 — 나머지 70종** (자산참조만 21 + 꼬리 49 — 앞은 문서가 부르지만 호출 이력이 0인 것, 뒤는 양쪽 증거가 모두 0인 것. §4.7). | ⓐ 70종 전량 **계약 시험 신규 저작** 통과 + 대표 건 attended 실기(증거 급은 아래 「증거 급」 참조 — 이 구간의 주 증거는 재생이 아니라 계약 시험이다). ⓑ **tools/list 186종 전량**이 tool-catalog 대조 **diff 0**. | ✅ (2026-08-14) | ⬜ **열려 있다** |
@@ -296,6 +296,19 @@ RFC 백엔드 5경로(`odata`·`soap`·`native`·`gateway`·`zrfc`)도 전부 �
 > 진입점**이다. 콜백 주소는 **포트뿐 아니라 호스트도 설계 입력**이다(실측 화이트리스트
 > `http://localhost:8080/callback` ↔ 엔진 기본값 `127.0.0.1`). 채록본은
 > [`docs/reference/audits/2026-08-23-btp-abap-trial-grant-probe.md`](reference/audits/2026-08-23-btp-abap-trial-grant-probe.md).
+>
+> **⚠ 갱신 (판M2-c · 2026-08-23 · D-117 → D-118)**: **`짓기 완료`가 섰다.** D-117이
+> 정지선을 **명시 옵트인 `--auth-interactive`**로 열었고(부르지 않으면 오늘과 동일 ·
+> 도구 0종 추가 · `src/auth/**` 무수정 — 기구는 판5가 이미 완성했고 이 판이 지은 것은
+> **부르는 자리 하나**다), **D-118의 attended 확인이 실왕복을 세웠다**: 제품 번들
+> **1.2.0**을 `--mcp=TRIAL --auth-interactive`로 띄워 사람이 브라우저 로그인한 뒤
+> **`GetSystemInfo`가 `{"supported":true,"system_id":"TRL","client":"100",…}`**를 냈다 —
+> 판M2-b에서 `client_credentials`로 같은 도구가 `supported:false`를 내던 **바로 그
+> 자리**다. 기준 셋이 다 섰다(ⓐ 실접속 · ⓑ `UNSUPPORTED` 미출현 · ⓒ Basic 회귀 0).
+> **→ D15 해소.** ⚠ **`증거` 칸은 여전히 열려 있다**(D-118 ⓒ) — 「접속이 된다」와
+> 「도구들이 증명됐다」는 **다른 사실**이고, 후자는 대장의 **증거 대기 30종**이 각자의
+> 요구 급을 채워야 닫힌다. ⚠ **세션마다 로그인이다** — 토큰은 프로세스 메모리에만 살고
+> (D-091 ⓒ①) 갱신 배선이 없어(D-117 ⓕ), **증거 판을 여러 번 돌릴 때 실제 마찰이 된다.**
 >
 > ³ **M1 `증거 완료`의 근거.** 판6.1(2026-08-18 · 첫 attended SAP 판)이 세웠다 —
 > 재생 판정 파일 **9건**(`sapkit-engine/evidence/replay/`) · `Create*` 2종의 attended 실기
