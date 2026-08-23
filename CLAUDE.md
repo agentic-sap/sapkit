@@ -175,7 +175,7 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
 
 ```bash
 node interactive/scripts/check-links.mjs interactive     # 상대 링크 깨짐 0
-node interactive/server/verify-engine.mjs                # 번들 무결성 OK (sapkit-engine 1.1.0)
+node interactive/server/verify-engine.mjs                # 번들 무결성 OK (sapkit-engine 1.1.1)
 node interactive/scripts/check-engine-provenance.mjs     # 엔진 소스 커밋 ↔ 번들 (--rebuild면 재현 빌드까지 — npm 불요)
 node interactive/scripts/smoke-mcp.mjs                   # 도구 표면 계약 assert
 node interactive/scripts/conformance-server-gates.mjs    # 서버 안전 게이트 (tier·blocklist·ask — 훅 0개 기본의 정본)

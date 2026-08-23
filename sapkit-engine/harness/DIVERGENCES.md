@@ -2699,7 +2699,7 @@ SAP 측 설치가 선행돼야 하고 그 셋 중 무엇도 지금 이 프로젝
 | 통로 | 2026-08-18 상태 | 지금 (2026-08-23) | 남은 것 |
 |---|---|---|---|
 | `--env=<name>` | 접속까지 완성 | 변화 없음 | attended 실접속 확인 |
-| `--mcp=<destination>` · **`client_credentials` 선언 키** | 토큰 취득 계층은 있으나 **기동이 돌리지 않음** | **기동이 첫 토큰을 받아 Bearer 접속을 세운다** — 기동 경로에 걸음이 하나 늘었다(`src/server/connectDestination.ts`, `bootstrap.startFromProcess`가 `resolveStartup` **뒤에** 부른다). 진단 코드 두 개가 새로 갈렸다: 해석 자리의 **`MCP_DESTINATION_TOKEN_REQUIRED`**(곧 받아 온다) → 결과 자리의 **`MCP_DESTINATION_CONNECTED`** 또는 **`MCP_DESTINATION_TOKEN_FAILED`** | **실접속 성공**(판M2-c · `authorization_code` 배선 — 판M2-b 실측 D-115: 이 그랜트로는 ABAP ADT가 401을 낸다. 토큰은 서지만 신원이 없다) · 토큰 **갱신** 배선 |
+| `--mcp=<destination>` · **`client_credentials` 선언 키** | 토큰 취득 계층은 있으나 **기동이 돌리지 않음** | **기동이 첫 토큰을 받아 Bearer 접속을 세운다** — 기동 경로에 걸음이 하나 늘었다(`src/server/connectDestination.ts`, `bootstrap.startFromProcess`가 `resolveStartup` **뒤에** 부른다). 진단 코드 두 개가 새로 갈렸다: 해석 자리의 **`MCP_DESTINATION_TOKEN_REQUIRED`**(곧 받아 온다) → 결과 자리의 **`MCP_DESTINATION_CONNECTED`** 또는 **`MCP_DESTINATION_TOKEN_FAILED`** | **실접속 성공**(판M2-b · BTP 계정) · 토큰 **갱신** 배선 |
 | `--mcp=<destination>` · **`authorization_code`**(선언 또는 **기본값**) | 같음 | **정지선 유지** — 기동은 시작하지 않는다. `MCP_DESTINATION_TOKEN_PENDING`이 **이 그랜트 전용 의미**로 좁아졌고, 진단이 인가 종단점·`client_id`·다음 걸음 둘(키에 `granttype` 선언 / Basic 통로)을 안내한다 | 사람 개시 통로(엔진에 진입점 없음 — 뒤 판) |
 | 브로커 | 저장소 재료 조립까지 (D32) | 변화 없음 | D32 참조 |
 
@@ -2734,3 +2734,37 @@ SAP 측 설치가 선행돼야 하고 그 셋 중 무엇도 지금 이 프로젝
 - **기계 장부 반영**: **안 했다** — 기동 시 인증 절차이고 도구 응답 시퀀스에 나타나지
   않는다. D116·D6와 같은 자리다.
 - **결정 기록**: D-114.
+
+## 상태 갱신 (append) — D15 4차: `client_credentials`로는 ADT가 열리지 않는다 (2026-08-23)
+
+**위 D15 본문도, 1차·2차·3차 갱신 표도 고치지 않는다.** 3차 표의 「남은 것」 칸이
+가리킨 **판M2-b가 실제로 돌았고**, 그 판이 잰 것은 「실접속 성공」이 아니라 **왜 그
+그랜트로는 성공할 수 없는가**였다. 3차가 알 수 없었던 사실이므로 여기에 append한다.
+
+| 통로 | 3차 시점 (2026-08-23 · D-114) | 판M2-b 실측 (2026-08-23 · D-115) | 남은 것 |
+|---|---|---|---|
+| `--mcp` · **`client_credentials`** | 기동이 첫 토큰을 받아 Bearer 접속을 세운다 | **토큰은 선다 · SAP는 열리지 않는다.** BTP ABAP trial(`TRL`)에서 UAA는 **200**으로 토큰을 내주지만 그 토큰에 **`user_name`이 없고**(scope `uaa.resource` 1종) ADT 4경로가 **전부 401**(`sap-authenticated: false` · `www-authenticate: Basic realm="…[TRL/100]"`). **Bearer를 실어 보내나 안 보내나 응답이 같다** — 신원 없는 토큰을 ABAP이 매핑하지 못해 익명과 같이 취급한다 | **이 통로로는 M2가 서지 않는다** — 원리적 한계이지 배선 결함이 아니다 |
+| `--mcp` · **`authorization_code`** | 정지선 유지 — 기동은 시작하지 않는다 | **이 그랜트가 ADT를 연다.** 사람 브라우저 로그인 1회로 받은 토큰은 `user_name`을 싣고 **refresh_token이 발급**되며 ADT 3경로가 **전부 200**(`{"systemID":"TRL","client":"100","language":"EN"}`) | **기동 진입점**(판M2-c) — 기구는 이미 있다(아래) |
+
+- **분류와 해소 마일스톤은 그대로다** — `축소` · M2. **M2 승격 없음**: 실접속을 세운
+  것은 **엔진 기동이 아니라 엔진 밖 프로브**다.
+- **없는 것은 기구가 아니라 진입점이다.** `src/auth/callback.ts`의
+  `startCallbackServer`·`acquireByAuthorizationCode`, `src/auth/uaa.ts`의
+  `exchangeCode`·`refresh`·`authorizeUrl`이 **이미 지어져 있고 시험도 있다**
+  (`src/auth/__tests__/callback.test.ts`). 판M2-c가 지을 것은 **기동이 그것을 부르는
+  자리**다 — 3차 표의 「엔진에 진입점 없음」이 그 뜻이었다.
+- **콜백 주소가 설계 입력이다 — 포트만이 아니라 호스트도.** XSUAA 화이트리스트는
+  실측에서 **`http://localhost:8080/callback`**을 받았고 `…:8123/callback`은 콜백이
+  오지 않았다. 그런데 이 엔진의 기본값은 `src/auth/callback.ts`의
+  `DEFAULT_CALLBACK_HOST = '127.0.0.1'`이라 조립 결과가
+  **`http://127.0.0.1:8080/callback`**이 된다 — **`127.0.0.1`과 `localhost`는 문자열이
+  다르고 XSUAA는 문자열·패턴으로 대조한다.** 경로는 `DEFAULT_CALLBACK_PATH = '/callback'`
+  으로 이미 일치한다. **포트만 맞추면 여전히 실패한다.**
+- **화이트리스트의 전체 내용은 모른다** — 두 점(8080 O · 8123 X)만 실측했고 호스트
+  갈래는 **코드 기본값과 실측치의 대조**이지 화이트리스트 실측이 아니다.
+- **대체 기대 시험**: 이 갱신은 **외부 시스템의 사실**이라 시험으로 얼릴 수 없다.
+  대신 재현 수단을 남긴다 — `harness/probe-destination.mjs`(attended 전용 · 게이트
+  아님)와 채록본 `docs/reference/audits/2026-08-23-btp-abap-trial-grant-probe.md`.
+- **기계 장부 반영**: **안 했다** — 기동 시 인증 절차이고 도구 응답 시퀀스에 나타나지
+  않는다. 3차와 같은 자리다.
+- **결정 기록**: D-115 · 리뷰 회수 D-116.

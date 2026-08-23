@@ -38,7 +38,10 @@
 >
 > ## ✅ 직전 판 — **판M2-b: ⑴ M2 attended 실접속 (D-115)** (2026-08-23 · 완료)
 >
-> **BTP trial `TRL`에 실제로 붙어 M2의 조건을 규명했다.** 착수 기준선 **33/33 exit 0**.
+> **BTP trial `TRL`에 실제로 붙어 M2의 조건을 규명했다.** 착수 기준선 **33/33 exit 0**
+> (제품 10 · 음성시험 9 · 엔진 10 · cli 4) · 마감 **37/37 exit 0**(제품 **22/22** —
+> 대상별 2종 + 재현 빌드 바이트 일치 포함 · 엔진 **11/11** jest 4,225 · **cli 4/4**).
+> ⚠ 두 수의 **구성이 다르다** — 분모를 비교하지 말 것.
 > **SAP 접속 = P1 read만 · P2 0건 · P3 0건 · P4 0건.**
 >
 > | 잰 것 | 결과 |
@@ -46,7 +49,7 @@
 > | **Run A** — 선언 없는 키 | `TOKEN_PENDING` · `connection=none` · 155종 · **네트워크 왕복 0** · 진단이 키 경로·인가 URL·다음 걸음을 다 말한다(**D-114 ⓓ 실기동 확인**) |
 > | **Run B** — `client_credentials` 선언 키 | `TOKEN_REQUIRED` → **`CONNECTED`** · `connection=yes` · **실 UAA 왕복 성공**(D-114 ⓑ 작동) |
 > | **그러나 SAP에는 못 닿았다** | `GetSystemInfo` → `supported:false`. 독립 프로브: UAA 토큰 **200**이나 **`user_name` 없음** · ADT 4경로 **전부 401** · `sap-authenticated: false` · **Bearer 유무와 무관하게 동일 응답** · 시스템은 생존(`sap-system: TRL`) |
-> | **`authorization_code`는 열린다** | 브라우저 1회 → `user_name` **있음** · **refresh_token 발급** · ADT 3경로 **전부 200** · `{"systemID":"TRL","client":"100","language":"EN"}` |
+> | **`authorization_code`는 열린다** | 브라우저 1회 → `user_name` **있음** · **refresh_token 발급** · **잰 3경로 전부 200**(401 쪽은 4경로 — `compatibility/graph`는 이쪽에서 안 쟀다) · `{"systemID":"TRL","client":"100","language":"EN"}` |
 > | **redirect_uri** | `localhost:8080` **등록됨** · `8123` 미도달 |
 >
 > **결함 1건을 회수했다** — `MCP_DESTINATION_CONNECTED`가 「the connection stands as
@@ -55,9 +58,12 @@
 > (동작 불변) · 시험 1건 신설 · 엔진 **1.1.1**(3,849,834 B · 소스 핀 `7e275c7e`).
 > 판 번호를 올린 이유: **1.1.0은 이미 push되어 나간 바이트**라 D-096 선례 밖이다.
 >
-> **엔진에는 사용자 토큰을 받을 입구가 없다**(실측) — 프로파일이 읽는 env에 JWT 계열
-> 0이고 `authType:'jwt'` 접속을 만드는 곳은 `connectDestination.ts` 하나다. **그래서
-> 우회로 M2를 세울 수도 없다.**
+> **없는 것은 기구가 아니라 진입점이다**(실측 · D-116 ⓐ 정정) — 프로파일이 읽는 env에
+> JWT 계열 0이고 `authType:'jwt'` 접속을 만드는 곳은 `connectDestination.ts` 하나이므로
+> **운영자가 사용자 토큰을 건네줄 입구는 없다.** 그러나 `src/auth/callback.ts`의
+> `startCallbackServer`·`acquireByAuthorizationCode`와 `src/auth/uaa.ts`의
+> `exchangeCode`·`refresh`·`authorizeUrl`은 **이미 지어져 있고 시험도 있다** —
+> 판M2-c가 지을 것은 **기동이 그것을 부르는 자리**다. 「처음부터 짓는다」로 읽지 말 것.
 >
 > **이월 2**:
 > ⓐ **destination 재적재 갈래 전용 시험**은 여전히 없다(판M2-a에서 승계 · 이번 판도
@@ -66,7 +72,7 @@
 > (기동의 ADT 확인 왕복)를 기각한 대가다. 문구가 그 사실을 말할 뿐이다.
 >
 > ## 판M2-a — ⑴ M2 오프라인 배선 (D-114) (2026-08-23 · 완료)
-
+>
 >
 > **`--mcp=<destination>`의 토큰 취득이 기동 경로에 이어졌다.** 판5가 auth 계층을 다
 > 지어 놓고 **의도적으로 잇지 않았던**(D-091 ⓑ 정지선) 그 자리다. 정지선을 뒤집지
@@ -4437,7 +4443,7 @@ interactive/
   core/                         ← 하네스 중립: knowledge(모듈14+BC·업종·국가·ABAP — `.md` 148) ·
                                    personas(26+INDEX) · procedures(22+schemas) · policies ·
                                    vocabulary.md · project-context.md
-  server/                       ← MCP 번들(sapkit-engine 1.1.0) + keyring + tool-catalog + sap-assets + UPDATE-RUNBOOK
+  server/                       ← MCP 번들(sapkit-engine 1.1.1) + keyring + tool-catalog + sap-assets + UPDATE-RUNBOOK
   adapters/{claude,codex,antigravity}/  ← 어댑터별 README = 설치·스코프·안전모델 가이드
   adapters/compatibility.json   ← 3사 검증 버전 고정
   skills/ agents/ plugin.json .codex-plugin/ .claude-plugin/(plugin.json)  ← 플러그인 표면

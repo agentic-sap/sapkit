@@ -1310,22 +1310,28 @@ oop 20은 ⑶-b 명부의 셈 밖(⑶-c 눈금)이고 `copy-baseline.md`의 **17
 #### 마감 (2026-08-23 · D-115) — **조건은 규명됐고 M2는 서지 않았다**
 
 **착수 기준선 33/33 exit 0**(제품 게이트 10 · 음성시험 9 · `sapkit-engine` 10 ·
-`sapkit-cli` 4). **SAP 접속 = P1 read만 · P2 0건 · P3 0건 · P4 0건.**
+`sapkit-cli` 4). **마감 검증 33/33 exit 0** — 제품 게이트 **22/22**(대상별 2종 포함 ·
+**재현 빌드가 번들 바이트를 재현** `5a13a81ba2ac…` 3,849,834 B) + 엔진 게이트 **11/11**
+(jest **4,225** · 카탈로그 `--check` 포함). 표면 **155 무프로파일 / 186 불변** ·
+안전 게이트 **26/26 PASS**(번들·소스 양쪽). **SAP 접속 = P1 read만 · P2 0건 · P3 0건 · P4 0건.**
 
 | 잰 것 | 결과 |
 |---|---|
 | **Run A** — 선언 없는 키 | `MCP_DESTINATION_TOKEN_PENDING` · `connection=none` · 155종 · **네트워크 왕복 0** · 진단이 키 경로·인가 URL·다음 걸음을 모두 말한다(**D-114 ⓓ 실기동 확인**) |
 | **Run B** — `client_credentials` 선언 키 | `TOKEN_REQUIRED` → **`CONNECTED`** · `connection=yes` · **실 UAA 왕복 성공**(D-114 ⓑ 작동) |
 | **그러나 SAP에는 못 닿았다** | `GetSystemInfo` → `supported:false`. 독립 프로브: UAA 토큰 **200**이나 **`user_name` 없음**(scope `uaa.resource` 1종) · ADT 4경로 **전부 401** · `sap-authenticated: false` · `www-authenticate: Basic realm="…[TRL/100]"` · **Bearer 유무와 무관하게 동일 응답** · 시스템은 생존(`sap-system: TRL`) |
-| **`authorization_code`는 열린다** | 사람 브라우저 1회 → 토큰 **200** · `user_name` **있음** · **refresh_token 발급** · ADT 3경로 **전부 200** · `sap-authenticated: true` · `{"systemID":"TRL","client":"100","language":"EN"}` |
+| **`authorization_code`는 열린다** | 사람 브라우저 1회 → 토큰 **200** · `user_name` **있음** · **refresh_token 발급** · **잰 3경로 전부 200**(401 쪽은 4경로 — `compatibility/graph`는 이쪽에서 안 쟀다) · `sap-authenticated: true` · `{"systemID":"TRL","client":"100","language":"EN"}` |
 | **redirect_uri** | `http://localhost:8080/callback` **등록됨** · `8123`은 콜백 미도달(XSUAA 화이트리스트) |
 
 - **M-표 M2는 승격하지 않았다** — 실접속을 세운 것은 **엔진 기동이 아니라 프로브**다.
   「ADT가 열리는 것을 봤다」는 「엔진이 붙었다」가 아니다.
-- **막고 있는 것이 하나로 좁혀졌다** — 배선 결함이 아니라 **정지선**이다. 엔진에는
-  사용자 토큰을 받을 **입구 자체가 없다**(프로파일이 읽는 env에 JWT 계열 0 ·
+- **막고 있는 것이 하나로 좁혀졌다** — 배선 결함이 아니라 **정지선**이다. 운영자가
+  사용자 토큰을 건네줄 **입구는 없다**(프로파일이 읽는 env에 JWT 계열 0 ·
   `authType:'jwt'` 접속을 만드는 곳은 `connectDestination.ts` 하나). 그래서 우회로
-  세울 수도 없다.
+  세울 수도 없다. ⚠ **그러나 기구는 이미 있다**(D-116 ⓐ) — `src/auth/callback.ts`의
+  `startCallbackServer`·`acquireByAuthorizationCode` · `src/auth/uaa.ts`의
+  `exchangeCode`·`refresh`·`authorizeUrl`이 시험까지 딸려 지어져 있다. **없는 것은
+  기동이 그것을 부르는 진입점이다** — 판M2-c를 「처음부터 짓는다」로 읽지 말 것.
 - **결함 1건을 회수했다** — `MCP_DESTINATION_CONNECTED`가 「the connection stands as
   Bearer」로 단언하고 「**write와 실행이** 거부된다」고만 말해 **read는 되는 상태**로
   읽혔다. 실측에서 그 문구를 낸 바로 그 접속이 전 경로 401이었다. 문구를 고쳤다
@@ -1341,8 +1347,12 @@ oop 20은 ⑶-b 명부의 셈 밖(⑶-c 눈금)이고 `copy-baseline.md`의 **17
   좁힌 그것)을 **연다면 무엇으로 여는가**. 승계 제약 셋(토큰 무상태 · 갱신 실패는
   거기서 끝 · **엔진이 브라우저를 열지 않는다**)이 그대로면, 기동은 인가 URL을
   **안내만** 하고 사람이 연 뒤 code가 돌아올 자리를 여는 모양이 된다. 그 자리가
-  루프백 바인딩이고, **포트는 XSUAA 화이트리스트가 정한다**(D-115 실측: 8080 O ·
-  8123 X) — 즉 포트가 설계 입력이다.
+  루프백 바인딩이고, **콜백 주소는 XSUAA 화이트리스트가 정한다** — 즉 **주소가 설계
+  입력**이다. ⚠ **포트만이 아니라 호스트도다**(D-116 권고 1): 실측에서 통과한 것은
+  **`http://localhost:8080/callback`**이고(`:8123`은 미도달), 이 엔진의
+  `src/auth/callback.ts`는 `DEFAULT_CALLBACK_HOST = '127.0.0.1'`이라 기본 조립 결과가
+  **`http://127.0.0.1:8080/callback`**이 된다. **문자열이 다르면 XSUAA가 거부한다** —
+  포트만 맞추면 여전히 실패한다. 경로(`/callback`)는 이미 일치한다.
 - **목표**: `--mcp=<destination>` 기동이 **사용자 신원 토큰으로 SAP에 붙는다** ·
   `GetSystemInfo`가 `systemID`를 낸다 · Basic 회귀 0 · 표면 186 불변
   → **D15 해소 · M-표 M2 `짓기 완료` 승격**.
@@ -1351,6 +1361,15 @@ oop 20은 ⑶-b 명부의 셈 밖(⑶-c 눈금)이고 `copy-baseline.md`의 **17
   ⓑ redirect_uri 화이트리스트의 전체 내용을 모른다(두 점만 실측). ⓒ `refresh_token`이
   발급되므로 **갱신 배선**을 같이 볼 것인가가 범위 판단이다(D-114 ⓒ ②가 「갱신 실패는
   거기서 끝」을 이미 정해 뒀다).
+- **이 판이 할 이름 정리**(D-116 권고 4): **`MCP_DESTINATION_CONNECTED`를 옮긴다.**
+  지금 그 진단은 본문 다섯 문장을 **자기 이름을 취소하는 데** 쓴다 — 다섯 문장짜리
+  각주가 필요한 라벨은 틀린 라벨이다. 더 결정적인 것은 **이 판이 진짜로 붙은 상태를
+  만들 텐데 그때 쓸 이름이 남아 있지 않다**는 것이다. 토큰 취득 자리를
+  `MCP_DESTINATION_TOKEN_ACQUIRED`류로 옮기고 **`CONNECTED`를 실접속 자리에 예약**한다
+  (D-114가 `TOKEN_PENDING`의 의미를 좁힌 선례가 있다).
+- **이 판이 할 정정**(D-116 ⓑ): D-115 머리말의 **「ADT를 전면 개방」**은 본문보다 세다 —
+  실측은 **잰 3경로 200**이고 401 쪽은 4경로였다(`compatibility/graph`를 안 쟀다).
+  D-115는 append-only이므로 **이 판의 결정 항목에서 정정**한다.
 - **이월 수령**: 판M2-a ⓐ **destination 재적재 갈래 전용 시험 부재**(근거가 리뷰어
   실기동 실측이라 자동 회귀가 없다) — **이 판의 리뷰가 본다.**
 

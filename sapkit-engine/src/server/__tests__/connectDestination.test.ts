@@ -149,9 +149,10 @@ describe('connectDestination — client_credentials 성공 경로', () => {
     const joined = after.diagnostics.join('\n');
     expect(joined).toContain('Nothing has been sent to that system yet');
     expect(joined).toContain('carries no user identity');
-    expect(joined).toContain('401');
-    // 그리고 「접속이 섰다」로 단언하지 않는다.
-    expect(joined).not.toContain('the connection stands as Bearer');
+    expect(joined).toContain('answer 401 on every path');
+    // 그리고 「접속이 섰다」로 단언하지 않는다. `stands`만 잡는다 — 옛 문구의
+    // 정확한 철자에만 걸면 「stands as a Bearer」류로 조용히 되살아난다.
+    expect(joined).not.toMatch(/connection stands/);
   });
 
   it('진단에 비밀도 토큰도 실리지 않는다', async () => {
