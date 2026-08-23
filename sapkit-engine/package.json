@@ -1,6 +1,6 @@
 {
   "name": "sapkit-engine",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
   "description": "SAPKIT 자체 저작 ABAP MCP 엔진 — 청사진 사다리 ⑴. 2026-08-19 판7-b에서 제품 번들 자리를 넘겨받았다(D-095). npm 레지스트리에는 발행하지 않는다 — 제품은 tools/bundle.mjs가 만든 단일 파일을 interactive/server/server.bundle.cjs로 동봉하므로 설치가 완전 오프라인이다. 그래서 private.",
   "license": "MIT",
