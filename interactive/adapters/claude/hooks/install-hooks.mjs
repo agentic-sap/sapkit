@@ -50,10 +50,11 @@
  *   scripts, which is what lets install → uninstall restore the original bytes.
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { atomicWriteFileSync } from '../lib/atomic-write.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -167,8 +168,7 @@ function readSettings() {
 
 /** Two-space JSON plus a trailing newline: the shape Claude Code's own writes take. */
 function writeSettings(settings) {
-  mkdirSync(dirname(settingsPath), { recursive: true });
-  writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`, 'utf8');
+  atomicWriteFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`);
 }
 
 /** Does this hook group carry the named script? That is what "ours" means here. */

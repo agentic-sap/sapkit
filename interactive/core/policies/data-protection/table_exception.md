@@ -4,7 +4,7 @@ A table named in any of the per-section files below **MUST NOT** be read through
 
 What those tables hold is personally identifiable information (PII), credentials, payroll, banking, pricing/commercial terms, or data otherwise protected in law or in ethics. Their schema and field metadata (`GetTable` for the DDIC structure) stays retrievable — **only row-level data extraction is forbidden**.
 
-> What you are reading is the **index**. The table lists themselves sit in the per-section files below, which keeps each one short and easy to maintain. The `PreToolUse` hook (`scripts/hooks/block-forbidden-tables.mjs`) parses **every `*.md` in this folder except this index**, then merges them.
+> What you are reading is the **index**. The table lists themselves sit in the per-section files below, which keeps each one short and easy to maintain. The `PreToolUse` hook (`adapters/claude/hooks/block-forbidden-tables.mjs`) parses **every `*.md` in this folder except this index**, then merges them.
 
 ## Scope Profiles
 
@@ -19,7 +19,7 @@ Whichever profile is active, `.sapkit/blocklist-extend.txt` (one table name or p
 
 ## Enforcement
 
-- Every sc4sap agent and skill MUST consult this list before calling `GetTableContents` / `GetSqlQuery`.
+- Every sapkit agent and skill MUST consult this list before calling `GetTableContents` / `GetSqlQuery`.
 - When a user request needs data out of a blocked table: **refuse the extraction, name the category that applies (e.g., "PII — bank master"), and offer alternatives** (aggregated CDS views, anonymized test data, or a consultant analysis that uses no raw rows).
 - A SELECT over joined views / CDS views that draws on a blocked table falls under the same rule.
 
@@ -60,7 +60,7 @@ When a legitimate use case needs data that touches blocked tables, reach first f
 2. **Anonymized test data** taken from quality/sandbox systems
 3. **Synthetic data** that the consultant agent generates out of schema metadata
 4. **Counts / aggregates only** — `SELECT COUNT(*)` or `SUM(...)` through `GetSqlQuery`, with no personal or rate field in the SELECT list
-5. **User authorization workflow** — a one-off approval, stated explicitly and written down in `.sapkit/program/{PROG}/data-access-approval.md`
+5. **User authorization workflow** — a one-off approval, stated explicitly and written down in `.sapkit/program/{PROG}/data-access-approval-{YYYYMMDD-HHMM}.md`
 
 Never route around the block in silence. Always surface the reason to the user.
 
@@ -71,7 +71,7 @@ Never route around the block in silence. Always surface the reason to the user.
 3. Run the smoke test again:
    ```bash
    echo '{"tool_name":"`GetTableContents`","tool_input":{"table_name":"YOUR_TABLE"}}' \
-     | node scripts/hooks/block-forbidden-tables.mjs
+     | node adapters/claude/hooks/block-forbidden-tables.mjs
    ```
    The `hookSpecificOutput` should come back carrying `"permissionDecision":"deny"`.
 4. If a new file was added, commit that section file together with this index.

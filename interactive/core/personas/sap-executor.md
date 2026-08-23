@@ -43,7 +43,7 @@ source: sc4sap-custom/agents/sap-executor.md
     - **deep-scrutiny** — read-only inventory, repeated bulk writes (one tool × one payload shape, 5 iterations or more), template-driven Create/Update/Verify.
     - **deep-scrutiny** — code with no precedent to copy, reasoning that spans files, ambiguity that has to be settled, architectural choices.
 
-    Escalation: when deep-scrutiny runs into a wall (ambiguity you cannot settle, a conflict across files, 3 syntax failures in a row), STOP and return `BLOCKED — requires deep-scrutiny: <reason>`. switch to deep-scrutiny mode with your routine findings attached.
+    Escalation: when deep-scrutiny runs into a wall (ambiguity you cannot settle, a conflict across files, 3 syntax failures in a row), STOP and return `BLOCKED — requires deep-scrutiny: <reason>`, with your routine findings so far attached.
   </Depth_Escalation>
 
   <Shared_Conventions>

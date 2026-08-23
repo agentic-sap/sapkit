@@ -37,6 +37,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { atomicWriteFileSync } from '../adapters/claude/lib/atomic-write.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PLUGIN_ROOT = path.resolve(HERE, '..'); // interactive/
@@ -114,23 +115,6 @@ function exists(p) {
 }
 function detectEol(text) {
   return text.includes('\r\n') ? '\r\n' : '\n';
-}
-
-// 임시 파일 → rename. 같은 디렉터리에 만들어야 rename이 원자적이다(R-ATOMIC).
-function atomicWrite(target, content) {
-  fs.mkdirSync(path.dirname(target), { recursive: true });
-  const tmp = `${target}.${process.pid}.${Date.now()}.tmp`;
-  try {
-    fs.writeFileSync(tmp, content, { encoding: 'utf8' });
-    fs.renameSync(tmp, target);
-  } catch (e) {
-    try {
-      fs.rmSync(tmp, { force: true });
-    } catch {
-      /* 임시 파일 정리 실패는 원인 오류를 덮지 않는다 */
-    }
-    throw e;
-  }
 }
 
 // PATH 훑기 — 자식 프로세스를 띄우지 않는 클라이언트 감지(결정론적·빠름).
@@ -838,7 +822,7 @@ if (command === 'plan') {
   // --out: PowerShell 리다이렉트가 UTF-16/BOM으로 저장해 apply 가 못 읽는 사고를 막는다
   // (D-060). 상태 파일이 아니라 사람이 검토할 계획 산출물이므로 apply 계약과 무관하다.
   const outFile = flag('--out');
-  if (outFile) atomicWrite(path.resolve(outFile), JSON.stringify(plan, null, 2) + '\n');
+  if (outFile) atomicWriteFileSync(path.resolve(outFile), JSON.stringify(plan, null, 2) + '\n');
 
   emit(plan, planLines(plan), plan.status === 'BLOCKED' ? 1 : 0);
 }
@@ -893,7 +877,7 @@ if (command === 'apply') {
   const done = [];
   try {
     for (const a of todo) {
-      atomicWrite(a.target, a._content);
+      atomicWriteFileSync(a.target, a._content);
       done.push(a.target);
     }
   } catch (e) {

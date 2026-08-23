@@ -1,6 +1,6 @@
 # Data Extraction Policy
 
-**MANDATORY for all sc4sap agents, skills, and direct Claude sessions.** It applies as soon as row-level data is about to be read out of an SAP system.
+**MANDATORY for all sapkit agents, skills, and direct Claude sessions.** It applies as soon as row-level data is about to be read out of an SAP system.
 
 ## Core Rule
 
@@ -45,7 +45,7 @@ Allowed alternatives:
 - Released CDS view with PII masking (I_*)
 - Anonymized test data from QAS/SANDBOX
 - Count/aggregate only (COUNT, SUM)
-- Explicit one-off approval: write `.sapkit/data-access-approval-{YYYYMMDD}.md`
+- Explicit one-off approval: write `.sapkit/data-access-approval-{YYYYMMDD-HHMM}.md`
   with business justification and have the user confirm.
 ```
 
@@ -112,8 +112,8 @@ An approval covers **one session and one scope** — it is not a permanent bypas
 This policy forms one of four enforcement layers:
 
 1. **L1 (this file)** — the agent/skill instruction level
-2. **L2 (`sc4sap/CLAUDE.md`)** — a global directive loaded into every Claude session
-3. **L3 (`PreToolUse` hook at `scripts/hooks/block-forbidden-tables.mjs`)** — programmatic interception inside Claude Code
+2. **L2 (root `CLAUDE.md`)** — project-level safety rules loaded for every session working in this repository. The old consolidated `sc4sap/CLAUDE.md` no longer exists; its content now splits between this policy file under `interactive/core/policies/` (L1) and the root `CLAUDE.md`.
+3. **L3 (`PreToolUse` hook at `adapters/claude/hooks/block-forbidden-tables.mjs`)** — programmatic interception inside Claude Code
 4. **L4 (MCP server upstream)** — the hardcoded blocklist in `mcp-abap-adt` (roadmap)
 
 L3/L4 being in place does not excuse L1: agents MUST still follow it — L1 is what produces the user-facing refusal carrying category and alternatives, and the hook/server cannot produce that cleanly.
