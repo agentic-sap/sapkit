@@ -127,7 +127,7 @@ function advisory(toolName, toolInput) {
   const objectName = pick(toolInput, OBJECT_NAME_KEYS) || 'unknown';
   const action = toolName.includes('Create') ? 'creating' : 'updating';
   return (
-    `[SC4SAP TRANSPORT CHECK] No transport request was named for ${action} SAP object "${objectName}". ` +
+    `[SAPKIT TRANSPORT CHECK] No transport request was named for ${action} SAP object "${objectName}". ` +
     `SAP change control expects every repository change to sit in a request, so settle that first: ` +
     `pass a transport parameter, open a request with CreateTransport, or take an open one from ListTransports. ` +
     `Objects in the $TMP package are the exception — they need none.`

@@ -28,9 +28,9 @@ adapters only add or strip their namespace prefix.
 The authoritative capability list, split by operation class, lives in
 [server/tool-catalog/](../server/tool-catalog/):
 
-- `sc4sap-mcp-tools-read.md` — read/search/describe (safe to allow broadly)
-- `sc4sap-mcp-tools-write.md` — create/update/delete/activate/transport (gated write)
-- `sc4sap-mcp-tools-runtime.md` — dumps, profiling, runtime diagnostics
+- `sapkit-mcp-tools-read.md` — read/search/describe (safe to allow broadly)
+- `sapkit-mcp-tools-write.md` — create/update/delete/activate/transport (gated write)
+- `sapkit-mcp-tools-runtime.md` — dumps, profiling, runtime diagnostics
 
 Two capabilities are **always human-gated per call** regardless of harness:
 `GetTableContents`, `GetSqlQuery` — see

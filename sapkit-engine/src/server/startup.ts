@@ -188,6 +188,25 @@ function resolveAuthInteractive(
   const rawHost = (argValue(args, '--callback-host') ?? '').trim();
   const rawPort = (argValue(args, '--callback-port') ?? '').trim();
 
+  // `--auth-interactive=true`처럼 **값을 붙이면** 위 `includes`가 못 잡아 플래그가 꺼진
+  // 채로 간다. 그러면 아래 `say()`가 호스트·포트 진단까지 통째로 삼키므로, 사람은
+  // 자기가 이미 준 것이 무시됐다는 사실을 어디서도 보지 못한다(판Z 리뷰 R7).
+  //
+  // 이 한 줄만은 **옵트인 밖에서도** 낸다. 그래도 D-119 ⓒ는 깨지지 않는다 —
+  // 이 줄은 argv에 `--auth-interactive=`가 있을 때만 생기므로, 그 계열 인자를
+  // 아예 안 준 기동의 진단은 한 줄도 달라지지 않는다.
+  //
+  // 플래그를 대신 켜 주지는 **않는다**. 이 플래그는 정지선을 여는 열쇠이고
+  // (D-117 ⓐ), 오타를 옵트인으로 읽는 것은 그 문을 추측으로 여는 일이다.
+  for (const raw of args.filter((arg) => arg.startsWith('--auth-interactive='))) {
+    diagnostics.push(
+      `AUTH_INTERACTIVE_INVALID: ${raw} is not recognised — --auth-interactive is a bare switch ` +
+        'that takes no value, and this form does not turn it on. Pass --auth-interactive on its ' +
+        `own and restart (interactive login is ${enabled ? 'on' : 'off'} for this launch). ` +
+        '--callback-host and --callback-port are the two arguments that take a value.',
+    );
+  }
+
   // 진단은 **옵트인일 때만** 낸다(D-119 ⓒ). 플래그가 없으면 이 인자들이 가리키는
   // 콜백은 애초에 열리지 않으므로, 「stays on 8080」류의 문면이 거짓이 되고
   // 「플래그가 없으면 한 글자도 다르지 않다」에도 문자 그대로의 반례가 생긴다.

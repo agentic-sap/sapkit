@@ -1,6 +1,6 @@
 # Naming Conventions
 
-Every custom name emitted for an sc4sap ABAP program and its related objects is
+Every custom name emitted for a sapkit ABAP program and its related objects is
 decided here — the report itself, the DDIC objects behind it, function groups
 and modules, global classes, CDS views, and the identifiers living inside the
 program.

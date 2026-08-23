@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * sc4sap PostToolUse hook — Offline ABAP Code Analysis (warn-only, D-049)
+ * sapkit PostToolUse hook — Offline ABAP Code Analysis (warn-only, D-049)
  *
  * After ABAP source lands (local .abap file via Edit/Write, or SAP via an MCP
  * source-writing tool), runs the bundled offline 13-rule analyzer

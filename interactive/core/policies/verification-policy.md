@@ -3,9 +3,9 @@ name: verification-policy
 description: Machine-verification chain for every ABAP change — CheckSyntax → ActivateObjects → RunUnitTest → GetAtcFindings, with blocking criteria, re-run rules, and evidence recording
 source:
   - sc4sap-custom/CLAUDE.md
-  - server/tool-catalog/sc4sap-mcp-tools-read.md
-  - server/tool-catalog/sc4sap-mcp-tools-write.md
-  - server/tool-catalog/sc4sap-mcp-tools-runtime.md
+  - server/tool-catalog/sapkit-mcp-tools-read.md
+  - server/tool-catalog/sapkit-mcp-tools-write.md
+  - server/tool-catalog/sapkit-mcp-tools-runtime.md
 ---
 
 # Verification Policy
@@ -15,7 +15,7 @@ below before it may be reported as done or put on a transport for release.
 "It compiles on my side" is not evidence — only tool output is.
 
 Tool names are the canonical MCP tool names from the
-[server tool catalog](../../server/tool-catalog/sc4sap-mcp-tools.md).
+[server tool catalog](../../server/tool-catalog/sapkit-mcp-tools.md).
 
 ## The chain (fixed order)
 

@@ -4,7 +4,7 @@
  *
  * **완전 오프라인이다. SAP에 접속하지 않는다.** 네트워크를 전혀 쓰지 않고,
  * 로컬 파일 3종만 읽는다:
- *   ① 도구 표면 정본  — interactive/server/tool-catalog/sc4sap-mcp-tools-{read,write,runtime}.md
+ *   ① 도구 표면 정본  — interactive/server/tool-catalog/sapkit-mcp-tools-{read,write,runtime}.md
  *                        (+ 그 파일들이 의도적으로 제외한 row-data 2종)
  *   ② 자산 참조 축     — docs/BLUEPRINT.md §4.3(실질 참조) · §4.4(참조 없음) 목록을 파싱
  *   ③ 호출 이력 2종    — Claude Code   ~/.claude/projects/**\/*.jsonl
@@ -54,7 +54,7 @@ const ROW_DATA = ['GetTableContents', 'GetSqlQuery'];
 function loadSurface() {
   const classOf = new Map();
   for (const cls of ['read', 'write', 'runtime']) {
-    const p = join(REPO, 'interactive', 'server', 'tool-catalog', `sc4sap-mcp-tools-${cls}.md`);
+    const p = join(REPO, 'interactive', 'server', 'tool-catalog', `sapkit-mcp-tools-${cls}.md`);
     const text = readFileSync(p, 'utf8');
     for (const m of text.matchAll(/^- `([A-Za-z][A-Za-z0-9_]*)`/gm)) {
       if (classOf.has(m[1])) fail(`표면 중복: ${m[1]}`);

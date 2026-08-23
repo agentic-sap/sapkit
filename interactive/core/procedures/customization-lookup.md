@@ -1,6 +1,6 @@
 # Customization Lookup Protocol
 
-**MANDATORY for every sc4sap consultant persona, for [sap-critic](../personas/sap-critic.md), and for any procedure that analyses, critiques, or extends an SAP installation that already exists.**
+**MANDATORY for every sapkit consultant persona, for [sap-critic](../personas/sap-critic.md), and for any procedure that analyses, critiques, or extends an SAP installation that already exists.**
 
 What the customer runs today in Z*/Y* — BAdI implementations, CMOD projects, customized form-based user-exit includes, Append Structures, custom fields — is inventoried into per-module JSON files by the extraction utility this plugin ships at `tools/extract/extract-customizations.mjs` (see [Generating the inventory](#generating-the-inventory) below). **Reading that inventory before you recommend, critique, or design is not optional**: proposing a fresh BAdI while a working Z implementation is already in place burns effort, splits the logic in two, and is the single most common source of rework on brownfield SAP projects. Where the inventory has never been generated, take Steps 2–3 below instead — the static knowledge reference, or a targeted live query.
 

@@ -1294,6 +1294,34 @@ describe('인터랙티브 로그인 옵트인 — --auth-interactive · --callba
     });
   });
 
+  // ── `--auth-interactive=<값>`은 조용히 무시되지 않는다 (판Z 리뷰 R7) ──────
+  //
+  // 플래그 판정이 정확 일치라 `--auth-interactive=true`는 플래그를 켜지 않는다.
+  // 그런데 켜지지 않았으므로 위 `say()`가 호스트·포트 진단까지 삼켜, 그 사람은
+  // **자기가 이미 줬다고 믿는 채로** 아무 말도 듣지 못했다.
+  it('--auth-interactive=<값>은 플래그를 켜지 않고, 그 사실을 말한다', () => {
+    const startup = startupWith(['--auth-interactive=true']);
+    expect(startup.authInteractive.enabled).toBe(false);
+    const joined = startup.diagnostics.join('\n');
+    expect(joined).toContain('AUTH_INTERACTIVE_INVALID');
+    expect(joined).toContain('--auth-interactive=true');
+    expect(joined).toContain('takes no value');
+    // 대신 켜 주지 않았다는 것도 문면에 있다 — 사람이 무엇을 다시 할지 알아야 한다.
+    expect(joined).toContain('interactive login is off for this launch');
+    // 그리고 정지선은 그대로다 — 값 하나로 옵트인이 되지 않는다.
+    expect(joined).toContain('MCP_DESTINATION_TOKEN_PENDING');
+  });
+
+  // D-119 ⓒ는 이 한 줄이 들어와도 깨지지 않는다. 재는 방법은 위 「플래그가
+  // 없으면 …」과 같은 **진단 수 대조**다 — 아무것도 안 준 기동은 그대로이고,
+  // 값을 붙여 준 기동만 정확히 한 줄 는다.
+  it('그 계열 인자를 아예 안 준 기동의 진단 수는 그대로다 (D-119 ⓒ)', () => {
+    const plain = startupWith([]);
+    const withValue = startupWith(['--auth-interactive=true']);
+    expect(plain.diagnostics.join('\n')).not.toContain('AUTH_INTERACTIVE_INVALID');
+    expect(withValue.diagnostics).toHaveLength(plain.diagnostics.length + 1);
+  });
+
   it('같은 인자에 플래그만 붙이면 두 진단이 함께 선다', () => {
     const bad = ['--callback-host=0.0.0.0', '--callback-port=not-a-port'];
     const flagOnly = startupWith(['--auth-interactive']);

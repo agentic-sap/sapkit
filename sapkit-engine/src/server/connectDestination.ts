@@ -90,7 +90,17 @@ export interface DestinationConnectOptions {
    * 시험이 목을 준다.
    */
   readonly openAuthorizeUrl?: (url: string) => void | Promise<void>;
-  /** 콜백 주소 덮어쓰기. 기본은 기동이 정한 값(`Startup.authInteractive`). */
+  /**
+   * 콜백 주소 덮어쓰기. 기본은 기동이 정한 값(`Startup.authInteractive`).
+   *
+   * ⚠ **이 두 칸은 시험 전용 이음매다 — 검증은 여기가 소유하지 않는다.**
+   * loopback 화이트리스트와 포트 범위를 재는 곳은 기동 계층의
+   * `resolveAuthInteractive`(`./startup`) 하나뿐이고, 여기로 들어온 값은 그
+   * 검사를 거치지 않는다. 오늘 프로덕션 호출부는 `bootstrap.startFromProcess`
+   * 하나이며 이 둘을 넘기지 않으므로 무해하지만, **두 번째 호출부를 만드는
+   * 사람은 이 문단을 읽고 있어야 한다** — 값을 넘길 생각이라면 검증을 여기로
+   * 데려오는 것이 아니라 기동 계층을 거쳐 들어오게 만드는 것이 맞다(판Z 리뷰 R6).
+   */
   readonly callbackHost?: string;
   readonly callbackPort?: number;
   /** 콜백 대기 시한. 기본 {@link DEFAULT_AUTHORIZE_TIMEOUT_MS}. */

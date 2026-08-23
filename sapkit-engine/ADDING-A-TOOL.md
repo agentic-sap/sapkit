@@ -268,7 +268,7 @@ node harness/render-ledger.mjs       # 증거 파일이 바뀌었으니 한 번 
 ```
 
 - **대장은 손으로 고치지 않는다.** 손으로 고친 대장은 게이트가 거부한다.
-- **카탈로그도 같은 지위다** — `interactive/server/tool-catalog/sc4sap-mcp-tools*.md`
+- **카탈로그도 같은 지위다** — `interactive/server/tool-catalog/sapkit-mcp-tools*.md`
   4파일은 등록점(`TOOL_REGISTRY`)에서 만드는 **기계 생성물**이고(D-107 ⓐ), 손으로
   고치면 게이트 「카탈로그」가 거부한다. **도구를 하나 지으면 등록점이 바뀌므로
   이 재생성이 같은 커밋에 들어간다** — 미루면 CI가 빨개질 때까지 반쪽 상태다.
@@ -320,7 +320,7 @@ src/tools/registry.ts                            등록점 배선
 TOOL-LEDGER.md                                   대장 (생성물)
 evidence/contract/results.json                   계약 시험 증거 (생성물)
 ../interactive/server/tool-catalog/
-    sc4sap-mcp-tools*.md (4파일)                 제품 카탈로그 (생성물 — 7번)
+    sapkit-mcp-tools*.md (4파일)                 제품 카탈로그 (생성물 — 7번)
 (표면을 글자로 적어 둔 시험이 있으면 그것도)
 ```
 

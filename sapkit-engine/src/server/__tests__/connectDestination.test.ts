@@ -24,6 +24,7 @@ import * as path from 'node:path';
 
 import { HttpTransportError } from '../../adt/http';
 import { mockTransport, tokenBody } from '../../auth/__tests__/helpers';
+import { AuthError } from '../../auth/errors';
 import { connectDestination } from '../connectDestination';
 import { resolveStartup } from '../startup';
 import type { Startup } from '../startup';
@@ -508,6 +509,65 @@ describe('connectDestination — 인터랙티브 로그인 실패는 fail-closed
     } finally {
       await busy.close();
     }
+  });
+});
+
+// ── AUTH_NO_REFRESH_MATERIAL도 원인 원문을 끼우지 않는다 (판Z 리뷰 R3) ──────
+
+/**
+ * D-119 ⓔ가 `OPAQUE_CAUSE`에 두 줄을 더했는데 시험은 한쪽만 받쳤다.
+ * `UAA_RESPONSE_INVALID`는 위 ⓑ에서 **실제 응답으로** 도달하지만
+ * `AUTH_NO_REFRESH_MATERIAL`은 서버측 참조가 0이었다 — 그 줄을 지워도 red가
+ * 나지 않았고, 그러면 등재는 지켜지지 않는 주장일 뿐이다.
+ *
+ * **이 걸음은 그 상황을 스스로 만들지 못한다.** `TokenSource`를 언제나
+ * `client`(그리고 authorization_code면 `acquire`)를 갖춰 세우므로 「갱신 재료가
+ * 없다」 갈래로 내려갈 길이 없다. 그래서 인증 계층이 **실제로 던지는 그 오류**를
+ * 이미 있는 시험 이음매(`openAuthorizeUrl`)로 물려, 재는 것 하나만 잰다 —
+ * 그 코드가 `OPAQUE_CAUSE`에 있어서 em-dash 뒤 한국어가 영문 진단에 실리지
+ * 않는가. `OPAQUE_CAUSE`에서 그 줄을 지우면 이 시험이 빨개진다.
+ */
+describe('connectDestination — AUTH_NO_REFRESH_MATERIAL의 원인 원문은 진단에 실리지 않는다', () => {
+  /**
+   * `src/auth/tokenSource.ts`의 ⓑ가 던지는 문구 **그대로**. em-dash 뒤가
+   * 한국어라는 것이 이 시험의 재료다 — 문구를 손보면 재료가 사라진다.
+   */
+  const noMaterial = (): AuthError =>
+    new AuthError(
+      'AUTH_NO_REFRESH_MATERIAL',
+      '토큰이 만료됐거나 없는데 받아 올 방법이 없다 — UAA 재료도, 갱신 토큰도, 취득 방법도 주어지지 않았다.',
+    );
+
+  it('코드는 말하되 그 한국어 본문은 영문 진단에 섞지 않는다', async () => {
+    const startup = mcpStartup(
+      serviceKey({ granttype: 'authorization_code' }),
+      '--auth-interactive',
+    );
+    const mock = mockTransport([]);
+    const after = await connectDestination(startup, {
+      transport: mock.transport,
+      now: () => NOW,
+      callbackHost: '127.0.0.1',
+      callbackPort: 0,
+      timeoutMs: 5_000,
+      openAuthorizeUrl: () => {
+        throw noMaterial();
+      },
+    });
+    const failed =
+      after.diagnostics.find((line) => line.startsWith('MCP_DESTINATION_TOKEN_FAILED')) ?? '';
+
+    expect(after.profile.connection).toBeNull();
+    expect(failed).toContain('AUTH_NO_REFRESH_MATERIAL');
+    // 나가는 요청은 0이다 — 코드 교환까지 가지 못했다.
+    expect(mock.calls).toHaveLength(0);
+    // ⓐ 한글이 한 글자도 섞이지 않는다 (`UAA_RESPONSE_INVALID` 시험과 같은 형태).
+    expect(failed).not.toMatch(/[가-힣]/);
+    // ⓑ 그리고 원인 원문이 괄호로 끼워지지도 않는다 — ⓐ가 잡는 것과 같은 결함을
+    //   다른 각도에서 못 박는다(문구가 영문으로 바뀌어도 끼우기 자체는 금지다).
+    expect(failed).not.toContain('(UAA');
+    // 사람이 할 일은 여전히 영문으로 말한다.
+    expect(failed).toContain('--auth-interactive');
   });
 });
 

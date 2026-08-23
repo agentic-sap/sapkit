@@ -1,6 +1,6 @@
 # SPRO Lookup Protocol
 
-**MANDATORY for all sc4sap consultant personas and any procedure that needs SAP Customizing / IMG data.**
+**MANDATORY for all sapkit consultant personas and any procedure that needs SAP Customizing / IMG data.**
 
 Whenever a module's SAP Customizing information is needed, walk the lookup in the order below. Steps 2 and 3 usually run together — the static docs name *which table to look at*, the live MCP call reports *what the customer actually configured*.
 

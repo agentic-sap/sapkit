@@ -1,6 +1,6 @@
 # ALV Rules
 
-This file holds the ALV display rules that sc4sap programs have in common.
+This file holds the ALV display rules that sapkit programs have in common.
 
 ## Display Mode Selection
 
@@ -18,7 +18,7 @@ allowed. No screen and no GUI status are needed. Call
 ## Field Catalog Construction Standard
 
 The reference for what follows is
-`sc4sap/common/alv-sample/field-catalog-guide.abap`.
+[`alv-sample/field-catalog-guide.abap`](../templates/alv-sample/field-catalog-guide.abap).
 
 ### Step 1 — Auto-Extract via SALV Factory
 

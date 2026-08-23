@@ -12,7 +12,7 @@ Get / Read / Check / List / Search / Describe / Grep handlers — DDIC and objec
 metadata, source retrieval, structure navigation, cross-object search, and
 server-side syntax checks. Nothing here changes SAP state.
 
-Part of [sc4sap-mcp-tools.md](sc4sap-mcp-tools.md).
+Part of [sapkit-mcp-tools.md](sapkit-mcp-tools.md).
 
 Tools are listed by **bare capability name**. Each harness maps those names to its
 own tool identifiers — see the [capability vocabulary](../../core/vocabulary.md)

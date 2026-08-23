@@ -1,6 +1,6 @@
 # OOP Pattern — Two-Class Split
 
-Every OOP-mode ABAP program in sc4sap shares the convention set out below. Its canonical reference is [`common/oop-sample/zsapkit_oop_ex*`](../templates/oop-sample/), authored in-repo (판4); the pattern lineage traces back to the retired `zrsc4sap_oop_ex*` sample.
+Every OOP-mode ABAP program in sapkit shares the convention set out below. Its canonical reference is [`common/oop-sample/zsapkit_oop_ex*`](../templates/oop-sample/), authored in-repo (판4); the pattern lineage traces back to the retired `zrsc4sap_oop_ex*` sample.
 
 ## Two-Class Split (Mandatory)
 

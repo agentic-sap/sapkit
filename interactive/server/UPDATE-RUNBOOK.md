@@ -51,7 +51,7 @@
    `interactive/agents/sap-reviewer.md`의 `disallowedTools` 열거를 동기화한다.
 
    > ⚠ **`server/tool-catalog/`는 손으로 고치지 않는다.** 그 4파일
-   > (`sc4sap-mcp-tools*.md`)은 2026-08-23 판10(D-107 ⓐ)부터 **엔진 등록점
+   > (`sapkit-mcp-tools*.md`)은 2026-08-23 판10(D-107 ⓐ)부터 **엔진 등록점
    > (`TOOL_REGISTRY`)에서 만드는 기계 생성물**이고, 손으로 고치면 엔진 게이트
    > 「카탈로그」가 거부한다 — `TOOL-LEDGER.md`와 같은 지위다. 재생성은 이렇게 한다:
    >

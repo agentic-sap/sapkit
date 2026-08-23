@@ -26,9 +26,9 @@ whole surface by operation class.
 
 | File | Categories | Count |
 |---|---|---:|
-| [sc4sap-mcp-tools-read.md](sc4sap-mcp-tools-read.md) | Get\*, Read\*, Check\*/List\*/Search\*/Describe\*/Grep\* | 90 |
-| [sc4sap-mcp-tools-write.md](sc4sap-mcp-tools-write.md) | Create\*, Update\*, Delete\*, Activate\*/Patch\*/Release\*/Write\* | 79 |
-| [sc4sap-mcp-tools-runtime.md](sc4sap-mcp-tools-runtime.md) | Runtime\*, execution, session control | 15 |
+| [sapkit-mcp-tools-read.md](sapkit-mcp-tools-read.md) | Get\*, Read\*, Check\*/List\*/Search\*/Describe\*/Grep\* | 90 |
+| [sapkit-mcp-tools-write.md](sapkit-mcp-tools-write.md) | Create\*, Update\*, Delete\*, Activate\*/Patch\*/Release\*/Write\* | 79 |
+| [sapkit-mcp-tools-runtime.md](sapkit-mcp-tools-runtime.md) | Runtime\*, execution, session control | 15 |
 
 **Registered tools**: 186. **Listed above**: 184. **Prompt-gated (never
 auto-approve)**: 2.

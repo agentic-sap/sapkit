@@ -37,8 +37,8 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const rootIdx = process.argv.indexOf('--root');
 const ROOT = rootIdx >= 0 ? path.resolve(process.argv[rootIdx + 1]) : path.resolve(HERE, '..', '..');
 
-// 점 없는 제품명 토큰 `sc4sap`은 범위 밖이다 (파일명 `sc4sap-mcp-tools-runtime.md` ·
-// provenance `sc4sap-public-source.json` — D-041이 다룬 영역).
+// 점 없는 제품명 토큰 `sc4sap`은 범위 밖이다 (provenance
+// `sc4sap-public-source.json` · 차용 출처 고지 — D-041이 다룬 영역).
 const LEGACY_RE = /\.sc4sap|SC4SAP_HOME_DIR/g;
 
 // ── 역사 — 경로 단위 스캔 제외 ──────────────────────────────────────────────

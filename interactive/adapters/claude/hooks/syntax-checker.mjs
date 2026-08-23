@@ -69,7 +69,7 @@ function objectLabel(toolInput) {
 
 function compilerAdvisory(label) {
   return (
-    `[SC4SAP SYNTAX CHECK] ABAP error detected${label}. ` +
+    `[SAPKIT SYNTAX CHECK] ABAP error detected${label}. ` +
     `Run CheckSyntax (server-side ADT check) for the line-level diagnostics behind it. ` +
     `The usual causes are a mistyped type or variable, an interface whose methods are not all implemented, ` +
     `and a referenced object that is missing or still inactive. ` +
@@ -79,7 +79,7 @@ function compilerAdvisory(label) {
 
 function genericAdvisory(toolName, label) {
   return (
-    `[SC4SAP ERROR] MCP ABAP tool "${toolName}" failed${label}. ` +
+    `[SAPKIT ERROR] MCP ABAP tool "${toolName}" failed${label}. ` +
     `CheckSyntax is worth running in case the cause is in the source itself. ` +
     `Otherwise check the four that fail this way without a syntax error: ` +
     `the object does not exist, your user lacks the authorisation, the transport request is not usable, ` +

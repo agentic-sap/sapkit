@@ -416,7 +416,7 @@ await expectFailure(
 // 같은 방식). 되돌리기는 프로세스가 중간에 죽으면 실행되지 않지만, 애초에 건드리지
 // 않은 파일은 되돌릴 것이 없다 — finally보다 강한 보장이다.
 {
-  const READ_FILE = 'sc4sap-mcp-tools-read.md';
+  const READ_FILE = 'sapkit-mcp-tools-read.md';
 
   function catalogCopy() {
     const dir = tempDir('sapkit-gate-catalog-');

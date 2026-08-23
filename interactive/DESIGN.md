@@ -176,7 +176,7 @@ sc4sap-lite/
   server/
     server.bundle.cjs  VERSION  integrity.json
     runtime-deps/keyring/              ← NODE_PATH 배선 포함 (keychain 비밀번호 저장)
-    tool-catalog/                      ← sc4sap-mcp-tools*.md 4파일 — 엔진 등록점 생성물
+    tool-catalog/                      ← sapkit-mcp-tools*.md 4파일 — 엔진 등록점 생성물
                                           (판10 · D-107 · read 90 / write 79 / runtime 15 ·
                                           행 데이터 2종은 섹션 밖·인덱스에 사유). 노출 프리셋
                                           원천. 생성기 harness/render-tool-catalog.mjs · 대조

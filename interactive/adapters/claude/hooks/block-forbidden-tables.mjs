@@ -418,7 +418,7 @@ async function main() {
   if (!rawPayload) {
     return respond(
       'deny',
-      `sc4sap blocklist — empty hook payload, cannot determine the target table(s). ${FAILS_CLOSED}`,
+      `sapkit blocklist — empty hook payload, cannot determine the target table(s). ${FAILS_CLOSED}`,
     );
   }
 
@@ -428,7 +428,7 @@ async function main() {
   } catch (err) {
     return respond(
       'deny',
-      `sc4sap blocklist — could not parse hook payload (${err.message}), cannot determine the ` +
+      `sapkit blocklist — could not parse hook payload (${err.message}), cannot determine the ` +
         `target table(s). ${FAILS_CLOSED}`,
     );
   }
@@ -448,7 +448,7 @@ async function main() {
   } catch (err) {
     return respond(
       'deny',
-      `sc4sap blocklist — unable to load blocklist (${err.message}). ` +
+      `sapkit blocklist — unable to load blocklist (${err.message}). ` +
         `Check core/policies/data-protection/. ${FAILS_CLOSED}`,
     );
   }
@@ -459,7 +459,7 @@ async function main() {
   if (profile !== 'custom' && builtin.exact.size === 0 && builtin.patterns.length === 0) {
     return respond(
       'deny',
-      `sc4sap blocklist (profile: ${profile}) — the built-in blocklist parsed to 0 entries, which points ` +
+      `sapkit blocklist (profile: ${profile}) — the built-in blocklist parsed to 0 entries, which points ` +
         `at a missing or damaged install rather than at an empty policy. Verify that ` +
         `core/policies/data-protection/ still holds its category *.md files. Row-data extraction stays ` +
         `denied until that list loads; if an empty built-in list is genuinely intended here, set ` +
@@ -482,7 +482,7 @@ async function main() {
   if (ambiguous) {
     return respond(
       'ask',
-      'sc4sap blocklist — could not identify the target table(s): the query holds a FROM or JOIN but no ' +
+      'sapkit blocklist — could not identify the target table(s): the query holds a FROM or JOIN but no ' +
         'name could be read out of it, which usually means a dynamic or computed table reference. A table ' +
         'that cannot be named cannot be checked against the blocklist, so this needs human confirmation ' +
         'before it runs.',
@@ -503,7 +503,7 @@ async function main() {
   if (denied.length > 0) {
     return respond(
       'deny',
-      `sc4sap blocklist (profile: ${profile}) — row extraction denied:\n` +
+      `sapkit blocklist (profile: ${profile}) — row extraction denied:\n` +
         `${describeHits(denied, 'protected')}\n\n` +
         `See core/policies/data-protection/ — table_exception.md indexes the categories and ` +
         `data-extraction-policy.md lists what may be used instead (released CDS views, anonymized test ` +
@@ -516,7 +516,7 @@ async function main() {
   // Warn-only: hand the call to the user instead of settling it here.
   return respond(
     'ask',
-    `sc4sap blocklist (profile: ${profile}) — sensitive table access requires confirmation:\n` +
+    `sapkit blocklist (profile: ${profile}) — sensitive table access requires confirmation:\n` +
       `${describeHits(flagged, 'sensitive')}\n\n` +
       `These belong to the "Protected Business Data" set, where the default posture stays blocked until ` +
       `the user authorizes the specific request — its scope, its anonymization, and how party IDs are ` +

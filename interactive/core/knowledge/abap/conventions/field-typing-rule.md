@@ -1,6 +1,6 @@
 # Field Typing Rule — Data Element First
 
-**Scope.** This rule governs every field-type decision an sc4sap skill or agent makes for a Table, a Structure, or a Table Type — the standard `CreateTable` / `CreateStructure` flow **and** the ECC helper-program fallback under `ecc-ddic-fallback.md` alike.
+**Scope.** This rule governs every field-type decision a sapkit skill or agent makes for a Table, a Structure, or a Table Type — the standard `CreateTable` / `CreateStructure` flow **and** the ECC helper-program fallback under `ecc-ddic-fallback.md` alike.
 
 **What goes wrong without it.** Earlier runs typed fields as a raw data type plus a length — `LIFNR CHAR 10`, `MATNR CHAR 40`, `WERKS CHAR 4` — even though SAP already delivers authoritative Data Elements carrying exactly those semantics (`LIFNR`, `MATNR`, `WERKS_D`, …). Every consuming program is then left without the search helps, the foreign-key propagation, the conversion exits, and the documentation. That reuse is obligatory, not discretionary.
 

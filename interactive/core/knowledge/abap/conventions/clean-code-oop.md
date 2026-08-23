@@ -2,7 +2,7 @@
 
 The Clean ABAP rules that apply specifically to the **OOP paradigm** — local classes (`LCL_DATA` / `LCL_ALV`) held inside a REPORT, global classes, interfaces, exception classes, and ABAP Unit with test doubles. Load it when the Phase 1B interview settles `paradigm = OOP` — and NOT when that answer comes out `Procedural`. The paradigm-neutral baseline that both paradigms share sits in its companion, [`clean-code.md`](clean-code.md). Every rule below remains gated by `abap-release-reference.md`.
 
-> The sc4sap OOP pattern file [`oop-pattern.md`](oop-pattern.md) is this file's partner: the split into two classes (LCL_DATA + LCL_ALV / LCL_SCREEN) is settled there, and the coding style that fills those class bodies is settled here.
+> The sapkit OOP pattern file [`oop-pattern.md`](oop-pattern.md) is this file's partner: the split into two classes (LCL_DATA + LCL_ALV / LCL_SCREEN) is settled there, and the coding style that fills those class bodies is settled here.
 
 ## Mandatory Main Program Template (MUST match)
 
@@ -32,7 +32,7 @@ The main `REPORT` source of an OOP program is not written from a blank page: the
 - **Parameter count** stops at 3 IMPORTING; anything past that becomes a DDIC structure or a second method.
 - **No output parameters masquerading as input** — reach for `CHANGING` only when you mean it; functional methods use `RETURNING`, and `EXPORTING` is left for the case where more than one value genuinely has to come back.
 - **Functional methods return one value, no side effects.** A method that does have side effects returns nothing.
-- **OOP two-class split** (sc4sap convention) — business logic and BAPI I/O sit in `LCL_DATA`, presentation in `LCL_ALV` or `LCL_SCREEN`. See [`oop-pattern.md`](oop-pattern.md).
+- **OOP two-class split** (sapkit convention) — business logic and BAPI I/O sit in `LCL_DATA`, presentation in `LCL_ALV` or `LCL_SCREEN`. See [`oop-pattern.md`](oop-pattern.md).
 
 ## Object Orientation — Scope and Design
 

@@ -58,7 +58,7 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
     모듈+시험+**등록점 배선**+대장 갱신을 **한 커밋**(반쪽 상태는 다음 판이 같은 도구를
     두 번 짓게 만든다).
   - **`sapkit-engine/TOOL-LEDGER.md`는 기계 생성물**이다. 손으로 고치면 게이트가 거부한다.
-    **`interactive/server/tool-catalog/`의 `sc4sap-mcp-tools*.md` 4파일도 판10부터 같은
+    **`interactive/server/tool-catalog/`의 `sapkit-mcp-tools*.md` 4파일도 판10부터 같은
     지위다** — 등록점에서 생성하며(`harness/render-tool-catalog.mjs`), 손으로 고치면
     엔진 게이트 「카탈로그」가 거부한다.
     도구 상태는 세 칸(`안 지음` / `지음·증거 대기` / `증거 있음`)이고 **`증거 대기`를 완료로

@@ -33,7 +33,7 @@ An OK_CODE element on the screen is mandatory under classical Dynpro, and whatev
 
 **SE51 manual path**: Screen {num} → Element List → General attributes → **OK_CODE field** = `GV_OKCODE`.
 
-**ADT / `UpdateScreen` (sc4sap MCP) path**: within the screen's `fields_to_containers[]`, the entry carrying `TYPE=OKCODE` MUST also carry `NAME=GV_OKCODE`. Leave that OKCODE field with the default placeholder (`TEXT=____________________`) and no NAME, and the code lands in `sy-ucomm` alone — which defeats the whole pattern.
+**ADT / `UpdateScreen` (sapkit MCP) path**: within the screen's `fields_to_containers[]`, the entry carrying `TYPE=OKCODE` MUST also carry `NAME=GV_OKCODE`. Leave that OKCODE field with the default placeholder (`TEXT=____________________`) and no NAME, and the code lands in `sy-ucomm` alone — which defeats the whole pattern.
 
 A fragment of such an `UpdateScreen` payload:
 ```json

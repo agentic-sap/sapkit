@@ -111,7 +111,7 @@ function renderPart(kind, names, heading, blurb, extra) {
     banner(),
     `# SAP MCP Tool Catalog — ${heading}\n`,
     `${blurb}\n`,
-    `Part of [sc4sap-mcp-tools.md](sc4sap-mcp-tools.md).
+    `Part of [sapkit-mcp-tools.md](sapkit-mcp-tools.md).
 
 ${NAMING}
 `,
@@ -153,9 +153,9 @@ whole surface by operation class.
 
 | File | Categories | Count |
 |---|---|---:|
-| [sc4sap-mcp-tools-read.md](sc4sap-mcp-tools-read.md) | Get\\*, Read\\*, Check\\*/List\\*/Search\\*/Describe\\*/Grep\\* | ${counts.read} |
-| [sc4sap-mcp-tools-write.md](sc4sap-mcp-tools-write.md) | Create\\*, Update\\*, Delete\\*, Activate\\*/Patch\\*/Release\\*/Write\\* | ${counts.write} |
-| [sc4sap-mcp-tools-runtime.md](sc4sap-mcp-tools-runtime.md) | Runtime\\*, execution, session control | ${counts.runtime} |
+| [sapkit-mcp-tools-read.md](sapkit-mcp-tools-read.md) | Get\\*, Read\\*, Check\\*/List\\*/Search\\*/Describe\\*/Grep\\* | ${counts.read} |
+| [sapkit-mcp-tools-write.md](sapkit-mcp-tools-write.md) | Create\\*, Update\\*, Delete\\*, Activate\\*/Patch\\*/Release\\*/Write\\* | ${counts.write} |
+| [sapkit-mcp-tools-runtime.md](sapkit-mcp-tools-runtime.md) | Runtime\\*, execution, session control | ${counts.runtime} |
 
 **Registered tools**: ${total}. **Listed above**: ${listed}. **Prompt-gated (never
 auto-approve)**: ${PROMPT_GATED.length}.
@@ -220,20 +220,20 @@ export async function build() {
   for (const n of listed) by[classify(n)].push(n);
   const counts = { read: by.read.length, write: by.write.length, runtime: by.runtime.length };
   return {
-    'sc4sap-mcp-tools.md': renderIndex(counts, all.length),
-    'sc4sap-mcp-tools-read.md': renderPart(
+    'sapkit-mcp-tools.md': renderIndex(counts, all.length),
+    'sapkit-mcp-tools-read.md': renderPart(
       'read',
       by.read,
       'Read operations',
       'Get / Read / Check / List / Search / Describe / Grep handlers — DDIC and object\nmetadata, source retrieval, structure navigation, cross-object search, and\nserver-side syntax checks. Nothing here changes SAP state.'
     ),
-    'sc4sap-mcp-tools-write.md': renderPart(
+    'sapkit-mcp-tools-write.md': renderPart(
       'write',
       by.write,
       'Write operations',
       'Create / Update / Delete / Activate / Patch / Release / Write handlers covering\nthe ABAP object lifecycle. Every tool here changes SAP state and is therefore\nDEV-tier only.'
     ),
-    'sc4sap-mcp-tools-runtime.md': renderPart(
+    'sapkit-mcp-tools-runtime.md': renderPart(
       'runtime',
       by.runtime,
       'Runtime operations',

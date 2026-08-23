@@ -11,7 +11,7 @@
 Runtime diagnostics (dumps, profiler traces, gateway errors, system messages),
 unit test execution, service binding validation, and server session control.
 
-Part of [sc4sap-mcp-tools.md](sc4sap-mcp-tools.md).
+Part of [sapkit-mcp-tools.md](sapkit-mcp-tools.md).
 
 Tools are listed by **bare capability name**. Each harness maps those names to its
 own tool identifiers — see the [capability vocabulary](../../core/vocabulary.md)

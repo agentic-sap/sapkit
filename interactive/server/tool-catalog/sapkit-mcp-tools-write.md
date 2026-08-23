@@ -12,7 +12,7 @@ Create / Update / Delete / Activate / Patch / Release / Write handlers covering
 the ABAP object lifecycle. Every tool here changes SAP state and is therefore
 DEV-tier only.
 
-Part of [sc4sap-mcp-tools.md](sc4sap-mcp-tools.md).
+Part of [sapkit-mcp-tools.md](sapkit-mcp-tools.md).
 
 Tools are listed by **bare capability name**. Each harness maps those names to its
 own tool identifiers — see the [capability vocabulary](../../core/vocabulary.md)

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * sc4sap PreToolUse hook — steer wide row reads toward an explicit field list.
+ * sapkit PreToolUse hook — steer wide row reads toward an explicit field list.
  *
  * This guard is about cost, not safety. Both tools it watches are already
  * fenced by the row-extraction and tier hooks; what this one notices is the
@@ -121,7 +121,7 @@ async function main() {
   if (/GetTableContents/i.test(tool)) {
     const table = String(args.table_name || args.table || '').toUpperCase();
     askAndExit([
-      'sc4sap policy — credit-saving guard:',
+      'sapkit policy — credit-saving guard:',
       `  GetTableContents${table ? `(${table})` : ''} takes no field list, so it returns every column.`,
       '',
       'Ask through GetSqlQuery instead and name the fields the answer needs:',
@@ -136,7 +136,7 @@ async function main() {
     const statement = String(args.sql_query || args.sql || args.query || '');
     if (selectsEveryField(statement)) {
       askAndExit([
-        'sc4sap policy — credit-saving guard:',
+        'sapkit policy — credit-saving guard:',
         '  Query uses SELECT * — every column of every matched row comes back.',
         '',
         'Name the fields the answer actually needs:',

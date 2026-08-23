@@ -1,6 +1,6 @@
 # Function Module Source Convention
 
-**Scope.** Every source body that sc4sap skills and agents produce for `CreateFunctionModule` and `UpdateFunctionModule`.
+**Scope.** Every source body that sapkit skills and agents produce for `CreateFunctionModule` and `UpdateFunctionModule`.
 
 **Problem this rule fixes.** Earlier runs emitted Function Module source shaped like this:
 
@@ -30,7 +30,7 @@ FUNCTION bapi_transaction_commit
 ENDFUNCTION.
 ```
 
-Hand FM source to `UpdateFunctionModule` from sc4sap and SAP parses that inline signature, updating TFDIR/FUPARAREF on its own. **The signature can be set no other way** — there is no "parameters" endpoint standing apart from the source, and no `*"*"Local Interface:` auto-generation that writes itself back into it.
+Hand FM source to `UpdateFunctionModule` from sapkit and SAP parses that inline signature, updating TFDIR/FUPARAREF on its own. **The signature can be set no other way** — there is no "parameters" endpoint standing apart from the source, and no `*"*"Local Interface:` auto-generation that writes itself back into it.
 
 ## Required source template (every FM)
 
@@ -125,7 +125,7 @@ An assumed interface is never a basis for calling a standard FM — read the rea
 
 **Verify, don't assume**: for every FM destined to be reached via RFC/JCo, interrogate the flag once it exists — `SELECT funcname FROM tfdir WHERE funcname = '<FM>' AND fmode = 'R'`; nothing coming back means the module is NOT remote-enabled. Neither a successful activation nor a 0-error/0-warning syntax check exposes this; the defect appears only at call time, as "function not found in repository" on the caller side (field-verified in real project work, 2026-07: 5 of 6 freshly-created FMs failed exactly this way until the type was fixed in SE37).
 
-Whenever sc4sap creates an RFC-facing FM (PLM / WMS / external I/F), the FMs concerned MUST be flagged in the completion report with:
+Whenever sapkit creates an RFC-facing FM (PLM / WMS / external I/F), the FMs concerned MUST be flagged in the completion report with:
 
 > ⚠ Processing Type `Remote-Enabled Module` must be set manually in SE37 Properties for: `<FM_LIST>`. MCP ADT REST does not expose this flag.
 

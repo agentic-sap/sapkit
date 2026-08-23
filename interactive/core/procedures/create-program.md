@@ -12,7 +12,7 @@ source:
 
 # Create Program — Procedure
 
-The core ABAP program creation procedure. It produces a Main Program wrapped in conditional Includes per the sc4sap template convention, and it carries both paradigms — OOP (two-class split: Data + Screen/ALV) and Procedural (PERFORM).
+The core ABAP program creation procedure. It produces a Main Program wrapped in conditional Includes per the sapkit template convention, and it carries both paradigms — OOP (two-class split: Data + Screen/ALV) and Procedural (PERFORM).
 
 **The main conversation owns every phase below and runs them in order.** Phase 4 implementation may be delegated per the `execution_owner` convention in [development-loop.md](../policies/development-loop.md). Where a step says "adopt the X persona", switch working persona for that step; do not skip, reorder, or merge phases. Every phase is MANDATORY unless explicitly marked conditional.
 
