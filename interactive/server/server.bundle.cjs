@@ -23610,6 +23610,9 @@ var require_startup = __commonJS({
       const enabled = args.includes("--auth-interactive");
       const rawHost = (argValue(args, "--callback-host") ?? "").trim();
       const rawPort = (argValue(args, "--callback-port") ?? "").trim();
+      for (const raw of args.filter((arg) => arg.startsWith("--auth-interactive="))) {
+        diagnostics.push(`AUTH_INTERACTIVE_INVALID: ${raw} is not recognised \u2014 --auth-interactive is a bare switch that takes no value, and this form does not turn it on. Pass --auth-interactive on its own and restart (interactive login is ${enabled ? "on" : "off"} for this launch). --callback-host and --callback-port are the two arguments that take a value.`);
+      }
       const say = (line) => {
         if (enabled)
           diagnostics.push(line);
@@ -72518,8 +72521,8 @@ var require_core5 = __commonJS({
       }
     }
     function readEngineVersion() {
-      if ("1.2.0") {
-        return "1.2.0";
+      if ("1.2.1") {
+        return "1.2.1";
       }
       let dir = __dirname;
       for (let depth = 0; depth < 6; depth += 1) {
