@@ -121,6 +121,8 @@ function sealedStartup(previous: Startup, reason: string): Startup {
     env: {},
     blocklist: readBlocklistConfig({}),
     destination: null,
+    // 봉인은 destination 통로 자체를 버리므로 그 통로의 옵트인도 함께 꺼진다.
+    authInteractive: { ...previous.authInteractive, enabled: false },
     unsafe: false,
     diagnostics,
     input: previous.input,

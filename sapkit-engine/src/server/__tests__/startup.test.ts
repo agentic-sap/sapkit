@@ -1130,3 +1130,146 @@ describe('진단', () => {
     expect(startup.diagnostics.join('\n')).toContain('tier=UNKNOWN');
   });
 });
+
+/**
+ * `--auth-interactive`와 콜백 노브 — **정지선을 여는 유일한 열쇠**(D-117 ⓐ).
+ *
+ * 이 계층이 하는 일은 셋이다: 플래그를 읽고, 콜백 주소를 정하고, 그것을 사람에게
+ * 말한다. 토큰은 여전히 다음 걸음(`connectDestination`)이 받는다.
+ */
+describe('인터랙티브 로그인 옵트인 — --auth-interactive · --callback-host · --callback-port', () => {
+  function keyBody(overrides: Record<string, unknown> = {}): unknown {
+    return {
+      uaa: {
+        url: 'https://uaa.invalid/oauth',
+        clientid: 'fixture-client',
+        clientsecret: FAKE_SECRET,
+        ...overrides,
+      },
+      abap: { url: 'http://127.0.0.1:1', client: '100', language: 'EN' },
+    };
+  }
+
+  function startupWith(args: string[], body: unknown = keyBody()) {
+    const root = storeRoot();
+    writeServiceKey(root, 'DEST1', body);
+    return resolveStartup({
+      argv: argvOf('--mcp=DEST1', ...args),
+      env: { AUTH_BROKER_PATH: root },
+      cwd: tempDir(),
+      homedir: tempDir(),
+    });
+  }
+
+  // 실측으로 아는 유일한 성공 조합을 기본값에 둔다(D-117 ⓔ). 인증 계층의
+  // `DEFAULT_CALLBACK_HOST`(`127.0.0.1`)와 **일부러 다르다** — 그것은 바인딩
+  // 안전의 값이고 이것은 XSUAA에 등록된 redirect_uri 문자열이다.
+  it('기본 콜백 주소는 localhost:8080이다', () => {
+    expect(
+      resolveStartup({ argv: argvOf(), env: {}, cwd: tempDir(), homedir: tempDir() })
+        .authInteractive,
+    ).toEqual({ enabled: false, callbackHost: 'localhost', callbackPort: 8080 });
+  });
+
+  it('플래그를 켜도 기본 주소는 그대로이고 enabled만 바뀐다', () => {
+    expect(startupWith(['--auth-interactive']).authInteractive).toEqual({
+      enabled: true,
+      callbackHost: 'localhost',
+      callbackPort: 8080,
+    });
+  });
+
+  it('노브가 주소를 옮긴다 (--host/--port가 아니라 --callback-*)', () => {
+    const startup = startupWith([
+      '--auth-interactive',
+      '--callback-host=127.0.0.1',
+      '--callback-port=9443',
+    ]);
+    expect(startup.authInteractive).toEqual({
+      enabled: true,
+      callbackHost: '127.0.0.1',
+      callbackPort: 9443,
+    });
+  });
+
+  // 전송의 `--host`/`--port`는 웹 표면을 여는 인자다. 두 이름이 섞이면 한 글자
+  // 차이로 다른 것이 열린다.
+  it('전송의 --host/--port는 콜백 주소를 건드리지 않는다', () => {
+    const startup = startupWith(['--auth-interactive', '--host=0.0.0.0', '--port=3000']);
+    expect(startup.authInteractive.callbackHost).toBe('localhost');
+    expect(startup.authInteractive.callbackPort).toBe(8080);
+  });
+
+  it('포트가 포트가 아니면 기본값으로 되돌리고 그 사실을 말한다', () => {
+    const startup = startupWith(['--auth-interactive', '--callback-port=not-a-port']);
+    expect(startup.authInteractive.callbackPort).toBe(8080);
+    const joined = startup.diagnostics.join('\n');
+    expect(joined).toContain('CALLBACK_PORT_INVALID');
+    expect(joined).toContain('redirect_uri');
+  });
+
+  it('범위 밖의 포트도 마찬가지다', () => {
+    for (const raw of ['0', '65536', '8080.5', '-1']) {
+      const startup = startupWith(['--auth-interactive', `--callback-port=${raw}`]);
+      expect(startup.authInteractive.callbackPort).toBe(8080);
+      expect(startup.diagnostics.join('\n')).toContain('CALLBACK_PORT_INVALID');
+    }
+  });
+
+  // ── 진단이 조건에 맞게 갈린다 (D-117 ⓖ) ──────────────────────────────────
+
+  it('플래그가 없으면 TOKEN_PENDING이 그대로 서고 다음 걸음으로 플래그를 안내한다', () => {
+    const joined = startupWith([]).diagnostics.join('\n');
+    expect(joined).toContain('MCP_DESTINATION_TOKEN_PENDING');
+    // 옛 문면은 **여전히 참이다** — 플래그가 없을 때가 정확히 그 조건이다.
+    expect(joined).toContain('Startup does not begin that flow');
+    expect(joined).toContain('this engine never opens one');
+    // 그리고 다음 걸음을 말한다 — 플래그·기본 주소·화이트리스트 셋 다.
+    expect(joined).toContain('--auth-interactive');
+    expect(joined).toContain('http://localhost:8080/callback');
+    expect(joined).toContain('--callback-host');
+    expect(joined).toContain('--callback-port');
+    expect(joined).toContain('redirect_uri');
+  });
+
+  it('플래그가 있으면 TOKEN_PENDING이 아니라 TOKEN_REQUIRED가 선다', () => {
+    const joined = startupWith(['--auth-interactive']).diagnostics.join('\n');
+    expect(joined).not.toContain('MCP_DESTINATION_TOKEN_PENDING');
+    expect(joined).toContain('MCP_DESTINATION_TOKEN_REQUIRED');
+    expect(joined).toContain('--auth-interactive is on');
+    expect(joined).toContain('http://localhost:8080/callback');
+    // 브라우저를 여는 것은 여전히 사람이다.
+    expect(joined).toContain('opens no browser itself');
+    expect(joined).toContain('The next diagnostic says whether a token arrived');
+  });
+
+  it('안내에 적히는 주소는 노브를 따라간다', () => {
+    const joined = startupWith([
+      '--auth-interactive',
+      '--callback-host=127.0.0.1',
+      '--callback-port=9443',
+    ]).diagnostics.join('\n');
+    expect(joined).toContain('http://127.0.0.1:9443/callback');
+  });
+
+  it('플래그는 client_credentials 진단을 바꾸지 않는다', () => {
+    const withFlag = startupWith(
+      ['--auth-interactive'],
+      keyBody({ granttype: 'client_credentials' }),
+    );
+    const without = startupWith([], keyBody({ granttype: 'client_credentials' }));
+    const line = (startup: typeof withFlag): string =>
+      startup.diagnostics.find((entry) => entry.startsWith('MCP_DESTINATION_TOKEN_REQUIRED')) ?? '';
+    // destination 이름·키 경로만 다르므로 그 자리를 지우고 비교한다.
+    const shape = (text: string): string => text.replace(/\(.*?, abap shape[^)]*\)/, '(key)');
+    expect(shape(line(withFlag))).toBe(shape(line(without)));
+    expect(line(without)).toContain('startup acquires the first token itself');
+  });
+
+  // 이 계층은 여전히 토큰을 받지 않는다 — 플래그가 켜져도 그렇다.
+  it('플래그가 켜져도 resolveStartup은 접속을 만들지 않는다', () => {
+    const startup = startupWith(['--auth-interactive']);
+    expect(startup.profile.connection).toBeNull();
+    expect(startup.diagnostics.join('\n')).not.toContain(FAKE_SECRET);
+  });
+});

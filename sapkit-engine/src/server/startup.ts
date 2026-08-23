@@ -19,7 +19,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-import { uaaEndpoints } from '../auth';
+import { DEFAULT_CALLBACK_PATH, uaaEndpoints } from '../auth';
 import type { HandlerSet, ResolvedProfile } from '../contracts';
 import {
   type DestinationSelection,
@@ -40,6 +40,39 @@ import {
   resolveSafetyEnv,
   resolveUnsafeFlag,
 } from '../safety';
+
+/**
+ * `--auth-interactive`가 콜백을 열 **기본 호스트**.
+ *
+ * 인증 계층의 `DEFAULT_CALLBACK_HOST`는 `127.0.0.1`이고 **그것은 그대로 둔다** —
+ * 그 상수는 바인딩 안전(루프백 IP 고정)에 관한 그 계층의 결정이다. 여기 값은
+ * 다른 것을 정한다: **XSUAA에 등록된 `redirect_uri` 문자열**이다. 판M2-b 실측에서
+ * 화이트리스트가 받은 것은 `http://localhost:8080/callback`이었고, XSUAA는 이
+ * 주소를 문자열·패턴으로 대조하므로 `127.0.0.1`로 조립하면 포트가 맞아도 거부된다
+ * (D-116 ⓒ · D-117 ⓔ). 아는 것을 기본값으로 둔다.
+ */
+export const DEFAULT_INTERACTIVE_CALLBACK_HOST = 'localhost';
+/** 같은 실측이 준 포트. `:8123`으로는 콜백이 오지 않았다(D-115). */
+export const DEFAULT_INTERACTIVE_CALLBACK_PORT = 8080;
+
+/**
+ * `authorization_code` destination의 **정지선을 여는 열쇠**와 그 콜백 주소.
+ *
+ * D-091 ⓑ → D-114 ⓑ가 좁힌 정지선을 D-117 ⓐ가 **명시 옵트인 하나**로 열었다.
+ * `enabled`가 거짓이면 그 destination은 오늘과 한 글자도 다르지 않다 — 무접속
+ * 기동이고 UAA 왕복 0이다. 참일 때만 기동이 콜백을 열고 인가 URL을 stderr로
+ * 건네고 **사람을 기다린다**.
+ *
+ * 노브 이름이 `--callback-*`인 이유: `--host`/`--port`는 HTTP/SSE 전송이 이미
+ * 쓴다(`./transport/config.ts`). 같은 이름을 나눠 쓰면 웹 표면을 여는 인자와
+ * 로그인 콜백을 여는 인자가 한 글자 차이로 뒤바뀐다.
+ */
+export interface AuthInteractive {
+  /** `--auth-interactive`가 argv에 있는가. */
+  readonly enabled: boolean;
+  readonly callbackHost: string;
+  readonly callbackPort: number;
+}
 
 export interface StartupInput {
   /** **전체** `process.argv` (`[node, script, ...]`). 앞 둘은 내부에서 버린다. */
@@ -81,13 +114,17 @@ export interface Startup {
    * 통로가 열렸다고 접속이 생긴 것은 아니다 — `--env`는 세션 env 파일을 기존
    * Basic 해석기에 태워 접속을 만들지만, **이 함수** 안에서 `--mcp`와 브로커
    * 통로는 여전히 **재료 조립까지만** 한다. `--mcp`의 토큰은 기동 경로의 다음
-   * 걸음(`./connectDestination`)이 받으며, 그것도 `client_credentials` 그랜트일
-   * 때뿐이다(D-114 ⓑ) — `authorization_code`는 사람이 브라우저 앞에 있어야
-   * 끝나므로 기동이 시작하지 않는다. 브로커 통로는 그 위에 destination 이름조차
-   * 고르지 않으므로, 접속을 소유하지 않은 채 열려 있을 수 있다. 접속 여부는
-   * 언제나 `profile.connection`이 정본이다.
+   * 걸음(`./connectDestination`)이 받는다 — `client_credentials`는 언제나(D-114
+   * ⓑ), `authorization_code`는 **`--auth-interactive`가 켜졌을 때만**(D-117 ⓐ).
+   * 브로커 통로는 그 위에 destination 이름조차 고르지 않으므로, 접속을 소유하지
+   * 않은 채 열려 있을 수 있다. 접속 여부는 언제나 `profile.connection`이 정본이다.
    */
   readonly destination: DestinationSelection | null;
+  /**
+   * `--auth-interactive`와 그 콜백 주소. 이 값을 읽는 곳은 기동 경로의 다음
+   * 걸음(`./connectDestination`) 하나뿐이다.
+   */
+  readonly authInteractive: AuthInteractive;
   /** `MCP_UNSAFE` / `--unsafe`. 게이트에는 아무 영향이 없다. */
   readonly unsafe: boolean;
   /** 사람이 읽을 기동 진단. 서버가 그대로 stderr에 쓴다. */
@@ -109,6 +146,43 @@ function argValue(args: readonly string[], name: string): string | undefined {
     if (arg === name) return args[i + 1] ?? '';
   }
   return undefined;
+}
+
+/**
+ * `--auth-interactive` · `--callback-host` · `--callback-port`를 읽는다.
+ *
+ * 포트가 포트가 아니면 **기본값으로 되돌리고 그 사실을 말한다.** 조용히
+ * 되돌리지 않는 이유는 콜백 계층이 적어 둔 것과 같다(`src/auth/callback.ts`
+ * 머리말 — 「조용히 다른 포트로 옮기면 `redirect_uri`가 등록된 값과 어긋나
+ * 인가 서버가 거절하고, 그 거절은 원인과 아주 먼 곳에서 보인다」).
+ */
+function resolveAuthInteractive(
+  args: readonly string[],
+  diagnostics: string[],
+): AuthInteractive {
+  const rawHost = (argValue(args, '--callback-host') ?? '').trim();
+  const rawPort = (argValue(args, '--callback-port') ?? '').trim();
+
+  let callbackPort = DEFAULT_INTERACTIVE_CALLBACK_PORT;
+  if (rawPort !== '') {
+    const parsed = Number(rawPort);
+    if (Number.isInteger(parsed) && parsed >= 1 && parsed <= 65535) {
+      callbackPort = parsed;
+    } else {
+      diagnostics.push(
+        `CALLBACK_PORT_INVALID: --callback-port=${rawPort} is not a port number (1-65535), so the ` +
+          `loopback callback stays on ${DEFAULT_INTERACTIVE_CALLBACK_PORT}. That address has to ` +
+          "match a redirect_uri registered on the XSUAA client, so fix the argument if this key's " +
+          'whitelist names a different port.',
+      );
+    }
+  }
+
+  return {
+    enabled: args.includes('--auth-interactive'),
+    callbackHost: rawHost === '' ? DEFAULT_INTERACTIVE_CALLBACK_HOST : rawHost,
+    callbackPort,
+  };
 }
 
 /**
@@ -154,13 +228,21 @@ function nothingResolved(profile: ResolvedProfile): boolean {
  * 세 갈래이고, 갈래마다 사람이 할 일이 다르므로 진단 코드도 다르다:
  *  - `MCP_DESTINATION_NO_SERVICE_URL` — 토큰을 받아도 붙을 주소가 키에 없다.
  *    그랜트와 무관하게 끝나는 자리라 그랜트보다 먼저 말한다.
- *  - `MCP_DESTINATION_TOKEN_REQUIRED` — `client_credentials`. 기동이 곧
- *    받아 온다(`./connectDestination`). 이 줄은 그 다음 줄의 머리말이다.
- *  - `MCP_DESTINATION_TOKEN_PENDING` — `authorization_code`. **여기서 끝난다.**
- *    D-114 ⓑ가 좁힌 뜻 그대로 이 그랜트 전용이 됐다: 기동은 시작하지 않고,
- *    사람이 무엇을 해야 하는지만 말한다.
+ *  - `MCP_DESTINATION_TOKEN_REQUIRED` — 기동이 곧 받아 온다
+ *    (`./connectDestination`). 이 줄은 그 다음 줄의 머리말이다. 두 그랜트가
+ *    여기 온다: `client_credentials`는 언제나, `authorization_code`는
+ *    **`--auth-interactive`가 켜졌을 때만**(D-117 ⓐ). 무엇을 하려는지는 문면이
+ *    갈라 말한다 — 한쪽은 서버 간 왕복이고 다른 쪽은 사람을 기다린다.
+ *  - `MCP_DESTINATION_TOKEN_PENDING` — `authorization_code`인데 그 플래그가
+ *    **없을 때**. **여기서 끝난다**: 기동은 시작하지 않고, 사람이 무엇을 해야
+ *    하는지만 말한다. 「Startup does not begin that flow」가 참인 것은 정확히
+ *    이 조건에서이므로(D-117 ⓖ) 다음 걸음으로 그 플래그를 함께 안내한다.
  */
-function describeServiceKeyDestination(name: string, key: ServiceKeyConfig): string {
+function describeServiceKeyDestination(
+  name: string,
+  key: ServiceKeyConfig,
+  interactive: AuthInteractive,
+): string {
   const plan = planServiceKeyConnection(key);
   const shape = `${key.source}, ${key.storeType} shape`;
   const basic =
@@ -192,15 +274,35 @@ function describeServiceKeyDestination(name: string, key: ServiceKeyConfig): str
     );
   }
 
+  const callback =
+    `http://${interactive.callbackHost}:${interactive.callbackPort}${DEFAULT_CALLBACK_PATH}`;
+
+  if (interactive.enabled) {
+    return (
+      `MCP_DESTINATION_TOKEN_REQUIRED: --mcp=${name} resolved its service key (${shape}, service ` +
+      `URL ${plan.baseUrl}) and it uses ${grant}. --auth-interactive is on, so startup binds a ` +
+      `loopback callback on ${callback}, prints the authorization URL on stderr, and waits for a ` +
+      'person to open it and sign in — it still opens no browser itself. That callback address ' +
+      'has to be registered as a redirect_uri on this XSUAA client, or the authorization server ' +
+      'refuses the redirect; --callback-host and --callback-port move it. The next diagnostic ' +
+      'says whether a token arrived. A profile reload does not bring one back — ReloadProfile ' +
+      're-reads argv, the environment and the disk, and a token is on none of them.'
+    );
+  }
+
   return (
     `MCP_DESTINATION_TOKEN_PENDING: --mcp=${name} resolved its service key (${shape}, service ` +
     `URL ${plan.baseUrl}) and it uses ${grant}. Startup does not begin that flow — it ends at a ` +
     'browser a person drives, and this engine never opens one — so the server starts with no ' +
     `connection. The authorization endpoint is ${uaaEndpoints(plan.uaa.url).authorize} ` +
     `(client_id ${plan.uaa.clientId}, response_type=code, redirect_uri a loopback callback that ` +
-    'startup does not bind). Next: if this destination is meant to run server-to-server, add ' +
-    `"granttype": "client_credentials" to ${key.source} and restart — startup acquires that token ` +
-    `on its own. Otherwise ${basic}`
+    'startup does not bind). Next: pass --auth-interactive and restart — startup then binds that ' +
+    `callback on ${callback} (move it with --callback-host and --callback-port), prints the ` +
+    'authorization URL on stderr for a person to open, and waits for the browser round trip; the ' +
+    "callback address has to be one of this XSUAA client's registered redirect_uri values or the " +
+    'authorization server refuses the redirect. Or, if this destination is meant to run ' +
+    `server-to-server, add "granttype": "client_credentials" to ${key.source} and restart — ` +
+    `startup acquires that token on its own. Otherwise ${basic}`
   );
 }
 
@@ -248,6 +350,7 @@ export function resolveStartup(input: StartupInput = {}): Startup {
   diagnostics.push(...exposition.diagnostics);
 
   // ② 접속 — argv 통로가 먼저다.
+  const authInteractive = resolveAuthInteractive(args, diagnostics);
   const explicitEnvPath = argValue(args, '--env-path');
 
   // `--mcp=<destination>`과 `--env=<name>`은 **destination 인자**다 — 운영자가
@@ -292,8 +395,9 @@ export function resolveStartup(input: StartupInput = {}): Startup {
     //    재적재도 같은 통로로 다시 돈다. 토큰은 기동 경로의 다음 걸음
     //    (`./connectDestination`)이 받으며, D-114 ⓑ가 그 자리를 그랜트로 갈랐다:
     //    `client_credentials`는 사람이 개입할 자리가 없으므로 기동이 자동으로
-    //    받고, `authorization_code`는 사람이 브라우저 앞에 있어야 끝나므로
-    //    기동이 시작하지 않는다(attended 명시성 · 장부 D15).
+    //    받는다. `authorization_code`는 사람이 브라우저 앞에 있어야 끝나므로
+    //    **명시 옵트인 `--auth-interactive`가 있을 때만** 시작한다(D-117 ⓐ) —
+    //    없으면 오늘 그대로 시작하지 않는다(attended 명시성 · 장부 D15).
     const channelDiagnostics: string[] = [];
     if (envDestination !== '') {
       channelDiagnostics.push(
@@ -312,7 +416,9 @@ export function resolveStartup(input: StartupInput = {}): Startup {
         };
         // 갈래마다 사람이 할 일이 다르다 — "곧 받아 온다" · "사람이 시작해야
         // 한다" · "토큰을 받아도 붙을 주소가 없다"는 서로 다른 이야기다.
-        channelDiagnostics.push(describeServiceKeyDestination(mcpDestination, found.key));
+        channelDiagnostics.push(
+          describeServiceKeyDestination(mcpDestination, found.key, authInteractive),
+        );
         break;
       }
       case 'unsafe-name':
@@ -472,6 +578,7 @@ export function resolveStartup(input: StartupInput = {}): Startup {
     env: safetyEnv,
     blocklist: readBlocklistConfig(safetyEnv),
     destination,
+    authInteractive,
     unsafe: resolveUnsafeFlag({ argv: args, env }),
     diagnostics,
     input: {

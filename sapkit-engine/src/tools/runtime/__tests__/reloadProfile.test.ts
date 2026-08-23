@@ -19,9 +19,10 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import * as z from 'zod';
 
 import type { AdtClient } from '../../../adt';
+import { mockTransport, tokenBody } from '../../../auth/__tests__/helpers';
 import type { ConnectionConfig } from '../../../contracts';
-import { createServerCore, defineTool, resolveStartup } from '../../../server';
-import type { SapTool, ToolContext } from '../../../server';
+import { connectDestination, createServerCore, defineTool, resolveStartup } from '../../../server';
+import type { SapTool, Startup, ToolContext } from '../../../server';
 import { reloadProfile } from '../reloadProfile';
 import { cleanupTempDirs, probeTier, publishedDeclaration, publishedOf, tempDir } from './support';
 
@@ -362,6 +363,150 @@ describe('갈래', () => {
       expect(body.legacy).toBe(true);
       expect(body.alias).toBeNull();
       expect(body.tier).toBe('DEV');
+    } finally {
+      await harness.close();
+    }
+  });
+});
+
+// ── destination 재적재 — 기동만이 받을 수 있는 토큰 ──────────────────────────
+
+/**
+ * `--mcp` 기동에서 재적재가 **접속을 되찾지 못하는** 갈래.
+ *
+ * 판M2-a의 리뷰 권고 1이 이 신호(`restartRequired`)를 세웠는데, 그 분기를 겨눈
+ * 시험이 없었다(`src/tools/runtime/reloadProfile.ts:107-109`의
+ * `connectionDropped && connection === null`). 배포 축이 바뀌는 갈래
+ * (`exposureStale`)는 위에서 재고 있지만 **사유가 다르다** — 저쪽은 도구 목록만
+ * 낡은 것이고, 이쪽은 접속 자체가 사라진 것이다. 사람이 할 일은 둘 다 재시동인데
+ * 이유가 다르므로 문면도 갈라져야 한다.
+ *
+ * 재적재가 토큰을 되찾지 못하는 이유는 구조적이다: `ProfileSession.reload()`는
+ * `resolveStartup`만 다시 돌고, 그 함수는 argv·프로세스 env·디스크만 본다.
+ * 토큰은 그 셋 중 어디에도 없다(무상태 — D-091 ⓒ①).
+ *
+ * **SAP에도 UAA에도 붙지 않는다** — 토큰 왕복은 전송 목이 받는다.
+ */
+describe('destination 기동의 재적재 (판M2-a 리뷰 권고 1)', () => {
+  const FAKE_SECRET = 'fixture-not-a-real-secret';
+
+  /** `--mcp=DEST1` + `client_credentials`로 **토큰까지 받은** 기동 상태. */
+  async function connectedStartup(): Promise<Startup> {
+    const root = tempDir();
+    fs.mkdirSync(path.join(root, 'service-keys'), { recursive: true });
+    fs.mkdirSync(path.join(root, 'sessions'), { recursive: true });
+    fs.writeFileSync(
+      path.join(root, 'service-keys', 'DEST1.json'),
+      JSON.stringify({
+        uaa: {
+          url: 'https://uaa.invalid/oauth',
+          clientid: 'fixture-client',
+          clientsecret: FAKE_SECRET,
+          granttype: 'client_credentials',
+        },
+        abap: { url: 'http://127.0.0.1:1', client: '100' },
+      }),
+      'utf8',
+    );
+    const mock = mockTransport([tokenBody()]);
+    return connectDestination(
+      resolveStartup({
+        argv: ['/usr/bin/node', '/app/sapkit-engine/entry.js', '--exposition=readonly,high'].concat(
+          '--mcp=DEST1',
+        ),
+        env: { AUTH_BROKER_PATH: root },
+        cwd: tempDir(),
+        homedir: tempDir(),
+      }),
+      { transport: mock.transport },
+    );
+  }
+
+  /** 접속을 **실제로 여는** 읽기 도구. 이것이 불려야 캐시된 접속이 생긴다. */
+  function fakeRead(): SapTool {
+    return defineTool(
+      {
+        name: 'ReadFixture',
+        description: 'fixture read tool.',
+        inputSchema: {},
+        available_in: ['onprem', 'cloud', 'legacy'],
+        sets: ['readonly'],
+        kind: 'read',
+        targetNames: [],
+      },
+      async (context: ToolContext) => {
+        await context.getConnection();
+        return { isError: false, content: [{ type: 'text', text: 'read' }] };
+      },
+    );
+  }
+
+  async function harnessOf(startup: Startup): Promise<Harness> {
+    const configs: ConnectionConfig[] = [];
+    const core = createServerCore({
+      startup,
+      tools: [reloadProfile, fakeRead()],
+      connectionFactory: (config: ConnectionConfig): AdtClient => {
+        configs.push(config);
+        return { fake: true } as unknown as AdtClient;
+      },
+      stderr: () => {},
+    });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const client = new Client({ name: 'reload-destination-test', version: '0.0.0' });
+    await Promise.all([core.server.connect(serverTransport), client.connect(clientTransport)]);
+    return {
+      client,
+      configs,
+      async close() {
+        await client.close();
+        await core.server.close();
+      },
+    };
+  }
+
+  it('접속을 쓰던 --mcp 기동은 재적재 뒤 restartRequired=true와 그 사유를 싣는다', async () => {
+    const startup = await connectedStartup();
+    expect(startup.profile.connection?.authType).toBe('jwt');
+
+    const harness = await harnessOf(startup);
+    try {
+      // ① 접속을 실제로 연다 — 이것이 있어야 재적재가 버릴 것이 생긴다.
+      expect((await call(harness, 'ReadFixture')).isError).toBe(false);
+      expect(harness.configs).toHaveLength(1);
+
+      // ② 재적재. argv·env·디스크에는 토큰이 없으므로 새 접속이 서지 않는다.
+      const body = await reload(harness);
+      expect(body.ok).toBe(true);
+      expect(body.restartRequired).toBe(true);
+      expect(String(body.note)).toMatch(/token acquired at startup does not come back/);
+      expect(String(body.note)).toMatch(/Restart \(reconnect\)/);
+      // 목록이 낡은 것이 아니다 — 사유가 갈려야 한다.
+      expect(String(body.note)).not.toMatch(/tool list/i);
+      // ③ 그리고 상태가 실제로 무접속이다.
+      expect(body.tier).toBe('UNKNOWN');
+      const denied = await call(harness, 'ReadFixture');
+      expect(denied.isError).toBe(true);
+      expect(denied.text).toMatch(/ERR_NO_CONNECTION/);
+      // 새 접속을 만들지도 않았다.
+      expect(harness.configs).toHaveLength(1);
+      // 비밀은 어느 진단에도 실리지 않는다.
+      expect(denied.text).not.toContain(FAKE_SECRET);
+    } finally {
+      await harness.close();
+    }
+  });
+
+  // 접속을 한 번도 열지 않았다면 버려진 것도 없다 — 그때는 재시동을 요구하지
+  // 않는다. `connectionDropped`가 그 구분을 소유한다.
+  it('접속을 연 적이 없으면 restartRequired는 서지 않는다', async () => {
+    const startup = await connectedStartup();
+    const harness = await harnessOf(startup);
+    try {
+      const body = await reload(harness);
+      expect(body.restartRequired).toBe(false);
+      expect('note' in body).toBe(false);
+      expect(harness.configs).toHaveLength(0);
     } finally {
       await harness.close();
     }

@@ -2,18 +2,24 @@
  * 기동 경로의 토큰 한 걸음 — **실 UAA 없이.**
  *
  * UAA 왕복은 전송 이음매(`HttpTransport`)를 목으로 갈아 끼워 돌고, 이 파일에서
- * 나가는 네트워크 요청은 0이다. 재는 것은 셋이다:
+ * **바깥으로** 나가는 네트워크 요청은 0이다. 인가 콜백만 loopback에서 실제로
+ * 뜨는데(그것이 시험 대상이다) 그 포트는 0으로 잡아 임의 할당을 받는다 —
+ * 8080을 잡으면 시험이 그 기계의 다른 프로세스와 다툰다. 재는 것은 넷이다:
  *
  *  ① `client_credentials` 선언 키에서 **기동이 첫 토큰을 받아 Bearer 접속을
  *     세우는가**(D-114 ⓑ).
- *  ② 실패가 **그 자리에서 끝나고**(fail-closed) 그 진단이 「무엇이 실패했고
- *     사람이 다음에 무엇을 하는가」를 실제로 말하는가(D-114 ⓓ).
- *  ③ **기존 경로에 자국이 0인가** — Basic 기동·`--env` 기동·
- *     `authorization_code` destination은 받은 상태를 **그대로**(같은 객체로)
- *     돌려받는다.
+ *  ② `authorization_code` 키에서 **`--auth-interactive`가 있을 때만** 같은 일이
+ *     일어나는가(D-117 ⓐ) — 그 플래그가 없으면 오늘과 한 글자도 다르지 않다.
+ *  ③ 실패가 **그 자리에서 끝나고**(fail-closed) 그 진단이 「무엇이 실패했고
+ *     사람이 다음에 무엇을 하는가」를 실제로 말하는가(D-114 ⓓ · D-117 ⓐ).
+ *     실패 갈래마다 사람이 할 일이 다르므로 갈래별로 잰다.
+ *  ④ **기존 경로에 자국이 0인가** — Basic 기동·`--env` 기동·브로커 기동·
+ *     **플래그 없는** `authorization_code` destination은 받은 상태를
+ *     **그대로**(같은 객체로) 돌려받는다.
  */
 
 import * as fs from 'node:fs';
+import * as http from 'node:http';
 import * as path from 'node:path';
 
 import { HttpTransportError } from '../../adt/http';
@@ -54,7 +60,7 @@ function serviceKey(overrides: Record<string, unknown> = {}, withServiceUrl = tr
 }
 
 /** `--mcp=DEST1`로 기동한 **해석 결과**. 아직 토큰은 없다. */
-function mcpStartup(body: unknown): Startup {
+function mcpStartup(body: unknown, ...extraArgs: string[]): Startup {
   const root = storeRoot();
   fs.writeFileSync(
     path.join(root, 'service-keys', 'DEST1.json'),
@@ -62,7 +68,7 @@ function mcpStartup(body: unknown): Startup {
     'utf8',
   );
   return resolveStartup({
-    argv: argvOf('--mcp=DEST1'),
+    argv: argvOf('--mcp=DEST1', ...extraArgs),
     env: { AUTH_BROKER_PATH: root },
     cwd: tempDir(),
     homedir: tempDir(),
@@ -134,7 +140,10 @@ describe('connectDestination — client_credentials 성공 경로', () => {
   it('진단이 무엇이 섰는지·언제 만료되는지·무엇이 아직 안 되는지를 말한다', async () => {
     const { after } = await connect([tokenBody({ expires_in: 3600 })]);
     const joined = after.diagnostics.join('\n');
-    expect(joined).toContain('MCP_DESTINATION_CONNECTED');
+    // 이름이 옮겨졌다 — 이 코드가 아는 것은 취득까지이고 `CONNECTED`는 대상이
+    // 그 토큰을 받는 것을 확인한 자리에 예약돼 있다(D-117 ⓖ).
+    expect(joined).toContain('MCP_DESTINATION_TOKEN_ACQUIRED');
+    expect(joined).not.toContain('MCP_DESTINATION_CONNECTED');
     expect(joined).toContain('http://127.0.0.1:1');
     expect(joined).toContain('2026-01-01T01:00:00.000Z');
     expect(joined).toContain('startup does not renew it');
@@ -231,6 +240,261 @@ describe('connectDestination — 실패는 fail-closed로 끝난다', () => {
   });
 });
 
+// ── ⓑ authorization_code — 플래그가 있을 때만 ───────────────────────────────
+
+const FAKE_CODE = 'not-a-real-authorization-code';
+
+/** 인가 URL 안의 `redirect_uri`로 **콜백 한 번**을 실제로 쏜다. loopback뿐이다. */
+function hitCallback(
+  authorizeUrl: string,
+  overrides: Record<string, string> = {},
+): Promise<void> {
+  const authorize = new URL(authorizeUrl);
+  const redirect = new URL(authorize.searchParams.get('redirect_uri') ?? '');
+  const params: Record<string, string> = {
+    code: FAKE_CODE,
+    state: authorize.searchParams.get('state') ?? '',
+    ...overrides,
+  };
+  for (const [name, value] of Object.entries(params)) redirect.searchParams.set(name, value);
+
+  return new Promise<void>((resolve, reject) => {
+    const request = http.get(redirect.toString(), (response) => {
+      response.resume();
+      response.on('end', () => resolve());
+    });
+    request.on('error', reject);
+  });
+}
+
+/** 자리를 미리 차지한 loopback 서버 하나. 포트 점유 갈래의 재료다. */
+async function occupyPort(): Promise<{ port: number; close: () => Promise<void> }> {
+  const server = http.createServer((_req, res) => res.end('busy'));
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const address = server.address();
+  const port = typeof address === 'object' && address !== null ? address.port : 0;
+  return {
+    port,
+    close: () =>
+      new Promise<void>((resolve) => {
+        server.close(() => resolve());
+      }),
+  };
+}
+
+describe('connectDestination — authorization_code + --auth-interactive (D-117 ⓐ)', () => {
+  /** 콜백 포트는 0(임의 할당)이고 인가 URL은 목이 받는다. */
+  async function login(
+    responses: Parameters<typeof mockTransport>[0],
+    open?: (url: string) => void | Promise<void>,
+  ) {
+    const startup = mcpStartup(
+      serviceKey({ granttype: 'authorization_code' }),
+      '--auth-interactive',
+    );
+    const mock = mockTransport(responses);
+    const seen: string[] = [];
+    const after = await connectDestination(startup, {
+      transport: mock.transport,
+      now: () => NOW,
+      callbackHost: '127.0.0.1',
+      callbackPort: 0,
+      timeoutMs: 5_000,
+      openAuthorizeUrl: async (url) => {
+        seen.push(url);
+        if (open) await open(url);
+      },
+    });
+    return { before: startup, after, mock, seen, joined: after.diagnostics.join('\n') };
+  }
+
+  it('사람이 로그인을 마치면 코드를 토큰으로 바꿔 Bearer 접속을 세운다', async () => {
+    const { before, after, mock } = await login([tokenBody()], (url) => hitCallback(url));
+
+    expect(before.profile.connection).toBeNull();
+    const connection = after.profile.connection;
+    expect(connection).not.toBeNull();
+    if (!connection) return;
+    expect(connection.authType).toBe('jwt');
+    expect(connection.jwtToken).toBe(FAKE_TOKEN);
+    expect(connection.baseUrl).toBe('http://127.0.0.1:1');
+    expect(connection.rejectUnauthorized).toBe(true);
+    // tier는 여전히 UNKNOWN이다 — 그랜트가 바뀌어도 service key는 tier를 말하지 않는다.
+    expect(after.profile.tier).toBe('UNKNOWN');
+
+    // 왕복은 **코드 교환 한 번**이다.
+    expect(mock.calls).toHaveLength(1);
+    expect(mock.form(0).get('grant_type')).toBe('authorization_code');
+    expect(mock.form(0).get('code')).toBe(FAKE_CODE);
+  });
+
+  it('인가 URL은 사람에게 건네질 뿐이다 — 여는 코드가 없고 비밀도 실리지 않는다', async () => {
+    const { seen } = await login([tokenBody()], (url) => hitCallback(url));
+    expect(seen).toHaveLength(1);
+    const url = new URL(seen[0] ?? '');
+    expect(url.searchParams.get('response_type')).toBe('code');
+    expect(url.searchParams.get('client_id')).toBe('fixture-client');
+    expect(url.searchParams.get('redirect_uri')).toMatch(/^http:\/\/127\.0\.0\.1:\d+\/callback$/);
+    expect(seen[0]).not.toContain(FAKE_SECRET);
+  });
+
+  it('한 줄 요약이 다시 쓰이고 진단이 그랜트와 핸드셰이크 지연을 말한다', async () => {
+    const { after, joined } = await login([tokenBody({ expires_in: 3600 })], (url) =>
+      hitCallback(url),
+    );
+    const summaries = after.diagnostics.filter((line) => line.startsWith('[sapkit] profile: '));
+    expect(summaries).toHaveLength(1);
+    expect(summaries[0]).toContain('connection=yes');
+    expect(after.diagnostics[after.diagnostics.length - 1]).toBe(summaries[0]);
+
+    expect(joined).toContain('MCP_DESTINATION_TOKEN_ACQUIRED');
+    expect(joined).toContain('acquired a authorization_code token');
+    expect(joined).toContain('2026-01-01T01:00:00.000Z');
+    // D-117 정직 유보 ⓔ — 기동이 로그인만큼 늦어진다는 사실을 미리 말한다.
+    expect(joined).toContain('delays the MCP handshake');
+    // 401 안내는 `client_credentials` 전용이다 — 사용자 토큰에는 해당하지 않는다.
+    expect(joined).not.toContain('answer 401 on every path');
+    expect(joined).toContain('carries a user identity');
+  });
+
+  it('진단에 code도 토큰도 비밀도 실리지 않는다 (ⓓ)', async () => {
+    const { joined } = await login([tokenBody()], (url) => hitCallback(url));
+    expect(joined).not.toContain(FAKE_CODE);
+    expect(joined).not.toContain(FAKE_TOKEN);
+    expect(joined).not.toContain(FAKE_SECRET);
+  });
+});
+
+// ── ⓒ authorization_code 실패 4종 — 갈래마다 사람이 할 일이 다르다 ──────────
+
+describe('connectDestination — 인터랙티브 로그인 실패는 fail-closed로 끝난다', () => {
+  async function login(options: {
+    readonly responses?: Parameters<typeof mockTransport>[0];
+    readonly open?: (url: string) => void | Promise<void>;
+    readonly port?: number;
+    readonly timeoutMs?: number;
+  }) {
+    const startup = mcpStartup(
+      serviceKey({ granttype: 'authorization_code' }),
+      '--auth-interactive',
+    );
+    const mock = mockTransport(options.responses ?? []);
+    const after = await connectDestination(startup, {
+      transport: mock.transport,
+      now: () => NOW,
+      callbackHost: '127.0.0.1',
+      callbackPort: options.port ?? 0,
+      timeoutMs: options.timeoutMs ?? 5_000,
+      openAuthorizeUrl: async (url) => {
+        if (options.open) await options.open(url);
+      },
+    });
+    const failed = after.diagnostics.find((line) =>
+      line.startsWith('MCP_DESTINATION_TOKEN_FAILED'),
+    );
+    return { after, mock, joined: after.diagnostics.join('\n'), failed: failed ?? '' };
+  }
+
+  it('시한 안에 콜백이 오지 않으면 되밀지 않고 무엇을 다시 하라고 말한다', async () => {
+    const { after, joined, failed } = await login({ timeoutMs: 40 });
+    expect(after.profile.connection).toBeNull();
+    expect(joined).toContain('MCP_DESTINATION_TOKEN_FAILED');
+    expect(joined).toContain('CALLBACK_TIMEOUT');
+    expect(joined).toContain('does not push the login again');
+    expect(joined).toContain('--auth-interactive');
+    expect(joined).toContain('does not fall back to another system');
+    // 인증 계층의 한국어 본문이 영문 진단에 섞이지 않는다.
+    expect(failed).not.toMatch(/[가-힣]/);
+  });
+
+  it('state가 다른 콜백은 이 로그인의 것이 아니라고 말한다', async () => {
+    const { after, joined, failed } = await login({
+      open: (url) => hitCallback(url, { state: 'a-different-state' }),
+    });
+    expect(after.profile.connection).toBeNull();
+    expect(joined).toContain('CALLBACK_STATE_MISMATCH');
+    expect(joined).toContain('did not belong to this login');
+    expect(joined).toContain('stale browser tab');
+    expect(failed).not.toMatch(/[가-힣]/);
+  });
+
+  it('콜백 포트가 점유돼 있으면 조용히 옮기지 않고 그 주소를 지목한다', async () => {
+    const busy = await occupyPort();
+    try {
+      const { after, joined } = await login({ port: busy.port });
+      expect(after.profile.connection).toBeNull();
+      expect(joined).toContain('CALLBACK_FAILED');
+      expect(joined).toContain(`http://127.0.0.1:${busy.port}/callback`);
+      expect(joined).toContain('does not quietly move to another one');
+      expect(joined).toContain('--callback-port');
+    } finally {
+      await busy.close();
+    }
+  });
+
+  it('코드 교환이 거절되면 redirect_uri 화이트리스트를 보라고 말한다', async () => {
+    const { after, joined } = await login({
+      responses: [
+        {
+          status: 400,
+          body: JSON.stringify({
+            error: 'invalid_grant',
+            error_description: 'Invalid redirect_uri',
+          }),
+        },
+      ],
+      open: (url) => hitCallback(url),
+    });
+    expect(after.profile.connection).toBeNull();
+    expect(joined).toContain('UAA_REJECTED');
+    expect(joined).toContain('refused the code exchange');
+    expect(joined).toContain('redirect_uri');
+    expect(joined).toContain('127.0.0.1 and localhost are different values');
+    // `client_credentials` 갈래의 안내(비밀 재발급)가 여기 나오면 오진이다.
+    expect(joined).not.toContain('Re-download the service key from BTP');
+    expect(joined).not.toContain(FAKE_CODE);
+    expect(joined).not.toContain(FAKE_SECRET);
+  });
+
+  it('실패해도 요약은 하나이고 connection=none · inspection-only 그대로다', async () => {
+    const { after } = await login({ timeoutMs: 40 });
+    const summaries = after.diagnostics.filter((line) => line.startsWith('[sapkit] profile: '));
+    expect(summaries).toHaveLength(1);
+    expect(summaries[0]).toContain('connection=none');
+    expect(after.sets).toEqual(['readonly', 'high']);
+    expect(after.profile.diagnostics.join('\n')).toContain('MCP_DESTINATION_TOKEN_FAILED');
+  });
+
+  // ⓖ — 주소는 **기동이 정한 것**이고 이 걸음은 그것을 읽는다. 옵션으로 덮지
+  // 않았을 때 argv의 노브가 그대로 콜백 주소가 되는지 잰다.
+  it('콜백 주소는 argv의 노브에서 온다 (옵션 주입 없이)', async () => {
+    const busy = await occupyPort();
+    try {
+      const startup = mcpStartup(
+        serviceKey({ granttype: 'authorization_code' }),
+        '--auth-interactive',
+        '--callback-host=127.0.0.1',
+        `--callback-port=${busy.port}`,
+      );
+      expect(startup.authInteractive).toEqual({
+        enabled: true,
+        callbackHost: '127.0.0.1',
+        callbackPort: busy.port,
+      });
+      const mock = mockTransport([]);
+      const after = await connectDestination(startup, {
+        transport: mock.transport,
+        now: () => NOW,
+        timeoutMs: 40,
+      });
+      expect(after.profile.connection).toBeNull();
+      expect(after.diagnostics.join('\n')).toContain(`http://127.0.0.1:${busy.port}/callback`);
+    } finally {
+      await busy.close();
+    }
+  });
+});
+
 // ── ⓓⓔ 손대지 않는 갈래 — 자국 0 ───────────────────────────────────────────
 
 describe('connectDestination — 손대지 않는 갈래는 같은 객체를 돌려준다', () => {
@@ -239,12 +503,20 @@ describe('connectDestination — 손대지 않는 갈래는 같은 객체를 돌
     return mockTransport([]);
   }
 
-  it('authorization_code destination은 시작조차 하지 않는다', async () => {
+  // ⓑ — **플래그가 없으면 오늘 그대로**가 회귀 0의 정의다(D-117 ⓐ · 대안 b 기각).
+  it('authorization_code destination은 플래그가 없으면 시작조차 하지 않는다', async () => {
     const startup = mcpStartup(serviceKey());
     const mock = noCalls();
-    const after = await connectDestination(startup, { transport: mock.transport });
+    const opened: string[] = [];
+    const after = await connectDestination(startup, {
+      transport: mock.transport,
+      openAuthorizeUrl: (url) => {
+        opened.push(url);
+      },
+    });
     expect(after).toBe(startup);
     expect(mock.calls).toHaveLength(0);
+    expect(opened).toHaveLength(0);
     expect(after.diagnostics.join('\n')).toContain('MCP_DESTINATION_TOKEN_PENDING');
   });
 
@@ -253,6 +525,49 @@ describe('connectDestination — 손대지 않는 갈래는 같은 객체를 돌
     const mock = noCalls();
     expect(await connectDestination(startup, { transport: mock.transport })).toBe(startup);
     expect(mock.calls).toHaveLength(0);
+  });
+
+  // 플래그를 켜도 붙을 주소가 없으면 콜백을 열지 않는다 — 열어 봐야 토큰이
+  // 갈 데가 없고, 사람만 로그인 화면 앞에 세우는 꼴이 된다.
+  it('--auth-interactive여도 service URL이 없으면 콜백을 열지 않는다', async () => {
+    const startup = mcpStartup(
+      serviceKey({ granttype: 'authorization_code' }, false),
+      '--auth-interactive',
+    );
+    const mock = noCalls();
+    const opened: string[] = [];
+    const after = await connectDestination(startup, {
+      transport: mock.transport,
+      openAuthorizeUrl: (url) => {
+        opened.push(url);
+      },
+    });
+    expect(after).toBe(startup);
+    expect(mock.calls).toHaveLength(0);
+    expect(opened).toHaveLength(0);
+    expect(startup.diagnostics.join('\n')).toContain('MCP_DESTINATION_NO_SERVICE_URL');
+  });
+
+  // 플래그는 `authorization_code`의 정지선만 연다 — 다른 그랜트의 동작은
+  // 그것이 켜져 있든 아니든 같다.
+  it('--auth-interactive는 client_credentials 갈래를 바꾸지 않는다', async () => {
+    const startup = mcpStartup(
+      serviceKey({ granttype: 'client_credentials' }),
+      '--auth-interactive',
+    );
+    const mock = mockTransport([tokenBody()]);
+    const opened: string[] = [];
+    const after = await connectDestination(startup, {
+      transport: mock.transport,
+      now: () => NOW,
+      openAuthorizeUrl: (url) => {
+        opened.push(url);
+      },
+    });
+    expect(opened).toHaveLength(0);
+    expect(mock.calls).toHaveLength(1);
+    expect(mock.form(0).get('grant_type')).toBe('client_credentials');
+    expect(after.diagnostics.join('\n')).toContain('acquired a client_credentials token');
   });
 
   it('service URL이 없으면 client_credentials여도 토큰을 부르지 않는다', async () => {
@@ -292,6 +607,20 @@ describe('connectDestination — 손대지 않는 갈래는 같은 객체를 돌
       cwd: tempDir(),
       homedir: tempDir(),
     });
+    const mock = noCalls();
+    expect(await connectDestination(startup, { transport: mock.transport })).toBe(startup);
+    expect(mock.calls).toHaveLength(0);
+  });
+
+  it('브로커 통로 기동도 그대로 지나간다', async () => {
+    const root = storeRoot();
+    const startup = resolveStartup({
+      argv: argvOf('--auth-broker', '--auth-interactive'),
+      env: { AUTH_BROKER_PATH: root },
+      cwd: tempDir(),
+      homedir: tempDir(),
+    });
+    expect(startup.destination?.channel).toBe('broker');
     const mock = noCalls();
     expect(await connectDestination(startup, { transport: mock.transport })).toBe(startup);
     expect(mock.calls).toHaveLength(0);
