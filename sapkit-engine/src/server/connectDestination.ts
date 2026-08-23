@@ -97,11 +97,22 @@ export interface DestinationConnectOptions {
   readonly timeoutMs?: number;
 }
 
-/** 기본 구현 — **stdout이 아니라 stderr**. stdout은 MCP 프로토콜 채널이다. */
+/**
+ * 기본 구현 — **stdout이 아니라 stderr**. stdout은 MCP 프로토콜 채널이다.
+ *
+ * ⚠ **핸드셰이크 경고가 여기 있는 이유**(D-119 ⓑ): `bootstrap.startFromProcess`는
+ * 이 걸음을 **transport를 연결하기 전에** await 한다. 그래서 대기가 시작된 뒤
+ * 사람이 보는 출력은 **이 두 줄뿐**이고, 성공 진단은 이미 늦다 — 그때는 기다림이
+ * 끝나 있다. D-117 정직 유보 ⓔ가 「진단이 그 사실을 **미리** 말해야 한다」고 적은
+ * 자리가 정확히 여기다.
+ */
 function printAuthorizeUrl(url: string): void {
   process.stderr.write(
     'MCP_DESTINATION_AUTHORIZE_URL: startup is waiting for a browser round trip. Open this URL, ' +
-      'sign in, and the loopback callback finishes the login here. Nothing opens on its own.\n' +
+      'sign in, and the loopback callback finishes the login here. Nothing opens on its own. ' +
+      'Startup is blocked until then, which delays the MCP handshake for as long as the sign-in ' +
+      'takes — a client whose own startup timeout is shorter can score this launch as a failure ' +
+      'even after the token arrives, so sign in now or restart without --auth-interactive.\n' +
       `${url}\n`,
   );
 }
@@ -375,7 +386,10 @@ function interactiveNextStep(
         `does not match the one registered on this XSUAA client — this run used ${flow.callbackUrl} ` +
         '(move it with --callback-host and --callback-port; the address is compared as a string, ' +
         'so 127.0.0.1 and localhost are different values). A code that sat unused for too long ' +
-        'also expires. Check the redirect_uri list in BTP against that address, then restart.'
+        'also expires. A third cause has no fix on this side: this engine sends no PKCE ' +
+        'code_challenge, so an XSUAA client configured to require it refuses every exchange here ' +
+        'no matter what the redirect_uri says. Check the redirect_uri list in BTP against that ' +
+        'address first, then whether this client mandates PKCE, then restart.'
       );
     case 'UAA_REQUEST_FAILED':
       return (
@@ -401,6 +415,11 @@ const OPAQUE_CAUSE: ReadonlySet<string> = new Set([
   'CALLBACK_TIMEOUT',
   'CALLBACK_STATE_MISMATCH',
   'CALLBACK_ABORTED',
+  // 이 둘은 판M2-c가 만든 결함이 아니라 **선재**였다 — 두 그랜트 모두에서 도달
+  // 가능하고 em-dash 뒤가 한국어다(`uaa.ts`의 응답 불량 · `tokenSource.ts`의
+  // 갱신 재료 없음). 기구를 세운 판이 두 줄로 닫는다(D-119 ⓔ).
+  'UAA_RESPONSE_INVALID',
+  'AUTH_NO_REFRESH_MATERIAL',
 ]);
 
 function failureLine(

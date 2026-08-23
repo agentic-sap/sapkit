@@ -1216,7 +1216,95 @@ describe('인터랙티브 로그인 옵트인 — --auth-interactive · --callba
     }
   });
 
+  // ── 호스트는 loopback 리터럴만 (D-119 ⓐ) ─────────────────────────────────
+  //
+  // 이 노브가 `src/auth/callback.ts`의 「지키는 것 ①」(**loopback에만
+  // 바인딩한다**)에 닿는 유일한 프로덕션 통로다. 그 값은 `connectDestination`
+  // → `acquireByAuthorizationCode({host})` → `server.listen(port, host)`로
+  // 그대로 내려가므로, 여기서 통과하는 값이 곧 실제 바인딩 주소다. 그래서
+  // 「진단이 떴다」로 만족하지 않고 **실린 값**(`callbackHost`)을 잰다.
+
+  it('비-loopback 호스트는 싣지 않고 기본값으로 되돌리며 그 사실을 말한다', () => {
+    for (const raw of ['0.0.0.0', '192.168.1.50', 'callback.corp.example']) {
+      const startup = startupWith(['--auth-interactive', `--callback-host=${raw}`]);
+      // ⚠ 차단 사유의 핵심 — 되돌아간 것은 **진단이 아니라 값**이다.
+      expect(startup.authInteractive).toEqual({
+        enabled: true,
+        callbackHost: 'localhost',
+        callbackPort: 8080,
+      });
+      const joined = startup.diagnostics.join('\n');
+      expect(joined).toContain('CALLBACK_HOST_INVALID');
+      // 거절한 값을 그대로 되읽어 준다 — 사람이 무엇이 안 먹었는지 안다.
+      expect(joined).toContain(raw);
+      // 그리고 무엇을 쓰라고 말한다(기각 (a)의 이유).
+      expect(joined).toContain('localhost, 127.0.0.1');
+      // 뒤따르는 안내의 주소도 기본값이다 — 두 문면이 갈리면 사람이 헷갈린다.
+      expect(joined).toContain('http://localhost:8080/callback');
+    }
+  });
+
+  it('loopback 리터럴 2종은 그대로 실린다', () => {
+    for (const raw of ['localhost', '127.0.0.1']) {
+      const startup = startupWith(['--auth-interactive', `--callback-host=${raw}`]);
+      expect(startup.authInteractive.callbackHost).toBe(raw);
+      expect(startup.diagnostics.join('\n')).not.toContain('CALLBACK_HOST_INVALID');
+    }
+  });
+
+  // ⚠ `::1`은 loopback이지만 **거부한다**(D-119 회수) — 콜백 계층의 URL 조립이
+  // `http://${host}:${port}${path}`라 `http://::1:8080/callback`이라는 깨진 주소가
+  // 되기 때문이다(IPv6는 대괄호를 요구한다). **받아 놓고 깨진 redirect_uri를
+  // 보내느니 거부하고 이유를 말한다.**
+  it('::1은 loopback이어도 거부한다 — 이 통로의 URL 조립이 IPv6를 못 싣는다', () => {
+    const startup = startupWith(['--auth-interactive', '--callback-host=::1']);
+    expect(startup.authInteractive.callbackHost).toBe('localhost');
+    expect(startup.diagnostics.join('\n')).toContain('CALLBACK_HOST_INVALID');
+  });
+
+  // 호스트 이름은 대소문자를 가리지 않는다. 다만 실리는 것은 **정규형**이다 —
+  // 그 문자열이 XSUAA의 redirect_uri와 글자로 대조되기 때문이다.
+  it('허용 판정은 대소문자를 가리지 않고 정규형을 싣는다', () => {
+    const startup = startupWith(['--auth-interactive', '--callback-host=LOCALHOST']);
+    expect(startup.authInteractive.callbackHost).toBe('localhost');
+    expect(startup.diagnostics.join('\n')).not.toContain('CALLBACK_HOST_INVALID');
+  });
+
   // ── 진단이 조건에 맞게 갈린다 (D-117 ⓖ) ──────────────────────────────────
+
+  // D-119 ⓒ — 플래그가 없으면 이 인자들이 가리키는 콜백은 애초에 열리지
+  // 않는다. 그런데도 진단이 늘면 「플래그가 없으면 한 글자도 다르지 않다」에
+  // 문자 그대로의 반례가 되고, 「stays on 8080」이라는 문면 자체가 거짓이 된다.
+  // 재는 방법은 **진단 수 대조**다 — 문구를 찾는 단언은 문구가 바뀌면 조용히
+  // 통과할 수 있다.
+  it('플래그가 없으면 잘못된 호스트·포트가 진단을 늘리지 않는다', () => {
+    const bad = ['--callback-host=0.0.0.0', '--callback-port=not-a-port'];
+    const plain = startupWith([]);
+    const withBadKnobs = startupWith(bad);
+
+    expect(withBadKnobs.diagnostics).toHaveLength(plain.diagnostics.length);
+    const joined = withBadKnobs.diagnostics.join('\n');
+    expect(joined).not.toContain('CALLBACK_HOST_INVALID');
+    expect(joined).not.toContain('CALLBACK_PORT_INVALID');
+    // 값은 그래도 기본값이다 — 침묵이 곧 통과는 아니다.
+    expect(withBadKnobs.authInteractive).toEqual({
+      enabled: false,
+      callbackHost: 'localhost',
+      callbackPort: 8080,
+    });
+  });
+
+  it('같은 인자에 플래그만 붙이면 두 진단이 함께 선다', () => {
+    const bad = ['--callback-host=0.0.0.0', '--callback-port=not-a-port'];
+    const flagOnly = startupWith(['--auth-interactive']);
+    const withBadKnobs = startupWith(['--auth-interactive', ...bad]);
+
+    // 늘어난 것은 정확히 둘 — 호스트 하나, 포트 하나.
+    expect(withBadKnobs.diagnostics).toHaveLength(flagOnly.diagnostics.length + 2);
+    const joined = withBadKnobs.diagnostics.join('\n');
+    expect(joined).toContain('CALLBACK_HOST_INVALID');
+    expect(joined).toContain('CALLBACK_PORT_INVALID');
+  });
 
   it('플래그가 없으면 TOKEN_PENDING이 그대로 서고 다음 걸음으로 플래그를 안내한다', () => {
     const joined = startupWith([]).diagnostics.join('\n');

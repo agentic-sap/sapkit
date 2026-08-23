@@ -149,19 +149,70 @@ function argValue(args: readonly string[], name: string): string | undefined {
 }
 
 /**
+ * 콜백을 열어도 되는 호스트 — **loopback 리터럴만**(D-119 ⓐ).
+ *
+ * `src/auth/callback.ts`가 그 모듈의 「지키는 것 ①」로 **「loopback에만
+ * 바인딩한다 … 랜 어디서나 닿는 자리에 열면 같은 망의 다른 프로세스가 코드를
+ * 가로챌 수 있다」**를 적어 두었고, 이 노브가 그 보장에 닿는 **유일한 프로덕션
+ * 통로**다. 콜백은 평문 http만 서빙하므로 비-loopback 값에는 정당한 용처가
+ * 없다 — 이 노브의 목적은 애초에 **`localhost` vs `127.0.0.1` 문자열 선택**
+ * (XSUAA 화이트리스트 대조)이지 임의 인터페이스 바인딩이 아니다(D-117 ⓔ).
+ *
+ * **`::1`은 일부러 뺐다.** loopback이 맞지만 이 통로가 만드는 URL이 깨진다 —
+ * 콜백 계층이 `http://${host}:${port}${path}`로 조립하므로(`callback.ts`)
+ * `::1`은 `http://::1:8080/callback`이 되고 IPv6는 `http://[::1]:8080/…`처럼
+ * 대괄호를 요구한다. **받아 놓고 깨진 `redirect_uri`를 보내느니 거부하고 이유를
+ * 말하는 편이 낫다** — 조립을 고치려면 `src/auth/**`를 건드려야 하는데 그것은
+ * 이 판이 지키기로 한 선이다. 대괄호 표기가 필요해지면 그때 별도 판에서 연다.
+ *
+ * 집합을 좁게 두는 이유: 넓힐수록 **거부 진단이 무엇을 쓰라고 말하기 어려워진다**
+ * (D-119 기각 (a)).
+ */
+const LOOPBACK_CALLBACK_HOSTS = ['localhost', '127.0.0.1'] as const;
+
+/**
  * `--auth-interactive` · `--callback-host` · `--callback-port`를 읽는다.
  *
- * 포트가 포트가 아니면 **기본값으로 되돌리고 그 사실을 말한다.** 조용히
- * 되돌리지 않는 이유는 콜백 계층이 적어 둔 것과 같다(`src/auth/callback.ts`
- * 머리말 — 「조용히 다른 포트로 옮기면 `redirect_uri`가 등록된 값과 어긋나
- * 인가 서버가 거절하고, 그 거절은 원인과 아주 먼 곳에서 보인다」).
+ * 호스트가 {@link LOOPBACK_CALLBACK_HOSTS} 밖이거나 포트가 포트가 아니면
+ * **기본값으로 되돌리고 그 사실을 말한다.** 조용히 되돌리지 않는 이유는 콜백
+ * 계층이 적어 둔 것과 같다(`src/auth/callback.ts` 머리말 — 「조용히 다른 포트로
+ * 옮기면 `redirect_uri`가 등록된 값과 어긋나 인가 서버가 거절하고, 그 거절은
+ * 원인과 아주 먼 곳에서 보인다」).
  */
+
 function resolveAuthInteractive(
   args: readonly string[],
   diagnostics: string[],
 ): AuthInteractive {
+  const enabled = args.includes('--auth-interactive');
   const rawHost = (argValue(args, '--callback-host') ?? '').trim();
   const rawPort = (argValue(args, '--callback-port') ?? '').trim();
+
+  // 진단은 **옵트인일 때만** 낸다(D-119 ⓒ). 플래그가 없으면 이 인자들이 가리키는
+  // 콜백은 애초에 열리지 않으므로, 「stays on 8080」류의 문면이 거짓이 되고
+  // 「플래그가 없으면 한 글자도 다르지 않다」에도 문자 그대로의 반례가 생긴다.
+  const say = (line: string): void => {
+    if (enabled) diagnostics.push(line);
+  };
+
+  let callbackHost: string = DEFAULT_INTERACTIVE_CALLBACK_HOST;
+  if (rawHost !== '') {
+    const match = LOOPBACK_CALLBACK_HOSTS.find(
+      (allowed) => allowed.toLowerCase() === rawHost.toLowerCase(),
+    );
+    if (match !== undefined) {
+      callbackHost = match;
+    } else {
+      say(
+        `CALLBACK_HOST_INVALID: --callback-host=${rawHost} is not a loopback address, so the ` +
+          `callback stays on ${DEFAULT_INTERACTIVE_CALLBACK_HOST}. This server receives the ` +
+          'authorization code over plain HTTP, so it binds loopback only — a non-loopback bind ' +
+          'would put that code on the network for any process on the same segment to take. ' +
+          `Allowed: ${LOOPBACK_CALLBACK_HOSTS.join(', ')}. Pick the one this key's XSUAA client ` +
+          'has registered as a redirect_uri.',
+      );
+    }
+  }
 
   let callbackPort = DEFAULT_INTERACTIVE_CALLBACK_PORT;
   if (rawPort !== '') {
@@ -169,7 +220,7 @@ function resolveAuthInteractive(
     if (Number.isInteger(parsed) && parsed >= 1 && parsed <= 65535) {
       callbackPort = parsed;
     } else {
-      diagnostics.push(
+      say(
         `CALLBACK_PORT_INVALID: --callback-port=${rawPort} is not a port number (1-65535), so the ` +
           `loopback callback stays on ${DEFAULT_INTERACTIVE_CALLBACK_PORT}. That address has to ` +
           "match a redirect_uri registered on the XSUAA client, so fix the argument if this key's " +
@@ -178,11 +229,7 @@ function resolveAuthInteractive(
     }
   }
 
-  return {
-    enabled: args.includes('--auth-interactive'),
-    callbackHost: rawHost === '' ? DEFAULT_INTERACTIVE_CALLBACK_HOST : rawHost,
-    callbackPort,
-  };
+  return { enabled, callbackHost, callbackPort };
 }
 
 /**

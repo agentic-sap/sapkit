@@ -182,7 +182,10 @@ describe('connectDestination — 실패는 fail-closed로 끝난다', () => {
       transport: mock.transport,
       now: () => NOW,
     });
-    return { after, joined: after.diagnostics.join('\n') };
+    const failed = after.diagnostics.find((line) =>
+      line.startsWith('MCP_DESTINATION_TOKEN_FAILED'),
+    );
+    return { after, joined: after.diagnostics.join('\n'), failed: failed ?? '' };
   }
 
   it('UAA에 닿지 못하면 무엇이 안 닿았고 어디를 봐야 하는지 말한다', async () => {
@@ -216,10 +219,14 @@ describe('connectDestination — 실패는 fail-closed로 끝난다', () => {
   });
 
   it('2xx인데 쓸 토큰이 없으면 종단점을 의심하라고 말한다', async () => {
-    const { after, joined } = await fail({ status: 200, body: JSON.stringify({ ok: true }) });
+    const { after, joined, failed } = await fail({ status: 200, body: JSON.stringify({ ok: true }) });
     expect(after.profile.connection).toBeNull();
     expect(joined).toContain('UAA_RESPONSE_INVALID');
     expect(joined).toContain('XSUAA token endpoint');
+    // D-119 ⓔ — 이 코드의 원인 자리(`uaa.ts`의 「access_token 칸이 없거나 비어
+    // 있다」)는 인증 계층의 한국어다. `OPAQUE_CAUSE`에 들어 있어야 영문 진단에
+    // 섞이지 않는다. 두 그랜트 모두에서 도달하는 갈래이고, 여기가 재기 쉬운 쪽이다.
+    expect(failed).not.toMatch(/[가-힣]/);
   });
 
   it('실패 사유가 프로파일 진단에도 남는다 — 도구가 받는 거절문에 실린다', async () => {
@@ -421,12 +428,16 @@ describe('connectDestination — 인터랙티브 로그인 실패는 fail-closed
   it('콜백 포트가 점유돼 있으면 조용히 옮기지 않고 그 주소를 지목한다', async () => {
     const busy = await occupyPort();
     try {
-      const { after, joined } = await login({ port: busy.port });
+      const { after, joined, failed } = await login({ port: busy.port });
       expect(after.profile.connection).toBeNull();
       expect(joined).toContain('CALLBACK_FAILED');
       expect(joined).toContain(`http://127.0.0.1:${busy.port}/callback`);
       expect(joined).toContain('does not quietly move to another one');
       expect(joined).toContain('--callback-port');
+      // D-119 ⓕ ⑵ — 나머지 두 갈래에는 있던 단언이 이 갈래에만 없었다.
+      // 이 코드는 `OPAQUE_CAUSE`가 아니라 **원인 원문을 끼우는** 갈래라
+      // (여기서는 Node의 `listen EADDRINUSE …`) 한글 유입을 상시로 재야 한다.
+      expect(failed).not.toMatch(/[가-힣]/);
     } finally {
       await busy.close();
     }
@@ -450,6 +461,11 @@ describe('connectDestination — 인터랙티브 로그인 실패는 fail-closed
     expect(joined).toContain('refused the code exchange');
     expect(joined).toContain('redirect_uri');
     expect(joined).toContain('127.0.0.1 and localhost are different values');
+    // D-119 ⓓ — D-117 정직 유보 ⓒ가 스스로 예고한 실패 모드(PKCE를 요구하는
+    // XSUAA 클라이언트)가 정확히 이 코드로 떨어진다. 안내가 사람을
+    // 화이트리스트로만 보내면 그 사람은 고칠 수 없는 것을 계속 고친다.
+    expect(joined).toContain('PKCE');
+    expect(joined).toContain('code_challenge');
     // `client_credentials` 갈래의 안내(비밀 재발급)가 여기 나오면 오진이다.
     expect(joined).not.toContain('Re-download the service key from BTP');
     expect(joined).not.toContain(FAKE_CODE);
@@ -492,6 +508,56 @@ describe('connectDestination — 인터랙티브 로그인 실패는 fail-closed
     } finally {
       await busy.close();
     }
+  });
+});
+
+// ── 인가 URL의 **기본** 출력 — 위험 구간 안에서 보이는 유일한 자리 ──────────
+
+/**
+ * 다른 시험은 전부 `openAuthorizeUrl`을 목으로 갈아 끼우므로 기본 구현
+ * (`printAuthorizeUrl`)의 문면을 아무도 재지 않는다. 그런데 D-119 ⓑ가 경고를
+ * 넣은 자리가 바로 그 기본 구현이다 — `bootstrap`이 이 걸음을 transport 연결
+ * **전에** await 하므로, 대기 중 사람이 보는 출력은 그 두 줄뿐이다. 그래서
+ * 목을 주지 않고 돌린 뒤 `process.stderr.write`를 그 구간 동안만 가로챈다.
+ */
+describe('connectDestination — 기본 인가 URL 출력 (D-119 ⓑ)', () => {
+  it('인가 URL과 함께 핸드셰이크 지연을 미리 말한다', async () => {
+    const startup = mcpStartup(
+      serviceKey({ granttype: 'authorization_code' }),
+      '--auth-interactive',
+    );
+    const mock = mockTransport([]);
+    const written: string[] = [];
+    const spy = jest
+      .spyOn(process.stderr, 'write')
+      .mockImplementation(((chunk: unknown): boolean => {
+        written.push(String(chunk));
+        return true;
+      }) as typeof process.stderr.write);
+
+    try {
+      // 콜백은 아무도 치지 않는다 — 시한으로 접고, 나가는 요청은 0이다.
+      await connectDestination(startup, {
+        transport: mock.transport,
+        now: () => NOW,
+        callbackHost: '127.0.0.1',
+        callbackPort: 0,
+        timeoutMs: 40,
+      });
+    } finally {
+      spy.mockRestore();
+    }
+
+    const joined = written.join('');
+    expect(joined).toContain('MCP_DESTINATION_AUTHORIZE_URL');
+    // 사람이 URL을 실제로 받는다.
+    expect(joined).toMatch(/https:\/\/uaa\.invalid\/oauth\/oauth\/authorize\?/);
+    // 그리고 기다림의 값이 무엇인지 **미리** 안다.
+    expect(joined).toContain('delays the MCP handshake');
+    expect(joined).toContain('--auth-interactive');
+    // 여전히 아무것도 스스로 열지 않는다.
+    expect(joined).toContain('Nothing opens on its own');
+    expect(joined).not.toContain(FAKE_SECRET);
   });
 });
 
