@@ -45,8 +45,8 @@ export function ensureDirSync(dir) {
 /**
  * Write `content` to `filePath` so that readers never observe a partial file.
  *
- * @param {string} filePath target path; its directory is created if missing
- * @param {string} content  text to store, written as UTF-8
+ * @param {string} filePath        target path; its directory is created if missing
+ * @param {string|Buffer} content  text to store (written as UTF-8), or raw bytes
  */
 export function atomicWriteFileSync(filePath, content) {
   const dir = dirname(filePath);
@@ -58,7 +58,12 @@ export function atomicWriteFileSync(filePath, content) {
   try {
     ensureDirSync(dir);
     fd = openSync(tempPath, 'wx', 0o600);
-    writeSync(fd, content, 0, 'utf-8');
+    // `writeSync` reads its trailing arguments differently for each kind:
+    // (fd, string, position, encoding) versus (fd, buffer, offset, length).
+    // Handing a buffer to the string shape makes 'utf-8' the length argument,
+    // so the two cases have to be told apart here.
+    if (typeof content === 'string') writeSync(fd, content, 0, 'utf-8');
+    else writeSync(fd, content, 0, content.length);
     fsyncSync(fd);
     closeSync(fd);
     fd = null;

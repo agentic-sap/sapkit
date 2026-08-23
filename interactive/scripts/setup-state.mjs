@@ -887,9 +887,9 @@ if (command === 'apply') {
       if (!done.includes(b.target)) continue;
       try {
         if (b.existed && b.bytes !== null) {
-          const tmp = `${b.target}.${process.pid}.rollback.tmp`;
-          fs.writeFileSync(tmp, b.bytes);
-          fs.renameSync(tmp, b.target);
+          // 되돌릴 때도 같은 원자적 쓰기를 쓴다 — raw write는 0600을 0644로
+          // 풀어, 성공 경로가 sap.env에 세운 모드를 롤백이 조용히 되돌린다.
+          atomicWriteFileSync(b.target, b.bytes);
         } else {
           fs.rmSync(b.target, { force: true });
         }
