@@ -22,8 +22,9 @@
 > ⚠ **그 절을 읽지 않고 「증거 30종 하면 되겠지」로 착수하면 틀린다** — 12종은 이미
 > 한 번 실패했고 부류마다 처방이 다르다.
 >
-> **③ push 여부가 미정이다.** 이 세션의 커밋 **11종**(`52a662d6..HEAD`)이 로컬에만
-> 있다. **push는 사용자 판단**(묻는 자리 ①). push 뒤 CI 확인은 무인증으로:
+> **③ push 완료 · CI success 확인됨.** 이 세션의 커밋 **10종**이 `52a662d6..c5a192ff`로
+> origin/main에 올라갔고, CI(`offline-gates.yml`)가 그 SHA에서 **`completed | success`**로
+> 완주했다(2026-08-23 세션 안에서 확인). 무인증 확인법:
 > `curl -s "https://api.github.com/repos/agentic-sap/sapkit/actions/runs?per_page=1&branch=main"`
 >
 > **⚠ 앞선 세션이 남긴 틀린 조언 하나를 여기서 정정한다** — 「증거 판 전에 토큰
