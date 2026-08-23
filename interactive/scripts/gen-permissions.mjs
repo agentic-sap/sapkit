@@ -11,7 +11,7 @@ const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 // 네임스페이스는 **플러그인 이름**에서 파생한다 — 하드코딩하면 개명 때 조용히 갈라진다(실측: D-041 개명 시 발견).
 // 접두어의 `sap` 부분은 .mcp.json의 서버 이름이다(플러그인 이름과 무관).
 const PLUGIN_NAME = JSON.parse(fs.readFileSync(path.join(ROOT, 'plugin-metadata.json'), 'utf8')).name;
-const NAMESPACE = process.env.SC4SAP_LITE_NS ?? `mcp__plugin_${PLUGIN_NAME}_sap__`;
+const NAMESPACE = process.env.SAPKIT_TOOL_NS ?? `mcp__plugin_${PLUGIN_NAME}_sap__`;
 const EXCLUDE = new Set(['GetTableContents', 'GetSqlQuery']);
 
 function listLiveTools() {

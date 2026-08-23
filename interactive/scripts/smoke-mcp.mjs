@@ -408,7 +408,7 @@ if (UPDATE) {
 //     이건 조용히 열린다 — 그래서 이름 규약과 계약 생존을 함께 assert한다(리뷰 M-2).
 //     워커도 같은 자리다: P2(row-data)·P4(transport)는 development-loop 정책상 위임 불가인데
 //     그 집행이 이 파일의 4줄뿐이라, 죽으면 위임 워커가 실데이터·이송을 되찾는다.
-const AGENTS_DIR = process.env.SC4SAP_AGENTS_DIR ?? path.join(ROOT, 'agents');
+const AGENTS_DIR = process.env.SAPKIT_AGENTS_DIR ?? path.join(ROOT, 'agents');
 function checkAgentDeny(file, label, mustDeny) {
   const f = path.join(AGENTS_DIR, file);
   if (!fs.existsSync(f)) return fail.push(`${label} 차단 계약: agents/${file} 부재`);

@@ -68,7 +68,7 @@ Read `SAP_TIER` from the active profile's env (`~/.sapkit/profiles/<alias>/sap.e
 > you will need to either (a) move them to a transportable package before
 > releasing, or (b) re-create them in a transportable package on DEV as part
 > of a one-time bootstrap transport. Talk to your Basis team for the package
-> assignment (common choice: `Z_SC4SAP_UTILS`, delivery class `S` or `C`).
+> assignment (common choice: `Z_SAPKIT_UTILS`, delivery class `S` or `C`).
 
 Record the skip in `~/.sapkit/profiles/<alias>/.abap-utils-installed`:
 

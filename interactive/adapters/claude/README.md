@@ -62,7 +62,7 @@ node adapters/claude/hooks/install-hooks.mjs --project <프로젝트 경로>
 `permissions-template.json`의 allow 목록을 프로젝트 `.claude/settings.local.json`에
 병합하면 SAP 도구 승인 프롬프트가 사라진다. **GetTableContents/GetSqlQuery는 의도적으로
 빠져 있다** — 매 호출 사람 승인 유지. 네임스페이스 접두어(`mcp__plugin_sapkit_sap__`)는
-설치 후 실제 도구명과 대조해 다르면 `SC4SAP_LITE_NS=<실측 접두어> node scripts/gen-permissions.mjs`로 재생성.
+설치 후 실제 도구명과 대조해 다르면 `SAPKIT_TOOL_NS=<실측 접두어> node scripts/gen-permissions.mjs`로 재생성.
 
 ## 구현 위임 (execution_owner = delegated)
 

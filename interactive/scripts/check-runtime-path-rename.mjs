@@ -10,8 +10,13 @@
 // 그래서 이 게이트는 더 이상 "신·구 병존 의무"를 세지 않는다(구 구역 C 폐지).
 // 남은 주장은 **하나**다:
 //
-//   구 세대 토큰(`\.sc4sap` · `SC4SAP_HOME_DIR`)이 활성 코드·활성 제품 문서에
+//   구 세대 토큰(`\.sc4sap` · `SC4SAP_*` 환경변수)이 활성 코드·활성 제품 문서에
 //   **다시 나타나지 않는다.**
+//
+// 환경변수 갈래는 2026-08-23 판Z 후속에서 `SC4SAP_HOME_DIR` 한 이름에서
+// **접두어 전체**로 넓혔다. 그 이름만 겨누는 동안 `SC4SAP_LITE_NS`·
+// `SC4SAP_AGENTS_DIR` 둘이 살아남아 있었고 — 게이트가 초록인 채로 —
+// 제품 README에까지 노출됐다. 한 이름을 막으면 다음 이름이 들어온다.
 //
 // 이전 판의 3구역·ALLOWLIST·캡·폴백 의무는 전부 사라졌다. 폴백이 없으니 "구 이름을
 // 함께 안내해야 한다"는 요구가 성립하지 않고, 캡으로 관리할 승인된 등장도 없다.
@@ -39,7 +44,7 @@ const ROOT = rootIdx >= 0 ? path.resolve(process.argv[rootIdx + 1]) : path.resol
 
 // 점 없는 제품명 토큰 `sc4sap`은 범위 밖이다 (provenance
 // `sc4sap-public-source.json` · 차용 출처 고지 — D-041이 다룬 영역).
-const LEGACY_RE = /\.sc4sap|SC4SAP_HOME_DIR/g;
+const LEGACY_RE = /\.sc4sap|SC4SAP_[A-Z0-9_]+/g;
 
 // ── 역사 — 경로 단위 스캔 제외 ──────────────────────────────────────────────
 const HISTORY = [
@@ -59,6 +64,17 @@ const HISTORY = [
   // 빌드 산출물 — 소스가 정본이다
   'interactive/server/VERSION',
   'interactive/server/server.bundle.cjs',
+  // 검사기 코퍼스 — ABAP 판정 기준선이라 되뜰 수 없다(고치면 코퍼스 대조가 깨진다).
+  // 여기 걸리는 `SC4SAP_OOP_EX*`는 환경변수가 아니라 **은퇴한 ABAP 오브젝트명**이고,
+  // 성격은 아래 ANCHORS(=SAP 안에 실재하는 이름)와 같다. 접두어 전체를 감시하도록
+  // 넓히면서 드러난 자리다 — 그 전에는 `SC4SAP_HOME_DIR` 한 이름만 봐서 안 걸렸다.
+  'sapkit-cli/fixtures/',
+  // 이식 시대 유물 — `sc4sap-custom` → 페르소나 변환기. **아무도 부르지 않고**
+  // 최초 이식 커밋(`038085c2`) 이후 한 번도 바뀌지 않았으며, 기본 경로가 다른
+  // 머신의 동결 원본을 가리킨다. 이식 시대는 끝났고(CLAUDE.md · R1에서 이식 장부
+  // 게이트가 제거됐다) 이 도구도 같은 자리다 — **은퇴 후보로 등재만 한다.**
+  // 지우는 것은 별건 판단이라 이 판에서 하지 않는다.
+  'interactive/scripts/transform-personas.mjs',
   // 시험 자산: 구 세대가 **무시되는지**를 시험하려면 그 이름을 적어야 한다
   //
   // ⚠ `engine/` 예외는 여기 **하나도 없다**(판7.5 · D-101). 구 포크가 은퇴하며

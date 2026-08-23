@@ -39,14 +39,14 @@ function runGate(mutate, { exposition = 'readonly', env } = {}) {
 }
 
 // 에이전트 차단 계약(agents/*.md)은 스냅샷 JSON이 아니라 파일에 산다 — 실물 파일을 tmp로
-// 복사해 변조하고 SC4SAP_AGENTS_DIR로 게이트를 그쪽으로 겨눈다. 원본은 건드리지 않는다.
+// 복사해 변조하고 SAPKIT_AGENTS_DIR로 게이트를 그쪽으로 겨눈다. 원본은 건드리지 않는다.
 function tAgents(name, mutateFiles, expectText) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mcpagents-'));
   try {
     for (const f of fs.readdirSync(path.join(ROOT, 'agents')))
       fs.copyFileSync(path.join(ROOT, 'agents', f), path.join(dir, f));
     mutateFiles(dir);
-    t(name, () => {}, 1, expectText, { env: { SC4SAP_AGENTS_DIR: dir } });
+    t(name, () => {}, 1, expectText, { env: { SAPKIT_AGENTS_DIR: dir } });
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
