@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_CLAS" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <VSEOCLASS>
+    <CLSNAME>ZCX_SAPKIT_EXCP</CLSNAME>
+    <LANGU>E</LANGU>
+    <DESCRIPT>Failure raised by the ALV helpers</DESCRIPT>
+    <CATEGORY>40</CATEGORY>
+    <STATE>1</STATE>
+    <CLSCCINCL>X</CLSCCINCL>
+    <FIXPT>X</FIXPT>
+    <UNICODE>X</UNICODE>
+   </VSEOCLASS>
+   <DESCRIPTIONS>
+    <SEOCOMPOTX>
+     <CMPNAME>CONSTRUCTOR</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>CONSTRUCTOR</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>MV_ERRMSG</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Message text, block 1 of 4</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>MV_ERRMSG2</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Message text, block 2 of 4</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>MV_ERRMSG3</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Message text, block 3 of 4</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CMPNAME>MV_ERRMSG4</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Message text, block 4 of 4</DESCRIPT>
+    </SEOCOMPOTX>
+   </DESCRIPTIONS>
+   <DESCRIPTIONS_SUB>
+    <SEOSUBCOTX>
+     <CMPNAME>RAISE</CMPNAME>
+     <SCONAME>IO_ERROR</SCONAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Exception to read the failure text out of</DESCRIPT>
+    </SEOSUBCOTX>
+    <SEOSUBCOTX>
+     <CMPNAME>RAISE</CMPNAME>
+     <SCONAME>ZCX_SAPKIT_EXCP</SCONAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Failure raised by the ALV helpers</DESCRIPT>
+    </SEOSUBCOTX>
+   </DESCRIPTIONS_SUB>
+  </asx:values>
+ </asx:abap>
+</abapGit>
