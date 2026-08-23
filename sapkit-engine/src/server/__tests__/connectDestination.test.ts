@@ -141,6 +141,19 @@ describe('connectDestination — client_credentials 성공 경로', () => {
     expect(joined).toContain("this process's memory only");
   });
 
+  // D-115 — 토큰 취득은 접속 성립이 아니다. 판M2-b 실측(BTP ABAP trial)에서
+  // 이 진단을 낸 바로 그 접속이 ADT 전 경로 401이었다. 진단이 「붙었다」로
+  // 읽히면 사람은 원인을 이쪽에서 찾는다 — 원인은 그랜트에 있는데.
+  it('진단이 「아직 대상에 보낸 것이 없다」와 401 갈래를 함께 말한다', async () => {
+    const { after } = await connect([tokenBody()]);
+    const joined = after.diagnostics.join('\n');
+    expect(joined).toContain('Nothing has been sent to that system yet');
+    expect(joined).toContain('carries no user identity');
+    expect(joined).toContain('401');
+    // 그리고 「접속이 섰다」로 단언하지 않는다.
+    expect(joined).not.toContain('the connection stands as Bearer');
+  });
+
   it('진단에 비밀도 토큰도 실리지 않는다', async () => {
     const { after } = await connect([tokenBody()]);
     const joined = after.diagnostics.join('\n');

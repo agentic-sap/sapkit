@@ -28,6 +28,15 @@
  * (D-114는 「기동이 첫 토큰을 취득한다」까지를 정했다), 그래서 진단이 그 사실을
  * 그대로 말한다 — 만료되면 서버를 다시 띄워야 한다. 접속에는 `uaa` 재료가 실려
  * 있으므로 뒤 판이 그 위에 갱신을 얹을 수 있다.
+ *
+ * ## 여기서 확인하지 않는 것 — **그 토큰을 대상이 받는가**
+ *
+ * 토큰 취득 성공은 **접속 성립이 아니다.** 이 모듈이 세우는 것은 UAA가 토큰을
+ * 내줬다는 사실과 그것을 실은 접속 설정까지이고, 대상 시스템이 그 토큰을 받는지는
+ * **첫 요청이 말한다.** 판M2-b가 그 간격을 실측했다(D-115): BTP ABAP trial에서
+ * `client_credentials` 토큰은 UAA가 200으로 내주지만 **`user_name`이 없어**
+ * ADT 전 경로가 401(`sap-authenticated: false`)이었다 — 토큰 자체는 유효한 채로다.
+ * 그래서 성공 진단이 「접속이 섰다」로 읽히지 않게 그 사실을 함께 적는다.
  */
 
 import { type TokenStatus, TokenSource, UaaClient, isAuthError } from '../auth';
@@ -160,7 +169,12 @@ function successLine(key: ServiceKeyConfig, baseUrl: string, status: TokenStatus
 
   return (
     `MCP_DESTINATION_CONNECTED: --mcp=${key.destination} acquired a client_credentials token and ` +
-    `the connection stands as Bearer on ${baseUrl}${where === '' ? '' : ` (${where})`}. ` +
+    `the connection is configured as Bearer on ${baseUrl}${where === '' ? '' : ` (${where})`}. ` +
+    'Nothing has been sent to that system yet — whether it accepts this token is decided by the ' +
+    'first request, not by this line. A client_credentials token carries no user identity, and an ' +
+    'ABAP system that maps requests to users can answer 401 on every path while the token itself ' +
+    'stays valid; if every tool comes back unauthorized, that is the cause, and the destination ' +
+    'needs a grant that carries a user rather than a fix on this side. ' +
     `${lifetime(status)}; it lives in this process's memory only, and startup does not renew it — ` +
     'restart the server when it expires. No SAP tier comes with a service key, so tier=UNKNOWN ' +
     'and every write and execution is refused (fail-closed); set up a profile sap.env if this ' +

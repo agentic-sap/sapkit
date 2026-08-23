@@ -2699,7 +2699,7 @@ SAP 측 설치가 선행돼야 하고 그 셋 중 무엇도 지금 이 프로젝
 | 통로 | 2026-08-18 상태 | 지금 (2026-08-23) | 남은 것 |
 |---|---|---|---|
 | `--env=<name>` | 접속까지 완성 | 변화 없음 | attended 실접속 확인 |
-| `--mcp=<destination>` · **`client_credentials` 선언 키** | 토큰 취득 계층은 있으나 **기동이 돌리지 않음** | **기동이 첫 토큰을 받아 Bearer 접속을 세운다** — 기동 경로에 걸음이 하나 늘었다(`src/server/connectDestination.ts`, `bootstrap.startFromProcess`가 `resolveStartup` **뒤에** 부른다). 진단 코드 두 개가 새로 갈렸다: 해석 자리의 **`MCP_DESTINATION_TOKEN_REQUIRED`**(곧 받아 온다) → 결과 자리의 **`MCP_DESTINATION_CONNECTED`** 또는 **`MCP_DESTINATION_TOKEN_FAILED`** | **실접속 성공**(판M2-b · BTP 계정) · 토큰 **갱신** 배선 |
+| `--mcp=<destination>` · **`client_credentials` 선언 키** | 토큰 취득 계층은 있으나 **기동이 돌리지 않음** | **기동이 첫 토큰을 받아 Bearer 접속을 세운다** — 기동 경로에 걸음이 하나 늘었다(`src/server/connectDestination.ts`, `bootstrap.startFromProcess`가 `resolveStartup` **뒤에** 부른다). 진단 코드 두 개가 새로 갈렸다: 해석 자리의 **`MCP_DESTINATION_TOKEN_REQUIRED`**(곧 받아 온다) → 결과 자리의 **`MCP_DESTINATION_CONNECTED`** 또는 **`MCP_DESTINATION_TOKEN_FAILED`** | **실접속 성공**(판M2-c · `authorization_code` 배선 — 판M2-b 실측 D-115: 이 그랜트로는 ABAP ADT가 401을 낸다. 토큰은 서지만 신원이 없다) · 토큰 **갱신** 배선 |
 | `--mcp=<destination>` · **`authorization_code`**(선언 또는 **기본값**) | 같음 | **정지선 유지** — 기동은 시작하지 않는다. `MCP_DESTINATION_TOKEN_PENDING`이 **이 그랜트 전용 의미**로 좁아졌고, 진단이 인가 종단점·`client_id`·다음 걸음 둘(키에 `granttype` 선언 / Basic 통로)을 안내한다 | 사람 개시 통로(엔진에 진입점 없음 — 뒤 판) |
 | 브로커 | 저장소 재료 조립까지 (D32) | 변화 없음 | D32 참조 |
 
