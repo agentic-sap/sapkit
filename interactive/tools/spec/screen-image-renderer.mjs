@@ -1788,7 +1788,7 @@ export async function rasterizeSvgToPng(svg, { width, height } = {}) {
   const browser = findBrowser();
   if (!browser) return null;
 
-  const dir = mkdtempSync(join(tmpdir(), 'sc4sap-svg-'));
+  const dir = mkdtempSync(join(tmpdir(), 'sapkit-svg-'));
   try {
     const htmlPath = join(dir, 'in.html');
     const pngPath = join(dir, 'out.png');
