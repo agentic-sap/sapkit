@@ -5,7 +5,7 @@
 *&           0100 shows one grid in a docking container; screen 0200
 *&           splits the screen and stands a tree next to a grid.
 *& How     : Every CREATE_*, SET_*, DISPLAY_* and REFRESH_* call below
-*&           is inherited from ZCL_S4SAP_CM_ALV. What this class adds
+*&           is inherited from ZCL_SAPKIT_CM_ALV. What this class adds
 *&           is the two SET_ALV_* entry points the PBO modules call,
 *&           and the ON_* methods that ZSAPKIT_OOP_EXE forwards into.
 *& Caution : A container is built once per screen. The PBO module asks
@@ -13,7 +13,7 @@
 *&           refreshes instead of building a second one.
 *&---------------------------------------------------------------------*
 
-CLASS lcl_alv DEFINITION INHERITING FROM zcl_s4sap_cm_alv.
+CLASS lcl_alv DEFINITION INHERITING FROM zcl_sapkit_cm_alv.
 
   PUBLIC SECTION.
     METHODS constructor.
@@ -30,11 +30,11 @@ CLASS lcl_alv DEFINITION INHERITING FROM zcl_s4sap_cm_alv.
     METHODS on_hotspot_click
       IMPORTING is_row_no    TYPE lvc_s_roid
                 is_column_id TYPE lvc_s_col
-                io_sender    TYPE REF TO zcl_s4sap_cm_oalv.
+                io_sender    TYPE REF TO zcl_sapkit_cm_oalv.
 
     METHODS on_data_changed
       IMPORTING io_data_changed TYPE REF TO cl_alv_changed_data_protocol
-                io_sender       TYPE REF TO zcl_s4sap_cm_oalv.
+                io_sender       TYPE REF TO zcl_sapkit_cm_oalv.
 
     METHODS on_tree_link_click
       IMPORTING iv_fieldname TYPE lvc_fname
@@ -50,10 +50,10 @@ CLASS lcl_alv DEFINITION INHERITING FROM zcl_s4sap_cm_alv.
       RETURNING VALUE(rt_fcat) TYPE lvc_t_fcat.
 
     METHODS set_tree_0200
-      RAISING zcx_s4sap_excp.
+      RAISING zcx_sapkit_excp.
 
     METHODS set_grid_0200
-      RAISING zcx_s4sap_excp.
+      RAISING zcx_sapkit_excp.
 
     METHODS add_nodes_0200.
 
@@ -118,7 +118,7 @@ CLASS lcl_alv IMPLEMENTATION.
 
         display_alv( CHANGING it_data = go_data->mt_item ).
 
-      CATCH zcx_s4sap_excp INTO DATA(lo_error).
+      CATCH zcx_sapkit_excp INTO DATA(lo_error).
         MESSAGE lo_error->get_text( ) TYPE 'I' DISPLAY LIKE 'E'.
     ENDTRY.
   ENDMETHOD.
@@ -134,7 +134,7 @@ CLASS lcl_alv IMPLEMENTATION.
         set_tree_0200( ).
         set_grid_0200( ).
 
-      CATCH zcx_s4sap_excp INTO DATA(lo_error).
+      CATCH zcx_sapkit_excp INTO DATA(lo_error).
         MESSAGE lo_error->get_text( ) TYPE 'I' DISPLAY LIKE 'E'.
         LEAVE LIST-PROCESSING.
     ENDTRY.

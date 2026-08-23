@@ -1010,7 +1010,7 @@ describe('D61 — 데이터 엘리먼트·도메인의 ECC 우회로가 없다',
       target([
         {
           payload: envelope(
-            'GetDataElement on SAP_VERSION=ECC needs the ZMCP_ADT_DDIC_DTEL_READ OData bridge, ' +
+            'GetDataElement on SAP_VERSION=ECC needs the ZSAPKIT_ADT_DDIC_DTEL_READ OData bridge, ' +
               'which this engine does not implement yet (divergence D61).',
             true,
           ),
@@ -1514,7 +1514,7 @@ describe('D132 — GetBadiImplementations의 ECC 브리지가 없다', () => {
       target([
         {
           payload: envelope(
-            'GetBadiImplementations on SAP_VERSION=ECC needs the ZMCP_ADT_DDIC_BADI OData bridge ' +
+            'GetBadiImplementations on SAP_VERSION=ECC needs the ZSAPKIT_ADT_DDIC_BADI OData bridge ' +
               '(FunctionImport DdicBadi), which this engine does not implement yet (divergence D132).',
             true,
           ),

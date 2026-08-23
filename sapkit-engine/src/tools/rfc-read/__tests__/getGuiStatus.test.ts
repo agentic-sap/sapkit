@@ -82,7 +82,7 @@ describe('ReadGuiStatus와의 갈림 — 같은 요청, 다른 응답', () => {
 
   it('실패 문구는 GetGuiStatus만 접두사를 붙인다', async () => {
     harness = await startRfcHarness({ rfc: () => ({ subrc: 4, message: 'No CUA' }) });
-    const inner = 'ZMCP_ADT_DISPATCH error (action=CUA_FETCH, subrc=4): No CUA';
+    const inner = 'ZSAPKIT_ADT_DISPATCH error (action=CUA_FETCH, subrc=4): No CUA';
     expect(textOf(await invoke(getGuiStatus, harness, { program_name: 'ZA' }))).toBe(
       `Error: Failed to get GUI status: ${inner}`,
     );

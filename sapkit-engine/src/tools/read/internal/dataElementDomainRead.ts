@@ -91,7 +91,7 @@ export const DATA_ELEMENT: DdicTypeKind = {
   accept: ACCEPT_DATA_ELEMENT,
   noun: 'data element',
   label: 'Data element',
-  eccBridgeFm: 'ZMCP_ADT_DDIC_DTEL_READ',
+  eccBridgeFm: 'ZSAPKIT_ADT_DDIC_DTEL_READ',
 };
 
 export const DOMAIN: DdicTypeKind = {
@@ -101,7 +101,7 @@ export const DOMAIN: DdicTypeKind = {
   accept: ACCEPT_DOMAIN,
   noun: 'domain',
   label: 'Domain',
-  eccBridgeFm: 'ZMCP_ADT_DDIC_DOMA_READ',
+  eccBridgeFm: 'ZSAPKIT_ADT_DDIC_DOMA_READ',
 };
 
 export type DdicVersion = 'active' | 'inactive';

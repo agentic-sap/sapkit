@@ -70,7 +70,7 @@ export const deleteTable = defineTool(
     // 구가 ECC에서 갈라지던 자리. 흘려보내지 않는다 — 장부 D110.
     if (isEcc(context.profile.sapVersion)) {
       return errorResult(
-        `Error: ${eccDeleteUnsupported('DeleteTable', 'ZMCP_ADT_DDIC_TABL', 'tables')}`,
+        `Error: ${eccDeleteUnsupported('DeleteTable', 'ZSAPKIT_ADT_DDIC_TABL', 'tables')}`,
       );
     }
 

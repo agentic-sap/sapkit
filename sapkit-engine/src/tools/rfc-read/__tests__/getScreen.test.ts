@@ -128,7 +128,7 @@ describe('ReadScreen과의 갈림 — 같은 요청, 다른 응답', () => {
 
   it('실패 문구는 GetScreen만 접두사를 붙인다', async () => {
     harness = await startRfcHarness({ rfc: () => ({ subrc: 3, message: 'Dynpro not found' }) });
-    const inner = 'ZMCP_ADT_DISPATCH error (action=DYNPRO_READ, subrc=3): Dynpro not found';
+    const inner = 'ZSAPKIT_ADT_DISPATCH error (action=DYNPRO_READ, subrc=3): Dynpro not found';
 
     expect(
       textOf(await invoke(getScreen, harness, { program_name: 'ZA', screen_number: '9999' })),

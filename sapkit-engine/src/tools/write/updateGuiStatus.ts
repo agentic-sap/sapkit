@@ -3,7 +3,7 @@
  *
  * ## 참조 원본 (읽은 자취)
  *  - 겉: `engine/src/handlers/gui_status/high/handleUpdateGuiStatus.ts:71-248`
- *  - 대리자 와이어: `engine/src/lib/odataRfc.ts:288-327` (`ZMCP_ADT_DISPATCH` →
+ *  - 대리자 와이어: `engine/src/lib/odataRfc.ts:288-327` (`ZSAPKIT_ADT_DISPATCH` →
  *    `RS_CUA_INTERNAL_WRITE`)
  *  - 검증 규칙: `engine/src/lib/cuaSchema.ts:162-234` → `./internal/cuaSchema.ts`
  *  - 잠금·활성화 와이어: `./internal/programScoped.ts` 머리주석

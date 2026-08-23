@@ -219,7 +219,7 @@ describe('갈래', () => {
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toBe(
-      'Error: Failed to create screen: ZMCP_ADT_DISPATCH error (action=DYNPRO_INSERT, subrc=3): Program not found',
+      'Error: Failed to create screen: ZSAPKIT_ADT_DISPATCH error (action=DYNPRO_INSERT, subrc=3): Program not found',
     );
     expect(harness.adtCalls()).toHaveLength(0);
   });

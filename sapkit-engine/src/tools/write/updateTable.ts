@@ -69,7 +69,7 @@ const DDL_CODE_DESCRIPTION =
 const ECC_REFUSAL =
   'UpdateTable is not supported on ECC via this MCP tool. ' +
   "ECC's DDIC write layer is row-based (DD03P), not CDS-DDL-based. " +
-  'Call the OData FunctionImport /DdicTabl on ZMCP_ADT_SRV directly with ' +
+  'Call the OData FunctionImport /DdicTabl on ZSAPKIT_ADT_SRV directly with ' +
   'IV_ACTION=\'UPDATE\' and IV_PAYLOAD_JSON = \'{"dd02v":{...},"dd03p":[...]}\'.';
 
 export const updateTable = defineTool(

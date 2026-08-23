@@ -61,24 +61,24 @@ Walk the checks in order and report **PASS / FAIL / WARN / SKIP** for each layer
 
 *MCP ADT utilities — required for Screen / GUI Status / Text Element operations:*
 
-- [ ] `SearchObject(ZMCP_ADT_UTILS, FUGR)` — function group exists
-- [ ] `SearchObject(ZMCP_ADT_DISPATCH, FUNC)` — dispatcher function module exists and is RFC-enabled
-- [ ] `SearchObject(ZMCP_ADT_TEXTPOOL, FUNC)` — text pool function module exists and is RFC-enabled
+- [ ] `SearchObject(ZSAPKIT_ADT_UTILS, FUGR)` — function group exists
+- [ ] `SearchObject(ZSAPKIT_ADT_DISPATCH, FUNC)` — dispatcher function module exists and is RFC-enabled
+- [ ] `SearchObject(ZSAPKIT_ADT_TEXTPOOL, FUNC)` — text pool function module exists and is RFC-enabled
 
 *ALV OOP reuse handlers — consumed by generated ALV programs:*
 
-- [ ] `SearchObject(ZIF_S4SAP_CM, INTF)` — interface exists
-- [ ] `SearchObject(ZCX_S4SAP_EXCP, CLAS)` — exception class exists
-- [ ] `SearchObject(ZCL_S4SAP_CM_OALV, CLAS)` — ALV Grid wrapper exists
-- [ ] `SearchObject(ZCL_S4SAP_CM_OTREE, CLAS)` — ALV Tree wrapper exists
-- [ ] `SearchObject(ZCL_S4SAP_CM_ALV_EVENT, CLAS)` — Grid event handler exists
-- [ ] `SearchObject(ZCL_S4SAP_CM_TREE_EVENT, CLAS)` — Tree event handler exists
-- [ ] `SearchObject(ZCL_S4SAP_CM_ALV, CLAS)` — main container manager exists
+- [ ] `SearchObject(ZIF_SAPKIT_CM, INTF)` — interface exists
+- [ ] `SearchObject(ZCX_SAPKIT_EXCP, CLAS)` — exception class exists
+- [ ] `SearchObject(ZCL_SAPKIT_CM_OALV, CLAS)` — ALV Grid wrapper exists
+- [ ] `SearchObject(ZCL_SAPKIT_CM_OTREE, CLAS)` — ALV Tree wrapper exists
+- [ ] `SearchObject(ZCL_SAPKIT_CM_ALV_EVENT, CLAS)` — Grid event handler exists
+- [ ] `SearchObject(ZCL_SAPKIT_CM_TREE_EVENT, CLAS)` — Tree event handler exists
+- [ ] `SearchObject(ZCL_SAPKIT_CM_ALV, CLAS)` — main container manager exists
 - [ ] `GetInactiveObjects` returns 0 entries for any of the above — every object must be **active**; created-but-inactive counts as FAIL
 
 Report counts at the layer level, e.g. `utilities: 3/3 installed`, `ALV handlers: 7/7 installed, 7/7 active`. If an object exists but is inactive, flag a WARN with the specific object names.
 
-Remediation: ABAP sources for all of these ship in this repo under `server/sap-assets/` (`zmcp_adt_dispatch.abap`, `zmcp_adt_textpool.abap`, `alv-oop-handlers/`). Install on a **DEV-tier** system only; QA/PRD systems receive them via CTS transport.
+Remediation: ABAP sources for all of these ship in this repo under `server/sap-assets/` (`zsapkit_adt_dispatch.abap`, `zsapkit_adt_textpool.abap`, `alv-oop-handlers/`). Install on a **DEV-tier** system only; QA/PRD systems receive them via CTS transport.
 
 ### Layer 5 — RFC backend (conditional)
 
@@ -107,11 +107,11 @@ SAP Diagnostic Report
 MCP Server          [PASS]  server responding, bundle present
 SAP Connection      [PASS]  SID=S4H · Client=100 · User=DEV01
 Configuration       [PASS]
-Required Objects    [WARN]  utilities: 3/3 · ALV handlers: 7/7 (ZCL_S4SAP_CM_ALV inactive)
+Required Objects    [WARN]  utilities: 3/3 · ALV handlers: 7/7 (ZCL_SAPKIT_CM_ALV inactive)
 RFC Backend         [PASS]  odata — metadata + CSRF + dispatch OK
 
 Issues Found: 0 errors, 1 warning
-Fix: Activate ZCL_S4SAP_CM_ALV (source in server/sap-assets/alv-oop-handlers/)
+Fix: Activate ZCL_SAPKIT_CM_ALV (source in server/sap-assets/alv-oop-handlers/)
 ```
 
 When connectivity fails, gate the dependent layers:
@@ -150,7 +150,7 @@ Persist the answers as `SAP_VERSION` (`S4` | `ECC`) and `ABAP_RELEASE` (3-digit 
 
 ## 3. RFC Backend Selection
 
-Three MCP operation families (Screen, GUI Status, Text Element) dispatch through RFC-enabled function modules (`ZMCP_ADT_DISPATCH`, `ZMCP_ADT_TEXTPOOL`); everything else uses the ADT HTTPS channel. `SAP_RFC_BACKEND` selects the transport for those RFC-dispatched operations.
+Three MCP operation families (Screen, GUI Status, Text Element) dispatch through RFC-enabled function modules (`ZSAPKIT_ADT_DISPATCH`, `ZSAPKIT_ADT_TEXTPOOL`); everything else uses the ADT HTTPS channel. `SAP_RFC_BACKEND` selects the transport for those RFC-dispatched operations.
 
 > **Agent context (R-005)**: under an agent/wizard context bound by R-005 (never read, handle, or print passwords), skip the `curl` probes below and verify the backend instead with an equivalent MCP tool call over the same RFC path — e.g. for `odata`, a lightweight read like `GetTextElement` on any known program; an error surfaced this way (e.g. an HTTP 500) is the same evidence the curl probe would give. The curl commands remain the human-operator path.
 
@@ -158,7 +158,7 @@ Three MCP operation families (Screen, GUI Status, Text Element) dispatch through
 
 | Backend | Transport | Choose when |
 |---|---|---|
-| `odata` (default) | SAP OData v2 service `ZMCP_ADT_SRV` via HTTPS (SEGW + Gateway registration) | Default choice. Gateway is almost always reachable and routes through standard Gateway authorization (`S_SERVICE`) instead of `S_RFC` |
+| `odata` (default) | SAP OData v2 service `ZSAPKIT_ADT_SRV` via HTTPS (SEGW + Gateway registration) | Default choice. Gateway is almost always reachable and routes through standard Gateway authorization (`S_SERVICE`) instead of `S_RFC` |
 | `soap` | HTTPS via `/sap/bc/soap/rfc` | The legacy SOAP ICF node is active (hardened installs increasingly disable it). No extra env fields needed |
 | `native` | Direct TCP via SAP NW RFC SDK | The (paid-download) SDK + build tools are available on this host |
 | `gateway` | Remote RFC Gateway middleware via HTTPS/JSON | A central SDK host exists; no SDK needed on this machine |
@@ -172,14 +172,14 @@ Write the choice to the **active profile's** env (`~/.sapkit/profiles/<alias>/sa
 
 `soap` / `native` / `gateway` can be verified in full immediately — they need no backend objects on SAP.
 
-`odata` / `zrfc` have a **chicken-and-egg**: their probes target server-side objects (`ZCL_ZMCP_ADT_MPC_EXT` / `ZCL_ZMCP_ADT_DPC_EXT` for odata; `ZCL_MCP_RFC_HTTP_HANDLER` + SICF node for zrfc) that are installed *after* the backend is chosen. On a fresh system a 404 from the probe is **expected, not a bug** — record the choice, emit a deferred-verification note, and verify after the backend objects are installed. On a re-run/reconfiguration where the objects were installed previously, probe failures are genuine.
+`odata` / `zrfc` have a **chicken-and-egg**: their probes target server-side objects (`ZCL_ZSAPKIT_ADT_MPC_EXT` / `ZCL_ZSAPKIT_ADT_DPC_EXT` for odata; `ZCL_MCP_RFC_HTTP_HANDLER` + SICF node for zrfc) that are installed *after* the backend is chosen. On a fresh system a 404 from the probe is **expected, not a bug** — record the choice, emit a deferred-verification note, and verify after the backend objects are installed. On a re-run/reconfiguration where the objects were installed previously, probe failures are genuine.
 
 ### Per-backend env keys
 
 - **soap** — none beyond the base connection (`SAP_URL` + `SAP_USERNAME` + `SAP_PASSWORD` are reused)
 - **native** — `SAP_RFC_USER`, `SAP_RFC_PASSWD` (secret — always mask), `SAP_RFC_CLIENT` (3 digits), `SAP_RFC_LANG` (2-letter uppercase, default `EN`), and either (`SAP_RFC_ASHOST` + `SAP_RFC_SYSNR` [2 digits]) **or** (`SAP_RFC_MSHOST` + `SAP_RFC_SYSID`, optional `SAP_RFC_GROUP` default `PUBLIC`, `SAP_RFC_MSSERV`) — `ASHOST` and `MSHOST` are mutually exclusive. Optional SNC: `SAP_RFC_SNC_QOP` (`1|2|3|8|9`); when set, `SAP_RFC_SNC_MYNAME` and `SAP_RFC_SNC_PARTNERNAME` become required (`SAP_RFC_SNC_LIB` optional)
 - **gateway** — `SAP_RFC_GATEWAY_URL` (required, `https://host[:port]`, no trailing slash), `SAP_RFC_GATEWAY_TOKEN` (secret — always mask; warn if missing), `SAP_RFC_GATEWAY_TLS_VERIFY` (`1` default; `0` dev-only). `SAP_USERNAME`/`SAP_PASSWORD`/`SAP_CLIENT`/`SAP_LANGUAGE` are forwarded per-request as `X-SAP-User`/`X-SAP-Password`/`X-SAP-Client`/`X-SAP-Language` headers, so the gateway opens a per-developer RFC session and the SAP audit trail stays accurate — no separate RFC user needed on this host
-- **odata** — `SAP_RFC_ODATA_SERVICE_URL` (required, e.g. `https://host:44300/sap/opu/odata/sap/ZMCP_ADT_SRV`, no trailing slash), `SAP_RFC_ODATA_CSRF_TTL_SEC` (default `600`, min 60). Basic auth reuses `SAP_USERNAME`/`SAP_PASSWORD`; `SAP_CLIENT` is appended as `?sap-client=<n>`. The client performs an automatic CSRF handshake (GET `$metadata` with `X-CSRF-Token: Fetch`), caches the token, and refreshes on HTTP 403
+- **odata** — `SAP_RFC_ODATA_SERVICE_URL` (required, e.g. `https://host:44300/sap/opu/odata/sap/ZSAPKIT_ADT_SRV`, no trailing slash), `SAP_RFC_ODATA_CSRF_TTL_SEC` (default `600`, min 60). Basic auth reuses `SAP_USERNAME`/`SAP_PASSWORD`; `SAP_CLIENT` is appended as `?sap-client=<n>`. The client performs an automatic CSRF handshake (GET `$metadata` with `X-CSRF-Token: Fetch`), caches the token, and refreshes on HTTP 403
 - **zrfc** — `SAP_RFC_ZRFC_BASE_URL` (required, e.g. `https://host:44300/sap/bc/rest/zmcp_rfc`), `SAP_RFC_ZRFC_CSRF_TTL_SEC` (default `600`, min 60). Reuses `SAP_USERNAME`/`SAP_PASSWORD`/`SAP_CLIENT` as Basic auth; automatic CSRF double-submit handshake
 
 After switching backends, always re-run the §1 checklist including the matching backend verification below.
@@ -202,15 +202,15 @@ The SOAP backend otherwise reuses the Layer 2 HTTPS ADT channel — its health i
 1. *RFC module*: `node-rfc` resolves next to the server bundle and `require('node-rfc')` succeeds (the native addon links to `libsapnwrfc`; the bundle keeps `node-rfc` external, so it must be installed separately).
 2. *NW RFC SDK*: `SAPNWRFC_HOME` points to an existing folder, OR `libsapnwrfc.{dll,so,dylib}` is resolvable from the loader path; SDK version ≥ 7.50 (read from `<SAPNWRFC_HOME>/lib/sapnwrfc_version`; surface the version string). If missing: download the SAP NW RFC SDK (SAP Support Portal → SAP Development Tools → SAP NetWeaver RFC SDK 7.50) and set `SAPNWRFC_HOME`.
 3. *Env completeness*: `SAP_RFC_USER` / `SAP_RFC_PASSWD` / `SAP_RFC_CLIENT` present; exactly one of (`ASHOST`+`SYSNR`) or (`MSHOST`+`SYSID`); `SAP_RFC_LANG` present; SNC triple complete if `SAP_RFC_SNC_QOP` is set.
-4. *Live probes*: `RFC_PING` returns without error (connectivity + credentials + handshake); `ZMCP_ADT_DISPATCH` with a harmless action returns a non-fatal `EV_SUBRC` (proves `S_RFC` on the dispatcher); `ZMCP_ADT_TEXTPOOL` `READ` on a known program (`RSPARAM`) returns a non-empty result (proves `S_RFC` on the textpool FM).
+4. *Live probes*: `RFC_PING` returns without error (connectivity + credentials + handshake); `ZSAPKIT_ADT_DISPATCH` with a harmless action returns a non-fatal `EV_SUBRC` (proves `S_RFC` on the dispatcher); `ZSAPKIT_ADT_TEXTPOOL` `READ` on a known program (`RSPARAM`) returns a non-empty result (proves `S_RFC` on the textpool FM).
 
-If check 1–2 fails → **BLOCKER**. If only check 4 fails while 1–3 pass → **authorization issue** (usually `S_RFC` missing `RFC_NAME = ZMCP_ADT_*`). Best practice: use a dedicated RFC user with `S_RFC` (`RFC_NAME = ZMCP_ADT_DISPATCH, ZMCP_ADT_TEXTPOOL, RFC_PING, SYSTEM`) plus minimal `S_DEVELOP` for TEXTPOOL INSERT — do not reuse the ADT user's credentials in both blocks unless intentional.
+If check 1–2 fails → **BLOCKER**. If only check 4 fails while 1–3 pass → **authorization issue** (usually `S_RFC` missing `RFC_NAME = ZSAPKIT_ADT_*`). Best practice: use a dedicated RFC user with `S_RFC` (`RFC_NAME = ZSAPKIT_ADT_DISPATCH, ZSAPKIT_ADT_TEXTPOOL, RFC_PING, SYSTEM`) plus minimal `S_DEVELOP` for TEXTPOOL INSERT — do not reuse the ADT user's credentials in both blocks unless intentional.
 
 ### Verification — gateway
 
 1. *Env completeness*: `SAP_RFC_GATEWAY_URL` parses as a valid `https://host[:port]` URL; base SAP credentials present; warn if `SAP_RFC_GATEWAY_TOKEN` missing (unauthenticated gateways are discouraged).
 2. *Reachability*: `GET $SAP_RFC_GATEWAY_URL/health` (with `Authorization: Bearer $SAP_RFC_GATEWAY_TOKEN`) returns HTTP 200 within 10s with JSON `status: "ok"` — TLS handshake, routing, and the gateway process validated in one call. Surface `sdk_version` / `pool_size` if reported.
-3. *Live probes*: `POST /rfc/dispatch` with `{"action":"PING","params":{}}` and the X-SAP-* headers returns `{subrc: 0}` (gateway → SAP RFC works with forwarded credentials); `POST /rfc/textpool` `READ` for `RSPARAM` returns non-empty `result[]` (full pipeline incl. `S_RFC` on ZMCP_ADT_TEXTPOOL).
+3. *Live probes*: `POST /rfc/dispatch` with `{"action":"PING","params":{}}` and the X-SAP-* headers returns `{subrc: 0}` (gateway → SAP RFC works with forwarded credentials); `POST /rfc/textpool` `READ` for `RSPARAM` returns non-empty `result[]` (full pipeline incl. `S_RFC` on ZSAPKIT_ADT_TEXTPOOL).
 
 If check 1 fails → fill the gateway env block. If check 2 fails → verify VPN / firewall / DNS / gateway process. If only check 3 fails → credentials are forwarded but SAP-side authorization is wrong.
 
@@ -231,11 +231,11 @@ If check 1 fails → fill the gateway env block. If check 2 fails → verify VPN
 | Failure | Action |
 |---|---|
 | env missing | Set `SAP_RFC_ODATA_SERVICE_URL` in the profile's `sap.env` |
-| metadata HTTP 404 | Install the OData MPC/DPC classes (`zcl_zmcp_adt_mpc.clas.abap` / `zcl_zmcp_adt_dpc.clas.abap` in `server/sap-assets/`), then register the service in `/IWFND/MAINT_SERVICE` |
+| metadata HTTP 404 | Install the OData MPC/DPC classes (`zcl_zsapkit_adt_mpc.clas.abap` / `zcl_zsapkit_adt_dpc.clas.abap` in `server/sap-assets/`), then register the service in `/IWFND/MAINT_SERVICE` |
 | metadata HTTP 401 | Basic auth rejected — verify `SAP_USERNAME` / `SAP_PASSWORD` |
 | no CSRF token | ICF node for `/sap/opu/odata/` inactive — ask Basis to activate |
-| FunctionImport HTTP 500 | Backend `/IWBEP` service registration missing (known gotcha — `/IWFND/MAINT_SERVICE` "Add Service" does not always populate the backend `/IWBEP` tables on all releases). First try `SE38 → ZMCP_ADT_FLUSH_CACHE`, then have Basis run `/IWBEP/REG_SERVICE` |
-| `EV_SUBRC` ≠ 0 | User lacks `S_RFC` authorization for `ZMCP_ADT_DISPATCH` / `ZMCP_ADT_TEXTPOOL` |
+| FunctionImport HTTP 500 | Backend `/IWBEP` service registration missing (known gotcha — `/IWFND/MAINT_SERVICE` "Add Service" does not always populate the backend `/IWBEP` tables on all releases). First try `SE38 → ZSAPKIT_ADT_FLUSH_CACHE`, then have Basis run `/IWBEP/REG_SERVICE` |
+| `EV_SUBRC` ≠ 0 | User lacks `S_RFC` authorization for `ZSAPKIT_ADT_DISPATCH` / `ZSAPKIT_ADT_TEXTPOOL` |
 
 ### Verification — zrfc
 

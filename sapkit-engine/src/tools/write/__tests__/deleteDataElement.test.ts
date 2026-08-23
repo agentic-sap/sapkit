@@ -7,7 +7,7 @@
  *  - 겉 핸들러: `engine/src/handlers/data_element/high/handleDeleteDataElement.ts:17-192`
  *  - 사슬·세션: `.../dist/core/dataElement/AdtDataElement.js` delete (세션 무접촉)
  *  - 전문·주소: `.../dist/core/dataElement/delete.js:19-85` (라벨 `"Data element"`)
- *  - ECC 브리지 이름: `ZMCP_ADT_DDIC_DTEL` (`handleDeleteDataElement.ts:159-165`)
+ *  - ECC 브리지 이름: `ZSAPKIT_ADT_DDIC_DTEL` (`handleDeleteDataElement.ts:159-165`)
  *
  * 라벨에 **띄어쓰기가 들어간다** — 눈으로 옮기면 틀리는 자리라 spec으로 못 박는다.
  */
@@ -54,7 +54,7 @@ describe('D110 — ECC 우회로가 없다는 것을 정직하게 알린다', ()
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain('DeleteDataElement on SAP_VERSION=ECC');
-    expect(textOf(result)).toContain('ZMCP_ADT_DDIC_DTEL');
+    expect(textOf(result)).toContain('ZSAPKIT_ADT_DDIC_DTEL');
     expect(textOf(result)).toContain('divergence D110');
     expect(harness.calls()).toHaveLength(0);
   });

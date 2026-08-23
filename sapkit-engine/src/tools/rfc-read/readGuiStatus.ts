@@ -3,7 +3,7 @@
  *
  * ## 참조 원본 (읽은 자취)
  *  - 겉: `engine/src/handlers/gui_status/readonly/handleReadGuiStatus.ts:33-76`
- *  - 와이어 정본: `engine/src/lib/odataRfc.ts:288-327` (`ZMCP_ADT_DISPATCH` →
+ *  - 와이어 정본: `engine/src/lib/odataRfc.ts:288-327` (`ZSAPKIT_ADT_DISPATCH` →
  *    `RS_CUA_INTERNAL_FETCH`) —
  *    `POST {service}/Dispatch?IV_ACTION='CUA_FETCH'&IV_PARAMS='{"program":"…"}'`
  *

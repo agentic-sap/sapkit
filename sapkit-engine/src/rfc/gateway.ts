@@ -1,7 +1,7 @@
 /**
  * `gateway` 통로 — 원격 **중계 미들웨어**에 HTTPS/JSON으로 보내면, 그 중계기가
- * 자기 호스트의 NW RFC SDK(`node-rfc`)로 기설치 함수모듈 `ZMCP_ADT_DISPATCH` /
- * `ZMCP_ADT_TEXTPOOL`을 부른다.
+ * 자기 호스트의 NW RFC SDK(`node-rfc`)로 기설치 함수모듈 `ZSAPKIT_ADT_DISPATCH` /
+ * `ZSAPKIT_ADT_TEXTPOOL`을 부른다.
  *
  *   MCP 클라이언트 ──HTTPS/JSON──▶ RFC 중계기 ──RFC──▶ SAP
  *
@@ -47,7 +47,7 @@
  *
  * ── `odata` 통로와 무엇이 다른가 ─────────────────────────────────────────
  * 둘 다 HTTPS/JSON이라 겹쳐 보이지만 **상대가 다르다.** `odata`는 SAP 자신의
- * Gateway(OData v2 서비스 `ZMCP_ADT_SRV`)와 말하고, `gateway`는 **우리가 세운
+ * Gateway(OData v2 서비스 `ZSAPKIT_ADT_SRV`)와 말하고, `gateway`는 **우리가 세운
  * 중계 서버**와 말한다. 그래서:
  *
  *   - **CSRF 악수가 없다.** 중계기는 SAP Gateway가 아니라 우리 서버라 토큰
@@ -76,7 +76,7 @@
  *        확인해 `config` 오류로 즉시 알린다.
  *   D13 진단 문구 — 엔진이 스스로 지어내는 산문은 이 레포의 결로 새로 썼다.
  *        **단, 도구 응답으로 그대로 나가는 계약성 문자열은 글자 그대로 보존한다**:
- *        `ZMCP_ADT_DISPATCH error (action=…, subrc=…): …`
+ *        `ZSAPKIT_ADT_DISPATCH error (action=…, subrc=…): …`
  *        (`gatewayRfc.ts:136`·`:166`).
  *    D4 TLS — 접속별 `rejectUnauthorized`. 위 `_TLS_VERIFY` 항목 참조.
  */
@@ -94,8 +94,8 @@ import type {
 } from './types';
 
 const BACKEND = 'gateway' as const;
-const DISPATCH_FM = 'ZMCP_ADT_DISPATCH';
-const TEXTPOOL_FM = 'ZMCP_ADT_TEXTPOOL';
+const DISPATCH_FM = 'ZSAPKIT_ADT_DISPATCH';
+const TEXTPOOL_FM = 'ZSAPKIT_ADT_TEXTPOOL';
 
 /** 중계기의 고정 경로 2개(`gatewayRfc.ts:130`·`:154`). */
 const DISPATCH_PATH = '/rfc/dispatch';

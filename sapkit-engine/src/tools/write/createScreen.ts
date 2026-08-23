@@ -3,7 +3,7 @@
  *
  * ## 참조 원본 (읽은 자취)
  *  - 겉: `engine/src/handlers/screen/high/handleCreateScreen.ts:64-182`
- *  - 대리자 와이어: `engine/src/lib/odataRfc.ts:288-327` (`ZMCP_ADT_DISPATCH` →
+ *  - 대리자 와이어: `engine/src/lib/odataRfc.ts:288-327` (`ZSAPKIT_ADT_DISPATCH` →
  *    `RPY_DYNPRO_INSERT`)
  *  - 사후 구문검사: `engine/src/lib/preCheckBeforeActivation.ts:375-387` →
  *    `:649-671` → `:503-533`

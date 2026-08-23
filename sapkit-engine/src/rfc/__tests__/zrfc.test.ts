@@ -334,7 +334,7 @@ describe('zrfc 통로 — Textpool 요청 조립 (구 zrfcProxy.ts:275-291 대�
     expect(result.result).toEqual([]);
   });
 
-  it('subrc != 0이면 ZMCP_ADT_TEXTPOOL 오류로 정규화한다 — 문구는 구 글자 그대로', async () => {
+  it('subrc != 0이면 ZSAPKIT_ADT_TEXTPOOL 오류로 정규화한다 — 문구는 구 글자 그대로', async () => {
     const { channel } = channelWith([
       csrfIssued(),
       endpointOk({ subrc: 8, message: 'program not found', result: '[]' }),
@@ -345,7 +345,7 @@ describe('zrfc 통로 — Textpool 요청 조립 (구 zrfcProxy.ts:275-291 대�
     expect(error.kind).toBe('sap');
     expect(error.subrc).toBe(8);
     expect(error.message).toBe(
-      'ZMCP_ADT_TEXTPOOL error (action=READ, subrc=8): program not found',
+      'ZSAPKIT_ADT_TEXTPOOL error (action=READ, subrc=8): program not found',
     );
   });
 });
@@ -387,9 +387,9 @@ describe('zrfc 통로 — 응답 정규화 (구 zrfcProxy.ts:260-269 대조)', (
     expect(error.subrc).toBe(4);
     expect(error.sapMessage).toBe('unknown action');
     expect(error.action).toBe('CUA_FETCH');
-    expect(error.functionModule).toBe('ZMCP_ADT_DISPATCH');
+    expect(error.functionModule).toBe('ZSAPKIT_ADT_DISPATCH');
     expect(error.message).toBe(
-      'ZMCP_ADT_DISPATCH error (action=CUA_FETCH, subrc=4): unknown action',
+      'ZSAPKIT_ADT_DISPATCH error (action=CUA_FETCH, subrc=4): unknown action',
     );
   });
 
@@ -477,12 +477,12 @@ describe('zrfc 통로 — SAP 측 오브젝트가 없을 때 정직하게 실패
   it('대리자 함수모듈이 없으면(500) server — 원문 본문을 진단에 남긴다', async () => {
     const { channel } = channelWith([
       csrfIssued(),
-      endpointError(500, 'Function module ZMCP_ADT_DISPATCH does not exist'),
+      endpointError(500, 'Function module ZSAPKIT_ADT_DISPATCH does not exist'),
     ]);
     const error = (await channel.callDispatch('CUA_FETCH', {}).catch((e: unknown) => e)) as RfcError;
     expect(error.kind).toBe('server');
     expect(error.status).toBe(500);
-    expect(error.rawBody).toContain('ZMCP_ADT_DISPATCH');
+    expect(error.rawBody).toContain('ZSAPKIT_ADT_DISPATCH');
   });
 
   it('그 실패를 성공으로 둔갑시키지 않는다 — 결과값이 아니라 던지기다', async () => {

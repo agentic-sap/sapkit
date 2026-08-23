@@ -55,7 +55,7 @@ const ECC_REFUSAL =
   'CreateTable is not supported on ECC via this MCP tool. ' +
   "ECC's DDIC write layer is row-based (DD02V + DD03P) and does not accept " +
   'the S/4HANA CDS-style DDL skeleton this handler generates. ' +
-  'Call the OData FunctionImport /DdicTabl on ZMCP_ADT_SRV directly with ' +
+  'Call the OData FunctionImport /DdicTabl on ZSAPKIT_ADT_SRV directly with ' +
   'IV_ACTION=\'CREATE\' and IV_PAYLOAD_JSON = \'{"dd02v":{...},"dd03p":[...]}\'.';
 
 /**

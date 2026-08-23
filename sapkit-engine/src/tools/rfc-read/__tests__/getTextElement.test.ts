@@ -134,7 +134,7 @@ describe('갈래', () => {
     const result = await invoke(getTextElement, harness, { program_name: 'ZNOPE' });
     expect(result.isError).toBe(true);
     expect(textOf(result)).toBe(
-      'Error: Failed to read text elements: ZMCP_ADT_TEXTPOOL error (action=READ, subrc=4): Program ZNOPE not found',
+      'Error: Failed to read text elements: ZSAPKIT_ADT_TEXTPOOL error (action=READ, subrc=4): Program ZNOPE not found',
     );
   });
 });

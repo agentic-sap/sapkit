@@ -277,7 +277,7 @@ export function isEcc(sapVersion: string | null): boolean {
  * ECC 우회로가 이 판에 없다는 것을 **정직하게 알린다** (차이 장부 D110).
  *
  * 구는 `DeleteTable`·`DeleteDomain`·`DeleteDataElement` 셋에서 `SAP_VERSION=ECC`면
- * `ZMCP_ADT_DDIC_*` OData 브리지로 우회했다. 이 엔진의 RFC 통로는 읽기 브리지
+ * `ZSAPKIT_ADT_DDIC_*` OData 브리지로 우회했다. 이 엔진의 RFC 통로는 읽기 브리지
  * (`callDdicTablRead`) 하나만 갖고 있고, 쓰기 브리지를 더하는 것은 `src/rfc/**`를
  * 고치는 일이라 이 묶음의 범위 밖이다. 그냥 ADT로 흘려보내면 **ECC 커널에 없는
  * 엔드포인트에 삭제를 시도**하게 되므로 흘려보내지 않는다. D61(생성 쪽)과 같은 결이다.

@@ -7,7 +7,7 @@
  *  - 겉 핸들러: `engine/src/handlers/domain/high/handleDeleteDomain.ts:17-186`
  *  - 사슬·세션: `.../dist/core/domain/AdtDomain.js` delete (세션 무접촉)
  *  - 전문·주소: `.../dist/core/domain/delete.js:19-84` (라벨 `"Domain"`)
- *  - ECC 브리지 이름: `ZMCP_ADT_DDIC_DOMA` (`handleDeleteDomain.ts:155-161`)
+ *  - ECC 브리지 이름: `ZSAPKIT_ADT_DDIC_DOMA` (`handleDeleteDomain.ts:155-161`)
  */
 
 import { deleteDomain } from '../deleteDomain';
@@ -52,7 +52,7 @@ describe('D110 — ECC 우회로가 없다는 것을 정직하게 알린다', ()
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain('DeleteDomain on SAP_VERSION=ECC');
-    expect(textOf(result)).toContain('ZMCP_ADT_DDIC_DOMA');
+    expect(textOf(result)).toContain('ZSAPKIT_ADT_DDIC_DOMA');
     expect(textOf(result)).toContain('divergence D110');
     expect(harness.calls()).toHaveLength(0);
   });

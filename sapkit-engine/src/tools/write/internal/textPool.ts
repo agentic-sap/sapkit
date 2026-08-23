@@ -1,7 +1,7 @@
 /**
  * 텍스트풀(TPOOL) 행의 모양 — 쓰기 3종이 함께 쓴다.
  *
- * `ZMCP_ADT_TEXTPOOL`의 WRITE는 **언제나 전량 교체**다(`INSERT TEXTPOOL`).
+ * `ZSAPKIT_ADT_TEXTPOOL`의 WRITE는 **언제나 전량 교체**다(`INSERT TEXTPOOL`).
  * 그래서 한 행을 더하거나 고치려면 먼저 READ로 전량을 읽어 손본 뒤 전량을 도로
  * 써야 한다 — 구 핸들러 셋이 모두 그 모양이다
  * (`engine/src/handlers/text_element/high/handleCreateTextElement.ts:167-209` ·

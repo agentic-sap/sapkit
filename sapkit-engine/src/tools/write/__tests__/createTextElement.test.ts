@@ -247,7 +247,7 @@ describe('갈래', () => {
     });
     expect(result.isError).toBe(true);
     expect(textOf(result)).toBe(
-      'Error: Failed to create text element: ZMCP_ADT_TEXTPOOL error (action=WRITE, subrc=4): TPOOL locked',
+      'Error: Failed to create text element: ZSAPKIT_ADT_TEXTPOOL error (action=WRITE, subrc=4): TPOOL locked',
     );
   });
 });

@@ -253,7 +253,7 @@ describe('odata 통로 — Textpool', () => {
     expect(result.result).toEqual([]);
   });
 
-  it('subrc != 0이면 ZMCP_ADT_TEXTPOOL 오류로 정규화한다', async () => {
+  it('subrc != 0이면 ZSAPKIT_ADT_TEXTPOOL 오류로 정규화한다', async () => {
     const { channel } = channelWith([
       csrfIssued(),
       functionImportOk({ EV_SUBRC: 8, EV_MESSAGE: 'program not found', EV_RESULT: '[]' }),
@@ -264,7 +264,7 @@ describe('odata 통로 — Textpool', () => {
     expect(error.kind).toBe('sap');
     expect(error.subrc).toBe(8);
     expect(error.message).toBe(
-      'ZMCP_ADT_TEXTPOOL error (action=READ, subrc=8): program not found',
+      'ZSAPKIT_ADT_TEXTPOOL error (action=READ, subrc=8): program not found',
     );
   });
 });
@@ -321,7 +321,7 @@ describe('odata 통로 — 응답 봉투와 SAP 오류', () => {
     expect(error.sapMessage).toBe('unknown action');
     expect(error.action).toBe('CUA_FETCH');
     expect(error.message).toBe(
-      'ZMCP_ADT_DISPATCH error (action=CUA_FETCH, subrc=4): unknown action',
+      'ZSAPKIT_ADT_DISPATCH error (action=CUA_FETCH, subrc=4): unknown action',
     );
   });
 });

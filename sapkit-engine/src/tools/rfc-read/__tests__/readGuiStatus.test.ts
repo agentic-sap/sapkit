@@ -92,7 +92,7 @@ describe('갈래', () => {
     const result = await invoke(readGuiStatus, harness, { program_name: 'ZA' });
     expect(result.isError).toBe(true);
     expect(textOf(result)).toBe(
-      'Error: ZMCP_ADT_DISPATCH error (action=CUA_FETCH, subrc=4): No CUA for program',
+      'Error: ZSAPKIT_ADT_DISPATCH error (action=CUA_FETCH, subrc=4): No CUA for program',
     );
   });
 });

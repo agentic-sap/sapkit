@@ -15,7 +15,7 @@
  * ## ECC 우회로를 짓지 않았다 (차이 장부 **D110**)
  *
  * 구는 `SAP_VERSION=ECC`에서 `callDdicDoma(connection, 'DELETE', …)` — SAP 측
- * 브리지 함수모듈 `ZMCP_ADT_DDIC_DOMA` — 로 우회한다(`:65-66`·`:148-186`). 이
+ * 브리지 함수모듈 `ZSAPKIT_ADT_DDIC_DOMA` — 로 우회한다(`:65-66`·`:148-186`). 이
  * 엔진의 RFC 통로에는 DDIC **읽기** 브리지 하나뿐이라 그 통로가 없고, 그냥 ADT로
  * 흘려보내면 ECC 커널에 없는 엔드포인트에 삭제를 시도하게 된다. 이름 있는 거절로
  * 끝낸다.
@@ -63,7 +63,7 @@ export const deleteDomain = defineTool(
 
     if (isEcc(context.profile.sapVersion)) {
       return errorResult(
-        `Error: ${eccDeleteUnsupported('DeleteDomain', 'ZMCP_ADT_DDIC_DOMA', 'domains')}`,
+        `Error: ${eccDeleteUnsupported('DeleteDomain', 'ZSAPKIT_ADT_DDIC_DOMA', 'domains')}`,
       );
     }
 

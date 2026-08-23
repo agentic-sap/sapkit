@@ -301,7 +301,7 @@ Note: All provided parameters completely replace existing values. Field labels a
 
     if (isEcc(context.profile.sapVersion)) {
       return errorResult(
-        eccCreateUnsupported('UpdateDataElement', 'ZMCP_ADT_DDIC_DTEL', SEGMENT),
+        eccCreateUnsupported('UpdateDataElement', 'ZSAPKIT_ADT_DDIC_DTEL', SEGMENT),
       );
     }
 

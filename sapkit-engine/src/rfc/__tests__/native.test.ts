@@ -317,7 +317,7 @@ describe('native 통로 — 요청 조립 (구 대조)', () => {
     await channelWith(directEnv(), spy).callDispatch('CUA_FETCH', { program: 'Z_FOO' });
     expect(spy.calls).toEqual([
       {
-        functionModule: 'ZMCP_ADT_DISPATCH',
+        functionModule: 'ZSAPKIT_ADT_DISPATCH',
         params: { IV_ACTION: 'CUA_FETCH', IV_PARAMS: '{"program":"Z_FOO"}' },
       },
     ]);
@@ -334,7 +334,7 @@ describe('native 통로 — 요청 조립 (구 대조)', () => {
     await channelWith(directEnv(), spy).callTextpool('READ', { program: 'Z_FOO' });
     expect(spy.calls).toEqual([
       {
-        functionModule: 'ZMCP_ADT_TEXTPOOL',
+        functionModule: 'ZSAPKIT_ADT_TEXTPOOL',
         params: {
           IV_ACTION: 'READ',
           IV_PROGRAM: 'Z_FOO',
@@ -402,9 +402,9 @@ describe('native 통로 — 오류 종류가 구별된다', () => {
     expect(error.subrc).toBe(4);
     expect(error.sapMessage).toBe('program not found');
     expect(error.action).toBe('CUA_FETCH');
-    expect(error.functionModule).toBe('ZMCP_ADT_DISPATCH');
+    expect(error.functionModule).toBe('ZSAPKIT_ADT_DISPATCH');
     expect(error.message).toBe(
-      'ZMCP_ADT_DISPATCH error (action=CUA_FETCH, subrc=4): program not found',
+      'ZSAPKIT_ADT_DISPATCH error (action=CUA_FETCH, subrc=4): program not found',
     );
   });
 
@@ -416,7 +416,7 @@ describe('native 통로 — 오류 종류가 구별된다', () => {
       channelWith(directEnv(), spy).callTextpool('READ', { program: 'Z_FOO' }),
     );
     expect(error.kind).toBe('sap');
-    expect(error.message).toBe('ZMCP_ADT_TEXTPOOL error (action=READ, subrc=8): auth missing');
+    expect(error.message).toBe('ZSAPKIT_ADT_TEXTPOOL error (action=READ, subrc=8): auth missing');
   });
 
   it('네이티브 호출이 던지면 network 오류로 정규화하고 원문·cause를 보존한다', async () => {
@@ -425,7 +425,7 @@ describe('native 통로 — 오류 종류가 구별된다', () => {
     const error = await caught(channelWith(directEnv(), spy).callDispatch('PING', {}));
     expect(error.kind).toBe('network');
     expect(error.backend).toBe('native');
-    expect(error.functionModule).toBe('ZMCP_ADT_DISPATCH');
+    expect(error.functionModule).toBe('ZSAPKIT_ADT_DISPATCH');
     expect(error.message).toContain('RFC_COMMUNICATION_FAILURE');
     expect(error.cause).toBe(cause);
   });
@@ -500,7 +500,7 @@ describe('native 통로 — 타임아웃 노브가 실제로 먹는다 (D11)', (
     );
     expect(error.kind).toBe('timeout');
     expect(error.backend).toBe('native');
-    expect(error.functionModule).toBe('ZMCP_ADT_DISPATCH');
+    expect(error.functionModule).toBe('ZSAPKIT_ADT_DISPATCH');
     // 노브의 값이 그대로 상한이 된다 — 하드코딩된 다른 값이 아니다.
     expect(error.message).toContain(`${longMs}ms`);
     expect(Date.now() - started).toBeGreaterThanOrEqual(longMs - 5);

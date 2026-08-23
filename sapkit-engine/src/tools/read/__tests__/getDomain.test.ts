@@ -171,7 +171,7 @@ describe('ECC 갈림 — 우회로가 이 판에 없다 (차이 장부 D61)', ()
     const result = await invokeDirect(getDomain, harness, { domain_name: 'ZD_FOO' });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain('ZMCP_ADT_DDIC_DOMA_READ');
+    expect(textOf(result)).toContain('ZSAPKIT_ADT_DDIC_DOMA_READ');
     expect(textOf(result)).toContain('D61');
     expect(harness.connections()).toBe(0);
     expect(harness.requests).toHaveLength(0);

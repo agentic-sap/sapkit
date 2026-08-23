@@ -29,11 +29,11 @@ CLASS lcl_event_alv DEFINITION FINAL.
 
   PUBLIC SECTION.
     CLASS-METHODS handle_hotspot_click
-      FOR EVENT hotspot_click OF zcl_s4sap_cm_oalv
+      FOR EVENT hotspot_click OF zcl_sapkit_cm_oalv
       IMPORTING e_row_id e_column_id es_row_no sender.
 
     CLASS-METHODS handle_data_changed
-      FOR EVENT data_changed OF zcl_s4sap_cm_oalv
+      FOR EVENT data_changed OF zcl_sapkit_cm_oalv
       IMPORTING er_data_changed e_onf4 e_onf4_before e_onf4_after
                 e_ucomm sender.
 
@@ -118,11 +118,11 @@ CLASS lcl_event_tree DEFINITION FINAL.
 
   PUBLIC SECTION.
     CLASS-METHODS handle_link_click
-      FOR EVENT link_click OF zcl_s4sap_cm_otree
+      FOR EVENT link_click OF zcl_sapkit_cm_otree
       IMPORTING fieldname node_key sender.
 
     CLASS-METHODS handle_node_double_click
-      FOR EVENT node_double_click OF zcl_s4sap_cm_otree
+      FOR EVENT node_double_click OF zcl_sapkit_cm_otree
       IMPORTING node_key sender.
 
 ENDCLASS.

@@ -11,7 +11,7 @@
  * - ADT 경로의 와이어: `GET /sap/bc/adt/ddic/tables/{NAME}/source/main?version=…`
  * - ECC 경로가 ADT 접속을 **한 번도 만들지 않는다**(구도 그 앞에서 반환한다)
  * - 두 경로의 응답 JSON 필드 이름과 ECC의 `path: 'ecc-odata-rfc'`
- * - `ZMCP_ADT_DDIC_TABL_READ subrc=…` 문구 — 도구 응답에 실려 나가는 계약성 문자열
+ * - `ZSAPKIT_ADT_DDIC_TABL_READ subrc=…` 문구 — 도구 응답에 실려 나가는 계약성 문자열
  */
 
 import { getTable } from '../getTable';
@@ -211,7 +211,7 @@ describe('GetTable — ECC 우회로', () => {
     const result = await call(getTable, h.context, { table_name: 'ZNOPE' });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toBe('ZMCP_ADT_DDIC_TABL_READ subrc=4: Table ZNOPE not found');
+    expect(textOf(result)).toBe('ZSAPKIT_ADT_DDIC_TABL_READ subrc=4: Table ZNOPE not found');
   });
 
   it('subrc >= 8은 통로가 던진 문구가 그대로 나온다', async () => {
@@ -225,7 +225,7 @@ describe('GetTable — ECC 우회로', () => {
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toBe(
-      'ZMCP_ADT_DDIC_TABL_READ error (name=ZFOO, subrc=8): DDIC read failed',
+      'ZSAPKIT_ADT_DDIC_TABL_READ error (name=ZFOO, subrc=8): DDIC read failed',
     );
   });
 
@@ -233,7 +233,7 @@ describe('GetTable — ECC 우회로', () => {
     const h = harness({
       profile: fakeProfile({ sapVersion: 'ECC' }),
       env: {
-        SAP_RFC_ODATA_SERVICE_URL: 'http://127.0.0.1:1/sap/opu/odata/sap/ZMCP_ADT_SRV',
+        SAP_RFC_ODATA_SERVICE_URL: 'http://127.0.0.1:1/sap/opu/odata/sap/ZSAPKIT_ADT_SRV',
         SAP_RFC_BACKEND: 'soap',
       },
     });

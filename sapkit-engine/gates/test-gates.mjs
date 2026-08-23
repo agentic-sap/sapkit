@@ -30,6 +30,7 @@ import {
   LEDGER_FILE,
   builtToolsFromLedger,
   judge,
+  renamed,
   run as runSurface,
 } from './surface.mjs';
 
@@ -108,9 +109,11 @@ function scenario(names) {
   const set = new Set(registered);
   const observed = {};
   for (const [key, condition] of Object.entries(captured.exposures)) {
+    // 판S5 개명분을 여기서도 건다 — 실제 엔진이 발행하는 것은 개명본이므로,
+    // 합성분만 구 이름이면 ⓐ가 없는 표류를 잡는다(`surface.mjs`의 `renamed`).
     observed[key] = condition.names
       .filter((name) => set.has(name))
-      .map((name) => JSON.parse(JSON.stringify(captured.tools[name])));
+      .map((name) => renamed(JSON.parse(JSON.stringify(captured.tools[name]))));
   }
   return {
     captured,

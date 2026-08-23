@@ -329,7 +329,7 @@ describe('실패 경로', () => {
     const result = await updateTable.handler(ecc, { table_name: 'ZTST_TABLE', ddl_code: DDL });
     expect(result.isError).toBe(true);
     expect(result.content[0]?.text).toContain('UpdateTable is not supported on ECC');
-    expect(result.content[0]?.text).toContain('ZMCP_ADT_SRV');
+    expect(result.content[0]?.text).toContain('ZSAPKIT_ADT_SRV');
     expect(harness.calls()).toHaveLength(0);
   });
 });

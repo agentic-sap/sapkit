@@ -1,5 +1,5 @@
 /**
- * RFC 대리자 통로의 도구쪽 접근점 — `ZMCP_ADT_DISPATCH` · `ZMCP_ADT_TEXTPOOL`.
+ * RFC 대리자 통로의 도구쪽 접근점 — `ZSAPKIT_ADT_DISPATCH` · `ZSAPKIT_ADT_TEXTPOOL`.
  *
  * ## 왜 여기 있나
  *

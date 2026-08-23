@@ -15,7 +15,7 @@
  *     `tryParseJson(…, [])`). 그래서 텍스트풀이 없는 프로그램도 오류가 아니라
  *     `total_rows: 0`이다.
  *  2. `subrc != 0`이면 통로가 던지고, 그 문구
- *     (`ZMCP_ADT_TEXTPOOL error (action=READ, subrc=N): …`)가 이 도구의 오류
+ *     (`ZSAPKIT_ADT_TEXTPOOL error (action=READ, subrc=N): …`)가 이 도구의 오류
  *     본문에 그대로 실린다.
  *  3. 행 필드 이름은 `/ui2/cl_json=>serialize`가 **대문자로** 남긴다. 구가
  *     `r.ID ?? r.id`처럼 두 갈래를 다 보는 것은 방어이며, 그대로 옮긴다.

@@ -266,7 +266,7 @@ describe('부분 실패 — 존재하지 않는다', () => {
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toBe(
-      'Error: WriteTextElementsBulk failed: ZMCP_ADT_TEXTPOOL error (action=WRITE_INACTIVE, subrc=8): TPOOL write rejected',
+      'Error: WriteTextElementsBulk failed: ZSAPKIT_ADT_TEXTPOOL error (action=WRITE_INACTIVE, subrc=8): TPOOL write rejected',
     );
   });
 });

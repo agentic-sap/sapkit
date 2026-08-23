@@ -3,7 +3,7 @@
  *
  * ## 참조 원본 (읽은 자취)
  *  - 겉: `engine/src/handlers/screen/readonly/handleReadScreen.ts:37-97`
- *  - 와이어 정본: `engine/src/lib/odataRfc.ts:288-327` (`ZMCP_ADT_DISPATCH` →
+ *  - 와이어 정본: `engine/src/lib/odataRfc.ts:288-327` (`ZSAPKIT_ADT_DISPATCH` →
  *    `RPY_DYNPRO_READ`)
  *
  * **`GetScreen`과 같은 요청을 보낸다.** 갈리는 것은 응답 조립과 실패 문구뿐이며,

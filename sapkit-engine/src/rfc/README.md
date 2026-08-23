@@ -1,8 +1,8 @@
 # `src/rfc/` — RFC 백엔드 분배층 (근거 문서)
 
 세 계열의 MCP 도구(Screen · GUI Status · Text Element)만 ADT HTTPS 채널로 닿지
-않는다. 그 셋은 SAP에 **기설치된 RFC 대리자 함수모듈** `ZMCP_ADT_DISPATCH` /
-`ZMCP_ADT_TEXTPOOL`을 부르고, "그 함수모듈에 **어떻게** 닿느냐"가 곧 통로(backend)다.
+않는다. 그 셋은 SAP에 **기설치된 RFC 대리자 함수모듈** `ZSAPKIT_ADT_DISPATCH` /
+`ZSAPKIT_ADT_TEXTPOOL`을 부르고, "그 함수모듈에 **어떻게** 닿느냐"가 곧 통로(backend)다.
 
 여기에 **ECC 전용 우회로**가 하나 더 얹힌다(§6.1). 평소 ADT로 닿는 도구라도 ECC
 커널에 해당 엔드포인트가 없으면 이 층을 탄다 — M1에서는 `GetTable`·`GetStructure`
@@ -60,7 +60,7 @@ const v = (process.env.SAP_RFC_BACKEND ?? '').trim().toLowerCase() || 'odata';
 
 | 통로 | 전송 | SAP 측 접점 | 필요한 env | 실측 |
 |---|---|---|---|---|
-| `odata` (기본) | HTTPS + OData v2 FunctionImport | 서비스 `ZMCP_ADT_SRV`의 `Dispatch`/`Textpool` → `ZMCP_ADT_*` FM. SEGW + Gateway 등록 필요 | `SAP_RFC_ODATA_SERVICE_URL`(필수) · `SAP_RFC_ODATA_CSRF_TTL_SEC`(기본 600·하한 60) | `odataRfc.ts:14-24` |
+| `odata` (기본) | HTTPS + OData v2 FunctionImport | 서비스 `ZSAPKIT_ADT_SRV`의 `Dispatch`/`Textpool` → `ZSAPKIT_ADT_*` FM. SEGW + Gateway 등록 필요 | `SAP_RFC_ODATA_SERVICE_URL`(필수) · `SAP_RFC_ODATA_CSRF_TTL_SEC`(기본 600·하한 60) | `odataRfc.ts:14-24` |
 | `soap` | HTTPS + SOAP 봉투 | ICF 노드 `/sap/bc/soap/rfc`가 FM을 직접 노출 | 추가 없음(ADT 접속 재사용) | `soapRfc.ts:12-14`·`127-152` |
 | `native` | TCP + SAP NW RFC SDK(`node-rfc`) | RFC 프로토콜로 FM 직접 호출 | `SAP_RFC_ASHOST`·`SYSNR`·`CLIENT`·`USER`·`PASSWD`·`LANG`·`MSHOST`·`SYSID`·`GROUP` + SNC 4종 | `nativeRfc.ts:9-17` |
 | `gateway` | HTTPS/JSON → 중계 미들웨어 | 중계기가 SDK로 FM 호출. `POST /rfc/dispatch`·`/rfc/textpool` | `SAP_RFC_GATEWAY_URL`(필수) · `_TOKEN` · `_TLS_VERIFY` | `gatewayRfc.ts:15-29` |
@@ -152,7 +152,7 @@ createDdicReadChannel({...})  → DdicReadChannel   |  던진다  (§6.1 — oda
 | ⑧ | 쿠키 처리 | 값이 빈 쿠키도 계속 전송 | `CookieJar` — 빈 값을 삭제로 처리 | ADT 계층과 같은 저장소를 쓴다. 장부 D8의 "쿠키 삭제 의미" 항목이 이미 덮는 차이다 |
 
 **일부러 같게 둔 것**: `subrc != 0`일 때의 문구
-`ZMCP_ADT_DISPATCH error (action=…, subrc=…): …`는 구 엔진 문자열 그대로다
+`ZSAPKIT_ADT_DISPATCH error (action=…, subrc=…): …`는 구 엔진 문자열 그대로다
 (`odataRfc.ts:321-323`). 이 문자열은 도구 응답으로 그대로 나가므로 녹화-재생
 대조의 대상이다. 반면 전송·HTTP 계층의 진단 문구는 이 레포의 다른 계층과 같은
 한국어로 새로 썼다 — 접속 계층이 이미 그렇게 갈라져 있고(`src/adt/errors.ts`),
@@ -160,10 +160,10 @@ createDdicReadChannel({...})  → DdicReadChannel   |  던진다  (§6.1 — oda
 
 ## 6. SAP 측 무접촉
 
-새 오브젝트 0. 신 엔진도 기설치된 `ZMCP_ADT_DISPATCH` / `ZMCP_ADT_TEXTPOOL` /
-`ZMCP_ADT_DDIC_TABL_READ`를 **같은 이름·같은 인자**로 부른다(결정 D-079 ⑥).
-자산 원본은 `interactive/server/sap-assets/`(`zmcp_adt_dispatch.abap`,
-`zmcp_adt_textpool.abap`, `zmcp_adt_ddic_tabl_read_ecc.abap`).
+새 오브젝트 0. 신 엔진도 기설치된 `ZSAPKIT_ADT_DISPATCH` / `ZSAPKIT_ADT_TEXTPOOL` /
+`ZSAPKIT_ADT_DDIC_TABL_READ`를 **같은 이름·같은 인자**로 부른다(결정 D-079 ⑥).
+자산 원본은 `interactive/server/sap-assets/`(`zsapkit_adt_dispatch.abap`,
+`zsapkit_adt_textpool.abap`, `zsapkit_adt_ddic_tabl_read_ecc.abap`).
 
 인자 계약(변경 금지):
 
@@ -175,18 +175,18 @@ createDdicReadChannel({...})  → DdicReadChannel   |  던진다  (§6.1 — oda
 
 ### 6.1 ECC DDIC 우회로 — `DdicTablRead`
 
-**M1 도구 19종에는 `ZMCP_ADT_DISPATCH`를 타는 도구가 없다**
+**M1 도구 19종에는 `ZSAPKIT_ADT_DISPATCH`를 타는 도구가 없다**
 (`harness/old-surface/m1-tools.json`의 `m1` 목록 — Screen·GUI Status·Text
 Element 계열은 그 안에 없다). M1에서 이 층을 실제로 쓰는 곳은 `GetTable`·
 `GetStructure`의 **ECC 우회로** 하나뿐이고, 그것은 `Dispatch`가 아니라 별도
-FunctionImport `DdicTablRead`(→ `ZMCP_ADT_DDIC_TABL_READ`)다. 표와 구조가 **같은
+FunctionImport `DdicTablRead`(→ `ZSAPKIT_ADT_DDIC_TABL_READ`)다. 표와 구조가 **같은
 FM 하나**를 쓰며 TABCLASS로 갈린다.
 
 - **기본은 ADT 직통이다.** 우회는 `SAP_VERSION`이 `ECC`일 때만 일어난다
   (`engine/src/handlers/table/high/handleGetTable.ts:69` ·
   `.../structure/high/handleGetStructure.ts:60` — ECC 커널(BASIS < 7.50)에는
   `/sap/bc/adt/ddic/tables` 엔드포인트가 없다).
-- **`odata` 통로 전용이다.** 브리지 FM은 OData 서비스 `ZMCP_ADT_SRV`의
+- **`odata` 통로 전용이다.** 브리지 FM은 OData 서비스 `ZSAPKIT_ADT_SRV`의
   FunctionImport로만 노출돼 있어 나머지 네 통로에는 닿을 길이 없다. 구 엔진도
   같은 자리에서 "`SAP_RFC_BACKEND=odata`가 필요하다"고 던진다
   (`engine/src/lib/rfcBackend.ts:94-132`) — 이미 정직한 실패다.

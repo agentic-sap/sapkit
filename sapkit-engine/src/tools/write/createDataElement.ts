@@ -358,7 +358,7 @@ export const createDataElement = defineTool(
 
     if (isEcc(context.profile.sapVersion)) {
       return errorResult(
-        eccCreateUnsupported('CreateDataElement', 'ZMCP_ADT_DDIC_DTEL', SEGMENT),
+        eccCreateUnsupported('CreateDataElement', 'ZSAPKIT_ADT_DDIC_DTEL', SEGMENT),
       );
     }
 

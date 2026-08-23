@@ -12,7 +12,7 @@ import type { HttpRequest, HttpResponse, HttpTransport } from '../../adt/http';
 import type { ConnectionConfig } from '../../contracts';
 
 /** 명백히 가짜인 OData 서비스 URL. */
-export const SERVICE_URL = 'https://sap.example.test:44300/sap/opu/odata/sap/ZMCP_ADT_SRV';
+export const SERVICE_URL = 'https://sap.example.test:44300/sap/opu/odata/sap/ZSAPKIT_ADT_SRV';
 
 export function fakeConnection(overrides: Partial<ConnectionConfig> = {}): ConnectionConfig {
   return {

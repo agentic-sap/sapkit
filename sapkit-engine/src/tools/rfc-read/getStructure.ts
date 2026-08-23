@@ -6,7 +6,7 @@
  * `engine/src/handlers/structure/high/handleGetStructure.ts:14-36`).
  *
  * ECC 우회로는 `GetTable`과 **같은 함수모듈 하나**를 부른다 —
- * `ZMCP_ADT_DDIC_TABL_READ`가 TABCLASS로 투명 테이블과 구조를 갈라 처리한다.
+ * `ZSAPKIT_ADT_DDIC_TABL_READ`가 TABCLASS로 투명 테이블과 구조를 갈라 처리한다.
  * 몸통(두 경로)은 `./ddicRead`에 있다.
  */
 

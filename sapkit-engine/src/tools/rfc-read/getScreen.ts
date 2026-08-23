@@ -3,7 +3,7 @@
  *
  * ## 참조 원본 (읽은 자취)
  *  - 겉: `engine/src/handlers/screen/high/handleGetScreen.ts:37-102`
- *  - 와이어 정본: `engine/src/lib/odataRfc.ts:288-327` (`ZMCP_ADT_DISPATCH` →
+ *  - 와이어 정본: `engine/src/lib/odataRfc.ts:288-327` (`ZSAPKIT_ADT_DISPATCH` →
  *    `RPY_DYNPRO_READ`)
  *
  * **`ReadScreen`과 같은 요청을 보낸다.** 갈리는 것 넷은 `./dynpro.ts` 머리주석의

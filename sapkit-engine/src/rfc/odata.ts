@@ -1,7 +1,7 @@
 /**
- * `odata` 통로 — SAP OData v2 서비스 `ZMCP_ADT_SRV`의 FunctionImport
- * `Dispatch` / `Textpool`을 거쳐 기설치 함수모듈 `ZMCP_ADT_DISPATCH` /
- * `ZMCP_ADT_TEXTPOOL`에 닿는다.
+ * `odata` 통로 — SAP OData v2 서비스 `ZSAPKIT_ADT_SRV`의 FunctionImport
+ * `Dispatch` / `Textpool`을 거쳐 기설치 함수모듈 `ZSAPKIT_ADT_DISPATCH` /
+ * `ZSAPKIT_ADT_TEXTPOOL`에 닿는다.
  *
  * **M1이 짓는 유일한 통로다** — 소유자 프로파일이 실제로 타는 경로이기 때문이다
  * (근거는 `README.md`). 이름·경로·인자 계약은 구 엔진
@@ -9,7 +9,7 @@
  * 설치하지 않는다(결정 D-079 ⑥).
  *
  * 필요한 env (활성 프로파일의 `sap.env`):
- *   SAP_RFC_ODATA_SERVICE_URL  — 예: https://host:44300/sap/opu/odata/sap/ZMCP_ADT_SRV
+ *   SAP_RFC_ODATA_SERVICE_URL  — 예: https://host:44300/sap/opu/odata/sap/ZSAPKIT_ADT_SRV
  *   SAP_RFC_ODATA_CSRF_TTL_SEC — 토큰 캐시 수명(초). 기본 600, 하한 60
  * 자격증명·클라이언트·타임아웃·TLS 방침은 `ConnectionConfig`가 준다.
  *
@@ -20,7 +20,7 @@
  *      +  `X-CSRF-Token: <토큰>` + `Cookie`
  *   403 + `x-csrf-token: required` → 캐시를 비우고 **한 번만** 되민다.
  *
- * 서버 쪽 함정(구 소스가 실측으로 남긴 것): SEGW `ZCL_ZMCP_ADT_MPC_EXT`의 모든
+ * 서버 쪽 함정(구 소스가 실측으로 남긴 것): SEGW `ZCL_ZSAPKIT_ADT_MPC_EXT`의 모든
  * FunctionImport는 `set_return_complex_type()`과 `set_return_multiplicity('1')`을
  * **둘 다** 불러야 한다. 뒤쪽이 빠지면 `$metadata`에서 `ReturnType` 속성이 조용히
  * 사라지고 모든 POST가 HTTP 500으로 떨어진다. 또 FunctionImport URL에
@@ -46,9 +46,9 @@ import type {
 const BACKEND = 'odata' as const;
 const DEFAULT_CSRF_TTL_SEC = 600;
 const MIN_CSRF_TTL_SEC = 60;
-const DISPATCH_FM = 'ZMCP_ADT_DISPATCH';
-const TEXTPOOL_FM = 'ZMCP_ADT_TEXTPOOL';
-const DDIC_TABL_READ_FM = 'ZMCP_ADT_DDIC_TABL_READ';
+const DISPATCH_FM = 'ZSAPKIT_ADT_DISPATCH';
+const TEXTPOOL_FM = 'ZSAPKIT_ADT_TEXTPOOL';
+const DDIC_TABL_READ_FM = 'ZSAPKIT_ADT_DDIC_TABL_READ';
 
 /** 이 통로가 부르는 FunctionImport 이름들. 봉투 이름 탐지에도 쓴다. */
 type FunctionImportName = 'Dispatch' | 'Textpool' | 'DdicTablRead';
@@ -186,8 +186,8 @@ class ODataChannel implements RfcChannel, DdicReadChannel {
         backend: BACKEND,
         message:
           `${key} is required for SAP_RFC_BACKEND=odata but not set in sap.env. ` +
-          `Set it to the ZMCP_ADT_SRV service root, e.g. ` +
-          `https://<host>:<port>/sap/opu/odata/sap/ZMCP_ADT_SRV (no trailing slash).`,
+          `Set it to the ZSAPKIT_ADT_SRV service root, e.g. ` +
+          `https://<host>:<port>/sap/opu/odata/sap/ZSAPKIT_ADT_SRV (no trailing slash).`,
       });
     }
     return value;

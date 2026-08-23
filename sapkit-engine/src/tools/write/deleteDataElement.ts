@@ -24,7 +24,7 @@
  *
  * ## ECC 우회로를 짓지 않았다 (차이 장부 **D110**)
  *
- * 구는 `SAP_VERSION=ECC`에서 브리지 함수모듈 `ZMCP_ADT_DDIC_DTEL`로 우회한다
+ * 구는 `SAP_VERSION=ECC`에서 브리지 함수모듈 `ZSAPKIT_ADT_DDIC_DTEL`로 우회한다
  * (`:66-67`·`:152-192`). 이 엔진의 RFC 통로에는 DDIC **읽기** 브리지뿐이다.
  */
 
@@ -70,7 +70,7 @@ export const deleteDataElement = defineTool(
 
     if (isEcc(context.profile.sapVersion)) {
       return errorResult(
-        `Error: ${eccDeleteUnsupported('DeleteDataElement', 'ZMCP_ADT_DDIC_DTEL', 'dataelements')}`,
+        `Error: ${eccDeleteUnsupported('DeleteDataElement', 'ZSAPKIT_ADT_DDIC_DTEL', 'dataelements')}`,
       );
     }
 

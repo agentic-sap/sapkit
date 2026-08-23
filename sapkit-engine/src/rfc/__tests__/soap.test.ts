@@ -33,8 +33,8 @@ const SOAP_URL = `${ORIGIN}/sap/bc/soap/rfc`;
 const DISCOVERY_URL = `${ORIGIN}/sap/bc/adt/core/discovery`;
 const SOAP_NS = 'http://schemas.xmlsoap.org/soap/envelope/';
 const URN_NS = 'urn:sap-com:document:sap:rfc:functions';
-const DISPATCH_FM = 'ZMCP_ADT_DISPATCH';
-const TEXTPOOL_FM = 'ZMCP_ADT_TEXTPOOL';
+const DISPATCH_FM = 'ZSAPKIT_ADT_DISPATCH';
+const TEXTPOOL_FM = 'ZSAPKIT_ADT_TEXTPOOL';
 
 // ─────────────────────────────────────────────────────────────── 응답 조각
 
@@ -427,7 +427,7 @@ describe('soap 통로 — 오류 종류가 구별된다', () => {
     expect(error.sapMessage).toBe('unknown action');
     expect(error.action).toBe('CUA_FETCH');
     expect(error.message).toBe(
-      'ZMCP_ADT_DISPATCH error (action=CUA_FETCH, subrc=4): unknown action',
+      'ZSAPKIT_ADT_DISPATCH error (action=CUA_FETCH, subrc=4): unknown action',
     );
   });
 
@@ -440,19 +440,19 @@ describe('soap 통로 — 오류 종류가 구별된다', () => {
       .callTextpool('READ', { program: 'ZTEST' })
       .catch((e: unknown) => e)) as RfcError;
     expect(error.message).toBe(
-      'ZMCP_ADT_TEXTPOOL error (action=READ, subrc=8): program not found',
+      'ZSAPKIT_ADT_TEXTPOOL error (action=READ, subrc=8): program not found',
     );
   });
 
   it('SOAP Fault는 sap 오류이고 SAP이 준 문구를 보존한다', async () => {
     const { channel } = channelWith([
       csrfIssued(),
-      soapFault('Function module ZMCP_ADT_DISPATCH not found'),
+      soapFault('Function module ZSAPKIT_ADT_DISPATCH not found'),
     ]);
     const error = (await channel.callDispatch('CUA_FETCH', {}).catch((e: unknown) => e)) as RfcError;
     expect(error.kind).toBe('sap');
-    expect(error.sapMessage).toBe('Function module ZMCP_ADT_DISPATCH not found');
-    expect(error.message).toBe('SOAP Fault: Function module ZMCP_ADT_DISPATCH not found');
+    expect(error.sapMessage).toBe('Function module ZSAPKIT_ADT_DISPATCH not found');
+    expect(error.message).toBe('SOAP Fault: Function module ZSAPKIT_ADT_DISPATCH not found');
     // 업무 오류가 아니므로 subrc는 없다 — 두 sap 오류는 이것으로 갈린다.
     expect(error.subrc).toBeUndefined();
   });
@@ -602,6 +602,6 @@ describe('soap 통로 — 내장 전송으로 실제 왕복', () => {
     expect(seen[1]?.method).toBe('POST');
     expect(seen[1]?.url).toBe('/sap/bc/soap/rfc');
     expect(seen[1]?.contentType).toBe('text/xml; charset=utf-8');
-    expect(seen[1]?.body).toContain('<urn:ZMCP_ADT_DISPATCH>');
+    expect(seen[1]?.body).toContain('<urn:ZSAPKIT_ADT_DISPATCH>');
   });
 });

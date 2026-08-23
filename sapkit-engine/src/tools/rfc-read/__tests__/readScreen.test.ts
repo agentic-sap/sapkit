@@ -132,7 +132,7 @@ describe('갈래', () => {
     });
     expect(result.isError).toBe(true);
     expect(textOf(result)).toBe(
-      'Error: ZMCP_ADT_DISPATCH error (action=DYNPRO_READ, subrc=3): Dynpro not found',
+      'Error: ZSAPKIT_ADT_DISPATCH error (action=DYNPRO_READ, subrc=3): Dynpro not found',
     );
   });
 });

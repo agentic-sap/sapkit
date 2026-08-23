@@ -500,7 +500,7 @@ describe('갈래', () => {
     const result = await Promise.resolve(createDataElement.handler(context, { ...ARGS }));
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain('ZMCP_ADT_DDIC_DTEL');
+    expect(textOf(result)).toContain('ZSAPKIT_ADT_DDIC_DTEL');
     expect(textOf(result)).toContain('D61');
     expect(harness.calls()).toHaveLength(0);
   });

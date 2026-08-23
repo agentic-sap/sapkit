@@ -61,6 +61,33 @@ import {
 export const CAPTURED_PATH = here('../harness/old-surface/m1-tools.json');
 
 /**
+ * 판S5 — SAP 자산 개명이 만든 **의도한 계약 변경**. ⓐ의 유일한 예외이고, 여기
+ * 없는 글자가 움직이면 ⓐ는 그대로 실패한다.
+ *
+ * 채록본(`harness/old-surface/m1-tools.json`)은 **되뜰 수 없는 기준**이라 손대지
+ * 않는다 — 대신 대조 직전에 이 표대로 개명해 물린다. 반대로 도구 설명이 구 이름을
+ * 계속 말하게 두면 **SAP에 더 이상 없는 오브젝트를 찾으라고 시키는 셈**이라,
+ * 「채록본과 글자 일치」를 그 자리에서만 개명 뒤 글자 일치로 바꾼 것이다.
+ *
+ * 지금 걸리는 것은 `GetBadiImplementations` 한 종뿐이다(ECC 브리지 FM 이름).
+ */
+const RENAMED_SAP_ASSETS = Object.freeze([['ZMCP_ADT_DDIC_BADI', 'ZSAPKIT_ADT_DDIC_BADI']]);
+
+/**
+ * 채록본의 발행 선언 하나를 개명 뒤 형태로 옮긴다. 설명 문구에만 건다.
+ *
+ * 음성시험(`gates/test-gates.mjs`)이 채록본에서 **발행 표면을 합성**할 때도 같은
+ * 것을 써야 한다 — 실제 엔진이 개명본을 발행하므로, 합성분만 구 이름이면 그
+ * 시험은 없는 표류를 잡는다. 그래서 내보낸다.
+ */
+export function renamed(declaration) {
+  if (typeof declaration?.description !== 'string') return declaration;
+  let description = declaration.description;
+  for (const [was, now] of RENAMED_SAP_ASSETS) description = description.replaceAll(was, now);
+  return description === declaration.description ? declaration : { ...declaration, description };
+}
+
+/**
  * 가장 넓은 노출 조건 — 등록점의 도구가 전부 뜨는 자리이자 채록본 `tools`(전량
  * 선언)의 짝이다. ⓐ의 선언 대조와 「등록점 = 발행 집합」은 이 조건에서 본다.
  */
@@ -277,8 +304,10 @@ export function judge({ captured, observed, registered, ledger, report }) {
   const listed = observed?.[WIDEST] ?? [];
   let compared = 0;
   for (const tool of listed) {
-    const want = captured.tools[tool.name];
-    if (want === undefined) continue; // 표면 밖 이름은 ⓒ가 이미 잡았다.
+    const captured0 = captured.tools[tool.name];
+    if (captured0 === undefined) continue; // 표면 밖 이름은 ⓒ가 이미 잡았다.
+    // 판S5 개명분만 옮겨 물린다 — 나머지는 여전히 채록본과 글자 대조다.
+    const want = renamed(captured0);
     // 발행 객체에는 SDK가 undefined 필드(annotations·_meta)를 얹으므로 채록본이
     // 가진 키만 대조한다 — 채록본 자체가 구 엔진의 발행 결과다.
     const trimmed = Object.fromEntries(Object.keys(want).map((k) => [k, tool[k]]));

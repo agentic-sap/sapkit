@@ -74,7 +74,7 @@
             "properties": {
               "component": {
                 "type": "string",
-                "description": "What is down, e.g. 'ABAP Unit ADT execution (HTTP 404)' or 'ZMCP_ADT_SRV Textpool service (HTTP 500)'."
+                "description": "What is down, e.g. 'ABAP Unit ADT execution (HTTP 404)' or 'ZSAPKIT_ADT_SRV Textpool service (HTTP 500)'."
               },
               "affected_step": {
                 "type": "string",

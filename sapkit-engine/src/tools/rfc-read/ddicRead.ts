@@ -14,8 +14,8 @@
  * 경로가 닿지 않고, 그때만 OData 브리지로 돌아간다. **trim은 하지 않는다** —
  * 구가 하지 않으므로 여기서도 하지 않는다.
  *
- * 우회로가 부르는 것은 `ZMCP_ADT_DISPATCH`가 **아니다**. FunctionImport
- * `DdicTablRead` → 함수모듈 `ZMCP_ADT_DDIC_TABL_READ`이고, 투명 테이블과 구조를
+ * 우회로가 부르는 것은 `ZSAPKIT_ADT_DISPATCH`가 **아니다**. FunctionImport
+ * `DdicTablRead` → 함수모듈 `ZSAPKIT_ADT_DDIC_TABL_READ`이고, 투명 테이블과 구조를
  * **같은 FM 하나**가 TABCLASS로 갈라 처리한다.
  *
  * ## 왜 여기서 공용 소스 읽기 도우미를 만들지 않는가
@@ -125,7 +125,7 @@ async function readViaBridge(
   // subrc 4는 통로가 던지지 않고 여기까지 온다(문턱은 8) — 그 판정이 이 문구다.
   // 구 엔진이 조립해 도구 응답에 실어 보내던 계약성 문자열이므로 글자 그대로다.
   if (result.subrc !== 0) {
-    return fail(`ZMCP_ADT_DDIC_TABL_READ subrc=${result.subrc}: ${result.message}`);
+    return fail(`ZSAPKIT_ADT_DDIC_TABL_READ subrc=${result.subrc}: ${result.message}`);
   }
 
   return ok({

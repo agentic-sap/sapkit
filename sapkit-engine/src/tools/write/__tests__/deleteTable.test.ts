@@ -57,7 +57,7 @@ describe('D110 — ECC 우회로가 없다는 것을 정직하게 알린다', ()
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain('DeleteTable on SAP_VERSION=ECC');
-    expect(textOf(result)).toContain('ZMCP_ADT_DDIC_TABL');
+    expect(textOf(result)).toContain('ZSAPKIT_ADT_DDIC_TABL');
     expect(textOf(result)).toContain('divergence D110');
     // ECC 커널에 없는 엔드포인트에 삭제를 시도하지 않는다.
     expect(harness.calls()).toHaveLength(0);

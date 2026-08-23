@@ -66,7 +66,7 @@ Apply it before counting findings:
 
 - **`known_outages[]`** — applies to `unit_test`/`atc` gaps and to the
   RFC-dispatched UI families (Screen / GUI Status / Text Element — steps that
-  are `SKIPPED` when the `ZMCP_ADT_UTILS` FMs are absent or the RFC backend is
+  are `SKIPPED` when the `ZSAPKIT_ADT_UTILS` FMs are absent or the RFC backend is
   unconfigured; see [install-sap-assets.md](./install-sap-assets.md)). A verification
   step recorded `SKIPPED` because of a listed outage is an environment gap, NOT
   a code defect. Do not raise a finding for the gap itself; record the affected

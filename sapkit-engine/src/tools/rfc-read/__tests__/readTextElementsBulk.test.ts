@@ -169,7 +169,7 @@ describe('갈래', () => {
     const result = await invoke(readTextElementsBulk, harness, { program_name: 'ZNOPE' });
     expect(result.isError).toBe(true);
     expect(textOf(result)).toBe(
-      'Error: ReadTextElementsBulk failed: ZMCP_ADT_TEXTPOOL error (action=READ, subrc=8): no TPOOL',
+      'Error: ReadTextElementsBulk failed: ZSAPKIT_ADT_TEXTPOOL error (action=READ, subrc=8): no TPOOL',
     );
   });
 });

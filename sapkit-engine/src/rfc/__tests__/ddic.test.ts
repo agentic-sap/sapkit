@@ -139,9 +139,9 @@ describe('DDIC 브리지 — 응답 정규화', () => {
     expect(error.backend).toBe('odata');
     expect(error.subrc).toBe(8);
     expect(error.sapMessage).toBe('DDIC read failed');
-    expect(error.functionModule).toBe('ZMCP_ADT_DDIC_TABL_READ');
+    expect(error.functionModule).toBe('ZSAPKIT_ADT_DDIC_TABL_READ');
     expect(error.message).toBe(
-      'ZMCP_ADT_DDIC_TABL_READ error (name=ZFOO, subrc=8): DDIC read failed',
+      'ZSAPKIT_ADT_DDIC_TABL_READ error (name=ZFOO, subrc=8): DDIC read failed',
     );
   });
 

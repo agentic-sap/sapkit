@@ -161,7 +161,7 @@ export async function startBridge(outputs: {
   const port = (server.address() as AddressInfo).port;
 
   return {
-    serviceUrl: `http://127.0.0.1:${port}/sap/opu/odata/sap/ZMCP_ADT_SRV`,
+    serviceUrl: `http://127.0.0.1:${port}/sap/opu/odata/sap/ZSAPKIT_ADT_SRV`,
     requests,
     async close() {
       await new Promise<void>((resolve) => {

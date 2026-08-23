@@ -257,7 +257,7 @@ describe('gateway 통로 — Textpool 요청 조립', () => {
     expect(result.result).toEqual([]);
   });
 
-  it('subrc != 0이면 ZMCP_ADT_TEXTPOOL 오류로 정규화한다', async () => {
+  it('subrc != 0이면 ZSAPKIT_ADT_TEXTPOOL 오류로 정규화한다', async () => {
     const { channel } = channelWith([
       gatewayOk({ result: [], subrc: 8, message: 'auth denied' }),
     ]);
@@ -268,7 +268,7 @@ describe('gateway 통로 — Textpool 요청 조립', () => {
     expect(error.kind).toBe('sap');
     expect(error.subrc).toBe(8);
     expect(error.message).toBe(
-      'ZMCP_ADT_TEXTPOOL error (action=READ, subrc=8): auth denied',
+      'ZSAPKIT_ADT_TEXTPOOL error (action=READ, subrc=8): auth denied',
     );
   });
 });
@@ -345,7 +345,7 @@ describe('gateway 통로 — 응답 정규화와 오류 종류', () => {
     expect(error.sapMessage).toBe('not found');
     expect(error.action).toBe('CUA_FETCH');
     expect(error.message).toBe(
-      'ZMCP_ADT_DISPATCH error (action=CUA_FETCH, subrc=4): not found',
+      'ZSAPKIT_ADT_DISPATCH error (action=CUA_FETCH, subrc=4): not found',
     );
   });
 

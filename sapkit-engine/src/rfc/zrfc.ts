@@ -1,6 +1,6 @@
 /**
  * `zrfc` 통로 — SAP에 설치한 **커스텀 ICF 핸들러** `ZCL_MCP_RFC_HTTP_HANDLER`를
- * 거쳐 기설치 함수모듈 `ZMCP_ADT_DISPATCH` / `ZMCP_ADT_TEXTPOOL`에 닿는다.
+ * 거쳐 기설치 함수모듈 `ZSAPKIT_ADT_DISPATCH` / `ZSAPKIT_ADT_TEXTPOOL`에 닿는다.
  * 핸들러는 SICF 노드 `/sap/bc/rest/zmcp_rfc`에 마운트돼 있고 `/dispatch`와
  * `/textpool` 두 엔드포인트를 HTTPS/JSON으로 노출한다.
  *
@@ -61,8 +61,8 @@ import type {
 const BACKEND = 'zrfc' as const;
 const DEFAULT_CSRF_TTL_SEC = 600;
 const MIN_CSRF_TTL_SEC = 60;
-const DISPATCH_FM = 'ZMCP_ADT_DISPATCH';
-const TEXTPOOL_FM = 'ZMCP_ADT_TEXTPOOL';
+const DISPATCH_FM = 'ZSAPKIT_ADT_DISPATCH';
+const TEXTPOOL_FM = 'ZSAPKIT_ADT_TEXTPOOL';
 
 /** SICF 마운트 지점. 진단 문구가 무엇을 켜라고 말할지의 정본이다. */
 const SICF_NODE = '/sap/bc/rest/zmcp_rfc';
@@ -160,7 +160,7 @@ class ZrfcChannel implements RfcChannel {
   }
 
   /**
-   * `ZMCP_ADT_DISPATCH` 호출.
+   * `ZSAPKIT_ADT_DISPATCH` 호출.
    *
    * `params`는 **객체가 아니라 JSON 문자열**로 실린다. ABAP 핸들러가
    * `ls_req-params`를 `IV_PARAMS`에 그대로 넘기므로(`:223-230`), 문자열로 만드는
@@ -178,7 +178,7 @@ class ZrfcChannel implements RfcChannel {
   }
 
   /**
-   * `ZMCP_ADT_TEXTPOOL` 호출.
+   * `ZSAPKIT_ADT_TEXTPOOL` 호출.
    *
    * 본문 필드 이름이 `textpoolJson`인 것은 핸들러가 `/ui2/cl_json`을
    * `pretty_mode-camel_case`로 역직렬화하기 때문이다 — ABAP 쪽 필드는

@@ -205,7 +205,7 @@ describe('갈래', () => {
     });
     expect(result.isError).toBe(true);
     expect(textOf(result)).toBe(
-      'Error: Failed to create GUI status: ZMCP_ADT_DISPATCH error (action=CUA_WRITE, subrc=8): CUA locked',
+      'Error: Failed to create GUI status: ZSAPKIT_ADT_DISPATCH error (action=CUA_WRITE, subrc=8): CUA locked',
     );
   });
 

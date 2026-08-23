@@ -247,7 +247,7 @@ Note: All provided parameters completely replace existing values. Use GetDomain 
     const domainName = args.domain_name.toUpperCase();
 
     if (isEcc(context.profile.sapVersion)) {
-      return errorResult(eccCreateUnsupported('UpdateDomain', 'ZMCP_ADT_DDIC_DOMA', SEGMENT));
+      return errorResult(eccCreateUnsupported('UpdateDomain', 'ZSAPKIT_ADT_DDIC_DOMA', SEGMENT));
     }
 
     const shouldActivate = args.activate !== false;

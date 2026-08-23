@@ -4,7 +4,7 @@
  * 대조 원본은 `engine/src/handlers/structure/high/handleGetStructure.ts`다.
  * `GetTable`과 같은 몸통을 쓰지만 세 가지가 다르다: 인자 이름(`structure_name`),
  * 응답 필드 이름(`structure_name`·`structure_data`), ADT 경로 조각(`structures`).
- * **ECC 우회로는 같은 FM 하나**를 부른다 — `ZMCP_ADT_DDIC_TABL_READ`가 투명
+ * **ECC 우회로는 같은 FM 하나**를 부른다 — `ZSAPKIT_ADT_DDIC_TABL_READ`가 투명
  * 테이블과 구조를 TABCLASS로 갈라 처리한다(구 `:57-59` 주석).
  */
 
@@ -127,6 +127,6 @@ describe('GetStructure — ECC 우회로', () => {
     const result = await call(getStructure, h.context, { structure_name: 'ZNOPE' });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toBe('ZMCP_ADT_DDIC_TABL_READ subrc=4: Structure ZNOPE not found');
+    expect(textOf(result)).toBe('ZSAPKIT_ADT_DDIC_TABL_READ subrc=4: Structure ZNOPE not found');
   });
 });

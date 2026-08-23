@@ -321,7 +321,7 @@ describe('시퀀스', () => {
     // CreateGuiStatus는 같은 실패를 삼키지만 Patch는 삼키지 않는다.
     expect(result.isError).toBe(true);
     expect(textOf(result)).toBe(
-      'Error: Failed to patch GUI status: ZMCP_ADT_DISPATCH error (action=CUA_FETCH, subrc=4): No CUA for program',
+      'Error: Failed to patch GUI status: ZSAPKIT_ADT_DISPATCH error (action=CUA_FETCH, subrc=4): No CUA for program',
     );
     expect(harness.adtCalls()).toHaveLength(0);
   });

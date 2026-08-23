@@ -186,7 +186,7 @@ describe('ECC 갈림 — 우회로가 이 판에 없다 (차이 장부 D61)', ()
     const result = await invokeDirect(getDataElement, harness, { data_element_name: 'ZE_FOO' });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain('ZMCP_ADT_DDIC_DTEL_READ');
+    expect(textOf(result)).toContain('ZSAPKIT_ADT_DDIC_DTEL_READ');
     expect(textOf(result)).toContain('D61');
     // ADT로 흘려보내지 않는다 — ECC 커널에 그 엔드포인트가 없다.
     expect(harness.connections()).toBe(0);

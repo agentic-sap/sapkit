@@ -7,7 +7,7 @@
  *
  * 구는 SAP 표준 ADT로 이 답을 얻지 못한다. `datapreview`·`ddic`·`enhsxsb`
  * 엔드포인트가 레거시 커널(BASIS < 7.50)에 없어서, **OData FunctionImport
- * `DdicBadi`를 통해 브리지 함수모듈 `ZMCP_ADT_DDIC_BADI`를 부르는 것이 유일한
+ * `DdicBadi`를 통해 브리지 함수모듈 `ZSAPKIT_ADT_DDIC_BADI`를 부르는 것이 유일한
  * 통로**다(겉 핸들러 `:11-16`·`:100-105` → `engine/src/lib/rfcBackend.ts:123-126`
  * → `engine/src/lib/odataRfc.ts:511-537`). S/4HANA 경로는 구에도 없다 — 겉
  * 핸들러가 `SAP_VERSION !== 'ECC'`면 그 사실을 문구로 알리고 끝낸다(`:83-89`).
@@ -61,12 +61,12 @@ export function isEcc(sapVersion: string | null): boolean {
 
 /** 구 `:84-88` 글자 그대로. */
 export const NON_ECC_MESSAGE =
-  'GetBadiImplementations currently routes through the ECC bridge (ZMCP_ADT_DDIC_BADI via OData FunctionImport DdicBadi). ' +
+  'GetBadiImplementations currently routes through the ECC bridge (ZSAPKIT_ADT_DDIC_BADI via OData FunctionImport DdicBadi). ' +
   'Set SAP_VERSION=ECC in .sapkit/sap.env, or wait for the S/4HANA native ADT path (planned).';
 
 /** 브리지가 없다는 정직한 거절 — 장부 D132. */
 export const ECC_BRIDGE_MISSING_MESSAGE =
-  'GetBadiImplementations on SAP_VERSION=ECC needs the ZMCP_ADT_DDIC_BADI OData bridge ' +
+  'GetBadiImplementations on SAP_VERSION=ECC needs the ZSAPKIT_ADT_DDIC_BADI OData bridge ' +
   '(FunctionImport DdicBadi), which this engine does not implement yet (divergence D132). ' +
   'This tool has no ADT fallback: the datapreview / ddic / enhsxsb endpoints it would need are absent on ECC kernels ' +
   '(BASIS < 7.50), so falling through to them would report a missing endpoint as a missing BAdI.';
@@ -75,7 +75,7 @@ export const getBadiImplementations = defineTool(
   {
     name: 'GetBadiImplementations',
     description:
-      "[read-only] Find implementations of a (classic) BAdI definition. Use during symptom analysis when a standard SAP BAdI is implicated — answers 'which Z class extends this standard BAdI?'. Example flow: PO BAPI error → ME_PROCESS_PO_CUST → list Z impls → read the impl class source via GetClass to find the bug. Currently ECC-only (routes through the ZMCP_ADT_DDIC_BADI bridge FM). Classic BAdI only; kernel BAdI returns kind='unknown'.",
+      "[read-only] Find implementations of a (classic) BAdI definition. Use during symptom analysis when a standard SAP BAdI is implicated — answers 'which Z class extends this standard BAdI?'. Example flow: PO BAPI error → ME_PROCESS_PO_CUST → list Z impls → read the impl class source via GetClass to find the bug. Currently ECC-only (routes through the ZSAPKIT_ADT_DDIC_BADI bridge FM). Classic BAdI only; kernel BAdI returns kind='unknown'.",
     inputSchema: {
       badi_definition: z
         .string()

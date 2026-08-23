@@ -127,7 +127,7 @@ export function createDdicReadChannel(options: RfcChannelOptions): DdicReadChann
       backend,
       message:
         `The ECC DDIC bridge requires SAP_RFC_BACKEND=odata (current='${backend}'). ` +
-        `ZMCP_ADT_DDIC_TABL_READ is only exposed through the OData ZMCP_ADT_SRV service, ` +
+        `ZSAPKIT_ADT_DDIC_TABL_READ is only exposed through the OData ZSAPKIT_ADT_SRV service, ` +
         `so no other backend can reach it. Set SAP_RFC_BACKEND=odata in the active profile's ` +
         `sap.env, or read this object through the standard ADT endpoints on a non-ECC system.`,
     });

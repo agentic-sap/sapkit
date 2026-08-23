@@ -250,7 +250,7 @@ export const createDomain = defineTool(
     const domainName = args.domain_name.toUpperCase();
 
     if (isEcc(context.profile.sapVersion)) {
-      return errorResult(eccCreateUnsupported('CreateDomain', 'ZMCP_ADT_DDIC_DOMA', SEGMENT));
+      return errorResult(eccCreateUnsupported('CreateDomain', 'ZSAPKIT_ADT_DDIC_DOMA', SEGMENT));
     }
 
     const shouldActivate = args.activate !== false;

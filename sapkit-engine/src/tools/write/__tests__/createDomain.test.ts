@@ -457,7 +457,7 @@ describe('갈래', () => {
     const result = await Promise.resolve(createDomain.handler(context, { ...ARGS }));
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain('ZMCP_ADT_DDIC_DOMA');
+    expect(textOf(result)).toContain('ZSAPKIT_ADT_DDIC_DOMA');
     expect(textOf(result)).toContain('D61');
     expect(harness.calls()).toHaveLength(0);
   });

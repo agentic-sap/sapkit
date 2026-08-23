@@ -1,6 +1,6 @@
 /**
  * `soap` 통로 — ICF 노드 `/sap/bc/soap/rfc`가 RFC 함수모듈을 직접 노출하는
- * SAP 내장 경로. 기설치 대리자 `ZMCP_ADT_DISPATCH` / `ZMCP_ADT_TEXTPOOL`에
+ * SAP 내장 경로. 기설치 대리자 `ZSAPKIT_ADT_DISPATCH` / `ZSAPKIT_ADT_TEXTPOOL`에
  * SOAP 봉투 하나로 닿는다(SAP 측 무접촉 — 결정 D-079 ⑥).
  *
  * **주 참조 원본**: `engine/src/lib/soapRfc.ts` 전량.
@@ -89,8 +89,8 @@ const URN_NS = 'urn:sap-com:document:sap:rfc:functions';
 /** `:142` — 구가 보내는 Content-Type 글자 그대로. */
 const SOAP_CONTENT_TYPE = 'text/xml; charset=utf-8';
 
-const DISPATCH_FM = 'ZMCP_ADT_DISPATCH';
-const TEXTPOOL_FM = 'ZMCP_ADT_TEXTPOOL';
+const DISPATCH_FM = 'ZSAPKIT_ADT_DISPATCH';
+const TEXTPOOL_FM = 'ZSAPKIT_ADT_TEXTPOOL';
 
 /**
  * ADT 계층의 오류 종류를 RFC 축으로 옮긴다.

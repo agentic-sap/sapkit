@@ -229,7 +229,7 @@ describe('갈래', () => {
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toBe(
-      'Error: Failed to update GUI status: ZMCP_ADT_DISPATCH error (action=CUA_WRITE, subrc=8): CUA is locked by another user',
+      'Error: Failed to update GUI status: ZSAPKIT_ADT_DISPATCH error (action=CUA_WRITE, subrc=8): CUA is locked by another user',
     );
     expect(harness.adtCalls().map((call) => call.query.get('_action'))).toEqual(['LOCK', 'UNLOCK']);
   });

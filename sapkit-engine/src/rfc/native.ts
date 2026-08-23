@@ -1,6 +1,6 @@
 /**
  * `native` 통로 — 이 호스트에 설치된 SAP NW RFC SDK를 `node-rfc`로 타서
- * 기설치 함수모듈 `ZMCP_ADT_DISPATCH` / `ZMCP_ADT_TEXTPOOL`을 **RFC 프로토콜로
+ * 기설치 함수모듈 `ZSAPKIT_ADT_DISPATCH` / `ZSAPKIT_ADT_TEXTPOOL`을 **RFC 프로토콜로
  * 직접** 부른다. HTTP를 거치지 않으므로 CSRF·쿠키·URL 조립이 통째로 없고,
  * 그 자리를 접속 인자(connection parameters) 조립이 대신한다.
  *
@@ -48,8 +48,8 @@ import type {
 } from './types';
 
 const BACKEND = 'native' as const;
-const DISPATCH_FM = 'ZMCP_ADT_DISPATCH';
-const TEXTPOOL_FM = 'ZMCP_ADT_TEXTPOOL';
+const DISPATCH_FM = 'ZSAPKIT_ADT_DISPATCH';
+const TEXTPOOL_FM = 'ZSAPKIT_ADT_TEXTPOOL';
 const DEFAULT_LANG = 'EN';
 const DEFAULT_GROUP = 'PUBLIC';
 

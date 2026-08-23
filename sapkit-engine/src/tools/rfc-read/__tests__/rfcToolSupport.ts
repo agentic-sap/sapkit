@@ -1,7 +1,7 @@
 /**
  * `text-element` · `screen` · `gui-status` 묶음의 공용 시험 장치.
  *
- * 이 묶음의 도구 14종은 RFC 대리자(`ZMCP_ADT_DISPATCH`·`ZMCP_ADT_TEXTPOOL`)를
+ * 이 묶음의 도구 14종은 RFC 대리자(`ZSAPKIT_ADT_DISPATCH`·`ZSAPKIT_ADT_TEXTPOOL`)를
  * 타고, 그중 쓰기 8종은 **같은 호출 안에서** ADT(잠금·구문검사·활성화)도 탄다.
  * 그래서 한 서버가 두 축을 모두 받아야 요청 순서가 증거로 남는다.
  *
@@ -99,7 +99,7 @@ export async function publishedSurfaceOf(tool: SapTool): Promise<PublishedDeclar
 // ── ADT + RFC 겸용 하네스 ───────────────────────────────────────────────────
 
 /** 이 묶음이 쓰는 OData 서비스 경로. 구 엔진과 같은 이름이다. */
-export const ODATA_SERVICE_PATH = '/sap/opu/odata/sap/ZMCP_ADT_SRV';
+export const ODATA_SERVICE_PATH = '/sap/opu/odata/sap/ZSAPKIT_ADT_SRV';
 
 const DISCOVERY_PATHS = ['/sap/bc/adt/core/discovery', '/sap/bc/adt/discovery'];
 

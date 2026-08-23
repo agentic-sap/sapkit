@@ -1,10 +1,10 @@
-# ABAP Function Modules for MCP ADT
+# ABAP Function Modules for SAPKIT ADT
 
-This directory contains ABAP source code for the `ZMCP_ADT_UTILS` function group, required by the `mcp-abap-adt` MCP server for Screen, GUI Status, and Text Element operations.
+This directory contains ABAP source code for the `ZSAPKIT_ADT_UTILS` function group, required by the sapkit MCP server for Screen, GUI Status, and Text Element operations.
 
-## Function Group: ZMCP_ADT_UTILS
+## Function Group: ZSAPKIT_ADT_UTILS
 
-### ZMCP_ADT_DISPATCH
+### ZSAPKIT_ADT_DISPATCH
 JSON-based dispatcher for Screen (Dynpro) and GUI Status (CUA) operations.
 
 **Interface:**
@@ -16,7 +16,7 @@ JSON-based dispatcher for Screen (Dynpro) and GUI Status (CUA) operations.
 | EV_MESSAGE | STRING | Export | Error/info message |
 | EV_RESULT | STRING | Export | JSON string with result data |
 
-### ZMCP_ADT_TEXTPOOL
+### ZSAPKIT_ADT_TEXTPOOL
 Dedicated text pool (text elements) read/write function.
 
 **Interface:**
