@@ -117,12 +117,12 @@
 > 게이트가 `SC4SAP_HOME_DIR` **한 이름만** 감시했기 때문이다. 지금은 **접두어 전체**를
 > 감시하고, 넓히자마자 세 자리가 더 드러났다. **이 세션의 가장 값진 실패다.**
 >
-> ⚠ **은퇴 후보 1건이 남았다 — 사용자 판단 자리.** `interactive/scripts/transform-personas.mjs`는
-> 이식 시대 변환기로 **아무도 부르지 않고** 최초 이식 커밋 이후 한 번도 바뀌지 않았으며
-> 기본 경로가 **다른 머신의 동결 원본**을 가리킨다. 2026-08-23에 셸 인용 실수로 **실제로
-> 실행된 적이 있고**(동결 레포가 이 머신에 없어 읽기·쓰기 모두 실패 · 피해 0), 그것이
-> **원본이 있는 머신에서 실수로 돌면 동결 레포를 덮어쓴다**는 실증이 됐다.
-> 「동결 원본 무접촉」 규칙과 정면으로 부딪히는 자리다.
+> ✅ **이식 시대 변환기를 은퇴시켰다**(2026-08-23 · **D-127** · 사용자 판단).
+> `interactive/scripts/transform-personas.mjs` — 아무도 부르지 않았고 최초 이식 커밋 이후
+> 한 번도 바뀌지 않았으며 기본 경로가 **다른 머신의 동결 원본**을 가리켰다. 셸 인용 실수로
+> **실제로 실행된 적이 있고**(동결 레포가 이 머신에 없어 피해 0), 그것이 **원본이 있는
+> 머신에서 실수로 돌면 동결 레포를 덮어쓴다**는 실증이 됐다 — 「동결 원본 무접촉」 규칙과
+> 정면으로 부딪히는 물건이었다. 되살리려면 커밋 이력에서 꺼내면 된다.
 >
 > **②** 그 밖에 **해야 할 일은 없다.** 위 「완주가 데려가지 못한 것」은 **부채 목록이지 계획이
 > 아니다** — 실수요가 생기거나 접속이 돌아올 때 열면 된다. 새 판을 세우려면 새 D-결정부터.
@@ -4686,7 +4686,7 @@ interactive/
   scripts/                      ← check-links · check-engine-provenance · smoke-mcp ·
                                    conformance-server-gates · gen-plugin-manifests ·
                                    gen-permissions · check-runtime-path-rename ·
-                                   conformance-runtime-dir · transform-personas · doctor
+                                   conformance-runtime-dir · doctor
                                    + 음성시험/생성기 (이식 장부 계열·마이그레이터는
                                    renew 1차 은퇴 — D-072·D-076)
   docs/research/                ← 실측 기록 (L0-cli-surface, L2-server-verification,
