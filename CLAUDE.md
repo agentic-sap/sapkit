@@ -22,8 +22,10 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
   (docs/DESIGN.md §3 — powerup 엔진은 트랙 A에서 쓰지 않음).
 - **트랙 B — 대화형 플러그인 (제품, 검증 완료)** = `interactive/` — 하네스 중립 코어(지식
   `.md` 148·페르소나 26·절차 22·스킬 17·정책) + MCP 서버 번들(**자체 저작 엔진
-  `sapkit-engine` 1.1.0** — 2026-08-19 판7-b 교체(D-095) · 2026-08-23 판M2-a 기동
-  토큰 배선(D-114) · 도구
+  `sapkit-engine` 1.2.0** — 2026-08-19 판7-b 교체(D-095) · 2026-08-23 판M2-a 기동
+  토큰 배선(D-114) · 2026-08-23 판M2-b 실측(D-115 — `client_credentials`로는 ABAP ADT가
+  401을 낸다) · 2026-08-23 판M2-c `authorization_code` 옵트인 배선(D-117 —
+  `--auth-interactive`) · 도구
   inspection-only 155 / connected 186) + **오프라인 검사기 번들**(`interactive/checker/`)
   + 어댑터 3사(Claude/Codex/Antigravity). 번들의 소스 정본은 레포 내 **`sapkit-engine/`**
   (2026-08-19 판7-b 교체 · 그 전에는 `engine/` 포크 · D-017 편입) — 엔진 수리→재번들→반영은
@@ -43,7 +45,7 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
 - **`sapkit-engine/` — 자체 저작 엔진 (사다리 ⑴ · **제품**).** D-079가 연 새 경로에서
   병행 제작했고 **2026-08-19 판7-b에서 제품 번들 자리를 넘겨받았다**(D-095). 도구
   **186/186** · 전송 3(stdio·HTTP·SSE) · RFC 5경로 · 인증 4통로. 제품 번들
-  `interactive/server/server.bundle.cjs`가 이 소스의 산출물이다(1.1.0 · 3.85MB ·
+  `interactive/server/server.bundle.cjs`가 이 소스의 산출물이다(1.2.0 · 3.86MB ·
   구 번들 8.30MB의 46%). **구 포크 `engine/`은 2026-08-22 판7.5에서 은퇴했다**
   (D-101) — 레포에 더 이상 없다. ⚠ **그래서 롤백이 한 걸음에서 두 걸음이 됐다**:
   ① `engine/`이 온전한 마지막 커밋 **`2264f89d`**에서 그 트리를 되뜨고 ② 그 위에서
@@ -175,7 +177,7 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
 
 ```bash
 node interactive/scripts/check-links.mjs interactive     # 상대 링크 깨짐 0
-node interactive/server/verify-engine.mjs                # 번들 무결성 OK (sapkit-engine 1.1.1)
+node interactive/server/verify-engine.mjs                # 번들 무결성 OK (sapkit-engine 1.2.0)
 node interactive/scripts/check-engine-provenance.mjs     # 엔진 소스 커밋 ↔ 번들 (--rebuild면 재현 빌드까지 — npm 불요)
 node interactive/scripts/smoke-mcp.mjs                   # 도구 표면 계약 assert
 node interactive/scripts/conformance-server-gates.mjs    # 서버 안전 게이트 (tier·blocklist·ask — 훅 0개 기본의 정본)

@@ -8,39 +8,70 @@
 > **▶▶ 재개점 — 여기부터 읽는다 (최상단 정본)**
 > ═══════════════════════════════════════════════════════════════════
 >
-> ## ▶ 다음 세션은 이것으로 시작한다 — **판M2-c (⑴ M2 `authorization_code` 기동 배선)**
+> ## ▶ 다음 세션은 이것으로 시작한다 — **판M2-c attended 확인 한 걸음**
 >
-> ## 🔔 상태 셋 (2026-08-23 판M2-b 마감 시점)
+> ## 🔔 상태 셋 (2026-08-23 판M2-c 배선 마감 시점)
 >
-> **① 큐가 다시 섰다 — 사용자 결정 대기가 끝났다.** BTP trial 계정이 생겼고 service
-> key(`~/.sapkit/default_key.json` · systemid `TRL` · us10)를 받았다. 판M2-b가
-> 그것으로 실접속을 재고 마감했다(**D-115**). **판M2-c의 전제는 충족돼 있다 —
-> 물을 것 없이 착수한다.**
+> **① 배선은 섰다 — 남은 것은 실기동 확인 하나다.** `--mcp=<dest> --auth-interactive`로
+> 띄우고 **브라우저 로그인 1회** 뒤 **`GetSystemInfo`가 `systemID`를 내는가**. 그것이
+> 서야 **D15 해소 · M-표 M2 `짓기 완료` 승격**이다. ⚠ **엔진이 사용자 토큰으로 도구를
+> 실제로 돌리는 것은 이 확인이 처음 잰다** — 판M2-b의 프로브가 확인한 것은 **원시 HTTP
+> 왕복까지**다(D-117 정직 유보 ⓑ).
 >
-> **② 실측이 M2의 조건을 규명했다 — 그리고 M2는 아직 서지 않았다.**
-> `client_credentials`로는 **ABAP ADT가 열리지 않는다**(UAA 토큰은 200이지만
-> `user_name`이 없어 ADT 전 경로 **401**). `authorization_code` 사용자 토큰은
-> **ADT 전 경로 200**이다. 그러므로 M2를 막는 것은 **배선 결함이 아니라 정지선**
-> (D-091 ⓑ → D-114 ⓑ) 하나이고, 그것을 여는 것이 판M2-c다.
-> ⚠ **「ADT가 열리는 것을 봤다」를 「엔진이 붙었다」로 읽지 말 것** — 실접속을 세운
-> 것은 **엔진 기동이 아니라 프로브**다. **M-표 M2는 승격하지 않았다.**
+> **② 부르지 않으면 오늘과 동일하다.** `--auth-interactive`가 없으면
+> `authorization_code` destination은 **한 글자도 다르지 않다**(`TOKEN_PENDING` · 무접속 ·
+> 네트워크 왕복 0). 그것이 이 판의 회귀 0 정의이고 시험 4건이 `toBe(startup)`으로 잰다.
 >
-> **③ push 완료 · CI success 확인됨.** 커밋 **7종**(`6823129a` D-115 · `7e275c7e` 회수 ·
-> `0eea19f1` 번들 · `26d4d71c` D-116 · `6612346b` 리뷰 회수 집행 · `ed02e521` 재핀 ·
-> `8bfba801` 마감)이 `a8f3288d..8bfba801`로 origin/main에 올라갔고, CI
-> (`offline-gates.yml`)가 그 SHA에서 **`completed | success`**로 완주했다
-> (2026-08-23 세션 안에서 확인). 무인증 확인법:
-> `curl -s "https://api.github.com/repos/agentic-sap/sapkit/actions/runs?per_page=1&branch=main"`
+> **③ 세션마다 로그인이다** — 토큰은 프로세스 메모리에만 살고(D-091 ⓒ①) 갱신도 배선하지
+> 않았다(D-117 ⓕ). **다음 단계(증거 30종)에서 SAP에 여러 번 붙어야 할 때 이것이 실제
+> 마찰이 된다.** 그 무게를 덜 것인가(갱신 배선 · 토큰 보존 — 후자는 D-091 ⓒ①을 뒤집는
+> 새 결정)는 뒤 판이 정한다.
 >
-> **판M2-c 착수 시 순서**(브리프는 `docs/RUN-PLAN.md`): ① 착수 기준선 네 묶음 ②
-> **첫 일은 코드가 아니라 결정** — 정지선을 무엇으로 여는가(승계 제약 셋 중
-> 「엔진이 브라우저를 열지 않는다」가 그대로면 기동은 **안내만** 하고 code가 돌아올
-> 자리를 여는 모양이 된다) ③ **포트는 설계 입력이다** — XSUAA 화이트리스트가 정한다
-> (D-115 실측: **8080 O · 8123 X**) ④ 실기동 확인은 attended · **P1 read부터**
-> (destination tier=UNKNOWN이라 write는 fail-closed) ⑤ M-표 M2 승격은 **엔진 기동이
-> 세운 실왕복 증거**가 선 뒤에만.
+> **확인 절차**(브리프는 `docs/RUN-PLAN.md`): ① service key는 레포 밖
+> `~/.sapkit/default_key.json` — 엔진이 보는 자리로 옮기려면 `--auth-broker-path`로
+> 뿌리를 주고 `<뿌리>/service-keys/<이름>.json`에 둔다 ② `--mcp=<이름>
+> --auth-interactive`로 기동 ③ stderr에 인가 URL이 뜨면 **사람이 브라우저에 붙여넣는다**
+> (엔진은 열지 않는다) ④ 로그인 뒤 `MCP_DESTINATION_TOKEN_ACQUIRED`가 뜨는지 ⑤
+> **P1 read부터** — destination tier=UNKNOWN이라 write는 fail-closed다.
+> ⚠ **콜백 주소가 XSUAA 화이트리스트에 있어야 한다** — 실측으로 아는 것은
+> `http://localhost:8080/callback`(기본값) 하나이고 `:8123`은 미도달이었다.
 >
-> ## ✅ 직전 판 — **판M2-b: ⑴ M2 attended 실접속 (D-115)** (2026-08-23 · 완료)
+> ## ✅ 직전 판 — **판M2-c: ⑴ `authorization_code` 기동 배선 (D-117)** (2026-08-23 · 배선 완료)
+>
+> **정지선을 명시 옵트인 하나로 열었다.** D-114가 「명시 플래그」를 기각한 근거는
+> **「`client_credentials`에는 숨길 사람 몫이 없어 플래그가 지키는 것이 없다」**였고,
+> `authorization_code`에는 **사람 몫이 있으므로 그 문장이 그대로 반대 결론을 낸다.**
+>
+> | 축 | 결과 |
+> |---|---|
+> | **제품 번들** | `sapkit-engine` **1.2.0** · **3,856,996 바이트** · 소스 핀 **`a126f6a8`** |
+> | **기동 배선** | `--auth-interactive`(옵트인) · `--callback-host`(기본 **`localhost`**) · `--callback-port`(기본 **8080**) — ⚠ `--host`/`--port`는 **HTTP/SSE 전송이 이미 쓴다** |
+> | **합류 지점** | 취득을 **`TokenSource`의 `acquire` 훅**으로 넣어 두 그랜트가 `accessToken()` 한 줄에서 만난다 — 접속 조립·`replace()`·요약 줄 재작성 **그대로 재사용** |
+> | **브라우저** | **열지 않는다.** 인가 URL은 **stderr**로만 간다(stdout은 프로토콜 채널) · 승계 제약 ③은 **여전히 참** |
+> | **실패** | fail-closed · `CALLBACK_TIMEOUT`·`CALLBACK_STATE_MISMATCH`·`CALLBACK_FAILED`(포트 점유)·`UAA_REJECTED`(redirect_uri)가 **각각 다른 다음 걸음** |
+> | **진단 개명** | `MCP_DESTINATION_CONNECTED` → **`MCP_DESTINATION_TOKEN_ACQUIRED`** · **`CONNECTED`는 방출하지 않는다**(실접속 확인 자리에 예약 — D-116 ⓔ → D-117 ⓖ) |
+> | **시험** | **+26**(4,225 → **4,251**) · **실 네트워크 0**(콜백만 loopback 임의 포트) · **이월 수령 2**(`ReloadProfile` 재적재 갈래) |
+> | **도구 표면** | **등록 186 · 노출 155 불변** — 도구를 새로 짓지 않았다 |
+> | **검증** | 착수 **34/34** · 마감 **37/37 exit 0**(재현 빌드 바이트 일치 · jest **4,251**) |
+> | **SAP** | **접속 0회** · 전 구간 P0 |
+>
+> **`src/auth/**`는 한 줄도 고치지 않았다** — 기구(`startCallbackServer` ·
+> `acquireByAuthorizationCode` · `authorizeUrl` · `exchangeCode` · `TokenSource.acquire`)를
+> 판5가 이미 완성해 뒀고 시험 85건이 그것을 잰다. **이 판이 지은 것은 부르는 자리 하나다.**
+>
+> **도구를 새로 짓지 않은 이유**(D-117 ⓒ): 「전용 도구로 사람이 개시」가 UX로는 낫지만,
+> `build-plan.mjs`가 **되뜰 수 없는 채록본**(`old-surface/m1-tools.json`)의 186종을
+> **정본**으로 삼으므로 **187번째는 그 기계에 없는 개념**이다. 그것을 만들려면 계획·대장에
+> 새 범주를 세워야 하고 그것은 M2와 무관한 별개 설계다. **영구 기각은 아니다.**
+>
+> **콜백 기본값이 auth 계층과 다른 것은 의도다** — 계층의 `DEFAULT_CALLBACK_HOST`는
+> `127.0.0.1`(바인딩 안전에 관한 그 계층의 결정)이고 통로의 기본값은 **`localhost`**
+> (D-115 실측 화이트리스트). **문자열이 다르면 XSUAA가 거부한다.**
+>
+> **커밋 3**: `2d988203` D-117 결정 · `a126f6a8` 배선 · `092eace8` 재번들+장부(D15 **5차 append**).
+>
+> ## 판M2-b — ⑴ M2 attended 실접속 (D-115) (2026-08-23 · 완료)
+>
 >
 > **BTP trial `TRL`에 실제로 붙어 M2의 조건을 규명했다.** 착수 기준선 **33/33 exit 0**
 > (제품 10 · 음성시험 9 · 엔진 10 · cli 4) · **회수 후 마감 37/37 exit 0**(제품 게이트
@@ -150,7 +181,8 @@
 > **남은 것 — 전부**:
 > | 항목 | 성격 | 막고 있는 것 |
 > |---|---|---|
-> | **판M2-c** | 판(배선 오프라인 + 확인 attended) | **막는 것 없음 — 전제 충족.** 정지선을 여는 착수 결정이 첫 일이다 |
+> | **판M2-c 확인** | attended 한 걸음 | **막는 것 없음** — 브라우저 로그인 1회면 M2 승격 판정이 난다 |
+> | 토큰 보존/갱신 | 판(미개시) | **세션마다 로그인** 마찰 — 증거 판을 여러 번 돌릴 때 실제 비용이 된다 |
 > | 별건 ⓐ `atomic-write.mjs` | 잡무 | 레포 내 소비자 0 — **배선** 여부 확인 |
 > | 별건 ⓑ `data-access-approval` 파일명 3자 불일치 | 잡무 | **안전 정본**이라 별도 판에서 통일 |
 > | 별건 ⓒ executor 깨진 문장 | 잡무 | 원문 결함 보존 중 — 수리는 별건 결정 |
@@ -4486,7 +4518,7 @@ interactive/
   core/                         ← 하네스 중립: knowledge(모듈14+BC·업종·국가·ABAP — `.md` 148) ·
                                    personas(26+INDEX) · procedures(22+schemas) · policies ·
                                    vocabulary.md · project-context.md
-  server/                       ← MCP 번들(sapkit-engine 1.1.1) + keyring + tool-catalog + sap-assets + UPDATE-RUNBOOK
+  server/                       ← MCP 번들(sapkit-engine 1.2.0) + keyring + tool-catalog + sap-assets + UPDATE-RUNBOOK
   adapters/{claude,codex,antigravity}/  ← 어댑터별 README = 설치·스코프·안전모델 가이드
   adapters/compatibility.json   ← 3사 검증 버전 고정
   skills/ agents/ plugin.json .codex-plugin/ .claude-plugin/(plugin.json)  ← 플러그인 표면
