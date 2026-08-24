@@ -104,4 +104,6 @@ interactive/DESIGN.md.
 - **안전 3층 방어**: 도구 단위 권한 allowlist · PreToolUse 훅 · 엔진 tier 게이트.
 - **실데이터 P2 상시 게이트**: 호출별 사람 승인, 최소화, 자동·batch 금지
   (D-008·D-025; 재기준 v2 §4).
-- 불변 규칙 전문 = HANDOFF §8 · .harness/RULES.md(R-001~R-007). 구조/파일 지도 = ARCHITECTURE.md.
+- 불변 규칙 전문 = 루트 `CLAUDE.md` 「안전 규칙」 절 — 구 HANDOFF §8과 구
+  `.harness/RULES.md`(R-001~R-007)가 2026-08-24(판B)에 그리로 단권화됐다.
+  구조/파일 지도 = ARCHITECTURE.md.

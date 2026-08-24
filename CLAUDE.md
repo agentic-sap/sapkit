@@ -9,6 +9,22 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
 아님 — D-040) · 3사 하네스 중립. 어디까지 자작으로 바꿀 것인가의 **계획 정본**은
 `docs/BLUEPRINT.md`(끝그림 = 포크 0 · 교체 사다리 ⑴~⑷ · 무중단 교체 규칙 · 도구 실사).
 
+**이 문서가 반복해서 쓰는 어휘 — 범례**(정의 정본은 각 괄호의 문서다):
+
+- **끝그림 ①~④**(= 포크 0 · `docs/BLUEPRINT.md` §1.1) — ① **몸통은 전부 자작**(활성
+  차용분 0) · ② **외부는 정식 의존성만** · ③ **계보성 고지 정합** · ④ **브랜드 단일**.
+  ①~③은 2026-08-23에 도달했다. ⚠ **④는 「도달」로 공표됐으나 완전하지 않다** —
+  개명된 적 없는 `ZCL_MCP_RFC_HTTP_HANDLER`·SICF `zmcp_rfc`가 **제품 번들에 실려
+  나간다**(각 1회 · 실측). 근거와 범위는 `HANDOFF.md` 부채 ⑺.
+- **교체 사다리 ⑴~⑷**(`docs/BLUEPRINT.md` §2) — ⑴ **엔진**(`sapkit-engine`) ·
+  ⑵ **검사기**(`sapkit-cli`) · ⑶ **지식·템플릿 재저작** · ⑷ **고지 범위 정합**. 완주.
+- **판** — ready→go 1사이클의 작업 단위. **dryforge 플러그인**의 `/dryforge:ready` →
+  `/dryforge:go`로 돌린다(사용법·판 큐는 `docs/RUN-PLAN.md`). 판 이름은 시대마다 다르다
+  (판1~11 · 판E1·E2 · 판R · 판Z · 판M2-a~c · 판B) — **순서는 이름이 아니라 큐 표와
+  날짜가 든다.**
+- **renew(R1~R5)** — 판 이전 세대의 구조 정리 사이클. **R1**이 트랙 A 실행 설비를,
+  **R5**가 런타임 경로 호환층을 걷어냈다. 이력은 `docs/reference/handoff-archive/`.
+
 - **트랙 A — 하네스 트랙** = Direct(기본) + Guided(명시 승격). **지금 트랙 A에 남은 것은
   라우팅 규약뿐이다** — 실행 설비는 renew 1차(R1)에서 레포에서 걷어냈다(`phases/`·`src/`·
   루트 `scripts/`·`.harness/`·`packs/`·`domain/`·`adapters/final-harness*` 삭제). 규약의
@@ -22,7 +38,8 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
   (docs/DESIGN.md §3 — powerup 엔진은 트랙 A에서 쓰지 않음).
 - **트랙 B — 대화형 플러그인 (제품, 검증 완료)** = `interactive/` — 하네스 중립 코어(지식
   `.md` 148·페르소나 26·절차 22·스킬 17·정책) + MCP 서버 번들(**자체 저작 엔진
-  `sapkit-engine` 1.2.0** — 2026-08-19 판7-b 교체(D-095) · 2026-08-23 판M2-a 기동
+  `sapkit-engine`** — 버전·바이트·소스 핀의 정본은 `HANDOFF.md` 📌표다(여기 복제하지
+  않는다) · 2026-08-19 판7-b 교체(D-095) · 2026-08-23 판M2-a 기동
   토큰 배선(D-114) · 2026-08-23 판M2-b 실측(D-115 — `client_credentials`로는 ABAP ADT가
   401을 낸다) · 2026-08-23 판M2-c `authorization_code` 옵트인 배선(D-117 —
   `--auth-interactive`) · 도구
@@ -45,8 +62,8 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
 - **`sapkit-engine/` — 자체 저작 엔진 (사다리 ⑴ · **제품**).** D-079가 연 새 경로에서
   병행 제작했고 **2026-08-19 판7-b에서 제품 번들 자리를 넘겨받았다**(D-095). 도구
   **186/186** · 전송 3(stdio·HTTP·SSE) · RFC 5경로 · 인증 4통로. 제품 번들
-  `interactive/server/server.bundle.cjs`가 이 소스의 산출물이다(1.2.0 · 3.86MB ·
-  구 번들 8.30MB의 46%). **구 포크 `engine/`은 2026-08-22 판7.5에서 은퇴했다**
+  `interactive/server/server.bundle.cjs`가 이 소스의 산출물이다(약 3.86MB — 구 번들
+  8.30MB의 46% · 정확한 버전·바이트·핀은 `HANDOFF.md` 📌표). **구 포크 `engine/`은 2026-08-22 판7.5에서 은퇴했다**
   (D-101) — 레포에 더 이상 없다. ⚠ **그래서 롤백이 한 걸음에서 두 걸음이 됐다**:
   ① `engine/`이 온전한 마지막 커밋 **`2264f89d`**에서 그 트리를 되뜨고 ② 그 위에서
   교체분을 되돌린다. 「롤백 번들이 여전히 지어진다」를 매 푸시 확인하던 CI
@@ -86,6 +103,11 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
 3. 과거 결정의 '왜'는 `docs/reference/DECISIONS.md` (append-only 결정 로그, D-001~). **D-번호를
    인용·재해석하기 전 원문을 확인한다.**
 
+⚠ **이 환경의 사실 하나** — superpowers 플러그인은 사용자가 **의도적으로 비활성화**했다.
+재활성화를 제안하지 말 것. (구 HANDOFF §8-6 — 「위반이면 중단하고 보고」 등급이 아니라
+환경 사실이라 「안전 규칙」 목록 밖에 둔다. 판마다 재작성되는 `HANDOFF.md`에 두면
+다음 재작성에서 소실된다 — 단권화의 취지가 그것이다.)
+
 ## 판 실행 규약 — **멈추는 자리는 아래 셋뿐이다**
 
 판(ready→go 1사이클)은 여러 시간짜리다. 중간에 멈추면 사용자가 붙어 있어야 하고, 그
@@ -112,6 +134,14 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
   근거와 함께 기록한다.
 - **양자택일에 내 권장안이 있으면** 그건 이미 답을 아는 것이다 — 정하고 근거를 적는다.
 
+**디스패치할 때 규칙을 동봉한다** — 서브에이전트 프롬프트에는 **그 작업에 적용되는
+안전·행동 규칙 슬라이스를 함께 넣는다**(작업 관련분만 · 상한 수십 줄). 서브에이전트는
+이 파일을 읽고 오지 않는다 — **넣지 않은 규칙은 그 작업에 없는 규칙이다.**
+
+**phase 경계에서 재개점을 미니 갱신한다** — 판 하나가 여러 시간짜리라 중간에 끊기면
+그때까지가 통째로 사라진다. phase가 닫힐 때마다 `HANDOFF.md` 재개점에 **2~3줄**을
+갱신하고 간다(판이 끝날 때 한 번이 아니다).
+
 **보고는 분모를 붙인다** — 「다음 한 걸음」만 말하면 다 끝난 것으로 읽힌다(2026-08-12
 실제 사고). 진척은 전체 대비로, 미뤄 둔 것과 함께 낸다.
 
@@ -127,20 +157,28 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
 | `docs/reference/DECISIONS.md` | 대안을 기각한 굵직한 결정 발생 시 **append** (수정·삭제 금지, 정정도 새 항목) |
 | `docs/DESIGN.md` · `interactive/DESIGN.md` | 해당 트랙의 **설계가 변경될 때만** (상태 변화로는 갱신하지 않음) |
 | `docs/BLUEPRINT.md` | 재구성 계획(사다리 단계·끝그림·도구 실사)이 바뀔 때만 |
+| **`CLAUDE.md`**(이 문서) | **정체성·안전 규칙·게이트 목록·문서 계약이 바뀔 때.** ⚠ 여기에 **상태 수치를 복제하지 않는다**(버전·바이트·계수는 정본을 가리킨다) — 복제하면 갱신 누락이 곧 거짓말이 된다 |
 | `docs/RUN-PLAN.md` | 판(ready→go 사이클)이 끝나거나 판 순서가 바뀔 때 — **판 큐의 단일 정본** (D-084) |
 | `interactive/plugin-metadata.json` | 버전·자산 계수의 **단일 정본**. 고친 뒤 반드시 `gen-plugin-manifests.mjs`로 생성물 7종 재생성 |
+
+**`DECISIONS.md`가 append-only인 이유** — `HANDOFF.md`처럼 **재작성되는 문서에서 결정의
+'왜'가 소실되지 않게 하는 장치**다. 그래서 정정도 삭제가 아니라 새 항목이다.
+(구 HANDOFF §8-7)
 
 **갱신하지 않는 문서**: `interactive/MIGRATION-MANIFEST.md`와 `interactive/provenance/`의
 이식 스냅샷은 **은퇴한 역사**다(이식 완료 기록 · 이후 갱신 의무 없음). 콘텐츠 무결성의
 소유자는 이제 git 이력이다.
 
-불변 규칙 전체(동결 레포·private denylist·번들 보호·실데이터 승인 등)는 **HANDOFF §8**.
+불변 규칙 전체(동결 레포·private denylist·번들 보호·실데이터 승인 등)의 정본은 아래
+**「안전 규칙」 절**이다 — 구 `HANDOFF.md` §8이 2026-08-24(판B)에 그리로 병합됐다.
 
 ## 안전 규칙 (작업 전 필독 — 위반이면 중단하고 보고)
 
 옛 `.harness/RULES.md`에서 승계한 현행 안전 규칙이다(R1에서 그 파일은 삭제됐고, 여기가
 정본이다). 엔진·트랙 A 실행 구조에 묶여 있던 조항은 함께 폐기했고, 부품 중립적인
-것만 남겼다. SAP 정책 등급(P0~P4)의 정의는 `AGENTS.md`.
+것만 남겼다. **2026-08-24(판B)에 구 `HANDOFF.md` §8 「불변 규칙」 7개 항이 여기로
+병합됐다** — 안전 규칙 목록은 이 레포에 **이 한 벌뿐이다.** SAP 정책 등급(P0~P4)의
+정의는 `AGENTS.md`.
 
 - **SAP write는 DEV tier에서만** — QA/PRD tier 시스템에 write(`Create*`·`Update*`·
   `Delete*`·활성화·실행)를 실행하지 않는다. **MCP 도구든 로컬 CLI든 사람이 올리는
@@ -149,8 +187,17 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
 - **실데이터 추출은 건별 사람 승인** — `GetTableContents`·`GetSqlQuery`를 비롯해 **SAP
   행 데이터를 끌어오는 모든 경로**(로컬 CLI·스크립트·직접 질의) 실행 **전에** 범위·
   필드·행 상한을 제시하고 승인을 받는다. 배치·서브에이전트·자동승인 금지. 소유자
-  머신 예외(D-043)는 이 건별 승인을 서버측 table blocklist 하한으로 대체할 뿐이며,
-  배치·서브에이전트 금지는 그대로다. 배포 기본값은 잠긴 채 둔다.
+  머신 예외(D-043)는 이 건별 승인을 서버측 table blocklist(**기본 층 `standard`** —
+  보호 테이블만 거부한다) 하한으로 대체할 뿐이며,
+  배치·서브에이전트 금지는 그대로다. **배포 기본값은 어떤 하네스에서도 자동 승인
+  금지**이고(권한 템플릿 2종 제외 · Codex 하드차단) 잠긴 채 둔다. **훅은 D-062부터
+  선택 기능**이다 — 기본 미설치 · 스위치 보존이며, 안전 정본은 **서버 자체 게이트 +
+  `conformance-server-gates`의 CI 박제**다. 그러므로 **훅 0개 기본을 「결함」으로 보고
+  되돌리지 말 것.** **통로 규칙(D-096)**: 노브 3종은 프로파일 `sap.env`와 서버 프로세스
+  env 두 통로로 들되 **프로세스 env는 조일 수는 있어도 풀 수는 없다** —
+  `MCP_ALLOW_TABLE`은 프로파일 파일만, 층 이름은 프로파일보다 **더 조일 때만**,
+  `MCP_BLOCKLIST_EXTEND`는 **합집합**이다. **여는 쪽은 프로파일 파일 소유다.**
+  (구 HANDOFF §8-4)
 - **write 성공 보고를 그대로 믿지 않는다** — SAP write 뒤에는 소스를 되읽어 실제
   반영을 확인한다. write 성공만으로는 `PROVISIONAL_WRITE`이고 완료가 아니다. 완료는
   **기계 확인**(반영 소스 되읽기 대조 + 구문·활성 확인 — 절차 정본
@@ -158,11 +205,17 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
   둘 다일 때 성립한다. **도장을 찍는 옛 완료 의식은 폐지됐다 — 되살리지 말 것**(전용
   러너·전용 도구·`.sapkit/` 하위 판정 기록 파일·그 이름의 스킬 전부 renew 1차에서
   제거됐다). CLAS 거짓 성공 실증 이력이 근거다. (구 R-006)
-- **동결 원본 무접촉 · private 금독** — 동결 레포(sc4sap-custom·sc4sap-lite)를
-  수정하지 않으며, sc4sap-custom의 `private/` 하위는 **읽지도 않는다**. (구 R-004)
+- **동결 원본 무접촉 · private 금독** — **지식 정본은 `interactive/core/`다.** 동결
+  레포(sc4sap-custom·sc4sap-lite)는 수정하지 않으며, sc4sap-custom의 `private/` 하위는
+  **영구 denylist**다 — **읽지도, 어떤 산출물에도 포함하지도 않는다.**
+  (구 R-004 · 구 HANDOFF §8-1·§8-2)
 - **비밀정보 커밋 금지** — SAP 접속 정보(호스트·자격증명·`.env` 내용)를 레포에
   커밋하지 않는다. 런타임 프로파일 홈은 `SAPKIT_HOME_DIR`(기본 `~/.sapkit`) — **레포
   밖**이며 `.gitignore`가 레포 내 잔재(`.sapkit/`·`.env`)를 차단한다. (구 R-005)
+- **제품 번들은 보호된 바이너리다** — `interactive/server/server.bundle.cjs`의
+  `.gitattributes` `-text` 보호를 유지한다(**EOL 변환 = 파손**). 갱신은
+  `interactive/server/UPDATE-RUNBOOK.md` 절차로만 하며, 갱신할 때는 **capability diff +
+  `gen-permissions` 재생성**이 함께 간다. (구 HANDOFF §8-3)
 - **SAP 접점을 이원화하지 않는다** — 같은 ADT 표면을 두 개의 서버·도구가 나눠 갖게
   만들지 않는다. SAP에 닿는 경로를 하나 더 열면 tier 게이트·테이블 blocklist가 한쪽만
   지키게 되어 권한 정책이 갈라진다. 그러므로 **로컬 검사는 SAP에 접속하지 않는
@@ -173,11 +226,17 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
   시작한다. 로컬 문서만 믿으면 다른 머신의 병렬 줄기를 놓친다(두 머신 6일 분기
   실증). 분기를 발견하면 작업 전에 사용자에게 보고한다. (구 R-008)
 
+**규칙을 기계로 올리는 기준** — 같은 행동 사고가 **2회면 훅 후보 등재 · 3회면 기계화가
+의무 · 파괴적 사고는 1회로 즉시**다. 다만 기계화안은 **오탐 비용 · 마찰 예산 · 비상
+우회 · fail 정책**(fail-closed인가 fail-open인가) 넷을 갖춰야 승격된다 — 하나라도 비면
+아직 규범이지 훅이 아니다. 발생 횟수의 후보 대장은 **auto-memory의 사고 목록**이다
+(별도 대장 파일을 만들지 않는다 — 대장이 늘면 아무도 안 본다).
+
 ## 게이트 (구조 변경 시 항상 통과 상태 유지)
 
 ```bash
 node interactive/scripts/check-links.mjs interactive     # 상대 링크 깨짐 0
-node interactive/server/verify-engine.mjs                # 번들 무결성 OK (sapkit-engine 1.2.0)
+node interactive/server/verify-engine.mjs                # 번들 무결성 OK (버전·바이트·핀의 정본은 HANDOFF 📌표)
 node interactive/scripts/check-engine-provenance.mjs     # 엔진 소스 커밋 ↔ 번들 (--rebuild면 재현 빌드까지 — npm 불요)
 node interactive/scripts/smoke-mcp.mjs                   # 도구 표면 계약 assert
 node interactive/scripts/conformance-server-gates.mjs    # 서버 안전 게이트 (tier·blocklist·ask — 훅 0개 기본의 정본)
@@ -185,6 +244,7 @@ node interactive/scripts/gen-plugin-manifests.mjs --check # 생성물 7종(매�
 node interactive/scripts/check-runtime-path-rename.mjs   # 구 세대 경로 토큰 재등장 금지 + 안전 앵커 7종
 node interactive/scripts/conformance-runtime-dir.mjs     # 경로 해석 적합성 (fixture 26 · assert 138 · 안전 회귀 5종)
 node interactive/scripts/verify-checker.mjs              # 동봉 검사기 번들 무결성·출처 (번들 바이트·버전 3자·소스 커밋·소스 해시)
+node interactive/scripts/check-doc-size.mjs              # 웜 레이어 줄 수 상한 (HANDOFF ≤500 · RUN-PLAN ≤300 — 판B 신설)
 node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (로컬 전용 — 설치 상태를 읽는다)
 ```
 
@@ -193,8 +253,15 @@ node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (�
 `test-hook-decisions.mjs` 74케이스 ·
 `test-setup-state.mjs` 120/120 · `test-launch-toolsurface.mjs` 56/56 ·
 `test-codex-wire-mcp.mjs` 51/51 · `test-doctor.mjs` 47/47 ·
-`test-verify-checker.mjs` 21/21.
+`test-verify-checker.mjs` 21/21 · `test-check-doc-size.mjs` 9/9.
 **PowerShell로 실행할 것** — Bash로 돌리면 자식 프로세스 수거에서 블록된다.
+
+**공방 훅층도 음성시험을 갖는다**(제품이 아니라 이 레포의 개발 세션을 지키는 층 —
+`.claude/hooks/`, 판B 편입): `python .claude/hooks/test-block-dangerous-bash.py` 20/20 ·
+`python .claude/hooks/test-session-start-context.py`. 둘 다 표준 라이브러리만 쓰고
+CI(`node-gates` 잡)에서 `python3`로 돈다. **`check-doc-size.mjs`의 임계값은 상한
+(500·300)뿐이다** — 수술의 목표치(300·200)를 게이트에 넣지 말 것(정상 갱신마다 red가
+된다). 측정 정의(물리 줄 수 = 개행 개수)의 정본은 그 스크립트의 구현이다.
 
 **`smoke-mcp.mjs`와 `conformance-server-gates.mjs`는 `--target=bundle|engine`을 받는다**
 (판7-a · D-094 ⓐ). **판7-b 교체 뒤 이 인자는 「구 vs 신」이 아니라 「번들 vs 소스」를 가른다** —
@@ -205,8 +272,9 @@ node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (�
 feature 브랜치 단독 푸시로는 안 돈다). 로컬에서 `engine`을 돌리려면 `sapkit-engine`에서
 `npm ci && npm run build` 선행.
 
-**위 9종(+doctor)은 제품 게이트다. `sapkit-engine/`과 `sapkit-cli/`는 자기 게이트를
-따로 갖는다** — 각각 그 안에서 돌린다.
+**위 목록이 제품 게이트다**(맨 아래 `doctor.mjs`만 로컬 전용이라 CI에서 빠진다).
+**`sapkit-engine/`과 `sapkit-cli/`는 자기 게이트를 따로 갖는다** — 각각 그 안에서 돌린다.
+⚠ 게이트 수를 다른 문서에 숫자로 복제하지 말 것 — 이 목록이 정본이다.
 
 `sapkit-cli/`(동봉 검사기의 소스 정본):
 

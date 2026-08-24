@@ -156,9 +156,10 @@ interactive/scripts/               게이트 스크립트 (check-links·smoke-mc
 
 미존재(로드맵 예정): `domain/cds·rap·amdp`(Phase 1+). 실측 시 없는 것이 정상.
 
-## 불변식 (요약 — 전문은 HANDOFF §8 · .harness/RULES.md)
+## 불변식 (요약 — 전문은 루트 `CLAUDE.md` 「안전 규칙」 절)
 
-- **HANDOFF §8 (7개)**: 지식 정본=interactive/core/(동결 레포 수정 금지) · private/ 영구
+- **구 HANDOFF §8 (7개)** — 2026-08-24(판B)에 `CLAUDE.md` 「안전 규칙」 절로 병합됐다
+  (superpowers 항만 `HANDOFF.md` 머신 메모로 갔다): 지식 정본=interactive/core/(동결 레포 수정 금지) · private/ 영구
   denylist · server.bundle.cjs `.gitattributes` 보호(갱신은 UPDATE-RUNBOOK) · 실데이터 2종
   자동 승인 금지 · 게이트 상시 통과 · superpowers 재활성화 제안 금지 · 굵직한 결정은
   docs/reference/DECISIONS.md append.
@@ -170,7 +171,7 @@ interactive/scripts/               게이트 스크립트 (check-links·smoke-mc
 
 ## 검증 게이트 (구조 변경 시 항상 통과 유지)
 
-구조 변경 시 게이트(links·verify-engine·engine-provenance·smoke-mcp·server-gates·
-plugin-manifests·runtime-path·runtime-dir·doctor)를 통과 상태로 유지한다 — 명령 목록 정본은
-**CLAUDE.md 게이트 절**(여기 중복 게재 안 함). 이식 장부 계열(`coverage` → S3 폐기 D-029,
+구조 변경 시 **게이트 전종**을 통과 상태로 유지한다 — 목록도 계수도 정본은
+**CLAUDE.md 게이트 절**이다(여기 열거하지 않는다 — 열거하면 신설 때마다 낡는다.
+실제로 `verify-checker`와 `check-doc-size` 둘이 여기서 누락된 채 남아 있었다). 이식 장부 계열(`coverage` → S3 폐기 D-029,
 그 대체였던 `migration-snapshot` → renew 1차 은퇴 D-072)은 **더 이상 존재하지 않는다.**

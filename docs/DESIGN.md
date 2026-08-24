@@ -19,7 +19,13 @@
 > `abap-mcp-adt-powerup`(v4.13.0 · 「339 tools」 등)은 **판7-b에서 자체 저작
 > `sapkit-engine`으로 교체됐다**(D-095). §3의 비교는 **그 결정 당시의 평가 기록**이고,
 > 거기 적힌 도구 수·버전을 **현행 제품 서버의 성질로 읽지 말 것** — 현행은
-> `sapkit-engine` 1.1.0이고 표면은 186종이다(정본: `CLAUDE.md`·`HANDOFF.md`).
+> `sapkit-engine`이고 표면은 186종이다. **버전·바이트·소스 핀의 정본은 `HANDOFF.md`
+> 📌표다**(여기 복제하지 않는다 — 한때 적혀 있던 1.1.0은 그 사이 여러 번 올랐다).
+>
+> ⚠ **HANDOFF 절단 (2026-08-24 · 판B)**: 이 문서 본문의 「HANDOFF §5-11」·「HANDOFF 보조
+> 머신 줄기」 같은 인용은 `HANDOFF.md`가 아니라
+> **`docs/reference/handoff-archive/HANDOFF-archive-2026-08.md`**에서 풀린다 — § 번호·
+> 절 이름은 보존된 채 이사됐다. `HANDOFF.md`는 이제 **재개점만** 든다.
 
 > **상태: 주/보조 머신 분기 통합 완료(2026-07-19) — 이 v2.4 3축(Direct/Guided/Engine
 > attended) 틀이 트랙 A 설계 정본(통합 결정 ⑴, 아래 v2.5 주). 초기 설계는
