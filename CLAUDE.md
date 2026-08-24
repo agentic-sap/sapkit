@@ -9,6 +9,20 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
 아님 — D-040) · 3사 하네스 중립. 어디까지 자작으로 바꿀 것인가의 **계획 정본**은
 `docs/BLUEPRINT.md`(끝그림 = 포크 0 · 교체 사다리 ⑴~⑷ · 무중단 교체 규칙 · 도구 실사).
 
+**이 문서가 반복해서 쓰는 어휘 — 범례**(정의 정본은 각 괄호의 문서다):
+
+- **끝그림 ①~④**(= 포크 0 · `docs/BLUEPRINT.md` §1.1) — ① **몸통은 전부 자작**(활성
+  차용분 0) · ② **외부는 정식 의존성만** · ③ **계보성 고지 정합** · ④ **브랜드 단일**.
+  넷 다 2026-08-23에 도달했다.
+- **교체 사다리 ⑴~⑷**(`docs/BLUEPRINT.md` §2) — ⑴ **엔진**(`sapkit-engine`) ·
+  ⑵ **검사기**(`sapkit-cli`) · ⑶ **지식·템플릿 재저작** · ⑷ **고지 범위 정합**. 완주.
+- **판** — ready→go 1사이클의 작업 단위. **dryforge 플러그인**의 `/dryforge:ready` →
+  `/dryforge:go`로 돌린다(사용법·판 큐는 `docs/RUN-PLAN.md`). 판 이름은 시대마다 다르다
+  (판1~11 · 판E1·E2 · 판R · 판Z · 판M2-a~c · 판B) — **순서는 이름이 아니라 큐 표와
+  날짜가 든다.**
+- **renew(R1~R5)** — 판 이전 세대의 구조 정리 사이클. **R1**이 트랙 A 실행 설비를,
+  **R5**가 런타임 경로 호환층을 걷어냈다. 이력은 `docs/reference/handoff-archive/`.
+
 - **트랙 A — 하네스 트랙** = Direct(기본) + Guided(명시 승격). **지금 트랙 A에 남은 것은
   라우팅 규약뿐이다** — 실행 설비는 renew 1차(R1)에서 레포에서 걷어냈다(`phases/`·`src/`·
   루트 `scripts/`·`.harness/`·`packs/`·`domain/`·`adapters/final-harness*` 삭제). 규약의
@@ -22,7 +36,8 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
   (docs/DESIGN.md §3 — powerup 엔진은 트랙 A에서 쓰지 않음).
 - **트랙 B — 대화형 플러그인 (제품, 검증 완료)** = `interactive/` — 하네스 중립 코어(지식
   `.md` 148·페르소나 26·절차 22·스킬 17·정책) + MCP 서버 번들(**자체 저작 엔진
-  `sapkit-engine` 1.2.0** — 2026-08-19 판7-b 교체(D-095) · 2026-08-23 판M2-a 기동
+  `sapkit-engine`** — 버전·바이트·소스 핀의 정본은 `HANDOFF.md` 📌표다(여기 복제하지
+  않는다) · 2026-08-19 판7-b 교체(D-095) · 2026-08-23 판M2-a 기동
   토큰 배선(D-114) · 2026-08-23 판M2-b 실측(D-115 — `client_credentials`로는 ABAP ADT가
   401을 낸다) · 2026-08-23 판M2-c `authorization_code` 옵트인 배선(D-117 —
   `--auth-interactive`) · 도구
@@ -45,8 +60,8 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
 - **`sapkit-engine/` — 자체 저작 엔진 (사다리 ⑴ · **제품**).** D-079가 연 새 경로에서
   병행 제작했고 **2026-08-19 판7-b에서 제품 번들 자리를 넘겨받았다**(D-095). 도구
   **186/186** · 전송 3(stdio·HTTP·SSE) · RFC 5경로 · 인증 4통로. 제품 번들
-  `interactive/server/server.bundle.cjs`가 이 소스의 산출물이다(1.2.0 · 3.86MB ·
-  구 번들 8.30MB의 46%). **구 포크 `engine/`은 2026-08-22 판7.5에서 은퇴했다**
+  `interactive/server/server.bundle.cjs`가 이 소스의 산출물이다(약 3.86MB — 구 번들
+  8.30MB의 46% · 정확한 버전·바이트·핀은 `HANDOFF.md` 📌표). **구 포크 `engine/`은 2026-08-22 판7.5에서 은퇴했다**
   (D-101) — 레포에 더 이상 없다. ⚠ **그래서 롤백이 한 걸음에서 두 걸음이 됐다**:
   ① `engine/`이 온전한 마지막 커밋 **`2264f89d`**에서 그 트리를 되뜨고 ② 그 위에서
   교체분을 되돌린다. 「롤백 번들이 여전히 지어진다」를 매 푸시 확인하던 CI
@@ -140,6 +155,7 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
 | `docs/reference/DECISIONS.md` | 대안을 기각한 굵직한 결정 발생 시 **append** (수정·삭제 금지, 정정도 새 항목) |
 | `docs/DESIGN.md` · `interactive/DESIGN.md` | 해당 트랙의 **설계가 변경될 때만** (상태 변화로는 갱신하지 않음) |
 | `docs/BLUEPRINT.md` | 재구성 계획(사다리 단계·끝그림·도구 실사)이 바뀔 때만 |
+| **`CLAUDE.md`**(이 문서) | **정체성·안전 규칙·게이트 목록·문서 계약이 바뀔 때.** ⚠ 여기에 **상태 수치를 복제하지 않는다**(버전·바이트·계수는 정본을 가리킨다) — 복제하면 갱신 누락이 곧 거짓말이 된다 |
 | `docs/RUN-PLAN.md` | 판(ready→go 사이클)이 끝나거나 판 순서가 바뀔 때 — **판 큐의 단일 정본** (D-084) |
 | `interactive/plugin-metadata.json` | 버전·자산 계수의 **단일 정본**. 고친 뒤 반드시 `gen-plugin-manifests.mjs`로 생성물 7종 재생성 |
 
@@ -218,7 +234,7 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
 
 ```bash
 node interactive/scripts/check-links.mjs interactive     # 상대 링크 깨짐 0
-node interactive/server/verify-engine.mjs                # 번들 무결성 OK (sapkit-engine 1.2.0)
+node interactive/server/verify-engine.mjs                # 번들 무결성 OK (버전·바이트·핀의 정본은 HANDOFF 📌표)
 node interactive/scripts/check-engine-provenance.mjs     # 엔진 소스 커밋 ↔ 번들 (--rebuild면 재현 빌드까지 — npm 불요)
 node interactive/scripts/smoke-mcp.mjs                   # 도구 표면 계약 assert
 node interactive/scripts/conformance-server-gates.mjs    # 서버 안전 게이트 (tier·blocklist·ask — 훅 0개 기본의 정본)
@@ -254,7 +270,7 @@ CI(`node-gates` 잡)에서 `python3`로 돈다. **`check-doc-size.mjs`의 임계
 feature 브랜치 단독 푸시로는 안 돈다). 로컬에서 `engine`을 돌리려면 `sapkit-engine`에서
 `npm ci && npm run build` 선행.
 
-**위 9종(+doctor)은 제품 게이트다. `sapkit-engine/`과 `sapkit-cli/`는 자기 게이트를
+**위 목록 전부(+doctor)가 제품 게이트다. `sapkit-engine/`과 `sapkit-cli/`는 자기 게이트를
 따로 갖는다** — 각각 그 안에서 돌린다.
 
 `sapkit-cli/`(동봉 검사기의 소스 정본):
