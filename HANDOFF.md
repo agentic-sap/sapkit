@@ -57,9 +57,6 @@
 > `sapkit-engine/harness/recorder/childProcessTransport.ts`다. Claude Code를
 > 재시작하거나 `/reload-plugins` 해도 풀린다.
 >
-> ⚠ **superpowers 플러그인은 사용자가 의도적으로 비활성화했다** — 재활성화를 제안하지
-> 말 것. (구 §8-6 — 안전 규칙이 아니라 이 환경의 사실이라 여기 남긴다.)
->
 > ## 📌 지금 상태
 >
 > | 축 | 값 |
