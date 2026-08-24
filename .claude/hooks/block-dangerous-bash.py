@@ -2,6 +2,9 @@
 """PreToolUse + Bash 매처용. stdin으로 받은 JSON에서 명령어를 읽어
 파괴적/되돌리기 어려운 패턴이 포함되면 deny 응답을 출력한다.
 
+판정은 두 갈래다 — 정규식 목록(DANGEROUS_PATTERNS)과, 셸이 치환을 수행하는
+컨텍스트 안의 미이스케이프 백틱을 찾는 스캐너(find_unescaped_backtick).
+
 Unix 계열(rm -rf 등)과 Windows 계열(rd /s, Remove-Item -Recurse -Force 등)을
 모두 검사한다. 주의: 훅 JSON에는 CLAUDE_TOOL_INPUT 같은 환경변수가 아니라
 stdin으로만 도구 입력이 전달된다.
@@ -59,6 +62,159 @@ DANGEROUS_PATTERNS = [
     r"\bformat\s+[a-z]:",
 ]
 
+# ── 백틱 가드 ───────────────────────────────────────────────────────────────
+# 셸 치환이 실행되는 컨텍스트 안의 미이스케이프 백틱을 잡는다. 이 레포에서
+# 백틱 치환으로 파일 내용이 날아간 사고가 2회 있었고, 파괴적 사고 1회 즉시
+# 조항의 집행이다. 정규식으로는 인용 상태를 못 따라가므로 작은 스캐너를 쓴다.
+#
+# 판정 원칙 — 과탐(막고 다시 쓰게 함) < 미탐(파일이 날아감). 그래서 애매하면
+# 막는 쪽으로 기운다. 알려진 과탐 하나: 큰따옴표 안 $(...) 안의 작은따옴표는
+# 실제 셸에서 인용으로 작동하지만 여기서는 큰따옴표 상태로만 본다.
+
+BACKTICK_CTX_DOUBLE = "큰따옴표 문자열"
+BACKTICK_CTX_BARE = "인용 없는 명령줄"
+BACKTICK_CTX_HEREDOC = "인용 없는 heredoc 본문"
+
+
+def _first_unescaped_backtick(line: str):
+    """역슬래시 이스케이프를 건너뛰며 첫 백틱 위치를 찾는다. 없으면 None."""
+    k = 0
+    while k < len(line):
+        if line[k] == "\\":
+            k += 2
+            continue
+        if line[k] == "`":
+            return k
+        k += 1
+    return None
+
+
+def _parse_heredoc_delimiter(command: str, i: int):
+    """command[i:]가 '<<'로 시작할 때 구분자를 읽는다.
+    반환: (구분자, 본문_치환_여부, 다음_인덱스) 또는 None.
+    <<'EOF' · <<"EOF" · <<\\EOF 는 본문이 리터럴이라 치환되지 않는다."""
+    n = len(command)
+    j = i + 2
+    if j < n and command[j] == "-":
+        j += 1
+    while j < n and command[j] in " \t":
+        j += 1
+    if j >= n:
+        return None
+    quoted = False
+    chars = []
+    if command[j] in "'\"":
+        q = command[j]
+        j += 1
+        while j < n and command[j] != q:
+            chars.append(command[j])
+            j += 1
+        if j >= n:
+            return None
+        j += 1  # 닫는 따옴표
+        quoted = True
+    else:
+        while j < n and command[j] not in " \t\n;|&<>()":
+            if command[j] == "\\":
+                quoted = True
+                j += 1
+                if j >= n:
+                    break
+            chars.append(command[j])
+            j += 1
+    delim = "".join(chars)
+    if not delim:
+        return None
+    return delim, (not quoted), j
+
+
+def _scan_heredoc_bodies(command: str, i: int, heredocs):
+    """줄바꿈 직후부터 대기 중인 heredoc 본문들을 소비한다.
+    반환: (다음_인덱스, 적발결과 또는 None)."""
+    n = len(command)
+    for delim, expands in heredocs:
+        while i < n:
+            end = command.find("\n", i)
+            line, nxt = (command[i:], n) if end == -1 else (command[i:end], end + 1)
+            if line.strip() == delim:
+                i = nxt
+                break
+            if expands:
+                pos = _first_unescaped_backtick(line)
+                if pos is not None:
+                    return n, (BACKTICK_CTX_HEREDOC, i + pos)
+            i = nxt
+        else:
+            break  # 구분자 없이 입력이 끝났다 — 뒤따르는 heredoc도 없다
+    return i, None
+
+
+def find_unescaped_backtick(command: str):
+    """셸이 치환하는 컨텍스트의 미이스케이프 백틱을 찾는다.
+    반환: (컨텍스트 이름, 위치) 또는 None.
+    작은따옴표 안 · 역슬래시 이스케이프 · 인용된 heredoc 본문은 잡지 않는다."""
+    n = len(command)
+    i = 0
+    state = "normal"  # normal | single | double
+    pending = []      # 이 줄에서 선언된 heredoc들 (선언 순서대로 본문이 온다)
+    while i < n:
+        ch = command[i]
+        if state == "single":
+            # 작은따옴표 안에는 이스케이프가 없다 — 닫는 따옴표만 본다.
+            if ch == "'":
+                state = "normal"
+            i += 1
+            continue
+        if state == "double":
+            if ch == "\\":
+                i += 2
+                continue
+            if ch == '"':
+                state = "normal"
+                i += 1
+                continue
+            if ch == "`":
+                return BACKTICK_CTX_DOUBLE, i
+            i += 1
+            continue
+        # normal
+        if ch == "\\":
+            i += 2
+            continue
+        if ch == "'":
+            state = "single"
+            i += 1
+            continue
+        if ch == '"':
+            state = "double"
+            i += 1
+            continue
+        if ch == "`":
+            return BACKTICK_CTX_BARE, i
+        if ch == "<" and command.startswith("<<", i) and not command.startswith("<<<", i):
+            parsed = _parse_heredoc_delimiter(command, i)
+            if parsed:
+                delim, expands, j = parsed
+                pending.append((delim, expands))
+                i = j
+                continue
+        if ch == "\n" and pending:
+            i, hit = _scan_heredoc_bodies(command, i + 1, pending)
+            pending = []
+            if hit:
+                return hit
+            continue
+        i += 1
+    return None
+
+
+BACKTICK_ADVICE = (
+    "파일 내용을 넣으려던 것이면 Write/Edit 도구를 써라. "
+    "정말 치환할 의도면 `...` 대신 $(...)를 쓰고, "
+    "백틱 문자 자체가 필요하면 역슬래시로 이스케이프(\\`)하거나 "
+    "작은따옴표 · <<'EOF' heredoc에 담아라."
+)
+
 # tdd-guard.py와 의도적으로 중복 — 훅은 독립 단일 파일이다 (공유 임포트 금지).
 MARKER_STALE_SECS = 600
 
@@ -80,6 +236,16 @@ def bridge_request_active() -> bool:
         return False
 
 
+def emit_deny(reason: str) -> None:
+    print(json.dumps({
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "permissionDecisionReason": reason,
+        }
+    }, ensure_ascii=False))
+
+
 def main() -> int:
     # 파싱 실패를 여기서 return 0으로 삼키면 malformed 페이로드가 검사 없이
     # 통과한다(fail-open) — 아래 tool_input 폴백의 "fail-open 금지" 방침과 모순.
@@ -98,14 +264,17 @@ def main() -> int:
 
     for pattern in DANGEROUS_PATTERNS:
         if re.search(pattern, command, re.IGNORECASE):
-            print(json.dumps({
-                "hookSpecificOutput": {
-                    "hookEventName": "PreToolUse",
-                    "permissionDecision": "deny",
-                    "permissionDecisionReason": "위험 명령 차단: " + command,
-                }
-            }, ensure_ascii=False))
+            emit_deny("위험 명령 차단: " + command)
             return 0
+
+    hit = find_unescaped_backtick(command)
+    if hit:
+        context, _pos = hit
+        emit_deny(
+            f"셸 치환 백틱 차단({context}): {command}\n"
+            "— 이 레포에서 셸 치환 사고로 파일 내용이 날아간 일이 2회 있었다. "
+            + BACKTICK_ADVICE)
+        return 0
     return 0
 
 
