@@ -327,7 +327,9 @@ export function collectLedger(options: CollectOptions = {}): LedgerModel {
       detail:
         `${fixtureTools.size}종의 도구를 건드린다 — 픽스처만으로는 증거가 아니다. ` +
         '⚠ **이 수는 최상위 `fixtures/*.json`만 센 것**이고 하위(`attended-only/`)를 세지 않는다 — ' +
-        '재생은 그 자리를 수집하지 않기 때문이다. 위 「얼린 관측」의 수와 **단위가 달라** 서로 안 맞는 것이 정상이다',
+        '이 행이 재는 것은 **구 엔진 채록 기준선**의 폭이다. 재생의 기본 수집은 그보다 넓다: ' +
+        '`fixtures/` 아래를 재귀로 훑고 되돌리지 않는 시퀀스와 P4만 뺀다(`harness/replay/batch.ts`). ' +
+        '위 「얼린 관측」의 수와 **단위가 달라** 서로 안 맞는 것이 정상이다',
     },
     {
       label: 'attended 실기 기록',

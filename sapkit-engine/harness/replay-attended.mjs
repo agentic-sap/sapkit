@@ -19,7 +19,8 @@
  * | 인자 | 기본값 | 뜻 |
  * |---|---|---|
  * | `--env-path` | (필수) | 신 엔진이 붙을 `sap.env`. 녹화 때와 **같은 시스템**이어야 한다 |
- * | `--fixture` | `fixtures/*.json` 전부 | 특정 픽스처 하나만 재생 |
+ * | `--fixture` | `fixtures/` **아래 전부**(재귀 · 거부분 제외) | 특정 픽스처 하나만 재생. **거부 판정을 지나간다** |
+ * | `--node-path` | 레포의 `runtime-deps/keyring/node_modules` | 신 엔진이 keyring을 찾는 `NODE_PATH` |
  * | `--out` | (없음) | 커버리지 표를 이 경로에 마크다운으로 쓴다 |
  * | `--contract-tests` | (없음) | 계약 시험 증거 JSON — `[{ "tool": …, "passed": … }, …]`. 시험을 여기서 돌리지 않고 결과를 **받는다** |
  * | `--verdict-dir` | `evidence/replay` | **커밋되는 재생 판정 파일**을 쓸 자리. `--no-verdict`로 끈다 |
@@ -31,11 +32,18 @@
  * `evidence/replay/<시퀀스>.json`에 떨어지고, 그 파일이 대장의 재생 열을 채운다.
  * 형식의 정본은 `harness/ledger/evidence.ts`다.
  *
+ * **수집은 `fixtures/` 아래를 재귀로 훑는다.** 옛 수집은 최상위만 봤고, 그것이
+ * 요구 급 산식의 배정 단위(재귀)와 어긋나 **「요구 급은 재생인데 재생 대상이 될
+ * 수 없는」 도구 18종**을 만들었다(D-122 ⑵). 무엇을 모으고 무엇을 빼는지의
+ * 판정은 `harness/replay/batch.ts`가 소유한다 — 여기 다시 구현하지 않는다.
+ * 전량 재생에서 빠진 시퀀스는 **이유와 함께 화면에 적힌다**(조용히 사라지지
+ * 않는다). 빠진 것도 `--fixture`로 명시하면 돈다.
+ *
  * 종료 코드: 0 = 전건 pass · 1 = fail 또는 **no-evidence**.
  * 무증거는 통과가 아니다 — 비교에서 뺀 것이 곧 통과가 되지 않게 하는 것이
  * 장부 등재 규칙 ②다.
  */
-import { createRequire } from 'node:module';
+import Module, { createRequire } from 'node:module';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -53,6 +61,21 @@ const DIST_LEDGER = here('../dist/harness/ledger/index.js');
 const DIST_REGISTRY = here('../dist/src/tools/registry.js');
 const FIXTURE_DIR = here('../fixtures');
 const CATALOG = here('./old-surface/m1-tools.json');
+/**
+ * 신 엔진의 **선택 의존성**(`@napi-rs/keyring`)이 사는 곳. 녹화 쪽
+ * (`record-attended.mjs`)이 무는 것과 **같은 경로**다.
+ *
+ * 프로파일의 `SAP_PASSWORD`가 `keychain:<service>/<account>` 참조면 엔진은 이
+ * 모듈로 OS 키체인에서 실제 비밀번호를 꺼낸다. 이 경로를 안 물리면 해석이
+ * 실패해 재생이 인증 오류로 무너진다 — 원인이 드러나지 않는 자리라 기본으로 문다.
+ *
+ * **녹화에는 있고 재생에는 없었다**(D-122 ⑤). 녹화는 번들을 자식 프로세스로
+ * 띄우므로 `NODE_PATH`를 env에 실어 보내면 그만이지만, 재생은 신 엔진을 **같은
+ * 프로세스**에 세운다(`InProcessTarget`) — 이미 뜬 프로세스에서는 `NODE_PATH`를
+ * 넣는 것만으로 해석 경로가 바뀌지 않아 `Module._initPaths()`가 그 값을 다시
+ * 읽게 해야 한다. 그 한 걸음이 빠져 배선이 통째로 없었다.
+ */
+const KEYRING_NODE_PATH = here('../../interactive/server/runtime-deps/keyring/node_modules');
 
 function die(message, ...detail) {
   console.error(`❌ ${message}`);
@@ -90,6 +113,21 @@ function cleanup() {
 // ── 선행 확인 ────────────────────────────────────────────────────────────────
 
 const args = parseArgs(process.argv.slice(2));
+
+// keyring 해석 경로는 **엔진을 세우기 전에** 문다. 해석은 늦게(참조를 실제로
+// 만났을 때) 일어나지만, 그때 고치려면 이미 접속을 만들려던 뒤다.
+const nodePath = args.values.get('node-path') ?? (fs.existsSync(KEYRING_NODE_PATH) ? KEYRING_NODE_PATH : undefined);
+if (nodePath === undefined) {
+  console.warn(
+    `⚠️ keyring 의존성 경로가 없다 (${KEYRING_NODE_PATH}) — 프로파일이 keychain: 참조를 쓰면 인증이 실패한다. --node-path 로 지정할 수 있다.`,
+  );
+} else {
+  process.env.NODE_PATH = nodePath;
+  // 같은 프로세스에 엔진을 세우므로 env만으로는 아무 일도 일어나지 않는다.
+  // `_initPaths()`가 `NODE_PATH`를 다시 읽어 `Module.globalPaths`를 세운다.
+  Module._initPaths();
+  console.log(`  keyring 해석 경로 — NODE_PATH=${nodePath}`);
+}
 
 for (const [label, p] of [
   ['재생 러너', DIST_REPLAY],
@@ -133,18 +171,57 @@ const verdictDir = args.flags.has('no-verdict')
   : path.resolve(args.values.get('verdict-dir') ?? here(`../${ledger.REPLAY_VERDICT_DIR}`));
 if (verdictDir !== null) fs.mkdirSync(verdictDir, { recursive: true });
 
-const fixtureFiles = args.values.get('fixture')
-  ? [path.resolve(args.values.get('fixture'))]
-  : (fs.existsSync(FIXTURE_DIR) ? fs.readdirSync(FIXTURE_DIR) : [])
-      .filter((f) => f.endsWith('.json'))
-      .sort()
-      .map((f) => path.join(FIXTURE_DIR, f));
+// 수집 단위는 요구 급의 배정 단위와 같아야 한다 — 재귀다. 무엇을 빼는지의
+// 판정은 `harness/replay/batch.ts`가 소유하고 여기서는 부르기만 한다.
+const explicitFixture = args.values.get('fixture');
+const collected = explicitFixture ? [path.resolve(explicitFixture)] : replay.collectFixtureFiles(FIXTURE_DIR);
+
+/** 픽스처가 태우는 도구 이름. 형식 오류는 아래 본 경로가 제대로 보고한다. */
+function toolsOf(file) {
+  try {
+    return (JSON.parse(fs.readFileSync(file, 'utf8')).steps ?? [])
+      .map((s) => s?.tool)
+      .filter((t) => typeof t === 'string');
+  } catch {
+    return [];
+  }
+}
+
+// 한 건을 명시했으면 그 사람이 이미 정한 것이다 — 거부 판정은 **전량 재생에만**
+// 건다(실데이터 관문이 열어 둔 문과 같은 모양).
+const refusals = explicitFixture
+  ? []
+  : collected.map((file) => [file, replay.batchRefusal(toolsOf(file))]).filter(([, reason]) => reason !== null);
+const fixtureFiles = collected.filter((file) => !refusals.some(([f]) => f === file));
+
+if (refusals.length > 0) {
+  // 조용히 빼지 않는다 — 빠진 것이 보이지 않으면 다음 사람이 「왜 이 도구는
+  // 영영 재생 증거가 없나」를 다시 발견하게 된다.
+  console.log(`전량 재생에서 뺀 시퀀스 ${refusals.length}건 (한 건씩 --fixture=<경로> 로는 돈다):`);
+  for (const [file, reason] of refusals) console.log(`   · ${path.basename(file)} — ${reason}`);
+}
+
+// 생애주기 시퀀스가 섞였다는 것을 **태우기 전에** 말한다. 기준선 픽스처는
+// 있는 객체를 고치지만, 이쪽은 만들었다 지운다 — 같은 "write가 다시 일어난다"라도
+// 무게가 다르고, 그 차이를 사람이 시작 전에 알아야 한다.
+const lifecycle = fixtureFiles.filter((file) => path.basename(path.dirname(file)) === 'attended-only');
+if (lifecycle.length > 0) {
+  console.log(
+    `⚠️ attended 실기 시퀀스 ${lifecycle.length}건이 전량 재생에 들어 있다 — 이들은 DEV에서 객체를 ` +
+      '**만들었다 지운다**(생성 → 태움 → 삭제). 대상 이름이 시스템에 남아 있으면 첫 생성이 실패한다.',
+  );
+  for (const file of lifecycle) console.log(`   · ${path.basename(file)}`);
+}
 
 if (fixtureFiles.length === 0) {
   // 픽스처 0건은 "통과"가 아니라 **무증거**다. 조용히 0을 세고 성공을 내면
   // 재생 대조가 있었다는 착각만 남는다.
   console.error('❌ 재생할 픽스처가 없다 — 이것은 통과가 아니라 무증거다.');
-  console.error(`   · ${FIXTURE_DIR} 가 비어 있다.`);
+  console.error(
+    refusals.length > 0
+      ? `   · ${FIXTURE_DIR} 아래에서 모은 것이 전부 위 이유로 빠졌다.`
+      : `   · ${FIXTURE_DIR} 가 비어 있다.`,
+  );
   console.error('   · 먼저 C1 녹화를 해라: node harness/record-attended.mjs --scenario=<id> --env-path=…');
   process.exit(1);
 }
@@ -156,16 +233,9 @@ if (fixtureFiles.length === 0) {
 // 실데이터 픽스처는 **한 건씩 명시**하게 하거나 명시적 동의를 요구한다.
 const ROW_DATA_TOOLS = new Set(['GetSqlQuery', 'GetTableContents']);
 
-const rowDataFixtures = fixtureFiles.filter((file) => {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
-    return (parsed.steps ?? []).some((s) => ROW_DATA_TOOLS.has(s?.tool));
-  } catch {
-    return false; // 형식 오류는 아래 본 경로가 제대로 보고한다.
-  }
-});
+const rowDataFixtures = fixtureFiles.filter((file) => toolsOf(file).some((tool) => ROW_DATA_TOOLS.has(tool)));
 
-if (rowDataFixtures.length > 0 && !args.values.get('fixture') && !args.flags.has('allow-row-data')) {
+if (rowDataFixtures.length > 0 && !explicitFixture && !args.flags.has('allow-row-data')) {
   die(
     `실데이터 도구가 섞인 픽스처 ${rowDataFixtures.length}건을 한 번에 재생하려 한다 — 배치 실행은 금지다(P2).`,
     ...rowDataFixtures.map((f) => path.basename(f)),

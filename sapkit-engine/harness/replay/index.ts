@@ -58,6 +58,9 @@ export type {
 
 export { attendedEvidenceFromReplays, parseContractEvidence } from './evidenceInputs';
 
+// 전량 재생의 수집 단위와 거부 판정. `.mjs` 안에 두면 jest가 못 잡는 자리다.
+export { TRANSPORT_TOOLS, batchRefusal, collectFixtureFiles } from './batch';
+
 export { InProcessTarget } from './inProcessTarget';
 export type { InProcessTargetOptions } from './inProcessTarget';
 
