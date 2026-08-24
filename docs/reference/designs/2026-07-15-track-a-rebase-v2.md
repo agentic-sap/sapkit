@@ -43,7 +43,7 @@
 **Engine의 SAP 백엔드이자 트랙 A 완료 증거의 공통 백엔드**이지 사람 주도 mutation
 경로의 독점권자가 아니다. `DESIGN.md`도 무인 step에서 MCP가 구조적으로 차단돼 vsp
 CLI가 필요하다고 한 뒤, 사람 소유 대화형 세션의 MCP 보완을 명시한다
-(`DESIGN.md:94-98`, `:113-121`).
+(`DESIGN.md:94-98`, `:113-121` — 이 경로의 `DESIGN.md`는 이후 `docs/DESIGN.md`로 이동했다).
 
 이 구분은 D-001/D-023의 “vsp 일원화”를 다음처럼 좁혀 읽는다.
 
@@ -258,29 +258,35 @@ allowlist에서 제외해 매 호출 permission prompt를 받고 보호-table/SE
 - **vsp CLI [help만 실측, 2026-07-15, SAP 호출 없음]**: 고정 주 머신 바이너리
   `v2.38.1-91-g0b03ef2`의 help에서 `transport` 하위 명령 `list`와 `get`의 **존재만**
   확인했다. 두 명령은 `COMMANDS.md`의 정식 실측 범위 밖이라 실행하지 않았고 출력 형상은
-  **미확인**이다(`adapters/vsp/COMMANDS.md:19`, `:429-433`). `vsp.lock.json`의
+  **미확인**이다(`adapters/vsp/COMMANDS.md:19`, `:429-433` — vsp 은퇴로 레포에서 삭제됨,
+  `bd82618`). `vsp.lock.json`의
   `command_contract`에도 transport 조회는 미등재이며 `deploy <file> <package>
-  [--transport]`만 있다(`adapters/vsp/vsp.lock.json:57-59`). 반면 `deploy` help의
+  [--transport]`만 있다(`adapters/vsp/vsp.lock.json:57-59` — vsp 은퇴로 레포에서 삭제됨,
+  `bd82618`). 반면 `deploy` help의
   `--transport string`과 `copy`의 해당 플래그 부재는 확인됐다
-  (`adapters/vsp/COMMANDS.md:313-317`). 따라서 현재 계약상 vsp는 **단일 파일 할당**에는
+  (`adapters/vsp/COMMANDS.md:313-317` — vsp 은퇴로 레포에서 삭제됨, `bd82618`). 따라서 현재 계약상 vsp는 **단일 파일 할당**에는
   정당하지만 request/object/task inventory 조회 계약은 아니다. G14에서 DEV read-only로
   1회 출력 형상을 실측하고 §11의 두 문서를 갱신한 뒤에만 조회 경로로 승격한다. 그 결과가
   inventory를 주지 않으면 Engine-P4는 조회를 중단하고 Guided 사람이 Track B
   `GetTransport`로 inventory를 확보한다. package/request create, release, CTS import는
   어느 경우에도 vsp 경로가 아니다.
 - **트랙 B MCP [정적 실측]**: tool catalog에 `CreateTransport`·`ReleaseTransport`
-  (`interactive/server/tool-catalog/sc4sap-mcp-tools-write.md:30`, `:100-102`)와
+  (`interactive/server/tool-catalog/sc4sap-mcp-tools-write.md:30`, `:100-102` — 판Z 브랜드
+  개명으로 `sapkit-mcp-tools-write.md`로 대체됨)와
   `GetTransport`·`ListTransports`
-  (`interactive/server/tool-catalog/sc4sap-mcp-tools-read.md:69`, `:100-107`)가 있다.
+  (`interactive/server/tool-catalog/sc4sap-mcp-tools-read.md:69`, `:100-107` — 판Z 브랜드
+  개명으로 `sapkit-mcp-tools-read.md`로 대체됨)가 있다.
   `CreatePackage`는 transport layer/request/change recording을 입력으로 받으며
-  (`engine/src/handlers/package/high/handleCreatePackage.ts:24-67`, `:145-161`), object
+  (`engine/src/handlers/package/high/handleCreatePackage.ts:24-67`, `:145-161` — 구 포크
+  `engine/` 은퇴로 레포에서 삭제됨, D-101), object
   write는 해당 tool schema가 노출할 때만 `transport_request`를 쓴다(예:
-  `engine/src/handlers/program/high/handleUpdateProgram.ts:21-44`, `:139-145`). 모든 object
+  `engine/src/handlers/program/high/handleUpdateProgram.ts:21-44`, `:139-145` — 구 포크
+  `engine/` 은퇴로 레포에서 삭제됨, D-101). 모든 object
   type이 같은 필드를 가진다고 일반화하지 않는다.
 - **MCP release [정적 실측, 라이브 미확인]**: `ReleaseTransport`는 task 또는 request
   하나를 받아 ADT release job을 제출하며 task를 parent request보다 먼저 release해야
   한다(`engine/src/handlers/transport/high/handleReleaseTransport.ts:27-50`,
-  `:184-242`). 대상 SAP에서 endpoint가 없으면 HTTP 404/405를 tool error가 아닌
+  `:184-242` — 구 포크 `engine/` 은퇴로 레포에서 삭제됨, D-101). 대상 SAP에서 endpoint가 없으면 HTTP 404/405를 tool error가 아닌
   `supported:false`로 반환한다. 그러므로 `isError=false`나 `success` 문구만으로 release
   완료를 선언하지 않고 `GetTransport` status를 다시 읽는다. 이 시스템에서 endpoint가
   실제 지원되는지는 **미확인**이다.
@@ -288,11 +294,13 @@ allowlist에서 제외해 매 호출 permission prompt를 받고 보호-table/SE
   Release/Write`를 QA/PRD에서 막고
   (`interactive/adapters/claude/hooks/tier-readonly-guard.mjs:20-32`, `:40-55`), MCP 서버는
   DEV 외 tier에서 read로 양성 분류되지 않은 도구를 fail-closed한다
-  (`engine/src/lib/readonlyGuard.ts:1-25`, `:37-56`, `:101-116`). 반면
+  (`engine/src/lib/readonlyGuard.ts:1-25`, `:37-56`, `:101-116` — 구 포크 `engine/` 은퇴로
+  레포에서 삭제됨, D-101). 반면
   `transport-validator.mjs`는 transport 누락을 **advisory**로만 알린다
   (`interactive/adapters/claude/hooks/transport-validator.mjs:4-17`, `:116-135`). request
   존재·정합은 §4.2.3의 manifest/조회 gate가 맡는다. DEV에서는 서버 guard가 즉시
-  `null`을 반환하고(`engine/src/lib/readonlyGuard.ts:107`) PreToolUse도 “nothing
+  `null`을 반환하고(`engine/src/lib/readonlyGuard.ts:107` — 구 포크 `engine/` 은퇴로
+  레포에서 삭제됨, D-101) PreToolUse도 “nothing
   blocked”이므로 DEV allow/pass는 **구조상 no-op인 control-path smoke**일 뿐 차단 게이트
   증거로 세지 않는다. 안전 게이트 증거는 동일 fixture의 unresolved/QA deny 팔이다.
 - **abapGit [공식 문서 확인, 로컬 라이브 미실측]**: transportable package를 쓰면
@@ -361,7 +369,7 @@ credential owner 관찰이며 별도 실행 모드가 아니다.
 
 기존 모든 파일럿은 `$TMP` local object여서 transport request가 불요였다. `phases/`에는
 `transport_request` 사용 0건이고 vsp `--transport` 사용도 0건이다
-(`adapters/vsp/SAFETY-PROFILES.md:163-172`). transportable package로 바뀌면 최소한 다음이
+(`adapters/vsp/SAFETY-PROFILES.md:163-172` — vsp 은퇴로 레포에서 삭제됨, `bd82618`). transportable package로 바뀌면 최소한 다음이
 추가된다.
 
 - 사람/Basis가 승인한 비-`$TMP` Z/Y package와 super package, software component,
@@ -497,10 +505,12 @@ child의 파일+keychain 재획득은 미차단)
 현행 RV4는 리뷰 세션뿐 아니라 어떤 attended child도 같은 Windows 사용자로
 `scripts/vsp-env.ps1`을 실행하면 profile과 Credential Manager를 해석할 수 있음을
 뜻한다. 스크립트는 `$HOME` 아래 profile을 읽고
-(`scripts/vsp-env.ps1:23-44`), Advapi32 `CredRead`로 password를 얻는다(`:51-121`).
+(`scripts/vsp-env.ps1:23-44`), Advapi32 `CredRead`로 password를 얻는다(`:51-121` — 이
+스크립트는 R1에서 레포에서 제거됨).
 authority-gate의 deploy map에는 vsp가 없다
 (`6de63ba:skills/harness-init/templates/engine/.claude/hooks/authority-gate.py:306-328`). 과거 실측도 “deploy를 호출하지 않았다”는
-관행일 뿐이라고 정직하게 기록했다(`SAFETY-PROFILES.md:200-215`).
+관행일 뿐이라고 정직하게 기록했다(`SAFETY-PROFILES.md:200-215` — vsp 은퇴로 레포에서
+삭제됨, `bd82618`).
 
 | 안 | 기계 경계 | 장점 | 비용·한계 | 판정 |
 |---|---|---|---|---|
@@ -590,7 +600,7 @@ reviewer와 build/review/write child가 승인 밖 SAP mutation을 하지 않았
   `python scripts/execute.py <phase>`를 안내한다(`.claude/hooks/session-start-context.py:55-81`).
 - `3a-carrflt-seed`, `4a-glopen-seed`는 local index가 전 step pending이고
   `escort-write-deploy`를 갖는다(`phases/3a-carrflt-seed/index.json:4-22`,
-  `phases/4a-glopen-seed/index.json:4-22`). 둘은 재실행 금지 씨앗이다.
+  `phases/4a-glopen-seed/index.json:4-22` — 둘 다 R1에서 레포에서 제거됨). 둘은 재실행 금지 씨앗이다.
 - 후보 Engine은 run_id 없는 phase를 여전히 WARN 후 실행한다
   (`6de63ba:skills/harness-init/templates/engine/scripts/execute.py:1400-1418`). 문서 표기만으로는 비활성이 아니다.
 - 후보 installer는 direct legacy hook basename을 제거한다
@@ -672,7 +682,8 @@ raw engine 파일은 D-018 때문에 물리적으로 남아 있어 사용자가 
 
 ## 10. candidate/verified lock 스키마와 승격
 
-현 lock의 단일 `verified_commit`(`adapters/final-harness.lock.json:1-11`)을 다음 v2
+현 lock의 단일 `verified_commit`(`adapters/final-harness.lock.json:1-11` — R1에서 레포에서
+제거됨)을 다음 v2
 스키마로 교체한다. compatibility alias는 두지 않는다. 후속 소비자를 같은 변경에서 모두
 고쳐 단일 정본을 유지한다.
 
@@ -838,7 +849,8 @@ D-결정에 결박된 safety-state 전이 event가 필요하다.
 | `DESIGN.md` §13 | 재기준 단계를 Phase 5 신판으로 기록. unattended는 완료가 아니라 sealed. 파일럿·gate 완료 기준 연결 |
 | `DESIGN.md` §16 | lock v2 후보→승격, wrapper, clean detached test, staging install 순서로 교체 |
 | `docs/reference/DECISIONS.md` | D-025는 O1=(가)·O2=P4 실계약·O3=MCP 파일럿과 trade-off를 append-only 봉인. D-001/D-023 문구는 삭제하지 않고 “mutation path vs evidence backend” 정정 추가 |
-| `HANDOFF.md` | 헤더 재개점을 본 설계 확정·D-025·6de63ba candidate(v0.19.3 blob)·dirty 0.19.4 제외·O1 attended-only·P4 계약·다음 단계로 갱신. 같은 헤더의 2026-07-13 “무인 전환 가능” 항목은 historical 판정으로 supersede하고 현재 `unattended=sealed`를 병기. 본문 §1의 “vsp-custom=유일한 SAP 접점”은 “Engine 실행 백엔드·적용 경로와 독립인 완료 증거 백엔드”로 교정(적용 완료 2026-07-15). **잔여**: §1 “관련 레포 상태” 표의 vsp-custom 행(`HANDOFF.md:219`)에 같은 “트랙 A의 유일한 SAP 접점” 문구가 남아 있다 — 단계 4에서 동일 문안으로 교정한다(`CLAUDE.md:9`·`DESIGN.md:74`의 같은 문구와 한 묶음) |
+| `HANDOFF.md` | 헤더 재개점을 본 설계 확정·D-025·6de63ba candidate(v0.19.3 blob)·dirty 0.19.4 제외·O1 attended-only·P4 계약·다음 단계로 갱신. 같은 헤더의 2026-07-13 “무인 전환 가능” 항목은 historical 판정으로 supersede하고 현재 `unattended=sealed`를 병기. 본문 §1의 “vsp-custom=유일한 SAP 접점”은 “Engine 실행 백엔드·적용 경로와 독립인 완료 증거 백엔드”로 교정(적용 완료 2026-07-15). **잔여**: §1 “관련 레포 상태” 표의 vsp-custom 행(`HANDOFF.md:219`)에 같은 “트랙 A의 유일한 SAP 접점” 문구가 남아 있다 — 단계 4에서 동일 문안으로 교정한다(`CLAUDE.md:9`·`DESIGN.md:74`의 같은 문구와 한 묶음 —
+`DESIGN.md`는 이후 `docs/DESIGN.md`로 이동함) |
 | `.harness/PROTOCOL.md` | singleton task loop를 legacy로 표시. Direct에는 미발화, Guided는 run-scoped goal/state/review, Engine은 contract/manifest를 소비. “여러 step=unattended” 제거 |
 | `.harness/GOAL.md`·`STATE.md` | migration 시 historical singleton으로 동결. 새 작업이 쓰지 않음. 삭제·과거 내용 재작성 금지 |
 | `.harness/RULES.md` | 현 40개 WARN/16KB 기동 거부 문구는 유지. F3의 proactive audit 임계 `>=30 rules`/`>=12KB`를 hard gate와 구분해 기록하고 기존 규칙의 의미는 바꾸지 않음 |

@@ -41,11 +41,4 @@ codex plugin marketplace upgrade agentic-sap   # Codex — 이후 codex plugin a
 
 ## 라이선스
 
-[MIT](LICENSE) © 2026 Hong Jaewon — 이 플러그인의 라이선스다.
-
-**파일 단위로 상류에서 온 것은 없다** — 마지막이던 SAP 측 ABAP 자산까지 2026-08-23에
-자작으로 다시 썼다.
-
-남은 것은 **표·코드값·출력 템플릿·체크리스트처럼 바꾸면 동작이나 데이터가 틀어지는
-계약행 약 2,200줄**이다. 그것이 상류 텍스트와 같아서 [interactive/LICENSE](interactive/LICENSE)에
-계보 고지를 함께 싣는다.
+[MIT](LICENSE) © 2026 Hong Jaewon
