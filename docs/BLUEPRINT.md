@@ -1148,7 +1148,9 @@ node sapkit-engine/harness/usage-census.mjs --from=… --to=…    # 창 변경
 > 전부 빼도 절감은 **~2.6k 토큰**이다. **「세션이 무겁다」의 과녁은 꼬리가 아니라 기본 표면
 > 74종의 설명문 밀도**(평균 **740 B/도구** · 상위 10 중 꼬리는 4개뿐이고 나머지는
 > `GrepPackages` 1,683 B · `CheckSyntax` 1,547 B 같은 **실사용 상위 도구**)이며, 그것은
-> 별개 항목으로 `HANDOFF.md` **§5-16**에 등재됐다.
+> 별개 항목으로 `HANDOFF.md` **§5-16**에 등재됐다 — 그 §는 2026-08-24(판B)에
+> `docs/reference/handoff-archive/HANDOFF-archive-2026-08.md`로 **번호를 보존한 채**
+> 이사됐다.
 >
 > ⚠ **재현할 때 프로파일 상태를 함께 적을 것** — 프로파일이 없으면 inspection-only
 > **155/65**이고 꼬리 몫이 달라진다. ⚠ **`--exposition=development`는 무효한 값이다**

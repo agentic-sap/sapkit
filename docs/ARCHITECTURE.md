@@ -156,9 +156,10 @@ interactive/scripts/               게이트 스크립트 (check-links·smoke-mc
 
 미존재(로드맵 예정): `domain/cds·rap·amdp`(Phase 1+). 실측 시 없는 것이 정상.
 
-## 불변식 (요약 — 전문은 HANDOFF §8 · .harness/RULES.md)
+## 불변식 (요약 — 전문은 루트 `CLAUDE.md` 「안전 규칙」 절)
 
-- **HANDOFF §8 (7개)**: 지식 정본=interactive/core/(동결 레포 수정 금지) · private/ 영구
+- **구 HANDOFF §8 (7개)** — 2026-08-24(판B)에 `CLAUDE.md` 「안전 규칙」 절로 병합됐다
+  (superpowers 항만 `HANDOFF.md` 머신 메모로 갔다): 지식 정본=interactive/core/(동결 레포 수정 금지) · private/ 영구
   denylist · server.bundle.cjs `.gitattributes` 보호(갱신은 UPDATE-RUNBOOK) · 실데이터 2종
   자동 승인 금지 · 게이트 상시 통과 · superpowers 재활성화 제안 금지 · 굵직한 결정은
   docs/reference/DECISIONS.md append.

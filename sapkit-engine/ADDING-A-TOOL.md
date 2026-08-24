@@ -48,7 +48,8 @@ Select-String -Path TOOL-LEDGER.md -Pattern '^## 안 지음' -Context 0,8
 > 339 → 폴더 30 + 위임형 판정)이고, 위임형 열의 뜻은 `TOOL-LEDGER.md` 머리말에 있다.
 > 구 소스를 실제로 읽어야 하는 도구가 새로 생기면(지금 「안 지음」은 0이다)
 > `2264f89d`에서 그 트리를 되떠 읽는다 — 그 커밋이 `engine/`이 온전한 마지막
-> 자리다(`HANDOFF.md` 🔙 절).
+> 자리다(🔙 절 — 2026-08-24 판B에 `HANDOFF.md`에서
+> `docs/reference/handoff-archive/HANDOFF-archive-2026-08.md`로 이사됐다).
 
 읽는 순서는 셋이었다 (역사 기록 — 위 ⚠ 참조):
 
