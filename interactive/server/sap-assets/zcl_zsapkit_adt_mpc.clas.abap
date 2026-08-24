@@ -120,6 +120,11 @@ CLASS zcl_zsapkit_adt_mpc IMPLEMENTATION.
     lr_action = model->create_action( iv_action_name = 'Dispatch' ).
     lr_action->set_return_complex_type( iv_complex_type_name = 'DispatchResult' ).
 
+*   The multiplicity has to be stated as well as the type. Leaving it out
+*   does not fail here; it drops the ReturnType attribute from $metadata
+*   and every POST to this action then comes back as HTTP 500.
+    lr_action->set_return_multiplicity( iv_cardinality = '1' ).
+
     " POST rather than GET although the call reads as often as it
     " writes: the operand JSON in IV_PARAMS is far too long to survive
     " as a query string, and half of the actions do change the system.
@@ -142,6 +147,11 @@ CLASS zcl_zsapkit_adt_mpc IMPLEMENTATION.
 
     lr_action = model->create_action( iv_action_name = 'Textpool' ).
     lr_action->set_return_complex_type( iv_complex_type_name = 'TextpoolResult' ).
+
+*   The multiplicity has to be stated as well as the type. Leaving it out
+*   does not fail here; it drops the ReturnType attribute from $metadata
+*   and every POST to this action then comes back as HTTP 500.
+    lr_action->set_return_multiplicity( iv_cardinality = '1' ).
     lr_action->set_http_method( iv_method_name = 'POST' ).
 
     lr_action->create_input_parameter(

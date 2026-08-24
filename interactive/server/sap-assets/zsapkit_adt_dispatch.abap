@@ -127,8 +127,12 @@ TYPES: BEGIN OF ty_adt_flow_line,
 TYPES ty_adt_flow_lines TYPE STANDARD TABLE OF ty_adt_flow_line
                         WITH DEFAULT KEY.
 
-TYPES ty_adt_flow_text     TYPE c LENGTH 72.
-TYPES ty_adt_flow_text_tab TYPE STANDARD TABLE OF ty_adt_flow_text
+* The Workbench side is RPY_DYNPRO_READ's own FLOW_LOGIC parameter, whose
+* line type is the dictionary structure RPY_DYFLOW (a single component
+* LINE of type DYNTXLINE). Handing that parameter a plain 72-character
+* table compiles but raises CX_SY_DYN_CALL_ILLEGAL_TYPE at run time, so
+* the dictionary type is named here rather than restated as characters.
+TYPES ty_adt_flow_text_tab TYPE STANDARD TABLE OF rpy_dyflow
                            WITH DEFAULT KEY.
 
 * A whole screen. RPY_DYNPRO_READ fills it and RPY_DYNPRO_INSERT consumes
@@ -215,8 +219,8 @@ FORM collect_screen_source USING iv_params TYPE string
 
 * Text line to wire object. Assigning a fixed-length field to a string
 * drops the padding, so the caller never sees the 72-character frame.
-  LOOP AT lt_flow INTO DATA(lv_flow_text).
-    APPEND VALUE ty_adt_flow_line( line = lv_flow_text )
+  LOOP AT lt_flow INTO DATA(ls_flow_text).
+    APPEND VALUE ty_adt_flow_line( line = ls_flow_text-line )
            TO ls_screen-flow_logic.
   ENDLOOP.
 
@@ -256,7 +260,8 @@ FORM apply_screen_source USING iv_params TYPE string
 * rather than by the Workbench, which reports an over-long line as a
 * whole-screen refusal and never says which line was at fault.
   LOOP AT ls_screen-flow_logic INTO DATA(ls_flow_line).
-    APPEND CONV ty_adt_flow_text( ls_flow_line-line ) TO lt_flow.
+    APPEND VALUE rpy_dyflow( line = CONV dyntxline( ls_flow_line-line ) )
+           TO lt_flow.
   ENDLOOP.
 
 * Existence checks stay suppressed because the caller has already decided
