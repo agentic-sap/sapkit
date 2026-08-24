@@ -158,11 +158,10 @@ interactive/scripts/               게이트 스크립트 (check-links·smoke-mc
 
 ## 불변식 (요약 — 전문은 루트 `CLAUDE.md` 「안전 규칙」 절)
 
-- **구 HANDOFF §8 (7개)** — 2026-08-24(판B)에 `CLAUDE.md` 「안전 규칙」 절로 병합됐다
-  (superpowers 항만 `HANDOFF.md` 머신 메모로 갔다): 지식 정본=interactive/core/(동결 레포 수정 금지) · private/ 영구
-  denylist · server.bundle.cjs `.gitattributes` 보호(갱신은 UPDATE-RUNBOOK) · 실데이터 2종
-  자동 승인 금지 · 게이트 상시 통과 · superpowers 재활성화 제안 금지 · 굵직한 결정은
-  docs/reference/DECISIONS.md append.
+- **구 HANDOFF §8 (7개)** — 2026-08-24(판B · D-135)에 `CLAUDE.md` 「안전 규칙」 절로
+  **병합**됐다(단권화). 항별 내역은 그 절과 병합 커밋이 든다.
+  ⚠ **여기 목록을 다시 늘어놓지 말 것** — 한때 7개 항을 요약해 뒀는데 그중 하나
+  (superpowers)의 행선지가 바뀌자 이 요약만 낡아 거짓이 됐다. 규칙의 정본은 한 곳이다.
 - **안전 규칙 (구 `.harness/RULES.md` R-001~R-006 — R1 이후 정본은 루트 `CLAUDE.md`
   「안전 규칙」 절)**: ENV/LOCK_FAIL 마커 실패는 규칙 승격 제외 · **SAP 접점 이원화 금지**
   (SAP에 닿는 경로를 하나 더 열지 않는다 — 로컬 검사는 무접속 도구로만) · QA/PRD tier

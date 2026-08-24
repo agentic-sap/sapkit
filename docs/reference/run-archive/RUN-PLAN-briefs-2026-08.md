@@ -7,14 +7,17 @@
 > **왜** — 살아있는 규칙(문서 지위 · 사용법 · 불변 레일 · 판 큐)이 과거 기록에 묻혔다.
 > 큐와 규약만 원본에 남기고 브리프는 여기로 내렸다.
 >
-> ⚠ **순수 이동이다.** 원래 `##`·`###` 구조 · 번호 · 순서를 그대로 보존하며, 아래 본문은
-> 블록인용(`> `) 접두어까지 포함해 **한 글자도 바뀌지 않았다.** 여기는 **기록**이므로
-> 갱신 의무가 없다 — 살아있는 정본은 `docs/RUN-PLAN.md`(판 큐)와 `HANDOFF.md`(세션
-> 상태)다. 브리프 안의 서술은 **그 판이 돌던 시점의 것**이라 현행이 아닐 수 있다.
+> ⚠ **순수 이동이다** — 딱 한 가지 예외를 빼고. 원래 `##`·`###` 구조 · 번호 · 순서를
+> 그대로 보존하며, 아래 본문은 블록인용(`> `) 접두어까지 포함해 **이사 시점에 한 글자도
+> 바뀌지 않았다.** 여기는 **기록**이므로 갱신 의무가 없다 — 살아있는 정본은
+> `docs/RUN-PLAN.md`(판 큐)와 `HANDOFF.md`(세션 상태)다. 브리프 안의 서술은 **그 판이
+> 돌던 시점의 것**이라 현행이 아닐 수 있다.
 >
-> ⚠ **본문의 상대 링크는 고치지 않았다** — 그것도 「한 글자도 바꾸지 않는다」에 든다.
-> 본문의 링크는 **`docs/` 기준**으로 쓰였으므로 이 파일 자리에서는 풀리지 않는다:
-> `reference/copy-baseline.md`(8곳)의 실제 대상은 **`docs/reference/copy-baseline.md`**다.
+> ⚠ **예외 1건 — 상대 링크 8곳의 경로만 새 자리에 맞게 고쳤다**(2026-08-24, 이사 직후).
+> 본문 링크는 **`docs/` 기준**으로 쓰여 있어 두 단계 깊어진 이 자리에서는 풀리지 않았다:
+> `](reference/copy-baseline.md)` → `](../copy-baseline.md)` **8곳**. 가리키는 대상은
+> 같고 **표시 문구(`` `reference/copy-baseline.md` ``)도 그대로**다 — 바뀐 것은 괄호 안
+> 경로뿐이다. 그 밖의 본문은 무변경이며, 이사 시점의 바이트 동일성은 git 이력이 든다.
 
 ---
 
@@ -81,7 +84,7 @@
   단위, 치환 사실은 git 이력이 센다(분류 장부는 은퇴한 역사 — 갱신 금지).
 - **완료 기준(판마다)**: 치환분을 소비하는 절차가 여전히 동작 · `check-links` 0 ·
   잔량 단조 감소가 기록됨.
-- **갈래 종결 (2026-08-18 · 판3.6)**: 명부 [`reference/copy-baseline.md`](reference/copy-baseline.md)
+- **갈래 종결 (2026-08-18 · 판3.6)**: 명부 [`reference/copy-baseline.md`](../copy-baseline.md)
   **170행 전량 체크 · 잔량 0.** ⑶-b에 남은 미처리 파일은 없다. 셈 밖 소관은 그대로
   열려 있다 — oop 20 = **판4** · 서버 결부 39 = **판7-b** · keyring 21 = 끝그림 ② ·
   LICENSE = **판8**. 따라서 **판8(⑷) 착수 전제 중 ⑶-b 몫은 성립**했고, 남은 것은
@@ -97,7 +100,7 @@
 신설**한 뒤 **상시 로드 규약 5편을 실제로 재저작**했다. 결정 기록 = **D-087**.
 **코드 0줄 · 문서만.**
 
-- **잔량 명부 정본 = [`reference/copy-baseline.md`](reference/copy-baseline.md)** ·
+- **잔량 명부 정본 = [`reference/copy-baseline.md`](../copy-baseline.md)** ·
   **총계 170** = 1부 지식 갈래 146 + 2부 편입분 24. **잔량 = 총계 − 체크 누계**이고,
   체크는 **재저작만** 인정하며(삭제로 갚는 길 없음) **독립 새-컨텍스트 리뷰 통과 후**에만
   찍는다. **이 명부를 게이트·스크립트로 만들지 않는다**(진척은 사람 판단이 센다).
@@ -162,7 +165,7 @@
   `clean-code-procedural` · `clean-code` · `constant-rule` · `field-typing-rule` ·
   `function-module-rule` · `include-structure` · `ok-code-pattern` · `oop-pattern` ·
   `procedural-form-naming` · `text-element-rule`. 커밋 해시와 리뷰 근거는 명부
-  [`reference/copy-baseline.md`](reference/copy-baseline.md) §6 1-D가 든다.
+  [`reference/copy-baseline.md`](../copy-baseline.md) §6 1-D가 든다.
 - **검증**: 독립 새-컨텍스트 리뷰 **4건**(사실 전수 대조 3그룹 + 통합 리뷰) 전부 통과 —
   **사실 대조 13/13 PASS**(누락 0 · 추가 0 · 코드 fence·표·링크·코드스팬 다중집합 기계
   대조) · 리뷰가 지적한 **강도·범위 미세 이탈 9곳**은 회수 커밋 `bcbe36f6`으로 원문 수준
@@ -216,7 +219,7 @@
 기록한다**(독립 점검 반영). **코드 0줄 · 지식 `.md`만.**
 
 - **재저작 32편**: 커밋 해시와 리뷰 근거는 명부
-  [`reference/copy-baseline.md`](reference/copy-baseline.md) §6 **1-B·1-C**가 든다.
+  [`reference/copy-baseline.md`](../copy-baseline.md) §6 **1-B·1-C**가 든다.
 - **검증**: 독립 새-컨텍스트 리뷰 **5건**(전수 대조 4그룹 + 통합 리뷰) 전부 통과 —
   **사실 대조 32/32 PASS**(누락 0 · 추가 0 · 헤딩 298행 고유 78종 · 표 64행 중 데이터
   58행 — README 14+16 · eu-common 28 · 코드스팬 · 볼드 · 숫자 · 한자/한글/가나 다중집합
@@ -281,7 +284,7 @@ tables·spro·enhancements)**을 로드** · **naming 2편의 소비자** = `ana
 산출자 권고 채택**). **잔량 120 → 77.** **코드 0줄 · 지식 `.md`만.**
 
 - **재저작 30편 · 검증 체크 13편**: 커밋 해시(무변경분은 「검증 체크(무변경)」)와 리뷰 근거는
-  명부 [`reference/copy-baseline.md`](reference/copy-baseline.md) §6 **1-A**가 든다. 무변경
+  명부 [`reference/copy-baseline.md`](../copy-baseline.md) §6 **1-A**가 든다. 무변경
   13편 = FI·CO·MM·SD·PP·PM의 `spro`·`tcodes` 각 6편 + `SD/tables`(즉 spro 6 · tcodes 6 ·
   tables 1). 규칙 근거는 **D-088 ②**이고 명부 §2에 보충 1줄로 명문화했다.
 - **근거 문장 정정 3건**(선정 근거를 실측으로 바로잡은 것 — 다음 판이 물려받는 정확한 값):
@@ -395,7 +398,7 @@ tables·spro·enhancements)**을 로드** · **naming 2편의 소비자** = `ana
 판3.4 선례의 승계다. **코드 0줄 · 지식 `.md`만.**
 
 - **재저작 35편 · 검증 체크 13편**: 커밋 해시(무변경분은 「검증 체크(무변경)」)와 리뷰 근거는
-  명부 [`reference/copy-baseline.md`](reference/copy-baseline.md) §6 **1-A**가 든다. 무변경
+  명부 [`reference/copy-baseline.md`](../copy-baseline.md) §6 **1-A**가 든다. 무변경
   13편 = Ariba·BW·HCM·QM·TM·TR·WM의 `spro` 7 + Ariba·BW·PS·QM·TM·TR의 `tcodes` 6. 규칙
   근거는 **D-088 ②**.
 - **판3.4 정찰 2건이 실제로 갈랐다**: ⓐ **`PS/spro.md`는 재저작**(표 밖 불릿 3행) — 다른 모듈
@@ -1161,7 +1164,7 @@ oop 20은 ⑶-b 명부의 셈 밖(⑶-c 눈금)이고 `copy-baseline.md`의 **17
      (남은 격차 0). B2p를 셋으로 갈랐고(B2p·**B2p2**·**B2p3**) **사보타주 2회**로
      각각이 load-bearing임을 확인했다. 22 → **24건 · PASS 24 · FAIL 0**.
 - **⑶-b 「서버 결부 copy 39건」 판정 — 3 해소 · 36 잔존**(D-095 ⓔ · 상세는
-  [`reference/copy-baseline.md`](reference/copy-baseline.md) §3.2). ⚠ **판8의 목표가 바뀐다** —
+  [`reference/copy-baseline.md`](../copy-baseline.md) §3.2). ⚠ **판8의 목표가 바뀐다** —
   36건이 `interactive/` 아래 남는 한 그 서브트리 고지를 은퇴시키면 사실과 어긋난다.
 - **provenance·CI 이전**: `check-engine-provenance`가 `sapkit-engine/`을 겨눈다 ·
   `--rebuild`가 npm을 거치지 않아 **소유자 머신에서 처음으로 재현 판정이 섰다** ·
@@ -1756,7 +1759,7 @@ oop 20은 ⑶-b 명부의 셈 밖(⑶-c 눈금)이고 `copy-baseline.md`의 **17
   정당하다). 문제는 `copy-baseline` §3.2가 그것을 **「차용분이 아님」**으로 옮겨 적어
   transform을 **소관 없는 범주**로 만든 것이고, 더 나아가 **§4 레시피의 목적지 도출이
   절차 12파일을 아예 만들어 내지 못했다**(`skills/<스킬>/**` → `<스킬>.md` 납작화).
-- **대상 56건 · 명부 = [`reference/copy-baseline.md`](reference/copy-baseline.md) §3.4.**
+- **대상 56건 · 명부 = [`reference/copy-baseline.md`](../copy-baseline.md) §3.4.**
   구성은 **페르소나 25 · 절차 16 · 어댑터 5 · 지식 5 · 정책 2 · 도구 3**.
   잔존이 짙은 순: `sap-architect.md` 58/61(95%) · `sap-critic.md` 69/76(91%) ·
   `program-to-spec.md` 90/138(65%) · `compare-programs.md` 88/141(62%) ·

@@ -55,48 +55,41 @@ START-OF-SELECTION.
 
   IF p_flush = abap_true.
     PERFORM purge_gateway_caches.
+    ULINE.
+  ENDIF.
 
-  DATA lr_error  TYPE REF TO cx_root.
-  DATA lv_class  TYPE string.
-  DATA lo_first  TYPE REF TO object.
-  DATA lo_second TYPE REF TO object.
+  IF p_diag = abap_true.
+    PERFORM probe_data_provider.
+    ULINE.
+  ENDIF.
 
-  WRITE / 'Dropping gateway caches'.
+  WRITE / 'Finished.'.
 
-* Two of the three are reached by name rather than by a static call.
-* The classes behind them ship with later Gateway stacks than the one
-* this report has to run on, and a static call to a class the system
-* does not have is a syntax error at compile time, not a runtime miss.
-* Naming them keeps the report loadable everywhere and turns an absent
-* cache into a skipped line.
-  TRY.
-      CALL METHOD ('/IWBEP/CL_V2_CP_FACADE_FACTORY')=>('CREATE')
-        RECEIVING rv_instance = lo_first.
-      CALL METHOD lo_first->('CREATE_CONFIG_FACADE')
-        RECEIVING rv_result = lo_second.
-      CALL METHOD lo_second->('DELETE_ALL_MODEL_DATA_CACHE').
-      WRITE / '[ok]   proxy model data cache dropped'.
-    CATCH cx_root INTO lr_error.
-      WRITE / '[skip] proxy model data cache not on this release'.
-  ENDTRY.
 
-* This one is static because it is the cache that matters and it has
-* been present for as long as the service has. It takes no arguments.
-  TRY.
-      /iwfnd/cl_med_mdl_cache_persis=>clean_up( ).
-      WRITE / '[ok]   metadata model cache cleaned'.
-    CATCH cx_root INTO lr_error.
-      WRITE: / '[fail] metadata model cache', lr_error->get_text( ).
-  ENDTRY.
+*&---------------------------------------------------------------------*
+*& Backend registration
+*&---------------------------------------------------------------------*
+* Three rows make a backend service. The model row says which class
+* describes the shape, the service row says which class answers the
+* calls, and the group row ties the two together. All three carry the
+* same version, so any one of them missing leaves the service unusable
+* in a way the Gateway reports only as a bare not-found.
+FORM register_service_metadata.
 
-  TRY.
-      CALL METHOD ('/IWBEP/CL_V4_SERVICE_ALIAS_FAC')=>('CREATE_FOR_RUNTIME')
-        RECEIVING rv_instance = lo_first.
-      CALL METHOD lo_first->('CLEAR_CACHE').
-      WRITE / '[ok]   V4 service alias cache dropped'.
-    CATCH cx_root INTO lr_error.
-      WRITE / '[skip] V4 service alias cache not on this release'.
-  ENDTRY.
+  DATA lv_stamp TYPE tzntstmps.
+
+  WRITE / 'Writing backend registration rows'.
+
+  GET TIME STAMP FIELD lv_stamp.
+
+  PERFORM store_model_row USING lv_stamp.
+  PERFORM store_service_row USING lv_stamp.
+  PERFORM store_group_row.
+
+* The three rows are only meaningful together, so they are committed
+* together rather than one at a time.
+  COMMIT WORK AND WAIT.
+  WRITE / '[ok]   registration committed'.
 
 ENDFORM.
 
@@ -200,36 +193,46 @@ ENDFORM.
 * its own so that a release without a given cache, or a user without the
 * rights to clear it, does not stop the other two from being cleared.
 FORM purge_gateway_caches.
-
-  DATA lr_error TYPE REF TO cx_root.
+  DATA lr_error  TYPE REF TO cx_root.
+  DATA lr_first  TYPE REF TO object.
+  DATA lr_second TYPE REF TO object.
 
   WRITE / 'Dropping gateway caches'.
 
+* Two of the three are reached by name rather than by a static call.
+* The classes behind them ship with later Gateway stacks than the one
+* this report has to run on, and a static call to a class the system
+* does not have is a syntax error at compile time, not a runtime miss.
+* Naming them keeps the report loadable everywhere and turns an absent
+* cache into a skipped line.
   TRY.
-      /iwbep/cl_v2_cp_facade_factory=>create(
-        )->create_config_facade(
-        )->delete_all_model_data_cache( ).
+      CALL METHOD ('/IWBEP/CL_V2_CP_FACADE_FACTORY')=>('CREATE')
+        RECEIVING rv_instance = lr_first.
+      CALL METHOD lr_first->('CREATE_CONFIG_FACADE')
+        RECEIVING rv_result = lr_second.
+      CALL METHOD lr_second->('DELETE_ALL_MODEL_DATA_CACHE').
       WRITE / '[ok]   proxy model data cache dropped'.
     CATCH cx_root INTO lr_error.
-      WRITE: / '[fail] proxy model data cache', lr_error->get_text( ).
+      WRITE / '[skip] proxy model data cache not on this release'.
   ENDTRY.
 
+* This one is static because it is the cache that matters and it has
+* been present for as long as the service has. It takes no arguments.
   TRY.
-      /iwfnd/cl_med_mdl_cache_persis=>clean_up(
-        iv_log_description = CONV #( 'Dropped by ZSAPKIT_ADT_FLUSH_CACHE' ) ).
+      /iwfnd/cl_med_mdl_cache_persis=>clean_up( ).
       WRITE / '[ok]   metadata model cache cleaned'.
     CATCH cx_root INTO lr_error.
       WRITE: / '[fail] metadata model cache', lr_error->get_text( ).
   ENDTRY.
 
   TRY.
-      /iwbep/cl_v4_service_alias_fac=>create_for_runtime(
-        )->clear_cache( ).
+      CALL METHOD ('/IWBEP/CL_V4_SERVICE_ALIAS_FAC')=>('CREATE_FOR_RUNTIME')
+        RECEIVING rv_instance = lr_first.
+      CALL METHOD lr_first->('CLEAR_CACHE').
       WRITE / '[ok]   V4 service alias cache dropped'.
     CATCH cx_root INTO lr_error.
-      WRITE: / '[fail] V4 service alias cache', lr_error->get_text( ).
+      WRITE / '[skip] V4 service alias cache not on this release'.
   ENDTRY.
-
 ENDFORM.
 
 
