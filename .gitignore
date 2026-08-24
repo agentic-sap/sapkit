@@ -11,6 +11,9 @@
 .claude/*
 !.claude/hooks/
 !.claude/settings.json
+# 네거이션이 되살린 디렉터리 안의 파이썬 캐시는 다시 막는다(네거이션이 없으면
+# `.claude/*`가 이미 막았을 자리다 — 지금은 훅 디렉터리가 열려 있어 새는 구멍이다)
+.claude/hooks/__pycache__/
 
 # dryforge 작업 산출물(3-doc·워크트리) — 비추적
 .dryforge/

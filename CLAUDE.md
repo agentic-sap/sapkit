@@ -13,7 +13,9 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
 
 - **끝그림 ①~④**(= 포크 0 · `docs/BLUEPRINT.md` §1.1) — ① **몸통은 전부 자작**(활성
   차용분 0) · ② **외부는 정식 의존성만** · ③ **계보성 고지 정합** · ④ **브랜드 단일**.
-  넷 다 2026-08-23에 도달했다.
+  ①~③은 2026-08-23에 도달했다. ⚠ **④는 「도달」로 공표됐으나 완전하지 않다** —
+  개명된 적 없는 `ZCL_MCP_RFC_HTTP_HANDLER`·SICF `zmcp_rfc`가 **제품 번들에 실려
+  나간다**(각 1회 · 실측). 근거와 범위는 `HANDOFF.md` 부채 ⑺.
 - **교체 사다리 ⑴~⑷**(`docs/BLUEPRINT.md` §2) — ⑴ **엔진**(`sapkit-engine`) ·
   ⑵ **검사기**(`sapkit-cli`) · ⑶ **지식·템플릿 재저작** · ⑷ **고지 범위 정합**. 완주.
 - **판** — ready→go 1사이클의 작업 단위. **dryforge 플러그인**의 `/dryforge:ready` →
@@ -270,8 +272,9 @@ CI(`node-gates` 잡)에서 `python3`로 돈다. **`check-doc-size.mjs`의 임계
 feature 브랜치 단독 푸시로는 안 돈다). 로컬에서 `engine`을 돌리려면 `sapkit-engine`에서
 `npm ci && npm run build` 선행.
 
-**위 목록 전부(+doctor)가 제품 게이트다. `sapkit-engine/`과 `sapkit-cli/`는 자기 게이트를
-따로 갖는다** — 각각 그 안에서 돌린다.
+**위 목록이 제품 게이트다**(맨 아래 `doctor.mjs`만 로컬 전용이라 CI에서 빠진다).
+**`sapkit-engine/`과 `sapkit-cli/`는 자기 게이트를 따로 갖는다** — 각각 그 안에서 돌린다.
+⚠ 게이트 수를 다른 문서에 숫자로 복제하지 말 것 — 이 목록이 정본이다.
 
 `sapkit-cli/`(동봉 검사기의 소스 정본):
 

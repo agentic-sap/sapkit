@@ -171,7 +171,7 @@ interactive/scripts/               게이트 스크립트 (check-links·smoke-mc
 
 ## 검증 게이트 (구조 변경 시 항상 통과 유지)
 
-구조 변경 시 게이트(links·verify-engine·engine-provenance·smoke-mcp·server-gates·
-plugin-manifests·runtime-path·runtime-dir·doctor)를 통과 상태로 유지한다 — 명령 목록 정본은
-**CLAUDE.md 게이트 절**(여기 중복 게재 안 함). 이식 장부 계열(`coverage` → S3 폐기 D-029,
+구조 변경 시 **게이트 전종**을 통과 상태로 유지한다 — 목록도 계수도 정본은
+**CLAUDE.md 게이트 절**이다(여기 열거하지 않는다 — 열거하면 신설 때마다 낡는다.
+실제로 `verify-checker`와 `check-doc-size` 둘이 여기서 누락된 채 남아 있었다). 이식 장부 계열(`coverage` → S3 폐기 D-029,
 그 대체였던 `migration-snapshot` → renew 1차 은퇴 D-072)은 **더 이상 존재하지 않는다.**
