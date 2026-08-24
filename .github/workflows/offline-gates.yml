@@ -125,6 +125,26 @@ jobs:
       - name: 플러그인 매니페스트·MCP 생성물 7종 ↔ 단일 정본
         run: node interactive/scripts/gen-plugin-manifests.mjs --check
 
+      # ── 웜 레이어 줄 수 상한 (설계 2026-08-23-project-brain-design §3 · 판B) ──
+      # 문서가 불어나면 살아있는 규칙이 과거 기록에 묻힌다 — 착수 시점 실측이
+      # HANDOFF 4,808줄 · RUN-PLAN 1,964줄이었다. 상한만 재고(목표치는 넣지 않는다),
+      # 초과분은 삭제가 아니라 아카이브 이사로 줄이라고 안내한다.
+      - name: 웜 레이어 줄 수 상한 (HANDOFF ≤500 · RUN-PLAN ≤300)
+        run: node interactive/scripts/check-doc-size.mjs
+
+      - name: 줄 수 게이트 음성시험 (초과·부재를 실제로 거부하는지 · 경계 정확)
+        run: node interactive/scripts/test-check-doc-size.mjs
+
+      # ── 공방 훅층 음성시험 (`.claude/hooks/` — 판B에서 git 추적으로 편입) ─────
+      # 제품 어댑터 훅이 아니라 **이 레포의 개발 세션**을 지키는 층이다. 둘 다
+      # 표준 라이브러리만 쓰고 훅을 자식 프로세스로 띄워 stdin 판정을 단언한다 —
+      # 러너 기본 탑재 python3로 충분하며 전용 셋업 스텝이 필요 없다.
+      - name: 백틱 가드 음성시험 (셸 치환 컨텍스트 deny · 정상 명령 통과 · 기존 패턴 회귀)
+        run: python3 .claude/hooks/test-block-dangerous-bash.py
+
+      - name: 세션 시작 훅 음성시험 (재개점·원격 대조 주입 · R1 유물 미주입)
+        run: python3 .claude/hooks/test-session-start-context.py
+
       - name: git diff --check (공백/충돌 마커)
         run: git diff --check HEAD
 

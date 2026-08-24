@@ -226,6 +226,7 @@ node interactive/scripts/gen-plugin-manifests.mjs --check # 생성물 7종(매�
 node interactive/scripts/check-runtime-path-rename.mjs   # 구 세대 경로 토큰 재등장 금지 + 안전 앵커 7종
 node interactive/scripts/conformance-runtime-dir.mjs     # 경로 해석 적합성 (fixture 26 · assert 138 · 안전 회귀 5종)
 node interactive/scripts/verify-checker.mjs              # 동봉 검사기 번들 무결성·출처 (번들 바이트·버전 3자·소스 커밋·소스 해시)
+node interactive/scripts/check-doc-size.mjs              # 웜 레이어 줄 수 상한 (HANDOFF ≤500 · RUN-PLAN ≤300 — 판B 신설)
 node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (로컬 전용 — 설치 상태를 읽는다)
 ```
 
@@ -234,8 +235,15 @@ node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (�
 `test-hook-decisions.mjs` 74케이스 ·
 `test-setup-state.mjs` 120/120 · `test-launch-toolsurface.mjs` 56/56 ·
 `test-codex-wire-mcp.mjs` 51/51 · `test-doctor.mjs` 47/47 ·
-`test-verify-checker.mjs` 21/21.
+`test-verify-checker.mjs` 21/21 · `test-check-doc-size.mjs` 9/9.
 **PowerShell로 실행할 것** — Bash로 돌리면 자식 프로세스 수거에서 블록된다.
+
+**공방 훅층도 음성시험을 갖는다**(제품이 아니라 이 레포의 개발 세션을 지키는 층 —
+`.claude/hooks/`, 판B 편입): `python .claude/hooks/test-block-dangerous-bash.py` 20/20 ·
+`python .claude/hooks/test-session-start-context.py`. 둘 다 표준 라이브러리만 쓰고
+CI(`node-gates` 잡)에서 `python3`로 돈다. **`check-doc-size.mjs`의 임계값은 상한
+(500·300)뿐이다** — 수술의 목표치(300·200)를 게이트에 넣지 말 것(정상 갱신마다 red가
+된다). 측정 정의(물리 줄 수 = 개행 개수)의 정본은 그 스크립트의 구현이다.
 
 **`smoke-mcp.mjs`와 `conformance-server-gates.mjs`는 `--target=bundle|engine`을 받는다**
 (판7-a · D-094 ⓐ). **판7-b 교체 뒤 이 인자는 「구 vs 신」이 아니라 「번들 vs 소스」를 가른다** —
