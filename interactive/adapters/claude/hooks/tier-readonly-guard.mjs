@@ -257,12 +257,12 @@ function respondDeny(reason) {
 // Denials taken before a tier was ever in hand: there is no profile block to
 // print, only what went wrong and the standing rule that it closes the gate.
 function denyUnverified(detail) {
-  respondDeny(`SAPKIT tier-readonly-guard — DENIED: ${detail} ${FAILS_CLOSED}`);
+  respondDeny(`sapkit tier-readonly-guard — DENIED: ${detail} ${FAILS_CLOSED}`);
 }
 
 function composeDenial(tool, ctx, reason) {
   const lines = [
-    'SAPKIT tier-readonly-guard — DENIED',
+    'sapkit tier-readonly-guard — DENIED',
     `  tool:    ${tool}`,
     `  profile: ${ctx.alias ?? '(single profile)'}`,
     `  tier:    ${ctx.tier ?? '(unresolved)'}`,

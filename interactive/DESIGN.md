@@ -266,7 +266,11 @@ adapters/claude/hooks/                   ← 훅 6종(안전 4 + 품질 조언 2
                                             명시 실행, 문서는 hooks/README.md
 adapters/claude/permissions-template.json ← 정적 allowlist 템플릿 (trust-session 대체.
                                             GetTableContents/GetSqlQuery 제외 유지 — 매번 승인)
-adapters/claude/lib/                     ← 프로파일 해석 등 훅 공용 모듈
+adapters/claude/lib/                     ← 프로파일 해석·stdin 등 **Claude 전용** 훅 모듈
+                                            (하네스 중립 공용 모듈은 여기가 아니라
+                                             scripts/lib/ — 어댑터가 중립 트리에
+                                             의존하는 방향만 허용하고 그 역은 막는다.
+                                             atomic-write.mjs가 그래서 저쪽에 산다)
 ```
 
 **스킬·에이전트는 어댑터가 아니라 플러그인 루트가 소유한다** — 실측: `skills/` 17개

@@ -131,6 +131,29 @@ marker 기준으로 SAPKIT 훅만 제거하고 다른 훅·설정 키는 그대�
 선택해도 정상 상태다 — 이제는 삭제 대상이 아니라 선택 기능이기 때문이다. 제거를
 승인하면 위 "제거" 절의 `--uninstall`을 실행한다.
 
+## 출력 표기 규약 (고칠 때 지킬 것)
+
+훅 출력의 브랜드 표기는 **세 갈래**이고, 갈래마다 형태가 정해져 있다. 갈래를 섞으면
+같은 세션에 서버측 거부와 훅측 거부가 나란히 뜰 때 두 층이 다른 제품처럼 보인다.
+
+| 갈래 | 형태 | 쓰는 훅 |
+|---|---|---|
+| **관문 판정** (엔진측 게이트의 클라이언트 거울) | `sapkit <관문> — <판정>` — **소문자** | `block-forbidden-tables` · `prefer-sqlquery-explicit-fields` · `tier-readonly-guard` |
+| **조언 태그** (`additionalContext` 주입) | `[SAPKIT <라벨>]` — 대괄호 안 **전부 대문자** | `syntax-checker` · `transport-validator` · `offline-code-analysis` |
+| **운영자 콘솔** | `[sapkit] …` — **소문자** | `install-hooks` |
+
+규칙은 하나다: **`sapkit`은 기계 토큰이라 소문자**(엔진이 내는 `sapkit blocklist (profile: …) —`·
+`[sapkit] profile: …`, 런타임 디렉터리 `.sapkit`, CLI `sapkit analyze`와 같은 자리)이고,
+**전부 대문자인 태그 안에서만 `SAPKIT`**으로 쓴다. 산문 안의 브랜드도 소문자다.
+`SAPKIT_HOME_DIR`처럼 환경변수 이름은 이 규약 밖이다.
+
+⚠ **엔진 문면과 짝을 이룬다** — `sapkit blocklist —`는 엔진의 같은 거부 메시지를 그대로
+비추는 자리다. 훅만 바꾸면 두 층이 갈라지므로, 갈래 ①의 표기를 바꾸려면
+`sapkit-engine/`의 대응 문면과 **함께** 움직여야 한다.
+
+⚠ **라벨은 시험이 잰다** — `test-hook-decisions.mjs`가 판정 이유의 부분 문자열을
+대소문자 그대로 대조한다(예: `TRANSPORT CHECK`). 라벨을 고치면 그 케이스도 함께 고칠 것.
+
 ## 관련 문서
 
 - [core/procedures/setup.md](../../../core/procedures/setup.md) — Step 4c(설치 안내)·

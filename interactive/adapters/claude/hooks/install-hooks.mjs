@@ -54,7 +54,9 @@ import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { atomicWriteFileSync } from '../lib/atomic-write.mjs';
+// Harness-neutral helper: adapters may depend on the neutral tree, never the
+// other way round. `adapters/claude/lib/` keeps only Claude-specific modules.
+import { atomicWriteFileSync } from '../../../scripts/lib/atomic-write.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -229,7 +231,7 @@ if (removing) {
   if (gone.length === 0) {
     // Not an error, and deliberately no write: an untouched file is the proof
     // that uninstalling something absent costs the user nothing.
-    console.log('[sapkit] No SAPKIT hooks are wired here — nothing to remove.');
+    console.log('[sapkit] No sapkit hooks are wired here — nothing to remove.');
     process.exit(0);
   }
   for (const spec of gone) console.log(`[sapkit] removed: ${spec.marker}`);

@@ -141,7 +141,7 @@ function formatFindings(result, objectName) {
   const high = findings.filter((f) => f.severity === 'high').length;
 
   return (
-    `[OFFLINE CODE ANALYSIS] sapkit analyze found ${findings.length} issue(s)` +
+    `[SAPKIT OFFLINE CODE ANALYSIS] sapkit analyze found ${findings.length} issue(s)` +
     `${high ? ` (${high} high)` : ''} in ${objectName}:\n${lines.join('\n')}${more}\n` +
     'Advisory only (D-049) — the write already succeeded and none of these block SAP execution. ' +
     'Fix what applies (high severity first), then re-upload. ' +
