@@ -29,6 +29,14 @@
 > 그 잔존은 갚을 부채가 아니라 **의도된 보존인 계약행**이고(D-112 ⓓ), 고지 4곳이 이 총계를
 > 그대로 적는다.
 >
+> **다만 그 잔존 안에 「계약행」이 아닌 것이 하나 섞여 있었고, 2026-08-24에 그것을 갚았다** —
+> 판3.7이 **의미 표류 위험** 때문에 의도적으로 보류한 **체크박스 형태의 규범 문장**
+> (`review-checklist.md` 24 · `troubleshooting.md` 11 — D-111)이다. 전부 재저작했고
+> 포기한 줄은 없다. 그 몫만큼 **§3.4 갈래가 40파일/590행 → 39파일/567행**으로,
+> 같은 방법으로 잰 **`server/` 밖 총계가 127파일/2,188행 → 126파일/2,165행**으로 줄었다
+> (위 「129/2,216」은 판11 리뷰어의 실측이고 이 127/2,188은 같은 모양의 재측이다 —
+> 측정자 차이는 아래 ⚠ 계통 오차 주석이 정본이다).
+>
 > **⚠ 그러나 그 판의 「고지 범위 좁히기」는 2026-08-23 독립 리뷰가 R-FAIL을 내 철회됐다
 > (D-104).** 좁힘이 `copy`만 세고 **`class: transform`을 통째로 빠뜨렸기** 때문이다 —
 > 이 명부가 세는 170에 **페르소나·절차는 한 줄도 없다.** 그 범주의 잔존은 **§3.4 신설
@@ -287,14 +295,14 @@ D-079 ⑥과 정면 충돌하고, [`install-sap-assets.md`](../../interactive/co
 | ☑ `core/procedures/create-object.md` | 30/108 → **5** | — | `skills/create-object/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 펜스3·표1·산문0 |
 | ☑ `core/procedures/spro-lookup.md` | 20/72 → **6** | — | `common/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 펜스1·인용2·산문0(회수 후) |
 | ☑ `core/procedures/deep-interview.md` | 11/39 → **0** | — | `skills/deep-interview/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: — |
-| ☑ `core/procedures/review-checklist.md` | 43/167 → **24** | — | `skills/create-program/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 체크박스 규범항 24 — §7 하위 의도적 보류 |
+| ☑ `core/procedures/review-checklist.md` | 43/167 → 24 → **0** | — | `skills/create-program/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: — · ~~체크박스 규범항 24 — §7 하위 의도적 보류~~ → **2026-08-24 재저작**(§7~§12 체크박스 44 중 24행 · 재측 0) |
 | ☑ `core/procedures/help-portal-fetch.md` | 5/19 → **2** | — | `common/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 산문2(소액) |
 | ☑ `tools/extract/extract-spro.mjs` | 28/124 → **9** | — | `scripts/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 동일 성격 — 계약 |
 | ☑ `core/procedures/create-program.md` | 58/361 → **43** | — | `skills/create-program/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 펜스11·인용5·열거11·자유산문5 |
 | ☑ `core/procedures/ask-consultant.md` | 9/66 → **6** | — | `skills/ask-consultant/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 펜스1·식별자4·산문1 |
 | ☑ `tools/spec/render-md-images.mjs` | 3/23 → **2** | — | `scripts/spec/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: import 2행 — 모듈 API |
 | ☑ `core/procedures/install-sap-assets.md` | 11/119 → **11** | — | `skills/setup/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: print-verbatim 9·sentinel 1·도구주석1 |
-| ☑ `core/procedures/troubleshooting.md` | 13/222 → **15** | — | `skills/sap-doctor/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 체크박스10·펜스4·식별자1 |
+| ☑ `core/procedures/troubleshooting.md` | 13/222 → 15 → **5** | — | `skills/sap-doctor/**` · **체크 `6e3f5837`** — 2026-08-23 독립 리뷰 2명 통과(RA 절차 16 · RB 코드+지식 15 — 차단 1건(analyze-symptom and/or 한 단어)은 복원 후 해소) · 잔존 정체: 펜스4·식별자1 · ~~체크박스10~~ → **2026-08-24 재저작**(체크박스 11행 — 명부의 10 + 60자 이하라 스캔에 안 잡히던 `ZIF_SAPKIT_CM` 행 1. ⚠ **그 10 중 9는 D-130 개명이 이미 바이트 동일을 깨 놓아** 재저작 직전 스캔값은 15가 아니라 6이었다 — 실제 스캔 하락은 6 → 5) |
 
 **읽는 법**: 비율이 높을수록 원본 문장이 그대로 살아 있다. 구성은 **페르소나 25**
 (26편 중 `sap-doc-specialist.md`만 겹침 3행 미만이라 빠졌다) · **절차 16** ·
@@ -309,6 +317,12 @@ D-079 ⑥과 정면 충돌하고, [`install-sap-assets.md`](../../interactive/co
 측정자마다 ±수 건 흔들린다는 것은 이미 기록돼 있고(D-111 유보 ⓐ — `active-modules`
 48 vs 64 · `extract-customizations` 111 vs 109), **판정을 지는 것은 수치가 아니라 정체
 분류**다(D-110 ⓒ). 둘 중 하나를 「틀린 값」으로 지우지 말 것 — 서로 다른 시점의 실측이다.
+**2026-08-24 체크박스 재저작 뒤의 값**: 비고 합 **~636행**(‑24 ‑10) · 같은 모양의 스캔
+**567행/39파일**. 그 34행 중 스캔이 실제로 세고 있던 것은 **23행**이었다 — 나머지 11행은
+D-130 개명이 이미 바이트 동일을 깨 놓았거나(9행) 60자 컷 아래였다(1행), 그리고
+`review-checklist.md`에서 스캔은 22를 세는데 비고는 24를 적었다(‑1은 60자 아래 1행,
+나머지 1은 백틱 표기만 다른 같은 문장 — 둘 다 재저작했다). **이것도 계통 오차의 한
+사례이지 어느 값의 오류가 아니다.**
 
 ⚠ **`conventions/` 2편이 여기 있는 이유** — `source-repair-protocol.md`(7/7)와
 `abapgit-roundtrip-rule.md`(11/14)는 **D-087 ①이 「이식 후 신설된 자체분」이라 셈 밖으로

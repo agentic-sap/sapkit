@@ -22,7 +22,7 @@ SOFTWARE.
 
 ---
 
-## What this notice covers (2026-08-22 · last revised 2026-08-23 — D-103, D-104, D-112, D-113)
+## What this notice covers (2026-08-22 · last revised 2026-08-24 — D-103, D-104, D-112, D-113)
 
 This file is the **retained upstream notice** for content borrowed from
 `babamba2/superclaude-for-sap` (via the frozen `hjaewon/sc4sap-custom`).
@@ -31,7 +31,7 @@ It is **not the license of the SAPKIT plugin** — that is the repository root
 and nothing above will be: this section only records what is known about the
 subtree it covers.
 
-**It covers the whole `interactive/` subtree.** As of 2026-08-23 the reason it still exists is **the scattered contract lines in the last row below**, not any whole file: every file-sized borrowing has been re-authored (`server/sap-assets/` was the last one — D-130). Two attempts to narrow it to a
+**It covers the whole `interactive/` subtree.** As of 2026-08-24 the reason it still exists is **the scattered contract lines in the last row below**, not any whole file: every file-sized borrowing has been re-authored (`server/sap-assets/` was the last one — D-130). Two attempts to narrow it to a
 file list failed review (a migration class was missed, then the ledger's path
 mapping was found short), and the re-authoring that followed showed why a file
 list is the wrong shape: what remains of the upstream work is not files but
@@ -43,7 +43,7 @@ list is the wrong shape: what remains of the upstream work is not files but
 | Knowledge, industry, country and ABAP-convention content (`copy` ledger) | 170 files | **Re-authored file by file under independent review** (finished 2026-08-18) — except **26 pure reference-table files** (TCode/SPRO tables), which were **verified unchanged** instead: their content is factual data, kept byte-identical on purpose (D-088 ②). |
 | Server-bound utilities and the tool catalog | 6 files | **Replaced or rewritten 2026-08-23**: the catalog is now generated from the engine registry; both utilities were rewritten from scratch. |
 | Personas, procedures, hooks, libs, extraction tools, policies (§3.4 ledger) | 56 files | **Re-authored 2026-08-23** across three reviewed batches. |
-| What still matches the upstream text | **~2,200 lines across ~130 files, outside `server/`** (~600/40 in the §3.4 ledger · ~950/64 in re-authored `copy` files · ~660/25 in the unchanged reference tables — 25 of the 26 show overlap at the 3-line cut) | **Contract lines and reference data, kept deliberately**: tables and TCode/identifier data, output templates and print-verbatim blocks, checklists (re-authoring of these is deferred, not judged done), user-facing trigger phrases and approval keywords, shared-block labels and paths. Almost all explanatory prose has been re-authored — a handful of byte-identical normative sentences remain and are itemized in the ledger. |
+| What still matches the upstream text | **~2,200 lines across ~130 files, outside `server/`** (~570/39 in the §3.4 ledger · ~950/64 in re-authored `copy` files · ~660/25 in the unchanged reference tables — 25 of the 26 show overlap at the 3-line cut) | **Contract lines and reference data, kept deliberately**: tables and TCode/identifier data, output templates and print-verbatim blocks, user-facing trigger phrases and approval keywords, shared-block labels and paths. Almost all explanatory prose has been re-authored — a handful of byte-identical normative sentences remain and are itemized in the ledger. **The checklist items are no longer among them**: the normative checkbox lines that had been deferred rather than judged done (24 in `core/procedures/review-checklist.md`, 11 in `core/procedures/troubleshooting.md`) were re-authored on 2026-08-24, which is what moved the §3.4 figure above. |
 
 The accounting lives in `docs/reference/copy-baseline.md` (§3.4 — 56/56
 checked); the plan and its end-state are `docs/BLUEPRINT.md`.

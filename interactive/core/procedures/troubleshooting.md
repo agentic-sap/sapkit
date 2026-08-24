@@ -39,7 +39,7 @@ Walk the checks in order and report **PASS / FAIL / WARN / SKIP** for each layer
 - [ ] The SAP MCP server is registered and running in your harness's MCP server list
 - [ ] The server bundle exists at `server/server.bundle.cjs` and is **> 1 MB** — a missing/truncated bundle makes the server *appear* registered while every tool call fails
 - [ ] `server/VERSION` is readable — report its first line (engine version + source commit). Missing VERSION with a healthy bundle → WARN only
-- [ ] At least one MCP tool (`GetSession`) responds without error
+- [ ] An MCP tool call (`GetSession`) comes back without an error — one is enough
 
 ### Layer 2 — SAP system connection
 
@@ -61,19 +61,19 @@ Walk the checks in order and report **PASS / FAIL / WARN / SKIP** for each layer
 
 *MCP ADT utilities — required for Screen / GUI Status / Text Element operations:*
 
-- [ ] `SearchObject(ZSAPKIT_ADT_UTILS, FUGR)` — function group exists
-- [ ] `SearchObject(ZSAPKIT_ADT_DISPATCH, FUNC)` — dispatcher function module exists and is RFC-enabled
-- [ ] `SearchObject(ZSAPKIT_ADT_TEXTPOOL, FUNC)` — text pool function module exists and is RFC-enabled
+- [ ] `SearchObject(ZSAPKIT_ADT_UTILS, FUGR)` finds the function group
+- [ ] `SearchObject(ZSAPKIT_ADT_DISPATCH, FUNC)` finds the dispatcher function module, and it is RFC-enabled
+- [ ] `SearchObject(ZSAPKIT_ADT_TEXTPOOL, FUNC)` finds the text pool function module, and it is RFC-enabled
 
 *ALV OOP reuse handlers — consumed by generated ALV programs:*
 
-- [ ] `SearchObject(ZIF_SAPKIT_CM, INTF)` — interface exists
-- [ ] `SearchObject(ZCX_SAPKIT_EXCP, CLAS)` — exception class exists
-- [ ] `SearchObject(ZCL_SAPKIT_CM_OALV, CLAS)` — ALV Grid wrapper exists
-- [ ] `SearchObject(ZCL_SAPKIT_CM_OTREE, CLAS)` — ALV Tree wrapper exists
-- [ ] `SearchObject(ZCL_SAPKIT_CM_ALV_EVENT, CLAS)` — Grid event handler exists
-- [ ] `SearchObject(ZCL_SAPKIT_CM_TREE_EVENT, CLAS)` — Tree event handler exists
-- [ ] `SearchObject(ZCL_SAPKIT_CM_ALV, CLAS)` — main container manager exists
+- [ ] `SearchObject(ZIF_SAPKIT_CM, INTF)` finds the interface
+- [ ] `SearchObject(ZCX_SAPKIT_EXCP, CLAS)` finds the exception class
+- [ ] `SearchObject(ZCL_SAPKIT_CM_OALV, CLAS)` finds the ALV Grid wrapper
+- [ ] `SearchObject(ZCL_SAPKIT_CM_OTREE, CLAS)` finds the ALV Tree wrapper
+- [ ] `SearchObject(ZCL_SAPKIT_CM_ALV_EVENT, CLAS)` finds the Grid event handler
+- [ ] `SearchObject(ZCL_SAPKIT_CM_TREE_EVENT, CLAS)` finds the Tree event handler
+- [ ] `SearchObject(ZCL_SAPKIT_CM_ALV, CLAS)` finds the main container manager
 - [ ] `GetInactiveObjects` returns 0 entries for any of the above — every object must be **active**; created-but-inactive counts as FAIL
 
 Report counts at the layer level, e.g. `utilities: 3/3 installed`, `ALV handlers: 7/7 installed, 7/7 active`. If an object exists but is inactive, flag a WARN with the specific object names.

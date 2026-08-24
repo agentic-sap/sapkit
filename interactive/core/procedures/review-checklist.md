@@ -170,7 +170,7 @@ Context kit: [naming-conventions.md](../knowledge/abap/conventions/naming-conven
 
 - [ ] A Z/Y prefix on every custom object
 - [ ] The module prefix in program / table / class names wherever the convention prescribes one (e.g., `ZMM*` for MM, `ZSD*` for SD)
-- [ ] Include names match `{PROG}_{SUFFIX}` exactly
+- [ ] Every include name reads exactly `{PROG}_{SUFFIX}`
 - [ ] Function group / function module / data element / domain naming tracks the table in the convention
 - [ ] Function Module source follows [function-module-rule.md](../knowledge/abap/conventions/function-module-rule.md) — inline `IMPORTING/EXPORTING/CHANGING/TABLES/EXCEPTIONS` in the `FUNCTION` statement. **Reject when `GetFunctionModule` returns the placeholder `" You can use the template 'functionModuleParameter' to add here the signature!`**, or when the spec calls for parameters but none are declared, or when the body leans on shadow locals (`lv_iv_xxx TYPE ...`) in place of real parameters.
 
@@ -181,66 +181,66 @@ Context kit — **paradigm gate first**: read `Paradigm` out of `interview.md`. 
 Core (clean-code.md, both paradigms):
 - [ ] No `SELECT *` — an explicit field list instead
 - [ ] No `SELECT` inside `LOOP` — reach for `FOR ALL ENTRIES` or a join
-- [ ] `SY-SUBRC` checked after every statement that sets it (SELECT SINGLE, READ TABLE, CALL FUNCTION with EXCEPTIONS)
+- [ ] Every statement that sets `SY-SUBRC` is followed by a check of it (SELECT SINGLE, READ TABLE, CALL FUNCTION with EXCEPTIONS)
 - [ ] The internal table type fits the access pattern (HASHED / SORTED / STANDARD), with no DEFAULT KEY
 - [ ] A secondary key is declared when the SELECT source is a transactional / large table AND downstream access runs on non-primary fields
 - [ ] Large-table SELECTs are preceded by a `COUNT(*)` check + tuning plan when the count > 1M
-- [ ] Backtick string literals for STRING values, `|...|` templates for assembly
-- [ ] Boolean variables typed `ABAP_BOOL`, compared against `abap_true` / `abap_false`, set via `XSDBOOL( )`
-- [ ] Conditions positive, `IS NOT` over `NOT IS`, no empty IF branches
+- [ ] STRING values carry backtick literals; `|...|` templates do the assembly
+- [ ] Booleans declared as `ABAP_BOOL`, tested against `abap_true` / `abap_false`, assigned through `XSDBOOL( )`
+- [ ] Conditions phrased positively, `IS NOT` in place of `NOT IS`, and no IF branch left empty
 - [ ] Explicit typed internal tables preferred over inline `INTO TABLE @DATA(...)` for SELECTs that feed further logic
 - [ ] Inline declarations / modern syntax used where `ABAP_RELEASE` permits — never newer than the configured release
-- [ ] No commented-out code, no debug statements (`BREAK-POINT`, `MESSAGE 'TEST'`)
+- [ ] No code left sitting in a comment, no debug statement left behind (`BREAK-POINT`, `MESSAGE 'TEST'`)
 - [ ] No ratio/percentage arithmetic assigned into narrow DEC/CURR fields (`COMPUTE_BCD_OVERFLOW` is runtime-only — static gates cannot catch it)
 - [ ] Reconciliation/verification outputs do not treat absent values as 0 (empty lookup must not assert "difference = 0")
 
 Paradigm = OOP (clean-code-oop.md):
 - [ ] **Main program structure matches [zsapkit_oop_ex.prog.abap](../knowledge/abap/templates/oop-sample/zsapkit_oop_ex.prog.abap)** — REPORT statement, INCLUDE order, event block layout, two-class bootstrap (`go_data = NEW #( ).` / `go_alv = NEW #( ).`). Any structural deviation must be justified in `spec.md`; otherwise MAJOR finding.
-- [ ] Classes `FINAL` unless designed for inheritance; members `PRIVATE` by default
-- [ ] Methods do one thing, ≤ 30 lines, single abstraction level, ≤ 3 IMPORTING parameters
-- [ ] Methods return one value (`RETURNING` over `EXPORTING`); no boolean input parameters
-- [ ] `NEW #( ... )` over `CREATE OBJECT`; multiple static creation methods over optional constructor params
-- [ ] Exceptions: class-based only; own project super class; wrap foreign `CX_SY_*`; `RAISE EXCEPTION NEW`
-- [ ] Formatting: 120-char line limit, consistent alignment, one statement per line
-- [ ] Tests: given-when-then naming, test publics only, inject doubles via constructor, `LOCAL FRIENDS` only for constructor access
+- [ ] Classes carry `FINAL` unless inheritance was designed in; `PRIVATE` is the default visibility for members
+- [ ] One job per method, at most 30 lines, one abstraction level, at most 3 IMPORTING parameters
+- [ ] A method hands back a single value (`RETURNING` in place of `EXPORTING`); no boolean arrives as an input parameter
+- [ ] `NEW #( ... )` in place of `CREATE OBJECT`; several static creation methods in place of optional constructor params
+- [ ] Exceptions are class-based only, descend from the project's own super class, wrap foreign `CX_SY_*`, and are raised with `RAISE EXCEPTION NEW`
+- [ ] Formatting holds a 120-char line limit, keeps alignment consistent, and puts one statement per line
+- [ ] Tests are named given-when-then, exercise publics only, take their doubles through the constructor, and reach for `LOCAL FRIENDS` only to get at the constructor
 
 Paradigm = Procedural (clean-code-procedural.md):
 - [ ] **Main program structure matches [main-program.abap](../knowledge/abap/templates/procedural-sample/main-program.abap)** — REPORT statement, INCLUDE order (t/s/c/a/o/i/e/f/_tst), event block layout, PBO/PAI modules as one-line `PERFORM` delegators. Any structural deviation must be justified in `spec.md`; otherwise MAJOR finding.
 - [ ] All globals declared in the TOP include only; no `DATA` in PBO/PAI/FORM/EVENT includes
-- [ ] Global / local variables visually distinguishable (`g*` vs `l*` prefix); no local shadows a global
-- [ ] FORM parameters typed (`USING p_a TYPE ...`); `USING` for inputs, `CHANGING` for in/out; no boolean `USING`
+- [ ] Globals and locals are told apart on sight (`g*` vs `l*` prefix); no global is shadowed by a local
+- [ ] Every FORM parameter carries a type (`USING p_a TYPE ...`); inputs go through `USING`, in/out through `CHANGING`; no boolean is passed as `USING`
 - [ ] Screen-bound FORMs end with the `_{screen_no}` suffix; utility FORMs have no suffix
-- [ ] PBO/PAI module bodies are one line (`PERFORM f_...`); logic lives in FORMs, not in modules
+- [ ] A PBO/PAI module body is a single `PERFORM f_...` line; the logic itself sits in the FORM, not in the module
 - [ ] `sy-subrc` checked after every statement that sets it; `CALL FUNCTION` uses the `EXCEPTIONS` clause with `CASE sy-subrc`
-- [ ] No `EXIT` / `STOP` / `LEAVE PROGRAM` used as error handling
-- [ ] Each FORM has a one-line header comment describing inputs / outputs / global side effects
-- [ ] Testing: if the spec requires tests, the testable logic is extracted to `LCL_HELPER` (not left inside FORMs)
+- [ ] `EXIT` / `STOP` / `LEAVE PROGRAM` never stand in for error handling
+- [ ] A one-line header comment sits above each FORM, naming its inputs / outputs / global side effects
+- [ ] Where the spec calls for tests, the testable logic has been pulled out into `LCL_HELPER` rather than left inside the FORMs
 
 ## §9 — ABAP Release Awareness
 
 Context kit: [abap-release-reference.md](../knowledge/abap/conventions/abap-release-reference.md).
 
-- [ ] No syntax used that exceeds the configured `abapRelease` (e.g., no `RAP managed implementation` on a 740 system)
+- [ ] Nothing in the source reaches past the configured `abapRelease` (e.g., no `RAP managed implementation` on a 740 system)
 
 ## §10 — SAP Version Awareness
 
 Context kit: [sap-version-reference.md](../knowledge/abap/conventions/sap-version-reference.md).
 
-- [ ] No S/4-only tables/APIs on ECC (`MATDOC`, `ACDOCA`, `BUT000` for BP)
-- [ ] No ECC-deprecated patterns on S/4 (e.g., `LFA1`/`KNA1` directly when BP is the master record)
+- [ ] Tables/APIs that exist only on S/4 stay out of ECC code (`MATDOC`, `ACDOCA`, `BUT000` for BP)
+- [ ] Patterns S/4 deprecated out of ECC do not appear there (e.g., reading `LFA1`/`KNA1` directly where BP is the master record)
 
 ## §11 — SPRO Lookup Consistency
 
 Context kit: [spro-lookup.md](./spro-lookup.md). Applies to: programs that depend on SPRO/IMG configuration. Verdict `N/A` otherwise.
 
 - [ ] The customizing tables referenced in code match what the module consultant recommended in `.sapkit/program/{PROG}/consult-{module}.md`
-- [ ] No hardcoded org-unit values that should come from customizing
+- [ ] Org-unit values that belong in customizing are not hardcoded
 
 ## §12 — Activation State
 
 Context kit: none — tool evidence only.
 
-- [ ] `GetInactiveObjects` returns 0 entries from the program's object set
+- [ ] `GetInactiveObjects` comes back with 0 entries out of the program's object set
 - [ ] Every object is assigned to the agreed transport request (from `review-request.json.transport`)
 
 ## False-Positive Patterns the Reviewer MUST Reject
