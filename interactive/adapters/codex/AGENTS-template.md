@@ -19,6 +19,11 @@ Always-on rules — non-negotiable:
    consent per call (`<LITE>/core/policies/data-protection/data-extraction-policy.md`).
 6. Writes to SAP happen only after a human-approved spec
    (`<LITE>/core/policies/approval-gates.md`).
+7. If this project root holds a `HANDOFF.md` that carries sapkit's marker
+   (`<!-- sapkit:continuity -->` on line 1 — scan the first 20 lines), read it at the
+   start of the session, and at session end bring it and `RUN-PLAN.md` beside it up to
+   date through the `handoff` skill (`<LITE>/core/procedures/handoff.md`). A same-named
+   file without that marker is out of scope: neither create nor update it.
 
 Working assets:
 
