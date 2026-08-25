@@ -339,6 +339,13 @@ is a default, and none of them follows from another being accepted.
    it containing just that line — again only on approval. Removing the line
    later is the user's own edit: this is their file, so unlike the hook switch
    in item 3 there is no uninstall counterpart.
+   **Do not offer this line while a same-named file is out of scope.** The
+   sentence tells every future session to read `HANDOFF.md` and close with the
+   `handoff` skill — but against an unmarked file that skill will report "out of
+   scope" and stop, every time. A standing instruction that can never be carried
+   out is worse than no instruction. Say instead, once, that the resume point is
+   available the moment that file carries sapkit's marker, or is moved aside, and
+   leave the choice with the user.
 3. **Point at the continuity hook switch** (Claude Code only). It is a
    **separate** switch from 4c's six safety hooks — installing either one never
    installs the other — and like them it is **not** part of the default path;

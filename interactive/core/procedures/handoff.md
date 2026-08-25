@@ -240,6 +240,10 @@ away:
 
 1. Create `archive/HANDOFF-YYYY-MM.md` or `archive/RUN-PLAN-YYYY-MM.md` under the
    project root, `YYYY-MM` being the period the moved records belong to.
+   **When that file already exists — a second relocation inside the same month —
+   append to it.** Never write over it: an archive is the only remaining copy of
+   what it holds, so overwriting one is the deletion this whole step exists to
+   prevent.
 2. Move the settled parts across **whole** — section headings, table rows, and any
    `>` block-quote prefixes intact — so the relocated text still reads as what it was.
 3. Leave one pointer line behind naming the archive file, so the trail is followed in

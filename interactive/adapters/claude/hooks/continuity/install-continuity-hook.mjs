@@ -45,8 +45,16 @@
  *   and keys outside `hooks` are never interpreted — they survive the parse and
  *   re-serialize. Uninstall drops only groups whose command names our script.
  *
- *   Uninstall gives back the file that was found, byte for byte. That needs one
- *   step the other switch does not take: the containers this installer had to
+ *   Uninstall gives back the file that was found, byte for byte — with one
+ *   precondition worth stating plainly, because the promise is narrower than it
+ *   sounds: the bytes come back identical when the file found was already in the
+ *   shape both switches write, two-space JSON with a trailing newline. Against a
+ *   minified or differently-indented settings file the *content* returns intact
+ *   while the formatting is normalised, and a settings file that did not exist at
+ *   all is left behind as `{}` rather than removed. Neither costs the user
+ *   anything; both would make a flat "byte for byte" claim false.
+ *
+ *   Restoring those bytes needs one step the other switch does not take: the containers this installer had to
  *   create — the `SessionStart` array, and `hooks` itself on a settings file
  *   that had none — are removed again once they are empty. Leaving an empty
  *   `"SessionStart": []` behind would be harmless to Claude Code and still a
