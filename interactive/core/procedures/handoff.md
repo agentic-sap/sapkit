@@ -125,6 +125,10 @@ to hide.
 - **Start here** — one paragraph: what is being built or fixed, the state it is in
   right now, and the one thing a reader must know before touching anything. Replace
   the stale sentences; do not stack new ones under them.
+  **The prose may not claim what the status word denies.** Writing that an object
+  "now exists in SAP" while its row says `PROVISIONAL_WRITE` puts two answers in one
+  document, and the reassuring one is upstream of the careful one. Read the paragraph
+  back against the table before you are done, and say the weaker thing.
 - **SAP work status** — one row per object this project has in flight or has
   settled recently: object and type, `DRAFT` / `PROVISIONAL_WRITE` / `COMPLETE`
   (below), the transport id, the profile **alias** it was worked against, and a
