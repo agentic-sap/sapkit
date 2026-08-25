@@ -37,6 +37,13 @@ needs one, **point at it by id** (`KS-003`, `R-009`) in one clause and stop ther
 duplicated paragraph drifts from its original, and the copy is the one the next
 session happens to read.
 
+When the fact was written down somewhere outside sapkit and so has no id, name where
+it lives in one clause instead — a pointer with an address is still a pointer. What
+is not allowed is the paragraph itself. And when a fact also *changes the state* —
+a rule the business finally settled, which unblocks the work — the unblocking
+belongs here and the rule itself belongs to `knowledge`: say that the blocker is
+gone and point at the fact, do not restate it.
+
 ## The ownership marker
 
     <!-- sapkit:continuity -->
@@ -91,6 +98,13 @@ Only from the "both absent" row, or for the missing half of a marked pair.
 3. **Copy the template verbatim, line 1 included**, then replace the placeholder text
    with this project's reality. Placeholders left standing (`<project name>`,
    `ZCL_EXAMPLE`) are worse than an empty section, because they read as content.
+   For `<project name>`, use whatever the user calls this project; nothing on disk
+   is authoritative for it, so take the project directory's own name as the default
+   and say once that you did, so a better name can replace it.
+   One kind of placeholder is not a blank to fill: a template list offered as
+   *examples of the sort of thing that goes here* (the RUN-PLAN template's list of
+   checks that decide something) is guidance. Replace it with the project's real
+   items, or delete it — never invent a project fact to fill an example.
 
 Never create these files as a side effect of doing something else, and never because
 a project "ought to have them". They are proposed when a session is being closed and
@@ -111,9 +125,14 @@ to hide.
 - **Start here** — one paragraph: what is being built or fixed, the state it is in
   right now, and the one thing a reader must know before touching anything. Replace
   the stale sentences; do not stack new ones under them.
-- **SAP work status** — one row per object this session touched: object and type,
-  `DRAFT` / `PROVISIONAL_WRITE` / `COMPLETE` (below), the transport id, the profile
-  **alias** it was worked against, and a short note.
+- **SAP work status** — one row per object this project has in flight or has
+  settled recently: object and type, `DRAFT` / `PROVISIONAL_WRITE` / `COMPLETE`
+  (below), the transport id, the profile **alias** it was worked against, and a
+  short note. **The table is the project's standing state, not this session's
+  diary** — an object left untouched this session keeps its row. Dropping it would
+  erase the only record that it reached `COMPLETE`, and nothing here reconstructs
+  that. A row leaves only when the object stops mattering to the current work, and
+  then it leaves by moving to the archive with the rest of the settled record.
 - **Still open** — what is unfinished and what makes it unfinished, one line each.
   For a blocked item, name the blocker and what or who would clear it.
 - **Next (1–3)** — at most three, each concrete enough to start without deciding
@@ -121,7 +140,9 @@ to hide.
 - **Environment notes** — active profile alias and its tier, the SAP release in use,
   local tools or paths the project depends on, and what a fresh session would
   otherwise get wrong. Aliases and names only.
-- Refresh the `_updated_` date.
+- Refresh the `_updated_` stamp, **date and time**. Two closes on one day are
+  indistinguishable without the clock, and "has this been updated since?" is the
+  first question a returning session asks.
 
 ### `RUN-PLAN.md` — move the queue to its true state
 

@@ -84,4 +84,4 @@ Maintained by the `handoff` skill (`/sapkit:handoff` on Claude Code). This file 
 and never deletes or resets them. Remove the marker comment on the first line and sapkit
 leaves the file alone from then on.
 
-_updated YYYY-MM-DD_
+_updated YYYY-MM-DD HH:MM_

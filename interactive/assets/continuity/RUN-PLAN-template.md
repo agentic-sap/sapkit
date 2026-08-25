@@ -39,7 +39,8 @@ choosing between them is what this table is for.
 **Done when:** <the check that settles it. Name the command, the procedure, or the
 observation that decides pass or fail. "When it works" decides nothing.>
 
-Checks that actually decide something:
+Checks that actually decide something — **examples of the kind, not blanks to
+fill.** Replace them with this project's own, or delete the ones that do not apply:
 
 - the `verify-applied` procedure comes back clean for the objects listed in `HANDOFF.md`;
 - a named ABAP unit test class runs green in SAP;
@@ -51,6 +52,9 @@ Checks that actually decide something:
 When more than one thread of work is live, split **this file** into sections — one per
 thread. Do not split it into more files: two queues in one place stay comparable, two
 files drift apart and the older one starts lying.
+
+**With a single thread of work, delete this whole section** — one queue above is the
+clearer file. It earns its place only from the second thread onward.
 
 ### <workstream name>
 
@@ -72,4 +76,4 @@ Maintained by the `handoff` skill (`/sapkit:handoff` on Claude Code). This file 
 never deletes or resets them. Remove the marker comment on the first line and sapkit
 leaves the file alone from then on.
 
-_updated YYYY-MM-DD_
+_updated YYYY-MM-DD HH:MM_
