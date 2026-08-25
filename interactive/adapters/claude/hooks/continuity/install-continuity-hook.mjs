@@ -4,14 +4,21 @@
  * Claude Code settings.json, or takes it back out again.
  *
  * This is a second, separate switch, and the separation is the point.
- * `install-hooks.mjs` next door wires the six *safety and analysis* hooks: row
- * extraction, tier guard, transport, syntax, offline analysis. Folding a
- * convenience reminder into that bundle would blur what flipping it means — a
- * user who wants a resume-point pointer at session start has not asked for a
- * client-side layer over SAP writes, and a user who wants that layer has not
- * asked to be reminded about Markdown files. So the two switches are wholly
+ * `install-hooks.mjs` one directory up wires the six *safety and analysis*
+ * hooks: row extraction, tier guard, transport, syntax, offline analysis.
+ * Folding a convenience reminder into that bundle would blur what flipping it
+ * means — a user who wants a resume-point pointer at session start has not asked
+ * for a client-side layer over SAP writes, and a user who wants that layer has
+ * not asked to be reminded about Markdown files. So the two switches are wholly
  * independent in both directions: installing this one wires no safety hook, and
  * uninstalling it removes none.
+ *
+ * That separation is why this pair sits in its own `continuity/` directory
+ * rather than beside the safety hooks. `hooks/` is enumerated as "the six safety
+ * hooks and their installer" — by the adapter's README and by the switch test
+ * that checks the installer's marker list against the directory listing — and a
+ * seventh script dropped in there would quietly falsify both. A subdirectory
+ * keeps that reading true without anyone maintaining an exception list.
  *
  * Like the other switch, this one ships unwired. Nothing installs it as a side
  * effect; a person runs it.
@@ -44,6 +51,15 @@
  *   that had none — are removed again once they are empty. Leaving an empty
  *   `"SessionStart": []` behind would be harmless to Claude Code and still a
  *   broken promise, because "off" would no longer be the state we found.
+ *
+ *   ⚠ This is a deliberate difference from `install-hooks.mjs`, which always
+ *   leaves its `hooks.PreToolUse` array in place. The narrow cost is that a user
+ *   who kept an intentionally empty `"SessionStart": []` in their settings
+ *   *before* installing will find it gone after uninstalling: this installer
+ *   cannot tell a container it created from one that was already there, and it
+ *   resolves that ambiguity toward the restore promise. Nothing behaves
+ *   differently as a result — an absent event key and an empty one mean the same
+ *   thing to Claude Code — but the bytes are not what the user typed.
  */
 
 import { existsSync, readFileSync } from 'node:fs';
@@ -52,7 +68,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 // Harness-neutral helper: adapters may depend on the neutral tree, never the
 // other way round.
-import { atomicWriteFileSync } from '../../../scripts/lib/atomic-write.mjs';
+import { atomicWriteFileSync } from '../../../../scripts/lib/atomic-write.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -77,6 +93,7 @@ function locateHookScript(scriptName) {
     'adapters',
     'claude',
     'hooks',
+    'continuity',
     scriptName,
   );
   return existsSync(cached) ? cached : resolve(HERE, scriptName);
@@ -231,4 +248,4 @@ for (const { spec, action, command } of outcomes) {
   console.log(`    ${spec.testHint}`);
 }
 console.log('');
-console.log('[sapkit] The six safety hooks are a separate switch — install-hooks.mjs.');
+console.log('[sapkit] The six safety hooks are a separate switch — ../install-hooks.mjs (one directory up).');

@@ -588,17 +588,22 @@ function extractScriptPath(cmdStr) {
   return token ? token.replace(/["']/g, '') : null;
 }
 
-// 훅 스위치는 하나가 아니다 — 안전훅 6종 번들(`install-hooks.mjs`)과 연속성 훅
-// 전용 스위치(`install-continuity-hook.mjs`)가 서로 독립으로 산다. marker 목록은
-// **두 설치기의 합집합**이어야 배선된 연속성 훅이 ⑧에 보인다.
+// 훅 스위치는 하나가 아니다 — 안전훅 6종 번들(`hooks/install-hooks.mjs`)과 연속성 훅
+// 전용 스위치(`hooks/continuity/install-continuity-hook.mjs`)가 서로 독립으로 산다.
+// 연속성 2종이 하위 디렉터리에 사는 이유는 `hooks/`의 「안전훅 6종 + 그 설치기」라는
+// 열거가 무수정으로 성립하게 두기 위해서다. marker 목록은 **두 설치기의 합집합**이어야
+// 배선된 연속성 훅이 ⑧에 보인다.
 // 한쪽이 없어도 나머지로 계속 간다 — 하나의 부재가 목록 전체를 없애면, 있는 훅까지
 // 못 보고 SKIP으로 떨어진다. 둘 다 없을 때만 빈 목록(= SKIP)이다.
-const HOOK_INSTALLERS = ['install-hooks.mjs', 'install-continuity-hook.mjs'];
+const HOOK_INSTALLERS = [
+  'adapters/claude/hooks/install-hooks.mjs',
+  'adapters/claude/hooks/continuity/install-continuity-hook.mjs',
+];
 
 function sapkitHookMarkers() {
   const markers = [];
-  for (const name of HOOK_INSTALLERS) {
-    const installerPath = path.join(ROOT, 'adapters', 'claude', 'hooks', name);
+  for (const rel of HOOK_INSTALLERS) {
+    const installerPath = path.join(ROOT, ...rel.split('/'));
     if (!fs.existsSync(installerPath)) continue;
     let src;
     try {
@@ -639,7 +644,7 @@ function checkHookWiring() {
   const label = '⑧ SAPKIT 훅 배선';
   const markers = sapkitHookMarkers();
   if (!markers.length) {
-    report('SKIP', code, label, `훅 설치기(${HOOK_INSTALLERS.join(' · ')})를 찾지 못해 marker 목록을 확정할 수 없음`);
+    report('SKIP', code, label, `훅 설치기(${HOOK_INSTALLERS.map((rel) => path.basename(rel)).join(' · ')})를 찾지 못해 marker 목록을 확정할 수 없음`);
     return;
   }
 

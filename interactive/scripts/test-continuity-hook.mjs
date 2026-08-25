@@ -40,8 +40,12 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const INTERACTIVE = path.resolve(HERE, '..');
 const HOOKS_DIR = path.join(INTERACTIVE, 'adapters', 'claude', 'hooks');
-const HOOK = path.join(HOOKS_DIR, 'session-continuity.mjs');
-const INSTALLER = path.join(HOOKS_DIR, 'install-continuity-hook.mjs');
+// 연속성 2종은 `hooks/` 바로 밑이 아니라 `hooks/continuity/`에 산다 — `hooks/`의
+// 「안전훅 6종 + 그 설치기」라는 열거(어댑터 README · test-hook-switch의 전제 단언)가
+// 무수정으로 성립하게 두려고 디렉터리로 갈랐다.
+const CONTINUITY_DIR = path.join(HOOKS_DIR, 'continuity');
+const HOOK = path.join(CONTINUITY_DIR, 'session-continuity.mjs');
+const INSTALLER = path.join(CONTINUITY_DIR, 'install-continuity-hook.mjs');
 const SAFETY_INSTALLER = path.join(HOOKS_DIR, 'install-hooks.mjs');
 
 // 계약 상수 — 템플릿(`interactive/assets/continuity/`)이 정본이고 여기서는 인용만 한다.
@@ -282,9 +286,9 @@ console.log('\nS4. 시험 밖(사용자 실제 settings) 무접촉');
     `대상=${fakeSettings} · 존재=${fs.existsSync(fakeSettings)}`,
   );
   ok(
-    '마켓캐시 부재 시 command가 레포 훅 경로로 폴백한다',
-    fakeText.includes(HOOKS_DIR.replace(/\\/g, '/')),
-    'locateHookScript 폴백 확인',
+    '마켓캐시 부재 시 command가 레포 hooks/continuity/ 경로로 폴백한다',
+    fakeText.includes(CONTINUITY_DIR.replace(/\\/g, '/')),
+    'locateHookScript 폴백 확인 — 하위 디렉터리 segment 포함',
   );
 
   runInstaller(['--uninstall']);

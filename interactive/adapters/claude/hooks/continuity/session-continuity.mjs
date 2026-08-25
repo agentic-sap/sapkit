@@ -51,7 +51,7 @@
 
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { readStdin } from '../lib/stdin.mjs';
+import { readStdin } from '../../lib/stdin.mjs';
 
 // `{ continue: true, suppressOutput: true }` is the "nothing to say" answer:
 // the session proceeds and the user sees no hook chatter.

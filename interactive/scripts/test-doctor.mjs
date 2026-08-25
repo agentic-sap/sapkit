@@ -419,6 +419,7 @@ console.log('\nT9. SAPKIT 훅 배선 상태(사용자+프로젝트) — marker �
   const proj = tmpDir('t9-project');
   const home = tmpDir('t9-home');
   const realHook = (name) => path.join(HOOKS_DIR, name).replace(/\\/g, '/');
+  const posix = (full) => full.split(path.sep).join('/');
 
   // 사용자 settings: block-forbidden-tables만 실재 경로로, tier-readonly-guard는 죽은 경로로.
   writeJson(path.join(home, '.claude', 'settings.json'), {
@@ -431,20 +432,30 @@ console.log('\nT9. SAPKIT 훅 배선 상태(사용자+프로젝트) — marker �
   });
   // 프로젝트 settings: 훅 전종을 실재 경로로 배선.
   // 분모는 doctor가 세는 marker 수다 — doctor는 **훅 설치기 전부의 합집합**에서
-  // marker를 뽑으므로(안전훅 6종 번들 + 연속성 전용 스위치), 여기서 6을 못박으면
-  // 스위치가 하나 늘 때마다 시험이 조용히 틀어진다.
-  const HOOK_FILES = fs.readdirSync(HOOKS_DIR).filter((f) => f.endsWith('.mjs') && !f.startsWith('install-'));
+  // marker를 뽑으므로(`hooks/`의 안전훅 6종 번들 + `hooks/continuity/`의 연속성 전용
+  // 스위치), 여기서 6을 못박으면 스위치가 하나 늘 때마다 시험이 조용히 틀어진다.
+  // 훅이 하위 디렉터리에도 살므로 열거는 재귀다 — `hooks/`만 훑으면 연속성 훅을 놓친다.
+  const hookScripts = [];
+  const installerScripts = [];
+  (function walk(dir) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.name.endsWith('.mjs')) {
+        (entry.name.startsWith('install-') ? installerScripts : hookScripts).push(full);
+      }
+    }
+  })(HOOKS_DIR);
   const MARKERS = [
     ...new Set(
-      fs
-        .readdirSync(HOOKS_DIR)
-        .filter((f) => f.startsWith('install-') && f.endsWith('.mjs'))
-        .flatMap((f) => [...fs.readFileSync(path.join(HOOKS_DIR, f), 'utf8').matchAll(/marker:\s*'([^']+)'/g)].map((m) => m[1])),
+      installerScripts.flatMap((f) =>
+        [...fs.readFileSync(f, 'utf8').matchAll(/marker:\s*'([^']+)'/g)].map((m) => m[1]),
+      ),
     ),
   ];
   writeJson(path.join(proj, '.claude', 'settings.json'), {
     hooks: {
-      PreToolUse: HOOK_FILES.map((f) => ({ matcher: 'x', hooks: [{ type: 'command', command: `node "${realHook(f)}"` }] })),
+      PreToolUse: hookScripts.map((f) => ({ matcher: 'x', hooks: [{ type: 'command', command: `node "${posix(f)}"` }] })),
     },
   });
 
