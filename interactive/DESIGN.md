@@ -151,12 +151,14 @@ sc4sap-lite/
                                           파일은 폐지. 경위는 결정 로그)
       setup.md  troubleshooting.md     ← 온보딩 마법사 · 하네스 중립 진단/운용
       install-sap-assets.md            ← SAP측 헬퍼 오브젝트 설치
+      handoff.md                       ← 세션 마감: 프로젝트 루트 HANDOFF.md·RUN-PLAN.md 갱신
+                                          (사용자 데이터 · fail-closed 소유권 확인)
       spro-lookup.md  customization-lookup.md  help-portal-fetch.md
                                        ← 조회 보조 절차 (SPRO 경로 · Customizing 값 · 공식 문서)
       schemas/                         ← approval·review-request·review-result·verification 스키마
                                           (승인 = spec 해시 + SID/client + transport에 결합)
 
-      계 22개 (`.md` 실측). 이 중 17개가 스킬 진입점으로도 노출된다 — 절차 수 ≠ 스킬 수.
+      계 23개 (`.md` 실측). 이 중 18개가 스킬 진입점으로도 노출된다 — 절차 수 ≠ 스킬 수.
     policies/
       knowledge-sourcing.md            ← 성숙층 사다리(D-059): RULES→지식원자→스냅샷→볼트→번들
                                           우선순위·읽기 의무·write-back — 전 페르소나·절차 우산
@@ -273,8 +275,8 @@ adapters/claude/lib/                     ← 프로파일 해석·stdin 등 **Cl
                                              atomic-write.mjs가 그래서 저쪽에 산다)
 ```
 
-**스킬·에이전트는 어댑터가 아니라 플러그인 루트가 소유한다** — 실측: `skills/` 17개
-(절차 22개 중 진입점으로 노출되는 것들의 얇은 래퍼, "core/procedures/X.md를 읽고 수행"
+**스킬·에이전트는 어댑터가 아니라 플러그인 루트가 소유한다** — 실측: `skills/` 18개
+(절차 23개 중 진입점으로 노출되는 것들의 얇은 래퍼, "core/procedures/X.md를 읽고 수행"
 수준) · `agents/` 2개(`sap-reviewer` read-only 리뷰 패스용 · `sap-worker` P2/P4 차단,
 execution_owner=delegated 실행체 — D-051). 3사가 같은 실물을 공유하므로 어댑터별 복제는
 없다(§4-1 계약 3).
