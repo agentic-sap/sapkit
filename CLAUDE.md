@@ -247,7 +247,7 @@ node interactive/scripts/gen-plugin-manifests.mjs --check # 생성물 7종(매�
 node interactive/scripts/check-runtime-path-rename.mjs   # 구 세대 경로 토큰 재등장 금지 + 안전 앵커 7종
 node interactive/scripts/conformance-runtime-dir.mjs     # 경로 해석 적합성 (fixture 26 · assert 138 · 안전 회귀 5종)
 node interactive/scripts/verify-checker.mjs              # 동봉 검사기 번들 무결성·출처 (번들 바이트·버전 3자·소스 커밋·소스 해시)
-node interactive/scripts/check-doc-size.mjs              # 웜 레이어 줄 수 상한 (HANDOFF ≤500 · RUN-PLAN ≤300 — 판B 신설)
+node interactive/scripts/check-doc-size.mjs --file HANDOFF.md:500:docs/reference/handoff-archive/ --file docs/RUN-PLAN.md:300:docs/reference/run-archive/  # 웜 레이어 줄 수 상한 (대상=인자 · 부재=위반 · 무인자면 exit 2)
 node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (로컬 전용 — 설치 상태를 읽는다)
 ```
 
@@ -256,7 +256,7 @@ node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (�
 `test-hook-decisions.mjs` 74케이스 ·
 `test-setup-state.mjs` 120/120 · `test-launch-toolsurface.mjs` 56/56 ·
 `test-codex-wire-mcp.mjs` 51/51 · `test-doctor.mjs` 47/47 ·
-`test-verify-checker.mjs` 21/21 · `test-check-doc-size.mjs` 9/9.
+`test-verify-checker.mjs` 21/21 · `test-check-doc-size.mjs` 15/15.
 **PowerShell로 실행할 것** — Bash로 돌리면 자식 프로세스 수거에서 블록된다.
 
 **공방 훅층도 음성시험을 갖는다**(제품이 아니라 이 레포의 개발 세션을 지키는 층 —
