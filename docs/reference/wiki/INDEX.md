@@ -120,12 +120,17 @@
   — BTP ABAP trial 시스템에서 그랜트별 ADT 개방 범위를 실측한 채록(판M2-b, 재현 수단
   포함).
 
-### templates/ (2)
+### templates/ (3)
 
 - [review-gate-plan-conventions.md](../templates/review-gate-plan-conventions.md) —
   harness-plan이 phase를 계획할 때 리뷰 스텝을 실제 게이트로 성립시키는 배선 규약.
 - [review-step.md](../templates/review-step.md) — attended P3 write 직전 새-컨텍스트
   리뷰 게이트의 스텝 템플릿. run 계획 시 플레이스홀더를 채워 복사해 쓴다.
+- [review-verdict.schema.json](../templates/review-verdict.schema.json) — **이 절에서
+  유일한 비-`.md` 파일**(그래서 위키 게이트의 고아 검출 분모에도 들지 않는다 — 사람이
+  적어 두지 않으면 기계가 영영 못 잡는 자리다). 위 리뷰 스텝이 쓰는
+  `review-verdict.json`의 JSON Schema(draft-07 · run 축 v2)로, 판정 값·리뷰 대상 해시·
+  reviewer의 P0/P1 경계 서약·발견 항목 형식을 필드 단위로 규정한다.
 
 ## ③ 아카이브 2종
 
