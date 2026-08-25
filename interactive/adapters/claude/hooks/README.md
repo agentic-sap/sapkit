@@ -154,6 +154,48 @@ marker 기준으로 SAPKIT 훅만 제거하고 다른 훅·설정 키는 그대�
 ⚠ **라벨은 시험이 잰다** — `test-hook-decisions.mjs`가 판정 이유의 부분 문자열을
 대소문자 그대로 대조한다(예: `TRANSPORT CHECK`). 라벨을 고치면 그 케이스도 함께 고칠 것.
 
+## 연속성 스위치 — 안전훅이 아니다 (별개 편의 기능)
+
+**이 훅은 위 6종에 속하지 않는다.** 안전 판정을 하지 않고, 무엇도 막지 못하며, 설치기도
+따로다. 6종은 `install-hooks.mjs`가, 이 하나는 `continuity/install-continuity-hook.mjs`가
+각각 **자기 것만** upsert·제거한다 — 이 스위치를 켜거나 끄는 일이 안전훅 6종의 배선을
+건드리지 않고, 그 반대도 마찬가지다. 6종 번들과 그 시험 계약은 이 절과 무관하다.
+
+- **자리**: `adapters/claude/hooks/continuity/session-continuity.mjs`
+- **이벤트**: `SessionStart` (matcher `startup`\|`resume`\|`clear`\|`compact`)
+- **본질**: 세션 시작 시 **짧은 포인터 한 줄**을 주입한다 — "이 프로젝트에 재개점이 있다".
+  **파일의 내용은 싣지 않는다.** 읽고 갱신하는 것은 `handoff` 스킬(`/sapkit:handoff`)의
+  몫이다 — 정본 절차 [core/procedures/handoff.md](../../../core/procedures/handoff.md).
+- **말하는 자리는 하나뿐**: 프로젝트 루트에 1행 마커 `<!-- sapkit:continuity -->`를 가진
+  `HANDOFF.md`가 있을 때(탐지는 앞 20줄 스캔). 파일이 없거나, 동명 파일에 그 마커가
+  없거나, 읽지 못하면 — **나머지 상태는 전부 침묵**이다. 마커 없는 동명 파일은 범위
+  밖이라 sapkit이 만들지도 갱신하지도 않는다.
+- **실패 모드**: fail OPEN. 조언(advisory)이라 **차단 능력 자체가 없다** — 이 훅의 오작동이
+  도구 호출을 막는 경로는 존재하지 않는다.
+- **출력 표기**: 위 [출력 표기 규약](#출력-표기-규약-고칠-때-지킬-것)의 **갈래 ② 조언
+  태그** — `[SAPKIT CONTINUITY]`. 규약 본문은 그 절이 정본이다.
+
+6종과 마찬가지로 **기본은 미배선**이다. 어떤 설치 경로도 이 스위치를 알아서 켜지 않으며,
+켜는 것은 사용자가 아래 명령을 실행했을 때뿐이다.
+
+### 설치 · 제거 · 검증
+
+```
+node "<PLUGIN_ROOT>/adapters/claude/hooks/continuity/install-continuity-hook.mjs"              # 사용자 설정 (~/.claude/settings.json)
+node "<PLUGIN_ROOT>/adapters/claude/hooks/continuity/install-continuity-hook.mjs" --project .  # 프로젝트 설정
+```
+
+제거는 둘 중 어느 쪽이든 `--uninstall`을 덧붙인다:
+
+```
+node "<PLUGIN_ROOT>/adapters/claude/hooks/continuity/install-continuity-hook.mjs" --uninstall
+node "<PLUGIN_ROOT>/adapters/claude/hooks/continuity/install-continuity-hook.mjs" --project . --uninstall
+```
+
+검증: `node interactive/scripts/doctor.mjs`의 "⑧ SAPKIT 훅 배선" 검사가 이 스위치도 함께
+본다(6종과 같은 세 설정 파일 스캔). 판정 규칙도 같다 — **미배선은 INFO**(정상 · 결함
+아님)이고, 배선돼 있는데 command 경로가 죽었을 때만 WARN이다.
+
 ## 관련 문서
 
 - [core/procedures/setup.md](../../../core/procedures/setup.md) — Step 4c(설치 안내)·

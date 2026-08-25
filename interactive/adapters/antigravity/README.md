@@ -63,6 +63,19 @@ Antigravity에서는 마법사가 이 README의 해당 절(MCP 수동 등록)로
 [core/policies/sap-standards.md](../../core/policies/sap-standards.md)의 Always-on
 summary 섹션만 복사한다 (파일당 12,000자 한도 — 요약만, 상세는 경로 참조).
 
+## 세션 간 연속성 (HANDOFF.md · RUN-PLAN.md)
+
+사용자 SAP 프로젝트 루트의 재개점 2종 — `HANDOFF.md`(어디까지 갔는가)와
+`RUN-PLAN.md`(다음 큐) — 은 `handoff` 스킬이 관리한다. **Antigravity에는 훅 등가물이
+없다** — 세션 시작 훅은 Claude Code에만 있는 기제이므로, 그 자리를 대신하는 것은 위
+Rules 절의 **정적 안내**다. 같은 rules 파일에 한 줄을 함께 적어 둔다: "세션 시작 시 마커
+있는 `HANDOFF.md`를 읽고, 마감할 때 `handoff` 스킬로 `RUN-PLAN.md`까지 갱신한다."
+
+대상은 sapkit이 세운 재개점뿐이다 — 1행에 마커 `<!-- sapkit:continuity -->`가 없는 동명
+파일은 범위 밖이라 만들지도 갱신하지도 않는다. 소유권 판정·승인 관문·줄 수 상한
+(`HANDOFF.md` 500 · `RUN-PLAN.md` 300, 초과 시 `archive/`로 이관 — 삭제 아님)의 정본은
+[core/procedures/handoff.md](../../core/procedures/handoff.md).
+
 ## 로컬 오프라인 검증 — SAPKIT 검사기 (동봉)
 
 SAP 반영 전 `.abap`을 로컬에서 미리 점검하는 **SAPKIT 검사기**는 플러그인에 함께
