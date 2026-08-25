@@ -103,6 +103,23 @@ and budget mechanics live in [ask-consultant](procedures/ask-consultant.md)
                                absent directory → continue silently.
 ```
 
+Two more live at the **project root**, not under `.sapkit/` — they are meant to be
+read by a person opening the folder, so they sit where a person looks:
+
+```
+HANDOFF.md    ← handoff procedure artifact: where the work got to (a snapshot,
+                rewritten in place). Carries `<!-- sapkit:continuity -->` on line 1.
+RUN-PLAN.md   ← handoff procedure artifact: the work queue, exactly one `next` row.
+                Same marker on line 1.
+archive/      ← where records relocated out of those two go once they pass their
+                size caps (500 / 300 lines). Relocated, never deleted.
+```
+
+**The marker is what makes them ours.** A same-named file without it — someone's own
+`HANDOFF.md` — is out of scope: sapkit neither creates, updates, nor measures it, and
+a read failure resolves the same way. Removing the marker is how a user takes the file
+back. Full rules: procedures/handoff.md.
+
 ## Consumption contract — the layers that mature
 
 The state above is not an archive; it is the project getting smarter. Every

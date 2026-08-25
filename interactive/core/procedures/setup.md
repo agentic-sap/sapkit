@@ -183,10 +183,13 @@ missing or broken, and never rewrite a healthy existing artifact.
    plan/confirm/apply round-trip as Step 2, kept as its own confirmed action
    rather than folded into Step 2's.
 
-## Step 4 — Optional: Permission Template, SAPKIT Checker, and Safety Hooks
+## Step 4 — Optional: Permission Template, SAPKIT Checker, Safety Hooks, and Session Continuity
 
-The two switches below (4a, 4c) are optional and independent — skip whichever
-the user doesn't want. 4b installs nothing; it is one paragraph of orientation.
+The switches below — 4a, 4c, and the hook switch inside 4d — are optional and
+independent of one another; skip whichever the user doesn't want. 4b installs
+nothing; it is one paragraph of orientation. 4d's other two offers are not
+switches at all: they write into the user's own project, and are just as
+optional as the rest.
 
 On Claude Code (`PLUGIN_ROOT` below = the plugin root the skill wrapper resolved —
 the directory containing `core/` and `adapters/`; the shell's working directory
@@ -275,6 +278,103 @@ detail (what each hook restores, what's already protected without it) is in
    `install-hooks.mjs --uninstall` (add `--project .` to target the project
    scope that was found instead of the user scope).
 
+### 4d. Session continuity (optional)
+
+Session continuity is two files at the **project root** — `HANDOFF.md` (where
+the work got to) and `RUN-PLAN.md` (the queue) — kept current by the
+[handoff](./handoff.md) skill (`/sapkit:handoff` on Claude Code) so the next
+session does not start from an empty context. Each file carries the ownership
+marker `<!-- sapkit:continuity -->` on line 1, and a read scans the **first 20
+lines** for it.
+
+Items 2 and 3 below are Claude Code only — skip them entirely on Codex or
+Antigravity (neither has a `CLAUDE.md` to add a line to, nor a pre-call hook
+mechanism) and point the user at the matching section of their adapter README
+instead: [adapters/codex/README.md](../../adapters/codex/README.md) or
+[adapters/antigravity/README.md](../../adapters/antigravity/README.md). Item 1
+is harness-neutral — the two files are plain Markdown the user reads themselves.
+
+**Report the verdict before offering anything.** Read both files at the project
+root and apply the ownership decision table in
+[handoff §1](./handoff.md#1-decide-ownership--fail-closed) — that table is the
+authority here, not a copy of it. Its three rows in short:
+
+| Situation | What this step may offer |
+|---|---|
+| Both absent | The pair (item 1) |
+| Any same-named file is unmarked | Nothing for that file — it is out of scope |
+| Only marked files (one or both) | Already set up; the absent half alone |
+
+A read failure resolves to **unmarked**. Say what you found, once, then move on.
+
+The three offers below are independent and each needs its own explicit yes. None
+is a default, and none of them follows from another being accepted.
+
+1. **Create the resume-point pair** (any harness). Offer this only from the
+   table's first row, or for the absent half of a marked pair. Copy
+   [HANDOFF-template.md](../../assets/continuity/HANDOFF-template.md) and
+   [RUN-PLAN-template.md](../../assets/continuity/RUN-PLAN-template.md) —
+   shipped at `PLUGIN_ROOT/assets/continuity/` — to the project root, marker
+   line included. State the target paths and one line each on what the file is
+   for, get an explicit yes, then write; nothing touches disk before the
+   answer. **When a same-named file exists unmarked, this offer is not made at
+   all** — say once which file it is and that it carries no sapkit marker, then
+   go on to item 2 without repeating it there. Never write a template over an existing file, whatever it
+   contains. Mention once that the `handoff` skill keeps these readable by size
+   caps — `HANDOFF.md` 500 lines, `RUN-PLAN.md` 300 — and that going over
+   relocates settled records to `archive/` rather than deleting anything.
+2. **Add a one-line pointer to the project's `CLAUDE.md`** (Claude Code only).
+   Offer to append exactly this English line:
+   ```
+   When this project root holds a `HANDOFF.md` carrying sapkit's marker (`<!-- sapkit:continuity -->` on line 1), read it at session start, and at session end bring it and `RUN-PLAN.md` up to date through the `handoff` skill. A same-named file without that marker is out of scope.
+   ```
+   **Additive and idempotent.** Never rewrite, reorder, or reflow anything
+   already in that file — append the line and change nothing else. The
+   duplicate check is an **exact-string match**: compare that line, whitespace
+   trimmed, against every line of the file; if it is already there, say so and
+   write nothing. Naming the check is what makes a re-run predictable — a
+   reworded or hand-edited copy will not match, so this step would offer the
+   canonical line again; point that out and leave the user's wording alone
+   rather than "repairing" it. If `CLAUDE.md` does not exist, offer to create
+   it containing just that line — again only on approval. Removing the line
+   later is the user's own edit: this is their file, so unlike the hook switch
+   in item 3 there is no uninstall counterpart.
+   **The line carries its own condition, and that is deliberate.** It is written
+   to hold whatever the project looks like later, because the state it depends on
+   is the user's to change: they can delete the marker — the product advertises
+   that as the way to take a file back — or drop their own `HANDOFF.md` in next
+   month. An unconditional sentence would then order every session to read a file
+   sapkit will refuse to touch, and a standing instruction that can never be
+   carried out is worse than none. This mirrors the Codex merge block's rule 7,
+   which is gated the same way for the same reason.
+   Still say once, out loud, what the current state is: with a same-named file
+   out of scope, that the resume point starts working the moment that file carries
+   sapkit's marker or is moved aside — **and that from then on the closing skill
+   rewrites `HANDOFF.md` in place as a snapshot rather than appending to it.**
+   Someone marking a long hand-written file needs to hear that before, not after.
+   Then leave the choice with the user.
+3. **Point at the continuity hook switch** (Claude Code only). It is a
+   **separate** switch from 4c's six safety hooks — installing either one never
+   installs the other — and like them it is **not** part of the default path;
+   say that plainly. What it does: at session start it injects a short pointer
+   at the resume point, and only when a marked `HANDOFF.md` is present;
+   otherwise it stays silent. If the user asks for it, show the one-line
+   install (project scope):
+   ```
+   node "PLUGIN_ROOT/adapters/claude/hooks/continuity/install-continuity-hook.mjs" --project .
+   ```
+   Omit `--project .` to install into the user-level `~/.claude/settings.json`
+   instead; add `--uninstall` to remove it. The installer is
+   `install-continuity-hook.mjs`, the hook it registers is
+   `session-continuity.mjs`, the event is `SessionStart`, and all of it lives
+   under `PLUGIN_ROOT/adapters/claude/hooks/continuity/`. **Run it only after
+   the user asks — never automatically.**
+
+If your installed plugin cache turns out not to contain `assets/continuity/` or
+`adapters/claude/hooks/continuity/`, downgrade the affected offer to guidance —
+name what is missing and say so plainly rather than failing silently, the same
+fallback as this step's intro.
+
 ## Step 5 — Restart Guidance
 
 Tell the user if the MCP server needs to pick up new state before Step 6 can
@@ -324,7 +424,13 @@ to Step 6.
    path that actually exists on disk — a dead path means the hook is silently
    inactive (report as FAIL for that hook); a 2026-07-23 dogfood found 2 hooks
    pointing at a vanished `marketplaces/sc4sap/` path and 337 dead-namespace
-   permission entries, all silent.
+   permission entries, all silent. The continuity hook from Step 4d is covered
+   by that same rule **when it is wired**: a `SessionStart` entry pointing at
+   `session-continuity.mjs` gets its script path checked exactly like the six
+   safety hooks, and a dead path there is the same FAIL. **Not wired is the
+   normal state, not a finding** — every hook here is opt-in, so an absent
+   continuity entry (like absent safety-hook entries) is reported as absent and
+   nothing more.
 4. Also run `node "PLUGIN_ROOT/scripts/doctor.mjs"` for its 3-client sync
    checks (bundle integrity, adapter/compatibility drift, hook-wiring
    script-path check) and fold any FAILs into the report.

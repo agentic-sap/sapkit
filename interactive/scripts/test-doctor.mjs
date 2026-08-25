@@ -419,6 +419,7 @@ console.log('\nT9. SAPKIT 훅 배선 상태(사용자+프로젝트) — marker �
   const proj = tmpDir('t9-project');
   const home = tmpDir('t9-home');
   const realHook = (name) => path.join(HOOKS_DIR, name).replace(/\\/g, '/');
+  const posix = (full) => full.split(path.sep).join('/');
 
   // 사용자 settings: block-forbidden-tables만 실재 경로로, tier-readonly-guard는 죽은 경로로.
   writeJson(path.join(home, '.claude', 'settings.json'), {
@@ -429,18 +430,39 @@ console.log('\nT9. SAPKIT 훅 배선 상태(사용자+프로젝트) — marker �
       ],
     },
   });
-  // 프로젝트 settings: 6종 전부 실재 경로로 배선.
-  const HOOK_FILES = fs.readdirSync(HOOKS_DIR).filter((f) => f.endsWith('.mjs') && f !== 'install-hooks.mjs');
+  // 프로젝트 settings: 훅 전종을 실재 경로로 배선.
+  // 분모는 doctor가 세는 marker 수다 — doctor는 **훅 설치기 전부의 합집합**에서
+  // marker를 뽑으므로(`hooks/`의 안전훅 6종 번들 + `hooks/continuity/`의 연속성 전용
+  // 스위치), 여기서 6을 못박으면 스위치가 하나 늘 때마다 시험이 조용히 틀어진다.
+  // 훅이 하위 디렉터리에도 살므로 열거는 재귀다 — `hooks/`만 훑으면 연속성 훅을 놓친다.
+  const hookScripts = [];
+  const installerScripts = [];
+  (function walk(dir) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.name.endsWith('.mjs')) {
+        (entry.name.startsWith('install-') ? installerScripts : hookScripts).push(full);
+      }
+    }
+  })(HOOKS_DIR);
+  const MARKERS = [
+    ...new Set(
+      installerScripts.flatMap((f) =>
+        [...fs.readFileSync(f, 'utf8').matchAll(/marker:\s*'([^']+)'/g)].map((m) => m[1]),
+      ),
+    ),
+  ];
   writeJson(path.join(proj, '.claude', 'settings.json'), {
     hooks: {
-      PreToolUse: HOOK_FILES.map((f) => ({ matcher: 'x', hooks: [{ type: 'command', command: `node "${realHook(f)}"` }] })),
+      PreToolUse: hookScripts.map((f) => ({ matcher: 'x', hooks: [{ type: 'command', command: `node "${posix(f)}"` }] })),
     },
   });
 
   const r = runDoctor({ cwd: proj, home, stubbed: false });
   const chk = findCheck(r.json, 'HOOK_WIRING');
-  ok('사용자 스코프: 2/6 배선 + 죽은 경로 1건 언급', /사용자: marker 2\/6/.test(chk?.evidence ?? '') && (chk?.evidence ?? '').includes('죽은 경로 1건'), chk?.evidence);
-  ok(`프로젝트 스코프: ${HOOK_FILES.length}/6 활성 언급`, chk?.evidence?.includes(`marker ${HOOK_FILES.length}/6 활성`), chk?.evidence);
+  ok(`사용자 스코프: 2/${MARKERS.length} 배선 + 죽은 경로 1건 언급`, new RegExp(`사용자: marker 2/${MARKERS.length}`).test(chk?.evidence ?? '') && (chk?.evidence ?? '').includes('죽은 경로 1건'), chk?.evidence);
+  ok(`프로젝트 스코프: ${MARKERS.length}/${MARKERS.length} 활성 언급`, chk?.evidence?.includes(`marker ${MARKERS.length}/${MARKERS.length} 활성`), chk?.evidence);
   ok('죽은 경로가 있으면 전체 WARN', chk?.status === 'WARN', JSON.stringify(chk));
   ok('remediation이 재설치/--uninstall을 안내', (chk?.remediation ?? '').includes('--uninstall'), chk?.remediation);
   ok('훅 배선 자체는 FAIL을 내지 않는다(설계상 WARN 상한, 새 FAIL 없음)', chk?.status !== 'FAIL' && onlyBundleFails(r.json), `summary=${JSON.stringify(r.json?.summary)}`);

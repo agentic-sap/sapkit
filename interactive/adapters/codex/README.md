@@ -2,7 +2,7 @@
 
 Codex 플러그인은 Claude와 동형이다 — 같은 레포 루트가 플러그인 루트이고,
 `.codex-plugin/plugin.json` + `.agents/plugins/marketplace.json`이 매니페스트다.
-같은 `skills/` 래퍼 14개가 그대로 쓰인다 (SKILL.md 형식이 양사 공통 — L0/L4 실측).
+같은 `skills/` 래퍼가 그대로 쓰인다 (SKILL.md 형식이 양사 공통 — L0/L4 실측).
 
 빠른 시작: 설치 후 `setup` 스킬을 실행하면 SAP 연결 파일(프로파일·`.sapkit/` 2개)
 생성과 자가 점검을 대화형으로 대신한다 — Codex의 MCP 배선도 이제 setup Step 0이
@@ -171,6 +171,19 @@ Codex에는 훅이 없으므로 필요할 때 위 명령을 직접 부른다. �
 
 `AGENTS-template.md`의 내용을 대상 SAP 프로젝트의 `AGENTS.md`에 병합한다
 (합산 32KiB 한도 — 템플릿은 요약+포인터만).
+
+## 세션 간 연속성 (HANDOFF.md · RUN-PLAN.md)
+
+사용자 SAP 프로젝트 루트의 재개점 2종 — `HANDOFF.md`(어디까지 갔는가)와
+`RUN-PLAN.md`(다음 큐) — 은 `handoff` 스킬이 관리한다. **Codex에는 훅 등가물이 없다** —
+세션 시작 훅은 Claude Code에만 있는 기제이므로, 그 자리를 대신하는 것은 **정적 안내**다:
+위 "SAP 프로젝트 루트 AGENTS.md" 절의 병합 블록이 매 세션 자동 로드되고, 그 블록의
+always-on 규칙 7번이 "세션 시작 시 읽고, 마감할 때 `handoff`로 갱신한다"를 담당한다.
+
+대상은 sapkit이 세운 재개점뿐이다 — 1행에 마커 `<!-- sapkit:continuity -->`가 없는 동명
+파일은 범위 밖이라 만들지도 갱신하지도 않는다. 소유권 판정·승인 관문·줄 수 상한
+(`HANDOFF.md` 500 · `RUN-PLAN.md` 300, 초과 시 `archive/`로 이관 — 삭제 아님)의 정본은
+[core/procedures/handoff.md](../../core/procedures/handoff.md).
 
 ## 안전 모델 주의 (정직성 명시)
 
