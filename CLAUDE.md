@@ -37,7 +37,8 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
   모는 CLI·사용자 abapGit 모두 허용되며, 어느 길로 넣든 정책 등급과 관문은 같다
   (docs/DESIGN.md §3 — powerup 엔진은 트랙 A에서 쓰지 않음).
 - **트랙 B — 대화형 플러그인 (제품, 검증 완료)** = `interactive/` — 하네스 중립 코어(지식
-  `.md` 148·페르소나 26·절차 22·스킬 17·정책) + MCP 서버 번들(**자체 저작 엔진
+  `.md`·페르소나·절차·스킬·정책 — **계수의 정본은 `interactive/plugin-metadata.json`**이고
+  여기 복제하지 않는다) + MCP 서버 번들(**자체 저작 엔진
   `sapkit-engine`** — 버전·바이트·소스 핀의 정본은 `HANDOFF.md` 📌표다(여기 복제하지
   않는다) · 2026-08-19 판7-b 교체(D-095) · 2026-08-23 판M2-a 기동
   토큰 배선(D-114) · 2026-08-23 판M2-b 실측(D-115 — `client_credentials`로는 ABAP ADT가
@@ -256,7 +257,8 @@ node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (�
 `test-hook-decisions.mjs` 74케이스 ·
 `test-setup-state.mjs` 120/120 · `test-launch-toolsurface.mjs` 56/56 ·
 `test-codex-wire-mcp.mjs` 51/51 · `test-doctor.mjs` 47/47 ·
-`test-verify-checker.mjs` 21/21 · `test-check-doc-size.mjs` 15/15.
+`test-verify-checker.mjs` 21/21 · `test-check-doc-size.mjs` 15/15 ·
+`test-continuity-hook.mjs` 30/30.
 **PowerShell로 실행할 것** — Bash로 돌리면 자식 프로세스 수거에서 블록된다.
 
 **공방 훅층도 음성시험을 갖는다**(제품이 아니라 이 레포의 개발 세션을 지키는 층 —

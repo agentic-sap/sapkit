@@ -99,11 +99,15 @@ function pointer(found) {
     `[SAPKIT CONTINUITY] This project keeps a sapkit resume point at HANDOFF.md — read it ` +
       `before starting work: it says where the project got to and what is still open.`,
   ];
-  if (found['RUN-PLAN.md']?.state === 'marked') {
+  const queue = found['RUN-PLAN.md']?.state === 'marked';
+  if (queue) {
     out.push('The work queue is in RUN-PLAN.md beside it.');
   }
+  // "both" only reads as English when the queue file was just named; with a lone
+  // HANDOFF.md the pronoun would have no antecedent.
   out.push(
-    'The `handoff` skill (/sapkit:handoff on Claude Code) rewrites both at the end of a session.',
+    `The \`handoff\` skill (/sapkit:handoff on Claude Code) rewrites ${queue ? 'both' : 'it'} ` +
+      `at the end of a session.`,
   );
   for (const { name, cap } of FILES) {
     const file = found[name];
