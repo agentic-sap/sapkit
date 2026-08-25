@@ -319,14 +319,14 @@ is a default, and none of them follows from another being accepted.
    for, get an explicit yes, then write; nothing touches disk before the
    answer. **When a same-named file exists unmarked, this offer is not made at
    all** — say once which file it is and that it carries no sapkit marker, then
-   go on to item 2. Never write a template over an existing file, whatever it
+   go on to item 2 without repeating it there. Never write a template over an existing file, whatever it
    contains. Mention once that the `handoff` skill keeps these readable by size
    caps — `HANDOFF.md` 500 lines, `RUN-PLAN.md` 300 — and that going over
    relocates settled records to `archive/` rather than deleting anything.
 2. **Add a one-line pointer to the project's `CLAUDE.md`** (Claude Code only).
    Offer to append exactly this English line:
    ```
-   At session start read `HANDOFF.md`, this project's resume point; at session end run the `handoff` skill to bring it and `RUN-PLAN.md` up to date.
+   When this project root holds a `HANDOFF.md` carrying sapkit's marker (`<!-- sapkit:continuity -->` on line 1), read it at session start, and at session end bring it and `RUN-PLAN.md` up to date through the `handoff` skill. A same-named file without that marker is out of scope.
    ```
    **Additive and idempotent.** Never rewrite, reorder, or reflow anything
    already in that file — append the line and change nothing else. The
@@ -339,13 +339,20 @@ is a default, and none of them follows from another being accepted.
    it containing just that line — again only on approval. Removing the line
    later is the user's own edit: this is their file, so unlike the hook switch
    in item 3 there is no uninstall counterpart.
-   **Do not offer this line while a same-named file is out of scope.** The
-   sentence tells every future session to read `HANDOFF.md` and close with the
-   `handoff` skill — but against an unmarked file that skill will report "out of
-   scope" and stop, every time. A standing instruction that can never be carried
-   out is worse than no instruction. Say instead, once, that the resume point is
-   available the moment that file carries sapkit's marker, or is moved aside, and
-   leave the choice with the user.
+   **The line carries its own condition, and that is deliberate.** It is written
+   to hold whatever the project looks like later, because the state it depends on
+   is the user's to change: they can delete the marker — the product advertises
+   that as the way to take a file back — or drop their own `HANDOFF.md` in next
+   month. An unconditional sentence would then order every session to read a file
+   sapkit will refuse to touch, and a standing instruction that can never be
+   carried out is worse than none. This mirrors the Codex merge block's rule 7,
+   which is gated the same way for the same reason.
+   Still say once, out loud, what the current state is: with a same-named file
+   out of scope, that the resume point starts working the moment that file carries
+   sapkit's marker or is moved aside — **and that from then on the closing skill
+   rewrites `HANDOFF.md` in place as a snapshot rather than appending to it.**
+   Someone marking a long hand-written file needs to hear that before, not after.
+   Then leave the choice with the user.
 3. **Point at the continuity hook switch** (Claude Code only). It is a
    **separate** switch from 4c's six safety hooks — installing either one never
    installs the other — and like them it is **not** part of the default path;
