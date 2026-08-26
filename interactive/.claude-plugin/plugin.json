@@ -1,8 +1,8 @@
 {
   "_generated": "⚠️ 생성물 — 직접 편집하지 말 것. 정본은 interactive/plugin-metadata.json (gen-plugin-manifests.mjs)",
   "name": "sapkit",
-  "version": "0.9.0",
-  "description": "SAPKIT — SAP ABAP development and consulting in one plugin: 15 module knowledge packs (14 + BC), 14 industries, 16 countries, ABAP conventions/templates, 26 consultant/role personas (on-demand via INDEX selector), 23 procedures (18 exposed as skills) with human approval + fresh-context review gates, and the bundled ABAP ADT MCP server (155 tools inspection-only / 186 connected). Harness-neutral core plus a thin adapter per harness. Quality model is one worker + one fresh-context reviewer + SAP machine verification (CheckSyntax → Activate → ABAP Unit → ATC); implementation may be delegated to a single fresh worker under the development-loop policy, but review always stays independent.",
+  "version": "0.10.0",
+  "description": "SAPKIT — SAP ABAP development and consulting in one plugin: 15 module knowledge packs (14 + BC), 14 industries, 16 countries, ABAP conventions/templates, 26 consultant/role personas (on-demand via INDEX selector), 24 procedures (19 exposed as skills) with human approval + fresh-context review gates, and the bundled ABAP ADT MCP server (155 tools inspection-only / 186 connected). Harness-neutral core plus a thin adapter per harness. Quality model is one worker + one fresh-context reviewer + SAP machine verification (CheckSyntax → Activate → ABAP Unit → ATC); implementation may be delegated to a single fresh worker under the development-loop policy, but review always stays independent.",
   "author": {
     "name": "hjaewon"
   },
