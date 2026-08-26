@@ -1,0 +1,123 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "verification-offline.schema.json",
+  "title": "Offline Delivery Verification Record",
+  "description": "Written to .sapkit/program/{PROG}/verification-offline.json by the main context when create-program runs its abapGit delivery branch (state.json delivery_path = \"abapgit\"). It is that branch's substitute for verification.json, and the two are never both written: verification.json records CheckSyntax and ActivateObjects, neither of which can exist on a path where the agent never connects to SAP, so a half-filled one would be the exact false machine PASS this design is built to prevent. The steps fill in across the run — offline_analyze and include_check during Phase 4 (the implementation itself is delegated to develop-abapgit.md), import_confirmed at Phase 7 when the user reports the import back, readback at Phase 8 where an MCP read exists. The enums are the contract: the one step whose claim comes from a human deliberately has no PASS value, so an affirmation can never be recorded as a machine result.",
+  "type": "object",
+  "required": ["offline_analyze", "include_check", "import_confirmed", "readback"],
+  "additionalProperties": false,
+  "properties": {
+    "offline_analyze": {
+      "$ref": "#/definitions/step-machine",
+      "description": "The bundled checker's 13-rule offline analysis, run per source written into the abapGit mirror (`analyze <file> --format json`). This is a machine result on files the agent can actually read, so PASS/FAIL only. Judge from the JSON, not the exit code, and treat any finding at severity \"high\" — equivalently summary.score \"warning\" — as FAIL: those are the tops of their scales and there is no \"critical\" above them to hold out for. The full account, including the repair-and-re-check bound, is develop-abapgit.md Step 5."
+    },
+    "include_check": {
+      "$ref": "#/definitions/step-resolution",
+      "description": "The bundled checker's `check <dir>` INCLUDE resolution across the mirror. Machine-run, but its verdict is not always machine-settleable, which is why INCONCLUSIVE exists here and nowhere else in this record: resolution indexes basenames as `<name>.prog.abap`, `<name>.fugr.abap`, or `<name>.abap` and nothing else, so abapGit's function-group member filename form `<fugr>.fugr.<include>.abap` is never indexed at all. On a FUGR mirror that measured gap produces both false-clean and false-defect outcomes, so every unresolved_include on such a mirror is settled by looking at the seed. A verdict that cannot be settled that way is recorded INCONCLUSIVE with the reason in evidence rather than forced into PASS or FAIL. develop-abapgit.md Step 5 carries the full account of the limitation."
+    },
+    "import_confirmed": {
+      "$ref": "#/definitions/step-affirmation",
+      "description": "What the user reported back after importing the ZIP through the abapGit UI. This step deliberately has NO PASS value. The agent never touched SAP on this path, so the claim that the import worked comes from the side that did the writing — it is an affirmation on record, exactly as an MCP tool's own success response is, and it is not upgraded because a person said it. NOT_YET is a legitimate resting state, not an incomplete one: the ZIP is the deliverable and a run may close with it handed over and not yet imported."
+    },
+    "readback": {
+      "$ref": "#/definitions/step-readback",
+      "description": "The verify-applied.md machine confirmation — the source read back out of SAP and compared against what was sent, plus syntax and active-state confirmation. It needs an MCP read, which the offline branch does not have by definition, so UNAVAILABLE records the environment rather than a failure of the work: where no MCP read exists on that system the run stops at PROVISIONAL_WRITE and says so. PASS here is the only value that, together with an exact-subject R-PASS, lets Phase 8 report COMPLETE. For function modules, substitute the signature representation before comparing body bytes — the mirror's classic form and the server's modern inline form are mismatched by definition."
+    },
+    "prog": {
+      "type": "string",
+      "description": "Program name (optional convenience field)."
+    },
+    "zip_path": {
+      "type": "string",
+      "description": "Path of the whole-package ZIP that was handed over, e.g. .sapkit/abapgit/<SID>/<PACKAGE>-<YYYYMMDD-HHMM>.zip (optional). A repair round trip builds a new timestamped ZIP; this records which one the recorded import_confirmed refers to."
+    }
+  },
+  "definitions": {
+    "step-machine": {
+      "type": "object",
+      "required": ["status", "evidence"],
+      "additionalProperties": false,
+      "description": "Used by offline_analyze only. A tool the agent runs locally against files it can read, so the outcome is always determinable — PASS or FAIL, with no third value.",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["PASS", "FAIL"],
+          "description": "Step outcome. No SKIPPED and no affirmation value — this check must actually run and resolve."
+        },
+        "evidence": {
+          "$ref": "#/definitions/evidence"
+        },
+        "ts": {
+          "$ref": "#/definitions/ts"
+        }
+      }
+    },
+    "step-resolution": {
+      "type": "object",
+      "required": ["status", "evidence"],
+      "additionalProperties": false,
+      "description": "Used by include_check only. Machine-run like step-machine, but the surface has a measured indexing limitation on FUGR mirrors, so a verdict that cannot be settled against the seed is recorded as INCONCLUSIVE rather than being forced into a PASS or FAIL the evidence does not support.",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "INCONCLUSIVE"],
+          "description": "Step outcome. INCONCLUSIVE requires evidence naming which unresolved_include lines could not be settled against the seed and why; it is not a pass, and Phase 8 treats it as a stated limit rather than a clean result."
+        },
+        "evidence": {
+          "$ref": "#/definitions/evidence"
+        },
+        "ts": {
+          "$ref": "#/definitions/ts"
+        }
+      }
+    },
+    "step-affirmation": {
+      "type": "object",
+      "required": ["status", "evidence"],
+      "additionalProperties": false,
+      "description": "Used by import_confirmed only. Its enum shares no value with any machine step in this file, by design: the record must make it structurally impossible to read a human report as a machine PASS, so there is no PASS to read.",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["USER_AFFIRMED", "USER_REPORTED_FAILURE", "NOT_YET"],
+          "description": "USER_AFFIRMED — the user reports the import and activation succeeded (Phase 8 reports PROVISIONAL_WRITE, never COMPLETE on this alone). USER_REPORTED_FAILURE — the user reports the import failed, which means the server is in an unknown state because partial application is possible; it is still PROVISIONAL_WRITE with an unknown-state note and never regresses to DRAFT. NOT_YET — the ZIP was handed over and no import has been reported (Phase 8 reports DRAFT)."
+        },
+        "evidence": {
+          "$ref": "#/definitions/evidence"
+        },
+        "ts": {
+          "$ref": "#/definitions/ts"
+        }
+      }
+    },
+    "step-readback": {
+      "type": "object",
+      "required": ["status", "evidence"],
+      "additionalProperties": false,
+      "description": "Used by readback only. UNAVAILABLE is a statement about the environment — no MCP read exists on that system — and is neither a pass nor a defect; it caps the run at PROVISIONAL_WRITE.",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "UNAVAILABLE"],
+          "description": "PASS — verify-applied.md came back clean on the same objects. FAIL — what SAP holds does not match what was sent. UNAVAILABLE — no MCP read is available on this system, so the check could not be attempted; evidence records that fact rather than a result."
+        },
+        "evidence": {
+          "$ref": "#/definitions/evidence"
+        },
+        "ts": {
+          "$ref": "#/definitions/ts"
+        }
+      }
+    },
+    "evidence": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Concrete proof, mirroring verification.schema.json's evidence field: command + result summary (e.g. 'analyze: 0 high findings across 11 sources, score ok', 'check <mirror dir>: exit 0, 0 unresolved_include'), the user's own words for an affirmation (e.g. 'user: import ok, all 11 objects active'), or the reason for INCONCLUSIVE / UNAVAILABLE / NOT_YET."
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the step was recorded (optional)."
+    }
+  }
+}
