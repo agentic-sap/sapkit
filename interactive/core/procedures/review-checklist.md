@@ -46,6 +46,7 @@ You are the **reviewer**, running in a fresh context, separate from whoever buil
 - **Output**: review-result JSON conforming to [schemas/review-result.schema.json](./schemas/review-result.schema.json), returned as your final response — you do not write `.sapkit/program/{PROG}/review-result.json` yourself (see "Output — review-result.json" below; the main context validates and records it). Set `reviewed_spec_sha256` to the `spec_sha256` you received in the request (verify it against the actual `spec.md` first — on mismatch, FAIL immediately with a single MAJOR finding "spec changed after approval").
 - **Narrow context kit — do NOT bulk-load all conventions.** Each item below names the only convention file(s) to load while you check that item. Take them one item at a time; set the rest aside. Preloading all 12 kits burns context and blunts judgment.
 - Pull object sources through the read tools only: `GetProgram`, `GetInclude`, `GetClass`, `GetInterface`, `GetScreen`, `GetGuiStatus`, `GetTextElement`, `ReadTextElementsBulk`, `GetFunctionModule`, `SearchObject`, `GetInactiveObjects`.
+  - On an **offline-delivery review** the objects are not on SAP yet and this read-tool list does not apply: read the sources from the local abapGit mirror at the path named in the request's `environment_context.notes`.
 - Record one verdict per item: `PASS` / `FINDING(S)` / `N/A (reason)`. Absence of evidence counts as a fail, not a pass — see the false-positive patterns at the end.
 
 ### Finding severity
