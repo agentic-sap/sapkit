@@ -47,7 +47,12 @@ self-completing unit — map its phases to that Policy:
   activating objects requires a present human operator; it is never run
   `unattended` (`unattended` is sealed — D-025 §7). Reaching a SAP-write or
   completion request elevates the run to **Guided** — a present operator explicitly
-  proceeds; it does not auto-run on its own.
+  proceeds; it does not auto-run on its own. On the `abapgit` delivery branch
+  (Phase 1B dimension 8) the P3 act is the **user's own abapGit import**, not a tool
+  call from this pipeline — the profile and its DEV-only rule are unchanged, but
+  nothing here is connected, so the server-side tier gate cannot fire and DEV is
+  carried as a recorded affirmation, a procedural norm
+  ([develop-abapgit](develop-abapgit.md) Step 1).
 - **`.sapkit/**` files are working material, not completion proof.** A successful
   MCP create / activation makes an object **PROVISIONAL_WRITE**, not done.
 - **COMPLETE requires both** an exact-subject fresh-context review **R-PASS** and a
@@ -133,14 +138,14 @@ Check three signals in order — the first match sets the interview scope:
 ### Document-input rules (forms 1 and 2)
 
 - **Phase 0 never shrinks.** The platform preflight runs in full on every entry form — a brought document can embed platform-wrong assumptions (e.g. an ECC-only transaction such as `XK02` where the S/4HANA reality is Business Partner), and Phase 0 is the step that catches them before they harden into the spec.
-- **Build a coverage map; interview only the gaps.** Read the document and map it against the 13 interview dimensions (Phase 1A dimensions 1–6 + Phase 1B dimensions 1–7). A dimension the document answers is closed by **confirmation restatement** citing the exact document location (*"§2.1 of your spec fixes the paradigm to Procedural — confirming rather than re-asking"*) — the same consumption pattern as `KD-` atoms in the Project knowledge preflight below. A dimension without a citable answer is a **deficit dimension**. Present the coverage map — each covered dimension with its **resolved value** and exact citation, never a citation alone — for one user confirmation; a covered dimension the user does not confirm is **demoted to a deficit dimension**. Then ask the deficit dimensions one per turn — the One-Question-Per-Turn rule, its bulk-proposal prohibitions, and its Recovery clause all apply to deficit dimensions unchanged.
+- **Build a coverage map; interview only the gaps.** Read the document and map it against the 14 interview dimensions (Phase 1A dimensions 1–6 + Phase 1B dimensions 1–8). A dimension the document answers is closed by **confirmation restatement** citing the exact document location (*"§2.1 of your spec fixes the paradigm to Procedural — confirming rather than re-asking"*) — the same consumption pattern as `KD-` atoms in the Project knowledge preflight below. A dimension without a citable answer is a **deficit dimension**. Present the coverage map — each covered dimension with its **resolved value** and exact citation, never a citation alone — for one user confirmation; a covered dimension the user does not confirm is **demoted to a deficit dimension**. Then ask the deficit dimensions one per turn — the One-Question-Per-Turn rule, its bulk-proposal prohibitions, and its Recovery clause all apply to deficit dimensions unchanged.
 - **Phase 1A dimension 6 (standard SAP solution screen) is never exempted.** If the document already records a standard-alternative review (which standard options were weighed, why rejected), restate it for confirmation; if it does not, the consultant still proposes at least one standard alternative before agreeing to the custom build.
 - **The artifact contract is unchanged.** `module-interview.md` and `interview.md` are still produced in full, and every resolved dimension records its source: `source: user-spec §x` / `source: deep-interview <file>` / `source: interview`. The Phase 2 enforcement (refuse to plan when either file is missing) operates exactly as before.
 - **Phase 3 and the approval gate are unchanged.** The spec is written with the brought document as its primary input, but that document never substitutes for `spec.md` — approval and the SHA-256 hash freeze bind to `spec.md` exactly as specified.
 
 ## Phase 1 — Two-Stage Socratic Interview (MANDATORY — never skip, never shortcut, never merge)
 
-Phase 1 runs as two sequential sub-phases (1A then 1B) on every invocation. What "never skip" protects is that **all 13 dimensions (7 when the Phase 1A skip rule applies) close with user-confirmed answers** — not the act of questioning itself. When Intake Resolution (above) resolved a document input, dimensions the document answers close by confirmation restatement with a source citation — a brought document is the user answering in advance, not a bypass; claiming document coverage with no document on the table, or beyond what the document actually answers, remains a protocol violation. Skipping **any** dimension (a deficit dimension on a document-input run), accepting "just build it" to bypass questioning, inferring answers from context instead of from a confirmed source, or bulk-proposing multiple dimensions in a single message is a protocol violation. If the user pushes to skip a remaining dimension — **with or without a document** — answer: *"The interview is mandatory — I will run Module Interview first, then Program Interview, one question at a time."*
+Phase 1 runs as two sequential sub-phases (1A then 1B) on every invocation. What "never skip" protects is that **all 14 dimensions (8 when the Phase 1A skip rule applies) close with user-confirmed answers** — not the act of questioning itself. When Intake Resolution (above) resolved a document input, dimensions the document answers close by confirmation restatement with a source citation — a brought document is the user answering in advance, not a bypass; claiming document coverage with no document on the table, or beyond what the document actually answers, remains a protocol violation. Skipping **any** dimension (a deficit dimension on a document-input run), accepting "just build it" to bypass questioning, inferring answers from context instead of from a confirmed source, or bulk-proposing multiple dimensions in a single message is a protocol violation. If the user pushes to skip a remaining dimension — **with or without a document** — answer: *"The interview is mandatory — I will run Module Interview first, then Program Interview, one question at a time."*
 
 **Two-stage rule**: Phase 1B (technical) NEVER starts before Phase 1A (business) closes. Without the business context the technical conversation means nothing.
 
@@ -159,7 +164,7 @@ Handling an impatient user (*"알아서 해줘"* / *"you decide"*):
 3. Carry on with the next single dimension only, carrying your recommended default inside that one question (not inside a block).
 4. Wait for the user's response. Move on only once they confirm or modify that one dimension.
 
-First-time user safeguard: someone running this procedure for the first time has no idea what "Paradigm OOP vs Procedural" or "Full CL_GUI_ALV_GRID vs SALV" actually means. Bulk-proposing all 7 dimensions at once takes away their chance to ask "what does this mean?" on each one. Always keep the door open for one dimension at a time.
+First-time user safeguard: someone running this procedure for the first time has no idea what "Paradigm OOP vs Procedural" or "Full CL_GUI_ALV_GRID vs SALV" actually means. Bulk-proposing all 8 dimensions at once takes away their chance to ask "what does this mean?" on each one. Always keep the door open for one dimension at a time.
 
 Recovery clause: where a bulk proposal already went out (protocol violation), apologize, roll it back, and restart the sub-phase from the first unanswered dimension at strict one-question cadence. Do NOT read a block "ok" as approval of a block proposal — protocol makes it invalid.
 
@@ -212,7 +217,7 @@ Recovery clause: where a bulk proposal already went out (protocol violation), ap
 
 **Purpose**: turn the agreed business solution into concrete technical decisions.
 
-**Personas**: Adopt the [sap-analyst](../personas/sap-analyst.md) persona for functional decomposition (owns dimensions 1, 5) and the [sap-architect](../personas/sap-architect.md) persona for technical structure (owns dimensions 2, 3, 4, 7); both perspectives feed dimension 6. Hold the question stream to one dimension per turn.
+**Personas**: Adopt the [sap-analyst](../personas/sap-analyst.md) persona for functional decomposition (owns dimensions 1, 5) and the [sap-architect](../personas/sap-architect.md) persona for technical structure (owns dimensions 2, 3, 4, 7, 8); both perspectives feed dimension 6. Hold the question stream to one dimension per turn.
 
 **Question dimensions** (one per turn, pre-filtered by resolved platform):
 1. **Purpose-type** — Report / CRUD / ALV List / Batch / Interface
@@ -222,6 +227,7 @@ Recovery clause: where a bulk proposal already went out (protocol violation), ap
 5. **Data source** — standard tables / Z-tables / BAPI / CDS view (must be consistent with Phase 1A reference assets)
 6. **Package + Transport** — target package, new or existing transport
 7. **Testing scope** — when OOP is selected, which test class methods to cover
+8. **Delivery path** — which route the finished code takes into SAP: **through MCP** (the agent writes and activates the objects over the live ADT connection) or **as an abapGit ZIP the user imports themselves** through the abapGit UI ([develop-abapgit](./develop-abapgit.md)). Recommend **MCP wherever a live connection exists**; abapGit is the route when MCP is unavailable, unreliable, or not permitted on the target system — for some users it is the only way in, so it is offered as a route, never as a lesser one. Ask it here rather than at implementation time, because the plan and the risk briefing both hang on it: on the abapGit route the agent never connects to SAP, so syntax and activation authority stay with the server until the user imports, and **newly authored screen (DYNPRO) or GUI status (CUA) XML carries an import → repair → re-ZIP round trip** the user should expect from the outset.
 
 On each dimension you may propose a recommended default (drawn from Phase 1A context + CBO inventory + platform constraints). That proposal belongs inside the single question for its dimension — never merge proposals across dimensions into a table.
 
@@ -442,9 +448,22 @@ cannot launch a worker, say so and wait for direction ([development-loop.md](../
 [adapters/antigravity/README.md](../../adapters/antigravity/README.md) owns the exact
 invocation.
 
+### Step 1c — Delivery Path (restate and persist — never re-asked here)
+
+`execution_mode` sets how often the run pauses; `execution_owner` sets who implements
+Phase 4. The **delivery path** is a third, orthogonal axis: which route the finished code
+takes into SAP. It was already decided by the user at **Phase 1B dimension 8**, so Phase 3.5
+confirms and persists it — it does not re-ask it.
+
+Read the dimension 8 answer out of `interview.md` and restate it in one line alongside the
+Step 1 prompt (*"Delivery path: abapGit ZIP — you import it yourself; nothing here connects
+to SAP"*), so the user sees which branch Phase 4 is about to take while they still have the
+prompt in front of them. A user who changes their mind in that reply changes the dimension 8
+answer: update `interview.md` accordingly before persisting.
+
 ### Step 2 — Persist Selection
 
-Write the selection to `.sapkit/program/{PROG}/state.json` under `execution_mode`. Also record the resolved `execution_owner` and its `selection_source` (`explicit` | `default`) alongside it; when a launch fallback later diverges from the resolved value, record `effective_owner` too. Also log phase timestamps here (see the state.json schema below).
+Write the selection to `.sapkit/program/{PROG}/state.json` under `execution_mode`. Also record the resolved `execution_owner` and its `selection_source` (`explicit` | `default`) alongside it; when a launch fallback later diverges from the resolved value, record `effective_owner` too. Write the confirmed delivery path as `delivery_path` — `"mcp"` or `"abapgit"` — in the same object; every branch from Phase 4 onward reads it from there, not from `interview.md`. Also log phase timestamps here (see the state.json schema below).
 
 ### Step 3 — Mode Semantics
 
@@ -481,9 +500,28 @@ Proceed to Phase {N}?
 
 Adopt the [sap-executor](../personas/sap-executor.md) persona for this step.
 
-Implementation runs under the `execution_owner` resolved at Phase 3.5 (`main` | `delegated` — [development-loop.md](../policies/development-loop.md)). **When the resolved owner is `delegated`, dispatching the worker is mandatory — the coordinating conversation must not implement the slice itself.** Launch is adapter-specific: on the Claude adapter delegate to the bundled `sapkit:sap-worker` subagent; on Codex / Antigravity hand the worker contract to a fresh session (the adapter README's "구현 위임" section owns the exact invocation). If the launch fails or no worker mechanism exists: with `selection_source: default`, continue as `main`, say so, and record `effective_owner: "main"` in `state.json`; with `selection_source: explicit`, never fall back silently — stop, explain the limitation, and wait for direction. After a worker has started, an owner change is not a rollback: stop the worker, preserve and report what was actually applied (including `PROVISIONAL_WRITE` state), and continue only on the user's direction. A delegated worker receives the approved spec, its task slice, and the relevant rules and paths — never secrets. Control artifacts (`approval.json`, `state.json`, `verification.json`, `review-request.json`, `review-result.json`) remain main-only, and the worker never serves as its own reviewer. P2 data reads stay main-only (including any non-MCP route from a worker shell — a local CLI, a script, a direct query), and P4 transport lifecycle actions are never delegated — the worker only references the transport id its contract names.
+Implementation runs under the `execution_owner` resolved at Phase 3.5 (`main` | `delegated` — [development-loop.md](../policies/development-loop.md)). **When the resolved owner is `delegated`, dispatching the worker is mandatory — the coordinating conversation must not implement the slice itself.** Launch is adapter-specific: on the Claude adapter delegate to the bundled `sapkit:sap-worker` subagent; on Codex / Antigravity hand the worker contract to a fresh session (the adapter README's "구현 위임" section owns the exact invocation). If the launch fails or no worker mechanism exists: with `selection_source: default`, continue as `main`, say so, and record `effective_owner: "main"` in `state.json`; with `selection_source: explicit`, never fall back silently — stop, explain the limitation, and wait for direction. After a worker has started, an owner change is not a rollback: stop the worker, preserve and report what was actually applied (including `PROVISIONAL_WRITE` state), and continue only on the user's direction. A delegated worker receives the approved spec, its task slice, and the relevant rules and paths — never secrets. Control artifacts (`approval.json`, `state.json`, `verification.json`, **`verification-offline.json`**, `review-request.json`, `review-result.json`) remain main-only, and the worker never serves as its own reviewer. P2 data reads stay main-only (including any non-MCP route from a worker shell — a local CLI, a script, a direct query), and P4 transport lifecycle actions are never delegated — the worker only references the transport id its contract names.
 
-Flow (source-first, single syntax check on the main program, batch activation):
+**Delivery-path branch (read `state.json.delivery_path` before anything else in this phase):**
+
+- **`"abapgit"` → delegate the implementation to [develop-abapgit](./develop-abapgit.md)** and
+  do not run the MCP flow below. That procedure owns the whole of it — seeding the mirror from
+  the user's full package export, the mirror discipline, the offline checks, and the
+  whole-package ZIP build — and this procedure does not restate any of it. Enter it as its
+  **Entry A**, which inherits these `.sapkit/program/{PROG}/` artifacts unchanged. Two things
+  carry into that branch and are worth naming because they are easy to drop when the work moves
+  to another document: the `execution_owner` resolved at Phase 3.5 **still applies** (a
+  delegated worker can do the mirror and ZIP work under the same contract — control artifacts
+  stay main-only, and the worker is never its own reviewer), and **the approved spec is still
+  the contract** (`approval.json.spec_sha256` binds Phase 6 exactly as it does on the MCP path).
+  The verification record for this branch is
+  `.sapkit/program/{PROG}/verification-offline.json` per
+  [schemas/verification-offline.schema.json](./schemas/verification-offline.schema.json), not
+  `verification.json` — see Phase 6 step 1.
+- **`"mcp"` → run the flow below.** It is the MCP path in full and its meaning is unchanged;
+  it simply now runs under a stated condition rather than as the only possibility.
+
+Flow when `delivery_path == "mcp"` (source-first, single syntax check on the main program, batch activation):
 1. Generate ALL include sources locally first, from the approved spec + the mandatory main-program template — [zsapkit_oop_ex.prog.abap](../knowledge/abap/templates/oop-sample/zsapkit_oop_ex.prog.abap) (OOP) or [main-program.abap](../knowledge/abap/templates/procedural-sample/main-program.abap) (Procedural) — as the starting skeleton. When OOP with testing scope, the `{PROG}_tst` test-class include is part of this initial batch. Run the bundled checker's 13-rule offline analysis on these sources before step 2 (`node "<plugin root>/checker/sapkit-checker.bundle.cjs" analyze <file> --format json`) — an optional local check that needs no install; on the Claude adapter the `offline-code-analysis` hook runs it automatically after each source write ([troubleshooting §7](troubleshooting.md#7-sapkit-checker--local-offline-analysis-bundled)).
 2. Create the includes via `CreateInclude` + `UpdateInclude`, then the main program via `CreateProgram` + `UpdateProgram`.
 3. Run a single `CheckSyntax` on the MAIN program (not per include). Syntax failures → fix-and-retry loop, max 3 iterations on the main program.
@@ -497,15 +535,18 @@ Apply shared conventions throughout: [oop-pattern.md](../knowledge/abap/conventi
 
 On completion, record the `check_syntax` and `activate` step results (status + evidence) into `.sapkit/program/{PROG}/verification.json` per [schemas/verification.schema.json](./schemas/verification.schema.json).
 
+On the `abapgit` branch neither tool ran, so `verification.json` is **not written at all**. Record instead the `offline_analyze` and `include_check` results from the delegated run into `.sapkit/program/{PROG}/verification-offline.json` per [schemas/verification-offline.schema.json](./schemas/verification-offline.schema.json); `import_confirmed` and `readback` stay open until Phase 7 / Phase 8 fill them.
+
 In `manual`/`hybrid` mode: prompt the user before starting Phase 4; do NOT prompt mid-flow once started.
 
 ## Phase 5 — Self-QA (conditional)
 
 Adopt the [sap-qa-tester](../personas/sap-qa-tester.md) persona for this step.
 
-**Skip conditions (either triggers skip, recorded as `skipped` in state.json)**:
+**Skip conditions (any one triggers skip, recorded as `skipped` in state.json)**:
 - Paradigm = Procedural (no local test classes expected)
 - Paradigm = OOP AND `interview.md` dimension 7 (testing scope) = `none` / empty
+- `state.json.delivery_path == "abapgit"` — **automatically SKIPPED**, whatever the paradigm and testing scope say. `RunUnitTest` needs a live ADT connection and this branch has none, so there is nothing to run. Record the reason in that form: it is an environment fact, not a judgment that the code did not need testing, and a reader must not take the skip as evidence about the code. Note that the test-class include itself is still authored into the mirror when dimension 7 asked for one — it ships in the ZIP and the user can run it after import; what is absent is any run of it here.
 
 **When running**:
 - The test class include (`{PROG}_tst`) should already be there from Phase 4 — this phase only writes test methods and runs them.
@@ -513,7 +554,7 @@ Adopt the [sap-qa-tester](../personas/sap-qa-tester.md) persona for this step.
 - On FAIL: fix production code (not tests) → re-activate → re-run (loop until green or 3 attempts)
 - In `manual`/`hybrid` mode: prompt before starting Phase 5 (unless a skip condition matched, then auto-skip with a message)
 
-**Verification record** — update `.sapkit/program/{PROG}/verification.json` per [schemas/verification.schema.json](./schemas/verification.schema.json):
+**Verification record** (`mcp` branch only — on the `abapgit` branch there is no `verification.json` to update, and `verification-offline.json` has no unit-test or ATC step: the skip is recorded in `state.json` alone) — update `.sapkit/program/{PROG}/verification.json` per [schemas/verification.schema.json](./schemas/verification.schema.json):
 - `unit_test`: PASS/FAIL with the test result summary as evidence; `SKIPPED` when Phase 5 was skipped
 - `atc`: run `GetAtcFindings` on the created objects if the backend supports it and record the outcome; otherwise record `SKIPPED` with the reason
 
@@ -534,12 +575,44 @@ Steps:
    from completing is a block, not a completion — `environment_context` (step 3 below)
    exists so the reviewer can judge `unit_test`/`atc` gaps fairly; it never exempts
    `check_syntax`/`activate`.
+   - **On the `abapgit` branch this gate is substituted, not waived.** Neither
+     `check_syntax` nor `activate` can ever be produced there — no connection was opened, so
+     the tools never ran — and `verification.schema.json` rightly refuses `SKIPPED` on both,
+     which would leave the branch blocked at the entrance to Phase 6. So `verification.json`
+     is **not written at all** on this branch: a half-filled one carrying invented or omitted
+     machine steps is the exact false machine PASS the closed schema exists to prevent.
+     Verify instead that `.sapkit/program/{PROG}/verification-offline.json` is complete (all
+     four steps recorded) per
+     [schemas/verification-offline.schema.json](./schemas/verification-offline.schema.json),
+     and check that record's own gate matrix: `offline_analyze = PASS AND include_check ∈
+     {PASS, INCONCLUSIVE (with the unsettled lines named in evidence)}`. `import_confirmed`
+     and `readback` are not gated here — the review runs before the user has imported
+     anything, and they are read at Phase 8. If `offline_analyze` is `FAIL`, missing, or
+     `include_check` is `FAIL`, record `state.json` phase `6_review` as `blocked` exactly as
+     above. This is a substitution of one record for another, not an exemption from having
+     one: a branch with no verification record does not enter Phase 6.
 2. Re-compute the SHA-256 of `spec.md` and confirm it still matches `approval.json.spec_sha256`. On mismatch, STOP — the spec changed after approval; return to the Spec Approval Gate.
 3. Write `.sapkit/program/{PROG}/review-request.json` conforming to [schemas/review-request.schema.json](./schemas/review-request.schema.json) — `spec_sha256`, `sid`, `client`, `transport`, and the `objects[]` list created in Phase 4 (with types: PROG/P, PROG/I, DYNP, CUAD, …).
    - If any backend service/tool was down during Phase 4/5 (e.g. an ADT endpoint returning 404/500, causing a verification step to be recorded `SKIPPED` in `verification.json`), attach it under `environment_context.known_outages[]` so the reviewer does not miscount the gap as a code defect.
    - The same applies when Screen / GUI Status / Text Element steps were SKIPPED in Phase 4 because the `ZSAPKIT_ADT_DISPATCH`/`ZSAPKIT_ADT_TEXTPOOL` FMs are absent or the RFC backend is not configured: record one `known_outages[]` entry with `component` (e.g. `"ZSAPKIT_ADT_DISPATCH/TEXTPOOL FMs not installed — RFC dispatch unavailable"`), `affected_step` (which Phase 4 step was skipped and how), and `observed_at`. Remediation: [install-sap-assets](install-sap-assets.md).
    - If the user approved a deviation from `spec.md` during this run, attach it under `environment_context.approved_deviations[]` with who/when/why it was approved, so the reviewer does not re-flag it as a violation.
-   - `environment_context` is optional — omit it entirely when there is no outage or approved deviation to report.
+   - **On the `abapgit` branch, say where the sources are.** No object exists on SAP yet, so
+     the reviewer cannot fetch source through the read tools; the review subject is the local
+     abapGit mirror. Carry that in `environment_context.notes` — free text the closed schema
+     already allows, so nothing about
+     [schemas/review-request.schema.json](./schemas/review-request.schema.json) changes — and
+     make it say both halves plainly: the mirror path
+     (`.sapkit/abapgit/<SID>/<PACKAGE>/`) and that the reviewer reads those files **instead
+     of** SAP, because the objects have not been imported. E.g. *"Offline delivery
+     (`delivery_path: abapgit`): nothing is on SAP yet. Review the sources in the local
+     abapGit mirror at `.sapkit/abapgit/<SID>/<PACKAGE>/` — the read tools (`GetProgram`,
+     `GetInclude`, …) do not apply on this run."* `sid` / `client` / `transport` are still
+     filled from `approval.json`, where on this branch they are the user's declaration and a
+     user-owned transport marker rather than a live session's values.
+   - `environment_context` is optional — omit it entirely when there is no outage or approved
+     deviation to report. **One exception: on the `abapgit` branch `notes` is mandatory**,
+     outage or not. It is the only carrier the reviewer has for the mirror path, and a review
+     request that omits it sends the reviewer to fetch objects that do not exist.
 4. Run [review-checklist](./review-checklist.md) **in a fresh reviewer context — never in this conversation**: on the Claude adapter delegate to the bundled `sapkit:sap-reviewer` subagent; on Codex / Antigravity use a new session (the adapter README owns the invocation). The main context performing the checklist itself does not satisfy this gate — it is not a fresh reviewer context, whoever implemented Phase 4. The reviewer judges read-only; fixes are applied by the implementation owner (main, or the delegated worker), then re-reviewed. Pass the reviewer the path to `review-request.json` and the [review-checklist](./review-checklist.md) itself.
 5. The reviewer runs read-only — on the Claude adapter this is mechanical (its
    `disallowedTools` blocks Write/Edit/Bash and every SAP mutation call); on other
@@ -576,6 +649,21 @@ Adopt the [sap-debugger](../personas/sap-debugger.md) persona for this step. Tri
 - An activation failure that survives the Phase 4 retry loop
 - A runtime dump during test execution
 
+**On the `abapgit` branch the trigger is different: the user reports back that the import
+failed.** The handling is owned by [develop-abapgit](./develop-abapgit.md) (its Step 7) and
+is not restated here — go there for the round-trip bound and the repair procedure. Three
+points belong to this phase and must not be got wrong in passing:
+
+- **A reported failure means the server is in an unknown state.** Partial application is
+  entirely possible, so the import is not "did not happen".
+- Record it as **`PROVISIONAL_WRITE` with an unknown-state note** in
+  `verification-offline.json` (`import_confirmed: USER_REPORTED_FAILURE`, with the reported
+  errors as evidence). It **never regresses to `DRAFT`** — `DRAFT` would claim SAP is
+  untouched, which is precisely what is no longer known.
+- The repair goes back out as a **whole-package re-ZIP**, never a patch ZIP of "just the
+  fix": an offline abapGit import reads the ZIP as the complete remote state, so a partial
+  one turns every omitted object into a delete candidate.
+
 A verified root cause likely to recur may be proposed for capture via the [lesson](./lesson.md) procedure — user approval required; never auto-promote.
 
 ## Phase 8 — Completion Report
@@ -587,13 +675,15 @@ After completion, a verified root cause likely to recur may be proposed for capt
 **Pre-condition (HARD GATE)**: ALL of the following must hold. If any is unmet, return to Phase 6 — do not write the report and do not tell the user the program is done:
 - `.sapkit/program/{PROG}/review-result.json` exists with `verdict: "PASS"` and its `reviewed_spec_sha256` equals `approval.json.spec_sha256`.
 - `.sapkit/program/{PROG}/verification.json` satisfies the gate matrix: `check_syntax = PASS AND activate = PASS AND unit_test ∈ {PASS, SKIPPED (with a reason recorded in evidence)} AND atc ∈ {PASS, SKIPPED (with a reason recorded in evidence)}`. Per [schemas/verification.schema.json](./schemas/verification.schema.json), `check_syntax`/`activate` cannot legally be `SKIPPED` — anything other than `PASS` on either fails this gate.
+  - **On the `abapgit` branch, substitute the offline record's matrix** (the review-result requirement above is unchanged): `.sapkit/program/{PROG}/verification-offline.json` per [schemas/verification-offline.schema.json](./schemas/verification-offline.schema.json) satisfies `offline_analyze = PASS AND include_check ∈ {PASS, INCONCLUSIVE (with the unsettled lines named in evidence)}`. `import_confirmed` and `readback` are not pass/fail conditions of this gate — they select which completion state is reportable, below.
 
 **Completion state (report exactly one, per the Track A state model — see the
 "Track A Policy Alignment" section above):**
 
-- **DRAFT** — no SAP write happened (Direct ended at spec approval, or the run was
-  aborted before Phase 4). The report says a draft/spec exists — not that a program
-  was built.
+- **DRAFT** — no SAP write happened (Direct ended at spec approval, the run was
+  aborted before Phase 4, or — on the `abapgit` branch — the ZIP was handed over and
+  the user has not imported it yet: `import_confirmed: NOT_YET`). The report says a
+  draft/spec exists — not that a program was built.
 - **PROVISIONAL_WRITE** — objects were created/activated on DEV and the HARD GATE
   above holds, but what SAP actually holds has not been read back and confirmed.
   This is the strongest state a Track B MCP-only session can reach. The report
@@ -611,6 +701,23 @@ After completion, a verified root cause likely to recur may be proposed for capt
 
 An MCP success response, an ACTIVE flag, or a single `CheckSyntax` result alone
 never upgrades the state past PROVISIONAL_WRITE.
+
+**On the `abapgit` branch, `verification-offline.json` selects the state:**
+
+- **`import_confirmed: NOT_YET` → `DRAFT`.** The ZIP is the deliverable, and a run may
+  legitimately close with it handed over and not yet imported. Say that in those terms — this
+  is a finished piece of work waiting on the user, not an incomplete run, and reporting it as
+  a failure misdescribes it as badly as calling it done would.
+- **`import_confirmed: USER_AFFIRMED` → `PROVISIONAL_WRITE`.** An affirmation on record, not
+  a machine PASS: the claim comes from the side that did the writing, and it is not upgraded
+  because a person said it rather than a tool.
+- **`import_confirmed: USER_REPORTED_FAILURE` → `PROVISIONAL_WRITE`, with the unknown-state
+  note** (Phase 7). Never `DRAFT`.
+- **`COMPLETE` only when `readback: PASS`** — the machine confirmation of
+  [verify-applied](./verify-applied.md), which needs an MCP read — **and** the exact-subject
+  `R-PASS`. Where no MCP read is available on that system, `readback` is `UNAVAILABLE`, the
+  run **stops at `PROVISIONAL_WRITE`**, and the report records that there is no path to
+  `COMPLETE` there. Saying otherwise is over-reporting.
 
 Report inputs (taken from local state, with no re-fetching):
 - Objects created + activation status
@@ -632,15 +739,16 @@ In `manual`/`hybrid` mode: prompt the user before writing the report.
 
 - `.sapkit/program/{PROG}/platform.md` — Phase 0 preflight output
 - `.sapkit/program/{PROG}/module-interview.md` — Phase 1A business interview (purpose / reason / company-specific rules / reference assets / standard-SAP alternatives)
-- `.sapkit/program/{PROG}/interview.md` — Phase 1B technical interview (7-dimension Q&A log)
+- `.sapkit/program/{PROG}/interview.md` — Phase 1B technical interview (8-dimension Q&A log)
 - `.sapkit/program/{PROG}/cbo-context.md` — CBO reuse candidates
 - `.sapkit/program/{PROG}/customization-context.md` — Z*/Y* BAdI impl / CMOD / form-exit / append reuse candidates
 - `.sapkit/program/{PROG}/consult-{module}.md` — Phase 2 consultant outputs (one per module)
 - `.sapkit/program/{PROG}/plan.md` — Phase 2 output
 - `.sapkit/program/{PROG}/spec.md` — Phase 3 output (requires human approval)
 - `.sapkit/program/{PROG}/approval.json` — approval record bound to spec hash + system ([schema](./schemas/approval.schema.json))
-- `.sapkit/program/{PROG}/state.json` — execution_mode + per-phase status/timing (schema below, drives resume support)
-- `.sapkit/program/{PROG}/verification.json` — check_syntax / activate / unit_test / atc step results ([schema](./schemas/verification.schema.json))
+- `.sapkit/program/{PROG}/state.json` — execution_mode + delivery_path + per-phase status/timing (schema below, drives resume support)
+- `.sapkit/program/{PROG}/verification.json` — check_syntax / activate / unit_test / atc step results ([schema](./schemas/verification.schema.json)) — the `mcp` delivery branch's record
+- `.sapkit/program/{PROG}/verification-offline.json` — the `abapgit` delivery branch's record, written **instead of** `verification.json` (never alongside it): offline_analyze / include_check / import_confirmed / readback ([schema](./schemas/verification-offline.schema.json))
 - `.sapkit/program/{PROG}/review-request.json` — Phase 6 reviewer input ([schema](./schemas/review-request.schema.json))
 - `.sapkit/program/{PROG}/review-result.json` — Phase 6 reviewer verdict ([schema](./schemas/review-result.schema.json))
 - `.sapkit/program/{PROG}/report.md` — final completion report
@@ -653,6 +761,7 @@ In `manual`/`hybrid` mode: prompt the user before writing the report.
   "execution_mode": "auto | manual | hybrid",
   "execution_owner": "main | delegated (resolved deterministically at Phase 3.5 Step 1b — 'auto' does not exist in this procedure)",
   "selection_source": "explicit | default",
+  "delivery_path": "mcp | abapgit (confirmed and persisted at Phase 3.5 Step 1c from Phase 1B dimension 8; absent = 'mcp')",
   "effective_owner": "main | delegated (optional — recorded only when a launch fallback diverges from execution_owner)",
   "phases": {
     "0_preflight":   { "status": "completed", "ts": "2026-04-18T10:00:00Z" },
@@ -677,7 +786,8 @@ In `manual`/`hybrid` mode: prompt the user before writing the report.
 On a subsequent invocation for the same `{PROG}`:
 1. Where `state.json` exists with `execution_mode` set, skip the Phase 0–3.5 re-prompting.
 2. If that `state.json` lacks `execution_owner` (a pre-0.5.3 run), resolve it once per Phase 3.5 Step 1b, announce the result in one line, and record it with its `selection_source` before continuing. A persisted owner is honored as-is — never re-derived on resume.
-3. Find the first phase whose `status != "completed" && status != "skipped"` — resume from there.
-4. Under `auto` the resumption is silent; under `manual`/`hybrid`, show the user the resume point and ask them to confirm.
+3. If that `state.json` lacks `delivery_path` — a run from before the delivery-path dimension existed — it is **read as `"mcp"`**, because that is the only path such a run could have taken. State that reading once in the resume line rather than leaving it inferred, and write the value in before continuing.
+4. Find the first phase whose `status != "completed" && status != "skipped"` — resume from there.
+5. Under `auto` the resumption is silent; under `manual`/`hybrid`, show the user the resume point and ask them to confirm.
 
 Restarting a phase (re-running one already completed) requires the user to delete the corresponding `state.json` entry explicitly — the pipeline does not re-run a completed phase on its own.

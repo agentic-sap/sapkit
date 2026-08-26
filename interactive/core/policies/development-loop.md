@@ -111,7 +111,9 @@ consequential — never as a routine step.
 - The main context checks the final diff boundary and runs or directly observes
   the final verification.
 - **Control artifacts are main-only:** `approval.json`, `state.json`,
-  `verification.json`, `review-request.json`, `review-result.json`, the spec
+  `verification.json`, `verification-offline.json` (the abapGit offline delivery
+  branch's record, written in place of `verification.json`),
+  `review-request.json`, `review-result.json`, the spec
   approval record, and `.sapkit/RULES.md` / `.sapkit/LESSONS.md`. A worker touches
   only the implementation paths the contract assigns.
 
