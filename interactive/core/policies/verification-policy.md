@@ -54,10 +54,19 @@ What replaces it is deliberately weaker, and is recorded as such:
 - Its `import_confirmed` step has **no `PASS` in its enum**. The user's report that the import
   succeeded is an **affirmation on record**, and the schema makes it impossible to record it as
   a machine result.
-- The closing paragraph of this policy still binds, in its own terms: **success is not
-  reported.** This branch caps at `PROVISIONAL_WRITE`, never claims a phase is complete on the
-  strength of that affirmation, and **never releases a transport** — release is the user's, and
-  no agent action on this branch touches CTS.
+- **Re-run rule item 3 below still binds, in its own terms: success is not reported.** This
+  branch caps at `PROVISIONAL_WRITE`, never claims a phase is complete on the strength of that
+  affirmation, and **never releases a transport** — release is the user's, and no agent action
+  on this branch touches CTS.
+- **Evidence preservation carries over, and it matters more here.** The rule under "Evidence
+  recording" — rename the previous record to `verification.prev-<n>.json` before writing a new
+  run's, so a re-run never overwrites a failed one — applies to
+  `verification-offline.json` as `verification-offline.prev-<n>.json`. This branch **repairs by
+  round trip** (repair the mirror, rebuild the whole ZIP, re-import —
+  [develop-abapgit](../procedures/develop-abapgit.md) Step 7), so each cycle rewrites the
+  record. The one thing that must survive is exactly the one a rewrite would erase: an
+  `import_confirmed: USER_REPORTED_FAILURE` with its unknown-state note. **A server left in an
+  unknown state is not something a later clean cycle gets to un-say.**
 - `COMPLETE` on this branch requires the chain's own evidence after the fact: a read-back
   comparison ([verify-applied](../procedures/verify-applied.md)) plus `CheckSyntax` plus
   `GetInactiveObjects` returning zero, plus an exact-subject `R-PASS`. That is reachable **only

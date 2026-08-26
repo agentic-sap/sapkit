@@ -224,9 +224,15 @@ evidence.
    inspected"* (measured on the shipped bundle, 2026-08-26). Judged by the
    rule above — no `high` finding, score not `"warning"` — that reads as a clean pass while
    **nothing was inspected at all**, and on this path it is the only machine check the source
-   ever gets. Treat it as **not run**: split the source into the includes it should have been
-   in and re-run, or record the gap explicitly and carry it into the handover. Do not record
-   `offline_analyze: PASS` on a file that was never opened.
+   ever gets. Treat it as **not run**, never as a pass: do not record `offline_analyze: PASS`
+   on a file that was never opened.
+   The remedy is **split the source into the includes it should have been in and re-run** —
+   and on the [create-program](./create-program.md) entry that is the *only* remedy, because
+   `offline_analyze` is a two-value step and Phase 6's offline matrix requires it `PASS`, so
+   "record the gap and carry on" resolves to a blocked review rather than a handover. On the
+   standalone entry, where no such matrix exists, recording the gap explicitly and carrying it
+   into the handover is a coherent choice — say plainly, there, that the file was never
+   inspected.
 2. **At the end, across the mirror** —
    `node "<plugin root>/checker/sapkit-checker.bundle.cjs" check <dir>` for INCLUDE
    resolution; unresolved `Z*` / `Y*` / `$*` includes are defects and this surface exits `1`
