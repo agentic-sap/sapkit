@@ -9,7 +9,7 @@
   "properties": {
     "offline_analyze": {
       "$ref": "#/definitions/step-machine",
-      "description": "The bundled checker's 13-rule offline analysis, run per source written into the abapGit mirror (`analyze <file> --format json`). This is a machine result on files the agent can actually read, so PASS/FAIL only. Judge from the JSON, not the exit code, and treat any finding at severity \"high\" — equivalently summary.score \"warning\" — as FAIL: those are the tops of their scales and there is no \"critical\" above them to hold out for. The full account, including the repair-and-re-check bound, is develop-abapgit.md Step 5."
+      "description": "The bundled checker's 13-rule offline analysis, run per source written into the abapGit mirror (`analyze <file> --format json`). This is a machine result on files the agent can actually read, so PASS/FAIL only. Judge from the JSON, not the exit code, and treat any finding at severity \"high\" — equivalently summary.score \"warning\" — as FAIL: those are the tops of their scales and there is no \"critical\" above them to hold out for. PASS additionally requires that the analysis actually ran: rulesApplied must be non-zero. Past a 500KB source ceiling the tool declines the file quietly — rulesApplied 0, score \"good\", exit 0, one info finding source_too_large — which satisfies the severity rule above while inspecting nothing, and on this branch it is the only machine check the source gets. Record that as FAIL (or split the source and re-run), never PASS. The full account, including the repair-and-re-check bound, is develop-abapgit.md Step 5."
     },
     "include_check": {
       "$ref": "#/definitions/step-resolution",

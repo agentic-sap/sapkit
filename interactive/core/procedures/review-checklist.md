@@ -46,7 +46,20 @@ You are the **reviewer**, running in a fresh context, separate from whoever buil
 - **Output**: review-result JSON conforming to [schemas/review-result.schema.json](./schemas/review-result.schema.json), returned as your final response — you do not write `.sapkit/program/{PROG}/review-result.json` yourself (see "Output — review-result.json" below; the main context validates and records it). Set `reviewed_spec_sha256` to the `spec_sha256` you received in the request (verify it against the actual `spec.md` first — on mismatch, FAIL immediately with a single MAJOR finding "spec changed after approval").
 - **Narrow context kit — do NOT bulk-load all conventions.** Each item below names the only convention file(s) to load while you check that item. Take them one item at a time; set the rest aside. Preloading all 12 kits burns context and blunts judgment.
 - Pull object sources through the read tools only: `GetProgram`, `GetInclude`, `GetClass`, `GetInterface`, `GetScreen`, `GetGuiStatus`, `GetTextElement`, `ReadTextElementsBulk`, `GetFunctionModule`, `SearchObject`, `GetInactiveObjects`.
-  - On an **offline-delivery review** the objects are not on SAP yet and this read-tool list does not apply: read the sources from the local abapGit mirror at the path named in the request's `environment_context.notes`.
+  - On an **offline-delivery review** the objects are not on SAP yet and this read-tool list does not apply: read the sources from the local abapGit mirror at the path named in the request's `environment_context.notes` (mandatory on that branch — a request without it is malformed; say so and stop rather than reviewing nothing).
+    - **Where each artifact lives in the mirror**, since the items below are written against
+      MCP response shapes: program and include source in `<name>.prog.abap` /
+      `<name>.prog.<include>.abap` · class source in `<name>.clas.abap` (+ `.locals_*`,
+      `.testclasses.abap`) · function group members in `<fugr>.fugr.<include>.abap` ·
+      **screens in `<name>.prog.xml` / `.dynp.xml`, GUI status in the CUA section of the
+      object's XML, and the text pool in the TPOOL section of `<name>.prog.xml`** — the three
+      that would otherwise be `GetScreen` / `GetGuiStatus` / `ReadTextElementsBulk`. Serialized
+      names and section shapes belong to the abapGit build on the source server, so when the
+      mirror disagrees with this list, **the mirror wins** — settle it against the seed export
+      and record what you saw ([abapgit-roundtrip-rule](../knowledge/abap/conventions/abapgit-roundtrip-rule.md)
+      § Caveat). Where an item's evidence has no mirror equivalent you can identify, that item
+      is `N/A (offline — no mirror equivalent)` **with the reason recorded**; it is never a
+      silent `PASS`.
 - Record one verdict per item: `PASS` / `FINDING(S)` / `N/A (reason)`. Absence of evidence counts as a fail, not a pass — see the false-positive patterns at the end.
 
 ### Finding severity
@@ -243,6 +256,22 @@ Context kit: none — tool evidence only.
 
 - [ ] `GetInactiveObjects` comes back with 0 entries out of the program's object set
 - [ ] Every object is assigned to the agreed transport request (from `review-request.json.transport`)
+
+**Offline delivery (`delivery_path: abapgit`) — this whole item is `N/A`, and that is the only
+correct verdict.** Nothing has been imported, so there is no activation state and no transport
+assignment to inspect. Record
+`N/A (offline delivery — nothing imported yet; activation and transport are the user's, after pull)`
+for both boxes.
+
+⚠ **Do not call `GetInactiveObjects` on this branch even when a connection happens to be
+available.** It returns **0 entries for objects that were never created**, so it would tick this
+item green on nothing — a machine-shaped PASS over an empty set, which is exactly the failure
+this checklist exists to catch. `N/A` with the reason is honest; a green box here is not.
+The activation evidence for this branch arrives later, outside the review: it is the `readback`
+step of `.sapkit/program/{PROG}/verification-offline.json`
+([schema](./schemas/verification-offline.schema.json)), recorded after the user imports and only
+where an MCP read exists. Absence of that evidence caps the run at `PROVISIONAL_WRITE`; it never
+turns into a `PASS` here.
 
 ## False-Positive Patterns the Reviewer MUST Reject
 

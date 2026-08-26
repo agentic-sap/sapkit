@@ -217,6 +217,16 @@ evidence.
    (the same bound Phase 4 of [create-program](./create-program.md) puts on its fix-and-retry
    loop). A fourth round is a stop-and-report, not another attempt. This bound counts offline
    re-checks inside one cycle and is **not** the repair bound at Step 7.
+   ⚠ **`rulesApplied: 0` is never a pass — read that field before the findings.** Past a source
+   size cap the tool declines to inspect the file and says so *quietly*: it returns
+   `rulesApplied: 0`, `score: "good"`, exit `0`, and a single `info` finding
+   `source_too_large` whose text names the ceiling — **500 KB** — and says *"nothing was
+   inspected"* (measured on the shipped bundle, 2026-08-26). Judged by the
+   rule above — no `high` finding, score not `"warning"` — that reads as a clean pass while
+   **nothing was inspected at all**, and on this path it is the only machine check the source
+   ever gets. Treat it as **not run**: split the source into the includes it should have been
+   in and re-run, or record the gap explicitly and carry it into the handover. Do not record
+   `offline_analyze: PASS` on a file that was never opened.
 2. **At the end, across the mirror** —
    `node "<plugin root>/checker/sapkit-checker.bundle.cjs" check <dir>` for INCLUDE
    resolution; unresolved `Z*` / `Y*` / `$*` includes are defects and this surface exits `1`

@@ -36,6 +36,37 @@ Notes:
 - Never skip ahead: a later step's success is meaningless while an earlier step
   is failing.
 
+## Offline delivery — the one carve-out
+
+The chain above assumes a live ADT connection, because every tool in it is one. The **abapGit
+offline delivery branch** ([develop-abapgit](../procedures/develop-abapgit.md);
+`state.json.delivery_path == "abapgit"` in [create-program](../procedures/create-program.md))
+has no connection at all — the agent builds a ZIP and the **user** imports it — so on that
+branch the chain is **not skipped, it is unreachable**, and running it is not an available
+action rather than a step someone declined.
+
+What replaces it is deliberately weaker, and is recorded as such:
+
+- The record is `.sapkit/program/{PROG}/verification-offline.json`
+  (`../procedures/schemas/verification-offline.schema.json`), **not** `verification.json` —
+  which is not written at all on this branch. A half-filled `verification.json` would be exactly
+  the false machine PASS this policy exists to prevent.
+- Its `import_confirmed` step has **no `PASS` in its enum**. The user's report that the import
+  succeeded is an **affirmation on record**, and the schema makes it impossible to record it as
+  a machine result.
+- The closing paragraph of this policy still binds, in its own terms: **success is not
+  reported.** This branch caps at `PROVISIONAL_WRITE`, never claims a phase is complete on the
+  strength of that affirmation, and **never releases a transport** — release is the user's, and
+  no agent action on this branch touches CTS.
+- `COMPLETE` on this branch requires the chain's own evidence after the fact: a read-back
+  comparison ([verify-applied](../procedures/verify-applied.md)) plus `CheckSyntax` plus
+  `GetInactiveObjects` returning zero, plus an exact-subject `R-PASS`. That is reachable **only
+  where an MCP read is available**; where it is not, the run **stops at `PROVISIONAL_WRITE` and
+  records that**.
+
+So the carve-out narrows what can be *proved*, not what may be *claimed*. Nothing here licenses
+reporting a change as done, and no other branch inherits it.
+
 ## Re-run rule on failure
 
 1. When a step blocks, fix the cause, then **restart the chain from step 1**
