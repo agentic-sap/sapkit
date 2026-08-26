@@ -72,7 +72,9 @@ sends bulk multi-FM repair down it. This procedure is the wiring both of them as
 **A — delegated from [create-program](./create-program.md).** The approved spec and the
 `.sapkit/program/{PROG}/` artifacts come with it: the spec is already approved, its hash is
 already recorded in `approval.json`, and the review gate binds to that hash as it always
-does. This entry needs no scope record of its own — Step 1's kickoff gate still runs.
+does. This entry needs no scope record of its own — Step 1's kickoff gate still runs. It runs
+at **Full strength** on the [development-loop](../policies/development-loop.md) intensity
+axis, inherited from create-program along with everything else.
 
 **B — standalone invocation** (bulk repair, adding objects to an existing package). There is
 no spec and no spec hash here, so the entry gate is a **user confirmation of the target
@@ -81,6 +83,17 @@ object list plus a summary of the intended change**, written to
 hash to bind to, the independent review (`R-PASS`) binds instead to **`scope.md` plus the
 mirror diff** — what was agreed, and what actually changed in the mirror. State that binding
 in the review request; a reviewer given neither has nothing to judge against.
+
+**Entry B runs at Full strength too — that is a decision made here**, not something inherited,
+because [development-loop](../policies/development-loop.md) leaves this entry open. Its
+selection rule is the lightest strength that covers the material risk, judged by blast radius
+and reversibility: on this path the blast radius is a whole-package ZIP whose mis-import
+**deletes objects**, and the headline case is bulk multi-FM repair. Minimal is ruled out by
+definition — that row is *zero* project footprint, and `scope.md` is mandatory here. Note
+where the artifacts land: **Entry B's durable set is `.sapkit/abapgit/<work-name>/`**, standing
+where the Full row names `.sapkit/program/{PROG}/`. That column describes create-program; this
+is the same intensity reached by a different entry, not a lighter one. The repair bound Full
+strength carries is stated at Step 7, where the round trip actually happens.
 
 ## Step 1 — Kickoff gate
 
@@ -123,18 +136,22 @@ reference. One example is enough, and one is the ask — do not request the pack
 
 These rules bind every later step.
 
-- **Mirror home**: `.sapkit/abapgit/<SID>/<PACKAGE>/`. `.sapkit/` is untracked (`.gitignore`
-  already covers it), so no git checkout conversion can reach these bytes.
+- **Mirror home**: `.sapkit/abapgit/<SID>/<PACKAGE>/`. **Confirm `.sapkit/` is actually ignored
+  in this project before writing into it.** Nothing sapkit ships writes that entry into a user
+  project's `.gitignore`, and [credential-handling](../policies/credential-handling.md) states
+  it as an obligation the repository has to meet rather than a fact already true. Once it is
+  ignored, no git checkout conversion can reach these bytes.
 - **If the user designates their own git-tracked tree instead**, tell them to pin
   `* text eol=lf` in that tree's `.gitattributes` before anything is written into it —
   [abapgit-roundtrip-rule](../knowledge/abap/conventions/abapgit-roundtrip-rule.md)
   § Line Endings. In a tracked tree that pin is the first half of the fix; Step 6's archive
   check is the second, and both are required.
-- **Force LF on every write.** This is the agent's own responsibility and the Windows CRLF
-  trap is the reason: a trailing CR lands where ABAP expects the statement terminator, and
-  activation fails with "period missing" while the `.xml` files come back
-  parser-normalized and asymptomatic — so the symptom reads as "structures fine, FMs
-  broken" and points away from the cause.
+- **Force LF on every write** ([abapgit-roundtrip-rule](../knowledge/abap/conventions/abapgit-roundtrip-rule.md)
+  § Line Endings). This is the agent's own responsibility and the Windows CRLF trap is the
+  reason: a trailing CR lands where ABAP expects the statement terminator, and activation
+  fails with "period missing" while the `.xml` files come back parser-normalized and
+  asymptomatic — so the symptom reads as "structures fine, FMs broken" and points away from
+  the cause.
 - **Editing touches no XML, as a principle.** For an object that already exists in the seed,
   edit the source `.abap` and nothing else. Only a **newly created** object needs XML
   authored, and that XML **mimics the seed's** corresponding file — same element order, same
@@ -146,11 +163,13 @@ These rules bind every later step.
   ([function-module-rule](../knowledge/abap/conventions/function-module-rule.md)
   § FM Signature Representation Is Direction-Specific). A newly authored FM copies the form
   of an FM already in the seed. Never carry a signature verbatim between the two worlds.
-- **Never re-author an object out of the mirror over server state.** The mirror is allowed to
-  trail the server —
-  [source-repair-protocol](../knowledge/abap/conventions/source-repair-protocol.md)
-  § Read Before Edit. Mirror Freshness below is what keeps that from happening across a
-  session boundary.
+- **What licenses this path at all is the freshness of the seed.** Every cycle starts from an
+  export taken now (Mirror Freshness below), so what gets written back is the server's own
+  current state plus this cycle's edits. Outside that guarantee the rule is flat: **never
+  re-author an object out of a mirror that has been allowed to trail the server** — somebody
+  may have edited straight through ADT, and pushing the repo copy over it destroys their work
+  without a trace ([source-repair-protocol](../knowledge/abap/conventions/source-repair-protocol.md)
+  § Read Before Edit).
 
 ## Step 4 — Object scope (v1)
 
@@ -190,15 +209,29 @@ evidence.
    on the Claude adapter the `offline-code-analysis` hook also runs it after each source
    write ([troubleshooting §7](./troubleshooting.md#7-sapkit-checker--local-offline-analysis-bundled)).
    **Judge from the JSON, not the exit code** — `analyze` exits `0` whenever it could run at
-   all, findings included. On a critical finding: repair and re-check, **maximum 3 rounds**
+   all, findings included. **The gate trips on any finding at `severity: "high"`** —
+   equivalently, on `summary.score` coming back `"warning"`. Those are the tops of their
+   scales: `high` is the most severe level these 13 rules emit and `"warning"` the highest
+   score, so **there is no `critical` to hold out for**, and a reader waiting for one would
+   never fire the gate at all. On a `high` finding: repair and re-check, **maximum 3 rounds**
    (the same bound Phase 4 of [create-program](./create-program.md) puts on its fix-and-retry
-   loop). A fourth round is a stop-and-report, not another attempt.
+   loop). A fourth round is a stop-and-report, not another attempt. This bound counts offline
+   re-checks inside one cycle and is **not** the repair bound at Step 7.
 2. **At the end, across the mirror** —
    `node "<plugin root>/checker/sapkit-checker.bundle.cjs" check <dir>` for INCLUDE
    resolution; unresolved `Z*` / `Y*` / `$*` includes are defects and this surface exits `1`
-   on them. Confirm **empirically, on this mirror**, that the resolution understood abapGit's
-   file-naming convention — if it reports nothing at all where includes plainly exist, treat
-   that as "the surface did not apply here", not as a clean result.
+   on them.
+   ⚠ **Known limitation — settle its output against the seed before acting on it.** Resolution
+   indexes basenames as `<name>.prog.abap`, `<name>.fugr.abap`, or `<name>.abap` and nothing
+   else, so abapGit's function-group member form `<fugr>.fugr.<include>.abap` is never indexed
+   at all. On a FUGR mirror whose files are complete and correct, **both** outcomes have been
+   measured as artifacts of that gap: an `I [unresolved_include]` line at **exit 0** — reads
+   clean while a real include went unseen — and an `E [unresolved_include]` line at **exit 1**,
+   a false defect that would send a repair round trip chasing nothing. A program-style mirror
+   (`*.prog.abap`) resolves normally. FUGR/FM is a named v1 supported type and bulk multi-FM
+   repair is this procedure's headline case, so this is precisely the shape that needs the
+   care: for every `unresolved_include` on a FUGR mirror, go look — is that file actually in
+   the seed? — before reading the result as either a pass or a defect.
 3. **XML** — well-formedness, plus a structural comparison against the seed's corresponding
    file (element order, attribute set, conventions). **State plainly that no machine verifier
    exists for this step**: it is the agent's own review, and it is the weakest link in the
@@ -268,6 +301,13 @@ Then the status, and it is the part most easily got wrong:
   **rebuild the WHOLE ZIP** (Step 6 — never a patch ZIP of "just the fix"), and re-import.
   Where an MCP read is available, use `GetInactiveObjects` to find out what the system
   actually holds before repairing blind.
+- **The round trip is bounded: an initial review plus at most 2 repair/re-verify rounds**
+  ([development-loop](../policies/development-loop.md) — the same bound at every strength).
+  One round here is a whole cycle: repair the mirror, rebuild the ZIP, the user re-imports,
+  the user reports back. If a third would be needed, stop, preserve the evidence, and report
+  what is unresolved — never a quiet further attempt, and never a completion claim to close
+  it out. ⚠ Do not read this as Step 5's maximum-3: that one counts offline re-checks against
+  the checker inside a single cycle, before any ZIP exists.
 
 ## Mirror Freshness
 
@@ -312,7 +352,10 @@ more:
   summary of the intended change, the DEV-tier affirmation, and which export the mirror was
   seeded from. It is the review's binding subject in the absence of a spec hash, so it is
   written **before** any source is touched. When the user reports back, append the outcome
-  and the resulting status here rather than opening another file.
+  and the resulting status here rather than opening another file. `<work-name>` is the user's
+  label for the work and **must be kept distinct from a bare three-character system id** —
+  it sits at the same level as `<SID>` below, so a SID-shaped label would collide with a
+  mirror root.
 - `.sapkit/abapgit/<SID>/<PACKAGE>/` — the mirror. A working tree for **one cycle**, not a
   kept artifact: the next cycle re-seeds it from a fresh export (Mirror Freshness).
 - `.sapkit/abapgit/<SID>/<PACKAGE>-<YYYYMMDD-HHMM>.zip` — the deliverable. Timestamped so a
