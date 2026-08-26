@@ -47,7 +47,12 @@ self-completing unit — map its phases to that Policy:
   activating objects requires a present human operator; it is never run
   `unattended` (`unattended` is sealed — D-025 §7). Reaching a SAP-write or
   completion request elevates the run to **Guided** — a present operator explicitly
-  proceeds; it does not auto-run on its own.
+  proceeds; it does not auto-run on its own. On the `abapgit` delivery branch
+  (Phase 1B dimension 8) the P3 act is the **user's own abapGit import**, not a tool
+  call from this pipeline — the profile and its DEV-only rule are unchanged, but
+  nothing here is connected, so the server-side tier gate cannot fire and DEV is
+  carried as a recorded affirmation, a procedural norm
+  ([develop-abapgit](develop-abapgit.md) Step 1).
 - **`.sapkit/**` files are working material, not completion proof.** A successful
   MCP create / activation makes an object **PROVISIONAL_WRITE**, not done.
 - **COMPLETE requires both** an exact-subject fresh-context review **R-PASS** and a
@@ -672,9 +677,10 @@ After completion, a verified root cause likely to recur may be proposed for capt
 **Completion state (report exactly one, per the Track A state model — see the
 "Track A Policy Alignment" section above):**
 
-- **DRAFT** — no SAP write happened (Direct ended at spec approval, or the run was
-  aborted before Phase 4). The report says a draft/spec exists — not that a program
-  was built.
+- **DRAFT** — no SAP write happened (Direct ended at spec approval, the run was
+  aborted before Phase 4, or — on the `abapgit` branch — the ZIP was handed over and
+  the user has not imported it yet: `import_confirmed: NOT_YET`). The report says a
+  draft/spec exists — not that a program was built.
 - **PROVISIONAL_WRITE** — objects were created/activated on DEV and the HARD GATE
   above holds, but what SAP actually holds has not been read back and confirmed.
   This is the strongest state a Track B MCP-only session can reach. The report
