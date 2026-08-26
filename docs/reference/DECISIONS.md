@@ -2600,3 +2600,76 @@ PASS로 둔갑하지 않는다」를 구조로 강제한다. 기존 MCP 경로 �
 
 **정직 유보.** 이 판은 SAP 실기 0 — 절차 문서 제품이므로 **첫 실사용이 시험대**다
 (완료 항목에서 재확인한다).
+
+## D-142 — 판D 완료: abapGit 오프라인 ZIP 인도 통로가 제품 표면에 섰다 (2026-08-26)
+
+**무엇이 섰나.** D-141이 연 판D를 닫는다. 제품에 **두 번째 인도 통로**가 생겼다 —
+에이전트가 로컬 abapGit 미러에 ABAP을 쓰고 동봉 검사기로 검사한 뒤 **전 패키지 ZIP**을
+만들어 주면, **사용자가 abapGit UI에서 직접 반입**한다. 이 통로에서 에이전트는 SAP에
+닿지 않는다. 선 것 넷 — ⑴ 공용 절차 `interactive/core/procedures/develop-abapgit.md`
+⑵ 스킬 `interactive/skills/develop-abapgit/` ⑶ `create-program`의 **적용 경로 분기**
+(Phase 1B 차원 **8** 신설 · `state.json.delivery_path` · Phase 4~8 지선)
+⑷ `interactive/DESIGN.md` §10. **코드 변경 0** — 엔진·검사기·훅·MCP 도구 표면 무접촉.
+메타데이터 **0.10.0**(계수는 생성기가 계산 — 정본은 `interactive/plugin-metadata.json`).
+
+**집행 결정 넷 (계약서가 열어 둔 것을 여기서 닫는다).**
+
+ⓐ **오프라인 확약은 기계 기록 파일 밖에 둔다.** 신설
+`schemas/verification-offline.schema.json` + `.sapkit/program/{PROG}/verification-offline.json`
+넷(`offline_analyze`·`include_check`·`import_confirmed`·`readback`)이고,
+**`import_confirmed`의 enum에는 `PASS`가 없다**(`USER_AFFIRMED` /
+`USER_REPORTED_FAILURE` / `NOT_YET`). 「확약이 기계 PASS로 둔갑하지 않는다」를 문장이
+아니라 **enum으로** 강제한 것이다. 오프라인 지선은 `verification.json`을 **아예 쓰지
+않는다** — 반쯤 채운 그 파일이야말로 이 설계가 막으려는 거짓 기계 PASS다.
+
+ⓑ **차원은 8번으로 덧붙였다(끼워 넣지 않았다).** 기존 1~7을 밀면 `dimension 6`
+(패키지·전송)과 `dimension 7`(시험 범위)을 가리키는 문장 다섯 곳이 **조용히** 틀린 곳을
+가리킨다. 총계 문장 넷(13→14 · 7→8 ×3)만 움직였고 특정 번호는 전부 제자리다.
+
+ⓒ **닫힌 스키마 둘은 손대지 않았다.** 리뷰어의 미러 경로는
+`review-request.json`의 `environment_context.notes`(자유 텍스트)로 나른다.
+`approval.schema.json`은 **description 4개만** — 오프라인에서 `sid`/`client`/`tier`는
+사용자 선언·확약값이고 `transport`는 사용자 소유 표기(pull 시점 결정)라는 의미 확장이다.
+
+ⓓ **두 진입 모두 Full 강도.** 위임 진입은 create-program에서 승계하고, **단독 진입도
+Full로 정했다** — `development-loop.md`의 선택 규칙이 「물질적 위험을 덮는 가장 가벼운
+강도」이고, 이 통로의 폭발 반경은 **잘못 반입하면 객체가 지워지는** 전 패키지 ZIP이며
+대표 사례가 다수 FM 일괄 수리다. Minimal은 정의상 배제된다(그 행은 발자국 0인데
+`scope.md`가 필수다). 단독 진입의 durable 자산 자리는 `.sapkit/abapgit/<작업명>/`이다.
+
+**중간 리뷰가 잡은 것 셋 (전부 회수 · `c960f13`).** 이 판에서 가장 값이 나간 자리다.
+① **검사 관문이 아예 작동하지 않을 뻔했다** — 절차가 「critical 소견이면 수리」로 썼는데
+`analyze`의 severity enum은 `high`/`medium`/`info`이고 **13룰 중 `critical`을 내는 것이
+없다**(`sapkit-cli/src/cli/analyze.ts`의 주석이 그 갈래가 도달 불가임을 이미 적어 두고
+있었다). 게다가 `analyze`는 소견이 있어도 exit 0이라 그 단어가 **유일한 방아쇠**였다 →
+`severity: "high"`(= `score: "warning"`)로 결박. ② 진입 2종의 **강도 미기재** → ⓓ.
+③ `check <dir>`의 **한계 문면이 틀렸다** — 「아무것도 보고하지 않으면」이라고 썼으나
+실측은 침묵이 아니었다: 이 도구는 basename을 `.prog.abap`/`.fugr.abap`/`.abap`으로만
+색인해서 abapGit의 함수그룹 멤버 파일명 `<fugr>.fugr.<include>.abap`을 **영영 못
+찾는다**. 멀쩡한 FUGR 미러에서 `I`(exit 0 · 거짓 청정)와 `E`(exit 1 · 거짓 결함)가 둘 다
+난다 → 실제 한계를 적고, 그 판정은 씨앗과 대조해 가르라고 고쳤다. 그 실측이 ⓐ의
+`include_check`에 `INCONCLUSIVE`를 둔 근거이기도 하다.
+
+**기각한 대안.** ① **`verification.schema.json` 확장** — `additionalProperties:false` +
+required 4 + `step-strict`의 `SKIPPED` 배제는 **기계 전용 계약의 방벽**이고, 확약을 그
+안에 들이면 방벽의 뜻이 사라진다(→ ⓐ). ② **`review-request.schema.json` 구조 확장** —
+같은 논리(→ ⓒ). ③ **화면·CUA를 범위에서 빼기** — 신규 화면 XML이 최고 반복 위험
+구간인 것은 맞으나, **무MCP 환경에서 유일한 길인 사용자를 가둔다.** 위험은 빼기가
+아니라 **씨앗 모사 + 착수 시 왕복 고지**로 다룬다(소유자 결정 · D-141). ④ **부분 ZIP
+허용** — 오프라인 반입은 ZIP을 원격 전체 상태로 읽으므로 빠진 객체가 삭제 후보가 되고
+FUGR pull은 delete-and-recreate다. 전 패키지 ZIP이면 그 목록이 **구조적으로 빈다.**
+⑤ **에이전트가 abapGit을 자동 조작** — SAP로 가는 **두 번째 무게이트 통로**가 생겨
+tier·blocklist가 한쪽만 지키게 된다(`CLAUDE.md` 「SAP 접점을 이원화하지 않는다」).
+
+**정직 유보.**
+① **SAP 실기 0.** 이 판은 절차·문서 제품이고 **첫 실사용이 시험대**다. 씨앗 형식이
+서버의 abapGit 빌드에 종속된다는 사실 자체가 「문서로는 못 닫는다」는 뜻이다.
+② **XML 대조에 기계 검증기가 없다.** well-formed 검사 위쪽은 에이전트 자체 검토이고,
+절차가 그 사실을 본문에 명시한다 — 체인에서 가장 약한 고리다.
+③ **DEV-only는 절차 규범이지 기계 게이트가 아니다.** 접속이 없으니 서버측 tier 게이트가
+뜰 수 없다. MCP 경로보다 **약한 보장**이며, 절차는 그것을 감추지 않고 적는 것으로 갚는다.
+④ **`check <dir>`의 FUGR 한계는 고치지 않았다** — 이 판은 코드 변경 0이라 검사기를
+건드리지 않았고, 대신 절차와 스키마가 그 한계를 **명시하고 `INCONCLUSIVE`로 받는다.**
+수리는 별판이 열려야 한다(실수요 트리거 + 새 D-결정).
+⑤ **독립 마감 리뷰는 이 항목을 쓰는 시점에 아직 돌지 않았다.** 결과와 회수는
+`HANDOFF.md` 재개점과 `docs/RUN-PLAN.md` 판D 행이 든다.
