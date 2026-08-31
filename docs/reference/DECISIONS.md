@@ -2742,3 +2742,41 @@ SKIPPED일 것을 요구하는데, 오프라인 대체 행렬은 `offline_analyz
 DEV-only는 절차 규범 · `check <dir>`의 FUGR 한계는 미수리(절차·스키마가 명시하고
 `INCONCLUSIVE`로 받는다). 여기에 하나가 붙는다 — **`analyze`의 500KB 천장도 미수리**다.
 코드 변경 0이라 검사기를 건드리지 않았고, 절차·스키마가 그 자리를 문서로 막았다.
+
+## D-144 — 오프라인 `COMPLETE`를 좁힌다: 시험·ATC를 MCP 지선과 같은 급으로 요구 (2026-08-31)
+
+**무엇을 정했나.** D-143이 소유자에게 올린 열린 결정 — 「오프라인 지선의 `COMPLETE`가
+MCP 지선보다 약하다(시험·ATC 무요구)」 — 을 소유자가 2026-08-31에 **좁히기**로 닫았다:
+**오프라인 지선의 `COMPLETE`도 `unit_test`·`atc`가 `PASS`이거나 사유 있는 `SKIPPED`일 것을
+요구한다.** MCP 지선의 Phase 8 행렬과 같은 급이다.
+
+**왜 좁히기인가 (기각: 이름 가르기).** ① 오프라인에서 `COMPLETE`에 닿으려면 어차피
+`readback: PASS`가 필요하고 그것은 **MCP read가 있을 때만** 가능하다 — 그리고 MCP가 있으면
+`RunUnitTest`·`GetAtcFindings`도 있다. 즉 **요구를 올려도 도달 불가능해지는 환경이 없다**:
+무MCP 환경은 지금도 `PROVISIONAL_WRITE`가 천장이고 그대로다. ② MCP 지선과 같은 「사유 있는
+`SKIPPED`」 탈출구를 그대로 두므로(Procedural 무시험 · ATC 미지원 백엔드 등) 정당한 결손이
+막히지 않는다. ③ 기각한 대안 — 오프라인 최상위 상태에 다른 이름(예: `OFFLINE_VERIFIED`)을
+주는 것 — 은 검사 요구를 올리지 않는 대신 상태 어휘를 이원화해, 하류의 모든 소비자(리뷰
+체크리스트 · 보고서 · 재개점)가 두 이름을 영구히 배워야 한다. 같은 단어가 같은 무게를 갖는
+쪽이 옳다.
+
+**집행 — 시점은 Phase 8, 반입 뒤다.** 시험·ATC는 코드가 SAP에 **반입된 뒤에만** 돌 수 있으므로
+(Phase 5 시점에는 객체가 서버에 없다 — 자동 SKIP 조건은 그대로다), 기록 시점은 `readback`과
+같은 자리다: Phase 8에서 MCP read가 확인된 뒤, 같은 세션이 `RunUnitTest`(시험 범위가 있을 때 —
+**P3 실행이므로 DEV-only가 그대로 걸린다**)와 `GetAtcFindings`(백엔드 지원 시)를 돌리고
+`verification-offline.json`의 신설 `unit_test`·`atc` 칸에 기록한다. 두 칸은 스키마에서
+**선택 필드**다 — 무MCP 환경은 영영 채울 수 없고 그 환경은 `COMPLETE`에 닿지 않으므로,
+필수로 만들면 정당한 `PROVISIONAL_WRITE` 기록까지 막는다. 고친 곳: `verification-offline.schema.json`
+(칸 2종 신설) · `create-program.md`(Phase 5 부기 정정 + Phase 8 오프라인 `COMPLETE` 조건) ·
+`develop-abapgit.md`(Step 7 상태표·완료 조건) · `verification-policy.md`(carve-out의 사후 증거
+목록에 사슬 3·4단계 추가) · `interactive/DESIGN.md` §10-3(상태 의미론 — 설계 변경이므로).
+
+**이것이 판이 아닌 이유.** D-136 선례를 따른 판 밖 후속 집행이다 — 새 설계가 아니라 이미
+선 지선의 **계약 문면 좁히기**이고, 코드 변경 0(문서·스키마만)이다. 새 D-결정이 먼저 선다는
+규약은 이 항목이 채운다.
+
+**정직 유보.** ① 이 좁히기 역시 **SAP 실기 0**이다 — 오프라인 지선 자체가 아직 첫 실사용
+전이고, 반입 후 시험·ATC 실행이 실제로 도는지는 그 첫 사용이 잰다. ② `RunUnitTest`는 P3
+실행이라 「에이전트는 이 통로에서 SAP에 닿지 않는다」는 문장과 긴장이 있다 — 정확히는
+**반입 전 무접촉**이고, `COMPLETE`를 구하는 사후 검증(되읽기·시험·ATC)은 원래부터 MCP가
+있는 자리에서만 성립하는 별도 국면이다. 절차 문면이 이 구분을 명시한다.

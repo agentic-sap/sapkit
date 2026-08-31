@@ -227,7 +227,7 @@ Recovery clause: where a bulk proposal already went out (protocol violation), ap
 5. **Data source** — standard tables / Z-tables / BAPI / CDS view (must be consistent with Phase 1A reference assets)
 6. **Package + Transport** — target package, new or existing transport
 7. **Testing scope** — when OOP is selected, which test class methods to cover
-8. **Delivery path** — which route the finished code takes into SAP: **through MCP** (the agent writes and activates the objects over the live ADT connection) or **as an abapGit ZIP the user imports themselves** through the abapGit UI ([develop-abapgit](./develop-abapgit.md)). Recommend **MCP wherever a live connection exists**; abapGit is the route when MCP is unavailable, unreliable, or not permitted on the target system — for some users it is the only way in, so it is offered as a route, never as a lesser one. Ask it here rather than at implementation time, because the plan and the risk briefing both hang on it: on the abapGit route the agent never connects to SAP, so syntax and activation authority stay with the server until the user imports, and **newly authored screen (DYNPRO) or GUI status (CUA) XML carries an import → repair → re-ZIP round trip** the user should expect from the outset.
+8. **Delivery path** — which route the finished code takes into SAP: **through MCP** (the agent writes and activates the objects over the live ADT connection) or **as an abapGit ZIP the user imports themselves** through the abapGit UI ([develop-abapgit](./develop-abapgit.md)). Recommend **MCP wherever a live connection exists**; abapGit is the route when MCP is unavailable, unreliable, or not permitted on the target system — for some users it is the only way in, so it is offered as a route, never as a lesser one. Ask it here rather than at implementation time, because the plan and the risk briefing both hang on it: on the abapGit route the agent never connects to SAP before the user's import, so syntax and activation authority stay with the server until then, and **newly authored screen (DYNPRO) or GUI status (CUA) XML carries an import → repair → re-ZIP round trip** the user should expect from the outset.
 
 On each dimension you may propose a recommended default (drawn from Phase 1A context + CBO inventory + platform constraints). That proposal belongs inside the single question for its dimension — never merge proposals across dimensions into a table.
 
@@ -535,7 +535,7 @@ Apply shared conventions throughout: [oop-pattern.md](../knowledge/abap/conventi
 
 On completion, record the `check_syntax` and `activate` step results (status + evidence) into `.sapkit/program/{PROG}/verification.json` per [schemas/verification.schema.json](./schemas/verification.schema.json).
 
-On the `abapgit` branch neither tool ran, so `verification.json` is **not written at all**. Record instead the `offline_analyze` and `include_check` results from the delegated run into `.sapkit/program/{PROG}/verification-offline.json` per [schemas/verification-offline.schema.json](./schemas/verification-offline.schema.json); `import_confirmed` and `readback` stay open until Phase 7 / Phase 8 fill them.
+On the `abapgit` branch neither tool ran, so `verification.json` is **not written at all**. Record instead the `offline_analyze` and `include_check` results from the delegated run into `.sapkit/program/{PROG}/verification-offline.json` per [schemas/verification-offline.schema.json](./schemas/verification-offline.schema.json); `import_confirmed`, `readback`, `unit_test`, and `atc` stay open until Phase 7 / Phase 8 fill them.
 
 In `manual`/`hybrid` mode: prompt the user before starting Phase 4; do NOT prompt mid-flow once started.
 
@@ -554,7 +554,7 @@ Adopt the [sap-qa-tester](../personas/sap-qa-tester.md) persona for this step.
 - On FAIL: fix production code (not tests) → re-activate → re-run (loop until green or 3 attempts)
 - In `manual`/`hybrid` mode: prompt before starting Phase 5 (unless a skip condition matched, then auto-skip with a message)
 
-**Verification record** (`mcp` branch only — on the `abapgit` branch there is no `verification.json` to update, and `verification-offline.json` has no unit-test or ATC step: the skip is recorded in `state.json` alone) — update `.sapkit/program/{PROG}/verification.json` per [schemas/verification.schema.json](./schemas/verification.schema.json):
+**Verification record** (`mcp` branch only — on the `abapgit` branch there is no `verification.json` to update; the Phase 5 skip is recorded in `state.json` alone. `verification-offline.json` does carry its own `unit_test`/`atc` steps, but those are filled at **Phase 8, after the user's import**, in the same MCP-available moment as `readback` — never here, where the objects do not yet exist on SAP — per D-144) — update `.sapkit/program/{PROG}/verification.json` per [schemas/verification.schema.json](./schemas/verification.schema.json):
 - `unit_test`: PASS/FAIL with the test result summary as evidence; `SKIPPED` when Phase 5 was skipped
 - `atc`: run `GetAtcFindings` on the created objects if the backend supports it and record the outcome; otherwise record `SKIPPED` with the reason
 
@@ -585,9 +585,9 @@ Steps:
      four steps recorded) per
      [schemas/verification-offline.schema.json](./schemas/verification-offline.schema.json),
      and check that record's own gate matrix: `offline_analyze = PASS AND include_check ∈
-     {PASS, INCONCLUSIVE (with the unsettled lines named in evidence)}`. `import_confirmed`
-     and `readback` are not gated here — the review runs before the user has imported
-     anything, and they are read at Phase 8. If `offline_analyze` is `FAIL`, missing, or
+     {PASS, INCONCLUSIVE (with the unsettled lines named in evidence)}`. `import_confirmed`,
+     `readback`, `unit_test`, and `atc` are not gated here — the review runs before the user
+     has imported anything, and they are read at Phase 8. If `offline_analyze` is `FAIL`, missing, or
      `include_check` is `FAIL`, record `state.json` phase `6_review` as `blocked` exactly as
      above. This is a substitution of one record for another, not an exemption from having
      one: a branch with no verification record does not enter Phase 6.
@@ -675,7 +675,7 @@ After completion, a verified root cause likely to recur may be proposed for capt
 **Pre-condition (HARD GATE)**: ALL of the following must hold. If any is unmet, return to Phase 6 — do not write the report and do not tell the user the program is done:
 - `.sapkit/program/{PROG}/review-result.json` exists with `verdict: "PASS"` and its `reviewed_spec_sha256` equals `approval.json.spec_sha256`.
 - `.sapkit/program/{PROG}/verification.json` satisfies the gate matrix: `check_syntax = PASS AND activate = PASS AND unit_test ∈ {PASS, SKIPPED (with a reason recorded in evidence)} AND atc ∈ {PASS, SKIPPED (with a reason recorded in evidence)}`. Per [schemas/verification.schema.json](./schemas/verification.schema.json), `check_syntax`/`activate` cannot legally be `SKIPPED` — anything other than `PASS` on either fails this gate.
-  - **On the `abapgit` branch, substitute the offline record's matrix** (the review-result requirement above is unchanged): `.sapkit/program/{PROG}/verification-offline.json` per [schemas/verification-offline.schema.json](./schemas/verification-offline.schema.json) satisfies `offline_analyze = PASS AND include_check ∈ {PASS, INCONCLUSIVE (with the unsettled lines named in evidence)}`. `import_confirmed` and `readback` are not pass/fail conditions of this gate — they select which completion state is reportable, below.
+  - **On the `abapgit` branch, substitute the offline record's matrix** (the review-result requirement above is unchanged): `.sapkit/program/{PROG}/verification-offline.json` per [schemas/verification-offline.schema.json](./schemas/verification-offline.schema.json) satisfies `offline_analyze = PASS AND include_check ∈ {PASS, INCONCLUSIVE (with the unsettled lines named in evidence)}`. `import_confirmed`, `readback`, `unit_test`, and `atc` are not pass/fail conditions of this gate — they select which completion state is reportable, below.
 
 **Completion state (report exactly one, per the Track A state model — see the
 "Track A Policy Alignment" section above):**
@@ -713,11 +713,19 @@ never upgrades the state past PROVISIONAL_WRITE.
   because a person said it rather than a tool.
 - **`import_confirmed: USER_REPORTED_FAILURE` → `PROVISIONAL_WRITE`, with the unknown-state
   note** (Phase 7). Never `DRAFT`.
-- **`COMPLETE` only when `readback: PASS`** — the machine confirmation of
-  [verify-applied](./verify-applied.md), which needs an MCP read — **and** the exact-subject
-  `R-PASS`. Where no MCP read is available on that system, `readback` is `UNAVAILABLE`, the
-  run **stops at `PROVISIONAL_WRITE`**, and the report records that there is no path to
-  `COMPLETE` there. Saying otherwise is over-reporting.
+- **`COMPLETE` only when `readback: PASS` AND `unit_test` ∈ {PASS, SKIPPED (with a reason
+  recorded in evidence)} AND `atc` ∈ {PASS, SKIPPED (with a reason recorded in evidence)}** —
+  the machine confirmation of [verify-applied](./verify-applied.md) plus the same test/ATC
+  standard the `mcp` branch's matrix above requires (D-144) — **and** the exact-subject
+  `R-PASS`. The MCP availability that makes `readback` reachable makes `RunUnitTest` and
+  `GetAtcFindings` reachable too, so in the same post-import moment run them and record both
+  steps into `verification-offline.json`: `RunUnitTest` where a test class is in scope
+  (a P3 execution — DEV-only holds exactly as on the `mcp` branch), `GetAtcFindings` where
+  the backend supports it; `SKIPPED` with the reason otherwise (Procedural paradigm, testing
+  scope none, ATC unsupported, or the user declining execution on that system). Where no MCP
+  read is available on that system, `readback` is `UNAVAILABLE`, the run **stops at
+  `PROVISIONAL_WRITE`**, and the report records that there is no path to `COMPLETE` there.
+  Saying otherwise is over-reporting.
 
 Report inputs (taken from local state, with no re-fetching):
 - Objects created + activation status
@@ -748,7 +756,7 @@ In `manual`/`hybrid` mode: prompt the user before writing the report.
 - `.sapkit/program/{PROG}/approval.json` — approval record bound to spec hash + system ([schema](./schemas/approval.schema.json))
 - `.sapkit/program/{PROG}/state.json` — execution_mode + delivery_path + per-phase status/timing (schema below, drives resume support)
 - `.sapkit/program/{PROG}/verification.json` — check_syntax / activate / unit_test / atc step results ([schema](./schemas/verification.schema.json)) — the `mcp` delivery branch's record
-- `.sapkit/program/{PROG}/verification-offline.json` — the `abapgit` delivery branch's record, written **instead of** `verification.json` (never alongside it): offline_analyze / include_check / import_confirmed / readback ([schema](./schemas/verification-offline.schema.json))
+- `.sapkit/program/{PROG}/verification-offline.json` — the `abapgit` delivery branch's record, written **instead of** `verification.json` (never alongside it): offline_analyze / include_check / import_confirmed / readback / unit_test / atc ([schema](./schemas/verification-offline.schema.json))
 - `.sapkit/program/{PROG}/review-request.json` — Phase 6 reviewer input ([schema](./schemas/review-request.schema.json))
 - `.sapkit/program/{PROG}/review-result.json` — Phase 6 reviewer verdict ([schema](./schemas/review-result.schema.json))
 - `.sapkit/program/{PROG}/report.md` — final completion report

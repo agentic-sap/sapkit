@@ -1,12 +1,13 @@
 ---
 name: develop-abapgit
-description: Offline delivery path for ABAP — author and check sources inside a local abapGit mirror seeded from a full package export, build a whole-package ZIP, and hand it to the user, who imports it through the abapGit UI themselves. The agent never connects to SAP; the ZIP is the deliverable, and import, activation, and transport stay with the user.
+description: Offline delivery path for ABAP — author and check sources inside a local abapGit mirror seeded from a full package export, build a whole-package ZIP, and hand it to the user, who imports it through the abapGit UI themselves. The agent never connects to SAP before the user's import; the ZIP is the deliverable, and import, activation, and transport stay with the user.
 ---
 
 # Develop via abapGit — offline ZIP delivery
 
 sapkit's usual path applies ABAP to SAP over a live ADT connection. This procedure is the
-second path, and **nothing the agent does here touches SAP.** The agent writes and checks
+second path, and **nothing the agent does here touches SAP before the user's import.** The
+agent writes and checks
 ABAP inside a local abapGit mirror, packs the whole package into a ZIP, and hands that ZIP
 over. The **user** imports it through the abapGit UI on their own system.
 
@@ -54,8 +55,10 @@ sends bulk multi-FM repair down it. This procedure is the wiring both of them as
 
 ## Track A Policy Alignment
 
-- **Every step the agent performs is P0 offline.** No SAP connection is opened at any point
-  between Step 1 and Step 6.
+- **Every step the agent performs up to the ZIP handover is P0 offline.** No SAP connection
+  is opened at any point between Step 1 and Step 6. The one later exception is Step 7's
+  post-import verification — read-back, tests, ATC — which exists only where an MCP read is
+  available; running the tests there is a P3 execution and DEV-only holds (D-144).
 - **The act that changes SAP is P3 and it belongs to the user.** `AGENTS.md` binds the act,
   not the tool: importing this ZIP is a P3 write, and its DEV-only rule holds exactly as it
   does for `Update*`. What differs is who performs it and what can be checked mechanically —
@@ -294,7 +297,7 @@ Then the status, and it is the part most easily got wrong:
 |---|---|
 | Mirror written, checks passed, review done — SAP unchanged | **`DRAFT`** |
 | The user reports the import and activation succeeded | **`PROVISIONAL_WRITE`** |
-| A read-back confirms it *and* an independent review passes | **`COMPLETE`** |
+| A read-back confirms it, the post-import test/ATC evidence holds, *and* an independent review passes | **`COMPLETE`** |
 | The user reports the import **failed** | **`PROVISIONAL_WRITE`**, with an unknown-state note |
 
 - The user's report is **an affirmation on record, not a machine PASS.** It is the same
@@ -303,6 +306,11 @@ Then the status, and it is the part most easily got wrong:
 - **`COMPLETE` is reachable only where an MCP read is available**: the machine confirmation
   of [verify-applied](./verify-applied.md) — read the source back out of SAP and compare it
   against what was sent — plus `CheckSyntax`, plus `GetInactiveObjects` returning zero, plus
+  **the post-import test/ATC evidence** — `RunUnitTest` where a test class is in scope (a P3
+  execution; DEV-only holds) and `GetAtcFindings` where the backend supports it, each `PASS`
+  or `SKIPPED` with a recorded reason, the same standard the MCP branch requires (D-144: the
+  MCP availability that makes the read-back reachable makes these reachable too, so offline
+  `COMPLETE` never means less) — plus
   the independent fresh-context `R-PASS` ([review-checklist](./review-checklist.md)).
   ⚠ **For function modules, substitute the signature representation before comparing the
   body bytes.** The mirror's classic form and the server's modern inline form are mismatched

@@ -270,8 +270,9 @@ this checklist exists to catch. `N/A` with the reason is honest; a green box her
 The activation evidence for this branch arrives later, outside the review: it is the `readback`
 step of `.sapkit/program/{PROG}/verification-offline.json`
 ([schema](./schemas/verification-offline.schema.json)), recorded after the user imports and only
-where an MCP read exists. Absence of that evidence caps the run at `PROVISIONAL_WRITE`; it never
-turns into a `PASS` here.
+where an MCP read exists — and the test/ATC evidence (`unit_test`, `atc`) that `COMPLETE` also
+requires (D-144) arrives in that same post-import moment. Absence of that evidence caps the run
+at `PROVISIONAL_WRITE`; it never turns into a `PASS` here.
 
 ## False-Positive Patterns the Reviewer MUST Reject
 

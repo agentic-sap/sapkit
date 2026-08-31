@@ -69,7 +69,11 @@ What replaces it is deliberately weaker, and is recorded as such:
   unknown state is not something a later clean cycle gets to un-say.**
 - `COMPLETE` on this branch requires the chain's own evidence after the fact: a read-back
   comparison ([verify-applied](../procedures/verify-applied.md)) plus `CheckSyntax` plus
-  `GetInactiveObjects` returning zero, plus an exact-subject `R-PASS`. That is reachable **only
+  `GetInactiveObjects` returning zero, **plus the chain's steps 3–4 on the imported objects** —
+  `RunUnitTest` and `GetAtcFindings`, each `PASS` or `SKIPPED` with a recorded reason, the same
+  standard the online matrix puts on them (D-144: the MCP availability that makes the read-back
+  reachable makes these reachable too, so `COMPLETE` never means less on this branch) — plus an
+  exact-subject `R-PASS`. That is reachable **only
   where an MCP read is available**; where it is not, the run **stops at `PROVISIONAL_WRITE` and
   records that**.
 

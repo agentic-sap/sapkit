@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "verification-offline.schema.json",
   "title": "Offline Delivery Verification Record",
-  "description": "Written to .sapkit/program/{PROG}/verification-offline.json by the main context when create-program runs its abapGit delivery branch (state.json delivery_path = \"abapgit\"). It is that branch's substitute for verification.json, and the two are never both written: verification.json records CheckSyntax and ActivateObjects, neither of which can exist on a path where the agent never connects to SAP, so a half-filled one would be the exact false machine PASS this design is built to prevent. The steps fill in across the run — offline_analyze and include_check during Phase 4 (the implementation itself is delegated to develop-abapgit.md), import_confirmed at Phase 7 when the user reports the import back, readback at Phase 8 where an MCP read exists. The enums are the contract: the one step whose claim comes from a human deliberately has no PASS value, so an affirmation can never be recorded as a machine result.",
+  "description": "Written to .sapkit/program/{PROG}/verification-offline.json by the main context when create-program runs its abapGit delivery branch (state.json delivery_path = \"abapgit\"). It is that branch's substitute for verification.json, and the two are never both written: verification.json records CheckSyntax and ActivateObjects, neither of which can exist on a path where the agent never connects to SAP, so a half-filled one would be the exact false machine PASS this design is built to prevent. The steps fill in across the run — offline_analyze and include_check during Phase 4 (the implementation itself is delegated to develop-abapgit.md), import_confirmed at Phase 7 when the user reports the import back, readback plus unit_test and atc at Phase 8 where an MCP read exists (D-144: COMPLETE on this branch requires the same test/ATC standard as the mcp branch — unit_test and atc each PASS or SKIPPED with a recorded reason — so the same word never means less here). The enums are the contract: the one step whose claim comes from a human deliberately has no PASS value, so an affirmation can never be recorded as a machine result.",
   "type": "object",
   "required": ["offline_analyze", "include_check", "import_confirmed", "readback"],
   "additionalProperties": false,
@@ -21,7 +21,15 @@
     },
     "readback": {
       "$ref": "#/definitions/step-readback",
-      "description": "The verify-applied.md machine confirmation — the source read back out of SAP and compared against what was sent, plus syntax and active-state confirmation. It needs an MCP read, which the offline branch does not have by definition, so UNAVAILABLE records the environment rather than a failure of the work: where no MCP read exists on that system the run stops at PROVISIONAL_WRITE and says so. PASS here is the only value that, together with an exact-subject R-PASS, lets Phase 8 report COMPLETE. For function modules, substitute the signature representation before comparing body bytes — the mirror's classic form and the server's modern inline form are mismatched by definition."
+      "description": "The verify-applied.md machine confirmation — the source read back out of SAP and compared against what was sent, plus syntax and active-state confirmation. It needs an MCP read, which the offline branch does not have by definition, so UNAVAILABLE records the environment rather than a failure of the work: where no MCP read exists on that system the run stops at PROVISIONAL_WRITE and says so. PASS here, together with unit_test and atc each PASS or reasoned SKIPPED (D-144) and an exact-subject R-PASS, is what lets Phase 8 report COMPLETE. For function modules, substitute the signature representation before comparing body bytes — the mirror's classic form and the server's modern inline form are mismatched by definition."
+    },
+    "unit_test": {
+      "$ref": "#/definitions/step-postimport",
+      "description": "RunUnitTest / GetUnitTestResult outcome on the imported objects, recorded at Phase 8 alongside readback — never before the user's import, because the objects do not exist on SAP until then. Optional in this record because an environment with no MCP connection can never fill it, and that environment never reaches COMPLETE anyway; but COMPLETE requires it PASS or SKIPPED with a recorded reason (D-144 — the same standard verification.schema.json's matrix puts on the mcp branch). SKIPPED reasons mirror Phase 5's skip conditions (Procedural paradigm, testing scope none) or a user's refusal to allow execution on that system. Running it is a P3 execution — DEV-only holds exactly as on the mcp branch."
+    },
+    "atc": {
+      "$ref": "#/definitions/step-postimport",
+      "description": "GetAtcFindings outcome on the imported objects, recorded at Phase 8 alongside readback — never before the user's import. Optional for the same reason as unit_test, and required PASS or reasoned SKIPPED for COMPLETE (D-144). SKIPPED when the backend does not support ATC checks, with that reason in evidence."
     },
     "prog": {
       "type": "string",
@@ -81,6 +89,25 @@
           "type": "string",
           "enum": ["USER_AFFIRMED", "USER_REPORTED_FAILURE", "NOT_YET"],
           "description": "USER_AFFIRMED — the user reports the import and activation succeeded (Phase 8 reports PROVISIONAL_WRITE, never COMPLETE on this alone). USER_REPORTED_FAILURE — the user reports the import failed, which means the server is in an unknown state because partial application is possible; it is still PROVISIONAL_WRITE with an unknown-state note and never regresses to DRAFT. NOT_YET — the ZIP was handed over and no import has been reported (Phase 8 reports DRAFT)."
+        },
+        "evidence": {
+          "$ref": "#/definitions/evidence"
+        },
+        "ts": {
+          "$ref": "#/definitions/ts"
+        }
+      }
+    },
+    "step-postimport": {
+      "type": "object",
+      "required": ["status", "evidence"],
+      "additionalProperties": false,
+      "description": "Used by unit_test and atc only. Same shape as verification.schema.json's step definition: SKIPPED is a legitimate outcome as long as evidence carries the reason. These steps exist only after the import, in the same MCP-available moment as readback, which is why they are optional at the record level while COMPLETE still requires them (D-144).",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "SKIPPED"],
+          "description": "Step outcome. SKIPPED requires the reason in evidence; FAIL blocks COMPLETE exactly as it would block the mcp branch's Phase 8 matrix."
         },
         "evidence": {
           "$ref": "#/definitions/evidence"

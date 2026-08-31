@@ -170,6 +170,12 @@ abapGit 반입**이다. P3라는 등급도, DEV-only라는 규칙도 그대로�
 [`interactive/core/procedures/develop-abapgit.md`](../../../interactive/core/procedures/develop-abapgit.md)이고,
 설계 요지는 `interactive/DESIGN.md` §10이다.
 
+판D의 마감 리뷰가 소유자에게 올린 열린 결정 하나 — 오프라인 지선의 `COMPLETE`가 시험·ATC를 요구하지 않아 MCP
+지선보다 약하다(**D-143** 권고 ③) — 는 2026-08-31에 **D-144**로 닫혔다. 소유자의 선택은 **좁히기**다: 오프라인
+`COMPLETE`도 `unit_test`·`atc`가 `PASS`이거나 사유 있는 `SKIPPED`일 것을 요구한다. 근거의 핵은 「오프라인에서
+`COMPLETE`에 닿게 하는 그 MCP 가용성이 시험·ATC도 가능하게 하므로, 요구를 올려도 도달 불가능해지는 환경이 없다」이고,
+기각된 대안(오프라인 최상위 상태에 다른 이름)의 비용은 상태 어휘의 영구 이원화였다.
+
 ## 관련 페이지
 
 - [엔진 교체의 전 역사](engine-replacement-history.md) — D-040이 용어로 갈라 둔 `engine/` 쪽 계보
