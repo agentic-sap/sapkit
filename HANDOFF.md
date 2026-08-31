@@ -186,8 +186,8 @@
 > | **시험** | jest **4,261** |
 > | **게이트** | 제품 **10종**(판B에서 `check-doc-size` 신설) · 엔진 전종 · 음성시험 **11종 + 공방 훅 2종** 전부 exit 0(판C가 `test-continuity-hook` 신설) · 판W가 **공방 문서 게이트 `scripts/check-wiki.mjs`와 그 음성시험**을 더했다(제품에 동봉되지 않는 층 — **목록 정본은 `CLAUDE.md` 「게이트」 절**) |
 > | **웜 레이어** | 상한 `HANDOFF.md` **500** · `docs/RUN-PLAN.md` **300** — **현재 값은 `check-doc-size.mjs`가 센다**(여기 복제하지 않는다) |
-> | **워킹 트리** | clean · ⚠ **미푸시 커밋 있음** — D-144 집행(`fb4b18b` · 2026-08-31, `main` 직커밋)이 `origin/main` 앞에 서 있다(push는 사용자 판단). 그 앞은 판D까지 병합·푸시 완료(`081143e`). 작업 브랜치 `dryforge/pand-abapgit-zip`은 병합 후에도 남아 있다(삭제는 사용자 판단) |
-> | **CI** | 마지막 **실측 초록**은 판D 병합 후의 run `32949825364` — **잡 4개 전부**(`node-gates` · `win-gates` · `sapkit-cli` · `sapkit-engine`). 판D는 코드 변경 0이라 러너가 새로 본 것은 문서·스키마·생성물뿐이다 |
+> | **워킹 트리** | clean · **D-144까지 푸시 완료**(2026-08-31 · `fb4b18b`+`1787544` · `main` 직커밋 — 사용자 지시로 push). `origin/main..main` 비어 있음. 작업 브랜치 `dryforge/pand-abapgit-zip`은 병합 후에도 남아 있다(삭제는 사용자 판단) |
+> | **CI** | 마지막 **실측 초록**은 D-144 푸시 후의 run `33345490742` — **잡 4개 전부**(`node-gates` · `win-gates` · `sapkit-cli` · `sapkit-engine`). D-144도 코드 변경 0이라 러너가 새로 본 것은 문서·스키마·생성물뿐이다 |
 > | **대장** | 증거 대기 **30** · 증거 있음 **156** (변하지 않았다) |
 > | **적용 경로** | **2종이다** — MCP(기본) · **abapGit 오프라인 ZIP**(판D · 절차 `develop-abapgit`). `create-program`은 Phase 1B 차원 8에서 묻고 `state.json.delivery_path`에 남긴다(미기록 구본 = `mcp`) |
 > | **SAP** | `$TMP`에 `ZSAPKIT_*` **10종 설치·활성**(FUGR 1 + FM 2 + INTF 1 + CLAS 6). ⚠ 위 요약과 ✅표의 **「9종」은 D-132 시점 값**이고 이 칸이 현재 실측이다 |
