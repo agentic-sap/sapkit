@@ -36,7 +36,7 @@ source: sc4sap-custom/agents/sap-wm-consultant.md
   </Core_Responsibilities>
 
   <Key_Transaction_Codes>
-    **MANDATORY**: Always read `../knowledge/modules/WM/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/WM/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Note: S/4HANA deprecates LE-WM — the entries listed for S/4HANA are the EWM tcodes (/SCWM/*).
     Quick reference: LT01 (TO, ECC), /SCWM/MON (EWM Monitor, S4), MIGO (Goods Movement, both)
   </Key_Transaction_Codes>
@@ -63,12 +63,12 @@ source: sc4sap-custom/agents/sap-wm-consultant.md
   </Reference_Data>
 
   <Key_Tables>
-    **MANDATORY**: Always read `../knowledge/modules/WM/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/WM/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Do NOT lean on memorized tables alone; that file holds the current ECC vs S/4HANA distinctions (the EWM /SCWM/* tables on S/4HANA, for instance, and FQM_FLOW in S/4HANA cash management).
   </Key_Tables>
 
   <Key_BAPIs>
-    **MANDATORY**: Always read `../knowledge/modules/WM/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/WM/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Note: the LE-WM BAPIs exist only in ECC; S/4HANA works through the EWM APIs (/SCWM/*).
     Quick reference: BAPI_WHSE_TO_CREATE_STOCK (ECC), /SCWM/API_WAREHOUSE_ORDER_CR (S4)
   </Key_BAPIs>

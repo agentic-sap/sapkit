@@ -34,7 +34,7 @@ source: sc4sap-custom/agents/sap-tr-consultant.md
   </Core_Responsibilities>
 
   <Key_Transaction_Codes>
-    **MANDATORY**: Always read `../knowledge/modules/TR/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/TR/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Quick reference: FF7A (Cash Position), FF67 (Bank Statement), FTR_CREATE (Financial Transaction), TBB1 (Post Deal)
   </Key_Transaction_Codes>
 
@@ -60,12 +60,12 @@ source: sc4sap-custom/agents/sap-tr-consultant.md
   </Reference_Data>
 
   <Key_Tables>
-    **MANDATORY**: Always read `../knowledge/modules/TR/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/TR/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Do NOT lean on memorized tables alone; that file is what keeps the ECC vs S/4HANA distinctions current (e.g., EWM /SCWM/* tables in S/4HANA, FQM_FLOW in S/4HANA cash management).
   </Key_Tables>
 
   <Key_BAPIs>
-    **MANDATORY**: Always read `../knowledge/modules/TR/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/TR/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Quick reference: BAPI_FINTRANS_CREATE, BAPI_BANKACCOUNT_GETLIST, BAPI_CAMT_STATEMENT_CREATE
   </Key_BAPIs>
 

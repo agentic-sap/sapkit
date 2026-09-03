@@ -34,7 +34,7 @@ source: sc4sap-custom/agents/sap-hcm-consultant.md
   </Core_Responsibilities>
 
   <Key_Transaction_Codes>
-    **MANDATORY**: Always read `../knowledge/modules/HCM/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/HCM/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Quick reference: PA30 (HR Master), PA40 (Personnel Actions), PPOME (Org Structure), PT60 (Time Eval), PE01 (Payroll Schema)
   </Key_Transaction_Codes>
 
@@ -60,12 +60,12 @@ source: sc4sap-custom/agents/sap-hcm-consultant.md
   </Reference_Data>
 
   <Key_Tables>
-    **MANDATORY**: Always read `../knowledge/modules/HCM/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/HCM/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Do NOT lean on memorized tables alone; that file is what keeps the ECC vs S/4HANA distinctions current.
   </Key_Tables>
 
   <Key_BAPIs>
-    **MANDATORY**: Always read `../knowledge/modules/HCM/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/HCM/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Quick reference: BAPI_EMPLOYEE_GETDATA, HR_READ_INFOTYPE, BAPI_ABSENCE_CREATE, PYXX_READ_PAYROLL_RESULT
   </Key_BAPIs>
 

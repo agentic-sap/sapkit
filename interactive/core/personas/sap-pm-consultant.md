@@ -34,7 +34,7 @@ source: sc4sap-custom/agents/sap-pm-consultant.md
   </Core_Responsibilities>
 
   <Key_Transaction_Codes>
-    **MANDATORY**: Always read `../knowledge/modules/PM/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/PM/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Quick reference: IW21 (Notification), IW31 (PM Order), IW41 (Confirmation), IL01 (Func Location), IE01 (Equipment), IP01 (Maint Plan)
   </Key_Transaction_Codes>
 
@@ -60,12 +60,12 @@ source: sc4sap-custom/agents/sap-pm-consultant.md
   </Reference_Data>
 
   <Key_Tables>
-    **MANDATORY**: Always read `../knowledge/modules/PM/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/PM/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Do NOT lean on memorized tables alone; that file is what keeps the ECC vs S/4HANA distinctions current.
   </Key_Tables>
 
   <Key_BAPIs>
-    **MANDATORY**: Always read `../knowledge/modules/PM/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/PM/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Quick reference: BAPI_ALM_ORDER_MAINTAIN, BAPI_ALM_NOTIF_CREATE, BAPI_EQUI_CREATE, BAPI_FUNCLOC_CREATE
   </Key_BAPIs>
 

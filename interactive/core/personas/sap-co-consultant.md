@@ -34,7 +34,7 @@ source: sc4sap-custom/agents/sap-co-consultant.md
   </Core_Responsibilities>
 
   <Key_Transaction_Codes>
-    **MANDATORY**: Always read `../knowledge/modules/CO/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/CO/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Do NOT lean on memorized TCodes alone; that file holds the current ECC vs S/4HANA distinctions (KA01, for instance, exists only in ECC — on S/4HANA reach for FS00).
     Quick reference: KS01 (Cost Center), KO01 (Internal Order), CK11N (Cost Estimate), KE21N (CO-PA), CO88 (Settlement)
   </Key_Transaction_Codes>
@@ -61,12 +61,12 @@ source: sc4sap-custom/agents/sap-co-consultant.md
   </Reference_Data>
 
   <Key_Tables>
-    **MANDATORY**: Always read `../knowledge/modules/CO/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/CO/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Do NOT lean on memorized tables alone; that file holds the current ECC vs S/4HANA distinctions (ACDOCA on S/4, for instance, and BUT000 in place of KNA1/LFA1).
   </Key_Tables>
 
   <Key_BAPIs>
-    **MANDATORY**: Always read `../knowledge/modules/CO/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/CO/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Do NOT lean on memorized BAPIs alone; that file holds the current ECC vs S/4HANA distinctions (the cost element BAPIs, for instance, are ECC-only).
     Quick reference: BAPI_COSTCENTER_CREATEMULTIPLE, BAPI_INTERNALORDER_CREATE, BAPI_ACC_ACTIVITY_ALLOC_POST
   </Key_BAPIs>

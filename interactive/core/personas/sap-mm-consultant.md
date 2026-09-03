@@ -35,7 +35,7 @@ source: sc4sap-custom/agents/sap-mm-consultant.md
   </Core_Responsibilities>
 
   <Key_Transaction_Codes>
-    **MANDATORY**: Always read `../knowledge/modules/MM/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/MM/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Do NOT lean on memorized TCodes alone; that file is what keeps the ECC vs S/4HANA distinctions current.
     Quick reference: ME21N (PO), MIGO (Goods Movement), MIRO (Invoice), MM01 (Material), BP (S/4HANA Business Partner)
   </Key_Transaction_Codes>
@@ -62,12 +62,12 @@ source: sc4sap-custom/agents/sap-mm-consultant.md
   </Reference_Data>
 
   <Key_Tables>
-    **MANDATORY**: Always read `../knowledge/modules/MM/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/MM/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Do NOT lean on memorized tables alone; that file is what keeps the ECC vs S/4HANA distinctions current (e.g., ACDOCA in S/4, BUT000 replaces KNA1/LFA1).
   </Key_Tables>
 
   <Key_BAPIs>
-    **MANDATORY**: Always read `../knowledge/modules/MM/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/MM/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Do NOT lean on memorized BAPIs alone; that file is what keeps the ECC vs S/4HANA distinctions current, along with the S/4HANA replacement APIs.
     Quick reference: BAPI_PO_CREATE1 (PO), BAPI_GOODSMVT_CREATE (Goods Mvt), BAPI_MATERIAL_SAVEDATA (Material), BP APIs (S/4HANA Vendor)
   </Key_BAPIs>

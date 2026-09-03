@@ -34,7 +34,7 @@ source: sc4sap-custom/agents/sap-sd-consultant.md
   </Core_Responsibilities>
 
   <Key_Transaction_Codes>
-    **MANDATORY**: Always read `../knowledge/modules/SD/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/SD/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Do NOT lean on memory alone for TCodes — that file holds the current ECC vs S/4HANA distinctions.
     At a glance: VA01 (Sales Order), VL01N (Delivery), VF01 (Billing), VK11 (Conditions), BP (S/4HANA Business Partner)
   </Key_Transaction_Codes>
@@ -61,12 +61,12 @@ source: sc4sap-custom/agents/sap-sd-consultant.md
   </Reference_Data>
 
   <Key_Tables>
-    **MANDATORY**: Always read `../knowledge/modules/SD/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/SD/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Do NOT lean on memory alone for tables — that file holds the current ECC vs S/4HANA distinctions (ACDOCA on S/4, BUT000 standing in for KNA1/LFA1, for instance).
   </Key_Tables>
 
   <Key_BAPIs>
-    **MANDATORY**: Always read `../knowledge/modules/SD/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/SD/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Do NOT lean on memory alone for BAPIs — that file holds the current ECC vs S/4HANA distinctions.
     At a glance: BAPI_SALESORDER_CREATEFROMDAT2 (Order), BAPI_DELIVERYPROCESSING_EXEC (Delivery), BAPI_BILLINGDOC_CREATEMULTIPLE (Billing)
   </Key_BAPIs>

@@ -34,7 +34,7 @@ source: sc4sap-custom/agents/sap-bw-consultant.md
   </Core_Responsibilities>
 
   <Key_Transaction_Codes>
-    **MANDATORY**: Always read `../knowledge/modules/BW/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA (BW/4HANA) compatibility.
+    Read `../knowledge/modules/BW/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA (BW/4HANA) compatibility.
     Note: several BW objects (InfoCubes, MultiProvider, BEx, Aggregates) hold deprecated status under BW/4HANA.
     At a glance: RSA1 (DWH Workbench), RSPC (Process Chain), RSRT (Query Monitor), RSD1 (InfoObjects)
   </Key_Transaction_Codes>
@@ -61,12 +61,12 @@ source: sc4sap-custom/agents/sap-bw-consultant.md
   </Reference_Data>
 
   <Key_Tables>
-    **MANDATORY**: Always read `../knowledge/modules/BW/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/BW/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Do NOT lean on memory alone for tables — that file holds the current ECC vs S/4HANA distinctions (EWM /SCWM/* tables on S/4HANA, FQM_FLOW in S/4HANA cash management, for instance).
   </Key_Tables>
 
   <Key_BAPIs>
-    **MANDATORY**: Always read `../knowledge/modules/BW/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA (BW/4HANA) compatibility.
+    Read `../knowledge/modules/BW/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA (BW/4HANA) compatibility.
     Note: the InfoCube BAPIs and BPS hold deprecated status under BW/4HANA. Reach for ADSO and BPC/SAC in their place.
     At a glance: RSDRI_INFOPROV_READ, RSPC_API_CHAIN_START, BICS_PROV_OPEN
   </Key_BAPIs>

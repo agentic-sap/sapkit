@@ -35,7 +35,7 @@ source: sc4sap-custom/agents/sap-tm-consultant.md
   </Core_Responsibilities>
 
   <Key_Transaction_Codes>
-    **MANDATORY**: Always read `../knowledge/modules/TM/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/TM/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Note: the /SCMTMS/* tcodes belong to S/4HANA TM; VT01N/VT02N belong to ECC LE-TRA.
     Quick reference: /SCMTMS/FO_MAINT (Freight Order, S4), VT01N (Shipment, ECC), /SCMTMS/TEND (Tendering, S4)
   </Key_Transaction_Codes>
@@ -62,12 +62,12 @@ source: sc4sap-custom/agents/sap-tm-consultant.md
   </Reference_Data>
 
   <Key_Tables>
-    **MANDATORY**: Always read `../knowledge/modules/TM/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/TM/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Do NOT lean on memorized tables alone; that file holds the current ECC vs S/4HANA distinctions (the EWM /SCWM/* tables on S/4HANA, for instance, and FQM_FLOW in S/4HANA cash management).
   </Key_Tables>
 
   <Key_BAPIs>
-    **MANDATORY**: Always read `../knowledge/modules/TM/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/TM/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Note: the /SCMTMS/ APIs belong to S/4HANA; BAPI_SHIPMENT_* belong to ECC LE-TRA.
     Quick reference: /SCMTMS/CL_FO_BAPI=>CREATE (S4), BAPI_SHIPMENT_CREATE (ECC)
   </Key_BAPIs>

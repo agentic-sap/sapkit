@@ -34,7 +34,7 @@ source: sc4sap-custom/agents/sap-fi-consultant.md
   </Core_Responsibilities>
 
   <Key_Transaction_Codes>
-    **MANDATORY**: Always read `../knowledge/modules/FI/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/FI/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Do NOT lean on memorized TCodes alone; that file holds the current ECC vs S/4HANA distinctions.
     Quick reference: FB50 (G/L Posting), F110 (Payment), FS00 (G/L Master), AS01 (Asset), BP (S/4HANA), FAGLL03H (S/4HANA Line Items)
   </Key_Transaction_Codes>
@@ -61,12 +61,12 @@ source: sc4sap-custom/agents/sap-fi-consultant.md
   </Reference_Data>
 
   <Key_Tables>
-    **MANDATORY**: Always read `../knowledge/modules/FI/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/FI/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Do NOT lean on memorized tables alone; that file holds the current ECC vs S/4HANA distinctions (ACDOCA on S/4, for instance, and BUT000 in place of KNA1/LFA1).
   </Key_Tables>
 
   <Key_BAPIs>
-    **MANDATORY**: Always read `../knowledge/modules/FI/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/FI/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Do NOT lean on memorized BAPIs alone; that file holds the current ECC vs S/4HANA distinctions along with the S/4HANA Finance APIs (ACDOCA).
     Quick reference: BAPI_ACC_DOCUMENT_POST (FI Doc), BAPI_FIXEDASSET_OVRTAKE_CREATE (Asset), FINS_ACDOCA_READ (S/4HANA Universal Journal)
   </Key_BAPIs>

@@ -34,7 +34,7 @@ source: sc4sap-custom/agents/sap-qm-consultant.md
   </Core_Responsibilities>
 
   <Key_Transaction_Codes>
-    **MANDATORY**: Always read `../knowledge/modules/QM/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/QM/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Quick reference: QA01 (Inspection Lot), QE01 (Results), QA11 (Usage Decision), QM01 (Notification), QP01 (Inspection Plan)
   </Key_Transaction_Codes>
 
@@ -60,12 +60,12 @@ source: sc4sap-custom/agents/sap-qm-consultant.md
   </Reference_Data>
 
   <Key_Tables>
-    **MANDATORY**: Always read `../knowledge/modules/QM/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/QM/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Do NOT lean on memorized tables alone; that file is what keeps the ECC vs S/4HANA distinctions current.
   </Key_Tables>
 
   <Key_BAPIs>
-    **MANDATORY**: Always read `../knowledge/modules/QM/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/QM/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Quick reference: BAPI_INSPLOT_CREATE, BAPI_QUALNOT_CREATE, BAPI_INSPOPER_RECRESULTS, BAPI_INSPLOT_USAGE_DECISION
   </Key_BAPIs>
 

@@ -34,7 +34,7 @@ source: sc4sap-custom/agents/sap-pp-consultant.md
   </Core_Responsibilities>
 
   <Key_Transaction_Codes>
-    **MANDATORY**: Always read `../knowledge/modules/PP/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/PP/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Quick reference: MD01 (MRP), CO01 (Prod Order), CO11N (Confirmation), CS01 (BOM), CA01 (Routing), CR01 (Work Center)
   </Key_Transaction_Codes>
 
@@ -60,12 +60,12 @@ source: sc4sap-custom/agents/sap-pp-consultant.md
   </Reference_Data>
 
   <Key_Tables>
-    **MANDATORY**: Always read `../knowledge/modules/PP/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/PP/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Do NOT lean on memorized tables alone; that file holds the current ECC vs S/4HANA distinctions.
   </Key_Tables>
 
   <Key_BAPIs>
-    **MANDATORY**: Always read `../knowledge/modules/PP/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/PP/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Quick reference: BAPI_PRODORD_CREATE, BAPI_PRODORDCONF_CREATE_HDR, BAPI_BOM_GETDETAIL, BAPI_MATERIAL_AVAILABILITY
   </Key_BAPIs>
 

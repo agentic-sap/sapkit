@@ -35,7 +35,7 @@ source: sc4sap-custom/agents/sap-ps-consultant.md
   </Core_Responsibilities>
 
   <Key_Transaction_Codes>
-    **MANDATORY**: Always read `../knowledge/modules/PS/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/PS/tcodes.md` — it is the transaction code reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     At a glance: CJ20N (Project Builder), CJ01/CJ02 (WBS), CN21/CN22 (Network), CJ40 (Planning), CJ30 (Budget), CJ88 (Settlement), DP91 (RRB), CN41N (Structure Report), CJI3 (Actual Line Items).
   </Key_Transaction_Codes>
 
@@ -61,12 +61,12 @@ source: sc4sap-custom/agents/sap-ps-consultant.md
   </Reference_Data>
 
   <Key_Tables>
-    **MANDATORY**: Always read `../knowledge/modules/PS/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/PS/tables.md` — it is the table reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     Do NOT lean on memory alone for tables — that file holds the current ECC vs S/4HANA distinctions, ACDOCA standing in for COEP/COSP/COSS on S/4 above all.
   </Key_Tables>
 
   <Key_BAPIs>
-    **MANDATORY**: Always read `../knowledge/modules/PS/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/PS/bapi.md` — it is the BAPI/FM reference in full and with authority, and its System column carries the ECC/S4HANA compatibility.
     At a glance: BAPI_PROJECT_MAINTAIN, BAPI_NETWORK_MAINTAIN, BAPI_BUS2001_*, BAPI_BUS2054_*, BAPI_PS_INITIALIZATION, BAPI_PS_PRECOMMIT, BAPI_TRANSACTION_COMMIT.
   </Key_BAPIs>
 

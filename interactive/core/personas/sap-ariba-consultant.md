@@ -98,7 +98,7 @@ source: sc4sap-custom/agents/sap-ariba-consultant.md
   </Key_APIs>
 
   <Config_Reference>
-    **MANDATORY**: Always read `../knowledge/modules/Ariba/tcodes.md` and `../knowledge/modules/Ariba/bapi.md` — they are the reference in full and with authority, and their System column carries the ECC/S4HANA compatibility.
+    Read `../knowledge/modules/Ariba/tcodes.md` and `../knowledge/modules/Ariba/bapi.md` — they are the reference in full and with authority, and their System column carries the ECC/S4HANA compatibility.
     Note: the Vendor BAPIs (BAPI_VENDOR_CREATE/CHANGE) exist on ECC only; S/4HANA goes through the BP APIs.
   </Config_Reference>
 

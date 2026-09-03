@@ -100,7 +100,7 @@ These rules are shared across procedures. Load and apply each one during the pha
 
 Where the Phase 2 object list carries a new Table, Data Element, or Domain AND `SAP_VERSION = ECC`, Phase 4 must NOT call `CreateTable` / `CreateDataElement` / `CreateDomain`. Follow [ecc-ddic-fallback.md](../knowledge/abap/conventions/ecc-ddic-fallback.md) instead: generate a helper report in `$TMP` from the matching template — [table_create_sample.abap](../knowledge/abap/templates/ecc/table_create_sample.abap), [element_create_sample.abap](../knowledge/abap/templates/ecc/element_create_sample.abap), or [domain_create_sample.abap](../knowledge/abap/templates/ecc/domain_create_sample.abap) — activate the helper, then emit the mandatory user message (SE38 run → uncheck dry-run → SE11 activate + assign transport). Do not count the DDIC object as created until the user confirms activation. The remaining objects (classes, includes, screens, …) continue on the normal flow; the plan must sequence the DDIC helpers first, so the user can create them before any code depending on them is activated.
 
-## Phase 0 — SAP Version Preflight (MANDATORY, runs before the interview)
+## Phase 0 — SAP Version Preflight (runs before the interview)
 
 Everything about the development approach (tables, BAPIs, CDS availability, ABAP syntax, RAP eligibility) hangs on the SAP platform and release.
 
@@ -143,7 +143,7 @@ Check three signals in order — the first match sets the interview scope:
 - **The artifact contract is unchanged.** `module-interview.md` and `interview.md` are still produced in full, and every resolved dimension records its source: `source: user-spec §x` / `source: deep-interview <file>` / `source: interview`. The Phase 2 enforcement (refuse to plan when either file is missing) operates exactly as before.
 - **Phase 3 and the approval gate are unchanged.** The spec is written with the brought document as its primary input, but that document never substitutes for `spec.md` — approval and the SHA-256 hash freeze bind to `spec.md` exactly as specified.
 
-## Phase 1 — Two-Stage Socratic Interview (MANDATORY — never skip, never shortcut, never merge)
+## Phase 1 — Two-Stage Socratic Interview
 
 Phase 1 runs as two sequential sub-phases (1A then 1B) on every invocation. What "never skip" protects is that **all 14 dimensions (8 when the Phase 1A skip rule applies) close with user-confirmed answers** — not the act of questioning itself. When Intake Resolution (above) resolved a document input, dimensions the document answers close by confirmation restatement with a source citation — a brought document is the user answering in advance, not a bypass; claiming document coverage with no document on the table, or beyond what the document actually answers, remains a protocol violation. Skipping **any** dimension (a deficit dimension on a document-input run), accepting "just build it" to bypass questioning, inferring answers from context instead of from a confirmed source, or bulk-proposing multiple dimensions in a single message is a protocol violation. If the user pushes to skip a remaining dimension — **with or without a document** — answer: *"The interview is mandatory — I will run Module Interview first, then Program Interview, one question at a time."*
 
@@ -363,7 +363,7 @@ and rationale here. Empty section if none.
 - **Keyword used**: <승인|approve|ok|...>
 ```
 
-## Spec Approval Gate (MANDATORY — HUMAN GATE, never skip, never shortcut)
+## Spec Approval Gate (human gate)
 
 Once the interview closes (ambiguity ≤ 5%), Phase 2 has produced `plan.md`, and Phase 3 has produced `spec.md`, this gate MUST run before any `Create*` / `Update*` call.
 
@@ -396,7 +396,7 @@ User-facing message (verbatim template):
 
 **Rationale**: the spec is the contract between user intent and AI execution. Create ABAP objects (tables, classes, programs) on the SAP system without that contract visible and signed off, and what follows is: unexpected objects in the user's package/transport, naming conventions out of step with team standards, business logic subtly off the actual requirements, and generated code that is hard to justify in code review. The 30–60 seconds of spec reading + approval buys back hours of "oh no, that's not what I meant, please delete all of this and start over".
 
-## Phase 3.5 — Execution Mode Gate (MANDATORY, between spec approval and Phase 4)
+## Phase 3.5 — Execution Mode Gate (between spec approval and Phase 4)
 
 ### Step 1 — Mode Selection Prompt
 
@@ -558,7 +558,7 @@ Adopt the [sap-qa-tester](../personas/sap-qa-tester.md) persona for this step.
 - `unit_test`: PASS/FAIL with the test result summary as evidence; `SKIPPED` when Phase 5 was skipped
 - `atc`: run `GetAtcFindings` on the created objects if the backend supports it and record the outcome; otherwise record `SKIPPED` with the reason
 
-## Phase 6 — Review Gate (MANDATORY — never skip, never conditional)
+## Phase 6 — Review Gate
 
 > Phase 4 is NOT complete until Phase 6 has run. Phase 5 (QA) is conditional on OOP mode, Phase 7 (Debug) is conditional on failures, but **Phase 6 is unconditional**.
 
