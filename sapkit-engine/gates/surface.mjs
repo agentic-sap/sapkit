@@ -74,16 +74,40 @@ export const CAPTURED_PATH = here('../harness/old-surface/m1-tools.json');
 const RENAMED_SAP_ASSETS = Object.freeze([['ZMCP_ADT_DDIC_BADI', 'ZSAPKIT_ADT_DDIC_BADI']]);
 
 /**
- * 채록본의 발행 선언 하나를 개명 뒤 형태로 옮긴다. 설명 문구에만 건다.
+ * 판A1 — 도구 설명에 **덧붙인 계약 문장**. ⓐ의 둘째 예외이고, 개명표와 성질이 같다:
+ * 채록본은 되뜰 수 없어 손대지 않고, 대조 직전에 이 표대로 옮겨 문다.
+ *
+ * 왜 덧말인가 — 이 셋은 **없는 대상에 성공 모양으로 답한다**(실측: `GetPackageContents`
+ * → `[]` · `ReadPackage` → `success: true`·`metadata: null` · `GetInactiveObjects` →
+ * 0건). 채록본의 설명은 그 사실을 말하지 않고, 그래서 사람과 모델이 빈 결과를 「없음이
+ * 확인됐다」로 읽어 왔다(D-133 · HANDOFF 부채). 절차 문서 세 곳이 이미 「믿지 말라」고
+ * 적는데도 재발했다 — 계약 불일치는 계약이 있는 자리에서만 닫힌다.
+ *
+ * **구조가 개명표보다 좁다.** 여기 적는 것은 설명 **전문이 아니라 꼬리에 붙는 덧말**이고,
+ * 게이트는 `채록본 원문 + 덧말`을 조립해 글자 일치를 요구한다. 그러므로 원문 문장이
+ * 한 글자라도 움직이면 ⓐ는 그대로 실패하고, 덧말을 고치는 것도 이 표를 고쳐야만 된다.
+ * 설명 전문을 여기 옮겨 적었다면 게이트가 무엇이든 통과시켰을 것이다.
+ */
+const AMENDED_DESCRIPTIONS = Object.freeze(
+  Object.entries(
+    JSON.parse(fs.readFileSync(here('../harness/old-surface/amendments.json'), 'utf8')).descriptions,
+  ),
+);
+
+/**
+ * 채록본의 발행 선언 하나를 개명 뒤 형태로 옮긴다. 설명 문구에만 건다. 덧말(`AMENDED_DESCRIPTIONS`)도 여기서 함께 붙인다.
  *
  * 음성시험(`gates/test-gates.mjs`)이 채록본에서 **발행 표면을 합성**할 때도 같은
  * 것을 써야 한다 — 실제 엔진이 개명본을 발행하므로, 합성분만 구 이름이면 그
  * 시험은 없는 표류를 잡는다. 그래서 내보낸다.
  */
-export function renamed(declaration) {
+export function amended(declaration, name) {
   if (typeof declaration?.description !== 'string') return declaration;
   let description = declaration.description;
   for (const [was, now] of RENAMED_SAP_ASSETS) description = description.replaceAll(was, now);
+  for (const [tool, appendix] of AMENDED_DESCRIPTIONS) {
+    if (tool === name) description += appendix;
+  }
   return description === declaration.description ? declaration : { ...declaration, description };
 }
 
@@ -306,8 +330,8 @@ export function judge({ captured, observed, registered, ledger, report }) {
   for (const tool of listed) {
     const captured0 = captured.tools[tool.name];
     if (captured0 === undefined) continue; // 표면 밖 이름은 ⓒ가 이미 잡았다.
-    // 판S5 개명분만 옮겨 물린다 — 나머지는 여전히 채록본과 글자 대조다.
-    const want = renamed(captured0);
+    // 판S5 개명분·판A1 덧말만 옮겨 물린다 — 나머지는 여전히 채록본과 글자 대조다.
+    const want = amended(captured0, tool.name);
     // 발행 객체에는 SDK가 undefined 필드(annotations·_meta)를 얹으므로 채록본이
     // 가진 키만 대조한다 — 채록본 자체가 구 엔진의 발행 결과다.
     const trimmed = Object.fromEntries(Object.keys(want).map((k) => [k, tool[k]]));

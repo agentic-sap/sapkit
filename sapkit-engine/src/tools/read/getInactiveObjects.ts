@@ -26,7 +26,7 @@ export const getInactiveObjects = defineTool(
   {
     name: 'GetInactiveObjects',
     description:
-      '[read-only] Get a list of inactive ABAP objects — modified but not yet activated, pending activation. Shows classes, tables, CDS views, and other objects awaiting activation.',
+      '[read-only] Get a list of inactive ABAP objects — modified but not yet activated, pending activation. Shows classes, tables, CDS views, and other objects awaiting activation. Takes no arguments and reports the whole system, so an empty result means "nothing anywhere is inactive" — which is also what a system returns for an object that was never created. An empty result is therefore not evidence that a particular object activated; read that object back to confirm.',
     inputSchema: {},
     available_in: ['onprem', 'cloud'],
     sets: ['readonly'],

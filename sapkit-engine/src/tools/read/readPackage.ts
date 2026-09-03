@@ -89,7 +89,7 @@ export const readPackage = defineTool(
   {
     name: 'ReadPackage',
     description:
-      '[read-only] Read ABAP package definition and metadata (super-package, responsible, description, etc.).',
+      '[read-only] Read ABAP package definition and metadata (super-package, responsible, description, etc.). A package that does not exist still answers success: true with metadata: null — null metadata means the package is absent, not that it exists without attributes. GetPackage returns HTTP 400 for the same missing package; prefer it when the question is whether the package exists at all.',
     inputSchema: {
       package_name: z.string().describe('Package name (e.g., Z_MY_PACKAGE).'),
       version: z

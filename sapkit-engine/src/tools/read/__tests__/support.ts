@@ -230,5 +230,16 @@ export function publishedDeclaration(name: string): {
   };
   const entry = parsed.tools[name];
   if (!entry) throw new Error(`m1-tools.json의 tools(전량 선언)에 ${name} 항목이 없다`);
-  return entry;
+
+  // 되뜰 수 없는 채록본은 손대지 않고, 의도한 계약 변경만 대조 직전에 조립해 문다.
+  // 표의 정본은 `harness/old-surface/amendments.json`이고 게이트(`gates/surface.mjs`)가
+  // 같은 파일을 읽는다 — 두 소비자가 갈리면 어느 쪽이 낡았는지 아무도 모른다.
+  const amendmentsFile = path.join(
+    __dirname, '..', '..', '..', '..', 'harness', 'old-surface', 'amendments.json',
+  );
+  const { descriptions } = JSON.parse(fs.readFileSync(amendmentsFile, 'utf8')) as {
+    descriptions: Record<string, string>;
+  };
+  const appendix = descriptions[name];
+  return appendix === undefined ? entry : { ...entry, description: entry.description + appendix };
 }

@@ -3038,3 +3038,60 @@ append-only이고, 무엇이 왜 있었는지가 다음 사람의 판독 자료�
 픽스처를 어떻게 가르는가** · 스크립트 정적 배선) · `gates/test-replay-keyring.mjs`(8건).
 
 - **결정 기록**: D-122(등재) · 이 수리를 여는 결정은 판 마감에 append된다.
+
+## 설명 계약 보강 (append) — 없는 대상에 성공 모양으로 답하는 읽기 도구 3종 (2026-09-03 · D-145)
+
+**분류: `강화`** — 동작은 한 줄도 바뀌지 않았다. 바뀐 것은 **도구가 스스로 밝히는
+계약**이고, 그래서 재생 대조에는 나타나지 않는다(`harness/replay/divergences.ts`에
+등재하지 않는 이유다 — 그 파일은 재생에 나타나는 것만 싣는다).
+
+### 무엇이 달라졌나
+
+세 도구의 `description` 꼬리에 **부재(absence)를 어떻게 답하는지**를 명시했다.
+
+| 도구 | 없는 대상에 실제로 답하는 것 | 그래서 덧붙인 계약 |
+|---|---|---|
+| `GetPackageContents` | `[]` — 「있는데 비었다」와 구별 불가 | 이 도구는 부재를 확정할 수 없다 · `GetPackage`(부재 시 HTTP 400) 또는 `SearchObject`(0건)로 먼저 확인하라 |
+| `ReadPackage` | `success: true` · `metadata: null` | `metadata: null`은 「속성 없는 패키지」가 아니라 **부재**다 |
+| `GetInactiveObjects` | 0건 (인자가 없어 시스템 전체를 본다) | 빈 결과는 특정 객체의 활성화 증거가 아니다 · 그 객체를 되읽어 확인하라 |
+
+### 근거 (실측 · 재현 가능)
+
+대상 부재가 **지상 진실로 확정된 상태**에서 다시 떠서 얻은 관측이다 —
+`docs/reference/DECISIONS.md` D-133(줄 1603) · `HANDOFF.md`(줄 73). 같은 자리에서
+`GetPackage`는 HTTP 400, `SearchObject`는 0건으로 **부재를 옳게 말한다**. 즉 같은
+대상에 대해 읽기 도구 넷이 갈린다.
+
+**왜 문서가 아니라 여기인가.** 절차 문서 세 곳(`verify-applied` · `CLAUDE.md`
+안전 규칙 · auto-memory)이 이미 「그대로 믿지 말 것」을 적고 있었고, 그런데도
+재발했다. 계약이 실제와 어긋나면 그 어긋남은 계약이 있는 자리에서만 닫힌다.
+
+### 채록본을 어떻게 다뤘나
+
+`harness/old-surface/m1-tools.json`은 **되뜰 수 없는 기준**이라 손대지 않았다.
+대신 **덧말표**(`harness/old-surface/amendments.json`)를 새로 두고, 대조 직전에
+`채록본 원문 + 덧말`을 조립해 문다. 판S5의 `RENAMED_SAP_ASSETS`와 같은 성질이고,
+구조는 더 좁다 — 표에 담는 것이 설명 **전문이 아니라 꼬리 덧말**이라 **원문 문장이
+한 글자라도 움직이면 대조는 그대로 실패한다.** 전문을 옮겨 적었다면 게이트가
+무엇이든 통과시켰을 것이다.
+
+소비자는 둘이고 **같은 파일을 읽는다** — `gates/surface.mjs`(ⓐ 선언 대조) ·
+`src/tools/read/__tests__/support.ts`(`publishedDeclaration`). 정본이 둘로 갈리면
+어느 쪽이 낡았는지 아무도 모른 채 초록으로 남는다.
+
+### 대체 기대 시험 (등재 규칙 2)
+
+- `src/tools/read/__tests__/publication.test.ts`(`GetInactiveObjects`) ·
+  `getPackageContents.test.ts` · `readPackage.test.ts` — 조립된 계약과 실제
+  `tools/list` 발행이 **네 필드 전부** 글자 일치.
+- `gates/surface.mjs` ⓐ 202건 — 발행 186종 전량 대조.
+- **돌연변이 실측(2026-09-03)**: 덧말표의 한 글자(`absence` → `absenceX`)를 바꾸자
+  ⓐ가 `GetPackageContents`에서 즉시 빨간불. 표가 「무엇이든 통과」가 아님을 확인했다.
+
+### 정직 유보
+
+**SAP 실기로 재확인하지 않았다.** 근거는 D-133 시점의 실측 기록이고 이번 판에서
+다시 뜨지 않았다. 설명이 말하는 부재 동작이 그 뒤로 바뀌었다면 이 덧말이 틀린
+것을 말하게 된다 — 다음 실접속 세션의 확인 대상이다.
+
+- **결정 기록**: D-145

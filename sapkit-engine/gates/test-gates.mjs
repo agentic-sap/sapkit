@@ -30,7 +30,7 @@ import {
   LEDGER_FILE,
   builtToolsFromLedger,
   judge,
-  renamed,
+  amended,
   run as runSurface,
 } from './surface.mjs';
 
@@ -109,11 +109,11 @@ function scenario(names) {
   const set = new Set(registered);
   const observed = {};
   for (const [key, condition] of Object.entries(captured.exposures)) {
-    // 판S5 개명분을 여기서도 건다 — 실제 엔진이 발행하는 것은 개명본이므로,
-    // 합성분만 구 이름이면 ⓐ가 없는 표류를 잡는다(`surface.mjs`의 `renamed`).
+    // 판S5 개명분·판A1 덧말을 여기서도 건다 — 실제 엔진이 발행하는 것은 그 형태이므로,
+    // 합성분만 채록본 원문이면 ⓐ가 없는 표류를 잡는다(`surface.mjs`의 `amended`).
     observed[key] = condition.names
       .filter((name) => set.has(name))
-      .map((name) => renamed(JSON.parse(JSON.stringify(captured.tools[name]))));
+      .map((name) => amended(JSON.parse(JSON.stringify(captured.tools[name])), name));
   }
   return {
     captured,
@@ -471,7 +471,7 @@ await expectFailure(
       (text) =>
         text
           .split('\n')
-          .filter((line) => line !== '- `GetInclude`')
+          .filter((line) => line.trimEnd() !== '- `GetInclude`')
           .join('\n'),
       '도구 한 줄 제거',
     ),
@@ -481,7 +481,7 @@ await expectFailure(
   // ⑧-b 이름이 바뀌면 잡아야 한다 — 줄 수만 세는 대조는 이걸 놓친다.
   await expectCatalogReject(
     '카탈로그의 도구 이름을 손으로 고쳤다',
-    catalogCorrupt(READ_FILE, (text) => text.replace('- `GetInclude`\n', '- `GetIncludeZ`\n'), '도구 이름 변경'),
+    catalogCorrupt(READ_FILE, (text) => text.replace('- `GetInclude`', '- `GetIncludeZ`'), '도구 이름 변경'),
     READ_FILE,
   );
 

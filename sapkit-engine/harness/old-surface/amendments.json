@@ -1,0 +1,12 @@
+{
+  "_": "도구 설명에 덧붙인 계약 문장 — 되뜰 수 없는 채록본(m1-tools.json)을 손대지 않고, 대조 직전에 이 표대로 조립해 문다.",
+  "_why": "여기 실린 셋은 없는 대상에 성공 모양으로 답한다(실측: GetPackageContents -> [], ReadPackage -> success:true·metadata:null, GetInactiveObjects -> 0건). 채록본의 설명은 그 사실을 말하지 않아 사람과 모델이 빈 결과를 '없음이 확인됐다'로 읽어 왔다. 절차 문서 세 곳이 이미 믿지 말라고 적는데도 재발했다 — 계약 불일치는 계약이 있는 자리에서만 닫힌다.",
+  "_shape": "값은 설명 전문이 아니라 꼬리에 붙는 덧말이다. 소비자는 `채록본 원문 + 덧말`을 조립해 글자 일치를 요구하므로, 원문이 한 글자라도 움직이면 대조는 그대로 실패한다. 전문을 적었다면 무엇이든 통과했을 것이다.",
+  "_consumers": "gates/surface.mjs (ⓐ 선언 대조) · src/tools/read/__tests__/support.ts (publishedDeclaration). 판S5의 SAP 자산 개명(RENAMED_SAP_ASSETS)은 시험 소비자가 없어 게이트에만 남아 있다 — 성질은 같고 자리만 다르다.",
+  "_added": "판A1 · 2026-09-03 · D-145",
+  "descriptions": {
+    "GetPackageContents": " A package that does not exist returns an empty list, which is indistinguishable from a package that exists and is empty — this tool cannot establish absence. Confirm existence with GetPackage (HTTP 400 when missing) or SearchObject (0 hits) before reading an empty result as \"nothing is there\". Returns object names and types only, never source.",
+    "ReadPackage": " A package that does not exist still answers success: true with metadata: null — null metadata means the package is absent, not that it exists without attributes. GetPackage returns HTTP 400 for the same missing package; prefer it when the question is whether the package exists at all.",
+    "GetInactiveObjects": " Takes no arguments and reports the whole system, so an empty result means \"nothing anywhere is inactive\" — which is also what a system returns for an object that was never created. An empty result is therefore not evidence that a particular object activated; read that object back to confirm."
+  }
+}

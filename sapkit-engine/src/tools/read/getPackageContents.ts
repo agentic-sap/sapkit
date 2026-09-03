@@ -293,7 +293,7 @@ export const getPackageContents = defineTool(
   {
     name: 'GetPackageContents',
     description:
-      '[read-only] Retrieve objects inside an ABAP package as a flat list. Supports recursive traversal of subpackages.',
+      '[read-only] Retrieve objects inside an ABAP package as a flat list. Supports recursive traversal of subpackages. A package that does not exist returns an empty list, which is indistinguishable from a package that exists and is empty — this tool cannot establish absence. Confirm existence with GetPackage (HTTP 400 when missing) or SearchObject (0 hits) before reading an empty result as "nothing is there". Returns object names and types only, never source.',
     inputSchema: {
       package_name: z.string().describe('Name of the ABAP package (e.g., "ZMY_PACKAGE")'),
       include_subpackages: z
