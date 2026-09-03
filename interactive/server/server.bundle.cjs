@@ -44177,7 +44177,7 @@ var require_getInactiveObjects = __commonJS({
     }
     exports2.getInactiveObjects = (0, toolDefinition_1.defineTool)({
       name: "GetInactiveObjects",
-      description: "[read-only] Get a list of inactive ABAP objects \u2014 modified but not yet activated, pending activation. Shows classes, tables, CDS views, and other objects awaiting activation.",
+      description: '[read-only] Get a list of inactive ABAP objects \u2014 modified but not yet activated, pending activation. Shows classes, tables, CDS views, and other objects awaiting activation. Takes no arguments and reports the whole system, so an empty result means "nothing anywhere is inactive" \u2014 which is also what a system returns for an object that was never created. An empty result is therefore not evidence that a particular object activated; read that object back to confirm.',
       inputSchema: {},
       available_in: ["onprem", "cloud"],
       sets: ["readonly"],
@@ -62465,7 +62465,7 @@ var require_getPackageContents = __commonJS({
     }
     exports2.getPackageContents = (0, toolDefinition_1.defineTool)({
       name: "GetPackageContents",
-      description: "[read-only] Retrieve objects inside an ABAP package as a flat list. Supports recursive traversal of subpackages.",
+      description: '[read-only] Retrieve objects inside an ABAP package as a flat list. Supports recursive traversal of subpackages. A package that does not exist returns an empty list, which is indistinguishable from a package that exists and is empty \u2014 this tool cannot establish absence. Confirm existence with GetPackage (HTTP 400 when missing) or SearchObject (0 hits) before reading an empty result as "nothing is there". Returns object names and types only, never source.',
       inputSchema: {
         package_name: z.string().describe('Name of the ABAP package (e.g., "ZMY_PACKAGE")'),
         include_subpackages: z.boolean().optional().describe("Include contents of subpackages recursively (default: false)"),
@@ -71250,7 +71250,7 @@ var require_readPackage = __commonJS({
     }
     exports2.readPackage = (0, toolDefinition_1.defineTool)({
       name: "ReadPackage",
-      description: "[read-only] Read ABAP package definition and metadata (super-package, responsible, description, etc.).",
+      description: "[read-only] Read ABAP package definition and metadata (super-package, responsible, description, etc.). A package that does not exist still answers success: true with metadata: null \u2014 null metadata means the package is absent, not that it exists without attributes. GetPackage returns HTTP 400 for the same missing package; prefer it when the question is whether the package exists at all.",
       inputSchema: {
         package_name: z.string().describe("Package name (e.g., Z_MY_PACKAGE)."),
         version: z.enum(["active", "inactive"]).default("active").describe('Version to read: "active" (default) or "inactive".')
@@ -72521,8 +72521,8 @@ var require_core5 = __commonJS({
       }
     }
     function readEngineVersion() {
-      if ("1.3.0") {
-        return "1.3.0";
+      if ("1.3.1") {
+        return "1.3.1";
       }
       let dir = __dirname;
       for (let depth = 0; depth < 6; depth += 1) {
