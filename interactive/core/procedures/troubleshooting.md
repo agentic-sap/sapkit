@@ -436,7 +436,7 @@ it whenever convenient; the plugin behaves identically either way.
 
 ## 8. Tool Response Pitfalls
 
-Responses that look like a failure, a block, or a truncation but are none of those — plus a few that look like success and are not. Each one below was actually mis-read in project work (measured 2026-07-28 → 2026-08-05 across two S/4 systems), and the wrong reading was the expensive part — not the tool.
+Responses that look like a failure, a block, or a truncation but are none of those — plus a few that look like success and are not. Each one below was actually mis-read in project work (measured 2026-07-28 → 2026-09-04 across two S/4 systems), and the wrong reading was the expensive part — not the tool.
 
 ### `GetSqlQuery` — `truncated: true` on row-collapsing queries
 
@@ -479,6 +479,14 @@ The working code of a class pool — RAP behavior-implementation (BIL) handlers,
 ### `UpdateSourceByPatch` — three write-side traps (serial loss · CRLF · main source only)
 
 Three independent behaviors, each returning success while doing less than the response implies. ⓐ **Serial patches with `activate: false` lose the earlier ones** — the patch is written to the *inactive* version, but each next call fetches the *active* source to apply onto, so with activation deferred only the last patch survives (responses stay `success` + `occurrences_replaced: 1` + a plausible diff; field-verified on two systems, CLAS 3-in-a-row → 1 survivor). Tell: the `diff_preview` context of patch N does not show patch N−1's change. Safe pattern: `activate: true` on **every** patch plus a `GrepObjects` read-back of the changed token — with that, even serial CLAS patching is safe (6-in-a-row verified 2026-08-05). ⓑ **Multi-line `old_string` never matches** — server source is CRLF, an LF-joined pattern fails with `old_string not found` even though the text is visibly present. Use single-line anchors only. ⓒ **CLAS patches reach the main source only** — test includes (CCAU) and local types are out of range; use `UpdateLocalTestClass` / `UpdateLocalTypes` (full-text) for those, and see the CCIMP entry above for reading them.
+
+### `CheckSyntax` / `UpdateProgram` — `INCLUDE report "X" not found` is a false negative; judge from the DB, not from retry count
+
+Immediately after includes are written and activated, a syntax check against their main program can report `INCLUDE report "<one of them>" not found` — as a `CheckSyntax` result with `success: false`, or as an `UpdateProgram` preCheck that refuses the write. The include exists, is registered, and is active; the main program's ADT check context is simply stale. The named include is **the first stale one in source order**, so the target moves with whatever was touched (field-verified 2026-08-04: editing only the `S` include named `…S`, editing only `I` named `…I`).
+
+**The oracle is the database, not the response.** Three reads settle it, and all three were correct in both incidents below while the tool was still complaining: `TRDIR-SUBC = 'I'` for every include, a `D010INC` row for each include under the main program as `MASTER`, and the `ActivateObjects` run reporting `checked` + `generated` with `failed_count: 0`. When those agree, the program is already fine — do not reach for the workarounds this symptom invites (moving code into an include, hand-editing in SE38, re-delivering through abapGit); they cost real time and fix nothing.
+
+**Do not treat "retry once" as the cure.** An earlier note in project work claimed the failing call warms the cache so the next attempt succeeds. That held in one shape and not in another: an existing program with a single edited include cleared on the first retry (2026-08-04), while a newly created program — six includes via `CreateInclude` with `skip_program_tree_check: true`, then all seven objects activated in one `ActivateObjects` run — failed **twice in a row** and only passed on a third call issued after unrelated work (2026-09-04). Whether the difference is new-vs-existing, the number of objects in the activation run, or `skip_program_tree_check` was **not** established; treat the retry as unbounded and let the DB reads, not the attempt counter, decide when to move on. One further hypothesis from the same project, also uncontrolled: firing several main-program writes in one message (concurrent requests on the same ADT session) appeared to keep the symptom alive across retries, and issuing them sequentially did not.
 
 ### `RunUnitTest` — empty `runResult` on older engine versions (resolved; verify before blaming the tool)
 
