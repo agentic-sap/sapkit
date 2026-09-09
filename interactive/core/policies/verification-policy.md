@@ -44,7 +44,11 @@ Notes:
   `ActivateObjects` response, not the per-object `status`. A run answering
   `activated: false` + `checked: false` activated nothing, even where every
   object reports `status: "activated"` with an empty `errors[]`; `checked: false`
-  means the syntax stage never ran, so "no errors" examined nothing. An empty
+  means the syntax stage never ran, so "no errors" examined nothing. Since the
+  D-147 engine repair (server engine 1.4.0 / plugin 0.10.3) the tool itself
+  fails such a run — `success: false`, `run_executed: false`, every object
+  `status: "not_executed"` — but that repair is offline-verified only, and older
+  bundles still answer `success: true` here, so read the flags either way. An empty
   `GetInactiveObjects` is a **necessary** condition, never a sufficient one — an
   orphaned inactive version does not appear in the worklist. The oracle that
   settles a disagreement is `REPOSRC.R3STATE` for the object (an `'I'` row means

@@ -10,6 +10,8 @@ The repair sequence runs: pull the source down from the server → lay a minimal
 
 Where an object might be carrying an unactivated edit, a read at the default `version=active` hands back the **pre-edit** source, and writing on top of that silently destroys the edit that was pending. Nothing catches the loss — the update reports success, the syntax is clean, and the mirror, already committed, shows no diff. So before re-editing an object that could have a change in flight, read `version=inactive` first (or run `GetInactiveObjects` ahead of the read).
 
+That applies to every full-source write, because the source you send is the source you read. `UpdateSourceByPatch` is the one exception, and only on a current engine: since the D-147 engine repair (server engine 1.4.0 / plugin 0.10.3) it reads the **inactive** version itself and falls back to the active one, saying which it used in `source_version_read` (offline-verified only — confirm on first live use; older bundles always read the active version and lost pending edits exactly as described above). The exception brings its own trap in the opposite direction: an inactive version may hold **somebody else's abandoned draft**, and the tool cannot tell whose it is, so patching with `activate: true` activates that draft along with your change. Where `source_version_read` says `inactive` on an object you did not stage yourself, read the source back before activating.
+
 ## "Active Source Returned" Is Not Activation Evidence
 
 A read tool handing back "active" source is not proof the object was ever activated — an FM that was never activated, and one that does not compile, both still return "active" source. What actually counts as evidence that an object works =

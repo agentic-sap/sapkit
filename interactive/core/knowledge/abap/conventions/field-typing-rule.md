@@ -57,6 +57,8 @@ Every field walks this sequence on every run. No shortcut, no cached guess.
 3. **New CBO DE decision** — ask whether the field earns a DE of its own and answer with the priority-3 gate (reuse ≥ 2 OR domain-specific label). Yes → priority 3: emit a `CreateDataElement` (S/4) or an ECC DTEL helper program (ECC, per `ecc-ddic-fallback.md`), then point the field's `rollname` at it.
 4. **Primitive only once every step above has failed** — priority 4, with the reason written inline in the plan / spec (`"Field X: primitive CHAR 20 — internal scratch buffer, no business meaning"`).
 
+**Resolving a name whose kind you do not know.** `GetTypeInfo` tries the candidate kinds in turn (domain, data element, …, then the structure fallback). Since the D-147 engine repair (server engine 1.4.0 / plugin 0.10.3) a candidate answering HTTP 405 / 406 / 415 / 422 — "that name is not this kind of object" — moves on to the next candidate, so a structure name reaches the structure lookup; 400, 401, 403 and 5xx still fail on the spot, and when every candidate fails the error names which candidate answered which status. Offline-verified only — confirm on first live use. *On older bundles* only a 404 moved on, so a structure name usually died on the first candidate as a bare `ADT error: … 422`, which reads as "no such object" and is not.
+
 ## Common Standard DE Reference (quick lookup — expand as needed)
 
 Business partners / org:

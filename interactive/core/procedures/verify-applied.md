@@ -109,8 +109,9 @@ procedure never substitutes for it.
      text settles it whichever way the activation call reported.
    - Where the activation call itself is in view, its **run-level** `activated`
      and `checked` flags are the signal; a per-object `status: "activated"` is
-     not. Both false means nothing was activated, empty `errors[]` and all
-     (`troubleshooting.md` § 8).
+     not. Both false means nothing was activated, empty `errors[]` and all —
+     older bundles still report that as a success, newer ones fail it with
+     `run_executed: false` (`troubleshooting.md` § 8).
    - The definitive oracle is `REPOSRC.R3STATE` for the object, but reading it
      means a `GetSqlQuery` call and **this procedure makes no row-data calls**
      (see Policy above). Where the P1 checks here disagree or come back

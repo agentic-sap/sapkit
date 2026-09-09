@@ -43,7 +43,7 @@ source:
   1. `CheckSyntax` — server-side ADT syntax check.
   2. Activate (`ActivateObjects`) — note that activating a main program does NOT cascade to sub-includes; activate them explicitly or in one batch call.
   3. `GetInactiveObjects` — must come back empty for the touched objects before reporting success.
-- Read the activation response correctly: the **run-level** `activated` and `checked` flags are the signal, not the per-object `status`. A run reporting `activated: false` + `checked: false` activated nothing even where each object says `status: "activated"` with no errors. And an empty `GetInactiveObjects` is a **necessary** condition, not a sufficient one — an orphaned inactive version never reaches the worklist. Both readings, their oracle, and the way out: [verification-policy](./verification-policy.md) step 2 and [troubleshooting](../procedures/troubleshooting.md) § 8.
+- Read the activation response correctly: the **run-level** `activated` and `checked` flags are the signal, not the per-object `status`. A run reporting `activated: false` + `checked: false` activated nothing — on older bundles even where each object said `status: "activated"` with no errors; newer ones fail that run outright with `run_executed: false`. And an empty `GetInactiveObjects` is a **necessary** condition, not a sufficient one — an orphaned inactive version never reaches the worklist. Both readings, their oracle, and the way out: [verification-policy](./verification-policy.md) step 2 and [troubleshooting](../procedures/troubleshooting.md) § 8.
 - The full machine-verification chain (syntax → activation → unit tests → ATC) is defined in [verification-policy](./verification-policy.md).
 
 ## 4. Version guard
