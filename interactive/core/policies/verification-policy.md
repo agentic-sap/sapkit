@@ -21,13 +21,22 @@ Tool names are the canonical MCP tool names from the
 
 | # | Step | Tool | Passes when | Blocks when |
 |---|------|------|-------------|-------------|
-| 1 | Syntax check | `CheckSyntax` | Zero errors reported | Any syntax error (warnings are recorded, not blocking) |
+| 1 | Syntax check | `CheckSyntax` | `verdict: "clean"` — `success: true` with `errors: []` | `verdict: "errors"` — any syntax error (warnings are recorded, not blocking). `verdict: "indeterminate"` / `success: null` is **not a pass** (see notes) |
 | 2 | Activation | `ActivateObjects`, then `GetInactiveObjects` | Activation succeeds AND `GetInactiveObjects` returns zero leftovers for the touched objects | Activation error, or any touched object still inactive |
 | 3 | Unit tests | `RunUnitTest` (results via `GetUnitTestResult` / `GetUnitTestStatus`) | All test methods pass | Any test failure or test error; missing test class where the procedure mandates one |
 | 4 | ATC | `GetAtcFindings` | No findings at blocking severity | Any finding of priority 1 or 2 (errors). Priority 3 / informational findings do not block but MUST be listed in the report |
 
 Notes:
 
+- Step 1 passes only on `verdict: "clean"` (`success: true` **and** `errors: []`).
+  `CheckSyntax` can also answer `verdict: "indeterminate"` with `success: null` —
+  zero errors **and no verdict**, which is what an include checked without its
+  main program gets (SAP had nothing to compile it in). "Zero errors" there
+  examined nothing, so it is neither a pass nor a failure: for an include, re-run
+  with `main_program` set; otherwise read the response's `reason`. Older engine
+  builds expressed the same state as `success: false` with `errors: []`; treat
+  that the same way — only `success: true` with `errors: []` is a pass
+  ([troubleshooting](../procedures/troubleshooting.md) § 8).
 - Step 2 does not cascade: activating a main program does NOT activate its
   sub-includes. Activate every touched include explicitly, or batch them in a
   single `ActivateObjects` call, then confirm with `GetInactiveObjects`.
