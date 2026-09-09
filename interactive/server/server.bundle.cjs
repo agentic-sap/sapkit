@@ -43593,6 +43593,7 @@ var require_checkSyntax = __commonJS({
     })();
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.checkSyntax = void 0;
+    exports2.verdictOf = verdictOf;
     var z = __importStar(require_zod());
     var toolDefinition_1 = require_toolDefinition();
     var adt_1 = require_adt2();
@@ -43667,10 +43668,32 @@ var require_checkSyntax = __commonJS({
       }
       return result;
     }
+    function verdictOf(kind, result) {
+      if (result.errors.length > 0) {
+        if (kind === "include" && result.errors.every((entry) => (0, checkRun_1.isReportMissingNoiseText)(entry.text))) {
+          return {
+            verdict: "indeterminate",
+            reason: `SAP could not compile the include on its own (${result.errors.map((entry) => entry.text).join(" | ")}). Pass main_program (the program that INCLUDEs it) to check it inside that program's tree.`
+          };
+        }
+        return { verdict: "errors" };
+      }
+      if (result.status === "processed" || result.status === "no_report" || result.status === "not_run") {
+        return { verdict: "clean" };
+      }
+      const detail = result.message ? ` (${result.message})` : "";
+      return {
+        verdict: "indeterminate",
+        reason: `SAP returned no verdict: check run status "${result.status}" with no messages${detail}.` + (kind === "include" ? " An include has no compile context of its own \u2014 pass main_program (the program that INCLUDEs it) to check it inside that program's tree." : "")
+      };
+    }
     async function runSyntaxCheck(client, args, warn) {
       const { kind, name } = args;
       try {
         if (kind === "include") {
+          if (args.mainProgram !== void 0) {
+            return await rawCheckRun(client, (0, adt_1.objectCheckUri)("program", args.mainProgram), "inactive");
+          }
           return await rawCheckRun(client, (0, adt_1.includeCheckUri)(name), "inactive");
         }
         if (kind === "functionModule") {
@@ -43702,12 +43725,15 @@ var require_checkSyntax = __commonJS({
     }
     exports2.checkSyntax = (0, toolDefinition_1.defineTool)({
       name: "CheckSyntax",
-      description: "[read-only] Run a standalone ABAP syntax check WITHOUT writing anything to SAP. Supports 'class', 'program', 'interface', 'include', and 'function_module'. If source_code is provided (class/program/interface only), the proposed source is compiled in place and checked without touching the server. If source_code is omitted, checks whatever is currently staged as the inactive version on the server (mirroring the post-write check Update* handlers run). Syntax errors are returned as normal results, not as tool errors \u2014 only connection/infra failures are reported as errors.",
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D149.
+      description: `[read-only] Run a standalone ABAP syntax check WITHOUT writing anything to SAP. Supports 'class', 'program', 'interface', 'include', and 'function_module'. If source_code is provided (class/program/interface only), the proposed source is compiled in place and checked without touching the server. If source_code is omitted, checks whatever is currently staged as the inactive version on the server (mirroring the post-write check Update* handlers run). Syntax errors are returned as normal results, not as tool errors \u2014 only connection/infra failures are reported as errors. For 'include', pass main_program (the program that INCLUDEs it) to compile the include inside that program's tree \u2014 main plus all includes, inactive version; without it SAP may return no verdict at all, which is reported as success: null with verdict: "indeterminate" (not as a failure). Every response carries verdict: "clean" | "errors" | "indeterminate".`,
       inputSchema: {
         object_type: z.enum(["class", "program", "interface", "include", "function_module"]).describe("[read-only] ABAP object kind to check: 'class' (CLAS), 'program' (PROG), 'interface' (INTF), 'include' (PROG/I), or 'function_module' (FUGR/FF)."),
         object_name: z.string().describe("[read-only] Name of the object to check (e.g., ZCL_MY_CLASS)."),
         function_group_name: z.string().optional().describe("[read-only] Function group name. Required when object_type is 'function_module'."),
-        source_code: z.string().optional().describe("[read-only] Optional proposed ABAP source code to check in place. Only honored for object_type 'class', 'program', or 'interface' \u2014 ignored for 'include' and 'function_module' (see description).")
+        source_code: z.string().optional().describe("[read-only] Optional proposed ABAP source code to check in place. Only honored for object_type 'class', 'program', or 'interface' \u2014 ignored for 'include' and 'function_module' (see description)."),
+        // 덧인자(D149) — 채록본에 없던 선택 인자.
+        main_program: z.string().optional().describe("[read-only] For object_type 'include' only: name of the main program that INCLUDEs it. When given, the include is compiled inside that program's tree (inactive version) so the check has a real verdict.")
       },
       available_in: ["onprem", "cloud", "legacy"],
       sets: ["readonly"],
@@ -43718,7 +43744,7 @@ var require_checkSyntax = __commonJS({
       // 건너뛰어 그 경로가 열린다. 판정은 백스톱이 계속 소유한다.
     }, async (context, args) => {
       try {
-        const { object_type, object_name, function_group_name, source_code } = args;
+        const { object_type, object_name, function_group_name, source_code, main_program } = args;
         if (!object_type || !object_name) {
           throw new Error("object_type and object_name are required");
         }
@@ -43731,21 +43757,37 @@ var require_checkSyntax = __commonJS({
         }
         const name = String(object_name).toUpperCase();
         const sourceCodeIgnored = source_code !== void 0 && (kind === "include" || kind === "functionModule");
-        context.logger.info(`CheckSyntax: object_type=${object_type}, object_name=${name}, hasSourceCode=${!!source_code}`);
+        const mainProgram = kind === "include" && main_program?.trim() ? main_program.trim().toUpperCase() : void 0;
+        const mainProgramIgnored = main_program !== void 0 && kind !== "include";
+        context.logger.info(`CheckSyntax: object_type=${object_type}, object_name=${name}, hasSourceCode=${!!source_code}` + (mainProgram ? `, mainProgram=${mainProgram}` : ""));
         const client = await context.getConnection();
         const result = await runSyntaxCheck(client, {
           kind,
           name,
           sourceCode: sourceCodeIgnored ? void 0 : source_code,
-          functionGroupName: kind === "functionModule" ? function_group_name : void 0
+          functionGroupName: kind === "functionModule" ? function_group_name : void 0,
+          mainProgram
         }, (message) => context.logger.warn(message));
+        const { verdict, reason } = verdictOf(kind, result);
+        const notes = [];
+        if (sourceCodeIgnored) {
+          notes.push(`source_code is only used for pre-write substitution checks on class/program/interface; SAP's checkrun endpoint for '${object_type}' always validates the current inactive version already staged on the server, so the supplied source_code was ignored.`);
+        }
+        if (mainProgramIgnored) {
+          notes.push(`main_program only applies to object_type 'include'; it was ignored for '${object_type}'.`);
+        }
         return (0, results_1.ok)(JSON.stringify({
-          success: result.success,
+          // D149 — 판정불능은 실패가 아니다: `null`이 「판정 없음」이다.
+          success: verdict === "clean" ? true : verdict === "errors" ? false : null,
+          verdict,
+          check_status: result.status,
+          reason,
           object_type,
           object_name: name,
+          main_program: mainProgram,
           errors: result.errors,
           warnings: result.warnings,
-          note: sourceCodeIgnored ? `source_code is only used for pre-write substitution checks on class/program/interface; SAP's checkrun endpoint for '${object_type}' always validates the current inactive version already staged on the server, so the supplied source_code was ignored.` : void 0
+          note: notes.length > 0 ? notes.join(" ") : void 0
         }, null, 2));
       } catch (error) {
         context.logger.error(`CheckSyntax failed: ${(0, results_1.messageOf)(error)}`);
@@ -44256,13 +44298,31 @@ var require_getInclude = __commonJS({
     })();
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getInclude = void 0;
+    exports2.classIncludeRefusal = classIncludeRefusal;
     var z = __importStar(require_zod());
     var toolDefinition_1 = require_toolDefinition();
     var adt_1 = require_adt2();
     var results_1 = require_results();
+    var CLASS_INCLUDE_NAME = /^([A-Z0-9_/]+?)=+(CCIMP|CCDEF|CCMAC|CCAU|CU|CO|CI|CP|CT|CM\d{3}|CL)$/i;
+    var CLASS_INCLUDE_READERS = {
+      CCIMP: "GetLocalTypes (local types and the implementations include \u2014 where behavior-pool handler classes live)",
+      CCDEF: "GetLocalDefinitions (local class definitions include)",
+      CCMAC: "GetLocalMacros (local macros include)",
+      CCAU: "GetLocalTestClass (local test classes include)"
+    };
+    function classIncludeRefusal(includeName) {
+      const match = CLASS_INCLUDE_NAME.exec(includeName.trim());
+      if (!match)
+        return null;
+      const className = match[1].toUpperCase();
+      const suffix = match[2].toUpperCase();
+      const reader = CLASS_INCLUDE_READERS[suffix] ?? "ReadClass or GetClass (the class main source \u2014 sections and methods are not separate includes here)";
+      return `Include "${includeName}" is a class include of ${className} (${suffix}), not a standalone include \u2014 the standalone-include path (/sap/bc/adt/programs/includes/) answers HTTP 500 for it. Read it with ${reader} \u2014 exposed on the development tool surface (toolSurface: development), not on readonly.`;
+    }
     exports2.getInclude = (0, toolDefinition_1.defineTool)({
       name: "GetInclude",
-      description: "[read-only] Retrieve source code of a specific ABAP include file.",
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D154.
+      description: "[read-only] Retrieve source code of a specific ABAP include file. Class includes \u2014 names padded with '=' and ending in CCIMP, CCDEF, CCMAC or CCAU \u2014 are not standalone includes; this path answers HTTP 500 for them and the tool now refuses them up front. Read local types and the implementations include with GetLocalTypes, local definitions with GetLocalDefinitions, macros with GetLocalMacros, the test include with GetLocalTestClass. All four are exposed on the development tool surface (toolSurface: development), not on readonly.",
       inputSchema: {
         include_name: z.string().describe("Name of the ABAP Include")
       },
@@ -44275,6 +44335,9 @@ var require_getInclude = __commonJS({
         if (!args.include_name) {
           throw new Error("Include name is required");
         }
+        const refusal = classIncludeRefusal(args.include_name);
+        if (refusal !== null)
+          throw new Error(refusal);
         const client = await context.getConnection();
         context.logger.info(`Fetching include: ${args.include_name}`);
         const response = await client.request({
@@ -44868,7 +44931,7 @@ var require_grep = __commonJS({
       let total = 0;
       let truncated = false;
       for (const object of objects) {
-        const label = `${object.object_type} ${object.object_name}`;
+        const label = `${object.object_type} ${object.object_name}` + (object.function_group ? ` (in ${object.function_group})` : "");
         if (object.skip_reason || object.source == null) {
           skipped.push({ object: label, reason: object.skip_reason ?? "Source not available" });
           continue;
@@ -44883,6 +44946,7 @@ var require_grep = __commonJS({
           const entry = {
             object_type: object.object_type,
             object_name: object.object_name,
+            ...object.function_group ? { function_group: object.function_group } : {},
             matches
           };
           if (lineCapReached)
@@ -44920,15 +44984,102 @@ var require_grep = __commonJS({
   }
 });
 
+// dist/src/tools/read/internal/nodeStructure.js
+var require_nodeStructure = __commonJS({
+  "dist/src/tools/read/internal/nodeStructure.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.ROOT_NODE_KEY = exports2.NODE_STRUCTURE_CONTENT_TYPE = exports2.NODE_STRUCTURE_ACCEPT = exports2.NODE_STRUCTURE_PATH = void 0;
+    exports2.nodeStructureBody = nodeStructureBody;
+    exports2.fetchNodeStructure = fetchNodeStructure;
+    exports2.NODE_STRUCTURE_PATH = "/sap/bc/adt/repository/nodestructure";
+    exports2.NODE_STRUCTURE_ACCEPT = "application/vnd.sap.as+xml;dataname=com.sap.adt.RepositoryObjectTreeContent, application/vnd.sap.adt.repository.nodestructure.v1+xml, application/xml";
+    exports2.NODE_STRUCTURE_CONTENT_TYPE = "application/vnd.sap.as+xml; charset=UTF-8; dataname=null";
+    exports2.ROOT_NODE_KEY = "000000";
+    function nodeStructureBody(nodeKey) {
+      return `<?xml version="1.0" encoding="UTF-8"?><asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0"><asx:values><DATA><TV_NODEKEY>${nodeKey}</TV_NODEKEY></DATA></asx:values></asx:abap>`;
+    }
+    async function fetchNodeStructure(client, { parentType, parentName, nodeId, withShortDescriptions = true }) {
+      return client.request({
+        method: "POST",
+        path: exports2.NODE_STRUCTURE_PATH,
+        params: {
+          parent_type: parentType,
+          parent_name: parentName,
+          // 기술명 자리에도 이름이 들어간다 — 벤더 실측(nodeStructure.js:34).
+          parent_tech_name: parentName,
+          withShortDescriptions,
+          ...nodeId ? { node_id: nodeId } : {}
+        },
+        body: nodeStructureBody(nodeId || exports2.ROOT_NODE_KEY),
+        accept: exports2.NODE_STRUCTURE_ACCEPT,
+        contentType: exports2.NODE_STRUCTURE_CONTENT_TYPE,
+        timeout: "default"
+      });
+    }
+  }
+});
+
 // dist/src/tools/read/internal/objectSource.js
 var require_objectSource = __commonJS({
   "dist/src/tools/read/internal/objectSource.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.expandFunctionGroup = expandFunctionGroup;
+    exports2.fetchFunctionGroupMemberSource = fetchFunctionGroupMemberSource;
     exports2.classifySourceType = classifySourceType;
     exports2.fetchObjectSource = fetchObjectSource;
     var adt_1 = require_adt2();
+    var nodeStructure_1 = require_nodeStructure();
     var results_1 = require_results();
+    var MEMBER_TYPES = /* @__PURE__ */ new Set(["FUGR/FF", "FUGR/I"]);
+    function parseRepositoryNodes(xml) {
+      const nodes = [];
+      for (const block of xml.match(/<SEU_ADT_REPOSITORY_OBJ_NODE>(.*?)<\/SEU_ADT_REPOSITORY_OBJ_NODE>/gs) ?? []) {
+        const text = (tag) => (new RegExp(`<${tag}>([^<]*)</${tag}>`).exec(block)?.[1] ?? "").trim();
+        nodes.push({
+          type: text("OBJECT_TYPE"),
+          name: text("OBJECT_NAME"),
+          nodeId: text("NODE_ID"),
+          uri: text("OBJECT_URI")
+        });
+      }
+      return nodes;
+    }
+    async function expandFunctionGroup(client, groupName) {
+      const members = [];
+      const seen = /* @__PURE__ */ new Set();
+      const collect = (nodes) => {
+        for (const node of nodes) {
+          if (!MEMBER_TYPES.has(node.type) || node.name === "" || node.uri === "")
+            continue;
+          if (seen.has(node.uri))
+            continue;
+          seen.add(node.uri);
+          members.push({
+            type: node.type,
+            name: decodeURIComponent(node.name),
+            uri: node.uri
+          });
+        }
+      };
+      const root = parseRepositoryNodes((await (0, nodeStructure_1.fetchNodeStructure)(client, { parentType: "FUGR/F", parentName: groupName })).body);
+      collect(root);
+      for (const node of root) {
+        if (node.uri !== "" || node.nodeId === "" || !node.type.startsWith("FUGR/"))
+          continue;
+        const children = parseRepositoryNodes((await (0, nodeStructure_1.fetchNodeStructure)(client, {
+          parentType: "FUGR/F",
+          parentName: groupName,
+          nodeId: node.nodeId
+        })).body);
+        collect(children);
+      }
+      return members;
+    }
+    function fetchFunctionGroupMemberSource(client, member) {
+      return (0, adt_1.readSourceText)(client, `${member.uri}/source/main`, "active");
+    }
     function classifySourceType(rawType) {
       const type = (rawType ?? "").trim().toUpperCase();
       if (!type)
@@ -45035,17 +45186,61 @@ var require_grepObjects = __commonJS({
       };
     })();
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.grepObjects = void 0;
+    exports2.grepObjects = exports2.MAX_SCANNED_OBJECTS = void 0;
     var z = __importStar(require_zod());
     var toolDefinition_1 = require_toolDefinition();
     var grep_1 = require_grep();
     var objectSource_1 = require_objectSource();
     var results_1 = require_results();
     var MAX_OBJECTS = 50;
+    exports2.MAX_SCANNED_OBJECTS = 200;
     var FETCH_CONCURRENCY = 5;
+    async function expandForGrep(client, objectType, objectName, warn) {
+      const groupName = objectName.toUpperCase();
+      const skipped = (reason) => ({
+        kind: "skipped",
+        input: { object_type: objectType, object_name: objectName, source: null, skip_reason: reason }
+      });
+      let members;
+      try {
+        members = await (0, objectSource_1.expandFunctionGroup)(client, groupName);
+      } catch (error) {
+        warn(`GrepObjects: could not expand function group ${groupName}: ${(0, results_1.messageOf)(error)}`);
+        return skipped(`Could not expand function group ${groupName} into its function modules and includes (repository node structure): ${(0, results_1.messageOf)(error)}. Nothing in the group was scanned.`);
+      }
+      if (members.length === 0) {
+        return skipped(`Function group ${groupName} expanded to no function modules or includes (the repository node structure returned no FUGR/FF or FUGR/I leaf with an address) \u2014 nothing was scanned.`);
+      }
+      return { kind: "members", members };
+    }
+    async function fetchMemberInputs(client, groupName, members, warn) {
+      const inputs = new Array(members.length);
+      await (0, grep_1.runWithConcurrency)(members, FETCH_CONCURRENCY, async (member, index) => {
+        try {
+          const response = await (0, objectSource_1.fetchFunctionGroupMemberSource)(client, member);
+          inputs[index] = {
+            object_type: member.type,
+            object_name: member.name,
+            function_group: groupName,
+            source: response.body
+          };
+        } catch (error) {
+          warn(`GrepObjects: could not fetch source for ${member.type} ${member.name} (in ${groupName}): ${(0, results_1.messageOf)(error)}`);
+          inputs[index] = {
+            object_type: member.type,
+            object_name: member.name,
+            function_group: groupName,
+            source: null,
+            skip_reason: `Failed to fetch source: ${(0, results_1.messageOf)(error)}`
+          };
+        }
+      });
+      return inputs;
+    }
     exports2.grepObjects = (0, toolDefinition_1.defineTool)({
       name: "GrepObjects",
-      description: "[read-only] Search ABAP source code for a regex pattern across multiple named objects in a single call \u2014 finds matching lines (with optional context) instead of reading each object one by one. Supports CLAS, PROG, INTF, INCL, and FUGR (function group). Individual function modules (FUNC) are not supported; use FUGR with the group name to search the whole group.",
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D151 · 백로그 13-8 ⓒ.
+      description: `[read-only] Search ABAP source code for a regex pattern across multiple named objects in a single call \u2014 finds matching lines (with optional context) instead of reading each object one by one. Supports CLAS, PROG, INTF, INCL, and FUGR (function group). Individual function modules (FUNC) are not supported; use FUGR with the group name to search the whole group. Matching is case-sensitive unless case_insensitive is true \u2014 0 matches means "this pattern found nothing", not "the code is absent". CLAS searches source/main only: local types and the implementations include (CCIMP, where behavior-pool handlers and local classes live) are not scanned and no skipped entry is written for them; read those with GetLocalTypes. FUGR is expanded to the group's function modules and includes (each reported under its own name); if the group cannot be expanded, the reason is listed under skipped instead of a silent 0. GrepObjects reads the active version \u2014 before reading 0 matches as "the source does not contain it", check GetInactiveObjects: a pending inactive version is not scanned. After FUGR expansion at most 200 objects are scanned per call; a group that would exceed that cap is listed under skipped with its member count instead of being scanned partially.`,
       inputSchema: {
         objects: z.array(z.object({
           object_type: z.string().describe("ABAP object type: CLAS, PROG, INTF, INCL, or FUGR."),
@@ -45072,27 +45267,60 @@ var require_grepObjects = __commonJS({
         const caseInsensitive = args.case_insensitive === true;
         const regex = (0, grep_1.compileGrepRegex)(args.pattern, caseInsensitive);
         const client = await context.getConnection();
-        const inputs = new Array(requested.length);
+        const warn = (message) => context.logger.warn(message);
+        const expanded = new Array(requested.length);
         await (0, grep_1.runWithConcurrency)(requested, FETCH_CONCURRENCY, async (item, index) => {
           const objectType = String(item?.object_type ?? "").trim();
           const objectName = String(item?.object_name ?? "").trim();
           if (!objectType || !objectName) {
-            inputs[index] = {
-              object_type: objectType || "(missing)",
-              object_name: objectName || "(missing)",
-              source: null,
-              skip_reason: "object_type and object_name are required"
+            expanded[index] = {
+              kind: "inputs",
+              inputs: [
+                {
+                  object_type: objectType || "(missing)",
+                  object_name: objectName || "(missing)",
+                  source: null,
+                  skip_reason: "object_type and object_name are required"
+                }
+              ]
             };
             return;
           }
-          const { source, skipReason } = await (0, objectSource_1.fetchObjectSource)(client, "GrepObjects", objectType, objectName, (message) => context.logger.warn(message));
-          inputs[index] = {
-            object_type: objectType,
-            object_name: objectName,
-            source,
-            skip_reason: skipReason
+          if ((0, objectSource_1.classifySourceType)(objectType) === "FUGR") {
+            const expansion = await expandForGrep(client, objectType, objectName, warn);
+            expanded[index] = expansion.kind === "members" ? { kind: "group", objectType, objectName, members: expansion.members } : { kind: "inputs", inputs: [expansion.input] };
+            return;
+          }
+          const { source, skipReason } = await (0, objectSource_1.fetchObjectSource)(client, "GrepObjects", objectType, objectName, warn);
+          expanded[index] = {
+            kind: "inputs",
+            inputs: [{ object_type: objectType, object_name: objectName, source, skip_reason: skipReason }]
           };
         });
+        const inputsByItem = new Array(requested.length);
+        let scanned = 0;
+        for (const [index, entry] of expanded.entries()) {
+          if (entry.kind === "inputs") {
+            scanned += entry.inputs.length;
+            inputsByItem[index] = entry.inputs;
+            continue;
+          }
+          const groupName = entry.objectName.toUpperCase();
+          if (scanned + entry.members.length > exports2.MAX_SCANNED_OBJECTS) {
+            inputsByItem[index] = [
+              {
+                object_type: entry.objectType,
+                object_name: entry.objectName,
+                source: null,
+                skip_reason: `Function group ${groupName} expands to ${entry.members.length} function modules and includes, which would exceed the cap of ${exports2.MAX_SCANNED_OBJECTS} scanned objects per call (${scanned} already counted from earlier entries) \u2014 nothing in the group was scanned. Search it in a call of its own or split the request.`
+              }
+            ];
+            continue;
+          }
+          scanned += entry.members.length;
+          inputsByItem[index] = await fetchMemberInputs(client, groupName, entry.members, warn);
+        }
+        const inputs = inputsByItem.flat();
         const aggregate = (0, grep_1.aggregateGrepResults)(inputs, regex, {
           context_lines: args.context_lines ?? 0,
           max_results: args.max_results ?? 100
@@ -45716,13 +45944,16 @@ var require_shared = __commonJS({
   "dist/src/tools/write/shared.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.SourceCheckFailure = exports2.ACCEPT_INACTIVE_OBJECTS = exports2.CT_INCLUDE = exports2.ACCEPT_INCLUDE = exports2.ACCEPT_VALIDATION = exports2.CT_PROGRAM = exports2.CT_ACTIVATION_REQUEST = exports2.CT_ACTIVATION = exports2.ACCEPT_CHECK_MESSAGES = exports2.CT_CHECK_OBJECTS = exports2.ACCEPT_SOURCE = exports2.CT_SOURCE = void 0;
+    exports2.CTS_LOCK_HINT = exports2.SourceCheckFailure = exports2.ACCEPT_INACTIVE_OBJECTS = exports2.CT_INCLUDE = exports2.ACCEPT_INCLUDE = exports2.ACCEPT_VALIDATION = exports2.CT_PROGRAM = exports2.CT_ACTIVATION_REQUEST = exports2.CT_ACTIVATION = exports2.ACCEPT_CHECK_MESSAGES = exports2.CT_CHECK_OBJECTS = exports2.ACCEPT_SOURCE = exports2.CT_SOURCE = void 0;
     exports2.encodeObjectName = encodeObjectName;
     exports2.programUri = programUri;
     exports2.includeUri = includeUri;
     exports2.classUri = classUri;
+    exports2.functionGroupOfInclude = functionGroupOfInclude;
+    exports2.includeWriteUri = includeWriteUri;
     exports2.limitDescription = limitDescription;
     exports2.describeFailure = describeFailure;
+    exports2.ctsLockHint = ctsLockHint;
     exports2.okResult = okResult;
     exports2.errorResult = errorResult;
     exports2.parseCheckRun = parseCheckRun;
@@ -45764,6 +45995,16 @@ var require_shared = __commonJS({
     function classUri(name) {
       return `/sap/bc/adt/oo/classes/${encodeObjectName(name).toLowerCase()}`;
     }
+    function functionGroupOfInclude(name) {
+      const match = /^L(.+?)(TOP|UXX|[A-Z]\d\d)$/i.exec(name);
+      return match?.[1] ? match[1].toUpperCase() : void 0;
+    }
+    function includeWriteUri(name) {
+      const group = functionGroupOfInclude(name);
+      if (group === void 0)
+        return includeUri(name);
+      return `/sap/bc/adt/functions/groups/${encodeObjectName(group).toLowerCase()}/includes/${encodeObjectName(name).toLowerCase()}`;
+    }
     function limitDescription(description) {
       return description.length > 60 ? description.substring(0, 60) : description;
     }
@@ -45784,9 +46025,20 @@ var require_shared = __commonJS({
       if (error instanceof adt_1.AdtError) {
         const where = error.status === void 0 ? error.kind : `${error.status} ${error.kind}`;
         const text = error.adtMessage ? `SAP Error: ${error.adtMessage}` : error.message;
-        return `[${where}] ${text}`;
+        const hint = ctsLockHint(error);
+        return hint ? `[${where}] ${text} \u2014 ${hint}` : `[${where}] ${text}`;
       }
       return error instanceof Error ? error.message : String(error);
+    }
+    var CTS_LOCK_PHRASE = /already locked in (?:request|task)|locked in (?:request|task)\s+[A-Z0-9]+|이미\s*잠겨\s*있습니다|bereits (?:in|im) (?:Auftrag|Aufgabe)[^\n]*gesperrt/i;
+    exports2.CTS_LOCK_HINT = "Hint: check this first \u2014 this CTS message often means transport_request was omitted or is a task number, not a lock held by another user. Pass the parent request number (E070.STRKORR of the task) as transport_request and retry before asking anyone to release a lock.";
+    function ctsLockHint(error) {
+      if (!(error instanceof adt_1.AdtError))
+        return void 0;
+      const text = `${error.adtMessage ?? ""}
+${error.rawBody ?? ""}
+${error.message}`;
+      return CTS_LOCK_PHRASE.test(text) ? exports2.CTS_LOCK_HINT : void 0;
     }
     function okResult(payload) {
       return {
@@ -46047,7 +46299,7 @@ var require_activateObjects = __commonJS({
       };
     })();
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.activateObjects = void 0;
+    exports2.activateObjects = exports2.ACTIVATION_RUN_NOT_EXECUTED = void 0;
     exports2.resolveActivationUri = resolveActivationUri;
     exports2.parseActivationResults = parseActivationResults;
     var z = __importStar(require_zod());
@@ -46215,20 +46467,23 @@ var require_activateObjects = __commonJS({
             perObjectWarnings.get(owner.uri)?.push(message);
         }
       }
-      const runExecuted = activated || generated;
+      const executed = activated || checked;
+      const activationSeen = activated || generated;
       const objects = inputs.map((input) => {
         const objectErrors = perObjectErrors.get(input.uri) ?? [];
+        const status = !executed ? "not_executed" : objectErrors.length === 0 && activationSeen ? "activated" : "failed";
         return {
           name: input.name,
           type: input.type,
           uri: input.uri,
-          status: objectErrors.length === 0 && runExecuted ? "activated" : "failed",
+          status,
           errors: objectErrors,
           warnings: perObjectWarnings.get(input.uri) ?? []
         };
       });
-      return { activated, checked, generated, objects, errors, warnings };
+      return { activated, checked, generated, executed, objects, errors, warnings };
     }
+    exports2.ACTIVATION_RUN_NOT_EXECUTED = "Activation run did not execute (activationExecuted=false, checkExecuted=false) \u2014 nothing was activated, regardless of the per-object entries. Confirm with REPOSRC.R3STATE (an 'I' row means still inactive; GetInactiveObjects may not list the object). If this repeats, do not retry the run \u2014 rewrite the full source with UpdateInclude (main_program set) or UpdateClass, activate:true, instead; if that does not clear it either, have a person activate the object in SE38/SE80 (what cleared this state in practice was not isolated to one cause).";
     async function confirmViaInactiveWorklist(client, objects) {
       const found = [];
       try {
@@ -46307,7 +46562,7 @@ var require_activateObjects = __commonJS({
     }
     exports2.activateObjects = (0, toolDefinition_1.defineTool)({
       name: "ActivateObjects",
-      description: "[high-level] Activate a set of ABAP objects in a single call. Uses the ADT mass-activation endpoint (/sap/bc/adt/activation/runs) so cyclic references between siblings (e.g. main program + multiple cross-referencing includes) resolve in one compilation scope. Returns per-object status, errors, warnings. Falls back to /sap/bc/adt/activation on legacy systems. FUGR recipe: activating function modules alone fails with 'FUNCTION ... cannot be used outside a FUNCTION-POOL' \u2014 pass the whole family in ONE run: the function group (type FUGR), its TOP include (FUGR/I with parent_name), every function module (FUGR/FF with parent_name), and the SAPL<group> main program (PROG/P) when present. Do NOT include the system include L<group>UXX. Never mix unrelated objects into the same activation run \u2014 activate only the object family being worked. The returned success/activated flags mirror the activation-run response and are NOT proof of activation on their own \u2014 confirm by re-querying GetInactiveObjects (your objects absent from the list = actually activated).",
+      description: "[high-level] Activate a set of ABAP objects in a single call. Uses the ADT mass-activation endpoint (/sap/bc/adt/activation/runs) so cyclic references between siblings (e.g. main program + multiple cross-referencing includes) resolve in one compilation scope. Returns per-object status, errors, warnings. Falls back to /sap/bc/adt/activation on legacy systems. FUGR recipe: activating function modules alone fails with 'FUNCTION ... cannot be used outside a FUNCTION-POOL' \u2014 pass the whole family in ONE run: the function group (type FUGR), its TOP include (FUGR/I with parent_name), every function module (FUGR/FF with parent_name), and the SAPL<group> main program (PROG/P) when present. Do NOT include the system include L<group>UXX. Never mix unrelated objects into the same activation run \u2014 activate only the object family being worked. The returned success/activated flags mirror the activation-run response and are NOT proof of activation on their own \u2014 confirm by re-querying GetInactiveObjects (your objects absent from the list = actually activated). When the run reports activationExecuted=false and checkExecuted=false, nothing was activated regardless of the per-object entries: success is false, run_executed is false and every object carries status 'not_executed' (REPOSRC.R3STATE stays 'I' even though GetInactiveObjects may not list the object). Do not retry such a run \u2014 rewrite the full source with UpdateInclude (main_program set) or UpdateClass, activate:true, which has cleared this state in practice.",
       inputSchema: {
         objects: z.array(z.object({
           name: z.string().describe("Object name (will be uppercased)."),
@@ -46396,10 +46651,12 @@ var require_activateObjects = __commonJS({
           responseBody = sync.body;
         }
         const parsed = parseActivationResults(responseBody, resolved);
-        const oracleErrors = await confirmViaInactiveWorklist(client, parsed.objects);
+        const oracleErrors = parsed.executed ? await confirmViaInactiveWorklist(client, parsed.objects) : [];
         const errors = [...parsed.errors, ...oracleErrors];
-        const failed = parsed.objects.filter((object) => object.status === "failed").length;
-        const success = (parsed.activated || parsed.generated) && errors.length === 0;
+        if (!parsed.executed)
+          errors.push({ type: "E", text: exports2.ACTIVATION_RUN_NOT_EXECUTED });
+        const failed = parsed.objects.filter((object) => object.status !== "activated").length;
+        const success = parsed.executed && (parsed.activated || parsed.generated) && errors.length === 0;
         return (0, shared_1.okResult)({
           success,
           endpoint,
@@ -46407,12 +46664,13 @@ var require_activateObjects = __commonJS({
           activated: parsed.activated,
           checked: parsed.checked,
           generated: parsed.generated,
+          run_executed: parsed.executed,
           objects_count: parsed.objects.length,
           failed_count: failed,
           objects: parsed.objects,
           errors,
           warnings: parsed.warnings,
-          message: success ? `Activated ${parsed.objects.length} object(s) via ${endpoint} endpoint` : `Activation finished with ${errors.length} error(s) across ${failed} object(s)`
+          message: success ? `Activated ${parsed.objects.length} object(s) via ${endpoint} endpoint` : parsed.executed ? `Activation finished with ${errors.length} error(s) across ${failed} object(s)` : exports2.ACTIVATION_RUN_NOT_EXECUTED
         });
       } catch (error) {
         const message = (0, shared_1.describeFailure)(error);
@@ -47059,7 +47317,8 @@ var require_updateInclude = __commonJS({
         return (0, shared_1.errorResult)("Missing required parameters: include_name and source_code");
       }
       const includeName = args.include_name.toUpperCase();
-      const baseUri = (0, shared_1.includeUri)(includeName);
+      const functionGroup = (0, shared_1.functionGroupOfInclude)(includeName);
+      const baseUri = (0, shared_1.includeWriteUri)(includeName);
       const shouldActivate = args.activate === true;
       const sourceCode = args.source_code;
       let currentStep = "start";
@@ -47099,7 +47358,9 @@ var require_updateInclude = __commonJS({
         return (0, shared_1.okResult)({
           success: true,
           include_name: includeName,
-          type: "PROG/I",
+          type: functionGroup === void 0 ? "PROG/I" : "FUGR/I",
+          // 함수그룹 인클루드일 때만 붙는다 — 독립 인클루드의 응답 모양은 구 그대로다.
+          function_group: functionGroup,
           activated: shouldActivate,
           message: shouldActivate ? `Include ${includeName} source updated and activated successfully` : `Include ${includeName} source updated successfully (not activated)`,
           uri: baseUri.toLowerCase(),
@@ -47110,7 +47371,8 @@ var require_updateInclude = __commonJS({
       } catch (error) {
         const message = (0, shared_1.describeFailure)(error);
         logger.error(`Error updating include ${includeName} at step=${currentStep}: ${message}`);
-        return (0, shared_1.errorResult)(`Failed to update include ${includeName} at step=${currentStep}: ${message}`);
+        const routing = functionGroup !== void 0 && currentStep === "lock" ? ` \u2014 function group ${functionGroup} was derived from the include name and the lock was sent to the function-group include address ${baseUri}; if ${includeName} is a standalone include, that derivation misrouted it (name rule L<group>TOP|UXX|<X><nn>)` : "";
+        return (0, shared_1.errorResult)(`Failed to update include ${includeName} at step=${currentStep}: ${message}${routing}`);
       }
     });
   }
@@ -47158,13 +47420,19 @@ var require_updateProgram = __commonJS({
       };
     })();
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.updateProgram = void 0;
+    exports2.updateProgram = exports2.FIXPT_FALSE_POSITIVE = void 0;
+    exports2.looksLikeFixptFalsePositive = looksLikeFixptFalsePositive;
     var z = __importStar(require_zod());
     var toolDefinition_1 = require_toolDefinition();
     var shared_1 = require_shared();
+    exports2.FIXPT_FALSE_POSITIVE = /fixed point arithmetic/i;
+    function looksLikeFixptFalsePositive(preCheck) {
+      return preCheck.errors.some((entry) => exports2.FIXPT_FALSE_POSITIVE.test(entry.text));
+    }
     exports2.updateProgram = (0, toolDefinition_1.defineTool)({
       name: "UpdateProgram",
-      description: "Update source code of an existing ABAP program. Locks the program, checks new code, uploads new source code, and unlocks. Optionally activates after update. Use this to modify existing programs without re-creating metadata.",
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D150.
+      description: "Update source code of an existing ABAP program. Locks the program, checks new code, uploads new source code, and unlocks. Optionally activates after update. Use this to modify existing programs without re-creating metadata. If the in-place pre-check rejects the proposed source with 'fixed point arithmetic flag' errors (a known false positive on programs with FIXPT set) while the stored version checks clean, the write proceeds with precheck_overridden: true and those messages under precheck_messages \u2014 the post-write check and activation do the real compile.",
       inputSchema: {
         program_name: z.string().describe("Program name (e.g., Z_TEST_PROGRAM_001). Program must already exist."),
         source_code: z.string().describe("Complete ABAP program source code."),
@@ -47188,9 +47456,22 @@ var require_updateProgram = __commonJS({
       try {
         const client = await context.getConnection();
         let checkWarnings = [];
+        let precheckOverride;
         await client.withLock(uri, async (lock) => {
           const preCheck = await (0, shared_1.checkProposed)(client, uri, `${uri}/source/main`, sourceCode);
-          (0, shared_1.assertNoCheckErrors)(preCheck, "Program", programName);
+          try {
+            (0, shared_1.assertNoCheckErrors)(preCheck, "Program", programName);
+          } catch (error) {
+            if (!(error instanceof shared_1.SourceCheckFailure) || !looksLikeFixptFalsePositive(preCheck)) {
+              throw error;
+            }
+            const stored = await (0, shared_1.checkStored)(client, uri, "inactive");
+            const storedReal = stored.errors.filter((entry) => !(0, shared_1.isReportMissingNoise)(entry.text));
+            if (storedReal.length > 0)
+              throw error;
+            precheckOverride = { messages: [...preCheck.errors], storedStatus: stored.status };
+            logger.warn(`Program ${programName}: in-place pre-check rejected the source with ${preCheck.errors.length} fixed-point-arithmetic-class error(s) while the stored version checks clean \u2014 treating the pre-check as a false positive and writing (D150)`);
+          }
           checkWarnings = [...preCheck.warnings];
           await (0, shared_1.putSource)(client, uri, lock.handle, sourceCode, args.transport_request);
         });
@@ -47200,6 +47481,12 @@ var require_updateProgram = __commonJS({
           checkWarnings = [...checkWarnings, ...postCheck.errors, ...postCheck.warnings];
         } catch (error) {
           logger.warn(`Inactive version check had issues: ${programName} - ${(0, shared_1.describeFailure)(error)}`);
+        }
+        if (precheckOverride) {
+          const postErrors = checkWarnings.filter((entry) => entry.type === "E" && !(0, shared_1.isReportMissingNoise)(entry.text));
+          if (postErrors.length > 0) {
+            throw new shared_1.SourceCheckFailure(`Program ${programName}: the in-place pre-check was overridden as a fixed-point-arithmetic false positive (D150), but the post-write check of the inactive version reports ${postErrors.length} error${postErrors.length === 1 ? "" : "s"}: ${postErrors.map((entry) => `${entry.line ? `[L${entry.line}] ` : ""}${entry.text}`).join(" | ")}. The source IS saved on SAP as an inactive version and was NOT activated; the active version is unchanged. A person must review that inactive version (ADT/SE38) or write a corrected source.`, postErrors, checkWarnings.filter((entry) => entry.type === "W"));
+          }
         }
         let activationWarnings = [];
         if (shouldActivate) {
@@ -47224,6 +47511,7 @@ var require_updateProgram = __commonJS({
           steps_completed: [
             "lock",
             "check_new_code",
+            ...precheckOverride ? ["check_stored_version"] : [],
             "update",
             "unlock",
             "check_inactive",
@@ -47231,6 +47519,10 @@ var require_updateProgram = __commonJS({
           ],
           activation_warnings: activationWarnings.length > 0 ? activationWarnings : void 0,
           check_warnings: checkWarnings.length > 0 ? checkWarnings : void 0,
+          // D150 — 이 세 키는 거짓 precheck를 넘어 썼을 때만 나타난다.
+          precheck_overridden: precheckOverride ? true : void 0,
+          precheck_messages: precheckOverride?.messages,
+          precheck_note: precheckOverride ? `The in-place pre-check rejected the proposed source with ${precheckOverride.messages.length} error(s) of the 'fixed point arithmetic flag' class while the stored version checks clean (status "${precheckOverride.storedStatus}") \u2014 a known false positive on FIXPT programs. The source was written WITHOUT a pre-write syntax verdict: check_warnings holds the post-write check of the inactive version, and activation is the real compile.` : void 0,
           source_size_bytes: sourceCode.length
         });
       } catch (error) {
@@ -47239,6 +47531,378 @@ var require_updateProgram = __commonJS({
         if (error instanceof shared_1.SourceCheckFailure)
           return (0, shared_1.errorResult)(message);
         return (0, shared_1.errorResult)(`Failed to update program ${programName}: ${message}`);
+      }
+    });
+  }
+});
+
+// dist/src/tools/write/functions.js
+var require_functions = __commonJS({
+  "dist/src/tools/write/functions.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.FUNCTION_VALIDATION_PATH = exports2.ACCEPT_FUNCTION_MODULE_VALIDATION = exports2.CT_FUNCTION_MODULE = exports2.CT_FUNCTION_GROUP_LEGACY = exports2.CT_FUNCTION_GROUP = void 0;
+    exports2.functionErrorResult = functionErrorResult;
+    exports2.functionGroupUri = functionGroupUri;
+    exports2.functionModuleUri = functionModuleUri;
+    exports2.ownerAttributes = ownerAttributes;
+    exports2.ownerAttributeXml = ownerAttributeXml;
+    exports2.isLegacySystem = isLegacySystem;
+    exports2.parseFunctionValidation = parseFunctionValidation;
+    exports2.isKerberosNoise = isKerberosNoise;
+    var fast_xml_parser_1 = require_fxp();
+    var shared_1 = require_shared();
+    exports2.CT_FUNCTION_GROUP = "application/vnd.sap.adt.functions.groups.v3+xml";
+    exports2.CT_FUNCTION_GROUP_LEGACY = "application/vnd.sap.adt.functions.groups+xml";
+    exports2.CT_FUNCTION_MODULE = "application/vnd.sap.adt.functions.fmodules+xml";
+    exports2.ACCEPT_FUNCTION_MODULE_VALIDATION = "application/vnd.sap.as+xml;charset=UTF-8;dataname=com.sap.adt.StatusMessage";
+    exports2.FUNCTION_VALIDATION_PATH = "/sap/bc/adt/functions/validation";
+    function functionErrorResult(message) {
+      return (0, shared_1.errorResult)(`Error: ${message}`);
+    }
+    function functionGroupUri(name) {
+      return `/sap/bc/adt/functions/groups/${(0, shared_1.encodeObjectName)(name).toLowerCase()}`;
+    }
+    function functionModuleUri(groupName, moduleName) {
+      return `${functionGroupUri(groupName)}/fmodules/${(0, shared_1.encodeObjectName)(moduleName).toLowerCase()}`;
+    }
+    function ownerAttributes(context) {
+      const masterSystem = context.env.SAP_MASTER_SYSTEM || void 0;
+      const raw = context.env.SAP_RESPONSIBLE || context.env.SAP_USERNAME;
+      const responsible = raw && raw.trim() !== "" ? raw : void 0;
+      return { masterSystem, responsible };
+    }
+    function ownerAttributeXml(owner) {
+      return (owner.masterSystem ? ` adtcore:masterSystem="${owner.masterSystem}"` : "") + (owner.responsible ? ` adtcore:responsible="${owner.responsible}"` : "");
+    }
+    function isLegacySystem(context) {
+      if (context.profile.systemType === "legacy")
+        return true;
+      if (context.profile.sapVersion?.toUpperCase() === "ECC")
+        return true;
+      const release = Number.parseInt(context.env.ABAP_RELEASE ?? "", 10);
+      return Number.isFinite(release) && release < 750;
+    }
+    var validationParser = new fast_xml_parser_1.XMLParser({
+      ignoreAttributes: false,
+      attributeNamePrefix: "@_",
+      parseTagValue: false,
+      trimValues: true
+    });
+    function parseFunctionValidation(body) {
+      let document;
+      try {
+        document = validationParser.parse(body ?? "");
+      } catch {
+        return { valid: true };
+      }
+      const values = document["asx:abap"]?.["asx:values"];
+      const data = values?.["DATA"];
+      if (!data)
+        return { valid: true };
+      if (data["CHECK_RESULT"] === "X")
+        return { valid: true };
+      const severity = typeof data["SEVERITY"] === "string" ? data["SEVERITY"] : void 0;
+      const shortText = typeof data["SHORT_TEXT"] === "string" ? data["SHORT_TEXT"] : void 0;
+      return { valid: severity !== "ERROR", message: shortText };
+    }
+    function isKerberosNoise(text) {
+      return text.toLowerCase().includes("kerberos library not loaded");
+    }
+  }
+});
+
+// dist/src/tools/write/updateFunctionModule.js
+var require_updateFunctionModule = __commonJS({
+  "dist/src/tools/write/updateFunctionModule.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m, k);
+      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m[k];
+        } };
+      }
+      Object.defineProperty(o, k2, desc);
+    }) : (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      o[k2] = m[k];
+    }));
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    }) : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports2 && exports2.__importStar || /* @__PURE__ */ (function() {
+      var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function(o2) {
+          var ar = [];
+          for (var k in o2) if (Object.prototype.hasOwnProperty.call(o2, k)) ar[ar.length] = k;
+          return ar;
+        };
+        return ownKeys(o);
+      };
+      return function(mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) {
+          for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        }
+        __setModuleDefault(result, mod);
+        return result;
+      };
+    })();
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.updateFunctionModule = void 0;
+    var z = __importStar(require_zod());
+    var toolDefinition_1 = require_toolDefinition();
+    var functions_1 = require_functions();
+    var shared_1 = require_shared();
+    var adt_1 = require_adt();
+    var MAX_NAME_LENGTH = 30;
+    async function checkStoredWithoutAccept(client, objectUri) {
+      const response = await client.request({
+        method: "POST",
+        path: "/sap/bc/adt/checkruns",
+        params: { reporters: "abapCheckRun" },
+        body: (0, shared_1.buildCheckObjectList)(objectUri, "inactive"),
+        contentType: shared_1.CT_CHECK_OBJECTS,
+        timeout: "default"
+      });
+      return (0, shared_1.parseCheckRun)(response.body);
+    }
+    function statusOf(error) {
+      return error instanceof adt_1.AdtError ? error.status : void 0;
+    }
+    exports2.updateFunctionModule = (0, toolDefinition_1.defineTool)({
+      name: "UpdateFunctionModule",
+      description: "Update source code of an existing ABAP function module. Locks the function module, uploads new source code, and unlocks. Optionally activates after update. Use this to modify existing function modules without re-creating metadata. NOTE: the write persists (as the inactive version) even when the post-write syntax check fails, and those check errors can originate from pre-existing defects in sibling FMs of the same function group \u2014 re-read the FM before assuming your write was lost. For repairs spanning many FMs prefer the abapGit path.",
+      inputSchema: {
+        function_group_name: z.string().describe("Function group name containing the function module (e.g., ZOK_FG_MCP01)."),
+        function_module_name: z.string().describe("Function module name (e.g., Z_TEST_FM_MCP01). Function module must already exist."),
+        source_code: z.string().describe("Complete ABAP function module source code. Must include FUNCTION statement with parameters and ENDFUNCTION. Example:\n\nFUNCTION Z_TEST_FM\n  IMPORTING\n    VALUE(iv_input) TYPE string\n  EXPORTING\n    VALUE(ev_output) TYPE string.\n  \n  ev_output = iv_input.\nENDFUNCTION."),
+        transport_request: z.string().describe('Transport request number (e.g., E19K905635). Required for transportable function modules. For local objects ($TMP package) this can be omitted \u2014 the handler defaults to "local".').optional(),
+        activate: z.boolean().describe("Activate function module after source update. Default: false. Set to true to activate immediately.").optional()
+      },
+      available_in: ["onprem", "cloud", "legacy"],
+      sets: ["high"],
+      kind: "mutation",
+      targetNames: ["function_module_name", "function_group_name"]
+    }, async (context, args) => {
+      const { logger } = context;
+      if (!args.function_module_name || args.function_module_name.length > MAX_NAME_LENGTH) {
+        return (0, functions_1.functionErrorResult)("Function module name is required and must not exceed 30 characters");
+      }
+      if (!args.function_group_name || args.function_group_name.length > MAX_NAME_LENGTH) {
+        return (0, functions_1.functionErrorResult)("Function group name is required and must not exceed 30 characters");
+      }
+      if (!args.source_code) {
+        return (0, functions_1.functionErrorResult)("Source code is required");
+      }
+      const functionGroupName = args.function_group_name.toUpperCase();
+      const functionModuleName = args.function_module_name.toUpperCase();
+      const uri = (0, functions_1.functionModuleUri)(functionGroupName, functionModuleName);
+      const shouldActivate = args.activate === true;
+      const effectiveTransport = args.transport_request ?? "local";
+      const sourceCode = args.source_code;
+      logger.info(`Starting function module source update: ${functionModuleName} in ${functionGroupName}`);
+      try {
+        const client = await context.getConnection();
+        let checkWarnings = [];
+        await client.withLock(uri, async (lock) => {
+          await (0, shared_1.putSource)(client, uri, lock.handle, sourceCode, effectiveTransport);
+          const check = await checkStoredWithoutAccept(client, uri);
+          (0, shared_1.assertNoCheckErrors)(check, "Function module", functionModuleName);
+          checkWarnings = [...check.warnings];
+        });
+        logger.info(`Function module source code updated: ${functionModuleName}`);
+        if (shouldActivate) {
+          const body = await (0, shared_1.activateOne)(client, uri, functionModuleName, {
+            contentType: shared_1.CT_ACTIVATION
+          });
+          const messages = (0, shared_1.parseActivationMessages)(body);
+          const failures = (0, shared_1.activationErrors)(messages);
+          if (failures.length > 0) {
+            throw new shared_1.SourceCheckFailure(`Activation failed: function module ${functionModuleName} was not activated (${failures.length} error${failures.length === 1 ? "" : "s"}): ${failures.map((entry) => `${entry.line ? `[L${entry.line}] ` : ""}${entry.text}`).join(" | ")}. The source update is on SAP as an inactive version; the active version is unchanged.`, failures);
+          }
+          logger.info(`Function module activated: ${functionModuleName}`);
+        }
+        return (0, shared_1.okResult)({
+          success: true,
+          function_module_name: functionModuleName,
+          function_group_name: functionGroupName,
+          transport_request: effectiveTransport,
+          activated: shouldActivate,
+          message: `Function module ${functionModuleName} source code updated successfully${shouldActivate ? " and activated" : ""}`,
+          // 응답 키는 구 그대로다 — `activation_warnings`를 더하지 않는다.
+          check_warnings: checkWarnings.length > 0 ? checkWarnings : void 0
+        });
+      } catch (error) {
+        if (error instanceof shared_1.SourceCheckFailure) {
+          logger.error(`Error updating function module ${functionModuleName}: ${error.message}`);
+          return (0, functions_1.functionErrorResult)(error.message);
+        }
+        const detail = (0, shared_1.describeFailure)(error);
+        logger.error(`Error updating function module source ${functionModuleName}: ${detail}`);
+        const status = statusOf(error);
+        const reason = status === 404 ? `Function module ${functionModuleName} not found in group ${functionGroupName}.` : status === 423 ? `Function module ${functionModuleName} is locked by another user or lock handle is invalid.` : status === 400 && !args.transport_request ? `Update failed for ${functionModuleName}. The object may be assigned to a transport request. Pass transport_request explicitly.` : detail;
+        return (0, functions_1.functionErrorResult)(`Failed to update function module source: ${reason}`);
+      }
+    });
+  }
+});
+
+// dist/src/tools/write/interfaceUri.js
+var require_interfaceUri = __commonJS({
+  "dist/src/tools/write/interfaceUri.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.interfaceObjectUri = interfaceObjectUri;
+    exports2.interfaceStoredCheckUri = interfaceStoredCheckUri;
+    exports2.interfaceRawUri = interfaceRawUri;
+    var shared_1 = require_shared();
+    var INTERFACE_ROOT = "/sap/bc/adt/oo/interfaces";
+    function interfaceObjectUri(name) {
+      return `${INTERFACE_ROOT}/${(0, shared_1.encodeObjectName)(name).toLowerCase()}`;
+    }
+    function interfaceStoredCheckUri(name) {
+      return `${INTERFACE_ROOT}/${(0, shared_1.encodeObjectName)(name.toLowerCase())}`;
+    }
+    function interfaceRawUri(name) {
+      return `${INTERFACE_ROOT}/${(0, shared_1.encodeObjectName)(name)}`;
+    }
+  }
+});
+
+// dist/src/tools/write/updateInterface.js
+var require_updateInterface = __commonJS({
+  "dist/src/tools/write/updateInterface.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m, k);
+      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m[k];
+        } };
+      }
+      Object.defineProperty(o, k2, desc);
+    }) : (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      o[k2] = m[k];
+    }));
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    }) : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports2 && exports2.__importStar || /* @__PURE__ */ (function() {
+      var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function(o2) {
+          var ar = [];
+          for (var k in o2) if (Object.prototype.hasOwnProperty.call(o2, k)) ar[ar.length] = k;
+          return ar;
+        };
+        return ownKeys(o);
+      };
+      return function(mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) {
+          for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        }
+        __setModuleDefault(result, mod);
+        return result;
+      };
+    })();
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.updateInterface = void 0;
+    var z = __importStar(require_zod());
+    var toolDefinition_1 = require_toolDefinition();
+    var interfaceUri_1 = require_interfaceUri();
+    var shared_1 = require_shared();
+    function compactResult(payload) {
+      return { isError: false, content: [{ type: "text", text: JSON.stringify(payload) }] };
+    }
+    exports2.updateInterface = (0, toolDefinition_1.defineTool)({
+      name: "UpdateInterface",
+      description: "Update source code of an existing ABAP interface. Uses stateful session with proper lock/unlock mechanism. Lock handle and transport number are passed in URL parameters.",
+      inputSchema: {
+        interface_name: z.string().describe("Interface name (e.g., ZIF_MY_INTERFACE). Must exist in the system."),
+        source_code: z.string().describe("Complete ABAP interface source code with INTERFACE...ENDINTERFACE section."),
+        transport_request: z.string().describe("Transport request number (e.g., E19K905635). Optional if object is local or already in transport.").optional(),
+        activate: z.boolean().describe("Activate interface after update. Default: true.").optional()
+      },
+      available_in: ["onprem", "cloud", "legacy"],
+      sets: ["high"],
+      kind: "mutation",
+      targetNames: ["interface_name"]
+    }, async (context, args) => {
+      const { logger } = context;
+      if (!args.interface_name || !args.source_code) {
+        return (0, shared_1.errorResult)("Error: interface_name and source_code are required");
+      }
+      const interfaceName = args.interface_name.toUpperCase();
+      const objectUri = (0, interfaceUri_1.interfaceObjectUri)(interfaceName);
+      const shouldActivate = args.activate !== false;
+      const sourceCode = args.source_code;
+      logger.info(`Starting interface source update: ${interfaceName} (activate=${shouldActivate})`);
+      try {
+        const client = await context.getConnection();
+        let checkWarnings = [];
+        await client.withLock(objectUri, async (lock) => {
+          const preCheck = await (0, shared_1.checkProposed)(client, objectUri, `${objectUri}/source/main`, sourceCode);
+          (0, shared_1.assertNoCheckErrors)(preCheck, "Interface", interfaceName);
+          checkWarnings = [...preCheck.warnings];
+          await (0, shared_1.putSource)(client, (0, interfaceUri_1.interfaceRawUri)(interfaceName), lock.handle, sourceCode, args.transport_request);
+        });
+        logger.info(`Interface source code updated: ${interfaceName}`);
+        try {
+          const postCheck = await (0, shared_1.checkStored)(client, (0, interfaceUri_1.interfaceStoredCheckUri)(interfaceName), "inactive");
+          if (postCheck.errors.length > 0) {
+            logger.warn(`Inactive version check had issues: ${interfaceName} | ${postCheck.errors.map((entry) => entry.text).join("; ")}`);
+          } else if (postCheck.warnings.length > 0) {
+            checkWarnings = [...checkWarnings, ...postCheck.warnings];
+          }
+          logger.info(`Inactive version check completed: ${interfaceName}`);
+        } catch (error) {
+          logger.warn(`Inactive version check had issues: ${interfaceName} | ${(0, shared_1.describeFailure)(error)}`);
+        }
+        let activationWarnings = [];
+        if (shouldActivate) {
+          const body = await (0, shared_1.activateOne)(client, objectUri, interfaceName, {
+            contentType: shared_1.CT_ACTIVATION
+          });
+          const messages = body.includes("<chkl:messages") ? (0, shared_1.parseActivationMessages)(body) : [];
+          const failures = (0, shared_1.activationErrors)(messages);
+          if (failures.length > 0) {
+            throw new shared_1.SourceCheckFailure(`Activation failed: interface ${interfaceName} was not activated (${failures.length} error${failures.length === 1 ? "" : "s"}): ${failures.map((entry) => `${entry.line ? `[L${entry.line}] ` : ""}${entry.text}`).join(" | ")}. The source update is on SAP as an inactive version; the active version is unchanged.`, failures);
+          }
+          activationWarnings = messages.map((entry) => `${entry.type}: ${entry.text || "Unknown"}`);
+          logger.info(`Interface activated: ${interfaceName}`);
+        }
+        const stepsCompleted = ["lock", "check_new_code", "update", "unlock", "check_inactive"];
+        if (shouldActivate)
+          stepsCompleted.push("activate");
+        return compactResult({
+          success: true,
+          interface_name: interfaceName,
+          transport_request: args.transport_request || "local",
+          activated: shouldActivate,
+          message: `Interface ${interfaceName} updated successfully${shouldActivate ? " and activated" : ""}`,
+          activation_warnings: activationWarnings.length > 0 ? activationWarnings : void 0,
+          check_warnings: checkWarnings.length > 0 ? checkWarnings : void 0,
+          steps_completed: stepsCompleted
+        });
+      } catch (error) {
+        if (error instanceof shared_1.SourceCheckFailure) {
+          logger.error(`Error updating interface ${interfaceName}: ${error.message}`);
+          return (0, shared_1.errorResult)(`Error: ${error.message}`);
+        }
+        const message = (0, shared_1.describeFailure)(error);
+        logger.error(`Error updating interface source ${interfaceName}: ${message}`);
+        return (0, shared_1.errorResult)(`Error: Failed to update interface: ${message}`);
       }
     });
   }
@@ -47287,20 +47951,35 @@ var require_updateSourceByPatch = __commonJS({
     })();
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.updateSourceByPatch = void 0;
+    exports2.detectLineEnding = detectLineEnding;
+    exports2.normalizeLineEndings = normalizeLineEndings;
+    exports2.restoreLineEndings = restoreLineEndings;
     exports2.findOccurrences = findOccurrences;
+    exports2.findWholeLineMatches = findWholeLineMatches;
+    exports2.findMatches = findMatches;
+    exports2.lineNumberAt = lineNumberAt;
+    exports2.describeMatches = describeMatches;
     exports2.applySourcePatch = applySourcePatch;
     exports2.buildDiffPreview = buildDiffPreview;
     var z = __importStar(require_zod());
+    var adt_1 = require_adt();
     var toolDefinition_1 = require_toolDefinition();
     var shared_1 = require_shared();
     var updateClass_1 = require_updateClass();
+    var updateFunctionModule_1 = require_updateFunctionModule();
     var updateInclude_1 = require_updateInclude();
+    var updateInterface_1 = require_updateInterface();
     var updateProgram_1 = require_updateProgram();
     var PATCH_TYPES = ["CLAS", "PROG", "INTF", "INCL", "FUNC"];
-    var NOT_YET_BUILT = {
-      INTF: "UpdateInterface",
-      FUNC: "UpdateFunctionModule"
-    };
+    function detectLineEnding(source) {
+      return source.includes("\r\n") ? "\r\n" : "\n";
+    }
+    function normalizeLineEndings(text) {
+      return text.replace(/\r\n/g, "\n");
+    }
+    function restoreLineEndings(text, eol) {
+      return eol === "\n" ? text : text.replace(/\n/g, "\r\n");
+    }
     function findOccurrences(haystack, needle) {
       if (!needle)
         return [];
@@ -47312,33 +47991,92 @@ var require_updateSourceByPatch = __commonJS({
       }
       return indices;
     }
-    function applySourcePatch(source, oldString, newString, replaceAll) {
-      const indices = findOccurrences(source, oldString);
-      const first = indices[0];
+    function lineStartOffsets(source) {
+      const starts = [0];
+      for (let i = 0; i < source.length; i += 1)
+        if (source[i] === "\n")
+          starts.push(i + 1);
+      return starts;
+    }
+    function findWholeLineMatches(source, oldString) {
+      const wanted = oldString.split("\n").map((line) => line.trim());
+      while (wanted.length > 1 && wanted[wanted.length - 1] === "")
+        wanted.pop();
+      while (wanted.length > 1 && wanted[0] === "")
+        wanted.shift();
+      if (wanted.length === 1 && wanted[0] === "")
+        return [];
+      const lines = source.split("\n");
+      const starts = lineStartOffsets(source);
+      const matches = [];
+      for (let i = 0; i + wanted.length <= lines.length; i += 1) {
+        let same = true;
+        for (let j = 0; j < wanted.length; j += 1) {
+          if ((lines[i + j] ?? "").trim() !== wanted[j]) {
+            same = false;
+            break;
+          }
+        }
+        if (!same)
+          continue;
+        const last = i + wanted.length - 1;
+        matches.push({ start: starts[i] ?? 0, end: (starts[last] ?? 0) + (lines[last] ?? "").length });
+        i = last;
+      }
+      return matches;
+    }
+    function findMatches(source, oldString, wholeLine) {
+      if (wholeLine)
+        return findWholeLineMatches(source, oldString);
+      return findOccurrences(source, oldString).map((start) => ({ start, end: start + oldString.length }));
+    }
+    function lineNumberAt(source, offset) {
+      let line = 1;
+      for (let i = 0; i < offset && i < source.length; i += 1)
+        if (source[i] === "\n")
+          line += 1;
+      return line;
+    }
+    var LISTED_MATCHES = 8;
+    function describeMatches(source, matches) {
+      const lines = source.split("\n");
+      const shown = matches.slice(0, LISTED_MATCHES).map((match) => {
+        const line = lineNumberAt(source, match.start);
+        return `L${line}: ${JSON.stringify((lines[line - 1] ?? "").trimEnd())}`;
+      });
+      const more = matches.length - shown.length;
+      return shown.join(", ") + (more > 0 ? `, \u2026 and ${more} more` : "");
+    }
+    function applySourcePatch(source, oldString, newString, options) {
+      const matches = findMatches(source, oldString, options.matchWholeLine);
+      const first = matches[0];
       if (first === void 0)
         throw new Error("old_string not found in current source");
-      if (indices.length > 1 && !replaceAll) {
-        throw new Error(`old_string matches ${indices.length} locations (not unique) \u2014 add more context to old_string, or pass replace_all: true to replace every occurrence`);
+      if (matches.length > 1 && !options.replaceAll) {
+        throw new Error(`old_string matches ${matches.length} locations (not unique) \u2014 ${describeMatches(source, matches)} \u2014 add more context to old_string, pass match_whole_line: true to require whole-line matches, or pass replace_all: true to replace every occurrence`);
       }
-      if (replaceAll) {
-        return {
-          newSource: source.split(oldString).join(newString),
-          occurrences: indices.length,
-          firstMatchIndex: first
-        };
+      let replacement = newString;
+      if (options.matchWholeLine && oldString.endsWith("\n") && replacement.endsWith("\n")) {
+        replacement = replacement.slice(0, -1);
       }
-      return {
-        newSource: source.slice(0, first) + newString + source.slice(first + oldString.length),
-        occurrences: 1,
-        firstMatchIndex: first
-      };
+      const chosen = options.replaceAll ? matches : [first];
+      let out = source;
+      for (let i = chosen.length - 1; i >= 0; i -= 1) {
+        const range = chosen[i];
+        let end = range.end;
+        if (options.matchWholeLine && replacement === "" && out[end] === "\n")
+          end += 1;
+        out = out.slice(0, range.start) + replacement + out.slice(end);
+      }
+      return { newSource: out, occurrences: chosen.length, firstMatchIndex: first.start };
     }
     function buildDiffPreview(oldSource, newSource, matchIndex, oldString, newString, contextLines = 2) {
       const oldLines = oldSource.split("\n");
       const newLines = newSource.split("\n");
       const startLine = oldSource.slice(0, matchIndex).split("\n").length;
-      const oldBlock = oldString.split("\n").length;
-      const newBlock = newString.split("\n").length;
+      const lastLineOf = (text, from, length) => lineNumberAt(text, Math.max(from, from + length - 1));
+      const oldBlock = lastLineOf(oldSource, matchIndex, oldString.length) - startLine + 1;
+      const newBlock = newString === "" ? 0 : lastLineOf(newSource, matchIndex, newString.length) - startLine + 1;
       const oldStart = Math.max(1, startLine - contextLines);
       const oldEnd = Math.min(oldLines.length, startLine + oldBlock - 1 + contextLines);
       const newEnd = Math.min(newLines.length, startLine + newBlock - 1 + contextLines);
@@ -47349,38 +48087,69 @@ var require_updateSourceByPatch = __commonJS({
       const header = `@@ -${oldStart},${oldEnd - oldStart + 1} +${oldStart},${newEnd - oldStart + 1} @@`;
       return [header, ...before, ...removed, ...added, ...after].join("\n");
     }
-    async function fetchCurrentSource(client, objectType, objectName) {
+    function sourceObjectUri(objectType, objectName, functionGroup) {
       const encoded = (0, shared_1.encodeObjectName)(objectName);
-      if (objectType === "INCL") {
-        return (0, shared_1.getSource)(client, `/sap/bc/adt/programs/includes/${encoded}`);
+      switch (objectType) {
+        case "INCL":
+          return `/sap/bc/adt/programs/includes/${encoded}`;
+        case "CLAS":
+          return `/sap/bc/adt/oo/classes/${encoded}`;
+        case "INTF":
+          return `/sap/bc/adt/oo/interfaces/${encoded}`;
+        case "FUNC":
+          return `/sap/bc/adt/functions/groups/${(0, shared_1.encodeObjectName)(functionGroup)}/fmodules/${encoded}`;
+        default:
+          return `/sap/bc/adt/programs/programs/${encoded}`;
       }
-      if (objectType === "CLAS") {
-        return (0, shared_1.getSource)(client, `/sap/bc/adt/oo/classes/${encoded}`, "active");
+    }
+    async function fetchCurrentSource(client, uri) {
+      try {
+        const source = await (0, shared_1.getSource)(client, uri, "inactive");
+        if (source.trim().length > 0)
+          return { source, version: "inactive" };
+      } catch (error) {
+        const status = error instanceof adt_1.AdtError ? error.status : void 0;
+        if (status !== 404 && status !== 400)
+          throw error;
       }
-      return (0, shared_1.getSource)(client, `/sap/bc/adt/programs/programs/${encoded}`, "active");
+      return { source: await (0, shared_1.getSource)(client, uri, "active"), version: "active" };
     }
     function delegateFor(objectType) {
-      if (objectType === "CLAS")
-        return updateClass_1.updateClass;
-      if (objectType === "PROG")
-        return updateProgram_1.updateProgram;
-      return updateInclude_1.updateInclude;
+      switch (objectType) {
+        case "CLAS":
+          return updateClass_1.updateClass;
+        case "PROG":
+          return updateProgram_1.updateProgram;
+        case "INTF":
+          return updateInterface_1.updateInterface;
+        case "FUNC":
+          return updateFunctionModule_1.updateFunctionModule;
+        default:
+          return updateInclude_1.updateInclude;
+      }
     }
-    function delegateArgs(objectType, objectName, newSource, transportRequest, activate) {
+    function delegateArgs(objectType, objectName, functionGroup, newSource, transportRequest, activate) {
       const common = {
         source_code: newSource,
         transport_request: transportRequest,
         activate
       };
-      if (objectType === "CLAS")
-        return { class_name: objectName, ...common };
-      if (objectType === "PROG")
-        return { program_name: objectName, ...common };
-      return { include_name: objectName, ...common };
+      switch (objectType) {
+        case "CLAS":
+          return { class_name: objectName, ...common };
+        case "PROG":
+          return { program_name: objectName, ...common };
+        case "INTF":
+          return { interface_name: objectName, ...common };
+        case "FUNC":
+          return { function_group_name: functionGroup, function_module_name: objectName, ...common };
+        default:
+          return { include_name: objectName, ...common };
+      }
     }
     exports2.updateSourceByPatch = (0, toolDefinition_1.defineTool)({
       name: "UpdateSourceByPatch",
-      description: "Modify existing ABAP source code on SAP via a surgical string replacement (find old_string, replace with new_string) instead of resending the full source. Fetches the current source, applies the patch, then delegates the write to the same lock -> syntax-check -> update -> unlock -> (activate) flow used by UpdateClass/UpdateProgram/UpdateInterface/UpdateInclude/UpdateFunctionModule. Supported object_type values: CLAS (class), PROG (program, on-premise/legacy only), INTF (interface), INCL (include, on-premise/legacy only), FUNC (function module, requires function_group). old_string must match the current source exactly, including whitespace, and must be unique unless replace_all is true.",
+      description: "Modify existing ABAP source code on SAP via a surgical string replacement (find old_string, replace with new_string) instead of resending the full source. Fetches the current source, applies the patch, then delegates the write to the same lock -> syntax-check -> update -> unlock -> (activate) flow used by UpdateClass/UpdateProgram/UpdateInterface/UpdateInclude/UpdateFunctionModule. Supported object_type values: CLAS (class), PROG (program, on-premise/legacy only), INTF (interface), INCL (include, on-premise/legacy only), FUNC (function module, requires function_group). old_string must match the current source exactly, including whitespace, and must be unique unless replace_all is true. Reads the inactive version first and falls back to the active one (source_version_read in the response says which), so consecutive activate:false patches no longer overwrite each other. Line endings are normalized for matching (multi-line old_string works on CRLF sources) and the source's own line ending is restored on write. A non-unique old_string is rejected with the line number and text of every match; set match_whole_line to require whole-line matches. Function-group includes (L<group>TOP, L<group>F01, ...) are written through the function-group include address. An existing inactive version may contain edits you did not make (another user's abandoned draft) \u2014 source_version_read tells you which version was patched, and activate:true activates that whole version, draft included.",
       inputSchema: {
         object_type: z.enum(["CLAS", "PROG", "INTF", "INCL", "FUNC"]).describe("ABAP object kind to patch: CLAS (class), PROG (program), INTF (interface), INCL (include), FUNC (function module)."),
         object_name: z.string().describe("Name of the object to patch (e.g., ZCL_MY_CLASS)."),
@@ -47388,6 +48157,7 @@ var require_updateSourceByPatch = __commonJS({
         old_string: z.string().describe("Exact text to find in the current source (whitespace-sensitive). Must match exactly once unless replace_all is true."),
         new_string: z.string().describe("Replacement text."),
         replace_all: z.boolean().describe("Replace every occurrence of old_string instead of requiring a unique match. Default: false.").optional(),
+        match_whole_line: z.boolean().describe("Require every line of old_string to match a whole source line (leading/trailing whitespace ignored) instead of a substring match. Use it when a short anchor is also part of another statement (FORM x. inside PERFORM x.) or differs only by indentation. Default: false.").optional(),
         transport_request: z.string().describe("Transport request number, passed through to the delegated update handler.").optional(),
         activate: z.boolean().describe("Activate the object after the patched source is written. Default: false.").optional()
       },
@@ -47408,46 +48178,58 @@ var require_updateSourceByPatch = __commonJS({
         if (objectType === "FUNC" && !args.function_group) {
           return (0, shared_1.errorResult)("function_group is required when object_type is FUNC");
         }
-        const delegateName = NOT_YET_BUILT[objectType];
-        if (delegateName) {
-          return (0, shared_1.errorResult)(`object_type '${objectType}' is not available in this engine build \u2014 the write it delegates to (${delegateName}) is not implemented yet. Nothing was read from or written to SAP.`);
-        }
         const objectName = String(args.object_name).toUpperCase();
+        const functionGroup = args.function_group ? String(args.function_group).toUpperCase() : "";
         const replaceAll = args.replace_all === true;
+        const matchWholeLine = args.match_whole_line === true;
         const shouldActivate = args.activate === true;
-        logger.info(`UpdateSourceByPatch: object_type=${objectType}, object_name=${objectName}, replace_all=${replaceAll}, activate=${shouldActivate}`);
+        logger.info(`UpdateSourceByPatch: object_type=${objectType}, object_name=${objectName}, replace_all=${replaceAll}, match_whole_line=${matchWholeLine}, activate=${shouldActivate}`);
         const client = await context.getConnection();
-        const currentSource = await fetchCurrentSource(client, objectType, objectName);
+        const current = await fetchCurrentSource(client, sourceObjectUri(objectType, objectName, functionGroup));
+        const eol = detectLineEnding(current.source);
+        const source = normalizeLineEndings(current.source);
+        const oldString = normalizeLineEndings(args.old_string);
+        const newString = normalizeLineEndings(args.new_string);
         let patch;
         try {
-          patch = applySourcePatch(currentSource, args.old_string, args.new_string, replaceAll);
+          patch = applySourcePatch(source, oldString, newString, { replaceAll, matchWholeLine });
         } catch (error) {
-          return (0, shared_1.errorResult)(`${(0, shared_1.describeFailure)(error)} (object: ${objectType} ${objectName})`);
+          return (0, shared_1.errorResult)(`${(0, shared_1.describeFailure)(error)} (object: ${objectType} ${objectName}, ${current.version} version read)`);
         }
-        const diffPreview = buildDiffPreview(currentSource, patch.newSource, patch.firstMatchIndex, args.old_string, args.new_string);
+        const diffPreview = buildDiffPreview(source, patch.newSource, patch.firstMatchIndex, oldString, newString);
         const delegate = delegateFor(objectType);
-        const delegated = await delegate.handler(context, delegateArgs(objectType, objectName, patch.newSource, args.transport_request, shouldActivate));
+        const delegated = await delegate.handler(context, delegateArgs(objectType, objectName, functionGroup, restoreLineEndings(patch.newSource, eol), args.transport_request, shouldActivate));
         if (delegated.isError)
           return delegated;
         let activated = shouldActivate;
         let checkWarnings;
+        let precheck = {};
         try {
           const payload = JSON.parse(delegated.content.map((item) => item.text).join(""));
           if (typeof payload.activated === "boolean")
             activated = payload.activated;
           if (payload.check_warnings)
             checkWarnings = payload.check_warnings;
+          if (payload.precheck_overridden === true) {
+            precheck = {
+              precheck_overridden: true,
+              precheck_messages: payload.precheck_messages,
+              precheck_note: payload.precheck_note
+            };
+          }
         } catch {
         }
         return (0, shared_1.okResult)({
           success: true,
           object_type: objectType,
           object_name: objectName,
-          function_group: args.function_group ? String(args.function_group).toUpperCase() : void 0,
+          function_group: functionGroup || void 0,
+          source_version_read: current.version,
           occurrences_replaced: patch.occurrences,
           diff_preview: diffPreview,
           activated,
           check_warnings: checkWarnings,
+          ...precheck,
           message: `${objectType} ${objectName} patched (${patch.occurrences} occurrence${patch.occurrences === 1 ? "" : "s"} replaced)${activated ? " and activated" : ""}`
         });
       } catch (error) {
@@ -49236,7 +50018,7 @@ var require_getTypeInfo = __commonJS({
       };
     })();
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.getTypeInfo = void 0;
+    exports2.getTypeInfo = exports2.NEXT_CANDIDATE_STATUSES = void 0;
     exports2.hasUsableResult = hasUsableResult;
     exports2.parseTypeInfoXml = parseTypeInfoXml;
     exports2.parseStructureInfoXml = parseStructureInfoXml;
@@ -49269,6 +50051,7 @@ var require_getTypeInfo = __commonJS({
       return true;
     }
     var asString = (value) => value;
+    exports2.NEXT_CANDIDATE_STATUSES = /* @__PURE__ */ new Set([404, 405, 406, 415, 422]);
     function parseTypeInfoXml(xml) {
       const result = parser.parse(xml);
       const wb = result["blue:wbobj"];
@@ -49319,7 +50102,8 @@ var require_getTypeInfo = __commonJS({
     }
     exports2.getTypeInfo = (0, toolDefinition_1.defineTool)({
       name: "GetTypeInfo",
-      description: "[read-only] Retrieve ABAP type information for domains (DOMA), data elements (DTEL), table types, and structures. Returns field definitions, value ranges, fixed values, and DDIC metadata.",
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D152.
+      description: "[read-only] Retrieve ABAP type information for domains (DOMA), data elements (DTEL), table types, and structures. Returns field definitions, value ranges, fixed values, and DDIC metadata. A name that is not a domain can answer HTTP 422 (not 404) on the first candidate; 405/406/415/422 now also move on to the next candidate and to the structure fallback, so a structure name reaches the structures lookup (400 does not \u2014 it stays a hard error). This note corrects the recorded include_structure_fallback text: the fallback runs after those statuses too, not only after 404/empty. When every candidate fails and any of them answered something other than 404, the error lists which candidate answered which status.",
       inputSchema: {
         type_name: z.string().describe("Name of the ABAP type"),
         include_structure_fallback: z.boolean().optional().describe("When true (default), tries DDIC structure lookup only if type lookup returns 404/empty.")
@@ -49341,14 +50125,18 @@ var require_getTypeInfo = __commonJS({
         const typeName = args.type_name;
         const encoded = encodeURIComponent(typeName);
         const uri = encodeURIComponent(`/sap/bc/adt/ddic/domains/${typeName.toLowerCase()}`);
-        const tryLookup = async (path, parse) => {
+        const swallowed = [];
+        const tryLookup = async (label, path, parse) => {
           let body;
           try {
             const response = await client.request({ method: "GET", path, timeout: "default" });
             body = response.body;
           } catch (error) {
-            if (error instanceof adt_1.AdtError && error.status === 404)
+            if (error instanceof adt_1.AdtError && exports2.NEXT_CANDIDATE_STATUSES.has(error.status ?? 0)) {
+              context.logger.debug(`Candidate ${path} answered HTTP ${error.status} \u2014 trying the next one`);
+              swallowed.push({ label, status: error.status ?? 0 });
               return null;
+            }
             throw error;
           }
           if (!hasUsableResult(asString(body)))
@@ -49370,17 +50158,19 @@ var require_getTypeInfo = __commonJS({
         ];
         for (const lookup of lookups) {
           context.logger.debug(`Trying ${lookup.label} lookup for ${typeName}`);
-          const payload = await tryLookup(lookup.path, lookup.parse);
+          const payload = await tryLookup(lookup.label, lookup.path, lookup.parse);
           if (payload !== null)
             return (0, results_1.ok)(JSON.stringify(payload));
         }
         if (includeStructureFallback) {
           context.logger.debug(`Type lookups returned 404/empty for ${typeName}, trying structure fallback`);
-          const payload = await tryLookup(`/sap/bc/adt/ddic/structures/${encoded}`, parseStructureInfoXml);
+          const payload = await tryLookup("structure", `/sap/bc/adt/ddic/structures/${encoded}`, parseStructureInfoXml);
           if (payload !== null)
             return (0, results_1.ok)(JSON.stringify(payload));
         }
-        return (0, results_1.failure)(`Type ${typeName} was not found as domain, data element, table type, or structure.`);
+        const notJustMissing = swallowed.some((entry) => entry.status !== 404);
+        const answered = notJustMissing ? ` Candidates answered: ${swallowed.map((entry) => `${entry.label} HTTP ${entry.status}`).join(", ")}.` : "";
+        return (0, results_1.failure)(`Type ${typeName} was not found as domain, data element, table type, or structure.${answered}`);
       } catch (error) {
         context.logger.error(`Failed to resolve type info for ${args.type_name}`);
         return (0, results_1.failure)(`ADT error: ${String(error)}`);
@@ -49599,42 +50389,6 @@ var require_getWhereUsed = __commonJS({
         return (0, results_1.failure)(`ADT error: ${String(error)}`);
       }
     });
-  }
-});
-
-// dist/src/tools/read/internal/nodeStructure.js
-var require_nodeStructure = __commonJS({
-  "dist/src/tools/read/internal/nodeStructure.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.ROOT_NODE_KEY = exports2.NODE_STRUCTURE_CONTENT_TYPE = exports2.NODE_STRUCTURE_ACCEPT = exports2.NODE_STRUCTURE_PATH = void 0;
-    exports2.nodeStructureBody = nodeStructureBody;
-    exports2.fetchNodeStructure = fetchNodeStructure;
-    exports2.NODE_STRUCTURE_PATH = "/sap/bc/adt/repository/nodestructure";
-    exports2.NODE_STRUCTURE_ACCEPT = "application/vnd.sap.as+xml;dataname=com.sap.adt.RepositoryObjectTreeContent, application/vnd.sap.adt.repository.nodestructure.v1+xml, application/xml";
-    exports2.NODE_STRUCTURE_CONTENT_TYPE = "application/vnd.sap.as+xml; charset=UTF-8; dataname=null";
-    exports2.ROOT_NODE_KEY = "000000";
-    function nodeStructureBody(nodeKey) {
-      return `<?xml version="1.0" encoding="UTF-8"?><asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0"><asx:values><DATA><TV_NODEKEY>${nodeKey}</TV_NODEKEY></DATA></asx:values></asx:abap>`;
-    }
-    async function fetchNodeStructure(client, { parentType, parentName, nodeId, withShortDescriptions = true }) {
-      return client.request({
-        method: "POST",
-        path: exports2.NODE_STRUCTURE_PATH,
-        params: {
-          parent_type: parentType,
-          parent_name: parentName,
-          // 기술명 자리에도 이름이 들어간다 — 벤더 실측(nodeStructure.js:34).
-          parent_tech_name: parentName,
-          withShortDescriptions,
-          ...nodeId ? { node_id: nodeId } : {}
-        },
-        body: nodeStructureBody(nodeId || exports2.ROOT_NODE_KEY),
-        accept: exports2.NODE_STRUCTURE_ACCEPT,
-        contentType: exports2.NODE_STRUCTURE_CONTENT_TYPE,
-        timeout: "default"
-      });
-    }
   }
 });
 
@@ -51685,7 +52439,8 @@ var require_reloadProfile = __commonJS({
     var results_1 = require_results2();
     exports2.reloadProfile = (0, toolDefinition_1.defineTool)({
       name: "ReloadProfile",
-      description: "[system] Reload the active SAP profile from .sapkit/active-profile.txt and reset the cached connection. Called by the sapkit plugin after switching profiles. Returns the newly active alias, host, tier, and readonly status. If the server was started without connection parameters (inspection-only), this CANNOT restore the connection: it returns restartRequired=true and the MCP server must be restarted.",
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D153.
+      description: "[system] Reload the active SAP profile from .sapkit/active-profile.txt and reset the cached connection. Called by the sapkit plugin after switching profiles. Returns the newly active alias, host, tier, and readonly status. If the server was started without connection parameters (inspection-only), this CANNOT restore the connection: it returns restartRequired=true and the MCP server must be restarted. If the reloaded profile is on a different deployment axis (onprem/cloud/legacy) than the one this server started on, the server re-registers its tool list for the new axis and sends notifications/tools/list_changed; a client that does not refresh tools on that notification still needs a reconnect (/mcp), which the note says.",
       inputSchema: {},
       available_in: ["onprem", "cloud", "legacy"],
       // 구 경로 `handlers/system/readonly/` — 채록본의 4개 노출 조건 전부에 뜬다.
@@ -51708,6 +52463,10 @@ var require_reloadProfile = __commonJS({
         const host = envVars.SAP_URL ?? "";
         const client = envVars.SAP_CLIENT ?? "";
         const description = envVars.SAP_DESCRIPTION ?? "";
+        const republished = outcome.toolListRepublished;
+        const connectionLost = outcome.connectionDropped && outcome.startup.profile.connection === null;
+        const listStale = outcome.exposureStale && republished === null;
+        const listOf = (names) => names.length === 0 ? "none" : names.join(", ");
         context.logger.info(`[ReloadProfile] alias=${profile.alias ?? "(legacy)"} tier=${profile.tier} readonly=${profile.tier !== "DEV"} host=${host} client=${client}`);
         return (0, results_1.okJson)({
           // 구와 같은 뜻 — "재적재가 실제로 수행됐다"이지 "쓸 수 있는 접속이 섰다"가
@@ -51726,9 +52485,13 @@ var require_reloadProfile = __commonJS({
           sourcePath: profile.envPath,
           // 재적재는 기동만이 받을 수 있는 destination 토큰을 되찾지 못한다 —
           // --mcp 기동에서 접속이 있다가 재적재 후 없어졌다면 재기동만이 답이다
-          // (D-114 · 판M2-a 리뷰 권고 1). exposureStale과는 별개의 사유이므로 OR.
-          restartRequired: outcome.exposureStale || outcome.connectionDropped && outcome.startup.profile.connection === null,
-          note: outcome.exposureStale ? `The reloaded profile runs on the ${outcome.after.systemType} deployment axis, but this server started on ${outcome.bootSystemType} and its published tool list was fixed at startup, so the list no longer matches this system. Tier, blocklist and the SAP connection are already using the new profile \u2014 only the tool list is stale. Restart (reconnect) the MCP server to publish the matching set.` : outcome.connectionDropped && outcome.startup.profile.connection === null ? "The connection this server held was dropped by the reload and the reloaded profile could not stand a new one \u2014 a token acquired at startup does not come back on reload. Restart (reconnect) the MCP server to get it again." : void 0,
+          // (D-114 · 판M2-a 리뷰 권고 1). 배포 축 변경은 D153부터 코어가 목록을 다시
+          // 발행하므로 재기동 사유가 아니다 — 코어가 재발행을 **못 했을 때만**(listStale)
+          // 그대로 남는다. 두 사유는 별개이므로 OR.
+          restartRequired: listStale || connectionLost,
+          // D153 — 무엇이 더해지고 빠졌는가. 재발행이 없었으면 키 자체가 없다.
+          tool_list_republished: republished ? { added: [...republished.added], removed: [...republished.removed] } : void 0,
+          note: republished ? `The reloaded profile runs on the ${outcome.after.systemType} deployment axis, but this server started on ${outcome.bootSystemType}; the tool list has been re-registered for ${outcome.after.systemType} (added ${republished.added.length}: ${listOf(republished.added)} \xB7 removed ${republished.removed.length}: ${listOf(republished.removed)}) and notifications/tools/list_changed was sent. If your client does not refresh its tool list on that notification (the newly added tools do not show up), reconnect the MCP server (/mcp) to read the new set. Tier, blocklist and the SAP connection are already using the new profile.` : listStale ? `The reloaded profile runs on the ${outcome.after.systemType} deployment axis, but this server started on ${outcome.bootSystemType} and its published tool list was fixed at startup, so the list no longer matches this system. Tier, blocklist and the SAP connection are already using the new profile \u2014 only the tool list is stale. Restart (reconnect) the MCP server to publish the matching set.` : connectionLost ? "The connection this server held was dropped by the reload and the reloaded profile could not stand a new one \u2014 a token acquired at startup does not come back on reload. Restart (reconnect) the MCP server to get it again." : void 0,
           // 왜 이 상태인지. 프로파일을 못 찾았거나 접속 정보가 모자라면 여기에
           // 이유가 들어온다 — 구는 그것을 예외로 알렸고 신의 계층은 던지지 않는다.
           diagnostics: [...profile.diagnostics]
@@ -51850,7 +52613,8 @@ var require_getIncludesList = __commonJS({
     }
     exports2.getIncludesList = (0, toolDefinition_1.defineTool)({
       name: "GetIncludesList",
-      description: "[read-only] Recursively discover and list ALL include files within an ABAP program or include.",
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json` · D-147 이정표).
+      description: '[read-only] Recursively discover and list ALL include files within an ABAP program or include. For a class (CLAS/OC) this answers "No includes": class includes (local types, implementations, definitions, macros, tests) are not PROG/I objects. Read them with GetLocalTypes, GetLocalDefinitions, GetLocalMacros or GetLocalTestClass. Those four are exposed on the development tool surface (toolSurface: development), not on readonly.',
       inputSchema: {
         object_name: z.string().describe("Name of the ABAP program or include"),
         object_type: z.enum(["PROG/P", "PROG/I", "FUGR", "CLAS/OC"]).describe("[read-only] ADT object type (e.g. PROG/P, PROG/I, FUGR, CLAS/OC)"),
@@ -52339,13 +53103,28 @@ var require_classIncludeWrite = __commonJS({
   "dist/src/tools/write/classIncludeWrite.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.isMissingTestClassInclude = isMissingTestClassInclude;
+    exports2.missingTestClassIncludeMessage = missingTestClassIncludeMessage;
     exports2.classCheckUri = classCheckUri;
     exports2.buildIncludeCheckBody = buildIncludeCheckBody;
     exports2.checkClassInclude = checkClassInclude;
     exports2.putClassInclude = putClassInclude;
     exports2.writeClassInclude = writeClassInclude;
+    var adt_1 = require_adt();
     var shared_1 = require_shared();
     var shared_2 = require_shared();
+    var MISSING_TEST_INCLUDE = /CCAU[^\n]*?(?:no inactive version|어떠한\s*비활성\s*버전도\s*없습니다|keine inaktive Version)|(?:no inactive version|keine inaktive Version)[^\n]*CCAU/i;
+    function isMissingTestClassInclude(error) {
+      if (!(error instanceof adt_1.AdtError))
+        return false;
+      const text = `${error.adtMessage ?? ""}
+${error.rawBody ?? ""}
+${error.message}`;
+      return MISSING_TEST_INCLUDE.test(text);
+    }
+    function missingTestClassIncludeMessage(className, error) {
+      return `This SAP error usually means class ${className} has no test-class include (\u2026CCAU) \u2014 this tool can only modify an existing one. Create it once by hand: open the class in ADT, [Test Classes] tab (SE24: Goto \u2192 Class-local types \u2192 Test classes), save and activate, then retry. Original SAP error: ${(0, shared_1.describeFailure)(error)}`;
+    }
     var ARTIFACT_CONTENT_TYPE = "text/plain; charset=utf-8";
     function classCheckUri(className) {
       return `/sap/bc/adt/oo/classes/${(0, shared_1.encodeObjectName)(className.toLowerCase())}`;
@@ -52449,6 +53228,8 @@ var require_updateLocalTestClass = __commonJS({
     function failureMessage(error, className) {
       if (error instanceof shared_1.SourceCheckFailure)
         return error.message;
+      if ((0, classIncludeWrite_2.isMissingTestClassInclude)(error))
+        return (0, classIncludeWrite_2.missingTestClassIncludeMessage)(className, error);
       const status = error instanceof adt_1.AdtError ? error.status : void 0;
       if (status === 404)
         return `Local test class for ${className} not found.`;
@@ -53239,7 +54020,8 @@ var require_readClass = __commonJS({
     }
     exports2.readClass = (0, toolDefinition_1.defineTool)({
       name: "ReadClass",
-      description: "[read-only] Read ABAP class source code and metadata (package, responsible, description, etc.).",
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json` · D-147 이정표).
+      description: "[read-only] Read ABAP class source code and metadata (package, responsible, description, etc.). Returns source/main only \u2014 local types and the implementations include (CCIMP, where behavior-pool handler classes and other local classes live) are read with GetLocalTypes. GetLocalTypes is exposed on the development tool surface (toolSurface: development), not on readonly.",
       inputSchema: {
         class_name: z.string().describe("Class name (e.g., ZCL_MY_CLASS)."),
         version: z.enum(["active", "inactive"]).default("active").describe('Version to read: "active" (default) or "inactive".')
@@ -54417,82 +55199,6 @@ var require_readFunctionModule = __commonJS({
   }
 });
 
-// dist/src/tools/write/functions.js
-var require_functions = __commonJS({
-  "dist/src/tools/write/functions.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.FUNCTION_VALIDATION_PATH = exports2.ACCEPT_FUNCTION_MODULE_VALIDATION = exports2.CT_FUNCTION_MODULE = exports2.CT_FUNCTION_GROUP_LEGACY = exports2.CT_FUNCTION_GROUP = void 0;
-    exports2.functionErrorResult = functionErrorResult;
-    exports2.functionGroupUri = functionGroupUri;
-    exports2.functionModuleUri = functionModuleUri;
-    exports2.ownerAttributes = ownerAttributes;
-    exports2.ownerAttributeXml = ownerAttributeXml;
-    exports2.isLegacySystem = isLegacySystem;
-    exports2.parseFunctionValidation = parseFunctionValidation;
-    exports2.isKerberosNoise = isKerberosNoise;
-    var fast_xml_parser_1 = require_fxp();
-    var shared_1 = require_shared();
-    exports2.CT_FUNCTION_GROUP = "application/vnd.sap.adt.functions.groups.v3+xml";
-    exports2.CT_FUNCTION_GROUP_LEGACY = "application/vnd.sap.adt.functions.groups+xml";
-    exports2.CT_FUNCTION_MODULE = "application/vnd.sap.adt.functions.fmodules+xml";
-    exports2.ACCEPT_FUNCTION_MODULE_VALIDATION = "application/vnd.sap.as+xml;charset=UTF-8;dataname=com.sap.adt.StatusMessage";
-    exports2.FUNCTION_VALIDATION_PATH = "/sap/bc/adt/functions/validation";
-    function functionErrorResult(message) {
-      return (0, shared_1.errorResult)(`Error: ${message}`);
-    }
-    function functionGroupUri(name) {
-      return `/sap/bc/adt/functions/groups/${(0, shared_1.encodeObjectName)(name).toLowerCase()}`;
-    }
-    function functionModuleUri(groupName, moduleName) {
-      return `${functionGroupUri(groupName)}/fmodules/${(0, shared_1.encodeObjectName)(moduleName).toLowerCase()}`;
-    }
-    function ownerAttributes(context) {
-      const masterSystem = context.env.SAP_MASTER_SYSTEM || void 0;
-      const raw = context.env.SAP_RESPONSIBLE || context.env.SAP_USERNAME;
-      const responsible = raw && raw.trim() !== "" ? raw : void 0;
-      return { masterSystem, responsible };
-    }
-    function ownerAttributeXml(owner) {
-      return (owner.masterSystem ? ` adtcore:masterSystem="${owner.masterSystem}"` : "") + (owner.responsible ? ` adtcore:responsible="${owner.responsible}"` : "");
-    }
-    function isLegacySystem(context) {
-      if (context.profile.systemType === "legacy")
-        return true;
-      if (context.profile.sapVersion?.toUpperCase() === "ECC")
-        return true;
-      const release = Number.parseInt(context.env.ABAP_RELEASE ?? "", 10);
-      return Number.isFinite(release) && release < 750;
-    }
-    var validationParser = new fast_xml_parser_1.XMLParser({
-      ignoreAttributes: false,
-      attributeNamePrefix: "@_",
-      parseTagValue: false,
-      trimValues: true
-    });
-    function parseFunctionValidation(body) {
-      let document;
-      try {
-        document = validationParser.parse(body ?? "");
-      } catch {
-        return { valid: true };
-      }
-      const values = document["asx:abap"]?.["asx:values"];
-      const data = values?.["DATA"];
-      if (!data)
-        return { valid: true };
-      if (data["CHECK_RESULT"] === "X")
-        return { valid: true };
-      const severity = typeof data["SEVERITY"] === "string" ? data["SEVERITY"] : void 0;
-      const shortText = typeof data["SHORT_TEXT"] === "string" ? data["SHORT_TEXT"] : void 0;
-      return { valid: severity !== "ERROR", message: shortText };
-    }
-    function isKerberosNoise(text) {
-      return text.toLowerCase().includes("kerberos library not loaded");
-    }
-  }
-});
-
 // dist/src/tools/write/createFunctionModule.js
 var require_createFunctionModule = __commonJS({
   "dist/src/tools/write/createFunctionModule.js"(exports2) {
@@ -54620,147 +55326,6 @@ var require_createFunctionModule = __commonJS({
           return (0, functions_1.functionErrorResult)("Bad request. Check if function module name is valid and function group exists.");
         }
         return (0, functions_1.functionErrorResult)(`Failed to create function module ${functionModuleName}: ${detail}`);
-      }
-    });
-  }
-});
-
-// dist/src/tools/write/updateFunctionModule.js
-var require_updateFunctionModule = __commonJS({
-  "dist/src/tools/write/updateFunctionModule.js"(exports2) {
-    "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
-      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-        desc = { enumerable: true, get: function() {
-          return m[k];
-        } };
-      }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
-    }));
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
-      Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
-      o["default"] = v;
-    });
-    var __importStar = exports2 && exports2.__importStar || /* @__PURE__ */ (function() {
-      var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function(o2) {
-          var ar = [];
-          for (var k in o2) if (Object.prototype.hasOwnProperty.call(o2, k)) ar[ar.length] = k;
-          return ar;
-        };
-        return ownKeys(o);
-      };
-      return function(mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) {
-          for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        }
-        __setModuleDefault(result, mod);
-        return result;
-      };
-    })();
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.updateFunctionModule = void 0;
-    var z = __importStar(require_zod());
-    var toolDefinition_1 = require_toolDefinition();
-    var functions_1 = require_functions();
-    var shared_1 = require_shared();
-    var adt_1 = require_adt();
-    var MAX_NAME_LENGTH = 30;
-    async function checkStoredWithoutAccept(client, objectUri) {
-      const response = await client.request({
-        method: "POST",
-        path: "/sap/bc/adt/checkruns",
-        params: { reporters: "abapCheckRun" },
-        body: (0, shared_1.buildCheckObjectList)(objectUri, "inactive"),
-        contentType: shared_1.CT_CHECK_OBJECTS,
-        timeout: "default"
-      });
-      return (0, shared_1.parseCheckRun)(response.body);
-    }
-    function statusOf(error) {
-      return error instanceof adt_1.AdtError ? error.status : void 0;
-    }
-    exports2.updateFunctionModule = (0, toolDefinition_1.defineTool)({
-      name: "UpdateFunctionModule",
-      description: "Update source code of an existing ABAP function module. Locks the function module, uploads new source code, and unlocks. Optionally activates after update. Use this to modify existing function modules without re-creating metadata. NOTE: the write persists (as the inactive version) even when the post-write syntax check fails, and those check errors can originate from pre-existing defects in sibling FMs of the same function group \u2014 re-read the FM before assuming your write was lost. For repairs spanning many FMs prefer the abapGit path.",
-      inputSchema: {
-        function_group_name: z.string().describe("Function group name containing the function module (e.g., ZOK_FG_MCP01)."),
-        function_module_name: z.string().describe("Function module name (e.g., Z_TEST_FM_MCP01). Function module must already exist."),
-        source_code: z.string().describe("Complete ABAP function module source code. Must include FUNCTION statement with parameters and ENDFUNCTION. Example:\n\nFUNCTION Z_TEST_FM\n  IMPORTING\n    VALUE(iv_input) TYPE string\n  EXPORTING\n    VALUE(ev_output) TYPE string.\n  \n  ev_output = iv_input.\nENDFUNCTION."),
-        transport_request: z.string().describe('Transport request number (e.g., E19K905635). Required for transportable function modules. For local objects ($TMP package) this can be omitted \u2014 the handler defaults to "local".').optional(),
-        activate: z.boolean().describe("Activate function module after source update. Default: false. Set to true to activate immediately.").optional()
-      },
-      available_in: ["onprem", "cloud", "legacy"],
-      sets: ["high"],
-      kind: "mutation",
-      targetNames: ["function_module_name", "function_group_name"]
-    }, async (context, args) => {
-      const { logger } = context;
-      if (!args.function_module_name || args.function_module_name.length > MAX_NAME_LENGTH) {
-        return (0, functions_1.functionErrorResult)("Function module name is required and must not exceed 30 characters");
-      }
-      if (!args.function_group_name || args.function_group_name.length > MAX_NAME_LENGTH) {
-        return (0, functions_1.functionErrorResult)("Function group name is required and must not exceed 30 characters");
-      }
-      if (!args.source_code) {
-        return (0, functions_1.functionErrorResult)("Source code is required");
-      }
-      const functionGroupName = args.function_group_name.toUpperCase();
-      const functionModuleName = args.function_module_name.toUpperCase();
-      const uri = (0, functions_1.functionModuleUri)(functionGroupName, functionModuleName);
-      const shouldActivate = args.activate === true;
-      const effectiveTransport = args.transport_request ?? "local";
-      const sourceCode = args.source_code;
-      logger.info(`Starting function module source update: ${functionModuleName} in ${functionGroupName}`);
-      try {
-        const client = await context.getConnection();
-        let checkWarnings = [];
-        await client.withLock(uri, async (lock) => {
-          await (0, shared_1.putSource)(client, uri, lock.handle, sourceCode, effectiveTransport);
-          const check = await checkStoredWithoutAccept(client, uri);
-          (0, shared_1.assertNoCheckErrors)(check, "Function module", functionModuleName);
-          checkWarnings = [...check.warnings];
-        });
-        logger.info(`Function module source code updated: ${functionModuleName}`);
-        if (shouldActivate) {
-          const body = await (0, shared_1.activateOne)(client, uri, functionModuleName, {
-            contentType: shared_1.CT_ACTIVATION
-          });
-          const messages = (0, shared_1.parseActivationMessages)(body);
-          const failures = (0, shared_1.activationErrors)(messages);
-          if (failures.length > 0) {
-            throw new shared_1.SourceCheckFailure(`Activation failed: function module ${functionModuleName} was not activated (${failures.length} error${failures.length === 1 ? "" : "s"}): ${failures.map((entry) => `${entry.line ? `[L${entry.line}] ` : ""}${entry.text}`).join(" | ")}. The source update is on SAP as an inactive version; the active version is unchanged.`, failures);
-          }
-          logger.info(`Function module activated: ${functionModuleName}`);
-        }
-        return (0, shared_1.okResult)({
-          success: true,
-          function_module_name: functionModuleName,
-          function_group_name: functionGroupName,
-          transport_request: effectiveTransport,
-          activated: shouldActivate,
-          message: `Function module ${functionModuleName} source code updated successfully${shouldActivate ? " and activated" : ""}`,
-          // 응답 키는 구 그대로다 — `activation_warnings`를 더하지 않는다.
-          check_warnings: checkWarnings.length > 0 ? checkWarnings : void 0
-        });
-      } catch (error) {
-        if (error instanceof shared_1.SourceCheckFailure) {
-          logger.error(`Error updating function module ${functionModuleName}: ${error.message}`);
-          return (0, functions_1.functionErrorResult)(error.message);
-        }
-        const detail = (0, shared_1.describeFailure)(error);
-        logger.error(`Error updating function module source ${functionModuleName}: ${detail}`);
-        const status = statusOf(error);
-        const reason = status === 404 ? `Function module ${functionModuleName} not found in group ${functionGroupName}.` : status === 423 ? `Function module ${functionModuleName} is locked by another user or lock handle is invalid.` : status === 400 && !args.transport_request ? `Update failed for ${functionModuleName}. The object may be assigned to a transport request. Pass transport_request explicitly.` : detail;
-        return (0, functions_1.functionErrorResult)(`Failed to update function module source: ${reason}`);
       }
     });
   }
@@ -57983,6 +58548,7 @@ var require_serviceBinding = __commonJS({
     exports2.extractAvailableBindingTypes = extractAvailableBindingTypes;
     exports2.bindingTypeAvailabilityKey = bindingTypeAvailabilityKey;
     exports2.buildTransportCheckXml = buildTransportCheckXml;
+    exports2.serviceBindingCategoryCode = serviceBindingCategoryCode;
     exports2.buildServiceBindingCreateXml = buildServiceBindingCreateXml;
     exports2.fetchSystemInformation = fetchSystemInformation;
     var fast_xml_parser_1 = require_fxp();
@@ -58077,18 +58643,21 @@ var require_serviceBinding = __commonJS({
       }
       return available;
     }
-    function bindingTypeAvailabilityKey(bindingType, bindingVersion) {
+    function bindingTypeAvailabilityKey(bindingType, bindingVersion, categoryCode) {
       const name = bindingType.toUpperCase();
       const version = bindingVersion.toUpperCase();
       if (name === "ODATA" && version === "V4")
-        return "ODATA:1:ODATA V4";
+        return `ODATA:${categoryCode}:ODATA V4`;
       if (name === "ODATA" && version === "V2")
-        return "ODATA:1:ODATA V2";
-      return `${name}:1:${name}`;
+        return `ODATA:${categoryCode}:ODATA V2`;
+      return `${name}:${categoryCode}:${name}`;
     }
     function buildTransportCheckXml(args) {
       const description = (args.description ?? "").replace(/"/g, "&quot;");
       return `<?xml version="1.0" encoding="UTF-8"?><asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0"><asx:values><DATA><PGMID>R3TR</PGMID><OBJECT>SRVB</OBJECT><OBJECTNAME>${args.objectName.toUpperCase()}</OBJECTNAME><OPERATION>${args.operation ?? "I"}</OPERATION><DEVCLASS>${args.packageName.toUpperCase()}</DEVCLASS><CTEXT>${description}</CTEXT></DATA></asx:values></asx:abap>`;
+    }
+    function serviceBindingCategoryCode(category) {
+      return category === "UI" ? "0" : "1";
     }
     function buildServiceBindingCreateXml(args) {
       const escapedDescription = args.description.replace(/"/g, "&quot;");
@@ -58101,7 +58670,7 @@ var require_serviceBinding = __commonJS({
       <srvb:serviceDefinition adtcore:name="${args.serviceDefinitionName.toUpperCase()}"/>
     </srvb:content>
   </srvb:services>
-  <srvb:binding srvb:category="1" srvb:type="${args.bindingType}" srvb:version="${args.bindingVersion}">
+  <srvb:binding srvb:category="${args.category ?? "1"}" srvb:type="${args.bindingType}" srvb:version="${args.bindingVersion}">
     <srvb:implementation adtcore:name=""/>
   </srvb:binding>
 </srvb:serviceBinding>`;
@@ -58183,7 +58752,8 @@ var require_createServiceBinding = __commonJS({
     }
     exports2.createServiceBinding = (0, toolDefinition_1.defineTool)({
       name: "CreateServiceBinding",
-      description: "Create ABAP service binding via ADT Business Services endpoint. XML is generated from high-level parameters.",
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D147.
+      description: `Create ABAP service binding via ADT Business Services endpoint. XML is generated from high-level parameters. Defaults to the Web API contract (srvb:category="1"); pass binding_category: "UI" to create a UI contract binding (srvb:category="0") for Fiori Elements / SAP Fiori apps \u2014 the two contracts expose different service surfaces and a binding's contract cannot be changed afterwards. The response states the contract that was created (binding_category, srvb_category).`,
       inputSchema: {
         service_binding_name: z.string().describe("Service binding name."),
         service_definition_name: z.string().describe("Referenced service definition name."),
@@ -58195,7 +58765,9 @@ var require_createServiceBinding = __commonJS({
         service_version: z.string().describe("Published service version. Default: 0001.").optional(),
         transport_request: z.string().describe("Optional transport request for transport checks.").optional(),
         activate: z.boolean().describe("Activate service binding after create. Default: true.").optional(),
-        response_format: z.enum(["xml", "json", "plain"]).default("xml")
+        response_format: z.enum(["xml", "json", "plain"]).default("xml"),
+        // 덧인자(D147) — 채록본에 없던 선택 인자. 기본값이 구 동작(Web API)이다.
+        binding_category: z.enum(["UI", "WEB_API"]).default("WEB_API").describe('Service contract: "WEB_API" (default, srvb:category="1") or "UI" (srvb:category="0", required for Fiori Elements / SAP Fiori UI consumption).')
       },
       available_in: ["onprem", "cloud"],
       // 구 경로는 `handlers/service_binding/high/`이고, 채록본 `exposures`에서
@@ -58213,6 +58785,8 @@ var require_createServiceBinding = __commonJS({
         if (!args.package_name)
           throw new Error("package_name is required");
         const name = args.service_binding_name.trim().toUpperCase();
+        const bindingCategory = args.binding_category === "UI" ? "UI" : "WEB_API";
+        const categoryCode = (0, serviceBinding_1.serviceBindingCategoryCode)(bindingCategory);
         const serviceDefinitionName = args.service_definition_name.trim().toUpperCase();
         const packageName = args.package_name.trim().toUpperCase();
         const responseFormat = args.response_format ?? "xml";
@@ -58232,8 +58806,8 @@ var require_createServiceBinding = __commonJS({
           timeout: "default"
         });
         const available = (0, serviceBinding_1.extractAvailableBindingTypes)(types.body);
-        if (!available.has((0, serviceBinding_1.bindingTypeAvailabilityKey)(bindingType, bindingVersion))) {
-          throw new Error(`Binding type ${bindingType}/${bindingVersion} is not available on current ADT system`);
+        if (!available.has((0, serviceBinding_1.bindingTypeAvailabilityKey)(bindingType, bindingVersion, categoryCode))) {
+          throw new Error(`Binding type ${bindingType}/${bindingVersion} is not available on current ADT system` + (bindingCategory === "UI" ? " for the UI contract (srvb:category 0)" : ""));
         }
         await client.request({
           method: "POST",
@@ -58264,7 +58838,8 @@ var require_createServiceBinding = __commonJS({
             bindingVersion,
             masterLanguage: systemInfo?.language ?? "EN",
             masterSystem: systemInfo?.systemID,
-            responsible: systemInfo?.userName
+            responsible: systemInfo?.userName,
+            category: categoryCode
           }),
           contentType: serviceBinding_1.CT_SERVICE_BINDING_V2,
           accept: serviceBindingRead_1.ACCEPT_SERVICE_BINDING,
@@ -58330,6 +58905,9 @@ var require_createServiceBinding = __commonJS({
           package_name: packageName,
           // 구는 **인자 원문**(없으면 기본값 문자열)을 싣는다.
           binding_type: args.binding_type ?? "ODataV4",
+          // D147 — 무엇을 만들었는지 응답이 말한다. 이름으로는 계약을 알 수 없다.
+          binding_category: bindingCategory,
+          srvb_category: categoryCode,
           service_binding_version: bindingVersion,
           service_name: serviceName,
           service_version: serviceVersion,
@@ -58404,7 +58982,8 @@ var require_updateServiceBinding = __commonJS({
     var serviceBinding_1 = require_serviceBinding();
     exports2.updateServiceBinding = (0, toolDefinition_1.defineTool)({
       name: "UpdateServiceBinding",
-      description: "Update publication state for ABAP service binding via AdtServiceBinding workflow.",
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D148.
+      description: "Update publication state for ABAP service binding via AdtServiceBinding workflow. When the binding XML carries no srvb:allowedAction attribute (some systems never send it), the publish/unpublish request is sent anyway and the server's verdict is returned as-is (allowed_action_known: false in the response); only an attribute that is present and contradicts the request is refused locally.",
       inputSchema: {
         service_binding_name: z.string().describe("Service binding name to update."),
         desired_publication_state: z.enum(["published", "unpublished", "unchanged"]).describe("Target publication state."),
@@ -58445,17 +59024,18 @@ var require_updateServiceBinding = __commonJS({
         });
         const current = (0, serviceBinding_1.parseServiceBindingState)(readResponse.body);
         logger.info(`ServiceBinding update: ${name} -> ${desired} (published=${current.published}, allowedAction=${current.allowedAction ?? "UNKNOWN"})`);
+        const allowedActionKnown = current.allowedAction !== void 0;
         let response = readResponse;
         if (desired === "published") {
           if (!current.published) {
-            if (current.allowedAction !== "PUBLISH") {
-              throw new Error(`Invalid state transition: cannot publish service binding ${name}. allowedAction=${current.allowedAction ?? "UNKNOWN"}`);
+            if (allowedActionKnown && current.allowedAction !== "PUBLISH") {
+              throw new Error(`Invalid state transition: cannot publish service binding ${name}. allowedAction=${current.allowedAction}`);
             }
             response = await (0, serviceBinding_1.publicationJob)(client, "publish", serviceType, name, serviceName, serviceVersion);
           }
         } else if (desired === "unpublished") {
-          if (current.allowedAction !== "UNPUBLISH") {
-            throw new Error(`Invalid state transition: cannot unpublish service binding ${name}. allowedAction=${current.allowedAction ?? "UNKNOWN"}`);
+          if (allowedActionKnown && current.allowedAction !== "UNPUBLISH") {
+            throw new Error(`Invalid state transition: cannot unpublish service binding ${name}. allowedAction=${current.allowedAction}`);
           }
           response = await (0, serviceBinding_1.publicationJob)(client, "unpublish", serviceType, name, serviceName, serviceVersion);
         }
@@ -58467,6 +59047,9 @@ var require_updateServiceBinding = __commonJS({
           service_type: args.service_type,
           service_name: serviceName,
           service_version: args.service_version || null,
+          // D148 — 서버가 허용 동작을 말했는지, 말했다면 무엇이었는지.
+          allowed_action_known: allowedActionKnown,
+          allowed_action: current.allowedAction ?? null,
           response_format: responseFormat,
           status: response.status,
           payload: (0, serviceBindingRead_1.parseServiceBindingPayload)(response.body, responseFormat)
@@ -59280,7 +59863,7 @@ var require_createTransport = __commonJS({
     var shared_1 = require_shared();
     var ROOT_PATH = "/sap/bc/adt/cts/transportrequests";
     var ACCEPT_TRANSPORT = "application/vnd.sap.adt.transportorganizer.v1+xml";
-    var CONTENT_TYPE = "text/plain";
+    var CONTENT_TYPE = "text/plain; charset=utf-8";
     var parser = new fast_xml_parser_1.XMLParser({
       ignoreAttributes: false,
       attributeNamePrefix: "",
@@ -59289,7 +59872,7 @@ var require_createTransport = __commonJS({
     function buildCreateTransportXml(input) {
       const type = input.transportType === "customizing" ? "T" : "K";
       const target = input.targetSystem?.trim() ? `/${input.targetSystem}/` : "LOCAL";
-      return `<?xml version="1.0" encoding="ASCII"?>
+      return `<?xml version="1.0" encoding="utf-8"?>
 <tm:root xmlns:tm="http://www.sap.com/cts/adt/tm" tm:useraction="newrequest">
   <tm:request tm:desc="${input.description}" tm:type="${type}" tm:target="${target}" tm:cts_project="">
     <tm:task tm:owner="${input.owner}"/>
@@ -63781,7 +64364,8 @@ var require_getBehaviorImplementation = __commonJS({
     var behaviorRead_1 = require_behaviorRead();
     exports2.getBehaviorImplementation = (0, toolDefinition_1.defineTool)({
       name: "GetBehaviorImplementation",
-      description: "Retrieve ABAP behavior implementation definition. Supports reading active or inactive version.",
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json` · D-147 이정표).
+      description: "Retrieve ABAP behavior implementation definition. Supports reading active or inactive version. Returns the class main source only \u2014 the lhc_*/lsc_* handler classes live in the implementations include (CCIMP), which is read with GetLocalTypes (and written with UpdateBehaviorImplementation's implementation_code). GetLocalTypes is exposed on the development tool surface (toolSurface: development), not on readonly.",
       inputSchema: {
         behavior_implementation_name: z.string().describe("BehaviorImplementation name (e.g., Z_MY_BEHAVIORIMPLEMENTATION)."),
         version: z.enum(["active", "inactive"]).default("active").describe('Version to read: "active" (default) for deployed version, "inactive" for modified but not activated version.')
@@ -63845,7 +64429,8 @@ var require_readBehaviorImplementation = __commonJS({
     var behaviorRead_1 = require_behaviorRead();
     exports2.readBehaviorImplementation = (0, toolDefinition_1.defineTool)({
       name: "ReadBehaviorImplementation",
-      description: "[read-only] Read ABAP behavior implementation source code and metadata (package, responsible, description, etc.).",
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json` · D-147 이정표).
+      description: "[read-only] Read ABAP behavior implementation source code and metadata (package, responsible, description, etc.). Returns the class main source only \u2014 the lhc_*/lsc_* handler classes live in the implementations include (CCIMP), which is read with GetLocalTypes (and written with UpdateBehaviorImplementation's implementation_code). GetLocalTypes is exposed on the development tool surface (toolSurface: development), not on readonly.",
       inputSchema: {
         behavior_implementation_name: z.string().describe("Behavior implementation name (e.g., ZBP_MY_CLASS)."),
         version: z.enum(["active", "inactive"]).default("active").describe('Version to read: "active" (default) or "inactive".')
@@ -64871,28 +65456,6 @@ var require_readInterface = __commonJS({
   }
 });
 
-// dist/src/tools/write/interfaceUri.js
-var require_interfaceUri = __commonJS({
-  "dist/src/tools/write/interfaceUri.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.interfaceObjectUri = interfaceObjectUri;
-    exports2.interfaceStoredCheckUri = interfaceStoredCheckUri;
-    exports2.interfaceRawUri = interfaceRawUri;
-    var shared_1 = require_shared();
-    var INTERFACE_ROOT = "/sap/bc/adt/oo/interfaces";
-    function interfaceObjectUri(name) {
-      return `${INTERFACE_ROOT}/${(0, shared_1.encodeObjectName)(name).toLowerCase()}`;
-    }
-    function interfaceStoredCheckUri(name) {
-      return `${INTERFACE_ROOT}/${(0, shared_1.encodeObjectName)(name.toLowerCase())}`;
-    }
-    function interfaceRawUri(name) {
-      return `${INTERFACE_ROOT}/${(0, shared_1.encodeObjectName)(name)}`;
-    }
-  }
-});
-
 // dist/src/tools/write/createInterface.js
 var require_createInterface = __commonJS({
   "dist/src/tools/write/createInterface.js"(exports2) {
@@ -65035,139 +65598,6 @@ var require_createInterface = __commonJS({
         const message = (0, shared_1.describeFailure)(error);
         logger.error(`Interface creation failed: ${message}`);
         return (0, shared_1.errorResult)(`Error: ${message}`);
-      }
-    });
-  }
-});
-
-// dist/src/tools/write/updateInterface.js
-var require_updateInterface = __commonJS({
-  "dist/src/tools/write/updateInterface.js"(exports2) {
-    "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
-      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-        desc = { enumerable: true, get: function() {
-          return m[k];
-        } };
-      }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
-    }));
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
-      Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
-      o["default"] = v;
-    });
-    var __importStar = exports2 && exports2.__importStar || /* @__PURE__ */ (function() {
-      var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function(o2) {
-          var ar = [];
-          for (var k in o2) if (Object.prototype.hasOwnProperty.call(o2, k)) ar[ar.length] = k;
-          return ar;
-        };
-        return ownKeys(o);
-      };
-      return function(mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) {
-          for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        }
-        __setModuleDefault(result, mod);
-        return result;
-      };
-    })();
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.updateInterface = void 0;
-    var z = __importStar(require_zod());
-    var toolDefinition_1 = require_toolDefinition();
-    var interfaceUri_1 = require_interfaceUri();
-    var shared_1 = require_shared();
-    function compactResult(payload) {
-      return { isError: false, content: [{ type: "text", text: JSON.stringify(payload) }] };
-    }
-    exports2.updateInterface = (0, toolDefinition_1.defineTool)({
-      name: "UpdateInterface",
-      description: "Update source code of an existing ABAP interface. Uses stateful session with proper lock/unlock mechanism. Lock handle and transport number are passed in URL parameters.",
-      inputSchema: {
-        interface_name: z.string().describe("Interface name (e.g., ZIF_MY_INTERFACE). Must exist in the system."),
-        source_code: z.string().describe("Complete ABAP interface source code with INTERFACE...ENDINTERFACE section."),
-        transport_request: z.string().describe("Transport request number (e.g., E19K905635). Optional if object is local or already in transport.").optional(),
-        activate: z.boolean().describe("Activate interface after update. Default: true.").optional()
-      },
-      available_in: ["onprem", "cloud", "legacy"],
-      sets: ["high"],
-      kind: "mutation",
-      targetNames: ["interface_name"]
-    }, async (context, args) => {
-      const { logger } = context;
-      if (!args.interface_name || !args.source_code) {
-        return (0, shared_1.errorResult)("Error: interface_name and source_code are required");
-      }
-      const interfaceName = args.interface_name.toUpperCase();
-      const objectUri = (0, interfaceUri_1.interfaceObjectUri)(interfaceName);
-      const shouldActivate = args.activate !== false;
-      const sourceCode = args.source_code;
-      logger.info(`Starting interface source update: ${interfaceName} (activate=${shouldActivate})`);
-      try {
-        const client = await context.getConnection();
-        let checkWarnings = [];
-        await client.withLock(objectUri, async (lock) => {
-          const preCheck = await (0, shared_1.checkProposed)(client, objectUri, `${objectUri}/source/main`, sourceCode);
-          (0, shared_1.assertNoCheckErrors)(preCheck, "Interface", interfaceName);
-          checkWarnings = [...preCheck.warnings];
-          await (0, shared_1.putSource)(client, (0, interfaceUri_1.interfaceRawUri)(interfaceName), lock.handle, sourceCode, args.transport_request);
-        });
-        logger.info(`Interface source code updated: ${interfaceName}`);
-        try {
-          const postCheck = await (0, shared_1.checkStored)(client, (0, interfaceUri_1.interfaceStoredCheckUri)(interfaceName), "inactive");
-          if (postCheck.errors.length > 0) {
-            logger.warn(`Inactive version check had issues: ${interfaceName} | ${postCheck.errors.map((entry) => entry.text).join("; ")}`);
-          } else if (postCheck.warnings.length > 0) {
-            checkWarnings = [...checkWarnings, ...postCheck.warnings];
-          }
-          logger.info(`Inactive version check completed: ${interfaceName}`);
-        } catch (error) {
-          logger.warn(`Inactive version check had issues: ${interfaceName} | ${(0, shared_1.describeFailure)(error)}`);
-        }
-        let activationWarnings = [];
-        if (shouldActivate) {
-          const body = await (0, shared_1.activateOne)(client, objectUri, interfaceName, {
-            contentType: shared_1.CT_ACTIVATION
-          });
-          const messages = body.includes("<chkl:messages") ? (0, shared_1.parseActivationMessages)(body) : [];
-          const failures = (0, shared_1.activationErrors)(messages);
-          if (failures.length > 0) {
-            throw new shared_1.SourceCheckFailure(`Activation failed: interface ${interfaceName} was not activated (${failures.length} error${failures.length === 1 ? "" : "s"}): ${failures.map((entry) => `${entry.line ? `[L${entry.line}] ` : ""}${entry.text}`).join(" | ")}. The source update is on SAP as an inactive version; the active version is unchanged.`, failures);
-          }
-          activationWarnings = messages.map((entry) => `${entry.type}: ${entry.text || "Unknown"}`);
-          logger.info(`Interface activated: ${interfaceName}`);
-        }
-        const stepsCompleted = ["lock", "check_new_code", "update", "unlock", "check_inactive"];
-        if (shouldActivate)
-          stepsCompleted.push("activate");
-        return compactResult({
-          success: true,
-          interface_name: interfaceName,
-          transport_request: args.transport_request || "local",
-          activated: shouldActivate,
-          message: `Interface ${interfaceName} updated successfully${shouldActivate ? " and activated" : ""}`,
-          activation_warnings: activationWarnings.length > 0 ? activationWarnings : void 0,
-          check_warnings: checkWarnings.length > 0 ? checkWarnings : void 0,
-          steps_completed: stepsCompleted
-        });
-      } catch (error) {
-        if (error instanceof shared_1.SourceCheckFailure) {
-          logger.error(`Error updating interface ${interfaceName}: ${error.message}`);
-          return (0, shared_1.errorResult)(`Error: ${error.message}`);
-        }
-        const message = (0, shared_1.describeFailure)(error);
-        logger.error(`Error updating interface source ${interfaceName}: ${message}`);
-        return (0, shared_1.errorResult)(`Error: Failed to update interface: ${message}`);
       }
     });
   }
@@ -66810,11 +67240,14 @@ var require_deleteLocalTestClass = __commonJS({
     var z = __importStar(require_zod());
     var adt_1 = require_adt();
     var toolDefinition_1 = require_toolDefinition();
+    var classIncludeWrite_1 = require_classIncludeWrite();
     var classIncludeClear_1 = require_classIncludeClear();
     var shared_1 = require_shared();
     function failureMessage(error, className) {
       if (error instanceof shared_1.SourceCheckFailure)
         return error.message;
+      if ((0, classIncludeWrite_1.isMissingTestClassInclude)(error))
+        return (0, classIncludeWrite_1.missingTestClassIncludeMessage)(className, error);
       const status = error instanceof adt_1.AdtError ? error.status : void 0;
       if (status === 404)
         return `Local test class for ${className} not found.`;
@@ -67601,14 +68034,16 @@ var require_deleteServiceBinding = __commonJS({
       try {
         const active = await (0, serviceBindingRead_1.readServiceBinding)(client, bindingName, "active");
         const current = (0, serviceBinding_1.parseServiceBindingState)(active?.body ?? "");
-        if (!current.published || current.allowedAction !== "UNPUBLISH")
+        if (!current.published)
+          return;
+        if (current.allowedAction !== void 0 && current.allowedAction !== "UNPUBLISH")
           return;
         if (!current.serviceType || !current.serviceName)
           return;
         const recheckResponse = await (0, serviceBindingRead_1.readServiceBinding)(client, bindingName, "active");
         const recheck = (0, serviceBinding_1.parseServiceBindingState)(recheckResponse?.body ?? "");
-        if (recheck.allowedAction !== "UNPUBLISH") {
-          throw new Error(`Invalid state transition: cannot unpublish service binding ${bindingName}. allowedAction=${recheck.allowedAction ?? "UNKNOWN"}`);
+        if (recheck.allowedAction !== void 0 && recheck.allowedAction !== "UNPUBLISH") {
+          throw new Error(`Invalid state transition: cannot unpublish service binding ${bindingName}. allowedAction=${recheck.allowedAction}`);
         }
         await (0, serviceBinding_1.publicationJob)(client, "unpublish", current.serviceType, bindingName, current.serviceName, current.serviceVersion);
       } catch {
@@ -67616,7 +68051,8 @@ var require_deleteServiceBinding = __commonJS({
     }
     exports2.deleteServiceBinding = (0, toolDefinition_1.defineTool)({
       name: "DeleteServiceBinding",
-      description: "Delete ABAP service binding via ADT Business Services endpoint.",
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D148.
+      description: "Delete ABAP service binding via ADT Business Services endpoint. When a published binding carries no srvb:allowedAction attribute, the best-effort unpublish before deletion is still attempted instead of being skipped.",
       inputSchema: {
         service_binding_name: z.string().describe("Service binding name to delete."),
         transport_request: z.string().describe("Optional transport request for deletion transport flow.").optional(),
@@ -68526,7 +68962,9 @@ var require_createUnitTest = __commonJS({
     }
     exports2.createUnitTest = (0, toolDefinition_1.defineTool)({
       name: "CreateUnitTest",
-      description: "Start an ABAP Unit test run for provided class test definitions. Returns run_id for status/result queries.",
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json` · D-147 이정표) — 이름이
+      // 「작성 도구」로 읽혀 경로 탐색을 헛돌게 했다(sapkit-feedback 2026-07-30).
+      description: "Start an ABAP Unit test run for provided class test definitions. Returns run_id for status/result queries. Despite the name this does not create or write a test: it starts a run exactly like RunUnitTest (same input) \u2014 test classes are written with UpdateLocalTestClass.",
       inputSchema: {
         tests: z.array(z.object({
           container_class: z.string().describe("Class that owns the test include (e.g., ZCL_MAIN_CLASS)."),
@@ -72394,20 +72832,31 @@ var require_session = __commonJS({
       state;
       client = null;
       factory;
-      /**
-       * 기동 시점의 배포 축. `tools/list`가 이 값으로 지어졌고 **재적재로는 바뀌지
-       * 않는다** — 등록은 서버가 전송에 붙기 전에 끝난다. 재적재가 다른 축의
-       * 프로파일을 물어 오면 `ReloadProfile`이 그 사실을 `restartRequired`로 보고한다.
-       */
+      /** 기동 시점의 배포 축. 재적재로 바뀌지 않는다 — 보고 문구가 「어디서 시작했나」에 쓴다. */
       bootSystemType;
+      /**
+       * `tools/list`가 **지금** 지어져 있는 배포 축. 기동 때는 `bootSystemType`과 같고,
+       * 코어가 목록을 다시 발행하면 {@link notePublished}로 옮겨 온다(D-147).
+       * {@link reload}의 `exposureStale`은 이 값과 견준다.
+       */
+      published;
       constructor(startup, factory) {
         this.state = startup;
         this.bootSystemType = startup.profile.systemType;
+        this.published = startup.profile.systemType;
         this.factory = factory ?? ((config) => new adt_1.AdtClient(config));
       }
       /** **지금** 유효한 기동 상태. 읽는 쪽은 붙잡아 두지 말고 그때그때 읽는다. */
       get startup() {
         return this.state;
+      }
+      /** `tools/list`가 지금 지어져 있는 배포 축. */
+      get publishedSystemType() {
+        return this.published;
+      }
+      /** 코어가 목록을 이 축으로 다시 발행했다고 알린다. 세션은 등록을 갖지 않으므로 기록만 한다. */
+      notePublished(systemType) {
+        this.published = systemType;
       }
       async getConnection() {
         if (this.client)
@@ -72441,8 +72890,12 @@ var require_session = __commonJS({
           startup: this.state,
           before,
           after,
+          // 세션은 등록을 갖지 않는다 — 다시 발행하는 것은 코어다(D-147).
+          toolListRepublished: null,
           connectionDropped,
-          exposureStale: after.systemType !== this.bootSystemType,
+          // 기동 축이 아니라 **지금 발행된** 축과 견준다 — 코어가 목록을 다시 발행했으면
+          // 그 축이 기준이다(D-147).
+          exposureStale: after.systemType !== this.published,
           bootSystemType: this.bootSystemType,
           sealed
         };
@@ -72521,8 +72974,8 @@ var require_core5 = __commonJS({
       }
     }
     function readEngineVersion() {
-      if ("1.3.1") {
-        return "1.3.1";
+      if ("1.4.0") {
+        return "1.4.0";
       }
       let dir = __dirname;
       for (let depth = 0; depth < 6; depth += 1) {
@@ -72550,7 +73003,7 @@ var require_core5 = __commonJS({
     function mayReload(definition) {
       return definition.kind === "server-control" && safety_1.SERVER_CONTROL_TOOLS.has(definition.name);
     }
-    function contextFor(session, logger, allowReload, stderr) {
+    function contextFor(session, logger, allowReload, stderr, republish) {
       return {
         getConnection: () => session.getConnection(),
         get profile() {
@@ -72565,12 +73018,19 @@ var require_core5 = __commonJS({
             throw new types_js_1.McpError(types_js_1.ErrorCode.InvalidRequest, `ERR_RELOAD_FORBIDDEN: profile reload is reserved for ${[...safety_1.SERVER_CONTROL_TOOLS].join(", ")}; this tool is not one of them.`);
           }
           const before = session.startup.profile;
-          const result = session.reload();
+          const reloaded = session.reload();
           const after = session.startup.profile;
-          if (before.tier !== after.tier || before.connection?.baseUrl !== after.connection?.baseUrl || result.sealed !== null) {
-            stderr(`AUDIT: profile reload \u2014 tier ${before.tier} \u2192 ${after.tier} \xB7 connection ${before.connection?.baseUrl ?? "none"} \u2192 ${after.connection?.baseUrl ?? "none"}${result.sealed === null ? "" : ` \xB7 sealed: ${result.sealed}`}`);
+          if (before.tier !== after.tier || before.connection?.baseUrl !== after.connection?.baseUrl || reloaded.sealed !== null) {
+            stderr(`AUDIT: profile reload \u2014 tier ${before.tier} \u2192 ${after.tier} \xB7 connection ${before.connection?.baseUrl ?? "none"} \u2192 ${after.connection?.baseUrl ?? "none"}${reloaded.sealed === null ? "" : ` \xB7 sealed: ${reloaded.sealed}`}`);
           }
-          return result;
+          if (!reloaded.exposureStale || reloaded.sealed !== null)
+            return reloaded;
+          const toolListRepublished = republish(reloaded.startup);
+          if (toolListRepublished === null)
+            return reloaded;
+          session.notePublished(after.systemType);
+          stderr(`AUDIT: tool list republished for ${after.systemType} \u2014 added ${toolListRepublished.added.length} \xB7 removed ${toolListRepublished.removed.length}`);
+          return { ...reloaded, toolListRepublished };
         }
       };
     }
@@ -72582,8 +73042,6 @@ var require_core5 = __commonJS({
       for (const line of startup.diagnostics)
         stderr(line);
       const session = options.session ?? new session_1.ProfileSession(startup, options.connectionFactory ?? ((conf) => new adt_1.AdtClient(conf)));
-      const context = contextFor(session, logger, false, stderr);
-      const reloadingContext = contextFor(session, logger, true, stderr);
       const server = new mcp_js_1.McpServer({
         name: options.name ?? exports2.SERVER_NAME,
         version: options.version ?? readEngineVersion()
@@ -72592,14 +73050,12 @@ var require_core5 = __commonJS({
         ...(0, toolDefinition_1.toExposableTool)(tool.definition),
         tool
       }));
-      const exposed = (0, safety_1.selectExposedTools)(candidates, {
-        sets: startup.sets,
-        systemType: startup.profile.systemType
-      });
-      for (const candidate of exposed) {
+      const registered = /* @__PURE__ */ new Map();
+      let context;
+      let reloadingContext;
+      const register = (candidate) => {
         const { definition, handler } = candidate.tool;
-        const toolContext = mayReload(definition) ? reloadingContext : context;
-        server.registerTool(definition.name, { description: definition.description, inputSchema: definition.inputSchema }, async (rawArgs) => {
+        const handle = server.registerTool(definition.name, { description: definition.description, inputSchema: definition.inputSchema }, async (rawArgs) => {
           const args = rawArgs ?? {};
           const live = session.startup;
           const decision = (0, gates_1.evaluateToolCall)({ name: definition.name, kind: definition.kind }, args, { tier: live.profile.tier, blocklist: live.blocklist });
@@ -72608,16 +73064,45 @@ var require_core5 = __commonJS({
           if (decision.kind === "deny") {
             throw new types_js_1.McpError(errorCodeFor(decision.code), decision.message);
           }
+          const toolContext = mayReload(definition) ? reloadingContext : context;
           const result = await handler(toolContext, args);
           if (result.isError)
             throw new types_js_1.McpError(types_js_1.ErrorCode.InternalError, textOf(result));
           return { content: result.content.map((item) => ({ type: "text", text: item.text })) };
         });
-      }
+        registered.set(definition.name, handle);
+      };
+      const republish = (after) => {
+        const wanted = (0, safety_1.selectExposedTools)(candidates, {
+          sets: after.sets,
+          systemType: after.profile.systemType
+        });
+        const wantedNames = new Set(wanted.map((candidate) => candidate.name));
+        const removed = [...registered.keys()].filter((name) => !wantedNames.has(name));
+        for (const name of removed) {
+          registered.get(name)?.remove();
+          registered.delete(name);
+        }
+        const added = [];
+        for (const candidate of wanted) {
+          if (registered.has(candidate.name))
+            continue;
+          register(candidate);
+          added.push(candidate.name);
+        }
+        return { added, removed };
+      };
+      context = contextFor(session, logger, false, stderr, republish);
+      reloadingContext = contextFor(session, logger, true, stderr, republish);
+      const exposed = (0, safety_1.selectExposedTools)(candidates, {
+        sets: startup.sets,
+        systemType: startup.profile.systemType
+      });
+      for (const candidate of exposed)
+        register(candidate);
       if (exposed.length === 0) {
         server.registerTool("__sapkit_bootstrap__", { description: "internal placeholder; removed before the transport is connected." }, async () => ({ content: [] })).remove();
       }
-      const exposedToolNames = exposed.map((candidate) => candidate.name);
       return {
         server,
         // 게터다 — 재적재 뒤에는 **새 상태**가 나와야 한다.
@@ -72625,7 +73110,10 @@ var require_core5 = __commonJS({
           return session.startup;
         },
         session,
-        exposedToolNames
+        // 게터다 — 재발행 뒤에는 **지금 등록된** 이름이 나와야 한다(D-147).
+        get exposedToolNames() {
+          return [...registered.keys()];
+        }
       };
     }
   }
