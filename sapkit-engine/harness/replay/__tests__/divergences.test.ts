@@ -358,6 +358,10 @@ describe('D143 — 함수그룹 인클루드 잠금 403 → 성공 (D-147)', () 
       target([{ payload: a, isError }]),
     );
 
+  it('주 도구는 UpdateInclude다 — 대장의 「대체」 열이 귀속할 칸 (통합 I1 실측: tool:null이면 아무에게도 안 갔다)', () => {
+    expect(byId('D143').tool).toBe('UpdateInclude');
+  });
+
   it('구가 그 403 문구로 실패한 두 도구의 단계에만 걸린다', () => {
     expect(idsIn(step({ index: 0, tool: 'UpdateInclude', response: old403, isError: true }))).toEqual(['D143']);
     expect(idsIn(step({ index: 0, tool: 'UpdateSourceByPatch', response: old403, isError: true }))).toEqual(['D143']);
@@ -1720,5 +1724,212 @@ describe('D132 — GetBadiImplementations의 ECC 브리지가 없다', () => {
 
     expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-deferred', divergenceId: 'D132' });
     expect(result.verdict).toBe('no-evidence');
+  });
+});
+
+// ── D147~D154 판정 시험 (통합 I1 부수 발견 1 — E2 항목에 판정 시험이 없었다) ──────
+
+const judgeOne = async (tool: string, before: JsonValue, beforeError: boolean, after: JsonValue, afterError: boolean, args?: JsonValue) =>
+  replaySequence(
+    recorded([step({ index: 0, tool, response: before, isError: beforeError, ...(args === undefined ? {} : { args }) })]),
+    target([{ payload: after, isError: afterError }]),
+  );
+
+describe('D147 — CreateServiceBinding 계약(category) 두 키 (D-147)', () => {
+  const oldBody = { success: true, binding_name: 'ZUI_MY_BINDING', activated: false, binding_type: 'ODataV4' };
+  const before = envelope(JSON.stringify(oldBody));
+
+  it('activated:true를 주장하지 않는 성공 단계에만 걸린다 — 활성화 갈래는 D105의 것이고, 오류 봉투는 걸리지 않는다', () => {
+    expect(idsIn(step({ index: 0, tool: 'CreateServiceBinding', response: before }))).toEqual(['D147']);
+    const activated = envelope(JSON.stringify({ ...oldBody, activated: true }));
+    expect(idsIn(step({ index: 0, tool: 'CreateServiceBinding', response: activated }))).not.toContain('D147');
+    expect(idsIn(step({ index: 0, tool: 'CreateServiceBinding', response: envelope('boom', true), isError: true }))).toEqual([]);
+  });
+
+  it('binding_category·srvb_category 두 키만 늘었으면 통과다', async () => {
+    const after = envelope(JSON.stringify({ ...oldBody, binding_category: 'WEB_API', srvb_category: '1' }));
+    const result = await judgeOne('CreateServiceBinding', before, false, after, false);
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D147' });
+  });
+
+  it('다른 값이 갈리면 덮어 주지 않는다', async () => {
+    const after = envelope(JSON.stringify({ ...oldBody, binding_category: 'WEB_API', srvb_category: '1', binding_type: 'ODataV2' }));
+    const result = await judgeOne('CreateServiceBinding', before, false, after, false);
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D147' });
+  });
+});
+
+describe('D148 — UpdateServiceBinding allowedAction 부재 (D-147)', () => {
+  const oldOk = envelope(JSON.stringify({ success: true, binding_name: 'ZUI_MY_BINDING', action: 'publish' }));
+  const oldUnknown = envelope('Error: Invalid state transition: allowedAction=UNKNOWN does not permit publish', true);
+
+  it('성공 단계 전부와 구가 UNKNOWN으로 거부한 오류 단계에만 걸린다', () => {
+    expect(idsIn(step({ index: 0, tool: 'UpdateServiceBinding', response: oldOk }))).toEqual(['D148']);
+    expect(idsIn(step({ index: 0, tool: 'UpdateServiceBinding', response: oldUnknown, isError: true }))).toEqual(['D148']);
+    expect(idsIn(step({ index: 0, tool: 'UpdateServiceBinding', response: envelope('Error: HTTP 500 boom', true), isError: true }))).toEqual([]);
+  });
+
+  it('성공 응답에 allowed_action_known·allowed_action만 늘었으면 통과다', async () => {
+    const after = envelope(JSON.stringify({ success: true, binding_name: 'ZUI_MY_BINDING', action: 'publish', allowed_action_known: true, allowed_action: 'PUBLISH' }));
+    const result = await judgeOne('UpdateServiceBinding', oldOk, false, after, false);
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D148' });
+  });
+
+  it('구가 UNKNOWN으로 거부한 자리에서 신이 요청을 보내 성공하고 allowed_action_known:false를 실으면 통과다', async () => {
+    const after = envelope(JSON.stringify({ success: true, binding_name: 'ZUI_MY_BINDING', action: 'publish', allowed_action_known: false, allowed_action: null }));
+    const result = await judgeOne('UpdateServiceBinding', oldUnknown, true, after, false);
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D148' });
+  });
+
+  it('신도 도구 자체 가드(Invalid state transition)로 거부하면 덮어 주지 않는다', async () => {
+    const after = envelope('Error: Invalid state transition: allowedAction=UNPUBLISH does not permit publish', true);
+    const result = await judgeOne('UpdateServiceBinding', oldUnknown, true, after, true);
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D148' });
+  });
+});
+
+describe('D149 — CheckSyntax 판정불능 (D-147 · 리뷰 R1b 권고 6)', () => {
+  const NOISE = 'REPORT/PROGRAM statement is missing, or the program type is INCLUDE';
+  const judge = (before: Record<string, unknown>, after: Record<string, unknown>) =>
+    judgeOne('CheckSyntax', envelope(JSON.stringify(before)), false, envelope(JSON.stringify(after)), false);
+
+  it('성공 봉투 전부에 걸리고 오류 봉투에는 걸리지 않는다', () => {
+    expect(idsIn(step({ index: 0, tool: 'CheckSyntax', response: envelope(JSON.stringify({ success: true, errors: [] })) }))).toEqual(['D149']);
+    expect(idsIn(step({ index: 0, tool: 'CheckSyntax', response: envelope('Error: object_type is required', true), isError: true }))).toEqual([]);
+  });
+
+  it('깨끗한 검사에 verdict·check_status만 늘었으면 통과다', async () => {
+    const before = { success: true, object_type: 'program', object_name: 'ZPROG', errors: [], warnings: [] };
+    const result = await judge(before, { ...before, verdict: 'clean', check_status: 'processed' });
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D149' });
+  });
+
+  it('구의 「오류 없는 실패」(success:false·errors:[])는 신이 success:null·indeterminate로 답해야 통과다', async () => {
+    const before = { success: false, object_type: 'include', object_name: 'ZINC', errors: [], warnings: [] };
+    const pass = await judge(before, { ...before, success: null, verdict: 'indeterminate', check_status: 'notProcessed', reason: 'SAP returned no verdict' });
+    expect(pass.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D149' });
+    const fail = await judge(before, { ...before, verdict: 'errors', check_status: 'notProcessed' });
+    expect(fail.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D149' });
+  });
+
+  it('include의 오류가 전부 「REPORT/PROGRAM 문이 없다」 잡음인 구 실패도 판정 없는 실패다 — 신은 success:null이어야 한다', async () => {
+    const before = { success: false, object_type: 'include', object_name: 'ZINC', errors: [{ type: 'E', text: NOISE, line: '1' }], warnings: [] };
+    const pass = await judge(before, { ...before, success: null, verdict: 'indeterminate', check_status: 'processed', reason: 'SAP could not compile the include on its own' });
+    expect(pass.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D149' });
+    // 신이 여전히 success:false면 판정불능을 말하지 않은 것이다.
+    const fail = await judge(before, { ...before, verdict: 'errors', check_status: 'processed' });
+    expect(fail.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D149' });
+  });
+
+  it('include가 아닌 종류의 잡음 오류는 판정 없는 실패가 아니다 — 신도 success:false·verdict:errors면 통과다 (과수리 역검증)', async () => {
+    const before = { success: false, object_type: 'program', object_name: 'ZPROG', errors: [{ type: 'E', text: NOISE, line: '1' }], warnings: [] };
+    const result = await judge(before, { ...before, verdict: 'errors', check_status: 'processed' });
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D149' });
+  });
+});
+
+describe('D151 — GrepObjects FUGR 전개 (D-147)', () => {
+  const args = { objects: [{ object_type: 'FUGR', object_name: 'ZFG_A' }, { object_type: 'PROG', object_name: 'ZPROG' }], pattern: 'SELECT' };
+  const progHit = { object_type: 'PROG', object_name: 'ZPROG', matches: [{ line: 3, text: '  SELECT * FROM t.', context_before: [], context_after: [] }] };
+  const oldBody = { total_matches: 1, truncated: false, results: [progHit], skipped: [] };
+  const before = envelope(JSON.stringify(oldBody));
+  const judge = (after: Record<string, unknown>) => judgeOne('GrepObjects', before, false, envelope(JSON.stringify(after)), false, args);
+
+  it('인자에 FUGR 항목이 있는 성공 단계에만 걸린다', () => {
+    expect(idsIn(step({ index: 0, tool: 'GrepObjects', args, response: before }))).toEqual(['D151']);
+    const noFugr = { ...args, objects: [{ object_type: 'PROG', object_name: 'ZPROG' }] };
+    expect(idsIn(step({ index: 0, tool: 'GrepObjects', args: noFugr, response: before }))).toEqual([]);
+    expect(idsIn(step({ index: 0, tool: 'GrepObjects', args, response: envelope('Invalid regular expression', true), isError: true }))).toEqual([]);
+  });
+
+  it('구가 조용히 0이던 자리에서 신이 구성원 결과를 실으면 통과다', async () => {
+    const member = { object_type: 'FUGR/FF', object_name: 'Z_FM_A', function_group: 'ZFG_A', matches: [{ line: 2, text: '  SELECT SINGLE * FROM t.', context_before: [], context_after: [] }] };
+    const result = await judge({ total_matches: 2, truncated: false, results: [member, progHit], skipped: [] });
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D151' });
+  });
+
+  it('skipped에 그룹의 이유가 실려도 통과다 — 조용한 0이 아니다', async () => {
+    const result = await judge({ ...oldBody, skipped: [{ object: 'FUGR ZFG_A', reason: 'Could not expand function group ZFG_A into its function modules and includes' }] });
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D151' });
+  });
+
+  it('여전히 조용한 0이면 덮어 주지 않는다', async () => {
+    const result = await judge({ ...oldBody, truncated: true });
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D151' });
+  });
+
+  it('FUGR가 아닌 항목의 결과가 달라지면 덮어 주지 않는다', async () => {
+    const member = { object_type: 'FUGR/FF', object_name: 'Z_FM_A', function_group: 'ZFG_A', matches: [] };
+    const result = await judge({ total_matches: 0, truncated: false, results: [member, { ...progHit, matches: [] }], skipped: [] });
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D151' });
+  });
+});
+
+describe('D152 — GetTypeInfo 4xx 「그 종류가 아니다」 계열 (D-147 · 리뷰 R1b 권고 5)', () => {
+  const old422 = envelope('ADT error: AdtError: ADT request failed with 422 (Unprocessable Entity) for /sap/bc/adt/ddic/domains/zst_item/source/main', true);
+  const recordedStep = step({ index: 0, tool: 'GetTypeInfo', response: old422, isError: true });
+
+  it('구가 ADT error … 4xx(404·405·406·415·422)로 죽은 오류 단계에만 걸린다 — 400은 아니다', () => {
+    expect(idsIn(recordedStep)).toEqual(['D152']);
+    const old400 = envelope('ADT error: AdtError: ADT request failed with 400 (Bad Request) for /sap/bc/adt/ddic/domains/x/source/main', true);
+    expect(idsIn(step({ index: 0, tool: 'GetTypeInfo', response: old400, isError: true }))).toEqual([]);
+    const old500 = envelope('ADT error: AdtError: ADT request failed with 500 (Internal Server Error)', true);
+    expect(idsIn(step({ index: 0, tool: 'GetTypeInfo', response: old500, isError: true }))).toEqual([]);
+    const notFound = envelope('Type X was not found as domain, data element, table type, or structure.', true);
+    expect(idsIn(step({ index: 0, tool: 'GetTypeInfo', response: notFound, isError: true }))).toEqual([]);
+    expect(idsIn(step({ index: 0, tool: 'GetTypeInfo', response: envelope(JSON.stringify({ name: 'ZST_ITEM' })) }))).not.toContain('D152');
+  });
+
+  it('신이 후보를 넘어가 답을 찾으면 통과다', async () => {
+    const after = envelope(JSON.stringify({ name: 'ZST_ITEM', objectType: 'structure', resolved_as: 'structure_fallback' }));
+    const result = await judgeOne('GetTypeInfo', old422, true, after, false);
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D152' });
+  });
+
+  it('신이 후보를 넘어갔지만 못 찾았어도 통과다 — 병기된 상태 코드(422)를 죽음으로 오판하지 않는다', async () => {
+    const after = envelope(
+      'Type ZST_ITEM was not found as domain, data element, table type, or structure. Candidates answered: domain HTTP 422, data element HTTP 404, table type HTTP 404, repository information system HTTP 404, structure HTTP 404.',
+      true,
+    );
+    const result = await judgeOne('GetTypeInfo', old422, true, after, true);
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D152' });
+  });
+
+  it('신도 같은 상태의 ADT error로 죽으면 판정은 실패다 (대조기는 같은 상태를 match로 접으므로 check를 직접 부른다)', () => {
+    const check = byId('D152').check;
+    expect(check).not.toBeNull();
+    const verdict = check!({
+      recorded: recordedStep,
+      actual: { response: envelope('ADT error: AdtError: ADT request failed with 422 for /sap/bc/adt/ddic/domains/zst_item/source/main (again)', true), isError: true },
+    });
+    expect(verdict.ok).toBe(false);
+  });
+});
+
+describe('D154 — GetInclude 클래스 인클루드 거절 (D-147)', () => {
+  const args = { include_name: 'ZCL_UNIVAT_BSET_EDIT==========CCIMP' };
+  const old500 = envelope('Error: HTTP 500 [/sap/bc/adt/programs/includes/ZCL_UNIVAT_BSET_EDIT==========CCIMP] Internal Server Error', true);
+
+  it('=로 채운 클래스 인클루드 이름의 오류 단계에만 걸린다', () => {
+    expect(idsIn(step({ index: 0, tool: 'GetInclude', args, response: old500, isError: true }))).toEqual(['D154']);
+    expect(idsIn(step({ index: 0, tool: 'GetInclude', args: { include_name: 'ZINC01' }, response: old500, isError: true }))).toEqual([]);
+    expect(idsIn(step({ index: 0, tool: 'GetInclude', args, response: envelope('CLASS-POOL.') }))).toEqual([]);
+  });
+
+  it('신이 「class include」를 말하는 오류로 거절하면 판정은 통과다 (check를 직접 부른다 — 거절문이 「HTTP 500」을 언급해 대조기는 같은 상태의 산문 차이로 접는다)', () => {
+    const after = envelope(
+      'Include "ZCL_UNIVAT_BSET_EDIT==========CCIMP" is a class include of ZCL_UNIVAT_BSET_EDIT (CCIMP), not a standalone include — the standalone-include path (/sap/bc/adt/programs/includes/) answers HTTP 500 for it. Read it with GetLocalTypes.',
+      true,
+    );
+    const check = byId('D154').check;
+    expect(check).not.toBeNull();
+    const recordedStep = step({ index: 0, tool: 'GetInclude', args, response: old500, isError: true });
+    expect(check!({ recorded: recordedStep, actual: { response: after, isError: true } }).ok).toBe(true);
+    expect(check!({ recorded: recordedStep, actual: { response: envelope('Error: HTTP 500 [x] Internal Server Error', true), isError: true } }).ok).toBe(false);
+  });
+
+  it('신이 다른 이유로 실패하면 덮어 주지 않는다', async () => {
+    const result = await judgeOne('GetInclude', old500, true, envelope('Error: connection refused', true), true, args);
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D154' });
   });
 });

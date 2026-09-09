@@ -40,9 +40,12 @@
  * 구조체 이름을 주면 첫 후보(도메인 `source/main`)가 **HTTP 422**로 답하고, 구는 그것을
  * 「404가 아니다」로 던져 구조 폴백에 닿지 못한 채 죽었다(2026-09-09 실측 —
  * `sapkit-feedback.md`). `include_structure_fallback`의 설명("404/empty에서만")이 그
- * 실패를 예고하지 않는다. 지금은 `NEXT_CANDIDATE_STATUSES`(400·404·405·406·415·422 —
+ * 실패를 예고하지 않는다. 지금은 `NEXT_CANDIDATE_STATUSES`(404·405·406·415·422 —
  * 「그 이름이 이 종류가 아니다」 계열)를 다음 후보로 넘기고, 401·403·5xx는 구 그대로
- * 던진다. 실기 미검증(422가 나는 정확한 응답 본문은 채록되지 않았다).
+ * 던진다. **400은 넘기지 않는다**(리뷰 R1b 권고 5) — 실측은 422뿐이고, 400은 「요청이
+ * 틀렸다」라 후보를 바꿔도 같을 수 있는데 삼키면 그 원인이 가려진다. 후보가 전부
+ * 실패하면 최종 오류 문구에 **삼킨 상태 코드 목록**을 병기한다(404만 삼켰으면 구
+ * 그대로의 문구다). 실기 미검증(422가 나는 정확한 응답 본문은 채록되지 않았다).
  *
  * ## 「쓸 만한 결과」의 정의가 파싱 결과에도 걸린다
  *
@@ -99,9 +102,10 @@ const asString = (value: unknown): unknown => value;
 
 /**
  * D152 — 「이 이름은 이 종류가 아니다」로 읽는 HTTP 상태. 다음 후보로 넘어간다.
- * 401·403(인증·권한)과 5xx는 여기 없다 — 그것은 후보를 바꿔도 같은 실패다.
+ * 401·403(인증·권한)과 5xx는 여기 없다 — 그것은 후보를 바꿔도 같은 실패다. 400도
+ * 없다 — 실측이 없고, 삼키면 잘못된 요청의 원인이 가려진다(머리주석).
  */
-export const NEXT_CANDIDATE_STATUSES: ReadonlySet<number> = new Set([400, 404, 405, 406, 415, 422]);
+export const NEXT_CANDIDATE_STATUSES: ReadonlySet<number> = new Set([404, 405, 406, 415, 422]);
 
 /** 구 `parseTypeInfoXml`(`:44-89`) 그대로 — 데이터 요소 → 도메인 → 원문 순서. */
 export function parseTypeInfoXml(xml: string): unknown {
@@ -168,7 +172,7 @@ export const getTypeInfo = defineTool(
     // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D152.
     description:
       '[read-only] Retrieve ABAP type information for domains (DOMA), data elements (DTEL), table types, and structures. Returns field definitions, value ranges, fixed values, and DDIC metadata.' +
-      ' A name that is not a domain can answer HTTP 422 (not 404) on the first candidate; 400/405/406/415/422 now also move on to the next candidate and to the structure fallback, so a structure name reaches the structures lookup.',
+      ' A name that is not a domain can answer HTTP 422 (not 404) on the first candidate; 405/406/415/422 now also move on to the next candidate and to the structure fallback, so a structure name reaches the structures lookup (400 does not — it stays a hard error). This note corrects the recorded include_structure_fallback text: the fallback runs after those statuses too, not only after 404/empty. When every candidate fails and any of them answered something other than 404, the error lists which candidate answered which status.',
     inputSchema: {
       type_name: z.string().describe('Name of the ABAP type'),
       include_structure_fallback: z
@@ -203,8 +207,11 @@ export const getTypeInfo = defineTool(
       // 이 한 자리만 소문자다 — 구의 실측(`handleGetTypeInfo.ts:193-195`).
       const uri = encodeURIComponent(`/sap/bc/adt/ddic/domains/${typeName.toLowerCase()}`);
 
+      /** 삼킨 상태 코드 — 후보가 전부 실패했을 때 최종 문구에 병기한다(D152 · 리뷰 R1b 권고 5). */
+      const swallowed: { label: string; status: number }[] = [];
       /** 후보 하나를 물어본다. 404(및 D152의 4xx 계열)·빈 결과는 `null`, 그 밖의 오류는 던진다. */
       const tryLookup = async (
+        label: string,
         path: string,
         parse: (xml: string) => unknown,
       ): Promise<unknown | null> => {
@@ -216,6 +223,7 @@ export const getTypeInfo = defineTool(
         } catch (error) {
           if (error instanceof AdtError && NEXT_CANDIDATE_STATUSES.has(error.status ?? 0)) {
             context.logger.debug(`Candidate ${path} answered HTTP ${error.status} — trying the next one`);
+            swallowed.push({ label, status: error.status ?? 0 });
             return null;
           }
           throw error;
@@ -240,7 +248,7 @@ export const getTypeInfo = defineTool(
 
       for (const lookup of lookups) {
         context.logger.debug(`Trying ${lookup.label} lookup for ${typeName}`);
-        const payload = await tryLookup(lookup.path, lookup.parse);
+        const payload = await tryLookup(lookup.label, lookup.path, lookup.parse);
         if (payload !== null) return ok(JSON.stringify(payload));
       }
 
@@ -249,14 +257,21 @@ export const getTypeInfo = defineTool(
           `Type lookups returned 404/empty for ${typeName}, trying structure fallback`,
         );
         const payload = await tryLookup(
+          'structure',
           `/sap/bc/adt/ddic/structures/${encoded}`,
           parseStructureInfoXml,
         );
         if (payload !== null) return ok(JSON.stringify(payload));
       }
 
+      // 404만 삼켰으면 구와 같은 문구다. 그 밖의 4xx를 삼켰으면 어느 후보가 무엇으로 답했는지
+      // 병기한다 — 「없다」와 「그 종류가 아니라고 답했다」는 다른 사실이다.
+      const notJustMissing = swallowed.some((entry) => entry.status !== 404);
+      const answered = notJustMissing
+        ? ` Candidates answered: ${swallowed.map((entry) => `${entry.label} HTTP ${entry.status}`).join(', ')}.`
+        : '';
       return failure(
-        `Type ${typeName} was not found as domain, data element, table type, or structure.`,
+        `Type ${typeName} was not found as domain, data element, table type, or structure.${answered}`,
       );
     } catch (error) {
       context.logger.error(`Failed to resolve type info for ${args.type_name}`);

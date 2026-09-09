@@ -69,7 +69,7 @@ export const readClass = defineTool(
     // 원문(채록본) + 덧말(`harness/old-surface/amendments.json` · D-147 이정표).
     description:
       '[read-only] Read ABAP class source code and metadata (package, responsible, description, etc.).' +
-      ' Returns source/main only — local types and the implementations include (CCIMP, where behavior-pool handler classes and other local classes live) are read with GetLocalTypes.',
+      ' Returns source/main only — local types and the implementations include (CCIMP, where behavior-pool handler classes and other local classes live) are read with GetLocalTypes. GetLocalTypes is exposed on the development tool surface (toolSurface: development), not on readonly.',
     inputSchema: {
       class_name: z.string().describe('Class name (e.g., ZCL_MY_CLASS).'),
       version: z

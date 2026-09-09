@@ -237,13 +237,24 @@ export function extractAvailableBindingTypes(body: string): Set<string> {
   return available;
 }
 
-/** 벤더 `getBindingTypeAvailabilityKey`(`:111-121`) 그대로. */
-export function bindingTypeAvailabilityKey(bindingType: string, bindingVersion: string): string {
+/**
+ * 벤더 `getBindingTypeAvailabilityKey`(`:111-121`)에 **계약 칸**을 더했다 (D147 · 리뷰 R1b 차단 ①).
+ *
+ * 열쇠의 가운데 칸은 `ListServiceBindingTypes`의 `nameditem:description` — 곧 `srvb:category`다
+ * (0=UI · 1=Web API · L-001 JNC: ODATA V4가 category 0·1로 두 번 온다). 벤더는 `'1'`을 박아
+ * 두어 `binding_category: 'UI'`여도 게이트 ①이 Web API 변종의 존재를 물었다 — SQL은 1만·INA는
+ * 0만 있으니 엉뚱한 변종을 보는 자리다. `WEB_API`(`'1'`)면 구와 바이트 동일하다.
+ */
+export function bindingTypeAvailabilityKey(
+  bindingType: string,
+  bindingVersion: string,
+  categoryCode: '0' | '1',
+): string {
   const name = bindingType.toUpperCase();
   const version = bindingVersion.toUpperCase();
-  if (name === 'ODATA' && version === 'V4') return 'ODATA:1:ODATA V4';
-  if (name === 'ODATA' && version === 'V2') return 'ODATA:1:ODATA V2';
-  return `${name}:1:${name}`;
+  if (name === 'ODATA' && version === 'V4') return `ODATA:${categoryCode}:ODATA V4`;
+  if (name === 'ODATA' && version === 'V2') return `ODATA:${categoryCode}:ODATA V2`;
+  return `${name}:${categoryCode}:${name}`;
 }
 
 /** 이송 검사 본문 — 벤더 `buildTransportCheckXml`(`:56-59`). */

@@ -27,8 +27,10 @@
  * 진행한다 — 응답에 `precheck_overridden: true`와 오류 원문(`precheck_messages`)을
  * 싣는다. ⚠ 이 갈래에서는 **제안 소스가 쓰기 전에 검증되지 않은 채** 올라간다:
  * 저장된 판의 검사는 저장된 판을 보는 것이지 제안을 보는 것이 아니다. 진짜 판정은
- * 사후검사(`check_warnings`)와 활성화가 한다. FIXPT 문구가 없는 실패는 구 그대로 막는다.
- * 실기 미검증.
+ * 사후검사(`check_warnings`)와 활성화가 한다. **그래서 이 갈래에서만** 사후검사의 `E`가
+ * 쓰기를 실패로 되돌린다(리뷰 R1b 권고 4) — 소스는 비활성으로 저장된 채 활성화되지 않고,
+ * 오류 문구가 그 사실을 말한다. 넘어 쓰지 않은 갈래의 사후검사 오류는 구 그대로
+ * `check_warnings`다. FIXPT 문구가 없는 실패는 구 그대로 막는다. 실기 미검증.
  */
 
 import * as z from 'zod';
@@ -143,6 +145,29 @@ export const updateProgram = defineTool(
         checkWarnings = [...checkWarnings, ...postCheck.errors, ...postCheck.warnings];
       } catch (error) {
         logger.warn(`Inactive version check had issues: ${programName} - ${describeFailure(error)}`);
+      }
+
+      // D150 — precheck를 넘어 쓴 갈래에서는 사후검사가 **유일한** 구문 판정이다. 거기서 오류가
+      // 나면 성공이 아니다(리뷰 R1b 권고 4): 소스는 비활성으로 저장됐고, 활성화하지 않으며,
+      // 사람이 봐야 한다. 넘어 쓰지 않은 갈래는 구 그대로다 — 사후검사 오류는 `check_warnings`로
+      // 실리고 쓰기는 성공이다(사전검사가 이미 제안 소스를 통과시켰다).
+      if (precheckOverride) {
+        const postErrors = checkWarnings.filter(
+          (entry) => entry.type === 'E' && !isReportMissingNoise(entry.text),
+        );
+        if (postErrors.length > 0) {
+          throw new SourceCheckFailure(
+            `Program ${programName}: the in-place pre-check was overridden as a fixed-point-arithmetic false positive (D150), ` +
+              `but the post-write check of the inactive version reports ${postErrors.length} error${
+                postErrors.length === 1 ? '' : 's'
+              }: ${postErrors
+                .map((entry) => `${entry.line ? `[L${entry.line}] ` : ''}${entry.text}`)
+                .join(' | ')}. The source IS saved on SAP as an inactive version and was NOT activated; ` +
+              'the active version is unchanged. A person must review that inactive version (ADT/SE38) or write a corrected source.',
+            postErrors,
+            checkWarnings.filter((entry) => entry.type === 'W'),
+          );
+        }
       }
 
       let activationWarnings: string[] = [];

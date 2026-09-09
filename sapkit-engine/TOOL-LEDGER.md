@@ -39,7 +39,7 @@
 | attended 실기 기록 | `fixtures/attended-only/*.json` | 있음 · 111단계 |
 | 계약 시험 결과 | `evidence/contract/results.json` | 있음 · 186종 |
 | 계약 시험 파일 | `src/tools/**/__tests__/<도구>.test.ts` | 있음 · 186종에 시험 파일이 있다 — 있음이 곧 통과는 아니다 |
-| 대체 기대 시험 | `harness/replay/divergences.ts 의 substituteTest 경로` | 있음 · 33종에 실재하는 시험 파일이 있다 |
+| 대체 기대 시험 | `harness/replay/divergences.ts 의 substituteTest 경로` | 있음 · 34종에 실재하는 시험 파일이 있다 |
 | 위임형 판정 | `harness/old-surface/handler-tree.json` | 있음 · 소스 559파일을 상대 import까지 따라가 판정 — 직접 46 · 간접 140 · 없음 0 |
 
 ## 안 지음 (0)
@@ -128,7 +128,7 @@
 | CreateInclude | 인클루드 | 5 | attended 실기 | — | 통과(1) | 통과(2) | — | 직접 |
 | GetInclude | 인클루드 | 5 | 재생 대조 + 대체 | 통과(1) | 통과(1) | 통과(2) | 통과(1) | 간접 |
 | GetIncludesList | 인클루드 | 5 | 계약 시험 (인하 · 원래 재생 대조) + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
-| UpdateInclude | 인클루드 | 5 | 재생 대조 | 통과(1) | 통과(1) | — | — | 간접 |
+| UpdateInclude | 인클루드 | 5 | 재생 대조 + 대체 | 통과(1) | 통과(1) | — | 통과(1) | 간접 |
 | CreateClass | 클래스 | 6 | attended 실기 | — | 통과(1) | 통과(2) | — | 직접 |
 | GetClass | 클래스 | 6 | 재생 대조 | 통과(1) | 통과(1) | 통과(1) | — | 간접 |
 | GetClassMethod | 클래스 | 6 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |

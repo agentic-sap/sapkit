@@ -30,6 +30,7 @@ import {
   type ObjectGrepInput,
 } from './internal/grep';
 import {
+  type FunctionGroupMember,
   classifySourceType,
   expandFunctionGroup,
   fetchFunctionGroupMemberSource,
@@ -38,41 +39,54 @@ import {
 import { failure, messageOf, ok } from './internal/results';
 
 const MAX_OBJECTS = 50;
+/**
+ * D151 — 요청 항목을 전개한 뒤 **실제로 훑는 오브젝트**의 상한(리뷰 R1b 권고 1). `MAX_OBJECTS`는
+ * 요청 항목에만 걸리므로 큰 함수그룹 하나가 수백 왕복을 만들 수 있었다. 넘치는 그룹은 읽지
+ * 않고 `skipped`에 구성원 수와 함께 이유를 싣는다 — 요청 순서로 앞의 항목이 먼저 예산을 쓴다.
+ */
+export const MAX_SCANNED_OBJECTS = 200;
 const FETCH_CONCURRENCY = 5;
 
-/** D151 — 함수그룹 하나를 전개해 구성원마다 훑을 입력을 만든다. 실패는 `skipped`의 이유가 된다. */
-async function grepInputsForFunctionGroup(
+/** D151 — 함수그룹 하나의 전개 결과: 구성원 목록, 또는 그대로 `skipped`가 될 입력. */
+type GroupExpansion =
+  | { readonly kind: 'members'; readonly members: FunctionGroupMember[] }
+  | { readonly kind: 'skipped'; readonly input: ObjectGrepInput };
+
+async function expandForGrep(
   client: AdtClient,
   objectType: string,
   objectName: string,
   warn: (message: string) => void,
-): Promise<ObjectGrepInput[]> {
+): Promise<GroupExpansion> {
   const groupName = objectName.toUpperCase();
-  let members: Awaited<ReturnType<typeof expandFunctionGroup>>;
+  const skipped = (reason: string): GroupExpansion => ({
+    kind: 'skipped',
+    input: { object_type: objectType, object_name: objectName, source: null, skip_reason: reason },
+  });
+  let members: FunctionGroupMember[];
   try {
     members = await expandFunctionGroup(client, groupName);
   } catch (error) {
     warn(`GrepObjects: could not expand function group ${groupName}: ${messageOf(error)}`);
-    return [
-      {
-        object_type: objectType,
-        object_name: objectName,
-        source: null,
-        skip_reason: `Could not expand function group ${groupName} into its function modules and includes (repository node structure): ${messageOf(error)}. Nothing in the group was scanned.`,
-      },
-    ];
+    return skipped(
+      `Could not expand function group ${groupName} into its function modules and includes (repository node structure): ${messageOf(error)}. Nothing in the group was scanned.`,
+    );
   }
   if (members.length === 0) {
-    return [
-      {
-        object_type: objectType,
-        object_name: objectName,
-        source: null,
-        skip_reason: `Function group ${groupName} expanded to no function modules or includes (the repository node structure returned no FUGR/FF or FUGR/I leaf with an address) — nothing was scanned.`,
-      },
-    ];
+    return skipped(
+      `Function group ${groupName} expanded to no function modules or includes (the repository node structure returned no FUGR/FF or FUGR/I leaf with an address) — nothing was scanned.`,
+    );
   }
+  return { kind: 'members', members };
+}
 
+/** 전개된 구성원의 소스를 읽어 훑을 입력으로. 못 읽은 구성원은 그룹 이름과 함께 `skipped`가 된다. */
+async function fetchMemberInputs(
+  client: AdtClient,
+  groupName: string,
+  members: readonly FunctionGroupMember[],
+  warn: (message: string) => void,
+): Promise<ObjectGrepInput[]> {
   const inputs: ObjectGrepInput[] = new Array(members.length);
   await runWithConcurrency(members, FETCH_CONCURRENCY, async (member, index) => {
     try {
@@ -103,7 +117,7 @@ export const grepObjects = defineTool(
     // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D151 · 백로그 13-8 ⓒ.
     description:
       '[read-only] Search ABAP source code for a regex pattern across multiple named objects in a single call — finds matching lines (with optional context) instead of reading each object one by one. Supports CLAS, PROG, INTF, INCL, and FUGR (function group). Individual function modules (FUNC) are not supported; use FUGR with the group name to search the whole group.' +
-      ' Matching is case-sensitive unless case_insensitive is true — 0 matches means "this pattern found nothing", not "the code is absent". CLAS searches source/main only: local types and the implementations include (CCIMP, where behavior-pool handlers and local classes live) are not scanned and no skipped entry is written for them; read those with GetLocalTypes. FUGR is expanded to the group\'s function modules and includes (each reported under its own name); if the group cannot be expanded, the reason is listed under skipped instead of a silent 0.',
+      ' Matching is case-sensitive unless case_insensitive is true — 0 matches means "this pattern found nothing", not "the code is absent". CLAS searches source/main only: local types and the implementations include (CCIMP, where behavior-pool handlers and local classes live) are not scanned and no skipped entry is written for them; read those with GetLocalTypes. FUGR is expanded to the group\'s function modules and includes (each reported under its own name); if the group cannot be expanded, the reason is listed under skipped instead of a silent 0. GrepObjects reads the active version — before reading 0 matches as "the source does not contain it", check GetInactiveObjects: a pending inactive version is not scanned. After FUGR expansion at most 200 objects are scanned per call; a group that would exceed that cap is listed under skipped with its member count instead of being scanned partially.',
     inputSchema: {
       objects: z
         .array(
@@ -151,26 +165,42 @@ export const grepObjects = defineTool(
       const regex = compileGrepRegex(args.pattern, caseInsensitive);
 
       const client = await context.getConnection();
-      // 요청 항목 하나가 입력 여러 개가 될 수 있다(FUGR 전개 — D151). 순서는 요청 순서다.
-      const expanded: ObjectGrepInput[][] = new Array(requested.length);
       const warn = (message: string): void => context.logger.warn(message);
+
+      // 1단계 — 요청 항목을 전개한다(FUGR는 구성원 목록까지, 나머지는 소스까지). 순서는 요청 순서다.
+      type Expanded =
+        | { readonly kind: 'inputs'; readonly inputs: ObjectGrepInput[] }
+        | {
+            readonly kind: 'group';
+            readonly objectType: string;
+            readonly objectName: string;
+            readonly members: FunctionGroupMember[];
+          };
+      const expanded: Expanded[] = new Array(requested.length);
 
       await runWithConcurrency(requested, FETCH_CONCURRENCY, async (item, index) => {
         const objectType = String(item?.object_type ?? '').trim();
         const objectName = String(item?.object_name ?? '').trim();
         if (!objectType || !objectName) {
-          expanded[index] = [
-            {
-              object_type: objectType || '(missing)',
-              object_name: objectName || '(missing)',
-              source: null,
-              skip_reason: 'object_type and object_name are required',
-            },
-          ];
+          expanded[index] = {
+            kind: 'inputs',
+            inputs: [
+              {
+                object_type: objectType || '(missing)',
+                object_name: objectName || '(missing)',
+                source: null,
+                skip_reason: 'object_type and object_name are required',
+              },
+            ],
+          };
           return;
         }
         if (classifySourceType(objectType) === 'FUGR') {
-          expanded[index] = await grepInputsForFunctionGroup(client, objectType, objectName, warn);
+          const expansion = await expandForGrep(client, objectType, objectName, warn);
+          expanded[index] =
+            expansion.kind === 'members'
+              ? { kind: 'group', objectType, objectName, members: expansion.members }
+              : { kind: 'inputs', inputs: [expansion.input] };
           return;
         }
         const { source, skipReason } = await fetchObjectSource(
@@ -180,16 +210,39 @@ export const grepObjects = defineTool(
           objectName,
           warn,
         );
-        expanded[index] = [
-          {
-            object_type: objectType,
-            object_name: objectName,
-            source,
-            skip_reason: skipReason,
-          },
-        ];
+        expanded[index] = {
+          kind: 'inputs',
+          inputs: [{ object_type: objectType, object_name: objectName, source, skip_reason: skipReason }],
+        };
       });
-      const inputs = expanded.flat();
+
+      // 2단계 — 상한(`MAX_SCANNED_OBJECTS`): 전개된 구성원까지 센다. 넘치는 그룹은 구성원을 읽지
+      // 않고 `skipped`에 이유를 싣는다 — 부분만 훑어 「봤는데 없다」로 읽히는 것보다 낫다.
+      const inputsByItem: ObjectGrepInput[][] = new Array(requested.length);
+      let scanned = 0;
+      for (const [index, entry] of expanded.entries()) {
+        if (entry.kind === 'inputs') {
+          scanned += entry.inputs.length;
+          inputsByItem[index] = entry.inputs;
+          continue;
+        }
+        const groupName = entry.objectName.toUpperCase();
+        if (scanned + entry.members.length > MAX_SCANNED_OBJECTS) {
+          inputsByItem[index] = [
+            {
+              object_type: entry.objectType,
+              object_name: entry.objectName,
+              source: null,
+              skip_reason: `Function group ${groupName} expands to ${entry.members.length} function modules and includes, which would exceed the cap of ${MAX_SCANNED_OBJECTS} scanned objects per call (${scanned} already counted from earlier entries) — nothing in the group was scanned. Search it in a call of its own or split the request.`,
+            },
+          ];
+          continue;
+        }
+        scanned += entry.members.length;
+        // 3단계 — 통과한 그룹의 구성원 소스(그룹 안에서는 동시에, 그룹끼리는 차례로).
+        inputsByItem[index] = await fetchMemberInputs(client, groupName, entry.members, warn);
+      }
+      const inputs = inputsByItem.flat();
 
       const aggregate = aggregateGrepResults(inputs, regex, {
         context_lines: args.context_lines ?? 0,

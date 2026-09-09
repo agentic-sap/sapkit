@@ -5,7 +5,7 @@
  * 않는지, 그리고 나쁜 정규식이 **SAP에 한 바이트도 나가기 전에** 걸리는지.
  */
 
-import { grepObjects } from '../grepObjects';
+import { MAX_SCANNED_OBJECTS, grepObjects } from '../grepObjects';
 import { TEST_ORIGIN, cleanupTempDirs, csrfAware, runTool, toolRequests } from './support';
 
 afterEach(() => {
@@ -322,5 +322,75 @@ describe('D151 — FUGR는 함수모듈·인클루드로 전개해 훑는다 (�
         reason: expect.stringMatching(/^Failed to fetch source: /),
       },
     ]);
+  });
+});
+
+// ── D151 — 전개된 구성원까지 세는 상한 (리뷰 R1b 권고 1) ─────────────────────────
+
+describe('D151 — 훑는 오브젝트의 상한은 전개된 구성원까지 센다', () => {
+  const BIG_ROOT = treeXml([{ type: 'FUGR/FF', name: 'Function Modules', nodeId: '000012' }]);
+  const modules = (count: number): string =>
+    treeXml(
+      Array.from({ length: count }, (_, i) => ({
+        type: 'FUGR/FF',
+        name: `Z_FM_${i}`,
+        uri: `/sap/bc/adt/functions/groups/zfg_big/fmodules/z_fm_${i}`,
+      })),
+    );
+  const responder = (count: number) =>
+    csrfAware((request) => {
+      const url = new URL(request.url);
+      if (url.pathname === NODE_PATH) {
+        return { body: url.searchParams.get('node_id') === '000012' ? modules(count) : BIG_ROOT };
+      }
+      if (url.pathname.includes('/fmodules/')) return { body: "FUNCTION x.\n  WRITE 'y'.\nENDFUNCTION." };
+      return { body: "REPORT zprog_ok.\nWRITE 'x'." };
+    });
+  const memberReads = (requests: Parameters<typeof toolRequests>[0]): string[] =>
+    toolRequests(requests)
+      .map((request) => new URL(request.url).pathname)
+      .filter((pathname) => pathname.includes('/fmodules/'));
+
+  it('상한을 넘는 그룹은 구성원을 하나도 읽지 않고 skipped에 수와 이유를 싣는다 — 다른 항목은 그대로 훑는다', async () => {
+    const { outcome, requests } = await runTool(
+      grepObjects,
+      {
+        objects: [
+          { object_type: 'FUGR', object_name: 'zfg_big' },
+          { object_type: 'PROG', object_name: 'zprog_ok' },
+        ],
+        pattern: 'WRITE',
+      },
+      responder(MAX_SCANNED_OBJECTS + 1),
+    );
+
+    expect(outcome.isError).toBe(false);
+    const aggregate = JSON.parse(outcome.text) as Aggregate;
+    expect(aggregate.total_matches).toBe(1);
+    expect(aggregate.results.map((entry) => entry.object_name)).toEqual(['zprog_ok']);
+    expect(aggregate.skipped).toEqual([
+      {
+        object: 'FUGR zfg_big',
+        reason: expect.stringContaining(
+          `Function group ZFG_BIG expands to ${MAX_SCANNED_OBJECTS + 1} function modules and includes, which would exceed the cap of ${MAX_SCANNED_OBJECTS} scanned objects per call`,
+        ),
+      },
+    ]);
+    // 부분만 훑지 않는다 — 구성원 소스는 한 벌도 읽지 않았다.
+    expect(memberReads(requests)).toEqual([]);
+  });
+
+  it('상한 안이면(경계: 정확히 상한만큼) 전부 훑는다', async () => {
+    const { outcome, requests } = await runTool(
+      grepObjects,
+      // max_results(기본 100)는 일치 수의 상한이라 여기서는 넉넉히 준다 — 재는 것은 훑은 오브젝트 수다.
+      { objects: [{ object_type: 'FUGR', object_name: 'zfg_big' }], pattern: 'WRITE', max_results: 1000 },
+      responder(MAX_SCANNED_OBJECTS),
+    );
+
+    const aggregate = JSON.parse(outcome.text) as Aggregate;
+    expect(aggregate.skipped).toEqual([]);
+    expect(aggregate.results).toHaveLength(MAX_SCANNED_OBJECTS);
+    expect(memberReads(requests)).toHaveLength(MAX_SCANNED_OBJECTS);
   });
 });

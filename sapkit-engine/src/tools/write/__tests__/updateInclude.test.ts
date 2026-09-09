@@ -220,3 +220,38 @@ describe('UpdateInclude', () => {
     expect(harness.calls()).toHaveLength(0);
   });
 });
+
+// ── 리뷰 R1a 권고 4 — 유도한 그룹 주소에서 실패하면 유도 사실을 말한다 ──────────
+
+describe('장부 D143 — 유도한 그룹 주소에서 잠금이 실패하면 오류가 유도 사실을 말한다', () => {
+  it('함수그룹 인클루드의 잠금 실패에는 「이름에서 그룹을 유도해 그 주소로 잠갔다」가 붙는다', async () => {
+    const FG = '/sap/bc/adt/functions/groups/zfg_test/includes/lzfg_testf01';
+    harness = await startWriteHarness(((request, response) => {
+      if (request.path === FG && request.query.get('_action') === 'LOCK') return xml(response, '<err/>', 403);
+      response.statusCode = 500;
+      response.end(`예상하지 못한 요청: ${request.method} ${request.url}`);
+    }) as Parameters<typeof startWriteHarness>[0]);
+    const result = await invoke(updateInclude, harness, { include_name: 'lzfg_testf01', source_code: SOURCE });
+
+    expect(result.isError).toBe(true);
+    const text = textOf(result);
+    expect(text).toContain('at step=lock');
+    expect(text).toContain(
+      `function group ZFG_TEST was derived from the include name and the lock was sent to the function-group include address ${FG}`,
+    );
+    expect(text).toContain('if LZFG_TESTF01 is a standalone include, that derivation misrouted it');
+  });
+
+  it('독립 인클루드의 잠금 실패에는 그 말이 없다 (구 문구 그대로)', async () => {
+    harness = await startWriteHarness(((request, response) => {
+      if (request.path === BASE && request.query.get('_action') === 'LOCK') return xml(response, '<err/>', 403);
+      response.statusCode = 500;
+      response.end(`예상하지 못한 요청: ${request.method} ${request.url}`);
+    }) as Parameters<typeof startWriteHarness>[0]);
+    const result = await invoke(updateInclude, harness, { include_name: 'zinc01', source_code: SOURCE });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('at step=lock');
+    expect(textOf(result)).not.toContain('derived from the include name');
+  });
+});

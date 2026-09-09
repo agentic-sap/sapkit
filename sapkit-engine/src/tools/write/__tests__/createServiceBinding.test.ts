@@ -15,6 +15,7 @@
 
 import type { ToolResult } from '../../../server';
 import { createServiceBinding } from '../createServiceBinding';
+import { bindingTypeAvailabilityKey } from '../internal/serviceBinding';
 import {
   type WriteHarness,
   activationBody,
@@ -49,6 +50,8 @@ function bindingTypes(entries: ReadonlyArray<{ name: string; description: string
 const BOTH_TYPES = bindingTypes([
   { name: 'ODATA', description: '1', data: 'ODATA V2' },
   { name: 'ODATA', description: '1', data: 'ODATA V4' },
+  // L-001 JNC 실측: V4는 category 0(UI)·1(Web API)로 두 번 온다 — UI 게이트(D147 · 리뷰 R1b ①)가 0 변종을 찾는다.
+  { name: 'ODATA', description: '0', data: 'ODATA V4' },
 ]);
 
 interface Overrides {
@@ -355,6 +358,30 @@ describe('종류 게이트 — ①에서 막히면 아무것도 만들지 않는
     } finally {
       await harness.close();
     }
+  });
+
+  it('D147 — binding_category: UI는 category 0 변종을 묻는다: Web API 변종만 있으면 막히고 아무것도 만들지 않는다 (리뷰 R1b 차단 ①)', async () => {
+    const harness = await harnessFor({
+      types: bindingTypes([{ name: 'ODATA', description: '1', data: 'ODATA V4' }]),
+    });
+    try {
+      const result = await run(harness, { ...ARGS, binding_category: 'UI' });
+      expect(result.isError).toBe(true);
+      expect(textOf(result)).toBe(
+        'Error: Binding type ODATA/V4 is not available on current ADT system for the UI contract (srvb:category 0)',
+      );
+      expect(harness.calls()).toHaveLength(1);
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it('D147 — 열쇠의 가운데 칸이 계약이다: WEB_API는 구와 바이트 동일한 열쇠, UI는 0', () => {
+    expect(bindingTypeAvailabilityKey('ODATA', 'V4', '1')).toBe('ODATA:1:ODATA V4');
+    expect(bindingTypeAvailabilityKey('ODATA', 'V2', '1')).toBe('ODATA:1:ODATA V2');
+    expect(bindingTypeAvailabilityKey('SQL', 'V1', '1')).toBe('SQL:1:SQL');
+    expect(bindingTypeAvailabilityKey('ODATA', 'V4', '0')).toBe('ODATA:0:ODATA V4');
+    expect(bindingTypeAvailabilityKey('INA', 'V1', '0')).toBe('INA:0:INA');
   });
 });
 

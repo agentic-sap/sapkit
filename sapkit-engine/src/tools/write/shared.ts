@@ -149,13 +149,15 @@ export function describeFailure(error: unknown): string {
  * 2026-08-05 — 사용자가 SM12를 확인했으나 잠금은 없었다), 태스크 번호를 넘기면 같은
  * 문구로 HTTP 500이다(ZUNIVAT-MODI 도메인노트 · 2026-08-10 — 상위 요청 번호로 통과).
  * 둘 다 잠금이 아닌데 문구가 잠금이라 말하므로 힌트를 덧붙인다. **원문은 그대로**
- * 두고 뒤에 붙일 뿐이다. 문구는 로그온 언어를 따르므로 세 언어를 본다.
+ * 두고 뒤에 붙일 뿐이다. 문구는 로그온 언어를 따르므로 세 언어를 본다. 힌트는
+ * 「먼저 확인하라」이지 단정이 아니다 — 진짜 남의 잠금이 같은 문구로 올 수 있다
+ * (실측 2건이 전부라 그 갈래는 배제되지 않았다 · 리뷰 R1a 권고 1).
  */
 const CTS_LOCK_PHRASE =
   /already locked in (?:request|task)|locked in (?:request|task)\s+[A-Z0-9]+|이미\s*잠겨\s*있습니다|bereits (?:in|im) (?:Auftrag|Aufgabe)[^\n]*gesperrt/i;
 
 export const CTS_LOCK_HINT =
-  'Hint: this CTS message usually means transport_request was omitted or is a task number — not a lock held by another user. Pass the parent request number (E070.STRKORR of the task) as transport_request and retry before asking anyone to release a lock.';
+  'Hint: check this first — this CTS message often means transport_request was omitted or is a task number, not a lock held by another user. Pass the parent request number (E070.STRKORR of the task) as transport_request and retry before asking anyone to release a lock.';
 
 /** 오류가 CTS 잠금 문구를 담고 있으면 힌트를, 아니면 `undefined`를 돌려준다. */
 export function ctsLockHint(error: unknown): string | undefined {

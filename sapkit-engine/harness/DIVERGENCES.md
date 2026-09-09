@@ -3142,6 +3142,12 @@ D141·D142·D143만 옮겼다** — D144·D146은 진단 문구(사람용 장부
   `not_executed`로 답했는지 본다. `harness/replay/__tests__/divergences.test.ts` 「D141」 절 4건.
 - **실기에서 확인할 것**: `checked:true, activated:false, generated:true`인 정상 런이 실재하는지
   (그 모양이 예전 주석의 근거였다 — 없다면 `executed`를 `activated`만으로 더 조일 수 있다).
+- **리뷰 회수(R1a 권고 2 · 2026-09-09)**: 위 「근거」의 「처방까지 실측」은 과했다 — 원문(패키지맵
+  §12-g · 피드백 09-04 2차)은 **왜 풀렸는지 단정하지 않는다**. 같은 시각 사용자의 GUI 활성화, 앞서
+  고친 구문오류, 전체 소스 다시 쓰기 셋 중 무엇이 결정적이었는지 가르지 못했다. 그래서 처방은
+  2단계다: **전체 소스 쓰기 → 그래도 안 되면 SE38/SE80에서 사람이 활성화**. 응답의 처방 문구
+  (`NOT_EXECUTED` 메시지)와 `activateObjects.ts` 머리주석에 같은 취지를 적었다. 덧말표의 덧말은
+  그대로다(「which has cleared this state in practice」 — 실제로 풀린 것은 사실이고 원인만 미확정이다).
 
 ### D142 — `UpdateSourceByPatch`가 **비활성 판을 먼저 읽고**, 줄바꿈을 정규화하고, 유일성 오류에 위치를 싣고, `match_whole_line`을 받고, FUNC·INTF를 배선한다
 
@@ -3194,6 +3200,26 @@ D141·D142·D143만 옮겼다** — D144·D146은 진단 문구(사람용 장부
   본문을 그대로 주는지(둘 다 다루지만 응답의 `source_version_read`가 뜻하는 바가 달라진다) ·
   CRLF 복원본을 SAP이 그대로 받는지 · FUNC 위임의 `corrNr=local`이 이송 대상 FM에서 어떻게
   거절되는지.
+- **리뷰 회수(R1a 권고 3·5·6 + 확인 못 한 것 1 · 2026-09-09)**:
+  - ⓐ **와이어 부기** — 구 INCL 갈래는 읽기에 `version` 인자를 **아예 보내지 않았다**(CLAS·PROG만
+    `active`를 명시). 신은 폴백에서 INCL에도 `version=active`를 명시한다 — 읽기 와이어가 갈린다.
+    응답(소스 본문)은 같으므로 재생 대조에는 나타나지 않는다.
+  - ⓐ **버려진 초안 위험** — 비활성 판은 **다른 사람의 버려진 초안**일 수 있고, 그 위에 패치하고
+    `activate:true`면 그 초안까지 활성화된다. 도구는 이를 가려낼 수 없다(비활성 판의 작성자는 소스에
+    없다). 덧말표의 설명 꼬리에 한 문장을 더했다(「An existing inactive version may contain edits you
+    did not make … `source_version_read` tells you which version was patched」). **실기에서 확인할
+    것**에 더한다: 남이 만든 비활성 판이 있는 오브젝트에 `activate:true` 패치가 실제로 그 초안까지
+    활성화하는지.
+  - ⓐ **빈 본문 방어** — `version=inactive`가 404 대신 **200 + 빈 본문(공백뿐)**을 줄 가능성(실기
+    미확인)을 닫아 두면 모든 패치가 `old_string not found`로 죽는다. 폴백 조건에 「본문이 비었다」를
+    더해 활성으로 넘어가고 `source_version_read: 'active'`를 적는다. 시험 1건.
+  - **`diff_preview` 표시 결함(선재 · 수리)** — `oldBlock = old_string.split('\n').length`는 개행으로
+    끝나는 `old_string`에서 1이 과대해 지우지 않은 다음 줄을 `-`/`+`로 그렸다(리뷰 재현:
+    `'A\n  X.\nB\n'`에서 `'  X.\n'`을 지우면 `-B`/`+B`). 실제 치환 구간이 걸친 줄 수로 고쳤다.
+    **PUT 본문은 정확했다** — 진단 문구/표시의 수리다. 기계 장부 D142의 검사(`diff_preview`를 CR만 뺀 채
+    글자 대조)는 그대로 둔다: 개행으로 끝나는 `old_string`을 담은 구 채록분이 생기면 그 자리는
+    `allowlisted-fail`로 사람에게 올라오고 이 문단이 답이다(지금 있는 채록분 `fixtures/zsapkit-m1-patch-activate.json`의
+    `old_string`은 개행으로 끝나지 않아 영향이 없다). 시험 2건.
 
 ### D143 — `UpdateInclude`·`UpdateSourceByPatch(INCL)`가 **함수그룹 인클루드를 그룹 주소로** 잠근다
 
@@ -3219,6 +3245,12 @@ D141·D142·D143만 옮겼다** — D144·D146은 진단 문구(사람용 장부
 - **실기에서 확인할 것**: 이 주소로 잠금이 실제로 성립하는지 · `SAPL<그룹>`을 `main_program`으로
   준 사전검사가 artifact URI를 그룹 주소로 받는지 · 이름공간(`/NS/`) 함수그룹의 인클루드 이름은
   이 규칙 밖이다(그 경우는 여전히 독립 주소로 가서 403이 난다 — 다음 판의 몫).
+- **리뷰 회수(R1a 권고 4 · 통합 I1 부수 2 · 2026-09-09)**: ⓐ 유도된 그룹 주소에서 **잠금이 실패하면**
+  오류에 「이름에서 그룹 `<G>`를 유도해 그 주소로 잠갔다 — 독립 인클루드면 그 유도가 오라우팅한 것」을
+  얹는다(`updateInclude.ts`의 catch · `step=lock`일 때만). 오분류가 났을 때 실패가 원인을 시사해야
+  한다. 시험 2건. ⓑ 기계 장부의 `tool`이 `null`이라 대장 「대체」 열이 `UpdateInclude`·`UpdateSourceByPatch`
+  어디에도 귀속되지 않았다(I1 실측) — D150과 같은 모양으로 주 도구를 `UpdateInclude`로 두고 `applies`만
+  두 도구를 든다. 대장을 재생성했다.
 
 ### D144 — CTS 잠금 문구에 **`transport_request` 힌트**를 덧붙인다 (진단 문구 · 기계 장부 밖)
 
@@ -3349,6 +3381,16 @@ category 1 고정). `ListServiceBindingTypes`의 `nameditem:description`이 같�
 
 **실기 미검증** — UI 계약 생성이 실제로 서는지, 되읽기의 `srvb:contract`가 어떻게 오는지.
 
+**리뷰 회수(R1b 차단 ① · 2026-09-09)**: 종류 게이트 ①의 열쇠(`bindingTypeAvailabilityKey`)가 가운데
+칸에 `'1'`(Web API)을 박아 두어 `binding_category: 'UI'`여도 **Web API 변종의 존재**를 물었다 —
+`ListServiceBindingTypes`의 `nameditem:description`이 그 칸이고 V4는 0·1로 두 번 온다(L-001 JNC),
+SQL은 1만·INA는 0만이라 게이트가 엉뚱한 변종을 볼 자리였다. 셋째 인자 `categoryCode`를 받아
+가운데 칸에 넣는다 — `WEB_API`면 `'1'`이라 구와 바이트 동일, `UI`면 `'0'`. UI에서 막히면 오류 문구에
+「for the UI contract (srvb:category 0)」를 붙인다(WEB_API의 문구는 구 그대로). 시험 2건(UI가 `0` 열쇠를
+묻는지 · WEB_API 열쇠가 구와 같은지 — 시험의 종류 목록에 V4 category 0 항목을 더했다). 기계 장부
+D147은 응답 키만 재므로 갈리지 않는다. **실기 미검증** — 종류 목록에 V4 category 0 항목이 실제로
+오는지는 L-001의 한 시스템에서만 봤다.
+
 ### D148 — `UpdateServiceBinding`·`DeleteServiceBinding`이 `allowedAction` **부재**를 거부하지 않는다 (수리 · 백로그 13-6)
 
 **분류**: 수리 · **도구**: `UpdateServiceBinding` · `DeleteServiceBinding`(사전 걸음)
@@ -3446,6 +3488,21 @@ precheck가 FIXPT 계열로 실패하고 저장된 판이 깨끗하면 쓰기를
 2건), 기계 장부 D150의 `applies`를 두 도구로 넓혔다(`harness/replay/__tests__/divergences.test.ts`
 「D150」 4건). 실기 미검증.
 
+**리뷰 회수(R1b 차단 ② 확인 · 권고 4 · 2026-09-09)**: ⓐ 차단 ②(패치 도구가 넘어 쓴 표식을 잃는다)는
+통합 커밋 `6433f7a`가 이미 해결했다 — `updateSourceByPatch.ts`가 위임 응답의 `precheck_overridden`·
+`precheck_messages`·`precheck_note`를 그대로 싣고(시험 「장부 D150」 2건) 위 통합 주석이 「위임으로 이미
+적용된다」로 서술한다. 재확인만 했다. ⓑ **넘어 쓴 갈래에서 사후검사가 `type:'E'`를 내면 성공이
+아니다** — 그 갈래에서는 사후검사가 유일한 구문 판정이므로 `success`를 실패로 되돌리되
+(`SourceCheckFailure`), 오류 문구에 「소스는 비활성으로 저장됐고 활성화하지 않았다 · 활성 판은 그대로 ·
+사람이 봐야 한다」를 명시한다. 활성화 요청은 보내지 않는다. **넘어 쓰지 않은 갈래는 구 그대로다**
+(사후검사 오류는 `check_warnings`로 실리고 쓰기는 성공 — 사전검사가 제안 소스를 이미 통과시켰다).
+기존 시험 「사후검사 오류는 check_warnings로 그대로」를 그 갈래에 맞게 실패 기대로 갱신하고 「경고만이면
+성공」·「넘어 쓰지 않은 갈래는 구 그대로」 2건을 더했다. `UpdateSourceByPatch(PROG)`는 위임이므로 같은
+실패가 그대로 올라온다. 기계 장부 D150의 검사(「신이 `precheck_overridden` 성공이거나 precheck 거부」)에
+이 새 실패 갈래(사후검사 거부)는 들지 않아 **`allowlisted-fail`로 사람에게 올라온다 — 의도한 것이다**:
+구가 FIXPT로 막던 자리에서 신이 저장까지 하고 사후검사에 걸렸다면 그 소스는 실제로 틀린 것이고
+그 픽스처는 사람이 봐야 한다.
+
 ### D151 — `GrepObjects`가 FUGR를 전개해서 훑는다 (수리)
 
 **분류**: 수리 · **도구**: `GrepObjects`
@@ -3474,6 +3531,19 @@ FM 본문에 실재하는 문자열에도 `total_matches: 0 · skipped: []`였�
 **실기 미검증** — FUGR 노드 구조의 실제 모양(묶음 마디의 타입·이름 · 잎의 URI 형태)은
 짐작이다. 첫 실접속에서 `GetObjectInfo(FUGR/F, …, maxDepth 2)`로 그 모양을 먼저 뜰 것.
 
+**리뷰 회수(R1b 권고 1·7 · R2 · 2026-09-09)**: ⓐ **상한** — `MAX_OBJECTS`(50)는 요청 항목에만 걸려 큰
+함수그룹 하나가 수백 왕복을 만들 수 있었다. 전개된 구성원까지 세는 `MAX_SCANNED_OBJECTS`(200)를
+두었다: 요청 순서로 예산을 쓰고, 넘치는 그룹은 **구성원을 하나도 읽지 않고** `skipped`에 구성원 수와
+이유를 싣는다(부분만 훑어 「봤는데 없다」로 읽히는 것보다 낫다). 전개(노드 구조)와 구성원 읽기를 두
+단계로 갈라 어느 그룹이 잘리는지가 결정적이다. 시험 2건(초과 · 경계 200). ⓑ **행동 변화 등재** —
+`classifySourceType('FUGR/I')`가 `'FUGR'`로 분류되므로 `object_type: 'FUGR/I'`에 인클루드 이름을 준
+요청은 그 이름을 **함수그룹으로 전개**하려 들고, 노드 구조가 비어 `skipped`(「expanded to no function
+modules or includes」)로 끝난다. 구는 `functionGroupPath(name)`(그룹 메타데이터 GET)으로 갔다 — 어느
+쪽도 인클루드 소스를 읽지 않지만 와이어와 `skipped` 문구가 갈린다. 인클루드는 `INCL`로 주는 것이
+계약이고, `FUGR/I` 갈래를 인클루드 읽기로 바로잡는 것은 이 판의 범위 밖이다(실사용 제보 없음).
+ⓒ 덧말에 「활성 판을 읽는다 — 0건을 「소스에 없다」로 읽기 전에 `GetInactiveObjects`를 본다」(원 제보
+08-19 4차의 핵심)와 상한을 더했다.
+
 ### D152 — `GetTypeInfo`가 4xx 「그 종류가 아니다」 계열도 다음 후보로 넘긴다 (수리)
 
 **분류**: 수리 · **도구**: `GetTypeInfo`
@@ -3495,6 +3565,14 @@ FM 본문에 실재하는 문자열에도 `total_matches: 0 · skipped: []`였�
 등재된 차이다).
 
 **실기 미검증** — 422가 나는 정확한 응답 본문은 채록되지 않았다.
+
+**리뷰 회수(R1b 권고 5 · 2026-09-09)**: ⓐ 폴백 트리거에서 **400을 뺐다**(`{404, 405, 406, 415, 422}`) —
+실측은 422뿐이고, 400은 「요청이 틀렸다」라 후보를 바꿔도 같을 수 있는데 삼키면 그 원인이 가려진다.
+기계 장부의 표식 정규식도 같은 집합이다. ⓑ 후보가 전부 실패하면 최종 오류 문구에 **삼킨 상태 코드
+목록**을 병기한다(「Candidates answered: domain HTTP 422, data element HTTP 404, …」) — 404만 삼켰으면
+구 그대로의 문구다. 그래서 기계 장부 D152의 「신도 같은 상태로 죽었다」 판정은 `ADT error:` 봉투에서만
+상태 코드를 찾는다(병기된 숫자를 죽음으로 오판하지 않게). ⓒ 덧말에 「채록된 `include_structure_fallback`
+설명의 '404/empty'는 이 덧말이 정정한다」를 더했다. 시험 2건 + 기계 장부 시험 4건.
 
 ### D153 — `ReloadProfile`이 배포 축 변경 때 도구 목록을 **다시 발행**한다 (수리)
 
@@ -3564,7 +3642,8 @@ BIL을 손으로 재구성했다. 정답 도구 `GetLocalTypes`는 처음부터 
 | `GetInclude` | 클래스 인클루드는 이 경로가 아니다 → `GetLocalTypes`·`GetLocalDefinitions`·`GetLocalMacros`·`GetLocalTestClass` | 13-8 ⓐ |
 | `GetIncludesList` | CLAS/OC는 "No includes" → 같은 넷 | 13-8 ⓐ |
 | `ReadClass` · `GetBehaviorImplementation` · `ReadBehaviorImplementation` | `source/main`뿐 — 구현부(CCIMP)는 `GetLocalTypes` | 13-8 ⓐ · 피드백 07-31 ① |
-| `GrepObjects` | 대소문자 · 「0건 = 이 패턴으로 못 찾음」 · CLAS는 main만(건너뜀 표시도 없다) · FUGR 전개 | 피드백 08-19 (4차) · 13-8 ⓒ |
+| `GrepObjects` | 대소문자 · 「0건 = 이 패턴으로 못 찾음」 · CLAS는 main만(건너뜀 표시도 없다) · FUGR 전개 · **활성 판을 읽는다 — 0건이면 `GetInactiveObjects`부터** · 전개 후 200 상한 (리뷰 회수) | 피드백 08-19 (4차) · 13-8 ⓒ |
+| `UpdateSourceByPatch` · `GetInclude` · `GetIncludesList` · `ReadClass` · `GetBehaviorImplementation` · `ReadBehaviorImplementation` | 리뷰 회수(2026-09-09): 비활성 판은 남의 초안일 수 있다(`source_version_read`) · `GetLocal*` 넷은 **development 표면**에 있다(`toolSurface: development` — readonly만으로는 안 보인다. 원 사고의 진짜 원인이 readonly 표면 오진이었다) | R1a 권고 3 · R1b R3 |
 | `CreateUnitTest` | 작성 도구가 아니라 `RunUnitTest`와 같은 실행 시작 도구 | 피드백 07-30 |
 | `CreateServiceBinding` · `UpdateServiceBinding` · `DeleteServiceBinding` · `CheckSyntax` · `UpdateProgram` · `GetTypeInfo` · `ReloadProfile` | 위 D147~D153의 계약 | — |
 

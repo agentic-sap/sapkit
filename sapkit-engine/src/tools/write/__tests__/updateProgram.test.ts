@@ -353,7 +353,7 @@ describe('D150 — 인라인 precheck가 FIXPT 계열로 실패하고 저장된 
     expect(harness.calls().some((call) => call.method === 'PUT')).toBe(false);
   });
 
-  it('넘어 쓴 뒤의 사후검사 오류는 check_warnings로 그대로 실린다 — 진짜 판정은 거기와 활성화다', async () => {
+  it('넘어 쓴 뒤의 사후검사 오류는 실패로 되돌아온다 — 소스는 비활성으로 저장됐고 활성화하지 않는다 (리뷰 R1b 권고 4)', async () => {
     harness = await startWriteHarness(
       fixptResponder({
         inline: fixptCheckRun(),
@@ -361,11 +361,41 @@ describe('D150 — 인라인 precheck가 FIXPT 계열로 실패하고 저장된 
         post: failingCheckRun('Statement is not valid here', '77'),
       }),
     );
+    const result = await invoke(updateProgram, harness, {
+      program_name: 'ZPROG',
+      source_code: SOURCE,
+      activate: true,
+    });
+
+    expect(result.isError).toBe(true);
+    const text = textOf(result);
+    expect(text).toContain('pre-check was overridden as a fixed-point-arithmetic false positive (D150)');
+    expect(text).toContain('[L77] Statement is not valid here');
+    expect(text).toContain('saved on SAP as an inactive version and was NOT activated');
+    // PUT은 나갔고(소스는 저장됐다) 활성화는 나가지 않았다 — 사후검사가 이 갈래의 유일한 판정이다.
+    expect(harness.calls().some((call) => call.method === 'PUT')).toBe(true);
+    expect(harness.calls().some((call) => call.path === '/sap/bc/adt/activation')).toBe(false);
+    expect(harness.client.activeLocks()).toHaveLength(0);
+  });
+
+  it('넘어 쓴 뒤 사후검사가 경고만 내면 성공이다 — 경고는 check_warnings다', async () => {
+    harness = await startWriteHarness(
+      fixptResponder({ inline: fixptCheckRun(), stored: cleanCheckRun(), post: warningCheckRun('Obsolete statement') }),
+    );
     const result = await invoke(updateProgram, harness, { program_name: 'ZPROG', source_code: SOURCE });
     expect(result.isError).toBe(false);
-    const warnings = jsonOf(result).check_warnings as Array<Record<string, unknown>>;
-    expect(warnings).toEqual([expect.objectContaining({ type: 'E', text: 'Statement is not valid here' })]);
     expect(jsonOf(result).precheck_overridden).toBe(true);
+    expect(jsonOf(result).check_warnings).toEqual([expect.objectContaining({ type: 'W', text: 'Obsolete statement' })]);
+  });
+
+  it('넘어 쓰지 않은 갈래의 사후검사 오류는 구 그대로 check_warnings에 실리고 쓰기는 성공이다 (그 갈래 한정의 역검증)', async () => {
+    harness = await startWriteHarness(responder({ postCheck: failingCheckRun('Statement is not valid here', '77') }));
+    const result = await invoke(updateProgram, harness, { program_name: 'ZPROG', source_code: SOURCE });
+    expect(result.isError).toBe(false);
+    expect(jsonOf(result)).not.toHaveProperty('precheck_overridden');
+    expect(jsonOf(result).check_warnings).toEqual([
+      expect.objectContaining({ type: 'E', text: 'Statement is not valid here' }),
+    ]);
   });
 
   it('activate:true면 넘어 쓴 뒤 활성화 실패가 여전히 실패로 되돌아온다', async () => {

@@ -210,9 +210,11 @@ export const createServiceBinding = defineTool(
         timeout: 'default',
       });
       const available = extractAvailableBindingTypes(types.body);
-      if (!available.has(bindingTypeAvailabilityKey(bindingType, bindingVersion))) {
+      // 열쇠의 가운데 칸이 계약(category)이다 — UI면 `0` 변종의 존재를 묻는다(D147 · 리뷰 R1b ①).
+      if (!available.has(bindingTypeAvailabilityKey(bindingType, bindingVersion, categoryCode))) {
         throw new Error(
-          `Binding type ${bindingType}/${bindingVersion} is not available on current ADT system`,
+          `Binding type ${bindingType}/${bindingVersion} is not available on current ADT system` +
+            (bindingCategory === 'UI' ? ' for the UI contract (srvb:category 0)' : ''),
         );
       }
 

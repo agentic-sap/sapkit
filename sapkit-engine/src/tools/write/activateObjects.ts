@@ -23,6 +23,10 @@
  * `checked`가 둘 다 거짓이면 런 미실행으로 판정해 `success:false` ·
  * `run_executed:false` · 오브젝트 `status:"not_executed"`를 내고, 사람이 읽을
  * 처방(재시도 대신 전체 소스 다시 쓰기 — 같은 날 그것으로 풀렸다)을 싣는다.
+ * 다만 **무엇이 풀었는지는 단정하지 않는다** — 같은 시각의 사용자 GUI 활성화, 앞서 고친
+ * 구문오류, 전체 소스 다시 쓰기 셋 중 무엇이 결정적이었는지 원문(패키지맵 §12-g ·
+ * 피드백 09-04 2차)이 가르지 못했다. 그래서 처방은 2단계다: 전체 소스 쓰기 → 그래도
+ * 안 되면 SE38/SE80에서 사람이 활성화.
  * 되묻기(오라클)도 건너뛴다 — 확인할 성공이 없다.
  *
  * 구 구현: `engine/src/lib/localGroupActivation.ts` + 그 핸들러.
@@ -300,7 +304,8 @@ export function parseActivationResults(
 export const ACTIVATION_RUN_NOT_EXECUTED =
   'Activation run did not execute (activationExecuted=false, checkExecuted=false) — nothing was activated, regardless of the per-object entries. ' +
   "Confirm with REPOSRC.R3STATE (an 'I' row means still inactive; GetInactiveObjects may not list the object). " +
-  'If this repeats, do not retry the run — rewrite the full source with UpdateInclude (main_program set) or UpdateClass, activate:true, instead.';
+  'If this repeats, do not retry the run — rewrite the full source with UpdateInclude (main_program set) or UpdateClass, activate:true, instead; ' +
+  'if that does not clear it either, have a person activate the object in SE38/SE80 (what cleared this state in practice was not isolated to one cause).';
 
 /**
  * 활성화 실행이 정말 먹었는지 서버에 되묻는다. 아직 비활성이면 그 오브젝트는

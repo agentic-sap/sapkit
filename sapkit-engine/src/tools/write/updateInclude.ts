@@ -166,8 +166,14 @@ export const updateInclude = defineTool(
     } catch (error) {
       const message = describeFailure(error);
       logger.error(`Error updating include ${includeName} at step=${currentStep}: ${message}`);
+      // 장부 D143 — 이름에서 유도한 그룹 주소로 잠그다 실패했으면 그 사실을 말한다. 유도가
+      // 틀렸을 때(독립 인클루드가 우연히 L…F01 꼴) 실패가 원인을 시사해야 한다.
+      const routing =
+        functionGroup !== undefined && currentStep === 'lock'
+          ? ` — function group ${functionGroup} was derived from the include name and the lock was sent to the function-group include address ${baseUri}; if ${includeName} is a standalone include, that derivation misrouted it (name rule L<group>TOP|UXX|<X><nn>)`
+          : '';
       return errorResult(
-        `Failed to update include ${includeName} at step=${currentStep}: ${message}`,
+        `Failed to update include ${includeName} at step=${currentStep}: ${message}${routing}`,
       );
     }
   },

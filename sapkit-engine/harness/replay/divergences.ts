@@ -719,10 +719,26 @@ function oldRefusedUnknownAllowedAction(step: SequenceStep): boolean {
   return step.isError && /allowedAction=UNKNOWN/.test(collectText(step.response));
 }
 
-/** D149 — 구가 「오류 없는 실패」(`success:false · errors:[]`)로 답한 채록분인가. */
+/** D149 — include 잡음 「REPORT/PROGRAM 문이 없다 / 프로그램 타입이 INCLUDE」(쓰기 쪽 `isReportMissingNoise`와 같은 판정). */
+const REPORT_MISSING_NOISE = /REPORT\/?\s*PROGRAM statement is missing|program type is INCLUDE/i;
+function isReportMissingNoiseEntry(entry: JsonValue): boolean {
+  const text = typeof entry === 'string' ? entry : isPlainObject(entry) ? String(entry['text'] ?? entry['message'] ?? '') : '';
+  return REPORT_MISSING_NOISE.test(text);
+}
+
+/**
+ * D149 — 구가 **판정 없이 실패**라 답한 채록분인가. 두 갈래다:
+ *  ⓐ `success:false · errors:[]` — 오류 없는 실패.
+ *  ⓑ include인데 `success:false`이고 오류가 **전부** 위 잡음 — 컴파일할 문맥이 없다는 뜻이지
+ *     소스가 틀렸다는 뜻이 아니다(리뷰 R1b 권고 6). 신은 둘 다 `success:null`·`verdict:indeterminate`다.
+ * include가 아닌 종류의 잡음 오류는 신도 `errors`로 판정하므로 여기 걸리지 않는다.
+ */
 function oldWasVerdictlessFailure(response: JsonValue): boolean {
   const body = singleJsonBody(response);
-  return body !== null && body['success'] === false && Array.isArray(body['errors']) && body['errors'].length === 0;
+  if (body === null || body['success'] !== false || !Array.isArray(body['errors'])) return false;
+  if (body['errors'].length === 0) return true;
+  const isInclude = String(body['object_type'] ?? '').trim().toLowerCase() === 'include';
+  return isInclude && body['errors'].every(isReportMissingNoiseEntry);
 }
 
 /** D150 — 구가 거짓 FIXPT precheck로 쓰기를 막은 채록분인가. */
@@ -758,7 +774,8 @@ function nonFunctionGroupParts(body: { [key: string]: JsonValue }): { results: J
 }
 
 /** D152 — 구가 「다음 후보」 계열 4xx로 죽은 채록분인가. 상태 코드를 돌려준다. */
-const NEXT_CANDIDATE_STATUS = /\b(400|404|405|406|415|422)\b/;
+// 400은 없다 — 엔진도 400을 넘기지 않는다(리뷰 R1b 권고 5 · `getTypeInfo.ts`의 `NEXT_CANDIDATE_STATUSES`와 같은 집합).
+const NEXT_CANDIDATE_STATUS = /\b(404|405|406|415|422)\b/;
 function oldDiedOnNextCandidateStatus(step: SequenceStep): string | null {
   if (!step.isError) return null;
   const text = collectText(step.response);
@@ -1849,7 +1866,9 @@ export const M1_DIVERGENCES: readonly DivergenceEntry[] = [
   {
     id: 'D143',
     title: 'UpdateInclude·UpdateSourceByPatch — 함수그룹 인클루드를 그룹 주소로 잠근다 (구: 403)',
-    tool: null,
+    // 주 도구는 UpdateInclude다 — 대장의 「대체」 열 귀속은 이 칸을 본다(null이면 아무에게도 안 간다 —
+    // 통합 I1 실측). UpdateSourceByPatch(INCL)는 위임으로 같은 길을 타므로 `applies`만 두 도구를 든다(D150과 같은 모양).
+    tool: 'UpdateInclude',
     classification: '수리',
     status: 'active',
     evidence:
@@ -2013,7 +2032,7 @@ export const M1_DIVERGENCES: readonly DivergenceEntry[] = [
   },
   {
     id: 'D152',
-    title: 'GetTypeInfo — 4xx 「그 종류가 아니다」 계열(400·405·406·415·422)도 다음 후보로 넘긴다',
+    title: 'GetTypeInfo — 4xx 「그 종류가 아니다」 계열(405·406·415·422)도 다음 후보로 넘긴다',
     tool: 'GetTypeInfo',
     classification: '수리',
     status: 'active',
@@ -2027,7 +2046,9 @@ export const M1_DIVERGENCES: readonly DivergenceEntry[] = [
       const status = oldDiedOnNextCandidateStatus(recorded) ?? '?';
       if (!actual.isError) return { ok: true, detail: `구가 HTTP ${status}에서 죽은 자리에서 신은 다음 후보로 넘어가 답을 찾았다.` };
       const text = collectText(actual.response);
-      return new RegExp(`\\b${status}\\b`).test(text)
+      // 「죽었다」는 `ADT error:` 봉투다 — 신의 「못 찾았다」 문구는 삼킨 상태 코드를 병기하므로
+      // (R1b 권고 5) 숫자만 찾으면 그 문구를 죽음으로 오판한다.
+      return /ADT error: /.test(text) && new RegExp(`\\b${status}\\b`).test(text)
         ? { ok: false, detail: `신도 같은 HTTP ${status}로 죽었다 — 다음 후보로 넘어가지 않았다.` }
         : { ok: true, detail: `구가 HTTP ${status}에서 죽은 자리에서 신은 후보를 넘어갔고 다른 결과(미발견 또는 다른 오류)로 끝났다.` };
     },

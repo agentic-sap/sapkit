@@ -21,7 +21,7 @@ import {
   xml,
 } from './harness';
 import type { WriteHarness } from './harness';
-import { applySourcePatch, findWholeLineMatches, updateSourceByPatch } from '../updateSourceByPatch';
+import { applySourcePatch, buildDiffPreview, findWholeLineMatches, updateSourceByPatch } from '../updateSourceByPatch';
 
 const CLASS_LOWER = '/sap/bc/adt/oo/classes/zcl_test';
 const CLASS_UPPER = '/sap/bc/adt/oo/classes/ZCL_TEST';
@@ -585,5 +585,43 @@ describe('장부 D150 — PROG 위임은 UpdateProgram의 거짓 FIXPT precheck 
     expect(payload).not.toHaveProperty('precheck_overridden');
     expect(payload).not.toHaveProperty('precheck_messages');
     expect(payload).not.toHaveProperty('precheck_note');
+  });
+});
+
+// ── 리뷰 R1a 회수 — diff_preview 블록 계산 · 빈 비활성 본문 ────────────────────
+
+describe('리뷰 R1a — diff_preview는 실제 치환 구간의 줄 수로 그린다 (표시만의 결함 · PUT 본문은 무관)', () => {
+  it('개행으로 끝나는 old_string을 지워도 지우지 않은 다음 줄을 -/+로 그리지 않는다 (재현: A / X. / B)', () => {
+    const source = 'A\n  X.\nB\n';
+    const patch = applySourcePatch(source, '  X.\n', '', { replaceAll: false, matchWholeLine: false });
+    expect(patch.newSource).toBe('A\nB\n');
+    const preview = buildDiffPreview(source, patch.newSource, patch.firstMatchIndex, '  X.\n', '');
+    // 구 계산은 `-B` / `+B`를 찍었다 — B는 지운 적이 없다.
+    expect(preview.split('\n')).toEqual(['@@ -1,4 +1,3 @@', ' A', '-  X.', ' B', ' ']);
+  });
+
+  it('여러 줄을 여러 줄로 바꿀 때도 블록 크기는 치환 구간이 걸친 줄 수다', () => {
+    const source = 'A\n  X.\n  Y.\nB\n';
+    const patch = applySourcePatch(source, '  X.\n  Y.\n', '  Z.\n', { replaceAll: false, matchWholeLine: false });
+    const preview = buildDiffPreview(source, patch.newSource, patch.firstMatchIndex, '  X.\n  Y.\n', '  Z.\n');
+    expect(preview.split('\n')).toEqual(['@@ -1,5 +1,4 @@', ' A', '-  X.', '-  Y.', '+  Z.', ' B', ' ']);
+  });
+});
+
+describe('리뷰 R1a — 비활성 판이 200인데 본문이 비어 있으면 활성 판으로 떨어진다 (실기 미확인 방어)', () => {
+  it('공백뿐인 비활성 본문은 「없다」다 — 활성 판을 읽어 패치하고 source_version_read=active를 싣는다', async () => {
+    harness = await startWriteHarness(responder({ inactive: '  \n' }));
+    const result = await invoke(updateSourceByPatch, harness, {
+      object_type: 'CLAS',
+      object_name: 'ZCL_TEST',
+      old_string: 'DATA lv_x TYPE i.',
+      new_string: 'DATA lv_x TYPE string.',
+    });
+
+    expect(result.isError).toBe(false);
+    const reads = harness.calls().filter((call) => call.method === 'GET');
+    expect(reads.map((call) => call.query.get('version'))).toEqual(['inactive', 'active']);
+    expect(jsonOf(result).source_version_read).toBe('active');
+    expect(putBody()).toBe('CLASS zcl_test DEFINITION.\n  DATA lv_x TYPE string.\nENDCLASS.\n');
   });
 });

@@ -44,7 +44,7 @@ export function classIncludeRefusal(includeName: string): string | null {
   return (
     `Include "${includeName}" is a class include of ${className} (${suffix}), not a standalone include — ` +
     'the standalone-include path (/sap/bc/adt/programs/includes/) answers HTTP 500 for it. ' +
-    `Read it with ${reader}.`
+    `Read it with ${reader} — exposed on the development tool surface (toolSurface: development), not on readonly.`
   );
 }
 
@@ -54,7 +54,7 @@ export const getInclude = defineTool(
     // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D154.
     description:
       '[read-only] Retrieve source code of a specific ABAP include file.' +
-      " Class includes — names padded with '=' and ending in CCIMP, CCDEF, CCMAC or CCAU — are not standalone includes; this path answers HTTP 500 for them and the tool now refuses them up front. Read local types and the implementations include with GetLocalTypes, local definitions with GetLocalDefinitions, macros with GetLocalMacros, the test include with GetLocalTestClass.",
+      " Class includes — names padded with '=' and ending in CCIMP, CCDEF, CCMAC or CCAU — are not standalone includes; this path answers HTTP 500 for them and the tool now refuses them up front. Read local types and the implementations include with GetLocalTypes, local definitions with GetLocalDefinitions, macros with GetLocalMacros, the test include with GetLocalTestClass. All four are exposed on the development tool surface (toolSurface: development), not on readonly.",
     inputSchema: {
       include_name: z.string().describe('Name of the ABAP Include'),
     },

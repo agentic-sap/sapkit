@@ -14,10 +14,13 @@
  *
  * ## 실사용이 고친 다섯 자리 (D-147 · 장부 D142 · D143)
  *
- * 1. **읽는 판** — 비활성 판을 먼저 읽고 없으면(404·400) 활성으로 떨어진다. 구는
- *    언제나 활성을 읽어 `activate:false` 연속 패치의 앞 패치가 조용히 사라졌다
- *    (2시스템·5회 이상 실증 · 통제실험 2026-08-19 — `sapkit-feedback.md`). 응답의
- *    `source_version_read`가 어느 판을 읽었는지 말한다.
+ * 1. **읽는 판** — 비활성 판을 먼저 읽고 없으면(404·400 · 또는 200인데 본문이 비었다)
+ *    활성으로 떨어진다. 구는 언제나 활성을 읽어 `activate:false` 연속 패치의 앞 패치가
+ *    조용히 사라졌다(2시스템·5회 이상 실증 · 통제실험 2026-08-19 — `sapkit-feedback.md`).
+ *    응답의 `source_version_read`가 어느 판을 읽었는지 말한다. ⚠ 비활성 판은 **다른
+ *    사람의 버려진 초안**일 수 있다 — 그 위에 패치하고 `activate:true`면 그 초안까지
+ *    활성화된다. 도구는 그것을 가려낼 수 없고(비활성 판의 작성자는 소스에 없다),
+ *    설명문이 그 위험을 말하며 `source_version_read`가 사후 확인의 단서다.
  * 2. **줄바꿈** — SAP 소스는 CRLF, 인자는 LF라 여러 줄 `old_string`은 원리적으로
  *    안 맞았다(2026-07-29 · 08-03). 매칭은 LF로 정규화해 하고, 되쓸 때 소스의 원래
  *    EOL로 복원한다 — 혼합 EOL 파일을 만들지 않는다(구는 새 줄만 LF로 심었다).
@@ -225,8 +228,14 @@ export function buildDiffPreview(
   const newLines = newSource.split('\n');
 
   const startLine = oldSource.slice(0, matchIndex).split('\n').length; // 1-based
-  const oldBlock = oldString.split('\n').length;
-  const newBlock = newString.split('\n').length;
+  // 블록 크기는 **실제 치환 구간이 걸친 줄 수**다 — `old_string.split('\n').length`로 세면
+  // 개행으로 끝나는 `old_string`에서 1이 과대해 지우지 않은 다음 줄까지 `-`로 그렸다
+  // (리뷰 R1a 재현: `'A\n  X.\nB\n'`에서 `'  X.\n'`을 지우면 `-B`/`+B`가 잘못 찍혔다).
+  // PUT 본문은 이 계산과 무관하다 — 표시만의 결함이었다.
+  const lastLineOf = (text: string, from: number, length: number): number =>
+    lineNumberAt(text, Math.max(from, from + length - 1));
+  const oldBlock = lastLineOf(oldSource, matchIndex, oldString.length) - startLine + 1;
+  const newBlock = newString === '' ? 0 : lastLineOf(newSource, matchIndex, newString.length) - startLine + 1;
 
   const oldStart = Math.max(1, startLine - contextLines);
   const oldEnd = Math.min(oldLines.length, startLine + oldBlock - 1 + contextLines);
@@ -273,12 +282,15 @@ interface CurrentSource {
 /**
  * 비활성 판을 먼저, 없으면 활성 판을 읽는다(머리주석 1).
  *
- * 「없다」는 404, 그리고 `version=inactive`를 모르는 구형 시스템의 400으로 본다.
+ * 「없다」는 404, `version=inactive`를 모르는 구형 시스템의 400, 그리고 **200인데 본문이
+ * 비었다(공백뿐)**로 본다 — 비활성 판이 없을 때 404 대신 빈 본문을 주는 시스템이 있을
+ * 가능성(실기 미확인)을 닫아 두지 않으면 모든 패치가 `old_string not found`로 죽는다.
  * 그 밖의 실패(권한·잠금·네트워크)는 그대로 올린다 — 폴백이 원인을 가리면 안 된다.
  */
 async function fetchCurrentSource(client: AdtClient, uri: string): Promise<CurrentSource> {
   try {
-    return { source: await getSource(client, uri, 'inactive'), version: 'inactive' };
+    const source = await getSource(client, uri, 'inactive');
+    if (source.trim().length > 0) return { source, version: 'inactive' };
   } catch (error) {
     const status = error instanceof AdtError ? error.status : undefined;
     if (status !== 404 && status !== 400) throw error;
@@ -334,7 +346,7 @@ export const updateSourceByPatch = defineTool(
   {
     name: 'UpdateSourceByPatch',
     description:
-      'Modify existing ABAP source code on SAP via a surgical string replacement (find old_string, replace with new_string) instead of resending the full source. Fetches the current source, applies the patch, then delegates the write to the same lock -> syntax-check -> update -> unlock -> (activate) flow used by UpdateClass/UpdateProgram/UpdateInterface/UpdateInclude/UpdateFunctionModule. Supported object_type values: CLAS (class), PROG (program, on-premise/legacy only), INTF (interface), INCL (include, on-premise/legacy only), FUNC (function module, requires function_group). old_string must match the current source exactly, including whitespace, and must be unique unless replace_all is true. Reads the inactive version first and falls back to the active one (source_version_read in the response says which), so consecutive activate:false patches no longer overwrite each other. Line endings are normalized for matching (multi-line old_string works on CRLF sources) and the source\'s own line ending is restored on write. A non-unique old_string is rejected with the line number and text of every match; set match_whole_line to require whole-line matches. Function-group includes (L<group>TOP, L<group>F01, ...) are written through the function-group include address.',
+      'Modify existing ABAP source code on SAP via a surgical string replacement (find old_string, replace with new_string) instead of resending the full source. Fetches the current source, applies the patch, then delegates the write to the same lock -> syntax-check -> update -> unlock -> (activate) flow used by UpdateClass/UpdateProgram/UpdateInterface/UpdateInclude/UpdateFunctionModule. Supported object_type values: CLAS (class), PROG (program, on-premise/legacy only), INTF (interface), INCL (include, on-premise/legacy only), FUNC (function module, requires function_group). old_string must match the current source exactly, including whitespace, and must be unique unless replace_all is true. Reads the inactive version first and falls back to the active one (source_version_read in the response says which), so consecutive activate:false patches no longer overwrite each other. Line endings are normalized for matching (multi-line old_string works on CRLF sources) and the source\'s own line ending is restored on write. A non-unique old_string is rejected with the line number and text of every match; set match_whole_line to require whole-line matches. Function-group includes (L<group>TOP, L<group>F01, ...) are written through the function-group include address. An existing inactive version may contain edits you did not make (another user\'s abandoned draft) — source_version_read tells you which version was patched, and activate:true activates that whole version, draft included.',
     inputSchema: {
       object_type: z
         .enum(['CLAS', 'PROG', 'INTF', 'INCL', 'FUNC'])

@@ -157,7 +157,7 @@ export const getIncludesList = defineTool(
     // 원문(채록본) + 덧말(`harness/old-surface/amendments.json` · D-147 이정표).
     description:
       '[read-only] Recursively discover and list ALL include files within an ABAP program or include.' +
-      ' For a class (CLAS/OC) this answers "No includes": class includes (local types, implementations, definitions, macros, tests) are not PROG/I objects. Read them with GetLocalTypes, GetLocalDefinitions, GetLocalMacros or GetLocalTestClass.',
+      ' For a class (CLAS/OC) this answers "No includes": class includes (local types, implementations, definitions, macros, tests) are not PROG/I objects. Read them with GetLocalTypes, GetLocalDefinitions, GetLocalMacros or GetLocalTestClass. Those four are exposed on the development tool surface (toolSurface: development), not on readonly.',
     inputSchema: {
       object_name: z.string().describe('Name of the ABAP program or include'),
       object_type: z

@@ -44,7 +44,8 @@ import { ACCEPT_CHECK_MESSAGES, CT_CHECK_OBJECTS, CT_SOURCE, ACCEPT_SOURCE } fro
  * 보내므로(`createClass.ts`의 `buildCreatePayload`) 그때 만들어진 클래스에는 나지
  * 않는다. 기존 클래스에 그 인클루드를 붙이는 ADT 경로는 이 판에서 찾지 못했다(오프라인
  * 조사로는 확정 불가 — 실기 조사 대상) — 그래서 사람이 [Test Classes] 탭에서 한 번
- * 저장하도록 안내한다. 처방 실증: 같은 날 그렇게 만들자 바로 통과했다.
+ * 저장하도록 안내한다. 처방 실증: 같은 날 그렇게 만들자 바로 통과했다. 문구는
+ * 「usually」다 — 근거가 1회 실측이라 같은 500이 다른 원인으로 올 여지를 닫지 않는다.
  */
 const MISSING_TEST_INCLUDE =
   /CCAU[^\n]*?(?:no inactive version|어떠한\s*비활성\s*버전도\s*없습니다|keine inaktive Version)|(?:no inactive version|keine inaktive Version)[^\n]*CCAU/i;
@@ -58,7 +59,7 @@ export function isMissingTestClassInclude(error: unknown): boolean {
 /** 위 갈래의 사람용 문구. SAP 원문을 뒤에 그대로 싣는다. */
 export function missingTestClassIncludeMessage(className: string, error: unknown): string {
   return (
-    `Class ${className} has no test-class include (…CCAU) — this tool can only modify an existing one. ` +
+    `This SAP error usually means class ${className} has no test-class include (…CCAU) — this tool can only modify an existing one. ` +
     'Create it once by hand: open the class in ADT, [Test Classes] tab (SE24: Goto → Class-local types → Test classes), ' +
     `save and activate, then retry. Original SAP error: ${describeFailure(error)}`
   );

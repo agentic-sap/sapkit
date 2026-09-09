@@ -336,3 +336,29 @@ describe('구 판정 함수를 그대로 옮겼다', () => {
     expect(parsed.decimals).toBe(2);
   });
 });
+
+// ── D152 — 리뷰 R1b 권고 5: 400은 넘기지 않고, 삼킨 상태 코드는 최종 문구에 병기한다 ──
+
+describe('D152 — 400은 넘기지 않고, 후보가 전부 실패하면 삼킨 상태 코드를 병기한다', () => {
+  it('400은 다음 후보로 넘어가지 않고 즉시 실패한다 (실측은 422뿐 · 삼키면 원인이 가려진다)', async () => {
+    const { outcome, paths } = await call({ type_name: 'ZDE_AMOUNT' }, () => ({ status: 400, body: 'bad request' }));
+
+    expect(paths).toEqual([DOMAIN_SOURCE]);
+    expect(outcome.isError).toBe(true);
+    expect(outcome.text.startsWith('ADT error: ')).toBe(true);
+  });
+
+  it('404 아닌 상태를 삼키고도 못 찾았으면 어느 후보가 무엇으로 답했는지 병기한다', async () => {
+    const { outcome, paths } = await call(
+      { type_name: 'ZDE_AMOUNT' },
+      router({ [DOMAIN_SOURCE]: { status: 422, body: 'not a domain' } }),
+    );
+
+    expect(paths).toEqual([DOMAIN_SOURCE, DATA_ELEMENT, TABLE_TYPE, OBJECT_PROPERTIES, STRUCTURE]);
+    expect(outcome.isError).toBe(true);
+    expect(outcome.text).toBe(
+      'Type ZDE_AMOUNT was not found as domain, data element, table type, or structure. ' +
+        'Candidates answered: domain HTTP 422, data element HTTP 404, table type HTTP 404, repository information system HTTP 404, structure HTTP 404.',
+    );
+  });
+});
