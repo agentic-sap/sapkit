@@ -18,6 +18,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { RegisteredTool } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
 
 import { AdtClient } from '../adt';
@@ -25,7 +26,7 @@ import type { ConnectionConfig } from '../contracts';
 import { SERVER_CONTROL_TOOLS, type ExposableTool, selectExposedTools } from '../safety';
 import { TOOL_REGISTRY } from '../tools/registry';
 import { type GateDenyCode, evaluateToolCall } from './gates';
-import { ProfileSession } from './session';
+import { type ProfileReload, ProfileSession } from './session';
 import type { Startup } from './startup';
 import {
   NOOP_LOGGER,
@@ -72,11 +73,12 @@ export interface ServerCore {
   /** 가변 상태의 주인. 재적재와 접속 캐시가 여기 있다. */
   readonly session: ProfileSession;
   /**
-   * 실제로 `tools/list`에 오른 이름들.
+   * 실제로 `tools/list`에 오른 이름들 — **지금** 등록돼 있는 것.
    *
-   * **재적재로 바뀌지 않는다** — 등록은 전송에 붙기 전에 끝난다. 재적재가 배포
-   * 축이 다른 프로파일을 물어 오면 `ReloadProfile`이 `restartRequired`로 그
-   * 사실을 보고한다.
+   * 판B까지는 「재적재로 바뀌지 않는다」였다. D-147부터 `ReloadProfile`이 배포 축이
+   * 다른 프로파일을 물어 오면 코어가 그 축의 목록으로 **다시 등록**하고(SDK가
+   * `notifications/tools/list_changed`를 보낸다) 이 값도 그것을 따른다. 세션의
+   * `reload()`를 직접 부르는 길은 등록을 건드리지 않는다 — 등록은 코어의 것이다.
    */
   readonly exposedToolNames: readonly string[];
 }
@@ -160,6 +162,9 @@ function mayReload(definition: SapToolDefinition): boolean {
   return definition.kind === 'server-control' && SERVER_CONTROL_TOOLS.has(definition.name);
 }
 
+/** 재적재 뒤 코어가 목록을 다시 발행하는 통로 — `contextFor`가 받는다(D-147). */
+type Republish = (after: Startup) => ProfileReload['toolListRepublished'];
+
 /**
  * 도구가 받는 컨텍스트 한 벌.
  *
@@ -172,6 +177,7 @@ function contextFor(
   logger: ToolLogger,
   allowReload: boolean,
   stderr: (line: string) => void,
+  republish: Republish,
 ): ToolContext {
   return {
     getConnection: () => session.getConnection(),
@@ -198,20 +204,32 @@ function contextFor(
       // stderr에 남긴다 — 가장 안전 민감한 상태 변화가 서버 감사 채널에서
       // 사라지지 않게.
       const before = session.startup.profile;
-      const result = session.reload();
+      const reloaded = session.reload();
       const after = session.startup.profile;
       if (
         before.tier !== after.tier ||
         before.connection?.baseUrl !== after.connection?.baseUrl ||
-        result.sealed !== null
+        reloaded.sealed !== null
       ) {
         stderr(
           `AUDIT: profile reload — tier ${before.tier} → ${after.tier} · ` +
             `connection ${before.connection?.baseUrl ?? 'none'} → ${after.connection?.baseUrl ?? 'none'}` +
-            `${result.sealed === null ? '' : ` · sealed: ${result.sealed}`}`,
+            `${reloaded.sealed === null ? '' : ` · sealed: ${reloaded.sealed}`}`,
         );
       }
-      return result;
+
+      // D-147 — 배포 축이 발행된 목록과 어긋나면 그 축의 목록으로 다시 등록한다.
+      // 봉인된 재적재는 건너뛴다: 봉인 상태의 `sets`는 그대로이고 축도 기동 축의
+      // 무접속 프로파일이라 목록을 바꿀 근거가 없다.
+      if (!reloaded.exposureStale || reloaded.sealed !== null) return reloaded;
+      const toolListRepublished = republish(reloaded.startup);
+      if (toolListRepublished === null) return reloaded;
+      session.notePublished(after.systemType);
+      stderr(
+        `AUDIT: tool list republished for ${after.systemType} — ` +
+          `added ${toolListRepublished.added.length} · removed ${toolListRepublished.removed.length}`,
+      );
+      return { ...reloaded, toolListRepublished };
     },
   };
 }
@@ -233,9 +251,6 @@ export function createServerCore(options: ServerCoreOptions): ServerCore {
       options.connectionFactory ?? ((conf: ConnectionConfig) => new AdtClient(conf)),
     );
 
-  const context = contextFor(session, logger, false, stderr);
-  const reloadingContext = contextFor(session, logger, true, stderr);
-
   const server = new McpServer({
     name: options.name ?? SERVER_NAME,
     version: options.version ?? readEngineVersion(),
@@ -246,15 +261,17 @@ export function createServerCore(options: ServerCoreOptions): ServerCore {
     tool,
   }));
 
-  const exposed = selectExposedTools(candidates, {
-    sets: startup.sets,
-    systemType: startup.profile.systemType,
-  });
+  // 지금 등록돼 있는 도구 — 이름 → SDK 등록 손잡이. 재발행(D-147)이 여기서 더하고 뺀다.
+  const registered = new Map<string, RegisteredTool>();
 
-  for (const candidate of exposed) {
+  // 두 컨텍스트는 `republish`를 물고 있어야 해서 아래에서 만든다. 등록 콜백은
+  // 컨텍스트를 **호출 시점에** 고르므로(let) 순서가 어긋나지 않는다.
+  let context: ToolContext;
+  let reloadingContext: ToolContext;
+
+  const register = (candidate: ExposureCandidate): void => {
     const { definition, handler } = candidate.tool;
-    const toolContext = mayReload(definition) ? reloadingContext : context;
-    server.registerTool(
+    const handle = server.registerTool(
       definition.name,
       { description: definition.description, inputSchema: definition.inputSchema },
       async (rawArgs: unknown) => {
@@ -276,6 +293,7 @@ export function createServerCore(options: ServerCoreOptions): ServerCore {
           throw new McpError(errorCodeFor(decision.code), decision.message);
         }
 
+        const toolContext = mayReload(definition) ? reloadingContext : context;
         const result = await handler(toolContext, args);
         // 구 `BaseMcpServer.ts:428-444`와 같은 처리 — isError는 프로토콜 오류로
         // 올린다.
@@ -283,7 +301,43 @@ export function createServerCore(options: ServerCoreOptions): ServerCore {
         return { content: result.content.map((item) => ({ type: 'text' as const, text: item.text })) };
       },
     );
-  }
+    registered.set(definition.name, handle);
+  };
+
+  /**
+   * D-147 — 새 기동 상태의 축으로 노출을 다시 계산해, 빠질 것은 `remove()`하고
+   * 더할 것은 등록한다. SDK가 그때마다 `notifications/tools/list_changed`를 보낸다
+   * (접속돼 있을 때만 — `McpServer.sendToolListChanged`). 노출 규칙은 기동 때와
+   * **같은 함수**(`selectExposedTools`)다 — 여기서 다시 짜지 않는다.
+   */
+  const republish: Republish = (after) => {
+    const wanted = selectExposedTools(candidates, {
+      sets: after.sets,
+      systemType: after.profile.systemType,
+    });
+    const wantedNames = new Set(wanted.map((candidate) => candidate.name));
+    const removed = [...registered.keys()].filter((name) => !wantedNames.has(name));
+    for (const name of removed) {
+      registered.get(name)?.remove();
+      registered.delete(name);
+    }
+    const added: string[] = [];
+    for (const candidate of wanted) {
+      if (registered.has(candidate.name)) continue;
+      register(candidate);
+      added.push(candidate.name);
+    }
+    return { added, removed };
+  };
+
+  context = contextFor(session, logger, false, stderr, republish);
+  reloadingContext = contextFor(session, logger, true, stderr, republish);
+
+  const exposed = selectExposedTools(candidates, {
+    sets: startup.sets,
+    systemType: startup.profile.systemType,
+  });
+  for (const candidate of exposed) register(candidate);
 
   // SDK는 **첫 `registerTool` 호출에서 비로소** `tools/list`·`tools/call` 핸들러를
   // 단다(`server/mcp.js`의 `setToolRequestHandlers`). 노출 결과가 비면 그 자리가
@@ -300,7 +354,6 @@ export function createServerCore(options: ServerCoreOptions): ServerCore {
       .remove();
   }
 
-  const exposedToolNames = exposed.map((candidate) => candidate.name);
   return {
     server,
     // 게터다 — 재적재 뒤에는 **새 상태**가 나와야 한다.
@@ -308,6 +361,9 @@ export function createServerCore(options: ServerCoreOptions): ServerCore {
       return session.startup;
     },
     session,
-    exposedToolNames,
+    // 게터다 — 재발행 뒤에는 **지금 등록된** 이름이 나와야 한다(D-147).
+    get exposedToolNames() {
+      return [...registered.keys()];
+    },
   };
 }

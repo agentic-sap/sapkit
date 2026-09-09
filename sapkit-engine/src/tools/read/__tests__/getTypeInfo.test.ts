@@ -271,8 +271,9 @@ describe('구조 폴백', () => {
 });
 
 describe('오류 갈래', () => {
-  it('404가 아닌 오류는 다음 후보로 넘어가지 않고 즉시 실패한다', async () => {
-    // 구의 tryLookup은 404만 「없음」으로 접고 나머지는 던진다(:161-166).
+  it('5xx는 다음 후보로 넘어가지 않고 즉시 실패한다 (구 그대로)', async () => {
+    // 구의 tryLookup은 404만 「없음」으로 접고 나머지는 던진다(:161-166). D146이
+    // 넓힌 것은 4xx의 「그 종류가 아니다」 계열뿐이고 5xx는 그대로다.
     const { outcome, paths } = await call({ type_name: 'ZDE_AMOUNT' }, () => ({
       status: 500,
       body: 'boom',
@@ -281,6 +282,30 @@ describe('오류 갈래', () => {
     expect(paths).toEqual([DOMAIN_SOURCE]);
     expect(outcome.isError).toBe(true);
     expect(outcome.text.startsWith('ADT error: ')).toBe(true);
+  });
+
+  it('D146 — 구조체 이름이 첫 후보에서 HTTP 422를 받아도 구조 폴백까지 간다 (구는 422에서 죽었다)', async () => {
+    // 실측의 이름은 구조체(`ZUNIEFIS1203`)였다 — 여기서는 라우터의 경로 상수를 쓰려고
+    // 같은 이름 `ZDE_AMOUNT`로 돌린다. 갈리는 것은 첫 후보의 상태(422)뿐이다.
+    const { outcome, paths } = await call(
+      { type_name: 'ZDE_AMOUNT' },
+      router({
+        [DOMAIN_SOURCE]: { status: 422, body: '<exc:exception><message>not a domain</message></exc:exception>' },
+        [STRUCTURE]: { status: 200, body: STRU_XML },
+      }),
+    );
+
+    expect(paths).toEqual([DOMAIN_SOURCE, DATA_ELEMENT, TABLE_TYPE, OBJECT_PROPERTIES, STRUCTURE]);
+    expect(outcome.isError).toBe(false);
+    expect(JSON.parse(outcome.text)).toEqual(OLD_ENGINE_STRU);
+  });
+
+  it('D146 — 401·403은 여전히 즉시 실패다 (인증은 후보를 바꿔도 같다)', async () => {
+    for (const status of [401, 403]) {
+      const { outcome, paths } = await call({ type_name: 'ZDE_AMOUNT' }, () => ({ status, body: 'no' }));
+      expect(paths).toEqual([DOMAIN_SOURCE]);
+      expect(outcome.isError).toBe(true);
+    }
   });
 
   it('빈 type_name은 구와 같은 문구로 거절한다', async () => {

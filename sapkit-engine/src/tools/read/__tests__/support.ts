@@ -231,27 +231,56 @@ export function publishedDeclaration(name: string): {
   const entry = parsed.tools[name];
   if (!entry) throw new Error(`m1-tools.json의 tools(전량 선언)에 ${name} 항목이 없다`);
 
-  // 되뜰 수 없는 채록본은 손대지 않고, 의도한 계약 변경만 대조 직전에 조립해 문다.
-  // 표의 정본은 `harness/old-surface/amendments.json`이고 게이트(`gates/surface.mjs`)가
-  // 같은 파일을 읽는다 — 두 소비자가 갈리면 어느 쪽이 낡았는지 아무도 모른다.
+  return applyAmendments(name, entry);
+}
+
+/**
+ * 되뜰 수 없는 채록본은 손대지 않고, 의도한 계약 변경만 대조 직전에 조립해 문다.
+ *
+ * 표의 정본은 `harness/old-surface/amendments.json`이고 게이트(`gates/surface.mjs`)가
+ * 같은 파일을 읽는다 — 두 소비자가 갈리면 어느 쪽이 낡았는지 아무도 모른다.
+ * 표는 두 칸이다: `descriptions`(설명 꼬리 덧말)와 `inputSchema`(**더해지는 선택
+ * 인자**). 뒤의 것이 채록본에 이미 있는 인자를 덮거나 `required`에 있으면 거부한다 —
+ * 덧인자이지 선언 전문이 아니다.
+ */
+export function applyAmendments<T extends { description: string; inputSchema: unknown }>(
+  name: string,
+  entry: T,
+): T {
   const amendmentsFile = path.join(
     __dirname, '..', '..', '..', '..', 'harness', 'old-surface', 'amendments.json',
   );
-  const { descriptions, inputSchemaProperties } = JSON.parse(
-    fs.readFileSync(amendmentsFile, 'utf8'),
-  ) as {
+  const { descriptions, inputSchema } = JSON.parse(fs.readFileSync(amendmentsFile, 'utf8')) as {
     descriptions: Record<string, string>;
-    inputSchemaProperties?: Record<string, Record<string, unknown>>;
+    inputSchema?: Record<string, { properties: Record<string, unknown> }>;
   };
+  let result: T = entry;
   const appendix = descriptions[name];
-  const description = appendix === undefined ? entry.description : entry.description + appendix;
-  // 선택 인자 덧붙임(D-147) — 채록본 `properties`에 얹는다. `required`는 손대지 않는다.
-  const added = inputSchemaProperties?.[name];
-  const schema = entry.inputSchema as { properties?: Record<string, unknown> } | undefined;
-  const inputSchema =
-    added === undefined || !schema || typeof schema !== 'object'
-      ? entry.inputSchema
-      : { ...schema, properties: { ...(schema.properties ?? {}), ...added } };
-  if (description === entry.description && inputSchema === entry.inputSchema) return entry;
-  return { ...entry, description, inputSchema };
+  if (appendix !== undefined) result = { ...result, description: result.description + appendix };
+
+  const added = inputSchema?.[name];
+  if (added !== undefined) {
+    const schema = result.inputSchema as { properties?: Record<string, unknown>; required?: string[] };
+    const properties = schema?.properties;
+    if (properties === undefined || properties === null || typeof properties !== 'object') {
+      throw new Error(`덧인자표: ${name}의 채록본 inputSchema에 properties가 없다.`);
+    }
+    for (const key of Object.keys(added.properties)) {
+      if (key in properties) {
+        throw new Error(`덧인자표가 채록본에 이미 있는 인자를 덮으려 한다: ${name}.${key}`);
+      }
+      if (schema.required?.includes(key)) {
+        throw new Error(`덧인자표의 인자가 required에 있다: ${name}.${key}`);
+      }
+    }
+    // 표의 객체를 복사해 넣는다 — 참조 공유는 게이트 쪽(`surface.mjs`)과 같은 이유로 피한다.
+    result = {
+      ...result,
+      inputSchema: {
+        ...schema,
+        properties: { ...properties, ...(JSON.parse(JSON.stringify(added.properties)) as Record<string, unknown>) },
+      },
+    };
+  }
+  return result;
 }

@@ -18,10 +18,16 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { createServerCore, resolveStartup } from '../../../server';
 import type { SapTool } from '../../../server';
 import { argvOf, tempDir, writeEnvFile } from '../../../server/__tests__/fixtures';
+import { applyAmendments } from '../../read/__tests__/support';
 
 const M1_TOOLS = path.resolve(__dirname, '../../../../harness/old-surface/m1-tools.json');
 
-/** 채록본의 **전량 선언 186종**에서 한 항목. `m1`(19종)이 아니다. */
+/**
+ * 채록본의 **전량 선언 186종**에서 한 항목. `m1`(19종)이 아니다.
+ *
+ * 덧말·덧인자(`harness/old-surface/amendments.json`)는 읽기 쪽 `applyAmendments`로
+ * 함께 조립한다 — 조립 규칙이 소비자마다 갈리면 어느 쪽이 낡았는지 아무도 모른다.
+ */
 export function publishedDeclaration(name: string): {
   name: string;
   description: string;
@@ -33,7 +39,7 @@ export function publishedDeclaration(name: string): {
   };
   const entry = parsed.tools[name];
   if (!entry) throw new Error(`m1-tools.json의 tools(전량 선언)에 ${name} 항목이 없다`);
-  return entry;
+  return applyAmendments(name, entry);
 }
 
 /** 도구 하나만 실은 서버를 세워 그 도구의 발행 선언을 돌려준다. */

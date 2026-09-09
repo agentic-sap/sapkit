@@ -266,7 +266,27 @@ export function buildTransportCheckXml(args: {
   );
 }
 
-/** 생성 페이로드 — 벤더 `buildServiceBindingCreateXml`(`:26-54`). */
+/**
+ * 서비스 계약(contract) — `srvb:category`의 두 값.
+ *
+ * 실측(2026-07-30 · 08-04, 2시스템 · `sapkit-feedback.md`): ADT가 만든 UI 계약
+ * 바인딩은 `srvb:category="0"`이고, 벤더 페이로드가 박아 두던 `"1"`은 Web API
+ * 계약이다. `ListServiceBindingTypes`의 `nameditem:description`이 같은 숫자를 쓴다
+ * (ODATA V2·V4는 0과 1 둘 다 · SQL은 1만 · INA는 0만). UI 계약에서만 Fiori Elements가
+ * 먹는 표면(`Update_mc`·코드리스트·값도움말·PDF/xlsx)이 방출된다.
+ *
+ * `srvb:contract`(실측상 category 1 바인딩의 되읽기에 `C2`로 붙고 category 0에는
+ * 없다)는 **보내지 않는다** — 벤더 페이로드에도 없었고 서버가 category에서 파생하는
+ * 값으로 보인다. 실기 미검증이므로 그 파생 규칙은 여기서 단정하지 않는다.
+ */
+export type ServiceBindingCategory = 'UI' | 'WEB_API';
+
+/** `binding_category` → `srvb:category` 속성값. */
+export function serviceBindingCategoryCode(category: ServiceBindingCategory): '0' | '1' {
+  return category === 'UI' ? '0' : '1';
+}
+
+/** 생성 페이로드 — 벤더 `buildServiceBindingCreateXml`(`:26-54`). `category`만 더했다(D141). */
 export function buildServiceBindingCreateXml(args: {
   readonly bindingName: string;
   readonly packageName: string;
@@ -279,6 +299,8 @@ export function buildServiceBindingCreateXml(args: {
   readonly masterLanguage: string;
   readonly masterSystem?: string;
   readonly responsible?: string;
+  /** `srvb:category`. 벤더는 `"1"`(Web API)을 박아 두었고, 생략하면 그대로다. */
+  readonly category?: '0' | '1';
 }): string {
   // 벤더는 설명의 큰따옴표만 바꾼다 — 다른 XML 특수문자는 손대지 않는다(`:31`).
   const escapedDescription = args.description.replace(/"/g, '&quot;');
@@ -304,7 +326,7 @@ export function buildServiceBindingCreateXml(args: {
     `      <srvb:serviceDefinition adtcore:name="${args.serviceDefinitionName.toUpperCase()}"/>\n` +
     `    </srvb:content>\n` +
     `  </srvb:services>\n` +
-    `  <srvb:binding srvb:category="1" srvb:type="${args.bindingType}" srvb:version="${args.bindingVersion}">\n` +
+    `  <srvb:binding srvb:category="${args.category ?? '1'}" srvb:type="${args.bindingType}" srvb:version="${args.bindingVersion}">\n` +
     `    <srvb:implementation adtcore:name=""/>\n` +
     `  </srvb:binding>\n` +
     `</srvb:serviceBinding>`

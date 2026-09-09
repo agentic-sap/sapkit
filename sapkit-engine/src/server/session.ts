@@ -67,18 +67,26 @@ export interface ProfileReload {
   /** 버릴 접속이 실제로 있었는가. */
   readonly connectionDropped: boolean;
   /**
-   * 재적재된 상태가 **이미 발행된 도구 목록과 어긋나는가** — 배포 축이 기동
-   * 시점과 달라졌다는 뜻이다.
+   * 재적재된 상태가 **지금 발행돼 있는 도구 목록과 어긋나는가** — 배포 축이 목록을
+   * 지은 축과 달라졌다는 뜻이다.
    *
-   * 이 프로세스로는 고칠 수 없다. 등록은 서버가 전송에 붙기 전에 끝나므로
-   * `tools/list`는 기동 시점의 축으로 지어진 목록 그대로다. tier·blocklist·접속은
-   * 이미 새 값으로 발효돼 있으므로, 여기가 참이라고 해서 안전 상태가 어긋나
-   * 있는 것은 아니다 — 어긋나 있는 것은 **목록**뿐이다. `ReloadProfile`이 이
-   * 값을 `restartRequired`로 실어 보고한다.
+   * 판B(D-114)까지는 「이 프로세스로는 고칠 수 없다」였다 — 등록이 전송에 붙기 전에
+   * 끝난다고 보았기 때문이다. 그러나 SDK는 접속 뒤에도 `registerTool`/`remove()`를
+   * 받고 그때마다 `notifications/tools/list_changed`를 보낸다. 그래서 **코어**가 이 값이
+   * 참이면 새 축의 목록으로 다시 등록하고(`toolListRepublished`), 세션에
+   * {@link ProfileSession.notePublished}로 그 축을 알린다 — 다음 재적재는 그 축과
+   * 견준다. tier·blocklist·접속은 어차피 이미 새 값으로 발효돼 있다(D-147 · 실측:
+   * 2026-09-09 `restartRequired:true`를 무시하면 쓰기 도구가 통째로 없었다).
    */
   readonly exposureStale: boolean;
-  /** `tools/list`가 지어진 배포 축. {@link exposureStale}의 짝. */
+  /** 기동 시점의 배포 축. 보고 문구가 「어디서 시작했나」를 말할 때 쓴다. */
   readonly bootSystemType: DeploymentType;
+  /**
+   * 코어가 도구 목록을 새 축으로 다시 발행했다면 무엇이 더해지고 빠졌는가.
+   * **세션 자신은 언제나 null을 낸다** — 등록을 가진 것은 코어이고, 코어가 이 값을
+   * 채워 도구에 넘긴다(`src/server/core.ts`). null이면 목록은 그대로다.
+   */
+  readonly toolListRepublished: { readonly added: readonly string[]; readonly removed: readonly string[] } | null;
   /**
    * 해석 자체가 예외로 끝나 inspection-only로 **봉인**됐다면 그 사유. 정상
    * 경로에서는 null이다. 프로파일을 못 찾은 것(진단으로 끝나는 정상 경로)과
@@ -141,22 +149,35 @@ export class ProfileSession {
   private client: AdtClient | null = null;
   private readonly factory: ConnectionFactory;
 
-  /**
-   * 기동 시점의 배포 축. `tools/list`가 이 값으로 지어졌고 **재적재로는 바뀌지
-   * 않는다** — 등록은 서버가 전송에 붙기 전에 끝난다. 재적재가 다른 축의
-   * 프로파일을 물어 오면 `ReloadProfile`이 그 사실을 `restartRequired`로 보고한다.
-   */
+  /** 기동 시점의 배포 축. 재적재로 바뀌지 않는다 — 보고 문구가 「어디서 시작했나」에 쓴다. */
   readonly bootSystemType: DeploymentType;
+  /**
+   * `tools/list`가 **지금** 지어져 있는 배포 축. 기동 때는 `bootSystemType`과 같고,
+   * 코어가 목록을 다시 발행하면 {@link notePublished}로 옮겨 온다(D-147).
+   * {@link reload}의 `exposureStale`은 이 값과 견준다.
+   */
+  private published: DeploymentType;
 
   constructor(startup: Startup, factory?: ConnectionFactory) {
     this.state = startup;
     this.bootSystemType = startup.profile.systemType;
+    this.published = startup.profile.systemType;
     this.factory = factory ?? ((config: ConnectionConfig) => new AdtClient(config));
   }
 
   /** **지금** 유효한 기동 상태. 읽는 쪽은 붙잡아 두지 말고 그때그때 읽는다. */
   get startup(): Startup {
     return this.state;
+  }
+
+  /** `tools/list`가 지금 지어져 있는 배포 축. */
+  get publishedSystemType(): DeploymentType {
+    return this.published;
+  }
+
+  /** 코어가 목록을 이 축으로 다시 발행했다고 알린다. 세션은 등록을 갖지 않으므로 기록만 한다. */
+  notePublished(systemType: DeploymentType): void {
+    this.published = systemType;
   }
 
   async getConnection(): Promise<AdtClient> {
@@ -198,8 +219,12 @@ export class ProfileSession {
       startup: this.state,
       before,
       after,
+      // 세션은 등록을 갖지 않는다 — 다시 발행하는 것은 코어다(D-147).
+      toolListRepublished: null,
       connectionDropped,
-      exposureStale: after.systemType !== this.bootSystemType,
+      // 기동 축이 아니라 **지금 발행된** 축과 견준다 — 코어가 목록을 다시 발행했으면
+      // 그 축이 기준이다(D-147).
+      exposureStale: after.systemType !== this.published,
       bootSystemType: this.bootSystemType,
       sealed,
     };

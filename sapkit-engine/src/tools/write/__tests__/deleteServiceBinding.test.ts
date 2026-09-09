@@ -188,6 +188,20 @@ describe('발행취소 사전 걸음 — 최선 노력', () => {
     expect(harness.calls().map((call) => call.path)).not.toContain(UNPUBLISH);
   });
 
+  it('D142 — 발행 중인데 allowedAction 속성이 **없으면** 발행취소를 시도한다 (구는 건너뛰었다)', async () => {
+    const noAttribute = publishedBinding().replace(' srvb:allowedAction="UNPUBLISH"', '');
+    expect(noAttribute).not.toContain('allowedAction');
+    harness = await harnessFor({ read: noAttribute });
+    const result = await run({ service_binding_name: NAME });
+    expect(result.isError).toBe(false);
+    expect(harness.calls().map((call) => `${call.method} ${call.path}`)).toEqual([
+      `GET ${BINDING_URI}`,
+      `GET ${BINDING_URI}`,
+      `POST ${UNPUBLISH}`,
+      `POST ${DELETE_PATH}`,
+    ]);
+  });
+
   it('**사전 걸음이 실패해도 삭제는 계속된다** — 구가 catch를 비워 두었다', async () => {
     harness = await harnessFor({ read: publishedBinding(), unpublishStatus: 500 });
     const result = await run({ service_binding_name: NAME });

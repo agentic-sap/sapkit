@@ -12,14 +12,115 @@
  * 하면 안 된다.
  */
 
-import type { AdtClient } from '../../../adt';
+import type { AdtClient, AdtResponse } from '../../../adt';
 import {
   functionGroupPath,
   includeSourcePath,
   objectSourcePath,
   readSourceText,
 } from './adt';
+import { fetchNodeStructure } from './nodeStructure';
 import { messageOf } from './results';
+
+// ── 함수그룹 전개 (D145) ─────────────────────────────────────────────────────
+//
+// `fetchObjectSource`의 FUGR 갈래는 함수그룹 **메타데이터**(`/functions/groups/{fg}`)를
+// 읽는다 — 거기에는 소스가 없다. 그래서 `GrepObjects(FUGR)`가 실재하는 코드에도
+// `total_matches: 0 · skipped: []`로 답했다(2026-07-28·30·31 실측 — `sapkit-feedback.md`).
+// 함수그룹의 소스는 그 아래 함수모듈(`FUGR/FF`)과 인클루드(`FUGR/I`)에 있다.
+//
+// 전개는 리포지터리 노드 구조로 한다 — `GetIncludesList`가 PROG/I를 찾는 것과 같은
+// 왕복이다(뿌리 → 묶음 마디의 NODE_ID → 그 마디의 잎). 잎의 `OBJECT_URI`를 ADT가
+// 준 그대로 쓰고 `/source/main`만 붙인다 — 주소를 이름에서 지어내지 않는다(D3와
+// 같은 원칙: 주소 없는 마디는 실재하는 오브젝트가 아니다). 두 번째 요청의 부모는
+// **뿌리 오브젝트 그대로 + node_id**다(`GetIncludesList`의 관례 · 벤더
+// `fetchNodeStructure`의 인자 모양). `GetObjectInfo`는 묶음 마디를 부모로 넘기는
+// 다른 관례를 쓰는데, 둘 다 실 SAP 채록이 없어 어느 쪽이 옳은지 여기서 단정하지
+// 않는다 — 실기 미검증이며, 첫 실접속 세션의 확인 대상이다.
+
+export interface FunctionGroupMember {
+  readonly type: 'FUGR/FF' | 'FUGR/I';
+  readonly name: string;
+  /** ADT가 노드 구조에 실어 준 오브젝트 주소. 소스는 `{uri}/source/main`. */
+  readonly uri: string;
+}
+
+const MEMBER_TYPES: ReadonlySet<string> = new Set(['FUGR/FF', 'FUGR/I']);
+
+interface RepositoryNode {
+  readonly type: string;
+  readonly name: string;
+  readonly nodeId: string;
+  readonly uri: string;
+}
+
+/** 노드 구조 응답의 마디들 — `GetIncludesList`와 같은 블록 단위 읽기. */
+function parseRepositoryNodes(xml: string): RepositoryNode[] {
+  const nodes: RepositoryNode[] = [];
+  for (const block of xml.match(/<SEU_ADT_REPOSITORY_OBJ_NODE>(.*?)<\/SEU_ADT_REPOSITORY_OBJ_NODE>/gs) ?? []) {
+    const text = (tag: string): string =>
+      (new RegExp(`<${tag}>([^<]*)</${tag}>`).exec(block)?.[1] ?? '').trim();
+    nodes.push({
+      type: text('OBJECT_TYPE'),
+      name: text('OBJECT_NAME'),
+      nodeId: text('NODE_ID'),
+      uri: text('OBJECT_URI'),
+    });
+  }
+  return nodes;
+}
+
+/**
+ * 함수그룹을 그 안의 함수모듈·인클루드로 전개한다. **던진다** — 호출자가 그 실패를
+ * `skipped`의 이유로 옮긴다(조용한 0이 아니라).
+ */
+export async function expandFunctionGroup(
+  client: AdtClient,
+  groupName: string,
+): Promise<FunctionGroupMember[]> {
+  const members: FunctionGroupMember[] = [];
+  const seen = new Set<string>();
+  const collect = (nodes: readonly RepositoryNode[]): void => {
+    for (const node of nodes) {
+      if (!MEMBER_TYPES.has(node.type) || node.name === '' || node.uri === '') continue;
+      if (seen.has(node.uri)) continue;
+      seen.add(node.uri);
+      members.push({
+        type: node.type as FunctionGroupMember['type'],
+        name: decodeURIComponent(node.name),
+        uri: node.uri,
+      });
+    }
+  };
+
+  const root = parseRepositoryNodes(
+    (await fetchNodeStructure(client, { parentType: 'FUGR/F', parentName: groupName })).body,
+  );
+  collect(root);
+  for (const node of root) {
+    // 묶음 마디 — 주소가 없고 NODE_ID가 있으며 FUGR 계열이다(`GetObjectInfo`의 isGroupNode).
+    if (node.uri !== '' || node.nodeId === '' || !node.type.startsWith('FUGR/')) continue;
+    const children = parseRepositoryNodes(
+      (
+        await fetchNodeStructure(client, {
+          parentType: 'FUGR/F',
+          parentName: groupName,
+          nodeId: node.nodeId,
+        })
+      ).body,
+    );
+    collect(children);
+  }
+  return members;
+}
+
+/** 전개된 구성원 하나의 소스 — 활성 판(`GrepObjects`는 활성 판을 읽는다 — 2026-08-19 실측). */
+export function fetchFunctionGroupMemberSource(
+  client: AdtClient,
+  member: FunctionGroupMember,
+): Promise<AdtResponse> {
+  return readSourceText(client, `${member.uri}/source/main`, 'active');
+}
 
 export type SourceObjectCode = 'CLAS' | 'PROG' | 'INTF' | 'INCL' | 'FUGR' | 'FUNC';
 

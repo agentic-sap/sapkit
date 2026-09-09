@@ -156,6 +156,12 @@
  *     함수그룹 인클루드 잠금의 **403 → 성공**(`UpdateInclude`·`UpdateSourceByPatch`).
  *     같은 결정의 D144(CTS 잠금 힌트)·D146(CCAU 부재 문구)은 **진단 문구**라 사람용
  *     장부에만, D145(`CreateTransport` utf-8)는 **요청 와이어**라 사람용 장부에만 있다.
+ *   - **D147~D152·D154** — 판A2(D-147) 실사용 교훈 승격 4차. 응답에 키가 **늘어난**
+ *     성공 갈래(D147·D148·D149)는 「늘어난 키뿐인가」를 재고, 구가 거부·오류로
+ *     답하던 갈래(D148·D150·D152·D154)는 신이 등재된 모양으로 답했는지를 잰다.
+ *     D151는 FUGR 항목의 전개를, D153은 새 항목이 아니라 D39·D40의 등재 키에
+ *     `tool_list_republished`를 더한 것으로 든다. D105의 검사는 신이 **성공**하면
+ *     D147의 두 키만 늘었는지로 넘어간다(그 전에는 그 갈래가 정확 일치였다).
  *
  * ### 활성화 거짓 성공 계열을 왜 열로 갈랐는가
  *
@@ -496,7 +502,17 @@ function includeNamesOf(response: JsonValue): string[] | null {
 }
 
 /** `ReloadProfile` 성공 응답에서 **등재된** 키. 그 밖이 달라지면 결함이다. */
-const RELOAD_REGISTERED_KEYS: readonly string[] = ['restartRequired', 'note', 'diagnostics'];
+/**
+ * D38·D39·D40의 등재 키 셋 + **D153**의 `tool_list_republished`. D153은 새 항목이 아니라
+ * 이 키 하나를 더하는 것이다 — D39·D40이 이미 성공 갈래를 배타로 나눠 들고 있어 새
+ * 항목을 세우면 겹친다(머리주석 ①).
+ */
+const RELOAD_REGISTERED_KEYS: readonly string[] = [
+  'restartRequired',
+  'note',
+  'diagnostics',
+  'tool_list_republished',
+];
 
 /** 구 `ReloadProfile`이 "재시동이 필요하다"고 답한 채록분인가 (장부 D39). */
 function oldSaysRestartRequired(response: JsonValue): boolean {
@@ -656,6 +672,101 @@ const D100_TOOLS: ReadonlySet<string> = new Set(['UpdateBehaviorImplementation']
 const D103_TOOLS: ReadonlySet<string> = new Set(['CreateMetadataExtension', 'UpdateMetadataExtension']);
 /** D105 — 서비스 바인딩 생성. */
 const D105_TOOLS: ReadonlySet<string> = new Set(['CreateServiceBinding']);
+
+// ── D147~D154 (판A2 · D-147 · 실사용 교훈 승격 4차) ──────────────────────────
+
+/**
+ * 성공 응답 하나짜리 도구 공용 — 구와 갈린 것이 **등재된 키뿐**인가.
+ * `reloadSuccessVerdict`와 같은 판정이고 키 목록만 다르다.
+ */
+function onlyRegisteredKeysDiffer(
+  recorded: SequenceStep,
+  actual: SubstituteInput['actual'],
+  keys: readonly string[],
+  what: string,
+): SubstituteVerdict {
+  if (actual.isError) return { ok: false, detail: `신 엔진이 ${what}을(를) 오류로 답했다 — 성공 갈래의 등재가 아니다.` };
+  const old = textBodiesAsJson(recorded.response);
+  const fresh = textBodiesAsJson(actual.response);
+  if (old === null || fresh === null || old.length !== 1 || fresh.length !== 1) {
+    return { ok: false, detail: '양쪽 응답을 text 블록 하나의 JSON 본문으로 읽지 못했다.' };
+  }
+  const offending = jsonDelta(old[0] as JsonValue, fresh[0] as JsonValue).filter(
+    (delta) => delta.key === null || !keys.includes(delta.key),
+  );
+  if (offending.length > 0) {
+    return { ok: false, detail: `등재되지 않은 키가 달라졌다 — ${showDelta(offending)}.` };
+  }
+  return { ok: true, detail: `구가 싣던 키는 그대로이고, 갈린 것은 ${keys.join('·')}뿐이다.` };
+}
+
+/** 성공 응답의 text 블록 하나를 JSON 객체로. 그 모양이 아니면 null. */
+function singleJsonBody(response: JsonValue): { [key: string]: JsonValue } | null {
+  const bodies = textBodiesAsJson(response);
+  const body = bodies?.length === 1 ? bodies[0] : undefined;
+  return body !== undefined && isPlainObject(body) ? body : null;
+}
+
+/** D147 — `CreateServiceBinding` 응답에 더해진 두 키. */
+const D141_KEYS: readonly string[] = ['binding_category', 'srvb_category'];
+/** D148 — `UpdateServiceBinding` 응답에 더해진 두 키. */
+const D142_KEYS: readonly string[] = ['allowed_action_known', 'allowed_action'];
+/** D149 — `CheckSyntax` 응답에 더해진 키(뒤 둘은 조건부). */
+const D143_KEYS: readonly string[] = ['verdict', 'check_status', 'reason', 'main_program'];
+
+/** D148 — 구가 「허용 동작을 모른다」로 거부한 채록분인가. */
+function oldRefusedUnknownAllowedAction(step: SequenceStep): boolean {
+  return step.isError && /allowedAction=UNKNOWN/.test(collectText(step.response));
+}
+
+/** D149 — 구가 「오류 없는 실패」(`success:false · errors:[]`)로 답한 채록분인가. */
+function oldWasVerdictlessFailure(response: JsonValue): boolean {
+  const body = singleJsonBody(response);
+  return body !== null && body['success'] === false && Array.isArray(body['errors']) && body['errors'].length === 0;
+}
+
+/** D150 — 구가 거짓 FIXPT precheck로 쓰기를 막은 채록분인가. */
+function oldRefusedOnFixpt(step: SequenceStep): boolean {
+  const text = collectText(step.response);
+  return step.isError && /preCheck syntax check failed/.test(text) && /fixed point arithmetic/i.test(text);
+}
+
+/** D151 — 픽스처의 인자에 FUGR 항목이 있는가. */
+function askedForFunctionGroup(args: JsonValue): boolean {
+  if (!isPlainObject(args) || !Array.isArray(args['objects'])) return false;
+  return args['objects'].some(
+    (item) => isPlainObject(item) && /^FUGR(\/|$)/i.test(String(item['object_type'] ?? '').trim()),
+  );
+}
+
+/** D151 — 집계 응답에서 FUGR 계열이 **아닌** 결과·건너뜀만 남긴다(구성원은 `function_group`을 단다). */
+function nonFunctionGroupParts(body: { [key: string]: JsonValue }): { results: JsonValue[]; skipped: JsonValue[] } {
+  const results = Array.isArray(body['results']) ? body['results'] : [];
+  const skipped = Array.isArray(body['skipped']) ? body['skipped'] : [];
+  const isFugr = (node: JsonValue): boolean =>
+    isPlainObject(node) &&
+    (/^FUGR(\/|$)/i.test(String(node['object_type'] ?? '')) ||
+      node['function_group'] !== undefined ||
+      /^FUGR(\/\w+)? /i.test(String(node['object'] ?? '')));
+  return { results: results.filter((r) => !isFugr(r)), skipped: skipped.filter((s) => !isFugr(s)) };
+}
+
+/** D152 — 구가 「다음 후보」 계열 4xx로 죽은 채록분인가. 상태 코드를 돌려준다. */
+const NEXT_CANDIDATE_STATUS = /\b(400|404|405|406|415|422)\b/;
+function oldDiedOnNextCandidateStatus(step: SequenceStep): string | null {
+  if (!step.isError) return null;
+  const text = collectText(step.response);
+  if (!/^ADT error: /m.test(text) && !/ADT error: /.test(text)) return null;
+  const match = NEXT_CANDIDATE_STATUS.exec(text);
+  return match === null ? null : (match[1] as string);
+}
+
+/** D154 — 픽스처의 인클루드 이름이 `=`로 채운 클래스 인클루드인가. */
+function askedForClassInclude(args: JsonValue): boolean {
+  if (!isPlainObject(args)) return false;
+  const name = String(args['include_name'] ?? '');
+  return /=+(CCIMP|CCDEF|CCMAC|CCAU|CU|CO|CI|CP|CT|CM\d{3}|CL)$/i.test(name.trim());
+}
 
 // ── D110~D132 — 꼬리 묶음 셋이 쌓아 둔 차이 (**마지막 반영**) ───────────────
 
@@ -1498,7 +1609,12 @@ export const M1_DIVERGENCES: readonly DivergenceEntry[] = [
       '「D105 — 200에 실려 온 활성화 오류를 성공으로 접지 않는다」',
     resolvesIn: null,
     applies: claimedActivation(D105_TOOLS),
-    check: activationVerdict,
+    // D147 확장 — 신이 **성공**하면(활성화가 실제로 섰다) 구와 갈린 것은 D147의 두 키뿐이어야
+    // 한다. 그 전에는 이 갈래가 정확 일치라 장부에 닿지 않았다. 오류면 활성화 실패 판정 그대로.
+    check: ({ recorded, actual }) =>
+      actual.isError
+        ? activationVerdict({ recorded, actual })
+        : onlyRegisteredKeysDiffer(recorded, actual, D141_KEYS, 'CreateServiceBinding'),
   },
 
   // ── D110~D132 (꼬리 묶음 셋의 반영분 — 마지막 반영) ────────────────────────
@@ -1741,6 +1857,187 @@ export const M1_DIVERGENCES: readonly DivergenceEntry[] = [
     applies: (step) =>
       D143_TOOLS.has(step.tool) && step.isError && OLD_FG_INCLUDE_403.test(collectText(step.response)),
     check: fgIncludeRoutedVerdict,
+  },
+
+  // ── D147~D154 (판A2 · D-147 · 실사용 교훈 승격 4차 — 분담 E2) ───────────────
+  //
+  // 전부 **실기 미검증**이다 — 대체 기대 시험은 오프라인 계약 시험이고, 재생 픽스처에
+  // 이 갈래가 실제로 있는지도 확인하지 않았다(있으면 여기가 판정한다). D153은 새 항목이
+  // 아니라 D39·D40의 등재 키(`RELOAD_REGISTERED_KEYS`)에 `tool_list_republished`를 더한 것이다.
+
+  {
+    id: 'D147',
+    title: 'CreateServiceBinding — 계약(category)을 고르고 응답이 무엇을 만들었는지 말한다',
+    tool: 'CreateServiceBinding',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d147 · sapkit-engine/src/tools/write/createServiceBinding.ts · ' +
+      'sapkit-engine/src/tools/write/internal/serviceBinding.ts · 덧말표(harness/old-surface의 amendments 표)',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/createServiceBinding.test.ts — ' +
+      '「D147 — 계약(category)을 고를 수 있고, 응답이 무엇을 만들었는지 말한다」 2건',
+    resolvesIn: null,
+    // D105가 `activated:true` 성공 갈래를 들고(그 검사가 D147의 두 키를 함께 잰다), 여기는
+    // 나머지 — `activate:false`의 성공 갈래 — 만 든다. 겹치지 않는다(머리주석 ①).
+    applies: (step) => step.tool === 'CreateServiceBinding' && !step.isError && !oldClaimsActivated(step.response),
+    check: ({ recorded, actual }) => onlyRegisteredKeysDiffer(recorded, actual, D141_KEYS, 'CreateServiceBinding'),
+  },
+  {
+    id: 'D148',
+    title: 'UpdateServiceBinding — allowedAction 부재를 거부하지 않고 서버 판정에 맡긴다',
+    tool: 'UpdateServiceBinding',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d148 · sapkit-engine/src/tools/write/updateServiceBinding.ts · ' +
+      'sapkit-engine/src/tools/write/deleteServiceBinding.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/updateServiceBinding.test.ts — ' +
+      '「D148 — srvb:allowedAction이 없으면 거부하지 않고 요청을 보낸다」 4건 · ' +
+      'sapkit-engine/src/tools/write/__tests__/deleteServiceBinding.test.ts — 「D148」 1건',
+    resolvesIn: null,
+    // 구가 UNKNOWN으로 거부한 오류 갈래 + 두 키가 늘어난 모든 성공 갈래. `DeleteServiceBinding`은
+    // 응답이 같고 와이어에만 남는 차이라 옮기지 않는다(D104·D124의 가름선).
+    applies: (step) =>
+      step.tool === 'UpdateServiceBinding' && (!step.isError || oldRefusedUnknownAllowedAction(step)),
+    check: ({ recorded, actual }) => {
+      if (!recorded.isError) return onlyRegisteredKeysDiffer(recorded, actual, D142_KEYS, 'UpdateServiceBinding');
+      if (actual.isError) {
+        return /Invalid state transition/.test(collectText(actual.response))
+          ? { ok: false, detail: '신 엔진도 도구 자체 가드로 거부했다 — 속성이 없는 자리에서는 요청을 보내야 한다.' }
+          : { ok: true, detail: '구가 UNKNOWN으로 거부한 자리에서 신은 요청을 보냈고 서버의 거절이 그대로 올라왔다.' };
+      }
+      const body = singleJsonBody(actual.response);
+      return body !== null && body['allowed_action_known'] === false
+        ? { ok: true, detail: '구가 UNKNOWN으로 거부한 자리에서 신은 요청을 보내 성공했고 allowed_action_known:false를 실었다.' }
+        : { ok: false, detail: '신이 성공했으나 allowed_action_known:false를 말하지 않는다 — 등재된 갈래가 아니다.' };
+    },
+  },
+  {
+    id: 'D149',
+    title: 'CheckSyntax — 판정불능을 실패로 말하지 않는다 (verdict · success:null · main_program)',
+    tool: 'CheckSyntax',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d149 · sapkit-engine/src/tools/read/checkSyntax.ts · ' +
+      '덧말표(harness/old-surface의 amendments 표)',
+    substituteTest:
+      'sapkit-engine/src/tools/read/__tests__/checkSyntax.test.ts — 「D149 — include의 판정불능과 main_program」 5건',
+    resolvesIn: null,
+    // 모든 성공 응답이 새 키를 싣는다. 오류 갈래(래퍼 던짐·기반 실패)는 그대로 대조된다.
+    applies: (step) => step.tool === 'CheckSyntax' && !step.isError,
+    check: ({ recorded, actual }) => {
+      const verdictless = oldWasVerdictlessFailure(recorded.response);
+      const keys = verdictless ? [...D143_KEYS, 'success'] : D143_KEYS;
+      const verdict = onlyRegisteredKeysDiffer(recorded, actual, keys, 'CheckSyntax');
+      if (!verdict.ok || !verdictless) return verdict;
+      const body = singleJsonBody(actual.response);
+      return body !== null && body['success'] === null && body['verdict'] === 'indeterminate'
+        ? { ok: true, detail: '구가 success:false·errors:[]로 답한 자리에서 신이 success:null·verdict:indeterminate로 답했다.' }
+        : { ok: false, detail: '구가 오류 없는 실패로 답한 자리인데 신이 판정불능을 말하지 않는다.' };
+    },
+  },
+  {
+    id: 'D150',
+    title: 'UpdateProgram — 거짓 FIXPT precheck를 통째로 믿지 않는다',
+    tool: 'UpdateProgram',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d150 · sapkit-engine/src/tools/write/updateProgram.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/updateProgram.test.ts — ' +
+      '「D150 — 인라인 precheck가 FIXPT 계열로 실패하고 저장된 판이 깨끗하면 쓰기를 진행한다」 6건',
+    resolvesIn: null,
+    applies: (step) => step.tool === 'UpdateProgram' && oldRefusedOnFixpt(step),
+    check: ({ actual }) => {
+      if (actual.isError) {
+        return /preCheck syntax check failed/.test(collectText(actual.response))
+          ? { ok: true, detail: '신도 precheck로 막았다 — 저장된 판에도 실오류가 있었던 갈래다(등재된 차이의 조건 밖).' }
+          : { ok: false, detail: '신이 다른 이유로 막혔다 — 등재된 갈래가 아니다.' };
+      }
+      const body = singleJsonBody(actual.response);
+      return body !== null && body['precheck_overridden'] === true
+        ? { ok: true, detail: '구가 FIXPT precheck로 막은 자리에서 신은 precheck_overridden:true로 썼다.' }
+        : { ok: false, detail: '신이 성공했으나 precheck_overridden을 말하지 않는다 — 등재된 갈래가 아니다.' };
+    },
+  },
+  {
+    id: 'D151',
+    title: 'GrepObjects — FUGR를 함수모듈·인클루드로 전개해 훑는다',
+    tool: 'GrepObjects',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d151 · sapkit-engine/src/tools/read/grepObjects.ts · ' +
+      'sapkit-engine/src/tools/read/internal/objectSource.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/read/__tests__/grepObjects.test.ts — 「D151 — FUGR는 함수모듈·인클루드로 전개해 훑는다」 4건',
+    resolvesIn: null,
+    applies: (step) => step.tool === 'GrepObjects' && !step.isError && askedForFunctionGroup(step.args),
+    check: ({ recorded, actual }) => {
+      if (actual.isError) return { ok: false, detail: '신 엔진이 GrepObjects를 오류로 답했다 — 등재된 갈래가 아니다.' };
+      const old = singleJsonBody(recorded.response);
+      const fresh = singleJsonBody(actual.response);
+      if (old === null || fresh === null) return { ok: false, detail: '양쪽 응답을 JSON 본문으로 읽지 못했다.' };
+      // FUGR가 아닌 항목의 결과·건너뜀은 그대로여야 한다.
+      const offending = jsonDelta(
+        nonFunctionGroupParts(old) as unknown as JsonValue,
+        nonFunctionGroupParts(fresh) as unknown as JsonValue,
+      );
+      if (offending.length > 0) {
+        return { ok: false, detail: `FUGR가 아닌 항목의 결과가 달라졌다 — ${showDelta(offending)}.` };
+      }
+      // FUGR 항목은 구성원 결과(function_group) 또는 skipped의 이유로 나타나야 한다 — 조용한 0이 아니다.
+      const results = Array.isArray(fresh['results']) ? fresh['results'] : [];
+      const skipped = Array.isArray(fresh['skipped']) ? fresh['skipped'] : [];
+      const memberResults = results.some((r) => isPlainObject(r) && r['function_group'] !== undefined);
+      const groupSkipped = skipped.some((s) => isPlainObject(s) && /^FUGR(\/\w+)? /i.test(String(s['object'] ?? '')));
+      return memberResults || groupSkipped
+        ? { ok: true, detail: '구가 메타데이터를 훑어 조용히 0이던 자리에서 신은 구성원 결과 또는 skipped 이유를 실었다.' }
+        : { ok: false, detail: '신 응답에 FUGR 구성원 결과도 skipped 이유도 없다 — 여전히 조용한 0이다.' };
+    },
+  },
+  {
+    id: 'D152',
+    title: 'GetTypeInfo — 4xx 「그 종류가 아니다」 계열(400·405·406·415·422)도 다음 후보로 넘긴다',
+    tool: 'GetTypeInfo',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d152 · sapkit-engine/src/tools/read/getTypeInfo.ts',
+    substituteTest: 'sapkit-engine/src/tools/read/__tests__/getTypeInfo.test.ts — 「D152」 2건',
+    resolvesIn: null,
+    // 구가 `ADT error: … 4xx`로 죽은 오류 갈래만. 성공 갈래는 D36(그릇)이 든다 — 겹치지 않는다.
+    applies: (step) => step.tool === 'GetTypeInfo' && oldDiedOnNextCandidateStatus(step) !== null,
+    check: ({ recorded, actual }) => {
+      const status = oldDiedOnNextCandidateStatus(recorded) ?? '?';
+      if (!actual.isError) return { ok: true, detail: `구가 HTTP ${status}에서 죽은 자리에서 신은 다음 후보로 넘어가 답을 찾았다.` };
+      const text = collectText(actual.response);
+      return new RegExp(`\\b${status}\\b`).test(text)
+        ? { ok: false, detail: `신도 같은 HTTP ${status}로 죽었다 — 다음 후보로 넘어가지 않았다.` }
+        : { ok: true, detail: `구가 HTTP ${status}에서 죽은 자리에서 신은 후보를 넘어갔고 다른 결과(미발견 또는 다른 오류)로 끝났다.` };
+    },
+  },
+  {
+    id: 'D154',
+    title: 'GetInclude — 클래스 인클루드(CCIMP 등)를 요청 전에 거절하고 읽는 도구를 이름으로 말한다',
+    tool: 'GetInclude',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d154 · sapkit-engine/src/tools/read/getInclude.ts · ' +
+      '덧말표(harness/old-surface의 amendments 표)',
+    substituteTest:
+      'sapkit-engine/src/tools/read/__tests__/getInclude.test.ts — 「D154 — 클래스 인클루드(CCIMP 등)는 이 경로가 아니다」 3건',
+    resolvesIn: null,
+    applies: (step) => step.tool === 'GetInclude' && step.isError && askedForClassInclude(step.args),
+    check: ({ actual }) =>
+      actual.isError && /class include/.test(collectText(actual.response))
+        ? { ok: true, detail: '구가 HTTP 500을 그대로 올린 자리에서 신은 「class include」를 말하는 오류로 거절했다.' }
+        : { ok: false, detail: '신이 클래스 인클루드를 「class include」로 거절하지 않았다 — 등재된 갈래가 아니다.' },
   },
 ];
 

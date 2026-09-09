@@ -10,15 +10,9 @@
  *    `:64-84`·`:111-121`(종류 게이트) · `:479-518`(생성) · `:594-612`(검사) ·
  *    `:613-635`(활성화) · `:636-666`(생성정보) · `utils/systemInfo.js:16-60`
  *  - **활성화 응답을 아무도 읽지 않는다** → 차이 D105
+ *  - **계약(category)을 고를 수 없었다** → 차이 D141 (`binding_category` 덧인자)
  */
 
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-
-import { createServerCore, resolveStartup } from '../../../server';
 import type { ToolResult } from '../../../server';
 import { createServiceBinding } from '../createServiceBinding';
 import {
@@ -29,6 +23,7 @@ import {
   textOf,
   xml,
 } from './harness';
+import { publishedDeclaration, publishedSurfaceOf } from './tableStructurePublication';
 
 const URI = '/sap/bc/adt/businessservices/bindings/zui_my_binding';
 
@@ -116,39 +111,28 @@ function paths(harness: WriteHarness): string[] {
 
 // ── 발행 계약 ───────────────────────────────────────────────────────────────
 
-const CAPTURED = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, '../../../../harness/old-surface/m1-tools.json'), 'utf8'),
-) as { tools: Record<string, unknown> };
-
 describe('발행 계약', () => {
-  it('tools/list 선언이 구 번들 채록본과 글자까지 같다', async () => {
-    const startup = resolveStartup({
-      argv: ['/usr/bin/node', '/app/entry.js', '--exposition=readonly,high'],
-      env: {},
-      cwd: process.cwd(),
-      homedir: process.cwd(),
+  it('tools/list 선언이 구 번들 채록본 + 덧말·덧인자(D141)와 글자까지 같다', async () => {
+    // 채록본 원문에 `harness/old-surface/amendments.json`의 설명 덧말과 `binding_category`
+    // 덧인자를 조립한 것이 기대값이다 — 원문이 한 글자라도 움직이면 여기서 실패한다.
+    expect(await publishedSurfaceOf(createServiceBinding)).toEqual(
+      publishedDeclaration('CreateServiceBinding'),
+    );
+  });
+
+  it('덧인자 binding_category는 선택이고 기본이 WEB_API다 — 구 호출자는 그대로 동작한다', () => {
+    const schema = publishedDeclaration('CreateServiceBinding').inputSchema as {
+      properties: Record<string, { default?: string; enum?: string[] }>;
+      required: string[];
+    };
+    expect(schema.properties['binding_category']).toEqual({
+      description:
+        'Service contract: "WEB_API" (default, srvb:category="1") or "UI" (srvb:category="0", required for Fiori Elements / SAP Fiori UI consumption).',
+      default: 'WEB_API',
+      type: 'string',
+      enum: ['UI', 'WEB_API'],
     });
-    const core = createServerCore({
-      startup: { ...startup, profile: { ...startup.profile, systemType: 'cloud' } },
-      tools: [createServiceBinding],
-      stderr: () => {},
-    });
-    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
-    const client = new Client({ name: 'contract-test', version: '0.0.0' });
-    await Promise.all([core.server.connect(serverTransport), client.connect(clientTransport)]);
-    try {
-      const listed = await client.listTools();
-      const published = listed.tools[0] as unknown as Record<string, unknown>;
-      expect({
-        name: published.name,
-        description: published.description,
-        inputSchema: published.inputSchema,
-        execution: published.execution,
-      }).toEqual(CAPTURED.tools['CreateServiceBinding']);
-    } finally {
-      await client.close();
-      await core.server.close();
-    }
+    expect(schema.required).not.toContain('binding_category');
   });
 
   it('노출 선언과 정책 분류', () => {
@@ -462,6 +446,8 @@ describe('응답 조립', () => {
         service_definition_name: 'ZSRVD_DEMO',
         package_name: 'ZOK_LAB',
         binding_type: 'ODataV4',
+        binding_category: 'WEB_API',
+        srvb_category: '1',
         service_binding_version: 'V4',
         service_name: 'ZUI_MY_BINDING',
         service_version: '0001',
@@ -474,6 +460,56 @@ describe('응답 조립', () => {
       });
     } finally {
       await harness.close();
+    }
+  });
+});
+
+// ── D141 — 계약(category) ────────────────────────────────────────────────────
+
+describe('D141 — 계약(category)을 고를 수 있고, 응답이 무엇을 만들었는지 말한다', () => {
+  it('binding_category를 주지 않으면 구 그대로 Web API(srvb:category="1")다', async () => {
+    const harness = await harnessFor();
+    try {
+      const payload = jsonOf(await run(harness));
+      expect(harness.nth(3).body).toContain(
+        '<srvb:binding srvb:category="1" srvb:type="ODATA" srvb:version="V4">',
+      );
+      expect(payload.binding_category).toBe('WEB_API');
+      expect(payload.srvb_category).toBe('1');
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it('binding_category: UI면 srvb:category="0"이고 **그 한 속성만** 달라진다', async () => {
+    const webApi = await harnessFor();
+    const ui = await harnessFor();
+    try {
+      const webApiPayload = jsonOf(await run(webApi));
+      const uiPayload = jsonOf(await run(ui, { ...ARGS, binding_category: 'UI' }));
+
+      expect(ui.nth(3).body).toContain(
+        '<srvb:binding srvb:category="0" srvb:type="ODATA" srvb:version="V4">',
+      );
+      // 페이로드의 나머지는 글자까지 같다 — 계약 인자는 category만 가른다.
+      expect(ui.nth(3).body.replace('srvb:category="0"', 'srvb:category="1"')).toBe(
+        webApi.nth(3).body,
+      );
+      // `srvb:contract`는 보내지 않는다(서버 파생값으로 보인다 — 머리주석).
+      expect(ui.nth(3).body).not.toContain('srvb:contract');
+
+      expect(uiPayload.binding_category).toBe('UI');
+      expect(uiPayload.srvb_category).toBe('0');
+      expect({ ...uiPayload, binding_category: null, srvb_category: null }).toEqual({
+        ...webApiPayload,
+        binding_category: null,
+        srvb_category: null,
+      });
+      // 사슬은 그대로 아홉 요청이다.
+      expect(ui.calls()).toHaveLength(9);
+    } finally {
+      await webApi.close();
+      await ui.close();
     }
   });
 });

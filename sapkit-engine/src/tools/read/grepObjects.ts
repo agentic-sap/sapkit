@@ -8,10 +8,20 @@
  * 소스를 가져오는 분배기는 `internal/objectSource.ts`에 있다 — 구에서도
  * `GrepPackages`와 공용이었다(`engine/src/lib/objectSourceFetch.ts`). 두 도구의
  * 차이는 `grepPackages.ts` 머리주석이 표로 적어 두었다.
+ *
+ * ## FUGR는 전개해서 훑는다 (차이 — `harness/DIVERGENCES.md` D145)
+ *
+ * 구의 FUGR 갈래는 함수그룹 **메타데이터**를 읽어 훑었다 — 거기에 소스가 없으므로
+ * FM 본문의 실재하는 문자열에도 `total_matches: 0 · skipped: []`였다(2026-07-28·30·31
+ * 실측). 지금은 그룹을 함수모듈(`FUGR/FF`)·인클루드(`FUGR/I`)로 전개해 각각 훑고
+ * **구성원 이름으로** 보고한다(`function_group`이 그룹을 가리킨다). 전개가 불가하면
+ * 조용한 0이 아니라 `skipped`에 이유를 싣는다. `GrepPackages`의 FUGR 갈래는 이 판에서
+ * 손대지 않았다 — 같은 결함이 그쪽에도 있다(보고에 적었다). 실기 미검증.
  */
 
 import * as z from 'zod';
 
+import type { AdtClient } from '../../adt';
 import { defineTool } from '../../server/toolDefinition';
 import {
   aggregateGrepResults,
@@ -19,17 +29,81 @@ import {
   runWithConcurrency,
   type ObjectGrepInput,
 } from './internal/grep';
-import { fetchObjectSource } from './internal/objectSource';
+import {
+  classifySourceType,
+  expandFunctionGroup,
+  fetchFunctionGroupMemberSource,
+  fetchObjectSource,
+} from './internal/objectSource';
 import { failure, messageOf, ok } from './internal/results';
 
 const MAX_OBJECTS = 50;
 const FETCH_CONCURRENCY = 5;
 
+/** D145 — 함수그룹 하나를 전개해 구성원마다 훑을 입력을 만든다. 실패는 `skipped`의 이유가 된다. */
+async function grepInputsForFunctionGroup(
+  client: AdtClient,
+  objectType: string,
+  objectName: string,
+  warn: (message: string) => void,
+): Promise<ObjectGrepInput[]> {
+  const groupName = objectName.toUpperCase();
+  let members: Awaited<ReturnType<typeof expandFunctionGroup>>;
+  try {
+    members = await expandFunctionGroup(client, groupName);
+  } catch (error) {
+    warn(`GrepObjects: could not expand function group ${groupName}: ${messageOf(error)}`);
+    return [
+      {
+        object_type: objectType,
+        object_name: objectName,
+        source: null,
+        skip_reason: `Could not expand function group ${groupName} into its function modules and includes (repository node structure): ${messageOf(error)}. Nothing in the group was scanned.`,
+      },
+    ];
+  }
+  if (members.length === 0) {
+    return [
+      {
+        object_type: objectType,
+        object_name: objectName,
+        source: null,
+        skip_reason: `Function group ${groupName} expanded to no function modules or includes (the repository node structure returned no FUGR/FF or FUGR/I leaf with an address) — nothing was scanned.`,
+      },
+    ];
+  }
+
+  const inputs: ObjectGrepInput[] = new Array(members.length);
+  await runWithConcurrency(members, FETCH_CONCURRENCY, async (member, index) => {
+    try {
+      const response = await fetchFunctionGroupMemberSource(client, member);
+      inputs[index] = {
+        object_type: member.type,
+        object_name: member.name,
+        function_group: groupName,
+        source: response.body,
+      };
+    } catch (error) {
+      warn(`GrepObjects: could not fetch source for ${member.type} ${member.name} (in ${groupName}): ${messageOf(error)}`);
+      inputs[index] = {
+        object_type: member.type,
+        object_name: member.name,
+        function_group: groupName,
+        source: null,
+        skip_reason: `Failed to fetch source: ${messageOf(error)}`,
+      };
+    }
+  });
+  return inputs;
+}
+
 export const grepObjects = defineTool(
   {
     name: 'GrepObjects',
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D145 · 백로그 13-8 ⓒ.
     description:
-      '[read-only] Search ABAP source code for a regex pattern across multiple named objects in a single call — finds matching lines (with optional context) instead of reading each object one by one. Supports CLAS, PROG, INTF, INCL, and FUGR (function group). Individual function modules (FUNC) are not supported; use FUGR with the group name to search the whole group.',
+      '[read-only] Search ABAP source code for a regex pattern across multiple named objects in a single call — finds matching lines (with optional context) instead of reading each object one by one. Supports CLAS, PROG, INTF, INCL, and FUGR (function group). Individual function modules (FUNC) are not supported; use FUGR with the group name to search the whole group.' +
+      ' Matching is case-sensitive unless case_insensitive is true — 0 matches means "this pattern found nothing", not "the code is absent". CLAS searches source/main only: local types and the implementations include (CCIMP, where behavior-pool handlers and local classes live) are not scanned and no skipped entry is written for them; read those with GetLocalTypes. FUGR is expanded to the group\'s function modules and includes (each reported under its own name); if the group cannot be expanded, the reason is listed under skipped instead of a silent 0.',
     inputSchema: {
       objects: z
         .array(
@@ -77,18 +151,26 @@ export const grepObjects = defineTool(
       const regex = compileGrepRegex(args.pattern, caseInsensitive);
 
       const client = await context.getConnection();
-      const inputs: ObjectGrepInput[] = new Array(requested.length);
+      // 요청 항목 하나가 입력 여러 개가 될 수 있다(FUGR 전개 — D145). 순서는 요청 순서다.
+      const expanded: ObjectGrepInput[][] = new Array(requested.length);
+      const warn = (message: string): void => context.logger.warn(message);
 
       await runWithConcurrency(requested, FETCH_CONCURRENCY, async (item, index) => {
         const objectType = String(item?.object_type ?? '').trim();
         const objectName = String(item?.object_name ?? '').trim();
         if (!objectType || !objectName) {
-          inputs[index] = {
-            object_type: objectType || '(missing)',
-            object_name: objectName || '(missing)',
-            source: null,
-            skip_reason: 'object_type and object_name are required',
-          };
+          expanded[index] = [
+            {
+              object_type: objectType || '(missing)',
+              object_name: objectName || '(missing)',
+              source: null,
+              skip_reason: 'object_type and object_name are required',
+            },
+          ];
+          return;
+        }
+        if (classifySourceType(objectType) === 'FUGR') {
+          expanded[index] = await grepInputsForFunctionGroup(client, objectType, objectName, warn);
           return;
         }
         const { source, skipReason } = await fetchObjectSource(
@@ -96,15 +178,18 @@ export const grepObjects = defineTool(
           'GrepObjects',
           objectType,
           objectName,
-          (message) => context.logger.warn(message),
+          warn,
         );
-        inputs[index] = {
-          object_type: objectType,
-          object_name: objectName,
-          source,
-          skip_reason: skipReason,
-        };
+        expanded[index] = [
+          {
+            object_type: objectType,
+            object_name: objectName,
+            source,
+            skip_reason: skipReason,
+          },
+        ];
       });
+      const inputs = expanded.flat();
 
       const aggregate = aggregateGrepResults(inputs, regex, {
         context_lines: args.context_lines ?? 0,

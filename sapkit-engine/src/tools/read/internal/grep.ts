@@ -26,6 +26,8 @@ export interface GrepMatch {
 export interface ObjectGrepInput {
   object_type: string;
   object_name: string;
+  /** 함수그룹을 전개한 구성원이면 그 그룹 이름 (D145). */
+  function_group?: string;
   /** 소스 텍스트. 가져오지 못했으면 null. */
   source: string | null;
   /** 가져오지 못한 이유. `source: null`과 짝으로 온다. */
@@ -35,6 +37,8 @@ export interface ObjectGrepInput {
 export interface ObjectGrepResult {
   object_type: string;
   object_name: string;
+  /** 함수그룹을 전개한 구성원이면 그 그룹 이름 (D145). */
+  function_group?: string;
   matches: GrepMatch[];
   truncated_object?: boolean;
 }
@@ -121,7 +125,9 @@ export function aggregateGrepResults(
   let truncated = false;
 
   for (const object of objects) {
-    const label = `${object.object_type} ${object.object_name}`;
+    const label =
+      `${object.object_type} ${object.object_name}` +
+      (object.function_group ? ` (in ${object.function_group})` : '');
     if (object.skip_reason || object.source == null) {
       skipped.push({ object: label, reason: object.skip_reason ?? 'Source not available' });
       continue;
@@ -143,6 +149,7 @@ export function aggregateGrepResults(
       const entry: ObjectGrepResult = {
         object_type: object.object_type,
         object_name: object.object_name,
+        ...(object.function_group ? { function_group: object.function_group } : {}),
         matches,
       };
       if (lineCapReached) entry.truncated_object = true;
