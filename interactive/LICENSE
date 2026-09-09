@@ -22,7 +22,7 @@ SOFTWARE.
 
 ---
 
-## What this notice covers (2026-08-22 · last revised 2026-08-24 — D-103, D-104, D-112, D-113)
+## What this notice covers (2026-08-22 · last revised 2026-09-09 — D-103, D-104, D-112, D-113, D-130~D-136)
 
 This file is the **retained upstream notice** for content borrowed from
 `babamba2/superclaude-for-sap` (via the frozen `hjaewon/sc4sap-custom`).
@@ -39,7 +39,7 @@ list is the wrong shape: what remains of the upstream work is not files but
 
 | Group | Count | State |
 |---|---:|---|
-| `server/sap-assets/` | 29 files | ~~Upstream, unmodified since import~~ → **Re-authored from scratch and renamed on 2026-08-23** (D-130, D-131; nine of them installed and activated on a real S/4HANA system — D-132). Verbatim overlap with the upstream sources is **17 lines**, every one of them a contract that cannot differ (DDIC type declarations, selection-screen parameters, framework redefinition signatures, OData properties, public method signatures). **This group is no longer a reason for this notice to exist.** |
+| `server/sap-assets/` | 29 files (the directory holds 30 tracked files; the 30th is its own `README.md`, an install guide that was never part of the re-authoring ledger) | ~~Upstream, unmodified since import — the reason this notice never fully retires~~ → **Re-authored from scratch and renamed on 2026-08-23** (D-130, D-131; nine of them installed and activated on a real S/4HANA system — D-132). Real-system use then exposed three defects the offline checker had passed; those were fixed and the runtime round-trip was demonstrated (D-134), and one fix that had landed in the wrong place was put back where it belonged (D-136). Verbatim overlap with the upstream sources was **17 lines** as measured on 2026-08-23 — before the D-132/D-134/D-136 fixes, and counting this directory only — every one of them a contract that cannot differ (DDIC type declarations, selection-screen parameters, framework redefinition signatures, OData properties, public method signatures). **This group is no longer a reason for this notice to exist** (corrected 2026-09-09). |
 | Knowledge, industry, country and ABAP-convention content (`copy` ledger) | 170 files | **Re-authored file by file under independent review** (finished 2026-08-18) — except **26 pure reference-table files** (TCode/SPRO tables), which were **verified unchanged** instead: their content is factual data, kept byte-identical on purpose (D-088 ②). |
 | Server-bound utilities and the tool catalog | 6 files | **Replaced or rewritten 2026-08-23**: the catalog is now generated from the engine registry; both utilities were rewritten from scratch. |
 | Personas, procedures, hooks, libs, extraction tools, policies (§3.4 ledger) | 56 files | **Re-authored 2026-08-23** across three reviewed batches. |

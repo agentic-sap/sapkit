@@ -1,46 +1,54 @@
+<p align="center">
+  English | <a href="README.ko.md">한국어</a>
+</p>
+
 # SAPKIT
 
-SAP ABAP 개발과 컨설팅을 돕는 AI 플러그인입니다. 설치하면 AI가 여러분의 SAP 시스템에
-직접 붙어서 소스를 읽고, 코드를 만들고, 덤프를 파고, 명세서를 뽑습니다.
+An AI plugin for SAP ABAP development and consulting. Install it and the AI connects to your
+SAP system directly — reading source, writing code, digging through dumps, and producing specs.
 
-Claude Code · Codex CLI · Antigravity 세 곳에서 같은 방식으로 씁니다.
+It works the same way in Claude Code, Codex CLI, and Antigravity.
 
-## 뭘 할 수 있나
+## What it does
 
-**만들기**
+**Building**
 
-- `/sapkit:create-program` — 리포트든 ALV든 배치 프로그램이든, 요구사항 인터뷰부터
-  시작해 명세서를 쓰고 **사람 승인을 받은 뒤에** 코드를 올립니다. Main+Include 구조로
-  짓고, 다 만든 뒤엔 별도 세션이 리뷰합니다.
-- `/sapkit:create-object` · `/sapkit:modify-object` — 클래스·테이블·CDS 같은 개별
-  오브젝트 하나를 만들거나 고칩니다. 작은 수정은 후자가 가볍습니다.
+- `/sapkit:create-program` — a report, an ALV, a batch program: it starts from a requirements
+  interview, writes the spec, and puts code into SAP **only after a human approves**. It builds
+  in Main+Include structure, and once it is done a separate session reviews it.
+- `/sapkit:create-object` · `/sapkit:modify-object` — create or change a single object such as
+  a class, a table, or a CDS view. For a small edit the latter is lighter.
 
-**읽기와 파악하기**
+**Reading and understanding**
 
-- `/sapkit:program-to-spec` — 남이 짜 놓은 ABAP 프로그램을 거꾸로 읽어 기능/기술
-  명세서로 만듭니다. Markdown이나 Excel로 나옵니다.
-- `/sapkit:package-to-process` — CBO 패키지 하나를 통째로 훑어 업무 흐름
-  (구매요청 → 발주 → 입고 → 송장 같은)을 복원하고, 프로세스 맵 그림까지 그려 줍니다.
-- `/sapkit:compare-programs` — 비슷한 일을 하는 프로그램 두세 개가 업무적으로 뭐가
-  다른지 비교합니다. MM 버전과 CO 버전, 한국 버전과 유럽 버전 같은 것들이요.
-- `/sapkit:analyze-code` — 코드 리뷰. 14가지 관점으로 보고 심각도를 매겨 알려 줍니다.
+- `/sapkit:program-to-spec` — reads someone else's ABAP program backwards into a
+  functional/technical spec. Comes out as Markdown or Excel.
+- `/sapkit:package-to-process` — walks a whole CBO package and recovers the business flow
+  (purchase requisition → purchase order → goods receipt → invoice, that kind of thing), and
+  draws the process map for you as well.
+- `/sapkit:compare-programs` — compares two or three programs that do similar work and shows
+  what differs about them in business terms. The MM version and the CO version, the Korean
+  version and the European version, that sort of thing.
+- `/sapkit:analyze-code` — code review. It looks from 14 angles and rates each finding by
+  severity.
 
-**문제 생겼을 때**
+**When something goes wrong**
 
-- `/sapkit:analyze-symptom` — 덤프, 로그, 이송 이력, where-used를 직접 뒤져 원인을
-  좁힙니다. 필요한 것만 물어보고 SAP Note 검색 키워드까지 뽑아 줍니다.
-- `/sapkit:ask-consultant` — 모듈 컨설턴트에게 묻듯 물어보면 됩니다. 여러분 시스템의
-  버전·업종·국가 설정을 보고 답합니다.
+- `/sapkit:analyze-symptom` — digs through dumps, logs, transport history, and where-used to
+  narrow down the cause. It asks only what it needs and gives you SAP Note search keywords too.
+- `/sapkit:ask-consultant` — ask it the way you would ask a module consultant. It answers
+  against your system's version, industry, and country settings.
 
-**마무리**
+**Wrapping up**
 
-- `/sapkit:release` — 이송 요청 릴리스. 릴리스 전 조건을 확인하고 넘깁니다.
-- `/sapkit:handoff` — 오늘 어디까지 했는지를 프로젝트 폴더에 적어 둡니다. 다음 세션이
-  그걸 읽고 이어서 합니다.
+- `/sapkit:release` — transport request release. It checks the pre-release conditions and hands
+  it over.
+- `/sapkit:handoff` — writes down how far you got today into the project folder. The next
+  session reads that and carries on.
 
-전체 목록은 `/sapkit:` 을 치면 나옵니다.
+Type `/sapkit:` for the full list.
 
-## 설치
+## Install
 
 **Claude Code**
 
@@ -49,7 +57,7 @@ claude plugin marketplace add agentic-sap/sapkit
 claude plugin install sapkit@agentic-sap --scope user
 ```
 
-새 세션을 열거나 `/reload-plugins` 한 뒤 `/sapkit:setup` 을 실행하세요.
+Open a new session or run `/reload-plugins`, then run `/sapkit:setup`.
 
 **Codex CLI**
 
@@ -58,64 +66,91 @@ codex plugin marketplace add agentic-sap/sapkit
 codex plugin add sapkit@agentic-sap
 ```
 
-새 세션에서 `$sapkit:setup`.
+Then `$sapkit:setup` in a new session.
 
-`setup`이 SAP 접속 설정을 대화로 안내합니다. 비밀번호는 여러분이 직접 파일에 넣고,
-플러그인은 그 값을 어디에도 기록하지 않습니다. **접속 설정 없이도** 지식·상담 기능은
-바로 씁니다.
+`setup` walks you through the SAP connection settings in conversation. You put the password
+into the file yourself, and the plugin does not record that value anywhere. **Even without a
+connection**, the knowledge and consulting features work right away.
 
-SAP에 붙는 MCP 서버는 플러그인에 들어 있습니다. 따로 받거나 등록할 것이 없습니다.
+The MCP server that connects to SAP is inside the plugin. There is nothing to download or
+register separately.
 
-## 안전장치
+## Safety by default
 
-SAP은 잘못 건드리면 되돌리기 어렵습니다. 그래서 다음은 설정이 아니라 **기본 동작**입니다.
+SAP is hard to undo once you get it wrong. So the following are not settings — they are the
+**default behavior**.
 
-- **쓰기는 DEV 시스템에만** 갑니다. 접속 설정에 QA나 운영으로 잡혀 있으면 생성·수정·
-  활성화 요청이 서버 단에서 거부됩니다. 티어를 판별하지 못해도 막습니다.
-- **테이블 데이터 조회는 건별 승인**입니다. 보호 대상 테이블은 서버가 먼저 거부하고,
-  그 바닥선을 푸는 것은 여러분이 접속 설정 파일에 직접 적을 때뿐입니다. 배치로 돌리거나
-  하위 에이전트에게 대신 시키는 길은 열려 있지 않습니다.
-- **"저장됐습니다"를 그대로 믿지 않습니다.** SAP에 뭔가 쓴 뒤에는 소스를 다시 읽어
-  보낸 것과 대조합니다. 그 대조와 별도 세션의 리뷰가 **둘 다** 끝나야 완료로 칩니다.
-- 이송 요청이 필요한 자리에서 빠져 있으면 알려 줍니다.
+- **Writes go to DEV systems only.** If your connection settings say QA or production, create,
+  update, and activate requests are refused at the server. If the tier cannot be determined,
+  they are blocked as well.
+- **Table data reads are approved one at a time.** Protected tables are refused by the server
+  first, and that floor opens only when you write it into your connection settings file
+  yourself. There is no open path for running them in a batch or handing them to a subagent.
+- **A "saved" response is not taken at face value.** After anything is written to SAP, the
+  source is read back and compared against what was sent. It counts as done only once that
+  comparison and a separate session's review are **both** finished.
+- If a transport request is needed somewhere and it is missing, you are told.
 
-ABAP 오프라인 검사기도 같이 들어 있어서, SAP에 붙지 않고도 로컬에서 코드를 검사할 수
-있습니다.
+An offline ABAP checker is included too, so you can check code locally without connecting
+to SAP.
 
-## 세션이 끊겨도 이어서 하기
+## Picking up where you left off
 
-SAP 작업은 하루에 안 끝납니다. `/sapkit:handoff` 를 실행하면 프로젝트 폴더에
-`HANDOFF.md`(지금 상태)와 `RUN-PLAN.md`(할 일 순서)를 만들어 둡니다. 오브젝트마다
-**SAP에 보내기만 한 것**과 **되읽어 확인까지 끝난 것**을 구분해 적기 때문에, 다음 세션이
-어디까지 믿어도 되는지 알 수 있습니다.
+SAP work does not finish in a day. Run `/sapkit:handoff` and it leaves `HANDOFF.md` (where
+things stand) and `RUN-PLAN.md` (what to do in what order) in the project folder. For each
+object it writes down **what was only sent to SAP** separately from **what was read back and
+confirmed**, so the next session knows how far it can trust things.
 
-이미 같은 이름의 파일을 쓰고 계신다면 걱정 안 하셔도 됩니다. sapkit은 자기가 만든
-파일에만 손을 대고, 그 표시가 없는 파일은 읽지도 고치지도 않습니다. 반대로 그 표시를
-지우면 그때부터 손을 뗍니다.
+If you already keep files by those names, there is nothing to worry about. sapkit touches only
+the files it set up itself, and a file without that mark is neither read nor changed.
+Conversely, remove that mark and it stops touching the file from then on.
 
-## 업데이트
+## Update
 
 ```text
 claude plugin marketplace update agentic-sap
 claude plugin update sapkit@agentic-sap
 ```
 
-Codex는 `codex plugin marketplace upgrade agentic-sap` 뒤에 `codex plugin add`를 다시
-실행합니다. 어느 쪽이든 적용하려면 재시작이 필요합니다.
+For Codex, run `codex plugin marketplace upgrade agentic-sap` and then `codex plugin add`
+again. Either way, a restart is needed for it to take effect.
 
-## 잘 안 될 때
+## When something is wrong
 
-`/sapkit:troubleshooting` 이 접속 문제를 단계별로 짚어 줍니다. 그래도 안 되면
-`node "<플러그인 경로>/scripts/doctor.mjs"` 를 실행해 나온 내용을 이슈로 남겨 주세요.
+`/sapkit:troubleshooting` walks you through connection problems step by step. If that still
+does not do it, run `node "<plugin path>/scripts/doctor.mjs"` and file what it prints as an
+issue.
 
-## 더 보기
+## More
 
-- [플러그인 안내](interactive/README.md) — 구조와 설계
-- 하네스별 안내:
+- [Plugin guide](interactive/README.md) — structure and design
+- Per-harness guides:
   [Claude Code](interactive/adapters/claude/README.md) ·
   [Codex](interactive/adapters/codex/README.md) ·
   [Antigravity](interactive/adapters/antigravity/README.md)
 
-## 라이선스
+## Acknowledgments
+
+SAPKIT started from [superclaude-for-sap](https://github.com/babamba2/superclaude-for-sap)
+by Paek Seunghyun (babamba2). The knowledge base, the personas, the procedures, and the
+philosophy that a human approves and SAP verifies all began there. Most of it has since been
+re-authored, but the structure is still the one that project laid down.
+
+The MCP server is built on [abap-mcp-adt-powerup](https://github.com/hjaewon/abap-mcp-adt-powerup),
+our fork of Paek Seunghyun's customized server, and underneath it on the ADT-over-MCP work of
+[mcp-abap-adt](https://github.com/fr0ster/mcp-abap-adt) by fr0ster, which itself descends from
+mario-andreschak's original. The engine shipped today
+was written from scratch, but which tools exist and what each one exchanges with SAP was
+settled by those two projects first.
+
+The offline ABAP checker inherits its rules and verdicts from
+[vibing-steampunk](https://github.com/oisee/vibing-steampunk) by Alice Vinogradova and,
+through it, from [abaplint](https://github.com/abaplint/abaplint) by Lars Hvam Petersen.
+
+The superclaude-for-sap notice is kept in [`interactive/LICENSE`](interactive/LICENSE). What was
+inherited from each project and what was rewritten, together with their licenses, is recorded in
+[THIRD_PARTY_NOTICES](interactive/THIRD_PARTY_NOTICES.md).
+
+## License
 
 [MIT](LICENSE) © 2026 Hong Jaewon
