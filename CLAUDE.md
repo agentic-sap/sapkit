@@ -163,6 +163,7 @@ SAP ABAP 개발을 돕는 AI 플러그인 **SAPKIT**. **단일 레포 · 두 트
 | `docs/BLUEPRINT.md` | 재구성 계획(사다리 단계·끝그림·도구 실사)이 바뀔 때만 |
 | **`CLAUDE.md`**(이 문서) | **정체성·안전 규칙·게이트 목록·문서 계약이 바뀔 때.** ⚠ 여기에 **상태 수치를 복제하지 않는다**(버전·바이트·계수는 정본을 가리킨다) — 복제하면 갱신 누락이 곧 거짓말이 된다 |
 | `docs/RUN-PLAN.md` | 판(ready→go 사이클)이 끝나거나 판 순서가 바뀔 때 — **판 큐의 단일 정본** (D-084) |
+| `docs/reference/engine-backlog.md` | 엔진 결함이 **등재·수리·해소·기각으로 상태를 바꿀 때**(콜드 정본 — 판정은 UPDATE-RUNBOOK 별건 · D-147) |
 | `interactive/plugin-metadata.json` | 버전·자산 계수의 **단일 정본**. 고친 뒤 반드시 `gen-plugin-manifests.mjs`로 생성물 7종 재생성 |
 
 **`DECISIONS.md`가 append-only인 이유** — `HANDOFF.md`처럼 **재작성되는 문서에서 결정의
