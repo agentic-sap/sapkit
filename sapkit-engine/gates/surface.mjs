@@ -88,14 +88,17 @@ const RENAMED_SAP_ASSETS = Object.freeze([['ZMCP_ADT_DDIC_BADI', 'ZSAPKIT_ADT_DD
  * 한 글자라도 움직이면 ⓐ는 그대로 실패하고, 덧말을 고치는 것도 이 표를 고쳐야만 된다.
  * 설명 전문을 여기 옮겨 적었다면 게이트가 무엇이든 통과시켰을 것이다.
  */
-const AMENDED_DESCRIPTIONS = Object.freeze(
-  Object.entries(
-    JSON.parse(fs.readFileSync(here('../harness/old-surface/amendments.json'), 'utf8')).descriptions,
-  ),
-);
+const AMENDMENTS = JSON.parse(fs.readFileSync(here('../harness/old-surface/amendments.json'), 'utf8'));
+const AMENDED_DESCRIPTIONS = Object.freeze(Object.entries(AMENDMENTS.descriptions));
+/**
+ * 채록본에 없던 **선택 인자**의 덧붙임표(D-147 · `amendments.json`의 `inputSchemaProperties`).
+ * 채록본 `inputSchema.properties`에 얹어 대조한다. `required`는 손대지 않는다 —
+ * 필수 인자를 더하면 기존 호출이 깨지므로 그것은 덧말이 아니라 계약 파기다.
+ */
+const AMENDED_PROPERTIES = Object.freeze(Object.entries(AMENDMENTS.inputSchemaProperties ?? {}));
 
 /**
- * 채록본의 발행 선언 하나를 개명 뒤 형태로 옮긴다. 설명 문구에만 건다. 덧말(`AMENDED_DESCRIPTIONS`)도 여기서 함께 붙인다.
+ * 채록본의 발행 선언 하나를 개명 뒤 형태로 옮긴다. 설명 문구에 개명·덧말(`AMENDED_DESCRIPTIONS`)을 걸고, 선택 인자 덧붙임(`AMENDED_PROPERTIES`)을 `inputSchema.properties`에 얹는다.
  *
  * 음성시험(`gates/test-gates.mjs`)이 채록본에서 **발행 표면을 합성**할 때도 같은
  * 것을 써야 한다 — 실제 엔진이 개명본을 발행하므로, 합성분만 구 이름이면 그
@@ -108,7 +111,13 @@ export function amended(declaration, name) {
   for (const [tool, appendix] of AMENDED_DESCRIPTIONS) {
     if (tool === name) description += appendix;
   }
-  return description === declaration.description ? declaration : { ...declaration, description };
+  let inputSchema = declaration.inputSchema;
+  for (const [tool, properties] of AMENDED_PROPERTIES) {
+    if (tool !== name || !inputSchema || typeof inputSchema !== 'object') continue;
+    inputSchema = { ...inputSchema, properties: { ...(inputSchema.properties ?? {}), ...properties } };
+  }
+  if (description === declaration.description && inputSchema === declaration.inputSchema) return declaration;
+  return { ...declaration, description, inputSchema };
 }
 
 /**

@@ -15,6 +15,13 @@
  * 그리고 **활성화가 실질적인 검증 관문**이다: SAP은 활성화 실패를 200 + 본문
  * `<chkl:msg type="E">`로 알린다. 여기서 그것을 실패로 되돌리지 않으면 깨진
  * 인클루드가 조용히 "성공"으로 보고된다.
+ *
+ *  3. **함수그룹 인클루드는 다른 주소로 잠근다** (장부 D143 · D-147). `LZ…F01`처럼
+ *     함수그룹에 딸린 인클루드를 독립 주소로 잠그면 SAP이 403 `This syntax cannot
+ *     be used for an object name`으로 거절한다(실측 2026-07-30). 이름에서 그룹을
+ *     유도해 `/functions/groups/<그룹>/includes/<이름>`으로 잠금·PUT·활성화를 보낸다
+ *     (`shared.ts`의 `includeWriteUri` — 왜 403 재시도가 아니라 이름 유도인지도 거기).
+ *     응답에 `function_group`을 실어 어느 주소를 탔는지 밝힌다. **실기 미검증.**
  */
 
 import * as z from 'zod';
@@ -31,7 +38,8 @@ import {
   checkProposed,
   describeFailure,
   errorResult,
-  includeUri,
+  functionGroupOfInclude,
+  includeWriteUri,
   okResult,
   parseActivationMessages,
   programUri,
@@ -82,7 +90,9 @@ export const updateInclude = defineTool(
     }
 
     const includeName = args.include_name.toUpperCase();
-    const baseUri = includeUri(includeName);
+    // 함수그룹 인클루드면 그룹 주소, 아니면 구 그대로 대문자 독립 주소다(머리주석 3).
+    const functionGroup = functionGroupOfInclude(includeName);
+    const baseUri = includeWriteUri(includeName);
     const shouldActivate = args.activate === true;
     const sourceCode = args.source_code;
     let currentStep = 'start';
@@ -141,7 +151,9 @@ export const updateInclude = defineTool(
       return okResult({
         success: true,
         include_name: includeName,
-        type: 'PROG/I',
+        type: functionGroup === undefined ? 'PROG/I' : 'FUGR/I',
+        // 함수그룹 인클루드일 때만 붙는다 — 독립 인클루드의 응답 모양은 구 그대로다.
+        function_group: functionGroup,
         activated: shouldActivate,
         message: shouldActivate
           ? `Include ${includeName} source updated and activated successfully`

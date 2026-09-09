@@ -13,6 +13,18 @@
  * 아직 거기 있으면 **성공을 실패로 뒤집는다**. 되묻기 자체가 실패했을 때는
  * 결과를 건드리지 않는다 — 불확실한 관측이 확실한 결과를 뒤집어서는 안 된다.
  *
+ * **런이 돌지 않은 응답은 성공이 아니다 (장부 D141).** 실측(2026-09-04 ·
+ * `sapkit-feedback.md` · ZUNIVAT-MODI 패키지맵 §12-c·§12-g): 런 응답이
+ * `activationExecuted="false" checkExecuted="false" generationExecuted="true"`이고
+ * 메시지가 하나도 없으면 **아무 일도 일어나지 않은 것**이다 — `REPOSRC.R3STATE='I'`
+ * 행이 그대로 남고 활성 소스도 안 바뀌며, `GetInactiveObjects`조차 그 오브젝트를
+ * 보여주지 않았다. 구(그리고 이 파일의 이전 판)는 `generated`를 실행 증거로 읽어
+ * 오브젝트마다 `status:"activated"`·`success:true`를 냈다. 이제 `activated`와
+ * `checked`가 둘 다 거짓이면 런 미실행으로 판정해 `success:false` ·
+ * `run_executed:false` · 오브젝트 `status:"not_executed"`를 내고, 사람이 읽을
+ * 처방(재시도 대신 전체 소스 다시 쓰기 — 같은 날 그것으로 풀렸다)을 싣는다.
+ * 되묻기(오라클)도 건너뛴다 — 확인할 성공이 없다.
+ *
  * 구 구현: `engine/src/lib/localGroupActivation.ts` + 그 핸들러.
  */
 
@@ -158,7 +170,8 @@ interface ObjectOutcome {
   name: string;
   type: string;
   uri: string;
-  status: 'activated' | 'failed';
+  /** `not_executed` — 런 자체가 돌지 않았다(D141). 실패도 성공도 아닌 「아무 일 없음」. */
+  status: 'activated' | 'failed' | 'not_executed';
   errors: CheckMessage[];
   warnings: CheckMessage[];
 }
@@ -167,6 +180,8 @@ interface RunOutcome {
   readonly activated: boolean;
   readonly checked: boolean;
   readonly generated: boolean;
+  /** 런이 실제로 돌았는가 — `activated || checked`. 둘 다 거짓이면 미실행이다(D141). */
+  readonly executed: boolean;
   readonly objects: ObjectOutcome[];
   readonly errors: CheckMessage[];
   readonly warnings: CheckMessage[];
@@ -248,24 +263,44 @@ export function parseActivationResults(
     }
   }
 
-  // 실행 여부의 판정에 `generated`를 포함하는 것은 실측 때문이다: 성공한 실행이
-  // `generationExecuted="true"`만 달고 `activationExecuted`는 달지 않은 사례가
-  // 있다. 생성은 활성화 뒤에 오므로 생성이 됐다면 활성화도 돈 것이다.
-  const runExecuted = activated || generated;
+  // 런이 돌았는가는 `activated || checked`로 본다. 예전 판은 `generated`도 실행
+  // 증거로 읽었는데("생성은 활성화 뒤에 온다"), 실측이 그것을 뒤집었다 —
+  // `activated:false, checked:false, generated:true`가 **아무 일도 하지 않은**
+  // 런의 모양이었다(2026-09-04 · 머리주석 D141). 검사조차 돌지 않은 런은 미실행이다.
+  const executed = activated || checked;
+  // 런이 돌았을 때 오브젝트가 활성화됐다고 볼 조건은 예전과 같다 — 오류 없음 +
+  // (활성화 또는 생성 플래그). 생성만 달린 성공 사례가 있었다는 기록을 지키되,
+  // 그 판정은 `executed` 안에서만 유효하다.
+  const activationSeen = activated || generated;
   const objects: ObjectOutcome[] = inputs.map((input) => {
     const objectErrors = perObjectErrors.get(input.uri) ?? [];
+    const status: ObjectOutcome['status'] = !executed
+      ? 'not_executed'
+      : objectErrors.length === 0 && activationSeen
+        ? 'activated'
+        : 'failed';
     return {
       name: input.name,
       type: input.type,
       uri: input.uri,
-      status: objectErrors.length === 0 && runExecuted ? 'activated' : 'failed',
+      status,
       errors: objectErrors,
       warnings: perObjectWarnings.get(input.uri) ?? [],
     };
   });
 
-  return { activated, checked, generated, objects, errors, warnings };
+  return { activated, checked, generated, executed, objects, errors, warnings };
 }
+
+/**
+ * 런 미실행의 사람용 문구 — 응답의 `errors`와 `message` 양쪽에 실린다(D141).
+ * 처방은 실측이다: 여섯 가지 재시도가 전부 같은 결과였고, `UpdateInclude`로 전체
+ * 소스를 다시 쓰자 한 번에 풀렸다(2026-09-04 16:53).
+ */
+export const ACTIVATION_RUN_NOT_EXECUTED =
+  'Activation run did not execute (activationExecuted=false, checkExecuted=false) — nothing was activated, regardless of the per-object entries. ' +
+  "Confirm with REPOSRC.R3STATE (an 'I' row means still inactive; GetInactiveObjects may not list the object). " +
+  'If this repeats, do not retry the run — rewrite the full source with UpdateInclude (main_program set) or UpdateClass, activate:true, instead.';
 
 /**
  * 활성화 실행이 정말 먹었는지 서버에 되묻는다. 아직 비활성이면 그 오브젝트는
@@ -365,7 +400,7 @@ export const activateObjects = defineTool(
   {
     name: 'ActivateObjects',
     description:
-      "[high-level] Activate a set of ABAP objects in a single call. Uses the ADT mass-activation endpoint (/sap/bc/adt/activation/runs) so cyclic references between siblings (e.g. main program + multiple cross-referencing includes) resolve in one compilation scope. Returns per-object status, errors, warnings. Falls back to /sap/bc/adt/activation on legacy systems. FUGR recipe: activating function modules alone fails with 'FUNCTION ... cannot be used outside a FUNCTION-POOL' — pass the whole family in ONE run: the function group (type FUGR), its TOP include (FUGR/I with parent_name), every function module (FUGR/FF with parent_name), and the SAPL<group> main program (PROG/P) when present. Do NOT include the system include L<group>UXX. Never mix unrelated objects into the same activation run — activate only the object family being worked. The returned success/activated flags mirror the activation-run response and are NOT proof of activation on their own — confirm by re-querying GetInactiveObjects (your objects absent from the list = actually activated).",
+      "[high-level] Activate a set of ABAP objects in a single call. Uses the ADT mass-activation endpoint (/sap/bc/adt/activation/runs) so cyclic references between siblings (e.g. main program + multiple cross-referencing includes) resolve in one compilation scope. Returns per-object status, errors, warnings. Falls back to /sap/bc/adt/activation on legacy systems. FUGR recipe: activating function modules alone fails with 'FUNCTION ... cannot be used outside a FUNCTION-POOL' — pass the whole family in ONE run: the function group (type FUGR), its TOP include (FUGR/I with parent_name), every function module (FUGR/FF with parent_name), and the SAPL<group> main program (PROG/P) when present. Do NOT include the system include L<group>UXX. Never mix unrelated objects into the same activation run — activate only the object family being worked. The returned success/activated flags mirror the activation-run response and are NOT proof of activation on their own — confirm by re-querying GetInactiveObjects (your objects absent from the list = actually activated). When the run reports activationExecuted=false and checkExecuted=false, nothing was activated regardless of the per-object entries: success is false, run_executed is false and every object carries status 'not_executed' (REPOSRC.R3STATE stays 'I' even though GetInactiveObjects may not list the object). Do not retry such a run — rewrite the full source with UpdateInclude (main_program set) or UpdateClass, activate:true, which has cleared this state in practice.",
     inputSchema: {
       objects: z
         .array(
@@ -492,10 +527,15 @@ export const activateObjects = defineTool(
       }
 
       const parsed = parseActivationResults(responseBody, resolved);
-      const oracleErrors = await confirmViaInactiveWorklist(client, parsed.objects);
+      // 런이 돌지 않았으면 되물을 성공이 없다 — 오라클을 건너뛴다(D141).
+      const oracleErrors = parsed.executed
+        ? await confirmViaInactiveWorklist(client, parsed.objects)
+        : [];
       const errors = [...parsed.errors, ...oracleErrors];
-      const failed = parsed.objects.filter((object) => object.status === 'failed').length;
-      const success = (parsed.activated || parsed.generated) && errors.length === 0;
+      if (!parsed.executed) errors.push({ type: 'E', text: ACTIVATION_RUN_NOT_EXECUTED });
+      // 「활성화되지 않은 것」 전부를 센다 — 실패도, 런이 돌지 않은 것도.
+      const failed = parsed.objects.filter((object) => object.status !== 'activated').length;
+      const success = parsed.executed && (parsed.activated || parsed.generated) && errors.length === 0;
 
       return okResult({
         success,
@@ -504,6 +544,7 @@ export const activateObjects = defineTool(
         activated: parsed.activated,
         checked: parsed.checked,
         generated: parsed.generated,
+        run_executed: parsed.executed,
         objects_count: parsed.objects.length,
         failed_count: failed,
         objects: parsed.objects,
@@ -511,7 +552,9 @@ export const activateObjects = defineTool(
         warnings: parsed.warnings,
         message: success
           ? `Activated ${parsed.objects.length} object(s) via ${endpoint} endpoint`
-          : `Activation finished with ${errors.length} error(s) across ${failed} object(s)`,
+          : parsed.executed
+            ? `Activation finished with ${errors.length} error(s) across ${failed} object(s)`
+            : ACTIVATION_RUN_NOT_EXECUTED,
       });
     } catch (error) {
       const message = describeFailure(error);

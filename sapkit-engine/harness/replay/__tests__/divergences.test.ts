@@ -234,6 +234,159 @@ describe('D1 — 술어를 무시한 표를 성공으로 내주지 않는다', (
   });
 });
 
+describe('D141 — ActivateObjects 런 미실행 거짓 성공 (D-147)', () => {
+  const oldFalseSuccess = envelope(
+    JSON.stringify({
+      success: true,
+      activated: false,
+      checked: false,
+      generated: true,
+      failed_count: 0,
+      objects: [{ name: 'ZINC', status: 'activated', errors: [] }],
+      errors: [],
+    }),
+  );
+  const newNotExecuted = envelope(
+    JSON.stringify({
+      success: false,
+      activated: false,
+      checked: false,
+      generated: true,
+      run_executed: false,
+      failed_count: 1,
+      objects: [{ name: 'ZINC', status: 'not_executed', errors: [] }],
+      errors: [{ type: 'E', text: 'Activation run did not execute' }],
+    }),
+  );
+
+  const judge = async (before: JsonValue, after: JsonValue, isError = false) =>
+    replaySequence(
+      recorded([step({ index: 0, tool: 'ActivateObjects', response: before })]),
+      target([{ payload: after, isError }]),
+    );
+
+  it('구가 activated:false·checked:false로 success:true를 낸 단계에만 걸린다', () => {
+    expect(idsIn(step({ index: 0, tool: 'ActivateObjects', response: oldFalseSuccess }))).toEqual(['D141']);
+    const realSuccess = envelope(JSON.stringify({ success: true, activated: true, checked: true, objects: [] }));
+    expect(idsIn(step({ index: 0, tool: 'ActivateObjects', response: realSuccess }))).toEqual([]);
+  });
+
+  it('신이 success:false·run_executed:false·not_executed로 되돌리면 통과다', async () => {
+    const result = await judge(oldFalseSuccess, newNotExecuted);
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D141' });
+  });
+
+  it('신도 성공이라 답하면 덮어 주지 않는다', async () => {
+    // 글자까지 같으면 장부가 발동할 차이 자체가 없다(`match`) — 그래서 「다르지만 여전히 성공」을 준다.
+    const stillSuccess = envelope(
+      JSON.stringify({
+        success: true,
+        activated: false,
+        checked: false,
+        generated: true,
+        run_executed: true,
+        failed_count: 0,
+        objects: [{ name: 'ZINC', status: 'activated', errors: [] }],
+        errors: [],
+      }),
+    );
+    const result = await judge(oldFalseSuccess, stillSuccess);
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D141' });
+  });
+
+  it('구·신이 글자까지 같으면 장부가 발동하지 않고 그대로 통과한다 (차이가 있을 때만 발동)', async () => {
+    const result = await judge(oldFalseSuccess, oldFalseSuccess);
+    expect(result.steps[0]).toMatchObject({ verdict: 'match', divergenceId: null });
+  });
+
+  it('신이 오류 봉투로 답하면 덮어 주지 않는다', async () => {
+    const result = await judge(oldFalseSuccess, envelope('ActivateObjects failed', true), true);
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D141' });
+  });
+});
+
+describe('D142 — UpdateSourceByPatch 성공 응답의 source_version_read (D-147)', () => {
+  const oldBody = {
+    success: true,
+    object_type: 'INCL',
+    object_name: 'ZINC',
+    occurrences_replaced: 1,
+    diff_preview: '@@ -1,2 +1,2 @@\n-WRITE 1.\r\n+WRITE 2.\r',
+    activated: false,
+    message: 'INCL ZINC patched (1 occurrence replaced)',
+  };
+  const before = envelope(JSON.stringify(oldBody));
+  const after = (extra: Record<string, unknown>): JsonValue =>
+    envelope(JSON.stringify({ ...oldBody, diff_preview: '@@ -1,2 +1,2 @@\n-WRITE 1.\n+WRITE 2.', ...extra }));
+
+  const judge = async (b: JsonValue, a: JsonValue, isError = false) =>
+    replaySequence(
+      recorded([step({ index: 0, tool: 'UpdateSourceByPatch', response: b })]),
+      target([{ payload: a, isError }]),
+    );
+
+  it('성공 단계에만 걸린다', () => {
+    expect(idsIn(step({ index: 0, tool: 'UpdateSourceByPatch', response: before }))).toEqual(['D142']);
+    expect(idsIn(step({ index: 0, tool: 'UpdateSourceByPatch', response: envelope('old_string not found', true), isError: true }))).toEqual([]);
+  });
+
+  it('source_version_read만 더해졌으면(CR 차이는 무시) 통과다', async () => {
+    const result = await judge(before, after({ source_version_read: 'inactive' }));
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D142' });
+  });
+
+  it('다른 값이 갈리면 덮어 주지 않는다', async () => {
+    const result = await judge(before, after({ source_version_read: 'active', occurrences_replaced: 2 }));
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D142' });
+  });
+
+  it('새 키의 값이 inactive|active가 아니면 덮어 주지 않는다', async () => {
+    const result = await judge(before, after({ source_version_read: 'unknown' }));
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D142' });
+  });
+});
+
+describe('D143 — 함수그룹 인클루드 잠금 403 → 성공 (D-147)', () => {
+  const old403 = envelope(
+    'Failed to update include LZFG_TESTF01 at step=lock: [403 forbidden] SAP Error: This syntax cannot be used for an object name',
+    true,
+  );
+
+  const judge = async (a: JsonValue, isError: boolean, tool = 'UpdateInclude') =>
+    replaySequence(
+      recorded([step({ index: 0, tool, response: old403, isError: true })]),
+      target([{ payload: a, isError }]),
+    );
+
+  it('구가 그 403 문구로 실패한 두 도구의 단계에만 걸린다', () => {
+    expect(idsIn(step({ index: 0, tool: 'UpdateInclude', response: old403, isError: true }))).toEqual(['D143']);
+    expect(idsIn(step({ index: 0, tool: 'UpdateSourceByPatch', response: old403, isError: true }))).toEqual(['D143']);
+    expect(idsIn(step({ index: 0, tool: 'UpdateProgram', response: old403, isError: true }))).toEqual([]);
+    const otherError = envelope('Failed to update include ZINC at step=lock: [423 lock-conflict] locked', true);
+    expect(idsIn(step({ index: 0, tool: 'UpdateInclude', response: otherError, isError: true }))).toEqual([]);
+  });
+
+  it('신이 성공하면 통과다', async () => {
+    const result = await judge(envelope(JSON.stringify({ success: true, include_name: 'LZFG_TESTF01' })), false);
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D143' });
+  });
+
+  it('신도 같은 403 문구면 덮어 주지 않는다', async () => {
+    // 글자까지 같으면 `match`라 장부가 발동하지 않는다 — 문구가 조금 다른 같은 403을 준다.
+    const still403 = envelope(
+      'Failed to update include LZFG_TESTF01 at step=lock: [403 forbidden] SAP Error: This syntax cannot be used for an object name (functions/groups route)',
+      true,
+    );
+    const result = await judge(still403, true);
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D143' });
+  });
+
+  it('신이 다른 이유로 실패하면 덮어 주지 않는다', async () => {
+    const result = await judge(envelope('Failed to update include LZFG_TESTF01 at step=lock: [404 not-found] gone', true), true);
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D143' });
+  });
+});
+
 describe('단계에 걸리는 항목 고르기', () => {
   it('도구 이름이 맞는 항목만 고른다', () => {
     const sql = step({ index: 0, tool: 'GetSqlQuery' });

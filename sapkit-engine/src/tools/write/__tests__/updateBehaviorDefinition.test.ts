@@ -108,6 +108,22 @@ describe('와이어', () => {
     expect(put.body).toBe(SOURCE);
   });
 
+  /**
+   * 백로그 13-12 · 2026-07-31 피드백 ③ — 주석 안 백틱이 왕복마다 배증한다는 관측.
+   * 이 시험은 **우리 쪽 쓰기 경로가 백틱을 한 글자도 바꾸지 않는다**는 것을 못 박는다.
+   * 그 뒤에도 되읽기에서 증식이 보이면 SAP 쪽이다(장부 「관측 등재」 · 실기 미검증).
+   */
+  it('백틱은 PUT 본문에 바이트 그대로 실린다 — 증식은 이 경로 밖이다 (백로그 13-12)', async () => {
+    const withBackticks = 'managed implementation in class zbp_i_demo unique;\n// see ```` and `x`\nstrict ( 2 );\n';
+    harness = await startWriteHarness(responder());
+    await invoke(updateBehaviorDefinition, harness, { name: 'Z_I_DEMO', source_code: withBackticks });
+
+    const put = harness.nth(1);
+    expect(put.method).toBe('PUT');
+    expect(put.body).toBe(withBackticks);
+    expect((put.body.match(/`/g) ?? []).length).toBe(6);
+  });
+
   it('전송요청이 없으면 `corrNr`가 붙지 않는다', async () => {
     harness = await startWriteHarness(responder());
     await invoke(updateBehaviorDefinition, harness, { name: 'Z_I_DEMO', source_code: SOURCE });

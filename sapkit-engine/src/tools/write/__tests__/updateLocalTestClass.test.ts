@@ -10,6 +10,7 @@ import { updateLocalTestClass } from '../updateLocalTestClass';
 import { publish, publishedDeclaration } from './classPublication';
 import {
   activationBody,
+  adtException,
   cleanCheckRun,
   failingCheckRun,
   invoke,
@@ -137,6 +138,59 @@ describe('응답', () => {
     const payload = jsonOf(result) as { check_warnings?: Array<{ text: string }> };
 
     expect(payload.check_warnings?.[0]?.text).toBe('Obsolete statement');
+  });
+});
+
+/**
+ * 장부 D146 — 테스트 클래스 인클루드(`…CCAU`)가 없는 클래스.
+ *
+ * 실측(2026-08-25 · ZUNIVAT-MODI 패키지맵 §5-U): PUT이 HTTP 500
+ * `ZCL_…===========CCAU에는 어떠한 비활성 버전도 없습니다`로 죽는다. 원인은 비활성
+ * 버전이 아니라 인클루드 부재였고(REPOSRC에 CCAU 행 없음), ADT [Test Classes] 탭에서
+ * 한 번 저장하자 바로 통과했다. 구는 500 원문을 그대로 냈다.
+ */
+describe('장부 D146 — CCAU 인클루드가 없는 클래스', () => {
+  const CCAU_MESSAGE = 'ZCL_TEST======================CCAU에는 어떠한 비활성 버전도 없습니다';
+
+  function putRejected(message: string) {
+    return ((request, response) => {
+      if (request.path === URI && request.query.get('_action') === 'LOCK') return xml(response, lockBody('L'));
+      if (request.path === URI && request.query.get('_action') === 'UNLOCK') return xml(response, '<ok/>');
+      if (request.path === '/sap/bc/adt/checkruns') return xml(response, cleanCheckRun());
+      if (request.path === INCLUDE && request.method === 'PUT') {
+        return xml(response, adtException('ExceptionResourceNoInactiveVersion', message), 500);
+      }
+      response.statusCode = 500;
+      response.end(`예상하지 못한 요청: ${request.method} ${request.url}`);
+    }) as Parameters<typeof startWriteHarness>[0];
+  }
+
+  it('500 원문 대신 「인클루드가 없다 — [Test Classes] 탭에서 만들어라」를 말하고 원문을 뒤에 싣는다', async () => {
+    harness = await startWriteHarness(putRejected(CCAU_MESSAGE));
+    const result = await invoke(updateLocalTestClass, harness, ARGS);
+
+    expect(result.isError).toBe(true);
+    const text = textOf(result);
+    expect(text).toContain('has no test-class include');
+    expect(text).toContain('[Test Classes]');
+    expect(text).toContain(CCAU_MESSAGE);
+    // 잠금은 풀렸다.
+    expect(harness.client.activeLocks()).toHaveLength(0);
+  });
+
+  it('영어 문구도 같은 갈래다', async () => {
+    harness = await startWriteHarness(
+      putRejected('There is no inactive version of object ZCL_TEST======================CCAU'),
+    );
+    const result = await invoke(updateLocalTestClass, harness, ARGS);
+    expect(textOf(result)).toContain('has no test-class include');
+  });
+
+  it('CCAU와 무관한 500은 예전 문구 그대로다', async () => {
+    harness = await startWriteHarness(putRejected('Internal server error'));
+    const result = await invoke(updateLocalTestClass, harness, ARGS);
+    expect(textOf(result)).toContain('Failed to update local test class');
+    expect(textOf(result)).not.toContain('has no test-class include');
   });
 });
 

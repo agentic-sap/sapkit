@@ -91,6 +91,59 @@ describe('UpdateInclude', () => {
     expect(harness.client.activeLocks()).toHaveLength(0);
   });
 
+  /**
+   * 장부 D143 — 함수그룹 인클루드(`L<그룹>F01` 등)는 독립 주소로 잠그면 SAP이 403
+   * `This syntax cannot be used for an object name`으로 거절한다(실측 2026-07-30).
+   * 이름에서 그룹을 유도해 `/functions/groups/<그룹>/includes/<이름>`(소문자)으로
+   * 잠금·PUT·해제·활성화를 보낸다. **실기 미검증** — 주소는 `GetInactiveObjects`가
+   * 보고한 URI와 `ActivateObjects`의 FUGR/I 매핑에서 왔다.
+   */
+  it('함수그룹 인클루드는 그룹 주소로 잠그고 쓴다 (장부 D143)', async () => {
+    const FG = '/sap/bc/adt/functions/groups/zfg_test/includes/lzfg_testtop';
+    harness = await startWriteHarness((request, response) => {
+      if (request.path === FG && request.query.get('_action') === 'LOCK') {
+        return xml(response, lockBody('FG-LOCK'));
+      }
+      if (request.path === FG && request.query.get('_action') === 'UNLOCK') return xml(response, '<ok/>');
+      if (request.path === '/sap/bc/adt/checkruns') return xml(response, cleanCheckRun());
+      if (request.path === `${FG}/source/main` && request.method === 'PUT') return plainText(response, '');
+      if (request.path === '/sap/bc/adt/activation') return xml(response, activationBody());
+      response.statusCode = 500;
+      response.end(`예상하지 못한 요청: ${request.method} ${request.url}`);
+    });
+    const result = await invoke(updateInclude, harness, {
+      include_name: 'lzfg_testtop',
+      source_code: SOURCE,
+      main_program: 'SAPLZFG_TEST',
+      activate: true,
+    });
+
+    expect(result.isError).toBe(false);
+    expect(harness.calls().map((call) => `${call.method} ${call.path}`)).toEqual([
+      'POST /sap/bc/adt/checkruns',
+      `POST ${FG}`,
+      `PUT ${FG}/source/main`,
+      `POST ${FG}`,
+      'POST /sap/bc/adt/activation',
+    ]);
+    // 사전검사의 artifact URI도 그룹 주소다 — 바깥은 SAPL<그룹> 프로그램.
+    expect(harness.nth(0).body).toContain(`chkrun:uri="${FG}/source/main"`);
+    expect(harness.nth(0).body).toContain('adtcore:uri="/sap/bc/adt/programs/programs/saplzfg_test"');
+    expect(harness.nth(4).body).toContain(`adtcore:uri="${FG}"`);
+
+    const payload = jsonOf(result);
+    expect(payload.type).toBe('FUGR/I');
+    expect(payload.function_group).toBe('ZFG_TEST');
+    expect(payload.uri).toBe(FG);
+  });
+
+  it('독립 인클루드의 응답에는 function_group이 없다 (구 모양 그대로)', async () => {
+    harness = await startWriteHarness(responder());
+    const result = await invoke(updateInclude, harness, { include_name: 'ZINC01', source_code: SOURCE });
+    expect(jsonOf(result)).not.toHaveProperty('function_group');
+    expect(jsonOf(result).type).toBe('PROG/I');
+  });
+
   it('main_program이 없으면 사전검사를 건너뛴다 (구 동작)', async () => {
     harness = await startWriteHarness(responder());
     await invoke(updateInclude, harness, { include_name: 'ZINC01', source_code: SOURCE });

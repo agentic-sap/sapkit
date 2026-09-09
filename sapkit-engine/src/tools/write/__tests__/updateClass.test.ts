@@ -8,6 +8,7 @@
 
 import {
   activationBody,
+  adtException,
   cleanCheckRun,
   failingCheckRun,
   invoke,
@@ -19,6 +20,7 @@ import {
   xml,
 } from './harness';
 import type { WriteHarness } from './harness';
+import { CTS_LOCK_HINT } from '../shared';
 import { updateClass } from '../updateClass';
 
 const URI = '/sap/bc/adt/oo/classes/zcl_test';
@@ -52,6 +54,57 @@ function responder(scenario: { check?: string; activation?: string } = {}) {
     response.end(`예상하지 못한 요청: ${request.method} ${request.url}`);
   }) as Parameters<typeof startWriteHarness>[0];
 }
+
+/**
+ * 장부 D144 — CTS 잠금 문구는 대개 `transport_request` 누락·태스크 번호다.
+ *
+ * 실측: 이송 대상 CLAS에 `transport_request`를 안 넘기면 「…요청 DEVK…에서 이미 잠겨
+ * 있습니다」로 실패하고(ZUNIWTH L-011 · 2026-08-05 — SM12에 잠금은 없었다), 태스크
+ * 번호를 넘기면 같은 문구로 HTTP 500(ZUNIVAT-MODI 도메인노트 · 2026-08-10). 원문은
+ * 그대로 두고 힌트를 뒤에 붙인다 — 문구 하나로 사람이 SM12 해제를 요청하던 자리다.
+ */
+describe('UpdateClass — 장부 D144: CTS 잠금 문구에 transport_request 힌트', () => {
+  const CTS_MESSAGE =
+    '오브젝트 LIMU CLSD ZCL_TEST은(는) 사용자 DEVUSER의 요청 DEVK900001에서 이미 잠겨 있습니다';
+
+  function lockRejected(status: number, message: string) {
+    return ((request, response) => {
+      if (request.path === URI && request.query.get('_action') === 'LOCK') {
+        return xml(response, adtException('ExceptionCtsLock', message), status);
+      }
+      response.statusCode = 500;
+      response.end(`예상하지 못한 요청: ${request.method} ${request.url}`);
+    }) as Parameters<typeof startWriteHarness>[0];
+  }
+
+  it('한국어 문구(HTTP 500)에 원문을 보존한 채 힌트를 덧붙인다', async () => {
+    harness = await startWriteHarness(lockRejected(500, CTS_MESSAGE));
+    const result = await invoke(updateClass, harness, { class_name: 'zcl_test', source_code: SOURCE });
+
+    expect(result.isError).toBe(true);
+    const text = textOf(result);
+    expect(text).toContain(CTS_MESSAGE);
+    expect(text).toContain(CTS_LOCK_HINT);
+    expect(text).toContain('E070.STRKORR');
+  });
+
+  it('영어 문구에도 같은 힌트가 붙는다', async () => {
+    harness = await startWriteHarness(
+      lockRejected(500, 'Object LIMU CLSD ZCL_TEST is already locked in request DEVK900001 of user DEVUSER'),
+    );
+    const result = await invoke(updateClass, harness, { class_name: 'zcl_test', source_code: SOURCE });
+    expect(textOf(result)).toContain(CTS_LOCK_HINT);
+  });
+
+  it('잠금 충돌이 CTS 문구가 아니면 힌트를 붙이지 않는다 — 진짜 잠금을 가리지 않는다', async () => {
+    harness = await startWriteHarness(
+      lockRejected(423, 'Object ZCL_TEST is currently edited by user OTHER'),
+    );
+    const result = await invoke(updateClass, harness, { class_name: 'zcl_test', source_code: SOURCE });
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).not.toContain(CTS_LOCK_HINT);
+  });
+});
 
 describe('UpdateClass', () => {
   it('잠금 → 사전 검사 → PUT → 해제 → 사후 검사로 나간다', async () => {

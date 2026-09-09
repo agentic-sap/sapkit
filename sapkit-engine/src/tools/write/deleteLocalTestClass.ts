@@ -16,17 +16,24 @@
  *  - 400 전용 오류 갈래가 **없다**(구에 없다). 404·423만 가른다.
  *  - `activate_on_delete`의 활성화 응답을 **읽는다** — 차이 장부 **D111**.
  *    구는 읽지 않아 활성화 실패도 `activated: true`로 답했다.
+ *  - CCAU 인클루드가 **없는** 클래스의 500(「어떠한 비활성 버전도 없습니다」)을
+ *    「인클루드가 없다 — ADT [Test Classes] 탭에서 한 번 만들어라」로 바꿔 말한다 —
+ *    차이 장부 **D146**(`classIncludeWrite.ts`의 판정을 `UpdateLocalTestClass`와 공유).
  */
 
 import * as z from 'zod';
 
 import { AdtError } from '../../adt';
 import { defineTool } from '../../server/toolDefinition';
+import { isMissingTestClassInclude, missingTestClassIncludeMessage } from './classIncludeWrite';
 import { activateParentClass, clearClassInclude } from './internal/classIncludeClear';
 import { SourceCheckFailure, describeFailure, errorResult, okResult } from './shared';
 
 function failureMessage(error: unknown, className: string): string {
   if (error instanceof SourceCheckFailure) return error.message;
+  // CCAU 인클루드가 없는 클래스 — 500 원문은 「비활성 버전이 없다」고 말하지만 원인은
+  // 인클루드 부재다(장부 D146 · `classIncludeWrite.ts`). 상태 코드 갈래보다 먼저 본다.
+  if (isMissingTestClassInclude(error)) return missingTestClassIncludeMessage(className, error);
   const status = error instanceof AdtError ? error.status : undefined;
   if (status === 404) return `Local test class for ${className} not found.`;
   if (status === 423) return `Class ${className} is locked by another user.`;

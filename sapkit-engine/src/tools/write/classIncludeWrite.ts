@@ -30,9 +30,39 @@
  * `%2f`로 갈린다. **합치지 않는다** — 합치면 구가 보내던 주소와 달라진다.
  */
 
+import { AdtError } from '../../adt';
 import type { AdtClient } from '../../adt';
-import { classUri, encodeObjectName, parseCheckRun } from './shared';
+import { classUri, describeFailure, encodeObjectName, parseCheckRun } from './shared';
 import { ACCEPT_CHECK_MESSAGES, CT_CHECK_OBJECTS, CT_SOURCE, ACCEPT_SOURCE } from './shared';
+
+/**
+ * 테스트 클래스 인클루드(`…CCAU`)가 **없는** 클래스에 쓰려 할 때 SAP이 내는 500 —
+ * `<클래스>===========CCAU에는 어떠한 비활성 버전도 없습니다`(실측 2026-08-25 ·
+ * ZUNIVAT-MODI 패키지맵 §5-U · 장부 D146). 원인은 비활성 버전이 아니라 **인클루드
+ * 자체의 부재**다 — 클래스에 비활성 버전을 만들어 둔 뒤에도 같은 500이 났고 REPOSRC에
+ * CCAU 행이 없었다. `CreateClass`는 생성 페이로드에 testclasses include를 실어
+ * 보내므로(`createClass.ts`의 `buildCreatePayload`) 그때 만들어진 클래스에는 나지
+ * 않는다. 기존 클래스에 그 인클루드를 붙이는 ADT 경로는 이 판에서 찾지 못했다(오프라인
+ * 조사로는 확정 불가 — 실기 조사 대상) — 그래서 사람이 [Test Classes] 탭에서 한 번
+ * 저장하도록 안내한다. 처방 실증: 같은 날 그렇게 만들자 바로 통과했다.
+ */
+const MISSING_TEST_INCLUDE =
+  /CCAU[^\n]*?(?:no inactive version|어떠한\s*비활성\s*버전도\s*없습니다|keine inaktive Version)|(?:no inactive version|keine inaktive Version)[^\n]*CCAU/i;
+
+export function isMissingTestClassInclude(error: unknown): boolean {
+  if (!(error instanceof AdtError)) return false;
+  const text = `${error.adtMessage ?? ''}\n${error.rawBody ?? ''}\n${error.message}`;
+  return MISSING_TEST_INCLUDE.test(text);
+}
+
+/** 위 갈래의 사람용 문구. SAP 원문을 뒤에 그대로 싣는다. */
+export function missingTestClassIncludeMessage(className: string, error: unknown): string {
+  return (
+    `Class ${className} has no test-class include (…CCAU) — this tool can only modify an existing one. ` +
+    'Create it once by hand: open the class in ADT, [Test Classes] tab (SE24: Goto → Class-local types → Test classes), ' +
+    `save and activate, then retry. Original SAP error: ${describeFailure(error)}`
+  );
+}
 
 /**
  * 쓰기가 닿는 인클루드 — 읽기 쪽 4종 **전부**에 도구가 있다.

@@ -14,14 +14,14 @@
  * ```
  * POST /sap/bc/adt/cts/transportrequests
  *      Accept: application/vnd.sap.adt.transportorganizer.v1+xml     ← 한 값뿐이다
- *      Content-Type: text/plain
+ *      Content-Type: text/plain                                       ← 구. 신은 아래 D145
  *      timeout: getTimeout('default')
  * ```
  *
- * 본문은 `create.js:14-27`의 템플릿 문자열 **글자 그대로**다(줄바꿈·들여쓰기 포함):
+ * 본문은 `create.js:14-27`의 템플릿 문자열 **글자 그대로**였다(줄바꿈·들여쓰기 포함):
  *
  * ```
- * <?xml version="1.0" encoding="ASCII"?>
+ * <?xml version="1.0" encoding="ASCII"?>                              ← 구. 신은 utf-8
  * <tm:root xmlns:tm="…/cts/adt/tm" tm:useraction="newrequest">
  *   <tm:request tm:desc="…" tm:type="K|T" tm:target="…" tm:cts_project="">
  *     <tm:task tm:owner="…"/>
@@ -36,6 +36,18 @@
  *  - `owner`가 없으면 `systemContext.responsible`(=`SAP_RESPONSIBLE || SAP_USERNAME`)로
  *    떨어지고, 그래도 없으면 **요청을 보내기 전에 던진다**(`create.js:66-70`).
  *    env에서만 읽는 것은 이미 등재된 결정이다(`harness/DIVERGENCES.md` D62).
+ *
+ * ## ⚠ 비ASCII 설명이 `#`로 깨진다 — 선언과 charset을 utf-8로 (D145 · D-147)
+ *
+ * 실측(JNC-DashBoard L-002 · 2026-07-28): `description`에 한글을 넣자 응답의
+ * `description`이 한글 구간만 정확히 `#`로 치환돼 돌아왔다(ASCII 구간 무손상 · 이송요청
+ * 자체는 정상 생성). 유력 원인은 위 템플릿의 **`encoding="ASCII"` 선언**이다 — 우리
+ * 접속 계층은 본문을 UTF-8 바이트로 보내지만(`src/adt/http.ts`의 `end(body, 'utf8')`)
+ * XML 선언이 ASCII라 말하면 파서가 그 바이트를 표현 불가 문자로 접는다. 그래서
+ * 선언을 `encoding="utf-8"`로 바꾸고 `Content-Type`에도 `charset=utf-8`을 붙였다
+ * (ADT 소스 PUT이 쓰는 값과 같다 — 그 경로는 한글 주석을 잃지 않는다). **와이어가
+ * 바뀌었으므로 장부 D145에 등재했고, 실기 미검증이다** — 손상의 원인 확정은 실기에서.
+ * 설명의 XML 이스케이프(`"`·`&`)는 구도 하지 않았고 여기서도 하지 않는다 — 별건.
  *
  * ## ⚠ 구는 만든 이송번호를 응답에서 잃었다 — 여기서 고쳤다 (D81)
  *
@@ -90,8 +102,11 @@ const ROOT_PATH = '/sap/bc/adt/cts/transportrequests';
 
 /** `dist/constants/contentTypes.js:36`의 `ACCEPT_TRANSPORT` — 한 값뿐이다. */
 const ACCEPT_TRANSPORT = 'application/vnd.sap.adt.transportorganizer.v1+xml';
-/** `create.js:71` — `text/plain`이다. 실제 본문은 XML인데도 그렇다. */
-const CONTENT_TYPE = 'text/plain';
+/**
+ * 구는 `create.js:71`의 `text/plain`(charset 없음)이었다. 실제 본문은 XML이고 UTF-8
+ * 바이트로 나가므로 charset을 밝힌다(머리주석 D145).
+ */
+const CONTENT_TYPE = 'text/plain; charset=utf-8';
 
 /** `create.js:31-35`의 파서 옵션 그대로. */
 const parser = new XMLParser({
@@ -110,7 +125,7 @@ interface ParsedTransport {
   readonly uri?: string;
 }
 
-/** 구 `buildCreateTransportXml`(`create.js:14-27`) — 줄바꿈·들여쓰기까지 그대로. */
+/** 구 `buildCreateTransportXml`(`create.js:14-27`) — 줄바꿈·들여쓰기는 그대로, 선언의 encoding만 utf-8(D145). */
 export function buildCreateTransportXml(input: {
   readonly transportType: 'workbench' | 'customizing';
   readonly description: string;
@@ -120,7 +135,7 @@ export function buildCreateTransportXml(input: {
   const type = input.transportType === 'customizing' ? 'T' : 'K';
   // 감싸는 값은 **다듬지 않은 원본**이다 — 판정만 trim으로 한다(구 그대로).
   const target = input.targetSystem?.trim() ? `/${input.targetSystem}/` : 'LOCAL';
-  return `<?xml version="1.0" encoding="ASCII"?>
+  return `<?xml version="1.0" encoding="utf-8"?>
 <tm:root xmlns:tm="http://www.sap.com/cts/adt/tm" tm:useraction="newrequest">
   <tm:request tm:desc="${input.description}" tm:type="${type}" tm:target="${target}" tm:cts_project="">
     <tm:task tm:owner="${input.owner}"/>

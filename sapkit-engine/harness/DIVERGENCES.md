@@ -3095,3 +3095,199 @@ append-only이고, 무엇이 왜 있었는지가 다음 사람의 판독 자료�
 것을 말하게 된다 — 다음 실접속 세션의 확인 대상이다.
 
 - **결정 기록**: D-145
+
+## 제작 중 발견분 (append) — D-147 실사용 교훈 승격 4차 · 쓰기 경로 E1 (2026-09-09)
+
+근거 원문은 `C:\Users\hjaew\.claude\sapkit-feedback.md`(날짜별 항목)와 사용자 프로젝트의
+관측 기록(`ZUNIVAT-MODI/docs/ZUNIVAT-패키지맵.md` §5-U·§12-c·§12-g ·
+`ZUNIWTH/.sapkit/LESSONS.md` L-011 · `ZUNIVAT-MODI/docs/ZUNIVAT-도메인노트.md` ·
+`JNC-DashBoard/.sapkit/LESSONS.md` L-002)이다 — 전부 **읽기만** 했다. **이 절의 항목은
+전부 실기 미검증**이다: 오프라인 시험(대체 기대 시험)으로만 닫혔고, 각 항목이 무엇을
+실기에서 확인해야 하는지를 끝에 적었다. 결정 기록은 통합 단계가 D-147로 쓴다.
+
+D 번호는 D140 다음부터 잇는다(D141~D146). **기계 장부(`replay/divergences.ts`)에는
+D141·D142·D143만 옮겼다** — D144·D146은 진단 문구(사람용 장부만), D145는 요청
+와이어(응답이 갈리는 표식이 채록에 없다)라 머리주석의 가름선대로 옮기지 않았다.
+
+### D141 — `ActivateObjects`가 **런이 돌지 않은 응답**을 성공으로 접지 않는다
+
+- **분류**: 수리 · **도구**: `ActivateObjects`
+- **구 동작(실측 · 2026-09-04)**: 런 응답이 `activationExecuted="false"
+  checkExecuted="false" generationExecuted="true"`이고 메시지가 0이면 도구는
+  `success:true`·오브젝트별 `status:"activated"`·`errors:[]`를 냈다. 그때
+  `REPOSRC.R3STATE='I'` 행이 그대로 남았고 활성 소스도 안 바뀌었으며(`GrepObjects`로
+  확인), **`GetInactiveObjects`도 그 오브젝트를 보여주지 않았다**. 여섯 가지 재시도(단일 ·
+  형제 동반 · 본체 포함 · `preaudit:false` · 세션 갱신 · 패치 `activate:true`)가 전부 같았다.
+  같은 세션의 진짜 성공은 `activated:true, checked:true`였다. 신 엔진도 같은 판정
+  (`runExecuted = activated || generated` · `success = (activated||generated) && errors===0`)을
+  이어받고 있었다 — 2026-08-06(구 번들 시절)에도 같은 모양이 두 번 관측됐다.
+- **신 동작**: `activated`와 `checked`가 **둘 다 거짓이면 런 미실행**으로 판정한다 —
+  `success:false` · 응답에 `run_executed:false` 신설 · 오브젝트 `status:"not_executed"`(enum
+  값 추가 — 실패도 성공도 아닌 「아무 일 없음」) · `failed_count`는 「활성화되지 않은 것」
+  전부(실패 + 미실행)를 센다 · `errors`와 `message`에 처방을 싣는다(「런이 실행되지
+  않았다 — `REPOSRC.R3STATE`로 확인하고, 반복되면 재시도 대신 `UpdateInclude`/`UpdateClass`로
+  전체 소스를 다시 써라」). 오라클 재조회는 건너뛴다(되물을 성공이 없다). **런이 돌았을 때의
+  판정은 그대로다** — `checked:true`면 생성 플래그만으로도 예전처럼 `activated`다.
+- **근거**: 처방까지 실측이다 — 같은 날 16:53에 `UpdateInclude`(`main_program` 지정 ·
+  `activate:true`)로 전체 소스를 다시 쓰자 한 번에 활성화됐고 그 뒤 패치 경로도 정상화됐다
+  (2026-09-04 2차 항목). 「비활성 목록에 없음」은 필요조건이지 충분조건이 아니라는 것도 이
+  실측이 준 것이다(§12-c).
+- **설명 계약**: `amendments.json`에 꼬리 덧말을 더했다(「`activationExecuted=false` ·
+  `checkExecuted=false`면 아무것도 활성화되지 않았다 … 재시도 대신 전체 소스를 다시 써라」).
+  채록본은 손대지 않았다.
+- **대체 기대 시험**: `src/tools/write/__tests__/activateObjects.test.ts`의 「장부 D141」 절
+  5건 — 실측 응답 모양 그대로의 파서 시험 · 도구 응답(runs·sync) · 정상 런의 `run_executed:true`.
+- **기계 장부 반영**: 했다 — `applies`는 구가 `success:true`에 `activated:false, checked:false`를
+  함께 실은 성공에만 걸리고, `check`는 신이 `success:false`·`run_executed:false`·전 오브젝트
+  `not_executed`로 답했는지 본다. `harness/replay/__tests__/divergences.test.ts` 「D141」 절 4건.
+- **실기에서 확인할 것**: `checked:true, activated:false, generated:true`인 정상 런이 실재하는지
+  (그 모양이 예전 주석의 근거였다 — 없다면 `executed`를 `activated`만으로 더 조일 수 있다).
+
+### D142 — `UpdateSourceByPatch`가 **비활성 판을 먼저 읽고**, 줄바꿈을 정규화하고, 유일성 오류에 위치를 싣고, `match_whole_line`을 받고, FUNC·INTF를 배선한다
+
+- **분류**: 수리 · **도구**: `UpdateSourceByPatch`
+- **구 동작(실측)** — 다섯 자리:
+  - ⓐ **읽는 판**: 언제나 `version=active`(`:128-130`). 그래서 `activate:false` 연속 패치의
+    앞 패치가 조용히 사라졌다 — 2시스템에서 5회 이상(08-03 5차 · 08-04 2차 · 08-05 ZUNIWTH
+    L-011), **통제실험 2026-08-19 2차**가 원인 변수를 하나만 두고 확정했다. 오류는 소실
+    지점이 아니라 두 단계 뒤에 엉뚱한 문구로 떴다.
+  - ⓑ **줄바꿈**: 소스는 CRLF, 인자는 LF라 여러 줄 `old_string`은 첫 줄 끝에서 반드시
+    어긋났다(07-29 · 08-03 3차 · ZUNIVAT_RAP L-018). 한 줄 앵커로만 우회했고 삽입한 줄은 LF로
+    남아 혼합 EOL 파일이 됐다. 「이 도구로는 코드를 지울 수 없다」로 작동했다.
+  - ⓒ **유일성 문구**: `old_string matches N locations`뿐 — `FORM do_show.`가 `PERFORM
+    do_show.`의 부분문자열로 걸렸고(08-04 2차 C), 2칸 들여쓰기 한 줄이 8칸 17곳에 걸려
+    18 locations로 거부됐다(08-06 2차).
+  - ⓓ 단어 경계·줄 단위 옵션이 없었다(08-04 2차 제안 ⓑ).
+  - ⓔ **FUNC·INTF**: enum과 설명에 있는데 `NOT_YET_BUILT`(`:34-37`)가 즉시 거부했다
+    (2026-08-31 — 우회로 `UpdateFunctionModule` 전체 쓰기는 정상이었다). 두 도구
+    `UpdateFunctionModule`·`UpdateInterface`는 이미 등록점에 있었다.
+- **신 동작**:
+  - ⓐ `version=inactive`를 먼저 읽고 404·400이면 `active`로 떨어진다. 그 밖의 실패(403 등)는
+    폴백하지 않고 올린다. 응답에 **`source_version_read: 'inactive'|'active'`** 신설(08-19
+    2차 제안). 못 찾은 오류에도 어느 판을 읽었는지 붙인다.
+  - ⓑ 소스·`old_string`·`new_string`을 LF로 정규화해 찾고, 되쓸 때 **소스의 원래 EOL로
+    복원**한다(CRLF 소스면 새 줄도 CRLF — 혼합 EOL을 만들지 않는다. 이미 혼합이던 파일은
+    CRLF로 통일된다). `diff_preview`도 정규화본이라 CR이 섞이지 않는다.
+  - ⓒ 유일성 오류에 **각 일치의 줄 번호와 그 줄 원문**(최대 8건 + 「… and N more」)과
+    `match_whole_line` 안내를 싣는다.
+  - ⓓ 선택 인자 **`match_whole_line`**(기본 false = 구 그대로 부분문자열). 켜면 `old_string`의
+    각 줄이 소스 한 줄 전체와 양끝 공백을 뺀 채 같아야 한다. 줄 단위 치환에서 old·new가 둘 다
+    개행으로 끝나면 그 개행을 짝으로 떼고, 대체문이 비면(줄 삭제) 뒤따르는 개행도 지운다.
+  - ⓔ FUNC는 `/functions/groups/<FG>/fmodules/<FM>`을 읽어 `UpdateFunctionModule`로, INTF는
+    `/oo/interfaces/<NAME>`을 읽어 `UpdateInterface`로 위임한다(`activate`를 명시로 넘겨
+    `UpdateInterface`의 기본값 켜짐이 새지 않는다). `NOT_YET_BUILT`는 사라졌다.
+- **채록본과 발행 선언**: 선택 인자가 하나 늘었으므로 표면 게이트 ⓐ가 갈린다. 채록본은 손대지
+  않고 **덧말표에 `inputSchemaProperties` 칸을 신설**해 `match_whole_line`을 얹었다
+  (`harness/old-surface/amendments.json` · 소비자 `gates/surface.mjs`의 `amended()` ·
+  `src/tools/read/__tests__/support.ts`의 `publishedDeclaration` · 이제 `write/__tests__/contract.test.ts`도
+  같은 조립을 쓴다). **필수 인자는 그 표로 더할 수 없다** — 기존 호출을 깨는 것은 덧말이 아니다.
+  설명 꼬리 덧말도 함께 더했다.
+- **대체 기대 시험**: `src/tools/write/__tests__/updateSourceByPatch.test.ts`의 「장부 D142」
+  절 ①(읽는 판 5건) · ②(CRLF 3건) · ③④(유일성 문구·`match_whole_line` 4건 + 순수 치환 4건) ·
+  ⑤(FUNC·INTF 2건).
+- **기계 장부 반영**: 했다 — 성공 응답에 새 키가 늘 있으므로 `applies`는 성공 갈래 전부이고,
+  `check`는 「구 응답 + `source_version_read`」와 글자 일치(CR은 뺀 채)를 요구한다. 읽은 판이
+  달라 치환 결과 자체가 갈리면 `allowlisted-fail`로 사람에게 올라간다 — 그것이 옳은 방향이다.
+  오류 갈래의 문구 차이(ⓒ)는 D13이 다룬다. 시험 4건.
+- **실기에서 확인할 것**: `version=inactive`에 비활성이 없을 때 이 시스템이 404를 내는지 활성
+  본문을 그대로 주는지(둘 다 다루지만 응답의 `source_version_read`가 뜻하는 바가 달라진다) ·
+  CRLF 복원본을 SAP이 그대로 받는지 · FUNC 위임의 `corrNr=local`이 이송 대상 FM에서 어떻게
+  거절되는지.
+
+### D143 — `UpdateInclude`·`UpdateSourceByPatch(INCL)`가 **함수그룹 인클루드를 그룹 주소로** 잠근다
+
+- **분류**: 수리 · **도구**: `UpdateInclude` · `UpdateSourceByPatch`
+- **구 동작(실측 · 2026-07-30)**: 두 도구 다 독립 인클루드 주소 `/programs/includes/<name>`으로
+  잠금을 걸어 `LZUNIVFG_RTNF01`이 **403 `This syntax cannot be used for an object name`**으로
+  죽었다(lock 단계). 읽기는 같은 주소로 성공했다. `GetInactiveObjects`는 그 오브젝트를 `FUGR/I` ·
+  `/functions/groups/zunivfg_rtn/includes/lzunivfg_rtnf01`로 보고했고, `activateObjects.ts`의
+  `FUGR/I` 매핑도 그 모양이다.
+- **신 동작**: 이름에서 그룹을 유도한다 — `^L(.+?)(TOP|UXX|[A-Z]\d\d)$`(`shared.ts`의
+  `functionGroupOfInclude`). 맞으면 잠금·PUT·해제·활성화와 사전검사의 artifact URI를
+  `/functions/groups/<그룹>/includes/<이름>`(소문자)으로 보내고, 응답에 `type:'FUGR/I'`와
+  `function_group`을 싣는다. 독립 인클루드의 주소·응답은 구 그대로다. **읽기는 바꾸지 않았다**
+  (독립 주소로 소스가 온다는 실측). `UpdateSourceByPatch(INCL)`은 위임을 통해 같은 길을 탄다.
+- **왜 403 재시도가 아니라 이름 유도인가**: 그 문구는 로그온 언어를 따른다(같은 시스템이 독일어
+  메시지를 낸 실측이 있다 — 08-03 4차) — 문구 판정은 언어 의존이고, 이름 규칙은 아니다. `L*`는
+  고객 이름공간(Z·Y)의 독립 프로그램에 쓸 수 없는 접두라 오분류 위험이 낮다. 거절될 요청을 먼저
+  보내고 재시도하는 것보다 왕복도 하나 적다.
+- **대체 기대 시험**: `src/tools/write/__tests__/updateInclude.test.ts`의 「장부 D143」 2건 ·
+  `updateSourceByPatch.test.ts`의 「장부 D143」 절 1건.
+- **기계 장부 반영**: 했다 — `applies`는 두 도구의 오류 단계 중 그 403 문구를 담은 것뿐이고,
+  `check`는 신이 성공했는지(같은 403이면 실패 · 다른 오류면 결함 후보)를 본다. 시험 4건.
+- **실기에서 확인할 것**: 이 주소로 잠금이 실제로 성립하는지 · `SAPL<그룹>`을 `main_program`으로
+  준 사전검사가 artifact URI를 그룹 주소로 받는지 · 이름공간(`/NS/`) 함수그룹의 인클루드 이름은
+  이 규칙 밖이다(그 경우는 여전히 독립 주소로 가서 403이 난다 — 다음 판의 몫).
+
+### D144 — CTS 잠금 문구에 **`transport_request` 힌트**를 덧붙인다 (진단 문구 · 기계 장부 밖)
+
+- **분류**: 강화 · **자리**: `shared.ts`의 `describeFailure`(쓰기 도구 전부가 지나는 자리)
+- **구 동작(실측)**: 이송 대상 CLAS에 `transport_request`를 안 넘기면 PROG처럼 `corrNr` 400이
+  아니라 **「오브젝트 LIMU CLSD … 사용자 X의 요청 DEVK…에서 이미 잠겨 있습니다」**로 실패했고,
+  3회 재시도 뒤 사용자에게 SM12 해제를 요청했으나 잠금은 없었다(ZUNIWTH L-011 · 2026-08-05 —
+  백로그 13-15). **태스크 번호**를 넘겨도 같은 문구로 HTTP 500이고 상위 요청 번호를 주면
+  통과한다(ZUNIVAT-MODI 도메인노트 · 2026-08-10).
+- **신 동작**: `AdtError`의 메시지·원문이 그 문구(영·한·독)를 담으면 `describeFailure`가 **원문을
+  그대로 둔 채** 뒤에 힌트를 붙인다 — 「`transport_request`가 없거나 태스크 번호다 — 상위 요청
+  번호(`E070.STRKORR`)를 넘겨라 · 남의 잠금이 아니다」. 잠금이 아닌 423·다른 문구에는 붙지 않는다.
+- **범위의 한계**: `UpdateLocalTestClass`·`DeleteLocalTestClass`·`UpdateFunctionModule`처럼 상태
+  코드별로 자기 문구를 만드는 도구의 423 갈래에는 `describeFailure`가 불리지 않아 힌트가 안 붙는다
+  — 그 문구가 423으로도 오는지가 실기 확인 대상이다.
+- **대체 기대 시험**: `src/tools/write/__tests__/updateClass.test.ts`의 「장부 D144」 3건(한국어
+  500 · 영어 · CTS 문구가 아닌 423에는 안 붙음).
+- **기계 장부**: 옮기지 않았다 — 오류 **산문**의 차이이고 SAP 유래 텍스트는 보존된다(D13의
+  자리).
+
+### D145 — `CreateTransport`의 요청 본문 선언을 **`encoding="utf-8"`**로, `Content-Type`에 charset을 (요청 와이어 · 기계 장부 밖)
+
+- **분류**: 수리 · **도구**: `CreateTransport`
+- **구 동작(실측 · JNC-DashBoard L-002 · 2026-07-28)**: `description`에 한글을 넣자 응답의
+  `description`이 **한글 구간만 정확히 `#`로** 돌아왔다(ASCII 구간 무손상 · 이송요청은 정상
+  생성·사용 가능). 본문은 벤더 템플릿 그대로 `<?xml version="1.0" encoding="ASCII"?>`, 헤더는
+  `Content-Type: text/plain`(charset 없음)이었다(`create.js:14-27`·`:71`).
+- **신 동작**: 선언을 `encoding="utf-8"`로, `Content-Type`을 `text/plain; charset=utf-8`로
+  보낸다. 본문 바이트는 구도 신도 UTF-8이다(`src/adt/http.ts` — `end(body, 'utf8')`) — 갈린
+  것은 **바이트를 무엇이라 선언하는가**뿐이다. 나머지 템플릿(줄바꿈·들여쓰기·속성 순서)은
+  그대로다.
+- **근거**: XML 선언이 ASCII라 말하면 파서가 그 밖의 바이트를 표현 불가 문자로 접는다 — 관측
+  모양(비ASCII만 정확히 `#`)과 맞는다. ADT 소스 PUT은 같은 접속 계층에서 `text/plain;
+  charset=utf-8`로 한글 주석을 잃지 않는다. **손상 원인의 확정은 실기에서** — 두 변경을 함께
+  넣었으므로 어느 쪽이 결정적이었는지는 실기가 갈라야 한다(하나씩 되돌려 보면 된다).
+- **대체 기대 시험**: `src/tools/write/__tests__/createTransport.test.ts` — 페이로드 글자
+  대조(utf-8 선언) · 헤더 · 「비ASCII 설명은 utf-8 선언 아래 그대로 실린다」.
+- **기계 장부**: 옮기지 않았다 — 요청 와이어의 차이이고 채록 픽스처(ASCII 설명)에서는 응답이
+  갈리지 않는다. 한글 설명의 채록분이 생기면 그 응답(`#` → 한글)이 표식이 된다.
+
+### D146 — 테스트 클래스 인클루드(CCAU)가 **없는 클래스**에 명시 오류 (진단 문구 · 기계 장부 밖)
+
+- **분류**: 강화 · **도구**: `UpdateLocalTestClass` · `DeleteLocalTestClass`
+- **구 동작(실측 · 2026-08-25 · ZUNIVAT-MODI 패키지맵 §5-U)**: CCAU 인클루드가 없는 클래스에
+  둘 다 HTTP 500 **`<클래스>===========CCAU에는 어떠한 비활성 버전도 없습니다`**를 그대로 냈다.
+  원인은 비활성 버전이 아니다 — 클래스에 비활성 버전을 만들어 둔 뒤에도 같은 500이었고,
+  `REPOSRC`에 CCAU 행 자체가 없었다. `$TMP`에 `CreateClass`로 만든 클래스에서는 정상이다 —
+  생성 페이로드가 `<class:include … includeType="testclasses"/>`를 함께 보내기 때문이다.
+- **신 동작**: 그 문구(한·영·독)를 담은 `AdtError`를 만나면 상태 코드 갈래보다 먼저 **「이
+  클래스에는 테스트 클래스 인클루드가 없다 — ADT [Test Classes] 탭(SE24: 이동 → 클래스-로컬
+  유형 → 테스트 클래스)에서 한 번 저장·활성화해 만든 뒤 재시도」**로 답하고 SAP 원문을 뒤에
+  싣는다. 판정은 `classIncludeWrite.ts`에 두고 두 도구가 공유한다.
+- **왜 만들어 주지 않았나**: 기존 클래스에 그 인클루드를 붙이는 ADT 요청을 오프라인 조사로는
+  찾지 못했다 — 벤더 참조본도 생성 시점 페이로드 말고는 그 자리를 갖지 않고, Eclipse가
+  [Test Classes] 탭 첫 저장에 무엇을 보내는지는 실기에서 잡아야 한다. 그때까지는 처방 실증
+  (같은 날 탭 저장 뒤 즉시 통과)을 그대로 안내한다.
+- **대체 기대 시험**: `updateLocalTestClass.test.ts`의 「장부 D146」 3건 ·
+  `deleteLocalTestClass.test.ts`의 「장부 D146」 1건.
+- **기계 장부**: 옮기지 않았다 — 오류 산문의 차이이고 SAP 유래 텍스트는 보존된다.
+
+### 관측 등재 — `UpdateBehaviorDefinition` 백틱 증식은 **엔진 밖**이다 (차이가 아니다 · 백로그 13-12)
+
+- **관측**: 주석 안 백틱이 왕복마다 배증한다 — 4→8(2026-07-31 피드백 ③ · `GetBehaviorDefinition
+  (inactive)` 되읽기) · 4→16(백로그 13-12) · `UpdateView`는 정상.
+- **조사 결과**: 쓰기 경로는 `source_code`를 **한 글자도 바꾸지 않고** `putSource`로 PUT 한다
+  (`text/plain; charset=utf-8`), 읽기 경로(`read/internal/behaviorRead.ts`)에도 이스케이프·치환이
+  없다. 우리 쪽 원인은 찾지 못했고 고칠 자리도 없다. 두 관측이 구 번들 시절(교체 전)의 것이라
+  신 엔진에서 재현되는지도 아직 모른다.
+- **대체 기대 시험(우리 쪽 무죄의 증거)**: `updateBehaviorDefinition.test.ts`의 「백틱 왕복」 —
+  PUT 본문이 입력과 바이트 동일.
+- **실기에서 확인할 것**: 신 엔진으로 백틱 4개짜리 BDEF를 쓰고 `GetBehaviorDefinition(inactive)`
+  로 되읽어 개수를 센다. 늘면 SAP 쪽(BDEF 소스 저장의 이스케이프)이고 도구 설명에 「BDEF
+  주석에 백틱을 쓰지 마라」를 덧말로 얹을 자리다.

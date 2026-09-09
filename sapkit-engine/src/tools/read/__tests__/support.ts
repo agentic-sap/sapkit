@@ -237,9 +237,21 @@ export function publishedDeclaration(name: string): {
   const amendmentsFile = path.join(
     __dirname, '..', '..', '..', '..', 'harness', 'old-surface', 'amendments.json',
   );
-  const { descriptions } = JSON.parse(fs.readFileSync(amendmentsFile, 'utf8')) as {
+  const { descriptions, inputSchemaProperties } = JSON.parse(
+    fs.readFileSync(amendmentsFile, 'utf8'),
+  ) as {
     descriptions: Record<string, string>;
+    inputSchemaProperties?: Record<string, Record<string, unknown>>;
   };
   const appendix = descriptions[name];
-  return appendix === undefined ? entry : { ...entry, description: entry.description + appendix };
+  const description = appendix === undefined ? entry.description : entry.description + appendix;
+  // 선택 인자 덧붙임(D-147) — 채록본 `properties`에 얹는다. `required`는 손대지 않는다.
+  const added = inputSchemaProperties?.[name];
+  const schema = entry.inputSchema as { properties?: Record<string, unknown> } | undefined;
+  const inputSchema =
+    added === undefined || !schema || typeof schema !== 'object'
+      ? entry.inputSchema
+      : { ...schema, properties: { ...(schema.properties ?? {}), ...added } };
+  if (description === entry.description && inputSchema === entry.inputSchema) return entry;
+  return { ...entry, description, inputSchema };
 }
