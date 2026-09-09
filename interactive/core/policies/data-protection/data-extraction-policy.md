@@ -94,6 +94,37 @@ The full detail, along with the other tool-response traps: [troubleshooting](../
 
 The `acknowledge_risk` flag exists because some protected data does have legitimate use cases (e.g., an analyst reviewing their own company-code postings). It must not turn into a rubber stamp.
 
+## The Write Side Has No Equivalent Gate — say what you are writing, first
+
+This policy gates **reading** rows. Writing them is not gated the same way, and
+the difference is easy to walk past because it looks like an absence of
+capability rather than an absence of a gate.
+
+- There is no row-writing MCP tool, but object write plus execution
+  (`CreateProgram` / `UpdateProgram` with `RuntimeRunProgramWithProfiling`)
+  reaches rows all the same: **the path exists and carries no mechanical gate.**
+  Do not report "the tools cannot write data" — that is a wrong answer, not a
+  safe one.
+- **On that path the only gate is the one you volunteer.** Reading rows passes
+  three (tool exposition, adapter deny-lists, the per-call approval above);
+  execution passes none. So state the target table, the rows affected, and the
+  statement to the user **before** running it, and get an answer — the same
+  standard the read side applies, applied by hand.
+- P3 rules still bind on this path — attended, DEV tier only, and no delegation
+  of the approval step to a subagent. Reading the result back afterwards is a
+  row-data call and carries this policy's own per-call approval.
+- How to run it — naming the program, reading the result back, clearing it away
+  — is written once in
+  [troubleshooting](../../procedures/troubleshooting.md) § 8, under *A tool that
+  is absent is not a capability that is absent*. This section carries the
+  obligation, not the method.
+
+Whether the asymmetry is the intended threat model (object-write authority
+implying data-write authority) or a gap is **an open question for the product
+owner**; it is recorded here as an observation, not resolved. Nothing in this
+section relaxes the read-side rules, and none of it is licence to skip the
+announcement.
+
 ## Authorization Override
 
 A blocked extraction may be authorized per-task where the business need is real and documented. To authorize:

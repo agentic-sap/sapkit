@@ -40,13 +40,17 @@ CreateTransport(
 )
 ```
 
-## Two Traps on the Same Call Path
+## Traps on the Same Call Path
 
-Both were measured 2026-07-28 → 08-02; the details sit in [troubleshooting](../procedures/troubleshooting.md) § 8.
+Measured 2026-07-28 → 08-10; the details sit in [troubleshooting](../procedures/troubleshooting.md) § 8.
 
 **Write the description in English.** Where a `description` carries non-ASCII text (Korean, and by extension any non-Latin script), those characters are stored as `#`. The transport still gets created and is fully usable — only the display text is lost, and this tool has no way to repair it afterwards.
 
 **Do not open a transport just to satisfy a local-package refusal.** Where `UpdateFunctionModule` (or a sibling `Update*` / `Create*`) turns down an object sitting in a `$`-prefixed local package with *"The object may be assigned to a transport request. Pass transport_request explicitly."*, the object is local and needs no transport — the tool's local-package detection recognises the literal `$TMP` only. Retry first with the literal string `transport_request: "local"`; `CreateFunctionModule` hands back exactly that value in its own response. Escalate to `CreateTransport` only when `"local"` is refused as well (seen with objects that arrived by abapGit import and may carry transport history). An unnecessary transport is not a harmless one: it joins the CTS queue and somebody has to dispose of it.
+
+**Give a write the request number, never the task number — and never read the refusal as a lock.** Where an object is registered under a task, `transport_request` still has to carry the **request** that task belongs to: the registration sits on the task while the lock is held at request level, so a task number fails with HTTP 500 *"Object … is already locked in request `<REQUEST>`"*, naming the very request it belongs under. The identical call succeeds with the request number (field-verified 2026-08-10). `E070-STRKORR` carries a task's parent request, which is how the two are told apart.
+
+**Omitting the parameter fails differently by object type, and one of the two shapes lies.** A PROG write refuses with `Parameter corrNr could not be found` (HTTP 400) — explicit, and it names its own cause. A CLAS write refuses with the **same CTS lock wording** as above, which reads as a stale lock; on 2026-08-05 that cost three retries, a request to the user to release a lock, a user-side check finding none, and then immediate success once the request number was supplied. Check the parameter before asking anyone to unlock anything, and do not escalate a lock message to SM12 until `transport_request` has been ruled out.
 
 ## Enforcement
 

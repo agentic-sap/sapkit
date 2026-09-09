@@ -116,8 +116,10 @@ The difference between the two serializations is legitimate, and **a verbatim tr
 
 An assumed interface is never a basis for calling a standard FM — read the real signature out with `GetFunctionModule` first. There are two failure modes, and neither syntax check nor activation catches either one (field-verified in real project work, 2026-07, both on one call):
 
-- **Parameter type mismatch** stays invisible until runtime, where it surfaces as a `CALL_FUNCTION_CONFLICT_TYPE` dump.
+- **Parameter type mismatch** stays invisible until runtime, where it surfaces as a `CALL_FUNCTION_CONFLICT_TYPE` dump. The reason it cannot be caught earlier is structural: `CALL FUNCTION '<literal>'` is a **dynamic** call, so the interface is never checked statically — hand a `STRING` to a `CHAR(n)` parameter and the whole program passes the syntax check with zero errors, then dies on the first execution (field-verified in real project work, 2026-07). A `NUMC` / `CHAR` mismatch produces the same dump.
 - **`EXCEPTIONS OTHERS = 1` written against an FM that declares no EXCEPTIONS** pins `sy-subrc` at 0 — every failure then reads as success, silently. An `EXCEPTIONS` clause belongs there only when the signature actually declares exceptions.
+
+When a call to an FM the program has not used before is introduced, compare the actual argument types against the formal ones one by one — `GetFunctionModule` for the signature, and `ReadTable` / `GetStructure` for the DDIC types behind it, which return that as metadata (a P1 read) with no `DD03L` row query needed — and copy the value into a fixed-length local wherever they differ, rather than trusting the assignment to adapt.
 
 ## Remote-Enabled (RFC) flag — manual step, scope note
 

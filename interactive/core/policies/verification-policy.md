@@ -31,8 +31,38 @@ Notes:
 - Step 2 does not cascade: activating a main program does NOT activate its
   sub-includes. Activate every touched include explicitly, or batch them in a
   single `ActivateObjects` call, then confirm with `GetInactiveObjects`.
+- Step 2 reads the **run-level** `activated` and `checked` flags of the
+  `ActivateObjects` response, not the per-object `status`. A run answering
+  `activated: false` + `checked: false` activated nothing, even where every
+  object reports `status: "activated"` with an empty `errors[]`; `checked: false`
+  means the syntax stage never ran, so "no errors" examined nothing. An empty
+  `GetInactiveObjects` is a **necessary** condition, never a sufficient one — an
+  orphaned inactive version does not appear in the worklist. The oracle that
+  settles a disagreement is `REPOSRC.R3STATE` for the object (an `'I'` row means
+  not active; the `'A'` row's `UDAT`/`UTIME` must be later than the write); that
+  is a `GetSqlQuery` call and carries the per-call approval of
+  [data-extraction-policy](./data-protection/data-extraction-policy.md).
+  Where a run lands in the false state, the measured way out is to **rewrite the
+  whole source** (`UpdateInclude` / `UpdateClass`, `activate: true`) rather than
+  retry the activation; a human activation in SE80 comes after that, not before.
+  Symptoms, evidence and limits: [troubleshooting](../procedures/troubleshooting.md) § 8.
 - Step 3 applies when the object has (or must have) a unit test per the active
   procedure; pure DDIC objects without executable code skip to step 4.
+- Step 3 has one **substitute path, and it is weaker than the step it replaces**.
+  Where `RunUnitTest` reports `completed` while executing zero tests and the
+  engine version has been ruled out as the cause
+  ([troubleshooting](../procedures/troubleshooting.md) § 8), the check itself can be
+  carried in an executable program, run with `RuntimeRunProgramWithProfiling`,
+  and its per-case results written to a table that is read back afterwards
+  (that read-back is a row-data call and carries the per-call approval of
+  [data-extraction-policy](./data-protection/data-extraction-policy.md)) —
+  `WRITE` output does not come back through the runner. What that establishes is
+  that the assertions ran and what they returned; it is **not** an AUnit result,
+  it does not discover test classes, and it is P3 execution rather than a read,
+  so it inherits the attended requirement and the DEV-tier gate. Record it under
+  step 3 as its own evidence naming the program and the result table, never as
+  `RunUnitTest` PASS. Keep the ABAP Unit classes themselves as assets: this
+  substitutes for the runner, not for the tests.
 - Never skip ahead: a later step's success is meaningless while an earlier step
   is failing.
 

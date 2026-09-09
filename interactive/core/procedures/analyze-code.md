@@ -67,6 +67,7 @@ Where the review cannot go forward (source unreadable, say), surface the reason 
 | [text-element-rule](../knowledge/abap/conventions/text-element-rule.md) | Handling of text symbols and messages (hardcoded strings forbidden) |
 | [alv-rules](../knowledge/abap/conventions/alv-rules.md) | ALV grid / list display patterns, plus field catalog conventions |
 | [rap-odata-rules](../knowledge/abap/conventions/rap-odata-rules.md) | Silent RAP/OData failure modes (BDEF masters & projection `use etag`, DDLX facet scope, conversion exits, Edm.Boolean mapping, metadata-cache judgment) — reach for it when the object under review is RAP/CDS/OData |
+| [odata-gateway-rules](../knowledge/abap/conventions/odata-gateway-rules.md) | SEGW / Gateway OData services — code-declared models, non-nullable date properties, maxLength after conversion, hub cache — reach for it when the object under review is a SEGW service or an `..._MPC_EXT` / `..._DPC_EXT` class |
 | [spro-lookup](spro-lookup.md) | Patterns for looking SPRO config up (so values are not hardcoded) |
 | [data-extraction-policy](../policies/data-protection/data-extraction-policy.md) | Policy on extracting from sensitive tables (PII, credentials, HR, financial) |
 
