@@ -22,7 +22,7 @@ import {
 import { fetchNodeStructure } from './nodeStructure';
 import { messageOf } from './results';
 
-// ── 함수그룹 전개 (D145) ─────────────────────────────────────────────────────
+// ── 함수그룹 전개 (D151) ─────────────────────────────────────────────────────
 //
 // `fetchObjectSource`의 FUGR 갈래는 함수그룹 **메타데이터**(`/functions/groups/{fg}`)를
 // 읽는다 — 거기에는 소스가 없다. 그래서 `GrepObjects(FUGR)`가 실재하는 코드에도

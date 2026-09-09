@@ -5,7 +5,7 @@
  * 대문자로 올리지도 않는다: 구가 받은 문자열을 그대로 인코딩해 보냈고, ADT
  * 경로는 대소문자를 가리지 않는다.
  *
- * ## 클래스 인클루드는 이 경로가 아니다 (차이 — `harness/DIVERGENCES.md` D148 · 백로그 13-8 ⓑ)
+ * ## 클래스 인클루드는 이 경로가 아니다 (차이 — `harness/DIVERGENCES.md` D154 · 백로그 13-8 ⓑ)
  *
  * `ZCL_X=====…=CCIMP`처럼 `=`로 채운 클래스 인클루드 이름을 주면 독립 인클루드
  * 경로(`/sap/bc/adt/programs/includes/`)가 **HTTP 500**을 낸다(ZUNIVAT_RAP 실측). 구는
@@ -32,7 +32,7 @@ const CLASS_INCLUDE_READERS: Readonly<Record<string, string>> = {
   CCAU: 'GetLocalTestClass (local test classes include)',
 };
 
-/** D148 — 클래스 인클루드면 요청을 보내기 전에 낼 오류 문구, 아니면 null. */
+/** D154 — 클래스 인클루드면 요청을 보내기 전에 낼 오류 문구, 아니면 null. */
 export function classIncludeRefusal(includeName: string): string | null {
   const match = CLASS_INCLUDE_NAME.exec(includeName.trim());
   if (!match) return null;
@@ -51,7 +51,7 @@ export function classIncludeRefusal(includeName: string): string | null {
 export const getInclude = defineTool(
   {
     name: 'GetInclude',
-    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D148.
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D154.
     description:
       '[read-only] Retrieve source code of a specific ABAP include file.' +
       " Class includes — names padded with '=' and ending in CCIMP, CCDEF, CCMAC or CCAU — are not standalone includes; this path answers HTTP 500 for them and the tool now refuses them up front. Read local types and the implementations include with GetLocalTypes, local definitions with GetLocalDefinitions, macros with GetLocalMacros, the test include with GetLocalTestClass.",
@@ -68,7 +68,7 @@ export const getInclude = defineTool(
       if (!args.include_name) {
         throw new Error('Include name is required');
       }
-      // D148 — 클래스 인클루드는 접속을 얻기 전에 거절한다(500이 나는 요청을 보내지 않는다).
+      // D154 — 클래스 인클루드는 접속을 얻기 전에 거절한다(500이 나는 요청을 보내지 않는다).
       const refusal = classIncludeRefusal(args.include_name);
       if (refusal !== null) throw new Error(refusal);
 

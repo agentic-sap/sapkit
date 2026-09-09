@@ -9,7 +9,7 @@
  * `GrepPackages`와 공용이었다(`engine/src/lib/objectSourceFetch.ts`). 두 도구의
  * 차이는 `grepPackages.ts` 머리주석이 표로 적어 두었다.
  *
- * ## FUGR는 전개해서 훑는다 (차이 — `harness/DIVERGENCES.md` D145)
+ * ## FUGR는 전개해서 훑는다 (차이 — `harness/DIVERGENCES.md` D151)
  *
  * 구의 FUGR 갈래는 함수그룹 **메타데이터**를 읽어 훑었다 — 거기에 소스가 없으므로
  * FM 본문의 실재하는 문자열에도 `total_matches: 0 · skipped: []`였다(2026-07-28·30·31
@@ -40,7 +40,7 @@ import { failure, messageOf, ok } from './internal/results';
 const MAX_OBJECTS = 50;
 const FETCH_CONCURRENCY = 5;
 
-/** D145 — 함수그룹 하나를 전개해 구성원마다 훑을 입력을 만든다. 실패는 `skipped`의 이유가 된다. */
+/** D151 — 함수그룹 하나를 전개해 구성원마다 훑을 입력을 만든다. 실패는 `skipped`의 이유가 된다. */
 async function grepInputsForFunctionGroup(
   client: AdtClient,
   objectType: string,
@@ -100,7 +100,7 @@ async function grepInputsForFunctionGroup(
 export const grepObjects = defineTool(
   {
     name: 'GrepObjects',
-    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D145 · 백로그 13-8 ⓒ.
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D151 · 백로그 13-8 ⓒ.
     description:
       '[read-only] Search ABAP source code for a regex pattern across multiple named objects in a single call — finds matching lines (with optional context) instead of reading each object one by one. Supports CLAS, PROG, INTF, INCL, and FUGR (function group). Individual function modules (FUNC) are not supported; use FUGR with the group name to search the whole group.' +
       ' Matching is case-sensitive unless case_insensitive is true — 0 matches means "this pattern found nothing", not "the code is absent". CLAS searches source/main only: local types and the implementations include (CCIMP, where behavior-pool handlers and local classes live) are not scanned and no skipped entry is written for them; read those with GetLocalTypes. FUGR is expanded to the group\'s function modules and includes (each reported under its own name); if the group cannot be expanded, the reason is listed under skipped instead of a silent 0.',
@@ -151,7 +151,7 @@ export const grepObjects = defineTool(
       const regex = compileGrepRegex(args.pattern, caseInsensitive);
 
       const client = await context.getConnection();
-      // 요청 항목 하나가 입력 여러 개가 될 수 있다(FUGR 전개 — D145). 순서는 요청 순서다.
+      // 요청 항목 하나가 입력 여러 개가 될 수 있다(FUGR 전개 — D151). 순서는 요청 순서다.
       const expanded: ObjectGrepInput[][] = new Array(requested.length);
       const warn = (message: string): void => context.logger.warn(message);
 

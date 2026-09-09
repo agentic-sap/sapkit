@@ -237,7 +237,7 @@ describe('UpdateProgram 오류 경로', () => {
   });
 });
 
-// ── D144 — 거짓 FIXPT precheck ────────────────────────────────────────────────
+// ── D150 — 거짓 FIXPT precheck ────────────────────────────────────────────────
 
 /** 실측 문구(2026-08-06 · 08-19)를 닮은 인라인 검사 실패 — FIXPT + 인라인 선언 연쇄. */
 function fixptCheckRun(): string {
@@ -275,7 +275,7 @@ function fixptResponder(scenario: { inline: string; stored: string; post?: strin
   }) as Parameters<typeof startWriteHarness>[0];
 }
 
-describe('D144 — 인라인 precheck가 FIXPT 계열로 실패하고 저장된 판이 깨끗하면 쓰기를 진행한다', () => {
+describe('D150 — 인라인 precheck가 FIXPT 계열로 실패하고 저장된 판이 깨끗하면 쓰기를 진행한다', () => {
   it('저장판 검사를 한 번 더 돌린 뒤 PUT하고, 응답이 precheck_overridden과 오류 원문을 싣는다', async () => {
     harness = await startWriteHarness(fixptResponder({ inline: fixptCheckRun(), stored: cleanCheckRun() }));
     const result = await invoke(updateProgram, harness, { program_name: 'ZPROG', source_code: SOURCE });
@@ -284,7 +284,7 @@ describe('D144 — 인라인 precheck가 FIXPT 계열로 실패하고 저장된 
     expect(harness.calls().map((call) => `${call.method} ${call.path}`)).toEqual([
       `POST ${URI}`,
       'POST /sap/bc/adt/checkruns', // 인라인(제안 소스)
-      'POST /sap/bc/adt/checkruns', // 저장된 판 — D144의 재검사
+      'POST /sap/bc/adt/checkruns', // 저장된 판 — D150의 재검사
       `PUT ${URI}/source/main`,
       `POST ${URI}`,
       'POST /sap/bc/adt/checkruns', // 사후검사

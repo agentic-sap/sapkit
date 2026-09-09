@@ -33,6 +33,10 @@
  * 유도한다(`shared.ts`의 `includeWriteUri` · 장부 D143). 읽기는 독립 주소로 해도
  * 소스가 온다(실측 2026-07-30).
  *
+ * PROG 위임은 `UpdateProgram`의 거짓 FIXPT precheck 폴백(장부 D150 · 분담 E2)도 그대로
+ * 탄다 — 넘어 썼다는 표식(`precheck_overridden`·`precheck_messages`·`precheck_note`)은
+ * 위임 응답에서 그대로 실어 올린다(통합 시 확인 · 실기 미검증).
+ *
  * **실기 미검증** — 위 다섯은 전부 오프라인 시험으로만 닫혔다.
  */
 
@@ -453,13 +457,30 @@ export const updateSourceByPatch = defineTool(
 
       let activated = shouldActivate;
       let checkWarnings: unknown;
+      // PROG 위임은 `UpdateProgram`의 거짓 FIXPT precheck 폴백(장부 D150)을 그대로 탄다 —
+      // 넘어 썼다는 표식 세 키는 감추지 않고 그대로 싣는다. 위임 응답에 없으면 빈 채다.
+      let precheck: {
+        precheck_overridden?: true;
+        precheck_messages?: unknown;
+        precheck_note?: unknown;
+      } = {};
       try {
         const payload = JSON.parse(delegated.content.map((item) => item.text).join('')) as {
           activated?: unknown;
           check_warnings?: unknown;
+          precheck_overridden?: unknown;
+          precheck_messages?: unknown;
+          precheck_note?: unknown;
         };
         if (typeof payload.activated === 'boolean') activated = payload.activated;
         if (payload.check_warnings) checkWarnings = payload.check_warnings;
+        if (payload.precheck_overridden === true) {
+          precheck = {
+            precheck_overridden: true,
+            precheck_messages: payload.precheck_messages,
+            precheck_note: payload.precheck_note,
+          };
+        }
       } catch {
         // 위임 응답이 JSON이 아니었다 — 계산해 둔 기본값을 쓴다.
       }
@@ -474,6 +495,7 @@ export const updateSourceByPatch = defineTool(
         diff_preview: diffPreview,
         activated,
         check_warnings: checkWarnings,
+        ...precheck,
         message: `${objectType} ${objectName} patched (${patch.occurrences} occurrence${
           patch.occurrences === 1 ? '' : 's'
         } replaced)${activated ? ' and activated' : ''}`,

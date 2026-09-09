@@ -52,9 +52,9 @@ describe('GetInclude', () => {
   });
 });
 
-// ── D148 — 클래스 인클루드는 요청 전에 거절하고 읽는 도구를 이름으로 말한다 ──
+// ── D154 — 클래스 인클루드는 요청 전에 거절하고 읽는 도구를 이름으로 말한다 ──
 
-describe('D148 — 클래스 인클루드(CCIMP 등)는 이 경로가 아니다', () => {
+describe('D154 — 클래스 인클루드(CCIMP 등)는 이 경로가 아니다', () => {
   const CCIMP = 'ZCL_UNIVAT_BSET_EDIT==========CCIMP';
 
   it('=로 채운 CCIMP 이름은 접속 전에 거절되고 GetLocalTypes를 가리킨다 (구는 HTTP 500을 그대로 올렸다)', async () => {

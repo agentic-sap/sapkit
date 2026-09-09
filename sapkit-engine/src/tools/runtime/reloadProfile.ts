@@ -34,7 +34,7 @@
  * - **`restartRequired`가 가리키는 제약이 바뀌었다** — 신 엔진은 접속을 게으르게
  *   다시 만들므로 무접속 기동에서도 재적재가 접속을 되살린다. 대신 이 프로세스가
  *   정말로 못 고치는 것을 보고한다. 판B까지는 그것이 「기동 시점에 확정된
- *   `tools/list`」였는데, **D-147(차이 장부 D147)부터 코어가 그 목록을 새 축으로 다시
+ *   `tools/list`」였는데, **D-147(차이 장부 D153)부터 코어가 그 목록을 새 축으로 다시
  *   발행한다**(SDK `registerTool`/`remove()` → `notifications/tools/list_changed`).
  *   그래서 배포 축 변경은 더 이상 `restartRequired`가 아니고 `tool_list_republished`가
  *   무엇이 더해지고 빠졌는지 말한다. 남는 사유는 기동만이 받을 수 있는 destination
@@ -51,7 +51,7 @@ import { okJson, returnError } from './internal/results';
 export const reloadProfile = defineTool(
   {
     name: 'ReloadProfile',
-    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D147.
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D153.
     description:
       '[system] Reload the active SAP profile from .sapkit/active-profile.txt and reset the cached connection. Called by the sapkit plugin after switching profiles. Returns the newly active alias, host, tier, and readonly status. If the server was started without connection parameters (inspection-only), this CANNOT restore the connection: it returns restartRequired=true and the MCP server must be restarted.' +
       ' If the reloaded profile is on a different deployment axis (onprem/cloud/legacy) than the one this server started on, the server re-registers its tool list for the new axis and sends notifications/tools/list_changed; a client that does not refresh tools on that notification still needs a reconnect (/mcp), which the note says.',
@@ -88,7 +88,7 @@ export const reloadProfile = defineTool(
       const host = envVars.SAP_URL ?? '';
       const client = envVars.SAP_CLIENT ?? '';
       const description = envVars.SAP_DESCRIPTION ?? '';
-      // D147 — 코어가 목록을 다시 발행했으면 무엇이 더해지고 빠졌는지.
+      // D153 — 코어가 목록을 다시 발행했으면 무엇이 더해지고 빠졌는지.
       const republished = outcome.toolListRepublished;
       const connectionLost =
         outcome.connectionDropped && outcome.startup.profile.connection === null;
@@ -118,11 +118,11 @@ export const reloadProfile = defineTool(
         sourcePath: profile.envPath,
         // 재적재는 기동만이 받을 수 있는 destination 토큰을 되찾지 못한다 —
         // --mcp 기동에서 접속이 있다가 재적재 후 없어졌다면 재기동만이 답이다
-        // (D-114 · 판M2-a 리뷰 권고 1). 배포 축 변경은 D147부터 코어가 목록을 다시
+        // (D-114 · 판M2-a 리뷰 권고 1). 배포 축 변경은 D153부터 코어가 목록을 다시
         // 발행하므로 재기동 사유가 아니다 — 코어가 재발행을 **못 했을 때만**(listStale)
         // 그대로 남는다. 두 사유는 별개이므로 OR.
         restartRequired: listStale || connectionLost,
-        // D147 — 무엇이 더해지고 빠졌는가. 재발행이 없었으면 키 자체가 없다.
+        // D153 — 무엇이 더해지고 빠졌는가. 재발행이 없었으면 키 자체가 없다.
         tool_list_republished: republished
           ? { added: [...republished.added], removed: [...republished.removed] }
           : undefined,

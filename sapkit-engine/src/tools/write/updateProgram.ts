@@ -13,7 +13,7 @@
  *  3. 활성화 응답은 **오류를 담은 채 200으로 온다**. 상태 코드만 보면 거짓
  *     성공이 된다 — 본문의 `E` 메시지를 실패로 되돌린다.
  *
- * ## 거짓 FIXPT precheck를 통째로 믿지 않는다 (차이 — `harness/DIVERGENCES.md` D144)
+ * ## 거짓 FIXPT precheck를 통째로 믿지 않는다 (차이 — `harness/DIVERGENCES.md` D150)
  *
  * 쓰기 전 검사는 제안 소스를 인라인으로 컴파일하는데(`checkProposed`), 그 경로가
  * `TRDIR.FIXPT='X'` 프로그램에서 「fixed point arithmetic flag」 오류 수십 건 + 인라인
@@ -57,7 +57,7 @@ import {
 /** 거짓 precheck의 표식 — 실측 문구 «…can only be used when the fixed point arithmetic flag is activated». */
 export const FIXPT_FALSE_POSITIVE = /fixed point arithmetic/i;
 
-/** D144 — 인라인 검사가 FIXPT 계열로 실패했는가. 그 문구가 하나도 없으면 거짓 precheck가 아니다. */
+/** D150 — 인라인 검사가 FIXPT 계열로 실패했는가. 그 문구가 하나도 없으면 거짓 precheck가 아니다. */
 export function looksLikeFixptFalsePositive(preCheck: CheckRunResult): boolean {
   return preCheck.errors.some((entry) => FIXPT_FALSE_POSITIVE.test(entry.text));
 }
@@ -65,7 +65,7 @@ export function looksLikeFixptFalsePositive(preCheck: CheckRunResult): boolean {
 export const updateProgram = defineTool(
   {
     name: 'UpdateProgram',
-    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D144.
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D150.
     description:
       'Update source code of an existing ABAP program. Locks the program, checks new code, uploads new source code, and unlocks. Optionally activates after update. Use this to modify existing programs without re-creating metadata.' +
       " If the in-place pre-check rejects the proposed source with 'fixed point arithmetic flag' errors (a known false positive on programs with FIXPT set) while the stored version checks clean, the write proceeds with precheck_overridden: true and those messages under precheck_messages — the post-write check and activation do the real compile.",
@@ -108,7 +108,7 @@ export const updateProgram = defineTool(
     try {
       const client = await context.getConnection();
       let checkWarnings: CheckMessage[] = [];
-      // D144 — 거짓 FIXPT precheck를 넘어 쓴 경우 그 원문. 아니면 undefined.
+      // D150 — 거짓 FIXPT precheck를 넘어 쓴 경우 그 원문. 아니면 undefined.
       let precheckOverride: { messages: CheckMessage[]; storedStatus: string } | undefined;
 
       await client.withLock(uri, async (lock) => {
@@ -127,7 +127,7 @@ export const updateProgram = defineTool(
           logger.warn(
             `Program ${programName}: in-place pre-check rejected the source with ${preCheck.errors.length} ` +
               'fixed-point-arithmetic-class error(s) while the stored version checks clean — treating the ' +
-              'pre-check as a false positive and writing (D144)',
+              'pre-check as a false positive and writing (D150)',
           );
         }
         checkWarnings = [...preCheck.warnings];
@@ -188,7 +188,7 @@ export const updateProgram = defineTool(
         ],
         activation_warnings: activationWarnings.length > 0 ? activationWarnings : undefined,
         check_warnings: checkWarnings.length > 0 ? checkWarnings : undefined,
-        // D144 — 이 세 키는 거짓 precheck를 넘어 썼을 때만 나타난다.
+        // D150 — 이 세 키는 거짓 precheck를 넘어 썼을 때만 나타난다.
         precheck_overridden: precheckOverride ? true : undefined,
         precheck_messages: precheckOverride?.messages,
         precheck_note: precheckOverride

@@ -188,7 +188,7 @@ describe('발행취소 사전 걸음 — 최선 노력', () => {
     expect(harness.calls().map((call) => call.path)).not.toContain(UNPUBLISH);
   });
 
-  it('D142 — 발행 중인데 allowedAction 속성이 **없으면** 발행취소를 시도한다 (구는 건너뛰었다)', async () => {
+  it('D148 — 발행 중인데 allowedAction 속성이 **없으면** 발행취소를 시도한다 (구는 건너뛰었다)', async () => {
     const noAttribute = publishedBinding().replace(' srvb:allowedAction="UNPUBLISH"', '');
     expect(noAttribute).not.toContain('allowedAction');
     harness = await harnessFor({ read: noAttribute });

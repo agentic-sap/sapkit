@@ -17,7 +17,7 @@
  * 설명이 말하는 "구문 오류는 보통 결과로 돌려준다"와 어긋나지만, 이것이 구
  * 동작이고 의도적 차이는 별도 등재 사안이므로 여기서는 **그대로 승계**한다.
  *
- * ## 판정불능을 실패로 말하지 않는다 (차이 — `harness/DIVERGENCES.md` D143)
+ * ## 판정불능을 실패로 말하지 않는다 (차이 — `harness/DIVERGENCES.md` D149)
  *
  * `CheckSyntax(include)`가 메인 프로그램 문맥 없이 `success:false · errors:[]`를
  * 냈다(2026-07-31 · 2회 재현 · 직후 활성화는 오류 0 — `sapkit-feedback.md`). 구는
@@ -180,7 +180,7 @@ async function wrappedCheck(
 export type CheckVerdict = 'clean' | 'errors' | 'indeterminate';
 
 /**
- * 검사 결과를 세 값으로 가른다 — D143.
+ * 검사 결과를 세 값으로 가른다 — D149.
  *
  *  - `errors`: 실오류가 하나라도 있다.
  *  - `clean`: 오류 0이고 SAP이 검사를 **실제로 처리했다**(`processed`), 또는 보고서
@@ -236,7 +236,7 @@ async function runSyntaxCheck(
 
   try {
     if (kind === 'include') {
-      // D143 — 메인 프로그램을 주면 그 트리를 컴파일한다. 프로그램 URI **하나만**
+      // D149 — 메인 프로그램을 주면 그 트리를 컴파일한다. 프로그램 URI **하나만**
       // 실어 `inactive`로 보내면 메인 + 인클루드 전량이 한 번에 컴파일된다
       // (`write/internal/programScoped.ts`의 `runProgramTreeCheck`와 같은 요청).
       if (args.mainProgram !== undefined) {
@@ -281,7 +281,7 @@ async function runSyntaxCheck(
 export const checkSyntax = defineTool(
   {
     name: 'CheckSyntax',
-    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D143.
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D149.
     description:
       "[read-only] Run a standalone ABAP syntax check WITHOUT writing anything to SAP. Supports 'class', 'program', 'interface', 'include', and 'function_module'. If source_code is provided (class/program/interface only), the proposed source is compiled in place and checked without touching the server. If source_code is omitted, checks whatever is currently staged as the inactive version on the server (mirroring the post-write check Update* handlers run). Syntax errors are returned as normal results, not as tool errors — only connection/infra failures are reported as errors." +
       " For 'include', pass main_program (the program that INCLUDEs it) to compile the include inside that program's tree — main plus all includes, inactive version; without it SAP may return no verdict at all, which is reported as success: null with verdict: \"indeterminate\" (not as a failure). Every response carries verdict: \"clean\" | \"errors\" | \"indeterminate\".",
@@ -306,7 +306,7 @@ export const checkSyntax = defineTool(
         .describe(
           "[read-only] Optional proposed ABAP source code to check in place. Only honored for object_type 'class', 'program', or 'interface' — ignored for 'include' and 'function_module' (see description).",
         ),
-      // 덧인자(D143) — 채록본에 없던 선택 인자.
+      // 덧인자(D149) — 채록본에 없던 선택 인자.
       main_program: z
         .string()
         .optional()
@@ -343,7 +343,7 @@ export const checkSyntax = defineTool(
       const name = String(object_name).toUpperCase();
       const sourceCodeIgnored =
         source_code !== undefined && (kind === 'include' || kind === 'functionModule');
-      // D143 — include에만 뜻이 있다. 다른 종류에 오면 무시하고 note로 남긴다.
+      // D149 — include에만 뜻이 있다. 다른 종류에 오면 무시하고 note로 남긴다.
       const mainProgram =
         kind === 'include' && main_program?.trim() ? main_program.trim().toUpperCase() : undefined;
       const mainProgramIgnored = main_program !== undefined && kind !== 'include';
@@ -380,7 +380,7 @@ export const checkSyntax = defineTool(
       return ok(
         JSON.stringify(
           {
-            // D143 — 판정불능은 실패가 아니다: `null`이 「판정 없음」이다.
+            // D149 — 판정불능은 실패가 아니다: `null`이 「판정 없음」이다.
             success: verdict === 'clean' ? true : verdict === 'errors' ? false : null,
             verdict,
             check_status: result.status,

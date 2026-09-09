@@ -731,6 +731,12 @@ function oldRefusedOnFixpt(step: SequenceStep): boolean {
   return step.isError && /preCheck syntax check failed/.test(text) && /fixed point arithmetic/i.test(text);
 }
 
+/**
+ * D150의 도구 집합 — `UpdateSourceByPatch`(PROG)는 `UpdateProgram`에 위임하므로 구의 거부도
+ * 신의 표식(`precheck_overridden`)도 같다(통합 시 넓힘 · 패치 응답이 위임 응답의 표식을 그대로 싣는다).
+ */
+const D150_TOOLS: ReadonlySet<string> = new Set(['UpdateProgram', 'UpdateSourceByPatch']);
+
 /** D151 — 픽스처의 인자에 FUGR 항목이 있는가. */
 function askedForFunctionGroup(args: JsonValue): boolean {
   if (!isPlainObject(args) || !Array.isArray(args['objects'])) return false;
@@ -1941,17 +1947,22 @@ export const M1_DIVERGENCES: readonly DivergenceEntry[] = [
   },
   {
     id: 'D150',
-    title: 'UpdateProgram — 거짓 FIXPT precheck를 통째로 믿지 않는다',
+    title: 'UpdateProgram·UpdateSourceByPatch(PROG) — 거짓 FIXPT precheck를 통째로 믿지 않는다',
+    // 주 도구는 UpdateProgram이다(대장의 대체 시험 귀속은 이 칸을 본다 — null이면 아무에게도 안 간다).
+    // UpdateSourceByPatch(PROG)는 위임으로 같은 갈래를 타므로 `applies`만 두 도구를 든다.
     tool: 'UpdateProgram',
     classification: '수리',
     status: 'active',
     evidence:
-      'sapkit-engine/harness/DIVERGENCES.md#d150 · sapkit-engine/src/tools/write/updateProgram.ts',
+      'sapkit-engine/harness/DIVERGENCES.md#d150 · sapkit-engine/src/tools/write/updateProgram.ts · ' +
+      'sapkit-engine/src/tools/write/updateSourceByPatch.ts',
     substituteTest:
       'sapkit-engine/src/tools/write/__tests__/updateProgram.test.ts — ' +
-      '「D150 — 인라인 precheck가 FIXPT 계열로 실패하고 저장된 판이 깨끗하면 쓰기를 진행한다」 6건',
+      '「D150 — 인라인 precheck가 FIXPT 계열로 실패하고 저장된 판이 깨끗하면 쓰기를 진행한다」 6건 · ' +
+      'sapkit-engine/src/tools/write/__tests__/updateSourceByPatch.test.ts — 「장부 D150」 2건',
     resolvesIn: null,
-    applies: (step) => step.tool === 'UpdateProgram' && oldRefusedOnFixpt(step),
+    // 구가 FIXPT 문구로 거부한 오류 단계만 — 두 도구의 성공 갈래(D142)·403 갈래(D143)와 겹치지 않는다.
+    applies: (step) => D150_TOOLS.has(step.tool) && oldRefusedOnFixpt(step),
     check: ({ actual }) => {
       if (actual.isError) {
         return /preCheck syntax check failed/.test(collectText(actual.response))

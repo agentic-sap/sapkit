@@ -42,7 +42,7 @@
  * 삭제 서비스는 실패도 HTTP 200 + `del:isDeleted="false"`로 답하므로, 구는 지워지지
  * 않은 것을 `success: true`로 보고했다. 여기서는 다른 12종과 같은 판정을 건다.
  *
- * ## 구와 다른 것 — 차이 장부 **D142** (`UpdateServiceBinding`과 같은 수리)
+ * ## 구와 다른 것 — 차이 장부 **D148** (`UpdateServiceBinding`과 같은 수리)
  *
  * 사전 걸음 ⓑ는 구에서 `allowedAction === 'UNPUBLISH'`일 때만 발행취소를 쳤다 —
  * 속성을 아예 돌려주지 않는 시스템에서는 발행 중인 바인딩도 발행을 내리지 않은 채
@@ -96,7 +96,7 @@ async function unpublishIfNeeded(client: AdtClient, bindingName: string): Promis
     const active = await readServiceBinding(client, bindingName, 'active');
     const current = parseServiceBindingState(active?.body ?? '');
     if (!current.published) return;
-    // D142 — 속성이 있고 UNPUBLISH가 아닐 때만 건너뛴다. 없으면 시도한다.
+    // D148 — 속성이 있고 UNPUBLISH가 아닐 때만 건너뛴다. 없으면 시도한다.
     if (current.allowedAction !== undefined && current.allowedAction !== 'UNPUBLISH') return;
     if (!current.serviceType || !current.serviceName) return;
 
@@ -125,7 +125,7 @@ async function unpublishIfNeeded(client: AdtClient, bindingName: string): Promis
 export const deleteServiceBinding = defineTool(
   {
     name: 'DeleteServiceBinding',
-    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D142.
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D148.
     description:
       'Delete ABAP service binding via ADT Business Services endpoint.' +
       ' When a published binding carries no srvb:allowedAction attribute, the best-effort unpublish before deletion is still attempted instead of being skipped.',

@@ -35,7 +35,7 @@
  * 오류는 **던져서** 바깥 catch가 `ADT error: …`로 접는다(`:161-166`) — 즉 401·500은
  * 다음 후보를 시도하지 않는다.
  *
- * ## 422도 「다음 후보」다 (차이 — `harness/DIVERGENCES.md` D146)
+ * ## 422도 「다음 후보」다 (차이 — `harness/DIVERGENCES.md` D152)
  *
  * 구조체 이름을 주면 첫 후보(도메인 `source/main`)가 **HTTP 422**로 답하고, 구는 그것을
  * 「404가 아니다」로 던져 구조 폴백에 닿지 못한 채 죽었다(2026-09-09 실측 —
@@ -98,7 +98,7 @@ export function hasUsableResult(value: unknown): boolean {
 const asString = (value: unknown): unknown => value;
 
 /**
- * D146 — 「이 이름은 이 종류가 아니다」로 읽는 HTTP 상태. 다음 후보로 넘어간다.
+ * D152 — 「이 이름은 이 종류가 아니다」로 읽는 HTTP 상태. 다음 후보로 넘어간다.
  * 401·403(인증·권한)과 5xx는 여기 없다 — 그것은 후보를 바꿔도 같은 실패다.
  */
 export const NEXT_CANDIDATE_STATUSES: ReadonlySet<number> = new Set([400, 404, 405, 406, 415, 422]);
@@ -165,7 +165,7 @@ export function parseStructureInfoXml(xml: string): unknown {
 export const getTypeInfo = defineTool(
   {
     name: 'GetTypeInfo',
-    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D146.
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D152.
     description:
       '[read-only] Retrieve ABAP type information for domains (DOMA), data elements (DTEL), table types, and structures. Returns field definitions, value ranges, fixed values, and DDIC metadata.' +
       ' A name that is not a domain can answer HTTP 422 (not 404) on the first candidate; 400/405/406/415/422 now also move on to the next candidate and to the structure fallback, so a structure name reaches the structures lookup.',
@@ -203,7 +203,7 @@ export const getTypeInfo = defineTool(
       // 이 한 자리만 소문자다 — 구의 실측(`handleGetTypeInfo.ts:193-195`).
       const uri = encodeURIComponent(`/sap/bc/adt/ddic/domains/${typeName.toLowerCase()}`);
 
-      /** 후보 하나를 물어본다. 404(및 D146의 4xx 계열)·빈 결과는 `null`, 그 밖의 오류는 던진다. */
+      /** 후보 하나를 물어본다. 404(및 D152의 4xx 계열)·빈 결과는 `null`, 그 밖의 오류는 던진다. */
       const tryLookup = async (
         path: string,
         parse: (xml: string) => unknown,

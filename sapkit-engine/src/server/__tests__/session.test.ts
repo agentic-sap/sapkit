@@ -503,7 +503,7 @@ describe('tier가 바뀌면 서버 감사 채널에 남는다', () => {
 //
 // D-147부터 목록을 다시 발행하는 것은 **코어**다 — `ReloadProfile` 도구가 코어의
 // 재적재 훅을 지날 때만 일어난다(`src/tools/runtime/__tests__/reloadProfile.test.ts`의
-// D147 절). 세션의 `reload()`를 직접 부르는 이 길은 등록을 모른다.
+// D153 절). 세션의 `reload()`를 직접 부르는 이 길은 등록을 모른다.
 
 describe('세션의 reload()만으로는 바뀌지 않는 것', () => {
   it('배포 축이 바뀌어도 세션 직접 재적재는 `tools/list`를 그대로 둔다 (재발행은 코어의 것)', async () => {

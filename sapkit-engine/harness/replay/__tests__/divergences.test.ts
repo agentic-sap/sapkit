@@ -387,6 +387,48 @@ describe('D143 — 함수그룹 인클루드 잠금 403 → 성공 (D-147)', () 
   });
 });
 
+describe('D150 — 거짓 FIXPT precheck 거부 → precheck_overridden 성공 (D-147 · 통합 시 UpdateSourceByPatch(PROG)로 넓힘)', () => {
+  const oldFixpt = envelope(
+    'preCheck syntax check failed (2 errors): [L120] This ABAP SQL statement uses additions that can only be used when the fixed point arithmetic flag is activated | [L131] Field "LT_HDR" is unknown.',
+    true,
+  );
+
+  const judge = async (a: JsonValue, isError: boolean, tool = 'UpdateSourceByPatch') =>
+    replaySequence(
+      recorded([step({ index: 0, tool, response: oldFixpt, isError: true })]),
+      target([{ payload: a, isError }]),
+    );
+
+  it('구가 FIXPT precheck로 거부한 두 도구의 단계에만 걸린다', () => {
+    expect(idsIn(step({ index: 0, tool: 'UpdateProgram', response: oldFixpt, isError: true }))).toEqual(['D150']);
+    expect(idsIn(step({ index: 0, tool: 'UpdateSourceByPatch', response: oldFixpt, isError: true }))).toEqual(['D150']);
+    expect(idsIn(step({ index: 0, tool: 'UpdateInclude', response: oldFixpt, isError: true }))).toEqual([]);
+    const otherRefusal = envelope('preCheck syntax check failed (1 error): [L9] Field ZZ is unknown', true);
+    expect(idsIn(step({ index: 0, tool: 'UpdateSourceByPatch', response: otherRefusal, isError: true }))).toEqual([]);
+  });
+
+  it('신이 precheck_overridden:true로 썼으면 통과다 — 패치 도구도 위임 응답의 표식을 그대로 싣는다', async () => {
+    const result = await judge(
+      envelope(JSON.stringify({ success: true, object_type: 'PROG', object_name: 'ZPROG', precheck_overridden: true })),
+      false,
+    );
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-pass', divergenceId: 'D150' });
+  });
+
+  it('신이 성공했으나 넘어 쓴 표식이 없으면 덮어 주지 않는다', async () => {
+    const result = await judge(envelope(JSON.stringify({ success: true, object_type: 'PROG', object_name: 'ZPROG' })), false);
+    expect(result.steps[0]).toMatchObject({ verdict: 'allowlisted-fail', divergenceId: 'D150' });
+  });
+
+  it('신도 같은 급의 precheck 거부면(저장판에도 실오류) 오류 서명이 같아 장부가 발동하지 않는다 — D13의 자리', async () => {
+    const result = await judge(
+      envelope('preCheck syntax check failed (2 errors): [L120] … fixed point arithmetic … | [L131] Field "LT_HDR" is unknown. (stored version also fails)', true),
+      true,
+    );
+    expect(result.steps[0]).toMatchObject({ verdict: 'match', divergenceId: null });
+  });
+});
+
 describe('단계에 걸리는 항목 고르기', () => {
   it('도구 이름이 맞는 항목만 고른다', () => {
     const sql = step({ index: 0, tool: 'GetSqlQuery' });

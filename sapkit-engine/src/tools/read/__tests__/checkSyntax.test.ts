@@ -250,9 +250,9 @@ describe('CheckSyntax', () => {
   });
 });
 
-// ── D143 — 판정불능을 실패로 말하지 않는다 · main_program ─────────────────────
+// ── D149 — 판정불능을 실패로 말하지 않는다 · main_program ─────────────────────
 
-describe('D143 — include의 판정불능과 main_program', () => {
+describe('D149 — include의 판정불능과 main_program', () => {
   it('메시지 없는 notProcessed는 success:null · verdict:indeterminate다 (구는 success:false · errors:[])', async () => {
     const { outcome } = await runTool(
       checkSyntax,

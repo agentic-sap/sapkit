@@ -3177,7 +3177,8 @@ D141·D142·D143만 옮겼다** — D144·D146은 진단 문구(사람용 장부
     `/oo/interfaces/<NAME>`을 읽어 `UpdateInterface`로 위임한다(`activate`를 명시로 넘겨
     `UpdateInterface`의 기본값 켜짐이 새지 않는다). `NOT_YET_BUILT`는 사라졌다.
 - **채록본과 발행 선언**: 선택 인자가 하나 늘었으므로 표면 게이트 ⓐ가 갈린다. 채록본은 손대지
-  않고 **덧말표에 `inputSchemaProperties` 칸을 신설**해 `match_whole_line`을 얹었다
+  않고 **덧말표에 `inputSchemaProperties` 칸을 신설**해 `match_whole_line`을 얹었다(통합 시 그 칸은
+  E2의 `inputSchema` 칸으로 합쳐졌다 — 아래 E2 절의 통합 주석)
   (`harness/old-surface/amendments.json` · 소비자 `gates/surface.mjs`의 `amended()` ·
   `src/tools/read/__tests__/support.ts`의 `publishedDeclaration` · 이제 `write/__tests__/contract.test.ts`도
   같은 조립을 쓴다). **필수 인자는 그 표로 더할 수 없다** — 기존 호출을 깨는 것은 덧말이 아니다.
@@ -3300,6 +3301,14 @@ D141·D142·D143만 옮겼다** — D144·D146은 진단 문구(사람용 장부
 「지음 · 증거 대기」다. 같은 시각에 다른 분담(E1)이 쓰기 경로(`updateSourceByPatch` ·
 `updateInclude` · `activateObjects` · `createTransport` · `updateLocalTestClass` ·
 `updateBehaviorDefinition`)를 고치고 있으므로 그 파일들은 여기서 손대지 않았다.
+
+> **통합 주석(2026-09-09 · 병합 시)** — 이 절의 항목 번호는 원래 D141~D148로 적혔으나 E1이 같은
+> 번호대(D141~D146)를 먼저 썼으므로 통합 시 **D147~D154로 재부여**했다(순서 유지 · 본문의 교차
+> 참조 · 기계 장부의 id · 시험 제목 · 소스 주석 전부 함께). 덧말표의 덧인자 칸은 E1의
+> `inputSchemaProperties`를 폐기하고 이 절의 `inputSchema` 칸 하나로 합쳤다 — E1의
+> `UpdateSourceByPatch.match_whole_line`이 그리로 옮겨 왔고, E2의 규칙(기존 인자 덮기·`required`
+> 등재 거부)이 그 항목에도 걸린다. 소비자는 아래 넷에 `src/tools/write/__tests__/contract.test.ts`
+> (`applyAmendments`를 직접 부른다)를 더해 다섯이다.
 
 **채록본은 손대지 않았다.** 설명문의 변경은 전부 덧말표(`harness/old-surface/amendments.json`
 · D-145가 세운 기제)로, 이번에 **덧인자**(`inputSchema` 칸 — 채록본 `properties`에
@@ -3429,6 +3438,13 @@ precheck가 FIXPT 계열로 실패하고 저장된 판이 깨끗하면 쓰기를
 
 **실기 미검증.** `UpdateSourceByPatch`(PROG)도 같은 precheck를 타지만 그 파일은 E1의 것이라
 여기서 손대지 않았다 — 통합 단계에서 같은 폴백을 붙일지는 그쪽 결과에 달렸다.
+
+**통합 주석(병합 시)**: E1이 재작성한 `UpdateSourceByPatch`는 PROG 갈래를 `updateProgram.handler`에
+그대로 위임하므로 이 폴백을 **이미 탄다** — 다만 패치 응답이 위임 응답에서 `activated`·`check_warnings`만
+건져 올려 넘어 쓴 표식이 사라졌다. 통합 시 `precheck_overridden`·`precheck_messages`·`precheck_note`를
+그대로 싣게 했고(`updateSourceByPatch.ts` · 대체 기대 시험 `updateSourceByPatch.test.ts` 「장부 D150」
+2건), 기계 장부 D150의 `applies`를 두 도구로 넓혔다(`harness/replay/__tests__/divergences.test.ts`
+「D150」 4건). 실기 미검증.
 
 ### D151 — `GrepObjects`가 FUGR를 전개해서 훑는다 (수리)
 

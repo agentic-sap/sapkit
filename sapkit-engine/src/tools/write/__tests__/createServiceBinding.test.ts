@@ -10,7 +10,7 @@
  *    `:64-84`·`:111-121`(종류 게이트) · `:479-518`(생성) · `:594-612`(검사) ·
  *    `:613-635`(활성화) · `:636-666`(생성정보) · `utils/systemInfo.js:16-60`
  *  - **활성화 응답을 아무도 읽지 않는다** → 차이 D105
- *  - **계약(category)을 고를 수 없었다** → 차이 D141 (`binding_category` 덧인자)
+ *  - **계약(category)을 고를 수 없었다** → 차이 D147 (`binding_category` 덧인자)
  */
 
 import type { ToolResult } from '../../../server';
@@ -112,7 +112,7 @@ function paths(harness: WriteHarness): string[] {
 // ── 발행 계약 ───────────────────────────────────────────────────────────────
 
 describe('발행 계약', () => {
-  it('tools/list 선언이 구 번들 채록본 + 덧말·덧인자(D141)와 글자까지 같다', async () => {
+  it('tools/list 선언이 구 번들 채록본 + 덧말·덧인자(D147)와 글자까지 같다', async () => {
     // 채록본 원문에 `harness/old-surface/amendments.json`의 설명 덧말과 `binding_category`
     // 덧인자를 조립한 것이 기대값이다 — 원문이 한 글자라도 움직이면 여기서 실패한다.
     expect(await publishedSurfaceOf(createServiceBinding)).toEqual(
@@ -464,9 +464,9 @@ describe('응답 조립', () => {
   });
 });
 
-// ── D141 — 계약(category) ────────────────────────────────────────────────────
+// ── D147 — 계약(category) ────────────────────────────────────────────────────
 
-describe('D141 — 계약(category)을 고를 수 있고, 응답이 무엇을 만들었는지 말한다', () => {
+describe('D147 — 계약(category)을 고를 수 있고, 응답이 무엇을 만들었는지 말한다', () => {
   it('binding_category를 주지 않으면 구 그대로 Web API(srvb:category="1")다', async () => {
     const harness = await harnessFor();
     try {

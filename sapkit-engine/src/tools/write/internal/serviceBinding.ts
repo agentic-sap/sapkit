@@ -286,7 +286,7 @@ export function serviceBindingCategoryCode(category: ServiceBindingCategory): '0
   return category === 'UI' ? '0' : '1';
 }
 
-/** 생성 페이로드 — 벤더 `buildServiceBindingCreateXml`(`:26-54`). `category`만 더했다(D141). */
+/** 생성 페이로드 — 벤더 `buildServiceBindingCreateXml`(`:26-54`). `category`만 더했다(D147). */
 export function buildServiceBindingCreateXml(args: {
   readonly bindingName: string;
   readonly packageName: string;

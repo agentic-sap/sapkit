@@ -31,7 +31,7 @@
  * `published`인데 `allowedAction !== 'PUBLISH'`거나, `unpublished`인데
  * `allowedAction !== 'UNPUBLISH'`인 경우다. 문구는 계약이므로 그대로 옮긴다.
  *
- * ## 속성이 **없으면** 거부하지 않는다 (차이 — `harness/DIVERGENCES.md` D142 · 백로그 13-6)
+ * ## 속성이 **없으면** 거부하지 않는다 (차이 — `harness/DIVERGENCES.md` D148 · 백로그 13-6)
  *
  * 구는 `srvb:allowedAction`이 **없는** 응답도 `UNKNOWN`으로 접어 언제나 거부했다.
  * 그런데 그 속성을 아예 돌려주지 않는 시스템이 있고, 같은 바인딩을 ADT에서 발행하면
@@ -74,7 +74,7 @@ import {
 export const updateServiceBinding = defineTool(
   {
     name: 'UpdateServiceBinding',
-    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D142.
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D148.
     description:
       'Update publication state for ABAP service binding via AdtServiceBinding workflow.' +
       " When the binding XML carries no srvb:allowedAction attribute (some systems never send it), the publish/unpublish request is sent anyway and the server's verdict is returned as-is (allowed_action_known: false in the response); only an attribute that is present and contradicts the request is refused locally.",
@@ -133,7 +133,7 @@ export const updateServiceBinding = defineTool(
         })`,
       );
 
-      // D142 — 속성이 없으면 거부하지 않고 서버 판정에 맡긴다. 있고 어긋나면 거부.
+      // D148 — 속성이 없으면 거부하지 않고 서버 판정에 맡긴다. 있고 어긋나면 거부.
       const allowedActionKnown = current.allowedAction !== undefined;
 
       // ② 갈래에 따라 발행 작업을 세우거나, ①의 응답을 그대로 답으로 쓴다.
@@ -178,7 +178,7 @@ export const updateServiceBinding = defineTool(
         service_type: args.service_type,
         service_name: serviceName,
         service_version: args.service_version || null,
-        // D142 — 서버가 허용 동작을 말했는지, 말했다면 무엇이었는지.
+        // D148 — 서버가 허용 동작을 말했는지, 말했다면 무엇이었는지.
         allowed_action_known: allowedActionKnown,
         allowed_action: current.allowedAction ?? null,
         response_format: responseFormat,

@@ -26,7 +26,7 @@ export interface GrepMatch {
 export interface ObjectGrepInput {
   object_type: string;
   object_name: string;
-  /** 함수그룹을 전개한 구성원이면 그 그룹 이름 (D145). */
+  /** 함수그룹을 전개한 구성원이면 그 그룹 이름 (D151). */
   function_group?: string;
   /** 소스 텍스트. 가져오지 못했으면 null. */
   source: string | null;
@@ -37,7 +37,7 @@ export interface ObjectGrepInput {
 export interface ObjectGrepResult {
   object_type: string;
   object_name: string;
-  /** 함수그룹을 전개한 구성원이면 그 그룹 이름 (D145). */
+  /** 함수그룹을 전개한 구성원이면 그 그룹 이름 (D151). */
   function_group?: string;
   matches: GrepMatch[];
   truncated_object?: boolean;

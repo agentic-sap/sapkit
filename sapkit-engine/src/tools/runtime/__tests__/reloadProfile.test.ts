@@ -79,7 +79,7 @@ function fakeWrite(): SapTool {
   );
 }
 
-/** onprem 축에만 뜨는 가짜 도구 — 배포 축이 바뀌면 목록이 실제로 달라지는지를 재는 용도(D147). */
+/** onprem 축에만 뜨는 가짜 도구 — 배포 축이 바뀌면 목록이 실제로 달라지는지를 재는 용도(D153). */
 function fakeOnpremOnly(): SapTool {
   return defineTool(
     {
@@ -344,7 +344,7 @@ describe('갈래', () => {
     }
   });
 
-  it('D147 — 배포 축이 바뀌면 목록을 다시 발행하고 restartRequired는 서지 않는다 (판B까지는 true였다)', async () => {
+  it('D153 — 배포 축이 바뀌면 목록을 다시 발행하고 restartRequired는 서지 않는다 (판B까지는 true였다)', async () => {
     const home = tempDir();
     const cwd = tempDir();
     profileAt(home, 'cloud1', { SAP_TIER: 'DEV', SAP_SYSTEM_TYPE: 'cloud' });
@@ -393,7 +393,7 @@ describe('갈래', () => {
     }
   });
 
-  it('D147 — 봉인된 재적재는 목록을 건드리지 않는다', async () => {
+  it('D153 — 봉인된 재적재는 목록을 건드리지 않는다', async () => {
     const home = tempDir();
     const cwd = tempDir();
     profileAt(home, 'cloud1', { SAP_TIER: 'DEV', SAP_SYSTEM_TYPE: 'cloud' });

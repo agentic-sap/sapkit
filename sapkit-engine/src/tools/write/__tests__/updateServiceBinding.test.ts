@@ -11,7 +11,7 @@
  *    (`unchanged`·이미 발행됨은 두 번째 요청이 없다) ·
  *    `:122-151`(publishjobs/unpublishjobs · 타임아웃 long) ·
  *    `:85-110`(`@_` 접두사 상태 파서)
- *  - **속성이 없으면 UNKNOWN으로 거부하던 자리** → 차이 D142(서버 판정에 맡긴다)
+ *  - **속성이 없으면 UNKNOWN으로 거부하던 자리** → 차이 D148(서버 판정에 맡긴다)
  */
 
 import type { ToolResult } from '../../../server';
@@ -67,7 +67,7 @@ const ARGS = {
 // ── 발행 계약 ───────────────────────────────────────────────────────────────
 
 describe('발행 계약', () => {
-  it('tools/list 선언이 구 번들 채록본 + 덧말(D142)과 글자까지 같다', async () => {
+  it('tools/list 선언이 구 번들 채록본 + 덧말(D148)과 글자까지 같다', async () => {
     expect(await publishedSurfaceOf(updateServiceBinding)).toEqual(
       publishedDeclaration('UpdateServiceBinding'),
     );
@@ -221,9 +221,9 @@ describe('상태 전이 거부 — 요청을 보내기 전에 던진다', () => 
   });
 });
 
-// ── D142 — 속성이 없으면 서버 판정에 맡긴다 ─────────────────────────────────
+// ── D148 — 속성이 없으면 서버 판정에 맡긴다 ─────────────────────────────────
 
-describe('D142 — srvb:allowedAction이 **없으면** 거부하지 않고 요청을 보낸다', () => {
+describe('D148 — srvb:allowedAction이 **없으면** 거부하지 않고 요청을 보낸다', () => {
   it('발행: 속성 없는 응답이면 publishjobs를 세우고 allowed_action_known:false를 싣는다 (구는 UNKNOWN으로 거부)', async () => {
     const harness = await harnessFor({ state: bindingState() });
     try {

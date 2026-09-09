@@ -95,7 +95,7 @@ describe('발행 계약 (m1-tools.json 대조)', () => {
     expect(CAPTURED[name]).toBeDefined();
     // 되뜰 수 없는 채록본 원문에 덧말·덧인자(`harness/old-surface/amendments.json`)를
     // 조립한 것이 기대값이다 — 게이트(`gates/surface.mjs`)와 같은 표, 같은 규칙
-    // (`UpdateProgram`의 D144 덧말이 여기 걸린다).
+    // (`UpdateProgram`의 D150 덧말이 여기 걸린다).
     const captured = applyAmendments(name, CAPTURED[name]!);
 
     const published = await publish(tool);

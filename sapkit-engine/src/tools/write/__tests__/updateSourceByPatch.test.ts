@@ -525,3 +525,65 @@ describe('장부 D143 — 함수그룹 인클루드는 그룹 주소로 잠근�
     expect(putBody()).toBe('FORM f.\n  WRITE 2.\nENDFORM.\n');
   });
 });
+
+describe('장부 D150 — PROG 위임은 UpdateProgram의 거짓 FIXPT precheck 폴백을 그대로 탄다 (통합 시 확인)', () => {
+  const PROG = '/sap/bc/adt/programs/programs/zprog';
+  /** 실측 문구(2026-08-06 · 08-19)를 닮은 인라인 검사 실패 — `updateProgram.test.ts`의 것과 같은 모양. */
+  const FIXPT_CHECK =
+    '<?xml version="1.0" encoding="UTF-8"?>' +
+    '<chkrun:checkRunReports xmlns:chkrun="http://www.sap.com/adt/checkrun">' +
+    '<chkrun:checkReport chkrun:reporter="abapCheckRun" chkrun:status="processed">' +
+    '<chkrun:checkMessageList>' +
+    '<chkrun:checkMessage chkrun:type="E" chkrun:shortText="This ABAP SQL statement uses additions that can only be used when the fixed point arithmetic flag is activated" line="120"/>' +
+    '</chkrun:checkMessageList>' +
+    '</chkrun:checkReport></chkrun:checkRunReports>';
+
+  function progResponder(inlineCheck: string, onStoredCheck: () => void = () => {}) {
+    return ((request, response) => {
+      if (request.path === '/sap/bc/adt/programs/programs/ZPROG/source/main' && request.method === 'GET') {
+        return plainText(response, 'REPORT zprog.\nWRITE 1.\n');
+      }
+      if (request.path === PROG && request.query.get('_action')) return xml(response, lockBody('P'));
+      if (request.path === '/sap/bc/adt/checkruns') {
+        // 인라인 검사(본문에 `chkrun:artifact`)와 저장판·사후검사(없다)를 본문으로 가른다.
+        if (request.body.includes('chkrun:artifact')) return xml(response, inlineCheck);
+        onStoredCheck();
+        return xml(response, cleanCheckRun());
+      }
+      if (request.path === `${PROG}/source/main` && request.method === 'PUT') return plainText(response, '');
+      response.statusCode = 500;
+      response.end(`예상하지 못한 요청: ${request.method} ${request.url}`);
+    }) as Parameters<typeof startWriteHarness>[0];
+  }
+
+  const PATCH = { object_type: 'PROG', object_name: 'zprog', old_string: 'WRITE 1.', new_string: 'WRITE 2.' };
+
+  it('인라인 검사가 FIXPT로 실패하고 저장판이 깨끗하면 패치를 쓰고, 넘어 쓴 표식 세 키를 응답에 그대로 싣는다', async () => {
+    let storedChecks = 0;
+    harness = await startWriteHarness(progResponder(FIXPT_CHECK, () => (storedChecks += 1)));
+    const result = await invoke(updateSourceByPatch, harness, PATCH);
+
+    expect(result.isError).toBe(false);
+    expect(putBody()).toBe('REPORT zprog.\nWRITE 2.\n');
+    expect(storedChecks).toBe(2); // 잠금 안 재검사(D150) + 사후검사
+    const payload = jsonOf(result);
+    expect(payload.success).toBe(true);
+    expect(payload.source_version_read).toBe('inactive');
+    expect(payload.precheck_overridden).toBe(true);
+    expect(payload.precheck_messages).toEqual([
+      expect.objectContaining({ type: 'E', text: expect.stringContaining('fixed point arithmetic'), line: '120' }),
+    ]);
+    expect(String(payload.precheck_note)).toContain('WITHOUT a pre-write syntax verdict');
+  });
+
+  it('넘어 쓰지 않은 위임 응답에는 그 세 키가 없다', async () => {
+    harness = await startWriteHarness(progResponder(cleanCheckRun()));
+    const result = await invoke(updateSourceByPatch, harness, PATCH);
+
+    expect(result.isError).toBe(false);
+    const payload = jsonOf(result);
+    expect(payload).not.toHaveProperty('precheck_overridden');
+    expect(payload).not.toHaveProperty('precheck_messages');
+    expect(payload).not.toHaveProperty('precheck_note');
+  });
+});
