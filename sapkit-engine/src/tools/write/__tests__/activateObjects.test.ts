@@ -9,7 +9,7 @@
 
 import { invoke, jsonOf, startWriteHarness, textOf, xml } from './harness';
 import type { WriteHarness } from './harness';
-import { activateObjects } from '../activateObjects';
+import { ACTIVATION_RUN_NOT_EXECUTED, activateObjects, parseActivationResults } from '../activateObjects';
 
 const RUN_ID = 'RUN123';
 
@@ -18,7 +18,9 @@ afterEach(async () => {
   if (harness) await harness.close();
 });
 
-function results(options: { activated?: boolean; generated?: boolean; errors?: string[] } = {}): string {
+function results(
+  options: { activated?: boolean; checked?: boolean; generated?: boolean; errors?: string[] } = {},
+): string {
   const msgs = (options.errors ?? [])
     .map(
       (text) =>
@@ -28,7 +30,7 @@ function results(options: { activated?: boolean; generated?: boolean; errors?: s
   return (
     '<?xml version="1.0" encoding="UTF-8"?>' +
     '<chkl:messages xmlns:chkl="http://www.sap.com/abapxml/checklist">' +
-    `<properties activationExecuted="${options.activated ?? true}" checkExecuted="true" generationExecuted="${options.generated ?? true}"/>` +
+    `<properties activationExecuted="${options.activated ?? true}" checkExecuted="${options.checked ?? true}" generationExecuted="${options.generated ?? true}"/>` +
     msgs +
     '</chkl:messages>'
   );
@@ -188,6 +190,98 @@ describe('ActivateObjects — runs 경로', () => {
       objects: [{ name: 'ZPROG', type: 'PROG/P' }],
     });
     expect(jsonOf(result).success).toBe(true);
+  });
+});
+
+/**
+ * 장부 D141 — 런이 돌지 않은 응답을 성공으로 접지 않는다.
+ *
+ * 실측 응답 모양(2026-09-04 · `sapkit-feedback.md` · ZUNIVAT-MODI 패키지맵 §12-g):
+ * `activationExecuted="false" checkExecuted="false" generationExecuted="true"` + 메시지 0.
+ * 그때 `REPOSRC.R3STATE='I'`가 그대로였고 활성 소스도 안 바뀌었다. 구(와 이전 판)는
+ * `generated`를 실행 증거로 읽어 `success:true`·`status:"activated"`를 냈다.
+ */
+describe('ActivateObjects — 장부 D141: 런 미실행은 성공이 아니다', () => {
+  const NOT_EXECUTED_BODY =
+    '<?xml version="1.0" encoding="UTF-8"?>' +
+    '<chkl:messages xmlns:chkl="http://www.sap.com/abapxml/checklist">' +
+    '<properties activationExecuted="false" checkExecuted="false" generationExecuted="true"/>' +
+    '</chkl:messages>';
+
+  it('파서: activated·checked가 둘 다 거짓이면 executed=false이고 오브젝트마다 not_executed다', () => {
+    const parsed = parseActivationResults(NOT_EXECUTED_BODY, [
+      { name: 'ZUNIVR_TEST_F01', type: 'PROG/I', uri: '/sap/bc/adt/programs/includes/zunivr_test_f01' },
+      { name: 'ZUNIVR_TEST_TOP', type: 'PROG/I', uri: '/sap/bc/adt/programs/includes/zunivr_test_top' },
+    ]);
+    expect(parsed.activated).toBe(false);
+    expect(parsed.checked).toBe(false);
+    expect(parsed.generated).toBe(true);
+    expect(parsed.executed).toBe(false);
+    expect(parsed.objects.map((object) => object.status)).toEqual(['not_executed', 'not_executed']);
+    expect(parsed.errors).toEqual([]);
+  });
+
+  it('파서: 검사가 돌았으면(checked=true) 생성 플래그만으로도 예전처럼 activated다', () => {
+    const parsed = parseActivationResults(results({ activated: false, checked: true, generated: true }), [
+      { name: 'ZPROG', type: 'PROG/P', uri: '/sap/bc/adt/programs/programs/zprog' },
+    ]);
+    expect(parsed.executed).toBe(true);
+    expect(parsed.objects[0]!.status).toBe('activated');
+  });
+
+  it('도구: success=false · run_executed=false · 오브젝트 not_executed · 처방이 message와 errors에 실린다', async () => {
+    harness = await startWriteHarness(
+      responder({ results: results({ activated: false, checked: false, generated: true }) }),
+    );
+    const result = await invoke(activateObjects, harness, {
+      objects: [
+        { name: 'ZUNIVR_TEST_F01', type: 'PROG/I' },
+        { name: 'ZUNIVR_TEST_TOP', type: 'PROG/I' },
+      ],
+    });
+
+    expect(result.isError).toBe(false);
+    const payload = jsonOf(result) as Record<string, unknown> & {
+      objects: Array<{ status: string; errors: unknown[] }>;
+      errors: Array<{ type: string; text: string }>;
+    };
+    expect(payload.success).toBe(false);
+    expect(payload.run_executed).toBe(false);
+    expect(payload.activated).toBe(false);
+    expect(payload.checked).toBe(false);
+    expect(payload.generated).toBe(true);
+    expect(payload.failed_count).toBe(2);
+    expect(payload.objects.map((object) => object.status)).toEqual(['not_executed', 'not_executed']);
+    expect(payload.errors).toHaveLength(1);
+    expect(payload.errors[0]!.text).toBe(ACTIVATION_RUN_NOT_EXECUTED);
+    expect(String(payload.message)).toContain('did not execute');
+    expect(String(payload.message)).toContain('REPOSRC.R3STATE');
+    expect(String(payload.message)).toContain('UpdateInclude');
+    // 되물을 성공이 없으므로 오라클 재조회는 나가지 않는다.
+    expect(harness.calls().some((call) => call.path === '/sap/bc/adt/activation/inactiveobjects')).toBe(false);
+  });
+
+  it('sync 엔드포인트의 같은 응답도 같은 판정이다', async () => {
+    harness = await startWriteHarness(
+      responder({ runsStatus: 404, sync: results({ activated: false, checked: false, generated: true }) }),
+    );
+    const result = await invoke(activateObjects, harness, {
+      objects: [{ name: 'ZPROG', type: 'PROG/P' }],
+    });
+    const payload = jsonOf(result);
+    expect(payload.endpoint).toBe('sync');
+    expect(payload.success).toBe(false);
+    expect(payload.run_executed).toBe(false);
+  });
+
+  it('정상 런은 run_executed=true를 싣고 예전 판정 그대로다', async () => {
+    harness = await startWriteHarness(responder());
+    const result = await invoke(activateObjects, harness, {
+      objects: [{ name: 'ZPROG', type: 'PROG/P' }],
+    });
+    const payload = jsonOf(result);
+    expect(payload.success).toBe(true);
+    expect(payload.run_executed).toBe(true);
   });
 });
 

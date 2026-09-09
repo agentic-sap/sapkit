@@ -18,6 +18,7 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 
 import { createServerCore, resolveStartup } from '../../../server';
 import type { SapTool } from '../../../server';
+import { publishedDeclaration } from '../../read/__tests__/support';
 import {
   activateObjects,
   createInclude,
@@ -91,18 +92,20 @@ async function publish(tool: SapTool): Promise<Record<string, unknown>> {
 
 describe('발행 계약 (m1-tools.json 대조)', () => {
   it.each(TOOLS)('%s의 발행 선언이 채록본과 글자 그대로 같다', async (name, tool) => {
-    const captured = CAPTURED[name];
-    expect(captured).toBeDefined();
+    expect(CAPTURED[name]).toBeDefined();
+    // 채록본 원문 + 덧말표(`harness/old-surface/amendments.json`) — 게이트(`gates/surface.mjs`)와
+    // 같은 조립이다. D-145의 설명 덧말과 D-147의 선택 인자 덧붙임이 여기서 붙는다.
+    const captured = publishedDeclaration(name);
 
     const published = await publish(tool);
     const expected: Record<string, unknown> = {
-      name: captured!.name,
-      description: captured!.description,
+      name: captured.name,
+      description: captured.description,
       inputSchema: {
-        ...(captured!.inputSchema as Record<string, unknown>),
+        ...(captured.inputSchema as Record<string, unknown>),
         $schema: 'http://json-schema.org/draft-07/schema#',
       },
-      execution: captured!.execution,
+      execution: captured.execution,
     };
     expect(published).toEqual(expected);
   });

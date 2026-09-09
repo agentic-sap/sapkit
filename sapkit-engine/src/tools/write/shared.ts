@@ -64,6 +64,38 @@ export function classUri(name: string): string {
   return `/sap/bc/adt/oo/classes/${encodeObjectName(name).toLowerCase()}`;
 }
 
+/**
+ * 함수그룹 인클루드의 이름에서 그룹 이름을 유도한다 — `L<그룹>TOP` · `L<그룹>UXX` ·
+ * `L<그룹>F01`처럼 SAP이 함수그룹 인클루드에 붙이는 이름 규칙이다. 규칙에 맞지
+ * 않으면 `undefined`(독립 인클루드).
+ *
+ * 왜 이름으로 가르는가 (장부 D143): 독립 인클루드 주소(`/programs/includes/<name>`)로
+ * 함수그룹 인클루드를 잠그면 SAP이 403 `This syntax cannot be used for an object
+ * name`으로 거절한다(실측 2026-07-30 · `sapkit-feedback.md`). 그 문구를 만나 재시도하는
+ * 길도 있으나 SAP 메시지는 로그온 언어를 따라 독일어·한국어로도 오므로 문구 판정은
+ * 언어 의존이다. 이름 규칙은 언어와 무관하고, `L*`는 고객 이름공간(Z·Y)의 독립
+ * 프로그램에 쓸 수 없는 접두라 오분류 위험이 낮다. 활성화 쪽은 이미 같은 주소를
+ * 쓴다(`activateObjects.ts`의 `FUGR/I`). **실기 미검증** — 이 주소로 잠금이 실제로
+ * 성립하는지는 attended에서 확인할 자리다.
+ */
+export function functionGroupOfInclude(name: string): string | undefined {
+  const match = /^L(.+?)(TOP|UXX|[A-Z]\d\d)$/i.exec(name);
+  return match?.[1] ? match[1].toUpperCase() : undefined;
+}
+
+/**
+ * 인클루드 **쓰기** 주소(잠금·PUT·해제·활성화). 함수그룹 인클루드면
+ * `/functions/groups/<그룹>/includes/<이름>`(둘 다 소문자 — `activateObjects.ts`와
+ * `GetInactiveObjects`가 보고하는 모양), 아니면 구 그대로 대문자 독립 주소다.
+ * **읽기는 여기를 쓰지 않는다** — `/programs/includes/<이름>/source/main`이
+ * 함수그룹 인클루드에도 소스를 돌려주는 것이 실측이다(같은 피드백 항목).
+ */
+export function includeWriteUri(name: string): string {
+  const group = functionGroupOfInclude(name);
+  if (group === undefined) return includeUri(name);
+  return `/sap/bc/adt/functions/groups/${encodeObjectName(group).toLowerCase()}/includes/${encodeObjectName(name).toLowerCase()}`;
+}
+
 /** 60자를 넘는 설명은 잘린다 — 구 `limitDescription`. */
 export function limitDescription(description: string): string {
   return description.length > 60 ? description.substring(0, 60) : description;
@@ -103,9 +135,33 @@ export function describeFailure(error: unknown): string {
   if (error instanceof AdtError) {
     const where = error.status === undefined ? error.kind : `${error.status} ${error.kind}`;
     const text = error.adtMessage ? `SAP Error: ${error.adtMessage}` : error.message;
-    return `[${where}] ${text}`;
+    const hint = ctsLockHint(error);
+    return hint ? `[${where}] ${text} — ${hint}` : `[${where}] ${text}`;
   }
   return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * CTS 잠금 문구 — `transport_request` 누락·태스크 번호 오도의 표식 (장부 D144).
+ *
+ * 실측: 이송 대상 CLAS에 `transport_request`를 안 넘기면 PROG처럼 `corrNr` 400이
+ * 아니라 「…요청 DEVK…에서 이미 잠겨 있습니다」로 실패하고(ZUNIWTH L-011 ·
+ * 2026-08-05 — 사용자가 SM12를 확인했으나 잠금은 없었다), 태스크 번호를 넘기면 같은
+ * 문구로 HTTP 500이다(ZUNIVAT-MODI 도메인노트 · 2026-08-10 — 상위 요청 번호로 통과).
+ * 둘 다 잠금이 아닌데 문구가 잠금이라 말하므로 힌트를 덧붙인다. **원문은 그대로**
+ * 두고 뒤에 붙일 뿐이다. 문구는 로그온 언어를 따르므로 세 언어를 본다.
+ */
+const CTS_LOCK_PHRASE =
+  /already locked in (?:request|task)|locked in (?:request|task)\s+[A-Z0-9]+|이미\s*잠겨\s*있습니다|bereits (?:in|im) (?:Auftrag|Aufgabe)[^\n]*gesperrt/i;
+
+export const CTS_LOCK_HINT =
+  'Hint: this CTS message usually means transport_request was omitted or is a task number — not a lock held by another user. Pass the parent request number (E070.STRKORR of the task) as transport_request and retry before asking anyone to release a lock.';
+
+/** 오류가 CTS 잠금 문구를 담고 있으면 힌트를, 아니면 `undefined`를 돌려준다. */
+export function ctsLockHint(error: unknown): string | undefined {
+  if (!(error instanceof AdtError)) return undefined;
+  const text = `${error.adtMessage ?? ''}\n${error.rawBody ?? ''}\n${error.message}`;
+  return CTS_LOCK_PHRASE.test(text) ? CTS_LOCK_HINT : undefined;
 }
 
 export function okResult(payload: unknown): ToolResult {

@@ -42,7 +42,11 @@ import { AdtError } from '../../adt';
 import { defineTool } from '../../server/toolDefinition';
 import type { ToolContext } from '../../server/toolDefinition';
 import { writeClassInclude } from './classIncludeWrite';
-import { classCheckUri } from './classIncludeWrite';
+import {
+  classCheckUri,
+  isMissingTestClassInclude,
+  missingTestClassIncludeMessage,
+} from './classIncludeWrite';
 import {
   CT_ACTIVATION,
   type CheckMessage,
@@ -59,6 +63,9 @@ import {
 
 function failureMessage(error: unknown, className: string): string {
   if (error instanceof SourceCheckFailure) return error.message;
+  // CCAU 인클루드가 없는 클래스 — 500 원문은 「비활성 버전이 없다」고 말하지만 원인은
+  // 인클루드 부재다(장부 D146 · `classIncludeWrite.ts`). 상태 코드 갈래보다 먼저 본다.
+  if (isMissingTestClassInclude(error)) return missingTestClassIncludeMessage(className, error);
   const status = error instanceof AdtError ? error.status : undefined;
   if (status === 404) return `Local test class for ${className} not found.`;
   if (status === 423) return `Class ${className} is locked by another user.`;

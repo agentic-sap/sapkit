@@ -149,6 +149,13 @@
  *     존재하지 않는다. 축소분이라 **이연**이며 D33의 관측 가능한 결과를 대신 진다.
  *   - **D132** — `GetBadiImplementations`의 ECC 브리지 부재. D110·D61과 같은 표식,
  *     같은 **이연**.
+ *   - **D141·D142·D143** — D-147(실사용 교훈 승격 4차 · 쓰기 경로 E1). D141은
+ *     `ActivateObjects`의 **런 미실행 거짓 성공**(구가 `success:true`에
+ *     `activated:false, checked:false`를 함께 실은 자리), D142는 `UpdateSourceByPatch`
+ *     성공 응답의 **`source_version_read` 키**와 CR 없는 `diff_preview`, D143은
+ *     함수그룹 인클루드 잠금의 **403 → 성공**(`UpdateInclude`·`UpdateSourceByPatch`).
+ *     같은 결정의 D144(CTS 잠금 힌트)·D146(CCAU 부재 문구)은 **진단 문구**라 사람용
+ *     장부에만, D145(`CreateTransport` utf-8)는 **요청 와이어**라 사람용 장부에만 있다.
  *
  * ### 활성화 거짓 성공 계열을 왜 열로 갈랐는가
  *
@@ -754,6 +761,103 @@ function fullCodeHead(root: { [key: string]: JsonValue }): JsonValue {
   }
   return rest;
 }
+
+// ── D141~D143 — D-147 쓰기 경로 (2026-09-09) ────────────────────────────────
+
+/**
+ * D141의 채록 쪽 표식 — 구 `ActivateObjects`가 **런이 돌지 않았는데 성공**이라 답한
+ * 응답: `success:true` + `activated:false` + `checked:false`(실측 2026-09-04).
+ * `activated:true`인 성공은 이 차이가 아니라 그대로 대조된다.
+ */
+function oldRunNotExecutedButSucceeded(response: JsonValue): boolean {
+  return jsonTextBodies(response).some(
+    (body) =>
+      isPlainObject(body) &&
+      body['success'] === true &&
+      body['activated'] === false &&
+      body['checked'] === false,
+  );
+}
+
+/** D141의 대체 기대 시험 — 신은 같은 자리를 `success:false`·`run_executed:false`·`not_executed`로 답한다. */
+const runNotExecutedVerdict: SubstituteCheck = ({ actual }) => {
+  if (actual.isError) {
+    return { ok: false, detail: '신 엔진이 오류 봉투로 답했다 — 이 차이는 success:false 응답이지 오류 봉투가 아니다.' };
+  }
+  const body = jsonTextBodies(actual.response).find(isPlainObject);
+  if (!body) return { ok: false, detail: '신 엔진의 응답에서 JSON 본문을 찾지 못했다.' };
+  if (body['success'] !== false || body['run_executed'] !== false) {
+    return { ok: false, detail: '신 엔진이 success:false·run_executed:false로 답하지 않았다 — 런 미실행을 되돌리는 갈래가 아니다.' };
+  }
+  const objects = body['objects'];
+  if (
+    !Array.isArray(objects) ||
+    objects.length === 0 ||
+    objects.some((entry) => !isPlainObject(entry) || entry['status'] !== 'not_executed')
+  ) {
+    return { ok: false, detail: '오브젝트마다 status:not_executed가 아니다.' };
+  }
+  return { ok: true, detail: '구가 런 미실행을 성공이라 답한 자리에서 신 엔진이 미실행으로 되돌렸다.' };
+};
+
+/**
+ * D142의 대체 기대 시험 — 신 성공 응답은 구 응답에 **`source_version_read`만 더한**
+ * 모양이어야 한다(`diff_preview`의 CR은 뺀 채 견준다). 그 밖의 값이 갈리면 등재 밖이다.
+ */
+function stripCr(value: JsonValue): JsonValue {
+  if (typeof value === 'string') return value.replace(/\r/g, '');
+  if (Array.isArray(value)) return value.map(stripCr);
+  if (isPlainObject(value)) {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, stripCr(item)]));
+  }
+  return value;
+}
+
+function canonical(value: JsonValue): string {
+  if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
+  if (isPlainObject(value)) {
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${canonical(value[key] ?? null)}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
+const sourceVersionReadVerdict: SubstituteCheck = ({ recorded, actual }) => {
+  if (actual.isError) {
+    return { ok: false, detail: '신 엔진이 오류로 답했다 — source_version_read를 더한 성공이 아니다.' };
+  }
+  const before = jsonTextBodies(recorded.response).find(isPlainObject);
+  const after = jsonTextBodies(actual.response).find(isPlainObject);
+  if (!before || !after) return { ok: false, detail: '양쪽 응답에서 JSON 본문을 찾지 못했다.' };
+  const version = after['source_version_read'];
+  if (version !== 'inactive' && version !== 'active') {
+    return { ok: false, detail: `source_version_read가 inactive|active가 아니다: ${JSON.stringify(version)}` };
+  }
+  const rest = Object.fromEntries(Object.entries(after).filter(([key]) => key !== 'source_version_read'));
+  if (canonical(stripCr(before)) !== canonical(stripCr(rest))) {
+    return {
+      ok: false,
+      detail: 'source_version_read 말고도 값이 갈렸다 — 등재된 차이가 아니다(읽은 판이 달라 내용이 갈렸다면 사람이 볼 자리).',
+    };
+  }
+  return { ok: true, detail: `신 엔진이 같은 응답에 source_version_read=${String(version)}만 더했다.` };
+};
+
+/** D143의 채록 쪽 표식 — 함수그룹 인클루드 잠금의 403 문구(실측 2026-07-30). */
+const OLD_FG_INCLUDE_403 = /This syntax cannot be used for an object name/i;
+const D143_TOOLS: ReadonlySet<string> = new Set(['UpdateInclude', 'UpdateSourceByPatch']);
+
+const fgIncludeRoutedVerdict: SubstituteCheck = ({ actual }) => {
+  if (!actual.isError) {
+    return { ok: true, detail: '구가 403으로 막히던 함수그룹 인클루드 쓰기가 신 엔진에서 통과했다.' };
+  }
+  if (OLD_FG_INCLUDE_403.test(collectText(actual.response))) {
+    return { ok: false, detail: '신 엔진도 같은 403 문구로 막혔다 — 라우팅이 닿지 않았다.' };
+  }
+  return { ok: false, detail: '신 엔진이 다른 이유로 실패했다 — 등재된 차이가 아니라 결함 후보다.' };
+};
 
 /**
  * M1 기본 장부.
@@ -1586,6 +1690,57 @@ export const M1_DIVERGENCES: readonly DivergenceEntry[] = [
     // 실은 ECC 성공에만 걸린다(D61·D110과 같은 표식).
     applies: (step) => step.tool === 'GetBadiImplementations' && !step.isError && usedOldEccBridge(step.response),
     check: null,
+  },
+  {
+    id: 'D141',
+    title: 'ActivateObjects — 런이 돌지 않은 응답(activated:false·checked:false)을 성공으로 접지 않는다',
+    tool: 'ActivateObjects',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d141 · sapkit-engine/src/tools/write/activateObjects.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/activateObjects.test.ts — 「장부 D141」 절 5건',
+    resolvesIn: null,
+    // 구가 `success:true`에 `activated:false, checked:false`를 함께 실은 성공에만 걸린다.
+    // `activated:true` 성공과 오류 갈래는 등재 밖이고 그대로 대조된다.
+    applies: (step) =>
+      step.tool === 'ActivateObjects' && !step.isError && oldRunNotExecutedButSucceeded(step.response),
+    check: runNotExecutedVerdict,
+  },
+  {
+    id: 'D142',
+    title: 'UpdateSourceByPatch — 성공 응답에 source_version_read를 더한다 (비활성 판 우선 읽기 · EOL 정규화)',
+    tool: 'UpdateSourceByPatch',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d142 · sapkit-engine/src/tools/write/updateSourceByPatch.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/updateSourceByPatch.test.ts — 「장부 D142」 절 ①~⑤',
+    resolvesIn: null,
+    // 성공 갈래 전부 — 신 응답에는 언제나 새 키가 있어 그대로 대조하면 `extra`로 떨어진다.
+    // 오류 갈래(못 찾음·유일성)는 문구 차이라 D13이 다루고 여기 걸리지 않는다.
+    applies: (step) => step.tool === 'UpdateSourceByPatch' && !step.isError,
+    check: sourceVersionReadVerdict,
+  },
+  {
+    id: 'D143',
+    title: 'UpdateInclude·UpdateSourceByPatch — 함수그룹 인클루드를 그룹 주소로 잠근다 (구: 403)',
+    tool: null,
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d143 · sapkit-engine/src/tools/write/shared.ts · ' +
+      'sapkit-engine/src/tools/write/updateInclude.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/updateInclude.test.ts — 「장부 D143」 2건 · ' +
+      'sapkit-engine/src/tools/write/__tests__/updateSourceByPatch.test.ts — 「장부 D143」 절',
+    resolvesIn: null,
+    // 구가 그 403 문구로 실패한 단계에만 걸린다 — 다른 오류·성공은 그대로 대조된다.
+    applies: (step) =>
+      D143_TOOLS.has(step.tool) && step.isError && OLD_FG_INCLUDE_403.test(collectText(step.response)),
+    check: fgIncludeRoutedVerdict,
   },
 ];
 

@@ -77,21 +77,39 @@ describe('와이어 — 요청 생성 POST 한 발', () => {
     expect(sent.path).toBe(PATH);
     expect(sent.query.toString()).toBe('');
     expect(sent.headers.accept).toBe(ACCEPT);
-    expect(sent.headers['content-type']).toBe('text/plain');
+    // 구는 charset 없는 `text/plain`이었다 — 장부 D145(비ASCII 설명 손상)로 charset을 밝힌다.
+    expect(sent.headers['content-type']).toBe('text/plain; charset=utf-8');
   });
 
-  it('페이로드는 벤더 템플릿 글자 그대로다 (줄바꿈·들여쓰기 포함)', async () => {
+  it('페이로드는 벤더 템플릿 글자 그대로다 (줄바꿈·들여쓰기 포함) — 단 선언의 encoding은 utf-8이다 (D145)', async () => {
     harness = await startWriteHarness((_request, response) => xml(response, CREATED_XML));
     await createTransport.handler(withUser(), { description: 'Fixture request' });
 
     expect(harness.nth(0).body).toBe(
-      '<?xml version="1.0" encoding="ASCII"?>\n' +
+      '<?xml version="1.0" encoding="utf-8"?>\n' +
         '<tm:root xmlns:tm="http://www.sap.com/cts/adt/tm" tm:useraction="newrequest">\n' +
         '  <tm:request tm:desc="Fixture request" tm:type="K" tm:target="LOCAL" tm:cts_project="">\n' +
         '    <tm:task tm:owner="DEVUSER"/>\n' +
         '  </tm:request>\n' +
         '</tm:root>',
     );
+  });
+
+  /**
+   * 장부 D145 — 한글 설명이 `#`로 깨져 돌아온 실측(JNC-DashBoard L-002 · 2026-07-28).
+   * 구 템플릿의 `encoding="ASCII"` 선언이 유력 원인이라 utf-8로 바꿨다. 이 시험이
+   * 못 박는 것은 **우리가 보내는 것** — 선언이 utf-8이고 본문의 한글이 UTF-8 그대로
+   * 실린다는 것뿐이다. SAP이 그것을 옳게 저장하는지는 **실기 미검증**이다.
+   */
+  it('비ASCII 설명은 utf-8 선언 아래 그대로 실린다 (D145 · 실기 미검증)', async () => {
+    harness = await startWriteHarness((_request, response) => xml(response, CREATED_XML));
+    await createTransport.handler(withUser(), { description: 'JNC F3 급변 감시(W009/W010) 추가' });
+
+    const sent = harness.nth(0);
+    expect(sent.body).toContain('<?xml version="1.0" encoding="utf-8"?>');
+    expect(sent.body).not.toContain('encoding="ASCII"');
+    expect(sent.body).toContain('tm:desc="JNC F3 급변 감시(W009/W010) 추가"');
+    expect(sent.headers['content-type']).toBe('text/plain; charset=utf-8');
   });
 
   it("transport_type='customizing'이면 tm:type이 T다", async () => {

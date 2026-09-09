@@ -37,6 +37,17 @@
  * 오류 문구의 조립기가 다르다 — 구는 `extractAdtErrorMessage`, 신은
  * `describeFailure`가 벽의 종류를 앞에 붙인다(차이 장부 **D13**). 나가는 요청은
  * 같다.
+ *
+ * ## 백틱 증식은 이 파일 밖이다 (백로그 13-12 · D-147 조사 — 장부 「관측 등재」)
+ *
+ * 주석 안 백틱이 왕복마다 배증한다는 관측(4→8 · 2026-07-31 피드백 ③ / 4→16 ·
+ * 백로그 13-12 — `UpdateView`는 정상)을 이 판에서 좇았다. **쓰기 경로는 인자를
+ * 한 글자도 바꾸지 않는다** — `source_code`가 `putSource`로 그대로 PUT 되고
+ * (`shared.ts` · `text/plain; charset=utf-8`), 읽기 경로(`read/internal/behaviorRead.ts`)
+ * 에도 이스케이프·치환이 없다. 그래서 우리 쪽 원인은 찾지 못했고 고칠 자리도 없다.
+ * 대체 기대 시험(`__tests__/updateBehaviorDefinition.test.ts`의 「백틱 왕복」)이
+ * PUT 본문이 입력과 바이트 동일함을 못 박는다 — 그 뒤에도 증식이 관측되면 SAP
+ * 쪽(BDEF 소스 저장의 이스케이프)이다. **실기 미검증.**
  */
 
 import * as z from 'zod';
