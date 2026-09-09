@@ -56,6 +56,16 @@
  *
  * 구는 활성화 응답을 아무도 읽지 않고 `activated`에 **인자를 그대로 메아리친다.**
  * `E`/`A`/`X` 메시지를 실패로 되돌린다.
+ *
+ * ## 계약(category)을 고를 수 있다 (차이 — D141 · 백로그 13-5)
+ *
+ * 구는 페이로드에 `srvb:category="1"`(Web API)을 박아 두어 **UI 계약 바인딩을 만들
+ * 길이 없었다** — Fiori Elements가 먹는 표면은 category 0에서만 나온다(2시스템 실측 ·
+ * `sapkit-feedback.md` 2026-07-30 두 항목). 선택 인자 `binding_category`(기본
+ * `WEB_API` = 구 그대로)가 그 한 속성만 가르고, 응답이 **무엇을 만들었는지**
+ * (`binding_category`·`srvb_category`)를 말한다 — 이름을 `_UI`로 지어 놓고 몇 주를
+ * Web API로 쓴 상태를 아무도 못 봤던 것이 근거다. 실기 미검증: UI 계약 생성이 실제로
+ * 서는지는 다음 실접속 세션의 확인 대상이다.
  */
 
 import * as z from 'zod';
@@ -84,6 +94,7 @@ import {
   ACCEPT_TRANSPORT_CHECK,
   CT_SERVICE_BINDING_V2,
   CT_TRANSPORT_CHECK,
+  type ServiceBindingCategory,
   type ServiceBindingServiceType,
   bindingObjectReferences,
   bindingTypeAvailabilityKey,
@@ -92,6 +103,7 @@ import {
   extractAvailableBindingTypes,
   fetchSystemInformation,
   returnErrorText,
+  serviceBindingCategoryCode,
 } from './internal/serviceBinding';
 
 /** 벤더 `checkServiceBinding`(`AdtService.js:594-612`)의 본문 — **한 줄이다.** */
@@ -108,8 +120,10 @@ function checkObjectList(bindingUri: string, version: 'active' | 'inactive'): st
 export const createServiceBinding = defineTool(
   {
     name: 'CreateServiceBinding',
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D141.
     description:
-      'Create ABAP service binding via ADT Business Services endpoint. XML is generated from high-level parameters.',
+      'Create ABAP service binding via ADT Business Services endpoint. XML is generated from high-level parameters.' +
+      ' Defaults to the Web API contract (srvb:category="1"); pass binding_category: "UI" to create a UI contract binding (srvb:category="0") for Fiori Elements / SAP Fiori apps — the two contracts expose different service surfaces and a binding\'s contract cannot be changed afterwards. The response states the contract that was created (binding_category, srvb_category).',
     inputSchema: {
       service_binding_name: z.string().describe('Service binding name.'),
       service_definition_name: z.string().describe('Referenced service definition name.'),
@@ -143,6 +157,13 @@ export const createServiceBinding = defineTool(
         .describe('Activate service binding after create. Default: true.')
         .optional(),
       response_format: z.enum(['xml', 'json', 'plain']).default('xml'),
+      // 덧인자(D141) — 채록본에 없던 선택 인자. 기본값이 구 동작(Web API)이다.
+      binding_category: z
+        .enum(['UI', 'WEB_API'])
+        .default('WEB_API')
+        .describe(
+          'Service contract: "WEB_API" (default, srvb:category="1") or "UI" (srvb:category="0", required for Fiori Elements / SAP Fiori UI consumption).',
+        ),
     },
     available_in: ['onprem', 'cloud'],
     // 구 경로는 `handlers/service_binding/high/`이고, 채록본 `exposures`에서
@@ -161,6 +182,9 @@ export const createServiceBinding = defineTool(
       if (!args.package_name) throw new Error('package_name is required');
 
       const name = args.service_binding_name.trim().toUpperCase();
+      const bindingCategory: ServiceBindingCategory =
+        args.binding_category === 'UI' ? 'UI' : 'WEB_API';
+      const categoryCode = serviceBindingCategoryCode(bindingCategory);
       const serviceDefinitionName = args.service_definition_name.trim().toUpperCase();
       const packageName = args.package_name.trim().toUpperCase();
       const responseFormat: ServiceBindingResponseFormat = args.response_format ?? 'xml';
@@ -227,6 +251,7 @@ export const createServiceBinding = defineTool(
           masterLanguage: systemInfo?.language ?? 'EN',
           masterSystem: systemInfo?.systemID,
           responsible: systemInfo?.userName,
+          category: categoryCode,
         }),
         contentType: CT_SERVICE_BINDING_V2,
         accept: ACCEPT_SERVICE_BINDING,
@@ -311,6 +336,9 @@ export const createServiceBinding = defineTool(
         package_name: packageName,
         // 구는 **인자 원문**(없으면 기본값 문자열)을 싣는다.
         binding_type: args.binding_type ?? 'ODataV4',
+        // D141 — 무엇을 만들었는지 응답이 말한다. 이름으로는 계약을 알 수 없다.
+        binding_category: bindingCategory,
+        srvb_category: categoryCode,
         service_binding_version: bindingVersion,
         service_name: serviceName,
         service_version: serviceVersion,

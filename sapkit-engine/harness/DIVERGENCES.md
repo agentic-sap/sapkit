@@ -3095,3 +3095,299 @@ append-only이고, 무엇이 왜 있었는지가 다음 사람의 판독 자료�
 것을 말하게 된다 — 다음 실접속 세션의 확인 대상이다.
 
 - **결정 기록**: D-145
+
+## 실사용 교훈 승격 4차 — 읽기·검사·서비스 바인딩·설명문 (append · 2026-09-09 · D-147 · 판A2 · 분담 E2)
+
+근거 원문은 전부 `C:\Users\hjaew\.claude\sapkit-feedback.md`(사용자 피드백 누적 · 최신이
+위)와 `docs/reference/handoff-archive/HANDOFF-archive-2026-08.md`의 엔진 백로그 13이다.
+**이 절의 항목은 하나도 SAP 실기로 확인되지 않았다** — 전부 오프라인 계약 시험까지이고
+「지음 · 증거 대기」다. 같은 시각에 다른 분담(E1)이 쓰기 경로(`updateSourceByPatch` ·
+`updateInclude` · `activateObjects` · `createTransport` · `updateLocalTestClass` ·
+`updateBehaviorDefinition`)를 고치고 있으므로 그 파일들은 여기서 손대지 않았다.
+
+**채록본은 손대지 않았다.** 설명문의 변경은 전부 덧말표(`harness/old-surface/amendments.json`
+· D-145가 세운 기제)로, 이번에 **덧인자**(`inputSchema` 칸 — 채록본 `properties`에
+**더해지는 선택 인자**만 · 기존 인자를 덮거나 `required`를 건드리면 소비자가 거부)를 그
+표에 더했다. 소비자 넷이 같은 파일·같은 규칙으로 조립한다 — `gates/surface.mjs` ·
+`src/tools/read/__tests__/support.ts`(`applyAmendments` — 정본) ·
+`src/tools/runtime/__tests__/support.ts` · `src/tools/write/__tests__/tableStructurePublication.ts`.
+
+### D141 — `CreateServiceBinding`이 계약(category)을 고른다 (수리 · 백로그 13-5)
+
+**분류**: 수리 · **도구**: `CreateServiceBinding`
+
+**구는 이렇게 한다.** 생성 페이로드에 `srvb:category="1"`(Web API)을 **박아 두어**
+(`src/tools/write/internal/serviceBinding.ts`의 `buildServiceBindingCreateXml` ← 벤더
+`AdtService.js:26-54`) UI 계약 바인딩을 만들 길이 없었다. Fiori Elements가 먹는 표면
+(`Update_mc`·코드리스트·값도움말·PDF/xlsx)은 category 0에서만 방출된다 — 2시스템 실측
+(`sapkit-feedback.md` 2026-07-30 두 항목 · 백로그 13-5의 JNC 교차 재현 · **V4에서도**
+category 1 고정). `ListServiceBindingTypes`의 `nameditem:description`이 같은 숫자를 쓴다
+(ODATA V2·V4는 0과 1 둘 다 · SQL은 1만 · INA는 0만) — 그래서 **0=UI · 1=Web API**다.
+
+**신은 이렇게 한다.** 덧인자 `binding_category: "UI" | "WEB_API"`(기본 `WEB_API` = 구
+그대로)가 그 한 속성만 가른다. **`srvb:contract`는 보내지 않는다** — 벤더 페이로드에도
+없었고, 실측상 category 1 바인딩의 되읽기에 `C2`로 붙고 category 0에는 없는 것으로
+보아 서버 파생값이다(단정하지 않는다). 응답에 **무엇을 만들었는지**를 싣는다
+(`binding_category` · `srvb_category`) — 이름을 `_UI`로 지어 놓고 몇 주를 Web API로 쓴
+상태를 아무도 못 봤던 것이 이 키의 이유다(피드백 07-30 (2)의 제안).
+
+**대체 기대 시험**: `src/tools/write/__tests__/createServiceBinding.test.ts` — 「D141 —
+계약(category)을 고를 수 있고, 응답이 무엇을 만들었는지 말한다」 2건 + 「발행 계약」의
+덧인자 1건.
+
+**기계 장부 반영**: 했다. 구의 성공 응답과 갈리는 것은 두 키뿐이므로, 그 두 키만 늘었는지를
+재는 검사를 D141로 두었다. ⚠ **D105와의 겹침을 여기서 푼다** — D105는 `activated:true`를
+주장하는 구 성공 갈래를 통째로 들고 신이 활성화 실패를 되돌리는지만 본다. 신이 **성공**하면
+이제 두 키가 늘어 D105의 검사가 「등재된 차이가 아니다」로 떨어진다. 그래서 D105의 검사를
+「신이 성공이면 D141의 두-키 검사로 넘긴다」로 **확장**했다(사람용 D105 본문은 그대로다 —
+이 문단이 그 확장의 기록이다). D141 자신의 `applies`는 `activated:false` 성공 갈래만 든다.
+
+**실기 미검증** — UI 계약 생성이 실제로 서는지, 되읽기의 `srvb:contract`가 어떻게 오는지.
+
+### D142 — `UpdateServiceBinding`·`DeleteServiceBinding`이 `allowedAction` **부재**를 거부하지 않는다 (수리 · 백로그 13-6)
+
+**분류**: 수리 · **도구**: `UpdateServiceBinding` · `DeleteServiceBinding`(사전 걸음)
+
+**구는 이렇게 한다.** 활성 판 XML의 `srvb:allowedAction`이 **없으면** `UNKNOWN`으로 접어
+언제나 거부했다(`updateServiceBinding.ts` — 구 `:129·:146`, `deleteServiceBinding.ts` —
+구 `:91-100`). 그 속성을 아예 돌려주지 않는 시스템이 있고, 같은 바인딩을 ADT에서 발행하면
+**즉시 성공**한다(2시스템 · 발행 상태 무관 — 백로그 13-6 · JNC L-002:
+`/IWFND/C_V4_MSGR`에 행 생성·재조회 시 `srvb:published="true"`). 「서버는 허용, 도구 자체
+가드만 거부」.
+
+**신은 이렇게 한다.** 속성이 **있고 어긋날 때만** 거부한다(문구 그대로 · `UNKNOWN` 자리는
+이제 나오지 않는다). **없으면** 발행/발행취소 작업을 실제로 보내 **서버 판정을 그대로**
+돌려준다 — 응답의 `allowed_action_known: false` · `allowed_action: null`이 그 갈래를 표시한다
+(있으면 `true`와 그 값). `DeleteServiceBinding`의 최선 노력 발행취소도 같은 판정이다(실패는
+여전히 삼킨다 — 구 그대로).
+
+**대체 기대 시험**: `src/tools/write/__tests__/updateServiceBinding.test.ts` — 「D142 —
+srvb:allowedAction이 없으면 거부하지 않고 요청을 보낸다」 4건(발행 · 발행취소 · 서버
+거절이 그대로 올라옴 · 있고 어긋나면 여전히 거부) ·
+`src/tools/write/__tests__/deleteServiceBinding.test.ts` — 「D142 — 발행 중인데 allowedAction
+속성이 없으면 발행취소를 시도한다」.
+
+**기계 장부 반영**: 했다(`UpdateServiceBinding`만 — `DeleteServiceBinding` 쪽은 응답이
+같고 **와이어에만** 남는 차이라 D104·D124와 같은 가름선으로 옮기지 않는다). 구가
+`allowedAction=UNKNOWN`으로 거부한 오류 갈래와, 두 키가 늘어난 성공 갈래를 D142 하나가
+든다.
+
+**실기 미검증.**
+
+### D143 — `CheckSyntax`가 판정불능을 실패로 말하지 않는다 · `main_program` (수리)
+
+**분류**: 수리 · **도구**: `CheckSyntax`
+
+**구는 이렇게 한다.** `CheckSyntax(include)`가 메인 프로그램 문맥 없이 `success:false ·
+errors:[] · warnings:[]`를 냈다(2026-07-31 · 2회 재현 · 직후 활성화는 오류 0 — 피드백).
+파서가 `status !== 'processed'`를 그대로 `success:false`로 접는다(`internal/checkRun.ts`
+`parseCheckRunResponse`) — **오류가 하나도 없는 실패**라는 자기모순이다.
+
+**신은 이렇게 한다.** 응답에 `verdict: "clean" | "errors" | "indeterminate"`와
+`check_status`(원 상태)를 언제나 싣고, 판정불능이면 `success: null` + `reason`이다.
+판정불능의 정의: 오류 0인데 상태가 `processed`·`no_report`·`not_run` 밖(예 `notProcessed`) ·
+또는 include의 오류가 **전부** 「REPORT/PROGRAM 문이 없다」 잡음(쓰기 쪽 `assertNoCheckErrors`가
+같은 판단을 한다). 덧인자 `main_program`(include에만 · 다른 종류에서는 무시하고 `note`)을 주면
+**그 프로그램 URI 하나를 `inactive`로** 검사한다 — 메인 + 인클루드 전량이 한 번에 컴파일되는,
+쓰기 쪽 `UpdateInclude`의 `runProgramTreeCheck`와 같은 요청이다. `main_program`(대문자)이
+응답에 되비친다.
+
+**대체 기대 시험**: `src/tools/read/__tests__/checkSyntax.test.ts` — 「D143 — include의
+판정불능과 main_program」 5건 + 기존 절에 `verdict` 확인.
+
+**기계 장부 반영**: 했다. 모든 성공 응답이 새 키(`verdict`·`check_status`, 조건부
+`reason`·`main_program`)를 실으므로 그 키만 늘었는지 + 구가 `success:false·errors:[]`였던
+자리는 신이 `success:null`인지를 D143이 잰다.
+
+**실기 미검증** — include 단독 검사에서 SAP이 실제로 어떤 `status`를 내는지는 채록되지
+않았다(`notProcessed`로 짐작했다).
+
+### D144 — `UpdateProgram`이 거짓 FIXPT precheck를 통째로 믿지 않는다 (수리)
+
+**분류**: 수리 · **도구**: `UpdateProgram`
+
+**구는 이렇게 한다.** 쓰기 전 검사가 제안 소스를 인라인 컴파일하는데(`checkProposed`), 그
+경로가 `TRDIR.FIXPT='X'` 프로그램에서 「…can only be used when the fixed point arithmetic flag
+is activated」 수십 건 + 인라인 선언 연쇄 `is unknown`을 **거짓으로** 내고 쓰기를 통째로
+막았다(2026-08-06 38건 · 08-19 51건 6연속 — 피드백). 같은 순간 `source_code` 없는 raw
+check는 오류 0 · 활성화도 오류 0. 인클루드 경로(프로그램 트리 검사)는 걸리지 않았다.
+**무엇이 그 경로를 켜는지는 미확인**(세션 중에 켜졌다 꺼졌다).
+
+**신은 이렇게 한다.** 인라인 검사가 **FIXPT 문구를 하나라도 포함해** 실패하면 저장된 판을
+한 번 더 검사한다(`checkStored` · inactive · 잠금 안 · stateful). 그쪽 실오류가 0이면(잡음
+「REPORT/PROGRAM 문이 없다」는 0으로 친다) precheck를 신뢰하지 않고 **쓰기를 진행**한다 —
+응답에 `precheck_overridden: true` · `precheck_messages`(원문) · `precheck_note` ·
+`steps_completed`에 `check_stored_version`. ⚠ **이 갈래에서 제안 소스는 쓰기 전에 검증되지
+않은 채 올라간다** — 저장판 검사는 저장판을 보는 것이지 제안을 보는 것이 아니다. 진짜
+판정은 사후검사(`check_warnings` — 비활성 판 = 방금 쓴 것)와 활성화가 한다. FIXPT 문구가
+없는 실패는 저장판을 묻지 않고 구 그대로 막는다.
+
+**대체 기대 시험**: `src/tools/write/__tests__/updateProgram.test.ts` — 「D144 — 인라인
+precheck가 FIXPT 계열로 실패하고 저장된 판이 깨끗하면 쓰기를 진행한다」 6건(진행 · 저장판도
+실오류면 막음 · 잡음은 깨끗 · FIXPT 없으면 재검사 없이 막음 · 사후검사 오류가 실림 · 활성화
+실패는 여전히 실패).
+
+**기계 장부 반영**: 했다. 구가 「preCheck syntax check failed … fixed point arithmetic」로
+거부한 오류 갈래에 걸리고, 신은 `precheck_overridden`을 실은 성공이거나 같은 종류의 거부여야
+한다.
+
+**실기 미검증.** `UpdateSourceByPatch`(PROG)도 같은 precheck를 타지만 그 파일은 E1의 것이라
+여기서 손대지 않았다 — 통합 단계에서 같은 폴백을 붙일지는 그쪽 결과에 달렸다.
+
+### D145 — `GrepObjects`가 FUGR를 전개해서 훑는다 (수리)
+
+**분류**: 수리 · **도구**: `GrepObjects`
+
+**구는 이렇게 한다.** FUGR 갈래가 함수그룹 **메타데이터**(`GET /functions/groups/{fg}`)를
+읽어 훑는다(`internal/objectSource.ts` ← 구 `objectSourceFetch.ts`). 거기에 소스가 없으니
+FM 본문에 실재하는 문자열에도 `total_matches: 0 · skipped: []`였다(2026-07-28·30·31 —
+「봤는데 없다」로 읽혔다).
+
+**신은 이렇게 한다.** 그룹을 리포지터리 노드 구조로 전개한다 — 뿌리(`parent_type=FUGR/F`)
+→ 묶음 마디(`FUGR/FF`·`FUGR/I` · 주소 없고 `NODE_ID` 있음)의 자식 → **`OBJECT_URI`가 있는
+잎만**(D3와 같은 원칙) → `{uri}/source/main?version=active`. 두 번째 요청의 부모는 **뿌리
+오브젝트 그대로 + `node_id`**(`GetIncludesList`의 관례 · 벤더 `fetchNodeStructure`의 인자
+모양). `GetObjectInfo`는 묶음 마디를 부모로 넘기는 다른 관례를 쓰는데 **둘 다 실 SAP 채록이
+없어** 어느 쪽이 옳은지 여기서 단정하지 않는다. 결과는 **구성원 이름으로**
+(`object_type: FUGR/FF|FUGR/I` · `object_name` · `function_group`) 보고하고, 전개 실패 ·
+0구성원 · 구성원 읽기 실패는 전부 `skipped`에 이유가 실린다(조용한 0이 없다).
+`GrepPackages`의 FUGR 갈래는 **손대지 않았다** — 같은 결함이 그쪽에도 있다(보고에 적었다).
+
+**대체 기대 시험**: `src/tools/read/__tests__/grepObjects.test.ts` — 「D145 — FUGR는
+함수모듈·인클루드로 전개해 훑는다」 4건.
+
+**기계 장부 반영**: 했다. 구가 FUGR 항목을 받은 성공 갈래에 걸리고, FUGR가 아닌 항목의
+결과·건너뜀은 그대로여야 하며 FUGR 항목은 구성원 결과 또는 `skipped` 이유로 나타나야 한다.
+
+**실기 미검증** — FUGR 노드 구조의 실제 모양(묶음 마디의 타입·이름 · 잎의 URI 형태)은
+짐작이다. 첫 실접속에서 `GetObjectInfo(FUGR/F, …, maxDepth 2)`로 그 모양을 먼저 뜰 것.
+
+### D146 — `GetTypeInfo`가 4xx 「그 종류가 아니다」 계열도 다음 후보로 넘긴다 (수리)
+
+**분류**: 수리 · **도구**: `GetTypeInfo`
+
+**구는 이렇게 한다.** `tryLookup`이 404만 「없음」으로 접고 나머지는 던진다(구
+`handleGetTypeInfo.ts:161-166`). 구조체 이름을 주면 첫 후보(도메인 `source/main`)가
+**HTTP 422**로 답해 구조 폴백에 닿지 못한 채 `ADT error: … 422`로 죽었다(2026-09-09 —
+`/sap/bc/adt/ddic/domains/zuniefis1203`). `include_structure_fallback`의 설명("404/empty에서만")이
+그 실패를 예고하지 않는다.
+
+**신은 이렇게 한다.** `NEXT_CANDIDATE_STATUSES = {400, 404, 405, 406, 415, 422}`를 다음
+후보로 넘긴다. 401·403·5xx는 구 그대로 던진다 — 후보를 바꿔도 같은 실패다.
+
+**대체 기대 시험**: `src/tools/read/__tests__/getTypeInfo.test.ts` — 「D146」 2건(422가
+구조 폴백까지 · 401·403은 여전히 즉시 실패) + 기존 5xx 즉시 실패.
+
+**기계 장부 반영**: 했다. 구가 그 상태 코드로 죽은 오류 갈래에 걸리고, 신은 그 같은 상태로
+죽지 않아야 한다(성공 · 「not found」 실패 · 다른 오류 전부 허용 — 후보를 **넘어갔다**는 것이
+등재된 차이다).
+
+**실기 미검증** — 422가 나는 정확한 응답 본문은 채록되지 않았다.
+
+### D147 — `ReloadProfile`이 배포 축 변경 때 도구 목록을 **다시 발행**한다 (수리)
+
+**분류**: 수리 · **도구**: `ReloadProfile`(+ `src/server/core.ts`·`session.ts`)
+
+**판B(D-114)까지의 신**: 배포 축이 바뀐 재적재는 `restartRequired: true` + 「목록은 기동
+시점에 고정됐다」. 실측(2026-09-09): 그 값을 무시하면 cloud 축으로 뜬 서버에 onprem
+프로파일을 붙였을 때 **쓰기 도구가 `ToolSearch`에 아예 없다** — 접속·tier는 새 프로파일인데
+목록만 낡았다. `/mcp` 재연결로 해결.
+
+**신은 이렇게 한다.** SDK는 접속 뒤에도 `registerTool`/`remove()`를 받고 그때마다
+`notifications/tools/list_changed`를 보낸다(`@modelcontextprotocol/sdk` `server/mcp.js`
+`_createRegisteredTool` · `update`). 그래서 코어가 재적재 훅에서 `exposureStale`이면 새
+축으로 노출을 **같은 함수**(`selectExposedTools`)로 다시 계산해 빠질 것을 `remove()`하고
+더할 것을 등록한다. 세션은 「지금 발행된 축」(`publishedSystemType`)을 기억해 다음 재적재를
+그것과 견준다. 응답: `restartRequired`는 이제 destination 토큰 상실(D-114)에만 서고,
+`tool_list_republished: { added, removed }`와 `note`(재발행했다 · `list_changed`를 보냈다 ·
+**클라이언트가 그 알림으로 목록을 새로 읽지 않으면 `/mcp` 재연결**)가 실린다. 봉인된
+재적재는 목록을 건드리지 않는다. `ServerCore.exposedToolNames`는 지금 등록된 것을 낸다
+(게터). 세션의 `reload()`를 직접 부르는 길은 등록을 모른다 — 재발행은 코어의 것이다.
+
+**대체 기대 시험**: `src/tools/runtime/__tests__/reloadProfile.test.ts` — 「D147 — 배포
+축이 바뀌면 목록을 다시 발행하고 restartRequired는 서지 않는다」(목록이 실제로 달라짐 · 새
+도구를 부를 수 있음 · 클라이언트가 알림을 받음 · 같은 축 재적재는 낡지 않음 · 되돌리면
+빠짐) · 「D147 — 봉인된 재적재는 목록을 건드리지 않는다」 ·
+`src/server/__tests__/session.test.ts` — 「세션의 reload()만으로는 바뀌지 않는 것」(제목 갱신).
+
+**기계 장부 반영**: 했다 — **새 항목이 아니라 D39·D40의 등재 키에 `tool_list_republished`를
+더하는 것**으로. D39·D40이 이미 `ReloadProfile`의 성공 갈래를 배타로 나눠 들고 「갈린 것이
+등재된 키뿐인가」를 재므로, 새 항목을 세우면 겹친다(규칙 ①). 사람용 D39 본문의 「이
+프로세스가 정말로 못 고치는 것」 서술은 이 항목으로 **갱신**된다 — 삭제하지 않는다.
+
+**실기 미검증** — ⚠ **클라이언트(Claude Code · Codex · Antigravity)가 `list_changed`
+알림으로 도구 목록을 실제로 새로 읽는지는 확인하지 못했다.** 시험은 SDK 클라이언트가
+알림을 받는 것까지다. 그래서 `note`가 재연결을 함께 말한다. HTTP/SSE 전송은 요청마다 코어를
+새로 만들므로 이 재발행이 그 코어에만 적용된다 — stdio(제품 경로)가 대상이다.
+
+### D148 — `GetInclude`가 클래스 인클루드(CCIMP 등)를 요청 전에 거절하고 읽는 도구를 이름으로 말한다 (수리 · 백로그 13-8 ⓑ)
+
+**분류**: 수리 · **도구**: `GetInclude`
+
+**구는 이렇게 한다.** `ZCL_X=====…=CCIMP`를 독립 인클루드 경로(`/programs/includes/`)로
+보내 **HTTP 500**을 그대로 올렸다(ZUNIVAT_RAP 제보 — 그래서 「접근 경로 0」으로 결론내고
+BIL을 손으로 재구성했다. 정답 도구 `GetLocalTypes`는 처음부터 있었다 — D-065).
+
+**신은 이렇게 한다.** `=`로 채운 클래스 인클루드 이름(`^<클래스>=+(CCIMP|CCDEF|CCMAC|CCAU|CU|CO|CI|CP|CT|CM\d{3}|CL)$`)을
+접속을 얻기 **전에** 거절하고, 접미사별로 읽는 도구를 이름으로 말한다(CCIMP →
+`GetLocalTypes` · CCDEF → `GetLocalDefinitions` · CCMAC → `GetLocalMacros` · CCAU →
+`GetLocalTestClass` · 그 밖 → `ReadClass`/`GetClass`). `=` 없이 CCIMP로 끝나기만 하는 이름은
+독립 인클루드다(거절하지 않는다).
+
+**대체 기대 시험**: `src/tools/read/__tests__/getInclude.test.ts` — 「D148 — 클래스
+인클루드(CCIMP 등)는 이 경로가 아니다」 3건.
+
+**기계 장부 반영**: 했다. 구가 그런 이름으로 오류를 낸 갈래에 걸리고, 신은 「class include」를
+말하는 오류여야 한다.
+
+**실기 미검증** — 500이 나는 정확한 응답 본문은 채록되지 않았다.
+
+### 설명문 이정표 — 덧말표에 더한 것 (백로그 13-8 ⓐ·ⓒ + 피드백)
+
+재생 대조에 나타나지 않는 **설명문만의** 변경이다(D-145의 셋과 같은 지위). 덧말 전문은
+`harness/old-surface/amendments.json`이 정본이다.
+
+| 도구 | 덧말의 요지 | 근거 |
+|---|---|---|
+| `GetInclude` | 클래스 인클루드는 이 경로가 아니다 → `GetLocalTypes`·`GetLocalDefinitions`·`GetLocalMacros`·`GetLocalTestClass` | 13-8 ⓐ |
+| `GetIncludesList` | CLAS/OC는 "No includes" → 같은 넷 | 13-8 ⓐ |
+| `ReadClass` · `GetBehaviorImplementation` · `ReadBehaviorImplementation` | `source/main`뿐 — 구현부(CCIMP)는 `GetLocalTypes` | 13-8 ⓐ · 피드백 07-31 ① |
+| `GrepObjects` | 대소문자 · 「0건 = 이 패턴으로 못 찾음」 · CLAS는 main만(건너뜀 표시도 없다) · FUGR 전개 | 피드백 08-19 (4차) · 13-8 ⓒ |
+| `CreateUnitTest` | 작성 도구가 아니라 `RunUnitTest`와 같은 실행 시작 도구 | 피드백 07-30 |
+| `CreateServiceBinding` · `UpdateServiceBinding` · `DeleteServiceBinding` · `CheckSyntax` · `UpdateProgram` · `GetTypeInfo` · `ReloadProfile` | 위 D141~D147의 계약 | — |
+
+### 등재만 — 코드 무접촉 (조사 결과)
+
+- **`GetAtcFindings(BDEF)` HTTP 500**(피드백 07-31 ②) — 설명은 BDEF를 지원 목록에 적는다.
+  코드의 URI 표(`getAtcFindings.ts` `resolveAtcTargetUri`)가 BDEF를
+  `/sap/bc/adt/ddic/bdef/sources/{name}`으로 놓는데, 이 엔진이 BDEF를 **실제로 읽고 쓰는
+  주소는 `/sap/bc/adt/bo/behaviordefinitions/{name}`**이다(`src/tools/write/behaviorUri.ts`
+  머리 표 — 벤더 실측). 두 주소가 갈리는 것이 500의 **유력 원인 후보**이나, 같은 시스템의
+  ATC가 BDEF 대상을 아예 못 받는 쪽(이 경우 주소를 고쳐도 같은 500)일 수도 있어 살아 있는
+  시스템 없이 확정하지 못했다. 우회는 `object_uri`에 `/sap/bc/adt/bo/behaviordefinitions/…`를
+  직접 주는 것 — **실기 미검증**. 고치지 않았다(등재만).
+- **`RuntimeGetGatewayErrorLog` detail 모드의 `error_url`이 빈 값**(피드백 09-09 (2차)) —
+  detail은 `fetchGatewayErrorDetail`이 `error_url`을 **그대로** GET한다
+  (`internal/gatewayFeed.ts:188-198`). list 모드의 `link`는 응답 `entry.link@href`가
+  없으면 `{GATEWAY_ERRORLOG_PATH}/{type}/{guid}`를 **합성**한다(`parseGatewayErrors`) —
+  합성 주소가 이 시스템에서 빈 본문/빈 피드로 답했을 가능성, 또는 detail 파서가 이
+  시스템의 항목 모양을 못 읽었을 가능성 둘 다 열려 있다. 실 응답 채록 없이 확정 불가.
+  등재만.
+- **세션 타임아웃 400 자동 재수립 부재**(피드백 07-29) — `src/adt/client.ts`의 `request()`는
+  CSRF 403(1회)과 GET 401(1회)만 되민다. `400 Session Timed Out`(stateful 세션 쿠키 만료 —
+  대용량 PUT 시점)은 되밀지 않고 그대로 던진다. 피드백대로 읽기 1회로 즉시 회복되므로
+  「본문을 다시 보내도 안전한 요청(GET · 멱등 PUT)에 한해 400+Session Timed Out 문구면
+  세션을 버리고 1회 되민다」가 후보이나, 어느 문구·헤더가 그 400을 가르는지 채록이 없어
+  이 판에서 짓지 않았다. 등재만.
+
+### 정직 유보 (이 절 전체)
+
+- **실기 0.** 여덟 항목 전부 오프라인 계약 시험까지다. 요구 급이 `attended 실기`인
+  `CreateServiceBinding`·`DeleteServiceBinding`은 이 판이 끝나도 「지음 · 증거 대기」다.
+- **FUGR 노드 구조의 모양은 짐작이다**(D145). **`list_changed`를 클라이언트가 먹는지도
+  짐작이다**(D147). 둘 다 첫 실접속 세션의 확인 대상이다.
+- **D144는 안전 바닥선을 낮춘 것이 아니다** — 쓰기 전 검사가 빠지는 갈래가 생겼지만, 그
+  갈래는 응답에 표식이 있고 사후검사·활성화가 그대로다. 그래도 「precheck를 넘어 썼다」는
+  사실은 사람이 읽어야 한다.
+
+- **결정 기록**: D-147

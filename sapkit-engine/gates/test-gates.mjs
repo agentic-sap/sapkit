@@ -162,7 +162,9 @@ function expectReject(label, mutate, marker) {
 }
 
 // ④ 부분 완성 상태가 통과해야 한다 — 이 판이 존재하는 이유다.
-const BASELINE = ['GetInclude', 'GetProgram', 'CreateProgram', 'GetSqlQuery'];
+// `CreateServiceBinding`·`CheckSyntax`는 덧말표의 **덧인자**(판A2 · D-147)가 걸린 도구다 —
+// 아래 ⑤의 덧인자 변형이 그 둘을 쓴다.
+const BASELINE = ['GetInclude', 'GetProgram', 'CreateProgram', 'GetSqlQuery', 'CreateServiceBinding', 'CheckSyntax'];
 expectPass('도구를 하나만 지은 상태 (1/186)', scenario(['GetInclude']));
 expectPass('연결 전용 도구 하나만 지은 상태 (1/186)', scenario([CONNECTED_ONLY[0]]));
 expectPass(`지금 상태 모양 (${BASELINE.length}/186 · 연결 전용 섞임)`, scenario(BASELINE));
@@ -190,6 +192,40 @@ expectReject(
   (state) => {
     const tool = state.observed.connected_default.find((t) => t.name === 'GetSqlQuery');
     delete tool.inputSchema.properties.row_number;
+  },
+  'ⓐ',
+);
+// 판A2(D-147) — 덧인자는 「채록본 원문 + 새 선택 인자」이지 선언 전문이 아니다. 덧인자의 한
+// 글자·부재·표에 없는 여분 인자·덧말의 한 글자가 전부 ⓐ에 걸려야 표가 「무엇이든 통과」가 아니다.
+expectReject(
+  '덧인자(binding_category)의 기본값 한 글자가 다른 도구',
+  (state) => {
+    const tool = state.observed.connected_default.find((t) => t.name === 'CreateServiceBinding');
+    tool.inputSchema.properties.binding_category.default = 'WEB_APIX';
+  },
+  'ⓐ',
+);
+expectReject(
+  '덧인자(main_program)가 발행에서 통째로 빠진 도구',
+  (state) => {
+    const tool = state.observed.connected_default.find((t) => t.name === 'CheckSyntax');
+    delete tool.inputSchema.properties.main_program;
+  },
+  'ⓐ',
+);
+expectReject(
+  '덧말표에 없는 인자가 하나 더 발행된 도구',
+  (state) => {
+    const tool = state.observed.connected_default.find((t) => t.name === 'CreateServiceBinding');
+    tool.inputSchema.properties.not_in_table = { type: 'string' };
+  },
+  'ⓐ',
+);
+expectReject(
+  '덧말(CheckSyntax)의 한 글자가 다른 도구',
+  (state) => {
+    const tool = state.observed.connected_default.find((t) => t.name === 'CheckSyntax');
+    tool.description = tool.description.replace('indeterminate', 'indeterminateX');
   },
   'ⓐ',
 );

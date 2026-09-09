@@ -178,8 +178,11 @@ export function extractRunId(
 export const createUnitTest = defineTool(
   {
     name: 'CreateUnitTest',
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json` · D-147 이정표) — 이름이
+    // 「작성 도구」로 읽혀 경로 탐색을 헛돌게 했다(sapkit-feedback 2026-07-30).
     description:
-      'Start an ABAP Unit test run for provided class test definitions. Returns run_id for status/result queries.',
+      'Start an ABAP Unit test run for provided class test definitions. Returns run_id for status/result queries.' +
+      ' Despite the name this does not create or write a test: it starts a run exactly like RunUnitTest (same input) — test classes are written with UpdateLocalTestClass.',
     inputSchema: {
       tests: z
         .array(

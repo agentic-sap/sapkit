@@ -88,14 +88,23 @@ const RENAMED_SAP_ASSETS = Object.freeze([['ZMCP_ADT_DDIC_BADI', 'ZSAPKIT_ADT_DD
  * 한 글자라도 움직이면 ⓐ는 그대로 실패하고, 덧말을 고치는 것도 이 표를 고쳐야만 된다.
  * 설명 전문을 여기 옮겨 적었다면 게이트가 무엇이든 통과시켰을 것이다.
  */
-const AMENDED_DESCRIPTIONS = Object.freeze(
-  Object.entries(
-    JSON.parse(fs.readFileSync(here('../harness/old-surface/amendments.json'), 'utf8')).descriptions,
-  ),
-);
+const AMENDMENTS = JSON.parse(fs.readFileSync(here('../harness/old-surface/amendments.json'), 'utf8'));
+const AMENDED_DESCRIPTIONS = Object.freeze(Object.entries(AMENDMENTS.descriptions));
 
 /**
- * 채록본의 발행 선언 하나를 개명 뒤 형태로 옮긴다. 설명 문구에만 건다. 덧말(`AMENDED_DESCRIPTIONS`)도 여기서 함께 붙인다.
+ * 판A2(D-147) — 채록본에 **더한 선택 인자**. ⓐ의 셋째 예외이고, 덧말표와 같은 성질이다.
+ *
+ * 표가 담는 것은 `properties`에 **더해지는** 인자뿐이다. 이미 있는 인자를 덮거나
+ * `required`를 건드리는 항목은 여기서 거부한다 — 그것을 허용하면 이 표가 「선언
+ * 전문」이 되어 게이트가 무엇이든 통과시키게 된다. 그래서 인자 추가는 언제나
+ * 「채록본 원문 + 새 선택 인자」이고, 원문 인자가 한 글자라도 움직이면 ⓐ는 그대로
+ * 실패한다.
+ */
+const AMENDED_ARGUMENTS = Object.freeze(Object.entries(AMENDMENTS.inputSchema ?? {}));
+
+/**
+ * 채록본의 발행 선언 하나를 개명 뒤 형태로 옮긴다. 설명 문구에 개명·덧말을 걸고,
+ * 덧인자(`AMENDED_ARGUMENTS`)를 `inputSchema.properties`에 더한다.
  *
  * 음성시험(`gates/test-gates.mjs`)이 채록본에서 **발행 표면을 합성**할 때도 같은
  * 것을 써야 한다 — 실제 엔진이 개명본을 발행하므로, 합성분만 구 이름이면 그
@@ -108,7 +117,27 @@ export function amended(declaration, name) {
   for (const [tool, appendix] of AMENDED_DESCRIPTIONS) {
     if (tool === name) description += appendix;
   }
-  return description === declaration.description ? declaration : { ...declaration, description };
+  let inputSchema = declaration.inputSchema;
+  for (const [tool, added] of AMENDED_ARGUMENTS) {
+    if (tool !== name) continue;
+    const properties = inputSchema?.properties;
+    if (properties === null || typeof properties !== 'object') {
+      throw new Error(`덧인자표: ${name}의 채록본 inputSchema에 properties가 없다.`);
+    }
+    for (const key of Object.keys(added.properties ?? {})) {
+      if (key in properties) {
+        throw new Error(`덧인자표가 채록본에 이미 있는 인자를 덮으려 한다: ${name}.${key} — 덧인자는 새 선택 인자만이다.`);
+      }
+      if (Array.isArray(inputSchema.required) && inputSchema.required.includes(key)) {
+        throw new Error(`덧인자표의 인자가 required에 있다: ${name}.${key} — 덧인자는 선택 인자만이다.`);
+      }
+    }
+    // 표의 객체를 **복사해** 넣는다 — 참조를 그대로 넣으면 조립된 선언을 손대는 쪽(음성시험의
+    // 변형)이 표 자체를 바꿔 기대값과 관측값이 함께 움직인다.
+    inputSchema = { ...inputSchema, properties: { ...properties, ...structuredClone(added.properties) } };
+  }
+  if (description === declaration.description && inputSchema === declaration.inputSchema) return declaration;
+  return { ...declaration, description, inputSchema };
 }
 
 /**

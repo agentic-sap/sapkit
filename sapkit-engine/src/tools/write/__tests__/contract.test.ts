@@ -18,6 +18,7 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 
 import { createServerCore, resolveStartup } from '../../../server';
 import type { SapTool } from '../../../server';
+import { applyAmendments } from '../../read/__tests__/support';
 import {
   activateObjects,
   createInclude,
@@ -91,8 +92,11 @@ async function publish(tool: SapTool): Promise<Record<string, unknown>> {
 
 describe('발행 계약 (m1-tools.json 대조)', () => {
   it.each(TOOLS)('%s의 발행 선언이 채록본과 글자 그대로 같다', async (name, tool) => {
-    const captured = CAPTURED[name];
-    expect(captured).toBeDefined();
+    expect(CAPTURED[name]).toBeDefined();
+    // 되뜰 수 없는 채록본 원문에 덧말·덧인자(`harness/old-surface/amendments.json`)를
+    // 조립한 것이 기대값이다 — 게이트(`gates/surface.mjs`)와 같은 표, 같은 규칙
+    // (`UpdateProgram`의 D144 덧말이 여기 걸린다).
+    const captured = applyAmendments(name, CAPTURED[name]!);
 
     const published = await publish(tool);
     const expected: Record<string, unknown> = {

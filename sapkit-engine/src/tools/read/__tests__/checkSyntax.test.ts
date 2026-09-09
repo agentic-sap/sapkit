@@ -31,13 +31,32 @@ const ERROR_REPORT = `<?xml version="1.0" encoding="UTF-8"?>
 </chkrun:checkRunReports>`;
 
 interface Payload {
-  success: boolean;
+  success: boolean | null;
+  verdict: 'clean' | 'errors' | 'indeterminate';
+  check_status: string;
+  reason?: string;
   object_type: string;
   object_name: string;
+  main_program?: string;
   errors: Array<{ type: string; text: string }>;
   warnings: unknown[];
   note?: string;
 }
+
+/** 메시지 없이 `notProcessed`로 돌아온 보고 — include 단독 검사에서 실제로 오는 모양(2026-07-31). */
+const NOT_PROCESSED_REPORT = `<?xml version="1.0" encoding="UTF-8"?>
+<chkrun:checkRunReports xmlns:chkrun="http://www.sap.com/adt/checkrun">
+  <chkrun:checkReport chkrun:reporter="abapCheckRun" chkrun:status="notProcessed" chkrun:statusText="Object could not be processed"/>
+</chkrun:checkRunReports>`;
+
+const REPORT_MISSING_NOISE = `<?xml version="1.0" encoding="UTF-8"?>
+<chkrun:checkRunReports xmlns:chkrun="http://www.sap.com/adt/checkrun">
+  <chkrun:checkReport chkrun:status="processed" chkrun:statusText="checked">
+    <chkrun:checkMessageList>
+      <chkrun:checkMessage chkrun:type="E" chkrun:shortText="REPORT/PROGRAM statement is missing, or the program type is INCLUDE"/>
+    </chkrun:checkMessageList>
+  </chkrun:checkReport>
+</chkrun:checkRunReports>`;
 
 describe('CheckSyntax', () => {
   it('source_code가 있으면 인라인 아티팩트 본문으로 POST 한 번만 보낸다', async () => {
@@ -62,6 +81,9 @@ describe('CheckSyntax', () => {
     const payload = JSON.parse(outcome.text) as Payload;
     expect(outcome.isError).toBe(false);
     expect(payload.success).toBe(true);
+    expect(payload.verdict).toBe('clean');
+    expect(payload.check_status).toBe('processed');
+    expect(payload.reason).toBeUndefined();
     expect(payload.object_name).toBe('ZCL_TEST');
     expect(payload.note).toBeUndefined();
   });
@@ -76,6 +98,7 @@ describe('CheckSyntax', () => {
     expect(outcome.isError).toBe(false);
     const payload = JSON.parse(outcome.text) as Payload;
     expect(payload.success).toBe(false);
+    expect(payload.verdict).toBe('errors');
     expect(payload.errors).toEqual([
       {
         type: 'E',
@@ -224,5 +247,91 @@ describe('CheckSyntax', () => {
 
     expect(outcome.isError).toBe(false);
     expect((JSON.parse(outcome.text) as Payload).success).toBe(true);
+  });
+});
+
+// ── D143 — 판정불능을 실패로 말하지 않는다 · main_program ─────────────────────
+
+describe('D143 — include의 판정불능과 main_program', () => {
+  it('메시지 없는 notProcessed는 success:null · verdict:indeterminate다 (구는 success:false · errors:[])', async () => {
+    const { outcome } = await runTool(
+      checkSyntax,
+      { object_type: 'include', object_name: 'zincl_test' },
+      csrfAware(() => ({ body: NOT_PROCESSED_REPORT })),
+    );
+
+    expect(outcome.isError).toBe(false);
+    const payload = JSON.parse(outcome.text) as Payload;
+    expect(payload.success).toBeNull();
+    expect(payload.verdict).toBe('indeterminate');
+    expect(payload.check_status).toBe('notProcessed');
+    expect(payload.errors).toEqual([]);
+    expect(payload.reason).toContain('no verdict');
+    expect(payload.reason).toContain('main_program');
+  });
+
+  it('include의 오류가 전부 「REPORT/PROGRAM 문이 없다」 잡음이면 그것도 판정불능이다', async () => {
+    const { outcome } = await runTool(
+      checkSyntax,
+      { object_type: 'include', object_name: 'zincl_test' },
+      csrfAware(() => ({ body: REPORT_MISSING_NOISE })),
+    );
+
+    const payload = JSON.parse(outcome.text) as Payload;
+    expect(payload.success).toBeNull();
+    expect(payload.verdict).toBe('indeterminate');
+    expect(payload.reason).toContain('could not compile the include on its own');
+    // 원문은 버리지 않는다 — errors에 그대로 남는다.
+    expect(payload.errors[0]?.text).toContain('REPORT/PROGRAM statement is missing');
+  });
+
+  it('main_program을 주면 그 프로그램의 트리(비활성)를 검사하는 본문을 보낸다', async () => {
+    const { outcome, requests } = await runTool(
+      checkSyntax,
+      { object_type: 'include', object_name: 'zincl_test', main_program: 'zprog_main' },
+      csrfAware(() => ({ body: CLEAN_REPORT })),
+    );
+
+    const sent = toolRequests(requests);
+    expect(sent).toHaveLength(1);
+    expect(sent[0]?.url).toBe(CHECKRUN_URL);
+    // 쓰기 쪽 `runProgramTreeCheck`와 같은 요청 — 프로그램 URI 하나 · inactive · 인클루드 URI 없음.
+    expect(sent[0]?.body).toContain(
+      '<chkrun:checkObject adtcore:uri="/sap/bc/adt/programs/programs/zprog_main" chkrun:version="inactive"/>',
+    );
+    expect(sent[0]?.body).not.toContain('programs/includes');
+
+    const payload = JSON.parse(outcome.text) as Payload;
+    expect(payload.success).toBe(true);
+    expect(payload.verdict).toBe('clean');
+    expect(payload.main_program).toBe('ZPROG_MAIN');
+    expect(payload.object_name).toBe('ZINCL_TEST');
+  });
+
+  it('main_program 문맥에서 난 실오류는 verdict:errors로 정상 결과에 실린다', async () => {
+    const { outcome } = await runTool(
+      checkSyntax,
+      { object_type: 'include', object_name: 'zincl_test', main_program: 'zprog_main' },
+      csrfAware(() => ({ body: ERROR_REPORT })),
+    );
+
+    expect(outcome.isError).toBe(false);
+    const payload = JSON.parse(outcome.text) as Payload;
+    expect(payload.success).toBe(false);
+    expect(payload.verdict).toBe('errors');
+    expect(payload.errors).toHaveLength(1);
+  });
+
+  it('include가 아닌 종류에 준 main_program은 무시되고 note로 남는다', async () => {
+    const { outcome, requests } = await runTool(
+      checkSyntax,
+      { object_type: 'class', object_name: 'zcl_test', main_program: 'zprog_main' },
+      csrfAware(() => ({ body: CLEAN_REPORT })),
+    );
+
+    expect(toolRequests(requests)[0]?.body).toContain('adtcore:uri="/sap/bc/adt/oo/classes/zcl_test"');
+    const payload = JSON.parse(outcome.text) as Payload;
+    expect(payload.main_program).toBeUndefined();
+    expect(payload.note).toContain("main_program only applies to object_type 'include'");
   });
 });

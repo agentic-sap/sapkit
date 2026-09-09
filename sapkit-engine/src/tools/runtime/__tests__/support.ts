@@ -23,6 +23,7 @@ import type { HttpTransport } from '../../../adt';
 import type { ConnectionConfig } from '../../../contracts';
 import { createServerCore, resolveStartup } from '../../../server';
 import type { SapTool } from '../../../server';
+import { applyAmendments } from '../../read/__tests__/support';
 
 const created: string[] = [];
 
@@ -302,7 +303,9 @@ export function publishedDeclaration(name: string): {
   };
   const entry = parsed.tools[name];
   if (!entry) throw new Error(`m1-tools.json의 tools(전량 선언)에 ${name} 항목이 없다`);
-  return entry;
+  // 덧말·덧인자(`harness/old-surface/amendments.json`)는 읽기 쪽 `applyAmendments`로
+  // 함께 조립한다 — 게이트(`gates/surface.mjs`)와 같은 표, 같은 규칙이다.
+  return applyAmendments(name, entry);
 }
 
 /** 도구 하나를 세우고 `tools/list`의 그 선언을 돌려준다. */

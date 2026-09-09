@@ -236,3 +236,155 @@ describe('UpdateProgram 오류 경로', () => {
     expect(jsonOf(result).activation_warnings).toEqual(['W: Unused variable LV_X']);
   });
 });
+
+// ── D144 — 거짓 FIXPT precheck ────────────────────────────────────────────────
+
+/** 실측 문구(2026-08-06 · 08-19)를 닮은 인라인 검사 실패 — FIXPT + 인라인 선언 연쇄. */
+function fixptCheckRun(): string {
+  return (
+    '<?xml version="1.0" encoding="UTF-8"?>' +
+    '<chkrun:checkRunReports xmlns:chkrun="http://www.sap.com/adt/checkrun">' +
+    '<chkrun:checkReport chkrun:reporter="abapCheckRun" chkrun:status="processed">' +
+    '<chkrun:checkMessageList>' +
+    '<chkrun:checkMessage chkrun:type="E" chkrun:shortText="This ABAP SQL statement uses additions that can only be used when the fixed point arithmetic flag is activated" line="120"/>' +
+    '<chkrun:checkMessage chkrun:type="E" chkrun:shortText="Field &quot;LT_HDR&quot; is unknown." line="131"/>' +
+    '</chkrun:checkMessageList>' +
+    '</chkrun:checkReport></chkrun:checkRunReports>'
+  );
+}
+
+/**
+ * 인라인 검사(본문에 `chkrun:artifact`가 있다)와 저장된 판 검사(없다)를 **본문으로** 가른다.
+ * 순번으로 가르면 어느 검사가 무엇을 받았는지가 시험에서 사라진다.
+ */
+function fixptResponder(scenario: { inline: string; stored: string; post?: string }) {
+  let storedChecks = 0;
+  return ((request, response) => {
+    if (request.path === URI && request.query.get('_action') === 'LOCK') return xml(response, lockBody());
+    if (request.path === URI && request.query.get('_action') === 'UNLOCK') return xml(response, '<ok/>');
+    if (request.path === '/sap/bc/adt/checkruns') {
+      if (request.body.includes('chkrun:artifact')) return xml(response, scenario.inline);
+      storedChecks += 1;
+      // 첫 저장판 검사는 잠금 안의 재검사, 둘째는 사후검사다.
+      return xml(response, storedChecks === 1 ? scenario.stored : (scenario.post ?? cleanCheckRun()));
+    }
+    if (request.path === `${URI}/source/main` && request.method === 'PUT') return plainText(response, '');
+    if (request.path === '/sap/bc/adt/activation') return xml(response, activationBody());
+    response.statusCode = 500;
+    response.end(`예상하지 못한 요청: ${request.method} ${request.url}`);
+  }) as Parameters<typeof startWriteHarness>[0];
+}
+
+describe('D144 — 인라인 precheck가 FIXPT 계열로 실패하고 저장된 판이 깨끗하면 쓰기를 진행한다', () => {
+  it('저장판 검사를 한 번 더 돌린 뒤 PUT하고, 응답이 precheck_overridden과 오류 원문을 싣는다', async () => {
+    harness = await startWriteHarness(fixptResponder({ inline: fixptCheckRun(), stored: cleanCheckRun() }));
+    const result = await invoke(updateProgram, harness, { program_name: 'ZPROG', source_code: SOURCE });
+
+    expect(result.isError).toBe(false);
+    expect(harness.calls().map((call) => `${call.method} ${call.path}`)).toEqual([
+      `POST ${URI}`,
+      'POST /sap/bc/adt/checkruns', // 인라인(제안 소스)
+      'POST /sap/bc/adt/checkruns', // 저장된 판 — D144의 재검사
+      `PUT ${URI}/source/main`,
+      `POST ${URI}`,
+      'POST /sap/bc/adt/checkruns', // 사후검사
+    ]);
+    // 재검사는 저장된 **비활성** 판을, 제안 소스 없이 묻는다.
+    const recheck = harness.nth(2);
+    expect(recheck.body).not.toContain('chkrun:artifact');
+    expect(recheck.body).toContain(`<chkrun:checkObject adtcore:uri="${URI}" chkrun:version="inactive"/>`);
+    expect(recheck.headers['x-sap-adt-sessiontype']).toBe('stateful');
+
+    const payload = jsonOf(result);
+    expect(payload.success).toBe(true);
+    expect(payload.precheck_overridden).toBe(true);
+    expect(payload.precheck_messages).toEqual([
+      expect.objectContaining({ type: 'E', text: expect.stringContaining('fixed point arithmetic'), line: '120' }),
+      expect.objectContaining({ type: 'E', text: 'Field "LT_HDR" is unknown.', line: '131' }),
+    ]);
+    expect(String(payload.precheck_note)).toContain('WITHOUT a pre-write syntax verdict');
+    expect(payload.steps_completed).toEqual([
+      'lock',
+      'check_new_code',
+      'check_stored_version',
+      'update',
+      'unlock',
+      'check_inactive',
+    ]);
+    expect(harness.client.activeLocks()).toHaveLength(0);
+  });
+
+  it('저장된 판도 실오류를 내면 precheck를 믿고 구 그대로 막는다 (PUT 없음)', async () => {
+    harness = await startWriteHarness(
+      fixptResponder({ inline: fixptCheckRun(), stored: failingCheckRun('Field "LT_HDR" is unknown.', '131') }),
+    );
+    const result = await invoke(updateProgram, harness, { program_name: 'ZPROG', source_code: SOURCE });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('preCheck syntax check failed (2 errors)');
+    expect(textOf(result)).toContain('fixed point arithmetic');
+    expect(harness.calls().some((call) => call.method === 'PUT')).toBe(false);
+    expect(harness.calls().filter((call) => call.path === '/sap/bc/adt/checkruns')).toHaveLength(2);
+    expect(harness.client.activeLocks()).toHaveLength(0);
+  });
+
+  it('저장된 판의 「REPORT/PROGRAM 문이 없다」 잡음은 깨끗한 것으로 친다 (비활성 판이 없는 프로그램)', async () => {
+    harness = await startWriteHarness(
+      fixptResponder({
+        inline: fixptCheckRun(),
+        stored: failingCheckRun('REPORT/PROGRAM statement is missing, or the program type is INCLUDE', '1'),
+      }),
+    );
+    const result = await invoke(updateProgram, harness, { program_name: 'ZPROG', source_code: SOURCE });
+    expect(result.isError).toBe(false);
+    expect(jsonOf(result).precheck_overridden).toBe(true);
+  });
+
+  it('FIXPT 문구가 없는 실패는 저장판을 묻지 않고 구 그대로 막는다 (과수리 역검증)', async () => {
+    harness = await startWriteHarness(
+      fixptResponder({ inline: failingCheckRun('Field ZZ is unknown', '9'), stored: cleanCheckRun() }),
+    );
+    const result = await invoke(updateProgram, harness, { program_name: 'ZPROG', source_code: SOURCE });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('Field ZZ is unknown');
+    // 인라인 검사 하나뿐 — 재검사가 나가지 않는다.
+    expect(harness.calls().filter((call) => call.path === '/sap/bc/adt/checkruns')).toHaveLength(1);
+    expect(harness.calls().some((call) => call.method === 'PUT')).toBe(false);
+  });
+
+  it('넘어 쓴 뒤의 사후검사 오류는 check_warnings로 그대로 실린다 — 진짜 판정은 거기와 활성화다', async () => {
+    harness = await startWriteHarness(
+      fixptResponder({
+        inline: fixptCheckRun(),
+        stored: cleanCheckRun(),
+        post: failingCheckRun('Statement is not valid here', '77'),
+      }),
+    );
+    const result = await invoke(updateProgram, harness, { program_name: 'ZPROG', source_code: SOURCE });
+    expect(result.isError).toBe(false);
+    const warnings = jsonOf(result).check_warnings as Array<Record<string, unknown>>;
+    expect(warnings).toEqual([expect.objectContaining({ type: 'E', text: 'Statement is not valid here' })]);
+    expect(jsonOf(result).precheck_overridden).toBe(true);
+  });
+
+  it('activate:true면 넘어 쓴 뒤 활성화 실패가 여전히 실패로 되돌아온다', async () => {
+    let activationSeen = false;
+    const inner = fixptResponder({ inline: fixptCheckRun(), stored: cleanCheckRun() });
+    harness = await startWriteHarness(((request, response, index) => {
+      if (request.path === '/sap/bc/adt/activation') {
+        activationSeen = true;
+        return xml(response, activationBody([{ type: 'E', text: 'Field LT_HDR is unknown' }]));
+      }
+      return inner(request, response, index);
+    }) as Parameters<typeof startWriteHarness>[0]);
+    const result = await invoke(updateProgram, harness, {
+      program_name: 'ZPROG',
+      source_code: SOURCE,
+      activate: true,
+    });
+    expect(activationSeen).toBe(true);
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('Activation failed');
+  });
+});

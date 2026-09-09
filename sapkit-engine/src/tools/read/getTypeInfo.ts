@@ -35,6 +35,15 @@
  * 오류는 **던져서** 바깥 catch가 `ADT error: …`로 접는다(`:161-166`) — 즉 401·500은
  * 다음 후보를 시도하지 않는다.
  *
+ * ## 422도 「다음 후보」다 (차이 — `harness/DIVERGENCES.md` D146)
+ *
+ * 구조체 이름을 주면 첫 후보(도메인 `source/main`)가 **HTTP 422**로 답하고, 구는 그것을
+ * 「404가 아니다」로 던져 구조 폴백에 닿지 못한 채 죽었다(2026-09-09 실측 —
+ * `sapkit-feedback.md`). `include_structure_fallback`의 설명("404/empty에서만")이 그
+ * 실패를 예고하지 않는다. 지금은 `NEXT_CANDIDATE_STATUSES`(400·404·405·406·415·422 —
+ * 「그 이름이 이 종류가 아니다」 계열)를 다음 후보로 넘기고, 401·403·5xx는 구 그대로
+ * 던진다. 실기 미검증(422가 나는 정확한 응답 본문은 채록되지 않았다).
+ *
  * ## 「쓸 만한 결과」의 정의가 파싱 결과에도 걸린다
  *
  * `hasUsableResult`(`:111-129`)는 응답 본문에도, **파싱한 payload에도** 적용된다.
@@ -87,6 +96,12 @@ export function hasUsableResult(value: unknown): boolean {
 }
 
 const asString = (value: unknown): unknown => value;
+
+/**
+ * D146 — 「이 이름은 이 종류가 아니다」로 읽는 HTTP 상태. 다음 후보로 넘어간다.
+ * 401·403(인증·권한)과 5xx는 여기 없다 — 그것은 후보를 바꿔도 같은 실패다.
+ */
+export const NEXT_CANDIDATE_STATUSES: ReadonlySet<number> = new Set([400, 404, 405, 406, 415, 422]);
 
 /** 구 `parseTypeInfoXml`(`:44-89`) 그대로 — 데이터 요소 → 도메인 → 원문 순서. */
 export function parseTypeInfoXml(xml: string): unknown {
@@ -150,8 +165,10 @@ export function parseStructureInfoXml(xml: string): unknown {
 export const getTypeInfo = defineTool(
   {
     name: 'GetTypeInfo',
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D146.
     description:
-      '[read-only] Retrieve ABAP type information for domains (DOMA), data elements (DTEL), table types, and structures. Returns field definitions, value ranges, fixed values, and DDIC metadata.',
+      '[read-only] Retrieve ABAP type information for domains (DOMA), data elements (DTEL), table types, and structures. Returns field definitions, value ranges, fixed values, and DDIC metadata.' +
+      ' A name that is not a domain can answer HTTP 422 (not 404) on the first candidate; 400/405/406/415/422 now also move on to the next candidate and to the structure fallback, so a structure name reaches the structures lookup.',
     inputSchema: {
       type_name: z.string().describe('Name of the ABAP type'),
       include_structure_fallback: z
@@ -186,7 +203,7 @@ export const getTypeInfo = defineTool(
       // 이 한 자리만 소문자다 — 구의 실측(`handleGetTypeInfo.ts:193-195`).
       const uri = encodeURIComponent(`/sap/bc/adt/ddic/domains/${typeName.toLowerCase()}`);
 
-      /** 후보 하나를 물어본다. 404·빈 결과는 `null`, 그 밖의 오류는 던진다. */
+      /** 후보 하나를 물어본다. 404(및 D146의 4xx 계열)·빈 결과는 `null`, 그 밖의 오류는 던진다. */
       const tryLookup = async (
         path: string,
         parse: (xml: string) => unknown,
@@ -197,7 +214,10 @@ export const getTypeInfo = defineTool(
           const response = await client.request({ method: 'GET', path, timeout: 'default' });
           body = response.body;
         } catch (error) {
-          if (error instanceof AdtError && error.status === 404) return null;
+          if (error instanceof AdtError && NEXT_CANDIDATE_STATUSES.has(error.status ?? 0)) {
+            context.logger.debug(`Candidate ${path} answered HTTP ${error.status} — trying the next one`);
+            return null;
+          }
           throw error;
         }
 

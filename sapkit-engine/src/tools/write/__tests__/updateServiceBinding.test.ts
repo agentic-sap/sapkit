@@ -11,18 +11,13 @@
  *    (`unchanged`·이미 발행됨은 두 번째 요청이 없다) ·
  *    `:122-151`(publishjobs/unpublishjobs · 타임아웃 long) ·
  *    `:85-110`(`@_` 접두사 상태 파서)
+ *  - **속성이 없으면 UNKNOWN으로 거부하던 자리** → 차이 D142(서버 판정에 맡긴다)
  */
 
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-
-import { createServerCore, resolveStartup } from '../../../server';
 import type { ToolResult } from '../../../server';
 import { updateServiceBinding } from '../updateServiceBinding';
 import { type WriteHarness, jsonOf, startWriteHarness, textOf, xml } from './harness';
+import { publishedDeclaration, publishedSurfaceOf } from './tableStructurePublication';
 
 const URI = '/sap/bc/adt/businessservices/bindings/zui_my_binding';
 
@@ -71,39 +66,11 @@ const ARGS = {
 
 // ── 발행 계약 ───────────────────────────────────────────────────────────────
 
-const CAPTURED = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, '../../../../harness/old-surface/m1-tools.json'), 'utf8'),
-) as { tools: Record<string, unknown> };
-
 describe('발행 계약', () => {
-  it('tools/list 선언이 구 번들 채록본과 글자까지 같다', async () => {
-    const startup = resolveStartup({
-      argv: ['/usr/bin/node', '/app/entry.js', '--exposition=readonly,high'],
-      env: {},
-      cwd: process.cwd(),
-      homedir: process.cwd(),
-    });
-    const core = createServerCore({
-      startup: { ...startup, profile: { ...startup.profile, systemType: 'cloud' } },
-      tools: [updateServiceBinding],
-      stderr: () => {},
-    });
-    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
-    const client = new Client({ name: 'contract-test', version: '0.0.0' });
-    await Promise.all([core.server.connect(serverTransport), client.connect(clientTransport)]);
-    try {
-      const listed = await client.listTools();
-      const published = listed.tools[0] as unknown as Record<string, unknown>;
-      expect({
-        name: published.name,
-        description: published.description,
-        inputSchema: published.inputSchema,
-        execution: published.execution,
-      }).toEqual(CAPTURED.tools['UpdateServiceBinding']);
-    } finally {
-      await client.close();
-      await core.server.close();
-    }
+  it('tools/list 선언이 구 번들 채록본 + 덧말(D142)과 글자까지 같다', async () => {
+    expect(await publishedSurfaceOf(updateServiceBinding)).toEqual(
+      publishedDeclaration('UpdateServiceBinding'),
+    );
   });
 
   it('노출 선언과 정책 분류', () => {
@@ -236,18 +203,6 @@ describe('상태 전이 거부 — 요청을 보내기 전에 던진다', () => 
     }
   });
 
-  it('허용 동작 자체가 없으면 UNKNOWN으로 적는다', async () => {
-    const harness = await harnessFor({ state: bindingState() });
-    try {
-      const result = await run(harness, { ...ARGS });
-      expect(textOf(result)).toBe(
-        'Error: Invalid state transition: cannot publish service binding ZUI_MY_BINDING. allowedAction=UNKNOWN',
-      );
-    } finally {
-      await harness.close();
-    }
-  });
-
   it('발행취소가 허용되지 않으면 거부한다', async () => {
     const harness = await harnessFor({ state: bindingState({ allowedAction: 'PUBLISH' }) });
     try {
@@ -259,6 +214,72 @@ describe('상태 전이 거부 — 요청을 보내기 전에 던진다', () => 
       expect(textOf(result)).toBe(
         'Error: Invalid state transition: cannot unpublish service binding ZUI_MY_BINDING. allowedAction=PUBLISH',
       );
+      expect(harness.calls()).toHaveLength(1);
+    } finally {
+      await harness.close();
+    }
+  });
+});
+
+// ── D142 — 속성이 없으면 서버 판정에 맡긴다 ─────────────────────────────────
+
+describe('D142 — srvb:allowedAction이 **없으면** 거부하지 않고 요청을 보낸다', () => {
+  it('발행: 속성 없는 응답이면 publishjobs를 세우고 allowed_action_known:false를 싣는다 (구는 UNKNOWN으로 거부)', async () => {
+    const harness = await harnessFor({ state: bindingState() });
+    try {
+      const result = await run(harness, { ...ARGS });
+      expect(result.isError).toBe(false);
+      expect(harness.calls().map((call) => `${call.method} ${call.path}`)).toEqual([
+        `GET ${URI}`,
+        'POST /sap/bc/adt/businessservices/odatav4/publishjobs',
+      ]);
+      const payload = jsonOf(result);
+      expect(payload.allowed_action_known).toBe(false);
+      expect(payload.allowed_action).toBeNull();
+      expect(payload.success).toBe(true);
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it('발행취소: 속성 없는 응답이면 unpublishjobs를 세운다', async () => {
+    const harness = await harnessFor({ state: bindingState({ published: true }) });
+    try {
+      const result = await run(harness, { ...ARGS, desired_publication_state: 'unpublished' });
+      expect(result.isError).toBe(false);
+      expect(harness.nth(1).path).toBe('/sap/bc/adt/businessservices/odatav4/unpublishjobs');
+      expect(jsonOf(result).allowed_action_known).toBe(false);
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it('속성이 없어 보낸 요청을 서버가 거절하면 **그 판정이 그대로** 올라간다 — 도구가 대신 판정하지 않는다', async () => {
+    const harness = await harnessFor({
+      state: bindingState(),
+      jobStatus: 400,
+      job:
+        '<?xml version="1.0" encoding="utf-8"?>' +
+        '<exc:exception xmlns:exc="http://www.sap.com/abapxml/types/communicationframework">' +
+        '<namespace id="com.sap.adt"/><type id="ExceptionResourceNoAccess"/>' +
+        '<message lang="EN">Service definition is not active</message><properties/></exc:exception>',
+    });
+    try {
+      const result = await run(harness, { ...ARGS });
+      expect(result.isError).toBe(true);
+      expect(textOf(result)).toBe('Error: SAP Error: Service definition is not active [HTTP 400]');
+      expect(harness.calls()).toHaveLength(2);
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it('속성이 **있고** 어긋나면 여전히 요청 전에 거부한다 (과수리 역검증)', async () => {
+    const harness = await harnessFor({ state: bindingState({ allowedAction: 'UNPUBLISH' }) });
+    try {
+      const result = await run(harness, { ...ARGS });
+      expect(result.isError).toBe(true);
+      expect(textOf(result)).toContain('allowedAction=UNPUBLISH');
       expect(harness.calls()).toHaveLength(1);
     } finally {
       await harness.close();
@@ -287,6 +308,8 @@ describe('응답 조립', () => {
         service_type: 'ODataV2',
         service_name: 'ZUI_MY_SERVICE',
         service_version: null,
+        allowed_action_known: true,
+        allowed_action: 'PUBLISH',
         response_format: 'xml',
         status: 200,
         payload: { job: { status: 'ok' } },

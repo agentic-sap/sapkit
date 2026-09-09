@@ -16,6 +16,7 @@ import * as path from 'node:path';
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { ToolListChangedNotificationSchema } from '@modelcontextprotocol/sdk/types.js';
 import * as z from 'zod';
 
 import type { AdtClient } from '../../../adt';
@@ -23,6 +24,7 @@ import { mockTransport, tokenBody } from '../../../auth/__tests__/helpers';
 import type { ConnectionConfig } from '../../../contracts';
 import { connectDestination, createServerCore, defineTool, resolveStartup } from '../../../server';
 import type { SapTool, Startup, ToolContext } from '../../../server';
+import * as startupModule from '../../../server/startup';
 import { reloadProfile } from '../reloadProfile';
 import { cleanupTempDirs, probeTier, publishedDeclaration, publishedOf, tempDir } from './support';
 
@@ -77,14 +79,31 @@ function fakeWrite(): SapTool {
   );
 }
 
+/** onprem 축에만 뜨는 가짜 도구 — 배포 축이 바뀌면 목록이 실제로 달라지는지를 재는 용도(D147). */
+function fakeOnpremOnly(): SapTool {
+  return defineTool(
+    {
+      name: 'GetOnpremFixture',
+      description: 'fixture onprem-only tool.',
+      inputSchema: {},
+      available_in: ['onprem'],
+      sets: ['readonly'],
+      kind: 'read',
+    },
+    async () => ({ isError: false, content: [{ type: 'text', text: 'onprem' }] }),
+  );
+}
+
 interface Harness {
   readonly client: Client;
   readonly configs: ConnectionConfig[];
+  /** 서버가 보낸 `notifications/tools/list_changed`의 수. */
+  readonly listChanged: { count: number };
   close(): Promise<void>;
 }
 
-/** 포인터로 프로파일을 고르는 서버 하나. `ReloadProfile` + 가짜 write. */
-async function harnessAt(cwd: string, home: string): Promise<Harness> {
+/** 포인터로 프로파일을 고르는 서버 하나. `ReloadProfile` + 가짜 write (+ 추가 도구). */
+async function harnessAt(cwd: string, home: string, extraTools: SapTool[] = []): Promise<Harness> {
   const configs: ConnectionConfig[] = [];
   const startup = resolveStartup({
     argv: ['/usr/bin/node', '/app/sapkit-engine/entry.js', '--exposition=readonly,high'],
@@ -94,7 +113,7 @@ async function harnessAt(cwd: string, home: string): Promise<Harness> {
   });
   const core = createServerCore({
     startup,
-    tools: [reloadProfile, fakeWrite()],
+    tools: [reloadProfile, fakeWrite(), ...extraTools],
     connectionFactory: (config: ConnectionConfig): AdtClient => {
       configs.push(config);
       return { fake: true } as unknown as AdtClient;
@@ -103,10 +122,15 @@ async function harnessAt(cwd: string, home: string): Promise<Harness> {
   });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   const client = new Client({ name: 'reload-profile-test', version: '0.0.0' });
+  const listChanged = { count: 0 };
+  client.setNotificationHandler(ToolListChangedNotificationSchema, async () => {
+    listChanged.count += 1;
+  });
   await Promise.all([core.server.connect(serverTransport), client.connect(clientTransport)]);
   return {
     client,
     configs,
+    listChanged,
     async close() {
       await client.close();
       await core.server.close();
@@ -320,25 +344,78 @@ describe('갈래', () => {
     }
   });
 
-  it('배포 축이 바뀌면 restartRequired=true와 그 이유를 싣는다', async () => {
+  it('D147 — 배포 축이 바뀌면 목록을 다시 발행하고 restartRequired는 서지 않는다 (판B까지는 true였다)', async () => {
     const home = tempDir();
     const cwd = tempDir();
     profileAt(home, 'cloud1', { SAP_TIER: 'DEV', SAP_SYSTEM_TYPE: 'cloud' });
     profileAt(home, 'onprem1', { SAP_TIER: 'DEV', SAP_SYSTEM_TYPE: 'onprem' });
     pointAt(cwd, 'cloud1');
 
-    const harness = await harnessAt(cwd, home);
+    const harness = await harnessAt(cwd, home, [fakeOnpremOnly()]);
     try {
       const same = await reload(harness);
       expect(same.restartRequired).toBe(false);
       expect('note' in same).toBe(false); // undefined는 JSON.stringify가 떨군다
+      expect('tool_list_republished' in same).toBe(false);
+      // cloud 축: onprem 전용 도구는 목록에 없다.
+      const before = (await harness.client.listTools()).tools.map((tool) => tool.name).sort();
+      expect(before).toEqual(['CreateFixture', 'ReloadProfile']);
+      expect(harness.listChanged.count).toBe(0);
 
       pointAt(cwd, 'onprem1');
       const changed = await reload(harness);
-      expect(changed.restartRequired).toBe(true);
-      expect(String(changed.note)).toMatch(/tool list/i);
-      // 나머지는 이미 발효돼 있다 — 재시동은 목록 때문이지 tier 때문이 아니다.
+      expect(changed.restartRequired).toBe(false);
+      expect(changed.tool_list_republished).toEqual({ added: ['GetOnpremFixture'], removed: [] });
+      expect(String(changed.note)).toMatch(/re-registered for onprem/);
+      expect(String(changed.note)).toMatch(/notifications\/tools\/list_changed/);
+      expect(String(changed.note)).toMatch(/reconnect the MCP server \(\/mcp\)/);
+      // 나머지는 이미 발효돼 있다.
       expect(changed.tier).toBe('DEV');
+
+      // 목록이 **실제로** 달라졌고, 새 도구가 부를 수 있으며, 클라이언트가 알림을 받았다.
+      const after = (await harness.client.listTools()).tools.map((tool) => tool.name).sort();
+      expect(after).toEqual(['CreateFixture', 'GetOnpremFixture', 'ReloadProfile']);
+      expect((await call(harness, 'GetOnpremFixture')).text).toBe('onprem');
+      expect(harness.listChanged.count).toBeGreaterThanOrEqual(1);
+
+      // 같은 축으로 다시 재적재하면 더 이상 낡지 않았다 — 발행된 축과 견준다.
+      const again = await reload(harness);
+      expect('tool_list_republished' in again).toBe(false);
+      expect(again.restartRequired).toBe(false);
+
+      // 되돌리면 그 도구가 빠진다.
+      pointAt(cwd, 'cloud1');
+      const back = await reload(harness);
+      expect(back.tool_list_republished).toEqual({ added: [], removed: ['GetOnpremFixture'] });
+      expect((await harness.client.listTools()).tools.map((tool) => tool.name).sort()).toEqual(before);
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it('D147 — 봉인된 재적재는 목록을 건드리지 않는다', async () => {
+    const home = tempDir();
+    const cwd = tempDir();
+    profileAt(home, 'cloud1', { SAP_TIER: 'DEV', SAP_SYSTEM_TYPE: 'cloud' });
+    pointAt(cwd, 'cloud1');
+
+    const harness = await harnessAt(cwd, home, [fakeOnpremOnly()]);
+    try {
+      const before = (await harness.client.listTools()).tools.map((tool) => tool.name).sort();
+      // 해석기가 던지게 한다 — `src/server/__tests__/session.test.ts`의 봉인 시험과 같은 자리.
+      const spy = jest.spyOn(startupModule, 'resolveStartup').mockImplementation(() => {
+        throw new Error('프로파일 저장소를 읽을 수 없다');
+      });
+      let outcome: { isError: boolean; text: string };
+      try {
+        outcome = await call(harness, 'ReloadProfile');
+      } finally {
+        spy.mockRestore();
+      }
+      expect(outcome.isError).toBe(true);
+      expect(outcome.text).toMatch(/inspection-only/);
+      expect((await harness.client.listTools()).tools.map((tool) => tool.name).sort()).toEqual(before);
+      expect(harness.listChanged.count).toBe(0);
     } finally {
       await harness.close();
     }
@@ -458,6 +535,7 @@ describe('destination 기동의 재적재 (판M2-a 리뷰 권고 1)', () => {
     return {
       client,
       configs,
+      listChanged: { count: 0 },
       async close() {
         await client.close();
         await core.server.close();

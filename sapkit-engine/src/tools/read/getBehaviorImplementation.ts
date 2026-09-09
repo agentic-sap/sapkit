@@ -20,8 +20,10 @@ import { BEHAVIOR_IMPLEMENTATION, getBehavior } from './internal/behaviorRead';
 export const getBehaviorImplementation = defineTool(
   {
     name: 'GetBehaviorImplementation',
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json` · D-147 이정표).
     description:
-      'Retrieve ABAP behavior implementation definition. Supports reading active or inactive version.',
+      'Retrieve ABAP behavior implementation definition. Supports reading active or inactive version.' +
+      " Returns the class main source only — the lhc_*/lsc_* handler classes live in the implementations include (CCIMP), which is read with GetLocalTypes (and written with UpdateBehaviorImplementation's implementation_code).",
     inputSchema: {
       behavior_implementation_name: z
         .string()

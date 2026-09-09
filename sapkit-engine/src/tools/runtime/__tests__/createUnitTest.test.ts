@@ -108,10 +108,13 @@ describe('발행 계약', () => {
     expect(await publishedOf(createUnitTest)).toEqual(publishedDeclaration('CreateUnitTest'));
   });
 
-  it('선언은 형제 RunUnitTest와 글자까지 같다 — 갈리는 것은 엔드포인트다', () => {
-    expect(publishedDeclaration('CreateUnitTest').description).toBe(
-      publishedDeclaration('RunUnitTest').description,
-    );
+  it('선언은 형제 RunUnitTest와 같다 — 갈리는 것은 엔드포인트와 D-147의 이정표 덧말뿐이다', () => {
+    // 채록본 원문은 글자까지 같다. 다른 것은 `harness/old-surface/amendments.json`이
+    // CreateUnitTest에만 붙인 덧말(「이름과 달리 작성 도구가 아니다」)이다.
+    const create = publishedDeclaration('CreateUnitTest').description;
+    const run = publishedDeclaration('RunUnitTest').description;
+    expect(create.startsWith(run)).toBe(true);
+    expect(create.slice(run.length)).toMatch(/does not create or write a test/);
     expect(publishedDeclaration('CreateUnitTest').inputSchema).toEqual(
       publishedDeclaration('RunUnitTest').inputSchema,
     );
