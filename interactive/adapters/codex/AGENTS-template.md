@@ -1,7 +1,8 @@
 # AGENTS.md 병합 템플릿 (SAP 프로젝트 루트용)
 
 아래 블록을 대상 SAP 프로젝트의 `AGENTS.md`에 붙여 넣는다. `<LITE>`는 sapkit
-설치 경로(예: `D:\claude for SAP\sap-agentic-harness`)로 치환.
+설치 캐시 안의 플러그인 루트(`core/`·`server/`가 있는 디렉터리)로 치환.
+개발 저장소 루트 경로를 넣지 않는다.
 
 ---
 

@@ -3007,3 +3007,12 @@ user **0.10.1** / local **0.10.2**로 갈려 있다. ⓕ **SAP 실기 0.**
 2종 상시 게이트 · tier 게이트(QA/PRD write 차단) · attended-only · `unattended=sealed` ·
 동결 레포와 `private/` denylist 무접촉 · 사용자 프로젝트 **읽기 전용**(단 하나의 예외 =
 `~/.claude/sapkit-feedback.md`의 수확 표시 1항목 · 맨 위 append · 기존 항목 무수정).
+
+## D-148 — Codex 설치 전 보강: 배선 도구의 수정 범위·실패 판정과 배포 독립성 (2026-09-12)
+
+- **범위**: 사용자가 현재 플러그인을 설치할 수 없어 설치 전 가능한 수리를 요청했다. Direct/P0로 저장소 소스·문서·오프라인 시험만 수정하며 실제 설치·게시·SAP 접속은 하지 않는다.
+- **재현**: `codex-wire-mcp.mjs`가 경로 꼬리만 비교해 다른 서버·사용자 값·JSON 키도 재작성했다. `launch.cjs`가 없거나 `sap` 실행 설정이 잘못돼도 성공을 보고하고, 대상 0건의 `apply`도 exit 0이었다. 추가 회귀 단언 중 **19건 실패**로 재현했다.
+- **결정**: 재작성 대상을 `sap.args`의 런처와 `sap.env.NODE_PATH`로 제한한다. JSON 문법 오류는 기존 `PARSE_ERROR`, 실행 설정 오류·런처 파일 부재는 새 `INVALID_INSTALLATION`으로 무접촉 보고한다. 조회용 `status`는 exit 0을 유지하고, `apply`의 대상 부재·검증 실패는 exit 1로 바꾼다. `WIRED_OK`는 경로 배선 판정이며 Codex 서버 기동·SAP 연결 성공을 뜻하지 않는다.
+- **배포 경계**: 저장소 루트의 개발용 `.codex/hooks.json`은 제품 밖이다. 배포물은 `interactive/`이며 설치 캐시 안의 파일로 실행한다. README·AGENTS 템플릿의 개발 경로 예시를 제거하고 setup이 MCP 미노출 시 먼저 배선 상태를 확인하도록 정정했다. Codex 자체의 훅 지원과 SAPKIT 어댑터의 미배선도 구분했다([공식 훅 문서](https://learn.chatgpt.com/docs/hooks), 당일 확인). 훅 기본 미설치·실데이터 하드 차단 방침은 바꾸지 않는다.
+- **검증**: 기존 CI 대상 `test-codex-wire-mcp.mjs`를 **82/82**로 확장했다. 실제 git 추적 배포 트리를 공백·한글 경로의 임시 캐시에 복사하고, 복사본 배선 도구·MCP `initialize`→`tools/list`·검사기 `--help`를 별도 cwd에서 실행했다. 홈·프로파일은 임시 경로로 격리하며 서버는 inspection-only다.
+- **영향·한계**: 플러그인 **0.10.4** 및 생성 매니페스트 갱신. 엔진·검사기 번들·도구 표면은 무변경. 실제 Codex의 설치·스킬 소비·승인 UI·SAP 왕복을 검증한 것이 아니므로 `compatibility.json`의 `minimumSupported`·`lastVerified`는 그대로다. 독립 fresh-context 리뷰는 수행하지 않았으며 오프라인 검증 결과만 기록한다.

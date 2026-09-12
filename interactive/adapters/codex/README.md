@@ -1,8 +1,14 @@
 # Codex CLI 어댑터
 
-Codex 플러그인은 Claude와 동형이다 — 같은 레포 루트가 플러그인 루트이고,
-`.codex-plugin/plugin.json` + `.agents/plugins/marketplace.json`이 매니페스트다.
-같은 `skills/` 래퍼가 그대로 쓰인다 (SKILL.md 형식이 양사 공통 — L0/L4 실측).
+배포 단위는 저장소의 **`interactive/`**다. 저장소 루트의
+`.agents/plugins/marketplace.json`이 이 디렉터리를 가리키며, 설치 후에는 Codex
+캐시에 복사된 디렉터리가 **플러그인 루트**가 된다. 그 안의
+`.codex-plugin/plugin.json`과 `skills/`·`core/`·`server/`를 사용한다.
+Claude와 같은 `skills/` 래퍼를 공유한다 (SKILL.md 형식이 양사 공통 — L0/L4 실측).
+
+**개발 저장소의 위치는 배포본 실행에 필요하지 않다.** 저장소 루트의
+`.codex/hooks.json`·`.claude/hooks/`는 이 저장소 개발용이며 배포 플러그인에 포함되지
+않는다. 사용자의 SAP 작업 프로젝트와 플러그인 설치 캐시도 서로 다른 디렉터리다.
 
 빠른 시작: 설치 후 `setup` 스킬을 실행하면 SAP 연결 파일(프로파일·`.sapkit/` 2개)
 생성과 자가 점검을 대화형으로 대신한다 — Codex의 MCP 배선도 이제 setup Step 0이
@@ -24,7 +30,7 @@ $sapkit:setup
 **로컬 체크아웃 설치** (개발/도그푸딩 — 2026-07-10, codex-cli 0.144.1 실측 통과):
 
 ```
-codex plugin marketplace add "D:\claude for SAP\sap-agentic-harness"
+codex plugin marketplace add "<로컬 체크아웃 경로>"
 codex plugin add sapkit@agentic-sap
 ```
 
@@ -36,6 +42,17 @@ codex plugin add sapkit@agentic-sap
 `cache/<마켓>/<플러그인>/<버전>` 구조다(D-041 개명에서의 예상값이 실측으로 확정됐다).
 
 어댑터-코어 동기화 점검: `node interactive/scripts/doctor.mjs` (3사 동기화 점검)
+
+## 설치 전 개발자 검증
+
+저장소에서 `node interactive/scripts/test-codex-wire-mcp.mjs`를 실행한다. 실제 Codex
+설치·사용자 캐시·SAP 연결 없이, git에 추적된 `interactive/` 배포 파일만 임시 캐시에
+복사하고 **복사본의** 배선 스크립트·MCP 서버·검사기를 별도 작업 폴더에서 실행한다.
+공백·한글 경로, 다른 서버 설정 보존, 손상된 설치본 거부도 확인한다.
+
+이 시험은 패키징과 서버의 `initialize`·`tools/list`까지 확인한다. **Codex 앱의 스킬
+로딩·승인 화면·실 SAP 왕복 검증은 포함하지 않으며**, `compatibility.json`의 정식
+호환성 판정을 올리는 근거로 사용하지 않는다.
 
 ## MCP 서버 (번들 — 수동 `codex mcp add` 폐기)
 
@@ -62,11 +79,16 @@ Step 0) — 수동 실행은 setup을 거치지 않았거나, 플러그인 업�
 
 | state | 의미 | 조치 |
 |---|---|---|
-| `WIRED_OK` | 이미 절대경로로 배선됨 | 조치 없음 |
+| `WIRED_OK` | 실행 설정·런처 파일 확인 및 절대경로 배선 완료 | 실제 서버 기동은 Codex에서 확인 |
 | `TOKEN_PENDING` | 신규 설치 직후, 토큰 미해결 | `apply` 실행 후 새 세션 |
 | `STALE_PATH` | 과거엔 배선됐던 경로가 더 이상 유효하지 않음(예: 업데이트 후) | `apply` 실행 후 새 세션 |
 | `NOT_FOUND` | 설치본을 찾지 못함 | Codex 플러그인 미설치로 취급 |
 | `PARSE_ERROR` | 매니페스트/설정 파싱 실패 | 자동 진행하지 않음 — 사람이 직접 확인 |
+| `INVALID_INSTALLATION` | `sap` 실행 설정 오류 또는 `launch.cjs` 파일 부재 | 재작성하지 않음 — 설치본 복구 후 재시도 |
+
+`status`는 상태 조회라 미설치·손상도 JSON으로 보고하며 exit 0이다. `apply`는 대상이
+없거나 설치본 검증·파싱·쓰기가 실패하면 exit 1이다. `sap.args`의 런처와
+`sap.env.NODE_PATH`만 수정하며, 다른 서버·사용자 값·JSON 키는 보존한다.
 
 `launch.cjs`(shim)가 여전히 `<cwd>/.sapkit/active-profile.txt` → 프로파일 sap.env를
 `MCP_ENV_PATH`로 배선한다. 따라서 **연결은 codex를 실행한 폴더 기준** — 그 폴더에
@@ -104,7 +126,7 @@ Step 0) — 수동 실행은 setup을 거치지 않았거나, 플러그인 업�
 
 ## 실데이터 2종 하드 차단 — 필수 (실 SAP 사용 전, HANDOFF §8-4)
 
-Codex엔 Claude의 L3 사전 차단 훅이 없다. `readonly`를 포함한 모든 도구면에 실
+SAPKIT의 Codex 어댑터는 Claude용 L3 사전 차단 훅을 설치하지 않는다. `readonly`를 포함한 모든 도구면에 실
 업무데이터를 반환하는 `GetTableContents`·`GetSqlQuery` 2종이 노출되므로, **Codex
 기본값은 이 둘을 `disabled_tools`로 하드 차단하는 것을 유지한다.**
 
@@ -163,7 +185,7 @@ node "PLUGIN_ROOT/checker/sapkit-checker.bundle.cjs" lint <파일>
 node "PLUGIN_ROOT/checker/sapkit-checker.bundle.cjs" analyze <파일> --format json
 ```
 
-Codex에는 훅이 없으므로 필요할 때 위 명령을 직접 부른다. 명령 4종
+이 어댑터에는 오프라인 검사 자동 실행 훅이 배선되어 있지 않으므로 필요할 때 위 명령을 직접 부른다. 명령 4종
 (`lint`·`parse`·`analyze`·`check`)·exit 계약·두 품질 표면의 차이:
 [core/procedures/troubleshooting.md §7](../../core/procedures/troubleshooting.md#7-sapkit-checker--local-offline-analysis-bundled).
 
@@ -175,8 +197,8 @@ Codex에는 훅이 없으므로 필요할 때 위 명령을 직접 부른다. �
 ## 세션 간 연속성 (HANDOFF.md · RUN-PLAN.md)
 
 사용자 SAP 프로젝트 루트의 재개점 2종 — `HANDOFF.md`(어디까지 갔는가)와
-`RUN-PLAN.md`(다음 큐) — 은 `handoff` 스킬이 관리한다. **Codex에는 훅 등가물이 없다** —
-세션 시작 훅은 Claude Code에만 있는 기제이므로, 그 자리를 대신하는 것은 **정적 안내**다:
+`RUN-PLAN.md`(다음 큐) — 은 `handoff` 스킬이 관리한다. **이 어댑터는 연속성 훅을
+설치하지 않으며 정적 안내를 사용한다**:
 위 "SAP 프로젝트 루트 AGENTS.md" 절의 병합 블록이 매 세션 자동 로드되고, 그 블록의
 always-on 규칙 7번이 "세션 시작 시 읽고, 마감할 때 `handoff`로 갱신한다"를 담당한다.
 
@@ -187,7 +209,9 @@ always-on 규칙 7번이 "세션 시작 시 읽고, 마감할 때 `handoff`로 �
 
 ## 안전 모델 주의 (정직성 명시)
 
-Codex에는 도구 호출 사전 차단 훅이 없다. 방어선은
+현재 Codex 자체는 [훅을 지원한다](https://learn.chatgpt.com/docs/hooks)(공식 문서 확인
+2026-09-12). 그러나 SAPKIT의 Claude 훅을 Codex에 이식·검증한 것은 아니다.
+제품의 훅 기본 미설치 방침과 서버 게이트·실데이터 차단은 유지한다. 이 어댑터의 방어선은
 ① 문서 정책(AGENTS 요약+core/policies) ② 서버 내장 가드(SAP_TIER·blocklist)
 ③ toolSurface/exposition ④ **`disabled_tools` 하드 차단**(위 "실데이터 2종 하드 차단" —
 필수) ⑤ Codex 승인 모드/샌드박스. 실데이터 조회 2종(GetTableContents/GetSqlQuery)의
@@ -205,7 +229,7 @@ codex exec --sandbox read-only "PLUGIN_ROOT/core/procedures/review-checklist.md�
 
 ## 구현 위임 (execution_owner = delegated)
 
-Codex에는 플러그인이 정의하는 서브에이전트가 없다 — 위임 = **새 codex 세션**이다. 워커
+이 어댑터에는 워커 자동 기동이 배선되어 있지 않다 — 위임 = **새 codex 세션**이다. 워커
 기동이 이렇게 수동이므로 **create-program(Full)의 기본 소유자는 `main`으로 유지된다** —
 위임은 사용자가 명시적으로 요청할 때만이며, 그 명시 요청은 침묵 폴백되지 않는다(기동
 불가면 중단·설명).

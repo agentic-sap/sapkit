@@ -103,7 +103,7 @@ jobs:
       - name: launcher toolSurface 음성시험 (fail-closed 표 · 인자 우선순위)
         run: node interactive/scripts/test-launch-toolsurface.mjs
 
-      - name: Codex wrapper 배선 도구 음성시험 (토큰 치환 · 멱등 · 스테일 수리)
+      - name: Codex 배선·배포 복사본 실기동 (설치 불요 · 사용자 설정 보존 · 손상 거부)
         run: node interactive/scripts/test-codex-wire-mcp.mjs
 
       # ── 런타임 경로 (D-057 · 설계 §7-2·§7-3) ─────────────────────────────────

@@ -257,7 +257,7 @@ node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (�
 `test-check-runtime-path-rename.mjs` 14/14 · `test-hook-switch.mjs` 13/13 ·
 `test-hook-decisions.mjs` 74케이스 ·
 `test-setup-state.mjs` 120/120 · `test-launch-toolsurface.mjs` 56/56 ·
-`test-codex-wire-mcp.mjs` 51/51 · `test-doctor.mjs` 47/47 ·
+`test-codex-wire-mcp.mjs` 82/82(배포 복사본 실기동 포함) · `test-doctor.mjs` 47/47 ·
 `test-verify-checker.mjs` 21/21 · `test-check-doc-size.mjs` 15/15 ·
 `test-continuity-hook.mjs` 30/30.
 **PowerShell로 실행할 것** — Bash로 돌리면 자식 프로세스 수거에서 블록된다.

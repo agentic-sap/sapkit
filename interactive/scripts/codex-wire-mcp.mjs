@@ -20,11 +20,13 @@
 //   WIRED_OK      경로가 이미 자기 버전 디렉터리를 정확히 가리킨다 → apply는 byte-noop
 //   TOKEN_PENDING 아직 `{{SAPKIT_PLUGIN_ROOT}}` 토큰 상태 (= 갓 설치된 정상 상태)
 //   STALE_PATH    절대경로이긴 한데 **자기 캐시 루트가 아니다** (업데이트로 버전이 바뀐 뒤)
-//   NOT_FOUND     설치본을 못 찾았거나, wrapper에 플러그인 루트 경로 참조가 없다
+//   NOT_FOUND     설치본을 못 찾았다 (status는 조회, apply는 실패)
 //   PARSE_ERROR   wrapper가 JSON으로 읽히지 않는다 → **건드리지 않고** 오류로 보고
+//   INVALID_INSTALLATION sap 실행 설정이 잘못됐거나 launch.cjs가 없다 → 무접촉
 //
 // ─────────────────────────────── 치환 규칙 ────────────────────────────────────
-// 문자열 값 중 정규화(`\`→`/`) 후 아래 **꼬리 경로**로 끝나는 것만 통째로 재작성한다.
+// sap.args의 launch.cjs와 sap.env.NODE_PATH만 재작성한다. 같은 문자열이어도 다른
+// 서버·사용자 설정·JSON 키는 대상이 아니다. 정규화(`\`→`/`) 후 꼬리 경로를 비교한다.
 // 토큰형·스테일 절대경로·이미 올바른 값이 한 규칙으로 처리되므로 멱등이다.
 //   · server/launch.cjs
 //   · server/runtime-deps/keyring/node_modules
@@ -38,7 +40,7 @@
 //   node interactive/scripts/codex-wire-mcp.mjs status [--json]
 //   node interactive/scripts/codex-wire-mcp.mjs apply  [--json]
 //   옵션: --codex-home <dir>   (env CODEX_HOME보다 우선 — 시험·격리용)
-// exit: status는 항상 0(발견 0건 포함 — 상태 보고가 목적) / apply는 0, 파싱·쓰기 오류 시 1
+// exit: status는 항상 0(상태 보고) / apply는 대상 부재·설치 손상·파싱·쓰기 오류 시 1
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -54,7 +56,7 @@ const ROOT_TOKEN = '{{SAPKIT_PLUGIN_ROOT}}';
 const ROOT_SUFFIXES = ['server/runtime-deps/keyring/node_modules', 'server/launch.cjs'];
 const LAUNCHER = 'server/launch.cjs';
 
-const STATES = ['PARSE_ERROR', 'NOT_FOUND', 'STALE_PATH', 'TOKEN_PENDING', 'WIRED_OK'];
+const STATES = ['PARSE_ERROR', 'INVALID_INSTALLATION', 'NOT_FOUND', 'STALE_PATH', 'TOKEN_PENDING', 'WIRED_OK'];
 
 // ── 인자 ───────────────────────────────────────────────────────────────────
 const argv = process.argv.slice(2);
@@ -151,24 +153,68 @@ function suffixOf(decoded) {
   return null;
 }
 
-// 원문의 JSON 문자열 리터럴만 골라 대상 값을 재작성한다 (파싱→재직렬화 아님).
-const STRING_LITERAL = /"(?:[^"\\]|\\.)*"/g;
+// JSON.parse로 검증한 본문에서 값의 위치를 찾는다. 전체를 재직렬화하지 않아
+// EOL·들여쓰기·사용자 설정을 보존하고, 문자열이 같아도 소유 필드만 수정한다.
 function rewrite(text, rootPosix) {
   const refs = [];
-  const next = text.replace(STRING_LITERAL, (lit) => {
-    let decoded;
-    try {
-      decoded = JSON.parse(lit);
-    } catch {
-      return lit;
+  const edits = [];
+  const tokens = [...text.matchAll(/"(?:[^"\\]|\\.)*"|[{}\[\],:]|[^\s{}\[\],:]+/g)];
+  let cursor = 0;
+  function visit(keys) {
+    const token = tokens[cursor++];
+    const lit = token[0];
+    if (lit === '{') {
+      while (tokens[cursor][0] !== '}') {
+        const key = JSON.parse(tokens[cursor++][0]);
+        cursor++; // colon
+        visit([...keys, key]);
+        if (tokens[cursor][0] === ',') cursor++;
+      }
+      cursor++;
+      return;
     }
+    if (lit === '[') {
+      let index = 0;
+      while (tokens[cursor][0] !== ']') {
+        visit([...keys, index++]);
+        if (tokens[cursor][0] === ',') cursor++;
+      }
+      cursor++;
+      return;
+    }
+    if (keys.length !== 3 || keys[0] !== 'sap' || !lit.startsWith('"')) return;
+    const expected = keys[1] === 'args' && typeof keys[2] === 'number'
+      ? LAUNCHER
+      : keys[1] === 'env' && keys[2] === 'NODE_PATH'
+        ? ROOT_SUFFIXES[0]
+        : null;
+    if (!expected) return;
+    const decoded = JSON.parse(lit);
     const suffix = suffixOf(decoded);
-    if (!suffix) return lit;
+    if (suffix !== expected) return;
     const target = `${rootPosix}/${suffix}`;
     refs.push({ from: decoded, to: target, changed: decoded !== target, token: decoded.includes(ROOT_TOKEN) });
-    return JSON.stringify(target);
-  });
+    edits.push({ start: token.index, end: token.index + lit.length, value: JSON.stringify(target) });
+  }
+  visit([]);
+  let next = text;
+  for (const edit of edits.reverse()) next = next.slice(0, edit.start) + edit.value + next.slice(edit.end);
   return { next, refs };
+}
+
+function wrapperError(doc) {
+  const sap = doc?.sap;
+  if (!sap || typeof sap !== 'object' || Array.isArray(sap)) return 'sap 서버 설정이 없다';
+  if (typeof sap.command !== 'string' || !sap.command.trim()) return 'sap.command가 비어 있거나 문자열이 아니다';
+  if (!Array.isArray(sap.args) || sap.args.some((arg) => typeof arg !== 'string')) return 'sap.args는 문자열 배열이어야 한다';
+  if (sap.args.filter((arg) => suffixOf(arg) === LAUNCHER).length !== 1) return 'sap.args에 server/launch.cjs 경로가 정확히 하나 있어야 한다';
+  if (sap.env !== undefined && (!sap.env || typeof sap.env !== 'object' || Array.isArray(sap.env))) return 'sap.env는 객체여야 한다';
+  if (sap.env?.NODE_PATH !== undefined && typeof sap.env.NODE_PATH !== 'string') return 'sap.env.NODE_PATH는 문자열이어야 한다';
+  return null;
+}
+
+function isFile(file) {
+  try { return fs.statSync(file).isFile(); } catch { return false; }
 }
 
 function classify(refs) {
@@ -190,7 +236,7 @@ function inspect({ marketplace, version, wrapper }) {
     state: 'PARSE_ERROR',
     changed: false,
     bom: false,
-    launcherMissing: !fs.existsSync(path.join(root, ...LAUNCHER.split('/'))),
+    launcherMissing: !isFile(path.join(root, ...LAUNCHER.split('/'))),
     refs: [],
     error: null,
   };
@@ -206,10 +252,18 @@ function inspect({ marketplace, version, wrapper }) {
   // (JSON 소비자에게 BOM은 잠재 파싱 위험이고, 우리 생성물에는 애초에 없다).
   rec.bom = raw.charCodeAt(0) === 0xfeff;
   const body = rec.bom ? raw.slice(1) : raw;
+  let doc;
   try {
-    JSON.parse(body);
+    doc = JSON.parse(body);
   } catch (e) {
     rec.error = `JSON 파싱 실패: ${e.message}`;
+    return rec;
+  }
+
+  const invalid = wrapperError(doc) || (rec.launcherMissing ? `${LAUNCHER} 파일이 없다` : null);
+  if (invalid) {
+    rec.state = 'INVALID_INSTALLATION';
+    rec.error = `설치본 검증 실패 (쓰지 않음): ${invalid}`;
     return rec;
   }
 
@@ -223,7 +277,7 @@ function inspect({ marketplace, version, wrapper }) {
 
 // ── 쓰기 (atomic · UTF-8 무BOM · 원문 포맷/EOL 보존) ────────────────────────
 function applyOne(rec) {
-  if (rec.state === 'PARSE_ERROR' || rec.state === 'NOT_FOUND') return rec;
+  if (rec.error || rec.state === 'NOT_FOUND') return rec;
   if (rec._next === rec._raw) return rec; // 이미 올바르다 → byte-noop
 
   // 쓰기 전 결과가 여전히 유효한 JSON인지 확인 — 반쯤 망가진 파일을 남기지 않는다.
@@ -273,9 +327,10 @@ const summary = {
   stale: installs.filter((r) => r.state === 'STALE_PATH').length,
   notFound: installs.filter((r) => r.state === 'NOT_FOUND').length,
   parseErrors: installs.filter((r) => r.state === 'PARSE_ERROR').length,
+  invalidInstallations: installs.filter((r) => r.state === 'INVALID_INSTALLATION').length,
   changed: installs.filter((r) => r.changed).length,
 };
-const exitCode = action === 'apply' && errors.length ? 1 : 0;
+const exitCode = action === 'apply' && (!installs.length || errors.length) ? 1 : 0;
 
 const report = {
   tool: 'codex-wire-mcp',
@@ -301,6 +356,7 @@ const MARK = {
   STALE_PATH: '⚠️',
   NOT_FOUND: '❓',
   PARSE_ERROR: '❌',
+  INVALID_INSTALLATION: '❌',
 };
 console.log(`CODEX_HOME : ${toPosix(CODEX_HOME)}`);
 console.log(`캐시       : ${toPosix(CACHE_ROOT)}/<마켓>/${PLUGIN_NAME}/<버전>/adapters/codex/.mcp.json`);
@@ -325,16 +381,16 @@ if (!installs.length) {
 
 console.log(
   `\n요약: 발견 ${summary.found} · 정상 ${summary.wired} · 토큰대기 ${summary.pending} · ` +
-    `스테일 ${summary.stale} · 미발견 ${summary.notFound} · 파싱오류 ${summary.parseErrors}` +
+    `스테일 ${summary.stale} · 미발견 ${summary.notFound} · 파싱오류 ${summary.parseErrors} · 설치손상 ${summary.invalidInstallations}` +
     (action === 'apply' ? ` · 재작성 ${summary.changed}` : '')
 );
 
 if (action === 'status') {
   if (summary.pending || summary.stale || installs.some((r) => r.bom && r.state !== 'NOT_FOUND'))
     console.log('\n→ 배선: node scripts/codex-wire-mcp.mjs apply');
-  else if (summary.found && !summary.parseErrors && !summary.notFound) console.log('\n✅ 배선 완료 상태 — 할 일 없음');
+  else if (summary.found && !errors.length && !summary.notFound) console.log('\n✅ 경로 배선 완료 상태 — 서버 기동 여부는 Codex에서 확인');
 } else if (!errors.length) {
-  if (summary.changed) console.log('\n✅ 배선 완료 — 새 Codex 세션에서 MCP가 뜬다');
+  if (summary.changed) console.log('\n✅ 경로 배선 완료 — 새 Codex 세션에서 서버 기동을 확인하세요');
   else if (summary.found) console.log('\n✅ 변경 없음 (이미 배선됨)');
 }
 

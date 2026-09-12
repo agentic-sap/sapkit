@@ -33,7 +33,11 @@ missing or broken, and never rewrite a healthy existing artifact.
    `codex plugin add sapkit@agentic-sap`; on Antigravity, via
    `agy plugin install`. Report which one you're running under.
 2. Call a light MCP tool (`GetSession`) to confirm the `sap` server responds at
-   all.
+   all. On Codex, if the tool is not available, check item 4 first. A newly
+   repaired wrapper takes effect in a new session: continue only the local
+   setup steps for now, carry the restart into Step 5, and leave the live
+   connection check pending until Step 6. Do not claim that wiring a path
+   has confirmed the server or SAP connection.
 3. If no connection profile exists yet, `GetSession` will report an
    **inspection-only** session (no live SAP connection) — this is the expected
    state before Step 2, not an error. Tell the user this plainly, then continue.
@@ -50,16 +54,21 @@ missing or broken, and never rewrite a healthy existing artifact.
 
    | state | meaning | action |
    |---|---|---|
-   | `WIRED_OK` | already resolved to an absolute path | nothing to do |
+   | `WIRED_OK` | launch configuration and launcher file checked; paths resolved | verify actual server startup in Codex |
    | `TOKEN_PENDING` | fresh install, token not yet resolved | run `apply` below, then carry this into Step 5 |
    | `STALE_PATH` | previously wired, path no longer valid (e.g. after an update) | run `apply` below, then carry this into Step 5 |
    | `NOT_FOUND` | no installation found | treat as Codex not installed — skip the rest of this item |
    | `PARSE_ERROR` | manifest/config could not be parsed | stop and report it — do not auto-proceed; this needs a human look |
+   | `INVALID_INSTALLATION` | invalid `sap` launch configuration or missing `launch.cjs` | leave the wrapper unchanged; report the damaged installation |
 
    On `TOKEN_PENDING` or `STALE_PATH`, tell the user, then run:
    ```
    node "<installed plugin cache>/scripts/codex-wire-mcp.mjs" apply --json
    ```
+   Check its exit code and JSON result before reporting success. `status`
+   always exits 0 because it only reports state; `apply` exits 1 if there is
+   no installation or validation/parsing/writing fails. It only changes the
+   `sap` launch argument and keyring `NODE_PATH`, preserving other settings.
    This auto-locates the installed plugin cache and rewrites the token to an
    absolute path (idempotent — a no-op if already wired). Tell the user to
    start a **new Codex session** afterward so the MCP server picks up the
