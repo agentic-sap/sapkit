@@ -40,7 +40,13 @@ missing or broken, and never rewrite a healthy existing artifact.
    has confirmed the server or SAP connection.
 3. If no connection profile exists yet, `GetSession` will report an
    **inspection-only** session (no live SAP connection) — this is the expected
-   state before Step 2, not an error. Tell the user this plainly, then continue.
+   state before Step 2, not an error. Tell the user this in their own language,
+   in plain words, per the [plain-language policy](../policies/plain-language.md):
+   that nothing is connected to SAP yet (inspection-only — everything works
+   except anything that has to read from the live system), that this is exactly
+   what is expected at this point in the setup rather than something going
+   wrong, and that the connection is set up a couple of steps from here. Then
+   continue.
 4. **Codex only** — the bundled MCP wrapper may still carry an unresolved
    `{{SAPKIT_PLUGIN_ROOT}}` path token right after a fresh install: skills load
    fine, but the `sap` server itself doesn't start yet (harmless — its
@@ -91,7 +97,14 @@ missing or broken, and never rewrite a healthy existing artifact.
    current `toolSurface`; which of Claude/Codex/Antigravity are on `PATH`; and
    a few out-of-scope items (permission-template file, hooks installer) that
    Step 4 owns, plus whether the bundled SAPKIT checker is present.
-2. Summarize this in plain language for the user before doing anything else.
+2. Summarize this for the user before doing anything else — say it in their
+   language, in plain words, per the [plain-language policy](../policies/plain-language.md).
+   What has to come across, and nothing beyond it: whether this project has been
+   set up before; whether a connection to an SAP system is configured and what is
+   still missing from it; which of the three assistants this plugin is installed
+   into; and which optional extras are switched on. Name the state, not the files
+   it was read out of — no paths, no key names, no tool output. A password is
+   reported only as present or not; its value is never shown.
 
 ## Step 2 — Connection Profile
 
@@ -107,6 +120,14 @@ missing or broken, and never rewrite a healthy existing artifact.
    `SAP_TIER`, `SAP_ACTIVE_MODULES`, `MCP_BLOCKLIST_PROFILE`. Meaning, allowed
    values, and defaults are not repeated here — [project-context](../project-context.md)
    is the reference; point the user there for details.
+   Ask for each one in the user's language, in plain words, per the
+   [plain-language policy](../policies/plain-language.md): say what the value is
+   in the user's terms — the system's address, the client number, the user to log
+   in as, which kind of system this is — and give the key name alongside, because
+   that is what the user will see when they open the file themselves. Say once,
+   up front, why the whole set is being asked: it is what lets the plugin reach
+   their SAP system at all, and until it is filled in everything runs without a
+   live connection.
 3. Build the plan input as JSON —
    `{"profile": {"alias": "<alias>", "env": {...the fields the user gave you,
    excluding SAP_PASSWORD...}}}` — and write it to a temp file (any scratch
@@ -127,11 +148,14 @@ missing or broken, and never rewrite a healthy existing artifact.
    node "PLUGIN_ROOT/scripts/setup-state.mjs" apply --project <project path> --plan <plan.json> --json
    ```
    `SAP_PASSWORD` is always left as a blank line (`SAP_PASSWORD=`) no matter
-   what — this tool never writes a password. Tell the user: "Open this file
-   yourself and fill in the password — this wizard will not ask for it or
-   display it." Mention the OS-keyring alternative
-   ([credential-handling](../policies/credential-handling.md)) as a safer
-   option than plaintext.
+   what — this tool never writes a password. Say this to the user in their
+   language, in plain words, per the [plain-language policy](../policies/plain-language.md):
+   that the password line was left empty on purpose; that they fill it in
+   themselves by opening the file, whose full path you name; and that this
+   wizard will never ask for the password or show it back. Then offer the safer
+   alternative — storing it in the operating system's own credential store
+   instead of as plain text in the file — with one line of why it is safer
+   ([credential-handling](../policies/credential-handling.md)).
 6. If disk state changed between `plan` and `apply` (e.g. the user hand-edited
    the file in between), `apply` reports `BLOCKED` and writes nothing —
    rebuild the plan and reconfirm rather than retrying blindly.
@@ -143,9 +167,18 @@ missing or broken, and never rewrite a healthy existing artifact.
 1. Decide the target `toolSurface`: `readonly` (default, recommended) or
    `development`. `development` only takes effect when the chosen profile's
    `SAP_TIER=DEV` **and** the user explicitly asks for it here — otherwise the
-   launcher falls back to `readonly` (fail-closed by design, not a bug). Tell
-   the user this plainly before asking. A `toolSurface` change needs an MCP
-   restart to take effect (Step 5).
+   launcher falls back to `readonly` (fail-closed by design, not a bug).
+   Put it to the user in their language, in plain words, per the
+   [plain-language policy](../policies/plain-language.md): one line of why it is
+   being asked — it decides whether this plugin is allowed to change anything in
+   their SAP system at all — then the two choices, the recommended one first:
+   **look but do not touch (recommended)** — it can read and analyse, and cannot
+   create, change, or delete anything; recommended because it is the setting that
+   cannot cost anything if something goes wrong — and **allow changes too**,
+   available only on a development system, never on test or production. Say
+   plainly that if the connected system is not a development one, the safe
+   setting applies regardless of what is chosen here, and that this is deliberate
+   rather than a fault. A change here only takes effect after a restart (Step 5).
 2. Walk through the rest of `config.json`'s fields by **name only**:
    `sapVersion`, `abapRelease`, `activeModules`, `industry`, `country`,
    `blocklistProfile`, and `toolSurface` (decided above). Value lists and what
@@ -159,10 +192,15 @@ missing or broken, and never rewrite a healthy existing artifact.
    `minimal`\|`standard`\|`strict`\|`custom`. This is a **different** setting
    from the server-side `MCP_BLOCKLIST_PROFILE` env key from Step 2 (part of
    `sap.env`), which is what actually gates row-data access in the
-   hooks-off default state. Tell the user plainly: the server only accepts
-   `minimal`\|`standard`(default)\|`strict`\|`off` for that key — anything
-   else falls back to `standard`, so a typo can only land on the default and
-   never below it. The three keys
+   hooks-off default state. Say it to the user in their language, in plain
+   words, per the [plain-language policy](../policies/plain-language.md): that
+   there is a guard deciding which tables the plugin may read actual row data
+   out of; that it comes in a few strengths and the middle one applies unless
+   told otherwise; and that a mistyped strength always falls back to that middle
+   one, so a typo can never leave the guard weaker than that default.
+   The accepted values for the key itself —
+   `minimal`\|`standard`(default)\|`strict`\|`off` — are what you write into the
+   file, not a list to read out. The three keys
    (`MCP_BLOCKLIST_PROFILE`/`MCP_BLOCKLIST_EXTEND`/`MCP_ALLOW_TABLE`) reach the
    server through **two** channels — the active profile's `sap.env` and the
    server's own process environment (a shell export, or an `env` block in the
@@ -403,13 +441,15 @@ fallback as this step's intro.
 
 ## Step 5 — Restart Guidance
 
-Tell the user if the MCP server needs to pick up new state before Step 6 can
-give a clean result, and how to do that on their harness. Reasons that trigger
-this, and where they were surfaced:
+Tell the user if anything they just changed needs a restart before Step 6 can
+give a clean result, and how to restart on their assistant. Say it in their
+language, in plain words, per the [plain-language policy](../policies/plain-language.md):
+what was changed, that it is saved but not in effect yet, and the one action
+that puts it in effect. Reasons that trigger this, and where they were surfaced:
 
 - Step 2 wrote or changed a profile's `sap.env` — `apply`'s JSON response
-  carries `restartRequired`/`restartReasons`; surface those verbatim rather
-  than re-deriving them.
+  carries `restartRequired`/`restartReasons`; report the reasons it actually
+  gives rather than re-deriving them, restated in plain words.
 - Step 2 or Step 3 changed the active-profile pointer.
 - Step 3 changed `toolSurface` — the tool surface is decided when the MCP
   server starts, not per call.
@@ -427,16 +467,20 @@ to Step 6.
    ```
    node "PLUGIN_ROOT/scripts/setup-state.mjs" verify --project <project path> --json
    ```
-   and report its `state` against this table (design v2 §8-3):
+   and report its `state` against this table (design v2 §8-3). Report the result
+   to the user in their language, in plain words, per the
+   [plain-language policy](../policies/plain-language.md) — lead with the plain
+   meaning in the right-hand column rather than the state name, and say what, if
+   anything, the user has to do next:
 
    | state | meaning |
    |---|---|
-   | `READY_INSPECTION` | plugin + MCP OK, profile/password not yet complete |
-   | `READY_READONLY` | SAP connected + readonly tool surface OK |
-   | `READY_DEVELOPMENT` | DEV connected + user chose development + write surface OK |
-   | `RESTART_REQUIRED` | config is correct but MCP/plugin needs a reload |
-   | `DEGRADED_SKILLS_ONLY` | skills loaded but the bundled MCP failed to start |
-   | `BLOCKED` | bad path, parse error, or an unmet safety condition |
+   | `READY_INSPECTION` | everything is installed and working, but there is no live SAP connection yet — the profile or the password is still incomplete |
+   | `READY_READONLY` | connected to SAP, and able to read and analyse but not to change anything |
+   | `READY_DEVELOPMENT` | connected to a development system, and able to change things there because the user asked for that |
+   | `RESTART_REQUIRED` | the settings are right; they take effect after a restart |
+   | `DEGRADED_SKILLS_ONLY` | the guidance and procedures work, but the part that talks to SAP did not start |
+   | `BLOCKED` | setup cannot continue — a bad path, a file that could not be read, or a safety condition that is not met |
 
    `verify` checks files and structure only — it never probes the live SAP
    connection (that's the MCP session's job, covered by the checklist below).
@@ -463,6 +507,9 @@ to Step 6.
 
 Because Step 2 leaves `SAP_PASSWORD` blank, expect `READY_INSPECTION` (and the
 SAP-connection layer of the checklist above coming back FAIL/WARN) at this
-point — that is expected, not a wizard bug. Tell the user to open the
-profile's `sap.env`, fill in the password, then re-run **only this step** to
-confirm the connection.
+point — that is expected, not a wizard bug. Say so to the user in their
+language, in plain words: that the connection check has not passed yet and that
+this is the expected result rather than a fault, because the password was
+deliberately left for them to enter; then name the file to open, and say that
+re-running just this last check afterwards is enough to confirm the connection —
+the earlier steps do not have to be done again.

@@ -76,8 +76,16 @@ The lesson is still recorded; it just cannot become a rule yet.
 Ask: would this bite again in a different task? **Propose the rule to the user and
 get explicit approval before writing it.** A rule is read by the CONSULT step of
 every later related task, so a bad rule silently misguides future work, not just
-the current one — that approval is the gate that keeps a wrong rule out. If
-approved, add ONE line to `.sapkit/RULES.md` with the next sequential R-id:
+the current one — that approval is the gate that keeps a wrong rule out.
+
+Make the offer one line, in the user's language, in plain words, per the
+[plain-language policy](../policies/plain-language.md): the rule as it would be
+written; why it is worth having (this failure would otherwise be free to happen
+again on the next task); that from then on it will be read before related work,
+which is what makes a wrong one costly; and that declining it is a normal answer.
+Do not put internal identifiers or file paths in that line.
+
+If approved, add ONE line to `.sapkit/RULES.md` with the next sequential R-id:
 
     - R-009 [transport] <short imperative rule> (from L-014)
 

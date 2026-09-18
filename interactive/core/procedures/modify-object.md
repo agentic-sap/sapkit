@@ -67,13 +67,23 @@ a one-shot auto-run:
    objects. **Never claim completion without verification** (see
    [sap-standards](../policies/sap-standards.md) §3).
 
-④ **Report the evidence** — the commands run and their results — not a bare
-   "done".
+④ **Report the evidence** — the checks that were run and what each one came back
+   with — not a bare "done". Say it in the user's language, in plain words, per the
+   [plain-language policy](../policies/plain-language.md): what was changed and in
+   which object, which checks were run and what each one said, and what is still
+   outstanding. Name the checks by what they establish — the code compiles, it is
+   active in the system, the tests pass — rather than by the tool that ran them.
 
 ⑤ **State cap is `PROVISIONAL_WRITE`.** Per the Track A model, an MCP success is
    not completion; do not report "done" until what SAP actually holds has been
    read back and confirmed ([verify-applied](verify-applied.md)) and the review
    `R-PASS` is in hand (see the alignment note above).
+   Say that to the user with the plain meaning first and the word after it —
+   *it was sent and SAP reported success, but nobody has read it back out to check*
+   (`PROVISIONAL_WRITE`) — and say what would close the gap: reading the object
+   back out of SAP and comparing it, plus a separate review by someone starting
+   fresh. Do not call it finished, and do not restate the internal review outcome
+   as a label.
 
 ⑥ **Bounded repair.** Repair → re-verify in **≤ 2 rounds**; if a third round
    would be needed, stop and report the unresolved problem. **Note:** this bound

@@ -60,25 +60,22 @@ The comparison runs along **10 dimensions**. Every dimension answers a question 
 
 ### Scope Prompt (Step 2 of workflow)
 
-Put this checkbox table in front of the user with the defaults pre-ticked, and ask a **single question**. Render the prompt in the user's current conversation language; the skeleton below is English.
+Put the list of comparison topics in front of the user with the defaults already selected, and ask a **single question**. Say it in the user's language, in plain words, per the [plain-language policy](../policies/plain-language.md) — never as a pasted English block. What has to come across:
 
-```
-Confirm comparison dimensions (7 defaults pre-selected, [x]=include / [ ]=exclude):
-
-[x] 1. Module / Domain perspective (MM·CO·SD·FI …)
-[x] 2. Organization / Country scope (BUKRS, WERKS, country)
-[x] 3. Selection-screen input fields
-[ ] 4. Core data sources (tables / CDS)
-[x] 5. Business logic (aggregation · conversion · derivation)
-[x] 6. Output columns / KPI
-[x] 7. Authorization objects
-[ ] 8. CBO · Enhancement usage
-[ ] 9. Country / Legal specifics
-[x] 10. Usage timing / Persona
-
-Reply with: numbers to toggle (e.g. "+4 +8", "-7"), "all" to enable every dimension,
-"only N,M" to keep a specific subset, or "ok" to proceed with defaults.
-```
+- **one line of why it is being asked** — this settles what the comparison actually looks at, and reading more than is needed costs time on every program in the set;
+- **the recommendation, stated first**: go with the pre-selected seven, because they answer most of what a consultant asks without reading every include;
+- **the ten topics, numbered 1–10** (the numbers are how the user answers, so they stay), each with its selection state and a plain line saying what it means:
+  1. selected — which business angle each program takes (stock movement, cost, sales, accounting)
+  2. selected — which company codes, plants, sales organizations, and country versions each one covers
+  3. selected — what the user gets to filter on before running it
+  4. not selected — which tables and views the numbers are actually read from
+  5. selected — how the figures are worked out: totalling, currency and unit conversion, account derivation
+  6. selected — which columns and key figures come out at the end
+  7. selected — which authorization checks decide who is allowed to see it
+  8. not selected — which customer-built additions and extension points are wired in (BAdI — SAP's supported hook for adding your own logic)
+  9. not selected — country-specific legal handling, such as tax-invoice or VAT rules
+  10. selected — when it is run and by whom: month-end, daily, or on demand;
+- **how to answer**: keep the selection as it stands, add or remove topics by number, take all ten, or name just the ones wanted — plus the open slot, an invitation to say in their own words what the comparison has to answer if none of the ten frames it.
 
 Accept short replies, whatever the language:
 - `ok` / `proceed` / equivalents → the defaults stand.

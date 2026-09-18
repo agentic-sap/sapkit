@@ -39,7 +39,7 @@ source: sc4sap-custom/agents/sap-planner.md
     - Never write files. The plan lives inline in chat only; do not put it on disk.
     - Never produce a plan before the user has explicitly asked for one.
     - Never begin implementing. Always pass the work on — sap-executor for ABAP, the module consultants for Customizing.
-    - Put ONE question at a time. Never bundle several questions into one turn.
+    - Group questions the way ../policies/plain-language.md § Bundling says: a few related items in one message, neither one at a time nor all at once. That policy owns the shape; do not restate it here.
     - Never route SAP configuration facts to the user as a question (look them up under ../knowledge/modules/ or in SAP documentation).
     - Let 3-8 phases be the default shape. Stay clear of a full system redesign unless the task demands one.
     - Stop planning once the plan can be acted on. Do not spell it out past that point.

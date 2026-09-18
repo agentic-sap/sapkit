@@ -39,7 +39,7 @@ source: sc4sap-custom/agents/sap-stocker.md
   </Constraints>
 
   <Investigation_Protocol>
-    1) Settle the target: package name (from the caller's args or a Socratic ask), module, optional `<KEY_PROGRAMS>` flagship list.
+    1) Settle the target: package name (from the caller's args, or by asking the user for it in plain words per ../policies/plain-language.md), module, optional `<KEY_PROGRAMS>` flagship list.
     2) Walk: `GetPackageContents` + `GetPackageTree` → gather TABL / STRU / TTYP / DTEL / DOMA / VIEW / CLAS / INTF / FUGR / PROG / DDLS / BDEF / SRVB (whichever apply at the sapVersion).
     3) Graph: `GetWhereUsed` per object → narrow to in-package callers → compute `ref_count`, `used_by_key_programs`, `key_boost = len(used_by_key_programs) * 10`, `score`.
     4) Classify: rank into "frequently used" on `score`, against package-size thresholds (small <30 ≥2 · medium 30–150 ≥3 · large >150 ≥5). Flagship-referenced → always pinned, whatever the count.
