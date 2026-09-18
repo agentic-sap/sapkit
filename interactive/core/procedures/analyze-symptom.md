@@ -226,30 +226,15 @@ Gloss every SAP term, transaction, and table the first time it appears. Round nu
 
 ### Final Round
 
-In the final round — nothing left open — produce a consolidated report carrying the final hypothesis, the SAP Note strategy, and the list of recommended actions. Structure:
+In the final round — nothing left open — produce a consolidated report carrying the final hypothesis, the SAP Note strategy, and the list of recommended actions. Say it in the user's language, in plain words, per the [plain-language policy](../policies/plain-language.md) — never as a pasted English block. The same five-part shape as a normal round, closed out:
 
-```
-## 🏁 Final Analysis — {symptom summary}
+1. **Where we are** — a heading naming the symptom and saying plainly that the analysis has landed, so the user knows no further round is coming.
+2. **What caused it** — which of the eight kinds of problem this turned out to be, named by what it means rather than by its label; the evidence that confirmed it; and how sure that conclusion is, said in words rather than as a score.
+3. **How to find SAP's own write-up of it** — the search terms, most specific first, and two or three ready-to-paste queries for SAP's Note portal. Say what a SAP Note is the first time it is mentioned (SAP's own published fix or explanation for a known problem).
+4. **What to do about it** — the recommended actions in order, each with who would do it and how soon it matters.
+5. **What to hand to someone else, if anything** — which team it should go to and why, together with what to attach: the dump reference, the transport number (transport — the parcel that carried a change into this system), and anything else that makes the case without them having to reproduce it.
 
-### Root Cause
-- **Category**: {one of 8 framework categories}
-- **Confirmed evidence**: {list}
-- **Confidence**: High / Medium / Low
-
-### SAP Note Search Strategy
-- Primary keywords: {ordered list}
-- Recommended Notes portal queries: {2–3 concrete search strings}
-
-### Recommended Actions
-1. {action 1 — owner, urgency}
-2. {action 2}
-3. ...
-
-### Escalation (if any)
-- Target: {Basis / Development / SAP Support / Functional}
-- Reason: {why}
-- Artifacts to attach: {dump ID, TR number, screenshot refs}
-```
+Gloss every SAP term, transaction, and table the first time it appears. Internal field names, tool names, and confidence figures stay out of it.
 
 ### Round Counter
 

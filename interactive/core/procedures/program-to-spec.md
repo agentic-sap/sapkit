@@ -92,10 +92,10 @@ Never skip it outright unless the user supplies fully-qualified arguments in the
 
 **Step 1.5 — CBO inventory lookup** (auto)
 - Resolve `<PACKAGE>` out of the `GetObjectInfo` above.
-- Put one question to the user: "Which module does package `<PACKAGE>` belong to? (SD / MM / PP / PM / QM / WM / TM / TR / FI / CO / HCM / BW / PS / Ariba)" — only where the module cannot be derived from `.sapkit/config.json` or from the package's existing CBO folder (see [project-context](../project-context.md)).
+- Put one question to the user — only where the module cannot be derived from `.sapkit/config.json` or from the package's existing CBO folder (see [project-context](../project-context.md)). Say it in the user's language, in plain words, per the [plain-language policy](../policies/plain-language.md): one line of why it is being asked — knowing the area lets the write-up name this package's custom objects by what they do for the business instead of leaving them as bare Z-names — then the choice, one of SD / MM / PP / PM / QM / WM / TM / TR / FI / CO / HCM / BW / PS / Ariba, each named the way that module is known in the user's language rather than by its letters alone. Name the package, not where the answer would otherwise have been read from.
 - Check `.sapkit/cbo/<MODULE>/<PACKAGE>/inventory.json`.
   - **Exists** → Load it. While Step 3 describes data sources, tables, or helper calls, annotate every one that matches an inventory entry with its CBO role + one-line business purpose (e.g., "writes to `ZSD_ORDER_LOG` — append-only sales-order processing log"). That turns the spec's opaque Z-references into named reusable assets.
-  - **Missing** → Print one line: "No CBO inventory at `.sapkit/cbo/<MODULE>/<PACKAGE>/`. Run the [analyze-cbo-obj](analyze-cbo-obj.md) procedure first for richer spec annotations, or type `skip` to proceed."
+  - **Missing** → Say one line to the user in their language, in plain words, per the [plain-language policy](../policies/plain-language.md). What has to come across, and nothing beyond it: that there is no stored stock-take of this package's custom objects, so the program will be written up on its own and its Z-references will stay bare names rather than being described by what they do; and the choice, recommendation first — **carry on without it (recommended)**, with one line of why (the specification is complete either way, the annotations are an extra), or take stock of the package first, which is a separate run ([analyze-cbo-obj](analyze-cbo-obj.md)) that makes the annotations available. The storage path and the `skip` reply form stay on this side; the user hears the effect, not the location.
 - Persist the loaded entries into `.sapkit/specs/<OBJECT>/cbo-context.md` for Steps 3–4 to use.
 - Source reads:
   - Report/Program: `GetProgFullCode` + `GetIncludesList` → iterate `GetInclude`
@@ -321,22 +321,15 @@ The PNG signature is verified before any write; non-PNG input is rejected withou
 
 ## Output Format (completion block)
 
-```
-Spec generated: ZSDR_OPEN_ORDER_ALV
-Depth: L2 Standard · Format: markdown · Lang: ko
-Sections: 9 · Tables referenced: 6 · Screens: 1 · GUI status: 1
-File: .sapkit/specs/ZSDR_OPEN_ORDER_ALV-20260414-ko.md
+Close the run by telling the user what was produced. Say it in their language, in plain words, per the [plain-language policy](../policies/plain-language.md) — never as a pasted English block. The elements, in this order:
 
-Top-level summary:
-  Report that lists open sales orders by Sales Organization and date range and displays them via ALV.
-  Main tables: VBAK, VBAP, VBUK, KNA1 (+ CDS I_SalesOrder).
-  Authorizations: S_TCODE=ZSDR01, S_TABU_DIS=VBAK.
+- **what was written** — which program was documented, at which depth and in which language, said as the depth's plain meaning rather than its label alone;
+- **where the file is** — its path, given once, as the one thing the user has to act on;
+- **what is in it** — how many sections it holds and what the write-up had to cover: how many tables it draws on, and whether it has screens or a menu definition;
+- **what the program actually does** — two or three sentences in business terms: what it lists or produces, what the user filters it by, which tables the figures come from, and which authorization checks decide who may run it. Gloss each SAP term the first time it appears;
+- **what could follow**, each said as what it would do rather than by its label: produce the same specification as a spreadsheet instead, go deeper and add a list of everything that calls this program, or write a second copy in another language.
 
-Next options:
-  • "Regenerate as Excel"
-  • "Extend to L4 with Where-used"
-  • "Add an English version"
-```
+Nothing here is a question — it is a report with three offers attached, and the run is finished whether or not the user takes one.
 
 ## MCP Tools Used
 
