@@ -82,30 +82,51 @@ the new file carries a `> Regenerated from <old generated_at>` line under its H1
 
 Seven steps, in order.
 
-**Step 1 — Intake (Socratic)**
+**Step 1 — Intake**
 
-Ask one question at a time; do not batch them.
+Ask one question at a time; do not batch them. Word each one per the
+[plain-language policy](../policies/plain-language.md) — say it in the user's
+language, in plain words, carrying one line of why it is being asked and where
+the user is in the three intake questions.
 
 1. **Package** (exactly one question, skip if the invocation already named it)
-   > "Which CBO package should I analyze for its end-to-end business process?
-   > (e.g. `ZSD_MAIN`, `ZMM_CORE`). A prefix like `ZMM*` is fine — I'll search."
+
+   Say this in the user's language, in plain words:
+   - why it is being asked — everything that follows is read out of this one
+     package, so it is settled before any reading starts;
+   - what is wanted — the name of the custom package (CBO — the in-house objects
+     this site built on top of standard SAP) whose end-to-end business process
+     should be recovered;
+   - two example names in the shape expected, e.g. `ZSD_MAIN` / `ZMM_CORE`;
+   - that a partial name ending in `*` is fine and will be searched for.
 
    - Prefix → `SearchObject(objectType='DEVC', query=<prefix>)`, list matches, re-ask.
    - Verify the final name with `GetPackage(<name>)`. Not found → report and stop.
 2. **Module** (exactly one question, constrained list)
-   > "Which SAP module does this package belong to? Pick one of:
-   > SD / MM / PP / PM / QM / WM / TM / TR / FI / CO / HCM / BW / PS / Ariba."
+
+   Say this in the user's language, in plain words:
+   - why it is being asked — the module decides which business vocabulary and
+     which document flows the write-up is checked against;
+   - the choice: one of SD / MM / PP / PM / QM / WM / TM / TR / FI / CO / HCM /
+     BW / PS / Ariba, each named the way that module is known in the user's
+     language rather than by its letters alone.
 
    - Valid values = the folders under `../knowledge/modules/`. Normalize to
      uppercase and verify `../knowledge/modules/<MODULE>/` exists; reject and re-ask otherwise.
    - `BC` is deliberately absent from the flow dictionary — see
      [document-flows](../knowledge/modules/common/document-flows.md) § Scope note.
 3. **Output language** (exactly one question)
-   > "Which language should the document be written in? 한국어(ko) / English(en) /
-   > 日本語(ja) / other (give the ISO 639-1 code). Default = the language we're
-   > speaking now."
 
-   Section titles and body text follow this choice. Frontmatter keys stay English;
+   Say this in the user's language, in plain words:
+   - why it is being asked — this fixes the language the finished document is
+     written in, which is not always the language of the conversation;
+   - the choice: 한국어 / English / 日本語, or another language the user names;
+   - the recommendation, listed first — the language being spoken right now —
+     with one line of why (it is the one the user is already reading in).
+
+   Record the answer as an ISO 639-1 code for the output path — derive it from
+   the language the user names rather than asking them for the code. Section
+   titles and body text follow this choice. Frontmatter keys stay English;
    diagram syntax is language-neutral, only node labels translate.
 4. **Project context** — read `.sapkit/config.json` (`sapVersion`, `abapRelease`,
    `industry`, `country`) and `.sapkit/sap.env` (`SAP_ACTIVE_MODULES`) per
@@ -144,12 +165,25 @@ activeModules, language}`.
 3. Build candidates `{prog, tcodes[], short_text}`. A program with no TCode is
    still a candidate when `inventory.json → key_programs[]` lists it as flagship —
    that is the user's own signal and outranks the absence of a TCode.
-4. Present the candidate list and ask the user to confirm it: which to keep, which
-   to drop as batch-only/utility, and which known entry program is missing. One
-   question, one round.
-5. Empty result → **stop and ask**:
-   > "No interactive entry points were found. Should I treat the largest program
-   > `<X>` as the entry point, or stop here?"
+4. Present the candidate list and ask the user to confirm it. One question, one
+   round. Say it in the user's language, in plain words, per the
+   [plain-language policy](../policies/plain-language.md):
+   - why it is being asked — these are the doors a person actually opens to start
+     the process, and the whole write-up is built outward from them;
+   - for each candidate, the program name plus one line on what it appears to do
+     and how a user reaches it (its transaction code — the short command a user
+     types to open a program — or, where it has none, that the user's own
+     flagship list named it);
+   - what to answer: which ones to keep, which to drop as background jobs or
+     helper utilities, and any entry program the user knows is missing from the
+     list.
+5. Empty result → **stop and ask**. Say it in the user's language, in plain words:
+   - what was found — nothing in this package looks like a program a person opens
+     directly;
+   - the choice, recommendation first: **treat the largest program `<X>` as the
+     starting point** — one line of why (it is the best available guess and the
+     write-up can still be corrected later) — or **stop here**, plus the open slot
+     for the user to name the right starting point themselves.
 
    Wait for the answer. Do not guess an entry point.
 
@@ -183,11 +217,28 @@ Adopt the [sap-analyst](../personas/sap-analyst.md) persona.
 
 3. **Present the groups to the user with their rationale and confidence**, and ask
    for one of: approve as-is · merge two groups · split a group (user says which
-   members go where) · rename a label. Apply and re-present.
+   members go where) · rename a label. Apply and re-present. Say it in the user's
+   language, in plain words, per the [plain-language policy](../policies/plain-language.md):
+   - why it is being asked — this grouping decides how the finished document is
+     divided into business processes, so it is confirmed before any of it is
+     written;
+   - per group: the proposed name, which programs are in it, the plain reason
+     they were put together (the business documents and tables they share), and
+     how sure that grouping is — said as confidence in words, not as a number;
+   - anything that fell outside every group, and any open question the grouping
+     raised;
+   - the four answers above, recommendation first — **approve as it stands**, with
+     one line of why it is the recommendation — plus the open slot for a change
+     none of them covers.
 4. **Cap the loop at 3 rounds.** Still not approved on the third → stop looping and
-   ask the user how they want to proceed. Do not keep regrouping silently.
+   ask the user how they want to proceed. Say plainly that three rounds of
+   regrouping have not landed on something they are happy with, and that rather
+   than keep guessing, the grouping is theirs to state. Do not keep regrouping
+   silently.
 5. Zero groups produced → ask the user to define at least one group by hand, then
-   go straight to Step 5. Do not retry the automatic pass a second time.
+   go straight to Step 5. Say plainly that nothing in the package clustered into a
+   recognizable process on its own, and ask them to name at least one group and
+   the programs in it. Do not retry the automatic pass a second time.
 
 State: `processes[] = [{label, members[], rationale, confidence}]`.
 

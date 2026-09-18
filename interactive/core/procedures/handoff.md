@@ -92,7 +92,11 @@ menu to push at them.
 Only from the "both absent" row, or for the missing half of a marked pair.
 
 1. **State what will be written and where** — the paths, and one line each on what
-   the file is for. Nothing in the project changes before the user answers.
+   the file is for. Say it in the user's language, in plain words, per the
+   [plain-language policy](../policies/plain-language.md): what each file would
+   hold, why it is worth having (the next session starts knowing where the work
+   got to instead of from nothing), and where it would sit. Nothing in the
+   project changes before the user answers.
 2. **Get an explicit yes.** Silence, "sure, whatever", and a yes to a different
    question are not it.
 3. **Copy the template verbatim, line 1 included**, then replace the placeholder text

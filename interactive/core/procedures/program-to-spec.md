@@ -1,6 +1,6 @@
 ---
 name: program-to-spec
-description: Reverse-engineer an ABAP program into a Functional/Technical Specification artifact (Markdown or Excel). Socratic scope narrowing from "everything" to "only what the user needs".
+description: Reverse-engineer an ABAP program into a Functional/Technical Specification artifact (Markdown or Excel). Step-by-step scope narrowing from "everything" to "only what the user needs".
 source:
   - sc4sap-custom/skills/program-to-spec/SKILL.md
   - sc4sap-custom/skills/program-to-spec/workflow-steps.md
@@ -9,7 +9,7 @@ source:
 
 # Program → Specification
 
-Read an existing ABAP program (Report / Module Pool / FM Group / Class / CDS / RAP) through MCP, run the structural + semantic + where-used analysis, then turn out a Specification artifact in **Markdown** (`.md`) or **Excel** (`.xlsx`) format. The scope is **negotiated Socratically** — open wide, narrow on every turn, stop once the user's target granularity is confirmed.
+Read an existing ABAP program (Report / Module Pool / FM Group / Class / CDS / RAP) through MCP, run the structural + semantic + where-used analysis, then turn out a Specification artifact in **Markdown** (`.md`) or **Excel** (`.xlsx`) format. The scope is **narrowed step by step** — open wide, narrow on every turn, stop once the user's target granularity is confirmed.
 
 ## Purpose
 
@@ -30,19 +30,21 @@ Turn legacy or unfamiliar ABAP objects into a reviewable Functional/Technical Sp
 - **Fixing** the program is wanted → direct MCP `Update*` calls
 - The object does not exist yet
 
-## Socratic Scope Narrowing
+## Step-by-Step Scope Narrowing
 
-The interview works as a **funnel**: each turn shrinks the decision space that is left. Score the remaining ambiguity 0–10 after every answer; stop at **≤3**.
+The interview works as a **funnel**: each turn shrinks the decision space that is left. Score the remaining ambiguity 0–10 after every answer; stop at **≤3**. The score is a working note — it never appears in a sentence the user reads.
 
-**Default opener — bundled 4-question message** (MANDATORY once the target object arrives in the task arguments):
-Put these four questions to the user in ONE message, in exactly this order — Audience / Format / Depth / Language — each a single-select whose first option carries "(Recommended)". One turn here stands in for Rounds 2+3+5. Only fall back to per-round questioning where the object itself is missing or ambiguous (Round 1), or where the user picks L3/L4 (Round 4 scope trimming).
+**Default opener — one bundle of 4 questions** (MANDATORY once the target object arrives in the task arguments):
+Put these four questions to the user in ONE message, in exactly this order — Audience / Format / Depth / Language — each a single-select. Word and shape them per the [plain-language policy](../policies/plain-language.md): say in the user's language, in plain words, one line of why the bundle is being asked (*these four answers decide what the finished document looks like, so they are settled before any reading starts*) and where the user is in the run (this is normally the only bundle — Rounds 1 and 4 open only in the cases named below). Each option carries, in plain words, what choosing it means; the recommended option comes first, is marked as the recommendation, and carries one line of why. One turn here stands in for Rounds 2+3+5. Only fall back to per-round questioning where the object itself is missing or ambiguous (Round 1), or where the user picks the deep or audit-grade depth (Round 4 scope trimming).
 
-| # | Header | Question | Options (Recommended first) |
+The content of the four, recommended option first — render each option's meaning in the user's language rather than pasting these English labels:
+
+| # | Header | What to ask | Options, recommended first — and what choosing each one means |
 |---|--------|----------|-----------------------------|
-| 1 | Audience | Who is the primary audience for the spec? | Both (Recommended) · Functional · Technical |
-| 2 | Format | Which output format? | Markdown (Recommended) · Excel · Both |
-| 3 | Depth | What depth of detail? | L2 Standard (Recommended) · L1 Quick Spec · L3 Deep Technical · L4 Audit-grade |
-| 4 | Language | Output language? | Korean · English · Japanese (order follows user's current language — promote the matching one to first with "(Recommended)") |
+| 1 | Audience | Who is going to read this document? | **Both — recommended**: one document that works for the business reader and for the developer; why recommended: it saves writing a second version later · **Functional**: written for business readers, lighter on code detail · **Technical**: written for developers, lighter on business framing |
+| 2 | Format | Which kind of file do you want out of this? | **Markdown — recommended**: a plain-text document that opens anywhere and reviews well line by line; why recommended: it is the fastest to check and the Excel version can still be produced afterwards · **Excel**: a workbook with one sheet per section, the shape project offices usually ask for · **Both** |
+| 3 | Depth | How much detail should it go into? | **Standard — recommended** (`L2`, the default depth): purpose, inputs and screens, data model, authorizations, outputs, exceptions, and every routine's signature; why recommended: it is enough to hand the program over without turning the write-up into a second project · **Quick** (`L1`): purpose, inputs, outputs, and the main logic steps · **Deep technical** (`L3`): standard plus a list of every database read, the extension points, and performance notes · **Audit-grade** (`L4`): deep technical plus line-level references, who calls this program, a risk list, and the transport history (transport — the parcel that carries a change to the next system) |
+| 4 | Language | Which language should the document be written in? | Korean · English · Japanese — order follows the language the user is writing in, and the matching one is promoted to first and marked as the recommendation |
 
 **Round 1 — Target object (only if the arguments did not supply it)**
 - "Which object? (program / FM group / class / CDS / RAP BO name)"
@@ -81,7 +83,7 @@ Put ONE narrowing question per turn until the ambiguity is ≤3:
 
 ## Workflow Steps
 
-**Step 0 — Socratic interview** (see § Socratic Scope Narrowing above)
+**Step 0 — Scope interview** (see § Step-by-Step Scope Narrowing above)
 Never skip it outright unless the user supplies fully-qualified arguments in the `object=... depth=L2 format=md lang=ko` style.
 
 **Step 1 — Inventory** (auto)
@@ -169,7 +171,7 @@ Adopt the [sap-writer](../personas/sap-writer.md) persona for this step. Render 
 
 **Step 5 — Review loop**
 - Show a table of contents and the first section inline.
-- Ask: "OK to finalize, or trim/expand a section?"
+- Ask one closing question — say it in the user's language, in plain words, shaped per the [plain-language policy](../policies/plain-language.md): one line of why it is being asked (*nothing is written to a file until this is settled*), then the choice — **write it out as it stands (recommended)**, with one line of why (the draft already covers everything the chosen depth asks for), or **name a section to shorten or to go deeper on**, plus the open slot for something neither option covers.
 - On confirmation → write the file → print the absolute path.
 
 ## Markdown Template — L2 Standard Spec skeleton

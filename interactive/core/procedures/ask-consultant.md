@@ -66,7 +66,7 @@ Map the user's question onto the target module(s). Priority:
 1. **Explicit mention**: "MM 물어봐" / "ask SD" / "FI 컨설턴트" → that module directly.
 2. **Keyword inference**: read it off the routing table below.
 3. **Multi-module**: when 2–3 modules match at similar signal strength, answer from each perspective in turn (see Step 4). Example: "MM PO가 FI에 어떻게 전기되는지" → MM + FI perspectives, then compose.
-4. **Unclear**: ask the user which module first — one question, one round.
+4. **Unclear**: ask the user which module first — one question, one round. Say it in the user's language, in plain words, per the [plain-language policy](../policies/plain-language.md): one line of why it is being asked (the answer differs by area, so the wrong area gives a confident answer to the wrong question), then the two or three areas the question could plausibly sit in, each named the way that module is known in the user's language rather than by its letters alone, most likely first and marked as such with one line of why — plus the open slot, so the user can say which area they mean if none of the offered ones fits.
 
 Take the persona from [INDEX](../personas/INDEX.md) and load only the selected file(s):
 
@@ -90,13 +90,13 @@ Take the persona from [INDEX](../personas/INDEX.md) and load only the selected f
 
 ## Workflow Steps
 
-1. **Environment load** — read `.sapkit/config.json` + `sap.env`; surface the resolved values on the FIRST turn only (one line: `SAP: <version> · <industry> · <country> · active: <modules>`). Where keys the answer needs are missing, ask.
+1. **Environment load** — read `.sapkit/config.json` + `sap.env`; surface the resolved values on the FIRST turn only, as one plain line in the user's language saying which landscape the answer is written against: the SAP release, the industry, the country, and which modules are live. Name the values, not the settings they came from, and do not mention where they were read from. Where keys the answer needs are missing, ask — say plainly which fact is missing and why the answer depends on it.
 2. **Module routing** — apply § Module → Persona Routing. On ambiguity, ask one question and stop.
 3. **Persona load** — open [INDEX](../personas/INDEX.md), pick the matching consultant persona file, read it, and adopt it. Consultant personas are `readonly` — they judge and advise only, never modify.
 4. **Answer** — as the adopted consultant, answer the question against the loaded environment context (sapVersion / abapRelease / industry / country / activeModules). Source per the [knowledge-sourcing](../policies/knowledge-sourcing.md) ladder: project-learned state first (`.sapkit/RULES.md` scope-matched rules bind; `knowledge/` KD/KS atoms are established context — cite ids), then registered vaults (§ Reference Libraries below) for practice questions, then `../knowledge/modules/{MODULE}/` docs and [spro-lookup](spro-lookup.md) / [customization-lookup](customization-lookup.md) as needed; use read-only MCP calls (`SearchObject`, `GetTable`, `GetPackage`, `GetWhereUsed`, …) to check the actual system where the answer depends on it.
    - **Multi-module questions**: work each module's perspective **sequentially** — adopt consultant persona A and write its answer; then adopt consultant persona B and write its answer; and so on.
 5. **Synthesis (only when ≥ 2 module perspectives were produced)** — build a cross-module summary out of the per-module answers: name the shared points, flag the disagreements (each with a one-line "WHY they differ" note). Do NOT re-answer the question — compose only from the perspectives already written. Single-module case: skip this step entirely and present the consultant's answer directly.
-6. **Return & follow-up** — deliver the final answer (single module: verbatim; multi-module: synthesis as the body + one subsection per module perspective). Offer follow-up paths: `create-program` (if the answer leads to a new build), [program-to-spec](program-to-spec.md) (if user wants the existing asset documented), `analyze-code` (if quality review needed). If answering required establishing a business or this-system fact that the shipped module knowledge did **not** already cover — typically something the user or the live system told you — grep `.sapkit/knowledge/domain.md` and `system.md` for its key terms (a bounded grep, not a full read), and only if it is not already recorded offer one line: *"Record `<fact>` to project knowledge? (yes/no)"*, following [knowledge](knowledge.md) on `yes`. An answer composed purely from shipped knowledge accumulates nothing, and a fact already recorded is not re-offered; either way, no prompt.
+6. **Return & follow-up** — deliver the final answer (single module: verbatim; multi-module: synthesis as the body + one subsection per module perspective). Offer follow-up paths: `create-program` (if the answer leads to a new build), [program-to-spec](program-to-spec.md) (if user wants the existing asset documented), `analyze-code` (if quality review needed). If answering required establishing a business or this-system fact that the shipped module knowledge did **not** already cover — typically something the user or the live system told you — grep `.sapkit/knowledge/domain.md` and `system.md` for its key terms (a bounded grep, not a full read), and only if it is not already recorded offer it in one plain line in the user's language — name the fact, say it would be kept so the next session does not have to work it out again, and let them say yes or no — following [knowledge](knowledge.md) if they accept. An answer composed purely from shipped knowledge accumulates nothing, and a fact already recorded is not re-offered; either way, no prompt.
 
 **No writes**: this procedure never calls `Create*` / `Update*` / `Delete*` / `Activate*` / `CreateTransport`. Where the answer points to a change, the user must run a separate creation / modification procedure.
 
@@ -104,22 +104,14 @@ Take the persona from [INDEX](../personas/INDEX.md) and load only the selected f
 
 ## Output Format
 
-Return the consultant's answer, prefixed with the consultant identity and the environment context it worked from:
+Return the consultant's answer, prefixed with who is answering and the landscape it was written against. Say it in the user's language, in plain words, per the [plain-language policy](../policies/plain-language.md) — never as a pasted English block. The elements, in this order:
 
-```
-🧭 Consultant: sap-<module>-consultant
-🌐 Environment: <sapVersion> · <industry or "—"> · <country or "—"> · active modules: <list>
+- **who is answering** — the module area the answer comes from, named the way a consultant in that area would be introduced, not by an internal persona file name;
+- **the landscape it was written against** — one line naming the SAP release, the industry, the country, and which modules are live, with a dash where a value is not set;
+- **the consultant's answer itself**, unchanged;
+- **optional next steps** — what could follow from this answer, each said as what it would do rather than by procedure name: turning it into a new build, writing up an existing program as a specification, or reviewing existing code for quality.
 
-<consultant's faithful answer>
-
----
-💡 Next steps (optional):
-- create-program — if this leads to a new build
-- program-to-spec — to document an existing asset
-- analyze-code — to review existing code
-```
-
-For a multi-module question the `🧭 Consultant` line lists every persona name, the body leads with the synthesis — shared points, disagreements, cross-module summary — and one subsection per module perspective follows.
+For a multi-module question the opening line names every area that answered, the body leads with the synthesis — shared points, disagreements, cross-module summary — and one subsection per module perspective follows.
 
 ## Backend Tools Used
 
