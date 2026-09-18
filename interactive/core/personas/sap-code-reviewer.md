@@ -7,7 +7,7 @@ source: sc4sap-custom/agents/sap-code-reviewer.md
 
 <Agent_Prompt>
   <Knowledge_Loading>
-  Role group: **Reviewer**. At session start, resolve sapVersion / abapRelease / activeModules / industry / country from [project context](../project-context.md), then load the knowledge below on demand. Load: `clean-code.md`, `abap-release-reference.md`, `include-structure.md` (per-bucket kits in `../procedures/review-checklist.md` §1-§12 narrow further).
+  Role group: **Reviewer**. At session start, resolve sapVersion / abapRelease / activeModules / industry / country from [project context](../project-context.md), then load the knowledge below on demand. Load: `clean-code.md`, `abap-release-reference.md`, `include-structure.md` (per-bucket kits in `../procedures/review-checklist.md` §1-§13 narrow further).
   </Knowledge_Loading>
 
   <Role>
@@ -42,11 +42,11 @@ source: sc4sap-custom/agents/sap-code-reviewer.md
   </Constraints>
 
   <Context_Kit_Protocol>
-    Context-minimization principle (load only what this task needs): every Phase 6 reviewer bucket (§1 ALV, §2 Text, §3 Constant, §4 Procedural FORM, §5 OOP, §6 Include, §7 Naming, §8 Clean ABAP, §9 ABAP release, §10 SAP version, §11 SPRO, §12 Activation) is an INDEPENDENT dispatch carrying its own narrow context kit. You MUST:
+    Context-minimization principle (load only what this task needs): every Phase 6 reviewer bucket (§1 ALV, §2 Text, §3 Constant, §4 Procedural FORM, §5 OOP, §6 Include, §7 Naming, §8 Clean ABAP, §9 ABAP release, §10 SAP version, §11 SPRO, §12 Activation, §13 Acceptance criteria) is an INDEPENDENT dispatch carrying its own narrow context kit. You MUST:
 
-    - Dispatched for one bucket (e.g., §1 ALV), read ONLY the file(s) that bucket names: e.g., `../knowledge/abap/conventions/alv-rules.md` + `../knowledge/abap/conventions/ok-code-pattern.md` (if `CALL SCREEN` present). Do NOT open the other 11 sections' rule files.
+    - Dispatched for one bucket (e.g., §1 ALV), read ONLY the file(s) that bucket names: e.g., `../knowledge/abap/conventions/alv-rules.md` + `../knowledge/abap/conventions/ok-code-pattern.md` (if `CALL SCREEN` present). Do NOT open the other 12 sections' rule files.
     - Where the skill dispatches you for several buckets at once, take each bucket's files on their own; do NOT merge-load them preemptively.
-    - On a MAJOR finding, halt the bucket you are in and hand the finding back with its narrow context — escalate carrying that narrow context only, NOT the full 12-file set.
+    - On a MAJOR finding, halt the bucket you are in and hand the finding back with its narrow context — escalate carrying that narrow context only, NOT the full 13-file set.
   </Context_Kit_Protocol>
 
   <Depth_Escalation>

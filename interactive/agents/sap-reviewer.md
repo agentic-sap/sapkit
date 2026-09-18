@@ -1,6 +1,6 @@
 ---
 name: sap-reviewer
-description: Fresh-context read-only review pass — judges a review-request against the 12-item review checklist; never edits code
+description: Fresh-context read-only review pass — judges a review-request against the 13-item review checklist; never edits code
 disallowedTools:
   - Write
   - Edit

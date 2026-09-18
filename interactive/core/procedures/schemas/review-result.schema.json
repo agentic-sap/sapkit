@@ -28,7 +28,7 @@
           "bucket": {
             "type": "string",
             "enum": ["B1", "B2", "B3", "B4"],
-            "description": "Checklist bucket: B1 ALV+UI (§1-§2), B2 Logic Hygiene (§3, §8), B3 Structure+Naming (§4-§7), B4 Platform+Config (§9-§12)."
+            "description": "Checklist bucket: B1 ALV+UI (§1-§2), B2 Logic Hygiene (§3, §8, §13), B3 Structure+Naming (§4-§7), B4 Platform+Config (§9-§12)."
           },
           "severity": {
             "type": "string",
