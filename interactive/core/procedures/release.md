@@ -55,9 +55,12 @@ release. The release call carries its own second approval, explicit, per task an
 
 ### Step 2 — Select Transport (confirmation gate)
 
-- Lay out the list and ask: "Which transport do you want to release? (Enter transport number)"
+- Lay out the list and ask which one to release. Say it in the user's language, in plain words, per the [plain-language policy](../policies/plain-language.md):
+  - one line of why it is being asked — this only settles *which* transport (the parcel that carries a change to the next system) is on the table; nothing is released by answering it;
+  - what to answer — the transport number, taken from the list just shown;
+  - no recommendation is offered here: which change ships is the user's call, not ours.
 - The user confirms the transport number
-- Call `GetTransport` and show the transport in full, object list included
+- Call `GetTransport` and show the transport in full, object list included. Say plainly what is inside it — how many objects, and what they are — so the user is choosing against its contents rather than against a number.
 
 ### Step 3 — Pre-Release Validation (attended, after selection)
 
@@ -71,9 +74,24 @@ release. The release call carries its own second approval, explicit, per task an
 - If any validation failed: show the errors and stop — do NOT release.
 - Ahead of any `ReleaseTransport` call, hand the operator the **exact task number(s)**
   and the **parent request number**, and take an explicit affirmative on each. The
-  earlier transport-selection confirmation is NOT this approval. Keywords that count:
-  `승인` / `approve` / `approved` / `release` / `confirmed`; anything ambiguous ("go",
-  "ok", "빨리", silence) is NOT approval.
+  earlier transport-selection confirmation is NOT this approval.
+  Say this in the user's language, in plain words, per the
+  [plain-language policy](../policies/plain-language.md):
+  - what is about to happen — this hands the change over to the next system, and it
+    cannot be taken back; undoing it means building and shipping a further change;
+  - exactly what is being approved — each task number and the request number it sits
+    under, one approval each, read back so the operator sees what they are agreeing to;
+  - that picking the transport earlier did not approve this, and why the question is
+    being asked a second time;
+  - **why one of a fixed set of words is required here, and a loose "go ahead" is
+    not**: this is the one step with no way back, so agreement has to be
+    unmistakable rather than inferred from a casual reply. Say that plainly, and
+    name the words that will be taken as approval.
+
+  **The accepted words are a fixed list — plain wording never widens it to "any
+  clearly affirmative answer".** Keywords that count: `승인` / `approve` / `approved` /
+  `release` / `confirmed`; anything ambiguous ("go", "ok", "빨리", silence) is NOT
+  approval.
 - Once approved: call `ReleaseTransport` — the open task(s) go first, the parent
   request after (SAP will not take the request until its tasks are released).
   Re-confirm the parent request number in the moment before it is released.

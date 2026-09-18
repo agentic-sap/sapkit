@@ -30,26 +30,40 @@ Projects pile up Z tables, Z data elements, Z function modules, and ZCL_ classes
 
 ## Workflow Steps
 
-The shape of the flow: **3 Socratic intake steps** (Step 1 / 1.5 / 2) → **the inventory walk** (Steps 3–7, carried out by adopting the sap-stocker persona) → **a hand-off summary that branches** (Step 8).
+The shape of the flow: **3 intake steps** (Step 1 / 1.5 / 2) → **the inventory walk** (Steps 3–7, carried out by adopting the sap-stocker persona) → **a hand-off summary that branches** (Step 8).
 
-### Socratic intake
+### Intake
+
+Three questions, asked one at a time. Word each one per the [plain-language policy](../policies/plain-language.md) — say it in the user's language, in plain words, carrying one line of why it is being asked and where the user is in the three.
 
 **Step 1 — Ask for the CBO package name** (exactly one question)
-> "Which CBO package do you want to analyze? (e.g., `ZSD_MAIN`, `ZMM_CORE`). If you only know a prefix like `ZSD*`, tell me the prefix and I will search for packages."
+
+Say this in the user's language, in plain words:
+- why it is being asked — the whole inventory is taken from this one package, so nothing is read until it is named;
+- what is wanted — the name of the custom package (CBO — the in-house objects this site built on top of standard SAP) to take stock of;
+- two example names in the shape expected, e.g. `ZSD_MAIN` / `ZMM_CORE`;
+- that a partial name ending in `*` is fine and will be searched for.
 
 - If a prefix pattern comes back: call `SearchObject(objectType='DEVC', query=<prefix>)`, list what matches, then ask again.
 - Confirm the settled package with `GetPackage(<name>)`. Where it does not exist, report that and stop.
 
 **Step 1.5 — Ask about flagship programs in this package** (exactly one question, optional)
-> "Are there any programs in this package that are especially frequently used? If yes, list them comma-separated (e.g., `ZSDR_ORDER_ALV, ZSDR_BILL_POST`). Type `skip` if none or unknown."
+
+Say this in the user's language, in plain words:
+- why it is being asked — anything those programs touch is treated as important, so the resulting list leads with what the business actually uses;
+- what is wanted — the names of any programs in this package that get used especially often, separated by commas, e.g. `ZSDR_ORDER_ALV, ZSDR_BILL_POST`;
+- that this one is optional — saying there are none, or that it is not known, is a complete answer and the run carries on either way.
 
 - Accept PROG names separated by commas. Upper-case them and trim the whitespace.
-- Check each name with `SearchObject(<name>, PROG)`. Names that come back unknown get a one-line warning (`"ZXXX not found — ignored"`) and are dropped.
+- Check each name with `SearchObject(<name>, PROG)`. A name that comes back unknown is dropped, with one plain line to the user saying that program was not found in this system and so was left out.
 - Hold the validated list as `<KEY_PROGRAMS>` (it may be empty).
-- **Why this step exists**: a CBO object that a user-marked flagship program references carries a stronger business signal than raw internal reference count does. In the scoring pass it receives a `key_boost = len(used_by_key_programs) * 10`, which floats it to the top of the inventory.
+- **Why this step exists**: a CBO object that a user-marked flagship program references carries a stronger business signal than raw internal reference count does. In the scoring pass it receives a `key_boost = len(used_by_key_programs) * 10`, which floats it to the top of the inventory. That scoring is internal — the user hears only that their flagship programs pull what they touch to the top of the list.
 
 **Step 2 — Ask which module this package belongs to** (exactly one question, constrained list)
-> "Which SAP module does this package belong to? Pick one of: SD / MM / PP / PM / QM / WM / TM / TR / FI / CO / HCM / BW / PS / Ariba."
+
+Say this in the user's language, in plain words:
+- why it is being asked — the module decides which business vocabulary the objects are interpreted against and which cross-module gaps are checked for;
+- the choice: one of SD / MM / PP / PM / QM / WM / TM / TR / FI / CO / HCM / BW / PS / Ariba, each named the way that module is known in the user's language rather than by its letters alone.
 
 - Valid values = the list of module folders under `core/knowledge/modules/`. Anything else is rejected, and the question is asked again.
 - Upper-case it (e.g., `sd` → `SD`) and confirm `../knowledge/modules/<MODULE>/` is there.

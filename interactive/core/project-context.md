@@ -148,6 +148,15 @@ layer → skip silently. When work verifies a new fact or failure, **offer** the
 [knowledge](procedures/knowledge.md) / [lesson](procedures/lesson.md) write-back
 — that offer is what makes the next session cheaper than this one.
 
+## How this talks to the user
+
+Chat and every user-facing file (spec, report, brief, the continuity pair above) are
+written in the user's language, in plain words, with the plugin's machinery kept out
+— no decision ids, policy grades, phase numbers, or schema/file names; the user gets
+the effect. Status words and SAP terms are glossed on first use. Questions go out in
+bundles of 2–4 related items, each with a reason, a progress marker, and options that
+lead with a recommendation. Full contract: [plain-language](policies/plain-language.md).
+
 ## Rules
 
 1. `.sapkit/` and `sap.env` are **git-ignored** — never commit runtime state or credentials.

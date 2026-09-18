@@ -1,6 +1,6 @@
 ---
 name: program-to-spec
-description: Reverse-engineer an ABAP program into a Functional/Technical Specification artifact (Markdown or Excel). Socratic scope narrowing from "everything" to "only what the user needs".
+description: Reverse-engineer an ABAP program into a Functional/Technical Specification artifact (Markdown or Excel). Step-by-step scope narrowing from "everything" to "only what the user needs".
 source:
   - sc4sap-custom/skills/program-to-spec/SKILL.md
   - sc4sap-custom/skills/program-to-spec/workflow-steps.md
@@ -9,7 +9,7 @@ source:
 
 # Program → Specification
 
-Read an existing ABAP program (Report / Module Pool / FM Group / Class / CDS / RAP) through MCP, run the structural + semantic + where-used analysis, then turn out a Specification artifact in **Markdown** (`.md`) or **Excel** (`.xlsx`) format. The scope is **negotiated Socratically** — open wide, narrow on every turn, stop once the user's target granularity is confirmed.
+Read an existing ABAP program (Report / Module Pool / FM Group / Class / CDS / RAP) through MCP, run the structural + semantic + where-used analysis, then turn out a Specification artifact in **Markdown** (`.md`) or **Excel** (`.xlsx`) format. The scope is **narrowed step by step** — open wide, narrow on every turn, stop once the user's target granularity is confirmed.
 
 ## Purpose
 
@@ -30,19 +30,21 @@ Turn legacy or unfamiliar ABAP objects into a reviewable Functional/Technical Sp
 - **Fixing** the program is wanted → direct MCP `Update*` calls
 - The object does not exist yet
 
-## Socratic Scope Narrowing
+## Step-by-Step Scope Narrowing
 
-The interview works as a **funnel**: each turn shrinks the decision space that is left. Score the remaining ambiguity 0–10 after every answer; stop at **≤3**.
+The interview works as a **funnel**: each turn shrinks the decision space that is left. Score the remaining ambiguity 0–10 after every answer; stop at **≤3**. The score is a working note — it never appears in a sentence the user reads.
 
-**Default opener — bundled 4-question message** (MANDATORY once the target object arrives in the task arguments):
-Put these four questions to the user in ONE message, in exactly this order — Audience / Format / Depth / Language — each a single-select whose first option carries "(Recommended)". One turn here stands in for Rounds 2+3+5. Only fall back to per-round questioning where the object itself is missing or ambiguous (Round 1), or where the user picks L3/L4 (Round 4 scope trimming).
+**Default opener — one bundle of 4 questions** (MANDATORY once the target object arrives in the task arguments):
+Put these four questions to the user in ONE message, in exactly this order — Audience / Format / Depth / Language — each a single-select. Word and shape them per the [plain-language policy](../policies/plain-language.md): say in the user's language, in plain words, one line of why the bundle is being asked (*these four answers decide what the finished document looks like, so they are settled before any reading starts*) and where the user is in the run (this is normally the only bundle — Rounds 1 and 4 open only in the cases named below). Each option carries, in plain words, what choosing it means; the recommended option comes first, is marked as the recommendation, and carries one line of why. One turn here stands in for Rounds 2+3+5. Only fall back to per-round questioning where the object itself is missing or ambiguous (Round 1), or where the user picks the deep or audit-grade depth (Round 4 scope trimming).
 
-| # | Header | Question | Options (Recommended first) |
+The content of the four, recommended option first — render each option's meaning in the user's language rather than pasting these English labels:
+
+| # | Header | What to ask | Options, recommended first — and what choosing each one means |
 |---|--------|----------|-----------------------------|
-| 1 | Audience | Who is the primary audience for the spec? | Both (Recommended) · Functional · Technical |
-| 2 | Format | Which output format? | Markdown (Recommended) · Excel · Both |
-| 3 | Depth | What depth of detail? | L2 Standard (Recommended) · L1 Quick Spec · L3 Deep Technical · L4 Audit-grade |
-| 4 | Language | Output language? | Korean · English · Japanese (order follows user's current language — promote the matching one to first with "(Recommended)") |
+| 1 | Audience | Who is going to read this document? | **Both — recommended**: one document that works for the business reader and for the developer; why recommended: it saves writing a second version later · **Functional**: written for business readers, lighter on code detail · **Technical**: written for developers, lighter on business framing |
+| 2 | Format | Which kind of file do you want out of this? | **Markdown — recommended**: a plain-text document that opens anywhere and reviews well line by line; why recommended: it is the fastest to check and the Excel version can still be produced afterwards · **Excel**: a workbook with one sheet per section, the shape project offices usually ask for · **Both** |
+| 3 | Depth | How much detail should it go into? | **Standard — recommended** (`L2`, the default depth): purpose, inputs and screens, data model, authorizations, outputs, exceptions, and every routine's signature; why recommended: it is enough to hand the program over without turning the write-up into a second project · **Quick** (`L1`): purpose, inputs, outputs, and the main logic steps · **Deep technical** (`L3`): standard plus a list of every database read, the extension points, and performance notes · **Audit-grade** (`L4`): deep technical plus line-level references, who calls this program, a risk list, and the transport history (transport — the parcel that carries a change to the next system) |
+| 4 | Language | Which language should the document be written in? | Korean · English · Japanese — order follows the language the user is writing in, and the matching one is promoted to first and marked as the recommendation |
 
 **Round 1 — Target object (only if the arguments did not supply it)**
 - "Which object? (program / FM group / class / CDS / RAP BO name)"
@@ -81,7 +83,7 @@ Put ONE narrowing question per turn until the ambiguity is ≤3:
 
 ## Workflow Steps
 
-**Step 0 — Socratic interview** (see § Socratic Scope Narrowing above)
+**Step 0 — Scope interview** (see § Step-by-Step Scope Narrowing above)
 Never skip it outright unless the user supplies fully-qualified arguments in the `object=... depth=L2 format=md lang=ko` style.
 
 **Step 1 — Inventory** (auto)
@@ -90,10 +92,10 @@ Never skip it outright unless the user supplies fully-qualified arguments in the
 
 **Step 1.5 — CBO inventory lookup** (auto)
 - Resolve `<PACKAGE>` out of the `GetObjectInfo` above.
-- Put one question to the user: "Which module does package `<PACKAGE>` belong to? (SD / MM / PP / PM / QM / WM / TM / TR / FI / CO / HCM / BW / PS / Ariba)" — only where the module cannot be derived from `.sapkit/config.json` or from the package's existing CBO folder (see [project-context](../project-context.md)).
+- Put one question to the user — only where the module cannot be derived from `.sapkit/config.json` or from the package's existing CBO folder (see [project-context](../project-context.md)). Say it in the user's language, in plain words, per the [plain-language policy](../policies/plain-language.md): one line of why it is being asked — knowing the area lets the write-up name this package's custom objects by what they do for the business instead of leaving them as bare Z-names — then the choice, one of SD / MM / PP / PM / QM / WM / TM / TR / FI / CO / HCM / BW / PS / Ariba, each named the way that module is known in the user's language rather than by its letters alone. Name the package, not where the answer would otherwise have been read from.
 - Check `.sapkit/cbo/<MODULE>/<PACKAGE>/inventory.json`.
   - **Exists** → Load it. While Step 3 describes data sources, tables, or helper calls, annotate every one that matches an inventory entry with its CBO role + one-line business purpose (e.g., "writes to `ZSD_ORDER_LOG` — append-only sales-order processing log"). That turns the spec's opaque Z-references into named reusable assets.
-  - **Missing** → Print one line: "No CBO inventory at `.sapkit/cbo/<MODULE>/<PACKAGE>/`. Run the [analyze-cbo-obj](analyze-cbo-obj.md) procedure first for richer spec annotations, or type `skip` to proceed."
+  - **Missing** → Say one line to the user in their language, in plain words, per the [plain-language policy](../policies/plain-language.md). What has to come across, and nothing beyond it: that there is no stored stock-take of this package's custom objects, so the program will be written up on its own and its Z-references will stay bare names rather than being described by what they do; and the choice, recommendation first — **carry on without it (recommended)**, with one line of why (the specification is complete either way, the annotations are an extra), or take stock of the package first, which is a separate run ([analyze-cbo-obj](analyze-cbo-obj.md)) that makes the annotations available. The storage path and the `skip` reply form stay on this side; the user hears the effect, not the location.
 - Persist the loaded entries into `.sapkit/specs/<OBJECT>/cbo-context.md` for Steps 3–4 to use.
 - Source reads:
   - Report/Program: `GetProgFullCode` + `GetIncludesList` → iterate `GetInclude`
@@ -169,7 +171,7 @@ Adopt the [sap-writer](../personas/sap-writer.md) persona for this step. Render 
 
 **Step 5 — Review loop**
 - Show a table of contents and the first section inline.
-- Ask: "OK to finalize, or trim/expand a section?"
+- Ask one closing question — say it in the user's language, in plain words, shaped per the [plain-language policy](../policies/plain-language.md): one line of why it is being asked (*nothing is written to a file until this is settled*), then the choice — **write it out as it stands (recommended)**, with one line of why (the draft already covers everything the chosen depth asks for), or **name a section to shorten or to go deeper on**, plus the open slot for something neither option covers.
 - On confirmation → write the file → print the absolute path.
 
 ## Markdown Template — L2 Standard Spec skeleton
@@ -319,22 +321,15 @@ The PNG signature is verified before any write; non-PNG input is rejected withou
 
 ## Output Format (completion block)
 
-```
-Spec generated: ZSDR_OPEN_ORDER_ALV
-Depth: L2 Standard · Format: markdown · Lang: ko
-Sections: 9 · Tables referenced: 6 · Screens: 1 · GUI status: 1
-File: .sapkit/specs/ZSDR_OPEN_ORDER_ALV-20260414-ko.md
+Close the run by telling the user what was produced. Say it in their language, in plain words, per the [plain-language policy](../policies/plain-language.md) — never as a pasted English block. The elements, in this order:
 
-Top-level summary:
-  Report that lists open sales orders by Sales Organization and date range and displays them via ALV.
-  Main tables: VBAK, VBAP, VBUK, KNA1 (+ CDS I_SalesOrder).
-  Authorizations: S_TCODE=ZSDR01, S_TABU_DIS=VBAK.
+- **what was written** — which program was documented, at which depth and in which language, said as the depth's plain meaning rather than its label alone;
+- **where the file is** — its path, given once, as the one thing the user has to act on;
+- **what is in it** — how many sections it holds and what the write-up had to cover: how many tables it draws on, and whether it has screens or a menu definition;
+- **what the program actually does** — two or three sentences in business terms: what it lists or produces, what the user filters it by, which tables the figures come from, and which authorization checks decide who may run it. Gloss each SAP term the first time it appears;
+- **what could follow**, each said as what it would do rather than by its label: produce the same specification as a spreadsheet instead, go deeper and add a list of everything that calls this program, or write a second copy in another language.
 
-Next options:
-  • "Regenerate as Excel"
-  • "Extend to L4 with Where-used"
-  • "Add an English version"
-```
+Nothing here is a question — it is a report with three offers attached, and the run is finished whether or not the user takes one.
 
 ## MCP Tools Used
 

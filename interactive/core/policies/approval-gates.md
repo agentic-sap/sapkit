@@ -1,6 +1,6 @@
 ---
 name: approval-gates
-description: Human approval gates — explicit-keyword spec approval bound to spec hash + system + transport, and per-call approval for row-level data reads (distribution default; owner-machine exception per D-043)
+description: Human approval gates — explicit spec approval bound to spec hash + system + transport, and per-call approval for row-level data reads (distribution default; owner-machine exception per D-043)
 source:
   - sc4sap-custom/skills/create-program/spec-approval-gate.md
   - sc4sap-custom/CLAUDE.md
@@ -29,15 +29,35 @@ whichever layer is active.
 No SAP write tool may be called for a program until its `spec.md` has been
 displayed to the user and explicitly approved.
 
-**Accepted approval keywords** (exact, explicit):
+**What counts as approval — a clearly affirmative answer.** There is no fixed
+keyword list to match against. An answer whose meaning is plainly "yes, build
+this" is approval, in whatever language and phrasing the user chose. The
+approval answer is itself the explicit go-ahead into implementation: it is the
+place where the human permits entry into the SAP-writing steps, and no second
+"shall I proceed?" follows it.
 
-- `승인` / `approve` / `approved` / `ok` / `proceed` / `go ahead` / `confirmed`
-  (the canonical list lives in `../procedures/schemas/approval.schema.json` — keep both in sync)
+There is accordingly no canonical list to keep in sync any more. What
+`../procedures/schemas/approval.schema.json` records is the user's actual
+phrase (`approval_phrase`, verbatim) — the record says what was said, not which
+listed word was matched.
 
-**NOT accepted**: `yes`, "sounds good",
-enthusiasm ("빨리", "해봐"), silence, or moving on to another topic. If the
-response is a change request, revise `spec.md`, re-display it, and wait again —
-never silently merge comments and continue.
+**When the answer is ambiguous, ask back exactly once.** Enthusiasm or
+impatience without a decision ("음… 일단 해봐", "빨리", "sounds good") is not yet
+approval. Ask back **once** — render the question in the user's language and in
+plain words, carrying these two elements:
+
+1. that you are asking whether to start building from this design, now;
+2. that an affirmative answer starts the build.
+
+(Illustrative only, not a fixed string: *"Shall I start building from this
+design? If you say yes, I start."*) Then wait for the answer, and judge that
+answer by the same standard. One ask-back, not a loop.
+
+**A change request is a design edit, not a verdict on the gate.** Revise
+`spec.md`, re-display it, and ask again — never silently merge comments and
+continue.
+
+**Silence, or moving on to another topic, is not approval.**
 
 **Approval record.** On approval, write a record conforming to
 `../procedures/schemas/approval.schema.json` into `.sapkit/program/{PROG}/`
@@ -46,7 +66,8 @@ never silently merge comments and continue.
 - the **spec hash** (content hash of `spec.md` at the moment of approval)
 - the target **SID/client** (from the active profile)
 - the assigned **transport** number
-- approver, timestamp, and the keyword used
+- approver, timestamp, and the **approval phrase** — the user's own words,
+  recorded verbatim
 
 The approval is bound to that exact triple (spec hash + system + transport).
 
@@ -54,6 +75,11 @@ The approval is bound to that exact triple (spec hash + system + transport).
 voids the approval — the implementation phase MUST refuse to run against a
 spec whose current hash does not match the recorded one, and the gate is run
 again. The same applies if the target system/client or transport changes.
+
+**Outside this policy's scope.** The fixed approval-phrase rule of the
+[release](../procedures/release.md) procedure is untouched by the above and
+stays exactly as it is — an irreversible action keeps its second layer of
+defence; only the wording that explains it gets easier.
 
 ## Gate B — Row-level data reads (per call)
 

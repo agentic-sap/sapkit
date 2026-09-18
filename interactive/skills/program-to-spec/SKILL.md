@@ -1,6 +1,6 @@
 ---
 name: program-to-spec
-description: Reverse-engineer an ABAP program into a Functional/Technical Specification artifact (Markdown or Excel). Socratic scope narrowing from "everything" to "only what the user needs".
+description: Reverse-engineer an ABAP program into a Functional/Technical Specification artifact (Markdown or Excel). Step-by-step scope narrowing from "everything" to "only what the user needs".
 ---
 
 # program-to-spec (wrapper)

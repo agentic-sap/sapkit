@@ -1,17 +1,20 @@
 ---
 name: deep-interview
-description: Socratic deep interview to crystallize ambiguous SAP requirements before build work. Use when scope, business rules, or data sources are still unsettled ahead of create-program or other build/spec procedures — staged questions narrow options and produce an approved requirements brief that the downstream run consumes.
+description: A step-by-step deep interview that pins down unclear SAP requirements before build work. Use when scope, business rules, or data sources are still unsettled ahead of create-program or other build/spec procedures — questions arrive in small bundles, every one of them gets asked, and the run produces a confirmed requirements brief that the downstream run consumes.
 source:
   - sc4sap-custom/skills/deep-interview/SKILL.md
 ---
 
 # Deep Interview
 
-Run a staged Socratic interview so that SAP development requirements harden before any code is written. What it buys back is the execution cycles otherwise burned on an underspecified ABAP task.
+Run a staged interview so that SAP development requirements harden before any code is written. What it buys back is the execution cycles otherwise burned on an underspecified ABAP task.
 
 ## Purpose
 
-Aim each question at a specific piece of ambiguity in the SAP requirement. A scored ambiguity threshold gates the exit: only once the requirements are specified enough does the interview write a validated spec file and offer to move on to a build procedure (`create-program` / `create-object`).
+Aim each question at something the SAP requirement still leaves open. The stage ends
+only when every dimension below has been closed by the user's own confirmation **and**
+the dig-out has run — and only then does the interview write the requirements brief
+and offer to move on to a build procedure (`create-program` / `create-object`).
 
 ## When to Use
 
@@ -55,7 +58,24 @@ shorter than the first.
 
 ## SAP Interview Dimensions
 
-Work these dimensions until every one of them is resolved:
+Work these dimensions until every one of them is resolved. **All six are covered —
+none is skipped**, whatever you already believe the answer to be.
+
+**How they are asked.** Related dimensions travel together, two to four of them in
+one message, each carrying what the choice means, the recommended answer first, and
+one line of why. Bundle size, the option limits, the open slot on a business
+question, and the line saying where the user is are all set by the
+[plain-language policy](../policies/plain-language.md) — follow it there rather than
+setting a second cadence here.
+
+- **A dimension something already answers** — an imported design document, a
+  specification the user pasted, a recorded `KD-`/`KS-` atom — is neither re-asked
+  nor quietly dropped. Restate it with where it came from and let the user correct
+  it, **inside the same bundle** as the open dimensions. It is a confirmation, not
+  an extra question.
+- **"Just decide for me"** applies to the bundle on screen: fill its remaining
+  dimensions with the recommended answers, show them, and confirm that bundle once.
+  It does not settle the dimensions still to come.
 
 **Object scope**: Which ABAP objects does this need? (class, interface, program, function module, BAdI implementation, CDS view, RAP business object)
 
@@ -69,26 +89,60 @@ Work these dimensions until every one of them is resolved:
 
 **Testing requirements**: Are unit tests wanted? In which test classes? What test data strategy?
 
-## Ambiguity Gating
+## The Dig-Out — after the dimensions close, before the brief
 
-Close each round of questions by scoring the remaining ambiguity 0–10:
-- 8+: still too vague, keep interviewing
-- 5–7: borderline, ask 1–2 clarifying questions
-- Below 5: specified enough, generate the spec
+Once every dimension above is closed, run the full
+[interview-sweep](interview-sweep.md) stage — after the dimensions, **before the
+brief is written**. The dimensions close what this procedure knew to ask; the
+dig-out closes what this particular requirement turns out to need, which is where
+the decisions live that otherwise get made silently by whoever writes the code.
 
-Do not move on to spec generation until the score is below 5.
+That file owns the stage: the map, the blanks, how they are asked, and where the
+answers are recorded. It is not optional, and a document the user brought in does
+not cancel it.
+
+## When this stage is over
+
+Both of these hold, or the stage is not over:
+
+1. Every dimension above has been closed **by the user** — by an answer, or by
+   confirming a restatement. A dimension you closed on your own is not closed.
+2. The dig-out has reached its own stopping criterion
+   ([interview-sweep](interview-sweep.md) § Stopping criterion).
+
+Turn count, elapsed time, and the user's impatience move neither condition. The
+brief is not written until both hold.
 
 ## Output
 
-Once the ambiguity threshold is met:
-1. Write the validated spec to `.sapkit/deep-interviews/sap-{timestamp}.md`
-2. The spec carries: object list, package, transport strategy, technical pattern, integration points, test requirements
-3. Offer: "Spec ready. Proceed with `create-program` (full program) or `create-object` (single object)?"
-4. If the interview established a business or system fact — a company-specific rule, a non-obvious status meaning, a legacy table's real grain — grep the two knowledge files for its key terms first, and only if it is **not** already recorded offer one line: *"Record `<fact>` to project knowledge? (yes/no)"*. On `yes`, follow [knowledge](knowledge.md). Nothing newly established, or already recorded → no prompt.
+Once both conditions above hold:
+
+1. Write the brief to `.sapkit/deep-interviews/sap-{timestamp}.md`.
+2. **Open it with the human-readable front matter** that
+   [interview-sweep](interview-sweep.md) defines at its end — at a glance · what was
+   decided and why · business rules and exceptions · acceptance criteria — in that
+   order, before any object list, package, or transport strategy appears. What each
+   part holds is set there and is not restated here.
+3. **Carry the dig-out record in the same brief**, under the fixed section marker
+   and with the four fields per entry that [interview-sweep](interview-sweep.md)
+   § Step ④ sets out. The front matter does not stand in for it: the front matter
+   says *what was decided*, the marked section says *what was asked, what was
+   answered, whether the answer taken was the one recommended, and where it came
+   from*. A brief carrying no dig-out section is a brief that went out early.
+4. The technical body follows underneath: object list, package, transport strategy, technical pattern, integration points, test requirements
+5. **Write the brief in the language the user has been talking in**, in plain words —
+   the front matter above all, since a business reader has to be able to read it on
+   its own. The section marker is the one thing that stays exactly as
+   [interview-sweep](interview-sweep.md) writes it.
+6. Offer the next step in one line, in the user's language and in plain words: the design is
+   settled, and they can go on to building a whole program or a single object. Say what each
+   one produces, not which procedure runs it — no procedure names in what they read.
+7. If the interview established a business or system fact — a company-specific rule, a non-obvious status meaning, a legacy table's real grain — grep the two knowledge files for its key terms first, and only if it is **not** already recorded offer one line, again in their language: name the fact, say it would be kept for this project so nobody has to ask again, and let them decline. On a clear yes, follow [knowledge](knowledge.md); do not print a literal reply form. Nothing newly established, or already recorded → no prompt.
 
 The brief is standing input, not a one-shot handoff: a later `create-program` run reads `.sapkit/deep-interviews/` at its [Intake Resolution](create-program.md#intake-resolution--spec-entry-forms) step (right after Phase 0) and closes every dimension this brief already answers by confirmation restatement instead of re-asking — only the deficit dimensions get interviewed. A follow-on `create-object` run consumes the brief the same way, as the input to its freeze step.
 
 ## Related Procedures
 
+- [interview-sweep](interview-sweep.md) — the dig-out stage this procedure runs once its dimensions close, and the definition of the brief's front matter and record section
 - [ask-consultant](ask-consultant.md) — when the question is operational Q&A rather than build-requirement clarification
 - [program-to-spec](program-to-spec.md) — the reverse direction: existing program → spec

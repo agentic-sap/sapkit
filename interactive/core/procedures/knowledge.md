@@ -168,7 +168,11 @@ Offer — do not assume — at the close of
 Phase 1B, [ask-consultant](./ask-consultant.md), and
 [analyze-symptom](./analyze-symptom.md):
 
-> *"New business/system fact worth keeping: <one line>. Record it? (yes/no)"*
+Say it in the user's language, in plain words, per the
+[plain-language policy](../policies/plain-language.md) — one line carrying three
+things and nothing more: the fact itself, stated back so they can see exactly
+what would be kept; why it is worth keeping (the next session would otherwise
+have to work it out again); and that it is theirs to decline.
 
 One offer, one line, dismissible, and only after step 2's duplicate check. If
 nothing was learned, say nothing — a prompt that fires on every run gets answered

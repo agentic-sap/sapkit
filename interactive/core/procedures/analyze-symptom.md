@@ -138,20 +138,15 @@ Rules:
 
 ### Step 3 — User Questions (round N)
 
-Render the round's result:
+Render the round's result — say it in the user's language, in plain words, per the [plain-language policy](../policies/plain-language.md), in this order:
 
-```
-✅ Confirmed via MCP:
-  <mcp_confirmed bullet list>
+- **what was already established by looking at the system directly** — the `mcp_confirmed` items, said as findings rather than as tool output, so the user can see these are things they do not have to answer;
+- **what is still needed from them** — the `priority_questions`, at most 3, each with one line of why it is being asked;
+- **the leading hypotheses**, 2–3 of them, each with what kind of problem it is, how sure it is said in words, and the evidence behind it.
 
-❓ Need your input (max 3):
-  <priority_questions>
+Name any SAP term the first time it appears — the transaction, table, or object type together with what it is — and keep tool names, field names, and round bookkeeping out of what the user reads.
 
-🎯 Leading hypotheses (2–3):
-  <per-hypothesis: category · confidence · evidence summary>
-```
-
-Wait for the user's answers. When answers arrive → re-run Step 2 (round N+1) with the previous findings carried forward. When the user closes the loop ("yes, SU53 dump attached" or "no more input", say), move on to Step 4.
+Wait for the user's answers. When answers arrive → re-run Step 2 (round N+1) with the previous findings carried forward. When the user closes the loop — an answer supplied, or a plain signal that they have nothing further to add — move on to Step 4.
 
 Max 3 questions per round. Any item already sitting in `mcp_confirmed` must NOT come back as a user question.
 
@@ -196,7 +191,9 @@ Before the knowledge half is offered, grep `.sapkit/knowledge/domain.md` and `sy
 
 ## Question Strategy
 
-**Rule**: max 3 questions per response. Never re-ask what MCP has already answered.
+**Rule**: max 3 questions per response. Never re-ask what has already been established by looking at the system.
+
+Word them per the [plain-language policy](../policies/plain-language.md): each question carries one line of why it is being asked and what the answer would rule in or out, and any transaction, table, or status code named in it is glossed the first time — *SU53 (the screen that shows which authorization check just failed)*, *SM59 (where the connections to other systems are tested)*, *transport (the parcel that carried a change into this system)*. Where the question offers alternatives, the likeliest one comes first, marked as such, with one line of why.
 
 Priority where information is missing:
 
@@ -217,67 +214,27 @@ Follow-ups tied to the situation:
 
 ### Per-Round Structure
 
-Every analysis round takes this structure:
+Every analysis round carries the same five parts, in this order. Say them in the user's language, in plain words, per the [plain-language policy](../policies/plain-language.md) — never as a pasted English block:
 
-```
-## 📊 Symptom Analysis — Round N
+1. **Where we are** — a heading naming the symptom under analysis and which round this is, so the user can see the investigation is narrowing rather than restarting.
+2. **What was found by looking at the system** — which system was inspected (its identifier, client, release and support-pack level, and the user the checks ran as, each named plainly the first time) and the findings themselves, stated as facts about the system. The names of the calls used to get them do not appear.
+3. **What it currently looks like** — 2–3 candidate explanations, most likely first, each with: what kind of problem it is, how sure it is expressed in words rather than a score, the evidence behind it, and the single next check that would confirm or rule it out.
+4. **What is needed from the user** — at most 3 questions, each carrying one line of why it is being asked. Anything already established in part 2 never reappears here.
+5. **What happens next** — split three ways: what will be done right away without waiting, what is waiting on the user's answers, and anything that should go to another team, with the reason. Alongside it, the SAP Note search terms, most specific first — the exact message text, then its message class and number, then the program or class involved, then the component plus a keyword. Say what a SAP Note is the first time it is mentioned (SAP's own published fix or explanation for a known problem).
 
-### ✅ Evidence Collected via MCP
-- **System**: {SID} / {client} / {release} / {SP} / {user}
-- **Findings**:
-  - {Finding 1 — MCP tool used}
-  - {Finding 2 — MCP tool used}
-  - ...
-
-### 🎯 Current Hypotheses (by confidence)
-1. **[Category] {Hypothesis summary}** — Confidence: High / Medium / Low
-   - Evidence: {MCP findings / user answers}
-   - Confirmation: {next verification step}
-2. **[Category] ...** — Confidence: ...
-3. ...
-
-### ❓ Questions for You (max 3)
-1. {Question 1}
-2. {Question 2}
-
-### 🔍 SAP Note Search Keywords (priority-ordered)
-- "{exact error message}"
-- {message class} {message number}
-- {program / class name}
-- {component} {keyword}
-
-### 👉 Next Steps
-- ✅ Can do now: {additional MCP queries / local actions}
-- ⏳ After your input: {what requires the user's answers}
-- 🚨 Escalation candidates: {target} — reason: {why}
-```
+Gloss every SAP term, transaction, and table the first time it appears. Round numbering is the only counter the user sees; internal field names, tool names, and confidence figures stay out of it.
 
 ### Final Round
 
-In the final round — nothing left open — produce a consolidated report carrying the final hypothesis, the SAP Note strategy, and the list of recommended actions. Structure:
+In the final round — nothing left open — produce a consolidated report carrying the final hypothesis, the SAP Note strategy, and the list of recommended actions. Say it in the user's language, in plain words, per the [plain-language policy](../policies/plain-language.md) — never as a pasted English block. The same five-part shape as a normal round, closed out:
 
-```
-## 🏁 Final Analysis — {symptom summary}
+1. **Where we are** — a heading naming the symptom and saying plainly that the analysis has landed, so the user knows no further round is coming.
+2. **What caused it** — which of the eight kinds of problem this turned out to be, named by what it means rather than by its label; the evidence that confirmed it; and how sure that conclusion is, said in words rather than as a score.
+3. **How to find SAP's own write-up of it** — the search terms, most specific first, and two or three ready-to-paste queries for SAP's Note portal. Say what a SAP Note is the first time it is mentioned (SAP's own published fix or explanation for a known problem).
+4. **What to do about it** — the recommended actions in order, each with who would do it and how soon it matters.
+5. **What to hand to someone else, if anything** — which team it should go to and why, together with what to attach: the dump reference, the transport number (transport — the parcel that carried a change into this system), and anything else that makes the case without them having to reproduce it.
 
-### Root Cause
-- **Category**: {one of 8 framework categories}
-- **Confirmed evidence**: {list}
-- **Confidence**: High / Medium / Low
-
-### SAP Note Search Strategy
-- Primary keywords: {ordered list}
-- Recommended Notes portal queries: {2–3 concrete search strings}
-
-### Recommended Actions
-1. {action 1 — owner, urgency}
-2. {action 2}
-3. ...
-
-### Escalation (if any)
-- Target: {Basis / Development / SAP Support / Functional}
-- Reason: {why}
-- Artifacts to attach: {dump ID, TR number, screenshot refs}
-```
+Gloss every SAP term, transaction, and table the first time it appears. Internal field names, tool names, and confidence figures stay out of it.
 
 ### Round Counter
 

@@ -64,6 +64,38 @@ node adapters/claude/hooks/install-hooks.mjs --project <프로젝트 경로>
 빠져 있다** — 매 호출 사람 승인 유지. 네임스페이스 접두어(`mcp__plugin_sapkit_sap__`)는
 설치 후 실제 도구명과 대조해 다르면 `SAPKIT_TOOL_NS=<실측 접두어> node scripts/gen-permissions.mjs`로 재생성.
 
+### 빌드 권한 부분 목록 — `permissions-build.json`
+
+전체 템플릿보다 **좁은 목록**이다. `permissions-template.json`에서 **되돌리기 어려운
+일**(삭제 `Delete*` · 이송 생명주기 `CreateTransport`·`ReleaseTransport` · **패키지 생성**
+`CreatePackage` · 런타임 실행·프로파일링·덤프 조회 `Runtime*`)과
+**실데이터**(`GetTableContents`·`GetSqlQuery`)를 빼고 남긴 것 — 즉 만들기·고치기·활성화·
+구문검사·단위테스트·읽기 도구다. 뺀 것들은 계속 호출별 승인 창이 뜬다. **제외 목록의 세부는
+조정할 수 있으나 원칙은 고정**이다.
+`CreatePackage`가 제외인 이유는 `AGENTS.md`의 **P4** 정의가 「package/request create」이고,
+도구 표면에 `DeletePackage`가 없어 **이 제품의 도구로는 되돌릴 수 없기** 때문이다.
+
+⚠ **파생의 방향은 fail-open이다.** 「템플릿에서 제외 패턴에 걸리는 것만 뺀다」이므로, 어느
+패턴에도 안 걸리는 **새 도구는 그대로 이 목록에 실린다**(= 승인 직후 병합에 포함된다).
+그러므로 **목록을 재생성할 때 새로 들어온 이름을 사람이 확인하는 것**이 이 기제의
+안전장치다 — 생성물 `_comment`가 같은 말을 든다.
+
+**제안 시점** — `/sapkit:setup`의 4a가 아니라, 사용자가 **설계를 승인한 직후**의 진행
+안내에서 예/아니오로 한 번 묻는다. 예라고 답하면 프로젝트 `.claude/settings.local.json`의
+`permissions.allow`에 **추가 병합만** 한다(4a와 같은 규칙 — 삭제·재정렬 금지, 병합 뒤 개수가
+줄면 되돌림, 죽은 접두어는 보고만). 아니오면 현행대로 창이 뜬다. 이 제안은 **메인 대화만**
+하고 위임 워커는 하지 않는다. Codex·Antigravity에는 sapkit이 병합할 허용 목록 기제가 없어
+그 두 호스트에서는 질문 대신 한 줄 안내로 대체된다.
+
+**미실측 유보** — 병합이 **같은 세션에 즉시 먹는지는 실측하지 않았다**. 병합 뒤에도 창이
+뜨면 한 번 허용해 주면 되고, 늦어도 다음 세션부터는 뜨지 않는다. 어느 쪽이든 안전한
+방향이다(안 먹으면 창이 뜰 뿐, 열리지는 않는다).
+
+**생성·검사** — 손으로 고치지 않는다. 파생은 `node scripts/gen-permissions.mjs --derive-build`
+(템플릿을 걸러서 만들며 서버를 띄우지 않는다)이고, 템플릿을 재생성하면 같은 실행에서 부분
+목록도 다시 쓴다 — 둘이 갈라지지 않게 하기 위해서다. 제외가 지켜지는지는
+`smoke-mcp.mjs`의 어댑터 deny 계약 `claude_build` 항목이 상시로 잰다(음성시험 있음).
+
 ## 구현 위임 (execution_owner = delegated)
 
 이 어댑터는 워커(`sapkit:sap-worker` 서브에이전트)를 사용자 개입 없이 호출할 수 있으므로

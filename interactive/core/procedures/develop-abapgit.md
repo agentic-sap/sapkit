@@ -109,12 +109,22 @@ Three things are settled before anything is written, and all three are recorded 
    ([ecc-ddic-fallback](../knowledge/abap/conventions/ecc-ddic-fallback.md)), where the
    agent's deliverable is handed to the user to run. Nothing is connected here, so the
    server-side tier gate that protects the MCP path cannot fire; the affirmation is what
-   stands in its place. Say so when asking, rather than implying a check happened.
+   stands in its place.
+   Ask it in the user's language, in plain words, per the
+   [plain-language policy](../policies/plain-language.md): that this is going into a
+   development system and not into test or production; one line of why it is being asked —
+   nothing is connected to SAP on this path, so nothing can check it automatically and their
+   word is what stands in place of that check; and, said plainly, that answering yes is the
+   only thing standing between this and the wrong system. Do not word it so it sounds as
+   though a check already happened.
 2. **Rework warning, when new screens (DYNPRO) or GUI statuses (CUA) are in scope.** Newly
    authored screen and CUA XML is the highest-rework-risk area of this path: an import error,
    a repair, and a re-ZIP may go round more than once. Say this at kickoff, before the work
-   starts, so the round trips are expected rather than alarming. **This is a warning, not a
-   gate** — do not decline the work on it.
+   starts, in plain words: that screens and their menu definitions are the part that most
+   often has to go back and forth a couple of times before it imports cleanly, and that this
+   is normal rather than a sign something is wrong. Gloss the terms the first time — a screen
+   (DYNPRO, the input form a user fills in) and its menu and button set (CUA). **This is a
+   warning, not a gate** — do not decline the work on it.
 3. **Scope confirmation** (Entry B) — the object list and the intended change, in the user's
    own terms, confirmed and written to `scope.md`.
 
@@ -280,8 +290,11 @@ and on this path the server is reached only when the user imports.
 
 ## Step 7 — Hand over, then read the report back into a status
 
-The agent stops at the ZIP. Hand it over with the path, what it contains, and import
-guidance covering at least these two, **by reference — do not copy the rule text in**:
+The agent stops at the ZIP. Hand it over in the user's language, in plain words, per the
+[plain-language policy](../policies/plain-language.md): where the file is, what is inside it,
+that importing it into SAP is theirs to do and nothing has reached SAP yet, and what to expect
+during the import. The import guidance covers at least these two, **by reference — do not copy
+the rule text in**:
 
 - **Overwrite-all on pull is normal** after direct ADT edits, and harmless against a
   full same-source mirror.
@@ -291,7 +304,12 @@ guidance covering at least these two, **by reference — do not copy the rule te
 Both are [abapgit-roundtrip-rule](../knowledge/abap/conventions/abapgit-roundtrip-rule.md)
 § Overwrite-All on Pull Is Normal and § Skip SUSH Delete Proposals. Point at them.
 
-Then the status, and it is the part most easily got wrong:
+Then the status, and it is the part most easily got wrong. When the status is said to the
+user, lead with what it means and put the word after it — *nothing has reached SAP yet*
+(`DRAFT`), *it was sent and reported in, but nobody has read it back to check* (`PROVISIONAL_WRITE`),
+*read back, confirmed, and independently reviewed* (`COMPLETE`) — per the
+[plain-language policy](../policies/plain-language.md). The gloss is how it is said; which
+word an object is entitled to is decided by the test below and a short gloss never loosens it.
 
 | What has happened | Status |
 |---|---|
