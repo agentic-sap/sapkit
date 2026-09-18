@@ -1,6 +1,6 @@
 ---
 name: interview-sweep
-description: The dig-out stage — a shared sub-procedure that surfaces the decisions an interview leaves tacit before any planning or creation starts. Called by create-program (after the technical interview, before planning), deep-interview (after its own dimensions close), and create-object (a short variant inside the confirm step). Draw the program map, enumerate the blanks, ask all of them with a recommendation attached, record the answers into interview.md under a fixed section marker. No skill wrapper — it has no entry point of its own.
+description: The dig-out stage — a shared sub-procedure that surfaces the decisions an interview leaves tacit before any planning or creation starts. Called by create-program (after the technical interview, before planning), deep-interview (after its own dimensions close), and create-object (a short variant inside the confirm step). Draw the program map, enumerate the blanks, ask all of them with a recommendation attached, record the answers into the artifact the run already owns under a fixed section marker. No skill wrapper — it has no entry point of its own.
 ---
 
 # Interview Sweep — the Dig-Out Stage
@@ -97,8 +97,8 @@ you forgetting, not to bound what you may ask.
   that check goes through
 - **Data volume and performance** — what a normal run holds, and what the worst
   case holds
-- **Run mode** — on demand or in the background · what happens when the same run
-  goes twice · what happens when it is re-run after an abort
+- **Run mode** — run in dialog or as a background job · what happens when the same
+  run goes twice · what happens when it is re-run after an abort
 - **Locking and concurrent runs** — two people at once, or the run colliding with
   the business transaction it reads
 - **Currency, unit, language, text** — conversion and rounding, which unit the
@@ -109,10 +109,23 @@ you forgetting, not to bound what you may ask.
 - **Acceptance criteria** — one or two worked examples in the shape "given this
   input, this result"
 
-A candidate counts as a blank when the map does not already force the answer. Drop
-the ones the map does force; padding the list spends the user's attention on
-questions that have only one possible answer, and that is how the real ones get
-skimmed.
+A kind drops off the list only where this program raises **no candidate under it at
+all** — a program that moves no amount anywhere raises no currency blank. That is
+the whole of the exemption. It is not an exemption for a candidate whose answer you
+believe you already know:
+
+- **You are confident of the answer** → it is still enumerated and still asked,
+  with your recommendation attached (Step ③). Confidence is not a reason to drop
+  the question; it is the reason the recommendation exists.
+- **The corrected map already states it** → it is still enumerated, and it closes
+  as a **confirmation restatement**, the same form a brought-in document's answer
+  takes. The map is a drawing the user corrected, not a decision record they
+  signed — nothing closes on it silently.
+
+A candidate removed here never reaches Step ③ and never reaches the stopping
+criterion, which is scoped to what this step enumerated. Removal is the one move
+this stage cannot take back, so it is reserved for the kind that has nothing to ask
+about.
 
 ## Step ③ — Ask
 
@@ -150,8 +163,15 @@ who lives with the consequence. What confidence earns you is the right to
 
 ## Step ④ — Record
 
-Everything answered in this stage goes into the run's existing `interview.md`
-artifact, as its own section. **No new file.**
+Everything answered in this stage goes into **the artifact the run already owns**,
+as its own section. **No new file** — this stage never creates an artifact of its
+own. Which artifact that is depends on the caller:
+
+| Caller | Where the record goes |
+|---|---|
+| [create-program](./create-program.md) | `interview.md`, alongside the slot answers |
+| [deep-interview](./deep-interview.md) | the brief it is about to write — the marked section sits *beside* the front matter described at the end of this file, not instead of it |
+| [create-object](./create-object.md) | see the short variant below |
 
 The section opens with this exact marker, alone on its line:
 
@@ -197,8 +217,9 @@ move neither condition.
 **Nothing downstream starts without this record.** In
 [create-program](./create-program.md), planning refuses to run where `interview.md`
 carries no dig-out section. In [deep-interview](./deep-interview.md), the brief is
-not written before it. In [create-object](./create-object.md), nothing is created
-before it.
+not written until both conditions hold — the marked section goes in as part of
+writing it, so a brief carrying no dig-out section is a brief that went out early.
+In [create-object](./create-object.md), nothing is created before it.
 
 ### Ways this stage gets faked
 
@@ -271,10 +292,18 @@ four parts in this order:
    wrote rather than against the code.
 
 The technical body of the brief follows unchanged underneath. The front matter is
-not a summary written afterwards — it is where the dig-out's answers live in that
-artifact, and it is what a later [create-program](./create-program.md) or
+not a summary written afterwards — it is the narrative face of what the dig-out
+established, and it is what a later [create-program](./create-program.md) or
 [create-object](./create-object.md) run restates for confirmation instead of
 re-asking.
+
+**The front matter does not stand in for the record.** The same brief also carries
+the `<!-- SAPKIT:DIG-OUT -->` marker and the four-field entries of Step ④. The
+front matter says *what was decided*; the marked section says *what was asked, what
+was answered, whether the answer taken was the one recommended, and where it came
+from*. A later run restating a rule needs the second to tell the user's decision
+from yours, and the marker is what lets a check find the section at all. Neither
+stands in for the other.
 
 ## Related
 
