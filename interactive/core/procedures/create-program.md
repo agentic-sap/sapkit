@@ -191,15 +191,15 @@ Recovery clause: where a bulk proposal already went out (protocol violation), ap
 - Read `.sapkit/config.json` (`industry`, `country`) and `.sapkit/sap.env` (`SAP_INDUSTRY`, `SAP_COUNTRY`). Precedence: `config.json` > `sap.env`.
 - Where `industry` is set → load `../knowledge/industry/<key>.md` and let it stand as the consultant's business-context backdrop (do NOT re-ask the user).
 - Where `country` is set → load `../knowledge/country/<iso>.md` (ISO alpha-2 lowercase, e.g. `kr`, `us`, `de`, or `eu-common` for EU-wide); multi-country: load each file and flag intercompany / intra-EU / transfer-pricing touchpoints. Do NOT re-ask the user.
-- Where either value is missing → asking is MANDATORY before dimension 1. Do not infer it from the project name, the package, or prior interviews. Blocking questions:
-  - Industry missing: *"Which industry does this program belong to? (see [industry/README.md](../knowledge/industry/README.md) for the supported keys — e.g. `automotive`, `retail`, `pharmaceutical`, …)"*
-  - Country missing: *"Which country / localization applies? (ISO alpha-2 lowercase, e.g. `kr`, `us`, `de`, or `eu-common` for EU-wide; multiple allowed)"*
-- Offer to persist the answer: *"Save to `.sapkit/config.json` so future runs skip this question? (yes/no)"*. On `yes`, write the value; on `no`, hold it for this run only.
+- Where either value is missing → asking is MANDATORY before dimension 1. Do not infer it from the project name, the package, or prior interviews. Say each in the user's language, in plain words, in this order — the user answers in their own terms and **you** resolve the answer back to the internal key, so never ask them for a key:
+  - **Industry missing** — which industry this program belongs to, offered as the industries that are actually supported, named the way the user would name them (read the supported set from [industry/README.md](../knowledge/industry/README.md)).
+  - **Country missing** — which country's rules apply, more than one allowed, offered as the localizations that are actually supported and named the same way.
+- Offer to remember the answer: one line saying that keeping it means future runs will not ask this again, and that not keeping it holds it to this run only. Do not name the file. On a yes, write the value; on a no, hold it for this run only.
 - Record the resolved values in the `module-interview.md` header (`industry:`, `country:`, `source: config.json | sap.env | user-this-run`).
 
 **Project knowledge preflight (MANDATORY — runs with the above, before dimension 1)**:
 - Read `.sapkit/knowledge/domain.md` and `.sapkit/knowledge/system.md` if present — the business and this-system facts earlier runs had to find out. Absent directory → continue silently.
-- A **`KD-` atom** is established context and is **not re-asked** — state it back citing the id (*"KD-007 already records that closing is reversible here — confirming rather than re-asking"*) and spend the dimension on what it does not cover. This is what makes a second program on the same system cheaper than the first.
+- A **`KD-` atom** is established context and is **not re-asked** — state it back for confirmation, in the user's language and in plain words: name the fact itself and say that this project established it earlier, so you are confirming rather than asking again. The atom id belongs in the record, not in the sentence the user hears. Then spend the slot on what the atom does not cover. This is what makes a second program on the same system cheaper than the first.
 - A **`KS-` atom** counts as established only when its `scope:` matches this run's profile/SID/client; a non-matching one is a hint to confirm, not a fact.
 - Anything under **`## Pending`** carries no evidence — ask it as a normal dimension question.
 - If the user **contradicts** an atom: a `KD-` business rule is theirs to overrule (take the correction); a `KS-` system fact opens a correction candidate to check against DDIC/MCP before rewriting. Both route to [knowledge](./knowledge.md) `Correct` — never a silent overwrite.
@@ -256,8 +256,11 @@ Two back-to-back inventory passes feed every downstream phase.
 1. Resolve `<MODULE>` (Phase 1A) and `<PACKAGE>` (Phase 1B dimension 6).
 2. Check whether `.sapkit/cbo/<MODULE>/<PACKAGE>/inventory.json` exists.
    - **Exists** → read it. Extract the `objects[]` array. Treat every entry as a reuse candidate and surface it in Phase 2 / Phase 3 so planning and spec writing prefer the existing asset over creating a new one.
-   - **Does not exist** → offer the user three options in one question:
-     > "No CBO inventory at `.sapkit/cbo/<MODULE>/<PACKAGE>/`. Pick one: **(A) stock now** — I will stock the package inline (~2-5 min, recommended) · **(B) skip** — continue without reuse analysis · **(C) cancel** — run the `analyze-cbo-obj` procedure separately first."
+   - **Does not exist** → offer the user three options in one question. Say this in the user's language, in plain words, with no file paths and no procedure names in what they read:
+     - that the objects already sitting in this package have not been surveyed, so the build has no list of things to reuse and may end up creating something that is already there;
+     - **(A) survey it now** — the recommendation, first: you do it inline, it takes a couple of minutes, and from then on the build prefers what already exists;
+     - **(B) go on without it** — the build proceeds, but it will not know what is already in the package;
+     - **(C) stop here** — the user would rather run the survey on its own first.
      - **(A) stock now** → Adopt the [sap-stocker](../personas/sap-stocker.md) persona for this step and stock the CBO package `<PACKAGE>` (module `<MODULE>`) per that persona's investigation protocol. On success, re-read the freshly written `inventory.json` and continue to step 3. If stocking is blocked, surface the reason, fall back to option (B), and log `cbo_inventory: "stock_failed: <reason>"`.
      - **(B) skip** → record `cbo_inventory: "skipped"` in `.sapkit/program/{PROG}/platform.md` and continue.
      - **(C) cancel** → stop the procedure and let the user run `analyze-cbo-obj` manually.
@@ -266,9 +269,8 @@ Two back-to-back inventory passes feed every downstream phase.
 **Customization Inventory Lookup** — runs immediately after the CBO lookup, same resolved `<MODULE>`; output `.sapkit/program/{PROG}/customization-context.md`:
 1. Check whether `.sapkit/customizations/<MODULE>/enhancements.json` and/or `.sapkit/customizations/<MODULE>/extensions.json` exist.
    - **Exists** → read both. Treat every `badiImplementations[]`, `cmodProjects[]`, `formBasedExits[]`, and `appendStructures[]` entry as a reuse candidate.
-   - **Does not exist** → print one line to the user:
-     > "No customization inventory at `.sapkit/customizations/<MODULE>/`. Run the `setup customizations` procedure to scan this module's Z*/Y* enhancements first, or type `skip` to proceed without customization reuse analysis."
-     If the user skips, record `customization_inventory: "skipped"` in `.sapkit/program/{PROG}/platform.md` and continue.
+   - **Does not exist** → say one line to the user, in their language and in plain words, with no file paths and no procedure names in it: that this module's existing customer enhancements have not been surveyed; that surveying them first means the build extends what is already there instead of adding a second parallel copy of it; and that going on without it is a fine choice if they prefer.
+     If the user chooses to go on, record `customization_inventory: "skipped"` in `.sapkit/program/{PROG}/platform.md` and continue.
 2. Persist the loaded inventory to `customization-context.md`. One bullet per entry:
    - BAdI impl: `• BAdI {standardName} → existing impl {Z*_CLASS} (impl name: {impl_name}) — reuse target for any new hook into this BAdI`
    - CMOD project: `• SMOD {standardName} → existing CMOD project {Z_PROJECT} — add new components here instead of creating a second project`
@@ -289,8 +291,11 @@ Phase 8's hard gate can still send the run back to Phase 6.
 If Phase 1A/1B established a business or system fact — a company-specific rule the
 user explained, a legacy table's real grain, a non-obvious status meaning — grep the
 two knowledge files for its key terms, and only if it is not already recorded offer
-one line: *"Record `<fact>` to project knowledge? (yes/no)"*, following
-[knowledge](./knowledge.md) on `yes`. Failures go to [lesson](./lesson.md), facts go
+one line — said in the user's language, in plain words, naming no file and no
+procedure: that you noticed something worth keeping (state the fact itself), and
+that keeping it means the next program on this system will not have to ask about it
+again. On a yes, follow
+[knowledge](./knowledge.md). Failures go to [lesson](./lesson.md), facts go
 to `knowledge`; a single incident can warrant both. Nothing newly established, or
 already recorded → no prompt.
 
@@ -491,6 +496,10 @@ Required steps:
    - Append the `## Approval` section to `spec.md`, recording **the user's actual
      words, verbatim** — not a keyword, not a normalized form, not a translation.
    - Compute the SHA-256 of the approved `spec.md` and write `.sapkit/program/{PROG}/approval.json` conforming to [schemas/approval.schema.json](./schemas/approval.schema.json) — `approval_phrase` carries those same verbatim words. This binds the approval to the exact spec content (`spec_sha256`) AND the target system (`sid` / `client` / `tier` from the active connection profile in `.sapkit/sap.env` / `.sapkit/config.json`, plus the `transport` from Phase 1B dimension 6).
+   - Record `state.json.phases.3_5_mode_gate.status = "completed"` **at this
+     moment** — the approval is what satisfies the gate Phase 4 checks, not an
+     answer to the Phase 3.5 briefing. (Why it is keyed here: see the Phase 3.5
+     Enforcement Contract.)
    - Then move to Phase 3.5. **Do not ask a second "shall I proceed?"** — the
      approval answer already was that go-ahead.
 
@@ -549,25 +558,53 @@ one-line notice, not a question: sapkit has no allow-list to merge on those
 hosts, per-call approval is the host's own user setting, and the two real-data
 tools ask everywhere regardless.
 
-**(b) What the allowance means.** With these allowed, no prompts appear while the
-build writes to SAP. Ask the user to stay nearby, and say plainly that the places
-listed in (c) are the only places the run will stop.
+**(b) What the allowance changes, and what it does not.** Two different things,
+and the user needs both — a briefing that gives only the first tells them the run
+will never pause when in fact it still will:
 
-**(c) The stop list — closed, and it is these.** The run stops at:
+- **Where *this run* stops and asks them** — the closed list in (c). With the
+  allowance in place no permission prompt appears while the build writes to SAP,
+  so the places in (c) are the only places the run pauses. Ask them to stay nearby
+  for those.
+- **Where their *host's own* approval window still appears, allowance or not** —
+  the subset list that gets merged deliberately leaves out deleting anything,
+  creating or releasing a transport, running anything on the system, and the two
+  tools that read real business data. Saying yes does not pre-allow those: if one
+  is ever reached, the host asks in its usual way, on top of whatever (c) already
+  requires. Say it as effect — *deleting, transports, running things, and reading
+  real data are not covered by this; you will still be asked* — and not as a list
+  of tool names.
 
-1. **reading real business data out of a table** — every single time, with the
-   scope, the fields, and the row cap shown first, and never in a delegated
-   worker or a batch;
-2. **anything that would change or delete an object the user already owns**;
-3. **anything touching a transport beyond the one already agreed** — creating,
-   assigning, or releasing;
-4. **a review verdict that fails or blocks**, or an error the run cannot resolve
-   on its own;
-5. **a design deviation that changes the object list or the transport** (Phase 4);
-6. and, where the user opts into it at (d), **each step**.
+That distinction is what makes "nothing outside (c) stops the run" true rather
+than false: (c) is where **this procedure** stops to ask, and the excluded actions
+are where **the host** asks.
 
-Nothing outside that list stops the run. Say the list as effects, not as policy
-grades or tool names.
+**(c) The stop list — closed, and it is these seven.** The run stops when:
+
+1. **it needs to read real business data out of a table** — every single time,
+   with the scope, the fields, and the row cap shown first, and never in a
+   delegated worker or a batch;
+2. **something turns out not to be buildable the way the design was approved** —
+   any such finding, not only a large one. The run asks about that one thing,
+   records the answer, and carries on (Phase 4); only where the answer changes the
+   object list or the transport does the design document go back for approval;
+3. **the automatic repair budget is spent** — the run retries a failure on its own
+   a fixed number of times (the phase sections below own those numbers), and when
+   they are used up it stops and hands the problem over instead of trying again;
+4. **an ECC DDIC object needs a person to activate it in SE11** — the run prepares
+   the helper and waits for the user's confirmation before anything depending on
+   that object is activated;
+5. **a step belongs to the user** — on the abapGit route the import into SAP is
+   theirs to run, and the run waits for them to report back;
+6. **a delegated worker was asked for by name and cannot be launched here** — the
+   run never quietly builds it itself instead; it says so and waits for direction;
+7. **the read-back comparison diverges** — what SAP holds is not what was sent, so
+   the run stops there and says what diverged rather than reporting the work
+   finished.
+
+Where the user takes (d)'s opt-in, each step is confirmed as well. Otherwise
+nothing outside these seven stops the run. Say them as effects, not as policy
+grades, phase numbers, or tool names.
 
 **(d) One line: if they would rather confirm each step, they say so now.** That
 opt-in is the whole of what the old mode menu offered; it is now one sentence
@@ -599,8 +636,8 @@ ownership question:
 
 The resolved value is surfaced as Step 1's line (e), so the
 user can override it in the same reply; an override is recorded as `explicit`.
-**The Step 1 briefing is the gate: never dispatch a worker or start Phase 4 before the
-user answers it.** Never drop an explicit `delegated` silently — if the environment
+**Never dispatch a worker or start Phase 4 before the briefing has been shown, and —
+where it carries the permission question — before the user has answered it.** Never drop an explicit `delegated` silently — if the environment
 cannot launch a worker, say so and wait for direction ([development-loop.md](../policies/development-loop.md)
 "Harness-neutral fallback"). How a worker is launched is adapter-specific: the
 "구현 위임" section of [adapters/claude/README.md](../../adapters/claude/README.md),
@@ -657,7 +694,9 @@ from it.
 
 ### Enforcement Contract
 
-- Phase 4 MUST refuse to run if `state.json.phases.3_5_mode_gate.status != "completed"`. The key name `3_5_mode_gate` is kept for resume compatibility with runs recorded under the old name; it is recorded `completed` at the moment the user answers the Step 1 briefing.
+- Phase 4 MUST refuse to run if `state.json.phases.3_5_mode_gate.status != "completed"`. The key name `3_5_mode_gate` is kept for resume compatibility with runs recorded under the old name.
+- **That key is recorded `completed` at the approval moment** — when the user approves the design document — **not when the briefing is answered.** The briefing carries a question only on Claude Code; on Codex and Antigravity (a) is a notice and the screen holds nothing to answer, so a gate keyed to an answer would never complete and would stall those runs for good. Keying it to the approval keeps one rule for all three hosts.
+- Showing the briefing is still mandatory on every host, and where it *does* carry the permission question, **wait for that answer before dispatching a worker or writing to SAP**. That wait is a step of this phase; it is not the gate Phase 4 tests.
 - If `execution_mode` is `auto` and a step transition happens, do NOT prompt — a prompt is a bug.
 - If `execution_mode` is `manual` / `hybrid`, do NOT run ahead — missing the confirmation is a bug.
 
@@ -1011,7 +1050,7 @@ Only where the user opted into step-by-step confirmation: confirm before writing
 Two notes on that object:
 
 - **`execution_mode` defaults to `auto`.** It is `manual` or `hybrid` only where the user took the step-by-step opt-in at Phase 3.5 Step 1 (d). A run whose `state.json` has no `execution_mode` at all reads as `auto` — do not re-ask for it.
-- **`3_5_mode_gate` keeps its key name** even though the step it guards is now the go-ahead briefing. Renaming it would make every run recorded under the old name unresumable, and the key is internal — the user never sees it. It is recorded `completed` at the moment the user answers the briefing.
+- **`3_5_mode_gate` keeps its key name** even though the step it guards is now the go-ahead briefing. Renaming it would make every run recorded under the old name unresumable, and the key is internal — the user never sees it. It is recorded `completed` **at the approval moment**, not when the briefing is answered: the briefing carries no question on Codex or Antigravity, so keying it to an answer would leave those runs permanently short of the gate (Phase 3.5 Enforcement Contract).
 
 ## Resume Behavior
 
