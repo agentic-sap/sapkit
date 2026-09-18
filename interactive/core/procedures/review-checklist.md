@@ -1,6 +1,6 @@
 ---
 name: review-checklist
-description: Phase 6 read-only convention review for create-program — 12 checklist items (§1 ALV … §12 Activation) with per-item verdict criteria and narrow per-item context kits. The reviewer judges only; fixes are applied by the implementation owner. Verdict is emitted as review-result.json.
+description: Phase 6 read-only convention review for create-program — 13 checklist items (§1 ALV … §13 Acceptance-criteria cross-check) with per-item verdict criteria and narrow per-item context kits. The reviewer judges only; fixes are applied by the implementation owner. Verdict is emitted as review-result.json.
 source:
   - sc4sap-custom/skills/create-program/phase6-review.md
   - sc4sap-custom/skills/create-program/phase6-buckets.md
@@ -44,7 +44,7 @@ You are the **reviewer**, running in a fresh context, separate from whoever buil
 | Antigravity | Role + adapter config; `excludeTools` enforcement unverified on the current version |
 - **Input**: `.sapkit/program/{PROG}/review-request.json` (see [schemas/review-request.schema.json](./schemas/review-request.schema.json)) — spec hash, target system (`sid`/`client`), transport, and the `objects[]` list with types. Also read `spec.md` and `interview.md` (for the paradigm and testing-scope decisions) from the same directory. If the request carries `environment_context`, apply the rules under "Environment context" below before counting findings.
 - **Output**: review-result JSON conforming to [schemas/review-result.schema.json](./schemas/review-result.schema.json), returned as your final response — you do not write `.sapkit/program/{PROG}/review-result.json` yourself (see "Output — review-result.json" below; the main context validates and records it). Set `reviewed_spec_sha256` to the `spec_sha256` you received in the request (verify it against the actual `spec.md` first — on mismatch, FAIL immediately with a single MAJOR finding "spec changed after approval").
-- **Narrow context kit — do NOT bulk-load all conventions.** Each item below names the only convention file(s) to load while you check that item. Take them one item at a time; set the rest aside. Preloading all 12 kits burns context and blunts judgment.
+- **Narrow context kit — do NOT bulk-load all conventions.** Each item below names the only convention file(s) to load while you check that item. Take them one item at a time; set the rest aside. Preloading all 13 kits burns context and blunts judgment.
 - Pull object sources through the read tools only: `GetProgram`, `GetInclude`, `GetClass`, `GetInterface`, `GetScreen`, `GetGuiStatus`, `GetTextElement`, `ReadTextElementsBulk`, `GetFunctionModule`, `SearchObject`, `GetInactiveObjects`.
   - On an **offline-delivery review** the objects are not on SAP yet and this read-tool list does not apply: read the sources from the local abapGit mirror at the path named in the request's `environment_context.notes` (mandatory on that branch — a request without it is malformed; say so and stop rather than reviewing nothing).
     - **Where each artifact lives in the mirror**, since the items below are written against
@@ -115,6 +115,7 @@ Apply it before counting findings:
 | 10 | SAP version awareness | B4 — Platform + Config | [sap-version-reference.md](../knowledge/abap/conventions/sap-version-reference.md) | every program |
 | 11 | SPRO lookup consistency | B4 — Platform + Config | [spro-lookup.md](./spro-lookup.md) | programs depending on SPRO/IMG config |
 | 12 | Activation state | B4 — Platform + Config | (none — tool evidence only) | every created object |
+| 13 | Acceptance-criteria cross-check | B2 — Logic Hygiene | (none beyond the run's own `spec.md` — its acceptance criteria) | every program whose design document carries acceptance-criteria examples |
 
 Buckets gather related items so a run can check them in coherent passes (B1 ALV+UI → B2 Logic → B3 Structure → B4 Platform); tag every finding with its bucket in `review-result.json`.
 
@@ -273,6 +274,44 @@ step of `.sapkit/program/{PROG}/verification-offline.json`
 where an MCP read exists — and the test/ATC evidence (`unit_test`, `atc`) that `COMPLETE` also
 requires (D-144) arrives in that same post-import moment. Absence of that evidence caps the run
 at `PROVISIONAL_WRITE`; it never turns into a `PASS` here.
+
+## §13 — Acceptance-Criteria Cross-Check
+
+Context kit: none beyond the run's own `spec.md` — read the acceptance criteria it
+carries, the "given this input, this result" examples the design was approved on.
+Applies to: every program whose design document states such examples.
+
+Take each example on its own and answer one question by reading the source:
+**would this code produce that result for that input?** You are tracing the logic,
+not running it — no execution, no test run, no row data. The conventions items
+above ask whether the code is built right; this one asks whether it would do what
+the user agreed it should do.
+
+- [ ] Every acceptance-criteria example in `spec.md` has been traced against the
+      source that implements it — none skipped, and none answered out of the
+      spec's own restatement of the behaviour rather than out of the code
+- [ ] For each example, the branch, calculation, or lookup that decides the
+      outcome is **named with its source location** (object plus FORM / method /
+      line region). An example judged without a cited location is not judged
+- [ ] An example the source would answer differently — wrong boundary, wrong
+      rounding, an empty result left unhandled, a branch that can never fire — is
+      a finding that quotes both the example and the offending location
+
+Verdict for this item:
+
+- `PASS` — every example traces to source that would produce the stated result.
+- `FINDING(S)` — at least one example would come out differently. Severity follows
+  the rules above; an example the business signed off on that the code contradicts
+  is MAJOR.
+- `N/A (no acceptance examples in spec)` — the design document carries no "given
+  this input, this result" examples. That is the only correct verdict in that case:
+  do not invent examples to judge against, and do not record a `PASS` over an empty
+  set.
+
+**This item runs identically on an offline-delivery review** (`delivery_path:
+abapgit`). It reads the spec and reads the source, so the local abapGit mirror
+serves it exactly as a connected system would — no SAP connection is required and
+no `N/A (offline — no mirror equivalent)` applies here.
 
 ## False-Positive Patterns the Reviewer MUST Reject
 

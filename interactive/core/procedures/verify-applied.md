@@ -73,6 +73,18 @@ procedure never substitutes for it.
    confirmation before running — this makes a live SAP connection and takes
    real time. If several objects are in scope, check each of them; do not check
    one and generalize to the rest.
+   - **Where a calling procedure invokes this with an object list the user has
+     already confirmed, that confirmation *is* this confirmation — do not ask
+     again.** The rule is general: any procedure that hands this one a set of
+     objects the user already said yes to has satisfied this step. The two
+     current cases are [create-program](create-program.md) (the design approval
+     covers the objects the run then built) and
+     [create-object](create-object.md) (the confirmation taken just before
+     building). Say which objects you are checking and on whose confirmation,
+     then run.
+   - **A standalone invocation keeps the explicit confirmation above** — when
+     the user asks for a check directly, rather than a procedure handing one
+     over, name the target and wait for the go-ahead as before.
 
 ② **Read the source back out of SAP and compare it against what was sent.**
    This is the load-bearing step — it is what distinguishes confirmation from
@@ -119,7 +131,11 @@ procedure never substitutes for it.
      authorize the row-data read — do not slip one in mid-procedure.
 
 ④ **Report the result in plain language, localized to the user's conversation
-   language.** For each object:
+   language.** Wording follows the plain-language policy
+   (`interactive/core/policies/plain-language.md`): render every line of this
+   report in the user's own language and in everyday words, and where a status
+   word has to appear as it is written — `PROVISIONAL_WRITE`, `COMPLETE`,
+   `R-PASS` — gloss it on first use as `term(meaning)`. For each object:
    - What SAP holds right now: whether the read-back matched, did not match, or
      could not be compared; whether it compiles; whether anything is left
      inactive.
