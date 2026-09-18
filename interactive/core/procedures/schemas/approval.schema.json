@@ -10,7 +10,7 @@
     "client",
     "tier",
     "transport",
-    "approval_keyword",
+    "approval_phrase",
     "timestamp"
   ],
   "additionalProperties": false,
@@ -40,10 +40,10 @@
       "minLength": 1,
       "description": "Transport request the approved work will be recorded on (from Phase 1B dimension 6). On the abapGit delivery branch this is a user-owned marker, not a request the agent created or will write to: the transport is decided by the user at abapGit pull time on their own system, so what is recorded here is the transport they intend to use."
     },
-    "approval_keyword": {
+    "approval_phrase": {
       "type": "string",
-      "enum": ["승인", "approve", "approved", "ok", "proceed", "go ahead", "confirmed"],
-      "description": "The exact explicit approval keyword the user typed. Only these keywords count as approval."
+      "minLength": 1,
+      "description": "The user's actual words of approval, recorded verbatim, in whatever language they wrote them. There is no fixed list to match against: any clearly affirmative answer is approval, and what is recorded here is what the user actually said rather than which listed word it resembled. If the answer was ambiguous and the gate asked back once, record the answer to that ask-back."
     },
     "timestamp": {
       "type": "string",
