@@ -354,6 +354,7 @@
         "mcp__plugin_sapkit_sap__Delete",
         "mcp__plugin_sapkit_sap__CreateTransport",
         "mcp__plugin_sapkit_sap__ReleaseTransport",
+        "mcp__plugin_sapkit_sap__CreatePackage",
         "mcp__plugin_sapkit_sap__Runtime"
       ]
     }

@@ -363,6 +363,7 @@ if (UPDATE) {
           `${NS}Delete`,
           `${NS}CreateTransport`,
           `${NS}ReleaseTransport`,
+          `${NS}CreatePackage`,
           `${NS}Runtime`,
         ],
       },

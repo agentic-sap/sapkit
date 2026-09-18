@@ -67,10 +67,18 @@ node adapters/claude/hooks/install-hooks.mjs --project <프로젝트 경로>
 ### 빌드 권한 부분 목록 — `permissions-build.json`
 
 전체 템플릿보다 **좁은 목록**이다. `permissions-template.json`에서 **되돌리기 어려운
-일**(삭제 `Delete*` · 이송 생명주기 `CreateTransport`·`ReleaseTransport` · 런타임 실행·
-프로파일링·덤프 조회 `Runtime*`)과 **실데이터**(`GetTableContents`·`GetSqlQuery`)를 빼고
-남긴 것 — 즉 만들기·고치기·활성화·구문검사·단위테스트·읽기 도구다. 뺀 것들은 계속 호출별
-승인 창이 뜬다. **제외 목록의 세부는 조정할 수 있으나 원칙은 고정**이다.
+일**(삭제 `Delete*` · 이송 생명주기 `CreateTransport`·`ReleaseTransport` · **패키지 생성**
+`CreatePackage` · 런타임 실행·프로파일링·덤프 조회 `Runtime*`)과
+**실데이터**(`GetTableContents`·`GetSqlQuery`)를 빼고 남긴 것 — 즉 만들기·고치기·활성화·
+구문검사·단위테스트·읽기 도구다. 뺀 것들은 계속 호출별 승인 창이 뜬다. **제외 목록의 세부는
+조정할 수 있으나 원칙은 고정**이다.
+`CreatePackage`가 제외인 이유는 `AGENTS.md`의 **P4** 정의가 「package/request create」이고,
+도구 표면에 `DeletePackage`가 없어 **이 제품의 도구로는 되돌릴 수 없기** 때문이다.
+
+⚠ **파생의 방향은 fail-open이다.** 「템플릿에서 제외 패턴에 걸리는 것만 뺀다」이므로, 어느
+패턴에도 안 걸리는 **새 도구는 그대로 이 목록에 실린다**(= 승인 직후 병합에 포함된다).
+그러므로 **목록을 재생성할 때 새로 들어온 이름을 사람이 확인하는 것**이 이 기제의
+안전장치다 — 생성물 `_comment`가 같은 말을 든다.
 
 **제안 시점** — `/sapkit:setup`의 4a가 아니라, 사용자가 **설계를 승인한 직후**의 진행
 안내에서 예/아니오로 한 번 묻는다. 예라고 답하면 프로젝트 `.claude/settings.local.json`의

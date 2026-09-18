@@ -24,7 +24,16 @@ const BUILD_OUT = path.join(ROOT, 'adapters', 'claude', 'permissions-build.json'
 // 제외 목록의 세부는 tunable이지만 **원칙은 고정**이다: 뺀 것들은 계속 호출별 승인 창이 뜬다.
 // live tools/list가 아니라 **템플릿을 걸러서** 만든다 — 프로파일 없이 기동하면 서버가
 // inspection-only로 떠서 write 도구가 목록에 아예 없기 때문이다(아래 축소 거부 가드와 같은 사고).
-const BUILD_EXCLUDE_EXACT = new Set(['CreateTransport', 'ReleaseTransport', 'GetTableContents', 'GetSqlQuery']);
+// `CreatePackage`가 여기 있는 이유 — AGENTS.md P4의 정의가 「package/request create」다.
+// 패키지 생성은 이송과 같은 등급이고, 표면에 `DeletePackage`가 없어 **우리 도구로 되돌릴 수
+// 없다**(D-098 ①). 제외 원칙(「되돌리기 어려운 일」)에 정확히 걸린다.
+const BUILD_EXCLUDE_EXACT = new Set([
+  'CreateTransport',
+  'ReleaseTransport',
+  'CreatePackage',
+  'GetTableContents',
+  'GetSqlQuery',
+]);
 const BUILD_EXCLUDE_PREFIX = ['Delete', 'Runtime'];
 const isBuildExcluded = (tool) =>
   BUILD_EXCLUDE_EXACT.has(tool) || BUILD_EXCLUDE_PREFIX.some((p) => tool.startsWith(p));
@@ -43,8 +52,8 @@ function deriveBuildSubset() {
     _comment: [
       'sapkit 빌드 권한 부분 목록. permissions-template.json에서 파생한다 (gen-permissions.mjs --derive-build).',
       '파생 규칙: 템플릿 permissions.allow에서 제외 패턴에 걸리는 항목만 뺀다. 손으로 고치지 않는다 — 다음 재생성에 덮인다.',
-      '제외 패턴: Delete* · CreateTransport · ReleaseTransport · Runtime* · GetTableContents · GetSqlQuery.',
-      '제외 원칙: 되돌리기 어려운 일(삭제 · 이송 생명주기 · 런타임 실행)과 실데이터는 목록 밖에 둔다 — 계속 호출별 승인 창이 뜬다.',
+      '제외 패턴: Delete* · CreateTransport · ReleaseTransport · CreatePackage · Runtime* · GetTableContents · GetSqlQuery.',
+      '제외 원칙: 되돌리기 어려운 일(삭제 · 이송 생명주기 · 패키지 생성 · 런타임 실행)과 실데이터는 목록 밖에 둔다 — 계속 호출별 승인 창이 뜬다.',
       'GetTableContents/GetSqlQuery는 의도적으로 제외 — 매 호출 사람 승인 (data-extraction-policy).',
       '남는 것: 만들기 · 고치기 · 활성화 · 구문검사 · 단위테스트 · 읽기 도구.',
       '용도: 설계 승인 직후의 「한 번에 허용」 제안이 이 목록만 프로젝트 .claude/settings.local.json에 추가 병합한다 — 사용자가 예라고 답했을 때만, 삭제·재정렬 없이.',

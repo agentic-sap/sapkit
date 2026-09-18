@@ -568,12 +568,12 @@ will never pause when in fact it still will:
   for those.
 - **Where their *host's own* approval window still appears, allowance or not** —
   the subset list that gets merged deliberately leaves out deleting anything,
-  creating or releasing a transport, running anything on the system, and the two
-  tools that read real business data. Saying yes does not pre-allow those: if one
-  is ever reached, the host asks in its usual way, on top of whatever (c) already
-  requires. Say it as effect — *deleting, transports, running things, and reading
-  real data are not covered by this; you will still be asked* — and not as a list
-  of tool names.
+  creating or releasing a transport, creating a package, running anything on the
+  system, and the two tools that read real business data. Saying yes does not
+  pre-allow those: if one is ever reached, the host asks in its usual way, on top
+  of whatever (c) already requires. Say it as effect — *deleting, transports, new
+  packages, running things, and reading real data are not covered by this; you
+  will still be asked* — and not as a list of tool names.
 
 That distinction is what makes "nothing outside (c) stops the run" true rather
 than false: (c) is where **this procedure** stops to ask, and the excluded actions
@@ -605,6 +605,13 @@ are where **the host** asks.
 Where the user takes (d)'s opt-in, each step is confirmed as well. Otherwise
 nothing outside these seven stops the run. Say them as effects, not as policy
 grades, phase numbers, or tool names.
+
+**These seven are build stops.** The offers that close a finished run — keeping a
+recurring root cause as a lesson, keeping a newly established fact as project
+knowledge — are not among them and are not exempt from them either: they come
+**after** the work is done, they never gate a build step, and the user declining
+one changes nothing about what was built. Do not add them to the list the user is
+shown, and do not treat them as violating it.
 
 **(d) One line: if they would rather confirm each step, they say so now.** That
 opt-in is the whole of what the old mode menu offered; it is now one sentence

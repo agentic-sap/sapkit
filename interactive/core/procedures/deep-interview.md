@@ -134,8 +134,10 @@ Once both conditions above hold:
    the front matter above all, since a business reader has to be able to read it on
    its own. The section marker is the one thing that stays exactly as
    [interview-sweep](interview-sweep.md) writes it.
-6. Offer: "Spec ready. Proceed with `create-program` (full program) or `create-object` (single object)?"
-7. If the interview established a business or system fact — a company-specific rule, a non-obvious status meaning, a legacy table's real grain — grep the two knowledge files for its key terms first, and only if it is **not** already recorded offer one line: *"Record `<fact>` to project knowledge? (yes/no)"*. On `yes`, follow [knowledge](knowledge.md). Nothing newly established, or already recorded → no prompt.
+6. Offer the next step in one line, in the user's language and in plain words: the design is
+   settled, and they can go on to building a whole program or a single object. Say what each
+   one produces, not which procedure runs it — no procedure names in what they read.
+7. If the interview established a business or system fact — a company-specific rule, a non-obvious status meaning, a legacy table's real grain — grep the two knowledge files for its key terms first, and only if it is **not** already recorded offer one line, again in their language: name the fact, say it would be kept for this project so nobody has to ask again, and let them decline. On a clear yes, follow [knowledge](knowledge.md); do not print a literal reply form. Nothing newly established, or already recorded → no prompt.
 
 The brief is standing input, not a one-shot handoff: a later `create-program` run reads `.sapkit/deep-interviews/` at its [Intake Resolution](create-program.md#intake-resolution--spec-entry-forms) step (right after Phase 0) and closes every dimension this brief already answers by confirmation restatement instead of re-asking — only the deficit dimensions get interviewed. A follow-on `create-object` run consumes the brief the same way, as the input to its freeze step.
 
