@@ -107,6 +107,9 @@ asking again. It is the same consumption pattern as create-program's
 - Transport intent (list the open transports via `ListTransports`, or create a new one) —
   freeze the request / intent before anything is applied
 - A short description
+- The [interview-sweep](interview-sweep.md) dig-out, short variant — run inside this
+  step, before anything is created, and shown together with the values above in a
+  single confirmation (Step 2)
 
 **Apply** (attended P3 — only while the operator is present; not an unattended
 auto-run):
@@ -116,6 +119,8 @@ auto-run):
 - Bring the object active
 - Verify the activation via `GetInactiveObjects` — an ACTIVE result is
   **PROVISIONAL_WRITE**, not completion (see "Track A Policy Alignment" above)
+- Read it back out of SAP with [verify-applied](verify-applied.md) — automatically,
+  read-only, and without asking for a second confirmation
 
 ## Workflow Steps
 
@@ -124,13 +129,43 @@ auto-run):
 - Read the user's request to settle the object type (class / interface / program / function module / table / structure / data element / domain / CDS view / service definition / service binding / behavior definition / screen / GUI status).
 - Where it is ambiguous: ask one clarifying question and stop.
 
-### Step 2 — Collect Metadata (confirmation gate)
+### Step 2 — Confirm the values (one screen, one pass)
+
+This step does not interrogate the user field by field. Work out a **proposed value
+for every field below**, run the dig-out, and then put it all in front of them as
+**one confirmation screen**. Every line on that screen says, in plain words, what
+the field is and what setting it this way means; the recommendation comes first and
+carries one line of why. Wording, bundling, the option limits, and the open slot on
+a business question follow the
+[plain-language policy](../policies/plain-language.md) — that is where those rules
+live, and this step does not restate them.
+
+Work out the proposals first:
 
 - **Object name**: propose one off the description; enforce the `Z`/`Y` prefix, ≤ 30 chars, uppercase, no special characters beyond the underscore. Reject generic names (`ZTEST` / `ZTEMP` / `ZDUMMY`).
 - **Short description**: one line, ≤ 60 chars.
-- **Package**: show the recent packages, or search via `GetPackage`; warn on `$TMP` (local, non-transportable).
-- **Transport**: list the open transports the current user owns via `ListTransports`; offer to create a new one where no suitable TR exists.
-- **Module-active context** (conditional): where the object aims at a specific module (an MM table, an SD structure, a PS data element, …), read `SAP_ACTIVE_MODULES` out of `sap.env` / `config.json` and consult `active-modules.md`. Where companion modules are active, put integration fields forward (e.g., an MM table in a landscape with PS active → suggest `PS_POSID` / `AUFNR`). Do NOT add silently — put them to the user and let them accept/decline, then carry the confirmed field list into Step 4.
+- **Package**: show the recent packages, or search via `GetPackage`; where `$TMP` is what you are proposing, the screen has to say what it costs — the object stays local and cannot travel to the next system.
+- **Transport**: list the open transports the current user owns via `ListTransports`; where none of them fits, propose creating one and say so on the screen rather than creating it first.
+- **Module-integration fields** (conditional): where the object aims at a specific module (an MM table, an SD structure, a PS data element, …), read `SAP_ACTIVE_MODULES` out of `sap.env` / `config.json` and consult `active-modules.md`. Where companion modules are active, propose integration fields (e.g., an MM table in a landscape with PS active → `PS_POSID` / `AUFNR`). Do NOT add silently — each proposed field goes on the screen with what it is for, the user accepts or declines it there, and the confirmed list carries into Step 4.
+
+**Then the dig-out, short variant.** Before anything is created, run the
+[interview-sweep](interview-sweep.md) stage in its `create-object` short variant —
+sized to the object rather than to the ceremony. That file owns what a table, a
+class, a function module, or a CDS view raises, and when the stage is over. Skipping
+it because the object looks small is exactly the case it exists for.
+
+**Then confirm, once.** The rules the dig-out produced are shown **together with**
+the proposed values above — name, description, package, transport, the proposed
+module-integration fields — and confirmed in a single pass. This procedure has no
+design document and no separate approval gate: **that confirmation is the gate.** Do
+not split it into a second approval, and create nothing before it clears.
+
+A standalone `create-object` run keeps no `interview.md`, and this stage never
+creates one: there, the confirmation message itself is the record of what was dug
+out and agreed. Where the run does own an `interview.md` — reached from a
+[deep-interview](deep-interview.md) brief, or running inside a larger run that owns
+one — the dug-out answers are recorded there exactly as
+[interview-sweep](interview-sweep.md) § Step ④ sets out.
 
 ### Step 3 — Pre-Creation Check
 
@@ -148,7 +183,7 @@ auto-run):
 
 Adopt the [sap-executor](../personas/sap-executor.md) persona for this step. The standard flow (S/4HANA, or non-DDIC on ECC) takes object creation, the initial implementation code, and activation in one continuous pass.
 
-The implementation inside this step may be delegated under the `execution_owner` convention in [development-loop.md](../policies/development-loop.md); reviewer independence and main-only control artifacts hold regardless. Where the owner has gone unstated and this object is big enough that delegation would materially help, ask once — `[1] main` / `[2] delegated`, default `main` — and otherwise stay on `main` without asking. Launching a worker is adapter-specific ("구현 위임" in [adapters/claude/README.md](../../adapters/claude/README.md), [codex](../../adapters/codex/README.md), [antigravity](../../adapters/antigravity/README.md)); where no worker mechanism exists, say so and carry on as `main`.
+The implementation inside this step stays on the main conversation. It is delegated only where the user asks for that, under the `execution_owner` convention in [development-loop.md](../policies/development-loop.md); reviewer independence and main-only control artifacts hold regardless. Do not ask which it should be. Launching a worker is adapter-specific ("구현 위임" in [adapters/claude/README.md](../../adapters/claude/README.md), [codex](../../adapters/codex/README.md), [antigravity](../../adapters/antigravity/README.md)); where no worker mechanism exists, say so and carry on as `main`.
 
 Inputs carried in from Steps 2–3: name, type, description, package, transport (`TRKORR` or `$TMP`), `extra_fields` (the confirmed per-module integration fields — Tables/Structures only), `fm_signature` (IMPORTING/EXPORTING/CHANGING/TABLES/EXCEPTIONS — FunctionModule only).
 
@@ -164,6 +199,7 @@ Execute in this order:
    - Screen: PROCESS BEFORE OUTPUT / PROCESS AFTER INPUT plus the basic module stubs
    - GUI Status: the standard function key layout (Back/Exit/Cancel) plus the application toolbar
 3. **ACTIVATE** — `ActivateObjects`, then `GetInactiveObjects` to verify. Retry once when activation fails. Where it still fails, record status FAILED along with the error message.
+4. **READ BACK** — run [verify-applied](verify-applied.md) over the object automatically, without asking first. It is read-only (P1 connected-read): it fetches the source SAP is actually serving, compares it against what was sent, and confirms syntax and active state. The confirmation the user gave in Step 2 **is** the confirmation that procedure's first step asks for — it says so itself — so name the object you are checking, say which confirmation you are running on, and run. Where activation came back FAILED, skip this and report the failure instead.
 
 Note the outcome down for Step 7 (JSON-like):
 
@@ -175,6 +211,7 @@ Note the outcome down for Step 7 (JSON-like):
   "transport"             : "<TRKORR or $TMP>",
   "flow"                  : "standard",
   "activation_status"     : "ACTIVE" | "FAILED",
+  "read_back"             : "MATCHED" | "MISMATCH" | "NOT_COMPARED" | "SKIPPED",
   "field_typing_decisions": [{field, type, rollname, priority, justification}],  // Tables/Structures only
   "warnings"              : ["..."],
   "errors"                : ["..."]                                              // only on FAILED
@@ -228,23 +265,26 @@ Adopt the [sap-writer](../personas/sap-writer.md) persona for this step. It is f
 
 Render rules:
 
-- flow = "standard" AND activation_status = "ACTIVE": a 5–7 line block — object name · type · package · transport · **state = PROVISIONAL_WRITE** (created + active on DEV; not yet COMPLETE) plus a 1-line next-step hint. Do NOT report the object as "완료 / done" off MCP success alone — COMPLETE requires a Guided run's exact-subject review `R-PASS` plus a machine check of what SAP is actually holding ([verify-applied](verify-applied.md)). Next-step examples: "Add methods with direct `UpdateClass` MCP calls", "Confirm what SAP holds with [verify-applied](verify-applied.md), then hand off to a Guided run for R-PASS", or "Release with the [release](release.md) procedure".
+- flow = "standard" AND activation_status = "ACTIVE": a 5–7 line block — object name · type · package · transport · the state · plus a 1-line next-step hint. **Say the state as what it actually is: provisionally applied, and read back out of SAP and confirmed — before any independent review.** Say that in the user's language, in plain words; where a status word has to appear as it is written, gloss it on first use as `term(meaning)` per the [plain-language policy](../policies/plain-language.md). **Do NOT report it as COMPLETE, or as "완료 / done"** — this procedure has no review gate, and COMPLETE additionally needs an independent fresh-context review (`R-PASS`) on exactly this subject. Where `read_back` is anything other than MATCHED, say that plainly instead of claiming confirmation: a mismatch, or a read-back that had nothing to compare against, is the finding, and the next step is repair rather than release. Next-step examples: "Add methods with direct `UpdateClass` MCP calls", "Hand this object to an independent fresh-context review", or "Release with the [release](release.md) procedure".
 - flow = "standard" AND activation_status = "FAILED": the error message, a suggested fix, and a retry hint.
-- flow = "ecc-helper" AND activation_status = "ECC_DEFERRED": **use the MANDATORY format VERBATIM** (do NOT rephrase):
+- flow = "ecc-helper" AND activation_status = "ECC_DEFERRED": say this in the user's
+  language, in plain words. Every element below has to come across; none of it is a
+  block to paste, and the order is the order the user needs it in.
 
-  ```
-  ⚠ ECC detected — DDIC {Table|Data Element|Domain} cannot be created via MCP.
-  Helper program generated instead:
-    Program : <HELPER_NAME>           (package $TMP, activated)
-    Target  : <DDIC_OBJECT_NAME>      ({type})
-
-  Next steps (manual, in ECC):
-    1. SE38 → run <HELPER_NAME>                 (dry-run previews field layout)
-    2. Uncheck p_dryrun → re-run                (writes inactive DDIC version)
-    3. SE11 → open <DDIC_OBJECT_NAME>           (activate, assign package + transport)
-  ```
-
-  Do NOT claim the DDIC object has been created. Do NOT put follow-up automation forward until the user confirms activation in SE11.
+  - **Why there is no DDIC object yet** — on this release the table / data element /
+    domain cannot be created from here, so a helper program was written instead.
+    State it as a fact about the system, not as a failure of the run.
+  - **What was created** — the helper program's name, that it sits in the local,
+    non-transportable package `$TMP`, and that it is active.
+  - **What it is aimed at** — the DDIC object's name and its type.
+  - **What the user does next, in their own system, in this order** — run the helper
+    in SE38, where the first run only previews the field layout and changes nothing;
+    turn that preview option off and run it again, which writes the object in an
+    inactive state; then open the object in SE11 to activate it and give it its
+    package and transport.
+  - **What is still not true** — the DDIC object has not been created. Do NOT say or
+    imply that it was, and put no follow-up automation forward until the user
+    confirms in SE11 that it is active.
 
 - Any warnings → append a "⚠️ Warnings" bullet list below the main block.
 - Any field_typing_decisions carrying priority=4 (the primitive fallback) → append a "🔍 Field typing" note naming the field and its justification, so the user can inspect it.
