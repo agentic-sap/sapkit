@@ -14,6 +14,58 @@ const PLUGIN_NAME = JSON.parse(fs.readFileSync(path.join(ROOT, 'plugin-metadata.
 const NAMESPACE = process.env.SAPKIT_TOOL_NS ?? `mcp__plugin_${PLUGIN_NAME}_sap__`;
 const EXCLUDE = new Set(['GetTableContents', 'GetSqlQuery']);
 
+const TEMPLATE_OUT = path.join(ROOT, 'adapters', 'claude', 'permissions-template.json');
+const BUILD_OUT = path.join(ROOT, 'adapters', 'claude', 'permissions-build.json');
+
+// ── 빌드 권한 부분 목록 ─────────────────────────────────────────────────────
+// 설계 승인 직후 「한 번에 허용」 제안이 병합하는 목록이다. 전체 템플릿에서 **되돌리기
+// 어려운 일**(삭제 · 이송 생명주기 · 런타임 실행)과 **실데이터**를 뺀 나머지 — 즉
+// 만들기 · 고치기 · 활성화 · 구문검사 · 단위테스트 · 읽기.
+// 제외 목록의 세부는 tunable이지만 **원칙은 고정**이다: 뺀 것들은 계속 호출별 승인 창이 뜬다.
+// live tools/list가 아니라 **템플릿을 걸러서** 만든다 — 프로파일 없이 기동하면 서버가
+// inspection-only로 떠서 write 도구가 목록에 아예 없기 때문이다(아래 축소 거부 가드와 같은 사고).
+const BUILD_EXCLUDE_EXACT = new Set(['CreateTransport', 'ReleaseTransport', 'GetTableContents', 'GetSqlQuery']);
+const BUILD_EXCLUDE_PREFIX = ['Delete', 'Runtime'];
+const isBuildExcluded = (tool) =>
+  BUILD_EXCLUDE_EXACT.has(tool) || BUILD_EXCLUDE_PREFIX.some((p) => tool.startsWith(p));
+// 네임스페이스를 다시 조립하지 않고 **마지막 `__` 뒤**를 도구 이름으로 본다 —
+// SAPKIT_TOOL_NS로 다른 접두어를 써서 템플릿을 만들었어도 제외가 여전히 먹는다.
+const toolNameOf = (entry) => (entry.startsWith('mcp__') ? entry.slice(entry.lastIndexOf('__') + 2) : null);
+
+function deriveBuildSubset() {
+  const all = JSON.parse(fs.readFileSync(TEMPLATE_OUT, 'utf8')).permissions?.allow ?? [];
+  // 경로 규칙(Read/Edit/Grep)은 SAP 도구가 아니므로 제외 대상이 아니다 — 만드는 동안 .sapkit/를 읽고 쓴다.
+  const allow = all.filter((entry) => {
+    const tool = toolNameOf(entry);
+    return tool === null || !isBuildExcluded(tool);
+  });
+  const doc = {
+    _comment: [
+      'sapkit 빌드 권한 부분 목록. permissions-template.json에서 파생한다 (gen-permissions.mjs --derive-build).',
+      '파생 규칙: 템플릿 permissions.allow에서 제외 패턴에 걸리는 항목만 뺀다. 손으로 고치지 않는다 — 다음 재생성에 덮인다.',
+      '제외 패턴: Delete* · CreateTransport · ReleaseTransport · Runtime* · GetTableContents · GetSqlQuery.',
+      '제외 원칙: 되돌리기 어려운 일(삭제 · 이송 생명주기 · 런타임 실행)과 실데이터는 목록 밖에 둔다 — 계속 호출별 승인 창이 뜬다.',
+      'GetTableContents/GetSqlQuery는 의도적으로 제외 — 매 호출 사람 승인 (data-extraction-policy).',
+      '남는 것: 만들기 · 고치기 · 활성화 · 구문검사 · 단위테스트 · 읽기 도구.',
+      '용도: 설계 승인 직후의 「한 번에 허용」 제안이 이 목록만 프로젝트 .claude/settings.local.json에 추가 병합한다 — 사용자가 예라고 답했을 때만, 삭제·재정렬 없이.',
+      '정직 유보: 제외는 도구 이름 패턴으로 정한다. 새 도구가 패턴 밖으로 새면 이 목록에 들어올 수 있으므로, 재생성 시 새 이름을 확인할 것.',
+    ],
+    permissions: { allow },
+  };
+  fs.writeFileSync(BUILD_OUT, JSON.stringify(doc, null, 2) + '\n');
+  return { total: all.length, kept: allow.length };
+}
+
+// 파생은 live 기동 **전에** 갈라진다 — 부분 목록은 템플릿에서 나오므로 서버를 띄울 이유가 없고,
+// inspection-only로 뜬 서버가 끼어들 여지도 없다.
+if (process.argv.includes('--derive-build')) {
+  const { total, kept } = deriveBuildSubset();
+  console.log(
+    `부분 목록 파생: 템플릿 ${total}줄 중 ${kept}줄 유지 (제외 ${total - kept}) → ${path.relative(ROOT, BUILD_OUT)}`
+  );
+  process.exit(0);
+}
+
 function listLiveTools() {
   return new Promise((resolveP, rejectP) => {
     const env = { ...process.env, NODE_PATH: path.join(ROOT, 'server', 'runtime-deps', 'keyring', 'node_modules') };
@@ -70,7 +122,7 @@ const template = {
     ],
   },
 };
-const out = path.join(ROOT, 'adapters', 'claude', 'permissions-template.json');
+const out = TEMPLATE_OUT;
 
 // 축소 거부 가드. 프로파일 없이 기동하면 서버가 inspection-only(155)로 떠서, connected(186) 기준으로
 // 만든 템플릿을 덮어쓰며 프로그램/화면 계열 write 31종을 조용히 날린다 — 2026-07-21 실사고(D-041 리뷰
@@ -88,3 +140,10 @@ if (fs.existsSync(out) && !process.argv.includes('--force')) {
 
 fs.writeFileSync(out, JSON.stringify(template, null, 2) + '\n');
 console.log(`live ${live.length}개 중 ${names.length}개 허용 (제외 ${live.length - names.length}) → ${path.relative(ROOT, out)}`);
+
+// 템플릿을 새로 썼으면 부분 목록도 같은 실행에서 다시 쓴다 — 따로 돌리게 두면 둘이 조용히 갈라지고,
+// 갈라진 쪽은 게이트가 아니라 사용자가 먼저 만난다.
+const derived = deriveBuildSubset();
+console.log(
+  `부분 목록 재파생: 템플릿 ${derived.total}줄 중 ${derived.kept}줄 유지 (제외 ${derived.total - derived.kept}) → ${path.relative(ROOT, BUILD_OUT)}`
+);

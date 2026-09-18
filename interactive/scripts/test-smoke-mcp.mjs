@@ -14,6 +14,9 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..');
 const GATE = path.join(HERE, 'smoke-mcp.mjs');
 const REAL = path.join(ROOT, 'provenance', 'mcp-surface.json');
+// 게이트와 같은 자리에서 파생한다 — 여기에 접두어를 박아 두면 개명 때 변조가 실물과
+// 어긋나 음성시험이 조용히 공허해진다(게이트 본문 NS 주석과 같은 이유).
+const NS = `mcp__plugin_${JSON.parse(fs.readFileSync(path.join(ROOT, 'plugin-metadata.json'), 'utf8')).name}_sap__`;
 
 let pass = 0;
 let fail = 0;
@@ -173,6 +176,23 @@ t(
 t(
   'claude allow-list에 row-data가 들어오면 → 금지 문구로 검출',
   (d) => (d.adapter_deny.claude.must_not_mention = ['permissions']),
+  1,
+  '금지 문구 등장'
+);
+t(
+  '빌드 부분 목록에 Delete*·ReleaseTransport가 섞이면 → 금지 문구로 검출',
+  (d, tmp) => {
+    // 실물 부분 목록을 tmp로 복사해 되돌리기 어려운 도구를 섞고, 계약이 그쪽을 가리키게 한다.
+    // 원본은 건드리지 않는다. 부분 목록이 여는 것은 "승인 뒤 한 번에 허용"이라, 여기가 새면
+    // 삭제·이송이 창 없이 지나간다 — 그래서 게이트가 정말 거부하는지를 잰다.
+    const doc = JSON.parse(
+      fs.readFileSync(path.join(ROOT, 'adapters', 'claude', 'permissions-build.json'), 'utf8')
+    );
+    doc.permissions.allow.push(`${NS}DeleteClass`, `${NS}ReleaseTransport`);
+    const f = path.join(tmp, 'permissions-build.json');
+    fs.writeFileSync(f, JSON.stringify(doc, null, 2) + '\n');
+    d.adapter_deny.claude_build.file = f; // 다른 드라이브면 상대 경로가 안 나온다 — 게이트가 resolve한다
+  },
   1,
   '금지 문구 등장'
 );
