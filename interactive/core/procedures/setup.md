@@ -215,6 +215,18 @@ equivalent allow-list file to merge. Instead point the user at the matching
 section of their adapter README: [adapters/codex/README.md](../../adapters/codex/README.md)
 or [adapters/antigravity/README.md](../../adapters/antigravity/README.md).
 
+Before asking, say what this is — in the user's language, in plain words, the way
+`core/policies/plain-language.md` asks for. Do not paste the list, and do not
+name the file. Cover these elements and nothing more:
+
+- what it is: a ready-made list of the SAP tools this plugin uses
+- what changes: those tools stop asking for permission one by one
+- what it never covers: reading real table rows still asks every single time
+- that it only adds to what the user already allowed, and removes nothing
+- that they can say no, and everything still works — it just asks more often
+
+Then, on a yes:
+
 1. Read `PLUGIN_ROOT/adapters/claude/permissions-template.json` and the project's
    `.claude/settings.local.json` (create the latter with an empty
    `{"permissions":{"allow":[]}}` shape if it doesn't exist yet).
@@ -231,6 +243,11 @@ or [adapters/antigravity/README.md](../../adapters/antigravity/README.md).
 6. Note for the user: `GetTableContents` and `GetSqlQuery` are intentionally
    absent from the template — per-call human approval on those two stays in
    force regardless of this merge.
+
+A smaller build-time subset of the same list also exists at
+`PLUGIN_ROOT/adapters/claude/permissions-build.json`, and sapkit offers that one
+by itself right after the user approves a design — so there is nothing extra to
+do here whichever way the user answers above.
 
 ### 4b. SAPKIT Checker — offline (bundled, any harness)
 

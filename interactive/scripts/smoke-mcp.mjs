@@ -211,7 +211,9 @@ const BLOCKLIST_KNOBS = [
 // 하나 늘거나 경로가 바뀌었을 때 `--update` 한 번으로 계약이 따라온다.
 // `at`은 wrapper JSON에서 sap 서버 항목까지 내려가는 키 경로다(모양이 어댑터마다 다르다).
 const MCP_WIRING = {
-  _: '제품이 발행하는 MCP 배선이 blocklist 노브를 env로 선언하지 않는다 — 신 엔진은 프로세스 env 통로를 받으므로(D6) 이 파일이 곧 바닥선을 낮출 수 있는 자리다.',
+  // 이 문장의 정본은 **여기**다. 60a6270(D-096 집행 ②)이 노브를 3종→5종으로 넓히면서 설명은
+  // 스냅샷에만 적어 두 자리가 갈라져 있었다 — `--update`가 돌면 조용히 옛 문장으로 되돌아간다.
+  _: '제품이 발행하는 MCP 배선이 바닥선을 낮출 수 있는 env 키를 선언하지 않는다 — 신 엔진은 프로세스 env 통로를 받고(D6), 푸는 노브는 프로파일 파일 소유이나(D-096) **어느 파일인가**는 여전히 프로세스 env가 정한다. 그래서 blocklist 노브 3종 + 프로파일 파일을 고르는 2종을 함께 막는다.',
   _knobs: BLOCKLIST_KNOBS,
   claude: { file: '.mcp.json', at: ['mcpServers', 'sap'] },
   codex: { file: 'adapters/codex/.mcp.json', at: ['sap'] },
@@ -269,7 +271,11 @@ function checkAdapterDeny(expected) {
   const results = [];
   for (const [adapter, spec] of Object.entries(expected)) {
     if (adapter.startsWith('_')) continue;
-    const f = path.join(ROOT, spec.file);
+    // resolve — 음성시험이 임시 디렉터리의 변조 사본을 먹일 때 절대 경로가 온다(다른
+    // 드라이브면 상대 경로 자체가 만들어지지 않는다). join이면 그 절대 경로가 ROOT 뒤에
+    // 이어붙어 "부재"로 떨어지고, **금지 문구 검사가 실행되지 않은 채** 빨간불만 뜬다 —
+    // 즉 음성시험이 엉뚱한 이유로 통과한다. mcp_wiring 쪽은 같은 이유로 이미 resolve다.
+    const f = path.resolve(ROOT, spec.file);
     if (!fs.existsSync(f)) {
       fail.push(`어댑터 deny 계약: ${spec.file} 부재 (${adapter})`);
       continue;
@@ -343,6 +349,22 @@ if (UPDATE) {
         mechanism: 'allow-list에서 row-data 의도적 제외 → 호출별 승인',
         must_mention: ['GetTableContents/GetSqlQuery는 의도적으로 제외'],
         must_not_mention: [`${NS}GetTableContents`, `${NS}GetSqlQuery`],
+      },
+      // 부분 목록은 전체 템플릿보다 **더 좁은 계약**이다. 설계 승인 직후 「한 번에 허용」이
+      // 병합하는 자리라, 여기에 삭제·이송 생명주기·런타임 실행이 새면 그 행위들이 창 없이
+      // 지나간다. 실데이터 2종만 보는 위 claude 항목으로는 그것을 못 잡으므로 항목을 따로 둔다.
+      claude_build: {
+        file: 'adapters/claude/permissions-build.json',
+        mechanism: '승인 뒤 「한 번에 허용」용 부분 목록 — 되돌리기 어려운 일과 실데이터는 목록 밖 → 호출별 승인 유지',
+        must_mention: ['GetTableContents/GetSqlQuery는 의도적으로 제외'],
+        must_not_mention: [
+          `${NS}GetTableContents`,
+          `${NS}GetSqlQuery`,
+          `${NS}Delete`,
+          `${NS}CreateTransport`,
+          `${NS}ReleaseTransport`,
+          `${NS}Runtime`,
+        ],
       },
     },
   };
