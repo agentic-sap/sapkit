@@ -216,7 +216,7 @@ section of their adapter README: [adapters/codex/README.md](../../adapters/codex
 or [adapters/antigravity/README.md](../../adapters/antigravity/README.md).
 
 Before asking, say what this is — in the user's language, in plain words, the way
-`core/policies/plain-language.md` asks for. Do not paste the list, and do not
+the [plain-language policy](../policies/plain-language.md) asks for. Do not paste the list, and do not
 name the file. Cover these elements and nothing more:
 
 - what it is: a ready-made list of the SAP tools this plugin uses

@@ -28,8 +28,8 @@ mis-rendered.
 
 How many questions ride in one message, how a recommendation is attached, how a
 confirmation restatement is phrased, and what a decision question may not look
-like are all set by the plain-language policy at
-`interactive/core/policies/plain-language.md`. Follow it. Those rules are
+like are all set by the
+[plain-language policy](../policies/plain-language.md). Follow it. Those rules are
 deliberately **not** restated here, so that the two cannot drift apart.
 
 ## Callers and entry conditions
@@ -134,7 +134,7 @@ exactly the case where a silent decision is most likely, and the user is the one
 who lives with the consequence. What confidence earns you is the right to
 **attach a recommendation**, not the right to skip the question.
 
-- **Wording and bundling** follow `interactive/core/policies/plain-language.md` —
+- **Wording and bundling** follow the [plain-language policy](../policies/plain-language.md) —
   how many blanks travel in one message, how the recommendation is phrased, and
   what a bulk-approval block may not look like. Do not invent a second cadence
   here.
@@ -236,7 +236,7 @@ them as "not yet closed":
   flags, or sources are missing, so nobody downstream can tell a user decision
   from yours.
 - **A bulk block stood in for the questions.** Every remaining blank arrived in one
-  table under a single approval — see `interactive/core/policies/plain-language.md`,
+  table under a single approval — see the [plain-language policy](../policies/plain-language.md),
   which forbids it.
 
 ## The `create-object` short variant
@@ -311,5 +311,5 @@ stands in for the other.
   [create-object](./create-object.md) — the three callers
 - [knowledge](./knowledge.md) — how `KD-`/`KS-` atoms count as already answered,
   and how a user's contradiction of one is routed
-- `interactive/core/policies/plain-language.md` — the wording, bundling, and
+- [plain-language](../policies/plain-language.md) — the wording, bundling, and
   recommendation rules this stage asks under

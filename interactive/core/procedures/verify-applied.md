@@ -131,8 +131,8 @@ procedure never substitutes for it.
      authorize the row-data read — do not slip one in mid-procedure.
 
 ④ **Report the result in plain language, localized to the user's conversation
-   language.** Wording follows the plain-language policy
-   (`interactive/core/policies/plain-language.md`): render every line of this
+   language.** Wording follows the
+   [plain-language policy](../policies/plain-language.md): render every line of this
    report in the user's own language and in everyday words, and where a status
    word has to appear as it is written — `PROVISIONAL_WRITE`, `COMPLETE`,
    `R-PASS` — gloss it on first use as `term(meaning)`. For each object:
