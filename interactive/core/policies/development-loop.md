@@ -90,9 +90,9 @@ Resolution: an owner the user stated is honored without asking
 - **Standard / Minimal** keep **`auto`** as a *request* value with its prior meaning —
   keep small, localized, low-output work in `main`; delegate when repository
   discovery, many relevant files, or verbose output would materially consume the
-  main context. [create-object](../procedures/create-object.md) asks once only when
-  delegation would materially help; [modify-object](../procedures/modify-object.md)
-  stays `main` without asking.
+  main context. [create-object](../procedures/create-object.md) stays on the main
+  conversation unless the user asks for delegation;
+  [modify-object](../procedures/modify-object.md) stays `main` without asking.
 
 Ask one bounded ownership question only when the choice is materially ambiguous and
 consequential — never as a routine step.
