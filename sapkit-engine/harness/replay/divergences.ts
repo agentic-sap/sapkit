@@ -164,7 +164,9 @@
  *     D147의 두 키만 늘었는지로 넘어간다(그 전에는 그 갈래가 정확 일치였다).
  *   - **D156~** — D-152(실사용 교훈 승격 5차 · 분담 B). D156은
  *     `CreateServiceDefinition`이 소스를 실제로 써 넣고(구는 보내지 않고 빈 판을 검사해
- *     언제나 실패했다) 소스가 없으면 빈 껍데기에서 멈추는 갈래를 든다. 같은 결정의
+ *     언제나 실패했다) 소스가 없으면 빈 껍데기에서 멈추는 갈래를 든다. D157은
+ *     `UpdateServiceBinding` 발행 작업의 **200 + SEVERITY ERROR**를 신이 오류로 되돌리는
+ *     갈래다(D148의 성공 갈래에서 그 자리를 뺐다). 같은 결정의
  *     D160(OData 414 문구)은 **진단 문구**라 사람용 장부에만 있다.
  *
  * ### 활성화 거짓 성공 계열을 왜 열로 갈랐는가
@@ -838,6 +840,16 @@ function stoppedAtSrvdShell(actual: SubstituteInput['actual']): SubstituteVerdic
 
 /** D156 — 껍데기 뒤 실패에 신이 싣는 안내(`createServiceDefinition.ts`의 `shellLeftNote`). */
 const SRVD_SHELL_LEFT_NOTE = /do not call CreateServiceDefinition again/;
+
+/**
+ * D157 — 구 `UpdateServiceBinding`이 **`SEVERITY: ERROR`를 실은 작업 응답을 성공으로** 접은
+ * 채록분인가. `payload`는 `response_format`에 따라 파싱본(`"SEVERITY": "ERROR"`) 또는 원문
+ * (`<SEVERITY>ERROR</SEVERITY>`)이므로 두 모양을 다 잡는다. D148의 성공 갈래에서 이 자리를 뺀다.
+ */
+const OLD_JOB_SEVERITY_ERROR = /"SEVERITY":\s*"ERROR"|<SEVERITY>ERROR<\/SEVERITY>/i;
+function oldJobReportedSeverityError(step: SequenceStep): boolean {
+  return !step.isError && OLD_JOB_SEVERITY_ERROR.test(collectText(step.response));
+}
 
 // ── D110~D132 — 꼬리 묶음 셋이 쌓아 둔 차이 (**마지막 반영**) ───────────────
 
@@ -1972,8 +1984,10 @@ export const M1_DIVERGENCES: readonly DivergenceEntry[] = [
     resolvesIn: null,
     // 구가 UNKNOWN으로 거부한 오류 갈래 + 두 키가 늘어난 모든 성공 갈래. `DeleteServiceBinding`은
     // 응답이 같고 와이어에만 남는 차이라 옮기지 않는다(D104·D124의 가름선).
+    // D157(D-152)이 성공 갈래 중 **작업 응답이 SEVERITY ERROR였던 것**을 가져갔다 — 겹치지 않게 뺀다.
     applies: (step) =>
-      step.tool === 'UpdateServiceBinding' && (!step.isError || oldRefusedUnknownAllowedAction(step)),
+      step.tool === 'UpdateServiceBinding' &&
+      ((!step.isError && !oldJobReportedSeverityError(step)) || oldRefusedUnknownAllowedAction(step)),
     check: ({ recorded, actual }) => {
       if (!recorded.isError) return onlyRegisteredKeysDiffer(recorded, actual, D142_KEYS, 'UpdateServiceBinding');
       if (actual.isError) {
@@ -2158,6 +2172,26 @@ export const M1_DIVERGENCES: readonly DivergenceEntry[] = [
         ? { ok: true, detail: '신도 껍데기 뒤에서 실패했고, 오브젝트가 남았으니 UpdateServiceDefinition으로 이어 가라고 말했다.' }
         : { ok: false, detail: '신이 껍데기 뒤에서 실패했으나 「이미 생겼다 · 다시 만들지 말라」를 말하지 않는다.' };
     },
+  },
+  {
+    id: 'D157',
+    title: 'UpdateServiceBinding — 발행 작업 응답의 SEVERITY ERROR를 성공으로 접지 않는다',
+    tool: 'UpdateServiceBinding',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d157 · sapkit-engine/src/tools/write/updateServiceBinding.ts · ' +
+      'sapkit-engine/src/tools/write/internal/serviceBinding.ts · 덧말표(harness/old-surface의 amendments 표)',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/updateServiceBinding.test.ts — ' +
+      '「D157 — 작업 응답이 SEVERITY ERROR면 200이어도 도구 오류다」 6건',
+    resolvesIn: null,
+    // 구가 `success:true`에 SEVERITY ERROR 본문을 실은 성공 갈래만. D148의 `applies`가 이 자리를 뺀다.
+    applies: (step) => step.tool === 'UpdateServiceBinding' && oldJobReportedSeverityError(step),
+    check: ({ actual }) =>
+      actual.isError && /reported SEVERITY ERROR/.test(collectText(actual.response))
+        ? { ok: true, detail: '구가 SEVERITY ERROR 본문을 success:true로 접은 자리에서 신은 그 문구를 실은 도구 오류로 답했다.' }
+        : { ok: false, detail: '신이 SEVERITY ERROR 작업 응답을 「reported SEVERITY ERROR」 오류로 답하지 않았다.' },
   },
 ];
 

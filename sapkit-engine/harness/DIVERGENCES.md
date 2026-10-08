@@ -3757,3 +3757,38 @@ UpdateInclude to retry」를 이미 말한다(`createInclude.ts` — D156 ⓒ와
 - `CreateBehaviorDefinition` — 소스 인자가 없고(`root_entity`·`implementation_type`만), SAP이 생성하는
   **템플릿**을 만든다(피드백 2026-09-18 — 호출자가 넘긴 `source`는 채록본에 없는 인자라 조용히
   버려졌다). 덧말로만 다룬다(이 절 「설명문 이정표」).
+
+### D157 — `UpdateServiceBinding`이 발행 작업 응답의 **`SEVERITY: ERROR`**를 성공으로 접지 않는다 (수리)
+
+**분류**: 수리 · **도구**: `UpdateServiceBinding`
+
+**구는 이렇게 한다.** 발행/발행취소 작업(`POST …/{odatav2|odatav4}/{publish|unpublish}jobs`)은
+거부할 때도 **HTTP 200**으로 답하고 본문(`application/vnd.sap.as+xml` — `asx:abap > asx:values >
+DATA`)에 판정을 싣는다. 구는 그 본문을 `payload`로 옮겨 싣고 `success: true`를 냈다. Customizing
+클라이언트(`T000-CCCATEGORY='C'`)에서 발행하자 `success: true`와 `payload`의 `SEVERITY: ERROR` ·
+`LONG_TEXT: (Un-)Publishing of SRVB … in Customizing Client not allowed`가 **함께** 왔다 — 반환값
+한 줄만 보면 성공으로 읽힌다(피드백 2026-09-17 · `rap-odata-rules`의 `publishing_in_custom_client`와
+일치).
+
+**신은 이렇게 한다.** 작업을 **실제로 보낸** 갈래에서 본문을 XML로 읽어, 어느 깊이든
+`SEVERITY`가 `ERROR`(대소문자 무시)인 마디가 하나라도 있으면 도구 오류로 답한다(`internal/serviceBinding.ts`
+`publicationJobErrors`). 문구는
+`Error: The {publish|unpublish} job for service binding {이름} reported SEVERITY ERROR: {LONG_TEXT — 없으면 SHORT_TEXT, 여럿이면 ' | '로} . Do not assume the binding is {상태}: read it back with GetServiceBinding (srvb:published). Payload: {payload JSON}`
+이고, `payload`는 성공 응답이 싣던 것과 **같은 것**(`response_format`대로의 파싱본 또는 원문)이다.
+`WARNING` 등 다른 등급은 그대로 성공이다. ①의 읽기 응답을 답으로 쓰는 갈래(`unchanged` · 이미
+발행됨)는 작업 응답이 아니므로 판정하지 않는다. 본문을 XML로 읽지 못하면 판정하지 않는다(구 그대로의 성공).
+
+**대체 기대 시험**: `src/tools/write/__tests__/updateServiceBinding.test.ts` — 「D157 — 작업 응답이
+SEVERITY ERROR면 200이어도 도구 오류다」 6건(발행 · 발행취소의 SHORT_TEXT 대체 · `plain` 원문 payload ·
+WARNING은 성공 · `unchanged`는 판정 없음 · 여러 메시지 중 ERROR만). **채록된 작업 응답이 레포에 없어**
+본문은 피드백의 실측 문구로 합성했다.
+
+**기계 장부 반영**: 했다(D157 — 구가 SEVERITY ERROR 본문을 성공으로 접은 갈래만 든다). ⚠ **D148과의
+겹침을 여기서 푼다** — D148의 `applies`는 `UpdateServiceBinding`의 성공 갈래 **전부**를 들었다. 이제
+그중 SEVERITY ERROR 본문을 실은 것은 신이 오류로 답하므로 D148의 「두 키만 늘었나」 검사가 「오류로
+답했다」로 떨어진다. 그래서 D148의 `applies`에서 그 자리를 **뺐다**(사람용 D148 본문은 그대로다 — 이
+문단이 그 축소의 기록이다).
+
+**실기에서 확인할 것** — ① 실제 작업 응답 본문의 모양(마디 이름이 `SEVERITY`·`LONG_TEXT`·`SHORT_TEXT`인지,
+메시지가 여럿일 때 어떻게 오는지 — 합성 본문은 피드백이 옮겨 적은 키 이름에 기댄다) ② Customizing
+클라이언트에서 도구 오류로 오는지 ③ 경고만 있는 정상 발행이 여전히 성공인지.

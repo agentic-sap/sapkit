@@ -40,6 +40,16 @@
  * 속성이 **있고 어긋날 때만** 거부하고, **없으면 요청을 보내 서버 판정에 맡긴다** —
  * 응답의 `allowed_action_known: false`가 그 갈래를 표시한다. 실기 미검증.
  *
+ * ## 작업 응답의 `SEVERITY: ERROR`는 오류다 (차이 — `harness/DIVERGENCES.md` D157)
+ *
+ * 발행/발행취소 작업은 거부할 때도 **HTTP 200**으로 답하고 본문에 판정을 싣는다. 구는
+ * 본문을 `payload`로 실어 `success: true`를 냈다 — Customizing 클라이언트에서
+ * `SEVERITY: ERROR` · `LONG_TEXT: (Un-)Publishing of SRVB … in Customizing Client not allowed`가
+ * 같이 왔다(실측 · `sapkit-feedback.md` 2026-09-17). 지금은 작업을 **실제로 보낸** 갈래에서
+ * 본문에 `ERROR` 등급 메시지가 하나라도 있으면 그 문구(`LONG_TEXT` 우선)와 `payload` 전문을
+ * 실은 도구 오류로 답한다. `WARNING`은 그대로 성공이다. ①의 응답을 답으로 쓰는 갈래
+ * (`unchanged` · 이미 발행됨)는 판정하지 않는다 — 작업 응답이 아니다.
+ *
  * ## 구는 저수준 `updateServiceBinding`을 부른다 — 뒤따르는 읽기가 없다
  *
  * 감싸개 `update()`(`:316-342`)는 발행 뒤 활성 판을 한 번 더 읽지만, 구 핸들러는
@@ -68,16 +78,18 @@ import {
   type ServiceBindingServiceType,
   parseServiceBindingState,
   publicationJob,
+  publicationJobErrors,
   returnErrorText,
 } from './internal/serviceBinding';
 
 export const updateServiceBinding = defineTool(
   {
     name: 'UpdateServiceBinding',
-    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D148.
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D148 · D157.
     description:
       'Update publication state for ABAP service binding via AdtServiceBinding workflow.' +
-      " When the binding XML carries no srvb:allowedAction attribute (some systems never send it), the publish/unpublish request is sent anyway and the server's verdict is returned as-is (allowed_action_known: false in the response); only an attribute that is present and contradicts the request is refused locally.",
+      " When the binding XML carries no srvb:allowedAction attribute (some systems never send it), the publish/unpublish request is sent anyway and the server's verdict is returned as-is (allowed_action_known: false in the response); only an attribute that is present and contradicts the request is refused locally." +
+      " The publish/unpublish job answers HTTP 200 even when it refuses: a job message with SEVERITY ERROR (e.g. 'Publishing of SRVB ... in Customizing Client not allowed') is returned as a tool error carrying that text and the job payload; warnings stay a success. Confirm the state with GetServiceBinding (srvb:published).",
     inputSchema: {
       service_binding_name: z.string().describe('Service binding name to update.'),
       desired_publication_state: z
@@ -138,6 +150,7 @@ export const updateServiceBinding = defineTool(
 
       // ② 갈래에 따라 발행 작업을 세우거나, ①의 응답을 그대로 답으로 쓴다.
       let response = readResponse;
+      let jobAction: 'publish' | 'unpublish' | undefined;
       if (desired === 'published') {
         if (!current.published) {
           if (allowedActionKnown && current.allowedAction !== 'PUBLISH') {
@@ -145,6 +158,7 @@ export const updateServiceBinding = defineTool(
               `Invalid state transition: cannot publish service binding ${name}. allowedAction=${current.allowedAction}`,
             );
           }
+          jobAction = 'publish';
           response = await publicationJob(
             client,
             'publish',
@@ -160,6 +174,7 @@ export const updateServiceBinding = defineTool(
             `Invalid state transition: cannot unpublish service binding ${name}. allowedAction=${current.allowedAction}`,
           );
         }
+        jobAction = 'unpublish';
         response = await publicationJob(
           client,
           'unpublish',
@@ -168,6 +183,22 @@ export const updateServiceBinding = defineTool(
           serviceName,
           serviceVersion,
         );
+      }
+
+      const payload = parseServiceBindingPayload(response.body, responseFormat);
+
+      // D157 — 작업 응답이 200이어도 본문이 SEVERITY ERROR면 성공이 아니다(실측: Customizing
+      // 클라이언트의 발행 거부). 경고(WARNING)는 그대로 성공이다.
+      if (jobAction !== undefined) {
+        const jobErrors = publicationJobErrors(response.body);
+        if (jobErrors.length > 0) {
+          logger.error(`Service binding ${jobAction} job reported errors: ${jobErrors.join(' | ')}`);
+          return errorResult(
+            `Error: The ${jobAction} job for service binding ${name} reported SEVERITY ERROR: ${jobErrors.join(' | ')}. ` +
+              `Do not assume the binding is ${desired}: read it back with GetServiceBinding (srvb:published). ` +
+              `Payload: ${JSON.stringify(payload)}`,
+          );
+        }
       }
 
       return okResult({
@@ -183,7 +214,7 @@ export const updateServiceBinding = defineTool(
         allowed_action: current.allowedAction ?? null,
         response_format: responseFormat,
         status: response.status,
-        payload: parseServiceBindingPayload(response.body, responseFormat),
+        payload,
       });
     } catch (error) {
       // 구는 `return_error(error)`를 지난다 — `Error: ` 접두사와 ADT 본문 우선
