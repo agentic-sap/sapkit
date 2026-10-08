@@ -44,7 +44,7 @@ Say this in the user's language, in plain words:
 - two example names in the shape expected, e.g. `ZSD_MAIN` / `ZMM_CORE`;
 - that a partial name ending in `*` is fine and will be searched for.
 
-- If a prefix pattern comes back: call `SearchObject(objectType='DEVC', query=<prefix>)`, list what matches, then ask again.
+- If a prefix pattern comes back: call `SearchObject(object_name=<prefix>, object_type='DEVC')`, list what matches, then ask again.
 - Confirm the settled package with `GetPackage(<name>)`. Where it does not exist, report that and stop.
 
 **Step 1.5 — Ask about flagship programs in this package** (exactly one question, optional)

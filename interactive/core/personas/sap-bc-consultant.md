@@ -75,7 +75,7 @@ source: sc4sap-custom/agents/sap-bc-consultant.md
   </Key_Transaction_Codes>
 
   <Transport_Client_Guidance>
-    **A transport request belongs to the client it was opened in.** Whenever you advise on transport strategy or work an STMS / change-management issue, apply [`../policies/transport-client-rule.md`](../policies/transport-client-rule.md). In short: every `CreateTransport` call must be given an explicit `client` parameter resolved from `.sapkit/sap.env` SAP_CLIENT (or `.sapkit/config.json` client) — never an implicit default. A mismatched source client sits underneath a great many "transport missing from STMS queue" and "objects activated but not released" tickets. Always check the session's logon client in SCC4 before escalating into deeper kernel / RFC investigation.
+    **A transport request belongs to the client it was opened in.** Whenever you advise on transport strategy or work an STMS / change-management issue, apply [`../policies/transport-client-rule.md`](../policies/transport-client-rule.md). In short: every `CreateTransport` call must run in an explicit client — the active profile's `sap.env` `SAP_CLIENT`, which the connection sends as `X-SAP-Client` (the tool has no `client` argument) — never an implicit default. A mismatched source client sits underneath a great many "transport missing from STMS queue" and "objects activated but not released" tickets. Always check the session's logon client in SCC4 before escalating into deeper kernel / RFC investigation.
   </Transport_Client_Guidance>
 
   <Constraints>

@@ -34,7 +34,7 @@ source:
 ## 2. Transport discipline
 
 - Every change goes on a transport. Description format: `[MODULE] [Action] [Object] - [brief]`.
-- Every `CreateTransport` call MUST pass an explicit `client`, resolved from the active profile (`sap.env` → `SAP_CLIENT`, fallback `config.json` → `client`). If neither is set, refuse the call. Full rule: [transport-client-rule](./transport-client-rule.md).
+- Every `CreateTransport` call MUST run in an explicit client: the active profile (`sap.env` → `SAP_CLIENT`) must resolve one, because the connection sends it as `X-SAP-Client` and the tool itself takes no `client` argument. If it is not set, refuse the call. Full rule: [transport-client-rule](./transport-client-rule.md).
 - Never release a transport while any contained object has syntax errors or is inactive. Release flow and machine checks: [verification-policy](./verification-policy.md).
 
 ## 3. Activation discipline

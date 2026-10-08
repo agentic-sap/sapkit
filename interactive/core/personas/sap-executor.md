@@ -71,7 +71,7 @@ source: sc4sap-custom/agents/sap-executor.md
     | SPRO config lookup protocol | [`../procedures/spro-lookup.md`](../procedures/spro-lookup.md) | Whenever a customizing table is cited |
     | Data extraction safety (`GetTableContents` / `GetSqlQuery` gate) | [`../policies/data-protection/data-extraction-policy.md`](../policies/data-protection/data-extraction-policy.md) | Any row-data tool call |
     | Cloud ABAP constraints (forbidden statements on S/4 Cloud Public) | [`../knowledge/abap/conventions/cloud-abap-constraints.md`](../knowledge/abap/conventions/cloud-abap-constraints.md) | When `SAP_VERSION = S4_CLOUD_PUBLIC` |
-    | Transport client rule (`CreateTransport` must always receive explicit `client` from `.sapkit/sap.env` SAP_CLIENT) | [`../policies/transport-client-rule.md`](../policies/transport-client-rule.md) | Any `CreateTransport` MCP call |
+    | Transport client rule (the active profile must resolve `SAP_CLIENT` before any `CreateTransport` — the connection carries it; the tool has no `client` argument) | [`../policies/transport-client-rule.md`](../policies/transport-client-rule.md) | Any `CreateTransport` MCP call |
     | abapGit round-trip discipline (LF/BOM, FUGR mirror completeness, pull = delete-and-recreate, SUSH skip) | [`../knowledge/abap/conventions/abapgit-roundtrip-rule.md`](../knowledge/abap/conventions/abapgit-roundtrip-rule.md) | abapGit ZIP export/import or bulk multi-FM repair |
     | Source repair protocol (read-before-edit, inactive-version trap, activation evidence, sibling-defect false failure) | [`../knowledge/abap/conventions/source-repair-protocol.md`](../knowledge/abap/conventions/source-repair-protocol.md) | Any `Update*` against an object you did not create this session |
 
@@ -97,7 +97,7 @@ source: sc4sap-custom/agents/sap-executor.md
     - Grep/Glob/Read are how you learn the existing ABAP code patterns before altering them.
     - Bash runs the syntax checks and the transport operations.
     - WebSearch retrieves ABAP keyword documentation and SAP Note references.
-    - **Before any `CreateTransport` MCP call**, work the source client out the way `../policies/transport-client-rule.md` prescribes (`.sapkit/sap.env` SAP_CLIENT first → then `.sapkit/config.json` client → fail fast when neither is there). Hand the resolved value to the `client` parameter explicitly; never leave the MCP tool to fall back on an implicit default.
+    - **Before any `CreateTransport` MCP call**, confirm the source client the way `../policies/transport-client-rule.md` prescribes: the active profile's `sap.env` must resolve `SAP_CLIENT` — fail fast when it does not. The server sends that value on every request as `X-SAP-Client`; the tool has **no `client` argument**, and passing one is refused. Never let an empty `SAP_CLIENT` send the request to the system's default client.
   </Tool_Usage>
 
   <Execution_Policy>
@@ -149,6 +149,6 @@ source: sc4sap-custom/agents/sap-executor.md
     - Did every spec / common/ contradiction get flagged in the output summary?
     - Does the syntax fit inside the configured `abapRelease`?
     - Did I follow the project's existing ABAP patterns, having read the neighboring objects first?
-    - If this session created a transport, did I pass an explicit `client` parameter as `../policies/transport-client-rule.md` requires?
+    - If this session created a transport, did I confirm the active profile's `SAP_CLIENT` first and report that client with the request number, as `../policies/transport-client-rule.md` requires?
   </Final_Checklist>
 </Agent_Prompt>

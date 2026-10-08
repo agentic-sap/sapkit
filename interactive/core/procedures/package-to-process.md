@@ -100,7 +100,7 @@ the user is in the three intake questions.
    - two example names in the shape expected, e.g. `ZSD_MAIN` / `ZMM_CORE`;
    - that a partial name ending in `*` is fine and will be searched for.
 
-   - Prefix → `SearchObject(objectType='DEVC', query=<prefix>)`, list matches, re-ask.
+   - Prefix → `SearchObject(object_name=<prefix>, object_type='DEVC')`, list matches, re-ask.
    - Verify the final name with `GetPackage(<name>)`. Not found → report and stop.
 2. **Module** (exactly one question, constrained list)
 
@@ -160,7 +160,7 @@ activeModules, language}`.
 
 1. Collect all PROG objects from `inventory.json`.
 2. For each, find how a user reaches it:
-   - `SearchObject(objectType='TRAN', query='<prog_name>')` → TCodes launching it
+   - `SearchObject(object_name='<prog_name>', object_type='TRAN')` → TCodes launching it
    - cross-check `../knowledge/modules/<MODULE>/tcodes.md` for documented Z-TCodes
 3. Build candidates `{prog, tcodes[], short_text}`. A program with no TCode is
    still a candidate when `inventory.json → key_programs[]` lists it as flagship —

@@ -4,13 +4,13 @@ When a CTS (Change and Transport System) request is opened, the **source client*
 
 ## Rule
 
-Every `CreateTransport` call MUST be given the `client` parameter, resolved in this order:
+**The client is stated by the connection, not by an argument.** The MCP server sends every ADT request — `CreateTransport` included — with an `X-SAP-Client` header taken from the active profile's `SAP_CLIENT`, so a transport opens in exactly the client the profile names. `CreateTransport` has **no `client` parameter**, and passing one is refused (the server rejects arguments a tool does not declare instead of dropping them). Before every `CreateTransport` call:
 
-1. **`.sapkit/sap.env`** → `SAP_CLIENT` (whatever value the MCP server is genuinely connected with).
-2. **`.sapkit/config.json`** → `client` (the alternative project-level override).
-3. Neither one present → **fail fast**; make no CreateTransport call. Ask the user to run `the profile setup (core/procedures/troubleshooting.md)` or to name the client by hand.
+1. **Confirm the active profile resolves `SAP_CLIENT`** (`.sapkit/sap.env` of the active profile — whatever value the MCP server is genuinely connected with).
+2. Not present → **fail fast**; make no CreateTransport call. Ask the user to run `the profile setup (core/procedures/troubleshooting.md)` or to add `SAP_CLIENT` to the profile by hand.
+3. Present, but not the client the user means to work in (they are logged on to another client in SAP GUI, or name one) → stop and say so; the fix is a profile whose `SAP_CLIENT` is that client, followed by `ReloadProfile`.
 
-Never lean on the tool's own default — no default is guaranteed, and the behavior shifts with the SAP backend release and the RFC/SOAP flavor in play.
+Never lean on an implicit default — with `SAP_CLIENT` empty no client header goes out and the request lands in the system's default client, which shifts from system to system. (Earlier revisions of this rule told callers to pass a `client` argument and to fall back on `.sapkit/config.json` → `client`. Neither ever reached SAP: the tool never had that argument — it was silently dropped until the server began refusing undeclared arguments — and the server does not read `config.json` for a client.)
 
 ## Why the client matters (SCC4 context)
 
@@ -22,21 +22,19 @@ Never lean on the tool's own default — no default is guaranteed, and the behav
 ## Resolution Pseudo-Code
 
 ```python
-def resolve_transport_client():
-    client = read_env(".sapkit/sap.env", "SAP_CLIENT")
+def confirm_transport_client():
+    client = read_env("<active profile>/sap.env", "SAP_CLIENT")
     if not client:
-        client = read_json(".sapkit/config.json", "client")
-    if not client:
-        raise "Refuse to CreateTransport — no client resolved. Run the profile setup (core/procedures/troubleshooting.md) or set SAP_CLIENT manually."
-    return client
+        raise "Refuse to CreateTransport — the active profile has no SAP_CLIENT. Run the profile setup (core/procedures/troubleshooting.md) or add SAP_CLIENT to the profile."
+    return client   # report it to the user alongside the new request number
 
-client = resolve_transport_client()
+client = confirm_transport_client()
 CreateTransport(
-    transport_type="K",    # customizing 'S' or workbench 'K'
+    transport_type="workbench",   # or "customizing"
     description="...",
     owner=env("SAP_USERNAME"),
-    client=client,         # <-- REQUIRED
     target_system=...,
+    # no `client` argument — the connection carries SAP_CLIENT as X-SAP-Client
 )
 ```
 
