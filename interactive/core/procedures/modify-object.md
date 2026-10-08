@@ -60,11 +60,24 @@ a one-shot auto-run:
    `UpdateStructure`, …). **If the change turns out to need a new object, it has
    left this procedure** — stop and propose escalating to
    [create-object](./create-object.md) or [create-program](./create-program.md);
-   do not create the object here.
+   do not create the object here. Where others work in the same package, look at
+   `GetInactiveObjects` for the object **before** the write: a pending inactive
+   version you did not make is someone's draft, and a write with `activate: true`
+   activates it along with your change. A `source_version_read: "inactive"` in an
+   `UpdateSourceByPatch` response is the same signal after the fact — then check
+   that the lines in front of your change kept their numbers and the lines after it
+   moved by exactly what you inserted
+   ([troubleshooting](troubleshooting.md) § 8, `UpdateSourceByPatch` ⓐ).
 
-③ **Machine-verify.** Run `CheckSyntax` → `ActivateObjects`, then unit tests /
-   ATC where applicable, and confirm `GetInactiveObjects` is empty for the touched
-   objects. **Never claim completion without verification** (see
+③ **Machine-verify.** Activate through the write itself — `activate: true` on the
+   `Update*` / patch call — and use `ActivateObjects` for objects that must
+   activate together; a run that comes back not executed is not retried and not
+   sent to SE38 — the whole source is rewritten instead
+   ([troubleshooting](troubleshooting.md) § 8, `ActivateObjects`).
+   Run `CheckSyntax` (from a fresh session — `ReloadProfile` — before believing an
+   `INCLUDE report … not found`), then unit tests / ATC where applicable, and
+   confirm `GetInactiveObjects` is empty for the touched objects. **Never claim
+   completion without verification** (see
    [sap-standards](../policies/sap-standards.md) §3).
 
 ④ **Report the evidence** — the checks that were run and what each one came back

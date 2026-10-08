@@ -190,9 +190,9 @@ Supporting every type is the principle; this is what v1 promises.
 
 | Type | Notes |
 |---|---|
-| PROG | Including **screens (DYNPRO)**, **GUI status (CUA)**, and **text pool (TPOOL)** |
+| PROG | Including **screens (DYNPRO)**, **GUI status (CUA)**, and **text pool (TPOOL)**. In a hand-authored `TPOOL`, a selection text's label starts at offset 8 ([text-element-rule](../knowledge/abap/conventions/text-element-rule.md) § Selection Texts); a pool too large for the MCP text tools comes this way |
 | INCLUDE | |
-| FUGR / FM | Classic signature form per Step 3; a FUGR pull is delete-and-recreate, so the mirror must carry every member |
+| FUGR / FM | Classic signature form per Step 3; the mirror must carry every member — a pull that rebuilds the group loses whatever the ZIP lacks, and one that does not leaves modules deleted at the source standing on the target |
 | CLAS | |
 | INTF | |
 | DDIC — TABL / DTEL / DOMA | Apply [abapgit-roundtrip-rule](../knowledge/abap/conventions/abapgit-roundtrip-rule.md) § Structure Serialization Fields when hand-checking or hand-authoring a serialized structure: `ROLLNAME` + `COMPTYPE E` for data-element-typed fields, `DATATYPE` / `LENG` / `DECIMALS` for built-ins, and `REFTABLE` / `REFFIELD` on top for `CURR` |
@@ -274,11 +274,11 @@ and on this path the server is reached only when the user imports.
 - **Whole-package ZIPs only. Partial ZIPs are forbidden.** An offline abapGit import reads
   the ZIP as the complete remote state, so every package object the ZIP omits shows up in the
   pull list as a delete candidate. With a complete ZIP that list is **structurally empty** and
-  the accident becomes impossible; with a partial one it is one mis-click away. A FUGR pull is
-  delete-and-recreate rather than a merge, which makes this sharpest of all for function
-  groups — a missing member is a deleted member
+  the accident becomes impossible; with a partial one it is one mis-click away. It is sharpest
+  of all for function groups — where the pull rebuilds a group, a missing member is a deleted
+  member
   ([abapgit-roundtrip-rule](../knowledge/abap/conventions/abapgit-roundtrip-rule.md)
-  § Offline ZIP Is the Entire Remote State, § FUGR Pull Is Delete-and-Recreate).
+  § Offline ZIP Is the Entire Remote State, § Function Groups — Pull Every Member).
 - **Verify the archive**: every `.abap` entry inside the built ZIP holds **zero CRLF bytes**.
   Forcing LF on write is the first half and this is the second; neither substitutes for the
   other, because what matters is the bytes that actually landed in the archive.
@@ -293,16 +293,22 @@ and on this path the server is reached only when the user imports.
 The agent stops at the ZIP. Hand it over in the user's language, in plain words, per the
 [plain-language policy](../policies/plain-language.md): where the file is, what is inside it,
 that importing it into SAP is theirs to do and nothing has reached SAP yet, and what to expect
-during the import. The import guidance covers at least these two, **by reference — do not copy
+during the import. The import guidance covers at least these, **by reference — do not copy
 the rule text in**:
 
 - **Overwrite-all on pull is normal** after direct ADT edits, and harmless against a
   full same-source mirror.
+- **`Delete and recreate local object` on an object the ZIP carries stays checked** —
+  unchecking it keeps that object's includes and screens out; only *Delete local object* on
+  an object the ZIP does not carry is unchecked.
 - **Skip SUSH delete proposals** — auto-generated start-authorization defaults, managed
   outside the repo.
+- **Some diffs never go away and are harmless** — `.ddls.baseinfo`, and the
+  `Object type SVIM not supported` warning.
 
-Both are [abapgit-roundtrip-rule](../knowledge/abap/conventions/abapgit-roundtrip-rule.md)
-§ Overwrite-All on Pull Is Normal and § Skip SUSH Delete Proposals. Point at them.
+All four are in [abapgit-roundtrip-rule](../knowledge/abap/conventions/abapgit-roundtrip-rule.md)
+— § Overwrite-All on Pull Is Normal, § The Pull Popup, § Skip SUSH Delete Proposals, and
+§ Diffs and Warnings That Are Harmless. Point at them.
 
 Then the status, and it is the part most easily got wrong. When the status is said to the
 user, lead with what it means and put the word after it — *nothing has reached SAP yet*
@@ -341,8 +347,12 @@ word an object is entitled to is decided by the test below and a short gloss nev
   an **unknown** state — partial application is entirely possible. Record
   `PROVISIONAL_WRITE` with the unknown-state note, take the errors, repair the mirror,
   **rebuild the WHOLE ZIP** (Step 6 — never a patch ZIP of "just the fix"), and re-import.
-  Where an MCP read is available, use `GetInactiveObjects` to find out what the system
-  actually holds before repairing blind.
+  Ask for the red lines of abapGit's own pull log before the activation errors: one object
+  the pull could not write turns into dozens of activation errors elsewhere, and two of the
+  causes look like something they are not
+  ([abapgit-roundtrip-rule](../knowledge/abap/conventions/abapgit-roundtrip-rule.md)
+  § Reading a Failed Pull). Where an MCP read is available, use `GetInactiveObjects` to find
+  out what the system actually holds before repairing blind.
 - **The round trip is bounded: an initial review plus at most 2 repair/re-verify rounds**
   ([development-loop](../policies/development-loop.md) — the same bound at every strength).
   One round here is a whole cycle: repair the mirror, rebuild the ZIP, the user re-imports,
@@ -361,7 +371,10 @@ for the export again.
   ahead of the mirror — somebody may have edited straight through ADT — and re-authoring
   from a stale mirror silently overwrites those edits
   ([source-repair-protocol](../knowledge/abap/conventions/source-repair-protocol.md)
-  § Read Before Edit — Never Re-Author From the Repo).
+  § Read Before Edit — Never Re-Author From the Repo). A stale screen set does worse than
+  overwrite: abapGit deletes the target's screens that the XML does not list
+  ([abapgit-roundtrip-rule](../knowledge/abap/conventions/abapgit-roundtrip-rule.md)
+  § Screens Missing From the XML Are Deleted on the Target).
 - **Immediately before the user imports**, ask once: were there direct edits on the server
   since this export was taken? If yes, re-export, re-apply the changes onto the new seed, and
   rebuild the ZIP. Asking costs a sentence; skipping it costs somebody's work.

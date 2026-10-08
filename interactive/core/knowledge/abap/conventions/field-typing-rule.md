@@ -107,6 +107,17 @@ Establish meaning from the data element's own semantics instead (`GetDataElement
 
 A `RAWSTRING`, a `STRING`, or any field exceeding 255 bytes must never carry the NOT NULL / initial-values flag — DDIC declines activation and reports `'not null' flag ... too long (>255)`, and SAP standard holds zero exceptions (a full `DD03L` sweep of active `RSTR` fields found all 25 with the flag blank). The trap is the habit of flagging every field NOT NULL; leave the LOB-class fields unflagged. (Field-verified in real project work, 2026-07.)
 
+## DDIC Writes Through MCP — What the Tools Do Not Do
+
+Four limits of the MCP write path for tables, each met in real project work (2026-09 → 2026-10):
+
+- **Settle a field's type before the field is added.** On a table that holds data, shortening a field or removing one needs a database table conversion, and `UpdateTable` does not run conversions — it is refused at the code check with a message announcing a field-level structure change that requires converting the table. Adding a field to the same table passes. A type picked provisionally (a custom data element where a standard one fits, a length to be trimmed later) therefore becomes a manual SE11/SE14 job for the user once the table has rows — whether SE14's *activate and adjust database, keep data* clears it was not observed. Apply the priority order above **before** the first `CreateTable` / `UpdateTable` that carries the field.
+- **Technical settings are not written by any tool.** Data class, size category and buffering are not part of the table's DDL source; ADT keeps them as a separate resource, and no tool writes it. Only the delivery class goes in, through `@AbapCatalog.deliveryClass`. List the technical settings as a manual SE11 step in the completion report.
+- **`skeleton: "client-fallback"` in the `CreateTable` response means the client field was seeded as `key client : abap.clnt`** instead of the `MANDT` field this rule requires (§ Anti-Patterns above, and checklist item 5 below). Correct it with `UpdateTable` — `key mandt : mandt not null;` as the first field — before anything else is built on the table.
+- **`CheckSyntax` does not cover DDIC objects** — it checks classes, programs, interfaces, includes and function modules. Judge a table from what SAP holds: `ReadTable` (which reads the active version by default) shows what is active, and `GetInactiveObjects` shows what is still pending — empty there is necessary, not sufficient (see [troubleshooting](../../../procedures/troubleshooting.md) § 8 on `ActivateObjects`). The transport-side check is `GetTransport`.
+
+The transport for these writes is the parent request, not a task — [troubleshooting](../../../procedures/troubleshooting.md) § 8 (`transport_request`).
+
 ## Integration Points
 
 - `skills/create-object/workflow-steps.md` → Step 5 (standard flow) and Step 4-ECC (helper-program generation) both send their field-type decisions through this rule.

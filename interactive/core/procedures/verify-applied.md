@@ -91,7 +91,8 @@ procedure never substitutes for it.
    restating the writer's own claim.
    - Fetch the served source: `GetProgram` (REPS) · `GetInclude` (includes) ·
      `ReadClass` (CLAS) · `ReadFunctionGroup` + `ReadFunctionModule` (FUGR) ·
-     `ReadInterface` (INTF) · `ReadView` (CDS). **Do not use `GetProgFullCode`
+     `ReadInterface` (INTF) · `ReadView` (CDS) · `ReadTable` (TABL — the active
+     version unless `version` says otherwise). **Do not use `GetProgFullCode`
      for this comparison** — it normalizes whitespace and indentation, so a sent
      `*& What    :` reads back as `*& What :` (field-verified on an on-prem DEV
      system, 2026-08-19) and a byte comparison reports a mismatch that is not
@@ -113,6 +114,18 @@ procedure never substitutes for it.
    actually compiles. `GetInactiveObjects` must return no entries for the
    object set — an inactive remnant means the change is not live for anyone
    else, whatever the activation call reported.
+   - **`CheckSyntax` does not cover DDIC objects** (tables, structures, data
+     elements, domains) — it checks classes, programs, interfaces, includes and
+     function modules. For a DDIC object, compile-and-active is settled by the
+     **active** version read back in step ② (`ReadTable` reads the active
+     version by default) together with `GetInactiveObjects`; say in the report
+     that no syntax check applies rather than reporting one as passed
+     ([field-typing-rule](../knowledge/abap/conventions/field-typing-rule.md)
+     § DDIC Writes Through MCP).
+   - **Do not believe an `INCLUDE report … not found` from the main program's
+     check until it survives a `ReloadProfile`** — right after includes are
+     written it is usually a stale session, and a fresh one has cleared it
+     (`troubleshooting.md` § 8).
    - **An empty `GetInactiveObjects` is necessary, not sufficient.** An
      inactive version can be orphaned — written into the repository yet absent
      from the ADT worklist — so the object reads as clean here while the old
@@ -160,8 +173,8 @@ procedure never substitutes for it.
 ## MCP Tools Used
 
 `GetProgram` / `GetInclude` / `ReadClass` / `ReadFunctionGroup` +
-`ReadFunctionModule` / `ReadInterface` / `ReadView` (source read-back per object
-type) · `GetSourceDiff` (server-side comparison when a reference version exists)
+`ReadFunctionModule` / `ReadInterface` / `ReadView` / `ReadTable` (source
+read-back per object type) · `GetSourceDiff` (server-side comparison when a reference version exists)
 · `CheckSyntax` (the served source compiles) · `GetInactiveObjects` (nothing
 left inactive) · `GetObjectInfo` (existence and metadata, when the target needs
 resolving). `GetProgFullCode` (a program with its includes in one read) is not
