@@ -42154,6 +42154,31 @@ var require_odata = __commonJS({
           message: `${what}\uC774(\uAC00) HTTP ${response.status}\uB85C \uC751\uB2F5\uD588\uB2E4 (${method} ${url}): ${(0, errors_1.truncateBody)(response.body)}`
         });
       }
+      /**
+       * HTTP 414(URI Too Long) — 이 통로는 FunctionImport 인자를 **전부 URL 질의 문자열에** 싣는다
+       * (`functionImportUrl`). 텍스트풀 쓰기는 풀 JSON 전체(`IV_TEXTPOOL_JSON`)가 거기 들어가므로
+       * 비ASCII 몇십 행이면 한도를 넘는다(실측: 한국어 53행 ≈ 9.5KB 통과 · 64행 ≈ 11.5KB 거부 —
+       * 실사용 `.sapkit/LESSONS.md` L-007). 무엇이 왜 넘쳤고 어디로 가야 하는지를 말한다 — D160.
+       *
+       * 메시지에 URL을 싣지 않는다 — 넘친 그 URL이 수십 KB다(`url` 필드에는 남는다). 대안은
+       * `src/rfc/*.ts`에서 확인한 것만 든다: `soap`(봉투 본문 → `/sap/bc/soap/rfc`) · `native`(RFC SDK
+       * 호출 인자) · `gateway`(JSON 본문) · `zrfc`(JSON 본문 → ICF 처리기) 넷은 같은 인자를 **본문으로**
+       * 보낸다. 텍스트풀은 거기에 abapGit ZIP 프로그램 XML의 `TPOOL`·`I18N_TPOOL`이 더해진다.
+       */
+      uriTooLongFailure(actionName, url, response) {
+        const head = `FunctionImport ${actionName} answered HTTP 414 (URI Too Long): SAP_RFC_BACKEND=odata sends every function-import parameter in the request URL, and this URL was ${url.length} characters long.`;
+        const backends = "soap (ICF /sap/bc/soap/rfc), native (SAP NW RFC SDK), gateway (SAP_RFC_GATEWAY_URL) or zrfc (SAP_RFC_ZRFC_BASE_URL)";
+        const guidance = actionName === "Textpool" ? ` A text pool write puts the whole pool JSON (IV_TEXTPOOL_JSON) into that URL \u2014 a few dozen non-ASCII entries are enough \u2014 and every write rewrites the whole pool, so splitting it into smaller calls does not help. Write the texts through the abapGit ZIP instead (program XML: TPOOL, I18N_TPOOL for other languages), or switch SAP_RFC_BACKEND to a backend that sends the pool in the request body: ${backends}.` : ` The parameters are too large for this backend; use one that sends them in the request body: ${backends}.`;
+        return new errors_1.RfcError({
+          kind: (0, errors_1.rfcKindFromStatus)(response.status),
+          backend: BACKEND,
+          status: response.status,
+          method: "POST",
+          url,
+          rawBody: (0, errors_1.truncateBody)(response.body),
+          message: head + guidance
+        });
+      }
       /** 캐시된 토큰이 살아 있으면 그대로, 아니면 새로 긁어온다. */
       async ensureSession() {
         const cached = this.session;
@@ -42216,6 +42241,8 @@ var require_odata = __commonJS({
           this.session = null;
           return this.postFunctionImport(actionName, params, true);
         }
+        if (response.status === 414)
+          throw this.uriTooLongFailure(actionName, url, response);
         if (!isSuccess(response.status)) {
           throw this.httpFailure("POST", url, response, `FunctionImport ${actionName}`);
         }
@@ -43725,8 +43752,9 @@ var require_checkSyntax = __commonJS({
     }
     exports2.checkSyntax = (0, toolDefinition_1.defineTool)({
       name: "CheckSyntax",
-      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D149.
-      description: `[read-only] Run a standalone ABAP syntax check WITHOUT writing anything to SAP. Supports 'class', 'program', 'interface', 'include', and 'function_module'. If source_code is provided (class/program/interface only), the proposed source is compiled in place and checked without touching the server. If source_code is omitted, checks whatever is currently staged as the inactive version on the server (mirroring the post-write check Update* handlers run). Syntax errors are returned as normal results, not as tool errors \u2014 only connection/infra failures are reported as errors. For 'include', pass main_program (the program that INCLUDEs it) to compile the include inside that program's tree \u2014 main plus all includes, inactive version; without it SAP may return no verdict at all, which is reported as success: null with verdict: "indeterminate" (not as a failure). Every response carries verdict: "clean" | "errors" | "indeterminate".`,
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D149 · D-152(대형 소스 절단 ·
+      // 같은 세션의 include 미발견 — 실사용 L-010 · R-016).
+      description: `[read-only] Run a standalone ABAP syntax check WITHOUT writing anything to SAP. Supports 'class', 'program', 'interface', 'include', and 'function_module'. If source_code is provided (class/program/interface only), the proposed source is compiled in place and checked without touching the server. If source_code is omitted, checks whatever is currently staged as the inactive version on the server (mirroring the post-write check Update* handlers run). Syntax errors are returned as normal results, not as tool errors \u2014 only connection/infra failures are reported as errors. For 'include', pass main_program (the program that INCLUDEs it) to compile the include inside that program's tree \u2014 main plus all includes, inactive version; without it SAP may return no verdict at all, which is reported as success: null with verdict: "indeterminate" (not as a failure). Every response carries verdict: "clean" | "errors" | "indeterminate". source_code is copied into the tool call, so a very large source (around 100 KB and up) can arrive truncated and the error then points at the cut-off line rather than at a real problem: check only the changed statements in a small program, and after writing, check the stored version without source_code. An 'INCLUDE report ... not found' error right after writing that include in the same session is not trustworthy: run ReloadProfile and check again (it has come back clean in a fresh session; cause unknown).`,
       inputSchema: {
         object_type: z.enum(["class", "program", "interface", "include", "function_module"]).describe("[read-only] ABAP object kind to check: 'class' (CLAS), 'program' (PROG), 'interface' (INTF), 'include' (PROG/I), or 'function_module' (FUGR/FF)."),
         object_name: z.string().describe("[read-only] Name of the object to check (e.g., ZCL_MY_CLASS)."),
@@ -49278,6 +49306,8 @@ var require_getObjectStructure = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getObjectStructure = void 0;
     exports2.buildNestedTree = buildNestedTree;
+    exports2.rootsIncludeRequested = rootsIncludeRequested;
+    exports2.rootMismatchWarning = rootMismatchWarning;
     exports2.serializeTree = serializeTree;
     var fast_xml_parser_1 = require_fxp();
     var z = __importStar(require_zod());
@@ -49306,6 +49336,17 @@ var require_getObjectStructure = __commonJS({
       }
       return roots;
     }
+    function mainType(type) {
+      return type.split("/")[0]?.trim().toUpperCase() ?? "";
+    }
+    function rootsIncludeRequested(roots, objectType, objectName) {
+      const name = objectName.trim().toUpperCase();
+      const type = mainType(objectType);
+      return roots.some((root) => root.objectname.trim().toUpperCase() === name && mainType(root.objecttype) === type);
+    }
+    function rootMismatchWarning(objectType, objectName) {
+      return `WARNING: no top-level node is the requested object ${objectType} ${objectName} \u2014 the structure service probably does not support this object type and returned an unrelated tree. Do not read this tree as the structure of ${objectName}.`;
+    }
     function serializeTree(tree, indent = "") {
       let result = "";
       for (const node of tree) {
@@ -49319,7 +49360,8 @@ var require_getObjectStructure = __commonJS({
     }
     exports2.getObjectStructure = (0, toolDefinition_1.defineTool)({
       name: "GetObjectStructure",
-      description: "[read-only] Retrieve ADT object structure as a compact JSON tree.",
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D159.
+      description: '[read-only] Retrieve ADT object structure as a compact JSON tree. If no top-level node of the returned tree is the requested object, the text starts with a line beginning "WARNING:" \u2014 the structure service probably does not support that object type and answered with an unrelated tree, which must not be read as the structure of the requested object.',
       inputSchema: {
         objecttype: z.string().describe("ADT object type (e.g. DDLS/DF)"),
         objectname: z.string().describe("ADT object name (e.g. /CBY/ACQ_DDL)")
@@ -49352,7 +49394,9 @@ var require_getObjectStructure = __commonJS({
         }
         const nodes = Array.isArray(raw) ? raw : [raw];
         const tree = buildNestedTree(nodes);
-        return (0, results_1.ok)(`tree:
+        const warning = rootsIncludeRequested(tree, objectType, objectName) ? "" : `${rootMismatchWarning(objectType, objectName)}
+`;
+        return (0, results_1.ok)(`${warning}tree:
 ${serializeTree(tree)}`);
       } catch (error) {
         context.logger.error(`Failed to fetch object structure for ${args.objecttype}/${args.objectname}`);
@@ -54249,7 +54293,7 @@ var require_getTableContents = __commonJS({
     var DDIC_PREVIEW_PATH = "/sap/bc/adt/datapreview/ddic";
     var DATA_PREVIEW_ACCEPT = "application/xml, application/vnd.sap.adt.datapreview.table.v1+xml";
     var DDIC_PREVIEW_CONTENT_TYPE = "text/plain";
-    var DESCRIPTION = "[read-only] Retrieve contents (data preview) of an ABAP database table or CDS view. Returns rows of data like SE16/SE16N.";
+    var DESCRIPTION = "[read-only] Retrieve contents (data preview) of an ABAP database table or CDS view. Returns rows of data like SE16/SE16N. There is no filter argument: it always reads every column of the first max_rows rows (default 100) in whatever order the database returns them. For a WHERE clause, selected columns or ordering, use GetSqlQuery.";
     var ACKNOWLEDGE_RISK_DESCRIPTION = "Set to true ONLY after the user has explicitly authorized row extraction from an 'ask'-tier protected table. The approval is logged to stderr for audit. Has no effect on 'deny'-tier tables.";
     var COLUMN_NAME = /dataPreview:name="([^"]+)"/g;
     function readColumnNames(xml) {
@@ -57193,7 +57237,9 @@ var require_createBehaviorDefinition = __commonJS({
     }
     exports2.createBehaviorDefinition = (0, toolDefinition_1.defineTool)({
       name: "CreateBehaviorDefinition",
-      description: "Create a new ABAP Behavior Definition (BDEF) in SAP system. Defines RAP business object behavior: CRUD operations, validations, determinations, actions, and draft handling.",
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D-152. 넘긴 소스가 조용히
+      // 버려지고 템플릿이 `created and activated`로 돌아왔다(피드백 2026-09-18).
+      description: "Create a new ABAP Behavior Definition (BDEF) in SAP system. Defines RAP business object behavior: CRUD operations, validations, determinations, actions, and draft handling. This creates the template SAP generates from name and implementation_type, not your behavior: root_entity is required but not sent (the template's 'define behavior for' uses the definition name \u2014 name it after the root entity), no alias, mapping, field control, actions or draft are added, and no source can be passed here. Write the real behavior with UpdateBehaviorDefinition(source_code) and read it back (ReadBehaviorDefinition) before treating it as done. On one system activating the template succeeded even though the implementation class it names did not exist yet, so a successful activation does not mean the behavior is complete.",
       inputSchema: {
         name: z.string().describe("Behavior Definition name (usually same as Root Entity name)"),
         description: z.string().describe("Description").optional(),
@@ -58475,6 +58521,7 @@ var require_validateServiceBinding = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.validateServiceBinding = void 0;
     var z = __importStar(require_zod());
+    var adt_1 = require_adt();
     var toolDefinition_1 = require_toolDefinition();
     var results_1 = require_results();
     var serviceBindingRead_1 = require_serviceBindingRead();
@@ -58492,8 +58539,9 @@ var require_validateServiceBinding = __commonJS({
       // 구 경로는 `handlers/service_binding/high/`이고, 채록본 `exposures`에서
       // connected_default·noProfile_default 둘에만 뜬다.
       sets: ["high"],
-      // 머리주석의 「`kind: 'read'`의 근거」 참조 — 접두어 규칙·명시 목록·GET 와이어·
-      // 교차검사 넷이 같은 곳을 가리킨다.
+      // 머리주석의 「`kind: 'read'`의 근거」 참조 — 접두어 규칙·명시 목록·본문 없는 검증
+      // 질의·교차검사 넷이 같은 곳을 가리킨다. 405 갈래의 POST(D158)도 같은 검증 질의라
+      // 상태를 바꾸지 않는다 — 그래서 `read`를 유지한다.
       kind: "read",
       targetNames: ["service_binding_name"]
     }, async (context, args) => {
@@ -58506,20 +58554,29 @@ var require_validateServiceBinding = __commonJS({
         }
         const name = args.service_binding_name.trim().toUpperCase();
         const client = await context.getConnection();
-        const response = await client.request({
-          method: "GET",
+        const params = {
+          objname: name,
+          serviceDefinition: args.service_definition_name.trim().toUpperCase(),
+          serviceBindingVersion: args.service_binding_version?.trim() || void 0,
+          description: args.description?.trim() || void 0,
+          package: args.package_name?.trim().toUpperCase() || void 0
+        };
+        const validate = (method) => client.request({
+          method,
           path: `${serviceBindingRead_1.BINDINGS_ROOT}/validation`,
-          // 이름이 발행 인자와 다르다 — 머리주석 참조. 순서도 구가 담는 순서다.
-          params: {
-            objname: name,
-            serviceDefinition: args.service_definition_name.trim().toUpperCase(),
-            serviceBindingVersion: args.service_binding_version?.trim() || void 0,
-            description: args.description?.trim() || void 0,
-            package: args.package_name?.trim().toUpperCase() || void 0
-          },
+          params,
           accept: serviceBindingRead_1.ACCEPT_SERVICE_BINDING_V2,
           timeout: "default"
         });
+        let response;
+        try {
+          response = await validate("GET");
+        } catch (error) {
+          if (!(error instanceof adt_1.AdtError && error.status === 405))
+            throw error;
+          context.logger.info(`Validation GET answered 405 for ${name} - retrying once with POST`);
+          response = await validate("POST");
+        }
         return (0, results_1.ok)(JSON.stringify({
           success: true,
           service_binding_name: name,
@@ -58545,6 +58602,7 @@ var require_serviceBinding = __commonJS({
     exports2.bindingObjectReferences = bindingObjectReferences;
     exports2.parseServiceBindingState = parseServiceBindingState;
     exports2.publicationJob = publicationJob;
+    exports2.publicationJobErrors = publicationJobErrors;
     exports2.extractAvailableBindingTypes = extractAvailableBindingTypes;
     exports2.bindingTypeAvailabilityKey = bindingTypeAvailabilityKey;
     exports2.buildTransportCheckXml = buildTransportCheckXml;
@@ -58623,6 +58681,38 @@ var require_serviceBinding = __commonJS({
         accept: exports2.ACCEPT_VALIDATION,
         timeout: "long"
       });
+    }
+    var jobMessageParser = new fast_xml_parser_1.XMLParser({
+      ignoreAttributes: true,
+      parseTagValue: false,
+      trimValues: true
+    });
+    function publicationJobErrors(body) {
+      if (!body)
+        return [];
+      let parsed;
+      try {
+        parsed = jobMessageParser.parse(body);
+      } catch {
+        return [];
+      }
+      const texts = [];
+      const visit = (node) => {
+        if (Array.isArray(node)) {
+          node.forEach(visit);
+          return;
+        }
+        if (node === null || typeof node !== "object")
+          return;
+        const record = node;
+        if (String(record["SEVERITY"] ?? "").trim().toUpperCase() === "ERROR") {
+          const text = stringOrUndefined(record["LONG_TEXT"]) ?? stringOrUndefined(record["SHORT_TEXT"]);
+          texts.push(text ?? "(no message text)");
+        }
+        Object.values(record).forEach(visit);
+      };
+      visit(parsed);
+      return texts;
     }
     function extractAvailableBindingTypes(body) {
       const available = /* @__PURE__ */ new Set();
@@ -58982,8 +59072,8 @@ var require_updateServiceBinding = __commonJS({
     var serviceBinding_1 = require_serviceBinding();
     exports2.updateServiceBinding = (0, toolDefinition_1.defineTool)({
       name: "UpdateServiceBinding",
-      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D148.
-      description: "Update publication state for ABAP service binding via AdtServiceBinding workflow. When the binding XML carries no srvb:allowedAction attribute (some systems never send it), the publish/unpublish request is sent anyway and the server's verdict is returned as-is (allowed_action_known: false in the response); only an attribute that is present and contradicts the request is refused locally.",
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D148 · D157.
+      description: "Update publication state for ABAP service binding via AdtServiceBinding workflow. When the binding XML carries no srvb:allowedAction attribute (some systems never send it), the publish/unpublish request is sent anyway and the server's verdict is returned as-is (allowed_action_known: false in the response); only an attribute that is present and contradicts the request is refused locally. The publish/unpublish job answers HTTP 200 even when it refuses: a job message with SEVERITY ERROR (e.g. 'Publishing of SRVB ... in Customizing Client not allowed') is returned as a tool error carrying that text and the job payload; warnings stay a success. Confirm the state with GetServiceBinding (srvb:published).",
       inputSchema: {
         service_binding_name: z.string().describe("Service binding name to update."),
         desired_publication_state: z.enum(["published", "unpublished", "unchanged"]).describe("Target publication state."),
@@ -59026,18 +59116,29 @@ var require_updateServiceBinding = __commonJS({
         logger.info(`ServiceBinding update: ${name} -> ${desired} (published=${current.published}, allowedAction=${current.allowedAction ?? "UNKNOWN"})`);
         const allowedActionKnown = current.allowedAction !== void 0;
         let response = readResponse;
+        let jobAction;
         if (desired === "published") {
           if (!current.published) {
             if (allowedActionKnown && current.allowedAction !== "PUBLISH") {
               throw new Error(`Invalid state transition: cannot publish service binding ${name}. allowedAction=${current.allowedAction}`);
             }
+            jobAction = "publish";
             response = await (0, serviceBinding_1.publicationJob)(client, "publish", serviceType, name, serviceName, serviceVersion);
           }
         } else if (desired === "unpublished") {
           if (allowedActionKnown && current.allowedAction !== "UNPUBLISH") {
             throw new Error(`Invalid state transition: cannot unpublish service binding ${name}. allowedAction=${current.allowedAction}`);
           }
+          jobAction = "unpublish";
           response = await (0, serviceBinding_1.publicationJob)(client, "unpublish", serviceType, name, serviceName, serviceVersion);
+        }
+        const payload = (0, serviceBindingRead_1.parseServiceBindingPayload)(response.body, responseFormat);
+        if (jobAction !== void 0) {
+          const jobErrors = (0, serviceBinding_1.publicationJobErrors)(response.body);
+          if (jobErrors.length > 0) {
+            logger.error(`Service binding ${jobAction} job reported errors: ${jobErrors.join(" | ")}`);
+            return (0, shared_1.errorResult)(`Error: The ${jobAction} job for service binding ${name} reported SEVERITY ERROR: ${jobErrors.join(" | ")}. Do not assume the binding is ${desired}: read it back with GetServiceBinding (srvb:published). Payload: ${JSON.stringify(payload)}`);
+          }
         }
         return (0, shared_1.okResult)({
           success: true,
@@ -59052,7 +59153,7 @@ var require_updateServiceBinding = __commonJS({
           allowed_action: current.allowedAction ?? null,
           response_format: responseFormat,
           status: response.status,
-          payload: (0, serviceBindingRead_1.parseServiceBindingPayload)(response.body, responseFormat)
+          payload
         });
       } catch (error) {
         const message = (0, serviceBinding_1.returnErrorText)(error);
@@ -61981,10 +62082,11 @@ var require_textPool = __commonJS({
   "dist/src/tools/write/internal/textPool.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.MAX_ENTRY_LEN = void 0;
+    exports2.TEXT_POOL_WRITE_AMENDMENT = exports2.MAX_ENTRY_LEN = void 0;
     exports2.normalizeTpoolRows = normalizeTpoolRows;
     exports2.keyMatches = keyMatches;
     exports2.MAX_ENTRY_LEN = 132;
+    exports2.TEXT_POOL_WRITE_AMENDMENT = " With the default OData RFC backend the whole text pool is sent in the request URL, so a pool with a few dozen non-ASCII (e.g. Korean) entries fails with HTTP 414 (URI too long); every write rewrites the whole pool, so splitting it into smaller calls does not help \u2014 write large pools through the abapGit ZIP (program XML: TPOOL, I18N_TPOOL) or a body-carrying RFC backend (soap, native, gateway, zrfc). Selection texts (S) are stored exactly as sent: the first 8 characters of the text are SAP's reserved area (8 spaces for a plain label, or 'D' plus 7 spaces to take the text from the dictionary) and the label starts at position 9 \u2014 nothing is added for you, and the 132-character limit includes those 8 (in abapGit XML the area is the separate SPLIT field instead).";
     function normalizeTpoolRows(fetched) {
       const rows = Array.isArray(fetched) ? fetched : [];
       return rows.map((raw) => {
@@ -62054,7 +62156,8 @@ var require_createTextElement = __commonJS({
     var textPool_1 = require_textPool();
     exports2.createTextElement = (0, toolDefinition_1.defineTool)({
       name: "CreateTextElement",
-      description: "Add a text element (text symbol, selection text, program title, or list heading) to an ABAP program. Optionally activates after write.",
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D-152(414 · 선택 텍스트 8자).
+      description: "Add a text element (text symbol, selection text, program title, or list heading) to an ABAP program. Optionally activates after write." + textPool_1.TEXT_POOL_WRITE_AMENDMENT,
       inputSchema: {
         program_name: z.string().describe("Parent program name (e.g., Z_MY_PROGRAM)."),
         text_type: z.enum(["I", "S", "R", "H"]).describe('"I"=text symbol (TEXT-xxx), "S"=selection text, "R"=program title, "H"=list heading.'),
@@ -62182,7 +62285,8 @@ var require_updateTextElement = __commonJS({
     var textPool_1 = require_textPool();
     exports2.updateTextElement = (0, toolDefinition_1.defineTool)({
       name: "UpdateTextElement",
-      description: "Update an existing text element in an ABAP program text pool. Handles lock/unlock automatically.",
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D-152(414 · 선택 텍스트 8자).
+      description: "Update an existing text element in an ABAP program text pool. Handles lock/unlock automatically." + textPool_1.TEXT_POOL_WRITE_AMENDMENT,
       inputSchema: {
         program_name: z.string().describe("Parent program name."),
         text_type: z.enum(["I", "S", "R", "H"]).describe('"I"|"S"|"R"|"H" \u2014 see GetTextElement.'),
@@ -62347,7 +62451,8 @@ var require_writeTextElementsBulk = __commonJS({
     }
     exports2.writeTextElementsBulk = (0, toolDefinition_1.defineTool)({
       name: "WriteTextElementsBulk",
-      description: `Register many ABAP text elements (R/I/S/H) in ONE tool call via a single TPOOL RFC write. Use instead of calling CreateTextElement N times. With activate=false (default) the pool is staged INACTIVE \u2014 the parent program's next activation promotes every entry atomically, which is the correct flow for "register 40 now, activate program later". With activate=true the pool is written ACTIVE immediately. Set replace_existing=false to merge into the current pool instead of replacing it.`,
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D-152(414 · 선택 텍스트 8자).
+      description: `Register many ABAP text elements (R/I/S/H) in ONE tool call via a single TPOOL RFC write. Use instead of calling CreateTextElement N times. With activate=false (default) the pool is staged INACTIVE \u2014 the parent program's next activation promotes every entry atomically, which is the correct flow for "register 40 now, activate program later". With activate=true the pool is written ACTIVE immediately. Set replace_existing=false to merge into the current pool instead of replacing it.` + textPool_1.TEXT_POOL_WRITE_AMENDMENT,
       inputSchema: {
         program_name: z.string().describe("Parent program name."),
         language: z.string().describe('1-char language key (e.g. "K" for Korean). Defaults to SAP logon language.').optional(),
@@ -63948,7 +64053,10 @@ var require_serviceDefinition = __commonJS({
     exports2.serviceDefinitionReportedUri = serviceDefinitionReportedUri;
     exports2.checkStagedServiceDefinition = checkStagedServiceDefinition;
     exports2.serviceDefinitionActivationVerdict = serviceDefinitionActivationVerdict;
+    exports2.writeAndCheckServiceDefinitionSource = writeAndCheckServiceDefinitionSource;
+    exports2.activateServiceDefinition = activateServiceDefinition;
     var fast_xml_parser_1 = require_fxp();
+    var dataElementDomainCreate_1 = require_dataElementDomainCreate();
     var shared_1 = require_shared();
     exports2.SRVD_ROOT = "/sap/bc/adt/ddic/srvd/sources";
     exports2.CT_SERVICE_DEFINITION = "application/vnd.sap.adt.ddic.srvd.v1+xml";
@@ -63996,6 +64104,41 @@ var require_serviceDefinition = __commonJS({
         message: activated ? "Service definition activated successfully" : "Activation failed"
       };
     }
+    async function writeAndCheckServiceDefinitionSource(client, uri, name, sourceCode, transportRequest, logger) {
+      await client.withLock(uri, async (lock) => {
+        await (0, shared_1.putSource)(client, uri, lock.handle, sourceCode, transportRequest);
+        logger.debug(`Service definition source uploaded: ${name}`);
+        let check;
+        try {
+          check = await checkStagedServiceDefinition(client, uri);
+        } catch (error) {
+          if (!(0, dataElementDomainCreate_1.isAlreadyCheckedMessage)((0, dataElementDomainCreate_1.messageOf)(error)))
+            throw error;
+          logger.debug(`${name} was already checked - continuing`);
+          check = void 0;
+        }
+        if (check)
+          (0, shared_1.assertNoCheckErrors)(check, "Service Definition", name);
+      });
+    }
+    async function activateServiceDefinition(client, uri, name) {
+      const activation = await client.request({
+        method: "POST",
+        path: "/sap/bc/adt/activation",
+        params: { method: "activate", preauditRequested: "true" },
+        body: `<?xml version="1.0" encoding="UTF-8"?>
+<adtcore:objectReferences xmlns:adtcore="http://www.sap.com/adt/core">
+  <adtcore:objectReference adtcore:uri="${uri}" adtcore:name="${name}"/>
+</adtcore:objectReferences>`,
+        contentType: "application/xml",
+        accept: "application/xml"
+      });
+      const verdict = serviceDefinitionActivationVerdict(activation.body);
+      if (!verdict.ok) {
+        throw new Error(`Service definition activation failed: ${verdict.message}`);
+      }
+      return (0, shared_1.parseActivationMessages)(activation.body).map((entry) => `${entry.type}: ${entry.text || "Unknown"}`);
+    }
   }
 });
 
@@ -64042,6 +64185,7 @@ var require_createServiceDefinition = __commonJS({
     })();
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.createServiceDefinition = void 0;
+    exports2.shellLeftNote = shellLeftNote;
     exports2.buildServiceDefinitionPayload = buildServiceDefinitionPayload;
     var z = __importStar(require_zod());
     var adt_1 = require_adt();
@@ -64049,6 +64193,9 @@ var require_createServiceDefinition = __commonJS({
     var dataElementDomainCreate_1 = require_dataElementDomainCreate();
     var shared_1 = require_shared();
     var serviceDefinition_1 = require_serviceDefinition();
+    function shellLeftNote(name) {
+      return ` The service definition ${name} was already created on SAP (inactive) before this step failed and is still there \u2014 do not call CreateServiceDefinition again (it will answer "already exists"); continue with UpdateServiceDefinition(service_definition_name: "${name}", source_code: ...).`;
+    }
     function looksAlreadyExists(error) {
       if ((0, dataElementDomainCreate_1.messageOf)(error).includes("already exists"))
         return true;
@@ -64062,7 +64209,8 @@ var require_createServiceDefinition = __commonJS({
     }
     exports2.createServiceDefinition = (0, toolDefinition_1.defineTool)({
       name: "CreateServiceDefinition",
-      description: "Create a new ABAP service definition for OData services. Service definitions define the structure and behavior of OData services. Uses stateful session for proper lock management.",
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D156.
+      description: "Create a new ABAP service definition for OData services. Service definitions define the structure and behavior of OData services. Uses stateful session for proper lock management. With source_code the definition is created, the source is written into it (lock, PUT, unlock), then checked and activated (activate defaults to true). Without source_code only an empty inactive shell is created and neither checked nor activated (an empty service definition cannot pass the syntax check; the response says activated: false) \u2014 write its source with UpdateServiceDefinition. If a step after creation fails, the object already exists: continue with UpdateServiceDefinition instead of creating it again.",
       inputSchema: {
         service_definition_name: z.string().describe("Service definition name (e.g., ZSD_MY_SERVICE). Must follow SAP naming conventions (start with Z or Y)."),
         description: z.string().describe("Service definition description. If not provided, service_definition_name will be used.").optional(),
@@ -64089,6 +64237,9 @@ var require_createServiceDefinition = __commonJS({
       const shouldActivate = args.activate !== false;
       const rawDescription = args.description || name;
       const uri = (0, serviceDefinition_1.serviceDefinitionWriteUri)(name);
+      const sourceCode = args.source_code;
+      const hasSource = typeof sourceCode === "string" && sourceCode.length > 0;
+      let shellCreated = false;
       logger.info(`Starting service definition creation: ${name}`);
       try {
         const client = await context.getConnection();
@@ -64115,36 +64266,27 @@ var require_createServiceDefinition = __commonJS({
           contentType: serviceDefinition_1.CT_SERVICE_DEFINITION,
           accept: serviceDefinition_1.CT_SERVICE_DEFINITION
         });
+        shellCreated = true;
         logger.debug(`Service definition created: ${name}`);
-        let check;
-        try {
-          check = await (0, serviceDefinition_1.checkStagedServiceDefinition)(client, uri);
-        } catch (error) {
-          if (!(0, dataElementDomainCreate_1.isAlreadyCheckedMessage)((0, dataElementDomainCreate_1.messageOf)(error)))
-            throw error;
-          logger.debug(`${name} was already checked - continuing`);
-          check = void 0;
+        const reportedUri = (0, serviceDefinition_1.serviceDefinitionReportedUri)(name);
+        if (!hasSource) {
+          logger.info(`CreateServiceDefinition created an empty shell: ${name}`);
+          return (0, shared_1.okResult)({
+            success: true,
+            service_definition_name: name,
+            package_name: packageName,
+            transport_request: args.transport_request || null,
+            type: "SRVD/SRV",
+            activated: false,
+            message: `Service Definition ${name} created as an empty inactive shell \u2014 not checked and not activated: an empty service definition cannot pass the syntax check. Write its source with UpdateServiceDefinition (it checks and activates).`,
+            uri: reportedUri,
+            steps_completed: ["validate", "create"]
+          });
         }
-        if (check)
-          (0, shared_1.assertNoCheckErrors)(check, "Service Definition", name);
+        await (0, serviceDefinition_1.writeAndCheckServiceDefinitionSource)(client, uri, name, sourceCode, args.transport_request, logger);
         let activationWarnings = [];
         if (shouldActivate) {
-          const activation = await client.request({
-            method: "POST",
-            path: "/sap/bc/adt/activation",
-            params: { method: "activate", preauditRequested: "true" },
-            body: `<?xml version="1.0" encoding="UTF-8"?>
-<adtcore:objectReferences xmlns:adtcore="http://www.sap.com/adt/core">
-  <adtcore:objectReference adtcore:uri="${uri}" adtcore:name="${name}"/>
-</adtcore:objectReferences>`,
-            contentType: "application/xml",
-            accept: "application/xml"
-          });
-          const verdict = (0, serviceDefinition_1.serviceDefinitionActivationVerdict)(activation.body);
-          if (!verdict.ok) {
-            throw new Error(`Service definition activation failed: ${verdict.message}`);
-          }
-          activationWarnings = (0, shared_1.parseActivationMessages)(activation.body).map((entry) => `${entry.type}: ${entry.text || "Unknown"}`);
+          activationWarnings = await (0, serviceDefinition_1.activateServiceDefinition)(client, uri, name);
           logger.info(`CreateServiceDefinition completed successfully: ${name}`);
         }
         return (0, shared_1.okResult)({
@@ -64153,22 +64295,31 @@ var require_createServiceDefinition = __commonJS({
           package_name: packageName,
           transport_request: args.transport_request || null,
           type: "SRVD/SRV",
+          activated: shouldActivate,
           message: shouldActivate ? `Service Definition ${name} created and activated successfully` : `Service Definition ${name} created successfully (not activated)`,
-          // 나가는 주소는 소문자인데 **여기만 대문자**다 — 구 그대로다.
-          uri: (0, serviceDefinition_1.serviceDefinitionReportedUri)(name),
-          steps_completed: ["validate", "create", ...shouldActivate ? ["activate"] : []],
+          uri: reportedUri,
+          steps_completed: [
+            "validate",
+            "create",
+            "lock",
+            "update",
+            "check",
+            "unlock",
+            ...shouldActivate ? ["activate"] : []
+          ],
           activation_warnings: activationWarnings.length > 0 ? activationWarnings : void 0
         });
       } catch (error) {
+        const note = shellCreated ? shellLeftNote(name) : "";
         if (error instanceof shared_1.SourceCheckFailure) {
           logger.error(`Error creating service definition ${name}: ${error.message}`);
-          return (0, shared_1.errorResult)(`Error: ${error.message}`);
+          return (0, shared_1.errorResult)(`Error: ${error.message}${note}`);
         }
         logger.error(`Error creating service definition ${name}: ${(0, dataElementDomainCreate_1.messageOf)(error)}`);
-        if (looksAlreadyExists(error)) {
+        if (!shellCreated && looksAlreadyExists(error)) {
           return (0, shared_1.errorResult)(`Error: Service Definition ${name} already exists. Please delete it first or use a different name.`);
         }
-        return (0, shared_1.errorResult)(`Error: Failed to create service definition: ${(0, dataElementDomainCreate_1.createFailureDetail)(error)}`);
+        return (0, shared_1.errorResult)(`Error: Failed to create service definition: ${(0, dataElementDomainCreate_1.createFailureDetail)(error)}${note}`);
       }
     });
   }
@@ -64249,40 +64400,11 @@ var require_updateServiceDefinition = __commonJS({
       logger.info(`Starting service definition source update: ${name}`);
       try {
         const client = await context.getConnection();
-        await client.withLock(uri, async (lock) => {
-          await (0, shared_1.putSource)(client, uri, lock.handle, sourceCode, args.transport_request);
-          logger.debug(`Service definition source uploaded: ${name}`);
-          let check;
-          try {
-            check = await (0, serviceDefinition_1.checkStagedServiceDefinition)(client, uri);
-          } catch (error) {
-            if (!(0, dataElementDomainCreate_1.isAlreadyCheckedMessage)((0, dataElementDomainCreate_1.messageOf)(error)))
-              throw error;
-            logger.debug(`${name} was already checked - continuing`);
-            check = void 0;
-          }
-          if (check)
-            (0, shared_1.assertNoCheckErrors)(check, "Service Definition", name);
-        });
+        await (0, serviceDefinition_1.writeAndCheckServiceDefinitionSource)(client, uri, name, sourceCode, args.transport_request, logger);
         logger.info(`Service definition updated: ${name}`);
         let activationWarnings = [];
         if (shouldActivate) {
-          const activation = await client.request({
-            method: "POST",
-            path: "/sap/bc/adt/activation",
-            params: { method: "activate", preauditRequested: "true" },
-            body: `<?xml version="1.0" encoding="UTF-8"?>
-<adtcore:objectReferences xmlns:adtcore="http://www.sap.com/adt/core">
-  <adtcore:objectReference adtcore:uri="${uri}" adtcore:name="${name}"/>
-</adtcore:objectReferences>`,
-            contentType: "application/xml",
-            accept: "application/xml"
-          });
-          const verdict = (0, serviceDefinition_1.serviceDefinitionActivationVerdict)(activation.body);
-          if (!verdict.ok) {
-            throw new Error(`Service definition activation failed: ${verdict.message}`);
-          }
-          activationWarnings = (0, shared_1.parseActivationMessages)(activation.body).map((entry) => `${entry.type}: ${entry.text || "Unknown"}`);
+          activationWarnings = await (0, serviceDefinition_1.activateServiceDefinition)(client, uri, name);
           logger.info(`Service definition activated: ${name}`);
         }
         return (0, shared_1.okResult)({
@@ -72905,6 +73027,50 @@ var require_session = __commonJS({
   }
 });
 
+// dist/src/server/unknownArguments.js
+var require_unknownArguments = __commonJS({
+  "dist/src/server/unknownArguments.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.UNKNOWN_ARGUMENT_REJECTION = void 0;
+    exports2.unknownArgumentNames = unknownArgumentNames;
+    exports2.unknownArgumentMessage = unknownArgumentMessage;
+    exports2.installUnknownArgumentGuard = installUnknownArgumentGuard;
+    var types_js_1 = require_types();
+    exports2.UNKNOWN_ARGUMENT_REJECTION = "Unknown arguments are rejected, not ignored";
+    function unknownArgumentNames(accepted, args) {
+      if (args === null || typeof args !== "object" || Array.isArray(args))
+        return [];
+      const known = new Set(accepted);
+      return Object.keys(args).filter((key) => !known.has(key));
+    }
+    function unknownArgumentMessage(toolName, unknown, accepted) {
+      const quoted = unknown.map((name) => `'${name}'`).join(", ");
+      const which = unknown.length === 1 ? `unknown argument ${quoted}` : `unknown arguments ${quoted}`;
+      const takes = accepted.length === 0 ? `${toolName} takes no arguments` : `${toolName} accepts only: ${accepted.join(", ")}`;
+      return `Input validation error: Invalid arguments for tool ${toolName}: ${which}. ${takes}. ${exports2.UNKNOWN_ARGUMENT_REJECTION} \u2014 the call was not executed and nothing was sent to SAP. Retry without ${unknown.length === 1 ? "it" : "them"}, or use a tool whose schema declares the parameter you need.`;
+    }
+    function installUnknownArgumentGuard(server, acceptedArguments) {
+      const seam = server;
+      const original = seam.validateToolInput;
+      if (typeof original !== "function") {
+        throw new Error("ERR_ARGUMENT_GUARD_SEAM: McpServer.validateToolInput is missing \u2014 the MCP SDK changed. The unknown-argument guard cannot be installed, so the server refuses to start instead of silently dropping unknown tool arguments (see src/server/unknownArguments.ts).");
+      }
+      seam.validateToolInput = async function guardedValidateToolInput(tool, args, toolName) {
+        const accepted = typeof toolName === "string" ? acceptedArguments(toolName) : void 0;
+        if (accepted === void 0) {
+          throw new types_js_1.McpError(types_js_1.ErrorCode.InternalError, `ERR_ARGUMENT_GUARD: cannot resolve the accepted arguments for tool ${String(toolName)} \u2014 the MCP SDK tool-input seam changed. The call is refused rather than letting unknown arguments through; nothing was sent to SAP.`);
+        }
+        const unknown = unknownArgumentNames(accepted, args);
+        if (unknown.length > 0) {
+          throw new types_js_1.McpError(types_js_1.ErrorCode.InvalidParams, unknownArgumentMessage(toolName, unknown, accepted));
+        }
+        return original.call(this, tool, args, toolName);
+      };
+    }
+  }
+});
+
 // dist/src/server/core.js
 var require_core5 = __commonJS({
   "dist/src/server/core.js"(exports2) {
@@ -72959,6 +73125,7 @@ var require_core5 = __commonJS({
     var gates_1 = require_gates();
     var session_1 = require_session();
     var toolDefinition_1 = require_toolDefinition();
+    var unknownArguments_1 = require_unknownArguments();
     exports2.SERVER_NAME = "sapkit-engine";
     function errorCodeFor(code) {
       switch (code) {
@@ -72974,8 +73141,8 @@ var require_core5 = __commonJS({
       }
     }
     function readEngineVersion() {
-      if ("1.4.0") {
-        return "1.4.0";
+      if ("1.5.0") {
+        return "1.5.0";
       }
       let dir = __dirname;
       for (let depth = 0; depth < 6; depth += 1) {
@@ -73046,6 +73213,8 @@ var require_core5 = __commonJS({
         name: options.name ?? exports2.SERVER_NAME,
         version: options.version ?? readEngineVersion()
       });
+      const acceptedArguments = new Map(tools.map((tool) => [tool.definition.name, Object.keys(tool.definition.inputSchema)]));
+      (0, unknownArguments_1.installUnknownArgumentGuard)(server, (name) => acceptedArguments.get(name));
       const candidates = tools.map((tool) => ({
         ...(0, toolDefinition_1.toExposableTool)(tool.definition),
         tool
