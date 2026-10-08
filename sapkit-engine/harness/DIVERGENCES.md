@@ -3682,3 +3682,78 @@ BIL을 손으로 재구성했다. 정답 도구 `GetLocalTypes`는 처음부터 
   사실은 사람이 읽어야 한다.
 
 - **결정 기록**: D-147
+
+## 실사용 교훈 승격 5차 — 생성·바인딩·구조·텍스트풀 (append · 2026-10-08 · D-152 · 분담 B)
+
+근거 원문은 `C:\Users\hjaew\.claude\sapkit-feedback.md`(사용자 피드백 누적 · 최신이 위)의
+2026-09-09(3차)~2026-09-18 항목과, 실사용 프로젝트 `.sapkit/LESSONS.md`의 2026-10-07 항목
+(L-007 텍스트풀 414 · L-010 대형 소스 절단)이다. **이 절의 항목은 하나도 SAP 실기로 확인되지
+않았다** — 전부 오프라인 계약 시험까지이고 「지음 · 증거 대기」다. 같은 시각에 분담 A가
+`src/server/`(모르는 인자 거부 · D155)를 고치고 있으므로 그 디렉터리는 여기서 손대지 않았다.
+이 절의 번호대는 **D156~D163**이다.
+
+### D156 — `CreateServiceDefinition`이 `source_code`를 **써 넣고** 검사한다 · 없으면 빈 껍데기에서 멈춘다 (수리 · 백로그 13-4의 SRVD 갈래)
+
+**분류**: 수리 · **도구**: `CreateServiceDefinition`
+
+**구는 이렇게 한다.** 발행 스키마에 `source_code`가 있고 설명도 그것을 받는다고 말하지만,
+사슬(검증 → 언어 → 껍데기 생성 → 검사 → 활성화)이 그 값을 **한 번도 보내지 않았다** — 구
+벤더 `create.js`가 인자를 읽지 않던 것을 그대로 옮긴 것이다(`createServiceDefinition.ts`
+머리주석 · 이 장부가 지금까지 「차이가 아니다」로 둔 자리). 그래서 검사가 겨누는 것은 언제나
+**방금 만든 빈 비활성 판**이고, S/4 7.57에서는 소스를 줬든 안 줬든
+`preCheck syntax check failed (1 error): [L1] Illegal syntax. Malformed service definition`으로
+실패했다. **오브젝트는 남았다** — 같은 이름으로 다시 부르면 `already exists`로 헛돈다
+(피드백 2026-09-17 · 2026-07-29 · attended 녹화 `fixtures/attended-only/zsapkit63-rap-bdef-bimp-service.json`
+10단계). 피드백의 가설(「아직 없는 오브젝트를 검사한다」)은 절반만 맞다 — 오브젝트는 있고,
+**비어 있다.**
+
+**신은 이렇게 한다.** 껍데기 생성(③) 뒤가 둘로 갈린다.
+
+- ⓐ `source_code`가 있으면 **잠금 → PUT → 쓴 판 검사 → 해제 → (활성화)**. `UpdateServiceDefinition`의
+  몸통을 `internal/serviceDefinition.ts`의 `writeAndCheckServiceDefinitionSource` ·
+  `activateServiceDefinition`으로 떼어 내 두 도구가 **같은 함수**를 쓴다(Update의 요청·응답은
+  바이트 그대로 — 기존 시험이 그대로 통과한다). 응답에 `activated`가 붙고 `steps_completed`가
+  `validate · create · lock · update · check · unlock · (activate)`가 된다.
+- ⓑ 없으면(빈 문자열 포함) **껍데기에서 멈춘다** — 검사·활성화를 보내지 않고(`activate:true`여도)
+  `success:true · activated:false · steps_completed:[validate, create]`에 「빈 정의는 검사를
+  통과할 수 없다 — `UpdateServiceDefinition`으로 소스를 넣으라」를 문구로 싣는다.
+- ⓒ 껍데기 **뒤** 단계(PUT · 검사 · 활성화)가 실패하면 오류 문구 끝에 「오브젝트는 이미 SAP에
+  있다(비활성) — `CreateServiceDefinition`을 다시 부르지 말고 `UpdateServiceDefinition`으로
+  이어 가라」를 붙인다(`shellLeftNote`). 이때 PUT의 409를 「이미 있다(지우라)」로 접지 않는다 —
+  그 판정은 **생성 요청의** 것이고, 방금 만든 오브젝트를 지우라고 시키게 된다.
+- **자동 삭제(롤백)는 하지 않는다.** 쓰기를 하나 더 하는 일이고, 남은 비활성 판에 호출자의 소스가
+  들어 있을 수 있다.
+
+**구와 바이트가 같은 것**: 생성 페이로드(소스 자리가 원래 없다) · 검증·언어 조회 · 검사의 Accept
+없음 · 활성화 판정 · 「이미 있다」 문구(생성 요청의 409/본문일 때).
+
+**대체 기대 시험**: `src/tools/write/__tests__/createServiceDefinition.test.ts` — 「D156 ⓐ·ⓑ·ⓒ」
+표기 시험 8건(소스 없는 세 요청 · `activate:true`여도 멈춤 · 소스 있는 여덟 요청과 PUT 본문·잠금
+손잡이 · 빈 껍데기 응답 전문 · 검사 실패 안내 · 안내 문구 · PUT 409 · 생성 실패에는 안내 없음) +
+기존 시험의 소스 갈래 개작(검사 Accept · `activate:false` · 응답 전문 · 활성화 실패).
+`updateServiceDefinition.test.ts`는 손대지 않고 그대로 통과한다(추출이 동작을 바꾸지 않았다는 증거).
+
+**기계 장부 반영**: 했다(D156). 성공 갈래 — 소스가 있으면 `activated`·`steps_completed`만 갈렸는지,
+없으면 거기에 `message`·`activation_warnings`를 더한 키만 갈렸고 신이 껍데기에서 멈췄다고 말하는지.
+구가 **껍데기 뒤에서** 실패한 갈래(`preCheck syntax check failed` · `Service definition activation failed`)
+— 소스가 없었으면 신은 껍데기에서 멈춘 성공이어야 하고, 있었으면 성공이거나 안내를 실은 실패여야
+한다. 생성 요청 자체의 실패는 등재 밖이다.
+
+**실기에서 확인할 것** — ① 소스를 준 생성이 S/4 7.57에서 한 번에 활성까지 서는지(`UpdateServiceDefinition`
+경로는 피드백 09-17 ⑤에서 이미 섰다 — 같은 요청이다) ② 소스 없는 생성이 남긴 껍데기에 Update가
+그대로 붙는지 ③ attended 녹화 `zsapkit63` 10단계 재생에서 D156이 판정하는지.
+
+**B1b 조사 — 같은 모양은 SRVD 하나뿐이다.** 채록본에서 소스 인자를 싣는 `Create*`는
+`CreateServiceDefinition`·`CreateInclude` 둘이다. `CreateInclude`는 생성 뒤 잠금 → PUT으로 소스를
+**실제로 써 넣고**, 그 쓰기가 실패하면 「Include created, but inline source_code write failed … Use
+UpdateInclude to retry」를 이미 말한다(`createInclude.ts` — D156 ⓒ와 같은 모양 · 문제없음). 함께 본
+나머지 둘은 **모양이 달라 코드를 고치지 않았다(등재만)**:
+
+- `CreateMetadataExtension` — 발행 스키마에 소스 인자가 **아예 없다.** 그런데 사슬이 같은
+  자리(껍데기 생성 → 잠금 → **빈 판 검사** → 해제 → 활성화)를 타므로, 빈 DDLX가 검사를 통과하지
+  못하는 시스템에서는 SRVD와 같은 「실패인데 오브젝트가 남는」 증상이 난다(피드백 2026-07-29 —
+  두 도구를 함께 적었다). 고치는 길은 D156 ⓑ와 같다(검사·활성화를 건너뛰고 `UpdateMetadataExtension`으로
+  넘긴다) — 이 판의 범위(「같은 모양이면 고친다」) 밖이라 **후보로만 둔다.**
+- `CreateBehaviorDefinition` — 소스 인자가 없고(`root_entity`·`implementation_type`만), SAP이 생성하는
+  **템플릿**을 만든다(피드백 2026-09-18 — 호출자가 넘긴 `source`는 채록본에 없는 인자라 조용히
+  버려졌다). 덧말로만 다룬다(이 절 「설명문 이정표」).

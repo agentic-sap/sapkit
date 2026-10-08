@@ -7,7 +7,7 @@
  * 몸통의 대조 원본은 같은 파일 `:81-272`. 와이어 근거는
  * `./internal/serviceDefinition` 머리주석에 파일·줄로 모아 두었다.
  *
- * ## 사슬 — 구가 실제로 보내는 다섯 요청
+ * ## 사슬 — 구가 보내던 다섯 요청 (장부 D156 이전)
  *
  * ```
  * ① POST /sap/bc/adt/ddic/srvd/sources/validation?objtype=srvdsrv&objname=…[&description=…]
@@ -17,17 +17,32 @@
  * ⑤ POST /sap/bc/adt/activation?method=activate&preauditRequested=true
  * ```
  *
- * **잠금이 없다.** 이 사슬은 소스를 올리지 않으므로 PUT도 LOCK도 타지 않는다 —
- * 데이터 엘리먼트·도메인 생성이 읽기-수정-쓰기로 잠금을 잡는 것과 갈리는 자리다.
- *
- * ## `source_code`는 **와이어에 실리지 않는다** (실측)
+ * ## `source_code`는 구에서 **와이어에 실리지 않았다** (실측) — 그래서 고쳤다 (D156)
  *
  * 발행 스키마에 `source_code`가 있고 설명도 "제공하지 않으면 최소 템플릿"이라고
  * 말하지만, 구 핸들러가 그 값을 넘기는 `create()`의 저수준 함수
  * (`@babamba2/…/core/serviceDefinition/create.js:15-44`)는 **`source_code`를 한
- * 번도 읽지 않는다.** 껍데기 XML만 POST하고 끝이다. 소스를 넣는 통로는
- * `UpdateServiceDefinition`뿐이다. 흉내가 아니라 실측이며, 여기서 소스 업로드를
- * 새로 더하면 그것이 구와의 차이가 된다.
+ * 번도 읽지 않았다.** 껍데기 XML만 POST하고 그 **빈 비활성 판**을 ④에서 검사했다 —
+ * 그래서 S/4 7.57에서는 소스를 줬든 안 줬든 언제나
+ * `[L1] Illegal syntax. Malformed service definition`으로 실패했고, **오브젝트는
+ * 남았다**(재호출은 `already exists` · `sapkit-feedback.md` 2026-09-17 · 2026-07-29 ·
+ * attended 녹화 `fixtures/attended-only/zsapkit63-rap-bdef-bimp-service.json` 10단계 ·
+ * 엔진 결함 대장 13-4의 SRVD 갈래).
+ *
+ * 지금(장부 D156)은 ③ 뒤가 둘로 갈린다:
+ *
+ * ```
+ * source_code 있음: ③ → LOCK → PUT source/main → ④ 검사 → UNLOCK → (⑤ 활성화)
+ *                   (`UpdateServiceDefinition`과 같은 함수 — internal/serviceDefinition)
+ * source_code 없음: ③에서 멈춘다 — 빈 정의는 검사를 통과할 수 없으므로 ④·⑤를 보내지
+ *                   않고 `activated: false`와 「`UpdateServiceDefinition`으로 소스를
+ *                   넣으라」를 답한다.
+ * ```
+ *
+ * ③ **뒤**에서 실패하면(PUT·검사·활성화) 오류 문구 끝에 「오브젝트는 이미 생겼다 — 다시
+ * 만들지 말고 `UpdateServiceDefinition`으로 이어 가라」를 싣는다. **자동 삭제(롤백)는 하지
+ * 않는다** — 쓰기를 하나 더 하는 것이고, 남은 비활성 판에는 호출자의 소스가 들어 있을 수
+ * 있다.
  *
  * ## 이름 검증의 **응답 본문은 읽지 않는다** (실측)
  *
@@ -56,27 +71,32 @@ import type { ToolContext } from '../../server/toolDefinition';
 import {
   ACCEPT_VALIDATION,
   createFailureDetail,
-  isAlreadyCheckedMessage,
   messageOf,
   resolveMasterLanguage,
   systemContextOf,
 } from './dataElementDomainCreate';
-import {
-  SourceCheckFailure,
-  assertNoCheckErrors,
-  errorResult,
-  limitDescription,
-  okResult,
-  parseActivationMessages,
-} from './shared';
+import { SourceCheckFailure, errorResult, limitDescription, okResult } from './shared';
 import {
   CT_SERVICE_DEFINITION,
   SRVD_ROOT,
-  checkStagedServiceDefinition,
-  serviceDefinitionActivationVerdict,
+  activateServiceDefinition,
   serviceDefinitionReportedUri,
   serviceDefinitionWriteUri,
+  writeAndCheckServiceDefinitionSource,
 } from './internal/serviceDefinition';
+
+/**
+ * 껍데기를 만든 **뒤** 단계가 실패했을 때 오류 문구 끝에 붙는 안내 (D156).
+ *
+ * 다시 `CreateServiceDefinition`을 부르면 `already exists`로 헛돈다(실측 2026-09-17).
+ */
+export function shellLeftNote(name: string): string {
+  return (
+    ` The service definition ${name} was already created on SAP (inactive) before this step failed` +
+    ` and is still there — do not call CreateServiceDefinition again (it will answer "already exists");` +
+    ` continue with UpdateServiceDefinition(service_definition_name: "${name}", source_code: ...).`
+  );
+}
 
 /**
  * "이미 있다"의 판정 — **이 핸들러가 쓰던 조합 그대로**다
@@ -122,8 +142,10 @@ export function buildServiceDefinitionPayload(args: {
 export const createServiceDefinition = defineTool(
   {
     name: 'CreateServiceDefinition',
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D156.
     description:
-      'Create a new ABAP service definition for OData services. Service definitions define the structure and behavior of OData services. Uses stateful session for proper lock management.',
+      'Create a new ABAP service definition for OData services. Service definitions define the structure and behavior of OData services. Uses stateful session for proper lock management.' +
+      ' With source_code the definition is created, the source is written into it (lock, PUT, unlock), then checked and activated (activate defaults to true). Without source_code only an empty inactive shell is created and neither checked nor activated (an empty service definition cannot pass the syntax check; the response says activated: false) — write its source with UpdateServiceDefinition. If a step after creation fails, the object already exists: continue with UpdateServiceDefinition instead of creating it again.',
     inputSchema: {
       service_definition_name: z
         .string()
@@ -177,6 +199,10 @@ export const createServiceDefinition = defineTool(
     // 검증 왕복에는 **자르지 않은 원문**이 실린다(머리주석 참조).
     const rawDescription = args.description || name;
     const uri = serviceDefinitionWriteUri(name);
+    const sourceCode = args.source_code;
+    const hasSource = typeof sourceCode === 'string' && sourceCode.length > 0;
+    // ③이 끝난 뒤의 실패는 오브젝트를 남긴다 — 오류 문구가 그것을 말해야 한다(D156).
+    let shellCreated = false;
 
     logger.info(`Starting service definition creation: ${name}`);
 
@@ -195,7 +221,7 @@ export const createServiceDefinition = defineTool(
       const masterLanguage = await resolveMasterLanguage(client);
       const { masterSystem, responsible } = systemContextOf(context);
 
-      // ③ 껍데기 생성. `source_code`는 여기에 실리지 않는다(머리주석 참조).
+      // ③ 껍데기 생성. `source_code`는 생성 페이로드에 자리가 없다 — 아래 ④에서 PUT으로 넣는다.
       await client.request({
         method: 'POST',
         path: SRVD_ROOT,
@@ -211,42 +237,47 @@ export const createServiceDefinition = defineTool(
         contentType: CT_SERVICE_DEFINITION,
         accept: CT_SERVICE_DEFINITION,
       });
+      shellCreated = true;
       logger.debug(`Service definition created: ${name}`);
 
-      // ④ 인액티브 판 검사. "이미 검사됨"만 조용한 성공으로 접는다.
-      let check;
-      try {
-        check = await checkStagedServiceDefinition(client, uri);
-      } catch (error) {
-        if (!isAlreadyCheckedMessage(messageOf(error))) throw error;
-        logger.debug(`${name} was already checked - continuing`);
-        check = undefined;
+      // 나가는 주소는 소문자인데 **응답의 uri만 대문자**다 — 구 그대로다.
+      const reportedUri = serviceDefinitionReportedUri(name);
+
+      // D156 ⓑ — 소스가 없으면 껍데기에서 멈춘다. 빈 정의는 검사를 통과할 수 없으므로
+      // (실측 2026-09-17: `[L1] Illegal syntax. Malformed service definition`) 검사·활성화를
+      // 보내지 않고, 무엇이 남았는지와 다음 걸음을 응답이 말한다.
+      if (!hasSource) {
+        logger.info(`CreateServiceDefinition created an empty shell: ${name}`);
+        return okResult({
+          success: true,
+          service_definition_name: name,
+          package_name: packageName,
+          transport_request: args.transport_request || null,
+          type: 'SRVD/SRV',
+          activated: false,
+          message:
+            `Service Definition ${name} created as an empty inactive shell — not checked and not activated: ` +
+            `an empty service definition cannot pass the syntax check. ` +
+            `Write its source with UpdateServiceDefinition (it checks and activates).`,
+          uri: reportedUri,
+          steps_completed: ['validate', 'create'],
+        });
       }
-      if (check) assertNoCheckErrors(check, 'Service Definition', name);
+
+      // D156 ⓐ — ④ 잠금 → PUT → 쓴 판 검사 → 해제 (`UpdateServiceDefinition`과 같은 함수).
+      await writeAndCheckServiceDefinitionSource(
+        client,
+        uri,
+        name,
+        sourceCode,
+        args.transport_request,
+        logger,
+      );
 
       // ⑤ 활성화. 200이어도 속성이 아니라고 하면 실패다.
       let activationWarnings: string[] = [];
       if (shouldActivate) {
-        const activation = await client.request({
-          method: 'POST',
-          path: '/sap/bc/adt/activation',
-          params: { method: 'activate', preauditRequested: 'true' },
-          body:
-            `<?xml version="1.0" encoding="UTF-8"?>\n` +
-            `<adtcore:objectReferences xmlns:adtcore="http://www.sap.com/adt/core">\n` +
-            `  <adtcore:objectReference adtcore:uri="${uri}" adtcore:name="${name}"/>\n` +
-            `</adtcore:objectReferences>`,
-          contentType: 'application/xml',
-          accept: 'application/xml',
-        });
-
-        const verdict = serviceDefinitionActivationVerdict(activation.body);
-        if (!verdict.ok) {
-          throw new Error(`Service definition activation failed: ${verdict.message}`);
-        }
-        activationWarnings = parseActivationMessages(activation.body).map(
-          (entry) => `${entry.type}: ${entry.text || 'Unknown'}`,
-        );
+        activationWarnings = await activateServiceDefinition(client, uri, name);
         logger.info(`CreateServiceDefinition completed successfully: ${name}`);
       }
 
@@ -256,28 +287,40 @@ export const createServiceDefinition = defineTool(
         package_name: packageName,
         transport_request: args.transport_request || null,
         type: 'SRVD/SRV',
+        activated: shouldActivate,
         message: shouldActivate
           ? `Service Definition ${name} created and activated successfully`
           : `Service Definition ${name} created successfully (not activated)`,
-        // 나가는 주소는 소문자인데 **여기만 대문자**다 — 구 그대로다.
-        uri: serviceDefinitionReportedUri(name),
-        steps_completed: ['validate', 'create', ...(shouldActivate ? ['activate'] : [])],
+        uri: reportedUri,
+        steps_completed: [
+          'validate',
+          'create',
+          'lock',
+          'update',
+          'check',
+          'unlock',
+          ...(shouldActivate ? ['activate'] : []),
+        ],
         activation_warnings: activationWarnings.length > 0 ? activationWarnings : undefined,
       });
     } catch (error) {
+      // D156 ⓒ — 껍데기가 이미 생긴 뒤의 실패는 그 사실과 다음 걸음을 끝에 싣는다.
+      const note = shellCreated ? shellLeftNote(name) : '';
       // 구문검사 실패는 진단을 그대로 실어 올린다(접두사 없음 — 구 `:234-239`).
       if (error instanceof SourceCheckFailure) {
         logger.error(`Error creating service definition ${name}: ${error.message}`);
-        return errorResult(`Error: ${error.message}`);
+        return errorResult(`Error: ${error.message}${note}`);
       }
       logger.error(`Error creating service definition ${name}: ${messageOf(error)}`);
-      if (looksAlreadyExists(error)) {
+      // 「이미 있다」는 **생성 요청의** 판정이다 — 껍데기 뒤 단계(PUT 등)의 409를 그렇게
+      // 읽으면 방금 만든 오브젝트를 지우라고 시키게 된다.
+      if (!shellCreated && looksAlreadyExists(error)) {
         return errorResult(
           `Error: Service Definition ${name} already exists. Please delete it first or use a different name.`,
         );
       }
       return errorResult(
-        `Error: Failed to create service definition: ${createFailureDetail(error)}`,
+        `Error: Failed to create service definition: ${createFailureDetail(error)}${note}`,
       );
     }
   },

@@ -43,24 +43,13 @@ import * as z from 'zod';
 
 import { defineTool } from '../../server/toolDefinition';
 import type { ToolContext } from '../../server/toolDefinition';
+import { createFailureDetail } from './dataElementDomainCreate';
+import { SourceCheckFailure, errorResult, okResult } from './shared';
 import {
-  createFailureDetail,
-  isAlreadyCheckedMessage,
-  messageOf,
-} from './dataElementDomainCreate';
-import {
-  SourceCheckFailure,
-  assertNoCheckErrors,
-  errorResult,
-  okResult,
-  parseActivationMessages,
-  putSource,
-} from './shared';
-import {
-  checkStagedServiceDefinition,
-  serviceDefinitionActivationVerdict,
+  activateServiceDefinition,
   serviceDefinitionReportedUri,
   serviceDefinitionWriteUri,
+  writeAndCheckServiceDefinitionSource,
 } from './internal/serviceDefinition';
 
 export const updateServiceDefinition = defineTool(
@@ -108,47 +97,21 @@ export const updateServiceDefinition = defineTool(
     try {
       const client = await context.getConnection();
 
-      await client.withLock(uri, async (lock) => {
-        await putSource(client, uri, lock.handle, sourceCode, args.transport_request);
-        logger.debug(`Service definition source uploaded: ${name}`);
-
-        // 구 `runRawCheckRun`은 "이미 검사됨"만 조용한 성공으로 접는다
-        // (`preCheckBeforeActivation.ts:526-531`). 나머지는 그대로 올린다.
-        let check;
-        try {
-          check = await checkStagedServiceDefinition(client, uri);
-        } catch (error) {
-          if (!isAlreadyCheckedMessage(messageOf(error))) throw error;
-          logger.debug(`${name} was already checked - continuing`);
-          check = undefined;
-        }
-        if (check) assertNoCheckErrors(check, 'Service Definition', name);
-      });
+      // 잠금 → PUT → 쓰기 뒤 구문검사 → 해제. `CreateServiceDefinition`(D156)과 같은 함수다.
+      await writeAndCheckServiceDefinitionSource(
+        client,
+        uri,
+        name,
+        sourceCode,
+        args.transport_request,
+        logger,
+      );
       logger.info(`Service definition updated: ${name}`);
 
       let activationWarnings: string[] = [];
       if (shouldActivate) {
-        const activation = await client.request({
-          method: 'POST',
-          path: '/sap/bc/adt/activation',
-          params: { method: 'activate', preauditRequested: 'true' },
-          body:
-            `<?xml version="1.0" encoding="UTF-8"?>\n` +
-            `<adtcore:objectReferences xmlns:adtcore="http://www.sap.com/adt/core">\n` +
-            `  <adtcore:objectReference adtcore:uri="${uri}" adtcore:name="${name}"/>\n` +
-            `</adtcore:objectReferences>`,
-          contentType: 'application/xml',
-          accept: 'application/xml',
-        });
-
         // 200이어도 속성이 아니라고 하면 실패다 — 벤더가 이미 그렇게 판정한다.
-        const verdict = serviceDefinitionActivationVerdict(activation.body);
-        if (!verdict.ok) {
-          throw new Error(`Service definition activation failed: ${verdict.message}`);
-        }
-        activationWarnings = parseActivationMessages(activation.body).map(
-          (entry) => `${entry.type}: ${entry.text || 'Unknown'}`,
-        );
+        activationWarnings = await activateServiceDefinition(client, uri, name);
         logger.info(`Service definition activated: ${name}`);
       }
 

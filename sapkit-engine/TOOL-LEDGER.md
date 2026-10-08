@@ -39,7 +39,7 @@
 | attended 실기 기록 | `fixtures/attended-only/*.json` | 있음 · 111단계 |
 | 계약 시험 결과 | `evidence/contract/results.json` | 있음 · 186종 |
 | 계약 시험 파일 | `src/tools/**/__tests__/<도구>.test.ts` | 있음 · 186종에 시험 파일이 있다 — 있음이 곧 통과는 아니다 |
-| 대체 기대 시험 | `harness/replay/divergences.ts 의 substituteTest 경로` | 있음 · 34종에 실재하는 시험 파일이 있다 |
+| 대체 기대 시험 | `harness/replay/divergences.ts 의 substituteTest 경로` | 있음 · 35종에 실재하는 시험 파일이 있다 |
 | 위임형 판정 | `harness/old-surface/handler-tree.json` | 있음 · 소스 559파일을 상대 import까지 따라가 판정 — 직접 46 · 간접 140 · 없음 0 |
 
 ## 안 지음 (0)
@@ -71,7 +71,7 @@
 | CreateGuiStatus | GUI 상태 | 19 | attended 실기 | — | 통과(1) | — | — | 간접 |
 | CreateTextElement | 텍스트 엘리먼트 | 20 | attended 실기 | — | 통과(1) | — | — | 간접 |
 | CreateScreen | 화면 | 23 | attended 실기 | — | 통과(1) | — | — | 간접 |
-| CreateServiceDefinition | 서비스 정의 | 24 | attended 실기 | — | 통과(1) | 실패(1) | — | 직접 |
+| CreateServiceDefinition | 서비스 정의 | 24 | attended 실기 + 대체 | — | 통과(1) | 실패(1) | 통과(1) | 직접 |
 | GetServiceDefinition | 서비스 정의 | 24 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
 | UpdateServiceDefinition | 서비스 정의 | 24 | 재생 대조 | — | 통과(1) | 통과(1) | — | 직접 |
 | ReadBehaviorImplementation | 동작 구현 (BIMP) | 25 | 재생 대조 | — | 통과(1) | 통과(1) | — | 간접 |
