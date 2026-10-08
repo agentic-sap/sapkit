@@ -190,7 +190,7 @@ Supporting every type is the principle; this is what v1 promises.
 
 | Type | Notes |
 |---|---|
-| PROG | Including **screens (DYNPRO)**, **GUI status (CUA)**, and **text pool (TPOOL)**. In a hand-authored `TPOOL`, a selection text's label starts at offset 8 ([text-element-rule](../knowledge/abap/conventions/text-element-rule.md) § Selection Texts); a pool too large for the MCP text tools comes this way |
+| PROG | Including **screens (DYNPRO)**, **GUI status (CUA)**, and **text pool (TPOOL)**. In a hand-authored `TPOOL`, a selection text's `ENTRY` holds the label alone with `LENGTH` = 8 + its length — the reserved area is the separate `SPLIT` element, never padding in `ENTRY` ([text-element-rule](../knowledge/abap/conventions/text-element-rule.md) § Selection Texts); a pool too large for the MCP text tools comes this way |
 | INCLUDE | |
 | FUGR / FM | Classic signature form per Step 3; the mirror must carry every member — a pull that rebuilds the group loses whatever the ZIP lacks, and one that does not leaves modules deleted at the source standing on the target |
 | CLAS | |

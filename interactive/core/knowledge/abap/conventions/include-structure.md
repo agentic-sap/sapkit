@@ -40,7 +40,7 @@ What an `ON VALUE-REQUEST` block may read once it runs is a separate rule: [`alv
 
 - **Procedural, no Screen, no ALV**: `t` / `s` / `f` — plus `c` only when the program uses local classes.
 - **Procedural, with Screen + ALV**: `t` / `c` / `s` / `o` / `i` / `a` / `f` (`c` may be left out when no local classes are used). **Never add `e`.**
-- **OOP, with Screen + ALV**: `t` / `s` / `c` / `a` / `o` / `i` / `e` / `f` / `_tst` (`e` appears only for `LCL_EVENT` — the ALV event handler class).
+- **OOP, with Screen + ALV**: `t` / `s` / `c` / `a` / `e` / `o` / `i` / `f` / `_tst` (the order of the source-of-truth sample `templates/oop-sample/`) (`e` appears only for `LCL_EVENT` — the ALV event handler class).
 
 ## Activation Protocol — MANDATORY (matches every skill that creates includes)
 

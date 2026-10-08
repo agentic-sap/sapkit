@@ -17,7 +17,7 @@ source:
 
 1. Every custom object uses a `Z`/`Y` prefix — pattern `Z{MODULE}{TYPE}{NN}`; verify the name is free before creating.
 2. Every change (create, update, delete) is assigned to a transport — no transport, no change.
-3. `CreateTransport` always receives an explicit `client` resolved from the active profile — never an implicit default.
+3. `CreateTransport` always runs in an explicit client — the active profile's `SAP_CLIENT`, which the connection sends as `X-SAP-Client` (the tool takes no `client` argument) — never an implicit default.
 4. After every create/update: `CheckSyntax` → activate → confirm `GetInactiveObjects` returns zero leftovers — read the run-level `activated`/`checked` flags, and treat an empty `GetInactiveObjects` as necessary, not sufficient.
 5. Never release a transport containing syntax errors or inactive objects.
 6. Respect the configured `sapVersion` and `abapRelease` from `.sapkit/config.json` — ECC, S/4, Cloud Public, and Cloud Private each forbid different tables, patterns, and syntax.
