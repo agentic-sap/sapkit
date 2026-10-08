@@ -93,11 +93,25 @@ describe('와이어', () => {
     // 구 핸들러는 read({className}, 'active')로 고정해 부른다.
     const { requests } = await runTool(
       getClassMethod,
-      { class_name: 'zcl_test', method_name: 'get_data', version: 'inactive' },
+      { class_name: 'zcl_test', method_name: 'get_data' },
       () => ({ body: CLASS_SOURCE }),
     );
 
     expect(toolRequests(requests)[0]?.url).toBe(SOURCE_URL);
+  });
+
+  it('version을 주면 활성 판을 조용히 읽지 않고 거절한다 (장부 D155)', async () => {
+    // 전에는 SDK가 `version`을 지워 「비활성 판을 달라」는 요청에 활성 판이 정상 응답으로
+    // 갔다 — 조용한 오답. 이제 서버 코어가 모르는 인자로 거절하고 SAP에는 아무것도 안 나간다.
+    const { outcome, requests } = await runTool(
+      getClassMethod,
+      { class_name: 'zcl_test', method_name: 'get_data', version: 'inactive' },
+      () => ({ body: CLASS_SOURCE }),
+    );
+
+    expect(outcome.isError).toBe(true);
+    expect(outcome.text).toContain("unknown argument 'version'");
+    expect(toolRequests(requests)).toHaveLength(0);
   });
 });
 

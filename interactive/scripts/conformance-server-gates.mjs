@@ -567,8 +567,11 @@ console.log('\nB. 테이블 blocklist (exposition=readonly)');
     { tool: 'GetTableContents', args: { table_name: 'VBRK', max_rows: 1 } },
     { tool: 'GetTableContents', args: { table_name: 'VBRK', max_rows: 1, acknowledge_risk: true } },
     { tool: 'GetTableContents', args: { table_name: 'ZSAPKIT_FREE', max_rows: 1 } },
-    { tool: 'GetSqlQuery', args: { sql_query: 'SELECT * FROM KNA1', max_rows: 1 } },
-    { tool: 'GetSqlQuery', args: { sql_query: 'SELECT * FROM VBRK', max_rows: 1 } },
+    // GetSqlQuery의 행 상한은 `row_number`다(`max_rows`는 GetTableContents의 것). 전에는 여기
+    // `max_rows`를 줬고 SDK가 조용히 지워 상한이 기본 100으로 돌았다 — 엔진이 모르는 인자를
+    // 거절하게 되자(장부 D155) SCHEMA_ERROR로 드러났다. fixture 쪽 실수다.
+    { tool: 'GetSqlQuery', args: { sql_query: 'SELECT * FROM KNA1', row_number: 1 } },
+    { tool: 'GetSqlQuery', args: { sql_query: 'SELECT * FROM VBRK', row_number: 1 } },
   ];
   const fx = makeFixture('bl-default', { tier: 'DEV' });
   const run = await callServer({ cwd: fx.project, env: connectedEnv(fx), args: ['--exposition=readonly'], calls });
@@ -769,7 +772,7 @@ console.log('\nC. inspection-only 정직 실패');
 {
   const calls = [
     { tool: 'GetTableContents', args: { table_name: 'ZSAPKIT_FREE', max_rows: 1 } },
-    { tool: 'GetSqlQuery', args: { sql_query: 'SELECT * FROM ZSAPKIT_FREE', max_rows: 1 } },
+    { tool: 'GetSqlQuery', args: { sql_query: 'SELECT * FROM ZSAPKIT_FREE', row_number: 1 } }, // 행 상한 = row_number (위 B1 주석)
   ];
   const run = await callServer({
     cwd: makeBareProject('inspection'),

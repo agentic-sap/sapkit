@@ -288,8 +288,11 @@ describe('축약 — detailed가 닿지 않으므로 이 모양뿐이다', () =>
 });
 
 describe('선언 밖 인자 — 구에서도 핸들러에 닿은 적이 없다', () => {
-  it('include_nested·detailed·program을 줘도 SDK가 버려 왕복이 늘지 않는다', async () => {
-    const { text, sent } = await call(
+  it('include_nested·detailed·program을 주면 핸들러에 닿기 전에 거절된다 (장부 D155)', async () => {
+    // 전에는 SDK가 셋을 조용히 지워 축약된 단일 오브젝트 응답이 정상으로 갔다 —
+    // 호출자는 중첩·상세를 받았다고 읽을 수 있었다. 이제 서버 코어가 모르는 인자로
+    // 거절하고 SAP에는 아무것도 안 나간다.
+    const { text, isError, sent } = await call(
       {
         object_name: NAME,
         object_type: 'program',
@@ -300,14 +303,9 @@ describe('선언 밖 인자 — 구에서도 핸들러에 닿은 적이 없다',
       asProgram(elementsXml(['A.'])),
     );
 
-    // 중첩 훑기가 돌았다면 노드 구조 왕복이 더 붙었을 것이다.
-    expect(sent).toHaveLength(3);
-    const payload = JSON.parse(text);
-    // detailed:true가 닿았다면 축약이 꺼져 `detailed`가 참이었을 것이다.
-    expect(payload.detailed).toBe(false);
-    // include_nested가 닿았다면 `objects`/`main_object`가 실렸을 것이다.
-    expect('objects' in payload).toBe(false);
-    expect('main_object' in payload).toBe(false);
+    expect(isError).toBe(true);
+    expect(text).toContain("unknown arguments 'include_nested', 'detailed', 'program'");
+    expect(sent).toHaveLength(0);
   });
 });
 

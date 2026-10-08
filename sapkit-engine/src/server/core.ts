@@ -6,6 +6,8 @@
  * 손으로 다시 짜지 않는 대신, 그 위의 조립은 전부 자체 저작이다:
  *
  *  - 어떤 도구가 `tools/list`에 오르는가 → `selectExposedTools`
+ *  - 스키마에 없는 인자는 SDK가 지우기 **전에** 거절한다 → `installUnknownArgumentGuard`
+ *    (`./unknownArguments.ts` · 장부 D155)
  *  - 호출이 핸들러에 닿기 전에 무엇을 지나는가 → `evaluateToolCall`
  *  - 접속은 언제 생기는가 → 핸들러가 `ctx.getConnection()`을 부를 때, 즉
  *    **게이트를 통과한 뒤에만**
@@ -37,6 +39,7 @@ import {
   type ToolResult,
   toExposableTool,
 } from './toolDefinition';
+import { installUnknownArgumentGuard } from './unknownArguments';
 
 export const SERVER_NAME = 'sapkit-engine';
 
@@ -255,6 +258,14 @@ export function createServerCore(options: ServerCoreOptions): ServerCore {
     name: options.name ?? SERVER_NAME,
     version: options.version ?? readEngineVersion(),
   });
+
+  // 모르는 인자 거절(D-152 · 장부 D155). 받는 인자는 선언한 shape의 키 그대로다 —
+  // 발행 스키마와 같은 출처라 둘이 어긋날 수 없다. 자리 선택·게이트와의 순서는
+  // `./unknownArguments.ts` 머리 주석.
+  const acceptedArguments = new Map<string, readonly string[]>(
+    tools.map((tool) => [tool.definition.name, Object.keys(tool.definition.inputSchema)]),
+  );
+  installUnknownArgumentGuard(server, (name) => acceptedArguments.get(name));
 
   const candidates: ExposureCandidate[] = tools.map((tool) => ({
     ...toExposableTool(tool.definition),

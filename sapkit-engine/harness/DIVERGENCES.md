@@ -3682,3 +3682,99 @@ BIL을 손으로 재구성했다. 정답 도구 `GetLocalTypes`는 처음부터 
   사실은 사람이 읽어야 한다.
 
 - **결정 기록**: D-147
+
+## 실사용 교훈 승격 5차 — 모르는 인자 거절 (append · 2026-10-08 · D-152 · 분담 A)
+
+근거 원문은 `C:\Users\hjaew\.claude\sapkit-feedback.md`의 2026-09-18 관측 두 건이다. 이 절은
+**도구 하나가 아니라 서버 코어**(`src/server/`)의 변화이고, **SAP 실기로 확인되지 않았다** —
+오프라인 계약 시험까지다. 같은 시각에 분담 B가 몇몇 도구 모듈을 고치고 있으므로 이 절은 도구
+모듈을 손대지 않았다(항목 번호 D155는 이 분담 몫 · B는 D156부터).
+
+### D155 — 스키마에 없는 인자를 **버리지 않고 거절**한다 (수리 · 모든 도구)
+
+**분류**: 수리 · **도구**: 등록점 전부(186) · **자리**: `src/server/unknownArguments.ts`(신설) ·
+`src/server/core.ts`
+
+**구는 이렇게 한다.** 도구 선언을 zod raw shape으로 SDK에 넘기고, SDK
+(`@modelcontextprotocol/sdk` `server/mcp.js`의 `McpServer.validateToolInput`)가
+`z.object(shape)`로 파싱한다. zod 객체의 기본은 strip이라 **모르는 키를 조용히 지우고**
+핸들러를 부른다(구·신 모두 — `src/tools/read/getEnhancements.ts` 머리 주석이 같은 사실을 적고
+있다). 실측(2026-09-18 · 실사용 2건):
+
+- ① `GetTableContents(table_name='ZUNIEFIT0030', max_rows=60, where_clause="BUKRS = '1000'")` —
+  이 도구에 `where_clause`는 없다. 지워진 채 필터 없는 앞 56행이 정상 응답으로 왔고 호출자는
+  「조건에 맞는 행이 없다」로 오판했다.
+- ② `CreateBehaviorDefinition(..., source=<BDEF 40줄>)` — `source` 인자가 없다. 지워진 채 SAP
+  템플릿이 생성·활성화됐고 응답은 `success:true · created and activated`. 호출자의 소스가
+  사라졌다.
+
+**신은 이렇게 한다.** 어느 도구든 선언(`inputSchema`의 키)에 없는 인자가 **하나라도** 오면
+호출을 거절한다. 핸들러에 닿기 전이라 **접속을 얻지 않고 SAP으로 아무것도 나가지 않는다.**
+응답 모양은 SDK 자신의 검증 오류와 같다(`{content:[{type:'text',text}], isError:true}` — 던진
+`McpError(-32602)`를 SDK가 자기 `createToolError`로 접는다). 문구는 ① 모르는 인자 이름
+② 그 도구가 받는 인자 목록 ③ 「무시하지 않고 거절한다」를 말한다:
+
+> `MCP error -32602: Input validation error: Invalid arguments for tool GetTableContents: unknown argument 'where_clause'. GetTableContents accepts only: table_name, max_rows, acknowledge_risk. Unknown arguments are rejected, not ignored — the call was not executed and nothing was sent to SAP. Retry without it, or use a tool whose schema declares the parameter you need.`
+
+**발행 표면은 한 글자도 변하지 않는다.** strip을 끄는 zod 정공법(`strictObject`·`.strict()`·
+`catchall`·`looseObject`)은 `tools/list`에 `additionalProperties`를 실어 채록본 대조
+(`gates/surface.mjs`)를 깨고, 그 키를 거부하는 클라이언트(Gemini 계열)가 있어 쓰지 않았다.
+대신 **`McpServer.validateToolInput`을 서버 인스턴스에서 감싼다** — SDK가 키를 지우는 바로 그
+자리다. 견주고 기각한 둘(트랜스포트 데코레이터 — 전송 셋과 in-memory마다 씌워야 하고 하나
+빠지면 그 길이 조용히 뚫린다 · `setRequestHandler` 가로채기 — 같은 부류의 내부 동작에 기대고
+오류 모양을 손으로 지어야 한다)의 근거는 그 모듈 머리 주석이 정본이다.
+
+**SDK 내부에 기대는 자리다**(TS private 메서드의 이름과 인자 순서). 세 겹으로 못 박았다 —
+메서드가 없으면 설치가 던져 **서버가 뜨지 않고**, 도구 이름으로 인자 목록을 못 찾으면(인자
+순서 변경) **fail-closed로 거절**하고, SDK가 그 메서드를 더 이상 부르지 않으면 **실 규약 시험이
+빨개진다.** 마지막 것은 사보타주로 확인했다 — 설치 한 줄을 빼면 새 시험 중 거절 갈래 5건이
+빨갛다. 번들러는 이름을 바꾸지 않는다(`tools/bundle.mjs` — minify 없음). 빌드한 단일 파일
+번들을 stdio로 띄워 ①을 그대로 보내 위 문구가 오는 것도 확인했다(무프로파일).
+
+**게이트와의 순서**: 거절은 `evaluateToolCall`(tier·실데이터 상시 게이트)보다 **앞**이다. SDK의
+기존 스키마 검증(필수 누락·타입 오류)이 이미 그 자리에 있고, 모르는 인자도 같은 부류(호출의
+모양이 틀렸다)라서다. 거절된 호출은 실행되지 않으므로 게이트를 약화하지 않는다 — 통과한 호출은
+전부 지금처럼 게이트를 지난다(시험: 같은 PRD 호출이 모르는 인자를 빼면 `ERR_READONLY_TIER`).
+그 대신 게이트의 감사 줄(`AUDIT: …`)은 거절된 호출에 대해 남지 않는다 — 게이트가 판정하지
+않았으므로이며, SDK 검증 오류가 이미 그랬던 것과 같은 처지다.
+
+**덧인자(D-147)는 아는 인자다.** `harness/old-surface/amendments.json`의 `inputSchema` 칸
+(`UpdateSourceByPatch.match_whole_line` · `CreateServiceBinding.binding_category` ·
+`CheckSyntax.main_program`)은 도구 정의의 shape에 이미 있어 거절되지 않는다. 시험이 덧말표를
+직접 읽어 행마다 확인하므로 표가 늘면 시험도 따라 는다.
+
+**대체 기대 시험**: `src/server/__tests__/unknownArguments.test.ts` 22건 — 등록점 186종 전부가
+모르는 인자를 접속 0회로 거절(배포 축 셋을 돌아 실제로 부른 이름 집합을 등록점과 견준다) ·
+`tools/list`에 `additionalProperties` 0 · 관측 ①② 재현 + 과수리 역검증(`where_clause`만 빼면
+핸들러까지) · 응답 모양이 SDK 검증 오류와 같음 · tier 게이트 앞 순서 · 덧인자 비거절 ·
+SDK 이음매 3겹. **기존 시험 2건의 기대를 바꿨다** — 둘 다 「SDK가 버린다」를 못 박던 것이다:
+`src/tools/read/__tests__/getEnhancements.test.ts` 「선언 밖 인자」(이제 거절 · 왕복 0) ·
+`src/tools/read/__tests__/getClassMethod.test.ts` 「version 인자가 없다」(아는 인자만으로 활성
+판을 읽는 시험은 남기고 `version:'inactive'`가 거절되는 시험을 따로 세웠다 — **비활성 판을
+달라는 요청에 활성 판이 정상 응답으로 가던 것**도 같은 부류의 조용한 오답이었다).
+
+**제품 게이트 fixture 수리**: `interactive/scripts/conformance-server-gates.mjs`가 `GetSqlQuery`에
+`max_rows`(GetTableContents의 인자)를 주고 있었다 — 3곳. SDK가 지워 행 상한이 기본 100으로
+돌았고 아무도 몰랐다. 이 수리로 그 게이트 스스로 「fixture 쪽 실수 신호」라 부르는
+`SCHEMA_ERROR`로 드러났고(B1·B4·C1), 행 상한 인자 `row_number`로 고쳤다. 판정 대상(tier·
+blocklist·무접속 어휘)은 그대로이며 구 번들 대상으로도 26/26이다.
+
+**기계 장부 반영**: 하지 않았다 — **재생 대조에 나타나지 않는다.** 픽스처·시나리오 40개
+(`fixtures/` · `harness/scenarios/`)의 모든 단계 인자를 채록본 선언 + 덧인자와 전수 대조해
+모르는 인자 0건이었다. 구는 버리고 신은 거절하는 자리가 채록에 없으므로 등재가 발동할 곳이
+없다. 모르는 인자를 실은 채록이 생기면 그때 이 항목을 `harness/replay/divergences.ts`로
+옮긴다(그 단계는 구 = 정상 응답 · 신 = `-32602` 거절로 갈린다).
+
+**실기에서 확인할 것**:
+
+- 실 클라이언트(Claude Code · Codex · Antigravity)가 이 문구를 읽고 **모르는 인자를 빼고
+  재시도하는지.** 시험은 SDK 클라이언트까지다.
+- 클라이언트가 `arguments`에 스스로 키를 덧붙이는 경우가 있는지 — 있다면 이제 그 클라이언트의
+  호출이 전부 거절된다(전에는 조용히 지워졌다). 알려진 사례는 없다.
+- 절차 문서·스킬이 **없는 인자**를 쓰라고 가르치는 자리가 있다면 이제 거절로 드러난다(관측 ②의
+  `source`가 그런 출처였을 수 있다 — 이 분담은 문서를 훑지 않았다).
+
+**정직 유보**: 제품 번들(`interactive/server/server.bundle.cjs`)에는 아직 없다 — 재번들은
+통합 단계의 몫이다. 엔진 소스·`dist/server.bundle.cjs`까지가 이 분담의 확인 범위다.
+
+- **결정 기록**: D-152
