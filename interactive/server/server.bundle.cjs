@@ -49342,7 +49342,7 @@ var require_getObjectStructure = __commonJS({
     function rootsIncludeRequested(roots, objectType, objectName) {
       const name = objectName.trim().toUpperCase();
       const type = mainType(objectType);
-      return roots.some((root) => root.objectname.trim().toUpperCase() === name && mainType(root.objecttype) === type);
+      return roots.some((root) => String(root.objectname ?? "").trim().toUpperCase() === name && mainType(String(root.objecttype ?? "")) === type);
     }
     function rootMismatchWarning(objectType, objectName) {
       return `WARNING: no top-level node is the requested object ${objectType} ${objectName} \u2014 the structure service probably does not support this object type and returned an unrelated tree. Do not read this tree as the structure of ${objectName}.`;
