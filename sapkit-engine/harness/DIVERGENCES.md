@@ -3792,3 +3792,37 @@ WARNING은 성공 · `unchanged`는 판정 없음 · 여러 메시지 중 ERROR�
 **실기에서 확인할 것** — ① 실제 작업 응답 본문의 모양(마디 이름이 `SEVERITY`·`LONG_TEXT`·`SHORT_TEXT`인지,
 메시지가 여럿일 때 어떻게 오는지 — 합성 본문은 피드백이 옮겨 적은 키 이름에 기댄다) ② Customizing
 클라이언트에서 도구 오류로 오는지 ③ 경고만 있는 정상 발행이 여전히 성공인지.
+
+### D158 — `ValidateServiceBinding`이 검증 GET의 **405**에 같은 질의로 POST를 한 번 보낸다 (수리 · **실기 미검증**)
+
+**분류**: 수리 · **도구**: `ValidateServiceBinding`
+
+**구는 이렇게 한다.** `GET /sap/bc/adt/businessservices/bindings/validation?objname=…&serviceDefinition=…`
+하나를 보내고(벤더 `AdtService.js:446-462`), 실패는 그대로 올린다. S/4HANA 7.57에서 그 GET이
+`HTTP 405 Method Not Allowed` · `Resource controller does not support method GET`으로 답했다 — 이
+시스템에서 도구가 **쓸 수 없었다**(피드백 2026-09-18 「S/4에서 못 쓰는 경로들」 ②).
+
+**신은 이렇게 한다.** GET이 **405일 때만** 같은 질의 인자·같은 Accept로 **본문 없는 POST**를 한 번
+보내고 그 답을 같은 모양(`success · service_binding_name · status · payload`)으로 싣는다. POST의 실패는
+그대로 올라가고(세 번째 요청은 없다), 405가 아닌 실패(404·400·500)는 다시 묻지 않는다. GET이 되는
+시스템은 구와 요청·응답이 바이트로 같다. POST가 끼면 접속 계층이 CSRF 토큰을 먼저 긁는다(상태 변경
+메서드의 공통 규칙).
+
+**`kind: 'read'`는 유지한다.** 검증 엔드포인트는 이름·정의·패키지가 성립하는지 **답만** 하는 질의이고,
+POST도 본문 없이 같은 질의를 싣는다. 이 엔진에서 읽기 도구가 POST를 타는 것은 처음이 아니다
+(`CheckSyntax`·`GetAtcFindings`·`GetObjectInfo`). **POST를 막는 거름망이 없음을 확인했다** — 접속
+계층(`src/adt/client.ts`)은 메서드로 읽기/쓰기를 가르지 않고(`MUTATING_METHODS` — POST·PUT·DELETE·PATCH에
+CSRF 선행 조회만 한다),
+`src/safety`의 tier·blocklist 게이트는 도구 이름과 `kind`를 보지 HTTP 메서드를 보지 않는다.
+
+**대체 기대 시험**: `src/tools/read/__tests__/validateServiceBinding.test.ts` — 「D158 — 검증 GET이
+405면 같은 질의 인자로 POST를 한 번 보낸다」 4건(405 → POST 성공 · POST 실패는 POST의 것 · 405가 아닌
+실패는 재시도 없음 · GET 성공이면 POST 없음).
+
+**기계 장부 반영**: 했다(D158 — 구가 405로 죽은 오류 갈래만. 신이 성공이거나 POST의 실패로 끝나면
+통과, **GET 405로 그대로 죽으면** 실패).
+
+**실기에서 확인할 것 — 이 항목은 짐작 위에 서 있다.** ① 이 자원이 POST를 받는지(받지 않으면 신은 POST의
+405를 올린다 — 구보다 나빠지지는 않는다) ② 받는다면 **본문을 요구하는지**(요구하면 400류가 올 것이다 —
+그때는 본문 모양을 채록해야 한다) ③ POST 응답의 모양이 GET이 되던 시스템의 응답과 같은지. 405 갈래에서만
+돌게 한 것이 이 불확실성의 울타리다.

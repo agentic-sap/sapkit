@@ -166,7 +166,8 @@
  *     `CreateServiceDefinition`이 소스를 실제로 써 넣고(구는 보내지 않고 빈 판을 검사해
  *     언제나 실패했다) 소스가 없으면 빈 껍데기에서 멈추는 갈래를 든다. D157은
  *     `UpdateServiceBinding` 발행 작업의 **200 + SEVERITY ERROR**를 신이 오류로 되돌리는
- *     갈래다(D148의 성공 갈래에서 그 자리를 뺐다). 같은 결정의
+ *     갈래다(D148의 성공 갈래에서 그 자리를 뺐다). D158은 `ValidateServiceBinding`의
+ *     검증 GET이 405로 죽던 갈래를 신이 POST로 다시 묻는 것을 잰다. 같은 결정의
  *     D160(OData 414 문구)은 **진단 문구**라 사람용 장부에만 있다.
  *
  * ### 활성화 거짓 성공 계열을 왜 열로 갈랐는가
@@ -850,6 +851,15 @@ const OLD_JOB_SEVERITY_ERROR = /"SEVERITY":\s*"ERROR"|<SEVERITY>ERROR<\/SEVERITY
 function oldJobReportedSeverityError(step: SequenceStep): boolean {
   return !step.isError && OLD_JOB_SEVERITY_ERROR.test(collectText(step.response));
 }
+
+/** D158 — 구 `ValidateServiceBinding`의 검증 GET이 405로 죽은 채록분인가. */
+function oldValidationGot405(step: SequenceStep): boolean {
+  const text = collectText(step.response);
+  return step.isError && (/\b405\b/.test(text) || /does not support method GET/i.test(text));
+}
+
+/** D158 — 신이 **GET의 405로** 죽었는가(POST로 다시 묻지 않았다는 뜻). 접속 계층의 문구 `ADT 요청 실패: GET … HTTP 405`. */
+const NEW_DIED_ON_GET_405 = /ADT 요청 실패: GET [^\n]*HTTP 405/;
 
 // ── D110~D132 — 꼬리 묶음 셋이 쌓아 둔 차이 (**마지막 반영**) ───────────────
 
@@ -2192,6 +2202,27 @@ export const M1_DIVERGENCES: readonly DivergenceEntry[] = [
       actual.isError && /reported SEVERITY ERROR/.test(collectText(actual.response))
         ? { ok: true, detail: '구가 SEVERITY ERROR 본문을 success:true로 접은 자리에서 신은 그 문구를 실은 도구 오류로 답했다.' }
         : { ok: false, detail: '신이 SEVERITY ERROR 작업 응답을 「reported SEVERITY ERROR」 오류로 답하지 않았다.' },
+  },
+  {
+    id: 'D158',
+    title: 'ValidateServiceBinding — 검증 GET이 405면 같은 질의로 POST를 한 번 보낸다',
+    tool: 'ValidateServiceBinding',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d158 · sapkit-engine/src/tools/read/validateServiceBinding.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/read/__tests__/validateServiceBinding.test.ts — ' +
+      '「D158 — 검증 GET이 405면 같은 질의 인자로 POST를 한 번 보낸다」 4건',
+    resolvesIn: null,
+    // 구가 405로 죽은 오류 갈래만. GET이 되던 갈래는 신도 요청 하나라 그대로 대조된다.
+    applies: (step) => step.tool === 'ValidateServiceBinding' && oldValidationGot405(step),
+    check: ({ actual }) => {
+      if (!actual.isError) return { ok: true, detail: '구가 GET 405로 죽은 자리에서 신은 POST로 다시 물어 답을 받았다.' };
+      return NEW_DIED_ON_GET_405.test(collectText(actual.response))
+        ? { ok: false, detail: '신도 GET 405로 죽었다 — POST로 다시 묻지 않았다.' }
+        : { ok: true, detail: '구가 GET 405로 죽은 자리에서 신은 POST로 다시 물었고 다른 결과(POST의 실패)로 끝났다.' };
+    },
   },
 ];
 

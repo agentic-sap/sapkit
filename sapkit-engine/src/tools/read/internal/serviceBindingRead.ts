@@ -35,7 +35,8 @@
  *
  * ## `Validate*`는 **GET이다** — SAP 상태를 바꾸지 않는다
  *
- * 검증 엔드포인트는 GET이고(`AdtService.js:452-461`), 구 안전 게이트도 `Validate`를
+ * 검증 엔드포인트는 GET이고(`AdtService.js:452-461` — 405로 답하는 시스템에서는 같은 질의를
+ * 본문 없는 POST로 한 번 더 묻는다 · `validateServiceBinding.ts` · D158), 구 안전 게이트도 `Validate`를
  * 읽기 접두사로 분류한다(`engine/src/lib/readonlyGuard.ts:42-54` — "`Check*` /
  * `Validate*`는 ADT 검사 실행이며 절대 변경을 남기지 않는다"). 그래서
  * `ValidateServiceBinding`의 `kind`는 `read`다. **생성 사슬 안의 `transportchecks`
