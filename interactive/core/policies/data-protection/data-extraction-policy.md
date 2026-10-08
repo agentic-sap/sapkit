@@ -74,6 +74,8 @@ The safe alternative this policy itself recommends (`COUNT` / `SUM` in place of 
 
 A related shape: `GetSqlQuery` fails with HTTP 400 once an `OR` chain runs past roughly 6–7 terms. HTTP 400 out of this tool is generic — a missing table, a missing field, and an unsupported aggregate all present identically — so never read one 400 as "the table is blocked" or "the object does not exist". Break the query into prefix `LIKE` scans instead.
 
+**`GetTableContents` takes no filter — a read narrowed by a condition is `GetSqlQuery`.** The scope you put to the user is the scope the call must actually carry, so put the `WHERE` where a tool executes it. Since the D-152 engine repair an argument a tool does not know (`where_clause`, for one) is refused before anything is sent to SAP. *Older bundles* dropped it silently: the call returned the table's first N rows, unfiltered, as a normal success — more rows than were approved, and a "no match" that meant nothing. On such a bundle, check that every row satisfies your own condition before using the result.
+
 The full detail, along with the other tool-response traps: [troubleshooting](../../procedures/troubleshooting.md) § 8.
 
 ## ⚠️ The `acknowledge_risk` Parameter — HARD RULE

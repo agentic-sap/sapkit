@@ -23,6 +23,19 @@ A text pool in ABAP is made of four separate kinds of row. A single `CreateTextE
 - Type `S` — the **selection screen label** of every `SELECT-OPTIONS s_budat FOR ...` / `PARAMETERS p_file TYPE ...`; the key is the parameter name (`S_BUDAT`, `P_FILE`)
 - Type `R` — the program title (SE38 description)
 
+## Selection Texts — the Label Starts at Offset 8
+
+**The first 8 characters of an `S` row's entry are reserved, and the label the user sees is read from offset 8 onward.** A label taken from the dictionary has `D` in the first position followed by seven spaces; a label of the program's own is eight spaces followed by the text. Written at offset 0, the text is cut — the selection screen shows only what lies past the eighth character, which is the tail of the label or nothing at all. Nothing on the way in catches it: the row passes every offline check, every XML validation, and a `ReadTextElementsBulk` read-back, because all of them see a well-formed entry, and the defect shows only on the running selection screen. Both write paths are exposed:
+
+- **The MCP text tools store `text` as the entry exactly as given** — neither the engine nor the server-side function module adds the reserved part — so an `S` row's `text` must carry the eight reserved characters itself. This is where the field case began: labels written at offset 0 through the tools, then carried unchanged into an abapGit ZIP.
+- **In a hand-authored abapGit `TPOOL`**, write an `S` item with the entry holding the eight reserved characters followed by the label, and the length as 8 + the label's length — the shape SAP's own programs export. Where an item carries a `SPLIT` element instead, it holds those first eight characters and the XML has stripped their trailing blanks, so pad it back to eight before joining it to the entry; joining it as it stands loses a space.
+
+Read-back check: every `S` entry begins with its eight reserved characters. (Field-verified in real project work, 2026-09: labels cut — three of them blank — on the running screen after passing every check before it, and rendered whole once every `S` entry was rewritten that way.)
+
+## Large Text Pools — the OData RFC Backend Refuses Them; Use abapGit
+
+**On the `odata` RFC backend (the default), a text pool of more than a few dozen non-ASCII rows cannot be written through the MCP text tools.** That backend carries the whole pool as JSON in the request URL, a non-ASCII character grows to several bytes once percent-encoded, and past the server's URL limit the call is refused with HTTP 414 *URI Too Long*. Splitting the work does not help: `CreateTextElement`, `UpdateTextElement` and `WriteTextElementsBulk` all rewrite the **entire** pool on every call — merge mode included, since it reads the pool, merges, and sends all of it back — so each call is at least as long as the pool already is. Measured on one system: a Korean pool of 53 rows (about 9.5 KB encoded) went through and 64 rows (about 11.5 KB) did not; the ceiling belongs to the server, so treat those numbers as an order of magnitude, not a limit to plan against. Since the D-152 engine repair the tools report a 414 with its cause and this alternative instead of the bare status. The route that works is an abapGit ZIP whose program XML carries the pool — `TPOOL` for the program's original language and `I18N_TPOOL` for its translations ([develop-abapgit](../../../procedures/develop-abapgit.md)); read the pool back with `ReadTextElementsBulk` afterwards. (Field-verified in real project work, 2026-09 → 2026-10: the 414 at 64 rows, then a pool of 134 rows in each of two languages — about 26 KB encoded, far past that — delivered in one abapGit pull and read back complete.)
+
 ## Language Strategy (MANDATORY — two passes)
 
 Being language-dependent, a SAP text pool gives the runtime only what matches the user's logon language — and where that row was never written, the text id renders **empty** on screen. Filling a pool in one language alone therefore ships a certain bug, triggered the moment anybody logs on under a different one.
@@ -51,7 +64,7 @@ Within the `create-program` skill, the text-element table the planner puts in `p
   - N× type `I` (one per `TEXT-xxx` literal in source)
   - **M× type `S` (one per SELECT-OPTIONS/PARAMETERS name)**
   - 0 or P× type `H` (only if classical list output)
-- Once written, verify through `ReadTextElementsBulk(program, language)` that `counts.R ≥ 1` AND `counts.I == N` AND `counts.S == M`. A mismatch → fail fast, and re-emit the missing rows before Phase 4 is left behind.
+- Once written, verify through `ReadTextElementsBulk(program, language)` that `counts.R ≥ 1` AND `counts.I == N` AND `counts.S == M`, AND that every `S` entry begins with its eight reserved characters (§ *Selection Texts* above). A mismatch → fail fast, and re-emit the missing or mis-laid rows before Phase 4 is left behind.
 - `sap-code-reviewer` **must fail the review** if:
   - display literals are found hardcoded, OR
   - the primary-language row of any text id is absent, OR

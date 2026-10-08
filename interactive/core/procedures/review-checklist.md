@@ -198,6 +198,7 @@ Core (clean-code.md, both paradigms):
 - [ ] No `SELECT` inside `LOOP` — reach for `FOR ALL ENTRIES` or a join
 - [ ] Every statement that sets `SY-SUBRC` is followed by a check of it (SELECT SINGLE, READ TABLE, CALL FUNCTION with EXCEPTIONS)
 - [ ] The internal table type fits the access pattern (HASHED / SORTED / STANDARD), with no DEFAULT KEY
+- [ ] No `SORT itab.` / `DELETE ADJACENT DUPLICATES FROM itab.` without `BY` / `COMPARING` on a `WITH EMPTY KEY` table — the syntax check only warns and the offline checker is silent (clean-code.md § Variables and Types)
 - [ ] A secondary key is declared when the SELECT source is a transactional / large table AND downstream access runs on non-primary fields
 - [ ] Large-table SELECTs are preceded by a `COUNT(*)` check + tuning plan when the count > 1M
 - [ ] STRING values carry backtick literals; `|...|` templates do the assembly
@@ -220,7 +221,7 @@ Paradigm = OOP (clean-code-oop.md):
 - [ ] Tests are named given-when-then, exercise publics only, take their doubles through the constructor, and reach for `LOCAL FRIENDS` only to get at the constructor
 
 Paradigm = Procedural (clean-code-procedural.md):
-- [ ] **Main program structure matches [main-program.abap](../knowledge/abap/templates/procedural-sample/main-program.abap)** — REPORT statement, INCLUDE order (t/s/c/a/o/i/e/f/_tst), event block layout, PBO/PAI modules as one-line `PERFORM` delegators. Any structural deviation must be justified in `spec.md`; otherwise MAJOR finding.
+- [ ] **Main program structure matches [main-program.abap](../knowledge/abap/templates/procedural-sample/main-program.abap)** — REPORT statement, INCLUDE order (t/c/s/o/i/a/f, optional `_tst` last — never `e`), event block layout, PBO/PAI modules as one-line `PERFORM` delegators. Any structural deviation must be justified in `spec.md`; otherwise MAJOR finding.
 - [ ] All globals declared in the TOP include only; no `DATA` in PBO/PAI/FORM/EVENT includes
 - [ ] Globals and locals are told apart on sight (`g*` vs `l*` prefix); no global is shadowed by a local
 - [ ] Every FORM parameter carries a type (`USING p_a TYPE ...`); inputs go through `USING`, in/out through `CHANGING`; no boolean is passed as `USING`

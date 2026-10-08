@@ -10,7 +10,7 @@ A Procedural program's main `REPORT` source begins at the canonical sample: the 
 
 **Source of truth**: [`procedural-sample/main-program.abap`](../templates/procedural-sample/main-program.abap).
 
-- **Do**: reproduce the skeleton — REPORT statement, INCLUDE order matching the t/s/c/a/o/i/e/f/_tst convention, INITIALIZATION / AT SELECTION-SCREEN / START-OF-SELECTION / END-OF-SELECTION block layout, PBO/PAI module stubs delegating to FORMs — and then adapt the identifiers.
+- **Do**: reproduce the skeleton — REPORT statement, INCLUDE order as the sample lists it (t/c/s/o/i/a/f, optional `_tst` last — `e` never appears in a Procedural program), INITIALIZATION / AT SELECTION-SCREEN / START-OF-SELECTION / END-OF-SELECTION block layout, PBO/PAI module stubs delegating to FORMs — and then adapt the identifiers.
 - **Do not**: pull FORM logic inline into events; declare globals anywhere other than the TOP include; place `DATA` statements in PBO/PAI/FORM includes; or break the suffix rule owned by the paired `procedural-form-naming.md`.
 - **Deviation requires written justification in `spec.md`** — recorded before the executor runs Phase 4. Structural drift from the template that goes undocumented is raised as a MAJOR finding in the Phase 6 review.
 
