@@ -65,10 +65,15 @@ const DATA_PREVIEW_ACCEPT = 'application/xml, application/vnd.sap.adt.dataprevie
  */
 const DDIC_PREVIEW_CONTENT_TYPE = 'text/plain';
 
-/** 구 번들이 실제로 발행하던 문구 그대로 — `harness/old-surface/m1-tools.json`. */
+/**
+ * 구 번들이 실제로 발행하던 문구(`harness/old-surface/m1-tools.json`) + 덧말
+ * (`harness/old-surface/amendments.json`) — D-152. 필터 인자가 있는 줄 알고 `where_clause`를
+ * 넘긴 호출이 「조건에 맞는 행이 없다」로 오판했다(피드백 2026-09-18).
+ */
 const DESCRIPTION =
   '[read-only] Retrieve contents (data preview) of an ABAP database table or CDS view. ' +
-  'Returns rows of data like SE16/SE16N.';
+  'Returns rows of data like SE16/SE16N.' +
+  ' There is no filter argument: it always reads every column of the first max_rows rows (default 100) in whatever order the database returns them. For a WHERE clause, selected columns or ordering, use GetSqlQuery.';
 
 const ACKNOWLEDGE_RISK_DESCRIPTION =
   "Set to true ONLY after the user has explicitly authorized row extraction from an 'ask'-tier " +

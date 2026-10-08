@@ -98,8 +98,11 @@ export function buildBehaviorDefinitionPayload(input: {
 export const createBehaviorDefinition = defineTool(
   {
     name: 'CreateBehaviorDefinition',
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D-152. 넘긴 소스가 조용히
+    // 버려지고 템플릿이 `created and activated`로 돌아왔다(피드백 2026-09-18).
     description:
-      'Create a new ABAP Behavior Definition (BDEF) in SAP system. Defines RAP business object behavior: CRUD operations, validations, determinations, actions, and draft handling.',
+      'Create a new ABAP Behavior Definition (BDEF) in SAP system. Defines RAP business object behavior: CRUD operations, validations, determinations, actions, and draft handling.' +
+      " This creates the template SAP generates from name and implementation_type, not your behavior: root_entity is required but not sent (the template's 'define behavior for' uses the definition name — name it after the root entity), no alias, mapping, field control, actions or draft are added, and no source can be passed here. Write the real behavior with UpdateBehaviorDefinition(source_code) and read it back (ReadBehaviorDefinition) before treating it as done. On one system activating the template succeeded even though the implementation class it names did not exist yet, so a successful activation does not mean the behavior is complete.",
     inputSchema: {
       name: z.string().describe('Behavior Definition name (usually same as Root Entity name)'),
       description: z.string().describe('Description').optional(),

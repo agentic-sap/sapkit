@@ -46,7 +46,12 @@ import { defineTool } from '../../server/toolDefinition';
 import { rfcChannelFor } from '../rfc-read/rfcChannel';
 import { describeFailure, okResult } from './shared';
 import { programScopedError } from './internal/programScoped';
-import { MAX_ENTRY_LEN, type TpoolRow, normalizeTpoolRows } from './internal/textPool';
+import {
+  MAX_ENTRY_LEN,
+  TEXT_POOL_WRITE_AMENDMENT,
+  type TpoolRow,
+  normalizeTpoolRows,
+} from './internal/textPool';
 
 /** 선택화면 텍스트의 키 상한 — 파라미터/셀렉트옵션 이름은 8자다. */
 const MAX_SELECTION_KEY_LEN = 8;
@@ -105,8 +110,10 @@ function firstProblem(entries: readonly BulkEntry[]): string | null {
 export const writeTextElementsBulk = defineTool(
   {
     name: 'WriteTextElementsBulk',
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D-152(414 · 선택 텍스트 8자).
     description:
-      'Register many ABAP text elements (R/I/S/H) in ONE tool call via a single TPOOL RFC write. Use instead of calling CreateTextElement N times. With activate=false (default) the pool is staged INACTIVE — the parent program\'s next activation promotes every entry atomically, which is the correct flow for "register 40 now, activate program later". With activate=true the pool is written ACTIVE immediately. Set replace_existing=false to merge into the current pool instead of replacing it.',
+      'Register many ABAP text elements (R/I/S/H) in ONE tool call via a single TPOOL RFC write. Use instead of calling CreateTextElement N times. With activate=false (default) the pool is staged INACTIVE — the parent program\'s next activation promotes every entry atomically, which is the correct flow for "register 40 now, activate program later". With activate=true the pool is written ACTIVE immediately. Set replace_existing=false to merge into the current pool instead of replacing it.' +
+      TEXT_POOL_WRITE_AMENDMENT,
     inputSchema: {
       program_name: z.string().describe('Parent program name.'),
       language: z

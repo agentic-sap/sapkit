@@ -121,6 +121,27 @@ describe('와이어 — 부모 프로그램을 잠그지 않는다', () => {
       { ID: 'I', KEY: '00a', ENTRY: 'lower key kept', LENGTH: 14 },
     ]);
   });
+
+  // D-152 덧말(D161)이 「선택 텍스트는 보낸 그대로 저장된다 — 앞 8자 예약 영역을 아무도 채우지
+  // 않는다」고 말한다. 그 말이 거짓이 되면(자동 패딩을 넣으면) 이 시험이 먼저 깨져 덧말도 함께
+  // 고치게 만든다.
+  it('D161 — 선택 텍스트(S)는 보낸 글자 그대로 나간다: 앞 8자 예약 영역을 채우지도 떼지도 않는다', async () => {
+    harness = await startRfcHarness({ rfc: poolResponder() });
+    await invoke(writeTextElementsBulk, harness, {
+      program_name: 'ZSAPKIT_DEMO',
+      text_elements: [
+        { type: 'S', key: 'P_BARE', text: 'Plant' },
+        { type: 'S', key: 'P_LABEL', text: '        Plant' },
+        { type: 'S', key: 'P_DDIC', text: 'D       .' },
+      ],
+    });
+
+    expect(rowsOf(harness, 0)).toEqual([
+      { ID: 'S', KEY: 'P_BARE', ENTRY: 'Plant', LENGTH: 5 },
+      { ID: 'S', KEY: 'P_LABEL', ENTRY: '        Plant', LENGTH: 13 },
+      { ID: 'S', KEY: 'P_DDIC', ENTRY: 'D       .', LENGTH: 9 },
+    ]);
+  });
 });
 
 describe('병합 — replace_existing', () => {

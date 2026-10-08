@@ -15,6 +15,7 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 
 import { createServerCore, resolveStartup } from '../../../server';
 import type { SapTool, ToolContext } from '../../../server';
+import { applyAmendments } from '../../read/__tests__/support';
 import type { WriteHarness } from './harness';
 
 interface CapturedTool {
@@ -66,9 +67,12 @@ export async function publish(tool: SapTool): Promise<Record<string, unknown>> {
   }
 }
 
-/** 발행 선언이 채록본과 글자 그대로 같은지 견준다. */
+/**
+ * 발행 선언이 채록본 + 덧말표(`harness/old-surface/amendments.json`)와 글자 그대로 같은지
+ * 견준다 — 게이트(`gates/surface.mjs`)와 같은 규칙이다(`CreateBehaviorDefinition`의 D-152 덧말).
+ */
 export async function expectPublishedDeclaration(tool: SapTool, name: string): Promise<void> {
-  const captured = capturedTool(name);
+  const captured = applyAmendments(name, capturedTool(name));
   const published = await publish(tool);
   expect(published).toEqual({
     name: captured.name,

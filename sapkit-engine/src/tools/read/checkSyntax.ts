@@ -281,10 +281,12 @@ async function runSyntaxCheck(
 export const checkSyntax = defineTool(
   {
     name: 'CheckSyntax',
-    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D149.
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D149 · D-152(대형 소스 절단 ·
+    // 같은 세션의 include 미발견 — 실사용 L-010 · R-016).
     description:
       "[read-only] Run a standalone ABAP syntax check WITHOUT writing anything to SAP. Supports 'class', 'program', 'interface', 'include', and 'function_module'. If source_code is provided (class/program/interface only), the proposed source is compiled in place and checked without touching the server. If source_code is omitted, checks whatever is currently staged as the inactive version on the server (mirroring the post-write check Update* handlers run). Syntax errors are returned as normal results, not as tool errors — only connection/infra failures are reported as errors." +
-      " For 'include', pass main_program (the program that INCLUDEs it) to compile the include inside that program's tree — main plus all includes, inactive version; without it SAP may return no verdict at all, which is reported as success: null with verdict: \"indeterminate\" (not as a failure). Every response carries verdict: \"clean\" | \"errors\" | \"indeterminate\".",
+      " For 'include', pass main_program (the program that INCLUDEs it) to compile the include inside that program's tree — main plus all includes, inactive version; without it SAP may return no verdict at all, which is reported as success: null with verdict: \"indeterminate\" (not as a failure). Every response carries verdict: \"clean\" | \"errors\" | \"indeterminate\"." +
+      " source_code is copied into the tool call, so a very large source (around 100 KB and up) can arrive truncated and the error then points at the cut-off line rather than at a real problem: check only the changed statements in a small program, and after writing, check the stored version without source_code. An 'INCLUDE report ... not found' error right after writing that include in the same session is not trustworthy: run ReloadProfile and check again (it has come back clean in a fresh session; cause unknown).",
     inputSchema: {
       object_type: z
         .enum(['class', 'program', 'interface', 'include', 'function_module'])

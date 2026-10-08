@@ -39,13 +39,21 @@ import {
   programObjectUri,
   programScopedError,
 } from './internal/programScoped';
-import { MAX_ENTRY_LEN, type TpoolRow, keyMatches, normalizeTpoolRows } from './internal/textPool';
+import {
+  MAX_ENTRY_LEN,
+  TEXT_POOL_WRITE_AMENDMENT,
+  type TpoolRow,
+  keyMatches,
+  normalizeTpoolRows,
+} from './internal/textPool';
 
 export const createTextElement = defineTool(
   {
     name: 'CreateTextElement',
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D-152(414 · 선택 텍스트 8자).
     description:
-      'Add a text element (text symbol, selection text, program title, or list heading) to an ABAP program. Optionally activates after write.',
+      'Add a text element (text symbol, selection text, program title, or list heading) to an ABAP program. Optionally activates after write.' +
+      TEXT_POOL_WRITE_AMENDMENT,
     inputSchema: {
       program_name: z.string().describe('Parent program name (e.g., Z_MY_PROGRAM).'),
       text_type: z

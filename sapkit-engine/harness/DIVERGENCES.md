@@ -3889,3 +3889,96 @@ RFC 도구 전부 — 실제로 넘치는 것은 텍스트풀 쓰기 셋(`WriteT
 
 **실기에서 확인할 것** — 414가 Gateway에서 실제로 이 모양(상태 414 · 본문 HTML)으로 오는지(앞단 웹 디스패처가 다른 상태로
 끊으면 이 문구는 안 뜬다). 대안 통로 넷 중 이 시스템에서 실제로 서는 것이 무엇인지는 이 판이 확인하지 않았다.
+
+### D161 — 텍스트풀 쓰기 셋이 **414**와 **선택 텍스트 앞 8자 예약 영역**을 설명에서 말한다 (설명 계약 보강 · 동작 무변경 · 기계 장부 밖)
+
+**분류**: 설명 계약 보강(덧말) · **도구**: `WriteTextElementsBulk`·`CreateTextElement`·`UpdateTextElement`
+(덧말 한 벌을 셋이 함께 쓴다 — `internal/textPool.ts` `TEXT_POOL_WRITE_AMENDMENT`)
+
+**① 414 — 설명이 말하지 않던 한계.** 기본 `odata` 통로가 풀 전체를 URL에 싣는다는 것, 쓰기가 언제나
+풀 전체라 나눠 쓰기가 소용없다는 것, 우회가 abapGit ZIP(`TPOOL`·`I18N_TPOOL`)이나 본문 통로라는 것 —
+D160의 오류 문구가 사후에 말하는 것을 **사전에** 말한다. 근거는 D160과 같다(L-007 · 실사용 규칙
+R-007이 이미 「수십 행이면 이 도구들로 쓰지 마라」로 승격해 둔 내용).
+
+**② 선택 텍스트(S)의 앞 8자 — 조사 결과(디스패치 B6).** 동작은 바꾸지 않았고 사실만 덧말에 적었다.
+
+- **SAP 쪽 규약**: `TEXTPOOL-ENTRY`가 선택 텍스트(`ID = 'S'`)일 때 **앞 8자는 예약 영역**이고 라벨은
+  **9자째부터**다. 예약 영역 1자째가 `D`면 그 텍스트를 사전(데이터 엘리먼트)에서 가져온다.
+- **엔진은 채우지도 떼지도 않는다**: `WriteTextElementsBulk` `normalizeEntry` → `ENTRY: text ·
+  LENGTH: text.length`, `CreateTextElement`·`UpdateTextElement` → `ENTRY: args.text · LENGTH:
+  args.text.length`. 길이 검사 `MAX_ENTRY_LEN`(132)도 보낸 글자 그대로를 센다 — 예약 8자가 그 안에 든다.
+- **FM도 채우지 않는다**: `ZSAPKIT_ADT_TEXTPOOL`(동봉 자산 `interactive/server/sap-assets/zsapkit_adt_textpool.abap`)의
+  WRITE는 `/ui2/cl_json=>deserialize` → `INSERT TEXTPOOL`이고 `ENTRY`를 손대지 않는다.
+- **그래서 예약 영역은 호출자 몫이다** — `'Plant'`를 보내면 다섯 글자 전부가 예약 영역에 들어가 라벨이
+  비어 보이고, `D`로 시작하는 라벨은 사전 참조로 읽힐 수 있다. 평범한 라벨은 공백 8자 + 라벨,
+  사전 참조는 `D` + 공백 7자다.
+- **abapGit 직렬화는 이 영역을 따로 뗀다**: SAP에서 내보낸 abapGit 프로그램 XML의 `S` 항목은
+  예약 영역을 `SPLIT` 필드로 분리하고 `ENTRY`에는 라벨만 둔다(로컬 표본 — `<ENTRY>.</ENTRY> ·
+  <LENGTH>9</LENGTH> · <SPLIT>D</SPLIT>`, `<ENTRY>TCODE</ENTRY> · <LENGTH>13</LENGTH>`).
+  **`LENGTH`가 8 + 라벨 길이**인 것이 「예약 8자가 행 안에 있다」의 직접 증거다. 덧말이 「abapGit XML에서는
+  `SPLIT` 필드」라고 따로 적은 이유 — D160·①이 우회로 abapGit ZIP을 권하므로, 그쪽으로 옮겨 간 호출자가
+  공백 8자를 `ENTRY`에 그대로 넣으면 안 된다.
+
+**대체 기대 시험**: 덧말 자체는 게이트(`gates/surface.mjs` — 원문 + 덧말 = 발행 문구)와 세 도구의 발행 계약
+시험이 잰다. 「보낸 그대로」라는 주장은 `writeTextElementsBulk.test.ts` 「D161 — 선택 텍스트(S)는 보낸
+글자 그대로 나간다」 1건이 고정한다(맨 라벨 · 공백 8자 + 라벨 · `D` + 공백 7자 + 라벨 세 행의 `ENTRY`·`LENGTH`).
+자동 패딩을 넣는 날 그 시험이 먼저 깨져 덧말도 함께 고치게 된다.
+
+**자동 패딩은 후보로만 둔다(짓지 않았다).** 「`S`인데 앞 8자가 공백도 `D`+공백도 아니면 공백 8자를 앞에 붙인다」가
+후보 모양이다. 짓지 않은 까닭 — ⓐ 디스패치가 동작 변경을 막았다 ⓑ 이미 예약 영역을 넣어 보내는 호출자(바르게 쓰던
+쪽)를 깨지 않으려면 「이미 들어 있는가」 판정이 필요한데, 라벨이 우연히 공백 8자로 시작하는 경우와 가를 길이 없다
+ⓒ `ReadTextElementsBulk`가 돌려주는 `S` 행은 예약 영역을 품은 채라서, 읽은 것을 그대로 되쓰는 흐름(병합 모드 ·
+Create/Update의 READ → WRITE)과 두 겹 패딩이 부딪치지 않는지 실기로 봐야 한다.
+
+**기계 장부 밖이다** — 설명문만의 변경이라 재생 대조에 나타나지 않는다(D-145·D-147의 덧말과 같은 지위).
+
+**실기에서 확인할 것** — ① `/ui2/cl_json=>deserialize`가 문자열 앞 공백을 `ENTRY`(CHAR)에 그대로 두는지(지운다면
+이 도구들로는 예약 영역을 넣을 길이 없다 — 덧말이 틀리게 된다) ② 공백 8자 + 라벨로 쓴 선택 텍스트가 선택 화면에
+라벨로 뜨는지 ③ READ의 `serialize`가 앞 공백을 보존하는지.
+
+### 설명문 이정표 — 덧말표에 더한 것 (D-152 · 분담 B)
+
+재생 대조에 나타나지 않는 **설명문만의** 변경이다(D-145·D-147의 덧말과 같은 지위). 덧말 전문은
+`harness/old-surface/amendments.json`이 정본이다. 도구 이름 집합·`required`는 바뀌지 않았다(덧말은
+`descriptions`에만 더했고 `inputSchema` 덧인자는 없다).
+
+| 도구 | 덧말의 요지 | 근거 |
+|---|---|---|
+| `CreateServiceDefinition` · `UpdateServiceBinding` · `GetObjectStructure` | 위 D156·D157·D159의 계약 | — |
+| `WriteTextElementsBulk` · `CreateTextElement` · `UpdateTextElement` | 위 D161 — 414(풀 전체가 URL · 나눠 쓰기 무용 · abapGit `TPOOL`/`I18N_TPOOL` 또는 본문 통로) · 선택 텍스트 앞 8자 예약 영역(보낸 그대로 저장 · abapGit은 `SPLIT`) | L-007 · 디스패치 B6 |
+| `GetTableContents` | 필터 인자가 없다 — 언제나 모든 열 · 앞에서부터 `max_rows`(기본 100) · 순서 보장 없음. WHERE·열 선택·정렬은 `GetSqlQuery` | 피드백 2026-09-18(`where_clause`가 조용히 무시되어 「조건에 맞는 행이 없다」로 오판) — 모르는 인자를 거부하는 분담 A의 D155와 짝 |
+| `CreateBehaviorDefinition` | SAP이 이름·`implementation_type`으로 만드는 **템플릿**이다 — `root_entity`는 필수지만 와이어에 안 나간다(머리주석의 실측) · alias·mapping·필드 제어·액션·draft 없음 · 소스를 넘길 자리 없음 → `UpdateBehaviorDefinition(source_code)`로 쓰고 `ReadBehaviorDefinition`으로 되읽으라 · 템플릿이 가리키는 구현 클래스가 없어도 활성화가 성공한 시스템이 있었다 | 피드백 2026-09-18(`source` 인자가 조용히 버려지고 템플릿이 `created and activated`로 돌아왔다) |
+| `CheckSyntax`(기존 D149 덧말에 이어 붙임) | ⓐ `source_code`는 도구 호출에 옮겨 쓰는 것이라 큰 소스(약 100KB 이상)는 끊긴 채 도착할 수 있고, 그때 오류는 끊긴 줄을 가리킨다 → 바꾼 문장만 작은 프로그램으로 검사하고, 쓴 뒤에는 `source_code` 없이 저장된 판을 검사하라 ⓑ include를 쓴 **같은 세션**에서 바로 나는 `INCLUDE report … not found`는 믿지 말고 `ReloadProfile` 뒤 다시 검사하라(원인 미상) | ⓐ L-010(152,755바이트 · 4,973줄 → 1281행에서 끊김 · 「마침표 누락」) ⓑ 실사용 프로젝트 인계 기록(2026-09-21 — `ReloadProfile` 뒤 같은 소스가 clean) |
+
+`CreateBehaviorDefinition` 덧말의 「구현 클래스가 없어도 활성화가 성공했다」는 attended 녹화
+`zsapkit63-rap-bdef-bimp-service`의 4단계 메모(「여기서 활성화하면 **반드시 실패한다**(T4 정찰 실측)」)와
+**어긋난다.** 둘 다 실측이고 시스템·템플릿(`strict ( 1 )` 여부 등)이 달랐을 수 있다. 그래서 덧말은 「한 시스템에서
+성공했다 — 그러니 활성화 성공을 완료로 읽지 마라」까지만 말하고, 언제 실패하는지는 단정하지 않았다.
+
+시험 조각 넷이 원문을 직접 견주고 있어 `applyAmendments`를 거치게 했다(`amendments.json` `_consumers`에 적음):
+`rfcToolSupport.ts` `publishedDeclaration`(텍스트·화면·GUI 상태 묶음 — 덧말이 있는 것은 텍스트 쓰기 셋뿐) ·
+`behaviorSupport.ts` `expectPublishedDeclaration` · `getTableContents.test.ts` · `createServiceDefinition.test.ts`.
+
+### 등재만 — 코드 무접촉 (조사 결과)
+
+- **`CreateMetadataExtension`의 빈 판 검사**(피드백 2026-07-29) — D156 머리의 B1b 조사 참조. D156 ⓑ와 같은 길
+  (검사·활성화를 건너뛰고 `UpdateMetadataExtension`으로 넘긴다)이 후보다.
+- **선택 텍스트 자동 패딩** — D161 참조. 후보로만 둔다.
+- **`ReadTextElementsBulk`는 덧말을 달지 않았다** — 읽기는 `S` 행의 `ENTRY`를 예약 영역째 돌려주는 것으로 보이나
+  (엔진은 `S` 키만 다듬고 `ENTRY`는 손대지 않는다) `/ui2/cl_json=>serialize`가 앞 공백을 남기는지 확인하지 못해
+  설명에 단정하지 않았다(D161 실기 ③).
+
+### 정직 유보 (이 절 전체)
+
+- **실기 0.** D156~D161 전부 오프라인 계약 시험까지다. 고친 도구는 전부 「지음 · 증거 대기」로 읽어야 한다.
+- **D158(405 → POST)은 짐작 위에 섰다** — 405를 낸 시스템이 POST를 받는지 확인한 적이 없다. 받지 않으면
+  오류 문구만 바뀐다(POST의 실패 — 예컨대 두 번째 405 — 를 그대로 낸다).
+- **D157은 작업 응답의 모양을 피드백 한 건의 인용으로 지었다** — 채록 본문이 없다. 판정을 `SEVERITY`가 아닌
+  다른 이름의 마디에 싣는 시스템이면(깊이는 상관없다 — 트리 전체를 돈다) 판정이 비어 예전처럼 성공으로
+  접힌다(나빠지지는 않는다).
+- **D161의 「보낸 그대로 저장」은 엔진·FM 코드에서 확정한 것이다** — `/ui2/cl_json`이 앞 공백을 지우지 않는다는
+  전제는 실기 미검증이다.
+- **번호 D162·D163은 쓰지 않았다** — 설명문만의 변경을 D-147처럼 이정표 표로 다뤘기 때문이다. 통합자가 다음
+  배정에 돌려 써도 된다.
+
+- **결정 기록**: D-152

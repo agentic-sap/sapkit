@@ -33,13 +33,21 @@ import {
   programObjectUri,
   programScopedError,
 } from './internal/programScoped';
-import { MAX_ENTRY_LEN, type TpoolRow, keyMatches, normalizeTpoolRows } from './internal/textPool';
+import {
+  MAX_ENTRY_LEN,
+  TEXT_POOL_WRITE_AMENDMENT,
+  type TpoolRow,
+  keyMatches,
+  normalizeTpoolRows,
+} from './internal/textPool';
 
 export const updateTextElement = defineTool(
   {
     name: 'UpdateTextElement',
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D-152(414 · 선택 텍스트 8자).
     description:
-      'Update an existing text element in an ABAP program text pool. Handles lock/unlock automatically.',
+      'Update an existing text element in an ABAP program text pool. Handles lock/unlock automatically.' +
+      TEXT_POOL_WRITE_AMENDMENT,
     inputSchema: {
       program_name: z.string().describe('Parent program name.'),
       text_type: z.enum(['I', 'S', 'R', 'H']).describe('"I"|"S"|"R"|"H" — see GetTextElement.'),
