@@ -47,6 +47,14 @@
  * 응답은 `nodeid`/`parentid`를 가진 **평평한 노드 목록**이고, 핸들러가 그것을
  * 중첩 트리로 세운 뒤 글로 직렬화한다(`handleGetObjectStructure.ts:43-76`).
  * **부모를 못 찾은 노드는 뿌리가 된다**(`:54-58`의 else) — 버려지지 않는다.
+ *
+ * ## 뿌리가 요청한 오브젝트가 아니면 경고 한 줄 (차이 — `harness/DIVERGENCES.md` D159)
+ *
+ * 구조 서비스가 그 종류를 모르면 오류가 아니라 **무관한 트리**로 답할 수 있다(실측
+ * `WEBI/3I` — `sapkit-feedback.md` 2026-09-09 3차). 구는 그것을 그대로 성공으로 냈다.
+ * 지금은 뿌리 가운데 요청한 오브젝트(이름 대소문자 무시 · 타입은 `/` 앞 주 부분)가 하나도
+ * 없으면 `tree:` 앞에 `WARNING:`으로 시작하는 한 줄을 붙인다. 트리 자체와 정상 출력은
+ * 한 글자도 바뀌지 않는다 — 판정을 바꾸지 않고 읽는 법만 알린다.
  */
 
 import { XMLParser } from 'fast-xml-parser';
@@ -98,6 +106,40 @@ export function buildNestedTree(flatNodes: readonly FlatNode[]): TreeNode[] {
   return roots;
 }
 
+/** 타입의 주 부분(`/` 앞) — `CLAS`와 `CLAS/OC`를 같은 종류로 본다. */
+function mainType(type: string): string {
+  return type.split('/')[0]?.trim().toUpperCase() ?? '';
+}
+
+/**
+ * 뿌리 가운데 **요청한 오브젝트**가 있는가 (D159). 이름은 대소문자 무시, 타입은 주 부분만 본다
+ * (`CLAS`로 물어 `CLAS/OC`가 와도 같은 것).
+ */
+export function rootsIncludeRequested(
+  roots: readonly TreeNode[],
+  objectType: string,
+  objectName: string,
+): boolean {
+  const name = objectName.trim().toUpperCase();
+  const type = mainType(objectType);
+  return roots.some(
+    (root) => root.objectname.trim().toUpperCase() === name && mainType(root.objecttype) === type,
+  );
+}
+
+/**
+ * 뿌리가 요청한 오브젝트가 아닐 때 트리 앞에 붙는 한 줄 (D159). 기계가 알아보도록 `WARNING:`로
+ * 시작한다. 실측(`sapkit-feedback.md` 2026-09-09 3차): `WEBI/3I ZEFI_CARD`를 물었더니 오류 없이
+ * `$TMP` 언저리의 무관한 트리가 왔고, 요청한 오브젝트는 깊은 곳에 한 줄로만 있었다.
+ */
+export function rootMismatchWarning(objectType: string, objectName: string): string {
+  return (
+    `WARNING: no top-level node is the requested object ${objectType} ${objectName} — ` +
+    'the structure service probably does not support this object type and returned an unrelated tree. ' +
+    `Do not read this tree as the structure of ${objectName}.`
+  );
+}
+
 /** 구 `serializeTree`(`:64-76`) 그대로 — 한 단계마다 두 칸씩 들여쓴다. */
 export function serializeTree(tree: readonly TreeNode[], indent = ''): string {
   let result = '';
@@ -113,7 +155,10 @@ export function serializeTree(tree: readonly TreeNode[], indent = ''): string {
 export const getObjectStructure = defineTool(
   {
     name: 'GetObjectStructure',
-    description: '[read-only] Retrieve ADT object structure as a compact JSON tree.',
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D159.
+    description:
+      '[read-only] Retrieve ADT object structure as a compact JSON tree.' +
+      ' If no top-level node of the returned tree is the requested object, the text starts with a line beginning "WARNING:" — the structure service probably does not support that object type and answered with an unrelated tree, which must not be read as the structure of the requested object.',
     inputSchema: {
       objecttype: z.string().describe('ADT object type (e.g. DDLS/DF)'),
       objectname: z.string().describe('ADT object name (e.g. /CBY/ACQ_DDL)'),
@@ -160,7 +205,12 @@ export const getObjectStructure = defineTool(
       const nodes: FlatNode[] = Array.isArray(raw) ? raw : [raw];
       const tree = buildNestedTree(nodes);
 
-      return ok(`tree:\n${serializeTree(tree)}`);
+      // D159 — 뿌리 어디에도 요청한 오브젝트가 없으면 트리 앞에 경고 한 줄. 정상 출력은 그대로다.
+      const warning = rootsIncludeRequested(tree, objectType, objectName)
+        ? ''
+        : `${rootMismatchWarning(objectType, objectName)}\n`;
+
+      return ok(`${warning}tree:\n${serializeTree(tree)}`);
     } catch (error) {
       context.logger.error(
         `Failed to fetch object structure for ${args.objecttype}/${args.objectname}`,

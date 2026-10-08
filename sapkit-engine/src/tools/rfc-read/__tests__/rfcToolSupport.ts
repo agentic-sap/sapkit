@@ -32,6 +32,7 @@ import type { ConnectionConfig, ResolvedProfile } from '../../../contracts';
 import { NOOP_LOGGER, createServerCore, resolveStartup } from '../../../server';
 import type { SapTool, ToolContext, ToolResult } from '../../../server';
 import { argvOf, tempDir, writeEnvFile } from '../../../server/__tests__/fixtures';
+import { applyAmendments } from '../../read/__tests__/support';
 
 // ── 발행 계약 ───────────────────────────────────────────────────────────────
 
@@ -44,14 +45,18 @@ export interface PublishedDeclaration {
   execution: unknown;
 }
 
-/** 채록본의 **전량 선언 186종**에서 한 항목. `m1`(19종)이 아니다. */
+/**
+ * 채록본의 **전량 선언 186종**에서 한 항목 + 덧말표(`harness/old-surface/amendments.json`).
+ * `m1`(19종)이 아니다. 덧말을 얹는 것은 게이트(`gates/surface.mjs`)와 같은 규칙이다 — D-152가
+ * 텍스트 쓰기 셋에 덧말을 달기 전까지 이 묶음에는 덧말이 하나도 없어 원문만 견줘도 됐다.
+ */
 export function publishedDeclaration(name: string): PublishedDeclaration {
   const parsed = JSON.parse(fs.readFileSync(M1_TOOLS, 'utf8')) as {
     tools: Record<string, PublishedDeclaration>;
   };
   const entry = parsed.tools[name];
   if (!entry) throw new Error(`m1-tools.json의 tools(전량 선언)에 ${name} 항목이 없다`);
-  return entry;
+  return applyAmendments(name, entry);
 }
 
 /** 도구 하나만 실은 서버를 세워 그 도구의 발행 선언을 돌려준다. */

@@ -162,6 +162,16 @@
  *     D151는 FUGR 항목의 전개를, D153은 새 항목이 아니라 D39·D40의 등재 키에
  *     `tool_list_republished`를 더한 것으로 든다. D105의 검사는 신이 **성공**하면
  *     D147의 두 키만 늘었는지로 넘어간다(그 전에는 그 갈래가 정확 일치였다).
+ *   - **D156~** — D-152(실사용 교훈 승격 5차 · 분담 B). D156은
+ *     `CreateServiceDefinition`이 소스를 실제로 써 넣고(구는 보내지 않고 빈 판을 검사해
+ *     언제나 실패했다) 소스가 없으면 빈 껍데기에서 멈추는 갈래를 든다. D157은
+ *     `UpdateServiceBinding` 발행 작업의 **200 + SEVERITY ERROR**를 신이 오류로 되돌리는
+ *     갈래다(D148의 성공 갈래에서 그 자리를 뺐다). D158은 `ValidateServiceBinding`의
+ *     검증 GET이 405로 죽던 갈래를 신이 POST로 다시 묻는 것을 잰다. D159는
+ *     `GetObjectStructure`가 뿌리에 요청한 오브젝트가 없는 트리 앞에 `WARNING:` 한 줄을
+ *     붙이는 갈래다(트리는 그대로여야 한다). 같은 결정의
+ *     D160(OData 414 문구)은 **진단 문구**라, D161(텍스트풀 쓰기 셋의 덧말 — 414 ·
+ *     선택 텍스트 앞 8자)은 **설명문만의 변경**이라 사람용 장부에만 있다.
  *
  * ### 활성화 거짓 성공 계열을 왜 열로 갈랐는가
  *
@@ -789,6 +799,90 @@ function askedForClassInclude(args: JsonValue): boolean {
   if (!isPlainObject(args)) return false;
   const name = String(args['include_name'] ?? '');
   return /=+(CCIMP|CCDEF|CCMAC|CCAU|CU|CO|CI|CP|CT|CM\d{3}|CL)$/i.test(name.trim());
+}
+
+// ── D156~D159 (D-152 · 실사용 교훈 승격 5차 — 분담 B) ─────────────────────────
+
+/** D156 — 픽스처의 인자에 비어 있지 않은 `source_code`가 있는가(신은 그때만 소스를 써 넣는다). */
+function gaveSourceCode(args: JsonValue): boolean {
+  return isPlainObject(args) && typeof args['source_code'] === 'string' && args['source_code'].length > 0;
+}
+
+/**
+ * D156 — 구 `CreateServiceDefinition`이 **껍데기를 만든 뒤** 실패한 채록분인가.
+ * 구는 빈 비활성 판을 검사했으므로(소스를 보내지 않았다) 그 검사 실패, 또는 활성화 실패다.
+ * 생성 요청 자체의 실패(`already exists` · ADT 본문)는 여기 걸리지 않고 그대로 대조된다.
+ */
+function oldFailedAfterSrvdShell(step: SequenceStep): boolean {
+  return (
+    step.isError &&
+    /preCheck syntax check failed|Service definition activation failed/.test(collectText(step.response))
+  );
+}
+
+/** D156 — 소스를 준 성공 갈래에서 늘거나 바뀐 키. */
+const D156_SOURCE_KEYS: readonly string[] = ['activated', 'steps_completed'];
+/** D156 — 소스 없는 성공 갈래에서 바뀐 키(껍데기에서 멈추므로 문구·활성화 경고도 갈린다). */
+const D156_SHELL_KEYS: readonly string[] = ['activated', 'steps_completed', 'message', 'activation_warnings'];
+
+/** D156 — 신이 빈 껍데기에서 멈췄다고 말하는가(`activated:false` · 걸음이 검증·생성 둘). */
+function stoppedAtSrvdShell(actual: SubstituteInput['actual']): SubstituteVerdict {
+  if (actual.isError) {
+    return { ok: false, detail: '소스 없는 호출인데 신이 실패했다 — 빈 껍데기에서 멈추지 않았다.' };
+  }
+  const body = singleJsonBody(actual.response);
+  const steps = body?.['steps_completed'];
+  return body !== null &&
+    body['activated'] === false &&
+    Array.isArray(steps) &&
+    steps.length === 2 &&
+    steps[0] === 'validate' &&
+    steps[1] === 'create'
+    ? { ok: true, detail: '소스가 없는 호출에서 신은 빈 껍데기를 만들고 검사·활성화 없이 activated:false로 멈췄다.' }
+    : { ok: false, detail: '신이 성공했으나 빈 껍데기에서 멈췄다고 말하지 않는다(activated:false · steps validate·create).' };
+}
+
+/** D156 — 껍데기 뒤 실패에 신이 싣는 안내(`createServiceDefinition.ts`의 `shellLeftNote`). */
+const SRVD_SHELL_LEFT_NOTE = /do not call CreateServiceDefinition again/;
+
+/**
+ * D157 — 구 `UpdateServiceBinding`이 **`SEVERITY: ERROR`를 실은 작업 응답을 성공으로** 접은
+ * 채록분인가. `payload`는 `response_format`에 따라 파싱본(`"SEVERITY": "ERROR"`) 또는 원문
+ * (`<SEVERITY>ERROR</SEVERITY>`)이므로 두 모양을 다 잡는다. D148의 성공 갈래에서 이 자리를 뺀다.
+ */
+const OLD_JOB_SEVERITY_ERROR = /"SEVERITY":\s*"ERROR"|<SEVERITY>ERROR<\/SEVERITY>/i;
+function oldJobReportedSeverityError(step: SequenceStep): boolean {
+  return !step.isError && OLD_JOB_SEVERITY_ERROR.test(collectText(step.response));
+}
+
+/** D158 — 구 `ValidateServiceBinding`의 검증 GET이 405로 죽은 채록분인가. */
+function oldValidationGot405(step: SequenceStep): boolean {
+  const text = collectText(step.response);
+  return step.isError && (/\b405\b/.test(text) || /does not support method GET/i.test(text));
+}
+
+/** D158 — 신이 **GET의 405로** 죽었는가(POST로 다시 묻지 않았다는 뜻). 접속 계층의 문구 `ADT 요청 실패: GET … HTTP 405`. */
+const NEW_DIED_ON_GET_405 = /ADT 요청 실패: GET [^\n]*HTTP 405/;
+
+/**
+ * D159 — 구 `GetObjectStructure`의 성공 트리에서 **뿌리 가운데 요청한 오브젝트가 없는가**.
+ * 판정은 `getObjectStructure.ts`의 `rootsIncludeRequested`와 같다(이름 대소문자 무시 · 타입은
+ * `/` 앞 주 부분). 뿌리 줄은 들여쓰기 없는 `- 타입: 이름`이다.
+ */
+function oldStructureRootMismatch(step: SequenceStep): boolean {
+  if (step.isError || !isPlainObject(step.args)) return false;
+  const type = String(step.args['objecttype'] ?? '').split('/')[0]?.trim().toUpperCase() ?? '';
+  const name = String(step.args['objectname'] ?? '').trim().toUpperCase();
+  const text = collectText(step.response);
+  if (!text.startsWith('tree:\n') || type === '' || name === '') return false;
+  const roots = text
+    .split('\n')
+    .map((line) => /^- ([^:]+): (.*)$/.exec(line))
+    .filter((match): match is RegExpExecArray => match !== null);
+  return !roots.some(
+    (match) =>
+      (match[1] ?? '').split('/')[0]?.trim().toUpperCase() === type && (match[2] ?? '').trim().toUpperCase() === name,
+  );
 }
 
 // ── D110~D132 — 꼬리 묶음 셋이 쌓아 둔 차이 (**마지막 반영**) ───────────────
@@ -1924,8 +2018,10 @@ export const M1_DIVERGENCES: readonly DivergenceEntry[] = [
     resolvesIn: null,
     // 구가 UNKNOWN으로 거부한 오류 갈래 + 두 키가 늘어난 모든 성공 갈래. `DeleteServiceBinding`은
     // 응답이 같고 와이어에만 남는 차이라 옮기지 않는다(D104·D124의 가름선).
+    // D157(D-152)이 성공 갈래 중 **작업 응답이 SEVERITY ERROR였던 것**을 가져갔다 — 겹치지 않게 뺀다.
     applies: (step) =>
-      step.tool === 'UpdateServiceBinding' && (!step.isError || oldRefusedUnknownAllowedAction(step)),
+      step.tool === 'UpdateServiceBinding' &&
+      ((!step.isError && !oldJobReportedSeverityError(step)) || oldRefusedUnknownAllowedAction(step)),
     check: ({ recorded, actual }) => {
       if (!recorded.isError) return onlyRegisteredKeysDiffer(recorded, actual, D142_KEYS, 'UpdateServiceBinding');
       if (actual.isError) {
@@ -2070,6 +2166,112 @@ export const M1_DIVERGENCES: readonly DivergenceEntry[] = [
       actual.isError && /class include/.test(collectText(actual.response))
         ? { ok: true, detail: '구가 HTTP 500을 그대로 올린 자리에서 신은 「class include」를 말하는 오류로 거절했다.' }
         : { ok: false, detail: '신이 클래스 인클루드를 「class include」로 거절하지 않았다 — 등재된 갈래가 아니다.' },
+  },
+
+  // ── D156~D159 (D-152 · 실사용 교훈 승격 5차 — 분담 B) ───────────────────────
+  //
+  // 전부 **실기 미검증**이다. D156은 attended 녹화 `zsapkit63-rap-bdef-bimp-service` 10단계
+  // (소스 없는 생성이 빈 판 검사로 실패한 자리)가 실제로 걸린다. D160(OData 414 문구)은
+  // **진단 문구**라 사람용 장부에만 있다.
+
+  {
+    id: 'D156',
+    title: 'CreateServiceDefinition — source_code를 써 넣고 검사한다 · 소스가 없으면 빈 껍데기에서 멈춘다',
+    tool: 'CreateServiceDefinition',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d156 · sapkit-engine/src/tools/write/createServiceDefinition.ts · ' +
+      'sapkit-engine/src/tools/write/internal/serviceDefinition.ts · 덧말표(harness/old-surface의 amendments 표)',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/createServiceDefinition.test.ts — 「D156 ⓐ·ⓑ·ⓒ」 표기 시험 8건',
+    resolvesIn: null,
+    // 성공 갈래 전부(응답에 `activated`가 늘고 걸음이 갈린다) + 껍데기 뒤 실패 갈래. 생성 요청
+    // 자체의 실패(이미 있음 · ADT 본문)와 인자 누락은 등재 밖이고 그대로 대조된다.
+    applies: (step) =>
+      step.tool === 'CreateServiceDefinition' && (!step.isError || oldFailedAfterSrvdShell(step)),
+    check: ({ recorded, actual }) => {
+      const withSource = gaveSourceCode(recorded.args);
+      if (!recorded.isError) {
+        if (withSource) return onlyRegisteredKeysDiffer(recorded, actual, D156_SOURCE_KEYS, 'CreateServiceDefinition');
+        const keys = onlyRegisteredKeysDiffer(recorded, actual, D156_SHELL_KEYS, 'CreateServiceDefinition');
+        return keys.ok ? stoppedAtSrvdShell(actual) : keys;
+      }
+      // 구가 빈 판을 검사(또는 활성화)하다 실패한 자리.
+      if (!withSource) return stoppedAtSrvdShell(actual);
+      if (!actual.isError) {
+        return { ok: true, detail: '구는 소스를 보내지 않고 빈 판을 검사해 실패했고, 신은 소스를 써 넣어 통과했다.' };
+      }
+      return SRVD_SHELL_LEFT_NOTE.test(collectText(actual.response))
+        ? { ok: true, detail: '신도 껍데기 뒤에서 실패했고, 오브젝트가 남았으니 UpdateServiceDefinition으로 이어 가라고 말했다.' }
+        : { ok: false, detail: '신이 껍데기 뒤에서 실패했으나 「이미 생겼다 · 다시 만들지 말라」를 말하지 않는다.' };
+    },
+  },
+  {
+    id: 'D157',
+    title: 'UpdateServiceBinding — 발행 작업 응답의 SEVERITY ERROR를 성공으로 접지 않는다',
+    tool: 'UpdateServiceBinding',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d157 · sapkit-engine/src/tools/write/updateServiceBinding.ts · ' +
+      'sapkit-engine/src/tools/write/internal/serviceBinding.ts · 덧말표(harness/old-surface의 amendments 표)',
+    substituteTest:
+      'sapkit-engine/src/tools/write/__tests__/updateServiceBinding.test.ts — ' +
+      '「D157 — 작업 응답이 SEVERITY ERROR면 200이어도 도구 오류다」 6건',
+    resolvesIn: null,
+    // 구가 `success:true`에 SEVERITY ERROR 본문을 실은 성공 갈래만. D148의 `applies`가 이 자리를 뺀다.
+    applies: (step) => step.tool === 'UpdateServiceBinding' && oldJobReportedSeverityError(step),
+    check: ({ actual }) =>
+      actual.isError && /reported SEVERITY ERROR/.test(collectText(actual.response))
+        ? { ok: true, detail: '구가 SEVERITY ERROR 본문을 success:true로 접은 자리에서 신은 그 문구를 실은 도구 오류로 답했다.' }
+        : { ok: false, detail: '신이 SEVERITY ERROR 작업 응답을 「reported SEVERITY ERROR」 오류로 답하지 않았다.' },
+  },
+  {
+    id: 'D158',
+    title: 'ValidateServiceBinding — 검증 GET이 405면 같은 질의로 POST를 한 번 보낸다',
+    tool: 'ValidateServiceBinding',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d158 · sapkit-engine/src/tools/read/validateServiceBinding.ts',
+    substituteTest:
+      'sapkit-engine/src/tools/read/__tests__/validateServiceBinding.test.ts — ' +
+      '「D158 — 검증 GET이 405면 같은 질의 인자로 POST를 한 번 보낸다」 4건',
+    resolvesIn: null,
+    // 구가 405로 죽은 오류 갈래만. GET이 되던 갈래는 신도 요청 하나라 그대로 대조된다.
+    applies: (step) => step.tool === 'ValidateServiceBinding' && oldValidationGot405(step),
+    check: ({ actual }) => {
+      if (!actual.isError) return { ok: true, detail: '구가 GET 405로 죽은 자리에서 신은 POST로 다시 물어 답을 받았다.' };
+      return NEW_DIED_ON_GET_405.test(collectText(actual.response))
+        ? { ok: false, detail: '신도 GET 405로 죽었다 — POST로 다시 묻지 않았다.' }
+        : { ok: true, detail: '구가 GET 405로 죽은 자리에서 신은 POST로 다시 물었고 다른 결과(POST의 실패)로 끝났다.' };
+    },
+  },
+  {
+    id: 'D159',
+    title: 'GetObjectStructure — 뿌리가 요청한 오브젝트가 아니면 트리 앞에 WARNING 한 줄',
+    tool: 'GetObjectStructure',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d159 · sapkit-engine/src/tools/read/getObjectStructure.ts · ' +
+      '덧말표(harness/old-surface의 amendments 표)',
+    substituteTest:
+      'sapkit-engine/src/tools/read/__tests__/getObjectStructure.test.ts — ' +
+      '「D159 — 뿌리 어디에도 요청한 오브젝트가 없으면 트리 앞에 WARNING 한 줄」 3건 + 정상 출력 무경고 1건',
+    resolvesIn: null,
+    // 구 성공 트리의 뿌리에 요청한 오브젝트가 없던 단계만. 정상 트리는 그대로 대조된다.
+    applies: (step) => step.tool === 'GetObjectStructure' && oldStructureRootMismatch(step),
+    check: ({ recorded, actual }) => {
+      if (actual.isError) return { ok: false, detail: '신 엔진이 GetObjectStructure를 오류로 답했다 — 등재된 갈래가 아니다.' };
+      const fresh = collectText(actual.response);
+      const old = collectText(recorded.response);
+      const newline = fresh.indexOf('\n');
+      return fresh.startsWith('WARNING:') && newline >= 0 && fresh.slice(newline + 1) === old
+        ? { ok: true, detail: '구가 무관한 트리를 그대로 낸 자리에서 신은 WARNING 한 줄을 앞에 붙였고 트리는 같다.' }
+        : { ok: false, detail: '신 응답이 「WARNING 한 줄 + 구와 같은 트리」 모양이 아니다.' };
+    },
   },
 ];
 

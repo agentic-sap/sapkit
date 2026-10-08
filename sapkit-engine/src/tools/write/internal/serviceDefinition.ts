@@ -66,12 +66,17 @@
 import { XMLParser } from 'fast-xml-parser';
 
 import type { AdtClient } from '../../../adt';
+import type { ToolLogger } from '../../../server/toolDefinition';
+import { isAlreadyCheckedMessage, messageOf } from '../dataElementDomainCreate';
 import {
   CT_CHECK_OBJECTS,
   type CheckRunResult,
+  assertNoCheckErrors,
   buildCheckObjectList,
   encodeObjectName,
+  parseActivationMessages,
   parseCheckRun,
+  putSource,
 } from '../shared';
 
 /** SRVD 컬렉션. */
@@ -152,4 +157,73 @@ export function serviceDefinitionActivationVerdict(body: string): ActivationVerd
     ok: activated && checked,
     message: activated ? 'Service definition activated successfully' : 'Activation failed',
   };
+}
+
+/**
+ * 소스를 써 넣고 **쓴 판을** 검사한다 — 잠금 → PUT → 구문검사 → 해제.
+ *
+ * `UpdateServiceDefinition`의 몸통에서 떼어 낸 것이다(요청·문구 그대로). 장부 D156부터
+ * `CreateServiceDefinition`도 `source_code`가 오면 껍데기를 만든 직후 이 함수로 소스를
+ * 넣는다 — 두 도구가 같은 사슬을 따로 짓지 않게 한 자리에 둔다. 순서의 이유(검사가 PUT
+ * 뒤인 것 · 잠금 창을 `withLock`이 stateful로 묶는 것)는 `updateServiceDefinition.ts`
+ * 머리주석이 정본이다.
+ *
+ * 검사 실패는 `SourceCheckFailure`로 던진다(`assertNoCheckErrors`). 「이미 검사됨」만
+ * 조용한 성공으로 접는다(구 `preCheckBeforeActivation.ts:526-531`).
+ */
+export async function writeAndCheckServiceDefinitionSource(
+  client: AdtClient,
+  uri: string,
+  name: string,
+  sourceCode: string,
+  transportRequest: string | undefined,
+  logger: Pick<ToolLogger, 'debug'>,
+): Promise<void> {
+  await client.withLock(uri, async (lock) => {
+    await putSource(client, uri, lock.handle, sourceCode, transportRequest);
+    logger.debug(`Service definition source uploaded: ${name}`);
+
+    let check;
+    try {
+      check = await checkStagedServiceDefinition(client, uri);
+    } catch (error) {
+      if (!isAlreadyCheckedMessage(messageOf(error))) throw error;
+      logger.debug(`${name} was already checked - continuing`);
+      check = undefined;
+    }
+    if (check) assertNoCheckErrors(check, 'Service Definition', name);
+  });
+}
+
+/**
+ * 활성화 한 번 — 200이어도 속성이 아니라고 하면 실패로 던진다(머리주석 「활성화 거짓
+ * 성공은 이 계열에 없다」). 성공이면 경고 문구 목록을 돌려준다.
+ *
+ * 생성·갱신 두 도구에 같은 글자로 있던 블록을 한 자리로 모았다(요청·문구 그대로).
+ */
+export async function activateServiceDefinition(
+  client: AdtClient,
+  uri: string,
+  name: string,
+): Promise<string[]> {
+  const activation = await client.request({
+    method: 'POST',
+    path: '/sap/bc/adt/activation',
+    params: { method: 'activate', preauditRequested: 'true' },
+    body:
+      `<?xml version="1.0" encoding="UTF-8"?>\n` +
+      `<adtcore:objectReferences xmlns:adtcore="http://www.sap.com/adt/core">\n` +
+      `  <adtcore:objectReference adtcore:uri="${uri}" adtcore:name="${name}"/>\n` +
+      `</adtcore:objectReferences>`,
+    contentType: 'application/xml',
+    accept: 'application/xml',
+  });
+
+  const verdict = serviceDefinitionActivationVerdict(activation.body);
+  if (!verdict.ok) {
+    throw new Error(`Service definition activation failed: ${verdict.message}`);
+  }
+  return parseActivationMessages(activation.body).map(
+    (entry) => `${entry.type}: ${entry.text || 'Unknown'}`,
+  );
 }

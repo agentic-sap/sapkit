@@ -36,6 +36,7 @@ import {
   tempDir,
   writeEnvFile,
 } from '../../../server/__tests__/fixtures';
+import { applyAmendments } from '../../read/__tests__/support';
 import { getTableContents } from '../getTableContents';
 import { dataPreviewXml, fakeAdt, okResponse } from './support';
 
@@ -183,8 +184,9 @@ function payloadOf(text: string): Record<string, unknown> {
 // ── 1. 발행 계약 ────────────────────────────────────────────────────────────
 
 describe('발행 계약', () => {
-  it('tools/list가 채록본의 GetTableContents와 글자 그대로 일치한다', async () => {
-    const captured = capturedGetTableContents();
+  it('tools/list가 채록본의 GetTableContents + 덧말표와 글자 그대로 일치한다', async () => {
+    // 덧말(D-152 — 필터 인자가 없다)은 게이트(`gates/surface.mjs`)와 같은 표·같은 규칙으로 얹는다.
+    const captured = applyAmendments('GetTableContents', capturedGetTableContents());
     const harness = await harnessFor(startupWith());
     try {
       const listed = await harness.client.listTools();

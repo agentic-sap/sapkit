@@ -11,7 +11,15 @@
  */
 
 import { validateServiceBinding } from '../validateServiceBinding';
-import { TEST_ORIGIN, cleanupTempDirs, harnessFor, publishedDeclaration, runTool } from './support';
+import {
+  TEST_ORIGIN,
+  cleanupTempDirs,
+  csrfAware,
+  harnessFor,
+  publishedDeclaration,
+  runTool,
+  toolRequests,
+} from './support';
 
 const ACCEPT = 'application/vnd.sap.adt.businessservices.servicebinding.v2+xml';
 
@@ -223,5 +231,82 @@ describe('갈래', () => {
 
     expect(outcome.isError).toBe(true);
     expect(outcome.text.startsWith('Error: ')).toBe(true);
+  });
+});
+
+// ── D158 — 405면 같은 질의로 POST를 한 번 ──────────────────────────────────
+
+/** 실측 문구(피드백 2026-09-18) — S/4HANA 7.57의 검증 GET 응답. */
+const METHOD_NOT_ALLOWED =
+  '<?xml version="1.0" encoding="utf-8"?>' +
+  '<exc:exception xmlns:exc="http://www.sap.com/abapxml/types/communicationframework">' +
+  '<namespace id="com.sap.adt"/><type id="ExceptionMethodNotSupported"/>' +
+  '<message lang="EN">Resource controller does not support method GET</message><properties/></exc:exception>';
+
+describe('D158 — 검증 GET이 405면 같은 질의 인자로 POST를 한 번 보낸다', () => {
+  it('405 → POST로 다시 묻고, 그 답을 성공으로 싣는다 (질의 인자·Accept 같음 · 본문 없음)', async () => {
+    const { outcome, requests } = await runTool(
+      validateServiceBinding,
+      { ...ARGS, package_name: 'zok_lab' },
+      csrfAware((request) =>
+        request.method === 'GET' ? { status: 405, body: METHOD_NOT_ALLOWED } : { body: VALIDATION_XML },
+      ),
+    );
+
+    expect(outcome.isError).toBe(false);
+    const sent = toolRequests(requests);
+    expect(sent.map((request) => request.method)).toEqual(['GET', 'POST']);
+    expect(sent[1]?.url).toBe(sent[0]?.url);
+    expect(sent[1]?.url).toBe(
+      `${TEST_ORIGIN}/sap/bc/adt/businessservices/bindings/validation` +
+        '?objname=ZUI_MY_BINDING&serviceDefinition=ZSRVD_DEMO&package=ZOK_LAB',
+    );
+    expect(sent[1]?.headers['Accept']).toBe(ACCEPT);
+    expect(sent[1]?.body).toBeUndefined();
+    // 응답 모양은 GET이 됐을 때와 같다 — 새 키가 없다.
+    expect(JSON.parse(outcome.text)).toEqual({
+      success: true,
+      service_binding_name: 'ZUI_MY_BINDING',
+      status: 200,
+      payload: {
+        'srvb:serviceBinding': {
+          'xmlns:srvb': 'http://www.sap.com/adt/ddic/ServiceBindings',
+          'srvb:valid': 'true',
+        },
+      },
+    });
+  });
+
+  it('POST도 실패하면 **POST의 실패가** 그대로 올라간다 — 세 번째 요청은 없다', async () => {
+    const { outcome, requests } = await runTool(
+      validateServiceBinding,
+      { ...ARGS },
+      csrfAware((request) =>
+        request.method === 'GET'
+          ? { status: 405, body: METHOD_NOT_ALLOWED }
+          : { status: 400, body: '<post-refused/>' },
+      ),
+    );
+
+    expect(outcome.isError).toBe(true);
+    expect(outcome.text).toContain('POST');
+    expect(outcome.text).toContain('400');
+    expect(toolRequests(requests).map((request) => request.method)).toEqual(['GET', 'POST']);
+  });
+
+  it('405가 아닌 실패는 다시 묻지 않는다 (404·400·500)', async () => {
+    for (const status of [404, 400, 500]) {
+      const { outcome, requests } = await runTool(validateServiceBinding, { ...ARGS }, () => ({
+        status,
+        body: '<nope/>',
+      }));
+      expect(outcome.isError).toBe(true);
+      expect(toolRequests(requests).map((request) => request.method)).toEqual(['GET']);
+    }
+  });
+
+  it('GET이 되면 POST는 나가지 않는다 — 구와 같은 요청 하나', async () => {
+    const { requests } = await runTool(validateServiceBinding, { ...ARGS }, () => ({ body: VALIDATION_XML }));
+    expect(toolRequests(requests).map((request) => request.method)).toEqual(['GET']);
   });
 });

@@ -12,9 +12,12 @@
  *    `:122-151`(publishjobs/unpublishjobs · 타임아웃 long) ·
  *    `:85-110`(`@_` 접두사 상태 파서)
  *  - **속성이 없으면 UNKNOWN으로 거부하던 자리** → 차이 D148(서버 판정에 맡긴다)
+ *  - **작업 응답의 SEVERITY ERROR를 성공으로 접던 자리** → 차이 D157(채록된 작업 응답이 없어
+ *    피드백 2026-09-17의 실측 문구로 본문을 합성했다)
  */
 
 import type { ToolResult } from '../../../server';
+import { parseServiceBindingPayload } from '../../read/internal/serviceBindingRead';
 import { updateServiceBinding } from '../updateServiceBinding';
 import { type WriteHarness, jsonOf, startWriteHarness, textOf, xml } from './harness';
 import { publishedDeclaration, publishedSurfaceOf } from './tableStructurePublication';
@@ -67,7 +70,7 @@ const ARGS = {
 // ── 발행 계약 ───────────────────────────────────────────────────────────────
 
 describe('발행 계약', () => {
-  it('tools/list 선언이 구 번들 채록본 + 덧말(D148)과 글자까지 같다', async () => {
+  it('tools/list 선언이 구 번들 채록본 + 덧말(D148 · D157)과 글자까지 같다', async () => {
     expect(await publishedSurfaceOf(updateServiceBinding)).toEqual(
       publishedDeclaration('UpdateServiceBinding'),
     );
@@ -281,6 +284,116 @@ describe('D148 — srvb:allowedAction이 **없으면** 거부하지 않고 요�
       expect(result.isError).toBe(true);
       expect(textOf(result)).toContain('allowedAction=UNPUBLISH');
       expect(harness.calls()).toHaveLength(1);
+    } finally {
+      await harness.close();
+    }
+  });
+});
+
+// ── D157 — 작업 응답의 SEVERITY ERROR ──────────────────────────────────────
+
+/** 발행 작업 응답(`application/vnd.sap.as+xml`) — 실측 문구(피드백 2026-09-17)로 합성했다. */
+function jobMessage(severity: string, longText: string, shortText = 'Publishing failed'): string {
+  return (
+    '<?xml version="1.0" encoding="utf-8"?>' +
+    '<asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0"><asx:values><DATA>' +
+    `<SEVERITY>${severity}</SEVERITY><SHORT_TEXT>${shortText}</SHORT_TEXT><LONG_TEXT>${longText}</LONG_TEXT>` +
+    '</DATA></asx:values></asx:abap>'
+  );
+}
+
+const CUSTOMIZING_REFUSAL =
+  '(Un-)Publishing of SRVB ZUI_MY_BINDING in Customizing Client not allowed';
+
+describe('D157 — 작업 응답이 SEVERITY ERROR면 200이어도 도구 오류다', () => {
+  it('발행: LONG_TEXT와 payload 전문을 실은 오류로 답한다 (구는 success:true)', async () => {
+    const job = jobMessage('ERROR', CUSTOMIZING_REFUSAL);
+    const harness = await harnessFor({ state: bindingState(), job });
+    try {
+      const result = await run(harness, { ...ARGS });
+      expect(result.isError).toBe(true);
+      const text = textOf(result);
+      expect(text).toBe(
+        `Error: The publish job for service binding ZUI_MY_BINDING reported SEVERITY ERROR: ${CUSTOMIZING_REFUSAL}. ` +
+          'Do not assume the binding is published: read it back with GetServiceBinding (srvb:published). ' +
+          `Payload: ${JSON.stringify(parseServiceBindingPayload(job, 'xml'))}`,
+      );
+      // payload는 성공 응답이 싣던 것과 같은 모양(response_format=xml의 파싱본)이다.
+      expect(text).toContain('"LONG_TEXT":"(Un-)Publishing of SRVB ZUI_MY_BINDING in Customizing Client not allowed"');
+      // 요청은 그대로 둘이다 — 판정만 바뀌었다.
+      expect(harness.calls()).toHaveLength(2);
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it('발행취소도 같다 — LONG_TEXT가 없으면 SHORT_TEXT를 싣는다', async () => {
+    const body =
+      '<?xml version="1.0" encoding="utf-8"?><asx:abap xmlns:asx="http://www.sap.com/abapxml"><asx:values><DATA>' +
+      '<SEVERITY>ERROR</SEVERITY><SHORT_TEXT>Unpublishing not possible</SHORT_TEXT></DATA></asx:values></asx:abap>';
+    const harness = await harnessFor({ state: bindingState({ published: true }), job: body });
+    try {
+      const result = await run(harness, { ...ARGS, desired_publication_state: 'unpublished' });
+      expect(result.isError).toBe(true);
+      expect(textOf(result)).toContain(
+        'The unpublish job for service binding ZUI_MY_BINDING reported SEVERITY ERROR: Unpublishing not possible.',
+      );
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it('response_format=plain이어도 판정은 같다 — payload는 원문 문자열로 실린다', async () => {
+    const job = jobMessage('ERROR', CUSTOMIZING_REFUSAL);
+    const harness = await harnessFor({ state: bindingState(), job });
+    try {
+      const result = await run(harness, { ...ARGS, response_format: 'plain' });
+      expect(result.isError).toBe(true);
+      expect(textOf(result)).toContain(`Payload: ${JSON.stringify(job)}`);
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it('WARNING은 오류가 아니다 — 그대로 성공이고 payload에 실린다', async () => {
+    const harness = await harnessFor({
+      state: bindingState({ allowedAction: 'PUBLISH' }),
+      job: jobMessage('WARNING', 'Service published with warnings'),
+    });
+    try {
+      const result = await run(harness, { ...ARGS });
+      expect(result.isError).toBe(false);
+      const payload = jsonOf(result);
+      expect(payload.success).toBe(true);
+      expect(JSON.stringify(payload.payload)).toContain('Service published with warnings');
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it('작업을 보내지 않는 갈래(unchanged)는 판정하지 않는다', async () => {
+    const harness = await harnessFor({ state: bindingState({ published: true }) });
+    try {
+      const result = await run(harness, { ...ARGS, desired_publication_state: 'unchanged' });
+      expect(result.isError).toBe(false);
+      expect(harness.calls()).toHaveLength(1);
+    } finally {
+      await harness.close();
+    }
+  });
+
+  it('여러 메시지 중 ERROR만 모은다', async () => {
+    const body =
+      '<?xml version="1.0" encoding="utf-8"?><asx:abap xmlns:asx="http://www.sap.com/abapxml"><asx:values><DATA>' +
+      '<item><SEVERITY>WARNING</SEVERITY><LONG_TEXT>just a warning</LONG_TEXT></item>' +
+      '<item><SEVERITY>ERROR</SEVERITY><LONG_TEXT>first error</LONG_TEXT></item>' +
+      '<item><SEVERITY>error</SEVERITY><LONG_TEXT>second error</LONG_TEXT></item>' +
+      '</DATA></asx:values></asx:abap>';
+    const harness = await harnessFor({ state: bindingState(), job: body });
+    try {
+      const text = textOf(await run(harness, { ...ARGS }));
+      expect(text).toContain('reported SEVERITY ERROR: first error | second error.');
+      expect(text.split('Payload:')[0]).not.toContain('just a warning');
     } finally {
       await harness.close();
     }

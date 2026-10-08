@@ -152,6 +152,15 @@ describe('트리 조립', () => {
     expect(outcome.text).toBe('tree:\n- CLAS/OC: ZCL_ONE\n');
   });
 
+  it('D159 — 정상 출력에는 경고가 붙지 않는다 (타입은 주 부분만 · 이름은 대소문자 무시)', async () => {
+    const { outcome } = await call({ objecttype: 'CLAS', objectname: 'zcl_one' }, () => ({
+      status: 200,
+      body: SINGLE_NODE_XML,
+    }));
+
+    expect(outcome.text).toBe('tree:\n- CLAS/OC: ZCL_ONE\n');
+  });
+
   it('부모를 못 찾은 노드는 버려지지 않고 뿌리가 된다', () => {
     const roots = buildNestedTree([
       { nodeid: '5', parentid: '99', objecttype: 'DDLS/DFF', objectname: 'ORPHAN' },
@@ -159,6 +168,62 @@ describe('트리 조립', () => {
 
     expect(roots).toHaveLength(1);
     expect(serializeTree(roots)).toBe('- DDLS/DFF: ORPHAN\n');
+  });
+});
+
+// ── D159 — 뿌리가 요청한 오브젝트가 아니면 경고 한 줄 ─────────────────────────
+
+/** 실측(피드백 2026-09-09 3차)을 줄인 모양 — `WEBI/3I`를 물었더니 무관한 뿌리들이 오고 대상은 깊은 곳에. */
+const UNRELATED_XML = [
+  '<projectexplorer:objectstructure xmlns:projectexplorer="http://www.sap.com/adt/projectexplorer">',
+  '  <projectexplorer:node nodeid="1" objecttype="PROG/P" objectname="ZWCAHN_0001"/>',
+  '  <projectexplorer:node nodeid="2" objecttype="FUGR/F" objectname="SAPLZWCAHNFG_0001"/>',
+  '  <projectexplorer:node nodeid="3" objecttype="SPRX/3" objectname="PROXIES"/>',
+  '  <projectexplorer:node nodeid="4" parentid="3" objecttype="WEBI/3I" objectname="ZEFI_CARD"/>',
+  '</projectexplorer:objectstructure>',
+].join('\n');
+
+const UNRELATED_TREE =
+  'tree:\n' +
+  '- PROG/P: ZWCAHN_0001\n' +
+  '- FUGR/F: SAPLZWCAHNFG_0001\n' +
+  '- SPRX/3: PROXIES\n' +
+  '  - WEBI/3I: ZEFI_CARD\n';
+
+describe('D159 — 뿌리 어디에도 요청한 오브젝트가 없으면 트리 앞에 WARNING 한 줄', () => {
+  it('대상이 깊은 곳에만 있어도 경고한다 — 트리 자체는 한 글자도 바뀌지 않는다', async () => {
+    const { outcome } = await call({ objecttype: 'WEBI/3I', objectname: 'ZEFI_CARD' }, () => ({
+      status: 200,
+      body: UNRELATED_XML,
+    }));
+
+    expect(outcome.isError).toBe(false);
+    expect(outcome.text).toBe(
+      'WARNING: no top-level node is the requested object WEBI/3I ZEFI_CARD — ' +
+        'the structure service probably does not support this object type and returned an unrelated tree. ' +
+        'Do not read this tree as the structure of ZEFI_CARD.\n' +
+        UNRELATED_TREE,
+    );
+    expect(outcome.text.startsWith('WARNING:')).toBe(true);
+  });
+
+  it('이름이 같아도 종류가 다르면 경고한다', async () => {
+    const { outcome } = await call({ objecttype: 'PROG/P', objectname: 'ZCL_ONE' }, () => ({
+      status: 200,
+      body: SINGLE_NODE_XML,
+    }));
+
+    expect(outcome.text.startsWith('WARNING: no top-level node is the requested object PROG/P ZCL_ONE')).toBe(true);
+    expect(outcome.text.endsWith('tree:\n- CLAS/OC: ZCL_ONE\n')).toBe(true);
+  });
+
+  it('고아 뿌리가 함께 와도 요청한 오브젝트가 뿌리에 있으면 경고하지 않는다', async () => {
+    const { outcome } = await call({ objecttype: 'DDLS/DF', objectname: 'zi_demo' }, () => ({
+      status: 200,
+      body: XML,
+    }));
+
+    expect(outcome.text).toBe(OLD_ENGINE_TREE_TEXT);
   });
 });
 

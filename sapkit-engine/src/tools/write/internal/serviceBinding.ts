@@ -215,6 +215,48 @@ export function publicationJob(
   });
 }
 
+const jobMessageParser = new XMLParser({
+  ignoreAttributes: true,
+  parseTagValue: false,
+  trimValues: true,
+});
+
+/**
+ * 발행/발행취소 작업 응답에서 **`SEVERITY`가 `ERROR`인 메시지**의 문구를 모은다 (D157).
+ *
+ * 작업 응답은 HTTP 200으로 오고 본문(`application/vnd.sap.as+xml` — `asx:abap > asx:values >
+ * DATA`)에 판정을 싣는다. Customizing 클라이언트(`T000-CCCATEGORY='C'`)에서는
+ * `SEVERITY: ERROR` · `LONG_TEXT: (Un-)Publishing of SRVB … in Customizing Client not allowed`가
+ * 와도 구는 `success: true`로 접었다(실측 · `sapkit-feedback.md` 2026-09-17). 문구는 `LONG_TEXT`를
+ * 먼저, 없으면 `SHORT_TEXT`를 쓴다. **`WARNING` 등 다른 등급은 모으지 않는다** — 그 응답은 여전히
+ * 성공이다. 본문을 XML로 읽지 못하면 빈 배열(판정하지 않는다 — 구 그대로의 성공).
+ */
+export function publicationJobErrors(body: string): string[] {
+  if (!body) return [];
+  let parsed: unknown;
+  try {
+    parsed = jobMessageParser.parse(body);
+  } catch {
+    return [];
+  }
+  const texts: string[] = [];
+  const visit = (node: unknown): void => {
+    if (Array.isArray(node)) {
+      node.forEach(visit);
+      return;
+    }
+    if (node === null || typeof node !== 'object') return;
+    const record = node as Record<string, unknown>;
+    if (String(record['SEVERITY'] ?? '').trim().toUpperCase() === 'ERROR') {
+      const text = stringOrUndefined(record['LONG_TEXT']) ?? stringOrUndefined(record['SHORT_TEXT']);
+      texts.push(text ?? '(no message text)');
+    }
+    Object.values(record).forEach(visit);
+  };
+  visit(parsed);
+  return texts;
+}
+
 // ── 생성 사슬의 조각 ────────────────────────────────────────────────────────
 
 /** 종류 목록에서 `이름:설명:데이터` 집합을 뽑는다 — 벤더 `:64-84`. */

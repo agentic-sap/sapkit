@@ -3777,4 +3777,302 @@ blocklist·무접속 어휘)은 그대로이며 구 번들 대상으로도 26/26
 **정직 유보**: 제품 번들(`interactive/server/server.bundle.cjs`)에는 아직 없다 — 재번들은
 통합 단계의 몫이다. 엔진 소스·`dist/server.bundle.cjs`까지가 이 분담의 확인 범위다.
 
+## 실사용 교훈 승격 5차 — 생성·바인딩·구조·텍스트풀 (append · 2026-10-08 · D-152 · 분담 B)
+
+근거 원문은 `C:\Users\hjaew\.claude\sapkit-feedback.md`(사용자 피드백 누적 · 최신이 위)의
+2026-09-09(3차)~2026-09-18 항목과, 실사용 프로젝트 `.sapkit/LESSONS.md`의 2026-10-07 항목
+(L-007 텍스트풀 414 · L-010 대형 소스 절단)이다. **이 절의 항목은 하나도 SAP 실기로 확인되지
+않았다** — 전부 오프라인 계약 시험까지이고 「지음 · 증거 대기」다. 같은 시각에 분담 A가
+`src/server/`(모르는 인자 거부 · D155)를 고치고 있으므로 그 디렉터리는 여기서 손대지 않았다.
+이 절의 번호대는 **D156~D163**이다.
+
+### D156 — `CreateServiceDefinition`이 `source_code`를 **써 넣고** 검사한다 · 없으면 빈 껍데기에서 멈춘다 (수리 · 백로그 13-4의 SRVD 갈래)
+
+**분류**: 수리 · **도구**: `CreateServiceDefinition`
+
+**구는 이렇게 한다.** 발행 스키마에 `source_code`가 있고 설명도 그것을 받는다고 말하지만,
+사슬(검증 → 언어 → 껍데기 생성 → 검사 → 활성화)이 그 값을 **한 번도 보내지 않았다** — 구
+벤더 `create.js`가 인자를 읽지 않던 것을 그대로 옮긴 것이다(`createServiceDefinition.ts`
+머리주석 · 이 장부가 지금까지 「차이가 아니다」로 둔 자리). 그래서 검사가 겨누는 것은 언제나
+**방금 만든 빈 비활성 판**이고, S/4 7.57에서는 소스를 줬든 안 줬든
+`preCheck syntax check failed (1 error): [L1] Illegal syntax. Malformed service definition`으로
+실패했다. **오브젝트는 남았다** — 같은 이름으로 다시 부르면 `already exists`로 헛돈다
+(피드백 2026-09-17 · 2026-07-29 · attended 녹화 `fixtures/attended-only/zsapkit63-rap-bdef-bimp-service.json`
+10단계). 피드백의 가설(「아직 없는 오브젝트를 검사한다」)은 절반만 맞다 — 오브젝트는 있고,
+**비어 있다.**
+
+**신은 이렇게 한다.** 껍데기 생성(③) 뒤가 둘로 갈린다.
+
+- ⓐ `source_code`가 있으면 **잠금 → PUT → 쓴 판 검사 → 해제 → (활성화)**. `UpdateServiceDefinition`의
+  몸통을 `internal/serviceDefinition.ts`의 `writeAndCheckServiceDefinitionSource` ·
+  `activateServiceDefinition`으로 떼어 내 두 도구가 **같은 함수**를 쓴다(Update의 요청·응답은
+  바이트 그대로 — 기존 시험이 그대로 통과한다). 응답에 `activated`가 붙고 `steps_completed`가
+  `validate · create · lock · update · check · unlock · (activate)`가 된다.
+- ⓑ 없으면(빈 문자열 포함) **껍데기에서 멈춘다** — 검사·활성화를 보내지 않고(`activate:true`여도)
+  `success:true · activated:false · steps_completed:[validate, create]`에 「빈 정의는 검사를
+  통과할 수 없다 — `UpdateServiceDefinition`으로 소스를 넣으라」를 문구로 싣는다.
+- ⓒ 껍데기 **뒤** 단계(PUT · 검사 · 활성화)가 실패하면 오류 문구 끝에 「오브젝트는 이미 SAP에
+  있다(비활성) — `CreateServiceDefinition`을 다시 부르지 말고 `UpdateServiceDefinition`으로
+  이어 가라」를 붙인다(`shellLeftNote`). 이때 PUT의 409를 「이미 있다(지우라)」로 접지 않는다 —
+  그 판정은 **생성 요청의** 것이고, 방금 만든 오브젝트를 지우라고 시키게 된다.
+- **자동 삭제(롤백)는 하지 않는다.** 쓰기를 하나 더 하는 일이고, 남은 비활성 판에 호출자의 소스가
+  들어 있을 수 있다.
+
+**구와 바이트가 같은 것**: 생성 페이로드(소스 자리가 원래 없다) · 검증·언어 조회 · 검사의 Accept
+없음 · 활성화 판정 · 「이미 있다」 문구(생성 요청의 409/본문일 때).
+
+**대체 기대 시험**: `src/tools/write/__tests__/createServiceDefinition.test.ts` — 「D156 ⓐ·ⓑ·ⓒ」
+표기 시험 8건(소스 없는 세 요청 · `activate:true`여도 멈춤 · 소스 있는 여덟 요청과 PUT 본문·잠금
+손잡이 · 빈 껍데기 응답 전문 · 검사 실패 안내 · 안내 문구 · PUT 409 · 생성 실패에는 안내 없음) +
+기존 시험의 소스 갈래 개작(검사 Accept · `activate:false` · 응답 전문 · 활성화 실패).
+`updateServiceDefinition.test.ts`는 손대지 않고 그대로 통과한다(추출이 동작을 바꾸지 않았다는 증거).
+
+**기계 장부 반영**: 했다(D156). 성공 갈래 — 소스가 있으면 `activated`·`steps_completed`만 갈렸는지,
+없으면 거기에 `message`·`activation_warnings`를 더한 키만 갈렸고 신이 껍데기에서 멈췄다고 말하는지.
+구가 **껍데기 뒤에서** 실패한 갈래(`preCheck syntax check failed` · `Service definition activation failed`)
+— 소스가 없었으면 신은 껍데기에서 멈춘 성공이어야 하고, 있었으면 성공이거나 안내를 실은 실패여야
+한다. 생성 요청 자체의 실패는 등재 밖이다.
+
+**실기에서 확인할 것** — ① 소스를 준 생성이 S/4 7.57에서 한 번에 활성까지 서는지(`UpdateServiceDefinition`
+경로는 피드백 09-17 ⑤에서 이미 섰다 — 같은 요청이다) ② 소스 없는 생성이 남긴 껍데기에 Update가
+그대로 붙는지 ③ attended 녹화 `zsapkit63` 10단계 재생에서 D156이 판정하는지.
+
+**B1b 조사 — 같은 모양은 SRVD 하나뿐이다.** 채록본에서 소스 인자를 싣는 `Create*`는
+`CreateServiceDefinition`·`CreateInclude` 둘이다. `CreateInclude`는 생성 뒤 잠금 → PUT으로 소스를
+**실제로 써 넣고**, 그 쓰기가 실패하면 「Include created, but inline source_code write failed … Use
+UpdateInclude to retry」를 이미 말한다(`createInclude.ts` — D156 ⓒ와 같은 모양 · 문제없음). 함께 본
+나머지 둘은 **모양이 달라 코드를 고치지 않았다(등재만)**:
+
+- `CreateMetadataExtension` — 발행 스키마에 소스 인자가 **아예 없다.** 그런데 사슬이 같은
+  자리(껍데기 생성 → 잠금 → **빈 판 검사** → 해제 → 활성화)를 타므로, 빈 DDLX가 검사를 통과하지
+  못하는 시스템에서는 SRVD와 같은 「실패인데 오브젝트가 남는」 증상이 난다(피드백 2026-07-29 —
+  두 도구를 함께 적었다). 고치는 길은 D156 ⓑ와 같다(검사·활성화를 건너뛰고 `UpdateMetadataExtension`으로
+  넘긴다) — 이 판의 범위(「같은 모양이면 고친다」) 밖이라 **후보로만 둔다.**
+- `CreateBehaviorDefinition` — 소스 인자가 없고(`root_entity`·`implementation_type`만), SAP이 생성하는
+  **템플릿**을 만든다(피드백 2026-09-18 — 호출자가 넘긴 `source`는 채록본에 없는 인자라 조용히
+  버려졌다). 덧말로만 다룬다(이 절 「설명문 이정표」).
+
+### D157 — `UpdateServiceBinding`이 발행 작업 응답의 **`SEVERITY: ERROR`**를 성공으로 접지 않는다 (수리)
+
+**분류**: 수리 · **도구**: `UpdateServiceBinding`
+
+**구는 이렇게 한다.** 발행/발행취소 작업(`POST …/{odatav2|odatav4}/{publish|unpublish}jobs`)은
+거부할 때도 **HTTP 200**으로 답하고 본문(`application/vnd.sap.as+xml` — `asx:abap > asx:values >
+DATA`)에 판정을 싣는다. 구는 그 본문을 `payload`로 옮겨 싣고 `success: true`를 냈다. Customizing
+클라이언트(`T000-CCCATEGORY='C'`)에서 발행하자 `success: true`와 `payload`의 `SEVERITY: ERROR` ·
+`LONG_TEXT: (Un-)Publishing of SRVB … in Customizing Client not allowed`가 **함께** 왔다 — 반환값
+한 줄만 보면 성공으로 읽힌다(피드백 2026-09-17 · `rap-odata-rules`의 `publishing_in_custom_client`와
+일치).
+
+**신은 이렇게 한다.** 작업을 **실제로 보낸** 갈래에서 본문을 XML로 읽어, 어느 깊이든
+`SEVERITY`가 `ERROR`(대소문자 무시)인 마디가 하나라도 있으면 도구 오류로 답한다(`internal/serviceBinding.ts`
+`publicationJobErrors`). 문구는
+`Error: The {publish|unpublish} job for service binding {이름} reported SEVERITY ERROR: {LONG_TEXT — 없으면 SHORT_TEXT, 여럿이면 ' | '로} . Do not assume the binding is {상태}: read it back with GetServiceBinding (srvb:published). Payload: {payload JSON}`
+이고, `payload`는 성공 응답이 싣던 것과 **같은 것**(`response_format`대로의 파싱본 또는 원문)이다.
+`WARNING` 등 다른 등급은 그대로 성공이다. ①의 읽기 응답을 답으로 쓰는 갈래(`unchanged` · 이미
+발행됨)는 작업 응답이 아니므로 판정하지 않는다. 본문을 XML로 읽지 못하면 판정하지 않는다(구 그대로의 성공).
+
+**대체 기대 시험**: `src/tools/write/__tests__/updateServiceBinding.test.ts` — 「D157 — 작업 응답이
+SEVERITY ERROR면 200이어도 도구 오류다」 6건(발행 · 발행취소의 SHORT_TEXT 대체 · `plain` 원문 payload ·
+WARNING은 성공 · `unchanged`는 판정 없음 · 여러 메시지 중 ERROR만). **채록된 작업 응답이 레포에 없어**
+본문은 피드백의 실측 문구로 합성했다.
+
+**기계 장부 반영**: 했다(D157 — 구가 SEVERITY ERROR 본문을 성공으로 접은 갈래만 든다). ⚠ **D148과의
+겹침을 여기서 푼다** — D148의 `applies`는 `UpdateServiceBinding`의 성공 갈래 **전부**를 들었다. 이제
+그중 SEVERITY ERROR 본문을 실은 것은 신이 오류로 답하므로 D148의 「두 키만 늘었나」 검사가 「오류로
+답했다」로 떨어진다. 그래서 D148의 `applies`에서 그 자리를 **뺐다**(사람용 D148 본문은 그대로다 — 이
+문단이 그 축소의 기록이다).
+
+**실기에서 확인할 것** — ① 실제 작업 응답 본문의 모양(마디 이름이 `SEVERITY`·`LONG_TEXT`·`SHORT_TEXT`인지,
+메시지가 여럿일 때 어떻게 오는지 — 합성 본문은 피드백이 옮겨 적은 키 이름에 기댄다) ② Customizing
+클라이언트에서 도구 오류로 오는지 ③ 경고만 있는 정상 발행이 여전히 성공인지.
+
+### D158 — `ValidateServiceBinding`이 검증 GET의 **405**에 같은 질의로 POST를 한 번 보낸다 (수리 · **실기 미검증**)
+
+**분류**: 수리 · **도구**: `ValidateServiceBinding`
+
+**구는 이렇게 한다.** `GET /sap/bc/adt/businessservices/bindings/validation?objname=…&serviceDefinition=…`
+하나를 보내고(벤더 `AdtService.js:446-462`), 실패는 그대로 올린다. S/4HANA 7.57에서 그 GET이
+`HTTP 405 Method Not Allowed` · `Resource controller does not support method GET`으로 답했다 — 이
+시스템에서 도구가 **쓸 수 없었다**(피드백 2026-09-18 「S/4에서 못 쓰는 경로들」 ②).
+
+**신은 이렇게 한다.** GET이 **405일 때만** 같은 질의 인자·같은 Accept로 **본문 없는 POST**를 한 번
+보내고 그 답을 같은 모양(`success · service_binding_name · status · payload`)으로 싣는다. POST의 실패는
+그대로 올라가고(세 번째 요청은 없다), 405가 아닌 실패(404·400·500)는 다시 묻지 않는다. GET이 되는
+시스템은 구와 요청·응답이 바이트로 같다. POST가 끼면 접속 계층이 CSRF 토큰을 먼저 긁는다(상태 변경
+메서드의 공통 규칙).
+
+**`kind: 'read'`는 유지한다.** 검증 엔드포인트는 이름·정의·패키지가 성립하는지 **답만** 하는 질의이고,
+POST도 본문 없이 같은 질의를 싣는다. 이 엔진에서 읽기 도구가 POST를 타는 것은 처음이 아니다
+(`CheckSyntax`·`GetAtcFindings`·`GetObjectInfo`). **POST를 막는 거름망이 없음을 확인했다** — 접속
+계층(`src/adt/client.ts`)은 메서드로 읽기/쓰기를 가르지 않고(`MUTATING_METHODS` — POST·PUT·DELETE·PATCH에
+CSRF 선행 조회만 한다),
+`src/safety`의 tier·blocklist 게이트는 도구 이름과 `kind`를 보지 HTTP 메서드를 보지 않는다.
+
+**대체 기대 시험**: `src/tools/read/__tests__/validateServiceBinding.test.ts` — 「D158 — 검증 GET이
+405면 같은 질의 인자로 POST를 한 번 보낸다」 4건(405 → POST 성공 · POST 실패는 POST의 것 · 405가 아닌
+실패는 재시도 없음 · GET 성공이면 POST 없음).
+
+**기계 장부 반영**: 했다(D158 — 구가 405로 죽은 오류 갈래만. 신이 성공이거나 POST의 실패로 끝나면
+통과, **GET 405로 그대로 죽으면** 실패).
+
+**실기에서 확인할 것 — 이 항목은 짐작 위에 서 있다.** ① 이 자원이 POST를 받는지(받지 않으면 신은 POST의
+405를 올린다 — 구보다 나빠지지는 않는다) ② 받는다면 **본문을 요구하는지**(요구하면 400류가 올 것이다 —
+그때는 본문 모양을 채록해야 한다) ③ POST 응답의 모양이 GET이 되던 시스템의 응답과 같은지. 405 갈래에서만
+돌게 한 것이 이 불확실성의 울타리다.
+
+### D159 — `GetObjectStructure`가 뿌리에 요청한 오브젝트가 없는 트리 앞에 **`WARNING:` 한 줄**을 붙인다 (수리)
+
+**분류**: 수리 · **도구**: `GetObjectStructure`
+
+**구는 이렇게 한다.** `GET /sap/bc/adt/repository/objectstructure?objecttype=…&objectname=…`의 평평한
+노드 목록을 트리로 세워 `tree:\n…`로 낸다. 노드가 하나도 없을 때만 오류다. 구조 서비스가 그 종류를
+**모르면 오류가 아니라 무관한 트리**로 답할 수 있다 — `GetObjectStructure(objecttype='WEBI/3I',
+objectname='ZEFI_CARD')`에 `PROG/P ZWCAHN_*` · `FUGR/F` · `PROG/I` 수십 개 · `TRAN/T` 같은 `$TMP` 언저리의
+무관한 뿌리들이 오고, 요청한 오브젝트는 `SPRX/3 > WEBI/3I > ZEFI_CARD` 한 줄로만 깊은 곳에 있었다
+(피드백 2026-09-09 3차). 구는 그것을 성공으로 냈고, 읽는 쪽이 「이 오브젝트의 구조」로 오해할 자리였다.
+
+**신은 이렇게 한다.** 뿌리 가운데 요청한 오브젝트(이름은 대소문자 무시 · 타입은 `/` 앞 주 부분 —
+`CLAS`로 물어 `CLAS/OC`가 와도 같은 것)가 **하나도 없으면** `tree:` 앞에
+`WARNING: no top-level node is the requested object {타입} {이름} — the structure service probably does not support this object type and returned an unrelated tree. Do not read this tree as the structure of {이름}.`
+한 줄을 붙인다. **트리 자체와 정상 출력은 한 글자도 바뀌지 않는다**(구 엔진 출력 그대로인
+`OLD_ENGINE_TREE_TEXT` 시험이 그대로 통과한다 — 고아 뿌리가 함께 와도 요청한 오브젝트가 뿌리에 있으면
+경고하지 않는다). 성공/오류 판정은 바꾸지 않았다 — 무관한 트리에도 쓸 정보가 있을 수 있고(예: 대상이
+어디 매달려 있는지), 판정을 바꿀 근거(그 종류의 지원 여부)를 이 판이 갖고 있지 않다.
+
+**대체 기대 시험**: `src/tools/read/__tests__/getObjectStructure.test.ts` — 「D159 — 뿌리 어디에도 요청한
+오브젝트가 없으면 트리 앞에 WARNING 한 줄」 3건(대상이 깊은 곳에만 · 이름이 같아도 종류가 다름 · 고아
+뿌리와 함께여도 대상이 뿌리면 무경고) + 「트리 조립」의 정상 출력 무경고 1건(타입 주 부분 · 대소문자).
+
+**기계 장부 반영**: 했다(D159 — 구 성공 트리의 뿌리에 요청한 오브젝트가 없던 단계만. 신이 「`WARNING:`
+한 줄 + 구와 글자까지 같은 트리」면 통과). 재생 픽스처에 이 도구의 단계는 지금 없다.
+
+**실기에서 확인할 것** — ① `WEBI/3I`에서 실제로 경고가 붙는지 ② 정상 종류(DDLS·CLAS·PROG)의 뿌리가
+늘 요청한 오브젝트인지 — 아니라면(예: 뿌리가 패키지로 오는 종류가 있다면) 이 경고는 오탐이 되고, 그
+종류를 판정에서 빼야 한다. 그 확인 전까지 경고는 **한 줄 덧붙임**일 뿐 판정을 바꾸지 않는다.
+
+### D160 — OData RFC 통로의 **HTTP 414**가 무엇이 왜 넘쳤는지와 갈 길을 말한다 (진단 문구 · 기계 장부 밖)
+
+**분류**: 수리(진단 문구) · **자리**: `src/rfc/odata.ts`(`uriTooLongFailure`) · **닿는 도구**: `odata` 통로를 타는
+RFC 도구 전부 — 실제로 넘치는 것은 텍스트풀 쓰기 셋(`WriteTextElementsBulk`·`CreateTextElement`·`UpdateTextElement`)이다.
+
+**구는 이렇게 한다.** `odata` 통로(기본값)는 FunctionImport 인자를 **전부 URL 질의 문자열에** 싣는다
+(`POST {service}/Textpool?IV_ACTION='WRITE'&…&IV_TEXTPOOL_JSON='<풀 전체 JSON>'` — 구 `odataRfc.ts`와 같은 계약).
+텍스트풀 쓰기는 FM `ZSAPKIT_ADT_TEXTPOOL`이 `INSERT TEXTPOOL`로 **풀 전체를 갈아 끼우므로** 세 도구 모두 풀 전체를
+보내고(`replace_existing=false`의 병합도 READ 뒤 합친 전체를 보낸다), 한글 1자가 퍼센트 인코딩으로 9바이트가 되어
+몇십 행이면 URL 한도를 넘는다. 실측 — 한국어 53행 ≈ 9.5KB 통과 · 64행 ≈ 11.5KB `HTTP 414 URI Too Long` · 134행 ≈ 26KB
+(실사용 `.sapkit/LESSONS.md` L-007 · 2026-09-17 · 2026-10-07). 구의 오류는 일반 HTTP 실패 문구
+(`FunctionImport Textpool이(가) HTTP 414로 응답했다 (POST <URL>): …`)였고, **그 `<URL>`이 넘친 수십 KB짜리 주소
+그대로**라 읽는 쪽이 원인을 찾기 어려웠다.
+
+**신은 이렇게 한다.** 414**만** 따로 문구를 짓는다(오류의 종류·상태·`url`·`rawBody` 필드는 그대로 — `kind:'http'`).
+문구에 URL을 싣지 않고 길이만 싣는다. `Textpool`이면 「풀 JSON 전체가 URL에 들어간다 · 몇십 행의 비ASCII로 충분하다 ·
+쓰기는 언제나 풀 전체라 나눠 쓰기는 소용없다 · abapGit ZIP 프로그램 XML의 `TPOOL`(다른 언어는 `I18N_TPOOL`)로 쓰거나
+본문에 싣는 통로로 바꾸라」를, 다른 FunctionImport(`Dispatch`·`DdicTablRead`)면 일반 문구(「인자가 이 통로에 너무
+크다 — 본문에 싣는 통로를 쓰라」)를 싣는다. **본문 통로 넷은 `src/rfc/*.ts`에서 확인했다** — `soap`(봉투 본문을
+`/sap/bc/soap/rfc`로 POST · 추가 env 없음) · `native`(SAP NW RFC SDK의 함수 호출 인자) · `gateway`(JSON 본문 →
+`SAP_RFC_GATEWAY_URL`) · `zrfc`(JSON 본문 → SAP 쪽 ICF 처리기 · `SAP_RFC_ZRFC_BASE_URL`). 넷 다 `callTextpool`이 같은
+네 인자를 본문(또는 RFC 인자)으로 보낸다. abapGit 우회는 L-007이 실기로 확인했다(134행×2 → pull → `ReadTextElementsBulk`
+한국어 134행).
+
+**대체 기대 시험**: `src/rfc/__tests__/odata.test.ts` — 「D160 — HTTP 414(URI Too Long)는 무엇이 왜 넘쳤는지와 갈 길을
+말한다」 3건(Textpool 문구 전문 · URL 미포함 · 다른 FunctionImport는 일반 문구 · 414가 아닌 실패 문구는 그대로).
+
+**기계 장부 밖이다** — 진단 문구의 차이이고, 오류 갈래는 D13(문구는 느슨히, 상태·코드는 엄격히)이 다룬다. D144·D146과
+같은 가름선이다.
+
+**실기에서 확인할 것** — 414가 Gateway에서 실제로 이 모양(상태 414 · 본문 HTML)으로 오는지(앞단 웹 디스패처가 다른 상태로
+끊으면 이 문구는 안 뜬다). 대안 통로 넷 중 이 시스템에서 실제로 서는 것이 무엇인지는 이 판이 확인하지 않았다.
+
+### D161 — 텍스트풀 쓰기 셋이 **414**와 **선택 텍스트 앞 8자 예약 영역**을 설명에서 말한다 (설명 계약 보강 · 동작 무변경 · 기계 장부 밖)
+
+**분류**: 설명 계약 보강(덧말) · **도구**: `WriteTextElementsBulk`·`CreateTextElement`·`UpdateTextElement`
+(덧말 한 벌을 셋이 함께 쓴다 — `internal/textPool.ts` `TEXT_POOL_WRITE_AMENDMENT`)
+
+**① 414 — 설명이 말하지 않던 한계.** 기본 `odata` 통로가 풀 전체를 URL에 싣는다는 것, 쓰기가 언제나
+풀 전체라 나눠 쓰기가 소용없다는 것, 우회가 abapGit ZIP(`TPOOL`·`I18N_TPOOL`)이나 본문 통로라는 것 —
+D160의 오류 문구가 사후에 말하는 것을 **사전에** 말한다. 근거는 D160과 같다(L-007 · 실사용 규칙
+R-007이 이미 「수십 행이면 이 도구들로 쓰지 마라」로 승격해 둔 내용).
+
+**② 선택 텍스트(S)의 앞 8자 — 조사 결과(디스패치 B6).** 동작은 바꾸지 않았고 사실만 덧말에 적었다.
+
+- **SAP 쪽 규약**: `TEXTPOOL-ENTRY`가 선택 텍스트(`ID = 'S'`)일 때 **앞 8자는 예약 영역**이고 라벨은
+  **9자째부터**다. 예약 영역 1자째가 `D`면 그 텍스트를 사전(데이터 엘리먼트)에서 가져온다.
+- **엔진은 채우지도 떼지도 않는다**: `WriteTextElementsBulk` `normalizeEntry` → `ENTRY: text ·
+  LENGTH: text.length`, `CreateTextElement`·`UpdateTextElement` → `ENTRY: args.text · LENGTH:
+  args.text.length`. 길이 검사 `MAX_ENTRY_LEN`(132)도 보낸 글자 그대로를 센다 — 예약 8자가 그 안에 든다.
+- **FM도 채우지 않는다**: `ZSAPKIT_ADT_TEXTPOOL`(동봉 자산 `interactive/server/sap-assets/zsapkit_adt_textpool.abap`)의
+  WRITE는 `/ui2/cl_json=>deserialize` → `INSERT TEXTPOOL`이고 `ENTRY`를 손대지 않는다.
+- **그래서 예약 영역은 호출자 몫이다** — `'Plant'`를 보내면 다섯 글자 전부가 예약 영역에 들어가 라벨이
+  비어 보이고, `D`로 시작하는 라벨은 사전 참조로 읽힐 수 있다. 평범한 라벨은 공백 8자 + 라벨,
+  사전 참조는 `D` + 공백 7자다.
+- **abapGit 직렬화는 이 영역을 따로 뗀다**: SAP에서 내보낸 abapGit 프로그램 XML의 `S` 항목은
+  예약 영역을 `SPLIT` 필드로 분리하고 `ENTRY`에는 라벨만 둔다(로컬 표본 — `<ENTRY>.</ENTRY> ·
+  <LENGTH>9</LENGTH> · <SPLIT>D</SPLIT>`, `<ENTRY>TCODE</ENTRY> · <LENGTH>13</LENGTH>`).
+  **`LENGTH`가 8 + 라벨 길이**인 것이 「예약 8자가 행 안에 있다」의 직접 증거다. 덧말이 「abapGit XML에서는
+  `SPLIT` 필드」라고 따로 적은 이유 — D160·①이 우회로 abapGit ZIP을 권하므로, 그쪽으로 옮겨 간 호출자가
+  공백 8자를 `ENTRY`에 그대로 넣으면 안 된다.
+
+**대체 기대 시험**: 덧말 자체는 게이트(`gates/surface.mjs` — 원문 + 덧말 = 발행 문구)와 세 도구의 발행 계약
+시험이 잰다. 「보낸 그대로」라는 주장은 `writeTextElementsBulk.test.ts` 「D161 — 선택 텍스트(S)는 보낸
+글자 그대로 나간다」 1건이 고정한다(맨 라벨 · 공백 8자 + 라벨 · `D` + 공백 7자 + 라벨 세 행의 `ENTRY`·`LENGTH`).
+자동 패딩을 넣는 날 그 시험이 먼저 깨져 덧말도 함께 고치게 된다.
+
+**자동 패딩은 후보로만 둔다(짓지 않았다).** 「`S`인데 앞 8자가 공백도 `D`+공백도 아니면 공백 8자를 앞에 붙인다」가
+후보 모양이다. 짓지 않은 까닭 — ⓐ 디스패치가 동작 변경을 막았다 ⓑ 이미 예약 영역을 넣어 보내는 호출자(바르게 쓰던
+쪽)를 깨지 않으려면 「이미 들어 있는가」 판정이 필요한데, 라벨이 우연히 공백 8자로 시작하는 경우와 가를 길이 없다
+ⓒ `ReadTextElementsBulk`가 돌려주는 `S` 행은 예약 영역을 품은 채라서, 읽은 것을 그대로 되쓰는 흐름(병합 모드 ·
+Create/Update의 READ → WRITE)과 두 겹 패딩이 부딪치지 않는지 실기로 봐야 한다.
+
+**기계 장부 밖이다** — 설명문만의 변경이라 재생 대조에 나타나지 않는다(D-145·D-147의 덧말과 같은 지위).
+
+**실기에서 확인할 것** — ① `/ui2/cl_json=>deserialize`가 문자열 앞 공백을 `ENTRY`(CHAR)에 그대로 두는지(지운다면
+이 도구들로는 예약 영역을 넣을 길이 없다 — 덧말이 틀리게 된다) ② 공백 8자 + 라벨로 쓴 선택 텍스트가 선택 화면에
+라벨로 뜨는지 ③ READ의 `serialize`가 앞 공백을 보존하는지.
+
+### 설명문 이정표 — 덧말표에 더한 것 (D-152 · 분담 B)
+
+재생 대조에 나타나지 않는 **설명문만의** 변경이다(D-145·D-147의 덧말과 같은 지위). 덧말 전문은
+`harness/old-surface/amendments.json`이 정본이다. 도구 이름 집합·`required`는 바뀌지 않았다(덧말은
+`descriptions`에만 더했고 `inputSchema` 덧인자는 없다).
+
+| 도구 | 덧말의 요지 | 근거 |
+|---|---|---|
+| `CreateServiceDefinition` · `UpdateServiceBinding` · `GetObjectStructure` | 위 D156·D157·D159의 계약 | — |
+| `WriteTextElementsBulk` · `CreateTextElement` · `UpdateTextElement` | 위 D161 — 414(풀 전체가 URL · 나눠 쓰기 무용 · abapGit `TPOOL`/`I18N_TPOOL` 또는 본문 통로) · 선택 텍스트 앞 8자 예약 영역(보낸 그대로 저장 · abapGit은 `SPLIT`) | L-007 · 디스패치 B6 |
+| `GetTableContents` | 필터 인자가 없다 — 언제나 모든 열 · 앞에서부터 `max_rows`(기본 100) · 순서 보장 없음. WHERE·열 선택·정렬은 `GetSqlQuery` | 피드백 2026-09-18(`where_clause`가 조용히 무시되어 「조건에 맞는 행이 없다」로 오판) — 모르는 인자를 거부하는 분담 A의 D155와 짝 |
+| `CreateBehaviorDefinition` | SAP이 이름·`implementation_type`으로 만드는 **템플릿**이다 — `root_entity`는 필수지만 와이어에 안 나간다(머리주석의 실측) · alias·mapping·필드 제어·액션·draft 없음 · 소스를 넘길 자리 없음 → `UpdateBehaviorDefinition(source_code)`로 쓰고 `ReadBehaviorDefinition`으로 되읽으라 · 템플릿이 가리키는 구현 클래스가 없어도 활성화가 성공한 시스템이 있었다 | 피드백 2026-09-18(`source` 인자가 조용히 버려지고 템플릿이 `created and activated`로 돌아왔다) |
+| `CheckSyntax`(기존 D149 덧말에 이어 붙임) | ⓐ `source_code`는 도구 호출에 옮겨 쓰는 것이라 큰 소스(약 100KB 이상)는 끊긴 채 도착할 수 있고, 그때 오류는 끊긴 줄을 가리킨다 → 바꾼 문장만 작은 프로그램으로 검사하고, 쓴 뒤에는 `source_code` 없이 저장된 판을 검사하라 ⓑ include를 쓴 **같은 세션**에서 바로 나는 `INCLUDE report … not found`는 믿지 말고 `ReloadProfile` 뒤 다시 검사하라(원인 미상) | ⓐ L-010(152,755바이트 · 4,973줄 → 1281행에서 끊김 · 「마침표 누락」) ⓑ 실사용 프로젝트 인계 기록(2026-09-21 — `ReloadProfile` 뒤 같은 소스가 clean) |
+
+`CreateBehaviorDefinition` 덧말의 「구현 클래스가 없어도 활성화가 성공했다」는 attended 녹화
+`zsapkit63-rap-bdef-bimp-service`의 4단계 메모(「여기서 활성화하면 **반드시 실패한다**(T4 정찰 실측)」)와
+**어긋난다.** 둘 다 실측이고 시스템·템플릿(`strict ( 1 )` 여부 등)이 달랐을 수 있다. 그래서 덧말은 「한 시스템에서
+성공했다 — 그러니 활성화 성공을 완료로 읽지 마라」까지만 말하고, 언제 실패하는지는 단정하지 않았다.
+
+시험 조각 넷이 원문을 직접 견주고 있어 `applyAmendments`를 거치게 했다(`amendments.json` `_consumers`에 적음):
+`rfcToolSupport.ts` `publishedDeclaration`(텍스트·화면·GUI 상태 묶음 — 덧말이 있는 것은 텍스트 쓰기 셋뿐) ·
+`behaviorSupport.ts` `expectPublishedDeclaration` · `getTableContents.test.ts` · `createServiceDefinition.test.ts`.
+
+### 등재만 — 코드 무접촉 (조사 결과)
+
+- **`CreateMetadataExtension`의 빈 판 검사**(피드백 2026-07-29) — D156 머리의 B1b 조사 참조. D156 ⓑ와 같은 길
+  (검사·활성화를 건너뛰고 `UpdateMetadataExtension`으로 넘긴다)이 후보다.
+- **선택 텍스트 자동 패딩** — D161 참조. 후보로만 둔다.
+- **`ReadTextElementsBulk`는 덧말을 달지 않았다** — 읽기는 `S` 행의 `ENTRY`를 예약 영역째 돌려주는 것으로 보이나
+  (엔진은 `S` 키만 다듬고 `ENTRY`는 손대지 않는다) `/ui2/cl_json=>serialize`가 앞 공백을 남기는지 확인하지 못해
+  설명에 단정하지 않았다(D161 실기 ③).
+
+### 정직 유보 (이 절 전체)
+
+- **실기 0.** D156~D161 전부 오프라인 계약 시험까지다. 고친 도구는 전부 「지음 · 증거 대기」로 읽어야 한다.
+- **D158(405 → POST)은 짐작 위에 섰다** — 405를 낸 시스템이 POST를 받는지 확인한 적이 없다. 받지 않으면
+  오류 문구만 바뀐다(POST의 실패 — 예컨대 두 번째 405 — 를 그대로 낸다).
+- **D157은 작업 응답의 모양을 피드백 한 건의 인용으로 지었다** — 채록 본문이 없다. 판정을 `SEVERITY`가 아닌
+  다른 이름의 마디에 싣는 시스템이면(깊이는 상관없다 — 트리 전체를 돈다) 판정이 비어 예전처럼 성공으로
+  접힌다(나빠지지는 않는다).
+- **D161의 「보낸 그대로 저장」은 엔진·FM 코드에서 확정한 것이다** — `/ui2/cl_json`이 앞 공백을 지우지 않는다는
+  전제는 실기 미검증이다.
+- **번호 D162·D163은 쓰지 않았다** — 설명문만의 변경을 D-147처럼 이정표 표로 다뤘기 때문이다. 통합자가 다음
+  배정에 돌려 써도 된다.
+
 - **결정 기록**: D-152
