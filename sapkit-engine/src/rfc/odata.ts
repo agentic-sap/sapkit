@@ -259,6 +259,41 @@ class ODataChannel implements RfcChannel, DdicReadChannel {
     });
   }
 
+  /**
+   * HTTP 414(URI Too Long) — 이 통로는 FunctionImport 인자를 **전부 URL 질의 문자열에** 싣는다
+   * (`functionImportUrl`). 텍스트풀 쓰기는 풀 JSON 전체(`IV_TEXTPOOL_JSON`)가 거기 들어가므로
+   * 비ASCII 몇십 행이면 한도를 넘는다(실측: 한국어 53행 ≈ 9.5KB 통과 · 64행 ≈ 11.5KB 거부 —
+   * 실사용 `.sapkit/LESSONS.md` L-007). 무엇이 왜 넘쳤고 어디로 가야 하는지를 말한다 — D160.
+   *
+   * 메시지에 URL을 싣지 않는다 — 넘친 그 URL이 수십 KB다(`url` 필드에는 남는다). 대안은
+   * `src/rfc/*.ts`에서 확인한 것만 든다: `soap`(봉투 본문 → `/sap/bc/soap/rfc`) · `native`(RFC SDK
+   * 호출 인자) · `gateway`(JSON 본문) · `zrfc`(JSON 본문 → ICF 처리기) 넷은 같은 인자를 **본문으로**
+   * 보낸다. 텍스트풀은 거기에 abapGit ZIP 프로그램 XML의 `TPOOL`·`I18N_TPOOL`이 더해진다.
+   */
+  private uriTooLongFailure(actionName: FunctionImportName, url: string, response: HttpResponse): RfcError {
+    const head =
+      `FunctionImport ${actionName} answered HTTP 414 (URI Too Long): SAP_RFC_BACKEND=odata sends every ` +
+      `function-import parameter in the request URL, and this URL was ${url.length} characters long.`;
+    const backends =
+      'soap (ICF /sap/bc/soap/rfc), native (SAP NW RFC SDK), gateway (SAP_RFC_GATEWAY_URL) or zrfc (SAP_RFC_ZRFC_BASE_URL)';
+    const guidance =
+      actionName === 'Textpool'
+        ? ' A text pool write puts the whole pool JSON (IV_TEXTPOOL_JSON) into that URL — a few dozen non-ASCII ' +
+          'entries are enough — and every write rewrites the whole pool, so splitting it into smaller calls does ' +
+          'not help. Write the texts through the abapGit ZIP instead (program XML: TPOOL, I18N_TPOOL for other ' +
+          `languages), or switch SAP_RFC_BACKEND to a backend that sends the pool in the request body: ${backends}.`
+        : ` The parameters are too large for this backend; use one that sends them in the request body: ${backends}.`;
+    return new RfcError({
+      kind: rfcKindFromStatus(response.status),
+      backend: BACKEND,
+      status: response.status,
+      method: 'POST',
+      url,
+      rawBody: truncateBody(response.body),
+      message: head + guidance,
+    });
+  }
+
   /** 캐시된 토큰이 살아 있으면 그대로, 아니면 새로 긁어온다. */
   private async ensureSession(): Promise<CsrfSession> {
     const cached = this.session;
@@ -341,6 +376,7 @@ class ODataChannel implements RfcChannel, DdicReadChannel {
       return this.postFunctionImport(actionName, params, true);
     }
 
+    if (response.status === 414) throw this.uriTooLongFailure(actionName, url, response);
     if (!isSuccess(response.status)) {
       throw this.httpFailure('POST', url, response, `FunctionImport ${actionName}`);
     }

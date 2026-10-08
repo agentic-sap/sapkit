@@ -396,6 +396,59 @@ describe('odata 통로 — CSRF 재시도와 HTTP 오류', () => {
   });
 });
 
+describe('D160 — HTTP 414(URI Too Long)는 무엇이 왜 넘쳤는지와 갈 길을 말한다', () => {
+  const URI_TOO_LONG = { status: 414, body: '<html>414 Request-URI Too Long</html>' };
+  /** 실측(L-007)과 같은 모양 — 한국어 행 수십 개짜리 풀. */
+  const BIG_POOL = JSON.stringify(
+    Array.from({ length: 64 }, (_, index) => ({ ID: 'I', KEY: String(index).padStart(3, '0'), ENTRY: '한국어 텍스트 요소', LENGTH: 9 })),
+  );
+
+  it('Textpool: 풀 전체가 URL에 실린다 · 나눠 쓰기 무용 · abapGit TPOOL과 본문 통로 넷을 이름으로 말한다', async () => {
+    const { channel, spy } = channelWith([csrfIssued(), URI_TOO_LONG]);
+    const error = (await channel
+      .callTextpool('WRITE', { program: 'ZTEST', language: '3', textpoolJson: BIG_POOL })
+      .catch((e: unknown) => e)) as RfcError;
+
+    expect(error).toBeInstanceOf(RfcError);
+    expect(error.status).toBe(414);
+    expect(error.kind).toBe('http');
+    const url = nth(spy.calls, 1).url;
+    expect(error.url).toBe(url);
+    expect(error.message).toBe(
+      'FunctionImport Textpool answered HTTP 414 (URI Too Long): SAP_RFC_BACKEND=odata sends every ' +
+        `function-import parameter in the request URL, and this URL was ${url.length} characters long.` +
+        ' A text pool write puts the whole pool JSON (IV_TEXTPOOL_JSON) into that URL — a few dozen non-ASCII ' +
+        'entries are enough — and every write rewrites the whole pool, so splitting it into smaller calls does ' +
+        'not help. Write the texts through the abapGit ZIP instead (program XML: TPOOL, I18N_TPOOL for other ' +
+        'languages), or switch SAP_RFC_BACKEND to a backend that sends the pool in the request body: ' +
+        'soap (ICF /sap/bc/soap/rfc), native (SAP NW RFC SDK), gateway (SAP_RFC_GATEWAY_URL) or zrfc (SAP_RFC_ZRFC_BASE_URL).',
+    );
+    // 넘친 URL(수십 KB)은 문구에 싣지 않는다 — `url` 필드에만 남는다.
+    expect(error.message).not.toContain('IV_TEXTPOOL_JSON=');
+    expect(url.length).toBeGreaterThan(10000);
+  });
+
+  it('다른 FunctionImport는 일반 문구 — 본문 통로 넷만 말하고 텍스트풀 안내는 싣지 않는다', async () => {
+    const { channel } = channelWith([csrfIssued(), URI_TOO_LONG]);
+    const error = (await channel.callDispatch('CUA_FETCH', { big: 'x' }).catch((e: unknown) => e)) as RfcError;
+
+    expect(error.status).toBe(414);
+    expect(error.message).toContain('FunctionImport Dispatch answered HTTP 414 (URI Too Long)');
+    expect(error.message).toContain(
+      'The parameters are too large for this backend; use one that sends them in the request body: soap',
+    );
+    expect(error.message).not.toContain('TPOOL');
+  });
+
+  it('414가 아닌 실패의 문구는 그대로다 (회귀 방지)', async () => {
+    const { channel } = channelWith([csrfIssued(), { status: 413, body: 'too large' }]);
+    const error = (await channel
+      .callTextpool('WRITE', { program: 'ZTEST', textpoolJson: '[]' })
+      .catch((e: unknown) => e)) as RfcError;
+    expect(error.message).toContain('FunctionImport Textpool이(가) HTTP 413로 응답했다');
+  });
+});
+
 describe('odata 통로 — 내장 전송으로 실제 왕복', () => {
   let server: http.Server | undefined;
 

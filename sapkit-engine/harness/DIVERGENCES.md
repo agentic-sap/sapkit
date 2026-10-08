@@ -3856,3 +3856,36 @@ objectname='ZEFI_CARD')`에 `PROG/P ZWCAHN_*` · `FUGR/F` · `PROG/I` 수십 개
 **실기에서 확인할 것** — ① `WEBI/3I`에서 실제로 경고가 붙는지 ② 정상 종류(DDLS·CLAS·PROG)의 뿌리가
 늘 요청한 오브젝트인지 — 아니라면(예: 뿌리가 패키지로 오는 종류가 있다면) 이 경고는 오탐이 되고, 그
 종류를 판정에서 빼야 한다. 그 확인 전까지 경고는 **한 줄 덧붙임**일 뿐 판정을 바꾸지 않는다.
+
+### D160 — OData RFC 통로의 **HTTP 414**가 무엇이 왜 넘쳤는지와 갈 길을 말한다 (진단 문구 · 기계 장부 밖)
+
+**분류**: 수리(진단 문구) · **자리**: `src/rfc/odata.ts`(`uriTooLongFailure`) · **닿는 도구**: `odata` 통로를 타는
+RFC 도구 전부 — 실제로 넘치는 것은 텍스트풀 쓰기 셋(`WriteTextElementsBulk`·`CreateTextElement`·`UpdateTextElement`)이다.
+
+**구는 이렇게 한다.** `odata` 통로(기본값)는 FunctionImport 인자를 **전부 URL 질의 문자열에** 싣는다
+(`POST {service}/Textpool?IV_ACTION='WRITE'&…&IV_TEXTPOOL_JSON='<풀 전체 JSON>'` — 구 `odataRfc.ts`와 같은 계약).
+텍스트풀 쓰기는 FM `ZSAPKIT_ADT_TEXTPOOL`이 `INSERT TEXTPOOL`로 **풀 전체를 갈아 끼우므로** 세 도구 모두 풀 전체를
+보내고(`replace_existing=false`의 병합도 READ 뒤 합친 전체를 보낸다), 한글 1자가 퍼센트 인코딩으로 9바이트가 되어
+몇십 행이면 URL 한도를 넘는다. 실측 — 한국어 53행 ≈ 9.5KB 통과 · 64행 ≈ 11.5KB `HTTP 414 URI Too Long` · 134행 ≈ 26KB
+(실사용 `.sapkit/LESSONS.md` L-007 · 2026-09-17 · 2026-10-07). 구의 오류는 일반 HTTP 실패 문구
+(`FunctionImport Textpool이(가) HTTP 414로 응답했다 (POST <URL>): …`)였고, **그 `<URL>`이 넘친 수십 KB짜리 주소
+그대로**라 읽는 쪽이 원인을 찾기 어려웠다.
+
+**신은 이렇게 한다.** 414**만** 따로 문구를 짓는다(오류의 종류·상태·`url`·`rawBody` 필드는 그대로 — `kind:'http'`).
+문구에 URL을 싣지 않고 길이만 싣는다. `Textpool`이면 「풀 JSON 전체가 URL에 들어간다 · 몇십 행의 비ASCII로 충분하다 ·
+쓰기는 언제나 풀 전체라 나눠 쓰기는 소용없다 · abapGit ZIP 프로그램 XML의 `TPOOL`(다른 언어는 `I18N_TPOOL`)로 쓰거나
+본문에 싣는 통로로 바꾸라」를, 다른 FunctionImport(`Dispatch`·`DdicTablRead`)면 일반 문구(「인자가 이 통로에 너무
+크다 — 본문에 싣는 통로를 쓰라」)를 싣는다. **본문 통로 넷은 `src/rfc/*.ts`에서 확인했다** — `soap`(봉투 본문을
+`/sap/bc/soap/rfc`로 POST · 추가 env 없음) · `native`(SAP NW RFC SDK의 함수 호출 인자) · `gateway`(JSON 본문 →
+`SAP_RFC_GATEWAY_URL`) · `zrfc`(JSON 본문 → SAP 쪽 ICF 처리기 · `SAP_RFC_ZRFC_BASE_URL`). 넷 다 `callTextpool`이 같은
+네 인자를 본문(또는 RFC 인자)으로 보낸다. abapGit 우회는 L-007이 실기로 확인했다(134행×2 → pull → `ReadTextElementsBulk`
+한국어 134행).
+
+**대체 기대 시험**: `src/rfc/__tests__/odata.test.ts` — 「D160 — HTTP 414(URI Too Long)는 무엇이 왜 넘쳤는지와 갈 길을
+말한다」 3건(Textpool 문구 전문 · URL 미포함 · 다른 FunctionImport는 일반 문구 · 414가 아닌 실패 문구는 그대로).
+
+**기계 장부 밖이다** — 진단 문구의 차이이고, 오류 갈래는 D13(문구는 느슨히, 상태·코드는 엄격히)이 다룬다. D144·D146과
+같은 가름선이다.
+
+**실기에서 확인할 것** — 414가 Gateway에서 실제로 이 모양(상태 414 · 본문 HTML)으로 오는지(앞단 웹 디스패처가 다른 상태로
+끊으면 이 문구는 안 뜬다). 대안 통로 넷 중 이 시스템에서 실제로 서는 것이 무엇인지는 이 판이 확인하지 않았다.
