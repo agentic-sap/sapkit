@@ -3826,3 +3826,33 @@ CSRF 선행 조회만 한다),
 405를 올린다 — 구보다 나빠지지는 않는다) ② 받는다면 **본문을 요구하는지**(요구하면 400류가 올 것이다 —
 그때는 본문 모양을 채록해야 한다) ③ POST 응답의 모양이 GET이 되던 시스템의 응답과 같은지. 405 갈래에서만
 돌게 한 것이 이 불확실성의 울타리다.
+
+### D159 — `GetObjectStructure`가 뿌리에 요청한 오브젝트가 없는 트리 앞에 **`WARNING:` 한 줄**을 붙인다 (수리)
+
+**분류**: 수리 · **도구**: `GetObjectStructure`
+
+**구는 이렇게 한다.** `GET /sap/bc/adt/repository/objectstructure?objecttype=…&objectname=…`의 평평한
+노드 목록을 트리로 세워 `tree:\n…`로 낸다. 노드가 하나도 없을 때만 오류다. 구조 서비스가 그 종류를
+**모르면 오류가 아니라 무관한 트리**로 답할 수 있다 — `GetObjectStructure(objecttype='WEBI/3I',
+objectname='ZEFI_CARD')`에 `PROG/P ZWCAHN_*` · `FUGR/F` · `PROG/I` 수십 개 · `TRAN/T` 같은 `$TMP` 언저리의
+무관한 뿌리들이 오고, 요청한 오브젝트는 `SPRX/3 > WEBI/3I > ZEFI_CARD` 한 줄로만 깊은 곳에 있었다
+(피드백 2026-09-09 3차). 구는 그것을 성공으로 냈고, 읽는 쪽이 「이 오브젝트의 구조」로 오해할 자리였다.
+
+**신은 이렇게 한다.** 뿌리 가운데 요청한 오브젝트(이름은 대소문자 무시 · 타입은 `/` 앞 주 부분 —
+`CLAS`로 물어 `CLAS/OC`가 와도 같은 것)가 **하나도 없으면** `tree:` 앞에
+`WARNING: no top-level node is the requested object {타입} {이름} — the structure service probably does not support this object type and returned an unrelated tree. Do not read this tree as the structure of {이름}.`
+한 줄을 붙인다. **트리 자체와 정상 출력은 한 글자도 바뀌지 않는다**(구 엔진 출력 그대로인
+`OLD_ENGINE_TREE_TEXT` 시험이 그대로 통과한다 — 고아 뿌리가 함께 와도 요청한 오브젝트가 뿌리에 있으면
+경고하지 않는다). 성공/오류 판정은 바꾸지 않았다 — 무관한 트리에도 쓸 정보가 있을 수 있고(예: 대상이
+어디 매달려 있는지), 판정을 바꿀 근거(그 종류의 지원 여부)를 이 판이 갖고 있지 않다.
+
+**대체 기대 시험**: `src/tools/read/__tests__/getObjectStructure.test.ts` — 「D159 — 뿌리 어디에도 요청한
+오브젝트가 없으면 트리 앞에 WARNING 한 줄」 3건(대상이 깊은 곳에만 · 이름이 같아도 종류가 다름 · 고아
+뿌리와 함께여도 대상이 뿌리면 무경고) + 「트리 조립」의 정상 출력 무경고 1건(타입 주 부분 · 대소문자).
+
+**기계 장부 반영**: 했다(D159 — 구 성공 트리의 뿌리에 요청한 오브젝트가 없던 단계만. 신이 「`WARNING:`
+한 줄 + 구와 글자까지 같은 트리」면 통과). 재생 픽스처에 이 도구의 단계는 지금 없다.
+
+**실기에서 확인할 것** — ① `WEBI/3I`에서 실제로 경고가 붙는지 ② 정상 종류(DDLS·CLAS·PROG)의 뿌리가
+늘 요청한 오브젝트인지 — 아니라면(예: 뿌리가 패키지로 오는 종류가 있다면) 이 경고는 오탐이 되고, 그
+종류를 판정에서 빼야 한다. 그 확인 전까지 경고는 **한 줄 덧붙임**일 뿐 판정을 바꾸지 않는다.

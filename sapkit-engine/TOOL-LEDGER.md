@@ -39,7 +39,7 @@
 | attended 실기 기록 | `fixtures/attended-only/*.json` | 있음 · 111단계 |
 | 계약 시험 결과 | `evidence/contract/results.json` | 있음 · 186종 |
 | 계약 시험 파일 | `src/tools/**/__tests__/<도구>.test.ts` | 있음 · 186종에 시험 파일이 있다 — 있음이 곧 통과는 아니다 |
-| 대체 기대 시험 | `harness/replay/divergences.ts 의 substituteTest 경로` | 있음 · 37종에 실재하는 시험 파일이 있다 |
+| 대체 기대 시험 | `harness/replay/divergences.ts 의 substituteTest 경로` | 있음 · 38종에 실재하는 시험 파일이 있다 |
 | 위임형 판정 | `harness/old-surface/handler-tree.json` | 있음 · 소스 559파일을 상대 import까지 따라가 판정 — 직접 46 · 간접 140 · 없음 0 |
 
 ## 안 지음 (0)
@@ -99,7 +99,7 @@
 | GetInactiveObjects | 시스템·공통 조회 | 1 | 재생 대조 | 통과(1) | 통과(1) | — | — | 간접 |
 | GetInstalledComponents | 시스템·공통 조회 | 1 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 직접 |
 | GetObjectInfo | 시스템·공통 조회 | 1 | 계약 시험 + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
-| GetObjectStructure | 시스템·공통 조회 | 1 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
+| GetObjectStructure | 시스템·공통 조회 | 1 | 계약 시험 (인하 · 원래 재생 대조) + 대체 | — | 통과(1) | — | 통과(1) | 간접 |
 | GetPackageTree | 시스템·공통 조회 | 1 | 계약 시험 | — | 통과(1) | — | — | 직접 |
 | GetSession | 시스템·공통 조회 | 1 | 계약 시험 (인하 · 원래 재생 대조) | — | 통과(1) | — | — | 간접 |
 | GetSqlQuery | 시스템·공통 조회 | 1 | 재생 대조 + 대체 | 통과(1) | 통과(1) | — | 통과(1) | 직접 |

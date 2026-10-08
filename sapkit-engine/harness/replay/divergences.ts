@@ -167,7 +167,9 @@
  *     언제나 실패했다) 소스가 없으면 빈 껍데기에서 멈추는 갈래를 든다. D157은
  *     `UpdateServiceBinding` 발행 작업의 **200 + SEVERITY ERROR**를 신이 오류로 되돌리는
  *     갈래다(D148의 성공 갈래에서 그 자리를 뺐다). D158은 `ValidateServiceBinding`의
- *     검증 GET이 405로 죽던 갈래를 신이 POST로 다시 묻는 것을 잰다. 같은 결정의
+ *     검증 GET이 405로 죽던 갈래를 신이 POST로 다시 묻는 것을 잰다. D159는
+ *     `GetObjectStructure`가 뿌리에 요청한 오브젝트가 없는 트리 앞에 `WARNING:` 한 줄을
+ *     붙이는 갈래다(트리는 그대로여야 한다). 같은 결정의
  *     D160(OData 414 문구)은 **진단 문구**라 사람용 장부에만 있다.
  *
  * ### 활성화 거짓 성공 계열을 왜 열로 갈랐는가
@@ -860,6 +862,27 @@ function oldValidationGot405(step: SequenceStep): boolean {
 
 /** D158 — 신이 **GET의 405로** 죽었는가(POST로 다시 묻지 않았다는 뜻). 접속 계층의 문구 `ADT 요청 실패: GET … HTTP 405`. */
 const NEW_DIED_ON_GET_405 = /ADT 요청 실패: GET [^\n]*HTTP 405/;
+
+/**
+ * D159 — 구 `GetObjectStructure`의 성공 트리에서 **뿌리 가운데 요청한 오브젝트가 없는가**.
+ * 판정은 `getObjectStructure.ts`의 `rootsIncludeRequested`와 같다(이름 대소문자 무시 · 타입은
+ * `/` 앞 주 부분). 뿌리 줄은 들여쓰기 없는 `- 타입: 이름`이다.
+ */
+function oldStructureRootMismatch(step: SequenceStep): boolean {
+  if (step.isError || !isPlainObject(step.args)) return false;
+  const type = String(step.args['objecttype'] ?? '').split('/')[0]?.trim().toUpperCase() ?? '';
+  const name = String(step.args['objectname'] ?? '').trim().toUpperCase();
+  const text = collectText(step.response);
+  if (!text.startsWith('tree:\n') || type === '' || name === '') return false;
+  const roots = text
+    .split('\n')
+    .map((line) => /^- ([^:]+): (.*)$/.exec(line))
+    .filter((match): match is RegExpExecArray => match !== null);
+  return !roots.some(
+    (match) =>
+      (match[1] ?? '').split('/')[0]?.trim().toUpperCase() === type && (match[2] ?? '').trim().toUpperCase() === name,
+  );
+}
 
 // ── D110~D132 — 꼬리 묶음 셋이 쌓아 둔 차이 (**마지막 반영**) ───────────────
 
@@ -2222,6 +2245,31 @@ export const M1_DIVERGENCES: readonly DivergenceEntry[] = [
       return NEW_DIED_ON_GET_405.test(collectText(actual.response))
         ? { ok: false, detail: '신도 GET 405로 죽었다 — POST로 다시 묻지 않았다.' }
         : { ok: true, detail: '구가 GET 405로 죽은 자리에서 신은 POST로 다시 물었고 다른 결과(POST의 실패)로 끝났다.' };
+    },
+  },
+  {
+    id: 'D159',
+    title: 'GetObjectStructure — 뿌리가 요청한 오브젝트가 아니면 트리 앞에 WARNING 한 줄',
+    tool: 'GetObjectStructure',
+    classification: '수리',
+    status: 'active',
+    evidence:
+      'sapkit-engine/harness/DIVERGENCES.md#d159 · sapkit-engine/src/tools/read/getObjectStructure.ts · ' +
+      '덧말표(harness/old-surface의 amendments 표)',
+    substituteTest:
+      'sapkit-engine/src/tools/read/__tests__/getObjectStructure.test.ts — ' +
+      '「D159 — 뿌리 어디에도 요청한 오브젝트가 없으면 트리 앞에 WARNING 한 줄」 3건 + 정상 출력 무경고 1건',
+    resolvesIn: null,
+    // 구 성공 트리의 뿌리에 요청한 오브젝트가 없던 단계만. 정상 트리는 그대로 대조된다.
+    applies: (step) => step.tool === 'GetObjectStructure' && oldStructureRootMismatch(step),
+    check: ({ recorded, actual }) => {
+      if (actual.isError) return { ok: false, detail: '신 엔진이 GetObjectStructure를 오류로 답했다 — 등재된 갈래가 아니다.' };
+      const fresh = collectText(actual.response);
+      const old = collectText(recorded.response);
+      const newline = fresh.indexOf('\n');
+      return fresh.startsWith('WARNING:') && newline >= 0 && fresh.slice(newline + 1) === old
+        ? { ok: true, detail: '구가 무관한 트리를 그대로 낸 자리에서 신은 WARNING 한 줄을 앞에 붙였고 트리는 같다.' }
+        : { ok: false, detail: '신 응답이 「WARNING 한 줄 + 구와 같은 트리」 모양이 아니다.' };
     },
   },
 ];
