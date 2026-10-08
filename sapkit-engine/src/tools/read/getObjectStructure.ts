@@ -122,14 +122,18 @@ export function rootsIncludeRequested(
 ): boolean {
   const name = objectName.trim().toUpperCase();
   const type = mainType(objectType);
+  // 속성이 빠진 노드는 파서가 `undefined`로 준다(타입 선언과 달리). 경고 한 줄을 붙이려는
+  // 비교가 읽기 전체를 실패시키면 안 되므로 빈 문자열로 읽는다(D-152 마감 리뷰 권고-3).
   return roots.some(
-    (root) => root.objectname.trim().toUpperCase() === name && mainType(root.objecttype) === type,
+    (root) =>
+      String(root.objectname ?? '').trim().toUpperCase() === name &&
+      mainType(String(root.objecttype ?? '')) === type,
   );
 }
 
 /**
  * 뿌리가 요청한 오브젝트가 아닐 때 트리 앞에 붙는 한 줄 (D159). 기계가 알아보도록 `WARNING:`로
- * 시작한다. 실측(`sapkit-feedback.md` 2026-09-09 3차): `WEBI/3I ZEFI_CARD`를 물었더니 오류 없이
+ * 시작한다. 실측(`sapkit-feedback.md` 2026-09-09 3차): 고객 웹 서비스(`WEBI/3I`)를 물었더니 오류 없이
  * `$TMP` 언저리의 무관한 트리가 왔고, 요청한 오브젝트는 깊은 곳에 한 줄로만 있었다.
  */
 export function rootMismatchWarning(objectType: string, objectName: string): string {

@@ -271,7 +271,7 @@ describe('실사용 관측 (2026-09-18)', () => {
     const harness = await harnessFor({});
     try {
       const outcome = await call(harness, 'GetTableContents', {
-        table_name: 'ZUNIEFIT0030',
+        table_name: 'ZSAPKIT_DEMO_TAB',
         max_rows: 60,
         where_clause: "BUKRS = '1000'",
       });
@@ -288,7 +288,7 @@ describe('실사용 관측 (2026-09-18)', () => {
   it('같은 호출에서 where_clause만 빼면 게이트를 지나 핸들러까지 간다 (과수리 역검증)', async () => {
     const harness = await harnessFor({});
     try {
-      const outcome = await call(harness, 'GetTableContents', { table_name: 'ZUNIEFIT0030', max_rows: 60 });
+      const outcome = await call(harness, 'GetTableContents', { table_name: 'ZSAPKIT_DEMO_TAB', max_rows: 60 });
       expect(outcome.text).not.toContain(UNKNOWN_ARGUMENT_REJECTION);
       expect(harness.connections.calls).toHaveLength(1);
     } finally {
