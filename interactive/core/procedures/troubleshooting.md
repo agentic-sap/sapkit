@@ -444,7 +444,7 @@ Responses that look like a failure, a block, or a truncation but are none of tho
 
 **Several of these were repaired in the engine on 2026-09-09** (D-147, shipped as server engine 1.4.0 / plugin 0.10.3). Those entries state the repaired behavior first and keep the original observation under *older bundles*, because an installation that has not been updated still behaves the old way — `server/VERSION` or `GetSystemInfo` says which side of the line an installation is on. **Every one of those repairs is offline-verified only; none has been confirmed against a live SAP system**, so treat the new behavior as expected rather than established, and confirm it on first live use. Where the two readings disagree, the old prescription is still the safe one.
 
-**A second set followed in the D-152 engine repair (2026-10)** — the entries marked *since the D-152 engine repair* at the end of this section, plus additions to the `UpdateSourceByPatch`, `ActivateObjects` and `CheckSyntax` entries drawn from real project work in 2026-09 → 2026-10. The same reading rule applies: the repaired behavior is offline-verified only, and an installation that has not been updated behaves the old way.
+**A second set followed in the D-152 engine repair (2026-10, shipped as server engine 1.5.0 / plugin 0.11.1)** — the entries marked *since the D-152 engine repair* at the end of this section, plus additions to the `UpdateSourceByPatch`, `ActivateObjects` and `CheckSyntax` entries drawn from real project work in 2026-09 → 2026-10. The same reading rule applies: the repaired behavior is offline-verified only, and an installation that has not been updated behaves the old way.
 
 ### `GetSqlQuery` — `truncated: true` on row-collapsing queries
 
