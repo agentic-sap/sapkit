@@ -1,0 +1,294 @@
+11-code-tasks.txt — 판J T1 코드 과제 5종 (C-01 ~ C-05) · 사전 등록 · 2026-11-05
+=====================================================================================
+
+이 파일은 판J(하네스 필요성 검토 · D-156) T1 이 확정한 코드 과제 5종의 정본이다. 커밋된 뒤에는
+바꾸지 않는다(사전 등록). 과제 본문(task_text)은 사용자 관점의 요구만 담고 집 규칙 — 이름 규약
+(lv_/gv_ 접두 등) · 인클루드 구조 · 텍스트 요소 규약 · OK_CODE 패턴 · 두 클래스 분할 · 템플릿,
+곧 01-convention-split.txt 의 「집」 갈래 — 는 넣지 않는다. 채점 항목은 두 가지뿐이다:
+① 동봉 검사기의 오류급, ② 아래 각 과제의 general_rules(「일반 작법」 갈래의 규칙) 위반 (spec E-4 · C-2).
+
+0. 판정 정의 (T6 가 그대로 쓴다)
+--------------------------------
+  오류급     = lint Error ∪ parse exit≠0 ∪ analyze high
+  경고       = lint Warning ∪ analyze medium ∪ analyze info        (기록만 · 통과 판정에 쓰지 않는다)
+  과제 통과  = 오류급 0 ∧ 일반 작법 위반 0
+  일반 작법 위반 = 각 과제 general_rules 의 번호마다 위반 0/1 로 센다(사람 또는 새-컨텍스트 리뷰어가
+                   판정 · 해당 없음 N/A = 0). 검사기 오류급과 겹치는 규칙(한 줄 한 문장 등)은 오류급으로
+                   한 번만 센다 — 어느 쪽으로 세든 결과(불통과)는 같다.
+  같은 과제를 조건(하네스 있음/없음 · 모델)마다 돌릴 때 task_text 는 글자 그대로 같은 것을 준다.
+
+1. 동봉 검사기 계약 — T6 파싱 규약 (2026-11-05 스모크로 확인 · §2)
+--------------------------------------------------------------------
+  번들   : interactive/checker/sapkit-checker.bundle.cjs
+           (sapkit-cli 0.1.0 · 소스 커밋 f19542dc · 외부 의존은 node:fs 뿐 — interactive/checker/VERSION)
+  호출   : node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> <file.abap>   (레포 루트에서)
+  SAP 접속 없음 · MCP 서버 없음 — P0.
+
+  lint    stdout 한 줄 = "<path>:<row>:<col>: <W|E> [<rule>] <message>"      (W = Warning · E = Error)
+          stderr 요약  = "<path>: no findings"  또는  "<path>: <N> finding(s), <M> at Error level"
+          exit 0 = Error 0건 · exit 1 = Error ≥ 1건 · exit 2 = 입력/사용 오류(파일 없음 등)
+          → T6: 오류급(lint) = stdout 에서 ": E [" 가 든 줄 수 (exit 1 과 동치)
+          ⚠ stdout 줄 순서는 행 순이 아니다(규칙 순으로 나왔다 — §2) · 정렬에 기대지 말 것
+          ⚠ line_length 는 소스 1개당 최대 10건까지만 낸다(소스 확인)
+
+  parse   stdout = 문장 단위 토큰 표  "<StatementType>  <tokens> ."   (기본 text 형식 · json/summary 형식도
+          소스에 있으나 스모크로는 text 만 확인)
+          exit 0 = 읽을 수 있었음 · exit 2 = 읽기 실패(파일 없음·사용 오류)
+          ⚠ parse 는 구문 판정기가 아니다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 이다(sapkit-cli/src/cli/parse.ts).
+            그러므로 「parse exit≠0」항은 실제로는 파일을 못 읽은 경우만 잡는다. 진짜 구문 오류(활성화 실패)는
+            이 판정의 밖이다 — SAP 접속 없이는 잴 수 없다(P0). T6 는 이 한계를 결과표에 적는다.
+
+  analyze stdout = JSON 하나:
+            { "findings": [ { "rule", "category", "severity": "high|medium|info", "line", "endLine",
+                               "match", "description", "suggestion" } ],
+              "summary":  { "totalFindings", "bySeverity": { "high"?, "medium"?, "info"? },
+                            "byCategory": { … }, "score": "good|warning" },
+              "rulesApplied": 13 }
+          exit 0 항상(실행만 되면) · 파일 없음 = exit 2
+          → T6: 오류급(analyze) = summary.bySeverity.high (키가 없으면 0)
+          ⚠ 500KB 초과 소스는 source_too_large info 1건만 낸다(소스 확인). 과제 크기에서는 무관.
+
+  파일 없음(모든 하위 명령): stderr "sapkit: cannot read '<path>': ENOENT" · exit 2
+
+  규칙 목록과 등급 (sapkit-cli/src/rules — lint 7종 · analyze 13종 · analyze 는 Error→high · Warning→medium)
+    오류급 (lint E · analyze high)
+      max_one_statement            한 줄에 문장 둘 이상
+      preferred_compare_operator   IF / ELSEIF / WHILE 안의 EQ NE GT LT GE LE >< (기호 연산자 대신 낱말 연산자) — 릴리스 무관
+      empty_statement              빈 문장( . 만 있는 문장 )
+      line_length                  255 바이트 초과(절대 상한) 만 E · 120(lint) / 130(analyze) 초과는 W / medium
+      hardcoded_credentials        (analyze 만) 자격증명 리터럴 — ⚠ 스모크의 CALL FUNCTION … password = 'secret123' 에는 울리지 않았다(§2)
+      commit_in_loop               (analyze 만) 루프 안 COMMIT WORK
+    경고 (lint W · analyze medium)
+      obsolete_statement           COMPUTE ADD SUBTRACT MULTIPLY DIVIDE MOVE (lint 는 REFRESH 도) — MOVE-CORRESPONDING 도 MOVE 로 잡힌다
+      colon_missing_space          콜론 뒤 공백 없음
+      local_variable_names         (lint 만 실제로 울림 · analyze 에는 등록만) FORM / METHOD / FUNCTION 안의 DATA 이름 무늬
+                                   l[vstrc]_* · lc_* · <l[vstr]_*> — FIELD-SYMBOLS 문은 항상 울린다(계승된 오탐) · lo_ 는 인정 안 함
+      double_space · select_star · catch_cx_root(CX_ROOT/CX_STATIC_CHECK/CX_DYNAMIC_CHECK/CX_NO_CHECK) ·
+      dynamic_call_no_try          (analyze 만)
+    → 오류급 집합 = { max_one_statement, preferred_compare_operator, empty_statement, line_length>255 } (lint E)
+                  ∪ { 같은 넷, hardcoded_credentials, commit_in_loop } (analyze high)
+
+2. 스모크 기록 (스크래치패드 · 레포 밖 · 2026-11-05 · 경로는 <scratchpad> 로 가린다)
+--------------------------------------------------------------------------------------
+  [smoke-good.abap] — 유효한 최소 리포트 (7줄)
+    REPORT zjudge_smoke.
+
+    DATA lv_count TYPE i.
+
+    START-OF-SELECTION.
+      lv_count = 1.
+      WRITE: / 'count', lv_count.
+
+  > node interactive/checker/sapkit-checker.bundle.cjs lint <scratchpad>/smoke-good.abap
+    stderr: <scratchpad>/smoke-good.abap: no findings
+    exit=0
+  > node interactive/checker/sapkit-checker.bundle.cjs parse <scratchpad>/smoke-good.abap
+    stdout:
+      Report               REPORT zjudge_smoke .
+      Data                 DATA lv_count TYPE i .
+      StartOfSelection     START - OF - SELECTION .
+      Move                 lv_count = 1 .
+      Write                WRITE / 'count' ,
+      Write                WRITE lv_count .
+    exit=0
+  > node interactive/checker/sapkit-checker.bundle.cjs analyze <scratchpad>/smoke-good.abap
+    stdout: { "findings": [], "summary": { "totalFindings": 0, "bySeverity": {}, "byCategory": {}, "score": "good" }, "rulesApplied": 13 }
+    exit=0
+
+  [smoke-bad.abap] — 의도적 위반 모음 (18줄)
+    REPORT zjudge_smoke_bad.
+
+    DATA lt_mara TYPE STANDARD TABLE OF mara.
+    DATA x TYPE i.
+
+    START-OF-SELECTION.
+      SELECT * FROM mara INTO TABLE lt_mara.
+      LOOP AT lt_mara INTO DATA(ls_mara).
+        COMMIT WORK.
+      ENDLOOP.
+      CALL FUNCTION 'RFC_PING' DESTINATION 'X' EXPORTING user = 'ADMIN' password = 'secret123'.
+      MOVE 1 TO x. x = 2.
+      TRY.
+        x = 3.
+      CATCH cx_root.
+      ENDTRY.
+      CALL METHOD (lv_dyn)->run.
+      DATA lv_very_long_name TYPE string VALUE 'this line is deliberately made much longer than the usual maximum so that the line length rule fires on it for the smoke test'.
+
+  > node interactive/checker/sapkit-checker.bundle.cjs lint <scratchpad>/smoke-bad.abap
+    stdout:
+      <scratchpad>/smoke-bad.abap:18:1: W [line_length] Line runs to 171 bytes — keep it within 120
+      <scratchpad>/smoke-bad.abap:12:3: W [obsolete_statement] MOVE is obsolete — assign directly
+      <scratchpad>/smoke-bad.abap:12:16: E [max_one_statement] Give this statement a line of its own
+    stderr: <scratchpad>/smoke-bad.abap: 3 finding(s), 1 at Error level
+    exit=1
+  > node interactive/checker/sapkit-checker.bundle.cjs analyze <scratchpad>/smoke-bad.abap
+    findings 7 (rule · severity · line):
+      select_star medium 7 · commit_in_loop high 9 · max_one_statement high 12 · obsolete_statement medium 12 ·
+      catch_cx_root medium 15 · dynamic_call_no_try medium 17 · line_length medium 18 ("keep it within 130")
+    summary: { "totalFindings": 7, "bySeverity": { "high": 2, "medium": 5 }, "byCategory": { "performance": 2, "quality": 3, "robustness": 2 }, "score": "warning" } · rulesApplied 13
+    exit=0
+    관찰: hardcoded_credentials 는 11행(password = 'secret123' — 스모크용 가짜 리터럴 · 실제 자격증명 아님)에 울리지 않았다 ·
+          select_star 는 lint 에 없고 analyze 에만 있다 ·
+          8행의 인라인 선언 DATA(ls_mara) 와 4행의 한 글자 이름 x 에는 아무 규칙도 울리지 않았다(둘 다 FORM/METHOD 밖).
+  > node interactive/checker/sapkit-checker.bundle.cjs lint <scratchpad>/nope.abap     (없는 파일)
+    stderr: sapkit: cannot read '<scratchpad>/nope.abap': ENOENT
+    exit=2
+
+3. 과제 5종
+-----------
+  공통 — 과제마다 산출물은 .abap 파일 하나. general_rules 의 출처는 interactive/core/knowledge/abap/conventions/ 아래
+  파일:줄 이고 인용은 그 줄의 글자 그대로(강조 기호 ** 와 마크다운 이스케이프 \ 만 뺌)다. 규칙 번호 뒤 괄호는 채점자용 판정 기준이다.
+  checker_commands 는 레포 루트에서, 산출 파일을 <out>/ 아래 두었다고 가정한 정확한 명령이다.
+
+C-01  선택화면 ALV 리포트
+  task_text:
+    Write an executable ABAP report ZJUDGE_C01 that lists purchasing document headers.
+    Selection screen: SELECT-OPTIONS for purchasing organization (EKKO-EKORG) and for document date
+    (EKKO-BEDAT), plus a PARAMETER for the maximum number of rows (default 500).
+    Read the matching rows from EKKO — document number, company code, purchasing organization, vendor,
+    document date, document type, purchasing group — and display them in an ALV grid (cl_salv_table)
+    with column headings and optimized column widths. If nothing matches, show an information message
+    instead of an empty grid.
+  required_output:
+    one file  zjudge_c01.abap  — the complete report source (REPORT statement through the last
+    statement), no INCLUDEs, no separate text pool; roughly 60–150 lines.
+  general_rules:
+    1. No SELECT * — clean-code.md:128 "No `SELECT *`. Always list the fields you actually need."
+    2. sy-subrc checked after the SELECT — clean-code.md:145 "Always check `sy-subrc`, or catch the class-based equivalent (`CX_SY_OPEN_SQL_DB`)."
+    3. Filter server-side — clean-code.md:146 "Filter and aggregate server-side. Post-filtering via `LOOP ... WHERE ... DELETE` is out."
+       (선택화면 조건과 행 상한을 WHERE / UP TO n ROWS 로 — 다 읽고 ABAP 에서 지우면 위반)
+    4. No SELECT inside a LOOP — clean-code.md:143 "Never `SELECT` inside a `LOOP` — `FOR ALL ENTRIES IN` or a join takes its place."
+    5. Authorization check at the entry point — clean-code.md:213 "Authorization checks at every entry point (`AUTHORITY-CHECK` ahead of any read/write of restricted data)."
+       (구매 조직 대상 AUTHORITY-CHECK 가 SELECT 앞에 없으면 위반)
+    6. Act on errors — clean-code.md:86 "Always act on errors — handle what you are able to handle, pass on what you are not. Swallowing one silently is never acceptable."
+       (cl_salv_table=>factory 의 cx_salv_msg 를 빈 CATCH 로 삼키면 위반 · 메시지 출력이나 전파면 통과)
+    7. One statement per line — clean-code-oop.md:100 "One statement per line — no `.` chains packed onto a single line." (검사기 max_one_statement 와 겹침)
+  checker_commands:
+    node interactive/checker/sapkit-checker.bundle.cjs lint    <out>/zjudge_c01.abap
+    node interactive/checker/sapkit-checker.bundle.cjs parse   <out>/zjudge_c01.abap
+    node interactive/checker/sapkit-checker.bundle.cjs analyze <out>/zjudge_c01.abap
+
+C-02  글로벌 클래스 + ABAP Unit 테스트 클래스
+  task_text:
+    Write a global class ZCL_JUDGE_C02_DISCOUNT that computes a discounted net amount. Its public
+    method CALCULATE takes a gross amount (packed number, 2 decimals) and a discount percentage (packed
+    number, 2 decimals) and returns the net amount rounded to 2 decimals. A negative gross amount or a
+    percentage outside 0–100 must be rejected with a class-based exception that the caller can handle.
+    In the same source, add the ABAP Unit test class (a local class FOR TESTING) with at least three
+    tests: a normal discount, a 100 % discount, and a rejected input.
+  required_output:
+    one file  zcl_judge_c02_discount.abap  — the class definition and implementation, followed by the
+    local test class at the end of the same file (the split into a separate test-classes include is not
+    required here). Declare the exception class locally in the same file (preferred); a reference to an
+    assumed global ZCX_* class is also accepted. Roughly 60–150 lines.
+  general_rules:
+    1. Class-based exceptions only — clean-code-oop.md:19 "Class-based exceptions only (`CX_*`). Dropping a `MESSAGE ... TYPE 'E'` into the middle of the flow is no substitute for raising one."
+    2. Right exception base — clean-code-oop.md:22 "`CX_STATIC_CHECK` — the caller is meant to deal with it, which covers most business errors; the compiler holds you to declaring it."
+       (입력 거부는 호출자가 처리할 업무 오류 → CX_STATIC_CHECK 파생 + 메서드 시그니처에 RAISING 선언 · CX_NO_CHECK 파생이면 위반)
+    3. RETURNING fully typed — clean-code.md:30 "A `RETURNING` parameter must be fully typed — `RETURNING VALUE(rv) TYPE c LENGTH 1` is rejected with `A RETURNING parameter must be fully typed`."
+       (RETURNING 에 TYPE p LENGTH n DECIMALS m 같은 인라인 길이 지정이 있으면 위반 · TYPES 별칭이나 DDIC 타입이면 통과)
+    4. FINAL by default — clean-code-oop.md:42 "FINAL by default. A class is marked `FINAL` unless it was explicitly designed to be a base for inheritance."
+    5. PRIVATE by default — clean-code-oop.md:43 "PRIVATE by default. Members start PRIVATE and move out to PROTECTED or PUBLIC only against a need you can demonstrate."
+       (CALCULATE 와 생성자 외의 멤버가 PUBLIC 이면 위반)
+    6. Test the public contract — clean-code-oop.md:124 "Test publics, not private internals. Private members are implementation, and refactoring them must not break the tests."
+    7. Test names say given-when-then — clean-code-oop.md:126 "Name tests for given-when-then — `is_released_returns_true_when_status_is_freigegeben`, never `test01` or `test_ok`."
+    8. Few, typed assertions — clean-code-oop.md:136 "Kept few and focused: 1–3 per method." · :137 "Matched to the type — `assert_equals` on values, `assert_bound` / `assert_not_bound` on references, `assert_true` on `ABAP_BOOL` and nothing else."
+    9. No comment banners / author tags / change logs — clean-code.md:189 "No comment banners, author tags, or change logs. The audit trail is Git/Transport."
+   10. One statement per line — clean-code-oop.md:100 (검사기 max_one_statement 와 겹침)
+  checker_commands:
+    node interactive/checker/sapkit-checker.bundle.cjs lint    <out>/zcl_judge_c02_discount.abap
+    node interactive/checker/sapkit-checker.bundle.cjs parse   <out>/zcl_judge_c02_discount.abap
+    node interactive/checker/sapkit-checker.bundle.cjs analyze <out>/zcl_judge_c02_discount.abap
+
+C-03  예외 처리가 있는 함수 모듈 (단일 소스 파일)
+  task_text:
+    Write a function module Z_JUDGE_C03_GET_MATERIAL_TEXT that returns the material description
+    (MAKT-MAKTX) for a material number in a given language. Inputs: the material number and the
+    language key (optional — default the logon language). Output: the description. The module must
+    report "material does not exist" and "no description in that language" to the caller as two
+    distinct error conditions. Deliver only the function module source (FUNCTION … ENDFUNCTION); the
+    function group may be assumed to exist.
+  required_output:
+    one file  z_judge_c03_get_material_text.abap  — FUNCTION … ENDFUNCTION with the parameter
+    clauses written inline in the FUNCTION statement (the ADT source form); roughly 25–60 lines.
+  general_rules:
+    1. Inline signature — function-module-rule.md:59 "Whatever follows the `FUNCTION {name}` line must immediately be an `IMPORTING` / `EXPORTING` / `CHANGING` / `TABLES` / `EXCEPTIONS` clause"
+       (*"-주석 블록(Local Interface)만 있고 FUNCTION 문에 절이 없으면 위반)
+    2. No shadow locals — function-module-rule.md:61 "No "shadow locals" — a declaration such as `lv_iv_lifnr TYPE lifnr` inside the body, standing in for a missing IMPORTING parameter, is forbidden."
+    3. Errors travel through the signature — clean-code-procedural.md:70 "FUNCTION MODULE — the unit reusable across programs, and the one that may participate in RFC / tRFC / qRFC. Add `EXCEPTIONS` clause."
+       · clean-code-procedural.md:63 "`MESSAGE ... RAISING <exc>` within a function module does both jobs at once — it sets `sy-subrc` and the message fields together"
+       (두 오류 조건이 서로 다른 EXCEPTIONS 로 — 또는 function-module-rule.md:63 의 BAPIRET2 반환으로 — 호출자에게 구분돼 전달돼야 한다 · 하나의 예외/OTHERS 로 뭉치거나 조용히 빈 값만 돌려주면 위반)
+    4. No EXIT / STOP / LEAVE PROGRAM as error handling — clean-code-procedural.md:64 "No `EXIT` / `STOP` / `LEAVE PROGRAM` in the role of error handling — they skip past `AT EXIT-COMMAND` cleanup."
+    5. sy-subrc after every setting statement — clean-code-procedural.md:45 "`sy-subrc` checked after every statement that sets it — that reaches `SELECT SINGLE`, `READ TABLE`, `ASSIGN`, `CALL FUNCTION` with `EXCEPTIONS`, …"
+    6. No SELECT * — clean-code.md:128 "No `SELECT *`. Always list the fields you actually need."
+    7. (TABLES 절을 쓴 경우에만) STRUCTURE, not TYPE — function-module-rule.md:62 "`STRUCTURE` (the line type) is what the old `TABLES` clause takes, never `TYPE`." (TABLES 를 안 썼으면 N/A)
+    8. No comment banners / author tags / change logs — clean-code.md:189
+  checker_commands:
+    node interactive/checker/sapkit-checker.bundle.cjs lint    <out>/z_judge_c03_get_material_text.abap
+    node interactive/checker/sapkit-checker.bundle.cjs parse   <out>/z_judge_c03_get_material_text.abap
+    node interactive/checker/sapkit-checker.bundle.cjs analyze <out>/z_judge_c03_get_material_text.abap
+
+C-04  표준 테이블 읽기 + 집계 리포트
+  task_text:
+    Write an executable report ZJUDGE_C04 that totals goods-movement quantities per material and plant.
+    Selection screen: SELECT-OPTIONS for plant (MSEG-WERKS) and posting date (MKPF-BUDAT), and an
+    optional SELECT-OPTIONS for movement type (MSEG-BWART). Read the material document items from MSEG
+    together with the header posting date from MKPF, and output one line per material + plant with the
+    summed quantity (MSEG-MENGE, base unit) and the number of items, sorted by material and plant.
+    Output as a classic WRITE list or an ALV grid — your choice.
+  required_output:
+    one file  zjudge_c04.abap  — the complete report source, no INCLUDEs; roughly 50–120 lines.
+  general_rules:
+    1. No SELECT * — clean-code.md:128 "No `SELECT *`. Always list the fields you actually need."
+    2. Aggregate server-side — clean-code.md:146 "Filter and aggregate server-side. Post-filtering via `LOOP ... WHERE ... DELETE` is out."
+       · clean-code.md:206 "Server-side work beats client-side. Filter, aggregate, and sort in Open SQL or CDS, and bring back only what you need."
+       (SUM / COUNT + GROUP BY 를 SELECT 에서 · 품목 전 행을 읽어 ABAP 루프에서 합산하면 위반)
+    3. Join, no nested SELECT — clean-code.md:207 "Avoid nested SELECTs / nested loops over large itabs. `FOR ALL ENTRIES`, joins, or hashed lookups replace them."
+       · clean-code.md:143 "Never `SELECT` inside a `LOOP`"  (MKPF 를 품목마다 SELECT SINGLE 하면 위반)
+    4. FOR ALL ENTRIES takes neither GROUP BY nor aggregates — clean-code.md:144 "`FOR ALL ENTRIES` accepts neither `GROUP BY` nor an aggregate function — ABAP SQL rejects the combination outright."
+       (FAE 와 집계를 한 SELECT 에 섞으면 위반 · join 을 썼으면 N/A)
+    5. sy-subrc checked after the SELECT — clean-code.md:145
+    6. Authorization check at the entry point — clean-code.md:213 (플랜트 대상 AUTHORITY-CHECK 가 없으면 위반)
+    7. One statement per line — clean-code-oop.md:100 (검사기 max_one_statement 와 겹침)
+  checker_commands:
+    node interactive/checker/sapkit-checker.bundle.cjs lint    <out>/zjudge_c04.abap
+    node interactive/checker/sapkit-checker.bundle.cjs parse   <out>/zjudge_c04.abap
+    node interactive/checker/sapkit-checker.bundle.cjs analyze <out>/zjudge_c04.abap
+
+C-05  ABAP 7.02 문법 제약 과제 (≤ 7.40 — 팩이 실제로 적은 제약만 잰다)
+  task_text:
+    The target system runs ABAP 7.02 (SAP NetWeaver 7.0 EHP2). Write an executable report ZJUDGE_C05
+    that lists customers from KNA1 (customer number, name, city, country) for a SELECT-OPTIONS on
+    country (KNA1-LAND1), grouped by country: for every country first a header line with the country
+    key and the number of customers in it, then one line per customer. Output as a classic WRITE list.
+    The code must compile on 7.02 — do not use any syntax that arrived in release 7.40 or later.
+  required_output:
+    one file  zjudge_c05.abap  — the complete report source, no INCLUDEs; roughly 40–100 lines.
+  general_rules (abap-release-reference.md 는 「일반 작법」 순수 파일 — 릴리스 7.02 는 `< 740` 띠):
+    1. Release band < 740 — abap-release-reference.md:24 "| `< 740` | `DATA` declarations up front, `CREATE OBJECT`, `MOVE-CORRESPONDING`, classic `READ TABLE` | Any inline declaration or constructor expression |"
+    2. No inline declarations — abap-release-reference.md:45 "| Inline declarations (`DATA(lv_x)`, `FIELD-SYMBOL(<fs>)`) | 740 |"
+    3. No constructor expressions — abap-release-reference.md:46 "| Constructor expressions (`NEW`, `VALUE`, `CORRESPONDING`, `CONV`, `CAST`, `REF`, `EXACT`, `COND`, `SWITCH`) | 740 |"
+    4. No table expressions — abap-release-reference.md:47 "| Table expressions (`itab[ key ]`) | 740 |"
+    5. No string templates — abap-release-reference.md:48 "| String templates (`|{ var }|`) | 740 |"
+    6. No chained method calls — abap-release-reference.md:49 "| Chained method calls | 740 |"
+    7. No READ TABLE … ASSIGNING FIELD-SYMBOL(<fs>) — abap-release-reference.md:39 "Floor marker — at 702 (7.02), `READ TABLE ... ASSIGNING FIELD-SYMBOL(<fs>)` is not yet available."
+    8. No Open SQL expressions in SELECT — abap-release-reference.md:68 "| Open SQL expressions (CASE, CAST, COALESCE in SELECT) | 750 |"
+    9. No SELECT * — clean-code.md:128
+   10. sy-subrc checked after the SELECT — clean-code.md:145
+   11. No SELECT inside a LOOP — clean-code.md:143
+   비고: 팩에 없는 7.40+ 문법(예: @ 호스트 변수 접두 · 쉼표로 구분한 필드 목록 · 새 ABAP SQL 문법)은 채점 항목이
+         아니다 — 발견하면 결과표에 비고로만 적는다. 7.02 코드는 MOVE / MOVE-CORRESPONDING 을 정당하게 쓸 수 있고
+         검사기는 이를 obsolete_statement W 로 낸다 — 경고 기록만, 통과 판정과 무관. 단 preferred_compare_operator(E)
+         는 릴리스와 무관하게 오류급이다(IF 안의 EQ / NE / GT / LT / GE / LE 는 7.02 에서도 = <> > < >= <= 로 쓴다).
+  checker_commands:
+    node interactive/checker/sapkit-checker.bundle.cjs lint    <out>/zjudge_c05.abap
+    node interactive/checker/sapkit-checker.bundle.cjs parse   <out>/zjudge_c05.abap
+    node interactive/checker/sapkit-checker.bundle.cjs analyze <out>/zjudge_c05.abap
+
+4. 비고 (과제 5종 공통)
+-----------------------
+  - 검사기 오류급 가운데 릴리스·과제와 무관하게 걸리기 쉬운 것 = preferred_compare_operator(E) · max_one_statement(E).
+  - 집 규칙(lv_/gv_ 이름 규약 · 인클루드 분할 · 텍스트 요소 TEXT-nnn · OK_CODE 패턴 · LCL_DATA/LCL_ALV 두 클래스 분할 ·
+    템플릿 준수)은 어느 과제에서도 채점하지 않는다. 검사기의 local_variable_names 는 W 라 통과 판정에 안 들어간다.
+  - 산출물에 SAP 시스템 ID·호스트·사용자 ID 를 적지 않는다. 과제는 모두 P0(접속 없음)다.
