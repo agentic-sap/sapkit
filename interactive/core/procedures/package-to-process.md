@@ -1,6 +1,6 @@
 ---
 name: package-to-process
-description: Reverse-engineer one CBO package into an End-to-End Business Process document — walk its programs and FMs, recover the business-document flow (PR→PO→GR→IR style), and emit a consultant-facing Markdown narrative with rendered process-map and sequence-diagram images plus per-step tables.
+description: Reverse-engineer one CBO package into an End-to-End Business Process document — walk its programs and FMs, recover the business-document flow (PR→PO→GR→IR style), and emit a consultant-facing Markdown narrative with rendered process-map and sequence-diagram images plus per-step tables; on request also an HTML copy of the document to send, and converting an existing process document to HTML.
 source:
   - babamba2/superclaude-for-sap@78b5c2f:skills/package-to-process/SKILL.md
   - babamba2/superclaude-for-sap@78b5c2f:skills/package-to-process/workflow.md
@@ -70,6 +70,8 @@ that once per package and leaves a reviewable artifact behind.
 
 ```
 .sapkit/processes/<MODULE>/<PACKAGE>/process-<YYYYMMDD>-<lang>.md
+.sapkit/processes/<MODULE>/<PACKAGE>/process-<YYYYMMDD>-<lang>-appendix-<N>.md
+.sapkit/processes/<MODULE>/<PACKAGE>/<PACKAGE>-process-<YYYYMMDD>-<lang>.html
 .sapkit/processes/<MODULE>/<PACKAGE>/_assets/process-<YYYYMMDD>-<lang>/{macro.png,seq-<N>.png}
 .sapkit/processes/<MODULE>/<PACKAGE>/_img/process-images.json
 ```
@@ -77,6 +79,39 @@ that once per package and leaves a reviewable artifact behind.
 `<MODULE>` uppercase module key · `<PACKAGE>` uppercase package name ·
 `<lang>` ISO 639-1 from Step 1. A file already at that path is overwritten, but
 the new file carries a `> Regenerated from <old generated_at>` line under its H1.
+
+The `-appendix-<N>.md` files exist only after an approved length split
+(§ Renderer constraints 10); `N` counts from 1 in document order. The `.html`
+file exists only when the user chose an HTML copy (Step 1) or asked for one
+later — it starts with the package name so the person who receives it can tell
+what it is from the file name alone. **The Markdown stays the document of
+record**: the HTML is always generated from it (Step 7 item 5), never edited by
+hand, and the Markdown's format, paths and content do not change because an HTML
+copy exists.
+
+## Conversion-only branch — an existing document to HTML
+
+When the user asks to turn a **document this procedure already wrote** into HTML
+— they hand over the file, or point at one ("last time's process document for
+ZMM_CORE") — do only that:
+
+- **No SAP connection, no intake, no analysis** — this branch is P0 (offline).
+  Steps 1–6 do not run.
+- **Identify the document.** A given path is used as is. Otherwise look under
+  `.sapkit/processes/` for `process-<YYYYMMDD>-<lang>.md` files (appendix files
+  are not candidates on their own) and let the user pick — package, date and
+  language per candidate, in plain words, the most recent first and marked as
+  the recommendation; more than the picker holds folds per the
+  [plain-language policy](../policies/plain-language.md). Nothing found → say so
+  plainly and stop.
+- **Run the Step 7 item 1 checks on that document first.** Any check fails → make
+  no HTML, say in plain words which check failed, and wait — a failed check is
+  reported, not repaired (Step 7 item 4).
+- **Make the HTML** per Step 7 item 5 — same output name and folder (date and
+  language taken from the source file name), the same folder's
+  `-appendix-<N>.md` files merged in `N` order, and opened in the browser.
+  `--lang` comes from the file name's `-<lang>` suffix; failing that, the
+  language the body is written in; failing that, the conversation language.
 
 ## Workflow Steps
 
@@ -88,6 +123,11 @@ Ask one question at a time; do not batch them. Word each one per the
 [plain-language policy](../policies/plain-language.md) — say it in the user's
 language, in plain words, carrying one line of why it is being asked and where
 the user is in the three intake questions.
+
+One exception, and only this pair: question 3 (output language) goes out
+**together with the document-format item** described under it, as two items in
+one message. Both settle the same thing — what the finished document looks like
+— so they form one bundle and still count as one of the three questions.
 
 1. **Package** (exactly one question, skip if the invocation already named it)
 
@@ -115,7 +155,7 @@ the user is in the three intake questions.
      uppercase and verify `../knowledge/modules/<MODULE>/` exists; reject and re-ask otherwise.
    - `BC` is deliberately absent from the flow dictionary — see
      [document-flows](../knowledge/modules/common/document-flows.md) § Scope note.
-3. **Output language** (exactly one question)
+3. **Output language** (one question, sent with the document-format item below)
 
    Say this in the user's language, in plain words:
    - why it is being asked — this fixes the language the finished document is
@@ -128,6 +168,22 @@ the user is in the three intake questions.
    the language the user names rather than asking them for the code. Section
    titles and body text follow this choice. Frontmatter keys stay English;
    diagram syntax is language-neutral, only node labels translate.
+
+   **Second item in the same message — document format.** Say this in the
+   user's language, in plain words, next to the language question:
+   - why it is being asked — besides the Markdown document, the same document
+     can also be handed out as one HTML file (a web page that opens offline in
+     any browser, pictures included), for sending by mail or chat;
+   - the choice, recommendation first:
+     - **Markdown only — the recommendation**, with one line of why: it is the
+       fastest to review, and the HTML copy can still be made later from the
+       same document;
+     - **Markdown plus an HTML copy** — the same document, also as one file
+       ready to send.
+
+   This is a technical choice, so it carries no open slot. Record it as
+   `html: true|false`. The HTML copy itself is made in Step 7 item 5, only after
+   every check has passed.
 4. **Project context** — read `.sapkit/config.json` (`sapVersion`, `abapRelease`,
    `industry`, `country`) and `.sapkit/sap.env` (`SAP_ACTIVE_MODULES`) per
    [project-context](../project-context.md). If industry or country is unset, ask
@@ -143,7 +199,7 @@ the user is in the three intake questions.
    Cite `참조: {name}/{file}`. Absent → skip silently.
 
 State after Step 1: `{package, module, sapVersion, abapRelease, industry, country,
-activeModules, language}`.
+activeModules, language, html}`.
 
 **Step 2 — Ensure the CBO inventory exists**
 
@@ -337,13 +393,51 @@ node tools/spec/render-process-images.mjs \
    - §0 carries the macro diagram (PNG or fallback)
    - `process_count` equals the number of process sections
    - no row data leaked into the document
+
+   When every check passes and `html` is true, make the HTML copy now (item 5),
+   so the summary can carry its path.
 2. Print the summary: file path, process count, diagram count, external-boundary
-   row count.
+   row count — plus the HTML copy's path when one was made.
 3. Offer the follow-ups — [program-to-spec](program-to-spec.md) to drill into one
    program, [compare-programs](compare-programs.md) when two members look alike,
-   [ask-consultant](ask-consultant.md) for the open questions. Offer; do not run.
+   [ask-consultant](ask-consultant.md) for the open questions, and, when no HTML
+   copy was made, **also make an HTML copy** of this document. Offer; do not run.
 4. **A failed check is reported, not repaired.** Leave the file in place, state
-   which check failed, and wait — never silently regenerate.
+   which check failed, and wait — never silently regenerate. When `html` is
+   true, add that the HTML copy is made once the checks pass. A document that
+   failed the row-data check never gets an HTML copy, by any route, until it is
+   fixed.
+5. **HTML copy** — only after every item 1 check has passed, and only from the
+   Markdown on disk. Render it with
+   [md-to-html.mjs](../../tools/spec/md-to-html.mjs):
+
+```bash
+node PLUGIN_ROOT/tools/spec/md-to-html.mjs \
+  .sapkit/processes/<MODULE>/<PACKAGE>/process-<YYYYMMDD>-<lang>.md \
+  .sapkit/processes/<MODULE>/<PACKAGE>/<PACKAGE>-process-<YYYYMMDD>-<lang>.html \
+  --lang <lang> \
+  [--append .sapkit/processes/<MODULE>/<PACKAGE>/process-<YYYYMMDD>-<lang>-appendix-1.md ...] \
+  --open
+```
+
+   - `--lang` = the output language chosen in Step 1 (the body is never
+     translated; a language other than ko/en/ja gets an English page frame).
+   - After an approved length split, pass every `-appendix-<N>.md` file with
+     `--append` in `N` order — main document plus appendices become **one** HTML
+     file.
+   - `--open` only the **first** time an HTML copy is made in this run. A
+     regeneration later in the same run (say after the user asked for a change
+     and the Markdown was rewritten) leaves `--open` off and just says the copy
+     was updated.
+   - Read the result: `WROTE <path>` is the file. `OPENED` means the browser was
+     asked to open it — not proof a window appeared — so give the path as well.
+     `OPEN-FAILED` (still exit 0, e.g. the sandbox blocked the browser) → give
+     the path. Exit 1 → the Markdown or an appendix could not be read and nothing
+     was written; say so plainly — the Markdown document is unaffected.
+   - Tell the user in their language, in plain words, either that an HTML copy
+     was made and opened in the browser, with where it is, or that it could not
+     be opened, with where it is. Never name the tool, its flags or its output
+     lines.
 
 ## Document skeleton
 
@@ -452,9 +546,14 @@ FALLBACK{sequenceDiagram source for this process}
 8. **Sensitive Objects renders even when empty** ("No sensitive objects flagged.")
    so a reviewer can see the question was asked.
 9. **Regeneration banner** — when overwriting, prepend
-   `> Regenerated from <previous generated_at>` directly under the H1.
+   `> Regenerated from <previous generated_at>` directly under the H1. The
+   Markdown rules do not change; an HTML copy, when one is made, is regenerated
+   from the new Markdown (Step 7 item 5).
 10. **Length** — past ~2000 lines, warn the user and offer a per-process appendix
-    split. Never split without approval.
+    split. Never split without approval. An approved split writes each appendix
+    to the main document's folder as
+    `process-<YYYYMMDD>-<lang>-appendix-<N>.md` (`N` from 1, in document order);
+    the HTML copy merges the main document and its appendices into one file.
 
 ## Failure handling
 
@@ -466,7 +565,8 @@ FALLBACK{sequenceDiagram source for this process}
   is still incomplete, stop and ask rather than shipping a half-filled template.
 - Image rendering returns nulls (Step 6) → continue with text fallbacks and say so
   in the handoff. This is degradation, not failure.
-- Any Step 7 check fails → report it, keep the file, wait for instructions.
+- Any Step 7 check fails → report it, keep the file, wait for instructions. No
+  HTML copy is made until the checks pass.
 
 ## Safety Rails
 
