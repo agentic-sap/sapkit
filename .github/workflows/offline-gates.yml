@@ -147,6 +147,15 @@ jobs:
       - name: 연속성 훅/스위치 음성시험 (왕복 · 안전훅 독립 · 결정표 · 무본문 주입)
         run: node interactive/scripts/test-continuity-hook.mjs
 
+      # ── 명세 HTML 렌더러 게이트 (판H) ──────────────────────────────────────
+      # xlsx-to-html · md-to-html이 만드는 한 파일짜리 오프라인 사본을 잰다 —
+      # 탭·문자열·병합·그림·외부 URL 0·CSP 해시 · 목차·슬러그·무력화 · exit 1/2
+      # 계약과 기존 출력 보존 · 결정성. 고정 데이터는 시험이 템플릿 복제와 코드로
+      # 그때 만든다(바이너리 커밋 없음). 오프라인이며 브라우저를 절대 띄우지
+      # 않는다(--open은 가짜 openImpl/spawnImpl로만 잰다).
+      - name: 명세 HTML 렌더러 게이트 (탭·병합·그림·목차·슬러그·무력화·exit 계약·결정성)
+        run: node interactive/scripts/test-spec-html.mjs
+
       # ── 콜드 층 위키 구조 게이트 (설계 2026-08-23-project-brain-design §2.11 ·
       # §4.6-5 · D-137 · 판W) ─────────────────────────────────────────────────
       # `docs/` 하위 링크를 재는 게이트가 이 레포에 없었다 — 기존 check-links.mjs의
