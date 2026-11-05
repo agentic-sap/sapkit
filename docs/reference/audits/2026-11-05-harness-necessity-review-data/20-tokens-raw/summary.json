@@ -1,0 +1,4817 @@
+{
+  "date": "2026-11-05",
+  "node": "v24.14.1",
+  "verify_engine_line": "[verify-engine] OK: sapkit-engine@1.5.0 (3c1fbcef34a5…)",
+  "tokenizer": "gpt-tokenizer@3.0.1",
+  "surfaces": [
+    {
+      "label": "default",
+      "arg": null,
+      "note": "인자 없음 → 번들 기본값 readonly,high (exposition.ts DEFAULT_EXPOSITION)",
+      "count": 155,
+      "bytes_tools": 141107,
+      "len16_result": 141017,
+      "div4": 35277,
+      "tok": 30864,
+      "tok_o200k": 31218,
+      "avg": 910,
+      "avg_description": 236,
+      "description_total": 36620,
+      "schema_total": 88822,
+      "names_json": {
+        "bytes": 3047,
+        "div4": 762,
+        "tok": 612,
+        "tok_o200k": 629
+      },
+      "names_prefixed": {
+        "bytes": 6455,
+        "div4": 1614,
+        "tok": 2160,
+        "tok_o200k": 2177
+      },
+      "entry": null,
+      "top10": [
+        {
+          "name": "UpdateSourceByPatch",
+          "total": 3095,
+          "description": 1490,
+          "schema": 1503
+        },
+        {
+          "name": "UpdateDataElement",
+          "total": 2996,
+          "description": 925,
+          "schema": 1954
+        },
+        {
+          "name": "CreateStructure",
+          "total": 2872,
+          "description": 401,
+          "schema": 2371
+        },
+        {
+          "name": "CheckSyntax",
+          "total": 2678,
+          "description": 1448,
+          "schema": 1128
+        },
+        {
+          "name": "ActivateObjects",
+          "total": 2670,
+          "description": 1531,
+          "schema": 1041
+        },
+        {
+          "name": "CreateDataElement",
+          "total": 2564,
+          "description": 99,
+          "schema": 2365
+        },
+        {
+          "name": "GrepObjects",
+          "total": 2301,
+          "description": 1266,
+          "schema": 935
+        },
+        {
+          "name": "UpdateDomain",
+          "total": 2085,
+          "description": 397,
+          "schema": 1583
+        },
+        {
+          "name": "CreateServiceBinding",
+          "total": 2080,
+          "description": 474,
+          "schema": 1497
+        },
+        {
+          "name": "CreateDomain",
+          "total": 2010,
+          "description": 114,
+          "schema": 1801
+        }
+      ]
+    },
+    {
+      "label": "readonly",
+      "arg": "readonly",
+      "note": "launch.cjs SURFACE_READONLY — toolSurface readonly · 미설정 · 알 수 없는 값 · tier≠DEV 전부",
+      "count": 65,
+      "bytes_tools": 54664,
+      "len16_result": 54610,
+      "div4": 13666,
+      "tok": 12282,
+      "tok_o200k": 12433,
+      "avg": 841,
+      "avg_description": 268,
+      "description_total": 17390,
+      "schema_total": 30720,
+      "names_json": {
+        "bytes": 1261,
+        "div4": 315,
+        "tok": 274,
+        "tok_o200k": 277
+      },
+      "names_prefixed": {
+        "bytes": 2689,
+        "div4": 672,
+        "tok": 922,
+        "tok_o200k": 925
+      },
+      "entry": null,
+      "top10": [
+        {
+          "name": "CheckSyntax",
+          "total": 2678,
+          "description": 1448,
+          "schema": 1128
+        },
+        {
+          "name": "GrepObjects",
+          "total": 2301,
+          "description": 1266,
+          "schema": 935
+        },
+        {
+          "name": "GrepPackages",
+          "total": 1683,
+          "description": 498,
+          "schema": 1090
+        },
+        {
+          "name": "GetCallGraph",
+          "total": 1662,
+          "description": 359,
+          "schema": 1208
+        },
+        {
+          "name": "ReadFunctionModule",
+          "total": 1341,
+          "description": 378,
+          "schema": 862
+        },
+        {
+          "name": "GetSqlQuery",
+          "total": 1322,
+          "description": 702,
+          "schema": 526
+        },
+        {
+          "name": "GetSourceDiff",
+          "total": 1238,
+          "description": 387,
+          "schema": 755
+        },
+        {
+          "name": "GetVirtualFoldersLow",
+          "total": 1234,
+          "description": 147,
+          "schema": 984
+        },
+        {
+          "name": "GetNodeStructureLow",
+          "total": 1200,
+          "description": 193,
+          "schema": 905
+        },
+        {
+          "name": "GetTypeInfo",
+          "total": 1138,
+          "description": 715,
+          "schema": 329
+        }
+      ]
+    },
+    {
+      "label": "readonly,high",
+      "arg": "readonly,high",
+      "note": "launch.cjs SURFACE_DEVELOPMENT — toolSurface development (DEV tier에서만 허가)",
+      "count": 155,
+      "bytes_tools": 141107,
+      "len16_result": 141017,
+      "div4": 35277,
+      "tok": 30864,
+      "tok_o200k": 31218,
+      "avg": 910,
+      "avg_description": 236,
+      "description_total": 36620,
+      "schema_total": 88822,
+      "names_json": {
+        "bytes": 3047,
+        "div4": 762,
+        "tok": 612,
+        "tok_o200k": 629
+      },
+      "names_prefixed": {
+        "bytes": 6455,
+        "div4": 1614,
+        "tok": 2160,
+        "tok_o200k": 2177
+      },
+      "entry": null,
+      "top10": [
+        {
+          "name": "UpdateSourceByPatch",
+          "total": 3095,
+          "description": 1490,
+          "schema": 1503
+        },
+        {
+          "name": "UpdateDataElement",
+          "total": 2996,
+          "description": 925,
+          "schema": 1954
+        },
+        {
+          "name": "CreateStructure",
+          "total": 2872,
+          "description": 401,
+          "schema": 2371
+        },
+        {
+          "name": "CheckSyntax",
+          "total": 2678,
+          "description": 1448,
+          "schema": 1128
+        },
+        {
+          "name": "ActivateObjects",
+          "total": 2670,
+          "description": 1531,
+          "schema": 1041
+        },
+        {
+          "name": "CreateDataElement",
+          "total": 2564,
+          "description": 99,
+          "schema": 2365
+        },
+        {
+          "name": "GrepObjects",
+          "total": 2301,
+          "description": 1266,
+          "schema": 935
+        },
+        {
+          "name": "UpdateDomain",
+          "total": 2085,
+          "description": 397,
+          "schema": 1583
+        },
+        {
+          "name": "CreateServiceBinding",
+          "total": 2080,
+          "description": 474,
+          "schema": 1497
+        },
+        {
+          "name": "CreateDomain",
+          "total": 2010,
+          "description": 114,
+          "schema": 1801
+        }
+      ]
+    },
+    {
+      "label": "high",
+      "arg": "high",
+      "note": "KNOWN_SETS 단독",
+      "count": 90,
+      "bytes_tools": 86444,
+      "len16_result": 86418,
+      "div4": 21611,
+      "tok": 18584,
+      "tok_o200k": 18787,
+      "avg": 960,
+      "avg_description": 214,
+      "description_total": 19230,
+      "schema_total": 58102,
+      "names_json": {
+        "bytes": 1787,
+        "div4": 447,
+        "tok": 339,
+        "tok_o200k": 353
+      },
+      "names_prefixed": {
+        "bytes": 3765,
+        "div4": 941,
+        "tok": 1237,
+        "tok_o200k": 1251
+      },
+      "entry": null,
+      "top10": [
+        {
+          "name": "UpdateSourceByPatch",
+          "total": 3095,
+          "description": 1490,
+          "schema": 1503
+        },
+        {
+          "name": "UpdateDataElement",
+          "total": 2996,
+          "description": 925,
+          "schema": 1954
+        },
+        {
+          "name": "CreateStructure",
+          "total": 2872,
+          "description": 401,
+          "schema": 2371
+        },
+        {
+          "name": "ActivateObjects",
+          "total": 2670,
+          "description": 1531,
+          "schema": 1041
+        },
+        {
+          "name": "CreateDataElement",
+          "total": 2564,
+          "description": 99,
+          "schema": 2365
+        },
+        {
+          "name": "UpdateDomain",
+          "total": 2085,
+          "description": 397,
+          "schema": 1583
+        },
+        {
+          "name": "CreateServiceBinding",
+          "total": 2080,
+          "description": 474,
+          "schema": 1497
+        },
+        {
+          "name": "CreateDomain",
+          "total": 2010,
+          "description": 114,
+          "schema": 1801
+        },
+        {
+          "name": "UpdateFunctionModule",
+          "total": 1774,
+          "description": 542,
+          "schema": 1129
+        },
+        {
+          "name": "CreateServiceDefinition",
+          "total": 1729,
+          "description": 697,
+          "schema": 926
+        }
+      ]
+    },
+    {
+      "label": "compact",
+      "arg": "compact",
+      "note": "KNOWN_SETS 단독",
+      "count": 0,
+      "bytes_tools": 2,
+      "len16_result": 12,
+      "div4": 1,
+      "tok": 1,
+      "tok_o200k": 1,
+      "avg": 0,
+      "avg_description": 0,
+      "description_total": 0,
+      "schema_total": 0,
+      "names_json": {
+        "bytes": 2,
+        "div4": 1,
+        "tok": 1,
+        "tok_o200k": 1
+      },
+      "names_prefixed": {
+        "bytes": 0,
+        "div4": 0,
+        "tok": 0,
+        "tok_o200k": 0
+      },
+      "entry": null,
+      "top10": []
+    },
+    {
+      "label": "low",
+      "arg": "low",
+      "note": "KNOWN_SETS 단독",
+      "count": 0,
+      "bytes_tools": 2,
+      "len16_result": 12,
+      "div4": 1,
+      "tok": 1,
+      "tok_o200k": 1,
+      "avg": 0,
+      "avg_description": 0,
+      "description_total": 0,
+      "schema_total": 0,
+      "names_json": {
+        "bytes": 2,
+        "div4": 1,
+        "tok": 1,
+        "tok_o200k": 1
+      },
+      "names_prefixed": {
+        "bytes": 0,
+        "div4": 0,
+        "tok": 0,
+        "tok_o200k": 0
+      },
+      "entry": null,
+      "top10": []
+    },
+    {
+      "label": "system",
+      "arg": "system",
+      "note": "KNOWN_SETS 단독 (readonly가 함께 켜는 묶음)",
+      "count": 4,
+      "bytes_tools": 4461,
+      "len16_result": 4471,
+      "div4": 1115,
+      "tok": 974,
+      "tok_o200k": 995,
+      "avg": 1115,
+      "avg_description": 173,
+      "description_total": 693,
+      "schema_total": 3357,
+      "names_json": {
+        "bytes": 87,
+        "div4": 22,
+        "tok": 19,
+        "tok_o200k": 20
+      },
+      "names_prefixed": {
+        "bytes": 173,
+        "div4": 43,
+        "tok": 57,
+        "tok_o200k": 58
+      },
+      "entry": null,
+      "top10": [
+        {
+          "name": "GetVirtualFoldersLow",
+          "total": 1234,
+          "description": 147,
+          "schema": 984
+        },
+        {
+          "name": "GetNodeStructureLow",
+          "total": 1200,
+          "description": 193,
+          "schema": 905
+        },
+        {
+          "name": "GetPackageTree",
+          "total": 1014,
+          "description": 158,
+          "schema": 759
+        },
+        {
+          "name": "GetObjectStructureLow",
+          "total": 1008,
+          "description": 195,
+          "schema": 709
+        }
+      ]
+    },
+    {
+      "label": "search",
+      "arg": "search",
+      "note": "KNOWN_SETS 단독 (항상 켜지는 묶음)",
+      "count": 0,
+      "bytes_tools": 2,
+      "len16_result": 12,
+      "div4": 1,
+      "tok": 1,
+      "tok_o200k": 1,
+      "avg": 0,
+      "avg_description": 0,
+      "description_total": 0,
+      "schema_total": 0,
+      "names_json": {
+        "bytes": 2,
+        "div4": 1,
+        "tok": 1,
+        "tok_o200k": 1
+      },
+      "names_prefixed": {
+        "bytes": 0,
+        "div4": 0,
+        "tok": 0,
+        "tok_o200k": 0
+      },
+      "entry": null,
+      "top10": []
+    },
+    {
+      "label": "all-sets",
+      "arg": "readonly,high,compact,low,system,search",
+      "note": "KNOWN_SETS 전부 (unknownArguments.test.ts ALL_SETS)",
+      "count": 155,
+      "bytes_tools": 141107,
+      "len16_result": 141017,
+      "div4": 35277,
+      "tok": 30864,
+      "tok_o200k": 31218,
+      "avg": 910,
+      "avg_description": 236,
+      "description_total": 36620,
+      "schema_total": 88822,
+      "names_json": {
+        "bytes": 3047,
+        "div4": 762,
+        "tok": 612,
+        "tok_o200k": 629
+      },
+      "names_prefixed": {
+        "bytes": 6455,
+        "div4": 1614,
+        "tok": 2160,
+        "tok_o200k": 2177
+      },
+      "entry": null,
+      "top10": [
+        {
+          "name": "UpdateSourceByPatch",
+          "total": 3095,
+          "description": 1490,
+          "schema": 1503
+        },
+        {
+          "name": "UpdateDataElement",
+          "total": 2996,
+          "description": 925,
+          "schema": 1954
+        },
+        {
+          "name": "CreateStructure",
+          "total": 2872,
+          "description": 401,
+          "schema": 2371
+        },
+        {
+          "name": "CheckSyntax",
+          "total": 2678,
+          "description": 1448,
+          "schema": 1128
+        },
+        {
+          "name": "ActivateObjects",
+          "total": 2670,
+          "description": 1531,
+          "schema": 1041
+        },
+        {
+          "name": "CreateDataElement",
+          "total": 2564,
+          "description": 99,
+          "schema": 2365
+        },
+        {
+          "name": "GrepObjects",
+          "total": 2301,
+          "description": 1266,
+          "schema": 935
+        },
+        {
+          "name": "UpdateDomain",
+          "total": 2085,
+          "description": 397,
+          "schema": 1583
+        },
+        {
+          "name": "CreateServiceBinding",
+          "total": 2080,
+          "description": 474,
+          "schema": 1497
+        },
+        {
+          "name": "CreateDomain",
+          "total": 2010,
+          "description": 114,
+          "schema": 1801
+        }
+      ]
+    },
+    {
+      "label": "development(literal)",
+      "arg": "development",
+      "note": "D-105 ⓔ 함정 — 번들이 모르는 값 → 기본으로 안 돌아가고 거의 빈 표면",
+      "count": 0,
+      "bytes_tools": 2,
+      "len16_result": 12,
+      "div4": 1,
+      "tok": 1,
+      "tok_o200k": 1,
+      "avg": 0,
+      "avg_description": 0,
+      "description_total": 0,
+      "schema_total": 0,
+      "names_json": {
+        "bytes": 2,
+        "div4": 1,
+        "tok": 1,
+        "tok_o200k": 1
+      },
+      "names_prefixed": {
+        "bytes": 0,
+        "div4": 0,
+        "tok": 0,
+        "tok_o200k": 0
+      },
+      "entry": null,
+      "top10": []
+    },
+    {
+      "label": "launch.cjs(config 없음)",
+      "arg": null,
+      "note": "런처 경유 · .sapkit/config.json 없음 → TOOLSURFACE_DEFAULT → readonly",
+      "count": 65,
+      "bytes_tools": 54664,
+      "len16_result": 54610,
+      "div4": 13666,
+      "tok": 12282,
+      "tok_o200k": 12433,
+      "avg": 841,
+      "avg_description": 268,
+      "description_total": 17390,
+      "schema_total": 30720,
+      "names_json": {
+        "bytes": 1261,
+        "div4": 315,
+        "tok": 274,
+        "tok_o200k": 277
+      },
+      "names_prefixed": {
+        "bytes": 2689,
+        "div4": 672,
+        "tok": 922,
+        "tok_o200k": 925
+      },
+      "entry": "interactive/server/launch.cjs",
+      "top10": [
+        {
+          "name": "CheckSyntax",
+          "total": 2678,
+          "description": 1448,
+          "schema": 1128
+        },
+        {
+          "name": "GrepObjects",
+          "total": 2301,
+          "description": 1266,
+          "schema": 935
+        },
+        {
+          "name": "GrepPackages",
+          "total": 1683,
+          "description": 498,
+          "schema": 1090
+        },
+        {
+          "name": "GetCallGraph",
+          "total": 1662,
+          "description": 359,
+          "schema": 1208
+        },
+        {
+          "name": "ReadFunctionModule",
+          "total": 1341,
+          "description": 378,
+          "schema": 862
+        },
+        {
+          "name": "GetSqlQuery",
+          "total": 1322,
+          "description": 702,
+          "schema": 526
+        },
+        {
+          "name": "GetSourceDiff",
+          "total": 1238,
+          "description": 387,
+          "schema": 755
+        },
+        {
+          "name": "GetVirtualFoldersLow",
+          "total": 1234,
+          "description": 147,
+          "schema": 984
+        },
+        {
+          "name": "GetNodeStructureLow",
+          "total": 1200,
+          "description": 193,
+          "schema": 905
+        },
+        {
+          "name": "GetTypeInfo",
+          "total": 1138,
+          "description": 715,
+          "schema": 329
+        }
+      ]
+    }
+  ],
+  "product": {
+    "skills": [
+      {
+        "skill": "analyze-cbo-obj",
+        "name": "analyze-cbo-obj",
+        "description": {
+          "bytes": 297,
+          "div4": 74,
+          "tok": 58,
+          "tok_o200k": 57
+        },
+        "rendered": {
+          "bytes": 323,
+          "div4": 81,
+          "tok": 68,
+          "tok_o200k": 68
+        },
+        "frontmatter": {
+          "bytes": 332,
+          "div4": 83,
+          "tok": 68,
+          "tok_o200k": 67
+        },
+        "wrapper": {
+          "bytes": 937,
+          "div4": 234,
+          "tok": 224,
+          "tok_o200k": 223
+        },
+        "description_text": "Analyze a CBO (Customer Business Object) package — discover frequently-used Z tables / function modules / data elements / classes / structures / table types — and save a per-module / per-package reference file so later program / program-to-spec runs prefer existing CBO elements over new ones."
+      },
+      {
+        "skill": "analyze-code",
+        "name": "analyze-code",
+        "description": {
+          "bytes": 174,
+          "div4": 44,
+          "tok": 34,
+          "tok_o200k": 34
+        },
+        "rendered": {
+          "bytes": 197,
+          "div4": 49,
+          "tok": 41,
+          "tok_o200k": 42
+        },
+        "frontmatter": {
+          "bytes": 206,
+          "div4": 52,
+          "tok": 41,
+          "tok_o200k": 41
+        },
+        "wrapper": {
+          "bytes": 805,
+          "div4": 201,
+          "tok": 192,
+          "tok_o200k": 192
+        },
+        "description_text": "ABAP code review procedure — read source, run AST/semantic/where-used analysis, evaluate 14 dimensions against the rule files, and report severity-rated findings with fixes"
+      },
+      {
+        "skill": "analyze-symptom",
+        "name": "analyze-symptom",
+        "description": {
+          "bytes": 223,
+          "div4": 56,
+          "tok": 39,
+          "tok_o200k": 39
+        },
+        "rendered": {
+          "bytes": 249,
+          "div4": 62,
+          "tok": 48,
+          "tok_o200k": 49
+        },
+        "frontmatter": {
+          "bytes": 258,
+          "div4": 65,
+          "tok": 48,
+          "tok_o200k": 48
+        },
+        "wrapper": {
+          "bytes": 863,
+          "div4": 216,
+          "tok": 203,
+          "tok_o200k": 203
+        },
+        "description_text": "Step-by-step root cause analysis for SAP operational errors — inspect dumps, logs, transports, and where-used relations directly via MCP, narrow hypotheses with minimal user questions, and provide SAP Note search keywords"
+      },
+      {
+        "skill": "ask-consultant",
+        "name": "ask-consultant",
+        "description": {
+          "bytes": 241,
+          "div4": 60,
+          "tok": 43,
+          "tok_o200k": 43
+        },
+        "rendered": {
+          "bytes": 266,
+          "div4": 67,
+          "tok": 52,
+          "tok_o200k": 52
+        },
+        "frontmatter": {
+          "bytes": 275,
+          "div4": 69,
+          "tok": 52,
+          "tok_o200k": 52
+        },
+        "wrapper": {
+          "bytes": 878,
+          "div4": 220,
+          "tok": 206,
+          "tok_o200k": 206
+        },
+        "description_text": "Direct operational Q&A as a SAP module consultant. Determine the question's module, load the matching consultant persona from the personas INDEX, and answer against the configured SAP environment (version, industry, country, active modules)."
+      },
+      {
+        "skill": "compare-programs",
+        "name": "compare-programs",
+        "description": {
+          "bytes": 330,
+          "div4": 83,
+          "tok": 69,
+          "tok_o200k": 69
+        },
+        "rendered": {
+          "bytes": 357,
+          "div4": 89,
+          "tok": 77,
+          "tok_o200k": 77
+        },
+        "frontmatter": {
+          "bytes": 366,
+          "div4": 92,
+          "tok": 77,
+          "tok_o200k": 77
+        },
+        "wrapper": {
+          "bytes": 973,
+          "div4": 243,
+          "tok": 229,
+          "tok_o200k": 229
+        },
+        "description_text": "Business-angle comparison of 2–5 ABAP programs that share the same business scenario but diverge by module (MM vs CO), country (KR vs EU), persona (controller vs warehouse), or time horizon. Reader = functional consultant. On request also an HTML copy of the report to send, and converting an existing comparison report to HTML."
+      },
+      {
+        "skill": "create-object",
+        "name": "create-object",
+        "description": {
+          "bytes": 199,
+          "div4": 50,
+          "tok": 39,
+          "tok_o200k": 39
+        },
+        "rendered": {
+          "bytes": 223,
+          "div4": 56,
+          "tok": 45,
+          "tok_o200k": 45
+        },
+        "frontmatter": {
+          "bytes": 232,
+          "div4": 58,
+          "tok": 46,
+          "tok_o200k": 46
+        },
+        "wrapper": {
+          "bytes": 833,
+          "div4": 208,
+          "tok": 195,
+          "tok_o200k": 195
+        },
+        "description_text": "ABAP object creation procedure — freeze package and transport intent, then create, write the initial implementation, and activate under attended P3 (MCP success = PROVISIONAL_WRITE, not completion)"
+      },
+      {
+        "skill": "create-program",
+        "name": "create-program",
+        "description": {
+          "bytes": 661,
+          "div4": 165,
+          "tok": 132,
+          "tok_o200k": 132
+        },
+        "rendered": {
+          "bytes": 686,
+          "div4": 172,
+          "tok": 138,
+          "tok_o200k": 138
+        },
+        "frontmatter": {
+          "bytes": 695,
+          "div4": 174,
+          "tok": 139,
+          "tok_o200k": 139
+        },
+        "wrapper": {
+          "bytes": 1298,
+          "div4": 325,
+          "tok": 288,
+          "tok_o200k": 288
+        },
+        "description_text": "End-to-end procedure for creating ABAP programs (Report / CRUD / ALV / Batch / Interface) with Main+Include structure. The main context owns all phases and runs them in order (implementation may be delegated to a single fresh worker per the development-loop execution_owner policy) — SAP version preflight, step-by-step interview (business first, then technical), the dig-out stage, planning with reuse gates, spec writing, human approval gate, implementation, self-QA, fresh-context review gate, debug escalation, completion report. Also hands out an easy-to-read HTML copy of the design document on request, and converts an existing design document to HTML."
+      },
+      {
+        "skill": "deep-interview",
+        "name": "deep-interview",
+        "description": {
+          "bytes": 472,
+          "div4": 118,
+          "tok": 90,
+          "tok_o200k": 90
+        },
+        "rendered": {
+          "bytes": 497,
+          "div4": 124,
+          "tok": 98,
+          "tok_o200k": 98
+        },
+        "frontmatter": {
+          "bytes": 506,
+          "div4": 127,
+          "tok": 98,
+          "tok_o200k": 98
+        },
+        "wrapper": {
+          "bytes": 1109,
+          "div4": 277,
+          "tok": 250,
+          "tok_o200k": 250
+        },
+        "description_text": "A step-by-step deep interview that pins down unclear SAP requirements before build work. Use when scope, business rules, or data sources are still unsettled ahead of create-program or other build/spec procedures — questions arrive in small bundles, every one of them gets asked, and the run produces a confirmed requirements brief that the downstream run consumes. Also hands out an easy-to-read HTML copy of the brief on request, and converts an existing brief to HTML."
+      },
+      {
+        "skill": "develop-abapgit",
+        "name": "develop-abapgit",
+        "description": {
+          "bytes": 370,
+          "div4": 93,
+          "tok": 80,
+          "tok_o200k": 80
+        },
+        "rendered": {
+          "bytes": 396,
+          "div4": 99,
+          "tok": 89,
+          "tok_o200k": 89
+        },
+        "frontmatter": {
+          "bytes": 405,
+          "div4": 101,
+          "tok": 89,
+          "tok_o200k": 89
+        },
+        "wrapper": {
+          "bytes": 1118,
+          "div4": 280,
+          "tok": 260,
+          "tok_o200k": 261
+        },
+        "description_text": "Offline delivery path for ABAP — author and check sources inside a local abapGit mirror seeded from a full package export, build a whole-package ZIP, and hand it to the user, who imports it through the abapGit UI themselves. The agent never connects to SAP before the user's import; the ZIP is the deliverable, and import, activation, and transport stay with the user."
+      },
+      {
+        "skill": "handoff",
+        "name": "handoff",
+        "description": {
+          "bytes": 602,
+          "div4": 151,
+          "tok": 161,
+          "tok_o200k": 149
+        },
+        "rendered": {
+          "bytes": 620,
+          "div4": 155,
+          "tok": 168,
+          "tok_o200k": 156
+        },
+        "frontmatter": {
+          "bytes": 629,
+          "div4": 157,
+          "tok": 168,
+          "tok_o200k": 156
+        },
+        "wrapper": {
+          "bytes": 1412,
+          "div4": 353,
+          "tok": 360,
+          "tok_o200k": 348
+        },
+        "description_text": "Close a session by bringing this project's root HANDOFF.md and RUN-PLAN.md up to date — what the work got to, each SAP object's status (DRAFT / PROVISIONAL_WRITE / COMPLETE), and what happens next — creating the pair only on approval and never writing over a same-named file sapkit did not set up. Behind \"마감해줘\", \"재개점 갱신\", \"다음 세션한테 넘겨줘\", \"정리하고 끝내자\", \"wrap up the session\", \"update the handoff\", \"hand this over to the next session\". Not for facts the project had to find out (use knowledge) and not for failures worth guarding against (use lesson)."
+      },
+      {
+        "skill": "knowledge",
+        "name": "knowledge",
+        "description": {
+          "bytes": 426,
+          "div4": 107,
+          "tok": 104,
+          "tok_o200k": 99
+        },
+        "rendered": {
+          "bytes": 446,
+          "div4": 112,
+          "tok": 110,
+          "tok_o200k": 105
+        },
+        "frontmatter": {
+          "bytes": 455,
+          "div4": 114,
+          "tok": 110,
+          "tok_o200k": 105
+        },
+        "wrapper": {
+          "bytes": 1119,
+          "div4": 280,
+          "tok": 268,
+          "tok_o200k": 264
+        },
+        "description_text": "Record what this project had to find out — a business-domain or this-system fact — as an evidence-backed, citable atom under .sapkit/knowledge/, or correct one that turned out wrong without deleting it. Behind \"지식으로 남겨줘\", \"도메인 지식 정리\", \"이거 기록해둬\", \"record this fact\", \"keep this for next time\". Not for failures (use lesson) and not for facts the shipped SAP knowledge already covers."
+      },
+      {
+        "skill": "lesson",
+        "name": "lesson",
+        "description": {
+          "bytes": 219,
+          "div4": 55,
+          "tok": 56,
+          "tok_o200k": 57
+        },
+        "rendered": {
+          "bytes": 236,
+          "div4": 59,
+          "tok": 62,
+          "tok_o200k": 63
+        },
+        "frontmatter": {
+          "bytes": 245,
+          "div4": 61,
+          "tok": 62,
+          "tok_o200k": 63
+        },
+        "wrapper": {
+          "bytes": 837,
+          "div4": 209,
+          "tok": 215,
+          "tok_o200k": 217
+        },
+        "description_text": "Turn a verified, likely-to-recur SAP failure into a consulted guardrail — a five-step LESSONS→RULES loop (plus a Demote mode) writing .sapkit/LESSONS.md and .sapkit/RULES.md, never auto-promoting an ordinary failure"
+      },
+      {
+        "skill": "modify-object",
+        "name": "modify-object",
+        "description": {
+          "bytes": 214,
+          "div4": 54,
+          "tok": 43,
+          "tok_o200k": 42
+        },
+        "rendered": {
+          "bytes": 238,
+          "div4": 60,
+          "tok": 50,
+          "tok_o200k": 49
+        },
+        "frontmatter": {
+          "bytes": 247,
+          "div4": 62,
+          "tok": 50,
+          "tok_o200k": 49
+        },
+        "wrapper": {
+          "bytes": 868,
+          "div4": 217,
+          "tok": 201,
+          "tok_o200k": 201
+        },
+        "description_text": "Minimal-strength procedure for a small, clear edit to an existing ABAP object — read relevant rules, change only within scope via Update*, machine-verify, and stop at PROVISIONAL_WRITE with zero project footprint"
+      },
+      {
+        "skill": "package-to-process",
+        "name": "package-to-process",
+        "description": {
+          "bytes": 401,
+          "div4": 100,
+          "tok": 81,
+          "tok_o200k": 80
+        },
+        "rendered": {
+          "bytes": 430,
+          "div4": 108,
+          "tok": 89,
+          "tok_o200k": 88
+        },
+        "frontmatter": {
+          "bytes": 439,
+          "div4": 110,
+          "tok": 89,
+          "tok_o200k": 88
+        },
+        "wrapper": {
+          "bytes": 1050,
+          "div4": 263,
+          "tok": 240,
+          "tok_o200k": 239
+        },
+        "description_text": "Reverse-engineer one CBO package into an End-to-End Business Process document — walk its programs and FMs, recover the business-document flow (PR→PO→GR→IR style), and emit a consultant-facing Markdown narrative with rendered process-map and sequence-diagram images plus per-step tables; on request also an HTML copy of the document to send, and converting an existing process document to HTML."
+      },
+      {
+        "skill": "program-to-spec",
+        "name": "program-to-spec",
+        "description": {
+          "bytes": 303,
+          "div4": 76,
+          "tok": 61,
+          "tok_o200k": 61
+        },
+        "rendered": {
+          "bytes": 329,
+          "div4": 82,
+          "tok": 69,
+          "tok_o200k": 69
+        },
+        "frontmatter": {
+          "bytes": 338,
+          "div4": 85,
+          "tok": 69,
+          "tok_o200k": 69
+        },
+        "wrapper": {
+          "bytes": 943,
+          "div4": 236,
+          "tok": 221,
+          "tok_o200k": 220
+        },
+        "description_text": "Reverse-engineer an ABAP program into a Functional/Technical Specification artifact (Markdown, Excel, or Excel with an HTML copy that opens in a browser). Step-by-step scope narrowing from \"everything\" to \"only what the user needs\". Also converts an existing spec into an HTML copy without touching SAP."
+      },
+      {
+        "skill": "release",
+        "name": "release",
+        "description": {
+          "bytes": 123,
+          "div4": 31,
+          "tok": 19,
+          "tok_o200k": 19
+        },
+        "rendered": {
+          "bytes": 141,
+          "div4": 35,
+          "tok": 26,
+          "tok_o200k": 25
+        },
+        "frontmatter": {
+          "bytes": 150,
+          "div4": 38,
+          "tok": 26,
+          "tok_o200k": 25
+        },
+        "wrapper": {
+          "bytes": 739,
+          "div4": 185,
+          "tok": 174,
+          "tok_o200k": 174
+        },
+        "description_text": "CTS transport release procedure — list transports, validate pre-release conditions, release, and confirm import readiness"
+      },
+      {
+        "skill": "setup",
+        "name": "setup",
+        "description": {
+          "bytes": 194,
+          "div4": 49,
+          "tok": 33,
+          "tok_o200k": 32
+        },
+        "rendered": {
+          "bytes": 210,
+          "div4": 53,
+          "tok": 39,
+          "tok_o200k": 38
+        },
+        "frontmatter": {
+          "bytes": 219,
+          "div4": 55,
+          "tok": 39,
+          "tok_o200k": 38
+        },
+        "wrapper": {
+          "bytes": 784,
+          "div4": 196,
+          "tok": 179,
+          "tok_o200k": 179
+        },
+        "description_text": "Interactive onboarding wizard — SAP connection profile, project context files with tool-surface selection, and a layered self-check, plus optional permission-template and safety-hook switches."
+      },
+      {
+        "skill": "troubleshooting",
+        "name": "troubleshooting",
+        "description": {
+          "bytes": 199,
+          "div4": 50,
+          "tok": 33,
+          "tok_o200k": 33
+        },
+        "rendered": {
+          "bytes": 225,
+          "div4": 56,
+          "tok": 41,
+          "tok_o200k": 41
+        },
+        "frontmatter": {
+          "bytes": 234,
+          "div4": 59,
+          "tok": 39,
+          "tok_o200k": 39
+        },
+        "wrapper": {
+          "bytes": 839,
+          "div4": 210,
+          "tok": 188,
+          "tok_o200k": 188
+        },
+        "description_text": "Harness-neutral diagnostics and operations for the SAP MCP server — connection checklist, SAP system identification, RFC backend selection criteria, profile/tier checks, and blocklist verification."
+      },
+      {
+        "skill": "verify-applied",
+        "name": "verify-applied",
+        "description": {
+          "bytes": 650,
+          "div4": 163,
+          "tok": 157,
+          "tok_o200k": 147
+        },
+        "rendered": {
+          "bytes": 675,
+          "div4": 169,
+          "tok": 165,
+          "tok_o200k": 155
+        },
+        "frontmatter": {
+          "bytes": 684,
+          "div4": 171,
+          "tok": 165,
+          "tok_o200k": 155
+        },
+        "wrapper": {
+          "bytes": 1218,
+          "div4": 305,
+          "tok": 297,
+          "tok_o200k": 288
+        },
+        "description_text": "Machine-confirm an object already applied to SAP — read its source back out of the system and compare it against what was sent, then confirm syntax and active state — and report the outcome in plain language. The entry point behind \"확인해줘\", \"완료 확인\", \"반영됐는지 봐줘\", \"제대로 들어갔나\", \"verify this program\", \"did it really apply\". A tool's success response is not evidence: an MCP `Create*`/`Update*` returning OK, or `ActivateObjects` reporting ACTIVE, leaves the object at PROVISIONAL_WRITE. This procedure supplies the machine half of completion; an independent fresh-context review (R-PASS) supplies the other."
+      }
+    ],
+    "agents": [
+      {
+        "agent": "sap-reviewer.md",
+        "name": "sap-reviewer",
+        "description": {
+          "bytes": 118,
+          "div4": 30,
+          "tok": 22,
+          "tok_o200k": 22
+        },
+        "disallowed_count": 88,
+        "frontmatter": {
+          "bytes": 4093,
+          "div4": 1023,
+          "tok": 1374,
+          "tok_o200k": 1381
+        },
+        "rendered": {
+          "bytes": 3828,
+          "div4": 957,
+          "tok": 1200,
+          "tok_o200k": 1207
+        },
+        "body": {
+          "bytes": 5644,
+          "div4": 1411,
+          "tok": 1732,
+          "tok_o200k": 1742
+        }
+      },
+      {
+        "agent": "sap-worker.md",
+        "name": "sap-worker",
+        "description": {
+          "bytes": 197,
+          "div4": 49,
+          "tok": 35,
+          "tok_o200k": 34
+        },
+        "disallowed_count": 4,
+        "frontmatter": {
+          "bytes": 418,
+          "div4": 105,
+          "tok": 108,
+          "tok_o200k": 107
+        },
+        "rendered": {
+          "bytes": 405,
+          "div4": 101,
+          "tok": 102,
+          "tok_o200k": 101
+        },
+        "body": {
+          "bytes": 4564,
+          "div4": 1141,
+          "tok": 1065,
+          "tok_o200k": 1061
+        }
+      }
+    ],
+    "projectContext": {
+      "whole": {
+        "file": "interactive/core/project-context.md",
+        "bytes": 10097,
+        "div4": 2524,
+        "tok": 2372,
+        "tok_o200k": 2357
+      },
+      "ladder": {
+        "bytes": 1440,
+        "div4": 360,
+        "tok": 356,
+        "tok_o200k": 353
+      },
+      "talk": {
+        "bytes": 550,
+        "div4": 138,
+        "tok": 127,
+        "tok_o200k": 128
+      },
+      "sap_standards_always_on": {
+        "bytes": 1348,
+        "div4": 337,
+        "tok": 313,
+        "tok_o200k": 311
+      }
+    },
+    "instances": [
+      {
+        "project": "ZUNIVAT_RAP",
+        "sapkit_dir": true,
+        "files": {
+          "config.json": 35,
+          "active-profile.txt": 8,
+          "RULES.md": 29998,
+          "LESSONS.md": 43107,
+          "knowledge/domain.md": null,
+          "knowledge/system.md": null
+        }
+      },
+      {
+        "project": "JNC",
+        "sapkit_dir": true,
+        "files": {
+          "config.json": 706,
+          "active-profile.txt": 8,
+          "RULES.md": 1427,
+          "LESSONS.md": 5040,
+          "knowledge/domain.md": null,
+          "knowledge/system.md": null
+        }
+      }
+    ],
+    "manifests": [
+      {
+        "file": "interactive/.claude-plugin/plugin.json",
+        "bytes": 1148,
+        "div4": 287,
+        "tok": 301,
+        "tok_o200k": 290
+      },
+      {
+        "file": "interactive/.mcp.json",
+        "bytes": 393,
+        "div4": 98,
+        "tok": 119,
+        "tok_o200k": 109
+      },
+      {
+        "file": "interactive/plugin.json",
+        "bytes": 841,
+        "div4": 210,
+        "tok": 233,
+        "tok_o200k": 222
+      }
+    ],
+    "hooksInstalledByDefault": 0,
+    "S1": {
+      "bytes": 10977,
+      "div4": 2744,
+      "tok": 2777,
+      "tok_o200k": 2755
+    },
+    "S1fm": {
+      "bytes": 10809,
+      "div4": 2702,
+      "tok": 2814,
+      "tok_o200k": 2790
+    },
+    "S2": {
+      "bytes": 12967,
+      "div4": 3242,
+      "tok": 3260,
+      "tok_o200k": 3236
+    },
+    "S2fm": {
+      "bytes": 12799,
+      "div4": 3200,
+      "tok": 3297,
+      "tok_o200k": 3271
+    },
+    "S3": {
+      "bytes": 21074,
+      "div4": 5269,
+      "tok": 5149,
+      "tok_o200k": 5112
+    }
+  },
+  "procedures": {
+    "rows": [
+      {
+        "name": "create-program",
+        "wrapper": {
+          "file": "interactive/skills/create-program/SKILL.md",
+          "bytes": 1298,
+          "div4": 325,
+          "tok": 288,
+          "tok_o200k": 288
+        },
+        "projectContext": {
+          "file": "interactive/core/project-context.md",
+          "bytes": 10097,
+          "div4": 2524,
+          "tok": 2372,
+          "tok_o200k": 2357
+        },
+        "procedure": {
+          "file": "interactive/core/procedures/create-program.md",
+          "bytes": 106157,
+          "div4": 26539,
+          "tok": 25650,
+          "tok_o200k": 25588
+        },
+        "hop1Files": [
+          {
+            "file": "interactive/core/knowledge/abap/conventions/alv-rules.md",
+            "bytes": 10827,
+            "div4": 2707,
+            "tok": 2657,
+            "tok_o200k": 2660
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/clean-code-oop.md",
+            "bytes": 14768,
+            "div4": 3692,
+            "tok": 3464,
+            "tok_o200k": 3453
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/clean-code-procedural.md",
+            "bytes": 10066,
+            "div4": 2517,
+            "tok": 2491,
+            "tok_o200k": 2483
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/clean-code.md",
+            "bytes": 26942,
+            "div4": 6736,
+            "tok": 6525,
+            "tok_o200k": 6537
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/cloud-abap-constraints.md",
+            "bytes": 8583,
+            "div4": 2146,
+            "tok": 2449,
+            "tok_o200k": 2439
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/ecc-ddic-fallback.md",
+            "bytes": 4532,
+            "div4": 1133,
+            "tok": 1106,
+            "tok_o200k": 1101
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/function-module-rule.md",
+            "bytes": 15203,
+            "div4": 3801,
+            "tok": 3588,
+            "tok_o200k": 3601
+          },
+          {
+            "file": "interactive/core/knowledge/industry/README.md",
+            "bytes": 3682,
+            "div4": 921,
+            "tok": 909,
+            "tok_o200k": 899
+          },
+          {
+            "file": "interactive/core/knowledge/modules/common/active-modules.md",
+            "bytes": 7171,
+            "div4": 1793,
+            "tok": 1744,
+            "tok_o200k": 1755
+          },
+          {
+            "file": "interactive/core/personas/INDEX.md",
+            "bytes": 4752,
+            "div4": 1188,
+            "tok": 1149,
+            "tok_o200k": 1091
+          },
+          {
+            "file": "interactive/core/personas/sap-analyst.md",
+            "bytes": 11154,
+            "div4": 2789,
+            "tok": 2561,
+            "tok_o200k": 2544
+          },
+          {
+            "file": "interactive/core/personas/sap-architect.md",
+            "bytes": 11746,
+            "div4": 2937,
+            "tok": 2798,
+            "tok_o200k": 2779
+          },
+          {
+            "file": "interactive/core/personas/sap-debugger.md",
+            "bytes": 9431,
+            "div4": 2358,
+            "tok": 2220,
+            "tok_o200k": 2225
+          },
+          {
+            "file": "interactive/core/personas/sap-executor.md",
+            "bytes": 15687,
+            "div4": 3922,
+            "tok": 3797,
+            "tok_o200k": 3784
+          },
+          {
+            "file": "interactive/core/personas/sap-planner.md",
+            "bytes": 11933,
+            "div4": 2983,
+            "tok": 2837,
+            "tok_o200k": 2808
+          },
+          {
+            "file": "interactive/core/personas/sap-qa-tester.md",
+            "bytes": 9099,
+            "div4": 2275,
+            "tok": 2050,
+            "tok_o200k": 2065
+          },
+          {
+            "file": "interactive/core/personas/sap-sd-consultant.md",
+            "bytes": 11978,
+            "div4": 2995,
+            "tok": 2840,
+            "tok_o200k": 2837
+          },
+          {
+            "file": "interactive/core/personas/sap-stocker.md",
+            "bytes": 9161,
+            "div4": 2290,
+            "tok": 2235,
+            "tok_o200k": 2243
+          },
+          {
+            "file": "interactive/core/personas/sap-writer.md",
+            "bytes": 7104,
+            "div4": 1776,
+            "tok": 1557,
+            "tok_o200k": 1549
+          },
+          {
+            "file": "interactive/core/policies/approval-gates.md",
+            "bytes": 5985,
+            "div4": 1496,
+            "tok": 1381,
+            "tok_o200k": 1377
+          },
+          {
+            "file": "interactive/core/policies/development-loop.md",
+            "bytes": 10461,
+            "div4": 2615,
+            "tok": 2426,
+            "tok_o200k": 2409
+          },
+          {
+            "file": "interactive/core/policies/knowledge-sourcing.md",
+            "bytes": 6960,
+            "div4": 1740,
+            "tok": 1725,
+            "tok_o200k": 1720
+          },
+          {
+            "file": "interactive/core/policies/plain-language.md",
+            "bytes": 7847,
+            "div4": 1962,
+            "tok": 1798,
+            "tok_o200k": 1793
+          },
+          {
+            "file": "interactive/core/policies/verification-policy.md",
+            "bytes": 9996,
+            "div4": 2499,
+            "tok": 2478,
+            "tok_o200k": 2478
+          },
+          {
+            "file": "interactive/core/procedures/ask-consultant.md",
+            "bytes": 13132,
+            "div4": 3283,
+            "tok": 3155,
+            "tok_o200k": 3137
+          },
+          {
+            "file": "interactive/core/procedures/customization-lookup.md",
+            "bytes": 10494,
+            "div4": 2624,
+            "tok": 2636,
+            "tok_o200k": 2623
+          },
+          {
+            "file": "interactive/core/procedures/deep-interview.md",
+            "bytes": 12160,
+            "div4": 3040,
+            "tok": 2852,
+            "tok_o200k": 2837
+          },
+          {
+            "file": "interactive/core/procedures/develop-abapgit.md",
+            "bytes": 29220,
+            "div4": 7305,
+            "tok": 7141,
+            "tok_o200k": 7143
+          },
+          {
+            "file": "interactive/core/procedures/install-sap-assets.md",
+            "bytes": 21793,
+            "div4": 5448,
+            "tok": 6123,
+            "tok_o200k": 6068
+          },
+          {
+            "file": "interactive/core/procedures/interview-sweep.md",
+            "bytes": 17767,
+            "div4": 4442,
+            "tok": 4191,
+            "tok_o200k": 4165
+          },
+          {
+            "file": "interactive/core/procedures/knowledge.md",
+            "bytes": 9972,
+            "div4": 2493,
+            "tok": 2439,
+            "tok_o200k": 2443
+          },
+          {
+            "file": "interactive/core/procedures/lesson.md",
+            "bytes": 7973,
+            "div4": 1993,
+            "tok": 1948,
+            "tok_o200k": 1946
+          },
+          {
+            "file": "interactive/core/procedures/review-checklist.md",
+            "bytes": 31977,
+            "div4": 7994,
+            "tok": 7908,
+            "tok_o200k": 7893
+          },
+          {
+            "file": "interactive/core/procedures/spro-lookup.md",
+            "bytes": 10996,
+            "div4": 2749,
+            "tok": 2645,
+            "tok_o200k": 2640
+          },
+          {
+            "file": "interactive/core/procedures/troubleshooting.md",
+            "bytes": 80189,
+            "div4": 20047,
+            "tok": 19735,
+            "tok_o200k": 19675
+          },
+          {
+            "file": "interactive/core/procedures/verify-applied.md",
+            "bytes": 11539,
+            "div4": 2885,
+            "tok": 2741,
+            "tok_o200k": 2710
+          },
+          {
+            "file": "interactive/core/project-context.md",
+            "bytes": 10097,
+            "div4": 2524,
+            "tok": 2372,
+            "tok_o200k": 2357
+          }
+        ],
+        "hop1Sum": {
+          "bytes": 512377,
+          "div4": 128094,
+          "tok": 124671,
+          "tok_o200k": 124267
+        },
+        "hop1AllCount": 57,
+        "hop1AllSum": {
+          "bytes": 692763,
+          "div4": 173191,
+          "tok": 168489,
+          "tok_o200k": 167955
+        },
+        "selAlts": [
+          {
+            "file": "interactive/core/knowledge/abap/conventions/constant-rule.md",
+            "bytes": 1543,
+            "div4": 386,
+            "tok": 369,
+            "tok_o200k": 374
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/include-structure.md",
+            "bytes": 9053,
+            "div4": 2263,
+            "tok": 2295,
+            "tok_o200k": 2280
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/naming-conventions.md",
+            "bytes": 7379,
+            "div4": 1845,
+            "tok": 2099,
+            "tok_o200k": 2095
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/oop-pattern.md",
+            "bytes": 3086,
+            "div4": 772,
+            "tok": 876,
+            "tok_o200k": 879
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/procedural-form-naming.md",
+            "bytes": 562,
+            "div4": 141,
+            "tok": 151,
+            "tok_o200k": 146
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/text-element-rule.md",
+            "bytes": 9400,
+            "div4": 2350,
+            "tok": 2288,
+            "tok_o200k": 2293
+          },
+          {
+            "file": "interactive/core/personas/sap-ariba-consultant.md",
+            "bytes": 11610,
+            "div4": 2903,
+            "tok": 2703,
+            "tok_o200k": 2703
+          },
+          {
+            "file": "interactive/core/personas/sap-bc-consultant.md",
+            "bytes": 11845,
+            "div4": 2961,
+            "tok": 2840,
+            "tok_o200k": 2833
+          },
+          {
+            "file": "interactive/core/personas/sap-bw-consultant.md",
+            "bytes": 11635,
+            "div4": 2909,
+            "tok": 2855,
+            "tok_o200k": 2851
+          },
+          {
+            "file": "interactive/core/personas/sap-co-consultant.md",
+            "bytes": 11188,
+            "div4": 2797,
+            "tok": 2675,
+            "tok_o200k": 2665
+          },
+          {
+            "file": "interactive/core/personas/sap-fi-consultant.md",
+            "bytes": 11271,
+            "div4": 2818,
+            "tok": 2725,
+            "tok_o200k": 2717
+          },
+          {
+            "file": "interactive/core/personas/sap-hcm-consultant.md",
+            "bytes": 9948,
+            "div4": 2487,
+            "tok": 2372,
+            "tok_o200k": 2355
+          },
+          {
+            "file": "interactive/core/personas/sap-mm-consultant.md",
+            "bytes": 10954,
+            "div4": 2739,
+            "tok": 2615,
+            "tok_o200k": 2608
+          },
+          {
+            "file": "interactive/core/personas/sap-pm-consultant.md",
+            "bytes": 9844,
+            "div4": 2461,
+            "tok": 2315,
+            "tok_o200k": 2306
+          },
+          {
+            "file": "interactive/core/personas/sap-pp-consultant.md",
+            "bytes": 9971,
+            "div4": 2493,
+            "tok": 2402,
+            "tok_o200k": 2389
+          },
+          {
+            "file": "interactive/core/personas/sap-ps-consultant.md",
+            "bytes": 11118,
+            "div4": 2780,
+            "tok": 2696,
+            "tok_o200k": 2694
+          },
+          {
+            "file": "interactive/core/personas/sap-qm-consultant.md",
+            "bytes": 9896,
+            "div4": 2474,
+            "tok": 2327,
+            "tok_o200k": 2311
+          },
+          {
+            "file": "interactive/core/personas/sap-tm-consultant.md",
+            "bytes": 10087,
+            "div4": 2522,
+            "tok": 2424,
+            "tok_o200k": 2415
+          },
+          {
+            "file": "interactive/core/personas/sap-tr-consultant.md",
+            "bytes": 9735,
+            "div4": 2434,
+            "tok": 2303,
+            "tok_o200k": 2295
+          },
+          {
+            "file": "interactive/core/personas/sap-wm-consultant.md",
+            "bytes": 10261,
+            "div4": 2565,
+            "tok": 2488,
+            "tok_o200k": 2479
+          }
+        ],
+        "selections": [
+          {
+            "group": "line#176",
+            "line": 176,
+            "cueText": "**Persona**: Adopt the matching `sap-{module}-consultant` persona for this step — see the ",
+            "representative": "interactive/core/personas/sap-sd-consultant.md",
+            "members": [
+              "sap-sd-consultant.md 11978",
+              "sap-bc-consultant.md 11845",
+              "sap-bw-consultant.md 11635",
+              "sap-ariba-consultant.md 11610",
+              "sap-fi-consultant.md 11271",
+              "sap-co-consultant.md 11188",
+              "sap-ps-consultant.md 11118",
+              "sap-mm-consultant.md 10954",
+              "sap-wm-consultant.md 10261",
+              "sap-tm-consultant.md 10087",
+              "sap-pp-consultant.md 9971",
+              "sap-hcm-consultant.md 9948",
+              "sap-qm-consultant.md 9896",
+              "sap-pm-consultant.md 9844",
+              "sap-tr-consultant.md 9735"
+            ]
+          },
+          {
+            "group": "line#365",
+            "line": 365,
+            "cueText": "- **MANDATORY before writing**: open and read every shared convention file that applies to",
+            "representative": "interactive/core/knowledge/abap/conventions/alv-rules.md",
+            "members": [
+              "alv-rules.md 10827",
+              "text-element-rule.md 9400",
+              "include-structure.md 9053",
+              "naming-conventions.md 7379",
+              "oop-pattern.md 3086",
+              "constant-rule.md 1543",
+              "procedural-form-naming.md 562"
+            ]
+          }
+        ],
+        "procPlusHop1": {
+          "bytes": 618534,
+          "div4": 154634,
+          "tok": 150321,
+          "tok_o200k": 149855
+        },
+        "total": {
+          "bytes": 629929,
+          "div4": 157482,
+          "tok": 152981,
+          "tok_o200k": 152500
+        },
+        "totalAll": {
+          "bytes": 810315,
+          "div4": 202579,
+          "tok": 196799,
+          "tok_o200k": 196188
+        },
+        "hop2Files": [
+          {
+            "file": "interactive/core/knowledge/abap/conventions/abap-release-reference.md",
+            "bytes": 5815,
+            "div4": 1454,
+            "tok": 1594,
+            "tok_o200k": 1569,
+            "via": "interactive/core/knowledge/abap/conventions/clean-code.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/abapgit-roundtrip-rule.md",
+            "bytes": 9410,
+            "div4": 2353,
+            "tok": 2083,
+            "tok_o200k": 2081,
+            "via": "interactive/core/procedures/develop-abapgit.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/constant-rule.md",
+            "bytes": 1543,
+            "div4": 386,
+            "tok": 369,
+            "tok_o200k": 374,
+            "via": "interactive/core/knowledge/abap/conventions/clean-code.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/field-typing-rule.md",
+            "bytes": 15452,
+            "div4": 3863,
+            "tok": 4196,
+            "tok_o200k": 4171,
+            "via": "interactive/core/procedures/verify-applied.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/include-structure.md",
+            "bytes": 9053,
+            "div4": 2263,
+            "tok": 2295,
+            "tok_o200k": 2280,
+            "via": "interactive/core/knowledge/abap/conventions/clean-code.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/naming-conventions.md",
+            "bytes": 7379,
+            "div4": 1845,
+            "tok": 2099,
+            "tok_o200k": 2095,
+            "via": "interactive/core/knowledge/abap/conventions/clean-code.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/odata-gateway-rules.md",
+            "bytes": 10539,
+            "div4": 2635,
+            "tok": 2455,
+            "tok_o200k": 2464,
+            "via": "interactive/core/procedures/troubleshooting.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/ok-code-pattern.md",
+            "bytes": 6480,
+            "div4": 1620,
+            "tok": 1667,
+            "tok_o200k": 1672,
+            "via": "interactive/core/knowledge/abap/conventions/clean-code-procedural.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/oop-pattern.md",
+            "bytes": 3086,
+            "div4": 772,
+            "tok": 876,
+            "tok_o200k": 879,
+            "via": "interactive/core/knowledge/abap/conventions/clean-code-oop.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/procedural-form-naming.md",
+            "bytes": 562,
+            "div4": 141,
+            "tok": 151,
+            "tok_o200k": 146,
+            "via": "interactive/core/knowledge/abap/conventions/clean-code.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/rap-odata-rules.md",
+            "bytes": 20389,
+            "div4": 5097,
+            "tok": 4878,
+            "tok_o200k": 4860,
+            "via": "interactive/core/procedures/troubleshooting.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/sap-version-reference.md",
+            "bytes": 11198,
+            "div4": 2800,
+            "tok": 3297,
+            "tok_o200k": 3278,
+            "via": "interactive/core/knowledge/abap/conventions/clean-code.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/source-repair-protocol.md",
+            "bytes": 3722,
+            "div4": 931,
+            "tok": 810,
+            "tok_o200k": 811,
+            "via": "interactive/core/procedures/develop-abapgit.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/text-element-rule.md",
+            "bytes": 9400,
+            "div4": 2350,
+            "tok": 2288,
+            "tok_o200k": 2293,
+            "via": "interactive/core/procedures/develop-abapgit.md"
+          },
+          {
+            "file": "interactive/core/knowledge/country/README.md",
+            "bytes": 4786,
+            "div4": 1197,
+            "tok": 1411,
+            "tok_o200k": 1357,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/country/eu-common.md",
+            "bytes": 5112,
+            "div4": 1278,
+            "tok": 1367,
+            "tok_o200k": 1348,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/industry/automotive.md",
+            "bytes": 2674,
+            "div4": 669,
+            "tok": 673,
+            "tok_o200k": 680,
+            "via": "interactive/core/knowledge/industry/README.md"
+          },
+          {
+            "file": "interactive/core/knowledge/industry/banking.md",
+            "bytes": 1464,
+            "div4": 366,
+            "tok": 326,
+            "tok_o200k": 321,
+            "via": "interactive/core/knowledge/industry/README.md"
+          },
+          {
+            "file": "interactive/core/knowledge/industry/chemical.md",
+            "bytes": 2503,
+            "div4": 626,
+            "tok": 552,
+            "tok_o200k": 546,
+            "via": "interactive/core/knowledge/industry/README.md"
+          },
+          {
+            "file": "interactive/core/knowledge/industry/construction.md",
+            "bytes": 2522,
+            "div4": 631,
+            "tok": 542,
+            "tok_o200k": 535,
+            "via": "interactive/core/knowledge/industry/README.md"
+          },
+          {
+            "file": "interactive/core/knowledge/industry/cosmetics.md",
+            "bytes": 3724,
+            "div4": 931,
+            "tok": 821,
+            "tok_o200k": 826,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/industry/electronics.md",
+            "bytes": 2538,
+            "div4": 635,
+            "tok": 571,
+            "tok_o200k": 566,
+            "via": "interactive/core/knowledge/industry/README.md"
+          },
+          {
+            "file": "interactive/core/knowledge/industry/fashion.md",
+            "bytes": 3108,
+            "div4": 777,
+            "tok": 729,
+            "tok_o200k": 734,
+            "via": "interactive/core/knowledge/industry/README.md"
+          },
+          {
+            "file": "interactive/core/knowledge/industry/food-beverage.md",
+            "bytes": 2118,
+            "div4": 530,
+            "tok": 489,
+            "tok_o200k": 491,
+            "via": "interactive/core/knowledge/industry/README.md"
+          },
+          {
+            "file": "interactive/core/knowledge/industry/pharmaceutical.md",
+            "bytes": 2641,
+            "div4": 660,
+            "tok": 571,
+            "tok_o200k": 572,
+            "via": "interactive/core/knowledge/industry/README.md"
+          },
+          {
+            "file": "interactive/core/knowledge/industry/public-sector.md",
+            "bytes": 1321,
+            "div4": 330,
+            "tok": 297,
+            "tok_o200k": 296,
+            "via": "interactive/core/knowledge/industry/README.md"
+          },
+          {
+            "file": "interactive/core/knowledge/industry/retail.md",
+            "bytes": 3041,
+            "div4": 760,
+            "tok": 687,
+            "tok_o200k": 677,
+            "via": "interactive/core/knowledge/industry/README.md"
+          },
+          {
+            "file": "interactive/core/knowledge/industry/steel.md",
+            "bytes": 2162,
+            "div4": 541,
+            "tok": 473,
+            "tok_o200k": 482,
+            "via": "interactive/core/knowledge/industry/README.md"
+          },
+          {
+            "file": "interactive/core/knowledge/industry/tire.md",
+            "bytes": 3494,
+            "div4": 874,
+            "tok": 816,
+            "tok_o200k": 821,
+            "via": "interactive/core/knowledge/industry/README.md"
+          },
+          {
+            "file": "interactive/core/knowledge/industry/utilities.md",
+            "bytes": 2149,
+            "div4": 537,
+            "tok": 481,
+            "tok_o200k": 476,
+            "via": "interactive/core/knowledge/industry/README.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/SD/bapi.md",
+            "bytes": 4081,
+            "div4": 1020,
+            "tok": 1097,
+            "tok_o200k": 1008,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/SD/enhancements.md",
+            "bytes": 10851,
+            "div4": 2713,
+            "tok": 3426,
+            "tok_o200k": 2964,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/SD/spro.md",
+            "bytes": 7990,
+            "div4": 1998,
+            "tok": 2092,
+            "tok_o200k": 1792,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/SD/tables.md",
+            "bytes": 2036,
+            "div4": 509,
+            "tok": 590,
+            "tok_o200k": 580,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/SD/tcodes.md",
+            "bytes": 4684,
+            "div4": 1171,
+            "tok": 1528,
+            "tok_o200k": 1287,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/SD/workflows.md",
+            "bytes": 3564,
+            "div4": 891,
+            "tok": 909,
+            "tok_o200k": 896,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/common/bapi.md",
+            "bytes": 7766,
+            "div4": 1942,
+            "tok": 2323,
+            "tok_o200k": 2037,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/common/enhancements.md",
+            "bytes": 6307,
+            "div4": 1577,
+            "tok": 1892,
+            "tok_o200k": 1616,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/common/spro.md",
+            "bytes": 8879,
+            "div4": 2220,
+            "tok": 2511,
+            "tok_o200k": 2237,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/common/tables.md",
+            "bytes": 7580,
+            "div4": 1895,
+            "tok": 2419,
+            "tok_o200k": 2105,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/common/tcodes.md",
+            "bytes": 6049,
+            "div4": 1512,
+            "tok": 2010,
+            "tok_o200k": 1663,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/personas/index.md",
+            "bytes": 4752,
+            "div4": 1188,
+            "tok": 1149,
+            "tok_o200k": 1091,
+            "via": "interactive/core/personas/sap-stocker.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-ariba-consultant.md",
+            "bytes": 11610,
+            "div4": 2903,
+            "tok": 2703,
+            "tok_o200k": 2703,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-bc-consultant.md",
+            "bytes": 11845,
+            "div4": 2961,
+            "tok": 2840,
+            "tok_o200k": 2833,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-bw-consultant.md",
+            "bytes": 11635,
+            "div4": 2909,
+            "tok": 2855,
+            "tok_o200k": 2851,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-co-consultant.md",
+            "bytes": 11188,
+            "div4": 2797,
+            "tok": 2675,
+            "tok_o200k": 2665,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-code-reviewer.md",
+            "bytes": 11085,
+            "div4": 2771,
+            "tok": 2620,
+            "tok_o200k": 2625,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-critic.md",
+            "bytes": 14874,
+            "div4": 3719,
+            "tok": 3391,
+            "tok_o200k": 3376,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-doc-specialist.md",
+            "bytes": 9059,
+            "div4": 2265,
+            "tok": 2139,
+            "tok_o200k": 2124,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-fi-consultant.md",
+            "bytes": 11271,
+            "div4": 2818,
+            "tok": 2725,
+            "tok_o200k": 2717,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-hcm-consultant.md",
+            "bytes": 9948,
+            "div4": 2487,
+            "tok": 2372,
+            "tok_o200k": 2355,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-mm-consultant.md",
+            "bytes": 10954,
+            "div4": 2739,
+            "tok": 2615,
+            "tok_o200k": 2608,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-pm-consultant.md",
+            "bytes": 9844,
+            "div4": 2461,
+            "tok": 2315,
+            "tok_o200k": 2306,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-pp-consultant.md",
+            "bytes": 9971,
+            "div4": 2493,
+            "tok": 2402,
+            "tok_o200k": 2389,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-ps-consultant.md",
+            "bytes": 11118,
+            "div4": 2780,
+            "tok": 2696,
+            "tok_o200k": 2694,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-qm-consultant.md",
+            "bytes": 9896,
+            "div4": 2474,
+            "tok": 2327,
+            "tok_o200k": 2311,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-tm-consultant.md",
+            "bytes": 10087,
+            "div4": 2522,
+            "tok": 2424,
+            "tok_o200k": 2415,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-tr-consultant.md",
+            "bytes": 9735,
+            "div4": 2434,
+            "tok": 2303,
+            "tok_o200k": 2295,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-wm-consultant.md",
+            "bytes": 10261,
+            "div4": 2565,
+            "tok": 2488,
+            "tok_o200k": 2479,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/policies/credential-handling.md",
+            "bytes": 2884,
+            "div4": 721,
+            "tok": 706,
+            "tok_o200k": 700,
+            "via": "interactive/core/procedures/develop-abapgit.md"
+          },
+          {
+            "file": "interactive/core/policies/data-protection/data-extraction-policy.md",
+            "bytes": 11455,
+            "div4": 2864,
+            "tok": 2755,
+            "tok_o200k": 2763,
+            "via": "interactive/core/knowledge/abap/conventions/clean-code.md"
+          },
+          {
+            "file": "interactive/core/policies/data-protection/table_exception.md",
+            "bytes": 5729,
+            "div4": 1432,
+            "tok": 1406,
+            "tok_o200k": 1401,
+            "via": "interactive/core/knowledge/abap/conventions/clean-code.md"
+          },
+          {
+            "file": "interactive/core/policies/transport-client-rule.md",
+            "bytes": 7416,
+            "div4": 1854,
+            "tok": 1695,
+            "tok_o200k": 1684,
+            "via": "interactive/core/personas/sap-executor.md"
+          },
+          {
+            "file": "interactive/core/procedures/analyze-cbo-obj.md",
+            "bytes": 13320,
+            "div4": 3330,
+            "tok": 3260,
+            "tok_o200k": 3256,
+            "via": "interactive/core/policies/knowledge-sourcing.md"
+          },
+          {
+            "file": "interactive/core/procedures/analyze-symptom.md",
+            "bytes": 21572,
+            "div4": 5393,
+            "tok": 5153,
+            "tok_o200k": 5165,
+            "via": "interactive/core/procedures/knowledge.md"
+          },
+          {
+            "file": "interactive/core/procedures/create-object.md",
+            "bytes": 29571,
+            "div4": 7393,
+            "tok": 7072,
+            "tok_o200k": 7051,
+            "via": "interactive/core/policies/development-loop.md"
+          },
+          {
+            "file": "interactive/core/procedures/handoff.md",
+            "bytes": 15105,
+            "div4": 3776,
+            "tok": 3645,
+            "tok_o200k": 3645,
+            "via": "interactive/core/policies/plain-language.md"
+          },
+          {
+            "file": "interactive/core/procedures/help-portal-fetch.md",
+            "bytes": 4576,
+            "div4": 1144,
+            "tok": 1165,
+            "tok_o200k": 1169,
+            "via": "interactive/core/procedures/spro-lookup.md"
+          },
+          {
+            "file": "interactive/core/procedures/modify-object.md",
+            "bytes": 6201,
+            "div4": 1550,
+            "tok": 1524,
+            "tok_o200k": 1514,
+            "via": "interactive/core/policies/development-loop.md"
+          },
+          {
+            "file": "interactive/core/procedures/program-to-spec.md",
+            "bytes": 36098,
+            "div4": 9025,
+            "tok": 9200,
+            "tok_o200k": 9131,
+            "via": "interactive/core/procedures/ask-consultant.md"
+          },
+          {
+            "file": "interactive/core/procedures/release.md",
+            "bytes": 8153,
+            "div4": 2038,
+            "tok": 1842,
+            "tok_o200k": 1840,
+            "via": "interactive/core/policies/approval-gates.md"
+          },
+          {
+            "file": "interactive/core/procedures/setup.md",
+            "bytes": 32121,
+            "div4": 8030,
+            "tok": 7950,
+            "tok_o200k": 7914,
+            "via": "interactive/core/procedures/troubleshooting.md"
+          }
+        ],
+        "hop2Sum": {
+          "bytes": 612506,
+          "div4": 153127,
+          "tok": 153073,
+          "tok_o200k": 149956
+        },
+        "navExcluded": [
+          "interactive/core/procedures/modify-object.md"
+        ],
+        "parametric": [
+          "*.md",
+          "../knowledge/country/<iso>.md",
+          "../knowledge/industry/<key>.md",
+          ".sapkit/deep-interviews/*.md",
+          ".sapkit/program/*/spec.md",
+          ".sapkit/program/{PROG}/cbo-context.md",
+          ".sapkit/program/{PROG}/consult-{module}.md",
+          ".sapkit/program/{PROG}/customization-context.md",
+          ".sapkit/program/{PROG}/interview.md",
+          ".sapkit/program/{PROG}/module-interview.md",
+          ".sapkit/program/{PROG}/plan.md",
+          ".sapkit/program/{PROG}/platform.md",
+          ".sapkit/program/{PROG}/report.md",
+          ".sapkit/program/{PROG}/spec.md"
+        ],
+        "nonCore": [
+          "interactive/adapters/antigravity/README.md",
+          "interactive/adapters/claude/README.md",
+          "interactive/adapters/codex/README.md"
+        ],
+        "unresolved": [
+          ".sapkit/RULES.md",
+          ".sapkit/knowledge/domain.md",
+          ".sapkit/knowledge/system.md",
+          "AGENTS.md",
+          "cbo-context.md",
+          "customization-context.md",
+          "interview.md",
+          "module-interview.md",
+          "plan.md",
+          "spec.md"
+        ]
+      },
+      {
+        "name": "program-to-spec",
+        "wrapper": {
+          "file": "interactive/skills/program-to-spec/SKILL.md",
+          "bytes": 943,
+          "div4": 236,
+          "tok": 221,
+          "tok_o200k": 220
+        },
+        "projectContext": {
+          "file": "interactive/core/project-context.md",
+          "bytes": 10097,
+          "div4": 2524,
+          "tok": 2372,
+          "tok_o200k": 2357
+        },
+        "procedure": {
+          "file": "interactive/core/procedures/program-to-spec.md",
+          "bytes": 36098,
+          "div4": 9025,
+          "tok": 9200,
+          "tok_o200k": 9131
+        },
+        "hop1Files": [
+          {
+            "file": "interactive/core/personas/sap-analyst.md",
+            "bytes": 11154,
+            "div4": 2789,
+            "tok": 2561,
+            "tok_o200k": 2544
+          },
+          {
+            "file": "interactive/core/personas/sap-critic.md",
+            "bytes": 14874,
+            "div4": 3719,
+            "tok": 3391,
+            "tok_o200k": 3376
+          },
+          {
+            "file": "interactive/core/personas/sap-writer.md",
+            "bytes": 7104,
+            "div4": 1776,
+            "tok": 1557,
+            "tok_o200k": 1549
+          },
+          {
+            "file": "interactive/core/policies/data-protection/data-extraction-policy.md",
+            "bytes": 11455,
+            "div4": 2864,
+            "tok": 2755,
+            "tok_o200k": 2763
+          },
+          {
+            "file": "interactive/core/policies/plain-language.md",
+            "bytes": 7847,
+            "div4": 1962,
+            "tok": 1798,
+            "tok_o200k": 1793
+          },
+          {
+            "file": "interactive/core/procedures/analyze-cbo-obj.md",
+            "bytes": 13320,
+            "div4": 3330,
+            "tok": 3260,
+            "tok_o200k": 3256
+          },
+          {
+            "file": "interactive/core/project-context.md",
+            "bytes": 10097,
+            "div4": 2524,
+            "tok": 2372,
+            "tok_o200k": 2357
+          }
+        ],
+        "hop1Sum": {
+          "bytes": 75851,
+          "div4": 18963,
+          "tok": 17694,
+          "tok_o200k": 17638
+        },
+        "hop1AllCount": 7,
+        "hop1AllSum": {
+          "bytes": 75851,
+          "div4": 18963,
+          "tok": 17694,
+          "tok_o200k": 17638
+        },
+        "selAlts": [],
+        "selections": [],
+        "procPlusHop1": {
+          "bytes": 111949,
+          "div4": 27987,
+          "tok": 26894,
+          "tok_o200k": 26769
+        },
+        "total": {
+          "bytes": 122989,
+          "div4": 30747,
+          "tok": 29487,
+          "tok_o200k": 29346
+        },
+        "totalAll": {
+          "bytes": 122989,
+          "div4": 30747,
+          "tok": 29487,
+          "tok_o200k": 29346
+        },
+        "hop2Files": [
+          {
+            "file": "interactive/core/knowledge/country/eu-common.md",
+            "bytes": 5112,
+            "div4": 1278,
+            "tok": 1367,
+            "tok_o200k": 1348,
+            "via": "interactive/core/personas/sap-analyst.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/common/active-modules.md",
+            "bytes": 7171,
+            "div4": 1793,
+            "tok": 1744,
+            "tok_o200k": 1755,
+            "via": "interactive/core/project-context.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-stocker.md",
+            "bytes": 9161,
+            "div4": 2290,
+            "tok": 2235,
+            "tok_o200k": 2243,
+            "via": "interactive/core/procedures/analyze-cbo-obj.md"
+          },
+          {
+            "file": "interactive/core/policies/credential-handling.md",
+            "bytes": 2884,
+            "div4": 721,
+            "tok": 706,
+            "tok_o200k": 700,
+            "via": "interactive/core/project-context.md"
+          },
+          {
+            "file": "interactive/core/policies/data-protection/custom-patterns.md",
+            "bytes": 855,
+            "div4": 214,
+            "tok": 217,
+            "tok_o200k": 217,
+            "via": "interactive/core/procedures/analyze-cbo-obj.md"
+          },
+          {
+            "file": "interactive/core/policies/data-protection/table_exception.md",
+            "bytes": 5729,
+            "div4": 1432,
+            "tok": 1406,
+            "tok_o200k": 1401,
+            "via": "interactive/core/policies/data-protection/data-extraction-policy.md"
+          },
+          {
+            "file": "interactive/core/policies/development-loop.md",
+            "bytes": 10461,
+            "div4": 2615,
+            "tok": 2426,
+            "tok_o200k": 2409,
+            "via": "interactive/core/policies/plain-language.md"
+          },
+          {
+            "file": "interactive/core/policies/knowledge-sourcing.md",
+            "bytes": 6960,
+            "div4": 1740,
+            "tok": 1725,
+            "tok_o200k": 1720,
+            "via": "interactive/core/project-context.md"
+          },
+          {
+            "file": "interactive/core/procedures/ask-consultant.md",
+            "bytes": 13132,
+            "div4": 3283,
+            "tok": 3155,
+            "tok_o200k": 3137,
+            "via": "interactive/core/project-context.md"
+          },
+          {
+            "file": "interactive/core/procedures/customization-lookup.md",
+            "bytes": 10494,
+            "div4": 2624,
+            "tok": 2636,
+            "tok_o200k": 2623,
+            "via": "interactive/core/personas/sap-critic.md"
+          },
+          {
+            "file": "interactive/core/procedures/handoff.md",
+            "bytes": 15105,
+            "div4": 3776,
+            "tok": 3645,
+            "tok_o200k": 3645,
+            "via": "interactive/core/policies/plain-language.md"
+          },
+          {
+            "file": "interactive/core/procedures/knowledge.md",
+            "bytes": 9972,
+            "div4": 2493,
+            "tok": 2439,
+            "tok_o200k": 2443,
+            "via": "interactive/core/project-context.md"
+          },
+          {
+            "file": "interactive/core/procedures/lesson.md",
+            "bytes": 7973,
+            "div4": 1993,
+            "tok": 1948,
+            "tok_o200k": 1946,
+            "via": "interactive/core/project-context.md"
+          },
+          {
+            "file": "interactive/core/procedures/troubleshooting.md",
+            "bytes": 80189,
+            "div4": 20047,
+            "tok": 19735,
+            "tok_o200k": 19675,
+            "via": "interactive/core/personas/sap-critic.md"
+          }
+        ],
+        "hop2Sum": {
+          "bytes": 185198,
+          "div4": 46300,
+          "tok": 45384,
+          "tok_o200k": 45262
+        },
+        "navExcluded": [
+          "interactive/core/procedures/analyze-cbo-obj.md",
+          "interactive/core/procedures/compare-programs.md",
+          "interactive/core/procedures/deep-interview.md",
+          "interactive/core/procedures/package-to-process.md"
+        ],
+        "parametric": [
+          ".sapkit/specs/<OBJECT>/cbo-context.md"
+        ],
+        "nonCore": [],
+        "unresolved": [
+          ".md",
+          "cbo-context.md"
+        ]
+      },
+      {
+        "name": "ask-consultant",
+        "wrapper": {
+          "file": "interactive/skills/ask-consultant/SKILL.md",
+          "bytes": 878,
+          "div4": 220,
+          "tok": 206,
+          "tok_o200k": 206
+        },
+        "projectContext": {
+          "file": "interactive/core/project-context.md",
+          "bytes": 10097,
+          "div4": 2524,
+          "tok": 2372,
+          "tok_o200k": 2357
+        },
+        "procedure": {
+          "file": "interactive/core/procedures/ask-consultant.md",
+          "bytes": 13132,
+          "div4": 3283,
+          "tok": 3155,
+          "tok_o200k": 3137
+        },
+        "hop1Files": [
+          {
+            "file": "interactive/core/knowledge/modules/common/active-modules.md",
+            "bytes": 7171,
+            "div4": 1793,
+            "tok": 1744,
+            "tok_o200k": 1755
+          },
+          {
+            "file": "interactive/core/personas/INDEX.md",
+            "bytes": 4752,
+            "div4": 1188,
+            "tok": 1149,
+            "tok_o200k": 1091
+          },
+          {
+            "file": "interactive/core/personas/sap-sd-consultant.md",
+            "bytes": 11978,
+            "div4": 2995,
+            "tok": 2840,
+            "tok_o200k": 2837
+          },
+          {
+            "file": "interactive/core/policies/knowledge-sourcing.md",
+            "bytes": 6960,
+            "div4": 1740,
+            "tok": 1725,
+            "tok_o200k": 1720
+          },
+          {
+            "file": "interactive/core/policies/plain-language.md",
+            "bytes": 7847,
+            "div4": 1962,
+            "tok": 1798,
+            "tok_o200k": 1793
+          },
+          {
+            "file": "interactive/core/procedures/customization-lookup.md",
+            "bytes": 10494,
+            "div4": 2624,
+            "tok": 2636,
+            "tok_o200k": 2623
+          },
+          {
+            "file": "interactive/core/procedures/knowledge.md",
+            "bytes": 9972,
+            "div4": 2493,
+            "tok": 2439,
+            "tok_o200k": 2443
+          },
+          {
+            "file": "interactive/core/procedures/program-to-spec.md",
+            "bytes": 36098,
+            "div4": 9025,
+            "tok": 9200,
+            "tok_o200k": 9131
+          },
+          {
+            "file": "interactive/core/procedures/spro-lookup.md",
+            "bytes": 10996,
+            "div4": 2749,
+            "tok": 2645,
+            "tok_o200k": 2640
+          },
+          {
+            "file": "interactive/core/project-context.md",
+            "bytes": 10097,
+            "div4": 2524,
+            "tok": 2372,
+            "tok_o200k": 2357
+          }
+        ],
+        "hop1Sum": {
+          "bytes": 116365,
+          "div4": 29091,
+          "tok": 28548,
+          "tok_o200k": 28390
+        },
+        "hop1AllCount": 24,
+        "hop1AllSum": {
+          "bytes": 265728,
+          "div4": 66432,
+          "tok": 64288,
+          "tok_o200k": 64011
+        },
+        "selAlts": [
+          {
+            "file": "interactive/core/personas/sap-ariba-consultant.md",
+            "bytes": 11610,
+            "div4": 2903,
+            "tok": 2703,
+            "tok_o200k": 2703
+          },
+          {
+            "file": "interactive/core/personas/sap-bc-consultant.md",
+            "bytes": 11845,
+            "div4": 2961,
+            "tok": 2840,
+            "tok_o200k": 2833
+          },
+          {
+            "file": "interactive/core/personas/sap-bw-consultant.md",
+            "bytes": 11635,
+            "div4": 2909,
+            "tok": 2855,
+            "tok_o200k": 2851
+          },
+          {
+            "file": "interactive/core/personas/sap-co-consultant.md",
+            "bytes": 11188,
+            "div4": 2797,
+            "tok": 2675,
+            "tok_o200k": 2665
+          },
+          {
+            "file": "interactive/core/personas/sap-fi-consultant.md",
+            "bytes": 11271,
+            "div4": 2818,
+            "tok": 2725,
+            "tok_o200k": 2717
+          },
+          {
+            "file": "interactive/core/personas/sap-hcm-consultant.md",
+            "bytes": 9948,
+            "div4": 2487,
+            "tok": 2372,
+            "tok_o200k": 2355
+          },
+          {
+            "file": "interactive/core/personas/sap-mm-consultant.md",
+            "bytes": 10954,
+            "div4": 2739,
+            "tok": 2615,
+            "tok_o200k": 2608
+          },
+          {
+            "file": "interactive/core/personas/sap-pm-consultant.md",
+            "bytes": 9844,
+            "div4": 2461,
+            "tok": 2315,
+            "tok_o200k": 2306
+          },
+          {
+            "file": "interactive/core/personas/sap-pp-consultant.md",
+            "bytes": 9971,
+            "div4": 2493,
+            "tok": 2402,
+            "tok_o200k": 2389
+          },
+          {
+            "file": "interactive/core/personas/sap-ps-consultant.md",
+            "bytes": 11118,
+            "div4": 2780,
+            "tok": 2696,
+            "tok_o200k": 2694
+          },
+          {
+            "file": "interactive/core/personas/sap-qm-consultant.md",
+            "bytes": 9896,
+            "div4": 2474,
+            "tok": 2327,
+            "tok_o200k": 2311
+          },
+          {
+            "file": "interactive/core/personas/sap-tm-consultant.md",
+            "bytes": 10087,
+            "div4": 2522,
+            "tok": 2424,
+            "tok_o200k": 2415
+          },
+          {
+            "file": "interactive/core/personas/sap-tr-consultant.md",
+            "bytes": 9735,
+            "div4": 2434,
+            "tok": 2303,
+            "tok_o200k": 2295
+          },
+          {
+            "file": "interactive/core/personas/sap-wm-consultant.md",
+            "bytes": 10261,
+            "div4": 2565,
+            "tok": 2488,
+            "tok_o200k": 2479
+          }
+        ],
+        "selections": [
+          {
+            "group": "table#1",
+            "line": 69,
+            "cueText": "Take the persona from [INDEX](../personas/INDEX.md) and load only the selected file(s):",
+            "representative": "interactive/core/personas/sap-sd-consultant.md",
+            "members": [
+              "sap-sd-consultant.md 11978",
+              "sap-bc-consultant.md 11845",
+              "sap-bw-consultant.md 11635",
+              "sap-ariba-consultant.md 11610",
+              "sap-fi-consultant.md 11271",
+              "sap-co-consultant.md 11188",
+              "sap-ps-consultant.md 11118",
+              "sap-mm-consultant.md 10954",
+              "sap-wm-consultant.md 10261",
+              "sap-tm-consultant.md 10087",
+              "sap-pp-consultant.md 9971",
+              "sap-hcm-consultant.md 9948",
+              "sap-qm-consultant.md 9896",
+              "sap-pm-consultant.md 9844",
+              "sap-tr-consultant.md 9735"
+            ]
+          }
+        ],
+        "procPlusHop1": {
+          "bytes": 129497,
+          "div4": 32374,
+          "tok": 31703,
+          "tok_o200k": 31527
+        },
+        "total": {
+          "bytes": 140472,
+          "div4": 35118,
+          "tok": 34281,
+          "tok_o200k": 34090
+        },
+        "totalAll": {
+          "bytes": 289835,
+          "div4": 72459,
+          "tok": 70021,
+          "tok_o200k": 69711
+        },
+        "hop2Files": [
+          {
+            "file": "interactive/core/knowledge/country/README.md",
+            "bytes": 4786,
+            "div4": 1197,
+            "tok": 1411,
+            "tok_o200k": 1357,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/country/eu-common.md",
+            "bytes": 5112,
+            "div4": 1278,
+            "tok": 1367,
+            "tok_o200k": 1348,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/industry/README.md",
+            "bytes": 3682,
+            "div4": 921,
+            "tok": 909,
+            "tok_o200k": 899,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/industry/cosmetics.md",
+            "bytes": 3724,
+            "div4": 931,
+            "tok": 821,
+            "tok_o200k": 826,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/SD/bapi.md",
+            "bytes": 4081,
+            "div4": 1020,
+            "tok": 1097,
+            "tok_o200k": 1008,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/SD/enhancements.md",
+            "bytes": 10851,
+            "div4": 2713,
+            "tok": 3426,
+            "tok_o200k": 2964,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/SD/spro.md",
+            "bytes": 7990,
+            "div4": 1998,
+            "tok": 2092,
+            "tok_o200k": 1792,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/SD/tables.md",
+            "bytes": 2036,
+            "div4": 509,
+            "tok": 590,
+            "tok_o200k": 580,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/SD/tcodes.md",
+            "bytes": 4684,
+            "div4": 1171,
+            "tok": 1528,
+            "tok_o200k": 1287,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/SD/workflows.md",
+            "bytes": 3564,
+            "div4": 891,
+            "tok": 909,
+            "tok_o200k": 896,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/common/bapi.md",
+            "bytes": 7766,
+            "div4": 1942,
+            "tok": 2323,
+            "tok_o200k": 2037,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/common/enhancements.md",
+            "bytes": 6307,
+            "div4": 1577,
+            "tok": 1892,
+            "tok_o200k": 1616,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/common/spro.md",
+            "bytes": 8879,
+            "div4": 2220,
+            "tok": 2511,
+            "tok_o200k": 2237,
+            "via": "interactive/core/procedures/spro-lookup.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/common/tables.md",
+            "bytes": 7580,
+            "div4": 1895,
+            "tok": 2419,
+            "tok_o200k": 2105,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/common/tcodes.md",
+            "bytes": 6049,
+            "div4": 1512,
+            "tok": 2010,
+            "tok_o200k": 1663,
+            "via": "interactive/core/personas/sap-sd-consultant.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-analyst.md",
+            "bytes": 11154,
+            "div4": 2789,
+            "tok": 2561,
+            "tok_o200k": 2544,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-architect.md",
+            "bytes": 11746,
+            "div4": 2937,
+            "tok": 2798,
+            "tok_o200k": 2779,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-ariba-consultant.md",
+            "bytes": 11610,
+            "div4": 2903,
+            "tok": 2703,
+            "tok_o200k": 2703,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-bc-consultant.md",
+            "bytes": 11845,
+            "div4": 2961,
+            "tok": 2840,
+            "tok_o200k": 2833,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-bw-consultant.md",
+            "bytes": 11635,
+            "div4": 2909,
+            "tok": 2855,
+            "tok_o200k": 2851,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-co-consultant.md",
+            "bytes": 11188,
+            "div4": 2797,
+            "tok": 2675,
+            "tok_o200k": 2665,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-code-reviewer.md",
+            "bytes": 11085,
+            "div4": 2771,
+            "tok": 2620,
+            "tok_o200k": 2625,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-critic.md",
+            "bytes": 14874,
+            "div4": 3719,
+            "tok": 3391,
+            "tok_o200k": 3376,
+            "via": "interactive/core/procedures/customization-lookup.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-debugger.md",
+            "bytes": 9431,
+            "div4": 2358,
+            "tok": 2220,
+            "tok_o200k": 2225,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-doc-specialist.md",
+            "bytes": 9059,
+            "div4": 2265,
+            "tok": 2139,
+            "tok_o200k": 2124,
+            "via": "interactive/core/procedures/spro-lookup.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-executor.md",
+            "bytes": 15687,
+            "div4": 3922,
+            "tok": 3797,
+            "tok_o200k": 3784,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-fi-consultant.md",
+            "bytes": 11271,
+            "div4": 2818,
+            "tok": 2725,
+            "tok_o200k": 2717,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-hcm-consultant.md",
+            "bytes": 9948,
+            "div4": 2487,
+            "tok": 2372,
+            "tok_o200k": 2355,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-mm-consultant.md",
+            "bytes": 10954,
+            "div4": 2739,
+            "tok": 2615,
+            "tok_o200k": 2608,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-planner.md",
+            "bytes": 11933,
+            "div4": 2983,
+            "tok": 2837,
+            "tok_o200k": 2808,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-pm-consultant.md",
+            "bytes": 9844,
+            "div4": 2461,
+            "tok": 2315,
+            "tok_o200k": 2306,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-pp-consultant.md",
+            "bytes": 9971,
+            "div4": 2493,
+            "tok": 2402,
+            "tok_o200k": 2389,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-ps-consultant.md",
+            "bytes": 11118,
+            "div4": 2780,
+            "tok": 2696,
+            "tok_o200k": 2694,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-qa-tester.md",
+            "bytes": 9099,
+            "div4": 2275,
+            "tok": 2050,
+            "tok_o200k": 2065,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-qm-consultant.md",
+            "bytes": 9896,
+            "div4": 2474,
+            "tok": 2327,
+            "tok_o200k": 2311,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-stocker.md",
+            "bytes": 9161,
+            "div4": 2290,
+            "tok": 2235,
+            "tok_o200k": 2243,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-tm-consultant.md",
+            "bytes": 10087,
+            "div4": 2522,
+            "tok": 2424,
+            "tok_o200k": 2415,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-tr-consultant.md",
+            "bytes": 9735,
+            "div4": 2434,
+            "tok": 2303,
+            "tok_o200k": 2295,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-wm-consultant.md",
+            "bytes": 10261,
+            "div4": 2565,
+            "tok": 2488,
+            "tok_o200k": 2479,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-writer.md",
+            "bytes": 7104,
+            "div4": 1776,
+            "tok": 1557,
+            "tok_o200k": 1549,
+            "via": "interactive/core/personas/INDEX.md"
+          },
+          {
+            "file": "interactive/core/policies/approval-gates.md",
+            "bytes": 5985,
+            "div4": 1496,
+            "tok": 1381,
+            "tok_o200k": 1377,
+            "via": "interactive/core/procedures/spro-lookup.md"
+          },
+          {
+            "file": "interactive/core/policies/credential-handling.md",
+            "bytes": 2884,
+            "div4": 721,
+            "tok": 706,
+            "tok_o200k": 700,
+            "via": "interactive/core/project-context.md"
+          },
+          {
+            "file": "interactive/core/policies/data-protection/data-extraction-policy.md",
+            "bytes": 11455,
+            "div4": 2864,
+            "tok": 2755,
+            "tok_o200k": 2763,
+            "via": "interactive/core/project-context.md"
+          },
+          {
+            "file": "interactive/core/policies/development-loop.md",
+            "bytes": 10461,
+            "div4": 2615,
+            "tok": 2426,
+            "tok_o200k": 2409,
+            "via": "interactive/core/policies/plain-language.md"
+          },
+          {
+            "file": "interactive/core/procedures/analyze-cbo-obj.md",
+            "bytes": 13320,
+            "div4": 3330,
+            "tok": 3260,
+            "tok_o200k": 3256,
+            "via": "interactive/core/policies/knowledge-sourcing.md"
+          },
+          {
+            "file": "interactive/core/procedures/analyze-symptom.md",
+            "bytes": 21572,
+            "div4": 5393,
+            "tok": 5153,
+            "tok_o200k": 5165,
+            "via": "interactive/core/procedures/knowledge.md"
+          },
+          {
+            "file": "interactive/core/procedures/create-program.md",
+            "bytes": 106157,
+            "div4": 26539,
+            "tok": 25650,
+            "tok_o200k": 25588,
+            "via": "interactive/core/procedures/knowledge.md"
+          },
+          {
+            "file": "interactive/core/procedures/deep-interview.md",
+            "bytes": 12160,
+            "div4": 3040,
+            "tok": 2852,
+            "tok_o200k": 2837,
+            "via": "interactive/core/procedures/knowledge.md"
+          },
+          {
+            "file": "interactive/core/procedures/handoff.md",
+            "bytes": 15105,
+            "div4": 3776,
+            "tok": 3645,
+            "tok_o200k": 3645,
+            "via": "interactive/core/policies/plain-language.md"
+          },
+          {
+            "file": "interactive/core/procedures/help-portal-fetch.md",
+            "bytes": 4576,
+            "div4": 1144,
+            "tok": 1165,
+            "tok_o200k": 1169,
+            "via": "interactive/core/procedures/spro-lookup.md"
+          },
+          {
+            "file": "interactive/core/procedures/lesson.md",
+            "bytes": 7973,
+            "div4": 1993,
+            "tok": 1948,
+            "tok_o200k": 1946,
+            "via": "interactive/core/project-context.md"
+          }
+        ],
+        "hop2Sum": {
+          "bytes": 568435,
+          "div4": 142109,
+          "tok": 140191,
+          "tok_o200k": 137213
+        },
+        "navExcluded": [
+          "interactive/core/policies/data-protection/data-extraction-policy.md",
+          "interactive/core/procedures/analyze-cbo-obj.md",
+          "interactive/core/procedures/compare-programs.md",
+          "interactive/core/procedures/deep-interview.md",
+          "interactive/core/procedures/spro-lookup.md"
+        ],
+        "parametric": [
+          "../knowledge/country/<iso>.md",
+          "../knowledge/industry/<industry>.md"
+        ],
+        "nonCore": [],
+        "unresolved": [
+          ".sapkit/RULES.md",
+          ".sapkit/knowledge/domain.md",
+          "bapi.md",
+          "enhancements.md",
+          "spro.md",
+          "system.md",
+          "tables.md",
+          "tcodes.md",
+          "workflows.md"
+        ]
+      },
+      {
+        "name": "modify-object",
+        "wrapper": {
+          "file": "interactive/skills/modify-object/SKILL.md",
+          "bytes": 868,
+          "div4": 217,
+          "tok": 201,
+          "tok_o200k": 201
+        },
+        "projectContext": {
+          "file": "interactive/core/project-context.md",
+          "bytes": 10097,
+          "div4": 2524,
+          "tok": 2372,
+          "tok_o200k": 2357
+        },
+        "procedure": {
+          "file": "interactive/core/procedures/modify-object.md",
+          "bytes": 6201,
+          "div4": 1550,
+          "tok": 1524,
+          "tok_o200k": 1514
+        },
+        "hop1Files": [
+          {
+            "file": "interactive/core/policies/development-loop.md",
+            "bytes": 10461,
+            "div4": 2615,
+            "tok": 2426,
+            "tok_o200k": 2409
+          },
+          {
+            "file": "interactive/core/policies/plain-language.md",
+            "bytes": 7847,
+            "div4": 1962,
+            "tok": 1798,
+            "tok_o200k": 1793
+          },
+          {
+            "file": "interactive/core/policies/sap-standards.md",
+            "bytes": 7631,
+            "div4": 1908,
+            "tok": 1872,
+            "tok_o200k": 1861
+          },
+          {
+            "file": "interactive/core/procedures/create-object.md",
+            "bytes": 29571,
+            "div4": 7393,
+            "tok": 7072,
+            "tok_o200k": 7051
+          },
+          {
+            "file": "interactive/core/procedures/create-program.md",
+            "bytes": 106157,
+            "div4": 26539,
+            "tok": 25650,
+            "tok_o200k": 25588
+          },
+          {
+            "file": "interactive/core/procedures/troubleshooting.md",
+            "bytes": 80189,
+            "div4": 20047,
+            "tok": 19735,
+            "tok_o200k": 19675
+          },
+          {
+            "file": "interactive/core/procedures/verify-applied.md",
+            "bytes": 11539,
+            "div4": 2885,
+            "tok": 2741,
+            "tok_o200k": 2710
+          }
+        ],
+        "hop1Sum": {
+          "bytes": 253395,
+          "div4": 63349,
+          "tok": 61294,
+          "tok_o200k": 61087
+        },
+        "hop1AllCount": 7,
+        "hop1AllSum": {
+          "bytes": 253395,
+          "div4": 63349,
+          "tok": 61294,
+          "tok_o200k": 61087
+        },
+        "selAlts": [],
+        "selections": [],
+        "procPlusHop1": {
+          "bytes": 259596,
+          "div4": 64899,
+          "tok": 62818,
+          "tok_o200k": 62601
+        },
+        "total": {
+          "bytes": 270561,
+          "div4": 67640,
+          "tok": 65391,
+          "tok_o200k": 65159
+        },
+        "totalAll": {
+          "bytes": 270561,
+          "div4": 67640,
+          "tok": 65391,
+          "tok_o200k": 65159
+        },
+        "hop2Files": [
+          {
+            "file": "interactive/core/knowledge/abap/conventions/abap-release-reference.md",
+            "bytes": 5815,
+            "div4": 1454,
+            "tok": 1594,
+            "tok_o200k": 1569,
+            "via": "interactive/core/procedures/troubleshooting.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/alv-rules.md",
+            "bytes": 10827,
+            "div4": 2707,
+            "tok": 2657,
+            "tok_o200k": 2660,
+            "via": "interactive/core/procedures/create-program.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/clean-code-oop.md",
+            "bytes": 14768,
+            "div4": 3692,
+            "tok": 3464,
+            "tok_o200k": 3453,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/clean-code-procedural.md",
+            "bytes": 10066,
+            "div4": 2517,
+            "tok": 2491,
+            "tok_o200k": 2483,
+            "via": "interactive/core/procedures/create-program.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/clean-code.md",
+            "bytes": 26942,
+            "div4": 6736,
+            "tok": 6525,
+            "tok_o200k": 6537,
+            "via": "interactive/core/procedures/create-program.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/cloud-abap-constraints.md",
+            "bytes": 8583,
+            "div4": 2146,
+            "tok": 2449,
+            "tok_o200k": 2439,
+            "via": "interactive/core/procedures/create-program.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/ecc-ddic-fallback.md",
+            "bytes": 4532,
+            "div4": 1133,
+            "tok": 1106,
+            "tok_o200k": 1101,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/field-typing-rule.md",
+            "bytes": 15452,
+            "div4": 3863,
+            "tok": 4196,
+            "tok_o200k": 4171,
+            "via": "interactive/core/procedures/verify-applied.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/function-module-rule.md",
+            "bytes": 15203,
+            "div4": 3801,
+            "tok": 3588,
+            "tok_o200k": 3601,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/include-structure.md",
+            "bytes": 9053,
+            "div4": 2263,
+            "tok": 2295,
+            "tok_o200k": 2280,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/naming-conventions.md",
+            "bytes": 7379,
+            "div4": 1845,
+            "tok": 2099,
+            "tok_o200k": 2095,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/odata-gateway-rules.md",
+            "bytes": 10539,
+            "div4": 2635,
+            "tok": 2455,
+            "tok_o200k": 2464,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/rap-odata-rules.md",
+            "bytes": 20389,
+            "div4": 5097,
+            "tok": 4878,
+            "tok_o200k": 4860,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/sap-version-reference.md",
+            "bytes": 11198,
+            "div4": 2800,
+            "tok": 3297,
+            "tok_o200k": 3278,
+            "via": "interactive/core/procedures/troubleshooting.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/text-element-rule.md",
+            "bytes": 9400,
+            "div4": 2350,
+            "tok": 2288,
+            "tok_o200k": 2293,
+            "via": "interactive/core/procedures/troubleshooting.md"
+          },
+          {
+            "file": "interactive/core/knowledge/industry/README.md",
+            "bytes": 3682,
+            "div4": 921,
+            "tok": 909,
+            "tok_o200k": 899,
+            "via": "interactive/core/procedures/create-program.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/common/active-modules.md",
+            "bytes": 7171,
+            "div4": 1793,
+            "tok": 1744,
+            "tok_o200k": 1755,
+            "via": "interactive/core/procedures/create-program.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/common/naming-conventions.md",
+            "bytes": 6272,
+            "div4": 1568,
+            "tok": 1852,
+            "tok_o200k": 1725,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/personas/INDEX.md",
+            "bytes": 4752,
+            "div4": 1188,
+            "tok": 1149,
+            "tok_o200k": 1091,
+            "via": "interactive/core/procedures/create-program.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-analyst.md",
+            "bytes": 11154,
+            "div4": 2789,
+            "tok": 2561,
+            "tok_o200k": 2544,
+            "via": "interactive/core/procedures/create-program.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-architect.md",
+            "bytes": 11746,
+            "div4": 2937,
+            "tok": 2798,
+            "tok_o200k": 2779,
+            "via": "interactive/core/procedures/create-program.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-debugger.md",
+            "bytes": 9431,
+            "div4": 2358,
+            "tok": 2220,
+            "tok_o200k": 2225,
+            "via": "interactive/core/procedures/create-program.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-executor.md",
+            "bytes": 15687,
+            "div4": 3922,
+            "tok": 3797,
+            "tok_o200k": 3784,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-planner.md",
+            "bytes": 11933,
+            "div4": 2983,
+            "tok": 2837,
+            "tok_o200k": 2808,
+            "via": "interactive/core/procedures/create-program.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-qa-tester.md",
+            "bytes": 9099,
+            "div4": 2275,
+            "tok": 2050,
+            "tok_o200k": 2065,
+            "via": "interactive/core/procedures/create-program.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-sd-consultant.md",
+            "bytes": 11978,
+            "div4": 2995,
+            "tok": 2840,
+            "tok_o200k": 2837,
+            "via": "interactive/core/procedures/create-program.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-stocker.md",
+            "bytes": 9161,
+            "div4": 2290,
+            "tok": 2235,
+            "tok_o200k": 2243,
+            "via": "interactive/core/procedures/create-program.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-writer.md",
+            "bytes": 7104,
+            "div4": 1776,
+            "tok": 1557,
+            "tok_o200k": 1549,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/policies/approval-gates.md",
+            "bytes": 5985,
+            "div4": 1496,
+            "tok": 1381,
+            "tok_o200k": 1377,
+            "via": "interactive/core/policies/development-loop.md"
+          },
+          {
+            "file": "interactive/core/policies/data-protection/data-extraction-policy.md",
+            "bytes": 11455,
+            "div4": 2864,
+            "tok": 2755,
+            "tok_o200k": 2763,
+            "via": "interactive/core/procedures/troubleshooting.md"
+          },
+          {
+            "file": "interactive/core/policies/knowledge-sourcing.md",
+            "bytes": 6960,
+            "div4": 1740,
+            "tok": 1725,
+            "tok_o200k": 1720,
+            "via": "interactive/core/procedures/create-program.md"
+          },
+          {
+            "file": "interactive/core/policies/transport-client-rule.md",
+            "bytes": 7416,
+            "div4": 1854,
+            "tok": 1695,
+            "tok_o200k": 1684,
+            "via": "interactive/core/procedures/troubleshooting.md"
+          },
+          {
+            "file": "interactive/core/policies/verification-policy.md",
+            "bytes": 9996,
+            "div4": 2499,
+            "tok": 2478,
+            "tok_o200k": 2478,
+            "via": "interactive/core/procedures/create-program.md"
+          },
+          {
+            "file": "interactive/core/procedures/ask-consultant.md",
+            "bytes": 13132,
+            "div4": 3283,
+            "tok": 3155,
+            "tok_o200k": 3137,
+            "via": "interactive/core/procedures/create-program.md"
+          },
+          {
+            "file": "interactive/core/procedures/customization-lookup.md",
+            "bytes": 10494,
+            "div4": 2624,
+            "tok": 2636,
+            "tok_o200k": 2623,
+            "via": "interactive/core/procedures/create-program.md"
+          },
+          {
+            "file": "interactive/core/procedures/deep-interview.md",
+            "bytes": 12160,
+            "div4": 3040,
+            "tok": 2852,
+            "tok_o200k": 2837,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/procedures/develop-abapgit.md",
+            "bytes": 29220,
+            "div4": 7305,
+            "tok": 7141,
+            "tok_o200k": 7143,
+            "via": "interactive/core/procedures/create-program.md"
+          },
+          {
+            "file": "interactive/core/procedures/handoff.md",
+            "bytes": 15105,
+            "div4": 3776,
+            "tok": 3645,
+            "tok_o200k": 3645,
+            "via": "interactive/core/policies/plain-language.md"
+          },
+          {
+            "file": "interactive/core/procedures/help-portal-fetch.md",
+            "bytes": 4576,
+            "div4": 1144,
+            "tok": 1165,
+            "tok_o200k": 1169,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/procedures/install-sap-assets.md",
+            "bytes": 21793,
+            "div4": 5448,
+            "tok": 6123,
+            "tok_o200k": 6068,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/procedures/interview-sweep.md",
+            "bytes": 17767,
+            "div4": 4442,
+            "tok": 4191,
+            "tok_o200k": 4165,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/procedures/knowledge.md",
+            "bytes": 9972,
+            "div4": 2493,
+            "tok": 2439,
+            "tok_o200k": 2443,
+            "via": "interactive/core/procedures/create-program.md"
+          },
+          {
+            "file": "interactive/core/procedures/lesson.md",
+            "bytes": 7973,
+            "div4": 1993,
+            "tok": 1948,
+            "tok_o200k": 1946,
+            "via": "interactive/core/policies/development-loop.md"
+          },
+          {
+            "file": "interactive/core/procedures/release.md",
+            "bytes": 8153,
+            "div4": 2038,
+            "tok": 1842,
+            "tok_o200k": 1840,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/procedures/review-checklist.md",
+            "bytes": 31977,
+            "div4": 7994,
+            "tok": 7908,
+            "tok_o200k": 7893,
+            "via": "interactive/core/policies/development-loop.md"
+          },
+          {
+            "file": "interactive/core/procedures/setup.md",
+            "bytes": 32121,
+            "div4": 8030,
+            "tok": 7950,
+            "tok_o200k": 7914,
+            "via": "interactive/core/procedures/troubleshooting.md"
+          },
+          {
+            "file": "interactive/core/procedures/spro-lookup.md",
+            "bytes": 10996,
+            "div4": 2749,
+            "tok": 2645,
+            "tok_o200k": 2640,
+            "via": "interactive/core/procedures/create-program.md"
+          },
+          {
+            "file": "interactive/core/project-context.md",
+            "bytes": 10097,
+            "div4": 2524,
+            "tok": 2372,
+            "tok_o200k": 2357,
+            "via": "interactive/core/procedures/create-program.md"
+          }
+        ],
+        "hop2Sum": {
+          "bytes": 576664,
+          "div4": 144166,
+          "tok": 141977,
+          "tok_o200k": 141430
+        },
+        "navExcluded": [
+          "interactive/core/procedures/create-object.md",
+          "interactive/core/procedures/create-program.md",
+          "interactive/core/procedures/deep-interview.md"
+        ],
+        "parametric": [],
+        "nonCore": [],
+        "unresolved": [
+          ".sapkit/RULES.md",
+          "AGENTS.md"
+        ]
+      },
+      {
+        "name": "troubleshooting",
+        "wrapper": {
+          "file": "interactive/skills/troubleshooting/SKILL.md",
+          "bytes": 839,
+          "div4": 210,
+          "tok": 188,
+          "tok_o200k": 188
+        },
+        "projectContext": {
+          "file": "interactive/core/project-context.md",
+          "bytes": 10097,
+          "div4": 2524,
+          "tok": 2372,
+          "tok_o200k": 2357
+        },
+        "procedure": {
+          "file": "interactive/core/procedures/troubleshooting.md",
+          "bytes": 80189,
+          "div4": 20047,
+          "tok": 19735,
+          "tok_o200k": 19675
+        },
+        "hop1Files": [
+          {
+            "file": "interactive/core/knowledge/abap/conventions/abap-release-reference.md",
+            "bytes": 5815,
+            "div4": 1454,
+            "tok": 1594,
+            "tok_o200k": 1569
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/odata-gateway-rules.md",
+            "bytes": 10539,
+            "div4": 2635,
+            "tok": 2455,
+            "tok_o200k": 2464
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/rap-odata-rules.md",
+            "bytes": 20389,
+            "div4": 5097,
+            "tok": 4878,
+            "tok_o200k": 4860
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/sap-version-reference.md",
+            "bytes": 11198,
+            "div4": 2800,
+            "tok": 3297,
+            "tok_o200k": 3278
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/text-element-rule.md",
+            "bytes": 9400,
+            "div4": 2350,
+            "tok": 2288,
+            "tok_o200k": 2293
+          },
+          {
+            "file": "interactive/core/policies/data-protection/data-extraction-policy.md",
+            "bytes": 11455,
+            "div4": 2864,
+            "tok": 2755,
+            "tok_o200k": 2763
+          },
+          {
+            "file": "interactive/core/policies/knowledge-sourcing.md",
+            "bytes": 6960,
+            "div4": 1740,
+            "tok": 1725,
+            "tok_o200k": 1720
+          },
+          {
+            "file": "interactive/core/policies/transport-client-rule.md",
+            "bytes": 7416,
+            "div4": 1854,
+            "tok": 1695,
+            "tok_o200k": 1684
+          },
+          {
+            "file": "interactive/core/policies/verification-policy.md",
+            "bytes": 9996,
+            "div4": 2499,
+            "tok": 2478,
+            "tok_o200k": 2478
+          },
+          {
+            "file": "interactive/core/procedures/create-object.md",
+            "bytes": 29571,
+            "div4": 7393,
+            "tok": 7072,
+            "tok_o200k": 7051
+          },
+          {
+            "file": "interactive/core/procedures/develop-abapgit.md",
+            "bytes": 29220,
+            "div4": 7305,
+            "tok": 7141,
+            "tok_o200k": 7143
+          },
+          {
+            "file": "interactive/core/procedures/setup.md",
+            "bytes": 32121,
+            "div4": 8030,
+            "tok": 7950,
+            "tok_o200k": 7914
+          },
+          {
+            "file": "interactive/core/procedures/verify-applied.md",
+            "bytes": 11539,
+            "div4": 2885,
+            "tok": 2741,
+            "tok_o200k": 2710
+          }
+        ],
+        "hop1Sum": {
+          "bytes": 195619,
+          "div4": 48905,
+          "tok": 48069,
+          "tok_o200k": 47927
+        },
+        "hop1AllCount": 13,
+        "hop1AllSum": {
+          "bytes": 195619,
+          "div4": 48905,
+          "tok": 48069,
+          "tok_o200k": 47927
+        },
+        "selAlts": [],
+        "selections": [],
+        "procPlusHop1": {
+          "bytes": 275808,
+          "div4": 68952,
+          "tok": 67804,
+          "tok_o200k": 67602
+        },
+        "total": {
+          "bytes": 286744,
+          "div4": 71686,
+          "tok": 70364,
+          "tok_o200k": 70147
+        },
+        "totalAll": {
+          "bytes": 286744,
+          "div4": 71686,
+          "tok": 70364,
+          "tok_o200k": 70147
+        },
+        "hop2Files": [
+          {
+            "file": "interactive/core/knowledge/abap/conventions/abap-release-examples.md",
+            "bytes": 5496,
+            "div4": 1374,
+            "tok": 1674,
+            "tok_o200k": 1652,
+            "via": "interactive/core/knowledge/abap/conventions/abap-release-reference.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/abapgit-roundtrip-rule.md",
+            "bytes": 9410,
+            "div4": 2353,
+            "tok": 2083,
+            "tok_o200k": 2081,
+            "via": "interactive/core/procedures/develop-abapgit.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/clean-code-oop.md",
+            "bytes": 14768,
+            "div4": 3692,
+            "tok": 3464,
+            "tok_o200k": 3453,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/clean-code.md",
+            "bytes": 26942,
+            "div4": 6736,
+            "tok": 6525,
+            "tok_o200k": 6537,
+            "via": "interactive/core/knowledge/abap/conventions/rap-odata-rules.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/ecc-ddic-fallback.md",
+            "bytes": 4532,
+            "div4": 1133,
+            "tok": 1106,
+            "tok_o200k": 1101,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/field-typing-rule.md",
+            "bytes": 15452,
+            "div4": 3863,
+            "tok": 4196,
+            "tok_o200k": 4171,
+            "via": "interactive/core/procedures/verify-applied.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/function-module-rule.md",
+            "bytes": 15203,
+            "div4": 3801,
+            "tok": 3588,
+            "tok_o200k": 3601,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/include-structure.md",
+            "bytes": 9053,
+            "div4": 2263,
+            "tok": 2295,
+            "tok_o200k": 2280,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/naming-conventions.md",
+            "bytes": 7379,
+            "div4": 1845,
+            "tok": 2099,
+            "tok_o200k": 2095,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/knowledge/abap/conventions/source-repair-protocol.md",
+            "bytes": 3722,
+            "div4": 931,
+            "tok": 810,
+            "tok_o200k": 811,
+            "via": "interactive/core/procedures/develop-abapgit.md"
+          },
+          {
+            "file": "interactive/core/knowledge/modules/common/naming-conventions.md",
+            "bytes": 6272,
+            "div4": 1568,
+            "tok": 1852,
+            "tok_o200k": 1725,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-executor.md",
+            "bytes": 15687,
+            "div4": 3922,
+            "tok": 3797,
+            "tok_o200k": 3784,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/personas/sap-writer.md",
+            "bytes": 7104,
+            "div4": 1776,
+            "tok": 1557,
+            "tok_o200k": 1549,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/policies/credential-handling.md",
+            "bytes": 2884,
+            "div4": 721,
+            "tok": 706,
+            "tok_o200k": 700,
+            "via": "interactive/core/procedures/setup.md"
+          },
+          {
+            "file": "interactive/core/policies/data-protection/table_exception.md",
+            "bytes": 5729,
+            "div4": 1432,
+            "tok": 1406,
+            "tok_o200k": 1401,
+            "via": "interactive/core/policies/data-protection/data-extraction-policy.md"
+          },
+          {
+            "file": "interactive/core/policies/development-loop.md",
+            "bytes": 10461,
+            "div4": 2615,
+            "tok": 2426,
+            "tok_o200k": 2409,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/policies/plain-language.md",
+            "bytes": 7847,
+            "div4": 1962,
+            "tok": 1798,
+            "tok_o200k": 1793,
+            "via": "interactive/core/procedures/setup.md"
+          },
+          {
+            "file": "interactive/core/procedures/HANDOFF.md",
+            "bytes": 15105,
+            "div4": 3776,
+            "tok": 3645,
+            "tok_o200k": 3645,
+            "via": "interactive/core/procedures/setup.md"
+          },
+          {
+            "file": "interactive/core/procedures/analyze-cbo-obj.md",
+            "bytes": 13320,
+            "div4": 3330,
+            "tok": 3260,
+            "tok_o200k": 3256,
+            "via": "interactive/core/policies/knowledge-sourcing.md"
+          },
+          {
+            "file": "interactive/core/procedures/ask-consultant.md",
+            "bytes": 13132,
+            "div4": 3283,
+            "tok": 3155,
+            "tok_o200k": 3137,
+            "via": "interactive/core/policies/knowledge-sourcing.md"
+          },
+          {
+            "file": "interactive/core/procedures/create-program.md",
+            "bytes": 106157,
+            "div4": 26539,
+            "tok": 25650,
+            "tok_o200k": 25588,
+            "via": "interactive/core/procedures/verify-applied.md"
+          },
+          {
+            "file": "interactive/core/procedures/customization-lookup.md",
+            "bytes": 10494,
+            "div4": 2624,
+            "tok": 2636,
+            "tok_o200k": 2623,
+            "via": "interactive/core/policies/knowledge-sourcing.md"
+          },
+          {
+            "file": "interactive/core/procedures/deep-interview.md",
+            "bytes": 12160,
+            "div4": 3040,
+            "tok": 2852,
+            "tok_o200k": 2837,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/procedures/handoff.md",
+            "bytes": 15105,
+            "div4": 3776,
+            "tok": 3645,
+            "tok_o200k": 3645,
+            "via": "interactive/core/procedures/setup.md"
+          },
+          {
+            "file": "interactive/core/procedures/help-portal-fetch.md",
+            "bytes": 4576,
+            "div4": 1144,
+            "tok": 1165,
+            "tok_o200k": 1169,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/procedures/install-sap-assets.md",
+            "bytes": 21793,
+            "div4": 5448,
+            "tok": 6123,
+            "tok_o200k": 6068,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/procedures/interview-sweep.md",
+            "bytes": 17767,
+            "div4": 4442,
+            "tok": 4191,
+            "tok_o200k": 4165,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/procedures/knowledge.md",
+            "bytes": 9972,
+            "div4": 2493,
+            "tok": 2439,
+            "tok_o200k": 2443,
+            "via": "interactive/core/policies/knowledge-sourcing.md"
+          },
+          {
+            "file": "interactive/core/procedures/lesson.md",
+            "bytes": 7973,
+            "div4": 1993,
+            "tok": 1948,
+            "tok_o200k": 1946,
+            "via": "interactive/core/policies/knowledge-sourcing.md"
+          },
+          {
+            "file": "interactive/core/procedures/modify-object.md",
+            "bytes": 6201,
+            "div4": 1550,
+            "tok": 1524,
+            "tok_o200k": 1514,
+            "via": "interactive/core/procedures/verify-applied.md"
+          },
+          {
+            "file": "interactive/core/procedures/release.md",
+            "bytes": 8153,
+            "div4": 2038,
+            "tok": 1842,
+            "tok_o200k": 1840,
+            "via": "interactive/core/procedures/create-object.md"
+          },
+          {
+            "file": "interactive/core/procedures/review-checklist.md",
+            "bytes": 31977,
+            "div4": 7994,
+            "tok": 7908,
+            "tok_o200k": 7893,
+            "via": "interactive/core/procedures/develop-abapgit.md"
+          },
+          {
+            "file": "interactive/core/procedures/spro-lookup.md",
+            "bytes": 10996,
+            "div4": 2749,
+            "tok": 2645,
+            "tok_o200k": 2640,
+            "via": "interactive/core/policies/knowledge-sourcing.md"
+          },
+          {
+            "file": "interactive/core/project-context.md",
+            "bytes": 10097,
+            "div4": 2524,
+            "tok": 2372,
+            "tok_o200k": 2357,
+            "via": "interactive/core/policies/knowledge-sourcing.md"
+          }
+        ],
+        "hop2Sum": {
+          "bytes": 482919,
+          "div4": 120730,
+          "tok": 118382,
+          "tok_o200k": 117909
+        },
+        "navExcluded": [],
+        "parametric": [],
+        "nonCore": [
+          "interactive/checker/UPDATE-RUNBOOK.md"
+        ],
+        "unresolved": [
+          ".sapkit/RULES.md",
+          "LESSONS.md",
+          "knowledge/system.md"
+        ]
+      }
+    ],
+    "personaRow": {
+      "name": "ask-consultant + sap-fi-consultant",
+      "base": {
+        "bytes": 140472,
+        "div4": 35118,
+        "tok": 34281,
+        "tok_o200k": 34090
+      },
+      "persona": {
+        "file": "interactive/core/personas/sap-fi-consultant.md",
+        "bytes": 11271,
+        "div4": 2818,
+        "tok": 2725,
+        "tok_o200k": 2717
+      },
+      "personaHopFiles": [
+        {
+          "file": "interactive/core/knowledge/country/README.md",
+          "bytes": 4786,
+          "div4": 1197,
+          "tok": 1411,
+          "tok_o200k": 1357
+        },
+        {
+          "file": "interactive/core/knowledge/country/eu-common.md",
+          "bytes": 5112,
+          "div4": 1278,
+          "tok": 1367,
+          "tok_o200k": 1348
+        },
+        {
+          "file": "interactive/core/knowledge/industry/README.md",
+          "bytes": 3682,
+          "div4": 921,
+          "tok": 909,
+          "tok_o200k": 899
+        },
+        {
+          "file": "interactive/core/knowledge/industry/construction.md",
+          "bytes": 2522,
+          "div4": 631,
+          "tok": 542,
+          "tok_o200k": 535
+        },
+        {
+          "file": "interactive/core/knowledge/modules/FI/bapi.md",
+          "bytes": 4788,
+          "div4": 1197,
+          "tok": 1337,
+          "tok_o200k": 1226
+        },
+        {
+          "file": "interactive/core/knowledge/modules/FI/enhancements.md",
+          "bytes": 9501,
+          "div4": 2375,
+          "tok": 2962,
+          "tok_o200k": 2629
+        },
+        {
+          "file": "interactive/core/knowledge/modules/FI/spro.md",
+          "bytes": 5898,
+          "div4": 1475,
+          "tok": 1560,
+          "tok_o200k": 1359
+        },
+        {
+          "file": "interactive/core/knowledge/modules/FI/tables.md",
+          "bytes": 2604,
+          "div4": 651,
+          "tok": 792,
+          "tok_o200k": 796
+        },
+        {
+          "file": "interactive/core/knowledge/modules/FI/tcodes.md",
+          "bytes": 4144,
+          "div4": 1036,
+          "tok": 1362,
+          "tok_o200k": 1217
+        },
+        {
+          "file": "interactive/core/knowledge/modules/FI/workflows.md",
+          "bytes": 3050,
+          "div4": 763,
+          "tok": 797,
+          "tok_o200k": 784
+        },
+        {
+          "file": "interactive/core/knowledge/modules/common/bapi.md",
+          "bytes": 7766,
+          "div4": 1942,
+          "tok": 2323,
+          "tok_o200k": 2037
+        },
+        {
+          "file": "interactive/core/knowledge/modules/common/enhancements.md",
+          "bytes": 6307,
+          "div4": 1577,
+          "tok": 1892,
+          "tok_o200k": 1616
+        },
+        {
+          "file": "interactive/core/knowledge/modules/common/spro.md",
+          "bytes": 8879,
+          "div4": 2220,
+          "tok": 2511,
+          "tok_o200k": 2237
+        },
+        {
+          "file": "interactive/core/knowledge/modules/common/tables.md",
+          "bytes": 7580,
+          "div4": 1895,
+          "tok": 2419,
+          "tok_o200k": 2105
+        },
+        {
+          "file": "interactive/core/knowledge/modules/common/tcodes.md",
+          "bytes": 6049,
+          "div4": 1512,
+          "tok": 2010,
+          "tok_o200k": 1663
+        },
+        {
+          "file": "interactive/core/personas/sap-stocker.md",
+          "bytes": 9161,
+          "div4": 2290,
+          "tok": 2235,
+          "tok_o200k": 2243
+        }
+      ],
+      "personaHopSum": {
+        "bytes": 91829,
+        "div4": 22957,
+        "tok": 26429,
+        "tok_o200k": 24051
+      },
+      "personaParametric": [
+        "../knowledge/country/<iso>.md",
+        "../knowledge/industry/<key>.md"
+      ],
+      "personaSelections": [
+        {
+          "group": "line#53",
+          "line": 53,
+          "cueText": "    - **Industry Context (business characteristics that vary by industry)**: Config analys",
+          "representative": "interactive/core/knowledge/industry/construction.md",
+          "members": [
+            "construction.md 2522",
+            "utilities.md 2149",
+            "banking.md 1464",
+            "public-sector.md 1321"
+          ]
+        },
+        {
+          "group": "line#54",
+          "line": 54,
+          "cueText": "    - **Country Context (business characteristics that vary by jurisdiction)**: Tax determ",
+          "representative": "interactive/core/knowledge/country/eu-common.md",
+          "members": [
+            "eu-common.md 5112",
+            "kr.md 4568",
+            "us.md 3872",
+            "de.md 3777"
+          ]
+        }
+      ],
+      "total": {
+        "bytes": 243572,
+        "div4": 60893,
+        "tok": 63435,
+        "tok_o200k": 60858
+      }
+    }
+  },
+  "workshop": {
+    "files": [
+      {
+        "file": "CLAUDE.md",
+        "bytes": 30049,
+        "div4": 7512,
+        "tok": 12002,
+        "tok_o200k": 8987
+      },
+      {
+        "file": "AGENTS.md",
+        "bytes": 4126,
+        "div4": 1032,
+        "tok": 1032,
+        "tok_o200k": 1030
+      },
+      {
+        "file": "HANDOFF.md",
+        "bytes": 42304,
+        "div4": 10576,
+        "tok": 17760,
+        "tok_o200k": 13392
+      }
+    ],
+    "hook": {
+      "available": true,
+      "stdout": {
+        "bytes": 1473,
+        "div4": 368,
+        "tok": 603,
+        "tok_o200k": 468
+      },
+      "additionalContext": {
+        "bytes": 1374,
+        "div4": 344,
+        "tok": 571,
+        "tok_o200k": 435
+      },
+      "note": "additionalContext에 git 브랜치·status(상위 20줄)·최근 커밋 5줄이 들어가므로 트리 상태에 따라 변한다 — 고정 문구(RESUME_NOTE)는 그 일부"
+    },
+    "cellFiles": {
+      "bytes": 76479,
+      "div4": 19120,
+      "tok": 30794,
+      "tok_o200k": 23409
+    },
+    "cellTotal": {
+      "bytes": 77853,
+      "div4": 19463,
+      "tok": 31365,
+      "tok_o200k": 23844
+    },
+    "refs": [
+      {
+        "label": "claude for SAP/CLAUDE.md (상위 폴더)",
+        "bytes": 11,
+        "div4": 3,
+        "tok": 5,
+        "tok_o200k": 5
+      },
+      {
+        "label": "claude for SAP/AGENTS.md (상위 폴더)",
+        "bytes": 347,
+        "div4": 87,
+        "tok": 121,
+        "tok_o200k": 89
+      },
+      {
+        "label": "~/.claude/CLAUDE.md (사용자 전역)",
+        "bytes": 6469,
+        "div4": 1617,
+        "tok": 2126,
+        "tok_o200k": 1696
+      }
+    ]
+  },
+  "powerup": {
+    "available": true,
+    "name": "@hjaewon/abap-mcp-adt-powerup",
+    "version": "4.14.0",
+    "head": "c839f57",
+    "groups": {
+      "Compact": 22,
+      "HighLevel": 112,
+      "LowLevel": 125,
+      "ReadOnly": 34,
+      "Search": 5,
+      "System": 35
+    },
+    "registered_distinct": 333,
+    "duplicates_across_groups": 0,
+    "default_surface_static": 186,
+    "handler_files_with_definition": 339,
+    "avg_description_static": 173,
+    "default_exposition": [
+      {
+        "line": 113,
+        "text": "exposition: exposition.length > 0 ? exposition : ['readonly', 'high'],"
+      }
+    ],
+    "known_sets": [
+      {
+        "line": 175,
+        "text": "s === 'readonly' || s === 'high' || s === 'low' || s === 'compact',"
+      }
+    ],
+    "tier_gate": [
+      {
+        "line": 102,
+        "text": "export function checkToolAllowed(toolName: string, tier: Tier): string | null {"
+      },
+      {
+        "line": 126,
+        "text": "export function guardTool(toolName: string): void {"
+      },
+      {
+        "line": 138,
+        "text": "`ERR_READONLY_TIER: ${reason} Active profile: ${alias} (tier=${tier}). ` +"
+      }
+    ],
+    "tier_default": [
+      {
+        "line": 11,
+        "text": "* `<cwd>/.sc4sap/sap.env`. In legacy mode, SAP_TIER defaults to 'DEV' so"
+      },
+      {
+        "line": 42,
+        "text": "let activeTier: Tier = 'DEV';"
+      }
+    ],
+    "blocklist": [
+      {
+        "line": 15,
+        "text": "*   - `standard` — minimal + Protected Business Data        (default)"
+      },
+      {
+        "line": 277,
+        "text": "const raw = (process.env.MCP_BLOCKLIST_PROFILE || '').toLowerCase().trim();"
+      },
+      {
+        "line": 396,
+        "text": "const allow = readSetEnv('MCP_ALLOW_TABLE');"
+      }
+    ],
+    "blocklist_env_wiped": [
+      {
+        "line": 69,
+        "text": "'MCP_BLOCKLIST_PROFILE',"
+      },
+      {
+        "line": 71,
+        "text": "'MCP_ALLOW_TABLE',"
+      },
+      {
+        "line": 173,
+        "text": "delete process.env[key];"
+      }
+    ],
+    "unknown_args": []
+  },
+  "engine": {
+    "registry_identifiers": 186,
+    "registry_distinct": 186,
+    "tier_gate": [
+      {
+        "line": 5,
+        "text": "* the one that has to be right. It is **fail-closed and positive**: on any tier"
+      },
+      {
+        "line": 17,
+        "text": "* `UNKNOWN` is the sentinel for \"a connection exists but its tier could not be"
+      }
+    ],
+    "blocklist": [
+      {
+        "line": 50,
+        "text": "export const DEFAULT_BLOCKLIST_PROFILE: BlocklistProfileName = 'standard';"
+      }
+    ],
+    "unknown_args": [
+      {
+        "line": 71,
+        "text": "export const UNKNOWN_ARGUMENT_REJECTION = 'Unknown arguments are rejected, not ignored';"
+      },
+      {
+        "line": 130,
+        "text": "seam.validateToolInput = async function guardedValidateToolInput("
+      }
+    ],
+    "version_line": "sapkit-engine 1.5.0",
+    "integrity": {
+      "name": "sapkit-engine",
+      "version": "1.5.0",
+      "sourceCommit": "7f41d16d1220ea827c587e56cbc22bffed50f2f4",
+      "file": "interactive/server/server.bundle.cjs",
+      "sha256": "3c1fbcef34a519f5aff849ba87718c131d53462e381a60f3823bf43fd84e96c0",
+      "bytes": 3910562
+    }
+  }
+}

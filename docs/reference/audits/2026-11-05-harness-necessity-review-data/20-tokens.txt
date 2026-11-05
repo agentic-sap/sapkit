@@ -1,0 +1,388 @@
+판J T2 — 토큰 실측 (M-A)
+=====================================================================
+측정일: 2026-11-05 · node v24.14.1 · 플랫폼 win32
+번들: [verify-engine] OK: sapkit-engine@1.5.0 (3c1fbcef34a5…)   ← verify-engine.mjs가 찍은 줄 그대로 (수치를 다른 문서에 복제하지 말 것)
+토크나이저: gpt-tokenizer@3.0.1 · cl100k_base (표의 tok 열) · o200k_base (summary.json)
+바이트 = UTF-8 · 파일은 CRLF→LF 정규화 후 측정(레포 정본은 LF) · ÷4 = 반올림 · 판정은 ÷4 값으로(D-156).
+원자료: 20-tokens-raw/ (tools/list JSON 표면별 · 도구별 CSV · stderr · 훅 stdout · powerup 등록 목록 · summary.json)
+
+1. MCP 도구 설명 — tools/list 바이트 (프로파일 없음 · inspection-only · SAP 접속 0)
+====================================================================================================
+선 ⓑ: 평균 ≤500 B/도구 = 가볍다 · ~740 B(D-105 수준) = 축소 후보. 평균 = tools 배열 JSON 바이트 ÷ 도구 수 (D-105와 같은 셈).
+names-only = 도구 이름만의 JSON 배열 — 스키마를 지연 적재하는 하네스가 세션 시작에 치르는 값. prefixed = Claude Code 지연 목록 형식(`mcp__plugin_sapkit_sap__<이름>` 줄바꿈 연결).
+
+| exposition              | 도구 | tools JSON B |     ÷4 |    tok | B/도구 | desc B/도구 | names-only B (÷4) | prefixed B | 판정 ⓑ                          |
+|-------------------------|------|--------------|--------|--------|--------|-------------|-------------------|------------|---------------------------------|
+| default                 |  155 |      141,107 | 35,277 | 30,864 |    910 |         236 |       3,047 (762) |      6,455 | 축소 후보 (≥740 B — D-105 수준) |
+| readonly                |   65 |       54,664 | 13,666 | 12,282 |    841 |         268 |       1,261 (315) |      2,689 | 축소 후보 (≥740 B — D-105 수준) |
+| readonly,high           |  155 |      141,107 | 35,277 | 30,864 |    910 |         236 |       3,047 (762) |      6,455 | 축소 후보 (≥740 B — D-105 수준) |
+| high                    |   90 |       86,444 | 21,611 | 18,584 |    960 |         214 |       1,787 (447) |      3,765 | 축소 후보 (≥740 B — D-105 수준) |
+| compact                 |    0 |            2 |      1 |      1 |      0 |           0 |             2 (1) |          0 | 도구 0 — 판정 대상 아님         |
+| low                     |    0 |            2 |      1 |      1 |      0 |           0 |             2 (1) |          0 | 도구 0 — 판정 대상 아님         |
+| system                  |    4 |        4,461 |  1,115 |    974 |   1115 |         173 |           87 (22) |        173 | 축소 후보 (≥740 B — D-105 수준) |
+| search                  |    0 |            2 |      1 |      1 |      0 |           0 |             2 (1) |          0 | 도구 0 — 판정 대상 아님         |
+| all-sets                |  155 |      141,107 | 35,277 | 30,864 |    910 |         236 |       3,047 (762) |      6,455 | 축소 후보 (≥740 B — D-105 수준) |
+| development(literal)    |    0 |            2 |      1 |      1 |      0 |           0 |             2 (1) |          0 | 도구 0 — 판정 대상 아님         |
+| launch.cjs(config 없음) |   65 |       54,664 | 13,666 | 12,282 |    841 |         268 |       1,261 (315) |      2,689 | 축소 후보 (≥740 B — D-105 수준) |
+
+  · default: 인자 없음 → 번들 기본값 readonly,high (exposition.ts DEFAULT_EXPOSITION) · JSON.stringify(result).length=141,017 · stderr: [sapkit] transport(resolved): stdio ⏎ NO_PROFILE: neither <tmp>\cwd\.sapkit\active-profile.txt nor <tmp>\cwd\.sapkit\sap.env was found — starting in inspection-only mode with no connection. ⏎ [sapkit] profile: (none) · tier=UNKNOWN · systemType=cloud · connection=none · exposition=readonly,high
+  · readonly: launch.cjs SURFACE_READONLY — toolSurface readonly · 미설정 · 알 수 없는 값 · tier≠DEV 전부 · JSON.stringify(result).length=54,610 · stderr: [sapkit] transport(resolved): stdio ⏎ NO_PROFILE: neither <tmp>\cwd\.sapkit\active-profile.txt nor <tmp>\cwd\.sapkit\sap.env was found — starting in inspection-only mode with no connection. ⏎ [sapkit] profile: (none) · tier=UNKNOWN · systemType=cloud · connection=none · exposition=readonly
+  · readonly,high: launch.cjs SURFACE_DEVELOPMENT — toolSurface development (DEV tier에서만 허가) · JSON.stringify(result).length=141,017 · stderr: [sapkit] transport(resolved): stdio ⏎ NO_PROFILE: neither <tmp>\cwd\.sapkit\active-profile.txt nor <tmp>\cwd\.sapkit\sap.env was found — starting in inspection-only mode with no connection. ⏎ [sapkit] profile: (none) · tier=UNKNOWN · systemType=cloud · connection=none · exposition=readonly,high
+  · high: KNOWN_SETS 단독 · JSON.stringify(result).length=86,418 · stderr: [sapkit] transport(resolved): stdio ⏎ NO_PROFILE: neither <tmp>\cwd\.sapkit\active-profile.txt nor <tmp>\cwd\.sapkit\sap.env was found — starting in inspection-only mode with no connection. ⏎ [sapkit] profile: (none) · tier=UNKNOWN · systemType=cloud · connection=none · exposition=high
+  · compact: KNOWN_SETS 단독 · JSON.stringify(result).length=12 · stderr: [sapkit] transport(resolved): stdio ⏎ NO_PROFILE: neither <tmp>\cwd\.sapkit\active-profile.txt nor <tmp>\cwd\.sapkit\sap.env was found — starting in inspection-only mode with no connection. ⏎ [sapkit] profile: (none) · tier=UNKNOWN · systemType=cloud · connection=none · exposition=compact
+  · low: KNOWN_SETS 단독 · JSON.stringify(result).length=12 · stderr: [sapkit] transport(resolved): stdio ⏎ NO_PROFILE: neither <tmp>\cwd\.sapkit\active-profile.txt nor <tmp>\cwd\.sapkit\sap.env was found — starting in inspection-only mode with no connection. ⏎ [sapkit] profile: (none) · tier=UNKNOWN · systemType=cloud · connection=none · exposition=low
+  · system: KNOWN_SETS 단독 (readonly가 함께 켜는 묶음) · JSON.stringify(result).length=4,471 · stderr: [sapkit] transport(resolved): stdio ⏎ NO_PROFILE: neither <tmp>\cwd\.sapkit\active-profile.txt nor <tmp>\cwd\.sapkit\sap.env was found — starting in inspection-only mode with no connection. ⏎ [sapkit] profile: (none) · tier=UNKNOWN · systemType=cloud · connection=none · exposition=system
+  · search: KNOWN_SETS 단독 (항상 켜지는 묶음) · JSON.stringify(result).length=12 · stderr: [sapkit] transport(resolved): stdio ⏎ NO_PROFILE: neither <tmp>\cwd\.sapkit\active-profile.txt nor <tmp>\cwd\.sapkit\sap.env was found — starting in inspection-only mode with no connection. ⏎ [sapkit] profile: (none) · tier=UNKNOWN · systemType=cloud · connection=none · exposition=search
+  · all-sets: KNOWN_SETS 전부 (unknownArguments.test.ts ALL_SETS) · JSON.stringify(result).length=141,017 · stderr: [sapkit] transport(resolved): stdio ⏎ NO_PROFILE: neither <tmp>\cwd\.sapkit\active-profile.txt nor <tmp>\cwd\.sapkit\sap.env was found — starting in inspection-only mode with no connection. ⏎ [sapkit] profile: (none) · tier=UNKNOWN · systemType=cloud · connection=none · exposition=readonly,high,compact,low,system,search
+  · development(literal): D-105 ⓔ 함정 — 번들이 모르는 값 → 기본으로 안 돌아가고 거의 빈 표면 · JSON.stringify(result).length=12 · stderr: [sapkit] transport(resolved): stdio ⏎ EXPOSITION_UNKNOWN: --exposition named "development", which no handler set is called. Known sets: readonly, high, compact, low, system, search. Unrecognised names are dropped and do NOT fall back to the default (readonly,high), so a typo narrows the surface rather than opening the write tools. ⏎ EXPOSITION_EMPTY: no handler set in this value was recognised, so only the always-on search group is exposed and the server will look nearly empty. Pass --exposition=readonly for the read-only surface or --exposition=readonly,high for the full one.
+  · launch.cjs(config 없음): 런처 경유 · .sapkit/config.json 없음 → TOOLSURFACE_DEFAULT → readonly · JSON.stringify(result).length=54,610 · stderr: [launch] TOOLSURFACE_DEFAULT: no toolSurface configured — starting with readonly. For write tools on a DEV system set "toolSurface": "development" in <project>/.sapkit/config.json and restart the MCP server. ⏎ [sapkit] transport(resolved): stdio ⏎ NO_PROFILE: neither <tmp>\cwd\.sapkit\active-profile.txt nor <tmp>\cwd\.sapkit\sap.env was found — starting in inspection-only mode with no connection.
+
+불가(프로파일 필요) — 접속 표면(RFC/connected 전용 31종이 더 뜨는 표면)은 이 판에서 띄우지 않았다(P0). D-105 ⓑ 실측(2026-08-23 · 소유자 머신 · 프로파일 활성)을 그 칸에 인용한다:
+  | readonly (연결)       | 74  | 54,763 B  | ~13.7k | 740 B/도구 → 축소 후보 (D-105가 과녁으로 지목한 바로 그 수치) |
+  | readonly,high (연결)  | 186 | 159,627 B | ~39.9k | 858 B/도구 → 축소 후보 |
+  대조: 지금 inspection-only readonly는 65종 54,664 B — D-105 연결 readonly(74종 54,763 B)보다 도구는 9종 적은데 바이트는 거의 같다. 그 사이 설명 덧말(D-145·D-147·D-152 append-only)이 들어간 결과로 읽힌다(추정 · 같은 조건 재측정 아님).
+
+상위 10 (readonly · 도구 항목 JSON 바이트 — D-105 ⓑ의 겨눌 자리 재확인):
+|  # | 도구                 | 항목 B | description B | inputSchema B |
+|----|----------------------|--------|---------------|---------------|
+|  1 | CheckSyntax          |  2,678 |         1,448 |         1,128 |
+|  2 | GrepObjects          |  2,301 |         1,266 |           935 |
+|  3 | GrepPackages         |  1,683 |           498 |         1,090 |
+|  4 | GetCallGraph         |  1,662 |           359 |         1,208 |
+|  5 | ReadFunctionModule   |  1,341 |           378 |           862 |
+|  6 | GetSqlQuery          |  1,322 |           702 |           526 |
+|  7 | GetSourceDiff        |  1,238 |           387 |           755 |
+|  8 | GetVirtualFoldersLow |  1,234 |           147 |           984 |
+|  9 | GetNodeStructureLow  |  1,200 |           193 |           905 |
+| 10 | GetTypeInfo          |  1,138 |           715 |           329 |
+
+상위 10 (default · 도구 항목 JSON 바이트 — D-105 ⓑ의 겨눌 자리 재확인):
+|  # | 도구                 | 항목 B | description B | inputSchema B |
+|----|----------------------|--------|---------------|---------------|
+|  1 | UpdateSourceByPatch  |  3,095 |         1,490 |         1,503 |
+|  2 | UpdateDataElement    |  2,996 |           925 |         1,954 |
+|  3 | CreateStructure      |  2,872 |           401 |         2,371 |
+|  4 | CheckSyntax          |  2,678 |         1,448 |         1,128 |
+|  5 | ActivateObjects      |  2,670 |         1,531 |         1,041 |
+|  6 | CreateDataElement    |  2,564 |            99 |         2,365 |
+|  7 | GrepObjects          |  2,301 |         1,266 |           935 |
+|  8 | UpdateDomain         |  2,085 |           397 |         1,583 |
+|  9 | CreateServiceBinding |  2,080 |           474 |         1,497 |
+| 10 | CreateDomain         |  2,010 |           114 |         1,801 |
+
+2. 제품 세션 고정 — 도구 설명 제외
+============================================
+선 ⓐ: 증분 ≤3k 토큰 = 가볍다 · >8k = 과함 · 사이 = 측정 후 결정.
+
+2-a. 스킬 description 19 (interactive/skills/*/SKILL.md frontmatter)
+----------------------------------------------------------------------------------------------------
+| 스킬               | description              | 호스트 렌더(- sapkit:<name>: <desc>) | frontmatter              | SKILL.md 전체              |
+|--------------------|--------------------------|--------------------------------------|--------------------------|----------------------------|
+| analyze-cbo-obj    | 297 B · ÷4 74 · tok 58   | 323 B · ÷4 81 · tok 68               | 332 B · ÷4 83 · tok 68   | 937 B · ÷4 234 · tok 224   |
+| analyze-code       | 174 B · ÷4 44 · tok 34   | 197 B · ÷4 49 · tok 41               | 206 B · ÷4 52 · tok 41   | 805 B · ÷4 201 · tok 192   |
+| analyze-symptom    | 223 B · ÷4 56 · tok 39   | 249 B · ÷4 62 · tok 48               | 258 B · ÷4 65 · tok 48   | 863 B · ÷4 216 · tok 203   |
+| ask-consultant     | 241 B · ÷4 60 · tok 43   | 266 B · ÷4 67 · tok 52               | 275 B · ÷4 69 · tok 52   | 878 B · ÷4 220 · tok 206   |
+| compare-programs   | 330 B · ÷4 83 · tok 69   | 357 B · ÷4 89 · tok 77               | 366 B · ÷4 92 · tok 77   | 973 B · ÷4 243 · tok 229   |
+| create-object      | 199 B · ÷4 50 · tok 39   | 223 B · ÷4 56 · tok 45               | 232 B · ÷4 58 · tok 46   | 833 B · ÷4 208 · tok 195   |
+| create-program     | 661 B · ÷4 165 · tok 132 | 686 B · ÷4 172 · tok 138             | 695 B · ÷4 174 · tok 139 | 1,298 B · ÷4 325 · tok 288 |
+| deep-interview     | 472 B · ÷4 118 · tok 90  | 497 B · ÷4 124 · tok 98              | 506 B · ÷4 127 · tok 98  | 1,109 B · ÷4 277 · tok 250 |
+| develop-abapgit    | 370 B · ÷4 93 · tok 80   | 396 B · ÷4 99 · tok 89               | 405 B · ÷4 101 · tok 89  | 1,118 B · ÷4 280 · tok 260 |
+| handoff            | 602 B · ÷4 151 · tok 161 | 620 B · ÷4 155 · tok 168             | 629 B · ÷4 157 · tok 168 | 1,412 B · ÷4 353 · tok 360 |
+| knowledge          | 426 B · ÷4 107 · tok 104 | 446 B · ÷4 112 · tok 110             | 455 B · ÷4 114 · tok 110 | 1,119 B · ÷4 280 · tok 268 |
+| lesson             | 219 B · ÷4 55 · tok 56   | 236 B · ÷4 59 · tok 62               | 245 B · ÷4 61 · tok 62   | 837 B · ÷4 209 · tok 215   |
+| modify-object      | 214 B · ÷4 54 · tok 43   | 238 B · ÷4 60 · tok 50               | 247 B · ÷4 62 · tok 50   | 868 B · ÷4 217 · tok 201   |
+| package-to-process | 401 B · ÷4 100 · tok 81  | 430 B · ÷4 108 · tok 89              | 439 B · ÷4 110 · tok 89  | 1,050 B · ÷4 263 · tok 240 |
+| program-to-spec    | 303 B · ÷4 76 · tok 61   | 329 B · ÷4 82 · tok 69               | 338 B · ÷4 85 · tok 69   | 943 B · ÷4 236 · tok 221   |
+| release            | 123 B · ÷4 31 · tok 19   | 141 B · ÷4 35 · tok 26               | 150 B · ÷4 38 · tok 26   | 739 B · ÷4 185 · tok 174   |
+| setup              | 194 B · ÷4 49 · tok 33   | 210 B · ÷4 53 · tok 39               | 219 B · ÷4 55 · tok 39   | 784 B · ÷4 196 · tok 179   |
+| troubleshooting    | 199 B · ÷4 50 · tok 33   | 225 B · ÷4 56 · tok 41               | 234 B · ÷4 59 · tok 39   | 839 B · ÷4 210 · tok 188   |
+| verify-applied     | 650 B · ÷4 163 · tok 157 | 675 B · ÷4 169 · tok 165             | 684 B · ÷4 171 · tok 165 | 1,218 B · ÷4 305 · tok 297 |
+합계 description: 6,298 B · ÷4 1,575 · tok 1,332  · 렌더 합계: 6,744 B · ÷4 1,686 · tok 1,475  · (참고) SKILL.md 19 전체: 18,623 B · ÷4 4,656 · tok 4,390 — 전체는 호출 시 적재지 세션 고정이 아님
+
+2-b. 에이전트 2 (interactive/agents/*.md frontmatter)
+--------------------------------------------------------------------------------------------------
+| 에이전트        | description            | frontmatter(disallowedTools 포함) | 호스트 렌더(Tools: All tools except …) | disallowed 수 | 파일 전체                      |
+|-----------------|------------------------|-----------------------------------|----------------------------------------|---------------|--------------------------------|
+| sap-reviewer.md | 118 B · ÷4 30 · tok 22 | 4,093 B · ÷4 1,023 · tok 1,374    | 3,828 B · ÷4 957 · tok 1,200           | 88            | 5,644 B · ÷4 1,411 · tok 1,732 |
+| sap-worker.md   | 197 B · ÷4 49 · tok 35 | 418 B · ÷4 105 · tok 108          | 405 B · ÷4 101 · tok 102               | 4             | 4,564 B · ÷4 1,141 · tok 1,065 |
+합계 description: 315 B · ÷4 79 · tok 57 · frontmatter: 4,511 B · ÷4 1,128 · tok 1,482 · 렌더: 4,233 B · ÷4 1,058 · tok 1,302
+렌더 형식의 출처: 이 측정 세션 자체의 시스템 알림 — 에이전트 목록이 `sapkit:sap-reviewer: <description> (Tools: All tools except <disallowedTools 전체 열거>)`로 나왔다. 즉 disallowedTools 목록은 파일에만 있는 게 아니라 컨텍스트에 실린다.
+
+2-c. project-context always-on 블록 (interactive/core/project-context.md — 모든 스킬 래퍼 1단계가 읽는다)
+----------------------------------------------------------------------------------------------------
+| 블록                                                                                                           | 측정                            |
+|----------------------------------------------------------------------------------------------------------------|---------------------------------|
+| project-context.md 전체 (래퍼 1단계가 읽는 단위)                                                               | 10,097 B · ÷4 2,524 · tok 2,372 |
+|   ├ "Consumption contract" L0~L5 사다리 (knowledge-sourcing.md가 「always-on compact ladder」로 지목)          | 1,440 B · ÷4 360 · tok 356      |
+|   └ "How this talks to the user" (plain-language 요약 · DESIGN.md가 always-on 요약 블록으로 지목)              | 550 B · ÷4 138 · tok 127        |
+| policies/sap-standards.md "Always-on summary" (파일 자체가 「every harness context에 verbatim 주입」이라 주장) | 1,348 B · ÷4 337 · tok 313      |
+관찰: sap-standards.md의 「주입」 주장은 Claude 어댑터에 배선이 없다 — interactive/ 안에서 그 블록을 주입하는 코드·훅·매니페스트가 없고, Antigravity README만 workspace 규칙으로 복사하라고 안내한다. 주장과 배선이 어긋난다(사실 vs 가설: 코드 grep은 사실 · 「그래서 비용 0」은 Claude 경로에 한한 추론).
+
+2-c′. 소유자 프로젝트의 실인스턴스 — 크기만 (statSync · 디스크 바이트 · 내용 무접촉)
+----------------------------------------------------------------------------------------------------
+| 프로젝트    | .sapkit/ | config.json    | active-profile.txt | RULES.md            | LESSONS.md           | knowledge/domain.md | knowledge/system.md |
+|-------------|----------|----------------|--------------------|---------------------|----------------------|---------------------|---------------------|
+| ZUNIVAT_RAP | 있음     | 35 B (÷4 9)    | 8 B (÷4 2)         | 29,998 B (÷4 7,500) | 43,107 B (÷4 10,777) | 부재                | 부재                |
+| JNC         | 있음     | 706 B (÷4 177) | 8 B (÷4 2)         | 1,427 B (÷4 357)    | 5,040 B (÷4 1,260)   | 부재                | 부재                |
+읽기 의무(project-context.md 사다리): config.json·active-profile은 매 스킬 호출 · RULES.md는 L0 — SAP 대면 행동마다 「scope-matched 규칙」을 읽는다(파일 전체를 읽으라는 말은 아니나 실제로는 전체를 읽게 된다) · LESSONS.md·knowledge/는 해당 절차에서만.
+
+2-d. Claude 어댑터 매니페스트 — 호스트가 세션 시작에 파싱하는 것 (컨텍스트 주입분 아님)
+----------------------------------------------------------------------------------------------------
+| 파일                                   | 측정                       |
+|----------------------------------------|----------------------------|
+| interactive/.claude-plugin/plugin.json | 1,148 B · ÷4 287 · tok 301 |
+| interactive/.mcp.json                  | 393 B · ÷4 98 · tok 119    |
+| interactive/plugin.json                | 841 B · ÷4 210 · tok 233   |
+기본 설치 훅: 0개 (D-062 — 선택 기능 · 스위치 보존) → 훅 주입 0 B.
+
+2-e. 셀 합성과 판정 ⓐ
+------------------------------
+| 합성               | 구성                                                           | 측정                            | 판정 ⓐ (÷4)          |
+|--------------------|----------------------------------------------------------------|---------------------------------|----------------------|
+| S1 호스트 주입     | 스킬 렌더 19 + 에이전트 렌더 2 (매니페스트·훅 0)               | 10,977 B · ÷4 2,744 · tok 2,777 | 가볍다 (≤3k)         |
+| S1′ (파일 기준)    | 스킬 description 19 + 에이전트 frontmatter 2                   | 10,809 B · ÷4 2,702 · tok 2,814 | 가볍다 (≤3k)         |
+| S2 = 셀 (E-1 열거) | S1 + project-context always-on 블록 2 (사다리 + 말투)          | 12,967 B · ÷4 3,242 · tok 3,260 | 측정 후 결정 (3k~8k) |
+| S2′ (파일 기준)    | S1′ + 같은 블록 2                                              | 12,799 B · ÷4 3,200 · tok 3,297 | 측정 후 결정 (3k~8k) |
+| S3 (참고)          | S1 + project-context.md 전체 (첫 스킬 호출이 실제로 읽는 단위) | 21,074 B · ÷4 5,269 · tok 5,149 | 측정 후 결정 (3k~8k) |
+판정 기준 칸 = S2 (사전 등록 열거와 같은 구성). 토크나이저 열이 ÷4보다 크면 영문 설명문의 ÷4 근사가 낙관적이라는 뜻 — 판정은 선이 정한 대로 ÷4로 한다.
+
+3. 절차 호출 적재 5종 — 절차 본문 + 1-hop 정적 참조 (2-hop은 별도 열)
+====================================================================================================
+선 ⓒ: 1-hop 적재 ≤15k = 가볍다 · >30k = 축소 후보. 「호출 시 읽히는 파일의 합」 = 래퍼(SKILL.md) + project-context.md(래퍼 1단계) + 절차 + 1-hop. 판정은 그 합(total)으로; 절차+1-hop만의 값도 병기.
+TRACING RULE: 스크립트 머리의 주석(R1 링크 · R2 백틱 경로 · 중괄호 전개 · 자리표시=매개 · frontmatter·펜스·길 안내 절 제외 · 선택군(one-of-N)은 대표 1개 · core 실존만 · 자기 제외). 제외분·선택군은 아래 목록으로 재계산 가능.
+「환산」 = 선택군(페르소나 라우팅 표 등 「하나만 고르라」는 열거)을 가장 큰 1개로 센 값 — 판정 칸. 「전수 상한」 = 선택군을 전부 더한 값 — 참고.
+
+| 절차            | 래퍼                       | project-context                 | 절차 본문                          | 1-hop 수 환산/전수 | 1-hop 합 환산                        | 절차+1-hop 환산                      | total 환산 (판정 칸)                 | 판정 ⓒ           | total 전수 상한                      | 2-hop 수 | 2-hop 합(별도)                       |
+|-----------------|----------------------------|---------------------------------|------------------------------------|--------------------|--------------------------------------|--------------------------------------|--------------------------------------|------------------|--------------------------------------|----------|--------------------------------------|
+| create-program  | 1,298 B · ÷4 325 · tok 288 | 10,097 B · ÷4 2,524 · tok 2,372 | 106,157 B · ÷4 26,539 · tok 25,650 | 37/57              | 512,377 B · ÷4 128,094 · tok 124,671 | 618,534 B · ÷4 154,634 · tok 150,321 | 629,929 B · ÷4 157,482 · tok 152,981 | 축소 후보 (>30k) | 810,315 B · ÷4 202,579 · tok 196,799 | 72       | 612,506 B · ÷4 153,127 · tok 153,073 |
+| program-to-spec | 943 B · ÷4 236 · tok 221   | 10,097 B · ÷4 2,524 · tok 2,372 | 36,098 B · ÷4 9,025 · tok 9,200    | 7/7                | 75,851 B · ÷4 18,963 · tok 17,694    | 111,949 B · ÷4 27,987 · tok 26,894   | 122,989 B · ÷4 30,747 · tok 29,487   | 축소 후보 (>30k) | 122,989 B · ÷4 30,747 · tok 29,487   | 14       | 185,198 B · ÷4 46,300 · tok 45,384   |
+| ask-consultant  | 878 B · ÷4 220 · tok 206   | 10,097 B · ÷4 2,524 · tok 2,372 | 13,132 B · ÷4 3,283 · tok 3,155    | 10/24              | 116,365 B · ÷4 29,091 · tok 28,548   | 129,497 B · ÷4 32,374 · tok 31,703   | 140,472 B · ÷4 35,118 · tok 34,281   | 축소 후보 (>30k) | 289,835 B · ÷4 72,459 · tok 70,021   | 51       | 568,435 B · ÷4 142,109 · tok 140,191 |
+| modify-object   | 868 B · ÷4 217 · tok 201   | 10,097 B · ÷4 2,524 · tok 2,372 | 6,201 B · ÷4 1,550 · tok 1,524     | 7/7                | 253,395 B · ÷4 63,349 · tok 61,294   | 259,596 B · ÷4 64,899 · tok 62,818   | 270,561 B · ÷4 67,640 · tok 65,391   | 축소 후보 (>30k) | 270,561 B · ÷4 67,640 · tok 65,391   | 48       | 576,664 B · ÷4 144,166 · tok 141,977 |
+| troubleshooting | 839 B · ÷4 210 · tok 188   | 10,097 B · ÷4 2,524 · tok 2,372 | 80,189 B · ÷4 20,047 · tok 19,735  | 13/13              | 195,619 B · ÷4 48,905 · tok 48,069   | 275,808 B · ÷4 68,952 · tok 67,804   | 286,744 B · ÷4 71,686 · tok 70,364   | 축소 후보 (>30k) | 286,744 B · ÷4 71,686 · tok 70,364   | 34       | 482,919 B · ÷4 120,730 · tok 118,382 |
+
+ask-consultant + sap-fi-consultant: 위 total 환산 140,472 B · ÷4 35,118 · tok 34,281 + 페르소나 11,271 B · ÷4 2,818 · tok 2,725 + 페르소나 1-hop 16파일 91,829 B · ÷4 22,957 · tok 26,429 = 243,572 B · ÷4 60,893 · tok 63,435 → 판정 ⓒ 축소 후보 (>30k)
+  페르소나 1-hop(Knowledge_Loading의 Load: · Reference_Data의 See 지시 · 절차 1-hop과 겹치는 것 제외): interactive/core/knowledge/country/README.md 4,786 · interactive/core/knowledge/country/eu-common.md 5,112 · interactive/core/knowledge/industry/README.md 3,682 · interactive/core/knowledge/industry/construction.md 2,522 · interactive/core/knowledge/modules/FI/bapi.md 4,788 · interactive/core/knowledge/modules/FI/enhancements.md 9,501 · interactive/core/knowledge/modules/FI/spro.md 5,898 · interactive/core/knowledge/modules/FI/tables.md 2,604 · interactive/core/knowledge/modules/FI/tcodes.md 4,144 · interactive/core/knowledge/modules/FI/workflows.md 3,050 · interactive/core/knowledge/modules/common/bapi.md 7,766 · interactive/core/knowledge/modules/common/enhancements.md 6,307 · interactive/core/knowledge/modules/common/spro.md 8,879 · interactive/core/knowledge/modules/common/tables.md 7,580 · interactive/core/knowledge/modules/common/tcodes.md 6,049 · interactive/core/personas/sap-stocker.md 9,161
+  페르소나 선택군 line#53 (줄 53 · 단서 「    - **Industry Context (business characteristics that vary by industry)**: Config analys」): 대표 interactive/core/knowledge/industry/construction.md · 원소 construction.md 2522, utilities.md 2149, banking.md 1464, public-sector.md 1321
+  페르소나 선택군 line#54 (줄 54 · 단서 「    - **Country Context (business characteristics that vary by jurisdiction)**: Tax determ」): 대표 interactive/core/knowledge/country/eu-common.md · 원소 eu-common.md 5112, kr.md 4568, us.md 3872, de.md 3777
+  페르소나 매개(합계 밖): ../knowledge/country/<iso>.md · ../knowledge/industry/<key>.md
+
+3-create-program — 1-hop 파일 환산 37 (바이트)
+------------------------------------------------------------------------------
+    10,827  interactive/core/knowledge/abap/conventions/alv-rules.md
+    14,768  interactive/core/knowledge/abap/conventions/clean-code-oop.md
+    10,066  interactive/core/knowledge/abap/conventions/clean-code-procedural.md
+    26,942  interactive/core/knowledge/abap/conventions/clean-code.md
+     8,583  interactive/core/knowledge/abap/conventions/cloud-abap-constraints.md
+     4,532  interactive/core/knowledge/abap/conventions/ecc-ddic-fallback.md
+    15,203  interactive/core/knowledge/abap/conventions/function-module-rule.md
+     3,682  interactive/core/knowledge/industry/README.md
+     7,171  interactive/core/knowledge/modules/common/active-modules.md
+     4,752  interactive/core/personas/INDEX.md
+    11,154  interactive/core/personas/sap-analyst.md
+    11,746  interactive/core/personas/sap-architect.md
+     9,431  interactive/core/personas/sap-debugger.md
+    15,687  interactive/core/personas/sap-executor.md
+    11,933  interactive/core/personas/sap-planner.md
+     9,099  interactive/core/personas/sap-qa-tester.md
+    11,978  interactive/core/personas/sap-sd-consultant.md
+     9,161  interactive/core/personas/sap-stocker.md
+     7,104  interactive/core/personas/sap-writer.md
+     5,985  interactive/core/policies/approval-gates.md
+    10,461  interactive/core/policies/development-loop.md
+     6,960  interactive/core/policies/knowledge-sourcing.md
+     7,847  interactive/core/policies/plain-language.md
+     9,996  interactive/core/policies/verification-policy.md
+    13,132  interactive/core/procedures/ask-consultant.md
+    10,494  interactive/core/procedures/customization-lookup.md
+    12,160  interactive/core/procedures/deep-interview.md
+    29,220  interactive/core/procedures/develop-abapgit.md
+    21,793  interactive/core/procedures/install-sap-assets.md
+    17,767  interactive/core/procedures/interview-sweep.md
+     9,972  interactive/core/procedures/knowledge.md
+     7,973  interactive/core/procedures/lesson.md
+    31,977  interactive/core/procedures/review-checklist.md
+    10,996  interactive/core/procedures/spro-lookup.md
+    80,189  interactive/core/procedures/troubleshooting.md
+    11,539  interactive/core/procedures/verify-applied.md
+    10,097  interactive/core/project-context.md
+  선택군 line#176 (줄 176 · 단서 「**Persona**: Adopt the matching `sap-{module}-consultant` persona for this step — see the 」): 대표 interactive/core/personas/sap-sd-consultant.md · 원소 15: sap-sd-consultant.md 11978, sap-bc-consultant.md 11845, sap-bw-consultant.md 11635, sap-ariba-consultant.md 11610, sap-fi-consultant.md 11271, sap-co-consultant.md 11188, sap-ps-consultant.md 11118, sap-mm-consultant.md 10954, sap-wm-consultant.md 10261, sap-tm-consultant.md 10087, sap-pp-consultant.md 9971, sap-hcm-consultant.md 9948, sap-qm-consultant.md 9896, sap-pm-consultant.md 9844, sap-tr-consultant.md 9735
+  선택군 line#365 (줄 365 · 단서 「- **MANDATORY before writing**: open and read every shared convention file that applies to」): 대표 interactive/core/knowledge/abap/conventions/alv-rules.md · 원소 7: alv-rules.md 10827, text-element-rule.md 9400, include-structure.md 9053, naming-conventions.md 7379, oop-pattern.md 3086, constant-rule.md 1543, procedural-form-naming.md 562
+  선택군 대안(전수 상한에만 산입) 20: constant-rule.md 1,543 · include-structure.md 9,053 · naming-conventions.md 7,379 · oop-pattern.md 3,086 · procedural-form-naming.md 562 · text-element-rule.md 9,400 · sap-ariba-consultant.md 11,610 · sap-bc-consultant.md 11,845 · sap-bw-consultant.md 11,635 · sap-co-consultant.md 11,188 · sap-fi-consultant.md 11,271 · sap-hcm-consultant.md 9,948 · sap-mm-consultant.md 10,954 · sap-pm-consultant.md 9,844 · sap-pp-consultant.md 9,971 · sap-ps-consultant.md 11,118 · sap-qm-consultant.md 9,896 · sap-tm-consultant.md 10,087 · sap-tr-consultant.md 9,735 · sap-wm-consultant.md 10,261
+  길 안내 절이라 제외한 core 링크 1: interactive/core/procedures/modify-object.md
+  매개(자리표시 · 합계 밖) 14: *.md · ../knowledge/country/<iso>.md · ../knowledge/industry/<key>.md · .sapkit/deep-interviews/*.md · .sapkit/program/*/spec.md · .sapkit/program/{PROG}/cbo-context.md · .sapkit/program/{PROG}/consult-{module}.md · .sapkit/program/{PROG}/customization-context.md · .sapkit/program/{PROG}/interview.md · .sapkit/program/{PROG}/module-interview.md · .sapkit/program/{PROG}/plan.md · .sapkit/program/{PROG}/platform.md · .sapkit/program/{PROG}/report.md · .sapkit/program/{PROG}/spec.md
+  non-core(실존 · core 밖 · 합계 밖) 3: interactive/adapters/antigravity/README.md · interactive/adapters/claude/README.md · interactive/adapters/codex/README.md
+  unresolved(.sapkit 산출물 이름·템플릿명 등 · 실존 아님) 10: .sapkit/RULES.md · .sapkit/knowledge/domain.md · .sapkit/knowledge/system.md · AGENTS.md · cbo-context.md · customization-context.md · interview.md · module-interview.md · plan.md · spec.md
+  2-hop 72 (별도 열): interactive/core/knowledge/abap/conventions/abap-release-reference.md 5,815 · interactive/core/knowledge/abap/conventions/abapgit-roundtrip-rule.md 9,410 · interactive/core/knowledge/abap/conventions/constant-rule.md 1,543 · interactive/core/knowledge/abap/conventions/field-typing-rule.md 15,452 · interactive/core/knowledge/abap/conventions/include-structure.md 9,053 · interactive/core/knowledge/abap/conventions/naming-conventions.md 7,379 · interactive/core/knowledge/abap/conventions/odata-gateway-rules.md 10,539 · interactive/core/knowledge/abap/conventions/ok-code-pattern.md 6,480 · interactive/core/knowledge/abap/conventions/oop-pattern.md 3,086 · interactive/core/knowledge/abap/conventions/procedural-form-naming.md 562 · interactive/core/knowledge/abap/conventions/rap-odata-rules.md 20,389 · interactive/core/knowledge/abap/conventions/sap-version-reference.md 11,198 · interactive/core/knowledge/abap/conventions/source-repair-protocol.md 3,722 · interactive/core/knowledge/abap/conventions/text-element-rule.md 9,400 · interactive/core/knowledge/country/README.md 4,786 · interactive/core/knowledge/country/eu-common.md 5,112 · interactive/core/knowledge/industry/automotive.md 2,674 · interactive/core/knowledge/industry/banking.md 1,464 · interactive/core/knowledge/industry/chemical.md 2,503 · interactive/core/knowledge/industry/construction.md 2,522 · interactive/core/knowledge/industry/cosmetics.md 3,724 · interactive/core/knowledge/industry/electronics.md 2,538 · interactive/core/knowledge/industry/fashion.md 3,108 · interactive/core/knowledge/industry/food-beverage.md 2,118 · interactive/core/knowledge/industry/pharmaceutical.md 2,641 · interactive/core/knowledge/industry/public-sector.md 1,321 · interactive/core/knowledge/industry/retail.md 3,041 · interactive/core/knowledge/industry/steel.md 2,162 · interactive/core/knowledge/industry/tire.md 3,494 · interactive/core/knowledge/industry/utilities.md 2,149 · interactive/core/knowledge/modules/SD/bapi.md 4,081 · interactive/core/knowledge/modules/SD/enhancements.md 10,851 · interactive/core/knowledge/modules/SD/spro.md 7,990 · interactive/core/knowledge/modules/SD/tables.md 2,036 · interactive/core/knowledge/modules/SD/tcodes.md 4,684 · interactive/core/knowledge/modules/SD/workflows.md 3,564 · interactive/core/knowledge/modules/common/bapi.md 7,766 · interactive/core/knowledge/modules/common/enhancements.md 6,307 · interactive/core/knowledge/modules/common/spro.md 8,879 · interactive/core/knowledge/modules/common/tables.md 7,580 · interactive/core/knowledge/modules/common/tcodes.md 6,049 · interactive/core/personas/index.md 4,752 · interactive/core/personas/sap-ariba-consultant.md 11,610 · interactive/core/personas/sap-bc-consultant.md 11,845 · interactive/core/personas/sap-bw-consultant.md 11,635 · interactive/core/personas/sap-co-consultant.md 11,188 · interactive/core/personas/sap-code-reviewer.md 11,085 · interactive/core/personas/sap-critic.md 14,874 · interactive/core/personas/sap-doc-specialist.md 9,059 · interactive/core/personas/sap-fi-consultant.md 11,271 · interactive/core/personas/sap-hcm-consultant.md 9,948 · interactive/core/personas/sap-mm-consultant.md 10,954 · interactive/core/personas/sap-pm-consultant.md 9,844 · interactive/core/personas/sap-pp-consultant.md 9,971 · interactive/core/personas/sap-ps-consultant.md 11,118 · interactive/core/personas/sap-qm-consultant.md 9,896 · interactive/core/personas/sap-tm-consultant.md 10,087 · interactive/core/personas/sap-tr-consultant.md 9,735 · interactive/core/personas/sap-wm-consultant.md 10,261 · interactive/core/policies/credential-handling.md 2,884 · interactive/core/policies/data-protection/data-extraction-policy.md 11,455 · interactive/core/policies/data-protection/table_exception.md 5,729 · interactive/core/policies/transport-client-rule.md 7,416 · interactive/core/procedures/analyze-cbo-obj.md 13,320 · interactive/core/procedures/analyze-symptom.md 21,572 · interactive/core/procedures/create-object.md 29,571 · interactive/core/procedures/handoff.md 15,105 · interactive/core/procedures/help-portal-fetch.md 4,576 · interactive/core/procedures/modify-object.md 6,201 · interactive/core/procedures/program-to-spec.md 36,098 · interactive/core/procedures/release.md 8,153 · interactive/core/procedures/setup.md 32,121
+
+3-program-to-spec — 1-hop 파일 환산 7 (바이트)
+------------------------------------------------------------------------------
+    11,154  interactive/core/personas/sap-analyst.md
+    14,874  interactive/core/personas/sap-critic.md
+     7,104  interactive/core/personas/sap-writer.md
+    11,455  interactive/core/policies/data-protection/data-extraction-policy.md
+     7,847  interactive/core/policies/plain-language.md
+    13,320  interactive/core/procedures/analyze-cbo-obj.md
+    10,097  interactive/core/project-context.md
+  선택군 대안(전수 상한에만 산입) 0: 없음
+  길 안내 절이라 제외한 core 링크 4: interactive/core/procedures/analyze-cbo-obj.md · interactive/core/procedures/compare-programs.md · interactive/core/procedures/deep-interview.md · interactive/core/procedures/package-to-process.md
+  매개(자리표시 · 합계 밖) 1: .sapkit/specs/<OBJECT>/cbo-context.md
+  non-core(실존 · core 밖 · 합계 밖) 0: 없음
+  unresolved(.sapkit 산출물 이름·템플릿명 등 · 실존 아님) 2: .md · cbo-context.md
+  2-hop 14 (별도 열): interactive/core/knowledge/country/eu-common.md 5,112 · interactive/core/knowledge/modules/common/active-modules.md 7,171 · interactive/core/personas/sap-stocker.md 9,161 · interactive/core/policies/credential-handling.md 2,884 · interactive/core/policies/data-protection/custom-patterns.md 855 · interactive/core/policies/data-protection/table_exception.md 5,729 · interactive/core/policies/development-loop.md 10,461 · interactive/core/policies/knowledge-sourcing.md 6,960 · interactive/core/procedures/ask-consultant.md 13,132 · interactive/core/procedures/customization-lookup.md 10,494 · interactive/core/procedures/handoff.md 15,105 · interactive/core/procedures/knowledge.md 9,972 · interactive/core/procedures/lesson.md 7,973 · interactive/core/procedures/troubleshooting.md 80,189
+
+3-ask-consultant — 1-hop 파일 환산 10 (바이트)
+------------------------------------------------------------------------------
+     7,171  interactive/core/knowledge/modules/common/active-modules.md
+     4,752  interactive/core/personas/INDEX.md
+    11,978  interactive/core/personas/sap-sd-consultant.md
+     6,960  interactive/core/policies/knowledge-sourcing.md
+     7,847  interactive/core/policies/plain-language.md
+    10,494  interactive/core/procedures/customization-lookup.md
+     9,972  interactive/core/procedures/knowledge.md
+    36,098  interactive/core/procedures/program-to-spec.md
+    10,996  interactive/core/procedures/spro-lookup.md
+    10,097  interactive/core/project-context.md
+  선택군 table#1 (줄 69 · 단서 「Take the persona from [INDEX](../personas/INDEX.md) and load only the selected file(s):」): 대표 interactive/core/personas/sap-sd-consultant.md · 원소 15: sap-sd-consultant.md 11978, sap-bc-consultant.md 11845, sap-bw-consultant.md 11635, sap-ariba-consultant.md 11610, sap-fi-consultant.md 11271, sap-co-consultant.md 11188, sap-ps-consultant.md 11118, sap-mm-consultant.md 10954, sap-wm-consultant.md 10261, sap-tm-consultant.md 10087, sap-pp-consultant.md 9971, sap-hcm-consultant.md 9948, sap-qm-consultant.md 9896, sap-pm-consultant.md 9844, sap-tr-consultant.md 9735
+  선택군 대안(전수 상한에만 산입) 14: sap-ariba-consultant.md 11,610 · sap-bc-consultant.md 11,845 · sap-bw-consultant.md 11,635 · sap-co-consultant.md 11,188 · sap-fi-consultant.md 11,271 · sap-hcm-consultant.md 9,948 · sap-mm-consultant.md 10,954 · sap-pm-consultant.md 9,844 · sap-pp-consultant.md 9,971 · sap-ps-consultant.md 11,118 · sap-qm-consultant.md 9,896 · sap-tm-consultant.md 10,087 · sap-tr-consultant.md 9,735 · sap-wm-consultant.md 10,261
+  길 안내 절이라 제외한 core 링크 5: interactive/core/policies/data-protection/data-extraction-policy.md · interactive/core/procedures/analyze-cbo-obj.md · interactive/core/procedures/compare-programs.md · interactive/core/procedures/deep-interview.md · interactive/core/procedures/spro-lookup.md
+  매개(자리표시 · 합계 밖) 2: ../knowledge/country/<iso>.md · ../knowledge/industry/<industry>.md
+  non-core(실존 · core 밖 · 합계 밖) 0: 없음
+  unresolved(.sapkit 산출물 이름·템플릿명 등 · 실존 아님) 9: .sapkit/RULES.md · .sapkit/knowledge/domain.md · bapi.md · enhancements.md · spro.md · system.md · tables.md · tcodes.md · workflows.md
+  2-hop 51 (별도 열): interactive/core/knowledge/country/README.md 4,786 · interactive/core/knowledge/country/eu-common.md 5,112 · interactive/core/knowledge/industry/README.md 3,682 · interactive/core/knowledge/industry/cosmetics.md 3,724 · interactive/core/knowledge/modules/SD/bapi.md 4,081 · interactive/core/knowledge/modules/SD/enhancements.md 10,851 · interactive/core/knowledge/modules/SD/spro.md 7,990 · interactive/core/knowledge/modules/SD/tables.md 2,036 · interactive/core/knowledge/modules/SD/tcodes.md 4,684 · interactive/core/knowledge/modules/SD/workflows.md 3,564 · interactive/core/knowledge/modules/common/bapi.md 7,766 · interactive/core/knowledge/modules/common/enhancements.md 6,307 · interactive/core/knowledge/modules/common/spro.md 8,879 · interactive/core/knowledge/modules/common/tables.md 7,580 · interactive/core/knowledge/modules/common/tcodes.md 6,049 · interactive/core/personas/sap-analyst.md 11,154 · interactive/core/personas/sap-architect.md 11,746 · interactive/core/personas/sap-ariba-consultant.md 11,610 · interactive/core/personas/sap-bc-consultant.md 11,845 · interactive/core/personas/sap-bw-consultant.md 11,635 · interactive/core/personas/sap-co-consultant.md 11,188 · interactive/core/personas/sap-code-reviewer.md 11,085 · interactive/core/personas/sap-critic.md 14,874 · interactive/core/personas/sap-debugger.md 9,431 · interactive/core/personas/sap-doc-specialist.md 9,059 · interactive/core/personas/sap-executor.md 15,687 · interactive/core/personas/sap-fi-consultant.md 11,271 · interactive/core/personas/sap-hcm-consultant.md 9,948 · interactive/core/personas/sap-mm-consultant.md 10,954 · interactive/core/personas/sap-planner.md 11,933 · interactive/core/personas/sap-pm-consultant.md 9,844 · interactive/core/personas/sap-pp-consultant.md 9,971 · interactive/core/personas/sap-ps-consultant.md 11,118 · interactive/core/personas/sap-qa-tester.md 9,099 · interactive/core/personas/sap-qm-consultant.md 9,896 · interactive/core/personas/sap-stocker.md 9,161 · interactive/core/personas/sap-tm-consultant.md 10,087 · interactive/core/personas/sap-tr-consultant.md 9,735 · interactive/core/personas/sap-wm-consultant.md 10,261 · interactive/core/personas/sap-writer.md 7,104 · interactive/core/policies/approval-gates.md 5,985 · interactive/core/policies/credential-handling.md 2,884 · interactive/core/policies/data-protection/data-extraction-policy.md 11,455 · interactive/core/policies/development-loop.md 10,461 · interactive/core/procedures/analyze-cbo-obj.md 13,320 · interactive/core/procedures/analyze-symptom.md 21,572 · interactive/core/procedures/create-program.md 106,157 · interactive/core/procedures/deep-interview.md 12,160 · interactive/core/procedures/handoff.md 15,105 · interactive/core/procedures/help-portal-fetch.md 4,576 · interactive/core/procedures/lesson.md 7,973
+
+3-modify-object — 1-hop 파일 환산 7 (바이트)
+--------------------------------------------------------------------------
+    10,461  interactive/core/policies/development-loop.md
+     7,847  interactive/core/policies/plain-language.md
+     7,631  interactive/core/policies/sap-standards.md
+    29,571  interactive/core/procedures/create-object.md
+   106,157  interactive/core/procedures/create-program.md
+    80,189  interactive/core/procedures/troubleshooting.md
+    11,539  interactive/core/procedures/verify-applied.md
+  선택군 대안(전수 상한에만 산입) 0: 없음
+  길 안내 절이라 제외한 core 링크 3: interactive/core/procedures/create-object.md · interactive/core/procedures/create-program.md · interactive/core/procedures/deep-interview.md
+  매개(자리표시 · 합계 밖) 0: 없음
+  non-core(실존 · core 밖 · 합계 밖) 0: 없음
+  unresolved(.sapkit 산출물 이름·템플릿명 등 · 실존 아님) 2: .sapkit/RULES.md · AGENTS.md
+  2-hop 48 (별도 열): interactive/core/knowledge/abap/conventions/abap-release-reference.md 5,815 · interactive/core/knowledge/abap/conventions/alv-rules.md 10,827 · interactive/core/knowledge/abap/conventions/clean-code-oop.md 14,768 · interactive/core/knowledge/abap/conventions/clean-code-procedural.md 10,066 · interactive/core/knowledge/abap/conventions/clean-code.md 26,942 · interactive/core/knowledge/abap/conventions/cloud-abap-constraints.md 8,583 · interactive/core/knowledge/abap/conventions/ecc-ddic-fallback.md 4,532 · interactive/core/knowledge/abap/conventions/field-typing-rule.md 15,452 · interactive/core/knowledge/abap/conventions/function-module-rule.md 15,203 · interactive/core/knowledge/abap/conventions/include-structure.md 9,053 · interactive/core/knowledge/abap/conventions/naming-conventions.md 7,379 · interactive/core/knowledge/abap/conventions/odata-gateway-rules.md 10,539 · interactive/core/knowledge/abap/conventions/rap-odata-rules.md 20,389 · interactive/core/knowledge/abap/conventions/sap-version-reference.md 11,198 · interactive/core/knowledge/abap/conventions/text-element-rule.md 9,400 · interactive/core/knowledge/industry/README.md 3,682 · interactive/core/knowledge/modules/common/active-modules.md 7,171 · interactive/core/knowledge/modules/common/naming-conventions.md 6,272 · interactive/core/personas/INDEX.md 4,752 · interactive/core/personas/sap-analyst.md 11,154 · interactive/core/personas/sap-architect.md 11,746 · interactive/core/personas/sap-debugger.md 9,431 · interactive/core/personas/sap-executor.md 15,687 · interactive/core/personas/sap-planner.md 11,933 · interactive/core/personas/sap-qa-tester.md 9,099 · interactive/core/personas/sap-sd-consultant.md 11,978 · interactive/core/personas/sap-stocker.md 9,161 · interactive/core/personas/sap-writer.md 7,104 · interactive/core/policies/approval-gates.md 5,985 · interactive/core/policies/data-protection/data-extraction-policy.md 11,455 · interactive/core/policies/knowledge-sourcing.md 6,960 · interactive/core/policies/transport-client-rule.md 7,416 · interactive/core/policies/verification-policy.md 9,996 · interactive/core/procedures/ask-consultant.md 13,132 · interactive/core/procedures/customization-lookup.md 10,494 · interactive/core/procedures/deep-interview.md 12,160 · interactive/core/procedures/develop-abapgit.md 29,220 · interactive/core/procedures/handoff.md 15,105 · interactive/core/procedures/help-portal-fetch.md 4,576 · interactive/core/procedures/install-sap-assets.md 21,793 · interactive/core/procedures/interview-sweep.md 17,767 · interactive/core/procedures/knowledge.md 9,972 · interactive/core/procedures/lesson.md 7,973 · interactive/core/procedures/release.md 8,153 · interactive/core/procedures/review-checklist.md 31,977 · interactive/core/procedures/setup.md 32,121 · interactive/core/procedures/spro-lookup.md 10,996 · interactive/core/project-context.md 10,097
+
+3-troubleshooting — 1-hop 파일 환산 13 (바이트)
+--------------------------------------------------------------------------------
+     5,815  interactive/core/knowledge/abap/conventions/abap-release-reference.md
+    10,539  interactive/core/knowledge/abap/conventions/odata-gateway-rules.md
+    20,389  interactive/core/knowledge/abap/conventions/rap-odata-rules.md
+    11,198  interactive/core/knowledge/abap/conventions/sap-version-reference.md
+     9,400  interactive/core/knowledge/abap/conventions/text-element-rule.md
+    11,455  interactive/core/policies/data-protection/data-extraction-policy.md
+     6,960  interactive/core/policies/knowledge-sourcing.md
+     7,416  interactive/core/policies/transport-client-rule.md
+     9,996  interactive/core/policies/verification-policy.md
+    29,571  interactive/core/procedures/create-object.md
+    29,220  interactive/core/procedures/develop-abapgit.md
+    32,121  interactive/core/procedures/setup.md
+    11,539  interactive/core/procedures/verify-applied.md
+  선택군 대안(전수 상한에만 산입) 0: 없음
+  길 안내 절이라 제외한 core 링크 0: 없음
+  매개(자리표시 · 합계 밖) 0: 없음
+  non-core(실존 · core 밖 · 합계 밖) 1: interactive/checker/UPDATE-RUNBOOK.md
+  unresolved(.sapkit 산출물 이름·템플릿명 등 · 실존 아님) 3: .sapkit/RULES.md · LESSONS.md · knowledge/system.md
+  2-hop 34 (별도 열): interactive/core/knowledge/abap/conventions/abap-release-examples.md 5,496 · interactive/core/knowledge/abap/conventions/abapgit-roundtrip-rule.md 9,410 · interactive/core/knowledge/abap/conventions/clean-code-oop.md 14,768 · interactive/core/knowledge/abap/conventions/clean-code.md 26,942 · interactive/core/knowledge/abap/conventions/ecc-ddic-fallback.md 4,532 · interactive/core/knowledge/abap/conventions/field-typing-rule.md 15,452 · interactive/core/knowledge/abap/conventions/function-module-rule.md 15,203 · interactive/core/knowledge/abap/conventions/include-structure.md 9,053 · interactive/core/knowledge/abap/conventions/naming-conventions.md 7,379 · interactive/core/knowledge/abap/conventions/source-repair-protocol.md 3,722 · interactive/core/knowledge/modules/common/naming-conventions.md 6,272 · interactive/core/personas/sap-executor.md 15,687 · interactive/core/personas/sap-writer.md 7,104 · interactive/core/policies/credential-handling.md 2,884 · interactive/core/policies/data-protection/table_exception.md 5,729 · interactive/core/policies/development-loop.md 10,461 · interactive/core/policies/plain-language.md 7,847 · interactive/core/procedures/HANDOFF.md 15,105 · interactive/core/procedures/analyze-cbo-obj.md 13,320 · interactive/core/procedures/ask-consultant.md 13,132 · interactive/core/procedures/create-program.md 106,157 · interactive/core/procedures/customization-lookup.md 10,494 · interactive/core/procedures/deep-interview.md 12,160 · interactive/core/procedures/handoff.md 15,105 · interactive/core/procedures/help-portal-fetch.md 4,576 · interactive/core/procedures/install-sap-assets.md 21,793 · interactive/core/procedures/interview-sweep.md 17,767 · interactive/core/procedures/knowledge.md 9,972 · interactive/core/procedures/lesson.md 7,973 · interactive/core/procedures/modify-object.md 6,201 · interactive/core/procedures/release.md 8,153 · interactive/core/procedures/review-checklist.md 31,977 · interactive/core/procedures/spro-lookup.md 10,996 · interactive/core/project-context.md 10,097
+
+4. 공방(workshop) 세션 고정 — CLAUDE.md(+@include) · HANDOFF.md · 세션 시작 훅 주입
+====================================================================================================
+선 ⓓ: ≤10k = 가볍다 · >20k = 과함.
+| 파일       | 측정                              |
+|------------|-----------------------------------|
+| CLAUDE.md  | 30,049 B · ÷4 7,512 · tok 12,002  |
+| AGENTS.md  | 4,126 B · ÷4 1,032 · tok 1,032    |
+| HANDOFF.md | 42,304 B · ÷4 10,576 · tok 17,760 |
+훅 stdout 전체: 1,473 B · ÷4 368 · tok 603 · additionalContext(실제 주입분): 1,374 B · ÷4 344 · tok 571
+  additionalContext에 git 브랜치·status(상위 20줄)·최근 커밋 5줄이 들어가므로 트리 상태에 따라 변한다 — 고정 문구(RESUME_NOTE)는 그 일부
+파일 3종 합: 76,479 B · ÷4 19,120 · tok 30,794
+셀 합계(파일 3종 + 훅 주입): 77,853 B · ÷4 19,463 · tok 31,365 → 판정 ⓓ 선 사이 (10k~20k · 미등록 구간)
+  ⚠ 이 셀은 한국어 위주라 ÷4와 토크나이저가 크게 갈린다(cl100k 31,365 = ÷4의 1.61배). 판정은 등록된 대로 ÷4로 했고, 토큰 기준이면 과함 (>20k) 쪽이다 — §5·§6 참고.
+참고 — 셀 밖이지만 이 머신의 세션에 같이 들어오는 것(상위 폴더 CLAUDE.md/AGENTS.md · 사용자 전역 CLAUDE.md):
+  claude for SAP/CLAUDE.md (상위 폴더): 11 B · ÷4 3 · tok 5
+  claude for SAP/AGENTS.md (상위 폴더): 347 B · ÷4 87 · tok 121
+  ~/.claude/CLAUDE.md (사용자 전역): 6,469 B · ÷4 1,617 · tok 2,126
+HANDOFF.md는 자동 주입이 아니라 CLAUDE.md 「세션 시작 (필수) 1.」이 읽으라고 지시하는 파일 — 관례상 세션 고정이라 셀에 넣는다(E-1).
+
+5. 근사 두 가지 — ÷4 (D-105 관례) vs 토크나이저 (cl100k_base) · 셀별 비율
+====================================================================================================
+| 셀                              |  바이트 |      ÷4 | tok cl100k | tok/÷4 | tok o200k |
+|---------------------------------|---------|---------|------------|--------|-----------|
+| tools/list default (영문 JSON)  | 141,107 |  35,277 |     30,864 |   0.87 |    31,218 |
+| tools/list readonly (영문 JSON) |  54,664 |  13,666 |     12,282 |   0.90 |    12,433 |
+| S2 제품 세션 고정               |  12,967 |   3,242 |      3,260 |   1.01 |     3,236 |
+| create-program total            | 629,929 | 157,482 |    152,981 |   0.97 |   152,500 |
+| troubleshooting total           | 286,744 |  71,686 |     70,364 |   0.98 |    70,147 |
+| CLAUDE.md (한국어 위주)         |  30,049 |   7,512 |     12,002 |   1.60 |     8,987 |
+| HANDOFF.md (한국어 위주)        |  42,304 |  10,576 |     17,760 |   1.68 |    13,392 |
+| 공방 셀 합계                    |  77,853 |  19,463 |     31,365 |   1.61 |    23,844 |
+읽는 법: tok/÷4 ≈ 1.0이면 ÷4가 맞는 자리(영문 산문·JSON) · >1.3이면 ÷4가 과소(한국어·기호). 판정은 선이 정한 대로 ÷4로 했고, 이 비율은 그 판정이 어느 쪽으로 치우쳤는지 읽는 보조선이다. (Claude 토크나이저는 로컬에 없다 — cl100k은 대용 근사.)
+
+6. 선 대비 판정 요약 (÷4 · D-156 사전 등록 선 그대로)
+============================================================================
+| 선                          | 칸                                 | ÷4 값 (판정 근거) | 판정 (÷4 · 등록된 선)           | 참고 — cl100k 토큰으로 같은 선을 대면    |
+|-----------------------------|------------------------------------|-------------------|---------------------------------|------------------------------------------|
+| ⓑ 도구 설명 평균            | default                            | 910 B/도구        | 축소 후보 (≥740 B — D-105 수준) | (바이트 기준 선 — 해당 없음)             |
+| ⓑ 도구 설명 평균            | readonly                           | 841 B/도구        | 축소 후보 (≥740 B — D-105 수준) | (바이트 기준 선 — 해당 없음)             |
+| ⓑ 도구 설명 평균            | readonly,high                      | 910 B/도구        | 축소 후보 (≥740 B — D-105 수준) | (바이트 기준 선 — 해당 없음)             |
+| ⓑ 도구 설명 평균            | high                               | 960 B/도구        | 축소 후보 (≥740 B — D-105 수준) | (바이트 기준 선 — 해당 없음)             |
+| ⓑ 도구 설명 평균            | system                             | 1115 B/도구       | 축소 후보 (≥740 B — D-105 수준) | (바이트 기준 선 — 해당 없음)             |
+| ⓑ 도구 설명 평균            | all-sets                           | 910 B/도구        | 축소 후보 (≥740 B — D-105 수준) | (바이트 기준 선 — 해당 없음)             |
+| ⓑ 도구 설명 평균            | launch.cjs(config 없음)            | 841 B/도구        | 축소 후보 (≥740 B — D-105 수준) | (바이트 기준 선 — 해당 없음)             |
+| ⓑ 도구 설명 평균            | readonly (연결 · D-105 인용)       | 740 B/도구        | 축소 후보 (≥740 B — D-105 수준) |                                          |
+| ⓑ 도구 설명 평균            | readonly,high (연결 · D-105 인용)  | 858 B/도구        | 축소 후보 (≥740 B — D-105 수준) |                                          |
+| ⓐ 제품 세션 고정(도구 제외) | S2                                 | 3,242 tok(÷4)     | 측정 후 결정 (3k~8k)            | 3,260 → 측정 후 결정 (3k~8k)             |
+| ⓒ 절차 호출 적재            | create-program                     | 157,482 tok(÷4)   | 축소 후보 (>30k)                | 152,981 → 축소 후보 (>30k)               |
+| ⓒ 절차 호출 적재            | program-to-spec                    | 30,747 tok(÷4)    | 축소 후보 (>30k)                | 29,487 → 선 사이 (15k~30k · 미등록 구간) |
+| ⓒ 절차 호출 적재            | ask-consultant                     | 35,118 tok(÷4)    | 축소 후보 (>30k)                | 34,281 → 축소 후보 (>30k)                |
+| ⓒ 절차 호출 적재            | modify-object                      | 67,640 tok(÷4)    | 축소 후보 (>30k)                | 65,391 → 축소 후보 (>30k)                |
+| ⓒ 절차 호출 적재            | troubleshooting                    | 71,686 tok(÷4)    | 축소 후보 (>30k)                | 70,364 → 축소 후보 (>30k)                |
+| ⓒ 절차 호출 적재            | ask-consultant + sap-fi-consultant | 60,893 tok(÷4)    | 축소 후보 (>30k)                | 63,435 → 축소 후보 (>30k)                |
+| ⓓ 공방 세션 고정            | 파일 3종 + 훅                      | 19,463 tok(÷4)    | 선 사이 (10k~20k · 미등록 구간) | 31,365 → 과함 (>20k)                     |
+판정 열이 정본이다(D-156이 ÷4로 못박았다). 마지막 열은 ÷4가 한국어·기호를 과소평가하는 폭을 보이는 보조선이며 판정을 바꾸지 않는다 — 선을 다시 긋는 일은 이 판의 몫이 아니다.
+
+7. L5 기준선 대조 — abap-mcp-adt-powerup (실행 안 함 · 정적 grep) vs sapkit-engine
+====================================================================================================
+powerup 체크아웃: @hjaewon/abap-mcp-adt-powerup@4.14.0 · HEAD c839f57 (참고: 판7-b 직전 제품 번들은 같은 패키지 5.0.0이었다 — interactive/server/VERSION 「이전 번들」 줄)
+| 항목                 | powerup (L5 기준선)                                                                                                                                                                   | sapkit-engine (제품)                                                                                                              |
+|----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| 등록점               | src/lib/handlers/groups/*HandlersGroup.ts 6개 (TOOL_DEFINITION import) → CompositeHandlersRegistry                                                                                    | src/tools/registry.ts TOOL_REGISTRY 단일 배열                                                                                     |
+| 등록 도구 수         | 그룹별 Compact 22 · HighLevel 112 · LowLevel 125 · ReadOnly 34 · Search 5 · System 35 · 중복 제거 333 (그룹 간 중복 이름 0) · 정의 파일 339                                           | registry 식별자 186 (중복 제거 186) · tools/list: 프로파일 없음 default 155 · all-sets 155 · 연결 186 (D-105)                     |
+| 기본 표면(정적 추정) | readonly,high 기본(ServerConfigManager.ts:113) → ReadOnly+HighLevel+System+Search 그룹 합집합 186 (available_in 축 미적용 · 상한)                                                     | readonly,high 기본(exposition.ts DEFAULT_EXPOSITION) → tools/list default 155 (inspection-only) / 186 (연결)                      |
+| 설명문 밀도          | description 문자열 정적 추출 평균 173 B/도구 (TS 리터럴 결합 · 추정)                                                                                                                  | description 필드 평균 236 B/도구 (default · 실측) · 항목 전체 910 B/도구                                                          |
+| tier 게이트          | 있음 — src/lib/readonlyGuard.ts (102,126,138) · 양성 분류 fail-closed · DEV/QA/PRD 행렬. 단 legacy 모드(active-profile 없음)는 SAP_TIER 기본 DEV (profile.ts:11,42)                   | 있음 — src/safety/tier.ts (5,17) · 양성 분류 fail-closed · DEV/QA/PRD/UNKNOWN — 해석 불능 tier는 가장 제한적 열(UNKNOWN=PRD 취급) |
+| 테이블 blocklist     | 있음 — src/lib/policy/tableBlocklist.ts (15,277,396) · 기본 standard · 노브는 process.env에서 읽되 profile.ts가 apply 시 같은 키를 지운다(69,71,173) → 사실상 프로파일 sap.env 통로만 | 있음 — src/safety/blocklist.ts (50) · 기본 standard · 두 통로(프로파일·프로세스 env) 중 env는 조이는 방향만 (D-096)               |
+| 모르는 인자 거절     | 없음 — src/** 정적 grep 0건 (validateToolInput · additionalProperties · "unknown argument": 0건)                                                                                      | 있음 — src/server/unknownArguments.ts (71,130) · McpServer.validateToolInput 감싸기 (D-152 · 1.5.0)                               |
+근거 줄(정적 grep · 원문 요약):
+  powerup default_exposition :113  exposition: exposition.length > 0 ? exposition : ['readonly', 'high'],
+  powerup known_sets :175  s === 'readonly' || s === 'high' || s === 'low' || s === 'compact',
+  powerup tier_gate :102  export function checkToolAllowed(toolName: string, tier: Tier): string | null {
+  powerup tier_gate :126  export function guardTool(toolName: string): void {
+  powerup tier_gate :138  `ERR_READONLY_TIER: ${reason} Active profile: ${alias} (tier=${tier}). ` +
+  powerup tier_default :11  * `<cwd>/.sc4sap/sap.env`. In legacy mode, SAP_TIER defaults to 'DEV' so
+  powerup tier_default :42  let activeTier: Tier = 'DEV';
+  powerup blocklist :15  *   - `standard` — minimal + Protected Business Data        (default)
+  powerup blocklist :277  const raw = (process.env.MCP_BLOCKLIST_PROFILE || '').toLowerCase().trim();
+  powerup blocklist :396  const allow = readSetEnv('MCP_ALLOW_TABLE');
+  powerup blocklist_env_wiped :69  'MCP_BLOCKLIST_PROFILE',
+  powerup blocklist_env_wiped :71  'MCP_ALLOW_TABLE',
+  powerup blocklist_env_wiped :173  delete process.env[key];
+  engine tier_gate :5  * the one that has to be right. It is **fail-closed and positive**: on any tier
+  engine tier_gate :17  * `UNKNOWN` is the sentinel for "a connection exists but its tier could not be
+  engine blocklist :50  export const DEFAULT_BLOCKLIST_PROFILE: BlocklistProfileName = 'standard';
+  engine unknown_args :71  export const UNKNOWN_ARGUMENT_REJECTION = 'Unknown arguments are rejected, not ignored';
+  engine unknown_args :130  seam.validateToolInput = async function guardedValidateToolInput(
+  engine VERSION 1줄: sapkit-engine 1.5.0
+
+8. 측정하지 못한 칸 · 유보
+==================================
+· 접속 표면(connected) 2칸 — 프로파일 없이 띄웠으므로 불가. D-105 수치 인용(§1). 같은 번들 판이 아니다(D-105는 1.2.x 이전 · 지금은 VERSION 줄의 판) — 도구 이름 186/155는 불변이나 설명 덧말(D-145·D-147·D-152 append)이 더해졌으므로 연결 표면의 바이트는 D-105보다 조금 클 것이다(추정 · 실측 아님).
+· 토크나이저는 OpenAI cl100k_base/o200k_base 대용이다 — Claude 토크나이저는 로컬에 없다. 비율(§5)은 방향만 읽는다.
+· 에이전트 「호스트 렌더」와 스킬 「호스트 렌더」는 이 세션에서 관측한 형식으로 재구성한 추정이다 — 호스트 버전에 따라 형식이 바뀔 수 있다. 파일 기준 값(S1′·S2′)을 함께 뒀다.
+· 1-hop은 정적 규칙이다 — 모델이 실제로 무엇을 여는지는 블라인드 실행(T5~)이 잰다. 규칙을 바꾸면 수치가 바뀌므로 규칙·제외 목록을 그대로 남겼다.
+· 정적 규칙은 「승격·탈출 포인터」도 읽기로 센다 — modify-object의 1-hop 253,395 B 중 186,346 B가 create-program.md(「여기를 떠나 그리로 가라」)·troubleshooting.md(§8 두 항목만 가리킴)다. 절 단위가 아니라 파일 단위로 재므로 상한이다 — 그 둘을 빼도 67,049 B(÷4 16,762)가 남는다.
+· 훅 주입분은 트리 상태(브랜치·status·최근 커밋)에 따라 수십 바이트 움직인다 — 결정성 확인은 같은 트리에서의 두 번 실행으로 한다.
+· powerup 「기본 표면 정적 추정」은 available_in(배포 축) 필터를 적용하지 않은 상한이다 — 실행하지 않기로 했으므로(과업 조건) tools/list 실측은 없다.

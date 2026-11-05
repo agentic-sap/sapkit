@@ -1,0 +1,5 @@
+[sapkit] transport(resolved): stdio
+EXPOSITION_UNKNOWN: --exposition named "development", which no handler set is called. Known sets: readonly, high, compact, low, system, search. Unrecognised names are dropped and do NOT fall back to the default (readonly,high), so a typo narrows the surface rather than opening the write tools.
+EXPOSITION_EMPTY: no handler set in this value was recognised, so only the always-on search group is exposed and the server will look nearly empty. Pass --exposition=readonly for the read-only surface or --exposition=readonly,high for the full one.
+NO_PROFILE: neither <tmp>\cwd\.sapkit\active-profile.txt nor <tmp>\cwd\.sapkit\sap.env was found — starting in inspection-only mode with no connection.
+[sapkit] profile: (none) · tier=UNKNOWN · systemType=cloud · connection=none · exposition=(empty)
