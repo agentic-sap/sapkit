@@ -1,0 +1,1 @@
+Business areas for Treasury (TR) are defined in customizing view **V_TGSB**.

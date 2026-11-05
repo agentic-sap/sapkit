@@ -1,0 +1,1 @@
+No. ABAP for Cloud Development (the restricted ABAP language version) doesn't allow classic dynpro/list processing such as `LEAVE TO LIST-PROCESSING`, `WRITE` lists, or classic screens. UIs are built instead with RAP and Fiori/SAP UI5 apps.

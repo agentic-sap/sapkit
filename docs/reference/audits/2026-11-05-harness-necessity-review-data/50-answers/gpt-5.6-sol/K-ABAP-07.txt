@@ -1,0 +1,1 @@
+The row type of `VALUE_TAB` must reference a **DDIC-defined structure/table line type** (not a locally declared type); its fields should be DDIC-referenced as well.

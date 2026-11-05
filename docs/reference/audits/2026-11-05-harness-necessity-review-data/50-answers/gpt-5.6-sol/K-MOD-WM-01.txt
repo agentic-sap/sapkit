@@ -1,0 +1,1 @@
+Transaction **LT31** prints a transfer order in classic SAP LE-WM.

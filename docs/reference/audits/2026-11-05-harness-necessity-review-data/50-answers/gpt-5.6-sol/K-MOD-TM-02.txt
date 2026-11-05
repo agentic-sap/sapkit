@@ -1,0 +1,1 @@
+Transaction **/SCMTMS/TNT** opens the Tracking and Tracing Monitor in SAP TM on S/4HANA.

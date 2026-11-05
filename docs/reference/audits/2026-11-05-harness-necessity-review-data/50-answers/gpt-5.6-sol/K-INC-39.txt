@@ -1,0 +1,1 @@
+아니요. ABAP 7.57의 BDEF에서는 deep action parameter용 `with hierarchy` 구문을 지원하지 않으며, 더 최신 ABAP 릴리스에서 제공됩니다.

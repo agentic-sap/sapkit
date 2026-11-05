@@ -1,0 +1,1 @@
+**F050S001** ("FIDCMT, FIDCC1, FIDCC2: Change data and IDoc segments", function exit `EXIT_SAPLF050_001`, outbound) is the classic SMOD enhancement for filling custom segments in FI document IDocs. On the inbound side, the related **F050S002** handles them.

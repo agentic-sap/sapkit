@@ -1,0 +1,2 @@
+1) 활성화 성공과 대상 객체(SRVD 노출·projection) 확인, 그리고 MDE의 UI 주석은 V2에서 `$metadata`가 아닌 별도 annotation 문서(`…_VAN`)에 반영되는지 확인 → 2) `/IWFND/CACHE_CLEANUP`·`/IWBEP/CACHE_CLEANUP`(및 브라우저 캐시) 정리 → 3) 서비스 바인딩 Unpublish/Publish.
+바인딩 삭제 후 재생성은 **4번째(최후 수단)**입니다.

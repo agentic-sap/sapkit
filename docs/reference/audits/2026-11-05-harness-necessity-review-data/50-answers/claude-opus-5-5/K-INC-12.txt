@@ -1,0 +1,1 @@
+글로벌 클래스 정의에 `FOR BEHAVIOR OF <루트 엔티티/BDEF명>` 절이 반드시 있어야 합니다(보통 `PUBLIC ABSTRACT FINAL FOR BEHAVIOR OF zi_root`). 이 절이 없으면 해당 클래스가 행동 풀(BIL)로 인식되지 않아, BDEF의 `implementation in class` 지정과 로컬 핸들러/세이버 클래스(`CL_ABAP_BEHAVIOR_HANDLER` 상속 등)에서 구문/활성화 오류가 발생합니다.

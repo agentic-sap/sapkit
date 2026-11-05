@@ -1,0 +1,3 @@
+**Category 0 = UI 계약**, **category 1 = Web API 계약**입니다. SRVB에서 "OData V4 - UI"는 0, "OData V4 - Web API"는 1로 기억합니다.
+
+Fiori Elements가 쓰는 표면(`Update_mc` 같은 feature control, 값도움말, 코드리스트, PDF/xlsx 내보내기)은 UI 바인딩(category 0)에서만 나옵니다. Web API(1)는 UI 어노테이션과 UI 전용 메타데이터를 뺀 데이터/액션 계약만 노출합니다. 다만 category 값 자체는 기억에 의존한 답이라, 정확한 값은 ADT의 SRVB 속성에서 확인하시는 편이 안전합니다.

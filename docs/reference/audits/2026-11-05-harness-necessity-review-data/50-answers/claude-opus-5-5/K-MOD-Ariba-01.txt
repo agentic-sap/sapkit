@@ -1,0 +1,1 @@
+**IDOC_INPUT_ORDERS** (process code **ORDE**, message type ORDERS) handles it. It creates a sales order (VA01 logic) on the supplier side from the inbound ORDERS05 IDoc.

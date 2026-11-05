@@ -1,0 +1,3 @@
+XFELD(또는 X) 도메인의 CHAR(1) 필드는 SEGW/RAP/CDS 모두에서 보통 **Edm.Boolean**으로 매핑되며, `$filter=Flag eq true` / `false`처럼 따옴표 없는 불리언 리터럴을 씁니다. 일반 CHAR(1) 도메인 필드는 **Edm.String**(MaxLength=1)이라 `$filter=Field eq 'A'`처럼 따옴표 문자열로 비교합니다.
+
+차이점은 XFELD가 'X'/space ↔ true/false 변환(컨버전 exit 성격의 ABAP_BOOL 처리)이 걸리는 반면, 일반 CHAR는 값이 그대로 전달된다는 점입니다. 다만 이 매핑은 구현 방식(SEGW 수동 정의, CDS 어노테이션 등)에 따라 달라질 수 있어, 실제 `$metadata`에서 타입을 확인하는 것이 안전합니다.

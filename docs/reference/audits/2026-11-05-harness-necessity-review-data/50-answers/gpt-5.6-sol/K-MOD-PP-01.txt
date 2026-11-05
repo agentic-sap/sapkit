@@ -1,0 +1,1 @@
+`EXIT_SAPLCOBT_001` (enhancement `PPCO0001`) supplies the default production-order type.

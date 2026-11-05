@@ -1,0 +1,1 @@
+제가 아는 한 BDEF에 `with hierarchy`라는 구문은 없습니다. 7.57에서도 마찬가지이고, 이 구문 자체를 확신할 수 없습니다. 깊은(deep) action 파라미터는 `with hierarchy`가 아니라 abstract entity에 composition을 정의하고 그것을 `parameter`로 지정하는 방식인데, 이 방식이 7.57에서 되는지는 기억이 불확실하니 릴리스 노트나 ABAP 키워드 문서(F1)로 확인하세요.

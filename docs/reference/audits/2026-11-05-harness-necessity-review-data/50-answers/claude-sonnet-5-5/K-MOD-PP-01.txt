@@ -1,0 +1,1 @@
+I believe it's **EXIT_SAPLCOBT_001**, in SMOD enhancement **COZV0001**, which is meant for default values when creating production orders. I'm going from memory, so check it in SMOD/CMOD or the COBT function group before relying on it.

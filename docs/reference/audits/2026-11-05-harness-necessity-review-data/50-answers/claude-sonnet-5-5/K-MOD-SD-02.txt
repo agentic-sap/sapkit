@@ -1,0 +1,3 @@
+Sales-order output determination (condition technique) uses the communication structures **KOMKBV1** (header) and **KOMPBV1** (item). Add your custom fields via append structures to these (e.g., in SE11), then include them in the field catalog (table **T681F**/ condition-table field catalog via V/05 or the field catalog in OBXK-like config) and fill them in user exits **USEREXIT_FIELD_MODIFICATION** / the related MV45AFZZ/RV61AFZZ exits as needed.
+
+Note: KOMKBV1 and KOMPBV1 are the communication structures for the sales document (VBAK/VBAP-based). For the field catalog, KOMKBV1/KOMPBV1 fields are picked up automatically via the output determination condition-table field catalog (transaction **V/86** / NACE).

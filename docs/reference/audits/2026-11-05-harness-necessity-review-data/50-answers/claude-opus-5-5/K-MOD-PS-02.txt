@@ -1,0 +1,1 @@
+**RESB** (Reservation/Dependent Requirements) holds reservation items, including the material components assigned to PS network activities. The reservation header is in **RKPF**.

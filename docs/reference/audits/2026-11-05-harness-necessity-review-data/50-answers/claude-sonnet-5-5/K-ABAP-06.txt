@@ -1,0 +1,1 @@
+UI annotations are absent under **/srvd_a2x/**, the A2X flavor meant for API/service-to-service consumption. The **/srvd/** flavor is the UI one and includes the UI annotations (e.g. for Fiori elements).

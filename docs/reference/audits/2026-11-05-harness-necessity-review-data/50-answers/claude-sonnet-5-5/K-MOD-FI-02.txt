@@ -1,0 +1,1 @@
+**F050S001** is the one I recall. It is the SMOD enhancement for the FI document IDoc (FIDCCH/FIDCC2), with function exit `EXIT_SAPLF050_001` for adding custom segment data on the outbound side. I'm answering from memory, so check it in SMOD/CMOD before relying on it. Related enhancements in the same F050S00x family cover other IDoc exits.

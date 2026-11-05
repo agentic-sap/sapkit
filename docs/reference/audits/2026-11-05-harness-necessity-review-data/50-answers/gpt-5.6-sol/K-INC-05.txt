@@ -1,0 +1,1 @@
+ADT FM 소스는 `FUNCTION ... IMPORTING/EXPORTING...` 형태의 실제 시그니처를 쓰지만, abapGit 미러는 이를 `*" Local Interface` 주석으로 표현하고 메타데이터에 따로 저장한다. 서로 그대로 바꿔 넣으면 파싱/활성화 또는 직렬화가 실패한다.

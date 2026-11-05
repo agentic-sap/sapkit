@@ -1,0 +1,1 @@
+**PRPS** stores WBS element master data in SAP PS; the project definition header is in **PROJ**.

@@ -1,0 +1,1 @@
+SAP table **RESB** holds reservation/dependent requirement items, including components assigned to PS networks.

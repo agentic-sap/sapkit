@@ -1,0 +1,1 @@
+ACDOCP stores plan data in the Universal Journal structure—the planning counterpart of ACDOCA.

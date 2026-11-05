@@ -1,0 +1,1 @@
+아니요, 제 기억으로는 아닙니다. SAP ABAP MCP 서버(예: mcp-abap-adt)의 `CreateUnitTest`는 기존 테스트 클래스에 대한 **ABAP Unit 테스트 실행(run)을 생성·시작**하는 도구입니다. 테스트 클래스 코드 작성은 `UpdateLocalTestClass` 같은 별도 도구가 담당합니다. 다만 사용 중인 서버 버전에 따라 다를 수 있습니다.

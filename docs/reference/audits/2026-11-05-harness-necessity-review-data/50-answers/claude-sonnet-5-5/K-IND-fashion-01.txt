@@ -1,0 +1,3 @@
+In SAP Fashion Management (and SAP S/4HANA for fashion and vertical business), the **Grid** is the matrix-style layout for variant/size-run data on a generic (configurable) article. It shows the article's characteristic combinations, typically color on one axis and size on the other, so users can view and enter quantities, stock, prices, or order data for all variants in one screen instead of line by line.
+
+I'm going from memory here, so details may vary by release.

@@ -1,0 +1,1 @@
+아니요. `managed ... with additional save`의 saver에서는 `cleanup` 재정의가 불가하며, 가능한 후크는 `save_modified`와 `cleanup_finalize`입니다.

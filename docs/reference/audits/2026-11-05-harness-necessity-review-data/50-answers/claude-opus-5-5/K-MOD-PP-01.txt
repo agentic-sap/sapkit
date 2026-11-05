@@ -1,0 +1,1 @@
+I'm not certain this premise holds. COBT's known exit is **EXIT_SAPLCOBT_001** (enhancement **PPCO0007**), which runs when the production order is saved, not when the default order type is set. Defaults during creation come from a different enhancement, likely **PPCO0006**, but verify in SMOD/CMOD.

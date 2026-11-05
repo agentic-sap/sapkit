@@ -1,0 +1,1 @@
+Assessment cycles are defined with **transaction KSU1** (create actual assessment cycle; KSU2 change, KSU3 display, KSU7 for plan). The IMG path is *Controlling → Cost Center Accounting → Actual Postings → Period-End Closing → Assessment → Maintain Assessment*. The cycle data is stored in tables T811C/T811S, not in a single SM30 maintenance view.

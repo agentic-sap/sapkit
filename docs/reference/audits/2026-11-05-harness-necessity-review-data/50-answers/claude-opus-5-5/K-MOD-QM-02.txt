@@ -1,0 +1,1 @@
+Most likely **CI_QAMV**, the customer include in table **QAMV** (inspection lot characteristic specifications). The lot header table QALS has a separate one, **CI_QALS**. I'm not fully certain CI_QAMV exists in every release, so check in SE11 on your system.

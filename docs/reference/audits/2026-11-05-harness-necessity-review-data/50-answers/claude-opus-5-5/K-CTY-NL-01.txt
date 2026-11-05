@@ -1,0 +1,1 @@
+iDEAL — the bank-transfer-based payment method used for the majority of Dutch online purchases (now being rebranded/integrated under Wero by EPI).

@@ -1,0 +1,1 @@
+**Form P11D** reports employee expenses and benefits in kind, filed **annually** with HMRC by 6 July following the end of the tax year (5 April). Employers also file **P11D(b)** by the same date to report Class 1A National Insurance due. (Benefits can alternatively be payrolled via RTI, and from April 2026 this becomes mandatory.)

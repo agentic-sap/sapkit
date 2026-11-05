@@ -1,0 +1,1 @@
+It's the **IRAS Audit File (IAF)**, a standard-format extract of accounting data (general ledger, purchases, supply, and so on) that IRAS can require for GST/tax audits. Many accounting systems have a built-in IAF export, and the format is also used for GST-registered businesses' audit checks.

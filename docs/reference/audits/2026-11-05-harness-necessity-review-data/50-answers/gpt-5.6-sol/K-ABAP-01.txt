@@ -1,0 +1,1 @@
+It is omitted from the application toolbar, though it can still appear in the relevant menu.

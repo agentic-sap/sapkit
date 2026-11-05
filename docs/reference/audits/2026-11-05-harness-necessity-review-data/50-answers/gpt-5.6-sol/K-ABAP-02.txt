@@ -1,0 +1,1 @@
+It takes the type of the actual parameter passed at runtime; formally, it is typed as `ANY`.

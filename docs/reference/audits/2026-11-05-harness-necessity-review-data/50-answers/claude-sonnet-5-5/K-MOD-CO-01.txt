@@ -1,0 +1,1 @@
+I'm not fully certain of the view name from memory. Assessment cycles in CO-OM-CCA are maintained in transaction **KSU7** (create) / **KSU6** (change), and in Customizing under the cycle maintenance node. The underlying maintenance view is likely **V_TKA05**-related, but verify that in SPRO or SE11 before relying on it.

@@ -1,0 +1,2 @@
+`@UI.facet`은 annotation 정의상 `@Scope:[#ELEMENT]`이므로, DDLX의 `annotate view … with { … }` 블록 안 **요소(필드) 앞**에만 둘 수 있습니다. 보통 첫 번째 키 필드 앞에 둡니다.
+'wrong scope' 거부는 그 어노테이션을 정의된 Scope 밖(예: `annotate view` 앞의 엔티티/헤더 레벨, 파라미터)에 붙였다는 뜻입니다.

@@ -1,0 +1,1 @@
+Lohnsteuer-Anmeldung is filed **monthly** if the prior year's payroll tax exceeded €5,000, **quarterly** if it was €1,080–€5,000, and **annually** if it was €1,080 or less. It is due by the 10th day after the period ends.

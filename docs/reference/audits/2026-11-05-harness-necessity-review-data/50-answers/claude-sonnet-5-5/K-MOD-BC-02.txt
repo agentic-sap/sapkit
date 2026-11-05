@@ -1,0 +1,1 @@
+**DB02** (Database Performance Monitor) provides database space and performance analysis. For deeper, DB-specific diagnostics, **DBACOCKPIT** is the newer successor.

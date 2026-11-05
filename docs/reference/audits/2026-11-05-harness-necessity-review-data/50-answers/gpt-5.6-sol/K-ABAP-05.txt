@@ -1,0 +1,1 @@
+SKA1 (chart-of-accounts level) and SKB1 (company-code level).

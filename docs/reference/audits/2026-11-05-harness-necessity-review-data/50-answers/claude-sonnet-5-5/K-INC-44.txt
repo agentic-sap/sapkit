@@ -1,0 +1,1 @@
+아니요. `STRING`/`XSTRING`은 길이가 가변인 ABAP 기본 타입(data element 수준의 predefined type)이라 도메인이 없고, `DDIF_DOMA_GET`/`DD01L` 등으로 GetDomain을 해도 조회되지 않습니다. 도메인이 필요하면 `CHAR`/`RAWSTRING` 계열 대신 별도 도메인을 쓰는 data element(예: `SYSUUID_C` 등)를 통해 조회하세요.

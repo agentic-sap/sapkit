@@ -1,0 +1,1 @@
+**`WORKORDER_UPDATE`**: this BAdI is shared by PM maintenance orders and PP production orders. Its methods (e.g., `AT_SAVE`, `BEFORE_UPDATE`, `IN_UPDATE`, `AT_RELEASE`) run when an order is saved, created, changed or released.

@@ -1,0 +1,1 @@
+The UN number (e.g., UN1230) and the dangerous-goods hazard class/division (e.g., Class 3 flammable liquid), typically maintained alongside packing group in SAP EHS DG master data.

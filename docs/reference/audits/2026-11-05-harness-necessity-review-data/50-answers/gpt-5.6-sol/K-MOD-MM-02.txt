@@ -1,0 +1,1 @@
+`MB_CREATE_GOODS_MOVEMENT` — MIGO uses this internal, non-released function module for low-level goods-movement posting.

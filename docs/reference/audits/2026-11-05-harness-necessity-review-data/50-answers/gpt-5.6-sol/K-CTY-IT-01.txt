@@ -1,0 +1,1 @@
+An Italian VAT number is formatted as **IT** followed by **11 digits** (e.g., `IT12345678901`).

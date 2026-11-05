@@ -1,0 +1,3 @@
+`IDOC_INPUT_ORDERS` (process code `ORDE`, message type ORDERS) is the standard inbound function module. It creates a sales order on the supplier side from the customer's PO received via Ariba Network.
+
+If you mean creating a purchase order in a buyer's MM system, ORDERS05 isn't the usual route. That uses `IDOC_INPUT_PORDCR1` (PORDCR1) or a BAPI-based inbound.

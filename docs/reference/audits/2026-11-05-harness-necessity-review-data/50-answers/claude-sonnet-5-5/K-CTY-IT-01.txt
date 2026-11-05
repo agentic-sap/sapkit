@@ -1,0 +1,1 @@
+The Italian Partita IVA is the prefix **IT** followed by **11 digits** (e.g., `IT12345678901`). The last digit is a check digit, and the first 7 digits identify the company, followed by 3 digits for the issuing provincial office.

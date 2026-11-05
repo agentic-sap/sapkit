@@ -1,0 +1,1 @@
+Use **`CL_ABAP_LOCK_OBJECT_FACTORY`**: `CL_ABAP_LOCK_OBJECT_FACTORY=>GET_INSTANCE( iv_name = '<lock object>' )` returns an `IF_ABAP_LOCK_OBJECT` instance, and you call its `ENQUEUE` and `DEQUEUE` methods. You'll typically pass your own lock object, such as `EZ...`, rather than the generic `E_TABLE`.

@@ -1,0 +1,1 @@
+The One Exposure from Operations flows are stored in table **FQM_FLOW**.

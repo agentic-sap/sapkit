@@ -1,0 +1,1 @@
+I believe it's the **task list types** view (table `TCA07`, maintained via view `V_TCA07`), where the routing types are defined as plan types such as N (routing), R (reference operation set) and S (reference rate routing). I'm answering from memory and am not fully certain of the exact view name, so please check it in SM30 or the IMG.

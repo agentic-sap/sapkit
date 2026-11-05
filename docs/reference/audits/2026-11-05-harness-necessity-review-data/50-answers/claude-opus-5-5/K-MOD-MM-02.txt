@@ -1,0 +1,1 @@
+**`MB_CREATE_GOODS_MOVEMENT`** builds and checks the material document. **`MB_POST_GOODS_MOVEMENT`** then posts it to the database. MIGO and `BAPI_GOODSMVT_CREATE` both call this pair internally.

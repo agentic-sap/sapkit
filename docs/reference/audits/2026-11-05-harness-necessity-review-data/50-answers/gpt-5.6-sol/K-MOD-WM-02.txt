@@ -1,0 +1,1 @@
+The internal LE-WM function module is `L_TO_FIND_STORAGE_BIN`.

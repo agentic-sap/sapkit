@@ -1,0 +1,1 @@
+**RESB** — the SAP table for reservation items (reservation line items), with the header data in **RKPF**. For PS network components, reservations are created from the network's component items (stored in **RESB**, linked via the network's order number `AUFNR` / `RSNUM`) and shown in the network's component overview.
