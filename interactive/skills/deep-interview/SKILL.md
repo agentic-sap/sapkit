@@ -1,6 +1,6 @@
 ---
 name: deep-interview
-description: A step-by-step deep interview that pins down unclear SAP requirements before build work. Use when scope, business rules, or data sources are still unsettled ahead of create-program or other build/spec procedures — questions arrive in small bundles, every one of them gets asked, and the run produces a confirmed requirements brief that the downstream run consumes.
+description: A step-by-step deep interview that pins down unclear SAP requirements before build work. Use when scope, business rules, or data sources are still unsettled ahead of create-program or other build/spec procedures — questions arrive in small bundles, every one of them gets asked, and the run produces a confirmed requirements brief that the downstream run consumes. Also hands out an easy-to-read HTML copy of the brief on request, and converts an existing brief to HTML.
 ---
 
 # deep-interview (wrapper)

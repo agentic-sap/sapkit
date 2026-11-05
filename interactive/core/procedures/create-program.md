@@ -1,6 +1,6 @@
 ---
 name: create-program
-description: End-to-end procedure for creating ABAP programs (Report / CRUD / ALV / Batch / Interface) with Main+Include structure. The main context owns all phases and runs them in order (implementation may be delegated to a single fresh worker per the development-loop execution_owner policy) — SAP version preflight, step-by-step interview (business first, then technical), the dig-out stage, planning with reuse gates, spec writing, human approval gate, implementation, self-QA, fresh-context review gate, debug escalation, completion report.
+description: End-to-end procedure for creating ABAP programs (Report / CRUD / ALV / Batch / Interface) with Main+Include structure. The main context owns all phases and runs them in order (implementation may be delegated to a single fresh worker per the development-loop execution_owner policy) — SAP version preflight, step-by-step interview (business first, then technical), the dig-out stage, planning with reuse gates, spec writing, human approval gate, implementation, self-QA, fresh-context review gate, debug escalation, completion report. Also hands out an easy-to-read HTML copy of the design document on request, and converts an existing design document to HTML.
 source:
   - sc4sap-custom/skills/create-program/SKILL.md
   - sc4sap-custom/skills/create-program/agent-pipeline.md
@@ -72,6 +72,7 @@ Use when:
 - A new ABAP executable program (REPORT) has to be built from scratch
 - The program calls for the Main+Include wrapping convention
 - ALV display is wanted (full CL_GUI_ALV_GRID or simple SALV popup)
+- The user only wants an HTML copy of a design document this procedure already wrote — that is the conversion-only branch under [HTML copy of the design document](#html-copy-of-the-design-document-on-request): it runs no phase, connects to nothing, and only makes and opens the copy
 
 Do NOT use when:
 - A single class/interface/table is what is wanted — use the `create-object` procedure
@@ -136,7 +137,7 @@ Runs once, as soon as Phase 0 closes. The spec input can arrive three ways; the 
 Check three signals in order — the first match sets the interview scope:
 
 1. **spec-provided** — the user pointed at or attached a design/spec document for this request. That document is the primary input to Phase 1.
-2. **deep-interview brief** — no user document, but `.sapkit/deep-interviews/` holds a [deep-interview](./deep-interview.md) brief whose **object scope/module matches** this request — most recent first; if several match, list them and ask which (on an un-migrated project the same directory lives under the legacy runtime dir — see [project-context](../project-context.md)). Confirm the match with the user in one line, then treat the brief as the primary input.
+2. **deep-interview brief** — no user document, but `.sapkit/deep-interviews/*.md` holds a [deep-interview](./deep-interview.md) brief (only a `*.md` file there is a brief — an HTML copy next to one is never read as a brief) whose **object scope/module matches** this request — most recent first; if several match, list them and ask which (on an un-migrated project the same directory lives under the legacy runtime dir — see [project-context](../project-context.md)). Confirm the match with the user in one line, then treat the brief as the primary input.
 3. **neither** — run the standard step-by-step interview below exactly as written (the unchanged default).
 
 ### Document-input rules (forms 1 and 2)
@@ -478,7 +479,10 @@ Required steps:
 1. **Display the whole document in the chat** — the front section *and* the full
    technical detail, not an excerpt and not a link. The user is signing the whole
    file, and they cannot sign what they have not been shown. Surface the file path
-   as well, for reading it later.
+   as well, for reading it later. Then add **one statement line — not a
+   question**: you can make an easy-to-read HTML copy of it and open it in their
+   browser, if they just say so ([HTML copy of the design document](#html-copy-of-the-design-document-on-request)
+   below). That line adds no question: the gate still asks **exactly one**.
 2. **Block all further progress** — no `CreateProgram`, `CreateClass`,
    `CreateInclude`, or any other `Create*` / `Update*` call may happen — until the
    user approves. What counts as approval is set by the
@@ -513,6 +517,9 @@ words, and do not paste the element list itself:
 - that anything they want changed should be said instead, and the document comes
   back revised.
 
+That is the gate's one question. The HTML-copy line from step 1 stands next to it
+as a statement and is never asked as a second question.
+
 **Enforcement contract** — Phase 4 MUST refuse to run if any of the following is true:
 - `.sapkit/program/{PROG}/spec.md` does not exist
 - `spec.md` lacks a `## Approval` footer section recording the user's approval
@@ -520,6 +527,58 @@ words, and do not paste the element list itself:
 - `approval.json`'s `sid` / `client` do not match the currently connected system
 
 **Rationale**: the spec is the contract between user intent and AI execution. Create ABAP objects (tables, classes, programs) on the SAP system without that contract visible and signed off, and what follows is: unexpected objects in the user's package/transport, naming conventions out of step with team standards, business logic subtly off the actual requirements, and generated code that is hard to justify in code review. The 30–60 seconds of spec reading + approval buys back hours of "oh no, that's not what I meant, please delete all of this and start over".
+
+### HTML copy of the design document (on request)
+
+`spec.md` stays the document of record. The HTML copy is generated from it so the
+user can read it comfortably or forward it by mail or chat as one file that opens
+offline. Nothing binds to the copy: approval stays bound to the SHA-256 of
+`spec.md` alone, the copy is never hashed, and it never replaces showing the whole
+document in the chat at the gate. Offer it only as the step-1 statement line —
+never ask about it up front, and never make it unasked.
+
+- **Making it.** Use the [HTML renderer](../../tools/spec/md-to-html.mjs):
+  `node PLUGIN_ROOT/tools/spec/md-to-html.mjs .sapkit/program/{PROG}/spec.md .sapkit/program/{PROG}/{PROG}-spec.html --lang <conversation language> [--draft] --open`.
+  Add `--open` only the first time a copy is made in this run.
+- **Draft or final.** If `approval.json` exists and its `spec_sha256` matches the
+  current `spec.md`, the copy is **final** (no banner); otherwise it is a **draft**
+  (`--draft` — a "not yet approved" banner on top). The same test applies during
+  a run and in the conversion-only branch below.
+- **Asked for alone at the gate.** Make the draft copy, open it, then say in one
+  line that approval is still open. The request **itself** is not approval, not a
+  change request, and does not use up the one ask-back on an ambiguous answer
+  (step 2). The gate stays closed and still waits on its one question.
+- **Asked for together with approval** (e.g. "good — show me the HTML too").
+  Approval is judged exactly as step 2 says (Gate A — a clearly affirmative
+  meaning approves). Finish step 4's approval records first, then make the copy
+  **without** the banner and open it. The HTML request does not undo the approval.
+- **Keeping it current.** If `{PROG}-spec.html` exists next to `spec.md`,
+  regenerate it every time `spec.md` is rewritten — a revision for a change
+  request, the `## Approval` section appended at approval, a return to this gate
+  after a post-approval change, or a run resumed in a later session — applying the
+  draft-or-final test. The file's existence is the only signal; record nothing
+  for it in `state.json`. After a change, say in one line that the HTML copy was
+  updated too, without reopening it. After approval the copy carries no banner and
+  shows the approval record (who, when, the user's words verbatim) exactly as the
+  Markdown does.
+- **Opening and reporting.** Only the first copy in a run is opened; later
+  regenerations in the same run just say it was updated. The renderer prints
+  `WROTE <path>`, then `OPENED` when the browser launch was accepted (not proof a
+  window appeared) or `OPEN-FAILED <reason>` (still exit 0 — a sandbox that
+  blocks the browser lands here); exit 1 means `spec.md` could not be read and
+  nothing was written. Always give the file path too. Say it in the user's
+  language and in plain words — that an easy-to-read HTML copy was made and
+  opened in their browser, or that it could not be opened and here is where it
+  is — never the renderer's name, its flags, or file-schema names.
+- **Conversion-only request.** When the user asks to turn an existing design
+  document of this procedure into HTML — names a file, or points at "last time's"
+  one — that is the whole task: no SAP connection, no Phase 0, no interview, no
+  analysis. Identify the `spec.md`; if it cannot be identified, list the
+  candidates found under `.sapkit/program/*/spec.md` and let the user pick (a
+  picker where the host has one, prose otherwise). Write `{PROG}-spec.html` next
+  to it under the draft-or-final test, open it, and report as above. `--lang`:
+  the file name's `-<lang>` suffix if it carries one, else the language of the
+  document body, else the conversation language.
 
 ## Phase 3.5 — Go-Ahead Briefing (between spec approval and Phase 4)
 
@@ -997,6 +1056,7 @@ Report inputs (taken from local state, with no re-fetching):
 - Review verdict + findings summary (from `review-result.json`)
 - Timing summary — the per-phase `ts` fields out of `state.json`, so the report can render a total-duration table
 - The user's conversation language (so the report localizes — Korean / English / Japanese / etc.)
+- The HTML copy's path, where `{PROG}-spec.html` exists next to `spec.md` — the report mentions it
 
 Output: `.sapkit/program/{PROG}/report.md`
 
@@ -1019,6 +1079,7 @@ Only where the user opted into step-by-step confirmation: confirm before writing
 - `.sapkit/program/{PROG}/plan.md` — Phase 2 output
 - `.sapkit/program/{PROG}/spec.md` — Phase 3 output (requires human approval)
 - `.sapkit/program/{PROG}/approval.json` — approval record bound to spec hash + system ([schema](./schemas/approval.schema.json))
+- `.sapkit/program/{PROG}/{PROG}-spec.html` — optional HTML copy of `spec.md`, made only on request ([HTML copy of the design document](#html-copy-of-the-design-document-on-request)); never hashed, never a gate input
 - `.sapkit/program/{PROG}/state.json` — execution_mode + delivery_path + per-phase status/timing (schema below, drives resume support)
 - `.sapkit/program/{PROG}/verification.json` — check_syntax / activate / unit_test / atc step results ([schema](./schemas/verification.schema.json)) — the `mcp` delivery branch's record
 - `.sapkit/program/{PROG}/verification-offline.json` — the `abapgit` delivery branch's record, written **instead of** `verification.json` (never alongside it): offline_analyze / include_check / import_confirmed / readback / unit_test / atc ([schema](./schemas/verification-offline.schema.json))

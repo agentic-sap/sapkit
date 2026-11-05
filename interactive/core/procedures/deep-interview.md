@@ -1,6 +1,6 @@
 ---
 name: deep-interview
-description: A step-by-step deep interview that pins down unclear SAP requirements before build work. Use when scope, business rules, or data sources are still unsettled ahead of create-program or other build/spec procedures — questions arrive in small bundles, every one of them gets asked, and the run produces a confirmed requirements brief that the downstream run consumes.
+description: A step-by-step deep interview that pins down unclear SAP requirements before build work. Use when scope, business rules, or data sources are still unsettled ahead of create-program or other build/spec procedures — questions arrive in small bundles, every one of them gets asked, and the run produces a confirmed requirements brief that the downstream run consumes. Also hands out an easy-to-read HTML copy of the brief on request, and converts an existing brief to HTML.
 source:
   - sc4sap-custom/skills/deep-interview/SKILL.md
 ---
@@ -22,6 +22,7 @@ and offer to move on to a build procedure (`create-program` / `create-object`).
 - The user says "deep interview", "ask me questions", "help me spec this", or "I'm not sure what I need"
 - The task lands in a complex SAP scenario (RAP, BAdI, enhancement framework) where a wrong assumption is expensive
 - The user does not know the SAP object types well enough to choose the right approach unaided
+- The user only wants an HTML copy of a brief this procedure already wrote — that is the conversion-only branch under [HTML copy of the brief](#html-copy-of-the-brief-on-request): no interview, no SAP connection, only the copy
 
 ## When NOT to Use
 
@@ -137,9 +138,42 @@ Once both conditions above hold:
 6. Offer the next step in one line, in the user's language and in plain words: the design is
    settled, and they can go on to building a whole program or a single object. Say what each
    one produces, not which procedure runs it — no procedure names in what they read.
+   In that same closing message, say **where the brief was saved** and add **one
+   statement line — not a question** — that you can make it into an easy-to-read
+   HTML copy and open it in their browser. The brief is not shown in the chat, so
+   this is the only pointer to it ([HTML copy of the brief](#html-copy-of-the-brief-on-request) below).
 7. If the interview established a business or system fact — a company-specific rule, a non-obvious status meaning, a legacy table's real grain — grep the two knowledge files for its key terms first, and only if it is **not** already recorded offer one line, again in their language: name the fact, say it would be kept for this project so nobody has to ask again, and let them decline. On a clear yes, follow [knowledge](knowledge.md); do not print a literal reply form. Nothing newly established, or already recorded → no prompt.
 
-The brief is standing input, not a one-shot handoff: a later `create-program` run reads `.sapkit/deep-interviews/` at its [Intake Resolution](create-program.md#intake-resolution--spec-entry-forms) step (right after Phase 0) and closes every dimension this brief already answers by confirmation restatement instead of re-asking — only the deficit dimensions get interviewed. A follow-on `create-object` run consumes the brief the same way, as the input to its freeze step.
+The brief is standing input, not a one-shot handoff: a later `create-program` run reads `.sapkit/deep-interviews/*.md` (only `*.md` files are briefs — an HTML copy beside one is never read as a brief) at its [Intake Resolution](create-program.md#intake-resolution--spec-entry-forms) step (right after Phase 0) and closes every dimension this brief already answers by confirmation restatement instead of re-asking — only the deficit dimensions get interviewed. A follow-on `create-object` run consumes the brief the same way, as the input to its freeze step.
+
+### HTML copy of the brief (on request)
+
+The Markdown brief stays the document of record; the HTML copy is generated from
+it so the user can read it comfortably or forward it by mail or chat as one file
+that opens offline. Offer it only as the step-6 statement line — never ask about
+it up front, and never make it unasked.
+
+- **Making it.** On a yes, use the [HTML renderer](../../tools/spec/md-to-html.mjs):
+  `node PLUGIN_ROOT/tools/spec/md-to-html.mjs .sapkit/deep-interviews/sap-{timestamp}.md .sapkit/deep-interviews/sap-{timestamp}.html --lang <conversation language> --open`
+  — the same name as the brief, `.html` instead of `.md`. Add `--open` only the
+  first time a copy is made in this run; a later regeneration in the same run
+  just says the copy was updated.
+- **Opening and reporting.** The renderer prints `WROTE <path>`, then `OPENED`
+  when the browser launch was accepted (not proof a window appeared) or
+  `OPEN-FAILED <reason>` (still exit 0 — a sandbox that blocks the browser lands
+  here); exit 1 means the brief could not be read and nothing was written. Always
+  give the file path too. Say it in the user's language and in plain words — that
+  an easy-to-read HTML copy was made and opened in their browser, or that it could
+  not be opened and here is where it is — never the renderer's name or its flags.
+- **Conversion-only request.** When the user asks to turn an existing brief of
+  this procedure into HTML — names a file, or points at "last time's" one — that
+  is the whole task: no SAP connection, no Knowledge Preflight, no interview, no
+  analysis. Identify the brief; if it cannot be identified, list the candidates
+  found under `.sapkit/deep-interviews/*.md` and let the user pick (a picker where
+  the host has one, prose otherwise). Write the copy next to it under the name
+  above, open it, and report as above. `--lang`: the file name's `-<lang>` suffix
+  if it carries one, else the language of the brief's body, else the conversation
+  language.
 
 ## Related Procedures
 
