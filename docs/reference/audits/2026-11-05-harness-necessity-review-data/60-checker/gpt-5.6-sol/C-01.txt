@@ -1,0 +1,126 @@
+60-checker/gpt-5.6-sol/C-01.txt — 동봉 검사기 원출력 (판J T6 · 2026-11-05)
+대상: docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-01.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-01.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-01.abap
+--- stdout (0 bytes) ---
+
+--- stderr (106 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-01.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-01.abap
+--- stdout (4456 bytes) ---
+Report               REPORT zjudge_c01 .
+Move                 TABLES ekko .
+SelectOption         SELECT - OPTIONS s_ekorg FOR ekko - ekorg ,
+SelectOption         SELECT - OPTIONS s_bedat FOR ekko - bedat .
+Parameter            PARAMETERS p_max TYPE i DEFAULT 500 .
+TypeBegin            TYPES BEGIN OF ty_header ,
+Type                 TYPES ebeln TYPE ekko - ebeln ,
+Type                 TYPES bukrs TYPE ekko - bukrs ,
+Type                 TYPES ekorg TYPE ekko - ekorg ,
+Type                 TYPES lifnr TYPE ekko - lifnr ,
+Type                 TYPES bedat TYPE ekko - bedat ,
+Type                 TYPES bsart TYPE ekko - bsart ,
+Type                 TYPES ekgrp TYPE ekko - ekgrp ,
+TypeEnd              TYPES END OF ty_header ,
+Type                 TYPES ty_headers TYPE STANDARD TABLE OF ty_header WITH EMPTY KEY .
+Data                 DATA gt_headers TYPE ty_headers .
+Move                 AT SELECTION - SCREEN .
+If                   IF p_max <= 0 .
+Message              MESSAGE 'Maximum number of rows must be greater than zero' TYPE 'E' .
+EndIf                ENDIF .
+StartOfSelection     START - OF - SELECTION .
+Select               SELECT ebeln , bukrs , ekorg , lifnr , bedat , bsart , ekgrp FROM ekko WHERE ekorg IN @ s_ekorg AND bedat IN @ s_bedat ORDER BY ebeln INTO TABLE @ gt_headers UP TO @ p_max ROWS .
+If                   IF gt_headers IS INITIAL .
+Message              MESSAGE 'No matching purchasing document headers were found' TYPE 'I' .
+Return               RETURN .
+EndIf                ENDIF .
+Try                  TRY .
+Call                 cl_salv_table => factory ( IMPORTING r_salv_table = DATA ( go_alv ) CHANGING t_table = gt_headers ) .
+Move                 DATA ( go_columns ) = go_alv -> get_columns ( ) .
+Call                 go_columns -> set_optimize ( abap_true ) .
+Move                 DATA ( go_column ) = go_columns -> get_column ( 'EBELN' ) .
+Call                 go_column -> set_short_text ( 'PO Number' ) .
+Call                 go_column -> set_medium_text ( 'Purch. Document' ) .
+Call                 go_column -> set_long_text ( 'Purchasing Document Number' ) .
+Move                 go_column = go_columns -> get_column ( 'BUKRS' ) .
+Call                 go_column -> set_short_text ( 'CoCd' ) .
+Call                 go_column -> set_medium_text ( 'Company Code' ) .
+Call                 go_column -> set_long_text ( 'Company Code' ) .
+Move                 go_column = go_columns -> get_column ( 'EKORG' ) .
+Call                 go_column -> set_short_text ( 'Purch.Org.' ) .
+Call                 go_column -> set_medium_text ( 'Purchasing Org.' ) .
+Call                 go_column -> set_long_text ( 'Purchasing Organization' ) .
+Move                 go_column = go_columns -> get_column ( 'LIFNR' ) .
+Call                 go_column -> set_short_text ( 'Vendor' ) .
+Call                 go_column -> set_medium_text ( 'Vendor' ) .
+Call                 go_column -> set_long_text ( 'Vendor Account Number' ) .
+Move                 go_column = go_columns -> get_column ( 'BEDAT' ) .
+Call                 go_column -> set_short_text ( 'Doc. Date' ) .
+Call                 go_column -> set_medium_text ( 'Document Date' ) .
+Call                 go_column -> set_long_text ( 'Purchasing Document Date' ) .
+Move                 go_column = go_columns -> get_column ( 'BSART' ) .
+Call                 go_column -> set_short_text ( 'Doc. Type' ) .
+Call                 go_column -> set_medium_text ( 'Document Type' ) .
+Call                 go_column -> set_long_text ( 'Purchasing Document Type' ) .
+Move                 go_column = go_columns -> get_column ( 'EKGRP' ) .
+Call                 go_column -> set_short_text ( 'Purch.Grp' ) .
+Call                 go_column -> set_medium_text ( 'Purchasing Group' ) .
+Call                 go_column -> set_long_text ( 'Purchasing Group' ) .
+Call                 go_alv -> get_functions ( ) -> set_all ( abap_true ) .
+Call                 go_alv -> get_display_settings ( ) -> set_striped_pattern ( abap_true ) .
+Call                 go_alv -> get_display_settings ( ) -> set_list_header ( 'Purchasing Document Headers' ) .
+Call                 go_alv -> display ( ) .
+Catch                CATCH cx_salv_not_found INTO DATA ( gx_not_found ) .
+Message              MESSAGE gx_not_found -> get_text ( ) TYPE 'I' .
+Catch                CATCH cx_salv_msg INTO DATA ( gx_salv ) .
+Message              MESSAGE gx_salv -> get_text ( ) TYPE 'I' .
+EndTry               ENDTRY .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-01.abap
+--- stdout (495 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 58,
+      "endLine": 58,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 1,
+    "bySeverity": {
+      "medium": 1
+    },
+    "byCategory": {
+      "quality": 1
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=1 analyze_info=0 error_grade=0 warnings=1 source_lines=110 bytes=3199 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

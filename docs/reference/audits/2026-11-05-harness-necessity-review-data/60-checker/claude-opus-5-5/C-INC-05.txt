@@ -1,0 +1,227 @@
+60-checker/claude-opus-5-5/C-INC-05.txt — 동봉 검사기 원출력 (판J T6 · 2026-11-05)
+대상: docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-05.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-05.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-05.abap
+--- stdout (0 bytes) ---
+
+--- stderr (114 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-05.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-05.abap
+--- stdout (5164 bytes) ---
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Report ZSAPKIT_DEMO_PROG2
+Comment              *&---------------------------------------------------------------------*
+Comment              *& The selection key (gv_key) no longer depends on a fixed offset of
+Comment              *& sy-repid. It comes from a constant, can be overridden on the
+Comment              *& selection screen, and is validated before the SELECT runs. Renaming
+Comment              *& or copying the program therefore no longer changes or empties the
+Comment              *& WHERE condition.
+Comment              *&---------------------------------------------------------------------*
+Report               REPORT zsapkit_demo_prog2 .
+Constant             CONSTANTS gc_default_key TYPE c LENGTH 4 VALUE 'DEMO' ,
+Constant             CONSTANTS gc_prefix TYPE c LENGTH 8 VALUE 'ZSAPKIT_' .
+TypeBegin            TYPES BEGIN OF ty_result ,
+Type                 TYPES obj_name TYPE tadir - obj_name ,
+Type                 TYPES object TYPE tadir - object ,
+Type                 TYPES devclass TYPE tadir - devclass ,
+Type                 TYPES author TYPE tadir - author ,
+TypeEnd              TYPES END OF ty_result ,
+Type                 TYPES tt_result TYPE STANDARD TABLE OF ty_result WITH EMPTY KEY .
+Data                 DATA gv_key TYPE c LENGTH 4 ,
+Data                 DATA gv_pattern TYPE tadir - obj_name ,
+Data                 DATA gt_result TYPE tt_result .
+Parameter            PARAMETERS p_key TYPE c LENGTH 4 DEFAULT gc_default_key OBLIGATORY .
+Comment              *----------------------------------------------------------------------*
+Move                 AT SELECTION - SCREEN .
+If                   IF condense ( val = CONV string ( p_key ) ) IS INITIAL .
+Message              MESSAGE 'Selection key must not be empty.' TYPE 'E' .
+EndIf                ENDIF .
+Comment              *----------------------------------------------------------------------*
+StartOfSelection     START - OF - SELECTION .
+Perform              PERFORM determine_key .
+If                   IF gv_key IS INITIAL .
+Message              MESSAGE 'No valid selection key could be determined.' TYPE 'S' DISPLAY LIKE 'E' .
+Return               RETURN .
+EndIf                ENDIF .
+Perform              PERFORM select_data .
+Perform              PERFORM display_data .
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Form DETERMINE_KEY
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Key resolution order:
+Comment              *&   1. Value from selection screen (p_key)
+Comment              *&   2. Fixed constant gc_default_key
+Comment              *& sy-repid is intentionally NOT used, so the key is independent of
+Comment              *& the program name.
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM determine_key .
+Move                 gv_key = to_upper ( condense ( val = CONV string ( p_key ) ) ) .
+If                   IF gv_key IS INITIAL .
+Move                 gv_key = gc_default_key .
+EndIf                ENDIF .
+EndForm              ENDFORM .
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Form SELECT_DATA
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM select_data .
+Clear                CLEAR gt_result .
+Move                 gv_pattern = |{ gc_prefix }{ gv_key }%| .
+Select               SELECT obj_name , object , devclass , author FROM tadir WHERE pgmid = 'R3TR' AND object = 'PROG' AND obj_name LIKE @ gv_pattern ORDER BY obj_name INTO TABLE @ gt_result .
+If                   IF sy - subrc <> 0 .
+Clear                CLEAR gt_result .
+EndIf                ENDIF .
+EndForm              ENDFORM .
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Form DISPLAY_DATA
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM display_data .
+Write                WRITE / 'Program     :' ,
+Write                WRITE sy - repid ,
+Write                WRITE / 'Key (gv_key):' ,
+Write                WRITE gv_key ,
+Write                WRITE / 'Pattern     :' ,
+Write                WRITE gv_pattern .
+Move                 ULINE .
+If                   IF gt_result IS INITIAL .
+Write                WRITE / 'No entries found.' .
+Return               RETURN .
+EndIf                ENDIF .
+Loop                 LOOP AT gt_result INTO DATA ( ls_result ) .
+Write                WRITE / ls_result - obj_name ,
+Write                WRITE ls_result - object ,
+Write                WRITE ls_result - devclass ,
+Write                WRITE ls_result - author .
+EndLoop              ENDLOOP .
+Move                 ULINE .
+Write                WRITE / 'Rows:' ,
+Write                WRITE lines ( gt_result ) .
+EndForm              ENDFORM .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-05.abap
+--- stdout (2855 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 14,
+      "endLine": 14,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 19,
+      "endLine": 19,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 21,
+      "endLine": 21,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 26,
+      "endLine": 26,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 28,
+      "endLine": 28,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 77,
+      "endLine": 77,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 78,
+      "endLine": 78,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 92,
+      "endLine": 92,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 94,
+      "endLine": 94,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 9,
+    "bySeverity": {
+      "medium": 9
+    },
+    "byCategory": {
+      "quality": 9
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=9 analyze_info=0 error_grade=0 warnings=9 source_lines=111 bytes=3340 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

@@ -1,0 +1,79 @@
+CLASS zsapkit_demo_clas DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    TYPES ty_doc_id TYPE zsapkit_demo_bdef-DocId.
+    TYPES ty_status TYPE zsapkit_demo_bdef-Status.
+
+    "! Creates one instance of root entity ZSAPKIT_DEMO_BDEF (external numbering).
+    "! @parameter iv_doc_id   | Externally assigned key DocId
+    "! @parameter iv_status   | Value for field Status
+    "! @parameter iv_commit   | Run COMMIT ENTITIES after MODIFY (set abap_false inside a RAP handler)
+    "! @parameter es_mapped   | Mapped response (early)
+    "! @parameter es_failed   | Failed response (early)
+    "! @parameter es_reported | Reported response (early)
+    "! @parameter ev_success  | abap_true if the instance was created (and committed, if requested)
+    CLASS-METHODS create_instance
+      IMPORTING
+        iv_doc_id   TYPE ty_doc_id
+        iv_status   TYPE ty_status
+        iv_commit   TYPE abap_bool DEFAULT abap_true
+      EXPORTING
+        es_mapped   TYPE RESPONSE FOR MAPPED EARLY zsapkit_demo_bdef
+        es_failed   TYPE RESPONSE FOR FAILED EARLY zsapkit_demo_bdef
+        es_reported TYPE RESPONSE FOR REPORTED EARLY zsapkit_demo_bdef
+        ev_success  TYPE abap_bool.
+
+ENDCLASS.
+
+
+
+CLASS zsapkit_demo_clas IMPLEMENTATION.
+
+  METHOD create_instance.
+
+    CLEAR: es_mapped, es_failed, es_reported.
+    ev_success = abap_false.
+
+    " External numbering: the key DocId is supplied by the caller.
+    MODIFY ENTITIES OF zsapkit_demo_bdef
+      ENTITY zsapkit_demo_bdef
+        CREATE
+          FIELDS ( DocId Status )
+          WITH VALUE #( ( %cid   = 'CID_CREATE_1'
+                          DocId  = iv_doc_id
+                          Status = iv_status ) )
+      MAPPED   es_mapped
+      FAILED   es_failed
+      REPORTED es_reported.
+
+    IF es_failed IS NOT INITIAL.
+      IF iv_commit = abap_true.
+        ROLLBACK ENTITIES.
+      ENDIF.
+      RETURN.
+    ENDIF.
+
+    IF iv_commit = abap_false.
+      " Caller (e.g. a RAP behavior implementation) controls the save sequence.
+      ev_success = abap_true.
+      RETURN.
+    ENDIF.
+
+    COMMIT ENTITIES
+      RESPONSE OF zsapkit_demo_bdef
+      FAILED   DATA(ls_commit_failed)
+      REPORTED DATA(ls_commit_reported).
+
+    IF sy-subrc = 0 AND ls_commit_failed IS INITIAL.
+      ev_success = abap_true.
+    ELSE.
+      ROLLBACK ENTITIES.
+      ev_success = abap_false.
+    ENDIF.
+
+  ENDMETHOD.
+
+ENDCLASS.

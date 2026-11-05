@@ -1,0 +1,48 @@
+```abap
+REPORT zsapkit_demo_clas_report.
+
+CLASS zsapkit_demo_clas DEFINITION FINAL CREATE PUBLIC.
+  PUBLIC SECTION.
+    TYPES:
+      BEGIN OF ty_slot,
+        reject_date TYPE d,
+      END OF ty_slot.
+
+    CLASS-METHODS is_open
+      IMPORTING
+        is_slot        TYPE ty_slot
+      RETURNING
+        VALUE(rv_open) TYPE abap_bool.
+ENDCLASS.
+
+CLASS zsapkit_demo_clas IMPLEMENTATION.
+  METHOD is_open.
+    " Treat the DATS field as raw characters so that both the
+    " initial value '00000000' and a blank value '        '
+    " (e.g. from external sources or unconverted DB content) are
+    " recognised as "not rejected".
+    DATA lv_raw TYPE c LENGTH 8.
+
+    lv_raw = is_slot-reject_date.
+
+    rv_open = xsdbool( is_slot-reject_date IS INITIAL
+                       OR lv_raw IS INITIAL
+                       OR lv_raw = '00000000' ).
+  ENDMETHOD.
+ENDCLASS.
+
+START-OF-SELECTION.
+  DATA ls_slot TYPE zsapkit_demo_clas=>ty_slot.
+
+  " Case 1: initial value '00000000'
+  CLEAR ls_slot.
+  WRITE: / 'Initial (00000000):', zsapkit_demo_clas=>is_open( ls_slot ).
+
+  " Case 2: blank value '        '
+  ls_slot-reject_date = '        '.
+  WRITE: / 'Blank (8 spaces):  ', zsapkit_demo_clas=>is_open( ls_slot ).
+
+  " Case 3: actual rejection date
+  ls_slot-reject_date = '20261105'.
+  WRITE: / 'Rejected 20261105: ', zsapkit_demo_clas=>is_open( ls_slot ).
+```

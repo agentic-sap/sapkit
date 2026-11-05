@@ -1,0 +1,223 @@
+60-checker/gpt-5.6-sol/C-04.txt — 동봉 검사기 원출력 (판J T6 · 2026-11-05)
+대상: docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-04.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-04.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-04.abap
+--- stdout (0 bytes) ---
+
+--- stderr (106 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-04.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-04.abap
+--- stdout (3158 bytes) ---
+Report               REPORT zjudge_c04 .
+Move                 TABLES mseg ,
+Move                 TABLES mkpf .
+SelectOption         SELECT - OPTIONS s_werks FOR mseg - werks OBLIGATORY ,
+SelectOption         SELECT - OPTIONS s_budat FOR mkpf - budat OBLIGATORY ,
+SelectOption         SELECT - OPTIONS s_bwart FOR mseg - bwart .
+TypeBegin            TYPES BEGIN OF ty_result ,
+Type                 TYPES matnr TYPE mseg - matnr ,
+Type                 TYPES werks TYPE mseg - werks ,
+Type                 TYPES meins TYPE mseg - meins ,
+Type                 TYPES total_qty TYPE mseg - menge ,
+Type                 TYPES item_count TYPE i ,
+TypeEnd              TYPES END OF ty_result .
+Data                 DATA gt_result TYPE STANDARD TABLE OF ty_result ,
+Data                 DATA gs_result TYPE ty_result .
+StartOfSelection     START - OF - SELECTION .
+If                   IF s_bwart [ ] IS INITIAL .
+Select               SELECT m~matnr , m~werks , m~meins , SUM ( m~menge ) AS total_qty , COUNT ( * ) AS item_count FROM mseg AS m INNER JOIN mkpf AS k ON k~mblnr = m~mblnr AND k~mjahr = m~mjahr WHERE m~werks IN @ s_werks AND k~budat IN @ s_budat GROUP BY m~matnr , m~werks , m~meins ORDER BY m~matnr , m~werks INTO TABLE @ gt_result .
+Else                 ELSE .
+Select               SELECT m~matnr , m~werks , m~meins , SUM ( m~menge ) AS total_qty , COUNT ( * ) AS item_count FROM mseg AS m INNER JOIN mkpf AS k ON k~mblnr = m~mblnr AND k~mjahr = m~mjahr WHERE m~werks IN @ s_werks AND k~budat IN @ s_budat AND m~bwart IN @ s_bwart GROUP BY m~matnr , m~werks , m~meins ORDER BY m~matnr , m~werks INTO TABLE @ gt_result .
+EndIf                ENDIF .
+Move                 END - OF - SELECTION .
+If                   IF gt_result IS INITIAL .
+Write                WRITE / 'No goods movements found for the selection.' .
+Return               RETURN .
+EndIf                ENDIF .
+Move                 FORMAT COLOR COL_HEADING INTENSIFIED ON .
+Write                WRITE / sy - vline ,
+Write                WRITE ( 18 ) 'Material' ,
+Write                WRITE sy - vline ,
+Write                WRITE ( 6 ) 'Plant' ,
+Write                WRITE sy - vline ,
+Write                WRITE ( 20 ) 'Total Quantity' RIGHT - JUSTIFIED ,
+Write                WRITE sy - vline ,
+Write                WRITE ( 5 ) 'Unit' ,
+Write                WRITE sy - vline ,
+Write                WRITE ( 12 ) 'Item Count' RIGHT - JUSTIFIED ,
+Write                WRITE sy - vline .
+Move                 FORMAT RESET .
+Move                 ULINE .
+Loop                 LOOP AT gt_result INTO gs_result .
+Write                WRITE / sy - vline ,
+Write                WRITE ( 18 ) gs_result - matnr ,
+Write                WRITE sy - vline ,
+Write                WRITE ( 6 ) gs_result - werks ,
+Write                WRITE sy - vline ,
+Write                WRITE ( 20 ) gs_result - total_qty ,
+Write                WRITE sy - vline ,
+Write                WRITE ( 5 ) gs_result - meins ,
+Write                WRITE sy - vline ,
+Write                WRITE ( 12 ) gs_result - item_count ,
+Write                WRITE sy - vline .
+EndLoop              ENDLOOP .
+Move                 ULINE .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-04.abap
+--- stdout (3743 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 14,
+      "endLine": 14,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 15,
+      "endLine": 15,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 16,
+      "endLine": 16,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 17,
+      "endLine": 17,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 32,
+      "endLine": 32,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 35,
+      "endLine": 35,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 47,
+      "endLine": 47,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 50,
+      "endLine": 50,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 71,
+      "endLine": 71,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 75,
+      "endLine": 75,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 87,
+      "endLine": 87,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 91,
+      "endLine": 91,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 12,
+    "bySeverity": {
+      "medium": 12
+    },
+    "byCategory": {
+      "quality": 12
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=12 analyze_info=0 error_grade=0 warnings=12 source_lines=97 bytes=2246 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

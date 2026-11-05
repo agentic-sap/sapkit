@@ -1,0 +1,82 @@
+60-checker/gpt-5.6-sol/C-INC-01.txt — 동봉 검사기 원출력 (판J T6 · 2026-11-05)
+대상: docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-INC-01.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-INC-01.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-INC-01.abap
+--- stdout (0 bytes) ---
+
+--- stderr (110 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-INC-01.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-INC-01.abap
+--- stdout (714 bytes) ---
+Report               REPORT zsapkit_demo_clas .
+ClassDefinition      CLASS zsapkit_demo_clas DEFINITION FINAL .
+Public               PUBLIC SECTION .
+TypeBegin            TYPES BEGIN OF ty_slot ,
+Type                 TYPES reject_date TYPE d ,
+TypeEnd              TYPES END OF ty_slot .
+MethodDef            METHODS is_open IMPORTING is_slot TYPE ty_slot RETURNING VALUE ( rv_open ) TYPE abap_bool .
+EndClass             ENDCLASS .
+ClassImplementation  CLASS zsapkit_demo_clas IMPLEMENTATION .
+MethodImplementation METHOD is_open .
+Move                 rv_open = xsdbool ( is_slot - reject_date IS INITIAL OR is_slot - reject_date = '        ' ) .
+EndMethod            ENDMETHOD .
+EndClass             ENDCLASS .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-INC-01.abap
+--- stdout (790 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 12,
+      "endLine": 12,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 21,
+      "endLine": 21,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 2,
+    "bySeverity": {
+      "medium": 2
+    },
+    "byCategory": {
+      "quality": 2
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=2 analyze_info=0 error_grade=0 warnings=2 source_lines=24 bytes=500 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

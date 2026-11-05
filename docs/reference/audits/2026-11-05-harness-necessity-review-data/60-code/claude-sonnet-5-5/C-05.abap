@@ -1,0 +1,78 @@
+*&---------------------------------------------------------------------*
+*& Report  ZJUDGE_C05
+*& Customers from KNA1 grouped by country (classic WRITE list)
+*& Compatible with ABAP 7.02 (NetWeaver 7.0 EHP2)
+*&---------------------------------------------------------------------*
+REPORT zjudge_c05 LINE-SIZE 100 NO STANDARD PAGE HEADING.
+
+TABLES: kna1.
+
+TYPES: BEGIN OF ty_cust,
+         land1 TYPE kna1-land1,
+         kunnr TYPE kna1-kunnr,
+         name1 TYPE kna1-name1,
+         ort01 TYPE kna1-ort01,
+       END OF ty_cust.
+
+DATA: gt_cust  TYPE STANDARD TABLE OF ty_cust,
+      gs_cust  TYPE ty_cust,
+      gv_land  TYPE kna1-land1,
+      gv_count TYPE i,
+      gv_total TYPE i,
+      gv_start TYPE i,
+      gv_idx   TYPE i,
+      gv_end   TYPE i.
+
+SELECT-OPTIONS: s_land1 FOR kna1-land1.
+
+START-OF-SELECTION.
+
+  SELECT land1 kunnr name1 ort01
+    FROM kna1
+    INTO TABLE gt_cust
+    WHERE land1 IN s_land1.
+
+  IF sy-subrc <> 0.
+    WRITE: / 'No customers found for the selected countries.'.
+    EXIT.
+  ENDIF.
+
+  SORT gt_cust BY land1 kunnr.
+
+  gv_total = LINES( gt_cust ).
+  gv_idx = 1.
+
+  WHILE gv_idx <= gv_total.
+
+    READ TABLE gt_cust INTO gs_cust INDEX gv_idx.
+    gv_land  = gs_cust-land1.
+    gv_start = gv_idx.
+    gv_count = 0.
+
+*   Count customers of the current country
+    LOOP AT gt_cust INTO gs_cust FROM gv_start.
+      IF gs_cust-land1 <> gv_land.
+        EXIT.
+      ENDIF.
+      gv_count = gv_count + 1.
+    ENDLOOP.
+
+    gv_end = gv_start + gv_count - 1.
+
+*   Header line for the country
+    SKIP.
+    WRITE: / 'Country:', gv_land COLOR COL_GROUP INTENSIFIED,
+             'Number of customers:', gv_count COLOR COL_GROUP INTENSIFIED.
+    ULINE.
+
+*   Detail lines
+    LOOP AT gt_cust INTO gs_cust FROM gv_start TO gv_end.
+      WRITE: / gs_cust-kunnr,
+               gs_cust-name1,
+               gs_cust-ort01,
+               gs_cust-land1.
+    ENDLOOP.
+
+    gv_idx = gv_end + 1.
+
+  ENDWHILE.

@@ -1,0 +1,85 @@
+*&---------------------------------------------------------------------*
+*& Report  ZSAPKIT_DEMO_PROG
+*&---------------------------------------------------------------------*
+*& Demo report: selection screen validation for company code (BUKRS)
+*& and business place (BUPLA)
+*&---------------------------------------------------------------------*
+REPORT zsapkit_demo_prog.
+
+TABLES: t001, j_1bbranch.
+
+*----------------------------------------------------------------------*
+* Selection screen
+*----------------------------------------------------------------------*
+SELECTION-SCREEN BEGIN OF BLOCK b01 WITH FRAME TITLE TEXT-b01.
+PARAMETERS: pa_bukrs TYPE t001-bukrs OBLIGATORY,
+            pa_bupla TYPE j_1bbranch-branch.
+SELECTION-SCREEN END OF BLOCK b01.
+
+*----------------------------------------------------------------------*
+* Global data
+*----------------------------------------------------------------------*
+DATA: gv_butxt TYPE t001-butxt,
+      gv_bupla_name TYPE j_1bbranch-name.
+
+*----------------------------------------------------------------------*
+INITIALIZATION.
+*----------------------------------------------------------------------*
+  CLEAR: gv_butxt, gv_bupla_name.
+  GET PARAMETER ID 'BUK' FIELD pa_bukrs.
+
+*----------------------------------------------------------------------*
+AT SELECTION-SCREEN ON pa_bukrs.
+*----------------------------------------------------------------------*
+  CLEAR gv_butxt.
+
+  SELECT SINGLE butxt
+    FROM t001
+    INTO gv_butxt
+    WHERE bukrs = pa_bukrs.
+
+  IF sy-subrc <> 0.
+    MESSAGE e001(00) WITH 'Company code' pa_bukrs 'does not exist'.
+  ENDIF.
+
+*----------------------------------------------------------------------*
+AT SELECTION-SCREEN ON pa_bupla.
+*----------------------------------------------------------------------*
+  CLEAR gv_bupla_name.
+
+* Business place is optional; validate only when it is entered
+  IF pa_bupla IS NOT INITIAL.
+
+*   Company code must be valid before checking the business place
+    IF gv_butxt IS INITIAL.
+      SELECT SINGLE butxt
+        FROM t001
+        INTO gv_butxt
+        WHERE bukrs = pa_bukrs.
+      IF sy-subrc <> 0.
+        MESSAGE e001(00) WITH 'Company code' pa_bukrs 'does not exist'.
+      ENDIF.
+    ENDIF.
+
+    SELECT SINGLE name
+      FROM j_1bbranch
+      INTO gv_bupla_name
+      WHERE bukrs  = pa_bukrs
+        AND branch = pa_bupla.
+
+    IF sy-subrc <> 0.
+      MESSAGE e001(00) WITH 'Business place' pa_bupla
+                            'does not exist in company code' pa_bukrs.
+    ENDIF.
+  ENDIF.
+
+*----------------------------------------------------------------------*
+START-OF-SELECTION.
+*----------------------------------------------------------------------*
+  WRITE: / 'Company code :', pa_bukrs, gv_butxt.
+
+  IF pa_bupla IS NOT INITIAL.
+    WRITE: / 'Business place:', pa_bupla, gv_bupla_name.
+  ELSE.
+    WRITE: / 'Business place: (not specified)'.
+  ENDIF.

@@ -1,0 +1,239 @@
+60-checker/claude-opus-5-5/C-02.txt — 동봉 검사기 원출력 (판J T6 · 2026-11-05)
+대상: docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-02.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-02.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-02.abap
+--- stdout (0 bytes) ---
+
+--- stderr (110 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-02.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-02.abap
+--- stdout (6128 bytes) ---
+Comment              *----------------------------------------------------------------------*
+Comment              * zcl_judge_c02_discount.abap
+Comment              * Global class computing a discounted net amount, with a locally
+Comment              * declared exception class and ABAP Unit tests in the same source.
+Comment              *----------------------------------------------------------------------*
+Comment              *----------------------------------------------------------------------*
+Comment              * Local exception class: invalid input for discount calculation
+Comment              *----------------------------------------------------------------------*
+ClassDefinition      CLASS lcx_judge_c02_invalid_input DEFINITION INHERITING FROM cx_static_check FINAL CREATE PUBLIC .
+Public               PUBLIC SECTION .
+Data                 DATA mv_reason TYPE string READ - ONLY .
+MethodDef            METHODS constructor IMPORTING iv_reason TYPE string OPTIONAL previous LIKE previous OPTIONAL .
+MethodDef            METHODS get_text REDEFINITION .
+EndClass             ENDCLASS .
+ClassImplementation  CLASS lcx_judge_c02_invalid_input IMPLEMENTATION .
+MethodImplementation METHOD constructor .
+Call                 super -> constructor ( previous = previous ) .
+Move                 mv_reason = iv_reason .
+EndMethod            ENDMETHOD .
+MethodImplementation METHOD get_text .
+Move                 result = COND # ( WHEN mv_reason IS INITIAL THEN `Invalid input for discount calculation` ELSE mv_reason ) .
+EndMethod            ENDMETHOD .
+EndClass             ENDCLASS .
+Comment              *----------------------------------------------------------------------*
+Comment              * Global class
+Comment              *----------------------------------------------------------------------*
+ClassDefinition      CLASS zcl_judge_c02_discount DEFINITION PUBLIC FINAL CREATE PUBLIC .
+Public               PUBLIC SECTION .
+Type                 TYPES ty_amount TYPE p LENGTH 15 DECIMALS 2 .
+Type                 TYPES ty_percent TYPE p LENGTH 5 DECIMALS 2 .
+MethodDef            METHODS calculate IMPORTING iv_gross TYPE ty_amount iv_percent TYPE ty_percent RETURNING VALUE ( rv_net ) TYPE ty_amount RAISING lcx_judge_c02_invalid_input .
+Private              PRIVATE SECTION .
+Type                 TYPES ty_precise TYPE p LENGTH 16 DECIMALS 6 .
+EndClass             ENDCLASS .
+ClassImplementation  CLASS zcl_judge_c02_discount IMPLEMENTATION .
+MethodImplementation METHOD calculate .
+If                   IF iv_gross < 0 .
+Raise                RAISE EXCEPTION TYPE lcx_judge_c02_invalid_input EXPORTING iv_reason = `Gross amount must not be negative` .
+EndIf                ENDIF .
+If                   IF iv_percent < 0 OR iv_percent > 100 .
+Raise                RAISE EXCEPTION TYPE lcx_judge_c02_invalid_input EXPORTING iv_reason = `Discount percentage must be between 0 and 100` .
+EndIf                ENDIF .
+Move                 DATA ( lv_precise ) = CONV ty_precise ( iv_gross * ( 100 - iv_percent ) / 100 ) .
+Move                 rv_net = round ( val = lv_precise dec = 2 mode = cl_abap_math => round_half_up ) .
+EndMethod            ENDMETHOD .
+EndClass             ENDCLASS .
+Comment              *----------------------------------------------------------------------*
+Comment              * ABAP Unit tests
+Comment              *----------------------------------------------------------------------*
+ClassDefinition      CLASS ltc_discount DEFINITION FINAL FOR TESTING RISK LEVEL HARMLESS DURATION SHORT .
+Private              PRIVATE SECTION .
+Data                 DATA mo_cut TYPE REF TO zcl_judge_c02_discount .
+MethodDef            METHODS setup .
+MethodDef            METHODS normal_discount FOR TESTING RAISING cx_static_check .
+MethodDef            METHODS full_discount FOR TESTING RAISING cx_static_check .
+MethodDef            METHODS rounding_half_up FOR TESTING RAISING cx_static_check .
+MethodDef            METHODS negative_gross_fail FOR TESTING .
+MethodDef            METHODS percent_above_100 FOR TESTING .
+EndClass             ENDCLASS .
+ClassImplementation  CLASS ltc_discount IMPLEMENTATION .
+MethodImplementation METHOD setup .
+Move                 mo_cut = NEW # ( ) .
+EndMethod            ENDMETHOD .
+MethodImplementation METHOD normal_discount .
+Call                 cl_abap_unit_assert => assert_equals ( act = mo_cut -> calculate ( iv_gross = '200.00' iv_percent = '10.00' ) exp = CONV zcl_judge_c02_discount => ty_amount ( '180.00' ) ) .
+EndMethod            ENDMETHOD .
+MethodImplementation METHOD full_discount .
+Call                 cl_abap_unit_assert => assert_equals ( act = mo_cut -> calculate ( iv_gross = '123.45' iv_percent = '100.00' ) exp = CONV zcl_judge_c02_discount => ty_amount ( '0.00' ) ) .
+EndMethod            ENDMETHOD .
+MethodImplementation METHOD rounding_half_up .
+Comment              " 10.01 * 0.85 = 8.5085 -> 8.51
+Call                 cl_abap_unit_assert => assert_equals ( act = mo_cut -> calculate ( iv_gross = '10.01' iv_percent = '15.00' ) exp = CONV zcl_judge_c02_discount => ty_amount ( '8.51' ) ) .
+EndMethod            ENDMETHOD .
+MethodImplementation METHOD negative_gross_fail .
+Try                  TRY .
+Call                 mo_cut -> calculate ( iv_gross = '-1.00' iv_percent = '10.00' ) .
+Call                 cl_abap_unit_assert => fail ( msg = 'Negative gross amount was not rejected' ) .
+Catch                CATCH lcx_judge_c02_invalid_input INTO DATA ( lx_error ) .
+Call                 cl_abap_unit_assert => assert_bound ( lx_error ) .
+EndTry               ENDTRY .
+EndMethod            ENDMETHOD .
+MethodImplementation METHOD percent_above_100 .
+Try                  TRY .
+Call                 mo_cut -> calculate ( iv_gross = '50.00' iv_percent = '100.01' ) .
+Call                 cl_abap_unit_assert => fail ( msg = 'Percentage above 100 was not rejected' ) .
+Catch                CATCH lcx_judge_c02_invalid_input INTO DATA ( lx_error ) .
+Call                 cl_abap_unit_assert => assert_bound ( lx_error ) .
+EndTry               ENDTRY .
+EndMethod            ENDMETHOD .
+EndClass             ENDCLASS .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-02.abap
+--- stdout (3153 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 19,
+      "endLine": 19,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 45,
+      "endLine": 45,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 50,
+      "endLine": 50,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 51,
+      "endLine": 51,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 75,
+      "endLine": 75,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 76,
+      "endLine": 76,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 93,
+      "endLine": 93,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 94,
+      "endLine": 94,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 95,
+      "endLine": 95,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 97,
+      "endLine": 97,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 10,
+    "bySeverity": {
+      "medium": 10
+    },
+    "byCategory": {
+      "quality": 10
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=10 analyze_info=0 error_grade=0 warnings=10 source_lines=141 bytes=4610 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

@@ -1,0 +1,204 @@
+60-checker/gpt-5.6-sol/C-INC-03.txt — 동봉 검사기 원출력 (판J T6 · 2026-11-05)
+대상: docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-INC-03.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-INC-03.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-INC-03.abap
+--- stdout (641 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-INC-03.abap:38:8: W [local_variable_names] Local variable name "lo_salv" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-INC-03.abap:39:8: W [local_variable_names] Local variable name "lo_functions" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-INC-03.abap:40:8: W [local_variable_names] Local variable name "lo_display" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+--- stderr (129 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-INC-03.abap: 3 finding(s), 0 at Error level
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-INC-03.abap
+--- stdout (2298 bytes) ---
+Report               REPORT zsapkit_demo_prog .
+TypeBegin            TYPES BEGIN OF ty_demo ,
+Type                 TYPES carrid TYPE s_carr_id ,
+Type                 TYPES connid TYPE s_conn_id ,
+Type                 TYPES cityfrom TYPE s_from_cit ,
+Type                 TYPES cityto TYPE s_to_city ,
+Type                 TYPES fldate TYPE s_date ,
+Type                 TYPES price TYPE s_price ,
+Type                 TYPES currency TYPE s_currcode ,
+TypeEnd              TYPES END OF ty_demo ,
+Type                 TYPES tt_demo TYPE STANDARD TABLE OF ty_demo WITH EMPTY KEY .
+Data                 DATA gt_demo TYPE tt_demo .
+StartOfSelection     START - OF - SELECTION .
+Select               SELECT FROM sflight AS flight INNER JOIN spfli AS route ON route~carrid = flight~carrid AND route~connid = flight~connid FIELDS flight~carrid , flight~connid , route~cityfrom , route~cityto , flight~fldate , flight~price , flight~currency ORDER BY flight~carrid , flight~connid , flight~fldate INTO TABLE @ gt_demo UP TO 100 ROWS .
+Perform              PERFORM show_popup CHANGING gt_demo .
+Form                 FORM show_popup CHANGING ct_data TYPE tt_demo .
+Data                 DATA lo_salv TYPE REF TO cl_salv_table .
+Data                 DATA lo_functions TYPE REF TO cl_salv_functions_list .
+Data                 DATA lo_display TYPE REF TO cl_salv_display_settings .
+Try                  TRY .
+Call                 cl_salv_table => factory ( IMPORTING r_salv_table = lo_salv CHANGING t_table = ct_data ) .
+Move                 lo_functions = lo_salv -> get_functions ( ) .
+Call                 lo_functions -> set_all ( abap_true ) .
+Move                 lo_display = lo_salv -> get_display_settings ( ) .
+Call                 lo_display -> set_list_header ( 'Flight List' ) .
+Call                 lo_display -> set_striped_pattern ( abap_true ) .
+Call                 lo_salv -> get_columns ( ) -> set_optimize ( abap_true ) .
+Call                 lo_salv -> set_screen_popup ( start_column = 5 end_column = 120 start_line = 2 end_line = 25 ) .
+Call                 lo_salv -> display ( ) .
+Catch                CATCH cx_salv_msg INTO DATA ( lx_salv ) .
+Message              MESSAGE lx_salv -> get_text ( ) TYPE 'I' DISPLAY LIKE 'E' .
+EndTry               ENDTRY .
+EndForm              ENDFORM .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-INC-03.abap
+--- stdout (3735 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 5,
+      "endLine": 5,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 6,
+      "endLine": 6,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 8,
+      "endLine": 8,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 9,
+      "endLine": 9,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 10,
+      "endLine": 10,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 20,
+      "endLine": 20,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 38,
+      "endLine": 38,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 40,
+      "endLine": 40,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 47,
+      "endLine": 47,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 60,
+      "endLine": 60,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 61,
+      "endLine": 61,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 62,
+      "endLine": 62,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 12,
+    "bySeverity": {
+      "medium": 12
+    },
+    "byCategory": {
+      "quality": 12
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=3 analyze_high=0 analyze_medium=12 analyze_info=0 error_grade=0 warnings=15 source_lines=69 bytes=1893 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

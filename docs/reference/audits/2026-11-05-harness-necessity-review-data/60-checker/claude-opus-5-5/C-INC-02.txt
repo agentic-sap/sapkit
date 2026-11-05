@@ -1,0 +1,201 @@
+60-checker/claude-opus-5-5/C-INC-02.txt — 동봉 검사기 원출력 (판J T6 · 2026-11-05)
+대상: docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-02.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-02.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-02.abap
+--- stdout (0 bytes) ---
+
+--- stderr (114 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-02.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-02.abap
+--- stdout (2934 bytes) ---
+ClassDefinition      CLASS zsapkit_demo_clas DEFINITION PUBLIC FINAL CREATE PUBLIC .
+Public               PUBLIC SECTION .
+Type                 TYPES ty_doc_id TYPE zsapkit_demo_bdef - DocId .
+Type                 TYPES ty_status TYPE zsapkit_demo_bdef - Status .
+Comment              "! Creates one instance of root entity ZSAPKIT_DEMO_BDEF (external numbering).
+Comment              "! @parameter iv_doc_id   | Externally assigned key DocId
+Comment              "! @parameter iv_status   | Value for field Status
+Comment              "! @parameter iv_commit   | Run COMMIT ENTITIES after MODIFY (set abap_false inside a RAP handler)
+Comment              "! @parameter es_mapped   | Mapped response (early)
+Comment              "! @parameter es_failed   | Failed response (early)
+Comment              "! @parameter es_reported | Reported response (early)
+Comment              "! @parameter ev_success  | abap_true if the instance was created (and committed, if requested)
+MethodDef            CLASS - METHODS create_instance IMPORTING iv_doc_id TYPE ty_doc_id iv_status TYPE ty_status iv_commit TYPE abap_bool DEFAULT abap_true EXPORTING es_mapped TYPE RESPONSE FOR MAPPED EARLY zsapkit_demo_bdef es_failed TYPE RESPONSE FOR FAILED EARLY zsapkit_demo_bdef es_reported TYPE RESPONSE FOR REPORTED EARLY zsapkit_demo_bdef ev_success TYPE abap_bool .
+EndClass             ENDCLASS .
+ClassImplementation  CLASS zsapkit_demo_clas IMPLEMENTATION .
+MethodImplementation METHOD create_instance .
+Clear                CLEAR es_mapped ,
+Clear                CLEAR es_failed ,
+Clear                CLEAR es_reported .
+Move                 ev_success = abap_false .
+Comment              " External numbering: the key DocId is supplied by the caller.
+Call                 MODIFY ENTITIES OF zsapkit_demo_bdef ENTITY zsapkit_demo_bdef CREATE FIELDS ( DocId Status ) WITH VALUE # ( ( %cid = 'CID_CREATE_1' DocId = iv_doc_id Status = iv_status ) ) MAPPED es_mapped FAILED es_failed REPORTED es_reported .
+If                   IF es_failed IS NOT INITIAL .
+If                   IF iv_commit = abap_true .
+Move                 ROLLBACK ENTITIES .
+EndIf                ENDIF .
+Return               RETURN .
+EndIf                ENDIF .
+If                   IF iv_commit = abap_false .
+Comment              " Caller (e.g. a RAP behavior implementation) controls the save sequence.
+Move                 ev_success = abap_true .
+Return               RETURN .
+EndIf                ENDIF .
+Commit               COMMIT ENTITIES RESPONSE OF zsapkit_demo_bdef FAILED DATA ( ls_commit_failed ) REPORTED DATA ( ls_commit_reported ) .
+If                   IF sy - subrc = 0 AND ls_commit_failed IS INITIAL .
+Move                 ev_success = abap_true .
+Else                 ELSE .
+Move                 ROLLBACK ENTITIES .
+Move                 ev_success = abap_false .
+EndIf                ENDIF .
+EndMethod            ENDMETHOD .
+EndClass             ENDCLASS .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-02.abap
+--- stdout (3448 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 20,
+      "endLine": 20,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 21,
+      "endLine": 21,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 22,
+      "endLine": 22,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 24,
+      "endLine": 24,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 25,
+      "endLine": 25,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 27,
+      "endLine": 27,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 45,
+      "endLine": 45,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 46,
+      "endLine": 46,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 48,
+      "endLine": 48,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 49,
+      "endLine": 49,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 67,
+      "endLine": 67,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 11,
+    "bySeverity": {
+      "medium": 11
+    },
+    "byCategory": {
+      "quality": 11
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=11 analyze_info=0 error_grade=0 warnings=11 source_lines=79 bytes=2385 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

@@ -1,0 +1,198 @@
+60-checker/claude-sonnet-5-5/C-01.txt — 동봉 검사기 원출력 (판J T6 · 2026-11-05)
+대상: docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-01.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-01.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-01.abap
+--- stdout (0 bytes) ---
+
+--- stderr (112 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-01.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-01.abap
+--- stdout (4642 bytes) ---
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Report ZJUDGE_C01
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Lists purchasing document headers (EKKO) in an ALV grid
+Comment              *&---------------------------------------------------------------------*
+Report               REPORT zjudge_c01 .
+Move                 TABLES ekko .
+TypeBegin            TYPES BEGIN OF ty_ekko ,
+Type                 TYPES ebeln TYPE ekko - ebeln ,
+Type                 TYPES bukrs TYPE ekko - bukrs ,
+Type                 TYPES ekorg TYPE ekko - ekorg ,
+Type                 TYPES lifnr TYPE ekko - lifnr ,
+Type                 TYPES bedat TYPE ekko - bedat ,
+Type                 TYPES bsart TYPE ekko - bsart ,
+Type                 TYPES ekgrp TYPE ekko - ekgrp ,
+TypeEnd              TYPES END OF ty_ekko .
+Data                 DATA gt_ekko TYPE STANDARD TABLE OF ty_ekko ,
+Data                 DATA go_alv TYPE REF TO cl_salv_table ,
+Data                 DATA go_cols TYPE REF TO cl_salv_columns_table ,
+Data                 DATA go_col TYPE REF TO cl_salv_column ,
+Data                 DATA go_exc TYPE REF TO cx_salv_error .
+SelectionScreen      SELECTION - SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT - 001 .
+SelectOption         SELECT - OPTIONS s_ekorg FOR ekko - ekorg ,
+SelectOption         SELECT - OPTIONS s_bedat FOR ekko - bedat .
+Parameter            PARAMETERS p_max TYPE i DEFAULT 500 .
+SelectionScreen      SELECTION - SCREEN END OF BLOCK b1 .
+StartOfSelection     START - OF - SELECTION .
+Perform              PERFORM get_data .
+If                   IF gt_ekko IS INITIAL .
+Message              MESSAGE 'No purchasing documents found for the given selection.' TYPE 'S' DISPLAY LIKE 'I' .
+Return               RETURN .
+EndIf                ENDIF .
+Perform              PERFORM display_alv .
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM get_data .
+Data                 DATA lv_max TYPE i .
+Move                 lv_max = p_max .
+If                   IF lv_max <= 0 .
+Move                 lv_max = 500 .
+EndIf                ENDIF .
+Select               SELECT ebeln bukrs ekorg lifnr bedat bsart ekgrp FROM ekko INTO TABLE gt_ekko UP TO lv_max ROWS WHERE ekorg IN s_ekorg AND bedat IN s_bedat ORDER BY ebeln .
+EndForm              ENDFORM .
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM set_heading USING iv_name TYPE lvc_fname iv_text TYPE scrtext_l .
+Data                 DATA lv_short TYPE scrtext_s ,
+Data                 DATA lv_medium TYPE scrtext_m .
+Try                  TRY .
+Move                 go_col = go_cols -> get_column ( iv_name ) .
+Move                 lv_short = iv_text .
+Move                 lv_medium = iv_text .
+Call                 go_col -> set_short_text ( lv_short ) .
+Call                 go_col -> set_medium_text ( lv_medium ) .
+Call                 go_col -> set_long_text ( iv_text ) .
+Catch                CATCH cx_salv_not_found .
+Return               RETURN .
+EndTry               ENDTRY .
+EndForm              ENDFORM .
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM display_alv .
+Try                  TRY .
+Call                 cl_salv_table => factory ( IMPORTING r_salv_table = go_alv CHANGING t_table = gt_ekko ) .
+Call                 go_alv -> get_functions ( ) -> set_all ( abap_true ) .
+Call                 go_alv -> get_display_settings ( ) -> set_striped_pattern ( abap_true ) .
+Move                 go_cols = go_alv -> get_columns ( ) .
+Call                 go_cols -> set_optimize ( abap_true ) .
+Perform              PERFORM set_heading USING 'EBELN' 'Document Number' .
+Perform              PERFORM set_heading USING 'BUKRS' 'Company Code' .
+Perform              PERFORM set_heading USING 'EKORG' 'Purch. Organization' .
+Perform              PERFORM set_heading USING 'LIFNR' 'Vendor' .
+Perform              PERFORM set_heading USING 'BEDAT' 'Document Date' .
+Perform              PERFORM set_heading USING 'BSART' 'Document Type' .
+Perform              PERFORM set_heading USING 'EKGRP' 'Purchasing Group' .
+Call                 go_alv -> display ( ) .
+Catch                CATCH cx_salv_msg INTO go_exc .
+Message              MESSAGE go_exc TYPE 'E' .
+Catch                CATCH cx_salv_error INTO go_exc .
+Message              MESSAGE go_exc TYPE 'E' .
+EndTry               ENDTRY .
+EndForm              ENDFORM .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-01.abap
+--- stdout (2265 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 21,
+      "endLine": 21,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 23,
+      "endLine": 23,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 24,
+      "endLine": 24,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 29,
+      "endLine": 29,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 61,
+      "endLine": 61,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 66,
+      "endLine": 66,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 81,
+      "endLine": 81,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 7,
+    "bySeverity": {
+      "medium": 7
+    },
+    "byCategory": {
+      "quality": 7
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=7 analyze_info=0 error_grade=0 warnings=7 source_lines=103 bytes=3161 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

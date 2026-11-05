@@ -1,0 +1,189 @@
+60-checker/claude-opus-5-5/C-04.txt — 동봉 검사기 원출력 (판J T6 · 2026-11-05)
+대상: docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-04.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-04.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-04.abap
+--- stdout (0 bytes) ---
+
+--- stderr (110 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-04.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-04.abap
+--- stdout (5193 bytes) ---
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Report ZJUDGE_C04
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Totals goods-movement quantities (base unit) per material and plant.
+Comment              *& MSEG items are joined with the MKPF header to filter on posting date.
+Comment              *& The quantity is signed by the debit/credit indicator (SHKZG):
+Comment              *& S = receipt (+), H = issue (-), so the total is the net movement.
+Comment              *&---------------------------------------------------------------------*
+Report               REPORT zjudge_c04 .
+Data                 DATA gv_werks TYPE mseg - werks ,
+Data                 DATA gv_budat TYPE mkpf - budat ,
+Data                 DATA gv_bwart TYPE mseg - bwart .
+SelectOption         SELECT - OPTIONS s_werks FOR gv_werks OBLIGATORY ,
+SelectOption         SELECT - OPTIONS s_budat FOR gv_budat OBLIGATORY ,
+SelectOption         SELECT - OPTIONS s_bwart FOR gv_bwart .
+TypeBegin            TYPES BEGIN OF ty_item ,
+Type                 TYPES matnr TYPE mseg - matnr ,
+Type                 TYPES werks TYPE mseg - werks ,
+Type                 TYPES meins TYPE mseg - meins ,
+Type                 TYPES menge TYPE mseg - menge ,
+Type                 TYPES shkzg TYPE mseg - shkzg ,
+TypeEnd              TYPES END OF ty_item ,
+TypeBegin            TYPES BEGIN OF ty_total ,
+Type                 TYPES matnr TYPE mseg - matnr ,
+Type                 TYPES werks TYPE mseg - werks ,
+Type                 TYPES meins TYPE mseg - meins ,
+Type                 TYPES menge TYPE mseg - menge ,
+Type                 TYPES items TYPE i ,
+TypeEnd              TYPES END OF ty_total .
+Data                 DATA gt_items TYPE STANDARD TABLE OF ty_item ,
+Data                 DATA gt_totals TYPE SORTED TABLE OF ty_total WITH UNIQUE KEY matnr werks meins .
+StartOfSelection     START - OF - SELECTION .
+Select               SELECT s~matnr s~werks s~meins s~menge s~shkzg FROM mseg AS s INNER JOIN mkpf AS k ON k~mblnr = s~mblnr AND k~mjahr = s~mjahr INTO TABLE gt_items WHERE s~werks IN s_werks AND s~bwart IN s_bwart AND k~budat IN s_budat .
+If                   IF gt_items IS INITIAL .
+Message              MESSAGE 'No material document items found for the selection' TYPE 'S' DISPLAY LIKE 'W' .
+Return               RETURN .
+EndIf                ENDIF .
+FieldSymbol          FIELD - SYMBOLS <ls_item> TYPE ty_item ,
+FieldSymbol          FIELD - SYMBOLS <ls_total> TYPE ty_total .
+Data                 DATA ls_total TYPE ty_total .
+Loop                 LOOP AT gt_items ASSIGNING <ls_item> .
+If                   IF <ls_item> - shkzg = 'H' .
+Move                 <ls_item> - menge = - <ls_item> - menge .
+EndIf                ENDIF .
+ReadTable            READ TABLE gt_totals ASSIGNING <ls_total> WITH TABLE KEY matnr = <ls_item> - matnr werks = <ls_item> - werks meins = <ls_item> - meins .
+If                   IF sy - subrc = 0 .
+Move                 <ls_total> - menge = <ls_total> - menge + <ls_item> - menge .
+Move                 <ls_total> - items = <ls_total> - items + 1 .
+Else                 ELSE .
+Clear                CLEAR ls_total .
+Move                 ls_total - matnr = <ls_item> - matnr .
+Move                 ls_total - werks = <ls_item> - werks .
+Move                 ls_total - meins = <ls_item> - meins .
+Move                 ls_total - menge = <ls_item> - menge .
+Move                 ls_total - items = 1 .
+InsertInternal       INSERT ls_total INTO TABLE gt_totals .
+EndIf                ENDIF .
+EndLoop              ENDLOOP .
+Move                 FREE gt_items .
+Comment              " gt_totals is a sorted table keyed by material, plant -> output is sorted
+Data                 DATA lo_alv TYPE REF TO cl_salv_table ,
+Data                 DATA lo_column TYPE REF TO cl_salv_column ,
+Data                 DATA lx_salv TYPE REF TO cx_salv_error .
+Try                  TRY .
+Call                 cl_salv_table => factory ( IMPORTING r_salv_table = lo_alv CHANGING t_table = gt_totals ) .
+Call                 lo_alv -> get_functions ( ) -> set_all ( abap_true ) .
+Call                 lo_alv -> get_columns ( ) -> set_optimize ( abap_true ) .
+Move                 lo_column = lo_alv -> get_columns ( ) -> get_column ( 'ITEMS' ) .
+Call                 lo_column -> set_short_text ( 'No. Items' ) .
+Call                 lo_column -> set_medium_text ( 'Number of Items' ) .
+Call                 lo_column -> set_long_text ( 'Number of Items' ) .
+Move                 lo_column = lo_alv -> get_columns ( ) -> get_column ( 'MENGE' ) .
+Call                 lo_column -> set_short_text ( 'Net Qty' ) .
+Call                 lo_column -> set_medium_text ( 'Net Quantity' ) .
+Call                 lo_column -> set_long_text ( 'Net Quantity (Base Unit)' ) .
+Call                 lo_alv -> get_display_settings ( ) -> set_list_header ( 'Goods Movement Totals per Material / Plant' ) .
+Call                 lo_alv -> display ( ) .
+Catch                CATCH cx_salv_error INTO lx_salv .
+Message              MESSAGE lx_salv TYPE 'E' .
+EndTry               ENDTRY .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-04.abap
+--- stdout (1970 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 34,
+      "endLine": 34,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 43,
+      "endLine": 43,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 56,
+      "endLine": 56,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 85,
+      "endLine": 85,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 87,
+      "endLine": 87,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 91,
+      "endLine": 91,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 6,
+    "bySeverity": {
+      "medium": 6
+    },
+    "byCategory": {
+      "quality": 6
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=6 analyze_info=0 error_grade=0 warnings=6 source_lines=107 bytes=3754 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

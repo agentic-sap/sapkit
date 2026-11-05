@@ -1,0 +1,174 @@
+60-checker/claude-sonnet-5-5/C-04.txt — 동봉 검사기 원출력 (판J T6 · 2026-11-05)
+대상: docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-04.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-04.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-04.abap
+--- stdout (0 bytes) ---
+
+--- stderr (112 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-04.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-04.abap
+--- stdout (4796 bytes) ---
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Report  ZJUDGE_C04
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Totals goods-movement quantities per material and plant.
+Comment              *&---------------------------------------------------------------------*
+Report               REPORT zjudge_c04 LINE - SIZE 100 NO STANDARD PAGE HEADING .
+Move                 TABLES mseg ,
+Move                 TABLES mkpf .
+TypeBegin            TYPES BEGIN OF ty_result ,
+Type                 TYPES matnr TYPE mseg - matnr ,
+Type                 TYPES werks TYPE mseg - werks ,
+Type                 TYPES menge TYPE mseg - menge ,
+Type                 TYPES meins TYPE mseg - meins ,
+Type                 TYPES cnt TYPE i ,
+TypeEnd              TYPES END OF ty_result .
+TypeBegin            TYPES BEGIN OF ty_item ,
+Type                 TYPES matnr TYPE mseg - matnr ,
+Type                 TYPES werks TYPE mseg - werks ,
+Type                 TYPES menge TYPE mseg - menge ,
+Type                 TYPES meins TYPE mseg - meins ,
+TypeEnd              TYPES END OF ty_item .
+Data                 DATA gt_item TYPE STANDARD TABLE OF ty_item ,
+Data                 DATA gs_item TYPE ty_item ,
+Data                 DATA gt_result TYPE STANDARD TABLE OF ty_result ,
+Data                 DATA gs_result TYPE ty_result .
+SelectionScreen      SELECTION - SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT - 001 .
+SelectOption         SELECT - OPTIONS s_werks FOR mseg - werks ,
+SelectOption         SELECT - OPTIONS s_budat FOR mkpf - budat ,
+SelectOption         SELECT - OPTIONS s_bwart FOR mseg - bwart .
+SelectionScreen      SELECTION - SCREEN END OF BLOCK b1 .
+StartOfSelection     START - OF - SELECTION .
+Perform              PERFORM get_data .
+Perform              PERFORM aggregate_data .
+Perform              PERFORM display_data .
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM get_data .
+Select               SELECT mseg~matnr mseg~werks mseg~menge mseg~meins FROM mseg INNER JOIN mkpf ON mkpf~mblnr = mseg~mblnr AND mkpf~mjahr = mseg~mjahr INTO TABLE gt_item WHERE mseg~werks IN s_werks AND mseg~bwart IN s_bwart AND mkpf~budat IN s_budat .
+If                   IF sy - subrc <> 0 .
+Clear                CLEAR gt_item .
+EndIf                ENDIF .
+EndForm              ENDFORM .
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM aggregate_data .
+Sort                 SORT gt_item BY matnr werks meins .
+Loop                 LOOP AT gt_item INTO gs_item .
+If                   IF gs_result - matnr <> gs_item - matnr OR gs_result - werks <> gs_item - werks OR gs_result - meins <> gs_item - meins .
+If                   IF gs_result - matnr IS NOT INITIAL OR gs_result - werks IS NOT INITIAL .
+Append               APPEND gs_result TO gt_result .
+EndIf                ENDIF .
+Clear                CLEAR gs_result .
+Move                 gs_result - matnr = gs_item - matnr .
+Move                 gs_result - werks = gs_item - werks .
+Move                 gs_result - meins = gs_item - meins .
+EndIf                ENDIF .
+Move                 gs_result - menge = gs_result - menge + gs_item - menge .
+Move                 gs_result - cnt = gs_result - cnt + 1 .
+EndLoop              ENDLOOP .
+If                   IF gs_result - matnr IS NOT INITIAL OR gs_result - werks IS NOT INITIAL .
+Append               APPEND gs_result TO gt_result .
+EndIf                ENDIF .
+Sort                 SORT gt_result BY matnr werks meins .
+EndForm              ENDFORM .
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM display_data .
+If                   IF gt_result IS INITIAL .
+Write                WRITE / 'No data found for the given selection.' .
+Return               RETURN .
+EndIf                ENDIF .
+Write                WRITE / 'Material' ,
+Write                WRITE 20 'Plant' ,
+Write                WRITE 28 'Total quantity' ,
+Write                WRITE 52 'Unit' ,
+Write                WRITE 60 'Items' .
+Move                 ULINE .
+Loop                 LOOP AT gt_result INTO gs_result .
+Write                WRITE / gs_result - matnr ,
+Write                WRITE gs_result - werks UNDER 'Plant' ,
+Write                WRITE gs_result - menge UNIT gs_result - meins ,
+Write                WRITE gs_result - meins ,
+Write                WRITE gs_result - cnt .
+EndLoop              ENDLOOP .
+Move                 ULINE .
+Write                WRITE / 'Lines:' ,
+Write                WRITE lines ( gt_result ) .
+EndForm              ENDFORM .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-04.abap
+--- stdout (1380 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 15,
+      "endLine": 15,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 25,
+      "endLine": 25,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 26,
+      "endLine": 26,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 75,
+      "endLine": 75,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 4,
+    "bySeverity": {
+      "medium": 4
+    },
+    "byCategory": {
+      "quality": 4
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=4 analyze_info=0 error_grade=0 warnings=4 source_lines=106 bytes=3083 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

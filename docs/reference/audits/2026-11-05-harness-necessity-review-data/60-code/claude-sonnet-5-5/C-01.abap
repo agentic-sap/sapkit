@@ -1,0 +1,103 @@
+*&---------------------------------------------------------------------*
+*& Report ZJUDGE_C01
+*&---------------------------------------------------------------------*
+*& Lists purchasing document headers (EKKO) in an ALV grid
+*&---------------------------------------------------------------------*
+REPORT zjudge_c01.
+
+TABLES: ekko.
+
+TYPES: BEGIN OF ty_ekko,
+         ebeln TYPE ekko-ebeln,
+         bukrs TYPE ekko-bukrs,
+         ekorg TYPE ekko-ekorg,
+         lifnr TYPE ekko-lifnr,
+         bedat TYPE ekko-bedat,
+         bsart TYPE ekko-bsart,
+         ekgrp TYPE ekko-ekgrp,
+       END OF ty_ekko.
+
+DATA: gt_ekko TYPE STANDARD TABLE OF ty_ekko,
+      go_alv  TYPE REF TO cl_salv_table,
+      go_cols TYPE REF TO cl_salv_columns_table,
+      go_col  TYPE REF TO cl_salv_column,
+      go_exc  TYPE REF TO cx_salv_error.
+
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+SELECT-OPTIONS: s_ekorg FOR ekko-ekorg,
+                s_bedat FOR ekko-bedat.
+PARAMETERS:     p_max   TYPE i DEFAULT 500.
+SELECTION-SCREEN END OF BLOCK b1.
+
+START-OF-SELECTION.
+  PERFORM get_data.
+  IF gt_ekko IS INITIAL.
+    MESSAGE 'No purchasing documents found for the given selection.' TYPE 'S' DISPLAY LIKE 'I'.
+    RETURN.
+  ENDIF.
+  PERFORM display_alv.
+
+*&---------------------------------------------------------------------*
+FORM get_data.
+  DATA lv_max TYPE i.
+
+  lv_max = p_max.
+  IF lv_max <= 0.
+    lv_max = 500.
+  ENDIF.
+
+  SELECT ebeln bukrs ekorg lifnr bedat bsart ekgrp
+    FROM ekko
+    INTO TABLE gt_ekko
+    UP TO lv_max ROWS
+    WHERE ekorg IN s_ekorg
+      AND bedat IN s_bedat
+    ORDER BY ebeln.
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+FORM set_heading USING iv_name TYPE lvc_fname
+                       iv_text TYPE scrtext_l.
+  DATA: lv_short  TYPE scrtext_s,
+        lv_medium TYPE scrtext_m.
+
+  TRY.
+      go_col = go_cols->get_column( iv_name ).
+      lv_short  = iv_text.
+      lv_medium = iv_text.
+      go_col->set_short_text( lv_short ).
+      go_col->set_medium_text( lv_medium ).
+      go_col->set_long_text( iv_text ).
+    CATCH cx_salv_not_found.
+      RETURN.
+  ENDTRY.
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+FORM display_alv.
+  TRY.
+      cl_salv_table=>factory(
+        IMPORTING r_salv_table = go_alv
+        CHANGING  t_table      = gt_ekko ).
+
+      go_alv->get_functions( )->set_all( abap_true ).
+      go_alv->get_display_settings( )->set_striped_pattern( abap_true ).
+
+      go_cols = go_alv->get_columns( ).
+      go_cols->set_optimize( abap_true ).
+
+      PERFORM set_heading USING 'EBELN' 'Document Number'.
+      PERFORM set_heading USING 'BUKRS' 'Company Code'.
+      PERFORM set_heading USING 'EKORG' 'Purch. Organization'.
+      PERFORM set_heading USING 'LIFNR' 'Vendor'.
+      PERFORM set_heading USING 'BEDAT' 'Document Date'.
+      PERFORM set_heading USING 'BSART' 'Document Type'.
+      PERFORM set_heading USING 'EKGRP' 'Purchasing Group'.
+
+      go_alv->display( ).
+    CATCH cx_salv_msg INTO go_exc.
+      MESSAGE go_exc TYPE 'E'.
+    CATCH cx_salv_error INTO go_exc.
+      MESSAGE go_exc TYPE 'E'.
+  ENDTRY.
+ENDFORM.

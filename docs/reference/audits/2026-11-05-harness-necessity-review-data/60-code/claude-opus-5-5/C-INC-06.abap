@@ -1,0 +1,177 @@
+*&=====================================================================*
+*& Report ZSAPKIT_DEMO_PROG  (Main program)
+*&---------------------------------------------------------------------*
+*& Include order: TOP -> SEL -> CLASS -> FORM
+*& Event blocks live in the main program, after all INCLUDEs, so that
+*& the selection screen (SEL) and the logic (CLASS/FORM) are already
+*& declared when the event is processed.
+*&=====================================================================*
+REPORT zsapkit_demo_prog.
+
+INCLUDE zsapkit_demo_prog_top.    " Global types / data
+INCLUDE zsapkit_demo_prog_sel.    " Selection screen (pa_bukrs, pa_bupla)
+INCLUDE zsapkit_demo_prog_class.  " Local classes (lcl_validator, lcl_app)
+INCLUDE zsapkit_demo_prog_form.   " FORM routines (thin wrappers)
+
+*----------------------------------------------------------------------*
+* INITIALIZATION
+*----------------------------------------------------------------------*
+INITIALIZATION.
+  PERFORM init_selection_screen.
+
+*----------------------------------------------------------------------*
+* AT SELECTION-SCREEN ON pa_bupla
+*   - Existence check of business place (J_1BBRANCH: BUKRS + BRANCH)
+*   - Error message here re-opens ONLY pa_bupla for input
+*----------------------------------------------------------------------*
+AT SELECTION-SCREEN ON pa_bupla.
+  PERFORM check_bupla USING pa_bukrs
+                            pa_bupla.
+
+*----------------------------------------------------------------------*
+* START-OF-SELECTION
+*----------------------------------------------------------------------*
+START-OF-SELECTION.
+  PERFORM main.
+
+
+*&=====================================================================*
+*& Include ZSAPKIT_DEMO_PROG_TOP
+*&---------------------------------------------------------------------*
+*& Global declarations
+*&=====================================================================*
+TABLES: sscrfields.
+
+TYPES: BEGIN OF gty_s_bupla,
+         bukrs  TYPE bukrs,
+         branch TYPE j_1bbranc_,
+         name   TYPE name1,
+       END OF gty_s_bupla.
+
+DATA: gs_bupla TYPE gty_s_bupla.
+
+CLASS lcl_validator DEFINITION DEFERRED.
+CLASS lcl_app       DEFINITION DEFERRED.
+
+
+*&=====================================================================*
+*& Include ZSAPKIT_DEMO_PROG_SEL
+*&---------------------------------------------------------------------*
+*& Selection screen definition
+*& (pa_bukrs is required because business place key = BUKRS + BRANCH)
+*&=====================================================================*
+SELECTION-SCREEN BEGIN OF BLOCK b01 WITH FRAME TITLE TEXT-b01.
+  PARAMETERS: pa_bukrs TYPE bukrs      OBLIGATORY MEMORY ID buk,
+              pa_bupla TYPE j_1bbranc_ OBLIGATORY.
+SELECTION-SCREEN END OF BLOCK b01.
+
+
+*&=====================================================================*
+*& Include ZSAPKIT_DEMO_PROG_CLASS
+*&---------------------------------------------------------------------*
+*& Local classes: validation logic is kept here (testable, reusable)
+*&=====================================================================*
+CLASS lcl_validator DEFINITION FINAL.
+  PUBLIC SECTION.
+    CLASS-METHODS:
+      "! Raises a type-E message if business place does not exist
+      check_bupla_exists
+        IMPORTING iv_bukrs TYPE bukrs
+                  iv_bupla TYPE j_1bbranc_,
+      "! Returns abap_true if business place exists
+      bupla_exists
+        IMPORTING iv_bukrs         TYPE bukrs
+                  iv_bupla         TYPE j_1bbranc_
+        RETURNING VALUE(rv_exists) TYPE abap_bool.
+ENDCLASS.
+
+CLASS lcl_validator IMPLEMENTATION.
+
+  METHOD check_bupla_exists.
+    " Nothing to check if empty (OBLIGATORY handles required-ness)
+    IF iv_bupla IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    " Company code must be filled to resolve business place key
+    IF iv_bukrs IS INITIAL.
+      MESSAGE 'Enter a company code before the business place.'(e01)
+        TYPE 'E'.
+    ENDIF.
+
+    IF bupla_exists( iv_bukrs = iv_bukrs
+                     iv_bupla = iv_bupla ) = abap_false.
+      MESSAGE e398(00) WITH 'Business place'(e02)
+                            iv_bupla
+                            'does not exist in company code'(e03)
+                            iv_bukrs.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD bupla_exists.
+    SELECT SINGLE @abap_true
+      FROM j_1bbranch
+      WHERE bukrs  = @iv_bukrs
+        AND branch = @iv_bupla
+      INTO @rv_exists.
+    IF sy-subrc <> 0.
+      rv_exists = abap_false.
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS lcl_app DEFINITION FINAL.
+  PUBLIC SECTION.
+    CLASS-METHODS run
+      IMPORTING iv_bukrs TYPE bukrs
+                iv_bupla TYPE j_1bbranc_.
+ENDCLASS.
+
+CLASS lcl_app IMPLEMENTATION.
+  METHOD run.
+    SELECT SINGLE bukrs, branch, name
+      FROM j_1bbranch
+      WHERE bukrs  = @iv_bukrs
+        AND branch = @iv_bupla
+      INTO CORRESPONDING FIELDS OF @gs_bupla.
+
+    WRITE: / 'Company code  :'(l01), gs_bupla-bukrs,
+           / 'Business place:'(l02), gs_bupla-branch,
+           / 'Name          :'(l03), gs_bupla-name.
+  ENDMETHOD.
+ENDCLASS.
+
+
+*&=====================================================================*
+*& Include ZSAPKIT_DEMO_PROG_FORM
+*&---------------------------------------------------------------------*
+*& FORM routines: thin wrappers called from event blocks in main
+*&=====================================================================*
+*&---------------------------------------------------------------------*
+*& Form INIT_SELECTION_SCREEN
+*&---------------------------------------------------------------------*
+FORM init_selection_screen.
+  IF pa_bukrs IS INITIAL.
+    GET PARAMETER ID 'BUK' FIELD pa_bukrs.
+  ENDIF.
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+*& Form CHECK_BUPLA
+*&   Called from: AT SELECTION-SCREEN ON pa_bupla (main program)
+*&---------------------------------------------------------------------*
+FORM check_bupla USING uv_bukrs TYPE bukrs
+                       uv_bupla TYPE j_1bbranc_.
+  lcl_validator=>check_bupla_exists( iv_bukrs = uv_bukrs
+                                     iv_bupla = uv_bupla ).
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+*& Form MAIN
+*&---------------------------------------------------------------------*
+FORM main.
+  lcl_app=>run( iv_bukrs = pa_bukrs
+                iv_bupla = pa_bupla ).
+ENDFORM.

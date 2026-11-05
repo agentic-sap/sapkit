@@ -1,0 +1,172 @@
+60-run-log.txt — 판J T6 「코드 시험 응시 + 동봉 검사기 채점」 실행 기록 (2026-11-05)
+=====================================================================================
+
+범위: 코드 과제 14종(11-code-tasks.txt C-01~C-05 · 41-reproducible-items.json kind=code C-INC-01~09) × 맨 모델 3종
+(claude-opus-5-5 · claude-sonnet-5-5 · gpt-5.6-sol) = 42 응시. 블라인드 조건은 02-isolation-recipe.txt 그대로
+(허용 편차 3 — §1). 응답에서 ABAP 을 기계 추출해 동봉 검사기 lint·parse·analyze 로 채점한다.
+이 세션 모델(Claude Fable 5.1)은 응시하지 않았고 ABAP 을 한 줄도 쓰지 않았다. 일반 작법 위반·의미 적합성은
+여기서 판정하지 않는다(T7/T8 몫). 이 파일은 측정·관찰 기록이다.
+
+0. 결과 한눈에
+---------------
+  42/42 유효 · 무효(INVALID) 0 · 과제 단계 전이 재시도 0 · no_fence 0 · 펜스 블록 2개 이상 0 · parse exit 0 = 42/42
+  오류급(lint E ∪ parse exit≠0 ∪ analyze high) = 0 — 42 응시 전부
+  경고 합계: opus 161 · sonnet 109 · gpt 71 (출처 규칙은 셋뿐 — analyze double_space(medium) 312 ·
+            lint local_variable_names(W) 28 · analyze select_star(medium) 1)
+  카나리아 3/3 PASS (60-canary-<model>.txt · ① 자기 보고 none · ② 도구 호출 0 · ③ URL 0)
+  Codex 첫 카나리아 시도(17:17)는 계정 사용량 한도로 turn.failed → 18:14 재실행 PASS (60-retries.txt)
+  표·행 단위 수치의 정본 = 60-checker-summary.csv (42행) · 과제별 원출력 = 60-checker/<model>/<id>.txt
+
+1. 버전·환경
+-------------
+  claude --version : 2.1.318 (Claude Code)
+  codex --version  : codex-cli 0.163.0
+  검사기 VERSION   : sapkit-cli 0.1.0 · source commit f19542dc0b9a9984131f4f1568d1e766d334c049
+                     번들 interactive/checker/sapkit-checker.bundle.cjs (57,795 bytes · 읽고 실행만 — 소스·번들 0바이트 변경)
+  node             : v24.14.1 · PowerShell 7.6.9 ($PSNativeCommandArgumentPassing = Windows)
+  러너             : 60-run-code.ps1 (이 폴더 · 실제 쓴 것 · 멱등·재개 가능 · 단계 = check / prompts / canary / run / reextract / score / cleanup)
+  워크트리·브랜치  : .dryforge/worktrees/slot2 · dryforge/task/T6
+  편차 1  블라인드 폴더 %TEMP%\sapkit-panJ\blind-T6\ (empty-mcp.json 하나 · 모든 CLI 호출의 cwd) ·
+          Codex 홈 %TEMP%\sapkit-panJ\codexhome-T6\ (auth.json 사본 하나로 시작 · 18:20:48 [IO.Directory]::Delete 로 삭제 · 부재 확인)
+  편차 2  Codex 에 -c model_reasoning_effort="medium" — 배너로 model: gpt-5.6-sol · reasoning effort: medium 확인 · 거부 없음
+  편차 3  원 이벤트 스트림(JSONL) = %TEMP%\sapkit-panJ\raw-T6\<model>\<id>.jsonl
+          (호출별 사본 <id>.call-<k>.jsonl · <id>.call-<k>.stderr.txt · 상태 <id>.state.json · prompts\<id>.txt · canary\ · _progress-*.txt)
+          — 레포 밖 · 세션/스레드 id·로컬 경로 포함 · 커밋하지 않음
+
+2. 타임라인 (KST · 2026-11-05)
+-------------------------------
+  17:17:08           완전성 검사 RED (첫 모델 호출 전 · exit 1) — §9
+  17:17:30 – 17:17:36  claude-opus-5-5 카나리아 PASS (wall 6.2 s · duration_ms 5216)
+  17:17:36 – 17:17:44  claude-sonnet-5-5 카나리아 PASS (wall 7.4 s · duration_ms 6498)
+  17:17:45 – 17:17:49  gpt-5.6-sol 카나리아 + 배너 — 사용량 한도(「try again at 6:13 PM」) · turn.failed · exit 1
+                       (배너는 그래도 model: gpt-5.6-sol · reasoning effort: medium 을 찍었다) → 60-retries.txt
+  17:21:01 – 17:25:41  claude-opus-5-5 과제 14 (4 m 39 s · 14/14 첫 응시 유효 · 과제당 wall 5.0–35.7 s)
+  17:25:41 – 17:28:29  claude-sonnet-5-5 과제 14 (2 m 48 s · 14/14 첫 응시 유효 · 과제당 wall 6.3–26.2 s)
+  18:14:01 – 18:14:16  gpt-5.6-sol 카나리아 재실행 PASS (wall 11.2 s) + 배너 (3.3 s)
+  18:14:48 – 18:19:32  gpt-5.6-sol 과제 14 (4 m 44 s · 14/14 첫 응시 유효 · 과제당 wall 8.0–43.0 s)
+  18:20:46           채점 42행 → 60-checker-summary.csv (중간 채점 두 번은 같은 파일을 덮어썼다 · 최종만 유효)
+  18:20:48           codexhome-T6 삭제 확인
+  (완전성 검사 GREEN 의 실행 출력은 §9 끝에 덧붙인다)
+
+3. 정확한 최종 명령 (자리표시자 · 글자 그대로의 줄은 60-run-code.ps1 의 Invoke-ClaudeCall / Invoke-CodexCall / Invoke-Checker)
+-------------------------------------------------------------------------------------------------------------------
+  Claude — 02-isolation-recipe.txt §2 그대로 · 같은 PowerShell 프로세스에서 $env:CLAUDECODE = $null · Push-Location <blind-T6>
+    claude -p "<프롬프트>" --model <claude-opus-5-5|claude-sonnet-5-5> --tools "" --setting-sources "" --strict-mcp-config --mcp-config <blind-T6>\empty-mcp.json --disable-slash-commands --output-format stream-json --verbose --no-session-persistence > <raw-T6>\<model>\<id>.call-<k>.jsonl 2> <raw-T6>\<model>\<id>.call-<k>.stderr.txt
+  Codex — 02-isolation-recipe.txt §3 그대로 + 편차 2 · $env:CODEX_HOME = <codexhome-T6> · Push-Location <blind-T6>
+    $null | codex exec --skip-git-repo-check -s read-only -C <blind-T6> -m gpt-5.6-sol --json --ephemeral --ignore-user-config --ignore-rules --disable apps --disable plugins --disable image_generation --disable multi_agent -c 'web_search="disabled"' -c 'mcp_servers={}' -c 'skills.include_instructions=false' -c 'model_reasoning_effort="medium"' "<프롬프트>" > <raw-T6>\gpt-5.6-sol\<id>.call-<k>.jsonl 2> <raw-T6>\gpt-5.6-sol\<id>.call-<k>.stderr.txt
+    배너 확인(관측 모델 id · 추론 강도): 같은 플래그에서 --json 을 빼고 --color never 를 더해
+    "Reply with exactly the single word OK and nothing else. Do not use any tool." — 실측: 배너·user 에코·tokens used 는 stderr,
+    모델 응답(OK)은 stdout 으로 나온다 (60-canary-gpt-5.6-sol.txt 에 두 스트림 verbatim · 세션 id 줄만 제외)
+  검사기 — 레포 루트에서 · P0(SAP 접속 없음 · MCP 없음) · 11-code-tasks.txt §1 의 세 명령 그대로
+    node interactive/checker/sapkit-checker.bundle.cjs lint    docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/<model>/<id>.abap
+    node interactive/checker/sapkit-checker.bundle.cjs parse   docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/<model>/<id>.abap
+    node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/<model>/<id>.abap
+    (stdout·stderr 는 UTF-8 원문 그대로 · exit 코드와 함께 60-checker/<model>/<id>.txt 의 세 구획에 저장)
+  러너 호출 순서(실제): -Phase check(RED) → prompts → canary -Model claude-opus-5-5 → canary -Model claude-sonnet-5-5 →
+    canary -Model gpt-5.6-sol(한도 실패) → run -Model claude-opus-5-5 → run -Model claude-sonnet-5-5 →
+    canary -Model gpt-5.6-sol(18:14 재실행) → run -Model gpt-5.6-sol → score → cleanup → check(GREEN)
+  인자 전달 검증(사전 · 모델 호출 없음): pwsh 7.6.9 → claude.exe 직접 / codex.ps1(npm 셸 스크립트) → node codex.js →
+    spawn(binary, process.argv.slice(2)) — cmd.exe 를 거치지 않는다. 줄바꿈·백틱 3개·%(C-02 의 "100 % discount")·따옴표가
+    든 프롬프트 문자열이 argv 에코 스크립트에 바이트 그대로 도달함을 sha256 일치로 확인했다.
+
+4. 프롬프트 계약 (세 모델 공통 · 과제마다 동일 · 과제 1 = CLI 호출 1 · 시스템 프롬프트·집 규칙·예시·추가 맥락 없음)
+--------------------------------------------------------------------------------------------------------------
+  프롬프트 = 고정 줄 + "\n\n" + task_text 그대로 + "\n\n" + "Required output: " + required_output 그대로
+  고정 줄(244자 · sha256 49da56ba8c27e15eaf950ec982f702afc58d542a85d56523dc3a6da688bac62b):
+    Write the complete ABAP source as a single file and return it in one ```abap code block, with no explanation outside the block. Do not use any tool, file, shell, or web search. (도구·파일·셸·웹 검색을 쓰지 말고, 설명 없이 단일 파일 ABAP 소스를 ```abap 코드 블록 하나로만 돌려줘.)
+  task_text / required_output 의 출처:
+    C-01~C-05   11-code-tasks.txt 의 task_text: / required_output: 구획 — 4칸 들여쓰기만 떼고 줄 구조(개행)는 그대로 둔다
+    C-INC-01~09 41-reproducible-items.json items[] 중 kind == "code" 의 task_text / required_output (한 줄 문자열 그대로)
+  프롬프트 sha256 (chars) — 60-run-code.ps1 -Phase prompts 가 같은 값을 다시 낸다:
+    C-01      1000  2c0471dfd765a149fd80ce4f0837bd2c8aa789c0147d9061c68432d9e702b734
+    C-02      1183  3dfed87d73e73abf9a539fedc94243e56865d6ccc25049d8cc42103b75c2528c
+    C-03       954  30ff4ccfa8422f1447ec4c7478951ca8e703472ae607b77b1bb6a1d97a213a9d
+    C-04       903  80f842a7c1a81a7d16570c2d1d3dd788d6b69e844a8fdc2c499c20bdde21bb83
+    C-05       835  c501eab21e11c34972ea9935811a43812458de366c5a19137b60821a35b10f12
+    C-INC-01   468  97090846aff956345ecc45f371cac7921d9ac6bf3e5d54496125183c0ec34b8b
+    C-INC-02   444  1f4bb9eeceb055750f14c5a1e820cbbd00d876eddf147748baacc3d61a821658
+    C-INC-03   383  161011ff563b5ce9b56992f29d0a4d01bd95dba593475cc692302beefebf726c
+    C-INC-04   386  9de6cf8e9fdf5bb155a5fc43c53430846c900a31de46d038fd929ba25a0b14b6
+    C-INC-05   451  e62861c8713252f22b7cf1810e45a1ed1643ddcfeeb2da418ad4ee0c01d986c4
+    C-INC-06   477  c9f6b43214df17940eb7805e4f280c534ef7247fbd3aa35f48c3b853b9c90f29
+    C-INC-07   470  1a637dfeb2302c33e3e409565d0726a6b7616ec134a9a4fe674d5125c8bea00d
+    C-INC-08   462  0f43cecca191798994f0f2076fab878efada98f687f3c7714eb996e3f2465744
+    C-INC-09   471  c8264aad99a029e3f4ebfae37687a80b822b8dea01fac1a8d384ab8723c95e94
+  각 60-events/<model>/<id>.txt 가 그 호출에 쓴 프롬프트의 sha256 을 적는다(위 표와 일치 = 세 모델에 글자 그대로 같은 프롬프트).
+
+5. 유효성·재시도 규칙 (spec B-5 · 적용 결과)
+--------------------------------------------
+  무효 = 추출된 도구 호출 > 0 (Claude: assistant.message.content 의 tool_use 블록 · Codex: item.completed 중 item.type ∉
+         {agent_message, reasoning, error} — command_execution 도 무효) 또는 응답(원문)에 https?:// 가 있음.
+         무효면 같은 과제 최대 3회 응시 · 무효 원응답은 60-raw/<model>/<id>.invalid-<n>.txt · 3회 모두 무효면 INVALID(코드 추출 없음).
+         → 실제 무효 0 · INVALID 0 · .invalid-* 파일 0.
+  전이 = 결과 이벤트 없음 / is_error / exit≠0 / turn.failed / 최상위 error / agent_message 없음 → 응시 횟수에 넣지 않고
+         60·120·240·480·900·900·900·900 s 백오프로 같은 과제 재시도 (사용량 한도 오류문의 「try again at H:MM」 이 있으면
+         그 시각+60 s 까지 대기 · 2 h 상한 넘으면 중단) · 8회 넘으면 중단(재개 가능).
+         → 과제 단계 전이 0 · 카나리아 단계 1회(Codex 사용량 한도 · 18:14 재실행으로 해소).
+  attempts(요약표) = 응답을 받은 횟수(무효 포함 · 전이 제외) — 42 전부 1.
+  관측 모델 id: Claude 는 init.model · assistant.message.model · result.modelUsage 키 세 곳이 42회 전부 요청 id 와 일치 ·
+         Codex 는 --json 이벤트에 모델 id 가 없어 배너(model: gpt-5.6-sol)로 확인.
+  격리 증거(호출마다 · 60-events 에 기록): Claude init tools=0 · mcp_servers=0 · slash_commands=0 · skills=0
+         (plugins=4 · agents=6 은 Claude Code 내장 · 도구 0개라 쓸 길 없음 — 레시피 §5) · Codex item.completed 유형은
+         42회 전부 agent_message=1 뿐(reasoning summaries: none 이라 reasoning 항목은 나오지 않고 reasoning_output_tokens 로만 보인다).
+
+6. 코드 추출 규칙 (기계 적용 · 60-run-code.ps1 Extract-Code)
+-----------------------------------------------------------
+  원응답(Claude: result 이벤트의 result · Codex: agent_message 의 text 를 순서대로 "\n" 으로 이어 붙임)을 60-raw/<model>/<id>.txt 에
+  무편집으로 저장한 뒤:
+  ① 줄 단위로 훑어 「``` 로 시작하는 줄(언어 태그 허용)」을 여는 펜스, 「``` 만 있는 줄(앞뒤 공백 허용)」을 닫는 펜스로 삼아
+     완결 블록을 센다. ② 마지막 완결 블록의 안쪽 줄들을 LF 로 잇고 끝에 LF 하나를 두어 60-code/<model>/<id>.abap 에 저장한다
+     (UTF-8 · BOM 없음 · CRLF 없음 — .gitattributes 의 *.abap text eol=lf 와 같다). ③ 완결 블록이 없으면 원응답 전체를
+     .abap 으로 저장하고 no_fence=1. ④ 블록이 둘 이상이면 blocks=N 을 적는다(마지막 블록을 취한 사실은 그대로).
+  코드는 절대 손대지 않는다 — 수정·재정렬·개행 변환 없음. source_lines = LF 개수(+끝에 LF 가 없으면 1) · bytes = UTF-8 바이트 수.
+  → 42 응답 전부 첫 줄 ```abap · 마지막 줄 ``` 의 단일 블록(설명 0) · no_fence 0 · blocks 모두 1.
+
+7. 검사기 파싱 규약·산식·한계 (11-code-tasks.txt §0·§1 그대로)
+---------------------------------------------------------------
+  lint    : 오류급(lint) = stdout 에서 ": E [" 가 든 줄 수 · 경고(lint) = ": W [" 줄 수 · exit 0/1/2 는 기록만
+  parse   : parse_ok = exit 0 · ⚠ parse 는 구문 판정기가 아니라 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 이므로
+            「parse exit≠0」항은 실제로는 파일을 못 읽은 경우만 잡는다. 진짜 구문 오류(활성화 실패)는 이 판정 밖이며
+            SAP 접속 없이는 잴 수 없다(P0). 그러므로 아래 42/42 「parse_ok」와 「오류급 0」은 「검사기가 잡는 범주 안에서 0」이지
+            「컴파일된다」가 아니다.
+  analyze : stdout JSON 의 summary.bySeverity.high / medium / info (키 없으면 0)
+  error_grade = lint_errors + (parse exit≠0 ? 1 : 0) + analyze_high · warnings = lint_warnings + analyze_medium + analyze_info
+  60-checker-summary.csv 머리글: model,id,source(11|41),valid,attempts,no_fence,blocks,parse_ok,lint_errors,lint_warnings,analyze_high,analyze_medium,analyze_info,error_grade,warnings,source_lines,bytes
+  검사기 파일 크기 상한(500KB)·line_length 10건 상한·local_variable_names 의 lo_ 미인정 등은 §1 의 알려진 성질이며 여기서 바꾸지 않았다.
+
+8. 관찰 (판정 아님 — 일반 작법·의미 적합성은 T7/T8)
+-------------------------------------------------
+  - gpt-5.6-sol C-INC-09: 펜스 안이 코드가 아니라 주석 2줄(「원본 소스와 새 본문이 제공되지 않아 … 작성할 수 없습니다」).
+    기계 규칙으로는 유효(펜스 1 · 도구 0 · URL 0)이고 검사기 오류급 0 · 2줄 192바이트. 과제 본문(41 JSON)이 「주어진 새 본문」을
+    싣지 않은 탓이 크다 — 같은 프롬프트에서 opus(72줄)·sonnet(48줄)은 본문을 지어냈다. 세 응답의 의미 판정은 T7/T8 몫.
+  - 응답 42건 전부 설명 없이 ```abap … ``` 하나였다 — 고정 줄 지시를 세 모델 모두 지켰다.
+  - 경고 312/341 이 analyze double_space(medium) — 열 맞춤 들여쓰기·정렬 공백에 반응한다. lint local_variable_names 28 은
+    lo_/lx_/lr_ 같은 접두(lint 는 lo_ 를 인정 안 함 — §1). lint W 가 0 인 파일이 대부분인데 analyze medium 은 거의 모든 파일에
+    있다 — 두 명령의 규칙 집합이 다르기 때문(§1).
+  - 길이: opus 합 1,465줄 · sonnet 1,158줄 · gpt 817줄 (과제별 표는 60-checker-summary.csv).
+  - Codex cached_input_tokens 가 호출마다 0 / 8320 / 9088 로 갈린다 — 서버측 프롬프트 캐시 · 격리와 무관.
+  - Codex 배너·오류문은 stderr 로 나온다(첫 설계는 stdout 만 읽어 배너를 놓쳤고, 실측 뒤 두 스트림을 모두 적도록 고쳤다 — 재실행 전).
+  - 커밋된 요약 파일 안의 로컬 경로: 60-canary-claude-sonnet-5-5.txt(모델 자기 보고 · 무편집) · 60-canary-gpt-5.6-sol.txt
+    (자기 보고 · 배너 workdir 줄 · stderr WARNING 줄 · verbatim 지시) 에 %TEMP% 절대 경로(사용자 폴더명 포함)가 남아 있다 —
+    T0 의 02-canary/gpt-5.6-sol.txt 와 같은 성격. 원응답·배너는 무편집/verbatim 지시라 그대로 두었다.
+  - 러너가 스스로 만든 문장(재시도 기록·이벤트 요약·카나리아 기계 추출)에서는 CLI 오류문의 URL 을 <url> 로 가렸다(README 의
+    URL 금지). 모델 원응답(60-raw)·코드(60-code)에는 URL·호스트명·자격증명 무늬가 없음을 정규식으로 확인했다(0건).
+  - %TEMP%\sapkit-panJ 에는 T6 것 외에 blind / blind-T5 / codexhome-T5 / raw-T5 / keepawake.* 가 있었다(T0·병렬 T5 소유 · 손대지 않음).
+
+9. 완전성 검사 (60-run-code.ps1 -Phase check · 모델별 raw/code/events/checker 14 · 요약 42행 · 카나리아 PASS · 파일 3종 ·
+   codexhome-T6 부재 · git status 가 60- 접두 밖을 건드리지 않음)
+--------------------------------------------------------------------------------------------------------------
+  RED  2026-11-05T17:17:08.933+09:00 · exit 1 — 첫 모델 호출 전 (raw 0/14 … canary MISSING · csv 0/42 · retries/run-log MISSING)
+  GREEN — 커밋 직전 실행 출력을 아래에 그대로 덧붙인다:
+  [completeness] 2026-11-05T18:24:19.987+09:00 · data=docs/reference/audits/2026-11-05-harness-necessity-review-data · root=<worktree slot2>
+   claude-opus-5-5 : raw 14/14 · code 14/14 · events 14/14 · checker 14/14 · canary PASS · INVALID 0 · no_fence 0 [OK]
+   claude-sonnet-5-5 : raw 14/14 · code 14/14 · events 14/14 · checker 14/14 · canary PASS · INVALID 0 · no_fence 0 [OK]
+   gpt-5.6-sol : raw 14/14 · code 14/14 · events 14/14 · checker 14/14 · canary PASS · INVALID 0 · no_fence 0 [OK]
+   summary csv: rows 42/42 · distinct (model,id) 42/42 · valid=1 rows 42/42 [OK]
+   60-retries.txt : present [OK]
+   60-run-log.txt : present [OK]
+   60-run-code.ps1 : present [OK]
+   codexhome-T6 : absent [OK]
+   git status : 11 entries · outside 60- prefix: 0 [OK]
+   target invalid=0 : MET · no_fence total=0
+  RESULT: GREEN · exit 0
