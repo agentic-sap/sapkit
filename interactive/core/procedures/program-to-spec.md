@@ -1,6 +1,6 @@
 ---
 name: program-to-spec
-description: Reverse-engineer an ABAP program into a Functional/Technical Specification artifact (Markdown or Excel). Step-by-step scope narrowing from "everything" to "only what the user needs".
+description: Reverse-engineer an ABAP program into a Functional/Technical Specification artifact (Markdown, Excel, or Excel with an HTML copy that opens in a browser). Step-by-step scope narrowing from "everything" to "only what the user needs". Also converts an existing spec into an HTML copy without touching SAP.
 source:
   - sc4sap-custom/skills/program-to-spec/SKILL.md
   - sc4sap-custom/skills/program-to-spec/workflow-steps.md
@@ -9,7 +9,7 @@ source:
 
 # Program → Specification
 
-Read an existing ABAP program (Report / Module Pool / FM Group / Class / CDS / RAP) through MCP, run the structural + semantic + where-used analysis, then turn out a Specification artifact in **Markdown** (`.md`) or **Excel** (`.xlsx`) format. The scope is **narrowed step by step** — open wide, narrow on every turn, stop once the user's target granularity is confirmed.
+Read an existing ABAP program (Report / Module Pool / FM Group / Class / CDS / RAP) through MCP, run the structural + semantic + where-used analysis, then turn out a Specification artifact in **Markdown** (`.md`) or **Excel** (`.xlsx`) format — or both — optionally with an **HTML** copy of the Excel (`.html`: the same 7 tabs, pictures, and styles in one offline file that opens in a browser, for passing on by mail or chat; the Excel stays the document of record and the HTML is made from it). The scope is **narrowed step by step** — open wide, narrow on every turn, stop once the user's target granularity is confirmed.
 
 ## Purpose
 
@@ -22,6 +22,7 @@ Turn legacy or unfamiliar ABAP objects into a reviewable Functional/Technical Sp
 - Preparing a refactoring or a rewrite (the as-is behavior has to be captured)
 - Compliance / audit demands a written spec for custom code
 - Building a WRICEF inventory carrying detailed per-object specs
+- User asks to turn a spec that **already exists** into HTML → § Converting an existing spec to HTML below (no interview, no SAP)
 
 ## When NOT to Use
 
@@ -29,6 +30,26 @@ Turn legacy or unfamiliar ABAP objects into a reviewable Functional/Technical Sp
 - **Creating a new** program from a spec is wanted → `create-program`
 - **Fixing** the program is wanted → direct MCP `Update*` calls
 - The object does not exist yet
+
+## Converting an existing spec to HTML (no SAP)
+
+When the user asks to turn a spec that **already exists** into HTML — they hand over a file, or point at one ("last time's spec for X") — this is a conversion, not a spec run: **no SAP connection, no interview, no analysis** (offline work only). Make only the HTML and open it; none of the Steps below runs.
+
+1. **Identify the spec.** A file the user gave → that file. Otherwise look in `.sapkit/specs/` for that object's `.xlsx` / `.md` files. If it cannot be pinned down to one, show the candidates — object, date, language, and kind of file, newest first, folded per the [plain-language policy](../policies/plain-language.md) when there are more than fit — and let the user pick.
+2. **Language** (`--lang`): the file name's `-<lang>` suffix → else the language the body is written in → else the language of the conversation.
+3. **Render** next to the source file, same name, `.html`:
+   - An `.xlsx` exists for that spec → the 7-tab HTML with [xlsx-to-html.mjs](../../tools/spec/xlsx-to-html.mjs):
+     ```bash
+     node PLUGIN_ROOT/tools/spec/xlsx-to-html.mjs <spec.xlsx> <spec.html> --lang <lang> --open
+     ```
+   - The spec exists **only as Markdown** → the Markdown layout (contents on the left, the text beside it) with [md-to-html.mjs](../../tools/spec/md-to-html.mjs):
+     ```bash
+     node PLUGIN_ROOT/tools/spec/md-to-html.mjs <spec.md> <spec.html> --lang <lang> --open
+     ```
+     Then say in one line, in the user's language, in plain words, that the seven-tab version needs the spec made again as Excel, and that means reading the program from SAP again.
+4. **Read the result and report** exactly as in Step 5.5 (opening, the output lines, failure, plain-words report). If the source file cannot be read, nothing is written — say so in one plain line and stop.
+
+`PLUGIN_ROOT` is the plugin root as the skill wrapper defines it (the directory that holds `core/` and `tools/`).
 
 ## Step-by-Step Scope Narrowing
 
@@ -42,9 +63,11 @@ The content of the four, recommended option first — render each option's meani
 | # | Header | What to ask | Options, recommended first — and what choosing each one means |
 |---|--------|----------|-----------------------------|
 | 1 | Audience | Who is going to read this document? | **Both — recommended**: one document that works for the business reader and for the developer; why recommended: it saves writing a second version later · **Functional**: written for business readers, lighter on code detail · **Technical**: written for developers, lighter on business framing |
-| 2 | Format | Which kind of file do you want out of this? | **Markdown — recommended**: a plain-text document that opens anywhere and reviews well line by line; why recommended: it is the fastest to check and the Excel version can still be produced afterwards · **Excel**: a workbook with one sheet per section, the shape project offices usually ask for · **Both** |
+| 2 | Format | Which kind of file do you want out of this? | **Markdown — recommended**: a plain-text document that opens anywhere and reviews well line by line; why recommended: it is the fastest to check and the other versions can still be produced afterwards · **Excel**: a workbook with seven sheets, one per section, the shape project offices usually ask for · **Excel + HTML**: the same seven tabs, pictures and styles, also as one file that opens in a browser — easy to pass on by mail or chat; the Excel comes with it · **All**: Markdown + Excel + HTML. A technical choice, so no open slot is required; if the user names another combination in their own words (e.g. Markdown + Excel only), follow it. There is no HTML-only choice — the HTML is always made from the Excel |
 | 3 | Depth | How much detail should it go into? | **Standard — recommended** (`L2`, the default depth): purpose, inputs and screens, data model, authorizations, outputs, exceptions, and every routine's signature; why recommended: it is enough to hand the program over without turning the write-up into a second project · **Quick** (`L1`): purpose, inputs, outputs, and the main logic steps · **Deep technical** (`L3`): standard plus a list of every database read, the extension points, and performance notes · **Audit-grade** (`L4`): deep technical plus line-level references, who calls this program, a risk list, and the transport history (transport — the parcel that carries a change to the next system) |
 | 4 | Language | Which language should the document be written in? | Korean · English · Japanese — order follows the language the user is writing in, and the matching one is promoted to first and marked as the recommendation |
+
+**Depth × format notice** — when the answers pair Deep technical or Audit-grade (`L3` / `L4`) with Excel or Excel + HTML, say in one line, in the user's language, in plain words, that what the deeper depth adds — the list of every database read, the extension points, the performance notes, who calls this program, the risk list, the transport history — has no place in the seven Excel sheets and only appears in the Markdown, so All is the recommended format; then let the user re-pick the format **once**. If they keep their choice, go on with it. A run started with fully-specified arguments (`depth=L4 format=xlsx` and the like) asks no questions: give the notice line only, and do not re-ask.
 
 **Round 1 — Target object (only if the arguments did not supply it)**
 - "Which object? (program / FM group / class / CDS / RAP BO name)"
@@ -52,7 +75,7 @@ The content of the four, recommended option first — render each option's meani
 
 **Round 2 — Audience + format** *(covered by the default opener — do not ask separately)*
 - Audience: **Functional** (business readers — SD/FI/MM users) vs **Technical** (developers) vs **Both**
-- Format: **Markdown** (review-friendly, git-friendly) vs **Excel** (project-PMO-friendly, reviewable cell-by-cell)
+- Format: **Markdown** (recommended — review-friendly, git-friendly, the others can still be produced later) vs **Excel** (7 sheets — project-PMO-friendly, reviewable cell-by-cell) vs **Excel + HTML** (the same 7 tabs viewed in a browser; the Excel comes with it) vs **All** (Markdown + Excel + HTML). No HTML-only; a combination the user names in free text (e.g. Markdown + Excel only) is followed.
 - Default when the user says "up to you" / "you choose" → Both + Markdown.
 
 **Round 3 — Depth (pick one)** *(covered by the default opener)*
@@ -76,7 +99,7 @@ Put ONE narrowing question per turn until the ambiguity is ≤3:
 - The rendered `Where-Used` section MUST restate this scope in its header, so a reviewer knows what was (and wasn't) searched.
 
 **Round 5 — Output location**
-- Default: `.sapkit/specs/{object_name}-{YYYYMMDD}-{lang}.{md|xlsx}`
+- Default: `.sapkit/specs/{object_name}-{YYYYMMDD}-{lang}.{md|xlsx|html}` (the `.html` sits next to the `.xlsx`, same name)
 - Language: ko / en / ja (infer it from the user's current language; confirm once).
 
 **Stop condition**: every dimension above carries a concrete answer OR the user explicitly says "skip remaining, use defaults".
@@ -84,7 +107,7 @@ Put ONE narrowing question per turn until the ambiguity is ≤3:
 ## Workflow Steps
 
 **Step 0 — Scope interview** (see § Step-by-Step Scope Narrowing above)
-Never skip it outright unless the user supplies fully-qualified arguments in the `object=... depth=L2 format=md lang=ko` style.
+Never skip it outright unless the user supplies fully-qualified arguments in the `object=... depth=L2 format=xlsx+html lang=ko` style. `format=` takes `md` (Markdown), `xlsx` (Excel), `xlsx+html` (Excel + HTML), `all` (Markdown + Excel + HTML), or `md+xlsx` (Markdown + Excel, no HTML). Such a run asks nothing; the depth × format notice above is given as a line only.
 
 **Step 1 — Inventory** (auto)
 - `SearchObject` — confirm the object and its sub-type
@@ -134,7 +157,7 @@ For objects without UI (a pure class, an FM, a CDS, a RAP without screens), skip
 
 **Step 4 — Render**
 
-Adopt the [sap-writer](../personas/sap-writer.md) persona for this step. Render into whichever format was chosen (MD or Excel), at the chosen depth + language.
+Adopt the [sap-writer](../personas/sap-writer.md) persona for this step. Render into whichever format was chosen (MD, Excel, or both), at the chosen depth + language. The HTML copy is not rendered here — it is made from the finished Excel in Step 5.5.
 
 - **Markdown**: one `.md`, an H2 section per spec dimension, tables for the selection-screen / tables / methods / exits. See § Markdown Template below.
 - **Excel (MANDATORY workflow — template preservation + program-specific imagery, single entry point)**:
@@ -173,6 +196,21 @@ Adopt the [sap-writer](../personas/sap-writer.md) persona for this step. Render 
 - Show a table of contents and the first section inline.
 - Ask one closing question — say it in the user's language, in plain words, shaped per the [plain-language policy](../policies/plain-language.md): one line of why it is being asked (*nothing is written to a file until this is settled*), then the choice — **write it out as it stands (recommended)**, with one line of why (the draft already covers everything the chosen depth asks for), or **name a section to shorten or to go deeper on**, plus the open slot for something neither option covers.
 - On confirmation → write the file → print the absolute path.
+
+**Step 5.5 — HTML copy** (only when the chosen format includes HTML)
+
+Right after Step 5's confirmation settles the delivery, make the HTML from the Excel that passed Step 4's "Verify the artifact", with [xlsx-to-html.mjs](../../tools/spec/xlsx-to-html.mjs) — same folder and name as the Excel, `.html`:
+
+```bash
+node PLUGIN_ROOT/tools/spec/xlsx-to-html.mjs .sapkit/specs/{OBJECT}-{YYYYMMDD}-{lang}.xlsx .sapkit/specs/{OBJECT}-{YYYYMMDD}-{lang}.html --lang <lang> --open
+```
+
+(`PLUGIN_ROOT` as the skill wrapper defines it.) `--lang` is the output language the user chose. The Excel itself is not touched.
+
+- **Open only the first time** HTML is made in a run. A regeneration in the same run (e.g. after a section was redone) drops `--open` and is reported as "updated".
+- **Reading the output**: `WROTE <path>` → made. `OPENED` → the browser launch was accepted, which is not proof a window appeared — give the path as well. `OPEN-FAILED <reason>` → made but not opened (a sandbox that blocks the browser lands here) — give the path. Exit 1 → the Excel could not be read and no HTML was written. Exit 2 → the command line is wrong; fix it and run again.
+- **If the HTML cannot be made**, deliver the Excel as it is and say in one line, in plain words, that the HTML copy could not be made and why. The run has not failed.
+- **Say it in plain words** — that an HTML copy was made and opened in the browser, or that it could not be opened and here is where it is. Never name the renderer, its flags, or its output lines.
 
 ## Markdown Template — L2 Standard Spec skeleton
 
@@ -324,12 +362,12 @@ The PNG signature is verified before any write; non-PNG input is rejected withou
 Close the run by telling the user what was produced. Say it in their language, in plain words, per the [plain-language policy](../policies/plain-language.md) — never as a pasted English block. The elements, in this order:
 
 - **what was written** — which program was documented, at which depth and in which language, said as the depth's plain meaning rather than its label alone;
-- **where the file is** — its path, given once, as the one thing the user has to act on;
+- **where the file is** — its path, given once, as the one thing the user has to act on; when an HTML copy was made, its path too, and whether it opened in the browser;
 - **what is in it** — how many sections it holds and what the write-up had to cover: how many tables it draws on, and whether it has screens or a menu definition;
 - **what the program actually does** — two or three sentences in business terms: what it lists or produces, what the user filters it by, which tables the figures come from, and which authorization checks decide who may run it. Gloss each SAP term the first time it appears;
-- **what could follow**, each said as what it would do rather than by its label: produce the same specification as a spreadsheet instead, go deeper and add a list of everything that calls this program, or write a second copy in another language.
+- **what could follow**, each said as what it would do rather than by its label: produce the same specification as a spreadsheet instead, go deeper and add a list of everything that calls this program, or write a second copy in another language — and, when HTML was not chosen, also make an HTML copy (choosing it makes the Excel if it is missing, then the HTML, from the analysis already done — no second read from SAP — and opens it, per Step 5.5).
 
-Nothing here is a question — it is a report with three offers attached, and the run is finished whether or not the user takes one.
+Nothing here is a question — it is a report with three offers attached (four when HTML was not chosen), and the run is finished whether or not the user takes one.
 
 ## MCP Tools Used
 
