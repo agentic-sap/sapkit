@@ -1,0 +1,3 @@
+[sapkit] transport(resolved): stdio
+NO_PROFILE: neither <tmp>\cwd\.sapkit\active-profile.txt nor <tmp>\cwd\.sapkit\sap.env was found — starting in inspection-only mode with no connection.
+[sapkit] profile: (none) · tier=UNKNOWN · systemType=cloud · connection=none · exposition=system
