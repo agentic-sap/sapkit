@@ -1,0 +1,13 @@
+**Access inventory (from my instructions; I haven't called anything)**
+
+- **Tools:** No tool schemas are listed in this session. My instructions refer to a Write tool, a Bash tool, PowerShell as the primary shell, and "dedicated file/search tools", so I probably have file read/write/search and shell tools, but I can't confirm exact names.
+- **Skills:** none
+- **Plugins:** none
+- **MCP servers:** none
+- **Slash commands:** `/code-review ultra` (and `/code-review ultra <PR#>`), `/ultrareview` (deprecated alias), and `/fast`. These are user-triggered, and I can't launch them myself.
+- **Web/search capability:** none explicitly provided
+- **Files:**
+  - Memory directory: `C:\Users\hjaew\.claude\projects\C--Users-hjaew-AppData-Local-Temp-sapkit-panJ-blind\memory\`. No `MEMORY.md` contents or memories have been shown to me.
+  - Working directory: `C:\Users\hjaew\AppData\Local\Temp\sapkit-panJ\blind`, which is not a git repo. I haven't inspected its contents.
+
+**Answer:** Korea's standard VAT rate is 10%, and the business registration number has 10 digits (format XXX-XX-XXXXX).

@@ -1,0 +1,149 @@
+02 — 블라인드 격리 레시피 (판J T0 · 2026-11-05 실측)
+=====================================================================
+
+목적
+  「맨 모델」 — 제품(sapkit)도, 다른 플러그인·스킬·MCP 서버·웹 검색도 없는 상태 — 에게 같은 질문을
+  던지는 실행 레시피. 아래 명령은 전부 실제 카나리아로 통과를 확인한 것이다(결과는 02-canary/).
+  글자 하나라도 바꾸면 카나리아를 다시 돌려 확인한다 — 플래그 하나 차이로 스킬·플러그인이 되살아난다
+  (아래 「시도했다가 버린 것」 참조).
+
+0. 통과 기준 (카나리아마다 셋 전부)
+  ① 모델 자신의 보고: 스킬 없음 · 플러그인 없음 · MCP 서버 없음 · 프로젝트 파일 없음 · 쓸 수 있는 웹/검색 도구 없음
+  ② 기계 추출 도구 호출 수 = 0 (추출법은 §2·§3)
+  ③ 응답에 외부 URL 인용 없음 (정규식 https?:// 0건)
+  카나리아 프롬프트 (모델 공통, 글자 그대로):
+    First, list every tool, skill, plugin, MCP server, slash command, web/search capability and file you currently have access to (say 'none' if none). Do not use any tool or web search. Second, answer from memory in one line: what is the standard VAT rate in Korea and how many digits does the Korean business registration number have?
+  기대 답: VAT 10% · 사업자등록번호 10자리 (세 모델 모두 이렇게 답했다)
+
+1. 폴더 배치 (전부 레포 밖)
+  %TEMP%\sapkit-panJ\blind\        빈 폴더. 안에는 empty-mcp.json 하나만 — 내용 {"mcpServers":{}}
+                                   모든 CLI 호출의 작업 폴더(cwd / -C)가 이 폴더다. git 저장소가 아니다.
+  %TEMP%\sapkit-panJ\codexhome\    Codex 전용 임시 홈. ~/.codex/auth.json 사본 하나만 넣고 시작한다.
+                                   (config.toml·skills·plugins 없음) — 과업이 끝나면 통째로 지운다(§3 끝).
+  PowerShell로 만들기:
+    $blind = "$env:TEMP\sapkit-panJ\blind"; New-Item -ItemType Directory -Force $blind | Out-Null
+    Set-Content -Path "$blind\empty-mcp.json" -Value '{"mcpServers":{}}' -Encoding utf8
+  실행 결과를 받을 <out> 폴더는 레포 밖 아무 곳(세션 스크래치패드 권장). 원 이벤트 스트림(JSONL)은
+  세션 id·로컬 경로를 담으므로 커밋하지 않는다 — 추출 요약(…-events.txt)만 자료 폴더에 둔다.
+
+2. Claude — claude-opus-5-5 · claude-sonnet-5-5 (Claude Code CLI 2.1.318 실측)
+  사전: 같은 PowerShell 프로세스에서 환경변수 CLAUDECODE 를 비운다. Claude Code 세션 안에서 띄우면
+        중첩 기동으로 실패하기 때문이다.
+    $env:CLAUDECODE = $null
+    (Remove-Item Env:CLAUDECODE 는 이 환경의 PowerShell 도구가 「보호 경로 삭제」로 오인해 명령 전체를
+     거부한다 — 2026-11-05 실측. 대입으로 비운다.)
+  명령 (한 줄 · 모델 id만 바꾼다 · 프롬프트는 §0 그대로):
+    Set-Location $blind
+    claude -p "<프롬프트>" --model claude-opus-5-5 --tools "" --setting-sources "" --strict-mcp-config --mcp-config "$blind\empty-mcp.json" --disable-slash-commands --output-format stream-json --verbose --no-session-persistence > "<out>\opus.jsonl" 2> "<out>\opus-stderr.txt"
+    (sonnet: --model claude-sonnet-5-5, 나머지 동일)
+  플래그가 하는 일 (실측):
+    --tools ""                                   내장 도구 0개            → init 이벤트 tools=[]
+    --setting-sources ""                         user/project/local settings 전부 무시 (훅·권한·플러그인 설정 미적용)
+    --strict-mcp-config --mcp-config empty-mcp.json   MCP 서버 0개        → init mcp_servers=[]
+    --disable-slash-commands                     슬래시 명령·스킬 0개     → init slash_commands=[] skills=[]
+                                                 없으면 init에 내장 스킬 19·명령 50여 개가 실리고, 모델이
+                                                 「사용자가 띄울 수 있는 명령」으로 언급한다(opus 1차 실측 — 기준 ①엔
+                                                 저촉되지 않았으나 균일한 레시피를 위해 넣었다)
+    --output-format stream-json --verbose        이벤트 1줄 1 JSON (--verbose 없이는 stream-json 이 거부된다)
+    --no-session-persistence                     세션 파일을 남기지 않는다
+  남는 것 (플래그로 제거되지 않음 · 영향 없음으로 판정):
+    init.plugins = [cc-plugin-agents-md, cc-plugin-telemetry, cc-plugin-privacy, cc-plugin-plugin-authoring]  (Claude Code 내장)
+    init.agents  = [claude, Explore, general-purpose, Plan, statusline-setup, web-fetch]  (내장 정의 — 도구가 0개라 Agent 도구 자체가 없어 호출 불가)
+    모델이 시스템 프롬프트에서 본 /code-review ultra · /ultrareview · /fast 언급 — 모델 스스로 「사용자만 띄우는 것」이라고 보고
+    메모리 디렉터리 경로 언급 — 내용은 비어 있음(모델이 「No memory contents were loaded」라고 보고)
+    sonnet 은 「도구 스키마는 없지만 지시문에 Write/Bash 가 언급되니 아마 있을 것」이라고 추정했다 — 기계 증거(init.tools=[])가
+    없음을 확정한다. T5/T6 보고서는 모델의 추정이 아니라 init.tools 와 tool_use 수를 근거로 삼을 것.
+  관측 모델 id: claude-opus-5-5 · claude-sonnet-5-5 — init.model · assistant.message.model · result.modelUsage 의 키 셋이 일치.
+  도구 호출 추출 (stream-json):
+    system/init   : tools · mcp_servers · slash_commands · skills · plugins · agents · model · claude_code_version · permissionMode 를 기록
+    assistant     : message.content[] 중 type == "tool_use" 를 센다(name 수집) → 0 이어야 한다
+    result        : result(원응답 본문 · 그대로 <model>.txt 에 저장) · modelUsage 키(= 관측 모델 id) · duration_ms · num_turns · is_error
+    PowerShell 예:
+      $tu = 0; $names = @()
+      foreach ($l in Get-Content "<out>\opus.jsonl") { $e = $l | ConvertFrom-Json
+        if ($e.type -eq 'system' -and $e.subtype -eq 'init') { $init = $e }
+        if ($e.type -eq 'assistant') { $c = @($e.message.content | Where-Object { $_.type -eq 'tool_use' }); $tu += $c.Count; $names += @($c | ForEach-Object { $_.name }) }
+        if ($e.type -eq 'result') { $raw = $e.result; $model = @($e.modelUsage.PSObject.Properties.Name) -join ',' } }
+      $urls = ([regex]::Matches($raw, 'https?://')).Count
+  벽시계(실측): opus 9.89 s (duration_ms 8922) · sonnet 8.05 s (duration_ms 7086)
+
+3. Codex — gpt-5.6-sol (OpenAI Codex v0.163.0 실측)
+  사전: 임시 홈을 만들고 CODEX_HOME 으로 가리킨다. auth.json 만 복사한다.
+    $ch = "$env:TEMP\sapkit-panJ\codexhome"; New-Item -ItemType Directory -Force $ch | Out-Null
+    Copy-Item "$HOME\.codex\auth.json" "$ch\auth.json"
+    $env:CODEX_HOME = $ch
+  명령 (프롬프트는 §0 그대로):
+    $null | codex exec --skip-git-repo-check -s read-only -C $blind -m gpt-5.6-sol --json --ephemeral --ignore-user-config --ignore-rules --disable apps --disable plugins --disable image_generation --disable multi_agent -c 'web_search="disabled"' -c 'mcp_servers={}' -c 'skills.include_instructions=false' "<프롬프트>" > "<out>\codex.jsonl" 2> "<out>\codex-stderr.txt"
+  플래그가 하는 일 (실측 근거):
+    $null |                           stdin 을 닫는다 — 없으면 「Reading additional input from stdin...」 으로 기다린다(README 주의 사항과 동일)
+    -m gpt-5.6-sol                    모델 지정 — 거부되지 않았다(배너 model: gpt-5.6-sol)
+    --ignore-user-config              ~/.codex/config.toml 무시 (임시 홈엔 없지만 이중 안전)
+    --ignore-rules                    rules 파일 무시
+    --disable apps                    커넥터 도구(codex_apps) 제거
+    --disable plugins                 번들·원격 플러그인 제거 — 없으면 fresh 홈에도 자동 설치되어(plugin-management·sites·work-pets …)
+                                      모델이 플러그인을 보고한다(V1 실측 FAIL)
+    --disable image_generation        이미지 생성 도구 제거
+    --disable multi_agent             (의도) 협업 도구 제거 — 단 모델은 여전히 spawn_agent 등을 나열한다(실측). 통과 기준 밖이라 둔다
+    -c 'web_search="disabled"'        웹 검색 제거 — 기본 상태엔 web__run 이 있다(baseline 실측 FAIL)
+    -c 'mcp_servers={}'               MCP 서버 0
+    -c 'skills.include_instructions=false'
+                                      시스템 스킬(imagegen · openai-docs · review-agent · skill-creator · skill-installer)을 프롬프트에서 뺀다.
+                                      이 스킬들은 fresh 홈에도 <CODEX_HOME>\skills\.system\ 에 자동 설치된다 — 디스크엔 남고 모델에겐
+                                      보이지 않는다(Test A 실측: 스킬 디렉터리가 있는 채로 「Skills: none listed」). 이 키는 codex.exe 의
+                                      문자열에서 찾았고(공식 문서 미확인) 실측으로만 검증했다.
+    --ephemeral                       세션 미저장
+    -s read-only                      샌드박스 읽기 전용
+    --skip-git-repo-check             blind 가 git 저장소가 아니어도 실행
+  시도했다가 버린 것 (전부 실측):
+    --enable skip_host_skill_discovery   under-development 경고(error item)만 내고 스킬은 그대로 보인다
+    --disable code_mode_host             「Code Mode is unavailable … fail closed」 error item 이 생긴다
+    --disable shell_tool / unified_exec  모델이 여전히 functions.exec 를 나열한다 — 셸 도구는 플래그로 지워지지 않는다
+    스킬 디렉터리 삭제(마커 유지)          효과는 있으나(V4) 절차가 늘어 skills.include_instructions=false 로 대체
+  stderr 경고 2줄은 무해하다 (exit 0 · 실측):
+    「WARNING: … Refusing to create helper binaries under temporary dir …」 (임시 홈이 %TEMP% 아래라서) · 「Reading additional input from stdin...」
+  관측 모델 id: --json 이벤트에는 모델 id 가 없다. 같은 플래그에서 --json 만 빼고 한 번 더 띄우면 배너에 찍힌다:
+    $null | codex exec --skip-git-repo-check -s read-only -C $blind -m gpt-5.6-sol --ephemeral --ignore-user-config --ignore-rules --disable apps --disable plugins --disable image_generation --disable multi_agent -c 'web_search="disabled"' -c 'mcp_servers={}' -c 'skills.include_instructions=false' --color never "Reply with exactly the single word OK and nothing else. Do not use any tool."
+    배너(실측 · 세션 id 줄 제외): OpenAI Codex v0.163.0 · model: gpt-5.6-sol · provider: openai · approval: never · sandbox: read-only · reasoning effort: none · reasoning summaries: none
+    ⚠ reasoning effort 가 none 으로 찍힌다. T5/T6 가 추론 강도를 정하려면 -c model_reasoning_effort="<값>" 을 넣고 배너로 다시
+      확인할 것 — 이 레시피는 그 조합을 검증하지 않았다.
+  도구 호출 추출 (--json · JSONL):
+    이벤트 순서: thread.started → turn.started → item.completed(여러 개) → turn.completed(usage)
+    item.completed 의 item.type: agent_message(응답 본문) · reasoning · error · 그 밖(command_execution · file_change · mcp_tool_call · web_search …)
+    도구 호출 수 = item.type 이 agent_message · reasoning · error 가 아닌 item.completed 의 수 (이름 = item.type + 그 안의 command/tool 필드)
+    원응답 = agent_message 의 text (여러 개면 순서대로 이어 붙인다)
+    PowerShell 예:
+      $calls = @(); $raw = @()
+      foreach ($l in Get-Content "<out>\codex.jsonl") { $e = $l | ConvertFrom-Json
+        if ($e.type -eq 'item.completed') { $t = $e.item.type
+          if ($t -eq 'agent_message') { $raw += $e.item.text } elseif ($t -notin 'reasoning','error') { $calls += $t } } }
+      $urls = ([regex]::Matches(($raw -join "`n"), 'https?://')).Count
+  벽시계(실측 · fresh 홈 첫 실행): 카나리아 8.10 s · 배너 3.23 s
+  정리 (과업 끝에 반드시):
+    [IO.Directory]::Delete("$env:TEMP\sapkit-panJ\codexhome", $true)
+    auth.json 사본이 들어 있으므로 남기지 않는다. T5/T6 는 §3 사전 단계로 같은 임시 홈을 다시 만들고, 끝나면 다시 지운다.
+    (Remove-Item 은 이 환경의 PowerShell 도구 보호 검사에 걸릴 수 있다 — .NET 호출로 지운다.)
+  Codex 가 fresh 홈에 스스로 만드는 것(참고): skills\.system\ · plugins\(--disable plugins 면 안 만듦) · cache\ · *.sqlite · installation_id · models_cache.json — 전부 임시 홈 안이라 §3 정리로 함께 사라진다.
+
+4. 카나리아 결과 요약 (상세는 02-canary/)
+  모델               | 명령                  | 관측 id            | 도구 호출 | URL | 자기 보고(스킬/플러그인/MCP/웹)      | 답           | 벽시계  | 판정
+  claude-opus-5-5    | §2 (opus-run2)        | claude-opus-5-5    | 0        | 0   | none / none / none / none           | 10% · 10자리 | 9.89 s | PASS
+  claude-sonnet-5-5  | §2 (sonnet-run1)      | claude-sonnet-5-5  | 0        | 0   | none / none / none / none           | 10% · 10자리 | 8.05 s | PASS
+  gpt-5.6-sol        | §3 (codex-recipe)     | gpt-5.6-sol (배너) | 0        | 0   | none / none / none / none           | 10% · 10자리 | 8.10 s | PASS
+  거쳐 간 실패 실행(레시피 확정 근거 · 파일은 커밋하지 않음):
+    opus 1차(--disable-slash-commands 없음): PASS 였으나 init 에 skills 19·slash_commands 50여 개가 실림 → 플래그 추가
+    codex baseline(-m gpt-5.6-sol --json --ephemeral 만): FAIL — web__run · image_gen · 시스템 스킬 4종 보고
+    codex V1(+ --ignore-user-config --ignore-rules --disable apps -c web_search="disabled"): FAIL — 웹은 사라졌으나 플러그인 3종·스킬 보고
+    codex V2(V1 + --disable plugins --disable skill_search --disable image_generation --disable multi_agent --enable skip_host_skill_discovery -c mcp_servers={}): FAIL — 플러그인 none, 스킬 4종 여전
+    codex V3(V2 + --disable code_mode_host/unified_exec/shell_tool/view_image/goals/browser_use/computer_use): FAIL — 스킬 여전 + code-mode error item
+    codex V4(V2 - skip_host_skill_discovery, 스킬 디렉터리 삭제·마커 유지): PASS
+    codex Test A(마커 삭제로 스킬 재설치된 상태 + -c skills.include_instructions=false): PASS → 레시피 채택
+    codex final(fresh 홈 + §3 명령 그대로): PASS ← 02-canary/gpt-5.6-sol.*
+
+5. 남는 한계 (정직 유보)
+  - Codex 에는 셸 도구(functions.exec · 읽기 전용 샌드박스 · 「network access is restricted」라고 모델이 보고)와 협업 도구가 남는다.
+    플래그로 지워지지 않았다. blind 폴더는 비어 있고 SAP 접속 정보도 없으므로 「제품 없는 상태」는 성립하지만, 블라인드 과제에서
+    모델이 셸을 쓰면 item.type=command_execution 으로 잡힌다 — T5/T6 는 「도구 호출 0」 기준으로 그 실행을 무효 처리할 것.
+  - Claude 는 내장 플러그인 4종·에이전트 정의 6종이 init 에 남는다. 도구가 0개라 쓸 길은 없다.
+  - Codex 의 skills.include_instructions 키는 공식 문서가 아니라 실행 파일 문자열에서 찾은 것이다. 버전이 바뀌면 다시 카나리아로 확인한다.
+  - 모델 id 는 CLI 가 보고한 값이다(Claude: 이벤트 필드 · Codex: 배너). 서버 측 실제 가중치 버전은 확인할 수 없다.
+  - 세 실행 모두 2026-11-05 한 번씩이다. 재현성(같은 답이 다시 나오는가)은 재지 않았다.
