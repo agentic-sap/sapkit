@@ -1,0 +1,321 @@
+60-checker/claude-opus-5-5/C-INC-06.txt — 동봉 검사기 원출력 (판J T6 · 2026-11-05)
+대상: docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-06.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-06.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-06.abap
+--- stdout (0 bytes) ---
+
+--- stderr (114 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-06.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-06.abap
+--- stdout (8716 bytes) ---
+Comment              *&=====================================================================*
+Comment              *& Report ZSAPKIT_DEMO_PROG  (Main program)
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Include order: TOP -> SEL -> CLASS -> FORM
+Comment              *& Event blocks live in the main program, after all INCLUDEs, so that
+Comment              *& the selection screen (SEL) and the logic (CLASS/FORM) are already
+Comment              *& declared when the event is processed.
+Comment              *&=====================================================================*
+Report               REPORT zsapkit_demo_prog .
+Include              INCLUDE zsapkit_demo_prog_top .
+Comment              " Global types / data
+Include              INCLUDE zsapkit_demo_prog_sel .
+Comment              " Selection screen (pa_bukrs, pa_bupla)
+Include              INCLUDE zsapkit_demo_prog_class .
+Comment              " Local classes (lcl_validator, lcl_app)
+Include              INCLUDE zsapkit_demo_prog_form .
+Comment              " FORM routines (thin wrappers)
+Comment              *----------------------------------------------------------------------*
+Comment              * INITIALIZATION
+Comment              *----------------------------------------------------------------------*
+Move                 INITIALIZATION .
+Perform              PERFORM init_selection_screen .
+Comment              *----------------------------------------------------------------------*
+Comment              * AT SELECTION-SCREEN ON pa_bupla
+Comment              *   - Existence check of business place (J_1BBRANCH: BUKRS + BRANCH)
+Comment              *   - Error message here re-opens ONLY pa_bupla for input
+Comment              *----------------------------------------------------------------------*
+Move                 AT SELECTION - SCREEN ON pa_bupla .
+Perform              PERFORM check_bupla USING pa_bukrs pa_bupla .
+Comment              *----------------------------------------------------------------------*
+Comment              * START-OF-SELECTION
+Comment              *----------------------------------------------------------------------*
+StartOfSelection     START - OF - SELECTION .
+Perform              PERFORM main .
+Comment              *&=====================================================================*
+Comment              *& Include ZSAPKIT_DEMO_PROG_TOP
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Global declarations
+Comment              *&=====================================================================*
+Move                 TABLES sscrfields .
+TypeBegin            TYPES BEGIN OF gty_s_bupla ,
+Type                 TYPES bukrs TYPE bukrs ,
+Type                 TYPES branch TYPE j_1bbranc_ ,
+Type                 TYPES name TYPE name1 ,
+TypeEnd              TYPES END OF gty_s_bupla .
+Data                 DATA gs_bupla TYPE gty_s_bupla .
+ClassDeferred        CLASS lcl_validator DEFINITION DEFERRED .
+ClassDeferred        CLASS lcl_app DEFINITION DEFERRED .
+Comment              *&=====================================================================*
+Comment              *& Include ZSAPKIT_DEMO_PROG_SEL
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Selection screen definition
+Comment              *& (pa_bukrs is required because business place key = BUKRS + BRANCH)
+Comment              *&=====================================================================*
+SelectionScreen      SELECTION - SCREEN BEGIN OF BLOCK b01 WITH FRAME TITLE TEXT - b01 .
+Parameter            PARAMETERS pa_bukrs TYPE bukrs OBLIGATORY MEMORY ID buk ,
+Parameter            PARAMETERS pa_bupla TYPE j_1bbranc_ OBLIGATORY .
+SelectionScreen      SELECTION - SCREEN END OF BLOCK b01 .
+Comment              *&=====================================================================*
+Comment              *& Include ZSAPKIT_DEMO_PROG_CLASS
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Local classes: validation logic is kept here (testable, reusable)
+Comment              *&=====================================================================*
+ClassDefinition      CLASS lcl_validator DEFINITION FINAL .
+Public               PUBLIC SECTION .
+Comment              "! Raises a type-E message if business place does not exist
+MethodDef            CLASS - METHODS check_bupla_exists IMPORTING iv_bukrs TYPE bukrs iv_bupla TYPE j_1bbranc_ ,
+Comment              "! Returns abap_true if business place exists
+MethodDef            CLASS - METHODS bupla_exists IMPORTING iv_bukrs TYPE bukrs iv_bupla TYPE j_1bbranc_ RETURNING VALUE ( rv_exists ) TYPE abap_bool .
+EndClass             ENDCLASS .
+ClassImplementation  CLASS lcl_validator IMPLEMENTATION .
+MethodImplementation METHOD check_bupla_exists .
+Comment              " Nothing to check if empty (OBLIGATORY handles required-ness)
+If                   IF iv_bupla IS INITIAL .
+Return               RETURN .
+EndIf                ENDIF .
+Comment              " Company code must be filled to resolve business place key
+If                   IF iv_bukrs IS INITIAL .
+Message              MESSAGE 'Enter a company code before the business place.' ( e01 ) TYPE 'E' .
+EndIf                ENDIF .
+If                   IF bupla_exists ( iv_bukrs = iv_bukrs iv_bupla = iv_bupla ) = abap_false .
+Message              MESSAGE e398 ( 00 ) WITH 'Business place' ( e02 ) iv_bupla 'does not exist in company code' ( e03 ) iv_bukrs .
+EndIf                ENDIF .
+EndMethod            ENDMETHOD .
+MethodImplementation METHOD bupla_exists .
+Select               SELECT SINGLE @ abap_true FROM j_1bbranch WHERE bukrs = @ iv_bukrs AND branch = @ iv_bupla INTO @ rv_exists .
+If                   IF sy - subrc <> 0 .
+Move                 rv_exists = abap_false .
+EndIf                ENDIF .
+EndMethod            ENDMETHOD .
+EndClass             ENDCLASS .
+ClassDefinition      CLASS lcl_app DEFINITION FINAL .
+Public               PUBLIC SECTION .
+MethodDef            CLASS - METHODS run IMPORTING iv_bukrs TYPE bukrs iv_bupla TYPE j_1bbranc_ .
+EndClass             ENDCLASS .
+ClassImplementation  CLASS lcl_app IMPLEMENTATION .
+MethodImplementation METHOD run .
+Select               SELECT SINGLE bukrs , branch , name FROM j_1bbranch WHERE bukrs = @ iv_bukrs AND branch = @ iv_bupla INTO CORRESPONDING FIELDS OF @ gs_bupla .
+Write                WRITE / 'Company code  :' ( l01 ) ,
+Write                WRITE gs_bupla - bukrs ,
+Write                WRITE / 'Business place:' ( l02 ) ,
+Write                WRITE gs_bupla - branch ,
+Write                WRITE / 'Name          :' ( l03 ) ,
+Write                WRITE gs_bupla - name .
+EndMethod            ENDMETHOD .
+EndClass             ENDCLASS .
+Comment              *&=====================================================================*
+Comment              *& Include ZSAPKIT_DEMO_PROG_FORM
+Comment              *&---------------------------------------------------------------------*
+Comment              *& FORM routines: thin wrappers called from event blocks in main
+Comment              *&=====================================================================*
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Form INIT_SELECTION_SCREEN
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM init_selection_screen .
+If                   IF pa_bukrs IS INITIAL .
+Move                 GET PARAMETER ID 'BUK' FIELD pa_bukrs .
+EndIf                ENDIF .
+EndForm              ENDFORM .
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Form CHECK_BUPLA
+Comment              *&   Called from: AT SELECTION-SCREEN ON pa_bupla (main program)
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM check_bupla USING uv_bukrs TYPE bukrs uv_bupla TYPE j_1bbranc_ .
+Call                 lcl_validator => check_bupla_exists ( iv_bukrs = uv_bukrs iv_bupla = uv_bupla ) .
+EndForm              ENDFORM .
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Form MAIN
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM main .
+Call                 lcl_app => run ( iv_bukrs = pa_bukrs iv_bupla = pa_bupla ) .
+EndForm              ENDFORM .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-06.abap
+--- stdout (4341 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 11,
+      "endLine": 11,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 12,
+      "endLine": 12,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 13,
+      "endLine": 13,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 14,
+      "endLine": 14,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 46,
+      "endLine": 46,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 48,
+      "endLine": 48,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 54,
+      "endLine": 54,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 64,
+      "endLine": 64,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 83,
+      "endLine": 83,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 84,
+      "endLine": 84,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 114,
+      "endLine": 114,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 136,
+      "endLine": 136,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 140,
+      "endLine": 140,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 142,
+      "endLine": 142,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 14,
+    "bySeverity": {
+      "medium": 14
+    },
+    "byCategory": {
+      "quality": 14
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=14 analyze_info=0 error_grade=0 warnings=14 source_lines=177 bytes=6364 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

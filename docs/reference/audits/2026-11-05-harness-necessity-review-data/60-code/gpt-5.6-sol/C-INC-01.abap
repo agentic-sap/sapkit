@@ -1,0 +1,24 @@
+REPORT zsapkit_demo_clas.
+
+CLASS zsapkit_demo_clas DEFINITION FINAL.
+  PUBLIC SECTION.
+    TYPES:
+      BEGIN OF ty_slot,
+        reject_date TYPE d,
+      END OF ty_slot.
+
+    METHODS is_open
+      IMPORTING
+        is_slot       TYPE ty_slot
+      RETURNING
+        VALUE(rv_open) TYPE abap_bool.
+ENDCLASS.
+
+CLASS zsapkit_demo_clas IMPLEMENTATION.
+  METHOD is_open.
+    rv_open = xsdbool(
+      is_slot-reject_date IS INITIAL OR
+      is_slot-reject_date = '        '
+    ).
+  ENDMETHOD.
+ENDCLASS.

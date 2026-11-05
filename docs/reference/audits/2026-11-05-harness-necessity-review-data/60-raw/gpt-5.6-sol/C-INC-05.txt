@@ -1,0 +1,57 @@
+```abap
+REPORT zsapkit_demo_prog2.
+
+CONSTANTS gc_key_length TYPE i VALUE 4.
+
+DATA:
+  gv_key      TYPE c LENGTH 4,
+  gv_pattern  TYPE trdir-name,
+  gv_base     TYPE string,
+  gv_token    TYPE string,
+  gt_tokens   TYPE STANDARD TABLE OF string WITH EMPTY KEY,
+  gt_programs TYPE STANDARD TABLE OF trdir-name WITH EMPTY KEY.
+
+START-OF-SELECTION.
+
+  gv_base = sy-repid.
+
+  "버전 접미사(예: PROG2의 2)를 제거하여 개명 후에도 동일한 키를 사용한다.
+  REPLACE REGEX '[0-9]+$' IN gv_base WITH ''.
+
+  SPLIT gv_base AT '_' INTO TABLE gt_tokens.
+  READ TABLE gt_tokens INTO gv_token INDEX lines( gt_tokens ).
+
+  IF sy-subrc = 0 AND gv_token IS NOT INITIAL.
+    IF strlen( gv_token ) >= gc_key_length.
+      gv_key = substring(
+        val = gv_token
+        off = 0
+        len = gc_key_length ).
+    ELSE.
+      gv_key = gv_token.
+    ENDIF.
+  ENDIF.
+
+  IF gv_key IS INITIAL.
+    MESSAGE '선택 키를 결정할 수 없습니다.' TYPE 'E'.
+  ENDIF.
+
+  gv_pattern = |%{ gv_key }%|.
+
+  SELECT name
+    FROM trdir
+    WHERE name LIKE @gv_pattern
+    ORDER BY name
+    INTO TABLE @gt_programs.
+
+  WRITE: / |Selection key: { gv_key }|.
+
+  IF gt_programs IS INITIAL.
+    WRITE: / '조건에 해당하는 프로그램이 없습니다.'.
+    RETURN.
+  ENDIF.
+
+  LOOP AT gt_programs INTO DATA(gv_program).
+    WRITE: / gv_program.
+  ENDLOOP.
+```

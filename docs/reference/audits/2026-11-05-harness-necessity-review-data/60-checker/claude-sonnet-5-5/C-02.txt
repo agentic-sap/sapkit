@@ -1,0 +1,252 @@
+60-checker/claude-sonnet-5-5/C-02.txt — 동봉 검사기 원출력 (판J T6 · 2026-11-05)
+대상: docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-02.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-02.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-02.abap
+--- stdout (0 bytes) ---
+
+--- stderr (112 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-02.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-02.abap
+--- stdout (6676 bytes) ---
+ClassDefinition      CLASS zcx_judge_c02_discount DEFINITION PUBLIC INHERITING FROM cx_static_check CREATE PUBLIC .
+Public               PUBLIC SECTION .
+Constant             CONSTANTS BEGIN OF gc_reason ,
+Constant             CONSTANTS negative_gross TYPE string VALUE 'NEGATIVE_GROSS' ,
+Constant             CONSTANTS invalid_percent TYPE string VALUE 'INVALID_PERCENT' ,
+Constant             CONSTANTS END OF gc_reason .
+Data                 DATA mv_reason TYPE string READ - ONLY .
+MethodDef            METHODS constructor IMPORTING iv_reason TYPE string OPTIONAL previous LIKE previous OPTIONAL .
+EndClass             ENDCLASS .
+ClassImplementation  CLASS zcx_judge_c02_discount IMPLEMENTATION .
+MethodImplementation METHOD constructor .
+Call                 super -> constructor ( previous = previous ) .
+Move                 mv_reason = iv_reason .
+EndMethod            ENDMETHOD .
+EndClass             ENDCLASS .
+ClassDefinition      CLASS zcl_judge_c02_discount DEFINITION PUBLIC FINAL CREATE PUBLIC .
+Public               PUBLIC SECTION .
+Type                 TYPES ty_amount TYPE p LENGTH 13 DECIMALS 2 .
+Type                 TYPES ty_percent TYPE p LENGTH 5 DECIMALS 2 .
+Comment              "! Computes gross reduced by the given percentage, rounded to 2 decimals.
+Comment              "! @parameter iv_gross   | Gross amount, must be >= 0
+Comment              "! @parameter iv_percent | Discount percentage, must be within 0 and 100
+Comment              "! @parameter rv_net     | Net amount after discount
+Comment              "! @raising zcx_judge_c02_discount | Input out of the allowed range
+MethodDef            METHODS calculate IMPORTING iv_gross TYPE ty_amount iv_percent TYPE ty_percent RETURNING VALUE ( rv_net ) TYPE ty_amount RAISING zcx_judge_c02_discount .
+EndClass             ENDCLASS .
+ClassImplementation  CLASS zcl_judge_c02_discount IMPLEMENTATION .
+MethodImplementation METHOD calculate .
+Data                 DATA lv_result TYPE p LENGTH 16 DECIMALS 6 .
+If                   IF iv_gross < 0 .
+Raise                RAISE EXCEPTION TYPE zcx_judge_c02_discount EXPORTING iv_reason = zcx_judge_c02_discount => gc_reason - negative_gross .
+EndIf                ENDIF .
+If                   IF iv_percent < 0 OR iv_percent > 100 .
+Raise                RAISE EXCEPTION TYPE zcx_judge_c02_discount EXPORTING iv_reason = zcx_judge_c02_discount => gc_reason - invalid_percent .
+EndIf                ENDIF .
+Move                 lv_result = iv_gross * ( 100 - iv_percent ) / 100 .
+Move                 rv_net = round ( val = lv_result dec = 2 mode = cl_abap_math => round_half_up ) .
+EndMethod            ENDMETHOD .
+EndClass             ENDCLASS .
+ClassDefinition      CLASS ltc_discount DEFINITION FINAL FOR TESTING DURATION SHORT RISK LEVEL HARMLESS .
+Private              PRIVATE SECTION .
+Data                 DATA mo_cut TYPE REF TO zcl_judge_c02_discount .
+MethodDef            METHODS setup .
+MethodDef            METHODS normal_discount FOR TESTING RAISING cx_static_check .
+MethodDef            METHODS rounding_to_two_dec FOR TESTING RAISING cx_static_check .
+MethodDef            METHODS zero_discount FOR TESTING RAISING cx_static_check .
+MethodDef            METHODS full_discount FOR TESTING RAISING cx_static_check .
+MethodDef            METHODS negative_gross_rejected FOR TESTING .
+MethodDef            METHODS percent_too_high_rejected FOR TESTING .
+MethodDef            METHODS negative_percent_rejected FOR TESTING .
+EndClass             ENDCLASS .
+ClassImplementation  CLASS ltc_discount IMPLEMENTATION .
+MethodImplementation METHOD setup .
+Move                 mo_cut = NEW # ( ) .
+EndMethod            ENDMETHOD .
+MethodImplementation METHOD normal_discount .
+Call                 cl_abap_unit_assert => assert_equals ( act = mo_cut -> calculate ( iv_gross = '200.00' iv_percent = '15.00' ) exp = CONV zcl_judge_c02_discount => ty_amount ( '170.00' ) msg = '15 % off 200.00 should be 170.00' ) .
+EndMethod            ENDMETHOD .
+MethodImplementation METHOD rounding_to_two_dec .
+Comment              " 19.99 * 0.875 = 17.49125 -> 17.49
+Call                 cl_abap_unit_assert => assert_equals ( act = mo_cut -> calculate ( iv_gross = '19.99' iv_percent = '12.50' ) exp = CONV zcl_judge_c02_discount => ty_amount ( '17.49' ) msg = 'Result must be rounded to 2 decimals' ) .
+EndMethod            ENDMETHOD .
+MethodImplementation METHOD zero_discount .
+Call                 cl_abap_unit_assert => assert_equals ( act = mo_cut -> calculate ( iv_gross = '99.95' iv_percent = '0.00' ) exp = CONV zcl_judge_c02_discount => ty_amount ( '99.95' ) msg = '0 % discount must keep the gross amount' ) .
+EndMethod            ENDMETHOD .
+MethodImplementation METHOD full_discount .
+Call                 cl_abap_unit_assert => assert_equals ( act = mo_cut -> calculate ( iv_gross = '123.45' iv_percent = '100.00' ) exp = CONV zcl_judge_c02_discount => ty_amount ( '0.00' ) msg = '100 % discount must yield zero' ) .
+EndMethod            ENDMETHOD .
+MethodImplementation METHOD negative_gross_rejected .
+Try                  TRY .
+Call                 mo_cut -> calculate ( iv_gross = '-1.00' iv_percent = '10.00' ) .
+Call                 cl_abap_unit_assert => fail ( msg = 'Negative gross must raise an exception' ) .
+Catch                CATCH zcx_judge_c02_discount INTO DATA ( lx ) .
+Call                 cl_abap_unit_assert => assert_equals ( act = lx -> mv_reason exp = zcx_judge_c02_discount => gc_reason - negative_gross ) .
+EndTry               ENDTRY .
+EndMethod            ENDMETHOD .
+MethodImplementation METHOD percent_too_high_rejected .
+Try                  TRY .
+Call                 mo_cut -> calculate ( iv_gross = '100.00' iv_percent = '100.01' ) .
+Call                 cl_abap_unit_assert => fail ( msg = 'Percentage above 100 must raise an exception' ) .
+Catch                CATCH zcx_judge_c02_discount INTO DATA ( lx ) .
+Call                 cl_abap_unit_assert => assert_equals ( act = lx -> mv_reason exp = zcx_judge_c02_discount => gc_reason - invalid_percent ) .
+EndTry               ENDTRY .
+EndMethod            ENDMETHOD .
+MethodImplementation METHOD negative_percent_rejected .
+Try                  TRY .
+Call                 mo_cut -> calculate ( iv_gross = '100.00' iv_percent = '-0.01' ) .
+Call                 cl_abap_unit_assert => fail ( msg = 'Negative percentage must raise an exception' ) .
+Catch                CATCH zcx_judge_c02_discount INTO DATA ( lx ) .
+Call                 cl_abap_unit_assert => assert_equals ( act = lx -> mv_reason exp = zcx_judge_c02_discount => gc_reason - invalid_percent ) .
+EndTry               ENDTRY .
+EndMethod            ENDMETHOD .
+EndClass             ENDCLASS .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-02.abap
+--- stdout (3446 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 9,
+      "endLine": 9,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 17,
+      "endLine": 17,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 18,
+      "endLine": 18,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 35,
+      "endLine": 35,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 44,
+      "endLine": 44,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 45,
+      "endLine": 45,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 47,
+      "endLine": 47,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 78,
+      "endLine": 78,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 79,
+      "endLine": 79,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 80,
+      "endLine": 80,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 81,
+      "endLine": 81,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 11,
+    "bySeverity": {
+      "medium": 11
+    },
+    "byCategory": {
+      "quality": 11
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=11 analyze_info=0 error_grade=0 warnings=11 source_lines=153 bytes=5152 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

@@ -1,0 +1,17 @@
+claude-sonnet-5-5 · C-INC-07 — 블라인드 코드 과제 이벤트 추출 요약 (판J T6 · 2026-11-05)
+원본: %TEMP%\sapkit-panJ\raw-T6\claude-sonnet-5-5\C-INC-07.jsonl (원 이벤트 스트림 · 세션/스레드 id·로컬 경로 포함 · 커밋하지 않음 · 호출별 사본 C-INC-07.call-<k>.jsonl)
+명령: 02-isolation-recipe.txt §2 그대로 · 모델 id claude-sonnet-5-5 · cwd = blind-T6
+프롬프트: 60-run-log.txt 의 프롬프트 계약 (고정 줄 + task_text + Required output) · chars=470 · sha256=1a637dfeb2302c33e3e409565d0726a6b7616ec134a9a4fe674d5125c8bea00d
+응시(응답) 횟수=1 · 전이 재시도=0 · CLI 호출 총수=1 · 최종=VALID (call 1)
+system/init: model=claude-sonnet-5-5 · claude_code_version=2.1.318 · permissionMode=default
+  tools=0 · mcp_servers=0 · slash_commands=0 · skills=0 · plugins=4 [cc-plugin-agents-md,cc-plugin-telemetry,cc-plugin-privacy,cc-plugin-plugin-authoring] · agents=6
+assistant 이벤트 수=1 · assistant.message.model=[claude-sonnet-5-5]
+도구 호출(tool_use 블록) 수=0 · 이름: 없음
+result: is_error=False · num_turns=1 · duration_ms=8754 · duration_api_ms=8621 · modelUsage 키=[claude-sonnet-5-5]
+usage: input_tokens=2 · output_tokens=1237 · cache_creation_input_tokens=882 · cache_read_input_tokens=2226
+관측 모델 id=[claude-sonnet-5-5] · 요청=claude-sonnet-5-5 · 일치=1
+exit_code=0 · wall_ms=9686 · stderr 줄 수=0 · 시작=2026-11-05T17:27:49.957+09:00 · 종료=2026-11-05T17:27:59.647+09:00
+응답 내 외부 URL(https?://) 건수=0
+valid=1
+펜스 블록 수=1 · no_fence=0 · 추출 → 60-code/claude-sonnet-5-5/C-INC-07.abap (lines=85 · bytes=2889)
+summary: valid=1 attempts=1 no_fence=0 blocks=1 lines=85 bytes=2889

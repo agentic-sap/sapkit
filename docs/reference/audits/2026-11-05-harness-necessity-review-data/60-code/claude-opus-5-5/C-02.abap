@@ -1,0 +1,141 @@
+*----------------------------------------------------------------------*
+* zcl_judge_c02_discount.abap
+* Global class computing a discounted net amount, with a locally
+* declared exception class and ABAP Unit tests in the same source.
+*----------------------------------------------------------------------*
+
+*----------------------------------------------------------------------*
+* Local exception class: invalid input for discount calculation
+*----------------------------------------------------------------------*
+CLASS lcx_judge_c02_invalid_input DEFINITION
+  INHERITING FROM cx_static_check
+  FINAL
+  CREATE PUBLIC.
+  PUBLIC SECTION.
+    DATA mv_reason TYPE string READ-ONLY.
+    METHODS constructor
+      IMPORTING
+        iv_reason TYPE string OPTIONAL
+        previous  LIKE previous OPTIONAL.
+    METHODS get_text REDEFINITION.
+ENDCLASS.
+
+CLASS lcx_judge_c02_invalid_input IMPLEMENTATION.
+  METHOD constructor.
+    super->constructor( previous = previous ).
+    mv_reason = iv_reason.
+  ENDMETHOD.
+
+  METHOD get_text.
+    result = COND #( WHEN mv_reason IS INITIAL
+                     THEN `Invalid input for discount calculation`
+                     ELSE mv_reason ).
+  ENDMETHOD.
+ENDCLASS.
+
+*----------------------------------------------------------------------*
+* Global class
+*----------------------------------------------------------------------*
+CLASS zcl_judge_c02_discount DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    TYPES ty_amount  TYPE p LENGTH 15 DECIMALS 2.
+    TYPES ty_percent TYPE p LENGTH 5 DECIMALS 2.
+
+    METHODS calculate
+      IMPORTING
+        iv_gross      TYPE ty_amount
+        iv_percent    TYPE ty_percent
+      RETURNING
+        VALUE(rv_net) TYPE ty_amount
+      RAISING
+        lcx_judge_c02_invalid_input.
+
+  PRIVATE SECTION.
+    TYPES ty_precise TYPE p LENGTH 16 DECIMALS 6.
+ENDCLASS.
+
+CLASS zcl_judge_c02_discount IMPLEMENTATION.
+  METHOD calculate.
+    IF iv_gross < 0.
+      RAISE EXCEPTION TYPE lcx_judge_c02_invalid_input
+        EXPORTING iv_reason = `Gross amount must not be negative`.
+    ENDIF.
+
+    IF iv_percent < 0 OR iv_percent > 100.
+      RAISE EXCEPTION TYPE lcx_judge_c02_invalid_input
+        EXPORTING iv_reason = `Discount percentage must be between 0 and 100`.
+    ENDIF.
+
+    DATA(lv_precise) = CONV ty_precise( iv_gross * ( 100 - iv_percent ) / 100 ).
+
+    rv_net = round( val  = lv_precise
+                    dec  = 2
+                    mode = cl_abap_math=>round_half_up ).
+  ENDMETHOD.
+ENDCLASS.
+
+*----------------------------------------------------------------------*
+* ABAP Unit tests
+*----------------------------------------------------------------------*
+CLASS ltc_discount DEFINITION FINAL
+  FOR TESTING
+  RISK LEVEL HARMLESS
+  DURATION SHORT.
+
+  PRIVATE SECTION.
+    DATA mo_cut TYPE REF TO zcl_judge_c02_discount.
+
+    METHODS setup.
+    METHODS normal_discount     FOR TESTING RAISING cx_static_check.
+    METHODS full_discount       FOR TESTING RAISING cx_static_check.
+    METHODS rounding_half_up    FOR TESTING RAISING cx_static_check.
+    METHODS negative_gross_fail FOR TESTING.
+    METHODS percent_above_100   FOR TESTING.
+ENDCLASS.
+
+CLASS ltc_discount IMPLEMENTATION.
+  METHOD setup.
+    mo_cut = NEW #( ).
+  ENDMETHOD.
+
+  METHOD normal_discount.
+    cl_abap_unit_assert=>assert_equals(
+      act = mo_cut->calculate( iv_gross = '200.00' iv_percent = '10.00' )
+      exp = CONV zcl_judge_c02_discount=>ty_amount( '180.00' ) ).
+  ENDMETHOD.
+
+  METHOD full_discount.
+    cl_abap_unit_assert=>assert_equals(
+      act = mo_cut->calculate( iv_gross = '123.45' iv_percent = '100.00' )
+      exp = CONV zcl_judge_c02_discount=>ty_amount( '0.00' ) ).
+  ENDMETHOD.
+
+  METHOD rounding_half_up.
+    " 10.01 * 0.85 = 8.5085 -> 8.51
+    cl_abap_unit_assert=>assert_equals(
+      act = mo_cut->calculate( iv_gross = '10.01' iv_percent = '15.00' )
+      exp = CONV zcl_judge_c02_discount=>ty_amount( '8.51' ) ).
+  ENDMETHOD.
+
+  METHOD negative_gross_fail.
+    TRY.
+        mo_cut->calculate( iv_gross = '-1.00' iv_percent = '10.00' ).
+        cl_abap_unit_assert=>fail( msg = 'Negative gross amount was not rejected' ).
+      CATCH lcx_judge_c02_invalid_input INTO DATA(lx_error).
+        cl_abap_unit_assert=>assert_bound( lx_error ).
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD percent_above_100.
+    TRY.
+        mo_cut->calculate( iv_gross = '50.00' iv_percent = '100.01' ).
+        cl_abap_unit_assert=>fail( msg = 'Percentage above 100 was not rejected' ).
+      CATCH lcx_judge_c02_invalid_input INTO DATA(lx_error).
+        cl_abap_unit_assert=>assert_bound( lx_error ).
+    ENDTRY.
+  ENDMETHOD.
+ENDCLASS.

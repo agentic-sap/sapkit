@@ -1,0 +1,406 @@
+60-checker/claude-sonnet-5-5/C-INC-08.txt — 동봉 검사기 원출력 (판J T6 · 2026-11-05)
+대상: docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-INC-08.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-INC-08.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-INC-08.abap
+--- stdout (0 bytes) ---
+
+--- stderr (116 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-INC-08.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-INC-08.abap
+--- stdout (4861 bytes) ---
+Comment              *&---------------------------------------------------------------------*
+Comment              *& File: zsapkit_demo_clas.abap
+Comment              *& Part 1: Global class ZSAPKIT_DEMO_CLAS (SE24 / abapGit class pool)
+Comment              *& Part 2: Demo report ZSAPKIT_DEMO_F4 (separate program object)
+Comment              *&---------------------------------------------------------------------*
+Comment              *======================================================================*
+Comment              * PART 1 - GLOBAL CLASS
+Comment              *======================================================================*
+ClassDefinition      CLASS zsapkit_demo_clas DEFINITION PUBLIC FINAL CREATE PUBLIC .
+Public               PUBLIC SECTION .
+MethodDef            CLASS - METHODS f4_bupla IMPORTING !iv_repid TYPE sy - repid !iv_dynnr TYPE sy - dynnr !iv_fld_bukrs TYPE dynfnam DEFAULT 'PA_BUKRS' !iv_fld_bupla TYPE dynfnam DEFAULT 'PA_BUPLA' .
+Protected            PROTECTED SECTION .
+Private              PRIVATE SECTION .
+TypeBegin            TYPES BEGIN OF ty_value ,
+Type                 TYPES bukrs TYPE j_1bbranch - bukrs ,
+Type                 TYPES branch TYPE j_1bbranch - branch ,
+Type                 TYPES name TYPE j_1bbranch - name ,
+TypeEnd              TYPES END OF ty_value ,
+Type                 TYPES tt_value TYPE STANDARD TABLE OF ty_value WITH DEFAULT KEY .
+EndClass             ENDCLASS .
+ClassImplementation  CLASS zsapkit_demo_clas IMPLEMENTATION .
+MethodImplementation METHOD f4_bupla .
+Data                 DATA lt_dynpfields TYPE STANDARD TABLE OF dynpread ,
+Data                 DATA ls_dynpfield TYPE dynpread ,
+Data                 DATA lt_value TYPE tt_value ,
+Data                 DATA lt_return TYPE STANDARD TABLE OF ddshretval ,
+Data                 DATA lv_bukrs TYPE j_1bbranch - bukrs .
+Comment              " 1) Read the not-yet-transmitted value of PA_BUKRS from the screen
+Move                 ls_dynpfield - fieldname = iv_fld_bukrs .
+Append               APPEND ls_dynpfield TO lt_dynpfields .
+CallFunction         CALL FUNCTION 'DYNP_VALUES_READ' EXPORTING dyname = iv_repid dynumb = iv_dynnr translate_to_upper = abap_true TABLES dynpfields = lt_dynpfields EXCEPTIONS invalid_abapworkarea = 1 invalid_dynprofield = 2 invalid_dynproname = 3 invalid_dynpronummer = 4 invalid_request = 5 no_fielddescription = 6 invalid_parameter = 7 undefind_error = 8 double_conversion = 9 stepl_not_found = 10 OTHERS = 11 .
+If                   IF sy - subrc = 0 .
+ReadTable            READ TABLE lt_dynpfields INTO ls_dynpfield INDEX 1 .
+If                   IF sy - subrc = 0 .
+Move                 lv_bukrs = ls_dynpfield - fieldvalue .
+EndIf                ENDIF .
+EndIf                ENDIF .
+Comment              " 2) Select branches restricted by the entered company code
+If                   IF lv_bukrs IS NOT INITIAL .
+Select               SELECT bukrs branch name FROM j_1bbranch WHERE bukrs = @ lv_bukrs ORDER BY branch INTO TABLE @ lt_value .
+Else                 ELSE .
+Select               SELECT bukrs branch name FROM j_1bbranch ORDER BY bukrs , branch INTO TABLE @ lt_value .
+EndIf                ENDIF .
+If                   IF lt_value IS INITIAL .
+Message              MESSAGE s398 ( 00 ) WITH 'No business places found' DISPLAY LIKE 'W' .
+Return               RETURN .
+EndIf                ENDIF .
+Comment              " 3) Show F4 help and write the selection back to PA_BUPLA
+CallFunction         CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST' EXPORTING retfield = 'BRANCH' dynpprog = iv_repid dynpnr = iv_dynnr dynprofield = iv_fld_bupla value_org = 'S' TABLES value_tab = lt_value return_tab = lt_return EXCEPTIONS parameter_error = 1 no_values_found = 2 OTHERS = 3 .
+If                   IF sy - subrc <> 0 AND sy - subrc <> 2 .
+Message              MESSAGE s398 ( 00 ) WITH 'F4 help could not be displayed' DISPLAY LIKE 'E' .
+EndIf                ENDIF .
+EndMethod            ENDMETHOD .
+EndClass             ENDCLASS .
+Comment              *======================================================================*
+Comment              * PART 2 - DEMO REPORT (create as separate program ZSAPKIT_DEMO_F4)
+Comment              *======================================================================*
+Report               REPORT zsapkit_demo_f4 .
+Parameter            PARAMETERS pa_bukrs TYPE j_1bbranch - bukrs ,
+Parameter            PARAMETERS pa_bupla TYPE j_1bbranch - branch .
+Move                 AT SELECTION - SCREEN ON VALUE - REQUEST FOR pa_bupla .
+Call                 zsapkit_demo_clas => f4_bupla ( iv_repid = sy - repid iv_dynnr = sy - dynnr ) .
+StartOfSelection     START - OF - SELECTION .
+Write                WRITE / 'Company code:' ,
+Write                WRITE pa_bukrs ,
+Write                WRITE / 'Business place:' ,
+Write                WRITE pa_bupla .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-INC-08.abap
+--- stdout (8766 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 18,
+      "endLine": 18,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 19,
+      "endLine": 19,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 27,
+      "endLine": 27,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 29,
+      "endLine": 29,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 39,
+      "endLine": 39,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 40,
+      "endLine": 40,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 41,
+      "endLine": 41,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 42,
+      "endLine": 42,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 50,
+      "endLine": 50,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 51,
+      "endLine": 51,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 52,
+      "endLine": 52,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 54,
+      "endLine": 54,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 57,
+      "endLine": 57,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 58,
+      "endLine": 58,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 60,
+      "endLine": 60,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 61,
+      "endLine": 61,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 62,
+      "endLine": 62,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 63,
+      "endLine": 63,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 64,
+      "endLine": 64,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 65,
+      "endLine": 65,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 66,
+      "endLine": 66,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 96,
+      "endLine": 96,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 97,
+      "endLine": 97,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 98,
+      "endLine": 98,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 99,
+      "endLine": 99,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 100,
+      "endLine": 100,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 102,
+      "endLine": 102,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 103,
+      "endLine": 103,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 107,
+      "endLine": 107,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 29,
+    "bySeverity": {
+      "medium": 29
+    },
+    "byCategory": {
+      "quality": 29
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=29 analyze_info=0 error_grade=0 warnings=29 source_lines=131 bytes=4040 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

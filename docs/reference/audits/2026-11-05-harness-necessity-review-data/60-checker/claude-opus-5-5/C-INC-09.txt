@@ -1,0 +1,157 @@
+60-checker/claude-opus-5-5/C-INC-09.txt — 동봉 검사기 원출력 (판J T6 · 2026-11-05)
+대상: docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-09.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-09.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-09.abap
+--- stdout (428 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-09.abap:44:9: W [local_variable_names] Local variable name "lo_alv" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-09.abap:45:9: W [local_variable_names] Local variable name "lx_msg" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+--- stderr (133 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-09.abap: 2 finding(s), 0 at Error level
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-09.abap
+--- stdout (3446 bytes) ---
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Report ZSAPKIT_DEMO_PROG
+Comment              *&---------------------------------------------------------------------*
+Comment              *& NOTE: The original source and the new show_data body were not
+Comment              *& included in the request. This file is a reconstruction: get_data and
+Comment              *& save_data are representative bodies that begin with 'CLEAR gt_out.',
+Comment              *& and only FORM show_data has been given a new body. If you supply the
+Comment              *& actual original source and the replacement body, only the region
+Comment              *& between "FORM show_data." and its "ENDFORM." needs to change.
+Comment              *&---------------------------------------------------------------------*
+Report               REPORT zsapkit_demo_prog .
+TypeBegin            TYPES BEGIN OF ty_out ,
+Type                 TYPES carrid TYPE s_carr_id ,
+Type                 TYPES connid TYPE s_conn_id ,
+Type                 TYPES fldate TYPE s_date ,
+Type                 TYPES price TYPE s_price ,
+Type                 TYPES currency TYPE s_currcode ,
+TypeEnd              TYPES END OF ty_out .
+Data                 DATA gt_out TYPE STANDARD TABLE OF ty_out WITH DEFAULT KEY ,
+Data                 DATA gs_out TYPE ty_out .
+StartOfSelection     START - OF - SELECTION .
+Perform              PERFORM get_data .
+Perform              PERFORM show_data .
+Perform              PERFORM save_data .
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Form get_data
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM get_data .
+Clear                CLEAR gt_out .
+Select               SELECT carrid connid fldate price currency FROM sflight INTO TABLE gt_out UP TO 100 ROWS .
+EndForm              ENDFORM .
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Form show_data
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM show_data .
+Data                 DATA lo_alv TYPE REF TO cl_salv_table ,
+Data                 DATA lx_msg TYPE REF TO cx_salv_msg .
+If                   IF gt_out IS INITIAL .
+Message              MESSAGE 'No data to display' TYPE 'S' DISPLAY LIKE 'W' .
+Return               RETURN .
+EndIf                ENDIF .
+Try                  TRY .
+Call                 cl_salv_table => factory ( IMPORTING r_salv_table = lo_alv CHANGING t_table = gt_out ) .
+Call                 lo_alv -> get_functions ( ) -> set_all ( abap_true ) .
+Call                 lo_alv -> get_columns ( ) -> set_optimize ( abap_true ) .
+Call                 lo_alv -> display ( ) .
+Catch                CATCH cx_salv_msg INTO lx_msg .
+Message              MESSAGE lx_msg TYPE 'I' DISPLAY LIKE 'E' .
+EndTry               ENDTRY .
+EndForm              ENDFORM .
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Form save_data
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM save_data .
+Clear                CLEAR gt_out .
+Commit               COMMIT WORK .
+EndForm              ENDFORM .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-09.abap
+--- stdout (1675 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 14,
+      "endLine": 14,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 15,
+      "endLine": 15,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 16,
+      "endLine": 16,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 17,
+      "endLine": 17,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 57,
+      "endLine": 57,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 5,
+    "bySeverity": {
+      "medium": 5
+    },
+    "byCategory": {
+      "quality": 5
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=2 analyze_high=0 analyze_medium=5 analyze_info=0 error_grade=0 warnings=7 source_lines=72 bytes=2348 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

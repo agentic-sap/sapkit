@@ -1,0 +1,82 @@
+REPORT zjudge_c05.
+
+TABLES: kna1.
+
+TYPES: BEGIN OF ty_customer,
+         land1 TYPE kna1-land1,
+         kunnr TYPE kna1-kunnr,
+         name1 TYPE kna1-name1,
+         ort01 TYPE kna1-ort01,
+       END OF ty_customer.
+
+TYPES: BEGIN OF ty_country_count,
+         land1 TYPE kna1-land1,
+         count TYPE i,
+       END OF ty_country_count.
+
+DATA: gt_customer TYPE STANDARD TABLE OF ty_customer,
+      gs_customer TYPE ty_customer,
+      gt_count     TYPE STANDARD TABLE OF ty_country_count,
+      gs_count     TYPE ty_country_count.
+
+SELECT-OPTIONS: s_land FOR kna1-land1.
+
+START-OF-SELECTION.
+
+  SELECT land1
+         kunnr
+         name1
+         ort01
+    INTO TABLE gt_customer
+    FROM kna1
+    WHERE land1 IN s_land.
+
+  SORT gt_customer BY land1 kunnr.
+
+  LOOP AT gt_customer INTO gs_customer.
+    READ TABLE gt_count INTO gs_count
+      WITH KEY land1 = gs_customer-land1.
+
+    IF sy-subrc = 0.
+      gs_count-count = gs_count-count + 1.
+      MODIFY gt_count FROM gs_count INDEX sy-tabix.
+    ELSE.
+      CLEAR gs_count.
+      gs_count-land1 = gs_customer-land1.
+      gs_count-count = 1.
+      APPEND gs_count TO gt_count.
+    ENDIF.
+  ENDLOOP.
+
+  IF gt_customer IS INITIAL.
+    WRITE: / 'No customers found.'.
+    RETURN.
+  ENDIF.
+
+  LOOP AT gt_customer INTO gs_customer.
+
+    AT NEW land1.
+      READ TABLE gt_count INTO gs_count
+        WITH KEY land1 = gs_customer-land1.
+
+      SKIP.
+      WRITE: / 'Country:', gs_customer-land1,
+               20 'Number of customers:', gs_count-count.
+      ULINE.
+      WRITE: / 'Customer',
+               15 'Name',
+               55 'City',
+               95 'Country'.
+      ULINE.
+    ENDAT.
+
+    WRITE: / gs_customer-kunnr,
+             15 gs_customer-name1,
+             55 gs_customer-ort01,
+             95 gs_customer-land1.
+
+    AT END OF land1.
+      ULINE.
+    ENDAT.
+
+  ENDLOOP.

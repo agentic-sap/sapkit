@@ -1,0 +1,323 @@
+60-checker/claude-opus-5-5/C-01.txt — 동봉 검사기 원출력 (판J T6 · 2026-11-05)
+대상: docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-01.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-01.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-01.abap
+--- stdout (848 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-01.abap:69:9: W [local_variable_names] Local variable name "lo_alv" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-01.abap:70:9: W [local_variable_names] Local variable name "lo_columns" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-01.abap:71:9: W [local_variable_names] Local variable name "lx_msg" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-01.abap:107:8: W [local_variable_names] Local variable name "lo_column" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+--- stderr (129 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-01.abap: 4 finding(s), 0 at Error level
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-01.abap
+--- stdout (5974 bytes) ---
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Report ZJUDGE_C01
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Lists purchasing document headers (EKKO) in an ALV grid
+Comment              *& (cl_salv_table), filtered by purchasing organization and
+Comment              *& document date, limited to a maximum number of rows.
+Comment              *&---------------------------------------------------------------------*
+Report               REPORT zjudge_c01 .
+TypeBegin            TYPES BEGIN OF ty_ekko ,
+Type                 TYPES ebeln TYPE ekko - ebeln ,
+Type                 TYPES bukrs TYPE ekko - bukrs ,
+Type                 TYPES ekorg TYPE ekko - ekorg ,
+Type                 TYPES lifnr TYPE ekko - lifnr ,
+Type                 TYPES bedat TYPE ekko - bedat ,
+Type                 TYPES bsart TYPE ekko - bsart ,
+Type                 TYPES ekgrp TYPE ekko - ekgrp ,
+TypeEnd              TYPES END OF ty_ekko ,
+Type                 TYPES tt_ekko TYPE STANDARD TABLE OF ty_ekko WITH DEFAULT KEY .
+Data                 DATA gt_ekko TYPE tt_ekko ,
+Data                 DATA gv_ekorg TYPE ekko - ekorg ,
+Data                 DATA gv_bedat TYPE ekko - bedat .
+Comment              *----------------------------------------------------------------------*
+Comment              * Selection screen
+Comment              *----------------------------------------------------------------------*
+SelectionScreen      SELECTION - SCREEN BEGIN OF BLOCK b1 WITH FRAME .
+SelectOption         SELECT - OPTIONS s_ekorg FOR gv_ekorg ,
+Comment              " Purchasing organization
+SelectOption         SELECT - OPTIONS s_bedat FOR gv_bedat .
+Comment              " Document date
+Parameter            PARAMETERS p_max TYPE i DEFAULT 500 OBLIGATORY .
+Comment              " Max. rows
+SelectionScreen      SELECTION - SCREEN END OF BLOCK b1 .
+Move                 AT SELECTION - SCREEN .
+If                   IF p_max <= 0 .
+Message              MESSAGE 'Maximum number of rows must be greater than zero' TYPE 'E' .
+EndIf                ENDIF .
+Comment              *----------------------------------------------------------------------*
+Comment              * Main processing
+Comment              *----------------------------------------------------------------------*
+StartOfSelection     START - OF - SELECTION .
+Perform              PERFORM read_data .
+If                   IF gt_ekko IS INITIAL .
+Message              MESSAGE 'No purchasing documents found for the selection' TYPE 'I' .
+Return               RETURN .
+EndIf                ENDIF .
+Perform              PERFORM display_alv .
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Form READ_DATA
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM read_data .
+Select               SELECT ebeln bukrs ekorg lifnr bedat bsart ekgrp FROM ekko INTO TABLE gt_ekko UP TO p_max ROWS WHERE ekorg IN s_ekorg AND bedat IN s_bedat ORDER BY PRIMARY KEY .
+EndForm              ENDFORM .
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Form DISPLAY_ALV
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM display_alv .
+Data                 DATA lo_alv TYPE REF TO cl_salv_table ,
+Data                 DATA lo_columns TYPE REF TO cl_salv_columns_table ,
+Data                 DATA lx_msg TYPE REF TO cx_salv_msg .
+Try                  TRY .
+Call                 cl_salv_table => factory ( IMPORTING r_salv_table = lo_alv CHANGING t_table = gt_ekko ) .
+Catch                CATCH cx_salv_msg INTO lx_msg .
+Message              MESSAGE lx_msg TYPE 'I' DISPLAY LIKE 'E' .
+Return               RETURN .
+EndTry               ENDTRY .
+Call                 lo_alv -> get_functions ( ) -> set_all ( abap_true ) .
+Move                 lo_columns = lo_alv -> get_columns ( ) .
+Call                 lo_columns -> set_optimize ( abap_true ) .
+Perform              PERFORM set_heading USING lo_columns 'EBELN' 'Doc.No.' 'Purch. Doc.' 'Purchasing Document' ,
+Perform              PERFORM set_heading USING lo_columns 'BUKRS' 'CoCd' 'Company Code' 'Company Code' ,
+Perform              PERFORM set_heading USING lo_columns 'EKORG' 'POrg' 'Purch. Org.' 'Purchasing Organization' ,
+Perform              PERFORM set_heading USING lo_columns 'LIFNR' 'Vendor' 'Vendor' 'Vendor Account Number' ,
+Perform              PERFORM set_heading USING lo_columns 'BEDAT' 'Doc.Date' 'Doc. Date' 'Purchasing Document Date' ,
+Perform              PERFORM set_heading USING lo_columns 'BSART' 'Type' 'Doc. Type' 'Purchasing Document Type' ,
+Perform              PERFORM set_heading USING lo_columns 'EKGRP' 'PGr' 'Purch. Group' 'Purchasing Group' .
+Call                 lo_alv -> display ( ) .
+EndForm              ENDFORM .
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Form SET_HEADING
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM set_heading USING io_columns TYPE REF TO cl_salv_columns_table iv_name TYPE lvc_fname iv_short TYPE scrtext_s iv_medium TYPE scrtext_m iv_long TYPE scrtext_l .
+Data                 DATA lo_column TYPE REF TO cl_salv_column .
+Try                  TRY .
+Move                 lo_column = io_columns -> get_column ( iv_name ) .
+Call                 lo_column -> set_short_text ( iv_short ) .
+Call                 lo_column -> set_medium_text ( iv_medium ) .
+Call                 lo_column -> set_long_text ( iv_long ) .
+Catch                CATCH cx_salv_not_found .
+Comment              " Column not present - ignore
+EndTry               ENDTRY .
+EndForm              ENDFORM .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-01.abap
+--- stdout (5521 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 21,
+      "endLine": 21,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 29,
+      "endLine": 29,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 30,
+      "endLine": 30,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 31,
+      "endLine": 31,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 69,
+      "endLine": 69,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 71,
+      "endLine": 71,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 76,
+      "endLine": 76,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 88,
+      "endLine": 88,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 89,
+      "endLine": 89,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 90,
+      "endLine": 90,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 91,
+      "endLine": 91,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 92,
+      "endLine": 92,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 93,
+      "endLine": 93,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 94,
+      "endLine": 94,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 103,
+      "endLine": 103,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 104,
+      "endLine": 104,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 105,
+      "endLine": 105,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 106,
+      "endLine": 106,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 18,
+    "bySeverity": {
+      "medium": 18
+    },
+    "byCategory": {
+      "quality": 18
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=4 analyze_high=0 analyze_medium=18 analyze_info=0 error_grade=0 warnings=22 source_lines=117 bytes=4122 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.
