@@ -1,0 +1,167 @@
+70-notes-A.txt — 판J T7 채점자 A 메모 (2026-11-05)
+짝 파일: 70-grading-A.csv (470행 = 지식 321 · 코드 42 · 사고 107)
+입력: 10-knowledge-items.json(60) · 41-reproducible-items.json(K-INC 47 + C-INC 9) · 50-answers/ · 60-code/ · 11-code-tasks.txt · 01-convention-split.txt · 40-incidents.csv(reproducible != yes 107행)
+독립성: 71-* 파일은 읽지도 나열하지도 않았다. 검사기 재실행 없음 · SAP·MCP 접속 없음(P0).
+
+====================================================================
+1. 채점 규약 (계약을 어떻게 적용했는가)
+====================================================================
+[지식]
+- 정답 = grading_rule의 '+'로 묶인 요구 요소를 전부 담았을 때. 하나라도 빠지면 오답(detail=부분).
+- 단일 답에 "~로 기억한다/~일 것이다" 식의 보류 표현이 붙은 것은 정답으로 본다(답은 하나다).
+- 둘 이상을 나란히 "X 또는 Y"로 내면 오답. 규칙이 복수 후보를 허용한 항목은 없었다.
+- 다른 해석을 위한 각주식 부기("만약 ~를 묻는 것이면 ~")는 보류로 보지 않는다 — 본답이 하나로 서 있으면 본답만 본다.
+- 규칙 밖의 덧말이 틀려도 판정을 바꾸지 않는다. 단, 요구 사실과 모순되는 덧말이면 오답.
+- detail: 요구 요소 일부만 있으면 부분 · 키와 다른 식별자/주장이면 다른값 · 답을 내지 않거나 모른다고 하면 무응답.
+- 답변 언어(한/영)는 무관.
+- 팩어긋남의심은 "키보다 모델 답이 실제 SAP에 맞을 가능성이 있다"고 내가 보는 경우에만 썼다(11문항 21행). 키는 손대지 않았다.
+
+[코드 C-01~C-05]
+- 11-code-tasks.txt의 번호 규칙만 센다. 01-convention-split.txt의 집 규칙(접두사·include 구조·텍스트 요소·OK_CODE·두 클래스 분리·템플릿·ALV 기본값)은 세지 않고 3절에 적었다.
+- 번호 규칙 목록에 없는 일반 작법(예: C-01의 주석 배너)도 세지 않았다 — 계약이 "번호 규칙"이라서다.
+- SELECT ... INTO TABLE 직후 대상 테이블 IS INITIAL 검사는 sy-subrc 검사와 동등으로 인정했다.
+- 판단이 갈릴 수 있는 적용 셋: ⓐ C-01 규칙6 — CATCH cx_salv_not_found를 빈 블록(주석만)·RETURN만으로 끝낸 것을 「오류를 삼킴」으로 셌다(Opus 6@114 · Sonnet 6@71). ⓑ C-02 규칙4 — 예외 클래스를 FINAL로 두지 않은 것을 셌다(Sonnet 4@1 · 상속 설계 근거 없음). ⓒ C-02 규칙5 — public 시그니처에 쓰인 public TYPES는 세지 않았다. ⓓ C-02 규칙7(given-when-then 이름)은 무의미한 이름만 세는 쪽으로 느슨하게 적용 — 해당 없음.
+- 규칙@줄번호의 줄번호는 위반이 드러나는 대표 줄 하나(AUTHORITY-CHECK 부재는 그 SELECT 줄).
+
+[코드 C-INC-01~09]
+- 교훈(lesson) 체현 여부만 본다. 다른 일반 작법은 세지 않고 3절 「계약 밖 관찰」에 적었다.
+- C-INC-02: EML `CREATE FIELDS ( DocId Status ) WITH VALUE #( ... )`를 키 필드 %control on과 동등으로 인정(FIELDS(...)가 %control을 세팅하는 문법).
+- C-INC-08: 호출 측 리포트의 sy-repid를 인자로 받아 DYNP_VALUES_READ dyname에 넣는 것을 SY-CPROG와 동등으로 인정(Opus·Sonnet). 글로벌 클래스 안에서 sy-repid를 직접 평가한 GPT는 위반(클래스풀 이름이 들어간다).
+- C-INC-09: 과제 불비 의심 — 원본 소스도 새 본문도 제공되지 않았다. Opus·Sonnet은 FORM 3쌍을 재구성/자리표시자로 유지해 통과, GPT는 주석 2줄뿐이라 위반(reason에 「과제 불비 의심」 명기). T9는 이 문항을 무효 처리하는 선택지도 검토할 것.
+
+[사고 107행]
+- 질문: "지금의 맨 모델(사픽 층 없음)이 기록만으로 볼 때 이 사고를 스스로 피했겠는가." model='-' · detail=그 행의 root_cause.
+- 못피함: 원인이 모델 밖(엔진·SAP·환경·프로세스 공백)이거나, 모델 행동이라도 규칙·리뷰·훅 층 없이는 반복됐다고 기록이 보여 주는 경우.
+- 피함: 기록 자체가 모델이 층 없이 막았다고 말하거나(INC-FB-35), 필요한 지식이 현재 맨 모델의 일반 지식이라고 내가 보는 경우(INC-P3-21).
+- 모름: 원인이 가설로 남았거나(INC-P5-06·INC-P6-06), 맥락에 판단이 달리거나(INC-P2-03·INC-P6-04), 사고가 아니라 유보 항목(INC-REPO-09).
+- ⚠ 규약상 주의: root_cause='SAP·엔진 성질' 48행은 구조적으로 전부 못피함이다(엔진 결함 회피는 모델의 권한 밖). 맨 모델 질문에 그 행들을 합산하면 「못피함」이 부풀어 보인다 — T9는 detail(root_cause)로 갈라 읽을 것.
+
+====================================================================
+2. 팩어긋남의심 목록 (11문항 · 21행) — 키는 수정하지 않았고 의심만 적는다
+====================================================================
+K-MOD-BW-01  키 RSINFOSOURCE ← 3모델 모두 RSISET. RSISET가 BW InfoSet 유지보수(InfoSet Builder) 트랜잭션으로 알고 있다. 3/3 수렴.
+K-MOD-CO-01  키 V_RKAB ← Opus: 사정 사이클은 KSU1/KSU2로 유지하며 단일 SM30 뷰가 없다(T811C/T811S). 규칙이 KSU1을 오답으로 못박았으나 그 주장이 실제와 맞을 수 있다. (Sonnet 무응답·GPT 다른값은 오답)
+K-MOD-FI-02  키 F050S003 ← 3모델 모두 F050S001. F050S001(사용자 정의 세그먼트 편집·아웃바운드)과 F050S003(인바운드 처리)이 모두 「custom segments」에 부합하고 질문이 방향을 정하지 않았다. 3/3 수렴.
+K-MOD-HCM-01 키 PCL1 ← Opus: TE·TX는 PCL1, B2는 PCL2. B2(시간평가 결과)는 PCL2 클러스터로 알고 있다 — 질문이 두 클러스터를 섞었을 가능성. (Sonnet 정답·GPT 오답)
+K-MOD-MM-01  키 BADI_SMOD_V50B0001 ← Opus: SMOD_V50B0001. BAdI 정의 이름이 접두 BADI_ 없이 SMOD_V50B0001일 수 있다. (Sonnet·GPT는 다른 이름이라 오답)
+K-MOD-MM-02  키 MB_CREATE_GOODS_MOVEMENT ← Sonnet 최종답 MB_POST_GOODS_MOVEMENT. MIGO가 MB_CREATE로 만들고 MB_POST로 DB에 포스팅하므로 「posting을 수행하는 FM」 읽기에 따라 둘 다 맞을 수 있다. (Opus·GPT 정답)
+K-MOD-PP-02  키 V_TC22 ← Opus·GPT: V_TCA01. TCA01이 작업 목록 유형(task list types) 테이블로 알고 있어 「routing types」와 맞아 보인다. (Sonnet 오답)
+K-MOD-QM-01  키 BAPI_INSPOPER_RECRESULTS ← 3모델 모두 BAPI_INSPOPER_RECORDRESULTS. 실제 BAPI 이름은 RECORDRESULTS이고 키는 오기로 보인다. 가장 강한 의심.
+K-MOD-TM-01  키 V_TMFUB ← Opus: FUBR은 SPRO 뷰가 아니라 NWBC 앱(조건 유지)에서 유지한다. 그 유지 방식이 실제일 수 있다. (Sonnet 무응답·GPT 다른값)
+K-MOD-WM-01  키 LT25 ← 3모델 모두 LT31. LT31이 TO 인쇄(Print Transfer Order), LT25는 그룹별 TO 목록으로 알고 있다. 3/3 수렴 · 강한 의심.
+K-ABAP-01    키 「어디에도 그려지지 않는다」 ← Opus·Sonnet: 기능 텍스트가 텍스트 버튼으로 보인다. 고전 Menu Painter 동작과 맞을 수 있다. 키가 INC-P6-06(기록 자체가 「PFNO 지목은 과잉 일반화」라 정정)에서 온 집 교훈이면 일반 사실로 못 박기 어렵다. (GPT 정답)
+
+의심을 넣지 않았지만 T9가 볼 것:
+K-MOD-TR-01  키 V_TGSB_TR ← 3모델 모두 V_TGSB. 규칙이 V_TGSB를 명시적으로 오답으로 지정해 키 작성자가 그 답을 보고 기각한 것으로 보고 오답으로 두었다. 다만 V_TGSB_TR의 실재는 내가 확인하지 못했다 — 3/3 수렴이라 재검 권고.
+K-INC-32     키 문구 「KRW는 실제의 100배로 저장」 ← 3모델은 「내부값이 1/100(10,000원 → 100.00)」로 답했고 실제 SAP도 그쪽으로 안다. 규칙 「100배 내부값 + 변환 필요」를 「100배 차이 + 변환 필요」로 읽어 3모델 정답 처리. 키 문구의 방향 오기 의심.
+
+====================================================================
+3. 집 규칙 관찰 (미계수) · 계약 밖 관찰
+====================================================================
+접두사(gv_/lv_/lo_): 세 모델 거의 모든 파일에 등장 — 집 규칙 — 미계수.
+TABLES 작업영역 선언 — 집 규칙 — 미계수:
+  Opus   C-05(kna1) · C-INC-06(sscrfields) · C-INC-07(t001)
+  Sonnet C-01(ekko) · C-04(mseg, mkpf) · C-05(kna1) · C-INC-05(t001) · C-INC-06(t001w) · C-INC-07(t001, j_1bbranch)
+  GPT    C-01(ekko) · C-04 · C-05(kna1) · C-INC-06(j_1bbranch)
+  (C-INC-08의 TABLES 줄은 DYNP_VALUES_READ 호출의 TABLES 절이라 선언이 아니다.)
+텍스트 요소(TEXT-001/TEXT-b01/TEXT-t01 블록 제목) — 집 규칙 — 미계수: Opus C-INC-06·07 · Sonnet C-01·C-04·C-INC-06·07 · GPT C-INC-06.
+주석 배너 — 번호 규칙에 있는 과제에서만 셌다(C-02 규칙9 → Opus C-02 위반 · C-03 규칙8 → 해당 없음). 그 밖은 미계수: Opus C-01(4줄)·C-INC-03(4)·C-INC-05(2)·C-INC-06(6)·C-INC-07(12) · Sonnet C-INC-06(16)·C-INC-07(12)·C-INC-08(4) · GPT C-INC-06(10).
+OBLIGATORY 파라미터: 여러 파일 — 규칙 아님 — 미계수. OK_CODE: 없음.
+C-INC-06·07의 include 구조·이벤트 블록 위치는 그 과제의 교훈 자체라 lesson으로 셌다(집 규칙 아님).
+계약 밖 관찰(C-INC는 lesson만 세므로 미계수 · T9 참고): Sonnet C-INC-05 27행 `SELECT * FROM t001` — 일반 작법(SELECT * 금지) 위반이나 C-INC 계약 밖.
+
+====================================================================
+4. 집계
+====================================================================
+문항 수: K-MOD 30 · K-CTY 16 · K-IND 7 · K-ABAP 7 · K-INC 47 = 107 (×3 모델 = 321행)
+
+지식 (정답 / 오답 / 팩어긋남의심)
+  claude-opus-5-5   전체 69/28/10 · K-MOD 14/7/9 · K-CTY 16/0/0 · K-IND 7/0/0 · K-ABAP 6/0/1 · K-INC 26/21/0
+  claude-sonnet-5-5 전체 71/30/6  · K-MOD 16/9/5 · K-CTY 16/0/0 · K-IND 7/0/0 · K-ABAP 6/0/1 · K-INC 26/21/0
+  gpt-5.6-sol       전체 67/35/5  · K-MOD 17/8/5 · K-CTY 16/0/0 · K-IND 7/0/0 · K-ABAP 7/0/0 · K-INC 20/27/0
+
+코드 (통과/14)
+  claude-opus-5-5   11/14 (C-01~05 2/5 · C-INC 9/9)  위반: C-01 5@56;6@114 · C-02 9@1 · C-04 2@40;6@40
+  claude-sonnet-5-5 10/14 (C-01~05 2/5 · C-INC 8/9)  위반: C-01 5@49;6@71 · C-02 4@1 · C-04 2@43;6@43 · C-INC-06 lesson@54
+  gpt-5.6-sol        8/14 (C-01~05 3/5 · C-INC 5/9)  위반: C-01 5@33 · C-04 6@28 · C-INC-05 lesson@15 · C-INC-06 lesson@32 · C-INC-08 lesson@28 · C-INC-09 lesson
+  세 모델 공통 위반: C-01 구매조직 AUTHORITY-CHECK 부재 · C-04 플랜트 AUTHORITY-CHECK 부재. Opus·Sonnet은 C-04 집계를 ABAP 루프에서 수행(규칙2)도 공통.
+
+사고 (107행): 피함 2 · 못피함 100 · 모름 5
+  root_cause별 — SAP·엔진 성질 48(못피함 48) · 프로세스·문서 34(피함 1 · 못피함 32 · 모름 1) · 모델 행동 22(피함 1 · 못피함 19 · 모름 2) · 모델 지식 부족 2(모름 2) · 사용자 요구 미파악 1(못피함 1)
+  피함: INC-P3-21 · INC-FB-35.  모름: INC-P2-03 · INC-P5-06 · INC-P6-04 · INC-P6-06 · INC-REPO-09.
+
+====================================================================
+5. T9(조정자) 참고 — 어려웠던 판정
+====================================================================
+- K-INC-15: Sonnet 정답 vs GPT 오답 — 두 답의 거리가 좁다. 재검 권고.
+- K-INC-17: Opus는 캐시 무효화를 둘째 단계로 둔 답을 정답으로 인정했다.
+- K-INC-18 · K-INC-25 · K-INC-31: 요구 요소 하나가 빠져 부분(오답)으로 둔 엄격 판정 — 느슨하게 보면 정답으로 뒤집힐 수 있다.
+- K-INC-11: Opus의 「기술 예외(technical exception)」 표현을 HTTP 500과 동등으로 인정했다.
+- K-INC-01: Opus·GPT는 방향이 뒤집힌 답(오답 · 다른값). Sonnet만 정답.
+- K-INC-23: Sonnet은 BOM 방향 서술이 뒤집혔으나 규칙 요소를 채워 정답으로 두었다 — 재검 후보.
+- K-INC-08: 교훈이 관측 행동(재현 기록)이라 키 의심을 넣지 않았다.
+- 코드 판단 셋(1절 ⓐⓑ)이 뒤집히면: Sonnet C-02는 통과가 된다. C-01의 Opus·Sonnet은 규칙5가 남아 위반 그대로.
+- C-INC-02 FIELDS(...) 동등 인정 · C-INC-08 SY-CPROG 동등 인정이 뒤집히면 Opus·Sonnet의 C-INC 통과 수가 줄어든다.
+- C-INC-09 과제 불비 의심(1절) — 무효 처리 여부는 T9 결정.
+- 사고: INC-P3-21 피함이 가장 자신 없는 피함이다(내 일반 지식에 의존 · 기록은 지식 부분을 재현 항목으로 넘겼다고만 적음). SAP·엔진 성질 48행은 맨 모델 질문의 분모에서 뺄지 T9가 정할 것.
+
+====================================================================
+6. 기계 확인 출력 (scratchpad check.js — 입력에서 기대 집합을 독립 재도출)
+====================================================================
+PASS csv has no UTF-8 BOM
+PASS header exact: "kind","id","model","verdict","detail","reason"
+PASS every raw line starts and ends with a double quote (all fields quoted)
+PASS parsed records (471) == raw lines (471) -> no newline inside any field
+PASS every record has 6 fields
+PASS row count 470 (got 470)
+PASS knowledge rows 321 (got 321)
+PASS code rows 42 (got 42)
+PASS incident rows 107 (got 107)
+PASS kind vocabulary
+PASS (kind,id,model) unique
+PASS verdict vocabulary per kind
+PASS reason non-empty everywhere
+PASS knowledge detail vocabulary
+PASS 팩어긋남의심 <-> 의심: detail consistency
+PASS 정답 rows carry detail 완전
+PASS code detail format (empty for 통과 · 규칙@줄 or lesson[@줄] list for 위반)
+PASS incident model column is -
+PASS knowledge/code model names
+PASS expected knowledge ids 107 (10-: 60 + 41- K-: 47)
+PASS knowledge ids for claude-opus-5-5 == 10-/41- K- ids (107)
+PASS code ids for claude-opus-5-5 == 60-code/claude-opus-5-5/*.abap (14)
+PASS 60-code/claude-opus-5-5 contains every 41- C-INC id (9)
+PASS knowledge ids for claude-sonnet-5-5 == 10-/41- K- ids (107)
+PASS code ids for claude-sonnet-5-5 == 60-code/claude-sonnet-5-5/*.abap (14)
+PASS 60-code/claude-sonnet-5-5 contains every 41- C-INC id (9)
+PASS knowledge ids for gpt-5.6-sol == 10-/41- K- ids (107)
+PASS code ids for gpt-5.6-sol == 60-code/gpt-5.6-sol/*.abap (14)
+PASS 60-code/gpt-5.6-sol contains every 41- C-INC id (9)
+PASS 40-incidents.csv header has id/reproducible/root_cause
+PASS 40-incidents.csv non-reproducible rows 107 (got 107 of 163)
+PASS incident ids == exactly the non-reproducible rows
+PASS incident detail == root_cause of that row
+PASS 70- files are exactly the two deliverables: 70-grading-A.csv, 70-notes-A.txt
+PASS no 70-*.md created
+PASS notes has no UTF-8 BOM
+PASS no IP/URL/email/hostname-like token in the two files
+git status --porcelain:
+  ?? docs/reference/audits/2026-11-05-harness-necessity-review-data/70-grading-A.csv
+  ?? docs/reference/audits/2026-11-05-harness-necessity-review-data/70-notes-A.txt
+PASS git status shows only the two 70- files
+PASS git status shows no new .md
+
+--- knowledge tally (정답/오답/팩어긋남의심) ---
+claude-opus-5-5: ALL 69/28/10 · K-MOD 14/7/9 · K-CTY 16/0/0 · K-IND 7/0/0 · K-ABAP 6/0/1 · K-INC 26/21/0
+claude-sonnet-5-5: ALL 71/30/6 · K-MOD 16/9/5 · K-CTY 16/0/0 · K-IND 7/0/0 · K-ABAP 6/0/1 · K-INC 26/21/0
+gpt-5.6-sol: ALL 67/35/5 · K-MOD 17/8/5 · K-CTY 16/0/0 · K-IND 7/0/0 · K-ABAP 7/0/0 · K-INC 20/27/0
+--- code tally (통과/14) ---
+claude-opus-5-5: 통과 11/14 · 위반 3
+claude-sonnet-5-5: 통과 10/14 · 위반 4
+gpt-5.6-sol: 통과 8/14 · 위반 6
+--- incident tally ---
+{"피함":2,"못피함":100,"모름":5}
+{"SAP·엔진 성질":{"피함":0,"못피함":48,"모름":0},"모델 행동":{"피함":1,"못피함":19,"모름":2},"프로세스·문서":{"피함":1,"못피함":32,"모름":1},"모델 지식 부족":{"피함":0,"못피함":0,"모름":2},"사용자 요구 미파악":{"피함":0,"못피함":1,"모름":0}}
+--- 팩어긋남의심 rows: 21 · items: K-MOD-BW-01 K-MOD-CO-01 K-MOD-FI-02 K-MOD-HCM-01 K-MOD-MM-01 K-MOD-MM-02 K-MOD-PP-02 K-MOD-QM-01 K-MOD-TM-01 K-MOD-WM-01 K-ABAP-01
+
+RESULT: ALL PASS
