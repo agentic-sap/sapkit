@@ -1,0 +1,48 @@
+T4 — 사고 말뭉치 출처표 (M-E 1부 · 판J · 2026-11-05)
+
+규칙
+- 출처는 코드로만 적는다. P1~P6 ↔ 실제 프로젝트의 대응표는 어떤 파일에도 적지 않는다(오케스트레이터 보유).
+- 전부 읽기 전용으로 읽었다. 원본에 표시·수확 마커·메모를 남기지 않았다(spec B-7).
+- 읽지 않은 것: 동결 레포(구 세대 지식 원본)의 private 하위 · SAP 프로파일 파일(런타임 홈) — 지시대로 열지 않았다.
+- 줄 수 = 물리 줄 수(Get-Content -Raw 를 개행으로 나눈 개수 · 2026-11-05 측정).
+- 날짜 범위 = 그 파일 안 항목 머리줄(L-/R-/KD-/KS-)의 날짜 최소~최대 · 본문 인용 날짜는 제외 · 머리줄에 날짜가 없는 파일은 「날짜 표기 없음」.
+
+코드  종류                     읽은 파일(파일 이름만)                            줄 수   날짜 범위
+----  -----------------------  ----------------------------------------------  ------  ----------------------
+P1    사용자 프로젝트 교훈층   .sapkit/LESSONS.md                                 105   2026-08-04 (L-001~L-004)
+P1    사용자 프로젝트 집 규칙  .sapkit/RULES.md                                    10   날짜 표기 없음 (R-001~R-004 · LESSONS 승격분)
+P2    사용자 프로젝트 교훈층   .sapkit/LESSONS.md                                 148   2026-07-28 ~ 2026-07-30 (L-001~L-010)
+P2    사용자 프로젝트 집 규칙  .sapkit/RULES.md                                    45   날짜 표기 없음 (R-001~R-007)
+P3    사용자 프로젝트 교훈층   .sapkit/LESSONS.md                                 515   2026-07-27 ~ 2026-08-04 (L-001~L-034 · 정정 2026-08-03 포함)
+P3    사용자 프로젝트 집 규칙  .sapkit/RULES.md                                    73   2026-07-27 ~ 2026-08-04
+P4    사용자 프로젝트 교훈층   .sapkit/LESSONS.md                                 178   2026-07-30 ~ 2026-10-06 (L-001~L-009)
+P4    사용자 프로젝트 집 규칙  .sapkit/RULES.md                                    14   날짜 표기 없음 (R-001~R-007)
+P5    사용자 프로젝트 교훈층   .sapkit/LESSONS.md                                 226   2026-07-30 (L-001~L-006 — P4에서 2026-09-17에 복사된 항목) · 2026-10-07 (L-007~L-012)
+P5    사용자 프로젝트 집 규칙  .sapkit/RULES.md                                    20   날짜 표기 없음 (R-001~R-011 · 머리말에 2026-09-17 P4에서 복사)
+P5    사용자 프로젝트 지식 원자 .sapkit/knowledge/domain.md                         72   2026-10-14 ~ 2026-10-16 (KD-001~KD-012)
+P5    사용자 프로젝트 지식 원자 .sapkit/knowledge/system.md                         78   2026-10-14 ~ 2026-11-03 (KS-001~KS-014 · Pending 2026-10-12~13)
+P6    사용자 프로젝트 교훈층   .sapkit/LESSONS.md                                 168   2026-07-24 ~ 2026-08-05 (L-001~L-011 · 정정 2026-09-04 포함)
+P6    사용자 프로젝트 집 규칙  .sapkit/RULES.md                                    27   2026-07-27 ~ 2026-09-04
+FB    피드백 원장               sapkit-feedback.md (전체 · 수확 마커 아래 포함)    1473   2026-07-29 ~ 2026-10-26 (수확 마커 2026-09-09 · 2026-10-08)
+REPO  레포 기록                 docs/reference/engine-backlog.md                   152   2026-08-03 ~ 2026-10-08 (13-1~13-15 · §2 · §2-b · §3 · §4)
+REPO  레포 기록                 sapkit-engine/harness/DIVERGENCES.md              4079   M1 사전 등재 ~ 2026-10-08 (D1~D3 · D6 회수 · D-122 · D140~D161 · 등재만 · 정직 유보 — 부분 읽기: 머리 1~140 · 2648~2692 · 2898~4079; 중간 D4~D139 본문은 제목 지도만)
+REPO  레포 기록                 HANDOFF.md (「⚠ 남은 것 — 부채 목록」 ⑴~⑽ + 재개점)    483   2026-08-24 ~ 2026-11-05
+REPO  결정 로그                 docs/reference/DECISIONS.md (## D-058 · D-063 · D-064 · D-065 · D-069 · D-147 · D-152)   3539   2026-08-02 ~ 2026-10-08
+MEM   세션 메모리               MEMORY.md                                            15   색인
+MEM   세션 메모리               sap-agentic-harness-design.md                        179   2026-07 ~ 2026-11-05
+MEM   세션 메모리               (구 세대 이름)-lite-design.md — 대화형 트랙 상태 메모   103   2026-07-10
+MEM   세션 메모리               run-to-completion-dont-stop.md                        46   2026-08-19 (판6.2 · 판7-a)
+MEM   세션 메모리               report-progress-against-whole.md                      34   2026-08-12
+MEM   세션 메모리               verify-scope-against-user-intent.md                   38   2026-08-24 (판B)
+MEM   세션 메모리               sapkit-runtime-dir-migration.md                       41   2026-08-18
+MEM   세션 메모리               delegate-heavy-design-to-codex.md                     31   —(사고 없음 · 방식 메모)
+MEM   세션 메모리               dryforge-is-the-working-method.md                     29   2026-08-13
+MEM   세션 메모리               announce-then-call-same-turn.md                       16   2026-09-09
+MEM   세션 메모리               verdict-first-then-options.md                         25   2026-08-25
+MEM   세션 메모리               prefer-simple-decision-explanations.md                20   2026-07-13
+MEM   세션 메모리               prefer-neutral-prompt-wording.md                      19   2026-07-10
+
+참고
+- P1·P2·P3·P4·P6에는 knowledge/ 디렉터리가 없다(실측). P5만 있다.
+- 사고 행(40-incidents.csv)의 source 열은 위 코드 중 하나이고, REPO 행은 notes 열에 ref(D-번호 또는 문서 이름)를 적었다.
+- 같은 결함이 여러 출처에 적힌 경우(예: 서비스 바인딩 계약 고정 · 패치 활성 판 선독) 출처별 발생을 각각 한 행으로 두고 notes로 서로 가리킨다 — 재발 횟수가 판정 재료라서다.
