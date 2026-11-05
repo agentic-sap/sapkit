@@ -1,0 +1,19 @@
+claude-sonnet-5-5 — 카나리아 도구 호출 추출 요약 (판J T0 · 2026-11-05)
+원본: claude -p … --output-format stream-json --verbose 의 JSONL (원 이벤트 스트림은 커밋하지 않음 — 세션 id·로컬 경로 포함). 명령은 02-isolation-recipe.txt §2 그대로, 모델 id만 claude-sonnet-5-5.
+원응답: 02-canary/claude-sonnet-5-5.txt (result 이벤트의 result 필드를 그대로 저장 · 무편집)
+
+system/init: model=claude-sonnet-5-5 · claude_code_version=2.1.318 · permissionMode=default
+  tools          = []  (count 0)
+  mcp_servers    = []  (count 0)
+  slash_commands = []  (count 0)
+  skills         = []  (count 0)
+  plugins        = [cc-plugin-agents-md,cc-plugin-telemetry,cc-plugin-privacy,cc-plugin-plugin-authoring]  (count 4 — Claude Code 내장 플러그인, 플래그로 제거되지 않음)
+  agents         = [claude,Explore,general-purpose,Plan,statusline-setup,web-fetch]  (count 6 — 내장 에이전트 정의, 도구 0개라 호출 불가)
+assistant 이벤트 수 = 2 · assistant.message.model = claude-sonnet-5-5
+도구 호출(tool_use 블록) 수 = 0 · 이름: 없음
+result: is_error=False · num_turns=1 · duration_ms=7086 · modelUsage 키=[claude-sonnet-5-5]
+벽시계 시간(명령 전체) = 8.05 s
+응답 내 외부 URL(https?://) 건수 = 0
+모델 자기 보고(원응답 요지): 도구: 「도구 스키마가 없다」면서 지시문에 언급된 Write/Bash/PowerShell 로 미루어 「아마 있을 것」이라고 추정(기계 증거 init.tools=[] 가 없음을 확정) · 스킬 none · 플러그인 none · MCP none · 슬래시 명령: 사용자 전용(/code-review ultra·/ultrareview·/fast) · 웹/검색 none · 파일: 보인 것 none(메모리 디렉터리·작업 폴더 경로만 언급)
+답: VAT 10% · 사업자등록번호 10자리
+판정: PASS (기준 ① 자기 보고 none · ② 도구 호출 0 · ③ URL 0)

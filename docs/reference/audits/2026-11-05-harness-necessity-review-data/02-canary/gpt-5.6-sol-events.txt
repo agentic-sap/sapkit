@@ -1,0 +1,13 @@
+gpt-5.6-sol — 카나리아 도구 호출 추출 요약 (판J T0 · 2026-11-05)
+원본: codex exec … --json 의 JSONL (원 이벤트 스트림은 커밋하지 않음 — thread id·로컬 경로 포함). 명령은 02-isolation-recipe.txt §3 그대로 (fresh CODEX_HOME 임시 홈 · auth.json 사본만).
+원응답: 02-canary/gpt-5.6-sol.txt (item.completed/agent_message 의 text 를 그대로 저장 · 무편집)
+
+관측 모델 id: gpt-5.6-sol (--json 이벤트에는 모델 id가 없어 같은 플래그의 --json 없는 배너 실행에서 읽음 · OpenAI Codex v0.163.0)
+이벤트: thread.started=True · item.completed 유형 히스토그램: agent_message=1
+도구 호출 수(item.type ∉ {agent_message, reasoning, error}) = 0 · 이름: 없음
+usage: input_tokens=9305 · cached_input_tokens=0 · output_tokens=293 · reasoning_output_tokens=90
+벽시계 시간(명령 전체) = 8.10 s
+응답 내 외부 URL(https?://) 건수 = 0
+모델 자기 보고(원응답 요지): 도구: functions.exec/wait/request_user_input + exec 경유 중첩 도구(apply_patch 등) + 협업 도구(spawn_agent 등) 나열 — 셸 도구는 남는다(읽기 전용 샌드박스) · 스킬 none · 플러그인 none · MCP none · 슬래시 명령 none · 웹/검색 none · 파일: blind 폴더 읽기 권한은 있으나 아는 파일 없음
+답: VAT 10% · 사업자등록번호 10자리
+판정: PASS (기준 ① 자기 보고 none · ② 도구 호출 0 · ③ URL 0)
