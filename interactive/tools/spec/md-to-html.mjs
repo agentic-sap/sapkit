@@ -163,6 +163,9 @@ function renderImage(rawSrc, alt, title, ctx) {
   let path = src.replace(/[?#].*$/, '');
   try { path = decodeURIComponent(path); } catch { /* keep it as written */ }
   let uri = null;
+  // Not confined to the document's folder on purpose: the sources are documents
+  // sapkit itself wrote, and their pictures may sit in a sibling folder. Only
+  // bytes that sniff as an image are embedded; anything else is the placeholder.
   try { uri = imageDataUri(readFileSync(resolve(ctx.baseDir, path))); } catch { /* missing is not a failure */ }
   return uri ? `<img src="${uri}" alt="${altAttr}"${titleAttr}>` : missing;
 }

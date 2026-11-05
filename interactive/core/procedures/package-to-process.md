@@ -104,7 +104,9 @@ ZMM_CORE") — do only that:
   the recommendation; more than the picker holds folds per the
   [plain-language policy](../policies/plain-language.md). Nothing found → say so
   plainly and stop.
-- **Run the Step 7 item 1 checks on that document first.** Any check fails → make
+- **Run the Step 7 item 1 checks on that document first** — and, when it was split,
+  on every `-appendix-<N>.md` that would be merged into the HTML (the row-data
+  check above all: an appendix carries process sections and their tables too). Any check fails → make
   no HTML, say in plain words which check failed, and wait — a failed check is
   reported, not repaired (Step 7 item 4).
 - **Make the HTML** per Step 7 item 5 — same output name and folder (date and
@@ -392,7 +394,8 @@ node tools/spec/render-process-images.mjs \
      (rendered PNG **or** the text fallback) and a Step Table
    - §0 carries the macro diagram (PNG or fallback)
    - `process_count` equals the number of process sections
-   - no row data leaked into the document
+   - no row data leaked into the document — when it was split into appendices,
+     into any appendix either (the HTML merges them all, so every merged file is checked)
 
    When every check passes and `html` is true, make the HTML copy now (item 5),
    so the summary can carry its path.
