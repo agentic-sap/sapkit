@@ -1,6 +1,6 @@
 ---
 name: compare-programs
-description: Business-angle comparison of 2–5 ABAP programs that share the same business scenario but diverge by module (MM vs CO), country (KR vs EU), persona (controller vs warehouse), or time horizon. Reader = functional consultant.
+description: Business-angle comparison of 2–5 ABAP programs that share the same business scenario but diverge by module (MM vs CO), country (KR vs EU), persona (controller vs warehouse), or time horizon. Reader = functional consultant. On request also an HTML copy of the report to send, and converting an existing comparison report to HTML.
 ---
 
 # compare-programs (wrapper)

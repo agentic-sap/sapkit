@@ -1,6 +1,6 @@
 ---
 name: package-to-process
-description: Reverse-engineer one CBO package into an End-to-End Business Process document — walk its programs and FMs, recover the business-document flow (PR→PO→GR→IR style), and emit a consultant-facing Markdown narrative with rendered process-map and sequence-diagram images plus per-step tables.
+description: Reverse-engineer one CBO package into an End-to-End Business Process document — walk its programs and FMs, recover the business-document flow (PR→PO→GR→IR style), and emit a consultant-facing Markdown narrative with rendered process-map and sequence-diagram images plus per-step tables; on request also an HTML copy of the document to send, and converting an existing process document to HTML.
 ---
 
 # package-to-process (wrapper)
