@@ -1,6 +1,6 @@
 ---
 name: compare-programs
-description: Business-angle comparison of 2–5 ABAP programs that share the same business scenario but diverge by module (MM vs CO), country (KR vs EU), persona (controller vs warehouse), or time horizon. Reader = functional consultant.
+description: Business-angle comparison of 2–5 ABAP programs that share the same business scenario but diverge by module (MM vs CO), country (KR vs EU), persona (controller vs warehouse), or time horizon. Reader = functional consultant. On request also an HTML copy of the report to send, and converting an existing comparison report to HTML.
 source:
   - sc4sap-custom/skills/compare-programs/SKILL.md
   - sc4sap-custom/skills/compare-programs/comparison-scope.md
@@ -60,7 +60,7 @@ The comparison runs along **10 dimensions**. Every dimension answers a question 
 
 ### Scope Prompt (Step 2 of workflow)
 
-Put the list of comparison topics in front of the user with the defaults already selected, and ask a **single question**. Say it in the user's language, in plain words, per the [plain-language policy](../policies/plain-language.md) — never as a pasted English block. What has to come across:
+Put the list of comparison topics in front of the user with the defaults already selected, and send **one message with two items** — the scope item first, then the document-format item below it. Say both in the user's language, in plain words, per the [plain-language policy](../policies/plain-language.md) — never as a pasted English block. What the scope item has to get across:
 
 - **one line of why it is being asked** — this settles what the comparison actually looks at, and reading more than is needed costs time on every program in the set;
 - **the recommendation, stated first**: go with the pre-selected seven, because they answer most of what a consultant asks without reading every include;
@@ -77,11 +77,21 @@ Put the list of comparison topics in front of the user with the defaults already
   10. selected — when it is run and by whom: month-end, daily, or on demand;
 - **how to answer**: keep the selection as it stands, add or remove topics by number, take all ten, or name just the ones wanted — plus the open slot, an invitation to say in their own words what the comparison has to answer if none of the ten frames it.
 
-Accept short replies, whatever the language:
+What the document-format item has to get across:
+
+- **one line of why it is being asked** — besides the Markdown report, the same report can also be handed out as one HTML file (a web page that opens offline in any browser), for sending by mail or chat;
+- **the choice, recommendation first**:
+  - **Markdown only — the recommendation**, with one line of why: it is the fastest to review, and the HTML copy can still be made later from the same report;
+  - **Markdown plus an HTML copy** — the same report, also as one file ready to send;
+- **how to answer**: name the second option to get the HTML copy; saying nothing about it keeps the recommendation. This is a technical choice, so it carries no open slot.
+
+Accept short replies for the scope item, whatever the language:
 - `ok` / `proceed` / equivalents → the defaults stand.
 - `+N` / `-N` → flip dimension N.
 - `all` → enable 1–10.
 - `only N,M` → keep only the listed numbers.
+
+These short forms belong to the scope item only. A reply that says nothing about the format → Markdown only (the recommendation). The report language is still not asked — it follows the conversation language (§ Language Policy).
 
 ### Per-Dimension Data Sources (what to read per dimension)
 
@@ -127,9 +137,9 @@ Hold the confirmed list as `compared_objects` (an array of `{name, type, package
 
 **Step 2 — Scope Confirmation**
 
-Show the **Scope Prompt** from § Comparison Scope above, defaults pre-ticked, rendered in the user's current conversation language. Wait for the user's response. Accept `ok` / `proceed` / `+N` / `-N` / `only N,M` / `all` (and the equivalent phrasings in other languages).
+Show the **Scope Prompt** from § Comparison Scope above — one message, two items: the scope with its defaults pre-ticked, and the document format — rendered in the user's current conversation language. Wait for the user's response. For the scope item accept `ok` / `proceed` / `+N` / `-N` / `only N,M` / `all` (and the equivalent phrasings in other languages); for the format item, silence means Markdown only.
 
-Hold the confirmed dimension set as `active_dimensions` (a subset of 1–10). Echo one line back confirming the selection, e.g.: *"Dimensions confirmed: 1·2·3·5·6·7·10 (7 of 10). Starting analysis."*
+Hold the confirmed dimension set as `active_dimensions` (a subset of 1–10) and the format answer as `html: true|false`. Echo one line back confirming the selection, e.g.: *"Dimensions confirmed: 1·2·3·5·6·7·10 (7 of 10). Starting analysis."*
 
 **Step 3 — Facts Extraction (one program at a time, sequentially)**
 
@@ -196,11 +206,12 @@ Adopt the [sap-writer](../personas/sap-writer.md) persona for this step. Render 
 - `module_consultant_outputs` (optional)
 - user language
 
-Write the Markdown file out to `.sapkit/comparisons/<filename>.md` (the path rule lives in § Output Location). Then emit a tight completion block to the user (in the user's current conversation language — the English skeleton is below):
+Write the Markdown file out to `.sapkit/comparisons/<filename>.md` (the path rule lives in § Output Location). When `html` is true, make the HTML copy right after (§ HTML Copy). Then emit a tight completion block to the user (in the user's current conversation language — the English skeleton is below; the `HTML` line appears only when a copy was made):
 
 ```
 Comparison report generated.
 File: .sapkit/comparisons/ZMMR_GR_LIST__vs__ZCOR_GR_LIST-20260423.md
+HTML: .sapkit/comparisons/ZMMR_GR_LIST__vs__ZCOR_GR_LIST-20260423.html (opened in the browser)
 Dimensions: 7 · Divergent: 3 · Variant: 2 · Same: 2
 Key divergence: ZMMR = quantity-centric (MSEG, M_MSEG_WWA) / ZCOR = cost-value-centric (ACDOCA, F_BKPF_*)
 ```
@@ -212,6 +223,7 @@ Present it as a short menu (localized into the user's language at render time):
 - A deeper analysis of one specific dimension — the user names the number
 - Add more programs into the comparison (current N → up to 5)
 - Convert to Excel (.xlsx) *(deferred — stub for future parity with program-to-spec)*
+- Also make an HTML copy of this report — only when none was made in Step 5
 - Generate the report in a different language
 - Add a Where-used analysis, to compare the real call-site frequency
 - Derive a consolidation / split recommendation report out of the findings
@@ -233,6 +245,32 @@ Wait for the user's instruction — do not loop automatically.
 
 - Program names are uppercase, underscore-safe (slashes → `_`).
 - Where the filename runs past 120 chars (the 5-program case), use `.sapkit/comparisons/compare-{YYYYMMDD}-{hash6}.md` and list the programs inside the front-matter.
+- The HTML copy, when one is made, sits next to it as `.sapkit/comparisons/<same name as the Markdown>.html` — the same name, shortened form included, so the program names usually travel with the file.
+
+## HTML Copy
+
+**The Markdown stays the document of record.** The HTML copy is always generated from the Markdown on disk, never edited by hand, and the Markdown's format, path and content do not change because a copy exists. Render it with [md-to-html.mjs](../../tools/spec/md-to-html.mjs):
+
+```bash
+node PLUGIN_ROOT/tools/spec/md-to-html.mjs \
+  .sapkit/comparisons/<name>.md \
+  .sapkit/comparisons/<name>.html \
+  --lang <conversation language> \
+  --open
+```
+
+- `--lang` = the language the report is written in, i.e. the conversation language (the body is never translated; a language other than ko/en/ja gets an English page frame).
+- `--open` only the **first** time an HTML copy is made in this run. A regeneration later in the same run (say after the report was re-rendered in another language or with more programs) leaves `--open` off and just says the copy was updated.
+- Read the result: `WROTE <path>` is the file. `OPENED` means the browser was asked to open it — not proof a window appeared — so give the path as well. `OPEN-FAILED` (still exit 0, e.g. the sandbox blocked the browser) → give the path. Exit 1 → the Markdown could not be read and nothing was written; say so plainly — the Markdown report is unaffected.
+- Tell the user in their language, in plain words, either that an HTML copy was made and opened in the browser, with where it is, or that it could not be opened, with where it is. Never name the tool, its flags or its output lines.
+
+### Conversion only — an existing report to HTML
+
+When the user asks to turn a **report this procedure already wrote** into HTML — they hand over the file, or point at one ("last time's ZMMR vs ZCOR comparison") — do only that:
+
+- **No SAP connection, no scope question, no analysis** — this branch is P0 (offline). Steps 1–6 do not run.
+- **Identify the report.** A given path is used as is. Otherwise list the `.md` files under `.sapkit/comparisons/` and let the user pick — the programs compared and the date per candidate, in plain words, the most recent first and marked as the recommendation; more than the picker holds folds per the [plain-language policy](../policies/plain-language.md). Nothing found → say so plainly and stop.
+- **Make the HTML** as above — same name next to the source, opened in the browser. `--lang` comes from a `-<lang>` suffix in the file name if there is one; failing that, the language the body is written in; failing that, the conversation language.
 
 ## Report Template
 

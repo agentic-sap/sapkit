@@ -95,7 +95,7 @@ Where the name the user supplied breaks any rule, put a compliant alternative fo
 **Freeze** (interactive — a human confirmation gate before any create; an operator
 present, DEV tier only):
 
-Where `.sapkit/deep-interviews/` holds a brief whose object scope matches this
+Where `.sapkit/deep-interviews/*.md` holds a brief (only `*.md` is a brief — an HTML copy beside it is never read as one) whose object scope matches this
 request, read that first as the freeze input — confirm the match with the user in
 a single line, then close out the items the brief already answers (object type,
 package, transport strategy, …) by restating them for confirmation instead of

@@ -22,7 +22,9 @@ It works the same way in Claude Code, Codex CLI, and Antigravity.
 **Reading and understanding**
 
 - `/sapkit:program-to-spec` — reads someone else's ABAP program backwards into a
-  functional/technical spec. Comes out as Markdown or Excel.
+  functional/technical spec. Comes out as Markdown or Excel — and, if you want, as an HTML copy
+  of the Excel with the same sheets as tabs, one file you can send as it is. The design document,
+  requirements brief, process document, and comparison report can be had as HTML copies too.
 - `/sapkit:package-to-process` — walks a whole CBO package and recovers the business flow
   (purchase requisition → purchase order → goods receipt → invoice, that kind of thing), and
   draws the process map for you as well.
