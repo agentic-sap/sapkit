@@ -1,0 +1,1 @@
+XFELD/X의 `CHAR(1)`은 OData에서 `Edm.Boolean`으로 매핑되므로 `$filter=Field eq true`처럼 씁니다. 일반 `CHAR(1)` 도메인은 `Edm.String`이라 `$filter=Field eq 'X'`처럼 문자열로 비교합니다.

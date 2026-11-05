@@ -1,0 +1,1 @@
+**SM13** (Update Records / Update Requests) monitors update records, including terminated (canceled) V1/V2 updates, which can be analyzed and reprocessed there. SM14 is used for update program administration.

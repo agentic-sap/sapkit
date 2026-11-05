@@ -1,0 +1,5 @@
+`strict ( 2 )`는 `strict ( 1 )`의 검사에 더해, 활성화 시 `lock master/dependent`, `authorization master/dependent`, `etag master/dependent` 선언과 필드별 `numbering`(채번) 선언 등을 필수로 요구합니다. 앵커 CDS 뷰는 클래식 DDIC 뷰가 아니라 CDS **view entity**여야 하고, 루트는 `define root view entity`로 정의해야 합니다.
+
+`strict`를 빼면 이런 검사가 강제되지 않아 선언이 빠져도 대개 경고 수준으로 활성화되며, 최신 RAP 규칙 위반을 놓칠 수 있어 향후 호환성도 떨어집니다.
+
+기억에 의존한 답이라 세부 항목은 ABAP 문서로 확인하는 편이 안전합니다.

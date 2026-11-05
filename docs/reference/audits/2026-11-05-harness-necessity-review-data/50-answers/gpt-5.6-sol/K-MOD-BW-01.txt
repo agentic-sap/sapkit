@@ -1,0 +1,1 @@
+Transaction **RSISET** is used to create an InfoSet that joins multiple InfoProviders in SAP BW.

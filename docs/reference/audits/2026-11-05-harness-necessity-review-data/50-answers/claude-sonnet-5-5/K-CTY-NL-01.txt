@@ -1,0 +1,1 @@
+**iDEAL** is the dominant Dutch online payment method for B2C transactions. It's a bank-transfer-based system run through Dutch banks, now operated by Currence/Payment Hub and being integrated into the EPI's Wero.

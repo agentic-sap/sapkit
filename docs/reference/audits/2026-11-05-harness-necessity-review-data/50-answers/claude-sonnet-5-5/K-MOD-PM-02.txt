@@ -1,0 +1,1 @@
+**BAdI `WORKORDER_UPDATE`** (enhancement spot/classic BAdI in package `CO`) is the one triggered on create/change of PM/CS orders, and it's shared with PP production orders. Its key methods include `IN_UPDATE` (called at save/update), `BEFORE_UPDATE`, `AT_SAVE`, and `AT_RELEASE`.

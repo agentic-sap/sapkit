@@ -1,0 +1,1 @@
+`strict ( 2 )`에서는 BDEF에 `authorization master` 선언이 필요하고, 앵커 CDS 뷰는 `root view entity`여야 한다. `strict`를 제거하면 이 엄격 검사가 적용되지 않아 해당 조건 없이도 활성화될 수 있다.

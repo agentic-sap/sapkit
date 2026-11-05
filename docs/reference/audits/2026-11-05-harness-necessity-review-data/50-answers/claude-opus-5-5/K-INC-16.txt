@@ -1,0 +1,1 @@
+**가능합니다.** `managed … with additional save`의 saver(`cl_abap_behavior_saver` 상속)에서도 `cleanup`을 재정의해 자체 추가 버퍼를 비울 수 있습니다. 재정의 가능한 후크는 `finalize`, `check_before_save`, `adjust_numbers`(late numbering 시), `save_modified`(필수), `cleanup`, `cleanup_finalize`이며, `save`는 `save_modified`로 대체됩니다.

@@ -1,0 +1,151 @@
+=== canary #1 · model=claude-sonnet-5-5 · batch=1 · 2026-11-05 17:25:12 ===
+prompt: 02-isolation-recipe.txt §0 canary prompt (verbatim)
+observed_model: claude-sonnet-5-5
+tool_calls: 0 · names: none
+url_count: 0
+self_report_heuristic: skills=none plugins=none mcp=none web=none → ok
+exit_code: 0 · duration_ms: 6338 · wall_ms: 7255 · transient_retries: 0
+usage_input_tokens: 2
+usage_output_tokens: 767
+usage_cache_creation_input_tokens: 2263
+usage_cache_read_input_tokens: 649
+init_model: claude-sonnet-5-5 · claude_code_version: 2.1.318 · permissionMode: default
+init_tools: 0 []
+init_mcp_servers: 0 []
+init_slash_commands: 0 []
+init_skills: 0 []
+init_plugins: 4 [cc-plugin-agents-md,cc-plugin-telemetry,cc-plugin-privacy,cc-plugin-plugin-authoring]
+init_agents: 6 [claude,Explore,general-purpose,Plan,statusline-setup,web-fetch]
+assistant_models: claude-sonnet-5-5 · result_modelUsage_keys: claude-sonnet-5-5
+result_subtype: success · num_turns: 1 · is_error: False
+events: system=4 assistant=2 rate_limit_event=1 result=1 · unparsed_lines: 0
+verdict: PASS
+--- raw answer (unedited) ---
+**Access, based only on what my instructions state (no tools used):**
+
+- **Tools:** No tool schemas are listed. My instructions refer to a Write tool, a Bash tool, a PowerShell shell, and "dedicated file/search tools", but I can't enumerate their names or parameters from here.
+- **Skills:** None
+- **Plugins:** None
+- **MCP servers:** None
+- **Slash commands:** Mentioned in my instructions are `/code-review ultra` (and `/code-review ultra <PR#>`), the deprecated alias `/ultrareview`, and `/fast`. These are user-triggered, and I can't launch them myself.
+- **Web/search capability:** None listed
+- **Files:**
+  - Memory directory: `C:\Users\hjaew\.claude\projects\C--Users-hjaew-AppData-Local-Temp-sapkit-panJ-blind-T5\memory\`. I haven't read it, and its `MEMORY.md` index contents aren't shown to me.
+  - Working directory: `C:\Users\hjaew\AppData\Local\Temp\sapkit-panJ\blind-T5`, which is not a git repository. I haven't inspected its contents.
+
+**Answer from memory:** Korea's standard VAT rate is 10%, and the business registration number has 10 digits (format XXX-XX-XXXXX).
+--- end ---
+
+=== canary #2 · model=claude-sonnet-5-5 · batch=2 · 2026-11-05 17:27:59 ===
+prompt: 02-isolation-recipe.txt §0 canary prompt (verbatim)
+observed_model: claude-sonnet-5-5
+tool_calls: 0 · names: none
+url_count: 0
+self_report_heuristic: skills=none plugins=none mcp=none web=none → ok
+exit_code: 0 · duration_ms: 6844 · wall_ms: 7790 · transient_retries: 0
+usage_input_tokens: 2
+usage_output_tokens: 793
+usage_cache_creation_input_tokens: 0
+usage_cache_read_input_tokens: 2912
+init_model: claude-sonnet-5-5 · claude_code_version: 2.1.318 · permissionMode: default
+init_tools: 0 []
+init_mcp_servers: 0 []
+init_slash_commands: 0 []
+init_skills: 0 []
+init_plugins: 4 [cc-plugin-agents-md,cc-plugin-telemetry,cc-plugin-privacy,cc-plugin-plugin-authoring]
+init_agents: 6 [claude,Explore,general-purpose,Plan,statusline-setup,web-fetch]
+assistant_models: claude-sonnet-5-5 · result_modelUsage_keys: claude-sonnet-5-5
+result_subtype: success · num_turns: 1 · is_error: False
+events: system=4 assistant=2 rate_limit_event=1 result=1 · unparsed_lines: 0
+verdict: PASS
+--- raw answer (unedited) ---
+**Access (from my instructions only; I haven't used or probed any tool):**
+
+- **Tools:** the Write tool, a Bash tool, a PowerShell shell, and unspecified dedicated file and search tools. No full tool list was given to me, so I can't name the file and search tools precisely.
+- **Skills:** none
+- **Plugins:** none
+- **MCP servers:** none
+- **Slash commands:** `/code-review ultra` (and `/code-review ultra <PR#>`), the deprecated alias `/ultrareview`, and `/fast`. These are user-triggered, and I can't launch them myself.
+- **Web/search capability:** none stated, and I'm not using any.
+- **Files:**
+  - The working directory is `C:\Users\hjaew\AppData\Local\Temp\sapkit-panJ\blind-T5`, which is not a git repository. I haven't seen its contents.
+  - The memory directory is `C:\Users\hjaew\.claude\projects\C--Users-hjaew-AppData-Local-Temp-sapkit-panJ-blind-T5\memory\`, with a `MEMORY.md` index. I haven't seen any memory entries.
+
+**Answer:** Korea's standard VAT rate is 10%, and the business registration number has 10 digits (format XXX-XX-XXXXX).
+--- end ---
+
+=== canary #3 · model=claude-sonnet-5-5 · batch=3 · 2026-11-05 17:30:33 ===
+prompt: 02-isolation-recipe.txt §0 canary prompt (verbatim)
+observed_model: claude-sonnet-5-5
+tool_calls: 0 · names: none
+url_count: 0
+self_report_heuristic: skills=none plugins=none mcp=none web=none → ok
+exit_code: 0 · duration_ms: 10225 · wall_ms: 11243 · transient_retries: 0
+usage_input_tokens: 2
+usage_output_tokens: 688
+usage_cache_creation_input_tokens: 0
+usage_cache_read_input_tokens: 2912
+init_model: claude-sonnet-5-5 · claude_code_version: 2.1.318 · permissionMode: default
+init_tools: 0 []
+init_mcp_servers: 0 []
+init_slash_commands: 0 []
+init_skills: 0 []
+init_plugins: 4 [cc-plugin-agents-md,cc-plugin-telemetry,cc-plugin-privacy,cc-plugin-plugin-authoring]
+init_agents: 6 [claude,Explore,general-purpose,Plan,statusline-setup,web-fetch]
+assistant_models: claude-sonnet-5-5 · result_modelUsage_keys: claude-sonnet-5-5
+result_subtype: success · num_turns: 1 · is_error: False
+events: system=4 assistant=2 rate_limit_event=1 result=1 · unparsed_lines: 0
+verdict: PASS
+--- raw answer (unedited) ---
+**Access (from my context only, nothing checked with tools):**
+
+- **Tools:** The Write tool (named in the memory instructions), Bash and PowerShell shells, and unnamed dedicated file and search tools. I haven't been given their exact names or schemas.
+- **Skills:** none
+- **Plugins:** none
+- **MCP servers:** none
+- **Slash commands:** `/code-review ultra` (and `/code-review ultra <PR#>`), `/ultrareview` (deprecated alias), and `/fast`. The ultrareview commands are user-triggered, and I can't launch them.
+- **Web/search capability:** none identified. No web fetch or web search tool is described, and file search is local only.
+- **Files:**
+  - Working directory: `C:\Users\hjaew\AppData\Local\Temp\sapkit-panJ\blind-T5`, not a git repo, contents unknown.
+  - Memory directory: `C:\Users\hjaew\.claude\projects\C--Users-hjaew-AppData-Local-Temp-sapkit-panJ-blind-T5\memory\`, where `MEMORY.md` may or may not exist yet.
+  - No file contents have been loaded into this conversation.
+
+**Answer:** Korea's standard VAT rate is 10%, and the business registration number has 10 digits (format XXX-XX-XXXXX).
+--- end ---
+
+=== canary #4 · model=claude-sonnet-5-5 · batch=4 · 2026-11-05 17:34:39 ===
+prompt: 02-isolation-recipe.txt §0 canary prompt (verbatim)
+observed_model: claude-sonnet-5-5
+tool_calls: 0 · names: none
+url_count: 0
+self_report_heuristic: skills=none plugins=none mcp=none web=none → ok
+exit_code: 0 · duration_ms: 5799 · wall_ms: 6731 · transient_retries: 0
+usage_input_tokens: 2
+usage_output_tokens: 734
+usage_cache_creation_input_tokens: 0
+usage_cache_read_input_tokens: 2912
+init_model: claude-sonnet-5-5 · claude_code_version: 2.1.318 · permissionMode: default
+init_tools: 0 []
+init_mcp_servers: 0 []
+init_slash_commands: 0 []
+init_skills: 0 []
+init_plugins: 4 [cc-plugin-agents-md,cc-plugin-telemetry,cc-plugin-privacy,cc-plugin-plugin-authoring]
+init_agents: 6 [claude,Explore,general-purpose,Plan,statusline-setup,web-fetch]
+assistant_models: claude-sonnet-5-5 · result_modelUsage_keys: claude-sonnet-5-5
+result_subtype: success · num_turns: 1 · is_error: False
+events: system=4 assistant=2 rate_limit_event=1 result=1 · unparsed_lines: 0
+verdict: PASS
+--- raw answer (unedited) ---
+**Access, based on what's in my context (no tools used):**
+
+- **Tools:** No tool list is provided here. The instructions mention a Write tool, a Bash tool (PowerShell is the primary shell), and unnamed "dedicated file/search tools", but I can't enumerate exact names or schemas.
+- **Skills:** none
+- **Plugins:** none
+- **MCP servers:** none
+- **Slash commands:** none that I can run. The instructions mention `/code-review ultra` (and its deprecated alias `/ultrareview`) and `/fast`, but those are user-triggered.
+- **Web/search capability:** none listed.
+- **Files:** none seen. The memory directory `C:\Users\hjaew\.claude\projects\C--Users-hjaew-AppData-Local-Temp-sapkit-panJ-blind-T5\memory\` is said to exist, but I haven't read `MEMORY.md` or anything else in it. The working directory `C:\Users\hjaew\AppData\Local\Temp\sapkit-panJ\blind-T5` is not a git repo, and I haven't listed its contents.
+
+**Answer:** Korea's standard VAT rate is 10%, and the business registration number has 10 digits (format XXX-XX-XXXXX).
+--- end ---
+

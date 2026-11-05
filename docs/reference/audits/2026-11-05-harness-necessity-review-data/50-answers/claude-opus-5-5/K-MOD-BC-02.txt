@@ -1,0 +1,1 @@
+**DBACOCKPIT** (DBA Cockpit) is the central transaction for database space and performance analysis; older releases used **DB02** (space/storage) and **ST04** (performance monitor), which now redirect into it.

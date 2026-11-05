@@ -1,0 +1,1 @@
+I believe it's **`L_BIN_DETERMINATION`**, which runs the putaway strategy logic during transfer order creation. I'm not certain of the exact name, so please confirm it in SE37.

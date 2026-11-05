@@ -1,0 +1,1 @@
+The **VAT special fapiao (增值税专用发票, zengzhishui zhuanyong fapiao)** is the one that lets the buyer deduct input VAT. The ordinary fapiao (普通发票) generally doesn't, though some ordinary ones, such as those for certain transport services, can support deduction in limited cases. The digitized e-fapiao (全电发票) now also comes in special and ordinary versions with the same distinction.

@@ -1,0 +1,1 @@
+Business areas are maintained in table **TGSB** through view **V_TGSB** (IMG: Enterprise Structure → Definition → Financial Accounting → Define Business Area, transaction OX03). As far as I know, Treasury uses these same cross-application business areas rather than a separate TR-specific view.

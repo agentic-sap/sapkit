@@ -1,0 +1,1 @@
+Extend the header structure **KOMKBV1** and the item structure **KOMPBV1** with append structures.

@@ -1,0 +1,1 @@
+In Brazilian format, it's **1.234.567,89**: a period (.) as the thousands separator and a comma (,) as the decimal separator. With the currency symbol, it's **R$ 1.234.567,89**.

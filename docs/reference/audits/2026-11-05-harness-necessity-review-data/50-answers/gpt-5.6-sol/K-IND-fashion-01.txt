@@ -1,0 +1,1 @@
+The Grid is a matrix-based entry and display tool for fashion products. It presents product variants—typically color/size combinations—and related quantities or values in rows and columns.

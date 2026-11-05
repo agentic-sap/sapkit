@@ -1,0 +1,1 @@
+No single table holds all three. **TE** (travel expenses) and **TX** (infotype texts) are in **PCL1**, while **B2** (time evaluation results) is in **PCL2**.

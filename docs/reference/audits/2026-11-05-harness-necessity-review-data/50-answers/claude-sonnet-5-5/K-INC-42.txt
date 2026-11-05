@@ -1,0 +1,1 @@
+정확한 도구 이름은 기억이 확실치 않지만, ADT 기준으로 CCIMP는 `/oo/classes/<클래스>/includes/implementations`로 읽으며 MCP 서버에서는 보통 클래스 include를 읽는 도구(예: GetInclude/GetClass 계열)가 이를 담당합니다. readonly 표면에 그런 도구가 안 보이면 "로컬 구현부가 없다"고 단정하지 말고 "이 표면으로는 확인 불가"로 판단해, 도구 목록을 재확인하거나 다른 경로(ADT 직접 조회, 사용자 확인)로 검증해야 합니다.

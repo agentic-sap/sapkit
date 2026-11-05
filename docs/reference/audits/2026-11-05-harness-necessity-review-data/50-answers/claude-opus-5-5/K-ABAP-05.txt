@@ -1,0 +1,1 @@
+**SKA1** holds the G/L account master at chart-of-accounts level, and **SKB1** holds it at company-code level. Texts are in SKAT.

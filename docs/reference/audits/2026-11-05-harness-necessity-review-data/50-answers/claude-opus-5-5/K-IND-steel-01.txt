@@ -1,0 +1,1 @@
+Remnant management handles the leftover pieces from cutting or slitting stock (e.g., coil ends, partial sheets, bar offcuts). It records them as reusable inventory with their actual dimensions and characteristics, values them, and assigns them to later orders so less material becomes scrap.

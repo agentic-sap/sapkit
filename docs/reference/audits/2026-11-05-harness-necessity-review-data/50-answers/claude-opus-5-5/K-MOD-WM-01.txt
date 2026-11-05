@@ -1,0 +1,1 @@
+**LT31** prints (or reprints) a single transfer order manually; for multiple TOs grouped together, use **LT44**.

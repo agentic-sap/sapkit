@@ -1,0 +1,1 @@
+Freight Unit Building Rules are maintained in customizing view **/SCMTMS/V_FUBR**.

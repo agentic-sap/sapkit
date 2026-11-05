@@ -1,0 +1,1 @@
+The batch must undergo QA review of its executed batch record, QC test results, and any deviations, and then be formally released (dispositioned). In the EU, this release is a certification by a Qualified Person (QP). Until then it stays in quarantine.

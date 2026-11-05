@@ -1,0 +1,1 @@
+It's **generically typed** (implicitly `TYPE ANY`). The formal parameter takes on the technical attributes of whatever actual parameter is passed at `PERFORM` time, and by default it is passed by reference.

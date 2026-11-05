@@ -1,0 +1,1 @@
+아니요, 자동으로 적용되지 않습니다. 투영 BDEF의 해당 엔터티에 `use etag;`를 명시해야 base의 `etag master` 처리가 OData 서비스까지 노출됩니다.

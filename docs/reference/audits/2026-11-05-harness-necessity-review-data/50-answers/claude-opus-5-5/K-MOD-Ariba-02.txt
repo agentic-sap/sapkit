@@ -1,0 +1,1 @@
+**BUT000** (BP general data) takes over that role. LFA1 still exists and is kept in sync via CVI (Customer/Vendor Integration), with BUT000 as the leading table.

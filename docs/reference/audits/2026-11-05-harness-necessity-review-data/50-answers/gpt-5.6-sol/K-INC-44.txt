@@ -1,0 +1,1 @@
+아니요. XSTRING·STRING은 ABAP 내장 타입이라 DDIC 도메인이 없으므로 `GetDomain`으로 조회할 수 없습니다.

@@ -1,0 +1,3 @@
+**RSPC** is the transaction for creating, maintaining, and monitoring process chains in SAP BW. (For monitoring runs specifically, **RSPCM** gives the process chain monitor overview.)
+
+RSPC(프로세스 체인 생성·유지보수·모니터링), 실행 현황 모니터링은 RSPCM도 사용합니다.

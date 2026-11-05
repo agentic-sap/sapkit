@@ -1,0 +1,1 @@
+**RSPC** is the transaction for maintaining process chains in SAP BW, and its process chain log view lets you monitor runs. For a cross-chain monitoring overview, use **RSPCM**.

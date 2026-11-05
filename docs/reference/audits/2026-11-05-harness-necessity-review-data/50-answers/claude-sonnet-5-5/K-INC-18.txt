@@ -1,0 +1,3 @@
+네, 투영 BDEF는 base BDEF의 ETag 정의(`etag master`)를 자동으로 상속하므로 projection에서 별도로 선언할 필요가 없습니다. 낙관적 동시성 제어(`If-Match`)는 projection 서비스에서도 base의 ETag 필드를 기준으로 동작합니다.
+
+(참고: projection BDEF에서 `use etag;`를 명시하는 형태를 쓰기도 하니, 환경/릴리스에 따라 구문 요구 여부는 확인해 보세요.)

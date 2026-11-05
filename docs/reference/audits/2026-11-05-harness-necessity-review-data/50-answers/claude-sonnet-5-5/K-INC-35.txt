@@ -1,0 +1,3 @@
+openpyxl로 만든 xlsx도 보통 CL_FDT_XL_SPREADSHEET로 정상적으로 읽힙니다. 표준 OOXML 구조라 문제없지만, 다만 inline string이나 비표준 스타일/날짜 서식, 빈 sharedStrings 등이 있으면 `CX_FDT_EXCEL_CORE` 예외나 값 누락이 생길 수 있고, 이때는 Excel에서 한 번 열어 다시 저장하면 해결되는 경우가 많습니다.
+
+(확실한 검증 없이 기억에 기반한 답변입니다.)

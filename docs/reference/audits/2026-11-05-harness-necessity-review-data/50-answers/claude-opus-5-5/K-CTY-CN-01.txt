@@ -1,0 +1,1 @@
+The **special VAT fapiao (增值税专用发票)** allows the buyer, as a general VAT taxpayer, to deduct input VAT; the ordinary fapiao (增值税普通发票) generally does not. Fully digitalized e-invoices (全电发票/数电票) also come in special and ordinary types, and the same rule applies.

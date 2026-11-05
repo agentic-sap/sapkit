@@ -1,0 +1,1 @@
+Use transaction **RSISET** to create an InfoSet in SAP BW. It lets you join InfoProviders such as DataStore Objects and InfoObjects. You can also reach it through the Data Warehousing Workbench (RSA1) under InfoProvider.

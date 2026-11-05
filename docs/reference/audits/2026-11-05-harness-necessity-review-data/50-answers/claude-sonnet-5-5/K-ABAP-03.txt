@@ -1,0 +1,1 @@
+`CL_ABAP_LOCK_OBJECT_FACTORY` is the released class. Call `cl_abap_lock_object_factory=>get_instance( iv_name = 'E_YOUR_LOCK' )` to get an `IF_ABAP_LOCK_OBJECT`, then use its `enqueue( )` and `dequeue( )` methods. The generic `E_TABLE` lock isn't released, so you need to define your own lock object (for example `EZ_...`) for the table.

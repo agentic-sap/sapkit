@@ -1,0 +1,3 @@
+Putaway bin determination in LE-WM is handled by the function module **L_STORAGE_BIN_DETERMINE** (internally it calls strategy-specific modules, e.g., `L_STORAGE_BIN_FIXED`, `L_STORAGE_BIN_NEAR_PICKING`, `L_STORAGE_BIN_OPEN_STORAGE`, and others, depending on the putaway strategy).
+
+I'm going from memory, so verify the name in SE37 if you need certainty.

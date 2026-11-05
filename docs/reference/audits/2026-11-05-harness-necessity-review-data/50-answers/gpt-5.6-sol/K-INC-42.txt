@@ -1,0 +1,1 @@
+`read_class_include`로 `CCIMP`(local implementations)를 지정해 읽는다. readonly 표면에 없으면 “현재 노출된 도구로는 불가”로만 판단하며, 서버 자체에 기능이 없다고 단정하지 않는다.

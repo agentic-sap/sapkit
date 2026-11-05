@@ -1,0 +1,1 @@
+It's the **IRAS Audit File (IAF)**, a standardized data extract (Accounting/GST data) from the business's accounting software. The GST-specific version is the **GST Audit File (GAF)**.

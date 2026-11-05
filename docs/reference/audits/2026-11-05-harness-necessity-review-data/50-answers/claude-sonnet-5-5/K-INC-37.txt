@@ -1,0 +1,1 @@
+제가 아는 범위에서는 `GetTableContents`가 보통 테이블명과 최대 행 수(`max_rows`) 정도만 받고 WHERE 파라미터는 지원하지 않습니다. 조건 조회는 같은 서버의 `GetSqlQuery` 같은 free-style SQL 도구로 `SELECT ... FROM 테이블 WHERE ...`를 직접 보내는 방식이 일반적입니다. 다만 사용하는 MCP 서버·버전에 따라 다를 수 있어, 정확한 파라미터는 도구 스키마로 확인하셔야 합니다.

@@ -1,0 +1,1 @@
+The One Exposure from Operations flows are stored in table **FQM_FLOW** (the central flow table, read through CDS views such as `I_CashFlow`/`FQM_FLOW`-based views). Historical/flow-related data is also stored in `FQM_FLOW_SUPP` and related tables.

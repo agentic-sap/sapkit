@@ -1,0 +1,1 @@
+Partner determination procedures in SD are maintained via transaction **VOPAN**, which opens view cluster **VC_PARTNER**. The procedures are stored in table **TVPG**, with texts in **TVPGT**.

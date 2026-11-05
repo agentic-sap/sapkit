@@ -1,0 +1,1 @@
+Customizing view **V_TPAER** defines partner determination procedures in SAP SD.

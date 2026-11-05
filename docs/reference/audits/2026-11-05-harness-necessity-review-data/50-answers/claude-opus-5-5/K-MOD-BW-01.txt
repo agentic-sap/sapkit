@@ -1,0 +1,1 @@
+InfoSets are created in the **InfoSet Builder**, transaction **RSISET** (also reachable from the Data Warehousing Workbench, RSA1). In BW/4HANA, InfoSets are replaced by CompositeProviders.

@@ -1,0 +1,1 @@
+아니요. base BDEF의 `etag master`는 projection BDEF에 자동 상속되지 않으므로, 투영에서도 필요하면 `use etag`를 명시해야 합니다.

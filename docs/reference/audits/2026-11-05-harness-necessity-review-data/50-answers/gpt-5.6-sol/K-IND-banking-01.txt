@@ -1,0 +1,1 @@
+A parallel-ledger setup: a leading ledger for local IFRS figures and a non-leading ledger for regulatory reporting.

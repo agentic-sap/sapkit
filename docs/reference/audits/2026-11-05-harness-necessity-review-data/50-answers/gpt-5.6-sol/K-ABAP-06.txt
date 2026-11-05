@@ -1,0 +1,1 @@
+The UI annotations are absent under the A2X flavor: `/srvd_a2x/`.

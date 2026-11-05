@@ -1,0 +1,1 @@
+The classic SMOD enhancement is **F050S001** (customer exit for custom segments in FI IDocs).

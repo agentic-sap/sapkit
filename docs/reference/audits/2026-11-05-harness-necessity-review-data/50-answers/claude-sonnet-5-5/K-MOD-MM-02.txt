@@ -1,0 +1,3 @@
+MIGO posts through the **MB_CREATE_GOODS_MOVEMENT** function module (the core of the MB_POST_GOODS_MOVEMENT chain), which `BAPI_GOODSMVT_CREATE` itself wraps. MIGO's own posting goes through the class `CL_MMIM_...`/`MB_POST_GOODS_MOVEMENT` update logic, so if you want the lowest-level internal posting routine, use **MB_POST_GOODS_MOVEMENT** (called after `MB_CREATE_GOODS_MOVEMENT` prepares the data).
+
+I'm answering from memory and haven't verified this, so please check it in your system (e.g., via a where-used on MIGO's `MIGO_DIALOG`).

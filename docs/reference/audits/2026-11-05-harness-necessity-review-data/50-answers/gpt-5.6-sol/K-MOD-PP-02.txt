@@ -1,0 +1,1 @@
+Routing types are defined in customizing view **V_TCA01** (table **TCA01**).

@@ -1,0 +1,1 @@
+**예, 가능합니다.** ABAP 7.57(S/4HANA 2022, ABAP Cloud 2208 대응)부터 abstract BDEF의 `with hierarchy`와 `deep parameter`를 쓸 수 있습니다. 다만 기억에 근거한 답이라 정확한 도입 릴리스는 ABAP Keyword Documentation의 7.57 릴리스 노트(News)에서 확인하시기 바랍니다.

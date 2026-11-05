@@ -1,0 +1,1 @@
+After **FR**, it consists of **11 characters: a 2-character alphanumeric check key followed by the company’s 9-digit SIREN number**.

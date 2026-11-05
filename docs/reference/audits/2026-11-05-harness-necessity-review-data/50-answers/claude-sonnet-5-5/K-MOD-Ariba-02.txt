@@ -1,0 +1,1 @@
+**BUT000** (Business Partner: General Data I) takes over that role. LFA1 still exists in S/4HANA, but it's kept in sync through CVI (Customer/Vendor Integration), with BUT000 as the leading master record.

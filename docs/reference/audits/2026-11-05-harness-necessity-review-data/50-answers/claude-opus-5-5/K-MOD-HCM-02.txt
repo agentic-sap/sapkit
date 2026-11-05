@@ -1,0 +1,1 @@
+Infotype 0014 (Recurring Payments/Deductions) is stored in table **PA0014**.

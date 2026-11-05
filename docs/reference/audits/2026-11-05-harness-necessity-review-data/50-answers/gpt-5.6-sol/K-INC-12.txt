@@ -1,0 +1,1 @@
+글로벌 클래스 정의에 `FOR BEHAVIOR OF <BDEF명>` 절이 반드시 필요합니다. 없으면 해당 클래스가 RAP Behavior Pool로 인식되지 않아 동작 구현을 활성화할 수 없습니다.

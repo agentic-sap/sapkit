@@ -1,0 +1,7 @@
+Lohnsteuer-Anmeldung is filed electronically (ELSTER) **monthly, quarterly, or annually**, depending on the prior year's payroll tax amount:
+
+- **Monthly** if it exceeded €5,000 (due by the 10th of the following month)
+- **Quarterly** if it was €1,080–€5,000 (due the 10th after quarter-end)
+- **Annually** if it was €1,080 or less (due by January 10 of the following year)
+
+(Newly founded businesses report monthly for the first two years in some cases.)

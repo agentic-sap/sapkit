@@ -1,0 +1,1 @@
+A Korean business registration number has 10 digits, written as **XXX-XX-XXXXX** (3-2-5).
