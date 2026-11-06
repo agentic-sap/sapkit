@@ -13,8 +13,8 @@
 - **Slash commands:** `/code-review ultra` (and `/code-review ultra <PR#>`), `/ultrareview` (deprecated alias), and `/fast`. The first two are user-triggered, and I can't launch them myself.
 - **Web/search capability:** none explicitly provided.
 - **Files:**
-  - The working directory is `C:\Users\hjaew\AppData\Local\Temp\sapkit-panJ\blind-T6`, which isn't a git repo. I haven't listed its contents.
-  - The memory directory is `C:\Users\hjaew\.claude\projects\C--Users-hjaew-AppData-Local-Temp-sapkit-panJ-blind-T6\memory\`. No `MEMORY.md` index or memory entries were loaded into this context.
+  - The working directory is `C:\Users\<usr>\AppData\Local\Temp\sapkit-panJ\blind-T6`, which isn't a git repo. I haven't listed its contents.
+  - The memory directory is `C:\Users\<usr>\.claude\projects\C--Users-<usr>-AppData-Local-Temp-sapkit-panJ-blind-T6\memory\`. No `MEMORY.md` index or memory entries were loaded into this context.
   - No CLAUDE.md was provided.
 
 **From memory:** Korea's standard VAT rate is 10%, and the Korean business registration number has 10 digits (format XXX-XX-XXXXX).

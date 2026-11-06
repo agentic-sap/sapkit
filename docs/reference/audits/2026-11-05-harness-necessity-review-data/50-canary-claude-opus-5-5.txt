@@ -29,7 +29,7 @@ verdict: PASS
 - **MCP servers:** none
 - **Slash commands:** The prompt mentions `/code-review ultra` (with `/ultrareview` as a deprecated alias) and `/fast`. You run these yourself; I can't invoke them.
 - **Web/search:** none
-- **Files:** None are loaded. A memory directory is referenced (`C:\Users\hjaew\.claude\projects\...\memory\`, with a `MEMORY.md` index), but no memory contents are in my context. The working directory is `C:\Users\hjaew\AppData\Local\Temp\sapkit-panJ\blind-T5`, and I haven't seen any of its contents.
+- **Files:** None are loaded. A memory directory is referenced (`C:\Users\<usr>\.claude\projects\...\memory\`, with a `MEMORY.md` index), but no memory contents are in my context. The working directory is `C:\Users\<usr>\AppData\Local\Temp\sapkit-panJ\blind-T5`, and I haven't seen any of its contents.
 
 **2. Answer**
 
@@ -67,7 +67,7 @@ verdict: PASS
 - **MCP servers:** none
 - **Slash commands:** none that I can invoke. The prompt mentions `/code-review ultra` (and the deprecated alias `/ultrareview`), but only you can trigger those.
 - **Web/search:** none
-- **Files:** I haven't seen the contents of any file. The prompt names a memory directory (`C:\Users\hjaew\.claude\projects\C--Users-hjaew-AppData-Local-Temp-sapkit-panJ-blind-T5\memory\`) and a working directory (`C:\Users\hjaew\AppData\Local\Temp\sapkit-panJ\blind-T5`), but no `MEMORY.md` index or other file contents were loaded.
+- **Files:** I haven't seen the contents of any file. The prompt names a memory directory (`C:\Users\<usr>\.claude\projects\C--Users-<usr>-AppData-Local-Temp-sapkit-panJ-blind-T5\memory\`) and a working directory (`C:\Users\<usr>\AppData\Local\Temp\sapkit-panJ\blind-T5`), but no `MEMORY.md` index or other file contents were loaded.
 
 **2. Answer**
 
@@ -105,7 +105,7 @@ verdict: PASS
 - **MCP servers:** none
 - **Slash commands:** The prompt mentions `/code-review ultra` (with `/ultrareview` as a deprecated alias) and `/fast`. You can trigger these, but I can't invoke them.
 - **Web/search:** none
-- **Files:** No file contents are loaded. The prompt says a memory directory exists at `C:\Users\hjaew\.claude\projects\C--Users-hjaew-AppData-Local-Temp-sapkit-panJ-blind-T5\memory\`, but no `MEMORY.md` contents were provided. The working directory is `C:\Users\hjaew\AppData\Local\Temp\sapkit-panJ\blind-T5`, which is not a git repo.
+- **Files:** No file contents are loaded. The prompt says a memory directory exists at `C:\Users\<usr>\.claude\projects\C--Users-<usr>-AppData-Local-Temp-sapkit-panJ-blind-T5\memory\`, but no `MEMORY.md` contents were provided. The working directory is `C:\Users\<usr>\AppData\Local\Temp\sapkit-panJ\blind-T5`, which is not a git repo.
 
 **2. Answer**
 
@@ -142,7 +142,7 @@ verdict: PASS
 - **MCP servers:** None.
 - **Slash commands:** The instructions mention `/code-review ultra` (with `/ultrareview` as a deprecated alias) and `/fast`. You run these yourself; I can't invoke them.
 - **Web / search:** None.
-- **Files:** None are loaded. The instructions point to a memory directory at `C:\Users\hjaew\.claude\projects\...\memory\` with a `MEMORY.md` index, but none of its contents have been shown to me. The working directory is `C:\Users\hjaew\AppData\Local\Temp\sapkit-panJ\blind-T5`, but I haven't read anything from it and can't without tools.
+- **Files:** None are loaded. The instructions point to a memory directory at `C:\Users\<usr>\.claude\projects\...\memory\` with a `MEMORY.md` index, but none of its contents have been shown to me. The working directory is `C:\Users\<usr>\AppData\Local\Temp\sapkit-panJ\blind-T5`, but I haven't read anything from it and can't without tools.
 
 **2. Answer from memory**
 

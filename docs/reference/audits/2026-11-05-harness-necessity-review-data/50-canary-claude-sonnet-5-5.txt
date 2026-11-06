@@ -30,8 +30,8 @@ verdict: PASS
 - **Slash commands:** Mentioned in my instructions are `/code-review ultra` (and `/code-review ultra <PR#>`), the deprecated alias `/ultrareview`, and `/fast`. These are user-triggered, and I can't launch them myself.
 - **Web/search capability:** None listed
 - **Files:**
-  - Memory directory: `C:\Users\hjaew\.claude\projects\C--Users-hjaew-AppData-Local-Temp-sapkit-panJ-blind-T5\memory\`. I haven't read it, and its `MEMORY.md` index contents aren't shown to me.
-  - Working directory: `C:\Users\hjaew\AppData\Local\Temp\sapkit-panJ\blind-T5`, which is not a git repository. I haven't inspected its contents.
+  - Memory directory: `C:\Users\<usr>\.claude\projects\C--Users-<usr>-AppData-Local-Temp-sapkit-panJ-blind-T5\memory\`. I haven't read it, and its `MEMORY.md` index contents aren't shown to me.
+  - Working directory: `C:\Users\<usr>\AppData\Local\Temp\sapkit-panJ\blind-T5`, which is not a git repository. I haven't inspected its contents.
 
 **Answer from memory:** Korea's standard VAT rate is 10%, and the business registration number has 10 digits (format XXX-XX-XXXXX).
 --- end ---
@@ -68,8 +68,8 @@ verdict: PASS
 - **Slash commands:** `/code-review ultra` (and `/code-review ultra <PR#>`), the deprecated alias `/ultrareview`, and `/fast`. These are user-triggered, and I can't launch them myself.
 - **Web/search capability:** none stated, and I'm not using any.
 - **Files:**
-  - The working directory is `C:\Users\hjaew\AppData\Local\Temp\sapkit-panJ\blind-T5`, which is not a git repository. I haven't seen its contents.
-  - The memory directory is `C:\Users\hjaew\.claude\projects\C--Users-hjaew-AppData-Local-Temp-sapkit-panJ-blind-T5\memory\`, with a `MEMORY.md` index. I haven't seen any memory entries.
+  - The working directory is `C:\Users\<usr>\AppData\Local\Temp\sapkit-panJ\blind-T5`, which is not a git repository. I haven't seen its contents.
+  - The memory directory is `C:\Users\<usr>\.claude\projects\C--Users-<usr>-AppData-Local-Temp-sapkit-panJ-blind-T5\memory\`, with a `MEMORY.md` index. I haven't seen any memory entries.
 
 **Answer:** Korea's standard VAT rate is 10%, and the business registration number has 10 digits (format XXX-XX-XXXXX).
 --- end ---
@@ -106,8 +106,8 @@ verdict: PASS
 - **Slash commands:** `/code-review ultra` (and `/code-review ultra <PR#>`), `/ultrareview` (deprecated alias), and `/fast`. The ultrareview commands are user-triggered, and I can't launch them.
 - **Web/search capability:** none identified. No web fetch or web search tool is described, and file search is local only.
 - **Files:**
-  - Working directory: `C:\Users\hjaew\AppData\Local\Temp\sapkit-panJ\blind-T5`, not a git repo, contents unknown.
-  - Memory directory: `C:\Users\hjaew\.claude\projects\C--Users-hjaew-AppData-Local-Temp-sapkit-panJ-blind-T5\memory\`, where `MEMORY.md` may or may not exist yet.
+  - Working directory: `C:\Users\<usr>\AppData\Local\Temp\sapkit-panJ\blind-T5`, not a git repo, contents unknown.
+  - Memory directory: `C:\Users\<usr>\.claude\projects\C--Users-<usr>-AppData-Local-Temp-sapkit-panJ-blind-T5\memory\`, where `MEMORY.md` may or may not exist yet.
   - No file contents have been loaded into this conversation.
 
 **Answer:** Korea's standard VAT rate is 10%, and the business registration number has 10 digits (format XXX-XX-XXXXX).
@@ -144,7 +144,7 @@ verdict: PASS
 - **MCP servers:** none
 - **Slash commands:** none that I can run. The instructions mention `/code-review ultra` (and its deprecated alias `/ultrareview`) and `/fast`, but those are user-triggered.
 - **Web/search capability:** none listed.
-- **Files:** none seen. The memory directory `C:\Users\hjaew\.claude\projects\C--Users-hjaew-AppData-Local-Temp-sapkit-panJ-blind-T5\memory\` is said to exist, but I haven't read `MEMORY.md` or anything else in it. The working directory `C:\Users\hjaew\AppData\Local\Temp\sapkit-panJ\blind-T5` is not a git repo, and I haven't listed its contents.
+- **Files:** none seen. The memory directory `C:\Users\<usr>\.claude\projects\C--Users-<usr>-AppData-Local-Temp-sapkit-panJ-blind-T5\memory\` is said to exist, but I haven't read `MEMORY.md` or anything else in it. The working directory `C:\Users\<usr>\AppData\Local\Temp\sapkit-panJ\blind-T5` is not a git repo, and I haven't listed its contents.
 
 **Answer:** Korea's standard VAT rate is 10%, and the business registration number has 10 digits (format XXX-XX-XXXXX).
 --- end ---
