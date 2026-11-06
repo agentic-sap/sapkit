@@ -1,0 +1,166 @@
+01 — conventions/ 갈래표: 집 규칙 vs 일반 작법 (판J T0 · 2026-11-05)
+=====================================================================
+
+대상
+  interactive/core/knowledge/abap/conventions/*.md  22파일 (전부 읽고 분류 · 22/22)
+  interactive/core/knowledge/abap/templates/        1행으로 묶음 (alv-sample · ecc · oop-sample · procedural-sample)
+  = 23행
+
+갈래 정의
+  집 규칙   = 이 작업장(sapkit · 소유자 프로젝트)이 그렇게 정한 것. 다른 SAP 현장이 달리 정해도 틀리지 않는 것.
+              이름 체계 · 인클루드 배치 · 샘플 강제 · 작업 절차(spec.md/plan.md · Phase · 리뷰 체크리스트) 가 여기다.
+              ⚠ 해석 주석 A: 제품 도구에 묶인 문단(MCP 도구 이름 · 「D-147/D-152 엔진 수리」 · .sapkit 경로 · 판정 기록 파일)도
+              집 규칙 쪽에 넣었다 — 스타일 규칙은 아니지만 「맨 모델이 알 수 없는 것」이라는 점에서 같은 편이기 때문이다.
+              T1 이후 과업이 이 해석을 거부하면 그 문단만 세 번째 갈래(도구 특화)로 떼어 세면 된다 — 아래 분할란에 「도구」로 표시해 두었다.
+  일반 작법 = SAP/ABAP 어디서나 성립하는 사실·작법 — 언어 의미론 · 시스템 동작 · Clean ABAP 공통 원칙 · 현장 검증된 함정.
+              애매하면 일반 작법.
+  혼합     = 한 파일에 둘이 섞임. 갈래 열에 「혼합(주: X)」로 적고 분할란에 문단·절 단위로 가른다.
+
+열 = 번호 | 파일 | 갈래 | 한 줄 이유 | 분할(섞인 파일만 · 문단·절 단위)
+
+---------------------------------------------------------------------
+ 1 | naming-conventions.md
+   | 집 규칙
+   | 회사 표준 이름 체계(Z{MODULE}{TYPE}{NN} · +10 간격 · FG/FM 접두 · CDS ZI_/ZR_/ZC_/ZP_ · LCL_DATA/LCL_ALV/LCL_EVENT · GO_*) — 다른 현장은 다른 체계를 쓴다
+   | 일반 부분은 「고객 네임스페이스 Z/Y」 한 줄뿐 — 행 전체 집
+
+ 2 | include-structure.md
+   | 혼합(주: 집)
+   | 인클루드 접미 표(t/s/f/c/a/o/i/e/_tst)와 순서는 이 집의 약속
+   | 집: 접미 표 · 인클루드 순서 · 쌍(선언/구현) 묶음 규칙 · GetInactiveObjects 로 확인하는 절차(도구)
+   | 일반: 「이벤트 블록 뒤의 선언은 그 블록에 귀속된다」(ABAP 의미론) · 활성화 단위·비활성 버전의 동작(SAP 동작)
+
+ 3 | procedural-form-naming.md
+   | 집 규칙
+   | FORM 이름 끝 `_{screen_no}` 접미 강제 — 집의 약속
+   | 참고: PBO/PAI 모듈 이름 STATUS_xxxx/USER_COMMAND_xxxx 는 Screen Painter 기본 생성 이름과 같아 일반이지만, 「반드시 그 이름」으로 강제하는 것이 집 — 분할 없이 집
+
+ 4 | constant-rule.md
+   | 혼합(주: 집)
+   | 「매직 리터럴 금지」 원칙은 Clean ABAP 일반이나, 무엇을·어디에(TOP 인클루드 `{PROG}t` 의 CONSTANTS 블록 · LCL 섹션 · gc_ 구조) 두고 누가(sap-code-reviewer) 막는지는 집
+   | 일반: §1 상수로 올릴 대상 목록 · §2 리터럴이 남아도 되는 자리(필드카탈로그 값 · text-* · 초기값 · SY-*)
+   | 집: §3 선언 위치(`{PROG}t` · LCL 섹션 · `BEGIN OF gc_status`) · §4 집행(sap-code-reviewer 서명 보류)
+
+ 5 | text-element-rule.md
+   | 혼합(주: 집)
+   | 텍스트 요소 사용 강제·이름·두 언어 통과 의무는 집 · 텍스트 요소 종류와 함정은 SAP 사실
+   | 집: 모든 사용자 노출 문자열의 텍스트 요소 의무 · 이름 붙이기 · 두 언어 통과(필수 2회) 절차
+   | 일반: 텍스트 요소 종류 I/S/R/H · 선택 텍스트의 8자 오프셋 · OData 백엔드 414(URI too long) 함정 (SAP 동작 · 현장 검증)
+
+ 6 | ok-code-pattern.md
+   | 혼합(주: 집)
+   | gv_okcode 3단 계약(복사 → CLEAR → 지역변수로 CASE)은 이 집의 패턴
+   | 집: gv_okcode 선언 위치 · OKCODE 필드 바인딩 · 3단 처리 계약 · 위반 시 리뷰 등급
+   | 일반: 「sy-ucomm 은 팝업·ALV 이벤트 흐름에서 휘발한다」 문단 (SAP 동작 — 패턴의 근거)
+
+ 7 | oop-pattern.md
+   | 집 규칙
+   | 두 클래스 분할(LCL_DATA + LCL_ALV/LCL_SCREEN) · 샘플 재사용 강제 · S_UNIFIED_CON 같은 집 고유 이름 — 전부 이 집의 설계 선택
+   | 분할 없음
+
+ 8 | alv-rules.md
+   | 혼합(주: 집)
+   | 표시 모드·필드카탈로그·cwidth_opt 같은 집 레이아웃 규칙과, ALV/화면의 SAP 동작 사실이 한 파일에 있음
+   | 집: 표시 모드 기본 · 필드카탈로그 작성 규칙 · cwidth_opt · 이벤트 핸들러 배치 등 「우리 레이아웃 규칙」 절
+   | 일반: register_f4 호출 순서 · CUA 상태 · DYNP_VALUES_READ · 마스터 텍스트는 언어 의존 텍스트 테이블 · READ REPORT 72자 · SALV 제약 (SAP 동작 · 현장 검증)
+
+ 9 | abapgit-roundtrip-rule.md
+   | 혼합(주: 집)
+   | 미러 작업 방식(LF · 패키지 통째 ZIP · 로그 읽는 순서)은 집의 절차 · abapGit 자체의 동작은 일반
+   | 집: LF 고정 · 패키지 전체 ZIP 만 올림 · 미러 재시드 절차 · 로그 판독 순서 · 산출물 인계 방식
+   | 일반: FUGR pull 동작 · 팝업 · 화면(screen) 직렬화 · SUSH 객체 · baseinfo 등 abapGit 도구 사실
+
+10 | source-repair-protocol.md
+   | 혼합(주: 집)
+   | 「읽고 고치고 되읽는」 수리 절차와 동일 쓰기(identity write) 규칙은 집 · 비활성 버전·형제 결함 함정은 SAP 동작
+   | 집: read-before-edit 절차 · identity write 로 상태 복구 · 되읽기 대조 의무 · 도구(Update*·Get*) 순서(도구)
+   | 일반: 비활성 버전 함정(활성 소스와 편집 소스가 다름) · 형제 결함이 내 write 를 「실패」로 보고하는 거짓 실패 (SAP 동작 · 현장 검증)
+
+11 | templates/ (alv-sample · ecc · oop-sample · procedural-sample)
+   | 집 규칙
+   | 집이 강제하는 출발 골격(OOP 샘플 프로그램·인클루드 묶음 · 절차형 main-program · 필드카탈로그 가이드 · ECC DDIC 생성기 3종) — 다른 현장은 다른 골격
+   | 참고: ecc/ 생성기가 부르는 DDIF_*_PUT 은 SAP 내부 FM(일반)이지만 생성기 형태 자체는 집 — 행 전체 집
+
+12 | clean-code.md
+   | 혼합(주: 일반)
+   | Clean ABAP 공통 기준선(이름 · 제어 흐름 · 불리언 · 문자열 · 예외 · 산술 함정 · TCURX · DATS · Open SQL · 주석 · 테스트 · 성능 · 보안)은 일반
+   | 일반: Naming(개별 변수) · Variables and Types · Control Flow · Conditions · Internal Tables · Strings · Booleans · Expressions · Exception 공통부 · Null vs Zero · Currency(TCURX) · Arithmetic/Initial Values · Fixed-Width DATS · Open SQL 일반 항목(SELECT * 금지 · FAE 제약 · sy-subrc · 서버측 필터) · Editing 함정 2종 · Text/Comments/Testing/Performance/Security 원칙 · Version Awareness 원칙
+   | 집: 머리의 게이트 규칙(.sapkit/config.json 의 ABAP_RELEASE 참조) · 패러다임 파일 로딩 규약(Phase 1B 인터뷰) · 「인라인 INTO TABLE @DATA 보다 명시 타입 itab」 선호(집 스타일 — Clean ABAP 원문은 인라인 선언 권장) · 보조키(SECONDARY KEY) 정책 · 100만 행 사전 COUNT 프로토콜과 spec.md/plan.md/Phase 6 기록 · `configs/{MODULE}/` CDS 참조 · Blocked tables 정책 포인터 · 「RunUnitTest via MCP」(도구) · Review Checklist(집 절차)
+
+13 | clean-code-oop.md
+   | 혼합(주: 일반)
+   | OOP Clean ABAP(예외 · 모듈화 · 설계 · 생성자 · 메서드 · 서식 · 테스트 · 주석)은 일반
+   | 집: 「Mandatory Main Program Template (MUST match)」 절 전체(zsapkit_oop_ex 골격 · 인클루드 접미 · Docking+Full ALV 강제 · spec.md 일탈 사유) · 「OOP two-class split」 항목 · `ZCX_{MODULE}_ERROR` 이름 패턴(자기 상위 예외 클래스를 두라는 원칙은 일반, 이름은 집)
+   | 일반: 그 밖의 모든 절
+
+14 | clean-code-procedural.md
+   | 혼합(주: 일반)
+   | 절차형 Clean ABAP(TOP 전역 규율 · USING/CHANGING · FORM 본문 · 오류 처리 · 모듈화 경계 · 테스트 한계)은 일반
+   | 집: 「Mandatory Main Program Template」 절(main-program.abap 골격 · 인클루드 순서 t/c/s/o/i/a/f · spec.md 일탈 사유) · `_{screen_no}` 접미 · OK_CODE 바인딩 패턴(gv_okcode) · 「testing scope none 이면 ABAP Unit 생략, 근거는 spec」 절차 · FORM 머리 한 줄 주석 형식(집 서식)
+   | 일반: 그 밖의 모든 절
+
+15 | abap-release-reference.md
+   | 일반 작법
+   | 릴리스별 기능 도입 표와 대체 관용구 — SAP 사실
+   | 참고: §1·§5 의 「ABAP_RELEASE 를 .sapkit/config.json 에서 읽고 없으면 생성 중단」은 집 배선이나 한 줄 — 행 전체 일반
+
+16 | abap-release-examples.md
+   | 일반 작법
+   | 기능별 전·후 코드 예시 — SAP 문법 사실
+   | 분할 없음(머리의 .sapkit 언급 한 줄 제외)
+
+17 | sap-version-reference.md
+   | 일반 작법
+   | ECC vs S/4HANA 테이블·TCode·BAPI·개발 모델 대조표와 금지 지시 — SAP 사실
+   | 참고: §1 진입 게이트(.sapkit 에서 SAP_VERSION 해석)는 집 배선 한 절 — 행 전체 일반
+
+18 | cloud-abap-constraints.md
+   | 일반 작법
+   | ABAP for Cloud 의 금지 구문·대체 API 표 — SAP 사실
+   | 참고: §1 「create-program 절차 Phase 0 preflight 에서 참조」는 집 배선 한 줄 — 행 전체 일반
+
+19 | rap-odata-rules.md
+   | 혼합(주: 일반)
+   | RAP/OData 가 조용히 실패하는 방식(BDEF 문법 · %control · DDLX 위치 · 변환 exit · 캐시 · srvd/srvd_a2x · 바인딩 계약 · $batch)은 현장 검증된 SAP 사실
+   | 일반: BDEF 문법·검사기 메시지 · EML/%control · CDS/DDLX/SRVD 제약 · OData 필터·메타데이터·캐시 · V4 공개 경로 · 바이러스 스캔 설정 · $batch 규칙 · RFC 래핑 함정
+   | 집(도구): `CreateBehaviorDefinition`/`CreateServiceDefinition` 의 소스 처리 방식 · `CreateServiceBinding binding_category`(D-147) · `UpdateServiceBinding` 거부 처리(D-152) · `srvb:allowedAction` 툴측 가드 · troubleshooting § 8 포인터 — 제품 도구의 동작
+
+20 | odata-gateway-rules.md
+   | 혼합(주: 일반)
+   | SEGW 모델을 코드로 선언하는 방법 · nullable 날짜 · maxLength 외부 길이 · 캐시 · SOAP 대조 — 현장 검증된 SAP 사실
+   | 일반: 그 밖의 모든 절
+   | 집(도구): 「`GetObjectStructure` 는 D-152 엔진 수리 이후 WARNING 줄을 붙인다」 한 문단
+
+21 | ecc-ddic-fallback.md
+   | 혼합(주: 일반)
+   | 「ECC ADT 에 DDIC 엔드포인트가 없다 · DDIF_*_PUT 은 비활성 버전만 쓴다」는 SAP 사실 · 대체 절차의 이름·형식은 집
+   | 일반: §2 왜 분기가 있는가(ADT 제약 · DDIF_*_PUT 동작 · 활성화는 사람이 SE11)
+   | 집: §1 트리거 조건(.sapkit 의 SAP_VERSION) · §3 생성기 이름 YCREATE_… · §4 템플릿 1:1 미러 · §5 $TMP 고정·이송 금지 · §6 보고 문구 고정
+
+22 | field-typing-rule.md
+   | 혼합(주: 일반)
+   | 「데이터 요소 먼저」 원칙 · 표준 DE 참조표 · 안티패턴 · 필드명≠의미 · 255바이트 NOT NULL · 표준 테이블 필드명은 시스템에서 확인 — SAP 사실·일반 작법
+   | 일반: Priority 1~4 원칙 · 의미 범주 5종 · 탐지 휴리스틱 · 표준 DE 참조표 · 안티패턴 · T001B-BUKRS/SKA1-VBUND 함정 · NOT NULL >255 제약 · 「표준 필드명은 살아 있는 시스템에서 먼저 확인」
+   | 집: ZMME{NN}/ZMMD{NN} 이름 · `.sapkit/cbo/<MODULE>/<PACKAGE>/inventory.json` CBO 조회 · plan/spec 기록 의무 · Integration Points(skills/…) · Enforcement Checklist
+   | 집(도구): `GetTypeInfo` 후보 순회(D-147) · 「DDIC Writes Through MCP — What the Tools Do Not Do」 4항(UpdateTable 변환 불가 · 기술 설정 미기록 · client-fallback 골격 · CheckSyntax 범위)
+
+23 | function-module-rule.md
+   | 혼합(주: 일반)
+   | 인라인 시그니처가 ADT 의 유일한 경로 · TFDIR.FMODE 수동 · BCD 오버플로 · 함수 그룹이 한 컴파일 단위 · UXX 제외 — SAP 사실
+   | 일반: HARD RULE(인라인 시그니처) · 안티패턴 · ADT↔abapGit 표현 차이 · 표준 FM 호출 전 시그니처 읽기(CALL_FUNCTION_CONFLICT_TYPE · 가짜 EXCEPTIONS OTHERS) · RFC 플래그 수동 · RFC 인터페이스 타입 제약 · BCD 오버플로 · 함수 그룹 컴파일 단위 · UXX 활성화 제외
+   | 집: Required source template 의 형식 세부(주석 배치) · Integration Points(skills/·agents/) · Enforcement Checklist · 완료 보고 문구(⚠ Processing Type …) · 미러 쪽 규칙 포인터
+   | 집(도구): 그룹 인클루드 쓰기 경로(D-147 · `UpdateInclude` 잠금 주소) · `CheckSyntax object_type='function_module'` 사용법
+
+---------------------------------------------------------------------
+집계
+  행 23 = conventions 22 + templates 1  (coverage 22/22)
+  갈래별 (4 + 4 + 15 = 23):
+    순수 집 규칙   4 — 1 naming-conventions · 3 procedural-form-naming · 7 oop-pattern · 11 templates/
+    순수 일반 작법 4 — 15 abap-release-reference · 16 abap-release-examples · 17 sap-version-reference · 18 cloud-abap-constraints
+    혼합          15 — 주: 집 7  → 2 include-structure · 4 constant-rule · 5 text-element-rule · 6 ok-code-pattern · 8 alv-rules · 9 abapgit-roundtrip-rule · 10 source-repair-protocol
+                       주: 일반 8 → 12 clean-code · 13 clean-code-oop · 14 clean-code-procedural · 19 rap-odata-rules · 20 odata-gateway-rules · 21 ecc-ddic-fallback · 22 field-typing-rule · 23 function-module-rule
+  스펙(판J 계약서)의 출발 분류와 다른 곳:
+    - constant-rule · include-structure · text-element-rule · ok-code-pattern · alv-rules · abapgit-roundtrip-rule · source-repair-protocol : 스펙은 「집」 — 읽어 보니 SAP 동작 문단이 섞여 있어 「혼합(주: 집)」로 가르고 문단을 적었다
+    - clean-code 3종 · rap-odata-rules · odata-gateway-rules · ecc-ddic-fallback · field-typing-rule · function-module-rule : 스펙은 「일반」 — 샘플 강제 절·제품 도구 문단·집 절차가 섞여 있어 「혼합(주: 일반)」로 가르고 문단을 적었다
+    - 분류 자체를 뒤집은 파일은 없다. 「주」는 전부 스펙과 같다.
+  해석 주석 A(제품 도구 문단을 집 쪽에 둔 것)에 걸린 파일: 2 · 10 · 12 · 19 · 20 · 22 · 23 — 분할란에 「(도구)」로 표시.

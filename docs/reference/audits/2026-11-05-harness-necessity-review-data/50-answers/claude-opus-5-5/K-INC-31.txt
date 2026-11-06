@@ -1,0 +1,5 @@
+**이유:** FBV1/F-65 계열의 park 기능은 SY-BINPT='X'(배치입력 중)이면 FP 140으로 실행이 차단됩니다. 표준 FI 임시저장은 배치입력을 지원하지 않습니다.
+
+**대처:** ① `CALL TRANSACTION … OPTIONS FROM` 구문에서 CTU_PARAMS-NOBINPT='X'를 지정해 SY-BINPT를 끈 채 실행합니다. ② BDC를 쓰지 않고 FM `PRELIMINARY_POSTING_FB01` 같은 park 전용 API로 처리합니다.
+
+**NOBINPT 함정:** 이 옵션은 CALL TRANSACTION에서만 먹히고 SM35 세션 처리에는 적용되지 않습니다. 또 SY-BINPT가 꺼지면 배치입력 때 생략되던 팝업, Enjoy 화면, SET/GET 기본값이 다시 나타나 녹화한 화면 흐름이 어긋나 에러가 날 수 있습니다. 위 내용은 기억에 의존한 것이니 메시지 번호와 FM 이름은 시스템에서 한 번 확인하세요.

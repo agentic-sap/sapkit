@@ -1,0 +1,1 @@
+The main one is **LE_SHP_DELIVERY_PROC**, the BAdI for delivery processing, which covers inbound deliveries too. It's implemented in SE19 and has methods like `CHANGE_DELIVERY_HEADER`, `CHANGE_DELIVERY_ITEM` and `SAVE_AND_PUBLISH_DOCUMENT`. I can't name with confidence a classic SMOD enhancement that wraps it, so check that in SE18/SMOD before relying on it.

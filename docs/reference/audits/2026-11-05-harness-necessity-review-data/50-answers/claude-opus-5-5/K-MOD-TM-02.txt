@@ -1,0 +1,1 @@
+I'm not certain of a dedicated transaction code for a "Tracking and Tracing Monitor" in S/4HANA TM. Tracking is usually done through SAP Event Management (for example, `/SAPTRX/EH_LIST`) or through the event/tracking views on freight orders in the TM UI, so check your system's role menu or SAP Help to confirm.

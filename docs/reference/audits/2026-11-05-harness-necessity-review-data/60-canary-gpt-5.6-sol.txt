@@ -1,0 +1,49 @@
+60-canary-gpt-5.6-sol.txt — 판J T6 카나리아 (02-isolation-recipe.txt §0 프롬프트 글자 그대로 · 2026-11-05)
+명령: 02-isolation-recipe.txt §3 그대로 + T6 편차 2 (-c model_reasoning_effort="medium") · 편차 1 (blind-T6 · codexhome-T6 fresh 홈 · auth.json 사본만) · cwd = blind-T6
+  $null | codex exec --skip-git-repo-check -s read-only -C <blind-T6> -m gpt-5.6-sol --json --ephemeral --ignore-user-config --ignore-rules --disable apps --disable plugins --disable image_generation --disable multi_agent -c 'web_search="disabled"' -c 'mcp_servers={}' -c 'skills.include_instructions=false' -c 'model_reasoning_effort="medium"' "<프롬프트>" > <raw-T6>\canary\gpt-5.6-sol.jsonl 2> <…>.stderr.txt
+시작=2026-11-05T18:14:01.254+09:00 · 종료=2026-11-05T18:14:12.508+09:00 · exit=0 · wall_ms=11237 · stderr 줄 수=2
+원응답 (무편집):
+----- BEGIN RAW -----
+Tools: `functions.exec`, `functions.wait`, `functions.request_user_input` (Plan mode only), `apply_patch`, `create_goal`, `exec_command`, `get_goal`, `list_mcp_resource_templates`, `list_mcp_resources`, `read_mcp_resource`, `update_goal`, `view_image`, `write_stdin`, `collaboration.spawn_agent`, `collaboration.followup_task`, `collaboration.send_message`, `collaboration.interrupt_agent`, `collaboration.list_agents`, `collaboration.wait_agent`. Skills: none listed. Plugins: none. MCP servers: none identified. Slash commands: none. Web/search: none directly available; network is restricted. Files: read-only access within `C:\Users\<usr>\AppData\Local\Temp\sapkit-panJ\blind-T6`, but no individual filenames are known without inspecting it.
+
+Korea’s standard VAT rate is 10%, and its business registration number has 10 digits.
+----- END RAW -----
+events: thread.started=True · item.completed 유형 히스토그램: agent_message=1
+도구 호출 수(item.type ∉ {agent_message, reasoning, error})=0 · 이름: 없음
+usage: input_tokens=9309 · cached_input_tokens=0 · output_tokens=419 · reasoning_output_tokens=215
+error 항목=0 · turn.failed=0 · 최상위 error 이벤트=0
+응답 내 외부 URL(https?://) 건수=0
+기준 ② 도구 호출 0건: PASS (0)
+기준 ③ 외부 URL 0건: PASS (0)
+기준 ① 모델 자기 보고(스킬·플러그인·MCP·프로젝트 파일·웹 없음): T6 세션이 원응답을 판독해 아래 「판독」 절에 적는다
+
+배너 실행 (레시피 §3 · 같은 플래그 + 편차 2 · --json 없이 · --color never · 프롬프트 = "Reply with exactly the single word OK and nothing else. Do not use any tool.") · 시작=2026-11-05T18:14:12.582+09:00 · 종료=2026-11-05T18:14:15.931+09:00 · exit=0 · wall_ms=3337
+----- BEGIN BANNER stderr (verbatim · 세션 id 줄만 제외 · 18줄) -----
+WARNING: proceeding, even though we could not create PATH aliases: Refusing to create helper binaries under temporary dir "C:\\Users\\<usr>\\AppData\\Local\\Temp\\" (codex_home: AbsolutePathBuf("C:\\Users\\<usr>\\AppData\\Local\\Temp\\sapkit-panJ\\codexhome-T6"))
+Reading additional input from stdin...
+OpenAI Codex v0.163.0
+--------
+workdir: C:\Users\<usr>\AppData\Local\Temp\sapkit-panJ\blind-T6
+model: gpt-5.6-sol
+provider: openai
+approval: never
+sandbox: read-only
+reasoning effort: medium
+reasoning summaries: none
+--------
+user
+Reply with exactly the single word OK and nothing else. Do not use any tool.
+codex
+OK
+tokens used
+9,259
+----- END BANNER stderr -----
+----- BEGIN BANNER stdout (verbatim · 1줄) -----
+OK
+----- END BANNER stdout -----
+배너 판독(기계): [model: gpt-5.6-sol] · [reasoning effort: medium] · 기대: model: gpt-5.6-sol · reasoning effort: medium
+비고: 첫 카나리아 시도(17:17:45)는 Codex 계정 사용량 한도(「try again at 6:13 PM」)로 turn.failed 였다 — 60-retries.txt 에 기록 · 실패 사본은 raw-T6\canary\ 에만 둠(커밋하지 않음). 위는 18:14 재실행이다. 그 실패 시도에서도 배너는 model: gpt-5.6-sol · reasoning effort: medium 을 찍었다.
+판독 ① (T6 세션 · 원응답 판독): 스킬 none · 플러그인 none · MCP none · 슬래시 명령 none · 웹/검색 none(「network is restricted」) · 파일: blind-T6 읽기 전용 접근만 있고 아는 파일 없음 · 도구: functions.exec/wait/request_user_input + exec 경유 중첩 도구 + collaboration.* 를 나열 — 셸·협업 도구는 플래그로 지워지지 않는 레시피 §5 의 잔존이며 T0 카나리아와 같은 무늬 · 과제에서 그 도구를 쓰면 item.type=command_execution 등으로 잡혀 무효 처리된다
+답: VAT 10% · 사업자등록번호 10자리 — 기대와 일치
+배너: model: gpt-5.6-sol · reasoning effort: medium — 편차 2(-c model_reasoning_effort="medium") 수용 확인 · 거부 없음
+판정: PASS (① 자기 보고 none · ② 도구 호출 0 · ③ URL 0)

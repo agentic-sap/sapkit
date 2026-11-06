@@ -1,0 +1,263 @@
+판J T12 — 마감 게이트 실행 기록 (99)
+=====================================
+실행: 2026-11-06 13:27:41 · HEAD f6ae63f0 · 레포 루트 · PowerShell 7.6.9 · node v24.14.1
+회차: 2 — 마감 리뷰 회수(93 · D-158) 뒤 다시 돌렸다. 1회차(마감 기록 직후)의 기록은 git 이력의 ced3182에 있다.
+판정 = 종료 코드. 출력은 게이트마다 끝 25줄(레포 위치 → <레포> · 계정 이름 경로 → <usr> · 웹 주소 → <url> · 다른 프로젝트 이름 → <프로젝트>).
+doctor는 로컬 전용(CI 밖)이다 — FAIL 1(Antigravity 설치 1.2.14 ≠ 고정 1.1.4)은 이 판 전부터 있던 설치 상태이고 이 판과 무관하다.
+
+--- check-links · exit=0 · 0.1s
+$ node interactive/scripts/check-links.mjs interactive
+  
+  md 268개, 상대 링크 1026개 검사, 깨짐 0개
+
+--- verify-engine · exit=0 · 0.1s
+$ node interactive/server/verify-engine.mjs
+  [verify-engine] OK: sapkit-engine@1.5.0 (3c1fbcef34a5…)
+
+--- check-engine-provenance · exit=0 · 0.1s
+$ node interactive/scripts/check-engine-provenance.mjs
+  엔진         : sapkit-engine@1.5.0
+  source commit: 7f41d16d1220… (VERSION과 일치)
+  번들         : 3c1fbcef34a5… · 3910562 bytes
+  재현 빌드    : (--rebuild 미지정 — 건너뜀)
+  
+  ✅ 엔진 provenance 통과 — 소스 커밋이 실재·HEAD 조상·번들 소스 최종 커밋과 일치 · 버전 3자 일치
+
+--- smoke-mcp · exit=0 · 0.4s
+$ node interactive/scripts/smoke-mcp.mjs
+  default   155 tools · read 87 · mutation 62 · 실행 3 · row-data 2
+  readonly   65 tools · read 60 · mutation 0 · 실행 2 · row-data 2
+  어댑터 deny : codex ✅ · antigravity ✅ · claude ✅ · claude_build ✅
+  MCP 배선 env: claude ✅(env 1키) · codex ✅(env 1키) (blocklist 노브 선언 0)
+  
+  ℹ readonly는 실행 무풍지대가 아니다 — 등재된 실행 도구 2개 노출: RuntimeCreateProfilerTraceParameters, RuntimeRunClassWithProfiling
+  ℹ row-data는 양쪽 exposition 모두 노출 — P2 차단은 어댑터 deny + 호출별 사람 승인이 담당
+  
+  ✅ 도구 표면 계약 통과 — 이름 집합 고정 · readonly mutation 0 · 실행/row-data 등재분 일치 · 어댑터 deny 유지 · MCP 배선에 blocklist 노브 0
+
+--- conformance-server-gates · exit=0 · 13.3s
+$ node interactive/scripts/conformance-server-gates.mjs
+    ✅ B2p3 여는 권한은 활성 프로파일 파일에만 있다 (파일 BNKA 열림 · 프로세스 env KNA1 안 열림)
+         프로파일 sap.env ALLOW_TABLE=BNKA · 프로세스 env ALLOW_TABLE=KNA1 → BNKA=REACHED_SAP · KNA1=BLOCKLIST_DENY
+    ✅ B2p5 프로세스 env는 층을 **올릴** 수 있다 (조이는 절반)
+         프로파일 층 침묵(기본 standard) · 프로세스 env PROFILE=strict → strict층 BALDAT=BLOCKLIST_DENY · 목록 밖 ZSAPKIT_FREE=REACHED_SAP
+    ✅ B2p4 EXTEND는 두 통로의 합집합 — 어느 쪽도 상대를 지우지 않는다
+         프로파일 EXTEND=ZSAPKIT_OTHER · 프로세스 env EXTEND=ZSAPKIT_SECRET → 프로세스분=BLOCKLIST_DENY · 프로파일분=BLOCKLIST_DENY · 목록 밖=REACHED_SAP
+    ✅ B5a MCP_BLOCKLIST_PROFILE=off — 가드 전면 해제(지원되는 값)
+         off → BNKA/VBRK/BALDAT = REACHED_SAP, REACHED_SAP, REACHED_SAP
+    ✅ B5b MCP_BLOCKLIST_PROFILE=minimal — minimal층만 차단
+         minimal → BNKA=BLOCKLIST_DENY · VBRK(standard층)=REACHED_SAP · BALDAT(strict층)=REACHED_SAP
+    ✅ B5c MCP_BLOCKLIST_PROFILE=strict — strict층까지 차단
+         strict → BNKA=BLOCKLIST_DENY · VBRK=BLOCKLIST_ASK · BALDAT=BLOCKLIST_DENY
+    ✅ B5d 미지원 값은 조용히 열지 않고 standard로 폴백 (fail-safe)
+         "bogus-value" → BNKA=BLOCKLIST_DENY · VBRK=BLOCKLIST_ASK · BALDAT=REACHED_SAP (= standard와 동일)
+  
+  C. inspection-only 정직 실패
+    ✅ C1a 프로파일 전무 → initialize·tools/list는 성공
+         tools/list = 65개 · stderr "Starting in inspection-only mode"=true
+    ✅ C1 연결 필요 도구 호출 → 정직한 실패 (침묵 성공·mock 성공 아님)
+         2종 관측=NO_CONNECTION, NO_CONNECTION · isError=true · 문구 "ERR_NO_CONNECTION"
+  
+  ─────────────────────────────────────────────────────────────
+  총 26건 · PASS 26 · FAIL 0
+  
+  ✅ 서버 게이트 적합성 통과 — tier 집행(QA·PRD·미해석 fail-closed, DEV 통과)·blocklist 집행·ask 왕복·inspection-only 정직 실패 고정 — 잔여 격차 0
+
+--- gen-plugin-manifests · exit=0 · 0.1s
+$ node interactive/scripts/gen-plugin-manifests.mjs --check
+  version : 0.12.0 (단일 정본: interactive/plugin-metadata.json)
+  자산    : 페르소나 26 · 스킬 19 · 절차 25 · 에이전트 2 · 모듈 15 · 산업 14 · 국가 16 · 도구 155
+  생성물  : 7종 (매니페스트 5 + MCP wrapper 2)
+  
+  ✅ 7종 생성물이 단일 정본과 일치 · 자산 수 실제와 일치
+
+--- check-runtime-path-rename · exit=0 · 0.3s
+$ node interactive/scripts/check-runtime-path-rename.mjs
+  스캔 루트   : <레포>
+  역사 제외   : 경로 15개 (결정·설계 로그 · provenance · 빌드 산출물 · 시험 자산)
+  활성 잔존   : 0개 파일
+  안전 앵커   : 7개 정확 문자열
+  
+  ✅ 개명 완료 게이트 통과 — 활성 구역에 구 세대 토큰 없음 · 안전 앵커 온전
+
+--- conformance-runtime-dir · exit=0 · 5.1s
+$ node interactive/scripts/conformance-runtime-dir.mjs
+  home-alias-both                           ok              ok              ok              ok              ok              
+  home-alias-neither                        ok              ok              ok              ok              ok              
+  safety-1-artifact-child-dev-parent        ok              ok              ok              ok              ok                # tier-guard.runtimeDir은 훅 출력에 없어 decision/tier로 간접 고정
+  safety-2-child-strict-parent-minimal      ok              ok              ok              ok              ok                # tier-guard.runtimeDir은 훅 출력에 없어 decision/tier로 간접 고정
+  safety-6-extend-same-runtime-dir          ok              ok              ok              ok              ok                # tier-guard.runtimeDir은 훅 출력에 없어 decision/tier로 간접 고정
+  safety-8c-env-points-at-removed-home      ok              ok              ok              ok              env-invalid 1/2   # R-ENV 하드 오류로 멈춘 도구가 있다(기대 동작). extract-customizations는 --resolve-only에서 홈을 해석하지 않아 멈추지 않는다 — 출력 범위 차이
+  safety-9a-r-new-site-at-root              ok              ok              ok              ok              ok(pinned)        # tier-guard.runtimeDir은 훅 출력에 없어 decision/tier로 간접 고정
+  safety-9b-r-new-site-in-subdir            ok              ok              ok              ok              ok(pinned)        # tier-guard.runtimeDir은 훅 출력에 없어 decision/tier로 간접 고정
+  surface-development-on-dev                skip            ok              skip            skip            ok              
+  surface-config-in-legacy-dir              skip            ok              skip            skip            ok              
+  surface-no-walk-up                        skip            ok              skip            skip            ok              
+  surface-development-on-qa                 skip            ok              skip            skip            ok              
+  
+  안전 회귀 (§7-3 · 잔존 5종):
+    #1  PASS  safety-1-artifact-child-dev-parent
+    #2  PASS  safety-2-child-strict-parent-minimal
+    #6  PASS  safety-6-extend-same-runtime-dir
+    #8  PASS  safety-8c-env-points-at-removed-home
+    #9  PASS  safety-9a-r-new-site-at-root, safety-9b-r-new-site-in-subdir
+  
+  launch 실기동 스모크: PASS — initialize 응답 수신 · MCP_ENV_PATH 미설정(무접속 inspection-only)
+  
+  assert 138건 · skip(fixture 기대 미확정) 12건 · unobservable(출하 인터페이스로 관측 불가 — tier-guard.runtimeDir) 10건 · 실패 0건
+  
+  ✅ 적합성 시험 통과 — 소비자별 해석 규칙 보존 · 안전 회귀 5종 PASS
+
+--- verify-checker · exit=0 · 0.1s
+$ node interactive/scripts/verify-checker.mjs
+  검사기       : sapkit-cli@0.1.0
+  source commit: f19542dc0b9a…
+  번들         : 7eabb5265114… · 57795 bytes
+  소스 대조    : 36개 파일 · 6610f6f075e4…
+  
+  ✅ 검사기 번들 통과 — 바이트 일치 · 버전 3자 일치 · 소스 커밋 실재·HEAD 조상 · 소스 표류 없음
+
+--- check-doc-size · exit=0 · 0.0s
+$ node interactive/scripts/check-doc-size.mjs --file HANDOFF.md:500:docs/reference/handoff-archive/ --file docs/RUN-PLAN.md:300:docs/reference/run-archive/
+  스캔 루트   : <레포>
+  측정 정의   : 물리 줄 수 = 개행(LF) 개수 · wc -l 동등
+    OK HANDOFF.md              494 / 상한 500
+    OK docs/RUN-PLAN.md        134 / 상한 300
+  
+  ✅ 줄 수 게이트 통과 — 웜 레이어 문서가 상한 안에 있다
+
+--- doctor (로컬 전용) · exit=1 · 2.5s
+$ node interactive/scripts/doctor.mjs
+  [doctor] 3사 어댑터-코어 동기화 · capability 진단
+  
+  [doctor] OK   ① 번들 무결성 — [verify-engine] OK: sapkit-engine@1.5.0 (3c1fbcef34a5…)
+  [doctor] OK   ② Claude Code 호환성 — CLI 2.1.318, 플러그인 설치됨(v0.12.0, enabled=true, scope=user) 외 1개
+  [doctor] WARN ② Codex 호환성 — pre-conformance(minimumSupported 미확정) — 설치 0.163.0는 어떤 버전도 PASS로 부르지 않음 · requiredCapabilities=[plugin-bundled-stdio-mcp, plugin-local-path-with-project-cwd] · 플러그인 미설치
+           ↳ P0 capability probe(설계 §13) 완료 후 minimumSupported/lastVerified를 채우면 이 WARN이 FAIL/OK/WARN으로 갈린다. 아래 ③④⑦이 설치 실물을 이어서 검사한다.
+  [doctor] FAIL ② Antigravity 호환성 — 설치 1.2.14 ≠ 고정 1.1.4 (compatibility.json 재검증 필요)
+  [doctor] OK   ③ Claude 설치본 버전 — C:\Users\<usr>\.claude\plugins\cache\agentic-sap\sapkit\0.12.0 → v0.12.0 (레포 v0.12.0과 일치)
+  [doctor] OK   ③ Claude 설치본 버전 — C:\Users\<usr>\.claude\plugins\cache\agentic-sap\sapkit\0.12.0 → v0.12.0 (레포 v0.12.0과 일치)
+  [doctor] SKIP ③ Codex 설치본 버전 — 설치 목록 조회 실패: 타임아웃/시그널 종료(SIGTERM)
+  [doctor] OK   ④ Claude bundled MCP 선언 — C:\Users\<usr>\.claude\plugins\cache\agentic-sap\sapkit\0.12.0\.mcp.json (설치본) → mcpServers.sap이 launch.cjs를 가리킴
+  [doctor] SKIP ④ Codex bundled MCP 배선 — Codex sapkit 플러그인 미설치(또는 경로 미확인) — 검사 대상 없음
+  [doctor] OK   ⑤ 프로젝트 runtime dir · active-profile — 세대=.sapkit · active-profile.txt=존재 · sap.env 해석=성공 (경로·별칭은 비밀 취급 — 미출력)
+  [doctor] OK   ⑥ toolSurface 기대값 — 설정=development → 예상 exposition=readonly,high
+  [doctor] WARN ⑦ Codex legacy 전역 sap 중복 — 전역 [mcp_servers.sap] 등록이 존재(enabled=true · command 보유 = 진짜 전역 서버) — plugin-bundled sap을 조용히 가릴 수 있음(동시 기동 아님, 그림자)
+           ↳ 제거는 `codex mcp remove sap` — 사용자 확인 후에만. 그 항목에 disabled_tools 실데이터 하드차단이 있다면 제거 전에 대체 차단을 먼저 마련하십시오(자동 제거 금지).
+  [doctor] OK   ⑧ SAPKIT 훅 배선 — 사용자: marker 0/7(미배선) · 프로젝트: marker 3/7 활성 · 프로젝트(local): marker 0/7(미배선)
+  [doctor] OK   ⑨ sap.env 존재 — sap.env 해석 결과=존재 (내용·값은 출력하지 않음)
+  
+  요약: OK 9 · INFO 0 · WARN 2 · SKIP 2 · FAIL 1
+  ❌ FAIL 발견 — 위 FAIL 항목 확인
+
+--- check-wiki (공방) · exit=0 · 0.1s
+$ node scripts/check-wiki.mjs
+  스캔 루트   : <레포>
+  위키 구역   : docs/reference/wiki (페이지 8개)
+  측정 정의   : CRLF 정규화 후 줄 번호 1-based · 인라인 마크다운 링크만
+    OK ① 링크 무결성         상대 .md 링크 105개
+    OK ② 고아 검출          분모 38개 (아카이브 2종 내부·INDEX 자신 제외) · 발견 링크 105개(인용 구간 밖)
+    OK ③ D-번호 실재        표제 158개 대조
+    OK ④ 파생물 배너         페이지 8개
+    OK ⑤ 부재 = 위반        docs/reference/wiki 있음 · INDEX.md 있음
+    OK ⑥ 배선 앵커          CLAUDE.md·HANDOFF.md ← "docs/reference/wiki/INDEX.md"
+  
+  ✅ 위키 게이트 통과 — 콜드 층 위키가 구조적으로 살아 있다
+
+--- test-check-wiki (공방) · exit=0 · 0.9s
+$ node scripts/test-check-wiki.mjs
+    [ok ]    └ 판정 지도
+    [ok ]    └ 사유에 "입구 INDEX.md가 없다"
+    [ok ]    └ 사유에 "고아"
+    [ok ]    └ 사유에 "건너뜀" 없음
+    [ok ]    └ 사유에 "위키 디렉터리가 없다" 없음
+    [ok ] ⒣ ③의 DECISIONS.md 부재 분기 — exit 1
+    [ok ]    └ 판정 지도
+    [ok ]    └ 사유에 "결정 로그가 없다"
+    [ok ]    └ 사유에 "DECISIONS.md"
+    [ok ]    └ 사유에 "표제에 없다" 없음
+    [ok ] ⒠ --root= 형태 · 깨끗한 트리 — exit 0
+    [ok ]    └ 판정 지도
+    [ok ] ⒠ --root= 형태 · 고아 트리 (fixture를 읽었다는 증거) — exit 1
+    [ok ]    └ 판정 지도
+    [ok ]    └ 사유에 "orphan.md"
+    [ok ] ⒡ --root 값 없음 — exit 1
+    [ok ]    └ 한 줄 오류가 --root를 지목한다
+    [ok ]    └ 실트리를 재지 않았다 (판정 요약 없음)
+  ❌ --root 뒤에 디렉터리가 없다. 사용: --root <dir> 또는 --root=<dir>
+  ❌ --root= 뒤에 디렉터리가 없다. 사용: --root <dir> 또는 --root=<dir>
+    [ok ] ⒡ --root= 빈 값 — exit 1
+    [ok ]    └ 한 줄 오류가 --root를 지목한다
+    [ok ]    └ 실트리를 재지 않았다 (판정 요약 없음)
+  
+  통과 68/68
+
+--- 83-aggregate --check · exit=0 · 0.1s
+$ node docs/reference/audits/2026-11-05-harness-necessity-review-data/83-aggregate.mjs --check
+  --check 통과 — 83-results.txt · 83-results.json 이 재계산과 같다 (sha256(txt)=651246eb293201b04e6f66cb8e235a43f423591177c02f8e75f4a160c15850ec)
+
+--- 84-selfcheck · exit=0 · 0.1s
+$ node docs/reference/audits/2026-11-05-harness-necessity-review-data/84-selfcheck.mjs
+    OK   docs/reference/audits/2026-11-05-harness-necessity-review-data/84-selfcheck.mjs — 핵심 금지 문자열 0 — 웹 주소 머리 0 · 비추적 작업 폴더 이름 0 · 홈 경로 · 사용자 이름 0 · 다른 프로젝트 · 프로파일 이름 0 · 기준선 서버 꾸러미 이름 0 · 레포 위치 경로 조각 0
+    OK   docs/reference/audits/2026-11-05-harness-necessity-review.md — 본문 꼬리표 0 — 내부 과업 문서 이름(낱말) 0 · 내부 과업 번호 0 · 내부 절 꼬리표(영문 한 글자-숫자) 0 · 아직 없는 결정 번호 0 · 「완료 항목」 없이 쓴 D-157 0 · 「회수 항목」 없이 쓴 D-158 0 · (허용: 자료 파일 절 인용 「NN X-n」 1 · 「완료 항목 D-157」 4 · 「회수 항목 D-158」 2)
+  
+  [6] D-번호 실재 · 문서 안 절 참조 실재
+    OK   인용한 D-번호 10종(D-043 · D-062 · D-096 · D-105 · D-149 · D-150 · D-152 · D-156 · D-157 · D-158) — 전부 DECISIONS.md에 제목이 있다(완료 항목 D-157 · 회수 항목 D-158 포함)
+    OK   「§N.M」 참조 27종 — 전부 이 문서의 「### N.M」 제목이 있다
+    OK   §6 후보 표 10행 · 「§6 ①~⑩」 참조 8종 전부 그 표에 있다
+  
+  [7] 옮긴 수치가 원자료에도 있다(감사 문서와 원자료 파일 양쪽에서 같은 글자)
+      83-results.txt — 40/40
+      20-tokens.txt — 46/46
+      30-human-time.txt — 7/7
+      93-final-dispositions.txt — 7/7
+      92-final-review.txt — 1/1
+    OK   옮긴 수치 101개 — 감사 문서와 원자료 양쪽에 있다
+  
+  [8] 나라 · 업종 문항의 절 분포(10의 key_source → 그 줄 위 가장 가까운 「## 」 제목) ↔ §3.3 범위 표
+      나라 16문항 — 뽑은 절: Tax System 4 · Statutory Reporting 3 · Master Data Peculiarities 2 · e-Invoicing / Fiscal Reporting 2 · Formats 2 · SAP Country Version 1 · VAT ID Format (EU-wide) 1 · Banking / Payments 1
+      나라 — 문항 0인 절(그 범주 파일 절반 넘게에 있는 제목): Language & Locale · Common Customizations · Pitfalls / Anti-patterns
+      업종 7문항 — 뽑은 절: Key Processes 5 · Master Data Specifics 2
+      업종 — 문항 0인 절(그 범주 파일 절반 넘게에 있는 제목): Business Characteristics · Module Implications · Common Customizations · SAP Industry Solutions · Pitfalls / Anti-patterns
+      업종 — 시험에 든 업종: pharmaceutical · fashion · chemical · utilities · steel · tire · banking
+    OK   §3.3 「시험이 덮은 범위」 표의 절 이름 · 문항 수가 10에서 다시 센 값과 같다 — 어긋남 0
+  
+  결과: 전부 통과 (exit 0)
+
+--- 자료 폴더 · 범위 검사
+  자료 폴더 .md 파일 수 = 0 (기준 0) → OK
+  자료 폴더 웹 주소(캡처 밖) = 0 (기준 0) → OK
+  캡처 안 json-schema.org 밖의 웹 주소 = 0 (기준 0) → OK
+  Codex 한도 안내 도메인 문자열 = 0 (기준 0) → OK
+  계정 이름(공개 패키지 범위 이름 밖) = 0 (기준 0) → OK
+  00 머리에서 읽은 다른 프로젝트 · 프로파일 이름 수 = 8 (기준 8) → OK
+  00 밖의 다른 프로젝트 · 프로파일 이름 = 0 (기준 0) → OK
+  제품 디렉터리 변경 파일 수(main...HEAD) = 0 (기준 0) → OK
+  docs/ · HANDOFF.md · .gitignore 밖 변경 파일 수 = 0 (기준 0) → OK
+  main...HEAD 변경 파일 906개
+
+--- 요약
+  check-links                  exit=0  (0.1s)
+  verify-engine                exit=0  (0.1s)
+  check-engine-provenance      exit=0  (0.1s)
+  smoke-mcp                    exit=0  (0.4s)
+  conformance-server-gates     exit=0  (13.3s)
+  gen-plugin-manifests         exit=0  (0.1s)
+  check-runtime-path-rename    exit=0  (0.3s)
+  conformance-runtime-dir      exit=0  (5.1s)
+  verify-checker               exit=0  (0.1s)
+  check-doc-size               exit=0  (0.0s)
+  doctor (로컬 전용)               exit=1  (2.5s)
+  check-wiki (공방)              exit=0  (0.1s)
+  test-check-wiki (공방)         exit=0  (0.9s)
+  83-aggregate --check         exit=0  (0.1s)
+  84-selfcheck                 exit=0  (0.1s)
+  자료 폴더 .md 파일 수               OK
+  자료 폴더 웹 주소(캡처 밖)             OK
+  캡처 안 json-schema.org 밖의 웹 주소 OK
+  Codex 한도 안내 도메인 문자열          OK
+  계정 이름(공개 패키지 범위 이름 밖)        OK
+  00 머리에서 읽은 다른 프로젝트 · 프로파일 이름 수 OK
+  00 밖의 다른 프로젝트 · 프로파일 이름      OK
+  제품 디렉터리 변경 파일 수(main...HEAD) OK
+  docs/ · HANDOFF.md · .gitignore 밖 변경 파일 수 OK

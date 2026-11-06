@@ -1,0 +1,1 @@
+Under **`/srvd_a2x/`**, which is used by *OData V4 – Web API* bindings (A2X, application-to-application). UI annotations from metadata extensions are not exposed there. They appear only under `/srvd/`, the *OData V4 – UI* binding.

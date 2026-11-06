@@ -1,0 +1,1 @@
+Typically the **UN number** (UN/ID number identifying the substance) and the **dangerous goods (hazard) class**. In SAP, the material master also links these to a hazardous material number and a DG indicator profile. I'm answering from memory and can't confirm which exact pair your source means.

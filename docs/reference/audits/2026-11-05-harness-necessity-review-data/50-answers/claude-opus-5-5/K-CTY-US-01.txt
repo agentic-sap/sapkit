@@ -1,0 +1,1 @@
+It's kept separate from the federal Employer Identification Number (EIN, also called FEIN), the IRS-issued 9-digit tax ID. State sales-tax permit numbers are stored as their own state-specific tax numbers.

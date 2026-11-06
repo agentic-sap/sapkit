@@ -1,0 +1,1 @@
+아니요. ABAP DDIC 테이블의 STRING/RAWSTRING 같은 딥 타입 필드에는 NOT NULL(초기값 플래그)을 설정할 수 없습니다.

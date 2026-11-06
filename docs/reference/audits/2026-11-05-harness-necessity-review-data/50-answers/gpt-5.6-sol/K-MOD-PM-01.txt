@@ -1,0 +1,1 @@
+The released CDS interface view is **I_Equipment**.

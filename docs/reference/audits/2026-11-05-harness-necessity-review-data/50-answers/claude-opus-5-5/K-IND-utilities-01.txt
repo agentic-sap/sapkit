@@ -1,0 +1,1 @@
+In SAP IS-U, **move-in** is when a customer starts receiving utility service at a premise; it creates the utility contract linking the business partner and contract account to the installation. **Move-out** is when the customer stops service there; it ends the contract and triggers the final meter reading and final billing.

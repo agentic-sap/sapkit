@@ -1,0 +1,1 @@
+BUT000 (Business Partner: General Data) takes over LFA1’s general supplier data role in S/4HANA.

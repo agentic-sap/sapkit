@@ -1,0 +1,162 @@
+82 — Codex 20% 재채점 (판J T9 §3)
+=====================================
+
+목적
+----
+채점자 A(70-)·B(71-)가 같은 모델 계열(Claude)이므로, 비경쟁 모델(gpt-5.6-sol)에게 지식 채점의
+일부를 다시 채점시켜 채점자 편향의 크기를 잰다(사전 등록 B-6 — 심판은 비경쟁 모델, Codex는
+자기 답안을 채점하지 않는다). 그래서 모집단은 **Claude 두 모델의 지식 행만**이다.
+
+모집단·표본 (결정적 샘플러)
+---------------------------
+- 모집단 214행 = 지식 107문항(10- 60 + 41- K-INC 47, 그 파일 순서) × 모델 2
+  [claude-opus-5-5, claude-sonnet-5-5]. 행 번호 idx = 문항 위치 × 2 + 모델 번호(opus 0 · sonnet 1).
+- 표본 크기 = round(214 × 0.2) = 43.
+- PRNG = mulberry32(seed 20261105). 구현(그대로):
+    function mulberry32(a){ return function(){ a|=0; a=(a+0x6D2B79F5)|0;
+      let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t;
+      return ((t^(t>>>14))>>>0)/4294967296; }; }
+- 0..213 배열을 Fisher-Yates로 섞는다(i = 213 → 1, j = floor(rnd()*(i+1)), swap). 앞 43개를
+  취해 idx 오름차순으로 정렬한 것이 표본이다.
+- 표본(idx:id:모델 — O=opus S=sonnet):
+  10:K-MOD-BW-02:O 13:K-MOD-CO-01:S 15:K-MOD-CO-02:S 17:K-MOD-FI-01:S 24:K-MOD-MM-01:O
+  36:K-MOD-PS-01:O 60:K-CTY-SG-01:O 62:K-CTY-IT-01:O 63:K-CTY-IT-01:S 64:K-CTY-AU-01:O
+  72:K-CTY-JP-01:O 74:K-CTY-KR-01:O 75:K-CTY-KR-01:S 81:K-CTY-ES-01:S 88:K-CTY-IN-01:O
+  94:K-IND-fashion-01:O 97:K-IND-chemical-01:S 98:K-IND-utilities-01:O 101:K-IND-steel-01:S
+  102:K-IND-tire-01:O 106:K-ABAP-01:O 107:K-ABAP-01:S 114:K-ABAP-05:O 122:K-INC-02:O
+  126:K-INC-04:O 129:K-INC-05:S 135:K-INC-08:S 139:K-INC-10:S 145:K-INC-13:S 147:K-INC-14:S
+  149:K-INC-15:S 155:K-INC-18:S 158:K-INC-20:O 160:K-INC-21:O 171:K-INC-26:S 174:K-INC-28:O
+  178:K-INC-30:O 182:K-INC-32:O 194:K-INC-38:O 197:K-INC-39:S 202:K-INC-42:O 204:K-INC-43:O
+  208:K-INC-45:O
+  (opus 25행 · sonnet 18행)
+
+프롬프트
+--------
+- 한 파일(codex-regrade-prompt.txt · 25,352자)에 채점 계약 + 43행을 묶었다. 명령줄에 넣기에는
+  길어서 파일을 읽으라는 짧은 지시를 명령줄 프롬프트로 줬다.
+- 채점 계약(파일 머리 · 원문 영어, 요지):
+  · 독립 제3 채점자. 각 행의 question · answer_key · grading_rule · answer를 읽고 판정 하나.
+  · 정답 = grading_rule이 요구하는 사실을 답함(「기억에 의존, 확인 요망」류 헤지는 무관 —
+    확정 답 하나가 있으면 됨).
+  · 오답 = 그 밖 전부: 틀린 식별자·사실, 다중 요구의 일부만(부분 = 오답), 하나를 요구하는데
+    여러 후보 나열, 무응답/모른다.
+  · 팩어긋남의심 = 답이 키와 다르지만 실제 SAP에서는 답이 맞고 키가 틀렸을 수 있다고 보는
+    경우 — 구체적 근거가 있을 때만.
+  · 규칙에 대해 엄격히. 언어 무관. 파일 읽기 외 도구·웹 검색·실행 금지.
+  · 출력: BEGIN_GRADES 줄, 그 다음 정확히 43줄 `<id>\t<model>\t<verdict>\t<짧은 이유>`
+    (같은 순서), END_GRADES 줄. 그 밖 출력 금지.
+- 각 행은 `=== ROW n/43` · id · model · question · answer_key · grading_rule · answer(50-answers
+  원문 전체) 순으로 담았다.
+
+호출 (단 1회)
+-------------
+- 사용자의 실제 Codex 홈을 그대로 썼다(CODEX_HOME 미설정 · auth.json 복사 없음).
+- 명령(로컬 경로는 이 폴더 규칙에 따라 <scratchpad>로 가림 · 그 밖은 그대로):
+    codex exec --skip-git-repo-check -s read-only -C "<scratchpad>" -m gpt-5.6-sol
+      -c model_reasoning_effort=\"high\" --color never
+      "Read the file codex-regrade-prompt.txt in the current working directory and follow its
+       instructions exactly. Output only what it asks for (BEGIN_GRADES ... END_GRADES)."
+      < NUL > "<scratchpad>\codex-stdout.txt" 2> "<scratchpad>\codex-stderr.txt"
+  (PowerShell에서 cmd /c 로 실행 · stdin은 NUL · stdout·stderr는 파일로 수집)
+- 배너(stderr · 그대로 · session id 줄만 뺌 · workdir 줄의 로컬 경로만 가림):
+    OpenAI Codex v0.163.0
+    workdir: <scratchpad>
+    model: gpt-5.6-sol
+    provider: openai
+    approval: on-request
+    sandbox: read-only
+    reasoning effort: high
+    reasoning summaries: none
+- 토큰: `tokens used` 32,080.
+- usage limit 메시지 없음 → 재시도 없음. 호출은 정확히 1회.
+- 관찰: Codex가 파일을 읽어 stderr에 되비춘 프롬프트 본문은 한글이 깨져 보였다(PowerShell
+  콘솔 코드페이지 CP949 vs UTF-8 파일). 판정·이유는 정상 한글이고 각 행의 사실(RSPCM, V_TKA05,
+  COPA0001, ACDOCP …)을 정확히 짚고 있어 **입력이 깨져 들어간 것이 아니라 표시만 깨진 것**으로
+  읽는다. stdout(판정 블록)은 UTF-8로 정상 저장됐다.
+
+Codex 출력 (stdout 그대로 — URL 없음 · 있었으면 <url>로 치환할 것이었음)
+-----------------------------------------------------------------------
+BEGIN_GRADES
+K-MOD-BW-02	claude-opus-5-5	오답	RSPCM이라는 다른 트랜잭션도 함께 나열했다.
+K-MOD-CO-01	claude-sonnet-5-5	오답	V_RKAB가 아니라 V_TKA05 관련 뷰라고 답했다.
+K-MOD-CO-02	claude-sonnet-5-5	오답	COPA0004가 아니라 COPA0001이라고 답했다.
+K-MOD-FI-01	claude-sonnet-5-5	정답	계획 데이터 테이블을 ACDOCP로 정확히 답했다.
+K-MOD-MM-01	claude-opus-5-5	오답	요구된 BADI_SMOD_V50B0001과 식별자가 다르고 다른 BAdI도 나열했다.
+K-MOD-PS-01	claude-opus-5-5	오답	PRPS 외에 PROJ 테이블도 함께 나열했다.
+K-CTY-SG-01	claude-opus-5-5	정답	IAF와 GAF를 모두 정확히 제시했다.
+K-CTY-IT-01	claude-opus-5-5	정답	IT 접두사와 11자리 숫자를 정확히 답했다.
+K-CTY-IT-01	claude-sonnet-5-5	정답	IT 접두사와 11자리 숫자를 정확히 답했다.
+K-CTY-AU-01	claude-opus-5-5	정답	등록 기준을 A$75,000로 정확히 답했다.
+K-CTY-JP-01	claude-opus-5-5	키오류의심	모든 과세 사업자는 연간 신고를 하고 세액에 따라 월별 또는 분기별 중간 신고를 한다는 더 정확한 구조를 설명했다.
+K-CTY-KR-01	claude-opus-5-5	정답	10자리와 3-2-5 표기 형식을 모두 정확히 답했다.
+K-CTY-KR-01	claude-sonnet-5-5	정답	10자리와 3-2-5 표기 형식을 모두 정확히 답했다.
+K-CTY-ES-01	claude-sonnet-5-5	정답	국가 번호 +34와 국내 번호 9자리를 모두 정확히 답했다.
+K-CTY-IN-01	claude-opus-5-5	정답	주내 공급에 CGST와 SGST 또는 UTGST가 부과된다고 정확히 답했다.
+K-IND-fashion-01	claude-opus-5-5	정답	크기와 색상 등의 조합을 수량 입력과 재고 표시용 행렬로 설명했다.
+K-IND-chemical-01	claude-sonnet-5-5	정답	UN 번호와 위험물 등급을 모두 정확히 답했다.
+K-IND-utilities-01	claude-opus-5-5	정답	서비스 개시와 종료에 해당하는 고객 입주와 퇴거를 정확히 설명했다.
+K-IND-steel-01	claude-sonnet-5-5	정답	절단 후 남은 조각의 추적과 재사용을 정확히 설명했다.
+K-IND-tire-01	claude-opus-5-5	정답	고무 컴파운드를 생산하고 배치 또는 로트 단위로 추적한다고 답했다.
+K-ABAP-01	claude-opus-5-5	오답	그려지지 않는 것이 아니라 기능 텍스트 버튼으로 표시된다고 잘못 답했다.
+K-ABAP-01	claude-sonnet-5-5	오답	그려지지 않는 것이 아니라 기능 텍스트 버튼으로 표시된다고 잘못 답했다.
+K-ABAP-05	claude-opus-5-5	정답	SKA1과 SKB1의 수준별 역할을 정확히 대응시켰다.
+K-INC-02	claude-opus-5-5	정답	실패 후 객체가 남을 수 있으며 별도로 존재 여부를 확인해야 한다고 답했다.
+K-INC-04	claude-opus-5-5	정답	Remote-Enabled 설정이 필요하며 활성화 성공만으로는 증명되지 않는다고 답했다.
+K-INC-05	claude-sonnet-5-5	오답	두 표현 방식은 언급했지만 반대 형식 삽입이 거부된다는 필수 사실을 정확히 답하지 않았다.
+K-INC-08	claude-sonnet-5-5	오답	conversion exit 때문에 메타데이터 생성이 실패한다는 핵심 원인을 답하지 않았다.
+K-INC-10	claude-sonnet-5-5	정답	XFELD가 Edm.Boolean이며 true 또는 false로 필터링한다고 정확히 답했다.
+K-INC-13	claude-sonnet-5-5	정답	lock와 authorization 선언 및 root view entity 조건을 모두 답했다.
+K-INC-14	claude-sonnet-5-5	오답	update 트리거만 사용하면 거부된다는 사실과 달리 정상적인 사용법이라고 답했다.
+K-INC-15	claude-sonnet-5-5	정답	UI.facet의 엔터티 수준 위치와 wrong scope가 위치 문제라는 점을 답했다.
+K-INC-18	claude-sonnet-5-5	오답	projection BDEF에 use etag가 필요 없다고 잘못 답했다.
+K-INC-20	claude-opus-5-5	정답	STRING과 RAWSTRING에는 NOT NULL 설정을 적용할 수 없다고 답했다.
+K-INC-21	claude-opus-5-5	정답	CONV abap_encoding을 사용해야 한다고 정확히 답했다.
+K-INC-26	claude-sonnet-5-5	오답	필수 사실인 URL 초과 414와 본문 기반 우회 방법을 제시하지 않았다.
+K-INC-28	claude-opus-5-5	정답	참조 데이터 요소가 있는 종속 패키지를 먼저 설치해야 한다고 답했다.
+K-INC-30	claude-opus-5-5	정답	CHAR 18 제한으로 인덱스 이름이 잘려 충돌한다고 설명했다.
+K-INC-32	claude-opus-5-5	정답	원시 금액에 100배 차이가 생기며 외부 형식 변환이 필요하다고 답했다.
+K-INC-38	claude-opus-5-5	정답	Create는 빈 골격만 만들고 실제 소스는 Update로 기록한다고 답했다.
+K-INC-39	claude-sonnet-5-5	정답	ABAP 7.57에서는 with hierarchy 구문을 사용할 수 없다고 답했다.
+K-INC-42	claude-opus-5-5	오답	요구된 GetLocalTypes 대신 GetClassInclude 또는 GetInclude라고 답했다.
+K-INC-43	claude-opus-5-5	정답	CreateUnitTest는 실행용이며 작성은 UpdateLocalTestClass로 한다고 한다고 답했다.
+K-INC-45	claude-opus-5-5	오답	CUS_IMGACT를 제시하지 않아 필수 테이블 쌍을 충족하지 못했다.
+END_GRADES
+
+라벨 정규화
+-----------
+- Codex가 K-CTY-JP-01/opus에 쓴 `키오류의심`은 계약 어휘 밖의 변형이라 82-codex-regrade.csv에서
+  `팩어긋남의심`으로 적었다(의미 동일 — 「답이 키와 다르나 키가 틀렸을 수 있다」). 그 1행뿐이다.
+
+일치율 (82-codex-regrade.csv에서 계산 · 43행)
+---------------------------------------------
+- verdict_final은 A·B가 같으면 그 값, 다르면 80-adjudication.csv의 verdict_final이다.
+- Codex ↔ final : 36/43 = 83.7%
+- Codex ↔ A     : 36/43 = 83.7%
+- Codex ↔ B     : 35/43 = 81.4%
+- 모델별 Codex ↔ final : opus 20/25 = 80.0% · sonnet 16/18 = 88.9%
+
+불일치 7행과 성격
+-----------------
+  K-MOD-BW-02 opus   codex 오답 / A·B·final 정답  — 답이 키 트랜잭션을 첫 자리에 두고 RSPCM을
+                      보충 언급 → 채점자 둘은 「보충 언급 ≠ 헤지」 규약으로 정답, Codex는 단일
+                      식별자 규칙을 문자 그대로 적용. 규약 차이.
+  K-MOD-PS-01 opus   codex 오답 / A·B·final 정답  — 같은 성격(PRPS + PROJ 보충).
+  K-MOD-MM-01 opus   codex 오답 / A 의심 · B 정답 · final 정답 — 80-에서 「SMOD_V50B0001 =
+                      키의 BADI_ 접두 없는 같은 객체」로 정답 처리한 어려운 판정. Codex는
+                      식별자 불일치로 오답. 83- concerns에 표시.
+  K-CTY-JP-01 opus   codex 의심 / A·B·final 정답  — 답이 키와 일치하면서 더 상세한 구조를
+                      덧붙였고 Codex는 키 쪽이 덜 정확하다고 봄. 채점자 둘은 정답. 팩 감사
+                      후보 정의(채점자 의심·지정 항목·3모델 다른값) 밖이라 81-에 넣지 않았다.
+  K-ABAP-01 opus     codex 오답 / A·B·final 의심 — 81- 팩 감사 결과 키가 틀렸다(팩 오류).
+  K-ABAP-01 sonnet   같음. Codex는 키를 믿고 오답, 채점자 둘은 의심 — 이 둘은 팩 감사가
+                      채점자 쪽 손을 들었다.
+  K-INC-05 sonnet    codex 오답 / A·B·final 정답  — 「반대 형식 삽입 거부」 요소를 Codex는
+                      없다고 봄. A·B 일치 행이라 T9 제3 판정 대상이 아니었다(불일치 집합 밖).
+
+읽는 법
+-------
+- 불일치 7행 중 규약 차이 2 · 팩 오류가 가른 2 · 어려운 판정 1 · 키 의심 1 · 요소 판독 차이 1.
+  채점자 편향(같은 계열이 자기 계열에 후함)의 직접 증거는 보이지 않는다 — Codex가 Claude 답을
+  더 엄히 본 행(5)은 대부분 규약·팩 쪽 설명이 되고, 반대 방향(Codex가 더 후한 행)은 1(K-CTY-JP-01)
+  이며 그것도 모델에 유리한 쪽이 아니라 키에 불리한 쪽이다.
+- 표본 43행 1회 호출이므로 ±10%p 안쪽의 차이는 의미를 두지 않는다.

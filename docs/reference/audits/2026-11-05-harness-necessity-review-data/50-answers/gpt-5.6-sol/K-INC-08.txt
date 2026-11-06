@@ -1,0 +1,1 @@
+CDS/OData 노출 시 conversion exit은 자동 적용되지 않아 내부 저장 형식(예: ALPHA의 선행 0 포함) 그대로 전달된다. 필요하면 CDS에서 명시적으로 변환해야 한다.

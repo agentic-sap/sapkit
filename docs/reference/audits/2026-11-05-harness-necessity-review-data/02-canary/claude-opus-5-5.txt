@@ -1,0 +1,11 @@
+**1. Access inventory**
+
+- **Tools available to me in this session:** none. No tool definitions were provided. The system prompt mentions Bash, PowerShell, Write, and file/search tools, but none are actually callable here.
+- **Skills:** none
+- **Plugins:** none
+- **MCP servers:** none
+- **Web/search capability:** none
+- **Slash commands:** none that I can run. The prompt mentions `/code-review ultra`, its deprecated alias `/ultrareview`, and `/fast`, but only you can trigger those.
+- **Files:** none loaded. A memory directory (`C:\Users\<usr>\.claude\projects\...\memory\`) and a `MEMORY.md` index are referenced, but no contents were provided. I haven't read anything in the working directory.
+
+**2. Answer:** Korea's standard VAT rate is **10%**, and the business registration number (사업자등록번호) has **10 digits**, formatted XXX-XX-XXXXX.

@@ -1,0 +1,109 @@
+```abap
+*&---------------------------------------------------------------------*
+*& Report ZJUDGE_C04
+*&---------------------------------------------------------------------*
+*& Totals goods-movement quantities (base unit) per material and plant.
+*& MSEG items are joined with the MKPF header to filter on posting date.
+*& The quantity is signed by the debit/credit indicator (SHKZG):
+*& S = receipt (+), H = issue (-), so the total is the net movement.
+*&---------------------------------------------------------------------*
+REPORT zjudge_c04.
+
+DATA: gv_werks TYPE mseg-werks,
+      gv_budat TYPE mkpf-budat,
+      gv_bwart TYPE mseg-bwart.
+
+SELECT-OPTIONS: s_werks FOR gv_werks OBLIGATORY,
+                s_budat FOR gv_budat OBLIGATORY,
+                s_bwart FOR gv_bwart.
+
+TYPES: BEGIN OF ty_item,
+         matnr TYPE mseg-matnr,
+         werks TYPE mseg-werks,
+         meins TYPE mseg-meins,
+         menge TYPE mseg-menge,
+         shkzg TYPE mseg-shkzg,
+       END OF ty_item,
+       BEGIN OF ty_total,
+         matnr TYPE mseg-matnr,
+         werks TYPE mseg-werks,
+         meins TYPE mseg-meins,
+         menge TYPE mseg-menge,
+         items TYPE i,
+       END OF ty_total.
+
+DATA: gt_items  TYPE STANDARD TABLE OF ty_item,
+      gt_totals TYPE SORTED TABLE OF ty_total
+                WITH UNIQUE KEY matnr werks meins.
+
+START-OF-SELECTION.
+
+  SELECT s~matnr s~werks s~meins s~menge s~shkzg
+    FROM mseg AS s
+    INNER JOIN mkpf AS k
+      ON  k~mblnr = s~mblnr
+      AND k~mjahr = s~mjahr
+    INTO TABLE gt_items
+    WHERE s~werks IN s_werks
+      AND s~bwart IN s_bwart
+      AND k~budat IN s_budat.
+
+  IF gt_items IS INITIAL.
+    MESSAGE 'No material document items found for the selection' TYPE 'S'
+            DISPLAY LIKE 'W'.
+    RETURN.
+  ENDIF.
+
+  FIELD-SYMBOLS: <ls_item>  TYPE ty_item,
+                 <ls_total> TYPE ty_total.
+  DATA ls_total TYPE ty_total.
+
+  LOOP AT gt_items ASSIGNING <ls_item>.
+    IF <ls_item>-shkzg = 'H'.
+      <ls_item>-menge = - <ls_item>-menge.
+    ENDIF.
+    READ TABLE gt_totals ASSIGNING <ls_total>
+         WITH TABLE KEY matnr = <ls_item>-matnr
+                        werks = <ls_item>-werks
+                        meins = <ls_item>-meins.
+    IF sy-subrc = 0.
+      <ls_total>-menge = <ls_total>-menge + <ls_item>-menge.
+      <ls_total>-items = <ls_total>-items + 1.
+    ELSE.
+      CLEAR ls_total.
+      ls_total-matnr = <ls_item>-matnr.
+      ls_total-werks = <ls_item>-werks.
+      ls_total-meins = <ls_item>-meins.
+      ls_total-menge = <ls_item>-menge.
+      ls_total-items = 1.
+      INSERT ls_total INTO TABLE gt_totals.
+    ENDIF.
+  ENDLOOP.
+
+  FREE gt_items.
+
+  " gt_totals is a sorted table keyed by material, plant -> output is sorted
+  DATA: lo_alv    TYPE REF TO cl_salv_table,
+        lo_column TYPE REF TO cl_salv_column,
+        lx_salv   TYPE REF TO cx_salv_error.
+
+  TRY.
+      cl_salv_table=>factory( IMPORTING r_salv_table = lo_alv
+                              CHANGING  t_table      = gt_totals ).
+      lo_alv->get_functions( )->set_all( abap_true ).
+      lo_alv->get_columns( )->set_optimize( abap_true ).
+      lo_column = lo_alv->get_columns( )->get_column( 'ITEMS' ).
+      lo_column->set_short_text( 'No. Items' ).
+      lo_column->set_medium_text( 'Number of Items' ).
+      lo_column->set_long_text( 'Number of Items' ).
+      lo_column = lo_alv->get_columns( )->get_column( 'MENGE' ).
+      lo_column->set_short_text( 'Net Qty' ).
+      lo_column->set_medium_text( 'Net Quantity' ).
+      lo_column->set_long_text( 'Net Quantity (Base Unit)' ).
+      lo_alv->get_display_settings( )->set_list_header(
+        'Goods Movement Totals per Material / Plant' ).
+      lo_alv->display( ).
+    CATCH cx_salv_error INTO lx_salv.
+      MESSAGE lx_salv TYPE 'E'.
+  ENDTRY.
+```

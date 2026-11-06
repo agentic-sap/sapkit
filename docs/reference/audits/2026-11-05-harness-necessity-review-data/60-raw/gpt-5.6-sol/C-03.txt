@@ -1,0 +1,34 @@
+```abap
+FUNCTION z_judge_c03_get_material_text
+  IMPORTING
+    VALUE(iv_matnr) TYPE mara-matnr
+    VALUE(iv_spras) TYPE sylangu DEFAULT sy-langu
+  EXPORTING
+    VALUE(ev_maktx) TYPE makt-maktx
+  EXCEPTIONS
+    material_not_exist
+    no_description.
+
+  CLEAR ev_maktx.
+
+  SELECT SINGLE matnr
+    FROM mara
+    WHERE matnr = @iv_matnr
+    INTO @DATA(lv_matnr).
+
+  IF sy-subrc <> 0.
+    RAISE material_not_exist.
+  ENDIF.
+
+  SELECT SINGLE maktx
+    FROM makt
+    WHERE matnr = @iv_matnr
+      AND spras = @iv_spras
+    INTO @ev_maktx.
+
+  IF sy-subrc <> 0.
+    RAISE no_description.
+  ENDIF.
+
+ENDFUNCTION.
+```

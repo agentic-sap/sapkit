@@ -1,0 +1,156 @@
+60-checker/claude-opus-5-5/C-INC-07.txt — 동봉 검사기 원출력 (판J T6 · 2026-11-05)
+대상: docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-07.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-07.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-07.abap
+--- stdout (0 bytes) ---
+
+--- stderr (114 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-07.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-07.abap
+--- stdout (4393 bytes) ---
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Report ZSAPKIT_DEMO_PROG
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Demo report: company code / business place selection with validation
+Comment              *&---------------------------------------------------------------------*
+Report               REPORT zsapkit_demo_prog .
+Comment              *----------------------------------------------------------------------*
+Comment              * Data declarations
+Comment              *----------------------------------------------------------------------*
+Move                 TABLES t001 .
+Data                 DATA gv_butxt TYPE t001 - butxt ,
+Data                 DATA gv_bupla TYPE j_1bbranch - branch ,
+Data                 DATA gv_name TYPE j_1bbranch - name .
+Comment              *----------------------------------------------------------------------*
+Comment              * Selection screen
+Comment              *----------------------------------------------------------------------*
+SelectionScreen      SELECTION - SCREEN BEGIN OF BLOCK b01 WITH FRAME TITLE TEXT - b01 .
+Parameter            PARAMETERS pa_bukrs TYPE t001 - bukrs OBLIGATORY ,
+Parameter            PARAMETERS pa_bupla TYPE j_1bbranch - branch .
+SelectionScreen      SELECTION - SCREEN END OF BLOCK b01 .
+Comment              *----------------------------------------------------------------------*
+Comment              * INITIALIZATION
+Comment              *----------------------------------------------------------------------*
+Move                 INITIALIZATION .
+Move                 GET PARAMETER ID 'BUK' FIELD pa_bukrs .
+If                   IF pa_bukrs IS INITIAL .
+Move                 pa_bukrs = '1000' .
+EndIf                ENDIF .
+Comment              *----------------------------------------------------------------------*
+Comment              * AT SELECTION-SCREEN ON pa_bukrs
+Comment              *----------------------------------------------------------------------*
+Move                 AT SELECTION - SCREEN ON pa_bukrs .
+Select               SELECT SINGLE butxt FROM t001 INTO @ gv_butxt WHERE bukrs = @ pa_bukrs .
+If                   IF sy - subrc <> 0 .
+Message              MESSAGE e001 ( 00 ) WITH 'Company code' pa_bukrs 'does not exist' .
+EndIf                ENDIF .
+Move                 AUTHORITY - CHECK OBJECT 'F_BKPF_BUK' ID 'BUKRS' FIELD pa_bukrs ID 'ACTVT' FIELD '03' .
+If                   IF sy - subrc <> 0 .
+Message              MESSAGE e001 ( 00 ) WITH 'No authorization for company code' pa_bukrs .
+EndIf                ENDIF .
+Comment              *----------------------------------------------------------------------*
+Comment              * AT SELECTION-SCREEN ON pa_bupla
+Comment              *----------------------------------------------------------------------*
+Move                 AT SELECTION - SCREEN ON pa_bupla .
+Move                 CHECK pa_bupla IS NOT INITIAL .
+Comment              " Business place must exist for the entered company code
+Select               SELECT SINGLE branch , name FROM j_1bbranch INTO ( @ gv_bupla , @ gv_name ) WHERE bukrs = @ pa_bukrs AND branch = @ pa_bupla .
+If                   IF sy - subrc <> 0 .
+Message              MESSAGE e001 ( 00 ) WITH 'Business place' pa_bupla 'not defined for company code' pa_bukrs .
+EndIf                ENDIF .
+Comment              *----------------------------------------------------------------------*
+Comment              * START-OF-SELECTION
+Comment              *----------------------------------------------------------------------*
+StartOfSelection     START - OF - SELECTION .
+Select               SELECT SINGLE butxt FROM t001 INTO @ gv_butxt WHERE bukrs = @ pa_bukrs .
+Write                WRITE / 'Company code :' ,
+Write                WRITE pa_bukrs ,
+Write                WRITE gv_butxt .
+If                   IF pa_bupla IS NOT INITIAL .
+Select               SELECT SINGLE name FROM j_1bbranch INTO @ gv_name WHERE bukrs = @ pa_bukrs AND branch = @ pa_bupla .
+Write                WRITE / 'Business place:' ,
+Write                WRITE pa_bupla ,
+Write                WRITE gv_name .
+Else                 ELSE .
+Write                WRITE / 'Business place:' ,
+Write                WRITE '(all)' .
+EndIf                ENDIF .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-07.abap
+--- stdout (1380 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 15,
+      "endLine": 15,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 21,
+      "endLine": 21,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 63,
+      "endLine": 63,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 85,
+      "endLine": 85,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 4,
+    "bySeverity": {
+      "medium": 4
+    },
+    "byCategory": {
+      "quality": 4
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=4 analyze_info=0 error_grade=0 warnings=4 source_lines=90 bytes=3058 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

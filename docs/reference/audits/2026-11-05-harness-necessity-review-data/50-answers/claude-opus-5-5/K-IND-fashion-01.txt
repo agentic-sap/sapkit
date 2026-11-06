@@ -1,0 +1,1 @@
+In SAP fashion (AFS / S/4HANA Fashion & Vertical Business), a **Grid** is a matrix of characteristic values (e.g., size × length/color) assigned to a generic material. It presents all valid variant combinations (SKUs) in tabular form for entering quantities, prices, and stock data.

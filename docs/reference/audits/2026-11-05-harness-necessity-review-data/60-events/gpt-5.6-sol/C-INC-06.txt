@@ -1,0 +1,15 @@
+gpt-5.6-sol · C-INC-06 — 블라인드 코드 과제 이벤트 추출 요약 (판J T6 · 2026-11-05)
+원본: %TEMP%\sapkit-panJ\raw-T6\gpt-5.6-sol\C-INC-06.jsonl (원 이벤트 스트림 · 세션/스레드 id·로컬 경로 포함 · 커밋하지 않음 · 호출별 사본 C-INC-06.call-<k>.jsonl)
+명령: 02-isolation-recipe.txt §3 그대로 + 편차 2 (-c model_reasoning_effort="medium" · 배너 확인 60-canary-gpt-5.6-sol.txt) · cwd = blind-T6
+프롬프트: 60-run-log.txt 의 프롬프트 계약 (고정 줄 + task_text + Required output) · chars=477 · sha256=c9f6b43214df17940eb7805e4f280c534ef7247fbd3aa35f48c3b853b9c90f29
+응시(응답) 횟수=1 · 전이 재시도=0 · CLI 호출 총수=1 · 최종=VALID (call 1)
+관측 모델 id: gpt-5.6-sol (배너 · 60-canary-gpt-5.6-sol.txt — --json 이벤트에는 모델 id 가 없다)
+events: thread.started=True · item.completed 유형 히스토그램: agent_message=1
+도구 호출 수(item.type ∉ {agent_message, reasoning, error})=0 · 이름: 없음
+usage: input_tokens=9422 · cached_input_tokens=9088 · output_tokens=754 · reasoning_output_tokens=330
+error 항목=0 · turn.failed=0 · 최상위 error 이벤트=0
+exit_code=0 · wall_ms=16341 · stderr 줄 수=2 · 시작=2026-11-05T18:18:20.628+09:00 · 종료=2026-11-05T18:18:36.973+09:00
+응답 내 외부 URL(https?://) 건수=0
+valid=1
+펜스 블록 수=1 · no_fence=0 · 추출 → 60-code/gpt-5.6-sol/C-INC-06.abap (lines=67 · bytes=2003)
+summary: valid=1 attempts=1 no_fence=0 blocks=1 lines=67 bytes=2003

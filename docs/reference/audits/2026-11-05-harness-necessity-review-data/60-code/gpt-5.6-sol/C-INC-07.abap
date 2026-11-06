@@ -1,0 +1,34 @@
+REPORT zsapkit_demo_prog.
+
+PARAMETERS:
+  pa_bukrs TYPE t001-bukrs OBLIGATORY,
+  pa_bupla TYPE j_1bbranch-branch OBLIGATORY.
+
+INITIALIZATION.
+  GET PARAMETER ID 'BUK' FIELD pa_bukrs.
+
+AT SELECTION-SCREEN ON pa_bukrs.
+  SELECT SINGLE bukrs
+    FROM t001
+    WHERE bukrs = @pa_bukrs
+    INTO @DATA(lv_bukrs).
+
+  IF sy-subrc <> 0.
+    MESSAGE '존재하지 않는 회사 코드입니다.' TYPE 'E'.
+  ENDIF.
+
+AT SELECTION-SCREEN ON pa_bupla.
+  SELECT SINGLE branch
+    FROM j_1bbranch
+    WHERE bukrs  = @pa_bukrs
+      AND branch = @pa_bupla
+    INTO @DATA(lv_bupla).
+
+  IF sy-subrc <> 0.
+    MESSAGE '해당 회사 코드에 존재하지 않는 사업장입니다.' TYPE 'E'.
+  ENDIF.
+
+START-OF-SELECTION.
+  WRITE:
+    / '회사 코드:', pa_bukrs,
+    / '사업장:',     pa_bupla.

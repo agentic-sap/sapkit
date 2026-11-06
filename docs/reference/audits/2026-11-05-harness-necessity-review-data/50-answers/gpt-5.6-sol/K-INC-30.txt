@@ -1,0 +1,1 @@
+DB 인덱스명이 길이 제한 때문에 잘리면서 서로 중복되어, 활성화 시 **“Index … already exists / duplicate index name”** 오류가 날 수 있다.

@@ -1,0 +1,453 @@
+60-checker/claude-opus-5-5/C-INC-03.txt — 동봉 검사기 원출력 (판J T6 · 2026-11-05)
+대상: docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-03.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-03.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-03.abap
+--- stdout (2175 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-03.abap:81:9: W [local_variable_names] Local variable name "lo_alv" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-03.abap:82:9: W [local_variable_names] Local variable name "lo_functions" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-03.abap:83:9: W [local_variable_names] Local variable name "lo_columns" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-03.abap:84:9: W [local_variable_names] Local variable name "lo_column" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-03.abap:85:9: W [local_variable_names] Local variable name "lo_display" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-03.abap:86:9: W [local_variable_names] Local variable name "lo_sorts" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-03.abap:87:9: W [local_variable_names] Local variable name "lo_msg" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-03.abap:88:9: W [local_variable_names] Local variable name "lo_not_found" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-03.abap:89:9: W [local_variable_names] Local variable name "lo_data_err" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-03.abap:90:9: W [local_variable_names] Local variable name "lo_existing" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+--- stderr (134 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-03.abap: 10 finding(s), 0 at Error level
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-03.abap
+--- stdout (7534 bytes) ---
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Report ZSAPKIT_DEMO_PROG
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Shows an internal table in a SALV popup (SET_SCREEN_POPUP).
+Comment              *& The user can sort and filter through the ALV toolbar functions.
+Comment              *&---------------------------------------------------------------------*
+Report               REPORT zsapkit_demo_prog .
+Comment              *----------------------------------------------------------------------*
+Comment              * Types / Data
+Comment              *----------------------------------------------------------------------*
+TypeBegin            TYPES BEGIN OF ty_flight ,
+Type                 TYPES carrid TYPE s_carr_id ,
+Type                 TYPES connid TYPE s_conn_id ,
+Type                 TYPES fldate TYPE s_date ,
+Type                 TYPES price TYPE s_price ,
+Type                 TYPES currency TYPE s_currcode ,
+Type                 TYPES seatsmax TYPE s_seatsmax ,
+Type                 TYPES seatsocc TYPE s_seatsocc ,
+TypeEnd              TYPES END OF ty_flight ,
+Type                 TYPES tt_flight TYPE STANDARD TABLE OF ty_flight WITH DEFAULT KEY .
+Data                 DATA gt_flight TYPE tt_flight .
+Comment              *----------------------------------------------------------------------*
+Comment              * Main
+Comment              *----------------------------------------------------------------------*
+StartOfSelection     START - OF - SELECTION .
+Perform              PERFORM fill_data CHANGING gt_flight .
+Perform              PERFORM show_popup CHANGING gt_flight .
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Form FILL_DATA
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Builds demo data (no dependency on database contents)
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM fill_data CHANGING ct_data TYPE tt_flight .
+Data                 DATA ls_data TYPE ty_flight ,
+Data                 DATA lv_idx TYPE i .
+Clear                CLEAR ct_data .
+Do                   DO 30 TIMES .
+Move                 lv_idx = sy - index .
+Clear                CLEAR ls_data .
+Case                 CASE lv_idx MOD 4 .
+When                 WHEN 0 .
+Move                 ls_data - carrid = 'LH' .
+Move                 ls_data - currency = 'EUR' .
+When                 WHEN 1 .
+Move                 ls_data - carrid = 'AA' .
+Move                 ls_data - currency = 'USD' .
+When                 WHEN 2 .
+Move                 ls_data - carrid = 'SQ' .
+Move                 ls_data - currency = 'SGD' .
+WhenOthers           WHEN OTHERS .
+Move                 ls_data - carrid = 'KE' .
+Move                 ls_data - currency = 'KRW' .
+EndCase              ENDCASE .
+Move                 ls_data - connid = 100 + ( lv_idx MOD 5 ) * 100 .
+Move                 ls_data - fldate = sy - datum + lv_idx * 3 .
+Move                 ls_data - price = 250 + ( lv_idx * 37 ) MOD 900 .
+Move                 ls_data - seatsmax = 200 + ( lv_idx MOD 3 ) * 80 .
+Move                 ls_data - seatsocc = ( lv_idx * 23 ) MOD ls_data - seatsmax .
+Append               APPEND ls_data TO ct_data .
+EndDo                ENDDO .
+EndForm              ENDFORM .
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Form SHOW_POPUP
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Displays the internal table as SALV popup with sort/filter enabled
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM show_popup CHANGING ct_data TYPE tt_flight .
+Data                 DATA lo_alv TYPE REF TO cl_salv_table ,
+Data                 DATA lo_functions TYPE REF TO cl_salv_functions_list ,
+Data                 DATA lo_columns TYPE REF TO cl_salv_columns_table ,
+Data                 DATA lo_column TYPE REF TO cl_salv_column_table ,
+Data                 DATA lo_display TYPE REF TO cl_salv_display_settings ,
+Data                 DATA lo_sorts TYPE REF TO cl_salv_sorts ,
+Data                 DATA lo_msg TYPE REF TO cx_salv_msg ,
+Data                 DATA lo_not_found TYPE REF TO cx_salv_not_found ,
+Data                 DATA lo_data_err TYPE REF TO cx_salv_data_error ,
+Data                 DATA lo_existing TYPE REF TO cx_salv_existing ,
+Data                 DATA lv_text TYPE string .
+If                   IF ct_data IS INITIAL .
+Message              MESSAGE 'No data to display' TYPE 'S' DISPLAY LIKE 'W' .
+Return               RETURN .
+EndIf                ENDIF .
+Comment              "--- Create SALV instance
+Try                  TRY .
+Call                 cl_salv_table => factory ( IMPORTING r_salv_table = lo_alv CHANGING t_table = ct_data ) .
+Catch                CATCH cx_salv_msg INTO lo_msg .
+Move                 lv_text = lo_msg -> get_text ( ) .
+Message              MESSAGE lv_text TYPE 'S' DISPLAY LIKE 'E' .
+Return               RETURN .
+EndTry               ENDTRY .
+Comment              "--- Enable toolbar functions (sort asc/desc, filter, etc.)
+Move                 lo_functions = lo_alv -> get_functions ( ) .
+Call                 lo_functions -> set_all ( abap_true ) .
+Comment              "--- Display settings
+Move                 lo_display = lo_alv -> get_display_settings ( ) .
+Call                 lo_display -> set_striped_pattern ( abap_true ) .
+Call                 lo_display -> set_list_header ( 'Flight Overview (Sort / Filter enabled)' ) .
+Comment              "--- Columns: optimize width, currency reference
+Move                 lo_columns = lo_alv -> get_columns ( ) .
+Call                 lo_columns -> set_optimize ( abap_true ) .
+Try                  TRY .
+Call                 lo_columns -> set_currency_column ( 'CURRENCY' ) .
+Catch                CATCH cx_salv_not_found cx_salv_data_error INTO lo_data_err .
+Comment              " Ignore - currency reference is optional for display
+EndTry               ENDTRY .
+Try                  TRY .
+Move                 lo_column ?= lo_columns -> get_column ( 'CARRID' ) .
+Call                 lo_column -> set_key ( abap_true ) .
+Move                 lo_column ?= lo_columns -> get_column ( 'CONNID' ) .
+Call                 lo_column -> set_key ( abap_true ) .
+Catch                CATCH cx_salv_not_found INTO lo_not_found .
+Comment              " Column not found - ignore
+EndTry               ENDTRY .
+Comment              "--- Initial sort (user may change it via toolbar)
+Move                 lo_sorts = lo_alv -> get_sorts ( ) .
+Try                  TRY .
+Call                 lo_sorts -> add_sort ( columnname = 'CARRID' sequence = if_salv_c_sort => sort_up ) .
+Call                 lo_sorts -> add_sort ( columnname = 'FLDATE' sequence = if_salv_c_sort => sort_up ) .
+Catch                CATCH cx_salv_not_found cx_salv_existing cx_salv_data_error .
+Comment              " Initial sort not essential - ignore
+EndTry               ENDTRY .
+Comment              "--- Show as popup
+Call                 lo_alv -> set_screen_popup ( start_column = 5 end_column = 120 start_line = 3 end_line = 20 ) .
+Call                 lo_alv -> display ( ) .
+EndForm              ENDFORM .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-INC-03.abap
+--- stdout (8180 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 13,
+      "endLine": 13,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 14,
+      "endLine": 14,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 15,
+      "endLine": 15,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 16,
+      "endLine": 16,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 40,
+      "endLine": 40,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 50,
+      "endLine": 50,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 53,
+      "endLine": 53,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 56,
+      "endLine": 56,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 59,
+      "endLine": 59,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 63,
+      "endLine": 63,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 64,
+      "endLine": 64,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 65,
+      "endLine": 65,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 81,
+      "endLine": 81,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 83,
+      "endLine": 83,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 84,
+      "endLine": 84,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 85,
+      "endLine": 85,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 86,
+      "endLine": 86,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 87,
+      "endLine": 87,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 89,
+      "endLine": 89,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 90,
+      "endLine": 90,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 91,
+      "endLine": 91,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 104,
+      "endLine": 104,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 143,
+      "endLine": 143,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 145,
+      "endLine": 145,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 153,
+      "endLine": 153,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 154,
+      "endLine": 154,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 155,
+      "endLine": 155,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 27,
+    "bySeverity": {
+      "medium": 27
+    },
+    "byCategory": {
+      "quality": 27
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=10 analyze_high=0 analyze_medium=27 analyze_info=0 error_grade=0 warnings=37 source_lines=159 bytes=5279 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

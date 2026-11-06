@@ -1,0 +1,1 @@
+Extend **KOMKBV1** (header) and **KOMPBV1** (item) with append structures (ZA…/ZZ fields). Then add the fields to the output field catalog and populate them in the corresponding user exits.

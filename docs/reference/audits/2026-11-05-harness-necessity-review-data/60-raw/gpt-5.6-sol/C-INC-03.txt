@@ -1,0 +1,71 @@
+```abap
+REPORT zsapkit_demo_prog.
+
+TYPES:
+  BEGIN OF ty_demo,
+    carrid   TYPE s_carr_id,
+    connid   TYPE s_conn_id,
+    cityfrom TYPE s_from_cit,
+    cityto   TYPE s_to_city,
+    fldate   TYPE s_date,
+    price    TYPE s_price,
+    currency TYPE s_currcode,
+  END OF ty_demo,
+  tt_demo TYPE STANDARD TABLE OF ty_demo WITH EMPTY KEY.
+
+DATA gt_demo TYPE tt_demo.
+
+START-OF-SELECTION.
+  SELECT FROM sflight AS flight
+         INNER JOIN spfli AS route
+           ON  route~carrid = flight~carrid
+           AND route~connid = flight~connid
+         FIELDS flight~carrid,
+                flight~connid,
+                route~cityfrom,
+                route~cityto,
+                flight~fldate,
+                flight~price,
+                flight~currency
+         ORDER BY flight~carrid,
+                  flight~connid,
+                  flight~fldate
+         INTO TABLE @gt_demo
+         UP TO 100 ROWS.
+
+  PERFORM show_popup CHANGING gt_demo.
+
+FORM show_popup CHANGING ct_data TYPE tt_demo.
+  DATA lo_salv      TYPE REF TO cl_salv_table.
+  DATA lo_functions TYPE REF TO cl_salv_functions_list.
+  DATA lo_display   TYPE REF TO cl_salv_display_settings.
+
+  TRY.
+      cl_salv_table=>factory(
+        IMPORTING
+          r_salv_table = lo_salv
+        CHANGING
+          t_table      = ct_data ).
+
+      lo_functions = lo_salv->get_functions( ).
+      lo_functions->set_all( abap_true ).
+
+      lo_display = lo_salv->get_display_settings( ).
+      lo_display->set_list_header( 'Flight List' ).
+      lo_display->set_striped_pattern( abap_true ).
+
+      lo_salv->get_columns( )->set_optimize( abap_true ).
+
+      lo_salv->set_screen_popup(
+        start_column = 5
+        end_column   = 120
+        start_line   = 2
+        end_line     = 25 ).
+
+      lo_salv->display( ).
+
+    CATCH cx_salv_msg INTO DATA(lx_salv).
+      MESSAGE lx_salv->get_text( ) TYPE 'I' DISPLAY LIKE 'E'.
+  ENDTRY.
+ENDFORM.
+```

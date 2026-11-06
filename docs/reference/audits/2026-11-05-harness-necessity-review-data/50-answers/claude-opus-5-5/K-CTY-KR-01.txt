@@ -1,0 +1,1 @@
+A Korean business registration number has **10 digits**, written in a **3-2-5** grouping, e.g. `123-45-67890`. The last digit is a check digit.

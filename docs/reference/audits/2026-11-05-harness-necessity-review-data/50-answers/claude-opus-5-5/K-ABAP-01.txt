@@ -1,0 +1,1 @@
+In SAP's Menu Painter, the application-toolbar pushbutton displays the function's **function text** instead. With an icon but no ICON_TEXT, it shows only the icon, with the text as a tooltip.

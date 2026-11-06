@@ -1,0 +1,112 @@
+```abap
+REPORT zjudge_c01.
+
+TABLES ekko.
+
+SELECT-OPTIONS:
+  s_ekorg FOR ekko-ekorg,
+  s_bedat FOR ekko-bedat.
+
+PARAMETERS p_max TYPE i DEFAULT 500.
+
+TYPES:
+  BEGIN OF ty_header,
+    ebeln TYPE ekko-ebeln,
+    bukrs TYPE ekko-bukrs,
+    ekorg TYPE ekko-ekorg,
+    lifnr TYPE ekko-lifnr,
+    bedat TYPE ekko-bedat,
+    bsart TYPE ekko-bsart,
+    ekgrp TYPE ekko-ekgrp,
+  END OF ty_header,
+  ty_headers TYPE STANDARD TABLE OF ty_header WITH EMPTY KEY.
+
+DATA gt_headers TYPE ty_headers.
+
+AT SELECTION-SCREEN.
+  IF p_max <= 0.
+    MESSAGE 'Maximum number of rows must be greater than zero'
+      TYPE 'E'.
+  ENDIF.
+
+START-OF-SELECTION.
+
+  SELECT ebeln,
+         bukrs,
+         ekorg,
+         lifnr,
+         bedat,
+         bsart,
+         ekgrp
+    FROM ekko
+    WHERE ekorg IN @s_ekorg
+      AND bedat IN @s_bedat
+    ORDER BY ebeln
+    INTO TABLE @gt_headers
+    UP TO @p_max ROWS.
+
+  IF gt_headers IS INITIAL.
+    MESSAGE 'No matching purchasing document headers were found'
+      TYPE 'I'.
+    RETURN.
+  ENDIF.
+
+  TRY.
+      cl_salv_table=>factory(
+        IMPORTING
+          r_salv_table = DATA(go_alv)
+        CHANGING
+          t_table      = gt_headers ).
+
+      DATA(go_columns) = go_alv->get_columns( ).
+      go_columns->set_optimize( abap_true ).
+
+      DATA(go_column) = go_columns->get_column( 'EBELN' ).
+      go_column->set_short_text( 'PO Number' ).
+      go_column->set_medium_text( 'Purch. Document' ).
+      go_column->set_long_text( 'Purchasing Document Number' ).
+
+      go_column = go_columns->get_column( 'BUKRS' ).
+      go_column->set_short_text( 'CoCd' ).
+      go_column->set_medium_text( 'Company Code' ).
+      go_column->set_long_text( 'Company Code' ).
+
+      go_column = go_columns->get_column( 'EKORG' ).
+      go_column->set_short_text( 'Purch.Org.' ).
+      go_column->set_medium_text( 'Purchasing Org.' ).
+      go_column->set_long_text( 'Purchasing Organization' ).
+
+      go_column = go_columns->get_column( 'LIFNR' ).
+      go_column->set_short_text( 'Vendor' ).
+      go_column->set_medium_text( 'Vendor' ).
+      go_column->set_long_text( 'Vendor Account Number' ).
+
+      go_column = go_columns->get_column( 'BEDAT' ).
+      go_column->set_short_text( 'Doc. Date' ).
+      go_column->set_medium_text( 'Document Date' ).
+      go_column->set_long_text( 'Purchasing Document Date' ).
+
+      go_column = go_columns->get_column( 'BSART' ).
+      go_column->set_short_text( 'Doc. Type' ).
+      go_column->set_medium_text( 'Document Type' ).
+      go_column->set_long_text( 'Purchasing Document Type' ).
+
+      go_column = go_columns->get_column( 'EKGRP' ).
+      go_column->set_short_text( 'Purch.Grp' ).
+      go_column->set_medium_text( 'Purchasing Group' ).
+      go_column->set_long_text( 'Purchasing Group' ).
+
+      go_alv->get_functions( )->set_all( abap_true ).
+      go_alv->get_display_settings( )->set_striped_pattern( abap_true ).
+      go_alv->get_display_settings( )->set_list_header(
+        'Purchasing Document Headers' ).
+
+      go_alv->display( ).
+
+    CATCH cx_salv_not_found INTO DATA(gx_not_found).
+      MESSAGE gx_not_found->get_text( ) TYPE 'I'.
+
+    CATCH cx_salv_msg INTO DATA(gx_salv).
+      MESSAGE gx_salv->get_text( ) TYPE 'I'.
+  ENDTRY.
+```

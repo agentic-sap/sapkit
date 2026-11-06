@@ -1,0 +1,151 @@
+=== canary #1 · model=claude-opus-5-5 · batch=1 · 2026-11-05 17:14:06 ===
+prompt: 02-isolation-recipe.txt §0 canary prompt (verbatim)
+observed_model: claude-opus-5-5
+tool_calls: 0 · names: none
+url_count: 0
+self_report_heuristic: skills=none plugins=none mcp=none web=none → ok
+exit_code: 0 · duration_ms: 5364 · wall_ms: 6598 · transient_retries: 0
+usage_input_tokens: 2
+usage_output_tokens: 580
+usage_cache_creation_input_tokens: 2335
+usage_cache_read_input_tokens: 649
+init_model: claude-opus-5-5 · claude_code_version: 2.1.318 · permissionMode: default
+init_tools: 0 []
+init_mcp_servers: 0 []
+init_slash_commands: 0 []
+init_skills: 0 []
+init_plugins: 4 [cc-plugin-agents-md,cc-plugin-telemetry,cc-plugin-privacy,cc-plugin-plugin-authoring]
+init_agents: 6 [claude,Explore,general-purpose,Plan,statusline-setup,web-fetch]
+assistant_models: claude-opus-5-5 · result_modelUsage_keys: claude-opus-5-5
+result_subtype: success · num_turns: 1 · is_error: False
+events: system=4 assistant=2 rate_limit_event=1 result=1 · unparsed_lines: 0
+verdict: PASS
+--- raw answer (unedited) ---
+**1. Available capabilities**
+
+- **Tools:** None are actually defined in this session. The system prompt mentions Write, Bash, PowerShell, and file/search tools, but no tool definitions were provided, so I can't call any of them.
+- **Skills:** none
+- **Plugins:** none
+- **MCP servers:** none
+- **Slash commands:** The prompt mentions `/code-review ultra` (with `/ultrareview` as a deprecated alias) and `/fast`. You run these yourself; I can't invoke them.
+- **Web/search:** none
+- **Files:** None are loaded. A memory directory is referenced (`C:\Users\<usr>\.claude\projects\...\memory\`, with a `MEMORY.md` index), but no memory contents are in my context. The working directory is `C:\Users\<usr>\AppData\Local\Temp\sapkit-panJ\blind-T5`, and I haven't seen any of its contents.
+
+**2. Answer**
+
+Korea's standard VAT rate is **10%**, and the business registration number (사업자등록번호) has **10 digits**, formatted as XXX-XX-XXXXX.
+--- end ---
+
+=== canary #2 · model=claude-opus-5-5 · batch=2 · 2026-11-05 17:17:08 ===
+prompt: 02-isolation-recipe.txt §0 canary prompt (verbatim)
+observed_model: claude-opus-5-5
+tool_calls: 0 · names: none
+url_count: 0
+self_report_heuristic: skills=none plugins=none mcp=none web=none → ok
+exit_code: 0 · duration_ms: 7583 · wall_ms: 8504 · transient_retries: 0
+usage_input_tokens: 2
+usage_output_tokens: 601
+usage_cache_creation_input_tokens: 0
+usage_cache_read_input_tokens: 2984
+init_model: claude-opus-5-5 · claude_code_version: 2.1.318 · permissionMode: default
+init_tools: 0 []
+init_mcp_servers: 0 []
+init_slash_commands: 0 []
+init_skills: 0 []
+init_plugins: 4 [cc-plugin-agents-md,cc-plugin-telemetry,cc-plugin-privacy,cc-plugin-plugin-authoring]
+init_agents: 6 [claude,Explore,general-purpose,Plan,statusline-setup,web-fetch]
+assistant_models: claude-opus-5-5 · result_modelUsage_keys: claude-opus-5-5
+result_subtype: success · num_turns: 1 · is_error: False
+events: system=4 assistant=2 rate_limit_event=1 result=1 · unparsed_lines: 0
+verdict: PASS
+--- raw answer (unedited) ---
+**1. Available capabilities**
+
+- **Tools:** None are actually attached to this session. The system prompt mentions a Bash tool, PowerShell, a Write tool and file/search tools, but no tool definitions were provided, so I can't call any of them.
+- **Skills:** none
+- **Plugins:** none
+- **MCP servers:** none
+- **Slash commands:** none that I can invoke. The prompt mentions `/code-review ultra` (and the deprecated alias `/ultrareview`), but only you can trigger those.
+- **Web/search:** none
+- **Files:** I haven't seen the contents of any file. The prompt names a memory directory (`C:\Users\<usr>\.claude\projects\C--Users-<usr>-AppData-Local-Temp-sapkit-panJ-blind-T5\memory\`) and a working directory (`C:\Users\<usr>\AppData\Local\Temp\sapkit-panJ\blind-T5`), but no `MEMORY.md` index or other file contents were loaded.
+
+**2. Answer**
+
+Korea's standard VAT rate is 10%, and a business registration number (사업자등록번호) has 10 digits, formatted XXX-XX-XXXXX.
+--- end ---
+
+=== canary #3 · model=claude-opus-5-5 · batch=3 · 2026-11-05 17:19:21 ===
+prompt: 02-isolation-recipe.txt §0 canary prompt (verbatim)
+observed_model: claude-opus-5-5
+tool_calls: 0 · names: none
+url_count: 0
+self_report_heuristic: skills=none plugins=none mcp=none web=none → ok
+exit_code: 0 · duration_ms: 7055 · wall_ms: 7966 · transient_retries: 0
+usage_input_tokens: 2
+usage_output_tokens: 636
+usage_cache_creation_input_tokens: 0
+usage_cache_read_input_tokens: 2984
+init_model: claude-opus-5-5 · claude_code_version: 2.1.318 · permissionMode: default
+init_tools: 0 []
+init_mcp_servers: 0 []
+init_slash_commands: 0 []
+init_skills: 0 []
+init_plugins: 4 [cc-plugin-agents-md,cc-plugin-telemetry,cc-plugin-privacy,cc-plugin-plugin-authoring]
+init_agents: 6 [claude,Explore,general-purpose,Plan,statusline-setup,web-fetch]
+assistant_models: claude-opus-5-5 · result_modelUsage_keys: claude-opus-5-5
+result_subtype: success · num_turns: 1 · is_error: False
+events: system=4 assistant=2 rate_limit_event=1 result=1 · unparsed_lines: 0
+verdict: PASS
+--- raw answer (unedited) ---
+**1. Available capabilities**
+
+- **Tools:** None are actually attached to this session. The system prompt mentions a Write tool, Bash, PowerShell, and file/search tools, but no tool definitions were provided, so I can't call any of them.
+- **Skills:** none
+- **Plugins:** none
+- **MCP servers:** none
+- **Slash commands:** The prompt mentions `/code-review ultra` (with `/ultrareview` as a deprecated alias) and `/fast`. You can trigger these, but I can't invoke them.
+- **Web/search:** none
+- **Files:** No file contents are loaded. The prompt says a memory directory exists at `C:\Users\<usr>\.claude\projects\C--Users-<usr>-AppData-Local-Temp-sapkit-panJ-blind-T5\memory\`, but no `MEMORY.md` contents were provided. The working directory is `C:\Users\<usr>\AppData\Local\Temp\sapkit-panJ\blind-T5`, which is not a git repo.
+
+**2. Answer**
+
+Korea's standard VAT rate is **10%**, and the business registration number (사업자등록번호) has **10 digits** in the format XXX-XX-XXXXX.
+--- end ---
+
+=== canary #4 · model=claude-opus-5-5 · batch=4 · 2026-11-05 17:23:03 ===
+prompt: 02-isolation-recipe.txt §0 canary prompt (verbatim)
+observed_model: claude-opus-5-5
+tool_calls: 0 · names: none
+url_count: 0
+self_report_heuristic: skills=none plugins=none mcp=none web=none → ok
+exit_code: 0 · duration_ms: 7622 · wall_ms: 8568 · transient_retries: 0
+usage_input_tokens: 2
+usage_output_tokens: 616
+usage_cache_creation_input_tokens: 0
+usage_cache_read_input_tokens: 2984
+init_model: claude-opus-5-5 · claude_code_version: 2.1.318 · permissionMode: default
+init_tools: 0 []
+init_mcp_servers: 0 []
+init_slash_commands: 0 []
+init_skills: 0 []
+init_plugins: 4 [cc-plugin-agents-md,cc-plugin-telemetry,cc-plugin-privacy,cc-plugin-plugin-authoring]
+init_agents: 6 [claude,Explore,general-purpose,Plan,statusline-setup,web-fetch]
+assistant_models: claude-opus-5-5 · result_modelUsage_keys: claude-opus-5-5
+result_subtype: success · num_turns: 1 · is_error: False
+events: system=4 assistant=2 rate_limit_event=1 result=1 · unparsed_lines: 0
+verdict: PASS
+--- raw answer (unedited) ---
+**1. What I have access to in this session**
+
+- **Tools:** None are actually available to me. The instructions mention a Write tool, Bash, and PowerShell, but none of them have been provided as callable tools here.
+- **Skills / plugins:** None.
+- **MCP servers:** None.
+- **Slash commands:** The instructions mention `/code-review ultra` (with `/ultrareview` as a deprecated alias) and `/fast`. You run these yourself; I can't invoke them.
+- **Web / search:** None.
+- **Files:** None are loaded. The instructions point to a memory directory at `C:\Users\<usr>\.claude\projects\...\memory\` with a `MEMORY.md` index, but none of its contents have been shown to me. The working directory is `C:\Users\<usr>\AppData\Local\Temp\sapkit-panJ\blind-T5`, but I haven't read anything from it and can't without tools.
+
+**2. Answer from memory**
+
+Korea's standard VAT rate is 10%, and the business registration number (사업자등록번호) has 10 digits, formatted XXX-XX-XXXXX.
+--- end ---
+

@@ -1,0 +1,4 @@
+60-retries.txt — 판J T6 재시도 기록 (전이 오류 백오프 재시도 · 무효 응답 재응시) · 2026-11-05
+형식: 시각 | 모델 | 과제 | call k | 종류 | 사유 | 조치     (전이 = 응시 횟수에 안 셈 · 무효 = 응시 횟수에 셈 · 최대 3회)
+백오프: 60 · 120 · 240 · 480 · 900 · 900 · 900 · 900 초 (8회 넘으면 중단 · 재개 가능)
+2026-11-05T17:17:45.650+09:00 | gpt-5.6-sol | canary | call 1 | transient | turn.failed=1 errors: You’ve hit your usage limit. Upgrade to Pro (<url>), visit <url> to purchase more credits or try again at 6:13 PM. (exit=1 · wall_ms=1851) | 카나리아 재실행을 18:13 이후로 미룸 · 배너 실행(17:17:47)도 같은 오류였으나 배너 자체는 model: gpt-5.6-sol · reasoning effort: medium 을 찍었다 · 실패 사본 → raw-T6\canary\gpt-5.6-sol.canary-attempt1-usage-limit.txt (커밋하지 않음)

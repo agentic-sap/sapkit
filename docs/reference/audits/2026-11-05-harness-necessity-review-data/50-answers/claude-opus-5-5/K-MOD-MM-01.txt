@@ -1,0 +1,1 @@
+**BAdI `SMOD_V50B0001`**, the BAdI wrapper for enhancement V50B0001 (inbound delivery user exits, e.g., `EXIT_SAPLV50I_001`/`_002`). For general delivery processing logic, `LE_SHP_DELIVERY_PROC` is also commonly used.

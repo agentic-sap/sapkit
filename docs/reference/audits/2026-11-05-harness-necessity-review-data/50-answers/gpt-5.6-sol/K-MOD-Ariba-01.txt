@@ -1,0 +1,1 @@
+The standard inbound function module is `IDOC_INPUT_ORDERS` (message type `ORDERS`, basic type `ORDERS05`).

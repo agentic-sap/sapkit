@@ -1,0 +1,1 @@
+**PCL1**. It holds the HR work-area clusters for time data and travel expenses: TE (travel expense data), TX (infotype texts) and B2 (time evaluation results). Payroll results (RU, RD and others) are in PCL2.

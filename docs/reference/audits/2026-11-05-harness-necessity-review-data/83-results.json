@@ -1,0 +1,6237 @@
+{
+ "_schema": "judge-aggregate-v1",
+ "generated_by": "83-aggregate.mjs",
+ "inputs": {
+  "10-knowledge-items.json": "a99cc22debea8eb1",
+  "41-reproducible-items.json": "e33d309eedab4df9",
+  "40-incidents.csv": "1750f94089100f1d",
+  "60-checker-summary.csv": "6bc62549fa051af0",
+  "70-grading-A.csv": "d1d95e79e091ce4c",
+  "71-grading-B.csv": "259975733388f4e1",
+  "80-adjudication.csv": "c424747acb63e332",
+  "81-pack-errors.csv": "0c095ed518f45ab2",
+  "82-codex-regrade.csv": "1ee08aa0ad72700f"
+ },
+ "agreement": {
+  "knowledge": {
+   "a": 307,
+   "n": 321,
+   "rate": "95.6"
+  },
+  "code": {
+   "a": 37,
+   "n": 42,
+   "rate": "88.1"
+  },
+  "incident": {
+   "a": 98,
+   "n": 107,
+   "rate": "91.6"
+  }
+ },
+ "codex": {
+  "final": [
+   36,
+   43
+  ],
+  "A": [
+   36,
+   43
+  ],
+  "B": [
+   35,
+   43
+  ],
+  "perModel": {
+   "claude-opus-5-5": [
+    20,
+    25
+   ],
+   "claude-sonnet-5-5": [
+    16,
+    18
+   ]
+  }
+ },
+ "knowledge": {
+  "claude-opus-5-5": {
+   "strict": {
+    "c": 49,
+    "n": 60,
+    "expWrong": 0,
+    "cell": "아직 필요"
+   },
+   "exclPack": {
+    "c": 44,
+    "n": 55,
+    "expWrong": 0,
+    "cell": "아직 필요"
+   },
+   "exclDoubt": {
+    "c": 42,
+    "n": 47,
+    "expWrong": 0,
+    "cell": "아직 필요"
+   },
+   "wide": {
+    "expWrong": 0,
+    "cell": "아직 필요"
+   },
+   "byCat": {
+    "module": {
+     "c": 19,
+     "n": 30,
+     "expWrong": 0,
+     "cell": "아직 필요",
+     "exclDoubt": {
+      "c": 13,
+      "n": 18,
+      "expWrong": 0,
+      "cell": "아직 필요"
+     }
+    },
+    "country": {
+     "c": 16,
+     "n": 16,
+     "expWrong": 0,
+     "cell": "이미 안다",
+     "exclDoubt": {
+      "c": 16,
+      "n": 16,
+      "expWrong": 0,
+      "cell": "이미 안다"
+     }
+    },
+    "industry": {
+     "c": 7,
+     "n": 7,
+     "expWrong": 0,
+     "cell": "이미 안다",
+     "exclDoubt": {
+      "c": 7,
+      "n": 7,
+      "expWrong": 0,
+      "cell": "이미 안다"
+     }
+    },
+    "abap": {
+     "c": 7,
+     "n": 7,
+     "expWrong": 0,
+     "cell": "이미 안다",
+     "exclDoubt": {
+      "c": 6,
+      "n": 6,
+      "expWrong": 0,
+      "cell": "이미 안다"
+     }
+    }
+   }
+  },
+  "claude-sonnet-5-5": {
+   "strict": {
+    "c": 47,
+    "n": 60,
+    "expWrong": 0,
+    "cell": "아직 필요"
+   },
+   "exclPack": {
+    "c": 44,
+    "n": 55,
+    "expWrong": 0,
+    "cell": "아직 필요"
+   },
+   "exclDoubt": {
+    "c": 43,
+    "n": 47,
+    "expWrong": 0,
+    "cell": "측정 후 결정"
+   },
+   "wide": {
+    "expWrong": 1,
+    "cell": "아직 필요"
+   },
+   "byCat": {
+    "module": {
+     "c": 17,
+     "n": 30,
+     "expWrong": 0,
+     "cell": "아직 필요",
+     "exclDoubt": {
+      "c": 14,
+      "n": 18,
+      "expWrong": 0,
+      "cell": "아직 필요"
+     }
+    },
+    "country": {
+     "c": 16,
+     "n": 16,
+     "expWrong": 0,
+     "cell": "이미 안다",
+     "exclDoubt": {
+      "c": 16,
+      "n": 16,
+      "expWrong": 0,
+      "cell": "이미 안다"
+     }
+    },
+    "industry": {
+     "c": 7,
+     "n": 7,
+     "expWrong": 0,
+     "cell": "이미 안다",
+     "exclDoubt": {
+      "c": 7,
+      "n": 7,
+      "expWrong": 0,
+      "cell": "이미 안다"
+     }
+    },
+    "abap": {
+     "c": 7,
+     "n": 7,
+     "expWrong": 0,
+     "cell": "이미 안다",
+     "exclDoubt": {
+      "c": 6,
+      "n": 6,
+      "expWrong": 0,
+      "cell": "이미 안다"
+     }
+    }
+   }
+  },
+  "gpt-5.6-sol": {
+   "strict": {
+    "c": 48,
+    "n": 60,
+    "expWrong": 0,
+    "cell": "아직 필요"
+   },
+   "exclPack": {
+    "c": 46,
+    "n": 55,
+    "expWrong": 0,
+    "cell": "아직 필요"
+   },
+   "exclDoubt": {
+    "c": 44,
+    "n": 47,
+    "expWrong": 0,
+    "cell": "측정 후 결정"
+   },
+   "wide": {
+    "expWrong": 1,
+    "cell": "아직 필요"
+   },
+   "byCat": {
+    "module": {
+     "c": 19,
+     "n": 30,
+     "expWrong": 0,
+     "cell": "아직 필요",
+     "exclDoubt": {
+      "c": 15,
+      "n": 18,
+      "expWrong": 0,
+      "cell": "아직 필요"
+     }
+    },
+    "country": {
+     "c": 16,
+     "n": 16,
+     "expWrong": 0,
+     "cell": "이미 안다",
+     "exclDoubt": {
+      "c": 16,
+      "n": 16,
+      "expWrong": 0,
+      "cell": "이미 안다"
+     }
+    },
+    "industry": {
+     "c": 7,
+     "n": 7,
+     "expWrong": 0,
+     "cell": "이미 안다",
+     "exclDoubt": {
+      "c": 7,
+      "n": 7,
+      "expWrong": 0,
+      "cell": "이미 안다"
+     }
+    },
+    "abap": {
+     "c": 6,
+     "n": 7,
+     "expWrong": 0,
+     "cell": "아직 필요",
+     "exclDoubt": {
+      "c": 6,
+      "n": 6,
+      "expWrong": 0,
+      "cell": "이미 안다"
+     }
+    }
+   }
+  }
+ },
+ "orZone": {
+  "primary": [],
+  "sensitivity": [
+   "Sonnet 5.5",
+   "Codex gpt-5.6-sol"
+  ]
+ },
+ "kinc": {
+  "perModel": {
+   "claude-opus-5-5": {
+    "c": 26,
+    "n": 47,
+    "expWrong": 1,
+    "clusters": 46,
+    "dedupRate": 54.3
+   },
+   "claude-sonnet-5-5": {
+    "c": 26,
+    "n": 47,
+    "expWrong": 2,
+    "clusters": 46,
+    "dedupRate": 54.3
+   },
+   "gpt-5.6-sol": {
+    "c": 20,
+    "n": 47,
+    "expWrong": 2,
+    "clusters": 46,
+    "dedupRate": 41.3
+   }
+  },
+  "clusters": {
+   "INC-FB-03": [
+    "K-INC-37"
+   ],
+   "INC-FB-05": [
+    "K-INC-38"
+   ],
+   "INC-FB-06": [
+    "K-INC-39"
+   ],
+   "INC-FB-10": [
+    "K-INC-40"
+   ],
+   "INC-FB-15": [
+    "K-INC-41"
+   ],
+   "INC-FB-24": [
+    "K-INC-42"
+   ],
+   "INC-FB-29": [
+    "K-INC-01"
+   ],
+   "INC-FB-30": [
+    "K-INC-43"
+   ],
+   "INC-FB-34": [
+    "K-INC-44"
+   ],
+   "INC-P1-04": [
+    "K-INC-02"
+   ],
+   "INC-P2-01": [
+    "K-INC-03"
+   ],
+   "INC-P2-04": [
+    "K-INC-04"
+   ],
+   "INC-P2-06": [
+    "K-INC-05"
+   ],
+   "INC-P2-07": [
+    "K-INC-06"
+   ],
+   "INC-P3-01": [
+    "K-INC-07"
+   ],
+   "INC-P3-02": [
+    "K-INC-08"
+   ],
+   "INC-P3-05": [
+    "K-INC-09"
+   ],
+   "INC-P3-07": [
+    "K-INC-10"
+   ],
+   "INC-P3-08": [
+    "K-INC-11"
+   ],
+   "INC-P3-09": [
+    "K-INC-12"
+   ],
+   "INC-P3-11": [
+    "K-INC-13"
+   ],
+   "INC-P3-16": [
+    "K-INC-14"
+   ],
+   "INC-P3-18": [
+    "K-INC-15"
+   ],
+   "INC-P3-20": [
+    "K-INC-16"
+   ],
+   "INC-P3-21": [
+    "K-INC-17"
+   ],
+   "INC-P3-23": [
+    "K-INC-18"
+   ],
+   "INC-P3-29": [
+    "K-INC-19"
+   ],
+   "INC-P4-01": [
+    "K-INC-20"
+   ],
+   "INC-P4-02": [
+    "K-INC-21"
+   ],
+   "INC-P4-05": [
+    "K-INC-22"
+   ],
+   "INC-P4-06": [
+    "K-INC-23"
+   ],
+   "INC-P4-08": [
+    "K-INC-24"
+   ],
+   "INC-P4-09": [
+    "K-INC-25"
+   ],
+   "INC-P5-01": [
+    "K-INC-26"
+   ],
+   "INC-P5-05": [
+    "K-INC-27"
+   ],
+   "INC-P5-09": [
+    "K-INC-28"
+   ],
+   "INC-P5-10": [
+    "K-INC-29"
+   ],
+   "INC-P5-12": [
+    "K-INC-30"
+   ],
+   "INC-P5-13": [
+    "K-INC-31"
+   ],
+   "INC-P6-01": [
+    "K-INC-32",
+    "K-INC-33"
+   ],
+   "INC-P6-11": [
+    "K-INC-34"
+   ],
+   "INC-P6-14": [
+    "K-INC-35"
+   ],
+   "INC-P6-16": [
+    "K-INC-36"
+   ],
+   "INC-REPO-01": [
+    "K-INC-45"
+   ],
+   "INC-REPO-02": [
+    "K-INC-46"
+   ],
+   "INC-REPO-25": [
+    "K-INC-47"
+   ]
+  },
+  "sharedKinc": [
+   "K-INC-32",
+   "K-INC-33"
+  ]
+ },
+ "code": {
+  "claude-opus-5-5": {
+   "passed": [
+    "C-03",
+    "C-05"
+   ],
+   "n": 5,
+   "cell": "아직 필요",
+   "sensitivityNoAuth": {
+    "passed": [
+     "C-01",
+     "C-03",
+     "C-05"
+    ],
+    "cell": "아직 필요"
+   },
+   "errorGradeTotal": 0,
+   "cinc": {
+    "main": {
+     "c": 8,
+     "n": 8
+    },
+    "all": {
+     "c": 9,
+     "n": 9
+    },
+    "failed": []
+   }
+  },
+  "claude-sonnet-5-5": {
+   "passed": [
+    "C-03",
+    "C-05"
+   ],
+   "n": 5,
+   "cell": "아직 필요",
+   "sensitivityNoAuth": {
+    "passed": [
+     "C-01",
+     "C-03",
+     "C-05"
+    ],
+    "cell": "아직 필요"
+   },
+   "errorGradeTotal": 0,
+   "cinc": {
+    "main": {
+     "c": 7,
+     "n": 8
+    },
+    "all": {
+     "c": 8,
+     "n": 9
+    },
+    "failed": [
+     "C-INC-06"
+    ]
+   }
+  },
+  "gpt-5.6-sol": {
+   "passed": [
+    "C-03",
+    "C-05"
+   ],
+   "n": 5,
+   "cell": "아직 필요",
+   "sensitivityNoAuth": {
+    "passed": [
+     "C-01",
+     "C-03",
+     "C-04",
+     "C-05"
+    ],
+    "cell": "측정 후 결정"
+   },
+   "errorGradeTotal": 0,
+   "cinc": {
+    "main": {
+     "c": 5,
+     "n": 8
+    },
+    "all": {
+     "c": 5,
+     "n": 9
+    },
+    "failed": [
+     "C-INC-05",
+     "C-INC-06",
+     "C-INC-08",
+     "C-INC-09"
+    ]
+   }
+  }
+ },
+ "incidents": {
+  "all": {
+   "피함": 1,
+   "못피함": 101,
+   "모름": 5
+  },
+  "nonEngine": {
+   "피함": 1,
+   "못피함": 53,
+   "모름": 5
+  },
+  "byRoot": {
+   "SAP·엔진 성질": {
+    "피함": 0,
+    "못피함": 48,
+    "모름": 0
+   },
+   "모델 행동": {
+    "피함": 0,
+    "못피함": 20,
+    "모름": 2
+   },
+   "프로세스·문서": {
+    "피함": 1,
+    "못피함": 32,
+    "모름": 1
+   },
+   "모델 지식 부족": {
+    "피함": 0,
+    "못피함": 0,
+    "모름": 2
+   },
+   "사용자 요구 미파악": {
+    "피함": 0,
+    "못피함": 1,
+    "모름": 0
+   }
+  },
+  "byLayer": {
+   "막았을:L5": {
+    "피함": 0,
+    "못피함": 42,
+    "모름": 0
+   },
+   "막았을:L6": {
+    "피함": 0,
+    "못피함": 2,
+    "모름": 1
+   },
+   "없음": {
+    "피함": 1,
+    "못피함": 19,
+    "모름": 1
+   },
+   "막았을:L1": {
+    "피함": 0,
+    "못피함": 2,
+    "모름": 3
+   },
+   "막았을:L1'": {
+    "피함": 0,
+    "못피함": 1,
+    "모름": 0
+   },
+   "막음:L5": {
+    "피함": 0,
+    "못피함": 2,
+    "모름": 0
+   },
+   "막았을:L8": {
+    "피함": 0,
+    "못피함": 2,
+    "모름": 0
+   },
+   "막았을:L3": {
+    "피함": 0,
+    "못피함": 5,
+    "모름": 0
+   },
+   "막음:W2": {
+    "피함": 0,
+    "못피함": 2,
+    "모름": 0
+   },
+   "막았을:W2": {
+    "피함": 0,
+    "못피함": 9,
+    "모름": 0
+   },
+   "막았을:W4": {
+    "피함": 0,
+    "못피함": 4,
+    "모름": 0
+   },
+   "막음:W4": {
+    "피함": 0,
+    "못피함": 1,
+    "모름": 0
+   },
+   "막았을:W3": {
+    "피함": 0,
+    "못피함": 1,
+    "모름": 0
+   },
+   "막음:L8": {
+    "피함": 0,
+    "못피함": 6,
+    "모름": 0
+   },
+   "막았을:W1": {
+    "피함": 0,
+    "못피함": 2,
+    "모름": 0
+   },
+   "막았을:W5": {
+    "피함": 0,
+    "못피함": 1,
+    "모름": 0
+   }
+  }
+ },
+ "layers": {
+  "tally": {
+   "L1": {
+    "막음": 0,
+    "막았을": 45,
+    "켜져못막음": 1,
+    "자기자리": 1,
+    "켜짐불명": 33
+   },
+   "L1'": {
+    "막음": 0,
+    "막았을": 1,
+    "켜져못막음": 0,
+    "자기자리": 0,
+    "켜짐불명": 0
+   },
+   "L2": {
+    "막음": 0,
+    "막았을": 0,
+    "켜져못막음": 0,
+    "자기자리": 0,
+    "켜짐불명": 0
+   },
+   "L3": {
+    "막음": 0,
+    "막았을": 6,
+    "켜져못막음": 2,
+    "자기자리": 1,
+    "켜짐불명": 3
+   },
+   "L4": {
+    "막음": 0,
+    "막았을": 0,
+    "켜져못막음": 2,
+    "자기자리": 0,
+    "켜짐불명": 0
+   },
+   "L5": {
+    "막음": 2,
+    "막았을": 51,
+    "켜져못막음": 79,
+    "자기자리": 51,
+    "켜짐불명": 0
+   },
+   "L6": {
+    "막음": 0,
+    "막았을": 5,
+    "켜져못막음": 1,
+    "자기자리": 1,
+    "켜짐불명": 2
+   },
+   "L7": {
+    "막음": 0,
+    "막았을": 0,
+    "켜져못막음": 1,
+    "자기자리": 0,
+    "켜짐불명": 0
+   },
+   "L8": {
+    "막음": 6,
+    "막았을": 3,
+    "켜져못막음": 2,
+    "자기자리": 0,
+    "켜짐불명": 3
+   },
+   "L9": {
+    "막음": 0,
+    "막았을": 0,
+    "켜져못막음": 0,
+    "자기자리": 0,
+    "켜짐불명": 0
+   },
+   "L10": {
+    "막음": 0,
+    "막았을": 0,
+    "켜져못막음": 0,
+    "자기자리": 0,
+    "켜짐불명": 0
+   },
+   "W1": {
+    "막음": 0,
+    "막았을": 2,
+    "켜져못막음": 1,
+    "자기자리": 0,
+    "켜짐불명": 0
+   },
+   "W2": {
+    "막음": 2,
+    "막았을": 10,
+    "켜져못막음": 6,
+    "자기자리": 6,
+    "켜짐불명": 1
+   },
+   "W3": {
+    "막음": 0,
+    "막았을": 1,
+    "켜져못막음": 1,
+    "자기자리": 0,
+    "켜짐불명": 0
+   },
+   "W4": {
+    "막음": 1,
+    "막았을": 4,
+    "켜져못막음": 9,
+    "자기자리": 2,
+    "켜짐불명": 2
+   },
+   "W5": {
+    "막음": 0,
+    "막았을": 1,
+    "켜져못막음": 0,
+    "자기자리": 0,
+    "켜짐불명": 1
+   }
+  },
+  "blockedByRoot": {
+   "막았을:L5": {
+    "모델 지식 부족": 0,
+    "모델 행동": 3,
+    "SAP·엔진 성질": 43,
+    "사용자 요구 미파악": 0,
+    "프로세스·문서": 5
+   },
+   "막았을:L1": {
+    "모델 지식 부족": 35,
+    "모델 행동": 4,
+    "SAP·엔진 성질": 5,
+    "사용자 요구 미파악": 0,
+    "프로세스·문서": 1
+   },
+   "막았을:L6": {
+    "모델 지식 부족": 2,
+    "모델 행동": 1,
+    "SAP·엔진 성질": 0,
+    "사용자 요구 미파악": 0,
+    "프로세스·문서": 2
+   },
+   "막았을:L1'": {
+    "모델 지식 부족": 0,
+    "모델 행동": 0,
+    "SAP·엔진 성질": 1,
+    "사용자 요구 미파악": 0,
+    "프로세스·문서": 0
+   },
+   "막음:L5": {
+    "모델 지식 부족": 0,
+    "모델 행동": 0,
+    "SAP·엔진 성질": 1,
+    "사용자 요구 미파악": 0,
+    "프로세스·문서": 1
+   },
+   "막았을:L8": {
+    "모델 지식 부족": 0,
+    "모델 행동": 3,
+    "SAP·엔진 성질": 0,
+    "사용자 요구 미파악": 0,
+    "프로세스·문서": 0
+   },
+   "막았을:L3": {
+    "모델 지식 부족": 0,
+    "모델 행동": 2,
+    "SAP·엔진 성질": 0,
+    "사용자 요구 미파악": 0,
+    "프로세스·문서": 4
+   },
+   "막음:W2": {
+    "모델 지식 부족": 0,
+    "모델 행동": 0,
+    "SAP·엔진 성질": 0,
+    "사용자 요구 미파악": 0,
+    "프로세스·문서": 2
+   },
+   "막았을:W2": {
+    "모델 지식 부족": 0,
+    "모델 행동": 3,
+    "SAP·엔진 성질": 0,
+    "사용자 요구 미파악": 0,
+    "프로세스·문서": 7
+   },
+   "막았을:W4": {
+    "모델 지식 부족": 0,
+    "모델 행동": 0,
+    "SAP·엔진 성질": 0,
+    "사용자 요구 미파악": 1,
+    "프로세스·문서": 3
+   },
+   "막음:W4": {
+    "모델 지식 부족": 0,
+    "모델 행동": 0,
+    "SAP·엔진 성질": 1,
+    "사용자 요구 미파악": 0,
+    "프로세스·문서": 0
+   },
+   "막았을:W3": {
+    "모델 지식 부족": 0,
+    "모델 행동": 0,
+    "SAP·엔진 성질": 0,
+    "사용자 요구 미파악": 0,
+    "프로세스·문서": 1
+   },
+   "막음:L8": {
+    "모델 지식 부족": 0,
+    "모델 행동": 3,
+    "SAP·엔진 성질": 0,
+    "사용자 요구 미파악": 0,
+    "프로세스·문서": 3
+   },
+   "막았을:W1": {
+    "모델 지식 부족": 0,
+    "모델 행동": 2,
+    "SAP·엔진 성질": 0,
+    "사용자 요구 미파악": 0,
+    "프로세스·문서": 0
+   },
+   "막았을:W5": {
+    "모델 지식 부족": 0,
+    "모델 행동": 1,
+    "SAP·엔진 성질": 0,
+    "사용자 요구 미파악": 0,
+    "프로세스·문서": 0
+   }
+  },
+  "activeUnknown": 54,
+  "noLayer": 23,
+  "total": 163
+ },
+ "reproByLayer": {
+  "막았을:L5": {
+   "n": 9,
+   "items": [
+    "K-INC-01",
+    "K-INC-02",
+    "K-INC-26",
+    "K-INC-37",
+    "K-INC-38",
+    "K-INC-41",
+    "K-INC-42",
+    "K-INC-43",
+    "K-INC-47"
+   ],
+   "ok": {
+    "claude-opus-5-5": 4,
+    "claude-sonnet-5-5": 5,
+    "gpt-5.6-sol": 1
+   }
+  },
+  "막았을:L1": {
+   "n": 40,
+   "items": [
+    "K-INC-03",
+    "K-INC-04",
+    "K-INC-05",
+    "K-INC-06",
+    "K-INC-07",
+    "K-INC-08",
+    "K-INC-09",
+    "K-INC-10",
+    "K-INC-11",
+    "K-INC-12",
+    "K-INC-13",
+    "K-INC-14",
+    "K-INC-15",
+    "K-INC-16",
+    "K-INC-17",
+    "K-INC-18",
+    "C-INC-01",
+    "C-INC-02",
+    "K-INC-20",
+    "K-INC-21",
+    "K-INC-22",
+    "K-INC-23",
+    "C-INC-03",
+    "K-INC-25",
+    "K-INC-27",
+    "K-INC-29",
+    "K-INC-30",
+    "K-INC-31",
+    "K-INC-32",
+    "K-INC-33",
+    "C-INC-07",
+    "C-INC-08",
+    "K-INC-34",
+    "K-INC-35",
+    "K-INC-36",
+    "K-INC-39",
+    "K-INC-40",
+    "K-INC-44",
+    "K-INC-45",
+    "K-INC-46"
+   ],
+   "ok": {
+    "claude-opus-5-5": 24,
+    "claude-sonnet-5-5": 24,
+    "gpt-5.6-sol": 22
+   }
+  },
+  "없음": {
+   "n": 2,
+   "items": [
+    "K-INC-19",
+    "K-INC-24"
+   ],
+   "ok": {
+    "claude-opus-5-5": 2,
+    "claude-sonnet-5-5": 1,
+    "gpt-5.6-sol": 0
+   }
+  },
+  "막았을:L6": {
+   "n": 2,
+   "items": [
+    "C-INC-04",
+    "C-INC-06"
+   ],
+   "ok": {
+    "claude-opus-5-5": 2,
+    "claude-sonnet-5-5": 1,
+    "gpt-5.6-sol": 1
+   }
+  },
+  "막았을:L8": {
+   "n": 1,
+   "items": [
+    "C-INC-05"
+   ],
+   "ok": {
+    "claude-opus-5-5": 1,
+    "claude-sonnet-5-5": 1,
+    "gpt-5.6-sol": 0
+   }
+  },
+  "막았을:L3": {
+   "n": 1,
+   "items": [
+    "K-INC-28"
+   ],
+   "ok": {
+    "claude-opus-5-5": 1,
+    "claude-sonnet-5-5": 1,
+    "gpt-5.6-sol": 1
+   }
+  }
+ },
+ "pack": {
+  "tally": {
+   "팩 오류": [
+    "K-MOD-BW-01",
+    "K-MOD-HCM-01",
+    "K-MOD-QM-01",
+    "K-MOD-TM-01",
+    "K-ABAP-01",
+    "K-INC-32"
+   ],
+   "동치": [],
+   "모델 오답": [
+    "K-MOD-CO-02",
+    "K-MOD-WM-02",
+    "K-INC-03",
+    "K-INC-08",
+    "K-INC-14",
+    "K-INC-26",
+    "K-INC-35"
+   ],
+   "판정 불가": [
+    "K-MOD-CO-01",
+    "K-MOD-FI-02",
+    "K-MOD-MM-01",
+    "K-MOD-MM-02",
+    "K-MOD-PP-01",
+    "K-MOD-PP-02",
+    "K-MOD-TR-01",
+    "K-MOD-WM-01"
+   ]
+  },
+  "byArea": {
+   "모듈 BW": {
+    "팩 오류": 1,
+    "동치": 0,
+    "모델 오답": 0,
+    "판정 불가": 0
+   },
+   "모듈 CO": {
+    "팩 오류": 0,
+    "동치": 0,
+    "모델 오답": 1,
+    "판정 불가": 1
+   },
+   "모듈 FI": {
+    "팩 오류": 0,
+    "동치": 0,
+    "모델 오답": 0,
+    "판정 불가": 1
+   },
+   "모듈 HCM": {
+    "팩 오류": 1,
+    "동치": 0,
+    "모델 오답": 0,
+    "판정 불가": 0
+   },
+   "모듈 MM": {
+    "팩 오류": 0,
+    "동치": 0,
+    "모델 오답": 0,
+    "판정 불가": 2
+   },
+   "모듈 PP": {
+    "팩 오류": 0,
+    "동치": 0,
+    "모델 오답": 0,
+    "판정 불가": 2
+   },
+   "모듈 QM": {
+    "팩 오류": 1,
+    "동치": 0,
+    "모델 오답": 0,
+    "판정 불가": 0
+   },
+   "모듈 TM": {
+    "팩 오류": 1,
+    "동치": 0,
+    "모델 오답": 0,
+    "판정 불가": 0
+   },
+   "모듈 TR": {
+    "팩 오류": 0,
+    "동치": 0,
+    "모델 오답": 0,
+    "판정 불가": 1
+   },
+   "모듈 WM": {
+    "팩 오류": 0,
+    "동치": 0,
+    "모델 오답": 1,
+    "판정 불가": 1
+   },
+   "K-ABAP 일반 작법": {
+    "팩 오류": 1,
+    "동치": 0,
+    "모델 오답": 0,
+    "판정 불가": 0
+   },
+   "사고 재현": {
+    "팩 오류": 1,
+    "동치": 0,
+    "모델 오답": 5,
+    "판정 불가": 0
+   }
+  },
+  "extra": [],
+  "candidates": [
+   "K-ABAP-01",
+   "K-INC-03",
+   "K-INC-08",
+   "K-INC-14",
+   "K-INC-26",
+   "K-INC-32",
+   "K-INC-35",
+   "K-MOD-BW-01",
+   "K-MOD-CO-01",
+   "K-MOD-CO-02",
+   "K-MOD-FI-02",
+   "K-MOD-HCM-01",
+   "K-MOD-MM-01",
+   "K-MOD-MM-02",
+   "K-MOD-PP-01",
+   "K-MOD-PP-02",
+   "K-MOD-QM-01",
+   "K-MOD-TM-01",
+   "K-MOD-TR-01",
+   "K-MOD-WM-01",
+   "K-MOD-WM-02"
+  ]
+ },
+ "rows": [
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-Ariba-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-Ariba-02",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-BC-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-BC-02",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-BW-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B → 81 진실 대조",
+   "pack": "팩 오류",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-BW-02",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-CO-01",
+   "model": "claude-opus-5-5",
+   "final": "팩어긋남의심",
+   "src": "80 → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-CO-02",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "모델 오답",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-FI-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-FI-02",
+   "model": "claude-opus-5-5",
+   "final": "팩어긋남의심",
+   "src": "A=B → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-HCM-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B → 81 진실 대조",
+   "pack": "팩 오류",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-HCM-02",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-MM-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "80 → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-MM-02",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "80 → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-PM-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-PM-02",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-PP-01",
+   "model": "claude-opus-5-5",
+   "final": "팩어긋남의심",
+   "src": "80 → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-PP-02",
+   "model": "claude-opus-5-5",
+   "final": "팩어긋남의심",
+   "src": "80 → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-PS-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-PS-02",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-QM-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B → 81 진실 대조",
+   "pack": "팩 오류",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-QM-02",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-SD-01",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-SD-02",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-TM-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "80 → 81 진실 대조",
+   "pack": "팩 오류",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-TM-02",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-TR-01",
+   "model": "claude-opus-5-5",
+   "final": "팩어긋남의심",
+   "src": "80 → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-TR-02",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-WM-01",
+   "model": "claude-opus-5-5",
+   "final": "팩어긋남의심",
+   "src": "A=B → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-WM-02",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "모델 오답",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-SG-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-IT-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-AU-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-FR-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-MX-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-GB-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-JP-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-KR-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-BR-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-CN-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-ES-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-EU-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-US-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-NL-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-IN-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-DE-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-IND-pharmaceutical-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-IND-fashion-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-IND-chemical-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-IND-utilities-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-IND-steel-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-IND-tire-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-IND-banking-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-ABAP-01",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B → 81 진실 대조",
+   "pack": "팩 오류",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-ABAP-02",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-ABAP-03",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-ABAP-04",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-ABAP-05",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-ABAP-06",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-ABAP-07",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-Ariba-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-Ariba-02",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-BC-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-BC-02",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-BW-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B → 81 진실 대조",
+   "pack": "팩 오류",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-BW-02",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-CO-01",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-CO-02",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "모델 오답",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-FI-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-FI-02",
+   "model": "claude-sonnet-5-5",
+   "final": "팩어긋남의심",
+   "src": "A=B → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-HCM-01",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B → 81 진실 대조",
+   "pack": "팩 오류",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-HCM-02",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-MM-01",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-MM-02",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "80 → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-PM-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-PM-02",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-PP-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-PP-02",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-PS-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-PS-02",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-QM-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B → 81 진실 대조",
+   "pack": "팩 오류",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-QM-02",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-SD-01",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-SD-02",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-TM-01",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B → 81 진실 대조",
+   "pack": "팩 오류",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-TM-02",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-TR-01",
+   "model": "claude-sonnet-5-5",
+   "final": "팩어긋남의심",
+   "src": "80 → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-TR-02",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-WM-01",
+   "model": "claude-sonnet-5-5",
+   "final": "팩어긋남의심",
+   "src": "A=B → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-WM-02",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "모델 오답",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-SG-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-IT-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-AU-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-FR-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-MX-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-GB-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-JP-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-KR-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-BR-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-CN-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-ES-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-EU-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-US-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-NL-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-IN-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-DE-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-IND-pharmaceutical-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-IND-fashion-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-IND-chemical-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-IND-utilities-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-IND-steel-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-IND-tire-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-IND-banking-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-ABAP-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B → 81 진실 대조",
+   "pack": "팩 오류",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-ABAP-02",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-ABAP-03",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-ABAP-04",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-ABAP-05",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-ABAP-06",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-ABAP-07",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-Ariba-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-Ariba-02",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-BC-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-BC-02",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-BW-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B → 81 진실 대조",
+   "pack": "팩 오류",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-BW-02",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-CO-01",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-CO-02",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "모델 오답",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-FI-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-FI-02",
+   "model": "gpt-5.6-sol",
+   "final": "팩어긋남의심",
+   "src": "A=B → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-HCM-01",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B → 81 진실 대조",
+   "pack": "팩 오류",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-HCM-02",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-MM-01",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-MM-02",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-PM-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-PM-02",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-PP-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-PP-02",
+   "model": "gpt-5.6-sol",
+   "final": "팩어긋남의심",
+   "src": "80 → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-PS-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-PS-02",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-QM-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B → 81 진실 대조",
+   "pack": "팩 오류",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-QM-02",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-SD-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-SD-02",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-TM-01",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B → 81 진실 대조",
+   "pack": "팩 오류",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-TM-02",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-TR-01",
+   "model": "gpt-5.6-sol",
+   "final": "팩어긋남의심",
+   "src": "80 → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-TR-02",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-WM-01",
+   "model": "gpt-5.6-sol",
+   "final": "팩어긋남의심",
+   "src": "A=B → 81 판정 불가",
+   "pack": "판정 불가",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-MOD-WM-02",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "모델 오답",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-SG-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-IT-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-AU-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-FR-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-MX-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-GB-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-JP-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-KR-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-BR-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-CN-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-ES-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-EU-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-US-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-NL-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-IN-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-CTY-DE-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-IND-pharmaceutical-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-IND-fashion-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-IND-chemical-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-IND-utilities-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-IND-steel-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-IND-tire-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-IND-banking-01",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-ABAP-01",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B → 81 진실 대조",
+   "pack": "팩 오류",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-ABAP-02",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-ABAP-03",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-ABAP-04",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-ABAP-05",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-ABAP-06",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "60",
+   "id": "K-ABAP-07",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-01",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-02",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-03",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "모델 오답",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-04",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-05",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-06",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-07",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-08",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "모델 오답",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-09",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-10",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-11",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-12",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-13",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-14",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "모델 오답",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-15",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-16",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-17",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-18",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-19",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-20",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-21",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-22",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-23",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-24",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-25",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-26",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "모델 오답",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-27",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-28",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-29",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-30",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-31",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-32",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B → 81 진실 대조",
+   "pack": "팩 오류",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-33",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-34",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-35",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "모델 오답",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-36",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-37",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-38",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-39",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-40",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-41",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-42",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-43",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-44",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-45",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-46",
+   "model": "claude-opus-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-47",
+   "model": "claude-opus-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-01",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-02",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-03",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "모델 오답",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-04",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-05",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-06",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-07",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-08",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "모델 오답",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-09",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-10",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-11",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-12",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-13",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-14",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "모델 오답",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-15",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "80",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-16",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-17",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-18",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-19",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-20",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-21",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-22",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-23",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-24",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-25",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-26",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "모델 오답",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-27",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-28",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-29",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-30",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-31",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-32",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B → 81 진실 대조",
+   "pack": "팩 오류",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-33",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-34",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-35",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "모델 오답",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-36",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-37",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-38",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-39",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-40",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-41",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-42",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-43",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-44",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-45",
+   "model": "claude-sonnet-5-5",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-46",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-47",
+   "model": "claude-sonnet-5-5",
+   "final": "정답",
+   "src": "80",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-01",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-02",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-03",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "모델 오답",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-04",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-05",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-06",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-07",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-08",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "모델 오답",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-09",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-10",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-11",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-12",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-13",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-14",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "모델 오답",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-15",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-16",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-17",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-18",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-19",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-20",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-21",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-22",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-23",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-24",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "80",
+   "pack": "",
+   "correct": false,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-25",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-26",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "모델 오답",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-27",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-28",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-29",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-30",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-31",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-32",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B → 81 진실 대조",
+   "pack": "팩 오류",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-33",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": true
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-34",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-35",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "모델 오답",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-36",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-37",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-38",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-39",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-40",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-41",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-42",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-43",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-44",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-45",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-46",
+   "model": "gpt-5.6-sol",
+   "final": "정답",
+   "src": "A=B",
+   "pack": "",
+   "correct": true,
+   "expensive": false
+  },
+  {
+   "kind": "knowledge",
+   "set": "K-INC",
+   "id": "K-INC-47",
+   "model": "gpt-5.6-sol",
+   "final": "오답",
+   "src": "A=B",
+   "pack": "",
+   "correct": false,
+   "expensive": false
+  },
+  {
+   "kind": "code",
+   "set": "C",
+   "id": "C-01",
+   "model": "claude-opus-5-5",
+   "final": "위반",
+   "src": "80",
+   "viol": "5@56",
+   "error_grade": 0,
+   "pass": false
+  },
+  {
+   "kind": "code",
+   "set": "C",
+   "id": "C-02",
+   "model": "claude-opus-5-5",
+   "final": "위반",
+   "src": "80",
+   "viol": "7@93;9@1",
+   "error_grade": 0,
+   "pass": false
+  },
+  {
+   "kind": "code",
+   "set": "C",
+   "id": "C-03",
+   "model": "claude-opus-5-5",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true
+  },
+  {
+   "kind": "code",
+   "set": "C",
+   "id": "C-04",
+   "model": "claude-opus-5-5",
+   "final": "위반",
+   "src": "A=B",
+   "viol": "2@40;6@40",
+   "error_grade": 0,
+   "pass": false
+  },
+  {
+   "kind": "code",
+   "set": "C",
+   "id": "C-05",
+   "model": "claude-opus-5-5",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-01",
+   "model": "claude-opus-5-5",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-02",
+   "model": "claude-opus-5-5",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-03",
+   "model": "claude-opus-5-5",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-04",
+   "model": "claude-opus-5-5",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-05",
+   "model": "claude-opus-5-5",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-06",
+   "model": "claude-opus-5-5",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-07",
+   "model": "claude-opus-5-5",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-08",
+   "model": "claude-opus-5-5",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-09",
+   "model": "claude-opus-5-5",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": true
+  },
+  {
+   "kind": "code",
+   "set": "C",
+   "id": "C-01",
+   "model": "claude-sonnet-5-5",
+   "final": "위반",
+   "src": "80",
+   "viol": "5@49",
+   "error_grade": 0,
+   "pass": false
+  },
+  {
+   "kind": "code",
+   "set": "C",
+   "id": "C-02",
+   "model": "claude-sonnet-5-5",
+   "final": "위반",
+   "src": "80",
+   "viol": "4@1;7@78",
+   "error_grade": 0,
+   "pass": false
+  },
+  {
+   "kind": "code",
+   "set": "C",
+   "id": "C-03",
+   "model": "claude-sonnet-5-5",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true
+  },
+  {
+   "kind": "code",
+   "set": "C",
+   "id": "C-04",
+   "model": "claude-sonnet-5-5",
+   "final": "위반",
+   "src": "A=B",
+   "viol": "2@43;6@43",
+   "error_grade": 0,
+   "pass": false
+  },
+  {
+   "kind": "code",
+   "set": "C",
+   "id": "C-05",
+   "model": "claude-sonnet-5-5",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-01",
+   "model": "claude-sonnet-5-5",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-02",
+   "model": "claude-sonnet-5-5",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-03",
+   "model": "claude-sonnet-5-5",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-04",
+   "model": "claude-sonnet-5-5",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-05",
+   "model": "claude-sonnet-5-5",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-06",
+   "model": "claude-sonnet-5-5",
+   "final": "위반",
+   "src": "A=B",
+   "viol": "lesson@54",
+   "error_grade": 0,
+   "pass": false,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-07",
+   "model": "claude-sonnet-5-5",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-08",
+   "model": "claude-sonnet-5-5",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-09",
+   "model": "claude-sonnet-5-5",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": true
+  },
+  {
+   "kind": "code",
+   "set": "C",
+   "id": "C-01",
+   "model": "gpt-5.6-sol",
+   "final": "위반",
+   "src": "A=B",
+   "viol": "5@33",
+   "error_grade": 0,
+   "pass": false
+  },
+  {
+   "kind": "code",
+   "set": "C",
+   "id": "C-02",
+   "model": "gpt-5.6-sol",
+   "final": "위반",
+   "src": "80",
+   "viol": "7@85",
+   "error_grade": 0,
+   "pass": false
+  },
+  {
+   "kind": "code",
+   "set": "C",
+   "id": "C-03",
+   "model": "gpt-5.6-sol",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true
+  },
+  {
+   "kind": "code",
+   "set": "C",
+   "id": "C-04",
+   "model": "gpt-5.6-sol",
+   "final": "위반",
+   "src": "A=B",
+   "viol": "6@28",
+   "error_grade": 0,
+   "pass": false
+  },
+  {
+   "kind": "code",
+   "set": "C",
+   "id": "C-05",
+   "model": "gpt-5.6-sol",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-01",
+   "model": "gpt-5.6-sol",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-02",
+   "model": "gpt-5.6-sol",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-03",
+   "model": "gpt-5.6-sol",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-04",
+   "model": "gpt-5.6-sol",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-05",
+   "model": "gpt-5.6-sol",
+   "final": "위반",
+   "src": "A=B",
+   "viol": "lesson@15",
+   "error_grade": 0,
+   "pass": false,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-06",
+   "model": "gpt-5.6-sol",
+   "final": "위반",
+   "src": "A=B",
+   "viol": "lesson@32",
+   "error_grade": 0,
+   "pass": false,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-07",
+   "model": "gpt-5.6-sol",
+   "final": "통과",
+   "src": "A=B",
+   "viol": "",
+   "error_grade": 0,
+   "pass": true,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-08",
+   "model": "gpt-5.6-sol",
+   "final": "위반",
+   "src": "A=B",
+   "viol": "lesson@28",
+   "error_grade": 0,
+   "pass": false,
+   "void": false
+  },
+  {
+   "kind": "code",
+   "set": "C-INC",
+   "id": "C-INC-09",
+   "model": "gpt-5.6-sol",
+   "final": "위반",
+   "src": "A=B",
+   "viol": "lesson",
+   "error_grade": 0,
+   "pass": false,
+   "void": true
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P1-02",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P1-03",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P2-02",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P2-03",
+   "model": "-",
+   "final": "모름",
+   "src": "A=B",
+   "root_cause": "모델 행동",
+   "layer": "막았을:L6"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P2-05",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P3-03",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P3-04",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P3-06",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "없음"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P3-10",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P3-12",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P3-13",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P3-14",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P3-15",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "없음"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P3-17",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P3-19",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "없음"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P3-21",
+   "model": "-",
+   "final": "모름",
+   "src": "80",
+   "root_cause": "모델 행동",
+   "layer": "막았을:L1"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P3-24",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L1'"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P3-26",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P3-28",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "없음"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P3-30",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P3-31",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "없음"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P3-32",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P3-33",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막았을:L6"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P4-03",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막았을:L6"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P4-04",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P5-02",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막음:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P5-04",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P5-06",
+   "model": "-",
+   "final": "모름",
+   "src": "A=B",
+   "root_cause": "모델 지식 부족",
+   "layer": "막았을:L1"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P5-08",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "모델 행동",
+   "layer": "막았을:L8"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P5-11",
+   "model": "-",
+   "final": "못피함",
+   "src": "80",
+   "root_cause": "모델 행동",
+   "layer": "막았을:L3"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P5-14",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "없음"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P6-03",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P6-04",
+   "model": "-",
+   "final": "못피함",
+   "src": "80",
+   "root_cause": "모델 행동",
+   "layer": "막았을:L3"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P6-05",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P6-06",
+   "model": "-",
+   "final": "모름",
+   "src": "A=B",
+   "root_cause": "모델 지식 부족",
+   "layer": "막았을:L1"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P6-08",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P6-12",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P6-13",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-P6-15",
+   "model": "-",
+   "final": "못피함",
+   "src": "80",
+   "root_cause": "모델 행동",
+   "layer": "막았을:L1"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-01",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-02",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-04",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-07",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-08",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-09",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-11",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "모델 행동",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-12",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "모델 행동",
+   "layer": "막았을:L8"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-13",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-14",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-16",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "없음"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-17",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-18",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-19",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-20",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-21",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "없음"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-22",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "없음"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-23",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-25",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-26",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-27",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "모델 행동",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-28",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "없음"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-29",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-31",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막았을:L3"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-32",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막았을:L3"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-33",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막았을:L1"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-35",
+   "model": "-",
+   "final": "피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "없음"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-FB-36",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "없음"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-REPO-03",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-REPO-04",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막음:W2"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-REPO-05",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막음:W2"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-REPO-06",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막았을:W2"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-REPO-07",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막았을:W4"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-REPO-08",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-REPO-09",
+   "model": "-",
+   "final": "모름",
+   "src": "80",
+   "root_cause": "프로세스·문서",
+   "layer": "없음"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-REPO-10",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "SAP·엔진 성질",
+   "layer": "막음:W4"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-REPO-11",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막았을:W2"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-REPO-13",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막았을:W2"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-REPO-14",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막았을:W2"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-REPO-15",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "없음"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-REPO-16",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막았을:W3"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-REPO-17",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막았을:W4"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-REPO-18",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막았을:W4"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-REPO-19",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "모델 행동",
+   "layer": "막음:L8"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-REPO-20",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "모델 행동",
+   "layer": "막음:L8"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-REPO-21",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막음:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-REPO-22",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막음:L8"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-REPO-23",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "모델 행동",
+   "layer": "막음:L8"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-REPO-24",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "없음"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-MEM-01",
+   "model": "-",
+   "final": "못피함",
+   "src": "80",
+   "root_cause": "모델 행동",
+   "layer": "없음"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-MEM-02",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "모델 행동",
+   "layer": "막았을:W1"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-MEM-03",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "모델 행동",
+   "layer": "막았을:W1"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-MEM-04",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "사용자 요구 미파악",
+   "layer": "막았을:W4"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-MEM-05",
+   "model": "-",
+   "final": "못피함",
+   "src": "80",
+   "root_cause": "모델 행동",
+   "layer": "없음"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-MEM-06",
+   "model": "-",
+   "final": "못피함",
+   "src": "80",
+   "root_cause": "모델 행동",
+   "layer": "없음"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-MEM-07",
+   "model": "-",
+   "final": "못피함",
+   "src": "80",
+   "root_cause": "모델 행동",
+   "layer": "없음"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-MEM-08",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "모델 행동",
+   "layer": "막았을:W2"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-MEM-09",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막았을:W2"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-MEM-10",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "모델 행동",
+   "layer": "막았을:L5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-MEM-11",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막았을:W2"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-MEM-12",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "없음"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-MEM-13",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "모델 행동",
+   "layer": "막았을:W2"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-MEM-14",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "모델 행동",
+   "layer": "막았을:W5"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-MEM-15",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막음:L8"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-MEM-16",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막았을:W2"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-MEM-17",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막았을:L3"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-MEM-18",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "없음"
+  },
+  {
+   "kind": "incident",
+   "set": "non-repro",
+   "id": "INC-MEM-19",
+   "model": "-",
+   "final": "못피함",
+   "src": "A=B",
+   "root_cause": "프로세스·문서",
+   "layer": "막음:L8"
+  }
+ ]
+}

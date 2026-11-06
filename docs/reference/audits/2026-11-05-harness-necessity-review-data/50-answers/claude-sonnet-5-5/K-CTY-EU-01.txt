@@ -1,0 +1,3 @@
+After the `FR` prefix, a French VAT number has **11 characters**: a **2-character key** followed by the **9-digit SIREN** number (so `FR` + KK + SSSSSSSSS).
+
+The key is usually numeric, computed as (12 + 3 × (SIREN mod 97)) mod 97, though it can also contain letters in some cases (e.g., the old/alternative format).

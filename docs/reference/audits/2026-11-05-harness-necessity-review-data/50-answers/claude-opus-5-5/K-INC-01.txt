@@ -1,0 +1,2 @@
+**category 0 = Web API** 계약(UI 어노테이션 없이 순수 OData 데이터 API, 외부 시스템 연동용), **category 1 = UI** 계약(Fiori Elements 소비용 UI 메타데이터 포함).
+Update_mc 같은 UI capability, 값도움말, 코드리스트, PDF/xlsx 내보내기 등 Fiori Elements용 표면은 **category 1(UI)에서만** 노출됩니다.

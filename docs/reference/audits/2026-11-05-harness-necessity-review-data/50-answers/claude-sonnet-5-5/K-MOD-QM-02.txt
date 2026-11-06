@@ -1,0 +1,1 @@
+**CI_QAMV** is the customer include for QAMV (inspection lot characteristics: specifications). I'm answering from memory and haven't verified it in a system. For characteristic results, the equivalent include is CI_QAMKR on QAMKR.

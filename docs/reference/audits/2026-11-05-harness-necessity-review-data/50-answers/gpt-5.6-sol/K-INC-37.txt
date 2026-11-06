@@ -1,0 +1,1 @@
+`GetTableContents`의 `Options`(또는 `WhereClause`)에 SQL WHERE 조건식만 지정합니다. 예: `Options: ["MATNR = '123'"]` — `WHERE` 키워드는 보통 생략합니다.

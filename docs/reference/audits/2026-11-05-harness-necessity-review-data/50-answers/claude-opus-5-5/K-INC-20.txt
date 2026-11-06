@@ -1,0 +1,1 @@
+아니요. STRING/RAWSTRING은 LOB 타입이라 "초기값(Initial Values)" 플래그, 즉 NOT NULL을 설정할 수 없습니다. 이 필드는 DB에서 NULL을 허용합니다. NOT NULL이 필요하면 SSTRING(길이 제한 문자열)이나 고정 길이 CHAR/RAW 타입을 쓰세요.

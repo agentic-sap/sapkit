@@ -1,0 +1,1 @@
+I recall it as **COPA0001**, the CO-PA enhancement for processing planning data. I'm not fully certain of that, so check it in transaction SMOD/CMOD. The related CO-PA enhancements are COPA0002 (valuation and derivation) and KEDR0004 (characteristic derivation).

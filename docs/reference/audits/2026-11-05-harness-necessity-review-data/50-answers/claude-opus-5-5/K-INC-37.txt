@@ -1,0 +1,1 @@
+GetTableContents는 보통 `table_name`과 `max_rows`만 받고 WHERE 조건은 지원하지 않습니다. 조건 필터링이 필요하면 `GetSqlQuery` 같은 SQL 실행 도구로 `SELECT * FROM <테이블> WHERE <조건>`을 실행하세요. 정확한 파라미터는 사용 중인 MCP 서버 버전에 따라 다를 수 있습니다.

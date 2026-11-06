@@ -1,0 +1,1 @@
+Untyped, it's treated as generic type `ANY` (fully generic), so the formal parameter takes on the type of whatever actual parameter is passed in. This applies to USING, CHANGING, and TABLES parameters alike (TABLES is the exception only in that it's always a standard table with header line).

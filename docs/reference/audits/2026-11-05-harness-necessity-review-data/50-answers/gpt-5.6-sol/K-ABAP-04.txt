@@ -1,0 +1,1 @@
+No. `LEAVE TO LIST-PROCESSING` is not permitted in ABAP for Cloud Development (ABAP Cloud).

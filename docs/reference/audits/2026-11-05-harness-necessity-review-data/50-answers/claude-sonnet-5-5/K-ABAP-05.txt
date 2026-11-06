@@ -1,0 +1,4 @@
+- **SKA1** is the G/L account master at chart-of-accounts level (with the text in **SKAT**).
+- **SKB1** is the G/L account master at company-code level.
+
+(Strictly, the chart-of-accounts level is **SKA1**; **SKAT** only holds descriptions.)

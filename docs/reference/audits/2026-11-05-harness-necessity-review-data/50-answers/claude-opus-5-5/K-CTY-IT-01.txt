@@ -1,0 +1,1 @@
+An Italian VAT number uses the prefix **IT** followed by **11 digits** (e.g., IT12345678901). The last digit is a check digit computed with a Luhn-style algorithm.

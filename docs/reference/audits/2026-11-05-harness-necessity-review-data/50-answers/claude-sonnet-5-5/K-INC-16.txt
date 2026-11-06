@@ -1,0 +1,3 @@
+네, 가능합니다. `with additional save`를 쓰면 saver 클래스(`FOR BEHAVIOR OF ...`, `INHERITING FROM cl_abap_behavior_saver`)에서 `save_modified`를 구현해 추가 저장을 하고, 필요하면 `cleanup`(트랜잭션 종료 후 버퍼 정리)과 `cleanup_finalize`(finalize 단계 이후 정리)도 재정의할 수 있습니다.
+
+주요 후크: `finalize`(저장 직전 최종 데이터 보정), `check_before_save`(저장 전 일관성 검사), `adjust_numbers`(late numbering), `save`/`save_modified`(additional/unmanaged save), `cleanup`, `cleanup_finalize`. 이 중 `save_modified`는 `with additional save`에서 쓰는 후크이고, `save`는 unmanaged save에서 사용합니다.

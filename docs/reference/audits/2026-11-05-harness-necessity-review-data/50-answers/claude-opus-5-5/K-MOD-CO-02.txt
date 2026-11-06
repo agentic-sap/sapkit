@@ -1,0 +1,1 @@
+**COPAPLAN** is the SMOD enhancement for CO-PA planning. It provides the user exit used by user-defined ("exit") planning methods in the planning framework (KEPM) to process CO-PA planning data.

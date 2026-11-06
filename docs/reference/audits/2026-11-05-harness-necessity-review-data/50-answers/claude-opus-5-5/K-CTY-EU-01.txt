@@ -1,0 +1,1 @@
+FR + 2 check characters (digits, or letters in some cases) + the 9-digit SIREN number, e.g. FR12 345678901 — 11 characters total after "FR".

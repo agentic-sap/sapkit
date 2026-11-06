@@ -1,0 +1,102 @@
+```abap
+*&---------------------------------------------------------------------*
+*& Report  ZSAPKIT_DEMO_PROG
+*&---------------------------------------------------------------------*
+*& Demo: show an internal table in a SALV popup (set_screen_popup)
+*&       with sorting and filtering enabled for the user.
+*&---------------------------------------------------------------------*
+REPORT zsapkit_demo_prog.
+
+TYPES: BEGIN OF ty_flight,
+         carrid   TYPE s_carr_id,
+         connid   TYPE s_conn_id,
+         fldate   TYPE s_date,
+         price    TYPE s_price,
+         currency TYPE s_currcode,
+         seatsmax TYPE s_seatsmax,
+         seatsocc TYPE s_seatsocc,
+       END OF ty_flight,
+       tt_flight TYPE STANDARD TABLE OF ty_flight WITH DEFAULT KEY.
+
+DATA gt_flight TYPE tt_flight.
+
+START-OF-SELECTION.
+  PERFORM get_data CHANGING gt_flight.
+  IF gt_flight IS INITIAL.
+    MESSAGE 'No data found.' TYPE 'S' DISPLAY LIKE 'W'.
+    RETURN.
+  ENDIF.
+  PERFORM show_popup USING gt_flight.
+
+*&---------------------------------------------------------------------*
+*&      Form  get_data
+*&---------------------------------------------------------------------*
+FORM get_data CHANGING pt_flight TYPE tt_flight.
+  SELECT carrid connid fldate price currency seatsmax seatsocc
+    FROM sflight
+    INTO TABLE pt_flight
+    UP TO 200 ROWS.
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+*&      Form  show_popup
+*&---------------------------------------------------------------------*
+FORM show_popup USING pt_data TYPE tt_flight.
+  DATA: lo_alv       TYPE REF TO cl_salv_table,
+        lo_functions TYPE REF TO cl_salv_functions_list,
+        lo_columns   TYPE REF TO cl_salv_columns_table,
+        lo_sorts     TYPE REF TO cl_salv_sorts,
+        lo_display   TYPE REF TO cl_salv_display_settings,
+        lo_msg       TYPE REF TO cx_salv_msg,
+        lo_nf        TYPE REF TO cx_salv_not_found,
+        lo_exist     TYPE REF TO cx_salv_existing,
+        lo_data_err  TYPE REF TO cx_salv_data_error,
+        lt_data      TYPE tt_flight.
+
+  lt_data = pt_data.
+
+  TRY.
+      cl_salv_table=>factory(
+        IMPORTING r_salv_table = lo_alv
+        CHANGING  t_table      = lt_data ).
+    CATCH cx_salv_msg INTO lo_msg.
+      MESSAGE lo_msg TYPE 'E'.
+      RETURN.
+  ENDTRY.
+
+  " Toolbar functions: includes sort, filter, find, export, etc.
+  lo_functions = lo_alv->get_functions( ).
+  lo_functions->set_all( abap_true ).
+
+  " Columns: optimize width
+  lo_columns = lo_alv->get_columns( ).
+  lo_columns->set_optimize( abap_true ).
+
+  " Display settings
+  lo_display = lo_alv->get_display_settings( ).
+  lo_display->set_list_header( 'Flight List (Sort / Filter enabled)' ).
+  lo_display->set_striped_pattern( abap_true ).
+
+  " Optional default sort so the sort feature is visible
+  lo_sorts = lo_alv->get_sorts( ).
+  TRY.
+      lo_sorts->add_sort( columnname = 'CARRID' sequence = if_salv_c_sort=>sort_up ).
+      lo_sorts->add_sort( columnname = 'CONNID' sequence = if_salv_c_sort=>sort_up ).
+    CATCH cx_salv_not_found INTO lo_nf.
+      MESSAGE lo_nf TYPE 'S' DISPLAY LIKE 'W'.
+    CATCH cx_salv_existing INTO lo_exist.
+      MESSAGE lo_exist TYPE 'S' DISPLAY LIKE 'W'.
+    CATCH cx_salv_data_error INTO lo_data_err.
+      MESSAGE lo_data_err TYPE 'S' DISPLAY LIKE 'W'.
+  ENDTRY.
+
+  " Popup window
+  lo_alv->set_screen_popup(
+    start_column = 10
+    end_column   = 110
+    start_line   = 3
+    end_line     = 22 ).
+
+  lo_alv->display( ).
+ENDFORM.
+```

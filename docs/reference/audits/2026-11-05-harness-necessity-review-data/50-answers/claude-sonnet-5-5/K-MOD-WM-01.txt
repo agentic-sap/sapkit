@@ -1,0 +1,1 @@
+**LT31** prints a transfer order in classic LE-WM (it's the "Print Transfer Order" transaction; printing can also happen at creation, e.g. via LT01/LT03 with the print option, or by output control). Reprinting is done with LT31 as well.

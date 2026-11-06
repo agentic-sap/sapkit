@@ -1,0 +1,1 @@
+The mixing step (Banbury mixing) produces rubber compound: masterbatch and final batches of rubber blended with carbon black/silica, oils, and curatives, usually sheeted or slabbed. It is tracked at the **batch level**: each mix batch or lot gets an ID, typically recorded per pallet or skid of compound, for traceability and QC testing such as rheometer and Mooney.

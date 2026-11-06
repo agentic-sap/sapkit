@@ -1,0 +1,1 @@
+**ACDOCP** stores plan data in the Universal Journal structure. It's used by SAP Analytics Cloud / BPC-integrated planning and has the same line-item layout as ACDOCA (actuals).

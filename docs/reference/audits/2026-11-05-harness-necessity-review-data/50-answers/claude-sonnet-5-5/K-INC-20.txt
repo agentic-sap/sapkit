@@ -1,0 +1,1 @@
+아니요, 불가능합니다. RAWSTRING/STRING 같은 가변 길이 LOB 계열 타입은 DDIC에서 초기값 플래그("Initial Values" 체크, NOT NULL)를 지정할 수 없고, 해당 필드는 DB에서 NULL 허용으로 남습니다. (정확한 제약은 버전·DB에 따라 다를 수 있으니 SE11에서 확인해 보세요.)

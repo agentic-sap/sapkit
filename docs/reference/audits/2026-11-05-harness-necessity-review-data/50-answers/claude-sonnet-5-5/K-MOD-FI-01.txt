@@ -1,0 +1,1 @@
+**ACDOCP** is the planning counterpart of ACDOCA. It holds plan data in the Universal Journal structure and was introduced with SAP S/4HANA's integrated planning (from 1909 onward).

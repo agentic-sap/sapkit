@@ -1,0 +1,72 @@
+*&---------------------------------------------------------------------*
+*& Report ZSAPKIT_DEMO_PROG
+*&---------------------------------------------------------------------*
+*& NOTE: The original source and the new show_data body were not
+*& included in the request. This file is a reconstruction: get_data and
+*& save_data are representative bodies that begin with 'CLEAR gt_out.',
+*& and only FORM show_data has been given a new body. If you supply the
+*& actual original source and the replacement body, only the region
+*& between "FORM show_data." and its "ENDFORM." needs to change.
+*&---------------------------------------------------------------------*
+REPORT zsapkit_demo_prog.
+
+TYPES: BEGIN OF ty_out,
+         carrid   TYPE s_carr_id,
+         connid   TYPE s_conn_id,
+         fldate   TYPE s_date,
+         price    TYPE s_price,
+         currency TYPE s_currcode,
+       END OF ty_out.
+
+DATA: gt_out TYPE STANDARD TABLE OF ty_out WITH DEFAULT KEY,
+      gs_out TYPE ty_out.
+
+START-OF-SELECTION.
+  PERFORM get_data.
+  PERFORM show_data.
+  PERFORM save_data.
+
+*&---------------------------------------------------------------------*
+*& Form get_data
+*&---------------------------------------------------------------------*
+FORM get_data.
+  CLEAR gt_out.
+  SELECT carrid connid fldate price currency
+    FROM sflight
+    INTO TABLE gt_out
+    UP TO 100 ROWS.
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+*& Form show_data
+*&---------------------------------------------------------------------*
+FORM show_data.
+  DATA: lo_alv TYPE REF TO cl_salv_table,
+        lx_msg TYPE REF TO cx_salv_msg.
+
+  IF gt_out IS INITIAL.
+    MESSAGE 'No data to display' TYPE 'S' DISPLAY LIKE 'W'.
+    RETURN.
+  ENDIF.
+
+  TRY.
+      cl_salv_table=>factory(
+        IMPORTING
+          r_salv_table = lo_alv
+        CHANGING
+          t_table      = gt_out ).
+      lo_alv->get_functions( )->set_all( abap_true ).
+      lo_alv->get_columns( )->set_optimize( abap_true ).
+      lo_alv->display( ).
+    CATCH cx_salv_msg INTO lx_msg.
+      MESSAGE lx_msg TYPE 'I' DISPLAY LIKE 'E'.
+  ENDTRY.
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+*& Form save_data
+*&---------------------------------------------------------------------*
+FORM save_data.
+  CLEAR gt_out.
+  COMMIT WORK.
+ENDFORM.

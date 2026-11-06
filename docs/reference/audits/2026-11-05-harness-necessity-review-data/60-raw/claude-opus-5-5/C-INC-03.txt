@@ -1,0 +1,161 @@
+```abap
+*&---------------------------------------------------------------------*
+*& Report ZSAPKIT_DEMO_PROG
+*&---------------------------------------------------------------------*
+*& Shows an internal table in a SALV popup (SET_SCREEN_POPUP).
+*& The user can sort and filter through the ALV toolbar functions.
+*&---------------------------------------------------------------------*
+REPORT zsapkit_demo_prog.
+
+*----------------------------------------------------------------------*
+* Types / Data
+*----------------------------------------------------------------------*
+TYPES: BEGIN OF ty_flight,
+         carrid   TYPE s_carr_id,
+         connid   TYPE s_conn_id,
+         fldate   TYPE s_date,
+         price    TYPE s_price,
+         currency TYPE s_currcode,
+         seatsmax TYPE s_seatsmax,
+         seatsocc TYPE s_seatsocc,
+       END OF ty_flight,
+       tt_flight TYPE STANDARD TABLE OF ty_flight WITH DEFAULT KEY.
+
+DATA gt_flight TYPE tt_flight.
+
+*----------------------------------------------------------------------*
+* Main
+*----------------------------------------------------------------------*
+START-OF-SELECTION.
+  PERFORM fill_data CHANGING gt_flight.
+  PERFORM show_popup CHANGING gt_flight.
+
+*&---------------------------------------------------------------------*
+*& Form FILL_DATA
+*&---------------------------------------------------------------------*
+*& Builds demo data (no dependency on database contents)
+*&---------------------------------------------------------------------*
+FORM fill_data CHANGING ct_data TYPE tt_flight.
+
+  DATA: ls_data TYPE ty_flight,
+        lv_idx  TYPE i.
+
+  CLEAR ct_data.
+
+  DO 30 TIMES.
+    lv_idx = sy-index.
+    CLEAR ls_data.
+
+    CASE lv_idx MOD 4.
+      WHEN 0.
+        ls_data-carrid   = 'LH'.
+        ls_data-currency = 'EUR'.
+      WHEN 1.
+        ls_data-carrid   = 'AA'.
+        ls_data-currency = 'USD'.
+      WHEN 2.
+        ls_data-carrid   = 'SQ'.
+        ls_data-currency = 'SGD'.
+      WHEN OTHERS.
+        ls_data-carrid   = 'KE'.
+        ls_data-currency = 'KRW'.
+    ENDCASE.
+
+    ls_data-connid   = 100 + ( lv_idx MOD 5 ) * 100.
+    ls_data-fldate   = sy-datum + lv_idx * 3.
+    ls_data-price    = 250 + ( lv_idx * 37 ) MOD 900.
+    ls_data-seatsmax = 200 + ( lv_idx MOD 3 ) * 80.
+    ls_data-seatsocc = ( lv_idx * 23 ) MOD ls_data-seatsmax.
+
+    APPEND ls_data TO ct_data.
+  ENDDO.
+
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+*& Form SHOW_POPUP
+*&---------------------------------------------------------------------*
+*& Displays the internal table as SALV popup with sort/filter enabled
+*&---------------------------------------------------------------------*
+FORM show_popup CHANGING ct_data TYPE tt_flight.
+
+  DATA: lo_alv       TYPE REF TO cl_salv_table,
+        lo_functions TYPE REF TO cl_salv_functions_list,
+        lo_columns   TYPE REF TO cl_salv_columns_table,
+        lo_column    TYPE REF TO cl_salv_column_table,
+        lo_display   TYPE REF TO cl_salv_display_settings,
+        lo_sorts     TYPE REF TO cl_salv_sorts,
+        lo_msg       TYPE REF TO cx_salv_msg,
+        lo_not_found TYPE REF TO cx_salv_not_found,
+        lo_data_err  TYPE REF TO cx_salv_data_error,
+        lo_existing  TYPE REF TO cx_salv_existing,
+        lv_text      TYPE string.
+
+  IF ct_data IS INITIAL.
+    MESSAGE 'No data to display' TYPE 'S' DISPLAY LIKE 'W'.
+    RETURN.
+  ENDIF.
+
+  "--- Create SALV instance
+  TRY.
+      cl_salv_table=>factory(
+        IMPORTING
+          r_salv_table = lo_alv
+        CHANGING
+          t_table      = ct_data ).
+    CATCH cx_salv_msg INTO lo_msg.
+      lv_text = lo_msg->get_text( ).
+      MESSAGE lv_text TYPE 'S' DISPLAY LIKE 'E'.
+      RETURN.
+  ENDTRY.
+
+  "--- Enable toolbar functions (sort asc/desc, filter, etc.)
+  lo_functions = lo_alv->get_functions( ).
+  lo_functions->set_all( abap_true ).
+
+  "--- Display settings
+  lo_display = lo_alv->get_display_settings( ).
+  lo_display->set_striped_pattern( abap_true ).
+  lo_display->set_list_header( 'Flight Overview (Sort / Filter enabled)' ).
+
+  "--- Columns: optimize width, currency reference
+  lo_columns = lo_alv->get_columns( ).
+  lo_columns->set_optimize( abap_true ).
+
+  TRY.
+      lo_columns->set_currency_column( 'CURRENCY' ).
+    CATCH cx_salv_not_found cx_salv_data_error INTO lo_data_err.
+      " Ignore - currency reference is optional for display
+  ENDTRY.
+
+  TRY.
+      lo_column ?= lo_columns->get_column( 'CARRID' ).
+      lo_column->set_key( abap_true ).
+      lo_column ?= lo_columns->get_column( 'CONNID' ).
+      lo_column->set_key( abap_true ).
+    CATCH cx_salv_not_found INTO lo_not_found.
+      " Column not found - ignore
+  ENDTRY.
+
+  "--- Initial sort (user may change it via toolbar)
+  lo_sorts = lo_alv->get_sorts( ).
+  TRY.
+      lo_sorts->add_sort( columnname = 'CARRID'
+                          sequence   = if_salv_c_sort=>sort_up ).
+      lo_sorts->add_sort( columnname = 'FLDATE'
+                          sequence   = if_salv_c_sort=>sort_up ).
+    CATCH cx_salv_not_found cx_salv_existing cx_salv_data_error.
+      " Initial sort not essential - ignore
+  ENDTRY.
+
+  "--- Show as popup
+  lo_alv->set_screen_popup(
+    start_column = 5
+    end_column   = 120
+    start_line   = 3
+    end_line     = 20 ).
+
+  lo_alv->display( ).
+
+ENDFORM.
+```

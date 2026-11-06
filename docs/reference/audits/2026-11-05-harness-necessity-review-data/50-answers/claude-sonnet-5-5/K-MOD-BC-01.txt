@@ -1,0 +1,1 @@
+**SM13** (Update Requests) is the transaction for monitoring update records, including terminated V1/V2 updates. There you can display, re-process, or delete failed update requests. SM14 handles update administration (activating/deactivating the update task).

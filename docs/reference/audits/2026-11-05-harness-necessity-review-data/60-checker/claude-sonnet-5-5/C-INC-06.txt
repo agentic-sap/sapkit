@@ -1,0 +1,156 @@
+60-checker/claude-sonnet-5-5/C-INC-06.txt — 동봉 검사기 원출력 (판J T6 · 2026-11-05)
+대상: docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-INC-06.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-INC-06.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-INC-06.abap
+--- stdout (0 bytes) ---
+
+--- stderr (116 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-INC-06.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-INC-06.abap
+--- stdout (6188 bytes) ---
+Comment              *&---------------------------------------------------------------------*
+Comment              *& 단일 파일 표기: 아래 구획(=== ... ===)은 실제 SAP에서는 각각 별도 오브젝트
+Comment              *&   ZSAPKIT_DEMO_PROG        (메인 프로그램, Executable)
+Comment              *&   ZSAPKIT_DEMO_PROG_TOP    (인클루드: 전역 선언)
+Comment              *&   ZSAPKIT_DEMO_PROG_SEL    (인클루드: 선택화면 + AT SELECTION-SCREEN 이벤트)
+Comment              *&   ZSAPKIT_DEMO_PROG_CLASS  (인클루드: 로컬 클래스)
+Comment              *&   ZSAPKIT_DEMO_PROG_FORM   (인클루드: FORM 루틴)
+Comment              *&
+Comment              *& 배치 원칙:
+Comment              *&  - pa_bupla 검증(AT SELECTION-SCREEN ON pa_bupla)은 SEL 인클루드에,
+Comment              *&    PARAMETERS 선언 바로 아래에 둔다.
+Comment              *&  - 검증 로직 본체는 FORM 인클루드의 FORM check_bupla 에 둔다.
+Comment              *&  - INCLUDE 순서 TOP → SEL → CLASS → FORM 유지.
+Comment              *&    이벤트 블록은 INCLUDE 위치와 무관하게 런타임에 호출되며,
+Comment              *&    PERFORM은 FORM이 뒤에 있어도 정적으로 해석되므로 문제 없음.
+Comment              *&---------------------------------------------------------------------*
+Comment              *======================================================================*
+Comment              *=== [메인] ZSAPKIT_DEMO_PROG                                         ===*
+Comment              *======================================================================*
+Report               REPORT zsapkit_demo_prog .
+Include              INCLUDE zsapkit_demo_prog_top .
+Include              INCLUDE zsapkit_demo_prog_sel .
+Include              INCLUDE zsapkit_demo_prog_class .
+Include              INCLUDE zsapkit_demo_prog_form .
+StartOfSelection     START - OF - SELECTION .
+Perform              PERFORM main_process .
+Comment              *======================================================================*
+Comment              *=== [인클루드] ZSAPKIT_DEMO_PROG_TOP  (전역 선언)                    ===*
+Comment              *======================================================================*
+Comment              * TOP 인클루드 내용
+Move                 TABLES t001w .
+Data                 DATA gv_bupla_name TYPE j_1bbranch - name ,
+Comment              " 검증 시 읽어 온 사업장 명
+Data                 DATA gv_name1 TYPE t001w - name1 .
+Constant             CONSTANTS gc_msg_id TYPE sy - msgid VALUE 'ZSAPKIT' .
+Comment              *======================================================================*
+Comment              *=== [인클루드] ZSAPKIT_DEMO_PROG_SEL  (선택화면 + 이벤트)            ===*
+Comment              *======================================================================*
+Comment              * SEL 인클루드 내용
+SelectionScreen      SELECTION - SCREEN BEGIN OF BLOCK b01 WITH FRAME TITLE TEXT - b01 .
+Parameter            PARAMETERS pa_bukrs TYPE t001 - bukrs OBLIGATORY ,
+Parameter            PARAMETERS pa_bupla TYPE t001w - werks OBLIGATORY .
+SelectionScreen      SELECTION - SCREEN END OF BLOCK b01 .
+Comment              *----------------------------------------------------------------------*
+Comment              * pa_bupla 존재 검증 : 해당 필드 입력 후 엔터/실행 시 호출됨
+Comment              *----------------------------------------------------------------------*
+Move                 AT SELECTION - SCREEN ON pa_bupla .
+Perform              PERFORM check_bupla USING pa_bupla .
+Comment              *======================================================================*
+Comment              *=== [인클루드] ZSAPKIT_DEMO_PROG_CLASS  (로컬 클래스)                ===*
+Comment              *======================================================================*
+Comment              * CLASS 인클루드 내용
+ClassDefinition      CLASS lcl_demo DEFINITION FINAL .
+Public               PUBLIC SECTION .
+MethodDef            CLASS - METHODS run .
+EndClass             ENDCLASS .
+ClassImplementation  CLASS lcl_demo IMPLEMENTATION .
+MethodImplementation METHOD run .
+Write                WRITE / 'Business place' ,
+Write                WRITE pa_bupla ,
+Write                WRITE 'verified.' .
+EndMethod            ENDMETHOD .
+EndClass             ENDCLASS .
+Comment              *======================================================================*
+Comment              *=== [인클루드] ZSAPKIT_DEMO_PROG_FORM  (FORM 루틴)                   ===*
+Comment              *======================================================================*
+Comment              * FORM 인클루드 내용
+Comment              *----------------------------------------------------------------------*
+Comment              * FORM check_bupla : 사업장(플랜트) 존재 검증
+Comment              *   - 값이 없으면 OBLIGATORY가 먼저 처리하므로 여기서는 존재 여부만 확인
+Comment              *   - 오류 메시지(E)는 AT SELECTION-SCREEN ON 안에서 해당 필드만
+Comment              *     다시 입력 가능 상태로 만든다.
+Comment              *----------------------------------------------------------------------*
+Form                 FORM check_bupla USING iv_bupla TYPE t001w - werks .
+Move                 CHECK iv_bupla IS NOT INITIAL .
+Select               SELECT SINGLE name1 FROM t001w INTO gv_name1 WHERE werks = iv_bupla .
+If                   IF sy - subrc <> 0 .
+Comment              " 메시지: 사업장 &1 이(가) 존재하지 않습니다.
+Message              MESSAGE e001 ( zsapkit ) WITH iv_bupla .
+EndIf                ENDIF .
+EndForm              ENDFORM .
+Comment              *----------------------------------------------------------------------*
+Comment              * FORM main_process : 본 처리
+Comment              *----------------------------------------------------------------------*
+Form                 FORM main_process .
+Call                 lcl_demo => run ( ) .
+EndForm              ENDFORM .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-INC-06.abap
+--- stdout (790 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 37,
+      "endLine": 37,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 38,
+      "endLine": 38,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 2,
+    "bySeverity": {
+      "medium": 2
+    },
+    "byCategory": {
+      "quality": 2
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=2 analyze_info=0 error_grade=0 warnings=2 source_lines=103 bytes=4355 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

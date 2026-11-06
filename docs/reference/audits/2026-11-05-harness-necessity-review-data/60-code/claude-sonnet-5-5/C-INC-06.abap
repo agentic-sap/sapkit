@@ -1,0 +1,103 @@
+*&---------------------------------------------------------------------*
+*& 단일 파일 표기: 아래 구획(=== ... ===)은 실제 SAP에서는 각각 별도 오브젝트
+*&   ZSAPKIT_DEMO_PROG        (메인 프로그램, Executable)
+*&   ZSAPKIT_DEMO_PROG_TOP    (인클루드: 전역 선언)
+*&   ZSAPKIT_DEMO_PROG_SEL    (인클루드: 선택화면 + AT SELECTION-SCREEN 이벤트)
+*&   ZSAPKIT_DEMO_PROG_CLASS  (인클루드: 로컬 클래스)
+*&   ZSAPKIT_DEMO_PROG_FORM   (인클루드: FORM 루틴)
+*&
+*& 배치 원칙:
+*&  - pa_bupla 검증(AT SELECTION-SCREEN ON pa_bupla)은 SEL 인클루드에,
+*&    PARAMETERS 선언 바로 아래에 둔다.
+*&  - 검증 로직 본체는 FORM 인클루드의 FORM check_bupla 에 둔다.
+*&  - INCLUDE 순서 TOP → SEL → CLASS → FORM 유지.
+*&    이벤트 블록은 INCLUDE 위치와 무관하게 런타임에 호출되며,
+*&    PERFORM은 FORM이 뒤에 있어도 정적으로 해석되므로 문제 없음.
+*&---------------------------------------------------------------------*
+
+*======================================================================*
+*=== [메인] ZSAPKIT_DEMO_PROG                                         ===*
+*======================================================================*
+REPORT zsapkit_demo_prog.
+
+INCLUDE zsapkit_demo_prog_top.
+INCLUDE zsapkit_demo_prog_sel.
+INCLUDE zsapkit_demo_prog_class.
+INCLUDE zsapkit_demo_prog_form.
+
+START-OF-SELECTION.
+  PERFORM main_process.
+
+*======================================================================*
+*=== [인클루드] ZSAPKIT_DEMO_PROG_TOP  (전역 선언)                    ===*
+*======================================================================*
+* TOP 인클루드 내용
+TABLES: t001w.
+
+DATA: gv_bupla_name TYPE j_1bbranch-name,   " 검증 시 읽어 온 사업장 명
+      gv_name1      TYPE t001w-name1.
+
+CONSTANTS: gc_msg_id TYPE sy-msgid VALUE 'ZSAPKIT'.
+
+*======================================================================*
+*=== [인클루드] ZSAPKIT_DEMO_PROG_SEL  (선택화면 + 이벤트)            ===*
+*======================================================================*
+* SEL 인클루드 내용
+SELECTION-SCREEN BEGIN OF BLOCK b01 WITH FRAME TITLE TEXT-b01.
+PARAMETERS: pa_bukrs TYPE t001-bukrs OBLIGATORY,
+            pa_bupla TYPE t001w-werks OBLIGATORY.
+SELECTION-SCREEN END OF BLOCK b01.
+
+*----------------------------------------------------------------------*
+* pa_bupla 존재 검증 : 해당 필드 입력 후 엔터/실행 시 호출됨
+*----------------------------------------------------------------------*
+AT SELECTION-SCREEN ON pa_bupla.
+  PERFORM check_bupla USING pa_bupla.
+
+*======================================================================*
+*=== [인클루드] ZSAPKIT_DEMO_PROG_CLASS  (로컬 클래스)                ===*
+*======================================================================*
+* CLASS 인클루드 내용
+CLASS lcl_demo DEFINITION FINAL.
+  PUBLIC SECTION.
+    CLASS-METHODS run.
+ENDCLASS.
+
+CLASS lcl_demo IMPLEMENTATION.
+  METHOD run.
+    WRITE: / 'Business place', pa_bupla, 'verified.'.
+  ENDMETHOD.
+ENDCLASS.
+
+*======================================================================*
+*=== [인클루드] ZSAPKIT_DEMO_PROG_FORM  (FORM 루틴)                   ===*
+*======================================================================*
+* FORM 인클루드 내용
+*----------------------------------------------------------------------*
+* FORM check_bupla : 사업장(플랜트) 존재 검증
+*   - 값이 없으면 OBLIGATORY가 먼저 처리하므로 여기서는 존재 여부만 확인
+*   - 오류 메시지(E)는 AT SELECTION-SCREEN ON 안에서 해당 필드만
+*     다시 입력 가능 상태로 만든다.
+*----------------------------------------------------------------------*
+FORM check_bupla USING iv_bupla TYPE t001w-werks.
+
+  CHECK iv_bupla IS NOT INITIAL.
+
+  SELECT SINGLE name1
+    FROM t001w
+    INTO gv_name1
+    WHERE werks = iv_bupla.
+
+  IF sy-subrc <> 0.
+    " 메시지: 사업장 &1 이(가) 존재하지 않습니다.
+    MESSAGE e001(zsapkit) WITH iv_bupla.
+  ENDIF.
+
+ENDFORM.
+
+*----------------------------------------------------------------------*
+* FORM main_process : 본 처리
+*----------------------------------------------------------------------*
+FORM main_process.
+  lcl_demo=>run( ).
+ENDFORM.

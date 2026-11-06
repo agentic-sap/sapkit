@@ -1,0 +1,1 @@
+`BAPI_INSPOPER_RECORDRESULTS` records inspection results (measured values) for an inspection operation in SAP QM. It's typically followed by `BAPI_INSPOPER_GETDETAIL` to check, and `BAPI_TRANSACTION_COMMIT` to save.

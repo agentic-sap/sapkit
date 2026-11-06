@@ -1,0 +1,1 @@
+Recurring Payments/Deductions is infotype **0014**, stored in transparent table **PA0014**. (Its one-time counterpart, Additional Payments, is infotype 0015 / PA0015.)

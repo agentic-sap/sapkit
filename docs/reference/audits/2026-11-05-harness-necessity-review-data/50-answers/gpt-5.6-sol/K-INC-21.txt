@@ -1,0 +1,1 @@
+CHAR4 상수를 직접 넘기면 형식/길이 불일치 구문 오류가 납니다. `encoding = CONV abap_encoding( 상수 )`처럼 변환하거나 `TYPE abap_encoding` 변수에 담아 넘기세요.

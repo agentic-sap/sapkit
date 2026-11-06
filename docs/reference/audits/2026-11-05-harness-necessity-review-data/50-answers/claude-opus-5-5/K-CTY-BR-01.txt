@@ -1,0 +1,1 @@
+**1.234.567,89**: in Brazil (pt-BR), a period separates thousands and a comma marks decimals (as currency: R$ 1.234.567,89).

@@ -1,0 +1,1 @@
+Use released class `CL_ABAP_LOCK_OBJECT_FACTORY`, which provides the ABAP Cloud-compliant replacement for classic enqueue/dequeue function modules.

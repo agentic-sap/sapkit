@@ -1,0 +1,1 @@
+FORM에 해당 예외가 `RAISING`으로 선언되지 않아, 예외가 FORM 경계를 넘을 때 `CX_SY_NO_HANDLER`로 바뀌어 FORM 머리줄에서 새로 발생했기 때문입니다. 실제 발생 지점은 잡은 예외의 `PREVIOUS` 속성에 담긴 원본 예외에서 `get_source_position`을 호출하면 얻을 수 있습니다.

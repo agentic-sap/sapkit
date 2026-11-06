@@ -1,0 +1,1 @@
+SAP uses **parallel ledgers** (New GL / S/4HANA Universal Journal): a leading ledger (0L, typically IFRS) plus non-leading ledgers for local GAAP and regulatory valuations. For banks, this is usually fed by the **Financial Products Subledger (FPSL, formerly Bank Analyzer)**, which runs multi-GAAP valuations in parallel.

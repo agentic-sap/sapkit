@@ -1,0 +1,153 @@
+CLASS zcx_judge_c02_discount DEFINITION
+  PUBLIC
+  INHERITING FROM cx_static_check
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    CONSTANTS:
+      BEGIN OF gc_reason,
+        negative_gross  TYPE string VALUE 'NEGATIVE_GROSS',
+        invalid_percent TYPE string VALUE 'INVALID_PERCENT',
+      END OF gc_reason.
+
+    DATA mv_reason TYPE string READ-ONLY.
+
+    METHODS constructor
+      IMPORTING
+        iv_reason   TYPE string OPTIONAL
+        previous    LIKE previous OPTIONAL.
+ENDCLASS.
+
+CLASS zcx_judge_c02_discount IMPLEMENTATION.
+  METHOD constructor ##ADT_SUPPRESS_GENERATION.
+    super->constructor( previous = previous ).
+    mv_reason = iv_reason.
+  ENDMETHOD.
+ENDCLASS.
+
+
+CLASS zcl_judge_c02_discount DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    TYPES ty_amount  TYPE p LENGTH 13 DECIMALS 2.
+    TYPES ty_percent TYPE p LENGTH 5 DECIMALS 2.
+
+    "! Computes gross reduced by the given percentage, rounded to 2 decimals.
+    "! @parameter iv_gross   | Gross amount, must be >= 0
+    "! @parameter iv_percent | Discount percentage, must be within 0 and 100
+    "! @parameter rv_net     | Net amount after discount
+    "! @raising zcx_judge_c02_discount | Input out of the allowed range
+    METHODS calculate
+      IMPORTING iv_gross      TYPE ty_amount
+                iv_percent    TYPE ty_percent
+      RETURNING VALUE(rv_net) TYPE ty_amount
+      RAISING   zcx_judge_c02_discount.
+ENDCLASS.
+
+CLASS zcl_judge_c02_discount IMPLEMENTATION.
+  METHOD calculate.
+    DATA lv_result TYPE p LENGTH 16 DECIMALS 6.
+
+    IF iv_gross < 0.
+      RAISE EXCEPTION TYPE zcx_judge_c02_discount
+        EXPORTING iv_reason = zcx_judge_c02_discount=>gc_reason-negative_gross.
+    ENDIF.
+
+    IF iv_percent < 0 OR iv_percent > 100.
+      RAISE EXCEPTION TYPE zcx_judge_c02_discount
+        EXPORTING iv_reason = zcx_judge_c02_discount=>gc_reason-invalid_percent.
+    ENDIF.
+
+    lv_result = iv_gross * ( 100 - iv_percent ) / 100.
+    rv_net = round( val = lv_result dec = 2 mode = cl_abap_math=>round_half_up ).
+  ENDMETHOD.
+ENDCLASS.
+
+
+CLASS ltc_discount DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PRIVATE SECTION.
+    DATA mo_cut TYPE REF TO zcl_judge_c02_discount.
+
+    METHODS setup.
+    METHODS normal_discount        FOR TESTING RAISING cx_static_check.
+    METHODS rounding_to_two_dec    FOR TESTING RAISING cx_static_check.
+    METHODS zero_discount          FOR TESTING RAISING cx_static_check.
+    METHODS full_discount          FOR TESTING RAISING cx_static_check.
+    METHODS negative_gross_rejected FOR TESTING.
+    METHODS percent_too_high_rejected FOR TESTING.
+    METHODS negative_percent_rejected FOR TESTING.
+ENDCLASS.
+
+CLASS ltc_discount IMPLEMENTATION.
+  METHOD setup.
+    mo_cut = NEW #( ).
+  ENDMETHOD.
+
+  METHOD normal_discount.
+    cl_abap_unit_assert=>assert_equals(
+      act = mo_cut->calculate( iv_gross = '200.00' iv_percent = '15.00' )
+      exp = CONV zcl_judge_c02_discount=>ty_amount( '170.00' )
+      msg = '15 % off 200.00 should be 170.00' ).
+  ENDMETHOD.
+
+  METHOD rounding_to_two_dec.
+    " 19.99 * 0.875 = 17.49125 -> 17.49
+    cl_abap_unit_assert=>assert_equals(
+      act = mo_cut->calculate( iv_gross = '19.99' iv_percent = '12.50' )
+      exp = CONV zcl_judge_c02_discount=>ty_amount( '17.49' )
+      msg = 'Result must be rounded to 2 decimals' ).
+  ENDMETHOD.
+
+  METHOD zero_discount.
+    cl_abap_unit_assert=>assert_equals(
+      act = mo_cut->calculate( iv_gross = '99.95' iv_percent = '0.00' )
+      exp = CONV zcl_judge_c02_discount=>ty_amount( '99.95' )
+      msg = '0 % discount must keep the gross amount' ).
+  ENDMETHOD.
+
+  METHOD full_discount.
+    cl_abap_unit_assert=>assert_equals(
+      act = mo_cut->calculate( iv_gross = '123.45' iv_percent = '100.00' )
+      exp = CONV zcl_judge_c02_discount=>ty_amount( '0.00' )
+      msg = '100 % discount must yield zero' ).
+  ENDMETHOD.
+
+  METHOD negative_gross_rejected.
+    TRY.
+        mo_cut->calculate( iv_gross = '-1.00' iv_percent = '10.00' ).
+        cl_abap_unit_assert=>fail( msg = 'Negative gross must raise an exception' ).
+      CATCH zcx_judge_c02_discount INTO DATA(lx).
+        cl_abap_unit_assert=>assert_equals(
+          act = lx->mv_reason
+          exp = zcx_judge_c02_discount=>gc_reason-negative_gross ).
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD percent_too_high_rejected.
+    TRY.
+        mo_cut->calculate( iv_gross = '100.00' iv_percent = '100.01' ).
+        cl_abap_unit_assert=>fail( msg = 'Percentage above 100 must raise an exception' ).
+      CATCH zcx_judge_c02_discount INTO DATA(lx).
+        cl_abap_unit_assert=>assert_equals(
+          act = lx->mv_reason
+          exp = zcx_judge_c02_discount=>gc_reason-invalid_percent ).
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD negative_percent_rejected.
+    TRY.
+        mo_cut->calculate( iv_gross = '100.00' iv_percent = '-0.01' ).
+        cl_abap_unit_assert=>fail( msg = 'Negative percentage must raise an exception' ).
+      CATCH zcx_judge_c02_discount INTO DATA(lx).
+        cl_abap_unit_assert=>assert_equals(
+          act = lx->mv_reason
+          exp = zcx_judge_c02_discount=>gc_reason-invalid_percent ).
+    ENDTRY.
+  ENDMETHOD.
+ENDCLASS.

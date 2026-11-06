@@ -1,0 +1,48 @@
+*&---------------------------------------------------------------------*
+*& Report  ZSAPKIT_DEMO_PROG
+*&---------------------------------------------------------------------*
+*& NOTE: The original source and the new show_data body were not
+*&       supplied in the request. get_data and save_data below are
+*&       placeholders and must be replaced with the original bodies
+*&       byte for byte. The show_data body is a placeholder too.
+*&---------------------------------------------------------------------*
+REPORT zsapkit_demo_prog.
+
+TYPES: BEGIN OF ty_out,
+         id   TYPE i,
+         name TYPE c LENGTH 40,
+       END OF ty_out.
+
+DATA: gt_out TYPE STANDARD TABLE OF ty_out,
+      gs_out TYPE ty_out.
+
+START-OF-SELECTION.
+  PERFORM get_data.
+  PERFORM show_data.
+  PERFORM save_data.
+
+*&---------------------------------------------------------------------*
+*&      Form  GET_DATA
+*&---------------------------------------------------------------------*
+FORM get_data.
+  CLEAR gt_out.
+  " TODO: original body of get_data goes here (unchanged)
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+*&      Form  SHOW_DATA
+*&---------------------------------------------------------------------*
+FORM show_data.
+  " TODO: replace with the new show_data body
+  LOOP AT gt_out INTO gs_out.
+    WRITE: / gs_out-id, gs_out-name.
+  ENDLOOP.
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+*&      Form  SAVE_DATA
+*&---------------------------------------------------------------------*
+FORM save_data.
+  CLEAR gt_out.
+  " TODO: original body of save_data goes here (unchanged)
+ENDFORM.

@@ -1,0 +1,1 @@
+**`BAPI_INSPOPER_RECORDRESULTS`** records characteristic, sample, and single-value results for an inspection lot operation in SAP QM. Follow it with `BAPI_TRANSACTION_COMMIT`.

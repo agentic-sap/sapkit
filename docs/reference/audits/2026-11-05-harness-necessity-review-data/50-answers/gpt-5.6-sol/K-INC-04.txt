@@ -1,0 +1,2 @@
+아니다. `CreateFunctionModule`로 생성·활성화되고 구문 오류가 없어도 RFC 호출 가능이 보장되지는 않는다.  
+함수 모듈이 **Remote-Enabled Module**로 설정되고, RFC 호환 인터페이스·권한 등 조건을 충족해야 한다.

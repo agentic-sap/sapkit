@@ -1,0 +1,1 @@
+The BAdI is **WORKORDER_UPDATE**, shared by PM maintenance orders and PP production orders.

@@ -1,0 +1,69 @@
+```abap
+*---------------------------------------------------------------------*
+* Main program: ZSAPKIT_DEMO_PROG
+*---------------------------------------------------------------------*
+REPORT zsapkit_demo_prog.
+
+INCLUDE zsapkit_demo_prog_top.
+INCLUDE zsapkit_demo_prog_sel.
+INCLUDE zsapkit_demo_prog_class.
+INCLUDE zsapkit_demo_prog_form.
+
+START-OF-SELECTION.
+  lcl_application=>run( ).
+
+
+*---------------------------------------------------------------------*
+* Include: ZSAPKIT_DEMO_PROG_TOP
+*---------------------------------------------------------------------*
+* Global declarations
+TABLES j_1bbranch.
+
+
+*---------------------------------------------------------------------*
+* Include: ZSAPKIT_DEMO_PROG_SEL
+*---------------------------------------------------------------------*
+* Selection screen and selection-screen validation
+SELECTION-SCREEN BEGIN OF BLOCK b01 WITH FRAME TITLE TEXT-t01.
+  PARAMETERS:
+    pa_bukrs TYPE bukrs OBLIGATORY,
+    pa_bupla TYPE bupla OBLIGATORY.
+SELECTION-SCREEN END OF BLOCK b01.
+
+AT SELECTION-SCREEN ON pa_bupla.
+  PERFORM validate_bupla.
+
+
+*---------------------------------------------------------------------*
+* Include: ZSAPKIT_DEMO_PROG_CLASS
+*---------------------------------------------------------------------*
+CLASS lcl_application DEFINITION FINAL.
+  PUBLIC SECTION.
+    CLASS-METHODS run.
+ENDCLASS.
+
+CLASS lcl_application IMPLEMENTATION.
+  METHOD run.
+    WRITE: / |Company code: { pa_bukrs }|,
+           / |Business place: { pa_bupla }|.
+  ENDMETHOD.
+ENDCLASS.
+
+
+*---------------------------------------------------------------------*
+* Include: ZSAPKIT_DEMO_PROG_FORM
+*---------------------------------------------------------------------*
+FORM validate_bupla.
+  SELECT SINGLE @abap_true
+    FROM j_1bbranch
+    WHERE bukrs  = @pa_bukrs
+      AND branch = @pa_bupla
+    INTO @DATA(lv_exists).
+
+  IF sy-subrc <> 0.
+    MESSAGE e398(00)
+      WITH |Business place { pa_bupla } does not exist|
+           |for company code { pa_bukrs }|.
+  ENDIF.
+ENDFORM.
+```

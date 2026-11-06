@@ -1,0 +1,1 @@
+Category 0은 Web API 계약, category 1은 UI(Fiori Elements) 계약이다. `Update_mc`, 값도움말·코드리스트·PDF/xlsx 같은 FE 소비 표면은 category 1에서만 제공된다.

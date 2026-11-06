@@ -1,0 +1,139 @@
+60-checker/claude-opus-5-5/C-05.txt — 동봉 검사기 원출력 (판J T6 · 2026-11-05)
+대상: docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-05.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-05.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-05.abap
+--- stdout (0 bytes) ---
+
+--- stderr (110 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-05.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-05.abap
+--- stdout (3696 bytes) ---
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Report ZJUDGE_C05
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Lists customers from KNA1 grouped by country.
+Comment              *& For each country: a header line with country key and customer count,
+Comment              *& followed by one line per customer. Classic WRITE list (ABAP 7.02).
+Comment              *&---------------------------------------------------------------------*
+Report               REPORT zjudge_c05 LINE - SIZE 120 NO STANDARD PAGE HEADING .
+Move                 TABLES kna1 .
+TypeBegin            TYPES BEGIN OF ty_cust ,
+Type                 TYPES land1 TYPE kna1 - land1 ,
+Type                 TYPES kunnr TYPE kna1 - kunnr ,
+Type                 TYPES name1 TYPE kna1 - name1 ,
+Type                 TYPES ort01 TYPE kna1 - ort01 ,
+TypeEnd              TYPES END OF ty_cust ,
+Type                 TYPES ty_cust_tab TYPE STANDARD TABLE OF ty_cust ,
+TypeBegin            TYPES BEGIN OF ty_count ,
+Type                 TYPES land1 TYPE kna1 - land1 ,
+Type                 TYPES count TYPE i ,
+TypeEnd              TYPES END OF ty_count ,
+Type                 TYPES ty_count_tab TYPE STANDARD TABLE OF ty_count .
+Data                 DATA gt_cust TYPE ty_cust_tab ,
+Data                 DATA gs_cust TYPE ty_cust ,
+Data                 DATA gt_count TYPE ty_count_tab ,
+Data                 DATA gs_count TYPE ty_count ,
+Data                 DATA gv_land1 TYPE kna1 - land1 .
+SelectOption         SELECT - OPTIONS s_land1 FOR kna1 - land1 .
+StartOfSelection     START - OF - SELECTION .
+Select               SELECT land1 kunnr name1 ort01 FROM kna1 INTO TABLE gt_cust WHERE land1 IN s_land1 .
+If                   IF gt_cust IS INITIAL .
+Message              MESSAGE 'No customers found for the selection.' TYPE 'S' .
+Return               RETURN .
+EndIf                ENDIF .
+Sort                 SORT gt_cust BY land1 kunnr .
+Comment              * Build customer count per country
+Loop                 LOOP AT gt_cust INTO gs_cust .
+Clear                CLEAR gs_count .
+Move                 gs_count - land1 = gs_cust - land1 .
+Move                 gs_count - count = 1 .
+Move                 COLLECT gs_count INTO gt_count .
+EndLoop              ENDLOOP .
+Sort                 SORT gt_count BY land1 .
+Comment              * Output grouped list
+Loop                 LOOP AT gt_cust INTO gs_cust .
+Move                 AT NEW land1 .
+Move                 gv_land1 = gs_cust - land1 .
+Clear                CLEAR gs_count .
+ReadTable            READ TABLE gt_count INTO gs_count WITH KEY land1 = gv_land1 BINARY SEARCH .
+Move                 SKIP .
+Move                 FORMAT COLOR COL_GROUP INTENSIFIED ON .
+Write                WRITE / 'Country:' ,
+Write                WRITE gv_land1 ,
+Write                WRITE 'Number of customers:' ,
+Write                WRITE gs_count - count .
+Move                 FORMAT COLOR OFF INTENSIFIED OFF .
+Move                 ULINE .
+Move                 ENDAT .
+Write                WRITE /5 gs_cust - kunnr ,
+Write                WRITE 20 gs_cust - name1 ,
+Write                WRITE 60 gs_cust - ort01 ,
+Write                WRITE 100 gs_cust - land1 .
+EndLoop              ENDLOOP .
+Move                 TOP - OF - PAGE .
+Move                 FORMAT COLOR COL_HEADING INTENSIFIED ON .
+Write                WRITE /5 'Customer' ,
+Write                WRITE 20 'Name' ,
+Write                WRITE 60 'City' ,
+Write                WRITE 100 'Country' .
+Move                 FORMAT COLOR OFF INTENSIFIED OFF .
+Move                 ULINE .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-05.abap
+--- stdout (790 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 25,
+      "endLine": 25,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 26,
+      "endLine": 26,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 2,
+    "bySeverity": {
+      "medium": 2
+    },
+    "byCategory": {
+      "quality": 2
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=2 analyze_info=0 error_grade=0 warnings=2 source_lines=84 bytes=2321 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

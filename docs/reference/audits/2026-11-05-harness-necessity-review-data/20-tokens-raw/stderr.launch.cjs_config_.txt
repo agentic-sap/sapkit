@@ -1,0 +1,4 @@
+[launch] TOOLSURFACE_DEFAULT: no toolSurface configured — starting with readonly. For write tools on a DEV system set "toolSurface": "development" in <project>/.sapkit/config.json and restart the MCP server.
+[sapkit] transport(resolved): stdio
+NO_PROFILE: neither <tmp>\cwd\.sapkit\active-profile.txt nor <tmp>\cwd\.sapkit\sap.env was found — starting in inspection-only mode with no connection.
+[sapkit] profile: (none) · tier=UNKNOWN · systemType=cloud · connection=none · exposition=readonly

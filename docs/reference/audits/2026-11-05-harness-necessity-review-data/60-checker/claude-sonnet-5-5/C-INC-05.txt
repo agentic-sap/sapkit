@@ -1,0 +1,103 @@
+60-checker/claude-sonnet-5-5/C-INC-05.txt — 동봉 검사기 원출력 (판J T6 · 2026-11-05)
+대상: docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-INC-05.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-INC-05.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-INC-05.abap
+--- stdout (0 bytes) ---
+
+--- stderr (116 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-INC-05.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-INC-05.abap
+--- stdout (2680 bytes) ---
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Report  ZSAPKIT_DEMO_PROG2
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Renamed from ZSAPKIT_DEMO_PROG.
+Comment              *& The old logic derived the selection key from a fixed offset of
+Comment              *& sy-repid (e.g. gv_key = sy-repid+4(4)). That broke on rename because
+Comment              *& the substring changed and the WHERE clause no longer matched.
+Comment              *& The key is now independent of the program name: it comes from a
+Comment              *& selection parameter, with a constant as fallback.
+Comment              *&---------------------------------------------------------------------*
+Report               REPORT zsapkit_demo_prog2 .
+Constant             CONSTANTS gc_default_key TYPE t001 - bukrs VALUE '1000' .
+Move                 TABLES t001 .
+Parameter            PARAMETERS p_key TYPE t001 - bukrs DEFAULT gc_default_key .
+Data                 DATA gv_key TYPE t001 - bukrs ,
+Data                 DATA gt_t001 TYPE STANDARD TABLE OF t001 WITH DEFAULT KEY ,
+Data                 DATA gs_t001 TYPE t001 .
+StartOfSelection     START - OF - SELECTION .
+Perform              PERFORM determine_key CHANGING gv_key .
+Select               SELECT * FROM t001 INTO TABLE gt_t001 WHERE bukrs = gv_key .
+If                   IF sy - subrc <> 0 OR gt_t001 IS INITIAL .
+Write                WRITE / 'Keine Daten gefunden für Schlüssel:' ,
+Write                WRITE gv_key .
+Return               RETURN .
+EndIf                ENDIF .
+Loop                 LOOP AT gt_t001 INTO gs_t001 .
+Write                WRITE / gs_t001 - bukrs ,
+Write                WRITE gs_t001 - butxt ,
+Write                WRITE gs_t001 - ort01 .
+EndLoop              ENDLOOP .
+Comment              *&---------------------------------------------------------------------*
+Comment              *&      Form  DETERMINE_KEY
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Key determination independent of sy-repid:
+Comment              *& 1. user input (parameter)
+Comment              *& 2. fallback to constant default
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM determine_key CHANGING cv_key TYPE t001 - bukrs .
+If                   IF p_key IS NOT INITIAL .
+Move                 cv_key = p_key .
+Else                 ELSE .
+Move                 cv_key = gc_default_key .
+EndIf                ENDIF .
+EndForm              ENDFORM .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-INC-05.abap
+--- stdout (572 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "select_star",
+      "category": "performance",
+      "severity": "medium",
+      "line": 27,
+      "endLine": 27,
+      "match": "Name the columns you need instead of reading the whole row",
+      "description": "Name the columns you need instead of reading the whole row",
+      "suggestion": "List the columns the program actually reads"
+    }
+  ],
+  "summary": {
+    "totalFindings": 1,
+    "bySeverity": {
+      "medium": 1
+    },
+    "byCategory": {
+      "performance": 1
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=1 analyze_info=0 error_grade=0 warnings=1 source_lines=55 bytes=1757 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

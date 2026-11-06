@@ -1,0 +1,1 @@
+No. ABAP for Cloud Development forbids classic list processing (LEAVE TO LIST-PROCESSING, WRITE, etc.) and all classic dynpro/UI statements, so it's a syntax error there.

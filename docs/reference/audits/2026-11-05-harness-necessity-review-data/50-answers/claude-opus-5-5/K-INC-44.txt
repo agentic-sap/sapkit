@@ -1,0 +1,1 @@
+아니요. `STRING`과 `XSTRING`은 ABAP 내장(built-in) 타입이며 DDIC 도메인이 아니므로, GetDomain(DDIF_DOMA_GET 계열)으로 조회하면 "not found"가 반환됩니다. DDIC에서는 각각 `STRING`과 `RAWSTRING` 데이터 타입에 해당하므로, 도메인 조회 대신 내장 타입으로 직접 처리해야 합니다.

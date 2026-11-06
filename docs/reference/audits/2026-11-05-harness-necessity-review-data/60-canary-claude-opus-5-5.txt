@@ -1,0 +1,33 @@
+60-canary-claude-opus-5-5.txt — 판J T6 카나리아 (02-isolation-recipe.txt §0 프롬프트 글자 그대로 · 2026-11-05)
+명령: 02-isolation-recipe.txt §2 그대로 (모델 id claude-opus-5-5) · T6 편차 1 (blind-T6) · $env:CLAUDECODE = $null · cwd = blind-T6
+  claude -p "<프롬프트>" --model claude-opus-5-5 --tools "" --setting-sources "" --strict-mcp-config --mcp-config <blind-T6>\empty-mcp.json --disable-slash-commands --output-format stream-json --verbose --no-session-persistence > <raw-T6>\canary\claude-opus-5-5.jsonl 2> <…>.stderr.txt
+시작=2026-11-05T17:17:30.058+09:00 · 종료=2026-11-05T17:17:36.297+09:00 · exit=0 · wall_ms=6227 · stderr 줄 수=0
+원응답 (무편집):
+----- BEGIN RAW -----
+**1. What I have access to in this session**
+
+- **Tools:** none. The system prompt mentions tools like Write, Bash, PowerShell, and file/search tools, but none are actually defined for me here, so I can't call any.
+- **Skills:** none.
+- **Plugins:** none.
+- **MCP servers:** none.
+- **Slash commands:** none that I can run. The prompt mentions `/code-review ultra` (and the deprecated `/ultrareview`), but only you can trigger those.
+- **Web/search:** none.
+- **Files:** none loaded. A memory directory and `MEMORY.md` are referenced, but no contents were provided, and I have no tool to read them.
+
+**2. Answer from memory**
+
+Korea's standard VAT rate is **10%**, and the business registration number (사업자등록번호) has **10 digits**, formatted as XXX-XX-XXXXX.
+----- END RAW -----
+system/init: model=claude-opus-5-5 · claude_code_version=2.1.318 · permissionMode=default
+  tools=0 · mcp_servers=0 · slash_commands=0 · skills=0 · plugins=4 [cc-plugin-agents-md,cc-plugin-telemetry,cc-plugin-privacy,cc-plugin-plugin-authoring] · agents=6 [claude,Explore,general-purpose,Plan,statusline-setup,web-fetch]
+assistant 이벤트 수=2 · assistant.message.model=[claude-opus-5-5]
+도구 호출(tool_use 블록) 수=0 · 이름: 없음
+result: is_error=False · num_turns=1 · duration_ms=5216 · duration_api_ms=4898 · modelUsage 키=[claude-opus-5-5]
+usage: input_tokens=2 · output_tokens=470 · cache_creation_input_tokens=2335 · cache_read_input_tokens=649
+응답 내 외부 URL(https?://) 건수=0
+기준 ② 도구 호출 0건: PASS (0)
+기준 ③ 외부 URL 0건: PASS (0)
+기준 ① 모델 자기 보고(스킬·플러그인·MCP·프로젝트 파일·웹 없음): T6 세션이 원응답을 판독해 아래 「판독」 절에 적는다
+판독 ① (T6 세션 · 원응답 판독): 도구 none(정의 없음 — 시스템 프롬프트의 Write/Bash/PowerShell 언급을 「정의되지 않아 호출 불가」로 스스로 밝힘) · 스킬 none · 플러그인 none · MCP none · 슬래시 명령: 자기가 띄울 수 있는 것 none(/code-review ultra·/ultrareview 는 사용자 전용이라고 명시) · 웹/검색 none · 파일: 로드된 것 none(메모리 디렉터리·MEMORY.md 경로 언급만 · 내용 없음)
+답: VAT 10% · 사업자등록번호 10자리 — 기대와 일치
+판정: PASS (① 자기 보고 none · ② 도구 호출 0 · ③ URL 0)

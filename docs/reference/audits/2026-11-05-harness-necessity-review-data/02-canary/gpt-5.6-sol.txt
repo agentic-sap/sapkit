@@ -1,0 +1,9 @@
+- Tools: `functions.exec`, `functions.wait`, `functions.request_user_input`; nested capabilities exposed through `exec`: `apply_patch`, `create_goal`, `exec_command`, `get_goal`, `list_mcp_resource_templates`, `list_mcp_resources`, `read_mcp_resource`, `update_goal`, `view_image`, `write_stdin`; collaboration tools: `spawn_agent`, `followup_task`, `send_message`, `interrupt_agent`, `list_agents`, `wait_agent`.
+- Skills: none listed.
+- Plugins: none.
+- MCP servers: none identified.
+- Slash commands: none.
+- Web/search capability: none exposed.
+- Files: read-only access within `C:\Users\<usr>\AppData\Local\Temp\sapkit-panJ\blind`; individual filenames are unknown because you instructed me not to use tools to inspect them.
+
+Korea’s standard VAT rate is 10%, and its business registration number has 10 digits.

@@ -1,0 +1,101 @@
+60-checker/claude-opus-5-5/C-03.txt — 동봉 검사기 원출력 (판J T6 · 2026-11-05)
+대상: docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-03.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-03.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-03.abap
+--- stdout (0 bytes) ---
+
+--- stderr (110 bytes) ---
+docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-03.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-03.abap
+--- stdout (1596 bytes) ---
+Call                 FUNCTION z_judge_c03_get_material_text IMPORTING VALUE ( iv_matnr ) TYPE matnr VALUE ( iv_spras ) TYPE spras DEFAULT sy - langu EXPORTING VALUE ( ev_maktx ) TYPE maktx EXCEPTIONS material_not_found text_not_found .
+Data                 DATA lv_matnr TYPE matnr .
+Data                 DATA lv_spras TYPE spras .
+Clear                CLEAR ev_maktx .
+Comment              " Normalize material number to internal format (leading zeros etc.)
+CallFunction         CALL FUNCTION 'CONVERSION_EXIT_MATN1_INPUT' EXPORTING input = iv_matnr IMPORTING output = lv_matnr EXCEPTIONS length_error = 1 OTHERS = 2 .
+If                   IF sy - subrc <> 0 .
+Move                 lv_matnr = iv_matnr .
+EndIf                ENDIF .
+Comment              " Fall back to logon language if caller explicitly passed an initial value
+Move                 lv_spras = COND # ( WHEN iv_spras IS INITIAL THEN sy - langu ELSE iv_spras ) .
+Comment              " 1) Does the material exist at all?
+Select               SELECT SINGLE @ abap_true FROM mara WHERE matnr = @ lv_matnr INTO @ DATA ( lv_exists ) .
+If                   IF sy - subrc <> 0 .
+Message              MESSAGE e305 ( m3 ) WITH lv_matnr RAISING material_not_found .
+EndIf                ENDIF .
+Comment              " 2) Is there a description in the requested language?
+Select               SELECT SINGLE maktx FROM makt WHERE matnr = @ lv_matnr AND spras = @ lv_spras INTO @ ev_maktx .
+If                   IF sy - subrc <> 0 .
+Raise                RAISE text_not_found .
+EndIf                ENDIF .
+EndFunction          ENDFUNCTION .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-03.abap
+--- stdout (1085 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 19,
+      "endLine": 19,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 21,
+      "endLine": 21,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 24,
+      "endLine": 24,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 3,
+    "bySeverity": {
+      "medium": 3
+    },
+    "byCategory": {
+      "quality": 3
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=3 analyze_info=0 error_grade=0 warnings=3 source_lines=51 bytes=1248 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

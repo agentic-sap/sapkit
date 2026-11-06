@@ -1,0 +1,1 @@
+The function is still shown as a pushbutton in the application toolbar, labeled with its **function text** (the regular text, not an icon or icon text). The ICON_TEXT only appears next to an icon, and with an icon but no ICON_TEXT you get just the icon.

@@ -1,0 +1,1 @@
+Mixing (Banbury mixer) blends raw rubber, carbon black/silica, oil, and chemicals into **compound (rubber masterbatch/final batch)**, the base material for treads, sidewalls, and so on. It's tracked **per batch** (each mixer cycle, typically ~150–300 kg), with a batch/lot ID tied to recipe, mixer, and time for traceability.

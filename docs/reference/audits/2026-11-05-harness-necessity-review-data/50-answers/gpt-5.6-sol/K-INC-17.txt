@@ -1,0 +1,2 @@
+확인 순서: 활성 객체/의존성 → Service Definition 노출 → Binding 대상·활성/Publish 상태 → Gateway·클라이언트 메타데이터 캐시 정리 → 재확인.  
+바인딩 삭제·재생성은 **마지막(6번째)** 수단이다.

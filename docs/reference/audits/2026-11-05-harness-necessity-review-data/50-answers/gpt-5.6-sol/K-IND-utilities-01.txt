@@ -1,0 +1,1 @@
+“Move-in” starts utility service and billing when a customer occupies a premise; “move-out” ends the customer’s service and billing when they leave.

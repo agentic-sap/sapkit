@@ -1,0 +1,1 @@
+The interface view is **`I_Equipment`**, which reads from the equipment master tables such as EQUI and EQUZ. I'm answering from memory, so check its release state (C1 contract) in ADT or the Released Objects list for your system release.

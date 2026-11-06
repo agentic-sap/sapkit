@@ -1,0 +1,1 @@
+Business areas are defined in the customizing view **V_TGSB** (table **TGSB**, transaction **OX03**). Treasury has no separate view of its own and uses these same business areas. I'm answering from memory, so I haven't checked this against a system.

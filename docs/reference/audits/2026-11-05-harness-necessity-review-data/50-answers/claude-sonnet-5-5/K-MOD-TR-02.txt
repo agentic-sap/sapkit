@@ -1,0 +1,1 @@
+**FQM_FLOW** is the table that holds the One Exposure from Operations flows (the Cash Management exposure data). I'm answering from memory and haven't verified it against a system. In S/4HANA, the CDS view and reporting layer read from it, and the related data is spread across FQM_* tables.

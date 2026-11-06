@@ -1,0 +1,1 @@
+A state sales-tax registration (seller's permit/resale certificate number) is kept separate from the federal **EIN (Employer Identification Number)**, the IRS-issued federal tax ID. They're distinct fields because the state number is issued per state (a company can have many), while the EIN is a single federal identifier for the legal entity.

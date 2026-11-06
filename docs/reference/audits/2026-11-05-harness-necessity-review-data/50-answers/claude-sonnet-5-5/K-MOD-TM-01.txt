@@ -1,0 +1,3 @@
+Freight Unit Building Rules (FUBR) in SAP TM are maintained as a business configuration (BC) set/Fiori-style object rather than a classic table view. Specifically, they're maintained in the SAP NetWeaver Business Client via **/SCMTMS/FUBR** (Freight Unit Building Rule), and the underlying customizing is under SPRO: *Transportation Management → Planning → Freight Unit → Define Freight Unit Building Rules*.
+
+I'm not certain of the exact view name (I don't recall a specific V_ table name with confidence), so please verify the transaction and path in your system.

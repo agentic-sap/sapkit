@@ -1,0 +1,3 @@
+SD partner determination procedures are maintained in view **V_TPAR** (partner determination procedure header), reached via SPRO → Sales and Distribution → Basic Functions → Partner Determination → Set Up Partner Determination. Assignment to the document type or item category is done in the same area, and partner functions are in **V_TPAR**'s related view **TPAR**.
+
+Correction: the procedure header is actually stored in table **TPAER** and partner functions in **TPAR**; I'm not certain of the exact view name, so please verify in SM30/SE11 (e.g., check **V_TPAER** or **V_T7...** variants).

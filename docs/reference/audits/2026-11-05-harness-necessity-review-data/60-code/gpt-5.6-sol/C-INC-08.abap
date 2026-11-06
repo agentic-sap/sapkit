@@ -1,0 +1,78 @@
+CLASS zsapkit_demo_clas DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    CLASS-METHODS f4_pa_bupla.
+ENDCLASS.
+
+
+CLASS zsapkit_demo_clas IMPLEMENTATION.
+  METHOD f4_pa_bupla.
+    TYPES:
+      BEGIN OF ty_bupla,
+        bupla TYPE j_1bbranch-branch,
+        name  TYPE j_1bbranch-name,
+      END OF ty_bupla.
+
+    DATA:
+      lt_dynpfields TYPE STANDARD TABLE OF dynpread WITH EMPTY KEY,
+      lt_bupla      TYPE STANDARD TABLE OF ty_bupla WITH EMPTY KEY,
+      lv_bukrs      TYPE bukrs.
+
+    lt_dynpfields = VALUE #( ( fieldname = 'PA_BUKRS' ) ).
+
+    CALL FUNCTION 'DYNP_VALUES_READ'
+      EXPORTING
+        dyname               = sy-repid
+        dynumb               = sy-dynnr
+        translate_to_upper   = abap_true
+      TABLES
+        dynpfields           = lt_dynpfields
+      EXCEPTIONS
+        invalid_abapworkarea = 1
+        invalid_dynprofield  = 2
+        invalid_dynproname   = 3
+        invalid_dynpronummer = 4
+        invalid_request      = 5
+        no_fielddescription  = 6
+        invalid_parameter    = 7
+        undefind_error       = 8
+        double_conversion    = 9
+        OTHERS               = 10.
+
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
+
+    lv_bukrs = VALUE #( lt_dynpfields[
+                          fieldname = 'PA_BUKRS'
+                        ]-fieldvalue OPTIONAL ).
+
+    IF lv_bukrs IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    SELECT branch AS bupla,
+           name
+      FROM j_1bbranch
+      WHERE bukrs = @lv_bukrs
+      ORDER BY branch
+      INTO TABLE @lt_bupla.
+
+    CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+      EXPORTING
+        retfield        = 'BUPLA'
+        dynpprog        = sy-repid
+        dynpnr          = sy-dynnr
+        dynprofield     = 'PA_BUPLA'
+        value_org       = 'S'
+      TABLES
+        value_tab       = lt_bupla
+      EXCEPTIONS
+        parameter_error = 1
+        no_values_found = 2
+        OTHERS          = 3.
+  ENDMETHOD.
+ENDCLASS.

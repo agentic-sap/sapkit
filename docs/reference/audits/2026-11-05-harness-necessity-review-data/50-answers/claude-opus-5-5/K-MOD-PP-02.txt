@@ -1,0 +1,1 @@
+Routing (task list) types are kept in table **TCA01**, maintained through view **V_TCA01** via IMG *Production → Basic Data → Routing → Control Data → Define Task List Types*. I'm recalling the view name from memory, so check it in SM30 if exactness matters.
