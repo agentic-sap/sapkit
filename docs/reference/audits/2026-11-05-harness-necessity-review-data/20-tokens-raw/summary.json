@@ -1358,7 +1358,7 @@
     },
     "instances": [
       {
-        "project": "ZUNIVAT_RAP",
+        "project": "소유자 프로젝트 갑",
         "sapkit_dir": true,
         "files": {
           "config.json": 35,
@@ -1370,7 +1370,7 @@
         }
       },
       {
-        "project": "JNC",
+        "project": "소유자 프로젝트 을",
         "sapkit_dir": true,
         "files": {
           "config.json": 706,

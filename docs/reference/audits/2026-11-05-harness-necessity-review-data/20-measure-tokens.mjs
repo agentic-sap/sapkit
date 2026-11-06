@@ -15,7 +15,10 @@
 // 사용:
 //   node docs/reference/audits/2026-11-05-harness-necessity-review-data/20-measure-tokens.mjs \
 //        [--tokenizer-dir=<gpt-tokenizer가 설치된 디렉터리 · 레포 밖>] \
-//        [--powerup=<abap-mcp-adt-powerup 체크아웃>] [--projects=<dir1;dir2>] [--workspace-root=<dir>]
+//        --powerup=<abap-mcp-adt-powerup 체크아웃> --projects=<dir1;dir2> --workspace-root=<레포를 담은 상위 폴더>
+//   레포 밖 경로 셋은 기본값이 없다 — 인자나 환경 변수(SAPKIT_T2_POWERUP · SAPKIT_T2_PROJECTS · SAPKIT_T2_WORKSPACE_ROOT)로
+//   준다. 2026-11-06 마감 리뷰 회수 때 기본값(소유자 머신의 절대 경로)을 걷었다 — 셈은 그대로다(93 §1 4).
+//   2-c′ 표의 프로젝트 칸은 폴더 이름이 아니라 인자 순서대로 「소유자 프로젝트 갑 · 을 …」로 찍는다.
 //   산출: 같은 폴더의 20-tokens.txt (표) · 20-tokens-raw/ (원자료: tools/list JSON · 도구별 CSV · summary.json)
 //
 // 결정성: 같은 트리에서 두 번 돌리면 20-tokens.txt · summary.json이 바이트 동일해야 한다.
@@ -55,12 +58,18 @@ const argOf = (k, d) => {
   return hit ? hit.slice(k.length + 3) : d;
 };
 const TOKENIZER_DIR = argOf('tokenizer-dir', process.env.SAPKIT_T2_TOKENIZER_DIR || '');
-const POWERUP = argOf('powerup', 'D:\\claude for SAP\\abap-mcp-adt-powerup');
-const PROJECTS = argOf('projects', 'D:\\claude for SAP\\ZUNIVAT_RAP;D:\\claude for SAP\\JNC')
+const POWERUP = argOf('powerup', process.env.SAPKIT_T2_POWERUP || '');
+const PROJECTS = argOf('projects', process.env.SAPKIT_T2_PROJECTS || '')
   .split(';')
   .map((s) => s.trim())
   .filter(Boolean);
-const WORKSPACE_ROOT = argOf('workspace-root', 'D:\\claude for SAP');
+const WORKSPACE_ROOT = argOf('workspace-root', process.env.SAPKIT_T2_WORKSPACE_ROOT || '');
+if (!POWERUP || !PROJECTS.length || !WORKSPACE_ROOT) {
+  console.error('레포 밖 경로 셋이 필요하다 — --powerup=<기준선 서버 체크아웃> --projects=<dir1;dir2> --workspace-root=<레포를 담은 상위 폴더>');
+  process.exit(2);
+}
+// 2-c′ 표의 프로젝트 칸 — 폴더 이름 대신 인자 순서로 찍는다(P 코드와 짝짓지 않은 따로 된 표시)
+const OWNER_LABEL = (i) => `소유자 프로젝트 ${'갑을병정무기경신임계'[i] ?? i + 1}`;
 const DATE = new Date().toISOString().slice(0, 10);
 
 // ── 산출 자리 선점 (결정성 — 훅이 읽는 git status를 1회차·2회차 동일하게) ───────
@@ -367,7 +376,7 @@ function measureProductFixed() {
 
   // (c′) 실인스턴스 — 크기만 (statSync · 내용 무접촉)
   const instanceFiles = ['config.json', 'active-profile.txt', 'RULES.md', 'LESSONS.md', 'knowledge/domain.md', 'knowledge/system.md'];
-  const instances = PROJECTS.map((dir) => {
+  const instances = PROJECTS.map((dir, i) => {
     const sk = path.join(dir, '.sapkit');
     const exists = fs.existsSync(sk);
     const files = {};
@@ -375,7 +384,7 @@ function measureProductFixed() {
       const p = path.join(sk, f);
       files[f] = fs.existsSync(p) ? fs.statSync(p).size : null;
     }
-    return { project: path.basename(dir), sapkit_dir: exists, files };
+    return { project: OWNER_LABEL(i), sapkit_dir: exists, files };
   });
 
   // (d) Claude 어댑터 매니페스트 — 호스트가 세션 시작에 읽는 것 (파싱용 · 컨텍스트 주입 아님)

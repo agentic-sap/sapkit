@@ -385,13 +385,13 @@ for (const f of scanFiles) {
   const total = res.reduce((s, [, c]) => s + c, 0);
   ok(total === 0, `${rel(f)} — 핵심 금지 문자열 0`, res.map(([n, c]) => `${n} ${c}`).join(' · '));
 }
-// 감사 문서 본문만 — 내부 과업 이름 · 꼬리표 · 아직 없는 결정 번호
+// 감사 문서 본문만 — 내부 과업 이름 · 꼬리표 · 아직 없는 결정 번호 · 완료 항목(D-157)과 회수 항목(D-158)의 꼴
 const allowedRef = [];
 const LABELS = [
   ['내부 과업 문서 이름(낱말)', /(?<![\w-])(spec|plan)(?![\w-])/gi],
   ['내부 과업 번호', /(?<![\w-])T\d{1,2}(?!\w)/g],
   ['내부 절 꼬리표(영문 한 글자-숫자)', /(?<![\w-])[A-H]-\d(?!\d)/g],
-  ['아직 없는 결정 번호', new RegExp(`D-${157 + 1}(?!\\d)`, 'g')],
+  ['아직 없는 결정 번호', new RegExp(`D-${158 + 1}(?!\\d)`, 'g')],
 ];
 const labelRes = [];
 for (const [name, re] of LABELS) {
@@ -406,7 +406,11 @@ for (const [name, re] of LABELS) {
 const d157 = [...doc.matchAll(/D-157(?!\d)/g)];
 const d157bad = d157.filter((m) => doc.slice(Math.max(0, m.index - 6), m.index) !== '완료 항목 ').length;
 labelRes.push(['「완료 항목」 없이 쓴 D-157', d157bad]);
-ok(labelRes.every(([, c]) => c === 0), `${rel(DOC)} — 본문 꼬리표 0`, `${labelRes.map(([n, c]) => `${n} ${c}`).join(' · ')} · (허용: 자료 파일 절 인용 「NN X-n」 ${allowedRef.length} · 「완료 항목 D-157」 ${d157.length - d157bad})`);
+// 마감 리뷰 회수 때 더함 — 회수 항목(D-158)도 같은 꼴로만 쓴다
+const d158 = [...doc.matchAll(/D-158(?!\d)/g)];
+const d158bad = d158.filter((m) => doc.slice(Math.max(0, m.index - 6), m.index) !== '회수 항목 ').length;
+labelRes.push(['「회수 항목」 없이 쓴 D-158', d158bad]);
+ok(labelRes.every(([, c]) => c === 0), `${rel(DOC)} — 본문 꼬리표 0`, `${labelRes.map(([n, c]) => `${n} ${c}`).join(' · ')} · (허용: 자료 파일 절 인용 「NN X-n」 ${allowedRef.length} · 「완료 항목 D-157」 ${d157.length - d157bad} · 「회수 항목 D-158」 ${d158.length - d158bad})`);
 say('');
 
 // ── [6] D-번호 · 절 참조 ────────────────────────────────────────────────────────
@@ -415,7 +419,7 @@ const decHeads = new Set([...dec.matchAll(/^## D-(\d{3})\b/gm)].map((m) => m[1])
 const cited = [...new Set([...doc.matchAll(/D-(\d{3})(?!\d)/g)].map((m) => m[1]))].sort();
 // 마감 기록 전에는 완료 항목(D-157)을 빼고 쟀다. 마감 기록이 결정 로그에 그 항목을 붙인 뒤로는 예외 없이 잰다.
 const notFound = cited.filter((n) => !decHeads.has(n));
-ok(notFound.length === 0, `인용한 D-번호 ${cited.length}종(${cited.map((n) => `D-${n}`).join(' · ')}) — 전부 DECISIONS.md에 제목이 있다(완료 항목 D-157 포함)`, notFound.length ? `없음 ${notFound.map((n) => `D-${n}`).join(' ')}` : '');
+ok(notFound.length === 0, `인용한 D-번호 ${cited.length}종(${cited.map((n) => `D-${n}`).join(' · ')}) — 전부 DECISIONS.md에 제목이 있다(완료 항목 D-157 · 회수 항목 D-158 포함)`, notFound.length ? `없음 ${notFound.map((n) => `D-${n}`).join(' ')}` : '');
 const secHeads = new Set(L.map((l) => (l.match(/^### (\d+\.\d+) /) || [])[1]).filter(Boolean));
 const dotted = [...new Set([...doc.matchAll(/§(\d+\.\d+)/g)].map((m) => m[1]))];
 const badDotted = dotted.filter((x) => !secHeads.has(x));
@@ -433,6 +437,9 @@ const COPIED = {
   '83-results.txt': ['307/321', '37/42', '98/107', '36/43', '35/43', '20/25', '16/18', '49/60', '47/60', '48/60', '44/55', '46/55', '42/47', '43/47', '44/47', '19/30', '17/30', '16/16', '6/7', '13/18', '14/18', '15/18', '26/47', '20/47', '54.3', '41.3', '8/8', '7/8', '5/8', '24/40', '22/40', '4/9', '5/9', '1/9', '83.7', '81.4', '88.9', '95.6', '88.1', '91.6'],
   '20-tokens.txt': ['157,482', '71,686', '67,640', '35,118', '60,893', '30,747', '19,463', '31,365', '3,242', '2,744', '141,107', '13,666', '35,277', '30,864', '12,282', '3,047', '1,261', '6,455', '12,967', '253,395', '186,346', '67,049', '16,762', '7,500', '10,777', '22,957', '2,818', '30,049', '4,126', '42,304', '1,374', '77,853', '7,512', '10,576', '12,002', '17,760', '1,617', '152,981', '70,364', '65,391', '34,281', '63,435', '29,487', '3,260', '2,777', '1,058'],
   '30-human-time.txt': ['37.0%', '31.6%', '53.3%', '57.1%', '38.5%', '21.1%', '33.3%'],
+  // 마감 리뷰 회수 때 더함 — 다시 잰 도구 항목 구성 · 규칙 블록 · 독립 리뷰 비용
+  '93-final-dispositions.txt': ['466 · 436', '236 · 268', '230 · 168', '657 · 556', '364 · 337', '1,491', '1,348'],
+  '92-final-review.txt': ['274,399'],
 };
 let nCopied = 0;
 const copiedBad = [];
