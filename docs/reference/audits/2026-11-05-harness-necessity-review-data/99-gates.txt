@@ -1,7 +1,8 @@
 판J T12 — 마감 게이트 실행 기록 (99)
 =====================================
-실행: 2026-11-06 12:18:06 · HEAD 2f0583c · 레포 루트 · PowerShell 7.6.9 · node v24.14.1
-판정 = 종료 코드. 출력은 게이트마다 끝 25줄(레포 위치 → <레포> · 계정 이름 경로 → <usr> · 웹 주소 → <url>).
+실행: 2026-11-06 13:27:41 · HEAD f6ae63f0 · 레포 루트 · PowerShell 7.6.9 · node v24.14.1
+회차: 2 — 마감 리뷰 회수(93 · D-158) 뒤 다시 돌렸다. 1회차(마감 기록 직후)의 기록은 git 이력의 ced3182에 있다.
+판정 = 종료 코드. 출력은 게이트마다 끝 25줄(레포 위치 → <레포> · 계정 이름 경로 → <usr> · 웹 주소 → <url> · 다른 프로젝트 이름 → <프로젝트>).
 doctor는 로컬 전용(CI 밖)이다 — FAIL 1(Antigravity 설치 1.2.14 ≠ 고정 1.1.4)은 이 판 전부터 있던 설치 상태이고 이 판과 무관하다.
 
 --- check-links · exit=0 · 0.1s
@@ -62,7 +63,7 @@ $ node interactive/scripts/conformance-server-gates.mjs
   
   ✅ 서버 게이트 적합성 통과 — tier 집행(QA·PRD·미해석 fail-closed, DEV 통과)·blocklist 집행·ask 왕복·inspection-only 정직 실패 고정 — 잔여 격차 0
 
---- gen-plugin-manifests · exit=0 · 0.0s
+--- gen-plugin-manifests · exit=0 · 0.1s
 $ node interactive/scripts/gen-plugin-manifests.mjs --check
   version : 0.12.0 (단일 정본: interactive/plugin-metadata.json)
   자산    : 페르소나 26 · 스킬 19 · 절차 25 · 에이전트 2 · 모듈 15 · 산업 14 · 국가 16 · 도구 155
@@ -79,7 +80,7 @@ $ node interactive/scripts/check-runtime-path-rename.mjs
   
   ✅ 개명 완료 게이트 통과 — 활성 구역에 구 세대 토큰 없음 · 안전 앵커 온전
 
---- conformance-runtime-dir · exit=0 · 5.0s
+--- conformance-runtime-dir · exit=0 · 5.1s
 $ node interactive/scripts/conformance-runtime-dir.mjs
   home-alias-both                           ok              ok              ok              ok              ok              
   home-alias-neither                        ok              ok              ok              ok              ok              
@@ -125,7 +126,7 @@ $ node interactive/scripts/check-doc-size.mjs --file HANDOFF.md:500:docs/referen
   
   ✅ 줄 수 게이트 통과 — 웜 레이어 문서가 상한 안에 있다
 
---- doctor (로컬 전용) · exit=1 · 2.4s
+--- doctor (로컬 전용) · exit=1 · 2.5s
 $ node interactive/scripts/doctor.mjs
   [doctor] 3사 어댑터-코어 동기화 · capability 진단
   
@@ -156,14 +157,14 @@ $ node scripts/check-wiki.mjs
   측정 정의   : CRLF 정규화 후 줄 번호 1-based · 인라인 마크다운 링크만
     OK ① 링크 무결성         상대 .md 링크 105개
     OK ② 고아 검출          분모 38개 (아카이브 2종 내부·INDEX 자신 제외) · 발견 링크 105개(인용 구간 밖)
-    OK ③ D-번호 실재        표제 157개 대조
+    OK ③ D-번호 실재        표제 158개 대조
     OK ④ 파생물 배너         페이지 8개
     OK ⑤ 부재 = 위반        docs/reference/wiki 있음 · INDEX.md 있음
     OK ⑥ 배선 앵커          CLAUDE.md·HANDOFF.md ← "docs/reference/wiki/INDEX.md"
   
   ✅ 위키 게이트 통과 — 콜드 층 위키가 구조적으로 살아 있다
 
---- test-check-wiki (공방) · exit=0 · 1.0s
+--- test-check-wiki (공방) · exit=0 · 0.9s
 $ node scripts/test-check-wiki.mjs
     [ok ]    └ 판정 지도
     [ok ]    └ 사유에 "입구 INDEX.md가 없다"
@@ -197,21 +198,21 @@ $ node docs/reference/audits/2026-11-05-harness-necessity-review-data/83-aggrega
 
 --- 84-selfcheck · exit=0 · 0.1s
 $ node docs/reference/audits/2026-11-05-harness-necessity-review-data/84-selfcheck.mjs
-    OK   docs/reference/audits/2026-11-05-harness-necessity-review.md — 핵심 금지 문자열 0 — 웹 주소 머리 0 · 비추적 작업 폴더 이름 0 · 홈 경로 · 사용자 이름 0 · 다른 프로젝트 · 프로파일 이름 0 · 기준선 서버 꾸러미 이름 0 · 레포 위치 경로 조각 0
-    OK   docs/reference/audits/2026-11-05-harness-necessity-review-data/84-selfcheck.txt — 핵심 금지 문자열 0 — 웹 주소 머리 0 · 비추적 작업 폴더 이름 0 · 홈 경로 · 사용자 이름 0 · 다른 프로젝트 · 프로파일 이름 0 · 기준선 서버 꾸러미 이름 0 · 레포 위치 경로 조각 0
     OK   docs/reference/audits/2026-11-05-harness-necessity-review-data/84-selfcheck.mjs — 핵심 금지 문자열 0 — 웹 주소 머리 0 · 비추적 작업 폴더 이름 0 · 홈 경로 · 사용자 이름 0 · 다른 프로젝트 · 프로파일 이름 0 · 기준선 서버 꾸러미 이름 0 · 레포 위치 경로 조각 0
-    OK   docs/reference/audits/2026-11-05-harness-necessity-review.md — 본문 꼬리표 0 — 내부 과업 문서 이름(낱말) 0 · 내부 과업 번호 0 · 내부 절 꼬리표(영문 한 글자-숫자) 0 · 아직 없는 결정 번호 0 · 「완료 항목」 없이 쓴 D-157 0 · (허용: 자료 파일 절 인용 「NN X-n」 1 · 「완료 항목 D-157」 3)
+    OK   docs/reference/audits/2026-11-05-harness-necessity-review.md — 본문 꼬리표 0 — 내부 과업 문서 이름(낱말) 0 · 내부 과업 번호 0 · 내부 절 꼬리표(영문 한 글자-숫자) 0 · 아직 없는 결정 번호 0 · 「완료 항목」 없이 쓴 D-157 0 · 「회수 항목」 없이 쓴 D-158 0 · (허용: 자료 파일 절 인용 「NN X-n」 1 · 「완료 항목 D-157」 4 · 「회수 항목 D-158」 2)
   
   [6] D-번호 실재 · 문서 안 절 참조 실재
-    OK   인용한 D-번호 9종(D-043 · D-062 · D-096 · D-105 · D-149 · D-150 · D-152 · D-156 · D-157) — 전부 DECISIONS.md에 제목이 있다(완료 항목 D-157 포함)
-    OK   「§N.M」 참조 24종 — 전부 이 문서의 「### N.M」 제목이 있다
+    OK   인용한 D-번호 10종(D-043 · D-062 · D-096 · D-105 · D-149 · D-150 · D-152 · D-156 · D-157 · D-158) — 전부 DECISIONS.md에 제목이 있다(완료 항목 D-157 · 회수 항목 D-158 포함)
+    OK   「§N.M」 참조 27종 — 전부 이 문서의 「### N.M」 제목이 있다
     OK   §6 후보 표 10행 · 「§6 ①~⑩」 참조 8종 전부 그 표에 있다
   
   [7] 옮긴 수치가 원자료에도 있다(감사 문서와 원자료 파일 양쪽에서 같은 글자)
       83-results.txt — 40/40
       20-tokens.txt — 46/46
       30-human-time.txt — 7/7
-    OK   옮긴 수치 93개 — 감사 문서와 원자료 양쪽에 있다
+      93-final-dispositions.txt — 7/7
+      92-final-review.txt — 1/1
+    OK   옮긴 수치 101개 — 감사 문서와 원자료 양쪽에 있다
   
   [8] 나라 · 업종 문항의 절 분포(10의 key_source → 그 줄 위 가장 가까운 「## 」 제목) ↔ §3.3 범위 표
       나라 16문항 — 뽑은 절: Tax System 4 · Statutory Reporting 3 · Master Data Peculiarities 2 · e-Invoicing / Fiscal Reporting 2 · Formats 2 · SAP Country Version 1 · VAT ID Format (EU-wide) 1 · Banking / Payments 1
@@ -229,9 +230,11 @@ $ node docs/reference/audits/2026-11-05-harness-necessity-review-data/84-selfche
   캡처 안 json-schema.org 밖의 웹 주소 = 0 (기준 0) → OK
   Codex 한도 안내 도메인 문자열 = 0 (기준 0) → OK
   계정 이름(공개 패키지 범위 이름 밖) = 0 (기준 0) → OK
+  00 머리에서 읽은 다른 프로젝트 · 프로파일 이름 수 = 8 (기준 8) → OK
+  00 밖의 다른 프로젝트 · 프로파일 이름 = 0 (기준 0) → OK
   제품 디렉터리 변경 파일 수(main...HEAD) = 0 (기준 0) → OK
   docs/ · HANDOFF.md · .gitignore 밖 변경 파일 수 = 0 (기준 0) → OK
-  main...HEAD 변경 파일 902개
+  main...HEAD 변경 파일 906개
 
 --- 요약
   check-links                  exit=0  (0.1s)
@@ -239,14 +242,14 @@ $ node docs/reference/audits/2026-11-05-harness-necessity-review-data/84-selfche
   check-engine-provenance      exit=0  (0.1s)
   smoke-mcp                    exit=0  (0.4s)
   conformance-server-gates     exit=0  (13.3s)
-  gen-plugin-manifests         exit=0  (0.0s)
+  gen-plugin-manifests         exit=0  (0.1s)
   check-runtime-path-rename    exit=0  (0.3s)
-  conformance-runtime-dir      exit=0  (5.0s)
+  conformance-runtime-dir      exit=0  (5.1s)
   verify-checker               exit=0  (0.1s)
   check-doc-size               exit=0  (0.0s)
-  doctor (로컬 전용)               exit=1  (2.4s)
+  doctor (로컬 전용)               exit=1  (2.5s)
   check-wiki (공방)              exit=0  (0.1s)
-  test-check-wiki (공방)         exit=0  (1.0s)
+  test-check-wiki (공방)         exit=0  (0.9s)
   83-aggregate --check         exit=0  (0.1s)
   84-selfcheck                 exit=0  (0.1s)
   자료 폴더 .md 파일 수               OK
@@ -254,5 +257,7 @@ $ node docs/reference/audits/2026-11-05-harness-necessity-review-data/84-selfche
   캡처 안 json-schema.org 밖의 웹 주소 OK
   Codex 한도 안내 도메인 문자열          OK
   계정 이름(공개 패키지 범위 이름 밖)        OK
+  00 머리에서 읽은 다른 프로젝트 · 프로파일 이름 수 OK
+  00 밖의 다른 프로젝트 · 프로파일 이름      OK
   제품 디렉터리 변경 파일 수(main...HEAD) OK
   docs/ · HANDOFF.md · .gitignore 밖 변경 파일 수 OK
