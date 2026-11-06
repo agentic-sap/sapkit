@@ -20,7 +20,7 @@
 //   [3] 선 — §2.2~§2.3의 선 문언이 D-156 원문에 있다 · §3의 판정 칸을 그 선으로 다시 매겨 문서와 대조
 //   [4] 상대 링크 전수 실재
 //   [5] 금지 문자열 스캔 — 감사 문서 · 84-selfcheck.txt · 이 파일
-//   [6] D-번호 실재 · 문서 안 절 참조(§N.M · §6 ①~⑩) 실재
+//   [6] D-번호 실재(완료 항목도 — 마감 기록이 결정 로그에 붙인 뒤로 예외를 걷었다) · 문서 안 절 참조(§N.M · §6 ①~⑩) 실재
 //   [7] 옮긴 수치가 원자료 파일에도 있다
 //   [8] 나라 · 업종 문항의 절 분포(10의 key_source → 그 줄 위 가장 가까운 「## 」 제목) ↔ §3.3 범위 표
 
@@ -413,8 +413,9 @@ say('');
 say('[6] D-번호 실재 · 문서 안 절 참조 실재');
 const decHeads = new Set([...dec.matchAll(/^## D-(\d{3})\b/gm)].map((m) => m[1]));
 const cited = [...new Set([...doc.matchAll(/D-(\d{3})(?!\d)/g)].map((m) => m[1]))].sort();
-const notFound = cited.filter((n) => n !== '157' && !decHeads.has(n));
-ok(notFound.length === 0, `인용한 D-번호 ${cited.length}종(${cited.map((n) => `D-${n}`).join(' · ')}) — D-157(완료 항목 · 마감 과업이 추가)만 빼고 DECISIONS.md에 제목이 있다`, notFound.length ? `없음 ${notFound.map((n) => `D-${n}`).join(' ')}` : '');
+// 마감 기록 전에는 완료 항목(D-157)을 빼고 쟀다. 마감 기록이 결정 로그에 그 항목을 붙인 뒤로는 예외 없이 잰다.
+const notFound = cited.filter((n) => !decHeads.has(n));
+ok(notFound.length === 0, `인용한 D-번호 ${cited.length}종(${cited.map((n) => `D-${n}`).join(' · ')}) — 전부 DECISIONS.md에 제목이 있다(완료 항목 D-157 포함)`, notFound.length ? `없음 ${notFound.map((n) => `D-${n}`).join(' ')}` : '');
 const secHeads = new Set(L.map((l) => (l.match(/^### (\d+\.\d+) /) || [])[1]).filter(Boolean));
 const dotted = [...new Set([...doc.matchAll(/§(\d+\.\d+)/g)].map((m) => m[1]))];
 const badDotted = dotted.filter((x) => !secHeads.has(x));
