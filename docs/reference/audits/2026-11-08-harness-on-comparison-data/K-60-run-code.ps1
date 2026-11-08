@@ -12,7 +12,7 @@ K-60-run-code.ps1 — 판K T6 「코드 시험 응시(켠 조건) + 동봉 검�
 판J 레시피 대비 차이 (D-160 ⓪ 셋 + 판K 운영)
   1. 하네스 폴더 %TEMP%\sapkit-panK\harness-T6\ (커밋 4f12d678 의 knowledge\ · personas\ — 203파일) = 모든 호출의 cwd(claude
      작업 폴더 · codex -C). empty-mcp.json 은 폴더 밖 형제 %TEMP%\sapkit-panK\empty-mcp.json. Codex 홈 codexhome-T6\ (auth.json 사본만).
-  2. Claude: --tools "Read,Grep,Glob" + --restricted. Codex: 플래그 그대로 + -c model_reasoning_effort="medium"(배너 확인 · 거부되면 중단).
+  2. Claude: --tools "Read,Grep,Glob" + --restricted. Codex: 플래그 그대로 + -c model_reasoning_effort="medium"(배너 확인 · 거부되면 중단) + -c windows.sandbox="unelevated"(T0-b · 소유자 결정 2026-11-08 · K-00 §3).
   3. 고정 줄 = D-160 ⓪ 코드 줄(+ 한국어 병기).
   4. 유효성 ⑴~⑷ 기계 판정 · 판정 순서 ①②③ · 벽시계 15분 · 고정 백오프 8회(K-00 §4 · §5) — 3회 모두 무효면 그 과제는 불통과(오답).
   5. 원 이벤트 스트림(JSONL) · 무효 원응답은 %TEMP%\sapkit-panK\raw-T6\<model>\ 에만 (커밋하지 않음).
@@ -188,7 +188,7 @@ function Get-KClaudeArgv([string]$Model, [string]$Prompt) {
 function Get-KCodexArgv([string]$Prompt, [bool]$Json) {
   $a = @($script:KCodexJs, 'exec', '--skip-git-repo-check', '-s', 'read-only', '-C', $HarnessDir, '-m', 'gpt-5.6-sol')
   if ($Json) { $a += '--json' }
-  $a += @('--ephemeral', '--ignore-user-config', '--ignore-rules', '--disable', 'apps', '--disable', 'plugins', '--disable', 'image_generation', '--disable', 'multi_agent', '-c', 'web_search="disabled"', '-c', 'mcp_servers={}', '-c', 'skills.include_instructions=false', '-c', 'model_reasoning_effort="medium"')
+  $a += @('--ephemeral', '--ignore-user-config', '--ignore-rules', '--disable', 'apps', '--disable', 'plugins', '--disable', 'image_generation', '--disable', 'multi_agent', '-c', 'web_search="disabled"', '-c', 'mcp_servers={}', '-c', 'skills.include_instructions=false', '-c', 'model_reasoning_effort="medium"', '-c', 'windows.sandbox="unelevated"')
   if (-not $Json) { $a += @('--color', 'never') }
   $a += $Prompt
   return $a
@@ -818,7 +818,7 @@ function Write-EventsFile([string]$model, $t, $st, $ev, $call, $ext, $cls) {
   $L.Add("$model · $id — 켠 조건 코드 과제 이벤트 추출 요약 (판K T6)")
   $L.Add("원본: %TEMP%\sapkit-panK\raw-T6\$model\$id.jsonl (원 이벤트 스트림 · 세션/스레드 id·로컬 경로 포함 · 커밋하지 않음 · 호출별 사본 $id.call-<k>.jsonl)")
   if ($model -eq $CodexModel) {
-    $L.Add("명령: K-00-recipe.txt §3 (판J 02 §3 그대로 + -c model_reasoning_effort=`"medium`" · 배너 확인 K-60-canary-gpt-5.6-sol.txt) · cwd/-C = harness-T6")
+    $L.Add("명령: K-00-recipe.txt §3 (판J 02 §3 그대로 + -c model_reasoning_effort=`"medium`" + -c windows.sandbox=`"unelevated`" · 배너 확인 K-60-canary-gpt-5.6-sol.txt) · cwd/-C = harness-T6")
   } else {
     $L.Add("명령: K-00-recipe.txt §2 (판J 02 §2 + --tools `"Read,Grep,Glob`" --restricted) · 모델 id $model · cwd = harness-T6")
   }

@@ -7,7 +7,7 @@ Follows 02-isolation-recipe.txt (Claude §2 · Codex §3 · canary §0) of 판J,
   1. harness folder  %TEMP%\sapkit-panK\harness-T5\  (knowledge\ · personas\ from commit 4f12d678 — 203 files) is the cwd of
      every call (claude working folder · codex -C). empty-mcp.json sits OUTSIDE it: %TEMP%\sapkit-panK\empty-mcp.json.
      own Codex home %TEMP%\sapkit-panK\codexhome-T5\ (auth.json copy only — the operator deletes it at the end).
-  2. Claude: --tools "Read,Grep,Glob" (was "") and --restricted (new). Codex: flags unchanged + -c model_reasoning_effort="medium".
+  2. Claude: --tools "Read,Grep,Glob" (was "") and --restricted (new). Codex: flags unchanged + -c model_reasoning_effort="medium" + -c windows.sandbox="unelevated" (T0-b · owner decision 2026-11-08 · K-00 §3).
   3. fixed line = D-160 ⓪ knowledge line (+ Korean gloss). Items = J-10 sample 60 only (K-INC from J-41 is not taken).
   4. validity ⑴~⑷ by machine (K-00 §4): read tools only · every read attempt inside the folder · no other item · URLs only from the folder.
      verdict order (K-00 §5): ① transient (no result · exit≠0 · usage limit · network/CLI) → fixed backoff 60/120/240/480/900×4, 8 times,
@@ -175,7 +175,7 @@ function Get-KClaudeArgv([string]$Model, [string]$Prompt) {
 function Get-KCodexArgv([string]$Prompt, [bool]$Json) {
   $a = @($script:KCodexJs, 'exec', '--skip-git-repo-check', '-s', 'read-only', '-C', $HarnessDir, '-m', 'gpt-5.6-sol')
   if ($Json) { $a += '--json' }
-  $a += @('--ephemeral', '--ignore-user-config', '--ignore-rules', '--disable', 'apps', '--disable', 'plugins', '--disable', 'image_generation', '--disable', 'multi_agent', '-c', 'web_search="disabled"', '-c', 'mcp_servers={}', '-c', 'skills.include_instructions=false', '-c', 'model_reasoning_effort="medium"')
+  $a += @('--ephemeral', '--ignore-user-config', '--ignore-rules', '--disable', 'apps', '--disable', 'plugins', '--disable', 'image_generation', '--disable', 'multi_agent', '-c', 'web_search="disabled"', '-c', 'mcp_servers={}', '-c', 'skills.include_instructions=false', '-c', 'model_reasoning_effort="medium"', '-c', 'windows.sandbox="unelevated"')
   if (-not $Json) { $a += @('--color', 'never') }
   $a += $Prompt
   return $a
@@ -1005,7 +1005,7 @@ Write-Log ('prompt = fixed line + blank line + question (verbatim); fixed line: 
 if ($Model -like 'claude-*') {
   Write-Log ('command: $env:CLAUDECODE = $null; cwd=<HARNESS>; claude -p "<PROMPT>" --model ' + $Model + ' --tools "Read,Grep,Glob" --restricted --setting-sources "" --strict-mcp-config --mcp-config "<WORK>\empty-mcp.json" --disable-slash-commands --output-format stream-json --verbose --no-session-persistence  (stdin closed · stdout/stderr → <RAW> · wall clock 900 s)')
 } else {
-  Write-Log ('command: $env:CODEX_HOME = "<CODEXHOME>"; codex exec --skip-git-repo-check -s read-only -C "<HARNESS>" -m gpt-5.6-sol --json --ephemeral --ignore-user-config --ignore-rules --disable apps --disable plugins --disable image_generation --disable multi_agent -c ''web_search="disabled"'' -c ''mcp_servers={}'' -c ''skills.include_instructions=false'' -c ''model_reasoning_effort="medium"'' "<PROMPT>"  (stdin closed = $null | · node <npm>\node_modules\@openai\codex\bin\codex.js · wall clock 900 s)')
+  Write-Log ('command: $env:CODEX_HOME = "<CODEXHOME>"; codex exec --skip-git-repo-check -s read-only -C "<HARNESS>" -m gpt-5.6-sol --json --ephemeral --ignore-user-config --ignore-rules --disable apps --disable plugins --disable image_generation --disable multi_agent -c ''web_search="disabled"'' -c ''mcp_servers={}'' -c ''skills.include_instructions=false'' -c ''model_reasoning_effort="medium"'' -c ''windows.sandbox="unelevated"'' "<PROMPT>"  (stdin closed = $null | · node <npm>\node_modules\@openai\codex\bin\codex.js · wall clock 900 s)')
   Write-Log ('banner command: same flags without --json, plus --color never, prompt "' + $KBannerPrompt + '" (model id + reasoning effort + version read from the banner)')
 }
 

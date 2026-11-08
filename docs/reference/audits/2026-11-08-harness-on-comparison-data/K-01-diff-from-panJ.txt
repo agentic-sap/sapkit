@@ -56,8 +56,16 @@ D. 실행 방식
 40 | Codex 의 --json 밖 도구 시도 | 보지 않음(item 만) | stderr 「codex_core::tools::router: error=<종류>」 줄 하나마다 시도 1 · 위반 stderr-tool:<종류>(fail-closed) · 경계 카나리아도 이것을 「잡음」으로 센다 | T0 실측 — 거부된 exec_command · apply_patch(맥락 줄 검증으로 첫 줄을 짐작) · 이미지 보기는 --json 에 item 으로 나오지 않는다
 41 | Codex 셸 실행 | (판J 는 셸을 쓰지 않는 조건 — 문제 없음) | ⚠ 미확정: J-02 §3 플래그 그대로면 모든 명령이 「blocked by policy」, windows.sandbox="unelevated" 를 더하면 msix pwsh 를 못 띄운다 — K-00 §10 · 메인 판단 대기 | T0 카나리아 ⑵ BLOCKED
 42 | Codex 답 본문 | agent_message 전부를 이어 붙임 | 같음 — 단 도구를 켜면 진행 안내 문장(「…를 읽겠습니다」)이 답 본문에 섞인다(카나리아 실측). 채점자에게 알릴 것 | J 와 같은 규칙 · 관찰 기록
+43 | Codex 응시 명령의 Windows 샌드박스 (T0-b) | 판J 는 셸을 쓰지 않아 임시 홈 + --ignore-user-config 로 [windows] sandbox 가 빠져도 문제 없음 | J-02 §3 + 추론 강도 + -c 'windows.sandbox="unelevated"' 한 줄 — D-160 ⓪ 「나머지 플래그 글자 그대로」의 두 번째 예외(첫째 = 행 4 --restricted). 그 밖 플래그 · 설정 0 · 배너의 sandbox: read-only · approval: never 그대로. 두 러너 K-COMMON Get-KCodexArgv 에 같은 글자 + 러너 머리 주석 · 명령 기록 줄(K-50 실행 기록 · K-60 이벤트 요약)도 같은 한 줄로 맞춤 | 소유자 결정 2026-11-08 · K-00 §3 · 행 41 의 정책 거부(ⓐ) 해소
+44 | Codex 가 띄우는 셸 (T0-b) | 판J 는 셸 호출 자체가 무효 | PowerShell 7.6.9 msi(C:\Program Files\PowerShell\7\pwsh.exe) — T0 의 msix 꾸러미는 샌드박스가 못 띄워(CreateProcessAsUserW 5) 지웠다. Codex 는 셸 고르는 설정 키가 없고, 러너 pwsh 의 자리($PSHOME)를 PATH 앞에서 물려받거나 내장 대체 자리로 msi pwsh 를 고른다. 러너도 msi pwsh 로 띄운다 | install.txt [3] · K-00 §9 · §10 T0-b ③
+45 | Codex 명령 분류 × 셸 자리 (T0-b · ⚠ 미해소) | — | §4 단계 0 껍데기 정규식은 공백 없는 실행 파일 경로만 벗긴다 → msi 자리 "C:\Program Files\…\pwsh.exe" 는 wrapper=none · head:q · path:outside 로 모든 명령이 무효(2회차 카나리아 폴더 안 읽기 FAIL). 정규식 불변이라 T0-b 는 고치지 않았다 — 메인 판단 대기(K-00 §10 ㉠ ~ ㉢) | K-00 §10 T0-b ⑤
+46 | Codex 셸 출력의 한글 (T0-b · 관찰) | — | 샌드박스 안 PowerShell(5.1 · 7)이 ConstrainedLanguage 모드라 Codex 의 UTF-8 출력 설정이 실패 → 출력이 코드 페이지 949 로 나가 한글이 깨진다(폴더 112/203 파일에 한글). 우회 명령은 §4 읽기 머리 밖이라 무효. 판J 에는 없던 조건 차이(Claude 의 Read 는 UTF-8 로 읽는다) | K-00 §10 T0-b ④
 
 K-COMMON 대조 (T0 기계 확인): 두 러너에서 「# >>> K-COMMON」부터 「# <<< K-COMMON」까지의 글자가 같다 — 아래 sha256.
   K-50-run-knowledge.ps1 K-COMMON sha256 = 0d80fb2dab9a219c243481785bcd774af7d318d414813c60389a1e8b58bca55a (36211 chars)
   K-60-run-code.ps1      K-COMMON sha256 = 0d80fb2dab9a219c243481785bcd774af7d318d414813c60389a1e8b58bca55a (36211 chars)
   같음: True
+K-COMMON 재대조 (T0-b · 행 43 의 한 줄을 두 러너에 넣은 뒤 · 같은 잣대 = 「# >>> K-COMMON」부터 「# <<< K-COMMON」 줄 끝까지 · LF):
+  K-50-run-knowledge.ps1 K-COMMON sha256 = ad7fa4b88688f98da2208ed8a411877d9f3d4166a2c82e5ea0608b4345475bb5 (36249 chars)
+  K-60-run-code.ps1      K-COMMON sha256 = ad7fa4b88688f98da2208ed8a411877d9f3d4166a2c82e5ea0608b4345475bb5 (36249 chars)
+  같음: True · T0 대비 +38 chars = 「, '-c', 'windows.sandbox="unelevated"'」 하나뿐

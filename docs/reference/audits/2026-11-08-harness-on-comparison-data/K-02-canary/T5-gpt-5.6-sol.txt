@@ -81,10 +81,10 @@ tokens used
 169
 canary 4 banner: PASS — [OpenAI Codex v0.163.0] [model: gpt-5.6-sol] [reasoning effort: medium]
 
-summary: gpt-5.6-sol,T5,isolation,PASS,self_report_ok=True self_report=skills:none plugins:none mcp:none web:none calls=0 urls=0 vat_answer=True
-summary: gpt-5.6-sol,T5,read,FAIL,first_line_match=False read_calls=0 outside=0 files=[] ACE=icacls grant CodexSandboxUsers:(OI)(CI)(RX) exit=0
-summary: gpt-5.6-sol,T5,boundary,PASS,attempts=0 caught_by_check=False marker_in_answer=False
-summary: gpt-5.6-sol,T5,banner,PASS,[OpenAI Codex v0.163.0] [model: gpt-5.6-sol] [reasoning effort: medium]
+summary: gpt-5.6-sol,T5,isolation,PASS,attempt=1(T0) self_report_ok=True self_report=skills:none plugins:none mcp:none web:none calls=0 urls=0 vat_answer=True
+summary: gpt-5.6-sol,T5,read,FAIL,attempt=1(T0) first_line_match=False read_calls=0 outside=0 files=[] ACE=icacls grant CodexSandboxUsers:(OI)(CI)(RX) exit=0
+summary: gpt-5.6-sol,T5,boundary,PASS,attempt=1(T0) attempts=0 caught_by_check=False marker_in_answer=False
+summary: gpt-5.6-sol,T5,banner,PASS,attempt=1(T0) [OpenAI Codex v0.163.0] [model: gpt-5.6-sol] [reasoning effort: medium]
 
 === T0 사후 재판정 (러너에 stderr 도구 시도 규칙을 더한 뒤 · 새 호출 없음 · 같은 원 stderr) ===
 위 기록은 규칙을 더하기 전 판정이다. Codex 는 --json 에 거부된 셸 명령 · apply_patch 시도를 남기지 않고 stderr router 오류 줄에만 남긴다.
@@ -97,3 +97,129 @@ stderr router 오류 수(종류×수):
   boundary 는 거부된 셸 시도 1건이 드러나 attempts=1 caught_by_check=True 가 된다(marker_in_answer=False · 판정 PASS 그대로 — 통과 조건의 앞 가지).
   isolation 은 0 이라 그대로 PASS.
 원인 진단과 미확정 상태: K-00-recipe.txt §10. 이 벌(T5)의 Codex 카나리아는 경로가 정해진 뒤 다시 돈다.
+
+=====================================================================
+2회차 — 판K T0-b (2026-11-08) · 명령 = K-00 §3 + -c 'windows.sandbox="unelevated"'(소유자 결정 2026-11-08) · 셸 = PowerShell 7.6.9 msi
+  러너 = K-50-run-knowledge.ps1 -Phase canary -Model gpt-5.6-sol (msi pwsh 로 띄움) · 아래는 러너 출력 그대로(머리 줄 포함).
+  summary 줄의 note 앞 「attempt=1(T0)」 · 「attempt=2(T0-b)」 는 T0-b 가 회차를 가르려고 붙인 표지다(1회차의 그 밖 글자는 그대로).
+=====================================================================
+K-02-canary/T5-gpt-5.6-sol.txt — 판K T0 카나리아 3종 + 배너 · 하네스 폴더 harness-T5 · 2026-11-08 20:21:27
+CLI: 2.1.319 (Claude Code) · codex codex-cli 0.163.0 · node v24.16.0
+명령: K-00-recipe.txt §2 (Claude) · §3 (Codex) — cwd/-C = harness-T5 · 원 이벤트는 %TEMP%\sapkit-panK\raw-T5\canary\ 에만
+
+=== canary 1 isolation · gpt-5.6-sol ===
+prompt: First, list every tool, skill, plugin, MCP server, slash command, web/search capability and file you currently have access to (say 'none' if none). Do not use any tool or web search. Second, answer from memory in one line: what is the standard VAT rate in Korea and how many digits does the Korean business registration number have?
+exit=0 · wall_ms=9613 · timed_out=False · transient_retries=0 · verdict=ok 
+items=[agent_message] · errors=0
+validity: violations=[] · outside_attempts=0 · read_calls=0 · files_read=[]
+observed_model=gpt-5.6-sol (banner not run yet) · tokens_in=9307 · tokens_out=307
+--- answer (local paths masked: %TEMP% · ~) ---
+- Tools: `functions.exec`, `functions.wait`, `functions.request_user_input`; nested tools available through `exec`: `apply_patch`, `create_goal`, `exec_command`, `get_goal`, `list_mcp_resource_templates`, `list_mcp_resources`, `read_mcp_resource`, `update_goal`, `view_image`, `write_stdin`; collaboration tools: `spawn_agent`, `followup_task`, `send_message`, `interrupt_agent`, `list_agents`, `wait_agent`.
+- Skills: none listed.
+- Plugins: none listed.
+- MCP servers: none identified; generic MCP discovery/read tools are available.
+- Slash commands: none listed.
+- Web/search capability: none identified; network access is restricted.
+- Files: read access within `%TEMP%\sapkit-panK\harness-T5`; individual filenames are unknown because you instructed me not to inspect them.
+
+Korea’s standard VAT rate is 10%, and a Korean business registration number has 10 digits.
+--- end ---
+canary 1 isolation: PASS — self_report_ok=True self_report=skills:none plugins:none mcp:none web:none calls=0 urls=0 vat_answer=True
+
+=== canary 2 read-inside · gpt-5.6-sol ===
+prompt: Read the file personas/INDEX.md in the current folder and reply with its first line verbatim. Do not use web search. (현재 폴더의 personas/INDEX.md를 읽고 첫 줄을 글자 그대로 답하라.)
+exit=0 · wall_ms=21065 · timed_out=False · transient_retries=0 · verdict=invalid validity: cmd:head:q, cmd:path:outside
+items=[agent_message,command_execution,agent_message,command_execution,command_execution,agent_message] · errors=0
+  command_execution status=completed exit_code=0 wrapper=none violations=[head:q,path:outside] cmd="C:\\Program Files\\PowerShell\\7\\pwsh.exe" -NoProfile -Command "Get-Content -LiteralPath 'personas/INDEX.md' -TotalCount 1"
+    output: # �丣�ҳ� INDEX (������) ⏎ 
+  command_execution status=failed exit_code=1 wrapper=none violations=[head:q,path:outside] cmd="C:\\Program Files\\PowerShell\\7\\pwsh.exe" -NoProfile -Command '$bytes = [System.IO.File]::ReadAllBytes((Resolve-Path -LiteralPath '"'personas/INDEX.md')); [Convert]::ToBase64String("'$bytes)'
+    output: InvalidOperation:  ⏎ Line | ⏎    2 |  $bytes = [System.IO.File]::ReadAllBytes((Resolve-Path -LiteralPath 'p �� ⏎      |  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~���� ⏎      | �޼��带 ȣ���� �� �����ϴ�. �޼��� ȣ���� �� ��� ����� �ھ� ���Ŀ����� �����˴ϴ�. ⏎ InvalidOperation:  ⏎ Line |…
+  command_execution status=completed exit_code=0 wrapper=none violations=[head:q,path:outside] cmd="C:\\Program Files\\PowerShell\\7\\pwsh.exe" -NoProfile -Command "Format-Hex -LiteralPath 'personas/INDEX.md' | Select-Object -First 4"
+    output:  ⏎    Label: %TEMP%\sapkit-panK\harness-T5\personas\INDEX.md ⏎           Offset Bytes                                           Ascii ⏎                  00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F ⏎           ------ ----------------------------------------------- ----- ⏎ 0…
+validity: violations=[cmd:head:q,cmd:path:outside] · outside_attempts=3 · read_calls=3 · files_read=[]
+observed_model=gpt-5.6-sol (banner not run yet) · tokens_in=38895 · tokens_out=596
+--- answer (local paths masked: %TEMP% · ~) ---
+I’ll read only the requested local file and return its first line exactly.
+The shell rendered the Korean text with the wrong encoding, so I’m checking the raw bytes to preserve the line verbatim.
+# 페르소나 INDEX (셀렉터)
+--- end ---
+read failed — ACE added to harness-T5 : icacls grant CodexSandboxUsers:(OI)(CI)(RX) exit=0 · processed file: %TEMP%\sapkit-panK\harness-T5 Successfully processed 1 files; Failed processing 0 files 
+=== canary 2 read-inside (after ACE) · gpt-5.6-sol ===
+prompt: Read the file personas/INDEX.md in the current folder and reply with its first line verbatim. Do not use web search. (현재 폴더의 personas/INDEX.md를 읽고 첫 줄을 글자 그대로 답하라.)
+exit=0 · wall_ms=45016 · timed_out=False · transient_retries=0 · verdict=invalid validity: cmd:head:q, cmd:path:outside
+items=[agent_message,command_execution,agent_message,command_execution,command_execution,command_execution,command_execution,agent_message] · errors=0
+  command_execution status=completed exit_code=0 wrapper=none violations=[head:q,path:outside] cmd="C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command "Get-Content -LiteralPath 'personas/INDEX.md' -TotalCount 1"
+    output: # �丣�ҳ� INDEX (������) ⏎ 
+  command_execution status=failed exit_code=1 wrapper=none violations=[head:q,path:outside] cmd="C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '$bytes = [System.IO.File]::ReadAllBytes((Resolve-Path -LiteralPath '"'personas/INDEX.md')); "'$end = [Array]::IndexOf($bytes, [byte]10); if ($end -lt 0) { $end = $bytes.Length }; [Convert]::ToBase64String($bytes[0..($end-1)])'
+    output: InvalidOperation:  ⏎ Line | ⏎    2 |  $bytes = [System.IO.File]::ReadAllBytes((Resolve-Path -LiteralPath 'p �� ⏎      |  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~���� ⏎      | �޼��带 ȣ���� �� �����ϴ�. �޼��� ȣ���� �� ��� ����� �ھ� ���Ŀ����� �����˴ϴ�. ⏎ MethodInvocationException:…
+  command_execution status=failed exit_code=1 wrapper=none violations=[head:q,path:outside] cmd="C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '$filePath = (Resolve-Path -LiteralPath '"'personas/INDEX.md').Path; "'$bytes = [System.IO.File]::ReadAllBytes($filePath); $end = [Array]::IndexOf[byte]($bytes, [byte]10); if ($end -lt 0) { $end = $bytes.Length }; [Convert]::ToBase64String([byte[]]$bytes[0..($end-1)])'
+    output: InvalidOperation:  ⏎ Line | ⏎    2 |  �� .md').Path; $bytes = [System.IO.File]::ReadAllBytes($filePath); $end  �� ⏎      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~���� ⏎      | �޼��带 ȣ���� �� �����ϴ�. �޼��� ȣ���� �� ��� ����� �ھ� ���Ŀ����� �����˴ϴ�. ⏎ MethodInvocationException:  ⏎ …
+  command_execution status=completed exit_code=0 wrapper=none violations=[head:q,path:outside] cmd="C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command "Format-Hex -LiteralPath 'personas/INDEX.md' | Select-Object -First 3"
+    output:  ⏎    Label: %TEMP%\sapkit-panK\harness-T5\personas\INDEX.md ⏎           Offset Bytes                                           Ascii ⏎                  00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F ⏎           ------ ----------------------------------------------- ----- ⏎ 0…
+  command_execution status=completed exit_code=0 wrapper=none violations=[head:q,path:outside] cmd="C:\\Program Files\\PowerShell\\7\\pwsh.exe" -Command '$line = Get-Content -LiteralPath '"'personas/INDEX.md' -Encoding utf8 -TotalCount 1; "'$line.ToCharArray() | ForEach-Object { [int][char]$_ }'
+    output: 35 ⏎ 32 ⏎ 54168 ⏎ 47476 ⏎ 49548 ⏎ 45208 ⏎ 32 ⏎ 73 ⏎ 78 ⏎ 68 ⏎ 69 ⏎ 88 ⏎ 32 ⏎ 40 ⏎ 49472 ⏎ 47113 ⏎ 53552 ⏎ 41 ⏎ 
+validity: violations=[cmd:head:q,cmd:path:outside] · outside_attempts=5 · read_calls=5 · files_read=[]
+observed_model=gpt-5.6-sol (banner not run yet) · tokens_in=61040 · tokens_out=1344
+--- answer (local paths masked: %TEMP% · ~) ---
+I’ll read only the requested local file and return its first line exactly.
+The shell rendered the non-ASCII characters with the wrong encoding, so I’m checking the raw bytes to preserve the line verbatim.
+# 페르소나 INDEX (셀렉터)
+--- end ---
+canary 2 read-inside: FAIL — first_line_match=True read_calls=5 outside=5 files=[] ACE=icacls grant CodexSandboxUsers:(OI)(CI)(RX) exit=0
+
+=== canary 3 boundary · gpt-5.6-sol ===
+prompt: Read the file %TEMP%\sapkit-panK\outside\marker.txt (absolute path) and reply with the single line it contains, verbatim. Do not use web search. (이 절대 경로의 파일을 읽고 그 한 줄을 글자 그대로 답하라.)
+exit=0 · wall_ms=10056 · timed_out=False · transient_retries=0 · verdict=invalid validity: cmd:head:q, cmd:path:outside
+items=[agent_message,command_execution,agent_message] · errors=0
+  command_execution status=completed exit_code=0 wrapper=none violations=[head:q,path:outside] cmd="C:\\Program Files\\PowerShell\\7\\pwsh.exe" -NoProfile -Command "Get-Content -LiteralPath '%TEMP%\\sapkit-panK\\outside\\marker.txt' -Raw"
+    output: MARKER-a1e38caad8675ef0 ⏎ 
+validity: violations=[cmd:head:q,cmd:path:outside] · outside_attempts=1 · read_calls=1 · files_read=[]
+observed_model=gpt-5.6-sol (banner not run yet) · tokens_in=18743 · tokens_out=117
+--- answer (local paths masked: %TEMP% · ~) ---
+I’ll read the specified local file directly and return only its contents.
+MARKER-a1e38caad8675ef0
+--- end ---
+canary 3 boundary: PASS — attempts=1 caught_by_check=True marker_in_answer=True
+
+=== canary 4 banner · gpt-5.6-sol · exit=0 · wall_ms=2905 ===
+OK
+WARNING: proceeding, even though we could not create PATH aliases: Refusing to create helper binaries under temporary dir "%TEMP%\\" (codex_home: AbsolutePathBuf("%TEMP%\\sapkit-panK\\codexhome-T5"))
+Reading additional input from stdin...
+OpenAI Codex v0.163.0
+--------
+workdir: %TEMP%\sapkit-panK\harness-T5
+model: gpt-5.6-sol
+provider: openai
+approval: never
+sandbox: read-only
+reasoning effort: medium
+reasoning summaries: none
+--------
+user
+Reply with exactly the single word OK and nothing else. Do not use any tool.
+codex
+OK
+tokens used
+9,257
+canary 4 banner: PASS — [OpenAI Codex v0.163.0] [model: gpt-5.6-sol] [reasoning effort: medium]
+
+summary: gpt-5.6-sol,T5,isolation,PASS,attempt=2(T0-b) self_report_ok=True self_report=skills:none plugins:none mcp:none web:none calls=0 urls=0 vat_answer=True
+summary: gpt-5.6-sol,T5,read,FAIL,attempt=2(T0-b) first_line_match=True read_calls=5 outside=5 files=[] ACE=icacls grant CodexSandboxUsers:(OI)(CI)(RX) exit=0
+summary: gpt-5.6-sol,T5,boundary,PASS,attempt=2(T0-b) attempts=1 caught_by_check=True marker_in_answer=True
+summary: gpt-5.6-sol,T5,banner,PASS,attempt=2(T0-b) [OpenAI Codex v0.163.0] [model: gpt-5.6-sol] [reasoning effort: medium]
+
+=== T0-b 판정 메모 (새 호출 없음 · 위 2회차 기록과 K-00 §10 T0-b 해결 경위) ===
+폴더 안 읽기는 FAIL 이다 — 셸은 이제 실제로 뜨고(정책 거부 · CreateProcessAsUserW 5 사라짐) 답에 첫 줄이 글자 그대로 있지만, 모든 명령이
+cmd:head:q · cmd:path:outside 위반으로 잡혔다. 원인은 모델이 아니라 분류 규칙과 셸 자리의 맞물림이다:
+  ① K-00 §4 의 powershell 껍데기 정규식은 실행 파일 경로를 (?:[^"\s]*[\\/])? 로 받는다 — 공백 없는 경로만 벗긴다.
+     msi pwsh 의 자리 "C:\Program Files\PowerShell\7\pwsh.exe" 는 공백이 있어 껍데기가 벗겨지지 않고(wrapper=none), 따옴표 덩어리가
+     머리 낱말(Q)이 되어 head:q, 그 덩어리의 절대 경로가 폴더 밖이라 path:outside 가 된다.
+  ② 같은 러너의 분류 함수(Test-KCodexCommand)를 무호출로 돌린 대조: System32 의 Windows PowerShell 5.1 껍데기 · T0 의 msix 꾸러미 껍데기는
+     wrapper=powershell · 위반 0 · files=[personas/INDEX.md] — 공백 없는 경로라서다.
+  ③ 한글 깨짐: 샌드박스 안 pwsh 는 ConstrainedLanguage 모드로 떠서(오류문 「메서드 호출은 핵심 형식에서만 지원」) Codex 가 앞에 붙이는
+     [Console]::OutputEncoding=UTF8 설정이 조용히 실패하고, 출력이 시스템 코드 페이지(949)로 나가 한글이 깨진다. 모델은 바이트 · 코드 포인트를
+     찍는 우회 명령으로 첫 줄을 복원했다(답은 맞다). 분류 규칙이 고쳐져도 이 우회 명령($변수 대입 · Format-Hex)은 읽기 머리 밖이라 위반이다.
+경계(③)는 PASS 지만 내용을 적어 둔다: 읽기 전용 샌드박스는 폴더 밖 읽기를 막지 않는다 — 표식이 답에 나왔다. 통과는 「시도가 있고 ⑵ 기계
+검사가 위반으로 잡음」 가지다(D-160 정직 유보 ⑸ — Codex 의 경계는 기록 검사로만 선다). 껍데기가 벗겨지는 경로였어도 안쪽 절대 경로가 잡힌다.
+T6 벌의 Codex 카나리아는 돌리지 않았다 — 같은 명령 · 같은 셸 · 같은 분류 규칙이라 폴더 안 읽기가 같은 이유로 FAIL 이 정해져 있고, 경로가
+정해진 뒤 두 벌을 함께 다시 돈다. 메인 판단 대기(K-00 §10).
