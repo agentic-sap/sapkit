@@ -1,0 +1,25 @@
+K-72 접근 기록 검사 — 회차별 절을 덧붙인다(만든 스크립트: K-72-access-check.mjs · 허용 목록은 그 스크립트 머리)
+
+== 회차 1 · 역할 A · 2026-11-08 ==
+기록: 레포 밖 원 기록(JSONL · 읽기만) · 줄 198 · assistant 줄 55
+      도구 호출 = assistant 줄의 tool_use (요청 사본 줄은 세지 않음 · 같은 tool_use id 는 한 번)
+작업 트리: T5 39 (경로가 닿은 호출 수)
+도구 호출 총수: 41 (Read 34 · Write 3 · Edit 1 · Bash 2 · SubagentHandback 1)
+allowed: 41 (읽기 허용 목록 12 · 지식 · 페르소나 읽기 22 · 자기 출력 쓰기 3 · 스크래치 메시지 쓰기 1 · git add · commit 2 · 보고 전달 1)
+  자기 출력 되읽기: 0
+contact: 0
+관측 모델 id: message.model {claude-fable-5-1} (assistant 줄 55) · 요청 params.model {claude-fable-5-1} (17건) · 지정 claude-fable-5-1 → 일치
+메모 머리 모델 id: K-70-notes-A.txt 첫 줄 「model: claude-fable-5-1」 → 일치
+판정: PASS
+
+== 회차 1 · 역할 B · 2026-11-08 ==
+기록: 레포 밖 원 기록(JSONL · 읽기만) · 줄 151 · assistant 줄 39
+      도구 호출 = assistant 줄의 tool_use (요청 사본 줄은 세지 않음 · 같은 tool_use id 는 한 번)
+작업 트리: T6 27 (경로가 닿은 호출 수)
+도구 호출 총수: 28 (Read 11 · Grep 12 · Write 3 · PowerShell 1 · SubagentHandback 1)
+allowed: 28 (읽기 허용 목록 11 · 지식 · 페르소나 검색 12 · 자기 출력 쓰기 2 · 스크래치 메시지 쓰기 1 · git add · commit 1 · 보고 전달 1)
+  자기 출력 되읽기: 0
+contact: 0
+관측 모델 id: message.model {claude-fable-5-1} (assistant 줄 39) · 요청 params.model {claude-fable-5-1} (14건) · 지정 claude-fable-5-1 → 일치
+메모 머리 모델 id: K-71-notes-B.txt 첫 줄 「model: claude-fable-5-1」 → 일치
+판정: PASS
