@@ -1,0 +1,1 @@
+**`WORKORDER_UPDATE`** (interface `IF_EX_WORKORDER_UPDATE`) is the BAdI called when a maintenance order is created or changed. PM and PP share it, so you can use it for both. Source: `knowledge/modules/PM/enhancements.md:44`.

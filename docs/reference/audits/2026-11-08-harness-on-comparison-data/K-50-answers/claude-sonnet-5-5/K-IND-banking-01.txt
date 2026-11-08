@@ -1,0 +1,1 @@
+A **parallel ledger** set-up. It carries local IFRS figures alongside regulatory reporting. If it's left unconfigured, the two views can't be separated (`knowledge/industry/banking.md`).

@@ -1,0 +1,1 @@
+`L_BIN_LOCATE` — it picks the best-suited storage bin according to the putaway strategy (source: `knowledge\modules\WM\bapi.md:41`).

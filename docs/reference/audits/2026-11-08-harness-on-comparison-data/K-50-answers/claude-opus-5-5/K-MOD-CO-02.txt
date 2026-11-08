@@ -1,0 +1,1 @@
+The pack lists **COPA0004** for CO-PA planning data processing, in `knowledge/modules/CO/enhancements.md:36`. I couldn't check this against SAP, and I'm not sure it's right: from memory the standard system uses **COPA0005** for planning, and the pack also seems to swap COPA0001 and COPA0002, so check it in SMOD.

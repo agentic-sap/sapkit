@@ -1,0 +1,1 @@
+SAP PS stores WBS element master data in table **PRPS**. The project definition header is in **PROJ**, and the WBS hierarchy is in **PRHI**. (WBS 요소 마스터 데이터는 PRPS 테이블에 있습니다.)

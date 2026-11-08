@@ -1,0 +1,1 @@
+**BAPI_INSPOPER_RECRESULTS** records characteristic results (measured values) against an inspection operation. It's listed in `knowledge/modules/QM/bapi.md`, and it works in both ECC and S/4.

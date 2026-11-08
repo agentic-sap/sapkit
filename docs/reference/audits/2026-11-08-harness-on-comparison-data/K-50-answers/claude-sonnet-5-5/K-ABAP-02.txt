@@ -1,0 +1,1 @@
+It takes the generic type `ANY`. The parameter is fully generic and adopts the type of the actual parameter at call time. ABAP treats an untyped USING or CHANGING parameter in a FORM as `TYPE any`.

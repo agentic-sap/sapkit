@@ -1,0 +1,1 @@
+Freight Unit Building Rules are maintained in customizing view **V_TMFUB**. The SPRO activity is "Define Delivery-Based Freight Unit Building Rules" (`knowledge/modules/TM/spro.md:39`, `knowledge/modules/TM/workflows.md:23`).

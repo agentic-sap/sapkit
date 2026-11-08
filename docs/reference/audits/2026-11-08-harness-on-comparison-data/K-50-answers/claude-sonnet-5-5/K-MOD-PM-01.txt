@@ -1,0 +1,1 @@
+The released CDS interface view for equipment master data is `I_Equipment`. This comes from the knowledge pack in `knowledge/modules/PM/enhancements.md:102`.

@@ -1,0 +1,1 @@
+`IDOC_INPUT_ORDERS` handles it. It processes the inbound ORDERS05 IDoc from Ariba so the order gets created in ECC/S4 (`knowledge/modules/Ariba/bapi.md:18`). In standard SAP this function module is usually called through inbound process code ORDE, but the knowledge pack doesn't say that.

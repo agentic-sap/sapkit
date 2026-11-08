@@ -1,0 +1,1 @@
+The knowledge pack lists view **V_TMFUB** ("Define Delivery-Based Freight Unit Building Rules", `knowledge/modules/TM/spro.md:39`). I couldn't verify this outside the pack, and in standard SAP TM, FUBRs are usually maintained as master data in the Fiori/NWBC app (/SCMTMS/FUBR), not as a customizing view.

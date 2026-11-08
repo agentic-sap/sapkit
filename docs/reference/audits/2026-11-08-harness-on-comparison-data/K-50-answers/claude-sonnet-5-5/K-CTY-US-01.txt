@@ -1,0 +1,1 @@
+A state sales-tax registration number is kept separate from the federal **EIN** (Employer Identification Number). See `knowledge/country/us.md:41`.

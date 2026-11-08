@@ -1,0 +1,3 @@
+The batch must go through QA review of the complete batch record and QC results. That covers deviations, OOS results, and conformance to specification and GMP. A Qualified Person (EU) or the QA unit (US) then formally certifies and releases it. In SAP, this corresponds to the usage decision on the QM inspection lot, which moves stock from quality inspection or blocked status to unrestricted use. Only then can delivery and goods issue proceed.
+
+I answered from general GxP knowledge and did not check the knowledge pack.

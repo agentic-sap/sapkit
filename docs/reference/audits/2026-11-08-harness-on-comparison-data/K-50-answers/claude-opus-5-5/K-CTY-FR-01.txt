@@ -1,0 +1,1 @@
+It's the **FEC (Fichier des Écritures Comptables)**, the standardized export of accounting entries that must be handed over immediately when the tax authority audits (`knowledge/country/fr.md:22`, `:46`).

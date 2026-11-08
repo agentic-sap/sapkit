@@ -1,0 +1,1 @@
+**PCL1** — the knowledge pack lists it as "Payroll Cluster (TE, TX, B2)" (`knowledge/modules/HCM/tables.md:45`). However, in standard SAP, TE and TX are stored in PCL1, while B2 (time evaluation results) is stored in **PCL2**, so the pack's entry for B2 is likely wrong.

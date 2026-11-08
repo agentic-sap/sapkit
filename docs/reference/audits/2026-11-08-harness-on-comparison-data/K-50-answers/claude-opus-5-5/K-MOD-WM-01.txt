@@ -1,0 +1,1 @@
+In classic LE-WM, **LT31** prints a transfer order manually. **LT32** prints all TOs for a transfer requirement or delivery. The knowledge pack doesn't mention LT31, so this answer is from standard SAP knowledge.

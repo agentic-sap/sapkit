@@ -1,0 +1,1 @@
+Mixing produces the blended rubber compound. It's a process-manufacturing step tracked by batch/lot, which is handled in PP-PI and gives compound-to-cure-lot traceability for recalls (`knowledge/industry/tire.md`).

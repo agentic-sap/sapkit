@@ -1,0 +1,1 @@
+In SAP fashion solutions, the **Grid** is the size/color matrix. It shows order entry and inventory views for variants, with sizes on one axis and colors on the other. It's available in Fiori and WebDynpro UIs (source: `knowledge/industry/fashion.md`).

@@ -1,0 +1,1 @@
+The material master DG data carries the **UN number** and the **hazard class** (source: `knowledge/industry/chemical.md`, "Material — DG info").

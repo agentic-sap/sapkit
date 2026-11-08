@@ -1,0 +1,1 @@
+UI annotations are missing under **`/srvd_a2x/`**, the A2X/Web API flavor. This is by design. Only the `/srvd/` UI flavor includes them (`knowledge/abap/conventions/rap-odata-rules.md:49`).

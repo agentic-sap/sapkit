@@ -1,0 +1,1 @@
+The knowledge pack lists **`EXIT_SAPLCOBT_001`** as the order type default exit for SAPLCOBT (`knowledge/modules/PP/enhancements.md:81`). I couldn't check this against a real system, so confirm it in SMOD/SE37 before you rely on it.

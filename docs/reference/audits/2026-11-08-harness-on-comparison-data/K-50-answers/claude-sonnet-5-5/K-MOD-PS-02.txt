@@ -1,0 +1,1 @@
+**RESB** (Reservations / Dependent Requirements) holds reservation items, including PS network components, per `knowledge\modules\PS\tables.md:21`.

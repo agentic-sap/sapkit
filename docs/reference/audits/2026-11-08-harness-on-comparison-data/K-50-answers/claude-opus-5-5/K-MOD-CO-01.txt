@@ -1,0 +1,1 @@
+The knowledge pack lists customizing view **V_RKAB** for this (`knowledge/modules/CO/spro.md:38`); you create the cycles in transaction **KSU1** and run them with **KSU5**. I couldn't check V_RKAB against a live SAP system, so treat that view name as coming from the pack.

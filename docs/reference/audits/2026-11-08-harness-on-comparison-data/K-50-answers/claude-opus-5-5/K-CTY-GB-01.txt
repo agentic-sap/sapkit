@@ -1,0 +1,1 @@
+Employers report employee expenses and benefits to HMRC on the **P11D** form, filed **once a year** (normally by 6 July after the tax year ends, together with the P11D(b)).

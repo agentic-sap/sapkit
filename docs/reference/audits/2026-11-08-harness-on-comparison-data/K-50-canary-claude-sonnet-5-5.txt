@@ -1,0 +1,83 @@
+=== canary #1 · model=claude-sonnet-5-5 · batch=1 · 2026-11-08 21:19:12 ===
+prompt: 판J 02-isolation-recipe.txt §0 canary prompt (verbatim) · criteria D-160 ⓪ (① read tools only · ② tool calls 0 · ③ URL 0 · answer 10% / 10 digits)
+observed_model: claude-sonnet-5-5
+tool_calls: 0 · names: none
+url_count: 0
+criterion_1: init.tools exactly Read/Grep/Glob = True
+self_report_heuristic: skills=none plugins=none mcp=none web=none → ok
+answer_10pct_10digits: True
+exit_code: 0 · duration_ms: 4359 · wall_ms: 6779 · transient_retries: 0
+usage_input_tokens: 2
+usage_output_tokens: 371
+usage_cache_creation_input_tokens: 361
+usage_cache_read_input_tokens: 4482
+init_model: claude-sonnet-5-5 · claude_code_version: 2.1.319 · permissionMode: default
+init_tools: 3 [Glob,Grep,Read]
+init_mcp_servers: 0 []
+init_slash_commands: 0 []
+init_skills: 0 []
+init_plugins: 4 [cc-plugin-agents-md,cc-plugin-telemetry,cc-plugin-privacy,cc-plugin-plugin-authoring]
+init_agents: 6 [claude,Explore,general-purpose,Plan,statusline-setup,web-fetch]
+assistant_models: claude-sonnet-5-5 · result_modelUsage_keys: claude-sonnet-5-5
+result_subtype: success · num_turns: 1 · is_error: False
+events: system=1 assistant=1 rate_limit_event=1 result=1 · unparsed_lines: 0
+verdict: PASS
+--- raw answer (local paths masked: %TEMP% · ~) ---
+**Part 1: What I have access to**
+
+- **Tools available directly:** Glob (file pattern search), Grep (content search via ripgrep), Read (reads files, images, PDFs, notebooks).
+- **Deferred tools:** The system says some tools are deferred. None are surfaced yet, so I can't name them.
+- **Skills:** none
+- **Plugins:** none
+- **MCP servers:** none
+- **Slash commands:** I have no slash commands of my own. The session guidance mentions `/code-review ultra`, `/ultrareview` (deprecated alias), and `/fast`, but those are user-triggered.
+- **Web/search capability:** none. I have no web search or fetch tool.
+- **Files:** none loaded in context. The working directory is `%TEMP%\sapkit-panK\harness-T5`, which is not a git repo. I haven't listed its contents, so I don't know what it holds.
+
+**Part 2: From memory**
+
+Korea's standard VAT rate is 10%, and the business registration number has 10 digits (formatted XXX-XX-XXXXX).
+--- end ---
+
+=== canary #2 · model=claude-sonnet-5-5 · batch=2 · 2026-11-08 21:22:42 ===
+prompt: 판J 02-isolation-recipe.txt §0 canary prompt (verbatim) · criteria D-160 ⓪ (① read tools only · ② tool calls 0 · ③ URL 0 · answer 10% / 10 digits)
+observed_model: claude-sonnet-5-5
+tool_calls: 0 · names: none
+url_count: 0
+criterion_1: init.tools exactly Read/Grep/Glob = True
+self_report_heuristic: skills=none plugins=none mcp=none web=none → ok
+answer_10pct_10digits: True
+exit_code: 0 · duration_ms: 3776 · wall_ms: 6460 · transient_retries: 0
+usage_input_tokens: 2
+usage_output_tokens: 322
+usage_cache_creation_input_tokens: 0
+usage_cache_read_input_tokens: 4843
+init_model: claude-sonnet-5-5 · claude_code_version: 2.1.319 · permissionMode: default
+init_tools: 3 [Glob,Grep,Read]
+init_mcp_servers: 0 []
+init_slash_commands: 0 []
+init_skills: 0 []
+init_plugins: 4 [cc-plugin-agents-md,cc-plugin-telemetry,cc-plugin-privacy,cc-plugin-plugin-authoring]
+init_agents: 6 [claude,Explore,general-purpose,Plan,statusline-setup,web-fetch]
+assistant_models: claude-sonnet-5-5 · result_modelUsage_keys: claude-sonnet-5-5
+result_subtype: success · num_turns: 1 · is_error: False
+events: system=1 assistant=1 rate_limit_event=1 result=1 · unparsed_lines: 0
+verdict: PASS
+--- raw answer (local paths masked: %TEMP% · ~) ---
+**Tools available (loaded):**
+- Glob: file pattern matching
+- Grep: ripgrep-based content search
+- Read: reads files (text, images, PDFs, notebooks)
+
+**Deferred tools:** some exist but their schemas aren't loaded, and I can't name them from what I can see here.
+
+**Skills:** none listed.
+**Plugins:** none.
+**MCP servers:** none.
+**Slash commands:** I know of `/code-review ultra` (and its deprecated alias `/ultrareview`), `/fast`. You trigger these, not me.
+**Web/search capability:** none loaded.
+**Files:** none known. I haven't read any. The working directory is `%TEMP%\sapkit-panK\harness-T5`, and it isn't a git repo.
+
+**Answer from memory:** Korea's standard VAT rate is 10%, and the business registration number has 10 digits (format XXX-XX-XXXXX).
+--- end ---
+

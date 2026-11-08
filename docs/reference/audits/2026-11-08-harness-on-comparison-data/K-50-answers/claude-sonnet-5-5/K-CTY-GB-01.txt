@@ -1,0 +1,1 @@
+**Form P11D** reports employee expenses and benefits in kind. It's filed once a year, by 6 July after the tax year ends (5 April). Employers also file **P11D(b)** by the same date to declare the Class 1A NIC due. The Class 1A NIC is payable by 22 July (19 July if paying by post). Benefits that are payrolled through RTI don't need a P11D.

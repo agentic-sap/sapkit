@@ -1,0 +1,1 @@
+The table is **RESB** (Reservation/Dependent Requirements). It stores reservation items, including the material components of PS networks. The header is in **RKPF**.

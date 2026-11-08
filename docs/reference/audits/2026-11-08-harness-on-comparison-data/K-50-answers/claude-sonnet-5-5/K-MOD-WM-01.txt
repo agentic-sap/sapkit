@@ -1,0 +1,1 @@
+**LT31** (Print Transfer Order) prints a transfer order in classic LE-WM. It's also called "Print TO" in the Warehouse Management menu. I answered from memory and didn't check the knowledge folder.

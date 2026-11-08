@@ -1,0 +1,1 @@
+It's the **IRAS Audit File (IAF)**, and its GST counterpart is the **GST Audit File (GAF)**. The SAP knowledge pack lists both together (`knowledge/country/sg.md:51`).

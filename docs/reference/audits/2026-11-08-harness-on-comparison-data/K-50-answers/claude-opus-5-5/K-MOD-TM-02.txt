@@ -1,0 +1,1 @@
+The transaction is **/SCMTMS/MON_TTE** (Tracking and Tracing Monitor, listed for S/4 in `knowledge\modules\TM\tcodes.md:59`). The separate Event Monitor is **/SCMTMS/MON_EVT**.

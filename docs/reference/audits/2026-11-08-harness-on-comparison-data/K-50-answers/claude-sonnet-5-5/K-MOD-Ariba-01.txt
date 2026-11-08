@@ -1,0 +1,1 @@
+**`IDOC_INPUT_ORDERS`** (process code ORDE) 이 Ariba에서 들어오는 ORDERS05 IDoc을 처리해 PO를 생성합니다. 이는 이 폴더의 `knowledge\modules\Ariba\bapi.md`에 나와 있습니다. 수신 PO IDoc의 헤더와 아이템은 사용자 exit `EXIT_SAPLVED1_002`와 `EXIT_SAPLVED1_004`로 보강할 수 있습니다.
