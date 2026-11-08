@@ -1,0 +1,1 @@
+It's **`BAPI_INSPOPER_RECORDRESULTS`**, which records characteristic results for an inspection lot operation, usually before you set the usage decision with `BAPI_INSPLOT_USAGE_DECISION`. The knowledge pack spells it `BAPI_INSPOPER_RECRESULTS` (`knowledge/modules/QM/workflows.md:10`), but I believe that's a typo for the standard SAP name; check it in SE37.

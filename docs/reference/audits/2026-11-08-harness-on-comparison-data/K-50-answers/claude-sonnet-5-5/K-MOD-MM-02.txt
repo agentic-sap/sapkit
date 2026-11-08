@@ -1,0 +1,1 @@
+`MB_CREATE_GOODS_MOVEMENT` is the internal FM for this. The knowledge pack (`knowledge/modules/MM/bapi.md:45`) describes it as "the low-level goods movement posting that MIGO itself uses."

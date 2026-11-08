@@ -1,0 +1,1 @@
+Cluster IDs TE, TX and B2 are held in **PCL1**, according to `knowledge\modules\HCM\tables.md`. The file describes it as the payroll cluster. I didn't check the other HR cluster tables.

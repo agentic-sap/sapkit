@@ -1,0 +1,2 @@
+The answer is **F050S001** ("FIDCMT, FIDCC1, FIDCC2: Edit user-defined IDoc segment"). That's the classic user exit for filling and processing custom segments in FI IDocs, based on my own knowledge of the standard SAP enhancement list.
+Note that `knowledge/modules/FI/enhancements.md:24` lists F050S003 for this, which looks wrong: in standard SAP, F050S003 is the FIDCC2 exit to change the IDoc or stop it being sent.

@@ -1,0 +1,1 @@
+The knowledge pack (`knowledge/country/de.md`) says payroll is reported monthly to the Finanzamt, along with the statutory insurance funds. From general knowledge, not from the pack: the Lohnsteuer-Anmeldung can instead be quarterly or annual when the employer's annual withholding is small.

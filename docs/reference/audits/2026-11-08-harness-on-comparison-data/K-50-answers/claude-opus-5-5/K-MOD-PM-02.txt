@@ -1,0 +1,1 @@
+The BAdI is **`WORKORDER_UPDATE`** (interface `IF_EX_WORKORDER_UPDATE`). PM maintenance orders, PP production orders and PS networks all use it to step in when an order is created, changed or saved (`knowledge/modules/PP/enhancements.md:50`).

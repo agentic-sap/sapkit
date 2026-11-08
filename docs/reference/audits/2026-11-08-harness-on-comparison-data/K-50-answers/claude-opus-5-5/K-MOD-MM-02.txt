@@ -1,0 +1,1 @@
+MIGO uses the internal function module **`MB_CREATE_GOODS_MOVEMENT`** for the low-level goods-movement posting (in ECC and S/4), according to `knowledge/modules/MM/bapi.md:45`. The supported, released alternative is `BAPI_GOODSMVT_CREATE`.

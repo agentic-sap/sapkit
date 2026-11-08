@@ -1,0 +1,3 @@
+The knowledge pack lists **COPA0004** (CO-PA: planning data, for planning data processing) as the SMOD enhancement for this (`knowledge/modules/CO/enhancements.md:36`).
+
+The same table also has a COOPA_04 entry for CO-PA planning logic. COPA0004 is the one described as planning data processing.

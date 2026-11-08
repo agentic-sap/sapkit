@@ -1,0 +1,1 @@
+**SM13** is the transaction for monitoring update records. It shows terminated V1/V2 updates (status ERR), and you can reprocess or delete them there. SM14 is used to administer the update system itself.

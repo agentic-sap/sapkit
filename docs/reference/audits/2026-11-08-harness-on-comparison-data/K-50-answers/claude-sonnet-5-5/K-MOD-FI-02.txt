@@ -1,0 +1,1 @@
+**F050S003** (FI IDoc segment) is the SMOD enhancement for custom segments in FI IDocs, according to `knowledge/modules/FI/enhancements.md`. You activate it through a CMOD project.

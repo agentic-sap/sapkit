@@ -1,0 +1,1 @@
+It's kept separate from the federal **EIN** (Employer Identification Number). Source: `knowledge\country\us.md:41`.

@@ -1,0 +1,1 @@
+In SAP BW you create InfoSets with transaction **RSISET**, the InfoSet Builder. You can also reach it from the Modeling area of the Data Warehousing Workbench (**RSA1**). An InfoSet joins InfoProviders such as DSOs, InfoObjects and InfoCubes. The knowledge pack doesn't mention RSISET, so this answer comes from general SAP knowledge.

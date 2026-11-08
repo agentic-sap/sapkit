@@ -1,0 +1,1 @@
+The Business Partner general-data table is **BUT000**. LFA1 still exists, and Customer/Vendor Integration (CVI) keeps it in sync with the Business Partner. The link between the two is stored in **CVI_VEND_LINK**.

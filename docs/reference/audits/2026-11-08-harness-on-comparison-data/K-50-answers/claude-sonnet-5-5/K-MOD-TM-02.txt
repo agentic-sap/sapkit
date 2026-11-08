@@ -1,0 +1,1 @@
+Transaction **/SCMTMS/MON_TTE** opens the Tracking and Tracing Monitor in SAP TM on S/4HANA. This comes from `knowledge/modules/TM/tcodes.md:59`.

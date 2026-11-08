@@ -1,0 +1,3 @@
+The Italian VAT number (Partita IVA) is the prefix **IT** followed by **11 digits**, 13 characters in total. The 11th digit is a check digit.
+
+I answered from general knowledge and didn't check the knowledge pack.

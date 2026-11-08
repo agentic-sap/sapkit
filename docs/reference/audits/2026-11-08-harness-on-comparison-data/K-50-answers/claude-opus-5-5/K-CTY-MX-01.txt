@@ -1,0 +1,1 @@
+The Buzón Tributario is the SAT's mandatory electronic tax mailbox. The SAT uses it to send official notices and requirements to taxpayers, and taxpayers use it to submit filings and replies. If you don't check it, you can miss tax notices (`knowledge/country/mx.md:50`, `:71`).

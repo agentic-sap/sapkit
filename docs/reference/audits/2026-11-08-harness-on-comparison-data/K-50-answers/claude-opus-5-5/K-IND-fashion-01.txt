@@ -1,0 +1,1 @@
+In SAP fashion solutions, the Grid is a size/color matrix (for example, sizes across and colors down). It shows order entry and inventory views as that matrix, so you can enter orders or see stock for each size/color variant in one screen (`knowledge/industry/fashion.md:22`).

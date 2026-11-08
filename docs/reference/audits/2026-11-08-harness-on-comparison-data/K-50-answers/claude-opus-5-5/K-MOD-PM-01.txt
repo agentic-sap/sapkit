@@ -1,0 +1,1 @@
+It's **`I_Equipment`**, the equipment interface view, listed in `knowledge/modules/PM/enhancements.md:102`.

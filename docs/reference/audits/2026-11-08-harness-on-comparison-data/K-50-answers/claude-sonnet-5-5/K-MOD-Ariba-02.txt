@@ -1,0 +1,1 @@
+**BUT000** (BP: General Data I) is the central Business Partner table that takes over LFA1's general-data role. In S/4HANA, suppliers are created as Business Partners through CVI, which links them to the vendor master via the LFA1-LIFNR ↔ BUT000-PARTNER mapping. Address data sits in ADRC.

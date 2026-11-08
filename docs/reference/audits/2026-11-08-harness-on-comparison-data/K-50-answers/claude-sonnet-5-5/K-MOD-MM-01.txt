@@ -1,0 +1,1 @@
+**BADI_SMOD_V50B0001** is the BAdI listed for custom logic in inbound deliveries. I found it in `knowledge/modules/MM/enhancements.md:61`, where it's described as "Delivery enhancement".

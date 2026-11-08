@@ -1,0 +1,1 @@
+Use **`CL_ABAP_LOCK_OBJECT_FACTORY`**. Its `get_instance( )` returns an `IF_ABAP_LOCK_OBJECT` with `enqueue( )` / `dequeue( )` methods. It also replaces `DEQUEUE_ALL` (source: `knowledge/abap/conventions/cloud-abap-constraints.md:121`).

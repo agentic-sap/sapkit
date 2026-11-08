@@ -1,0 +1,1 @@
+**RSPC** maintains and monitors process chains in SAP BW. It's where you create, edit, schedule, and view their run logs. In newer BW/4HANA systems, the Process Chain editor is also available through the BW Modeling Tools or Fiori apps.

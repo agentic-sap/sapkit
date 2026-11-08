@@ -1,0 +1,1 @@
+`value_tab`'s row type must reference DDIC types, such as a structure whose components are typed with DDIC data elements. A local `c LENGTH n` structure produces no list at all. `retfield` also has to be a real component name of that structure. (Source: `knowledge/abap/conventions/alv-rules.md:137`)

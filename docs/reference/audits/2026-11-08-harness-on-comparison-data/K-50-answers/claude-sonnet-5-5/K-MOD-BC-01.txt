@@ -1,0 +1,1 @@
+**SM13** (Update Records: Administration) is the transaction for monitoring update records, including terminated V1/V2 updates. You can also use **SM12** for lock entries and **ST22** for related short dumps.

@@ -1,0 +1,1 @@
+In S/4HANA, plan data in the Universal Journal structure is stored in **ACDOCP**, the plan-data counterpart of ACDOCA. SAP Analytics Cloud and BPC write plan data there, split by plan category (PLANCATEGORY). I answered this from my own knowledge and didn't check it against the knowledge pack.

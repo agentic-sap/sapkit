@@ -1,0 +1,1 @@
+Use **CI_QAMV**: it's the customer include for table QAMV, which holds the inspection lot's inspection characteristics (`knowledge/modules/QM/enhancements.md:86`). For custom fields on the results table QAMR, use CI_QAMR instead.

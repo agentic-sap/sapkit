@@ -1,0 +1,1 @@
+The knowledge pack (`knowledge/modules/SD/spro.md:32`) gives view **V_TPAER** for "Define Partner Determination Procedures." In a standard system you normally maintain these through transaction **VOPAN**, where the procedure header is table TVPG and TPAER holds the partner functions assigned to each procedure.

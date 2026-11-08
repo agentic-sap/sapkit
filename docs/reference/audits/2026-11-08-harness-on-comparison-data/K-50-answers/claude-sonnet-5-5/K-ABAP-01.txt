@@ -1,0 +1,1 @@
+It isn't drawn at all. The button doesn't appear in the application toolbar (`knowledge/abap/conventions/alv-rules.md:105`). To make it show, give it an icon, plus `ICON_TEXT` and `INFO_TEXT`.

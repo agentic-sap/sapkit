@@ -1,0 +1,1 @@
+The One Exposure flows are stored in **FQM_FLOW**. It takes over from FDSR/FDES in S/4HANA Cash Management. The knowledge pack also lists `FQMA` alongside it (`knowledge/modules/TR/tables.md`).

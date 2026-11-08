@@ -1,0 +1,1 @@
+**DB02** (Database Performance / Space Analysis) is the main one. It shows database size, tablespace/segment growth, and missing indexes. For deeper performance monitoring, use **DBACOCKPIT**, which has replaced DB02 on newer releases.

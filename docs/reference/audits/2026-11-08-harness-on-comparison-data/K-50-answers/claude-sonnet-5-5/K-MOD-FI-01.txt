@@ -1,0 +1,1 @@
+**ACDOCP** is the plan-data table in S/4HANA. It is the planning counterpart of ACDOCA (actuals) and holds Universal Journal plan line items, such as those from integrated financial planning. I answered from memory and didn't check the knowledge pack.

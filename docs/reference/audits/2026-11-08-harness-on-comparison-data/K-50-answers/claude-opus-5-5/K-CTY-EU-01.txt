@@ -1,0 +1,1 @@
+After `FR` come 11 characters: a 2-character check key and then the company's 9-digit SIREN (FR + XX + 123456789, 13 characters in total). The pack says the key is 2 check digits (`knowledge/country/fr.md:18`), but from general knowledge the key can include letters for some registrations.

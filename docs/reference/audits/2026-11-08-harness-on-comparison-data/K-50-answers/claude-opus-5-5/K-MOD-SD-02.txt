@@ -1,0 +1,1 @@
+You extend the header structure **KOMKBV1** and the item structure **KOMPBV1** with an append structure. These are the sales output (application V1) communication structures, per `knowledge/modules/SD/workflows.md:57`.

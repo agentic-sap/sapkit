@@ -1,0 +1,1 @@
+Partner determination procedures in SD are defined in customizing view **V_TPAER**. In the SPRO path, the entry is "Define Partner Determination Procedures" (source: `knowledge/modules/SD/spro.md:32`).

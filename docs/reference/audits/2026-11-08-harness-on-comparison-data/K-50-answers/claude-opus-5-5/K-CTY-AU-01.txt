@@ -1,0 +1,1 @@
+An Australian business has to register for GST once its annual GST turnover reaches A$75,000. For non-profit organisations the threshold is A$150,000. The knowledge pack's `knowledge/country/au.md:36` confirms the A$75,000 figure; the non-profit figure is from my own knowledge.

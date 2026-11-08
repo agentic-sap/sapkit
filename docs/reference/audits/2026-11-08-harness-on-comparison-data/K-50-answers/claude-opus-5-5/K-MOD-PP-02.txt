@@ -1,0 +1,1 @@
+Routing types are defined in customizing view **V_TC22** ("Define Routing Types"), according to `knowledge/modules/PP/spro.md:24`.

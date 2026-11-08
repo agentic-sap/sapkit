@@ -1,0 +1,42 @@
+id: K-CTY-KR-01
+model: claude-sonnet-5-5
+source: 10
+attempt: 1
+valid: true
+tool_calls: 0
+tool_names: none
+url_count: 0
+answer_chars: 102
+duration_ms: 2175
+duration_note: result.duration_ms from the claude stream-json result event
+wall_ms: 8393
+exit_code: 0
+timed_out: False
+transient_retries: 0
+previous_invalid_attempts: 0
+observed_model: claude-sonnet-5-5
+observed_model_match: true
+files_read: 0
+files_read_list: none
+outside_attempts: 0
+invalid_attempts: 0
+tokens_in: 5032
+tokens_out: 43
+answer: text
+verdict_reason: none
+answer_local_path_masks: 0
+usage_input_tokens: 2
+usage_output_tokens: 43
+usage_cache_creation_input_tokens: 940
+usage_cache_read_input_tokens: 4090
+init_model: claude-sonnet-5-5 · claude_code_version: 2.1.319 · permissionMode: default
+init_tools: 3 [Glob,Grep,Read]
+init_mcp_servers: 0 []
+init_slash_commands: 0 []
+init_skills: 0 []
+init_plugins: 4 [cc-plugin-agents-md,cc-plugin-telemetry,cc-plugin-privacy,cc-plugin-plugin-authoring]
+init_agents: 6 [claude,Explore,general-purpose,Plan,statusline-setup,web-fetch]
+assistant_models: claude-sonnet-5-5 · result_modelUsage_keys: claude-sonnet-5-5
+result_subtype: success · num_turns: 1 · is_error: False
+events: system=1 assistant=1 rate_limit_event=1 result=1 · unparsed_lines: 0
+recorded_at: 2026-11-08 21:23:44

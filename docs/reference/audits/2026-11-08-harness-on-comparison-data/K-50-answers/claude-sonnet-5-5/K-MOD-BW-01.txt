@@ -1,0 +1,1 @@
+**RSISET** is the transaction for creating an InfoSet in SAP BW. You can also do it in the Data Warehousing Workbench (RSA1) under InfoProvider → Create InfoSet. I answered from my own knowledge and didn't check the knowledge pack.

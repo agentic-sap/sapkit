@@ -1,0 +1,1 @@
+An intra-state supply is charged **CGST** (the central part) plus **SGST**, or **UTGST** in a Union Territory, usually split equally. IGST applies only to inter-state supplies (`knowledge/country/in.md:16`).

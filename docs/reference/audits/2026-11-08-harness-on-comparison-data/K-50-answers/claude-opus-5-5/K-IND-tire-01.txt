@@ -1,0 +1,1 @@
+Mixing makes the rubber compound by blending natural/synthetic rubber, carbon black and other ingredients. It's a process (PP-PI) step tracked by batch/lot, and each compound lot is linked to cure lots so recalls can be traced (`knowledge/industry/tire.md:14`, `:27`).

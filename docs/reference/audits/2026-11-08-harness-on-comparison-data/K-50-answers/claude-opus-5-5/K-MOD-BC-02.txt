@@ -1,0 +1,1 @@
+**DB02** (Database Analysis) is the transaction for database space and performance analysis (`knowledge/modules/BC/transaction-codes.md:20`). On newer releases the same functions are under **DBACOCKPIT**.

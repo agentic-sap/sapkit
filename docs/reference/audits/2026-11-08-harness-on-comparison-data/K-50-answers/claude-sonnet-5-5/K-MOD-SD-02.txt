@@ -1,0 +1,5 @@
+Nothing in the knowledge pack covers this, so this answer comes from my own SAP knowledge.
+
+Append the custom fields to **KOMKBV1** (header) and **KOMPBV1** (item). Those are the communication structures for sales-order output determination (application V1). The field catalog is table **KOMB** for the header and **KOMP** for the item, and you can also add fields to **KOMKD/KOMPD** for the document data. After the append, the field can be used in the condition table for the output type.
+
+I'm not certain about the exact structure names. You should check them in SE11 before relying on them.

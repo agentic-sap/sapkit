@@ -1,0 +1,1 @@
+Remnant management handles the leftover pieces from cut-to-order processing (cut-to-length, slitting, shearing). The goal is to track them and reuse them for later orders instead of writing them off as scrap, because scrapping them throws away their recycling value (`knowledge/industry/steel.md:17`, `:35`, `:46`).
