@@ -1,0 +1,131 @@
+model: claude-fable-5-1
+
+K-80-notes.txt — 제3 판정 메모 (판K T9a · 블라인드 묶음 K-65 · 채점자 A·B가 갈린 행만 · 2026-11-08)
+=====================================================================================
+
+읽은 것(허용 목록 안): K-65-grader-brief.txt · K-70-grading-A.csv · K-70-notes-A.txt · K-71-grading-B.csv ·
+K-71-notes-B.txt · K-65-blind-knowledge.json(갈린 2행 ee6069 · b0ecfc — Grep으로 위치 찾고 그 행만 Read) ·
+K-65-blind-code.json(갈린 10행만 Read) · J-11 11-code-tasks.txt 전체 · J-01 01-convention-split.txt 전체 ·
+J-10 10-knowledge-items.json(K-MOD-TM-01 · FI-02 · HCM-01 · CO-02 항목만 Grep) ·
+interactive/core/knowledge/modules/TM/ (V_TMFUB · FUBR Grep → spro.md:39 · workflows.md:23) ·
+interactive/core/knowledge/abap/conventions/clean-code.md:82-89 · :140-147 · clean-code-oop.md:120-129 ·
+alv-rules.md:102-109. personas/ 는 열지 않았다(필요한 행이 없었다). 금독 파일·폴더 목록은 보지 않았다.
+모델 호출·웹·MCP 0. 조건·모델 추정 0 — 답 속 인용·경로는 판정 근거로 쓰지 않았다.
+
+① 갈린 행 수
+-------------
+- 지식 2행 (verdict 가 다른 행): ee6069 · b0ecfc — 둘 다 K-MOD-TM-01.
+  (팩어긋남의심 13행은 detail 의 「의심:…」 문구가 A·B에서 다르지만, 지식은 verdict 만 비교하므로 갈림으로 세지 않았다.)
+- 코드 10행 (verdict 또는 detail 문자열이 다른 행): fbed8a · 69dad9 · 6c55d7 · 1b9ca0 · 638d27 · a4a87f ·
+  eb498f · b58184 · d92d31 · c2d6e9.
+- 합 12행 = 오케스트레이터의 기계 대조 기대값(지식 2 + 코드 10)과 같다.
+
+② 규약 충돌 자리와 내 원칙 (J-10 · J-11 원문 기준 · 각 한 줄)
+-----------------------------------------------------------------
+- 「주답 + 보충」 vs 헤지 (지식): 보충이 주답의 요구 사실을 부정하지 않으면(다른 시나리오 · 구버전 · 대안 경로 · 후속
+  단계) 주답으로 판정하고, 보충이 요구 사실 자체를 부정하면(「~는 커스터마이징 뷰가 아니다」 · 「표준은 Y로 그려진다」)
+  그 행은 헤지다 — 정답이 아니며, 부정 주장이 실 SAP에 맞을 가능성이 있으면 팩어긋남의심 · 없으면 오답/다른값.
+  (두 채점자도 76424e · d058ec 를 그렇게 다뤘다. b0ecfc 만 B 가 달리 읽었다.)
+- 팩어긋남의심의 요건: 지시문 §0 「키가 실 SAP와 어긋난다고 보면 그 행을 팩어긋남의심으로 적는다」 — 요건은 판정자의
+  판단이고 「여러 답이 일치」는 요건이 아니다. 단일 답이라도 판정자 지식이 답 쪽에 서면 의심, 지식이 없으면
+  오답/다른값(B 의 「확장 적용」 9d1461 · 9ebb80 은 이 원칙으로 정당하다 — 갈리지 않아 K-80 에는 없다).
+  키와 같은 답은 정답으로 둔다(항목 전제 의심은 메모에만).
+- C-01 규칙6 빈 CATCH cx_salv_not_found: J-11 §3 머리 「규칙 번호 뒤 괄호는 채점자용 판정 기준」 — 규칙6 괄호는
+  「cl_salv_table=>factory 의 cx_salv_msg 를 빈 CATCH 로 삼키면 위반 · 메시지 출력이나 전파면 통과」로 측정 대상을
+  고정한다. 사전 등록된 기준을 다른 CATCH 로 넓히지 않는다 → cx_salv_msg 가 MESSAGE 처리되면 통과, 빈 CATCH
+  cx_salv_not_found 는 기록만(B 쪽). 부차 근거: 그 CATCH 는 열 머리글 보조 FORM 에서 리터럴 필드명으로 호출돼 실제로
+  날 수 없는 예외이고, 두 행은 주석으로 「무시」 의도를 밝혔다 — clean-code.md:86 의 「handle what you are able to
+  handle」 안쪽으로도 볼 수 있다.
+- C-02 규칙7 given-when-then: 원문 「Name tests for given-when-then — is_released_returns_true_when_status_is_
+  freigegeben, never test01 or test_ok」 — 이름이 기대 결과(then)를 말해야 한다는 적극 요구이고 「never test01」은
+  하한일 뿐이다. 시나리오만 있는 이름(normal_discount · full_discount · zero_discount · percent_above_100 ·
+  negative_gross · percentage_too_high)은 위반, 결과가 든 이름(…_returns_zero · …_is_rejected · …_rejected ·
+  negative_gross_fail · rejected_input)은 통과(B 쪽). rounding_half_up · rounding_to_cents · rounding_to_two_dec 은
+  기대 동작을 담아 경계로 보고 세지 않았다 — 어느 행도 그것만으로 갈리지 않는다. A 의 「무의미한 이름만」 독해는
+  A 스스로 「느슨하게」라고 적은 대로 원문의 적극 요구를 떼어낸 것이다.
+- C-04 규칙5 IS INITIAL 등가의 범위: 원문 「sy-subrc checked after the SELECT」(clean-code.md:145 — 대안은
+  CX_SY_OPEN_SQL_DB catch 만). 두 채점자가 공통으로 인정한 등가는 「SELECT 대상/결과 테이블의 IS INITIAL(출력 전)」
+  까지다. 그 대상이 아닌 파생 집계 테이블(6c55d7 의 gt_out)의 비어 있음으로 대신하는 것은 SELECT 결과를 검사한 것이
+  아니다 → 위반(A 쪽). 정직 유보: gt_out 비어 있음 ⟺ gt_item 비어 있음이라 목적 독해면 B 처럼 통과가 된다 —
+  원문과 공통 규약을 우선했다. C-04 다른 4행은 모두 sy-subrc 또는 대상 테이블을 직접 검사했다.
+- C-04 규칙2 대표 줄: 「집계 없이 품목 전 행을 읽는 SELECT 첫 줄」로 정규화한다 — 규칙 문언이 「SUM / COUNT + GROUP BY 를
+  SELECT 에서」라 결함이 드러나고 고쳐질 자리가 SELECT 이고, 지시문 §4 예(AUTHORITY-CHECK 부재 = SELECT 줄)와 같은
+  앵커다. B 의 LOOP 줄도 틀린 표기가 아니라 표기 선택이다.
+- 규칙 집합이 같고 표기만 다른 행(fbed8a · 69dad9)은 K-80 에 넣되 정규화한 detail 을 쓰고 reason 에 「표기 차이만 —
+  일치」를 적었다(집계가 「A≠B 문자열 행 수 = K-80 행 수」로 검사하므로 빼지 않았다).
+
+③ 행별 짧은 근거 (팩 인용은 파일:줄)
+--------------------------------------
+[지식 · K-MOD-TM-01 · 키 V_TMFUB · 규칙 「식별자 1개: V_TMFUB 와 동일 · 다른 뷰·앱 이름만 = 오답」]
+- ee6069 → 팩어긋남의심. 답은 뷰 이름 없이 「SPRO 뷰가 아니라 Planning → Planning Settings → FUBR(NWBC/Fiori)」만
+  낸다. 키대로면 오답/다른값(B). 그러나 내 기억도 FUBR 은 TM 애플리케이션의 계획 설정 객체이고(NWBC · Fiori 「Freight
+  Unit Building Rule」 유지), 표준 TM 객체는 /SCMTMS/ 네임스페이스여서 네임스페이스 없는 V_TMFUB 라는 뷰의 실재가
+  의심된다. 팩 안 출처는 interactive/core/knowledge/modules/TM/spro.md:39 · workflows.md:23 두 줄뿐이고 두 채점자
+  메모도 같은 의심을 적었다(B 는 확신 부족으로 적용만 안 했다). 지시문 §0 에 따라 의심 — A 쪽.
+- b0ecfc → 팩어긋남의심. 「팩이 V_TMFUB 를 적는다 · 팩 밖에서 확인 못 했다 · 표준 TM 에서는 커스터마이징 뷰가 아니라
+  앱에서 유지된다」 — V_TMFUB 를 자기 답으로 세운 것이 아니라 인용으로 전한 뒤 요구 사실(커스터마이징 뷰가 있다)을
+  부정했다. ②의 첫 원칙으로 헤지(76424e · d058ec 와 같은 구조). 키가 맞더라도 정답은 아니고, 부정 주장이 실 SAP 에
+  맞을 가능성이 있어 의심 — A 쪽. (같은 문항 d3322c 는 양측 정답 · 갈리지 않아 손대지 않았다.)
+
+[코드]
+- fbed8a (C-04) → 위반 2@43;6@43 · 표기 차이만. SELECT 43행(집계 없음) · sy-subrc 52행 · LOOP 합산 61행 ·
+  AUTHORITY-CHECK 없음. 규칙 집합 {2,6} 양측 같음.
+- 69dad9 (C-04) → 위반 2@40;6@40 · 표기 차이만. SELECT 40행 · gt_items IS INITIAL 50행(규칙5 등가) · LOOP 60행.
+- 6c55d7 (C-04) → 위반 2@53;5@53;6@53 — A 쪽(문자열도 A 와 같다). SELECT 53행 → 바로 LOOP 63행, gt_item 검사 없음 ·
+  gt_out IS INITIAL 은 40행(호출자). ②의 규칙5 원칙.
+- 1b9ca0 (C-01) → 위반 5@56 — B 쪽. SELECT 56행 앞 AUTHORITY-CHECK 없음 · 77행 CATCH cx_salv_msg → MESSAGE(규칙6
+  통과) · 114행 빈 CATCH cx_salv_not_found 는 기록만. gt_ekko IS INITIAL 45행(규칙2 등가).
+- 638d27 (C-01) → 위반 5@61 — B 쪽. 80행 cx_salv_msg MESSAGE · 130행 빈 CATCH cx_salv_not_found 기록만 · 52행 IS INITIAL.
+- a4a87f (C-01) → 위반 5@49 — B 쪽. 98행 cx_salv_msg · 100행 cx_salv_error 모두 MESSAGE · 71행 CATCH cx_salv_not_found.
+  RETURN. 기록만 · 34행 IS INITIAL.
+- eb498f (C-02) → 위반 7@93;9@1 — B 쪽. 93행 normal_discount · full_discount · percent_above_100 결과 없음 ·
+  배너 1·7·36·81행 양측 일치.
+- b58184 (C-02) → 위반 4@9;7@93;9@1 — B 쪽. 9행 lcx_discount_input FINAL 없음(양측) · 93행부터 시나리오명 7종 ·
+  배너 1·6·35·84행(양측).
+- d92d31 (C-02) → 위반 7@85 — B 쪽. 85행 normal_discount · full_discount 결과 없음(rejected_input 은 결과 포함) ·
+  그 밖 통과(양측).
+- c2d6e9 (C-02) → 위반 4@1;7@78 — B 쪽. 1행 전역 zcx FINAL 없음(양측) · 78행 normal_discount · zero_discount ·
+  full_discount 결과 없음(…_rejected 3종은 결과 포함) · ABAP Doc 은 배너 아님(양측).
+
+④ 표기 차이만인 행
+--------------------
+- fbed8a · 69dad9 (둘 다 C-04 규칙2 대표 줄 SELECT vs LOOP). 집계는 이 2행을 「일치」로 세어야 한다.
+- 6c55d7 은 표기 차이만이 아니다 — 규칙5 가 실질로 갈렸다(최종 문자열은 A 와 같다).
+
+⑤ A·B 메모의 「팩 의심 목록」 가운데 내가 동의하는 것 (판정 근거 아님 · 목록만)
+---------------------------------------------------------------------------------
+- K-MOD-QM-01: 표준 BAPI 이름은 BAPI_INSPOPER_RECORDRESULTS — 팩 interactive/core/knowledge/modules/QM/bapi.md:14 ·
+  workflows.md:55 의 RECRESULTS 는 축약 표기로 보인다. 동의.
+- K-MOD-WM-01: 수동 TO 인쇄는 LT31, LT25 는 TO 조회 — 팩 interactive/core/knowledge/modules/WM/tcodes.md:28. 동의.
+- K-MOD-BW-01: InfoSet 유지는 RSISET — 팩 interactive/core/knowledge/modules/BW/spro.md:38 과 :45 가 같은 RSINFOSOURCE 를
+  InfoSet · InfoSource 두 항목에 적어 복사 오류로 보인다. 동의.
+- K-MOD-FI-02: 질문 「custom segments in FI IDocs」의 표준 SMOD 는 F050S001(FIDCMT/FIDCC1/FIDCC2: Edit user-defined IDoc
+  segment) · F050S003 은 FIDCC2: Change IDoc / do not send — 팩 interactive/core/knowledge/modules/FI/enhancements.md:24.
+  동의.
+- K-MOD-MM-01: 고전 enhancement 의 BAdI 래퍼 정의 이름은 SMOD_<확장>(SMOD_V50B0001) 형식 — 팩
+  interactive/core/knowledge/modules/MM/enhancements.md:61 의 BADI_ 접두는 표기 오류 가능 · PS/enhancements.md:69 와도
+  어긋남. 동의.
+- K-MOD-PP-01: EXIT_SAPLCOBT_001(PPCO0001)은 오더 저장 시점 exit, 생성 시 헤더 기본값은 PPCO0006(SAPLCOZF) 계열 — 팩
+  interactive/core/knowledge/modules/PP/enhancements.md:81 「Order type default」 설명 의심. 동의.
+- K-ABAP-01: 표준 GUI 상태에서 아이콘 없는 애플리케이션 툴바 기능은 기능 텍스트 버튼으로 그려진다 — 팩
+  interactive/core/knowledge/abap/conventions/alv-rules.md:105-107 의 「전혀 안 그려짐」은 특정 생성 경로의 관찰을
+  일반화한 것일 가능성. 동의(질문 전제 의심).
+- K-MOD-TM-01: 위 ③ 그대로 — 동의(이번 판정에서 실제로 쓴 유일한 의심).
+- K-MOD-HCM-01(키와 답은 일치 · 판정 영향 없음): 표준에서 B2(시간 평가 결과)는 PCL2 이고 PCL1 은 TE · TX · B1 · G1 등 —
+  팩 interactive/core/knowledge/modules/HCM/tables.md:45 「PCL1 (TE, TX, B2)」 의 B2 는 틀린 것으로 보인다. 동의.
+- K-MOD-CO-02: B 메모의 「COPA0001 = 평가 · COPA0002 = 도출이 표준」 지적에는 동의하는 방향이나, 질문(CO-PA 계획 데이터
+  처리)의 키 COPA0004 자체에 대해서는 두 채점자처럼 확신이 없어 동의 목록에 올리지 않는다(유보).
+- K-MOD-WM-02(L_BIN_LOCATE) · K-MOD-TM-02(/SCMTMS/MON_TTE): 두 채점자처럼 판단 보류 — 목록에 올리지 않는다.
+
+⑥ 집계 (분모 포함)
+--------------------
+- 갈린 행 12/181 (지식 2/156 · 코드 10/25).
+- 지식 verdict_final: 팩어긋남의심 2 · 정답 0 · 오답 0.
+- 코드 verdict_final: 위반 10 · 통과 0. 규칙별 최종 계수(갈린 10행 안): C-01 규칙6 0/3(세 행 모두 통과로 확정) ·
+  C-02 규칙7 4/4 위반 · C-04 규칙5 6c55d7 1행 위반 · C-04 규칙2 대표 줄 3행 SELECT 앵커.
+- 표기 차이만 2 (fbed8a · 69dad9) · A 쪽 3 (ee6069 · b0ecfc · 6c55d7) · B 쪽 7 (1b9ca0 · 638d27 · a4a87f · eb498f ·
+  b58184 · d92d31 · c2d6e9) · 둘 다 아님 0.
+- 최종을 A·B 원래 채점에 겹쳐 보면: 지식 정답 수는 A 138 그대로(의심 15 · 오답 3) · B 는 139 → 137(의심 13 → 15 ·
+  오답 4 → 3). 코드 통과 수는 A 12 → 11(d92d31 만 통과 → 위반 · 나머지 갈림은 위반 행의 detail 변화) · B 11 그대로.
+  과제 통과(오류급 0 ∧ 작법 위반 0)는 집계가 합친다 — 묶음 오류급은 전 25행 0.
+- 이 메모와 K-80-adjudication.csv 외에 바꾼 파일 0. 비밀·식별 정보 0(경로는 레포 상대만).
