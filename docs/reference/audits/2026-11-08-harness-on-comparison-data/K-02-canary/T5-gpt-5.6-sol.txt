@@ -223,3 +223,35 @@ cmd:head:q · cmd:path:outside 위반으로 잡혔다. 원인은 모델이 아�
 검사가 위반으로 잡음」 가지다(D-160 정직 유보 ⑸ — Codex 의 경계는 기록 검사로만 선다). 껍데기가 벗겨지는 경로였어도 안쪽 절대 경로가 잡힌다.
 T6 벌의 Codex 카나리아는 돌리지 않았다 — 같은 명령 · 같은 셸 · 같은 분류 규칙이라 폴더 안 읽기가 같은 이유로 FAIL 이 정해져 있고, 경로가
 정해진 뒤 두 벌을 함께 다시 돈다. 메인 판단 대기(K-00 §10).
+
+=====================================================================
+3회차 — 판K T0-c (2026-11-08) · 판정 = 측정 불가 → Codex 를 판K 에서 뺀다 (소유자 결정 4 · K-00 §3 ⛔ · §10 T0-c)
+  summary 줄의 note 앞 「attempt=3(T0-c)」 는 T0-b 의 회차 표지 규약 그대로다. 1 · 2회차 기록은 위에 그대로 둔다.
+=====================================================================
+러너 -Phase canary 는 돌리지 않았다 — 결정 3 의 카나리아 재실행은 한글 시험이 성공할 때의 길이고, 시험은 실패했다.
+
+=== 분류 규칙 손질(ⓐ · 모델 호출 없음) ===
+§4 단계 0 powershell 껍데기 정규식 T0-c 판(허용 목록: "C:\Program Files\PowerShell\7\pwsh.exe" · "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+· 홑 / 겹 역슬래시)으로 2회차 명령 9개를 다시 분류했다(전체 = classifier-T0c.txt):
+  2회차 폴더 안 읽기 #1 · ACE 뒤 #4(Get-Content … -TotalCount 1)     → wrapper=powershell · 위반 0 · files=[personas/INDEX.md]
+  2회차 #2 · #3 · ACE 뒤 #5~#8(바이트 · 16진 · 코드 포인트 우회 명령)  → 읽기 머리 밖(head:$bytes · head:format-hex · head:$line …)
+  2회차 경계 #1                                                       → path:outside 하나(검사가 잡음)
+  → 2회차를 새 규칙으로 다시 재도 폴더 안 읽기(ACE 뒤)는 FAIL(한글 깨짐에서 나온 우회 명령) · 경계는 PASS. 껍데기 맞물림(T0-b ⑤)은 풀렸다.
+
+=== 한글 읽기 카나리아(신설 · ⓑ 시험 1회 · harness-T5) ===
+prompt: Read the file personas/INDEX.md in the current folder and reply with its third line verbatim. Do not use web search. (현재 폴더의 personas/INDEX.md를 읽고 셋째 줄을 글자 그대로 답하라.)
+기대 답 = personas/INDEX.md 셋째 줄(한글 · 40자 이상 · 하네스 폴더 본문 그대로).
+러너 콘솔: chcp 65001 · [Console]::OutputEncoding = InputEncoding = UTF-8 — 설정 전에도 이미 출력 65001 · 입력 65001(도구 셸에서 띄운 러너의 콘솔 ·
+  창 핸들 없음). 기동 옵션 = K-COMMON Invoke-KCli 그대로(UseShellExecute=$false · CreateNoWindow 기본 $false — Codex 가 그 콘솔을 물려받는다).
+명령 = K-00 §3 글자 그대로(K-COMMON Get-KCodexArgv · 새 플래그 0) · 임시 홈 codexhome-T5(auth.json 사본만 · 끝에 지움).
+결과: Codex 기동 2번 — 둘 다 thread.started 직후 error · turn.failed: 「사용량 한도 — 2026-11-12 08:11 에 다시 시도」(모델 차례 0 · 셸 명령 0 · 원응답은
+  %TEMP%\sapkit-panK\diag-T0c\ 에만). 러너 판정 ① 전이 → 백오프 60 s 뒤 재시도도 같았고, 120 s 대기 중에 멈췄다(한도 전 호출은 같은 거부 — 시행착오 금지).
+  진단 호출 1(상한 4) · 벽시계 약 3분(상한 45분).
+판정: 실패(측정 불가) — 맑은 한글을 얻지 못했다. 가설의 설정(러너 콘솔 65001 상속)은 2회차 때 이미 걸려 있었는데 셸 출력이 949 로 깨졌고, 새 측정은
+  2026-11-12 까지 불가능하다.
+
+summary: gpt-5.6-sol,T5,isolation,측정 불가,attempt=3(T0-c) Codex 제외 — 샌드박스 셸 인코딩(ConstrainedLanguage · 코드 페이지 949) · K-00 §3 · §10 T0-c (1 · 2회차 PASS 기록 유지)
+summary: gpt-5.6-sol,T5,read,측정 불가,attempt=3(T0-c) Codex 제외 — 껍데기 손질 뒤에도 한글 깨짐 우회 명령이 위반 · K-00 §10 T0-c
+summary: gpt-5.6-sol,T5,boundary,측정 불가,attempt=3(T0-c) Codex 제외 — K-00 §10 T0-c (1 · 2회차 PASS 기록 유지)
+summary: gpt-5.6-sol,T5,banner,측정 불가,attempt=3(T0-c) Codex 제외 — K-00 §10 T0-c (1 · 2회차 PASS 기록 유지)
+summary: gpt-5.6-sol,T5,korean,측정 불가,attempt=3(T0-c) 한글 읽기 1회 — Codex 사용량 한도로 거부(모델 차례 0 · 2026-11-12 까지) · 러너 콘솔 65001 상속 설정은 2회차에 이미 있었고 깨짐

@@ -21,3 +21,18 @@ RESULT: PASS
 폴더 무결성 다시 잼: harness-T5 · harness-T6 각 203파일 blob sha 가 folder-sha-T5.txt · folder-sha-T6.txt 와 순서 · 내용 모두 같음(재생성 결과가
   바이트로 같아 두 목록 파일은 그대로 둔다) · 지시문 파일(AGENTS.md · CLAUDE.md · .claude) 0. 러너 자체 검사도 2회차 카나리아 뒤 same.
 RESULT: PASS
+
+--- T0-c 재측정 (2026-11-08 · 러너 두 개에 §4 단계 0 껍데기 손질 · 모델 집합 둘을 넣은 뒤 · 같은 잣대) ---
+지식  D-160 sha256=d680b3ee6cabdd892a2624f70774d6531ea8f5b7d8776b6fbe37c296d38cb15d chars=314
+      K-50  sha256=d680b3ee6cabdd892a2624f70774d6531ea8f5b7d8776b6fbe37c296d38cb15d chars=314 → 같음: True · K-00 §1 에 한 줄로 있음: True
+코드  D-160 sha256=c8ff33e3e087d1a33bed8738444992f6df59f31bb2e7732e8d52954638edfa85 chars=370
+      K-60  sha256=c8ff33e3e087d1a33bed8738444992f6df59f31bb2e7732e8d52954638edfa85 chars=370 → 같음: True · K-00 §1 에 한 줄로 있음: True
+러너 고정 줄 전체 sha256 — 지식 c40823eba8c4ef306cb1f1e04cb2f71c8eb7e5c70bd67b0cfc82c773284167f0 · 코드 927a275ff342e5ed7f4b0c7d01b5a5f66228837a7c4f84839109c1a5a712fe1f (T0 와 같음)
+K-COMMON sha256 두 러너 = ff181747b7ff660bcca9e0b4d4880e8dac970f010b7f96d1f4ea68195ae4145b (36551 chars) · 같음: True (K-01 끝)
+폴더 무결성 다시 잼: harness-T5 · harness-T6 각 203파일 blob sha 가 folder-sha-T5.txt · folder-sha-T6.txt 와 같음(diff 0 · 두 목록 파일은 그대로) ·
+  지시문 파일(AGENTS.md · CLAUDE.md · .claude) 0.
+러너 무호출 단계(msi pwsh 7 · 모델 호출 0): K-50 -Phase prompts exit 0 (60문항 · 고정 줄 sha 위와 같음) · K-50 -Check exit 1 (RED — 응시 전 정상 ·
+  기대 행 120 = 60 × 2모델) · K-60 -Phase prompts exit 0 (5과제) · K-60 -Phase check exit 1 (RED — 응시 전 정상 · 기대 행 10 = 5 × 2모델).
+  이 단계가 만든 자료 폴더 산출물(K-50-run-log.txt · K-50-summary.csv)은 지웠다.
+Codex 임시 홈: codexhome-T5(T0-c 진단이 만듦) [IO.Directory]::Delete 로 지움 · codexhome-T6 없음 → 둘 다 없음 확인.
+RESULT: PASS

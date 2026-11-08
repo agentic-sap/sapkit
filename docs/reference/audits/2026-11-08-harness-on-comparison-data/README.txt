@@ -58,3 +58,5 @@ T0 산출물
   K-02-canary/               카나리아 — <벌>-<model>.txt(3종 + Codex 배너 · 응답은 로컬 경로만 가림) · summary.csv ·
                              folder-sha-T5.txt · folder-sha-T6.txt(하네스 폴더 203파일 blob sha) · tree-check.txt ·
                              fixed-line-check.txt · namecheck-selftest.txt · install.txt(CLI 설치 기록)
+                             T0-c 더함: classifier-T0c.txt(§4 단계 0 껍데기 손질 전 · 후 무호출 대조) · T6-gpt-5.6-sol.txt(측정 불가 기록)
+                             — Codex 는 판K 에서 뺐다(K-00 §3 ⛔ · §10 T0-c)

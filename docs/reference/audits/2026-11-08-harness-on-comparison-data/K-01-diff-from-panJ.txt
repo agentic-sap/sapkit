@@ -60,6 +60,10 @@ D. 실행 방식
 44 | Codex 가 띄우는 셸 (T0-b) | 판J 는 셸 호출 자체가 무효 | PowerShell 7.6.9 msi(C:\Program Files\PowerShell\7\pwsh.exe) — T0 의 msix 꾸러미는 샌드박스가 못 띄워(CreateProcessAsUserW 5) 지웠다. Codex 는 셸 고르는 설정 키가 없고, 러너 pwsh 의 자리($PSHOME)를 PATH 앞에서 물려받거나 내장 대체 자리로 msi pwsh 를 고른다. 러너도 msi pwsh 로 띄운다 | install.txt [3] · K-00 §9 · §10 T0-b ③
 45 | Codex 명령 분류 × 셸 자리 (T0-b · ⚠ 미해소) | — | §4 단계 0 껍데기 정규식은 공백 없는 실행 파일 경로만 벗긴다 → msi 자리 "C:\Program Files\…\pwsh.exe" 는 wrapper=none · head:q · path:outside 로 모든 명령이 무효(2회차 카나리아 폴더 안 읽기 FAIL). 정규식 불변이라 T0-b 는 고치지 않았다 — 메인 판단 대기(K-00 §10 ㉠ ~ ㉢) | K-00 §10 T0-b ⑤
 46 | Codex 셸 출력의 한글 (T0-b · 관찰) | — | 샌드박스 안 PowerShell(5.1 · 7)이 ConstrainedLanguage 모드라 Codex 의 UTF-8 출력 설정이 실패 → 출력이 코드 페이지 949 로 나가 한글이 깨진다(폴더 112/203 파일에 한글). 우회 명령은 §4 읽기 머리 밖이라 무효. 판J 에는 없던 조건 차이(Claude 의 Read 는 UTF-8 로 읽는다) | K-00 §10 T0-b ④
+47 | Codex 명령 분류 §4 단계 0 껍데기 인식 (T0-c · 손질) | (판J 는 분류 없음) · T0 판 = 공백 없는 실행 파일 경로만 벗김 | powershell 껍데기에 따옴표로 감싼 공백 경로 허용 목록 두 개("C:\Program Files\PowerShell\7\pwsh.exe" · "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" · 홑 / 겹 역슬래시)를 더함. 그 밖 글자 · 위반 토큰 · 경로 규칙 · 단계 1~4 불변 · T0 판 정규식은 K-00 §4 에 기록으로 남김 · 두 러너 K-COMMON 같은 글자. 무호출 대조: msi 껍데기 = wrapper 인식 · 위반 0, T0-b 위반 명령은 우회 명령 낱말과 폴더 밖 경로만 남음 | 소유자 승인 2026-11-08(사양 §7 ⓡ · K-00 §10 ㉠) · K-00 §4 · K-02-canary/classifier-T0c.txt · 행 45 해소
+48 | Codex 셸 한글 — 러너 콘솔 설정 시험 (T0-c · 실패) | — | 러너가 chcp 65001 · [Console]::OutputEncoding · InputEncoding = UTF-8 을 둔 뒤 Codex 가 콘솔을 물려받게 띄우는 시험 1회(진단 상한 4 · 45분). 그 설정(콘솔 65001 상속)은 T0-b 2회차에 이미 걸려 있었는데 깨졌고, T0-c 호출은 Codex 사용량 한도(2026-11-12 08:11 까지)로 모델 차례 전에 거부 → 실패. 러너 기동 설정은 바꾸지 않았다(채택할 것 없음) · 시스템 설정 · 설치 · 환경변수 · 새 플래그 0 | 소유자 결정 2026-11-08(사양 §7 ⓢ) · K-00 §10 T0-c ② · 행 46
+49 | 모델 집합 (T0-c) | claude-opus-5-5 · claude-sonnet-5-5 · gpt-5.6-sol | claude-opus-5-5 · claude-sonnet-5-5 — 두 러너 기본값(K-50 $Models · K-60 $AllModels · K-COMMON $KModels) · 머리 주석에 이유 · -Model gpt-5.6-sol 명시는 다른 컴퓨터 재현용으로 남김(기본값 · all 밖). 지식 60 × 2 = 120행 · 코드 5 × 2 = 10행. Codex 명령 · 배너 · 분류 규칙은 그대로 둠 | 소유자 결정 4(한글 실패 → Codex 제외) · K-00 §1 · §3 ⛔
+50 | 한글 읽기 카나리아 (T0-c · 신설) | 없음 | personas/INDEX.md 의 셋째 줄(한글 · 40자 이상)을 글자 그대로 답하게 하고 원문과 정확히 같은지 + 러너 분류 위반 0 · 폴더 밖 0 으로 판정(폴더 안 읽기 카나리아 꼴 · 영문 + 한글 괄호). T5 에서 1회 시도 — 사용량 한도로 거부 · summary.csv canary=korean 행은 측정 불가 | 소유자 결정 2 · K-00 §10 T0-c ② · K-02-canary/T5-gpt-5.6-sol.txt 3회차
 
 K-COMMON 대조 (T0 기계 확인): 두 러너에서 「# >>> K-COMMON」부터 「# <<< K-COMMON」까지의 글자가 같다 — 아래 sha256.
   K-50-run-knowledge.ps1 K-COMMON sha256 = 0d80fb2dab9a219c243481785bcd774af7d318d414813c60389a1e8b58bca55a (36211 chars)
@@ -69,3 +73,7 @@ K-COMMON 재대조 (T0-b · 행 43 의 한 줄을 두 러너에 넣은 뒤 · �
   K-50-run-knowledge.ps1 K-COMMON sha256 = ad7fa4b88688f98da2208ed8a411877d9f3d4166a2c82e5ea0608b4345475bb5 (36249 chars)
   K-60-run-code.ps1      K-COMMON sha256 = ad7fa4b88688f98da2208ed8a411877d9f3d4166a2c82e5ea0608b4345475bb5 (36249 chars)
   같음: True · T0 대비 +38 chars = 「, '-c', 'windows.sandbox="unelevated"'」 하나뿐
+K-COMMON 재대조 (T0-c · 행 47 의 껍데기 정규식 + 주석 한 줄 · 행 49 의 $KModels 를 두 러너에 넣은 뒤 · 같은 잣대):
+  K-50-run-knowledge.ps1 K-COMMON sha256 = ff181747b7ff660bcca9e0b4d4880e8dac970f010b7f96d1f4ea68195ae4145b (36551 chars)
+  K-60-run-code.ps1      K-COMMON sha256 = ff181747b7ff660bcca9e0b4d4880e8dac970f010b7f96d1f4ea68195ae4145b (36551 chars)
+  같음: True · T0-b 대비 +302 chars = Unwrap-KShell 의 주석 한 줄 · powershell 정규식 머리의 허용 목록 갈래 · $KModels 의 gpt-5.6-sol 제거와 그 줄 주석
