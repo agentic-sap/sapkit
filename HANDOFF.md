@@ -350,6 +350,10 @@
 > ② `/dryforge:ready docs/RUN-PLAN.md 판K` → `/dryforge:go`. 소유자 지시 — **메인은 오케스트레이션만**, 일은 지정 모델
 > (응시 Opus 5.5 · Sonnet 5.5 · Codex · 채점 Fable · 작업 Opus 5.5 · 마감 검토 Codex + 비응시 Fable). 판J의 소유자 결정
 > 셋(D-159): ⓐ 14칸 · 파내기 그대로 ⓑ 배포 기본값 그대로 ⓒ 판K. 걷어내는 집행은 아직 0이다.
+> **↳ 2026-11-08 진행 중(이 머신 `DESKTOP-KSQUK97` — 판J를 돌린 머신이 아니다):** ① 착수 결정 **D-160** 확정·푸시(`46efffc1`)
+> ② `/dryforge:ready` 완료(독립 검증 2회 · 3-doc `.dryforge/`) ③ `/dryforge:go` 착수 — 가지 `dryforge/panK` · T0(준비) 진행.
+> 소유자가 11-09 주를 11-08로 앞당겼다(세션 모델 Fable 전환). **IDES-DEV 프로파일은 이 머신에 있고 접속 확인됨**(S4H·100 ·
+> 아래 「IDES-DEV 없다」 서술은 낡았다 — 판K 마감(T12)이 정정). 재개하려면 가지 `dryforge/panK`에서 `.dryforge/handoff.md`부터.
 >
 > **⓪-a 판H는 끝까지 갔다** — 소유자 승인으로 `main` 병합(`--no-ff` · `76fa169`) · 푸시 · **CI 4잡 초록**
 > (run `41962805351` — `test-spec-html`이 처음으로 러너에서 돌았다) · 설치본 **0.12.0**(두 스코프 · `doctor` ③ 일치).
