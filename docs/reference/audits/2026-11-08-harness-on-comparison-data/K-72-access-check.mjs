@@ -8,7 +8,8 @@
 //                               [--outputs <레포 상대,…>] [--msg <스크래치 메시지 파일 이름>] [--extra-read <레포 상대,…>]
 //        [--role … 반복]
 //   --role 뒤의 --log · --expect-model · --notes · --outputs · --msg · --extra-read 는 그 역할에만 걸린다.
-//   A · B 는 출력 둘 · 메시지 파일 · 메모 파일의 기본값을 갖는다. third · R-F 는 --outputs · --msg · --notes 를 줘야 한다.
+//   A · B 는 출력 둘 · 메시지 파일 · 메모 파일의 기본값을 갖는다. third 는 --outputs · --msg · --notes 를 줘야 한다.
+//   R-F 는 셋 다 받지 않는다(쓰기 0 역할 — 아래 「R-F 규칙」).
 // 종료 코드: 0 = 전 역할 PASS · 1 = 하나라도 FAIL 또는 MODEL MISMATCH(기록은 남긴다) · 2 = 사용법 오류
 //
 // 하는 일
@@ -21,6 +22,23 @@
 //     MODEL MISMATCH(그 채점은 비교 불가 — D-160 ⓑ).
 //   - 메모 머리 모델 id: 메모 파일 첫 줄이 「model: <지정 id>」 인가.
 //   - 결과를 --out 파일에 회차 절로 덧붙인다(없으면 만든다).
+//
+// R-F 규칙(독립 리뷰 · 판K 회수 2026-11-09 추가 — A · B · third 규칙은 그대로다)
+//   - 읽기(Read · Grep · Glob) = 레포 안 전부. 단 비추적 작업 폴더(레포 루트의 점 폴더 · 그 안의 작업 트리 전부 포함)는 접촉 ·
+//     레포 밖은 접촉 · Grep/Glob 의 path 없음 = 접촉(검색 범위를 알 수 없다) · glob/pattern 에 .. · 절대 경로 · 그 폴더 이름 = 접촉.
+//   - 쓰기 = 0. Write · Edit · NotebookEdit 1건이면 접촉(대상 불문).
+//   - 셸(Bash · PowerShell) = 읽기 전용 git 만 — 세그먼트(; · && · PowerShell 「if ($?) { }」 로 나눔)마다
+//     git [-C <레포 루트>] [-c color.<…>=<값> …] <log|diff|show|status> [옵션 · 리비전 · 경로 …].
+//     옵션은 - 로 시작하는 낱말이면 받되 --output · -o · --ext-diff 는 접촉(파일을 쓰거나 외부 프로그램을 띄운다).
+//     -c 는 color.* 키만(그 밖 설정은 프로그램을 띄울 수 있다). 경로 인자는 레포 안 · 비추적 작업 폴더 밖이어야 한다.
+//     git 밖의 명령(cat · ls · dir · Get-Content · type · node · echo …) · 그 밖의 git 하위 명령(add · commit · checkout ·
+//     reset · stash · push …) · 따옴표 밖의 | > < ` & · $( 는 접촉. 낱말은 붙은 따옴표 조각을 이어 하나로 본다.
+//     예외 하나(R-F 에만 · 메인 결정 2026-11-09 · 판K 회수): 「echo "<리터럴>"」 세그먼트 — 따옴표 안이 리터럴과
+//     $LASTEXITCODE 만이고 $( · 다른 변수 · 경로 구분자 · 백틱이 없을 때 — 는 「종료 코드 출력 · 파일·망 접근 없음」으로 허용하고
+//     건수와 명령을 따로 찍는다. 근거: 사전 등록된 R-F 금독은 비추적 작업 폴더와 레포 밖 둘이고, 「셸 = 읽기 전용 git」 은
+//     디스패치 때 더한 운용 규칙이다 · 이 꼬리는 앞 명령의 종료 코드만 찍어 읽기 범위를 넓히지 않는다.
+//   - 보고 전달(SubagentHandback) 허용. 그 밖 이름의 도구 = 접촉.
+//   - 메모 파일이 없다 — 「메모 머리 모델 id」 대신 보고 본문(SubagentHandback message) 첫 줄이 「model: <지정 id>」 인가를 잰다.
 //
 // 지키는 것
 //   - 내장 모듈만(node:fs · node:path · node:os · node:child_process). 기록 파일은 읽기만 한다.
@@ -86,6 +104,7 @@ for (const r of roles) {
   r.msg = r.msg || d.msg;
   r.notes = r.notes || d.notes;
   r.extra = list(r['extra-read']);
+  if (r.role === 'R-F') { if (r.outputs || r.msg || r.notes || r.extra.length) usage('role R-F: --outputs, --msg, --notes and --extra-read are not taken (write-0 role)'); r.outputs = []; continue; }
   if (!r.outputs || !r.msg || !r.notes) usage(`role ${r.role}: --outputs, --msg and --notes required`);
 }
 
@@ -130,7 +149,7 @@ function show(p) {
   if (!L.outside) {
     if (L.tree === null) return maskId(String(p).replace(/\\+/g, '/'));
     const shown = maskPrefixes(String(p)).replace(/\\+/g, '/').replace(/\/+/g, '/').replace(/^(\[트리 [^\]]+\])\/?/, '$1 ');
-    return maskId(shown.split(`${FORGE}/`).join('<비추적 작업 폴더>/').replace(/\s$/, ' (트리 루트)'));
+    return maskId(shown.split(`${FORGE}/`).join('<비추적 작업 폴더>/').split(FORGE).join('<비추적 작업 폴더>').replace(/\s$/, ' (트리 루트)'));
   }
   const o = L.outside;
   const base = maskId(String(p).replace(/\\+/g, '/').split('/').pop());
@@ -194,6 +213,79 @@ function shellAllowed(cmd, r, treeOf) {
   return true;
 }
 
+// ── R-F 규칙(머리 주석 「R-F 규칙」) ─────────────────────────────────────────────
+// 레포 안 · 비추적 작업 폴더 밖인가. 작업 트리는 그 폴더 안에 있으므로 tree 가 'main' 이 아니면 접촉이다.
+const forgeSeg = (rel) => rel.split('/').includes(FORGE);
+function rfRepoOk(p) {
+  const L = locate(p);
+  if (L.outside) return { ok: false, L };
+  if (L.tree === null) return { ok: !forgeSeg(L.rel) && !L.rel.split('/').includes('..'), L };
+  return { ok: L.tree === 'main' && !forgeSeg(L.rel), L };
+}
+function tokenizeJoin(seg) {   // 붙은 따옴표 조각을 이어 한 낱말로(a="b" → a=b)
+  return (seg.match(/(?:"[^"]*"|'[^']*'|[^\s"'])+/g) || []).map((w) => w.replace(/"([^"]*)"|'([^']*)'/g, (m, d, q) => d ?? q ?? ''));
+}
+const RF_GIT_SUB = new Set(['log', 'diff', 'show', 'status']);
+// 예외(머리 주석 · 메인 결정 2026-11-09): echo "<리터럴 + $LASTEXITCODE 만>"
+const isExitEcho = (s) => { const m = s.match(/^echo\s+(?:"([^"]*)"|'([^']*)')$/i); if (!m) return false; const body = (m[1] ?? m[2]).split('$LASTEXITCODE').join(''); return !/[$`\\/]/.test(body); };
+function shellAllowedRF(cmd, treeOf, onEcho) {
+  const c = String(cmd).replace(/\bif\s*\(\s*\$\?\s*\)\s*\{([\s\S]*)\}\s*$/, ';$1');
+  const { segs, bad } = splitOutsideQuotes(c);
+  if (bad || segs.length === 0) return false;
+  let echoes = 0;
+  for (const s of segs) {
+    if (isExitEcho(s)) { echoes++; continue; }
+    const t = tokenizeJoin(s);
+    if (t[0] !== 'git') return false;
+    let k = 1;
+    for (;;) {
+      if (t[k] === '-C') { const L = locate(t[k + 1] || ''); if (L.outside || L.tree === null || L.rel !== '' || L.tree !== 'main') return false; treeOf(L.tree); k += 2; continue; }
+      if (t[k] === '-c') { if (!/^color\.[a-z0-9.]+=[^\s]*$/i.test(t[k + 1] || '')) return false; k += 2; continue; }
+      break;
+    }
+    if (!RF_GIT_SUB.has(t[k])) return false;
+    let pathMode = false;
+    for (const a of t.slice(k + 1)) {
+      if (a === '--') { pathMode = true; continue; }
+      if (!pathMode && a.startsWith('-')) { if (/^(--output|-o|--ext-diff)/.test(a)) return false; continue; }
+      const looksPath = pathMode || /[\\/]/.test(a) || /^[a-z]:/i.test(a);
+      if (!looksPath) continue;   // 리비전(해시 · a..b · HEAD~n) 또는 레포 상대 이름
+      const { ok, L } = rfRepoOk(a.includes(':') && !/^[a-z]:/i.test(a) ? a.split(':').slice(1).join(':') : a);
+      if (!ok) return false;
+      if (L.tree) treeOf(L.tree);
+    }
+  }
+  if (echoes) onEcho(echoes);
+  return true;
+}
+function classifyRF(c, treeOf) {
+  const inp = c.input;
+  if (c.name === 'Read') {
+    const fp = inp.file_path || '';
+    const { ok, L } = rfRepoOk(fp);
+    if (L.tree) treeOf(L.tree);
+    return { ok: !!fp && ok, cat: '레포 안 읽기', what: show(fp) };
+  }
+  if (c.name === 'Grep' || c.name === 'Glob') {
+    const what = `${inp.path ? show(inp.path) : '(path 없음)'}${inp.glob ? ` glob=${maskText(inp.glob)}` : ''}${c.name === 'Glob' ? ` pattern=${maskText(inp.pattern || '')}` : ''}`;
+    if (!inp.path) return { ok: false, cat: null, what };
+    const { ok, L } = rfRepoOk(inp.path);
+    if (L.tree) treeOf(L.tree);
+    const pat = (x) => /\.\.|^[a-z]:|^\/|\\/i.test(x || '') || norm(x || '').includes(FORGE);
+    const extraOk = !(inp.glob && pat(inp.glob)) && !(c.name === 'Glob' && pat(inp.pattern));
+    return { ok: ok && extraOk, cat: '레포 안 검색', what };
+  }
+  if (['Write', 'Edit', 'NotebookEdit'].includes(c.name)) return { ok: false, cat: null, what: `${show(inp.file_path || inp.notebook_path || '')} (쓰기 0 역할)` };
+  if (c.name === 'Bash' || c.name === 'PowerShell') {
+    const what = maskText(inp.command || '');
+    let echoes = 0;
+    if (!shellAllowedRF(inp.command || '', treeOf, (n) => { echoes = n; })) return { ok: false, cat: null, what };
+    return echoes ? { ok: true, cat: '읽기 전용 git + 종료 코드 출력 예외', what, echoes } : { ok: true, cat: '읽기 전용 git', what };
+  }
+  if (HANDBACK.has(c.name)) return { ok: true, cat: '보고 전달', what: '(보고 본문 — 파일 접근 없음)' };
+  return { ok: false, cat: null, what: `이름 · 종류: ${maskText(c.name)}${c.name.startsWith('mcp__') ? ' (MCP)' : ''}` };
+}
+
 // ── 한 역할 검사 ───────────────────────────────────────────────────────────────
 function check(r) {
   const res = { lines: 0, asst: 0, calls: [], byTool: {}, models: {}, reqModels: {}, trees: {}, err: null };
@@ -234,7 +326,12 @@ function check(r) {
     const treeOf = (t) => trees.push(t);
     let ok = false, cat = null, what = '';
     const relOf = (p) => { const L = locate(p); if (L.tree) treeOf(L.tree); return L; };
-    if (c.name === 'Read') {
+    if (r.role === 'R-F') {
+      let echoes;
+      ({ ok, cat, what, echoes } = classifyRF(c, treeOf));
+      c.echoes = echoes || 0;
+      if (HANDBACK.has(c.name) && res.handbackHead === undefined) res.handbackHead = String(inp.message || '').replace(/^﻿/, '').split(/\r?\n/)[0];
+    } else if (c.name === 'Read') {
       what = show(inp.file_path || '');
       const L = relOf(inp.file_path || '');
       if (!L.outside && L.tree !== null) {
@@ -290,7 +387,8 @@ for (const r of roles) {
   const mset = Object.keys(res.models), rset = Object.keys(res.reqModels);
   const modelOk = mset.length === 1 && mset[0] === r.model && rset.every((x) => x === r.model);
   let head = '(읽을 수 없음)';
-  try { head = fs.readFileSync(repoFile(r.notes), 'utf8').replace(/^﻿/, '').split(/\r?\n/)[0]; } catch { /* 아래에서 불일치로 */ }
+  if (r.role === 'R-F') head = res.handbackHead ?? '(보고 전달 없음)';
+  else try { head = fs.readFileSync(repoFile(r.notes), 'utf8').replace(/^﻿/, '').split(/\r?\n/)[0]; } catch { /* 아래에서 불일치로 */ }
   const headOk = head.trim() === `model: ${r.model}`;
   const pass = !res.err && contacts.length === 0 && modelOk && headOk;
   if (!pass) allPass = false;
@@ -302,10 +400,16 @@ for (const r of roles) {
   out.push(`도구 호출 총수: ${res.calls.length} (${fmt(res.byTool)})`);
   out.push(`allowed: ${allowed} (${fmt(res.cats)})`);
   out.push(`  자기 출력 되읽기: ${res.cats['자기 출력 되읽기'] || 0}`);
+  if (r.role === 'R-F') {
+    const ex = res.calls.filter((c) => c.ok && c.echoes);
+    out.push(`  R-F 예외 — 종료 코드 출력 · 파일·망 접근 없음(echo 세그먼트 · 메인 결정 2026-11-09 · 판K 회수): 세그먼트 ${ex.reduce((a, c) => a + c.echoes, 0)} · 호출 ${ex.length}`);
+    for (const c of ex) out.push(`    줄 ${c.line} · ${c.name} · ${c.what}`);
+  }
   out.push(`contact: ${contacts.length}`);
   for (const c of contacts) out.push(`  줄 ${c.line} · ${c.name} · ${c.what}`);
   out.push(`관측 모델 id: message.model {${mset.join(', ')}} (assistant 줄 ${res.asst}) · 요청 params.model {${rset.join(', ')}} (${Object.values(res.reqModels).reduce((a, b) => a + b, 0)}건) · 지정 ${r.model} → ${modelOk ? '일치' : 'MODEL MISMATCH'}`);
-  out.push(`메모 머리 모델 id: ${path.posix.basename(r.notes)} 첫 줄 「${maskText(head)}」 → ${headOk ? '일치' : '불일치'}`);
+  if (r.role === 'R-F') out.push(`보고 머리 모델 id: 보고 본문(SubagentHandback) 첫 줄 「${maskText(head)}」 → ${headOk ? '일치' : '불일치'} (R-F 는 메모 파일이 없다 · 쓰기 0)`);
+  else out.push(`메모 머리 모델 id: ${path.posix.basename(r.notes)} 첫 줄 「${maskText(head)}」 → ${headOk ? '일치' : '불일치'}`);
   out.push(`판정: ${verdict}`);
   out.push('');
 }

@@ -34,3 +34,28 @@ contact: 0
 관측 모델 id: message.model {claude-fable-5-1} (assistant 줄 42) · 요청 params.model {claude-fable-5-1} (9건) · 지정 claude-fable-5-1 → 일치
 메모 머리 모델 id: K-80-notes.txt 첫 줄 「model: claude-fable-5-1」 → 일치
 판정: PASS
+== 회차 3 · 역할 R-F · 2026-11-09 ==
+기록: 레포 밖 원 기록(JSONL · 읽기만) · 줄 277 · assistant 줄 91
+      도구 호출 = assistant 줄의 tool_use (요청 사본 줄은 세지 않음 · 같은 tool_use id 는 한 번)
+작업 트리: 주 저장소 70 (경로가 닿은 호출 수)
+도구 호출 총수: 73 (Grep 25 · PowerShell 10 · Read 37 · SubagentHandback 1)
+allowed: 73 (레포 안 검색 25 · 읽기 전용 git 8 · 레포 안 읽기 37 · 읽기 전용 git + 종료 코드 출력 예외 2 · 보고 전달 1)
+  자기 출력 되읽기: 0
+  R-F 예외 — 종료 코드 출력 · 파일·망 접근 없음(echo 세그먼트 · 메인 결정 2026-11-09 · 판K 회수): 세그먼트 2 · 호출 2
+    줄 90 · PowerShell · git -C "[트리 주]" diff --stat 46efffc1 bb5a7512 -- interactive sapkit-engine sapkit-cli docs/reference/audits/2026-11-05-harness-necessity-review.md docs/reference/audits/2026-11-05-harness-necessity-re
+    줄 134 · PowerShell · git -C "[트리 주]" diff --stat 46efffc1 bb5a7512 -- CLAUDE.md AGENTS.md docs/DESIGN.md interactive/DESIGN.md docs/BLUEPRINT.md; echo "---exit: $LASTEXITCODE---"
+contact: 0
+관측 모델 id: message.model {claude-fable-5-1} (assistant 줄 91) · 요청 params.model {claude-fable-5-1} (12건) · 지정 claude-fable-5-1 → 일치
+보고 머리 모델 id: 보고 본문(SubagentHandback) 첫 줄 「model: claude-fable-5-1」 → 일치 (R-F 는 메모 파일이 없다 · 쓰기 0)
+판정: PASS
+덧붙임(손으로 적음 · 위 절은 스크립트 출력 그대로):
+  - R-F 규칙은 이 회차에 스크립트에 더했다(--role R-F · 규칙 = 스크립트 머리 「R-F 규칙」). A · B · third 규칙은 바꾸지 않았다.
+  - 사전 등록 금독(비추적 작업 폴더 · 레포 밖) 접촉 0 · 쓰기 0.
+  - 예외 2건(echo 종료 코드 꼬리 「; echo "---exit: $LASTEXITCODE---"」) — 문언 「셸 = 읽기 전용 git 만」(디스패치 때 더한 운용 규칙)으로는
+    접촉이다. 메인 결정(2026-11-09 · 판K 회수 · 사용자 결정 아님): 파일 · 망 접근 0 · 앞 명령의 종료 코드 출력뿐이라 읽기 범위를
+    넓히지 않으므로 위반이 아니다 → 좁은 예외로 허용 · 이 리뷰는 유효. 엄격 문언으로 돌린 시험 실행은 contact 2 · FAIL 이었다(스크래치 · 기록 안 함).
+  - R-F 보고의 자기 진술 「shell: 전부 읽기 전용 git」 은 이 두 꼬리만큼 부정확했다(K-93 기록 행).
+  - git 의 「-c color.*=…」 2건은 옵션으로 보고 허용했다(메인 채택).
+  - 음성시험(스크래치 · 커밋 안 함): 합성 기록 19호출 — 허용 6(읽기 · 검색 · git 둘 · git+echo 예외 · 보고) · 접촉 13(비추적 폴더 Read ·
+    작업 트리 Read · 비추적 폴더 Grep · Write · Edit · git add · cat · git diff --output · 비추적 경로 인자 git log · 레포 밖 Read ·
+    echo 다른 변수 · echo $( · echo 경로) — 기대대로.

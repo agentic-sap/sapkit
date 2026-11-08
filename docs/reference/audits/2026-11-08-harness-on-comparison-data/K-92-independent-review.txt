@@ -1,0 +1,82 @@
+R-F 독립 리뷰 — 비응시 claude-fable-5-1 · 새 컨텍스트 · 쓰기 0 · 대상 bb5a7512 · 2026-11-09
+아래는 리뷰어 보고 원문 그대로다(메인이 받은 SubagentHandback 본문). 가림 3곳(비추적 작업 폴더 이름 2 · 프로파일 이름 1) — 이름 검사(K-99)에 걸리는 토큰만 <가림> 으로 바꾼다.
+접근 기록 검사: K-72-access.txt 회차 3(R-F) · 처분: K-93-review-dispositions.txt
+
+model: claude-fable-5-1
+verdict: R-PASS   (차단 0 · 권고 5 · 기록 12)
+
+recount: (내 재계산 ↔ K-83-results.txt · 원자료 K-70/K-71/K-80 + K-79 매핑 + J-70/J-71/J-80/J-81에서 직접 셈)
+
+| 칸 | 내 재계산 | K-83 | 일치 |
+|---|---|---|---|
+| 지식 판정 가능 47 — Opus | 46/47 = 97.9% | 46/47 | ✓ |
+| 지식 판정 가능 47 — Sonnet | 47/47 = 100.0% | 47/47 | ✓ |
+| 모듈 18 — Opus | 17/18 = 94.4% (오답 1 = K-MOD-CO-02 · d058ec) | 17/18 | ✓ |
+| 모듈 18 — Sonnet | 18/18 | 18/18 | ✓ |
+| 나라 16 · 업종 7 · ABAP 6 (두 모델) | 16/16 · 7/7 · 6/6 | 같음 | ✓ |
+| 비싼 항목 오답 (expensive 13 = 전부 나라) | 0 · 0 | 0 · 0 | ✓ |
+| 해친다 칸 | 0 | 0 | ✓ |
+| 엄격 60 | Opus 52/60 · Sonnet 58/60 | 52/60 · 58/60 | ✓ |
+| 팩 오류 5에서 팩 따라 「정답」 | 1/5 · 4/5 | 1/5 · 4/5 | ✓ |
+| 새 의심(팩어긋남의심=오답 · 분모 47 밖) | Opus 7 · Sonnet 2 | 7 · 2 | ✓ |
+| 짝 비교 ✗→✓ / ✓→✗ | 4 · 4 / 0 · 0 | 같음 | ✓ |
+| 코드 — Opus | 3/5 (C-02·C-03·C-05 · 위반 C-01 5@61 · C-04 2@53;5@53;6@53) | 3/5 | ✓ |
+| 코드 — Sonnet | 2/5 (C-03·C-05 · 위반 C-01 5@65 · C-02 4@9;7@93;9@1 · C-04 6@43) | 2/5 | ✓ |
+| 검사기 오류급 (K-60 10행) | 0 전부 | 0 | ✓ |
+| L1-f 결합 | 못 메운다 · 못 메운다 | 같음 | ✓ |
+| A↔B 지식 verdict | 154/156 (불일치 ee6069 · b0ecfc) | 154/156 = 98.7% | ✓ |
+| A↔B 코드 | 15/25 | 15/25 = 60.0% | ✓ |
+| 제3 판정 행 | 12 (지식 2 · 코드 10) | 12 | ✓ |
+| 표류 지식 — 채택 기준(판J 채점 단계 최종) | 0/36 | 0/36 | ✓ |
+| 표류 지식 — D-160 문언(J-83 `final`) | 6/36 (dab8b7·ee6069·a8df01·ac3824·a914d2·a211b0 — 전부 J-81 팩 오류 문항) | 6/36 | ✓ |
+| 표류 코드 통과 | 0/15 (A 단독 1 = d92d31 · 최종은 일치) | 0/15 | ✓ |
+| 층 판정 | L1-a·L2 측정 후 결정 · L1-f 가정 기각 (세 모델 문언 · Claude 둘 동일) | 같음 | ✓ |
+| 관측 모델 id | K-50-summary 120행 id 일치 · 러너 mismatches 0 · 코드 5/5 | 비교 불가 0 | ✓ |
+
+K-84 자가 대조(OK 42 · FAIL 0)와 감사 문서 §3·§4 칸 · D-161 「수치」 절 · RUN-PLAN · HANDOFF · 위키 두 쪽의 수치·어휘를 대조 — 어긋남 0. 집계 스크립트(K-83-aggregate.mjs 전문)는 D-160 선(정답률 띠 95/90 · 비싼 띠 0/1/≥2 · 나쁜 쪽 · 해친다 ≥2/≥1 · 코드 5/4/≤3 · L1-f 결합 · 층 판정 · 비교 불가→측정 후 결정 · 팩어긋남의심=오답)을 문언대로 구현했고, 결과를 본 뒤 바뀐 것은 ⓤ 하나이며 D-161:3912·3923-3924 · 감사 §2.5(163-167)·§5.4(416-421) · K-83 §11에 「결과를 본 뒤」로 라벨되고 문언 수치 6/36이 병기돼 있다.
+
+findings:
+
+[차단] — 없음.
+
+[권고] docs/reference/audits/2026-11-08-harness-on-comparison.md:386 — 「유지 처방 문장의 근거는 세워지지도 흔들리지도 않았다」는 같은 절의 L1-f 가정 기각(384) · 「켠 조건으로도 메워지지 않음이 드러났다」(387)와 긴장한다. 「흔들리지 않은」 것은 유지 처방(D-160 규칙상 어느 판정이든 그대로)이고, 「하네스가 빈틈을 메운다」는 근거 가정은 작법 층에서 기각됐다. 두 대상을 갈라 쓰기를 권고.
+
+[권고] docs/reference/DECISIONS.md:3946-3948 「다음」 · docs/RUN-PLAN.md:137 — D-160:3785-3786이 가정 기각에 미리 붙인 처리 둘(「근거 문장을 고치고」 · 「팩 품질 · 적재 길을 다음 판 후보로」)이 집행도 명시 이연도 되지 않았다. 감사 문서 388-389는 「마감 결정과 다음 판의 몫」으로 넘겼는데, 마감 결정 D-161은 그 둘을 받지 않았고 판 큐에도 후보 줄이 없다. 또 D-160:3694 「판J 감사 문서는 고치지 않는다」와 3786 「근거 문장을 고친다」가 겉으로 충돌하므로 어디서 고치는지(위키 · 새 D-항목)를 적어야 한다 — docs/reference/wiki/distribution-install-history.md:166이 사실상 그 일부를 하고 있다. 회수에서 D-161 후속 append 또는 RUN-PLAN 후보 줄로 받을 것.
+
+[권고] docs/reference/DECISIONS.md:3912 ⓤ 이유 칸 「채점 단계 최종과는 0/35」 ↔ 같은 항목 3877 「0/36」 · K-83 0/36. 35는 T9b 1부(제3 판정 전 — 표류 표본 안의 ee6069가 A≠B라 미확정) 시점의 값으로 설명되지만(K-83-results.txt:134) 라벨이 없어 두 분모가 나란히 보인다. 회수에 한 줄 설명(append) 권고.
+
+[권고] docs/reference/DECISIONS.md:3860-3861 — 엄격 60의 산법 차이(판K = 채점자 최종 · J-10 키 / 판J = 팩 오류 5문항을 J-81 공식 문서 대조로 잼)는 수치 절 · 감사 §3.2 · K-83 §6에 적혀 있으나 「D-160과 달리 정한 것」 ⓐ~ⓨ 표(3889-3918)의 행은 아니다. 비교 단위가 달라진 자리이므로 표에 한 행으로 두는 쪽이 일관.
+
+[권고] 정직 유보 추가 후보 — 독립 리뷰 R-F가 채점자 A·B·제3과 같은 모델(claude-fable-5-1)이라는 사실은 감사 §2.7:187에 배치로는 적혀 있으나 §5나 D-161 유보에는 한계로 적혀 있지 않다. 이 리뷰의 재계산은 집계 산술과 규칙 적용을 검증할 뿐 채점 판정의 옳음을 독립 검증하지 못한다 — 같은 모델 계열의 체계적 채점 편향은 이 리뷰 설계로 잡히지 않는다.
+
+[기록] K-65-check.txt:38-50 [5] — 묶음 메타·키·스크립트 칸 금지 문자열 0(PASS). 원문 그대로 옮긴 칸의 8건은 `condition`이 영어 보통명사로 든 과제·답 본문이라 무편집 원칙대로 기록만 — 가림 누출 아님. [6]의 「켠 조건 79/120 팩 경로 인용」은 §5.2 · D-161 ⑵에 반영됨.
+[기록] 비밀·식별 정보 — K-02-canary/classifier-T0c.txt:34·71의 `C:\\Users\\u\\…`는 합성 입력(`syn:msix-alias`)의 자리표시 사용자 `u`라 실제 계정명이 아니고 K-99 [user] 규칙(실제 계정명 기준)도 통과. 그 밖은 `%TEMP%` · `~` 가림 확인(K-50-run-log · T5 배너 `workdir: %TEMP%\…`) · 시스템 경로(Program Files · Windows\System32)와 내장 그룹 `CodexSandboxUsers`는 식별자 아님 · 감사 문서 grep(Users\\ · 머신명 · 192.168. · 레포 절대 경로) 0건 · HANDOFF diff가 더한 이름은 기존 프로파일명 `<가림>`뿐.
+[기록] HANDOFF 판H 블록 이사 — `git diff --color-moved=blocks`로 본문 13줄이 바이트 동일 이동으로 표시됐고 14번째는 빈 인용 줄(`>`)이라 블록 탐지 밖. 「14줄 · 한 글자도 안 바꿈」 성립(docs/reference/handoff-archive/HANDOFF-archive-2026-09.md:163-186).
+[기록] 독립성 — K-70(fee93411) · K-71(2b19f983) · K-80(ade4af48) 커밋이 K-79 매핑 반입(f0fdcabb)보다 앞이고 f0fdcabb의 K-80 변경은 `model` 열 채움만. 답안 폴더는 T5 f189c89c · T6 64e1ee5c 뒤 변경 0. K-72 1·2회차 PASS · 접촉 0 · 관측 id 일치. R-F 회차 절은 아직 없음(기대대로 — 회수가 덧붙인다).
+[기록] 제품 0바이트 — `git diff --stat 46efffc1 bb5a7512 -- interactive sapkit-engine sapkit-cli` 비었음 · 판J 감사 문서·자료 폴더 0 · CLAUDE.md · AGENTS.md · docs/DESIGN.md · interactive/DESIGN.md 0.
+[기록] 문서 계약 — HANDOFF 495/500 · RUN-PLAN 141/300(K-99-gates.txt:22) · DECISIONS append(D-161) · 위키 INDEX:140-141 · distribution-install-history:166 · RUN-PLAN:73(판K 완료)·75(보충 줄) · CLAUDE.md에 상태 수치 복제 0.
+[기록] 보류 처리 일관 — K-82 24행 전부 보류 · K-90/K-91 보류 · K-83 Codex 칸 보류 · 감사 §6:499-500 · RUN-PLAN:75 · D-161:3942-3944 「보충」 절.
+[기록] K-83-aggregate.mjs 머리의 ⓐ~ⓓ 「결과를 보기 전에 정함」은 사양 폴더가 비추적이라 git으로 시점 검증 불가 — 결과 중립적 조정값(벽시계 · 배치 · id 길이)이라 판정 영향 0.
+[기록] 벽시계 — 감사 §3.6(실행 기록 546/440 s) vs K-83 §10(416160/262203 ms)은 측정 단위가 다르고(러너 전체 vs 호출 합) 양쪽에 설명 있음.
+[기록] A↔B 코드 일치 60.0% vs 판J 88.1% 하락 — 감사 §5.8이 다루되 위반 목록 단위의 원인만 짚고 과제 통과 단위 일치율은 병기하지 않았다.
+[기록] HANDOFF.md:336 — 판K 세션 중 메인이 `ReloadProfile`→`GetSystemInfo`(P1 읽기)를 호출했음이 「판K 밖」으로 적혀 있다. D-161 「SAP 무접속」은 판K 범위 서술이라 모순 아님.
+[기록] HANDOFF.md:350 · DECISIONS.md:3952가 비추적 `<가림>` 경로를 재개점·사양 정본으로 가리킨다(D-161이 「아카이브 예정 · git 정본은 D-160·D-161·판 큐」로 자기 한정). 이 리뷰는 그 폴더를 읽지 않았다.
+
+files_read: (전부 Read/Grep 도구 · 레포 안 · `<가림>` 무접촉)
+- docs/reference/DECISIONS.md (D-160 3676-3842 · D-161 3844-3955 · grep)
+- docs/reference/audits/2026-11-08-harness-on-comparison.md (전문 503줄 · grep)
+- docs/reference/audits/2026-11-08-harness-on-comparison-data/: README.txt · K-00-recipe.txt · K-01-diff-from-panJ.txt · K-83-results.txt · K-83-results.json(grep) · K-83-aggregate.mjs(전문 781줄) · K-84-selfcheck.txt · K-70-grading-A.csv · K-71-grading-B.csv · K-80-adjudication.csv · K-79-blind-map.csv · K-60-checker-summary.csv · K-50-summary.csv(머리 3줄 + 계수) · K-50-run-log.txt(1-45 + grep) · K-72-access.txt · K-99-gates.txt · K-99-namecheck.mjs(grep) · K-82-codex-regrade.csv · K-90-codex-review.txt · K-91-review-dispositions.txt · K-70-notes-A.txt(머리) · K-71-notes-B.txt(머리) · K-80-notes.txt · K-65-check.txt(1-75) · K-65-grader-brief.txt(grep) · K-50-run-knowledge.ps1/K-60-run-code.ps1(grep 적중 줄만) · K-02-canary/install.txt · K-02-canary/classifier-T0c.txt(1-90) · K-02-canary/T5-gpt-5.6-sol.txt(grep)
+- docs/reference/audits/2026-11-05-harness-necessity-review-data/: 81-pack-errors.csv · 70-grading-A.csv(1-377) · 71-grading-B.csv(1-372) · 80-adjudication.csv · 10-knowledge-items.json(grep) · 83-results.json(grep)
+- HANDOFF.md(grep · 486-495 · diff) · docs/RUN-PLAN.md(grep · diff) · docs/reference/wiki/INDEX.md(grep · diff) · docs/reference/wiki/distribution-install-history.md(grep · diff) · docs/reference/handoff-archive/HANDOFF-archive-2026-09.md(diff)
+- CLAUDE.md · AGENTS.md(세션 제공분 · diff 0 확인)
+
+shell: (전부 읽기 전용 git · 파일을 셸로 읽지 않음)
+- git log --oneline 46efffc1..bb5a7512
+- git diff --stat 46efffc1 bb5a7512
+- git diff --stat 46efffc1 bb5a7512 -- interactive sapkit-engine sapkit-cli docs/reference/audits/2026-11-05-harness-necessity-review.md docs/reference/audits/2026-11-05-harness-necessity-review-data
+- git diff --stat 46efffc1 bb5a7512 -- CLAUDE.md AGENTS.md docs/DESIGN.md interactive/DESIGN.md
+- git log (답안 폴더 K-50-answers · K-60-code 변경 커밋 확인 · K-70/K-71/K-80/K-79 커밋 순서 확인)
+- git diff ade4af48 f0fdcabb -- docs/reference/audits/2026-11-08-harness-on-comparison-data/K-80-adjudication.csv
+- git diff 46efffc1 bb5a7512 -- HANDOFF.md docs/RUN-PLAN.md docs/reference/wiki/INDEX.md docs/reference/wiki/distribution-install-history.md docs/reference/handoff-archive/HANDOFF-archive-2026-09.md
+- git diff --color=always --color-moved=blocks -U0 46efffc1 bb5a7512 -- HANDOFF.md docs/reference/handoff-archive/HANDOFF-archive-2026-09.md (2회 · 1회는 아카이브만)
+- 쓰기 0 · 모델 호출 0 · 웹 0 · SAP/MCP 0
