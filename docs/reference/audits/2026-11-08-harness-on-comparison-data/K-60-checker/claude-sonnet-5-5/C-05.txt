@@ -1,0 +1,227 @@
+K-60-checker/claude-sonnet-5-5/C-05.txt — 동봉 검사기 원출력 (판K T6)
+대상: docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-05.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.16.0
+명령 3종 (판J 11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-05.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-05.abap
+--- stdout (0 bytes) ---
+
+--- stderr (111 bytes) ---
+docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-05.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-05.abap
+--- stdout (5001 bytes) ---
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Report  ZJUDGE_C05
+Comment              *& Customer list from KNA1 grouped by country (classic WRITE list).
+Comment              *& Syntax level: ABAP 7.02 (NetWeaver 7.0 EHP2) - no 7.40+ syntax.
+Comment              *&---------------------------------------------------------------------*
+Report               REPORT zjudge_c05 LINE - SIZE 90 NO STANDARD PAGE HEADING .
+Move                 TABLES kna1 .
+TypeBegin            TYPES BEGIN OF ty_customer ,
+Type                 TYPES land1 TYPE kna1 - land1 ,
+Type                 TYPES kunnr TYPE kna1 - kunnr ,
+Type                 TYPES name1 TYPE kna1 - name1 ,
+Type                 TYPES ort01 TYPE kna1 - ort01 ,
+TypeEnd              TYPES END OF ty_customer ,
+Type                 TYPES ty_t_customer TYPE STANDARD TABLE OF ty_customer WITH DEFAULT KEY .
+TypeBegin            TYPES BEGIN OF ty_count ,
+Type                 TYPES land1 TYPE kna1 - land1 ,
+Type                 TYPES cnt TYPE i ,
+TypeEnd              TYPES END OF ty_count ,
+Type                 TYPES ty_t_count TYPE STANDARD TABLE OF ty_count WITH DEFAULT KEY .
+Data                 DATA gt_customer TYPE ty_t_customer ,
+Data                 DATA gt_count TYPE ty_t_count .
+Constant             CONSTANTS gc_line_char TYPE c LENGTH 1 VALUE '-' .
+SelectOption         SELECT - OPTIONS s_land1 FOR kna1 - land1 .
+Comment              *---------------------------------------------------------------------*
+StartOfSelection     START - OF - SELECTION .
+Perform              PERFORM read_customers .
+Perform              PERFORM count_customers .
+Move                 END - OF - SELECTION .
+Perform              PERFORM write_list .
+Comment              *---------------------------------------------------------------------*
+Comment              * read_customers - fills gt_customer for the country selection
+Comment              *---------------------------------------------------------------------*
+Form                 FORM read_customers .
+Select               SELECT land1 kunnr name1 ort01 FROM kna1 INTO TABLE gt_customer WHERE land1 IN s_land1 .
+If                   IF sy - subrc <> 0 .
+Clear                CLEAR gt_customer .
+EndIf                ENDIF .
+Sort                 SORT gt_customer BY land1 kunnr .
+EndForm              ENDFORM .
+Comment              "read_customers
+Comment              *---------------------------------------------------------------------*
+Comment              * count_customers - customers per country into gt_count
+Comment              *---------------------------------------------------------------------*
+Form                 FORM count_customers .
+Data                 DATA ls_customer TYPE ty_customer ,
+Data                 DATA ls_count TYPE ty_count .
+Loop                 LOOP AT gt_customer INTO ls_customer .
+Clear                CLEAR ls_count .
+Move                 ls_count - land1 = ls_customer - land1 .
+Move                 ls_count - cnt = 1 .
+Move                 COLLECT ls_count INTO gt_count .
+EndLoop              ENDLOOP .
+Sort                 SORT gt_count BY land1 .
+EndForm              ENDFORM .
+Comment              "count_customers
+Comment              *---------------------------------------------------------------------*
+Comment              * write_list - header line per country, then one line per customer
+Comment              *---------------------------------------------------------------------*
+Form                 FORM write_list .
+Data                 DATA ls_count TYPE ty_count ,
+Data                 DATA ls_customer TYPE ty_customer .
+If                   IF gt_count IS INITIAL .
+Write                WRITE / 'No customers found for the selection.' ( 004 ) .
+Return               RETURN .
+EndIf                ENDIF .
+Loop                 LOOP AT gt_count INTO ls_count .
+Move                 ULINE .
+Write                WRITE / 'Country' ( 001 ) COLOR COL_HEADING ,
+Write                WRITE ls_count - land1 COLOR COL_HEADING ,
+Write                WRITE 'Customers:' ( 002 ) COLOR COL_HEADING ,
+Write                WRITE ls_count - cnt COLOR COL_HEADING LEFT - JUSTIFIED .
+Loop                 LOOP AT gt_customer INTO ls_customer WHERE land1 = ls_count - land1 .
+Write                WRITE / ls_customer - kunnr ,
+Write                WRITE ls_customer - name1 ,
+Write                WRITE ls_customer - ort01 ,
+Write                WRITE ls_customer - land1 .
+EndLoop              ENDLOOP .
+EndLoop              ENDLOOP .
+Move                 ULINE .
+EndForm              ENDFORM .
+Comment              "write_list
+Comment              *---------------------------------------------------------------------*
+Move                 TOP - OF - PAGE .
+Write                WRITE / 'Customer' ( 010 ) ,
+Write                WRITE 'Name' ( 011 ) ,
+Write                WRITE 'City' ( 012 ) ,
+Write                WRITE 'Country' ( 013 ) .
+Move                 ULINE .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-05.abap
+--- stdout (2855 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 20,
+      "endLine": 20,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 25,
+      "endLine": 25,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 51,
+      "endLine": 51,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 58,
+      "endLine": 58,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 63,
+      "endLine": 63,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 67,
+      "endLine": 67,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 73,
+      "endLine": 73,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 86,
+      "endLine": 86,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 96,
+      "endLine": 96,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 9,
+    "bySeverity": {
+      "medium": 9
+    },
+    "byCategory": {
+      "quality": 9
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=9 analyze_info=0 error_grade=0 warnings=9 source_lines=101 bytes=3278 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (판J 11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

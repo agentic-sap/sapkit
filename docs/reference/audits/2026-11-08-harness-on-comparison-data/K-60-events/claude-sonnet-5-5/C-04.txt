@@ -1,0 +1,18 @@
+claude-sonnet-5-5 · C-04 — 켠 조건 코드 과제 이벤트 추출 요약 (판K T6)
+원본: %TEMP%\sapkit-panK\raw-T6\claude-sonnet-5-5\C-04.jsonl (원 이벤트 스트림 · 세션/스레드 id·로컬 경로 포함 · 커밋하지 않음 · 호출별 사본 C-04.call-<k>.jsonl)
+명령: K-00-recipe.txt §2 (판J 02 §2 + --tools "Read,Grep,Glob" --restricted) · 모델 id claude-sonnet-5-5 · cwd = harness-T6
+프롬프트: K-60-run-log.txt 의 프롬프트 계약 (고정 줄 + task_text + Required output) · chars=1206 · sha256=7a7a1068ee9a34de7977deae76d729e8cec74a86e17559b02ec8938f5dfea0e5
+응시(응답) 횟수=1 · 전이 재시도=0 · CLI 호출 총수=1 · 최종=VALID (call 1)
+system/init: model=claude-sonnet-5-5 · claude_code_version=2.1.319 · permissionMode=default
+  tools=3 [Glob,Grep,Read] · mcp_servers=0 · slash_commands=0 · skills=0 · plugins=4 [cc-plugin-agents-md,cc-plugin-telemetry,cc-plugin-privacy,cc-plugin-plugin-authoring] · agents=6
+assistant 이벤트 수=11 · assistant.message.model=[claude-sonnet-5-5]
+도구 호출(tool_use 블록) 수=7 · 이름: Glob,Read,Read,Read,Read,Read,Glob
+result: is_error=False · subtype=success · num_turns=8 · duration_ms=23037 · duration_api_ms=22547 · modelUsage 키=[claude-sonnet-5-5]
+usage: input_tokens=8 · output_tokens=2812 · cache_creation_input_tokens=15957 · cache_read_input_tokens=35152
+exit_code=0 · wall_ms=24442 · timed_out=False · stderr 줄 수=0 · 시작=11/08/2026 21:14:28 · 종료=11/08/2026 21:14:52
+응답 내 외부 URL(https?://) 건수=0
+valid=1
+유효성: 위반=[] · 읽은 파일(폴더 상대)=[knowledge/abap/conventions/abap-release-reference.md knowledge/abap/conventions/ecc-ddic-fallback.md knowledge/abap/conventions/clean-code-procedural.md knowledge/abap/conventions/text-element-rule.md knowledge/abap/conventions/constant-rule.md] · 판정 사유=none · 답안 로컬 경로 가림=0
+k: observed_model=claude-sonnet-5-5 observed_model_match=true files_read=5 outside_attempts=0 invalid_attempts=0 tokens_in=51117 tokens_out=2812 answer=text
+펜스 블록 수=1 · no_fence=0 · 추출 → K-60-code/claude-sonnet-5-5/C-04.abap (lines=95 · bytes=2912)
+summary: valid=1 attempts=1 no_fence=0 blocks=1 lines=95 bytes=2912
