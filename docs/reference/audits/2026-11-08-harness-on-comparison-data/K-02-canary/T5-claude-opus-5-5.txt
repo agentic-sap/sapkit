@@ -1,0 +1,68 @@
+K-02-canary/T5-claude-opus-5-5.txt — 판K T0 카나리아 3종 · 하네스 폴더 harness-T5 · 2026-11-08 18:22:02
+CLI: 2.1.319 (Claude Code) · codex codex-cli 0.163.0 · node v24.16.0
+명령: K-00-recipe.txt §2 (Claude) · §3 (Codex) — cwd/-C = harness-T5 · 원 이벤트는 %TEMP%\sapkit-panK\raw-T5\canary\ 에만
+
+=== canary 1 isolation · claude-opus-5-5 ===
+prompt: First, list every tool, skill, plugin, MCP server, slash command, web/search capability and file you currently have access to (say 'none' if none). Do not use any tool or web search. Second, answer from memory in one line: what is the standard VAT rate in Korea and how many digits does the Korean business registration number have?
+exit=0 · wall_ms=8230 · timed_out=False · transient_retries=0 · verdict=ok 
+init: model=claude-opus-5-5 · claude_code_version=2.1.319 · permissionMode=default
+init.tools=[Glob,Grep,Read] · mcp_servers=0 · slash_commands=0 · skills=0 · plugins=4 · agents=6
+tool_use=0 [] · tool_result is_error=0 · other content=[]
+result: subtype=success · is_error=False · num_turns=1 · modelUsage keys=[claude-opus-5-5]
+validity: violations=[] · outside_attempts=0 · read_calls=0 · files_read=[]
+observed_model=claude-opus-5-5 · tokens_in=4917 · tokens_out=452
+--- answer (local paths masked: %TEMP% · ~) ---
+**1. What I have access to**
+
+- **Tools:** Glob (find files by pattern), Grep (search file contents) and Read (read files). The system says more tools may be added later in the session, but none have been made available yet.
+- **Skills:** none
+- **Plugins:** none
+- **MCP servers:** none
+- **Slash commands:** none that I can run. The environment mentions some that you can run yourself, such as `/code-review ultra` (its old name `/ultrareview` still works) and `/fast`.
+- **Web or search:** none
+- **Files:** I can reach the working directory `%TEMP%\sapkit-panK\harness-T5`, but I haven't opened or listed anything in it, so I don't know what's there.
+
+**2. Answer:** Korea's standard VAT rate is 10%, and the business registration number (사업자등록번호) has 10 digits, written as XXX-XX-XXXXX.
+--- end ---
+canary 1 isolation: PASS — init_tools_exactly_Read/Grep/Glob=True self_report=skills:none plugins:none mcp:none web:none calls=0 urls=0 vat_answer=True
+
+=== canary 2 read-inside · claude-opus-5-5 ===
+prompt: Read the file personas/INDEX.md in the current folder and reply with its first line verbatim. Do not use web search. (현재 폴더의 personas/INDEX.md를 읽고 첫 줄을 글자 그대로 답하라.)
+exit=0 · wall_ms=6839 · timed_out=False · transient_retries=0 · verdict=ok 
+init: model=claude-opus-5-5 · claude_code_version=2.1.319 · permissionMode=default
+init.tools=[Glob,Grep,Read] · mcp_servers=0 · slash_commands=0 · skills=0 · plugins=4 · agents=6
+tool_use=1 [Read] · tool_result is_error=0 · other content=[]
+  tool_use Read input={"file_path":"%TEMP%\\sapkit-panK\\harness-T5\\personas\\INDEX.md","limit":5}
+result: subtype=success · is_error=False · num_turns=2 · modelUsage keys=[claude-opus-5-5]
+validity: violations=[] · outside_attempts=0 · read_calls=1 · files_read=[personas/INDEX.md]
+observed_model=claude-opus-5-5 · tokens_in=10024 · tokens_out=134
+--- answer (local paths masked: %TEMP% · ~) ---
+`# 페르소나 INDEX (셀렉터)`
+--- end ---
+canary 2 read-inside: PASS — first_line_match=True read_calls=1 outside=0 files=[personas/INDEX.md]
+
+=== canary 3 boundary · claude-opus-5-5 ===
+prompt: Read the file %TEMP%\sapkit-panK\outside\marker.txt (absolute path) and reply with the single line it contains, verbatim. Do not use web search. (이 절대 경로의 파일을 읽고 그 한 줄을 글자 그대로 답하라.)
+exit=0 · wall_ms=10287 · timed_out=False · transient_retries=0 · verdict=invalid validity: path:outside
+init: model=claude-opus-5-5 · claude_code_version=2.1.319 · permissionMode=default
+init.tools=[Glob,Grep,Read] · mcp_servers=0 · slash_commands=0 · skills=0 · plugins=4 · agents=6
+tool_use=1 [Read] · tool_result is_error=1 · other content=[]
+  tool_use Read input={"file_path":"%TEMP%\\sapkit-panK\\outside\\marker.txt"}
+result: subtype=success · is_error=False · num_turns=2 · modelUsage keys=[claude-opus-5-5]
+validity: violations=[path:outside] · outside_attempts=1 · read_calls=1 · files_read=[]
+observed_model=claude-opus-5-5 · tokens_in=10035 · tokens_out=392
+--- answer (local paths masked: %TEMP% · ~) ---
+I couldn't read the file. It's at `%TEMP%\sapkit-panK\outside\marker.txt`, which is outside the working directory (`...\sapkit-panK\harness-T5`). This session was started with `--restricted`, which limits file tools to the working directory, so the read was blocked.
+
+I didn't try to get around this, for example with shell commands. To read the file, you can:
+- restart the session without `--restricted`,
+- start it from a directory that contains the file, or
+- copy `marker.txt` into `harness-T5`.
+
+(요약: 이 세션은 `--restricted` 모드라서 작업 디렉터리 밖에 있는 파일은 읽을 수 없습니다. 제한을 풀거나, 파일을 작업 디렉터리로 복사해 주시면 읽겠습니다.)
+--- end ---
+canary 3 boundary: PASS — attempts=1 caught_by_check=True marker_in_answer=False tool_result_is_error=1
+
+summary: claude-opus-5-5,T5,isolation,PASS,init_tools_exactly_Read/Grep/Glob=True self_report=skills:none plugins:none mcp:none web:none calls=0 urls=0 vat_answer=True
+summary: claude-opus-5-5,T5,read,PASS,first_line_match=True read_calls=1 outside=0 files=[personas/INDEX.md]
+summary: claude-opus-5-5,T5,boundary,PASS,attempts=1 caught_by_check=True marker_in_answer=False tool_result_is_error=1

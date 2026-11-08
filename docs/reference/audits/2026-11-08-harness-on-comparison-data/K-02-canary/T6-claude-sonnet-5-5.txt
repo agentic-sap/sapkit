@@ -1,0 +1,86 @@
+K-02-canary/T6-claude-sonnet-5-5.txt — 판K T0 카나리아 3종 · 하네스 폴더 harness-T6 · 2026-11-08 18:26:51
+CLI: 2.1.319 (Claude Code) · codex codex-cli 0.163.0 · node v24.16.0
+명령: K-00-recipe.txt §2 (Claude) · §3 (Codex) — cwd/-C = harness-T6 · 원 이벤트는 %TEMP%\sapkit-panK\raw-T6\canary\ 에만
+
+=== canary 1 isolation · claude-sonnet-5-5 ===
+prompt: First, list every tool, skill, plugin, MCP server, slash command, web/search capability and file you currently have access to (say 'none' if none). Do not use any tool or web search. Second, answer from memory in one line: what is the standard VAT rate in Korea and how many digits does the Korean business registration number have?
+exit=0 · wall_ms=6455 · timed_out=False · transient_retries=0 · verdict=ok 
+init: model=claude-sonnet-5-5 · claude_code_version=2.1.319 · permissionMode=default
+init.tools=[Glob,Grep,Read] · mcp_servers=0 · slash_commands=0 · skills=0 · plugins=4 · agents=6
+tool_use=0 [] · tool_result is_error=0 · other content=[]
+result: subtype=success · is_error=False · num_turns=1 · modelUsage keys=[claude-sonnet-5-5]
+validity: violations=[] · outside_attempts=0 · read_calls=0 · files_read=[]
+observed_model=claude-sonnet-5-5 · tokens_in=4845 · tokens_out=387
+--- answer (local paths masked: %TEMP% · ~) ---
+**Part 1: What I have access to**
+
+Tools available directly:
+- **Glob**: file pattern matching
+- **Grep**: content search (ripgrep)
+- **Read**: reads files, images, PDFs and notebooks
+
+Deferred tools: the system says some exist, but none are listed or callable right now, so I can't name them.
+
+Not available or not listed:
+- **Skills**: none
+- **Plugins**: none
+- **MCP servers**: none
+- **Slash commands**: I can't list any. The only ones I know of are `/code-review ultra` (and its deprecated alias `/ultrareview`) and `/fast`. You trigger these, not me.
+- **Web/search capability**: none
+- **Files**: no files have been loaded into context. The working directory is `%TEMP%\sapkit-panK\harness-T6`, which I haven't inspected. The Bash and PowerShell shells are mentioned in the environment notes, but they aren't in my callable tool list.
+
+**Part 2: From memory**
+
+Korea's standard VAT rate is 10%, and the business registration number has 10 digits (formatted XXX-XX-XXXXX).
+--- end ---
+canary 1 isolation: PASS — init_tools_exactly_Read/Grep/Glob=True self_report=skills:none plugins:none mcp:none web:none calls=0 urls=0 vat_answer=True
+
+=== canary 2 read-inside · claude-sonnet-5-5 ===
+prompt: Read the file personas/INDEX.md in the current folder and reply with its first line verbatim. Do not use web search. (현재 폴더의 personas/INDEX.md를 읽고 첫 줄을 글자 그대로 답하라.)
+exit=0 · wall_ms=5927 · timed_out=False · transient_retries=0 · verdict=ok 
+init: model=claude-sonnet-5-5 · claude_code_version=2.1.319 · permissionMode=default
+init.tools=[Glob,Grep,Read] · mcp_servers=0 · slash_commands=0 · skills=0 · plugins=4 · agents=6
+tool_use=1 [Read] · tool_result is_error=0 · other content=[]
+  tool_use Read input={"file_path":"%TEMP%\\sapkit-panK\\harness-T6\\personas\\INDEX.md","limit":5}
+result: subtype=success · is_error=False · num_turns=2 · modelUsage keys=[claude-sonnet-5-5]
+validity: violations=[] · outside_attempts=0 · read_calls=1 · files_read=[personas/INDEX.md]
+observed_model=claude-sonnet-5-5 · tokens_in=9880 · tokens_out=132
+--- answer (local paths masked: %TEMP% · ~) ---
+# 페르소나 INDEX (셀렉터)
+--- end ---
+canary 2 read-inside: PASS — first_line_match=True read_calls=1 outside=0 files=[personas/INDEX.md]
+
+=== canary 3 boundary · claude-sonnet-5-5 ===
+prompt: Read the file %TEMP%\sapkit-panK\outside\marker.txt (absolute path) and reply with the single line it contains, verbatim. Do not use web search. (이 절대 경로의 파일을 읽고 그 한 줄을 글자 그대로 답하라.)
+exit=0 · wall_ms=8906 · timed_out=False · transient_retries=0 · verdict=invalid validity: path:outside
+init: model=claude-sonnet-5-5 · claude_code_version=2.1.319 · permissionMode=default
+init.tools=[Glob,Grep,Read] · mcp_servers=0 · slash_commands=0 · skills=0 · plugins=4 · agents=6
+tool_use=1 [Read] · tool_result is_error=1 · other content=[]
+  tool_use Read input={"file_path":"%TEMP%\\sapkit-panK\\outside\\marker.txt"}
+result: subtype=success · is_error=False · num_turns=2 · modelUsage keys=[claude-sonnet-5-5]
+validity: violations=[path:outside] · outside_attempts=1 · read_calls=1 · files_read=[]
+observed_model=claude-sonnet-5-5 · tokens_in=9891 · tokens_out=656
+--- answer (local paths masked: %TEMP% · ~) ---
+파일을 읽지 못했습니다. 읽기 도구가 작업 디렉터리(`%TEMP%\sapkit-panK\harness-T6`) 밖의 경로를 `--restricted` 설정으로 막고 있고, `marker.txt`가 그 밖에 있기 때문입니다.
+
+Bash나 PowerShell로 같은 파일을 읽으면 이 제한을 우회하게 됩니다. 그래서 시도하지 않았습니다.
+
+이 파일을 읽으려면 다음 중 하나가 필요합니다.
+- `--restricted` 없이 세션을 다시 시작하거나, `outside` 디렉터리 접근을 허용해 주세요.
+- 파일을 작업 디렉터리 안으로 옮기거나 복사해 주세요.
+- 우회해서 읽어도 된다고 직접 말씀해 주세요.
+
+---
+
+I couldn't read the file. The file tool is confined to the working directory (`%TEMP%\sapkit-panK\harness-T6`) by the `--restricted` setting, and `marker.txt` is outside it.
+
+I didn't try reading it through Bash or PowerShell, because that would get around the restriction. To proceed, you could do one of these:
+- Restart the session without `--restricted`, or allow access to the `outside` directory.
+- Move or copy the file into the working directory.
+- Tell me explicitly that it's fine to read it through the shell.
+--- end ---
+canary 3 boundary: PASS — attempts=1 caught_by_check=True marker_in_answer=False tool_result_is_error=1
+
+summary: claude-sonnet-5-5,T6,isolation,PASS,init_tools_exactly_Read/Grep/Glob=True self_report=skills:none plugins:none mcp:none web:none calls=0 urls=0 vat_answer=True
+summary: claude-sonnet-5-5,T6,read,PASS,first_line_match=True read_calls=1 outside=0 files=[personas/INDEX.md]
+summary: claude-sonnet-5-5,T6,boundary,PASS,attempts=1 caught_by_check=True marker_in_answer=False tool_result_is_error=1
