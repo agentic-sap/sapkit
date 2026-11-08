@@ -31,6 +31,9 @@
 //   [sid]      SID 후보 — 영문 대문자로 시작하는 3자 대문자·숫자 낱말 가운데 팩 본문에 같은 낱말로 없는 것.
 //              예외(고정 · 이 목록 밖은 전부 위반): 과업 번호 꼴 T + 두 자리 · 아래 GENERIC 낱말(판J 러너·레시피와 판K 자료가
 //              쓰는 일반 기술 낱말 — 실측). 단 GENERIC 낱말이 sap.env 값 · 이름 목록과 겹치면 예외에서 뺀다.
+//              판J 자료 폴더(docs/reference/audits/2026-11-05-harness-necessity-review-data/) 본문의 낱말도 허용
+//              (판J 기록은 이미 공개·검토됨 · 2026-11-08 메인 추가) — 팩 토큰과 같은 규칙으로 모으며, 같은 방식으로
+//              sap.env 값 · 이름 목록과 겹치면 뺀다.
 //   [uuid]     세션 id 꼴(8-4-4-4-12 16진) — 팩 본문에 없는 것
 //   [url]      웹 주소 — 팩 본문에 글자 그대로 있는 주소만 허용(D-160 ⓪ ④ · 끝의 . , ; : ) 를 뗀 뒤 대조)
 //   [forge]    비추적 작업 폴더 이름(판J 84와 같은 처리) — 대소문자 무시 부분 일치
@@ -177,7 +180,18 @@ const SUBSTR = [   // 대소문자 무시 부분 일치
 const GENERIC = new Set(['CLI', 'NET', 'RED', 'RAW', 'MET', 'BOM', 'UTF', 'CSV', 'TXT', 'UAC', 'ACE', 'XOR', 'FNV', 'INC', 'ACL', 'CNT', 'MOD', 'CTY', 'IND', 'ERR', 'L47', 'LPF', 'NIC', 'OOS']);   // INC = 판J 문항 꼬리표 K-INC · C-INC  // CNT — 판K T6 opus C-04 ABAP ALV 열 이름(모델 작명) · sapenv·names 불일치 확인 · 2026-11-08 메인 추가
 const forbiddenLc = new Set([...envAlways, ...envWord, ...NAMES, ...stems].map(lc));
 for (const g of [...GENERIC]) if (forbiddenLc.has(lc(g))) GENERIC.delete(g);
-const sidAllowed = (t) => PACK_SID.has(t) || GENERIC.has(t) || /^T\d\d$/.test(t);
+// 판J 자료 폴더 본문의 3자 토큰 — 팩 토큰과 같은 정규식 · 같은 낱말 경계. 널 바이트가 든 파일은 건너뛴다. 금지 목록과 겹치면 뺀다.
+const PANJ_DIR = path.join(ROOT, 'docs', 'reference', 'audits', '2026-11-05-harness-necessity-review-data');
+const PANJ_SID = new Set();
+if (fs.existsSync(PANJ_DIR)) {
+  for (const f of walk(PANJ_DIR)) {
+    const buf = fs.readFileSync(f);
+    if (buf.includes(0)) continue;
+    for (const m of buf.toString('utf8').matchAll(SID_RE())) PANJ_SID.add(m[0]);
+  }
+} else say('WARN: panJ data folder missing — panJ tokens not allowed');
+for (const t of [...PANJ_SID]) if (forbiddenLc.has(lc(t))) PANJ_SID.delete(t);
+const sidAllowed = (t) => PACK_SID.has(t) || PANJ_SID.has(t) || GENERIC.has(t) || /^T\d\d$/.test(t);
 
 function countSub(text, needle) {
   if (!needle) return [];
@@ -230,7 +244,7 @@ function scanPaths(paths, baseForRel) {
 }
 
 function header() {
-  say(`K-99-namecheck — pack files ${packFiles.length} · pack URLs ${PACK_URLS.size} · pack 3-char tokens ${PACK_SID.size}`);
+  say(`K-99-namecheck — pack files ${packFiles.length} · pack URLs ${PACK_URLS.size} · pack 3-char tokens ${PACK_SID.size} · panJ 3-char tokens ${PANJ_SID.size}`);
   say(`  forbidden sets: user ${user ? 1 : 0} (word exempt as pack word: ${userWordExempt ? 'yes' : 'no'}) · host ${SUBSTR[1][1].length} · home ${SUBSTR[2][1].length} · repo ${SUBSTR[3][1].length} · sap.env values read ${envRead} (always ${envAlways.size} · word ${envWord.size} · pack-word exempt ${envExempt}) · names ${NAMES.length} + stems ${stems.size} · forge 1 · sid generic exempt ${GENERIC.size} + T\\d\\d`);
 }
 
