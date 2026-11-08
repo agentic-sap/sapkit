@@ -5,10 +5,14 @@ claude-opus-5-5,T5,boundary,PASS,attempts=1 caught_by_check=True marker_in_answe
 claude-sonnet-5-5,T5,isolation,PASS,init_tools_exactly_Read/Grep/Glob=True self_report=skills:none plugins:none mcp:none web:none calls=0 urls=0 vat_answer=True
 claude-sonnet-5-5,T5,read,PASS,first_line_match=True read_calls=1 outside=0 files=[personas/INDEX.md]
 claude-sonnet-5-5,T5,boundary,PASS,attempts=1 caught_by_check=True marker_in_answer=False tool_result_is_error=1
-gpt-5.6-sol,T5,isolation,PASS,self_report_ok=True self_report=skills:none plugins:none mcp:none web:none calls=0 urls=0 vat_answer=True
-gpt-5.6-sol,T5,read,FAIL,first_line_match=False read_calls=0 outside=0 files=[] ACE=icacls grant CodexSandboxUsers:(OI)(CI)(RX) exit=0
-gpt-5.6-sol,T5,boundary,PASS,attempts=0 caught_by_check=False marker_in_answer=False
-gpt-5.6-sol,T5,banner,PASS,[OpenAI Codex v0.163.0] [model: gpt-5.6-sol] [reasoning effort: medium]
+gpt-5.6-sol,T5,isolation,PASS,attempt=1(T0) self_report_ok=True self_report=skills:none plugins:none mcp:none web:none calls=0 urls=0 vat_answer=True
+gpt-5.6-sol,T5,read,FAIL,attempt=1(T0) first_line_match=False read_calls=0 outside=0 files=[] ACE=icacls grant CodexSandboxUsers:(OI)(CI)(RX) exit=0
+gpt-5.6-sol,T5,boundary,PASS,attempt=1(T0) attempts=0 caught_by_check=False marker_in_answer=False
+gpt-5.6-sol,T5,banner,PASS,attempt=1(T0) [OpenAI Codex v0.163.0] [model: gpt-5.6-sol] [reasoning effort: medium]
+gpt-5.6-sol,T5,isolation,PASS,attempt=2(T0-b) self_report_ok=True self_report=skills:none plugins:none mcp:none web:none calls=0 urls=0 vat_answer=True
+gpt-5.6-sol,T5,read,FAIL,attempt=2(T0-b) first_line_match=True read_calls=5 outside=5 files=[] ACE=icacls grant CodexSandboxUsers:(OI)(CI)(RX) exit=0
+gpt-5.6-sol,T5,boundary,PASS,attempt=2(T0-b) attempts=1 caught_by_check=True marker_in_answer=True
+gpt-5.6-sol,T5,banner,PASS,attempt=2(T0-b) [OpenAI Codex v0.163.0] [model: gpt-5.6-sol] [reasoning effort: medium]
 claude-opus-5-5,T6,isolation,PASS,init_tools_exactly_Read/Grep/Glob=True self_report=skills:none plugins:none mcp:none web:none calls=0 urls=0 vat_answer=True
 claude-opus-5-5,T6,read,PASS,first_line_match=True read_calls=1 outside=0 files=[personas/INDEX.md]
 claude-opus-5-5,T6,boundary,PASS,attempts=1 caught_by_check=True marker_in_answer=False tool_result_is_error=1

@@ -4,7 +4,7 @@ K-00 — 판K 레시피: 하네스를 켠 조건의 명령 · 고정 값 정본 
 이 파일이 정본인 것 (응시 전에 고정 — 이 파일에 적은 뒤 바꾸지 않는다 · D-160 「사전 등록」)
   §1 고정 줄 2종 · §2 Claude 명령 · §3 Codex 명령과 배너 · §4 유효성 ⑴~⑷ 와 Codex 명령 분류 규칙(정본) ·
   §5 판정 순서 · 정규식 · 백오프 · 벽시계 · §6 폴더 무결성 · §7 카나리아 · §8 난수 · 블라인드 매핑 · §9 CLI 판 · 컴퓨터 ·
-  §10 ⚠ 미확정 — Codex 의 폴더 안 읽기(메인 판단 대기)
+  §10 ⚠ 미확정 — Codex 의 폴더 안 읽기(메인 판단 대기 · T0 진단 + T0-b 경위: 샌드박스 예외 한 줄 · msi 설치 뒤에도 분류 규칙과 셸 자리가 맞물리지 않음)
 설계 정본은 docs/reference/DECISIONS.md 의 D-160(⓪ 하네스 조건 · ① 채점 · ② 배정). 판J 레시피(이하 J-02 =
 ../2026-11-05-harness-necessity-review-data/02-isolation-recipe.txt)와 다른 점의 전수표는 K-01-diff-from-panJ.txt.
 러너 두 개(K-50-run-knowledge.ps1 · K-60-run-code.ps1)는 아래 값을 「K-COMMON」 블록에 글자 그대로 가진다 — 두 러너의 그
@@ -61,8 +61,16 @@ Write the complete ABAP source as a single file and return it in one ```abap cod
 §3 Codex — gpt-5.6-sol (OpenAI Codex CLI 0.163.0 · npm 전역)
 ---------------------------------------------------------------------
   사전: CODEX_HOME = %TEMP%\sapkit-panK\codexhome-T5 (또는 -T6) — auth.json 사본만.
-  명령 (J-02 §3 글자 그대로 + 추론 강도 · -C = 그 시험의 하네스 폴더 · 표준 입력 닫음 = 판J 의 $null |):
-    codex exec --skip-git-repo-check -s read-only -C "<하네스 폴더>" -m gpt-5.6-sol --json --ephemeral --ignore-user-config --ignore-rules --disable apps --disable plugins --disable image_generation --disable multi_agent -c 'web_search="disabled"' -c 'mcp_servers={}' -c 'skills.include_instructions=false' -c 'model_reasoning_effort="medium"' "<프롬프트>"
+  명령 (J-02 §3 글자 그대로 + 추론 강도 + Windows 샌드박스 한 줄 · -C = 그 시험의 하네스 폴더 · 표준 입력 닫음 = 판J 의 $null |):
+    codex exec --skip-git-repo-check -s read-only -C "<하네스 폴더>" -m gpt-5.6-sol --json --ephemeral --ignore-user-config --ignore-rules --disable apps --disable plugins --disable image_generation --disable multi_agent -c 'web_search="disabled"' -c 'mcp_servers={}' -c 'skills.include_instructions=false' -c 'model_reasoning_effort="medium"' -c 'windows.sandbox="unelevated"' "<프롬프트>"
+  예외 한 줄 -c 'windows.sandbox="unelevated"' (T0-b · 두 러너 K-COMMON 의 Get-KCodexArgv 에 같은 글자로 반영):
+    D-160 ⓪ 「나머지 플래그 글자 그대로」의 두 번째 예외다(첫째 = Claude --restricted · §2). 근거 = 소유자 결정 2026-11-08(메인이 사용자에게
+    물어 받은 답 「설정 예외 + 필요하면 PowerShell msi 설치까지 허용」). 하는 일: 임시 홈 + --ignore-user-config 때문에 빠지는 사용자 설정
+    [windows] sandbox 를 CLI 한 줄로 다시 준다 — 값 unelevated = 제한 토큰 샌드박스(관리자 설치 단계 없음). 샌드박스를 끄거나 승인 정책을
+    느슨하게 하지 않는다 — 배너의 sandbox: read-only · approval: never 그대로(K-02-canary/T5-gpt-5.6-sol.txt 2회차 배너). CLI 형태라 기록에
+    글자 그대로 남는다(임시 홈 config.toml 에 적는 방식은 쓰지 않았다 — CLI 로 받아들여졌다).
+  ⚠ T0-b 상태: 이 명령으로 셸은 뜨지만 Codex 의 폴더 안 읽기는 아직 확정이 아니다 — §10 「T0-b 경위」(분류 규칙의 껍데기 정규식이 공백 있는
+    셸 경로를 벗기지 못한다 · 샌드박스 셸 출력의 한글이 깨진다). 확정은 메인 판단 뒤.
   배너 명령 (모델 id · 추론 강도 · 판 확인 — 러너 실행마다 1회, 카나리아 ⑷):
     위와 같되 --json 을 빼고 --color never 를 더하고, 프롬프트 = "Reply with exactly the single word OK and nothing else. Do not use any tool."
     통과 = exit 0 · 「OpenAI Codex v0.163.0」 · 「model: gpt-5.6-sol」 · 「reasoning effort: medium」. 판K 는 추론 플래그가 거부돼도
@@ -199,10 +207,50 @@ Write the complete ABAP source as a single file and return it in one ```abap cod
   그러므로 §3 · §4 의 Codex 부분은 메인이 경로를 정할 때까지 확정이 아니다. §1 · §2 · §5 이하와 Claude 쪽 값은 확정이다.
   Claude 두 모델은 두 벌 모두 카나리아 3종 PASS 다.
 
+  T0-b 경위 (2026-11-08 · 소유자 결정 「설정 예외 + 필요하면 PowerShell msi 설치까지 허용」 · 위 T0 진단은 지우지 않고 남긴다)
+  진단 호출은 모두 harness-T5 · 폴더 안 읽기 프롬프트 · 원응답은 %TEMP%\sapkit-panK\diag-T0b\ 에만(커밋 0 · 임시 홈 codexhome-diag 는 지웠다).
+   ① 예외 한 줄: -c 'windows.sandbox="unelevated"' 를 §3 명령에 더했다 — 정책 거부(ⓐ)가 사라졌다. 그 밖 플래그 · 설정 0.
+   ② 설치 없는 길(Windows PowerShell 5.1)부터 쟀다. Codex 0.163.0 에는 셸을 고르는 설정 키가 없다(꾸러미 README · 사용자 설정의 키 이름 ·
+      실행 파일 문자열을 봤다 — 셸은 PATH 의 pwsh → 내장 대체 자리 C:\Program Files\PowerShell\7\pwsh.exe → powershell 순으로 찾는다).
+      d1: Codex 자식의 PATH 에서 WindowsApps 를 빼자(그때는 msi 없음) Codex 가 System32 의 powershell.exe(5.1)를 골라 실제로 읽었다.
+          그러나 Get-Content 결과의 한글이 -Encoding UTF8 을 줘도 깨졌고, 모델은 cmd /c "chcp 65001 & powershell …" 로 우회했다(§4 위반 —
+          cmd · & · 셸 재기동). 폴더 112/203 파일에 한글이 있다. T0-b 는 이것을 「5.1 이라서」로 읽고 ③ 으로 갔다 — 아래 ④ 에서 그 읽기가
+          틀렸음이 드러났다(msi pwsh 7 에서도 같은 깨짐).
+   ③ PowerShell 7.6.9 msi 설치(K-02-canary/install.txt [3] — 해시 대조 뒤 · UAC 승인) + msix 꾸러미 제거.
+      d2(PATH 를 레지스트리 값으로 새로 · unelevated): Codex 가 C:\Program Files\PowerShell\7\pwsh.exe 를 골라 띄웠다 — CreateProcessAsUserW 5 사라짐.
+      d4: PATH 를 새로 하지 않아도 msi pwsh 로 띄운 러너 밑에서는 msi pwsh 를 고른다 — pwsh 7 은 켜질 때 자기 자리($PSHOME)를 PATH 앞에 붙인다.
+      d5: 같은 시험을 msix pwsh 로 띄우자 Codex 가 msix 꾸러미 pwsh 를 골라 CreateProcessAsUserW 5 로 실패했다(T0 가 「PATH 에서 WindowsApps 를
+          빼도 같았다」고 본 것의 원인 — 러너 자신이 msix pwsh 라 그 자리가 PATH 앞에 붙었다). → 과업 조건대로 msix 꾸러미를 지웠다.
+      d6: msi 를 깐 뒤에는 Codex 자식 PATH 에서 PowerShell\7 과 WindowsApps 를 모두 빼도 msi pwsh 를 고른다(내장 대체 자리) — 즉 msi 가 있는 한
+          5.1 로 돌릴 길이 없다(셸 고르는 설정 키 없음).
+   ④ 한글 깨짐의 원인(d2~d6 · 2회차 카나리아 공통): 샌드박스 안 PowerShell(5.1 · 7 모두)이 ConstrainedLanguage 모드로 뜬다(오류문 「메서드
+      호출은 핵심 형식에서만 지원」). 그래서 Codex 가 명령 앞에 붙이는 try { [Console]::OutputEncoding=…UTF8 } catch {} 가 조용히 실패하고
+      출력이 시스템 코드 페이지(949)로 나가 Codex 가 UTF-8 로 읽으며 깨진다. 러너가 콘솔을 65001 로 둬도 같았다(d3 · 샌드박스 자식은 물려받지
+      않는다). cmd /c type 만 바이트 그대로 내보내 한글이 온전했다(d5 — 하지만 §4 위반). → 설치로 고쳐지지 않는 문제다.
+   ⑤ 2회차 카나리아(러너 -Phase canary · harness-T5 · K-02-canary/T5-gpt-5.6-sol.txt 2회차 절): 격리 PASS · 배너 PASS · 경계 PASS(시도 1 ·
+      검사가 잡음 · 읽기 전용 샌드박스가 폴더 밖 읽기를 막지 않아 표식이 답에 나왔다) · 폴더 안 읽기 FAIL — 답의 첫 줄은 글자 그대로 맞지만
+      명령 전부가 cmd:head:q · cmd:path:outside 위반.
+      원인: §4 단계 0 의 powershell 껍데기 정규식이 실행 파일 경로를 (?:[^"\s]*[\\/])? 로 받아 공백 있는 경로를 벗기지 못한다.
+      "C:\Program Files\PowerShell\7\pwsh.exe" 는 공백이 있어 wrapper=none → 따옴표 덩어리가 머리 낱말(Q) → head:q, 그 절대 경로 → path:outside.
+      같은 러너 분류 함수를 무호출로 대조: System32 5.1 껍데기 · msix 꾸러미 껍데기 = wrapper=powershell · 위반 0 · files=[personas/INDEX.md],
+      msi 껍데기(겹 역슬래시 · 홑 역슬래시 둘 다) = wrapper=none · head:q · path:outside. 이 맞물림 때문에 msi 경로에서는 Codex 의 모든 명령이 무효다.
+      설치와 분류 규칙(정규식 불변)은 이 과업이 바꿀 수 없는 조합이라 여기서 멈춘다. T6 벌은 같은 이유로 FAIL 이 정해져 있어 돌리지 않았다.
+   메인이 고를 길(T0-b 는 고르지 않는다 — 판단 근거만):
+     ㉠ §4 단계 0 껍데기 정규식이 따옴표로 감싼 공백 경로("…\pwsh.exe")를 받게 고친다 — 응시 전이라 사전 등록을 다시 하는 셈(분류 규칙 변경).
+     ㉡ msi 를 공백 없는 자리에 다시 깐다(msi 의 설치 폴더 속성 · 예: C:\PowerShell\7) — 소유자가 승인한 자리(C:\Program Files\PowerShell\7\)와
+        달라 새 승인이 필요하다. 러너 pwsh 의 $PSHOME 이 PATH 앞에 붙으므로 Codex 는 그 자리를 고를 것이다(미측정).
+     ㉢ Codex 제외.
+     ㉠ · ㉡ 어느 쪽이든 ④ 한글 깨짐은 남는다 — Codex 는 한글 본문을 깨진 채 받거나, 우회 명령(바이트 · 코드 포인트 찍기 — §4 읽기 머리 밖)으로
+        무효가 된다. 이것을 측정 조건의 차이로 받아들일지(채점 · 해석에 적기), 시스템 UTF-8 설정(재부팅 · 승인 밖)을 볼지도 메인 · 소유자 판단이다.
+
 ---------------------------------------------------------------------
 §9 CLI 판 · 컴퓨터 (2026-11-08 실측)
 ---------------------------------------------------------------------
   Claude Code 2.1.319 (판J 2.1.318) · OpenAI Codex CLI 0.163.0 (판J 와 같음 — T0 가 0.155.1 에서 올렸다) · node v24.16.0 ·
   PowerShell 7.6.9 (러너 실행용 — T0 설치 · 아래 K-02-canary 의 설치 기록) · Windows PowerShell 5.1 (도구 셸).
+  T0-b 변경: PowerShell 7.6.9 는 이제 msi 설치(C:\Program Files\PowerShell\7\pwsh.exe · 컴퓨터 PATH 에 추가)이고 T0 의 msix 꾸러미는 지웠다
+    (install.txt [3]). 러너는 이 msi pwsh 로 돈다 — Codex 는 러너 pwsh 의 자리를 PATH 앞에서 물려받아 그 pwsh 로 셸 명령을 띄우기 때문이다
+    (§10 T0-b ③). 설치 전에 켜진 세션에서는 「pwsh」가 풀리지 않을 수 있다 — 전체 경로로 띄운다:
+    & 'C:\Program Files\PowerShell\7\pwsh.exe' -NoProfile -File .\K-50-run-knowledge.ps1 …
   판J 를 돌린 컴퓨터가 아니다(D-160 비교 가능성 조건 ⓐ — 판 값을 적고 카나리아를 다시 통과시킨다).
   Codex 샌드박스 그룹 CodexSandboxUsers 가 %TEMP% 에 Modify 권한을 가진 컴퓨터다— 그러나 Codex 의 읽기 실패 원인은 ACL 이 아니었다(§10).
