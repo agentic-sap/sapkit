@@ -1,0 +1,151 @@
+model: claude-fable-5-1
+K-71-notes-B.txt — 채점자 B 메모 (판K T8b · 블라인드 묶음 K-65 · 2026-11-08)
+=====================================================================================
+
+읽은 것(허용 목록 안): K-65-grader-brief.txt · K-65-blind-knowledge.json(156행) · K-65-blind-code.json(25행) ·
+J-10 10-knowledge-items.json · J-11 11-code-tasks.txt · J-01 01-convention-split.txt ·
+interactive/core/knowledge/ 아래 Grep(QM/bapi.md · QM/workflows.md · BW/spro.md · WM/tcodes.md · WM/bapi.md ·
+FI/enhancements.md · TM/workflows.md · TM/spro.md · TM/tcodes.md · PP/enhancements.md · CO/enhancements.md ·
+HCM/tables.md · MM/enhancements.md · PS/enhancements.md · abap/conventions/alv-rules.md:102-112).
+personas/ 는 열지 않았다(필요한 행이 없었다). 조건·모델 추정 0 · 답 속 인용·경로는 판정에 쓰지 않았다.
+
+① 규약 적용 메모 (§5-B 를 이 묶음에 어떻게 적용했는가)
+-------------------------------------------------------
+[지식]
+- 정답 = 규칙이 요구하는 사실이 진술됐을 때만. 「기억으로는 / 팩만 보고 답했다 / 시스템에서 확인 요망」류 단서가
+  붙어도 단일 답을 냈으면 진술로 봤다(df24f9 · a1f414 · c0b962 · 116e61 · e60030 · ff6507 등).
+- 「주답」 = 질문에 직접 대응하는 문장에서 먼저·단정적으로 낸 식별자. 주답 뒤에 다른 시나리오·다른 기능용 객체를
+  보충한 것은 헤지로 보지 않았다 — 판단이 갈릴 수 있는 적용:
+    · 6d85c5 (MM-02) MB_CREATE_GOODS_MOVEMENT 주답 + MB_POST_GOODS_MOVEMENT 「후속 DB 반영 단계」 → 정답.
+    · 74bd7b (BW-02) RSPC 「유지」 + RSPCM 「모니터」 → 질문이 「유지·모니터」 하나를 묻지만 RSPC 가 주답이고
+      RSPCM 은 보충 → 정답. (A 가 「둘을 나란히」로 읽으면 갈릴 수 있는 자리.)
+    · fbf142 (Ariba-01) IDOC_INPUT_ORDERS 주답 + 「구매자 MM 쪽이면 IDOC_INPUT_PORDCR1」 각주 → 정답.
+    · 0880fb · f578b2 (BC-02) DB02 주답 + DBACOCKPIT 「신버전 대안」 병기 → 정답.
+    · 651e6a (TR-02) FQM_FLOW 주답 + 「팩이 FQMA 도 함께 적음」 → 팩 인용 부연 → 정답.
+    · b0ecfc (TM-01) V_TMFUB 를 뷰로 제시한 뒤 「표준에선 앱으로 유지」 의문 부연 → 뷰를 냈으므로 정답(규칙은
+      「앱 이름만」일 때 오답).
+- 복수 후보(둘 다 후보로 두고 단정 없음) → 오답/다른값: d058ec (CO-02 · COPA0004 ↔ COPA0005).
+- 요구 사실이 둘인 항목(JP-01 · KR-01 · GB-01 · EU-01 · ES-01 · ABAP-05 · SD-02 · IN-01 · chemical · tire ·
+  utilities)은 둘 다 들어 있는지만 봤다. 952301 · 313f9d (JP-01)는 「모두 확정신고 연 1회 + 대규모는 중간신고
+  월(11회)·분기(3회)」라 소규모=연 1회·대규모=월/분기 두 사실이 다 들어 있어 정답 — 키보다 정밀한 서술이지
+  반대 사실이 아니다.
+- DE-01 (db58fb · 5a18e5): 월을 먼저 말하고 분기·연을 전년 세액 조건부로 붙임 → 규칙 괄호(「조건부로 월을 먼저
+  말하면 정답」) 적용.
+- 규칙 밖의 틀린 부연은 계수하지 않았다(a8df01 의 B2 설명 · f18e0c 의 필드카탈로그 설명 등).
+- 팩어긋남의심 적용 범위 — §5-B 원문은 「여러 답이 일치해서 키와 다른 값을 냈고 채점자 기억도 그쪽」 또는
+  「질문 전제 자체가 의심」. 이 묶음에서 그대로 적용한 행: QM-01 ×3 · BW-01 ×4 · WM-01 ×2 (여러 답 + 기억) ·
+  26cf6f PP-01 · 76424e ABAP-01 (전제 의심). **확장 적용 2행** — 단일 답이지만 채점자 기억이 답 쪽에 확실히
+  선 경우: 9d1461 (FI-02 F050S001) · 9ebb80 (MM-01 SMOD_V50B0001). 엄격 독해면 둘은 오답/다른값이다 —
+  제3 판정이 정하기 쉽게 reason 에 「단일 답이나 채점자 기억 일치」로 표시했다. 반대로 단일 답 + 기억 불확실인
+  63ad3b (WM-02) · 1d81b0 (TM-02) · d058ec (CO-02) · ee6069 (TM-01) 는 의심을 적용하지 않고 오답/다른값.
+- 76424e (ABAP-01)는 키대로 읽어도 「안 그려짐」과 「텍스트 버튼 표시」를 병기한 헤지라 정답은 아니다 —
+  오답/다른값 vs 팩어긋남의심 중 후자를 택했다(채점자 기억이 텍스트 버튼 쪽). 같은 문항 a20321 은 단정 → 정답.
+- 「진짜 동등한 이름」 규칙은 쓰지 않았다(9ebb80 을 그 규칙으로 정답 처리할 수도 있었으나, 팩 이름이 틀렸을
+  가능성이 핵심이라 의심으로 넘겼다).
+- 답변 언어(한/영/일) 무관 — 313f9d(일본어) · 362668 · ff217f(한국어) 내용으로 판정.
+
+[코드]
+- 11-code-tasks.txt 의 번호 규칙만 계수. detail = 「규칙@줄」 세미콜론 목록 · 줄 = code 칸 물리 줄(1부터).
+- 대표 줄 관행: AUTHORITY-CHECK 부재(C-01 규칙5 · C-04 규칙6) = 그 SELECT 의 첫 줄 · C-04 규칙2(클라이언트
+  합산) = 합산하는 LOOP AT 줄 · C-02 규칙4 = FINAL 없는 CLASS DEFINITION 첫 줄 · 규칙7 = 첫 위반 테스트
+  METHODS 선언 줄 · 규칙9 = 첫 배너 줄.
+- `SELECT … INTO TABLE` 뒤 결과 테이블 `IS INITIAL` 검사는 sy-subrc 등가로 인정(C-01 5행 전부 · C-04 4fb691 ·
+  69dad9 · C-05 3acb1e · 06ef52 · 4fbd52). 판단이 갈릴 수 있는 적용: 6c55d7 (C-04)는 SELECT 대상 gt_item 이
+  아니라 파생 집계 테이블 gt_out 의 IS INITIAL 을 검사한다 — gt_item 이 비면 gt_out 도 비므로 「빈 결과를
+  처리한다」는 취지가 충족된다고 보아 규칙5 통과. 06ef52 (C-05)는 다른 FORM 에서 IS INITIAL 을 검사하지만
+  같은 결과 테이블이라 통과.
+- C-01 규칙6 은 괄호의 cx_salv_msg 처리로만 판정 — 5행 전부 MESSAGE 처리라 통과. 빈/RETURN 만의 `CATCH
+  cx_salv_not_found`(1b9ca0:114 · 638d27:130 · a4a87f:71)는 기록만(미계수). A 규약 ⓐ와 갈리는 자리 —
+  A 가 계수하면 세 행이 6@ 추가로 갈린다.
+- C-02 규칙4 FINAL 은 파일 안 모든 클래스에 적용 — 로컬 예외 클래스(b58184:9) · 전역 예외 클래스(c2d6e9:1)
+  둘 다 계수. 테스트 클래스는 전부 FINAL 이었다.
+- C-02 규칙5 는 괄호대로 **주 클래스**(ZCL_*)의 공개 멤버만 봤다 — 공개 TYPES 가 calculate 시그니처에 쓰이면
+  통과. 예외 클래스의 공개 READ-ONLY 속성·공개 상수(mv_reason · gc_reason)는 호출자가 읽는 계약이라 계수하지
+  않았다(메모만).
+- C-02 규칙7 — `normal_discount` · `full_discount` · `zero_discount` · `rounding_half_up` · `rejected_input` ·
+  `negative_gross` 처럼 결과(when-then)가 없는 시나리오명은 위반. `negative_gross_is_rejected` ·
+  `full_discount_returns_zero` 처럼 결과가 든 이름은 통과(0dfbd6 전부 통과).
+- C-02 규칙8 — assert_equals(값) · assert_bound(참조) · assert_not_initial(문자열 값) · fail 은 유형 일치로 봄 ·
+  메서드당 1~2개 → 전 행 통과.
+- C-02 규칙9 배너 — `*---*` / `*&---*` 블록만 계수(eb498f · b58184). ABAP Doc(`"!`)은 배너가 아니다.
+- C-03 — 5행 전부 통과. `lv_matnr` / `lv_spras` 선언은 IMPORTING 파라미터가 **있는** 상태에서의 변환·기본값
+  작업 변수라 shadow local(「빠진 IMPORTING 을 대신하는 선언」)이 아니다. CONVERSION_EXIT 호출 뒤 sy-subrc
+  검사도 전부 있음. 규칙7(TABLES)은 전 행 N/A.
+- C-04 규칙2 — 69dad9 · 6c55d7 은 SHKZG 부호 처리를 사유로 적었지만 규칙 문언(「품목 전 행을 읽어 ABAP 루프에서
+  합산하면 위반」)대로 위반. 4fb691 · d40e3e 는 SUM/COUNT GROUP BY → 통과.
+- C-05 — `lines( )`(db280a) 7.02 가용 → 통과. `EXIT`(db280a:37)는 C-05 규칙에 없어 미계수. 쉼표 구분 필드
+  목록·@ 호스트 변수는 어느 C-05 행에도 없었다(비고 사항 0).
+- 검사기 오류급은 기계 결과 그대로(전 25행 0) — 재실행하지 않았고 detail 에 넣지 않았다.
+
+② 팩어긋남 의심 목록 (키는 고치지 않았다)
+------------------------------------------
+행 verdict 가 팩어긋남의심인 것(13행):
+- 803d09 · dab8b7 · a914d2 (K-MOD-QM-01): 답 BAPI_INSPOPER_RECORDRESULTS · 키 BAPI_INSPOPER_RECRESULTS.
+  표준 QM BAPI 이름은 BAPI_INSPOPER_RECORDRESULTS(검사 오퍼레이션 결과 기록). 팩 표기가 축약됐을 가능성 —
+  interactive/core/knowledge/modules/QM/bapi.md:14 · workflows.md:10 · :16 · :55 (네 곳 모두 RECRESULTS).
+- a211b0 · 070b9f · ac3824 · 5cf012 (K-MOD-BW-01): 답 RSISET · 키 RSINFOSOURCE. InfoSet Builder 는 RSISET.
+  팩 interactive/core/knowledge/modules/BW/spro.md:38 (InfoSet) 과 :45 (InfoSource) 가 **같은 코드
+  RSINFOSOURCE** 를 두 항목에 적고 있어 :38 이 복사 오류로 보인다.
+- d04416 · 3765b6 (K-MOD-WM-01): 답 LT31 · 키 LT25. 표준 LE-WM 에서 TO 인쇄는 LT31(수동) · LT32(TR/납품 단위),
+  LT25 는 TO 조회(참조번호별). 팩 interactive/core/knowledge/modules/WM/tcodes.md:28.
+- 26cf6f (K-MOD-PP-01): 식별자 EXIT_SAPLCOBT_001 은 냈으나 「오더 유형 기본값」 전제를 부정. 표준에서
+  EXIT_SAPLCOBT_001 은 생산오더 저장(update) 시점 exit(PPCO0001 계열)이고, 헤더 기본값은 다른 enhancement
+  (PPCO0006 계열). 팩 interactive/core/knowledge/modules/PP/enhancements.md:81 「Order type default」 설명
+  의심 — 질문 전제 의심. (같은 문항 c0b962 · 116e61 은 키와 같은 식별자를 단정 → 정답으로 뒀다.)
+- 76424e (K-ABAP-01): 팩 주장(아이콘·ICON_TEXT 없는 FUN 은 전혀 안 그려짐)과 표준 SE41 동작(아이콘 없으면 기능
+  텍스트 버튼으로 표시)을 병기. 채점자 기억도 텍스트 버튼 쪽 — 팩 interactive/core/knowledge/abap/conventions/
+  alv-rules.md:105-107 은 특정 생성 경로(소스로 쓴 GUI 상태 · TEXT_NAME 미설정?)의 현장 관찰일 가능성이 있어
+  일반 사실로 묻는 질문의 전제가 의심된다. (a20321 은 키대로 단정 → 정답.)
+- 9d1461 (K-MOD-FI-02): 답 F050S001 · 키 F050S003. 표준 SMOD: F050S001 「FIDCMT, FIDCC1, FIDCC2: Edit
+  user-defined IDoc segment」 · F050S002 「FIDCC1: Change IDoc / do not send」 · F050S003 「FIDCC2: Change IDoc /
+  do not send」. 팩 interactive/core/knowledge/modules/FI/enhancements.md:22-28 의 설명(outbound/inbound/
+  segment/status/…)은 표준 설명과 맞지 않는다. **단일 답 — 확장 적용.**
+- 9ebb80 (K-MOD-MM-01): 답 SMOD_V50B0001 · 키 BADI_SMOD_V50B0001. 고전 enhancement 의 BAdI 래퍼 정의 이름은
+  SMOD_<enhancement> 형식이고 BADI_ 접두는 기억에 없다. 팩 자신도 interactive/core/knowledge/modules/PS/
+  enhancements.md:69 에서 SMOD_V50B0001 로 적는다(단 그 줄의 「Billing plan (milestone)」 설명도 의심 —
+  V50B0001 은 납품 IDoc 수신 exit). MM/enhancements.md:61 의 BADI_ 접두는 표기 오류 가능. **단일 답 — 확장 적용.**
+
+verdict 는 정답으로 두었으나 팩 줄이 의심스러운 것(키와 답은 일치):
+- K-MOD-HCM-01 (86fd76 · a8df01 · 666473): 키 PCL1 과 답 일치 → 정답. 그러나 팩 interactive/core/knowledge/
+  modules/HCM/tables.md:45 「PCL1 | Payroll Cluster (TE, TX, B2)」 — 표준에서 B2(시간평가 결과)는 PCL2,
+  PCL1 은 급여 클러스터가 아니라 작업영역 클러스터(TE · TX · B1 · G1). 666473 이 이 점을 지적했고 채점자 기억도
+  같다. 질문 전제(TE·TX·B2 가 한 테이블)가 부분적으로 틀렸을 수 있다 — 키 PCL1 자체는 TE·TX 기준으로 맞는다.
+- K-MOD-TM-01 (ee6069 오답/다른값 · b0ecfc 정답 · d3322c 정답): 팩 interactive/core/knowledge/modules/TM/
+  workflows.md:23 · spro.md:39 가 V_TMFUB 를 두 곳에 적는다. 채점자 기억으로는 FUBR 은 NWBC/Fiori 앱의
+  계획 설정(마스터 데이터 성격)이고 SPRO 뷰가 아니지만, S/4 임베디드 TM 의 「Define Delivery-Based FUBR」
+  고객화 활동 존재 여부를 확신하지 못해 의심을 적용하지 않았다. 제3 판정 참고.
+
+의심을 적용하지 않은 단일 이탈(기억 불확실):
+- 63ad3b (K-MOD-WM-02) L_STORAGE_BIN_DETERMINE vs 키 L_BIN_LOCATE — 어느 쪽도 확신 없음 → 오답/다른값.
+- 1d81b0 (K-MOD-TM-02) /SCMTMS/TNT vs 키 /SCMTMS/MON_TTE → 오답/다른값.
+- d058ec (K-MOD-CO-02) COPA0005 ↔ COPA0004 헤지 → 오답/다른값. (팩 CO/enhancements.md:26-32 의 COOPA_01~07
+  행은 표준 SMOD 이름이 아닌 것으로 보이고 :33-34 의 COPA0001=도출·COPA0002=평가는 표준(COPA0001=평가 ·
+  COPA0002=도출)과 뒤바뀐 듯하나, 이 문항의 키 COPA0004 자체에 대해서는 기억이 확실치 않다.)
+
+③ 집 규칙 관찰 (미계수)
+-----------------------
+- 주석 배너(`*&---*` / `*---*`): C-01 4bb892 · 1b9ca0 · a4a87f · 638d27(본문 중간) · C-04 fbed8a · 69dad9 ·
+  6c55d7 · d40e3e · C-05 fb6f3c · 3acb1e · 06ef52 · db280a — 이들 과제엔 규칙 9 가 없어 미계수.
+- 이름 규약(gt_/gs_/lv_/lo_ 접두): 대체로 지킴. d92d31 의 `cut` · `reason`, 0dfbd6 의 `cut`, c2d6e9 테스트의
+  `lx` 등 접두 없는 이름 — 집 규칙 · 미계수.
+- 텍스트 요소: 4bb892 · 638d27 · d40e3e · fb6f3c · 06ef52 는 TEXT-nnn / 리터럴(sym) 사용 · 62865e · 1b9ca0 ·
+  a4a87f · 4fb691 · 3acb1e · 4fbd52 · db280a 는 하드코딩 리터럴 — 집 규칙 · 미계수. (C-01 과제는 「no separate
+  text pool」을 요구하므로 리터럴은 과제 적합.)
+- 인클루드 분할 · 두 클래스 분할 · OK_CODE 패턴 · 템플릿 준수 · FORM 머리 주석 형식: 과제가 단일 파일이라 해당 없음.
+- C-03 fc98ee 의 `MESSAGE e305(m3) … RAISING` 은 표준 메시지 클래스 M3 의존 — 집 규칙도 일반 규칙도 아님 · 기록만.
+- C-02 예외 클래스의 공개 READ-ONLY 속성(mv_reason/reason) · 공개 상수(gc_reason) — 규칙5 범위(주 클래스) 밖
+  으로 두었음(① 참조).
+- C-02 d92d31 테스트 메서드가 `RAISING cx_static_check` 없이 calculate 를 호출(선언 누락 경고 가능) — 규칙 목록
+  밖 · 기록만.
+
+④ 집계
+-------
+지식 156행: 정답 139 · 오답 4(전부 다른값) · 팩어긋남의심 13.
+  문항별 이탈: QM-01 3/4 의심 · BW-01 4/4 의심 · WM-01 2/2 의심 · PP-01 1/3 의심 · ABAP-01 1/2 의심 ·
+  FI-02 1/2 의심 · MM-01 1/2 의심 · TM-01 1/3 오답 · CO-02 1/2 오답 · TM-02 1/3 오답 · WM-02 1/3 오답.
+  나머지 문항은 전 행 정답.
+코드 25행: 통과 11 · 위반 14.
+  과제별 통과: C-01 0/5 (전부 규칙5 AUTHORITY-CHECK 부재만) · C-02 1/5 (0dfbd6 통과 · 위반은 규칙7 4행 ·
+  규칙9 2행 · 규칙4 2행) · C-03 5/5 · C-04 0/5 (규칙6 AUTHORITY-CHECK 부재 5행 · 규칙2 클라이언트 합산 3행) ·
+  C-05 5/5.
+  검사기 오류급: 25행 전부 0(기계 결과 그대로) → 과제 통과(오류급 0 ∧ 작법 위반 0) = 이 채점의 통과 11행과 같다.
