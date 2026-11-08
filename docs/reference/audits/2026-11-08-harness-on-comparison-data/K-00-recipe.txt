@@ -5,6 +5,7 @@ K-00 — 판K 레시피: 하네스를 켠 조건의 명령 · 고정 값 정본 
   §1 고정 줄 2종 · §2 Claude 명령 · §3 Codex 명령과 배너 · §4 유효성 ⑴~⑷ 와 Codex 명령 분류 규칙(정본) ·
   §5 판정 순서 · 정규식 · 백오프 · 벽시계 · §6 폴더 무결성 · §7 카나리아 · §8 난수 · 블라인드 매핑 · §9 CLI 판 · 컴퓨터 ·
   §10 ⚠ 미확정 — Codex 의 폴더 안 읽기(메인 판단 대기 · T0 진단 + T0-b 경위: 샌드박스 예외 한 줄 · msi 설치 뒤에도 분류 규칙과 셸 자리가 맞물리지 않음)
+      → T0-c 판정: §4 단계 0 껍데기 인식 손질(승인) · 한글 시험 실패 → Codex 제외 · 이 컴퓨터에서 측정 불가(§3 ⛔ · §10 T0-c)
 설계 정본은 docs/reference/DECISIONS.md 의 D-160(⓪ 하네스 조건 · ① 채점 · ② 배정). 판J 레시피(이하 J-02 =
 ../2026-11-05-harness-necessity-review-data/02-isolation-recipe.txt)와 다른 점의 전수표는 K-01-diff-from-panJ.txt.
 러너 두 개(K-50-run-knowledge.ps1 · K-60-run-code.ps1)는 아래 값을 「K-COMMON」 블록에 글자 그대로 가진다 — 두 러너의 그
@@ -43,6 +44,7 @@ Write the complete ABAP source as a single file and return it in one ```abap cod
 
   범위: 지식 = J-10 표본 60 × 3모델(J-41 의 K-INC 47 은 응시하지 않는다) · 코드 = C-01~C-05 × 3(C-INC 9 는 응시하지 않는다).
   한 문항 = 한 CLI 호출 = 새 세션(판J 와 같다).
+  T0-c: 모델 집합은 셋이 아니라 둘(claude-opus-5-5 · claude-sonnet-5-5) — Codex 제외(§3 ⛔ · §10 T0-c). 지식 60 × 2 = 120행 · 코드 5 × 2 = 10행.
 
 ---------------------------------------------------------------------
 §2 Claude — claude-opus-5-5 · claude-sonnet-5-5 (Claude Code 2.1.319)
@@ -71,6 +73,18 @@ Write the complete ABAP source as a single file and return it in one ```abap cod
     글자 그대로 남는다(임시 홈 config.toml 에 적는 방식은 쓰지 않았다 — CLI 로 받아들여졌다).
   ⚠ T0-b 상태: 이 명령으로 셸은 뜨지만 Codex 의 폴더 안 읽기는 아직 확정이 아니다 — §10 「T0-b 경위」(분류 규칙의 껍데기 정규식이 공백 있는
     셸 경로를 벗기지 못한다 · 샌드박스 셸 출력의 한글이 깨진다). 확정은 메인 판단 뒤.
+  ⛔ T0-c 판정 (2026-11-08 · 소유자 결정 4 집행): **이 컴퓨터에서 측정 불가 — Codex 는 판K 에서 뺀다.** 모델 집합 = claude-opus-5-5 ·
+    claude-sonnet-5-5 둘(두 러너의 기본값 · K-01 행 49).
+    원인 = 샌드박스 셸 인코딩: Codex 샌드박스(unelevated) 안의 PowerShell(5.1 · 7 모두)이 ConstrainedLanguage 모드로 떠서 Codex 가 명령 앞에
+      붙이는 UTF-8 출력 설정이 조용히 실패하고, 셸 출력이 코드 페이지 949 로 나가 한글이 깨진다(하네스 203파일 중 112에 한글 · §10 T0-b ④).
+      Claude 의 Read 는 UTF-8 로 읽으므로 이 상태로 Codex 를 응시시키면 「하네스를 읽을 수 있는」 조건이 모델 사이에 같지 않다.
+    시도 내역: ① T0-b d3 · 2회차 카나리아 — 러너 콘솔 65001 상속(ProcessStartInfo UseShellExecute=$false · CreateNoWindow 기본 $false)에서도
+      깨짐(T0-c 가 같은 기동 경로를 재어 러너 콘솔 = 출력 65001 · 입력 65001 임을 확인 — 즉 소유자 결정 2 의 가설 설정이 그때 이미 걸려 있었다).
+      ② T0-c 한글 시험 1회(러너가 chcp 65001 + [Console]::OutputEncoding · InputEncoding = UTF-8 을 둔 뒤 같은 기동 옵션으로 Codex 를 띄움) —
+      Codex 호출 2번이 모두 모델 차례 전에 「사용량 한도 · 2026-11-12 08:11 에 다시」로 거부됐다(새 측정 0). 시스템 설정 · 설치 · 환경변수 · 새
+      플래그 0. 자세한 경위 = §10 T0-c.
+    아래 명령 · 배너 · 띄우는 방식과 §4 분류 규칙(T0-c 껍데기 손질 포함)은 **다른 컴퓨터에서 재현할 때 쓰도록** 그대로 둔다 — 이 컴퓨터의 판K
+    응시에는 쓰이지 않는다. 러너는 -Model gpt-5.6-sol 을 명시하면 여전히 돈다(기본값 · all 에는 들지 않는다).
   배너 명령 (모델 id · 추론 강도 · 판 확인 — 러너 실행마다 1회, 카나리아 ⑷):
     위와 같되 --json 을 빼고 --color never 를 더하고, 프롬프트 = "Reply with exactly the single word OK and nothing else. Do not use any tool."
     통과 = exit 0 · 「OpenAI Codex v0.163.0」 · 「model: gpt-5.6-sol」 · 「reasoning effort: medium」. 판K 는 추론 플래그가 거부돼도
@@ -104,8 +118,16 @@ Write the complete ABAP source as a single file and return it in one ```abap cod
 
   Codex 명령 분류 (정본 — 분류가 애매하면 위반 · fail-closed)
     0. 셸 껍데기를 한 겹 벗긴다(그 껍데기 자체는 위반이 아니다):
-         powershell : (?is)^"?(?:[^"\s]*[\\/])?(?:powershell|pwsh)(?:\.exe)?"?(?:\s+-(?!Command\b|c\b)[A-Za-z]+(?:\s+(?!-)[^\s-]\S*)?)*\s+-(?:Command|c)\s+(?<inner>.+)$
-         bash       : (?is)^"?(?:[^"\s]*[\\/])?(?:bash|sh|zsh)(?:\.exe)?"?\s+-l?c\s+(?<inner>.+)$
+         powershell : (?is)^(?:"C:(?<s>\\\\?)(?:Program Files\k<s>PowerShell\k<s>7\k<s>pwsh|Windows\k<s>System32\k<s>WindowsPowerShell\k<s>v1\.0\k<s>powershell)\.exe"|"?(?:[^"\s]*[\\/])?(?:powershell|pwsh)(?:\.exe)?"?)(?:\s+-(?!Command\b|c\b)[A-Za-z]+(?:\s+(?!-)[^\s-]\S*)?)*\s+-(?:Command|c)\s+(?<inner>.+)$
+           (T0-c 판 · 소유자 승인 2026-11-08 「사양 §7 ⓡ」 — 바뀐 것은 머리의 실행 파일 자리 하나: 따옴표로 감싼 공백 경로를 **허용 목록**으로만 받는다.
+            허용 목록(글자 그대로 · 대소문자 무시 = (?i) · 구분자는 홑 역슬래시 또는 겹 역슬래시 — 한 경로 안에서 같은 꼴만 · Codex 의 command 글자는
+            겹 역슬래시로 온다):  "C:\Program Files\PowerShell\7\pwsh.exe"  ·  "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+            그 밖의 따옴표 공백 경로(다른 폴더의 pwsh.exe · 같은 폴더의 다른 .exe · 구분자 섞임)는 껍데기가 아니다 → 여전히 head:q · path:outside 위반.
+            뒤쪽 「|」 갈래는 T0 판 정규식의 실행 파일 부분 글자 그대로다(공백 없는 경로 · 이름만). 플래그 · -Command · inner 부분 · bash · cmd ·
+            단계 1~4 · 위반 토큰 목록 · 경로 규칙은 한 글자도 바뀌지 않았다. 두 러너 K-COMMON Unwrap-KShell 에 같은 글자 — K-01 행 47 · 끝 대조.)
+         powershell (T0 판 — T0-c 이전 · 기록으로 남김):
+                      (?is)^"?(?:[^"\s]*[\\/])?(?:powershell|pwsh)(?:\.exe)?"?(?:\s+-(?!Command\b|c\b)[A-Za-z]+(?:\s+(?!-)[^\s-]\S*)?)*\s+-(?:Command|c)\s+(?<inner>.+)$
+         bash       :(?is)^"?(?:[^"\s]*[\\/])?(?:bash|sh|zsh)(?:\.exe)?"?\s+-l?c\s+(?<inner>.+)$
          cmd        : (?is)^"?(?:[^"\s]*[\\/])?cmd(?:\.exe)?"?\s+/[cC]\s+(?<inner>.+)$
        inner 가 '…' 또는 "…" 로 통째 감싸였으면 한 겹 벗긴다.
     1. 따옴표 안을 지운 「맨 글」에서: 허용 리다이렉트만 먼저 지운다 — (?<![>\w])[0-9*]?>&[0-9]  ·  (?<![>\w])[0-9*]?>\s*(?:\$null|nul|/dev/null)(?![\w/])
@@ -242,6 +264,47 @@ Write the complete ABAP source as a single file and return it in one ```abap cod
      ㉢ Codex 제외.
      ㉠ · ㉡ 어느 쪽이든 ④ 한글 깨짐은 남는다 — Codex 는 한글 본문을 깨진 채 받거나, 우회 명령(바이트 · 코드 포인트 찍기 — §4 읽기 머리 밖)으로
         무효가 된다. 이것을 측정 조건의 차이로 받아들일지(채점 · 해석에 적기), 시스템 UTF-8 설정(재부팅 · 승인 밖)을 볼지도 메인 · 소유자 판단이다.
+
+  T0-c 경위 · 판정 (2026-11-08 · 소유자 결정: ⓐ 껍데기 인식 손질 승인(사양 §7 ⓡ) · ⓑ 한글은 설치 · 시스템 변경 없이 러너 콘솔 설정으로 1회 시험
+  (사양 §7 ⓢ · 진단 호출 상한 4회 · 벽시계 45분) · 실패면 Codex 제외 · 위 T0 · T0-b 기록은 지우지 않는다)
+   ① ⓐ 껍데기 인식 손질(㉠ 채택) — §4 단계 0 powershell 정규식을 T0-c 판으로 바꿨다(허용 목록 두 경로 · 그 밖 글자 불변 · T0 판은 §4 에 남김).
+      두 러너 K-COMMON 에 같은 글자(K-01 행 47 · 끝 대조). 모델 호출 없이 같은 분류 함수(Test-KCodexCommand)로 대조
+      (전체 출력 = K-02-canary/classifier-T0c.txt):
+        T0-b 2회차가 기록한 명령 9개(폴더 안 읽기 3 · ACE 뒤 폴더 안 읽기 5 · 경계 1) — T0 판에서는 9개 모두 wrapper=none · head:q · path:outside.
+        T0-c 판:  읽기 #1 · ACE 뒤 #4  Get-Content -LiteralPath 'personas/INDEX.md' -TotalCount 1  → wrapper=powershell · 위반 0 · files=[personas/INDEX.md]
+                  읽기 #3 · ACE 뒤 #7  Format-Hex …                                            → head:format-hex (읽기 머리 밖)
+                  읽기 #2 · ACE 뒤 #5 · #6  $bytes = [System.IO.File]::ReadAllBytes(…) …       → head:$bytes · head:$filepath · head:$end · head:if · head:[convert]::…
+                  ACE 뒤 #8  $line = Get-Content … ; $line.ToCharArray() | …                   → head:$line
+                  경계 #1  Get-Content -LiteralPath '<폴더 밖 절대 경로>' -Raw                    → path:outside 하나(head:q 사라짐 · 안쪽 절대 경로가 잡힌다)
+        모두 wrapper=powershell 로 벗겨진다. 즉 「msi 껍데기 = wrapper 인식 · 위반 0」은 성립하고(합성 대조: 홑 · 겹 역슬래시 둘 다 위반 0), 남는
+        위반은 경계의 폴더 밖 경로와, 한글 깨짐 때문에 모델이 쓴 우회 명령(바이트 · 16진 · 코드 포인트 찍기)뿐이다. 2회차 카나리아를 새 규칙으로
+        다시 재면: 폴더 안 읽기(ACE 뒤)는 여전히 FAIL(#5~#8 위반) · 경계는 PASS(시도 1 · 검사가 잡음). 허용 목록 밖 대조: 다른 폴더의 따옴표
+        pwsh.exe · 같은 폴더의 다른 .exe · 구분자 섞임 → wrapper=none · head:q · path:outside(위반 유지) · 공백 없는 경로(System32 5.1 · msix
+        별칭)는 T0 판과 같이 wrapper=powershell · 위반 0.
+   ② ⓑ 한글 시험(가설: 샌드박스 pwsh 의 [Console]::OutputEncoding 기본값은 붙어 있는 콘솔의 출력 코드 페이지를 따르므로, 러너 콘솔이 65001 이면
+      설정 없이도 UTF-8 로 나간다).
+      사전 측정(모델 호출 없음): 도구 셸에서 띄운 러너 pwsh 의 콘솔은 이미 출력 65001 · 입력 65001(창 핸들 없음 · 시스템 ANSI / OEM = 949) —
+        러너는 ProcessStartInfo UseShellExecute=$false 에 CreateNoWindow 기본값 $false 라 Codex 가 이 콘솔을 물려받는다. 곧 가설의 설정은
+        T0-b d3 · 2회차 카나리아 때 이미 걸려 있었고, 그때 샌드박스 셸 출력은 949 로 깨졌다(위 ④ · T5-gpt-5.6-sol.txt 2회차).
+      시험 1회(진단 드라이버 = 러너 K-COMMON 을 글자 그대로 불러 같은 Codex 명령 · 같은 분류로 1회 · harness-T5 · 원응답은 %TEMP%\sapkit-panK\diag-T0c\
+        에만): 러너가 chcp 65001 · [Console]::OutputEncoding = InputEncoding = UTF-8(BOM 없음)을 둔 뒤 같은 기동 옵션으로 띄웠다. 프롬프트 =
+        "Read the file personas/INDEX.md in the current folder and reply with its third line verbatim. Do not use web search. (현재 폴더의
+        personas/INDEX.md를 읽고 셋째 줄을 글자 그대로 답하라.)" — 기대 답 = 그 파일 셋째 줄(한글 · 40자 이상).
+        결과: Codex 기동 2번(첫 시도 + 러너 판정 ① 전이 백오프 60 s 뒤 재시도) 모두 thread.started 직후 error · turn.failed 「사용량 한도 —
+        2026-11-12 08:11 에 다시 시도」로 끝났다(모델 차례 0 · 셸 명령 0). 세 번째 재시도 대기(120 s) 중에 멈췄다 — 한도가 풀리기 전의 호출은
+        같은 거부라 시행착오가 되기 때문이다. 진단 호출 수 = 1(상한 4) · Codex 기동 2 · 벽시계 약 3분(상한 45분).
+      판정: 실패 — 상한 안에서 맑은 한글을 얻지 못했다. 근거 둘: 가설의 설정은 T0-b 에서 이미 걸려 있었는데 깨졌고, 새 측정은 사용량 한도로
+        2026-11-12 까지 불가능하다. 측정하지 못한 갈래 하나를 적어 둔다 — 러너를 새 콘솔 창(conhost)에서 띄우는 길(도구 셸의 콘솔은 창 없는
+        콘솔이다). 샌드박스 자식이 부모 콘솔을 아예 물려받지 않는다면(T0-b 의 관찰) 이 갈래도 같을 것으로 보지만 미측정이다.
+      쓰지 않은 것: 시스템 로캘 · 레지스트리 · 영구 환경변수 · 설치 · Codex 새 플래그 · 샌드박스를 느슨하게 하는 환경변수 · Codex 홈 config.toml.
+        PowerShell / .NET 에는 콘솔 출력 인코딩을 정하는 표준 환경변수 노브가 없어(Windows 의 Console.OutputEncoding 은 콘솔 코드 페이지를 읽는다)
+        프로세스 환경변수도 쓰지 않았다.
+   ③ 결정 4 집행 — Codex 를 판K 에서 뺐다. 두 러너의 모델 집합 기본값 = claude-opus-5-5 · claude-sonnet-5-5(K-50 $Models · K-60 $AllModels ·
+      K-COMMON $KModels · 머리 주석에 이유). 러너 콘솔 기동 설정은 바꾸지 않았다(시험이 성공하지 못했으므로 채택할 것이 없다). ⓐ 손질은 그대로
+      둔다(승인 · 다른 컴퓨터 재현용). K-02-canary/summary.csv 의 Codex T5 · T6 행 = 측정 불가(attempt=3(T0-c) · T0 · T0-b 행 유지 · 원천 =
+      T5-gpt-5.6-sol.txt 3회차 절 · T6-gpt-5.6-sol.txt). Claude 두 모델의 T0 카나리아는 그대로 유효하다(다시 돌리지 않았다).
+   ④ 남은 위험: 이 Codex 계정은 2026-11-12 08:11 까지 사용량 한도다 — §8 의 codex-regrade(Codex 재채점 표본) 스트림처럼 Codex 를 쓰는 다른
+      과업도 그때까지 같은 한도에 걸린다(메인 판단 거리 · 이 과업은 고치지 않았다).
 
 ---------------------------------------------------------------------
 §9 CLI 판 · 컴퓨터 (2026-11-08 실측)

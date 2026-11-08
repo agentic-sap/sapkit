@@ -8,6 +8,10 @@ K-60-run-code.ps1 — 판K T6 「코드 시험 응시(켠 조건) + 동봉 검�
   claude-sonnet-5-5 · gpt-5.6-sol)에게 「하네스 폴더를 읽을 수 있는」 조건으로 던지고, 응답에서 ABAP 을 기계 추출해
   동봉 검사기(lint·parse·analyze)로 채점한다. 이 세션 모델은 ABAP 을 한 줄도 쓰지 않는다 — 응답은 무편집으로 저장한다
   (단 로컬 경로 %TEMP% · 홈 조각만 자리 표시로 가린다 — 이벤트 요약에 가린 수를 적는다).
+  T0-c (2026-11-08 · 소유자 결정 4): 기본 모델 집합 = claude-opus-5-5 · claude-sonnet-5-5 둘 ($AllModels · K-COMMON $KModels).
+  Codex gpt-5.6-sol 은 이 판에서 뺐다 — 이 컴퓨터의 Codex 샌드박스 셸(ConstrainedLanguage)이 출력을 코드 페이지 949 로 내보내 한글이
+  깨지고, 러너 콘솔 설정 시험이 맑은 한글을 얻지 못했다(그 설정 = 콘솔 65001 상속은 T0-b 2회차에 이미 걸려 있었는데 한글이 깨졌고, T0-c 의 새 호출은 Codex 사용량 한도로 거부됐다 · K-00 §3 · §10 T0-c). -Model gpt-5.6-sol 은 다른 컴퓨터
+  재현용으로 ValidateSet 에 남기되 기본값 · all 에는 들지 않는다. 과제 5 × 2 = 요약 표 10행. Codex 명령 · 분류 규칙은 그대로 둔다.
 
 판J 레시피 대비 차이 (D-160 ⓪ 셋 + 판K 운영)
   1. 하네스 폴더 %TEMP%\sapkit-panK\harness-T6\ (커밋 4f12d678 의 knowledge\ · personas\ — 203파일) = 모든 호출의 cwd(claude
@@ -69,7 +73,7 @@ $CodexHome = Join-Path $Tmp 'codexhome-T6'
 $RawRoot = Join-Path $Tmp 'raw-T6'
 $KCanaryDir = Join-Path $Data 'K-02-canary'
 $KFolderShaFile = Join-Path $KCanaryDir 'folder-sha-T6.txt'
-$AllModels = @('claude-opus-5-5', 'claude-sonnet-5-5', 'gpt-5.6-sol')
+$AllModels = @('claude-opus-5-5', 'claude-sonnet-5-5')   # T0-c: Codex 제외(머리 주석)
 $CodexModel = 'gpt-5.6-sol'
 $RetriesPath = Join-Path $Data 'K-60-retries.txt'
 $RunLogPath = Join-Path $Data 'K-60-run-log.txt'
@@ -92,7 +96,7 @@ $KUtf8           = [Text.UTF8Encoding]::new($false)
 $KBackoff        = @(60, 120, 240, 480, 900, 900, 900, 900)   # 전이 오류 백오프(초) — 8회 넘으면 중단(재개 가능)
 $KWallSec        = 900                                         # 호출 하나의 벽시계 상한(15분) — 넘으면 프로세스 트리를 끊고 무효
 $KMaxAttempts    = 3                                           # 무효 시도 상한 — 3회 모두 무효면 그 행은 오답
-$KModels         = @('claude-opus-5-5', 'claude-sonnet-5-5', 'gpt-5.6-sol')
+$KModels         = @('claude-opus-5-5', 'claude-sonnet-5-5')   # T0-c: Codex 제외 — K-00 §3 · §10 T0-c
 $KClaudeTools    = @('Read', 'Grep', 'Glob')
 $KCanaryPrompt   = "First, list every tool, skill, plugin, MCP server, slash command, web/search capability and file you currently have access to (say 'none' if none). Do not use any tool or web search. Second, answer from memory in one line: what is the standard VAT rate in Korea and how many digits does the Korean business registration number have?"
 $KBannerPrompt   = 'Reply with exactly the single word OK and nothing else. Do not use any tool.'
@@ -279,8 +283,9 @@ function Split-KTokens([string]$s) { return @([regex]::Matches($s, '(?:''(?:[^''
 function Get-KUnquoted([string]$s) { return [regex]::Replace($s, '''(?:[^'']|'''')*''|"(?:[^"\\`]|\\.|`.)*"', ' Q ') }
 function Unwrap-KShell([string]$Cmd) {
   $c = $Cmd.Trim()
+  # T0-c (owner decision 2026-11-08 · K-00 §4 step 0): + allowlisted quoted shell paths (msi pwsh 7 · System32 powershell 5.1 · \ or \\)
   $pats = @(
-    @('powershell', '(?is)^"?(?:[^"\s]*[\\/])?(?:powershell|pwsh)(?:\.exe)?"?(?:\s+-(?!Command\b|c\b)[A-Za-z]+(?:\s+(?!-)[^\s-]\S*)?)*\s+-(?:Command|c)\s+(?<inner>.+)$'),
+    @('powershell', '(?is)^(?:"C:(?<s>\\\\?)(?:Program Files\k<s>PowerShell\k<s>7\k<s>pwsh|Windows\k<s>System32\k<s>WindowsPowerShell\k<s>v1\.0\k<s>powershell)\.exe"|"?(?:[^"\s]*[\\/])?(?:powershell|pwsh)(?:\.exe)?"?)(?:\s+-(?!Command\b|c\b)[A-Za-z]+(?:\s+(?!-)[^\s-]\S*)?)*\s+-(?:Command|c)\s+(?<inner>.+)$'),
     @('bash', '(?is)^"?(?:[^"\s]*[\\/])?(?:bash|sh|zsh)(?:\.exe)?"?\s+-l?c\s+(?<inner>.+)$'),
     @('cmd', '(?is)^"?(?:[^"\s]*[\\/])?cmd(?:\.exe)?"?\s+/[cC]\s+(?<inner>.+)$'))
   foreach ($p in $pats) {

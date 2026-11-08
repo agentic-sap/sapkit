@@ -1,0 +1,14 @@
+K-02-canary/T6-gpt-5.6-sol.txt — 판K T0-c · 하네스 폴더 harness-T6 · Codex gpt-5.6-sol · 판정 = 측정 불가 (2026-11-08)
+이 벌의 Codex 카나리아는 한 번도 돌리지 않았다.
+  T0   : 폴더 안 읽기가 T5 에서 막혀(셸 거부) 경로가 정해진 뒤 두 벌을 함께 돌리기로 했다(K-00 §10).
+  T0-b : T5 2회차가 분류 규칙 × 셸 자리 맞물림으로 FAIL 이 정해져 있어 돌리지 않았다(T5-gpt-5.6-sol.txt 2회차 판정 메모).
+  T0-c : 한글 시험(ⓑ)이 실패해 소유자 결정 4 에 따라 Codex 를 판K 에서 뺐다 — 결정 3 의 두 벌 카나리아 재실행은 시험이 성공할 때의 길이다.
+         원인 = 샌드박스 셸 인코딩(ConstrainedLanguage · 코드 페이지 949) · 새 측정은 Codex 사용량 한도(2026-11-12 08:11 까지)로 불가능.
+         자세한 경위 = K-00-recipe.txt §3 ⛔ · §10 T0-c · T5-gpt-5.6-sol.txt 3회차 절.
+이 벌의 Claude 두 모델 카나리아(T6-claude-opus-5-5.txt · T6-claude-sonnet-5-5.txt)는 그대로 유효하다.
+
+summary: gpt-5.6-sol,T6,isolation,측정 불가,attempt=3(T0-c) 돌리지 않음 — Codex 제외 · K-00 §10 T0-c
+summary: gpt-5.6-sol,T6,read,측정 불가,attempt=3(T0-c) 돌리지 않음 — Codex 제외 · K-00 §10 T0-c
+summary: gpt-5.6-sol,T6,boundary,측정 불가,attempt=3(T0-c) 돌리지 않음 — Codex 제외 · K-00 §10 T0-c
+summary: gpt-5.6-sol,T6,banner,측정 불가,attempt=3(T0-c) 돌리지 않음 — Codex 제외 · K-00 §10 T0-c
+summary: gpt-5.6-sol,T6,korean,측정 불가,attempt=3(T0-c) 돌리지 않음 — Codex 제외 · K-00 §10 T0-c

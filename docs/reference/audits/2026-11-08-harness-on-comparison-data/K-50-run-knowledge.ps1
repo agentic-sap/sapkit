@@ -1,7 +1,12 @@
 ﻿#Requires -Version 7.0
 <#
-K-50-run-knowledge.ps1 — 판K T5 지식 시험 응시 러너 (켠 조건 · 3 models × 60 items) — 판J 50-run-knowledge.ps1 의 복사본 + 판K 차이
+K-50-run-knowledge.ps1 — 판K T5 지식 시험 응시 러너 (켠 조건 · 2 models × 60 items — T0-c) — 판J 50-run-knowledge.ps1 의 복사본 + 판K 차이
 (차이 전수표 = K-01-diff-from-panJ.txt · 명령·고정 값 정본 = K-00-recipe.txt · 설계 정본 = DECISIONS.md D-160 ⓪)
+
+T0-c (2026-11-08 · 소유자 결정 4): 기본 모델 집합 = claude-opus-5-5 · claude-sonnet-5-5 둘 ($Models · K-COMMON $KModels).
+  Codex gpt-5.6-sol 은 이 판에서 뺐다 — 이 컴퓨터의 Codex 샌드박스 셸(ConstrainedLanguage)이 출력을 코드 페이지 949 로 내보내 한글이
+  깨지고, 러너 콘솔 설정 시험이 맑은 한글을 얻지 못했다(그 설정 = 콘솔 65001 상속은 T0-b 2회차에 이미 걸려 있었는데 한글이 깨졌고, T0-c 의 새 호출은 Codex 사용량 한도로 거부됐다 · K-00 §3 · §10 T0-c). -Model gpt-5.6-sol 은 다른 컴퓨터
+  재현용으로 ValidateSet 에 남기되 기본값 · all 에는 들지 않는다. Codex 명령 · 분류 규칙(T0-c 껍데기 손질 포함)은 그대로 둔다.
 
 Follows 02-isolation-recipe.txt (Claude §2 · Codex §3 · canary §0) of 판J, with the 판K deviations only (D-160 ⓪):
   1. harness folder  %TEMP%\sapkit-panK\harness-T5\  (knowledge\ · personas\ from commit 4f12d678 — 203 files) is the cwd of
@@ -53,7 +58,7 @@ $JDataDir = Join-Path (Split-Path $DataDir) '2026-11-05-harness-necessity-review
 
 # ---- pre-registered prompts (verbatim · K-00 §1) ---------------------------------------------------
 $FixedLine    = 'Answer in one or two lines, concisely. You may read the files in the current folder (SAP knowledge pack: knowledge/ - consultant personas: personas/, start from personas/INDEX.md if unsure where to look). Do not use web search, do not read anything outside the current folder, and do not create or modify any file. (한두 줄로 간결히 답하라. 현재 폴더의 파일은 읽어도 된다 — SAP 지식 팩: knowledge/ · 컨설턴트 페르소나: personas/, 어디를 볼지 모르면 personas/INDEX.md부터. 웹 검색을 쓰지 말고, 현재 폴더 밖은 읽지 말고, 파일을 만들거나 고치지 말라.)'
-$Models       = @('claude-opus-5-5', 'claude-sonnet-5-5', 'gpt-5.6-sol')
+$Models       = @('claude-opus-5-5', 'claude-sonnet-5-5')   # T0-c: Codex 제외(머리 주석)
 
 # ---- paths ----------------------------------------------------------------------------------------
 $KSet           = 'T5'
@@ -79,7 +84,7 @@ $KUtf8           = [Text.UTF8Encoding]::new($false)
 $KBackoff        = @(60, 120, 240, 480, 900, 900, 900, 900)   # 전이 오류 백오프(초) — 8회 넘으면 중단(재개 가능)
 $KWallSec        = 900                                         # 호출 하나의 벽시계 상한(15분) — 넘으면 프로세스 트리를 끊고 무효
 $KMaxAttempts    = 3                                           # 무효 시도 상한 — 3회 모두 무효면 그 행은 오답
-$KModels         = @('claude-opus-5-5', 'claude-sonnet-5-5', 'gpt-5.6-sol')
+$KModels         = @('claude-opus-5-5', 'claude-sonnet-5-5')   # T0-c: Codex 제외 — K-00 §3 · §10 T0-c
 $KClaudeTools    = @('Read', 'Grep', 'Glob')
 $KCanaryPrompt   = "First, list every tool, skill, plugin, MCP server, slash command, web/search capability and file you currently have access to (say 'none' if none). Do not use any tool or web search. Second, answer from memory in one line: what is the standard VAT rate in Korea and how many digits does the Korean business registration number have?"
 $KBannerPrompt   = 'Reply with exactly the single word OK and nothing else. Do not use any tool.'
@@ -266,8 +271,9 @@ function Split-KTokens([string]$s) { return @([regex]::Matches($s, '(?:''(?:[^''
 function Get-KUnquoted([string]$s) { return [regex]::Replace($s, '''(?:[^'']|'''')*''|"(?:[^"\\`]|\\.|`.)*"', ' Q ') }
 function Unwrap-KShell([string]$Cmd) {
   $c = $Cmd.Trim()
+  # T0-c (owner decision 2026-11-08 · K-00 §4 step 0): + allowlisted quoted shell paths (msi pwsh 7 · System32 powershell 5.1 · \ or \\)
   $pats = @(
-    @('powershell', '(?is)^"?(?:[^"\s]*[\\/])?(?:powershell|pwsh)(?:\.exe)?"?(?:\s+-(?!Command\b|c\b)[A-Za-z]+(?:\s+(?!-)[^\s-]\S*)?)*\s+-(?:Command|c)\s+(?<inner>.+)$'),
+    @('powershell', '(?is)^(?:"C:(?<s>\\\\?)(?:Program Files\k<s>PowerShell\k<s>7\k<s>pwsh|Windows\k<s>System32\k<s>WindowsPowerShell\k<s>v1\.0\k<s>powershell)\.exe"|"?(?:[^"\s]*[\\/])?(?:powershell|pwsh)(?:\.exe)?"?)(?:\s+-(?!Command\b|c\b)[A-Za-z]+(?:\s+(?!-)[^\s-]\S*)?)*\s+-(?:Command|c)\s+(?<inner>.+)$'),
     @('bash', '(?is)^"?(?:[^"\s]*[\\/])?(?:bash|sh|zsh)(?:\.exe)?"?\s+-l?c\s+(?<inner>.+)$'),
     @('cmd', '(?is)^"?(?:[^"\s]*[\\/])?cmd(?:\.exe)?"?\s+/[cC]\s+(?<inner>.+)$'))
   foreach ($p in $pats) {
