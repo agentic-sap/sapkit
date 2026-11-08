@@ -1,0 +1,21 @@
+K-02-canary/namecheck-selftest.txt — node K-99-namecheck.mjs --selftest (판K T0 · 2026-11-08 19:51) · exit=0
+
+K-99-namecheck — pack files 203 · pack URLs 7 · pack 3-char tokens 435
+  forbidden sets: user 1 (word exempt as pack word: yes) · host 1 · home 4 · repo 8 · sap.env values read 38 (always 12 · word 3 · pack-word exempt 22) · names 9 + stems 3 · forge 1 · sid generic exempt 15 + T\d\d
+
+[selftest] 임시 폴더에 금지 문자열을 심고 각각 잡히는지 · 팩 URL과 팩 낱말은 통과하는지
+  OK   user-home    expect caught as [user(home-path)] — got 2 violation(s) [user(home-path),home]
+  OK   home-json    expect caught as [home] — got 2 violation(s) [user(home-path),home]
+  OK   email        expect caught as [email] — got 1 violation(s) [email]
+  OK   host         expect caught as [host] — got 1 violation(s) [host]
+  OK   repo         expect caught as [repo] — got 3 violation(s) [repo,forge]
+  OK   sapenv       expect caught as [sapenv] — got 3 violation(s) [sapenv,url]
+  OK   names        expect caught as [names] — got 3 violation(s) [names,sid]
+  OK   sid          expect caught as [sid] — got 1 violation(s) [sid]
+  OK   uuid         expect caught as [uuid] — got 1 violation(s) [uuid]
+  OK   url-outside  expect caught as [url] — got 1 violation(s) [url]
+  OK   forge        expect caught as [forge] — got 1 violation(s) [forge]
+  OK   pass-pack    expect no violation (pack URL + pack token) — got 0 violation(s)
+  OK   folder scan  files with violations 11/11 (pass-pack file must not appear)
+  temp folder removed: true
+SELFTEST: PASS

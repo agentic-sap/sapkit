@@ -1,0 +1,17 @@
+K-02-canary/install.txt — 판K T0 전역 설치 기록 (승인된 두 건만 · 2026-11-08 18:27)
+
+[1] Codex CLI 0.163.0 — npm 전역
+    명령: npm install -g @openai/codex@0.163.0   (설치 전 0.155.1)
+    확인: codex --version = codex-cli 0.163.0
+
+[2] PowerShell 7.6.9 — 승인 명령 winget install --id Microsoft.PowerShell --exact --version 7.6.9.0 --accept-source-agreements --accept-package-agreements
+    결과: 승인 명령은 11회 이상 모두 실패 — 내려받기 단계에서 0x801901f8 Gateway timeout (504) · exit -2145844744.
+          같은 시각 curl 로 같은 주소를 재면 504 와 302 가 번갈아 났다(GitHub 릴리스 내려받기 경로의 간헐 장애).
+    처리: winget 매니페스트가 가리키는 같은 설치 파일(PowerShell-7.6.9.msixbundle · GitHub 릴리스 v7.6.9)을 curl 로 받고
+          sha256 이 winget 매니페스트의 InstallerSha256(da75c8aa…5917a)과 같음을 확인한 뒤 Add-AppxPackage 로 설치했다.
+          같은 꾸러미 · 같은 판 · 같은 설치 형식(msix)이다 — winget 은 설치 프로그램을 내려받는 데서 멈췄을 뿐이다. UAC 창 없음.
+          받은 파일은 설치 뒤 지웠다.
+    확인: pwsh --version = PowerShell 7.6.9 · winget list --id Microsoft.PowerShell --exact = Microsoft.PowerShell 7.6.9.0 (winget)
+    실행 파일 자리: msix 설치라 C:\Program Files\PowerShell\7\ 이 아니라 %LOCALAPPDATA%\Microsoft\WindowsApps\pwsh.exe(실행 별칭)다.
+
+[참고] 설치하지 않은 것: Claude Code (2.1.319 (Claude Code) — 기존) · node — 그 밖의 전역 설치 · 업데이트 0.

@@ -1,0 +1,13 @@
+K-02-canary/fixed-line-check.txt — 고정 줄 영문 = D-160 ⓪ 기계 대조 (판K T0 · 2026-11-08 18:16)
+
+원본: docs/reference/DECISIONS.md D-160 ⓪ ``text 블록 둘째 · 셋째 줄(앞 공백 2칸 뗌)
+대상: K-50-run-knowledge.ps1 $FixedLine · K-60-run-code.ps1 $FixedLine 의 영문 부분( 「 (한」 · 「 (설」 앞까지 = 한국어 병기 앞)
+
+지식  D-160 sha256=d680b3ee6cabdd892a2624f70774d6531ea8f5b7d8776b6fbe37c296d38cb15d chars=314
+      K-50  sha256=d680b3ee6cabdd892a2624f70774d6531ea8f5b7d8776b6fbe37c296d38cb15d chars=314 → 같음: True
+      K-00 §1 에 러너 고정 줄 전체가 한 줄로 있음: True
+코드  D-160 sha256=c8ff33e3e087d1a33bed8738444992f6df59f31bb2e7732e8d52954638edfa85 chars=370
+      K-60  sha256=c8ff33e3e087d1a33bed8738444992f6df59f31bb2e7732e8d52954638edfa85 chars=370 → 같음: True
+      K-00 §1 에 러너 고정 줄 전체가 한 줄로 있음: True
+러너 고정 줄 전체(한국어 병기 포함) sha256 — 지식 c40823eba8c4ef306cb1f1e04cb2f71c8eb7e5c70bd67b0cfc82c773284167f0 · 코드 927a275ff342e5ed7f4b0c7d01b5a5f66228837a7c4f84839109c1a5a712fe1f
+RESULT: PASS

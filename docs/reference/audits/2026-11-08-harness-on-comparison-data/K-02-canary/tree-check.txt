@@ -1,0 +1,23 @@
+K-02-canary/tree-check.txt — 판K T0 트리 확인 (2026-11-08 18:14)
+
+[1] git rev-parse 4f12d678:interactive/core = 1ddd7d3ec46e54bfe16f04838bd9dacdd332ec22
+    git rev-parse HEAD:interactive/core     = 1ddd7d3ec46e54bfe16f04838bd9dacdd332ec22   (HEAD = 46efffc1 · 판K 착수 커밋 D-160)
+    같음: True (기대 1ddd7d3e…)
+    하위 트리: knowledge = 6fc45a5f9b88a79e2c0aeb56b7f860de4d4834d8 · personas = a163f7b69a4f1bea857f82f9dc03342c5ec7d3da (D-160 ⓪ 6fc45a5f · a163f7b6)
+
+[2] node docs/reference/audits/2026-11-05-harness-necessity-review-data/12-sample.mjs --check docs/reference/audits/2026-11-05-harness-necessity-review-data/10-knowledge-items.json
+    exit=0 — 출력 원문:
+    --check docs/reference/audits/2026-11-05-harness-necessity-review-data/10-knowledge-items.json
+      items: 60 (module 30 · country 16 · industry 7 · abap 7)
+      module per-sub at 2: 15/15
+      country per-sub at 1: 16/16 · expensive 13 (>= 8)
+      industry selected: pharmaceutical,fashion,chemical,utilities,steel,tire,banking · covered 7/7
+      answer_key at source ±2: verbatim 60 · core-identifier 0 · leaks 0
+      ids unique: yes · rejections 40 · walked 100 · gaps 0 · off-list 0
+    RESULT: PASS
+
+[3] 하네스 폴더 두 벌 — git ls-tree -r 4f12d678 -- interactive/core/knowledge interactive/core/personas 의 203 blob 과
+    git hash-object --no-filters 로 전부 같음 (T5 203/203 · T6 203/203) · 그 밖 파일 0 · AGENTS.md / CLAUDE.md / .claude 0
+    (첫 추출은 core.autocrlf=true 때문에 git archive 가 줄 끝을 CRLF 로 바꿔 22파일 이상이 어긋났다 → 지우고
+     git -c core.autocrlf=false -c core.eol=lf archive 로 다시 풀어 바이트 일치 — K-01 표 행 「폴더 추출」)
+    목록: folder-sha-T5.txt · folder-sha-T6.txt (두 목록은 같다)
