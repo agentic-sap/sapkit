@@ -172,7 +172,7 @@ const SUBSTR = [   // 대소문자 무시 부분 일치
 ];
 
 // SID 예외 — 일반 기술 낱말(판J 러너 · 레시피 실측 + 판K 자료가 쓰는 낱말). 금지 목록과 겹치면 예외에서 뺀다.
-const GENERIC = new Set(['CLI', 'NET', 'RED', 'RAW', 'MET', 'BOM', 'UTF', 'CSV', 'TXT', 'UAC', 'ACE', 'XOR', 'FNV', 'INC', 'ACL']);   // INC = 판J 문항 꼬리표 K-INC · C-INC
+const GENERIC = new Set(['CLI', 'NET', 'RED', 'RAW', 'MET', 'BOM', 'UTF', 'CSV', 'TXT', 'UAC', 'ACE', 'XOR', 'FNV', 'INC', 'ACL', 'CNT']);   // INC = 판J 문항 꼬리표 K-INC · C-INC  // CNT — 판K T6 opus C-04 ABAP ALV 열 이름(모델 작명) · sapenv·names 불일치 확인 · 2026-11-08 메인 추가
 const forbiddenLc = new Set([...envAlways, ...envWord, ...NAMES, ...stems].map(lc));
 for (const g of [...GENERIC]) if (forbiddenLc.has(lc(g))) GENERIC.delete(g);
 const sidAllowed = (t) => PACK_SID.has(t) || GENERIC.has(t) || /^T\d\d$/.test(t);
