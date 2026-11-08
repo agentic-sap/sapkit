@@ -1,0 +1,1436 @@
+{
+  "meta": {
+    "schema": "blind-bundle-v1",
+    "kind": "knowledge",
+    "generator": "docs/reference/audits/2026-11-08-harness-on-comparison-data/K-65-build-blind.mjs",
+    "seed": 20261108,
+    "streams": [
+      {
+        "name": "blind-id",
+        "fnv1a": 1252399638,
+        "seed": 1267938018,
+        "use": "익명 id(6자리 16진 · 지식 행 → 코드 행 순 · 겹치면 다시 뽑음) 뒤 같은 생성기를 이어 지식 행 순서 섞기(Fisher–Yates)"
+      },
+      {
+        "name": "drift-knowledge",
+        "fnv1a": 1771552129,
+        "seed": 1755485557,
+        "use": "지식 행 일부 36행 추출(후보를 섞고 앞 36 · 복원 없음)"
+      }
+    ],
+    "rows": 156,
+    "fields": "anon_id · kind · item_id · question · grading_rule · answer_key · answer — question · grading_rule · answer_key 는 J-10 글자 그대로, answer 는 답 파일 전문 무편집(줄 끝 LF)",
+    "inputs": {
+      "docs/reference/audits/2026-11-05-harness-necessity-review-data/10-knowledge-items.json": "a99cc22debea8eb13db974c22587d46ce137e78bd201940d322bce1c40fe92bd",
+      "aggregate_sha256": "df6f38c5422a1086e78f245ce4831cb066fa3c3e473acb1acc66f0752ab2370a",
+      "aggregate_files": 301,
+      "aggregate_note": "집합 지문 = sha256(「<레포 상대 경로>\\t<sha256>\\n」 경로순) · 파일 목록과 개별 지문은 K-65-check.txt"
+    }
+  },
+  "rows": [
+    {
+      "anon_id": "10a96b",
+      "kind": "knowledge",
+      "item_id": "K-ABAP-04",
+      "question": "Can a program written in ABAP for Cloud Development use the classic list-processing statement LEAVE TO LIST-PROCESSING?",
+      "grading_rule": "사용할 수 없다(not available) 이면 정답. 조건부 가능·대체 문법으로 가능 = 오답.",
+      "answer_key": "LEAVE (TO) LIST-PROCESSING | Not available",
+      "answer": "No. `LEAVE TO LIST-PROCESSING` is not permitted in ABAP for Cloud Development (ABAP Cloud)."
+    },
+    {
+      "anon_id": "df24f9",
+      "kind": "knowledge",
+      "item_id": "K-ABAP-05",
+      "question": "Which two tables hold the G/L account master record at chart-of-accounts level and at company-code level, respectively?",
+      "grading_rule": "SKA1 = 계정과목표 레벨 · SKB1 = 회사코드 레벨 — 둘 다, 대응이 맞아야 정답. 바꿔 답하거나 하나만 = 오답.",
+      "answer_key": "SKA1 (chart level) + SKB1 (company code)",
+      "answer": "**SKA1** holds the G/L account master at chart-of-accounts level (its texts are in SKAT), and **SKB1** holds it at company-code level. I answered from standard SAP knowledge and didn't check the knowledge pack."
+    },
+    {
+      "anon_id": "3a3d6c",
+      "kind": "knowledge",
+      "item_id": "K-IND-fashion-01",
+      "question": "In SAP fashion solutions, what is the 'Grid' and what does it present?",
+      "grading_rule": "사이즈×색상 매트릭스로 주문 입력·재고를 보여주는 것이라는 설명이면 정답. 매트릭스(격자) 개념이 없으면 오답.",
+      "answer_key": "order entry and inventory views presented as a matrix",
+      "answer": "In SAP fashion solutions, the **Grid** is the size/color matrix. It shows order entry and inventory views for variants, with sizes on one axis and colors on the other. It's available in Fiori and WebDynpro UIs (source: `knowledge/industry/fashion.md`)."
+    },
+    {
+      "anon_id": "01a910",
+      "kind": "knowledge",
+      "item_id": "K-ABAP-03",
+      "question": "In ABAP for Cloud Development, which released class replaces the classic ENQUEUE_E_TABLE / DEQUEUE_E_TABLE lock function modules?",
+      "grading_rule": "식별자 1개: CL_ABAP_LOCK_OBJECT_FACTORY (대소문자 무시). 다른 클래스·복수 후보 나열 = 오답.",
+      "answer_key": "cl_abap_lock_object_factory",
+      "answer": "Use **`CL_ABAP_LOCK_OBJECT_FACTORY`**. Its `get_instance( )` returns an `IF_ABAP_LOCK_OBJECT` with `enqueue( )` / `dequeue( )` methods. It also replaces `DEQUEUE_ALL` (source: `knowledge/abap/conventions/cloud-abap-constraints.md:121`)."
+    },
+    {
+      "anon_id": "98a04a",
+      "kind": "knowledge",
+      "item_id": "K-ABAP-06",
+      "question": "A RAP OData V4 service binding is served under two URL flavors, /srvd/ and /srvd_a2x/. Under which of them are the UI annotations absent?",
+      "grading_rule": "/srvd_a2x/ (A2X · Web API) 이면 정답. /srvd/ 또는 둘 다 = 오답.",
+      "answer_key": "/srvd_a2x/ omits them by design",
+      "answer": "Under **`/srvd_a2x/`**, which is used by *OData V4 – Web API* bindings (A2X, application-to-application). UI annotations from metadata extensions are not exposed there. They appear only under `/srvd/`, the *OData V4 – UI* binding."
+    },
+    {
+      "anon_id": "59a920",
+      "kind": "knowledge",
+      "item_id": "K-CTY-NL-01",
+      "question": "What is the name of the dominant Dutch online payment method used for B2C transactions?",
+      "grading_rule": "iDEAL 이면 정답. 다른 결제 수단·복수 후보 나열 = 오답.",
+      "answer_key": "iDEAL",
+      "answer": "**iDEAL** is the dominant Dutch online payment method for B2C transactions. It's a bank-transfer-based system run through Dutch banks, now operated by Currence/Payment Hub and being integrated into the EPI's Wero."
+    },
+    {
+      "anon_id": "583f54",
+      "kind": "knowledge",
+      "item_id": "K-MOD-MM-02",
+      "question": "Which internal (non-BAPI) function module performs the low-level goods-movement posting that MIGO itself uses?",
+      "grading_rule": "식별자 1개: MB_CREATE_GOODS_MOVEMENT 와 동일. BAPI_GOODSMVT_CREATE 등 다른 FM = 오답.",
+      "answer_key": "MB_CREATE_GOODS_MOVEMENT",
+      "answer": "MIGO uses the internal function module **`MB_CREATE_GOODS_MOVEMENT`** for the low-level goods-movement posting (in ECC and S/4), according to `knowledge/modules/MM/bapi.md:45`. The supported, released alternative is `BAPI_GOODSMVT_CREATE`."
+    },
+    {
+      "anon_id": "0c4357",
+      "kind": "knowledge",
+      "item_id": "K-IND-steel-01",
+      "question": "In mill-products (steel) processing, what does 'remnant management' deal with?",
+      "grading_rule": "절단·가공 뒤 남은 조각(잔재)의 관리라고 답하면 정답. 스크랩 처분만으로 설명해도 '남은 조각'이 들어 있으면 정답.",
+      "answer_key": "the pieces left over",
+      "answer": "Remnant management handles the leftover pieces from cut-to-order processing (cut-to-length, slitting, shearing). The goal is to track them and reuse them for later orders instead of writing them off as scrap, because scrapping them throws away their recycling value (`knowledge/industry/steel.md:17`, `:35`, `:46`)."
+    },
+    {
+      "anon_id": "5f86a4",
+      "kind": "knowledge",
+      "item_id": "K-CTY-MX-01",
+      "question": "In Mexican tax compliance, what is the Buzón Tributario?",
+      "grading_rule": "세무당국 SAT 의 전자 우편함(납세자 메시지함)이라는 설명이면 정답. CFDI·전자회계 등 다른 제도로 설명 = 오답.",
+      "answer_key": "SAT's electronic mailbox, mandatory to check",
+      "answer": "The Buzón Tributario is the SAT's mandatory electronic tax mailbox. The SAT uses it to send official notices and requirements to taxpayers, and taxpayers use it to submit filings and replies. If you don't check it, you can miss tax notices (`knowledge/country/mx.md:50`, `:71`)."
+    },
+    {
+      "anon_id": "c741f7",
+      "kind": "knowledge",
+      "item_id": "K-ABAP-04",
+      "question": "Can a program written in ABAP for Cloud Development use the classic list-processing statement LEAVE TO LIST-PROCESSING?",
+      "grading_rule": "사용할 수 없다(not available) 이면 정답. 조건부 가능·대체 문법으로 가능 = 오답.",
+      "answer_key": "LEAVE (TO) LIST-PROCESSING | Not available",
+      "answer": "No. ABAP for Cloud Development (the restricted ABAP language version) doesn't allow classic dynpro/list processing such as `LEAVE TO LIST-PROCESSING`, `WRITE` lists, or classic screens. UIs are built instead with RAP and Fiori/SAP UI5 apps."
+    },
+    {
+      "anon_id": "db58fb",
+      "kind": "knowledge",
+      "item_id": "K-CTY-DE-01",
+      "question": "In Germany, how often is payroll tax reported to the Finanzamt?",
+      "grading_rule": "월 단위(monthly). 분기·연 단위라고만 답하면 오답(조건부로 월을 먼저 말하면 정답).",
+      "answer_key": "monthly to the Finanzamt",
+      "answer": "It's reported through the Lohnsteuer-Anmeldung, usually monthly. The frequency depends on the previous year's payroll tax: over €5,000 means monthly, €1,080–€5,000 means quarterly, and €1,080 or less means once a year. Each filing is due by the 10th of the month after the period ends. These thresholds come from general knowledge, not the knowledge pack, which only names the filing (`knowledge/country/de.md:54`)."
+    },
+    {
+      "anon_id": "952301",
+      "kind": "knowledge",
+      "item_id": "K-CTY-JP-01",
+      "question": "How often do Japanese businesses file consumption-tax (消費税) returns — small businesses versus large ones?",
+      "grading_rule": "소규모 = 연 1회 · 대규모 = 월 또는 분기 — 둘 다 맞아야 정답.",
+      "answer_key": "small businesses file annually, large ones monthly or quarterly",
+      "answer": "Every taxable business files one annual final return (確定申告). Larger ones also file interim returns (中間申告) based on the previous year's consumption tax: monthly (11 per year) above ¥48M, quarterly (3) above ¥4M, semi-annually (1) above ¥480k, and none at ¥480k or below. `knowledge/country/jp.md:20` simplifies this to \"small file annually, large monthly or quarterly\"; the thresholds come from my own knowledge, not the pack."
+    },
+    {
+      "anon_id": "7e778e",
+      "kind": "knowledge",
+      "item_id": "K-IND-utilities-01",
+      "question": "In SAP IS-U, what customer events do the 'move-in' and 'move-out' processes represent?",
+      "grading_rule": "고객(세입자)이 공급 지점에 입주(공급 개시)·퇴거(공급 종료) — 둘 다 설명하면 정답.",
+      "answer_key": "tenant in and tenant out",
+      "answer": "In SAP IS-U, **move-in** is a customer (tenant) starting service at a premise, and **move-out** is the customer ending service there. The knowledge pack describes them only as \"tenant in and tenant out\" (`knowledge/industry/utilities.md:16`). It also warns that handling them manually leaves settlement gaps (line 48)."
+    },
+    {
+      "anon_id": "cf6a23",
+      "kind": "knowledge",
+      "item_id": "K-MOD-QM-02",
+      "question": "In QM, which customer include (CI_*) is used to add custom fields to the inspection-characteristic table of inspection lots?",
+      "grading_rule": "식별자 1개: CI_QAMV 와 동일. 다른 CI_*·복수 후보 나열 = 오답.",
+      "answer_key": "CI_QAMV",
+      "answer": "**CI_QAMV** is the include for table QAMV (inspection characteristics of an inspection lot). Source: `knowledge/modules/QM/enhancements.md:86`."
+    },
+    {
+      "anon_id": "f922c4",
+      "kind": "knowledge",
+      "item_id": "K-ABAP-04",
+      "question": "Can a program written in ABAP for Cloud Development use the classic list-processing statement LEAVE TO LIST-PROCESSING?",
+      "grading_rule": "사용할 수 없다(not available) 이면 정답. 조건부 가능·대체 문법으로 가능 = 오답.",
+      "answer_key": "LEAVE (TO) LIST-PROCESSING | Not available",
+      "answer": "No. ABAP for Cloud Development is a restricted language version, and it doesn't allow classic list processing or dynpro statements such as `LEAVE TO LIST-PROCESSING`, so the syntax check rejects them. For UIs, use RAP with Fiori instead. I answered from general ABAP knowledge and didn't check the knowledge pack."
+    },
+    {
+      "anon_id": "ff217f",
+      "kind": "knowledge",
+      "item_id": "K-MOD-Ariba-01",
+      "question": "Which standard inbound IDoc processing function module handles an ORDERS05 purchase-order IDoc arriving from Ariba?",
+      "grading_rule": "식별자 1개: IDOC_INPUT_ORDERS 와 동일한 이름(대소문자 무시). 다른 FM 이름·복수 후보 나열·모른다 = 오답.",
+      "answer_key": "IDOC_INPUT_ORDERS",
+      "answer": "**`IDOC_INPUT_ORDERS`** (process code ORDE) 이 Ariba에서 들어오는 ORDERS05 IDoc을 처리해 PO를 생성합니다. 이는 이 폴더의 `knowledge\\modules\\Ariba\\bapi.md`에 나와 있습니다. 수신 PO IDoc의 헤더와 아이템은 사용자 exit `EXIT_SAPLVED1_002`와 `EXIT_SAPLVED1_004`로 보강할 수 있습니다."
+    },
+    {
+      "anon_id": "467837",
+      "kind": "knowledge",
+      "item_id": "K-ABAP-06",
+      "question": "A RAP OData V4 service binding is served under two URL flavors, /srvd/ and /srvd_a2x/. Under which of them are the UI annotations absent?",
+      "grading_rule": "/srvd_a2x/ (A2X · Web API) 이면 정답. /srvd/ 또는 둘 다 = 오답.",
+      "answer_key": "/srvd_a2x/ omits them by design",
+      "answer": "UI annotations are missing under **`/srvd_a2x/`**, the A2X/Web API flavor. This is by design. Only the `/srvd/` UI flavor includes them (`knowledge/abap/conventions/rap-odata-rules.md:49`)."
+    },
+    {
+      "anon_id": "9eab4b",
+      "kind": "knowledge",
+      "item_id": "K-CTY-IN-01",
+      "question": "Under India's GST, which tax components are charged on an intra-state supply?",
+      "grading_rule": "CGST + SGST(또는 UTGST) 둘 다. IGST 라고 답하거나 하나만 = 오답.",
+      "answer_key": "CGST (central) pairs with SGST/UTGST (state/UT)",
+      "answer": "Intra-state supplies attract **CGST (Central GST) + SGST (State GST)**, or CGST + UTGST in a Union Territory without a legislature. The rates are equal halves of the total GST rate (e.g., 9% + 9% for an 18% rate). IGST applies only to inter-state supplies."
+    },
+    {
+      "anon_id": "cfc85d",
+      "kind": "knowledge",
+      "item_id": "K-MOD-TM-02",
+      "question": "Which transaction opens the Tracking and Tracing Monitor in SAP TM on S/4HANA?",
+      "grading_rule": "식별자 1개: /SCMTMS/MON_TTE 와 동일(대소문자 무시). 다른 트랜잭션·복수 후보 나열 = 오답.",
+      "answer_key": "/SCMTMS/MON_TTE",
+      "answer": "Transaction **/SCMTMS/MON_TTE** opens the Tracking and Tracing Monitor in SAP TM on S/4HANA. This comes from `knowledge/modules/TM/tcodes.md:59`."
+    },
+    {
+      "anon_id": "220e25",
+      "kind": "knowledge",
+      "item_id": "K-MOD-PM-01",
+      "question": "What is the name of the released CDS interface view for equipment master data in S/4HANA?",
+      "grading_rule": "식별자 1개: I_Equipment 와 동일(대소문자 무시). 다른 뷰 이름·복수 후보 나열 = 오답.",
+      "answer_key": "I_Equipment",
+      "answer": "It's **`I_Equipment`**, the equipment interface view, listed in `knowledge/modules/PM/enhancements.md:102`."
+    },
+    {
+      "anon_id": "567f1b",
+      "kind": "knowledge",
+      "item_id": "K-IND-banking-01",
+      "question": "In SAP financial accounting for banks, what ledger set-up carries local IFRS figures alongside regulatory reporting?",
+      "grading_rule": "병행 원장(parallel ledger · 추가 원장) 개념이면 정답. 별도 회사코드·특별 목적 원장 없이 단일 원장이라고 하면 오답.",
+      "answer_key": "a parallel ledger carrying local IFRS alongside regulatory reporting",
+      "answer": "SAP uses **parallel ledgers** (New GL / S/4HANA Universal Journal): a leading ledger (0L, typically IFRS) plus non-leading ledgers for local GAAP and regulatory valuations. For banks, this is usually fed by the **Financial Products Subledger (FPSL, formerly Bank Analyzer)**, which runs multi-GAAP valuations in parallel."
+    },
+    {
+      "anon_id": "fc91f4",
+      "kind": "knowledge",
+      "item_id": "K-MOD-SD-02",
+      "question": "To add custom fields for sales-order output determination, which header and item communication structures are extended with an append structure?",
+      "grading_rule": "둘 다: KOMKBV1(헤더) 과 KOMPBV1(품목). 하나만 · KOMKBV3 등 다른 쌍 = 오답.",
+      "answer_key": "KOMKBV1/KOMPBV1",
+      "answer": "You extend the header structure **KOMKBV1** and the item structure **KOMPBV1** with an append structure. These are the sales output (application V1) communication structures, per `knowledge/modules/SD/workflows.md:57`."
+    },
+    {
+      "anon_id": "cc56c5",
+      "kind": "knowledge",
+      "item_id": "K-ABAP-07",
+      "question": "When F4IF_INT_TABLE_VALUE_REQUEST is called with value_org = 'S', what must the row type of value_tab reference for the value list to appear at all?",
+      "grading_rule": "DDIC 타입(데이터 요소·DDIC 구조) 을 참조해야 한다 이면 정답. '로컬 c LENGTH n 구조로 충분하다' = 오답.",
+      "answer_key": "needs a value_tab whose row type references DDIC types",
+      "answer": "`value_tab`'s row type must reference DDIC types, such as a structure whose components are typed with DDIC data elements. A local `c LENGTH n` structure produces no list at all. `retfield` also has to be a real component name of that structure. (Source: `knowledge/abap/conventions/alv-rules.md:137`)"
+    },
+    {
+      "anon_id": "a1f414",
+      "kind": "knowledge",
+      "item_id": "K-MOD-FI-01",
+      "question": "In S/4HANA, which table stores plan data in the Universal Journal structure (the planning counterpart of ACDOCA)?",
+      "grading_rule": "식별자 1개: ACDOCP. 다른 테이블·복수 후보 나열 = 오답.",
+      "answer_key": "ACDOCP",
+      "answer": "**ACDOCP** is the plan-data table in S/4HANA. It is the planning counterpart of ACDOCA (actuals) and holds Universal Journal plan line items, such as those from integrated financial planning. I answered from memory and didn't check the knowledge pack."
+    },
+    {
+      "anon_id": "00e4d3",
+      "kind": "knowledge",
+      "item_id": "K-MOD-HCM-02",
+      "question": "Which PA infotype table stores Recurring Payments/Deductions?",
+      "grading_rule": "식별자 1개: PA0014 (인포타입 0014 라고만 써도 정답). 다른 인포타입 = 오답.",
+      "answer_key": "PA0014",
+      "answer": "PA0014 — Infotype 0014 (Recurring Payments/Deductions)."
+    },
+    {
+      "anon_id": "7e05b9",
+      "kind": "knowledge",
+      "item_id": "K-ABAP-04",
+      "question": "Can a program written in ABAP for Cloud Development use the classic list-processing statement LEAVE TO LIST-PROCESSING?",
+      "grading_rule": "사용할 수 없다(not available) 이면 정답. 조건부 가능·대체 문법으로 가능 = 오답.",
+      "answer_key": "LEAVE (TO) LIST-PROCESSING | Not available",
+      "answer": "No. The knowledge pack's `cloud-abap-constraints.md:27` lists `LEAVE (TO) LIST-PROCESSING` as \"Not available\" in ABAP for Cloud Development, because classic list processing isn't part of the restricted language version."
+    },
+    {
+      "anon_id": "944c39",
+      "kind": "knowledge",
+      "item_id": "K-CTY-AU-01",
+      "question": "What is the annual turnover threshold above which an Australian business must register for GST?",
+      "grading_rule": "AUD 75,000. 다른 금액 = 오답.",
+      "answer_key": "$75,000 turnover",
+      "answer": "The GST registration threshold is **AUD 75,000** in annual GST turnover. For non-profit organisations it is AUD 150,000. Taxi and ride-sourcing drivers must register regardless of turnover. I answered from general knowledge and didn't check the knowledge pack."
+    },
+    {
+      "anon_id": "70175a",
+      "kind": "knowledge",
+      "item_id": "K-CTY-KR-01",
+      "question": "How many digits does a Korean business registration number (사업자등록번호) have, and how are they grouped when written?",
+      "grading_rule": "10자리 + 3-2-5 묶음 둘 다. 자릿수나 묶음이 다르면 오답.",
+      "answer_key": "10 digits written XXX-XX-XXXXX",
+      "answer": "A Korean business registration number (사업자등록번호) has **10 digits**. It is written in a **3-2-5** pattern, `XXX-XX-XXXXX` (e.g., 123-45-67890), and the last digit is a check digit."
+    },
+    {
+      "anon_id": "d04416",
+      "kind": "knowledge",
+      "item_id": "K-MOD-WM-01",
+      "question": "In classic LE-WM, which transaction prints a transfer order?",
+      "grading_rule": "식별자 1개: LT25 와 동일. 다른 LTxx·복수 후보 나열 = 오답.",
+      "answer_key": "LT25",
+      "answer": "In classic LE-WM, **LT31** prints a transfer order manually. **LT32** prints all TOs for a transfer requirement or delivery. The knowledge pack doesn't mention LT31, so this answer is from standard SAP knowledge."
+    },
+    {
+      "anon_id": "e60030",
+      "kind": "knowledge",
+      "item_id": "K-MOD-CO-01",
+      "question": "Which customizing view is used to define assessment cycles in Cost Center Accounting?",
+      "grading_rule": "식별자 1개: V_RKAB 와 동일(대소문자 무시). 트랜잭션 코드(KSU1 등)로 답하거나 다른 뷰 = 오답.",
+      "answer_key": "V_RKAB",
+      "answer": "The knowledge pack lists customizing view **V_RKAB** for this (`knowledge/modules/CO/spro.md:38`); you create the cycles in transaction **KSU1** and run them with **KSU5**. I couldn't check V_RKAB against a live SAP system, so treat that view name as coming from the pack."
+    },
+    {
+      "anon_id": "6d85c5",
+      "kind": "knowledge",
+      "item_id": "K-MOD-MM-02",
+      "question": "Which internal (non-BAPI) function module performs the low-level goods-movement posting that MIGO itself uses?",
+      "grading_rule": "식별자 1개: MB_CREATE_GOODS_MOVEMENT 와 동일. BAPI_GOODSMVT_CREATE 등 다른 FM = 오답.",
+      "answer_key": "MB_CREATE_GOODS_MOVEMENT",
+      "answer": "**`MB_CREATE_GOODS_MOVEMENT`** builds and checks the material document. **`MB_POST_GOODS_MOVEMENT`** then posts it to the database. MIGO and `BAPI_GOODSMVT_CREATE` both call this pair internally."
+    },
+    {
+      "anon_id": "b51c09",
+      "kind": "knowledge",
+      "item_id": "K-IND-tire-01",
+      "question": "In tire manufacturing, what does the 'mixing' step produce, and at what granularity is it tracked?",
+      "grading_rule": "고무 컴파운드(배합) + 배치/로트 단위 둘 다. 하나만 = 오답.",
+      "answer_key": "blending of the rubber compound, by batch/lot",
+      "answer": "Mixing makes the rubber compound by blending natural/synthetic rubber, carbon black and other ingredients. It's a process (PP-PI) step tracked by batch/lot, and each compound lot is linked to cure lots so recalls can be traced (`knowledge/industry/tire.md:14`, `:27`)."
+    },
+    {
+      "anon_id": "5a18e5",
+      "kind": "knowledge",
+      "item_id": "K-CTY-DE-01",
+      "question": "In Germany, how often is payroll tax reported to the Finanzamt?",
+      "grading_rule": "월 단위(monthly). 분기·연 단위라고만 답하면 오답(조건부로 월을 먼저 말하면 정답).",
+      "answer_key": "monthly to the Finanzamt",
+      "answer": "The knowledge pack (`knowledge/country/de.md`) says payroll is reported monthly to the Finanzamt, along with the statutory insurance funds. From general knowledge, not from the pack: the Lohnsteuer-Anmeldung can instead be quarterly or annual when the employer's annual withholding is small."
+    },
+    {
+      "anon_id": "66df22",
+      "kind": "knowledge",
+      "item_id": "K-MOD-SD-01",
+      "question": "Which customizing view defines partner determination procedures in SD?",
+      "grading_rule": "식별자 1개: V_TPAER 와 동일(대소문자 무시). 다른 뷰·트랜잭션 코드 = 오답.",
+      "answer_key": "V_TPAER",
+      "answer": "The knowledge pack (`knowledge/modules/SD/spro.md:32`) gives view **V_TPAER** for \"Define Partner Determination Procedures.\" In a standard system you normally maintain these through transaction **VOPAN**, where the procedure header is table TVPG and TPAER holds the partner functions assigned to each procedure."
+    },
+    {
+      "anon_id": "4c5f7d",
+      "kind": "knowledge",
+      "item_id": "K-MOD-SD-01",
+      "question": "Which customizing view defines partner determination procedures in SD?",
+      "grading_rule": "식별자 1개: V_TPAER 와 동일(대소문자 무시). 다른 뷰·트랜잭션 코드 = 오답.",
+      "answer_key": "V_TPAER",
+      "answer": "Partner determination procedures in SD are defined in customizing view **V_TPAER**. In the SPRO path, the entry is \"Define Partner Determination Procedures\" (source: `knowledge/modules/SD/spro.md:32`)."
+    },
+    {
+      "anon_id": "28edaa",
+      "kind": "knowledge",
+      "item_id": "K-CTY-GB-01",
+      "question": "In the UK, which HMRC form reports employee expenses and benefits, and how often is it filed?",
+      "grading_rule": "P11D + 연 1회 둘 다. 양식명만 · 주기 틀림 = 오답.",
+      "answer_key": "P11D: expenses/benefits, annually",
+      "answer": "Employers report employee expenses and benefits to HMRC on the **P11D** form, filed **once a year** (normally by 6 July after the tax year ends, together with the P11D(b))."
+    },
+    {
+      "anon_id": "0f9e3d",
+      "kind": "knowledge",
+      "item_id": "K-CTY-NL-01",
+      "question": "What is the name of the dominant Dutch online payment method used for B2C transactions?",
+      "grading_rule": "iDEAL 이면 정답. 다른 결제 수단·복수 후보 나열 = 오답.",
+      "answer_key": "iDEAL",
+      "answer": "**iDEAL** is the dominant Dutch online payment method for B2C transactions. This comes from `knowledge/country/nl.md:29`."
+    },
+    {
+      "anon_id": "ac0740",
+      "kind": "knowledge",
+      "item_id": "K-MOD-MM-01",
+      "question": "Which BAdI (in its SMOD-wrapper form) is used for custom logic in inbound deliveries?",
+      "grading_rule": "식별자 1개: BADI_SMOD_V50B0001 와 동일(대소문자 무시). 다른 BAdI·복수 후보 나열 = 오답.",
+      "answer_key": "BADI_SMOD_V50B0001",
+      "answer": "**BADI_SMOD_V50B0001** is the BAdI listed for custom logic in inbound deliveries. I found it in `knowledge/modules/MM/enhancements.md:61`, where it's described as \"Delivery enhancement\"."
+    },
+    {
+      "anon_id": "8e3b1d",
+      "kind": "knowledge",
+      "item_id": "K-MOD-PM-02",
+      "question": "Which BAdI is called when a maintenance order is created or changed (it is shared with production orders in PP)?",
+      "grading_rule": "식별자 1개: WORKORDER_UPDATE 와 동일. 다른 BAdI·복수 후보 나열 = 오답.",
+      "answer_key": "WORKORDER_UPDATE",
+      "answer": "**`WORKORDER_UPDATE`** (interface `IF_EX_WORKORDER_UPDATE`) is the BAdI called when a maintenance order is created or changed. PM and PP share it, so you can use it for both. Source: `knowledge/modules/PM/enhancements.md:44`."
+    },
+    {
+      "anon_id": "c0b962",
+      "kind": "knowledge",
+      "item_id": "K-MOD-PP-01",
+      "question": "Which customer exit of function group COBT supplies the default order type during production-order creation?",
+      "grading_rule": "식별자 1개: EXIT_SAPLCOBT_001 와 동일. 다른 EXIT_*·복수 후보 나열 = 오답.",
+      "answer_key": "EXIT_SAPLCOBT_001",
+      "answer": "According to the knowledge pack (`knowledge/modules/PP/enhancements.md:81`), the exit is **`EXIT_SAPLCOBT_001`**, which supplies the order type default. I found no other source for this, so I haven't checked it against SAP documentation."
+    },
+    {
+      "anon_id": "53f4dd",
+      "kind": "knowledge",
+      "item_id": "K-MOD-BW-02",
+      "question": "Which transaction maintains and monitors process chains in SAP BW?",
+      "grading_rule": "식별자 1개: RSPC. 다른 트랜잭션·복수 후보 나열 = 오답.",
+      "answer_key": "RSPC",
+      "answer": "**RSPC** maintains and monitors process chains in SAP BW. It's where you create, edit, schedule, and view their run logs. In newer BW/4HANA systems, the Process Chain editor is also available through the BW Modeling Tools or Fiori apps."
+    },
+    {
+      "anon_id": "a211b0",
+      "kind": "knowledge",
+      "item_id": "K-MOD-BW-01",
+      "question": "Which transaction is used in SAP BW to create an InfoSet that joins several InfoProviders?",
+      "grading_rule": "식별자 1개: RSINFOSOURCE 와 동일(대소문자 무시). 다른 트랜잭션·복수 후보 나열 = 오답.",
+      "answer_key": "RSINFOSOURCE",
+      "answer": "InfoSets are created in the **InfoSet Builder**, transaction **RSISET** (also reachable from the Data Warehousing Workbench, RSA1). In BW/4HANA, InfoSets are replaced by CompositeProviders."
+    },
+    {
+      "anon_id": "a5edd4",
+      "kind": "knowledge",
+      "item_id": "K-CTY-BR-01",
+      "question": "Using Brazilian number formatting, how is the amount 1234567.89 written (decimal and thousands separators)?",
+      "grading_rule": "정확히 1.234.567,89 (점 = 천단위 · 쉼표 = 소수점). 구분자가 바뀌면 오답.",
+      "answer_key": "1.234.567,89",
+      "answer": "Brazilian format uses a period as the thousands separator and a comma as the decimal separator, so 1234567.89 is written **1.234.567,89**."
+    },
+    {
+      "anon_id": "ee6069",
+      "kind": "knowledge",
+      "item_id": "K-MOD-TM-01",
+      "question": "Which customizing view maintains Freight Unit Building Rules in SAP TM?",
+      "grading_rule": "식별자 1개: V_TMFUB 와 동일(대소문자 무시). 다른 뷰·앱 이름만 = 오답.",
+      "answer_key": "V_TMFUB",
+      "answer": "FUBRs aren't maintained in a SPRO customizing view; they're application-side planning settings. You maintain them via **Planning → Planning Settings → Freight Unit Building Rule** (NWBC, or the Fiori \"Define Freight Unit Building Rules\" app in S/4HANA TM). The related customizing, such as freight unit types, is under *SPRO → Transportation Management → Planning → Freight Unit*. I'm answering from memory, so check the exact menu path in your release."
+    },
+    {
+      "anon_id": "b15d90",
+      "kind": "knowledge",
+      "item_id": "K-IND-chemical-01",
+      "question": "Which two dangerous-goods identifiers does a chemical company's material master DG data carry?",
+      "grading_rule": "UN 번호 + 위험 등급(hazard class) 둘 다. 하나만 = 오답.",
+      "answer_key": "the UN number and hazard class",
+      "answer": "The UN number (e.g., UN1230) and the dangerous-goods hazard class/division (e.g., Class 3 flammable liquid), typically maintained alongside packing group in SAP EHS DG master data."
+    },
+    {
+      "anon_id": "e13241",
+      "kind": "knowledge",
+      "item_id": "K-CTY-GB-01",
+      "question": "In the UK, which HMRC form reports employee expenses and benefits, and how often is it filed?",
+      "grading_rule": "P11D + 연 1회 둘 다. 양식명만 · 주기 틀림 = 오답.",
+      "answer_key": "P11D: expenses/benefits, annually",
+      "answer": "**Form P11D** reports employee expenses and benefits in kind. It's filed once a year, by 6 July after the tax year ends (5 April). Employers also file **P11D(b)** by the same date to declare the Class 1A NIC due. The Class 1A NIC is payable by 22 July (19 July if paying by post). Benefits that are payrolled through RTI don't need a P11D."
+    },
+    {
+      "anon_id": "af8307",
+      "kind": "knowledge",
+      "item_id": "K-MOD-HCM-02",
+      "question": "Which PA infotype table stores Recurring Payments/Deductions?",
+      "grading_rule": "식별자 1개: PA0014 (인포타입 0014 라고만 써도 정답). 다른 인포타입 = 오답.",
+      "answer_key": "PA0014",
+      "answer": "Recurring Payments/Deductions are stored in table **PA0014**, which holds infotype 0014. For comparison, one-time Additional Payments are in PA0015 (infotype 0015)."
+    },
+    {
+      "anon_id": "9465a5",
+      "kind": "knowledge",
+      "item_id": "K-ABAP-06",
+      "question": "A RAP OData V4 service binding is served under two URL flavors, /srvd/ and /srvd_a2x/. Under which of them are the UI annotations absent?",
+      "grading_rule": "/srvd_a2x/ (A2X · Web API) 이면 정답. /srvd/ 또는 둘 다 = 오답.",
+      "answer_key": "/srvd_a2x/ omits them by design",
+      "answer": "UI annotations are absent under **/srvd_a2x/**, the A2X flavor meant for API/service-to-service consumption. The **/srvd/** flavor is the UI one and includes the UI annotations (e.g. for Fiori elements)."
+    },
+    {
+      "anon_id": "79f6b2",
+      "kind": "knowledge",
+      "item_id": "K-ABAP-05",
+      "question": "Which two tables hold the G/L account master record at chart-of-accounts level and at company-code level, respectively?",
+      "grading_rule": "SKA1 = 계정과목표 레벨 · SKB1 = 회사코드 레벨 — 둘 다, 대응이 맞아야 정답. 바꿔 답하거나 하나만 = 오답.",
+      "answer_key": "SKA1 (chart level) + SKB1 (company code)",
+      "answer": "SKA1 (chart-of-accounts level) and SKB1 (company-code level)."
+    },
+    {
+      "anon_id": "710626",
+      "kind": "knowledge",
+      "item_id": "K-ABAP-05",
+      "question": "Which two tables hold the G/L account master record at chart-of-accounts level and at company-code level, respectively?",
+      "grading_rule": "SKA1 = 계정과목표 레벨 · SKB1 = 회사코드 레벨 — 둘 다, 대응이 맞아야 정답. 바꿔 답하거나 하나만 = 오답.",
+      "answer_key": "SKA1 (chart level) + SKB1 (company code)",
+      "answer": "SKA1 holds the G/L account master at chart-of-accounts level, and SKB1 holds it at company-code level. The account's text descriptions are in SKAT."
+    },
+    {
+      "anon_id": "7a4447",
+      "kind": "knowledge",
+      "item_id": "K-IND-pharmaceutical-01",
+      "question": "In a GxP pharmaceutical plant, what must happen to a finished batch before it is allowed to ship?",
+      "grading_rule": "QA(품질) 릴리스 — 사용 결정/배치 릴리스 완료 — 라고 답하면 정답. '검사' 만 · 포장 완료 등 = 오답.",
+      "answer_key": "nothing ships until QA release has happened",
+      "answer": "The batch must go through QA review of the complete batch record and QC results. That covers deviations, OOS results, and conformance to specification and GMP. A Qualified Person (EU) or the QA unit (US) then formally certifies and releases it. In SAP, this corresponds to the usage decision on the QM inspection lot, which moves stock from quality inspection or blocked status to unrestricted use. Only then can delivery and goods issue proceed.\n\nI answered from general GxP knowledge and did not check the knowledge pack."
+    },
+    {
+      "anon_id": "803d09",
+      "kind": "knowledge",
+      "item_id": "K-MOD-QM-01",
+      "question": "Which BAPI records measured values (inspection results) for an inspection operation?",
+      "grading_rule": "식별자 1개: BAPI_INSPOPER_RECRESULTS 와 동일. 다른 BAPI·복수 후보 나열 = 오답.",
+      "answer_key": "BAPI_INSPOPER_RECRESULTS",
+      "answer": "It's **`BAPI_INSPOPER_RECORDRESULTS`**, which records characteristic results for an inspection lot operation, usually before you set the usage decision with `BAPI_INSPLOT_USAGE_DECISION`. The knowledge pack spells it `BAPI_INSPOPER_RECRESULTS` (`knowledge/modules/QM/workflows.md:10`), but I believe that's a typo for the standard SAP name; check it in SE37."
+    },
+    {
+      "anon_id": "d2e9f7",
+      "kind": "knowledge",
+      "item_id": "K-ABAP-03",
+      "question": "In ABAP for Cloud Development, which released class replaces the classic ENQUEUE_E_TABLE / DEQUEUE_E_TABLE lock function modules?",
+      "grading_rule": "식별자 1개: CL_ABAP_LOCK_OBJECT_FACTORY (대소문자 무시). 다른 클래스·복수 후보 나열 = 오답.",
+      "answer_key": "cl_abap_lock_object_factory",
+      "answer": "**CL_ABAP_LOCK_OBJECT_FACTORY** replaces them. Call `get_instance( iv_name = 'E_TABLE' )` to get an `IF_ABAP_LOCK_OBJECT` instance, then call its `enqueue( )` and `dequeue( )` methods. I answered from memory and didn't check the knowledge pack."
+    },
+    {
+      "anon_id": "714b61",
+      "kind": "knowledge",
+      "item_id": "K-CTY-US-01",
+      "question": "In US company master data, which federal identifier is a state sales-tax registration number kept separate from?",
+      "grading_rule": "EIN(Employer Identification Number · federal tax ID) 이면 정답. 같은 번호라고 답하거나 SSN 등 다른 식별자 = 오답.",
+      "answer_key": "sits separately from the EIN",
+      "answer": "A state sales-tax registration (seller's permit/resale certificate number) is kept separate from the federal **EIN (Employer Identification Number)**, the IRS-issued federal tax ID. They're distinct fields because the state number is issued per state (a company can have many), while the EIN is a single federal identifier for the legal entity."
+    },
+    {
+      "anon_id": "3765b6",
+      "kind": "knowledge",
+      "item_id": "K-MOD-WM-01",
+      "question": "In classic LE-WM, which transaction prints a transfer order?",
+      "grading_rule": "식별자 1개: LT25 와 동일. 다른 LTxx·복수 후보 나열 = 오답.",
+      "answer_key": "LT25",
+      "answer": "**LT31** (Print Transfer Order) prints a transfer order in classic LE-WM. It's also called \"Print TO\" in the Warehouse Management menu. I answered from memory and didn't check the knowledge folder."
+    },
+    {
+      "anon_id": "89d7b8",
+      "kind": "knowledge",
+      "item_id": "K-IND-pharmaceutical-01",
+      "question": "In a GxP pharmaceutical plant, what must happen to a finished batch before it is allowed to ship?",
+      "grading_rule": "QA(품질) 릴리스 — 사용 결정/배치 릴리스 완료 — 라고 답하면 정답. '검사' 만 · 포장 완료 등 = 오답.",
+      "answer_key": "nothing ships until QA release has happened",
+      "answer": "The batch has to pass QA release first. In SAP, that means the QM inspection lot gets a usage decision (QA11), made with an electronic signature and recorded in the audit trail. That decision moves the batch from quarantine or Restricted status to Released, and SD can only deliver it after that (`knowledge/industry/pharmaceutical.md:14,21,29,47`)."
+    },
+    {
+      "anon_id": "6c04e4",
+      "kind": "knowledge",
+      "item_id": "K-MOD-FI-01",
+      "question": "In S/4HANA, which table stores plan data in the Universal Journal structure (the planning counterpart of ACDOCA)?",
+      "grading_rule": "식별자 1개: ACDOCP. 다른 테이블·복수 후보 나열 = 오답.",
+      "answer_key": "ACDOCP",
+      "answer": "**ACDOCP** stores plan data in the Universal Journal structure. It's used by SAP Analytics Cloud / BPC-integrated planning and has the same line-item layout as ACDOCA (actuals)."
+    },
+    {
+      "anon_id": "581ea7",
+      "kind": "knowledge",
+      "item_id": "K-CTY-CN-01",
+      "question": "Of China's VAT fapiao (发票) types, which one allows the buyer to deduct input VAT?",
+      "grading_rule": "增值税专用发票 / special VAT invoice (專票·zhuanpiao) 이면 정답. 일반 발票(增值税普通发票 · general VAT invoice) = 오답.",
+      "answer_key": "增值税专用发票 (special VAT invoice, deductible)",
+      "answer": "The **VAT special fapiao (增值税专用发票, zhuānyòng fāpiào)** lets the buyer deduct input VAT. It shows the tax amount separately and the buyer's tax details. The general fapiao (普通发票) generally doesn't allow deduction. The exception is that some general fapiao, such as digitized e-fapiao for certain transport or toll items, can support deduction under specific rules."
+    },
+    {
+      "anon_id": "666d33",
+      "kind": "knowledge",
+      "item_id": "K-CTY-EU-01",
+      "question": "What is the format of a French intra-EU VAT identification number after the country prefix FR?",
+      "grading_rule": "2자(검사 문자/숫자) + 9자리(SIREN) 구조. 총 11자(접두 빼고) 또는 13자(접두 포함)로 표현해도 구조가 맞으면 정답. 자릿수 구조가 다르면 오답.",
+      "answer_key": "2 chars + 9 digits",
+      "answer": "After `FR` come 11 characters: a 2-character check key and then the company's 9-digit SIREN (FR + XX + 123456789, 13 characters in total). The pack says the key is 2 check digits (`knowledge/country/fr.md:18`), but from general knowledge the key can include letters for some registrations."
+    },
+    {
+      "anon_id": "e7804c",
+      "kind": "knowledge",
+      "item_id": "K-CTY-FR-01",
+      "question": "In France, what is the name of the standardized accounting-entries export that a company must be able to hand over for a tax audit?",
+      "grading_rule": "FEC 약어 또는 Fichier des Écritures Comptables 중 하나면 정답. 다른 신고(DSN·CA3 등) = 오답.",
+      "answer_key": "FEC (Fichier des Écritures Comptables)",
+      "answer": "It's the **FEC (Fichier des Écritures Comptables)**. French companies keeping computerized accounts must be able to provide it to the tax authorities (DGFiP) during an audit (*contrôle fiscal des comptabilités informatisées*). The format is defined by the tax code (art. L47 A-I LPF)."
+    },
+    {
+      "anon_id": "070b9f",
+      "kind": "knowledge",
+      "item_id": "K-MOD-BW-01",
+      "question": "Which transaction is used in SAP BW to create an InfoSet that joins several InfoProviders?",
+      "grading_rule": "식별자 1개: RSINFOSOURCE 와 동일(대소문자 무시). 다른 트랜잭션·복수 후보 나열 = 오답.",
+      "answer_key": "RSINFOSOURCE",
+      "answer": "In SAP BW you create InfoSets with transaction **RSISET**, the InfoSet Builder. You can also reach it from the Modeling area of the Data Warehousing Workbench (**RSA1**). An InfoSet joins InfoProviders such as DSOs, InfoObjects and InfoCubes. The knowledge pack doesn't mention RSISET, so this answer comes from general SAP knowledge."
+    },
+    {
+      "anon_id": "067ead",
+      "kind": "knowledge",
+      "item_id": "K-CTY-FR-01",
+      "question": "In France, what is the name of the standardized accounting-entries export that a company must be able to hand over for a tax audit?",
+      "grading_rule": "FEC 약어 또는 Fichier des Écritures Comptables 중 하나면 정답. 다른 신고(DSN·CA3 등) = 오답.",
+      "answer_key": "FEC (Fichier des Écritures Comptables)",
+      "answer": "It's the **FEC (Fichier des Écritures Comptables)**, the standardized export of accounting entries that must be handed over immediately when the tax authority audits (`knowledge/country/fr.md:22`, `:46`)."
+    },
+    {
+      "anon_id": "313f9d",
+      "kind": "knowledge",
+      "item_id": "K-CTY-JP-01",
+      "question": "How often do Japanese businesses file consumption-tax (消費税) returns — small businesses versus large ones?",
+      "grading_rule": "소규모 = 연 1회 · 대규모 = 월 또는 분기 — 둘 다 맞아야 정답.",
+      "answer_key": "small businesses file annually, large ones monthly or quarterly",
+      "answer": "日本の消費税は、事業者の規模にかかわらず確定申告が年1回です。違いは中間申告の回数で、前年の消費税の年税額によって決まります。\n\n- 年48万円以下: 中間申告なし\n- 48万円超〜400万円以下: 年1回\n- 400万円超〜4,800万円以下: 年3回\n- 4,800万円超: 年11回(毎月)\n\n小規模事業者は年1回の申告だけで済む場合が多く、大規模事業者ほど申告の回数が増えます。免税事業者(課税売上1,000万円以下)は申告が不要です。\n\nこれは私の一般知識からの回答で、knowledge/ や personas/ のファイルは確認していません。"
+    },
+    {
+      "anon_id": "d9e809",
+      "kind": "knowledge",
+      "item_id": "K-MOD-FI-02",
+      "question": "Which classic SMOD enhancement provides the customer exit for custom segments in FI IDocs?",
+      "grading_rule": "식별자 1개: F050S003 와 동일. 다른 F050S00x·복수 후보 나열 = 오답.",
+      "answer_key": "F050S003",
+      "answer": "**F050S003** (FI IDoc segment) is the SMOD enhancement for custom segments in FI IDocs, according to `knowledge/modules/FI/enhancements.md`. You activate it through a CMOD project."
+    },
+    {
+      "anon_id": "56da2f",
+      "kind": "knowledge",
+      "item_id": "K-CTY-ES-01",
+      "question": "What is Spain's international dialling code, and how many digits does a Spanish domestic phone number have after it?",
+      "grading_rule": "+34 와 9자리 둘 다. 하나만 = 오답.",
+      "answer_key": "+34 XXX XXX XXX",
+      "answer": "Spain's international dialling code is **+34**, and Spanish domestic numbers have **9 digits** after it. There are no trunk prefixes. Mobile numbers start with 6 or 7, and landlines start with 8 or 9."
+    },
+    {
+      "anon_id": "20d04b",
+      "kind": "knowledge",
+      "item_id": "K-CTY-MX-01",
+      "question": "In Mexican tax compliance, what is the Buzón Tributario?",
+      "grading_rule": "세무당국 SAT 의 전자 우편함(납세자 메시지함)이라는 설명이면 정답. CFDI·전자회계 등 다른 제도로 설명 = 오답.",
+      "answer_key": "SAT's electronic mailbox, mandatory to check",
+      "answer": "Buzón Tributario is the SAT's (Mexico's tax authority) electronic mailbox. Taxpayers must check it regularly, because the SAT sends tax notices and requirements there. If you don't validate its messages, you can miss those notices (this comes from the knowledge pack, `knowledge/country/mx.md`)."
+    },
+    {
+      "anon_id": "708723",
+      "kind": "knowledge",
+      "item_id": "K-MOD-PM-01",
+      "question": "What is the name of the released CDS interface view for equipment master data in S/4HANA?",
+      "grading_rule": "식별자 1개: I_Equipment 와 동일(대소문자 무시). 다른 뷰 이름·복수 후보 나열 = 오답.",
+      "answer_key": "I_Equipment",
+      "answer": "The released CDS interface view for equipment master data is `I_Equipment`. This comes from the knowledge pack in `knowledge/modules/PM/enhancements.md:102`."
+    },
+    {
+      "anon_id": "86fd76",
+      "kind": "knowledge",
+      "item_id": "K-MOD-HCM-01",
+      "question": "Which HR cluster database table holds the cluster IDs TE, TX and B2?",
+      "grading_rule": "식별자 1개: PCL1. PCL2 등 다른 클러스터 테이블·복수 후보 나열 = 오답.",
+      "answer_key": "PCL1",
+      "answer": "Cluster IDs TE, TX and B2 are held in **PCL1**, according to `knowledge\\modules\\HCM\\tables.md`. The file describes it as the payroll cluster. I didn't check the other HR cluster tables."
+    },
+    {
+      "anon_id": "c70c09",
+      "kind": "knowledge",
+      "item_id": "K-MOD-TR-01",
+      "question": "Which customizing view defines business areas for Treasury (TR)?",
+      "grading_rule": "식별자 1개: V_TGSB_TR 와 동일(대소문자 무시). V_TGSB 등 다른 뷰 = 오답.",
+      "answer_key": "V_TGSB_TR",
+      "answer": "The knowledge pack lists view **V_TGSB_TR** (\"Define Business Areas for TR\") for defining business areas in Treasury (`knowledge/modules/TR/spro.md:18`)."
+    },
+    {
+      "anon_id": "8aa747",
+      "kind": "knowledge",
+      "item_id": "K-MOD-Ariba-02",
+      "question": "In S/4HANA, which Business Partner table takes over the role that LFA1 played as the supplier master's general-data table?",
+      "grading_rule": "식별자 1개: BUT000 (대소문자 무시). 다른 테이블·복수 후보 나열 = 오답.",
+      "answer_key": "BUT000",
+      "answer": "**BUT000** (BP: General Data I) is the central Business Partner table that takes over LFA1's general-data role. In S/4HANA, suppliers are created as Business Partners through CVI, which links them to the vendor master via the LFA1-LIFNR ↔ BUT000-PARTNER mapping. Address data sits in ADRC."
+    },
+    {
+      "anon_id": "651e6a",
+      "kind": "knowledge",
+      "item_id": "K-MOD-TR-02",
+      "question": "In S/4HANA Cash Management, which table stores the One Exposure from Operations flows?",
+      "grading_rule": "식별자 1개: FQM_FLOW 와 동일. 다른 테이블·복수 후보 나열 = 오답.",
+      "answer_key": "FQM_FLOW",
+      "answer": "The One Exposure flows are stored in **FQM_FLOW**. It takes over from FDSR/FDES in S/4HANA Cash Management. The knowledge pack also lists `FQMA` alongside it (`knowledge/modules/TR/tables.md`)."
+    },
+    {
+      "anon_id": "9f8235",
+      "kind": "knowledge",
+      "item_id": "K-IND-tire-01",
+      "question": "In tire manufacturing, what does the 'mixing' step produce, and at what granularity is it tracked?",
+      "grading_rule": "고무 컴파운드(배합) + 배치/로트 단위 둘 다. 하나만 = 오답.",
+      "answer_key": "blending of the rubber compound, by batch/lot",
+      "answer": "Mixing (Banbury mixer) blends raw rubber, carbon black/silica, oil, and chemicals into **compound (rubber masterbatch/final batch)**, the base material for treads, sidewalls, and so on. It's tracked **per batch** (each mixer cycle, typically ~150–300 kg), with a batch/lot ID tied to recipe, mixer, and time for traceability."
+    },
+    {
+      "anon_id": "505dff",
+      "kind": "knowledge",
+      "item_id": "K-CTY-IT-01",
+      "question": "What is the format of an Italian VAT identification number (Partita IVA) — the country prefix and the number of digits that follow it?",
+      "grading_rule": "접두 IT + 11자리 둘 다 맞아야 정답. 자릿수가 다르면 오답.",
+      "answer_key": "IT + 11 digits",
+      "answer": "An Italian VAT number uses the prefix **IT** followed by **11 digits** (e.g., IT12345678901). The last digit is a check digit computed with a Luhn-style algorithm."
+    },
+    {
+      "anon_id": "764d18",
+      "kind": "knowledge",
+      "item_id": "K-IND-banking-01",
+      "question": "In SAP financial accounting for banks, what ledger set-up carries local IFRS figures alongside regulatory reporting?",
+      "grading_rule": "병행 원장(parallel ledger · 추가 원장) 개념이면 정답. 별도 회사코드·특별 목적 원장 없이 단일 원장이라고 하면 오답.",
+      "answer_key": "a parallel ledger carrying local IFRS alongside regulatory reporting",
+      "answer": "A **parallel ledger** setup: in S/4HANA's Universal Journal (ACDOCA), a leading ledger (0L) plus non-leading ledgers keep local IFRS figures separate from regulatory reporting (`knowledge/industry/banking.md:12`). If the parallel ledger isn't configured, the two can't be reported separately (`banking.md:31`)."
+    },
+    {
+      "anon_id": "b15ed3",
+      "kind": "knowledge",
+      "item_id": "K-CTY-SG-01",
+      "question": "What is the name of the audit-file extract that Singapore's tax authority (IRAS) can require a business to produce from its accounting system?",
+      "grading_rule": "IAF(IRAS Audit File) 또는 GAF(GST Audit File) 를 이름으로 대면 정답. '감사 파일'이라는 일반어만 · 다른 나라의 SAF-T 등 = 오답.",
+      "answer_key": "IRAS audit file (IAF / GAF)",
+      "answer": "It's the **IRAS Audit File (IAF)**, and its GST counterpart is the **GST Audit File (GAF)**. The SAP knowledge pack lists both together (`knowledge/country/sg.md:51`)."
+    },
+    {
+      "anon_id": "dab8b7",
+      "kind": "knowledge",
+      "item_id": "K-MOD-QM-01",
+      "question": "Which BAPI records measured values (inspection results) for an inspection operation?",
+      "grading_rule": "식별자 1개: BAPI_INSPOPER_RECRESULTS 와 동일. 다른 BAPI·복수 후보 나열 = 오답.",
+      "answer_key": "BAPI_INSPOPER_RECRESULTS",
+      "answer": "`BAPI_INSPOPER_RECORDRESULTS` records measured inspection results for an inspection operation."
+    },
+    {
+      "anon_id": "26cf6f",
+      "kind": "knowledge",
+      "item_id": "K-MOD-PP-01",
+      "question": "Which customer exit of function group COBT supplies the default order type during production-order creation?",
+      "grading_rule": "식별자 1개: EXIT_SAPLCOBT_001 와 동일. 다른 EXIT_*·복수 후보 나열 = 오답.",
+      "answer_key": "EXIT_SAPLCOBT_001",
+      "answer": "I'm not certain this premise holds. COBT's known exit is **EXIT_SAPLCOBT_001** (enhancement **PPCO0007**), which runs when the production order is saved, not when the default order type is set. Defaults during creation come from a different enhancement, likely **PPCO0006**, but verify in SMOD/CMOD."
+    },
+    {
+      "anon_id": "df2b2d",
+      "kind": "knowledge",
+      "item_id": "K-MOD-Ariba-01",
+      "question": "Which standard inbound IDoc processing function module handles an ORDERS05 purchase-order IDoc arriving from Ariba?",
+      "grading_rule": "식별자 1개: IDOC_INPUT_ORDERS 와 동일한 이름(대소문자 무시). 다른 FM 이름·복수 후보 나열·모른다 = 오답.",
+      "answer_key": "IDOC_INPUT_ORDERS",
+      "answer": "`IDOC_INPUT_ORDERS` handles it. It processes the inbound ORDERS05 IDoc from Ariba so the order gets created in ECC/S4 (`knowledge/modules/Ariba/bapi.md:18`). In standard SAP this function module is usually called through inbound process code ORDE, but the knowledge pack doesn't say that."
+    },
+    {
+      "anon_id": "76424e",
+      "kind": "knowledge",
+      "item_id": "K-ABAP-01",
+      "question": "In a GUI status, what happens to an application-toolbar function that has neither an icon nor an ICON_TEXT assigned?",
+      "grading_rule": "툴바에 전혀 그려지지 않는다(버튼이 안 보인다) 이면 정답. '텍스트만 보인다'·'기본 아이콘이 쓰인다' 등 = 오답.",
+      "answer_key": "A function carrying neither an icon nor an ICON_TEXT is not drawn anywhere",
+      "answer": "According to the knowledge pack (`knowledge/abap/conventions/alv-rules.md:105`), the button isn't drawn at all. The function simply never shows up on the application toolbar. Be aware that in standard SE41 a function without an icon usually still shows as a text-only button, so check this in the system before you rely on it."
+    },
+    {
+      "anon_id": "e18b5a",
+      "kind": "knowledge",
+      "item_id": "K-IND-tire-01",
+      "question": "In tire manufacturing, what does the 'mixing' step produce, and at what granularity is it tracked?",
+      "grading_rule": "고무 컴파운드(배합) + 배치/로트 단위 둘 다. 하나만 = 오답.",
+      "answer_key": "blending of the rubber compound, by batch/lot",
+      "answer": "The mixing step produces rubber compound batches, tracked at the individual batch (lot) level."
+    },
+    {
+      "anon_id": "f18e0c",
+      "kind": "knowledge",
+      "item_id": "K-MOD-SD-02",
+      "question": "To add custom fields for sales-order output determination, which header and item communication structures are extended with an append structure?",
+      "grading_rule": "둘 다: KOMKBV1(헤더) 과 KOMPBV1(품목). 하나만 · KOMKBV3 등 다른 쌍 = 오답.",
+      "answer_key": "KOMKBV1/KOMPBV1",
+      "answer": "Sales-order output determination (condition technique) uses the communication structures **KOMKBV1** (header) and **KOMPBV1** (item). Add your custom fields via append structures to these (e.g., in SE11), then include them in the field catalog (table **T681F**/ condition-table field catalog via V/05 or the field catalog in OBXK-like config) and fill them in user exits **USEREXIT_FIELD_MODIFICATION** / the related MV45AFZZ/RV61AFZZ exits as needed.\n\nNote: KOMKBV1 and KOMPBV1 are the communication structures for the sales document (VBAK/VBAP-based). For the field catalog, KOMKBV1/KOMPBV1 fields are picked up automatically via the output determination condition-table field catalog (transaction **V/86** / NACE)."
+    },
+    {
+      "anon_id": "512d74",
+      "kind": "knowledge",
+      "item_id": "K-IND-tire-01",
+      "question": "In tire manufacturing, what does the 'mixing' step produce, and at what granularity is it tracked?",
+      "grading_rule": "고무 컴파운드(배합) + 배치/로트 단위 둘 다. 하나만 = 오답.",
+      "answer_key": "blending of the rubber compound, by batch/lot",
+      "answer": "Mixing produces the blended rubber compound. It's a process-manufacturing step tracked by batch/lot, which is handled in PP-PI and gives compound-to-cure-lot traceability for recalls (`knowledge/industry/tire.md`)."
+    },
+    {
+      "anon_id": "70119e",
+      "kind": "knowledge",
+      "item_id": "K-MOD-PS-02",
+      "question": "Which table holds reservation items, including the network components of PS networks?",
+      "grading_rule": "식별자 1개: RESB. 다른 테이블·복수 후보 나열 = 오답.",
+      "answer_key": "RESB",
+      "answer": "The table is **RESB** (Reservation/Dependent Requirements). It stores reservation items, including the material components of PS networks. The header is in **RKPF**."
+    },
+    {
+      "anon_id": "9ebb80",
+      "kind": "knowledge",
+      "item_id": "K-MOD-MM-01",
+      "question": "Which BAdI (in its SMOD-wrapper form) is used for custom logic in inbound deliveries?",
+      "grading_rule": "식별자 1개: BADI_SMOD_V50B0001 와 동일(대소문자 무시). 다른 BAdI·복수 후보 나열 = 오답.",
+      "answer_key": "BADI_SMOD_V50B0001",
+      "answer": "It's **SMOD_V50B0001**, the BAdI wrapper for the SMOD enhancement V50B0001. The pack lists it as `BADI_SMOD_V50B0001` for inbound delivery logic (`knowledge/modules/MM/enhancements.md:61`), but the actual SAP name is SMOD_V50B0001, and `knowledge/modules/PS/enhancements.md:69` wrongly says it's for milestone billing plans."
+    },
+    {
+      "anon_id": "7cdf8c",
+      "kind": "knowledge",
+      "item_id": "K-CTY-BR-01",
+      "question": "Using Brazilian number formatting, how is the amount 1234567.89 written (decimal and thousands separators)?",
+      "grading_rule": "정확히 1.234.567,89 (점 = 천단위 · 쉼표 = 소수점). 구분자가 바뀌면 오답.",
+      "answer_key": "1.234.567,89",
+      "answer": "In Brazilian format, it's **1.234.567,89**: a period (.) as the thousands separator and a comma (,) as the decimal separator. With the currency symbol, it's **R$ 1.234.567,89**."
+    },
+    {
+      "anon_id": "a29c73",
+      "kind": "knowledge",
+      "item_id": "K-CTY-GB-01",
+      "question": "In the UK, which HMRC form reports employee expenses and benefits, and how often is it filed?",
+      "grading_rule": "P11D + 연 1회 둘 다. 양식명만 · 주기 틀림 = 오답.",
+      "answer_key": "P11D: expenses/benefits, annually",
+      "answer": "**Form P11D** (with the P11D(b) employer summary for Class 1A NICs) is filed **annually**, by **6 July** after the tax year ends (5 April). Mandatory payrolling of benefits from April 2027 will largely replace it."
+    },
+    {
+      "anon_id": "ad827c",
+      "kind": "knowledge",
+      "item_id": "K-MOD-CO-01",
+      "question": "Which customizing view is used to define assessment cycles in Cost Center Accounting?",
+      "grading_rule": "식별자 1개: V_RKAB 와 동일(대소문자 무시). 트랜잭션 코드(KSU1 등)로 답하거나 다른 뷰 = 오답.",
+      "answer_key": "V_RKAB",
+      "answer": "Assessment cycles are defined in view **V_RKAB**. The knowledge pack lists it in `knowledge/modules/CO/spro.md` as \"Define Assessment Cycles\", and the cycle itself is maintained with T-code KSU1."
+    },
+    {
+      "anon_id": "8d699d",
+      "kind": "knowledge",
+      "item_id": "K-MOD-PS-01",
+      "question": "Which table stores WBS element master data in SAP PS?",
+      "grading_rule": "식별자 1개: PRPS. PROJ 등 다른 테이블·복수 후보 나열 = 오답.",
+      "answer_key": "PRPS",
+      "answer": "WBS element master data is stored in table **PRPS** (WBS element master data). The project definition is in **PROJ**, and the link between the two is the PSPNR/PSPHI fields."
+    },
+    {
+      "anon_id": "a24410",
+      "kind": "knowledge",
+      "item_id": "K-MOD-BC-01",
+      "question": "Which SAP Basis transaction is used to monitor update records (the update task, including terminated V1/V2 updates)?",
+      "grading_rule": "식별자 1개: SM13. 다른 트랜잭션·복수 후보 나열 = 오답.",
+      "answer_key": "SM13",
+      "answer": "**SM13** is the transaction for monitoring update records. It shows terminated V1/V2 updates (status ERR), and you can reprocess or delete them there. SM14 is used to administer the update system itself."
+    },
+    {
+      "anon_id": "362668",
+      "kind": "knowledge",
+      "item_id": "K-MOD-PS-01",
+      "question": "Which table stores WBS element master data in SAP PS?",
+      "grading_rule": "식별자 1개: PRPS. PROJ 등 다른 테이블·복수 후보 나열 = 오답.",
+      "answer_key": "PRPS",
+      "answer": "WBS 요소 마스터 데이터는 **PRPS** 테이블(WBS Element Master Data)에 저장됩니다. 프로젝트 정의는 **PROJ**, 네트워크/오더 헤더는 **AUFK**, 관계는 **PRTE**(일정 데이터)와 연결해서 확인할 수 있습니다."
+    },
+    {
+      "anon_id": "ee72d4",
+      "kind": "knowledge",
+      "item_id": "K-CTY-IT-01",
+      "question": "What is the format of an Italian VAT identification number (Partita IVA) — the country prefix and the number of digits that follow it?",
+      "grading_rule": "접두 IT + 11자리 둘 다 맞아야 정답. 자릿수가 다르면 오답.",
+      "answer_key": "IT + 11 digits",
+      "answer": "The Italian VAT number (Partita IVA) is the prefix **IT** followed by **11 digits**, 13 characters in total. The 11th digit is a check digit.\n\nI answered from general knowledge and didn't check the knowledge pack."
+    },
+    {
+      "anon_id": "a20321",
+      "kind": "knowledge",
+      "item_id": "K-ABAP-01",
+      "question": "In a GUI status, what happens to an application-toolbar function that has neither an icon nor an ICON_TEXT assigned?",
+      "grading_rule": "툴바에 전혀 그려지지 않는다(버튼이 안 보인다) 이면 정답. '텍스트만 보인다'·'기본 아이콘이 쓰인다' 등 = 오답.",
+      "answer_key": "A function carrying neither an icon nor an ICON_TEXT is not drawn anywhere",
+      "answer": "It isn't drawn at all. The button doesn't appear in the application toolbar (`knowledge/abap/conventions/alv-rules.md:105`). To make it show, give it an icon, plus `ICON_TEXT` and `INFO_TEXT`."
+    },
+    {
+      "anon_id": "f48239",
+      "kind": "knowledge",
+      "item_id": "K-IND-fashion-01",
+      "question": "In SAP fashion solutions, what is the 'Grid' and what does it present?",
+      "grading_rule": "사이즈×색상 매트릭스로 주문 입력·재고를 보여주는 것이라는 설명이면 정답. 매트릭스(격자) 개념이 없으면 오답.",
+      "answer_key": "order entry and inventory views presented as a matrix",
+      "answer": "In SAP fashion solutions, the Grid is a size/color matrix (for example, sizes across and colors down). It shows order entry and inventory views as that matrix, so you can enter orders or see stock for each size/color variant in one screen (`knowledge/industry/fashion.md:22`)."
+    },
+    {
+      "anon_id": "764b8a",
+      "kind": "knowledge",
+      "item_id": "K-MOD-PM-02",
+      "question": "Which BAdI is called when a maintenance order is created or changed (it is shared with production orders in PP)?",
+      "grading_rule": "식별자 1개: WORKORDER_UPDATE 와 동일. 다른 BAdI·복수 후보 나열 = 오답.",
+      "answer_key": "WORKORDER_UPDATE",
+      "answer": "The BAdI is **`WORKORDER_UPDATE`** (interface `IF_EX_WORKORDER_UPDATE`). PM maintenance orders, PP production orders and PS networks all use it to step in when an order is created, changed or saved (`knowledge/modules/PP/enhancements.md:50`)."
+    },
+    {
+      "anon_id": "3c20de",
+      "kind": "knowledge",
+      "item_id": "K-MOD-QM-02",
+      "question": "In QM, which customer include (CI_*) is used to add custom fields to the inspection-characteristic table of inspection lots?",
+      "grading_rule": "식별자 1개: CI_QAMV 와 동일. 다른 CI_*·복수 후보 나열 = 오답.",
+      "answer_key": "CI_QAMV",
+      "answer": "Use **CI_QAMV**: it's the customer include for table QAMV, which holds the inspection lot's inspection characteristics (`knowledge/modules/QM/enhancements.md:86`). For custom fields on the results table QAMR, use CI_QAMR instead."
+    },
+    {
+      "anon_id": "bb0474",
+      "kind": "knowledge",
+      "item_id": "K-CTY-KR-01",
+      "question": "How many digits does a Korean business registration number (사업자등록번호) have, and how are they grouped when written?",
+      "grading_rule": "10자리 + 3-2-5 묶음 둘 다. 자릿수나 묶음이 다르면 오답.",
+      "answer_key": "10 digits written XXX-XX-XXXXX",
+      "answer": "A Korean business registration number has 10 digits, written in a 3-2-5 grouping (e.g., 123-45-67890)."
+    },
+    {
+      "anon_id": "49d787",
+      "kind": "knowledge",
+      "item_id": "K-CTY-IT-01",
+      "question": "What is the format of an Italian VAT identification number (Partita IVA) — the country prefix and the number of digits that follow it?",
+      "grading_rule": "접두 IT + 11자리 둘 다 맞아야 정답. 자릿수가 다르면 오답.",
+      "answer_key": "IT + 11 digits",
+      "answer": "An Italian Partita IVA is the prefix **`IT` followed by 11 digits** (e.g., `IT12345678901`), as stated in `knowledge\\country\\it.md:17`."
+    },
+    {
+      "anon_id": "a8df01",
+      "kind": "knowledge",
+      "item_id": "K-MOD-HCM-01",
+      "question": "Which HR cluster database table holds the cluster IDs TE, TX and B2?",
+      "grading_rule": "식별자 1개: PCL1. PCL2 등 다른 클러스터 테이블·복수 후보 나열 = 오답.",
+      "answer_key": "PCL1",
+      "answer": "**PCL1**. It holds the HR work-area clusters for time data and travel expenses: TE (travel expense data), TX (infotype texts) and B2 (time evaluation results). Payroll results (RU, RD and others) are in PCL2."
+    },
+    {
+      "anon_id": "9f6fca",
+      "kind": "knowledge",
+      "item_id": "K-IND-utilities-01",
+      "question": "In SAP IS-U, what customer events do the 'move-in' and 'move-out' processes represent?",
+      "grading_rule": "고객(세입자)이 공급 지점에 입주(공급 개시)·퇴거(공급 종료) — 둘 다 설명하면 정답.",
+      "answer_key": "tenant in and tenant out",
+      "answer": "In SAP IS-U, **move-in** is when a customer starts utility service at a premise. It creates or assigns the business partner and contract account, sets up a contract for each installation, and starts billing from the move-in date. **Move-out** is when the customer ends service at that premise. It ends the contracts, triggers the final meter reading and the final bill, and settles the account."
+    },
+    {
+      "anon_id": "eff545",
+      "kind": "knowledge",
+      "item_id": "K-MOD-PS-02",
+      "question": "Which table holds reservation items, including the network components of PS networks?",
+      "grading_rule": "식별자 1개: RESB. 다른 테이블·복수 후보 나열 = 오답.",
+      "answer_key": "RESB",
+      "answer": "**RESB** (Reservations / Dependent Requirements) holds reservation items, including PS network components, per `knowledge\\modules\\PS\\tables.md:21`."
+    },
+    {
+      "anon_id": "b2d1f1",
+      "kind": "knowledge",
+      "item_id": "K-MOD-Ariba-02",
+      "question": "In S/4HANA, which Business Partner table takes over the role that LFA1 played as the supplier master's general-data table?",
+      "grading_rule": "식별자 1개: BUT000 (대소문자 무시). 다른 테이블·복수 후보 나열 = 오답.",
+      "answer_key": "BUT000",
+      "answer": "The Business Partner general-data table is **BUT000**. LFA1 still exists, and Customer/Vendor Integration (CVI) keeps it in sync with the Business Partner. The link between the two is stored in **CVI_VEND_LINK**."
+    },
+    {
+      "anon_id": "ac3824",
+      "kind": "knowledge",
+      "item_id": "K-MOD-BW-01",
+      "question": "Which transaction is used in SAP BW to create an InfoSet that joins several InfoProviders?",
+      "grading_rule": "식별자 1개: RSINFOSOURCE 와 동일(대소문자 무시). 다른 트랜잭션·복수 후보 나열 = 오답.",
+      "answer_key": "RSINFOSOURCE",
+      "answer": "Transaction **RSISET** is used to create an InfoSet that joins multiple InfoProviders in SAP BW."
+    },
+    {
+      "anon_id": "c11b98",
+      "kind": "knowledge",
+      "item_id": "K-CTY-US-01",
+      "question": "In US company master data, which federal identifier is a state sales-tax registration number kept separate from?",
+      "grading_rule": "EIN(Employer Identification Number · federal tax ID) 이면 정답. 같은 번호라고 답하거나 SSN 등 다른 식별자 = 오답.",
+      "answer_key": "sits separately from the EIN",
+      "answer": "It's kept separate from the federal Employer Identification Number (EIN, also called FEIN), the IRS-issued 9-digit tax ID. State sales-tax permit numbers are stored as their own state-specific tax numbers."
+    },
+    {
+      "anon_id": "d65e70",
+      "kind": "knowledge",
+      "item_id": "K-CTY-CN-01",
+      "question": "Of China's VAT fapiao (发票) types, which one allows the buyer to deduct input VAT?",
+      "grading_rule": "增值税专用发票 / special VAT invoice (專票·zhuanpiao) 이면 정답. 일반 발票(增值税普通发票 · general VAT invoice) = 오답.",
+      "answer_key": "增值税专用发票 (special VAT invoice, deductible)",
+      "answer": "The **special VAT fapiao (增值税专用发票)** lets the buyer deduct input VAT, and only when it is matched/verified. The ordinary fapiao (增值税普通发票) generally does not (`knowledge/country/cn.md:20-25`)."
+    },
+    {
+      "anon_id": "c91bfd",
+      "kind": "knowledge",
+      "item_id": "K-ABAP-02",
+      "question": "In a classic FORM routine, what type does a USING parameter take when it is declared without a TYPE addition?",
+      "grading_rule": "제네릭 ANY(TYPE ANY) 이면 정답. C·STRING·호출자 타입 등 = 오답.",
+      "answer_key": "it defaults to ANY and disables static checks",
+      "answer": "It takes the generic type `ANY`. The parameter is fully generic and adopts the type of the actual parameter at call time. ABAP treats an untyped USING or CHANGING parameter in a FORM as `TYPE any`."
+    },
+    {
+      "anon_id": "9394a4",
+      "kind": "knowledge",
+      "item_id": "K-CTY-BR-01",
+      "question": "Using Brazilian number formatting, how is the amount 1234567.89 written (decimal and thousands separators)?",
+      "grading_rule": "정확히 1.234.567,89 (점 = 천단위 · 쉼표 = 소수점). 구분자가 바뀌면 오답.",
+      "answer_key": "1.234.567,89",
+      "answer": "In Brazilian format it's written **1.234.567,89**. The thousands separator is a period (.) and the decimal separator is a comma (,). In SAP user settings this is decimal notation \"X\"."
+    },
+    {
+      "anon_id": "38fc83",
+      "kind": "knowledge",
+      "item_id": "K-CTY-EU-01",
+      "question": "What is the format of a French intra-EU VAT identification number after the country prefix FR?",
+      "grading_rule": "2자(검사 문자/숫자) + 9자리(SIREN) 구조. 총 11자(접두 빼고) 또는 13자(접두 포함)로 표현해도 구조가 맞으면 정답. 자릿수 구조가 다르면 오답.",
+      "answer_key": "2 chars + 9 digits",
+      "answer": "After the `FR` prefix comes a 2-character key followed by the 9-digit SIREN, so the number has 11 characters after `FR`. The key is usually two digits, computed as (12 + 3 × (SIREN mod 97)) mod 97, though older numbers can use letters. I answered from general knowledge and did not check the knowledge pack."
+    },
+    {
+      "anon_id": "acf329",
+      "kind": "knowledge",
+      "item_id": "K-MOD-TM-02",
+      "question": "Which transaction opens the Tracking and Tracing Monitor in SAP TM on S/4HANA?",
+      "grading_rule": "식별자 1개: /SCMTMS/MON_TTE 와 동일(대소문자 무시). 다른 트랜잭션·복수 후보 나열 = 오답.",
+      "answer_key": "/SCMTMS/MON_TTE",
+      "answer": "The transaction is **/SCMTMS/MON_TTE** (Tracking and Tracing Monitor, listed for S/4 in `knowledge\\modules\\TM\\tcodes.md:59`). The separate Event Monitor is **/SCMTMS/MON_EVT**."
+    },
+    {
+      "anon_id": "fbf142",
+      "kind": "knowledge",
+      "item_id": "K-MOD-Ariba-01",
+      "question": "Which standard inbound IDoc processing function module handles an ORDERS05 purchase-order IDoc arriving from Ariba?",
+      "grading_rule": "식별자 1개: IDOC_INPUT_ORDERS 와 동일한 이름(대소문자 무시). 다른 FM 이름·복수 후보 나열·모른다 = 오답.",
+      "answer_key": "IDOC_INPUT_ORDERS",
+      "answer": "`IDOC_INPUT_ORDERS` (process code `ORDE`, message type ORDERS) is the standard inbound function module. It creates a sales order on the supplier side from the customer's PO received via Ariba Network.\n\nIf you mean creating a purchase order in a buyer's MM system, ORDERS05 isn't the usual route. That uses `IDOC_INPUT_PORDCR1` (PORDCR1) or a BAPI-based inbound."
+    },
+    {
+      "anon_id": "424813",
+      "kind": "knowledge",
+      "item_id": "K-IND-chemical-01",
+      "question": "Which two dangerous-goods identifiers does a chemical company's material master DG data carry?",
+      "grading_rule": "UN 번호 + 위험 등급(hazard class) 둘 다. 하나만 = 오답.",
+      "answer_key": "the UN number and hazard class",
+      "answer": "The material master DG info carries the **UN number** and the **hazard class** (`knowledge/industry/chemical.md:20`)."
+    },
+    {
+      "anon_id": "f97bf0",
+      "kind": "knowledge",
+      "item_id": "K-CTY-ES-01",
+      "question": "What is Spain's international dialling code, and how many digits does a Spanish domestic phone number have after it?",
+      "grading_rule": "+34 와 9자리 둘 다. 하나만 = 오답.",
+      "answer_key": "+34 XXX XXX XXX",
+      "answer": "Spain's international dialling code is **+34**. After it, a Spanish domestic number has **9 digits**, and there is no trunk \"0\" prefix, so you dial it as +34 XXX XXX XXX."
+    },
+    {
+      "anon_id": "1e6eaa",
+      "kind": "knowledge",
+      "item_id": "K-MOD-TR-02",
+      "question": "In S/4HANA Cash Management, which table stores the One Exposure from Operations flows?",
+      "grading_rule": "식별자 1개: FQM_FLOW 와 동일. 다른 테이블·복수 후보 나열 = 오답.",
+      "answer_key": "FQM_FLOW",
+      "answer": "The One Exposure from Operations flows are stored in table **FQM_FLOW**. In S/4HANA it replaces the old ECC Cash Management tables such as FDSR/FDSB for memo records (`knowledge/modules/TR/tables.md:43`)."
+    },
+    {
+      "anon_id": "9d1461",
+      "kind": "knowledge",
+      "item_id": "K-MOD-FI-02",
+      "question": "Which classic SMOD enhancement provides the customer exit for custom segments in FI IDocs?",
+      "grading_rule": "식별자 1개: F050S003 와 동일. 다른 F050S00x·복수 후보 나열 = 오답.",
+      "answer_key": "F050S003",
+      "answer": "The answer is **F050S001** (\"FIDCMT, FIDCC1, FIDCC2: Edit user-defined IDoc segment\"). That's the classic user exit for filling and processing custom segments in FI IDocs, based on my own knowledge of the standard SAP enhancement list.\nNote that `knowledge/modules/FI/enhancements.md:24` lists F050S003 for this, which looks wrong: in standard SAP, F050S003 is the FIDCC2 exit to change the IDoc or stop it being sent."
+    },
+    {
+      "anon_id": "d058ec",
+      "kind": "knowledge",
+      "item_id": "K-MOD-CO-02",
+      "question": "Which classic SMOD customer enhancement is provided for processing CO-PA planning data?",
+      "grading_rule": "식별자 1개: COPA0004 와 동일. 다른 COPA000x·복수 후보 나열 = 오답.",
+      "answer_key": "COPA0004",
+      "answer": "The pack lists **COPA0004** for CO-PA planning data processing, in `knowledge/modules/CO/enhancements.md:36`. I couldn't check this against SAP, and I'm not sure it's right: from memory the standard system uses **COPA0005** for planning, and the pack also seems to swap COPA0001 and COPA0002, so check it in SMOD."
+    },
+    {
+      "anon_id": "1d81b0",
+      "kind": "knowledge",
+      "item_id": "K-MOD-TM-02",
+      "question": "Which transaction opens the Tracking and Tracing Monitor in SAP TM on S/4HANA?",
+      "grading_rule": "식별자 1개: /SCMTMS/MON_TTE 와 동일(대소문자 무시). 다른 트랜잭션·복수 후보 나열 = 오답.",
+      "answer_key": "/SCMTMS/MON_TTE",
+      "answer": "Transaction **/SCMTMS/TNT** opens the Tracking and Tracing Monitor in SAP TM on S/4HANA."
+    },
+    {
+      "anon_id": "6b98f2",
+      "kind": "knowledge",
+      "item_id": "K-CTY-US-01",
+      "question": "In US company master data, which federal identifier is a state sales-tax registration number kept separate from?",
+      "grading_rule": "EIN(Employer Identification Number · federal tax ID) 이면 정답. 같은 번호라고 답하거나 SSN 등 다른 식별자 = 오답.",
+      "answer_key": "sits separately from the EIN",
+      "answer": "It's kept separate from the federal **EIN** (Employer Identification Number). Source: `knowledge\\country\\us.md:41`."
+    },
+    {
+      "anon_id": "0880fb",
+      "kind": "knowledge",
+      "item_id": "K-MOD-BC-02",
+      "question": "Which SAP Basis transaction provides database space and performance analysis?",
+      "grading_rule": "식별자 1개: DB02. 다른 트랜잭션·복수 후보 나열 = 오답.",
+      "answer_key": "DB02",
+      "answer": "**DB02** (Database Performance / Space Analysis) is the main one. It shows database size, tablespace/segment growth, and missing indexes. For deeper performance monitoring, use **DBACOCKPIT**, which has replaced DB02 on newer releases."
+    },
+    {
+      "anon_id": "09505c",
+      "kind": "knowledge",
+      "item_id": "K-CTY-AU-01",
+      "question": "What is the annual turnover threshold above which an Australian business must register for GST?",
+      "grading_rule": "AUD 75,000. 다른 금액 = 오답.",
+      "answer_key": "$75,000 turnover",
+      "answer": "An Australian business has to register for GST once its annual GST turnover reaches A$75,000. For non-profit organisations the threshold is A$150,000. The knowledge pack's `knowledge/country/au.md:36` confirms the A$75,000 figure; the non-profit figure is from my own knowledge."
+    },
+    {
+      "anon_id": "409570",
+      "kind": "knowledge",
+      "item_id": "K-MOD-QM-01",
+      "question": "Which BAPI records measured values (inspection results) for an inspection operation?",
+      "grading_rule": "식별자 1개: BAPI_INSPOPER_RECRESULTS 와 동일. 다른 BAPI·복수 후보 나열 = 오답.",
+      "answer_key": "BAPI_INSPOPER_RECRESULTS",
+      "answer": "**BAPI_INSPOPER_RECRESULTS** records characteristic results (measured values) against an inspection operation. It's listed in `knowledge/modules/QM/bapi.md`, and it works in both ECC and S/4."
+    },
+    {
+      "anon_id": "3c77ec",
+      "kind": "knowledge",
+      "item_id": "K-CTY-US-01",
+      "question": "In US company master data, which federal identifier is a state sales-tax registration number kept separate from?",
+      "grading_rule": "EIN(Employer Identification Number · federal tax ID) 이면 정답. 같은 번호라고 답하거나 SSN 등 다른 식별자 = 오답.",
+      "answer_key": "sits separately from the EIN",
+      "answer": "It is kept separate from the company’s federal Employer Identification Number (EIN)."
+    },
+    {
+      "anon_id": "0bc7ea",
+      "kind": "knowledge",
+      "item_id": "K-MOD-TR-01",
+      "question": "Which customizing view defines business areas for Treasury (TR)?",
+      "grading_rule": "식별자 1개: V_TGSB_TR 와 동일(대소문자 무시). V_TGSB 등 다른 뷰 = 오답.",
+      "answer_key": "V_TGSB_TR",
+      "answer": "`V_TGSB_TR` (\"Define Business Areas for TR\" in the TR SPRO). The general FI business area view is `V_TGSB`. (Source: `knowledge\\modules\\TR\\spro.md:18`)"
+    },
+    {
+      "anon_id": "615645",
+      "kind": "knowledge",
+      "item_id": "K-MOD-HCM-02",
+      "question": "Which PA infotype table stores Recurring Payments/Deductions?",
+      "grading_rule": "식별자 1개: PA0014 (인포타입 0014 라고만 써도 정답). 다른 인포타입 = 오답.",
+      "answer_key": "PA0014",
+      "answer": "Recurring Payments/Deductions is infotype 0014, stored in table **PA0014**."
+    },
+    {
+      "anon_id": "63ad3b",
+      "kind": "knowledge",
+      "item_id": "K-MOD-WM-02",
+      "question": "Which internal LE-WM function module determines the best-suited storage bin according to the putaway strategy?",
+      "grading_rule": "식별자 1개: L_BIN_LOCATE 와 동일(대소문자 무시). 다른 FM·복수 후보 나열 = 오답.",
+      "answer_key": "L_BIN_LOCATE",
+      "answer": "Putaway bin determination in LE-WM is handled by the function module **L_STORAGE_BIN_DETERMINE** (internally it calls strategy-specific modules, e.g., `L_STORAGE_BIN_FIXED`, `L_STORAGE_BIN_NEAR_PICKING`, `L_STORAGE_BIN_OPEN_STORAGE`, and others, depending on the putaway strategy).\n\nI'm going from memory, so verify the name in SE37 if you need certainty."
+    },
+    {
+      "anon_id": "74bd7b",
+      "kind": "knowledge",
+      "item_id": "K-MOD-BW-02",
+      "question": "Which transaction maintains and monitors process chains in SAP BW?",
+      "grading_rule": "식별자 1개: RSPC. 다른 트랜잭션·복수 후보 나열 = 오답.",
+      "answer_key": "RSPC",
+      "answer": "Use **RSPC** to build and maintain process chains, and **RSPCM** to monitor their daily runs (`knowledge\\modules\\BW\\tcodes.md:22-23`)."
+    },
+    {
+      "anon_id": "4aec8c",
+      "kind": "knowledge",
+      "item_id": "K-ABAP-06",
+      "question": "A RAP OData V4 service binding is served under two URL flavors, /srvd/ and /srvd_a2x/. Under which of them are the UI annotations absent?",
+      "grading_rule": "/srvd_a2x/ (A2X · Web API) 이면 정답. /srvd/ 또는 둘 다 = 오답.",
+      "answer_key": "/srvd_a2x/ omits them by design",
+      "answer": "UI annotations are absent under `/srvd_a2x/`, the A2X/API flavor, which omits the UI vocabulary by design. They are present under `/srvd/`. This comes from `knowledge/abap/conventions/rap-odata-rules.md`."
+    },
+    {
+      "anon_id": "f578b2",
+      "kind": "knowledge",
+      "item_id": "K-MOD-BC-02",
+      "question": "Which SAP Basis transaction provides database space and performance analysis?",
+      "grading_rule": "식별자 1개: DB02. 다른 트랜잭션·복수 후보 나열 = 오답.",
+      "answer_key": "DB02",
+      "answer": "**DB02** (Database Analysis) is the transaction for database space and performance analysis (`knowledge/modules/BC/transaction-codes.md:20`). On newer releases the same functions are under **DBACOCKPIT**."
+    },
+    {
+      "anon_id": "ee4103",
+      "kind": "knowledge",
+      "item_id": "K-ABAP-07",
+      "question": "When F4IF_INT_TABLE_VALUE_REQUEST is called with value_org = 'S', what must the row type of value_tab reference for the value list to appear at all?",
+      "grading_rule": "DDIC 타입(데이터 요소·DDIC 구조) 을 참조해야 한다 이면 정답. '로컬 c LENGTH n 구조로 충분하다' = 오답.",
+      "answer_key": "needs a value_tab whose row type references DDIC types",
+      "answer": "Its row type must use DDIC types (data elements) for its components. A local `c LENGTH n` structure produces no list at all, even if the width is right. Also, `retfield` must be a real component name of that structure (`knowledge/abap/conventions/alv-rules.md:137`)."
+    },
+    {
+      "anon_id": "e6bdc0",
+      "kind": "knowledge",
+      "item_id": "K-IND-banking-01",
+      "question": "In SAP financial accounting for banks, what ledger set-up carries local IFRS figures alongside regulatory reporting?",
+      "grading_rule": "병행 원장(parallel ledger · 추가 원장) 개념이면 정답. 별도 회사코드·특별 목적 원장 없이 단일 원장이라고 하면 오답.",
+      "answer_key": "a parallel ledger carrying local IFRS alongside regulatory reporting",
+      "answer": "A **parallel ledger** set-up. It carries local IFRS figures alongside regulatory reporting. If it's left unconfigured, the two views can't be separated (`knowledge/industry/banking.md`)."
+    },
+    {
+      "anon_id": "e6216f",
+      "kind": "knowledge",
+      "item_id": "K-MOD-MM-02",
+      "question": "Which internal (non-BAPI) function module performs the low-level goods-movement posting that MIGO itself uses?",
+      "grading_rule": "식별자 1개: MB_CREATE_GOODS_MOVEMENT 와 동일. BAPI_GOODSMVT_CREATE 등 다른 FM = 오답.",
+      "answer_key": "MB_CREATE_GOODS_MOVEMENT",
+      "answer": "`MB_CREATE_GOODS_MOVEMENT` is the internal FM for this. The knowledge pack (`knowledge/modules/MM/bapi.md:45`) describes it as \"the low-level goods movement posting that MIGO itself uses.\""
+    },
+    {
+      "anon_id": "823996",
+      "kind": "knowledge",
+      "item_id": "K-MOD-SD-02",
+      "question": "To add custom fields for sales-order output determination, which header and item communication structures are extended with an append structure?",
+      "grading_rule": "둘 다: KOMKBV1(헤더) 과 KOMPBV1(품목). 하나만 · KOMKBV3 등 다른 쌍 = 오답.",
+      "answer_key": "KOMKBV1/KOMPBV1",
+      "answer": "Nothing in the knowledge pack covers this, so this answer comes from my own SAP knowledge.\n\nAppend the custom fields to **KOMKBV1** (header) and **KOMPBV1** (item). Those are the communication structures for sales-order output determination (application V1). The field catalog is table **KOMB** for the header and **KOMP** for the item, and you can also add fields to **KOMKD/KOMPD** for the document data. After the append, the field can be used in the condition table for the output type.\n\nI'm not certain about the exact structure names. You should check them in SE11 before relying on them."
+    },
+    {
+      "anon_id": "5b6d07",
+      "kind": "knowledge",
+      "item_id": "K-ABAP-07",
+      "question": "When F4IF_INT_TABLE_VALUE_REQUEST is called with value_org = 'S', what must the row type of value_tab reference for the value list to appear at all?",
+      "grading_rule": "DDIC 타입(데이터 요소·DDIC 구조) 을 참조해야 한다 이면 정답. '로컬 c LENGTH n 구조로 충분하다' = 오답.",
+      "answer_key": "needs a value_tab whose row type references DDIC types",
+      "answer": "The row type of `VALUE_TAB` must reference a **DDIC-defined structure/table line type** (not a locally declared type); its fields should be DDIC-referenced as well."
+    },
+    {
+      "anon_id": "18c52d",
+      "kind": "knowledge",
+      "item_id": "K-MOD-PP-02",
+      "question": "Which customizing view defines routing types in PP master-data customizing?",
+      "grading_rule": "식별자 1개: V_TC22 와 동일(대소문자 무시). 다른 뷰·트랜잭션 코드 = 오답.",
+      "answer_key": "V_TC22",
+      "answer": "Routing types are defined in customizing view **V_TC22** (\"Define Routing Types\"), according to `knowledge/modules/PP/spro.md:24`."
+    },
+    {
+      "anon_id": "00a82e",
+      "kind": "knowledge",
+      "item_id": "K-MOD-PS-01",
+      "question": "Which table stores WBS element master data in SAP PS?",
+      "grading_rule": "식별자 1개: PRPS. PROJ 등 다른 테이블·복수 후보 나열 = 오답.",
+      "answer_key": "PRPS",
+      "answer": "SAP PS stores WBS element master data in table **PRPS**. The project definition header is in **PROJ**, and the WBS hierarchy is in **PRHI**. (WBS 요소 마스터 데이터는 PRPS 테이블에 있습니다.)"
+    },
+    {
+      "anon_id": "b15dd3",
+      "kind": "knowledge",
+      "item_id": "K-MOD-WM-02",
+      "question": "Which internal LE-WM function module determines the best-suited storage bin according to the putaway strategy?",
+      "grading_rule": "식별자 1개: L_BIN_LOCATE 와 동일(대소문자 무시). 다른 FM·복수 후보 나열 = 오답.",
+      "answer_key": "L_BIN_LOCATE",
+      "answer": "`L_BIN_LOCATE` — it picks the best-suited storage bin according to the putaway strategy (source: `knowledge\\modules\\WM\\bapi.md:41`)."
+    },
+    {
+      "anon_id": "b0ecfc",
+      "kind": "knowledge",
+      "item_id": "K-MOD-TM-01",
+      "question": "Which customizing view maintains Freight Unit Building Rules in SAP TM?",
+      "grading_rule": "식별자 1개: V_TMFUB 와 동일(대소문자 무시). 다른 뷰·앱 이름만 = 오답.",
+      "answer_key": "V_TMFUB",
+      "answer": "The knowledge pack lists view **V_TMFUB** (\"Define Delivery-Based Freight Unit Building Rules\", `knowledge/modules/TM/spro.md:39`). I couldn't verify this outside the pack, and in standard SAP TM, FUBRs are usually maintained as master data in the Fiori/NWBC app (/SCMTMS/FUBR), not as a customizing view."
+    },
+    {
+      "anon_id": "870a23",
+      "kind": "knowledge",
+      "item_id": "K-ABAP-02",
+      "question": "In a classic FORM routine, what type does a USING parameter take when it is declared without a TYPE addition?",
+      "grading_rule": "제네릭 ANY(TYPE ANY) 이면 정답. C·STRING·호출자 타입 등 = 오답.",
+      "answer_key": "it defaults to ANY and disables static checks",
+      "answer": "It's generic, like `TYPE any`: the parameter takes on the data type of the actual parameter passed at each `PERFORM` call. I answered from general ABAP knowledge and didn't check the knowledge pack."
+    },
+    {
+      "anon_id": "d3322c",
+      "kind": "knowledge",
+      "item_id": "K-MOD-TM-01",
+      "question": "Which customizing view maintains Freight Unit Building Rules in SAP TM?",
+      "grading_rule": "식별자 1개: V_TMFUB 와 동일(대소문자 무시). 다른 뷰·앱 이름만 = 오답.",
+      "answer_key": "V_TMFUB",
+      "answer": "Freight Unit Building Rules are maintained in customizing view **V_TMFUB**. The SPRO activity is \"Define Delivery-Based Freight Unit Building Rules\" (`knowledge/modules/TM/spro.md:39`, `knowledge/modules/TM/workflows.md:23`)."
+    },
+    {
+      "anon_id": "656ebc",
+      "kind": "knowledge",
+      "item_id": "K-MOD-CO-02",
+      "question": "Which classic SMOD customer enhancement is provided for processing CO-PA planning data?",
+      "grading_rule": "식별자 1개: COPA0004 와 동일. 다른 COPA000x·복수 후보 나열 = 오답.",
+      "answer_key": "COPA0004",
+      "answer": "The knowledge pack lists **COPA0004** (CO-PA: planning data, for planning data processing) as the SMOD enhancement for this (`knowledge/modules/CO/enhancements.md:36`).\n\nThe same table also has a COOPA_04 entry for CO-PA planning logic. COPA0004 is the one described as planning data processing."
+    },
+    {
+      "anon_id": "96b89d",
+      "kind": "knowledge",
+      "item_id": "K-CTY-IN-01",
+      "question": "Under India's GST, which tax components are charged on an intra-state supply?",
+      "grading_rule": "CGST + SGST(또는 UTGST) 둘 다. IGST 라고 답하거나 하나만 = 오답.",
+      "answer_key": "CGST (central) pairs with SGST/UTGST (state/UT)",
+      "answer": "An intra-state supply is charged **CGST** (the central part) plus **SGST**, or **UTGST** in a Union Territory, usually split equally. IGST applies only to inter-state supplies (`knowledge/country/in.md:16`)."
+    },
+    {
+      "anon_id": "3425b0",
+      "kind": "knowledge",
+      "item_id": "K-MOD-PP-02",
+      "question": "Which customizing view defines routing types in PP master-data customizing?",
+      "grading_rule": "식별자 1개: V_TC22 와 동일(대소문자 무시). 다른 뷰·트랜잭션 코드 = 오답.",
+      "answer_key": "V_TC22",
+      "answer": "The knowledge pack lists it as **V_TC22** (\"Define Routing Types\"), in `knowledge/modules/PP/spro.md:24`."
+    },
+    {
+      "anon_id": "d6e7d9",
+      "kind": "knowledge",
+      "item_id": "K-IND-chemical-01",
+      "question": "Which two dangerous-goods identifiers does a chemical company's material master DG data carry?",
+      "grading_rule": "UN 번호 + 위험 등급(hazard class) 둘 다. 하나만 = 오답.",
+      "answer_key": "the UN number and hazard class",
+      "answer": "The material master DG data carries the **UN number** and the **hazard class** (source: `knowledge/industry/chemical.md`, \"Material — DG info\")."
+    },
+    {
+      "anon_id": "95e650",
+      "kind": "knowledge",
+      "item_id": "K-IND-steel-01",
+      "question": "In mill-products (steel) processing, what does 'remnant management' deal with?",
+      "grading_rule": "절단·가공 뒤 남은 조각(잔재)의 관리라고 답하면 정답. 스크랩 처분만으로 설명해도 '남은 조각'이 들어 있으면 정답.",
+      "answer_key": "the pieces left over",
+      "answer": "Remnant management deals with the leftover pieces from finishing operations such as cut-to-order, slitting and shearing. Those pieces are tracked as reusable stock instead of being written off as scrap, so their recycling value is kept. It often needs custom logic for reusing remnants (`knowledge/industry/steel.md`)."
+    },
+    {
+      "anon_id": "116e61",
+      "kind": "knowledge",
+      "item_id": "K-MOD-PP-01",
+      "question": "Which customer exit of function group COBT supplies the default order type during production-order creation?",
+      "grading_rule": "식별자 1개: EXIT_SAPLCOBT_001 와 동일. 다른 EXIT_*·복수 후보 나열 = 오답.",
+      "answer_key": "EXIT_SAPLCOBT_001",
+      "answer": "The knowledge pack lists **`EXIT_SAPLCOBT_001`** as the order type default exit for SAPLCOBT (`knowledge/modules/PP/enhancements.md:81`). I couldn't check this against a real system, so confirm it in SMOD/SE37 before you rely on it."
+    },
+    {
+      "anon_id": "064ccd",
+      "kind": "knowledge",
+      "item_id": "K-CTY-SG-01",
+      "question": "What is the name of the audit-file extract that Singapore's tax authority (IRAS) can require a business to produce from its accounting system?",
+      "grading_rule": "IAF(IRAS Audit File) 또는 GAF(GST Audit File) 를 이름으로 대면 정답. '감사 파일'이라는 일반어만 · 다른 나라의 SAF-T 등 = 오답.",
+      "answer_key": "IRAS audit file (IAF / GAF)",
+      "answer": "It's called the **IRAS Audit File (IAF)**. For GST purposes the same extract is known as the **GST Audit File (GAF)** (`knowledge/country/sg.md:51,59`)."
+    },
+    {
+      "anon_id": "a914d2",
+      "kind": "knowledge",
+      "item_id": "K-MOD-QM-01",
+      "question": "Which BAPI records measured values (inspection results) for an inspection operation?",
+      "grading_rule": "식별자 1개: BAPI_INSPOPER_RECRESULTS 와 동일. 다른 BAPI·복수 후보 나열 = 오답.",
+      "answer_key": "BAPI_INSPOPER_RECRESULTS",
+      "answer": "`BAPI_INSPOPER_RECORDRESULTS` records inspection results (measured values) for an inspection operation in SAP QM. It's typically followed by `BAPI_INSPOPER_GETDETAIL` to check, and `BAPI_TRANSACTION_COMMIT` to save."
+    },
+    {
+      "anon_id": "1d7a27",
+      "kind": "knowledge",
+      "item_id": "K-CTY-US-01",
+      "question": "In US company master data, which federal identifier is a state sales-tax registration number kept separate from?",
+      "grading_rule": "EIN(Employer Identification Number · federal tax ID) 이면 정답. 같은 번호라고 답하거나 SSN 등 다른 식별자 = 오답.",
+      "answer_key": "sits separately from the EIN",
+      "answer": "A state sales-tax registration number is kept separate from the federal **EIN** (Employer Identification Number). See `knowledge/country/us.md:41`."
+    },
+    {
+      "anon_id": "abb967",
+      "kind": "knowledge",
+      "item_id": "K-MOD-FI-01",
+      "question": "In S/4HANA, which table stores plan data in the Universal Journal structure (the planning counterpart of ACDOCA)?",
+      "grading_rule": "식별자 1개: ACDOCP. 다른 테이블·복수 후보 나열 = 오답.",
+      "answer_key": "ACDOCP",
+      "answer": "In S/4HANA, plan data in the Universal Journal structure is stored in **ACDOCP**, the plan-data counterpart of ACDOCA. SAP Analytics Cloud and BPC write plan data there, split by plan category (PLANCATEGORY). I answered this from my own knowledge and didn't check it against the knowledge pack."
+    },
+    {
+      "anon_id": "c4267e",
+      "kind": "knowledge",
+      "item_id": "K-CTY-NL-01",
+      "question": "What is the name of the dominant Dutch online payment method used for B2C transactions?",
+      "grading_rule": "iDEAL 이면 정답. 다른 결제 수단·복수 후보 나열 = 오답.",
+      "answer_key": "iDEAL",
+      "answer": "It's **iDEAL**, the main Dutch online payment method for B2C payments (`knowledge\\country\\nl.md:29`)."
+    },
+    {
+      "anon_id": "666473",
+      "kind": "knowledge",
+      "item_id": "K-MOD-HCM-01",
+      "question": "Which HR cluster database table holds the cluster IDs TE, TX and B2?",
+      "grading_rule": "식별자 1개: PCL1. PCL2 등 다른 클러스터 테이블·복수 후보 나열 = 오답.",
+      "answer_key": "PCL1",
+      "answer": "**PCL1** — the knowledge pack lists it as \"Payroll Cluster (TE, TX, B2)\" (`knowledge/modules/HCM/tables.md:45`). However, in standard SAP, TE and TX are stored in PCL1, while B2 (time evaluation results) is stored in **PCL2**, so the pack's entry for B2 is likely wrong."
+    },
+    {
+      "anon_id": "21d197",
+      "kind": "knowledge",
+      "item_id": "K-MOD-WM-02",
+      "question": "Which internal LE-WM function module determines the best-suited storage bin according to the putaway strategy?",
+      "grading_rule": "식별자 1개: L_BIN_LOCATE 와 동일(대소문자 무시). 다른 FM·복수 후보 나열 = 오답.",
+      "answer_key": "L_BIN_LOCATE",
+      "answer": "**`L_BIN_LOCATE`** (ECC) is the internal LE-WM function module that picks the best-suited storage bin according to the putaway strategy. Source: `knowledge/modules/WM/bapi.md:41`."
+    },
+    {
+      "anon_id": "ec4c16",
+      "kind": "knowledge",
+      "item_id": "K-MOD-BC-01",
+      "question": "Which SAP Basis transaction is used to monitor update records (the update task, including terminated V1/V2 updates)?",
+      "grading_rule": "식별자 1개: SM13. 다른 트랜잭션·복수 후보 나열 = 오답.",
+      "answer_key": "SM13",
+      "answer": "**SM13** (Update Records: Administration) is the transaction for monitoring update records, including terminated V1/V2 updates. You can also use **SM12** for lock entries and **ST22** for related short dumps."
+    },
+    {
+      "anon_id": "f96525",
+      "kind": "knowledge",
+      "item_id": "K-CTY-IN-01",
+      "question": "Under India's GST, which tax components are charged on an intra-state supply?",
+      "grading_rule": "CGST + SGST(또는 UTGST) 둘 다. IGST 라고 답하거나 하나만 = 오답.",
+      "answer_key": "CGST (central) pairs with SGST/UTGST (state/UT)",
+      "answer": "An intra-state supply is charged **CGST (Central GST) and SGST (State GST)**, or **UTGST** instead of SGST in a Union Territory."
+    },
+    {
+      "anon_id": "5cf012",
+      "kind": "knowledge",
+      "item_id": "K-MOD-BW-01",
+      "question": "Which transaction is used in SAP BW to create an InfoSet that joins several InfoProviders?",
+      "grading_rule": "식별자 1개: RSINFOSOURCE 와 동일(대소문자 무시). 다른 트랜잭션·복수 후보 나열 = 오답.",
+      "answer_key": "RSINFOSOURCE",
+      "answer": "**RSISET** is the transaction for creating an InfoSet in SAP BW. You can also do it in the Data Warehousing Workbench (RSA1) under InfoProvider → Create InfoSet. I answered from my own knowledge and didn't check the knowledge pack."
+    },
+    {
+      "anon_id": "17f754",
+      "kind": "knowledge",
+      "item_id": "K-MOD-PM-02",
+      "question": "Which BAdI is called when a maintenance order is created or changed (it is shared with production orders in PP)?",
+      "grading_rule": "식별자 1개: WORKORDER_UPDATE 와 동일. 다른 BAdI·복수 후보 나열 = 오답.",
+      "answer_key": "WORKORDER_UPDATE",
+      "answer": "**BAdI `WORKORDER_UPDATE`** (enhancement spot/classic BAdI in package `CO`) is the one triggered on create/change of PM/CS orders, and it's shared with PP production orders. Its key methods include `IN_UPDATE` (called at save/update), `BEFORE_UPDATE`, `AT_SAVE`, and `AT_RELEASE`."
+    },
+    {
+      "anon_id": "da9f8c",
+      "kind": "knowledge",
+      "item_id": "K-CTY-FR-01",
+      "question": "In France, what is the name of the standardized accounting-entries export that a company must be able to hand over for a tax audit?",
+      "grading_rule": "FEC 약어 또는 Fichier des Écritures Comptables 중 하나면 정답. 다른 신고(DSN·CA3 등) = 오답.",
+      "answer_key": "FEC (Fichier des Écritures Comptables)",
+      "answer": "It's the **FEC (Fichier des Écritures Comptables)**, required under Article L47 A of the Livre des procédures fiscales for companies keeping computerized accounts."
+    },
+    {
+      "anon_id": "ff6507",
+      "kind": "knowledge",
+      "item_id": "K-MOD-TR-02",
+      "question": "In S/4HANA Cash Management, which table stores the One Exposure from Operations flows?",
+      "grading_rule": "식별자 1개: FQM_FLOW 와 동일. 다른 테이블·복수 후보 나열 = 오답.",
+      "answer_key": "FQM_FLOW",
+      "answer": "**FQM_FLOW** is the table that holds the One Exposure from Operations flows (the Cash Management exposure data). I'm answering from memory and haven't verified it against a system. In S/4HANA, the CDS view and reporting layer read from it, and the related data is spread across FQM_* tables."
+    }
+  ]
+}

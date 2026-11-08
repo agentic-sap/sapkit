@@ -1,0 +1,392 @@
+K-65-check.txt — 판K T7 블라인드 묶음 검사 결과 (node K-65-build-blind.mjs --check 가 쓴다 · 시각 없음 · 다시 돌려도 같은 글자)
+
+[1] 난수 스트림 (K-00 §8 값과 대조)
+PASS  drift-knowledge  fnv1a=1771552129  seed=1755485557  (K-00 §8 = 1755485557)
+PASS  drift-code-order  fnv1a=897448735  seed=877188075  (K-00 §8 = 877188075)
+PASS  blind-id  fnv1a=1252399638  seed=1267938018  (K-00 §8 = 1267938018)
+PASS  codex-regrade  fnv1a=3564867037  seed=3578701097  (K-00 §8 = 3578701097)
+  쓰임: drift-knowledge = 끈 조건 지식 후보 180 섞고 앞 36 · drift-code-order = 코드 25행 순서 · blind-id = 익명 id 181(지식 → 코드 순) 뒤 이어서 지식 156행 순서 · codex-regrade = 켠 조건 지식 120 섞고 앞 24
+  익명 id 다시 뽑기(겹침) = 0회
+
+[2] 결정성 — 다시 만든 글자 = 디스크 (CRLF → LF 로 읽어 대조)
+PASS  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-65-blind-knowledge.json  sha256=b658271d88b72625800b927c54959044ae2378d71471024b11a699c5c6c7975b
+PASS  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-65-blind-code.json  sha256=dd3cc4917494dbd52159b42f628b6b23aa80c0411dd57847582eb810252a47ab
+PASS  레포 밖 blind-map.csv  = 다시 만든 글자 (행 181)
+PASS  레포 밖 codex-regrade-ids.csv = 다시 만든 글자 (행 24)
+
+[3] 행 수 · 고유성 · 표본 범위
+PASS  지식 행 = 156 (기대 156 = 켠 조건 120 + 표류 36)
+PASS  코드 행 = 25 (기대 25 = 켠 조건 10 + 끈 조건 15)
+PASS  anon_id 181개 고유 · 6자리 16진 (고유 181)
+PASS  매핑 181행 = 묶음 anon_id 집합
+PASS  표류 표본 36 = 서로 다른 (모델 · 문항) 36 · 문항 id 전부 J-10 items 안
+  표류 표본 문항 범주 분포: module 17 · country 9 · industry 4 · abap 6  (J-10 전체 30 · 16 · 7 · 7)
+  표류 표본 모델별 행 수(매핑 없이 수만): 12 · 14 · 10  (모델 순 = 후보 정준 순)
+PASS  재채점 표본 24 = 켠 조건 지식 120행 안 · 서로 다름 (레포 밖 보관)
+PASS  kind · item_id · task_id 값 범위
+
+[4] 무편집 · 기계 결과 출처
+PASS  입력 330파일의 읽은 바이트 = 커밋 blob (git ls-files -s 대조 · 어긋남 0)
+PASS  지식 answer = 답 파일 전문(행마다 대조)
+PASS  코드 code · checker_error_grade = 원본(행마다 대조)
+PASS  끈 조건 코드 15행 error_grade: 60-checker-summary.csv 열 error_grade = 83-results.json rows[].error_grade (어긋남 0)
+  출처 필드: 켠 조건 = K-60-checker-summary.csv 열 error_grade · 끈 조건 = 60-checker-summary.csv 열 error_grade (83-results.json rows[].error_grade 로 대조)
+  checker_error_grade 분포(25행): 0=25
+  빈 답(공백뿐) 행: 켠 조건 0 · 표류 0
+  BOM 으로 시작하는 본문: 0
+
+[5] 모델 · 조건 문자열 검사 (대소문자 무시 · 부분 일치)
+PASS  묶음 두 파일의 meta · 키 · 스크립트가 쓴 칸(anon_id · kind · checker_error_grade)에 금지 문자열 0 (발견 0)
+PASS  K-65-grader-brief.txt 에 금지 문자열 0 (발견 0)
+  금지 낱말: claude-opus-5-5 · claude-sonnet-5-5 · gpt-5.6-sol · opus · sonnet · codex · gpt · 판j · 판k · condition · k-50 · k-60 · 50-answers · 60-code · 60-checker · 50-summary · 83-results · blind-map · regrade
+  원문 그대로 옮긴 칸(J-10 · J-11 글자 · 답 · 코드)의 발견 = 8건 — 무편집 원칙에 따라 고치지 않고 적기만 한다(anon_id · 칸 · 낱말):
+    f18e0c  answer  condition
+    823996  answer  condition
+    4bd70d  task_text  condition
+    b17ef8  task_text  condition
+    c5e3d7  task_text  condition
+    fc98ee  task_text  condition
+    994263  task_text  condition
+    994263  code  condition
+
+[6] 조건 단서 관찰 (판정 아님 · 집단별 수만)
+  지식 답에 팩 경로 인용(knowledge/… · personas/… · .md): 켠 조건 79/120 · 표류 0/36
+  코드에 팩 경로 인용: 켠 조건 0/10 · 끈 조건 0/15
+
+[7] 입력 지문 (파일마다 sha256 · CRLF → LF 로 읽은 바이트 = 커밋 blob)
+PASS  지식 묶음 meta 집합 지문 = 다시 잰 값 (df6f38c5422a1086e78f245ce4831cb066fa3c3e473acb1acc66f0752ab2370a · 301파일)
+PASS  코드 묶음 meta 집합 지문 = 다시 잰 값 (7710e9933f5f8eeccb1bb9a5e420a69c1a0e35bea88f762a52b9e0f82dbb9bcb · 28파일)
+PASS  J-10 · J-11 개별 지문 = 다시 잰 값
+  전체 입력 330파일 집합 지문 = f53ea497abf9afbbe3f993294b0524d2cdbdd3541403cc9edbc1873a8af9d1fb
+  a99cc22debea8eb13db974c22587d46ce137e78bd201940d322bce1c40fe92bd  docs/reference/audits/2026-11-05-harness-necessity-review-data/10-knowledge-items.json
+  ecd65dee33ceac0631eb93ed0a03b772a8375d5630ceb8be36ba402e19700b39  docs/reference/audits/2026-11-05-harness-necessity-review-data/11-code-tasks.txt
+  e1917873650574879322b08294bc68c2f65477e4d974283302e16e6db5a8178f  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-ABAP-01.txt
+  3a9a3c42d3658287f7b360bb1dd80fb90d4842bd79dcb87ebe843c84c1e444c7  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-ABAP-02.txt
+  6ad90eeea532344fc6cbbf8b4560826d901f59997cef3cab77d5bf794c68a7d0  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-ABAP-03.txt
+  253d087deab8913dc78add924136fa85b0b5dad5bdce2a5b921cac92d6a97f0c  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-ABAP-04.txt
+  331f541deaf334e22c9667c17b304717afefaee874628057ef43ca28bd52bbed  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-ABAP-05.txt
+  fac9cee167471010dea8ed7260ecd0d9d50e38a45fe022fdbaf25dbea1c76a75  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-ABAP-06.txt
+  59255408f3def47193bd7fd74f00ced9d837510ea8d4e22c3158c4eacf6a37d7  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-ABAP-07.txt
+  70f644f10559900603acf6e0d74b51d2ab20b044f5b3ce544f63d73a904d8667  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-CTY-AU-01.txt
+  12e288fd34253f67ab0993098de89026f3d7afe5a084accdaa96d41d5864bd0e  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-CTY-BR-01.txt
+  a7ec4529e36475f4a67a970868bb16cf16707a908a12b60b71db249f25b3264e  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-CTY-CN-01.txt
+  a34661372296a2e6a2e39c2d06b3b5bf6762237ac413b3606d4fddb6ffea4bc1  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-CTY-DE-01.txt
+  15ef42873e214d7c7bc0693c2fa48ea30ba6d919c166c45d653bcb91f22a82fd  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-CTY-ES-01.txt
+  7ef0ee89a00e123e9143ea71da2c96174b99aeac586ca500d78b057dfed431e3  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-CTY-EU-01.txt
+  99673652e30f5fd9da8d788282eaecc5ad0ed1d842972200d3d95c75d498ff24  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-CTY-FR-01.txt
+  51553d08a3c6192856b57b4a587945a8f42ec82c32fe1aefbe694f70b8f56338  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-CTY-GB-01.txt
+  150cc5b0b36912136eb6c58f936db71de4551fe9920cb601501368773b097085  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-CTY-IN-01.txt
+  5c983b1f8a231824ba86d13fef39f1c271916c545005884655c6bbf7b3457413  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-CTY-IT-01.txt
+  2739a1a5ef5a2a2ccc92f8ffb16c625fc910f5cda3896f22533d19f27629f321  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-CTY-JP-01.txt
+  5e268b9dd1e7ef68457891fd0d0f094c49acce4e0a95031ff5b0d12e4b8e189b  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-CTY-KR-01.txt
+  581983a4fc48b6170f429a2505ace904e4af8bb7c041e14c4b127672e24337d7  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-CTY-MX-01.txt
+  be09d9e46c9fe20b8378168fcfb3d83b1d6192beec5170bd572f034f9aa3e5eb  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-CTY-NL-01.txt
+  beac4d93140de19220d85befb546eed73e39e403b1b947facb1e1c2fc7707fb6  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-CTY-SG-01.txt
+  f24d16e62185f2d9ca741a855493db536d94b1e294a2967586d84e0d5c67e6e3  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-CTY-US-01.txt
+  da16a5902a6748a2d512a5ef69a974130f9c7270676762a9e051919d1bafbb2b  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-IND-banking-01.txt
+  6cc6bfcf6afe8374610adf1546ba5fc00c7ad57b5f401d6716cae2e7b6de53d1  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-IND-chemical-01.txt
+  e988e4e902fbd4bd21c62b29a4bb54e763d70b01593df722feb6ccf1c7a2c34f  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-IND-fashion-01.txt
+  bb1d951f76d4be537d3be83c9c245cbd2c4dbd59782bc7ff0f03a1824ca96c34  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-IND-pharmaceutical-01.txt
+  e19ea5a329cb1f75cbe3082f1eb2f5086429539e28fc6113d5a1922098bccae1  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-IND-steel-01.txt
+  c92429d44b0789a9c9cf83e40349b7c2c350ef8cfb9441c900daa95ac3cdbadb  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-IND-tire-01.txt
+  261ff705fe1e6dbe1f46116aa28307ed5b2c9382dda125a1a4e5aa9dd65ebd01  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-IND-utilities-01.txt
+  ab44a39bfb548e59ca6f0bf6e267ce8d1725d5373486cb297dd1fb0610b4a0e9  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-Ariba-01.txt
+  49d5ffc33a74aba80d540c436532ee30c68ce0011fc501c5110ab0218304a6a5  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-Ariba-02.txt
+  38fc78602a540c952da10267f000a8bb1bd58f64b28cebd2a20935c73531c1da  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-BC-01.txt
+  08f8625a8aba5a62d16865ff490fc7f9a2b2cdc33e6746091d3a738b3d2293c4  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-BC-02.txt
+  7a9e011ffb0aa97316d5ef455e61e809476a4b5cba62e32bfe7971d6c134360b  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-BW-01.txt
+  cb5fe230ef075d4b8f76089c7e36a09f2981bb83d2d63ae7574789ada234c45e  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-BW-02.txt
+  8fdc28a7f1485117b79c6be11360ded36fd3a891b9cd1ea2b6e70bb2f5702f8d  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-CO-01.txt
+  4864254ae8298236f2527aa2b5d1f5ed0a57d8af5b57dd9cac53565cc69beef2  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-CO-02.txt
+  f0eb83f884ffc4318a95fe62912bfac9c87b56c72c781a7ffde5273791a114d1  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-FI-01.txt
+  f36820499ab40857b93a473492cc4e3dd18bcedfbd1fda5782d14d7f6f8ecdf2  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-FI-02.txt
+  c4caf8374066b6339b0c1509d3fab2eeac95b3b07ae7ffae6b7b2a7fbc2920c3  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-HCM-01.txt
+  a5b6431721288033277e8525d1006e932ac90c3913157fa50effe17790623d65  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-HCM-02.txt
+  464282fb19aef453c5b799a7a853cb32518c8d4afd649176dced7cadecc47bb9  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-MM-01.txt
+  b3972f312ddd4c255e41dc75f6c673f247b9fb102eb0852b2a0567c40934b736  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-MM-02.txt
+  b4df9ef58128cfc907bd604e6bc30e8a209f6e45b58213941d196bf9904f376a  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-PM-01.txt
+  f365c80f28bd23db7749c8fb1315a42457a9164958f459b3bd2d2250ff1160d1  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-PM-02.txt
+  d717e1ac582819906c5cb4536c65a4547be773ea5fa90993ea62b6058da271c4  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-PP-01.txt
+  4969bfad100c59337d9b7b2850ff7f0fd115540e1ab8729e26282a9d8e9aad09  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-PP-02.txt
+  f69a16a2480344358a60bde1d64139d0d685f3119caa8042d2182f7050fea830  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-PS-01.txt
+  00f512c17fb34954fb848cfc356252944202922eea02f98ae25779ed550fff98  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-PS-02.txt
+  4bde36965102a5e0c66e9042d9b7e3895f143b941115abe807fa78e441819518  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-QM-01.txt
+  7ed1e22c34e51f9b61282796fdde505fb3838e925f7ae61fb9f52f149ead2d4c  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-QM-02.txt
+  b13ebb8bea6e01c5b6ef3edc0d244f6f25f0f78124f0d463d74f023a6bf4bd64  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-SD-01.txt
+  f03a59ca8bbc66906180b2d37b3e3b3c624ac9164517b5f62bd473e01a864fbe  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-SD-02.txt
+  9907456a3e9c446146d595c3e9945a39404cebd8713c1217cafba59f54f11db5  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-TM-01.txt
+  4dc2e04a608faa68461cfa25178e5b1fcc90dd9141c724bb466d14adc9ed4968  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-TM-02.txt
+  d436a229276f3ebf89b4257eb9832ab681776512d733793c3259217c18ad757b  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-TR-01.txt
+  d964af0be8745fb96acff8f055ee0fb552878a9abe9d0069c0d3d50a584252e6  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-TR-02.txt
+  9ea09a87fa381effb58326fecc80fc90ba12bbb6d4b5a8d96d8b7c46fe472b7e  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-WM-01.txt
+  d13715dff04a02ed0d3f60fb6a059df1e0ca15c3026b3d143fa777d5d13b6cef  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-opus-5-5/K-MOD-WM-02.txt
+  3f2c3996d3220ee55218aba164975c76be6200cbff08da3d4f5675b5f585150b  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-ABAP-01.txt
+  6fd554c88d830da0f65028f6923c532e82283debc2bff02ce867583a93f511f7  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-ABAP-02.txt
+  0f5461358c95830422202bdcd7532249b5ef4f2a862ebf290f17c913f5b17996  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-ABAP-03.txt
+  46f7cc1950e1ad0a673088521dbbbf9a0fc8e6ae1852c172543ca1f2dea97599  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-ABAP-04.txt
+  cc2419f5f5ff35e103a573c6321eb7db636891cf0e050d9c2cfeaa0a80bfdec5  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-ABAP-05.txt
+  59ccb9f86ea525588d820da11625ca7f641673dccc6340b425b77adb23124050  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-ABAP-06.txt
+  e6b9df6340ae3ab5b4bd4be7c1e8707cdb7c56c969f5673e603224b30b8456d8  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-ABAP-07.txt
+  fb235faf4868d3924288f2c4a19250508362a8acc6b462f35044a6a05d93a40b  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-CTY-AU-01.txt
+  58a1c0d98fc387232e38ca95d32ad2f65c97241ac164360ea725760e826b63f8  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-CTY-BR-01.txt
+  7094fc986944d423583167c5bc300125dd4c7b028cc546a07b2a56260e5e2995  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-CTY-CN-01.txt
+  89dc9e7daf31487ca0b1667c910eecc15411c955366a04c3a9dd621e311bbf33  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-CTY-DE-01.txt
+  670c90f7f7b0b1c269d15b0464e0414a0cfb31155916deb5a0b71852dad26321  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-CTY-ES-01.txt
+  b5578724fde7ae15c74f12113faecc41e5215f590ca03ae3f263cd877a518fac  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-CTY-EU-01.txt
+  81a9d9f37fcaca8c419f2380231642b668e41111402693fd7de3ec7a390b4fbd  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-CTY-FR-01.txt
+  6198d02682559b8834e25457e5edb2a0c30914580be20e27ca516fb11006c01f  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-CTY-GB-01.txt
+  b7ce69d5967ac376bf94104dcef778bb12a45ddf49a3037148ef811faab79e2e  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-CTY-IN-01.txt
+  93a0115bb8d4a41fb33cda08afd167e3c4afbc4203ef1279c6e6f6767440bbbc  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-CTY-IT-01.txt
+  18c632cf612c0899c6f685e4e6a5e595c5463693fa82afa6fcd05ab0b734f2c4  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-CTY-JP-01.txt
+  5734019879176aa9e23838a7d679a0d0902648d2744077d707e5ac6b2390a4b3  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-CTY-KR-01.txt
+  c3d2f8659d30794f58be7db12aab22612fac740efb09002a3b5bcac1c3363309  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-CTY-MX-01.txt
+  242d327b07ca604f23fd2322eeac6cc7de5c2fc4afb8d68f43cc43d8ac66d171  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-CTY-NL-01.txt
+  8ee7600c239f732b352e3375340e234ea452e0f7cf8d92c2390b840cfab02599  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-CTY-SG-01.txt
+  b41a8a14cad8fb13aa6b5c5410ef556157cdeecf6430ad31ed044321480895e0  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-CTY-US-01.txt
+  a3124ca677c45395c47df0fda5c5c5d49e8ab5bd5403f8dd0d1fdfa35b6da180  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-IND-banking-01.txt
+  1f2cec05ed58aa2cbec4d7a9de9239683fc0b0937a42606b374cfdb007c4841c  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-IND-chemical-01.txt
+  404d9c2761dea4610b5b79d8b7dffd11fe258dc1a15ff4f73139fbe8816184c4  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-IND-fashion-01.txt
+  66dfc8b75e604d3163b67beb746fe62be068bdf78f2985188388a25ece604105  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-IND-pharmaceutical-01.txt
+  656c9d61338d3df5119a0fad8cc6a274420b98a7a2d93876f5f7f5eca36fbaee  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-IND-steel-01.txt
+  f300bf9a6a74ffcf9e1973a3c116fba007b964006b339a553644ceadef3cd2a3  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-IND-tire-01.txt
+  697fd0810a29373c064a9275236f0e69c271eca8381defd9cc5975c92e10a368  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-IND-utilities-01.txt
+  4cceebc4105b5738dc6865bb9624492d378d93466370ca83e1daed304f1f629f  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-Ariba-01.txt
+  19eebd49558c1a9c832e22f6101031295e0d899c3c3a408610618d7346729e72  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-Ariba-02.txt
+  2c523ce45353d40d7d799ccdf424cd26d21aa1df5e5d19bdfd312d1d362d62a3  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-BC-01.txt
+  afa8a64f753844e3db335d7319741655c4da3221aa639c7e8befc2a8da78ea76  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-BC-02.txt
+  1fca8348f54f64123a47db32b812db0c426ab56f1df85a875e5617de5eb65857  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-BW-01.txt
+  c9c3c1e1522975b9b62f71972dd46021d0a9b7a69ac14cc03b1a20bd9f96e4ec  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-BW-02.txt
+  37a68d1b546c67118ce1c632b62bade27dd90b941d0de02c1e820e231a75ac28  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-CO-01.txt
+  f7206bf76fd525920626adb59409482c6d0e299000e8e32510625b94c7613b7f  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-CO-02.txt
+  fd324511edaf1c09b1df9d27144b5b75546a9a501617edab539bd1959786f284  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-FI-01.txt
+  80334360f8fa1def0a04ae50c9d241819672ef10d17f3cf3187ab06a47498a6a  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-FI-02.txt
+  64115cce626d387ceba721246d1af0d18d12d055b9b81d527eeeb0fbb27127de  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-HCM-01.txt
+  124411451bc23be039737d2ee740a668b6c9341571f4c74874a73a7ae001682e  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-HCM-02.txt
+  cf631502e639bcaada04f30adbaf8a96c24e11eeb4ede15e4371f753c3e6b2c8  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-MM-01.txt
+  92a8d9f8a4ed65c347206eb127b0c71b0a932e24d0688c56b115b54dce0be7fb  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-MM-02.txt
+  17197a319daed23b3621d07095b88af7200ad0094c20f420fe2b2e4f3c9a652a  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-PM-01.txt
+  4ef1ad6b8167d744bbe61c1832073991d1b2aa0947868fa79b892e1b986978f7  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-PM-02.txt
+  d5de13647f5b4b9a9f7807caec8019d170d4381d16efe39a2bfb395dd1deb5fa  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-PP-01.txt
+  64efa5d3071952286820075ae82b9a01ff76443815b0ddb1b1a37059fb2c00d5  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-PP-02.txt
+  8c46f0975923dcca9175b0d137403575636796c51a46bffa658e9a0200889aff  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-PS-01.txt
+  8d485f726ce9538249c03506581d0a27be6daaeea9310d959c8530c30e91207b  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-PS-02.txt
+  1704cc0a96af63a2c754f95b9d2d41c9da9daa8a0ffdb027dbe716af07238121  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-QM-01.txt
+  d5efbce32c2748eebb997fbb960cacb7cc70922602612a89c2c69b753d1e95a5  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-QM-02.txt
+  f08b9ed68e9f1f893d7877f4835de8a71bb8c787e720640206bc6d6cbc26cf66  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-SD-01.txt
+  67391acb3d857ea3ea4f6d5462974ec191a3ee6be8be0ae96c4fd244d1c9a143  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-SD-02.txt
+  2d4db50ae94412cdf121685c55a65f75149c8663c3cc80c993dd19fff6ce6619  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-TM-01.txt
+  96b98b8a00515b6c8ca6a1244355816607a47e44dc31dad1fa62950f84ad8750  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-TM-02.txt
+  c3317e015f2d6dd0a2fff0cf9d16035cc8912afbc661a862635ef57c628e4d51  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-TR-01.txt
+  8c189ef509e96b5411337c4a0781313992fd912bc082cf95117ede8e2ec7a6cc  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-TR-02.txt
+  2ed6669338471f08392b7d2c5e63f50c4b06759c1b85f9aaec3a53ed98c560ae  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-WM-01.txt
+  ed34f3b43b7d2376d3b9b2ae6f41084ec6f8996ec4acd90c61309740f818038c  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/claude-sonnet-5-5/K-MOD-WM-02.txt
+  4205bfe887f55d4af58d5bdb5331066855c69e0b7bd47098107d33abc9e1c197  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-ABAP-01.txt
+  61e54c3b4a1333d2b9fc3c87e59f2b75a9b6f79ffc84cc9216d3480eaf810064  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-ABAP-02.txt
+  b180ceca5886f42f684bd03ddaa28ee6073122de9a0dcf52a6e428b1c0983d76  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-ABAP-03.txt
+  c51987ff96dc9e4a6db21e9ec21e7671a5715717ea8651afd73021d664a055a4  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-ABAP-04.txt
+  4f1467c33ea6bf1057750c371035eb53e3f86d3987dfcd1c5cbab79ed5f4f508  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-ABAP-05.txt
+  c4461eb27c6d604826ae0c840f75c768b872201718acbc6190ed0eaaf8d50271  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-ABAP-06.txt
+  48cb52c2978bc94b4bc3c84a934382725cf613ba6fe984a5f862940c17d43bd0  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-ABAP-07.txt
+  4a1893f1526765266646146496707eb59116ea843598835b676299dd110a7181  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-CTY-AU-01.txt
+  777baabe2f59a499ca605fe37a0fd3fa9b93b385cfad8af131e2af64d69b1a6a  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-CTY-BR-01.txt
+  3c7e2210b96e193d70be1298b5edb04d12df147e40477417679984ebca1f1aa4  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-CTY-CN-01.txt
+  013dc0d3445261fa0637e2d9c68e151e435bed91c57a94b0a92097d8cf0633ac  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-CTY-DE-01.txt
+  096ff78aef2dc78794bbd7a585aed371af4b8d654165e262d6102d69c4cee796  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-CTY-ES-01.txt
+  9d1c500004f0e25e3a5bd39489bce24be1b3c40f42a8b90d56e0a502e70edbb2  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-CTY-EU-01.txt
+  d1ecb6b1a8893ae23c7650e08b9503c0ce0b45e212156379f79a6abfef8ffd22  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-CTY-FR-01.txt
+  0d1594265c88a762268a657810cb45fcc8cb507224e1b183ab687d6459808095  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-CTY-GB-01.txt
+  16deb69f9c633ae929ae7d3ae8026ba21f4834339e9d4408285ba022572b0c9f  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-CTY-IN-01.txt
+  038a6edc1bfaf388780866d3bfd9e01daa2a233a2c552c9db7e8e0347eda75e8  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-CTY-IT-01.txt
+  e8ea722f065a418da33ad8c62b3b814bae70be2f7268bfa5bb4c3ca703fe2fac  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-CTY-JP-01.txt
+  38e5e0137fe19cac174841f1fc6a8044856c3671b72aada757c25397c6d64c46  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-CTY-KR-01.txt
+  739918cd04d09987926b32a0138088509e6b05653fcf3c7201dc578d4762fb2b  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-CTY-MX-01.txt
+  4bcd1abcc5ddab14e885dbddce0650b5c27e8563188888c115c415b4017692f1  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-CTY-NL-01.txt
+  6b796852890aff9b0fe82537b1547c34a56fa3659a9448a097d33a1023db2e97  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-CTY-SG-01.txt
+  2496c0cc29df2468c0eb2b284c2f08fa986e22ddac6aed23bf5a9fb865c3acb4  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-CTY-US-01.txt
+  83547135d7c4df2a0ab5d5e3d91924aca0b422aab0e9b13b41d6b9e1146fc6c3  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-IND-banking-01.txt
+  c5c3692cb4ab107a2d37903c0a9c04721cedd230e3faaf596be0d4209d749a0f  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-IND-chemical-01.txt
+  2191477ccb0410c87b186c4d3224d4ae74a78a7d024037aded7735ab01d1e90d  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-IND-fashion-01.txt
+  999e77660f8ccf64424204b92a4b0d9204173271006c9d4e91a9742ac4096cab  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-IND-pharmaceutical-01.txt
+  04f81015ad8ef20ca97c149487c35a7057372716e8e807d962926c2f386e790d  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-IND-steel-01.txt
+  3e2a3d830ec3b2e9bb72becc02645c5f469d02b4ce9617152b0da145d52d49b3  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-IND-tire-01.txt
+  df59385a8a2528799b6e792444a3af9aae34308f6f40041bab117f7637ae6cec  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-IND-utilities-01.txt
+  50aacdd48b2152182c0ccbe4f2e4366efaf963a0cbfb74a985e44758d47699ec  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-Ariba-01.txt
+  573604d6ade202b56277532171e12d7a8e2dbaef692bc1c62379b156fa34a9f7  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-Ariba-02.txt
+  15a1e9f72acc285f04cfbc00161632c46c021d9725bba4df34a189760fc88351  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-BC-01.txt
+  054038d1628f623a098a401119b5be9486ff5be877fa422bea88f5084dc3ce65  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-BC-02.txt
+  946a04c4f34ee55cad74754df5a29a8fefa5c19881d8b95a475ed4c43fab1217  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-BW-01.txt
+  0e62178410f01d99f11cc8ded2782ce3d99802416a4ed64460f38124eeed4c02  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-BW-02.txt
+  c8132ded346d8f8276cf20c32a842cd4f7676592a15c805fa092c3798c42e58b  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-CO-01.txt
+  da444a8d7dd882c9c524568daa728de4f85df94a6e3a10149757f20c30118933  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-CO-02.txt
+  707fefa4329e0c4047d7847a398b4d42ad55ccf8892efbdf85e75274cf992b72  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-FI-01.txt
+  306108c4009c4ae4e8aa5bf12fc2bb5af4e8eb3e5400230b079684eaf13456cc  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-FI-02.txt
+  780a1d48fe99628da1ec99b0c90650f8b7e3b52a4c3c1f2d34501105dfec09d7  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-HCM-01.txt
+  169d4a226cfef428857c021ae55e51c612a6e4e4dc8194c3af229b9c99b53a56  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-HCM-02.txt
+  db5445a65702ac153cf7fc733603266c66ff487649a62d922c20820c8acd615a  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-MM-01.txt
+  c63be345f5cc6f6aa1e8bd5a1fa065c849b6a0094689f79675fd74f5410895fd  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-MM-02.txt
+  d66f823fc9cac7189011fa7330f8f5e00dc8aba3de7d0e647ff3c1e6c4fe85cb  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-PM-01.txt
+  b70b931719365d550de16f8ecddc264ed9392aca4c340ab9bb32b074538450a3  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-PM-02.txt
+  79ac1912f7f4a31aea4541447da0e68150f2de98349b3366b4adb3a12a18d8ec  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-PP-01.txt
+  0c1cde1be494cf8fb0870462ce015d71f771e0e09599383ab99ed6365cf2ccef  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-PP-02.txt
+  d46c475464af7b845e283bb602e3d54630e83db318da38b94ab4d224845c38e2  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-PS-01.txt
+  4dcd33b8ceefbc4bb8b7308d80b677002e65859d18221576174519347a17340e  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-PS-02.txt
+  4f182d912a6e70d0cfd96e2089725c8c3d10823890f2fa4810e74069c7c5abbd  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-QM-01.txt
+  8820a6be2bdaddbdd02c8b3136b2f17c2f20f0c742e111a70846215cc642835b  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-QM-02.txt
+  44ea423a983e35375508724ac5a1f0f441912aa0c768099cb8deacf8dab8b53a  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-SD-01.txt
+  add5d3ec30c40004d5b567d2bfc2da1adca5586db1bef8a24bd7cb5b4a98ae53  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-SD-02.txt
+  3f8a8fa24214b76fd63bb517755bfc834a8d6722af574b7f8d5b5f654b161bdb  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-TM-01.txt
+  27b47b3f4b7f09861e9856a2649089d90184a03cff0ad6846d5d8d954914c0d7  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-TM-02.txt
+  d01b94447a194c931eb53372ae7c7394435aa771010e5bee16afae863e4460e4  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-TR-01.txt
+  ce44778522c1f249dad2c26b905313a56de120dddba90397f84345b725608a09  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-TR-02.txt
+  2e25dce38379c55f319864142355ca01b049c17f7bd6d6a22ab91e7a35a74ea0  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-WM-01.txt
+  16d8ace4fa2ce3dfa969d36abf642d59f1645b17affc83298069b8d1f640ef8e  docs/reference/audits/2026-11-05-harness-necessity-review-data/50-answers/gpt-5.6-sol/K-MOD-WM-02.txt
+  6bc62549fa051af0ee3da5715109115f8ea57459f5d78dd018fea281dbd58de7  docs/reference/audits/2026-11-05-harness-necessity-review-data/60-checker-summary.csv
+  edff7925659530409b6a520ef834c673fbf9b17d35a301be53d0c45094c3ab1c  docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-01.abap
+  ab9b425cac835e5fbe0f1bc6ba28508264d3b675c86cb1996fbaa1d4e29e624d  docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-02.abap
+  c660188325b6e137190ebaa84084536d8d73ca7a09825c8a16789d99e38211b1  docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-03.abap
+  ce724fd4230fe0800bd1a4f5940942f685b711ae83f5c6cc003e7e7591ae3c8a  docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-04.abap
+  ebeff7bc045b2b662bb2dd58ae83d6437311658d5e063294746c850c2114d066  docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-opus-5-5/C-05.abap
+  9b09c7a88c30d18339c8827ff795f3c9ea624ca5f4877e105b086ed8ba95482f  docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-01.abap
+  fc61dd6367510edd79f5c8ab28703fe44d445fe8c1eed36345e61ed0e4b60499  docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-02.abap
+  265aa7ff80c86855184a3d6a3d1efb9eacf794871347b6154f0194260472b618  docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-03.abap
+  4950314e7dee1b251cb0e49df58cf9a97e724911d366ddf877fefdc204ea33f4  docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-04.abap
+  6bc90a3c98e0639eac62d303faa69394ae81f09f6ec8b132748d2f22281da291  docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/claude-sonnet-5-5/C-05.abap
+  15929c585a2a9d8874c4dd7d6b31864cadceb9179f94d27bf773d552bb239649  docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-01.abap
+  3e12904619faff3dbec09e83a41881dc2bac6f8e35db534191f22bd183a8f0ca  docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-02.abap
+  4f4138d0d721040c7dbf3c178cb156afd0dc16517246e0e5e2e87c0d9066ef7c  docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-03.abap
+  a76d4c91ebf0d9d54923e790fb587f994f0217cbfa2b4a935fa63b56bb3b6322  docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-04.abap
+  70473e93dcceacbc7d818a717a4e050c96539c0ef4d61d6a31abfe75a286d369  docs/reference/audits/2026-11-05-harness-necessity-review-data/60-code/gpt-5.6-sol/C-05.abap
+  ef553538ae17da04a85d04b83faef5d9191ffa638dbbe18430f29d26533da5da  docs/reference/audits/2026-11-05-harness-necessity-review-data/83-results.json
+  dbb23d2d8c5e30e0f55f0724ec80fc14870829feb25d0c3828f0bb66b1f4793a  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-ABAP-01.txt
+  b6fcd5a0241567697cb91f8cf36c23c9f2f61792f9f74600a54fe0859b6275c5  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-ABAP-02.txt
+  b9699420a29c76f1b30e784ec1525d79249ff269958aa5a82fd520f1d45419f8  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-ABAP-03.txt
+  3011f89ce2d06792a2244b0ce2f0367933b45fb4346ca3fd82ee62da4c10c9c9  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-ABAP-04.txt
+  34eeddf05dfc43f6cca65f06ec44bc266275f0a854aac5dfe16580ce430efb8a  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-ABAP-05.txt
+  c6b2fcd5b79deed5a8138467533c8d128670607c17b97cddd964796070d50a28  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-ABAP-06.txt
+  388ff482fec1dd6d13e8e37aa2a98175b19626b5c1e264934664e669fa2433af  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-ABAP-07.txt
+  d6628ecb6c3b8ae14b929ad80ddd35d251bf6c6a01f6a113efefcf7134c083d8  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-CTY-AU-01.txt
+  212674f24a2256762cfc8781295859f58e59ac9f5ae46c6e656b6b1bcda3a729  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-CTY-BR-01.txt
+  95ad5b66d3621b4b819989feb11e7b7083e348275c85f92d3dd008ab33f13a2b  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-CTY-CN-01.txt
+  aaf36dd259aa9a0a39eeb8f054cddb952729090e6febe5f7cd68102a0a1bac5b  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-CTY-DE-01.txt
+  460e0020f01e707a832326a4ad9bbe87003afb24b7d009af061c20f3a8c0bf66  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-CTY-ES-01.txt
+  19ebada016a343f70dda6f2f6eb212e6caa740b1e99086e7e37e67a3d1fc96e2  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-CTY-EU-01.txt
+  f301f9f34e03be92d9cffcea42fec022dbfe301131658c398b575aa883ef0079  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-CTY-FR-01.txt
+  e7b3807e8d0c0ee62358c052d1ca1c9049b9456be585b06a4bd1bd0d0b6844a9  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-CTY-GB-01.txt
+  00c9364a1ac6d5bc5006abe1e39d829d45bb176bd4d22285e24d1751812da215  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-CTY-IN-01.txt
+  b443b5a6fccc297c78d53bedeff00935a7d64610a864e98a9a9322555325e196  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-CTY-IT-01.txt
+  b52f54e6ef85910d012b058ffeb860c93ec1428284ca18141d5d03f9f91f152f  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-CTY-JP-01.txt
+  860feea7d1b28e347157f0717d92db49e615e552b260960305edf6dd74c176bf  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-CTY-KR-01.txt
+  029ea1dba397a10fd0aec2697e851f6abab02175b105ecd5cd0dabd4330f4839  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-CTY-MX-01.txt
+  8c052873fa65c4f8c20d1450b90fcdeb967d37c6d640f4b48202ac03c264e6f7  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-CTY-NL-01.txt
+  021a791ea068d09bae9e46d931ab47e78196328a0081ff371570a87e2014ab1a  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-CTY-SG-01.txt
+  838738bb6fe18303224f334f579ea38ad6101d286eba5c650042157fee4188b1  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-CTY-US-01.txt
+  e9fb0cda0450de09427796b072fca96fb03ef35928cc0c4d8d3aa02871b50270  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-IND-banking-01.txt
+  3369794bb8edbd107ebfe3500c2d836d6c21ad6def6a23e806959653efa23e8d  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-IND-chemical-01.txt
+  e6cdb03d4925157fc0490c4d762edf372245e9e532e80e364e118078c7de0c72  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-IND-fashion-01.txt
+  dc3885e3f54907035fafe5cb9ba4b8172ea45f1af9c9f839c0089923c495f9d2  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-IND-pharmaceutical-01.txt
+  65cc5265d807bf66d55aeb7fe656057ba6491a5c7d52f3cd71e4308cf1f6071b  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-IND-steel-01.txt
+  87d9bbf43c5b138ef37c6721fcde6e4270392388e70b21e6915f3a04e124ac8a  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-IND-tire-01.txt
+  7b9b6a9c96c342548687bde8110fcef0d0a84e37de12782bb387fbfa3a8f6be1  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-IND-utilities-01.txt
+  c0e2b3bd20fc0dfad04a4238a3d4e5eee34adeaa9fb38ff6e0921f2f27ab7cf2  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-Ariba-01.txt
+  cd8a1ca85c4ea88e91901fe66249e3a746377c087254bfb5d4db1150a5072880  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-Ariba-02.txt
+  76e416bb13363e5c1f196e2838fd42b953c911bd59a24d925c8d75cd3023ba9c  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-BC-01.txt
+  b912695406723101c3e582824c459c25dc6ea732c0b78924b101c0dc08aa8ebb  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-BC-02.txt
+  aa2b51be432ad802081257dcface57fac8ddc6cd0ec00f9da92f9e7d11fd9067  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-BW-01.txt
+  20ce552827206df11f5743fac630cce47ca015bcf597c794d9536666351a3a1f  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-BW-02.txt
+  996b2fd04011334318bc25f7ed57d1df0a63b923d7ac7a50b32b328dddde41ce  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-CO-01.txt
+  7bf7d41d4056cbdce9a6529a91d478d4abe9920e55428e6101beb7462fdeaff6  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-CO-02.txt
+  23701351297f06b17d7a439f2d15450d6df13d22a0890a9d00b3d3bfc3b2c1de  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-FI-01.txt
+  ad3d5189cf3b2a1d288e7d5f11ed6d1570f8fd4fa2d077315d53122218c90287  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-FI-02.txt
+  9d8561356d24896f5af29f505e96cf4ac6bee99df8b38fcdc2c3adc112ed918a  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-HCM-01.txt
+  ba1d1e733f1a138ea0741eb83ccb0ec030774f8886b1a16d2107a7a0d2577a08  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-HCM-02.txt
+  256f510bb900677c37e74ddd78c4cecab4fdf379379bd22d82c51fb9fbe4dfd6  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-MM-01.txt
+  e0c89ed7ca4c3f5a16a8bd7ca8b350328123878fda18ae57dd1ae1ad038f029e  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-MM-02.txt
+  fd308a765ce7f0b68f14a4d3c0185a628bca1789fe1b11f7ea8821847387b493  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-PM-01.txt
+  ee3a76a09bc6db6436eee7963c877bc0ad7a505d19531e9426e7d0b08567fba5  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-PM-02.txt
+  8636d98c47e1f4f58a455d27417b7a0fd8876b79b666144057232cb2bef76150  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-PP-01.txt
+  395ec279cc33e1b4bb658ec3e3ebdee27b3ce4353d724e29493ad43d202a77d5  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-PP-02.txt
+  fd5cd106c93b677177b8adb4db31dc167ade5997101449c9b4e0db11ae33b5ca  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-PS-01.txt
+  5b1361be64f9ee7e1dde7d3c994f52d2cc3e293c8f22d8170df63905f4e27c63  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-PS-02.txt
+  8e468bd8effd1392970d144a42abd033443d285a2a411a3ff4a441a0556df7df  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-QM-01.txt
+  eab3fff36a629f9dcb54fbd825a4fe8d07c59730043b23e7621d47aeba3dcf21  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-QM-02.txt
+  c2d80d092dbd2a2566a125adabb56371d999b32c044cd499045401e04c452e62  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-SD-01.txt
+  5440055b0ea37fe72c779c0def526f08d36bd0b2b9fa90a62794cf0302cff37d  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-SD-02.txt
+  7e7eb7f6ca1bd501d7f2275ac1f51fe91154caa789e10af05d20473744ee24c2  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-TM-01.txt
+  3d2eb49ea6133cf3882243b39974852e3e91174c85532236a7c2ecef4b76c908  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-TM-02.txt
+  02f9f95f3ac954758db69c33e5b92126e47d1e0e48e6ba8cbb092717712fbaba  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-TR-01.txt
+  292171be7be72613251c18549825d4b84ff778292e2b6e90403549f403b1a4d0  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-TR-02.txt
+  bdf7d64747deba71a6259ac9cae1e13d0656164cddba909f4d3dafd14766b443  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-WM-01.txt
+  7ec9cedcaf40e0bfc0c0f2743d1df0a7c8cd93ed8ccb696b93e3a621a412d311  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-opus-5-5/K-MOD-WM-02.txt
+  0c127d3f0471eb4fdbc5f2d08849660bc313e6b6fd02c938ec577edf699a432e  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-ABAP-01.txt
+  0c13aaac77b5ee8cdce608ac0ba16c9c36cd987e113816f747c00e74825eee18  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-ABAP-02.txt
+  88828043cee3a6e0d9a44da97cb3a81aff2e9570bca9303d2d1c1c1b56469855  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-ABAP-03.txt
+  4dedbb4030b4107b7cdb0798f8eca7a3ee0def8d10ff1c9bb41d839824e2b64d  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-ABAP-04.txt
+  189c2200facd95433059b25c06654edb7e6325332afe55d9093837bd17f1737e  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-ABAP-05.txt
+  f5f13f104333f0ae4df5130672cd90446e759c8997a7adf2e3ad14dae753d958  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-ABAP-06.txt
+  94e4d4225224c15ea426338fc995a66aa66918c9ba62e2f2c96ef074b338252f  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-ABAP-07.txt
+  ff9d2fda3f29178da193eb0568cdbdff40fadfcee896b02c51d793f766507f04  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-CTY-AU-01.txt
+  febeef05b6a3ae2778b131f6ce15e115aa983ee71dbe2cd826bb7c18753677f0  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-CTY-BR-01.txt
+  69d7031543e2c744dfdeb126dde90718b9b7849b9ea58988235f1fe29214196a  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-CTY-CN-01.txt
+  6d34b58e09d4d665049ca56dfd80ac8ee1d22d3f460e58323a3aa4928c7e8ae0  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-CTY-DE-01.txt
+  c1c966b31b67f2aaaf0fb739e62b32eeb20347ccbf61c22a4482396653495857  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-CTY-ES-01.txt
+  9bbe28f16dd495326e3fac8c60913510f275b81df96f5b64d45371802852276b  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-CTY-EU-01.txt
+  ce5319fb3c4abc6a90d298b1e43c5f2a8a03f4e8b66688cb0e338d02b9e71508  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-CTY-FR-01.txt
+  abf00d4c7dc16939ab2934a0cb0ff8db1a152e1eae1b273fed530a1588e6b92c  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-CTY-GB-01.txt
+  1c7f702d7c696b21b241e4d2b6d782580e9d0a239cd80ebc20a655cf033d7709  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-CTY-IN-01.txt
+  d7ef7b6b06a21f95a8b39cd84f58cf211e4144a0ead974d3a4a66e4f58730aa0  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-CTY-IT-01.txt
+  8063b5fa5df53f920e6f36155dca44ba8976dde0398f3aceae8173b773dd8519  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-CTY-JP-01.txt
+  afa39719a52f3e6e6fe390dbdf92ff18049e2884b093cebd3e28d5e4a1ecfc54  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-CTY-KR-01.txt
+  81cbc00d56401a7985768b79289cf8fbe70d6962aa2df5d33bf329b2eb2f46f4  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-CTY-MX-01.txt
+  75c38542b24e7b2c4694244751499b640161782a8b4e2f66e5c8199c51208cf3  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-CTY-NL-01.txt
+  d408d54e0bb764f03c3591b8d65ed1f7ac419b87635f7d23c964ad97b8e38887  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-CTY-SG-01.txt
+  66dab08a2b1d2af4adfa65fcc4c61d5628e0b7be7a75d72cb0a8b5145a3b7217  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-CTY-US-01.txt
+  2a6b3c6637e7ef123f18dd5a522df72afafed834f43f270df8d7c5c7cff29347  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-IND-banking-01.txt
+  eb265f947d4b5bc705227a8eb907209ad1b1ce5afbe6fa43394181a066ff698f  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-IND-chemical-01.txt
+  ecba8771bf80248dd05f255614d47d05a87971e82ce4c391c357f4cf2f0a1f20  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-IND-fashion-01.txt
+  eed7559e49a81a43809b3f9dcc390637cea62ce07308399e3efea5b5209a778d  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-IND-pharmaceutical-01.txt
+  1d46033152edd1eb58338d0b3003df18185ec21747edb78f03f34225e575acb8  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-IND-steel-01.txt
+  2c7bdc0636d5e003b78e1b42d6ce14258ab2aa9e201d801721094990da7e7e61  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-IND-tire-01.txt
+  a14064d6dc9a096db5a3867a5f9eccc6118fdd212b9ce2d40a8f57f26ec296ec  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-IND-utilities-01.txt
+  d3806d08c5dde373c3d0de51af13c9ef19290158c6d786dfde99f5c6249884e9  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-Ariba-01.txt
+  67604720666b0d0bb266ed85554647a76d789e545bb8fd494acdbdba1e758239  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-Ariba-02.txt
+  cccd26fbeed24d581719130be581b2a90d17f1c26722f16460f6b00472bb9094  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-BC-01.txt
+  ee63fdfc239cb80168856668b03a62940a2bc1a85f9e7e27ee7c61472032a093  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-BC-02.txt
+  c0724836dd144c813a718f6aba89a738d581b2d30f370296e70b01af1ffd7f49  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-BW-01.txt
+  28a232ac8c7599dc049a24df1815c2e3489b2ddfa7c7afda9c4c1a67c6cec702  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-BW-02.txt
+  e964f25266c66681c5fffbce4390f725f7ca00d45677a179436eaf1cd5f3ba35  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-CO-01.txt
+  376ce660a2713ffbe7c9a5713746b2ec53fcf14a532487fd73b268b911329342  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-CO-02.txt
+  a676a4b4ad176ef6149a9e005926a6d26fe3d0016eb48dd55ed92f9cb59b0fe4  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-FI-01.txt
+  681e1a83dc7075d778285e1036e70ed820d21e50ddf141ca99df10d6ace589cb  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-FI-02.txt
+  851b66d1983961aade16bd235bbdfa26fc372b6b13e1959006d699e5c7c786e8  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-HCM-01.txt
+  6d989a26d96836c7448faa3b994a31699f6ef85c6e54eabe8229e30487fcff7e  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-HCM-02.txt
+  e161c2244145ab6470c8fef66f12cfd1c997d4a6f8b3866f6475c60d9ebbe618  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-MM-01.txt
+  2cd3432dd023a245eaa42793e958aa33d4517633657d13bb0e97f849af9895a3  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-MM-02.txt
+  c40d10843516d642f0c57322c94238de5911c3a253a51cffd277a33bc0354008  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-PM-01.txt
+  ea2c36c523e32fec2cf33206d63ca2a109f2403a9332bdc0d427181a946b3a78  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-PM-02.txt
+  a7e68d488ad9efb60de113c289207f8bce8a8d134db9f7fef38d0cf602a8448e  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-PP-01.txt
+  bde8a21ca50f251f58b01d67478db35e013ea8ed4489594f1552d754b0d51b43  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-PP-02.txt
+  5f4a81013401a8626859b54dceefb6fb6bd6598d4624329f8a95ddbbb587442c  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-PS-01.txt
+  b43a884b0030beb8aa2a7bf27c86d45ba0ea16d70d9aac213093f436de007116  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-PS-02.txt
+  f213dc0f48b95dc14cb5a17d2709a09039d623503ee1539877859df29ca8e42e  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-QM-01.txt
+  bd2be54e825b5a2916c238427dc229a90b5783284697936dc2aca9e3ba37eaff  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-QM-02.txt
+  af333564399bb80a270ddb129e80ab76ae4b05514bf173433b5cf5d2239bbdbb  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-SD-01.txt
+  285696c7b8f87ebf7be1ff8e7cc66ec56fad8ef93fd2ef22988969da512373be  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-SD-02.txt
+  5932ee04b6840dcce8759967496b0c3faf853d8e390ff042cb6022adf139a5f0  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-TM-01.txt
+  5b8d8d06c5a8fca498d4591709d6ee1a0037efd2edc97e5fb9ad66dd739a4ec6  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-TM-02.txt
+  c41a82d1969d4cd9f09de8738553384398d62678d772c723e3333337f607a2a1  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-TR-01.txt
+  f87dbf89aee878a17ad6a5c9f46d4967a1f2a21924528034aec31e710790d174  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-TR-02.txt
+  7edb5285604192c75a1b9940b25165c5425adc0e7e78b60aba622bbed2c734b9  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-WM-01.txt
+  29944265a6009077b762515401efb7389469f488a6b318ed9125d7dc60fe7a6c  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-50-answers/claude-sonnet-5-5/K-MOD-WM-02.txt
+  a9201ba601a479f75647214467373085e6df26f649a1d2cfd0378188b9ad0c85  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-checker-summary.csv
+  443fa0423df8884c17b13fa5716ffd8542a1f13d586f6a2cbc6954f071abe7fd  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-01.abap
+  956383ebc06f454ff0eddcd395902b21eea3ba263760c1004c66f1cc994db8b5  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-02.abap
+  d4a6c591ec5e49ed0548b2f0b40244fbc03df1c68fcb6ed1bcb5cf9c24f363e0  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-03.abap
+  69a7b8efe867b9c0af0d8fc30d21df33be8616112108e53723159c7b3046927c  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-04.abap
+  322ff470b287feebea6ea291b001123c69965b3f0c8c79acae2d8f8e6a557be2  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-05.abap
+  5fc08f658cbf853a0c267c320f10d88ae4c1a897ad03848d04ab4f37ef51c33e  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-01.abap
+  b3218bec0054d7490858b3f961c25ac53592eb758acc6af19c1df03a208ad1e9  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-02.abap
+  013cdf997d88c9aa8a3e974cb7c55eedacba4133216bf42014c0f45695ba6937  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-03.abap
+  c38d6c19466f86612129a9a45710143b1161e2103cfe3db9ca6eff36b539444d  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-04.abap
+  46ef51742a1fa8c2d9413b5f4ef8d04763861585235e3a4c911440e8f901a80a  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-05.abap
+
+결과: PASS (실패 0)
