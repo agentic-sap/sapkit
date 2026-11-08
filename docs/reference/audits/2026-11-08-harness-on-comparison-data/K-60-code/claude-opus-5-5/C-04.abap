@@ -1,0 +1,113 @@
+*&---------------------------------------------------------------------*
+*& Report ZJUDGE_C04
+*&---------------------------------------------------------------------*
+*& Totals goods-movement quantities (MSEG-MENGE, base unit) and item
+*& counts per material + plant for a plant / posting-date / movement-
+*& type selection. MSEG items joined to MKPF for the posting date.
+*& Quantity is netted by debit/credit indicator (SHKZG 'H' = minus).
+*&---------------------------------------------------------------------*
+REPORT zjudge_c04.
+
+TABLES: mseg, mkpf.
+
+TYPES: BEGIN OF ty_item,
+         matnr TYPE mseg-matnr,
+         werks TYPE mseg-werks,
+         meins TYPE mseg-meins,
+         menge TYPE mseg-menge,
+         shkzg TYPE mseg-shkzg,
+       END OF ty_item,
+       BEGIN OF ty_out,
+         matnr TYPE mseg-matnr,
+         werks TYPE mseg-werks,
+         menge TYPE mseg-menge,
+         meins TYPE mseg-meins,
+         cnt   TYPE i,
+       END OF ty_out.
+
+DATA: gt_item TYPE STANDARD TABLE OF ty_item,
+      gt_out  TYPE SORTED TABLE OF ty_out
+              WITH UNIQUE KEY matnr werks meins.
+
+SELECTION-SCREEN BEGIN OF BLOCK b01 WITH FRAME TITLE text-b01.
+SELECT-OPTIONS: s_werks FOR mseg-werks OBLIGATORY,
+                s_budat FOR mkpf-budat OBLIGATORY,
+                s_bwart FOR mseg-bwart.
+SELECTION-SCREEN END OF BLOCK b01.
+
+START-OF-SELECTION.
+  PERFORM get_data.
+  IF gt_out IS INITIAL.
+    MESSAGE 'No goods movements found'(m01) TYPE 'S'
+            DISPLAY LIKE 'E'.
+    RETURN.
+  ENDIF.
+  PERFORM display_alv.
+
+*&---------------------------------------------------------------------*
+FORM get_data.
+  DATA: ls_out TYPE ty_out.
+  FIELD-SYMBOLS: <ls_item> TYPE ty_item,
+                 <ls_out>  TYPE ty_out.
+
+  SELECT s~matnr s~werks s~meins s~menge s~shkzg
+    INTO TABLE gt_item
+    FROM mseg AS s
+    INNER JOIN mkpf AS k
+      ON  k~mblnr = s~mblnr
+      AND k~mjahr = s~mjahr
+    WHERE s~werks IN s_werks
+      AND k~budat IN s_budat
+      AND s~bwart IN s_bwart.
+
+  LOOP AT gt_item ASSIGNING <ls_item>.
+    IF <ls_item>-shkzg = 'H'.
+      <ls_item>-menge = - <ls_item>-menge.
+    ENDIF.
+    READ TABLE gt_out ASSIGNING <ls_out>
+         WITH TABLE KEY matnr = <ls_item>-matnr
+                        werks = <ls_item>-werks
+                        meins = <ls_item>-meins.
+    IF sy-subrc = 0.
+      <ls_out>-menge = <ls_out>-menge + <ls_item>-menge.
+      <ls_out>-cnt   = <ls_out>-cnt + 1.
+    ELSE.
+      CLEAR ls_out.
+      ls_out-matnr = <ls_item>-matnr.
+      ls_out-werks = <ls_item>-werks.
+      ls_out-meins = <ls_item>-meins.
+      ls_out-menge = <ls_item>-menge.
+      ls_out-cnt   = 1.
+      INSERT ls_out INTO TABLE gt_out.
+    ENDIF.
+  ENDLOOP.
+  FREE gt_item.
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+FORM display_alv.
+  DATA: lo_salv    TYPE REF TO cl_salv_table,
+        lo_columns TYPE REF TO cl_salv_columns_table,
+        lo_column  TYPE REF TO cl_salv_column_table,
+        lx_salv    TYPE REF TO cx_salv_error.
+
+  TRY.
+      cl_salv_table=>factory( IMPORTING r_salv_table = lo_salv
+                              CHANGING  t_table      = gt_out ).
+      lo_salv->get_functions( )->set_all( abap_true ).
+      lo_columns = lo_salv->get_columns( ).
+      lo_columns->set_optimize( abap_true ).
+
+      lo_column ?= lo_columns->get_column( 'MENGE' ).
+      lo_column->set_quantity_column( 'MEINS' ).
+
+      lo_column ?= lo_columns->get_column( 'CNT' ).
+      lo_column->set_short_text( 'Items'(c01) ).
+      lo_column->set_medium_text( 'No. of Items'(c02) ).
+      lo_column->set_long_text( 'Number of Items'(c03) ).
+
+      lo_salv->display( ).
+    CATCH cx_salv_error INTO lx_salv.
+      MESSAGE lx_salv TYPE 'S' DISPLAY LIKE 'E'.
+  ENDTRY.
+ENDFORM.

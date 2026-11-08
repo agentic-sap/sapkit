@@ -1,0 +1,241 @@
+K-60-checker/claude-opus-5-5/C-04.txt — 동봉 검사기 원출력 (판K T6)
+대상: docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-04.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.16.0
+명령 3종 (판J 11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-04.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-04.abap
+--- stdout (1261 bytes) ---
+docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-04.abap:50:9: W [local_variable_names] Field symbol name "SYMBOLS" is outside the agreed pattern ^<[Ll][VvSsTtRr]_\w+>$
+docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-04.abap:50:9: W [local_variable_names] Field symbol name "SYMBOLS" is outside the agreed pattern ^<[Ll][VvSsTtRr]_\w+>$
+docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-04.abap:89:9: W [local_variable_names] Local variable name "lo_salv" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-04.abap:90:9: W [local_variable_names] Local variable name "lo_columns" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-04.abap:91:9: W [local_variable_names] Local variable name "lo_column" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-04.abap:92:9: W [local_variable_names] Local variable name "lx_salv" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+--- stderr (128 bytes) ---
+docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-04.abap: 6 finding(s), 0 at Error level
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-04.abap
+--- stdout (5346 bytes) ---
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Report ZJUDGE_C04
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Totals goods-movement quantities (MSEG-MENGE, base unit) and item
+Comment              *& counts per material + plant for a plant / posting-date / movement-
+Comment              *& type selection. MSEG items joined to MKPF for the posting date.
+Comment              *& Quantity is netted by debit/credit indicator (SHKZG 'H' = minus).
+Comment              *&---------------------------------------------------------------------*
+Report               REPORT zjudge_c04 .
+Move                 TABLES mseg ,
+Move                 TABLES mkpf .
+TypeBegin            TYPES BEGIN OF ty_item ,
+Type                 TYPES matnr TYPE mseg - matnr ,
+Type                 TYPES werks TYPE mseg - werks ,
+Type                 TYPES meins TYPE mseg - meins ,
+Type                 TYPES menge TYPE mseg - menge ,
+Type                 TYPES shkzg TYPE mseg - shkzg ,
+TypeEnd              TYPES END OF ty_item ,
+TypeBegin            TYPES BEGIN OF ty_out ,
+Type                 TYPES matnr TYPE mseg - matnr ,
+Type                 TYPES werks TYPE mseg - werks ,
+Type                 TYPES menge TYPE mseg - menge ,
+Type                 TYPES meins TYPE mseg - meins ,
+Type                 TYPES cnt TYPE i ,
+TypeEnd              TYPES END OF ty_out .
+Data                 DATA gt_item TYPE STANDARD TABLE OF ty_item ,
+Data                 DATA gt_out TYPE SORTED TABLE OF ty_out WITH UNIQUE KEY matnr werks meins .
+SelectionScreen      SELECTION - SCREEN BEGIN OF BLOCK b01 WITH FRAME TITLE text - b01 .
+SelectOption         SELECT - OPTIONS s_werks FOR mseg - werks OBLIGATORY ,
+SelectOption         SELECT - OPTIONS s_budat FOR mkpf - budat OBLIGATORY ,
+SelectOption         SELECT - OPTIONS s_bwart FOR mseg - bwart .
+SelectionScreen      SELECTION - SCREEN END OF BLOCK b01 .
+StartOfSelection     START - OF - SELECTION .
+Perform              PERFORM get_data .
+If                   IF gt_out IS INITIAL .
+Message              MESSAGE 'No goods movements found' ( m01 ) TYPE 'S' DISPLAY LIKE 'E' .
+Return               RETURN .
+EndIf                ENDIF .
+Perform              PERFORM display_alv .
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM get_data .
+Data                 DATA ls_out TYPE ty_out .
+FieldSymbol          FIELD - SYMBOLS <ls_item> TYPE ty_item ,
+FieldSymbol          FIELD - SYMBOLS <ls_out> TYPE ty_out .
+Select               SELECT s~matnr s~werks s~meins s~menge s~shkzg INTO TABLE gt_item FROM mseg AS s INNER JOIN mkpf AS k ON k~mblnr = s~mblnr AND k~mjahr = s~mjahr WHERE s~werks IN s_werks AND k~budat IN s_budat AND s~bwart IN s_bwart .
+Loop                 LOOP AT gt_item ASSIGNING <ls_item> .
+If                   IF <ls_item> - shkzg = 'H' .
+Move                 <ls_item> - menge = - <ls_item> - menge .
+EndIf                ENDIF .
+ReadTable            READ TABLE gt_out ASSIGNING <ls_out> WITH TABLE KEY matnr = <ls_item> - matnr werks = <ls_item> - werks meins = <ls_item> - meins .
+If                   IF sy - subrc = 0 .
+Move                 <ls_out> - menge = <ls_out> - menge + <ls_item> - menge .
+Move                 <ls_out> - cnt = <ls_out> - cnt + 1 .
+Else                 ELSE .
+Clear                CLEAR ls_out .
+Move                 ls_out - matnr = <ls_item> - matnr .
+Move                 ls_out - werks = <ls_item> - werks .
+Move                 ls_out - meins = <ls_item> - meins .
+Move                 ls_out - menge = <ls_item> - menge .
+Move                 ls_out - cnt = 1 .
+InsertInternal       INSERT ls_out INTO TABLE gt_out .
+EndIf                ENDIF .
+EndLoop              ENDLOOP .
+Move                 FREE gt_item .
+EndForm              ENDFORM .
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM display_alv .
+Data                 DATA lo_salv TYPE REF TO cl_salv_table ,
+Data                 DATA lo_columns TYPE REF TO cl_salv_columns_table ,
+Data                 DATA lo_column TYPE REF TO cl_salv_column_table ,
+Data                 DATA lx_salv TYPE REF TO cx_salv_error .
+Try                  TRY .
+Call                 cl_salv_table => factory ( IMPORTING r_salv_table = lo_salv CHANGING t_table = gt_out ) .
+Call                 lo_salv -> get_functions ( ) -> set_all ( abap_true ) .
+Move                 lo_columns = lo_salv -> get_columns ( ) .
+Call                 lo_columns -> set_optimize ( abap_true ) .
+Move                 lo_column ?= lo_columns -> get_column ( 'MENGE' ) .
+Call                 lo_column -> set_quantity_column ( 'MEINS' ) .
+Move                 lo_column ?= lo_columns -> get_column ( 'CNT' ) .
+Call                 lo_column -> set_short_text ( 'Items' ( c01 ) ) .
+Call                 lo_column -> set_medium_text ( 'No. of Items' ( c02 ) ) .
+Call                 lo_column -> set_long_text ( 'Number of Items' ( c03 ) ) .
+Call                 lo_salv -> display ( ) .
+Catch                CATCH cx_salv_error INTO lx_salv .
+Message              MESSAGE lx_salv TYPE 'S' DISPLAY LIKE 'E' .
+EndTry               ENDTRY .
+EndForm              ENDFORM .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-04.abap
+--- stdout (3153 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 25,
+      "endLine": 25,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 29,
+      "endLine": 29,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 51,
+      "endLine": 51,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 57,
+      "endLine": 57,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 73,
+      "endLine": 73,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 80,
+      "endLine": 80,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 89,
+      "endLine": 89,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 91,
+      "endLine": 91,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 92,
+      "endLine": 92,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 96,
+      "endLine": 96,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 10,
+    "bySeverity": {
+      "medium": 10
+    },
+    "byCategory": {
+      "quality": 10
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=6 analyze_high=0 analyze_medium=10 analyze_info=0 error_grade=0 warnings=16 source_lines=113 bytes=3738 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (판J 11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

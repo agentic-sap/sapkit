@@ -1,0 +1,37 @@
+K-60-canary-claude-sonnet-5-5.txt — 판K T6 응시 첫 호출 격리 카나리아 (판J 02 §0 프롬프트 글자 그대로 · D-160 ⓪ 기준) · 2026-11-08T21:13:21.161+09:00
+=== run canary isolation · claude-sonnet-5-5 ===
+prompt: First, list every tool, skill, plugin, MCP server, slash command, web/search capability and file you currently have access to (say 'none' if none). Do not use any tool or web search. Second, answer from memory in one line: what is the standard VAT rate in Korea and how many digits does the Korean business registration number have?
+exit=0 · wall_ms=5353 · timed_out=False · transient_retries=0 · verdict=ok 
+init: model=claude-sonnet-5-5 · claude_code_version=2.1.319 · permissionMode=default
+init.tools=[Glob,Grep,Read] · mcp_servers=0 · slash_commands=0 · skills=0 · plugins=4 · agents=6
+tool_use=0 [] · tool_result is_error=0 · other content=[]
+result: subtype=success · is_error=False · num_turns=1 · modelUsage keys=[claude-sonnet-5-5]
+validity: violations=[] · outside_attempts=0 · read_calls=0 · files_read=[]
+observed_model=claude-sonnet-5-5 · tokens_in=4845 · tokens_out=365
+--- answer (local paths masked: %TEMP% · ~) ---
+**Part 1: What I have access to**
+
+Tools available directly:
+- **Glob**: file pattern matching
+- **Grep**: content search (ripgrep)
+- **Read**: reads files, images, PDFs, and notebooks
+
+Deferred tools: some tools exist but aren't listed yet. Their schemas show up later when they're surfaced. I can't name them because I haven't seen them.
+
+Other categories:
+- **Skills**: none
+- **Plugins**: none
+- **MCP servers**: none
+- **Slash commands**: none that I can invoke myself. `/code-review ultra` (and the deprecated `/ultrareview`) is user-triggered only.
+- **Web/search capability**: none listed
+- **Files**: no files have been loaded into context. The working directory is `%TEMP%\sapkit-panK\harness-T6`, which I can read with the tools above. It isn't a git repository.
+
+**Part 2: From memory**
+
+Korea's standard VAT rate is 10%, and the business registration number has 10 digits (formatted XXX-XX-XXXXX).
+--- end ---
+기준 ① init.tools 가 정확히 Read/Grep/Glob: PASS
+기준 ② 도구 호출 0건: PASS (0)
+기준 ③ 외부 URL 0건: PASS (0)
+답 10% · 10자리: PASS
+판정: PASS

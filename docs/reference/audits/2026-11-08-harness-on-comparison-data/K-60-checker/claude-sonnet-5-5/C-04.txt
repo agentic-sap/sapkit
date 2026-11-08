@@ -1,0 +1,148 @@
+K-60-checker/claude-sonnet-5-5/C-04.txt — 동봉 검사기 원출력 (판K T6)
+대상: docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-04.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.16.0
+명령 3종 (판J 11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-04.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-04.abap
+--- stdout (0 bytes) ---
+
+--- stderr (111 bytes) ---
+docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-04.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-04.abap
+--- stdout (4304 bytes) ---
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Report  ZJUDGE_C04
+Comment              *& Goods-movement quantities totalled per material and plant
+Comment              *&---------------------------------------------------------------------*
+Report               REPORT zjudge_c04 LINE - SIZE 90 NO STANDARD PAGE HEADING .
+Move                 TABLES mkpf ,
+Move                 TABLES mseg .
+TypeBegin            TYPES BEGIN OF ty_result ,
+Type                 TYPES matnr TYPE mseg - matnr ,
+Type                 TYPES werks TYPE mseg - werks ,
+Type                 TYPES meins TYPE mseg - meins ,
+Type                 TYPES menge TYPE mseg - menge ,
+Type                 TYPES cnt TYPE i ,
+TypeEnd              TYPES END OF ty_result ,
+Type                 TYPES ty_t_result TYPE STANDARD TABLE OF ty_result WITH DEFAULT KEY .
+Data                 DATA gt_result TYPE ty_t_result ,
+Data                 DATA gv_total TYPE i .
+Constant             CONSTANTS gc_x TYPE c LENGTH 1 VALUE 'X' .
+SelectionScreen      SELECTION - SCREEN BEGIN OF BLOCK b01 WITH FRAME TITLE TEXT - 001 .
+SelectOption         SELECT - OPTIONS s_werks FOR mseg - werks ,
+SelectOption         SELECT - OPTIONS s_budat FOR mkpf - budat ,
+SelectOption         SELECT - OPTIONS s_bwart FOR mseg - bwart .
+SelectionScreen      SELECTION - SCREEN END OF BLOCK b01 .
+StartOfSelection     START - OF - SELECTION .
+Perform              PERFORM read_data CHANGING gt_result .
+Move                 END - OF - SELECTION .
+Perform              PERFORM display_list USING gt_result .
+Comment              *--------------------------------------------------------------------*
+Comment              * read_data - aggregates MSEG items (header date from MKPF) per
+Comment              *   material/plant/base unit; s_bwart is optional (empty = all).
+Comment              *--------------------------------------------------------------------*
+Form                 FORM read_data CHANGING pt_result TYPE ty_t_result .
+Clear                CLEAR pt_result .
+Select               SELECT mseg~matnr mseg~werks mseg~meins SUM ( mseg~menge ) COUNT ( * ) FROM mseg INNER JOIN mkpf ON mkpf~mblnr = mseg~mblnr AND mkpf~mjahr = mseg~mjahr INTO TABLE pt_result WHERE mseg~werks IN s_werks AND mseg~bwart IN s_bwart AND mkpf~budat IN s_budat GROUP BY mseg~matnr mseg~werks mseg~meins ORDER BY mseg~matnr mseg~werks mseg~meins .
+If                   IF sy - subrc <> 0 .
+Clear                CLEAR pt_result .
+Message              MESSAGE s398 ( 00 ) WITH 'No data found' ( 002 ) space space space .
+EndIf                ENDIF .
+EndForm              ENDFORM .
+Comment              *--------------------------------------------------------------------*
+Comment              * display_list - classic WRITE list, one line per material + plant.
+Comment              *--------------------------------------------------------------------*
+Form                 FORM display_list USING pt_result TYPE ty_t_result .
+Data                 DATA ls_result TYPE ty_result ,
+Data                 DATA lv_lines TYPE i .
+Move                 DESCRIBE TABLE pt_result LINES lv_lines .
+If                   IF lv_lines = 0 .
+Return               RETURN .
+EndIf                ENDIF .
+Write                WRITE / 'Material' ( 003 ) COLOR COL_HEADING ,
+Write                WRITE 22 'Plant' ( 004 ) COLOR COL_HEADING ,
+Write                WRITE 30 'Total quantity' ( 005 ) COLOR COL_HEADING ,
+Write                WRITE 55 'Unit' ( 006 ) COLOR COL_HEADING ,
+Write                WRITE 62 'Items' ( 007 ) COLOR COL_HEADING .
+Move                 ULINE .
+Loop                 LOOP AT pt_result INTO ls_result .
+Write                WRITE / ls_result - matnr ,
+Write                WRITE 22 ls_result - werks ,
+Write                WRITE 28 ls_result - menge UNIT ls_result - meins ,
+Write                WRITE 55 ls_result - meins ,
+Write                WRITE 60 ls_result - cnt .
+Move                 gv_total = gv_total + ls_result - cnt .
+EndLoop              ENDLOOP .
+Move                 ULINE .
+Write                WRITE / 'Lines' ( 008 ) ,
+Write                WRITE lv_lines ,
+Write                WRITE / 'Total items' ( 009 ) ,
+Write                WRITE gv_total .
+EndForm              ENDFORM .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-04.abap
+--- stdout (1085 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 14,
+      "endLine": 14,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 19,
+      "endLine": 19,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 68,
+      "endLine": 68,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 3,
+    "bySeverity": {
+      "medium": 3
+    },
+    "byCategory": {
+      "quality": 3
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=3 analyze_info=0 error_grade=0 warnings=3 source_lines=95 bytes=2912 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (판J 11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

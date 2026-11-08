@@ -1,0 +1,54 @@
+FUNCTION z_judge_c03_get_material_text
+  IMPORTING
+    VALUE(iv_matnr) TYPE matnr
+    VALUE(iv_spras) TYPE spras DEFAULT sy-langu
+  EXPORTING
+    VALUE(ev_maktx) TYPE maktx
+  EXCEPTIONS
+    material_not_found
+    text_not_found.
+
+  DATA: lv_matnr TYPE matnr,
+        lv_spras TYPE spras.
+
+  CLEAR ev_maktx.
+
+  " Normalize inputs: internal material number format, logon language fallback
+  CALL FUNCTION 'CONVERSION_EXIT_MATN1_INPUT'
+    EXPORTING
+      input        = iv_matnr
+    IMPORTING
+      output       = lv_matnr
+    EXCEPTIONS
+      length_error = 1
+      OTHERS       = 2.
+  IF sy-subrc <> 0.
+    RAISE material_not_found.
+  ENDIF.
+
+  lv_spras = iv_spras.
+  IF lv_spras IS INITIAL.
+    lv_spras = sy-langu.
+  ENDIF.
+
+  " Error condition 1: material does not exist
+  SELECT SINGLE matnr
+    FROM mara
+    INTO lv_matnr
+    WHERE matnr = lv_matnr.
+  IF sy-subrc <> 0.
+    RAISE material_not_found.
+  ENDIF.
+
+  " Error condition 2: no description maintained in the requested language
+  SELECT SINGLE maktx
+    FROM makt
+    INTO ev_maktx
+    WHERE matnr = lv_matnr
+      AND spras = lv_spras.
+  IF sy-subrc <> 0.
+    CLEAR ev_maktx.
+    RAISE text_not_found.
+  ENDIF.
+
+ENDFUNCTION.
