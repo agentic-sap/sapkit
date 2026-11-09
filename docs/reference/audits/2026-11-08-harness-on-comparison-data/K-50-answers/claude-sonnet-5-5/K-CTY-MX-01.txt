@@ -1,0 +1,1 @@
+Buzón Tributario is the SAT's (Mexico's tax authority) electronic mailbox. Taxpayers must check it regularly, because the SAT sends tax notices and requirements there. If you don't validate its messages, you can miss those notices (this comes from the knowledge pack, `knowledge/country/mx.md`).

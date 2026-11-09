@@ -1,0 +1,1 @@
+Its row type must use DDIC types (data elements) for its components. A local `c LENGTH n` structure produces no list at all, even if the width is right. Also, `retfield` must be a real component name of that structure (`knowledge/abap/conventions/alv-rules.md:137`).

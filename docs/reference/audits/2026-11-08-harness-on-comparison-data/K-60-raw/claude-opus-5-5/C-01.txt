@@ -1,0 +1,135 @@
+```abap
+REPORT zjudge_c01.
+
+*----------------------------------------------------------------------*
+* Purchasing document header list (EKKO) in a SALV grid.
+* The selection labels and headings are text symbols with literal
+* fallbacks, so the report runs without a separate text pool.
+*----------------------------------------------------------------------*
+
+TYPES: BEGIN OF ty_s_ekko,
+         ebeln TYPE ekko-ebeln,
+         bukrs TYPE ekko-bukrs,
+         ekorg TYPE ekko-ekorg,
+         lifnr TYPE ekko-lifnr,
+         bedat TYPE ekko-bedat,
+         bsart TYPE ekko-bsart,
+         ekgrp TYPE ekko-ekgrp,
+       END OF ty_s_ekko,
+       ty_t_ekko TYPE STANDARD TABLE OF ty_s_ekko WITH DEFAULT KEY.
+
+DATA: gt_data  TYPE ty_t_ekko,
+      gv_ekorg TYPE ekko-ekorg,
+      gv_bedat TYPE ekko-bedat.
+
+SELECTION-SCREEN BEGIN OF BLOCK b01 WITH FRAME.
+SELECTION-SCREEN BEGIN OF LINE.
+SELECTION-SCREEN COMMENT 1(31) c_ekorg FOR FIELD s_ekorg.
+SELECT-OPTIONS s_ekorg FOR gv_ekorg.
+SELECTION-SCREEN END OF LINE.
+SELECTION-SCREEN BEGIN OF LINE.
+SELECTION-SCREEN COMMENT 1(31) c_bedat FOR FIELD s_bedat.
+SELECT-OPTIONS s_bedat FOR gv_bedat.
+SELECTION-SCREEN END OF LINE.
+SELECTION-SCREEN BEGIN OF LINE.
+SELECTION-SCREEN COMMENT 1(31) c_max FOR FIELD p_max.
+PARAMETERS p_max TYPE i DEFAULT 500.
+SELECTION-SCREEN END OF LINE.
+SELECTION-SCREEN END OF BLOCK b01.
+
+INITIALIZATION.
+  c_ekorg = 'Purchasing Organization'(s01).
+  c_bedat = 'Document Date'(s02).
+  c_max   = 'Maximum Number of Rows'(s03).
+
+AT SELECTION-SCREEN ON p_max.
+  IF p_max <= 0.
+    MESSAGE 'Maximum number of rows must be greater than 0'(e01)
+      TYPE 'E'.
+  ENDIF.
+
+START-OF-SELECTION.
+  PERFORM get_data.
+  IF gt_data IS INITIAL.
+    MESSAGE 'No purchasing documents match the selection'(m01)
+      TYPE 'I'.
+    RETURN.
+  ENDIF.
+  PERFORM display_alv.
+
+*&---------------------------------------------------------------------*
+FORM get_data.
+  SELECT ebeln bukrs ekorg lifnr bedat bsart ekgrp
+    FROM ekko
+    INTO TABLE gt_data
+    UP TO p_max ROWS
+    WHERE ekorg IN s_ekorg
+      AND bedat IN s_bedat
+    ORDER BY ebeln.
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+FORM display_alv.
+  DATA: lo_salv    TYPE REF TO cl_salv_table,
+        lo_columns TYPE REF TO cl_salv_columns_table,
+        lx_msg     TYPE REF TO cx_salv_msg.
+
+  TRY.
+      cl_salv_table=>factory(
+        IMPORTING r_salv_table = lo_salv
+        CHANGING  t_table      = gt_data ).
+    CATCH cx_salv_msg INTO lx_msg.
+      MESSAGE lx_msg TYPE 'I' DISPLAY LIKE 'E'.
+      RETURN.
+  ENDTRY.
+
+  lo_columns = lo_salv->get_columns( ).
+  lo_columns->set_optimize( abap_true ).
+
+  PERFORM set_heading USING lo_columns 'EBELN'
+        'Doc. No.'(h01) 'Purchasing Document'(l01).
+  PERFORM set_heading USING lo_columns 'BUKRS'
+        'Comp.Code'(h02) 'Company Code'(l02).
+  PERFORM set_heading USING lo_columns 'EKORG'
+        'Purch.Org'(h03) 'Purchasing Org.'(l03).
+  PERFORM set_heading USING lo_columns 'LIFNR'
+        'Vendor'(h04) 'Vendor'(l04).
+  PERFORM set_heading USING lo_columns 'BEDAT'
+        'Doc. Date'(h05) 'Document Date'(l05).
+  PERFORM set_heading USING lo_columns 'BSART'
+        'Doc. Type'(h06) 'Document Type'(l06).
+  PERFORM set_heading USING lo_columns 'EKGRP'
+        'Purch.Grp'(h07) 'Purchasing Group'(l07).
+
+  lo_salv->get_functions( )->set_all( abap_true ).
+  lo_salv->get_display_settings( )->set_striped_pattern( abap_true ).
+  lo_salv->get_display_settings( )->set_list_header(
+    'Purchasing Document Headers'(t01) ).
+
+  lo_salv->display( ).
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+FORM set_heading USING io_columns TYPE REF TO cl_salv_columns_table
+                       iv_name    TYPE lvc_fname
+                       iv_short   TYPE csequence
+                       iv_long    TYPE csequence.
+  DATA: lo_column TYPE REF TO cl_salv_column,
+        lv_short  TYPE scrtext_s,
+        lv_medium TYPE scrtext_m,
+        lv_long   TYPE scrtext_l.
+
+  lv_short  = iv_short.
+  lv_medium = iv_long.
+  lv_long   = iv_long.
+
+  TRY.
+      lo_column = io_columns->get_column( iv_name ).
+      lo_column->set_short_text( lv_short ).
+      lo_column->set_medium_text( lv_medium ).
+      lo_column->set_long_text( lv_long ).
+    CATCH cx_salv_not_found.
+*     Column not in the output structure - keep DDIC heading
+  ENDTRY.
+ENDFORM.
+```

@@ -1,0 +1,1 @@
+WBS element master data is stored in table **PRPS** (WBS element master data). The project definition is in **PROJ**, and the link between the two is the PSPNR/PSPHI fields.

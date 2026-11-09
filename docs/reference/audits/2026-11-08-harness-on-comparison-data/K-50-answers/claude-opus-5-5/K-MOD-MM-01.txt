@@ -1,0 +1,1 @@
+It's **SMOD_V50B0001**, the BAdI wrapper for the SMOD enhancement V50B0001. The pack lists it as `BADI_SMOD_V50B0001` for inbound delivery logic (`knowledge/modules/MM/enhancements.md:61`), but the actual SAP name is SMOD_V50B0001, and `knowledge/modules/PS/enhancements.md:69` wrongly says it's for milestone billing plans.

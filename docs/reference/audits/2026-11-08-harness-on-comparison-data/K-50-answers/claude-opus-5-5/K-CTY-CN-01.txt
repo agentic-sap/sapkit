@@ -1,0 +1,1 @@
+The **special VAT fapiao (增值税专用发票)** lets the buyer deduct input VAT, and only when it is matched/verified. The ordinary fapiao (增值税普通发票) generally does not (`knowledge/country/cn.md:20-25`).

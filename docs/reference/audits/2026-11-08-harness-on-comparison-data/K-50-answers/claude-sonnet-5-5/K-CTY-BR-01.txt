@@ -1,0 +1,1 @@
+Brazilian format uses a period as the thousands separator and a comma as the decimal separator, so 1234567.89 is written **1.234.567,89**.

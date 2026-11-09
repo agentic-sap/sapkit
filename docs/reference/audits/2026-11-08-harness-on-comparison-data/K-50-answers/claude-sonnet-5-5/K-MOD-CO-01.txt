@@ -1,0 +1,1 @@
+Assessment cycles are defined in view **V_RKAB**. The knowledge pack lists it in `knowledge/modules/CO/spro.md` as "Define Assessment Cycles", and the cycle itself is maintained with T-code KSU1.

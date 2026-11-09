@@ -1,0 +1,1 @@
+In Brazilian format it's written **1.234.567,89**. The thousands separator is a period (.) and the decimal separator is a comma (,). In SAP user settings this is decimal notation "X".

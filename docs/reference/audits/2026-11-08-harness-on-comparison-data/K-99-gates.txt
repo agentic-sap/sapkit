@@ -1,0 +1,89 @@
+K-99 마감 게이트 기록 — 회차별 절을 덧붙인다(1회차 = T12 · 2회차 = 마감 리뷰 회수)
+==========================================================================================
+명령은 레포 루트 기준 상대 경로다 · Windows PowerShell 5.1에서 하나씩 돌렸다(CLAUDE.md 「게이트」 절 — Bash 금지).
+요지는 각 출력의 마지막 판정 줄을 줄인 것이다. 계정 이름 · 컴퓨터 이름 · 절대 경로는 적지 않는다(doctor 출력의 설치본 경로 포함).
+
+== 회차 1 · T12 · 2026-11-08 ==
+작업 트리: T12 작업 가지(기준 = 판K 작업 가지 8f011c6d) · T12 마감 수정 5파일(DECISIONS · RUN-PLAN · HANDOFF ·
+           handoff-archive/HANDOFF-archive-2026-09.md · 이 폴더 README.txt)을 커밋하기 직전 상태에서 돌렸다.
+
+제품 게이트 (CLAUDE.md 「게이트」 절 목록 전부)
+  exit  명령                                                                 요지
+  0     node interactive/scripts/check-links.mjs interactive                  md 268개 · 상대 링크 1026개 · 깨짐 0
+  0     node interactive/server/verify-engine.mjs                             OK sapkit-engine@1.5.0 (3c1fbcef34a5…)
+  0     node interactive/scripts/check-engine-provenance.mjs                  소스 커밋 7f41d16d · 번들 3910562 bytes · 버전 3자 일치(--rebuild 없이)
+  0     node interactive/scripts/smoke-mcp.mjs                                도구 표면 계약 통과
+  0     node interactive/scripts/conformance-server-gates.mjs                 26건 · PASS 26 · FAIL 0
+  0     node interactive/scripts/gen-plugin-manifests.mjs --check             0.12.0 · 생성물 7종 일치
+  0     node interactive/scripts/check-runtime-path-rename.mjs                활성 잔존 0 · 안전 앵커 7 온전
+  0     node interactive/scripts/conformance-runtime-dir.mjs                  assert 138 · 실패 0 · 안전 회귀 5종 PASS
+  0     node interactive/scripts/verify-checker.mjs                           검사기 번들 통과(소스 커밋 f19542dc · 57795 bytes)
+  0     node interactive/scripts/check-doc-size.mjs --file HANDOFF.md:500:docs/reference/handoff-archive/ --file docs/RUN-PLAN.md:300:docs/reference/run-archive/
+                                                                              HANDOFF.md 495/500 · docs/RUN-PLAN.md 141/300
+  1     node interactive/scripts/doctor.mjs                                   [선재 · 로컬 전용] OK 5 · INFO 3 · WARN 3 · SKIP 2 · FAIL 1 —
+                                                                              FAIL 1 = 「② Antigravity 호환성 — 설치 1.1.22 ≠ 고정 1.1.4」
+                                                                              (판K는 interactive/ 0바이트 · 같은 FAIL이 판I·판J 기록에도 있다)
+
+공방 문서 게이트
+  0     node scripts/check-wiki.mjs                                           위키 게이트 통과(③ D-번호 실재 — 표제 161개 대조 · D-161 추가로 닫힘)
+  0     node scripts/test-check-wiki.mjs                                      통과 68/68
+
+판K 자료 폴더
+  0     node docs/reference/audits/2026-11-08-harness-on-comparison-data/K-83-aggregate.mjs
+          --map <K>/K-79-blind-map.csv --adjudication <K>/K-80-adjudication.csv --regrade <K>/K-82-codex-regrade.csv
+          --out <K>/K-83-results.txt --json <K>/K-83-results.json --check     (<K> = 이 폴더)
+                                                                              --check PASS · 출력 2종 재계산 일치 · sha256(txt) 0ac99774862d81d7…
+                                                                              · git status에서 K-83 두 파일 변경 없음
+  0     node docs/reference/audits/2026-11-08-harness-on-comparison-data/K-84-selfcheck.mjs
+                                                                              결과: 전부 통과(OK 42 · FAIL 0)
+  0     node docs/reference/audits/2026-11-08-harness-on-comparison-data/K-99-namecheck.mjs docs/reference/audits/2026-11-08-harness-on-comparison-data
+                                                                              scanned files 334 · violations 0 · PASS(이 파일을 쓴 뒤 다시 돌린 값)
+  0     node docs/reference/audits/2026-11-08-harness-on-comparison-data/K-99-namecheck.mjs docs/reference/audits/2026-11-08-harness-on-comparison.md
+                                                                              scanned files 1 · violations 0 · PASS
+  0     node docs/reference/audits/2026-11-08-harness-on-comparison-data/K-99-namecheck.mjs --selftest
+                                                                              SELFTEST: PASS
+
+판정: doctor(선재 FAIL 1 · 로컬 전용 · CI 미실행)를 빼면 전부 exit 0. 모델 호출 0 · SAP · MCP 호출 0.
+
+== 회차 2 · 회수 · 2026-11-09 ==
+작업 트리: 회수 작업 가지(기준 = 판K 작업 가지 bb5a7512) · 회수 수정(K-92 · K-93 신설 · K-72 스크립트 R-F 모드와 회차 3 ·
+           K-84 ① ⑦ · 감사 문서 · DECISIONS D-162 · RUN-PLAN · HANDOFF · 위키 한 줄 · 이 절)을 커밋하기 직전 상태에서 돌렸다.
+           1회차와 같은 목록 전부 · Windows PowerShell 5.1에서 하나씩.
+
+제품 게이트 (CLAUDE.md 「게이트」 절 목록 전부)
+  exit  명령                                                                 요지
+  0     node interactive/scripts/check-links.mjs interactive                  md 268개 · 상대 링크 1026개 · 깨짐 0
+  0     node interactive/server/verify-engine.mjs                             OK sapkit-engine@1.5.0 (3c1fbcef34a5…)
+  0     node interactive/scripts/check-engine-provenance.mjs                  소스 커밋 7f41d16d · 번들 3910562 bytes · 버전 3자 일치(--rebuild 없이)
+  0     node interactive/scripts/smoke-mcp.mjs                                도구 표면 계약 통과
+  0     node interactive/scripts/conformance-server-gates.mjs                 26건 · PASS 26 · FAIL 0
+  0     node interactive/scripts/gen-plugin-manifests.mjs --check             0.12.0 · 생성물 7종 일치
+  0     node interactive/scripts/check-runtime-path-rename.mjs                활성 잔존 0 · 안전 앵커 7 온전
+  0     node interactive/scripts/conformance-runtime-dir.mjs                  assert 138 · 실패 0 · 안전 회귀 5종 PASS
+  0     node interactive/scripts/verify-checker.mjs                           검사기 번들 통과(소스 커밋 f19542dc · 57795 bytes)
+  0     node interactive/scripts/check-doc-size.mjs --file HANDOFF.md:500:docs/reference/handoff-archive/ --file docs/RUN-PLAN.md:300:docs/reference/run-archive/
+                                                                              HANDOFF.md 497/500 · docs/RUN-PLAN.md 143/300
+  1     node interactive/scripts/doctor.mjs                                   [선재 · 로컬 전용] OK 5 · INFO 3 · WARN 3 · SKIP 2 · FAIL 1 —
+                                                                              FAIL 1 = 「② Antigravity 호환성 — 설치 1.1.22 ≠ 고정 1.1.4」
+                                                                              (1회차와 같다 · 회수도 interactive/ 0바이트)
+
+공방 문서 게이트
+  0     node scripts/check-wiki.mjs                                           위키 게이트 통과(③ D-번호 실재 · 위키 판K 줄에 회수 D-162 한 줄 덧붙임)
+  0     node scripts/test-check-wiki.mjs                                      통과 68/68
+
+판K 자료 폴더
+  0     node docs/reference/audits/2026-11-08-harness-on-comparison-data/K-83-aggregate.mjs
+          --map <K>/K-79-blind-map.csv --adjudication <K>/K-80-adjudication.csv --regrade <K>/K-82-codex-regrade.csv
+          --out <K>/K-83-results.txt --json <K>/K-83-results.json --check     (<K> = 이 폴더)
+                                                                              --check PASS · 출력 2종 재계산 일치 · sha256(txt) 0ac99774862d81d7…
+                                                                              (1회차와 같다) · git status에서 K-83 두 파일 변경 없음
+  0     node docs/reference/audits/2026-11-08-harness-on-comparison-data/K-84-selfcheck.mjs
+                                                                              결과: 전부 통과(OK 42 · FAIL 0) · ① §5.1~5.13 · ⑦ ⑴~⒀
+  0     node docs/reference/audits/2026-11-08-harness-on-comparison-data/K-99-namecheck.mjs docs/reference/audits/2026-11-08-harness-on-comparison-data
+                                                                              scanned files 336 · violations 0 · PASS(이 파일을 쓴 뒤 다시 돌린 값)
+  0     node docs/reference/audits/2026-11-08-harness-on-comparison-data/K-99-namecheck.mjs docs/reference/audits/2026-11-08-harness-on-comparison.md
+                                                                              scanned files 1 · violations 0 · PASS
+  0     node docs/reference/audits/2026-11-08-harness-on-comparison-data/K-99-namecheck.mjs --selftest
+                                                                              SELFTEST: PASS
+
+판정: doctor(선재 FAIL 1 · 로컬 전용 · CI 미실행)를 빼면 전부 exit 0. 모델 호출 0 · SAP · MCP 호출 0.

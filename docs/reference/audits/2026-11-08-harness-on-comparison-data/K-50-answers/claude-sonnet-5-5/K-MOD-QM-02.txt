@@ -1,0 +1,1 @@
+**CI_QAMV** is the include for table QAMV (inspection characteristics of an inspection lot). Source: `knowledge/modules/QM/enhancements.md:86`.

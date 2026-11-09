@@ -1,0 +1,1 @@
+According to the knowledge pack (`knowledge/abap/conventions/alv-rules.md:105`), the button isn't drawn at all. The function simply never shows up on the application toolbar. Be aware that in standard SE41 a function without an icon usually still shows as a text-only button, so check this in the system before you rely on it.

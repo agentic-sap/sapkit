@@ -1,0 +1,1 @@
+The **VAT special fapiao (增值税专用发票, zhuānyòng fāpiào)** lets the buyer deduct input VAT. It shows the tax amount separately and the buyer's tax details. The general fapiao (普通发票) generally doesn't allow deduction. The exception is that some general fapiao, such as digitized e-fapiao for certain transport or toll items, can support deduction under specific rules.

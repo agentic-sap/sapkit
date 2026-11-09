@@ -1,0 +1,1 @@
+Spain's international dialling code is **+34**. After it, a Spanish domestic number has **9 digits**, and there is no trunk "0" prefix, so you dial it as +34 XXX XXX XXX.

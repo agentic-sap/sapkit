@@ -1,0 +1,1 @@
+It's the **FEC (Fichier des Écritures Comptables)**. French companies keeping computerized accounts must be able to provide it to the tax authorities (DGFiP) during an audit (*contrôle fiscal des comptabilités informatisées*). The format is defined by the tax code (art. L47 A-I LPF).

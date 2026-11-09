@@ -1,0 +1,1 @@
+The batch has to pass QA release first. In SAP, that means the QM inspection lot gets a usage decision (QA11), made with an electronic signature and recorded in the audit trail. That decision moves the batch from quarantine or Restricted status to Released, and SD can only deliver it after that (`knowledge/industry/pharmaceutical.md:14,21,29,47`).

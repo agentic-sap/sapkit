@@ -1,0 +1,1 @@
+No. The knowledge pack's `cloud-abap-constraints.md:27` lists `LEAVE (TO) LIST-PROCESSING` as "Not available" in ABAP for Cloud Development, because classic list processing isn't part of the restricted language version.

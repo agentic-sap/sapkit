@@ -1,0 +1,1 @@
+No. ABAP for Cloud Development is a restricted language version, and it doesn't allow classic list processing or dynpro statements such as `LEAVE TO LIST-PROCESSING`, so the syntax check rejects them. For UIs, use RAP with Fiori instead. I answered from general ABAP knowledge and didn't check the knowledge pack.

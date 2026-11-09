@@ -1,0 +1,1 @@
+After the `FR` prefix comes a 2-character key followed by the 9-digit SIREN, so the number has 11 characters after `FR`. The key is usually two digits, computed as (12 + 3 × (SIREN mod 97)) mod 97, though older numbers can use letters. I answered from general knowledge and did not check the knowledge pack.

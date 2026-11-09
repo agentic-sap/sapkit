@@ -1,0 +1,71 @@
+판K T11 — Codex 교차 리뷰 기록 (K-90)
+=====================================
+상태: 보류 — 11-12 이후 보충. 이 판에서는 Codex 교차 리뷰를 돌리지 않았다. 아래 §5는 비어 있다.
+이 파일은 판J의 90-codex-review.txt(../2026-11-05-harness-necessity-review-data/90-codex-review.txt)와 같은 꼴의 **보류 기록**이다.
+판정은 하지 않는다. 리뷰가 들어오면 지적마다의 처분은 K-91-review-dispositions.txt가 한다.
+
+리뷰 대상 시점 : (보충 때 적는다 — 그때의 레포 HEAD 해시. 감사 문서 · K-83 바이트가 판K 마감본과 같은지 함께 확인한다)
+실행 시각      : 없음 (보충 때 적는다)
+가림           : 판J 90 승계 — 로컬 경로의 계정 이름 → <usr> · 레포 루트 → <레포> · 세션 작업 폴더 → <scratch> ·
+                 세션 id 줄 삭제 · 웹 주소 → <url>. 이 파일에는 계정 · 컴퓨터 이름 0 · 레포 안 경로는 레포 상대로만 적는다.
+
+§1 보류 사유 (실측 · 기록으로 확인한 것)
+-----------------------------------------
+- 이 컴퓨터의 Codex 계정이 **사용량 한도에 걸려 2026-11-12 08:11 KST까지** 호출이 모델 차례 전에 거부된다
+  (K-00-recipe.txt §10 T0-c ④ — 거부 2회 · 새 측정 0. 같은 한도가 Codex 재채점 K-82도 막았다).
+- 판J는 이 리뷰를 판 안에서 돌렸지만(J-90) 판K는 한도가 풀리기 전에 마감한다.
+- 사용자 결정(2026-11-08): 「보류 — 11-12 이후 보충」으로 기록하고 판은 그 전에 마감한다. (판K 사양 §7 ⓣ)
+- 그러므로 판K 감사 문서(docs/reference/audits/2026-11-08-harness-on-comparison.md)는 **Codex 교차 리뷰를 거치지 않았다**.
+  마지막 독립 리뷰가 있다면 그것은 K-92 · K-93이 따로 적고, 이 파일은 그 자리를 대신하지 않는다.
+  Codex의 시각이 빠졌다는 사실 자체가 그 문서의 정직 유보이다.
+
+§2 보충 때 돌릴 명령 (판J 90 §1 방식 그대로 · 이 판은 아직 돌리지 않았다)
+--------------------------------------------------------------------------
+먼저 같은 플래그로 MCP 상태를 확인한다. 세 서버가 모두 disabled일 때만 다음으로 간다.
+
+  codex mcp list -c mcp_servers.cua_repl.enabled=false -c mcp_servers.node_repl.enabled=false -c mcp_servers.higgsfield.enabled=false
+
+그다음 리뷰를 돌린다(읽기 전용 샌드박스 · 추론 max · 사용자의 실제 Codex 홈 · 설정 그대로).
+
+  codex exec --skip-git-repo-check -s read-only -C "<레포>" -m gpt-5.6-sol --ephemeral
+    --disable plugins --disable apps --disable js_repl --disable image_generation --disable multi_agent
+    -c mcp_servers.cua_repl.enabled=false -c mcp_servers.node_repl.enabled=false -c mcp_servers.higgsfield.enabled=false
+    -c web_search="disabled" -c model_reasoning_effort="max" --color never
+    - < <scratch>\k-codex-review-prompt.txt
+
+- MCP를 끄는 `-c` 플래그 셋 = cua_repl · node_repl · higgsfield (K-82-codex-regrade.csv 머리와 같은 어휘).
+  판J는 sap 서버 등록을 껐지만 판K는 위 셋이다 — 보충 날 `codex mcp list`에 **보이는 서버 이름**에 맞춘다.
+  판J 1차 시도가 사용자 설정에 없는 이름을 끄는 `-c`가 「transport 없음」 설정 오류로 깨졌다(J-90 §3 · 모델 호출 0).
+  목록에 없는 이름이 오류를 내면 그 플래그만 빼고, 목록에 있는 다른 MCP 서버(예: SAP 접속 서버)가 생겼으면 그것도 같은 방식으로 끈다.
+  꺼야 P0다 — 리뷰 중 SAP 호출 0.
+- 입력(Codex가 읽는 것):
+  · 감사 문서 docs/reference/audits/2026-11-08-harness-on-comparison.md
+  · 이 자료 폴더 docs/reference/audits/2026-11-08-harness-on-comparison-data/ — 특히 K-83-results.txt(집계 원문) · K-83-results.json ·
+    K-80-notes.txt · K-72-access.txt · K-82-codex-regrade.csv 머리
+  · 판J와 견줄 때만 ../2026-11-05-harness-necessity-review-data/ (읽기만)
+- 프롬프트 원문은 커밋하지 않는다(세션 작업 폴더). 요지는 판J 90 §1 승계 — 읽기만 · 파일 쓰기 · 커밋 · 웹 · MCP · SAP 0 ·
+  레포 밖 폴더와 사용자 홈의 설정 · 자격증명 금독 · 사실 주장마다 실측/추정 표시 · 판정 계약 · 쉬운 말 · 익명 기준 ·
+  리뷰 질문(선 불변 · 수치 충실 최소 12곳 · 계약 적용 · 과장/과소 · 빠진 유보 · 쉬운 말/익명/인용) ·
+  출력 블록 고정(BEGIN_REVIEW ~ END_REVIEW · VERDICT · FINDINGS 차단/권고 · DISAGREEMENTS · CHECKED · SKIPPED).
+- **「자기 성적 절은 SKIPPED」 규칙은 판K에서 해당 없다.** 판J는 Codex(gpt-5.6-sol)가 응시한 모델이라 자기 성적 칸
+  (Codex 열 · 행 · 범주 판정 · 재채점 일치율)에 의견을 내지 않고 SKIPPED에 적게 했다. 판K는 Codex가 **응시하지 않았다**
+  (K-00 §3 ⛔ · §10 T0-c — 측정 불가로 제외, 모델 집합 = claude-opus-5-5 · claude-sonnet-5-5). 그래서 막을 자기 성적 칸이 없다.
+  단 K-82(Codex 20% 재채점)가 보충되어 일치율 칸이 채워졌다면, 그 칸은 Codex가 채점한 값이라 Codex의 의견 대상에서 빼고
+  SKIPPED에 적게 한다 — 판J와 같은 이유다.
+- 보충 때 확인할 것: 격리 Codex 홈을 쓴 판J 2차 시도는 셸이 전부 막혀 무효였다(J-90 §3). 같은 길을 되풀이하지 않는다 —
+  사용자 Codex 홈에서 돌린다.
+- 도구 호출 감사: 판J 90 §4처럼 stderr 전수로 셸 실행 수 · 정책 거부 · 읽은 자리 · MCP 0 · 웹 0 · 파일 쓰기 0을 적는다.
+
+§3 배너 (보충 때 stderr 머리를 가려서 적는다)
+---------------------------------------------
+(보류 — 비어 있음)
+
+§4 시도 이력
+------------
+(보류 — 시도 없음. 이 판에서 Codex 리뷰 호출 0)
+
+§5 리뷰 원문 (stdout 그대로 · 보충 때 붙인다)
+---------------------------------------------
+BEGIN_REVIEW
+(보류 — 비어 있음)
+END_REVIEW

@@ -1,0 +1,1 @@
+The One Exposure from Operations flows are stored in table **FQM_FLOW**. In S/4HANA it replaces the old ECC Cash Management tables such as FDSR/FDSB for memo records (`knowledge/modules/TR/tables.md:43`).

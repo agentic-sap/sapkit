@@ -1,0 +1,1 @@
+`V_TGSB_TR` ("Define Business Areas for TR" in the TR SPRO). The general FI business area view is `V_TGSB`. (Source: `knowledge\modules\TR\spro.md:18`)

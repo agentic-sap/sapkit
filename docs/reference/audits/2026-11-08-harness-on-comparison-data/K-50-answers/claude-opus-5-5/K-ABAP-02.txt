@@ -1,0 +1,1 @@
+It's generic, like `TYPE any`: the parameter takes on the data type of the actual parameter passed at each `PERFORM` call. I answered from general ABAP knowledge and didn't check the knowledge pack.

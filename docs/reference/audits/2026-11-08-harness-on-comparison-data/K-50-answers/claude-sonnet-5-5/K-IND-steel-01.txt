@@ -1,0 +1,1 @@
+Remnant management deals with the leftover pieces from finishing operations such as cut-to-order, slitting and shearing. Those pieces are tracked as reusable stock instead of being written off as scrap, so their recycling value is kept. It often needs custom logic for reusing remnants (`knowledge/industry/steel.md`).

@@ -1,0 +1,1 @@
+A **parallel ledger** setup: in S/4HANA's Universal Journal (ACDOCA), a leading ledger (0L) plus non-leading ledgers keep local IFRS figures separate from regulatory reporting (`knowledge/industry/banking.md:12`). If the parallel ledger isn't configured, the two can't be reported separately (`banking.md:31`).

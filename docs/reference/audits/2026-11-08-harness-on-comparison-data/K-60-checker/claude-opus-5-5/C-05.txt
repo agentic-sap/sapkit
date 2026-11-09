@@ -1,0 +1,202 @@
+K-60-checker/claude-opus-5-5/C-05.txt — 동봉 검사기 원출력 (판K T6)
+대상: docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-05.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.16.0
+명령 3종 (판J 11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-05.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-05.abap
+--- stdout (0 bytes) ---
+
+--- stderr (109 bytes) ---
+docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-05.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-05.abap
+--- stdout (4882 bytes) ---
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Report ZJUDGE_C05
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Customers from KNA1 grouped by country (classic WRITE list).
+Comment              *& Each country gets a header line with its key and customer count,
+Comment              *& followed by one line per customer. Syntax limited to ABAP 7.02.
+Comment              *&
+Comment              *& Text elements expected in the text pool:
+Comment              *&   R  : Customers by country
+Comment              *&   S  : S_LAND1  -> Country
+Comment              *&   001: Country
+Comment              *&   002: Number of customers
+Comment              *&   003: Customer
+Comment              *&   004: Name
+Comment              *&   005: City
+Comment              *&   006: No customers found for the selection.
+Comment              *&---------------------------------------------------------------------*
+Report               REPORT zjudge_c05 NO STANDARD PAGE HEADING LINE - SIZE 100 .
+Move                 TABLES kna1 .
+TypeBegin            TYPES BEGIN OF ty_cust ,
+Type                 TYPES land1 TYPE kna1 - land1 ,
+Type                 TYPES kunnr TYPE kna1 - kunnr ,
+Type                 TYPES name1 TYPE kna1 - name1 ,
+Type                 TYPES ort01 TYPE kna1 - ort01 ,
+TypeEnd              TYPES END OF ty_cust ,
+Type                 TYPES ty_t_cust TYPE STANDARD TABLE OF ty_cust WITH DEFAULT KEY ,
+TypeBegin            TYPES BEGIN OF ty_cnt ,
+Type                 TYPES land1 TYPE kna1 - land1 ,
+Type                 TYPES count TYPE i ,
+TypeEnd              TYPES END OF ty_cnt ,
+Type                 TYPES ty_t_cnt TYPE HASHED TABLE OF ty_cnt WITH UNIQUE KEY land1 .
+Constant             CONSTANTS gc_count_one TYPE i VALUE 1 .
+Data                 DATA gt_cust TYPE ty_t_cust ,
+Data                 DATA gs_cust TYPE ty_cust ,
+Data                 DATA gt_cnt TYPE ty_t_cnt ,
+Data                 DATA gs_cnt TYPE ty_cnt .
+SelectOption         SELECT - OPTIONS s_land1 FOR kna1 - land1 .
+Move                 TOP - OF - PAGE .
+Write                WRITE / text - 003 ,
+Write                WRITE 15 text - 004 ,
+Write                WRITE 55 text - 005 ,
+Write                WRITE 90 text - 001 .
+Move                 ULINE .
+StartOfSelection     START - OF - SELECTION .
+Perform              PERFORM select_data .
+Perform              PERFORM write_list .
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Form SELECT_DATA
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM select_data .
+Select               SELECT land1 kunnr name1 ort01 FROM kna1 INTO TABLE gt_cust WHERE land1 IN s_land1 .
+Sort                 SORT gt_cust BY land1 kunnr .
+Loop                 LOOP AT gt_cust INTO gs_cust .
+Clear                CLEAR gs_cnt .
+Move                 gs_cnt - land1 = gs_cust - land1 .
+Move                 gs_cnt - count = gc_count_one .
+Move                 COLLECT gs_cnt INTO gt_cnt .
+EndLoop              ENDLOOP .
+EndForm              ENDFORM .
+Comment              "select_data
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Form WRITE_LIST
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM write_list .
+Data                 DATA lv_prev_land1 TYPE kna1 - land1 ,
+Data                 DATA lv_first TYPE abap_bool VALUE abap_true .
+If                   IF gt_cust IS INITIAL .
+Write                WRITE / text - 006 .
+Return               RETURN .
+EndIf                ENDIF .
+Loop                 LOOP AT gt_cust INTO gs_cust .
+If                   IF lv_first = abap_true OR gs_cust - land1 <> lv_prev_land1 .
+If                   IF lv_first = abap_false .
+Move                 SKIP .
+EndIf                ENDIF .
+Clear                CLEAR gs_cnt .
+ReadTable            READ TABLE gt_cnt INTO gs_cnt WITH TABLE KEY land1 = gs_cust - land1 .
+Move                 FORMAT COLOR COL_GROUP INTENSIFIED ON .
+Write                WRITE / text - 001 ,
+Write                WRITE gs_cust - land1 ,
+Write                WRITE 30 text - 002 ,
+Write                WRITE gs_cnt - count .
+Move                 FORMAT RESET .
+Move                 lv_prev_land1 = gs_cust - land1 .
+Move                 lv_first = abap_false .
+EndIf                ENDIF .
+Write                WRITE / gs_cust - kunnr ,
+Write                WRITE 15 gs_cust - name1 ,
+Write                WRITE 55 gs_cust - ort01 ,
+Write                WRITE 90 gs_cust - land1 .
+EndLoop              ENDLOOP .
+EndForm              ENDFORM .
+Comment              "write_list
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-05.abap
+--- stdout (1972 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 39,
+      "endLine": 39,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 40,
+      "endLine": 40,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 69,
+      "endLine": 69,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 76,
+      "endLine": 76,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 95,
+      "endLine": 95,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 103,
+      "endLine": 103,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 6,
+    "bySeverity": {
+      "medium": 6
+    },
+    "byCategory": {
+      "quality": 6
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=6 analyze_info=0 error_grade=0 warnings=6 source_lines=103 bytes=3025 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (판J 11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

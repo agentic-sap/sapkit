@@ -1,0 +1,1 @@
+It's called the **IRAS Audit File (IAF)**. For GST purposes the same extract is known as the **GST Audit File (GAF)** (`knowledge/country/sg.md:51,59`).

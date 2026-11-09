@@ -1,0 +1,1 @@
+**CL_ABAP_LOCK_OBJECT_FACTORY** replaces them. Call `get_instance( iv_name = 'E_TABLE' )` to get an `IF_ABAP_LOCK_OBJECT` instance, then call its `enqueue( )` and `dequeue( )` methods. I answered from memory and didn't check the knowledge pack.

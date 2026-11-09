@@ -1,0 +1,1 @@
+In SAP IS-U, **move-in** is a customer (tenant) starting service at a premise, and **move-out** is the customer ending service there. The knowledge pack describes them only as "tenant in and tenant out" (`knowledge/industry/utilities.md:16`). It also warns that handling them manually leaves settlement gaps (line 48).

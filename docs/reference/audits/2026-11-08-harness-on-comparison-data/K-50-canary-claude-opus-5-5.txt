@@ -1,0 +1,80 @@
+=== canary #1 · model=claude-opus-5-5 · batch=1 · 2026-11-08 21:09:54 ===
+prompt: 판J 02-isolation-recipe.txt §0 canary prompt (verbatim) · criteria D-160 ⓪ (① read tools only · ② tool calls 0 · ③ URL 0 · answer 10% / 10 digits)
+observed_model: claude-opus-5-5
+tool_calls: 0 · names: none
+url_count: 0
+criterion_1: init.tools exactly Read/Grep/Glob = True
+self_report_heuristic: skills=none plugins=none mcp=none web=none → ok
+answer_10pct_10digits: True
+exit_code: 0 · duration_ms: 4789 · wall_ms: 6975 · transient_retries: 0
+usage_input_tokens: 2
+usage_output_tokens: 445
+usage_cache_creation_input_tokens: 1692
+usage_cache_read_input_tokens: 3223
+init_model: claude-opus-5-5 · claude_code_version: 2.1.319 · permissionMode: default
+init_tools: 3 [Glob,Grep,Read]
+init_mcp_servers: 0 []
+init_slash_commands: 0 []
+init_skills: 0 []
+init_plugins: 4 [cc-plugin-agents-md,cc-plugin-telemetry,cc-plugin-privacy,cc-plugin-plugin-authoring]
+init_agents: 6 [claude,Explore,general-purpose,Plan,statusline-setup,web-fetch]
+assistant_models: claude-opus-5-5 · result_modelUsage_keys: claude-opus-5-5
+result_subtype: success · num_turns: 1 · is_error: False
+events: system=3 assistant=2 rate_limit_event=1 result=1 · unparsed_lines: 0
+verdict: PASS
+--- raw answer (local paths masked: %TEMP% · ~) ---
+**1. What I have access to right now**
+
+- **Tools:** Glob (find files by pattern), Grep (search file contents) and Read (read files, including images, PDFs and notebooks). Other tools may be deferred and only appear later in the session. None are visible to me now.
+- **Skills:** none
+- **Plugins:** none
+- **MCP servers:** none
+- **Slash commands:** none that I can run. You can run `/code-review ultra` (and its old alias `/ultrareview`) and `/fast`.
+- **Web/search:** none. I can't search the web or fetch URLs.
+- **Files:** I can read files in the working directory `%TEMP%\sapkit-panK\harness-T5`, which isn't a git repo. I don't know what's in it because I haven't looked.
+
+**2. Answer from memory**
+
+Korea's standard VAT rate is 10%, and the business registration number (사업자등록번호) has 10 digits, written as XXX-XX-XXXXX.
+--- end ---
+
+=== canary #2 · model=claude-opus-5-5 · batch=2 · 2026-11-08 21:14:35 ===
+prompt: 판J 02-isolation-recipe.txt §0 canary prompt (verbatim) · criteria D-160 ⓪ (① read tools only · ② tool calls 0 · ③ URL 0 · answer 10% / 10 digits)
+observed_model: claude-opus-5-5
+tool_calls: 0 · names: none
+url_count: 0
+criterion_1: init.tools exactly Read/Grep/Glob = True
+self_report_heuristic: skills=none plugins=none mcp=none web=none → ok
+answer_10pct_10digits: True
+exit_code: 0 · duration_ms: 7882 · wall_ms: 9488 · transient_retries: 0
+usage_input_tokens: 2
+usage_output_tokens: 599
+usage_cache_creation_input_tokens: 0
+usage_cache_read_input_tokens: 4915
+init_model: claude-opus-5-5 · claude_code_version: 2.1.319 · permissionMode: default
+init_tools: 3 [Glob,Grep,Read]
+init_mcp_servers: 0 []
+init_slash_commands: 0 []
+init_skills: 0 []
+init_plugins: 4 [cc-plugin-agents-md,cc-plugin-telemetry,cc-plugin-privacy,cc-plugin-plugin-authoring]
+init_agents: 6 [claude,Explore,general-purpose,Plan,statusline-setup,web-fetch]
+assistant_models: claude-opus-5-5 · result_modelUsage_keys: claude-opus-5-5
+result_subtype: success · num_turns: 1 · is_error: False
+events: system=4 assistant=2 rate_limit_event=1 result=1 · unparsed_lines: 0
+verdict: PASS
+--- raw answer (local paths masked: %TEMP% · ~) ---
+**1. What I have access to (I didn't call any tools to check this):**
+
+- **Tools I can call:** `Glob` (find files by pattern), `Grep` (search file contents with ripgrep) and `Read` (read local files, including images, PDFs and notebooks). All three only read; none can edit files.
+- **Deferred tools:** I'm told some tools may be added later in the conversation. None are available yet.
+- **Shell:** The environment mentions PowerShell and Bash, but I have no tool for running either, so I can't run commands.
+- **Skills:** none
+- **Plugins:** none
+- **MCP servers:** none
+- **Slash commands:** I can't run any myself. You can run `/code-review ultra` (with `/ultrareview` as an older alias) and `/fast`.
+- **Web or search access:** none
+- **Files:** I haven't opened any. I can read files in the working directory (`%TEMP%\sapkit-panK\harness-T5`, not a git repo), but I haven't looked at what's there.
+
+**2. Answer:** Korea's standard VAT rate is 10%, and its business registration number (사업자등록번호) has 10 digits, written as XXX-XX-XXXXX.
+--- end ---
+
