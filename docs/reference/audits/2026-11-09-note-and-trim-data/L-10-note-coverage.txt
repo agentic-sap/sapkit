@@ -1,0 +1,181 @@
+L-10 쪽지 범위 기록 — 판L T1 (쪽지 정본 작성)
+정본: interactive/core/knowledge/abap/conventions/clean-code-note.md
+작성 조건: 시험·채점 자료 비열람 상태(금독 목록 준수). 줄 번호는 정본 파일의 물리 줄 번호.
+
+==================================================================
+1. 뼈대 (interactive/core/procedures/review-checklist.md §8)
+==================================================================
+§8 점검표 33줄 중 32줄 채택 · 1줄 제외.
+제외(템플릿 대조 항목 1): OOP "Main program structure matches zsapkit_oop_ex.prog.abap" — 지시대로 §8에만 남김.
+
+Core (15줄 · 정본 7~21행)
+  7  No SELECT *                               [clean-code.md § Open SQL]
+  8  No SELECT inside LOOP                     [clean-code.md § Open SQL]
+  9  SY-SUBRC check after setting statements   [clean-code.md § Open SQL]
+  10 Table type fits access pattern, no DEFAULT KEY [clean-code.md § Internal Tables]
+  11 SORT / DELETE ADJACENT DUPLICATES on EMPTY KEY needs BY/COMPARING [clean-code.md § Variables and Types]
+  12 Secondary key for large-table results     [clean-code.md § Open SQL]
+  13 COUNT(*) pre-count + tuning plan > 1M     [clean-code.md § Open SQL]
+  14 Backtick STRING literals, |...| templates [clean-code.md § Strings]
+  15 ABAP_BOOL / abap_true / XSDBOOL           [clean-code.md § Booleans]
+  16 Positive conditions, IS NOT, no empty IF  [clean-code.md § Conditions and IFs]
+  17 Explicit typed itabs over INTO TABLE @DATA [clean-code.md § Open SQL]
+  18 Modern syntax only up to ABAP_RELEASE     [clean-code.md § Version Awareness]
+  19 No commented-out code / debug statements  [clean-code.md § Comments]
+  20 No ratio arithmetic into narrow DEC/CURR  [clean-code.md § Variables and Types]
+  21 Reconciliation: absent is not 0           [clean-code.md § Reconciliation Logic — Null vs Zero]
+OOP (7줄 · 정본 34~40행)
+  34 FINAL / PRIVATE by default                [clean-code-oop.md § Object Orientation — Scope and Design]
+  35 One job, <=30 lines, one level, <=3 IMPORTING [clean-code-oop.md § Method Body] [clean-code-oop.md § Methods — Parameters and Calls]
+  36 RETURNING one value, no boolean input     [clean-code-oop.md § Methods — Parameters and Calls]
+  37 NEW #( ), static creation methods         [clean-code-oop.md § Constructors]
+  38 Class-based exceptions, own super, wrap CX_SY_*, RAISE EXCEPTION NEW [clean-code-oop.md § Error Handling — Detail]
+  39 Formatting 120 chars, alignment, one statement per line [clean-code-oop.md § Formatting]
+  40 Tests given-when-then, publics, doubles via constructor, LOCAL FRIENDS [clean-code-oop.md § Testing — Detail]
+Procedural (10줄 · 정본 44~53행)
+  44 Main program matches main-program.abap    [clean-code-procedural.md § Mandatory Main Program Template (MUST match)]
+  45 Globals in TOP only                       [clean-code-procedural.md § Global vs Local Discipline (TOP include)]
+  46 g*/l* prefixes, no shadowing              [clean-code-procedural.md § Global vs Local Discipline (TOP include)]
+  47 Typed FORM params, USING/CHANGING, no boolean USING [clean-code-procedural.md § FORM / PERFORM — Parameters and Signatures]
+  48 Screen-bound FORM suffix _{screen_no}     [clean-code-procedural.md § FORM Body]
+  49 PBO/PAI module = one PERFORM line         [clean-code-procedural.md § FORM Body]
+  50 sy-subrc + EXCEPTIONS with CASE sy-subrc  [clean-code-procedural.md § Procedural Error Handling]
+  51 No EXIT/STOP/LEAVE PROGRAM as error handling [clean-code-procedural.md § Procedural Error Handling]
+  52 One-line header comment per FORM          [clean-code-procedural.md § Comments — Procedural-Specific]
+  53 Testable logic into LCL_HELPER            [clean-code-procedural.md § Procedural Testing — Limits and Workarounds]
+
+문장 다듬기: 체크박스 제거, 리뷰어 말투(MAJOR finding) 제거, 바이트 상한 때문에 일부 줄을 같은 뜻으로 압축
+(예: "Formatting holds a 120-char line limit ..." -> "Formatting: 120-char lines, ..."). 규칙 내용은 바꾸지 않음.
+단, 44행은 원문 "Any structural deviation must be justified in spec.md; otherwise MAJOR finding"을
+"deviations justified in spec.md"로, 11행·20행은 괄호 속 근거 설명을 짧게 줄였음.
+
+==================================================================
+2. 원본 3파일의 ## 장 — 장 보충 판정
+==================================================================
+판정 원칙: 뼈대(1)에 그 장에 대응하는 줄이 하나라도 있으면 보충 안 함(지시 문언 그대로 적용).
+
+clean-code.md
+  Naming                                    — 보충함(22행)
+  Variables and Types                       — 보충 안 함 — 뼈대 3줄이 대응(11·18·20행)
+  Control Flow                              — 보충함(23행)
+  Conditions and IFs                        — 보충 안 함 — 뼈대 1줄이 대응(16행)
+  Internal Tables                           — 보충 안 함 — 뼈대 1줄이 대응(10행)
+  Strings                                   — 보충 안 함 — 뼈대 1줄이 대응(14행)
+  Booleans                                  — 보충 안 함 — 뼈대 1줄이 대응(15행)
+  Expressions and Constructors (ABAP 740+)  — 보충 안 함 — 뼈대 2줄이 대응(18행 modern syntax · 37행 NEW #( ))
+  Exception / Error Handling (paradigm-neutral part) — 보충 안 함 — 뼈대 4줄이 대응(9·38·50·51행)
+  Reconciliation Logic — Null vs Zero       — 보충 안 함 — 뼈대 1줄이 대응(21행)
+  Currency Amounts — CURR Internal Unit ≠ Display Unit (TCURX) — 보충함(24행)
+  Arithmetic and Initial Values             — 보충함(25·26행 — 장 안 규칙이 서로 무관: 정수 나눗셈·NUMC 비교 / 초기값 판정)
+  Fixed-Width File Serialization — Keep `DATS` Out of the Record Structure — 보충함(27행)
+  Open SQL                                  — 보충 안 함 — 뼈대 6줄이 대응(7·8·9·12·13·17행)
+  Modularization (paradigm-neutral part)    — 보충 안 함 — 뼈대 3줄이 대응(35·47·49행)
+  Editing Existing Code — Two Silent Traps  — 보충함(28·29행 — 두 함정이 서로 무관: RETURN 뒤 죽은 꼬리 / 공유 타입 개명)
+  Text and User Interaction                 — 보충함(30행)
+  Comments                                  — 보충 안 함 — 뼈대 1줄이 대응(19행)
+  Testing (paradigm-neutral principles)     — 보충 안 함 — 뼈대 2줄이 대응(40·53행)
+  Performance                               — 보충 안 함 — 뼈대 2줄이 대응(8·13행)
+  Security and Data Handling                — 보충함(31행)
+  Version Awareness                         — 보충 안 함 — 뼈대 1줄이 대응(18행)
+  Review Checklist                          — 대상 아님 — 지시상 제외 장(Review Checklist)
+
+clean-code-oop.md
+  Mandatory Main Program Template (MUST match) — 대상 아님 — 템플릿 대조 장. 이 장의 뼈대 줄이 지시로 쪽지에서 제외됐으므로 장 보충으로 되살리지 않음(§8에 남음)
+  OOP-Specific Error Handling               — 보충 안 함 — 뼈대 1줄이 대응(38행)
+  OOP-Specific Modularization               — 보충 안 함 — 뼈대 2줄이 대응(35·36행)
+  Object Orientation — Scope and Design     — 보충 안 함 — 뼈대 1줄이 대응(34행)
+  Constructors                              — 보충 안 함 — 뼈대 1줄이 대응(37행)
+  Methods — Parameters and Calls            — 보충 안 함 — 뼈대 2줄이 대응(35·36행)
+  Method Body                               — 보충 안 함 — 뼈대 1줄이 대응(35행)
+  Error Handling — Detail                   — 보충 안 함 — 뼈대 1줄이 대응(38행)
+  Formatting                                — 보충 안 함 — 뼈대 1줄이 대응(39행)
+  Testing — Detail                          — 보충 안 함 — 뼈대 1줄이 대응(40행)
+  Comments — Detail (beyond main file)      — 보충함(41행)
+
+clean-code-procedural.md
+  Mandatory Main Program Template (MUST match) — 보충 안 함 — 뼈대 1줄이 대응(44행)
+  Global vs Local Discipline (TOP include)  — 보충 안 함 — 뼈대 2줄이 대응(45·46행)
+  FORM / PERFORM — Parameters and Signatures — 보충 안 함 — 뼈대 1줄이 대응(47행)
+  FORM Body                                 — 보충 안 함 — 뼈대 2줄이 대응(48·49행)
+  Procedural Error Handling                 — 보충 안 함 — 뼈대 2줄이 대응(50·51행)
+  Modularization Boundaries                 — 보충함(54행)
+  Procedural Testing — Limits and Workarounds — 보충 안 함 — 뼈대 1줄이 대응(53행)
+  Comments — Procedural-Specific            — 보충 안 함 — 뼈대 1줄이 대응(52행)
+
+장 보충 합계: 12줄(clean-code.md 10 · clean-code-oop.md 1 · clean-code-procedural.md 1).
+
+==================================================================
+3. 집 규칙 (8줄 / 상한 8 · 정본 57~64행)
+==================================================================
+고른 순서 = 중요도 순. 기준: (a) 어기면 객체가 틀린 이름·틀린 구조로 SAP에 생기거나 런타임에 조용히 깨지는가
+(b) 1·2(뼈대·장 보충)에 아직 없는가 (c) 작성 단계에서 작성자가 스스로 지킬 수 있는가.
+
+  57 CONSTANTS for magic literals in TOP      [constant-rule.md § 1. What must become a constant] [constant-rule.md § 3. Where the declaration goes]
+     이유: 모든 로직 프로그램에 걸리는 규칙인데 1·2에 없음(§8 점검표에는 상수 규칙이 없다 — §3 별도 항목).
+  58 Z{MODULE}{TYPE}{NN} + 번호 확보 절차      [naming-conventions.md § 3. Numbered objects — `Z{MODULE}{TYPE}{NN}`] [naming-conventions.md § 2. Claim the sequence number before you propose a name — MANDATORY]
+     이유: 객체 생성 첫 결정이 이름이고 회사 표준이 범용 Clean ABAP과 다르다. 번호 충돌은 되돌리기 어렵다.
+  59 FG/FM · ZCL/ZIF/ZCX · CDS 접두            [naming-conventions.md § 4. Unnumbered objects — patterns keyed by purpose]
+     이유: Z_MM_... 같은 구형이 흔히 나오는 실수이고 1·2에 없음.
+  60 텍스트 풀 4종(R/I/S/H) + 로그온 언어 · 'E' 두 벌 [text-element-rule.md § Scope — Four Text Pool Types (MUST verify ALL that apply)] [text-element-rule.md § Language Strategy (MANDATORY — two passes)]
+     이유: 30행(장 보충)은 "텍스트 요소를 써라"까지만 덮는다. S 누락·'E' 누락은 실제로 반복된 MAJOR 결함.
+  61 S 선택 텍스트 offset 8                    [text-element-rule.md § Selection Texts — the Label Starts at Offset 8]
+     이유: 모든 검사를 통과하고 실행 화면에서만 드러나는 결함(현장 실증).
+  62 Main = REPORT + INCLUDE + 위임 이벤트 블록, 필요한 include만, Procedural에 e 금지, 이벤트 블록 뒤 선언 금지 [include-structure.md § Main Program Body] [include-structure.md § Event Blocks — Placement and Order]
+     이유: OOP 쪽은 템플릿 줄이 빠져 include 구조 규칙이 1·2에 전혀 없다. 이벤트 블록 뒤 선언은 엉뚱한 include를 탓하는 활성화 실패로 이어진다(현장 실증).
+  63 활성화는 하위 include로 전파되지 않음 + GetInactiveObjects 확인 [include-structure.md § Activation Protocol — MANDATORY (matches every skill that creates includes)]
+     이유: 거짓 "활성화 OK"의 근원. 작성자가 쓰는 단계에서 지켜야 함.
+  64 OOP 두 클래스 분리 + ALV는 샘플·ZCL_SAPKIT_CM_* 재사용 + S_UNIFIED_CON [oop-pattern.md § Two-Class Split (Mandatory)] [oop-pattern.md § ALV Requirement (Mandatory)]
+     이유: OOP 모드의 구조 계약인데 뼈대에서 OOP 템플릿 줄이 빠져 1·2에 없음.
+
+고르지 않은 후보:
+  - procedural-form-naming.md 전체(_{screen_no} 접미 · 유틸 FORM 예외) — 뼈대 48행에 이미 있음
+  - naming-conventions.md § 5 (LCL_* 이름 · GO_* 전역 참조 · 화면 4자리 · GUI status 이름) — 64행·뼈대와 겹치거나 비중이 낮음
+  - naming-conventions.md § 6 (CDS 분석·Custom Entity 미정 — 묻고 정하기) — 드문 경우
+  - naming-conventions.md § 1 (MODULE 코드 목록) — 58·59행 패턴에 함축
+  - constant-rule.md § 2 (상수 예외: 필드 카탈로그 값·텍스트 참조·SY-*) — 바이트 상한 때문에 57행에서 덜어냄
+  - constant-rule.md § 4 (집행 주체) — 작성 규칙 아님
+  - text-element-rule.md § Large Text Pools (OData 414 → abapGit) — 경로 선택 문제로 드묾
+  - include-structure.md § Conditional Generation Rule (패러다임별 include 집합) — 62행·44행으로 대부분 덮임
+  - include-structure.md § Event Blocks 의 "이벤트 블록 순서는 실행 순서대로" — 동작 영향 없음(가독성), 8줄 상한
+  - include-structure.md § 선언·구현 include 짝 활성화 — 63행과 겹치는 세부
+  - oop-pattern.md § Main Program Orchestration (GO_DATA = NEW #( ) 부트스트랩) — 템플릿 대조 성격(§8 제외 항목과 같은 내용)
+
+==================================================================
+4. 버전 · 함수모듈 (정본 67~70행)
+==================================================================
+  67 설정 릴리스보다 새 문법 금지, 미설정이면 멈추고 묻기 [abap-release-reference.md § 5. Checklist before emitting ABAP]
+  68 < 740: 인라인 선언 · 생성자 식 · 테이블 식 · 문자열 템플릿 · 체인 메서드 호출 금지 [abap-release-reference.md § 3. Feature matrix — the release each feature arrives in]
+  69 FM 서명은 FUNCTION 문 안 인라인, *" 주석 블록 · placeholder 금지 [function-module-rule.md § HARD RULE — Inline signature only]
+  70 그림자 지역변수(lv_iv_xxx) 금지         [function-module-rule.md § Required source template (every FM)]
+
+탈출구(72행, 평문 · 링크/백틱 경로 없음):
+  "Not covered here? Open the section named in the rule's tag, in that file of the ABAP conventions folder."
+
+==================================================================
+5. 결과
+==================================================================
+규칙 줄 56 = 뼈대 32 + 장 보충 12 + 집 규칙 8 + 버전 2 + 함수모듈 2
+소제목 5(Core · OOP · Procedural · House rules · Release and function modules)
+최종: 표식 사이 본문 67줄 / 상한 70 · 10143바이트 / 상한 10240 (LF 기준, 게이트 측정값)
+게이트: node interactive/scripts/check-conventions-note.mjs --canonical-only → exit 0
+       (첫 작성본은 12147바이트로 상한 초과 → 집 규칙·장 보충·뼈대 문장을 같은 뜻으로 압축해 통과. 빠진 장 없음)
+
+==================================================================
+6. 읽은 파일 목록 (레포 상대 경로)
+==================================================================
+  CLAUDE.md, AGENTS.md (세션 시작 시 자동 주입 — 직접 열지 않음)
+  interactive/core/procedures/review-checklist.md
+  interactive/scripts/check-conventions-note.mjs
+  interactive/core/knowledge/abap/conventions/ (파일 목록만 ls)
+  interactive/core/knowledge/abap/conventions/clean-code.md
+  interactive/core/knowledge/abap/conventions/clean-code-oop.md
+  interactive/core/knowledge/abap/conventions/clean-code-procedural.md
+  interactive/core/knowledge/abap/conventions/naming-conventions.md
+  interactive/core/knowledge/abap/conventions/constant-rule.md
+  interactive/core/knowledge/abap/conventions/text-element-rule.md
+  interactive/core/knowledge/abap/conventions/procedural-form-naming.md
+  interactive/core/knowledge/abap/conventions/include-structure.md
+  interactive/core/knowledge/abap/conventions/oop-pattern.md
+  interactive/core/knowledge/abap/conventions/abap-release-reference.md
+  interactive/core/knowledge/abap/conventions/function-module-rule.md
+  interactive/core/knowledge/abap/conventions/clean-code-note.md (직접 작성한 정본)
