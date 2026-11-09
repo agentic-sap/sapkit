@@ -1,0 +1,400 @@
+{
+  "generated_by": "L-83-aggregate.mjs",
+  "e1": {
+    "cells": [
+      {
+        "model": "claude-opus-5-5",
+        "passed": [
+          "C-01",
+          "C-02",
+          "C-03",
+          "C-04",
+          "C-05"
+        ],
+        "n": 5,
+        "k_passed": 3,
+        "raw_band": "쪽지가 먹힌다",
+        "harm": false,
+        "cell": "쪽지가 먹힌다",
+        "passedA": 5,
+        "passedB": 5
+      },
+      {
+        "model": "claude-sonnet-5-5",
+        "passed": [
+          "C-02",
+          "C-03",
+          "C-04",
+          "C-05"
+        ],
+        "n": 4,
+        "k_passed": 2,
+        "raw_band": "쪽지가 먹힌다",
+        "harm": false,
+        "cell": "쪽지가 먹힌다",
+        "passedA": 4,
+        "passedB": 4
+      }
+    ],
+    "drift": {
+      "rows": [
+        {
+          "anon_id": "E1-02",
+          "model": "claude-opus-5-5",
+          "task": "C-04",
+          "k_final": false,
+          "l_final": false,
+          "l_A": false,
+          "l_B": false,
+          "k_viol": "2@53;5@53;6@53",
+          "l_viol": "2@53;5@53;6@53"
+        },
+        {
+          "anon_id": "E1-04",
+          "model": "claude-sonnet-5-5",
+          "task": "C-04",
+          "k_final": false,
+          "l_final": false,
+          "l_A": false,
+          "l_B": false,
+          "k_viol": "6@43",
+          "l_viol": "6@43"
+        },
+        {
+          "anon_id": "E1-07",
+          "model": "claude-opus-5-5",
+          "task": "C-01",
+          "k_final": false,
+          "l_final": false,
+          "l_A": false,
+          "l_B": false,
+          "k_viol": "5@61",
+          "l_viol": "5@61"
+        },
+        {
+          "anon_id": "E1-08",
+          "model": "claude-sonnet-5-5",
+          "task": "C-02",
+          "k_final": false,
+          "l_final": false,
+          "l_A": false,
+          "l_B": false,
+          "k_viol": "4@9;7@93;9@1",
+          "l_viol": "4@9;7@93;9@1"
+        },
+        {
+          "anon_id": "E1-09",
+          "model": "claude-opus-5-5",
+          "task": "C-05",
+          "k_final": true,
+          "l_final": true,
+          "l_A": false,
+          "l_B": true,
+          "k_viol": "",
+          "l_viol": ""
+        },
+        {
+          "anon_id": "E1-10",
+          "model": "claude-sonnet-5-5",
+          "task": "C-03",
+          "k_final": true,
+          "l_final": true,
+          "l_A": true,
+          "l_B": true,
+          "k_viol": "",
+          "l_viol": ""
+        },
+        {
+          "anon_id": "E1-14",
+          "model": "claude-sonnet-5-5",
+          "task": "C-05",
+          "k_final": true,
+          "l_final": true,
+          "l_A": true,
+          "l_B": true,
+          "k_viol": "",
+          "l_viol": ""
+        },
+        {
+          "anon_id": "E1-15",
+          "model": "claude-opus-5-5",
+          "task": "C-02",
+          "k_final": true,
+          "l_final": true,
+          "l_A": true,
+          "l_B": true,
+          "k_viol": "",
+          "l_viol": ""
+        },
+        {
+          "anon_id": "E1-16",
+          "model": "claude-opus-5-5",
+          "task": "C-03",
+          "k_final": true,
+          "l_final": true,
+          "l_A": true,
+          "l_B": true,
+          "k_viol": "",
+          "l_viol": ""
+        },
+        {
+          "anon_id": "E1-17",
+          "model": "claude-sonnet-5-5",
+          "task": "C-01",
+          "k_final": false,
+          "l_final": false,
+          "l_A": false,
+          "l_B": false,
+          "k_viol": "5@65",
+          "l_viol": "5@65"
+        }
+      ],
+      "diff_final": 0,
+      "diff_A": 1,
+      "diff_B": 0,
+      "tripped": false
+    },
+    "disputed_rows": [
+      "E1-07",
+      "E1-08",
+      "E1-09",
+      "E1-20"
+    ],
+    "line_only_diff_rows": [
+      "E1-02"
+    ],
+    "per_task": [
+      {
+        "model": "claude-opus-5-5",
+        "J": [
+          false,
+          false,
+          true,
+          false,
+          true
+        ],
+        "K": [
+          false,
+          true,
+          true,
+          false,
+          true
+        ],
+        "L": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "model": "claude-sonnet-5-5",
+        "J": [
+          false,
+          false,
+          true,
+          false,
+          true
+        ],
+        "K": [
+          false,
+          false,
+          true,
+          false,
+          true
+        ],
+        "L": [
+          false,
+          true,
+          true,
+          true,
+          true
+        ]
+      }
+    ],
+    "rule_violations_note": {
+      "C-01 r5": 1
+    },
+    "tokens": [
+      {
+        "model": "claude-opus-5-5",
+        "L_in": 38320,
+        "L_out": 21664,
+        "K_in": 188857,
+        "K_out": 16896,
+        "L_error_grade": 0,
+        "L_warnings": 71
+      },
+      {
+        "model": "claude-sonnet-5-5",
+        "L_in": 37960,
+        "L_out": 19932,
+        "K_in": 177894,
+        "K_out": 13612,
+        "L_error_grade": 0,
+        "L_warnings": 64
+      }
+    ]
+  },
+  "e3": {
+    "gold_total_per_condition": 9,
+    "gold_per_answer": {
+      "claude-opus-5-5 C-01": 1,
+      "claude-opus-5-5 C-02": 0,
+      "claude-opus-5-5 C-03": 0,
+      "claude-opus-5-5 C-04": 3,
+      "claude-opus-5-5 C-05": 0,
+      "claude-sonnet-5-5 C-01": 1,
+      "claude-sonnet-5-5 C-02": 3,
+      "claude-sonnet-5-5 C-03": 0,
+      "claude-sonnet-5-5 C-04": 1,
+      "claude-sonnet-5-5 C-05": 0
+    },
+    "checker_exclusion": [],
+    "k_error_grade_sum": 0,
+    "original": {
+      "gold": 9,
+      "caught": 4,
+      "extra": 69,
+      "lenient": 0,
+      "rows": 10,
+      "perRow": [
+        {
+          "anon_id": "E3-02",
+          "model": "claude-opus-5-5",
+          "task": "C-04",
+          "extra": 11
+        },
+        {
+          "anon_id": "E3-03",
+          "model": "claude-sonnet-5-5",
+          "task": "C-05",
+          "extra": 9
+        },
+        {
+          "anon_id": "E3-05",
+          "model": "claude-opus-5-5",
+          "task": "C-02",
+          "extra": 6
+        },
+        {
+          "anon_id": "E3-08",
+          "model": "claude-sonnet-5-5",
+          "task": "C-01",
+          "extra": 7
+        },
+        {
+          "anon_id": "E3-12",
+          "model": "claude-opus-5-5",
+          "task": "C-05",
+          "extra": 8
+        },
+        {
+          "anon_id": "E3-14",
+          "model": "claude-opus-5-5",
+          "task": "C-03",
+          "extra": 5
+        },
+        {
+          "anon_id": "E3-15",
+          "model": "claude-opus-5-5",
+          "task": "C-01",
+          "extra": 9
+        },
+        {
+          "anon_id": "E3-16",
+          "model": "claude-sonnet-5-5",
+          "task": "C-03",
+          "extra": 0
+        },
+        {
+          "anon_id": "E3-17",
+          "model": "claude-sonnet-5-5",
+          "task": "C-02",
+          "extra": 4
+        },
+        {
+          "anon_id": "E3-18",
+          "model": "claude-sonnet-5-5",
+          "task": "C-04",
+          "extra": 10
+        }
+      ]
+    },
+    "note": {
+      "gold": 9,
+      "caught": 6,
+      "extra": 145,
+      "lenient": 3,
+      "rows": 10,
+      "perRow": [
+        {
+          "anon_id": "E3-01",
+          "model": "claude-sonnet-5-5",
+          "task": "C-01",
+          "extra": 15
+        },
+        {
+          "anon_id": "E3-04",
+          "model": "claude-sonnet-5-5",
+          "task": "C-02",
+          "extra": 10
+        },
+        {
+          "anon_id": "E3-06",
+          "model": "claude-opus-5-5",
+          "task": "C-03",
+          "extra": 8
+        },
+        {
+          "anon_id": "E3-07",
+          "model": "claude-opus-5-5",
+          "task": "C-05",
+          "extra": 16
+        },
+        {
+          "anon_id": "E3-09",
+          "model": "claude-sonnet-5-5",
+          "task": "C-03",
+          "extra": 9
+        },
+        {
+          "anon_id": "E3-10",
+          "model": "claude-sonnet-5-5",
+          "task": "C-05",
+          "extra": 16
+        },
+        {
+          "anon_id": "E3-11",
+          "model": "claude-opus-5-5",
+          "task": "C-04",
+          "extra": 23
+        },
+        {
+          "anon_id": "E3-13",
+          "model": "claude-sonnet-5-5",
+          "task": "C-04",
+          "extra": 20
+        },
+        {
+          "anon_id": "E3-19",
+          "model": "claude-opus-5-5",
+          "task": "C-01",
+          "extra": 15
+        },
+        {
+          "anon_id": "E3-20",
+          "model": "claude-opus-5-5",
+          "task": "C-02",
+          "extra": 13
+        }
+      ]
+    },
+    "gap_original_minus_note": -2,
+    "verdict": "채택",
+    "lenient_note": "정답의심(같은 규칙 · 자리 창 밖) 놓침을 잡음으로 읽을 때의 병기 — 판정에 쓰지 않는다",
+    "gap_lenient": -5,
+    "disputed_lines": 0
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "tool": "L-20-measure-load.mjs",
+  "ref": "HEAD",
+  "commit": "fdff5a56bd15b007f4fb7038eb70299398b51b34",
+  "unit": "bytes = UTF-8 after CRLF→LF · tokens = round(bytes/4)",
+  "cells": {
+    "consult": {
+      "bytes": 9161,
+      "tokens": 2290,
+      "files": [
+        {
+          "file": "interactive/core/personas/sap-stocker.md",
+          "bytes": 9161
+        }
+      ]
+    },
+    "convention": {
+      "bytes": 20970,
+      "tokens": 5243,
+      "filesBytes": 10827,
+      "noteBytes": 10143,
+      "notePresent": true,
+      "breakdown": [
+        {
+          "file": "interactive/core/knowledge/abap/conventions/clean-code.md",
+          "replacedByNote": true,
+          "status": "1-hop 밖",
+          "bytes": 0
+        },
+        {
+          "file": "interactive/core/knowledge/abap/conventions/clean-code-oop.md",
+          "replacedByNote": true,
+          "status": "1-hop 밖",
+          "bytes": 0
+        },
+        {
+          "file": "interactive/core/knowledge/abap/conventions/clean-code-procedural.md",
+          "replacedByNote": true,
+          "status": "1-hop 밖",
+          "bytes": 0
+        },
+        {
+          "file": "interactive/core/knowledge/abap/conventions/naming-conventions.md",
+          "replacedByNote": true,
+          "status": "1-hop 밖",
+          "bytes": 0
+        },
+        {
+          "file": "interactive/core/knowledge/abap/conventions/constant-rule.md",
+          "replacedByNote": true,
+          "status": "1-hop 밖",
+          "bytes": 0
+        },
+        {
+          "file": "interactive/core/knowledge/abap/conventions/text-element-rule.md",
+          "replacedByNote": true,
+          "status": "1-hop 밖",
+          "bytes": 0
+        },
+        {
+          "file": "interactive/core/knowledge/abap/conventions/procedural-form-naming.md",
+          "replacedByNote": true,
+          "status": "1-hop 밖",
+          "bytes": 0
+        },
+        {
+          "file": "interactive/core/knowledge/abap/conventions/alv-rules.md",
+          "replacedByNote": false,
+          "status": "1-hop 환산",
+          "bytes": 10827
+        }
+      ]
+    },
+    "total": {
+      "bytes": 584591,
+      "tokens": 146148,
+      "procedureBytes": 115372,
+      "hop1Bytes": 469219,
+      "hop1Count": 34
+    },
+    "escape": {
+      "bytes": 0,
+      "tokens": 0,
+      "files": []
+    }
+  },
+  "reference": {
+    "createProgramTotalWithWrapper": {
+      "bytes": 595986,
+      "tokens": 148997,
+      "wrapperBytes": 1298,
+      "projectContextBytes": 10097
+    },
+    "replacedInHop1": {
+      "bytes": 0,
+      "files": []
+    }
+  },
+  "presence": {
+    "remaining": [],
+    "escapeOnly": []
+  },
+  "verdict": {
+    "consult": {
+      "line": "상담 적재 ≤ 6,000 토큰",
+      "value": 2290,
+      "pass": true
+    },
+    "replaced": {
+      "line": "쪽지 대체 7파일이 create-program 1-hop 전수에서 모두 빠졌을 것(존재 판정)",
+      "failFiles": [],
+      "escapeFiles": [],
+      "pass": true
+    },
+    "total": {
+      "line": "전체 < 변경 전 전체",
+      "value": 584591,
+      "before": 618534,
+      "pass": true
+    },
+    "conventionReduction": {
+      "line": "규약분 감소율(병기만 · 선 없음)",
+      "before": 62603,
+      "after": 20970,
+      "pct": 66.5
+    }
+  },
+  "caseFolded": {}
+}
