@@ -1,0 +1,130 @@
+L-65-grader-brief.txt — 코드 답 블라인드 채점 지시문 (채점자 A · 채점자 B · 제3 판정 공통)
+=====================================================================================
+
+0. 역할
+-------
+  - 당신은 블라인드 채점자다. 묶음의 20행에는 서로 다른 조건(어떤 환경에서 답을 썼는가)과 서로 다른 모델이 쓴 코드 답이
+    섞여 있고, 행 순서도 섞여 있다. 어느 행이 어느 조건 · 모델의 것인지 **추정하지 말라** — 추정을 적지도, 추정에 따라
+    판정을 바꾸지도 않는다. 코드의 문체 · 주석 · 이름이 서로 닮거나 달라도 그것은 판정의 근거가 아니다.
+  - 행마다 **독립으로** 판정한다. 같은 과제의 다른 행과 견주어 판정을 맞추지 않는다 — 그 행의 general_rules 와 코드에만
+    맞춘다.
+  - 규칙은 고치지 않는다. 규칙이나 과제 글자가 실제 SAP 와 어긋난다고 보면 판정은 규칙 글자대로 하고, 그 행 remarks 에
+    「규칙의심:<짧은 근거>」로 적는다(고치지 않고 표시만 한다).
+  - 검사기 판정(checker_error_grade)은 **뒤집지 않는다**. 검사기 출력이 오탐으로 보여도 그 수를 그대로 쓰고, 의견은
+    remarks 에만 적는다.
+
+1. 허용 목록 — 이것만 읽는다 (레포 상대 경로 글자 그대로)
+------------------------------------------------------------
+  docs/reference/audits/2026-11-09-note-and-trim-data/L-65-blind-e1.json
+  docs/reference/audits/2026-11-09-note-and-trim-data/L-65-grader-brief.txt
+  docs/reference/audits/2026-11-05-harness-necessity-review-data/11-code-tasks.txt
+      (과제 · 일반 작법 규칙 · 동봉 검사기 오류급 정의 — §0 판정 정의의 원본)
+  docs/reference/audits/2026-11-05-harness-necessity-review-data/01-convention-split.txt
+      (집 규칙 / 일반 작법 갈래표 — 집 규칙은 세지 않는다)
+  interactive/core/knowledge/abap/conventions/clean-code.md
+  interactive/core/knowledge/abap/conventions/clean-code-oop.md
+  interactive/core/knowledge/abap/conventions/clean-code-procedural.md
+  interactive/core/knowledge/abap/conventions/function-module-rule.md
+  interactive/core/knowledge/abap/conventions/abap-release-reference.md
+      (위 다섯 파일 = general_rules 가 「파일:줄」로 인용하는 원문 전부 — 인용 줄의 앞뒤를 확인할 때만 쓴다)
+  제3 판정만 더 읽는다(같은 자료 폴더 · 채점자 A · B 가 끝난 뒤):
+  docs/reference/audits/2026-11-09-note-and-trim-data/L-70-grading-A.csv
+  docs/reference/audits/2026-11-09-note-and-trim-data/L-70-notes-A.txt
+  docs/reference/audits/2026-11-09-note-and-trim-data/L-71-grading-B.csv
+  docs/reference/audits/2026-11-09-note-and-trim-data/L-71-notes-B.txt
+
+2. 금독 — 허용 목록 밖 전부 (열지 않는다 · 목록도 보지 않는다)
+-----------------------------------------------------------------
+  - 위 자료 폴더 셋에서 허용 목록에 적은 파일 말고는 어떤 파일도 열지 않고, 그 폴더나 하위 폴더의 목록을 보지 않는다
+    (같은 폴더의 다른 묶음 · 매핑 · 답 원본 · 검사기 원출력 · 실행 기록 · 요약 표 · 이전 채점 · 판정 · 집계 · 자체 검사
+    파일 전부가 여기 든다). 이 묶음을 만든 스크립트와 그 검사 결과도 금독이다.
+  - interactive/core/knowledge/abap/conventions/ 의 다른 파일, 그 위 · 옆 폴더도 금독이다(허용은 위 다섯 파일뿐).
+  - 채점자 A · B 는 다른 채점자의 출력(L-70 · L-71 · L-80 으로 시작하는 파일)을 열지 않는다 — 자기 것만 쓴다.
+  - 레포 안의 점(.)으로 시작하는 폴더 전부 · 레포 밖 전부(임시 폴더 · 홈 폴더 포함)는 금독이다.
+  - 파일 찾기 · 내용 검색(Glob · Grep 류)은 허용 목록의 경로를 지정해서만 쓴다 — 경로 없이 레포 전체를 뒤지지 않는다.
+  - 접근 기록 검사: 도구 호출의 경로를 기계로 잰다. 허용 목록 밖 접촉이 1건이라도 있으면 그 채점은 무효다.
+
+3. 묶음 형식
+------------
+  L-65-blind-e1.json   { meta, rows[20] } — 행 칸: anon_id · task_id · task_text · required_output · general_rules ·
+                       checker_error_grade · checker_output · code_lines · code_numbered.
+  task_text · required_output · general_rules
+                       과제 파일(11-code-tasks.txt)의 그 과제 절 글자 그대로(들여쓰기만 뗌). general_rules 는 번호 규칙
+                       목록이고, 각 번호 뒤 괄호 안의 글은 그 규칙의 판정 기준이다.
+  checker_error_grade  동봉 검사기의 기계 결과(오류급 수 · 과제 파일 §0 정의). **뒤집지 않는다.**
+  checker_output       그 답에 돌린 검사기 3명령(lint · parse · analyze) 출력. 대상 파일 이름은 answer.abap 으로 바뀌어
+                       있다. 참고용이다 — 경고(warning)는 통과 판정에 쓰지 않는다(과제 파일 §0).
+  code_numbered        답 코드 전문(무편집)의 각 줄 앞에 「번호␠␠」를 붙인 것. 줄 번호 = 이 앞 번호(1부터).
+  code_lines           코드 줄 수.
+  meta                 시드 · 스트림 · 행 수 · 입력 지문 — 채점에는 쓰지 않는다.
+
+4. 판정 — 과제 통과 = 오류급 0 ∧ 일반 작법 위반 0 (과제 파일 §0)
+-----------------------------------------------------------------
+  - general_rules 의 번호마다 그 코드가 위반인지 본다. 번호 규칙 목록에 없는 작법은 세지 않는다 — 계약이 「번호 규칙」이다.
+  - 집 규칙(01-convention-split.txt 의 「집」 갈래 — 이름 접두 · 인클루드 구조 · 텍스트 요소 규약 · OK_CODE · 두 클래스
+    분리 · 템플릿 · ALV 기본값)은 세지 않고 메모 파일에 「미계수」로만 적는다.
+  - 과제가 명시로 요구 · 허용한 것(예: 단일 파일 · INCLUDE 없음 · 지정한 객체 이름 · 지정 릴리스)은 위반으로 세지 않는다.
+  - 검사기 오류급과 겹치는 규칙은 오류급으로 한 번만 센다(과제 파일 §0) — 어느 쪽이든 결과(불통과)는 같다.
+
+5. 규약 — 채점자 A 는 §5-A, 채점자 B 는 §5-B 를 따른다
+------------------------------------------------------
+  같은 채점자를 규약으로도 맞추기 위해, 앞선 채점에서 각 채점자가 쓴 코드 규약 절을 그대로 옮겼다. 제3 판정은 둘을 모두
+  읽고, A · B 가 갈린 행에서 과제 파일 원문(괄호의 판정 기준 포함)을 기준으로 정한다.
+
+  §5-A  (채점자 A 규약)
+    - 11-code-tasks.txt의 번호 규칙만 센다. 01-convention-split.txt의 집 규칙(접두사·include 구조·텍스트 요소·OK_CODE·
+      두 클래스 분리·템플릿·ALV 기본값)은 세지 않고 메모에 적는다.
+    - 번호 규칙 목록에 없는 일반 작법(예: C-01의 주석 배너)도 세지 않는다 — 계약이 "번호 규칙"이라서다.
+    - SELECT ... INTO TABLE 직후 대상 테이블 IS INITIAL 검사는 sy-subrc 검사와 동등으로 인정한다.
+    - 판단이 갈릴 수 있는 적용: ⓐ C-01 규칙6 — CATCH cx_salv_not_found를 빈 블록(주석만)·RETURN만으로 끝낸 것을 「오류를
+      삼킴」으로 센다. ⓑ C-02 규칙4 — 예외 클래스를 FINAL로 두지 않은 것을 센다(상속 설계 근거 없음). ⓒ C-02 규칙5 —
+      public 시그니처에 쓰인 public TYPES는 세지 않는다. ⓓ C-02 규칙7(given-when-then 이름)은 무의미한 이름만 세는
+      쪽으로 느슨하게 적용한다.
+    - 규칙@줄번호의 줄번호는 위반이 드러나는 대표 줄 하나(AUTHORITY-CHECK 부재는 그 SELECT 줄).
+
+  §5-B  (채점자 B 규약)
+    - 11-code-tasks.txt의 번호 붙은 general_rules만 계수. 위반은 `규칙@줄` 세미콜론 목록(줄 = code_numbered 의 앞 번호).
+      집 규칙은 메모에 「미계수」로만 적는다.
+    - `SELECT … INTO TABLE` 뒤 결과 테이블 `IS INITIAL` 검사는 sy-subrc 검사와 등가로 인정.
+    - 공개 메서드 시그니처에 쓰이는 공개 TYPES는 「공개 필요가 입증된 것」으로 보아 규칙 5(공개 속성 금지) 통과.
+    - 규칙 4 FINAL은 파일 안의 모든 클래스에 적용(전역 예외 클래스도 계수).
+    - 테스트 메서드 이름 규칙(given-when-then): `normal_discount`·`full_discount`처럼 결과가 없는 시나리오명은 위반으로 본다.
+    - 주석 배너(`*---*` 블록)는 규칙이 목록에 있는 과제에서만 계수(C-02 규칙 9 · C-03 규칙 8). 다른 과제의 배너는 메모에만.
+    - C-01 규칙 6은 괄호의 cx_salv_msg 처리로 판정. 빈 `CATCH cx_salv_not_found`는 기록만(미계수).
+    - C-03 규칙 7(TABLES)은 TABLES가 없으면 해당 없음. C-04 규칙 4는 join이면 해당 없음.
+    - C-05 「7.40+ 구문 금지」: 팩 목록 기준. `lines( )`는 7.02부터 있어 통과. MOVE 등 구식 구문은 규칙에 없어 미계수.
+    - C-04 규칙 2(서버측 집계): 전 품목을 읽어 ABAP 루프로 합산하면 (SHKZG 부호 처리 사유를 적었어도) 규칙 문언상 위반.
+      SUM/COUNT GROUP BY → 통과.
+    - 검사기 오류급은 기계 결과 그대로 — 재실행하지 않는다.
+
+6. 출력 (같은 자료 폴더 · docs/reference/audits/2026-11-09-note-and-trim-data/)
+-------------------------------------------------------------------------------
+  채점자 A  L-70-grading-A.csv + L-70-notes-A.txt
+  채점자 B  L-71-grading-B.csv + L-71-notes-B.txt
+  제3 판정  L-80-adjudication-e1.csv + L-80-notes-e1.txt
+
+  CSV (A · B)  머리 줄 (글자 그대로 · 열 17):
+                 anon_id,task_id,checker_error_grade,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,violations,task_pass,remarks
+               행 20 — 묶음의 anon_id 마다 정확히 한 줄 · 묶음 순서(E1-01 … E1-20).
+               anon_id · task_id · checker_error_grade = 묶음 값 그대로.
+               r1 … r11   = 그 번호 규칙의 판정. 위반 | 통과 | 해당없음 중 하나. 그 과제 general_rules 에 없는 번호는 「-」.
+                            (과제별 규칙 수: C-01 7 · C-02 10 · C-03 8 · C-04 7 · C-05 11)
+               violations = 위반한 번호와 줄을 「번호@줄」로, 여럿이면 세미콜론으로 잇는다(예: 5@56;6@114). 없으면 빈 칸.
+                            줄은 위반이 드러나는 대표 줄 하나(AUTHORITY-CHECK 부재는 그 SELECT 줄). r 칸에서 「위반」인 번호와
+                            정확히 같은 번호 집합이어야 한다. 검사기 오류급은 넣지 않는다.
+               task_pass  = 통과 | 불통과.  통과 ⇔ checker_error_grade = 0 이고 violations 가 빈 칸.
+               remarks    = 한 줄(줄바꿈 금지) — 판단이 갈릴 수 있는 적용 · 규칙의심 · 검사기 의견. 없으면 빈 칸.
+               모든 칸을 큰따옴표로 감싸고 칸 안의 큰따옴표는 두 번 적는다 · UTF-8(BOM 없음).
+  CSV (제3)    머리 줄 · 열은 A · B 와 같다. 행 = A 와 B 의 violations 번호 집합(줄은 무시) 또는 task_pass 가 다른 행 전부 ·
+               묶음 순서. 각 칸은 최종 판정 값이고, remarks 에 「A=<A의 violations> · B=<B의 violations> · 근거」를 적는다.
+               갈린 행이 없으면 머리 줄만 둔다.
+  메모 파일     첫 줄 = 「model: <자기 모델 id>」 — 다른 것을 앞에 두지 않는다.
+               그 아래: ① 규약 적용 메모(§5 의 자기 규약을 이 묶음에 어떻게 적용했는가 · 판단이 갈린 적용) ·
+               ② 규칙의심 목록(anon_id · 규칙 번호 · 근거 — 규칙은 고치지 않는다) · ③ 집 규칙 관찰(미계수) ·
+               ④ 집계(과제 통과 수 / 20 · 일반 작법 위반이 있는 행 수 / 20).
+
+7. 쓰기 · 행동 제약
+-------------------
+  - 쓰는 자리는 자기 출력 파일 둘뿐이다. 묶음 · 이 지시문 · 레포의 다른 파일은 한 바이트도 바꾸지 않는다.
+  - 모델 호출 · 웹 검색 · MCP 도구 0. 셸 명령으로 허용 목록 밖을 읽지 않는다. SAP 에 접속하지 않는다. 검사기를 다시 돌리지 않는다.
+  - 출력에 비밀 · 식별 정보(계정 · 컴퓨터 이름 · 절대 경로 · 레포 위치)를 적지 않는다 — 경로는 레포 상대로만.
