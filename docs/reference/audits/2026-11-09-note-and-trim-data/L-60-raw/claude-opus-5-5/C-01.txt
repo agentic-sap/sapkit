@@ -1,0 +1,152 @@
+```abap
+REPORT zjudge_c01.
+
+TYPES: BEGIN OF gty_header,
+         ebeln TYPE ekko-ebeln,
+         bukrs TYPE ekko-bukrs,
+         ekorg TYPE ekko-ekorg,
+         lifnr TYPE ekko-lifnr,
+         bedat TYPE ekko-bedat,
+         bsart TYPE ekko-bsart,
+         ekgrp TYPE ekko-ekgrp,
+       END OF gty_header.
+TYPES gty_header_table TYPE SORTED TABLE OF gty_header WITH UNIQUE KEY ebeln.
+TYPES gty_ekorg_range TYPE RANGE OF ekko-ekorg.
+TYPES gty_ekorg_table TYPE SORTED TABLE OF ekko-ekorg WITH UNIQUE KEY table_line.
+
+CONSTANTS: gc_subrc_ok          TYPE sy-subrc   VALUE 0,
+           gc_msgty_info        TYPE sy-msgty   VALUE 'I',
+           gc_msgty_success     TYPE sy-msgty   VALUE 'S',
+           gc_msgty_error       TYPE sy-msgty   VALUE 'E',
+           gc_auth_object       TYPE xuobject   VALUE 'M_BEST_EKO',
+           gc_actvt_display     TYPE activ_auth VALUE '03',
+           gc_sign_include      TYPE ddsign     VALUE 'I',
+           gc_option_equal      TYPE ddoption   VALUE 'EQ',
+           gc_default_max_rows  TYPE i          VALUE 500,
+           gc_minimum_rows      TYPE i          VALUE 1,
+           gc_large_table_limit TYPE i          VALUE 1000000.
+
+DATA: gv_ekorg            TYPE ekko-ekorg,
+      gv_bedat            TYPE ekko-bedat,
+      gt_authorized_orgs  TYPE gty_ekorg_range,
+      gt_headers          TYPE gty_header_table.
+
+SELECT-OPTIONS: s_ekorg FOR gv_ekorg,
+                s_bedat FOR gv_bedat.
+PARAMETERS p_maxrow TYPE i DEFAULT gc_default_max_rows OBLIGATORY.
+
+AT SELECTION-SCREEN.
+  PERFORM validate_max_rows.
+
+START-OF-SELECTION.
+  PERFORM run_report.
+
+* In: selection screen / Out: ALV or message / Globals: gt_authorized_orgs, gt_headers
+FORM run_report.
+  PERFORM collect_authorized_orgs CHANGING gt_authorized_orgs.
+  IF gt_authorized_orgs IS INITIAL.
+    MESSAGE 'No authorized purchasing organization in selection'(002) TYPE gc_msgty_info.
+    RETURN.
+  ENDIF.
+  PERFORM read_headers USING gt_authorized_orgs CHANGING gt_headers.
+  IF gt_headers IS INITIAL.
+    MESSAGE 'No purchasing documents match the selection'(001) TYPE gc_msgty_info.
+    RETURN.
+  ENDIF.
+  PERFORM display_headers CHANGING gt_headers.
+ENDFORM.
+
+* In: p_maxrow / Out: error message when below minimum / Globals: none
+FORM validate_max_rows.
+  IF p_maxrow < gc_minimum_rows.
+    MESSAGE 'Maximum number of rows must be at least 1'(003) TYPE gc_msgty_error.
+  ENDIF.
+ENDFORM.
+
+* In: s_ekorg / Out: ct_orgs range of display-authorized orgs / Globals: none
+FORM collect_authorized_orgs CHANGING ct_orgs TYPE gty_ekorg_range.
+  DATA: lt_orgs  TYPE gty_ekorg_table,
+        lv_org   TYPE ekko-ekorg,
+        ls_range TYPE LINE OF gty_ekorg_range.
+
+  CLEAR ct_orgs.
+  SELECT ekorg FROM t024e INTO TABLE lt_orgs WHERE ekorg IN s_ekorg.
+  IF sy-subrc <> gc_subrc_ok.
+    RETURN.
+  ENDIF.
+  LOOP AT lt_orgs INTO lv_org.
+    AUTHORITY-CHECK OBJECT gc_auth_object
+      ID 'EKORG' FIELD lv_org
+      ID 'ACTVT' FIELD gc_actvt_display.
+    IF sy-subrc = gc_subrc_ok.
+      ls_range-sign   = gc_sign_include.
+      ls_range-option = gc_option_equal.
+      ls_range-low    = lv_org.
+      APPEND ls_range TO ct_orgs.
+    ENDIF.
+  ENDLOOP.
+ENDFORM.
+
+* In: ut_orgs, s_bedat, p_maxrow / Out: ct_headers / Globals: none
+FORM read_headers USING    ut_orgs    TYPE gty_ekorg_range
+                  CHANGING ct_headers TYPE gty_header_table.
+  DATA lv_total TYPE i.
+
+  CLEAR ct_headers.
+  SELECT COUNT(*) FROM ekko INTO lv_total
+    WHERE ekorg IN ut_orgs
+      AND bedat IN s_bedat.
+  IF sy-subrc <> gc_subrc_ok.
+    RETURN.
+  ENDIF.
+  SELECT ebeln bukrs ekorg lifnr bedat bsart ekgrp
+    FROM ekko
+    INTO TABLE ct_headers
+    UP TO p_maxrow ROWS
+    WHERE ekorg IN ut_orgs
+      AND bedat IN s_bedat
+    ORDER BY PRIMARY KEY.
+  IF sy-subrc <> gc_subrc_ok.
+    CLEAR ct_headers.
+    RETURN.
+  ENDIF.
+  PERFORM report_truncation USING lv_total.
+ENDFORM.
+
+* In: uv_total matching rows / Out: status message when output is limited / Globals: none
+FORM report_truncation USING uv_total TYPE i.
+  DATA: lv_total_text TYPE char12,
+        lv_shown_text TYPE char12,
+        lv_message    TYPE string.
+
+  IF uv_total > gc_large_table_limit.
+    MESSAGE 'Very large result set - narrow the document date range'(004) TYPE gc_msgty_success.
+  ELSEIF uv_total > p_maxrow.
+    WRITE uv_total TO lv_total_text LEFT-JUSTIFIED.
+    WRITE p_maxrow TO lv_shown_text LEFT-JUSTIFIED.
+    CONCATENATE 'Rows shown / total matching:'(005) lv_shown_text '/' lv_total_text
+      INTO lv_message SEPARATED BY space.
+    MESSAGE lv_message TYPE gc_msgty_success.
+  ENDIF.
+ENDFORM.
+
+* In/Out: ct_headers bound to ALV / Out: ALV grid or error message / Globals: none
+FORM display_headers CHANGING ct_headers TYPE gty_header_table.
+  DATA: lo_alv     TYPE REF TO cl_salv_table,
+        lo_columns TYPE REF TO cl_salv_columns_table,
+        lo_error   TYPE REF TO cx_salv_msg,
+        lv_message TYPE string.
+
+  TRY.
+      cl_salv_table=>factory( IMPORTING r_salv_table = lo_alv
+                              CHANGING  t_table      = ct_headers ).
+    CATCH cx_salv_msg INTO lo_error.
+      lv_message = lo_error->get_text( ).
+      MESSAGE lv_message TYPE gc_msgty_info DISPLAY LIKE gc_msgty_error.
+      RETURN.
+  ENDTRY.
+  lo_columns = lo_alv->get_columns( ).
+  lo_columns->set_optimize( abap_true ).
+  lo_alv->display( ).
+ENDFORM.
+```

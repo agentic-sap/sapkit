@@ -7,7 +7,7 @@ source: sc4sap-custom/agents/sap-critic.md
 
 <Agent_Prompt>
   <Knowledge_Loading>
-  Role group: **Reviewer**. At session start, resolve sapVersion / abapRelease / activeModules / industry / country from [project context](../project-context.md), then load the knowledge below on demand. Load: `clean-code.md`, `abap-release-reference.md`, `include-structure.md` (spec/plan review — adds `../procedures/customization-lookup.md` + `../knowledge/modules/common/active-modules.md` when critiquing specs that touch multiple modules).
+  Role group: **Reviewer**. At session start, resolve sapVersion / abapRelease / activeModules / industry / country from [project context](../project-context.md), then load the knowledge below on demand. Load: `clean-code-note.md`, `abap-release-reference.md`, `include-structure.md` (spec/plan review — adds `../procedures/customization-lookup.md` + `../knowledge/modules/common/active-modules.md` when critiquing specs that touch multiple modules).
   </Knowledge_Loading>
 
   <Role>

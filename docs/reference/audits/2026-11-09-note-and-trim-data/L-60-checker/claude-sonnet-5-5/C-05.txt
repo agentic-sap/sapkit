@@ -1,0 +1,262 @@
+L-60-checker/claude-sonnet-5-5/C-05.txt — 동봉 검사기 원출력 (판L T6 · 2026-11-09)
+대상: docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-05.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (판J 11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-05.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-05.abap
+--- stdout (0 bytes) ---
+
+--- stderr (103 bytes) ---
+docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-05.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-05.abap
+--- stdout (6540 bytes) ---
+Report               REPORT zjudge_c05 .
+Move                 TYPE - POOLS abap .
+TypeBegin            TYPES BEGIN OF ty_country_count ,
+Type                 TYPES land1 TYPE kna1 - land1 ,
+Type                 TYPES customer_count TYPE i ,
+TypeEnd              TYPES END OF ty_country_count .
+TypeBegin            TYPES BEGIN OF ty_customer ,
+Type                 TYPES land1 TYPE kna1 - land1 ,
+Type                 TYPES kunnr TYPE kna1 - kunnr ,
+Type                 TYPES name1 TYPE kna1 - name1 ,
+Type                 TYPES ort01 TYPE kna1 - ort01 ,
+TypeEnd              TYPES END OF ty_customer .
+Type                 TYPES ty_country_count_table TYPE SORTED TABLE OF ty_country_count WITH UNIQUE KEY land1 .
+Type                 TYPES ty_customer_table TYPE SORTED TABLE OF ty_customer WITH NON - UNIQUE KEY land1 kunnr .
+Constant             CONSTANTS gc_auth_object TYPE xuobject VALUE 'F_KNA1_APP' ,
+Constant             CONSTANTS gc_activity_display TYPE activ_auth VALUE '03' ,
+Constant             CONSTANTS gc_volume_limit TYPE i VALUE 1000000 .
+Data                 DATA gv_country_filter TYPE kna1 - land1 ,
+Data                 DATA gt_country_count TYPE ty_country_count_table ,
+Data                 DATA gt_customer TYPE ty_customer_table ,
+Data                 DATA gs_customer TYPE ty_customer ,
+Data                 DATA gv_total_customers TYPE i ,
+Data                 DATA gv_is_authorized TYPE abap_bool ,
+Data                 DATA gv_is_volume_ok TYPE abap_bool .
+SelectOption         SELECT - OPTIONS s_land FOR gv_country_filter .
+StartOfSelection     START - OF - SELECTION .
+Perform              PERFORM check_authority CHANGING gv_is_authorized .
+If                   IF gv_is_authorized = abap_false .
+Message              MESSAGE 'No authorization to display customers' ( e01 ) TYPE 'S' DISPLAY LIKE 'E' .
+Return               RETURN .
+EndIf                ENDIF .
+Perform              PERFORM read_country_counts .
+Perform              PERFORM check_volume CHANGING gv_is_volume_ok .
+If                   IF gv_is_volume_ok = abap_false .
+Message              MESSAGE 'Too many customers selected - narrow the country selection' ( e02 ) TYPE 'S' DISPLAY LIKE 'E' .
+Return               RETURN .
+EndIf                ENDIF .
+If                   IF gv_total_customers = 0 .
+Message              MESSAGE 'No customers found for the selection' ( e03 ) TYPE 'S' .
+Return               RETURN .
+EndIf                ENDIF .
+Perform              PERFORM read_customers .
+Perform              PERFORM write_customer_list .
+Comment              * In: none / Out: pv_is_authorized / Global side effects: none
+Form                 FORM check_authority CHANGING pv_is_authorized TYPE abap_bool .
+Move                 pv_is_authorized = abap_false .
+Move                 AUTHORITY - CHECK OBJECT gc_auth_object ID 'APPLCLAS' DUMMY ID 'ACTVT' FIELD gc_activity_display .
+If                   IF sy - subrc = 0 .
+Move                 pv_is_authorized = abap_true .
+EndIf                ENDIF .
+EndForm              ENDFORM .
+Comment              * In: s_land / Out: none / Global side effects: fills gt_country_count, gv_total_customers
+Form                 FORM read_country_counts .
+Data                 DATA ls_count TYPE ty_country_count .
+Clear                CLEAR gt_country_count ,
+Clear                CLEAR gv_total_customers .
+Select               SELECT land1 COUNT ( * ) AS customer_count FROM kna1 INTO TABLE gt_country_count WHERE land1 IN s_land GROUP BY land1 .
+If                   IF sy - subrc <> 0 .
+Return               RETURN .
+EndIf                ENDIF .
+Loop                 LOOP AT gt_country_count INTO ls_count .
+Move                 gv_total_customers = gv_total_customers + ls_count - customer_count .
+EndLoop              ENDLOOP .
+EndForm              ENDFORM .
+Comment              * In: gv_total_customers / Out: pv_is_volume_ok / Global side effects: none
+Form                 FORM check_volume CHANGING pv_is_volume_ok TYPE abap_bool .
+Move                 pv_is_volume_ok = abap_true .
+If                   IF gv_total_customers > gc_volume_limit .
+Move                 pv_is_volume_ok = abap_false .
+EndIf                ENDIF .
+EndForm              ENDFORM .
+Comment              * In: s_land / Out: none / Global side effects: fills gt_customer
+Form                 FORM read_customers .
+Clear                CLEAR gt_customer .
+Select               SELECT land1 kunnr name1 ort01 FROM kna1 INTO TABLE gt_customer WHERE land1 IN s_land .
+If                   IF sy - subrc <> 0 .
+Message              MESSAGE 'No customers found for the selection' ( e03 ) TYPE 'S' .
+EndIf                ENDIF .
+EndForm              ENDFORM .
+Comment              * In: gt_customer / Out: classic list / Global side effects: writes list output
+Form                 FORM write_customer_list .
+Loop                 LOOP AT gt_customer INTO gs_customer .
+Move                 AT NEW land1 .
+Perform              PERFORM write_country_header USING gs_customer - land1 .
+Move                 ENDAT .
+Perform              PERFORM write_customer_line USING gs_customer .
+EndLoop              ENDLOOP .
+EndForm              ENDFORM .
+Comment              * In: pv_land1 / Out: header line in list / Global side effects: reads gt_country_count
+Form                 FORM write_country_header USING pv_land1 TYPE kna1 - land1 .
+Data                 DATA ls_count TYPE ty_country_count .
+ReadTable            READ TABLE gt_country_count INTO ls_count WITH TABLE KEY land1 = pv_land1 .
+If                   IF sy - subrc <> 0 .
+Move                 FORMAT COLOR COL_GROUP .
+Write                WRITE / 'Country' ( 001 ) ,
+Write                WRITE pv_land1 .
+Move                 FORMAT COLOR OFF .
+Return               RETURN .
+EndIf                ENDIF .
+Move                 FORMAT COLOR COL_GROUP .
+Write                WRITE / 'Country' ( 001 ) ,
+Write                WRITE pv_land1 ,
+Write                WRITE 'Customers' ( 002 ) ,
+Write                WRITE ls_count - customer_count LEFT - JUSTIFIED .
+Move                 FORMAT COLOR OFF .
+EndForm              ENDFORM .
+Comment              * In: ps_customer / Out: customer line in list / Global side effects: writes list output
+Form                 FORM write_customer_line USING ps_customer TYPE ty_customer .
+Write                WRITE / ps_customer - kunnr ,
+Write                WRITE ps_customer - name1 ,
+Write                WRITE ps_customer - ort01 ,
+Write                WRITE ps_customer - land1 .
+EndForm              ENDFORM .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-05.abap
+--- stdout (3151 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 6,
+      "endLine": 6,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 23,
+      "endLine": 23,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 25,
+      "endLine": 25,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 27,
+      "endLine": 27,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 28,
+      "endLine": 28,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 29,
+      "endLine": 29,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 30,
+      "endLine": 30,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 32,
+      "endLine": 32,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 33,
+      "endLine": 33,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 65,
+      "endLine": 65,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 10,
+    "bySeverity": {
+      "medium": 10
+    },
+    "byCategory": {
+      "quality": 10
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=10 analyze_info=0 error_grade=0 warnings=10 source_lines=147 bytes=4340 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (판J 11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

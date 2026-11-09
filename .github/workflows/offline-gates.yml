@@ -139,6 +139,17 @@ jobs:
       - name: 줄 수 게이트 음성시험 (초과·부재·무인자를 실제로 거부하는지 · 경계 정확)
         run: node interactive/scripts/test-check-doc-size.mjs
 
+      # ── ABAP 작법 쪽지 동기화 (판L · D-164 ⓚ) ───────────────────────────────
+      # 쪽지 정본(conventions/clean-code-note.md)의 표식 사이 본문을 지시서 네 곳이
+      # 글자 그대로 싣는다 — 같은 글자 다섯 벌이 갈라지면 조용히 낡는다. 재는 것:
+      # 사본 4곳 ↔ 정본 바이트 동일(줄 끝 정규화) · 규칙 줄마다 출처 표식이 있고 그
+      # 파일·`## ` 장이 conventions/에 실재 · 크기 상한 · 표식 쌍 정확히 하나.
+      - name: 작법 쪽지 동기화 (정본 ↔ 사본 4 · 출처 실재 · 크기 상한 · 표식 쌍)
+        run: node interactive/scripts/check-conventions-note.mjs
+
+      - name: 쪽지 게이트 음성시험 (사본 변형·출처 오타·출처 누락·상한·표식 부재/중복을 실제로 거부하는지)
+        run: node interactive/scripts/test-check-conventions-note.mjs
+
       # ── 연속성 스위치·훅 음성시험 (판C) ────────────────────────────────────
       # 사용자 프로젝트의 재개점 2종을 가리키는 SessionStart 훅과 그 **별도** 스위치.
       # 재는 것: 스위치 왕복(멱등 upsert · --uninstall byte 원복 · 남의 항목 보존) ·

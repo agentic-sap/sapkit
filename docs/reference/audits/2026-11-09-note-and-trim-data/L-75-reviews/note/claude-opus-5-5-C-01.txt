@@ -1,0 +1,22 @@
+**§8 위반 목록 (Procedural · 7.58)**
+
+Core | 18 | `ty_t_ekko`가 `STANDARD TABLE ... WITH DEFAULT KEY`로 선언되어 있다. 이 테이블은 표시 전용이고 키 접근이 없으므로 `WITH EMPTY KEY`로 바꿔야 한다. 정렬 키가 필요하면 `WITH NON-UNIQUE KEY ebeln`으로 명시한다. [MINOR]
+Core (Security) | 39–57 전체 | 어느 진입점에도 `AUTHORITY-CHECK`가 없다. 구매조직별 `M_BEST_EKO`(ACTVT 03) 검사가 필요하다. 권한 없는 EKORG는 선택 단계에서 거부하거나 결과에서 제외해야 한다. 지금은 모든 구매오더 헤더가 노출된다. [MAJOR]
+Core / Procedural (sy-subrc) | 61–67 | `SELECT ... INTO TABLE` 뒤에 `sy-subrc`를 검사하지 않는다. 52행의 `gt_data IS INITIAL`이 결과는 같지만 확인이 FORM 밖 호출부로 흩어져 있다. [MINOR]
+Core (Modern syntax) | 61–67 | 7.58인데 구식 Open SQL을 쓴다(쉼표 없는 필드 목록, `@` 이스케이프 없음). `SELECT ebeln, bukrs, ... FROM ekko WHERE ... ORDER BY ebeln INTO TABLE @gt_data UP TO @p_max ROWS.` 형태가 맞다. [MINOR]
+Core (Inline declarations) | 72–74, 85, 116–123 | 릴리스가 허용하는데도 전부 사전 선언과 대입을 쓴다. `DATA(lo_columns) = lo_salv->get_columns( ).` 같은 인라인 선언, `CONV scrtext_s( iv_short )` 같은 변환식을 쓰면 된다. [MINOR]
+Core (Large-table SELECT) | 61–67 | EKKO는 트랜잭션 대량 테이블이다. 선택조건이 비면 전체를 스캔하는데, 볼륨 확인(`COUNT(*)`)이나 튜닝 고려가 없다. `UP TO`와 PK 순 `ORDER BY`로 완화되기는 한다. [MINOR]
+Core (Naming) / Procedural (g*/l*) | 26, 30, 34, 40–42 | `c_ekorg`, `c_bedat`, `c_max`는 변수(화면 COMMENT 필드)인데 상수 접두어 `c_`를 달았다. 전역인데 `g*`도 아니어서 한눈에 구분되지 않는다. [MINOR]
+Procedural (FORM signature) | 60, 71 | `get_data`와 `display_alv`가 전역 `s_ekorg`, `s_bedat`, `p_max`, `gt_data`를 암묵적으로 읽고 쓴다. 입력은 `USING`, 결과 테이블은 `CHANGING`으로 넘겨야 한다. [MINOR]
+Procedural (FORM header comment) | 59–60, 70–71, 111–112 | 각 FORM 위에 `*&---*` 구분선만 있다. 입력, 출력, 전역 부수효과를 적은 한 줄 헤더가 없다. [MINOR]
+House rules (Delegating event blocks) | 39–48, 50–57 | 이벤트 블록 안에 로직이 직접 들어 있다(라벨 대입, `p_max` 검증, 결과 없음 분기). 각 블록을 `PERFORM` 위임으로 바꿔야 한다. 선택화면 검증 FORM은 화면 바인딩이므로 `_1000` 접미어를 붙인다. [MINOR]
+House rules (Constants) | 35 | 임계값 `500`이 리터럴이다. 전역 선언부의 `CONSTANTS`로 옮긴다(TOP include가 없으므로 전역 선언부). [MINOR]
+House rules (Constants) | 47, 54, 81 | 메시지 유형 코드 `'E'`, `'I'`가 리터럴이다. `CONSTANTS`로 옮긴다. [MINOR]
+House rules (Constants) | 88, 90, 92, 94, 96, 98, 100 | ALV 컬럼명 `'EBELN'` 등 7개가 리터럴이다. `CONSTANTS`로 묶는다. [MINOR]
+Procedural (FORM naming) | 60, 71, 112 | FORM 이름에 규칙이 전제하는 `f_` 접두어가 없다(`get_data` → `f_get_data` 등). [MINOR]
+자체 판단 (silent truncation) | 112–123 | `csequence`로 받은 값을 `scrtext_s`(10), `scrtext_m`(20), `scrtext_l`(40)에 대입하면 길이를 넘는 부분이 조용히 잘린다. 게다가 medium에 long 텍스트를 넣고 있다. 지금 텍스트는 모두 길이 안에 들지만, 파라미터를 `scrtext_*` 타입으로 받거나 medium 텍스트를 따로 넘겨야 한다. [MINOR]
+
+**지적하지 않은 항목**
+- **검사기가 이미 잡은 것:** `lo_`/`lx_` 지역변수 이름(lint), 이중 공백 12건(analyze). 지침대로 검사기 판정을 따르고 다시 올리지 않았다.
+- **과제가 요구한 이탈:** INCLUDE와 TOP include가 없는 단일 파일, 별도 텍스트 풀 없음(text symbol 리터럴 대체값과 COMMENT 라벨), 객체명 `ZJUDGE_C01`의 번호 규칙 불일치는 위반으로 세지 않았다.
+- **적용 대상 아님:** OOP 그룹과 OOP 템플릿(`zsapkit_oop_ex`) 대조 항목은 Paradigm이 Procedural이라 적용하지 않았다.

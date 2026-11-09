@@ -1,0 +1,185 @@
+L-65-check.txt — 판L T65 익명 묶음 검사 결과 (node L-65-build-blind.mjs --check 가 쓴다 · 시각 없음 · 다시 돌려도 같은 글자)
+⚠ 이 파일은 조건 · 모델 이름과 정답 건수를 담는다 — 채점자 · 매칭자 금독
+
+[1] 난수 스트림
+  e1-order  fnv1a=2967607810  seed=2983670519  (SEED 20261109)
+  e3-order  fnv1a=258383044  seed=240366641  (SEED 20261109)
+PASS  두 스트림 시드가 서로 다르다
+
+[2] 결정성 — 다시 만든 글자 = 디스크 (CRLF → LF 로 읽어 대조)
+PASS  docs/reference/audits/2026-11-09-note-and-trim-data/L-65-blind-e1.json  sha256=909acfea448d0003503cfd86f62076d515ce81b3143dc7a8bb7502391b02e0d1
+PASS  docs/reference/audits/2026-11-09-note-and-trim-data/L-65-blind-e3.json  sha256=5571edbd487af4239b8e27651d72e1e228d032b915bd2fb3fcdbb1060842be69
+PASS  docs/reference/audits/2026-11-09-note-and-trim-data/L-79-blind-map.csv  sha256=8f8f7e80dcb42cff824b5e1fa920f50aa19c919c3cfc4d0c1cc4325722b01375
+
+[3] 행 수 · id · 매핑 대조
+PASS  E-1 행 20 · id E1-01…E1-20 순 (행 20)
+PASS  E-3 행 20 · id E3-01…E3-20 순 (행 20)
+PASS  매핑 40행 = E-1 20 + E-3 20 · id 집합과 순서가 묶음과 같다 (매핑 40)
+PASS  E-1 조건별 10 · 10 (panL-note 10 · panK-drift 10)
+PASS  E-3 조건별 10 · 10 (original 10 · note 10)
+PASS  조건 × 모델 × 과제 조합이 묶음마다 20개 모두 서로 다르다
+PASS  묶음 task_id = 매핑 task_id (행마다)
+
+[4] 무편집 · 기계 결과 출처
+PASS  입력 65파일의 읽은 바이트 = 커밋 blob (git ls-files -s 대조 · 어긋남 0)
+PASS  E-1 code_numbered 에서 번호를 떼면 소스와 같다(줄 끝 공백 제외 · 행마다)
+PASS  E-3 code_numbered 에서 번호를 떼면 판K 원본 소스와 같다(행마다)
+PASS  E-1 checker_error_grade(요약 표) = 검사기 원출력 metrics error_grade (행마다)
+PASS  E-1 검사기 출력의 대상 경로 치환 ≥ 3 (명령 줄 3) · 행별 최소 4
+  E-1 checker_error_grade 분포: panK-drift:0=10 · panL-note:0=10
+
+[5] E-3 정답 (판K 최종 · K-83-results.json rows[] condition=K kind=code 의 viol · code.<model>.viol 과 대조)
+PASS  정답 합계 9 = 묶음 gold_count 합 ÷ 2 (두 조건이 같은 답을 리뷰)
+  claude-opus-5-5  C-01=1「5@61」 · C-02=0「」 · C-03=0「」 · C-04=3「2@53;5@53;6@53」 · C-05=0「」
+  claude-sonnet-5-5  C-01=1「5@65」 · C-02=3「4@9;7@93;9@1」 · C-03=0「」 · C-04=1「6@43」 · C-05=0「」
+  정답 합계 = 9 (답 10개 · 위반이 있는 답 5 · 없는 답 5)
+PASS  판K 답 10개 검사기 오류급 합 = 0 (K-60-checker-summary.csv 0 · K-83 rows 0) → 검사기 제외 집합은 비어 있다
+PASS  정답 line_text = 그 줄 원문
+PASS  묶음 gold_count = 정답 건수(행마다)
+
+[6] E-3 가림 (두 조건 같은 규칙 · 원본 응답 파일은 무편집)
+PASS  원본 응답 = 디스크 파일(가림 전 · 무편집)
+PASS  묶음 review = 원본에 가림 규칙을 적용한 글자
+  original  가림 합계 48  (R6=27 · R1=20 · R2=1 · R2b=0 · R5=0 · R3=0 · R4=0 · R7=0)
+  note  가림 합계 85  (R6=3 · R1=6 · R2=0 · R2b=5 · R5=50 · R3=2 · R4=19 · R7=0)
+    original claude-opus-5-5   C-01  9
+    original claude-opus-5-5   C-02  3
+    original claude-opus-5-5   C-03  5
+    original claude-opus-5-5   C-04  7
+    original claude-opus-5-5   C-05  3
+    original claude-sonnet-5-5 C-01  7
+    original claude-sonnet-5-5 C-02  2
+    original claude-sonnet-5-5 C-03  4
+    original claude-sonnet-5-5 C-04  2
+    original claude-sonnet-5-5 C-05  6
+    note     claude-opus-5-5   C-01  6
+    note     claude-opus-5-5   C-02  10
+    note     claude-opus-5-5   C-03  13
+    note     claude-opus-5-5   C-04  9
+    note     claude-opus-5-5   C-05  7
+    note     claude-sonnet-5-5 C-01  7
+    note     claude-sonnet-5-5 C-02  6
+    note     claude-sonnet-5-5 C-03  9
+    note     claude-sonnet-5-5 C-04  12
+    note     claude-sonnet-5-5 C-05  6
+  R2b 절 이름 49개: Claim the sequence number before you propose a name · the release each feature arrives in · Mandatory Main Program Template · Checklist before emitting ABAP · Fixed-Width File Serialization · Arithmetic and Initial Values · the Label Starts at Offset 8 · What must become a constant · Global vs Local Discipline · Security and Data Handling · Where the declaration goes · Modularization Boundaries · Parameters and Signatures · Procedural Error Handling · Text and User Interaction · patterns keyed by purpose · Required source template · Limits and Workarounds · Editing Existing Code · Inline signature only · Four Text Pool Types · Parameters and Calls · Reconciliation Logic · Activation Protocol · Placement and Order · Variables and Types · Conditions and IFs · Object Orientation · Procedural Testing · Unnumbered objects · Main Program Body · Version Awareness · Currency Amounts · Numbered objects · Scope and Design · Two Silent Traps · ALV Requirement · Internal Tables · Selection Texts · Two-Class Split · Error Handling · FORM / PERFORM · Feature matrix · Control Flow · Event Blocks · Null vs Zero · Method Body · FORM Body · HARD RULE
+  가림 표시 「[가림]」 · 적용 순서 R6(조각) → R1 → R2 → R2b → R5 → R3 → R4 → R7 · 두 조건 같은 규칙 · 규칙 내용(무엇이 어긋났는지)은 남김
+  가림 규칙 (묶음에는 싣지 않는다 — 규칙 글자 자체가 조건을 드러내므로 매칭자에게 주지 않는 이 기록에만 둔다):
+    R6  환경 · 읽기 · 범위 문장 — 괄호 묶음 또는 문장(「. 」 · 「 | 」 로 나눈 조각) 가운데 ① 원본 파일 이름(R1 꼴)과 읽기 · 기준 · 판단 동사가 함께 있거나 ② 작업 폴더 · 파일 부재 · 대조 불가 · 확인 불가 표현이 있거나 ③ R4 꼴 그룹 이름과 「그룹 · group · judged · 체크 대상 · 판정 범위」가 함께 있거나 ④ R7 꼴 표현이 있는 것을 조각째 가린다(목록 머리 「- 」 는 남긴다 · 영어 동사는 소문자 낱말로만 잰다)
+    R1  원본 파일 이름 — 경로 · *.md · *.abap(spec.md · interview.md 는 남김) · 규약 · 템플릿 파일 이름(확장자 없이도) · 「procedural/OOP/규약 + 파일/문서」 · 뒤따르는 「§ 절 이름」「:줄」 까지
+    R2  출처 표식 — 「[… § …]」 꺾쇠 묶음 · 「§ + 영문 절 이름」(§8 처럼 숫자가 오는 것은 남김)
+    R2b  쪽지 본문 출처 표식의 절 이름 조각(두 낱말 이상 · 대소문자 그대로 · Open SQL 제외)
+    R5  자체 판단 표지 — 「자체 판단」 · 「own judgment」 · 「판단」으로 시작하거나 「자체 판단」「노트 외」를 담은 괄호 묶음 · 칸 머리의 「판단(…)」 + 「·/:/—」
+    R3  쪽지 낱말 — 「쪽지」 · 「노트」 · 낱말 「note(s)」(대소문자 무시)
+    R4  쪽지 조건 문안에만 있는 그룹 이름 — 「House rules」 · 낱말 「House」 · 「하우스 규칙/패턴」 · 「Release and function modules」 · 「Release and FM」 · 「Release/FM」
+    R7  원본 조건 문안에만 있는 「paradigm gate (first)」 · 「Paradigm 게이트」
+
+[7] 표시 문자열 검사 (대소문자 무시)
+PASS  묶음 두 파일의 meta · 키 · 스크립트가 쓴 칸(anon_id · task_id · 검사기 출력 · gold 의 id/번호/제목/줄 · 가린 review)에 표시 문자열 0 (발견 0)
+  공통 금지: claude · opus · sonnet · gpt · codex · 판\s*[jkl] · \bnotes?\b · 쪽지 · 노트 · \b[lk]-(?:50|60|75|79|8\d)\b · docs\/ · audits · harness-on · note-and-trim · comparison · blind-map · node v\d · 2026-\d\d
+  E-3 추가 금지(가린 review 등): clean-code · (?<!\bspec|\binterview)\.md\b · constant-rule|function-module-rule|naming-conventions|text-element-rule|include-structure|oop-pattern|abap-release-reference|procedural-form-naming · main-program\.abap · zsapkit_oop_ex · \bhouse\b · 하우스 · release and · release\s*\/\s*fm · 자체\s*판단 · own judg · paradigm\s*(?:gate|게이트) · §\s*[A-Za-z] · \boriginal\b · workspace · 작업\s*(?:디렉터리|공간|폴더) · knowledge\/ · procedures\/ · 원본\s*조건
+  원문 그대로 옮긴 칸(과제 글자 · 코드 · 정답 규칙 인용 · 코드 유래 검사기 줄)의 발견 = 22건 — 무편집 원칙에 따라 고치지 않고 적기만 한다:
+    E1-15  checker_output(코드 유래)  \bnotes?\b
+    E1-15  code_numbered  \bnotes?\b
+    E3-01  gold.rule_text  clean-code · (?<!\bspec|\binterview)\.md\b
+    E3-02  gold.rule_text  clean-code · (?<!\bspec|\binterview)\.md\b
+    E3-02  gold.rule_text  clean-code · (?<!\bspec|\binterview)\.md\b
+    E3-02  gold.rule_text  clean-code · (?<!\bspec|\binterview)\.md\b
+    E3-04  gold.rule_text  clean-code · (?<!\bspec|\binterview)\.md\b
+    E3-04  gold.rule_text  clean-code · (?<!\bspec|\binterview)\.md\b
+    E3-04  gold.rule_text  clean-code · (?<!\bspec|\binterview)\.md\b
+    E3-05  code_numbered  \bnotes?\b
+    E3-08  gold.rule_text  clean-code · (?<!\bspec|\binterview)\.md\b
+    E3-11  gold.rule_text  clean-code · (?<!\bspec|\binterview)\.md\b
+    E3-11  gold.rule_text  clean-code · (?<!\bspec|\binterview)\.md\b
+    E3-11  gold.rule_text  clean-code · (?<!\bspec|\binterview)\.md\b
+    E3-13  gold.rule_text  clean-code · (?<!\bspec|\binterview)\.md\b
+    E3-15  gold.rule_text  clean-code · (?<!\bspec|\binterview)\.md\b
+    E3-17  gold.rule_text  clean-code · (?<!\bspec|\binterview)\.md\b
+    E3-17  gold.rule_text  clean-code · (?<!\bspec|\binterview)\.md\b
+    E3-17  gold.rule_text  clean-code · (?<!\bspec|\binterview)\.md\b
+    E3-18  gold.rule_text  clean-code · (?<!\bspec|\binterview)\.md\b
+    E3-19  gold.rule_text  clean-code · (?<!\bspec|\binterview)\.md\b
+    E3-20  code_numbered  \bnotes?\b
+PASS  L-65-grader-brief.txt 에 표시 문자열 0 (자료 폴더 경로는 떼고 잼 · 발견 0)
+PASS  L-66-matcher-brief.txt 에 표시 문자열 0 (자료 폴더 경로는 떼고 잼 · 발견 0)
+  지시문 금지: claude-opus|claude-sonnet · \bopus\b · \bsonnet\b · gpt · codex · 판\s*[kl] · \bnotes?\b · 쪽지 · 노트 · \b[lk]-60\b · \bl-75\b · \bk-8\d\b · \bl-79\b · blind-map · harness-on · 원본\s*조건 (+ 채점 지시문만: \bl-66\b)
+
+[8] 조건 단서 관찰 (판정 아님 · 집단별 수만)
+  「검사기 판정(을|대로) 수용/따르/인정」: original 0/10 · note 5/10
+  「[가림]」 1회 이상: original 10/10 · note 10/10
+  「Core」 낱말: original 1/10 · note 8/10
+  「AUTHORITY-CHECK」: original 1/10 · note 8/10
+  ⚠ 위 표지는 낱말 가림으로 지울 수 없는 행동 차이(지침이 달라 생긴 응답 구성 차이)다 — 매칭자 지시문이 「조건을 추정하지 말라」를 둔다.
+
+[9] 입력 지문 (파일마다 sha256 · CRLF → LF 로 읽은 바이트 = 커밋 blob)
+PASS  E-1 묶음 meta 집합 지문 = 다시 잰 값 (e7b82ae916cc448dbc45e0cc67bf3515687001667850677b22eaa4681e3de5d0 · 43파일)
+PASS  E-3 묶음 meta 집합 지문 = 다시 잰 값 (c118558a0773f04ad10aafa87f75df031be63ea11faa68a992b86b3fda3d3710 · 33파일)
+  전체 입력 65파일 집합 지문 = 92adf2414ce4d6f8ed835672bd0505eb5921424fbc34832a8fd79020a739da8b
+  ecd65dee33ceac0631eb93ed0a03b772a8375d5630ceb8be36ba402e19700b39  docs/reference/audits/2026-11-05-harness-necessity-review-data/11-code-tasks.txt
+  a9201ba601a479f75647214467373085e6df26f649a1d2cfd0378188b9ad0c85  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-checker-summary.csv
+  ec48d41b0cda3a23a2536bc5dd94ad16e555010be70abd7548a105e82078ab21  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-checker/claude-opus-5-5/C-01.txt
+  a85d906eae005db4603e1dd532571bc30df3dfd653d9b22b3707e572760b1003  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-checker/claude-opus-5-5/C-02.txt
+  b62baf16b0f1a5679157ae31df9695d4a87293dcede8e8079ff98d482b150be4  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-checker/claude-opus-5-5/C-03.txt
+  0ed21d1be4cdc5e4151344669ec215a6345302409c860e2573ca506a50e63ec7  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-checker/claude-opus-5-5/C-04.txt
+  3e7b54bf49eee48d709744cf8a4c8d9861b04a8449913f183a2f0e59efe1a08c  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-checker/claude-opus-5-5/C-05.txt
+  ff31e4db3bdcb31858001169060ef398c1c803a79b72c6fdf664a99c6203250a  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-checker/claude-sonnet-5-5/C-01.txt
+  52b854a0581caec84506127986e6e4761b0e56fb64d7821d32d1f09fa5d2b267  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-checker/claude-sonnet-5-5/C-02.txt
+  05766d8212d4e1e44b657477b9399935da66ea4da04c768722f8e85936952f17  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-checker/claude-sonnet-5-5/C-03.txt
+  e26c543fce1b734a9fcd13db964dbe2e98e8fa36f840959e09ead0c82bc33b59  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-checker/claude-sonnet-5-5/C-04.txt
+  a40711900d03a668f0ad38dc11b92c290fbb60f913fa0ffa9f5d434e8c9d7de5  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-checker/claude-sonnet-5-5/C-05.txt
+  443fa0423df8884c17b13fa5716ffd8542a1f13d586f6a2cbc6954f071abe7fd  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-01.abap
+  956383ebc06f454ff0eddcd395902b21eea3ba263760c1004c66f1cc994db8b5  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-02.abap
+  d4a6c591ec5e49ed0548b2f0b40244fbc03df1c68fcb6ed1bcb5cf9c24f363e0  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-03.abap
+  69a7b8efe867b9c0af0d8fc30d21df33be8616112108e53723159c7b3046927c  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-04.abap
+  322ff470b287feebea6ea291b001123c69965b3f0c8c79acae2d8f8e6a557be2  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-05.abap
+  5fc08f658cbf853a0c267c320f10d88ae4c1a897ad03848d04ab4f37ef51c33e  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-01.abap
+  b3218bec0054d7490858b3f961c25ac53592eb758acc6af19c1df03a208ad1e9  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-02.abap
+  013cdf997d88c9aa8a3e974cb7c55eedacba4133216bf42014c0f45695ba6937  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-03.abap
+  c38d6c19466f86612129a9a45710143b1161e2103cfe3db9ca6eff36b539444d  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-04.abap
+  46ef51742a1fa8c2d9413b5f4ef8d04763861585235e3a4c911440e8f901a80a  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-sonnet-5-5/C-05.abap
+  c2fb98416e166a795bdb60ed2ce2c987836b0aa84e8f846e3dff5ce74479984b  docs/reference/audits/2026-11-08-harness-on-comparison-data/K-83-results.json
+  e53476035032e5093f42a94a70a12569f70b884573d0e0c9d991414737d59852  docs/reference/audits/2026-11-09-note-and-trim-data/L-60-checker-summary.csv
+  5b1f2d4a7904a7ca04cdb894bb1399018c65c3fb9b8d84765183908af4897a39  docs/reference/audits/2026-11-09-note-and-trim-data/L-60-checker/claude-opus-5-5/C-01.txt
+  6da4f460782a262dd16ccf80ff475bef15b3b729f99554bbcf0ae37f2bb0076d  docs/reference/audits/2026-11-09-note-and-trim-data/L-60-checker/claude-opus-5-5/C-02.txt
+  98fdca7b38a20b54b7858c4baf00ad95f7ca2c6d9c18f4d502652a564143f654  docs/reference/audits/2026-11-09-note-and-trim-data/L-60-checker/claude-opus-5-5/C-03.txt
+  e0840a26bdee6e46363672117dd72178593b2da4e2f4a000306f63b8c39675e5  docs/reference/audits/2026-11-09-note-and-trim-data/L-60-checker/claude-opus-5-5/C-04.txt
+  9fb1b3e32d995c703baaa62eea9b1252142cde5366191f792bc606916ae402ce  docs/reference/audits/2026-11-09-note-and-trim-data/L-60-checker/claude-opus-5-5/C-05.txt
+  e3a154fb1f5a38207a0d3a719883d0946929043df3b0cc216fa228885ef47559  docs/reference/audits/2026-11-09-note-and-trim-data/L-60-checker/claude-sonnet-5-5/C-01.txt
+  9de3abebbb3c551f017bcf3a4395c30f09a85ec6f54938a42b3cee78675e17d6  docs/reference/audits/2026-11-09-note-and-trim-data/L-60-checker/claude-sonnet-5-5/C-02.txt
+  a2bd5595076ef265a3957fc621bdbd57657398ef9a4cecc4b1a326fbfb75893b  docs/reference/audits/2026-11-09-note-and-trim-data/L-60-checker/claude-sonnet-5-5/C-03.txt
+  beacc76da42608dfc55ada05f32e9b985aecde85ee7e7d43f7f600e37079c3b7  docs/reference/audits/2026-11-09-note-and-trim-data/L-60-checker/claude-sonnet-5-5/C-04.txt
+  b5e9f239538751ef97843abfe81431e16a046ef20e44f34fb6351102108ace3a  docs/reference/audits/2026-11-09-note-and-trim-data/L-60-checker/claude-sonnet-5-5/C-05.txt
+  6064ea63ac3ba95e97ad6c3973067f6636d2c26d14568f8fb4dcc45c4d20676c  docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-01.abap
+  9afa8be2492e230095d79748b6d8e7bc37741e6dd21eba324157c02c0aab25ea  docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-02.abap
+  3beb49affc10f0ca4e78350a15ba5ebad90c13e9bc77b5ebbde0843c0aabdab3  docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-03.abap
+  71b7feb954584abd2f2cf3ebb1b466d4537a979d09ceaacba7ee713187e4e469  docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-04.abap
+  ef05e5fec7ee60f019e8503f9339378a79e06b76d8837f237d2884ceecd81cda  docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-05.abap
+  fb9bd63d940c8c2c309ec225d311cf77ed19e18d2ebfb835a11b40f8ed2bca0e  docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-01.abap
+  b1c917a15fdbf5ad89b97e632fa1008dca6d6516a82d72ef766e53320b0b7336  docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-02.abap
+  fd89a8ecf5e8133a4f4f6b684782c957c655d9eea9e0a55ddb2fb39f6e92a57d  docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-03.abap
+  55889eed71e1732761ea0f8130c9eb981d97446fbc4c71aa1cb5a0e8679837e6  docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-04.abap
+  fc3d500991261ad26b8cc7d99ce506b54dd5fda561802fcfa56abc6295ad64fb  docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-05.abap
+  6924b315f4281ce26970cd01e30f541bab56b23d088f8f21259984a7b8dba919  docs/reference/audits/2026-11-09-note-and-trim-data/L-75-prompts/note-claude-opus-5-5-C-01.txt
+  7b41c281eaf6ac38b3486ac16ac4ebce7735107637b65cf3d75604d720b57a4c  docs/reference/audits/2026-11-09-note-and-trim-data/L-75-reviews/note/claude-opus-5-5-C-01.txt
+  3745649e4851463da19392a97f14b11e40bae8336de87e0a7f1465b444444b54  docs/reference/audits/2026-11-09-note-and-trim-data/L-75-reviews/note/claude-opus-5-5-C-02.txt
+  88493bedae3f8ede16c4c8a2dc209bf1ce659320faf8bd88e1f4d2098eec9bf2  docs/reference/audits/2026-11-09-note-and-trim-data/L-75-reviews/note/claude-opus-5-5-C-03.txt
+  e59ee597df52ca555e09fef14bcf5bf5d7a26feefdd274e7b02efec7424a5762  docs/reference/audits/2026-11-09-note-and-trim-data/L-75-reviews/note/claude-opus-5-5-C-04.txt
+  1c10a249de53fa81254ce4a978b8d5c23d263626095b2cb965764360898ef5be  docs/reference/audits/2026-11-09-note-and-trim-data/L-75-reviews/note/claude-opus-5-5-C-05.txt
+  8d4dbaba789333d01073b679c2c84dbfe33b880af43d4af4ab5244aa63b18d33  docs/reference/audits/2026-11-09-note-and-trim-data/L-75-reviews/note/claude-sonnet-5-5-C-01.txt
+  3a58f2a55048fce91430d6edd730f39117daf1a1a9db09cd75fde8cd8aef25e3  docs/reference/audits/2026-11-09-note-and-trim-data/L-75-reviews/note/claude-sonnet-5-5-C-02.txt
+  38e23a46d34f8b6cfda9edc1ba1e0132ae7b9bc89ce81eac32c735d3c7cc1bfc  docs/reference/audits/2026-11-09-note-and-trim-data/L-75-reviews/note/claude-sonnet-5-5-C-03.txt
+  b318e7813ede88925da4677d22cb9bef4a5b53397963f39215ee9f44d4df2af3  docs/reference/audits/2026-11-09-note-and-trim-data/L-75-reviews/note/claude-sonnet-5-5-C-04.txt
+  b45f7ce43cc04fe66f5637ce8c55c475991d914b5c2af3d3395836badc248d3e  docs/reference/audits/2026-11-09-note-and-trim-data/L-75-reviews/note/claude-sonnet-5-5-C-05.txt
+  b9fa74b9903b565e8d506755a42adec947ebc5fd8de94a927b51f08fe8440c86  docs/reference/audits/2026-11-09-note-and-trim-data/L-75-reviews/original/claude-opus-5-5-C-01.txt
+  21b02b98554d7eb73307594b9ec918c07e99b814a4514364d5f204726c010520  docs/reference/audits/2026-11-09-note-and-trim-data/L-75-reviews/original/claude-opus-5-5-C-02.txt
+  7c4d39febf776eedbd17769e650a0b1f12666ed9cd7c508629601fbc63ff69aa  docs/reference/audits/2026-11-09-note-and-trim-data/L-75-reviews/original/claude-opus-5-5-C-03.txt
+  bc09036bbfdc8679db1bd69a6304c3077d20a9458d7d8d0a6d3f41f27fa290e2  docs/reference/audits/2026-11-09-note-and-trim-data/L-75-reviews/original/claude-opus-5-5-C-04.txt
+  98d5463d10855963e938f4ec4b7a2e07de9305db8d6e263e181ab6f9c92a4845  docs/reference/audits/2026-11-09-note-and-trim-data/L-75-reviews/original/claude-opus-5-5-C-05.txt
+  9f37e52438d25c1b8805d948c330718978cb9ad47742ba042c85e8b4f0134344  docs/reference/audits/2026-11-09-note-and-trim-data/L-75-reviews/original/claude-sonnet-5-5-C-01.txt
+  c8e33d5da6e3fa0121d37dea625f6db2471a372968d56935250a73a737d36a8c  docs/reference/audits/2026-11-09-note-and-trim-data/L-75-reviews/original/claude-sonnet-5-5-C-02.txt
+  ff52643c30b94e18ff1facf7bdfb00a8cb6707bbbd51ce8f760d5c303fea2ff2  docs/reference/audits/2026-11-09-note-and-trim-data/L-75-reviews/original/claude-sonnet-5-5-C-03.txt
+  eb0606e4cb6c9a1c248e626f99873d7b64640777973fb93f31ee87267c8dc2ac  docs/reference/audits/2026-11-09-note-and-trim-data/L-75-reviews/original/claude-sonnet-5-5-C-04.txt
+  c8fc7856077c6fd68249918b7415d938820c1e7b88f12a36e47dfae39991349d  docs/reference/audits/2026-11-09-note-and-trim-data/L-75-reviews/original/claude-sonnet-5-5-C-05.txt
+
+결과: PASS (실패 0)

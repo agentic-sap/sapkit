@@ -1,0 +1,10 @@
+L-60-folder-integrity.txt — 판L T6 빈 폴더(<scratch>\panL-blind) 무결성 · 모델마다 카나리아 · 응시 시작과 끝
+기대: 항목 1개 = empty-mcp.json (내용 {"mcpServers":{}}) · 하위 폴더 0 · 형식: 시각 | 모델 | 단계 | same/DIFF | 항목 수 [목록] · sha256 · 내용
+2026-11-09T13:34:45.965+09:00 | claude-opus-5-5 | canary-start | same | entries=1 expected=1 [empty-mcp.json] · empty-mcp.json sha256=099e43a43f1a6e62d9217999ae5f8dd0b072dcd4ddacf97d0b8085613cd974ff · content={"mcpServers":{}}
+2026-11-09T13:34:52.507+09:00 | claude-opus-5-5 | canary-end | same | entries=1 expected=1 [empty-mcp.json] · empty-mcp.json sha256=099e43a43f1a6e62d9217999ae5f8dd0b072dcd4ddacf97d0b8085613cd974ff · content={"mcpServers":{}}
+2026-11-09T13:34:52.520+09:00 | claude-sonnet-5-5 | canary-start | same | entries=1 expected=1 [empty-mcp.json] · empty-mcp.json sha256=099e43a43f1a6e62d9217999ae5f8dd0b072dcd4ddacf97d0b8085613cd974ff · content={"mcpServers":{}}
+2026-11-09T13:35:00.551+09:00 | claude-sonnet-5-5 | canary-end | same | entries=1 expected=1 [empty-mcp.json] · empty-mcp.json sha256=099e43a43f1a6e62d9217999ae5f8dd0b072dcd4ddacf97d0b8085613cd974ff · content={"mcpServers":{}}
+2026-11-09T13:35:23.836+09:00 | claude-opus-5-5 | run-start | same | entries=1 expected=1 [empty-mcp.json] · empty-mcp.json sha256=099e43a43f1a6e62d9217999ae5f8dd0b072dcd4ddacf97d0b8085613cd974ff · content={"mcpServers":{}}
+2026-11-09T13:38:54.673+09:00 | claude-opus-5-5 | run-end | same | entries=1 expected=1 [empty-mcp.json] · empty-mcp.json sha256=099e43a43f1a6e62d9217999ae5f8dd0b072dcd4ddacf97d0b8085613cd974ff · content={"mcpServers":{}}
+2026-11-09T13:38:55.124+09:00 | claude-sonnet-5-5 | run-start | same | entries=1 expected=1 [empty-mcp.json] · empty-mcp.json sha256=099e43a43f1a6e62d9217999ae5f8dd0b072dcd4ddacf97d0b8085613cd974ff · content={"mcpServers":{}}
+2026-11-09T13:41:20.949+09:00 | claude-sonnet-5-5 | run-end | same | entries=1 expected=1 [empty-mcp.json] · empty-mcp.json sha256=099e43a43f1a6e62d9217999ae5f8dd0b072dcd4ddacf97d0b8085613cd974ff · content={"mcpServers":{}}

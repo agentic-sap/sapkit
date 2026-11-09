@@ -1,0 +1,23 @@
+§8 기준 어긋남 (Paradigm = Procedural, ABAP 7.58):
+
+```
+Core / 내부 테이블 타입 — DEFAULT KEY 금지 | 18 | ty_t_ekko 가 `STANDARD TABLE ... WITH DEFAULT KEY` 로 선언됨. 화면 표시에만 쓰므로 STANDARD 는 맞음. `WITH EMPTY KEY` 로 바꿔야 함
+Core / 최신 문법 (7.58 허용 범위) | 61–67 | 구식 Open SQL: 필드 목록에 쉼표가 없고, 호스트 변수에 `@` 가 없음 (`INTO TABLE @gt_data`, `UP TO @p_max ROWS`, `IN @s_ekorg`, `IN @s_bedat`). 7.58 에서는 strict 문법으로 써야 함
+Core / 최신 문법 — 인라인 선언 | 72–74, 85, 116–119, 126 | lo_columns, lo_column, lv_* 를 앞에 모아 선언함. 7.58 에서는 `DATA(...)` 인라인 선언을 쓸 수 있음 (경미)
+Core / sy-subrc 확인 | 61–67 (확인은 52) | SELECT 바로 뒤에 sy-subrc 확인이 없음. START-OF-SELECTION 에서 `gt_data IS INITIAL` 로 판정하므로 의미는 같음. 규칙("sy-subrc checked after every statement that sets it")을 글자 그대로 적용하면 어긋남 (경미)
+Core / 빈 분기 금지 (확대 적용) | 130–132 | `CATCH cx_salv_not_found.` 안에 주석만 있어 예외를 그냥 삼킴. 컬럼 이름이 틀려도 아무 신호가 없음 (경미)
+Procedural / 메인 프로그램 구조 (main-program.abap) | 1–133 전체 | INCLUDE(t/c/s/o/i/a/f)가 없는 단일 소스. 과제 지시("no INCLUDEs")가 근거라 정당하지만, 규칙상 이 이탈 사유를 spec.md 에 적어야 함. 적지 않으면 MAJOR
+Procedural / g*·l* 접두어로 전역 구분 | 26, 30, 34 (40–42) | SELECTION-SCREEN COMMENT 필드 c_ekorg, c_bedat, c_max 는 전역 변수인데 g 접두어가 없음 (경미)
+Procedural / FORM 파라미터 규약 | 112–115 | set_heading 파라미터에 OOP 메서드식 접두어 io_/iv_ 를 씀. 체크리스트 예시는 `USING p_a TYPE ...`. 타입 지정과 USING 사용은 지켜짐 (경미)
+Procedural / FORM 머리 주석 | 59–60, 70–71, 111–112 | 세 FORM 모두 위에 `*&----` 구분선만 있음. 입력·출력·전역 부작용을 적은 한 줄 주석이 없음. get_data 는 p_max·s_ekorg·s_bedat 를 읽고 gt_data 를 채우며, display_alv 는 gt_data 를 읽음
+Procedural / FORM 이 전역에 암묵적으로 의존 | 60–68, 71–109 | get_data, display_alv 가 파라미터 없이 전역(gt_data, p_max, s_*)에 직접 접근함. 입력은 USING, 입출력은 CHANGING 으로 넘기라는 규칙의 취지에 어긋남 (경미)
+Lint / 로컬 이름 패턴 | 72, 73, 74, 116 | lo_salv, lo_columns, lx_msg, lo_column 이 프로젝트 패턴 `^[Ll][VvSsTtRrCc]_\w+$` 밖에 있음. l 접두어는 있으므로 §8 의 g/l 구분은 충족함
+```
+
+**어긋나지 않음 / 해당 없음:**
+- 준수: SELECT * 없음, LOOP 안 SELECT 없음, 디버그 문·코드 주석 없음, EXIT/STOP/LEAVE PROGRAM 을 오류 처리에 쓰지 않음 (55·82 행의 RETURN 은 메시지를 낸 뒤의 흐름 제어임).
+- 해당 없음: 화면 FORM 접미어, PBO/PAI 모듈, 비율 연산, 대사(reconciliation) 출력, 테스트(과제가 요구하지 않음).
+- COUNT(*) 사전 점검과 보조 키는 필요 없음. `UP TO p_max ROWS` 로 읽는 양이 제한되고, 기본 키가 아닌 필드로 다시 접근하는 곳도 없음.
+- 검사기 analyze 의 `double_space` 12건은 의도한 정렬 공백임. Procedural 체크리스트에는 서식 항목이 없으므로 §8 위반이 아님.
+
+**한계:** clean-code.md, clean-code-procedural.md, main-program.abap 을 읽으려 했지만 권한이 거부되어 열지 못했습니다. 그래서 이 리뷰는 질문에 붙여 주신 §8 체크리스트 본문만 근거로 합니다. 템플릿의 이벤트 블록 배치와 그대로 비교하지는 못했습니다. 그 파일들의 읽기 권한을 주시면 다시 맞춰 보겠습니다.

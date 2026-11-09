@@ -1,0 +1,36 @@
+L-75-prompts/diff-summary.txt — 판L T7 · 두 조건 프롬프트의 차이 대조 (L-75-review-runner.ps1 -Phase prompts 가 쓴다)
+
+원문 1개씩: original-claude-opus-5-5-C-01.txt · note-claude-opus-5-5-C-01.txt (나머지 18개는 러너가 같은 함수로 다시 조립한다 · 아래 sha256)
+
+1. 조건별로 다른 것 — §8 · 도구 · cwd · add-dir(원본 조건 파일 접근 수단 · 본 측정 메인 판정 (a))
+   §8 문안  original = L-30-old-section8.txt 의 2행~끝(머리 출처 줄 제외) · note = review-checklist.md 의 "## §8 — " 줄 ~ 다음 "## " 줄 직전
+   도구     original = --tools "Read" · note = --tools ""
+   cwd      original = <work>\original\procedures (안에 아무것도 없음 · 형제 knowledge\abap\conventions\ 에 규약 5파일) · note = <work>\note (빈 폴더)
+   add-dir  original(본 측정) = --tools "Read" 뒤에 --add-dir <work>\original · note = 없음 — spec 글자 그대로의 시험(trial)에서 cwd 밖 Read 가 권한 거부돼 메인이 더했다(L-75-run-log.txt 시험 기록)
+   그 밖의 명령 인자는 글자 그대로 같다: claude -p <프롬프트> --model claude-opus-5-5 --tools <위> --setting-sources "" --strict-mcp-config --mcp-config <work>\empty-mcp.json --disable-slash-commands --output-format stream-json --verbose --no-session-persistence
+
+2. 기계 대조 — 20개 프롬프트 전부 (각 쌍에서 §8 블록을 같은 자리표 <<SECTION8>> 로 바꾼 뒤 바이트 비교)
+   claude-opus-5-5    C-01  §8 밖 동일=True  original chars=23871 sha256=b5df1491549f540a  note chars=30212 sha256=6924b315f4281ce2  cmdline≈ 24243 / 30586
+   claude-opus-5-5    C-02  §8 밖 동일=True  original chars=24461 sha256=3f435f6761c390a5  note chars=30802 sha256=f731a3c672eb350a  cmdline≈ 24903 / 31246
+   claude-opus-5-5    C-03  §8 밖 동일=True  original chars=12064 sha256=ede6a2912d09934f  note chars=18405 sha256=eae0d8dce0a8a15b  cmdline≈ 12186 / 18529
+   claude-opus-5-5    C-04  §8 밖 동일=True  original chars=22019 sha256=1adec2bbef596d1d  note chars=28360 sha256=4c2973fe9cf05da7  cmdline≈ 22339 / 28682
+   claude-opus-5-5    C-05  §8 밖 동일=True  original chars=18257 sha256=712151979fb59699  note chars=24598 sha256=5dd159fcb8915385  cmdline≈ 18457 / 24800
+   claude-sonnet-5-5  C-01  §8 밖 동일=True  original chars=22051 sha256=8a6f34a187d80797  note chars=28392 sha256=298d8f3ab9d67808  cmdline≈ 22279 / 28622
+   claude-sonnet-5-5  C-02  §8 밖 동일=True  original chars=24973 sha256=92fcce0fcb8312df  note chars=31314 sha256=860b7dc642581ef3  cmdline≈ 25255 / 31598
+   claude-sonnet-5-5  C-03  §8 밖 동일=True  original chars=10683 sha256=0a85c18a315b28ae  note chars=17024 sha256=8c333e694be36c08  cmdline≈ 10717 / 17060
+   claude-sonnet-5-5  C-04  §8 밖 동일=True  original chars=16617 sha256=a23df339b5ad3eb8  note chars=22958 sha256=13dace85ef0c336d  cmdline≈ 16729 / 23072
+   claude-sonnet-5-5  C-05  §8 밖 동일=True  original chars=19514 sha256=2faec86f6141826b  note chars=25855 sha256=82fcc9b3079ac0c0  cmdline≈ 19800 / 26143
+   전체 결과: §8 밖 20/20 동일 = True
+
+3. 줄 단위 차이 (견본 claude-opus-5-5 C-01 · Compare-Object — 차이가 난 줄이 전부 §8 블록 안의 줄인지)
+   original 에만 있는 줄 36 · note 에만 있는 줄 76 · 그 가운데 §8 블록 밖의 줄 0
+   §8 블록 줄 수: original 42 · note 82 · sha256 original 80918a9ec8c73b0c · note 42441dda2bba396d
+
+4. 프롬프트 골격 (두 조건 공통 · 글자 그대로)
+   Review the ABAP code below against §8 of the review checklist. / ==== §8 ... ==== <§8 문안> ==== end of §8 ==== /
+   <패러다임 · 릴리스 한 줄> (given here in place of interview.md and the configured ABAP_RELEASE) /
+   ==== Task the author was given ==== <task_text> / Required output: <required_output> ==== end of task ==== /
+   ==== Code (line numbers prefixed; they are not part of the source) ==== <줄 번호 + 두 칸 + 원래 줄> ==== end of code ==== /
+   ==== Bundled offline checker output for this code ==== <K-60-checker 파일 원문> ==== end of checker output ==== /
+   §8 기준으로 이 코드의 어긋남을 모두 적어라 — 한 줄에 하나, 형식 `규칙 | 위치(줄 번호) | 내용`
+   패러다임 · 릴리스 줄의 값과 근거는 L-75-review-runner.ps1 머리 주석.

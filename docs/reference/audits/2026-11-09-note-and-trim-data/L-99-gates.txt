@@ -1,0 +1,63 @@
+L-99-gates.txt — 판L T12 게이트 전종 (PowerShell · 레포 루트 · 2026-11-09 14:57 KST)
+커밋 c2d6d102 · 각 줄 = exit 코드 · 명령 · 출력 마지막 줄
+
+[0] node interactive/scripts/check-links.mjs interactive
+      md 269개, 상대 링크 1003개 검사, 깨짐 0개
+[0] node interactive/server/verify-engine.mjs
+      [verify-engine] OK: sapkit-engine@1.5.0 (3c1fbcef34a5…)
+[0] node interactive/scripts/check-engine-provenance.mjs
+      ✅ 엔진 provenance 통과 — 소스 커밋이 실재·HEAD 조상·번들 소스 최종 커밋과 일치 · 버전 3자 일치
+[0] node interactive/scripts/smoke-mcp.mjs
+      ✅ 도구 표면 계약 통과 — 이름 집합 고정 · readonly mutation 0 · 실행/row-data 등재분 일치 · 어댑터 deny 유지 · MCP 배선에 blocklist 노브 0
+[0] node interactive/scripts/conformance-server-gates.mjs
+      ✅ 서버 게이트 적합성 통과 — tier 집행(QA·PRD·미해석 fail-closed, DEV 통과)·blocklist 집행·ask 왕복·inspection-only 정직 실패 고정 — 잔여 격차 0
+[0] node interactive/scripts/gen-plugin-manifests.mjs --check
+      ✅ 7종 생성물이 단일 정본과 일치 · 자산 수 실제와 일치
+[0] node interactive/scripts/check-runtime-path-rename.mjs
+      ✅ 개명 완료 게이트 통과 — 활성 구역에 구 세대 토큰 없음 · 안전 앵커 온전
+[0] node interactive/scripts/conformance-runtime-dir.mjs
+      ✅ 적합성 시험 통과 — 소비자별 해석 규칙 보존 · 안전 회귀 5종 PASS
+[0] node interactive/scripts/verify-checker.mjs
+      ✅ 검사기 번들 통과 — 바이트 일치 · 버전 3자 일치 · 소스 커밋 실재·HEAD 조상 · 소스 표류 없음
+[0] node interactive/scripts/check-doc-size.mjs --file HANDOFF.md:500:docs/reference/handoff-archive/ --file docs/RUN-PLAN.md:300:docs/reference/run-archive/
+      ✅ 줄 수 게이트 통과 — 웜 레이어 문서가 상한 안에 있다
+[0] node interactive/scripts/check-conventions-note.mjs
+      ✅ 쪽지 동기화 게이트 통과 — 정본·사본 일치 · 출처 실재 · 상한 이내
+[1] node interactive/scripts/doctor.mjs
+      ❌ FAIL 발견 — 위 FAIL 항목 확인
+[0] node interactive/scripts/test-smoke-mcp.mjs
+      31건 중 31 PASS / 0 FAIL
+[0] node interactive/scripts/test-check-runtime-path-rename.mjs
+      14건 중 14 PASS / 0 FAIL
+[0] node interactive/scripts/test-hook-switch.mjs
+      ✅ 훅 스위치 왕복 통과 — 설치·제거 멱등 · 타 설정 보존 · 시험 밖 무접촉
+[0] node interactive/scripts/test-hook-decisions.mjs
+      ✅ 훅 판정 채록 일치 — fail-closed 2종 · fail-open 1종 · advisory 1종
+[0] node interactive/scripts/test-setup-state.mjs
+      120건 중 120 PASS / 0 FAIL
+[0] node interactive/scripts/test-launch-toolsurface.mjs
+      56건 중 56 PASS / 0 FAIL
+[0] node interactive/scripts/test-codex-wire-mcp.mjs
+      ✅ 전건 통과 — 토큰 치환 · 멱등 · 스테일 수리 · 무접촉 계약 유지
+[0] node interactive/scripts/test-doctor.mjs
+      ✅ doctor.mjs 음성시험 통과 — CLI 부재 SKIP · 파일시스템 검사 실측 · 별칭 미출력 회귀 · wrapper 3분류 · legacy 그림자 · 훅 배선 · exit/JSON 계약.
+[0] node interactive/scripts/test-verify-checker.mjs
+      21건 중 21 PASS / 0 FAIL
+[0] node interactive/scripts/test-check-doc-size.mjs
+      통과 15/15
+[0] node interactive/scripts/test-continuity-hook.mjs
+      ✅ 연속성 훅/스위치 통과 — 스위치 왕복 · 안전훅 독립 · 결정표 · 무본문 주입
+[0] node interactive/scripts/test-spec-html.mjs
+      통과 92/92
+[0] node interactive/scripts/test-check-conventions-note.mjs
+      통과 35/35
+[0] python .claude/hooks/test-block-dangerous-bash.py
+      통과 20/20
+[0] python .claude/hooks/test-session-start-context.py
+      전부 통과
+[0] node scripts/check-wiki.mjs
+      ✅ 위키 게이트 통과 — 콜드 층 위키가 구조적으로 살아 있다
+[0] node scripts/test-check-wiki.mjs
+      통과 68/68
+
+exit 0 아님: 1 (doctor 선재 FAIL — Antigravity 설치 판 ≠ 고정 판 — 은 이 판의 결함이 아니다 · handoff 하드 게이트 12)

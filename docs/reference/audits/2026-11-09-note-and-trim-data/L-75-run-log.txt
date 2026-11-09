@@ -1,0 +1,262 @@
+L-75-run-log.txt — 판L T7 · E-3 리뷰어 두 조건 실행 기록 (L-75-review-runner.ps1 -Phase log 가 state 기록에서 그린다)
+=====================================================================================
+리뷰어: claude-opus-5-5 헤드리스(Claude Code 2.1.319) · 한 답 한 세션 · 명령과 조건은 L-75-review-runner.ps1 머리 · L-75-prompts/diff-summary.txt
+경로 표기: 도구 호출 경로는 original 작업 폴더 상대(knowledge/abap/conventions/… · procedures/…) · 작업 폴더 밖이면 (outside work folder)
+모델 id: init = system/init.model · asst = assistant.message.model · usage = result.modelUsage 의 키 (모두 이벤트 실측)
+토큰: result.usage (input · cache_creation · cache_read · output) · 종류: valid / invalid(무효 규칙 위반 → 재실행) / transient(한도·오류 → 기다렸다 재시도)
+stream JSON 원본은 레포 밖 스크래치에만 있다(작업 경로 · 홈 경로 · 세션 ID 가 실려 커밋하지 않는다).
+조건 차이: §8 · 도구 · cwd · add-dir. 시험 trial(spec 글자 그대로)의 original 은 cwd 밖 Read 2회가 권한 거부(permission_denials 2)로
+  파일을 못 열었다 → 메인 판정 (a): 본 측정 original 에만 --add-dir <work>\original. trial-adddir 가 그 수단의 시험이다.
+러너 결함 1회(기록): trial note 의 첫 세션은 세션 자체는 끝났으나 러너의 판정 코드가 빈 배열 비교에서 멈췄다 → 고친 뒤 같은 세션을
+  다시 돌렸다(아래 trial note a1 이 그 재실행). 멈춘 세션의 원본은 스크래치에만 runner-crash 이름으로 남겼다(판정 · 응답 저장 없음).
+알려진 한계(기록만): ① 가장 긴 프롬프트(claude-sonnet-5-5 C-02 note)의 명령줄 근사 길이 약 31.6K 자 — Windows 상한 32,767 자 대비 여유 약 800 자
+  ② 지시 줄이 한국어라 응답도 한국어다 ③ 검사기 출력은 원문 그대로라 머리 경로에 답 모델 이름이 보인다(두 조건 같은 글자)
+  ④ 옛 §8 이 링크하는 템플릿 2파일은 넣지 않았다(spec = 규약 5파일 · 쪽지 조건도 못 읽음) — 그 Read 실패는 폴더 안이면 유효 · 기록만.
+이름 검사(판K K-99-namecheck.mjs · L-75* 전부): 위반 1 = L-75-reviews/note/claude-sonnet-5-5-C-02.txt 2행의 [sid] 1건 — 그 낱말은
+  ABAP 예외 클래스 접두 ZCX_ 의 머리 세 글자(쪽지 문안의 ZCX_{MODULE}_{PURPOSE} · 응답이 밑줄 없이 단독으로 썼다)로 SID 가 아니다(오탐). 응답 원문은 편집 금지라 그대로 둔다.
+  그 밖의 범주(user · host · home · repo · sapenv · names · uuid · url · forge · binary) 위반 0.
+
+── 시험 실행 trial (형식 확인용 · 본 측정과 별도 · 응답은 L-75-reviews-trial/) ──
+
+[trial] original · claude-opus-5-5 C-01 · 최종=valid · 시도 1 · prompt chars=23871 sha256=b5df1491549f540a
+  a1 valid · 2026-11-09 13:39:21 → 2026-11-09 13:40:12 · exit=0 · wall_ms=51426 · turns=3
+     cmd: --tools "Read" · permission_denials=
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[Read] · mcp=[]
+     tokens: input=4 · cache_creation=14175 · cache_read=16617 · output=4852
+     tool calls: 2
+       - Read knowledge/abap/conventions/clean-code-procedural.md · tool_result is_error
+       - Read knowledge/abap/conventions/clean-code.md · tool_result is_error
+     무효 여부: 유효
+
+[trial] note · claude-opus-5-5 C-01 · 최종=valid · 시도 1 · prompt chars=30212 sha256=6924b315f4281ce2
+  a1 valid · 2026-11-09 13:43:11 → 2026-11-09 13:44:43 · exit=0 · wall_ms=91975 · turns=1
+     cmd: --tools " · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[] · mcp=[]
+     tokens: input=2 · cache_creation=0 · cache_read=16492 · output=9005
+     tool calls: 0
+     무효 여부: 유효
+
+── 시험 실행 trial-adddir (형식 확인용 · 본 측정과 별도 · 응답은 L-75-reviews-trial-adddir/) ──
+
+[trial-adddir] original · claude-opus-5-5 C-01 · 최종=valid · 시도 1 · prompt chars=23871 sha256=b5df1491549f540a
+  a1 valid · 2026-11-09 13:44:43 → 2026-11-09 13:46:14 · exit=0 · wall_ms=91204 · turns=4
+     cmd: --tools "Read" --add-dir <work>\original · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[Read] · mcp=[]
+     tokens: input=4 · cache_creation=16658 · cache_read=29579 · output=9158
+     tool calls: 3
+       - Read knowledge/abap/conventions/clean-code.md
+       - Read knowledge/abap/conventions/clean-code-procedural.md
+       - Read knowledge/abap/templates/procedural-sample/main-program.abap · tool_result is_error
+     무효 여부: 유효
+
+── 본 측정 (20세션 · 응답은 L-75-reviews/) ──
+
+[main] original · claude-opus-5-5 C-01 · 최종=valid · 시도 1 · prompt chars=23871 sha256=b5df1491549f540a
+  a1 valid · 2026-11-09 13:47:25 → 2026-11-09 13:48:39 · exit=0 · wall_ms=73490 · turns=4
+     cmd: --tools "Read" --add-dir <work>\original · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[Read] · mcp=[]
+     tokens: input=6 · cache_creation=16316 · cache_read=61045 · output=6863
+     tool calls: 3
+       - Read knowledge/abap/conventions/clean-code.md
+       - Read knowledge/abap/conventions/clean-code-procedural.md
+       - Read knowledge/abap/templates/procedural-sample/main-program.abap · tool_result is_error
+     무효 여부: 유효
+     응답: L-75-reviews/original/claude-opus-5-5-C-01.txt · 지적 줄 수(「a | b | c」 꼴 · 표 머리 · 구분 줄 제외 · 기계 계수 참고치 — 매칭은 다른 태스크) = 9 · Read 3회
+
+[main] original · claude-opus-5-5 C-02 · 최종=valid · 시도 1 · prompt chars=24461 sha256=3f435f6761c390a5
+  a1 valid · 2026-11-09 13:49:59 → 2026-11-09 13:51:22 · exit=0 · wall_ms=83576 · turns=3
+     cmd: --tools "Read" --add-dir <work>\original · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[Read] · mcp=[]
+     tokens: input=4 · cache_creation=29300 · cache_read=18438 · output=8473
+     tool calls: 2
+       - Read knowledge/abap/conventions/clean-code.md
+       - Read knowledge/abap/conventions/clean-code-oop.md
+     무효 여부: 유효
+     응답: L-75-reviews/original/claude-opus-5-5-C-02.txt · 지적 줄 수(「a | b | c」 꼴 · 표 머리 · 구분 줄 제외 · 기계 계수 참고치 — 매칭은 다른 태스크) = 6 · Read 2회
+
+[main] original · claude-opus-5-5 C-03 · 최종=valid · 시도 1 · prompt chars=12064 sha256=ede6a2912d09934f
+  a1 valid · 2026-11-09 13:52:28 → 2026-11-09 13:53:20 · exit=0 · wall_ms=52140 · turns=3
+     cmd: --tools "Read" --add-dir <work>\original · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[Read] · mcp=[]
+     tokens: input=4 · cache_creation=22240 · cache_read=12980 · output=4641
+     tool calls: 2
+       - Read knowledge/abap/conventions/clean-code.md
+       - Read knowledge/abap/conventions/clean-code-procedural.md
+     무효 여부: 유효
+     응답: L-75-reviews/original/claude-opus-5-5-C-03.txt · 지적 줄 수(「a | b | c」 꼴 · 표 머리 · 구분 줄 제외 · 기계 계수 참고치 — 매칭은 다른 태스크) = 5 · Read 2회
+
+[main] original · claude-opus-5-5 C-04 · 최종=valid · 시도 1 · prompt chars=22019 sha256=1adec2bbef596d1d
+  a1 valid · 2026-11-09 13:54:04 → 2026-11-09 13:55:14 · exit=0 · wall_ms=69534 · turns=4
+     cmd: --tools "Read" --add-dir <work>\original · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[Read] · mcp=[]
+     tokens: input=4 · cache_creation=26948 · cache_read=17493 · output=6543
+     tool calls: 3
+       - Read knowledge/abap/conventions/clean-code.md
+       - Read knowledge/abap/conventions/clean-code-procedural.md
+       - Read knowledge/abap/templates/procedural-sample/main-program.abap · tool_result is_error
+     무효 여부: 유효
+     응답: L-75-reviews/original/claude-opus-5-5-C-04.txt · 지적 줄 수(「a | b | c」 꼴 · 표 머리 · 구분 줄 제외 · 기계 계수 참고치 — 매칭은 다른 태스크) = 13 · Read 3회
+
+[main] original · claude-opus-5-5 C-05 · 최종=valid · 시도 1 · prompt chars=18257 sha256=712151979fb59699
+  a1 valid · 2026-11-09 13:56:21 → 2026-11-09 13:57:29 · exit=0 · wall_ms=67318 · turns=4
+     cmd: --tools "Read" --add-dir <work>\original · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[Read] · mcp=[]
+     tokens: input=4 · cache_creation=25053 · cache_read=15621 · output=6643
+     tool calls: 3
+       - Read knowledge/abap/conventions/clean-code.md
+       - Read knowledge/abap/conventions/clean-code-procedural.md
+       - Read knowledge/abap/templates/procedural-sample/main-program.abap · tool_result is_error
+     무효 여부: 유효
+     응답: L-75-reviews/original/claude-opus-5-5-C-05.txt · 지적 줄 수(「a | b | c」 꼴 · 표 머리 · 구분 줄 제외 · 기계 계수 참고치 — 매칭은 다른 태스크) = 8 · Read 3회
+
+[main] original · claude-sonnet-5-5 C-01 · 최종=valid · 시도 1 · prompt chars=22051 sha256=8a6f34a187d80797
+  a1 valid · 2026-11-09 13:58:39 → 2026-11-09 13:59:58 · exit=0 · wall_ms=79040 · turns=4
+     cmd: --tools "Read" --add-dir <work>\original · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[Read] · mcp=[]
+     tokens: input=4 · cache_creation=27032 · cache_read=17611 · output=7980
+     tool calls: 3
+       - Read knowledge/abap/conventions/clean-code.md
+       - Read knowledge/abap/conventions/clean-code-procedural.md
+       - Read knowledge/abap/templates/procedural-sample/main-program.abap · tool_result is_error
+     무효 여부: 유효
+     응답: L-75-reviews/original/claude-sonnet-5-5-C-01.txt · 지적 줄 수(「a | b | c」 꼴 · 표 머리 · 구분 줄 제외 · 기계 계수 참고치 — 매칭은 다른 태스크) = 7 · Read 3회
+
+[main] original · claude-sonnet-5-5 C-02 · 최종=valid · 시도 1 · prompt chars=24973 sha256=92fcce0fcb8312df
+  a1 valid · 2026-11-09 14:01:10 → 2026-11-09 14:02:21 · exit=0 · wall_ms=71466 · turns=3
+     cmd: --tools "Read" --add-dir <work>\original · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[Read] · mcp=[]
+     tokens: input=4 · cache_creation=29245 · cache_read=18512 · output=6690
+     tool calls: 2
+       - Read knowledge/abap/conventions/clean-code.md
+       - Read knowledge/abap/conventions/clean-code-oop.md
+     무효 여부: 유효
+     응답: L-75-reviews/original/claude-sonnet-5-5-C-02.txt · 지적 줄 수(「a | b | c」 꼴 · 표 머리 · 구분 줄 제외 · 기계 계수 참고치 — 매칭은 다른 태스크) = 6 · Read 2회
+
+[main] original · claude-sonnet-5-5 C-03 · 최종=valid · 시도 1 · prompt chars=10683 sha256=0a85c18a315b28ae
+  a1 valid · 2026-11-09 14:04:03 → 2026-11-09 14:04:48 · exit=0 · wall_ms=44760 · turns=3
+     cmd: --tools "Read" --add-dir <work>\original · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[Read] · mcp=[]
+     tokens: input=4 · cache_creation=21621 · cache_read=12456 · output=4027
+     tool calls: 2
+       - Read knowledge/abap/conventions/clean-code.md
+       - Read knowledge/abap/conventions/clean-code-procedural.md
+     무효 여부: 유효
+     응답: L-75-reviews/original/claude-sonnet-5-5-C-03.txt · 지적 줄 수(「a | b | c」 꼴 · 표 머리 · 구분 줄 제외 · 기계 계수 참고치 — 매칭은 다른 태스크) = 0 · Read 2회
+
+[main] original · claude-sonnet-5-5 C-04 · 최종=valid · 시도 1 · prompt chars=16617 sha256=a23df339b5ad3eb8
+  a1 valid · 2026-11-09 14:05:32 → 2026-11-09 14:06:24 · exit=0 · wall_ms=51647 · turns=4
+     cmd: --tools "Read" --add-dir <work>\original · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[Read] · mcp=[]
+     tokens: input=4 · cache_creation=24436 · cache_read=15008 · output=5098
+     tool calls: 3
+       - Read knowledge/abap/conventions/clean-code.md
+       - Read knowledge/abap/conventions/clean-code-procedural.md
+       - Read knowledge/abap/templates/procedural-sample/main-program.abap · tool_result is_error
+     무효 여부: 유효
+     응답: L-75-reviews/original/claude-sonnet-5-5-C-04.txt · 지적 줄 수(「a | b | c」 꼴 · 표 머리 · 구분 줄 제외 · 기계 계수 참고치 — 매칭은 다른 태스크) = 10 · Read 3회
+
+[main] original · claude-sonnet-5-5 C-05 · 최종=valid · 시도 1 · prompt chars=19514 sha256=2faec86f6141826b
+  a1 valid · 2026-11-09 14:07:34 → 2026-11-09 14:08:50 · exit=0 · wall_ms=76292 · turns=4
+     cmd: --tools "Read" --add-dir <work>\original · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[Read] · mcp=[]
+     tokens: input=4 · cache_creation=25329 · cache_read=15888 · output=7383
+     tool calls: 3
+       - Read knowledge/abap/conventions/clean-code.md
+       - Read knowledge/abap/conventions/clean-code-procedural.md
+       - Read knowledge/abap/templates/procedural-sample/main-program.abap · tool_result is_error
+     무효 여부: 유효
+     응답: L-75-reviews/original/claude-sonnet-5-5-C-05.txt · 지적 줄 수(「a | b | c」 꼴 · 표 머리 · 구분 줄 제외 · 기계 계수 참고치 — 매칭은 다른 태스크) = 9 · Read 3회
+
+[main] note · claude-opus-5-5 C-01 · 최종=valid · 시도 1 · prompt chars=30212 sha256=6924b315f4281ce2
+  a1 valid · 2026-11-09 13:48:39 → 2026-11-09 13:49:59 · exit=0 · wall_ms=79935 · turns=1
+     cmd: --tools " · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[] · mcp=[]
+     tokens: input=2 · cache_creation=0 · cache_read=16492 · output=8251
+     tool calls: 0
+     무효 여부: 유효
+     응답: L-75-reviews/note/claude-opus-5-5-C-01.txt · 지적 줄 수(「a | b | c」 꼴 · 표 머리 · 구분 줄 제외 · 기계 계수 참고치 — 매칭은 다른 태스크) = 15 · Read 0회
+
+[main] note · claude-opus-5-5 C-02 · 최종=valid · 시도 1 · prompt chars=30802 sha256=f731a3c672eb350a
+  a1 valid · 2026-11-09 13:51:22 → 2026-11-09 13:52:28 · exit=0 · wall_ms=65531 · turns=1
+     cmd: --tools " · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[] · mcp=[]
+     tokens: input=2 · cache_creation=14188 · cache_read=2341 · output=6437
+     tool calls: 0
+     무효 여부: 유효
+     응답: L-75-reviews/note/claude-opus-5-5-C-02.txt · 지적 줄 수(「a | b | c」 꼴 · 표 머리 · 구분 줄 제외 · 기계 계수 참고치 — 매칭은 다른 태스크) = 13 · Read 0회
+
+[main] note · claude-opus-5-5 C-03 · 최종=valid · 시도 1 · prompt chars=18405 sha256=eae0d8dce0a8a15b
+  a1 valid · 2026-11-09 13:53:20 → 2026-11-09 13:54:04 · exit=0 · wall_ms=43748 · turns=1
+     cmd: --tools " · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[] · mcp=[]
+     tokens: input=2 · cache_creation=8730 · cache_read=2341 · output=4023
+     tool calls: 0
+     무효 여부: 유효
+     응답: L-75-reviews/note/claude-opus-5-5-C-03.txt · 지적 줄 수(「a | b | c」 꼴 · 표 머리 · 구분 줄 제외 · 기계 계수 참고치 — 매칭은 다른 태스크) = 8 · Read 0회
+
+[main] note · claude-opus-5-5 C-04 · 최종=valid · 시도 1 · prompt chars=28360 sha256=4c2973fe9cf05da7
+  a1 valid · 2026-11-09 13:55:14 → 2026-11-09 13:56:21 · exit=0 · wall_ms=67850 · turns=1
+     cmd: --tools " · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[] · mcp=[]
+     tokens: input=2 · cache_creation=13243 · cache_read=2341 · output=6530
+     tool calls: 0
+     무효 여부: 유효
+     응답: L-75-reviews/note/claude-opus-5-5-C-04.txt · 지적 줄 수(「a | b | c」 꼴 · 표 머리 · 구분 줄 제외 · 기계 계수 참고치 — 매칭은 다른 태스크) = 25 · Read 0회
+
+[main] note · claude-opus-5-5 C-05 · 최종=valid · 시도 1 · prompt chars=24598 sha256=5dd159fcb8915385
+  a1 valid · 2026-11-09 13:57:29 → 2026-11-09 13:58:39 · exit=0 · wall_ms=69686 · turns=1
+     cmd: --tools " · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[] · mcp=[]
+     tokens: input=2 · cache_creation=11371 · cache_read=2341 · output=6819
+     tool calls: 0
+     무효 여부: 유효
+     응답: L-75-reviews/note/claude-opus-5-5-C-05.txt · 지적 줄 수(「a | b | c」 꼴 · 표 머리 · 구분 줄 제외 · 기계 계수 참고치 — 매칭은 다른 태스크) = 16 · Read 0회
+
+[main] note · claude-sonnet-5-5 C-01 · 최종=valid · 시도 1 · prompt chars=28392 sha256=298d8f3ab9d67808
+  a1 valid · 2026-11-09 13:59:58 → 2026-11-09 14:01:10 · exit=0 · wall_ms=72290 · turns=1
+     cmd: --tools " · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[] · mcp=[]
+     tokens: input=2 · cache_creation=13361 · cache_read=2341 · output=7211
+     tool calls: 0
+     무효 여부: 유효
+     응답: L-75-reviews/note/claude-sonnet-5-5-C-01.txt · 지적 줄 수(「a | b | c」 꼴 · 표 머리 · 구분 줄 제외 · 기계 계수 참고치 — 매칭은 다른 태스크) = 16 · Read 0회
+
+[main] note · claude-sonnet-5-5 C-02 · 최종=valid · 시도 1 · prompt chars=31314 sha256=860b7dc642581ef3
+  a1 valid · 2026-11-09 14:02:21 → 2026-11-09 14:04:03 · exit=0 · wall_ms=101337 · turns=1
+     cmd: --tools " · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[] · mcp=[]
+     tokens: input=2 · cache_creation=14262 · cache_read=2341 · output=9568
+     tool calls: 0
+     무효 여부: 유효
+     응답: L-75-reviews/note/claude-sonnet-5-5-C-02.txt · 지적 줄 수(「a | b | c」 꼴 · 표 머리 · 구분 줄 제외 · 기계 계수 참고치 — 매칭은 다른 태스크) = 13 · Read 0회
+
+[main] note · claude-sonnet-5-5 C-03 · 최종=valid · 시도 1 · prompt chars=17024 sha256=8c333e694be36c08
+  a1 valid · 2026-11-09 14:04:48 → 2026-11-09 14:05:32 · exit=0 · wall_ms=44310 · turns=1
+     cmd: --tools " · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[] · mcp=[]
+     tokens: input=2 · cache_creation=8206 · cache_read=2341 · output=4113
+     tool calls: 0
+     무효 여부: 유효
+     응답: L-75-reviews/note/claude-sonnet-5-5-C-03.txt · 지적 줄 수(「a | b | c」 꼴 · 표 머리 · 구분 줄 제외 · 기계 계수 참고치 — 매칭은 다른 태스크) = 9 · Read 0회
+
+[main] note · claude-sonnet-5-5 C-04 · 최종=valid · 시도 1 · prompt chars=22958 sha256=13dace85ef0c336d
+  a1 valid · 2026-11-09 14:06:24 → 2026-11-09 14:07:34 · exit=0 · wall_ms=70140 · turns=1
+     cmd: --tools " · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[] · mcp=[]
+     tokens: input=2 · cache_creation=10758 · cache_read=2341 · output=6663
+     tool calls: 0
+     무효 여부: 유효
+     응답: L-75-reviews/note/claude-sonnet-5-5-C-04.txt · 지적 줄 수(「a | b | c」 꼴 · 표 머리 · 구분 줄 제외 · 기계 계수 참고치 — 매칭은 다른 태스크) = 20 · Read 0회
+
+[main] note · claude-sonnet-5-5 C-05 · 최종=valid · 시도 1 · prompt chars=25855 sha256=82fcc9b3079ac0c0
+  a1 valid · 2026-11-09 14:08:50 → 2026-11-09 14:09:52 · exit=0 · wall_ms=62093 · turns=1
+     cmd: --tools " · permission_denials=0
+     model: init=claude-opus-5-5 · asst=claude-opus-5-5 · usage=claude-opus-5-5 · init.tools=[] · mcp=[]
+     tokens: input=2 · cache_creation=11638 · cache_read=2341 · output=6212
+     tool calls: 0
+     무효 여부: 유효
+     응답: L-75-reviews/note/claude-sonnet-5-5-C-05.txt · 지적 줄 수(「a | b | c」 꼴 · 표 머리 · 구분 줄 제외 · 기계 계수 참고치 — 매칭은 다른 태스크) = 16 · Read 0회
+
+── 요약 (본 측정) ──
+  original : 세션 10/10 유효 · 무효 시도(재실행으로 대체) 0 · 지적 줄 수 합계(기계 계수 참고치) 73 · Read 호출 합계 26 · 파일을 하나 이상 연(성공한 Read) 세션 10
+  note : 세션 10/10 유효 · 무효 시도(재실행으로 대체) 0 · 지적 줄 수 합계(기계 계수 참고치) 151 · Read 호출 합계 0 · 파일을 하나 이상 연(성공한 Read) 세션 0

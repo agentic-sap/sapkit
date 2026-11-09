@@ -1,0 +1,95 @@
+판L T2 — 적재량 계측 (spec E-2)
+==============================================================================
+ref: HEAD · commit fdff5a56bd15b007f4fb7038eb70299398b51b34
+읽기: git show <commit>:<path> · 존재 확인: git ls-tree -r (대소문자 무시 — 판J 흉내) · 작업 트리 무접촉
+바이트 = UTF-8 · CRLF→LF 정규화 후 · ÷4 = 반올림 토큰 · 「환산」 = 선택군은 가장 큰 원소 1개
+TRACING RULE · 칸 정의: 스크립트 머리 주석 (판J 20-measure-tokens.mjs §3에서 복사)
+
+1. 세 칸 + 탈출 포인터 열
+------------------------------------------------------------------------------
+상담 적재   9,161 B · ÷4 2,290   (sap-fi-consultant 1-hop 1파일 · 역할 문서 본문과 ask-consultant 쪽 중복 제외)
+규약분      20,970 B · ÷4 5,243   (8파일 환산 10,827 B + 본문 속 쪽지 10,143 B)
+전체        584,591 B · ÷4 146,148   (create-program 절차 본문 115,372 B + 1-hop 환산 34파일 469,219 B)
+탈출 포인터 0 B · ÷4 0   (0파일 · 「전체」에 포함된 채로 따로 보임)
+참고 — 판J 판정 칸 「total 환산」(래퍼 1,298 B + project-context 10,097 B + 전체): 595,986 B · ÷4 148,997
+
+2. 선 판정
+------------------------------------------------------------------------------
+① 상담 적재 ≤ 6,000 토큰: 2,290 → 통과
+② 쪽지 대체 7파일 존재(create-program 1-hop 전수 · 선택군 대안 · 길 안내 절 포함 · 줄 = 파일 기준): 남음 0파일 · 탈출 포인터(실패 아님 · 별도 표기) 0파일 → 통과
+③ 전체 < 변경 전 전체: 584,591 B vs 변경 전 618,534 B → 통과
+   규약분 감소율(병기만 · 선 없음): 62,603 B → 20,970 B · 감소율 66.5%
+
+3. 규약분 내역 (create-program 1-hop 기준)
+------------------------------------------------------------------------------
+         0  interactive/core/knowledge/abap/conventions/clean-code.md  — 1-hop 밖 · 쪽지 대체
+         0  interactive/core/knowledge/abap/conventions/clean-code-oop.md  — 1-hop 밖 · 쪽지 대체
+         0  interactive/core/knowledge/abap/conventions/clean-code-procedural.md  — 1-hop 밖 · 쪽지 대체
+         0  interactive/core/knowledge/abap/conventions/naming-conventions.md  — 1-hop 밖 · 쪽지 대체
+         0  interactive/core/knowledge/abap/conventions/constant-rule.md  — 1-hop 밖 · 쪽지 대체
+         0  interactive/core/knowledge/abap/conventions/text-element-rule.md  — 1-hop 밖 · 쪽지 대체
+         0  interactive/core/knowledge/abap/conventions/procedural-form-naming.md  — 1-hop 밖 · 쪽지 대체
+    10,827  interactive/core/knowledge/abap/conventions/alv-rules.md  — 1-hop 환산 · 조건부로 남김
+    10,143  create-program.md 본문 속 쪽지 (표식 있음 · 1벌)
+쪽지 대체 7파일 가운데 1-hop 환산에 든 것: 0파일 0 B
+
+4. create-program 1-hop 환산 34파일 (바이트)
+------------------------------------------------------------------------------
+    10,827  interactive/core/knowledge/abap/conventions/alv-rules.md
+     8,583  interactive/core/knowledge/abap/conventions/cloud-abap-constraints.md
+     4,532  interactive/core/knowledge/abap/conventions/ecc-ddic-fallback.md
+    15,203  interactive/core/knowledge/abap/conventions/function-module-rule.md
+     3,682  interactive/core/knowledge/industry/README.md
+     7,171  interactive/core/knowledge/modules/common/active-modules.md
+     4,752  interactive/core/personas/INDEX.md
+    11,576  interactive/core/personas/sap-analyst.md
+    11,746  interactive/core/personas/sap-architect.md
+     9,463  interactive/core/personas/sap-debugger.md
+    15,773  interactive/core/personas/sap-executor.md
+    11,933  interactive/core/personas/sap-planner.md
+     9,131  interactive/core/personas/sap-qa-tester.md
+    13,410  interactive/core/personas/sap-sd-consultant.md
+     9,161  interactive/core/personas/sap-stocker.md
+     7,418  interactive/core/personas/sap-writer.md
+     5,985  interactive/core/policies/approval-gates.md
+    10,461  interactive/core/policies/development-loop.md
+     6,960  interactive/core/policies/knowledge-sourcing.md
+     7,847  interactive/core/policies/plain-language.md
+     9,996  interactive/core/policies/verification-policy.md
+    13,132  interactive/core/procedures/ask-consultant.md
+    10,494  interactive/core/procedures/customization-lookup.md
+    12,160  interactive/core/procedures/deep-interview.md
+    29,220  interactive/core/procedures/develop-abapgit.md
+    21,793  interactive/core/procedures/install-sap-assets.md
+    17,767  interactive/core/procedures/interview-sweep.md
+     9,972  interactive/core/procedures/knowledge.md
+     7,973  interactive/core/procedures/lesson.md
+    38,277  interactive/core/procedures/review-checklist.md
+    10,996  interactive/core/procedures/spro-lookup.md
+    80,189  interactive/core/procedures/troubleshooting.md
+    11,539  interactive/core/procedures/verify-applied.md
+    10,097  interactive/core/project-context.md
+   115,372  interactive/core/procedures/create-program.md  (절차 본문)
+  선택군 line#245 (줄 245 · 단서 「**Persona**: Adopt the matching `sap-{module}-consultant` persona for this step — see the 」): 대표 interactive/core/personas/sap-sd-consultant.md · 원소 15: sap-sd-consultant.md 13410, sap-bw-consultant.md 13046, sap-ariba-consultant.md 12681, sap-fi-consultant.md 12658, sap-co-consultant.md 12580, sap-ps-consultant.md 12577, sap-mm-consultant.md 12351, sap-bc-consultant.md 12183, sap-wm-consultant.md 11692, sap-tm-consultant.md 11516, sap-hcm-consultant.md 11334, sap-pp-consultant.md 11317, sap-qm-consultant.md 11274, sap-pm-consultant.md 11234, sap-tr-consultant.md 11201
+  선택군 line#434 (줄 434 · 단서 「- **MANDATORY before writing**: follow the conventions note (Shared Conventions above), an」): 대표 interactive/core/knowledge/abap/conventions/alv-rules.md · 원소 3: alv-rules.md 10827, include-structure.md 9053, oop-pattern.md 3086
+  선택군 대안(환산 밖) 16: include-structure.md 9,053 · oop-pattern.md 3,086 · sap-ariba-consultant.md 12,681 · sap-bc-consultant.md 12,183 · sap-bw-consultant.md 13,046 · sap-co-consultant.md 12,580 · sap-fi-consultant.md 12,658 · sap-hcm-consultant.md 11,334 · sap-mm-consultant.md 12,351 · sap-pm-consultant.md 11,234 · sap-pp-consultant.md 11,317 · sap-ps-consultant.md 12,577 · sap-qm-consultant.md 11,274 · sap-tm-consultant.md 11,516 · sap-tr-consultant.md 11,201 · sap-wm-consultant.md 11,692
+  길 안내 절이라 제외 1: interactive/core/procedures/modify-object.md
+  매개(합계 밖) 14: *.md · ../knowledge/country/<iso>.md · ../knowledge/industry/<key>.md · .sapkit/deep-interviews/*.md · .sapkit/program/*/spec.md · .sapkit/program/{PROG}/cbo-context.md · .sapkit/program/{PROG}/consult-{module}.md · .sapkit/program/{PROG}/customization-context.md · .sapkit/program/{PROG}/interview.md · .sapkit/program/{PROG}/module-interview.md · .sapkit/program/{PROG}/plan.md · .sapkit/program/{PROG}/platform.md · .sapkit/program/{PROG}/report.md · .sapkit/program/{PROG}/spec.md
+  non-core 3: interactive/adapters/antigravity/README.md · interactive/adapters/claude/README.md · interactive/adapters/codex/README.md
+  unresolved 10: .sapkit/RULES.md · .sapkit/knowledge/domain.md · .sapkit/knowledge/system.md · AGENTS.md · cbo-context.md · customization-context.md · interview.md · module-interview.md · plan.md · spec.md
+
+5. 탈출 포인터 열 (create-program 1-hop 환산 중 가리키는 줄이 모두 탈출 단서를 담은 파일 · 줄 = 파일 기준)
+------------------------------------------------------------------------------
+없음
+
+6. 상담 적재 — sap-fi-consultant 1-hop 1파일 (바이트)
+------------------------------------------------------------------------------
+     9,161  interactive/core/personas/sap-stocker.md
+  역할 문서 본문(합계 밖): interactive/core/personas/sap-fi-consultant.md 12,658 B
+  ask-consultant 쪽에 이미 들어 제외(already): interactive/core/knowledge/modules/common/active-modules.md · interactive/core/policies/knowledge-sourcing.md · interactive/core/procedures/ask-consultant.md · interactive/core/procedures/customization-lookup.md · interactive/core/procedures/spro-lookup.md · interactive/core/project-context.md (ask-consultant 1-hop 환산 10파일 기준)
+  매개(합계 밖): 없음
+  unresolved: .sapkit/RULES.md · .sapkit/knowledge/system.md · domain.md
+
+7. 대소문자 접힘 (판J의 Windows 존재 확인을 흉내 내 맞춘 참조)
+------------------------------------------------------------------------------
+없음

@@ -1,0 +1,44 @@
+출처: interactive/core/procedures/review-checklist.md @ 2e032615 · 줄 192~234
+## §8 — Clean ABAP (baseline + paradigm-specific)
+
+Context kit — **paradigm gate first**: read `Paradigm` out of `interview.md`. `OOP` → load [clean-code.md](../knowledge/abap/conventions/clean-code.md) + [clean-code-oop.md](../knowledge/abap/conventions/clean-code-oop.md); `Procedural` → load [clean-code.md](../knowledge/abap/conventions/clean-code.md) + [clean-code-procedural.md](../knowledge/abap/conventions/clean-code-procedural.md). Loading both paradigm files, or loading the wrong one, invalidates this item's review.
+
+Core (clean-code.md, both paradigms):
+- [ ] No `SELECT *` — an explicit field list instead
+- [ ] No `SELECT` inside `LOOP` — reach for `FOR ALL ENTRIES` or a join
+- [ ] Every statement that sets `SY-SUBRC` is followed by a check of it (SELECT SINGLE, READ TABLE, CALL FUNCTION with EXCEPTIONS)
+- [ ] The internal table type fits the access pattern (HASHED / SORTED / STANDARD), with no DEFAULT KEY
+- [ ] No `SORT itab.` / `DELETE ADJACENT DUPLICATES FROM itab.` without `BY` / `COMPARING` on a `WITH EMPTY KEY` table — the syntax check only warns and the offline checker is silent (clean-code.md § Variables and Types)
+- [ ] A secondary key is declared when the SELECT source is a transactional / large table AND downstream access runs on non-primary fields
+- [ ] Large-table SELECTs are preceded by a `COUNT(*)` check + tuning plan when the count > 1M
+- [ ] STRING values carry backtick literals; `|...|` templates do the assembly
+- [ ] Booleans declared as `ABAP_BOOL`, tested against `abap_true` / `abap_false`, assigned through `XSDBOOL( )`
+- [ ] Conditions phrased positively, `IS NOT` in place of `NOT IS`, and no IF branch left empty
+- [ ] Explicit typed internal tables preferred over inline `INTO TABLE @DATA(...)` for SELECTs that feed further logic
+- [ ] Inline declarations / modern syntax used where `ABAP_RELEASE` permits — never newer than the configured release
+- [ ] No code left sitting in a comment, no debug statement left behind (`BREAK-POINT`, `MESSAGE 'TEST'`)
+- [ ] No ratio/percentage arithmetic assigned into narrow DEC/CURR fields (`COMPUTE_BCD_OVERFLOW` is runtime-only — static gates cannot catch it)
+- [ ] Reconciliation/verification outputs do not treat absent values as 0 (empty lookup must not assert "difference = 0")
+
+Paradigm = OOP (clean-code-oop.md):
+- [ ] **Main program structure matches [zsapkit_oop_ex.prog.abap](../knowledge/abap/templates/oop-sample/zsapkit_oop_ex.prog.abap)** — REPORT statement, INCLUDE order, event block layout, two-class bootstrap (`go_data = NEW #( ).` / `go_alv = NEW #( ).`). Any structural deviation must be justified in `spec.md`; otherwise MAJOR finding.
+- [ ] Classes carry `FINAL` unless inheritance was designed in; `PRIVATE` is the default visibility for members
+- [ ] One job per method, at most 30 lines, one abstraction level, at most 3 IMPORTING parameters
+- [ ] A method hands back a single value (`RETURNING` in place of `EXPORTING`); no boolean arrives as an input parameter
+- [ ] `NEW #( ... )` in place of `CREATE OBJECT`; several static creation methods in place of optional constructor params
+- [ ] Exceptions are class-based only, descend from the project's own super class, wrap foreign `CX_SY_*`, and are raised with `RAISE EXCEPTION NEW`
+- [ ] Formatting holds a 120-char line limit, keeps alignment consistent, and puts one statement per line
+- [ ] Tests are named given-when-then, exercise publics only, take their doubles through the constructor, and reach for `LOCAL FRIENDS` only to get at the constructor
+
+Paradigm = Procedural (clean-code-procedural.md):
+- [ ] **Main program structure matches [main-program.abap](../knowledge/abap/templates/procedural-sample/main-program.abap)** — REPORT statement, INCLUDE order (t/c/s/o/i/a/f, optional `_tst` last — never `e`), event block layout, PBO/PAI modules as one-line `PERFORM` delegators. Any structural deviation must be justified in `spec.md`; otherwise MAJOR finding.
+- [ ] All globals declared in the TOP include only; no `DATA` in PBO/PAI/FORM/EVENT includes
+- [ ] Globals and locals are told apart on sight (`g*` vs `l*` prefix); no global is shadowed by a local
+- [ ] Every FORM parameter carries a type (`USING p_a TYPE ...`); inputs go through `USING`, in/out through `CHANGING`; no boolean is passed as `USING`
+- [ ] Screen-bound FORMs end with the `_{screen_no}` suffix; utility FORMs have no suffix
+- [ ] A PBO/PAI module body is a single `PERFORM f_...` line; the logic itself sits in the FORM, not in the module
+- [ ] `sy-subrc` checked after every statement that sets it; `CALL FUNCTION` uses the `EXCEPTIONS` clause with `CASE sy-subrc`
+- [ ] `EXIT` / `STOP` / `LEAVE PROGRAM` never stand in for error handling
+- [ ] A one-line header comment sits above each FORM, naming its inputs / outputs / global side effects
+- [ ] Where the spec calls for tests, the testable logic has been pulled out into `LCL_HELPER` rather than left inside the FORMs
+

@@ -1,0 +1,134 @@
+CLASS zcx_judge_c02_input DEFINITION PUBLIC FINAL INHERITING FROM cx_static_check CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    CONSTANTS:
+      BEGIN OF reason,
+        negative_gross     TYPE i VALUE 1,
+        percentage_invalid TYPE i VALUE 2,
+      END OF reason.
+
+    DATA reason_code TYPE i READ-ONLY.
+
+    METHODS constructor
+      IMPORTING
+        textid      LIKE textid OPTIONAL
+        previous    LIKE previous OPTIONAL
+        reason_code TYPE i OPTIONAL.
+ENDCLASS.
+
+CLASS zcx_judge_c02_input IMPLEMENTATION.
+
+  METHOD constructor.
+    super->constructor( textid = textid previous = previous ).
+    me->reason_code = reason_code.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS zcl_judge_c02_discount DEFINITION PUBLIC FINAL CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    TYPES ty_amount     TYPE p LENGTH 13 DECIMALS 2.
+    TYPES ty_percentage TYPE p LENGTH 5 DECIMALS 2.
+
+    METHODS calculate
+      IMPORTING
+        iv_gross_amount TYPE ty_amount
+        iv_percentage   TYPE ty_percentage
+      RETURNING
+        VALUE(rv_net_amount) TYPE ty_amount
+      RAISING
+        zcx_judge_c02_input.
+
+  PRIVATE SECTION.
+    CONSTANTS:
+      gc_minimum_percentage TYPE ty_percentage VALUE 0,
+      gc_maximum_percentage TYPE ty_percentage VALUE 100,
+      gc_result_decimals    TYPE i VALUE 2.
+ENDCLASS.
+
+CLASS zcl_judge_c02_discount IMPLEMENTATION.
+
+  METHOD calculate.
+    DATA lv_exact_amount TYPE p LENGTH 20 DECIMALS 6.
+
+    IF iv_gross_amount < 0.
+      RAISE EXCEPTION NEW zcx_judge_c02_input( reason_code = zcx_judge_c02_input=>reason-negative_gross ).
+    ENDIF.
+
+    IF iv_percentage < gc_minimum_percentage OR iv_percentage > gc_maximum_percentage.
+      RAISE EXCEPTION NEW zcx_judge_c02_input( reason_code = zcx_judge_c02_input=>reason-percentage_invalid ).
+    ENDIF.
+
+    lv_exact_amount = iv_gross_amount * ( gc_maximum_percentage - iv_percentage ) / gc_maximum_percentage.
+    rv_net_amount = round( val = lv_exact_amount dec = gc_result_decimals ).
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltc_discount DEFINITION FINAL FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    DATA mo_cut TYPE REF TO zcl_judge_c02_discount.
+
+    METHODS setup.
+    METHODS given_normal_discount_when_calc_then_net FOR TESTING RAISING cx_static_check.
+    METHODS given_full_discount_when_calc_then_zero FOR TESTING RAISING cx_static_check.
+    METHODS given_fraction_when_calc_then_rounded FOR TESTING RAISING cx_static_check.
+    METHODS given_negative_gross_when_calc_then_error FOR TESTING.
+    METHODS given_percentage_over_100_when_calc_then_error FOR TESTING.
+ENDCLASS.
+
+CLASS ltc_discount IMPLEMENTATION.
+
+  METHOD setup.
+    mo_cut = NEW #( ).
+  ENDMETHOD.
+
+  METHOD given_normal_discount_when_calc_then_net.
+    DATA(lv_net_amount) = mo_cut->calculate( iv_gross_amount = '200.00' iv_percentage = '25.00' ).
+
+    cl_abap_unit_assert=>assert_equals( act = lv_net_amount exp = '150.00' ).
+  ENDMETHOD.
+
+  METHOD given_full_discount_when_calc_then_zero.
+    DATA(lv_net_amount) = mo_cut->calculate( iv_gross_amount = '200.00' iv_percentage = '100.00' ).
+
+    cl_abap_unit_assert=>assert_equals( act = lv_net_amount exp = '0.00' ).
+  ENDMETHOD.
+
+  METHOD given_fraction_when_calc_then_rounded.
+    DATA(lv_net_amount) = mo_cut->calculate( iv_gross_amount = '19.99' iv_percentage = '10.00' ).
+
+    cl_abap_unit_assert=>assert_equals( act = lv_net_amount exp = '17.99' ).
+  ENDMETHOD.
+
+  METHOD given_negative_gross_when_calc_then_error.
+    DATA lx_input TYPE REF TO zcx_judge_c02_input.
+
+    TRY.
+        mo_cut->calculate( iv_gross_amount = '-1.00' iv_percentage = '10.00' ).
+        cl_abap_unit_assert=>fail( msg = 'Exception expected' ).
+      CATCH zcx_judge_c02_input INTO lx_input.
+        cl_abap_unit_assert=>assert_equals(
+          act = lx_input->reason_code
+          exp = zcx_judge_c02_input=>reason-negative_gross ).
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD given_percentage_over_100_when_calc_then_error.
+    DATA lx_input TYPE REF TO zcx_judge_c02_input.
+
+    TRY.
+        mo_cut->calculate( iv_gross_amount = '100.00' iv_percentage = '100.01' ).
+        cl_abap_unit_assert=>fail( msg = 'Exception expected' ).
+      CATCH zcx_judge_c02_input INTO lx_input.
+        cl_abap_unit_assert=>assert_equals(
+          act = lx_input->reason_code
+          exp = zcx_judge_c02_input=>reason-percentage_invalid ).
+    ENDTRY.
+  ENDMETHOD.
+
+ENDCLASS.

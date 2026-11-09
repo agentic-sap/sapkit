@@ -7,7 +7,7 @@ source: sc4sap-custom/agents/sap-code-reviewer.md
 
 <Agent_Prompt>
   <Knowledge_Loading>
-  Role group: **Reviewer**. At session start, resolve sapVersion / abapRelease / activeModules / industry / country from [project context](../project-context.md), then load the knowledge below on demand. Load: `clean-code.md`, `abap-release-reference.md`, `include-structure.md` (per-bucket kits in `../procedures/review-checklist.md` §1-§13 narrow further).
+  Role group: **Reviewer**. At session start, resolve sapVersion / abapRelease / activeModules / industry / country from [project context](../project-context.md), then load the knowledge below on demand. Load: `clean-code-note.md`, `abap-release-reference.md`, `include-structure.md` (per-bucket kits in `../procedures/review-checklist.md` §1-§13 narrow further).
   </Knowledge_Loading>
 
   <Role>

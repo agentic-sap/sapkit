@@ -1,0 +1,104 @@
+```abap
+REPORT zjudge_c05 LINE-SIZE 120 NO STANDARD PAGE HEADING.
+
+TYPES: BEGIN OF gty_customer,
+         land1 TYPE kna1-land1,
+         kunnr TYPE kna1-kunnr,
+         name1 TYPE kna1-name1,
+         ort01 TYPE kna1-ort01,
+       END OF gty_customer,
+       gty_customer_tab TYPE SORTED TABLE OF gty_customer WITH UNIQUE KEY land1 kunnr,
+       BEGIN OF gty_country_count,
+         land1          TYPE kna1-land1,
+         customer_count TYPE i,
+       END OF gty_country_count,
+       gty_country_count_tab TYPE HASHED TABLE OF gty_country_count WITH UNIQUE KEY land1.
+
+CONSTANTS: gc_auth_object      TYPE xuobject VALUE 'F_KNA1_GEN',
+           gc_activity_display TYPE activ_auth VALUE '03',
+           gc_msgty_success    TYPE symsgty VALUE 'S',
+           gc_msgty_error      TYPE symsgty VALUE 'E',
+           gc_max_rows         TYPE i VALUE 1000000.
+
+DATA: gv_land1          TYPE kna1-land1,
+      gv_row_count      TYPE i,
+      gt_customers      TYPE gty_customer_tab,
+      gt_country_counts TYPE gty_country_count_tab.
+
+SELECT-OPTIONS s_land1 FOR gv_land1.
+
+AT SELECTION-SCREEN.
+  PERFORM f_check_authority.
+
+START-OF-SELECTION.
+  PERFORM f_check_authority.
+  PERFORM f_select_customers.
+  PERFORM f_write_list.
+
+* in: - / out: - / globals: none; raises error message if not authorized
+FORM f_check_authority.
+  AUTHORITY-CHECK OBJECT gc_auth_object
+    ID 'ACTVT' FIELD gc_activity_display.
+  IF sy-subrc <> 0.
+    MESSAGE TEXT-e01 TYPE gc_msgty_error.
+  ENDIF.
+ENDFORM.
+
+* in: s_land1 / out: - / globals: fills gv_row_count, gt_customers, gt_country_counts
+FORM f_select_customers.
+  DATA ls_customer      TYPE gty_customer.
+  DATA ls_country_count TYPE gty_country_count.
+
+  SELECT COUNT(*) FROM kna1 INTO gv_row_count WHERE land1 IN s_land1.
+  IF sy-subrc <> 0.
+    RETURN.
+  ENDIF.
+  IF gv_row_count > gc_max_rows.
+    MESSAGE TEXT-e02 TYPE gc_msgty_success DISPLAY LIKE gc_msgty_error.
+    RETURN.
+  ENDIF.
+
+  SELECT land1 kunnr name1 ort01
+    FROM kna1
+    INTO TABLE gt_customers
+    WHERE land1 IN s_land1.
+  IF sy-subrc <> 0.
+    RETURN.
+  ENDIF.
+
+  LOOP AT gt_customers INTO ls_customer.
+    ls_country_count-land1          = ls_customer-land1.
+    ls_country_count-customer_count = 1.
+    COLLECT ls_country_count INTO gt_country_counts.
+  ENDLOOP.
+ENDFORM.
+
+* in: gt_customers, gt_country_counts / out: WRITE list / globals: read only
+FORM f_write_list.
+  DATA ls_customer      TYPE gty_customer.
+  DATA ls_country_count TYPE gty_country_count.
+
+  IF gt_customers IS INITIAL.
+    MESSAGE TEXT-e03 TYPE gc_msgty_success DISPLAY LIKE gc_msgty_error.
+    RETURN.
+  ENDIF.
+
+  LOOP AT gt_customers INTO ls_customer.
+    AT NEW land1.
+      SKIP.
+      READ TABLE gt_country_counts INTO ls_country_count
+        WITH TABLE KEY land1 = ls_customer-land1.
+      IF sy-subrc = 0.
+        WRITE: / TEXT-001, ls_customer-land1, TEXT-002, ls_country_count-customer_count.
+      ELSE.
+        WRITE: / TEXT-001, ls_customer-land1, TEXT-002, TEXT-003.
+      ENDIF.
+      ULINE.
+    ENDAT.
+    WRITE: /5 ls_customer-kunnr,
+           18 ls_customer-name1,
+           55 ls_customer-ort01,
+           92 ls_customer-land1.
+  ENDLOOP.
+ENDFORM.
+```

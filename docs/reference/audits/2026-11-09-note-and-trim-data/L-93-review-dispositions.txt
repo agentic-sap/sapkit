@@ -1,0 +1,22 @@
+L-93-review-dispositions.txt — 판L 마감 독립 리뷰 처분 (T12 · 2026-11-09)
+
+리뷰어: Fable 새 컨텍스트 · read-only · 응시하지 않은 모델 · 대상 판L 작업 가지 HEAD 1be1c379 대 main
+판정: R-PASS · 차단 0 · 권고 3 · 기록 8
+리뷰어가 돌린 명령: L-83-aggregate --check · check-conventions-note · test-check-conventions-note(35/35) · check-links · check-runtime-path-rename ·
+  gen-plugin-manifests --check · check-doc-size · check-wiki · L-65-build-blind --check · L-99-namecheck(자료 폴더 · 감사 문서) ·
+  삭제 0 · interactive/ 무변경(fdff5a56..HEAD) · EOL 통파일 뒤집힘 0 — 전부 exit 0
+
+번호 등급 처분 근거
+1  권고 채택 docs/RUN-PLAN.md 판L 행 설명 칸 「쪽지 3종」 → 「쪽지 1파일 5묶음 · 착수 때의 「3종」은 D-164 ⓔ로 바뀌었다」. 판 큐가 정본이라 최종 꼴에 맞춘다.
+2  권고 채택 감사 §5 ⑹ 「7세션」 → 「본 측정 6세션(시험 실행 1)」 + 원본 조건에 불리한 방향이라는 한 줄(기록 5를 함께 반영).
+3  권고 채택 L-65-check.txt — 리뷰어의 --check 실행이 다시 쓴 작업본(내용 차 0)을 git checkout으로 커밋본에 되돌렸다.
+4  기록 반영 sap-critic:64 · sap-planner:65 나라 파일 Load 유지 — 감사 §5 ⑾에 한 줄 · D-166 ⓑ. 메인 결정(L-31) · 사양 문언은 sap-analyst만.
+5  기록 반영 E-3 원본 조건의 사양 밖 요소 두 가지 — 이미 D-165 ⓓ · 감사 ⑹에 있음. ⑹에 「원본 조건에 불리한 방향」 문장 추가(처분 2).
+6  기록 유지 가림의 한계 — 감사 §5 ⑷가 이미 적었다. 추가 조치 없음.
+7  기록 유지 §3.3 단위 혼용(토큰 · 바이트) — 표에 단위가 적혀 있다. 조치 없음.
+8  기록 반영 L-81 모델 줄 = 메인(D-165 ⓔ 공개) · 느슨 해석 계수가 A 메모만 읽음 — 감사 §5 ⒀에 적었다. 스크립트는 고치지 않았다(이번 A = B · 결과 영향 0 · 다음 판에서 A ≠ B면 B도 읽게 한다).
+9  기록 반영 채점자 독립의 증거 = 자기 보고 — 접근 기록 기계 검사는 이 판에서 돌리지 않았다. 감사 §5 ⒀ · D-166 ⓒ에 그대로 적는다(사후에 만들어 붙이지 않는다).
+10 기록 판 밖 HANDOFF.md의 DEV 호스트 주소 · SAP 사용자 id — main에 이미 있는 선재 내용이고 판L diff가 건드리지 않았다. 소유자에게 보고만 한다(이 판에서 고치지 않는다).
+11 기록 유지 review-checklist §8 OOP/절차형 템플릿 대조 비대칭 — 사양 D(214줄 유지)대로. doctor 선재 FAIL — L-99-gates 기록대로.
+
+처분 뒤 다시 돌린 것: check-doc-size · check-wiki · check-links · L-99-namecheck(자료 폴더 · 감사 문서) · L-83-aggregate --check — 결과는 커밋 메시지에.

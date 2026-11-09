@@ -1,0 +1,36 @@
+# §8 리뷰 결과: ZJUDGE_C01 (Procedural · 7.58)
+
+`clean-code.md`와 `clean-code-procedural.md`를 불러왔고, OOP 파일은 불러오지 않았습니다. 구조 항목의 기준인 템플릿 `knowledge/abap/templates/procedural-sample/main-program.abap`은 경로에 없었습니다. 그래서 구조 판정은 `clean-code-procedural.md` § Mandatory Main Program Template의 문장 기준으로만 했습니다.
+
+## 어긋남
+
+```
+메인 프로그램 구조 (Procedural) | 42–54 | 이벤트 블록에 AT SELECTION-SCREEN이 없음. p_max 입력 검증이 START-OF-SELECTION 뒤 FORM(59–63)에서 이뤄짐. INCLUDE를 쓰지 않은 것은 과제 지시("no INCLUDEs")가 근거가 되지만, 이벤트 블록 편차는 근거가 없음 → 규칙상 MAJOR (템플릿 원문은 대조하지 못함)
+EXIT/STOP/LEAVE PROGRAM을 에러 처리로 쓰지 않음 | 59–62, 49–51 | p_max <= 0일 때 'S' DISPLAY LIKE 'E'를 띄우고 RETURN만 함. 에러가 호출부로 전달되지 않아 49행의 gt_header IS INITIAL로 넘어가고, 50행 'No purchasing documents found'가 에러 메시지를 덮어씀. 잘못된 입력이 "데이터 없음"으로 보고되는 실제 결함임. AT SELECTION-SCREEN에서 MESSAGE TYPE 'E'로 막아야 함
+sy-subrc 확인 | 65–71 | SELECT ... INTO TABLE 직후에 sy-subrc를 확인하지 않음. 다른 이벤트 블록(49행)의 gt_header IS INITIAL로 간접 확인만 함 (minor)
+대형 테이블 COUNT(*) 사전 확인 | 65–71 | EKKO는 의무 대상 목록에 있는데 COUNT(*)와 튜닝 계획이 없음. s_ekorg와 s_bedat는 비워 둘 수 있어 전체 테이블을 읽을 수 있음. p_max(TYPE i)도 상한이 없어서 UP TO가 실질적인 보호가 되지 못함
+FORM 파라미터 (개수) | 116–121 | set_heading에 USING이 5개임. procedural 기준 ≤4, core 기준 ≤3을 넘음. 이름과 짧은/중간/긴 텍스트를 구조체 하나(ps_heading TYPE ty_heading)로 묶어야 함
+FORM 파라미터 (PERFORM 호출 배치) | 90–103 | 파라미터가 2개를 넘는 PERFORM 7건이 파라미터를 한 줄에 하나씩 FORM 이름 아래로 맞추지 않고 2줄에 몰아 씀
+FORM 한 줄 헤더 주석 | 56, 75, 115 | 세 FORM 모두 구분선만 있고 계약 헤더가 없음. 특히 select_data는 s_ekorg/s_bedat/p_max를 읽고 gt_header에 쓰며, display_alv는 gt_header를 읽음. 이런 전역 부수효과가 적혀 있지 않음
+```
+
+## 위반 없음 또는 해당 없음
+
+- **SELECT 관련:** `SELECT *` 없음(필드 목록 명시). LOOP 안 SELECT 없음. 인라인 `@DATA(...)` 대신 명시 타입 테이블 `gt_header` 사용.
+- **테이블 타입:** STANDARD WITH EMPTY KEY지만 ALV에 순차 출력만 하므로 의도에 맞음. 키 없는 SORT나 DELETE ADJACENT DUPLICATES 없음. DEFAULT KEY 없음.
+- **보조 키:** 기본 키가 아닌 필드로 다시 접근하는 곳이 없어 필요 없음.
+- **STRING:** STRING 변수가 없음. 작은따옴표 리터럴은 모두 텍스트 심볼 `'…'(xNN)`이거나 CHAR 타깃(`lvc_fname`)이라 백틱을 쓸 수 없거나 쓸 필요가 없음.
+- **Boolean·조건:** Boolean은 `abap_true`만 사용. 조건은 긍정형이고 빈 IF 분기 없음.
+- **릴리스·코드 정리:** 7.58 범위 안의 문법만 씀. 주석 처리된 코드나 디버그 문 없음. 비율 연산과 대사(reconciliation) 로직 없음.
+- **전역·지역:** 전역은 상단에 모여 있음. g/l 접두어로 구분되고 shadowing 없음. 파라미터는 모두 타입이 지정되고 USING으로 입력함.
+- **기타:** 화면에 묶인 FORM과 PBO/PAI가 없음. CALL FUNCTION 없음. 과제가 테스트를 요구하지 않아 LCL_HELPER도 해당 없음.
+
+## 체크리스트 행은 아니지만 참고할 점
+
+- **27행 `TEXT-b01`:** 과제가 텍스트 풀을 금지하므로 프레임 제목이 비어 나옵니다. `'…'(c01)` 형태와 달리 대체 리터럴이 없습니다.
+- **1–5행, 21–23행 배너 주석:** `clean-code.md` § Comments의 "No comment banners"에 걸립니다.
+- **50–51행 `TYPE 'S' DISPLAY LIKE 'I'`:** 과제의 "information message" 요구에 비해 상태 표시줄 메시지일 뿐입니다. 정보 팝업을 의도했다면 `TYPE 'I'`가 맞습니다.
+- **검사기 출력 평가:**
+  - lint의 `lo_` 경고 2건은 §8 위반이 아닙니다. `clean-code.md`가 지역 변수의 `lo_` 접두어를 허용합니다.
+  - analyze의 `double_space` 7건은 정렬용 공백이라 위반이 아닙니다.
+  - 위의 실제 어긋남 7건은 검사기가 하나도 잡지 못했습니다.

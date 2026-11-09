@@ -250,6 +250,7 @@ node interactive/scripts/check-runtime-path-rename.mjs   # 구 세대 경로 토
 node interactive/scripts/conformance-runtime-dir.mjs     # 경로 해석 적합성 (fixture 26 · assert 138 · 안전 회귀 5종)
 node interactive/scripts/verify-checker.mjs              # 동봉 검사기 번들 무결성·출처 (번들 바이트·버전 3자·소스 커밋·소스 해시)
 node interactive/scripts/check-doc-size.mjs --file HANDOFF.md:500:docs/reference/handoff-archive/ --file docs/RUN-PLAN.md:300:docs/reference/run-archive/  # 웜 레이어 줄 수 상한 (대상=인자 · 부재=위반 · 무인자면 exit 2)
+node interactive/scripts/check-conventions-note.mjs      # 작법 쪽지 정본 ↔ 지시서 사본 4 바이트 동일 · 출처 실재 · 크기 상한 (--canonical-only = 정본만)
 node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (로컬 전용 — 설치 상태를 읽는다)
 ```
 
@@ -259,7 +260,8 @@ node interactive/scripts/doctor.mjs                      # 3사 동기화 OK (�
 `test-setup-state.mjs` 120/120 · `test-launch-toolsurface.mjs` 56/56 ·
 `test-codex-wire-mcp.mjs` 82/82(배포 복사본 실기동 포함) · `test-doctor.mjs` 47/47 ·
 `test-verify-checker.mjs` 21/21 · `test-check-doc-size.mjs` 15/15 ·
-`test-continuity-hook.mjs` 30/30 · `test-spec-html.mjs` 92/92.
+`test-continuity-hook.mjs` 30/30 · `test-spec-html.mjs` 92/92 ·
+`test-check-conventions-note.mjs` 35/35.
 **PowerShell로 실행할 것** — Bash로 돌리면 자식 프로세스 수거에서 블록된다.
 
 **공방 훅층도 음성시험을 갖는다**(제품이 아니라 이 레포의 개발 세션을 지키는 층 —
