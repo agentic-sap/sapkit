@@ -1,0 +1,16 @@
+```
+CALL FUNCTION 예외는 CASE sy-subrc로 분기 (Procedural · Procedural Error Handling) | 17–27 | CONVERSION_EXIT_MATN1_INPUT 뒤에 `IF sy-subrc <> 0`만 있다. length_error(=1)와 OTHERS(=2)가 구분되지 않고 둘 다 material_not_found로 묶인다. `CASE sy-subrc. WHEN 1 … WHEN 2 …`로 나누어야 한다. 특히 OTHERS는 "자재 없음"이 아니라 예기치 않은 실패이므로 같은 조건으로 보고하면 원인이 가려진다.
+FM 파라미터를 대신하는 섀도 로컬 금지 (Release and FM · function-module-rule) | 12, 29–32 | iv_spras는 VALUE() 전달이라 직접 바꿀 수 있다. 그런데 lv_spras에 복사한 뒤 그 복사본만 쓴다. `IF iv_spras IS INITIAL. iv_spras = sy-langu. ENDIF.`로 충분하다. (lv_matnr는 변환된 내부 형식이라는 다른 의미를 가지므로 허용 범위다.)
+릴리스가 허용하는 현대 구문 사용 (Core · Version Awareness) | 35–38, 44–48 | 7.58인데 Open SQL이 구형 비엄격 문법이다. 호스트 변수에 `@`가 없고 INTO가 WHERE 앞에 있다. `SELECT SINGLE maktx FROM makt WHERE matnr = @lv_matnr AND spras = @iv_spras INTO @ev_maktx.` 형태의 엄격 모드로 써야 한다.
+의도가 드러나는 존재 확인 (자체 판단 · 노트 외) | 35–38 | `SELECT SINGLE matnr … INTO lv_matnr WHERE matnr = lv_matnr`는 WHERE 조건에 쓴 변수에 결과를 다시 덮어쓴다. 동작은 하지만 읽는 사람을 헷갈리게 한다. 존재 확인 목적이면 `SELECT SINGLE @abap_true FROM mara WHERE matnr = @lv_matnr INTO @DATA(lv_material_exists).`가 의도를 드러낸다.
+체인 선언 / 인라인 선언 (Core · Version Awareness + 자체 판단) | 11–12 | `DATA: a, b.` 체인 선언은 Clean ABAP에서 지양한다. 7.58이므로 필요한 곳에서 인라인으로 선언하거나 한 줄에 하나씩 선언해야 한다.
+불필요한 CLEAR (자체 판단 · 노트 외) | 14, 50 | ev_maktx는 VALUE() EXPORTING이라 진입 시 이미 초기값이다. 클래식 예외를 RAISE하면 호출자에게 값이 돌아가지도 않는다. SELECT SINGLE이 실패하면 대상은 변하지 않는다. 두 CLEAR 모두 효과가 없는 잡음이다.
+비교 반환 코드 상수화 (House rules · constant-rule §1) | 25, 39, 49 | `sy-subrc <> 0`의 0이 리터럴이다. 하우스 규칙은 "compared return codes"를 함수 그룹 TOP include의 CONSTANTS로 옮기라고 한다. 관용 표현이라 심각도는 낮다.
+진입점마다 AUTHORITY-CHECK (Core · Security and Data Handling) | 1–54 | FM은 외부 호출 진입점인데 권한 검사가 없다. 자재 텍스트 조회는 민감도가 낮지만 규칙상 진입점에서 검사가 필요하다. 예를 들어 M_MATE_* 계열을 쓸 수 있다. 검사를 생략한다면 그 근거를 spec에 남겨야 한다. RFC로 활성화한다면 반드시 넣어야 한다.
+```
+
+**참고 (어긋남으로 세지 않은 항목)**
+- 19, 21, 24행의 double_space는 검사기가 이미 보고했으므로 여기서 다시 올리지 않았다.
+- FM 이름 `Z_JUDGE_C03_…`는 하우스 패턴 `Z{MODULE}FM_{PURPOSE}`와 다르다. 다만 과제가 이름을 지정했으므로 작성자의 위반이 아니다.
+- 인라인 시그니처(1–9행)는 규칙에 맞다. MAKT 조회는 전체 키(matnr + spras)를 쓰고, 두 오류 조건도 과제 요구대로 구분되어 있다.
+- 과제 범위가 FM만이므로 Procedural 메인 프로그램 템플릿과 OOP 템플릿 항목은 해당하지 않는다.

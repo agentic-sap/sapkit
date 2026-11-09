@@ -1,0 +1,509 @@
+Review the ABAP code below against §8 of the review checklist.
+
+==== §8 of the review checklist ====
+## §8 — Clean ABAP (baseline + paradigm-specific)
+
+Context kit: none to load — the conventions note below is this item's kit. Read `Paradigm` out of `interview.md` and judge the Core, House rules, and Release and function modules groups for every program plus the OOP group or the Procedural group by that paradigm — never both.
+
+This block is a copy of the canonical conventions note (clean-code-note, in the ABAP conventions folder) — edit the canonical note and let the gate bring the copies in line; never edit a copy.
+
+<!-- sapkit:conventions-note:begin -->
+**Core**
+- No `SELECT *` — an explicit field list instead [clean-code.md § Open SQL]
+- No `SELECT` inside `LOOP` — reach for `FOR ALL ENTRIES` or a join [clean-code.md § Open SQL]
+- Every statement that sets `SY-SUBRC` is followed by a check of it (SELECT SINGLE, READ TABLE, CALL FUNCTION with EXCEPTIONS) [clean-code.md § Open SQL]
+- The internal table type fits the access pattern (HASHED / SORTED / STANDARD), with no DEFAULT KEY [clean-code.md § Internal Tables]
+- No `SORT itab.` / `DELETE ADJACENT DUPLICATES FROM itab.` without `BY` / `COMPARING` on a `WITH EMPTY KEY` table — syntax check only warns, offline checker is silent [clean-code.md § Variables and Types]
+- Secondary key on an itab filled from a transactional / large table when downstream access runs on non-primary fields [clean-code.md § Open SQL]
+- Large-table SELECTs: `COUNT(*)` first, tuning plan when > 1M [clean-code.md § Open SQL]
+- STRING values carry backtick literals; `|...|` templates do the assembly [clean-code.md § Strings]
+- Booleans: `ABAP_BOOL`, compared with `abap_true` / `abap_false`, set via `XSDBOOL( )` [clean-code.md § Booleans]
+- Conditions phrased positively, `IS NOT` in place of `NOT IS`, and no IF branch left empty [clean-code.md § Conditions and IFs]
+- Explicit typed itabs over inline `INTO TABLE @DATA(...)` for SELECTs feeding further logic [clean-code.md § Open SQL]
+- Inline declarations / modern syntax used where `ABAP_RELEASE` permits — never newer than the configured release [clean-code.md § Version Awareness]
+- No commented-out code, no leftover debug statement (`BREAK-POINT`, `MESSAGE 'TEST'`) [clean-code.md § Comments]
+- No ratio/percentage arithmetic assigned into narrow DEC/CURR fields (`COMPUTE_BCD_OVERFLOW` is runtime-only) [clean-code.md § Variables and Types]
+- Reconciliation outputs never treat absent values as 0 (empty lookup must not assert "difference = 0") [clean-code.md § Reconciliation Logic — Null vs Zero]
+- Descriptive full-word names, no abbreviations; single letters only for loop counters; booleans `is_*` / `has_*`; methods verbs, classes nouns [clean-code.md § Naming]
+- Guard clauses first; extract past 3 `IF` levels; `CASE` over an `IF/ELSEIF` chain on one variable; no `EXIT` / `CHECK` mid long loop, no unexplained `CONTINUE` [clean-code.md § Control Flow]
+- CURR of a `CURRDEC = 0` currency (KRW, JPY) is stored as display ÷ 100: scale display-unit thresholds before comparing, never store an external amount in CURR unconverted [clean-code.md § Currency Amounts — CURR Internal Unit ≠ Display Unit (TCURX)]
+- Integer `/` rounds, `DIV` truncates; move `NUMC` / `DATS` into a `TYPE i` local before comparing with an arithmetic expression [clean-code.md § Arithmetic and Initial Values]
+- No verdict in a type whose initial value is valid (`SYMSGNO` `'000'`) — use a boolean; guard blank `DATS` with `IS INITIAL OR <d> CO ' 0'` [clean-code.md § Arithmetic and Initial Values]
+- Fixed-width record structures type dates `NUMC(8)`, never `DATS`; offsets count characters, layouts bytes [clean-code.md § Fixed-Width File Serialization — Keep `DATS` Out of the Record Structure]
+- Code after a `RETURN` never runs — find the routine's `RETURN`s before appending above `ENDFORM` / `ENDMETHOD` [clean-code.md § Editing Existing Code — Two Silent Traps]
+- Renaming a shared type component: send definition and use sites together, then `GrepPackages` + `CheckSyntax` every consumer [clean-code.md § Editing Existing Code — Two Silent Traps]
+- All user-visible text via text elements or message classes — no hardcoded language literals in logic [clean-code.md § Text and User Interaction]
+- `AUTHORITY-CHECK` at every entry point; user input never concatenated into `EXEC SQL` / dynamic `WHERE`; mask PII in logs and messages [clean-code.md § Security and Data Handling]
+
+**OOP**
+- Classes `FINAL` unless designed for inheritance; members `PRIVATE` by default [clean-code-oop.md § Object Orientation — Scope and Design]
+- One job per method, at most 30 lines, one abstraction level, at most 3 IMPORTING parameters [clean-code-oop.md § Method Body] [clean-code-oop.md § Methods — Parameters and Calls]
+- A method returns one value (`RETURNING` over `EXPORTING`); no boolean input parameter [clean-code-oop.md § Methods — Parameters and Calls]
+- `NEW #( ... )` over `CREATE OBJECT`; several static creation methods over optional constructor params [clean-code-oop.md § Constructors]
+- Exceptions: class-based only, from the project's own super class, foreign `CX_SY_*` wrapped, raised with `RAISE EXCEPTION NEW` [clean-code-oop.md § Error Handling — Detail]
+- Formatting: 120-char lines, consistent alignment, one statement per line [clean-code-oop.md § Formatting]
+- Tests: given-when-then names, publics only, doubles injected through the constructor, `LOCAL FRIENDS` only for constructor access [clean-code-oop.md § Testing — Detail]
+- Comments above the statement, not trailing; no version notes or begin/end markers; ABAP Doc only on public APIs; pragmas over `"#EC` [clean-code-oop.md § Comments — Detail (beyond main file)]
+
+**Procedural**
+- Main program structure matches template main-program.abap — REPORT statement, INCLUDE order (t/c/s/o/i/a/f, optional `_tst` last — never `e`), event block layout, PBO/PAI modules as one-line `PERFORM` delegators; deviations justified in `spec.md` [clean-code-procedural.md § Mandatory Main Program Template (MUST match)]
+- All globals declared in the TOP include only; no `DATA` in PBO/PAI/FORM/EVENT includes [clean-code-procedural.md § Global vs Local Discipline (TOP include)]
+- Globals `g*`, locals `l*` — told apart on sight; no local shadows a global [clean-code-procedural.md § Global vs Local Discipline (TOP include)]
+- Every FORM parameter typed (`USING p_a TYPE ...`); inputs via `USING`, in/out via `CHANGING`; no boolean `USING` [clean-code-procedural.md § FORM / PERFORM — Parameters and Signatures]
+- Screen-bound FORMs end with the `_{screen_no}` suffix; utility FORMs have no suffix [clean-code-procedural.md § FORM Body]
+- A PBO/PAI module body is one `PERFORM f_...` line; the logic lives in the FORM [clean-code-procedural.md § FORM Body]
+- `sy-subrc` checked after every statement that sets it; `CALL FUNCTION` uses the `EXCEPTIONS` clause with `CASE sy-subrc` [clean-code-procedural.md § Procedural Error Handling]
+- `EXIT` / `STOP` / `LEAVE PROGRAM` never stand in for error handling [clean-code-procedural.md § Procedural Error Handling]
+- One-line header comment above each FORM: inputs / outputs / global side effects [clean-code-procedural.md § Comments — Procedural-Specific]
+- Where the spec calls for tests, testable logic is pulled out into `LCL_HELPER`, not left inside FORMs [clean-code-procedural.md § Procedural Testing — Limits and Workarounds]
+- FORM for program-local logic, FM for cross-program or RFC reuse; never share logic via includes or create an FM just for length [clean-code-procedural.md § Modularization Boundaries]
+
+**House rules**
+- Magic literals in logic (status/type codes, screen numbers, GUI status names, thresholds, compared return codes) become `CONSTANTS` in the TOP include [constant-rule.md § 1. What must become a constant] [constant-rule.md § 3. Where the declaration goes]
+- Numbered objects `Z{MODULE}{TYPE}{NN}` (R report, S structure, T table, Y table type, E data element, D domain, V view); prove `{NN}` free via `SearchObject`, take last + 10, one `{NN}` per feature [naming-conventions.md § 3. Numbered objects — `Z{MODULE}{TYPE}{NN}`] [naming-conventions.md § 2. Claim the sequence number before you propose a name — MANDATORY]
+- `Z{MODULE}FG_{PURPOSE}` / `Z{MODULE}FM_{PURPOSE}` (never `Z_MM_...`); `ZCL_` / `ZIF_` / `ZCX_{MODULE}_{PURPOSE}`; CDS `ZI_` / `ZR_` / `ZC_` / `ZP_{MODULE}_{Name}` [naming-conventions.md § 4. Unnumbered objects — patterns keyed by purpose]
+- Write every applicable text-pool type (`R` title, `I` per `TEXT-xxx`, `S` per selection field, `H` only for WRITE lists) in the logon language and in `'E'` [text-element-rule.md § Scope — Four Text Pool Types (MUST verify ALL that apply)] [text-element-rule.md § Language Strategy (MANDATORY — two passes)]
+- An `S` label starts at offset 8: via the MCP text tools `text` begins with 8 reserved characters; in an abapGit `TPOOL` they stay out of `ENTRY` [text-element-rule.md § Selection Texts — the Label Starts at Offset 8]
+- Main program = `REPORT` + `INCLUDE`s + delegating event blocks; only the includes needed, never `e` in Procedural; no declaration after an event block [include-structure.md § Main Program Body] [include-structure.md § Event Blocks — Placement and Order]
+- Activation does not cascade: activate main + every include (one `ActivateObjects`), then confirm `GetInactiveObjects` is empty [include-structure.md § Activation Protocol — MANDATORY (matches every skill that creates includes)]
+- OOP split: `LCL_DATA` (`{PROG}c`) extracts data, no UI; `LCL_ALV` (`{PROG}a`) displays it; ALV follows the OOP sample reusing `ZCL_SAPKIT_CM_*`; messages `S_UNIFIED_CON`, no new `ZMC` [oop-pattern.md § Two-Class Split (Mandatory)] [oop-pattern.md § ALV Requirement (Mandatory)]
+
+**Release and function modules**
+- Never emit syntax newer than the configured `ABAP_RELEASE`; if it is unset, stop and ask [abap-release-reference.md § 5. Checklist before emitting ABAP]
+- Release `< 740`: no inline declarations, constructor expressions (`NEW`, `VALUE`, `COND` …), table expressions, string templates or chained method calls [abap-release-reference.md § 3. Feature matrix — the release each feature arrives in]
+- FM signature inline in the `FUNCTION` statement — never a `*"` comment block or the `functionModuleParameter` placeholder [function-module-rule.md § HARD RULE — Inline signature only]
+- No shadow locals (`lv_iv_xxx`) standing in for FM parameters — declare the real parameter [function-module-rule.md § Required source template (every FM)]
+
+Not covered here? Open the section named in the rule's tag, in that file of the ABAP conventions folder.
+<!-- sapkit:conventions-note:end -->
+
+Point out a departure from clean ABAP even where the note does not cover it — use your own judgment.
+
+Formatting rules: where the bundled checker's results are present, accept its verdict and do not raise the same finding again; where the checker did not run, check them yourself.
+
+Paradigm = OOP — template match (outside the note):
+- [ ] **Main program structure matches [zsapkit_oop_ex.prog.abap](../knowledge/abap/templates/oop-sample/zsapkit_oop_ex.prog.abap)** — REPORT statement, INCLUDE order, event block layout, two-class bootstrap (`go_data = NEW #( ).` / `go_alv = NEW #( ).`). Any structural deviation must be justified in `spec.md`; otherwise MAJOR finding.
+==== end of §8 ====
+
+Paradigm: Procedural · ABAP release: 7.58 (given here in place of interview.md and the configured ABAP_RELEASE)
+
+==== Task the author was given ====
+Write an executable ABAP report ZJUDGE_C01 that lists purchasing document headers.
+Selection screen: SELECT-OPTIONS for purchasing organization (EKKO-EKORG) and for document date
+(EKKO-BEDAT), plus a PARAMETER for the maximum number of rows (default 500).
+Read the matching rows from EKKO — document number, company code, purchasing organization, vendor,
+document date, document type, purchasing group — and display them in an ALV grid (cl_salv_table)
+with column headings and optimized column widths. If nothing matches, show an information message
+instead of an empty grid.
+
+Required output: one file  zjudge_c01.abap  — the complete report source (REPORT statement through the last
+statement), no INCLUDEs, no separate text pool; roughly 60–150 lines.
+==== end of task ====
+
+==== Code (line numbers prefixed; they are not part of the source) ====
+  1  REPORT zjudge_c01.
+  2
+  3  *----------------------------------------------------------------------*
+  4  * Purchasing document header list (EKKO) in a SALV grid.
+  5  * The selection labels and headings are text symbols with literal
+  6  * fallbacks, so the report runs without a separate text pool.
+  7  *----------------------------------------------------------------------*
+  8
+  9  TYPES: BEGIN OF ty_s_ekko,
+ 10           ebeln TYPE ekko-ebeln,
+ 11           bukrs TYPE ekko-bukrs,
+ 12           ekorg TYPE ekko-ekorg,
+ 13           lifnr TYPE ekko-lifnr,
+ 14           bedat TYPE ekko-bedat,
+ 15           bsart TYPE ekko-bsart,
+ 16           ekgrp TYPE ekko-ekgrp,
+ 17         END OF ty_s_ekko,
+ 18         ty_t_ekko TYPE STANDARD TABLE OF ty_s_ekko WITH DEFAULT KEY.
+ 19
+ 20  DATA: gt_data  TYPE ty_t_ekko,
+ 21        gv_ekorg TYPE ekko-ekorg,
+ 22        gv_bedat TYPE ekko-bedat.
+ 23
+ 24  SELECTION-SCREEN BEGIN OF BLOCK b01 WITH FRAME.
+ 25  SELECTION-SCREEN BEGIN OF LINE.
+ 26  SELECTION-SCREEN COMMENT 1(31) c_ekorg FOR FIELD s_ekorg.
+ 27  SELECT-OPTIONS s_ekorg FOR gv_ekorg.
+ 28  SELECTION-SCREEN END OF LINE.
+ 29  SELECTION-SCREEN BEGIN OF LINE.
+ 30  SELECTION-SCREEN COMMENT 1(31) c_bedat FOR FIELD s_bedat.
+ 31  SELECT-OPTIONS s_bedat FOR gv_bedat.
+ 32  SELECTION-SCREEN END OF LINE.
+ 33  SELECTION-SCREEN BEGIN OF LINE.
+ 34  SELECTION-SCREEN COMMENT 1(31) c_max FOR FIELD p_max.
+ 35  PARAMETERS p_max TYPE i DEFAULT 500.
+ 36  SELECTION-SCREEN END OF LINE.
+ 37  SELECTION-SCREEN END OF BLOCK b01.
+ 38
+ 39  INITIALIZATION.
+ 40    c_ekorg = 'Purchasing Organization'(s01).
+ 41    c_bedat = 'Document Date'(s02).
+ 42    c_max   = 'Maximum Number of Rows'(s03).
+ 43
+ 44  AT SELECTION-SCREEN ON p_max.
+ 45    IF p_max <= 0.
+ 46      MESSAGE 'Maximum number of rows must be greater than 0'(e01)
+ 47        TYPE 'E'.
+ 48    ENDIF.
+ 49
+ 50  START-OF-SELECTION.
+ 51    PERFORM get_data.
+ 52    IF gt_data IS INITIAL.
+ 53      MESSAGE 'No purchasing documents match the selection'(m01)
+ 54        TYPE 'I'.
+ 55      RETURN.
+ 56    ENDIF.
+ 57    PERFORM display_alv.
+ 58
+ 59  *&---------------------------------------------------------------------*
+ 60  FORM get_data.
+ 61    SELECT ebeln bukrs ekorg lifnr bedat bsart ekgrp
+ 62      FROM ekko
+ 63      INTO TABLE gt_data
+ 64      UP TO p_max ROWS
+ 65      WHERE ekorg IN s_ekorg
+ 66        AND bedat IN s_bedat
+ 67      ORDER BY ebeln.
+ 68  ENDFORM.
+ 69
+ 70  *&---------------------------------------------------------------------*
+ 71  FORM display_alv.
+ 72    DATA: lo_salv    TYPE REF TO cl_salv_table,
+ 73          lo_columns TYPE REF TO cl_salv_columns_table,
+ 74          lx_msg     TYPE REF TO cx_salv_msg.
+ 75
+ 76    TRY.
+ 77        cl_salv_table=>factory(
+ 78          IMPORTING r_salv_table = lo_salv
+ 79          CHANGING  t_table      = gt_data ).
+ 80      CATCH cx_salv_msg INTO lx_msg.
+ 81        MESSAGE lx_msg TYPE 'I' DISPLAY LIKE 'E'.
+ 82        RETURN.
+ 83    ENDTRY.
+ 84
+ 85    lo_columns = lo_salv->get_columns( ).
+ 86    lo_columns->set_optimize( abap_true ).
+ 87
+ 88    PERFORM set_heading USING lo_columns 'EBELN'
+ 89          'Doc. No.'(h01) 'Purchasing Document'(l01).
+ 90    PERFORM set_heading USING lo_columns 'BUKRS'
+ 91          'Comp.Code'(h02) 'Company Code'(l02).
+ 92    PERFORM set_heading USING lo_columns 'EKORG'
+ 93          'Purch.Org'(h03) 'Purchasing Org.'(l03).
+ 94    PERFORM set_heading USING lo_columns 'LIFNR'
+ 95          'Vendor'(h04) 'Vendor'(l04).
+ 96    PERFORM set_heading USING lo_columns 'BEDAT'
+ 97          'Doc. Date'(h05) 'Document Date'(l05).
+ 98    PERFORM set_heading USING lo_columns 'BSART'
+ 99          'Doc. Type'(h06) 'Document Type'(l06).
+100    PERFORM set_heading USING lo_columns 'EKGRP'
+101          'Purch.Grp'(h07) 'Purchasing Group'(l07).
+102
+103    lo_salv->get_functions( )->set_all( abap_true ).
+104    lo_salv->get_display_settings( )->set_striped_pattern( abap_true ).
+105    lo_salv->get_display_settings( )->set_list_header(
+106      'Purchasing Document Headers'(t01) ).
+107
+108    lo_salv->display( ).
+109  ENDFORM.
+110
+111  *&---------------------------------------------------------------------*
+112  FORM set_heading USING io_columns TYPE REF TO cl_salv_columns_table
+113                         iv_name    TYPE lvc_fname
+114                         iv_short   TYPE csequence
+115                         iv_long    TYPE csequence.
+116    DATA: lo_column TYPE REF TO cl_salv_column,
+117          lv_short  TYPE scrtext_s,
+118          lv_medium TYPE scrtext_m,
+119          lv_long   TYPE scrtext_l.
+120
+121    lv_short  = iv_short.
+122    lv_medium = iv_long.
+123    lv_long   = iv_long.
+124
+125    TRY.
+126        lo_column = io_columns->get_column( iv_name ).
+127        lo_column->set_short_text( lv_short ).
+128        lo_column->set_medium_text( lv_medium ).
+129        lo_column->set_long_text( lv_long ).
+130      CATCH cx_salv_not_found.
+131  *     Column not in the output structure - keep DDIC heading
+132    ENDTRY.
+133  ENDFORM.
+==== end of code ====
+
+==== Bundled offline checker output for this code ====
+K-60-checker/claude-opus-5-5/C-01.txt — 동봉 검사기 원출력 (판K T6)
+대상: docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-01.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.16.0
+명령 3종 (판J 11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-01.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-01.abap
+--- stdout (845 bytes) ---
+docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-01.abap:72:9: W [local_variable_names] Local variable name "lo_salv" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-01.abap:73:9: W [local_variable_names] Local variable name "lo_columns" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-01.abap:74:9: W [local_variable_names] Local variable name "lx_msg" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-01.abap:116:9: W [local_variable_names] Local variable name "lo_column" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+--- stderr (128 bytes) ---
+docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-01.abap: 4 finding(s), 0 at Error level
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-01.abap
+--- stdout (6201 bytes) ---
+Report               REPORT zjudge_c01 .
+Comment              *----------------------------------------------------------------------*
+Comment              * Purchasing document header list (EKKO) in a SALV grid.
+Comment              * The selection labels and headings are text symbols with literal
+Comment              * fallbacks, so the report runs without a separate text pool.
+Comment              *----------------------------------------------------------------------*
+TypeBegin            TYPES BEGIN OF ty_s_ekko ,
+Type                 TYPES ebeln TYPE ekko - ebeln ,
+Type                 TYPES bukrs TYPE ekko - bukrs ,
+Type                 TYPES ekorg TYPE ekko - ekorg ,
+Type                 TYPES lifnr TYPE ekko - lifnr ,
+Type                 TYPES bedat TYPE ekko - bedat ,
+Type                 TYPES bsart TYPE ekko - bsart ,
+Type                 TYPES ekgrp TYPE ekko - ekgrp ,
+TypeEnd              TYPES END OF ty_s_ekko ,
+Type                 TYPES ty_t_ekko TYPE STANDARD TABLE OF ty_s_ekko WITH DEFAULT KEY .
+Data                 DATA gt_data TYPE ty_t_ekko ,
+Data                 DATA gv_ekorg TYPE ekko - ekorg ,
+Data                 DATA gv_bedat TYPE ekko - bedat .
+SelectionScreen      SELECTION - SCREEN BEGIN OF BLOCK b01 WITH FRAME .
+SelectionScreen      SELECTION - SCREEN BEGIN OF LINE .
+SelectionScreen      SELECTION - SCREEN COMMENT 1 ( 31 ) c_ekorg FOR FIELD s_ekorg .
+SelectOption         SELECT - OPTIONS s_ekorg FOR gv_ekorg .
+SelectionScreen      SELECTION - SCREEN END OF LINE .
+SelectionScreen      SELECTION - SCREEN BEGIN OF LINE .
+SelectionScreen      SELECTION - SCREEN COMMENT 1 ( 31 ) c_bedat FOR FIELD s_bedat .
+SelectOption         SELECT - OPTIONS s_bedat FOR gv_bedat .
+SelectionScreen      SELECTION - SCREEN END OF LINE .
+SelectionScreen      SELECTION - SCREEN BEGIN OF LINE .
+SelectionScreen      SELECTION - SCREEN COMMENT 1 ( 31 ) c_max FOR FIELD p_max .
+Parameter            PARAMETERS p_max TYPE i DEFAULT 500 .
+SelectionScreen      SELECTION - SCREEN END OF LINE .
+SelectionScreen      SELECTION - SCREEN END OF BLOCK b01 .
+Move                 INITIALIZATION .
+Move                 c_ekorg = 'Purchasing Organization' ( s01 ) .
+Move                 c_bedat = 'Document Date' ( s02 ) .
+Move                 c_max = 'Maximum Number of Rows' ( s03 ) .
+Move                 AT SELECTION - SCREEN ON p_max .
+If                   IF p_max <= 0 .
+Message              MESSAGE 'Maximum number of rows must be greater than 0' ( e01 ) TYPE 'E' .
+EndIf                ENDIF .
+StartOfSelection     START - OF - SELECTION .
+Perform              PERFORM get_data .
+If                   IF gt_data IS INITIAL .
+Message              MESSAGE 'No purchasing documents match the selection' ( m01 ) TYPE 'I' .
+Return               RETURN .
+EndIf                ENDIF .
+Perform              PERFORM display_alv .
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM get_data .
+Select               SELECT ebeln bukrs ekorg lifnr bedat bsart ekgrp FROM ekko INTO TABLE gt_data UP TO p_max ROWS WHERE ekorg IN s_ekorg AND bedat IN s_bedat ORDER BY ebeln .
+EndForm              ENDFORM .
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM display_alv .
+Data                 DATA lo_salv TYPE REF TO cl_salv_table ,
+Data                 DATA lo_columns TYPE REF TO cl_salv_columns_table ,
+Data                 DATA lx_msg TYPE REF TO cx_salv_msg .
+Try                  TRY .
+Call                 cl_salv_table => factory ( IMPORTING r_salv_table = lo_salv CHANGING t_table = gt_data ) .
+Catch                CATCH cx_salv_msg INTO lx_msg .
+Message              MESSAGE lx_msg TYPE 'I' DISPLAY LIKE 'E' .
+Return               RETURN .
+EndTry               ENDTRY .
+Move                 lo_columns = lo_salv -> get_columns ( ) .
+Call                 lo_columns -> set_optimize ( abap_true ) .
+Perform              PERFORM set_heading USING lo_columns 'EBELN' 'Doc. No.' ( h01 ) 'Purchasing Document' ( l01 ) .
+Perform              PERFORM set_heading USING lo_columns 'BUKRS' 'Comp.Code' ( h02 ) 'Company Code' ( l02 ) .
+Perform              PERFORM set_heading USING lo_columns 'EKORG' 'Purch.Org' ( h03 ) 'Purchasing Org.' ( l03 ) .
+Perform              PERFORM set_heading USING lo_columns 'LIFNR' 'Vendor' ( h04 ) 'Vendor' ( l04 ) .
+Perform              PERFORM set_heading USING lo_columns 'BEDAT' 'Doc. Date' ( h05 ) 'Document Date' ( l05 ) .
+Perform              PERFORM set_heading USING lo_columns 'BSART' 'Doc. Type' ( h06 ) 'Document Type' ( l06 ) .
+Perform              PERFORM set_heading USING lo_columns 'EKGRP' 'Purch.Grp' ( h07 ) 'Purchasing Group' ( l07 ) .
+Call                 lo_salv -> get_functions ( ) -> set_all ( abap_true ) .
+Call                 lo_salv -> get_display_settings ( ) -> set_striped_pattern ( abap_true ) .
+Call                 lo_salv -> get_display_settings ( ) -> set_list_header ( 'Purchasing Document Headers' ( t01 ) ) .
+Call                 lo_salv -> display ( ) .
+EndForm              ENDFORM .
+Comment              *&---------------------------------------------------------------------*
+Form                 FORM set_heading USING io_columns TYPE REF TO cl_salv_columns_table iv_name TYPE lvc_fname iv_short TYPE csequence iv_long TYPE csequence .
+Data                 DATA lo_column TYPE REF TO cl_salv_column ,
+Data                 DATA lv_short TYPE scrtext_s ,
+Data                 DATA lv_medium TYPE scrtext_m ,
+Data                 DATA lv_long TYPE scrtext_l .
+Move                 lv_short = iv_short .
+Move                 lv_medium = iv_long .
+Move                 lv_long = iv_long .
+Try                  TRY .
+Move                 lo_column = io_columns -> get_column ( iv_name ) .
+Call                 lo_column -> set_short_text ( lv_short ) .
+Call                 lo_column -> set_medium_text ( lv_medium ) .
+Call                 lo_column -> set_long_text ( lv_long ) .
+Catch                CATCH cx_salv_not_found .
+Comment              *     Column not in the output structure - keep DDIC heading
+EndTry               ENDTRY .
+EndForm              ENDFORM .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-08-harness-on-comparison-data/K-60-code/claude-opus-5-5/C-01.abap
+--- stdout (3757 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 20,
+      "endLine": 20,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 42,
+      "endLine": 42,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 72,
+      "endLine": 72,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 74,
+      "endLine": 74,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 79,
+      "endLine": 79,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 113,
+      "endLine": 113,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 114,
+      "endLine": 114,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 115,
+      "endLine": 115,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 117,
+      "endLine": 117,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 119,
+      "endLine": 119,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 121,
+      "endLine": 121,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 123,
+      "endLine": 123,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 12,
+    "bySeverity": {
+      "medium": 12
+    },
+    "byCategory": {
+      "quality": 12
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=4 analyze_high=0 analyze_medium=12 analyze_info=0 error_grade=0 warnings=16 source_lines=133 bytes=4359 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (판J 11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.
+==== end of checker output ====
+
+§8 기준으로 이 코드의 어긋남을 모두 적어라 — 한 줄에 하나, 형식 `규칙 | 위치(줄 번호) | 내용`

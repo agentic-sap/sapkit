@@ -1,0 +1,25 @@
+## §8 어긋남 목록 (Paradigm = Procedural · 7.02)
+
+규칙 | 위치(줄 번호) | 내용
+---|---|---
+Internal table 타입이 접근 패턴에 맞고 DEFAULT KEY 없음 | 16, 87–88 | **MAJOR**: `ty_t_customer`가 `STANDARD … WITH DEFAULT KEY`로 선언되어 있습니다. 그런데 이 테이블은 87–88줄에서 국가마다 `LOOP … WHERE land1 = …`로 반복 접근됩니다. STANDARD 테이블이라 WHERE가 키로 최적화되지 않고, 국가 수만큼 테이블 전체를 훑게 됩니다(국가 수 × 고객 수). `SORTED TABLE … WITH NON-UNIQUE KEY land1 kunnr`로 바꿔야 합니다(7.02에서 사용 가능). 이렇게 바꾸면 50줄의 `SORT`도 필요 없어집니다.
+Internal table 타입이 접근 패턴에 맞고 DEFAULT KEY 없음 | 22, 64 | **MINOR**: `ty_t_count`도 `WITH DEFAULT KEY`입니다. `COLLECT`가 기대는 키(문자형 필드인 land1)가 선언에 드러나지 않고 암묵적으로 정해집니다. `HASHED … WITH UNIQUE KEY land1`이나 `SORTED … WITH UNIQUE KEY land1`로 키를 명시해야 합니다(SORTED로 하면 66줄 `SORT`도 필요 없음).
+SY-SUBRC 확인 후 처리 / "Never swallow sy-subrc" | 47–49 | **MINOR**: 확인은 하지만 실제로 하는 일이 없습니다. `INTO TABLE`은 결과가 없으면 이미 테이블을 비우므로 `CLEAR gt_customer`는 효과가 없습니다. 실제 "결과 없음" 처리는 76줄에서 따로 일어나는데, 여기에는 그 연결이 적혀 있지 않습니다. 이 자리에서 처리하거나(메시지/플래그), 76줄에서 처리한다는 주석을 남겨야 합니다.
+FORM 파라미터는 USING/CHANGING으로 (clean-code-procedural.md "No cross-FORM state via globals except the main data table") | 34, 37, 56–67, 72–96 | **MINOR**: `count_customers`가 만든 `gt_count`를 `write_list`가 전역 변수로 직접 읽습니다. 전역으로 공유해도 되는 것은 주 데이터 테이블(`gt_customer`)뿐입니다. `gt_count`는 `CHANGING`/`USING`(타입 지정)으로 넘겨야 합니다. 지금은 세 FORM 모두 파라미터가 하나도 없어서 FORM끼리의 의존 관계가 시그니처에서 보이지 않습니다.
+FORM마다 입력/출력/전역 부작용을 밝히는 한 줄 헤더 | 40, 54, 70 | **MINOR**: 헤더는 있지만 계약 내용이 빠져 있습니다. 40줄에는 입력 `s_land1`이 없고, 54줄에는 입력 `gt_customer`가 없습니다. 70줄은 입력(`gt_count`, `gt_customer`)도 출력(리스트 출력이라는 부작용)도 밝히지 않습니다.
+전역/지역이 이름만 보고 구분됨 (`g*` 접두사) | 8 | **MINOR**: `TABLES: kna1`이 접두사 없는 전역 작업 영역 `kna1`을 만들고, 이 변수는 `SELECT-OPTIONS … FOR kna1-land1` 참조에만 쓰입니다. 7.02에서도 `DATA gv_land1 TYPE kna1-land1.`로 선언하고 `FOR gv_land1`을 쓰면 `TABLES` 없이 같은 동작을 얻습니다.
+코드 잔재 없음 | 27 | **MINOR**: `gc_line_char`는 선언만 있고 어디서도 쓰이지 않습니다(구분선은 `ULINE`이 그립니다). 사용되지 않는 선언이므로 지워야 합니다.
+Main program 구조가 main-program.abap과 일치 | 98–101 | **MINOR(조건부)**: `TOP-OF-PAGE` 이벤트 블록이 FORM 정의들 뒤, 파일 맨 끝에 있습니다. 이벤트 블록은 FORM 정의보다 앞에 함께 모아 두어야 합니다. ※ INCLUDE를 쓰지 않은 것(t/c/s/o/i/a/f 분리 안 함)은 과제가 "no INCLUDEs, 파일 하나"를 요구했으므로 정당한 차이이고, 지적 사항이 아닙니다.
+(clean-code.md § Comments: "No comment banners") | 1–5, 31, 39/41, 53/55, 69/71, 98 | **INFO**: `*&---` / `*---` 배너 줄이 반복됩니다. 4줄의 "Syntax level…"은 이유(WHY)가 아니라 무엇을 하는지(WHAT)를 적은 주석입니다. 51/67/96줄 `ENDFORM`의 꼬리 주석 `"read_customers` 등은 편집기가 자동으로 넣는 잡음입니다.
+
+## 확인했고 문제 없는 항목
+- **SQL**: `SELECT *` 없음, LOOP 안 SELECT 없음, 타입이 명시된 테이블로 SELECT, SORT/DELETE ADJACENT는 모두 `BY` 지정. KNA1은 마스터 테이블이므로 secondary key / `COUNT(*)` 사전 점검 규칙은 적용 대상이 아닙니다.
+- **Boolean, 비율 연산, 대사(null→0)**: 해당 코드가 없습니다.
+- **7.02 문법**: 7.40 이후 문법은 쓰이지 않았습니다.
+- **문자열**: 백틱이나 템플릿이 필요한 STRING 값이 없습니다. 텍스트 심볼 `'…'(nnn)`은 문법상 작은따옴표를 써야 하므로 위반이 아닙니다.
+- **기타**: 사용된 statement 가운데 sy-subrc를 확인해야 하는 것은 SELECT뿐이고, 처리 내용은 위에 적었습니다. EXIT/STOP으로 오류를 처리하는 곳 없음(78줄 `RETURN`은 guard clause). PBO/PAI와 화면 suffix는 해당 없음. 과제가 테스트를 요구하지 않으므로 LCL_HELPER도 해당 없음.
+
+## 참고
+- **검사기 결과**: `analyze`가 낸 `double_space` 9건(20·25·58·63·73·86줄은 정렬용 공백, 51·67·96줄은 ENDFORM 꼬리 주석 앞 공백)은 의도한 정렬이라 오탐으로 보고 표에 넣지 않았습니다. 반대로 위의 DEFAULT KEY와 접근 패턴 문제는 검사기가 하나도 잡지 못했습니다.
+- **템플릿 대조 불가**: §8이 기준으로 삼는 `knowledge/abap/templates/procedural-sample/main-program.abap` 파일이 작업 디렉터리에 없습니다. 그래서 구조 항목은 clean-code-procedural.md의 설명만 보고 판단했습니다. 이벤트 블록 순서처럼 템플릿에 따라 달라지는 판정은 템플릿을 찾으면 다시 확인해야 합니다.
+- **§8 밖 기능 문제**: `TOP-OF-PAGE`의 열 제목(100줄)은 리터럴 길이만큼만 출력됩니다. 그래서 상세 줄의 열 너비(kunnr 10 / name1 35 / ort01 35 / land1 3)와 맞지 않습니다. 열 위치를 지정해 출력해야 합니다(`AT pos(len)` 또는 `UNDER`).

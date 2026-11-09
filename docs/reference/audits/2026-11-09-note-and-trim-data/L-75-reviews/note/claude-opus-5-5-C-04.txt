@@ -1,0 +1,40 @@
+**§8 검토 결과 — ZJUDGE_C04 (Procedural · 7.58)**
+
+규칙 | 위치(줄 번호) | 내용
+---|---|---
+Core · AUTHORITY-CHECK at every entry point | 38–45 (START-OF-SELECTION) | 권한 검사가 없다. 플랜트(`M_MSEG_WWA`, ACTVT 03)와 이동 유형(`M_MSEG_BWA`)을 확인하지 않고 전 플랜트의 자재문서를 읽는다. **MAJOR**
+Core · Large-table SELECTs: `COUNT(*)` first, tuning plan when > 1M | 53–61 | MSEG/MKPF는 대표적인 대용량 테이블이다. 건수 사전 확인과 튜닝 계획이 없고, BUDAT 범위가 넓으면 전체 행이 앱 서버로 넘어온다. **MAJOR**
+판단(노트 외) · DB 푸시다운 | 53–83 | 7.58에서는 `SUM( CASE s~shkzg WHEN 'H' THEN -s~menge ELSE s~menge END )`, `COUNT(*)`, `GROUP BY matnr, werks, meins`로 집계를 DB에서 끝낼 수 있다. 지금은 모든 항목 행을 가져와 ABAP 루프로 합산한다. 63–83 루프 전체가 불필요하다.
+판단(노트 외) · S/4 데이터 모델 | 55–58 | 7.58(S/4HANA)에서 MSEG/MKPF는 MATDOC 위의 호환 뷰다. MATDOC 하나만 읽으면 BUDAT가 같은 행에 있어 조인이 필요 없다. 최소한 근거를 남겨야 한다.
+Core · sy-subrc checked after every statement that sets it | 61 다음 | `SELECT … INTO TABLE` 직후 `sy-subrc`(또는 결과 비었음)를 확인하지 않는다. 40행의 `gt_out IS INITIAL` 간접 확인으로 대신하고 있다.
+Core · Internal table type fits access pattern, no DEFAULT KEY | 28 | `gt_item TYPE STANDARD TABLE OF ty_item`에 키 지정이 없어 암묵적 DEFAULT KEY가 된다. `WITH EMPTY KEY`를 명시해야 한다.
+Core · Inline declarations / modern syntax where release permits | 53–61 | 구식 Open SQL을 쓴다. 호스트 변수 `@` 이스케이프, 쉼표 구분 필드 목록, `INTO` 후치가 모두 없고, 7.58에서 strict mode가 적용되지 않는다.
+Core · Inline declarations / modern syntax where release permits | 50–51, 63, 67 | 필드 심볼을 앞에서 일괄 선언했다. `LOOP AT … ASSIGNING FIELD-SYMBOL(<ls_item>)` 같은 인라인 선언이 가능하다.
+Core · Inline declarations / modern syntax where release permits | 72–73 | `x = x + …` 대신 `+=`를 쓸 수 있다.
+Core · Inline declarations / modern syntax where release permits | 75–81 | CLEAR 후 필드별 대입 대신 `INSERT VALUE #( matnr = … cnt = 1 ) INTO TABLE gt_out`을 쓸 수 있다.
+Core · Inline declarations / modern syntax where release permits | 89–92 | `DATA(lo_salv)` 같은 인라인 선언이 가능한데 쓰지 않았다.
+판단(노트 외) · 구식 문장 `TABLES` | 11 | `TABLES`는 obsolete다. SELECT-OPTIONS의 FOR 대상은 `DATA: gv_werks TYPE mseg-werks, gv_budat TYPE mkpf-budat, gv_bwart TYPE mseg-bwart.`로 선언해야 한다.
+Core · Descriptive full-word names, no abbreviations | 25, 73, 80, 104 | `cnt`는 약어다. `item_count`로 바꿔야 한다.
+Core · Descriptive full-word names, no abbreviations | 55–56 | 테이블 별칭 `s`, `k`가 단일 문자다. 단일 문자는 루프 카운터에만 허용된다. `item`/`header` 등으로 바꿔야 한다.
+Core · Descriptive full-word names, no abbreviations | 13, 20 | `ty_out`이 무엇의 출력인지 드러나지 않는다. 예: `ty_material_plant_total`.
+Core · Descriptive full-word names, no abbreviations | 48, 88 | FORM 이름 `get_data`가 너무 일반적이다. 예: `f_total_movements`.
+Core · Overflow 위험(판단) | 23, 72 | 합계를 단건 필드 타입 `mseg-menge`(QUAN 13,3)에 누적한다. 기간이 길면 `CX_SY_ARITHMETIC_OVERFLOW`가 날 수 있는데 잡지 않는다. 합계용으로 더 넓은 타입을 쓰거나 예외를 처리해야 한다.
+Procedural · All globals in TOP; globals vs locals discipline | 28 | `gt_item`은 `get_data` 안에서만 쓰는데 전역으로 선언했다. FORM 로컬이어야 한다.
+Procedural · Every FORM parameter typed; inputs via USING, in/out via CHANGING | 48, 88 | 두 FORM 모두 파라미터 없이 전역(`gt_out`, `s_*`)에 직접 접근한다. `get_data`는 `CHANGING ct_out`, `display_alv`는 `CHANGING ct_out`(factory가 CHANGING 요구)으로 넘겨야 한다.
+Procedural · One-line header comment above each FORM: inputs / outputs / global side effects | 47, 87 | 구분선만 있고 헤더 주석이 없다. `get_data`가 `gt_out`을 채운다는 전역 부작용이 드러나지 않는다.
+Procedural · `CHECK`/정상 흐름(판단) | 64–65 | 원본 행 `<ls_item>-menge`를 제자리에서 부호 반전한다. 로컬 `lv_signed_quantity`를 두고 원본은 변경하지 않는 편이 명확하다.
+House · Magic literals → CONSTANTS in TOP | 64 | 차변/대변 지시자 `'H'`가 리터럴이다. 예: `gc_shkzg_credit VALUE 'H'`.
+House · Magic literals → CONSTANTS in TOP | 41–42, 111 | 메시지 유형 `'S'`, `'E'`가 리터럴이다.
+House · Magic literals → CONSTANTS in TOP | 101, 102, 104 | ALV 컬럼명 `'MENGE'`, `'MEINS'`, `'CNT'`가 리터럴이다.
+House · Text pool (R / I / S, logon language + `'E'`) | 32, 41, 105–107; 33–35 | 텍스트 풀 산출물이 없다. 필요한 것은 R(제목), I(`b01`, `m01`, `c01`–`c03`), S(`S_WERKS`, `S_BUDAT`, `S_BWART`)이며 각각 로그온 언어와 `'E'` 두 벌이다. 없으면 선택 화면에 기술명이 그대로 노출된다. 단일 파일 과제라도 텍스트 풀 정의를 함께 제시해야 한다.
+
+**제외·참고 (지적하지 않음)**
+- **INCLUDE 구조 / 메인 프로그램 템플릿 / TOP include:** 과제가 "no INCLUDEs, one file"을 명시했으므로 정당한 편차로 본다.
+- **OOP 템플릿 대조 항목:** Paradigm = Procedural이라 적용하지 않았다.
+- **오브젝트명 `ZJUDGE_C04`:** `Z{MODULE}R{NN}` 규칙과 다르지만 과제가 지정한 이름이다.
+- **검사기가 이미 보고한 항목은 재기재하지 않았다:**
+  - `lo_*`/`lx_*` 명명 경고 (89–92)
+  - 50행 `"SYMBOLS"` 경고
+  - double_space 10건 (25, 29, 51, 57, 73, 80, 89, 91, 92, 96)
+  - 참고로 50행 경고는 `FIELD-SYMBOLS` 키워드를 잘못 토큰화한 오탐으로 보이고, double_space 건들은 정렬용 공백이다. 결과는 판정대로 두었다.
+- **릴리스 위반 없음:** 7.58보다 새로운 문법은 쓰이지 않았다.

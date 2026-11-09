@@ -1,0 +1,28 @@
+# ZJUDGE_C05 §8 리뷰 (Procedural · 7.02)
+
+```
+Core: itab 타입·DEFAULT KEY | 16 | ty_t_customer가 STANDARD … WITH DEFAULT KEY임. 실제 접근은 land1 기준(87–88 LOOP WHERE)이므로 SORTED TABLE … WITH NON-UNIQUE KEY land1 kunnr로 바꿔야 함
+Core: itab 타입·DEFAULT KEY | 22 | ty_t_count가 STANDARD … WITH DEFAULT KEY임. COLLECT 키(land1)가 기본키 규칙에 암묵적으로 의존함. HASHED(또는 SORTED) TABLE … WITH UNIQUE KEY land1로 명시해야 함
+Core: 접근 패턴/중첩 루프 | 81–93 | 국가마다 STANDARD 테이블 gt_customer 전체를 LOOP WHERE로 다시 훑음(O(n·m)). SORTED 키를 쓰거나, 정렬된 gt_customer 한 번 순회 + AT NEW land1 제어로 대체해야 함
+Core: 대용량 SELECT | 43–46 | KNA1은 대용량 마스터임. s_land1이 비어 있으면 전 고객을 읽음. COUNT(*) 사전 확인, 건수 상한/튜닝 계획, 필수 입력이나 기본값이 없음
+Core: sy-subrc 처리 / 빈 분기 성격 | 47–49 | INTO TABLE은 실패 시 이미 빈 테이블이라 CLEAR가 무의미함. 형식적인 체크라 실질적으로 빈 분기임. 처리할 게 없으면 제거하고, 결과 없음 처리는 write_list의 가드로 충분함. 조건도 부정형(<> 0)임
+Core: 불필요 코드 | 27 | gc_line_char를 선언만 하고 어디서도 쓰지 않음(구분선은 ULINE 사용). 미사용 상수는 삭제해야 함
+Core: 이름(약어 금지) | 20, 64, 86 | 필드명 cnt는 약어임. customer_count 등 완전한 단어로 바꿔야 함
+Core: AUTHORITY-CHECK | 32 (진입점) | 고객 마스터 조회인데 권한 점검이 없음. AT SELECTION-SCREEN 또는 START-OF-SELECTION 앞단에서 F_KNA1_GEN(ACTVT 03) 등을 점검하고 sy-subrc를 처리해야 함
+Clean ABAP(판단): 구식 TABLES | 8, 29 | TABLES kna1은 SELECT-OPTIONS FOR용으로만 쓰이는 구식 전역 작업영역임. DATA gv_land1 TYPE kna1-land1 + FOR gv_land1로 대체해야 함(7.02 가능)
+Procedural: FORM 파라미터 | 42, 56, 72 | 세 FORM 모두 파라미터 없이 전역(s_land1, gt_customer, gt_count)을 직접 읽고 씀. 입력은 USING(타입 지정), 결과는 CHANGING으로 넘겨야 함
+Procedural: FORM 헤더 주석 | 40, 54, 70 | 주석이 입력/출력/전역 부작용 형식이 아님. 예: write_list는 gt_count·gt_customer 읽기와 리스트 출력을, read_customers는 s_land1 입력을 명시하지 않음
+Procedural/House: 이벤트 블록 배치 | 99–101 | TOP-OF-PAGE가 FORM 정의들 뒤에 있음. 이벤트 블록은 START-OF-SELECTION 등과 함께 FORM 앞에 순서대로 모아야 함
+Procedural(판단): END-OF-SELECTION 불필요 | 36–37 | 논리 데이터베이스가 없는 리포트라 END-OF-SELECTION은 의미가 없음. PERFORM write_list를 START-OF-SELECTION에 두면 됨
+Clean ABAP(판단): 종료 마커 주석 | 51, 67, 96 | ENDFORM 뒤의 "read_customers 류 end 마커 주석은 노이즈이므로 제거해야 함
+House: 텍스트 풀 | 77, 83, 85, 100 / 29 | TEXT-001·002·004·010–013(I), 프로그램 제목(R), S_LAND1 선택 텍스트(S)의 텍스트 풀 정의가 없음. 로그온 언어와 'E' 두 벌이 모두 필요함. 'Country'(001)와 (013)은 같은 문구라 하나로 통합 가능함
+Clean ABAP(판단): 리스트 정렬 | 100 vs 89–92 | TOP-OF-PAGE 컬럼 제목이 데이터 컬럼 폭(kunnr 10, name1 35, ort01 35, land1 3)과 맞지 않음. 위치 지정(/pos(len))이나 UNDER로 정렬해야 함
+```
+
+## 제외한 항목과 근거
+
+- **검사기 결과 수용:** analyze가 낸 `double_space` 9건(20, 25, 51, 58, 63, 67, 73, 86, 96)은 그대로 인정하고 위 목록에 다시 올리지 않았습니다.
+- **INCLUDE 구조 / 템플릿 불일치:** 과제가 "INCLUDE 없이 단일 파일"을 요구했으므로 정당한 예외로 보았습니다.
+- **오브젝트명 `ZJUDGE_C05`:** 과제가 지정한 이름이라 `Z{MODULE}R{NN}` 규칙을 적용하지 않았습니다.
+- **릴리스 7.02 위반:** 없습니다. 인라인 선언, `NEW`/`VALUE`, 문자열 템플릿, 테이블 식을 쓰지 않았고 `RETURN`, `LEFT-JUSTIFIED`, `LOOP … WHERE`는 7.02에서 사용 가능합니다.
+- **OOP 그룹 및 OOP 템플릿 항목:** 패러다임이 Procedural이라 적용하지 않았습니다.

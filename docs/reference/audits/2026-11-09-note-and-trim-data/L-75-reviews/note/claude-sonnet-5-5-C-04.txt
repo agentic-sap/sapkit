@@ -1,0 +1,28 @@
+Paradigm is Procedural, so I judged Core, Procedural, House rules, and Release/FM, and left out the OOP group and the OOP template check. The checker's `double_space` findings at lines 14, 19 and 68 are accepted as reported and not repeated below.
+
+```
+Core – 표 키: DEFAULT KEY 금지 | 16 | ty_t_result가 STANDARD TABLE ... WITH DEFAULT KEY로 선언됨. 순차 LOOP 용도이므로 WITH EMPTY KEY(또는 matnr·werks 명시 키)로 바꿀 것
+Core – 명명: 약어 금지 | 14 | 필드명 cnt는 약어임. item_count처럼 완전한 단어로 쓸 것
+Core – 명명/Booleans: abap_bool | 21 | gc_x TYPE c LENGTH 1 VALUE 'X'. 이름이 뜻을 드러내지 않고 abap_true를 흉내 내며, 어디에서도 쓰이지 않는 죽은 선언임. 삭제할 것
+Procedural – 전역/지역 구분 | 19, 88 | gv_total은 display_list 안에서만 쓰는 누계인데 전역으로 선언되어 FORM이 전역 상태를 바꿈. FORM 지역 lv_total_items로 옮길 것
+Core – 최신 문법(릴리스 7.58 허용 범위) | 43–54 | 구식 Open SQL(호스트 변수에 @ 없음, 쉼표 없는 필드 목록, WHERE 앞 INTO)을 씀. 7.58에서는 strict 문법(SELECT ... FIELDS ..., IN @s_werks, INTO TABLE @pt_result)을 써야 함
+Core – 최신 문법 | 70–71 | DESCRIBE TABLE ... LINES와 IF lv_lines = 0을 씀. lines( pt_result )나 IF pt_result IS INITIAL로 바꿀 것
+Core – 대용량 테이블 SELECT: COUNT(*) 선행, 1M 초과 시 튜닝 계획 | 43–54 | MSEG/MKPF는 대표적 대용량 테이블인데 선택 조건이 모두 선택 항목(OBLIGATORY 없음)이라 전 범위 스캔이 가능함. 건수 확인이나 튜닝 계획이 없음. s_budat(또는 s_werks)를 필수로 하는 방안을 검토할 것
+Core – AUTHORITY-CHECK at every entry point | 29 (AT SELECTION-SCREEN 부재) | 플랜트별 자재전표 조회 권한(M_MSEG_WWA, ACTVT 03) 확인이 전혀 없음
+Procedural – FORM 헤더 주석(입력/출력/전역 부작용) | 36–37 | read_data가 전역 s_werks·s_budat·s_bwart를 직접 읽는데 주석에는 s_bwart만 있음. 출력(pt_result)과 메시지 발행도 적혀 있지 않음
+Procedural – FORM 헤더 주석 | 63 | display_list가 전역 gv_total을 바꾸는 부작용과 입력 pt_result가 주석에 없음
+House rules – 텍스트 풀 R/I/S, 로그온 언어 + 'E' | 23–26, 57, 75–79, 92–93 | 단일 파일 제출이라 텍스트 풀을 확인할 수 없음. TEXT-001은 리터럴 폴백이 없어 풀이 없으면 프레임 제목이 비고, s_werks·s_budat·s_bwart의 S 텍스트(오프셋 8부터)와 R 제목, I 001–009를 두 언어로 함께 넘겨야 함
+(판단) 구식 문법 – TABLES | 7 | TABLES: mkpf, mseg는 SELECT-OPTIONS FOR 참조용으로만 쓰임. DATA gv_werks TYPE mseg-werks 같은 전역 참조 변수로 대체할 것
+(판단) 중복 CLEAR | 41, 56 | INTO TABLE이 대상 테이블을 덮어쓰고 실패하면 비어 있으므로 두 CLEAR 모두 불필요함
+(판단) 위치 기반 INTO 매핑 | 43–49 | 집계 컬럼에 별칭이 없고 구조 필드 순서에만 기대어 INTO TABLE을 채움. SUM( ... ) AS menge, COUNT( * ) AS item_count와 INTO CORRESPONDING FIELDS OF TABLE로 순서 의존을 없앨 것
+(판단) 메시지 – 범용 00/398 남용 | 57 | 텍스트 기호를 00/398 자리표시 메시지로 내보냄. 프로젝트 메시지 클래스의 전용 메시지를 쓸 것
+(판단) 출력 결함 – MATNR 덮어쓰기 | 83–84 | 7.58(S/4)에서 MATNR은 CHAR40인데 22열에 werks를 쓰므로 22자를 넘는 자재번호가 잘림
+(판단) 출력 결함 – 헤더와 데이터 열 불일치 | 75–79 vs 83–87 | 헤더는 30/55/62열, 데이터는 28/55/60열이라 수량·건수 열이 어긋남. 하드코딩된 열 위치는 상수나 공통 정의로 모을 것
+(판단) 수량 합산 의미 – SHKZG 무시 | 44 | MENGE는 항상 양수이므로 입고(S)와 출고(H)가 부호 없이 더해짐. 과제 문구대로이긴 하나 의도된 결과인지 spec에 명시하거나 SHKZG로 부호를 처리할 것
+(판단) S/4 데이터 원천 | 45–48 | 7.58(S/4HANA)에서 MSEG/MKPF는 MATDOC 위 호환 뷰임. BUDAT를 포함한 MATDOC을 직접 읽으면 조인과 부하를 줄일 수 있음
+(판단) 합계 오버플로 | 13, 44 | QUAN(13,3)에 대량 SUM을 넣으면 오버플로 시 DB 오류로 덤프가 남. 넓은 타입이나 기간 제한을 검토할 것
+```
+
+Excluded from the list:
+- **INCLUDE template rules (Procedural main-program structure, include order):** the task explicitly asks for a single file with no INCLUDEs, so these do not apply.
+- **The program name `ZJUDGE_C04`:** the task fixes it, so the `Z{MODULE}R{NN}` numbering rule does not apply.

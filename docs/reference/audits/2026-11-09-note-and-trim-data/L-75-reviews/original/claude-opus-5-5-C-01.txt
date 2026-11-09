@@ -1,0 +1,29 @@
+먼저 paradigm gate를 확인했습니다. Procedural이라서 `clean-code.md`와 `clean-code-procedural.md` 두 파일만 읽었습니다. 다만 템플릿 파일 `templates/procedural-sample/main-program.abap`이 작업 디렉터리에 없어서, 이벤트 블록 배치를 템플릿과 한 줄씩 대조하지는 못했습니다. 그래서 첫 번째 항목은 `clean-code-procedural.md`의 문장("Do not pull FORM logic inline into events")만 근거로 판정했습니다.
+
+**어긋남**
+
+```
+템플릿 구조 — 이벤트 블록에 로직 인라인 | 45–48, 52–56 | AT SELECTION-SCREEN ON p_max의 검증(IF/MESSAGE)과 START-OF-SELECTION의 결과 없음 처리(IF/MESSAGE/RETURN)가 FORM으로 위임되지 않고 이벤트 블록 안에 직접 있음. INCLUDE가 없는 것은 과제가 단일 파일을 요구했으니 정당하지만, 이 인라인 로직은 과제가 정당화해 주지 않음 → 규정상 MAJOR(spec.md에 근거 없음). 템플릿 미확인이라 확신도는 중간
+DEFAULT KEY 금지 | 18 | ty_t_ekko … WITH DEFAULT KEY. 순차 표시 전용이라 STANDARD는 맞지만, 키는 WITH EMPTY KEY나 명시 키로 적어야 함(SORT·DELETE ADJACENT가 없으므로 EMPTY KEY라도 함정 없음)
+대형 테이블 사전 COUNT(*) | 61–67 | EKKO는 규칙에 명시된 대형 트랜잭션 테이블인데 SELECT COUNT(*) 사전 측정과 튜닝 계획이 없음. UP TO p_max ROWS로 반환 건수는 제한되지만 규칙상 면제 사유가 아니고, s_ekorg/s_bedat를 비워 두면 조건 없이 전체를 읽게 됨
+릴리스 7.58의 모던 구문 미사용 | 61–67 | 콤마 없는 필드 목록, @ 이스케이프 없는 호스트 변수(s_ekorg, s_bedat, p_max, gt_data), INTO가 WHERE 앞에 오는 구식 Open SQL. 7.40 SP05 이후 구문(SELECT ebeln, bukrs, … WHERE ekorg IN @s_ekorg … ORDER BY ebeln INTO TABLE @gt_data UP TO @p_max ROWS)으로 써야 함. strict 모드도 적용되지 않음
+FORM 헤더 주석(입력/출력/전역 부작용) | 59, 70, 111 | 각 FORM 위에 구분선(*&---)만 있고 계약을 적은 한 줄이 없음. 예: get_data는 s_ekorg/s_bedat/p_max를 읽어 gt_data에 씀. display_alv는 gt_data를 읽음
+전역/지역 구분 접두어 | 26, 30, 34 | SELECTION-SCREEN COMMENT 필드 c_ekorg/c_bedat/c_max는 사실상 전역 변수인데 g 접두어가 없고, c_는 상수처럼 읽혀 오해를 부름
+PERFORM 호출 레이아웃(파라미터 2개 초과면 한 줄에 하나) | 88–101 | set_heading 파라미터 4개가 한 줄에 2~3개씩 묶여 있음. 한 줄에 하나씩, FORM 이름 아래로 정렬해야 함
+오류 무음 삼킴(clean-code.md 오류 처리) | 130–131 | CATCH cx_salv_not_found 블록이 비어 있음. 컬럼명이 하드코딩돼 있으니 not_found는 오타 같은 프로그래밍 오류뿐인데 조용히 묻힘. 이유 주석은 있어서 MINOR
+코멘트 배너 금지(clean-code.md 주석) | 3–7 | 박스형 배너. 내용은 텍스트 심벌 fallback을 설명하는 WHY라 괜찮지만 배너 형식은 피해야 함. MINOR
+```
+
+**확인했고 위반이 아닌 항목**
+- **SELECT \* / LOOP 안 SELECT / 보조 키:** 해당 없음. 필드를 명시했고, LOOP이 없고, gt_data를 비기본 키 필드로 조회하는 곳도 없음.
+- **SELECT 뒤 sy-subrc:** 52행의 `gt_data IS INITIAL`이 0건(subrc=4)을 기능적으로 처리함.
+- **문자열 리터럴(따옴표):** 40–106행이 작은따옴표를 쓰는 건 맞음. 텍스트 심벌 `'…'(xxx)`은 텍스트 필드 리터럴에만 붙일 수 있고, 과제가 별도 text pool을 금지했으니 정당함.
+- **Boolean, 조건, 디버그 코드, BCD 오버플로, 대사(reconciliation):** 위반 없음.
+- **FORM 파라미터 타입, USING 사용, boolean USING:** 위반 없음. 파라미터 수 4개도 ≤4라 허용.
+- **FORM 안의 DATA:** 허용됨. 금지 대상은 include에 둔 DATA이고 FORM 지역 변수는 해당 없음.
+- **화면 접미사, PBO/PAI, CALL FUNCTION, EXIT/STOP, 테스트:** 해당 없음. 55·82행의 RETURN은 메시지를 낸 다음 정상 종료하는 것이라 오류 처리를 대신하는 것이 아님.
+
+**동봉 검사기 출력에 대해**
+- **analyze의 `double_space` 12건:** 정렬용 공백입니다. §8은 일관된 정렬을 요구하므로 이 12건은 §8 기준 위반이 아니라 오탐입니다.
+- **lint의 `local_variable_names` 4건(lo_, lx_):** §8이 요구하는 g/l 구분은 충족합니다. 프로젝트 명명 패턴 문제라서 §8이 아니라 naming-conventions에서 다룰 사항입니다.
+- **FORM 이름의 `f_` 접두어:** get_data, display_alv, set_heading에는 `f_`가 없습니다. 이 규칙은 `procedural-form-naming.md`에 있는데 그 파일을 읽지 않아서 위 목록에서는 뺐습니다.
