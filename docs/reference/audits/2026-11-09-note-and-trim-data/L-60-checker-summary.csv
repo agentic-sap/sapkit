@@ -1,0 +1,11 @@
+model,id,source(11|41),valid,attempts,no_fence,blocks,parse_ok,lint_errors,lint_warnings,analyze_high,analyze_medium,analyze_info,error_grade,warnings,source_lines,bytes,observed_model,note_match,tokens_in,tokens_out
+claude-opus-5-5,C-01,11,1,1,0,1,1,0,3,0,24,0,0,27,150,5303,claude-opus-5-5,1,7671,8586
+claude-opus-5-5,C-02,11,1,1,0,1,1,0,0,0,16,0,0,16,135,4928,claude-opus-5-5,1,7723,3460
+claude-opus-5-5,C-03,11,1,1,0,1,1,0,0,0,3,0,0,3,43,933,claude-opus-5-5,1,7646,1400
+claude-opus-5-5,C-04,11,1,1,0,1,1,0,0,0,14,0,0,14,124,4226,claude-opus-5-5,1,7654,4489
+claude-opus-5-5,C-05,11,1,1,0,1,1,0,0,0,11,0,0,11,102,3147,claude-opus-5-5,1,7626,3729
+claude-sonnet-5-5,C-01,11,1,1,0,1,1,0,3,0,36,0,0,39,181,6679,claude-sonnet-5-5,1,7599,5527
+claude-sonnet-5-5,C-02,11,1,1,0,1,1,0,2,0,6,0,0,8,134,4345,claude-sonnet-5-5,1,7651,3880
+claude-sonnet-5-5,C-03,11,1,1,0,1,1,0,0,0,2,0,0,2,44,944,claude-sonnet-5-5,1,7574,1168
+claude-sonnet-5-5,C-04,11,1,1,0,1,1,0,0,0,5,0,0,5,127,4382,claude-sonnet-5-5,1,7582,4316
+claude-sonnet-5-5,C-05,11,1,1,0,1,1,0,0,0,10,0,0,10,147,4340,claude-sonnet-5-5,1,7554,5041

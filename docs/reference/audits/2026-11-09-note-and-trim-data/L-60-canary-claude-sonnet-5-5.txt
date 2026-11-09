@@ -1,0 +1,33 @@
+L-60-canary-claude-sonnet-5-5.txt — 판L T6 카나리아 (판J 02-isolation-recipe.txt §0 프롬프트 글자 그대로 · 쪽지 없음 · 2026-11-09)
+명령: 판J 02-isolation-recipe.txt §2 그대로 (모델 id claude-sonnet-5-5) · $env:CLAUDECODE = $null · cwd = <scratch>\panL-blind
+  claude -p "<프롬프트>" --model claude-sonnet-5-5 --tools "" --setting-sources "" --strict-mcp-config --mcp-config <scratch>\panL-blind\empty-mcp.json --disable-slash-commands --output-format stream-json --verbose --no-session-persistence > <scratch>\panL-raw\canary\claude-sonnet-5-5.jsonl 2> <…>.stderr.txt
+시작=2026-11-09T13:34:52.521+09:00 · 종료=2026-11-09T13:35:00.539+09:00 · exit=0 · wall_ms=8012 · stderr 줄 수=0
+원응답 (무편집 · 단 로컬 경로 조각 1곳만 가림):
+----- BEGIN RAW -----
+**Access, based on what's in my context (I haven't called anything to check):**
+
+- **Tools:** Bash (POSIX scripts) and PowerShell (primary shell), a Write tool for files (named in the memory instructions), and generic "dedicated file/search tools" that my instructions mention without naming. I can't enumerate their exact names or schemas from here.
+- **Skills:** none listed.
+- **Plugins:** none listed.
+- **MCP servers:** none listed.
+- **Slash commands:** `/code-review ultra` (and `/ultrareview`, its deprecated alias) and `/fast` are mentioned, but `/code-review ultra` is user-triggered and I can't launch it. I have no full command list.
+- **Web/search:** none listed, and I wasn't given a web search or fetch tool.
+- **Files:**
+  - The working directory is `<scratch>\panL-blind`, which is not a git repo. I haven't looked at its contents.
+  - A memory directory exists with a `MEMORY.md` index, but nothing from it has been loaded into this conversation.
+
+**Answer from memory:** Korea's standard VAT rate is 10%, and the business registration number has 10 digits (format XXX-XX-XXXXX).
+----- END RAW -----
+system/init: model=claude-sonnet-5-5 · claude_code_version=2.1.319 · permissionMode=default
+  tools=0 · mcp_servers=0 · slash_commands=0 · skills=0 · plugins=4 [cc-plugin-agents-md,cc-plugin-telemetry,cc-plugin-privacy,cc-plugin-plugin-authoring] · agents=6 [claude,Explore,general-purpose,Plan,statusline-setup,web-fetch]
+assistant 이벤트 수=2 · assistant.message.model=[claude-sonnet-5-5]
+도구 호출(tool_use 블록) 수=0 · 이름: 없음
+result: is_error=False · num_turns=1 · duration_ms=7078 · duration_api_ms=6950 · modelUsage 키=[claude-sonnet-5-5]
+usage: input_tokens=2 · output_tokens=776 · cache_creation_input_tokens=2339 · cache_read_input_tokens=649
+응답 내 외부 URL(https?://) 건수=0
+기준 ② 도구 호출 0건: PASS (0)
+기준 ③ 외부 URL 0건: PASS (0)
+기준 ① 모델 자기 보고(스킬·플러그인·MCP·프로젝트 파일·웹 없음): T6 세션이 원응답을 판독해 아래 「판독」 절에 적는다
+판독 ① (T6 세션 · 원응답 판독): 스킬 none · 플러그인 none · MCP none · 웹/검색 none · 파일: 로드된 것 none(작업 폴더 <scratch>\panL-blind 는 git 저장소 아님 · 내용 미열람 · 메모리 MEMORY.md 내용 미적재) · 슬래시 명령: /code-review ultra·/ultrareview·/fast 를 언급하되 /code-review ultra 는 사용자 전용이라 자기가 띄울 수 없다고 명시 · 도구: 지시문 언급(Bash·PowerShell·Write·파일/검색 도구)을 근거로 「있을 것」이라 적음(이름·스키마는 열거 못 함) — 판J T0 · 판J T6 sonnet 카나리아와 같은 무늬이며 기계 증거(init.tools=0 · tool_use=0)가 없음을 확정한다(판J 02-isolation-recipe.txt §2 의 같은 판정)
+답: VAT 10% · 사업자등록번호 10자리 — 기대와 일치
+판정: PASS (① 자기 보고 — 기준 다섯 항목(스킬·플러그인·MCP·프로젝트 파일·웹) 전부 none · ② 도구 호출 0 · ③ URL 0)

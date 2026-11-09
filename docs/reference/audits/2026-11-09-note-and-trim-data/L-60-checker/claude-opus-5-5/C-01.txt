@@ -1,0 +1,412 @@
+L-60-checker/claude-opus-5-5/C-01.txt — 동봉 검사기 원출력 (판L T6 · 2026-11-09)
+대상: docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-01.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (판J 11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-01.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-01.abap
+--- stdout (612 bytes) ---
+docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-01.abap:134:9: W [local_variable_names] Local variable name "lo_alv" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-01.abap:135:9: W [local_variable_names] Local variable name "lo_columns" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-01.abap:136:9: W [local_variable_names] Local variable name "lo_error" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+--- stderr (120 bytes) ---
+docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-01.abap: 3 finding(s), 0 at Error level
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-01.abap
+--- stdout (7522 bytes) ---
+Report               REPORT zjudge_c01 .
+TypeBegin            TYPES BEGIN OF gty_header ,
+Type                 TYPES ebeln TYPE ekko - ebeln ,
+Type                 TYPES bukrs TYPE ekko - bukrs ,
+Type                 TYPES ekorg TYPE ekko - ekorg ,
+Type                 TYPES lifnr TYPE ekko - lifnr ,
+Type                 TYPES bedat TYPE ekko - bedat ,
+Type                 TYPES bsart TYPE ekko - bsart ,
+Type                 TYPES ekgrp TYPE ekko - ekgrp ,
+TypeEnd              TYPES END OF gty_header .
+Type                 TYPES gty_header_table TYPE SORTED TABLE OF gty_header WITH UNIQUE KEY ebeln .
+Type                 TYPES gty_ekorg_range TYPE RANGE OF ekko - ekorg .
+Type                 TYPES gty_ekorg_table TYPE SORTED TABLE OF ekko - ekorg WITH UNIQUE KEY table_line .
+Constant             CONSTANTS gc_subrc_ok TYPE sy - subrc VALUE 0 ,
+Constant             CONSTANTS gc_msgty_info TYPE sy - msgty VALUE 'I' ,
+Constant             CONSTANTS gc_msgty_success TYPE sy - msgty VALUE 'S' ,
+Constant             CONSTANTS gc_msgty_error TYPE sy - msgty VALUE 'E' ,
+Constant             CONSTANTS gc_auth_object TYPE xuobject VALUE 'M_BEST_EKO' ,
+Constant             CONSTANTS gc_actvt_display TYPE activ_auth VALUE '03' ,
+Constant             CONSTANTS gc_sign_include TYPE ddsign VALUE 'I' ,
+Constant             CONSTANTS gc_option_equal TYPE ddoption VALUE 'EQ' ,
+Constant             CONSTANTS gc_default_max_rows TYPE i VALUE 500 ,
+Constant             CONSTANTS gc_minimum_rows TYPE i VALUE 1 ,
+Constant             CONSTANTS gc_large_table_limit TYPE i VALUE 1000000 .
+Data                 DATA gv_ekorg TYPE ekko - ekorg ,
+Data                 DATA gv_bedat TYPE ekko - bedat ,
+Data                 DATA gt_authorized_orgs TYPE gty_ekorg_range ,
+Data                 DATA gt_headers TYPE gty_header_table .
+SelectOption         SELECT - OPTIONS s_ekorg FOR gv_ekorg ,
+SelectOption         SELECT - OPTIONS s_bedat FOR gv_bedat .
+Parameter            PARAMETERS p_maxrow TYPE i DEFAULT gc_default_max_rows OBLIGATORY .
+Move                 AT SELECTION - SCREEN .
+Perform              PERFORM validate_max_rows .
+StartOfSelection     START - OF - SELECTION .
+Perform              PERFORM run_report .
+Comment              * In: selection screen / Out: ALV or message / Globals: gt_authorized_orgs, gt_headers
+Form                 FORM run_report .
+Perform              PERFORM collect_authorized_orgs CHANGING gt_authorized_orgs .
+If                   IF gt_authorized_orgs IS INITIAL .
+Message              MESSAGE 'No authorized purchasing organization in selection' ( 002 ) TYPE gc_msgty_info .
+Return               RETURN .
+EndIf                ENDIF .
+Perform              PERFORM read_headers USING gt_authorized_orgs CHANGING gt_headers .
+If                   IF gt_headers IS INITIAL .
+Message              MESSAGE 'No purchasing documents match the selection' ( 001 ) TYPE gc_msgty_info .
+Return               RETURN .
+EndIf                ENDIF .
+Perform              PERFORM display_headers CHANGING gt_headers .
+EndForm              ENDFORM .
+Comment              * In: p_maxrow / Out: error message when below minimum / Globals: none
+Form                 FORM validate_max_rows .
+If                   IF p_maxrow < gc_minimum_rows .
+Message              MESSAGE 'Maximum number of rows must be at least 1' ( 003 ) TYPE gc_msgty_error .
+EndIf                ENDIF .
+EndForm              ENDFORM .
+Comment              * In: s_ekorg / Out: ct_orgs range of display-authorized orgs / Globals: none
+Form                 FORM collect_authorized_orgs CHANGING ct_orgs TYPE gty_ekorg_range .
+Data                 DATA lt_orgs TYPE gty_ekorg_table ,
+Data                 DATA lv_org TYPE ekko - ekorg ,
+Data                 DATA ls_range TYPE LINE OF gty_ekorg_range .
+Clear                CLEAR ct_orgs .
+Select               SELECT ekorg FROM t024e INTO TABLE lt_orgs WHERE ekorg IN s_ekorg .
+If                   IF sy - subrc <> gc_subrc_ok .
+Return               RETURN .
+EndIf                ENDIF .
+Loop                 LOOP AT lt_orgs INTO lv_org .
+Move                 AUTHORITY - CHECK OBJECT gc_auth_object ID 'EKORG' FIELD lv_org ID 'ACTVT' FIELD gc_actvt_display .
+If                   IF sy - subrc = gc_subrc_ok .
+Move                 ls_range - sign = gc_sign_include .
+Move                 ls_range - option = gc_option_equal .
+Move                 ls_range - low = lv_org .
+Append               APPEND ls_range TO ct_orgs .
+EndIf                ENDIF .
+EndLoop              ENDLOOP .
+EndForm              ENDFORM .
+Comment              * In: ut_orgs, s_bedat, p_maxrow / Out: ct_headers / Globals: none
+Form                 FORM read_headers USING ut_orgs TYPE gty_ekorg_range CHANGING ct_headers TYPE gty_header_table .
+Data                 DATA lv_total TYPE i .
+Clear                CLEAR ct_headers .
+Select               SELECT COUNT ( * ) FROM ekko INTO lv_total WHERE ekorg IN ut_orgs AND bedat IN s_bedat .
+If                   IF sy - subrc <> gc_subrc_ok .
+Return               RETURN .
+EndIf                ENDIF .
+Select               SELECT ebeln bukrs ekorg lifnr bedat bsart ekgrp FROM ekko INTO TABLE ct_headers UP TO p_maxrow ROWS WHERE ekorg IN ut_orgs AND bedat IN s_bedat ORDER BY PRIMARY KEY .
+If                   IF sy - subrc <> gc_subrc_ok .
+Clear                CLEAR ct_headers .
+Return               RETURN .
+EndIf                ENDIF .
+Perform              PERFORM report_truncation USING lv_total .
+EndForm              ENDFORM .
+Comment              * In: uv_total matching rows / Out: status message when output is limited / Globals: none
+Form                 FORM report_truncation USING uv_total TYPE i .
+Data                 DATA lv_total_text TYPE char12 ,
+Data                 DATA lv_shown_text TYPE char12 ,
+Data                 DATA lv_message TYPE string .
+If                   IF uv_total > gc_large_table_limit .
+Message              MESSAGE 'Very large result set - narrow the document date range' ( 004 ) TYPE gc_msgty_success .
+ElseIf               ELSEIF uv_total > p_maxrow .
+Write                WRITE uv_total TO lv_total_text LEFT - JUSTIFIED .
+Write                WRITE p_maxrow TO lv_shown_text LEFT - JUSTIFIED .
+Concatenate          CONCATENATE 'Rows shown / total matching:' ( 005 ) lv_shown_text '/' lv_total_text INTO lv_message SEPARATED BY space .
+Message              MESSAGE lv_message TYPE gc_msgty_success .
+EndIf                ENDIF .
+EndForm              ENDFORM .
+Comment              * In/Out: ct_headers bound to ALV / Out: ALV grid or error message / Globals: none
+Form                 FORM display_headers CHANGING ct_headers TYPE gty_header_table .
+Data                 DATA lo_alv TYPE REF TO cl_salv_table ,
+Data                 DATA lo_columns TYPE REF TO cl_salv_columns_table ,
+Data                 DATA lo_error TYPE REF TO cx_salv_msg ,
+Data                 DATA lv_message TYPE string .
+Try                  TRY .
+Call                 cl_salv_table => factory ( IMPORTING r_salv_table = lo_alv CHANGING t_table = ct_headers ) .
+Catch                CATCH cx_salv_msg INTO lo_error .
+Move                 lv_message = lo_error -> get_text ( ) .
+Message              MESSAGE lv_message TYPE gc_msgty_info DISPLAY LIKE gc_msgty_error .
+Return               RETURN .
+EndTry               ENDTRY .
+Move                 lo_columns = lo_alv -> get_columns ( ) .
+Call                 lo_columns -> set_optimize ( abap_true ) .
+Call                 lo_alv -> display ( ) .
+EndForm              ENDFORM .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-01.abap
+--- stdout (7291 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 16,
+      "endLine": 16,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 17,
+      "endLine": 17,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 18,
+      "endLine": 18,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 19,
+      "endLine": 19,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 20,
+      "endLine": 20,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 21,
+      "endLine": 21,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 22,
+      "endLine": 22,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 23,
+      "endLine": 23,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 24,
+      "endLine": 24,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 25,
+      "endLine": 25,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 26,
+      "endLine": 26,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 28,
+      "endLine": 28,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 29,
+      "endLine": 29,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 30,
+      "endLine": 30,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 31,
+      "endLine": 31,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 67,
+      "endLine": 67,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 68,
+      "endLine": 68,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 81,
+      "endLine": 81,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 83,
+      "endLine": 83,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 90,
+      "endLine": 90,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 119,
+      "endLine": 119,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 134,
+      "endLine": 134,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 136,
+      "endLine": 136,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 141,
+      "endLine": 141,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 24,
+    "bySeverity": {
+      "medium": 24
+    },
+    "byCategory": {
+      "quality": 24
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=3 analyze_high=0 analyze_medium=24 analyze_info=0 error_grade=0 warnings=27 source_lines=150 bytes=5303 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (판J 11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

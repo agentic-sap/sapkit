@@ -1,0 +1,19 @@
+claude-opus-5-5 · C-02 — 쪽지 조건 코드 과제 이벤트 추출 요약 (판L T6 · 2026-11-09)
+원본: <scratch>\panL-raw\claude-opus-5-5\C-02.jsonl (원 이벤트 스트림 · 세션 id·로컬 경로 포함 · 커밋하지 않음 · 호출별 사본 C-02.call-<k>.jsonl)
+명령: 판J 02-isolation-recipe.txt §2 그대로 · 모델 id claude-opus-5-5 · cwd = <scratch>\panL-blind (L-00 §3)
+프롬프트: L-00-recipe.txt §1 (고정 줄 + 쪽지 본문 + task_text + Required output) · chars=11187 · sha256=6f5dcb9e632078c45efa052673e7501b72e07998f25e8c820a1e60022c25bee8
+쪽지: 프롬프트 안 조각 sha256=025f2602de9602dba5cc24f24e62bc79611d9f99277807e177321f5269f5b79f · L-00 동결 값 025f2602de9602dba5cc24f24e62bc79611d9f99277807e177321f5269f5b79f · 일치=1
+응시(응답) 횟수=1 · 전이 재시도=0 · CLI 호출 총수=1 · 최종=VALID (call 1)
+system/init: model=claude-opus-5-5 · claude_code_version=2.1.319 · permissionMode=default
+  tools=0 · mcp_servers=0 · slash_commands=0 · skills=0 · plugins=4 [cc-plugin-agents-md,cc-plugin-telemetry,cc-plugin-privacy,cc-plugin-plugin-authoring] · agents=6
+assistant 이벤트 수=2 · assistant.message.model=[claude-opus-5-5]
+도구 호출(tool_use 블록) 수=0 · 이름: 없음
+result: is_error=False · num_turns=1 · duration_ms=31382 · duration_api_ms=31246 · modelUsage 키=[claude-opus-5-5]
+usage: input_tokens=2 · output_tokens=3460 · cache_creation_input_tokens=5381 · cache_read_input_tokens=2340
+관측 모델 id=[claude-opus-5-5] · 요청=claude-opus-5-5 · 일치=1
+exit_code=0 · wall_ms=32274 · stderr 줄 수=0 · 시작=2026-11-09T13:36:43.296+09:00 · 종료=2026-11-09T13:37:15.583+09:00
+응답 내 외부 URL(https?://) 건수=0
+valid=1
+answer_local_path_masks=0 (L-60-raw 에 쓸 때 가린 로컬 경로 조각 수)
+펜스 블록 수=1 · no_fence=0 · 추출 → L-60-code/claude-opus-5-5/C-02.abap (lines=135 · bytes=4928)
+summary: valid=1 attempts=1 no_fence=0 blocks=1 lines=135 bytes=4928 note_match=1
