@@ -82,24 +82,93 @@ Do NOT use when:
 
 ## Shared Conventions
 
-These rules are shared across procedures. Load and apply each one during the phases named:
+These rules are shared across procedures. The conventions note right below this table carries the core coding rules — clean ABAP, naming, constants, text elements, FORM naming — in full; load and apply each file in the table on top of it during the phases named:
 
 | Convention | Reference File | Applied In |
 |------------|----------------|------------|
 | Include structure (t/s/c/a/o/i/e/f/_tst) | [include-structure.md](../knowledge/abap/conventions/include-structure.md) | Phase 2, Phase 4 |
 | OOP two-class pattern (LCL_DATA + LCL_ALV) | [oop-pattern.md](../knowledge/abap/conventions/oop-pattern.md) | Phase 4 (OOP mode only) |
-| ALV rules (Full vs SALV, field catalog standard) | [alv-rules.md](../knowledge/abap/conventions/alv-rules.md) | Phase 4, Phase 6 |
-| Text element rule (no hardcoded display literals) | [text-element-rule.md](../knowledge/abap/conventions/text-element-rule.md) | Phase 4, Phase 6 |
-| Constant rule (no magic literals in logic) | [constant-rule.md](../knowledge/abap/conventions/constant-rule.md) | Phase 4, Phase 6 |
-| Procedural FORM naming (`_{screen_no}` suffix) | [procedural-form-naming.md](../knowledge/abap/conventions/procedural-form-naming.md) | Phase 4 (Procedural mode only), Phase 6 |
-| Naming conventions (program/include/class/screen) | [naming-conventions.md](../knowledge/abap/conventions/naming-conventions.md) | Phase 2, Phase 4, Phase 6 |
+| ALV rules (Full vs SALV, field catalog standard) | [alv-rules.md](../knowledge/abap/conventions/alv-rules.md) | Phase 4, Phase 6 — only when the plan includes ALV output |
 | ECC DDIC fallback (Table / DTEL / DOMA on ECC) | [ecc-ddic-fallback.md](../knowledge/abap/conventions/ecc-ddic-fallback.md) | Phase 2 (gate), Phase 4, Phase 6 |
-| Clean ABAP — shared baseline | [clean-code.md](../knowledge/abap/conventions/clean-code.md) | Phase 4, Phase 6 (always) |
-| Clean ABAP — OOP paradigm | [clean-code-oop.md](../knowledge/abap/conventions/clean-code-oop.md) | Phase 4, Phase 6 — only when Phase 1B `paradigm = OOP` |
-| Clean ABAP — Procedural paradigm | [clean-code-procedural.md](../knowledge/abap/conventions/clean-code-procedural.md) | Phase 4, Phase 6 — only when Phase 1B `paradigm = Procedural` |
 | Mandatory main-program template (OOP) | [zsapkit_oop_ex.prog.abap](../knowledge/abap/templates/oop-sample/zsapkit_oop_ex.prog.abap) (+ companion includes / screens in the same folder) | Phase 4 (starting skeleton) + Phase 6 §8 (structural match) — OOP paradigm |
 | Mandatory main-program template (Procedural) | [main-program.abap](../knowledge/abap/templates/procedural-sample/main-program.abap) | Phase 4 + Phase 6 §8 — Procedural paradigm |
 | Cloud ABAP constraints (prohibited statements + replacements) | [cloud-abap-constraints.md](../knowledge/abap/conventions/cloud-abap-constraints.md) | Phase 0 (Cloud Public rejection) |
+
+### Conventions Note
+
+Applied in Phase 3 (the spec must not contradict it) and Phase 4 (the code follows it). Apply the Core, House rules, and Release and function modules groups to every program, and the OOP or the Procedural group by Phase 1B `paradigm`.
+
+This block is a copy of the canonical conventions note (clean-code-note, in the ABAP conventions folder) — edit the canonical note and let the gate bring the copies in line; never edit a copy.
+
+<!-- sapkit:conventions-note:begin -->
+**Core**
+- No `SELECT *` — an explicit field list instead [clean-code.md § Open SQL]
+- No `SELECT` inside `LOOP` — reach for `FOR ALL ENTRIES` or a join [clean-code.md § Open SQL]
+- Every statement that sets `SY-SUBRC` is followed by a check of it (SELECT SINGLE, READ TABLE, CALL FUNCTION with EXCEPTIONS) [clean-code.md § Open SQL]
+- The internal table type fits the access pattern (HASHED / SORTED / STANDARD), with no DEFAULT KEY [clean-code.md § Internal Tables]
+- No `SORT itab.` / `DELETE ADJACENT DUPLICATES FROM itab.` without `BY` / `COMPARING` on a `WITH EMPTY KEY` table — syntax check only warns, offline checker is silent [clean-code.md § Variables and Types]
+- Secondary key on an itab filled from a transactional / large table when downstream access runs on non-primary fields [clean-code.md § Open SQL]
+- Large-table SELECTs: `COUNT(*)` first, tuning plan when > 1M [clean-code.md § Open SQL]
+- STRING values carry backtick literals; `|...|` templates do the assembly [clean-code.md § Strings]
+- Booleans: `ABAP_BOOL`, compared with `abap_true` / `abap_false`, set via `XSDBOOL( )` [clean-code.md § Booleans]
+- Conditions phrased positively, `IS NOT` in place of `NOT IS`, and no IF branch left empty [clean-code.md § Conditions and IFs]
+- Explicit typed itabs over inline `INTO TABLE @DATA(...)` for SELECTs feeding further logic [clean-code.md § Open SQL]
+- Inline declarations / modern syntax used where `ABAP_RELEASE` permits — never newer than the configured release [clean-code.md § Version Awareness]
+- No commented-out code, no leftover debug statement (`BREAK-POINT`, `MESSAGE 'TEST'`) [clean-code.md § Comments]
+- No ratio/percentage arithmetic assigned into narrow DEC/CURR fields (`COMPUTE_BCD_OVERFLOW` is runtime-only) [clean-code.md § Variables and Types]
+- Reconciliation outputs never treat absent values as 0 (empty lookup must not assert "difference = 0") [clean-code.md § Reconciliation Logic — Null vs Zero]
+- Descriptive full-word names, no abbreviations; single letters only for loop counters; booleans `is_*` / `has_*`; methods verbs, classes nouns [clean-code.md § Naming]
+- Guard clauses first; extract past 3 `IF` levels; `CASE` over an `IF/ELSEIF` chain on one variable; no `EXIT` / `CHECK` mid long loop, no unexplained `CONTINUE` [clean-code.md § Control Flow]
+- CURR of a `CURRDEC = 0` currency (KRW, JPY) is stored as display ÷ 100: scale display-unit thresholds before comparing, never store an external amount in CURR unconverted [clean-code.md § Currency Amounts — CURR Internal Unit ≠ Display Unit (TCURX)]
+- Integer `/` rounds, `DIV` truncates; move `NUMC` / `DATS` into a `TYPE i` local before comparing with an arithmetic expression [clean-code.md § Arithmetic and Initial Values]
+- No verdict in a type whose initial value is valid (`SYMSGNO` `'000'`) — use a boolean; guard blank `DATS` with `IS INITIAL OR <d> CO ' 0'` [clean-code.md § Arithmetic and Initial Values]
+- Fixed-width record structures type dates `NUMC(8)`, never `DATS`; offsets count characters, layouts bytes [clean-code.md § Fixed-Width File Serialization — Keep `DATS` Out of the Record Structure]
+- Code after a `RETURN` never runs — find the routine's `RETURN`s before appending above `ENDFORM` / `ENDMETHOD` [clean-code.md § Editing Existing Code — Two Silent Traps]
+- Renaming a shared type component: send definition and use sites together, then `GrepPackages` + `CheckSyntax` every consumer [clean-code.md § Editing Existing Code — Two Silent Traps]
+- All user-visible text via text elements or message classes — no hardcoded language literals in logic [clean-code.md § Text and User Interaction]
+- `AUTHORITY-CHECK` at every entry point; user input never concatenated into `EXEC SQL` / dynamic `WHERE`; mask PII in logs and messages [clean-code.md § Security and Data Handling]
+
+**OOP**
+- Classes `FINAL` unless designed for inheritance; members `PRIVATE` by default [clean-code-oop.md § Object Orientation — Scope and Design]
+- One job per method, at most 30 lines, one abstraction level, at most 3 IMPORTING parameters [clean-code-oop.md § Method Body] [clean-code-oop.md § Methods — Parameters and Calls]
+- A method returns one value (`RETURNING` over `EXPORTING`); no boolean input parameter [clean-code-oop.md § Methods — Parameters and Calls]
+- `NEW #( ... )` over `CREATE OBJECT`; several static creation methods over optional constructor params [clean-code-oop.md § Constructors]
+- Exceptions: class-based only, from the project's own super class, foreign `CX_SY_*` wrapped, raised with `RAISE EXCEPTION NEW` [clean-code-oop.md § Error Handling — Detail]
+- Formatting: 120-char lines, consistent alignment, one statement per line [clean-code-oop.md § Formatting]
+- Tests: given-when-then names, publics only, doubles injected through the constructor, `LOCAL FRIENDS` only for constructor access [clean-code-oop.md § Testing — Detail]
+- Comments above the statement, not trailing; no version notes or begin/end markers; ABAP Doc only on public APIs; pragmas over `"#EC` [clean-code-oop.md § Comments — Detail (beyond main file)]
+
+**Procedural**
+- Main program structure matches template main-program.abap — REPORT statement, INCLUDE order (t/c/s/o/i/a/f, optional `_tst` last — never `e`), event block layout, PBO/PAI modules as one-line `PERFORM` delegators; deviations justified in `spec.md` [clean-code-procedural.md § Mandatory Main Program Template (MUST match)]
+- All globals declared in the TOP include only; no `DATA` in PBO/PAI/FORM/EVENT includes [clean-code-procedural.md § Global vs Local Discipline (TOP include)]
+- Globals `g*`, locals `l*` — told apart on sight; no local shadows a global [clean-code-procedural.md § Global vs Local Discipline (TOP include)]
+- Every FORM parameter typed (`USING p_a TYPE ...`); inputs via `USING`, in/out via `CHANGING`; no boolean `USING` [clean-code-procedural.md § FORM / PERFORM — Parameters and Signatures]
+- Screen-bound FORMs end with the `_{screen_no}` suffix; utility FORMs have no suffix [clean-code-procedural.md § FORM Body]
+- A PBO/PAI module body is one `PERFORM f_...` line; the logic lives in the FORM [clean-code-procedural.md § FORM Body]
+- `sy-subrc` checked after every statement that sets it; `CALL FUNCTION` uses the `EXCEPTIONS` clause with `CASE sy-subrc` [clean-code-procedural.md § Procedural Error Handling]
+- `EXIT` / `STOP` / `LEAVE PROGRAM` never stand in for error handling [clean-code-procedural.md § Procedural Error Handling]
+- One-line header comment above each FORM: inputs / outputs / global side effects [clean-code-procedural.md § Comments — Procedural-Specific]
+- Where the spec calls for tests, testable logic is pulled out into `LCL_HELPER`, not left inside FORMs [clean-code-procedural.md § Procedural Testing — Limits and Workarounds]
+- FORM for program-local logic, FM for cross-program or RFC reuse; never share logic via includes or create an FM just for length [clean-code-procedural.md § Modularization Boundaries]
+
+**House rules**
+- Magic literals in logic (status/type codes, screen numbers, GUI status names, thresholds, compared return codes) become `CONSTANTS` in the TOP include [constant-rule.md § 1. What must become a constant] [constant-rule.md § 3. Where the declaration goes]
+- Numbered objects `Z{MODULE}{TYPE}{NN}` (R report, S structure, T table, Y table type, E data element, D domain, V view); prove `{NN}` free via `SearchObject`, take last + 10, one `{NN}` per feature [naming-conventions.md § 3. Numbered objects — `Z{MODULE}{TYPE}{NN}`] [naming-conventions.md § 2. Claim the sequence number before you propose a name — MANDATORY]
+- `Z{MODULE}FG_{PURPOSE}` / `Z{MODULE}FM_{PURPOSE}` (never `Z_MM_...`); `ZCL_` / `ZIF_` / `ZCX_{MODULE}_{PURPOSE}`; CDS `ZI_` / `ZR_` / `ZC_` / `ZP_{MODULE}_{Name}` [naming-conventions.md § 4. Unnumbered objects — patterns keyed by purpose]
+- Write every applicable text-pool type (`R` title, `I` per `TEXT-xxx`, `S` per selection field, `H` only for WRITE lists) in the logon language and in `'E'` [text-element-rule.md § Scope — Four Text Pool Types (MUST verify ALL that apply)] [text-element-rule.md § Language Strategy (MANDATORY — two passes)]
+- An `S` label starts at offset 8: via the MCP text tools `text` begins with 8 reserved characters; in an abapGit `TPOOL` they stay out of `ENTRY` [text-element-rule.md § Selection Texts — the Label Starts at Offset 8]
+- Main program = `REPORT` + `INCLUDE`s + delegating event blocks; only the includes needed, never `e` in Procedural; no declaration after an event block [include-structure.md § Main Program Body] [include-structure.md § Event Blocks — Placement and Order]
+- Activation does not cascade: activate main + every include (one `ActivateObjects`), then confirm `GetInactiveObjects` is empty [include-structure.md § Activation Protocol — MANDATORY (matches every skill that creates includes)]
+- OOP split: `LCL_DATA` (`{PROG}c`) extracts data, no UI; `LCL_ALV` (`{PROG}a`) displays it; ALV follows the OOP sample reusing `ZCL_SAPKIT_CM_*`; messages `S_UNIFIED_CON`, no new `ZMC` [oop-pattern.md § Two-Class Split (Mandatory)] [oop-pattern.md § ALV Requirement (Mandatory)]
+
+**Release and function modules**
+- Never emit syntax newer than the configured `ABAP_RELEASE`; if it is unset, stop and ask [abap-release-reference.md § 5. Checklist before emitting ABAP]
+- Release `< 740`: no inline declarations, constructor expressions (`NEW`, `VALUE`, `COND` …), table expressions, string templates or chained method calls [abap-release-reference.md § 3. Feature matrix — the release each feature arrives in]
+- FM signature inline in the `FUNCTION` statement — never a `*"` comment block or the `functionModuleParameter` placeholder [function-module-rule.md § HARD RULE — Inline signature only]
+- No shadow locals (`lv_iv_xxx`) standing in for FM parameters — declare the real parameter [function-module-rule.md § Required source template (every FM)]
+
+Not covered here? Open the section named in the rule's tag, in that file of the ABAP conventions folder.
+<!-- sapkit:conventions-note:end -->
 
 ### ECC DDIC Fallback Gate
 
@@ -350,7 +419,7 @@ If `.sapkit/RULES.md` (written by the [lesson](./lesson.md) procedure) exists, r
 - **Inputs (mandatory read before planning)**: `module-interview.md` (business context, standard-SAP rejections, reference assets) AND `interview.md` (technical decisions **and its dig-out section** — the business rules, exception handling, and acceptance examples). **Refuse to plan where either file is missing, or where `interview.md` carries no `<!-- SAPKIT:DIG-OUT -->` marker** — planning without the dug-out rules is planning against assumptions. Reconcile all of it — if a Phase 1B technical choice contradicts a Phase 1A business rule or a dug-out rule (e.g., chose custom Z-table when the consultant proposed standard CDS), raise the conflict back to the user before producing `plan.md`.
 - **CBO reuse gate (mandatory when `cbo-context.md` exists)**: before designing any new Z-object (table / structure / class / FM / data element), scan `cbo-context.md` for a reuse candidate. Default to reuse when role + FK pattern + purpose overlap. Every new-object proposal in the plan must include a one-line justification of why no CBO candidate fits.
 - **Customization reuse gate (mandatory when `customization-context.md` exists)**: before proposing a new BAdI implementation, CMOD component, form-based user-exit FORM, or append structure, scan `customization-context.md` for an existing customer asset covering the same `standardName` / base table. Default to extending the existing asset. Every new-enhancement/extension proposal in the plan must include a written justification of why no customization candidate fits (follow [customization-lookup.md](./customization-lookup.md)). Creating a second parallel impl when one already exists is a MAJOR finding in Phase 6.
-- Apply shared conventions: [include-structure.md](../knowledge/abap/conventions/include-structure.md), [naming-conventions.md](../knowledge/abap/conventions/naming-conventions.md)
+- Apply shared conventions: [include-structure.md](../knowledge/abap/conventions/include-structure.md), and the naming rules in the conventions note (Shared Conventions above)
 - **Consultant consultation (mandatory when requirements touch SAP business configuration)**:
   - Name the affected SAP module(s) off the interview output (SD / MM / FI / CO / PP / PS / QM / PM / WM / HCM / TM / TR / Ariba / BW / BC)
   - Adopt the corresponding `sap-{module}-consultant` persona for this sub-step (see the [persona index](../personas/INDEX.md))
@@ -373,7 +442,7 @@ Adopt the [sap-writer](../personas/sap-writer.md) persona for this step. The spe
 - Produce a functional + technical spec out of `plan.md`
 - **CBO reuse (mandatory when `cbo-context.md` exists)**: every spec section that references an existing CBO asset must name it explicitly (e.g., "writes to existing table `ZSD_ORDER_LOG`") and include a one-line reason for reuse.
 - **Customization reuse (mandatory when `customization-context.md` exists)**: when the spec extends a BAdI / SMOD / form-based exit / append, it MUST reference the existing `Z*`/`Y*` implementation class, CMOD project, include, or append structure by name (e.g., "add new method to existing BAdI impl `ZCL_SD_ORDER_IMPL`"; "extend existing append `CI_VBAK_ZZ` with field `ZZ_DELIVERY_PRIORITY`"). Never silently introduce a parallel Z-object when a reuse target exists in `customization-context.md`.
-- **MANDATORY before writing**: open and read every shared convention file that applies to the program type — [alv-rules.md](../knowledge/abap/conventions/alv-rules.md), [text-element-rule.md](../knowledge/abap/conventions/text-element-rule.md), [constant-rule.md](../knowledge/abap/conventions/constant-rule.md), [oop-pattern.md](../knowledge/abap/conventions/oop-pattern.md) if OOP, [procedural-form-naming.md](../knowledge/abap/conventions/procedural-form-naming.md) if Procedural, [naming-conventions.md](../knowledge/abap/conventions/naming-conventions.md), [include-structure.md](../knowledge/abap/conventions/include-structure.md). The spec must NOT carry an instruction that contradicts these conventions (e.g., "build LVC_T_FCAT manually" contradicts the SALV-factory rule in alv-rules.md). Where the spec describes a technique, paraphrase the approach the convention prescribes — never invent a shortcut.
+- **MANDATORY before writing**: follow the conventions note (Shared Conventions above), and open and read every remaining shared convention file that applies to the program type — [alv-rules.md](../knowledge/abap/conventions/alv-rules.md) when the plan includes ALV output, [oop-pattern.md](../knowledge/abap/conventions/oop-pattern.md) if OOP, [include-structure.md](../knowledge/abap/conventions/include-structure.md). The spec must NOT carry an instruction that contradicts these conventions (e.g., "build LVC_T_FCAT manually" contradicts the SALV-factory rule in alv-rules.md). Where the spec describes a technique, paraphrase the approach the convention prescribes — never invent a shortcut.
 - File: `.sapkit/program/{PROG}/spec.md`
 
 ### Design-document template (minimum sections)
@@ -801,7 +870,7 @@ Flow when `delivery_path == "mcp"` (source-first, single syntax check on the mai
    - **Utility-FM availability rule**: these three families dispatch through the server-side `ZSAPKIT_ADT_DISPATCH` / `ZSAPKIT_ADT_TEXTPOOL` FMs. When those FMs are absent on the target system OR the RFC backend is not configured, treat every Screen / GUI Status / Text Element step as **SKIPPED** (an environment gap, not a failure), continue with the remaining steps, and record the outage for Phase 6 step 3. Remediation: [install-sap-assets](install-sap-assets.md).
 6. **ECC DDIC fallback**: if the plan includes new Table / Data Element / Domain objects and the platform is ECC, do NOT call `CreateTable` / `CreateDataElement` / `CreateDomain` — follow the ECC DDIC Fallback Gate above, and wait for the user's SE11 activation confirmation before activating dependent code.
 
-Apply shared conventions throughout: [oop-pattern.md](../knowledge/abap/conventions/oop-pattern.md) (OOP), [alv-rules.md](../knowledge/abap/conventions/alv-rules.md), [text-element-rule.md](../knowledge/abap/conventions/text-element-rule.md), [constant-rule.md](../knowledge/abap/conventions/constant-rule.md), [procedural-form-naming.md](../knowledge/abap/conventions/procedural-form-naming.md) (Procedural), [naming-conventions.md](../knowledge/abap/conventions/naming-conventions.md), [clean-code.md](../knowledge/abap/conventions/clean-code.md) + the paradigm-specific clean-code file.
+Apply the conventions note above (Shared Conventions) throughout, plus [oop-pattern.md](../knowledge/abap/conventions/oop-pattern.md) (OOP) and [alv-rules.md](../knowledge/abap/conventions/alv-rules.md) (when the plan includes ALV output).
 
 On completion, record the `check_syntax` and `activate` step results (status + evidence) into `.sapkit/program/{PROG}/verification.json` per [schemas/verification.schema.json](./schemas/verification.schema.json).
 

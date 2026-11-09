@@ -1,0 +1,64 @@
+L-32 지시서 편집 기록 — 판L T4a (spec B-2 · C-4 · C-5 · D)
+대상 디렉터리: interactive/core/procedures/   줄 번호 = 「변경 전(2e032615) → 변경 후(작업 트리)」
+쪽지 사본 = 정본 interactive/core/knowledge/abap/conventions/clean-code-note.md 의 표식 두 줄을 포함한 표식 사이 본문.
+            손으로 옮기지 않고 node로 정본에서 잘라 각 파일의 자리표시 줄 하나를 바꿔 넣었다(대상 파일 줄 끝 CRLF 유지).
+            사본 앞 안내 한 줄(표식 밖 · 4곳 공통 · 영어):
+            "This block is a copy of the canonical conventions note (clean-code-note, in the ABAP conventions folder) — edit the canonical note and let the gate bring the copies in line; never edit a copy."
+            (`clean-code-note.md`를 백틱·링크로 쓰지 않았다 — 측정 도구가 참조로 세지 않게.)
+
+== create-program.md (B-2 · C-4) ==
+85 → 85    Shared Conventions 머리 문장: "Load and apply each one during the phases named"
+           → "표 바로 아래 쪽지가 핵심 작법(clean ABAP · naming · constants · text elements · FORM naming)을 전문으로 싣는다. 표의 파일은 그 위에 얹어 해당 단계에서 적재·적용"
+91 → 91    alv-rules.md 행 Applied In: "Phase 4, Phase 6" → "Phase 4, Phase 6 — only when the plan includes ALV output" (좁힘)
+92 → 삭제  text-element-rule.md 행 (쪽지 대체)
+93 → 삭제  constant-rule.md 행 (쪽지 대체)
+94 → 삭제  procedural-form-naming.md 행 (쪽지 대체)
+95 → 삭제  naming-conventions.md 행 (쪽지 대체)
+97 → 삭제  clean-code.md 행 (쪽지 대체)
+98 → 삭제  clean-code-oop.md 행 (쪽지 대체)
+99 → 삭제  clean-code-procedural.md 행 (쪽지 대체)
+           남김: include-structure · oop-pattern · ecc-ddic-fallback · cloud-abap-constraints · 템플릿 2행(OOP · Procedural)
+102 뒤 → 96~171  신설 "### Conventions Note" 소절(표 바로 아래 · ECC DDIC Fallback Gate 앞):
+           99 적용 안내 "Phase 3(스펙이 어기지 않게) · Phase 4(코드가 따르게) — Core · House rules · Release and function modules는 전부, OOP/Procedural은 Phase 1B paradigm으로 하나"
+           101 사본 안내 줄 · 103~171 쪽지 사본(표식 포함)
+353 → 422  Phase 2 "Apply shared conventions: include-structure, naming-conventions"
+           → "include-structure + 쪽지의 naming 규칙(Shared Conventions above)" — naming-conventions 링크 제거
+376 → 445  Phase 3 "MANDATORY before writing: open and read … alv-rules · text-element-rule · constant-rule · oop-pattern(OOP) · procedural-form-naming(Procedural) · naming-conventions · include-structure"
+           → "쪽지를 따르고(Shared Conventions above), 남은 파일을 연다 — alv-rules(계획에 ALV 출력이 있을 때) · oop-pattern(OOP) · include-structure"
+           뒤 문장 "The spec must NOT carry an instruction that contradicts these conventions …"는 그대로
+804 → 873  Phase 4 "Apply shared conventions throughout: oop-pattern · alv-rules · text-element-rule · constant-rule · procedural-form-naming · naming-conventions · clean-code + paradigm file"
+           → "위 쪽지(Shared Conventions)를 전 과정에 적용 + oop-pattern(OOP) · alv-rules(계획에 ALV 출력이 있을 때)"
+기타        쪽지 대체 7파일을 가리키는 링크 · 백틱 경로를 전수 grep — 위 줄 밖에는 없었다(Related · See also 절 없음).
+탈출 포인터  없음 — 원본으로 보내는 자리를 남기지 않았다(쪽지 본문 끝 줄 "Not covered here? …"이 원본 장으로 가는 길을 이미 갖는다).
+
+== create-object.md (B-2) ==
+188 뒤 → 190~262  Step 4 "Execute in this order:" 바로 앞에 신설:
+           190 "Conventions note — applies only when the object is a code object (class, interface, program, include, function module) … DDIC 객체(table, structure, data element, domain)와 Step 4-ECC 경로에는 적용하지 않는다 — 그쪽은 각 단계의 field-typing · ECC fallback 규칙을 따른다"
+           192 사본 안내 줄 · 194~262 쪽지 사본(표식 포함)
+194 → 268  IMPLEMENT Class 항목 "per [clean-code-oop](…/clean-code-oop.md)" → "per the conventions note above" — 링크 제거
+79 → 79    (변경 없음) Mandatory Rule Reads의 "Naming conventions" 항목은 naming-conventions(conventions) 링크를 그대로 둔다 — spec B-2가 이 파일에서 지목한 자리는 194줄뿐이다. concerns로 보고.
+
+== modify-object.md (B-2) ==
+52~56 → 52~58  ① 「관련 규칙 읽기」 끝에 한 문장 추가: "When the change touches a code object (class, interface, program, include, function module), apply the conventions note below to the code you write."
+56 뒤 → 60~130  60 사본 안내 줄 · 62~130 쪽지 사본(표식 포함) — ② 앞, 0열(사본 바이트 동일 유지를 위해 들여쓰지 않음)
+
+== review-checklist.md (B-2 · D) ==
+113 → 113  색인 표 §8 행 Context kit: "clean-code.md + ONE of clean-code-oop.md / clean-code-procedural.md" → "the conventions note in the §8 body (no file to load)"
+194 → 194  §8 컨텍스트 줄 "paradigm gate first … load clean-code.md + 패러다임 파일 … 둘 다/틀린 것 적재 시 무효"
+           → "적재할 파일 없음 — 아래 쪽지가 이 항목의 kit. interview.md의 Paradigm을 읽고 Core · House rules · Release and function modules는 전부, OOP 또는 Procedural 그룹은 하나만(둘 다 아님)"
+194 뒤 → 196~266  196 사본 안내 줄 · 198~266 쪽지 사본(표식 포함)
+신설 268   "Point out a departure from clean ABAP even where the note does not cover it — use your own judgment." (쪽지 밖 판단 지적)
+신설 270   형식 규칙 문장: "Formatting rules: where the bundled checker's results are present, accept its verdict and do not raise the same finding again; where the checker did not run, check them yourself." (「검사기가 잡는다」 단정 없음)
+196~211 → 삭제  "Core (clean-code.md, both paradigms):" 머리 + 점검 15줄 (쪽지 Core로 흡수)
+213 → 272  "Paradigm = OOP (clean-code-oop.md):" → "Paradigm = OOP — template match (outside the note):"
+214 → 273  (원문 그대로 남김) "Main program structure matches zsapkit_oop_ex.prog.abap …" — 템플릿 대조 · check-runtime-path-rename 안전 앵커 zsapkit_oop_ex
+215~221 → 삭제  OOP 점검 7줄 (쪽지 OOP로 흡수)
+223~233 → 삭제  "Paradigm = Procedural (clean-code-procedural.md):" 머리 + 점검 10줄 (쪽지 Procedural로 흡수 — 절차형 템플릿 대조는 쪽지 Procedural 첫 줄에 있다)
+           13항 구조 · 다른 절 불변. 변경 전 §8 원문은 L-30-old-section8.txt.
+
+== analyze-code.md (C-5) ==
+61 뒤 → 62~64  규칙 표(Rule Files) 맨 위에 3행 추가 — 원본 적재 유지(리뷰어 역할 문서의 Load가 쪽지로 바뀌었으므로 직접 적재):
+           62 [clean-code](…/clean-code.md) — Clean ABAP shared baseline
+           63 [clean-code-oop](…/clean-code-oop.md) — "reach for it when the object under review is OO"
+           64 [clean-code-procedural](…/clean-code-procedural.md) — "reach for it when the object under review is procedural"
+           (패러다임 행의 조건 문구는 표의 기존 rap-odata-rules · odata-gateway-rules 행 형식 "reach for it when …"을 따랐다)

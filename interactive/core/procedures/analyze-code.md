@@ -59,6 +59,9 @@ Where the review cannot go forward (source unreadable, say), surface the reason 
 
 | Rule File | Scope |
 |-----------|-------|
+| [clean-code](../knowledge/abap/conventions/clean-code.md) | Clean ABAP shared baseline (Open SQL, internal tables, strings, booleans, conditions, naming, control flow, comments, security) |
+| [clean-code-oop](../knowledge/abap/conventions/clean-code-oop.md) | Clean ABAP for OO code (class design, methods, constructors, exceptions, formatting, testing) — reach for it when the object under review is OO |
+| [clean-code-procedural](../knowledge/abap/conventions/clean-code-procedural.md) | Clean ABAP for procedural code (main program template, TOP-include globals, FORM signatures, procedural error handling) — reach for it when the object under review is procedural |
 | [naming-conventions](../knowledge/abap/conventions/naming-conventions.md) | Naming of ABAP objects (Z/Y prefix, ZCL_/ZIF_/ZCX_, variable prefixes LV_/LS_/LT_, and so on) |
 | [constant-rule](../knowledge/abap/conventions/constant-rule.md) | Declaring and using constants (GC_/LC_/CO_ patterns, keeping magic numbers out) |
 | [oop-pattern](../knowledge/abap/conventions/oop-pattern.md) | OO design patterns (what a class is responsible for, interfaces, exception classes) |

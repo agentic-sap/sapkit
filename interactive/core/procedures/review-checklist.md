@@ -110,7 +110,7 @@ Apply it before counting findings:
 | 5 | OOP two-class pattern | B3 — Structure + Naming | [oop-pattern.md](../knowledge/abap/conventions/oop-pattern.md) | OOP mode only |
 | 6 | Include structure | B3 — Structure + Naming | [include-structure.md](../knowledge/abap/conventions/include-structure.md) | every multi-include program |
 | 7 | Naming conventions | B3 — Structure + Naming | [naming-conventions.md](../knowledge/abap/conventions/naming-conventions.md), [function-module-rule.md](../knowledge/abap/conventions/function-module-rule.md) | every created object |
-| 8 | Clean ABAP (baseline + paradigm) | B2 — Logic Hygiene | [clean-code.md](../knowledge/abap/conventions/clean-code.md) + ONE of [clean-code-oop.md](../knowledge/abap/conventions/clean-code-oop.md) / [clean-code-procedural.md](../knowledge/abap/conventions/clean-code-procedural.md) | every program |
+| 8 | Clean ABAP (baseline + paradigm) | B2 — Logic Hygiene | the conventions note in the §8 body (no file to load) | every program |
 | 9 | ABAP release awareness | B4 — Platform + Config | [abap-release-reference.md](../knowledge/abap/conventions/abap-release-reference.md) | every program |
 | 10 | SAP version awareness | B4 — Platform + Config | [sap-version-reference.md](../knowledge/abap/conventions/sap-version-reference.md) | every program |
 | 11 | SPRO lookup consistency | B4 — Platform + Config | [spro-lookup.md](./spro-lookup.md) | programs depending on SPRO/IMG config |
@@ -191,46 +191,86 @@ Context kit: [naming-conventions.md](../knowledge/abap/conventions/naming-conven
 
 ## §8 — Clean ABAP (baseline + paradigm-specific)
 
-Context kit — **paradigm gate first**: read `Paradigm` out of `interview.md`. `OOP` → load [clean-code.md](../knowledge/abap/conventions/clean-code.md) + [clean-code-oop.md](../knowledge/abap/conventions/clean-code-oop.md); `Procedural` → load [clean-code.md](../knowledge/abap/conventions/clean-code.md) + [clean-code-procedural.md](../knowledge/abap/conventions/clean-code-procedural.md). Loading both paradigm files, or loading the wrong one, invalidates this item's review.
+Context kit: none to load — the conventions note below is this item's kit. Read `Paradigm` out of `interview.md` and judge the Core, House rules, and Release and function modules groups for every program plus the OOP group or the Procedural group by that paradigm — never both.
 
-Core (clean-code.md, both paradigms):
-- [ ] No `SELECT *` — an explicit field list instead
-- [ ] No `SELECT` inside `LOOP` — reach for `FOR ALL ENTRIES` or a join
-- [ ] Every statement that sets `SY-SUBRC` is followed by a check of it (SELECT SINGLE, READ TABLE, CALL FUNCTION with EXCEPTIONS)
-- [ ] The internal table type fits the access pattern (HASHED / SORTED / STANDARD), with no DEFAULT KEY
-- [ ] No `SORT itab.` / `DELETE ADJACENT DUPLICATES FROM itab.` without `BY` / `COMPARING` on a `WITH EMPTY KEY` table — the syntax check only warns and the offline checker is silent (clean-code.md § Variables and Types)
-- [ ] A secondary key is declared when the SELECT source is a transactional / large table AND downstream access runs on non-primary fields
-- [ ] Large-table SELECTs are preceded by a `COUNT(*)` check + tuning plan when the count > 1M
-- [ ] STRING values carry backtick literals; `|...|` templates do the assembly
-- [ ] Booleans declared as `ABAP_BOOL`, tested against `abap_true` / `abap_false`, assigned through `XSDBOOL( )`
-- [ ] Conditions phrased positively, `IS NOT` in place of `NOT IS`, and no IF branch left empty
-- [ ] Explicit typed internal tables preferred over inline `INTO TABLE @DATA(...)` for SELECTs that feed further logic
-- [ ] Inline declarations / modern syntax used where `ABAP_RELEASE` permits — never newer than the configured release
-- [ ] No code left sitting in a comment, no debug statement left behind (`BREAK-POINT`, `MESSAGE 'TEST'`)
-- [ ] No ratio/percentage arithmetic assigned into narrow DEC/CURR fields (`COMPUTE_BCD_OVERFLOW` is runtime-only — static gates cannot catch it)
-- [ ] Reconciliation/verification outputs do not treat absent values as 0 (empty lookup must not assert "difference = 0")
+This block is a copy of the canonical conventions note (clean-code-note, in the ABAP conventions folder) — edit the canonical note and let the gate bring the copies in line; never edit a copy.
 
-Paradigm = OOP (clean-code-oop.md):
+<!-- sapkit:conventions-note:begin -->
+**Core**
+- No `SELECT *` — an explicit field list instead [clean-code.md § Open SQL]
+- No `SELECT` inside `LOOP` — reach for `FOR ALL ENTRIES` or a join [clean-code.md § Open SQL]
+- Every statement that sets `SY-SUBRC` is followed by a check of it (SELECT SINGLE, READ TABLE, CALL FUNCTION with EXCEPTIONS) [clean-code.md § Open SQL]
+- The internal table type fits the access pattern (HASHED / SORTED / STANDARD), with no DEFAULT KEY [clean-code.md § Internal Tables]
+- No `SORT itab.` / `DELETE ADJACENT DUPLICATES FROM itab.` without `BY` / `COMPARING` on a `WITH EMPTY KEY` table — syntax check only warns, offline checker is silent [clean-code.md § Variables and Types]
+- Secondary key on an itab filled from a transactional / large table when downstream access runs on non-primary fields [clean-code.md § Open SQL]
+- Large-table SELECTs: `COUNT(*)` first, tuning plan when > 1M [clean-code.md § Open SQL]
+- STRING values carry backtick literals; `|...|` templates do the assembly [clean-code.md § Strings]
+- Booleans: `ABAP_BOOL`, compared with `abap_true` / `abap_false`, set via `XSDBOOL( )` [clean-code.md § Booleans]
+- Conditions phrased positively, `IS NOT` in place of `NOT IS`, and no IF branch left empty [clean-code.md § Conditions and IFs]
+- Explicit typed itabs over inline `INTO TABLE @DATA(...)` for SELECTs feeding further logic [clean-code.md § Open SQL]
+- Inline declarations / modern syntax used where `ABAP_RELEASE` permits — never newer than the configured release [clean-code.md § Version Awareness]
+- No commented-out code, no leftover debug statement (`BREAK-POINT`, `MESSAGE 'TEST'`) [clean-code.md § Comments]
+- No ratio/percentage arithmetic assigned into narrow DEC/CURR fields (`COMPUTE_BCD_OVERFLOW` is runtime-only) [clean-code.md § Variables and Types]
+- Reconciliation outputs never treat absent values as 0 (empty lookup must not assert "difference = 0") [clean-code.md § Reconciliation Logic — Null vs Zero]
+- Descriptive full-word names, no abbreviations; single letters only for loop counters; booleans `is_*` / `has_*`; methods verbs, classes nouns [clean-code.md § Naming]
+- Guard clauses first; extract past 3 `IF` levels; `CASE` over an `IF/ELSEIF` chain on one variable; no `EXIT` / `CHECK` mid long loop, no unexplained `CONTINUE` [clean-code.md § Control Flow]
+- CURR of a `CURRDEC = 0` currency (KRW, JPY) is stored as display ÷ 100: scale display-unit thresholds before comparing, never store an external amount in CURR unconverted [clean-code.md § Currency Amounts — CURR Internal Unit ≠ Display Unit (TCURX)]
+- Integer `/` rounds, `DIV` truncates; move `NUMC` / `DATS` into a `TYPE i` local before comparing with an arithmetic expression [clean-code.md § Arithmetic and Initial Values]
+- No verdict in a type whose initial value is valid (`SYMSGNO` `'000'`) — use a boolean; guard blank `DATS` with `IS INITIAL OR <d> CO ' 0'` [clean-code.md § Arithmetic and Initial Values]
+- Fixed-width record structures type dates `NUMC(8)`, never `DATS`; offsets count characters, layouts bytes [clean-code.md § Fixed-Width File Serialization — Keep `DATS` Out of the Record Structure]
+- Code after a `RETURN` never runs — find the routine's `RETURN`s before appending above `ENDFORM` / `ENDMETHOD` [clean-code.md § Editing Existing Code — Two Silent Traps]
+- Renaming a shared type component: send definition and use sites together, then `GrepPackages` + `CheckSyntax` every consumer [clean-code.md § Editing Existing Code — Two Silent Traps]
+- All user-visible text via text elements or message classes — no hardcoded language literals in logic [clean-code.md § Text and User Interaction]
+- `AUTHORITY-CHECK` at every entry point; user input never concatenated into `EXEC SQL` / dynamic `WHERE`; mask PII in logs and messages [clean-code.md § Security and Data Handling]
+
+**OOP**
+- Classes `FINAL` unless designed for inheritance; members `PRIVATE` by default [clean-code-oop.md § Object Orientation — Scope and Design]
+- One job per method, at most 30 lines, one abstraction level, at most 3 IMPORTING parameters [clean-code-oop.md § Method Body] [clean-code-oop.md § Methods — Parameters and Calls]
+- A method returns one value (`RETURNING` over `EXPORTING`); no boolean input parameter [clean-code-oop.md § Methods — Parameters and Calls]
+- `NEW #( ... )` over `CREATE OBJECT`; several static creation methods over optional constructor params [clean-code-oop.md § Constructors]
+- Exceptions: class-based only, from the project's own super class, foreign `CX_SY_*` wrapped, raised with `RAISE EXCEPTION NEW` [clean-code-oop.md § Error Handling — Detail]
+- Formatting: 120-char lines, consistent alignment, one statement per line [clean-code-oop.md § Formatting]
+- Tests: given-when-then names, publics only, doubles injected through the constructor, `LOCAL FRIENDS` only for constructor access [clean-code-oop.md § Testing — Detail]
+- Comments above the statement, not trailing; no version notes or begin/end markers; ABAP Doc only on public APIs; pragmas over `"#EC` [clean-code-oop.md § Comments — Detail (beyond main file)]
+
+**Procedural**
+- Main program structure matches template main-program.abap — REPORT statement, INCLUDE order (t/c/s/o/i/a/f, optional `_tst` last — never `e`), event block layout, PBO/PAI modules as one-line `PERFORM` delegators; deviations justified in `spec.md` [clean-code-procedural.md § Mandatory Main Program Template (MUST match)]
+- All globals declared in the TOP include only; no `DATA` in PBO/PAI/FORM/EVENT includes [clean-code-procedural.md § Global vs Local Discipline (TOP include)]
+- Globals `g*`, locals `l*` — told apart on sight; no local shadows a global [clean-code-procedural.md § Global vs Local Discipline (TOP include)]
+- Every FORM parameter typed (`USING p_a TYPE ...`); inputs via `USING`, in/out via `CHANGING`; no boolean `USING` [clean-code-procedural.md § FORM / PERFORM — Parameters and Signatures]
+- Screen-bound FORMs end with the `_{screen_no}` suffix; utility FORMs have no suffix [clean-code-procedural.md § FORM Body]
+- A PBO/PAI module body is one `PERFORM f_...` line; the logic lives in the FORM [clean-code-procedural.md § FORM Body]
+- `sy-subrc` checked after every statement that sets it; `CALL FUNCTION` uses the `EXCEPTIONS` clause with `CASE sy-subrc` [clean-code-procedural.md § Procedural Error Handling]
+- `EXIT` / `STOP` / `LEAVE PROGRAM` never stand in for error handling [clean-code-procedural.md § Procedural Error Handling]
+- One-line header comment above each FORM: inputs / outputs / global side effects [clean-code-procedural.md § Comments — Procedural-Specific]
+- Where the spec calls for tests, testable logic is pulled out into `LCL_HELPER`, not left inside FORMs [clean-code-procedural.md § Procedural Testing — Limits and Workarounds]
+- FORM for program-local logic, FM for cross-program or RFC reuse; never share logic via includes or create an FM just for length [clean-code-procedural.md § Modularization Boundaries]
+
+**House rules**
+- Magic literals in logic (status/type codes, screen numbers, GUI status names, thresholds, compared return codes) become `CONSTANTS` in the TOP include [constant-rule.md § 1. What must become a constant] [constant-rule.md § 3. Where the declaration goes]
+- Numbered objects `Z{MODULE}{TYPE}{NN}` (R report, S structure, T table, Y table type, E data element, D domain, V view); prove `{NN}` free via `SearchObject`, take last + 10, one `{NN}` per feature [naming-conventions.md § 3. Numbered objects — `Z{MODULE}{TYPE}{NN}`] [naming-conventions.md § 2. Claim the sequence number before you propose a name — MANDATORY]
+- `Z{MODULE}FG_{PURPOSE}` / `Z{MODULE}FM_{PURPOSE}` (never `Z_MM_...`); `ZCL_` / `ZIF_` / `ZCX_{MODULE}_{PURPOSE}`; CDS `ZI_` / `ZR_` / `ZC_` / `ZP_{MODULE}_{Name}` [naming-conventions.md § 4. Unnumbered objects — patterns keyed by purpose]
+- Write every applicable text-pool type (`R` title, `I` per `TEXT-xxx`, `S` per selection field, `H` only for WRITE lists) in the logon language and in `'E'` [text-element-rule.md § Scope — Four Text Pool Types (MUST verify ALL that apply)] [text-element-rule.md § Language Strategy (MANDATORY — two passes)]
+- An `S` label starts at offset 8: via the MCP text tools `text` begins with 8 reserved characters; in an abapGit `TPOOL` they stay out of `ENTRY` [text-element-rule.md § Selection Texts — the Label Starts at Offset 8]
+- Main program = `REPORT` + `INCLUDE`s + delegating event blocks; only the includes needed, never `e` in Procedural; no declaration after an event block [include-structure.md § Main Program Body] [include-structure.md § Event Blocks — Placement and Order]
+- Activation does not cascade: activate main + every include (one `ActivateObjects`), then confirm `GetInactiveObjects` is empty [include-structure.md § Activation Protocol — MANDATORY (matches every skill that creates includes)]
+- OOP split: `LCL_DATA` (`{PROG}c`) extracts data, no UI; `LCL_ALV` (`{PROG}a`) displays it; ALV follows the OOP sample reusing `ZCL_SAPKIT_CM_*`; messages `S_UNIFIED_CON`, no new `ZMC` [oop-pattern.md § Two-Class Split (Mandatory)] [oop-pattern.md § ALV Requirement (Mandatory)]
+
+**Release and function modules**
+- Never emit syntax newer than the configured `ABAP_RELEASE`; if it is unset, stop and ask [abap-release-reference.md § 5. Checklist before emitting ABAP]
+- Release `< 740`: no inline declarations, constructor expressions (`NEW`, `VALUE`, `COND` …), table expressions, string templates or chained method calls [abap-release-reference.md § 3. Feature matrix — the release each feature arrives in]
+- FM signature inline in the `FUNCTION` statement — never a `*"` comment block or the `functionModuleParameter` placeholder [function-module-rule.md § HARD RULE — Inline signature only]
+- No shadow locals (`lv_iv_xxx`) standing in for FM parameters — declare the real parameter [function-module-rule.md § Required source template (every FM)]
+
+Not covered here? Open the section named in the rule's tag, in that file of the ABAP conventions folder.
+<!-- sapkit:conventions-note:end -->
+
+Point out a departure from clean ABAP even where the note does not cover it — use your own judgment.
+
+Formatting rules: where the bundled checker's results are present, accept its verdict and do not raise the same finding again; where the checker did not run, check them yourself.
+
+Paradigm = OOP — template match (outside the note):
 - [ ] **Main program structure matches [zsapkit_oop_ex.prog.abap](../knowledge/abap/templates/oop-sample/zsapkit_oop_ex.prog.abap)** — REPORT statement, INCLUDE order, event block layout, two-class bootstrap (`go_data = NEW #( ).` / `go_alv = NEW #( ).`). Any structural deviation must be justified in `spec.md`; otherwise MAJOR finding.
-- [ ] Classes carry `FINAL` unless inheritance was designed in; `PRIVATE` is the default visibility for members
-- [ ] One job per method, at most 30 lines, one abstraction level, at most 3 IMPORTING parameters
-- [ ] A method hands back a single value (`RETURNING` in place of `EXPORTING`); no boolean arrives as an input parameter
-- [ ] `NEW #( ... )` in place of `CREATE OBJECT`; several static creation methods in place of optional constructor params
-- [ ] Exceptions are class-based only, descend from the project's own super class, wrap foreign `CX_SY_*`, and are raised with `RAISE EXCEPTION NEW`
-- [ ] Formatting holds a 120-char line limit, keeps alignment consistent, and puts one statement per line
-- [ ] Tests are named given-when-then, exercise publics only, take their doubles through the constructor, and reach for `LOCAL FRIENDS` only to get at the constructor
-
-Paradigm = Procedural (clean-code-procedural.md):
-- [ ] **Main program structure matches [main-program.abap](../knowledge/abap/templates/procedural-sample/main-program.abap)** — REPORT statement, INCLUDE order (t/c/s/o/i/a/f, optional `_tst` last — never `e`), event block layout, PBO/PAI modules as one-line `PERFORM` delegators. Any structural deviation must be justified in `spec.md`; otherwise MAJOR finding.
-- [ ] All globals declared in the TOP include only; no `DATA` in PBO/PAI/FORM/EVENT includes
-- [ ] Globals and locals are told apart on sight (`g*` vs `l*` prefix); no global is shadowed by a local
-- [ ] Every FORM parameter carries a type (`USING p_a TYPE ...`); inputs go through `USING`, in/out through `CHANGING`; no boolean is passed as `USING`
-- [ ] Screen-bound FORMs end with the `_{screen_no}` suffix; utility FORMs have no suffix
-- [ ] A PBO/PAI module body is a single `PERFORM f_...` line; the logic itself sits in the FORM, not in the module
-- [ ] `sy-subrc` checked after every statement that sets it; `CALL FUNCTION` uses the `EXCEPTIONS` clause with `CASE sy-subrc`
-- [ ] `EXIT` / `STOP` / `LEAVE PROGRAM` never stand in for error handling
-- [ ] A one-line header comment sits above each FORM, naming its inputs / outputs / global side effects
-- [ ] Where the spec calls for tests, the testable logic has been pulled out into `LCL_HELPER` rather than left inside the FORMs
 
 ## §9 — ABAP Release Awareness
 
