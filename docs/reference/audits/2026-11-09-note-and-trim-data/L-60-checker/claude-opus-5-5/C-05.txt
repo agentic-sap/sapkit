@@ -1,0 +1,248 @@
+L-60-checker/claude-opus-5-5/C-05.txt — 동봉 검사기 원출력 (판L T6 · 2026-11-09)
+대상: docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-05.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (판J 11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-05.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-05.abap
+--- stdout (0 bytes) ---
+
+--- stderr (101 bytes) ---
+docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-05.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-05.abap
+--- stdout (4900 bytes) ---
+Report               REPORT zjudge_c05 LINE - SIZE 120 NO STANDARD PAGE HEADING .
+TypeBegin            TYPES BEGIN OF gty_customer ,
+Type                 TYPES land1 TYPE kna1 - land1 ,
+Type                 TYPES kunnr TYPE kna1 - kunnr ,
+Type                 TYPES name1 TYPE kna1 - name1 ,
+Type                 TYPES ort01 TYPE kna1 - ort01 ,
+TypeEnd              TYPES END OF gty_customer ,
+Type                 TYPES gty_customer_tab TYPE SORTED TABLE OF gty_customer WITH UNIQUE KEY land1 kunnr ,
+TypeBegin            TYPES BEGIN OF gty_country_count ,
+Type                 TYPES land1 TYPE kna1 - land1 ,
+Type                 TYPES customer_count TYPE i ,
+TypeEnd              TYPES END OF gty_country_count ,
+Type                 TYPES gty_country_count_tab TYPE HASHED TABLE OF gty_country_count WITH UNIQUE KEY land1 .
+Constant             CONSTANTS gc_auth_object TYPE xuobject VALUE 'F_KNA1_GEN' ,
+Constant             CONSTANTS gc_activity_display TYPE activ_auth VALUE '03' ,
+Constant             CONSTANTS gc_msgty_success TYPE symsgty VALUE 'S' ,
+Constant             CONSTANTS gc_msgty_error TYPE symsgty VALUE 'E' ,
+Constant             CONSTANTS gc_max_rows TYPE i VALUE 1000000 .
+Data                 DATA gv_land1 TYPE kna1 - land1 ,
+Data                 DATA gv_row_count TYPE i ,
+Data                 DATA gt_customers TYPE gty_customer_tab ,
+Data                 DATA gt_country_counts TYPE gty_country_count_tab .
+SelectOption         SELECT - OPTIONS s_land1 FOR gv_land1 .
+Move                 AT SELECTION - SCREEN .
+Perform              PERFORM f_check_authority .
+StartOfSelection     START - OF - SELECTION .
+Perform              PERFORM f_check_authority .
+Perform              PERFORM f_select_customers .
+Perform              PERFORM f_write_list .
+Comment              * in: - / out: - / globals: none; raises error message if not authorized
+Form                 FORM f_check_authority .
+Move                 AUTHORITY - CHECK OBJECT gc_auth_object ID 'ACTVT' FIELD gc_activity_display .
+If                   IF sy - subrc <> 0 .
+Message              MESSAGE TEXT - e01 TYPE gc_msgty_error .
+EndIf                ENDIF .
+EndForm              ENDFORM .
+Comment              * in: s_land1 / out: - / globals: fills gv_row_count, gt_customers, gt_country_counts
+Form                 FORM f_select_customers .
+Data                 DATA ls_customer TYPE gty_customer .
+Data                 DATA ls_country_count TYPE gty_country_count .
+Select               SELECT COUNT ( * ) FROM kna1 INTO gv_row_count WHERE land1 IN s_land1 .
+If                   IF sy - subrc <> 0 .
+Return               RETURN .
+EndIf                ENDIF .
+If                   IF gv_row_count > gc_max_rows .
+Message              MESSAGE TEXT - e02 TYPE gc_msgty_success DISPLAY LIKE gc_msgty_error .
+Return               RETURN .
+EndIf                ENDIF .
+Select               SELECT land1 kunnr name1 ort01 FROM kna1 INTO TABLE gt_customers WHERE land1 IN s_land1 .
+If                   IF sy - subrc <> 0 .
+Return               RETURN .
+EndIf                ENDIF .
+Loop                 LOOP AT gt_customers INTO ls_customer .
+Move                 ls_country_count - land1 = ls_customer - land1 .
+Move                 ls_country_count - customer_count = 1 .
+Move                 COLLECT ls_country_count INTO gt_country_counts .
+EndLoop              ENDLOOP .
+EndForm              ENDFORM .
+Comment              * in: gt_customers, gt_country_counts / out: WRITE list / globals: read only
+Form                 FORM f_write_list .
+Data                 DATA ls_customer TYPE gty_customer .
+Data                 DATA ls_country_count TYPE gty_country_count .
+If                   IF gt_customers IS INITIAL .
+Message              MESSAGE TEXT - e03 TYPE gc_msgty_success DISPLAY LIKE gc_msgty_error .
+Return               RETURN .
+EndIf                ENDIF .
+Loop                 LOOP AT gt_customers INTO ls_customer .
+Move                 AT NEW land1 .
+Move                 SKIP .
+ReadTable            READ TABLE gt_country_counts INTO ls_country_count WITH TABLE KEY land1 = ls_customer - land1 .
+If                   IF sy - subrc = 0 .
+Write                WRITE / TEXT - 001 ,
+Write                WRITE ls_customer - land1 ,
+Write                WRITE TEXT - 002 ,
+Write                WRITE ls_country_count - customer_count .
+Else                 ELSE .
+Write                WRITE / TEXT - 001 ,
+Write                WRITE ls_customer - land1 ,
+Write                WRITE TEXT - 002 ,
+Write                WRITE TEXT - 003 .
+EndIf                ENDIF .
+Move                 ULINE .
+Move                 ENDAT .
+Write                WRITE /5 ls_customer - kunnr ,
+Write                WRITE 18 ls_customer - name1 ,
+Write                WRITE 55 ls_customer - ort01 ,
+Write                WRITE 92 ls_customer - land1 .
+EndLoop              ENDLOOP .
+EndForm              ENDFORM .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-05.abap
+--- stdout (3448 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 11,
+      "endLine": 11,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 16,
+      "endLine": 16,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 18,
+      "endLine": 18,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 19,
+      "endLine": 19,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 20,
+      "endLine": 20,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 22,
+      "endLine": 22,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 23,
+      "endLine": 23,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 24,
+      "endLine": 24,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 48,
+      "endLine": 48,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 69,
+      "endLine": 69,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 77,
+      "endLine": 77,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 11,
+    "bySeverity": {
+      "medium": 11
+    },
+    "byCategory": {
+      "quality": 11
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=11 analyze_info=0 error_grade=0 warnings=11 source_lines=102 bytes=3147 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (판J 11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

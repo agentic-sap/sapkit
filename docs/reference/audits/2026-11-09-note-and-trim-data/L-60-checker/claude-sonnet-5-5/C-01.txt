@@ -1,0 +1,549 @@
+L-60-checker/claude-sonnet-5-5/C-01.txt — 동봉 검사기 원출력 (판L T6 · 2026-11-09)
+대상: docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-01.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (판J 11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-01.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-01.abap
+--- stdout (619 bytes) ---
+docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-01.abap:135:9: W [local_variable_names] Local variable name "lo_columns" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-01.abap:136:9: W [local_variable_names] Local variable name "lx_msg" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-01.abap:171:8: W [local_variable_names] Local variable name "lo_column" is outside the agreed pattern ^[Ll][VvSsTtRrCc]_\w+$
+--- stderr (122 bytes) ---
+docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-01.abap: 3 finding(s), 0 at Error level
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-01.abap
+--- stdout (9318 bytes) ---
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Report ZJUDGE_C01
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Lists purchasing document headers (EKKO) in an ALV grid.
+Comment              *& Release-neutral syntax (no inline declarations, no string templates).
+Comment              *& All user-visible texts are held as constants because no separate
+Comment              *& text pool is delivered with this file.
+Comment              *&---------------------------------------------------------------------*
+Report               REPORT zjudge_c01 .
+Move                 TABLES ekko .
+TypeBegin            TYPES BEGIN OF gty_header ,
+Type                 TYPES ebeln TYPE ekko - ebeln ,
+Type                 TYPES bukrs TYPE ekko - bukrs ,
+Type                 TYPES ekorg TYPE ekko - ekorg ,
+Type                 TYPES lifnr TYPE ekko - lifnr ,
+Type                 TYPES bedat TYPE ekko - bedat ,
+Type                 TYPES bsart TYPE ekko - bsart ,
+Type                 TYPES ekgrp TYPE ekko - ekgrp ,
+TypeEnd              TYPES END OF gty_header .
+Type                 TYPES gty_header_table TYPE SORTED TABLE OF gty_header WITH UNIQUE KEY ebeln .
+Constant             CONSTANTS gc_msgty_info TYPE sy - msgty VALUE 'I' ,
+Constant             CONSTANTS gc_msgty_success TYPE sy - msgty VALUE 'S' ,
+Constant             CONSTANTS gc_activity_display TYPE activ_auth VALUE '03' ,
+Constant             CONSTANTS gc_auth_object TYPE xuobject VALUE 'M_BEST_EKO' ,
+Constant             CONSTANTS gc_field_activity TYPE char5 VALUE 'ACTVT' ,
+Constant             CONSTANTS gc_field_org TYPE char5 VALUE 'EKORG' ,
+Constant             CONSTANTS gc_default_rows TYPE i VALUE 500 ,
+Constant             CONSTANTS gc_large_threshold TYPE i VALUE 1000000 ,
+Constant             CONSTANTS gc_col_ebeln TYPE lvc_fname VALUE 'EBELN' ,
+Constant             CONSTANTS gc_col_bukrs TYPE lvc_fname VALUE 'BUKRS' ,
+Constant             CONSTANTS gc_col_ekorg TYPE lvc_fname VALUE 'EKORG' ,
+Constant             CONSTANTS gc_col_lifnr TYPE lvc_fname VALUE 'LIFNR' ,
+Constant             CONSTANTS gc_col_bedat TYPE lvc_fname VALUE 'BEDAT' ,
+Constant             CONSTANTS gc_col_bsart TYPE lvc_fname VALUE 'BSART' ,
+Constant             CONSTANTS gc_col_ekgrp TYPE lvc_fname VALUE 'EKGRP' ,
+Constant             CONSTANTS gc_txt_sel_ekorg TYPE char40 VALUE 'Purchasing organization' ,
+Constant             CONSTANTS gc_txt_sel_bedat TYPE char40 VALUE 'Document date' ,
+Constant             CONSTANTS gc_txt_sel_rows TYPE char40 VALUE 'Maximum number of rows' ,
+Constant             CONSTANTS gc_txt_no_data TYPE char60 VALUE 'No purchasing documents match the selection.' ,
+Constant             CONSTANTS gc_txt_bad_rows TYPE char60 VALUE 'Maximum number of rows must be greater than zero.' ,
+Constant             CONSTANTS gc_txt_no_auth TYPE char60 VALUE 'No authorization for the selected purchasing documents.' ,
+Constant             CONSTANTS gc_txt_alv_error TYPE char60 VALUE 'The ALV grid could not be displayed.' ,
+Constant             CONSTANTS gc_txt_large TYPE char60 VALUE 'Large result set: output is limited to the maximum rows.' .
+Data                 DATA gt_headers TYPE gty_header_table ,
+Data                 DATA go_alv TYPE REF TO cl_salv_table .
+SelectOption         SELECT - OPTIONS s_ekorg FOR ekko - ekorg ,
+SelectOption         SELECT - OPTIONS s_bedat FOR ekko - bedat .
+Parameter            PARAMETERS p_rows TYPE i DEFAULT 500 .
+Move                 INITIALIZATION .
+Perform              PERFORM f_set_selection_texts .
+StartOfSelection     START - OF - SELECTION .
+Perform              PERFORM f_validate_input .
+Perform              PERFORM f_read_headers .
+Perform              PERFORM f_display_headers .
+Comment              *&---------------------------------------------------------------------*
+Comment              * Inputs: none / Outputs: none / Side effects: sets selection texts
+Form                 FORM f_set_selection_texts .
+Move                 %_s_ekorg_%_app_% - text = gc_txt_sel_ekorg .
+Move                 %_s_bedat_%_app_% - text = gc_txt_sel_bedat .
+Move                 %_p_rows_%_app_% - text = gc_txt_sel_rows .
+EndForm              ENDFORM .
+Comment              * Inputs: p_rows / Outputs: none / Side effects: stops on invalid input
+Form                 FORM f_validate_input .
+If                   IF p_rows <= 0 .
+Message              MESSAGE gc_txt_bad_rows TYPE gc_msgty_success DISPLAY LIKE 'E' .
+Leave                LEAVE LIST - PROCESSING .
+EndIf                ENDIF .
+EndForm              ENDFORM .
+Comment              * Inputs: selection screen / Outputs: none / Side effects: fills gt_headers
+Form                 FORM f_read_headers .
+Data                 DATA lt_raw_headers TYPE gty_header_table ,
+Data                 DATA ls_header TYPE gty_header ,
+Data                 DATA lv_count TYPE i ,
+Data                 DATA lv_is_allowed TYPE abap_bool .
+Select               SELECT COUNT ( * ) FROM ekko INTO lv_count WHERE ekorg IN s_ekorg AND bedat IN s_bedat .
+If                   IF sy - subrc <> 0 OR lv_count = 0 .
+Message              MESSAGE gc_txt_no_data TYPE gc_msgty_info .
+Return               RETURN .
+EndIf                ENDIF .
+If                   IF lv_count > gc_large_threshold .
+Message              MESSAGE gc_txt_large TYPE gc_msgty_info .
+EndIf                ENDIF .
+Select               SELECT ebeln bukrs ekorg lifnr bedat bsart ekgrp FROM ekko INTO TABLE lt_raw_headers UP TO p_rows ROWS WHERE ekorg IN s_ekorg AND bedat IN s_bedat ORDER BY ebeln .
+If                   IF sy - subrc <> 0 .
+Message              MESSAGE gc_txt_no_data TYPE gc_msgty_info .
+Return               RETURN .
+EndIf                ENDIF .
+Loop                 LOOP AT lt_raw_headers INTO ls_header .
+Perform              PERFORM f_check_authority USING ls_header - ekorg CHANGING lv_is_allowed .
+If                   IF lv_is_allowed = abap_true .
+InsertInternal       INSERT ls_header INTO TABLE gt_headers .
+EndIf                ENDIF .
+EndLoop              ENDLOOP .
+If                   IF gt_headers IS INITIAL .
+Message              MESSAGE gc_txt_no_auth TYPE gc_msgty_info .
+EndIf                ENDIF .
+EndForm              ENDFORM .
+Comment              * Inputs: p_ekorg / Outputs: p_is_allowed / Side effects: none
+Form                 FORM f_check_authority USING p_ekorg TYPE ekko - ekorg CHANGING p_is_allowed TYPE abap_bool .
+Move                 AUTHORITY - CHECK OBJECT gc_auth_object ID gc_field_activity FIELD gc_activity_display ID gc_field_org FIELD p_ekorg .
+Move                 p_is_allowed = boolc ( sy - subrc = 0 ) .
+EndForm              ENDFORM .
+Comment              * Inputs: gt_headers / Outputs: none / Side effects: shows ALV or message
+Form                 FORM f_display_headers .
+Data                 DATA lo_columns TYPE REF TO cl_salv_columns_table ,
+Data                 DATA lx_msg TYPE REF TO cx_salv_msg .
+If                   IF gt_headers IS INITIAL .
+Return               RETURN .
+EndIf                ENDIF .
+Try                  TRY .
+Call                 cl_salv_table => factory ( IMPORTING r_salv_table = go_alv CHANGING t_table = gt_headers ) .
+Catch                CATCH cx_salv_msg INTO lx_msg .
+Message              MESSAGE gc_txt_alv_error TYPE gc_msgty_info .
+Return               RETURN .
+EndTry               ENDTRY .
+Move                 lo_columns = go_alv -> get_columns ( ) .
+Call                 lo_columns -> set_optimize ( abap_true ) .
+Perform              PERFORM f_set_heading USING lo_columns gc_col_ebeln 'Document' 'Document' 'Purchasing document' .
+Perform              PERFORM f_set_heading USING lo_columns gc_col_bukrs 'Co. code' 'Company code' 'Company code' .
+Perform              PERFORM f_set_heading USING lo_columns gc_col_ekorg 'Purch.org' 'Purch. org.' 'Purchasing organization' .
+Perform              PERFORM f_set_heading USING lo_columns gc_col_lifnr 'Vendor' 'Vendor' 'Vendor account number' .
+Perform              PERFORM f_set_heading USING lo_columns gc_col_bedat 'Doc. date' 'Document date' 'Document date' .
+Perform              PERFORM f_set_heading USING lo_columns gc_col_bsart 'Doc. type' 'Document type' 'Purchasing document type' .
+Perform              PERFORM f_set_heading USING lo_columns gc_col_ekgrp 'Purch.grp' 'Purch. group' 'Purchasing group' .
+Call                 go_alv -> display ( ) .
+EndForm              ENDFORM .
+Comment              * Inputs: column container, name, texts / Outputs: none / Side effects: sets column texts
+Form                 FORM f_set_heading USING p_columns TYPE REF TO cl_salv_columns_table p_name TYPE lvc_fname p_short TYPE scrtext_s p_medium TYPE scrtext_m p_long TYPE scrtext_l .
+Data                 DATA lo_column TYPE REF TO cl_salv_column .
+Try                  TRY .
+Move                 lo_column = p_columns -> get_column ( p_name ) .
+Call                 lo_column -> set_short_text ( p_short ) .
+Call                 lo_column -> set_medium_text ( p_medium ) .
+Call                 lo_column -> set_long_text ( p_long ) .
+Catch                CATCH cx_salv_not_found .
+Return               RETURN .
+EndTry               ENDTRY .
+EndForm              ENDFORM .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-01.abap
+--- stdout (10839 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 26,
+      "endLine": 26,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 27,
+      "endLine": 27,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 29,
+      "endLine": 29,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 30,
+      "endLine": 30,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 31,
+      "endLine": 31,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 32,
+      "endLine": 32,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 33,
+      "endLine": 33,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 34,
+      "endLine": 34,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 35,
+      "endLine": 35,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 36,
+      "endLine": 36,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 37,
+      "endLine": 37,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 38,
+      "endLine": 38,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 39,
+      "endLine": 39,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 40,
+      "endLine": 40,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 41,
+      "endLine": 41,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 42,
+      "endLine": 42,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 43,
+      "endLine": 43,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 44,
+      "endLine": 44,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 45,
+      "endLine": 45,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 46,
+      "endLine": 46,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 47,
+      "endLine": 47,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 48,
+      "endLine": 48,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 51,
+      "endLine": 51,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 55,
+      "endLine": 55,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 70,
+      "endLine": 70,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 84,
+      "endLine": 84,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 85,
+      "endLine": 85,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 86,
+      "endLine": 86,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 125,
+      "endLine": 125,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 129,
+      "endLine": 129,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 136,
+      "endLine": 136,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 145,
+      "endLine": 145,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 167,
+      "endLine": 167,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 168,
+      "endLine": 168,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 169,
+      "endLine": 169,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 170,
+      "endLine": 170,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 36,
+    "bySeverity": {
+      "medium": 36
+    },
+    "byCategory": {
+      "quality": 36
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=3 analyze_high=0 analyze_medium=36 analyze_info=0 error_grade=0 warnings=39 source_lines=181 bytes=6679 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (판J 11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

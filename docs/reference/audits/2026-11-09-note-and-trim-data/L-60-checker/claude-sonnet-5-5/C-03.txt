@@ -1,0 +1,91 @@
+L-60-checker/claude-sonnet-5-5/C-03.txt — 동봉 검사기 원출력 (판L T6 · 2026-11-09)
+대상: docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-03.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (판J 11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-03.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-03.abap
+--- stdout (0 bytes) ---
+
+--- stderr (103 bytes) ---
+docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-03.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-03.abap
+--- stdout (1323 bytes) ---
+Call                 FUNCTION z_judge_c03_get_material_text IMPORTING VALUE ( iv_matnr ) TYPE matnr VALUE ( iv_spras ) TYPE spras OPTIONAL EXPORTING VALUE ( ev_maktx ) TYPE maktx EXCEPTIONS material_not_found text_not_found .
+Data                 DATA lv_matnr_checked TYPE matnr .
+Data                 DATA lv_language TYPE spras .
+Data                 DATA lv_description TYPE maktx .
+Clear                CLEAR ev_maktx .
+Comment              " Material master existence check, independent of the language
+Select               SELECT SINGLE matnr FROM mara INTO lv_matnr_checked WHERE matnr = iv_matnr .
+If                   IF sy - subrc <> 0 .
+Raise                RAISE material_not_found .
+EndIf                ENDIF .
+Comment              " Default to the logon language when the caller passes none
+If                   IF iv_spras IS INITIAL .
+Move                 lv_language = sy - langu .
+Else                 ELSE .
+Move                 lv_language = iv_spras .
+EndIf                ENDIF .
+Select               SELECT SINGLE maktx FROM makt INTO lv_description WHERE matnr = iv_matnr AND spras = lv_language .
+If                   IF sy - subrc <> 0 .
+Raise                RAISE text_not_found .
+EndIf                ENDIF .
+Move                 ev_maktx = lv_description .
+EndFunction          ENDFUNCTION .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-03.abap
+--- stdout (790 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 12,
+      "endLine": 12,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 13,
+      "endLine": 13,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 2,
+    "bySeverity": {
+      "medium": 2
+    },
+    "byCategory": {
+      "quality": 2
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=2 analyze_info=0 error_grade=0 warnings=2 source_lines=44 bytes=944 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (판J 11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

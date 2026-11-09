@@ -1,0 +1,289 @@
+L-60-checker/claude-opus-5-5/C-02.txt — 동봉 검사기 원출력 (판L T6 · 2026-11-09)
+대상: docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-02.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (판J 11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-02.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-02.abap
+--- stdout (0 bytes) ---
+
+--- stderr (101 bytes) ---
+docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-02.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-02.abap
+--- stdout (5949 bytes) ---
+Comment              "! Computes the net amount after applying a percentage discount to a gross amount.
+Comment              "! Assumes ABAP_RELEASE >= 7.52 and the global exception class ZCX_JUDGE_C02_DISCOUNT
+Comment              "! (inheriting from CX_STATIC_CHECK). A public method of a global class cannot declare
+Comment              "! a local exception class in its RAISING clause, so the global class is referenced.
+ClassDefinition      CLASS zcl_judge_c02_discount DEFINITION PUBLIC FINAL CREATE PUBLIC .
+Public               PUBLIC SECTION .
+Type                 TYPES ty_amount TYPE p LENGTH 15 DECIMALS 2 .
+Type                 TYPES ty_percentage TYPE p LENGTH 5 DECIMALS 2 .
+Comment              "! Returns the gross amount reduced by the discount percentage, rounded to 2 decimals.
+Comment              "! @parameter gross_amount        | Gross amount, must not be negative
+Comment              "! @parameter discount_percentage | Discount percentage, 0 to 100 inclusive
+Comment              "! @parameter result              | Net amount
+Comment              "! @raising   zcx_judge_c02_discount | Gross amount negative or percentage out of range
+MethodDef            METHODS calculate IMPORTING gross_amount TYPE ty_amount discount_percentage TYPE ty_percentage RETURNING VALUE ( result ) TYPE ty_amount RAISING zcx_judge_c02_discount .
+Private              PRIVATE SECTION .
+Constant             CONSTANTS minimum_percentage TYPE ty_percentage VALUE 0 .
+Constant             CONSTANTS maximum_percentage TYPE ty_percentage VALUE 100 .
+Constant             CONSTANTS minimum_amount TYPE ty_amount VALUE 0 .
+MethodDef            METHODS validate_input IMPORTING gross_amount TYPE ty_amount discount_percentage TYPE ty_percentage RAISING zcx_judge_c02_discount .
+EndClass             ENDCLASS .
+ClassImplementation  CLASS zcl_judge_c02_discount IMPLEMENTATION .
+MethodImplementation METHOD calculate .
+Call                 validate_input ( gross_amount = gross_amount discount_percentage = discount_percentage ) .
+Comment              " Net never exceeds gross, so the result fits the gross amount type.
+Comment              " Packed arithmetic keeps full intermediate precision and rounds commercially on assignment.
+Move                 result = gross_amount - gross_amount * discount_percentage / maximum_percentage .
+EndMethod            ENDMETHOD .
+MethodImplementation METHOD validate_input .
+If                   IF gross_amount < minimum_amount .
+Raise                RAISE EXCEPTION NEW zcx_judge_c02_discount ( ) .
+EndIf                ENDIF .
+If                   IF discount_percentage < minimum_percentage OR discount_percentage > maximum_percentage .
+Raise                RAISE EXCEPTION NEW zcx_judge_c02_discount ( ) .
+EndIf                ENDIF .
+EndMethod            ENDMETHOD .
+EndClass             ENDCLASS .
+ClassDefinition      CLASS ltc_discount DEFINITION FINAL FOR TESTING DURATION SHORT RISK LEVEL HARMLESS .
+Private              PRIVATE SECTION .
+Data                 DATA calculator TYPE REF TO zcl_judge_c02_discount .
+MethodDef            METHODS setup .
+MethodDef            METHODS given_ten_pct_then_net_reduced FOR TESTING RAISING cx_static_check .
+MethodDef            METHODS given_full_pct_then_net_zero FOR TESTING RAISING cx_static_check .
+MethodDef            METHODS given_fraction_then_rounded FOR TESTING RAISING cx_static_check .
+MethodDef            METHODS given_negative_gross_then_fail FOR TESTING .
+MethodDef            METHODS given_pct_over_max_then_fail FOR TESTING .
+EndClass             ENDCLASS .
+ClassImplementation  CLASS ltc_discount IMPLEMENTATION .
+MethodImplementation METHOD setup .
+Move                 calculator = NEW # ( ) .
+EndMethod            ENDMETHOD .
+MethodImplementation METHOD given_ten_pct_then_net_reduced .
+Move                 DATA ( net_amount ) = calculator -> calculate ( gross_amount = '200.00' discount_percentage = '10.00' ) .
+Call                 cl_abap_unit_assert => assert_equals ( act = net_amount exp = CONV zcl_judge_c02_discount => ty_amount ( '180.00' ) ) .
+EndMethod            ENDMETHOD .
+MethodImplementation METHOD given_full_pct_then_net_zero .
+Move                 DATA ( net_amount ) = calculator -> calculate ( gross_amount = '149.99' discount_percentage = '100.00' ) .
+Call                 cl_abap_unit_assert => assert_equals ( act = net_amount exp = CONV zcl_judge_c02_discount => ty_amount ( '0.00' ) ) .
+EndMethod            ENDMETHOD .
+MethodImplementation METHOD given_fraction_then_rounded .
+Comment              " 10.01 * 12.5 % = 1.25125 discount, net 8.75875 rounds to 8.76
+Move                 DATA ( net_amount ) = calculator -> calculate ( gross_amount = '10.01' discount_percentage = '12.50' ) .
+Call                 cl_abap_unit_assert => assert_equals ( act = net_amount exp = CONV zcl_judge_c02_discount => ty_amount ( '8.76' ) ) .
+EndMethod            ENDMETHOD .
+MethodImplementation METHOD given_negative_gross_then_fail .
+Try                  TRY .
+Call                 calculator -> calculate ( gross_amount = '-1.00' discount_percentage = '10.00' ) .
+Call                 cl_abap_unit_assert => fail ( msg = 'Negative gross amount was accepted' ) .
+Catch                CATCH zcx_judge_c02_discount INTO DATA ( rejection ) .
+Call                 cl_abap_unit_assert => assert_bound ( act = rejection ) .
+EndTry               ENDTRY .
+EndMethod            ENDMETHOD .
+MethodImplementation METHOD given_pct_over_max_then_fail .
+Try                  TRY .
+Call                 calculator -> calculate ( gross_amount = '100.00' discount_percentage = '100.01' ) .
+Call                 cl_abap_unit_assert => fail ( msg = 'Percentage above 100 was accepted' ) .
+Catch                CATCH zcx_judge_c02_discount INTO DATA ( rejection ) .
+Call                 cl_abap_unit_assert => assert_bound ( act = rejection ) .
+EndTry               ENDTRY .
+EndMethod            ENDMETHOD .
+EndClass             ENDCLASS .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-opus-5-5/C-02.abap
+--- stdout (4929 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 11,
+      "endLine": 11,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 20,
+      "endLine": 20,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 22,
+      "endLine": 22,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 23,
+      "endLine": 23,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 28,
+      "endLine": 28,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 31,
+      "endLine": 31,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 33,
+      "endLine": 33,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 40,
+      "endLine": 40,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 72,
+      "endLine": 72,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 73,
+      "endLine": 73,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 75,
+      "endLine": 75,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 87,
+      "endLine": 87,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 96,
+      "endLine": 96,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 106,
+      "endLine": 106,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 116,
+      "endLine": 116,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 127,
+      "endLine": 127,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 16,
+    "bySeverity": {
+      "medium": 16
+    },
+    "byCategory": {
+      "quality": 16
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=16 analyze_info=0 error_grade=0 warnings=16 source_lines=135 bytes=4928 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (판J 11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

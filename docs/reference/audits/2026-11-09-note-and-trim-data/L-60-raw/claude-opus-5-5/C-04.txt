@@ -1,0 +1,126 @@
+```abap
+*&---------------------------------------------------------------------*
+*& Report ZJUDGE_C04
+*& Totals goods-movement quantities per material and plant (MSEG/MKPF).
+*& Syntax kept release-neutral (7.02-compatible).
+*& Text symbols: E01 no authorized plant, E02 no data found,
+*& W01 large volume warning, H01-H05 list column headings.
+*&---------------------------------------------------------------------*
+REPORT zjudge_c04 LINE-SIZE 120.
+
+TYPES: BEGIN OF gty_total,
+         material   TYPE matnr,
+         plant      TYPE werks_d,
+         base_unit  TYPE meins,
+         quantity   TYPE menge_d,
+         item_count TYPE i,
+       END OF gty_total,
+       gty_totals TYPE SORTED TABLE OF gty_total
+                  WITH UNIQUE KEY material plant base_unit,
+       gty_plants TYPE STANDARD TABLE OF werks_d WITH NON-UNIQUE KEY table_line,
+       gty_plant_range TYPE RANGE OF werks_d.
+
+CONSTANTS: gc_auth_object      TYPE xuobject VALUE 'M_MSEG_WWA',
+           gc_activity_display TYPE activ_auth VALUE '03',
+           gc_large_volume     TYPE i VALUE 1000000,
+           gc_subrc_ok         TYPE sysubrc VALUE 0.
+
+DATA: gv_plant           TYPE werks_d,
+      gv_posting_date    TYPE budat,
+      gv_movement_type   TYPE bwart,
+      gt_totals          TYPE gty_totals,
+      gr_authorized_plant TYPE gty_plant_range.
+
+SELECT-OPTIONS: s_werks FOR gv_plant,
+                s_budat FOR gv_posting_date,
+                s_bwart FOR gv_movement_type.
+
+START-OF-SELECTION.
+  PERFORM f_main.
+
+* in: selection screen / out: list output / side effects: gr_authorized_plant, gt_totals
+FORM f_main.
+  PERFORM f_build_authorized_plants.
+  IF gr_authorized_plant IS INITIAL.
+    MESSAGE TEXT-e01 TYPE 'S' DISPLAY LIKE 'E'.
+    RETURN.
+  ENDIF.
+  PERFORM f_check_volume.
+  PERFORM f_select_totals.
+  IF gt_totals IS INITIAL.
+    MESSAGE TEXT-e02 TYPE 'S' DISPLAY LIKE 'E'.
+    RETURN.
+  ENDIF.
+  PERFORM f_write_list.
+ENDFORM.
+
+* in: s_werks / out: none / side effects: fills gr_authorized_plant
+FORM f_build_authorized_plants.
+  DATA: lt_plants TYPE gty_plants,
+        lv_plant  TYPE werks_d,
+        ls_range  LIKE LINE OF gr_authorized_plant.
+
+  CLEAR gr_authorized_plant.
+  SELECT werks FROM t001w INTO TABLE lt_plants WHERE werks IN s_werks.
+  IF sy-subrc <> gc_subrc_ok.
+    RETURN.
+  ENDIF.
+  ls_range-sign   = 'I'.
+  ls_range-option = 'EQ'.
+  LOOP AT lt_plants INTO lv_plant.
+    AUTHORITY-CHECK OBJECT gc_auth_object
+      ID 'ACTVT' FIELD gc_activity_display
+      ID 'WERKS' FIELD lv_plant.
+    IF sy-subrc = gc_subrc_ok.
+      ls_range-low = lv_plant.
+      APPEND ls_range TO gr_authorized_plant.
+    ENDIF.
+  ENDLOOP.
+ENDFORM.
+
+* in: selection screen, gr_authorized_plant / out: warning message / side effects: none
+FORM f_check_volume.
+  DATA lv_item_count TYPE i.
+
+  SELECT COUNT(*) FROM mseg INNER JOIN mkpf
+           ON mkpf~mblnr = mseg~mblnr AND mkpf~mjahr = mseg~mjahr
+    INTO lv_item_count
+    WHERE mseg~werks IN gr_authorized_plant
+      AND mkpf~budat IN s_budat
+      AND mseg~bwart IN s_bwart.
+  IF sy-subrc = gc_subrc_ok AND lv_item_count > gc_large_volume.
+    MESSAGE TEXT-w01 TYPE 'S' DISPLAY LIKE 'W'.
+  ENDIF.
+ENDFORM.
+
+* in: selection screen, gr_authorized_plant / out: none / side effects: fills gt_totals
+FORM f_select_totals.
+  SELECT mseg~matnr AS material mseg~werks AS plant mseg~meins AS base_unit
+         SUM( mseg~menge ) AS quantity COUNT(*) AS item_count
+    FROM mseg INNER JOIN mkpf
+           ON mkpf~mblnr = mseg~mblnr AND mkpf~mjahr = mseg~mjahr
+    INTO CORRESPONDING FIELDS OF TABLE gt_totals
+    WHERE mseg~werks IN gr_authorized_plant
+      AND mkpf~budat IN s_budat
+      AND mseg~bwart IN s_bwart
+    GROUP BY mseg~matnr mseg~werks mseg~meins.
+  IF sy-subrc <> gc_subrc_ok.
+    CLEAR gt_totals.
+  ENDIF.
+ENDFORM.
+
+* in: gt_totals (sorted by material, plant) / out: WRITE list / side effects: none
+FORM f_write_list.
+  DATA ls_total TYPE gty_total.
+
+  WRITE: / TEXT-h01, 20 TEXT-h02, 28 TEXT-h03, 52 TEXT-h04, 60 TEXT-h05.
+  ULINE.
+  LOOP AT gt_totals INTO ls_total.
+    WRITE: / ls_total-material,
+          20 ls_total-plant,
+          28 ls_total-quantity UNIT ls_total-base_unit,
+          52 ls_total-base_unit,
+          60 ls_total-item_count.
+  ENDLOOP.
+ENDFORM.
+```

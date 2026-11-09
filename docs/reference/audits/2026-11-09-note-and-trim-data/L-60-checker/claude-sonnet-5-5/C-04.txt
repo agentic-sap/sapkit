@@ -1,0 +1,194 @@
+L-60-checker/claude-sonnet-5-5/C-04.txt — 동봉 검사기 원출력 (판L T6 · 2026-11-09)
+대상: docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-04.abap
+검사기: interactive/checker/sapkit-checker.bundle.cjs (sapkit-cli 0.1.0) · 실행 위치 = 레포 루트 · node v24.14.1
+명령 3종 (판J 11-code-tasks.txt §1 그대로): node interactive/checker/sapkit-checker.bundle.cjs <lint|parse|analyze> docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-04.abap — 각 stdout·stderr 원문과 exit 코드
+
+=== lint ===
+$ node interactive/checker/sapkit-checker.bundle.cjs lint docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-04.abap
+--- stdout (0 bytes) ---
+
+--- stderr (103 bytes) ---
+docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-04.abap: no findings
+--- exit ---
+exit=0
+
+=== parse ===
+$ node interactive/checker/sapkit-checker.bundle.cjs parse docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-04.abap
+--- stdout (6258 bytes) ---
+Comment              *&---------------------------------------------------------------------*
+Comment              *& Report ZJUDGE_C04 - Goods-movement quantities per material and plant
+Comment              *& Assumed ABAP_RELEASE >= 7.40 SP08 (not configured; stated assumption).
+Comment              *& Text pool (E + logon language): R title, I 001-005, S so_werks/so_budat/so_bwart.
+Comment              *&   001 Selection  002 Material  003 Plant  004 Quantity  005 Items
+Comment              *&   006 No data found  007 No plant authorization  008 Too many items, narrow selection
+Comment              *&---------------------------------------------------------------------*
+Report               REPORT zjudge_c04 .
+Move                 TABLES mseg ,
+Move                 TABLES mkpf .
+TypeBegin            TYPES BEGIN OF ty_total ,
+Type                 TYPES matnr TYPE mseg - matnr ,
+Type                 TYPES werks TYPE mseg - werks ,
+Type                 TYPES meins TYPE mseg - meins ,
+Type                 TYPES menge TYPE p LENGTH 15 DECIMALS 3 ,
+Type                 TYPES item_count TYPE i ,
+TypeEnd              TYPES END OF ty_total .
+Type                 TYPES ty_totals TYPE STANDARD TABLE OF ty_total WITH EMPTY KEY .
+Type                 TYPES ty_plant_range TYPE RANGE OF mseg - werks .
+Constant             CONSTANTS gc_max_items TYPE i VALUE 1000000 ,
+Constant             CONSTANTS gc_activity_display TYPE c LENGTH 2 VALUE '03' ,
+Constant             CONSTANTS gc_auth_object TYPE c LENGTH 10 VALUE 'M_MSEG_WER' .
+Data                 DATA gt_totals TYPE ty_totals ,
+Data                 DATA gt_plants TYPE ty_plant_range .
+SelectionScreen      SELECTION - SCREEN BEGIN OF BLOCK b01 WITH FRAME TITLE TEXT - 001 .
+SelectOption         SELECT - OPTIONS so_werks FOR mseg - werks ,
+SelectOption         SELECT - OPTIONS so_budat FOR mkpf - budat ,
+SelectOption         SELECT - OPTIONS so_bwart FOR mseg - bwart .
+SelectionScreen      SELECTION - SCREEN END OF BLOCK b01 .
+StartOfSelection     START - OF - SELECTION .
+Perform              PERFORM f_authorized_plants CHANGING gt_plants .
+If                   IF gt_plants IS INITIAL .
+Message              MESSAGE TEXT - 007 TYPE 'S' DISPLAY LIKE 'E' .
+Return               RETURN .
+EndIf                ENDIF .
+Perform              PERFORM f_read_totals USING gt_plants CHANGING gt_totals .
+Move                 END - OF - SELECTION .
+Perform              PERFORM f_write_list USING gt_totals .
+Comment              *---------------------------------------------------------------------*
+Comment              * In: so_werks / Out: authorized plants as range / Globals: none
+Comment              *---------------------------------------------------------------------*
+Form                 FORM f_authorized_plants CHANGING pt_plants TYPE ty_plant_range .
+Data                 DATA lt_werks TYPE SORTED TABLE OF t001w - werks WITH UNIQUE KEY table_line ,
+Data                 DATA ls_plant LIKE LINE OF pt_plants .
+Select               SELECT werks FROM t001w WHERE werks IN @ so_werks INTO TABLE @ lt_werks .
+If                   IF sy - subrc <> 0 .
+Return               RETURN .
+EndIf                ENDIF .
+Loop                 LOOP AT lt_werks INTO DATA ( lv_werks ) .
+Move                 AUTHORITY - CHECK OBJECT gc_auth_object ID 'WERKS' FIELD lv_werks ID 'ACTVT' FIELD gc_activity_display .
+If                   IF sy - subrc = 0 .
+Move                 ls_plant = VALUE # ( sign = 'I' option = 'EQ' low = lv_werks ) .
+Append               APPEND ls_plant TO pt_plants .
+EndIf                ENDIF .
+EndLoop              ENDLOOP .
+EndForm              ENDFORM .
+Comment              *---------------------------------------------------------------------*
+Comment              * In: plant range / Out: totals per material+plant+unit, sorted
+Comment              *---------------------------------------------------------------------*
+Form                 FORM f_read_totals USING pt_plants TYPE ty_plant_range CHANGING pt_totals TYPE ty_totals .
+Data                 DATA lv_item_count TYPE i .
+Select               SELECT COUNT ( * ) FROM mseg AS m INNER JOIN mkpf AS k ON k~mblnr = m~mblnr AND k~mjahr = m~mjahr WHERE m~werks IN @ pt_plants AND k~budat IN @ so_budat AND m~bwart IN @ so_bwart INTO @ lv_item_count .
+If                   IF sy - subrc <> 0 OR lv_item_count = 0 .
+Message              MESSAGE TEXT - 006 TYPE 'S' DISPLAY LIKE 'W' .
+Return               RETURN .
+EndIf                ENDIF .
+If                   IF lv_item_count > gc_max_items .
+Message              MESSAGE TEXT - 008 TYPE 'S' DISPLAY LIKE 'E' .
+Return               RETURN .
+EndIf                ENDIF .
+Select               SELECT m~matnr , m~werks , m~meins , SUM ( m~menge ) AS menge , COUNT ( * ) AS item_count FROM mseg AS m INNER JOIN mkpf AS k ON k~mblnr = m~mblnr AND k~mjahr = m~mjahr WHERE m~werks IN @ pt_plants AND k~budat IN @ so_budat AND m~bwart IN @ so_bwart GROUP BY m~matnr , m~werks , m~meins ORDER BY m~matnr , m~werks , m~meins INTO CORRESPONDING FIELDS OF TABLE @ pt_totals .
+If                   IF sy - subrc <> 0 .
+Message              MESSAGE TEXT - 006 TYPE 'S' DISPLAY LIKE 'W' .
+EndIf                ENDIF .
+EndForm              ENDFORM .
+Comment              *---------------------------------------------------------------------*
+Comment              * In: totals / Out: classic WRITE list
+Comment              *---------------------------------------------------------------------*
+Form                 FORM f_write_list USING pt_totals TYPE ty_totals .
+If                   IF pt_totals IS INITIAL .
+Return               RETURN .
+EndIf                ENDIF .
+Write                WRITE / TEXT - 002 ,
+Write                WRITE 20 TEXT - 003 ,
+Write                WRITE 27 TEXT - 004 ,
+Write                WRITE 52 TEXT - 005 .
+Move                 ULINE .
+Loop                 LOOP AT pt_totals INTO DATA ( ls_total ) .
+Write                WRITE / ls_total - matnr ,
+Write                WRITE 20 ls_total - werks ,
+Write                WRITE 27 ls_total - menge UNIT ls_total - meins ,
+Write                WRITE 45 ls_total - meins ,
+Write                WRITE 52 ls_total - item_count .
+EndLoop              ENDLOOP .
+EndForm              ENDFORM .
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== analyze ===
+$ node interactive/checker/sapkit-checker.bundle.cjs analyze docs/reference/audits/2026-11-09-note-and-trim-data/L-60-code/claude-sonnet-5-5/C-04.abap
+--- stdout (1675 bytes) ---
+{
+  "findings": [
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 13,
+      "endLine": 13,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 14,
+      "endLine": 14,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 15,
+      "endLine": 15,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 16,
+      "endLine": 16,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    },
+    {
+      "rule": "double_space",
+      "category": "quality",
+      "severity": "medium",
+      "line": 74,
+      "endLine": 74,
+      "match": "Collapse the repeated space",
+      "description": "Collapse the repeated space",
+      "suggestion": "Leave a single space between tokens"
+    }
+  ],
+  "summary": {
+    "totalFindings": 5,
+    "bySeverity": {
+      "medium": 5
+    },
+    "byCategory": {
+      "quality": 5
+    },
+    "score": "good"
+  },
+  "rulesApplied": 13
+}
+--- stderr (0 bytes) ---
+
+--- exit ---
+exit=0
+
+=== metrics ===
+parse_ok=1 lint_errors=0 lint_warnings=0 analyze_high=0 analyze_medium=5 analyze_info=0 error_grade=0 warnings=5 source_lines=127 bytes=4382 analyze_json_parsed=1 lint_exit=0 analyze_exit=0
+산식: error_grade = lint_errors(stdout 의 ": E [" 줄 수) + (parse exit≠0 ? 1 : 0) + analyze summary.bySeverity.high · warnings = lint_warnings(": W [") + analyze medium + analyze info
+⚠ parse 는 토크나이저다 — 잘못된 ABAP 도 토큰화만 되면 exit 0 (판J 11-code-tasks.txt §1). parse exit≠0 은 파일을 못 읽은 경우만 잡는다.

@@ -1,0 +1,74 @@
+L-60-run-log.txt — 판L T6 「쪽지 효과 응시(E-1) + 동봉 검사기 채점」 실행 기록 (2026-11-09)
+=====================================================================================
+
+이 파일의 §1~§3 은 L-60-run-code.ps1 -Phase log 가 레포 밖 상태 파일(<scratch>\panL-raw\…\*.state.json)에서 만든다.
+§4 이후(관찰)는 T6 세션이 덧붙였다. 조건 문안 = L-00-recipe.txt · 판J/판K 와의 차이 = L-01-diff.txt.
+
+1. 환경
+--------
+  claude --version : 2.1.319 (Claude Code)
+  node             : v24.14.1 · PowerShell 7.6.9 ($PSNativeCommandArgumentPassing = Windows)
+  검사기 VERSION   : sapkit-cli 0.1.0 · 번들 sha256=7eabb526511421b42e39f004f7b03c9bb78c933dc6aa98e8696e7f64ea4c7258
+  쪽지 정본        : interactive/core/knowledge/abap/conventions/clean-code-note.md · 표식 사이 본문 chars=10003 · bytes=10142 · sha256=025f2602de9602dba5cc24f24e62bc79611d9f99277807e177321f5269f5b79f (L-00 동결 값 025f2602de9602dba5cc24f24e62bc79611d9f99277807e177321f5269f5b79f · 일치=1)
+  빈 폴더 · 원본   : <scratch>\panL-blind (empty-mcp.json 하나) · <scratch>\panL-raw (원 이벤트 스트림 · 커밋하지 않음)
+
+2. 프롬프트 (L-00 §1 의 조립식 · 과제마다 한 번 계산 · 두 모델에 같은 글자)
+-------------------------------------------------------------------------
+  고정 줄 chars=244 sha256=49da56ba8c27e15eaf950ec982f702afc58d542a85d56523dc3a6da688bac62b (판J 값 49da56ba8c27e15eaf950ec982f702afc58d542a85d56523dc3a6da688bac62b · 일치=1)
+  C-01  chars=11004  sha256=b88442910b2c793b0e524ac99510312a0fffa464386fc96cfe7e752c196bf509  쪽지 조각 일치=1  · 판J 프롬프트 sha256=2c0471dfd765a149fd80ce4f0837bd2c8aa789c0147d9061c68432d9e702b734 (판J 60-run-log §4 표와 대조)
+  C-02  chars=11187  sha256=6f5dcb9e632078c45efa052673e7501b72e07998f25e8c820a1e60022c25bee8  쪽지 조각 일치=1  · 판J 프롬프트 sha256=3dfed87d73e73abf9a539fedc94243e56865d6ccc25049d8cc42103b75c2528c (판J 60-run-log §4 표와 대조)
+  C-03  chars=10958  sha256=80f273cfde253330f9c8f3ba88dd7f56d27e1b1614f12720e1d866942a616134  쪽지 조각 일치=1  · 판J 프롬프트 sha256=30ff4ccfa8422f1447ec4c7478951ca8e703472ae607b77b1bb6a1d97a213a9d (판J 60-run-log §4 표와 대조)
+  C-04  chars=10907  sha256=0d6ea3bc7bf66731294c5406a94a8a21159fa16a917dc5bd14ca77d4cfcc9074  쪽지 조각 일치=1  · 판J 프롬프트 sha256=80f842a7c1a81a7d16570c2d1d3dd788d6b69e844a8fdc2c499c20bdde21bb83 (판J 60-run-log §4 표와 대조)
+  C-05  chars=10839  sha256=7879be776ffa1cf20b81b48a78ba1b07296e65a672820bb433b60fd204854a08  쪽지 조각 일치=1  · 판J 프롬프트 sha256=c501eab21e11c34972ea9935811a43812458de366c5a19137b60821a35b10f12 (판J 60-run-log §4 표와 대조)
+
+3. 호출 표 (카나리아 → 과제 · 시각 KST · 관측 모델 id = init.model · assistant.message.model · result.modelUsage 키의 합집합)
+------------------------------------------------------------------------------------------------------------------
+  모델 | 호출 | 시작 → 종료 | exit | wall_ms | 판정 | 관측 모델 id | init tools · mcp | tool_use | 토큰 in · out · cache_create · cache_read | 비용 USD | 프롬프트 sha256(앞 16) | 쪽지 조각 sha256(앞 16) · 일치
+  claude-opus-5-5 | canary | 2026-11-09T13:34:45.98+09:00 → 2026-11-09T13:34:52.421+09:00 | 0 | 6428 | machine_pass=True pass=True | claude-opus-5-5 | 0 · 0 | 0 | 2 · 515 · 2411 · 649 | 0.0297258 | (판J §0 카나리아 프롬프트 · 쪽지 없음) | —
+  claude-opus-5-5 | C-01 call 1 | 2026-11-09T13:35:23.932+09:00 → 2026-11-09T13:36:43.165+09:00 | 0 | 79193 | valid | claude-opus-5-5 | 0 · 0 | 0 | 2 · 8586 · 5329 · 2340 | 0.214828 | b88442910b2c793b | 025f2602de9602db · 1
+  claude-opus-5-5 | C-02 call 1 | 2026-11-09T13:36:43.296+09:00 → 2026-11-09T13:37:15.583+09:00 | 0 | 32274 | valid | claude-opus-5-5 | 0 · 0 | 0 | 2 · 3460 · 5381 · 2340 | 0.112724 | 6f5dcb9e632078c4 | 025f2602de9602db · 1
+  claude-opus-5-5 | C-03 call 1 | 2026-11-09T13:37:15.607+09:00 → 2026-11-09T13:37:30.077+09:00 | 0 | 14463 | valid | claude-opus-5-5 | 0 · 0 | 0 | 2 · 1400 · 5304 · 2340 | 0.070908 | 80f273cfde253330 | 025f2602de9602db · 1
+  claude-opus-5-5 | C-04 call 1 | 2026-11-09T13:37:30.090+09:00 → 2026-11-09T13:38:18.874+09:00 | 0 | 48727 | valid | claude-opus-5-5 | 0 · 0 | 0 | 2 · 4489 · 5312 · 2340 | 0.132752 | 0d6ea3bc7bf66731 | 025f2602de9602db · 1
+  claude-opus-5-5 | C-05 call 1 | 2026-11-09T13:38:18.886+09:00 → 2026-11-09T13:38:54.662+09:00 | 0 | 35771 | valid | claude-opus-5-5 | 0 · 0 | 0 | 2 · 3729 · 5284 · 2340 | 0.117328 | 7879be776ffa1cf2 | 025f2602de9602db · 1
+  claude-sonnet-5-5 | canary | 2026-11-09T13:34:52.521+09:00 → 2026-11-09T13:35:00.539+09:00 | 0 | 8012 | machine_pass=True pass=True | claude-sonnet-5-5 | 0 · 0 | 0 | 2 · 776 · 2339 · 649 | 0.0171849 | (판J §0 카나리아 프롬프트 · 쪽지 없음) | —
+  claude-sonnet-5-5 | C-01 call 1 | 2026-11-09T13:38:55.179+09:00 → 2026-11-09T13:39:34.984+09:00 | 0 | 39779 | valid | claude-sonnet-5-5 | 0 · 0 | 0 | 2 · 5527 · 5333 · 2264 | 0.0768324 | b88442910b2c793b | 025f2602de9602db · 1
+  claude-sonnet-5-5 | C-02 call 1 | 2026-11-09T13:39:35.080+09:00 → 2026-11-09T13:40:01.857+09:00 | 0 | 26763 | valid | claude-sonnet-5-5 | 0 · 0 | 0 | 2 · 3880 · 5385 · 2264 | 0.0605704 | 6f5dcb9e632078c4 | 025f2602de9602db · 1
+  claude-sonnet-5-5 | C-03 call 1 | 2026-11-09T13:40:01.929+09:00 → 2026-11-09T13:40:12.421+09:00 | 0 | 10484 | valid | claude-sonnet-5-5 | 0 · 0 | 0 | 2 · 1168 · 5308 · 2264 | 0.0331424 | 80f273cfde253330 | 025f2602de9602db · 1
+  claude-sonnet-5-5 | C-04 call 1 | 2026-11-09T13:40:12.432+09:00 → 2026-11-09T13:40:44.125+09:00 | 0 | 31688 | valid | claude-sonnet-5-5 | 0 · 0 | 0 | 2 · 4316 · 5316 · 2264 | 0.0646544 | 0d6ea3bc7bf66731 | 025f2602de9602db · 1
+  claude-sonnet-5-5 | C-05 call 1 | 2026-11-09T13:40:44.138+09:00 → 2026-11-09T13:41:20.937+09:00 | 0 | 36794 | valid | claude-sonnet-5-5 | 0 · 0 | 0 | 2 · 5041 · 5288 · 2264 | 0.0717924 | 7879be776ffa1cf2 | 025f2602de9602db · 1
+  합계: 과제 호출 10 · 쪽지 조각 동결 값 일치 10/10 · tool_use 합 0
+
+4. 러너 호출 순서 (실제 · KST 2026-11-09)
+------------------------------------------
+  13:3x  -Phase prompts (모델 호출 없음 · 쪽지 뺀 프롬프트 sha256 5/5 가 판J 60-run-log §4 표와 일치) · node 에코로 인자 전달 5/5 바이트 일치
+         L-00-recipe.txt 작성(쪽지 sha256 동결 값 기록) — 첫 모델 호출 전
+  13:34:45 – 13:35:00  -Phase canary (opus · sonnet) — 기계 ②③ PASS · T6 세션 판독 ① PASS → 판정 줄 덧붙임 → -Phase canary 재실행으로 pass=true 확인
+  13:35:23 – 13:38:54  -Phase run -Model claude-opus-5-5 (5/5 첫 응시 유효 · wall 14.5–79.2 s)
+  13:38:55 – 13:41:20  -Phase run -Model claude-sonnet-5-5 (5/5 첫 응시 유효 · wall 10.5–39.8 s)
+  13:41 – 13:42  -Phase score · -Phase log (첫 실행의 log 는 상태 파일 시각이 ConvertFrom-Json 에서 날짜로 바뀌어 찍혀 -DateKind String 을
+                 더했고, 요약 tokens_in 을 input_tokens 만에서 판K 와 같은 input + cache_creation + cache_read 로 고친 뒤 둘 다 다시 돌렸다 —
+                 모델 호출 없음 · 응시 결과 무관)
+
+5. 결과 한눈에 (측정 · 관찰 — 판정 아님. 사람 규칙 채점은 판L T8 · T9 · T10)
+-----------------------------------------------------------------------
+  10/10 유효 · 무효(INVALID) 0 · 전이 재시도 0 · 재응시 0 (L-60-retries.txt 머리만) · tool_use 합 0 · 응답 내 URL 0
+  카나리아 2/2 PASS · 빈 폴더 무결성 8줄 전부 same · 관측 모델 id 10/10 요청 id 와 일치(세 곳 모두)
+  쪽지: 정본 표식 사이 본문 sha256 = 025f2602de9602dba5cc24f24e62bc79611d9f99277807e177321f5269f5b79f — 과제 프롬프트 10/10 의 쪽지 조각이 이 값과 일치
+  no_fence 0 · 펜스 블록 2개 이상 0 · 응답 10건 전부 ```abap … ``` 블록 하나(앞뒤 설명 없음)
+  검사기 오류급(lint E ∪ parse exit≠0 ∪ analyze high) = 0 — 10 응시 전부 · parse exit 0 = 10/10
+  경고: opus 71 (analyze double_space 68 · lint local_variable_names 3) · sonnet 64 (double_space 59 · local_variable_names 5)
+  길이: opus 합 554줄 · sonnet 합 633줄 (과제별 = L-60-checker-summary.csv)
+  병기(같은 과제 C-01~C-05 · 각 판의 요약 CSV 에서 옮김 · 비교 판정은 이 파일의 몫이 아니다):
+    오류급 합   판J opus 0 · sonnet 0 | 판K opus 0 · sonnet 0 | 판L opus 0 · sonnet 0
+    경고 합     판J opus 43 · sonnet 31 | 판K opus 55 · sonnet 30 | 판L opus 71 · sonnet 64
+    줄 수 합    판J opus 500 · sonnet 488 | 판K opus 529 · sonnet 530 | 판L opus 554 · sonnet 633
+  ⚠ parse 는 토크나이저라 「오류급 0」은 「검사기가 잡는 범주 안에서 0」이지 「컴파일된다」가 아니다(판J 11-code-tasks.txt §1).
+
+6. 관찰
+--------
+  - 프롬프트 입력 토큰(input + cache_creation + cache_read)은 과제당 7,554–7,723 — 카나리아(쪽지 없음 · 짧은 프롬프트) opus 3,062 · sonnet 2,990 과의
+    차가 대략 쪽지 + 과제 본문 몫이다(서버 측 계수 · 참고).
+  - sonnet 카나리아는 판J 와 같이 지시문 언급을 근거로 Bash · PowerShell · Write 가 「있을 것」이라 적었다 — init.tools=0 · tool_use=0 이
+    기계 증거다(판독 줄). 자기 보고에 작업 폴더 절대 경로를 적어 그 한 곳을 <scratch> 로 가렸다(원문은 레포 밖 JSONL).
+  - 원 이벤트 스트림 · stderr · 상태 파일 · 프롬프트 사본은 <scratch>\panL-raw\ 에만 있고 커밋하지 않는다.
+  - 쪽지 정본 · 판J · 판K 자료 폴더는 이 과업에서 0바이트 변경(커밋 전 git status 로 확인 — -Phase check 의 「접두 밖 변경 0」).

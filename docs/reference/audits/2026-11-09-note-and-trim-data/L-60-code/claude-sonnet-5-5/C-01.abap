@@ -1,0 +1,181 @@
+*&---------------------------------------------------------------------*
+*& Report ZJUDGE_C01
+*&---------------------------------------------------------------------*
+*& Lists purchasing document headers (EKKO) in an ALV grid.
+*& Release-neutral syntax (no inline declarations, no string templates).
+*& All user-visible texts are held as constants because no separate
+*& text pool is delivered with this file.
+*&---------------------------------------------------------------------*
+REPORT zjudge_c01.
+
+TABLES: ekko.
+
+TYPES: BEGIN OF gty_header,
+         ebeln TYPE ekko-ebeln,
+         bukrs TYPE ekko-bukrs,
+         ekorg TYPE ekko-ekorg,
+         lifnr TYPE ekko-lifnr,
+         bedat TYPE ekko-bedat,
+         bsart TYPE ekko-bsart,
+         ekgrp TYPE ekko-ekgrp,
+       END OF gty_header.
+
+TYPES gty_header_table TYPE SORTED TABLE OF gty_header WITH UNIQUE KEY ebeln.
+
+CONSTANTS:
+  gc_msgty_info       TYPE sy-msgty VALUE 'I',
+  gc_msgty_success    TYPE sy-msgty VALUE 'S',
+  gc_activity_display TYPE activ_auth VALUE '03',
+  gc_auth_object      TYPE xuobject VALUE 'M_BEST_EKO',
+  gc_field_activity   TYPE char5 VALUE 'ACTVT',
+  gc_field_org        TYPE char5 VALUE 'EKORG',
+  gc_default_rows     TYPE i VALUE 500,
+  gc_large_threshold  TYPE i VALUE 1000000,
+  gc_col_ebeln        TYPE lvc_fname VALUE 'EBELN',
+  gc_col_bukrs        TYPE lvc_fname VALUE 'BUKRS',
+  gc_col_ekorg        TYPE lvc_fname VALUE 'EKORG',
+  gc_col_lifnr        TYPE lvc_fname VALUE 'LIFNR',
+  gc_col_bedat        TYPE lvc_fname VALUE 'BEDAT',
+  gc_col_bsart        TYPE lvc_fname VALUE 'BSART',
+  gc_col_ekgrp        TYPE lvc_fname VALUE 'EKGRP',
+  gc_txt_sel_ekorg    TYPE char40 VALUE 'Purchasing organization',
+  gc_txt_sel_bedat    TYPE char40 VALUE 'Document date',
+  gc_txt_sel_rows     TYPE char40 VALUE 'Maximum number of rows',
+  gc_txt_no_data      TYPE char60 VALUE 'No purchasing documents match the selection.',
+  gc_txt_bad_rows     TYPE char60 VALUE 'Maximum number of rows must be greater than zero.',
+  gc_txt_no_auth      TYPE char60 VALUE 'No authorization for the selected purchasing documents.',
+  gc_txt_alv_error    TYPE char60 VALUE 'The ALV grid could not be displayed.',
+  gc_txt_large        TYPE char60 VALUE 'Large result set: output is limited to the maximum rows.'.
+
+DATA: gt_headers TYPE gty_header_table,
+      go_alv     TYPE REF TO cl_salv_table.
+
+SELECT-OPTIONS: s_ekorg FOR ekko-ekorg,
+                s_bedat FOR ekko-bedat.
+PARAMETERS:     p_rows  TYPE i DEFAULT 500.
+
+INITIALIZATION.
+  PERFORM f_set_selection_texts.
+
+START-OF-SELECTION.
+  PERFORM f_validate_input.
+  PERFORM f_read_headers.
+  PERFORM f_display_headers.
+
+*&---------------------------------------------------------------------*
+* Inputs: none / Outputs: none / Side effects: sets selection texts
+FORM f_set_selection_texts.
+  %_s_ekorg_%_app_%-text = gc_txt_sel_ekorg.
+  %_s_bedat_%_app_%-text = gc_txt_sel_bedat.
+  %_p_rows_%_app_%-text  = gc_txt_sel_rows.
+ENDFORM.
+
+* Inputs: p_rows / Outputs: none / Side effects: stops on invalid input
+FORM f_validate_input.
+  IF p_rows <= 0.
+    MESSAGE gc_txt_bad_rows TYPE gc_msgty_success DISPLAY LIKE 'E'.
+    LEAVE LIST-PROCESSING.
+  ENDIF.
+ENDFORM.
+
+* Inputs: selection screen / Outputs: none / Side effects: fills gt_headers
+FORM f_read_headers.
+  DATA: lt_raw_headers TYPE gty_header_table,
+        ls_header      TYPE gty_header,
+        lv_count       TYPE i,
+        lv_is_allowed  TYPE abap_bool.
+
+  SELECT COUNT(*) FROM ekko INTO lv_count
+    WHERE ekorg IN s_ekorg
+      AND bedat IN s_bedat.
+  IF sy-subrc <> 0 OR lv_count = 0.
+    MESSAGE gc_txt_no_data TYPE gc_msgty_info.
+    RETURN.
+  ENDIF.
+
+  IF lv_count > gc_large_threshold.
+    MESSAGE gc_txt_large TYPE gc_msgty_info.
+  ENDIF.
+
+  SELECT ebeln bukrs ekorg lifnr bedat bsart ekgrp
+    FROM ekko
+    INTO TABLE lt_raw_headers UP TO p_rows ROWS
+    WHERE ekorg IN s_ekorg
+      AND bedat IN s_bedat
+    ORDER BY ebeln.
+  IF sy-subrc <> 0.
+    MESSAGE gc_txt_no_data TYPE gc_msgty_info.
+    RETURN.
+  ENDIF.
+
+  LOOP AT lt_raw_headers INTO ls_header.
+    PERFORM f_check_authority USING ls_header-ekorg
+                           CHANGING lv_is_allowed.
+    IF lv_is_allowed = abap_true.
+      INSERT ls_header INTO TABLE gt_headers.
+    ENDIF.
+  ENDLOOP.
+
+  IF gt_headers IS INITIAL.
+    MESSAGE gc_txt_no_auth TYPE gc_msgty_info.
+  ENDIF.
+ENDFORM.
+
+* Inputs: p_ekorg / Outputs: p_is_allowed / Side effects: none
+FORM f_check_authority USING    p_ekorg      TYPE ekko-ekorg
+                       CHANGING p_is_allowed TYPE abap_bool.
+  AUTHORITY-CHECK OBJECT gc_auth_object
+    ID gc_field_activity FIELD gc_activity_display
+    ID gc_field_org      FIELD p_ekorg.
+  p_is_allowed = boolc( sy-subrc = 0 ).
+ENDFORM.
+
+* Inputs: gt_headers / Outputs: none / Side effects: shows ALV or message
+FORM f_display_headers.
+  DATA: lo_columns TYPE REF TO cl_salv_columns_table,
+        lx_msg     TYPE REF TO cx_salv_msg.
+
+  IF gt_headers IS INITIAL.
+    RETURN.
+  ENDIF.
+
+  TRY.
+      cl_salv_table=>factory(
+        IMPORTING r_salv_table = go_alv
+        CHANGING  t_table      = gt_headers ).
+    CATCH cx_salv_msg INTO lx_msg.
+      MESSAGE gc_txt_alv_error TYPE gc_msgty_info.
+      RETURN.
+  ENDTRY.
+
+  lo_columns = go_alv->get_columns( ).
+  lo_columns->set_optimize( abap_true ).
+
+  PERFORM f_set_heading USING lo_columns gc_col_ebeln 'Document' 'Document' 'Purchasing document'.
+  PERFORM f_set_heading USING lo_columns gc_col_bukrs 'Co. code' 'Company code' 'Company code'.
+  PERFORM f_set_heading USING lo_columns gc_col_ekorg 'Purch.org' 'Purch. org.' 'Purchasing organization'.
+  PERFORM f_set_heading USING lo_columns gc_col_lifnr 'Vendor' 'Vendor' 'Vendor account number'.
+  PERFORM f_set_heading USING lo_columns gc_col_bedat 'Doc. date' 'Document date' 'Document date'.
+  PERFORM f_set_heading USING lo_columns gc_col_bsart 'Doc. type' 'Document type' 'Purchasing document type'.
+  PERFORM f_set_heading USING lo_columns gc_col_ekgrp 'Purch.grp' 'Purch. group' 'Purchasing group'.
+
+  go_alv->display( ).
+ENDFORM.
+
+* Inputs: column container, name, texts / Outputs: none / Side effects: sets column texts
+FORM f_set_heading USING p_columns TYPE REF TO cl_salv_columns_table
+                         p_name    TYPE lvc_fname
+                         p_short   TYPE scrtext_s
+                         p_medium  TYPE scrtext_m
+                         p_long    TYPE scrtext_l.
+  DATA lo_column TYPE REF TO cl_salv_column.
+
+  TRY.
+      lo_column = p_columns->get_column( p_name ).
+      lo_column->set_short_text( p_short ).
+      lo_column->set_medium_text( p_medium ).
+      lo_column->set_long_text( p_long ).
+    CATCH cx_salv_not_found.
+      RETURN.
+  ENDTRY.
+ENDFORM.
