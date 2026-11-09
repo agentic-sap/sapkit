@@ -122,7 +122,22 @@ sc4sap-lite/
                                           사전(辭典) 층은 재수록하지 않는다. 사다리 진행 상태는 docs/BLUEPRINT.md ⑶-a
         conventions/                   ← common/ 규약 (include-structure, oop-pattern, alv-rules,
                                           clean-code 3종, naming, text-element, constant 등)
+          clean-code-note.md           ← **쪽지 정본**(판L · D-163). 작법 규칙(clean-code 3종 +
+                                          집 규칙 일부 + 릴리스 제한 + 함수모듈 서명)을 ≤ 70줄로
+                                          압축. 원본 규약 파일은 지우지 않는다(사람용 참고서 ·
+                                          쪽지의 출처)
         templates/                     ← oop/procedural/alv 샘플 + ecc/ (DDIC 헬퍼 템플릿 3종)
+
+        적재 모델 — **작법은 본문 쪽지, 지식은 검색**(판L · D-163 착수 · D-164 보정).
+        작법: 쪽지 본문을 `create-program`·`create-object`·`modify-object`·
+        `review-checklist` §8 본문에 **글자 그대로** 싣는다(표식
+        `<!-- sapkit:conventions-note:begin/end -->` · 동기화 게이트
+        `scripts/check-conventions-note.mjs`). 코드 작성·리뷰 역할 문서도 원본 대신 쪽지를
+        싣는다. `analyze-code`만 원본 규약 파일을 계속 읽는다. 지식: 모듈 상담가 역할 문서는
+        모듈·공통·나라·업종 지식 파일을 통째로 읽지 않고 **폴더를 검색해 걸린 줄만** 읽는다
+        (지식 파일은 표라 한 줄이 완결된 항목이다). 근거는 판K 측정(D-160~162) — 모델은 지식
+        파일을 거의 열지 않고 검색 한 줄로 답했고, 작법 규약 파일은 「읽어도 된다」로는
+        열리지 않았다.
     personas/
       INDEX.md                         ← 유일한 발견 표면 (셀렉터). 본문 26개는 온디맨드 로드
       *.md                             ← 최소 헤더(name/description/지식참조/capability 태그
