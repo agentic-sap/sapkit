@@ -1,0 +1,73 @@
+model: claude-fable-5-1
+
+L-71-notes-B.txt — E-1 블라인드 묶음(L-65-blind-e1.json · 20행) 채점자 B 메모
+==========================================================================
+읽은 것: L-65-grader-brief.txt · L-65-blind-e1.json · 11-code-tasks.txt · 01-convention-split.txt ·
+clean-code-oop.md 120~139 · clean-code.md 186~191 · 211~214 (인용 줄 앞뒤 확인용). 그 밖은 열지 않음.
+검사기 오류급은 묶음 값 그대로(20행 전부 0) — 재실행 없음. 경고(local_variable_names 등)는 판정에 쓰지 않음.
+
+① 규약 적용 메모 (§5-B)
+----------------------
+- 계수 대상은 11-code-tasks.txt 의 번호 규칙뿐. violations 의 줄 = code_numbered 앞 번호 · 위반이 드러나는 대표 줄 하나.
+- sy-subrc 등가(C-01 규칙 2 · C-04 규칙 5 · C-05 규칙 10): SELECT … INTO TABLE 의 「그 결과 테이블」 IS INITIAL 검사는
+  어디서 하든 등가로 인정 — E1-07 52줄 gt_data · E1-09 78줄 gt_cust(다른 FORM) · E1-17 49줄 gt_header.
+  파생 테이블 검사는 인정하지 않음 — E1-02 는 결과 gt_item 을 검사하지 않고 40줄에서 파생 gt_out 만 검사 → 5 위반.
+  판단 갈릴 수 있는 적용(등가 범위를 어디까지 보느냐).
+- C-01 규칙 5 · C-04 규칙 6(AUTHORITY-CHECK): 부재 = 위반(E1-04 · E1-07 · E1-17). E1-20 은 AUTHORITY-CHECK 가 있으나
+  EKKO SELECT(100) 뒤 행별 루프에서 실행 — 규칙 문언 「SELECT 앞」·원문 「ahead of any read」 대로 위반. 판단 갈릴 수 있음
+  (읽고 나서 행별로 거르는 패턴을 인정할지). 통과 4행(E1-11 · E1-12 · E1-18)은 권한 통과 값으로 범위를 만들어 SELECT 앞에 둠.
+- C-01 규칙 6: 괄호의 cx_salv_msg 처리로 판정 — 4행 모두 MESSAGE 출력 → 통과. 주석만 있거나 RETURN 만인
+  CATCH cx_salv_not_found(E1-07 130 · E1-20 178)는 기록만(미계수).
+- C-01 규칙 3: E1-20 의 권한 후처리(SELECT 뒤 LOOP 로 비인가 행 제외)는 선택 조건·행 상한이 WHERE/UP TO 에 있어 3 으로
+  세지 않음(괄호 기준이 선택화면 조건·행 상한). 행 상한보다 적게 나올 수 있는 점은 규칙 밖.
+- C-02 규칙 4 FINAL: 파일 안 모든 클래스(예외 클래스 포함). E1-08 lcx_discount_input(9)만 FINAL 없음 → 위반.
+  E1-19 는 예외 클래스가 파일 밖이라 셀 대상 없음.
+- C-02 규칙 5: 공개 메서드 시그니처의 공개 TYPES 통과(4행 모두 ty_amount·ty_percent 류). 예외 클래스의 공개 상수·READ-ONLY
+  속성(E1-05 reason/reason_code · E1-08 gc_reason/mv_reason · E1-15 mv_reason)은 호출자가 사유를 구분하는 예외의 공개 계약으로
+  보아 통과 — 괄호 기준(CALCULATE·생성자 외 PUBLIC 이면 위반)은 계산 클래스를 겨눈 것으로 읽음. 판단 갈릴 수 있음.
+- C-02 규칙 7: 결과가 없는 시나리오명(E1-08 normal_discount · full_discount · zero_discount · rounding_to_cents ·
+  negative_gross · percentage_too_high · percentage_negative) 위반. 결과가 든 이름(E1-15 negative_gross_is_rejected 등)은
+  given/when/then 낱말이 없어도 통과. E1-05 · E1-19 는 given_…_then_… 형식.
+- C-02 규칙 8: 메서드당 1~2 단언. E1-15 percent_over_100_is_rejected 는 CATCH 안 단언 없이 fail( ) 만으로 예외를 확인 — 원문
+  139줄이 그 용법을 인정하므로 통과. assert_not_initial(문자열) · assert_bound(참조) 는 타입에 맞음.
+- C-02 규칙 9: *& / *--- 배너 블록만 계수(E1-08 1~4 · 6~8 · 35~37 · 84~86). ABAP Doc 주석(E1-15 · E1-19)과 인라인 설명
+  주석은 배너·작성자 태그·변경 이력이 아님.
+- C-03 규칙 2: 더미 SELECT 타깃(lv_matnr 류) · 작업 복사본(lv_language · lv_description) · 변환 EXIT 결과(E1-16 lv_matnr)는
+  「빠진 IMPORTING 의 대역」이 아니라 통과(4행). 규칙 3: 4행 모두 두 EXCEPTIONS 로 구분 RAISE. 규칙 7: 4행 모두 TABLES 없음 →
+  해당없음.
+- C-04 규칙 2: E1-02 만 품목 전 행을 읽어 ABAP 루프로 합산 → 위반(SHKZG 부호 처리 사유를 머리 주석에 적었어도 문언상 위반).
+  나머지 3행은 SUM/COUNT GROUP BY. 규칙 4: 4행 모두 join → 해당없음.
+- C-05: 팩 목록 기준으로 7.40+ 구문(인라인 선언 · 생성자 식 · 테이블 식 · 문자열 템플릿 · 체인 호출 · READ TABLE … FIELD-SYMBOL( ) ·
+  SQL 식) 4행 모두 없음. E1-01 COUNT( * ) AS 별칭은 규칙 8 의 식(CASE/CAST/COALESCE)이 아님. E1-09 abap_bool 을 TYPE-POOLS 없이
+  씀 — 7.02 부터 TYPE-POOLS 불요라 문제 없음(규칙 밖). MOVE 류 구식 구문은 쓰인 행 없음.
+- 검사기 오류급과 겹치는 규칙(한 줄 한 문장): 20행 모두 오류급 0 이라 겹침 없음.
+
+② 규칙의심 (규칙은 고치지 않음 · 판정 반영 없음)
+--------------------------------------------
+- E1-08 · E1-15 — 과제 C-02 required_output 「예외 클래스를 같은 파일에 로컬로 선언(선호)」. 전역 클래스의 공개 메서드 RAISING 에
+  로컬 클래스를 쓰면 실제 클래스 풀에서는 컴파일되지 않는다(공개 섹션은 로컬 타입을 참조할 수 없음). E1-15 는 답 자체가 이 한계를
+  2~3줄 주석으로 적었고, E1-19 는 전역 ZCX_ 참조로 피했다. 과제 글자가 허용하므로 규칙 1·2 위반으로 세지 않음.
+- E1-05 — 예외 클래스를 PUBLIC(전역 클래스 선언)으로 같은 파일에 두었다. 한 소스에 전역 클래스 둘은 실제로는 별개 객체여야 한다.
+  과제 허용(로컬 선언 또는 전역 참조)의 어느 쪽에도 딱 맞지 않으나 번호 규칙 밖이라 미계수.
+
+③ 집 규칙 관찰 (미계수)
+----------------------
+- 이름 접두: 대부분 lv_/gv_/gt_/gc_ 계열. E1-15 cut · E1-19 접두 없는 이름(calculator · net_amount · result · rejection)은
+  Clean ABAP 식 이름이라 집 규약과 다르나 미계수. 검사기 local_variable_names W(lo_/lx_ · FIELD-SYMBOLS 오탐)는 판정 밖.
+- 텍스트 요소: E1-20 은 사용자 노출 문자열 전부를 CONSTANTS 로 두고 %_…_%_app_%-text 로 선택 텍스트를 채움 · E1-12 · E1-13 ·
+  E1-18 은 TEXT-nnn 참조만(문자열 본문 없음) · 나머지는 리터럴(텍스트 기호) 병기. 두 언어 통과 의무 등은 과제 밖.
+- 배너 주석(규칙 목록에 없는 과제): E1-02 · E1-04 · E1-07 · E1-09 · E1-12 · E1-14 · E1-17 · E1-18 · E1-20. C-01 · C-04 · C-05 엔
+  배너 규칙이 없어 미계수.
+- TABLES 문(리포트의 선택화면용): E1-02 · E1-04 · E1-09 · E1-12 · E1-14 · E1-20 — 집 규칙·번호 규칙 어느 쪽에도 없음.
+- 인클루드 구조 · OK_CODE · 두 클래스 분리 · 템플릿 · ALV 기본값: 과제가 단일 파일을 요구해 해당 없음.
+- 규칙 밖 기타 관찰: E1-20 LEAVE LIST-PROCESSING(77)으로 입력 오류 처리(C-01 엔 EXIT/LEAVE 규칙 없음) · E1-17 select_data 가
+  p_max <= 0 에서 RETURN 해 「문서 없음」 메시지로 이어짐 · E1-13 은 AT SELECTION-SCREEN 과 START-OF-SELECTION 에서 권한 검사
+  2회 · E1-08 calculate 가 CLASS-METHODS(정적) · E1-19 는 패킹 산술의 대입 시 반올림에 기댐(2자리 결과 맞음).
+
+④ 집계
+------
+- 과제 통과 14 / 20 — E1-01 · 03 · 05 · 06 · 09 · 10 · 11 · 12 · 13 · 14 · 15 · 16 · 18 · 19
+- 일반 작법 위반이 있는 행 6 / 20 — E1-02(2·5·6) · E1-04(6) · E1-07(5) · E1-08(4·7·9) · E1-17(5) · E1-20(5)
+- 검사기 오류급 > 0 인 행 0 / 20 (묶음 값)
+- 과제별 통과: C-01 1/4 · C-02 3/4 · C-03 4/4 · C-04 2/4 · C-05 4/4
+- 규칙의심 표시 행 2 (E1-08 · E1-15) · 「판단 갈릴 수 있음」 표시 행 5 (E1-02 · E1-05 · E1-09 · E1-20 · 그리고 E1-08/E1-15 의 규칙 5 적용은 E1-05 기준 준용)
