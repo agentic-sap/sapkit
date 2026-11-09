@@ -38,13 +38,15 @@
 //                「total 환산」(+ 래퍼 SKILL.md + project-context.md)도 함께 찍는다 — 판J 대조값 157,482(÷4).
 //   탈출 포인터 열 = `create-program` 1-hop(환산) 가운데, 그 파일을 가리키는 모든 줄이 탈출 단서(ESC_CUE — 「필요하면 · 쪽지에
 //                없으면 · 원본을 보라」 류)를 담은 파일. 이 판에서 새로 둔 기계 정의다(판J는 산문으로만 셌다 — L3-c).
-//                「전체」에는 그대로 들어 있고(판J 정의), 따로 보인다. 쪽지 대체 7파일 선은 날 값(탈출 포함)으로 판정하고
-//                탈출 포인터만으로 남은 바이트는 판정 줄에 따로 적는다.
+//                「전체」에는 그대로 들어 있고(판J 정의), 따로 보인다.
 //   토큰       = 바이트 ÷ 4 반올림. 바이트는 UTF-8 · CRLF→LF 정규화 후.
 //
 // 선 (spec E-2 — `--before`를 줄 때만 판정):
-//   ① 상담 적재 ≤ 6,000 토큰  ② 쪽지 대체 7파일이 create-program 1-hop(환산)에서 0바이트  ③ 전체 < 변경 전 전체
-//   규약분 감소율은 병기만(선 없음).
+//   ① 상담 적재 ≤ 6,000 토큰  ③ 전체 < 변경 전 전체  규약분 감소율은 병기만(선 없음 · 환산 바이트).
+//   ② 쪽지 대체 7파일이 create-program 1-hop에서 모두 빠졌을 것 — 환산 바이트가 아니라 **존재**로 판정한다(코디네이터 판정
+//      2026-11-09). create-program 본문(frontmatter · 펜스 밖)의 R1 · R2 참조 전수 — 선택군 대안 · 길 안내 절 포함 — 에
+//      7파일 중 하나라도 남으면 실패이고, 그 파일과 가리킨 줄 번호를 찍는다. 그 파일을 가리키는 줄이 모두 탈출 단서를 담으면
+//      「실패가 아니라 탈출 포인터 — 별도 표기」로 분류한다(spec C-4). 존재 줄은 변경 전 실행에서도 찍는다(판정 없음 표기).
 //
 // 사용 (레포 루트에서):
 //   node docs/reference/audits/2026-11-09-note-and-trim-data/L-20-measure-load.mjs --ref=<git ref> \
@@ -156,6 +158,8 @@ function resolveRel(dir, target) {
 function extractRefs(filePath) {
   const text = readText(filePath);
   const body = bodyOf(text);
+  // line은 판J처럼 본문(frontmatter 뒤) 기준 · fileLine은 파일 기준(존재 판정 · 탈출 포인터 출력용)
+  const fmOffset = text.split('\n').length - body.split('\n').length;
   const dir = path.posix.dirname(filePath);
   const found = [];
   let inFence = false;
@@ -196,7 +200,7 @@ function extractRefs(filePath) {
         if (!resolved || !actualOf(resolved)) cls = 'unresolved';
         else if (!resolved.startsWith(CORE + '/')) cls = 'non-core';
         else cls = 'core';
-        found.push({ raw: one, rule, cls, nav, line: i + 1, heading, group, cue, esc, cueText: cueText.slice(0, 90), resolved: cls === 'unresolved' ? null : resolved });
+        found.push({ raw: one, rule, cls, nav, line: i + 1, fileLine: i + 1 + fmOffset, heading, group, cue, esc, cueText: cueText.slice(0, 90), resolved: cls === 'unresolved' ? null : resolved });
       }
     }
   });
@@ -274,10 +278,24 @@ function measureCreateProgram() {
   const escape = [];
   for (const p of hop1.keys()) {
     const refs = found.filter((f) => f.cls === 'core' && !f.nav && f.resolved === p);
-    if (refs.length && refs.every((f) => f.esc)) escape.push({ ...measureFile(p), lines: [...new Set(refs.map((f) => f.line))].sort((a, b) => a - b) });
+    if (refs.length && refs.every((f) => f.esc)) escape.push({ ...measureFile(p), lines: [...new Set(refs.map((f) => f.fileLine))].sort((a, b) => a - b) });
   }
   escape.sort((a, b) => (a.file < b.file ? -1 : a.file > b.file ? 1 : 0));
   const escapeReplacedBytes = sumB(escape.filter((e) => NOTE_REPLACED.includes(e.file)));
+
+  // 선 ② 존재 판정 — 쪽지 대체 7파일을 가리키는 참조가 create-program 본문(frontmatter · 펜스 밖) 어디든 남았는가.
+  // 환산이 아니라 전수(선택군 대안 포함)이고, 길 안내 절 링크도 센다. 그 파일을 가리키는 줄이 모두 탈출 단서를 담으면
+  // 「실패가 아니라 탈출 포인터」로 따로 분류한다(spec C-4).
+  const presence = NOTE_REPLACED.map((p) => {
+    const refs = found.filter((f) => f.cls === 'core' && f.resolved === p);
+    if (!refs.length) return null;
+    const lines = [...new Set(refs.map((f) => f.fileLine))].sort((a, b) => a - b);
+    const kind = refs.every((f) => f.esc) ? 'escape' : 'fail';
+    const where = [...new Set(refs.map((f) => (f.nav ? '길 안내 절' : f.selAlt ? '선택군 대안' : '1-hop 환산')))].sort();
+    return { file: p, kind, lines, where };
+  }).filter(Boolean);
+  const presenceFail = presence.filter((x) => x.kind === 'fail');
+  const presenceEscape = presence.filter((x) => x.kind === 'escape');
 
   const procPlusHop1 = procedure.bytes + sumB(hop1Files);
   const total = wrapper.bytes + projectContext.bytes + procPlusHop1;
@@ -290,6 +308,7 @@ function measureCreateProgram() {
     note, conv, convFilesBytes, conventionBytes,
     replacedInHop1Bytes: sumB(replacedInHop1), replacedInHop1Files: replacedInHop1.map((c) => c.file),
     escape, escapeBytes: sumB(escape), escapeReplacedBytes,
+    presence, presenceFail, presenceEscape,
     hop1Bytes: sumB(hop1Files), procPlusHop1, total,
   };
 }
@@ -354,10 +373,10 @@ const verdict = before
   ? {
       consult: { line: '상담 적재 ≤ 6,000 토큰', value: div4(cs.bytes), pass: div4(cs.bytes) <= 6000 },
       replaced: {
-        line: '쪽지 대체 7파일이 create-program 1-hop(환산)에서 0바이트',
-        value: cp.replacedInHop1Bytes,
-        pass: cp.replacedInHop1Bytes === 0,
-        escapeOnlyBytes: cp.escapeReplacedBytes,
+        line: '쪽지 대체 7파일이 create-program 1-hop 전수에서 모두 빠졌을 것(존재 판정)',
+        failFiles: cp.presenceFail,
+        escapeFiles: cp.presenceEscape,
+        pass: cp.presenceFail.length === 0,
       },
       total: { line: '전체 < 변경 전 전체', value: cp.procPlusHop1, before: before.cells.total.bytes, pass: cp.procPlusHop1 < before.cells.total.bytes },
       conventionReduction: {
@@ -392,6 +411,7 @@ const result = {
     createProgramTotalWithWrapper: { bytes: cp.total, tokens: div4(cp.total), wrapperBytes: cp.wrapper.bytes, projectContextBytes: cp.projectContext.bytes },
     replacedInHop1: { bytes: cp.replacedInHop1Bytes, files: cp.replacedInHop1Files },
   },
+  presence: { remaining: cp.presenceFail, escapeOnly: cp.presenceEscape },
   verdict,
 };
 
@@ -413,10 +433,17 @@ L.push(`탈출 포인터 ${cellB(cp.escapeBytes)}   (${cp.escape.length}파일 �
 L.push(`참고 — 판J 판정 칸 「total 환산」(래퍼 ${fmt(cp.wrapper.bytes)} B + project-context ${fmt(cp.projectContext.bytes)} B + 전체): ${cellB(cp.total)}`);
 
 H('2. 선 판정');
-if (!verdict) L.push('변경 전 — 판정 없음 (--before 미지정)');
-else {
+const presItem = (x) => `${path.posix.basename(x.file)}(줄 ${x.lines.join(', ')} · ${x.where.join('/')})`;
+const presenceLine =
+  `② 쪽지 대체 7파일 존재(create-program 1-hop 전수 · 선택군 대안 · 길 안내 절 포함 · 줄 = 파일 기준): 남음 ${cp.presenceFail.length}파일` +
+  `${cp.presenceFail.length ? ` — ${cp.presenceFail.map(presItem).join(' · ')}` : ''}` +
+  ` · 탈출 포인터(실패 아님 · 별도 표기) ${cp.presenceEscape.length}파일${cp.presenceEscape.length ? ` — ${cp.presenceEscape.map(presItem).join(' · ')}` : ''}`;
+if (!verdict) {
+  L.push('변경 전 — 판정 없음 (--before 미지정)');
+  L.push(`${presenceLine} (변경 전 — 판정 없음)`);
+} else {
   L.push(`① ${verdict.consult.line}: ${fmt(verdict.consult.value)} → ${verdict.consult.pass ? '통과' : '미달'}`);
-  L.push(`② ${verdict.replaced.line}: ${fmt(verdict.replaced.value)} B → ${verdict.replaced.pass ? '통과' : '미달'}${verdict.replaced.escapeOnlyBytes ? ` (그 가운데 탈출 포인터로만 남은 ${fmt(verdict.replaced.escapeOnlyBytes)} B)` : ''}`);
+  L.push(`${presenceLine} → ${verdict.replaced.pass ? '통과' : '미달'}`);
   L.push(`③ ${verdict.total.line}: ${fmt(verdict.total.value)} B vs 변경 전 ${fmt(verdict.total.before)} B → ${verdict.total.pass ? '통과' : '미달'}`);
   L.push(`   ${verdict.conventionReduction.line}: ${fmt(verdict.conventionReduction.before)} B → ${fmt(verdict.conventionReduction.after)} B · 감소율 ${verdict.conventionReduction.pct}%`);
 }
@@ -436,7 +463,7 @@ L.push(`  매개(합계 밖) ${cp.parametric.length}: ${cp.parametric.join(' · 
 L.push(`  non-core ${cp.nonCore.length}: ${cp.nonCore.join(' · ') || '없음'}`);
 L.push(`  unresolved ${cp.unresolved.length}: ${cp.unresolved.join(' · ') || '없음'}`);
 
-H('5. 탈출 포인터 열 (create-program 1-hop 환산 중 가리키는 줄이 모두 탈출 단서를 담은 파일)');
+H('5. 탈출 포인터 열 (create-program 1-hop 환산 중 가리키는 줄이 모두 탈출 단서를 담은 파일 · 줄 = 파일 기준)');
 if (!cp.escape.length) L.push('없음');
 for (const e of cp.escape) L.push(`${String(fmt(e.bytes)).padStart(10)}  ${e.file}  (줄 ${e.lines.join(', ')})`);
 

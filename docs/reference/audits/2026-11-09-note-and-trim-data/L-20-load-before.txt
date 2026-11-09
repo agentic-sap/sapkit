@@ -16,6 +16,7 @@ TRACING RULE · 칸 정의: 스크립트 머리 주석 (판J 20-measure-tokens.m
 2. 선 판정
 ------------------------------------------------------------------------------
 변경 전 — 판정 없음 (--before 미지정)
+② 쪽지 대체 7파일 존재(create-program 1-hop 전수 · 선택군 대안 · 길 안내 절 포함 · 줄 = 파일 기준): 남음 7파일 — clean-code.md(줄 97, 804 · 1-hop 환산) · clean-code-oop.md(줄 98 · 1-hop 환산) · clean-code-procedural.md(줄 99 · 1-hop 환산) · naming-conventions.md(줄 95, 353, 376, 804 · 선택군 대안) · constant-rule.md(줄 93, 376, 804 · 선택군 대안) · text-element-rule.md(줄 92, 376, 804 · 선택군 대안) · procedural-form-naming.md(줄 94, 376, 804 · 선택군 대안) · 탈출 포인터(실패 아님 · 별도 표기) 0파일 (변경 전 — 판정 없음)
 
 3. 규약분 내역 (create-program 1-hop 기준)
 ------------------------------------------------------------------------------
@@ -78,7 +79,7 @@ TRACING RULE · 칸 정의: 스크립트 머리 주석 (판J 20-measure-tokens.m
   non-core 3: interactive/adapters/antigravity/README.md · interactive/adapters/claude/README.md · interactive/adapters/codex/README.md
   unresolved 10: .sapkit/RULES.md · .sapkit/knowledge/domain.md · .sapkit/knowledge/system.md · AGENTS.md · cbo-context.md · customization-context.md · interview.md · module-interview.md · plan.md · spec.md
 
-5. 탈출 포인터 열 (create-program 1-hop 환산 중 가리키는 줄이 모두 탈출 단서를 담은 파일)
+5. 탈출 포인터 열 (create-program 1-hop 환산 중 가리키는 줄이 모두 탈출 단서를 담은 파일 · 줄 = 파일 기준)
 ------------------------------------------------------------------------------
 없음
 

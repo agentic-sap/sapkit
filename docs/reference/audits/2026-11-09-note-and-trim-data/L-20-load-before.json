@@ -160,6 +160,91 @@
       ]
     }
   },
+  "presence": {
+    "remaining": [
+      {
+        "file": "interactive/core/knowledge/abap/conventions/clean-code.md",
+        "kind": "fail",
+        "lines": [
+          97,
+          804
+        ],
+        "where": [
+          "1-hop 환산"
+        ]
+      },
+      {
+        "file": "interactive/core/knowledge/abap/conventions/clean-code-oop.md",
+        "kind": "fail",
+        "lines": [
+          98
+        ],
+        "where": [
+          "1-hop 환산"
+        ]
+      },
+      {
+        "file": "interactive/core/knowledge/abap/conventions/clean-code-procedural.md",
+        "kind": "fail",
+        "lines": [
+          99
+        ],
+        "where": [
+          "1-hop 환산"
+        ]
+      },
+      {
+        "file": "interactive/core/knowledge/abap/conventions/naming-conventions.md",
+        "kind": "fail",
+        "lines": [
+          95,
+          353,
+          376,
+          804
+        ],
+        "where": [
+          "선택군 대안"
+        ]
+      },
+      {
+        "file": "interactive/core/knowledge/abap/conventions/constant-rule.md",
+        "kind": "fail",
+        "lines": [
+          93,
+          376,
+          804
+        ],
+        "where": [
+          "선택군 대안"
+        ]
+      },
+      {
+        "file": "interactive/core/knowledge/abap/conventions/text-element-rule.md",
+        "kind": "fail",
+        "lines": [
+          92,
+          376,
+          804
+        ],
+        "where": [
+          "선택군 대안"
+        ]
+      },
+      {
+        "file": "interactive/core/knowledge/abap/conventions/procedural-form-naming.md",
+        "kind": "fail",
+        "lines": [
+          94,
+          376,
+          804
+        ],
+        "where": [
+          "선택군 대안"
+        ]
+      }
+    ],
+    "escapeOnly": []
+  },
   "verdict": null,
   "caseFolded": {},
   "panj": {
