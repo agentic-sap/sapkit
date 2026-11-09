@@ -213,7 +213,7 @@ L.push(`  표류 검사: 판K 답 10행 중 판L 최종이 판K 최종과 다른
 for (const d of drift.filter((x) => x.k_final !== x.l_final)) L.push(`    다름 ${d.anon_id} ${d.model} ${d.task}: 판K ${d.k_final ? '통과' : '불통과'}(${d.k_viol || '-'}) · 판L ${d.l_final ? '통과' : '불통과'}(${d.l_viol || '-'})`);
 L.push(`  갈린 행(제3 판정): ${disputed.join(' ') || '없음'} · 번호 집합은 같고 줄만 다른 행: ${result.e1.line_only_diff_rows.join(' ') || '없음'}`);
 L.push('  과제별 통과 (J 맨 · K 폴더 · L 쪽지)');
-for (const p of result.e1.per_task) L.push(`    ${p.model}: ${TASKS.map((t, i) => `${t} ${yn(p.J[i])}${yn(p.K[i])}${yn(p.L[i])}`).join(' · ')}`);
+for (const p of result.e1.per_task) L.push(`    ${p.model}: ${TASKS.map((t, i) => `${t} ${yn(p.J[i])}/${yn(p.K[i])}/${yn(p.L[i])}`).join(' · ')}`);
 L.push(`  규칙별 위반(쪽지 조건 최종): ${Object.entries(ruleCounts).map(([k, v]) => `${k}=${v}`).join(' · ') || '없음'}`);
 for (const t of tokens) L.push(`  토큰 ${t.model}: 판L 입력 ${t.L_in} · 출력 ${t.L_out} / 판K 입력 ${t.K_in} · 출력 ${t.K_out} · 판L 검사기 오류급 ${t.L_error_grade} · 경고 ${t.L_warnings}`);
 L.push('');

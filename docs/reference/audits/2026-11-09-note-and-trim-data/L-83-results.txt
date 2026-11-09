@@ -6,8 +6,8 @@ L-83-results.txt — 판L E-1 · E-3 집계 (L-83-aggregate.mjs 생성물 · 손
   표류 검사: 판K 답 10행 중 판L 최종이 판K 최종과 다른 행 0 (A 1 · B 0) → 2행 미만 — 선 판정 유지
   갈린 행(제3 판정): E1-07 E1-08 E1-09 E1-20 · 번호 집합은 같고 줄만 다른 행: E1-02
   과제별 통과 (J 맨 · K 폴더 · L 쪽지)
-    claude-opus-5-5: C-01 xxO · C-02 xOO · C-03 OOO · C-04 xxO · C-05 OOO
-    claude-sonnet-5-5: C-01 xxx · C-02 xxO · C-03 OOO · C-04 xxO · C-05 OOO
+    claude-opus-5-5: C-01 x/x/O · C-02 x/O/O · C-03 O/O/O · C-04 x/x/O · C-05 O/O/O
+    claude-sonnet-5-5: C-01 x/x/x · C-02 x/x/O · C-03 O/O/O · C-04 x/x/O · C-05 O/O/O
   규칙별 위반(쪽지 조건 최종): C-01 r5=1
   토큰 claude-opus-5-5: 판L 입력 38320 · 출력 21664 / 판K 입력 188857 · 출력 16896 · 판L 검사기 오류급 0 · 경고 71
   토큰 claude-sonnet-5-5: 판L 입력 37960 · 출력 19932 / 판K 입력 177894 · 출력 13612 · 판L 검사기 오류급 0 · 경고 64
