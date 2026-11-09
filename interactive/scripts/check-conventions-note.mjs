@@ -15,11 +15,12 @@
 //   ④ 표식 쌍이 파일마다 정확히 하나다 (부재 · 중복 · 짝 안 맞음 = 위반)
 //
 // ── 형식 계약 (쪽지 작성자와 이 게이트가 같은 정의를 쓴다) ────────────────
-//   규칙 줄  = 표식 사이에서 `- `로 시작하는 줄. 줄 끝에 출처 표식
+//   규칙 줄  = 표식 사이에서 `- `로 시작하는 줄 — **들여쓴 하위 글머리(`  - `)도
+//              규칙 줄이다**(출처 없이 규칙을 넣는 구멍을 막는다). 줄 끝에 출처 표식
 //              `[<파일이름>.md § <장 이름>]`을 단다. 예: `[clean-code.md § Open SQL]`.
 //              출처가 둘이면 표식을 둘 단다 — 줄 안의 표식은 **전부** 검사한다.
 //   면제 줄  = 빈 줄 · 소제목 줄(`#`로 시작하거나 `**…**`만 있는 줄) ·
-//              탈출구 줄(`- `로 시작하지 않는 평문 한 줄).
+//              탈출구 줄(공백을 빼고도 `- `로 시작하지 않는 평문 한 줄).
 //   출처 해석 = 파일은 `interactive/core/knowledge/abap/conventions/<파일이름>.md`로만
 //              찾는다(`modules/common/`에 같은 이름이 있어도 보지 않는다). 장 이름은
 //              그 파일의 `## ` 제목(fenced code 밖)에서 앞뒤 공백을 뺀 문자열과 같아야 한다.
@@ -154,7 +155,7 @@ function headingsOf(name) {
 function checkFormatAndSize(note) {
   const lines = contentLines(note);
   for (const { no, text } of lines) {
-    if (!text.startsWith('- ')) continue; // 면제 줄 (빈 줄 · 소제목 · 굵은 소제목 · 탈출구 평문)
+    if (!/^\s*- /.test(text)) continue; // 면제 줄 (빈 줄 · 소제목 · 굵은 소제목 · 탈출구 평문)
     if (!SOURCE_AT_END_RE.test(text)) {
       v(note.rel, no, '규칙 줄 끝에 출처 표식 `[<파일이름>.md § <장 이름>]`이 없다.');
       continue;

@@ -10,6 +10,7 @@
 //   ⑵ 사본 한 글자 변형                         → FAIL  (사본 파일 · 줄 번호 지목)
 //   ⑶ 출처 장 이름 오타                         → FAIL
 //   ⑷ 출처 표식 없는 규칙 줄                    → FAIL
+//   ⑷-b 출처 없는 들여쓴 하위 글머리            → FAIL  (들여써도 규칙 줄)
 //   ⑸ 출처 파일이 conventions/에 없음           → FAIL
 //   ⑹ 같은 이름 파일이 modules/common/에만 있음 → FAIL  (conventions/만 본다)
 //   ⑺ 출처 둘 중 둘째만 틀림                    → FAIL  (둘 다 검사한다)
@@ -172,6 +173,14 @@ expect(
   buildTree({ body: `${GOOD_BODY}\n- 출처를 잊은 규칙` }),
   1,
   (r) => check('   └ 사유가 정본 파일을 지목한다', r.out.includes('clean-code-note.md')),
+);
+
+// ⑷-b 출처 없는 들여쓴 하위 글머리 — 들여써도 규칙 줄이다
+expect(
+  '⑷-b 출처 없는 들여쓴 하위 글머리',
+  buildTree({ body: `${GOOD_BODY}\n  - 들여써서 숨은 규칙` }),
+  1,
+  (r) => check('   └ 사유가 출처 표식 누락이다', r.out.includes('출처 표식')),
 );
 
 // ⑸ 출처 파일 부재
