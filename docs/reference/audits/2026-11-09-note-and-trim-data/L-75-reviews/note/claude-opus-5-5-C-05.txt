@@ -1,0 +1,28 @@
+**§8 리뷰: ZJUDGE_C05 (Procedural · ABAP 7.02)**
+
+```
+Core: SY-SUBRC 확인 | 56–59 | SELECT … INTO TABLE 뒤에 sy-subrc 확인이 없다. 빈 결과는 write_list(78행)의 IS INITIAL로 간접 판정할 뿐이다. SELECT 직후 sy-subrc를 확인하고, 결과는 USING/CHANGING으로 넘긴다.
+Core: SY-SUBRC 확인 / Null vs Zero | 89 | READ TABLE gt_cnt 뒤에 sy-subrc 확인이 없다. 조회에 실패하면 88행 CLEAR 때문에 gs_cnt-count = 0이 헤더에 "고객 수 0"으로 출력된다. 값이 없는 것을 0으로 단정하는 셈이다.
+Core: 내부 테이블 타입·DEFAULT KEY | 28 | ty_t_cust가 STANDARD … WITH DEFAULT KEY다. 7.02에는 EMPTY KEY가 없으므로 SORTED TABLE … WITH NON-UNIQUE KEY land1 kunnr로 선언한다. 그러면 61행 SORT도 필요 없다.
+Core: Large-table SELECT | 56–59 | s_land1이 비어 있으면 KNA1 전건을 읽는다. 사전 COUNT(*) 확인이 없고, 1M건을 넘을 때의 대응(건수 제한·필수 입력·경고)도 없다.
+Core: Security (AUTHORITY-CHECK) | 48–50 | START-OF-SELECTION 진입점에 AUTHORITY-CHECK가 없다. 고객 마스터(이름·도시)를 출력하는 리포트이므로 F_KNA1_* 같은 권한 객체를 검사해야 한다.
+Core: Naming (약어 금지) | 22, 29, 31, 37–40, 75 | 약어 이름이 많다. ty_cust / ty_cnt / gt_cnt / gs_cnt / lv_prev_land1은 각각 ty_customer, ty_country_count, gt_country_counts, lv_previous_country 같은 완전한 단어로 바꾼다. 컴포넌트 count도 COUNT 집계와 혼동되므로 customer_count로 바꾼다.
+Core: Naming (boolean is_*/has_*) | 76, 84, 85, 95 | 불리언 lv_first는 lv_is_first_group 형태여야 한다.
+Core: Conditions phrased positively | 85 | IF lv_first = abap_false가 부정형 조건이다. 긍정형 플래그(lv_has_previous_group 등)로 바꾸면 84·85행이 모두 긍정형으로 읽힌다.
+Procedural: FORM 파라미터 | 55, 74 | 두 FORM 모두 파라미터 없이 전역(gt_cust·gt_cnt)을 직접 읽고 쓴다. select_data는 CHANGING ct_customers / ct_counts로, write_list는 USING it_customers / it_counts TYPE …로 받아야 한다.
+Procedural: Global vs Local | 38, 40 | 루프 작업영역 gs_cust / gs_cnt가 전역이다. 두 FORM이 같은 전역 작업영역을 공유하므로, 각 FORM의 지역 변수(ls_*)로 내린다.
+Procedural: FORM 헤더 주석 | 52–54, 71–73 | FORM 헤더에 이름만 있다. 입력 / 출력 / 전역 부작용을 한 줄로 적어야 한다.
+House rules: Event block order | 44–50 | TOP-OF-PAGE가 START-OF-SELECTION보다 앞에 있다. 통상 순서(START-OF-SELECTION → … → TOP-OF-PAGE)대로 배치한다.
+(자체 판단) 매직 넘버 – 열 위치 | 45, 91–92, 98–101 | 열 위치 15/55/90/30이 헤더(45행)와 명세 행(98–101행)에 따로 하드코딩되어 있어 어긋날 위험이 있다. 위치 상수로 묶는다.
+(자체 판단) 구식 구문 TABLES | 20 | TABLES kna1은 SELECT-OPTIONS FOR용으로만 쓰인다. DATA gv_country TYPE kna1-land1로 선언하고 SELECT-OPTIONS s_land1 FOR gv_country로 대체한다.
+(자체 판단) 빈 결과 출력 | 78–80 | 빈 결과에서 WRITE text-006을 하면 TOP-OF-PAGE가 먼저 실행된다. 그래서 열 제목과 ULINE 아래에 "No customers found"가 찍힌다. MESSAGE s… DISPLAY LIKE 'E'를 쓰거나 헤더를 생략해야 한다.
+(자체 판단) 끝 표시 주석 | 69, 103 | ENDFORM 뒤의 "select_data / "write_list는 SE80이 자동 생성하는 end-marker 주석으로, 정보가 없다. 제거한다.
+```
+
+**제외하거나 판정을 보류한 항목**
+
+- **검사기 판정 수용:** 검사기가 지적한 double_space 6건(39, 40, 69, 76, 95, 103행)은 그 판정을 그대로 받아들이고 다시 올리지 않았다.
+- **OOP 템플릿 대조:** Paradigm이 Procedural이므로 적용하지 않았다.
+- **include 구조·TOP include 규칙:** 과제가 "INCLUDE 없이 파일 하나"를 명시했으므로, main-program 템플릿·include 구조·TOP include 규칙에서 벗어난 부분은 과제 지시로 정당화된다고 보고 지적하지 않았다.
+- **Text pool 규칙(R/I/S 텍스트, logon 언어와 'E' 두 번 기록, S 텍스트 offset 8):** 산출물이 소스 파일 하나뿐이라 검증할 수 없다. 8–16행 주석에 예정된 텍스트가 적혀 있을 뿐, 실제 등록 여부는 확인해야 한다.
+- **릴리스 위반 여부:** 7.40 이후 구문(인라인 선언, VALUE/NEW, 문자열 템플릿, 테이블 식 등)은 발견되지 않았다. 7.02 기준으로 위반 없음이다.

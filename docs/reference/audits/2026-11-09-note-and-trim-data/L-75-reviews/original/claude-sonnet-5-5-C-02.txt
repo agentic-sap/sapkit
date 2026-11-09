@@ -1,0 +1,29 @@
+§8 체크리스트에서 실제로 어긋난 항목은 아래 6건이에요. `clean-code.md`와 `clean-code-oop.md`만 기준으로 봤어요(Paradigm = OOP, ABAP 7.58).
+
+```
+OOP 예외 — RAISE EXCEPTION NEW 사용 | 68–69, 73–74 | 7.58인데 `RAISE EXCEPTION TYPE lcx_discount_input EXPORTING iv_reason = ...` 구식 문법을 썼다. `RAISE EXCEPTION NEW lcx_discount_input( iv_reason = ... ).`로 바꿔야 한다
+OOP 예외 — 프로젝트 자체 슈퍼클래스에서 상속 | 9–10 | lcx_discount_input이 cx_static_check를 직접 상속한다. 프로젝트 자체 base(ZCX_{MODULE}_ERROR 또는 로컬 base 예외)를 두고 그 하위 클래스로 만들어야 한다. 과제가 로컬 선언을 허용한 것은 선언 위치에 대한 얘기이고, 상속 구조 규칙까지 면제하지는 않는다
+OOP FINAL 기본 | 9 | lcx_discount_input에 FINAL이 없다. 상속을 염두에 둔 설계가 아니므로 `FINAL`을 붙여야 한다
+OOP 테스트 — given-when-then 명명 | 93–99 | normal_discount, full_discount, zero_discount, rounding_to_cents, negative_gross, percentage_too_high, percentage_negative 모두 상황(given)과 기대 결과(then)가 이름에 드러나지 않는다. 메서드 이름 30자 제한 안에서 예: `returns_zero_when_pct_is_100`, `rejects_when_gross_negative`
+Core 문자열 — 백틱 리터럴 | 107, 114, 121, 129, 135, 146, 157 | assert의 msg 문자열을 작은따옴표 'text'(C 타입)로 넘겼다. `` `text` `` 백틱 리터럴로 바꿔야 한다 (MINOR)
+OOP 포매팅 — 정렬 일관성 | 58–60 | gc_zero와 gc_hundred는 TYPE 열을 맞췄는데 gc_decimals만 한 칸 밀려 정렬이 깨졌다 (MINOR)
+```
+
+**해당 없음 / 통과**
+- **해당 없음:**
+  - 메인 프로그램 템플릿 항목: REPORT가 아닌 전역 클래스라서
+  - SELECT, sy-subrc, 내부 테이블, 보조 키, COUNT(*), Boolean, 대사(reconciliation) 관련 항목
+  - 테스트 더블: 의존성이 없음
+- **통과:**
+  - 메서드: 17줄, 파라미터 2개, RETURNING
+  - 전역 클래스와 테스트 클래스의 FINAL, CREATE OBJECT 없음, 120자 이내
+  - 72행 조건은 긍정형이고 빈 IF 분기 없음
+  - 주석 처리된 코드나 디버그 문 없음
+  - 좁은 DEC 필드 문제 없음: 계수가 decfloat34이고, 결과는 gross 이하라서 p(15,2)를 넘칠 수 없음
+  - 테스트가 public 메서드만 호출하고 LOCAL FRIENDS를 쓰지 않음
+- **65행 `DATA lv_factor TYPE decfloat34`는 위반이 아니에요.** 인라인 선언으로 바꾸면 계산 타입으로 추론되므로, 정밀도를 위해 명시적으로 타입을 준 것은 정당해요.
+
+**참고 (§8 목록 밖이지만 중요)**
+- **54행 (가장 중요):** 전역 클래스의 PUBLIC 메서드가 `RAISING lcx_discount_input`, 즉 로컬 예외를 선언하고 있어요. 실제 클래스 풀이라면 로컬 타입을 public 인터페이스에 쓸 수 없어서 문법 오류가 나고, 클래스 밖의 호출자는 이 예외를 잡을 수도 없을 거예요. 그러면 과제의 "caller can handle" 요건을 충족하지 못해요. 과제가 로컬 선언을 "preferred"라고 했지만, 전역 `ZCX_*`를 쓰는 쪽을 권장해요.
+- **47행:** `CLASS-METHODS`(정적 메서드)를 썼어요. clean-code-oop의 "인스턴스 메서드 우선" 규칙에는 어긋나지만, §8 체크 항목에는 들어 있지 않아요.
+- **검사기의 `double_space` 9건(24, 44, 49, 58, 93–97행):** 의도적인 열 정렬에서 나온 공백이라 Clean ABAP 기준으로는 결함이 아니에요. 실제로 정렬이 어긋난 곳은 58–60행뿐이에요.

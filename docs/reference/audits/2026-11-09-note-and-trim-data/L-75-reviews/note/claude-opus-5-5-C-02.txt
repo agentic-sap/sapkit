@@ -1,0 +1,28 @@
+# §8 검토 결과: ZCL_JUDGE_C02_DISCOUNT (OOP, 7.58)
+
+```
+OOP · Exceptions (판단 포함) | 4, 33, 38, 47 | 전역 클래스 PUBLIC 섹션의 `RAISING lcx_judge_c02_invalid_input`이 로컬 클래스를 참조함. 클래스 풀(CCDEF)로 옮기면 구문 오류가 나고, 외부 호출자는 이 예외를 이름으로 CATCH할 수 없음 → 과제의 "caller can handle" 요구를 충족하지 못함. 코드 스스로 2–3행 주석에서 이를 인정함. 전역 `ZCX_…`로 내야 함 (MAJOR)
+OOP · Exceptions — 프로젝트 자체 super class | 4 | `cx_static_check`를 직접 상속함. 프로젝트 공통 예외 super class를 상속해야 함
+Core · 사용자 텍스트는 텍스트 요소/메시지 클래스 | 64, 68 (19–21) | 하드코딩된 영어 문자열이 `get_text`로 사용자에게 노출됨. T100 메시지(`IF_T100_DYN_MSG`, 메시지 클래스)로 바꿔야 함
+House · 매직 리터럴 → CONSTANTS | 63 | 금액 하한 임계값 `0`이 리터럴로 비교됨. %는 상수(41–42)로 두면서 금액만 리터럴이라 일관성도 없음
+House · 매직 리터럴 (판단) | 68 | 메시지 문자열에 범위 `0-100`을 하드코딩함. `gc_percent_min/max`와 이중 관리가 되므로 템플릿에 상수를 넣어야 함
+판단 · 상수 의미 혼용 | 56 | 허용 상한 `gc_percent_max`를 백분율 기준값(100)으로 재사용함. 상한 정책이 바뀌면 계산식이 깨짐. 기준값 상수를 따로 둘 것
+OOP · Comments — ABAP Doc은 공개 API에만, 버전/작업 메모 금지 | 1–3 | 로컬 예외 클래스에 ABAP Doc(`"!`)을 붙였고, 그 안에 리팩터링 지시 NOTE를 적음
+OOP · 멤버는 기본 PRIVATE | 6 | `mv_reason`이 PUBLIC READ-ONLY임. 같은 값을 `get_text`가 이미 노출하므로 중복 공개임
+판단 · 불필요한 pragma | 14 | `##ADT_SUPPRESS_GENERATION`은 ADT가 생성하는 전역 예외 생성자용임. 손으로 쓴 로컬 클래스에서는 의미가 없음
+OOP · Tests — given-when-then 이름 | 81–85 | 테스트 메서드 이름이 given/when/then 구조를 따르지 않음 (예: `given_negative_gross_when_calculate_then_raises`)
+Core · STRING 값은 백틱 리터럴 | 112, 121 | `msg = '…'`가 텍스트 필드 리터럴임. 백틱 리터럴로 바꿀 것
+판단 · 테스트 범위 | 118–125 | 음수 % 거부(하한)와 경계값 0 %, 100 % 정확 경계 테스트가 없음. 하한 검증 분기(66행 `< gc_percent_min`)를 검증하는 테스트가 없음
+판단 · 테스트 비대칭/약한 검증 | 114, 122 | 122는 `INTO` 없이 빈 CATCH라 예외 사유를 검증하지 않음. 114는 `assert_not_initial`만 해서 어느 검증에 걸렸는지 구분하지 못함
+```
+
+## 참고
+
+- **검사기 결과**: `double_space` 14건(9, 27, 35, 36, 38, 45, 47, 52, 57, 58, 82–85행)은 검사기 판정대로 수용했고, 위 목록에서 다시 올리지 않았음.
+- **해당 없음**:
+  - 템플릿 일치 항목(`zsapkit_oop_ex.prog.abap`)은 메인 프로그램이 없는 전역 클래스라 해당 없음.
+  - `LCL_DATA`/`LCL_ALV` 분리, 텍스트 풀, 활성화, FM 규칙도 해당 없음.
+- **확인 결과 문제 없음**:
+  - 7.58 릴리스 문법(`NEW`, `CONV`, `round( mode = )`, 템플릿)은 모두 허용 범위임.
+  - DECFLOAT34 중간 계산 후 최종 1회 반올림하는 방식은 적절함.
+  - 99행 주석의 기대값(6.673667 → 6.67)은 맞음.

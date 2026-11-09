@@ -1,0 +1,15 @@
+I read `clean-code.md` and `clean-code-procedural.md` only. Paradigm is Procedural, and I did not load the OOP file.
+
+규칙 | 위치(줄 번호) | 내용
+---|---|---
+`CALL FUNCTION`은 `EXCEPTIONS` 절과 함께 `CASE sy-subrc`로 처리 | 17–27 | `EXCEPTIONS` 절은 있지만 `CASE sy-subrc`가 아니라 `IF sy-subrc <> 0`로 처리했다. 그래서 `length_error = 1`과 `OTHERS = 2`를 따로 나눈 의미가 없다. 경미(minor).
+원인 보존 (clean-code.md § Exception / Error Handling, "Preserve the cause") | 23–26 | 변환 실패(`length_error`)와 그 밖의 오류(`OTHERS`)를 모두 `material_not_found`로 보낸다. 원래 `sy-subrc` 값은 사라진다. 과제에서 구분하라고 한 "자재 없음"에 입력 형식 오류라는 다른 원인이 섞인다. 경미~중간.
+FM 오류는 `MESSAGE ... RAISING`으로 (clean-code-procedural.md § Procedural Error Handling) | 26, 40, 51 | 맨 `RAISE`만 써서 호출자가 `sy-msgid`/`sy-msgno`로 오류 문구를 받을 수 없다. `MESSAGE e0xx(zmsg) WITH lv_matnr RAISING material_not_found.` 같은 형태가 kit 패턴이다. 경미.
+`ABAP_RELEASE`가 허용하는 현대 문법 사용 | 35–38, 44–48 | 7.58인데 예전 non-strict Open SQL을 썼다(host 변수에 `@` 없음). `INTO @lv_matnr`, `WHERE matnr = @lv_matnr` 형태가 맞다. MARA 존재 확인은 `SELECT SINGLE @abap_true FROM mara WHERE matnr = @lv_matnr INTO @DATA(lv_exists)`처럼 쓰면 읽기용 변수를 다시 쓰지 않아도 된다. 경미.
+주석은 WHY만 (clean-code.md § Comments) | 16, 34, 43 | 세 주석 모두 다음 줄 코드가 무엇을 하는지(WHAT)만 다시 말한다. 34와 43은 과제의 두 오류 조건을 가리키니 남겨도 된다고 볼 수 있다. 16은 지울 대상이다. 경미.
+
+**어긋남이 없거나 적용되지 않는 항목**
+- **위반 없음:** `SELECT *`, LOOP 안 SELECT, `sy-subrc` 누락(25, 39, 49에서 모두 확인함), 테이블 타입, boolean, 주석 처리된 코드, 디버그 문은 문제가 없다. `CLEAR ev_maktx`(14)도 `VALUE(ev_maktx)`라 값 전달이므로 참조 덮어쓰기 함정에 해당하지 않는다.
+- **적용 안 함:** 메인 프로그램 템플릿, TOP include, `g*`/`l*` 구분, FORM 시그니처·접미사·헤더, PBO/PAI 모듈, `LCL_HELPER` 항목은 대상이 없다. 과제가 FUNCTION … ENDFUNCTION만 내라고 했고 FORM도 없기 때문이다. 그래서 MAJOR 구조 지적도 없다.
+- **50줄 `CLEAR ev_maktx`:** 위반은 아니지만 필요 없는 줄이다. 14줄에서 이미 비웠고, `RAISE`하면 VALUE 출력 파라미터는 호출자에게 넘어가지 않는다.
+- **검사기 결과:** `double_space`(19, 21, 24) 3건은 `=`를 맞춰 정렬한 탓에 나온 오탐이다. 정렬이 일관되므로 §8 위반으로 치지 않았다.

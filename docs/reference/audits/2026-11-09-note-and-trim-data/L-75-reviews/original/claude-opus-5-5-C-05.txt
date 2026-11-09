@@ -1,0 +1,38 @@
+**§8 위반 사항** (Paradigm = Procedural, ABAP 7.02 기준, `clean-code.md`와 `clean-code-procedural.md` 두 파일만 읽음)
+
+```
+sy-subrc 확인 (core / procedural) | 56–59 | SELECT ... INTO TABLE gt_cust 뒤에 sy-subrc 검사가 없음. 결과가 비었는지는 다른 FORM(78줄)에서 gt_cust IS INITIAL로 따로 확인할 뿐, SELECT 바로 뒤에서 확인하지 않음
+sy-subrc 확인 (core / procedural) | 89 | READ TABLE gt_cnt 뒤에 sy-subrc 검사가 없음. 88줄에서 CLEAR gs_cnt를 하므로 찾지 못하면 헤더에 "건수 0"이 찍힘. 값이 없는 것을 0으로 보여 주는 셈이라 Null-vs-0 원칙과도 맞지 않음
+테이블 타입 / DEFAULT KEY 금지 | 28 | ty_t_cust가 STANDARD TABLE ... WITH DEFAULT KEY임. 국가별·고객번호순으로 읽기만 하므로 SORTED TABLE ... WITH UNIQUE KEY land1 kunnr로 선언하고 61줄 SORT를 없애는 편이 맞음
+조건은 긍정형으로 | 84–85 | lv_first 플래그를 두고 85줄에서 IF lv_first = abap_false로 부정형 검사를 함. land1이 ty_cust의 첫 필드이므로 7.02에서도 AT NEW land1 ... ENDAT로 플래그와 이전값 변수(75–76, 94–95) 없이 그룹을 바꿀 수 있음 (MINOR)
+전역 규율 / 범위 최소화 | 38, 40 | 작업영역 gs_cust, gs_cnt가 전역이고 두 FORM(63–67, 83–101)에서 함께 씀. 각 FORM 안의 로컬 ls_* 변수로 옮겨야 함
+FORM 간 상태를 전역으로 전달 금지 | 39, 67, 89 | gt_cnt는 select_data에서 만들고 write_list에서 전역으로 읽음. 허용되는 예외는 주 데이터 테이블(gt_cust)뿐이므로 USING/CHANGING 파라미터로 넘겨야 함. 그리고 select_data가 조회와 건수 집계를 함께 하므로 집계는 별도 FORM으로 분리해야 함
+FORM 헤더 주석(계약) | 52–54 | SELECT_DATA 헤더에 FORM 이름만 있음. 입력(s_land1), 출력(gt_cust, gt_cnt), 전역 부작용이 적혀 있지 않음
+FORM 헤더 주석(계약) | 71–73 | WRITE_LIST 헤더도 이름만 있음. 읽는 전역(gt_cust, gt_cnt)과 리스트 출력이라는 부작용이 적혀 있지 않음
+```
+
+**위반 아님 / 판정 메모**
+
+- **주 프로그램 구조:** 템플릿 `knowledge/abap/templates/procedural-sample/main-program.abap`이 이 위치에 없어서 대조하지 못했음. 과제가 "INCLUDE 없이 단일 파일"을 명시했으므로 INCLUDE를 쓰지 않은 구조는 정당하다고 봄. spec.md가 없으니 과제 지시문을 spec으로 삼았음.
+- **문제없음:**
+  - SELECT 필드를 명시적으로 나열했고, LOOP 안 SELECT가 없음.
+  - 타입이 지정된 테이블에 SELECT함.
+  - 7.40 이후 문법을 쓰지 않음.
+  - 주석 처리된 코드나 디버그 문장이 없음.
+  - 비율 연산이 없음.
+  - ABAP_BOOL로 선언하고 abap_true / abap_false와 비교함. 7.02에는 XSDBOOL이 없음.
+- **해당 없음:**
+  - KNA1은 마스터 테이블이라 COUNT(*) 사전 점검과 보조키 규칙의 적용 대상이 아님.
+  - 문자열 리터럴이 없고 텍스트 요소를 사용함.
+  - SORT에 BY가 있음.
+  - PBO/PAI나 화면에 묶인 FORM이 없음.
+  - 과제가 테스트를 요구하지 않음.
+- **80줄 `RETURN`:** 메시지를 출력한 뒤 빠져나가는 가드절이라 "EXIT/STOP으로 오류 처리 대체" 금지에 걸리지 않음.
+- **검사기 `double_space` 6건:**
+  - 39, 40, 76, 95줄은 정렬용 공백이고 일관되게 맞춰져 있음.
+  - 69, 103줄은 `ENDFORM.` 뒤 끝 주석 앞의 공백임.
+  - 둘 다 §8 위반이 아니라 오탐으로 판정함.
+- **§8 체크리스트 밖 참고 사항:** 아래는 `clean-code.md`에는 있지만 §8 항목은 아니어서 결과 목록에 넣지 않았음.
+  - `lv_first`는 불리언 이름 규칙에 따라 `lv_is_first`가 되어야 함.
+  - 1–17줄 배너 주석
+  - AUTHORITY-CHECK가 없음

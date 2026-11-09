@@ -1,0 +1,45 @@
+I checked the code against §8, using `clean-code.md` and `clean-code-procedural.md` (Paradigm = Procedural, release 7.58).
+
+**The template file is missing.** `knowledge/abap/templates/procedural-sample/main-program.abap` isn't in the workspace, so I couldn't compare the program line by line against it. The structure item below is judged only from the rules in `clean-code-procedural.md` and the task text.
+
+### Findings
+
+```
+SY-SUBRC check | 53–61 | No sy-subrc check after the MSEG/MKPF JOIN SELECT. The gt_out IS INITIAL check at line 40 runs on the aggregated result, so it doesn't replace a check right after the SELECT.
+SY-SUBRC check (minor) | 81 | INSERT ... INTO TABLE sets sy-subrc (4 on a duplicate key) and it isn't checked. A duplicate can't happen right after the failed READ, but the rule says every statement.
+Table type / DEFAULT KEY | 28 | gt_item is declared `TYPE STANDARD TABLE OF ty_item` with no key, so it implicitly gets the standard key (DEFAULT KEY): the character fields matnr/werks/meins/shkzg. Since the table is only read sequentially, use `WITH EMPTY KEY` (no SORT/DELETE ADJACENT runs on it).
+Large-table pre-count | 53 | MSEG and MKPF are both on the mandatory COUNT(*) list, but there's no `SELECT COUNT(*)` with the same predicate and no tuning plan (PACKAGE SIZE, server-side aggregation, etc.) for counts over 1M.
+Large-table / server-side aggregation | 53–83 | All item rows are loaded into ABAP and summed in a LOOP. `SUM( CASE s~shkzg WHEN 'H' THEN -s~menge ELSE s~menge END )`, `COUNT(*)` and `GROUP BY matnr, werks, meins` would aggregate on the database and return only the totals. This is one of the listed tuning options and covers the "aggregate server-side" rule.
+Modern syntax (7.58) | 53–61 | Old-style Open SQL: space-separated field list, no `@` on host variables. At 7.58 use the strict syntax: `SELECT s~matnr, s~werks, ... INTO TABLE @gt_item ... IN @s_werks`.
+Modern syntax (7.58) | 75–81 | CLEAR followed by field-by-field assignment. Replace with `INSERT VALUE #( matnr = ... cnt = 1 ) INTO TABLE gt_out`, or `CORRESPONDING #( )`.
+Modern syntax (7.58, minor) | 72–73 | `x = x + y` can be written `+=` (7.54+).
+Global scope / globals only where needed | 28 | gt_item is used only inside FORM get_data (filled, looped, FREEd there), yet it's a global. The procedural rule says not to make a one-FORM variable global: move it into get_data as a local lt_item.
+g*/l* prefix | 11 | `TABLES: mseg, mkpf.` creates the global work areas mseg and mkpf without a g prefix, and TABLES is obsolete. Declare typed reference variables instead (e.g. `DATA gv_werks TYPE mseg-werks`, `gv_budat TYPE mkpf-budat`, `gv_bwart TYPE mseg-bwart`) and use those in SELECT-OPTIONS ... FOR.
+FORM header comment | 47–48 | Only a `*&---*` separator line above get_data; there's no header naming inputs, outputs and global side effects (reads s_werks/s_budat/s_bwart, fills gt_out).
+FORM header comment | 87–88 | Same for display_alv: no header saying it reads gt_out and shows the SALV grid.
+Main program structure (conditional) | 9–45 | No INCLUDE layout (t/c/s/o/i/a/f) and no INITIALIZATION or END-OF-SELECTION blocks. The task explicitly asked for a single file with no INCLUDEs, so I don't rate the missing INCLUDEs as MAJOR. If no spec.md records that justification, it formally counts as a MAJOR finding. I couldn't compare the event-block layout because the template file is missing.
+```
+
+### Items that pass
+
+- **SQL and loops:** no `SELECT *`, no SELECT inside a LOOP.
+- **READ TABLE:** sy-subrc is checked (line 71).
+- **Tables and keys:** no SORT or DELETE ADJACENT without a key. gt_out is SORTED with a UNIQUE key, which suits both the per-key lookup and the material/plant output order. No secondary key is needed: gt_item is only read sequentially, and gt_out only through its primary key.
+- **Literals and syntax:** no STRING or boolean violations, no negative conditions, no empty branches.
+- **Leftovers:** no commented-out code or debug statements.
+- **Not applicable:** no narrow-DEC ratio arithmetic and no reconciliation logic.
+- **FORMs:** no locals shadow a global. Neither FORM takes parameters, so the typed-parameter rule isn't relevant; both FORMs use only the main data table gt_out. There are no screen or PBO/PAI FORMs, so the suffix and module rules don't apply. No EXIT or STOP is used as error handling (the RETURN after the message at line 43 is fine).
+- **Tests:** the task asks for none.
+
+### About the checker output
+
+- **lint, line 50 `"SYMBOLS"`:** a false positive. The checker splits `FIELD-SYMBOLS` and reads "SYMBOLS" as a name. The actual names `<ls_item>` and `<ls_out>` match the pattern.
+- **lint, lines 89–92 (`lo_`/`lx_`):** the project's naming pattern doesn't include O or X. That's a naming-conventions question, not a §8 one; §8's g*/l* split is satisfied.
+- **analyze, `double_space` ×10:** all of these are alignment spacing, not violations. I didn't count them as findings.
+- **The checker missed:** the lack of a sy-subrc check after the SELECT, the implicit DEFAULT KEY, the missing pre-count, and the missing FORM headers. None of these show up in its output.
+
+### Outside the §8 list (clean-code.md, for reference)
+
+- Line 65 overwrites `<ls_item>-menge` with the signed value, which reuses one field for two meanings.
+- Line 64's `'H'` is a magic literal; a constant would fix it.
+- Lines 1–8 are a `*&---` comment banner, which clean-code.md discourages.
