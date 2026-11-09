@@ -1,0 +1,190 @@
+{
+  "tool": "L-20-measure-load.mjs",
+  "ref": "bc57d89a",
+  "commit": "bc57d89a5a2bb3f75c6c9799c07f8981eb1b5a8b",
+  "unit": "bytes = UTF-8 after CRLF→LF · tokens = round(bytes/4)",
+  "cells": {
+    "consult": {
+      "bytes": 91829,
+      "tokens": 22957,
+      "files": [
+        {
+          "file": "interactive/core/knowledge/country/README.md",
+          "bytes": 4786
+        },
+        {
+          "file": "interactive/core/knowledge/country/eu-common.md",
+          "bytes": 5112
+        },
+        {
+          "file": "interactive/core/knowledge/industry/README.md",
+          "bytes": 3682
+        },
+        {
+          "file": "interactive/core/knowledge/industry/construction.md",
+          "bytes": 2522
+        },
+        {
+          "file": "interactive/core/knowledge/modules/FI/bapi.md",
+          "bytes": 4788
+        },
+        {
+          "file": "interactive/core/knowledge/modules/FI/enhancements.md",
+          "bytes": 9501
+        },
+        {
+          "file": "interactive/core/knowledge/modules/FI/spro.md",
+          "bytes": 5898
+        },
+        {
+          "file": "interactive/core/knowledge/modules/FI/tables.md",
+          "bytes": 2604
+        },
+        {
+          "file": "interactive/core/knowledge/modules/FI/tcodes.md",
+          "bytes": 4144
+        },
+        {
+          "file": "interactive/core/knowledge/modules/FI/workflows.md",
+          "bytes": 3050
+        },
+        {
+          "file": "interactive/core/knowledge/modules/common/bapi.md",
+          "bytes": 7766
+        },
+        {
+          "file": "interactive/core/knowledge/modules/common/enhancements.md",
+          "bytes": 6307
+        },
+        {
+          "file": "interactive/core/knowledge/modules/common/spro.md",
+          "bytes": 8879
+        },
+        {
+          "file": "interactive/core/knowledge/modules/common/tables.md",
+          "bytes": 7580
+        },
+        {
+          "file": "interactive/core/knowledge/modules/common/tcodes.md",
+          "bytes": 6049
+        },
+        {
+          "file": "interactive/core/personas/sap-stocker.md",
+          "bytes": 9161
+        }
+      ]
+    },
+    "convention": {
+      "bytes": 62603,
+      "tokens": 15651,
+      "filesBytes": 62603,
+      "noteBytes": 0,
+      "notePresent": false,
+      "breakdown": [
+        {
+          "file": "interactive/core/knowledge/abap/conventions/clean-code.md",
+          "replacedByNote": true,
+          "status": "1-hop 환산",
+          "bytes": 26942
+        },
+        {
+          "file": "interactive/core/knowledge/abap/conventions/clean-code-oop.md",
+          "replacedByNote": true,
+          "status": "1-hop 환산",
+          "bytes": 14768
+        },
+        {
+          "file": "interactive/core/knowledge/abap/conventions/clean-code-procedural.md",
+          "replacedByNote": true,
+          "status": "1-hop 환산",
+          "bytes": 10066
+        },
+        {
+          "file": "interactive/core/knowledge/abap/conventions/naming-conventions.md",
+          "replacedByNote": true,
+          "status": "선택군 대안(환산 0)",
+          "bytes": 0
+        },
+        {
+          "file": "interactive/core/knowledge/abap/conventions/constant-rule.md",
+          "replacedByNote": true,
+          "status": "선택군 대안(환산 0)",
+          "bytes": 0
+        },
+        {
+          "file": "interactive/core/knowledge/abap/conventions/text-element-rule.md",
+          "replacedByNote": true,
+          "status": "선택군 대안(환산 0)",
+          "bytes": 0
+        },
+        {
+          "file": "interactive/core/knowledge/abap/conventions/procedural-form-naming.md",
+          "replacedByNote": true,
+          "status": "선택군 대안(환산 0)",
+          "bytes": 0
+        },
+        {
+          "file": "interactive/core/knowledge/abap/conventions/alv-rules.md",
+          "replacedByNote": false,
+          "status": "1-hop 환산",
+          "bytes": 10827
+        }
+      ]
+    },
+    "total": {
+      "bytes": 618534,
+      "tokens": 154634,
+      "procedureBytes": 106157,
+      "hop1Bytes": 512377,
+      "hop1Count": 37
+    },
+    "escape": {
+      "bytes": 0,
+      "tokens": 0,
+      "files": []
+    }
+  },
+  "reference": {
+    "createProgramTotalWithWrapper": {
+      "bytes": 629929,
+      "tokens": 157482,
+      "wrapperBytes": 1298,
+      "projectContextBytes": 10097
+    },
+    "replacedInHop1": {
+      "bytes": 51776,
+      "files": [
+        "interactive/core/knowledge/abap/conventions/clean-code.md",
+        "interactive/core/knowledge/abap/conventions/clean-code-oop.md",
+        "interactive/core/knowledge/abap/conventions/clean-code-procedural.md"
+      ]
+    }
+  },
+  "verdict": null,
+  "caseFolded": {},
+  "panj": {
+    "cited": {
+      "consult": {
+        "bytes": 91829,
+        "tokens": 22957
+      },
+      "total": {
+        "bytes": 618534,
+        "tokens": 154634
+      },
+      "totalWithWrapper": {
+        "bytes": 629929,
+        "tokens": 157482
+      }
+    },
+    "ref": "a0405bc0",
+    "commit": "a0405bc095f4dafc0b14c259398ce20a656d7ad9",
+    "atPanjCommit": {
+      "consult": 91829,
+      "total": 618534,
+      "totalWithWrapper": 629929
+    },
+    "changingCommits": [],
+    "zeroDiff": true
+  }
+}
