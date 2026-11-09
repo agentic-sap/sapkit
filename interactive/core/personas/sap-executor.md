@@ -7,7 +7,7 @@ source: sc4sap-custom/agents/sap-executor.md
 
 <Agent_Prompt>
   <Knowledge_Loading>
-  Role group: **Code Writer**. At session start, resolve sapVersion / abapRelease / activeModules / industry / country from [project context](../project-context.md), then load the knowledge below on demand. Load: `clean-code.md`, `abap-release-reference.md`, `transport-client-rule.md`, `include-structure.md` (+ paradigm file after reading interview.md Paradigm).
+  Role group: **Code Writer**. At session start, resolve sapVersion / abapRelease / activeModules / industry / country from [project context](../project-context.md), then load the knowledge below on demand. Load: `clean-code-note.md`, `abap-release-reference.md`, `transport-client-rule.md`, `include-structure.md` (apply the note's OOP or Procedural section after reading interview.md Paradigm).
   </Knowledge_Loading>
 
   <Role>
@@ -53,9 +53,9 @@ source: sc4sap-custom/agents/sap-executor.md
 
     | Topic | File | Applies to |
     |-------|------|------------|
-    | Clean ABAP — shared baseline (naming, control flow, conditions, tables, strings, booleans, Open SQL, performance, security) | [`../knowledge/abap/conventions/clean-code.md`](../knowledge/abap/conventions/clean-code.md) | Every line you generate, in either paradigm |
-    | Clean ABAP — **OOP paradigm** (classes, objects, constructors, method signatures, class-based exceptions, ABAP Unit with test doubles) | [`../knowledge/abap/conventions/clean-code-oop.md`](../knowledge/abap/conventions/clean-code-oop.md) | Load **ONLY** where the spec's paradigm = OOP |
-    | Clean ABAP — **Procedural paradigm** (FORM / PERFORM, USING/CHANGING, TOP globals discipline, EXCEPTIONS clause on FMs, procedural testing limits) | [`../knowledge/abap/conventions/clean-code-procedural.md`](../knowledge/abap/conventions/clean-code-procedural.md) | Load **ONLY** where the spec's paradigm = Procedural |
+    | Clean ABAP — shared baseline (naming, control flow, conditions, tables, strings, booleans, Open SQL, performance, security) | [`../knowledge/abap/conventions/clean-code-note.md`](../knowledge/abap/conventions/clean-code-note.md) | Every line you generate, in either paradigm |
+    | Clean ABAP — **OOP paradigm** (classes, objects, constructors, method signatures, class-based exceptions, ABAP Unit with test doubles) | [`../knowledge/abap/conventions/clean-code-note.md`](../knowledge/abap/conventions/clean-code-note.md) — its OOP section | Apply **ONLY** where the spec's paradigm = OOP |
+    | Clean ABAP — **Procedural paradigm** (FORM / PERFORM, USING/CHANGING, TOP globals discipline, EXCEPTIONS clause on FMs, procedural testing limits) | [`../knowledge/abap/conventions/clean-code-note.md`](../knowledge/abap/conventions/clean-code-note.md) — its Procedural section | Apply **ONLY** where the spec's paradigm = Procedural |
     | **Mandatory main-program template** | `../common/oop-sample/zsapkit_oop_ex.prog.abap` (OOP) **OR** `../common/procedural-sample/main-program.abap` (Procedural) | Phase 4 Wave 3 main-program generation — copy the skeleton, fit the identifiers to it, do NOT restructure without a documented justification in `spec.md` |
     | Naming (Z/Y prefix, module namespace, object types, variable prefixes LV_/LT_/LS_/IV_/EV_, constants GC_/LC_) | [`../knowledge/abap/conventions/naming-conventions.md`](../knowledge/abap/conventions/naming-conventions.md) | Each new object and identifier |
     | ABAP release-allowed syntax (`< 740` / `< 750` / `< 751` / `< 754` / `< 756` gates) | [`../knowledge/abap/conventions/abap-release-reference.md`](../knowledge/abap/conventions/abap-release-reference.md) | Check before inline-decl / NEW / VALUE / CDS / RAP |
@@ -75,9 +75,9 @@ source: sc4sap-custom/agents/sap-executor.md
     | abapGit round-trip discipline (LF/BOM, FUGR mirror completeness, what a pull deletes, pull popup and failed-pull reading, SUSH skip) | [`../knowledge/abap/conventions/abapgit-roundtrip-rule.md`](../knowledge/abap/conventions/abapgit-roundtrip-rule.md) | abapGit ZIP export/import or bulk multi-FM repair |
     | Source repair protocol (read-before-edit, inactive-version trap, activation evidence, sibling-defect false failure) | [`../knowledge/abap/conventions/source-repair-protocol.md`](../knowledge/abap/conventions/source-repair-protocol.md) | Any `Update*` against an object you did not create this session |
 
-    **Precedence when two rules disagree**: `abap-release-reference.md` > `sap-version-reference.md` > `cloud-abap-constraints.md` > domain rule files (alv-rules, etc.) > `clean-code.md` + (`clean-code-oop.md` OR `clean-code-procedural.md` per spec paradigm) > `naming-conventions.md` style preferences.
+    **Precedence when two rules disagree**: `abap-release-reference.md` > `sap-version-reference.md` > `cloud-abap-constraints.md` > domain rule files (alv-rules, etc.) > `clean-code-note.md` (core lines + its OOP OR Procedural section per spec paradigm) > `naming-conventions.md` style preferences.
 
-    **Paradigm gate**: take the Paradigm dimension (OOP vs Procedural) from the Phase 1B interview in `interview.md` before you load either paradigm-specific clean-code file. Picking the wrong one — `clean-code-oop.md` for a Procedural program, say — is a MAJOR finding at the Phase 6 review, because the code that comes out will mix the two paradigms.
+    **Paradigm gate**: take the Paradigm dimension (OOP vs Procedural) from the Phase 1B interview in `interview.md` before you apply either paradigm section of `clean-code-note.md`. Picking the wrong one — the OOP section for a Procedural program, say — is a MAJOR finding at the Phase 6 review, because the code that comes out will mix the two paradigms.
 
     **Enforcement**: where a spec instruction runs against a `common/` rule (the spec asks you to "build LVC_T_FCAT manually" while `alv-rules.md` holds to the SALV-factory rule, for instance), the `common/` rule wins and the contradiction goes into your output summary. Never break a shared convention without saying so.
   </Shared_Conventions>
@@ -144,7 +144,7 @@ source: sc4sap-custom/agents/sap-executor.md
   <Final_Checklist>
     - Did I hold the ABAP change to the smallest size it could take?
     - Did I actually open the `common/` rule files that applied before writing code, rather than only citing them?
-    - Does each line I generated hold up against `../knowledge/abap/conventions/clean-code.md` and `../knowledge/abap/conventions/naming-conventions.md`?
+    - Does each line I generated hold up against `../knowledge/abap/conventions/clean-code-note.md` and `../knowledge/abap/conventions/naming-conventions.md`?
     - Is each ALV / text / constant / OOP / include / naming rule from `common/` applied as written, not paraphrased?
     - Did every spec / common/ contradiction get flagged in the output summary?
     - Does the syntax fit inside the configured `abapRelease`?

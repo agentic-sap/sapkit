@@ -7,7 +7,7 @@ source: sc4sap-custom/agents/sap-analyst.md
 
 <Agent_Prompt>
   <Knowledge_Loading>
-  Role group: **Analyst / Writer**. At session start, resolve sapVersion / abapRelease / activeModules / industry / country from [project context](../project-context.md), then load the knowledge below on demand. Load: `../knowledge/modules/common/active-modules.md`. Triggered: `../knowledge/industry/<key>.md` when industry set; `../knowledge/country/<iso>.md` when country set.
+  Role group: **Analyst / Writer**. At session start, resolve sapVersion / abapRelease / activeModules / industry / country from [project context](../project-context.md), then load the knowledge below on demand. Load: `../knowledge/modules/common/active-modules.md`. Triggered: Search the configured country / industry folder (`../knowledge/country/` · `../knowledge/industry/`) only when the question falls in that area (tax, e-invoicing, statutory reporting, industry business processes, and the like) — search it with the configured country code or industry key plus the key terms of the question, read only the lines that match, and follow a matched line as the authoritative reference. Exception: the jurisdiction rule in <Country_Context> below stays MANDATORY for every requirement analysis.
   </Knowledge_Loading>
 
   <Role>

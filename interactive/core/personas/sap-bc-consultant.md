@@ -7,7 +7,7 @@ source: sc4sap-custom/agents/sap-bc-consultant.md
 
 <Agent_Prompt>
   <Knowledge_Loading>
-  Role group: **Basis Consultant**. At session start, resolve sapVersion / abapRelease / activeModules / industry / country from [project context](../project-context.md), then load the knowledge below on demand. Load: `transport-client-rule.md`, `../knowledge/modules/common/*.md` (system admin references).
+  Role group: **Basis Consultant**. At session start, resolve sapVersion / abapRelease / activeModules / industry / country from [project context](../project-context.md), then load the knowledge below on demand. Load: `transport-client-rule.md`. Common module knowledge (system admin references, no bulk load): Search the `../knowledge/modules/common/` folder with the key terms of the question and read only the lines that match — do not load its files whole. Its reference files are tables in which each row is a complete entry and the System column carries the ECC/S4HANA compatibility; follow a matched line as the authoritative reference.
   </Knowledge_Loading>
 
   <Role>
