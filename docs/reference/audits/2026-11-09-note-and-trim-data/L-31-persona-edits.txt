@@ -1,0 +1,193 @@
+L-31 역할 문서 편집 기록 — 판L T4b (spec B-3 · C-1 · C-2 · C-3)
+대상 디렉터리: interactive/core/personas/   줄 번호 = 변경 전 파일 기준
+열거 방법: Grep 'knowledge/modules/|knowledge/industry/|knowledge/country/|clean-code|Triggered:' interactive/core/personas/*.md
+
+== 검색 문장 정본 (모든 상담가 공통 · 영어 · 폴더 경로만 바뀐다) ==
+
+[M] 모듈 (C-1) — <M> = 그 상담가의 모듈 폴더 이름(FI · CO · SD · MM · PP · PM · PS · QM · WM · TM · TR · HCM · BW · Ariba)
+Search the `../knowledge/modules/<M>/` folder with the key terms of the question and read only the lines that match — do not load its files whole. Its reference files are tables in which each row is a complete entry and the System column carries the ECC/S4HANA compatibility; follow a matched line as the authoritative reference.
+
+[C] 공통 (C-2) — [M]과 같은 문장, 폴더만 common
+Search the `../knowledge/modules/common/` folder with the key terms of the question and read only the lines that match — do not load its files whole. Its reference files are tables in which each row is a complete entry and the System column carries the ECC/S4HANA compatibility; follow a matched line as the authoritative reference.
+
+[N] 나라·업종 (C-3) — <areas> = 원래 문장에 있던 영역 예시. 원래 예시가 없던 Triggered: 줄에는 기본값 "tax, e-invoicing, statutory reporting, industry business processes, and the like"
+Search the configured country / industry folder (`../knowledge/country/` · `../knowledge/industry/`) only when the question falls in that area (<areas>) — search it with the configured country code or industry key plus the key terms of the question, read only the lines that match, and follow a matched line as the authoritative reference.
+
+살린 고유한 뜻: 「with authority」 → 「follow a matched line as the authoritative reference」 · 「its System column carries the ECC/S4HANA compatibility」 → [M]/[C] 안에 · 영역 예시 → [N]의 <areas> · 나라/업종 결정 순서와 「미설정이면 사용자에게 묻는다」 문장은 원문 그대로 유지(여러 나라면 「load each file」 → 「search for each one」).
+파일 이름(tcodes.md 등)은 문장에 쓰지 않았다. 폴더 경로만 백틱.
+
+== 변경 (파일 · 줄 · 변경 전 → 변경 후 요약) ==
+sap-ariba-consultant.md · 10 · Load: `../knowledge/modules/Ariba/{spro,tcodes,bapi,tables,enhancements,workflows}.md` + Triggered: industry/<key>.md · country/<iso>.md → 모듈 검색 문장(Ariba/) + Triggered: 나라·업종 검색 문장(기본 영역 예시); 절차 2종 · active-modules.md Load 유지
+sap-ariba-consultant.md · 56-61 · See `../knowledge/modules/Ariba/{spro,tcodes,bapi,tables,enhancements,workflows}.md` 6줄 → 한 줄: **Module reference — <원래 6개 라벨>**: 모듈 검색 문장(Ariba/)
+sap-ariba-consultant.md · 62-67 · Common BAPIs/TCodes/Tables/SPRO/Enhancements: `../knowledge/modules/common/{bapi,tcodes,tables,spro,enhancements}.md` 5줄 → 머리 줄에 공통 검색 문장 붙임 · 하위 5줄 삭제
+sap-ariba-consultant.md · 68 · Industry: MUST go through industry/README.md + industry file (e.g. …md) → 나라·업종 검색 문장(영역 예시: config analysis, business process design, Fit-Gap, requirement interpretation) + 업종 결정·미설정 시 질문 문장 유지
+sap-ariba-consultant.md · 69 · Country: MUST go through country/README.md + country file (e.g. kr.md …); several → load each file → 나라·업종 검색 문장(영역 예시: tax determination, e-invoicing, banking, statutory reporting, or any other jurisdiction-sensitive question) + 나라 결정 순서 · 여러 나라면 각각 검색 · 미설정 시 질문 유지
+sap-ariba-consultant.md · 101 · Read `../knowledge/modules/Ariba/tcodes.md` and `../knowledge/modules/Ariba/bapi.md` — they are the reference  … → 모듈 검색 문장(Ariba/)
+sap-bw-consultant.md · 10 · Load: `../knowledge/modules/BW/{spro,tcodes,bapi,tables,enhancements,workflows}.md` + Triggered: industry/<key>.md · country/<iso>.md → 모듈 검색 문장(BW/) + Triggered: 나라·업종 검색 문장(기본 영역 예시); 절차 2종 · active-modules.md Load 유지
+sap-bw-consultant.md · 37 · Read `../knowledge/modules/BW/tcodes.md` — it is the transaction code reference in full and with authority, an … → 모듈 검색 문장(BW/)
+sap-bw-consultant.md · 47-52 · See `../knowledge/modules/BW/{spro,tcodes,bapi,tables,enhancements,workflows}.md` 6줄 → 한 줄: **Module reference — <원래 6개 라벨>**: 모듈 검색 문장(BW/)
+sap-bw-consultant.md · 53-58 · Common BAPIs/TCodes/Tables/SPRO/Enhancements: `../knowledge/modules/common/{bapi,tcodes,tables,spro,enhancements}.md` 5줄 → 머리 줄에 공통 검색 문장 붙임 · 하위 5줄 삭제
+sap-bw-consultant.md · 59 · Industry: MUST go through industry/README.md + industry file (e.g. …md) → 나라·업종 검색 문장(영역 예시: config analysis, business process design, Fit-Gap, requirement interpretation) + 업종 결정·미설정 시 질문 문장 유지
+sap-bw-consultant.md · 60 · Country: MUST go through country/README.md + country file (e.g. kr.md …); several → load each file → 나라·업종 검색 문장(영역 예시: tax determination, e-invoicing, banking, statutory reporting, or any other jurisdiction-sensitive question) + 나라 결정 순서 · 여러 나라면 각각 검색 · 미설정 시 질문 유지
+sap-bw-consultant.md · 64 · Read `../knowledge/modules/BW/tables.md` — it is the table reference in full and with authority, and its Syste … → 모듈 검색 문장(BW/)
+sap-bw-consultant.md · 65 · …that file holds/keeps… → …that folder holds/keeps… (앞줄이 폴더 검색으로 바뀌어 지시어만 맞춤)
+sap-bw-consultant.md · 69 · Read `../knowledge/modules/BW/bapi.md` — it is the BAPI/FM reference in full and with authority, and its Syste … → 모듈 검색 문장(BW/)
+sap-co-consultant.md · 10 · Load: `../knowledge/modules/CO/{spro,tcodes,bapi,tables,enhancements,workflows}.md` + Triggered: industry/<key>.md · country/<iso>.md → 모듈 검색 문장(CO/) + Triggered: 나라·업종 검색 문장(기본 영역 예시); 절차 2종 · active-modules.md Load 유지
+sap-co-consultant.md · 37 · Read `../knowledge/modules/CO/tcodes.md` — it is the transaction code reference in full and with authority, an … → 모듈 검색 문장(CO/)
+sap-co-consultant.md · 38 · …that file holds/keeps… → …that folder holds/keeps… (앞줄이 폴더 검색으로 바뀌어 지시어만 맞춤)
+sap-co-consultant.md · 47-52 · See `../knowledge/modules/CO/{spro,tcodes,bapi,tables,enhancements,workflows}.md` 6줄 → 한 줄: **Module reference — <원래 6개 라벨>**: 모듈 검색 문장(CO/)
+sap-co-consultant.md · 53-58 · Common BAPIs/TCodes/Tables/SPRO/Enhancements: `../knowledge/modules/common/{bapi,tcodes,tables,spro,enhancements}.md` 5줄 → 머리 줄에 공통 검색 문장 붙임 · 하위 5줄 삭제
+sap-co-consultant.md · 59 · Industry: MUST go through industry/README.md + industry file (e.g. …md) → 나라·업종 검색 문장(영역 예시: config analysis, business process design, Fit-Gap, requirement interpretation) + 업종 결정·미설정 시 질문 문장 유지
+sap-co-consultant.md · 60 · Country: MUST go through country/README.md + country file (e.g. kr.md …); several → load each file → 나라·업종 검색 문장(영역 예시: tax determination, e-invoicing, banking, statutory reporting, or any other jurisdiction-sensitive question) + 나라 결정 순서 · 여러 나라면 각각 검색 · 미설정 시 질문 유지
+sap-co-consultant.md · 64 · Read `../knowledge/modules/CO/tables.md` — it is the table reference in full and with authority, and its Syste … → 모듈 검색 문장(CO/)
+sap-co-consultant.md · 65 · …that file holds/keeps… → …that folder holds/keeps… (앞줄이 폴더 검색으로 바뀌어 지시어만 맞춤)
+sap-co-consultant.md · 69 · Read `../knowledge/modules/CO/bapi.md` — it is the BAPI/FM reference in full and with authority, and its Syste … → 모듈 검색 문장(CO/)
+sap-co-consultant.md · 70 · …that file holds/keeps… → …that folder holds/keeps… (앞줄이 폴더 검색으로 바뀌어 지시어만 맞춤)
+sap-fi-consultant.md · 10 · Load: `../knowledge/modules/FI/{spro,tcodes,bapi,tables,enhancements,workflows}.md` + Triggered: industry/<key>.md · country/<iso>.md → 모듈 검색 문장(FI/) + Triggered: 나라·업종 검색 문장(기본 영역 예시); 절차 2종 · active-modules.md Load 유지
+sap-fi-consultant.md · 37 · Read `../knowledge/modules/FI/tcodes.md` — it is the transaction code reference in full and with authority, an … → 모듈 검색 문장(FI/)
+sap-fi-consultant.md · 38 · …that file holds/keeps… → …that folder holds/keeps… (앞줄이 폴더 검색으로 바뀌어 지시어만 맞춤)
+sap-fi-consultant.md · 47-52 · See `../knowledge/modules/FI/{spro,tcodes,bapi,tables,enhancements,workflows}.md` 6줄 → 한 줄: **Module reference — <원래 6개 라벨>**: 모듈 검색 문장(FI/)
+sap-fi-consultant.md · 53-58 · Common BAPIs/TCodes/Tables/SPRO/Enhancements: `../knowledge/modules/common/{bapi,tcodes,tables,spro,enhancements}.md` 5줄 → 머리 줄에 공통 검색 문장 붙임 · 하위 5줄 삭제
+sap-fi-consultant.md · 59 · Industry: MUST go through industry/README.md + industry file (e.g. …md) → 나라·업종 검색 문장(영역 예시: config analysis, business process design, Fit-Gap, requirement interpretation) + 업종 결정·미설정 시 질문 문장 유지
+sap-fi-consultant.md · 60 · Country: MUST go through country/README.md + country file (e.g. kr.md …); several → load each file → 나라·업종 검색 문장(영역 예시: tax determination, e-invoicing, banking, statutory reporting, or any other jurisdiction-sensitive question) + 나라 결정 순서 · 여러 나라면 각각 검색 · 미설정 시 질문 유지
+sap-fi-consultant.md · 64 · Read `../knowledge/modules/FI/tables.md` — it is the table reference in full and with authority, and its Syste … → 모듈 검색 문장(FI/)
+sap-fi-consultant.md · 65 · …that file holds/keeps… → …that folder holds/keeps… (앞줄이 폴더 검색으로 바뀌어 지시어만 맞춤)
+sap-fi-consultant.md · 69 · Read `../knowledge/modules/FI/bapi.md` — it is the BAPI/FM reference in full and with authority, and its Syste … → 모듈 검색 문장(FI/)
+sap-fi-consultant.md · 70 · …that file holds/keeps… → …that folder holds/keeps… (앞줄이 폴더 검색으로 바뀌어 지시어만 맞춤)
+sap-hcm-consultant.md · 10 · Load: `../knowledge/modules/HCM/{spro,tcodes,bapi,tables,enhancements,workflows}.md` + Triggered: industry/<key>.md · country/<iso>.md → 모듈 검색 문장(HCM/) + Triggered: 나라·업종 검색 문장(기본 영역 예시); 절차 2종 · active-modules.md Load 유지
+sap-hcm-consultant.md · 37 · Read `../knowledge/modules/HCM/tcodes.md` — it is the transaction code reference in full and with authority, a … → 모듈 검색 문장(HCM/)
+sap-hcm-consultant.md · 46-51 · See `../knowledge/modules/HCM/{spro,tcodes,bapi,tables,enhancements,workflows}.md` 6줄 → 한 줄: **Module reference — <원래 6개 라벨>**: 모듈 검색 문장(HCM/)
+sap-hcm-consultant.md · 52-57 · Common BAPIs/TCodes/Tables/SPRO/Enhancements: `../knowledge/modules/common/{bapi,tcodes,tables,spro,enhancements}.md` 5줄 → 머리 줄에 공통 검색 문장 붙임 · 하위 5줄 삭제
+sap-hcm-consultant.md · 58 · Industry: MUST go through industry/README.md + industry file (e.g. …md) → 나라·업종 검색 문장(영역 예시: config analysis, business process design, Fit-Gap, requirement interpretation) + 업종 결정·미설정 시 질문 문장 유지
+sap-hcm-consultant.md · 59 · Country: MUST go through country/README.md + country file (e.g. kr.md …); several → load each file → 나라·업종 검색 문장(영역 예시: payroll schemas, statutory deductions (CPF/PF/FICA/SV/URSSAF), tax reporting (IR8A/Form 16/DSN/ELSTER/STP), or any other jurisdiction-sensitive HR requirement) + 나라 결정 순서 · 여러 나라면 각각 검색 · 미설정 시 질문 유지
+sap-hcm-consultant.md · 63 · Read `../knowledge/modules/HCM/tables.md` — it is the table reference in full and with authority, and its Syst … → 모듈 검색 문장(HCM/)
+sap-hcm-consultant.md · 64 · …that file holds/keeps… → …that folder holds/keeps… (앞줄이 폴더 검색으로 바뀌어 지시어만 맞춤)
+sap-hcm-consultant.md · 68 · Read `../knowledge/modules/HCM/bapi.md` — it is the BAPI/FM reference in full and with authority, and its Syst … → 모듈 검색 문장(HCM/)
+sap-mm-consultant.md · 10 · Load: `../knowledge/modules/MM/{spro,tcodes,bapi,tables,enhancements,workflows}.md` + Triggered: industry/<key>.md · country/<iso>.md → 모듈 검색 문장(MM/) + Triggered: 나라·업종 검색 문장(기본 영역 예시); 절차 2종 · active-modules.md Load 유지
+sap-mm-consultant.md · 38 · Read `../knowledge/modules/MM/tcodes.md` — it is the transaction code reference in full and with authority, an … → 모듈 검색 문장(MM/)
+sap-mm-consultant.md · 39 · …that file holds/keeps… → …that folder holds/keeps… (앞줄이 폴더 검색으로 바뀌어 지시어만 맞춤)
+sap-mm-consultant.md · 48-53 · See `../knowledge/modules/MM/{spro,tcodes,bapi,tables,enhancements,workflows}.md` 6줄 → 한 줄: **Module reference — <원래 6개 라벨>**: 모듈 검색 문장(MM/)
+sap-mm-consultant.md · 54-59 · Common BAPIs/TCodes/Tables/SPRO/Enhancements: `../knowledge/modules/common/{bapi,tcodes,tables,spro,enhancements}.md` 5줄 → 머리 줄에 공통 검색 문장 붙임 · 하위 5줄 삭제
+sap-mm-consultant.md · 60 · Industry: MUST go through industry/README.md + industry file (e.g. …md) → 나라·업종 검색 문장(영역 예시: config analysis, business process design, Fit-Gap, requirement interpretation) + 업종 결정·미설정 시 질문 문장 유지
+sap-mm-consultant.md · 61 · Country: MUST go through country/README.md + country file (e.g. kr.md …); several → load each file → 나라·업종 검색 문장(영역 예시: tax determination, e-invoicing, banking, statutory reporting, or any other jurisdiction-sensitive question) + 나라 결정 순서 · 여러 나라면 각각 검색 · 미설정 시 질문 유지
+sap-mm-consultant.md · 65 · Read `../knowledge/modules/MM/tables.md` — it is the table reference in full and with authority, and its Syste … → 모듈 검색 문장(MM/)
+sap-mm-consultant.md · 66 · …that file holds/keeps… → …that folder holds/keeps… (앞줄이 폴더 검색으로 바뀌어 지시어만 맞춤)
+sap-mm-consultant.md · 70 · Read `../knowledge/modules/MM/bapi.md` — it is the BAPI/FM reference in full and with authority, and its Syste … → 모듈 검색 문장(MM/)
+sap-mm-consultant.md · 71 · …that file holds/keeps… → …that folder holds/keeps… (앞줄이 폴더 검색으로 바뀌어 지시어만 맞춤)
+sap-pm-consultant.md · 10 · Load: `../knowledge/modules/PM/{spro,tcodes,bapi,tables,enhancements,workflows}.md` + Triggered: industry/<key>.md · country/<iso>.md → 모듈 검색 문장(PM/) + Triggered: 나라·업종 검색 문장(기본 영역 예시); 절차 2종 · active-modules.md Load 유지
+sap-pm-consultant.md · 37 · Read `../knowledge/modules/PM/tcodes.md` — it is the transaction code reference in full and with authority, an … → 모듈 검색 문장(PM/)
+sap-pm-consultant.md · 46-51 · See `../knowledge/modules/PM/{spro,tcodes,bapi,tables,enhancements,workflows}.md` 6줄 → 한 줄: **Module reference — <원래 6개 라벨>**: 모듈 검색 문장(PM/)
+sap-pm-consultant.md · 52-57 · Common BAPIs/TCodes/Tables/SPRO/Enhancements: `../knowledge/modules/common/{bapi,tcodes,tables,spro,enhancements}.md` 5줄 → 머리 줄에 공통 검색 문장 붙임 · 하위 5줄 삭제
+sap-pm-consultant.md · 58 · Industry: MUST go through industry/README.md + industry file (e.g. …md) → 나라·업종 검색 문장(영역 예시: config analysis, business process design, Fit-Gap, requirement interpretation) + 업종 결정·미설정 시 질문 문장 유지
+sap-pm-consultant.md · 59 · Country: MUST go through country/README.md + country file (e.g. kr.md …); several → load each file → 나라·업종 검색 문장(영역 예시: tax determination, e-invoicing, banking, statutory reporting, or any other jurisdiction-sensitive question) + 나라 결정 순서 · 여러 나라면 각각 검색 · 미설정 시 질문 유지
+sap-pm-consultant.md · 63 · Read `../knowledge/modules/PM/tables.md` — it is the table reference in full and with authority, and its Syste … → 모듈 검색 문장(PM/)
+sap-pm-consultant.md · 64 · …that file holds/keeps… → …that folder holds/keeps… (앞줄이 폴더 검색으로 바뀌어 지시어만 맞춤)
+sap-pm-consultant.md · 68 · Read `../knowledge/modules/PM/bapi.md` — it is the BAPI/FM reference in full and with authority, and its Syste … → 모듈 검색 문장(PM/)
+sap-pp-consultant.md · 10 · Load: `../knowledge/modules/PP/{spro,tcodes,bapi,tables,enhancements,workflows}.md` + Triggered: industry/<key>.md · country/<iso>.md → 모듈 검색 문장(PP/) + Triggered: 나라·업종 검색 문장(기본 영역 예시); 절차 2종 · active-modules.md Load 유지
+sap-pp-consultant.md · 37 · Read `../knowledge/modules/PP/tcodes.md` — it is the transaction code reference in full and with authority, an … → 모듈 검색 문장(PP/)
+sap-pp-consultant.md · 46-51 · See `../knowledge/modules/PP/{spro,tcodes,bapi,tables,enhancements,workflows}.md` 6줄 → 한 줄: **Module reference — <원래 6개 라벨>**: 모듈 검색 문장(PP/)
+sap-pp-consultant.md · 52-57 · Common BAPIs/TCodes/Tables/SPRO/Enhancements: `../knowledge/modules/common/{bapi,tcodes,tables,spro,enhancements}.md` 5줄 → 머리 줄에 공통 검색 문장 붙임 · 하위 5줄 삭제
+sap-pp-consultant.md · 58 · Industry: MUST go through industry/README.md + industry file (e.g. …md) → 나라·업종 검색 문장(영역 예시: config analysis, business process design, Fit-Gap, requirement interpretation) + 업종 결정·미설정 시 질문 문장 유지
+sap-pp-consultant.md · 59 · Country: MUST go through country/README.md + country file (e.g. kr.md …); several → load each file → 나라·업종 검색 문장(영역 예시: tax determination, e-invoicing, banking, statutory reporting, or any other jurisdiction-sensitive question) + 나라 결정 순서 · 여러 나라면 각각 검색 · 미설정 시 질문 유지
+sap-pp-consultant.md · 63 · Read `../knowledge/modules/PP/tables.md` — it is the table reference in full and with authority, and its Syste … → 모듈 검색 문장(PP/)
+sap-pp-consultant.md · 64 · …that file holds/keeps… → …that folder holds/keeps… (앞줄이 폴더 검색으로 바뀌어 지시어만 맞춤)
+sap-pp-consultant.md · 68 · Read `../knowledge/modules/PP/bapi.md` — it is the BAPI/FM reference in full and with authority, and its Syste … → 모듈 검색 문장(PP/)
+sap-ps-consultant.md · 10 · Load: `../knowledge/modules/PS/{spro,tcodes,bapi,tables,enhancements,workflows}.md` + Triggered: industry/<key>.md · country/<iso>.md → 모듈 검색 문장(PS/) + Triggered: 나라·업종 검색 문장(기본 영역 예시); 절차 2종 · active-modules.md Load 유지
+sap-ps-consultant.md · 38 · Read `../knowledge/modules/PS/tcodes.md` — it is the transaction code reference in full and with authority, an … → 모듈 검색 문장(PS/)
+sap-ps-consultant.md · 47-52 · See `../knowledge/modules/PS/{spro,tcodes,bapi,tables,enhancements,workflows}.md` 6줄 → 한 줄: **Module reference — <원래 6개 라벨>**: 모듈 검색 문장(PS/)
+sap-ps-consultant.md · 53-58 · Common BAPIs/TCodes/Tables/SPRO/Enhancements: `../knowledge/modules/common/{bapi,tcodes,tables,spro,enhancements}.md` 5줄 → 머리 줄에 공통 검색 문장 붙임 · 하위 5줄 삭제
+sap-ps-consultant.md · 59 · Industry: MUST go through industry/README.md + industry file (e.g. …md) → 나라·업종 검색 문장(영역 예시: config analysis, business process design, Fit-Gap, requirement interpretation) + 업종 결정·미설정 시 질문 문장 유지
+sap-ps-consultant.md · 60 · Country: MUST go through country/README.md + country file (e.g. kr.md …); several → load each file → 나라·업종 검색 문장(영역 예시: tax determination, e-invoicing, banking, statutory reporting, or any other jurisdiction-sensitive question) + 나라 결정 순서 · 여러 나라면 각각 검색 · 미설정 시 질문 유지
+sap-ps-consultant.md · 64 · Read `../knowledge/modules/PS/tables.md` — it is the table reference in full and with authority, and its Syste … → 모듈 검색 문장(PS/)
+sap-ps-consultant.md · 65 · …that file holds/keeps… → …that folder holds/keeps… (앞줄이 폴더 검색으로 바뀌어 지시어만 맞춤)
+sap-ps-consultant.md · 69 · Read `../knowledge/modules/PS/bapi.md` — it is the BAPI/FM reference in full and with authority, and its Syste … → 모듈 검색 문장(PS/)
+sap-qm-consultant.md · 10 · Load: `../knowledge/modules/QM/{spro,tcodes,bapi,tables,enhancements,workflows}.md` + Triggered: industry/<key>.md · country/<iso>.md → 모듈 검색 문장(QM/) + Triggered: 나라·업종 검색 문장(기본 영역 예시); 절차 2종 · active-modules.md Load 유지
+sap-qm-consultant.md · 37 · Read `../knowledge/modules/QM/tcodes.md` — it is the transaction code reference in full and with authority, an … → 모듈 검색 문장(QM/)
+sap-qm-consultant.md · 46-51 · See `../knowledge/modules/QM/{spro,tcodes,bapi,tables,enhancements,workflows}.md` 6줄 → 한 줄: **Module reference — <원래 6개 라벨>**: 모듈 검색 문장(QM/)
+sap-qm-consultant.md · 52-57 · Common BAPIs/TCodes/Tables/SPRO/Enhancements: `../knowledge/modules/common/{bapi,tcodes,tables,spro,enhancements}.md` 5줄 → 머리 줄에 공통 검색 문장 붙임 · 하위 5줄 삭제
+sap-qm-consultant.md · 58 · Industry: MUST go through industry/README.md + industry file (e.g. …md) → 나라·업종 검색 문장(영역 예시: config analysis, business process design, Fit-Gap, requirement interpretation) + 업종 결정·미설정 시 질문 문장 유지
+sap-qm-consultant.md · 59 · Country: MUST go through country/README.md + country file (e.g. kr.md …); several → load each file → 나라·업종 검색 문장(영역 예시: tax determination, e-invoicing, banking, statutory reporting, or any other jurisdiction-sensitive question) + 나라 결정 순서 · 여러 나라면 각각 검색 · 미설정 시 질문 유지
+sap-qm-consultant.md · 63 · Read `../knowledge/modules/QM/tables.md` — it is the table reference in full and with authority, and its Syste … → 모듈 검색 문장(QM/)
+sap-qm-consultant.md · 64 · …that file holds/keeps… → …that folder holds/keeps… (앞줄이 폴더 검색으로 바뀌어 지시어만 맞춤)
+sap-qm-consultant.md · 68 · Read `../knowledge/modules/QM/bapi.md` — it is the BAPI/FM reference in full and with authority, and its Syste … → 모듈 검색 문장(QM/)
+sap-sd-consultant.md · 10 · Load: `../knowledge/modules/SD/{spro,tcodes,bapi,tables,enhancements,workflows}.md` + Triggered: industry/<key>.md · country/<iso>.md → 모듈 검색 문장(SD/) + Triggered: 나라·업종 검색 문장(기본 영역 예시); 절차 2종 · active-modules.md Load 유지
+sap-sd-consultant.md · 37 · Read `../knowledge/modules/SD/tcodes.md` — it is the transaction code reference in full and with authority, an … → 모듈 검색 문장(SD/)
+sap-sd-consultant.md · 38 · …that file holds/keeps… → …that folder holds/keeps… (앞줄이 폴더 검색으로 바뀌어 지시어만 맞춤)
+sap-sd-consultant.md · 47-52 · See `../knowledge/modules/SD/{spro,tcodes,bapi,tables,enhancements,workflows}.md` 6줄 → 한 줄: **Module reference — <원래 6개 라벨>**: 모듈 검색 문장(SD/)
+sap-sd-consultant.md · 53-58 · Common BAPIs/TCodes/Tables/SPRO/Enhancements: `../knowledge/modules/common/{bapi,tcodes,tables,spro,enhancements}.md` 5줄 → 머리 줄에 공통 검색 문장 붙임 · 하위 5줄 삭제
+sap-sd-consultant.md · 59 · Industry: MUST go through industry/README.md + industry file (e.g. …md) → 나라·업종 검색 문장(영역 예시: config analysis, business process design, Fit-Gap, requirement interpretation) + 업종 결정·미설정 시 질문 문장 유지
+sap-sd-consultant.md · 60 · Country: MUST go through country/README.md + country file (e.g. kr.md …); several → load each file → 나라·업종 검색 문장(영역 예시: tax determination, e-invoicing, banking, statutory reporting, or any other jurisdiction-sensitive question) + 나라 결정 순서 · 여러 나라면 각각 검색 · 미설정 시 질문 유지
+sap-sd-consultant.md · 64 · Read `../knowledge/modules/SD/tables.md` — it is the table reference in full and with authority, and its Syste … → 모듈 검색 문장(SD/)
+sap-sd-consultant.md · 65 · …that file holds/keeps… → …that folder holds/keeps… (앞줄이 폴더 검색으로 바뀌어 지시어만 맞춤)
+sap-sd-consultant.md · 69 · Read `../knowledge/modules/SD/bapi.md` — it is the BAPI/FM reference in full and with authority, and its Syste … → 모듈 검색 문장(SD/)
+sap-sd-consultant.md · 70 · …that file holds/keeps… → …that folder holds/keeps… (앞줄이 폴더 검색으로 바뀌어 지시어만 맞춤)
+sap-tm-consultant.md · 10 · Load: `../knowledge/modules/TM/{spro,tcodes,bapi,tables,enhancements,workflows}.md` + Triggered: industry/<key>.md · country/<iso>.md → 모듈 검색 문장(TM/) + Triggered: 나라·업종 검색 문장(기본 영역 예시); 절차 2종 · active-modules.md Load 유지
+sap-tm-consultant.md · 38 · Read `../knowledge/modules/TM/tcodes.md` — it is the transaction code reference in full and with authority, an … → 모듈 검색 문장(TM/)
+sap-tm-consultant.md · 48-53 · See `../knowledge/modules/TM/{spro,tcodes,bapi,tables,enhancements,workflows}.md` 6줄 → 한 줄: **Module reference — <원래 6개 라벨>**: 모듈 검색 문장(TM/)
+sap-tm-consultant.md · 54-59 · Common BAPIs/TCodes/Tables/SPRO/Enhancements: `../knowledge/modules/common/{bapi,tcodes,tables,spro,enhancements}.md` 5줄 → 머리 줄에 공통 검색 문장 붙임 · 하위 5줄 삭제
+sap-tm-consultant.md · 60 · Industry: MUST go through industry/README.md + industry file (e.g. …md) → 나라·업종 검색 문장(영역 예시: config analysis, business process design, Fit-Gap, requirement interpretation) + 업종 결정·미설정 시 질문 문장 유지
+sap-tm-consultant.md · 61 · Country: MUST go through country/README.md + country file (e.g. kr.md …); several → load each file → 나라·업종 검색 문장(영역 예시: tax determination, e-invoicing, banking, statutory reporting, or any other jurisdiction-sensitive question) + 나라 결정 순서 · 여러 나라면 각각 검색 · 미설정 시 질문 유지
+sap-tm-consultant.md · 65 · Read `../knowledge/modules/TM/tables.md` — it is the table reference in full and with authority, and its Syste … → 모듈 검색 문장(TM/)
+sap-tm-consultant.md · 66 · …that file holds/keeps… → …that folder holds/keeps… (앞줄이 폴더 검색으로 바뀌어 지시어만 맞춤)
+sap-tm-consultant.md · 70 · Read `../knowledge/modules/TM/bapi.md` — it is the BAPI/FM reference in full and with authority, and its Syste … → 모듈 검색 문장(TM/)
+sap-tr-consultant.md · 10 · Load: `../knowledge/modules/TR/{spro,tcodes,bapi,tables,enhancements,workflows}.md` + Triggered: industry/<key>.md · country/<iso>.md → 모듈 검색 문장(TR/) + Triggered: 나라·업종 검색 문장(기본 영역 예시); 절차 2종 · active-modules.md Load 유지
+sap-tr-consultant.md · 37 · Read `../knowledge/modules/TR/tcodes.md` — it is the transaction code reference in full and with authority, an … → 모듈 검색 문장(TR/)
+sap-tr-consultant.md · 46-51 · See `../knowledge/modules/TR/{spro,tcodes,bapi,tables,enhancements,workflows}.md` 6줄 → 한 줄: **Module reference — <원래 6개 라벨>**: 모듈 검색 문장(TR/)
+sap-tr-consultant.md · 52-57 · Common BAPIs/TCodes/Tables/SPRO/Enhancements: `../knowledge/modules/common/{bapi,tcodes,tables,spro,enhancements}.md` 5줄 → 머리 줄에 공통 검색 문장 붙임 · 하위 5줄 삭제
+sap-tr-consultant.md · 58 · Industry: MUST go through industry/README.md + industry file (e.g. …md) → 나라·업종 검색 문장(영역 예시: config analysis, business process design, Fit-Gap, requirement interpretation) + 업종 결정·미설정 시 질문 문장 유지
+sap-tr-consultant.md · 59 · Country: MUST go through country/README.md + country file (e.g. kr.md …); several → load each file → 나라·업종 검색 문장(영역 예시: tax determination, e-invoicing, banking, statutory reporting, or any other jurisdiction-sensitive question) + 나라 결정 순서 · 여러 나라면 각각 검색 · 미설정 시 질문 유지
+sap-tr-consultant.md · 63 · Read `../knowledge/modules/TR/tables.md` — it is the table reference in full and with authority, and its Syste … → 모듈 검색 문장(TR/)
+sap-tr-consultant.md · 64 · …that file holds/keeps… → …that folder holds/keeps… (앞줄이 폴더 검색으로 바뀌어 지시어만 맞춤)
+sap-tr-consultant.md · 68 · Read `../knowledge/modules/TR/bapi.md` — it is the BAPI/FM reference in full and with authority, and its Syste … → 모듈 검색 문장(TR/)
+sap-wm-consultant.md · 10 · Load: `../knowledge/modules/WM/{spro,tcodes,bapi,tables,enhancements,workflows}.md` + Triggered: industry/<key>.md · country/<iso>.md → 모듈 검색 문장(WM/) + Triggered: 나라·업종 검색 문장(기본 영역 예시); 절차 2종 · active-modules.md Load 유지
+sap-wm-consultant.md · 39 · Read `../knowledge/modules/WM/tcodes.md` — it is the transaction code reference in full and with authority, an … → 모듈 검색 문장(WM/)
+sap-wm-consultant.md · 49-54 · See `../knowledge/modules/WM/{spro,tcodes,bapi,tables,enhancements,workflows}.md` 6줄 → 한 줄: **Module reference — <원래 6개 라벨>**: 모듈 검색 문장(WM/)
+sap-wm-consultant.md · 55-60 · Common BAPIs/TCodes/Tables/SPRO/Enhancements: `../knowledge/modules/common/{bapi,tcodes,tables,spro,enhancements}.md` 5줄 → 머리 줄에 공통 검색 문장 붙임 · 하위 5줄 삭제
+sap-wm-consultant.md · 61 · Industry: MUST go through industry/README.md + industry file (e.g. …md) → 나라·업종 검색 문장(영역 예시: config analysis, business process design, Fit-Gap, requirement interpretation) + 업종 결정·미설정 시 질문 문장 유지
+sap-wm-consultant.md · 62 · Country: MUST go through country/README.md + country file (e.g. kr.md …); several → load each file → 나라·업종 검색 문장(영역 예시: tax determination, e-invoicing, banking, statutory reporting, or any other jurisdiction-sensitive question) + 나라 결정 순서 · 여러 나라면 각각 검색 · 미설정 시 질문 유지
+sap-wm-consultant.md · 66 · Read `../knowledge/modules/WM/tables.md` — it is the table reference in full and with authority, and its Syste … → 모듈 검색 문장(WM/)
+sap-wm-consultant.md · 67 · …that file holds/keeps… → …that folder holds/keeps… (앞줄이 폴더 검색으로 바뀌어 지시어만 맞춤)
+sap-wm-consultant.md · 71 · Read `../knowledge/modules/WM/bapi.md` — it is the BAPI/FM reference in full and with authority, and its Syste … → 모듈 검색 문장(WM/)
+sap-bc-consultant.md · 10 · Load: `../knowledge/modules/common/*.md` (system admin references) → 공통 검색 문장(common/) · transport-client-rule.md Load 유지
+sap-writer.md · 10 · Triggered: `../knowledge/industry/<key>.md` / `../knowledge/country/<iso>.md` when set → Triggered: 나라·업종 검색 문장(기본 영역 예시) · active-modules.md Load 유지
+sap-analyst.md · 10 · Triggered: `../knowledge/industry/<key>.md` / `../knowledge/country/<iso>.md` when set → Triggered: 나라·업종 검색 문장(기본 영역 예시) + 「<Country_Context>의 관할 규칙은 MANDATORY 유지」 한 줄 · active-modules.md Load 유지
+sap-executor.md · 10 · Load: `clean-code.md` + 「(+ paradigm file after reading interview.md Paradigm)」 → Load: `clean-code-note.md` + 「apply the note's OOP or Procedural section after reading interview.md Paradigm」 · 다른 Load 유지
+sap-qa-tester.md · 10 · Load: `clean-code.md` + 「(+ paradigm file after reading interview.md Paradigm)」 → Load: `clean-code-note.md` + 「apply the note's OOP or Procedural section after reading interview.md Paradigm」 · 다른 Load 유지
+sap-debugger.md · 10 · Load: `clean-code.md` + 「(+ paradigm file after reading interview.md Paradigm)」 → Load: `clean-code-note.md` + 「apply the note's OOP or Procedural section after reading interview.md Paradigm」 · 다른 Load 유지
+sap-code-reviewer.md · 10 · Load: `clean-code.md` → Load: `clean-code-note.md` · 다른 Load 유지
+sap-critic.md · 10 · Load: `clean-code.md` → Load: `clean-code-note.md` · 다른 Load 유지
+sap-executor.md · 56 · | [`../knowledge/abap/conventions/clean-code.md`](../knowledge/abap/conventions/clean-code … → clean-code.md 링크 → clean-code-note.md 링크(적용 범위 그대로)
+sap-executor.md · 57 · | [`../knowledge/abap/conventions/clean-code-oop.md`](../knowledge/abap/conventions/clean- … → clean-code-oop.md 링크 → 쪽지 링크 + 「its OOP section」 · Load ONLY → Apply ONLY(조건 그대로)
+sap-executor.md · 58 · | [`../knowledge/abap/conventions/clean-code-procedural.md`](../knowledge/abap/conventions … → clean-code-procedural.md 링크 → 쪽지 링크 + 「its Procedural section」 · Load ONLY → Apply ONLY(조건 그대로)
+sap-executor.md · 78 · > `clean-code.md` + (`clean-code-oop.md` OR `clean-code-procedural.md` per spec paradigm)  … → 우선순위 사슬의 clean-code 3파일 → 쪽지(핵심 줄 + 패러다임 절) · 순위 그대로
+sap-executor.md · 80 · before you load either paradigm-specific clean-code file. Picking the wrong one — `clean-c … → 패러다임 관문: 패러다임 파일 → 쪽지의 패러다임 절 · 「인터뷰 Paradigm 먼저 확인」 · MAJOR finding 그대로
+sap-executor.md · 147 · hold up against `../knowledge/abap/conventions/clean-code.md` and … → 자기 점검: clean-code.md → clean-code-note.md (naming-conventions.md 그대로)
+
+== 유지 (파일 · 줄 · 이유) ==
+sap-*-consultant.md (14개, bc 제외) · 10 · 유지 — `../knowledge/modules/common/active-modules.md` Load — 유지: spec C-1 예외(active-modules.md 지시) · 절차 2종 `spro-lookup` · `customization-lookup` Load도 유지
+sap-architect.md · sap-planner.md · sap-stocker.md · 10 · 유지 — `../knowledge/modules/common/active-modules.md` Load — 유지: spec C-1 예외
+sap-stocker.md · 15 · 47 · 유지 — `../knowledge/modules/common/active-modules.md` 본문 지시 — 유지: spec C-1 예외
+sap-stocker.md · 85 · 유지 — `../knowledge/modules/<MODULE>/` 폴더 존재 확인 — 유지: 파일 지시 아님(폴더 · 모듈 코드 정규화 규칙)
+sap-critic.md · 10 · 유지 — `../procedures/customization-lookup.md` + `../knowledge/modules/common/active-modules.md` — 유지: 절차 · active-modules 예외
+sap-analyst.md · 58 · 60 · 유지 — <Country_Context> MANDATORY 관할 규칙(`../knowledge/country/<iso>.md` 적재) — 유지: spec C-3 예외(분석가에게는 나라가 늘 그 영역)
+sap-critic.md · 64 · 유지 — <Country_Context> MANDATORY 관할 규칙의 `../knowledge/country/<iso>.md` 적재 — 유지: spec C-3 대상 꼴(Triggered: · MUST go through)이 아니고 sap-analyst 58~60과 같은 종류의 MANDATORY 관할 규칙(비상담가). T4b 보고 concerns에 기재
+sap-planner.md · 65 · 유지 — 같은 이유 — <Country_Context> MANDATORY 관할 규칙(비상담가) · 유지. T4b 보고 concerns에 기재
+sap-planner.md · 43 · 93 · 유지 — `../knowledge/modules/` 디렉터리 언급(백틱 아님 · 파일 아님) — 유지
+sap-planner.md · 135 · 유지 — Failure 예시 문장 「Instead, check ../knowledge/modules/SD/spro.md」(백틱 · 링크 아님) — 유지: 예시 문장 · 비상담가. T4b 보고 concerns에 기재
+sap-planner.md · 143 · 유지 — Good 예시 문장의 `../knowledge/modules/` 디렉터리 언급 — 유지
+sap-writer.md · 76 · 유지 — `../knowledge/modules/` 디렉터리 언급 — 유지
+sap-writer.md · 118 · 유지 — Good 예시 문장 「reads the existing ../knowledge/modules/SD/spro.md」(백틱 · 링크 아님) — 유지: 예시 문장 · 비상담가
+sap-doc-specialist.md · 44 · 54 · 87 · 유지 — `../knowledge/modules/` 디렉터리 언급(백틱 아님) — 유지
+sap-*-consultant.md · Investigation_Protocol 2) · Final_Checklist · 유지 — 「Look through project ../knowledge/modules/<M>/ …」 · 「Did I look into ../knowledge/modules/<M>/ …」 — 유지: 폴더 언급(백틱 · 파일 아님), 검색 지시와 뜻이 맞음
+sap-sd-consultant.md · 85 · 유지 — 「Read opens the project's SD configuration files (../knowledge/modules/SD/)」 도구 설명 — 유지: 폴더 언급
+sap-executor.md · 59 등 규약 표 나머지 행 · 유지 — naming-conventions · abap-release-reference · alv-rules 등 — 유지: B-3 대상은 clean-code 원본뿐
+sap-executor.md · 135 · 유지 — 「restating clean-code / naming / … rules」 — 유지: 파일 지시 아님(일반 명사)
+sap-executor.md · 140 · 유지 — 예시 문장 「`clean-code.md` the explicit field list」 — 유지: spec B-3 「예시 문장(140줄)은 그대로 둬도 된다」
+sap-executor.md · sap-qa-tester.md · sap-debugger.md · sap-code-reviewer.md · sap-critic.md · 10 · 유지 — `abap-release-reference.md` · `transport-client-rule.md` · `include-structure.md` 등 다른 Load — 유지: spec B-3
+sap-bc-consultant.md · 57 · 73 · 유지 — `agents/agent_details/bc/…` 지시 — 유지: knowledge/modules 아래 파일이 아님(범위 밖)
+
+== 부수 수정 ==
+상담가 Key_* 블록의 「Do NOT lean on memor… that file …」 줄: 앞줄이 폴더 검색으로 바뀌어 「that file」 → 「that folder」(지시어만 · 뜻 그대로). 위 변경 목록에 개별 기재.
+sap-ariba-consultant.md 10줄의 「(or nearest Ariba-specific config path)」 → 검색 문장 뒤 「If that folder lacks the answer, use the nearest Ariba-specific config path.」로 살림.
+sap-bw-consultant.md 37 · 69줄의 「ECC/S4HANA (BW/4HANA) compatibility」: 정본 [M] 문장에는 (BW/4HANA)가 없다 — BW/4HANA 사정은 바로 뒤 Note 줄(38 · 70)이 그대로 들고 있다.
+sap-analyst.md 10줄: [N] 뒤에 「Exception: the jurisdiction rule in <Country_Context> below stays MANDATORY for every requirement analysis.」를 붙여 58~60 예외와 모순되지 않게 했다.
