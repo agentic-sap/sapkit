@@ -334,7 +334,7 @@
 > **2026-11-08 정정** — 「프로파일 2종 · IDES-DEV는 이 머신에 없다」는 낡은 서술이었다. 메인이 `ReloadProfile` →
 > `GetSystemInfo`로 IDES-DEV 접속을 확인했고(판K 밖 · P1 읽기만) 활성 프로파일 포인터는 지금 `IDES-DEV`다.
 > **2026-11-10 정정** — `~/.sapkit/profiles/`에 `IDES-DEV`라는 폴더는 없다(있는 것: `IDEA-JNC` · `KR-DEV`). 소유자 확인으로 **IDES 시스템의
-> 프로파일은 `IDEA-JNC`**이고, 소유자가 그 `sap.env`의 접속 정보를 새로 고쳤다(2026-11-10 · 고친 뒤 접속 재확인은 아직). KR-DEV는 쓰지 않는다.
+> 프로파일은 `IDEA-JNC`**이고, 소유자가 그 `sap.env`의 접속 정보를 새로 고쳤다(2026-11-10 · 고친 뒤 `ReloadProfile` → `GetSystemInfo`로 접속 확인 — SID S4H · client 100 · P1 읽기만). KR-DEV는 쓰지 않는다.
 > 이 문서의 「IDES-DEV」는 그 시스템을 가리킨다.
 >
 > ⚠ **`~/.sapkit`에 명시 ACE `HONGPC\CodexSandboxUsers:(OI)(CI)(RX)`가 걸려 있어
