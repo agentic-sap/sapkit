@@ -14,7 +14,7 @@ sapkit ABAP programs share one layout: a Main Program plus conditional Includes 
 | PBO | `{PROG}o` | Screen/GUI present | Screen/GUI present | Screen PBO modules (`MODULE status_0100 OUTPUT.`) |
 | PAI | `{PROG}i` | Screen/GUI present | Screen/GUI present | Screen PAI modules (`MODULE user_command_0100 INPUT.`) |
 | Event Handler | `{PROG}e` | **FORBIDDEN** | OOP + ALV events | ALV event handler class (`LCL_EVENT`). **In Procedural mode this include MUST NOT be created** — event blocks (`INITIALIZATION`, `AT SELECTION-SCREEN`, `AT SELECTION-SCREEN OUTPUT`, `START-OF-SELECTION`, `END-OF-SELECTION`) live in the Main program body, never in an include. |
-| Test Class | `{PROG}_tst` | Optional | OOP (required) | `FOR TESTING` local test classes |
+| Test Class | `{PROG}_tst` | Testing scope set (tests `LCL_HELPER`) | Testing scope set | `FOR TESTING` local test classes — absent when the interview's testing scope is `none` |
 
 ## Main Program Body
 

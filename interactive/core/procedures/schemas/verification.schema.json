@@ -17,7 +17,7 @@
     },
     "unit_test": {
       "$ref": "#/definitions/step",
-      "description": "RunUnitTest / GetUnitTestResult outcome. SKIPPED when Phase 5 skip conditions matched (Procedural paradigm, or testing scope = none) — SKIPPED here is a normal, non-blocking outcome."
+      "description": "RunUnitTest / GetUnitTestResult outcome. SKIPPED when Phase 5's skip condition matched (testing scope = none, under either paradigm) — SKIPPED here is a normal, non-blocking outcome."
     },
     "atc": {
       "$ref": "#/definitions/step",
@@ -43,7 +43,7 @@
         "evidence": {
           "type": "string",
           "minLength": 1,
-          "description": "Concrete proof: tool name + result summary (e.g. 'RunUnitTest: 6/6 methods green', 'GetAtcFindings: 0 priority-1/2 findings'), or the skip reason (e.g. 'SKIPPED: Procedural paradigm, no test class expected')."
+          "description": "Concrete proof: tool name + result summary (e.g. 'RunUnitTest: 6/6 methods green', 'GetAtcFindings: 0 priority-1/2 findings'), or the skip reason (e.g. 'SKIPPED: testing scope none (interview dimension 7)')."
         },
         "ts": {
           "type": "string",

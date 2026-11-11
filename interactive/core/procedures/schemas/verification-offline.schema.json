@@ -25,7 +25,7 @@
     },
     "unit_test": {
       "$ref": "#/definitions/step-postimport",
-      "description": "RunUnitTest / GetUnitTestResult outcome on the imported objects, recorded at Phase 8 alongside readback — never before the user's import, because the objects do not exist on SAP until then. Optional in this record because an environment with no MCP connection can never fill it, and that environment never reaches COMPLETE anyway; but COMPLETE requires it PASS or SKIPPED with a recorded reason (D-144 — the same standard verification.schema.json's matrix puts on the mcp branch). SKIPPED reasons mirror Phase 5's skip conditions (Procedural paradigm, testing scope none) or a user's refusal to allow execution on that system. Running it is a P3 execution — DEV-only holds exactly as on the mcp branch."
+      "description": "RunUnitTest / GetUnitTestResult outcome on the imported objects, recorded at Phase 8 alongside readback — never before the user's import, because the objects do not exist on SAP until then. Optional in this record because an environment with no MCP connection can never fill it, and that environment never reaches COMPLETE anyway; but COMPLETE requires it PASS or SKIPPED with a recorded reason (D-144 — the same standard verification.schema.json's matrix puts on the mcp branch). SKIPPED reasons mirror Phase 5's skip condition (testing scope none, under either paradigm) or a user's refusal to allow execution on that system. Running it is a P3 execution — DEV-only holds exactly as on the mcp branch."
     },
     "atc": {
       "$ref": "#/definitions/step-postimport",

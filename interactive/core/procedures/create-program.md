@@ -155,7 +155,7 @@ This block is a copy of the canonical conventions note (clean-code-note, in the 
 
 **House rules**
 - Magic literals in logic (status/type codes, screen numbers, GUI status names, thresholds, compared return codes) become `CONSTANTS` in the TOP include [constant-rule.md § 1. What must become a constant] [constant-rule.md § 3. Where the declaration goes]
-- Numbered objects `Z{MODULE}{TYPE}{NN}` (R report, S structure, T table, Y table type, E data element, D domain, V view); prove `{NN}` free via `SearchObject`, take last + 10, one `{NN}` per feature [naming-conventions.md § 3. Numbered objects — `Z{MODULE}{TYPE}{NN}`] [naming-conventions.md § 2. Claim the sequence number before you propose a name — MANDATORY]
+- Numbered objects `Z{MODULE}{TYPE}{NN}` (R report, S structure, T table, Y table type, E data element, D domain, V view); `{NN}` is 5 zero-padded digits (`00010`); prove it free via `SearchObject`, take last + 10, one `{NN}` per feature [naming-conventions.md § 3. Numbered objects — `Z{MODULE}{TYPE}{NN}`] [naming-conventions.md § 2. Claim the sequence number before you propose a name — MANDATORY]
 - `Z{MODULE}FG_{PURPOSE}` / `Z{MODULE}FM_{PURPOSE}` (never `Z_MM_...`); `ZCL_` / `ZIF_` / `ZCX_{MODULE}_{PURPOSE}`; CDS `ZI_` / `ZR_` / `ZC_` / `ZP_{MODULE}_{Name}` [naming-conventions.md § 4. Unnumbered objects — patterns keyed by purpose]
 - Write every applicable text-pool type (`R` title, `I` per `TEXT-xxx`, `S` per selection field, `H` only for WRITE lists) in the logon language and in `'E'` [text-element-rule.md § Scope — Four Text Pool Types (MUST verify ALL that apply)] [text-element-rule.md § Language Strategy (MANDATORY — two passes)]
 - An `S` label starts at offset 8: via the MCP text tools `text` begins with 8 reserved characters; in an abapGit `TPOOL` they stay out of `ENTRY` [text-element-rule.md § Selection Texts — the Label Starts at Offset 8]
@@ -320,7 +320,7 @@ Recovery clause: where a bulk proposal already went out (protocol violation), ap
 4. **Screen/GUI** — required? screen numbers? Docking Container vs Splitter vs TOP_OF_PAGE layout?
 5. **Data source** — standard tables / Z-tables / BAPI / CDS view (must be consistent with Phase 1A reference assets)
 6. **Package + Transport** — target package, new or existing transport
-7. **Testing scope** — when OOP is selected, which test class methods to cover. **Recommended default: turn the acceptance examples into tests.** The "given this input, this result" examples that the dig-out stage below collects become the test methods, so the program is checked against something the user wrote rather than against the code. Offer that as the recommendation, and let the user widen or narrow it from there.
+7. **Testing scope** — which logic gets test methods, or `none`, under **either paradigm**: in OOP the local classes' methods; in Procedural the pure-computation logic pulled out of the FORMs into `LCL_HELPER` ([clean-code-procedural.md § Procedural Testing — Limits and Workarounds](../knowledge/abap/conventions/clean-code-procedural.md#procedural-testing--limits-and-workarounds)). **Recommended default: turn the acceptance examples into tests.** The "given this input, this result" examples that the dig-out stage below collects become the test methods, so the program is checked against something the user wrote rather than against the code. Offer that as the recommendation, and let the user widen or narrow it from there.
 8. **Delivery path** — which route the finished code takes into SAP: **through MCP** (the agent writes and activates the objects over the live ADT connection) or **as an abapGit ZIP the user imports themselves** through the abapGit UI ([develop-abapgit](./develop-abapgit.md)). Recommend **MCP wherever a live connection exists**; abapGit is the route when MCP is unavailable, unreliable, or not permitted on the target system — for some users it is the only way in, so it is offered as a route, never as a lesser one. Ask it here rather than at implementation time, because the plan and the risk briefing both hang on it: on the abapGit route the agent never connects to SAP before the user's import, so syntax and activation authority stay with the server until then, and **newly authored screen (DYNPRO) or GUI status (CUA) XML carries an import → repair → re-ZIP round trip** the user should expect from the outset.
 
 On each dimension you may propose a recommended default (drawn from Phase 1A context + CBO inventory + platform constraints). That proposal belongs to its own slot inside the bundle, shaped per the [plain-language policy](../policies/plain-language.md) — never merge the remaining dimensions into one table under a single approval.
@@ -715,6 +715,16 @@ will never pause when in fact it still will:
   of whatever (c) already requires. Say it as effect — *deleting, transports, new
   packages, running things, and reading real data are not covered by this; you
   will still be asked* — and not as a list of tool names.
+- **Count before you say it.** "You will still be asked" is true only for a
+  family the user has not already allowed on their own. Before the briefing, read
+  the allow lists the host will apply — the project's `.claude/settings.local.json`
+  and `.claude/settings.json`, and the user-level `~/.claude/settings.json` — and
+  count the entries in each left-out family. A family with none: say *you will
+  still be asked*. A family the user already allowed: say that instead — *your own
+  settings already allow deleting (N entries), so that will not ask either* — and
+  leave those entries alone; the merge is additive and never removes them.
+  (Field-measured 2026-11-11: one project already carried 42 delete, transport and
+  runtime entries, and the unconditional sentence was false.)
 
 That distinction is what makes "nothing outside (c) stops the run" true rather
 than false: (c) is where **this procedure** stops to ask, and the excluded actions
@@ -874,7 +884,7 @@ Implementation runs under the `execution_owner` resolved at Phase 3.5 (`main` | 
   it simply now runs under a stated condition rather than as the only possibility.
 
 Flow when `delivery_path == "mcp"` (source-first, single syntax check on the main program, batch activation):
-1. Generate ALL include sources locally first, from the approved spec + the mandatory main-program template — [zsapkit_oop_ex.prog.abap](../knowledge/abap/templates/oop-sample/zsapkit_oop_ex.prog.abap) (OOP) or [main-program.abap](../knowledge/abap/templates/procedural-sample/main-program.abap) (Procedural) — as the starting skeleton. When OOP with testing scope, the `{PROG}_tst` test-class include is part of this initial batch. Run the bundled checker's 13-rule offline analysis on these sources before step 2 (`node "<plugin root>/checker/sapkit-checker.bundle.cjs" analyze <file> --format json`) — an optional local check that needs no install; on the Claude adapter the `offline-code-analysis` hook runs it automatically after each source write ([troubleshooting §7](troubleshooting.md#7-sapkit-checker--local-offline-analysis-bundled)).
+1. Generate ALL include sources locally first, from the approved spec + the mandatory main-program template — [zsapkit_oop_ex.prog.abap](../knowledge/abap/templates/oop-sample/zsapkit_oop_ex.prog.abap) (OOP) or [main-program.abap](../knowledge/abap/templates/procedural-sample/main-program.abap) (Procedural) — as the starting skeleton. When testing scope is set (either paradigm — in Procedural the tests target `LCL_HELPER`), the `{PROG}_tst` test-class include is part of this initial batch. Run the bundled checker's 13-rule offline analysis on these sources before step 2 (`node "<plugin root>/checker/sapkit-checker.bundle.cjs" analyze <file> --format json`) — an optional local check that needs no install; on the Claude adapter the `offline-code-analysis` hook runs it automatically after each source write ([troubleshooting §7](troubleshooting.md#7-sapkit-checker--local-offline-analysis-bundled)).
 2. Create the includes via `CreateInclude` + `UpdateInclude`, then the main program via `CreateProgram` + `UpdateProgram`.
 3. Run a single `CheckSyntax` on the MAIN program (not per include). Syntax failures → fix-and-retry loop, max 3 iterations on the main program.
 4. Activate, then verify via `GetInactiveObjects` — the program's object set must return 0 inactive entries.
@@ -915,14 +925,13 @@ syntax clean · activated"*). No question follows it.
 Adopt the [sap-qa-tester](../personas/sap-qa-tester.md) persona for this step.
 
 **Skip conditions (any one triggers skip, recorded as `skipped` in state.json)**:
-- Paradigm = Procedural (no local test classes expected)
-- Paradigm = OOP AND `interview.md` dimension 7 (testing scope) = `none` / empty
+- `interview.md` dimension 7 (testing scope) = `none` / empty — under either paradigm. Procedural is **not** a skip reason by itself: where testing scope is set, the testable logic sits in `LCL_HELPER` and `{PROG}_tst` tests that.
 - `state.json.delivery_path == "abapgit"` — **automatically SKIPPED**, whatever the paradigm and testing scope say. `RunUnitTest` needs a live ADT connection and this branch has none, so there is nothing to run. Record the reason in that form: it is an environment fact, not a judgment that the code did not need testing, and a reader must not take the skip as evidence about the code. Note that the test-class include itself is still authored into the mirror when dimension 7 asked for one — it ships in the ZIP and the user can run it after import; what is absent is any run of it here.
 
 **When running**:
 - The test class include (`{PROG}_tst`) should already be there from Phase 4 — this phase only writes test methods and runs them.
-- **Where the paradigm is OOP and the approved document carries acceptance-criteria examples, those examples are the minimum set of test methods.** One example, one test method — that is the floor, not the ceiling; add whatever else the code needs. An acceptance example with no test method behind it is a gap in this phase, because the example is the one check the user wrote themselves.
-  - **Procedural code documents them instead.** There is no local test class to hold them, so carry each acceptance example into the program's header comment block and into the completion report, in the same "given this input, this result" shape. Documented, not silently dropped.
+- **Where the approved document carries acceptance-criteria examples, those examples are the minimum set of test methods** — under either paradigm. One example, one test method — that is the floor, not the ceiling; add whatever else the code needs. An acceptance example with no test method behind it is a gap in this phase, because the example is the one check the user wrote themselves.
+  - **An example no test method can hold is documented instead** — screen flow, a database read, anything that is not pure computation (in Procedural code, whatever stays in the FORMs rather than in `LCL_HELPER`). Carry it into the program's header comment block and into the completion report, in the same "given this input, this result" shape. Documented, not silently dropped.
 - Call `RunUnitTest` → `GetUnitTestResult`. The test classes live in `{PROG}_tst`, which belongs to the program, not to a class — so the container is the main program: `tests: [{container_class: "{PROG}", test_class: "<the LTCL_… class>"}]` **with `container_type: "program"`**. Without it the run is addressed to a class of that name; engine 1.5.1+ refuses that run as "selected no test class" and names the fix, older bundles answered `success: true` over an empty result. Either way nothing ran — never record it as PASS.
 - On FAIL: fix production code (not tests) → re-activate → re-run (loop until green or 3 attempts)
 - Only where the user opted into step-by-step confirmation: confirm before starting this phase (unless a skip condition matched, then skip with a one-line statement).
@@ -934,7 +943,7 @@ Adopt the [sap-qa-tester](../personas/sap-qa-tester.md) persona for this step.
 
 ## Phase 6 — Review Gate
 
-> Phase 4 is NOT complete until Phase 6 has run. Phase 5 (QA) is conditional on OOP mode, Phase 7 (Debug) is conditional on failures, but **Phase 6 is unconditional**.
+> Phase 4 is NOT complete until Phase 6 has run. Phase 5 (QA) is conditional on testing scope, Phase 7 (Debug) is conditional on failures, but **Phase 6 is unconditional**.
 
 A successful activation only proves the code compiles and links — it does NOT prove the code follows the shared conventions. Phase 6 is what closes that gap.
 
@@ -1126,8 +1135,8 @@ never upgrades the state past PROVISIONAL_WRITE.
   steps into `verification-offline.json`: `RunUnitTest` where a test class is in scope
   (container = the program, `container_type: "program"` — Phase 5; a P3 execution — DEV-only
   holds exactly as on the `mcp` branch), `GetAtcFindings` where
-  the backend supports it; `SKIPPED` with the reason otherwise (Procedural paradigm, testing
-  scope none, ATC unsupported, or the user declining execution on that system). Where no MCP
+  the backend supports it; `SKIPPED` with the reason otherwise (testing scope none, ATC
+  unsupported, or the user declining execution on that system). Where no MCP
   read is available on that system, `readback` is `UNAVAILABLE`, the run **stops at
   `PROVISIONAL_WRITE`**, and the report records that there is no path to `COMPLETE` there.
   Saying otherwise is over-reporting.
