@@ -59,12 +59,14 @@ never escalate silently, never escalate on weight alone.
 ## Orthogonal to Track A
 
 The strengths are a **procedure-intensity** axis only. They do **not** assign or
-change the Track A execution structure (Direct / Guided) or the SAP Policy
-profile (P0–P4); every action is routed by `AGENTS.md` independently, and file,
-step, and verification counts never affect that routing. `.sapkit/**` outputs are
-working material, **not** Track A completion evidence: they do not substitute for
-a Guided run's `.harness/runs/` records, an exact-subject review `R-PASS`, or a
-machine check of what SAP actually holds
+change the Track A execution structure (Direct — the default · Guided — the
+explicitly elevated run that records the independent review) or the SAP Policy
+profile (P0 offline · P1 connected-read · P2 row-data extraction · P3
+write/execute · P4 transport); every action is routed on those two axes
+independently of the strength chosen, and file, step, and verification counts
+never affect that routing. `.sapkit/**` outputs are working material, **not**
+Track A completion evidence: they do not substitute for an exact-subject review
+`R-PASS` or a machine check of what SAP actually holds
 (`procedures/verify-applied.md`).
 
 ## execution_owner
@@ -125,7 +127,7 @@ limits have no aegis analogue:
 - It applies **only to the implementation slice after Track A routing and P0–P4
   classification are settled**. Delegation never changes a policy classification.
 - **P2 (real-data extraction) is always main-only.** The subagent/batch
-  prohibition holds even under the D-043 owner-machine exception (`AGENTS.md` P2).
+  prohibition holds even under the D-043 owner-machine exception.
   This includes pulling row data from a worker's shell by any non-MCP route — a
   local CLI, a script, a direct query. The worker's mechanical block covers only
   the two MCP row-data tools, so every path outside those two is a boundary the

@@ -165,5 +165,4 @@ brokers the per-request gate" are two different statements. Keep them apart:
   current version, so treat P2 as **unsupported** until it has been measured.
 
 None of this relaxes the row-data blocklist above; it records where the per-request
-approval is mechanically available, nothing more. The full adapter matrix is finalized in the
-2026-07-16 roadmap S5-B.
+approval is mechanically available, nothing more.

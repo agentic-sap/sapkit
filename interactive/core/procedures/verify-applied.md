@@ -16,7 +16,7 @@ response saying ACTIVE, or an empty `GetInactiveObjects` are all reports from
 the side that did the writing — field use has produced cases where such a
 response came back clean while the object in SAP did not hold what was
 intended. So a write leaves the object at `PROVISIONAL_WRITE`, not done
-(D-025 Track A state model — see `AGENTS.md` and the "Completion state"
+(D-025 Track A state model — see the "Completion state"
 sections of [create-program](create-program.md#phase-8--completion-report),
 [create-object](create-object.md), [modify-object](modify-object.md)).
 
@@ -51,7 +51,7 @@ procedure never substitutes for it.
 
 ## Policy
 
-- **P1 connected-read throughout** (`AGENTS.md`). Source read-back, active-state
+- **P1 connected-read throughout.** Source read-back, active-state
   lookup, and `CheckSyntax` inspect and compile but never mutate — no per-call
   approval is needed and an agent may run them for the user.
 - **Zero writes to SAP.** There is no write step to add here. If a check reveals

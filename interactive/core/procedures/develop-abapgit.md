@@ -17,7 +17,7 @@ the only way in. For some users this is not a fallback but the only path, so it 
 narrowed for safety: the risks below are handled by seeding from the server's own export
 and by warning up front, never by refusing object types.
 
-`AGENTS.md` already permits user-operated abapGit as a P3 route, and
+User-operated abapGit is already a permitted P3 (write/execute) route, and
 [source-repair-protocol](../knowledge/abap/conventions/source-repair-protocol.md) already
 sends bulk multi-FM repair down it. This procedure is the wiring both of them assumed.
 
@@ -59,7 +59,7 @@ sends bulk multi-FM repair down it. This procedure is the wiring both of them as
   is opened at any point between Step 1 and Step 6. The one later exception is Step 7's
   post-import verification — read-back, tests, ATC — which exists only where an MCP read is
   available; running the tests there is a P3 execution and DEV-only holds (D-144).
-- **The act that changes SAP is P3 and it belongs to the user.** `AGENTS.md` binds the act,
+- **The act that changes SAP is P3 and it belongs to the user.** The policy binds the act,
   not the tool: importing this ZIP is a P3 write, and its DEV-only rule holds exactly as it
   does for `Update*`. What differs is who performs it and what can be checked mechanically —
   see Step 1.

@@ -37,9 +37,9 @@ Phase 0 (Version Preflight)
 
 ## Track A Policy Alignment (attended-only)
 
-This procedure runs under the Track A execution Policy (see `AGENTS.md` and the
-2026-07-16 integration-hardening roadmap §6). Do not treat the pipeline as a
-self-completing unit — map its phases to that Policy:
+This procedure runs under the Track A execution Policy (the P0–P4 profile legend
+is in [development-loop](../policies/development-loop.md#orthogonal-to-track-a)).
+Do not treat the pipeline as a self-completing unit — map its phases to that Policy:
 
 - **Direct scope (P0/P1) ends at the Spec Approval Gate.** Phase 0 → interview →
   plan → spec → human approval produce a local **DRAFT**. No SAP write happens in
@@ -734,8 +734,6 @@ will never pause when in fact it still will:
   - Real data is the exception to "will not ask either": even where the user's
     settings allow the two real-data tools, the run itself still stops before
     every real-data read (the stop list in (c)). Say so.
-  (Field-measured 2026-11-11: one project already carried 42 delete, transport and
-  runtime entries, and the unconditional sentence was false.)
 
 That distinction is what makes "nothing outside (c) stops the run" true rather
 than false: (c) is where **this procedure** stops to ask, and the excluded actions
@@ -873,7 +871,7 @@ from it.
 
 Adopt the [sap-executor](../personas/sap-executor.md) persona for this step.
 
-Implementation runs under the `execution_owner` resolved at Phase 3.5 (`main` | `delegated` — [development-loop.md](../policies/development-loop.md)). **When the resolved owner is `delegated`, dispatching the worker is mandatory — the coordinating conversation must not implement the slice itself.** Launch is adapter-specific: on the Claude adapter delegate to the bundled `sapkit:sap-worker` subagent; on Codex / Antigravity hand the worker contract to a fresh session (the adapter README's "구현 위임" section owns the exact invocation). If the launch fails or no worker mechanism exists: with `selection_source: default`, continue as `main`, say so, and record `effective_owner: "main"` in `state.json`; with `selection_source: explicit`, never fall back silently — stop, explain the limitation, and wait for direction. After a worker has started, an owner change is not a rollback: stop the worker, preserve and report what was actually applied (including `PROVISIONAL_WRITE` state), and continue only on the user's direction. A delegated worker receives the approved spec, its task slice, and the relevant rules and paths — never secrets. Control artifacts (`approval.json`, `state.json`, `verification.json`, **`verification-offline.json`**, `review-request.json`, `review-result.json`) remain main-only, and the worker never serves as its own reviewer. P2 data reads stay main-only (including any non-MCP route from a worker shell — a local CLI, a script, a direct query), and P4 transport lifecycle actions are never delegated — the worker only references the transport id its contract names.
+Implementation runs under the `execution_owner` resolved at Phase 3.5 (`main` | `delegated` — [development-loop.md](../policies/development-loop.md)). **When the resolved owner is `delegated`, dispatching the worker is mandatory — the coordinating conversation must not implement the slice itself.** Launch is adapter-specific: on the Claude adapter delegate to the bundled `sapkit:sap-worker` subagent; on Codex / Antigravity hand the worker contract to a fresh session (the adapter README's "구현 위임" section owns the exact invocation). If the launch fails or no worker mechanism exists: with `selection_source: default`, continue as `main`, say so, and record `effective_owner: "main"` in `state.json`; with `selection_source: explicit`, never fall back silently — stop, explain the limitation, and wait for direction. After a worker has started, an owner change is not a rollback: stop the worker, preserve and report what was actually applied (including `PROVISIONAL_WRITE` state), and continue only on the user's direction. A delegated worker receives the approved spec, its task slice, and the relevant rules and paths — never secrets. For coding rules, name what this phase names below — the conventions note, plus `oop-pattern` / `alv-rules` where they apply — and do not also list the clean-code originals the note stands in for. Control artifacts (`approval.json`, `state.json`, `verification.json`, **`verification-offline.json`**, `review-request.json`, `review-result.json`) remain main-only, and the worker never serves as its own reviewer. P2 data reads stay main-only (including any non-MCP route from a worker shell — a local CLI, a script, a direct query), and P4 transport lifecycle actions are never delegated — the worker only references the transport id its contract names.
 
 **Delivery-path branch (read `state.json.delivery_path` before anything else in this phase):**
 
@@ -1007,7 +1005,7 @@ Steps:
      deviation to report. **One exception: on the `abapgit` branch `notes` is mandatory**,
      outage or not. It is the only carrier the reviewer has for the mirror path, and a review
      request that omits it sends the reviewer to fetch objects that do not exist.
-4. Run [review-checklist](./review-checklist.md) **in a fresh reviewer context — never in this conversation**: on the Claude adapter delegate to the bundled `sapkit:sap-reviewer` subagent; on Codex / Antigravity use a new session (the adapter README owns the invocation). The main context performing the checklist itself does not satisfy this gate — it is not a fresh reviewer context, whoever implemented Phase 4. The reviewer judges read-only; fixes are applied by the implementation owner (main, or the delegated worker), then re-reviewed. Pass the reviewer the path to `review-request.json` and the [review-checklist](./review-checklist.md) itself.
+4. Run [review-checklist](./review-checklist.md) **in a fresh reviewer context — never in this conversation**: on the Claude adapter delegate to the bundled `sapkit:sap-reviewer` subagent; on Codex / Antigravity use a new session (the adapter README owns the invocation). The main context performing the checklist itself does not satisfy this gate — it is not a fresh reviewer context, whoever implemented Phase 4. The reviewer judges read-only; fixes are applied by the implementation owner (main, or the delegated worker), then re-reviewed. Pass the reviewer the path to `review-request.json` and the [review-checklist](./review-checklist.md) itself, and no further reading list — the checklist carries the conventions note (its §8) and names the rule files each item needs, so do not point the reviewer back at this procedure or at the clean-code originals.
 5. The reviewer runs read-only — on the Claude adapter this is mechanical (its
    `disallowedTools` blocks Write/Edit/Bash and every SAP mutation call); on other
    adapters it is role + adapter config (see review-checklist.md's adapter-defense

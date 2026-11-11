@@ -33,8 +33,9 @@ is the SAP adaptation of aegis Direct.
 
 ## Track A Policy Alignment (attended-only)
 
-This procedure is a Track A mutation path (see `AGENTS.md`). Apply the Policy, not
-a one-shot auto-run:
+This procedure is a Track A mutation path (the P0–P4 profile legend is in
+[development-loop](../policies/development-loop.md#orthogonal-to-track-a)). Apply the
+Policy, not a one-shot auto-run:
 
 - **Apply is P3 and attended.** `Update*` / `ActivateObjects` run only with a
   present human operator. There is no unattended completion (`unattended` is

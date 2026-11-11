@@ -21,8 +21,9 @@ Carry a new ABAP object through its whole creation lifecycle: settle on the righ
 
 ## Track A Policy Alignment (attended-only)
 
-This procedure is one of Track A's mutation paths (see `AGENTS.md` and the 2026-07-16
-roadmap §6). Apply the Policy — not a one-shot auto-run:
+This procedure is one of Track A's mutation paths (the P0–P4 profile legend is in
+[development-loop](../policies/development-loop.md#orthogonal-to-track-a)). Apply the
+Policy — not a one-shot auto-run:
 
 - **Freeze first (P0/P1).** Object type, name, DEV tier, package, object allowlist,
   and transport intent all get confirmed and frozen before any `Create*` call goes out.
