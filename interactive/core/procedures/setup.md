@@ -1,12 +1,12 @@
 ---
 name: setup
-description: Interactive onboarding wizard — SAP connection profile, project context files with tool-surface selection, and a layered self-check, plus optional permission-template and safety-hook switches.
+description: Interactive onboarding wizard — SAP connection profile, project context files with tool-surface selection, a layered self-check, and the install of SAP-side helper objects on a development system, plus optional permission-template and safety-hook switches.
 ---
 
 # Setup Wizard
 
 Run this once per project (or re-run any single step after a change). Step 0
-through Step 6, in order — each depends on the one before it. **Attended
+through Step 7, in order — each depends on the one before it. **Attended
 throughout**: before writing a file or running a script, summarize what this
 step is about to do and get user confirmation first. Never batch multiple
 steps' writes into one unconfirmed action — concretely, that means every
@@ -511,5 +511,63 @@ point — that is expected, not a wizard bug. Say so to the user in their
 language, in plain words: that the connection check has not passed yet and that
 this is the expected result rather than a fault, because the password was
 deliberately left for them to enter; then name the file to open, and say that
-re-running just this last check afterwards is enough to confirm the connection —
-the earlier steps do not have to be done again.
+once the password is in and the assistant has been restarted (Step 5 — a saved
+password takes effect only then), re-running just the last two steps is enough
+to confirm the connection and to check the SAP-side helpers in Step 7 — the
+earlier steps do not have to be done again.
+
+## Step 7 — SAP-Side Helper Objects
+
+A few tool families need helper objects on the SAP side. Their sources ship
+with this plugin, but SAP does not have them until someone installs them, and
+**this step is the place that offers the install** — without it a fresh system
+quietly loses what the table below lists (the first real `create-program` run,
+2026-11-11, had to scale a program down mid-interview for this reason).
+
+| Missing on SAP | What the user loses |
+|---|---|
+| the shared ALV classes (`ZCL_SAPKIT_CM_*` — Layer 4, second block) | `create-program`'s OOP ALV path, which reuses them |
+| the dispatch / text pool FMs (`ZSAPKIT_ADT_UTILS` — Layer 4, first block), or a working RFC route to them (Layer 5) | the agent writing screens, GUI statuses (button menus) and text elements — the user would enter those by hand in SAPGUI |
+
+1. **Gate.** Run this step only when Step 6 put Layers 1 and 2 on PASS. No live
+   connection → `[SKIP — SAP connection not ready]`, and no SAP call. QA/PRD tier
+   (read it the way [install-sap-assets](install-sap-assets.md) Step 0 does) →
+   offer no install; say in one line that on this kind of system the helpers
+   arrive by transport from the development system.
+2. **Use Step 6's results; do not probe again.** Everything in Layer 4 present
+   and active, and Layer 5 verified → say so in one line and finish.
+3. **The install needs the change tools.** It can run only when Step 6 ended on
+   `READY_DEVELOPMENT` — a development system with **allow changes too** chosen
+   in Step 3. On the **look but do not touch** setting the create tools are not
+   loaded at all. Say what is missing first, as in item 4, then that it cannot be
+   installed on this setting, and offer two choices instead of item 4's:
+   - **Switch to allow changes too** (recommended if programs are to be built
+     with this plugin — building them needs the same setting anyway): back to
+     Step 3, then the restart in Step 5, then Steps 6 and 7 again.
+   - **Not now** — nothing changes.
+4. **Offer once.** Say what is missing in terms of the right-hand column above,
+   per the [plain-language policy](../policies/plain-language.md) — not object
+   names — and ask one question:
+   - **Install now** (recommended — every program `create-program` builds has
+     texts to write, and they travel this route just as custom screens do; the
+     ALV part costs no manual effort) — the
+     missing objects are created on this development system in local package
+     `$TMP` (not transported). The ALV classes need no manual step. Name the
+     manual work of the rest up front, from
+     [install-sap-assets](install-sap-assets.md): each FM marked remote-enabled
+     in SE37 (on ECC that includes the 8 extra DDIC bridge FMs of its Step 2);
+     and the RFC route set-up for the backend in the profile
+     ([troubleshooting §3](troubleshooting.md#3-rfc-backend-selection)) — for
+     the default `odata` route, a SEGW project shell before the install and a
+     service registration after it, often done by Basis; the `zrfc` route's
+     handler does not ship with the plugin and cannot be installed here.
+   - **ALV classes only** — offered only when both parts are missing: fully
+     automatic, and screens, button menus and texts stay manual.
+   - **Not now** — nothing is written. Re-running this step offers it again, and
+     `create-program` checks again before its interview.
+5. **On a yes**, follow [install-sap-assets](install-sap-assets.md) from its
+   Step 0, limited to what the user chose. The answer is the user's consent to
+   those writes; each stays attended, and that procedure's partial-failure rule
+   holds (never auto-delete what was created). Then re-run Layer 4 — and Layer 5
+   when the route was touched — and report in plain words what is now in place,
+   what the user still has to do by hand, and what works once they have.

@@ -78,7 +78,7 @@ Walk the checks in order and report **PASS / FAIL / WARN / SKIP** for each layer
 
 Report counts at the layer level, e.g. `utilities: 3/3 installed`, `ALV handlers: 7/7 installed, 7/7 active`. If an object exists but is inactive, flag a WARN with the specific object names.
 
-Remediation: ABAP sources for all of these ship in this repo under `server/sap-assets/` (`zsapkit_adt_dispatch.abap`, `zsapkit_adt_textpool.abap`, `alv-oop-handlers/`). Install on a **DEV-tier** system only; QA/PRD systems receive them via CTS transport.
+Remediation: ABAP sources for all of these ship in this repo under `server/sap-assets/` (`zsapkit_adt_dispatch.abap`, `zsapkit_adt_textpool.abap`, `alv-oop-handlers/`). Install on a **DEV-tier** system only; QA/PRD systems receive them via CTS transport. The install procedure is [install-sap-assets](install-sap-assets.md); [setup](setup.md#step-7--sap-side-helper-objects) Step 7 offers it once the connection is live.
 
 ### Layer 5 — RFC backend (conditional)
 
