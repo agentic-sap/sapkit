@@ -128,6 +128,24 @@ D-152(실사용 교훈 승격 5차)가 조사하고 **고치지 않은** 것들�
    `COMPARING` 없는 `DELETE ADJACENT DUPLICATES`. 동봉 검사기(`analyze`·`lint`)가 탐지하지 않음을
    2026-10 확인했다. **엔진이 아니라 `sapkit-cli/` 소관**이다(§4와 같은 갈래).
 
+## 2-c. 2026-11-11 신규 등재 — 첫 제품 경로 실사용에서 (코드 무접촉)
+
+첫 `create-program` 실사용(IDES · 기록 정본
+[`audits/2026-11-11-first-real-use.md`](audits/2026-11-11-first-real-use.md) §3)에서 관측했다.
+**D-결정 없이 등재만** — 판정은 별건이다.
+
+1. **`RunUnitTest`가 프로그램 안 시험 클래스를 대상으로 잡지 못하고, 그런데도 성공을 답한다** —
+   **관측 1회**(2026-11-11 · S4H). `container_class`에 실행 프로그램 이름(`ZMMR10`)을 주면
+   `success: true` + `run_id`가 나오고 `GetUnitTestResult`는 **빈 `aunit:runResult`**다. 실행 주소를
+   항상 `/sap/bc/adt/oo/classes/<name>`으로 만드는 것이 원인으로 보인다
+   (`sapkit-engine/src/tools/runtime/internal/unitTestRuns.ts:129` — **코드 대조**). 13-2(「침묵
+   무결과」 · 해소)는 클래스 대상이었고 **이것은 다른 갈래**다. 수리 후보 둘 — 프로그램 주소
+   (`/sap/bc/adt/programs/programs/<name>`) 지원 · 빈 결과를 성공으로 내지 않기.
+2. **`SearchObject`가 보여 주는 인클루드 설명이 알파벳 순으로 한 칸씩 밀려 있다** — **관측 ·
+   엔진 결함인지 미확정**. 넘긴 `description`은 호출 기록상 올발랐고, 밀린 값은 SAP가 돌려준
+   원문 XML에 이미 들어 있다. 남의 객체에서도 같은 모양이 보인다 → **SAP 검색 쪽일 가능성이
+   높다**(가설). 인클루드 설명을 읽는 도구가 없어 저장값은 확인하지 못했다.
+
 ## 3. 소유자 결정 대기 — 1건
 
 **실행을 경유한 데이터 쓰기에는 기계 차단면이 0이다**(피드백 2026-08-19 3차). 행
