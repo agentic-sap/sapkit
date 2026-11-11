@@ -330,8 +330,9 @@ word an object is entitled to is decided by the test below and a short gloss nev
 - **`COMPLETE` is reachable only where an MCP read is available**: the machine confirmation
   of [verify-applied](./verify-applied.md) — read the source back out of SAP and compare it
   against what was sent — plus `CheckSyntax`, plus `GetInactiveObjects` returning zero, plus
-  **the post-import test/ATC evidence** — `RunUnitTest` where a test class is in scope (a P3
-  execution; DEV-only holds) and `GetAtcFindings` where the backend supports it, each `PASS`
+  **the post-import test/ATC evidence** — `RunUnitTest` where a test class is in scope (a
+  program's test include runs with the program as container and `container_type: "program"`;
+  a P3 execution; DEV-only holds) and `GetAtcFindings` where the backend supports it, each `PASS`
   or `SKIPPED` with a recorded reason, the same standard the MCP branch requires (D-144: the
   MCP availability that makes the read-back reachable makes these reachable too, so offline
   `COMPLETE` never means less) — plus

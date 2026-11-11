@@ -62,8 +62,9 @@ Notes:
 - Step 3 applies when the object has (or must have) a unit test per the active
   procedure; pure DDIC objects without executable code skip to step 4.
 - Step 3 has one **substitute path, and it is weaker than the step it replaces**.
-  Where `RunUnitTest` reports `completed` while executing zero tests and the
-  engine version has been ruled out as the cause
+  Where `RunUnitTest` reports `completed` while executing zero tests and both the
+  engine version and the container type (a program's test classes need
+  `container_type: "program"`) have been ruled out as the cause
   ([troubleshooting](../procedures/troubleshooting.md) § 8), the check itself can be
   carried in an executable program, run with `RuntimeRunProgramWithProfiling`,
   and its per-case results written to a table that is read back afterwards

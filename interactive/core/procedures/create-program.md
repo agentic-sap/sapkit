@@ -923,7 +923,7 @@ Adopt the [sap-qa-tester](../personas/sap-qa-tester.md) persona for this step.
 - The test class include (`{PROG}_tst`) should already be there from Phase 4 — this phase only writes test methods and runs them.
 - **Where the paradigm is OOP and the approved document carries acceptance-criteria examples, those examples are the minimum set of test methods.** One example, one test method — that is the floor, not the ceiling; add whatever else the code needs. An acceptance example with no test method behind it is a gap in this phase, because the example is the one check the user wrote themselves.
   - **Procedural code documents them instead.** There is no local test class to hold them, so carry each acceptance example into the program's header comment block and into the completion report, in the same "given this input, this result" shape. Documented, not silently dropped.
-- Call `RunUnitTest` → `GetUnitTestResult`
+- Call `RunUnitTest` → `GetUnitTestResult`. The test classes live in `{PROG}_tst`, which belongs to the program, not to a class — so the container is the main program: `tests: [{container_class: "{PROG}", test_class: "<the LTCL_… class>"}]` **with `container_type: "program"`**. Without it the run is addressed to a class of that name; engine 1.5.1+ refuses that run as "selected no test class" and names the fix, older bundles answered `success: true` over an empty result. Either way nothing ran — never record it as PASS.
 - On FAIL: fix production code (not tests) → re-activate → re-run (loop until green or 3 attempts)
 - Only where the user opted into step-by-step confirmation: confirm before starting this phase (unless a skip condition matched, then skip with a one-line statement).
 - **Close this phase with a one-line progress report** — stated, not asked (*"6 tests run · all green"*, or *"no tests in scope — skipped, and why"*).
@@ -1124,7 +1124,8 @@ never upgrades the state past PROVISIONAL_WRITE.
   The MCP availability that makes `readback` reachable makes `RunUnitTest` and
   `GetAtcFindings` reachable too, so in the same post-import moment run them and record both
   steps into `verification-offline.json`: `RunUnitTest` where a test class is in scope
-  (a P3 execution — DEV-only holds exactly as on the `mcp` branch), `GetAtcFindings` where
+  (container = the program, `container_type: "program"` — Phase 5; a P3 execution — DEV-only
+  holds exactly as on the `mcp` branch), `GetAtcFindings` where
   the backend supports it; `SKIPPED` with the reason otherwise (Procedural paradigm, testing
   scope none, ATC unsupported, or the user declining execution on that system). Where no MCP
   read is available on that system, `readback` is `UNAVAILABLE`, the run **stops at

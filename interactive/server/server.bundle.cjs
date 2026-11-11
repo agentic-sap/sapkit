@@ -56375,6 +56375,7 @@ var require_unitTestRuns = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.RUN_TTL_MS = exports2.MAX_CACHED_RUNS = exports2.SYNC_RUN_MIN_TIMEOUT_MS = exports2.TESTRUNS_PATH = exports2.TESTRUNS_CONFIG_CONTENT_TYPE = void 0;
     exports2.buildRunConfigurationXml = buildRunConfigurationXml;
+    exports2.countTestClasses = countTestClasses;
     exports2.runClassicUnitTest = runClassicUnitTest;
     exports2.storeUnitTestRun = storeUnitTestRun;
     exports2.getUnitTestRun = getUnitTestRun;
@@ -56385,6 +56386,10 @@ var require_unitTestRuns = __commonJS({
     exports2.SYNC_RUN_MIN_TIMEOUT_MS = 5 * 60 * 1e3;
     exports2.MAX_CACHED_RUNS = 200;
     exports2.RUN_TTL_MS = 30 * 60 * 1e3;
+    function containerUri(name, type) {
+      const segment = encodeURIComponent(name.toLowerCase());
+      return type === "program" ? `/sap/bc/adt/programs/programs/${segment}` : `/sap/bc/adt/oo/classes/${segment}`;
+    }
     function flag(value, fallback) {
       return value ?? fallback ? "true" : "false";
     }
@@ -56395,11 +56400,10 @@ var require_unitTestRuns = __commonJS({
       const scope = options?.scope;
       const risk = options?.riskLevel;
       const duration = options?.duration;
-      const containerClasses = [...new Set(tests.map((test) => test.containerClass.toUpperCase()))];
-      const objectRefs = containerClasses.map((name) => {
-        const uri = `/sap/bc/adt/oo/classes/${encodeURIComponent(name.toLowerCase())}`;
-        return `        <adtcore:objectReference adtcore:uri="${escapeAttribute(uri)}"/>`;
-      }).join("\n");
+      const containerUris = [
+        ...new Set(tests.map((test) => containerUri(test.containerClass.toUpperCase(), test.containerType ?? "class")))
+      ];
+      const objectRefs = containerUris.map((uri) => `        <adtcore:objectReference adtcore:uri="${escapeAttribute(uri)}"/>`).join("\n");
       return `<?xml version="1.0" encoding="UTF-8"?><aunit:runConfiguration xmlns:aunit="http://www.sap.com/adt/aunit">
   <external>
     <coverage active="false"/>
@@ -56421,6 +56425,10 @@ ${objectRefs}
 </aunit:runConfiguration>`;
     }
     var RUN_RESULT_ROOT = /<(?:[\w.-]+:)?runResult[\s/>]/;
+    var TEST_CLASS_ELEMENT = /<(?:[\w.-]+:)?testClass[\s/>]/g;
+    function countTestClasses(resultXml) {
+      return resultXml.match(TEST_CLASS_ELEMENT)?.length ?? 0;
+    }
     async function runClassicUnitTest(client, tests, options, timeoutMs) {
       if (tests.length === 0)
         throw new Error("At least one test definition is required");
@@ -56775,9 +56783,15 @@ var require_runUnitTest = __commonJS({
     function nonEmpty(value) {
       return typeof value === "string" && value.trim().length > 0 ? value : null;
     }
+    var EMPTY_RUN_EXCERPT_CHARS = 600;
+    function emptyRunMessage(containers, containerType, resultXml) {
+      const hint = containerType === "program" ? "Check that the program exists, is active, and contains local test classes (CLASS \u2026 FOR TESTING)." : 'If the tests live in an executable program rather than a class, pass the program name as container_class and set container_type: "program". Otherwise check that the class exists, is active, and has local test classes (CLASS \u2026 FOR TESTING).';
+      return `ABAP Unit run selected no test class for ${containers.join(", ")} (container_type "${containerType}") \u2014 nothing was tested, so this is not a pass. ${hint} Result (first ${EMPTY_RUN_EXCERPT_CHARS} chars): ${resultXml.slice(0, EMPTY_RUN_EXCERPT_CHARS)}`;
+    }
     exports2.runUnitTest = (0, toolDefinition_1.defineTool)({
       name: "RunUnitTest",
-      description: "Start an ABAP Unit test run for provided class test definitions. Returns run_id for status/result queries.",
+      // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D162·D163.
+      description: 'Start an ABAP Unit test run for provided class test definitions. Returns run_id for status/result queries. To run the local test classes of an executable program, pass the program name as container_class and set container_type: "program" (default "class"). A run in which SAP selects no test class is returned as an error, not as success \u2014 an empty result never counts as a pass.',
       inputSchema: {
         tests: z.array(z.object({
           container_class: z.string().describe("Class that owns the test include (e.g., ZCL_MAIN_CLASS)."),
@@ -56799,7 +56813,9 @@ var require_runUnitTest = __commonJS({
           short: z.boolean().optional(),
           medium: z.boolean().optional(),
           long: z.boolean().optional()
-        }).optional()
+        }).optional(),
+        // 덧인자(D162) — 채록본에 없던 선택 인자. 기본값이 구 동작(클래스 주소)이다.
+        container_type: z.enum(["class", "program"]).default("class").describe('What every container_class in tests names: "class" (default, /sap/bc/adt/oo/classes/<name>) or "program" (an executable program whose includes hold local test classes, /sap/bc/adt/programs/programs/<name>). Use separate calls for classes and programs.')
       },
       available_in: ["onprem", "cloud", "legacy"],
       sets: ["high"],
@@ -56817,9 +56833,11 @@ var require_runUnitTest = __commonJS({
             return (0, results_1.returnError)(new Error(`tests[${i}] must include non-empty container_class and test_class`));
           }
         }
+        const containerType = args.container_type === "program" ? "program" : "class";
         const definitions = tests.map((test) => ({
           containerClass: String(test.container_class).toUpperCase(),
-          testClass: String(test.test_class).toUpperCase()
+          testClass: String(test.test_class).toUpperCase(),
+          containerType
         }));
         context.logger.info(`Starting ABAP Unit run for ${definitions.length} test definition(s)`);
         const client = await context.getConnection();
@@ -56833,6 +56851,10 @@ var require_runUnitTest = __commonJS({
           riskLevel: args.risk_level,
           duration: args.duration
         }, Math.max(longTimeout, unitTestRuns_1.SYNC_RUN_MIN_TIMEOUT_MS));
+        if ((0, unitTestRuns_1.countTestClasses)(resultXml) === 0) {
+          const containers = [...new Set(definitions.map((test) => test.containerClass))];
+          return (0, results_1.returnError)(new Error(emptyRunMessage(containers, containerType, resultXml)));
+        }
         const runId = (0, unitTestRuns_1.storeUnitTestRun)(client, resultXml);
         context.logger.info(`RunUnitTest started. Run ID: ${runId}`);
         return (0, results_1.okJson)({
@@ -73141,8 +73163,8 @@ var require_core5 = __commonJS({
       }
     }
     function readEngineVersion() {
-      if ("1.5.0") {
-        return "1.5.0";
+      if ("1.5.1") {
+        return "1.5.1";
       }
       let dir = __dirname;
       for (let depth = 0; depth < 6; depth += 1) {
