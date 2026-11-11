@@ -145,9 +145,9 @@ An approval covers **one session and one scope** — it is not a permanent bypas
 This policy forms one of four enforcement layers:
 
 1. **L1 (this file)** — the agent/skill instruction level
-2. **L2 (root `CLAUDE.md`)** — project-level safety rules loaded for every session working in this repository. The old consolidated `sc4sap/CLAUDE.md` no longer exists; its content now splits between this policy file under `interactive/core/policies/` (L1) and the root `CLAUDE.md`.
-3. **L3 (`PreToolUse` hook at `adapters/claude/hooks/block-forbidden-tables.mjs`)** — programmatic interception inside Claude Code
-4. **L4 (MCP server upstream)** — the hardcoded blocklist in `mcp-abap-adt` (roadmap)
+2. **L2 (adapter permission settings)** — what the harness itself asks about before a call goes out. On Claude the two row-data tools are left out of the permission templates, so a normal permission mode asks on every call. This is not a floor: a bypass / auto-accept mode shows no prompt, and the layer differs per adapter (next section).
+3. **L3 (`PreToolUse` hook at `adapters/claude/hooks/block-forbidden-tables.mjs`)** — programmatic interception inside Claude Code. **Optional**: no hook is installed by default, so this layer exists only where the user switched it on.
+4. **L4 (MCP server)** — the table blocklist built into the bundled server. It refuses protected tables or holds them at the "ask" tier, and it works with no hook installed — the floor every adapter shares.
 
 L3/L4 being in place does not excuse L1: agents MUST still follow it — L1 is what produces the user-facing refusal carrying category and alternatives, and the hook/server cannot produce that cleanly.
 
@@ -156,7 +156,8 @@ L3/L4 being in place does not excuse L1: agents MUST still follow it — L1 is w
 "Policy permits an authorized extraction" and "this adapter mechanically
 brokers the per-request gate" are two different statements. Keep them apart:
 
-- **Claude** — the L3 `PreToolUse` hook brokers the `acknowledge_risk` gate;
+- **Claude** — the server's "ask" tier (L4) raises the `acknowledge_risk` gate, and
+  the L3 `PreToolUse` hook raises it before the call where that hook is installed;
   per-request approval (P2) is supported.
 - **Codex** — `GetTableContents` / `GetSqlQuery` are hard-disabled in the exposition,
   so row-data extraction is **unsupported** rather than "approvable". Do not try to broker

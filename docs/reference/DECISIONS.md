@@ -4533,3 +4533,21 @@ OOP 표본(`templates/oop-sample/`)의 `LCL_ALV`는 플러그인 소유 공용 �
 - ⑴ 실사용 1회 · 0.13.0 · 짧은 인터뷰다. 메인 구간은 긴 공방 세션 안이라 바닥 컨텍스트가 부풀어 있다(요청당 233k~356k토큰). 비중은 표준 가격 비율을 넣은 어림이고 청구 금액이 아니다.
 - ⑵ 위임 문장 2줄의 효과(작업자 약 2.5k · 리뷰어 약 6k토큰 기대)는 재지 않았다. 메인이 그 문장을 따를 때만 생긴다. 본문 자체는 305 B 늘었다.
 - ⑶ 남긴 것. `data-extraction-policy`의 방어 층 설명 L2(「root `CLAUDE.md`」) · L4(「`mcp-abap-adt` (roadmap)」)는 현행과 어긋난다(서버 차단 목록은 이미 구현돼 있다). 안전 정책 문안이라 이 손질에서 건드리지 않았다. `Track A` · D-번호 표기(제품 문서 30여 파일)는 가리킴이 아니라 이름표라 남겼다.
+
+## D-174 — D-173 유보 ⑶ 해소: `data-extraction-policy` 방어 층 설명을 현행에 맞춤 (0.13.4) (2026-11-11)
+
+**맥락.** D-173이 안전 정책 문안이라 남겨 둔 낡은 서술을 소유자가 고치라고 했다. 「Defense Layers」 절은 L2를 「root `CLAUDE.md`」(이 레포에만 있는 파일)로, L4를 「`mcp-abap-adt`의 차단 목록 (roadmap)」으로 적고 있었다. 실제로는 차단 목록이 번들 서버 안에서 돌고 있고(훅 0개 기본의 정본 · D-062 · `conformance-server-gates`가 매 CI에서 확인), 훅은 기본 미설치인 선택 기능이다.
+
+**결정.**
+- ⓐ 서술 네 줄을 고쳤다. L2는 어댑터 권한 설정(Claude 권한 템플릿이 실데이터 2종을 빼 둔다 · 바닥선은 아니라고 명시), L3은 훅(선택 · 기본 미설치를 명시), L4는 번들 서버의 차단 목록(훅 없이 동작)이다. 「Adapter Support」의 Claude 줄도 맞췄다 — 게이트를 올리는 것은 서버 ask 층이고, 훅은 켠 경우에 호출 전에 한 번 더 올린다.
+- ⓑ 층 번호(L1~L4)와 규칙 문장(`acknowledge_risk` HARD RULE · 차단 범주 · 승인 절차)은 그대로다.
+- ⓒ 배포물이 바뀌므로 플러그인 **0.13.4**.
+
+**기각한 대안.**
+- ① **층 번호를 `approval-gates`의 번호(L1 규약 · L2 서버 가드)에 맞춰 다시 매기기.** 같은 문서의 HARD RULE 문단이 「L4 ask 층」을 부르고 있어 규칙 문장까지 손대게 된다.
+
+**검증.** L-20 전체 592,715 B 그대로(이 파일은 create-program 1-hop 밖) · ①②③ 통과 · `check-links` · `gen-plugin-manifests --check` · `check-runtime-path-rename` · `check-doc-size` · `check-conventions-note` · `check-wiki`(이 항목 append 뒤).
+
+**정직 유보.**
+- ⑴ `approval-gates`는 서버 가드를 L2로, 이 문서는 L4로 부른다. 두 정책 문서의 층 번호가 다르다는 어긋남은 남았다.
+- ⑵ Codex · Antigravity 줄은 손대지 않았다. Antigravity의 「unverified」는 그 줄이 쓰인 때의 실측 기준이다.
