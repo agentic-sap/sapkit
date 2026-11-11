@@ -4,43 +4,42 @@
 *& What    : The control event bridges - three classes, one per control
 *&           family: LCL_EVENT_ALV for the grid, LCL_EVENT_SALV for a
 *&           SALV table, LCL_EVENT_TREE for the tree.
-*& How     : The reusable handler set dispatches statically, by name -
-*&           it calls CLASS=>METHOD on the local class it was told
-*&           about, exporting the event parameters under their own
-*&           names. So every method here is a CLASS-METHOD, declared
-*&           FOR EVENT, carrying the full parameter list even where the
-*&           body forwards only part of it. Drop one and the dynamic
-*&           call raises CX_SY_DYN_CALL_PARAM_NOT_FOUND.
+*& How     : Each class registers its handlers once, from
+*&           INITIALIZATION, with SET HANDLER ... FOR ALL INSTANCES - so
+*&           they also catch the controls LCL_ALV builds later. That is
+*&           why registration lives here and not in LCL_ALV: this
+*&           include comes after ZSAPKIT_OOP_EXA, and LCL_ALV cannot
+*&           reach a class that is defined further down.
 *& Caution : These classes hold no logic. Each one reads the event and
-*&           hands it straight to LCL_ALV; the decision of what to do
-*&           belongs there, next to the data the decision needs.
+*&           hands it, sender included, straight to LCL_ALV; LCL_ALV
+*&           decides what to do and ignores controls it did not build.
 *&---------------------------------------------------------------------*
 
 
 *&---------------------------------------------------------------------*
 *& CLASS LCL_EVENT_ALV - grid events
 *&---------------------------------------------------------------------*
-*& Registered in LCL_ALV CONSTRUCTOR, which fills the METHOD field of
-*& the MT_EVENTLIST rows named GC_EVT_HOTSPOT_CLICK and
-*& GC_EVT_DATA_CHANGED. An event whose row keeps METHOD empty is never
-*& routed here, which is why this class carries those two and no more.
-*&---------------------------------------------------------------------*
 CLASS lcl_event_alv DEFINITION FINAL.
 
   PUBLIC SECTION.
+    CLASS-METHODS register.
+
     CLASS-METHODS handle_hotspot_click
-      FOR EVENT hotspot_click OF zcl_sapkit_cm_oalv
-      IMPORTING e_row_id e_column_id es_row_no sender.
+      FOR EVENT hotspot_click OF cl_gui_alv_grid
+      IMPORTING e_column_id es_row_no sender.
 
     CLASS-METHODS handle_data_changed
-      FOR EVENT data_changed OF zcl_sapkit_cm_oalv
-      IMPORTING er_data_changed e_onf4 e_onf4_before e_onf4_after
-                e_ucomm sender.
+      FOR EVENT data_changed OF cl_gui_alv_grid
+      IMPORTING er_data_changed sender.
 
 ENDCLASS.
 
 
 CLASS lcl_event_alv IMPLEMENTATION.
+
+  METHOD register.
+    SET HANDLER handle_hotspot_click handle_data_changed FOR ALL INSTANCES.
+  ENDMETHOD.
 
   METHOD handle_hotspot_click.
     go_alv->on_hotspot_click( is_row_no    = es_row_no
@@ -60,8 +59,8 @@ ENDCLASS.
 *& CLASS LCL_EVENT_SALV - SALV table events
 *&---------------------------------------------------------------------*
 *& The counterpart for a program that displays through CL_SALV_TABLE
-*& instead of the grid. SALV hands its events out directly, so this
-*& class is wired by hand rather than through MT_EVENTLIST.
+*& instead of the grid. SALV hands its events out per table, so this
+*& class is wired to the one table it serves:
 *&
 *&   DATA(lo_events) = lo_salv->get_event( ).
 *&   SET HANDLER lcl_event_salv=>on_added_function FOR lo_events.
@@ -110,19 +109,20 @@ ENDCLASS.
 *&---------------------------------------------------------------------*
 *& CLASS LCL_EVENT_TREE - tree events
 *&---------------------------------------------------------------------*
-*& Registered the same way as the grid class, from the MT_EVENTLIST of
-*& the tree handler, on the rows GC_EVT_LINK_CLICK and
-*& GC_EVT_NODE_DBL_CLICK.
+*& The tree also has to tell its frontend which clicks to report -
+*& LCL_ALV does that with SET_REGISTERED_EVENTS when it builds the tree.
 *&---------------------------------------------------------------------*
 CLASS lcl_event_tree DEFINITION FINAL.
 
   PUBLIC SECTION.
+    CLASS-METHODS register.
+
     CLASS-METHODS handle_link_click
-      FOR EVENT link_click OF zcl_sapkit_cm_otree
+      FOR EVENT link_click OF cl_gui_alv_tree
       IMPORTING fieldname node_key sender.
 
     CLASS-METHODS handle_node_double_click
-      FOR EVENT node_double_click OF zcl_sapkit_cm_otree
+      FOR EVENT node_double_click OF cl_gui_alv_tree
       IMPORTING node_key sender.
 
 ENDCLASS.
@@ -130,13 +130,19 @@ ENDCLASS.
 
 CLASS lcl_event_tree IMPLEMENTATION.
 
+  METHOD register.
+    SET HANDLER handle_link_click handle_node_double_click FOR ALL INSTANCES.
+  ENDMETHOD.
+
   METHOD handle_link_click.
     go_alv->on_tree_link_click( iv_fieldname = fieldname
-                                iv_node_key  = node_key ).
+                                iv_node_key  = node_key
+                                io_sender    = sender ).
   ENDMETHOD.
 
   METHOD handle_node_double_click.
-    go_alv->on_node_double_click( node_key ).
+    go_alv->on_node_double_click( iv_node_key = node_key
+                                  io_sender   = sender ).
   ENDMETHOD.
 
 ENDCLASS.

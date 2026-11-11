@@ -518,23 +518,27 @@ earlier steps do not have to be done again.
 
 ## Step 7 — SAP-Side Helper Objects
 
-A few tool families need helper objects on the SAP side. Their sources ship
-with this plugin, but SAP does not have them until someone installs them, and
-**this step is the place that offers the install** — without it a fresh system
-quietly loses what the table below lists (the first real `create-program` run,
-2026-11-11, had to scale a program down mid-interview for this reason).
+Programs this plugin generates need nothing pre-installed on the SAP side —
+they use standard SAP classes only, so an abapGit import or a write over MCP
+activates the same way. What can be missing is the plugin's own helper
+route: a pair of function modules (`ZSAPKIT_ADT_UTILS` — Layer 4) reached
+through an RFC route (Layer 5), through which the agent writes screens, GUI
+statuses (button menus) and text elements over MCP. Without it those three
+are entered by hand in SAPGUI. **This step is the place that offers the
+install**; nothing else in the plugin does (the first real `create-program`
+run, 2026-11-11, had to scale a program down mid-interview for lack of it).
 
-| Missing on SAP | What the user loses |
-|---|---|
-| the shared ALV classes (`ZCL_SAPKIT_CM_*` — Layer 4, second block) | `create-program`'s OOP ALV path, which reuses them |
-| the dispatch / text pool FMs (`ZSAPKIT_ADT_UTILS` — Layer 4, first block), or a working RFC route to them (Layer 5) | the agent writing screens, GUI statuses (button menus) and text elements — the user would enter those by hand in SAPGUI |
+**Most users never reach this step with a live connection, and that is
+fine.** Without MCP the route has nothing to serve — the abapGit ZIP carries
+screens, statuses and texts itself.
 
 1. **Gate.** Run this step only when Step 6 put Layers 1 and 2 on PASS. No live
-   connection → `[SKIP — SAP connection not ready]`, and no SAP call. QA/PRD tier
+   connection → `[SKIP — SAP connection not ready]`, no SAP call, and say in one
+   line that nothing has to be installed for programs to work. QA/PRD tier
    (read it the way [install-sap-assets](install-sap-assets.md) Step 0 does) →
    offer no install; say in one line that on this kind of system the helpers
    arrive by transport from the development system.
-2. **Use Step 6's results; do not probe again.** Everything in Layer 4 present
+2. **Use Step 6's results; do not probe again.** Layer 4's utility block present
    and active, and Layer 5 verified → say so in one line and finish.
 3. **The install needs the change tools.** It can run only when Step 6 ended on
    `READY_DEVELOPMENT` — a development system with **allow changes too** chosen
@@ -545,15 +549,13 @@ quietly loses what the table below lists (the first real `create-program` run,
      with this plugin — building them needs the same setting anyway): back to
      Step 3, then the restart in Step 5, then Steps 6 and 7 again.
    - **Not now** — nothing changes.
-4. **Offer once.** Say what is missing in terms of the right-hand column above,
-   per the [plain-language policy](../policies/plain-language.md) — not object
-   names — and ask one question:
+4. **Offer once.** Say what is missing in plain words, per the
+   [plain-language policy](../policies/plain-language.md) — what the agent
+   cannot write, not object names — and ask one question:
    - **Install now** (recommended — every program `create-program` builds has
-     texts to write, and they travel this route just as custom screens do; the
-     ALV part costs no manual effort) — the
-     missing objects are created on this development system in local package
-     `$TMP` (not transported). The ALV classes need no manual step. Name the
-     manual work of the rest up front, from
+     texts to write, and over MCP they travel this route just as custom screens
+     do) — the function modules are created on this development system in local
+     package `$TMP` (not transported). Name the manual work up front, from
      [install-sap-assets](install-sap-assets.md): each FM marked remote-enabled
      in SE37 (on ECC that includes the 8 extra DDIC bridge FMs of its Step 2);
      and the RFC route set-up for the backend in the profile
@@ -561,13 +563,13 @@ quietly loses what the table below lists (the first real `create-program` run,
      the default `odata` route, a SEGW project shell before the install and a
      service registration after it, often done by Basis; the `zrfc` route's
      handler does not ship with the plugin and cannot be installed here.
-   - **ALV classes only** — offered only when both parts are missing: fully
-     automatic, and screens, button menus and texts stay manual.
    - **Not now** — nothing is written. Re-running this step offers it again, and
      `create-program` checks again before its interview.
 5. **On a yes**, follow [install-sap-assets](install-sap-assets.md) from its
-   Step 0, limited to what the user chose. The answer is the user's consent to
-   those writes; each stays attended, and that procedure's partial-failure rule
-   holds (never auto-delete what was created). Then re-run Layer 4 — and Layer 5
-   when the route was touched — and report in plain words what is now in place,
-   what the user still has to do by hand, and what works once they have.
+   Step 0 — its Steps 1, 2 (ECC only) and the step for the profile's backend;
+   not its Step 3, the retired ALV handler set no new program needs. The answer
+   is the user's consent to those writes; each stays attended, and that
+   procedure's partial-failure rule holds (never auto-delete what was created).
+   Then re-run Layer 4 — and Layer 5 when the route was touched — and report in
+   plain words what is now in place, what the user still has to do by hand, and
+   what works once they have.

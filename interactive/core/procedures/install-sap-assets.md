@@ -14,7 +14,7 @@ Installs the server-side ABAP utility objects whose sources ship in this repo un
 |---|---|---|---|
 | 1. SAPKIT ADT utilities | FUGR `ZSAPKIT_ADT_UTILS` + FMs `ZSAPKIT_ADT_DISPATCH` / `ZSAPKIT_ADT_TEXTPOOL` | Screen / GUI Status / Text Element tool families | Always (DEV) |
 | 2. ECC DDIC bridge FMs | 8 FMs in the same function group | DDIC writes + legacy reads on ECC | `SAP_VERSION=ECC` only |
-| 3. ALV OOP reuse handlers | `ZIF_SAPKIT_CM` + `ZCX_SAPKIT_EXCP` + 5 `ZCL_SAPKIT_CM_*` classes | Generated ALV programs | Always (DEV) |
+| 3. ALV OOP reuse handlers | `ZIF_SAPKIT_CM` + `ZCX_SAPKIT_EXCP` + 5 `ZCL_SAPKIT_CM_*` classes | Only ALV programs generated before 2026-11-11 — new ones use standard classes (D-168) | Optional — on request |
 | 4. OData backend | `ZCL_ZSAPKIT_ADT_MPC/DPC_EXT` injections + `ZSAPKIT_ADT_FLUSH_CACHE` | RFC dispatch via OData Gateway | `SAP_RFC_BACKEND=odata` only |
 | 5. zrfc backend | ICF handler class — **not bundled** (see Step 5) | RFC dispatch via custom ICF node | `SAP_RFC_BACKEND=zrfc` only |
 
@@ -51,8 +51,8 @@ Read `SAP_TIER` from the active profile's env (`~/.sapkit/profiles/<alias>/sap.e
 
 > ⚠️ ABAP utility object installation is disabled on QA/PRD tiers by design.
 >
-> The utility objects (`ZSAPKIT_ADT_UTILS` function group, `ZIF_SAPKIT_CM` interface,
-> `ZCL_SAPKIT_CM_*` ALV OOP classes, and optionally `ZCL_ZSAPKIT_ADT_*` OData classes)
+> The utility objects (`ZSAPKIT_ADT_UTILS` function group, and optionally the `ZIF_SAPKIT_CM` /
+> `ZCL_SAPKIT_CM_*` ALV OOP classes and the `ZCL_ZSAPKIT_ADT_*` OData classes)
 > must be transported into this system via the Change & Transport System (CTS),
 > not installed ad-hoc.
 >
@@ -149,7 +149,7 @@ Finish Step 2 with:
 
 ## Step 3 — ALV OOP Reuse Handlers (`ZIF_SAPKIT_CM` / `ZCX_SAPKIT_EXCP` / `ZCL_SAPKIT_CM_*`)
 
-A reusable ALV Grid + ALV Tree + SALV wrapper library, consumed both by programs generated through the [create-program](create-program.md) procedure and by custom dialogs.
+A reusable ALV Grid + ALV Tree + SALV wrapper library. **Optional since 2026-11-11 (D-168)**: programs the [create-program](create-program.md) procedure generates now use standard SAP classes only, so run this step only when the user asks for it — typically for a program written against these classes before then.
 
 1. Probe via `SearchObject` (query=`ZIF_SAPKIT_CM`, objectType=`INTF`). Where it is found, skip Step 3 entirely and report "ALV OOP handlers already installed".
 2. Source location: [server/sap-assets/alv-oop-handlers/](../../server/sap-assets/alv-oop-handlers/) — 7 objects = 14 files (`.abap` source + `.xml` ADT metadata pairs; take each object's description from the paired `.xml` → `DESCRIPT`).

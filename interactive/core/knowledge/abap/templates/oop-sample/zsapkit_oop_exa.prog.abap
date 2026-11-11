@@ -4,25 +4,25 @@
 *& What    : LCL_ALV - the display half of the two-class split. Screen
 *&           0100 shows one grid in a docking container; screen 0200
 *&           splits the screen and stands a tree next to a grid.
-*& How     : Every CREATE_*, SET_*, DISPLAY_* and REFRESH_* call below
-*&           is inherited from ZCL_SAPKIT_CM_ALV. What this class adds
-*&           is the two SET_ALV_* entry points the PBO modules call,
-*&           and the ON_* methods that ZSAPKIT_OOP_EXE forwards into.
-*& Caution : A container is built once per screen. The PBO module asks
-*&           MT_OALV whether this DYNNR already carries a grid and
-*&           refreshes instead of building a second one.
+*& How     : Standard controls only - CL_GUI_DOCKING_CONTAINER,
+*&           CL_GUI_SPLITTER_CONTAINER, CL_GUI_ALV_GRID, CL_GUI_ALV_TREE.
+*&           Nothing has to be installed on the system first. The two
+*&           SHOW_* methods are what the PBO modules call; the ON_*
+*&           methods are what ZSAPKIT_OOP_EXE forwards events into.
+*& Caution : PBO runs on every pass of a screen. SHOW_* builds the
+*&           controls on the first pass only and refreshes them on every
+*&           later one - build a second container on the same screen and
+*&           the first one is orphaned behind it.
 *&---------------------------------------------------------------------*
 
-CLASS lcl_alv DEFINITION INHERITING FROM zcl_sapkit_cm_alv.
+CLASS lcl_alv DEFINITION FINAL.
 
   PUBLIC SECTION.
-    METHODS constructor.
-
     METHODS display.
 
-    METHODS set_alv_0100.
+    METHODS show_0100.
 
-    METHODS set_alv_0200.
+    METHODS show_0200.
 
     METHODS handle_user_command
       IMPORTING iv_fcode TYPE sy-ucomm.
@@ -30,32 +30,48 @@ CLASS lcl_alv DEFINITION INHERITING FROM zcl_sapkit_cm_alv.
     METHODS on_hotspot_click
       IMPORTING is_row_no    TYPE lvc_s_roid
                 is_column_id TYPE lvc_s_col
-                io_sender    TYPE REF TO zcl_sapkit_cm_oalv.
+                io_sender    TYPE REF TO cl_gui_alv_grid.
 
     METHODS on_data_changed
       IMPORTING io_data_changed TYPE REF TO cl_alv_changed_data_protocol
-                io_sender       TYPE REF TO zcl_sapkit_cm_oalv.
+                io_sender       TYPE REF TO cl_gui_alv_grid.
 
     METHODS on_tree_link_click
       IMPORTING iv_fieldname TYPE lvc_fname
-                iv_node_key  TYPE lvc_nkey.
+                iv_node_key  TYPE lvc_nkey
+                io_sender    TYPE REF TO cl_gui_alv_tree.
 
     METHODS on_node_double_click
-      IMPORTING iv_node_key TYPE lvc_nkey.
+      IMPORTING iv_node_key TYPE lvc_nkey
+                io_sender   TYPE REF TO cl_gui_alv_tree.
 
   PRIVATE SECTION.
+    DATA mo_grid_0100 TYPE REF TO cl_gui_alv_grid.
+    DATA mo_grid_0200 TYPE REF TO cl_gui_alv_grid.
+    DATA mo_tree TYPE REF TO cl_gui_alv_tree.
+
+    " The tree takes this table over at first display: it must be empty
+    " then, and from that point on it grows only through ADD_NODE.
+    DATA mt_tree_outtab TYPE ty_headers.
     DATA mt_node TYPE ty_nodes.
+
+    METHODS is_own_grid
+      IMPORTING io_grid       TYPE REF TO cl_gui_alv_grid
+      RETURNING VALUE(rv_own) TYPE abap_bool.
+
+    METHODS build_grid
+      IMPORTING io_parent      TYPE REF TO cl_gui_container
+      RETURNING VALUE(ro_grid) TYPE REF TO cl_gui_alv_grid.
+
+    METHODS build_tree
+      IMPORTING io_parent TYPE REF TO cl_gui_container.
 
     METHODS build_fieldcat
       RETURNING VALUE(rt_fcat) TYPE lvc_t_fcat.
 
-    METHODS set_tree_0200
-      RAISING zcx_sapkit_excp.
+    METHODS add_nodes.
 
-    METHODS set_grid_0200
-      RAISING zcx_sapkit_excp.
-
-    METHODS add_nodes_0200.
+    METHODS refresh_grids.
 
     METHODS show_purchase_order
       IMPORTING iv_ebeln TYPE ebeln.
@@ -69,135 +85,162 @@ ENDCLASS.
 
 CLASS lcl_alv IMPLEMENTATION.
 
-  METHOD constructor.
-    super->constructor( ).
-
-    " The handler set builds one MT_EVENTLIST entry per event it can
-    " serve. Filling METHOD on an entry is what routes that event into
-    " the local class named on the left.
-    mo_alv_event = NEW #( iv_local_class_definition = 'LCL_EVENT_ALV' ).
-
-    LOOP AT mo_alv_event->mt_eventlist ASSIGNING FIELD-SYMBOL(<ls_grid_evt>)
-         WHERE event = gc_evt_hotspot_click
-            OR event = gc_evt_data_changed.
-      <ls_grid_evt>-method = <ls_grid_evt>-event.
-    ENDLOOP.
-
-    mo_tree_event = NEW #( iv_local_class_definition = 'LCL_EVENT_TREE' ).
-
-    LOOP AT mo_tree_event->mt_eventlist ASSIGNING FIELD-SYMBOL(<ls_tree_evt>)
-         WHERE event = gc_evt_link_click
-            OR event = gc_evt_node_dbl_click.
-      <ls_tree_evt>-method = <ls_tree_evt>-event.
-    ENDLOOP.
-  ENDMETHOD.
-
   METHOD display.
     IF p_tree = abap_true.
-      mv_dynnr = gc_dynnr_0200.
+      CALL SCREEN gc_dynnr_0200.
     ELSE.
-      mv_dynnr = gc_dynnr_0100.
+      CALL SCREEN gc_dynnr_0100.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD show_0100.
+    IF mo_grid_0100 IS BOUND.
+      refresh_grids( ).
+      RETURN.
     ENDIF.
 
-    CALL SCREEN mv_dynnr.
+    DATA(lo_dock) = NEW cl_gui_docking_container( repid     = sy-repid
+                                                  dynnr     = gc_dynnr_0100
+                                                  side      = cl_gui_docking_container=>dock_at_left
+                                                  extension = gc_dock_extension ).
+
+    mo_grid_0100 = build_grid( lo_dock ).
   ENDMETHOD.
 
-  METHOD set_alv_0100.
-    TRY.
-        DATA(lo_dock) = create_dock_container( ).
+  METHOD show_0200.
+    IF mo_tree IS BOUND.
+      refresh_grids( ).
+      RETURN.
+    ENDIF.
 
-        create_alv_grid( io_parent_dock = lo_dock ).
+    DATA(lo_dock) = NEW cl_gui_docking_container( repid     = sy-repid
+                                                  dynnr     = gc_dynnr_0200
+                                                  side      = cl_gui_docking_container=>dock_at_left
+                                                  extension = gc_dock_extension ).
 
-        set_layout( is_layout = VALUE #( stylefname = 'CELLSTYL'
-                                         ctab_fname = 'CELLSCOL'
-                                         sel_mode   = 'A' ) ).
-        set_fieldcat( it_fcat = build_fieldcat( ) ).
-        set_register_event( iv_enter = abap_true
-                            iv_modified = abap_true ).
-        set_event_handler( io_event = mo_alv_event ).
+    " One row, two columns: the tree takes column 1, the grid column 2.
+    DATA(lo_split) = NEW cl_gui_splitter_container( parent  = lo_dock
+                                                    rows    = 1
+                                                    columns = 2 ).
+    lo_split->set_column_width( id    = 1
+                                width = gc_tree_width ).
 
-        display_alv( CHANGING it_data = go_data->mt_item ).
+    build_tree( lo_split->get_container( row    = 1
+                                         column = 1 ) ).
 
-      CATCH zcx_sapkit_excp INTO DATA(lo_error).
-        MESSAGE lo_error->get_text( ) TYPE 'I' DISPLAY LIKE 'E'.
-    ENDTRY.
+    mo_grid_0200 = build_grid( lo_split->get_container( row    = 1
+                                                        column = 2 ) ).
   ENDMETHOD.
 
-  METHOD set_alv_0200.
-    TRY.
-        " One row, two columns: the tree takes column 1, the grid
-        " column 2. SET_CONTAINER_WIDTH narrows the tree side.
-        create_split_container( iv_rows = 1
-                                iv_columns = 2 ).
-        set_container_width( iv_width = 15 ).
+  METHOD build_grid.
+    DATA(lt_fcat) = build_fieldcat( ).
 
-        set_tree_0200( ).
-        set_grid_0200( ).
+    ro_grid = NEW cl_gui_alv_grid( i_parent = io_parent ).
 
-      CATCH zcx_sapkit_excp INTO DATA(lo_error).
-        MESSAGE lo_error->get_text( ) TYPE 'I' DISPLAY LIKE 'E'.
-        LEAVE LIST-PROCESSING.
-    ENDTRY.
+    " DATA_CHANGED fires only for the edit events registered here.
+    ro_grid->register_edit_event( i_event_id = cl_gui_alv_grid=>mc_evt_enter ).
+    ro_grid->register_edit_event( i_event_id = cl_gui_alv_grid=>mc_evt_modified ).
+
+    " Layout variants are kept per report and per control kind (HANDLE),
+    " and the user may save them in every mode.
+    ro_grid->set_table_for_first_display(
+      EXPORTING
+        i_default       = abap_true
+        is_variant      = VALUE #( report = sy-repid
+                                   handle = 'GRID' )
+        i_save          = 'A'
+        is_layout       = VALUE #( stylefname = 'CELLSTYL'
+                                   ctab_fname = 'CELLSCOL'
+                                   sel_mode   = 'A' )
+      CHANGING
+        it_outtab       = go_data->mt_item
+        it_fieldcatalog = lt_fcat ).
   ENDMETHOD.
 
-  METHOD set_tree_0200.
-    create_alv_tree( iv_column = 1
-                     iv_item_selection = abap_true ).
+  METHOD build_tree.
+    DATA lt_events TYPE cntl_simple_events.
 
-    set_tree_header(
-      is_hierarchy_header = VALUE #( heading   = 'Purchase order'
-                                     tooltip   = 'Purchase order'
-                                     width     = 30
-                                     width_pix = abap_false )
-      it_list_commentary  = VALUE #( ( typ = 'H' info = 'Purchase orders' )
-                                     ( typ = 'S' info = 'Header node per order' ) ) ).
+    mo_tree = NEW cl_gui_alv_tree( parent              = io_parent
+                                   node_selection_mode = cl_gui_column_tree=>node_sel_mode_single
+                                   item_selection      = abap_true
+                                   no_html_header      = abap_true
+                                   no_toolbar          = abap_true ).
 
-    set_tree_fieldcat( it_fcat = VALUE #( ( fieldname = 'EBELN'
-                                            coltext   = 'Purchase order'
-                                            domname   = 'EBELN' )
-                                          ( fieldname = 'BSART'
-                                            coltext   = 'Order type'
-                                            domname   = 'BSART' ) ) ).
+    DATA(lt_fcat) = VALUE lvc_t_fcat( ( fieldname = 'EBELN'
+                                        coltext   = 'Purchase order'
+                                        domname   = 'EBELN' )
+                                      ( fieldname = 'BSART'
+                                        coltext   = 'Order type'
+                                        domname   = 'BSART' ) ).
 
-    display_tree( CHANGING it_data = go_data->mt_header ).
+    mo_tree->set_table_for_first_display(
+      EXPORTING
+        is_hierarchy_header = VALUE #( heading = 'Purchase order'
+                                       tooltip = 'Purchase order'
+                                       width   = 30 )
+        is_variant          = VALUE #( report = sy-repid
+                                       handle = 'TREE' )
+        i_save              = 'A'
+      CHANGING
+        it_outtab           = mt_tree_outtab
+        it_fieldcatalog     = lt_fcat ).
 
-    add_nodes_0200( ).
+    add_nodes( ).
 
-    set_tree_event_handler( io_event = mo_tree_event ).
-    refresh_tree( iv_columnoptimization = abap_false ).
+    " The frontend reports a tree click only for events named here.
+    " Start from what the tree already reports - it registers a few of
+    " its own - and add to that list instead of replacing it.
+    mo_tree->get_registered_events( IMPORTING events = lt_events ).
+    lt_events = VALUE #( BASE lt_events
+                         ( eventid = cl_gui_column_tree=>eventid_link_click )
+                         ( eventid = cl_gui_column_tree=>eventid_node_double_click ) ).
+    mo_tree->set_registered_events( events = lt_events ).
+
+    mo_tree->frontend_update( ).
   ENDMETHOD.
 
-  METHOD add_nodes_0200.
+  METHOD add_nodes.
+    DATA lv_head_key TYPE lvc_nkey.
+    DATA lv_item_key TYPE lvc_nkey.
+
     CLEAR mt_node.
 
     " One node per purchase order, its items hanging underneath. The
-    " node key of each is kept in MT_NODE so a tree event can find the
-    " row it stands for.
-    LOOP AT go_data->mt_item ASSIGNING FIELD-SYMBOL(<ls_item>)
-         GROUP BY ( ebeln = <ls_item>-ebeln
-                    bsart = <ls_item>-bsart )
+    " rows are the ones LCL_DATA derived for the tree. The node key of
+    " each is kept in MT_NODE so a tree event can find the row it
+    " stands for.
+    LOOP AT go_data->mt_header ASSIGNING FIELD-SYMBOL(<ls_header>)
+         GROUP BY ( ebeln = <ls_header>-ebeln
+                    bsart = <ls_header>-bsart )
          ASSIGNING FIELD-SYMBOL(<ls_group>).
 
-      DATA(lv_head_key) = set_tree_add_node(
-          iv_node_text   = CONV #( <ls_group>-ebeln )
-          is_outtab_line = VALUE ty_header( ebeln = <ls_group>-ebeln
-                                            bsart = <ls_group>-bsart )
-          it_item_layout = VALUE #( ( fieldname = cl_gui_alv_tree=>c_hierarchy_column_name
-                                      class     = cl_gui_column_tree=>item_class_link ) ) ).
+      mo_tree->add_node(
+        EXPORTING
+          i_relat_node_key = space
+          i_relationship   = cl_gui_column_tree=>relat_last_child
+          i_node_text      = CONV #( <ls_group>-ebeln )
+          is_outtab_line   = VALUE ty_header( ebeln = <ls_group>-ebeln
+                                              bsart = <ls_group>-bsart )
+          it_item_layout   = VALUE #( ( fieldname = cl_gui_alv_tree=>c_hierarchy_column_name
+                                        class     = cl_gui_column_tree=>item_class_link ) )
+        IMPORTING
+          e_new_node_key   = lv_head_key ).
 
       APPEND VALUE #( ebeln    = <ls_group>-ebeln
                       node_key = lv_head_key ) TO mt_node.
 
       LOOP AT GROUP <ls_group> ASSIGNING FIELD-SYMBOL(<ls_member>).
 
-        DATA(lv_item_key) = set_tree_add_node(
-            iv_relat_node_key = lv_head_key
-            iv_node_text      = CONV #( <ls_member>-ebelp )
-            is_outtab_line    = VALUE ty_header( ebeln = <ls_member>-ebeln
-                                                 ebelp = <ls_member>-ebelp
-                                                 bsart = <ls_member>-bsart )
-            it_item_layout    = VALUE #( ( fieldname = 'EBELN'
-                                           class     = cl_gui_column_tree=>item_class_link ) ) ).
+        mo_tree->add_node(
+          EXPORTING
+            i_relat_node_key = lv_head_key
+            i_relationship   = cl_gui_column_tree=>relat_last_child
+            i_node_text      = CONV #( <ls_member>-ebelp )
+            is_outtab_line   = <ls_member>
+            it_item_layout   = VALUE #( ( fieldname = 'EBELN'
+                                          class     = cl_gui_column_tree=>item_class_link ) )
+          IMPORTING
+            e_new_node_key   = lv_item_key ).
 
         APPEND VALUE #( ebeln    = <ls_member>-ebeln
                         ebelp    = <ls_member>-ebelp
@@ -206,24 +249,25 @@ CLASS lcl_alv IMPLEMENTATION.
     ENDLOOP.
   ENDMETHOD.
 
-  METHOD set_grid_0200.
-    create_alv_grid( iv_column = 2 ).
-
-    set_layout( is_layout = VALUE #( stylefname = 'CELLSTYL'
-                                     ctab_fname = 'CELLSCOL'
-                                     sel_mode   = 'A' ) ).
-    set_fieldcat( it_fcat = build_fieldcat( ) ).
-    set_register_event( iv_enter = abap_true
-                        iv_modified = abap_true ).
-    set_event_handler( io_event = mo_alv_event ).
-
-    display_alv( CHANGING it_data = go_data->mt_item ).
-  ENDMETHOD.
-
   METHOD build_fieldcat.
-    " Both screens show the same columns, so both build the catalog
-    " here rather than each keeping a copy of the same loop.
-    rt_fcat = get_fieldcat( it_data = go_data->mt_item ).
+    " A local row type has no dictionary name to merge from, so the
+    " catalog is read off the table itself. SALV describes any table it
+    " is given, and an empty table of the same type describes just as
+    " well as a full one.
+    DATA lt_shape TYPE ty_items.
+
+    TRY.
+        cl_salv_table=>factory( IMPORTING r_salv_table = DATA(lo_salv)
+                                CHANGING  t_table      = lt_shape ).
+
+        rt_fcat = cl_salv_controller_metadata=>get_lvc_fieldcatalog(
+                      r_columns      = lo_salv->get_columns( )
+                      r_aggregations = lo_salv->get_aggregations( ) ).
+
+      CATCH cx_salv_msg INTO DATA(lo_error).
+        MESSAGE lo_error->get_text( ) TYPE 'I' DISPLAY LIKE 'E'.
+        RETURN.
+    ENDTRY.
 
     " A column the code reasons about is compared against a constant.
     " What the catalog is then given - QFIELDNAME here, DOMNAME in the
@@ -239,10 +283,31 @@ CLASS lcl_alv IMPLEMENTATION.
     ENDLOOP.
   ENDMETHOD.
 
+  METHOD refresh_grids.
+    " Keep the user's scroll position and the cursor on the same cell.
+    DATA(ls_stable) = VALUE lvc_s_stbl( row = abap_true
+                                        col = abap_true ).
+
+    IF mo_grid_0100 IS BOUND.
+      mo_grid_0100->refresh_table_display( is_stable = ls_stable ).
+    ENDIF.
+
+    IF mo_grid_0200 IS BOUND.
+      mo_grid_0200->refresh_table_display( is_stable = ls_stable ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD is_own_grid.
+    " The event classes listen to every grid of the session, so a grid
+    " event is acted on only when it comes from a grid built here.
+    rv_own = xsdbool( io_grid IS BOUND
+                      AND ( io_grid = mo_grid_0100 OR io_grid = mo_grid_0200 ) ).
+  ENDMETHOD.
+
   METHOD handle_user_command.
     CASE iv_fcode.
       WHEN gc_fcode_refresh.
-        refresh_alv( ).
+        refresh_grids( ).
       WHEN OTHERS.
         " Ignored on purpose. BACK, EXIT and CANC never arrive here -
         " the screen flow logic takes them at MODULE exit AT
@@ -251,7 +316,7 @@ CLASS lcl_alv IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD on_hotspot_click.
-    CHECK io_sender IS BOUND.
+    CHECK is_own_grid( io_sender ) = abap_true.
 
     READ TABLE go_data->mt_item INDEX is_row_no-row_id ASSIGNING FIELD-SYMBOL(<ls_item>).
     CHECK sy-subrc = 0.
@@ -262,6 +327,8 @@ CLASS lcl_alv IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD on_tree_link_click.
+    CHECK io_sender IS BOUND AND io_sender = mo_tree.
+
     READ TABLE mt_node WITH KEY node_key = iv_node_key ASSIGNING FIELD-SYMBOL(<ls_node>).
     CHECK sy-subrc = 0.
 
@@ -272,6 +339,8 @@ CLASS lcl_alv IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD on_node_double_click.
+    CHECK io_sender IS BOUND AND io_sender = mo_tree.
+
     READ TABLE mt_node WITH KEY node_key = iv_node_key ASSIGNING FIELD-SYMBOL(<ls_node>).
     CHECK sy-subrc = 0.
 
@@ -284,7 +353,7 @@ CLASS lcl_alv IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD on_data_changed.
-    CHECK io_sender IS BOUND.
+    CHECK is_own_grid( io_sender ) = abap_true.
 
     LOOP AT io_data_changed->mt_good_cells ASSIGNING FIELD-SYMBOL(<ls_cell>)
          WHERE fieldname = gc_col_menge.

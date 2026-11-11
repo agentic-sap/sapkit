@@ -65,7 +65,7 @@ Walk the checks in order and report **PASS / FAIL / WARN / SKIP** for each layer
 - [ ] `SearchObject(ZSAPKIT_ADT_DISPATCH, FUNC)` finds the dispatcher function module, and it is RFC-enabled
 - [ ] `SearchObject(ZSAPKIT_ADT_TEXTPOOL, FUNC)` finds the text pool function module, and it is RFC-enabled
 
-*ALV OOP reuse handlers — consumed by generated ALV programs:*
+*ALV OOP reuse handlers — **optional**. Programs generated since 2026-11-11 use standard SAP classes only and need none of these (D-168); only programs written against them before then do. Absent → report `ALV handlers: not installed (not required)`, never FAIL or WARN:*
 
 - [ ] `SearchObject(ZIF_SAPKIT_CM, INTF)` finds the interface
 - [ ] `SearchObject(ZCX_SAPKIT_EXCP, CLAS)` finds the exception class
@@ -78,7 +78,7 @@ Walk the checks in order and report **PASS / FAIL / WARN / SKIP** for each layer
 
 Report counts at the layer level, e.g. `utilities: 3/3 installed`, `ALV handlers: 7/7 installed, 7/7 active`. If an object exists but is inactive, flag a WARN with the specific object names.
 
-Remediation: ABAP sources for all of these ship in this repo under `server/sap-assets/` (`zsapkit_adt_dispatch.abap`, `zsapkit_adt_textpool.abap`, `alv-oop-handlers/`). Install on a **DEV-tier** system only; QA/PRD systems receive them via CTS transport. The install procedure is [install-sap-assets](install-sap-assets.md); [setup](setup.md#step-7--sap-side-helper-objects) Step 7 offers it once the connection is live.
+Remediation: ABAP sources for all of these ship in this repo under `server/sap-assets/` (`zsapkit_adt_dispatch.abap`, `zsapkit_adt_textpool.abap`, `alv-oop-handlers/`). Install on a **DEV-tier** system only; QA/PRD systems receive them via CTS transport. The install procedure is [install-sap-assets](install-sap-assets.md); [setup](setup.md#step-7--sap-side-helper-objects) Step 7 offers the utilities once the connection is live; the ALV handlers are installed only on request.
 
 ### Layer 5 — RFC backend (conditional)
 
@@ -108,7 +108,7 @@ SAP Diagnostic Report
 MCP Server          [PASS]  server responding, bundle present
 SAP Connection      [PASS]  SID=S4H · Client=100 · User=DEV01
 Configuration       [PASS]
-Required Objects    [WARN]  utilities: 3/3 · ALV handlers: 7/7 (ZCL_SAPKIT_CM_ALV inactive)
+Required Objects    [WARN]  utilities: 3/3 · ALV handlers (optional): 7/7 (ZCL_SAPKIT_CM_ALV inactive)
 RFC Backend         [PASS]  odata — metadata + CSRF + dispatch OK
 
 Issues Found: 0 errors, 1 warning

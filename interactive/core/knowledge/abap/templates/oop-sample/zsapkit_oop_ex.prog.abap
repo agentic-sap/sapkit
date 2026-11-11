@@ -9,11 +9,12 @@
 *&           holds nothing but the INCLUDE list and the event blocks,
 *&           and every event block does one thing: hand over to a
 *&           method. All nine includes named below really exist.
-*& Caution : LCL_ALV inherits from ZCL_SAPKIT_CM_ALV, and the event
-*&           bridges name ZCL_SAPKIT_CM_OALV / ZCL_SAPKIT_CM_OTREE /
-*&           ZCX_SAPKIT_EXCP. Those global classes are not part of this
-*&           template - install the reusable ALV handler set first, or
-*&           the a and e includes will not compile.
+*& Caution : Standard SAP classes only - the program needs no global
+*&           class installed first, so it imports and activates the same
+*&           way over MCP and through an abapGit ZIP. A shared class is
+*&           added only when several programs are meant to reuse it, and
+*&           then it is named per the naming rules and ships with the
+*&           program as one more object.
 *&---------------------------------------------------------------------*
 REPORT zsapkit_oop_ex.
 
@@ -51,6 +52,8 @@ INCLUDE zsapkit_oop_ex_tst.
 INITIALIZATION.
   go_data = NEW #( ).
   go_alv = NEW #( ).
+  lcl_event_alv=>register( ).
+  lcl_event_tree=>register( ).
 
 
 *&---------------------------------------------------------------------*

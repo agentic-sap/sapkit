@@ -57,6 +57,11 @@ CONSTANTS: gc_dynnr_0100 TYPE sy-dynnr VALUE '0100',
 CONSTANTS: gc_status_0100 TYPE sy-pfkey VALUE 'STATUS_0100',
            gc_status_0200 TYPE sy-pfkey VALUE 'STATUS_0200'.
 
+*-- Container geometry: a docking extension wide enough to fill the
+*-- screen, and the width of the tree column on screen 0200.
+CONSTANTS: gc_dock_extension TYPE i VALUE 4000,
+           gc_tree_width TYPE i VALUE 15.
+
 CONSTANTS gc_fcode_refresh TYPE sy-ucomm VALUE 'REFRESH'.
 
 *-- Columns this program reasons about outside the field catalog.
@@ -67,18 +72,10 @@ CONSTANTS: gc_col_ebeln TYPE lvc_fname VALUE 'EBELN',
 CONSTANTS: gc_parid_ebeln TYPE c LENGTH 3 VALUE 'BES',
            gc_tcode_po TYPE tcode VALUE 'ME23N'.
 
-*-- Message class of the reusable handler set.
+*-- Standard message class for the edit check - SAP ships it, so
+*-- nothing has to be created ('000' = &1 &2 &3 &4).
 CONSTANTS: gc_msgid TYPE sy-msgid VALUE 'S_UNIFIED_CON',
            gc_msgno TYPE sy-msgno VALUE '000'.
-
-*-- Event names of the reusable handler set. An MT_EVENTLIST entry
-*-- whose METHOD field is filled is dispatched to the local class
-*-- method of that very name, so both sides must stay spelled alike.
-CONSTANTS: gc_evt_hotspot_click TYPE formname VALUE 'HANDLE_HOTSPOT_CLICK',
-           gc_evt_data_changed TYPE formname VALUE 'HANDLE_DATA_CHANGED'.
-
-CONSTANTS: gc_evt_link_click TYPE formname VALUE 'HANDLE_LINK_CLICK',
-           gc_evt_node_dbl_click TYPE formname VALUE 'HANDLE_NODE_DOUBLE_CLICK'.
 
 
 DATA go_data TYPE REF TO lcl_data.

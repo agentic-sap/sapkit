@@ -161,7 +161,7 @@ This block is a copy of the canonical conventions note (clean-code-note, in the 
 - An `S` label starts at offset 8: via the MCP text tools `text` begins with 8 reserved characters; in an abapGit `TPOOL` they stay out of `ENTRY` [text-element-rule.md § Selection Texts — the Label Starts at Offset 8]
 - Main program = `REPORT` + `INCLUDE`s + delegating event blocks; only the includes needed, never `e` in Procedural; no declaration after an event block [include-structure.md § Main Program Body] [include-structure.md § Event Blocks — Placement and Order]
 - Activation does not cascade: activate main + every include (one `ActivateObjects`), then confirm `GetInactiveObjects` is empty [include-structure.md § Activation Protocol — MANDATORY (matches every skill that creates includes)]
-- OOP split: `LCL_DATA` (`{PROG}c`) extracts data, no UI; `LCL_ALV` (`{PROG}a`) displays it; ALV follows the OOP sample reusing `ZCL_SAPKIT_CM_*`; messages `S_UNIFIED_CON`, no new `ZMC` [oop-pattern.md § Two-Class Split (Mandatory)] [oop-pattern.md § ALV Requirement (Mandatory)]
+- OOP split: `LCL_DATA` (`{PROG}c`) extracts data, no UI; `LCL_ALV` (`{PROG}a`) displays it; ALV follows the OOP sample on standard classes, never a global class the program does not ship; messages `S_UNIFIED_CON`, no new `ZMC` [oop-pattern.md § Two-Class Split (Mandatory)] [oop-pattern.md § ALV Requirement (Mandatory)]
 
 **Release and function modules**
 - Never emit syntax newer than the configured `ABAP_RELEASE`; if it is unset, stop and ask [abap-release-reference.md § 5. Checklist before emitting ABAP]
@@ -190,19 +190,17 @@ Steps:
    - **S/4HANA Cloud (Public)** — no classical Dynpro, no SE80 custom dev, only Developer Extensibility / Key User Extensibility (RAP managed, Custom Fields/Logic, Custom Business Objects)
    - **S/4HANA Cloud (Private)** — similar to On-Premise but with extensibility-first mindset
 3. Confirm `abapRelease` (e.g. `750`, `756`, `758`) — drives allowed syntax
-4. **SAP-side helper check** — only on a live connection; an inspection-only session skips it silently and records `not-checked`. P1 reads only:
-   - `SearchObject(ZCL_SAPKIT_CM_ALV, CLAS)` — the shared ALV classes the OOP ALV path reuses ([oop-pattern.md § ALV Requirement](../knowledge/abap/conventions/oop-pattern.md#alv-requirement-mandatory)).
+4. **SAP-side helper check** — the generated program itself needs nothing pre-installed ([oop-pattern.md § ALV Requirement](../knowledge/abap/conventions/oop-pattern.md#alv-requirement-mandatory) — standard classes only). What can be missing is the plugin's own RFC route, through which the agent writes screens, GUI statuses and text elements over MCP. So this check matters only on a live connection; an inspection-only session skips it silently and records `not-checked`. One P1 read:
    - `GetTextElement(program_name=RSPARAM)` — **only when that tool is on the tool list**. The **look but do not touch** surface does not load it; then record `not-checked`, because its absence says nothing about the route. The read goes through the RFC route and exercises the text pool FM on it. Screens and GUI statuses go through the sibling dispatcher FM on the same route, which this read does not reach. So an error means: treat all three as unavailable. A success proves the route and the texts; a dispatcher gap still surfaces later as a Phase 4 SKIPPED step.
 
-   Nothing missing → record it and move on without a message. Otherwise say in plain words what the gap stops (not object names), then:
+   Route works → record it and move on without a message. Otherwise say in plain words what the gap stops (not object names), then:
    - **Tier `DEV` and the change tools on the tool list** → ask once:
-     - **Install first** (recommended — the interview can then recommend the program shape it normally would) — pause and run [install-sap-assets](install-sap-assets.md) for the missing part. This is the same install [setup](setup.md#step-7--sap-side-helper-objects) Step 7 offers, with the manual work it leaves named up front as Step 7 does. It is a separate attended procedure that runs on the user's explicit yes — not a write of this pipeline, which still writes nothing before the approval gate. When it finishes, repeat the reads. Whatever still fails because manual work is pending (an SE37 flag, the route set-up) is carried as **build without it** for that part — do not ask again.
+     - **Install first** (recommended — the interview can then recommend the program shape it normally would) — pause and run [install-sap-assets](install-sap-assets.md) for the missing part. This is the same install [setup](setup.md#step-7--sap-side-helper-objects) Step 7 offers, with the manual work it leaves named up front as Step 7 does. It is a separate attended procedure that runs on the user's explicit yes — not a write of this pipeline, which still writes nothing before the approval gate. When it finishes, repeat the read. Whatever still fails because manual work is pending (an SE37 flag, the route set-up) is carried as **build without it** for that part — do not ask again.
      - **Build without it** — continue with the pre-filter below.
    - **Otherwise** → offer no install and continue with the pre-filter, saying in one line why: on a DEV system without the change tools, setup Step 7 is where it gets installed after switching to allow changes; on QA/PRD the helpers arrive by transport from the development system.
 
-   Pre-filter for whatever stays missing (`not-checked` filters nothing):
-   - **ALV classes missing** → for an ALV program, recommend Procedural. OOP with ALV is offered only together with the install, because its sample reuses those classes.
-   - **RFC route unavailable** → on the MCP delivery route the agent cannot write custom screens or GUI statuses. Full `CL_GUI_ALV_GRID` and the OOP sample's screens are therefore out: recommend SALV over Full (Phase 1B dimension 3). The abapGit route (dimension 8) still carries screens, statuses and texts inside the ZIP. On the MCP route, text elements become SKIPPED steps under the Phase 4 utility-FM rule, and the user enters them in SE38.
+   Pre-filter while the route stays unavailable (`not-checked` filters nothing):
+   - On the MCP delivery route the agent cannot write custom screens or GUI statuses. Full `CL_GUI_ALV_GRID` and the OOP sample's screens are therefore out: recommend SALV over Full (Phase 1B dimension 3). The abapGit route (dimension 8) still carries screens, statuses and texts inside the ZIP. On the MCP route, text elements become SKIPPED steps under the Phase 4 utility-FM rule, and the user enters them in SE38.
 
 Branching consequences:
 - **ECC**: no RAP, no ACDOCA, no Business Partner; inline decl only from 740+; CDS/AMDP typically unavailable (<750)
@@ -211,7 +209,7 @@ Branching consequences:
 - **S/4HANA Cloud Private**: classical Dynpro is technically possible but discouraged; warn the user and confirm intent before proceeding.
 
 Outputs:
-- `.sapkit/program/{PROG}/platform.md` — resolved platform, release, and constraints, plus the helper check result (`helpers: alv_classes=present|absent|not-checked · rfc_route=works|unavailable|not-checked`)
+- `.sapkit/program/{PROG}/platform.md` — resolved platform, release, and constraints, plus the helper check result (`rfc_route: works|unavailable|not-checked`)
 - Interview dimensions pre-filtered by platform (e.g., ALV-Full hidden on Cloud Public) and by the helper check (step 4)
 
 ## Intake Resolution — Spec Entry Forms
