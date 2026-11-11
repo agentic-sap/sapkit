@@ -417,8 +417,9 @@ whether the answer taken was the one recommended, and where it came from
 Two results of this stage are load-bearing downstream and are worth naming here:
 the **business rules and exceptions** become the design document's rules section,
 and the **acceptance criteria** ("given this input, this result") become both the
-design document's acceptance section and, on OOP, the minimum set of test methods
-in Phase 5.
+design document's acceptance section and, when testing scope is set (either
+paradigm — Procedural through `LCL_HELPER`), the minimum set of test methods in
+Phase 5.
 
 **Gate**: Phase 2 does not start until the stopping criterion holds and the marked
 section exists in `interview.md`.
@@ -538,7 +539,7 @@ One-paragraph summary of what the program does and who uses it.
 Bullet list of which convention files the spec obeys (ALV rules,
 Text Element rule, naming conventions, etc).
 
-## 6. Test Coverage (if OOP)
+## 6. Test Coverage (when testing scope is set)
 List of ABAP Unit test methods with brief description.
 
 ## 7. Still Open
@@ -715,14 +716,24 @@ will never pause when in fact it still will:
   of whatever (c) already requires. Say it as effect — *deleting, transports, new
   packages, running things, and reading real data are not covered by this; you
   will still be asked* — and not as a list of tool names.
-- **Count before you say it.** "You will still be asked" is true only for a
-  family the user has not already allowed on their own. Before the briefing, read
-  the allow lists the host will apply — the project's `.claude/settings.local.json`
-  and `.claude/settings.json`, and the user-level `~/.claude/settings.json` — and
-  count the entries in each left-out family. A family with none: say *you will
-  still be asked*. A family the user already allowed: say that instead — *your own
-  settings already allow deleting (N entries), so that will not ask either* — and
-  leave those entries alone; the merge is additive and never removes them.
+- **Count before you say it (Claude Code only — the same host as (a)).** "You
+  will still be asked" is true only for a family the user has not already allowed
+  on their own. Before the briefing, read the settings the host will apply — the
+  project's `.claude/settings.local.json` and `.claude/settings.json`, and the
+  user-level `~/.claude/settings.json` — and judge each left-out family. (On Codex
+  and Antigravity there is nothing to count: say instead that whether those
+  families ask is the host's own setting.)
+  - A server-wide rule (`mcp__plugin_sapkit_sap` or `mcp__plugin_sapkit_sap__*`)
+    allows every family at once, and so does `defaultMode: "bypassPermissions"`.
+    Under either, a `deny` rule naming a tool still wins, and an `ask` rule wins
+    over an `allow`.
+  - A family nothing allows: say *you will still be asked*. A family the user
+    already allowed: say that instead — *your own settings already allow deleting
+    (N entries), so that will not ask either* — and leave those entries alone; the
+    merge is additive and never removes them.
+  - Real data is the exception to "will not ask either": even where the user's
+    settings allow the two real-data tools, the run itself still stops before
+    every real-data read (the stop list in (c)). Say so.
   (Field-measured 2026-11-11: one project already carried 42 delete, transport and
   runtime entries, and the unconditional sentence was false.)
 

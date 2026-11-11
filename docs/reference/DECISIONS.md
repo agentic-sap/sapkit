@@ -4443,3 +4443,34 @@ OOP 표본(`templates/oop-sample/`)의 `LCL_ALV`는 플러그인 소유 공용 �
 - ⑴ ③의 길(절차형 `_tst` → `container_type: "program"` 실행)이 실기로 돈 것은 D-169의 `ZMMR10` 한 번이다. 지시서 문장을 따라 처음부터 그 길로 간 실행은 아직 없다.
 - ⑵ ⑤의 「센다」는 Claude Code 허용 목록 형식에만 맞다. 사용자 설정 위치가 그 셋이 아닌 환경(관리형 설정 등)은 세지 못한다.
 - ⑶ ③④⑤ 모두 지시서 문장이다. 다음 실사용이 그 문장을 실제로 따르는지는 재 보지 않았다.
+
+## D-171 — D-169 · D-170 독립 리뷰 반영: 「OOP일 때만 시험」 잔재 두 줄 · 착수 안내 세기의 빈틈 · 출하 바이트 실기 재확인 (2026-11-11)
+
+**맥락.** D-169(`04ca82dc` · `868542de`)와 D-170(`38fd305d`)을 새-컨텍스트 리뷰어 한 명이 읽기 전용 · SAP 무접속으로 검토했다(엔진 jest 4,462 통과 · 게이트 · 돌연변이 시험 3종으로 시험의 판별력 확인). 판정은 `04ca82dc` R-PASS · `868542de` R-PASS · `38fd305d` **보류**였다. 보류 사유는 D-170의 과장이다.
+- D-170 「검증」은 「「절차형 = 시험 없음」 잔재 검색 0」이라 적었다. 그러나 같은 지시서에 「OOP일 때만 시험」 두 줄이 남아 있었다. 파내기 절의 「acceptance criteria … on OOP, the minimum set of test methods」와 설계서 템플릿의 「## 6. Test Coverage (if OOP)」다.
+- 메인의 검색은 부정형(「절차형 … 건너뜀/없음」)만 찾았고, 긍정형(「OOP일 때」)을 찾지 않았다. 위키의 「D-170이 닫았다」도 같은 만큼 넓게 말했다.
+
+**결정(반영).**
+- ⓐ 두 줄을 「when testing scope is set (either paradigm — Procedural through `LCL_HELPER`)」와 「Test Coverage (when testing scope is set)」로 고쳤다. `interactive/` 전체를 긍정형으로 다시 검색해 시험 관련 OOP 한정 문장 0을 확인했다(리뷰어도 같은 검색으로 0). 위키 문장을 「D-170이 고쳤고 남은 두 줄은 D-171이 마저 닫았다」로 바로잡았다.
+- ⓑ 착수 안내 「Count before you say it」의 빈틈 셋을 메웠다.
+  - 서버 단위 규칙(`mcp__plugin_sapkit_sap` · `…__*`)과 `bypassPermissions`는 모든 계열을 허용한다. 그 아래에서도 `deny`는 이기고, `ask`는 `allow`를 이긴다.
+  - 실데이터는 사용자가 허용해 두었어도 실행이 매번 멈춘다고 말한다((c) 1 · P2와 일치).
+  - 세기는 Claude Code 한정이다. Codex · Antigravity에서는 「호스트 설정에 달렸다」고 말한다.
+- ⓒ `verification-policy` 3단계 대체 경로 조건에 1.5.1의 오류 갈래(「selected no test class」인데 종류는 맞게 준 경우)를 넣었다. 그 전 조건은 1.5.1에서 나오지 않는 상태(`completed` + 0건)만 말했다.
+- ⓓ **빈 실행 판정은 호출 단위다**(컨테이너 여럿 중 일부만 비어도 성공 · 메서드 0개 실행도 성공). 엔진은 이번에 고치지 않는다. `engine-backlog.md` §2-c ③으로 등재하고, `troubleshooting`에 「요청한 컨테이너가 다 결과에 있는지 확인」 한 문장을 넣었다.
+- ⓔ **출하 바이트 실기 재확인.** D-169의 실기는 같은 소스의 `dist` 빌드(1.5.0 스탬프)로 돌았다. 같은 날 메인이 출하 번들(sha256 `46cfded81a8f…`)을 같은 런처 · 같은 probe에 물려 IDES DEV에서 다시 돌렸다(행 데이터 무읽기).
+  - 종류 생략 → 도구 오류(「selected no test class for ZMMR10 (container_type "class")」 · 빈 `runResult`).
+  - `container_type: "program"` → 시험 클래스 `LTCL_HELPER` · 메서드 5 · 경보 0.
+  - 결과 원문 XML은 커밋하지 않았다. **서술 기록**이다.
+- ⓕ HANDOFF 📌 시험 행의 낡은 수치(4,451)를 4,462 통과 · 1 건너뜀으로 고쳤다.
+
+**기각한 대안.**
+- ① **ⓓ를 지금 엔진 1.5.2로 고치기**(요청한 컨테이너마다 결과의 `<program>` 마디 아래 시험 클래스를 세기). 다중 컨테이너 결과의 실제 XML 모양을 실기로 본 적이 없어 거짓 실패를 낼 수 있다. 실사용에서 다중 컨테이너 호출은 관측되지 않았다. 제품 문서 한 문장과 대장 등재로 공백을 덮고, 실기 관측이 생기면 그때 고친다.
+- ② **D-170 본문을 고쳐 「잔재 0」을 지우기.** 결정 로그는 append-only다. 정정은 이 항목이다.
+
+**검증.** 리뷰어 재확인(작업 트리 diff · 읽기 전용): 1 · 3 · 4번 해소, 새 모순 없음, 「`38fd305d` + 이 diff는 R-PASS — 조건은 D-171 append 뒤 `check-wiki` exit 0」. 메인: `check-links` 깨짐 0 · `check-conventions-note` · `check-doc-size` · `gen-plugin-manifests --check` · `check-wiki`(이 항목 append 뒤).
+
+**정직 유보.**
+- ⑴ 리뷰어는 ⓔ의 실기 결과를 검증할 수 없었다(SAP 무접속 규칙). ⓔ는 메인의 서술 기록이다.
+- ⑵ 리뷰어 지적 중 `container_type: "function_group"` 거부 시험은 수리를 되돌려도 D-152(모르는 인자 거절)로 통과할 수 있어 판별력이 없다. 나머지 D162 · D163 시험은 돌연변이 시험에서 실패로 잡혔다.
+- ⑶ 결함 ③④⑤가 지시서 문장으로 닫혔다는 것은 문장 대조로만 확인했다. 다음 실사용에서 그 문장을 따르는지는 재 보지 않았다(D-170 ⑶ 그대로).
