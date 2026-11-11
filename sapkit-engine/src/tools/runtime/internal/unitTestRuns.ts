@@ -38,6 +38,11 @@
  * 시험이 전부 돈다. 걸러 내지 않고 전량을 돌려주는 것도 구와 같다 — 조용히 버리면
  * 사람이 안 본 실패가 생긴다.
  *
+ * 컨테이너는 클래스이거나 **실행 프로그램**이다(D162 — 프로그램은
+ * `/sap/bc/adt/programs/programs/<name>` 주소로 실린다). 주소의 종류가 틀리면 SAP은
+ * 오류 없이 빈 결과를 낸다 — 그래서 시험 클래스 0건은 성공이 아니다(D163 ·
+ * `countTestClasses`).
+ *
  * ## 구와 다른 것 (차이가 아니다)
  *
  * 구는 `connection.makeAdtRequest({url, method, timeout, data, headers})`를 불렀고
@@ -71,9 +76,29 @@ export const SYNC_RUN_MIN_TIMEOUT_MS = 5 * 60 * 1000;
 export const MAX_CACHED_RUNS = 200;
 export const RUN_TTL_MS = 30 * 60 * 1000;
 
+/**
+ * 시험을 품은 오브젝트의 종류(D162). 구는 언제나 클래스 주소를 썼다 — 실행 프로그램
+ * 안의 로컬 시험 클래스는 고를 길이 없었고, SAP은 없는 클래스 주소를 받아 **빈
+ * `runResult`**로 조용히 끝냈다(실사용 2026-11-11 · 백로그 §2-c ①).
+ */
+export type UnitTestContainerType = 'class' | 'program';
+
 export interface UnitTestDefinition {
   readonly containerClass: string;
   readonly testClass: string;
+  /** 생략하면 `class` — 구 그대로의 주소다. */
+  readonly containerType?: UnitTestContainerType;
+}
+
+/**
+ * 컨테이너의 ADT 주소. 벤더 `encodeSapObjectName`과 같은 인코딩 — 네임스페이스
+ * (`/ACME/ZCL_X`)의 슬래시를 퍼센트 인코딩해 한 세그먼트로 남긴다.
+ */
+function containerUri(name: string, type: UnitTestContainerType): string {
+  const segment = encodeURIComponent(name.toLowerCase());
+  return type === 'program'
+    ? `/sap/bc/adt/programs/programs/${segment}`
+    : `/sap/bc/adt/oo/classes/${segment}`;
 }
 
 export interface UnitTestRunOptions {
@@ -120,15 +145,16 @@ export function buildRunConfigurationXml(
   const risk = options?.riskLevel;
   const duration = options?.duration;
 
-  const containerClasses = [...new Set(tests.map((test) => test.containerClass.toUpperCase()))];
+  const containerUris = [
+    ...new Set(
+      tests.map((test) =>
+        containerUri(test.containerClass.toUpperCase(), test.containerType ?? 'class'),
+      ),
+    ),
+  ];
 
-  const objectRefs = containerClasses
-    .map((name) => {
-      // 벤더 `encodeSapObjectName`과 같은 인코딩 — 네임스페이스(`/ACME/ZCL_X`)의
-      // 슬래시를 퍼센트 인코딩해 한 세그먼트로 남긴다.
-      const uri = `/sap/bc/adt/oo/classes/${encodeURIComponent(name.toLowerCase())}`;
-      return `        <adtcore:objectReference adtcore:uri="${escapeAttribute(uri)}"/>`;
-    })
+  const objectRefs = containerUris
+    .map((uri) => `        <adtcore:objectReference adtcore:uri="${escapeAttribute(uri)}"/>`)
     .join('\n');
 
   return `<?xml version="1.0" encoding="UTF-8"?><aunit:runConfiguration xmlns:aunit="http://www.sap.com/adt/aunit">
@@ -154,6 +180,19 @@ ${objectRefs}
 
 /** 네임스페이스 접두사를 따지지 않는 뿌리 검사 — 보통은 `<aunit:runResult …>`다. */
 const RUN_RESULT_ROOT = /<(?:[\w.-]+:)?runResult[\s/>]/;
+
+/** `<testClass …>` 여는 태그 — 감싸는 `<testClasses>`(복수)와는 맞지 않는다. */
+const TEST_CLASS_ELEMENT = /<(?:[\w.-]+:)?testClass[\s/>]/g;
+
+/**
+ * 결과에 실린 시험 클래스 수(D163). **0이면 SAP이 아무 시험도 고르지 않은 것이다** —
+ * 없는 컨테이너 · 종류가 틀린 주소(프로그램을 클래스로) · 시험 클래스 없는 오브젝트가
+ * 전부 같은 빈 `runResult`로 온다. 클래스 단위 실패(`class_setup` 등)는 시험 클래스
+ * 마디를 싣고 오므로 0이 아니다 — 그것은 실패한 실행이지 빈 실행이 아니다.
+ */
+export function countTestClasses(resultXml: string): number {
+  return resultXml.match(TEST_CLASS_ELEMENT)?.length ?? 0;
+}
 
 /**
  * 고전 엔드포인트로 시험을 돌리고 `<aunit:runResult>` XML을 **동기로** 돌려준다.

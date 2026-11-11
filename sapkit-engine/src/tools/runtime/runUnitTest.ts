@@ -31,6 +31,16 @@
  * 조립만 한다 — 구 `engine/src/handlers/unit_test/high/handleRunUnitTest.ts:118-188`
  * 의 몫과 같다.
  *
+ * ## 구와 다른 것 둘 (장부 D162·D163 · 실사용 2026-11-11)
+ *
+ * - **D162 — 프로그램 컨테이너.** 덧인자 `container_type: "class" | "program"`(기본
+ *   `class` = 구 그대로의 바이트)이 실행 설정 전문의 주소 종류를 가른다. 구는 언제나
+ *   클래스 주소를 만들어 실행 프로그램 안의 로컬 시험(`ZMMR10` · `LTCL_HELPER`)을 고를
+ *   길이 없었다.
+ * - **D163 — 빈 실행은 성공이 아니다.** 결과에 시험 클래스가 하나도 없으면 도구 오류로
+ *   답하고 run_id를 내지 않는다. 구는 빈 `runResult`에도 `success: true`를 냈고, 그것이
+ *   「시험 5개가 통과했다」로 읽힐 자리였다.
+ *
  * `title`·`context` 인자는 **받기만 하고 전문에 싣지 않는다.** 구 핸들러도
  * `{ tests, scope, risk_level, duration }`만 구조분해한다(`:124`). 고전 실행 설정
  * 전문에 그 둘을 담을 자리가 없기 때문이다. 발행 표면에서 인자를 빼면 채록본과
@@ -42,6 +52,8 @@ import * as z from 'zod';
 import { defineTool } from '../../server/toolDefinition';
 import {
   SYNC_RUN_MIN_TIMEOUT_MS,
+  type UnitTestContainerType,
+  countTestClasses,
   runClassicUnitTest,
   storeUnitTestRun,
 } from './internal/unitTestRuns';
@@ -59,11 +71,32 @@ function nonEmpty(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value : null;
 }
 
+/** 빈 실행 오류(D163)에 싣는 결과 원문의 앞부분 길이 — 프로그램 단위 경보가 보일 만큼. */
+const EMPTY_RUN_EXCERPT_CHARS = 600;
+
+function emptyRunMessage(
+  containers: readonly string[],
+  containerType: UnitTestContainerType,
+  resultXml: string,
+): string {
+  const hint =
+    containerType === 'program'
+      ? 'Check that the program exists, is active, and contains local test classes (CLASS … FOR TESTING).'
+      : 'If the tests live in an executable program rather than a class, pass the program name as container_class and set container_type: "program". Otherwise check that the class exists, is active, and has local test classes (CLASS … FOR TESTING).';
+  return (
+    `ABAP Unit run selected no test class for ${containers.join(', ')} (container_type "${containerType}") — ` +
+    `nothing was tested, so this is not a pass. ${hint} ` +
+    `Result (first ${EMPTY_RUN_EXCERPT_CHARS} chars): ${resultXml.slice(0, EMPTY_RUN_EXCERPT_CHARS)}`
+  );
+}
+
 export const runUnitTest = defineTool(
   {
     name: 'RunUnitTest',
+    // 원문(채록본) + 덧말(`harness/old-surface/amendments.json`) — D162·D163.
     description:
-      'Start an ABAP Unit test run for provided class test definitions. Returns run_id for status/result queries.',
+      'Start an ABAP Unit test run for provided class test definitions. Returns run_id for status/result queries.' +
+      ' To run the local test classes of an executable program, pass the program name as container_class and set container_type: "program" (default "class"). A run in which SAP selects no test class is returned as an error, not as success — an empty result never counts as a pass.',
     inputSchema: {
       tests: z
         .array(
@@ -100,6 +133,13 @@ export const runUnitTest = defineTool(
           long: z.boolean().optional(),
         })
         .optional(),
+      // 덧인자(D162) — 채록본에 없던 선택 인자. 기본값이 구 동작(클래스 주소)이다.
+      container_type: z
+        .enum(['class', 'program'])
+        .default('class')
+        .describe(
+          'What every container_class in tests names: "class" (default, /sap/bc/adt/oo/classes/<name>) or "program" (an executable program whose includes hold local test classes, /sap/bc/adt/programs/programs/<name>). Use separate calls for classes and programs.',
+        ),
     },
     available_in: ['onprem', 'cloud', 'legacy'],
     sets: ['high'],
@@ -122,9 +162,12 @@ export const runUnitTest = defineTool(
         }
       }
 
+      const containerType: UnitTestContainerType =
+        args.container_type === 'program' ? 'program' : 'class';
       const definitions = tests.map((test) => ({
         containerClass: String(test.container_class).toUpperCase(),
         testClass: String(test.test_class).toUpperCase(),
+        containerType,
       }));
 
       context.logger.info(
@@ -149,6 +192,11 @@ export const runUnitTest = defineTool(
         },
         Math.max(longTimeout, SYNC_RUN_MIN_TIMEOUT_MS),
       );
+
+      if (countTestClasses(resultXml) === 0) {
+        const containers = [...new Set(definitions.map((test) => test.containerClass))];
+        return returnError(new Error(emptyRunMessage(containers, containerType, resultXml)));
+      }
 
       const runId = storeUnitTestRun(client, resultXml);
       context.logger.info(`RunUnitTest started. Run ID: ${runId}`);

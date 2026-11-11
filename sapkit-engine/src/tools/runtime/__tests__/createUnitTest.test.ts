@@ -15,6 +15,9 @@
  *  - tier 판정(QA 특례 **없음**) → `engine/src/lib/readonlyGuard.ts:80-84, 106-122`
  */
 
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+
 import { createUnitTest } from '../createUnitTest';
 import {
   cleanupTempDirs,
@@ -108,16 +111,32 @@ describe('발행 계약', () => {
     expect(await publishedOf(createUnitTest)).toEqual(publishedDeclaration('CreateUnitTest'));
   });
 
-  it('선언은 형제 RunUnitTest와 같다 — 갈리는 것은 엔드포인트와 D-147의 이정표 덧말뿐이다', () => {
-    // 채록본 원문은 글자까지 같다. 다른 것은 `harness/old-surface/amendments.json`이
-    // CreateUnitTest에만 붙인 덧말(「이름과 달리 작성 도구가 아니다」)이다.
-    const create = publishedDeclaration('CreateUnitTest').description;
-    const run = publishedDeclaration('RunUnitTest').description;
-    expect(create.startsWith(run)).toBe(true);
-    expect(create.slice(run.length)).toMatch(/does not create or write a test/);
-    expect(publishedDeclaration('CreateUnitTest').inputSchema).toEqual(
-      publishedDeclaration('RunUnitTest').inputSchema,
-    );
+  it('채록본 선언은 형제 RunUnitTest와 글자까지 같다 — 갈리는 것은 엔드포인트와 각자의 덧말·덧인자뿐이다', () => {
+    // 채록본 원문은 글자까지 같다. 다른 것은 `harness/old-surface/amendments.json`이 각각에
+    // 붙인 것이다 — CreateUnitTest에는 D-147의 이정표 덧말(「이름과 달리 작성 도구가
+    // 아니다」), RunUnitTest에는 D-169의 덧말과 덧인자 `container_type`(장부 D162·D163).
+    const recorded = JSON.parse(
+      fs.readFileSync(
+        path.join(__dirname, '..', '..', '..', '..', 'harness', 'old-surface', 'm1-tools.json'),
+        'utf8',
+      ),
+    ) as { tools: Record<string, { description: string; inputSchema: unknown }> };
+    const createRecorded = recorded.tools['CreateUnitTest'];
+    const runRecorded = recorded.tools['RunUnitTest'];
+    expect(createRecorded?.description).toBe(runRecorded?.description);
+    expect(createRecorded?.inputSchema).toEqual(runRecorded?.inputSchema);
+
+    const create = publishedDeclaration('CreateUnitTest');
+    const run = publishedDeclaration('RunUnitTest');
+    const original = String(runRecorded?.description);
+    expect(create.description.slice(original.length)).toMatch(/does not create or write a test/);
+    expect(run.description.slice(original.length)).toMatch(/container_type: "program"/);
+
+    const { container_type: added, ...runRest } = (
+      run.inputSchema as { properties: Record<string, unknown> }
+    ).properties;
+    expect(added).toBeDefined();
+    expect({ ...(run.inputSchema as object), properties: runRest }).toEqual(create.inputSchema);
   });
 
   it('노출·정책 선언 — high, execution, 대상 이름은 container_class 하나', () => {

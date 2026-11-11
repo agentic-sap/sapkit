@@ -4076,3 +4076,85 @@ Create/Update의 READ → WRITE)과 두 겹 패딩이 부딪치지 않는지 실
   배정에 돌려 써도 된다.
 
 - **결정 기록**: D-152
+
+## 첫 제품 경로 실사용 결함 ② — 단위시험의 프로그램 컨테이너 (append · 2026-11-11 · D-169)
+
+근거 원문은 첫 `create-program` 실사용 기록
+[`docs/reference/audits/2026-11-11-first-real-use.md`](../../docs/reference/audits/2026-11-11-first-real-use.md) §3 ②와
+백로그 [`engine-backlog.md`](../../docs/reference/engine-backlog.md) §2-c ①이다. 번호는 D-152 절이 비워 둔
+**D162·D163**을 돌려 쓴다(그 절의 정직 유보가 허락한 자리). **이 절의 두 항목은 SAP 실기로 확인됐다** —
+아래 「실기 확인」.
+
+### D162 — `RunUnitTest`가 실행 프로그램을 컨테이너로 고른다 (수리 · 덧인자)
+
+**분류**: 수리 · **도구**: `RunUnitTest`
+
+**구는 이렇게 한다.** 실행 설정 전문의 `<adtcore:objectReference adtcore:uri=…>`를 **언제나**
+`/sap/bc/adt/oo/classes/<name>`으로 만들었다(`src/tools/runtime/internal/unitTestRuns.ts`의
+`buildRunConfigurationXml` ← 구 `engine/src/lib/abapUnitClassic.ts:85-127`). 실행 프로그램의 시험
+인클루드(`{PROG}_tst`)에 든 로컬 시험 클래스를 고를 길이 없었다. 프로그램 이름을 `container_class`에
+주면 SAP은 **없는 클래스 주소**를 받고 오류 없이 빈 `<aunit:runResult/>`로 끝났다(IDES 2026-11-11 ·
+`ZMMR10` / `LTCL_HELPER`).
+
+**신은 이렇게 한다.** 덧인자 `container_type: "class" | "program"`(기본 `class` = 구와 바이트 동일)이
+그 한 주소의 종류만 가른다 — `program`이면 `/sap/bc/adt/programs/programs/<name>`. 소문자화 ·
+네임스페이스 슬래시 퍼센트 인코딩 · 같은 컨테이너 한 번만 싣기는 클래스와 같다. 인자는 **호출 하나에
+하나**다(`tests[]`의 모든 항목에 걸린다) — 채록본의 항목 스키마(`tests.items`)에 칸을 더하는 기제가
+덧말표에 없고, 클래스와 프로그램을 한 호출에 섞을 실수요도 관측되지 않았다. 섞으려면 두 번 부른다.
+형제 `CreateUnitTest`(벤더 `/abapunit/runs` 경로 — 구 실측상 그 엔드포인트가 없다)에는 **더하지
+않았다** — 컨테이너를 주소가 아니라 이름 속성으로 싣는 다른 전문이고, 이 결함이 지나간 자리가 아니다.
+
+**대체 기대 시험**: `src/tools/runtime/__tests__/runUnitTest.test.ts` — 「D162」 4건(프로그램 주소 ·
+생략과 `class`가 구와 바이트 동일 · 네임스페이스·중복 · 목록 밖 종류는 스키마 거부와 요청 0건) +
+`createUnitTest.test.ts`의 형제 대조를 「채록본 원문 동일 · 덧말·덧인자만 갈림」으로 고쳐 씀.
+
+### D163 — `RunUnitTest`가 시험 클래스를 하나도 고르지 않은 실행을 성공으로 내지 않는다 (수리)
+
+**분류**: 수리 · **도구**: `RunUnitTest`
+
+**구는 이렇게 한다.** 응답 뿌리가 `runResult`이기만 하면 결과를 캐시하고 `success: true`와 `run_id`를
+냈다. 그래서 위의 빈 결과도 도구 응답만 보면 「시험이 돌았다」로 읽힌다 — 실사용에서는 결과를
+열어 본 뒤에 검증 기록을 `unit_test: SKIPPED`(사유 기재)로 남겼다. 백로그 13-2(「침묵 무결과」 ·
+해소)와 같은 증상이 **다른 원인**(주소 종류)으로 다시 난 것이다.
+
+**신은 이렇게 한다.** 결과에 `<testClass …>` 마디가 하나도 없으면(접두사 무관 · 감싸는
+`<testClasses>`에는 속지 않는다) 도구 오류로 답하고 **run_id를 내지 않는다**. 문구는
+`ABAP Unit run selected no test class for {컨테이너들} (container_type "{종류}") — nothing was tested, so this is not a pass. {안내} Result (first 600 chars): {원문 앞부분}`
+이고 안내는 종류에 따라 갈린다 — `class`면 「실행 프로그램이면 `container_type: "program"`」을 이름으로
+말하고, `program`이면 프로그램의 존재·활성·`FOR TESTING` 확인을 말한다. 원문 앞부분을 싣는 것은
+프로그램 단위 경보(시험 클래스 없음 · 구문 오류)가 그 안에 오기 때문이다. **클래스 단위 실패**
+(`class_setup` 실패처럼 시험 클래스 마디에 경보가 붙은 것)는 빈 실행이 아니다 — 시험 클래스 마디가
+있으므로 구 그대로 성공 응답으로 결과를 넘긴다(실패 판정은 결과를 읽는 쪽의 몫이다 · 구와 같음).
+
+**대체 기대 시험**: 같은 파일 「D163」 6건(빈 결과 · 클래스 안내 · 프로그램 안내 · 경보만 있는 결과 ·
+빈 `<testClasses/>` · 클래스 단위 실패는 성공). 기존 시험의 기본 응답을 시험 클래스 하나가 든 결과로
+바꿨다(빈 결과가 이제 오류라서) — 공용 픽스처 `unitTestSupport.ts`의 `RUN_RESULT_XML`은 이미 시험
+클래스를 싣고 있어 되읽기 세 종의 시험은 그대로 통과한다.
+
+**기계 장부 반영**: 하지 않았다 — 재생 대상 녹화에 `RunUnitTest` 스텝이 없다(`fixtures/` 아래 녹화는
+`attended-only/` 하나이고 그 안의 단위시험 스텝은 `DeleteUnitTest`뿐이다). 재생 대조에 나타나지 않는
+차이라 사람용 장부에만 둔다.
+
+### 실기 확인 (IDES S4H · DEV tier · 2026-11-11)
+
+고친 번들(`dist/server.bundle.cjs` · 1.5.0 스탬프 · 이 절의 소스)을 제품 런처(`launch.cjs`)로 띄우고
+활성 프로파일 그대로 붙었다. 행 데이터는 읽지 않았다 — 단위시험 실행(P3 · DEV)과 그 결과 되읽기뿐이다.
+
+| 호출 | 결과 |
+|---|---|
+| `RunUnitTest(ZMMR10 / LTCL_HELPER)` — 종류 생략 | **도구 오류**(D163) — 결과 원문은 실사용 때와 같은 빈 `<aunit:runResult/>` · 안내가 `container_type: "program"`을 말한다 |
+| 같은 호출 + `container_type: "program"` | `success: true` → `GetUnitTestResult`: 시험 클래스 `LTCL_HELPER` 1 · 시험 메서드 **5**(`DELAY_DUE_TODAY` · `DELAY_FUTURE` · `DELAY_OVERDUE` · `OPEN_QTY_FULLY_RECEIVED` · `OPEN_QTY_PARTIAL_RECEIPT`) · 경보 **0** |
+
+### 정직 유보 (이 절 전체)
+
+- **실기는 한 시스템 · 한 프로그램이다.** 다른 릴리스(BASIS 7.00 등 레거시)에서 프로그램 주소가 같은 방식으로
+  받아들여지는지는 보지 않았다.
+- **함수 그룹(FUGR)의 로컬 시험은 여전히 고를 길이 없다** — 주소 종류를 `class`·`program` 둘로만
+  열었다. 실수요가 관측되면 같은 덧인자에 값을 더한다.
+- **「시험 클래스 0 = 빈 실행」은 결과 마디 이름에 기댄다.** SAP이 시험 클래스를 다른 이름의 마디로 싣는
+  릴리스라면 정상 실행이 오류로 떨어진다(나빠지는 쪽이 「거짓 성공」이 아니라 「거짓 실패」라 감수한다 —
+  오류 문구가 원문 앞부분을 싣는다).
+- **요청한 `test_class`가 결과에 있는지는 보지 않는다.** 고전 전문은 컨테이너의 시험 클래스를 전부 돌리므로
+  (머리주석 「선택 단위」) 다른 시험 클래스만 돈 실행은 여전히 성공이다 — 성공 문구가 그 사실을 이미 말한다.
+
+- **결정 기록**: D-169

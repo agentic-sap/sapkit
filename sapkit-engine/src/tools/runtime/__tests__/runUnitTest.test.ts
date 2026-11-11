@@ -32,7 +32,17 @@ const CT_CONFIG = 'application/vnd.sap.adt.abapunit.testruns.config.v1+xml';
 /** 구 접속 계층이 호출자가 Accept를 안 주면 붙이던 값. */
 const DEFAULT_ACCEPT = 'application/xml, application/json, text/plain, */*';
 
-const RUN_RESULT = '<?xml version="1.0"?><aunit:runResult xmlns:aunit="http://www.sap.com/adt/aunit"/>';
+/** 시험 클래스 하나가 돈 결과 — 빈 결과는 D163부터 오류라 기본 응답은 이것이다. */
+const RUN_RESULT =
+  '<?xml version="1.0"?><aunit:runResult xmlns:aunit="http://www.sap.com/adt/aunit">' +
+  '<program adtcore:name="ZCL_FIXTURE" xmlns:adtcore="http://www.sap.com/adt/core">' +
+  '<testClasses><testClass adtcore:name="LTCL_FIXTURE"><testMethods>' +
+  '<testMethod adtcore:name="RUNS"/></testMethods></testClass></testClasses>' +
+  '</program></aunit:runResult>';
+
+/** 실사용 2026-11-11에 IDES가 프로그램 이름을 클래스 주소로 받고 돌려준 모양. */
+const EMPTY_RUN_RESULT =
+  '<?xml version="1.0" encoding="utf-8"?><aunit:runResult xmlns:aunit="http://www.sap.com/adt/aunit"/>';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -54,6 +64,7 @@ async function call(args: Record<string, unknown>, body?: string, status?: numbe
 function expectedConfig(
   classes: readonly string[],
   options: {
+    containerType?: 'class' | 'program';
     appendAssignedTestsPreview?: boolean;
     assignedTests?: boolean;
     sameProgram?: boolean;
@@ -67,10 +78,12 @@ function expectedConfig(
 ): string {
   const flag = (value: boolean | undefined, fallback: boolean): string =>
     (value ?? fallback) ? 'true' : 'false';
+  const base =
+    options.containerType === 'program' ? '/sap/bc/adt/programs/programs/' : '/sap/bc/adt/oo/classes/';
   const refs = classes
     .map(
       (cls) =>
-        `        <adtcore:objectReference adtcore:uri="/sap/bc/adt/oo/classes/${encodeURIComponent(
+        `        <adtcore:objectReference adtcore:uri="${base}${encodeURIComponent(
           cls.toLowerCase(),
         )}"/>`,
     )
@@ -286,10 +299,123 @@ describe('갈래 — 응답이 runResult가 아닐 때', () => {
   });
 
   it('네임스페이스 접두사가 없는 runResult도 받아들인다', async () => {
-    const { outcome } = await call({ tests: ONE_TEST }, '<runResult/>');
+    const { outcome } = await call(
+      { tests: ONE_TEST },
+      '<runResult><program><testClasses><testClass name="LTCL_FIXTURE"/></testClasses></program></runResult>',
+    );
 
     expect(outcome.isError).toBe(false);
     expect(jsonOf(outcome)['success']).toBe(true);
+  });
+});
+
+describe('D162 — 실행 프로그램을 컨테이너로 고를 수 있다 (실사용 2026-11-11)', () => {
+  const PROGRAM_TEST = [{ container_class: 'ZMMR10', test_class: 'LTCL_HELPER' }];
+
+  it('container_type "program"이면 프로그램 주소로 싣는다', async () => {
+    const { sent, paths } = await call({ tests: PROGRAM_TEST, container_type: 'program' });
+
+    expect(paths).toEqual([TESTRUNS_PATH]);
+    expect(sent[0]?.body).toBe(expectedConfig(['ZMMR10'], { containerType: 'program' }));
+    expect(sent[0]?.body).not.toContain('/oo/classes/');
+  });
+
+  it('생략하면 클래스 주소다 — 구와 바이트가 같다', async () => {
+    const omitted = await call({ tests: ONE_TEST });
+    const explicit = await call({ tests: ONE_TEST, container_type: 'class' });
+
+    expect(omitted.sent[0]?.body).toBe(expectedConfig(['ZCL_FIXTURE']));
+    expect(explicit.sent[0]?.body).toBe(omitted.sent[0]?.body);
+  });
+
+  it('프로그램 이름도 소문자 · 네임스페이스 슬래시 인코딩 · 중복 한 번', async () => {
+    const { sent } = await call({
+      tests: [
+        { container_class: '/acme/zrep', test_class: 'LTCL_A' },
+        { container_class: '/ACME/ZREP', test_class: 'LTCL_B' },
+      ],
+      container_type: 'program',
+    });
+
+    expect(sent[0]?.body).toBe(expectedConfig(['/ACME/ZREP'], { containerType: 'program' }));
+    expect(sent[0]?.body).toContain('/sap/bc/adt/programs/programs/%2Facme%2Fzrep');
+  });
+
+  it('목록에 없는 종류는 스키마가 거부하고 요청 0건', async () => {
+    const { outcome, paths } = await call({ tests: PROGRAM_TEST, container_type: 'function_group' });
+
+    expect(outcome.isError).toBe(true);
+    expect(outcome.text).toContain('container_type');
+    expect(paths).toEqual([]);
+  });
+});
+
+describe('D163 — 시험 클래스를 하나도 고르지 않은 실행은 성공이 아니다', () => {
+  it('빈 runResult는 도구 오류이고 run_id를 내지 않는다', async () => {
+    const { outcome } = await call({ tests: ONE_TEST }, EMPTY_RUN_RESULT);
+
+    expect(outcome.isError).toBe(true);
+    expect(outcome.text).not.toContain('run_id');
+    expect(outcome.text).toContain(
+      'ABAP Unit run selected no test class for ZCL_FIXTURE (container_type "class") — nothing was tested, so this is not a pass.',
+    );
+  });
+
+  it('클래스 주소의 빈 실행은 프로그램 컨테이너를 이름으로 안내한다', async () => {
+    const { outcome } = await call(
+      { tests: [{ container_class: 'ZMMR10', test_class: 'LTCL_HELPER' }] },
+      EMPTY_RUN_RESULT,
+    );
+
+    expect(outcome.text).toContain('set container_type: "program"');
+    expect(outcome.text).toContain(`Result (first 600 chars): ${EMPTY_RUN_RESULT}`);
+  });
+
+  it('프로그램 주소의 빈 실행은 프로그램 쪽 확인 사항을 말한다', async () => {
+    const { outcome } = await call(
+      { tests: [{ container_class: 'ZMMR10', test_class: 'LTCL_HELPER' }], container_type: 'program' },
+      EMPTY_RUN_RESULT,
+    );
+
+    expect(outcome.isError).toBe(true);
+    expect(outcome.text).toContain('(container_type "program")');
+    expect(outcome.text).toContain('Check that the program exists, is active');
+    expect(outcome.text).not.toContain('set container_type: "program"');
+  });
+
+  it('프로그램 단위 경보만 있고 시험 클래스가 없어도 오류다 — 경보 원문을 싣는다', async () => {
+    const alertOnly =
+      '<aunit:runResult xmlns:aunit="http://www.sap.com/adt/aunit"><program adtcore:name="ZMMR10" ' +
+      'xmlns:adtcore="http://www.sap.com/adt/core"><alerts><alert kind="warning"><title>' +
+      'The program contains no test classes</title></alert></alerts></program></aunit:runResult>';
+    const { outcome } = await call(
+      { tests: [{ container_class: 'ZMMR10', test_class: 'LTCL_HELPER' }], container_type: 'program' },
+      alertOnly,
+    );
+
+    expect(outcome.isError).toBe(true);
+    expect(outcome.text).toContain('The program contains no test classes');
+  });
+
+  it('감싸는 <testClasses>만 있고 안이 비면 0건이다 (복수 태그에 속지 않는다)', async () => {
+    const { outcome } = await call(
+      { tests: ONE_TEST },
+      '<aunit:runResult xmlns:aunit="http://www.sap.com/adt/aunit"><program><testClasses/></program></aunit:runResult>',
+    );
+
+    expect(outcome.isError).toBe(true);
+  });
+
+  it('클래스 단위 실패(시험 클래스 마디 + 경보)는 빈 실행이 아니다 — 성공으로 결과를 넘긴다', async () => {
+    const classSetupFailed =
+      '<aunit:runResult xmlns:aunit="http://www.sap.com/adt/aunit"><program><testClasses>' +
+      '<testClass adtcore:name="LTCL_FIXTURE" xmlns:adtcore="http://www.sap.com/adt/core"><alerts>' +
+      '<alert kind="exception" severity="critical"><title>CLASS_SETUP failed</title></alert>' +
+      '</alerts></testClass></testClasses></program></aunit:runResult>';
+    const { outcome } = await call({ tests: ONE_TEST }, classSetupFailed);
+
+    expect(outcome.isError).toBe(false);
+    expect(String(jsonOf(outcome)['run_id'])).toMatch(UUID_RE);
   });
 });
 
