@@ -4551,3 +4551,32 @@ OOP 표본(`templates/oop-sample/`)의 `LCL_ALV`는 플러그인 소유 공용 �
 **정직 유보.**
 - ⑴ `approval-gates`는 서버 가드를 L2로, 이 문서는 L4로 부른다. 두 정책 문서의 층 번호가 다르다는 어긋남은 남았다.
 - ⑵ Codex · Antigravity 줄은 손대지 않았다. Antigravity의 「unverified」는 그 줄이 쓰인 때의 실측 기준이다.
+
+## D-175 — 두 번째 실사용이 드러낸 `ZSAPKIT_ADT_DISPATCH` 결함 3곳을 레포 원본에 옮김 (0.13.5) (2026-11-12)
+
+**맥락.** 2026-11-11 다른 프로젝트의 `create-program` 실사용(제품 경로 두 번째 실사용 · KR-DEV · S/4HANA 757)에서 GUI 상태 도구가 읽기와 쓰기 양쪽 다 막혔다. `GetGuiStatus` · `ReadGuiStatus`는 `CUA_FETCH`에서 `CX_SY_DYN_CALL_ILLEGAL_TYPE`으로, `CreateGuiStatus` · `UpdateGuiStatus`는 `CUA_WRITE`에서 `CX_SY_DYN_CALL_PARAM_MISSING`으로 죽었다. 그 세션은 KR-DEV에 설치된 함수(`$TMP`)를 그 자리에서 세 번 고쳐 일을 끝냈고(이후 `PatchGuiStatus` 2회 성공 · 사용자 실행 화면으로 버튼 · 제목 반영 확인), 레포 원본은 「사용자 결정」으로 남겼다. 2026-11-12 소유자가 레포에 옮기라고 했다. D-134 유보 ②(「`CUA_WRITE`는 확인되지 않았다」)가 실사용으로 회수된 것이다.
+
+**결함 셋과 근거.** 표준 함수 서명은 KR-DEV(어제 세션이 읽은 기록)와 IDES `S4H`(이 세션이 직접 읽음) 두 S/4HANA 757 시스템에서 같았다.
+- ① `tit`의 행 타입. `RS_CUA_INTERNAL_FETCH` · `RS_CUA_INTERNAL_WRITE`의 `TIT`는 `rsmpe_titt`인데 S/4용 원본은 `rsmpe_tit`로 선언했다. 컴파일은 되고 호출 시점에 죽는다. ECC용 원본은 이미 `rsmpe_titt`였다.
+- ② `RS_CUA_INTERNAL_WRITE`의 필수 인자 `tr_key` 누락(S/4용 · ECC용 둘 다). 같은 호출의 `EXCEPTIONS`도 그 함수에 없는 이름(`unknown_version`)을 적고 있었다 — 실제 예외는 `not_found` · `invalid_data`다.
+- ③ 쓰기 뒤 `RS_CUA_INTERNAL_GENERATE`가 없었다(둘 다). 저장은 되는데 `SET PF-STATUS` · `SET TITLEBAR`가 읽는 런타임 로드가 다시 만들어지지 않아 화면이 옛 상태를 보인다.
+
+**결정.**
+- ⓐ `zsapkit_adt_dispatch.abap`에 ①②③을, `zsapkit_adt_dispatch_ecc.abap`에 ②③을 옮겼다. 코드는 KR-DEV에서 돈 패치 그대로이고, 생성 실패 문구만 「저장은 됐다」가 읽히게 고쳤다.
+- ⓑ `install-sap-assets` Step 1에 **기존 설치본 갱신 규칙**을 넣었다. 그 단계는 함수 그룹이 있으면 건너뛰므로, 규칙이 없으면 이미 설치한 시스템은 영영 옛 함수로 남는다. 판별은 설치본 소스에 `RS_CUA_INTERNAL_GENERATE` 호출이 있는가다. 같은 문서의 「S/4HANA는 `rsmpe_tit`를 쓴다」는 줄은 두 시스템 실측과 어긋나 고쳤다. `troubleshooting` Layer 4에 증상 한 줄을 더했다.
+- ⓒ 엔진 소스 · 번들 · 도구 표면은 그대로다. 배포물(자산 2 · 절차 2)이 바뀌므로 플러그인 **0.13.5**.
+- ⓓ 결함 대장 `engine-backlog.md` §2-d에 등재했다(수리 1 · 등재만 2).
+
+**기각한 대안.**
+- ① **함수 그룹의 메인 프로그램(`SAPL…`)용 `tr_key` 갈래까지 짓기.** 표준 코드상 그 경우는 객체 종류가 `PROG`이면 `invalid_data`로 거절된다. 그러나 맞는 키(`FUGR` + 그룹 이름)를 실기에서 돌려 본 적이 없다. 돈 것만 옮기고 한계는 소스 주석과 대장에 적었다.
+- ② **ECC용은 손대지 않기.** ECC 실기가 없어 검증할 수 없다는 이유다. 그러나 `tr_key`는 기본값 없는 인자라 빠지면 ECC에서도 같은 자리에서 죽는다고 보는 쪽이 합리적이고, 고치지 않으면 알려진 결함을 그대로 내보내는 것이다.
+- ③ **KR-DEV에서 설치본을 통째로 되읽어 레포 사본과 바이트 대조하기.** 이 세션의 MCP는 IDES에 붙어 있고 KR-DEV는 VPN이 필요하다. 패치 세 건의 입력과 성공 응답이 세션 기록에 그대로 있어 그것을 정본으로 삼았다.
+
+**검증.** IDES `S4H`에서 저장 없는 컴파일 검사(`CheckSyntax` + `source_code` — 바뀐 타입 선언과 호출 셋을 담은 작은 프로그램) `clean` · 동봉 검사기 `lint` 두 파일 `no findings` · `check-links` · `gen-plugin-manifests --check` · `check-runtime-path-rename` · `check-doc-size` · `check-conventions-note` · `check-wiki` · L-20 재계측(값은 커밋 메시지).
+
+**정직 유보.**
+- ⑴ **레포 사본으로 설치해 돌려 본 적은 없다.** 실기로 돈 것은 KR-DEV에 손으로 넣은 패치이고, 이 판이 한 것은 그 패치를 옮겨 적고 컴파일을 확인한 것까지다. KR-DEV 설치본은 인라인 서명 형식이라 레포 사본과 바이트가 같지 않다(D-134 유보 ③ · D-136).
+- ⑵ **ECC용은 실기 0이다.** `tr_key` · `invalid_data` · `RS_CUA_INTERNAL_GENERATE`가 ECC 7.40에서 같은 서명인지는 읽어 보지 못했다.
+- ⑶ **함수 그룹의 GUI 상태 쓰기는 여전히 안 된다**(기각 ①).
+- ⑷ `DYNPRO_INSERT`는 같은 실사용에서 화면 0100을 만들었다(절차 기록 `state.json`의 「화면 0100 활성」). `DYNPRO_DELETE` · `CUA_DELETE`는 여전히 실기 0이다.
+- ⑸ IDES `S4H`에 이 함수가 설치돼 있는지는 보지 않았다. 설치돼 있다면 옛 판이다.

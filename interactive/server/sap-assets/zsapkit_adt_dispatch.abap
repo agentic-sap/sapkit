@@ -160,7 +160,11 @@ TYPES: BEGIN OF ty_adt_status_id,
 
 * The twelve tables that make up the GUI status pool of one program. A
 * single declaration serves both directions: RS_CUA_INTERNAL_FETCH fills
-* it and RS_CUA_INTERNAL_WRITE reads it back out.
+* it and RS_CUA_INTERNAL_WRITE reads it back out. Every line type is the
+* one those two modules declare for the table parameter of the same name.
+* That matters most for tit, whose parameter is typed rsmpe_titt: the
+* shorter rsmpe_tit compiles here and is then refused at run time with
+* CX_SY_DYN_CALL_ILLEGAL_TYPE, on reads and writes alike.
 TYPES: BEGIN OF ty_adt_status,
          adm TYPE rsmpe_adm,
          sta TYPE TABLE OF rsmpe_stat WITH DEFAULT KEY,
@@ -172,7 +176,7 @@ TYPES: BEGIN OF ty_adt_status,
          pfk TYPE TABLE OF rsmpe_pfk WITH DEFAULT KEY,
          set TYPE TABLE OF rsmpe_staf WITH DEFAULT KEY,
          doc TYPE TABLE OF rsmpe_atrt WITH DEFAULT KEY,
-         tit TYPE TABLE OF rsmpe_tit WITH DEFAULT KEY,
+         tit TYPE TABLE OF rsmpe_titt WITH DEFAULT KEY,
          biv TYPE TABLE OF rsmpe_buts WITH DEFAULT KEY,
        END OF ty_adt_status.
 
@@ -410,10 +414,23 @@ FORM apply_status_source USING iv_params TYPE string
   PERFORM resolve_language USING ls_call-language
                            CHANGING lv_language.
 
+* TR_KEY names the repository object the pool belongs to, and
+* RS_CUA_INTERNAL_WRITE declares it without a default. Leaving it out is
+* not caught by the compiler; the call dies with
+* CX_SY_DYN_CALL_PARAM_MISSING instead. The key built here is the one for
+* an executable program or a module pool. The main program of a function
+* group needs a different object type, and the Workbench call turns this
+* key down for it as invalid_data.
+  DATA(ls_tr_key) = VALUE trkey( obj_type = 'PROG'
+                                 obj_name = to_upper( ls_call-program )
+                                 sub_type = 'CUAD'
+                                 sub_name = to_upper( ls_call-program ) ).
+
   CALL FUNCTION 'RS_CUA_INTERNAL_WRITE'
     EXPORTING
       program         = CONV syrepid( to_upper( ls_call-program ) )
       language        = lv_language
+      tr_key          = ls_tr_key
       adm             = ls_status-adm
       state           = 'A'
     TABLES
@@ -430,12 +447,31 @@ FORM apply_status_source USING iv_params TYPE string
       biv             = ls_status-biv
     EXCEPTIONS
       not_found       = 1
-      unknown_version = 2
+      invalid_data    = 2
       OTHERS          = 3.
 
   cv_subrc = sy-subrc.
   IF cv_subrc <> 0.
     cv_message = |RS_CUA_INTERNAL_WRITE declined with sy-subrc { cv_subrc }|.
+    RETURN.
+  ENDIF.
+
+* The write replaces the stored pool, but SET PF-STATUS and SET TITLEBAR
+* read a generated runtime load, and the write does not rebuild it.
+* Without this step the program keeps showing its old status until
+* someone regenerates it by hand in the Menu Painter.
+  CALL FUNCTION 'RS_CUA_INTERNAL_GENERATE'
+    EXPORTING
+      program           = CONV syrepid( to_upper( ls_call-program ) )
+    EXCEPTIONS
+      not_found         = 1
+      syntax_error      = 2
+      generation_failed = 3
+      OTHERS            = 4.
+
+  cv_subrc = sy-subrc.
+  IF cv_subrc <> 0.
+    cv_message = |Pool written, but RS_CUA_INTERNAL_GENERATE declined with sy-subrc { cv_subrc }|.
     RETURN.
   ENDIF.
 

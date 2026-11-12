@@ -92,7 +92,7 @@ If no match, proceed to Step 1. The real sentinel (with `objects[]`) is written 
 
 Required by the MCP server for the Screen, GUI Status, and Text Element tool families.
 
-1. Check via `SearchObject` (query=`ZSAPKIT_ADT_UTILS`, objectType=`FUGR`). If found, skip creation and report "ZSAPKIT_ADT_UTILS already exists".
+1. Check via `SearchObject` (query=`ZSAPKIT_ADT_UTILS`, objectType=`FUGR`). If found, skip creation and report "ZSAPKIT_ADT_UTILS already exists" — with one exception: read the installed `ZSAPKIT_ADT_DISPATCH` (`GetFunctionModule`), and when its source has no `RS_CUA_INTERNAL_GENERATE` call it predates plugin 0.13.5 and can neither read nor write a GUI status (`CX_SY_DYN_CALL_ILLEGAL_TYPE` on read, `CX_SY_DYN_CALL_PARAM_MISSING` on write). Re-upload the dispatch source below with `UpdateFunctionModule` and activate; nothing else in the bundle needs touching.
 2. If NOT found:
    - `CreateFunctionGroup` — name `ZSAPKIT_ADT_UTILS`, package `$TMP`, description `SAPKIT ADT Utility Functions`
    - `CreateFunctionModule` — name `ZSAPKIT_ADT_DISPATCH`, group `ZSAPKIT_ADT_UTILS`, description `SAPKIT ADT Dispatcher for Screen/GUI Status`
@@ -104,7 +104,7 @@ Required by the MCP server for the Screen, GUI Status, and Text Element tool fam
    - **S/4 header conversion required before upload**: the S/4 primary sources keep the SE37-style `*"*"Local Interface:` comment header for human reading, but ADT REST (`UpdateFunctionModule`) rejects it with "Parameter comment blocks are not allowed". Convert the header to the inline `FUNCTION ... IMPORTING ... EXPORTING.` signature syntax that the ECC variants already use (see [function-module-rule](../knowledge/abap/conventions/function-module-rule.md)), keeping parameter names and types identical.
    - **Invariant** — the installed FM object names are always `ZSAPKIT_ADT_DISPATCH` / `ZSAPKIT_ADT_TEXTPOOL` regardless of which source file is picked (see Ground Rules).
    - Known ECC/S4 divergences that justify the sibling files:
-     - `RS_CUA_INTERNAL_FETCH` table param `TIT` — ECC 7.40 expects `rsmpe_titt`; S/4HANA uses `rsmpe_tit`. Passing the wrong one fails with "parameter TIT — types match, but not the length".
+     - Not a divergence, despite what this list once said: the `TIT` table parameter of `RS_CUA_INTERNAL_FETCH` / `RS_CUA_INTERNAL_WRITE` is `rsmpe_titt` on S/4HANA too (read off two S/4HANA 757 systems). Both variants declare it that way; `rsmpe_tit` fails at run time.
      - Screen container/field line types — `RPY_DYCATT` / `RPY_DYFIELD` exist on S/4HANA but not ECC 7.40; the ECC variant declares internal tables using the FM's actual TABLES-parameter table types (`DYCATT_TAB`, `DYFATC_TAB`).
    - Activate all objects.
 3. Set both FMs **RFC-enabled** — manual SE37 step (see Ground Rules).

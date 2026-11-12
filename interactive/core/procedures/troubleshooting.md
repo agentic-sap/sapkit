@@ -64,6 +64,7 @@ Walk the checks in order and report **PASS / FAIL / WARN / SKIP** for each layer
 - [ ] `SearchObject(ZSAPKIT_ADT_UTILS, FUGR)` finds the function group
 - [ ] `SearchObject(ZSAPKIT_ADT_DISPATCH, FUNC)` finds the dispatcher function module, and it is RFC-enabled
 - [ ] `SearchObject(ZSAPKIT_ADT_TEXTPOOL, FUNC)` finds the text pool function module, and it is RFC-enabled
+- [ ] A GUI status tool that fails with `CX_SY_DYN_CALL_ILLEGAL_TYPE` (read) or `CX_SY_DYN_CALL_PARAM_MISSING` (write) means the installed dispatcher predates plugin 0.13.5 — refresh its source per `install-sap-assets` Step 1
 
 *ALV OOP reuse handlers — **optional**. Programs generated since 2026-11-11 use standard SAP classes only and need none of these (D-168); only programs written against them before then do. Absent → report `ALV handlers: not installed (not required)`, never FAIL or WARN:*
 

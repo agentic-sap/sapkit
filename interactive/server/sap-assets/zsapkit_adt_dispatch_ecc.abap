@@ -15,17 +15,13 @@ FUNCTION zsapkit_adt_dispatch
 * EV_RESULT. Only the SAP-side plumbing differs, and only where the older
 * release forces it.
 *
-* Three places where this build has to differ, and why.
+* Two places where this build has to differ, and why.
 *
 *   1. The signature is written out above instead of being declared in a
 *      *"Local Interface: comment block. The ADT REST endpoint the
 *      installer posts to will not accept the comment-block form, so the
 *      parameters have to be spelled into the source itself.
-*   2. TIT is typed rsmpe_titt rather than rsmpe_tit. The ECC signature of
-*      RS_CUA_INTERNAL_FETCH expects the longer line, and handing it the
-*      short one is rejected as a length mismatch even though the types
-*      are said to match.
-*   3. Screen containers and fields are typed with the table types the
+*   2. Screen containers and fields are typed with the table types the
 *      Workbench module itself publishes, dycatt_tab and dyfatc_tab,
 *      because the line type rpy_dyfield exists only on S/4HANA. Flow
 *      logic rows are rpy_dyflow for the same reason.
@@ -132,8 +128,10 @@ TYPES: BEGIN OF ty_adt_status_id,
 
 * The twelve tables that make up the GUI status pool of one program. A
 * single declaration serves both directions: RS_CUA_INTERNAL_FETCH fills
-* it and RS_CUA_INTERNAL_WRITE reads it back out. Note tit, which is the
-* one line type this release insists on widening.
+* it and RS_CUA_INTERNAL_WRITE reads it back out. Every line type is the
+* one those two modules declare for the table parameter of the same name.
+* That matters most for tit, whose parameter is typed rsmpe_titt: the
+* shorter rsmpe_tit is refused at run time, on reads and writes alike.
 TYPES: BEGIN OF ty_adt_status,
          adm TYPE rsmpe_adm,
          sta TYPE TABLE OF rsmpe_stat WITH DEFAULT KEY,
@@ -333,10 +331,23 @@ FORM apply_status_source USING iv_params TYPE string
   PERFORM resolve_language USING ls_call-language
                            CHANGING lv_language.
 
+* TR_KEY names the repository object the pool belongs to, and
+* RS_CUA_INTERNAL_WRITE declares it without a default. Leaving it out is
+* not caught by the compiler; the call dies with
+* CX_SY_DYN_CALL_PARAM_MISSING instead. The key built here is the one for
+* an executable program or a module pool. The main program of a function
+* group needs a different object type, and the Workbench call turns this
+* key down for it as invalid_data.
+  DATA(ls_tr_key) = VALUE trkey( obj_type = 'PROG'
+                                 obj_name = to_upper( ls_call-program )
+                                 sub_type = 'CUAD'
+                                 sub_name = to_upper( ls_call-program ) ).
+
   CALL FUNCTION 'RS_CUA_INTERNAL_WRITE'
     EXPORTING
       program         = CONV syrepid( to_upper( ls_call-program ) )
       language        = lv_language
+      tr_key          = ls_tr_key
       adm             = ls_status-adm
       state           = 'A'
     TABLES
@@ -353,12 +364,31 @@ FORM apply_status_source USING iv_params TYPE string
       biv             = ls_status-biv
     EXCEPTIONS
       not_found       = 1
-      unknown_version = 2
+      invalid_data    = 2
       OTHERS          = 3.
 
   cv_subrc = sy-subrc.
   IF cv_subrc <> 0.
     cv_message = |RS_CUA_INTERNAL_WRITE declined with sy-subrc { cv_subrc }|.
+    RETURN.
+  ENDIF.
+
+* The write replaces the stored pool, but SET PF-STATUS and SET TITLEBAR
+* read a generated runtime load, and the write does not rebuild it.
+* Without this step the program keeps showing its old status until
+* someone regenerates it by hand in the Menu Painter.
+  CALL FUNCTION 'RS_CUA_INTERNAL_GENERATE'
+    EXPORTING
+      program           = CONV syrepid( to_upper( ls_call-program ) )
+    EXCEPTIONS
+      not_found         = 1
+      syntax_error      = 2
+      generation_failed = 3
+      OTHERS            = 4.
+
+  cv_subrc = sy-subrc.
+  IF cv_subrc <> 0.
+    cv_message = |Pool written, but RS_CUA_INTERNAL_GENERATE declined with sy-subrc { cv_subrc }|.
     RETURN.
   ENDIF.
 
